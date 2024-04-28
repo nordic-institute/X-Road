@@ -25,19 +25,19 @@
  */
 package ee.ria.xroad.common.conf.globalconf;
 
-import ee.ria.xroad.common.conf.globalconf.sharedparameters.v3.AcmeServer;
-import ee.ria.xroad.common.conf.globalconf.sharedparameters.v3.ApprovedCATypeV3;
-import ee.ria.xroad.common.conf.globalconf.sharedparameters.v3.ApprovedTSAType;
-import ee.ria.xroad.common.conf.globalconf.sharedparameters.v3.CaInfoType;
-import ee.ria.xroad.common.conf.globalconf.sharedparameters.v3.ConfigurationSourceType;
-import ee.ria.xroad.common.conf.globalconf.sharedparameters.v3.GlobalGroupType;
-import ee.ria.xroad.common.conf.globalconf.sharedparameters.v3.GlobalSettingsType;
-import ee.ria.xroad.common.conf.globalconf.sharedparameters.v3.MemberClassType;
-import ee.ria.xroad.common.conf.globalconf.sharedparameters.v3.MemberType;
-import ee.ria.xroad.common.conf.globalconf.sharedparameters.v3.OcspInfoType;
-import ee.ria.xroad.common.conf.globalconf.sharedparameters.v3.SecurityServerType;
-import ee.ria.xroad.common.conf.globalconf.sharedparameters.v3.SharedParametersTypeV3;
-import ee.ria.xroad.common.conf.globalconf.sharedparameters.v3.SubsystemType;
+import ee.ria.xroad.common.conf.globalconf.sharedparameters.v4.AcmeServer;
+import ee.ria.xroad.common.conf.globalconf.sharedparameters.v4.ApprovedCATypeV3;
+import ee.ria.xroad.common.conf.globalconf.sharedparameters.v4.ApprovedTSAType;
+import ee.ria.xroad.common.conf.globalconf.sharedparameters.v4.CaInfoType;
+import ee.ria.xroad.common.conf.globalconf.sharedparameters.v4.ConfigurationSourceType;
+import ee.ria.xroad.common.conf.globalconf.sharedparameters.v4.GlobalGroupType;
+import ee.ria.xroad.common.conf.globalconf.sharedparameters.v4.GlobalSettingsType;
+import ee.ria.xroad.common.conf.globalconf.sharedparameters.v4.MemberClassType;
+import ee.ria.xroad.common.conf.globalconf.sharedparameters.v4.MemberType;
+import ee.ria.xroad.common.conf.globalconf.sharedparameters.v4.OcspInfoType;
+import ee.ria.xroad.common.conf.globalconf.sharedparameters.v4.SecurityServerType;
+import ee.ria.xroad.common.conf.globalconf.sharedparameters.v4.SharedParametersTypeV4;
+import ee.ria.xroad.common.conf.globalconf.sharedparameters.v4.SubsystemType;
 import ee.ria.xroad.common.identifier.ClientId;
 
 import jakarta.xml.bind.JAXBElement;
@@ -49,9 +49,9 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-public class SharedParametersV3Converter {
+public class SharedParametersV4Converter {
 
-    SharedParameters convert(SharedParametersTypeV3 source) throws CertificateEncodingException, IOException {
+    SharedParameters convert(SharedParametersTypeV4 source) throws CertificateEncodingException, IOException {
         String instanceIdentifier = source.getInstanceIdentifier();
         List<SharedParameters.ConfigurationSource> configurationSources = getConfigurationSources(source.getSource());
         List<SharedParameters.ApprovedCA> approvedCAs = getApprovedCAs(source.getApprovedCA());
@@ -97,7 +97,7 @@ public class SharedParametersV3Converter {
         return members;
     }
 
-    private List<SharedParameters.SecurityServer> getSecurityServers(SharedParametersTypeV3 source) {
+    private List<SharedParameters.SecurityServer> getSecurityServers(SharedParametersTypeV4 source) {
         List<SharedParameters.SecurityServer> securityServers = new ArrayList<>();
         if (source.getSecurityServer() != null) {
             Map<String, ClientId> clientIds = getClientIds(source);
@@ -110,7 +110,7 @@ public class SharedParametersV3Converter {
         return securityServers;
     }
 
-    private Map<String, ClientId> getClientIds(SharedParametersTypeV3 source) {
+    private Map<String, ClientId> getClientIds(SharedParametersTypeV4 source) {
         Map<String, ClientId> ret = new HashMap<>();
         source.getMember().forEach(member -> {
             ret.put(member.getId(), toClientId(source.getInstanceIdentifier(), member));
@@ -162,6 +162,8 @@ public class SharedParametersV3Converter {
         var acmeServer = new SharedParameters.AcmeServer();
         acmeServer.setDirectoryURL(source.getDirectoryURL());
         acmeServer.setIpAddress(source.getIpAddress());
+        acmeServer.setAuthenticationCertificateProfileId(source.getAuthenticationCertificateProfileId());
+        acmeServer.setSigningCertificateProfileId(source.getSigningCertificateProfileId());
         return acmeServer;
     }
 

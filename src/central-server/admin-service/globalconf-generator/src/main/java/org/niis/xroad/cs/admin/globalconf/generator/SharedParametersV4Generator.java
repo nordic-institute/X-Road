@@ -1,5 +1,6 @@
 /*
  * The MIT License
+ *
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
@@ -23,27 +24,23 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package ee.ria.xroad.common.conf.globalconf;
+package org.niis.xroad.cs.admin.globalconf.generator;
 
-import java.io.IOException;
-import java.security.cert.CertificateEncodingException;
-import java.time.OffsetDateTime;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.stereotype.Component;
 
-public interface SharedParametersProvider {
+@Component
+@RequiredArgsConstructor
+@Slf4j
+public class SharedParametersV4Generator {
+    private final SharedParametersV4Marshaller marshaller;
+    private final SharedParametersLoader loader;
 
-    default SharedParametersProvider refresh(OffsetDateTime fileExpiresOn) throws CertificateEncodingException, IOException {
-        if (this instanceof SharedParametersV4 v4) {
-            return new SharedParametersV4(v4, fileExpiresOn);
-        } else if (this instanceof SharedParametersV3 v3) {
-            return new SharedParametersV3(v3, fileExpiresOn);
-        } else {
-            return new SharedParametersV2((SharedParametersV2) this, fileExpiresOn);
-        }
+    String generate() {
+        log.debug("Generating shared parameters");
+        var parameters = loader.load();
+        log.trace("Shared parameters loaded: {}", parameters);
+        return marshaller.marshall(parameters);
     }
-
-    SharedParameters getSharedParameters();
-
-    OffsetDateTime getExpiresOn();
-
-    boolean hasChanged();
 }

@@ -42,6 +42,7 @@ import java.util.stream.Collectors;
 
 import static ee.ria.xroad.common.ErrorCodes.X_INVALID_XML;
 import static ee.ria.xroad.common.conf.globalconf.VersionedConfigurationDirectory.isCurrentVersion;
+import static ee.ria.xroad.common.conf.globalconf.VersionedConfigurationDirectory.isVersion;
 
 /**
  * Configuration client downloads the configuration from sources found in the configuration anchor.
@@ -130,6 +131,7 @@ class ConfigurationClient {
         handleResult(downloader.download(configurationAnchor), true);
     }
 
+    @SuppressWarnings("checkstyle:MagicNumber")
     private PrivateParameters loadPrivateParameters() {
         try {
             Path privateParamsPath = Path.of(globalConfigurationDir, configurationAnchor.getInstanceIdentifier(),
@@ -140,7 +142,7 @@ class ConfigurationClient {
                 return null;
             }
 
-            PrivateParametersProvider p = isCurrentVersion(privateParamsPath)
+            PrivateParametersProvider p = isCurrentVersion(privateParamsPath) || isVersion(privateParamsPath, 3)
                     ? new PrivateParametersV3(privateParamsPath, OffsetDateTime.MAX)
                     : new PrivateParametersV2(privateParamsPath, OffsetDateTime.MAX);
             return p.getPrivateParameters();

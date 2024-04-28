@@ -43,13 +43,16 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 
+import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 
-public class GlobalConfVer3Test {
-    private static final String GOOD_CONF_DIR = "../common-globalconf/src/test/resources/globalconf_good_v3";
+public class GlobalConfVer4Test {
+    private static final String GOOD_CONF_DIR = "../common-globalconf/src/test/resources/globalconf_good_v4";
     private static final Path GOOD_CONF_FILES = Paths.get(GOOD_CONF_DIR, "files");
 
     @Rule
@@ -74,6 +77,8 @@ public class GlobalConfVer3Test {
         confFiles.add(getConfFileName("EE", "shared-params.xml"));
         confFiles.add(getConfFileName("foo_v2", "private-params.xml"));
         confFiles.add(getConfFileName("foo_v2", "shared-params.xml"));
+        confFiles.add(getConfFileName("baz_v3", "private-params.xml"));
+        confFiles.add(getConfFileName("baz_v3", "shared-params.xml"));
 
         FileUtils.writeLines(files, StandardCharsets.UTF_8.name(), confFiles);
     }
@@ -89,7 +94,7 @@ public class GlobalConfVer3Test {
 
     private static void deleteConfigurationFiles() {
         try {
-            Files.delete(GlobalConfVer3Test.GOOD_CONF_FILES);
+            Files.delete(GlobalConfVer4Test.GOOD_CONF_FILES);
         } catch (IOException e) {
             // Ignore.
         }
@@ -113,5 +118,20 @@ public class GlobalConfVer3Test {
                 ClientId.Conf.create("EE", "BUSINESS", "member2"),
                 GlobalGroupId.Conf.create("non-existent-instance", "non-existent-group"))
         );
+    }
+
+    @Test
+    public void getApprovedCAs() {
+        Collection<ApprovedCAInfo> eeCAs = GlobalConf.getApprovedCAs("EE");
+        ApprovedCAInfo pki1 = eeCAs.stream().filter(ca -> ca.getName().equals("pki1")).findFirst().get();
+        assertEquals("http://ca:8887/acme/directory", pki1.getAcmeServerDirectoryUrl());
+        assertEquals("5", pki1.getAuthenticationCertificateProfileId());
+        assertEquals("6", pki1.getSigningCertificateProfileId());
+
+        Collection<ApprovedCAInfo> v3CAs = GlobalConf.getApprovedCAs("baz_v3");
+        ApprovedCAInfo v3pki1 = v3CAs.stream().filter(ca -> ca.getName().equals("pki1")).findFirst().get();
+        assertEquals("http://ca:8887/acme/directory", v3pki1.getAcmeServerDirectoryUrl());
+        assertNull(v3pki1.getAuthenticationCertificateProfileId());
+        assertNull(v3pki1.getSigningCertificateProfileId());
     }
 }

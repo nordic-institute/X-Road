@@ -1,5 +1,6 @@
 /*
  * The MIT License
+ *
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
@@ -23,27 +24,37 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package ee.ria.xroad.common.conf.globalconf;
+package org.niis.xroad.cs.admin.globalconf.generator;
 
-import java.io.IOException;
-import java.security.cert.CertificateEncodingException;
-import java.time.OffsetDateTime;
+import ee.ria.xroad.common.conf.globalconf.SharedParametersSchemaValidatorV4;
+import ee.ria.xroad.common.conf.globalconf.sharedparameters.v4.ObjectFactory;
 
-public interface SharedParametersProvider {
+import jakarta.xml.bind.JAXBContext;
+import jakarta.xml.bind.Marshaller;
+import lombok.SneakyThrows;
+import org.springframework.stereotype.Component;
 
-    default SharedParametersProvider refresh(OffsetDateTime fileExpiresOn) throws CertificateEncodingException, IOException {
-        if (this instanceof SharedParametersV4 v4) {
-            return new SharedParametersV4(v4, fileExpiresOn);
-        } else if (this instanceof SharedParametersV3 v3) {
-            return new SharedParametersV3(v3, fileExpiresOn);
-        } else {
-            return new SharedParametersV2((SharedParametersV2) this, fileExpiresOn);
-        }
+import java.io.StringWriter;
+
+@Component
+public class SharedParametersV4Marshaller {
+
+    private final JAXBContext jaxbContext = createJaxbContext();
+
+    @SneakyThrows
+    String marshall(SharedParameters parameters) {
+        var writer = new StringWriter();
+        var marshaller = jaxbContext.createMarshaller();
+        marshaller.setProperty(Marshaller.JAXB_FORMATTED_OUTPUT, Boolean.TRUE);
+        marshaller.setSchema(SharedParametersSchemaValidatorV4.getSchema());
+        marshaller.marshal(new ObjectFactory().createConf(SharedParametersV4Converter.INSTANCE.convert(parameters)),
+                writer);
+        return writer.toString();
     }
 
-    SharedParameters getSharedParameters();
+    @SneakyThrows
+    private JAXBContext createJaxbContext() {
+        return JAXBContext.newInstance(ObjectFactory.class);
+    }
 
-    OffsetDateTime getExpiresOn();
-
-    boolean hasChanged();
 }

@@ -126,6 +126,7 @@ public class VersionedConfigurationDirectory implements ConfigurationDirectory {
         return privateParams;
     }
 
+    @SuppressWarnings("checkstyle:MagicNumber")
     private void loadPrivateParameters(Path instanceDir, Map<String, PrivateParametersProvider> basePrivateParams) {
         String instanceId = instanceDir.getFileName().toString();
         Path privateParametersPath = Paths.get(instanceDir.toString(), ConfigurationConstants.FILE_NAME_PRIVATE_PARAMETERS);
@@ -139,7 +140,7 @@ public class VersionedConfigurationDirectory implements ConfigurationDirectory {
                     parametersToUse = existingParameters.refresh(fileExpiresOn);
                 } else {
                     log.trace("Reloading PrivateParameters from {} ", privateParametersPath);
-                    parametersToUse = isCurrentVersion(privateParametersPath)
+                    parametersToUse = isCurrentVersion(privateParametersPath) || isVersion(privateParametersPath, 3)
                             ? new PrivateParametersV3(privateParametersPath, fileExpiresOn)
                             : new PrivateParametersV2(privateParametersPath, fileExpiresOn);
                 }
@@ -170,6 +171,7 @@ public class VersionedConfigurationDirectory implements ConfigurationDirectory {
         return sharedParams;
     }
 
+    @SuppressWarnings("checkstyle:MagicNumber")
     private void loadSharedParameters(Path instanceDir, Map<String, SharedParametersProvider> baseSharedParams) {
         String instanceId = instanceDir.getFileName().toString();
         Path sharedParametersPath = Paths.get(instanceDir.toString(),
@@ -184,9 +186,13 @@ public class VersionedConfigurationDirectory implements ConfigurationDirectory {
                     parametersToUse = existingParameters.refresh(fileExpiresOn);
                 } else {
                     log.trace("Reloading SharedParameters from {} ", sharedParametersPath);
-                    parametersToUse = isCurrentVersion(sharedParametersPath)
-                            ? new SharedParametersV3(sharedParametersPath, fileExpiresOn)
-                            : new SharedParametersV2(sharedParametersPath, fileExpiresOn);
+                    if (isCurrentVersion(sharedParametersPath)) {
+                        parametersToUse = new SharedParametersV4(sharedParametersPath, fileExpiresOn);
+                    } else if (isVersion(sharedParametersPath, 3)) {
+                        parametersToUse = new SharedParametersV3(sharedParametersPath, fileExpiresOn);
+                    } else {
+                        parametersToUse = new SharedParametersV2(sharedParametersPath, fileExpiresOn);
+                    }
                 }
                 baseSharedParams.put(instanceId, parametersToUse);
             } catch (Exception e) {
@@ -332,8 +338,12 @@ public class VersionedConfigurationDirectory implements ConfigurationDirectory {
     }
 
     public static boolean isCurrentVersion(Path filePath) {
+        return isVersion(filePath, CURRENT_GLOBAL_CONFIGURATION_VERSION);
+    }
+
+    public static boolean isVersion(Path filePath, int version) {
         Integer confVersion = getVersion(filePath);
-        return confVersion != null && confVersion == CURRENT_GLOBAL_CONFIGURATION_VERSION;
+        return confVersion != null && confVersion == version;
     }
 
     public static Integer getVersion(Path filePath) {
