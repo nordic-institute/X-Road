@@ -25,25 +25,39 @@
  */
 package ee.ria.xroad.common.conf.globalconf;
 
-import java.io.IOException;
-import java.security.cert.CertificateEncodingException;
-import java.time.OffsetDateTime;
+import ee.ria.xroad.common.ErrorCodes;
+import ee.ria.xroad.common.util.SchemaValidator;
 
-public interface SharedParametersProvider {
+import javax.xml.transform.Source;
+import javax.xml.transform.stream.StreamSource;
+import javax.xml.validation.Schema;
 
-    default SharedParametersProvider refresh(OffsetDateTime fileExpiresOn) throws CertificateEncodingException, IOException {
-        if (this instanceof SharedParametersV4 v4) {
-            return new SharedParametersV4(v4, fileExpiresOn);
-        } else if (this instanceof SharedParametersV3 v3) {
-            return new SharedParametersV3(v3, fileExpiresOn);
-        } else {
-            return new SharedParametersV2((SharedParametersV2) this, fileExpiresOn);
-        }
+import java.io.StringReader;
+
+public class SharedParametersSchemaValidatorV4 extends SchemaValidator {
+
+    private static final Schema SCHEMA = createSchema("globalconf/v4/shared-parameters.xsd");
+
+    public static Schema getSchema() {
+        return SCHEMA;
     }
 
-    SharedParameters getSharedParameters();
+    /**
+     * Validates the input XML as string against the schema.
+     * @param xml the input XML as string
+     * @throws Exception if validation fails
+     */
+    public static void validate(String xml) throws Exception {
+        validate(new StreamSource(new StringReader(xml)));
+    }
 
-    OffsetDateTime getExpiresOn();
+    /**
+     * Validates the input source against the schema.
+     * @param source the input source
+     * @throws Exception if validation fails
+     */
+    public static void validate(Source source) throws Exception {
+        validate(SCHEMA, source, ErrorCodes.X_MALFORMED_GLOBALCONF);
+    }
 
-    boolean hasChanged();
 }
