@@ -121,9 +121,23 @@ public class ConfigurationDownloaderTest {
     }
 
     @Test
-    public void v3PrevailsWhenVersionNeitherPresetNorEnforced() {
+    public void v4PrevailsWhenVersionNeitherPresetNorEnforced() {
         // Given
         String url = LOCATION_URL_SUCCESS;
+        ConfigurationDownloader downloader = getDownloader(url + "?version=" + 4);
+        List<String> locationUrls = List.of(url);
+
+        // When
+        downloader.download(getSource(locationUrls));
+
+        // Then
+        verifySuccessfulLocation(downloader, 4);
+    }
+
+    @Test
+    public void v3PrevailsWhenVersionNeitherPresetNorEnforcedAndV4NotAvailable() {
+        // Given
+        String url = LOCATION_URL_SUCCESS + "/nope";
         ConfigurationDownloader downloader = getDownloader(url + "?version=" + 3);
         List<String> locationUrls = List.of(url);
 
@@ -131,21 +145,7 @@ public class ConfigurationDownloaderTest {
         downloader.download(getSource(locationUrls));
 
         // Then
-        verifySuccessfulLocation(downloader, 3);
-    }
-
-    @Test
-    public void v2PrevailsWhenVersionNeitherPresetNorEnforcedAndV3NotAvailable() {
-        // Given
-        String url = LOCATION_URL_SUCCESS + "/nope";
-        ConfigurationDownloader downloader = getDownloader(url + "?version=" + 2);
-        List<String> locationUrls = List.of(url);
-
-        // When
-        downloader.download(getSource(locationUrls));
-
-        // Then
-        verifySuccessfulLocationNope(downloader, 2);
+        verifySuccessfulLocationNope(downloader, 3);
     }
 
     @Test

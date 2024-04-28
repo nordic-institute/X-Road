@@ -28,8 +28,9 @@ package ee.ria.xroad.confproxy.util;
 import ee.ria.xroad.common.SystemProperties;
 import ee.ria.xroad.common.conf.globalconf.ConfigurationPartMetadata;
 import ee.ria.xroad.common.conf.globalconf.SharedParametersV3;
+import ee.ria.xroad.common.conf.globalconf.SharedParametersV4;
 import ee.ria.xroad.common.conf.globalconf.VersionedConfigurationDirectory;
-import ee.ria.xroad.common.conf.globalconf.sharedparameters.v3.ConfigurationSourceType;
+import ee.ria.xroad.common.conf.globalconf.sharedparameters.v4.ConfigurationSourceType;
 import ee.ria.xroad.common.util.CryptoUtils;
 import ee.ria.xroad.common.util.HashCalculator;
 import ee.ria.xroad.common.util.MimeTypes;
@@ -213,7 +214,7 @@ public class OutputBuilder implements AutoCloseable {
             confDir.eachFile((metadata, inputStream) -> {
                 try (FileOutputStream fos = createFileOutputStream(tempDirPath, metadata)) {
                     if (shouldOverrideConfigurationSources(metadata)) {
-                        inputStream = toInputStreamWithOverriddenConfigurationSources(inputStream);
+                        inputStream = toInputStreamWithOverriddenConfigurationSources(inputStream, metadata.getConfigurationVersion());
                     }
                     TeeInputStream tis = new TeeInputStream(inputStream, fos);
                     appendFileContent(encoder, instance, metadata, tis);
@@ -223,26 +224,51 @@ public class OutputBuilder implements AutoCloseable {
     }
 
     private boolean shouldOverrideConfigurationSources(ConfigurationPartMetadata metadata) {
-        boolean isVersion3 = valueOf(CURRENT_GLOBAL_CONFIGURATION_VERSION).equals(metadata.getConfigurationVersion());
+        boolean isVersion3 = valueOf(CURRENT_GLOBAL_CONFIGURATION_VERSION - 1).equals(metadata.getConfigurationVersion());
+        boolean isVersion4 = valueOf(CURRENT_GLOBAL_CONFIGURATION_VERSION).equals(metadata.getConfigurationVersion());
         boolean isSharedParams = CONTENT_ID_SHARED_PARAMETERS.equals(metadata.getContentIdentifier());
         boolean isMainInstance = confDir.getInstanceIdentifier().equals(metadata.getInstanceIdentifier());
-        return isVersion3 && isSharedParams && isMainInstance;
+        return (isVersion3 || isVersion4) && isSharedParams && isMainInstance;
     }
 
-    private InputStream toInputStreamWithOverriddenConfigurationSources(InputStream sharedParamsInputStream) throws Exception {
+    private InputStream toInputStreamWithOverriddenConfigurationSources(InputStream sharedParamsInputStream, String configurationVersion)
+            throws Exception {
         ByteArrayOutputStream os = new ByteArrayOutputStream();
+        boolean isVersion4 = valueOf(CURRENT_GLOBAL_CONFIGURATION_VERSION).equals(configurationVersion);
         try (sharedParamsInputStream) {
-            SharedParametersV3 sharedParameters = new SharedParametersV3(sharedParamsInputStream.readAllBytes());
-            List<ConfigurationSourceType> sources = sharedParameters.getConfType().getSource();
-            sources.clear();
-            sources.add(buildConfProxyConfigurationSource());
-            sharedParameters.save(os);
+            if (isVersion4) {
+                SharedParametersV4 sharedParameters = new SharedParametersV4(sharedParamsInputStream.readAllBytes());
+                List<ConfigurationSourceType> sources = sharedParameters.getConfType().getSource();
+                sources.clear();
+                sources.add(buildConfProxyConfigurationSourceV4());
+                sharedParameters.save(os);
+            } else {
+                SharedParametersV3 sharedParameters = new SharedParametersV3(sharedParamsInputStream.readAllBytes());
+                List<ee.ria.xroad.common.conf.globalconf.sharedparameters.v3.ConfigurationSourceType>
+                        sources = sharedParameters.getConfType().getSource();
+                sources.add(buildConfProxyConfigurationSourceV3());
+                sources.clear();
+                sharedParameters.save(os);
+            }
             return new ByteArrayInputStream(os.toByteArray());
         }
     }
 
-    private ConfigurationSourceType buildConfProxyConfigurationSource() {
+    private ConfigurationSourceType buildConfProxyConfigurationSourceV4() {
         ConfigurationSourceType confProxySource = new ConfigurationSourceType();
+        confProxySource.setAddress(SystemProperties.getConfigurationProxyAddress());
+        // PS! Need to allocate both external & internal in order not to break 7.4.0 versioned clients of confproxy
+        // as their shared-parameters.xsd requires at least 1 internal & 1 external verification cert to be present.
+        // If 7.4.0 is no longer supported we can decide the configuration type from whether private-params
+        // configuration part is present & then add the verification certs just to the matching type.
+        confProxySource.getExternalVerificationCert().addAll(conf.getVerificationCerts());
+        confProxySource.getInternalVerificationCert().addAll(conf.getVerificationCerts());
+        return confProxySource;
+    }
+
+    private ee.ria.xroad.common.conf.globalconf.sharedparameters.v3.ConfigurationSourceType buildConfProxyConfigurationSourceV3() {
+        ee.ria.xroad.common.conf.globalconf.sharedparameters.v3.ConfigurationSourceType confProxySource =
+                new ee.ria.xroad.common.conf.globalconf.sharedparameters.v3.ConfigurationSourceType();
         confProxySource.setAddress(SystemProperties.getConfigurationProxyAddress());
         // PS! Need to allocate both external & internal in order not to break 7.4.0 versioned clients of confproxy
         // as their shared-parameters.xsd requires at least 1 internal & 1 external verification cert to be present.

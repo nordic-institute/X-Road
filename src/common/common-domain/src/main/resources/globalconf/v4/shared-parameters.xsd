@@ -5,7 +5,7 @@
 
     <include schemaLocation="../common/shared-parameters.xsd"/>
 
-    <element name="conf" type="tns:SharedParametersTypeV3">
+    <element name="conf" type="tns:SharedParametersTypeV4">
         <annotation>
             <documentation>
                 Set of configuration parameters that are used by members of this X-Road instance and other federated
@@ -40,7 +40,7 @@
         </sequence>
     </complexType>
 
-    <complexType name="SharedParametersTypeV3">
+    <complexType name="SharedParametersTypeV4">
         <sequence>
             <element name="instanceIdentifier" type="string">
                 <annotation>
@@ -181,6 +181,22 @@
                         ACME server IP address or multiple addresses separated by comma, that Security Server admins can
                         use to whitelist the ACME Server in their firewall rules, so that the ACME server's HTTP challenge
                         wouldn't be blocked.
+                    </documentation>
+                </annotation>
+            </element>
+            <element name="authenticationCertificateProfileId" type="string" minOccurs="0">
+                <annotation>
+                    <documentation>
+                        Profile ID used for some ACME servers to let them know the certificate usage type when ordering
+                        an authentication certificate.
+                    </documentation>
+                </annotation>
+            </element>
+            <element name="signingCertificateProfileId" type="string" minOccurs="0">
+                <annotation>
+                    <documentation>
+                        Profile ID used for some ACME servers to let them know the certificate usage type when ordering
+                        a signing certificate.
                     </documentation>
                 </annotation>
             </element>

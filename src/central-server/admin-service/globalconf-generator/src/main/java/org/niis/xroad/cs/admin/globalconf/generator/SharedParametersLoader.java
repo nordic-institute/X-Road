@@ -57,6 +57,7 @@ import java.util.List;
 import java.util.Map;
 
 import static java.util.stream.Collectors.toList;
+import static org.apache.commons.lang3.StringUtils.isNotBlank;
 
 @Component
 @RequiredArgsConstructor
@@ -129,13 +130,16 @@ class SharedParametersLoader {
         approvedCA.setCertificateProfileInfo(ca.getCertificateProfileInfo());
         approvedCA.setTopCA(new SharedParameters.CaInfo(toOcspInfos(ca.getOcspResponders()), ca.getCertificate()));
         approvedCA.setIntermediateCAs(toCaInfos(ca.getIntermediateCas()));
-        if (ca.getAcmeServerDirectoryUrl() != null) {
+        if (isNotBlank(ca.getAcmeServerDirectoryUrl())) {
             approvedCA.setAcmeServer(
                     new SharedParameters.AcmeServer(ca.getAcmeServerDirectoryUrl(),
-                            ca.getAcmeServerIpAddress(),
-                            ca.getAuthenticationCertificateProfileId(),
-                            ca.getSigningCertificateProfileId())
+                            isNotBlank(ca.getAcmeServerIpAddress()) ? ca.getAcmeServerIpAddress() : null,
+                            isNotBlank(ca.getAuthenticationCertificateProfileId()) ? ca.getAuthenticationCertificateProfileId() : null,
+                            isNotBlank(ca.getSigningCertificateProfileId()) ? ca.getSigningCertificateProfileId() : null
+                    )
             );
+        } else {
+            approvedCA.setAcmeServer(null);
         }
         return approvedCA;
     }

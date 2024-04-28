@@ -40,6 +40,7 @@ import org.niis.xroad.common.exception.ValidationFailureException;
 import org.niis.xroad.securityserver.restapi.config.AcmeProperties;
 import org.shredzone.acme4j.Account;
 import org.shredzone.acme4j.AccountBuilder;
+import org.shredzone.acme4j.AcmeJsonResource;
 import org.shredzone.acme4j.Authorization;
 import org.shredzone.acme4j.Certificate;
 import org.shredzone.acme4j.Metadata;
@@ -74,6 +75,7 @@ import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.List;
 import java.util.Optional;
+import java.util.function.Supplier;
 
 import static ee.ria.xroad.common.util.CertUtils.createSelfSignedCertificate;
 import static org.niis.xroad.securityserver.restapi.service.AcmeCustomSchema.XRD_ACME;
@@ -294,23 +296,37 @@ public final class AcmeService {
         log.debug("Waiting for challenge to be completed");
         int attempts = SystemProperties.getAcmeAuthorizationWaitAttempts();
         long interval = SystemProperties.getAcmeAuthorizationWaitInterval();
-        while (challenge.getStatus() != Status.VALID  && attempts-- > 0) {
-            if (challenge.getStatus() == Status.INVALID) {
-                throw new AcmeServiceException(AUTHORIZATION_FAILURE);
+        waitForTheAcmeResourceToBeCompleted(challenge,
+                challenge::getStatus,
+                attempts,
+                interval,
+                AUTHORIZATION_FAILURE,
+                AUTHORIZATION_WAIT_FAILURE);
+    }
+
+    private static void waitForTheAcmeResourceToBeCompleted(AcmeJsonResource acmeJsonResource,
+                                                            Supplier<Status> statusSupplier,
+                                                            int attempts,
+                                                            long interval,
+                                                            AcmeDeviationMessage fetchFailure,
+                                                            AcmeDeviationMessage fetchWaitFailure) {
+        while (statusSupplier.get() != Status.VALID  && attempts-- > 0) {
+            if (statusSupplier.get() == Status.INVALID) {
+                throw new AcmeServiceException(fetchFailure);
             }
             Instant now = Instant.now();
             try {
-                Instant retryAfter = challenge.fetch().orElse(now.plusSeconds(interval));
+                Instant retryAfter = acmeJsonResource.fetch().orElse(now.plusSeconds(interval));
                 Thread.sleep(now.until(retryAfter, ChronoUnit.MILLIS));
             } catch (AcmeException e) {
-                throw new AcmeServiceException(AUTHORIZATION_FAILURE, e);
+                throw new AcmeServiceException(fetchFailure, e);
             } catch (InterruptedException e) {
                 Thread.currentThread().interrupt();
-                throw new AcmeServiceException(AUTHORIZATION_WAIT_FAILURE, e);
+                throw new AcmeServiceException(fetchWaitFailure, e);
             }
         }
-        if (challenge.getStatus() != Status.VALID) {
-            throw new AcmeServiceException(AUTHORIZATION_WAIT_FAILURE);
+        if (statusSupplier.get() != Status.VALID) {
+            throw new AcmeServiceException(fetchWaitFailure);
         }
     }
 
@@ -318,24 +334,7 @@ public final class AcmeService {
         log.debug("Getting the certificate");
         int attempts = SystemProperties.getAcmeCertificateWaitAttempts();
         long interval = SystemProperties.getAcmeCertificateWaitInterval();
-        while (order.getStatus() != Status.VALID && attempts-- > 0) {
-            if (order.getStatus() == Status.INVALID) {
-                throw new AcmeServiceException(CERTIFICATE_FAILURE);
-            }
-            Instant now = Instant.now();
-            try {
-                Instant retryAfter = order.fetch().orElse(now.plusSeconds(interval));
-                Thread.sleep(now.until(retryAfter, ChronoUnit.MILLIS));
-            } catch (AcmeException e) {
-                throw new AcmeServiceException(CERTIFICATE_FAILURE, e);
-            } catch (InterruptedException e) {
-                Thread.currentThread().interrupt();
-                throw new AcmeServiceException(CERTIFICATE_WAIT_FAILURE, e);
-            }
-        }
-        if (order.getStatus() != Status.VALID) {
-            throw new AcmeServiceException(CERTIFICATE_WAIT_FAILURE);
-        }
+        waitForTheAcmeResourceToBeCompleted(order, order::getStatus, attempts, interval, CERTIFICATE_FAILURE, CERTIFICATE_WAIT_FAILURE);
         return order.getCertificate();
     }
 }

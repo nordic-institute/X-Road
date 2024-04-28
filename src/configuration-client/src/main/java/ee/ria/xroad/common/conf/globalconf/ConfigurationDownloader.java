@@ -353,15 +353,29 @@ class ConfigurationDownloader {
         //make possible with current structure to be overridden and validations called
     }
 
+    @SuppressWarnings("checkstyle:MagicNumber")
     void handleContent(byte[] content, ConfigurationFile file) throws CertificateEncodingException, IOException {
-        boolean isVersion3 = valueOf(CURRENT_GLOBAL_CONFIGURATION_VERSION).equals(file.getMetadata().getConfigurationVersion());
+        boolean isVersion4 = valueOf(CURRENT_GLOBAL_CONFIGURATION_VERSION).equals(file.getMetadata().getConfigurationVersion());
+        boolean isVersion3 = valueOf(3).equals(file.getMetadata().getConfigurationVersion());
         switch (file.getContentIdentifier()) {
             case ConfigurationConstants.CONTENT_ID_PRIVATE_PARAMETERS:
-                PrivateParametersProvider pp = isVersion3 ? new PrivateParametersV3(content) : new PrivateParametersV2(content);
+                PrivateParametersProvider pp;
+                if (isVersion4 || isVersion3) {
+                    pp = new PrivateParametersV3(content);
+                } else {
+                    pp = new PrivateParametersV2(content);
+                }
                 handlePrivateParameters(pp.getPrivateParameters(), file);
                 break;
             case ConfigurationConstants.CONTENT_ID_SHARED_PARAMETERS:
-                SharedParametersProvider sp = isVersion3 ? new SharedParametersV3(content) : new SharedParametersV2(content);
+                SharedParametersProvider sp;
+                if (isVersion4) {
+                    sp = new SharedParametersV4(content);
+                } else if (isVersion3) {
+                    sp = new SharedParametersV3(content);
+                } else {
+                    sp = new SharedParametersV2(content);
+                }
                 handleSharedParameters(sp.getSharedParameters(), file);
                 break;
             default:

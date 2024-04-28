@@ -42,6 +42,7 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import static ee.ria.xroad.common.conf.globalconf.VersionedConfigurationDirectory.isCurrentVersion;
+import static ee.ria.xroad.common.conf.globalconf.VersionedConfigurationDirectory.isVersion;
 import static org.niis.xroad.common.exception.util.CommonDeviationMessage.INVALID_DOWNLOAD_URL_FORMAT;
 
 @Slf4j
@@ -113,13 +114,20 @@ class SharedParametersConfigurationLocations {
         return EXTERNAL_CONF.equals(confLocation);
     }
 
+    @SuppressWarnings("checkstyle:MagicNumber")
     private List<SharedParameters.ConfigurationSource> getSharedParametersConfigurationSources(String instanceIdentifier)
             throws CertificateEncodingException, IOException {
         Path sharedParamsPath = fileNameProvider.getConfigurationDirectory(instanceIdentifier)
                 .resolve(ConfigurationConstants.FILE_NAME_SHARED_PARAMETERS);
-        if (Files.exists(sharedParamsPath) && isCurrentVersion(sharedParamsPath)) {
-            SharedParameters sharedParams = new SharedParametersV3(sharedParamsPath, OffsetDateTime.MAX).getSharedParameters();
-            return sharedParams.getSources();
+        if (Files.exists(sharedParamsPath)) {
+            if (isCurrentVersion(sharedParamsPath)) {
+                SharedParameters sharedParams = new SharedParametersV4(sharedParamsPath, OffsetDateTime.MAX).getSharedParameters();
+                return sharedParams.getSources();
+            }
+            if (isVersion(sharedParamsPath, 3)) {
+                SharedParameters sharedParams = new SharedParametersV3(sharedParamsPath, OffsetDateTime.MAX).getSharedParameters();
+                return sharedParams.getSources();
+            }
         }
         return List.of();
     }
