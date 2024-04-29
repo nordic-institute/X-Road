@@ -9,7 +9,4 @@
 - set_fact:
     postgresql_data_dir: "/var/lib/postgresql/{{ postgresql_major_version }}/serverconf"
     postgresql_config_dir: "/etc/postgresql/{{ postgresql_major_version }}/serverconf"
-
-- set_fact:
     postgresql_serverconf_service: "postgresql@{{ postgresql_major_version }}-serverconf"
-  when: ansible_distribution_release == "focal" or ansible_distribution_release == "jammy"
