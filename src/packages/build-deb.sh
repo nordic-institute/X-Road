@@ -2,6 +2,10 @@
 set -e
 LAST_SUPPORTED_VERSION=7.3.0
 
+warn() {
+  echo "$(tput setaf 3)*** $*$(tput sgr0)"
+}
+
 function builddeb {
     local root="$1"
     local dist="$2"
@@ -33,8 +37,8 @@ EOF
     done
     sed -i "s/#LAST_SUPPORTED_VERSION#/${LAST_SUPPORTED_VERSION}/" debian/*.preinst
 
-    echo "Building $dist packages.."
-    echo "using packageVersion $packageVersion"
+    warn "Building $dist packages.."
+    warn "using packageVersion $packageVersion"
     if [[ $packageVersion != "-release" ]]; then
         version=$version."$packageVersion"
     else
