@@ -27,14 +27,15 @@
 package org.niis.xroad.edc.ih.vc;
 
 import com.apicatalog.jsonld.loader.SchemeRouter;
-import com.apicatalog.ld.signature.method.MethodResolver;
-import com.apicatalog.vc.integrity.DataIntegrityProofOptions;
+import com.apicatalog.ld.signature.VerificationMethod;
+import com.apicatalog.vc.method.resolver.MethodResolver;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.nimbusds.jose.jwk.RSAKey;
 import org.eclipse.edc.iam.identitytrust.spi.verification.SignatureSuiteRegistry;
 import org.eclipse.edc.iam.identitytrust.spi.verification.VerifierContext;
 import org.eclipse.edc.jsonld.TitaniumJsonLd;
-import org.eclipse.edc.security.signature.jws2020.JwsSignature2020Suite;
+import org.eclipse.edc.security.signature.jws2020.Jws2020ProofDraft;
+import org.eclipse.edc.security.signature.jws2020.Jws2020SignatureSuite;
 import org.eclipse.edc.verifiablecredentials.linkeddata.LdpVerifier;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
@@ -53,9 +54,9 @@ import java.util.List;
 import java.util.UUID;
 
 import static org.eclipse.edc.jsonld.util.JacksonJsonLd.createObjectMapper;
-import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
+import static org.niis.xroad.edc.ih.vc.TestFunctions.createKeyPair;
 
 class VCGenerator {
 
@@ -98,7 +99,7 @@ class VCGenerator {
             """;
 
     private final ObjectMapper mapper = createObjectMapper();
-    private final JwsSignature2020Suite jwsSignatureSuite = new JwsSignature2020Suite(mapper);
+    private final Jws2020SignatureSuite jwsSignatureSuite = new Jws2020SignatureSuite(mapper);
     private final TestDocumentLoader testDocLoader = new TestDocumentLoader("https://org.eclipse.edc/", "",
             SchemeRouter.defaultInstance());
 
@@ -132,40 +133,59 @@ class VCGenerator {
                 .build();
         context = VerifierContext.Builder.newInstance().verifier(ldpVerifier).build();
 
-        when(suiteRegistry.getForId(any())).thenReturn(jwsSignatureSuite);
-
-        keyStore = loadKeyStore("../../../../../Docker/centralserver/files/edc/etc/certs/cert.pfx", "123456");
+        when(suiteRegistry.getAllSuites()).thenReturn(List.of(jwsSignatureSuite));
     }
 
     @Test
     void prepareKeys() throws Exception {
+        var csPath = "../../../../../Docker/centralserver/files/edc/etc/certs/cert.pfx";
+        var ssPath = "../../../../../Docker/securityserver/files/edc/etc/certs/cert.pfx";
+
+        prepareKeys(csPath, "alias_cs", "did:web:cs%3A9396:cs");
+        prepareKeys(ssPath, "alias_ss0", "did:web:ss0%3A9396:ss0");
+        prepareKeys(ssPath, "alias_ss1", "did:web:ss1%3A9396:ss1");
+    }
+
+    void prepareKeys(String keyStorePath, String keyAlias, String did) throws Exception {
+        keyStore = loadKeyStore(keyStorePath, "123456");
+
         // create signed VC
-        String keyAlias = "alias_cs";
-        String did = "did:web:cs%3A9396:cs";
         Key key = keyStore.getKey(keyAlias, "123456".toCharArray());
 
         var publicKey = keyStore.getCertificate(keyAlias).getPublicKey();
-        var vcKey = new RSAKey.Builder((RSAPublicKey) publicKey).privateKey((PrivateKey) key).build();
+        var vcKey = new RSAKey.Builder((RSAPublicKey) publicKey)
+                .privateKey((PrivateKey) key)
+                .build();
+
+        var vcVerificationMethod = createKeyPair(vcKey, did);
         var rawVc = TestFunctions.signDocument(
                 VC_CONTENT_CERTIFICATE_EXAMPLE.formatted(UUID.randomUUID().toString(), did, did, did), vcKey,
-                generateEmbeddedProofOptions(vcKey, did), testDocLoader);
+                generateEmbeddedProof(vcVerificationMethod), testDocLoader);
 
         var input = VP_CONTENT_TEMPLATE.formatted(rawVc);
 
-        var rawVp = TestFunctions.signDocument(input, vcKey, generateEmbeddedProofOptions(vcKey, VP_HOLDER),
+        var vpVerificationMethod = createKeyPair(vcKey, VP_HOLDER);
+        var rawVp = TestFunctions.signDocument(input, vcKey, generateEmbeddedProof(vpVerificationMethod),
                 testDocLoader);
 
         var res = ldpVerifier.verify(rawVp, context);
         Assertions.assertFalse(res.failed());
+
+        System.out.printf("%S rawVc: %s%n", did, rawVc);
     }
 
 
-    private DataIntegrityProofOptions generateEmbeddedProofOptions(RSAKey vcKey, String id) {
-        return jwsSignatureSuite
-                .createOptions()
+    private Jws2020ProofDraft generateEmbeddedProof(VerificationMethod verificationMethod) {
+        return proofBuilder(verificationMethod)
+                .build();
+    }
+
+    private Jws2020ProofDraft.Builder proofBuilder(VerificationMethod verificationMethod) {
+        return Jws2020ProofDraft.Builder.newInstance()
+                .mapper(mapper)
                 .created(Instant.now())
-                .verificationMethod(TestFunctions.createKeyPair(vcKey, id)) // embedded proof
-                .purpose(URI.create("https://w3id.org/security#assertionMethod"));
+                .verificationMethod(verificationMethod)
+                .proofPurpose(URI.create("https://w3id.org/security#assertionMethod"));
     }
 
     private KeyStore loadKeyStore(String file, String password) {

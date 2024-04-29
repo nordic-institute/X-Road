@@ -32,7 +32,7 @@ import org.eclipse.edc.iam.verifiablecredentials.spi.VcConstants;
 import org.eclipse.edc.policy.engine.spi.PolicyEngine;
 import org.eclipse.edc.runtime.metamodel.annotation.Extension;
 import org.eclipse.edc.runtime.metamodel.annotation.Inject;
-import org.eclipse.edc.security.signature.jws2020.JwsSignature2020Suite;
+import org.eclipse.edc.security.signature.jws2020.Jws2020SignatureSuite;
 import org.eclipse.edc.spi.system.ServiceExtension;
 import org.eclipse.edc.spi.system.ServiceExtensionContext;
 import org.eclipse.edc.spi.types.TypeManager;
@@ -84,7 +84,7 @@ public class IatpScopeExtension implements ServiceExtension {
     @Override
     public void initialize(ServiceExtensionContext context) {
         // register signature suite
-        var suite = new JwsSignature2020Suite(typeManager.getMapper(JSON_LD));
+        var suite = new Jws2020SignatureSuite(typeManager.getMapper(JSON_LD));
         signatureSuiteRegistry.register(VcConstants.JWS_2020_SIGNATURE_SUITE, suite);
 
         // register a default scope provider

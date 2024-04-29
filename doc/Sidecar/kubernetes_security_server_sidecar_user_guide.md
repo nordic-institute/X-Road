@@ -1,21 +1,22 @@
 # Kubernetes Security Server Sidecar User Guide <!-- omit in toc -->
 
-Version: 1.8  
+Version: 1.9  
 Doc. ID: UG-K-SS-SIDECAR
 
 ## Version history <!-- omit in toc -->
 
- Date       | Version | Description                                           | Author
- ---------- |---------|-------------------------------------------------------| --------------------
- 05.01.2021 | 1.0     | Initial version                                       | Alberto Fernandez Lorenzo
- 08.03.2021 | 1.1     | Add Horizontal Pod Autoscaler                         | Alberto Fernandez Lorenzo
- 11.03.2021 | 1.2     | Add setup examples                                    | Alberto Fernandez Lorenzo
- 15.03.2021 | 1.3     | Add IP address options                                | Alberto Fernandez Lorenzo
- 22.03.2021 | 1.4     | Add Load Balancer setup example                       | Alberto Fernandez Lorenzo
- 16.11.2021 | 1.5     | Update documentation for Sidecar 7.0                  | Jarkko Hyöty
- 11.10.2022 | 1.6     | Minor documentation updates regarding upgrade process | Monika Liutkute
- 06.07.2023 | 1.7     | Sidecar repo migration                                | Eneli Reimets
- 10.08.2023 | 1.8     | Typo error fixes in yml scripts                       | Eneli Reimets
+| Date       | Version | Description                                           | Author                    |
+|------------|---------|-------------------------------------------------------|---------------------------|
+| 05.01.2021 | 1.0     | Initial version                                       | Alberto Fernandez Lorenzo |
+| 08.03.2021 | 1.1     | Add Horizontal Pod Autoscaler                         | Alberto Fernandez Lorenzo |
+| 11.03.2021 | 1.2     | Add setup examples                                    | Alberto Fernandez Lorenzo |
+| 15.03.2021 | 1.3     | Add IP address options                                | Alberto Fernandez Lorenzo |
+| 22.03.2021 | 1.4     | Add Load Balancer setup example                       | Alberto Fernandez Lorenzo |
+| 16.11.2021 | 1.5     | Update documentation for Sidecar 7.0                  | Jarkko Hyöty              |
+| 11.10.2022 | 1.6     | Minor documentation updates regarding upgrade process | Monika Liutkute           |
+| 06.07.2023 | 1.7     | Sidecar repo migration                                | Eneli Reimets             |
+| 10.08.2023 | 1.8     | Typo error fixes in yml scripts                       | Eneli Reimets             |
+| 02.04.2024 | 1.9     | Add Azure Kubernetes Service (AKS) references         | Madis Loitmaa             |
 
 ## License
 
@@ -70,9 +71,9 @@ To view a copy of this license, visit <https://creativecommons.org/licenses/by-s
 
 ### 1.1 Target Audience
 
-This User Guide is meant for X-Road Security Server system administrators responsible for installing and using X-Road Security Server Sidecar in AWS EKS environment.
+This User Guide is meant for X-Road Security Server system administrators responsible for installing and using X-Road Security Server Sidecar in Amazon Elastic Kubernetes Service (Amazon EKS) or Azure Kubernetes Service (AKS) environment.
 
-The document is intended for readers with at least a moderate knowledge of Linux server management, computer networks, Docker, Kubernetes, AWS EKS and X-Road.
+The document is intended for readers with at least a moderate knowledge of Linux server management, computer networks, Docker, Kubernetes, Amazon EKS, Azure AKS and X-Road.
 
 ## 2 Deployment Options
 
@@ -98,24 +99,22 @@ This option enables scaling the number of Nodes and Pods on the cluster. The opt
 * *Load Balancer*: Redirects traffic from external Security Servers to the Secondary Pods.
 * *External database*: PostgreSQL instance that contains the Security Server configuration, message log, and operational monitoring database.
 
-<p align="center">
-  <img src="img/ig-load_balancer_deploy.svg" />
-</p>
+![Load balancer deployment](img/ig-load_balancer_deploy.svg)
 
 ## 3 X-Road Security Server Sidecar images for Kubernetes
 
 All of the X-Road Security Server Sidecar images described in the [Security Server user guide](security_server_sidecar_user_guide.md#11-x-road-security-server-sidecar-images) are suitable to be used for a Kubernetes deployment. Additionally, there are images suitable to be used for a Load Balancer Kubernetes deployment as described in [2.3 Multiple Pods using a Load Balancer](#23-multiple-pods-using-a-load-balancer). These images include the necessary configuration so that the Pods can act as Primary or Secondary.
 
-**Image**                                                              | **Description**
----------------------------------------------------------------------- | -----------------------------------------------------------------------------------------------------------------
-niis/xroad-security-server-sidecar:\<version>-slim-primary             | Image for the Primary Pod deployment using the slim version of the Security Server Sidecar
-niis/xroad-security-server-sidecar:\<version>-slim-secondary           | Image for the Secondary Pod deployment using the slim version of the Security Server
-niis/xroad-security-server-sidecar:\<version>-primary                  | Image for the Primary Pod deployment using the regular (with message logging and operational monitor) version of the Security Server
-niis/xroad-security-server-sidecar:\<version>-secondary                | Image for the Secondary Pod deployment using the regular version of the Security Server.
-niis/xroad-security-server-sidecar:\<version>-slim-primary-\<variant>  | Image for the Primary Pod deployment using the slim version of the Security Server Sidecar with NIIS member settings
-niis/xroad-security-server-sidecar:\<version>-slim-secondary-\<variant>| Image for the Secondary Pod deployment using the slim version of the Security Server with NIIS member settings
-niis/xroad-security-server-sidecar:\<version>-primary-\<variant>       | Image for the Primary Pod deployment using the regular version of the Security Server with NIIS member settings
-niis/xroad-security-server-sidecar:\<version>-secondary-\<variant>     | Image for the Secondary Pod deployment using the regular version of the Security Server with NIIS member settings
+| **Image**                                                               | **Description**                                                                                                                      |
+|-------------------------------------------------------------------------|--------------------------------------------------------------------------------------------------------------------------------------|
+| niis/xroad-security-server-sidecar:\<version>-slim-primary              | Image for the Primary Pod deployment using the slim version of the Security Server Sidecar                                           |
+| niis/xroad-security-server-sidecar:\<version>-slim-secondary            | Image for the Secondary Pod deployment using the slim version of the Security Server                                                 |
+| niis/xroad-security-server-sidecar:\<version>-primary                   | Image for the Primary Pod deployment using the regular (with message logging and operational monitor) version of the Security Server |
+| niis/xroad-security-server-sidecar:\<version>-secondary                 | Image for the Secondary Pod deployment using the regular version of the Security Server.                                             |
+| niis/xroad-security-server-sidecar:\<version>-slim-primary-\<variant>   | Image for the Primary Pod deployment using the slim version of the Security Server Sidecar with NIIS member settings                 |
+| niis/xroad-security-server-sidecar:\<version>-slim-secondary-\<variant> | Image for the Secondary Pod deployment using the slim version of the Security Server with NIIS member settings                       |
+| niis/xroad-security-server-sidecar:\<version>-primary-\<variant>        | Image for the Primary Pod deployment using the regular version of the Security Server with NIIS member settings                      |
+| niis/xroad-security-server-sidecar:\<version>-secondary-\<variant>      | Image for the Secondary Pod deployment using the regular version of the Security Server with NIIS member settings                    |
 
 ## 4 Installation
 
@@ -125,59 +124,46 @@ The resource requirements depend on the messaging workload, a minimum for the sl
 
 ### 4.2 Prerequisites to Installation
 
-See [Getting started with Amazon EKS](https://docs.aws.amazon.com/eks/latest/userguide/getting-started.html). In this guide, the command line utilities (AWS CLI, eksctl, kubectl) are used.
+In this guide, the `kubectl` command line utility is used. It is expected, that `kubectl` is configured to connect to existing Kubernetes cluster. For the details of setting up Kubernetes cluster and connecting to it with `kubectl`, see:
+* [Getting started with Amazon EKS](https://docs.aws.amazon.com/eks/latest/userguide/getting-started.html)
+* [Azure Kubernetes Service (AKS)](https://learn.microsoft.com/en-us/azure/aks/)
+* [kubectl reference](https://kubernetes.io/docs/reference/kubectl/)
 
 ### 4.3 Network configuration
 
 The table below lists the required connections between different components.
 
-| Connection | Source                      | Target                       | Target Ports     | Protocol     | Note                    |
--------------|-----------------------------|------------------------------|------------------|--------------|-------------------------|
-| Inbound    | Other Security Servers      | Sidecar                      | 5500, 5577       | tcp          |                         |
-| Inbound    | Consumer Information System | Sidecar                      | 8080, 8443       | tcp          | From "internal" network |
-| Inbound    | Admin                       | Sidecar                      | 4000             | https        | From "internal" network |
-| Outbound   | Sidecar                     | Central Server               | 80, 4001         | http(s)      |                         |
-| Outbound   | Sidecar                     | OCSP Service                 | 80 / 443 / other | http(s)      |                         |
-| Outbound   | Sidecar                     | Timestamping Service         | 80 / 443 / other | http(s)      | Not used by *slim*      |
-| Outbound   | Sidecar                     | Other Security Server(s)     | 5500, 5577       | tcp          |                         |
-| Outbound   | Sidecar                     | Producer Information System  | 80, 443, other   | http(s)      | To "internal" network   |
-| Inbound    | Sidecar (secondary)         | Sidecar (primary)            | 22               | ssh          | Configuration synchronization |
+| Connection | Source                      | Target                      | Target Ports     | Protocol | Note                          |
+|------------|-----------------------------|-----------------------------|------------------|----------|-------------------------------|
+| Inbound    | Other Security Servers      | Sidecar                     | 5500, 5577       | tcp      |                               |
+| Inbound    | Consumer Information System | Sidecar                     | 8080, 8443       | tcp      | From "internal" network       |
+| Inbound    | Admin                       | Sidecar                     | 4000             | https    | From "internal" network       |
+| Outbound   | Sidecar                     | Central Server              | 80, 4001         | http(s)  |                               |
+| Outbound   | Sidecar                     | OCSP Service                | 80 / 443 / other | http(s)  |                               |
+| Outbound   | Sidecar                     | Timestamping Service        | 80 / 443 / other | http(s)  | Not used by *slim*            |
+| Outbound   | Sidecar                     | Other Security Server(s)    | 5500, 5577       | tcp      |                               |
+| Outbound   | Sidecar                     | Producer Information System | 80, 443, other   | http(s)  | To "internal" network         |
+| Inbound    | Sidecar (secondary)         | Sidecar (primary)           | 22               | ssh      | Configuration synchronization |
 
 ### 4.4 Reference Data
 
 This is an extension of the Security Server Sidecar [Reference Data](security_server_sidecar_user_guide.md#22-reference-data)
 
-**Ref** | **Value**                            | **Explanation**
-------- | ----------------------------------- | ----------------------------------------------------------
-3.1    | \<namespace name>                    | Name of the Kubernetes namespace for provisioning the set of Kubernetes objects inside the cluster.
-3.2    | \<pod name>                          | Unique name that identifies a Pod inside a Cluster namespace. If the Pod belongs to a deployment object a unique alphanumeric code will be concatenated to distinguish it from the other pods inside the deployment.
-3.3    | \<pod label>                         | Label that identifies a set of objects. This is used, for example, so that a Load Balancer can know to which Pods it has to redirect.
-3.4    | \<pvc name>                         | Unique name that identifies the PersistentVolumeClaim inside a Cluster namespace.
-3.5    | \<volume storage class name>        | Name that matches the PVC with the PV for dynamic provisioning.
-3.6    | \<volume access mode>             | Defines the access mode to the volume, typically "ReadWriteOnce" which allows Read/Write access to a single Pod at a time. "ReadWriteMany" could be used for EFS volumes which allows multiple Pods access at the same time.
-3.7    | \<volume size>                       | Requested volume size, for example: 5Gi
-3.8    | \<pv name>                           | Unique name that identifies the PersistentVolume.
-3.9    | \<pv host path>                      | Path to the file or directory to mount in the PersistentVolume.
-3.10    | \<awsElasticBlockStore volume id>   | Volume ID of an AWS Elastic Block Store volume.
-3.11    | \<efs volume id>                    | Volume ID of an AWS Elastic File System volume.
-3.12    | \<container name>                    | Name of the image container deployed in a Kubernetes pod.
-3.13    | \<manifest volume name>  | Unique name that identifies a volume inside a manifest.
-3.14    | \<secret name>            | Unique name that identifies a secret inside a Cluster namespace.
-3.15    | \<service name>           | Unique name that identifies a Kubernetes Service object
-3.16    | \<pod private ip>           | private IP of a single Pod.
-3.17    | \<load balancer private ip>  | Fixed private IP of a Load Balancer, defined on a Kubernetes manifest.
-3.18    | \<number replicas>           | Number of Pod replicas to be deployed.
-3.19    | \<service selector>           | Name that identifies a Load Balancer with the Pods.
-3.20    | \<primary DNS>           | DNS of the service that identifies the Primary Pod composed by \<service name>.\<namespace name>.svc.cluster.local .
-3.21    | \<cluster name>           | Name of the AWS EKS cluster.
-3.22    | \<cluster region>           | Region where the AWS EKS cluster is deployed.
-3.23    | \<cloudwatch agent name>           | Name of the CloudWatch agent that collects the logs and metrics of the AWS EKS cluster. This name is automatically generated during the CloudWatch setup.
-3.24    | \<volume mount path>           | Local path on the EC2 instance where the volume is mounted.
-3.25    | \<bucket name>           | Name of an AWS S3 bucket.
-3.26    | \<arn encryption key>           | ARN encryption key used in an AWS S3 bucket, example: arn:aws:kms:eu-west-1:999999999:alias/aws/s3.
-3.27    | \<hosted zone domain>           | AWS Route 53 hosted zone domain name.
-3.28    | \<hosted zone ID>           | AWS Route 53 hosted zone ID.
-3.29    | \<external DNS name>           | Name for the Load Balancer AWS Routed 53 hosted record.
+| **Ref** | **Value**               | **Explanation**                                                                                                                                                                                                      |
+|---------|-------------------------|----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| 3.1     | \<namespace name>       | Name of the Kubernetes namespace for provisioning the set of Kubernetes objects inside the cluster.                                                                                                                  |
+| 3.2     | \<pod name>             | Unique name that identifies a Pod inside a Cluster namespace. If the Pod belongs to a deployment object a unique alphanumeric code will be concatenated to distinguish it from the other pods inside the deployment. |
+| 3.3     | \<pod label>            | Label that identifies a set of objects. This is used, for example, so that a Load Balancer can know to which Pods it has to redirect.                                                                                |
+| 3.4     | \<pvc name>             | Unique name that identifies the PersistentVolumeClaim inside a Cluster namespace.                                                                                                                                    |
+| 3.5     | \<container name>       | Name of the image container deployed in a Kubernetes pod.                                                                                                                                                            |
+| 3.6     | \<manifest volume name> | Unique name that identifies a volume inside a manifest.                                                                                                                                                              |
+| 3.7     | \<secret name>          | Unique name that identifies a secret inside a Cluster namespace.                                                                                                                                                     |
+| 3.8     | \<service name>         | Unique name that identifies a Kubernetes Service object                                                                                                                                                              |
+| 3.9     | \<number replicas>      | Number of Pod replicas to be deployed.                                                                                                                                                                               |
+| 3.10    | \<service selector>     | Name that identifies a Load Balancer with the Pods.                                                                                                                                                                  |
+| 3.11    | \<primary DNS>          | DNS of the service that identifies the Primary Pod composed by \<service name>.\<namespace name>.svc.cluster.local .                                                                                                 |
+| 3.12    | \<cluster name>         | Name of the Kubernetes cluster.                                                                                                                                                                                         |
+| 3.13    | \<cluster region>       | Region where the Amazon EKS cluster is deployed.                                                                                                                                                                        |
 
 ### 4.5 Installation Instructions
 
@@ -185,7 +171,7 @@ This is an extension of the Security Server Sidecar [Reference Data](security_se
 
 It's recommended to use namespaces in a Kubernetes deployment since namespaces will allow you to organize the resources of a shared cluster better. The use of a namespace for the Security Server Sidecar resources is optional. If no namespace is created, they will be included in the "default" namespace.
 
-Create a new namespace by running (**reference data: 3.1**):
+Create a new namespace by running (**Reference Data: 3.1**):
 
 ```bash
 kubectl create namespace <namespace name>
@@ -193,9 +179,9 @@ kubectl create namespace <namespace name>
 
 #### 4.5.2 Single Pod deployment
 
-For installing the scenario described in [2.1 Single Pod Deployment with internal database](#21-single-pod-deployment-with-internal-database) it is possible to use the following `yaml` manifest (**reference data: 3.1, 3.2, 3.12, 1.4, 1.5, 1.6, 1.10**):
+For installing the scenario described in [2.1 Single Pod Deployment with internal database](#21-single-pod-deployment-with-internal-database) it is possible to use the following `yaml` manifest (**Reference Data: 3.1, 3.2, 3.5, 1.4, 1.5, 1.6, 1.10**):
 
-``` yaml
+```yaml
 apiVersion: v1
 kind: Pod
 metadata:
@@ -225,9 +211,9 @@ spec:
 ```
 
 Any of the Security Server Sidecar images described in the [Security Server Sidecar user guide](security_server_sidecar_user_guide.md#11-x-road-security-server-sidecar-images) can be used as image tag.
-Optionally, you can use an external database by adding the following environment variables of the deployment (**reference data: 1.7, 1.8, 1.9, 1.11**):
+Optionally, you can use an external database by adding the following environment variables of the deployment (**Reference Data: 1.7, 1.8, 1.9, 1.11**):
 
-``` yaml
+```yaml
     - name: XROAD_DB_HOST
       value: "<database host>"
     - name: XROAD_DB_PORT
@@ -244,22 +230,22 @@ Once the deployment is ready save it on a file and run:
 kubectl apply -f /path/to/manifest-file-name.yaml
 ```
 
-Check that the Pod is deployed by running (**reference data: 3.1**):
+Check that the Pod is deployed by running (**Reference Data: 3.1**):
 
 ```bash
 kubectl get pods -n <namespace name>
 ```
 
-Get the Pod information by running (**reference data: 3.1, 3.2**):
+Get the Pod information by running (**Reference Data: 3.1, 3.2**):
 
 ```bash
 kubectl describe pod -n <namespace name> <pod name>
 ```
 
-Get a shell to the container running in the Pod by running (**reference data: 3.1, 3.2**):
+Get a shell to the container running in the Pod by running (**Reference Data: 3.1, 3.2**):
 
 ```bash
-kubectl exec -it -n <namespace name> <pod name> bash
+kubectl exec -it -n <namespace name> <pod name> -- bash
 ```
 
 Delete the Pod by running:
@@ -270,15 +256,18 @@ kubectl delete -f /path/to/manifest-file-name.yaml
 
 #### 4.5.3 Kubernetes Volumes
 
-Kubernetes has multiple types of persistent volumes. Please see [Kubernetes storage documentation](https://kubernetes.io/docs/concepts/storage/volumes/#volume-types) and [Amazon EKS Storage classes](https://docs.aws.amazon.com/eks/latest/userguide/storage-classes.html) for more information. For the purposes of this guide, AWS Elastic Block Store volume type with dynamic provisioning is assumed.
+Kubernetes has multiple types of persistent volumes. For the purposes of this guide, [AWS EBS](https://github.com/kubernetes-sigs/aws-ebs-csi-driver) or [Azure Disk](https://github.com/kubernetes-sigs/azuredisk-csi-driver) storage driver with dynamic provisioning is assumed. For more information see:
+- [Kubernetes storage documentation](https://kubernetes.io/docs/concepts/storage/volumes/#volume-types)
+- [Amazon EKS Storage](https://docs.aws.amazon.com/eks/latest/userguide/storage.html)
+- [AKS Storage](https://learn.microsoft.com/en-us/azure/aks/concepts-storage#volumes)
 
 It is recommended to configure persistent volumes for the files in the following locations:
 
-| Mount point                  | Description                                               |
-|------------------------------|-----------------------------------------------------------|
-| /etc/xroad                   | X-Road configuration                                      |
-| /var/lib/xroad               | Backups and messagelog archives                           |
-| /var/lib/postgresql/12/main  | Local database files (not applicable to load balancer or external DB configuration |
+| Mount point                 | Description                                                                        |
+|-----------------------------|------------------------------------------------------------------------------------|
+| /etc/xroad                  | X-Road configuration                                                               |
+| /var/lib/xroad              | Backups and messagelog archives                                                    |
+| /var/lib/postgresql/12/main | Local database files (not applicable to load balancer or external DB configuration |
 
 #### 4.5.4 Kubernetes Secrets
 
@@ -303,10 +292,10 @@ For the [2.3 Multiple Pods using a Load Balancer](#23-multiple-pods-using-a-load
 If you don't have an SSH key you can create one by running:
 
 ```bash
-ssh-keygen -f /path/to/.ssh/
+ssh-keygen -f /path/to/.ssh/id_rsa
 ```
 
-Then create a Kubernetes Secret for storing the SSH keys by running (**reference data: 3.1, 3.14**):
+Then create a Kubernetes Secret for storing the SSH keys by running (**Reference Data: 3.1, 3.7**):
 
 ```bash
 kubectl create secret generic <secret name> --from-file=private-key=/path/to/.ssh/id_rsa --from-file=public-key=/path/to/.ssh/id_rsa.pub --namespace=<namespace name>
@@ -316,7 +305,7 @@ kubectl create secret generic <secret name> --from-file=private-key=/path/to/.ss
 
 This example shows how to create a secret for the Security Server Sidecar environment variables with sensitive data.
 
-1. Create a manifest file called for example 'secret-env-variables.yaml' and fill it with the desired values of the environment variables ( **reference Data: 1.4, 1.5, 1.6, 1.7, 1.8, 1.9, 1.10, 3.1**):
+1. Create a manifest file called for example 'secret-env-variables.yaml' and fill it with the desired values of the environment variables ( **Reference Data: 1.4, 1.5, 1.6, 1.7, 1.8, 1.9, 1.10, 3.1**):
 
     ```yaml
     apiVersion: v1
@@ -340,9 +329,9 @@ This example shows how to create a secret for the Security Server Sidecar enviro
 
 ##### Consume secrets
 
-The Secrets that store keys can be consumed in a similar way to volumes. To do this, you will have to include the Secret in the definition of volumes within the Pod deployment manifest, select the key and assign permissions to it, then mount the volume in a folder on the container (**reference Data: 3.13, 3.14**):
+The Secrets that store keys can be consumed in a similar way to volumes. To do this, you will have to include the Secret in the definition of volumes within the Pod deployment manifest, select the key and assign permissions to it, then mount the volume in a folder on the container (**Reference Data: 3.6, 3.7**):
 
-``` yaml
+```yaml
 [...]
 volumes:
 - name: <manifest volume name>
@@ -361,11 +350,11 @@ volumes:
 
 For consuming the Secrets for environmental variables, modify the deployment Pod definition in each container that needs to consume the secret. The key from the Secret becomes the environment variable name in the Pod:
 
-``` yaml
+```yaml
 [...]
 containers:
 - name: security-server-sidecar
-  image: niis/xroad-security-server-sidecar:latest
+  image: niis/xroad-security-server-sidecar:<image tag>
   imagePullPolicy: "Always"
   envFrom:
   - secretRef:
@@ -421,7 +410,7 @@ Readiness probe on the Security Server health check interface is useful for clus
 
 ##### Primary Pod installation
 
-An example of how to install the Primary Pod is shown in the manifest below (**reference data: 3.1, 3.3, 3.4, 3.12, 3.13, 3.14, 3.15, 3.19 1.4, 1.5, 1.6, 1.10**):
+An example of how to install the Primary Pod is shown in the manifest below (**Reference Data: 3.1, 3.3, 3.4, 3.5, 3.6, 3.7, 3.8, 3.10 1.4, 1.5, 1.6, 1.10**):
 
 ```yaml
 apiVersion: v1
@@ -514,16 +503,16 @@ curl -i <private pod ip>:5588
 
 ##### Secondary Pods installation
 
-An example of how to install the Secondary Pod is shown in the manifest below (**reference Data: 3.1, 3.2, 3.4, 3.12, 3.13, 3.14, 3.15, 3.17, 3.18, 3.19, 3.20, 1.4, 1.5, 1.6, 1.10**). The example uses the built-in Kubernetes AWS cloud provider load balancer controller (https://kubernetes.io/docs/concepts/services-networking/service/#loadbalancer). Please also see [AWS Load Balancer Controller](https://docs.aws.amazon.com/eks/latest/userguide/aws-load-balancer-controller.html), which needs to be separately deployed and uses partially different annotations.
+An example of how to install the Secondary Pod is shown in the manifest below (**Reference Data: 3.1, 3.2, 3.4, 3.5, 3.6, 3.7, 3.8, 3.9, 3.10, 3.11, 1.4, 1.5, 1.6, 1.10**). The example uses Kubernetes Service with `LoadBalancer` type (https://kubernetes.io/docs/concepts/services-networking/service/#loadbalancer). Cloud providers may require additional deployment and configuration for `LoadBalancer` Service type. For more details see:
+-  [AWS Load Balancer Controller](https://docs.aws.amazon.com/eks/latest/userguide/aws-load-balancer-controller.html)
+-  [Use a public standard load balancer in Azure Kubernetes Service (AKS)](https://learn.microsoft.com/en-us/azure/aks/load-balancer-standard)
 
-``` yaml
+```yaml
 apiVersion: v1
 kind: Service
 metadata:
   name: <service name>
   namespace: <namespace name>
-  annotations:
-    service.beta.kubernetes.io/aws-load-balancer-type: nlb
 spec:
   type: LoadBalancer
   selector:
@@ -619,7 +608,7 @@ spec:
 
 The manifest has two Kubernetes objects:
 
-* An NLB (Network Load Balancer) Service which will be in charge of redirecting the traffic to the secondary pods. It has the required ports "5500" and "5577" for receiving messages from other Security Servers.
+* A `LoadBalancer` type Service which will be in charge of redirecting the traffic to the secondary pods. It has the required ports "5500" and "5577" for receiving messages from other Security Servers.
 * An internal Service for the consumer information systems that proxies requests to the secondary pods.
 * A Deployment for the secondary pods. As image tag, you can choose between the "secondary" or "secondary-slim" described in [3 X-Road Security Server Sidecar images for Kubernetes](#3-x-road-security-server-sidecar-images-for-Kubernetes).
 
@@ -627,7 +616,7 @@ The pods have a secrets volume for the public and private SSH keys which are req
 
 The secondary pods also have a readiness probe, this test will run a healthcheck every 10 seconds. As long as the healthcheck result is not positive, the Pod status will remain in "NotReady" and will not be included in the Load Balancer Service.
 
-After the manifest is deployed, you can scale the secondary pods by running (**reference data: 3.1, 3.18**):
+After the manifest is deployed, you can scale the secondary pods by running (**Reference Data: 3.1, 3.9**):
 
 ```bash
 kubectl scale -n <namespace name> --replicas=<number replicas> deployment/<pod name>
@@ -640,7 +629,9 @@ The Secondary Pods will synchronize the configuration at initialization and thro
 In the described scenario [2.3 Multiple Pods using a Load Balancer](#23-multiple-pods-using-a-load-balancer) the messages will be sent to the Security Server secondary pods through the Load Balancer. Therefore, the address of the Load Balancer needs to be provided as the Security Server address when registering the Security Server to the X-Road instance. As the global configuration supports only one address for a Security Server, but a load balancer typically has multiple, a DNS name needs to be used. There are multiple ways of implementing a stable DNS name for the load balancer:
 
 * Deploy the Load Balancer Service separately and create a CNAME (or alias) DNS record for the load balancer.
-* If using the AWS Load Balancer Controller, define elastic IP addresses and separately create a DNS record (see [AWS load balancer controller annotations](https://kubernetes-sigs.github.io/aws-load-balancer-controller/v2.3/guide/service/annotations/)).
+* Use cloud provider specific annotations for Load Balancer Service to specify IP address and DNS name
+  * [AWS load balancer controller annotations](https://kubernetes-sigs.github.io/aws-load-balancer-controller/v2.7/guide/ingress/annotations/)
+  * [Azure AKS LoadBalancer annotations](https://cloud-provider-azure.sigs.k8s.io/topics/loadbalancer/#loadbalancer-annotations)
 * Automate DNS record assignment, e.g. by using [Kubernetes External DNS](https://github.com/kubernetes-sigs/external-dns/).
 
 ## 5 Backup and Restore
@@ -651,7 +642,9 @@ The backup system of the Security Servers described in the [User Guide](../Manua
 
 **Amazon CloudWatch** monitors the Amazon Web Services (AWS) resources and the applications that run on AWS in real time. CloudWatch can be used to collect and track metrics, which are variables that can be uses to measure resources and applications. For more information about CloudWatch check the [Amazon CloudWatch documentation](https://docs.aws.amazon.com/cloudwatch/index.html).
 
-**CloudWatch container insights** is a tool available for AWS EKS that can be used to collect, aggregate, and summarize metrics and logs from containerized applications and microservices. See [Setting up Container Insights on Amazon EKS and Kubernetes](https://docs.aws.amazon.com/AmazonCloudWatch/latest/monitoring/deploy-container-insights-EKS.html) for more details.
+**CloudWatch container insights** is a tool available for Amazon EKS that can be used to collect, aggregate, and summarize metrics and logs from containerized applications and microservices. See [Setting up Container Insights on Amazon EKS and Kubernetes](https://docs.aws.amazon.com/AmazonCloudWatch/latest/monitoring/deploy-container-insights-EKS.html) for more details.
+
+**Azure Monitor** is a monitoring solution for cloud and on-premises environments. See [AKS documentation](https://learn.microsoft.com/en-us/azure/aks/monitor-aks) for details on integration with Azure Monitor.
 
 **Fluentd** is an open-source data collector that can be set up on Kubernetes nodes to tail container log files, filter and transform the log data, and deliver it to the Elasticsearch cluster, where it will be indexed and stored. See [Fluentd documentation](https://docs.fluentd.org/container-deployment/kubernetes) for details.
 
@@ -701,14 +694,14 @@ The [load_balancer_setup manifest template](files/load_balancer_setup.yaml) cont
 
     * \<public key base64> Public key encoded in base64 (`base64 -w0 path/to/id_rsa.pub`).
     * \<private key base64> Private key encoded in base64 (`base64 -w0 path/to/id_rsa`).
-    * \<token pin> (**reference data: 1.4**)
-    * \<admin user> (**reference data: 1.5**)
-    * \<admin password> (**reference data: 1.6**)
-    * \<database host> (**reference data: 1.7**)
-    * \<database password> (**reference data: 1.9**)
-    * \<database port> (**reference data: 1.8**)
-    * \<xroad log level> (**reference data: 1.10**)
-    * \<xroad database name> (**reference data: 1.11**)
+    * \<token pin> (**Reference Data: 1.4**)
+    * \<admin user> (**Reference Data: 1.5**)
+    * \<admin password> (**Reference Data: 1.6**)
+    * \<database host> (**Reference Data: 1.7**)
+    * \<database password> (**Reference Data: 1.9**)
+    * \<database port> (**Reference Data: 1.8**)
+    * \<xroad log level> (**Reference Data: 1.10**)
+    * \<xroad database name> (**Reference Data: 1.11**)
     * \<version primary>, (`7.0.0-primary[-slim][-variant]`)
     * \<version secondary>, (`7.0.0-secondary[-slim][-variant]`)
 

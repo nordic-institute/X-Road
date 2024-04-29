@@ -29,18 +29,17 @@ package org.niis.xroad.edc.ih.vc;
 import com.apicatalog.jsonld.loader.DocumentLoader;
 import com.apicatalog.ld.DocumentError;
 import com.apicatalog.ld.signature.SigningError;
+import com.apicatalog.ld.signature.VerificationMethod;
 import com.apicatalog.ld.signature.key.KeyPair;
-import com.apicatalog.ld.signature.method.VerificationMethod;
-import com.apicatalog.ld.signature.proof.ProofOptions;
-import com.apicatalog.vc.Vc;
+import com.apicatalog.vc.issuer.ProofDraft;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.nimbusds.jose.jwk.JWK;
 import jakarta.json.JsonObject;
 import lombok.experimental.UtilityClass;
 import org.eclipse.edc.jsonld.util.JacksonJsonLd;
-import org.eclipse.edc.security.signature.jws2020.IssuerCompatibility;
-import org.eclipse.edc.security.signature.jws2020.JwkMethod;
+import org.eclipse.edc.security.signature.jws2020.JsonWebKeyPair;
+import org.eclipse.edc.security.signature.jws2020.Jws2020SignatureSuite;
 import org.jetbrains.annotations.Nullable;
 
 import java.net.URI;
@@ -49,27 +48,33 @@ import java.util.UUID;
 @UtilityClass
 public class TestFunctions {
     private static final ObjectMapper MAPPER = JacksonJsonLd.createObjectMapper();
+    private static final Jws2020SignatureSuite SUITE = new Jws2020SignatureSuite(MAPPER);
 
-    public static String signDocument(String jsonLdContent, JWK proofKey, ProofOptions proofOptions,
-                                      @Nullable DocumentLoader testDocLoader) {
+    public static String signDocument(String jsonLdContent, JWK proofKey, ProofDraft proofDraft, @Nullable DocumentLoader testDocLoader) {
         try {
             var jsonLd = MAPPER.readValue(jsonLdContent, JsonObject.class);
             var ldKeypair = TestFunctions.createKeyPair(proofKey);
-            var issuer = Vc.sign(jsonLd, ldKeypair, proofOptions).loader(testDocLoader);
-            return IssuerCompatibility.compact(issuer).toString();
+
+            return SUITE.createIssuer(ldKeypair)
+                    .loader(testDocLoader)
+                    .sign(jsonLd, proofDraft)
+                    .compacted()
+                    .toString();
+
         } catch (JsonProcessingException | DocumentError | SigningError e) {
             throw new RuntimeException(e);
         }
     }
 
+    public static VerificationMethod createKeyPair(JWK jwk, String id) {
+        var type = URI.create("https://w3id.org/security#JsonWebKey2020");
+        return new JsonWebKeyPair(URI.create(id), type, null, jwk);
+    }
+
     public static KeyPair createKeyPair(JWK jwk) {
         var id = URI.create("https://org.eclipse.edc/keys/" + UUID.randomUUID());
         var type = URI.create("https://w3id.org/security#JsonWebKey2020");
-        return new JwkMethod(id, type, null, jwk);
+        return new JsonWebKeyPair(id, type, null, jwk);
     }
 
-    public static VerificationMethod createKeyPair(JWK jwk, String id) {
-        var type = URI.create("https://w3id.org/security#JsonWebKey2020");
-        return new JwkMethod(URI.create(id), type, null, jwk);
-    }
 }

@@ -4,17 +4,35 @@ updates:
     directory: "/src"
     schedule:
       interval: "daily"
+    groups:
+      java-minor-patch:
+        applies-to: version-updates
+        update-types:
+          - "minor"
+          - "patch"
     reviewers:
       - "nordic-institute/xrd-developers"
   - package-ecosystem: "npm"
     directory: "/src"
     schedule:
       interval: "daily"
+    groups:
+      javascript-minor-patch:
+        applies-to: version-updates
+        update-types:
+          - "minor"
+          - "patch"
     reviewers:
       - "nordic-institute/xrd-developers"
   - package-ecosystem: "github-actions"
-    directory: "/"
+    directory: "/.github/workflows"
     schedule:
       interval: "weekly"
+    groups:
+      actions-minor-patch:
+        applies-to: version-updates
+        update-types:
+          - "minor"
+          - "patch"
     reviewers:
       - "nordic-institute/xrd-developers"

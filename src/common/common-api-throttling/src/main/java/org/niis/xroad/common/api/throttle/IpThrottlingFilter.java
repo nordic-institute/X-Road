@@ -28,6 +28,7 @@ package org.niis.xroad.common.api.throttle;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
+import io.github.bucket4j.Bandwidth;
 import io.github.bucket4j.Bucket;
 import jakarta.servlet.Filter;
 import jakarta.servlet.FilterChain;
@@ -41,8 +42,6 @@ import java.io.IOException;
 import java.time.Duration;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
-
-import static io.github.bucket4j.Bandwidth.simple;
 
 /**
  * Rate-limits requests
@@ -69,10 +68,11 @@ public class IpThrottlingFilter implements Filter {
     private Bucket createStandardBucket() {
         var builder = Bucket.builder();
         if (ipThrottlingFilterConfig.getRateLimitRequestsPerSecond() > 0) {
-            builder.addLimit(simple(ipThrottlingFilterConfig.getRateLimitRequestsPerSecond(), Duration.ofSeconds(1)));
+
+            builder.addLimit(createBandwidth(ipThrottlingFilterConfig.getRateLimitRequestsPerSecond(), Duration.ofSeconds(1)));
         }
         if (ipThrottlingFilterConfig.getRateLimitRequestsPerMinute() > 0) {
-            builder.addLimit(simple(ipThrottlingFilterConfig.getRateLimitRequestsPerMinute(), Duration.ofMinutes(1)));
+            builder.addLimit(createBandwidth(ipThrottlingFilterConfig.getRateLimitRequestsPerMinute(), Duration.ofMinutes(1)));
         }
 
         log.info("API access rate limiting initialized with {} req/sec and {} req/min",
@@ -81,9 +81,18 @@ public class IpThrottlingFilter implements Filter {
         return builder.build();
     }
 
+    private Bandwidth createBandwidth(long capacity, Duration period) {
+        return Bandwidth.builder()
+                .capacity(capacity)
+                .refillGreedy(capacity, period)
+                .build();
+
+    }
+
     @Override
-    public void doFilter(ServletRequest servletRequest, ServletResponse servletResponse, FilterChain filterChain) throws
-            IOException, ServletException {
+    public void doFilter(ServletRequest servletRequest,
+                         ServletResponse servletResponse,
+                         FilterChain filterChain) throws IOException, ServletException {
 
         final var ip = servletRequest.getRemoteAddr();
         final Bucket bucket;
