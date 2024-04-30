@@ -65,6 +65,10 @@ This step expects that you are able to build and package the X-Road source code.
 This script will do the following:
 
 * Build the source code with Gradle
+  * Type `./local-dev-prepare.sh -h` for complete list of usage arguments. For example:
+    * `--skip-gradle-build` to skip gradle build
+    * `--skip-tests` to skip tests
+    * `-r release-name` for a specific release only
 * Build Ubuntu Jammy packages in Docker
 * Copy the resulting Debian packages to their correct locations
 * Build the `centralserver`, `securityserver` and `testca` Docker images

@@ -6,10 +6,19 @@ export XROAD=$(
 )
 
 HAS_DOCKER=""
+PACKAGE_ONLY=false
+BUILD_LOCALLY=true
+BUILD_IN_DOCKER=false
+BUILD_ALL_PACKAGES=true
+BUILD_PACKAGES_FOR_RELEASE=""
 
 errorExit() {
-  echo "*** $*" 1>&2
+  echo "$(tput setaf 5)*** $*(tput sgr0)" 1>&2
   exit 1
+}
+
+warn() {
+  echo "$(tput setaf 3)*** $*$(tput sgr0)"
 }
 
 usage() {
@@ -18,9 +27,33 @@ usage() {
   echo " -p, --package-only    Skip compilation, just build packages"
   echo " -d, --docker-compile  Compile in docker container instead of native gradle build"
   echo " -h, --help            This help text."
+  echo " -r release-name       Builds packages of given release only. Supported values are:"
+  echo "                          noble, jammy, or focal for debian packages"
+  echo "                          rpm-el9, rpm-el8, or rpm for redhat packages"
+  echo "                       For example, -r jammy"
   echo "The option for $0, if present, must come fist, before other options."
   echo "Other options are passed on to compile_code.sh"
   test -z "$1" || exit "$1"
+}
+
+currentBuildPlan() {
+  echo "$(tput setaf 2)Current build plan is:"
+  if ! $HAS_DOCKER; then
+    echo "-- Docker not installed. Building only .deb packages for $(lsb_release -sc) distribution"
+  else
+    if $BUILD_LOCALLY; then
+      echo "-- Compile/build locally"
+    fi
+    if $BUILD_IN_DOCKER; then
+      echo "-- Compile/build in Docker"
+    fi
+    if [ -n "$BUILD_PACKAGES_FOR_RELEASE" ]; then
+      echo "-- Building $BUILD_PACKAGES_FOR_RELEASE packages only"
+    else
+      echo "-- Building all supported packages"
+    fi
+  fi
+  echo "$(tput sgr0)"
 }
 
 buildInDocker() {
@@ -59,8 +92,8 @@ buildLocally() {
 buildBuilderImage() {
   local release="$1"
   test -n "$release" || errorExit "Error, release not specified."
-  echo "Preparing $release image..."
-  docker build -q -t "xroad-$release" "$XROAD/packages/docker/deb-jammy" || errorExit "Error building $release image."
+  warn "Preparing $release image..."
+  docker build -q -t "xroad-$release" "$XROAD/packages/docker/$release" || errorExit "Error building $release image."
 }
 
 runInBuilderImage() {
@@ -77,49 +110,100 @@ runInBuilderImage() {
   docker run "${OPTS[@]}" "$image" "$@"
 }
 
+prepareDebianPackagesBuilderImages() {
+  if $BUILD_ALL_PACKAGES || [ "$BUILD_PACKAGES_FOR_RELEASE" == "noble" ]; then
+    buildBuilderImage deb-noble
+  fi
+  if $BUILD_ALL_PACKAGES || [ "$BUILD_PACKAGES_FOR_RELEASE" == "jammy" ]; then
+    buildBuilderImage deb-jammy
+  fi
+  if [ "$(uname)" != "Darwin" ] && { $BUILD_ALL_PACKAGES || [ "$BUILD_PACKAGES_FOR_RELEASE" == "focal" ]; }; then
+    buildBuilderImage deb-focal
+  fi
+}
+
+prepareRedhatPackagesBuilderImages() {
+  if [ "$(uname)" != "Darwin" ]; then
+    if $BUILD_ALL_PACKAGES || [ "$BUILD_PACKAGES_FOR_RELEASE" == "rpm-el9" ]; then
+      buildBuilderImage rpm-el9
+    fi
+    if $BUILD_ALL_PACKAGES || [ "$BUILD_PACKAGES_FOR_RELEASE" == "rpm-el8" ]; then
+      buildBuilderImage rpm-el8
+    fi
+    if $BUILD_ALL_PACKAGES || [ "$BUILD_PACKAGES_FOR_RELEASE" == "rpm" ]; then
+      buildBuilderImage rpm
+    fi
+  fi
+}
+
+buildDebianPackages() {
+  if $BUILD_ALL_PACKAGES || [ "$BUILD_PACKAGES_FOR_RELEASE" == "noble" ]; then
+    runInBuilderImage deb-noble /workspace/src/packages/build-deb.sh noble "$PACKAGE_VERSION" || errorExit "Error building deb-noble packages."
+  fi
+  if $BUILD_ALL_PACKAGES || [ "$BUILD_PACKAGES_FOR_RELEASE" == "jammy" ]; then
+    runInBuilderImage deb-jammy /workspace/src/packages/build-deb.sh jammy "$PACKAGE_VERSION" || errorExit "Error building deb-jammy packages."
+  fi
+  if [ "$(uname)" != "Darwin" ] ; then
+    if $BUILD_ALL_PACKAGES || [ "$BUILD_PACKAGES_FOR_RELEASE" == "focal" ]; then
+      runInBuilderImage deb-focal /workspace/src/packages/build-deb.sh focal "$PACKAGE_VERSION" || errorExit "Error building deb-focal packages."
+    fi
+  else
+    warn "deb-focal packages cannot be built under MacOS. Skipping.."
+  fi
+}
+
+buildRedhatPackages() {
+  if [ "$(uname)" != "Darwin" ]; then
+    if $BUILD_ALL_PACKAGES || [ "$BUILD_PACKAGES_FOR_RELEASE" == "rpm-el9" ]; then
+      runInBuilderImage rpm-el9 /workspace/src/packages/build-rpm.sh "$PACKAGE_VERSION" || errorExit "Error building rpm-el9 packages."
+    fi
+    if $BUILD_ALL_PACKAGES || [ "$BUILD_PACKAGES_FOR_RELEASE" == "rpm-el8" ]; then
+      runInBuilderImage rpm-el8 /workspace/src/packages/build-rpm.sh "$PACKAGE_VERSION" || errorExit "Error building rpm-el8 packages."
+    fi
+    if $BUILD_ALL_PACKAGES || [ "$BUILD_PACKAGES_FOR_RELEASE" == "rpm" ]; then
+      runInBuilderImage rpm /workspace/src/packages/build-rpm.sh "$PACKAGE_VERSION" || errorExit "Error building rpm packages."
+    fi
+  else
+    warn "rhel7, rhel8, and rhel9 packages cannot be built under MacOS. Skipping.."
+  fi
+}
+
 if command -v docker &>/dev/null; then
   HAS_DOCKER=true
 fi
 
-case "$1" in
-  --package-only | -p) shift ;;
-  --docker-compile | -d)
-    shift
-    buildInDocker "$@"
-    ;;
-  --help | -h) usage 0 ;;
-  *) buildLocally "$@" ;;
-esac
+for i in "$@"; do
+  case "$i" in
+      --package-only|-p) shift; PACKAGE_ONLY=true; BUILD_LOCALLY=false; BUILD_IN_DOCKER=false;;
+      --docker-compile|-d) shift; PACKAGE_ONLY=false; BUILD_LOCALLY=false; BUILD_IN_DOCKER=true;;
+      --help|-h) usage 0;;
+      -r) case "$2" in
+        noble|jammy|focal) BUILD_ALL_PACKAGES=false; BUILD_PACKAGES_FOR_RELEASE="$2";;
+        rpm-el9|rpm-el8|rpm) BUILD_ALL_PACKAGES=false; BUILD_PACKAGES_FOR_RELEASE="$2";;
+        *) errorExit "Unknown/unsupported release $2. Exiting..."
+        esac;
+        shift 2;;
+      *) break;;
+  esac
+done
+
+currentBuildPlan
+
+if $BUILD_LOCALLY; then
+  buildLocally "$@"
+fi
+if $BUILD_IN_DOCKER; then
+  buildInDocker "$@"
+fi
 
 if [ -n "$HAS_DOCKER" ]; then
   PACKAGE_VERSION="$(date -u -r $(git show -s --format=%ct) +'%Y%m%d%H%M%S')$(git show -s --format=git%h --abbrev=7)"
-  echo "Will build in docker. Package version: $PACKAGE_VERSION"
+  echo "Will build packages in docker. Package version: $PACKAGE_VERSION"
 
-  if [ "$(uname)" != "Darwin" ]; then
-    echo "Preparing deb-focal image..."
-    docker build -q -t xroad-deb-focal "$XROAD/packages/docker/deb-focal" || errorExit "Error building deb-focal image."
-  fi
-
-  buildBuilderImage deb-jammy
-  buildBuilderImage deb-noble
-
-  if [ "$(uname)" != "Darwin" ]; then
-    buildBuilderImage rpm
-    buildBuilderImage rpm-el8
-    buildBuilderImage rpm-el9
-  fi
-
-#  runInBuilderImage deb-jammy /workspace/src/packages/build-deb.sh jammy "$PACKAGE_VERSION" || errorExit "Error building deb-jammy packages."
-  runInBuilderImage deb-noble /workspace/src/packages/build-deb.sh noble "$PACKAGE_VERSION" || errorExit "Error building deb-jammy packages."
-
-  if [ "$(uname)" != "Darwin" ]; then
-    runInBuilderImage deb-focal /workspace/src/packages/build-deb.sh focal "$PACKAGE_VERSION" || errorExit "Error building deb-focal packages."
-    runInBuilderImage rpm /workspace/src/packages/build-rpm.sh "$PACKAGE_VERSION" || errorExit "Error building rpm packages."
-    runInBuilderImage rpm-el8 /workspace/src/packages/build-rpm.sh "$PACKAGE_VERSION" || errorExit "Error building rpm-el8 packages."
-    runInBuilderImage rpm-el9 /workspace/src/packages/build-rpm.sh "$PACKAGE_VERSION" || errorExit "Error building rpm-el9 packages."
-  else
-    echo "debian focal, rhel7,rhel8,rhel9 packages cannot be built under MacOS. Skipping.."
-  fi
+  prepareDebianPackagesBuilderImages
+  prepareRedhatPackagesBuilderImages
+  buildDebianPackages
+  buildRedhatPackages
 
 else
   echo "Docker not installed, building only .deb packages for this distribution"
