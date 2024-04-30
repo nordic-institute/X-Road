@@ -19,7 +19,7 @@ fi
 
 TARGET_PACKAGE_SOURCE=internal
 GRADLE_BUILD=1
-PACKAGES_LOCAL_PATH="$XROAD_HOME"/src/packages/build/ubuntu22.04
+PACKAGES_LOCAL_PATH="$XROAD_HOME"/src/packages/build/ubuntu24.04
 
 for i in "$@"; do
   case "$i" in
