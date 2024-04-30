@@ -108,10 +108,10 @@ public class ContainerSetup {
 
                 // allow connection to postgres
                 genericContainer.execInContainer("sed", "-i",
-                        "s/#listen_addresses = 'localhost'/listen_addresses = '*'/", "/etc/postgresql/14/main/postgresql.conf");
+                        "s/#listen_addresses = 'localhost'/listen_addresses = '*'/", "/etc/postgresql/16/main/postgresql.conf");
                 genericContainer.execInContainer("sed", "-ri",
                         "s/host    replication     all             127.0.0.1\\/32/host    all             all             0.0.0.0\\/0/g",
-                        "/etc/postgresql/14/main/pg_hba.conf");
+                        "/etc/postgresql/16/main/pg_hba.conf");
                 genericContainer.execInContainer("supervisorctl", "restart", "postgres");
             }
         };

@@ -17,13 +17,14 @@ log() { echo "$(date --utc -Iseconds) INFO [entrypoint] $*"; }
 warn() { echo "$(date --utc -Iseconds) WARN [entrypoint] $*" >&2; }
 
 init_db_dir() {
-  local pgdata=/var/lib/postgresql/12/main
+  local postgres_dir=/var/lib/postgresql/16
+  local pgdata="$postgres_dir/main"
   if [ ! -s "$pgdata/PG_VERSION" ]; then
     log "Initializing local database at \"$pgdata\""
     mkdir -p "$pgdata"
     chmod 0700 "$pgdata"
     chown postgres:postgres "$pgdata"
-    sudo -u postgres /usr/lib/postgresql/12/bin/initdb -D "$pgdata"
+    sudo -u postgres "$postgres_dir/bin/initdb" -D "$pgdata"
   fi
 }
 
