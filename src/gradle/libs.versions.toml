@@ -8,13 +8,13 @@
 metrics = "4.2.25"
 jetty = "12.0.7"
 jaxb = "4.0.5"
-hibernate = "6.4.4.Final"
+hibernate = "6.4.5.Final"
 mapstruct = "1.5.5.Final"
 jackson = "2.17.0"
 mockito = "5.11.0"
 springBoot = "3.2.5"
 junitJupiter = "5.10.2"
-xmlUnit = "2.9.1"
+xmlUnit = "2.10.0"
 bouncyCastle = "1.78.1"
 slf4j = "2.0.13"
 testAutomationFramework = "0.2.17"
@@ -105,7 +105,7 @@ apache-mime4jCore = { module = "org.apache.james:apache-mime4j-core", version = 
 apache-ant = { module = "org.apache.ant:ant", version = "1.10.14" }
 
 commons-cli = { module = "commons-cli:commons-cli", version = "1.7.0" }
-commons-codec = { module = "commons-codec:commons-codec", version = "1.16.1" }
+commons-codec = { module = "commons-codec:commons-codec", version = "1.17.0" }
 commons-io = { module = "commons-io:commons-io", version = "2.16.1" }
 commons-collections = { module = "commons-collections:commons-collections", version = "3.2.2" }
 
@@ -143,7 +143,7 @@ saajImpl = { module = "com.sun.xml.messaging.saaj:saaj-impl", version = "3.0.3" 
 quartz = { module = "org.quartz-scheduler:quartz", version = "2.3.2" }
 antlrST4 = { module = "org.antlr:ST4", version = "4.3.4" }
 systemRules = { module = "com.github.stefanbirkner:system-rules", version = "1.19.0" }
-semver4j = { module = "org.semver4j:semver4j", version = "5.2.3" }
+semver4j = { module = "org.semver4j:semver4j", version = "5.3.0" }
 restAssured = { module = "io.rest-assured:rest-assured", version = "5.4.0" }
 cliche = { module = "com.googlecode.clichemaven:cliche", version = "110413" }
 
@@ -154,7 +154,7 @@ testAutomation = ["testAutomation-containers", "testAutomation-allure", "testAut
 
 [plugins]
 springBoot = { id = "org.springframework.boot", version.ref = "springBoot" }
-openapi-generator = { id = "org.openapi.generator", version = "7.4.0" }
+openapi-generator = { id = "org.openapi.generator", version = "7.5.0" }
 sonarqube = { id = "org.sonarqube", version = "5.0.0.4638" }
 protobuf = { id = "com.google.protobuf", version = "0.9.4" }
 frontendJDK17 = { id = "org.siouan.frontend-jdk17", version = "8.0.0" }
