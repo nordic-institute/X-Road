@@ -39,6 +39,7 @@ import org.eclipse.edc.security.signature.jws2020.Jws2020SignatureSuite;
 import org.eclipse.edc.verifiablecredentials.linkeddata.LdpVerifier;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 
 import java.io.FileInputStream;
@@ -137,6 +138,7 @@ class VCGenerator {
     }
 
     @Test
+    @Disabled
     void prepareKeys() throws Exception {
         var csPath = "../../../../../Docker/centralserver/files/edc/etc/certs/cert.pfx";
         var ssPath = "../../../../../Docker/securityserver/files/edc/etc/certs/cert.pfx";
