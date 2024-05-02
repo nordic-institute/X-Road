@@ -25,138 +25,141 @@
  */
 package org.niis.xroad.proxy.edc;
 
-import ee.ria.xroad.common.identifier.ClientId;
-import ee.ria.xroad.common.identifier.ServiceId;
+import ee.ria.xroad.common.message.RestRequest;
+import ee.ria.xroad.common.message.RestResponse;
+import ee.ria.xroad.common.message.SoapMessageImpl;
+import ee.ria.xroad.common.signature.SignatureData;
+import ee.ria.xroad.common.util.CacheInputStream;
+import ee.ria.xroad.proxy.messagelog.MessageLog;
 
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.commons.lang3.builder.EqualsBuilder;
-import org.apache.commons.lang3.builder.HashCodeBuilder;
-import org.apache.commons.lang3.builder.ToStringBuilder;
 import org.apache.hc.core5.http.ContentType;
+import org.apache.hc.core5.http.io.entity.InputStreamEntity;
 import org.apache.hc.core5.http.io.support.ClassicRequestBuilder;
+import org.apache.http.Header;
 import org.niis.xroad.edc.sig.XrdSignatureService;
 
 import java.net.URI;
+import java.util.Base64;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
+import static ee.ria.xroad.common.message.RestRequest.Verb.DELETE;
+import static ee.ria.xroad.common.message.RestRequest.Verb.OPTIONS;
+import static ee.ria.xroad.common.message.RestRequest.Verb.PATCH;
+import static ee.ria.xroad.common.message.RestRequest.Verb.POST;
+import static ee.ria.xroad.common.message.RestRequest.Verb.PUT;
 import static ee.ria.xroad.common.util.HeaderValueUtils.HEADER_CONTENT_TYPE;
+import static org.niis.xroad.edc.sig.PocConstants.HEADER_XRD_SIG;
 
 @Slf4j
 public class XrdDataSpaceClient {
     private final XrdSignatureService xrdSignatureService = new XrdSignatureService();
 
-    public EdcHttpResponse processRequest(XrdClientRequest xrdClientRequest,
-                                          AuthorizedAssetRegistry.GrantedAssetInfo assetInfo) throws Exception {
+    public RestResponse processRestReqeust(RestRequest restRequest,
+                                           AuthorizedAssetRegistry.GrantedAssetInfo assetInfo) throws Exception {
+
+        CacheInputStream body = restRequest.getBody().getCachedContents();
+
         var path = assetInfo.endpoint();
         if (path.endsWith("/")) {
             path = path.substring(0, path.length() - 1);
         }
 
-        if (xrdClientRequest.source() == XrdClientSource.REST) {
-            if (xrdClientRequest.providerServicePath() != null) {
-                path += xrdClientRequest.providerServicePath();
-            }
-            if (StringUtils.isNotBlank(xrdClientRequest.query())) {
-                path += "?" + xrdClientRequest.query();
-            }
+        if (restRequest.getServicePath() != null) {
+            path += restRequest.getServicePath();
         }
-        final var dsRequest = ClassicRequestBuilder.create(xrdClientRequest.method()).setUri(new URI(path));
+        if (StringUtils.isNotBlank(restRequest.getQuery())) {
+            path += "?" + restRequest.getQuery();
+        }
+        final var dsRequest = ClassicRequestBuilder.create(restRequest.getVerb().name()).setUri(new URI(path));
 
-        Map<String, String> headersToSign = new HashMap<>(xrdClientRequest.headers());
+        Map<String, String> headersToSign = restRequest.getHeaders().stream()
+                .collect(Collectors.toMap(Header::getName, Header::getValue));
+
         headersToSign.put(assetInfo.authKey(), assetInfo.authCode());
 
-        var additionalHeaders = xrdSignatureService.sign(xrdClientRequest.clientId(), xrdClientRequest.body(), headersToSign);
+        // todo: sign using streams, not body.readAllBytes()
+        var signatureResponse = xrdSignatureService.sign(restRequest.getClientId(), body.readAllBytes(), headersToSign);
         for (Map.Entry<String, String> entry : headersToSign.entrySet()) {
             dsRequest.addHeader(entry.getKey(), entry.getValue());
         }
-        for (Map.Entry<String, String> entry : additionalHeaders.entrySet()) {
+        for (Map.Entry<String, String> entry : signatureResponse.getSignatureHeaders().entrySet()) {
             dsRequest.addHeader(entry.getKey(), entry.getValue());
         }
 
         //handle body
-        var method = xrdClientRequest.method();
-        if ("POST".equals(method) || "PUT".equals(method) || "PATCH".equals(method)
-                || "DELETE".equals(method) || "OPTIONS".equals(method)) {
+        var method = restRequest.getVerb();
+        if (POST.equals(method) || PUT.equals(method) || PATCH.equals(method)
+                || DELETE.equals(method) || OPTIONS.equals(method)) {
             // Attach body to the request
-            var contentType = additionalHeaders.get(HEADER_CONTENT_TYPE);
+            var contentType = signatureResponse.getSignatureHeaders().get(HEADER_CONTENT_TYPE);
             if (StringUtils.isBlank(contentType)) {
-                contentType = switch (xrdClientRequest.source()) {
-                    case REST -> "application/json";
-                    case SOAP -> "text/xml";
-                };
+                contentType = "application/json";
             }
 
-            dsRequest.setEntity(xrdClientRequest.body(), ContentType.parse(contentType));
+            dsRequest.setEntity(new InputStreamEntity(body, ContentType.parse(contentType)));
         }
 
+        var signatureData = new SignatureData(signatureResponse.getSignatureDecoded(), null, null);
 
-        return EdcDataPlaneHttpClient.sendRequest(dsRequest.build());
+        MessageLog.log(restRequest, signatureData, body, true, restRequest.getXRequestId());
+        var response = EdcDataPlaneHttpClient.sendRestRequest(dsRequest.build(), restRequest);
+        MessageLog.log(restRequest, response, getSignatureFromHeaders(response.getHeaders()),
+                response.getBody().getCachedContents(), true,
+                restRequest.getXRequestId());
+
+        return response;
     }
 
-    public record XrdClientRequest(
-            XrdClientSource source,
-            String method,
-            ClientId clientId,
-            String query,
-            Map<String, String> headers,
-            byte[] body,
-            ServiceId providerServiceId,
-            String providerServicePath) {
-
-        @Override
-        public boolean equals(Object o) {
-            if (this == o) return true;
-
-            if (o == null || getClass() != o.getClass()) return false;
-
-            XrdClientRequest that = (XrdClientRequest) o;
-
-            return new EqualsBuilder()
-                    .append(source, that.source)
-                    .append(method, that.method)
-                    .append(clientId, that.clientId)
-                    .append(query, that.query)
-                    .append(headers, that.headers)
-                    .append(body, that.body)
-                    .append(providerServiceId, that.providerServiceId)
-                    .append(providerServicePath, that.providerServicePath)
-                    .isEquals();
+    public EdcDataPlaneHttpClient.EdcSoapWrapper processSoapRequest(SoapMessageImpl soapRequest, String xRequestId,
+                                                                    AuthorizedAssetRegistry.GrantedAssetInfo assetInfo) throws Exception {
+        var path = assetInfo.endpoint();
+        if (path.endsWith("/")) {
+            path = path.substring(0, path.length() - 1);
         }
 
-        @Override
-        public int hashCode() {
-            return new HashCodeBuilder()
-                    .append(source)
-                    .append(method)
-                    .append(clientId)
-                    .append(query)
-                    .append(headers)
-                    .append(body)
-                    .append(providerServiceId)
-                    .append(providerServicePath)
-                    .toHashCode();
+        final var dsRequest = ClassicRequestBuilder.post(new URI(path));
+
+        Map<String, String> headersToSign = new HashMap<>();
+        headersToSign.put(assetInfo.authKey(), assetInfo.authCode());
+
+        var signatureResponse = xrdSignatureService.sign(soapRequest.getClient(), soapRequest.getBytes(), headersToSign);
+
+        for (Map.Entry<String, String> entry : headersToSign.entrySet()) {
+            dsRequest.addHeader(entry.getKey(), entry.getValue());
+        }
+        for (Map.Entry<String, String> entry : signatureResponse.getSignatureHeaders().entrySet()) {
+            dsRequest.addHeader(entry.getKey(), entry.getValue());
         }
 
-        @Override
-        public String toString() {
-            return new ToStringBuilder(this)
-                    .append("source", source)
-                    .append("method", method)
-                    .append("clientId", clientId)
-                    .append("query", query)
-                    .append("headers", headers)
-                    .append("body", body)
-                    .append("providerServiceId", providerServiceId)
-                    .append("providerServicePath", providerServicePath)
-                    .toString();
-        }
+        dsRequest.setEntity(soapRequest.getBytes(), ContentType.parse(soapRequest.getContentType()));
+
+        var signatureData = new SignatureData(signatureResponse.getSignatureDecoded(), null, null);
+
+        MessageLog.log(soapRequest, signatureData, true, xRequestId);
+        var response = EdcDataPlaneHttpClient.sendSoapRequest(dsRequest.build());
+        MessageLog.log((SoapMessageImpl) response.soapMessage(), getSignatureFromHeaders(response.headers()), true, xRequestId);
+
+        return response;
     }
 
-
-    public enum XrdClientSource {
-        REST,
-        SOAP
+    private SignatureData getSignatureFromHeaders(List<Header> headers) {
+        for (Header header : headers) {
+            if (header.getName().equals(HEADER_XRD_SIG)) {
+                return new SignatureData(new String(Base64.getDecoder().decode(header.getValue())), null, null);
+            }
+        }
+        return null;
     }
+
+    private SignatureData getSignatureFromHeaders(Map<String, String> headers) {
+        String encodedSignature = headers.get(HEADER_XRD_SIG);
+        return new SignatureData(new String(Base64.getDecoder().decode(encodedSignature)),
+                null, null);
+    }
+
 }

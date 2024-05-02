@@ -27,11 +27,11 @@
 package org.niis.xroad.edc.extension.signer;
 
 import ee.ria.xroad.common.identifier.ClientId;
+import ee.ria.xroad.common.identifier.ServiceId;
 
 import lombok.RequiredArgsConstructor;
 import org.eclipse.edc.connector.dataplane.api.controller.ContainerRequestContextApiImpl;
 import org.eclipse.edc.spi.monitor.Monitor;
-import org.eclipse.edc.spi.types.domain.DataAddress;
 import org.niis.xroad.edc.sig.XrdSignatureCreationException;
 import org.niis.xroad.edc.sig.XrdSignatureService;
 import org.niis.xroad.edc.sig.XrdSignatureVerificationException;
@@ -47,13 +47,12 @@ public class XrdEdcSignService {
 
     private final Monitor monitor;
 
-    public Map<String, String> signPayload(DataAddress dataAddress, byte[] body, Map<String, String> headers) {
+    public Map<String, String> signPayload(ServiceId.Conf serviceId, byte[] body, Map<String, String> headers) {
         monitor.debug("Signing response payload..");
-        var assetId = dataAddress.getStringProperty("assetId");
         try {
-            var headerWithSig = signService.sign(assetId, body, headers);
-            monitor.debug("Response payload signed. Signature: " + headerWithSig);
-            return headerWithSig;
+            var signatureResponse = signService.sign(serviceId.getClientId(), body, headers);
+            monitor.debug("Response payload signed. Signature: " + signatureResponse.getSignature());
+            return signatureResponse.getSignatureHeaders();
         } catch (XrdSignatureCreationException e) {
             throw new RuntimeException("Failed to sign response payload", e);
         }

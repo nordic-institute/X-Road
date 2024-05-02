@@ -37,9 +37,14 @@ import eu.europa.esig.dss.model.SignatureValue;
 import eu.europa.esig.dss.model.ToBeSigned;
 import eu.europa.esig.dss.model.x509.CertificateToken;
 import eu.europa.esig.dss.spi.DSSUtils;
+import eu.europa.esig.dss.validation.AdvancedSignature;
 import eu.europa.esig.dss.validation.CommonCertificateVerifier;
 import eu.europa.esig.dss.xades.XAdESSignatureParameters;
+import eu.europa.esig.dss.xades.signature.ExtensionBuilder;
 import eu.europa.esig.dss.xades.signature.XAdESService;
+import eu.europa.esig.dss.xades.validation.XAdESSignature;
+import eu.europa.esig.dss.xades.validation.XMLDocumentValidator;
+import eu.europa.esig.dss.xml.utils.DomUtils;
 import eu.europa.esig.xades.definition.XAdESNamespace;
 import lombok.RequiredArgsConstructor;
 import org.niis.xroad.edc.sig.XrdDssSigner;
@@ -68,7 +73,7 @@ public class XrdXAdESSignatureCreator implements XrdSignatureCreator {
             throws XrdSignatureCreationException {
         List<DSSDocument> documentsToSign = new ArrayList<>();
         if (messageHeaders != null && !messageHeaders.isEmpty()) {
-            documentsToSign.add(new InMemoryDocument(XrdXAdESUtils.serializeHeaders(messageHeaders), DOCUMENT_NAME_HEADERS));
+            documentsToSign.add(new InMemoryDocument(XrdXAdESUtils.serializeHeaders(messageHeaders).getBytes(), DOCUMENT_NAME_HEADERS));
         }
         documentsToSign.add(new InMemoryDocument(messageBody, DOCUMENT_NAME_PAYLOAD));
 
@@ -87,8 +92,40 @@ public class XrdXAdESSignatureCreator implements XrdSignatureCreator {
 
         DSSDocument signedDocument = service.signDocument(documentsToSign, parameters, signatureValue);
 
+//      todo: is adding ocsp required?
+//        var extendedDoc = new OcspExtensionBuilder().addOcspToken(signedDocument, signingInfo.getCert().getOcspBytes());
+
+//        var serializedHeaders = XrdXAdESUtils.serializeHeaders(messageHeaders);
+
         //zipping might save up to 50% of the size
         return Base64.getEncoder().encodeToString(DSSUtils.toByteArray(signedDocument));
+    }
+
+    static class OcspExtensionBuilder extends ExtensionBuilder {
+
+        DSSDocument addOcspToken(DSSDocument document, byte[] ocspBytes) {
+            params = new XAdESSignatureParameters();
+            documentValidator = new XMLDocumentValidator(document);
+
+            documentDom = documentValidator.getRootElement();
+
+            final String base64EncodedOCSP = Base64.getEncoder().encodeToString(ocspBytes);
+
+            for (AdvancedSignature signature : documentValidator.getSignatures()) {
+                initializeSignatureBuilder((XAdESSignature) signature);
+                ensureUnsignedProperties();
+                ensureUnsignedSignatureProperties();
+
+                var revocationValuesDom = DomUtils.addElement(documentDom, unsignedSignaturePropertiesDom,
+                        getXadesNamespace(), getCurrentXAdESElements().getElementRevocationValues());
+                var ocspValuesDom = DomUtils.addElement(documentDom, revocationValuesDom,
+                        getXadesNamespace(), getCurrentXAdESElements().getElementOCSPValues());
+                DomUtils.addTextElement(documentDom, ocspValuesDom, getXadesNamespace(),
+                        getCurrentXAdESElements().getElementEncapsulatedOCSPValue(), base64EncodedOCSP);
+            }
+
+            return createXmlDocument();
+        }
     }
 
 }

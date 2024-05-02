@@ -26,6 +26,8 @@
  */
 package org.niis.xroad.edc.extension.signer;
 
+import ee.ria.xroad.common.identifier.ServiceId;
+
 import jakarta.ws.rs.DELETE;
 import jakarta.ws.rs.GET;
 import jakarta.ws.rs.PATCH;
@@ -133,6 +135,9 @@ public class XrdDataPlanePublicApiController implements DataPlanePublicApi {
         var dataAddress = tokenValidation.getContent();
         var dataFlowRequest = requestSupplier.apply(contextApi, dataAddress);
 
+        var assetId = dataAddress.getStringProperty("assetId");
+        var serviceId = ServiceId.Conf.fromEncodedId(assetId);
+
         AsyncStreamingDataSink.AsyncResponseContext asyncResponseContext = callback -> {
             StreamingOutput output = t -> callback.outputStreamConsumer().accept(t);
 
@@ -147,7 +152,7 @@ public class XrdDataPlanePublicApiController implements DataPlanePublicApi {
             Map<String, String> headers = new HashMap<>();
             headers.put("Content-Type", callback.mediaType());
             //TODO edc is not passing response headers??
-            var resp = handleSuccess(outputStream.toByteArray(), headers, dataAddress);
+            var resp = handleSuccess(outputStream.toByteArray(), headers, serviceId);
 
             return response.resume(resp);
         };
@@ -166,9 +171,9 @@ public class XrdDataPlanePublicApiController implements DataPlanePublicApi {
                 });
     }
 
-    private Response handleSuccess(byte[] responseBody, Map<String, String> headers, DataAddress dataAddress) {
+    private Response handleSuccess(byte[] responseBody, Map<String, String> headers, ServiceId.Conf serviceId) {
         try {
-            Map<String, String> additionalHeaders = this.signService.signPayload(dataAddress, responseBody, headers);
+            Map<String, String> additionalHeaders = this.signService.signPayload(serviceId, responseBody, headers);
             var builder = Response.ok(responseBody);
             headers.forEach(builder::header);
             additionalHeaders.forEach(builder::header);

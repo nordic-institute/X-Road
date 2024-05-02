@@ -29,24 +29,25 @@ import ee.ria.xroad.common.conf.globalconf.GlobalConf;
 import ee.ria.xroad.common.conf.serverconf.IsAuthenticationData;
 import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.message.RestRequest;
+import ee.ria.xroad.common.message.RestResponse;
 import ee.ria.xroad.common.opmonitoring.OpMonitoringData;
+import ee.ria.xroad.common.util.CachingStream;
 import ee.ria.xroad.common.util.ResponseWrapper;
 
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.IOUtils;
-import org.apache.http.Header;
 import org.apache.http.client.HttpClient;
 import org.niis.xroad.edc.sig.XrdSignatureService;
 import org.niis.xroad.proxy.clientproxy.validate.RequestValidator;
 import org.niis.xroad.proxy.edc.AssetAuthorizationManager;
 import org.niis.xroad.proxy.edc.AuthorizedAssetRegistry;
-import org.niis.xroad.proxy.edc.EdcHttpResponse;
 import org.niis.xroad.proxy.edc.XrdDataSpaceClient;
 
 import java.io.ByteArrayInputStream;
 import java.io.InputStream;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.UUID;
-import java.util.stream.Collectors;
 
 import static ee.ria.xroad.common.util.TimeUtils.getEpochMillisecond;
 
@@ -104,32 +105,30 @@ class ClientRestMessageDsProcessor extends AbstractClientMessageProcessor {
 //        //TODO op monitoring should know about DataSpace
         updateOpMonitoringDataByRestRequest(opMonitoringData, restRequest);
 
+        CachingStream cachingStream = new CachingStream();
+        jRequest.getInputStream().transferTo(cachingStream);
+        restRequest.setBody(cachingStream);
 
-        var clientRequest = new XrdDataSpaceClient.XrdClientRequest(
-                XrdDataSpaceClient.XrdClientSource.REST,
-                restRequest.getVerb().name(),
-                restRequest.getClientId(),
-                restRequest.getQuery(),
-                restRequest.getHeaders().stream()
-                        .collect(Collectors.toMap(Header::getName, Header::getValue)),
-                IOUtils.toByteArray(jRequest.getInputStream()),
-                restRequest.getServiceId(), restRequest.getServicePath());
-
-        var response = xrdDataSpaceClient.processRequest(clientRequest, assetInfo);
-        processResponse(clientRequest, response, jResponse);
+        var response = xrdDataSpaceClient.processRestReqeust(restRequest, assetInfo);
+        processResponse(response, jResponse);
     }
 
-    private void processResponse(XrdDataSpaceClient.XrdClientRequest xrdClientRequest,
-                                 EdcHttpResponse response, ResponseWrapper jResponse) throws Exception {
+    private void processResponse(RestResponse response, ResponseWrapper jResponse) throws Exception {
         log.trace("sendResponse()");
-        jResponse.setStatus(response.statusCode());
+        jResponse.setStatus(response.getResponseCode());
+
+        Map<String, String> headers = new HashMap<>();
+        response.getHeaders().forEach(h -> headers.put(h.getName(), h.getValue()));
+
+        byte[] payload = response.getBody().getCachedContents().readAllBytes();
 
         //TODO handle bad request/edc failure
-        xrdSignatureService.verify(response.headers(), response.body(), xrdClientRequest.providerServiceId().getClientId());
+        // todo: use streams
+        xrdSignatureService.verify(headers, payload, restRequest.getServiceId().getClientId());
 
-        response.headers().forEach(jResponse.getHeaders()::add);
+        headers.forEach(jResponse.getHeaders()::add);
 
-        try (InputStream body = new ByteArrayInputStream(response.body())) {
+        try (InputStream body = new ByteArrayInputStream(payload)) {
             IOUtils.copy(body, jResponse.getOutputStream());
         }
     }
@@ -148,6 +147,5 @@ class ClientRestMessageDsProcessor extends AbstractClientMessageProcessor {
                     OpMonitoringData.CLIENT_SECURITY_SERVER_ADDRESS, e);
         }
     }
-
 
 }

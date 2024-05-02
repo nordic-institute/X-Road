@@ -27,7 +27,6 @@ package ee.ria.xroad.proxy.clientproxy;
 
 import ee.ria.xroad.common.conf.serverconf.IsAuthenticationData;
 import ee.ria.xroad.common.identifier.ClientId;
-import ee.ria.xroad.common.message.RestRequest;
 import ee.ria.xroad.common.message.SaxSoapParserImpl;
 import ee.ria.xroad.common.message.Soap;
 import ee.ria.xroad.common.message.SoapFault;
@@ -44,13 +43,12 @@ import org.niis.xroad.proxy.clientproxy.validate.RequestValidator;
 import org.niis.xroad.proxy.clientproxy.validate.SoapResponseValidator;
 import org.niis.xroad.proxy.edc.AssetAuthorizationManager;
 import org.niis.xroad.proxy.edc.AuthorizedAssetRegistry;
-import org.niis.xroad.proxy.edc.EdcHttpResponse;
+import org.niis.xroad.proxy.edc.EdcDataPlaneHttpClient;
 import org.niis.xroad.proxy.edc.TargetSecurityServerLookup;
 import org.niis.xroad.proxy.edc.XrdDataSpaceClient;
 
 import java.io.ByteArrayInputStream;
 import java.io.InputStream;
-import java.util.HashMap;
 import java.util.UUID;
 
 import static ee.ria.xroad.common.ErrorCodes.translateException;
@@ -99,7 +97,7 @@ class ClientSoapMessageDsProcessor extends AbstractClientMessageProcessor {
         ClientId client = requestSoap.getClient();
         var assetInfo = assetAuthorizationManager.getOrRequestAssetAccess(client, targetServerInfo, requestSoap.getService());
 
-        processRequest(requestSoap, assetInfo);
+        processRequest(requestSoap, assetInfo, xRequestId);
     }
 
     private void updateOpMonitoringClientSecurityServerAddress() {
@@ -111,22 +109,13 @@ class ClientSoapMessageDsProcessor extends AbstractClientMessageProcessor {
         }
     }
 
-    private void processRequest(SoapMessageImpl requestSoap, AuthorizedAssetRegistry.GrantedAssetInfo assetInfo) throws Exception {
+    private void processRequest(SoapMessageImpl requestSoap, AuthorizedAssetRegistry.GrantedAssetInfo assetInfo,
+                                String xRequestId) throws Exception {
         log.trace("processRequest()");
-
-        var clientRequest = new XrdDataSpaceClient.XrdClientRequest(
-                XrdDataSpaceClient.XrdClientSource.SOAP,
-                RestRequest.Verb.POST.name(),
-                requestSoap.getClient(),
-                "",
-                new HashMap<>(),
-                requestSoap.getBytes(),
-                requestSoap.getService(),
-                "");
 
         opMonitoringData.setRequestOutTs(getEpochMillisecond());
 
-        var response = xrdDataSpaceClient.processRequest(clientRequest, assetInfo);
+        var response = xrdDataSpaceClient.processSoapRequest(requestSoap, xRequestId, assetInfo);
 
         opMonitoringData.setResponseInTs(getEpochMillisecond());
 
@@ -137,32 +126,24 @@ class ClientSoapMessageDsProcessor extends AbstractClientMessageProcessor {
         processResponse(response, jResponse);
     }
 
-    private void validateResponse(SoapMessageImpl requestSoap, EdcHttpResponse response) throws Exception {
-        SoapMessageImpl responseSoap = deserializeToSoap(response.contentType(), new ByteArrayInputStream(response.body()));
+    private void validateResponse(SoapMessageImpl requestSoap, EdcDataPlaneHttpClient.EdcSoapWrapper response) throws Exception {
+        SoapMessageImpl responseSoap = (SoapMessageImpl) response.soapMessage();
 
         responseValidator.checkConsistency(requestSoap, responseSoap);
 
         //TODO handle bad request/edc failure
-        xrdSignatureService.verify(response.headers(), response.body(), requestSoap.getService().getClientId());
+        xrdSignatureService.verify(response.headers(), responseSoap.getBytes(), requestSoap.getService().getClientId());
 
     }
 
-    private void processResponse(EdcHttpResponse response, ResponseWrapper jResponse) throws Exception {
+    private void processResponse(EdcDataPlaneHttpClient.EdcSoapWrapper response, ResponseWrapper jResponse) throws Exception {
         log.trace("sendResponse()");
 
         jResponse.setStatus(OK_200);
         response.headers().forEach(jResponse.getHeaders()::add);
-        try (InputStream body = new ByteArrayInputStream(response.body())) {
+        try (InputStream body = new ByteArrayInputStream(((SoapMessageImpl) response.soapMessage()).getBytes())) {
             IOUtils.copy(body, jResponse.getOutputStream());
         }
-
-        logResponseMessage();
-    }
-
-    private void logResponseMessage() {
-        log.trace("logResponseMessage()");
-
-//        MessageLog.log(response.getSoap(), response.getSignature(), true, xRequestId);
     }
 
     private SoapMessageImpl deserializeToSoap(String contentType, InputStream body) {

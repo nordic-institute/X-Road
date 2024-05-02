@@ -25,32 +25,22 @@
  * THE SOFTWARE.
  */
 
-package org.niis.xroad.edc.sig.xades;
+package org.niis.xroad.edc.sig;
 
-import lombok.experimental.UtilityClass;
+import lombok.Getter;
+import lombok.RequiredArgsConstructor;
 
 import java.util.Map;
-import java.util.TreeMap;
 
-@UtilityClass
-public class XrdXAdESUtils {
+@RequiredArgsConstructor
+@Getter
+public class SignatureResponse {
 
-    public static final String DOCUMENT_NAME_HEADERS = "headers";
-    public static final String DOCUMENT_NAME_PAYLOAD = "payload";
-    private static final String CRLF = "\r\n";
+    private final Map<String, String> signatureHeaders;
+    private final String signature;
 
-    /**
-     * Sorts and serializes headers to byte array.
-     *
-     * @param headers
-     * @return
-     */
-    public static String serializeHeaders(Map<String, String> headers) {
-        TreeMap<String, String> sortedHeaders = new TreeMap<>(headers);
-
-        StringBuilder headersString = new StringBuilder();
-        sortedHeaders.forEach((k, v) -> headersString.append(k).append(":").append(v).append(CRLF));
-
-        return headersString.toString();
+    public String getSignatureDecoded() {
+        return new String(java.util.Base64.getDecoder().decode(signature));
     }
+
 }

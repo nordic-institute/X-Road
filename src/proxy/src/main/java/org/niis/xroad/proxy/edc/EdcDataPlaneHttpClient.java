@@ -26,6 +26,11 @@
 package org.niis.xroad.proxy.edc;
 
 import ee.ria.xroad.common.CodedException;
+import ee.ria.xroad.common.message.RestRequest;
+import ee.ria.xroad.common.message.RestResponse;
+import ee.ria.xroad.common.message.Soap;
+import ee.ria.xroad.common.message.SoapParserImpl;
+import ee.ria.xroad.common.util.CachingStream;
 
 import lombok.AccessLevel;
 import lombok.Getter;
@@ -45,13 +50,15 @@ import org.apache.hc.core5.http.ClassicHttpRequest;
 import org.apache.hc.core5.http.Header;
 import org.apache.hc.core5.http.config.Registry;
 import org.apache.hc.core5.http.config.RegistryBuilder;
-import org.apache.hc.core5.http.io.entity.EntityUtils;
+import org.apache.http.message.BasicHeader;
 import org.niis.xroad.ssl.SSLContextBuilder;
 
 import java.security.KeyManagementException;
 import java.security.NoSuchAlgorithmException;
-import java.util.HashMap;
+import java.util.Arrays;
+import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 import static ee.ria.xroad.common.ErrorCodes.X_INTERNAL_ERROR;
 import static org.apache.hc.core5.util.Timeout.ofSeconds;
@@ -63,32 +70,46 @@ import static org.apache.hc.core5.util.Timeout.ofSeconds;
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
 public class EdcDataPlaneHttpClient {
 
-    public static EdcHttpResponse sendRequest(ClassicHttpRequest request) {
+    public static RestResponse sendRestRequest(ClassicHttpRequest request, RestRequest req) {
+        log.info("Will send REST [{}] request to {}", request.getMethod(), request.getRequestUri());
+        try (CloseableHttpClient httpClient = createHttpClient()) {
+            return httpClient.execute(request, response -> {
+                log.info("EDC responded with code {}", response.getCode());
+
+                List<org.apache.http.Header> headers = Arrays.stream(response.getHeaders())
+                        .map(h -> (org.apache.http.Header) new BasicHeader(h.getName(), h.getValue()))
+                        .toList();
+
+                byte[] requestHash = new byte[0]; // todo:
+
+                RestResponse restResponse = new RestResponse(req.getClientId(), req.getQueryId(), // requestHash,
+                        req.getServiceId(), response.getCode(), response.getReasonPhrase(), headers,
+                        req.getXRequestId());
+
+                CachingStream responseBodyStream = new CachingStream();
+                response.getEntity().getContent().transferTo(responseBodyStream);
+
+                restResponse.setBody(responseBodyStream);
+
+                return restResponse;
+            });
+        } catch (Exception e) {
+            throw new CodedException(X_INTERNAL_ERROR, e, "Error during edc dataplane request. Root Cause: " + e.getMessage());
+        }
+    }
+
+    public static EdcSoapWrapper sendSoapRequest(ClassicHttpRequest request) {
         log.info("Will send [{}] request to {}", request.getMethod(), request.getRequestUri());
         try (CloseableHttpClient httpClient = createHttpClient()) {
             return httpClient.execute(request, response -> {
                 log.info("EDC responded with code {}", response.getCode());
 
-                Map<String, String> headers = new HashMap<>();
-                for (Header header : response.getHeaders()) {
-                    headers.put(header.getName(), header.getValue());
-                }
+                Map<String, String> headers = Arrays.stream(response.getHeaders())
+                        .collect(Collectors.toMap(Header::getName, Header::getValue));
 
-                if (response.getEntity() != null) {
-                    return new EdcHttpResponse(
-                            response.getCode(),
-                            EntityUtils.toByteArray(response.getEntity()),
-                            response.getEntity().getContentType(),
-                            headers
-                    );
-                } else {
-                    return new EdcHttpResponse(
-                            response.getCode(),
-                            null,
-                            null,
-                            headers
-                    );
-                }
+                SoapParserImpl soapParser = new SoapParserImpl();
+                Soap soap = soapParser.parse(response.getEntity().getContentType(), response.getEntity().getContent());
+                return new EdcSoapWrapper(soap, headers);
             });
         } catch (Exception e) {
             throw new CodedException(X_INTERNAL_ERROR, e, "Error during edc dataplane request. Root Cause: " + e.getMessage());
@@ -97,7 +118,6 @@ public class EdcDataPlaneHttpClient {
 
     private static CloseableHttpClient createHttpClient() throws NoSuchAlgorithmException, KeyManagementException {
         var httpClientProperties = new HttpClientProperties();
-
 
         final SSLConnectionSocketFactory sslsf =
                 new SSLConnectionSocketFactory(SSLContextBuilder.create().sslContext(), NoopHostnameVerifier.INSTANCE);
@@ -133,6 +153,12 @@ public class EdcDataPlaneHttpClient {
         private Integer connectionTimeoutSeconds = 5;
         private Integer connectionRequestTimeoutSeconds = 10;
         private Integer responseTimeoutSeconds = 5;
+    }
+
+    public record EdcSoapWrapper(
+            Soap soapMessage,
+            Map<String, String> headers
+    ) {
     }
 
 

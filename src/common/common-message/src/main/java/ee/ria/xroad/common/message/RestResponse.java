@@ -108,6 +108,21 @@ public class RestResponse extends RestMessage {
         this.headers = tmp;
     }
 
+    public RestResponse(ClientId clientId, String queryId, ServiceId serviceId, int code,
+                         String reason, List<Header> headers, String xRequestId) {
+        //todo: handle the request hash
+
+        this.responseCode = code;
+        this.reason = reason;
+        this.queryId = queryId;
+//        this.requestHash = requestHash;
+        this.requestHash = null;
+        this.serviceId = serviceId;
+        this.clientId = clientId;
+        this.xRequestId = xRequestId;
+        this.headers = headers;
+    }
+
     @Override
     protected byte[] toByteArray() {
         try (ByteArrayOutputStream bof = new ByteArrayOutputStream()) {

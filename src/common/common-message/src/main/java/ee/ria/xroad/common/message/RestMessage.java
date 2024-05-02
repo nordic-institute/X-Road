@@ -27,10 +27,12 @@ package ee.ria.xroad.common.message;
 
 import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.identifier.ServiceId;
+import ee.ria.xroad.common.util.CachingStream;
 import ee.ria.xroad.common.util.CryptoUtils;
 import ee.ria.xroad.common.util.MimeUtils;
 
 import lombok.Getter;
+import lombok.Setter;
 import org.apache.http.Header;
 import org.apache.http.message.BasicHeader;
 
@@ -62,6 +64,10 @@ public abstract class RestMessage {
     protected List<Header> headers;
     protected byte[] hash;
     protected byte[] messageBytes;
+
+    @Getter
+    @Setter
+    private CachingStream body;
 
     /**
      * get digest

@@ -73,14 +73,7 @@ public class XrdSignatureService {
         XmlDefinerUtils.getInstance().setSchemaFactoryBuilder(new JaxpSchemaFactoryBuilder());
     }
 
-    public Map<String, String> sign(String assetId, byte[] messageBody, Map<String, String> messageHeaders)
-            throws XrdSignatureCreationException {
-        var serviceId = ServiceId.Conf.fromEncodedId(assetId);
-
-        return sign(serviceId.getClientId(), messageBody, messageHeaders);
-    }
-
-    public Map<String, String> sign(ClientId signingClientId, byte[] messageBody, Map<String, String> messageHeaders)
+    public SignatureResponse sign(ClientId signingClientId, byte[] messageBody, Map<String, String> messageHeaders)
             throws XrdSignatureCreationException {
 
         var signingInfo = getMemberSigningInfo(signingClientId);
@@ -104,7 +97,7 @@ public class XrdSignatureService {
         Map<String, String> signatureHeaders = new HashMap<>();
         signatureHeaders.put(HEADER_XRD_SIG, signature);
         signatureHeaders.put(HEADER_XRD_SIG_OCSP, Base64.toBase64String(signingInfo.getCert().getOcspBytes()));
-        return signatureHeaders;
+        return new SignatureResponse(signatureHeaders, signature);
     }
 
     public void verify(Map<String, String> headers, byte[] detachedPayload, ClientId signerClientId)
