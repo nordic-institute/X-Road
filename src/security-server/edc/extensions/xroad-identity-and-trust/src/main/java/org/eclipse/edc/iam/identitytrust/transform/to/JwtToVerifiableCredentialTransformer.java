@@ -65,10 +65,12 @@ public class JwtToVerifiableCredentialTransformer extends AbstractJwtTransformer
                 listOrReturn(vc.get(TYPE_PROPERTY), Object::toString).forEach(builder::type);
 
                 // credential subjects
-                listOrReturn(vc.get(CREDENTIAL_SUBJECT_PROPERTY), o -> extractSubject((Map<String, ?>) o, claims.getSubject())).forEach(builder::credentialSubject);
+                listOrReturn(vc.get(CREDENTIAL_SUBJECT_PROPERTY), o -> extractSubject((Map<String, ?>) o, claims.getSubject()))
+                        .forEach(builder::credentialSubject);
 
                 // credential status
-                listOrReturn(vc.get(CREDENTIAL_STATUS_PROPERTY), o -> extractStatus((Map<String, Object>) o)).forEach(builder::credentialStatus);
+                listOrReturn(vc.get(CREDENTIAL_STATUS_PROPERTY), o -> extractStatus((Map<String, Object>) o))
+                        .forEach(builder::credentialStatus);
 
                 // expiration date
                 extractDate(vc.get(EXPIRATION_DATE_PROPERTY), claims.getExpirationTime()).ifPresent(builder::expirationDate);

@@ -24,33 +24,50 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.edc.extension.iam;
+package org.eclipse.edc.verifiablecredentials.signature;
 
-import org.eclipse.edc.iam.verifiablecredentials.spi.model.Issuer;
-import org.eclipse.edc.iam.verifiablecredentials.spi.validation.TrustedIssuerRegistry;
-import org.eclipse.edc.runtime.metamodel.annotation.Extension;
-import org.eclipse.edc.runtime.metamodel.annotation.Inject;
-import org.eclipse.edc.spi.system.ServiceExtension;
-import org.eclipse.edc.spi.system.ServiceExtensionContext;
+import com.apicatalog.ld.signature.CryptoSuite;
+import com.apicatalog.ld.signature.LinkedDataSignature;
+import com.apicatalog.ld.signature.VerificationError;
+import com.apicatalog.vc.solid.SolidProofValue;
+import jakarta.json.JsonObject;
+import jakarta.json.JsonStructure;
 
-import java.util.Map;
+import java.util.Objects;
 
-import static org.niis.xroad.edc.extension.iam.TrustedIssuerExtension.NAME;
-
-@Extension(NAME)
-public class TrustedIssuerExtension implements ServiceExtension {
-    static final String NAME = "X-Road Trusted issuer registration extension";
-
-    @Inject
-    private TrustedIssuerRegistry trustedIssuerRegistry;
+public class GaiaXSolidProofValue extends SolidProofValue {
+    public GaiaXSolidProofValue(byte[] value) {
+        super(value);
+    }
 
     @Override
-    public void initialize(ServiceExtensionContext context) {
-        // register VC issuers
-        //TODO should we trust only single issuer?
-        trustedIssuerRegistry.addIssuer(new Issuer("did:web:gx-compliance.i.x-road.rocks:main", Map.of()));
-        trustedIssuerRegistry.addIssuer(new Issuer("did:web:xroad-8-member1.s3.eu-west-1.amazonaws.com", Map.of()));
-        trustedIssuerRegistry.addIssuer(new Issuer("did:web:gx-notary.i.x-road.rocks:main", Map.of()));
+    public void verify(CryptoSuite cryptoSuite, JsonStructure context, JsonObject data, JsonObject unsignedProof, byte[] publicKey)
+            throws VerificationError {
+        Objects.requireNonNull(value);
+        Objects.requireNonNull(data);
+        Objects.requireNonNull(publicKey);
 
+        if (cryptoSuite == null) {
+            throw new VerificationError(VerificationError.Code.UnsupportedCryptoSuite);
+        }
+
+        try {
+            final LinkedDataSignature signature = new LinkedDataSignature(cryptoSuite);
+            // verify signature
+            signature.verify(
+                    data,
+                    unsignedProof,
+                    publicKey,
+                    value);
+        } catch (VerificationError e) {
+            // verify signature
+            new GaiaXLinkedDataSignature(cryptoSuite).verify(
+                    data,
+                    unsignedProof,
+                    publicKey,
+                    value);
+        }
     }
+
+
 }

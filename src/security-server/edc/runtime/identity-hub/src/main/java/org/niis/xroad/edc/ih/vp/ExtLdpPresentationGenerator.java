@@ -176,7 +176,7 @@ public class ExtLdpPresentationGenerator extends LdpPresentationGenerator {
         var proofDraft = Jws2020ProofDraft.Builder.newInstance()
                 .proofPurpose(ASSERTION_METHOD)
                 .verificationMethod(new JsonWebKeyPair(URI.create(controller + "#" + publicKeyId), verificationMethodType, controllerUri,
-                        jwk))
+                        null))
                 .created(Instant.now())
                 .mapper(mapper)
                 .build();

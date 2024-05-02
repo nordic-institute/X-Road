@@ -50,11 +50,15 @@ import org.eclipse.edc.runtime.metamodel.annotation.Setting;
 import org.eclipse.edc.spi.system.ServiceExtension;
 import org.eclipse.edc.spi.system.ServiceExtensionContext;
 
+import java.io.File;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.time.Instant;
 import java.util.Base64;
 import java.util.Map;
+import java.util.UUID;
 
 import static org.niis.xroad.edc.extension.iam.IatpScopeExtension.CREDENTIAL_FORMAT;
 
@@ -71,6 +75,8 @@ public class IdentityHubCredentialInsertionExtension implements ServiceExtension
 
     @Setting(value = "DID of this connector", required = true)
     public static final String CONNECTOR_DID_PROPERTY = "edc.iam.issuer.id";
+
+    private static final String CREDENTIALS_DIR_PATH = "edc.ih.credentials.path";
 
     @Inject
     private ParticipantContextService participantContextService;
@@ -119,31 +125,38 @@ public class IdentityHubCredentialInsertionExtension implements ServiceExtension
     }
 
     private void createCredentials(ServiceExtensionContext context, String participantId) throws IOException {
-        String credentialVc = getDataFromFile(context, "credentials/%s/credential.json".formatted(getProp(context, "EDC_HOSTNAME")));
-        String connectorDid = context.getConfig().getString(CONNECTOR_DID_PROPERTY);
+        File credentialDir = new File(context.getConfig().getString(CREDENTIALS_DIR_PATH));
+        for (File credentialFile : credentialDir.listFiles((dir, name) -> name.endsWith(".json"))) {
+            storeCredential(credentialFile.toPath(), participantId);
+        }
+    }
+
+    private void storeCredential(Path credentialPath, String participantId) throws IOException {
+        String credentialContent = Files.readString(credentialPath);
+
         var verifiableCredential = VerifiableCredential.Builder.newInstance()
                 .credentialSubject(CredentialSubject.Builder.newInstance().id("test-subject").claim("test-key", "test-val").build())
                 .issuanceDate(Instant.now())
                 .type(CREDENTIAL_FORMAT)
-                .issuer(new Issuer(connectorDid, Map.of()))
-                .id(connectorDid)
+                .issuer(new Issuer(participantId, Map.of()))
+                .id(participantId)
                 .build();
 
-        var verifiableCredentialContainer = new VerifiableCredentialContainer(credentialVc, CredentialFormat.JSON_LD, verifiableCredential);
+        var verifiableCredentialContainer = new VerifiableCredentialContainer(credentialContent, CredentialFormat.JSON_LD, verifiableCredential);
         var verifiableCredentialResource = VerifiableCredentialResource.Builder.newInstance()
                 .issuerId("test-issuer")
                 .holderId("test-holder")
                 .state(VcState.ISSUED)
                 .participantId(participantId)
                 .credential(verifiableCredentialContainer)
-                .id("test-id-jsonld")
+                .id(UUID.randomUUID().toString())
                 .build();
         credentialStore.create(verifiableCredentialResource);
     }
 
     private void createKeyPairs(ServiceExtensionContext context, String participantId, String publicKey) {
         var keyPairResource = KeyPairResource.Builder.newInstance()
-                .keyId(participantId)
+                .keyId(System.getenv("EDC_DID_KEY_ID"))
                 .privateKeyAlias(context.getConfig().getString("edc.iam.sts.privatekey.alias"))
                 .isDefaultPair(true)
                 .participantId(participantId)

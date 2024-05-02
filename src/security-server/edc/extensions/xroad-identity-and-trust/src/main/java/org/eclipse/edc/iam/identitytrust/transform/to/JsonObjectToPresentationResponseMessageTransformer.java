@@ -34,7 +34,8 @@ import java.util.List;
 /**
  * Transforms a {@link JsonObject} into a {@link PresentationResponseMessage} object.
  */
-public class JsonObjectToPresentationResponseMessageTransformer extends AbstractJsonLdTransformer<JsonObject, PresentationResponseMessage> {
+public class JsonObjectToPresentationResponseMessageTransformer
+        extends AbstractJsonLdTransformer<JsonObject, PresentationResponseMessage> {
 
     private final ObjectMapper mapper;
 

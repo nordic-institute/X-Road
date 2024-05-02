@@ -16,11 +16,9 @@ package org.eclipse.edc.verifiablecredentials.linkeddata;
 
 import com.apicatalog.jsonld.loader.DocumentLoader;
 import com.apicatalog.ld.DocumentError;
-import com.apicatalog.ld.signature.SignatureSuite;
-import com.apicatalog.ld.signature.method.MethodResolver;
-import com.apicatalog.ld.signature.method.VerificationMethod;
-import com.apicatalog.vc.VcTag;
-import com.apicatalog.vc.integrity.DataIntegrityKeyPair;
+import com.apicatalog.ld.signature.VerificationMethod;
+import com.apicatalog.vc.method.resolver.MethodResolver;
+import com.apicatalog.vc.proof.Proof;
 import org.eclipse.edc.iam.did.spi.resolution.DidResolverRegistry;
 import org.eclipse.edc.spi.EdcException;
 
@@ -38,19 +36,22 @@ public class DidMethodResolver implements MethodResolver {
     }
 
     @Override
-    public VerificationMethod resolve(URI id, DocumentLoader loader, SignatureSuite suite) throws DocumentError {
+    public VerificationMethod resolve(URI id, DocumentLoader documentLoader, Proof proof) throws DocumentError {
         var didDocument = resolverRegistry.resolve(id.toString())
                 .orElseThrow(failure -> new EdcException(failure.getFailureDetail()));
 
+        //TODO vanilla edc incorrectly solves verification method.
         return didDocument.getVerificationMethod().stream()
-                .map(verificationMethod -> DataIntegrityKeyPair.createVerificationKey(
+                .map(verificationMethod -> new DataIntegrityKeyPair(
                         URI.create(verificationMethod.getId()),
                         URI.create(verificationMethod.getType()),
                         URI.create(verificationMethod.getController()),
-                        verificationMethod.serializePublicKey())
+                        null,
+                        verificationMethod.serializePublicKey(),
+                        "RSA") //TODO harcdcoding for now..
                 )
                 .findFirst()
-                .orElseThrow(() -> new DocumentError(DocumentError.ErrorType.Unknown, suite.getSchema().tagged(VcTag.VerificationMethod.name()).term()));
+                .orElseThrow(() -> new DocumentError(DocumentError.ErrorType.Unknown, proof.method().type().toString()));
     }
 
     /**

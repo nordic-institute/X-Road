@@ -31,7 +31,8 @@ import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.TYPE;
 /**
  * Transforms a {@link PresentationResponseMessage} into a {@link JsonObject} object.
  */
-public class JsonObjectFromPresentationResponseMessageTransformer extends AbstractJsonLdTransformer<PresentationResponseMessage, JsonObject> {
+public class JsonObjectFromPresentationResponseMessageTransformer extends
+        AbstractJsonLdTransformer<PresentationResponseMessage, JsonObject> {
     public JsonObjectFromPresentationResponseMessageTransformer() {
         super(PresentationResponseMessage.class, JsonObject.class);
     }

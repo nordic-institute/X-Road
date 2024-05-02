@@ -40,7 +40,8 @@ public class JsonObjectToVerifiablePresentationTransformer extends AbstractJsonL
         return vcBuilder.build();
     }
 
-    private void transformProperties(String key, JsonValue jsonValue, VerifiablePresentation.Builder vpBuilder, TransformerContext context) {
+    private void transformProperties(String key, JsonValue jsonValue, VerifiablePresentation.Builder vpBuilder,
+                                     TransformerContext context) {
         switch (key) {
             case VerifiablePresentation.VERIFIABLE_PRESENTATION_HOLDER_PROPERTY ->
                     vpBuilder.holder(transformString(jsonValue, context));

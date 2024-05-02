@@ -26,31 +26,30 @@
  */
 package org.niis.xroad.edc.extension.iam;
 
-import org.eclipse.edc.iam.verifiablecredentials.spi.model.Issuer;
-import org.eclipse.edc.iam.verifiablecredentials.spi.validation.TrustedIssuerRegistry;
+import org.eclipse.edc.iam.identitytrust.core.IdentityAndTrustExtension;
+import org.eclipse.edc.iam.identitytrust.spi.verification.SignatureSuiteRegistry;
 import org.eclipse.edc.runtime.metamodel.annotation.Extension;
 import org.eclipse.edc.runtime.metamodel.annotation.Inject;
 import org.eclipse.edc.spi.system.ServiceExtension;
 import org.eclipse.edc.spi.system.ServiceExtensionContext;
+import org.eclipse.edc.spi.types.TypeManager;
+import org.eclipse.edc.verifiablecredentials.signature.GaiaXJws2020SignatureSuite;
 
-import java.util.Map;
-
+import static org.eclipse.edc.spi.constants.CoreConstants.JSON_LD;
 import static org.niis.xroad.edc.extension.iam.TrustedIssuerExtension.NAME;
 
 @Extension(NAME)
-public class TrustedIssuerExtension implements ServiceExtension {
-    static final String NAME = "X-Road Trusted issuer registration extension";
+public class GaiaXSignatureExtension implements ServiceExtension {
+    static final String NAME = "X-Road GaiaX signature compatability extension";
 
     @Inject
-    private TrustedIssuerRegistry trustedIssuerRegistry;
+    private SignatureSuiteRegistry signatureSuiteRegistry;
+    @Inject
+    private TypeManager typeManager;
 
     @Override
     public void initialize(ServiceExtensionContext context) {
-        // register VC issuers
-        //TODO should we trust only single issuer?
-        trustedIssuerRegistry.addIssuer(new Issuer("did:web:gx-compliance.i.x-road.rocks:main", Map.of()));
-        trustedIssuerRegistry.addIssuer(new Issuer("did:web:xroad-8-member1.s3.eu-west-1.amazonaws.com", Map.of()));
-        trustedIssuerRegistry.addIssuer(new Issuer("did:web:gx-notary.i.x-road.rocks:main", Map.of()));
-
+        signatureSuiteRegistry.register(
+                IdentityAndTrustExtension.JSON_2020_SIGNATURE_SUITE, new GaiaXJws2020SignatureSuite(typeManager.getMapper(JSON_LD)));
     }
 }

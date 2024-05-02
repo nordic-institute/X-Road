@@ -76,7 +76,8 @@ public class JsonObjectToVerifiableCredentialTransformer extends AbstractJsonLdT
             case VERIFIABLE_CREDENTIAL_SUBJECT_PROPERTY ->
                     vcBuilder.credentialSubjects(transformArray(jsonValue, CredentialSubject.class, context));
             case VERIFIABLE_CREDENTIAL_NAME_PROPERTY -> vcBuilder.name(transformString(jsonValue, context));
-            case VERIFIABLE_CREDENTIAL_PROOF_PROPERTY, "https://registry.lab.gaia-x.eu/development/api/trusted-shape-registry/v1/shapes/jsonld/trustframework#evidence" -> {
+            case VERIFIABLE_CREDENTIAL_PROOF_PROPERTY,
+                    "https://registry.lab.gaia-x.eu/development/api/trusted-shape-registry/v1/shapes/jsonld/trustframework#evidence" -> {
                 //noop
             }
             default ->
@@ -101,7 +102,8 @@ public class JsonObjectToVerifiableCredentialTransformer extends AbstractJsonLdT
             } else if (jsonValue.getValueType() == JsonValue.ValueType.OBJECT) {
                 issuer = jsonValue.asJsonObject();
             } else {
-                throw new IllegalArgumentException("Unknown issuer type, expected ARRAY or OBJECT, was %s".formatted(jsonValue.getValueType()));
+                throw new IllegalArgumentException("Unknown issuer type, expected ARRAY or OBJECT, was %s"
+                        .formatted(jsonValue.getValueType()));
             }
             return transformObject(issuer, Issuer.class, context);
         }

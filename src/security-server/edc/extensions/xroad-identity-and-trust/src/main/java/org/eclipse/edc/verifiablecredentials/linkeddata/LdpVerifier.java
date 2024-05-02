@@ -14,36 +14,33 @@
 
 package org.eclipse.edc.verifiablecredentials.linkeddata;
 
-import com.apicatalog.jsonld.InvalidJsonLdValue;
-import com.apicatalog.jsonld.JsonLdReader;
 import com.apicatalog.jsonld.json.JsonUtils;
+import com.apicatalog.jsonld.lang.Keywords;
 import com.apicatalog.jsonld.loader.DocumentLoader;
 import com.apicatalog.jsonld.loader.SchemeRouter;
 import com.apicatalog.ld.DocumentError;
 import com.apicatalog.ld.DocumentError.ErrorType;
-import com.apicatalog.ld.schema.LdProperty;
-import com.apicatalog.ld.schema.LdTerm;
-import com.apicatalog.ld.signature.LinkedDataSignature;
-import com.apicatalog.ld.signature.SignatureSuite;
+import com.apicatalog.ld.Term;
+import com.apicatalog.ld.node.LdNode;
+import com.apicatalog.ld.node.LdType;
 import com.apicatalog.ld.signature.VerificationError;
-import com.apicatalog.ld.signature.VerificationError.Code;
+import com.apicatalog.ld.signature.VerificationMethod;
 import com.apicatalog.ld.signature.key.VerificationKey;
-import com.apicatalog.ld.signature.method.HttpMethodResolver;
-import com.apicatalog.ld.signature.method.MethodResolver;
-import com.apicatalog.ld.signature.method.VerificationMethod;
-import com.apicatalog.ld.signature.proof.EmbeddedProof;
-import com.apicatalog.vc.VcTag;
+import com.apicatalog.vc.Presentation;
 import com.apicatalog.vc.VcVocab;
+import com.apicatalog.vc.method.resolver.HttpMethodResolver;
+import com.apicatalog.vc.method.resolver.MethodResolver;
+import com.apicatalog.vc.proof.EmbeddedProof;
+import com.apicatalog.vc.proof.Proof;
+import com.apicatalog.vc.suite.SignatureSuite;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import jakarta.json.Json;
 import jakarta.json.JsonObject;
-import jakarta.json.JsonValue;
+import jakarta.json.JsonStructure;
 import org.eclipse.edc.iam.identitytrust.spi.verification.CredentialVerifier;
 import org.eclipse.edc.iam.identitytrust.spi.verification.SignatureSuiteRegistry;
 import org.eclipse.edc.iam.identitytrust.spi.verification.VerifierContext;
 import org.eclipse.edc.jsonld.spi.JsonLd;
-import org.eclipse.edc.jsonld.spi.JsonLdKeywords;
 import org.eclipse.edc.spi.result.Result;
 import org.eclipse.edc.util.uri.UriUtils;
 
@@ -59,14 +56,14 @@ import java.util.Optional;
 import static org.eclipse.edc.spi.result.Result.failure;
 import static org.eclipse.edc.spi.result.Result.success;
 
-public class LdpVerifier implements CredentialVerifier {
+public final class LdpVerifier implements CredentialVerifier {
 
     private JsonLd jsonLd;
     private ObjectMapper jsonLdMapper;
     private SignatureSuiteRegistry suiteRegistry;
     private Map<String, Object> params;
     private Collection<MethodResolver> methodResolvers = new ArrayList<>(List.of(new HttpMethodResolver()));
-    private DocumentLoader loader;
+    private DocumentLoader documentLoader;
     private URI base;
 
     private LdpVerifier() {
@@ -97,15 +94,18 @@ public class LdpVerifier implements CredentialVerifier {
         } catch (JsonProcessingException e) {
             return failure("Failed to parse JSON: %s".formatted(e.toString()));
         }
+        var context = jo.containsKey(Keywords.CONTEXT)
+                ? JsonUtils.toJsonArray(jo.get(Keywords.CONTEXT))
+                : null;
         var expansion = jsonLd.expand(jo);
 
-        if (loader == null) {
+        if (documentLoader == null) {
             // default loader
-            loader = SchemeRouter.defaultInstance();
+            documentLoader = SchemeRouter.defaultInstance();
         }
         return expansion.compose(expandedDocument -> {
             try {
-                return verifyExpanded(expandedDocument, verifierContext);
+                return verifyExpanded(expandedDocument, verifierContext, context);
             } catch (DocumentError e) {
                 return failure("Could not verify VP-LDP: message: %s, code: %s".formatted(e.getMessage(), e.getCode()));
             } catch (VerificationError e) {
@@ -118,6 +118,25 @@ public class LdpVerifier implements CredentialVerifier {
         return base;
     }
 
+    private VerificationMethod resolveMethod(URI id, Proof proof, DocumentLoader loader) throws DocumentError {
+
+        if (id == null) {
+            throw new DocumentError(ErrorType.Missing, "ProofVerificationId");
+        }
+
+        // find the method id resolver
+        final Optional<MethodResolver> resolver = methodResolvers.stream()
+                .filter(r -> r.isAccepted(id))
+                .findFirst();
+
+        // try to resolve the method
+        if (resolver.isPresent()) {
+            return resolver.get().resolve(id, loader, proof);
+        }
+
+        throw new DocumentError(ErrorType.Unknown, "ProofVerificationId");
+    }
+
     /**
      * Validates the credential issuer by comparing it with the provided verification method.
      *
@@ -127,51 +146,38 @@ public class LdpVerifier implements CredentialVerifier {
      */
     private Result<Void> validateCredentialIssuer(JsonObject expanded, VerificationMethod verificationMethod) {
         try {
-            var issuerUri = JsonLdReader.getId(expanded, VcVocab.ISSUER.uri());
-            if (issuerUri.isEmpty()) {
+            var issuerUri = LdNode.of(expanded).node(VcVocab.ISSUER);
+            if (!issuerUri.exists()) {
                 return failure("Document must contain an 'issuer' property.");
             }
-            if (!UriUtils.equalsIgnoreFragment(issuerUri.get(), verificationMethod.id())) {
-                return failure("Issuer and proof.verificationMethod mismatch: %s <> %s".formatted(issuerUri.get(), verificationMethod.id()));
+            if (!UriUtils.equalsIgnoreFragment(issuerUri.id(), verificationMethod.id())) {
+                return failure("Issuer and proof.verificationMethod mismatch: %s <> %s".formatted(issuerUri, verificationMethod.id()));
             }
-        } catch (InvalidJsonLdValue e) {
+        } catch (DocumentError e) {
             return failure("Error getting issuer: %s".formatted(e.getMessage()));
         }
         return success();
     }
 
-    /**
-     * Extracts the first graph from a JSON-LD document, if it exists. When multiple VCs are present in a VP, they are
-     * expanded to a {@code @graph} object.
-     *
-     * @param document The JSON-LD document to extract the graph from.
-     * @return The first graph from the JSON-LD document, or the original document if no graph exists.
-     */
-    private JsonValue extractGraph(JsonValue document) {
-        if (document.getValueType() == JsonValue.ValueType.OBJECT) {
-            if (document.asJsonObject().get(JsonLdKeywords.GRAPH) != null) {
-                return document.asJsonObject().getJsonArray(JsonLdKeywords.GRAPH).get(0);
-            }
-        }
-        return document;
-    }
-
-    private Result<Void> verifyExpanded(JsonObject expanded, VerifierContext context) throws VerificationError, DocumentError {
-
+    private Result<Void> verifyExpanded(JsonObject expanded, VerifierContext context, JsonStructure ldContext)
+            throws VerificationError, DocumentError {
 
         if (isCredential(expanded)) {
             // data integrity validation
-            return verifyGaiaXProofs(expanded);
+            return verifyProofs(expanded, ldContext);
 
         } else if (isPresentation(expanded)) {
             // verify presentation proofs
-            verifyProofs(expanded);
+            var presentationValidation = verifyProofs(expanded, ldContext);
+            if (!presentationValidation.succeeded()) {
+                return presentationValidation.mapTo();
+            }
 
             // verify embedded credentials
 
             // verifiableCredentials
             var credentials = new ArrayList<JsonObject>();
-            for (var credential : JsonLdReader.getObjects(expanded, VcVocab.VERIFIABLE_CREDENTIALS.uri())) {
+            for (var credential : Presentation.getCredentials(expanded)) {
 
                 if (JsonUtils.isNotObject(credential)) {
                     return failure("Presentation contained an invalid 'verifiableCredential' object!");
@@ -180,259 +186,120 @@ public class LdpVerifier implements CredentialVerifier {
             }
 
             return credentials.stream()
-                    .map(this::extractGraph)
                     .map(expCred -> context.verify(expCred.toString()))
                     .reduce(Result::merge)
                     .orElse(success()); // "no credentials" is still valid according to https://www.w3.org/TR/vc-data-model/#presentations-0
 
         } else {
-            return failure("%s: %s".formatted(ErrorType.Unknown, LdTerm.TYPE));
+            return failure("%s: %s".formatted(ErrorType.Unknown, Term.TYPE));
         }
     }
 
-    private Result<Void> verifyProofs(JsonObject expanded) throws VerificationError, DocumentError {
+    private Result<Void> verifyProofs(JsonObject expanded, JsonStructure context) throws VerificationError, DocumentError {
 
         // get proofs - throws an exception if there is no proof, never null nor an
         // empty collection
-        var proofs = EmbeddedProof.assertProof(expanded);
+        var expandedProofs = EmbeddedProof.assertProof(expanded);
+
+
+        var allProofs = new ArrayList<Proof>(expandedProofs.size());
 
         // a data before issuance - no proof attached
-        var data = EmbeddedProof.removeProof(expanded);
+        var data = EmbeddedProof.removeProofs(expanded);
 
         // verify attached proofs' signatures
-        for (var embeddedProof : proofs) {
+        for (var expandedProof : expandedProofs) {
 
-            if (JsonUtils.isNotObject(embeddedProof)) {
+            if (JsonUtils.isNotObject(expandedProof)) {
                 return failure("%s: %s".formatted(ErrorType.Invalid, VcVocab.PROOF));
             }
 
-            var proofObject = embeddedProof.asJsonObject();
+            var proofTypes = LdType.strings(expandedProof);
 
-            var proofType = JsonLdReader.getType(proofObject);
-
-            if (proofType == null || proofType.isEmpty()) {
-                return failure("%s: %s, %s".formatted(ErrorType.Missing, VcVocab.PROOF, LdTerm.TYPE));
+            if (proofTypes == null || proofTypes.isEmpty()) {
+                return failure("%s: %s, %s".formatted(ErrorType.Missing, VcVocab.PROOF, Term.TYPE));
             }
 
-            var signatureSuite = proofType.stream()
-                    .map(suiteRegistry::getForId)
-                    .filter(Objects::nonNull)
-                    .findFirst()
-                    .orElseThrow(() -> new VerificationError(Code.UnsupportedCryptoSuite));
+            var signatureSuite = findSuite(proofTypes, expandedProof);
 
-            if (signatureSuite.getSchema() == null) {
-                return failure("The suite [" + signatureSuite.getId() + "] does not provide proof schema.");
+            if (signatureSuite == null) {
+                return failure("No SignatureSuite found for proof type(s) '%s'.".formatted(String.join(",")));
             }
 
-            LdProperty<byte[]> proofValueProperty = signatureSuite.getSchema().tagged(VcTag.ProofValue.name());
-
-            if (proofValueProperty == null) {
-                return failure("The proof schema does not define the proof value.");
+            var proof = signatureSuite.getProof(expandedProof, documentLoader);
+            if (proof == null) {
+                return failure("The suite [" + signatureSuite + "] returns null as a proof.");
             }
 
-            var proof = signatureSuite.getSchema().read(proofObject);
-
-            signatureSuite.getSchema().validate(proof, params);
-
-            if (!proof.contains(proofValueProperty.term())) {
-                return failure("%s: %s".formatted(ErrorType.Missing, proofValueProperty.term()));
-            }
-
-            byte[] proofValue = proof.value(proofValueProperty.term());
-
-            if (proofValue == null || proofValue.length == 0) {
-                return failure("%s: %s".formatted(ErrorType.Missing, proofValueProperty.term()));
-            }
-
-            LdProperty<VerificationMethod> methodProperty = signatureSuite.getSchema().tagged(VcTag.VerificationMethod.name());
-
-            if (methodProperty == null) {
-                return failure("The proof schema does not define a verification method.");
-            }
-
-            var verificationMethod = getMethod(methodProperty, proofObject, signatureSuite)
-                    .orElseThrow(() -> new DocumentError(ErrorType.Missing, methodProperty.term()));
-
-            if (!(verificationMethod instanceof VerificationKey)) {
-                return failure("%s: %s".formatted(ErrorType.Unknown, methodProperty.term()));
-            }
-
-            if (isCredential(expanded)) {
-                var failure = validateCredentialIssuer(expanded, verificationMethod);
-                if (failure.failed()) return failure;
-            }
-
-            // remote a proof value
-            var unsignedProof = Json.createObjectBuilder(proofObject)
-                    .remove(proofValueProperty.term().uri())
-                    .build();
-
-            var signature = new LinkedDataSignature(signatureSuite.getCryptoSuite());
-
-            // verify signature
-            signature.verify(data, unsignedProof, (VerificationKey) verificationMethod, proofValue);
+            allProofs.add(proof);
         }
-        // all good
+
+        for (var proof : allProofs) {
+            try {
+                proof.validate(Map.of());
+
+                var proofValue = proof.signature();
+
+                if (proofValue == null) {
+                    return failure("Proof did not contain a valid signature.");
+                }
+
+                var verificationMethod = getMethod(proof, documentLoader);
+                if (verificationMethod == null) {
+                    return failure("Proof did not contain a VerificationMethod.");
+                }
+
+                if (!(verificationMethod instanceof VerificationKey)) {
+                    return failure("Proof did not contain a valid VerificationMethod, expected VerificationKey, got: %s"
+                            .formatted(verificationMethod.getClass()));
+                }
+
+                if (isCredential(expanded)) {
+                    var failure = validateCredentialIssuer(expanded, verificationMethod);
+                    if (failure.failed()) return failure;
+                }
+
+                proof.verify(context, data, (VerificationKey) verificationMethod);
+            } catch (DocumentError error) {
+                return failure("Could not verify VP-LDP: message: %s, code: %s".formatted(error.getMessage(), error.getCode()));
+            } catch (VerificationError error) {
+                return failure("Verification failed: %s".formatted(error.getMessage()));
+            }
+        }
         return success();
     }
 
-    private Result<Void> verifyGaiaXProofs(JsonObject expanded) throws VerificationError, DocumentError {
+    private VerificationMethod getMethod(Proof proof, DocumentLoader loader) throws DocumentError {
+        final VerificationMethod method = proof.method();
 
-        // get proofs - throws an exception if there is no proof, never null nor an
-        // empty collection
-        var proofs = EmbeddedProof.assertProof(expanded);
-
-        // a data before issuance - no proof attached
-        var data = EmbeddedProof.removeProof(expanded);
-
-        // verify attached proofs' signatures
-        for (var embeddedProof : proofs) {
-
-            if (JsonUtils.isNotObject(embeddedProof)) {
-                return failure("%s: %s".formatted(ErrorType.Invalid, VcVocab.PROOF));
-            }
-
-            var proofObject = embeddedProof.asJsonObject();
-
-            var proofType = JsonLdReader.getType(proofObject);
-
-            if (proofType == null || proofType.isEmpty()) {
-                return failure("%s: %s, %s".formatted(ErrorType.Missing, VcVocab.PROOF, LdTerm.TYPE));
-            }
-
-            var signatureSuite = proofType.stream()
-                    .map(suiteRegistry::getForId)
-                    .filter(Objects::nonNull)
-                    .findFirst()
-                    .orElseThrow(() -> new VerificationError(Code.UnsupportedCryptoSuite));
-
-            if (signatureSuite.getSchema() == null) {
-                return failure("The suite [" + signatureSuite.getId() + "] does not provide proof schema.");
-            }
-
-            LdProperty<byte[]> proofValueProperty = signatureSuite.getSchema().tagged(VcTag.ProofValue.name());
-
-            if (proofValueProperty == null) {
-                return failure("The proof schema does not define the proof value.");
-            }
-
-            var proof = signatureSuite.getSchema().read(proofObject);
-
-            signatureSuite.getSchema().validate(proof, params);
-
-            if (!proof.contains(proofValueProperty.term())) {
-                return failure("%s: %s".formatted(ErrorType.Missing, proofValueProperty.term()));
-            }
-
-            byte[] proofValue = proof.value(proofValueProperty.term());
-
-            if (proofValue == null || proofValue.length == 0) {
-                return failure("%s: %s".formatted(ErrorType.Missing, proofValueProperty.term()));
-            }
-
-            LdProperty<VerificationMethod> methodProperty = signatureSuite.getSchema().tagged(VcTag.VerificationMethod.name());
-
-            if (methodProperty == null) {
-                return failure("The proof schema does not define a verification method.");
-            }
-
-            var verificationMethod = getMethod(methodProperty, proofObject, signatureSuite)
-                    .orElseThrow(() -> new DocumentError(ErrorType.Missing, methodProperty.term()));
-
-            if (!(verificationMethod instanceof VerificationKey)) {
-                return failure("%s: %s".formatted(ErrorType.Unknown, methodProperty.term()));
-            }
-
-            if (isCredential(expanded)) {
-                var failure = validateCredentialIssuer(expanded, verificationMethod);
-                if (failure.failed()) return failure;
-            }
-
-            var signature = new LinkedDataGaiaXSignature(signatureSuite.getCryptoSuite());
-
-            // verify signature
-            signature.verify(data, (VerificationKey) verificationMethod, proofValue);
+        if (method == null) {
+            throw new DocumentError(ErrorType.Missing, "ProofVerificationMethod");
         }
-        // all good
-        return success();
+
+        final URI methodType = method.type();
+
+        if (methodType != null && method instanceof VerificationKey && (((VerificationKey) method).publicKey() != null)) {
+            return method;
+        }
+
+        return resolveMethod(method.id(), proof, loader);
     }
 
-    private Optional<VerificationMethod> getMethod(LdProperty<VerificationMethod> property, JsonObject proofObject, SignatureSuite suite) throws DocumentError {
-
-        var expanded = proofObject.getJsonArray(property.term().uri());
-
-        if (JsonUtils.isNull(expanded) || expanded.isEmpty()) {
-            return Optional.empty();
-        }
-
-        for (var methodValue : expanded) {
-
-            if (JsonUtils.isNotObject(methodValue)) {
-                throw new IllegalStateException(); // should never happen
-            }
-
-            var methodObject = methodValue.asJsonObject();
-
-            var types = JsonLdReader.getType(methodObject);
-
-            if (types == null || types.isEmpty()) {
-                return resolve(methodObject, suite, property);
-            }
-
-            var method = property.read(methodObject);
-
-            if (method instanceof VerificationKey && (((VerificationKey) method).publicKey() != null)) {
-                return Optional.of(method);
-            }
-
-            return resolve(method.id(), suite, property);
-        }
-
-        return Optional.empty();
-    }
-
-    private Optional<VerificationMethod> resolve(JsonObject method, SignatureSuite suite, LdProperty<VerificationMethod> property) throws DocumentError {
-        try {
-            var id = JsonLdReader
-                    .getId(method)
-                    .orElseThrow(() -> new DocumentError(ErrorType.Missing, property.term()));
-
-            return resolve(id, suite, property);
-
-        } catch (InvalidJsonLdValue e) {
-            throw new DocumentError(e, ErrorType.Invalid, property.term());
-        }
-
-    }
-
-    private Optional<VerificationMethod> resolve(URI id, SignatureSuite suite, LdProperty<VerificationMethod> property) throws DocumentError {
-
-        if (id == null) {
-            throw new DocumentError(ErrorType.Invalid, property.term());
-        }
-
-        // find the method id resolver
-        var resolver = methodResolvers.stream()
-                .filter(r -> r.isAccepted(id))
-                .findFirst();
-
-        // try to resolve the method
-        if (resolver.isPresent()) {
-            return Optional.ofNullable(resolver.get().resolve(id, loader, suite));
-        }
-
-        throw new DocumentError(ErrorType.Unknown, property.term());
+    private SignatureSuite findSuite(Collection<String> proofTypes, JsonObject expandedProof) {
+        return suiteRegistry.getAllSuites().stream()
+                .filter(s -> proofTypes.stream().anyMatch(type -> s.isSupported(type, expandedProof)))
+                .findFirst().orElse(null);
     }
 
     private boolean isCredential(JsonObject expanded) {
-        return JsonLdReader.isTypeOf(VcVocab.CREDENTIAL_TYPE.uri(), expanded);
+        return LdNode.isTypeOf(VcVocab.CREDENTIAL_TYPE.uri(), expanded);
     }
 
     private boolean isPresentation(JsonObject expanded) {
-        return JsonLdReader.isTypeOf(VcVocab.PRESENTATION_TYPE.uri(), expanded);
+        return LdNode.isTypeOf(VcVocab.PRESENTATION_TYPE.uri(), expanded);
     }
 
-    public static class Builder {
+    public static final class Builder {
         private final LdpVerifier verifier;
 
         private Builder() {
@@ -489,7 +356,7 @@ public class LdpVerifier implements CredentialVerifier {
         }
 
         public Builder loader(DocumentLoader loader) {
-            this.verifier.loader = loader;
+            this.verifier.documentLoader = loader;
             return this;
         }
 

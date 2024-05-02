@@ -64,7 +64,8 @@ public class StatusList2021RevocationService implements RevocationListService {
         var purpose = status.getStatusListPurpose();
         var slCredPurpose = slCred.statusPurpose();
         if (!purpose.equalsIgnoreCase(slCredPurpose)) {
-            return Result.failure("Credential's statusPurpose value must match the status list's purpose: '%s' != '%s'".formatted(purpose, slCredPurpose));
+            return Result.failure("Credential's statusPurpose value must match the status list's purpose: '%s' != '%s'"
+                    .formatted(purpose, slCredPurpose));
         }
 
         var bitStringResult = BitString.Parser.newInstance().parse(slCred.encodedList());

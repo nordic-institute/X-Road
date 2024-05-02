@@ -230,6 +230,7 @@ edc-jsonLd-lib = { module = "org.eclipse.edc:json-ld-lib", version.ref = "edc" }
 edc-jsonLd-spi = { module = "org.eclipse.edc:json-ld-spi", version.ref = "edc" }
 edc-jws2020-lib = { module = "org.eclipse.edc:jws2020-lib", version.ref = "edc" }
 edc-jwt-spi = { module = "org.eclipse.edc:jwt-spi", version.ref = "edc" }
+edc-ldp-verifiable-credentials = { module = "org.eclipse.edc:ldp-verifiable-credentials", version.ref = "edc" }
 edc-management-api = { module = "org.eclipse.edc:management-api", version.ref = "edc" }
 edc-management-api-configuration = { module = "org.eclipse.edc:management-api-configuration", version.ref = "edc" }
 edc-policy-definition-api = { module = "org.eclipse.edc:policy-definition-api", version.ref = "edc" }
