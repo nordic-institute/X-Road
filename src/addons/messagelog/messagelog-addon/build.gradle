@@ -3,17 +3,30 @@ plugins {
 }
 
 dependencies {
-    implementation(project(':proxy'))
-    implementation(project(':common:common-jetty'))
-    implementation(project(':common:common-globalconf'))
-    implementation(project(':common:common-scheduler'))
-    implementation(project(':serverconf'))
-    implementation(project(':common:common-messagelog'))
-    implementation(project(':common:common-op-monitoring'))
-    implementation(project(':common:common-verifier'))
-    implementation(project(':asic-util'))
-    implementation(project(':addons:messagelog:messagelog-db'))
-    implementation(project(':addons:messagelog:messagelog-protocol'))
+//    implementation(project(':proxy'))
+//    implementation(project(':common:common-jetty'))
+//    implementation(project(':common:common-globalconf'))
+//    implementation(project(':common:common-scheduler'))
+//    implementation(project(':serverconf'))
+//    implementation(project(':common:common-messagelog'))
+//    implementation(project(':common:common-op-monitoring'))
+//    implementation(project(':common:common-verifier'))
+//    implementation(project(':asic-util'))
+//    implementation(project(':addons:messagelog:messagelog-db'))
+//    implementation(project(':addons:messagelog:messagelog-protocol'))
+
+    implementation(project(':addons:messagelog:messagelog-addon:core'))
+    implementation(project(':addons:messagelog:messagelog-addon:asic'))
+
+    testImplementation project(':common:common-jetty')
+    testImplementation project(':common:common-globalconf')
+    testImplementation project(':common:common-scheduler')
+    testImplementation project(':common:common-message')
+    testImplementation project(':common:common-messagelog')
+    testImplementation project(':common:common-verifier')
+    testImplementation project(':serverconf')
+    testImplementation project(':asic-util')
+    testImplementation project(':proxy')
 
     testImplementation project(':common:common-test')
     testImplementation project(':addons:messagelog:messagelog-archiver')
@@ -32,6 +45,8 @@ shadowJar {
         include project(':addons:messagelog:messagelog-protocol')
     }
     from project(':addons:messagelog:messagelog-db').sourceSets.main.output
+    from project(':addons:messagelog:messagelog-addon:core').sourceSets.main.output
+    from project(':addons:messagelog:messagelog-addon:asic').sourceSets.main.output
 }
 
 tasks.register('copyGpg', Copy) {

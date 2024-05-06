@@ -7,6 +7,8 @@ dependencies {
     implementation project(':signer-protocol')
     implementation project(':common:common-core')
     implementation project(':common:common-keyconf')
+    implementation project(':security-server:edc:spi:xroad-messagelog-spi')
+    implementation project(':common:common-messagelog')
     implementation project(':security-server:edc:xroad-edc-security')
 
     implementation libs.edc.core.spi

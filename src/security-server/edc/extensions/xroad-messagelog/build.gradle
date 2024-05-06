@@ -7,6 +7,10 @@ dependencies {
 
     implementation(project(":security-server:edc:spi:xroad-messagelog-spi"))
     implementation(project(":addons:messagelog:messagelog-protocol"))
+
+    implementation(project(":addons:messagelog:messagelog-addon:core"))
+    implementation(project(":common:common-messagelog"))
+
     implementation(project(":common:common-rpc")) {
         exclude group: 'org.eclipse.jetty'
     }

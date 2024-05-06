@@ -1,0 +1,39 @@
+plugins {
+    alias(libs.plugins.shadow)
+}
+
+dependencies {
+//    implementation(project(':proxy'))
+//    implementation(project(':common:common-jetty'))
+    implementation(project(':common:common-globalconf'))
+    implementation(project(':common:common-scheduler'))
+    implementation(project(':serverconf'))
+    implementation(project(':common:common-messagelog'))
+//    implementation(project(':common:common-op-monitoring'))
+    implementation(project(':common:common-verifier'))
+//    implementation(project(':asic-util'))
+    implementation(project(':addons:messagelog:messagelog-db'))
+    implementation(project(':addons:messagelog:messagelog-protocol'))
+
+}
+
+jar {
+    from project(':addons:messagelog:messagelog-db').sourceSets.main.output
+}
+
+shadowJar {
+    archiveVersion = ''
+    archiveClassifier = ''
+    dependencies {
+        include project(':addons:messagelog:messagelog-protocol')
+    }
+    from project(':addons:messagelog:messagelog-db').sourceSets.main.output
+}
+
+tasks.register('copyGpg', Copy) {
+    from 'src/test/gpg'
+    into layout.buildDirectory.dir("gpg")
+}
+
+test.dependsOn copyGpg
+assemble.dependsOn shadowJar
