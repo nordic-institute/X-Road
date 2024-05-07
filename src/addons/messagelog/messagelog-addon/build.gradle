@@ -13,7 +13,6 @@ dependencies {
 //    implementation(project(':common:common-verifier'))
 //    implementation(project(':asic-util'))
 //    implementation(project(':addons:messagelog:messagelog-db'))
-//    implementation(project(':addons:messagelog:messagelog-protocol'))
 
     implementation(project(':addons:messagelog:messagelog-addon:core'))
     implementation(project(':addons:messagelog:messagelog-addon:asic'))
@@ -41,9 +40,6 @@ jar {
 shadowJar {
     archiveVersion = ''
     archiveClassifier = ''
-    dependencies {
-        include project(':addons:messagelog:messagelog-protocol')
-    }
     from project(':addons:messagelog:messagelog-db').sourceSets.main.output
     from project(':addons:messagelog:messagelog-addon:core').sourceSets.main.output
     from project(':addons:messagelog:messagelog-addon:asic').sourceSets.main.output

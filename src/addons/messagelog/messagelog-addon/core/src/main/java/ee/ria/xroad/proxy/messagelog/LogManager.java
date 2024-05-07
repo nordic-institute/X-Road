@@ -29,7 +29,6 @@ import ee.ria.xroad.common.CodedException;
 import ee.ria.xroad.common.DiagnosticsErrorCodes;
 import ee.ria.xroad.common.DiagnosticsStatus;
 import ee.ria.xroad.common.DiagnosticsUtils;
-import ee.ria.xroad.common.SystemProperties;
 import ee.ria.xroad.common.conf.globalconf.GlobalConf;
 import ee.ria.xroad.common.conf.serverconf.ServerConf;
 import ee.ria.xroad.common.messagelog.AbstractLogManager;
@@ -42,16 +41,13 @@ import ee.ria.xroad.common.messagelog.TimestampRecord;
 import ee.ria.xroad.common.util.JobManager;
 import ee.ria.xroad.common.util.TimeUtils;
 
-import io.grpc.BindableService;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.input.BoundedInputStream;
-import org.niis.xroad.common.rpc.server.RpcServer;
 
 import java.time.Duration;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.Date;
-import java.util.List;
 import java.util.Map;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
@@ -83,7 +79,6 @@ public class LogManager extends AbstractLogManager {
 
     private final Timestamper timestamper;
     private final TimestamperJob timestamperJob;
-    private RpcServer rpcServer;
 
     // package private for testing
     final TaskQueue taskQueue;
@@ -94,39 +89,11 @@ public class LogManager extends AbstractLogManager {
         timestamper = getTimestamperImpl();
         taskQueue = getTaskQueueImpl(timestamper);
         timestamperJob = createTimestamperJob(taskQueue);
-
-        try {
-            rpcServer = createGrpcServer();
-        } catch (Exception e) {
-            log.error("Failed to start RPC server", e);
-        }
-
-    }
-
-    private RpcServer createGrpcServer() throws Exception {
-        log.info("Starting RPC server");
-        final List<BindableService> bindableServices = List.of(
-                new RpcMessagelogService(this)
-        );
-        return RpcServer.newServer(
-                SystemProperties.getGrpcInternalHost(),
-                SystemProperties.getGrpcMessagelogPort(),
-                builder -> bindableServices.forEach(bindableService -> {
-                    log.info("Registering {} RPC service.", bindableService.getClass().getSimpleName());
-                    builder.addService(bindableService);
-                }));
     }
 
     @Override
     public void shutdown() {
         timestamperJob.shutdown();
-        if (rpcServer != null) {
-            try {
-                rpcServer.stop();
-            } catch (Exception e) {
-                log.error("Failure while stopping RPC server", e);
-            }
-        }
         super.shutdown();
     }
 
