@@ -48,8 +48,8 @@ class TestTaskQueue extends TaskQueue {
 
     static Exception throwWhenSavingTimestamp;
 
-    TestTaskQueue(Timestamper timestamper, LogManager logManager) {
-        super(timestamper, logManager);
+    TestTaskQueue(Timestamper timestamper, LogManager logManager, String origin) {
+        super(timestamper, logManager, origin);
     }
 
     static void initGateLatch() {

@@ -33,7 +33,6 @@ import ee.ria.xroad.common.messagelog.AbstractLogManager;
 import ee.ria.xroad.common.messagelog.MessageLogProperties;
 import ee.ria.xroad.common.messagelog.archive.EncryptionConfigProvider;
 import ee.ria.xroad.common.messagelog.archive.GroupingStrategy;
-import ee.ria.xroad.common.util.JobManager;
 import ee.ria.xroad.proxy.messagelog.MessageLog;
 import ee.ria.xroad.proxy.messagelog.NullLogManager;
 
@@ -52,8 +51,8 @@ public class ProxyMessageLogConfig {
     private static final GroupingStrategy ARCHIVE_GROUPING = MessageLogProperties.getArchiveGrouping();
 
     @Bean(destroyMethod = "shutdown")
-    AbstractLogManager messageLogManager(JobManager jobManager) {
-        return MessageLog.init(jobManager);
+    AbstractLogManager messageLogManager() {
+        return MessageLog.init("proxy");
     }
 
     @Bean("messageLogEnabledStatus")

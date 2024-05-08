@@ -52,6 +52,7 @@ public class TaskQueue {
 
     private final Timestamper timestamper;
     private final LogManager logManager;
+    private final String origin;
 
     protected void handleTimestampSucceeded(TimestampSucceeded message) {
         log.trace("handleTimestampSucceeded");
@@ -86,7 +87,7 @@ public class TaskQueue {
     }
 
     protected void saveTimestampRecord(TimestampSucceeded message) throws Exception {
-        LogManager.saveTimestampRecord(message);
+        logManager.saveTimestampRecord(message);
     }
 
     private void indicateSuccess() {
@@ -183,9 +184,9 @@ public class TaskQueue {
         return new TimestampTask(messageRecords, signatureHashes);
     }
 
-    private static boolean isTaskQueueEmpty() {
+    private boolean isTaskQueueEmpty() {
         try {
-            return doInTransaction(TaskQueue::getTasksQueueSize) == 0L;
+            return doInTransaction(this::getTasksQueueSize) == 0L;
         } catch (Exception e) {
             log.error("Could not read timestamp task queue status", e);
 
@@ -195,19 +196,24 @@ public class TaskQueue {
 
     @SuppressWarnings("unchecked")
     private List<Task> getTimestampTasks(Session session, int timestampRecordsLimit) {
-        return session.createQuery(getTaskQueueQuery()).setMaxResults(timestampRecordsLimit).list();
+        return session.createQuery(getTaskQueueQuery())
+                .setParameter("origin", this.origin)
+                .setMaxResults(timestampRecordsLimit)
+                .list();
     }
 
-    private static Long getTasksQueueSize(Session session) {
-        return (Long) session.createQuery(getTaskQueueSizeQuery()).uniqueResult();
+    private Long getTasksQueueSize(Session session) {
+        return (Long) session.createQuery(getTaskQueueSizeQuery())
+                .setParameter("origin", this.origin)
+                .uniqueResult();
     }
 
     static String getTaskQueueQuery() {
         return "select new " + Task.class.getName() + "(m.id, m.signatureHash) "
-                + "from MessageRecord m where m.timestampRecord is null order by m.id";
+                + "from MessageRecord m where m.timestampRecord is null and m.origin = :origin order by m.id";
     }
 
     private static String getTaskQueueSizeQuery() {
-        return "select COUNT(*) from MessageRecord m where m.timestampRecord is null";
+        return "select COUNT(*) from MessageRecord m where m.timestampRecord is null and m.origin = :origin";
     }
 }

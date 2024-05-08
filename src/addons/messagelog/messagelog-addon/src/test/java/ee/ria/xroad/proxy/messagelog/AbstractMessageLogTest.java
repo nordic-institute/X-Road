@@ -36,7 +36,6 @@ import ee.ria.xroad.common.messagelog.SoapLogMessage;
 import ee.ria.xroad.common.messagelog.TimestampRecord;
 import ee.ria.xroad.common.signature.SignatureData;
 import ee.ria.xroad.common.util.CacheInputStream;
-import ee.ria.xroad.common.util.JobManager;
 import ee.ria.xroad.messagelog.archiver.LogArchiver;
 import ee.ria.xroad.messagelog.archiver.LogCleaner;
 
@@ -57,7 +56,6 @@ import static org.mockito.Mockito.mock;
 @Slf4j
 abstract class AbstractMessageLogTest {
 
-    JobManager jobManager;
     LogManager logManager;
 
     protected final String archivesDir = "build/archive";
@@ -74,13 +72,11 @@ abstract class AbstractMessageLogTest {
         System.setProperty(SystemProperties.TEMP_FILES_PATH, "build/tmp");
         System.setProperty(MessageLogProperties.ARCHIVE_PATH, archivesDir);
 
-        jobManager = new JobManager();
-
         System.setProperty(MessageLogProperties.TIMESTAMP_IMMEDIATELY, timestampImmediately ? "true" : "false");
 
         System.setProperty(MessageLogProperties.MESSAGE_BODY_LOGGING_ENABLED, "true");
 
-        logManager = (LogManager) getLogManagerImpl().getDeclaredConstructor(JobManager.class).newInstance(jobManager);
+        logManager = (LogManager) getLogManagerImpl().getDeclaredConstructor(String.class).newInstance("test");
 
         if (!Files.exists(archivesPath)) {
             Files.createDirectory(archivesPath);
@@ -91,7 +87,6 @@ abstract class AbstractMessageLogTest {
 
     void testTearDown() throws Exception {
         logManager.shutdown();
-        jobManager.stop();
         FileUtils.deleteDirectory(archivesPath.toFile());
     }
 

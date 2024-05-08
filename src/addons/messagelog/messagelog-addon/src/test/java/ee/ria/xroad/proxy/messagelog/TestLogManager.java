@@ -27,7 +27,6 @@
 package ee.ria.xroad.proxy.messagelog;
 
 import ee.ria.xroad.common.messagelog.MessageRecord;
-import ee.ria.xroad.common.util.JobManager;
 
 import lombok.extern.slf4j.Slf4j;
 
@@ -41,8 +40,8 @@ class TestLogManager extends LogManager {
     // Countdownlatch for waiting for next timestamp record save.
     private static CountDownLatch setTimestampingStatusLatch = new CountDownLatch(1);
 
-    TestLogManager(JobManager jobManager) {
-        super(jobManager);
+    TestLogManager(String origin) {
+        super(origin);
     }
 
     static void initSetTimestampingStatusLatch() {
@@ -75,8 +74,8 @@ class TestLogManager extends LogManager {
     }
 
     @Override
-    protected TestTaskQueue getTaskQueueImpl(Timestamper timestamper) {
-        return new TestTaskQueue(timestamper, this);
+    protected TestTaskQueue getTaskQueueImpl(Timestamper timestamper, String origin) {
+        return new TestTaskQueue(timestamper, this, origin);
     }
 
     /**

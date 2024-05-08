@@ -28,7 +28,6 @@ package ee.ria.xroad.common.messagelog;
 import ee.ria.xroad.common.asic.AsicContainer;
 import ee.ria.xroad.common.asic.TimestampData;
 import ee.ria.xroad.common.identifier.ClientId;
-import ee.ria.xroad.common.message.SoapMessageImpl;
 import ee.ria.xroad.common.signature.SignatureData;
 
 import lombok.AccessLevel;
@@ -131,20 +130,6 @@ public class MessageRecord extends AbstractLogRecord {
     /**
      * Constructs a message record.
      *
-     * @param msg the message
-     * @param sig the signature
-     * @param clientId message sender client identifier
-     * @param xRequestId common id between a request and it's response
-     * @throws Exception in case of any errors
-     */
-    public MessageRecord(SoapMessageImpl msg, String sig, ClientId clientId, String xRequestId)
-            throws Exception {
-        this(msg.getQueryId(), msg.getXml(), sig, msg.isResponse(), clientId, xRequestId);
-    }
-
-    /**
-     * Constructs a message record.
-     *
      * @param qid the query ID
      * @param msg the message
      * @param sig the signature
@@ -153,7 +138,7 @@ public class MessageRecord extends AbstractLogRecord {
      * @param xRequestId common id between a request and it's response
      */
     public MessageRecord(String qid, String msg, String sig, boolean response,
-                         ClientId clientId, String xRequestId) {
+                         ClientId clientId, String xRequestId, String origin) {
         this.queryId = qid;
         this.message = msg;
         this.signature = sig;
@@ -162,6 +147,7 @@ public class MessageRecord extends AbstractLogRecord {
         this.memberCode = clientId.getMemberCode();
         this.subsystemCode = clientId.getSubsystemCode();
         this.xRequestId = xRequestId;
+        setOrigin(origin);
     }
 
     @Override

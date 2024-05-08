@@ -47,7 +47,6 @@ import java.util.List;
 import java.util.Map;
 
 import static org.niis.xroad.edc.sig.xades.XrdXAdESUtils.DOCUMENT_NAME_HEADERS;
-import static org.niis.xroad.edc.sig.xades.XrdXAdESUtils.DOCUMENT_NAME_PAYLOAD;
 
 @Slf4j
 public class XrdXAdESVerifier extends XrdSignatureVerifierBase implements XrdSignatureVerifier {

@@ -33,7 +33,8 @@ import ee.ria.xroad.common.messagelog.TimestampRecord;
 
 public class NoopLogManager extends AbstractLogManager {
 
-    public NoopLogManager() {
+    NoopLogManager(String origin) {
+        super(origin);
     }
 
     @Override

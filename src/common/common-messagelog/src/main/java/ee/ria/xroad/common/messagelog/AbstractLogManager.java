@@ -26,7 +26,6 @@
 package ee.ria.xroad.common.messagelog;
 
 import ee.ria.xroad.common.DiagnosticsStatus;
-import ee.ria.xroad.common.util.JobManager;
 
 import lombok.extern.slf4j.Slf4j;
 
@@ -41,14 +40,7 @@ public abstract class AbstractLogManager {
 
     protected static Map<String, DiagnosticsStatus> statusMap = new ConcurrentHashMap<>();
 
-    protected AbstractLogManager() {
-    }
-
-    //todo: job manager is not used and can be removed
-    protected AbstractLogManager(JobManager jobManager) {
-        if (jobManager == null) {
-            throw new IllegalArgumentException("jobManager cannot be null");
-        }
+    protected AbstractLogManager(String origin) {
     }
 
     public abstract void log(LogMessage message) throws Exception;

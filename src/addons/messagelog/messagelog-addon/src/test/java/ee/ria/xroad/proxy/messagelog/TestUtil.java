@@ -180,8 +180,10 @@ final class TestUtil {
 
     @SuppressWarnings("unchecked")
     static List<Task> getTaskQueue() throws Exception {
-        return doInTransaction(session -> session.createQuery(
-                TaskQueue.getTaskQueueQuery()).list());
+        return doInTransaction(session -> session
+                .createQuery(TaskQueue.getTaskQueueQuery())
+                .setParameter("origin", "test")
+                .list());
     }
 
     static void assertTaskQueueSize(int expectedSize) throws Exception {

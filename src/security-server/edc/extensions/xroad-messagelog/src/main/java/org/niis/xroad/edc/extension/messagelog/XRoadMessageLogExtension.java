@@ -45,6 +45,8 @@ public class XRoadMessageLogExtension implements ServiceExtension {
 
     @Setting
     private static final String XROAD_MESSAGELOG_ENABLED = "xroad.messagelog.enabled";
+    @Setting
+    private static final String XROAD_MESSAGELOG_ORIGIN = "xroad.messagelog.origin";
 
     @Override
     public String name() {
@@ -57,7 +59,9 @@ public class XRoadMessageLogExtension implements ServiceExtension {
         var monitor = context.getMonitor();
 
         boolean isMessageLogEnabled = context.getSetting(XROAD_MESSAGELOG_ENABLED, false);
-        AbstractLogManager logManager = isMessageLogEnabled ? new LogManager() : new NoopLogManager();
+        String origin = context.getSetting(XROAD_MESSAGELOG_ORIGIN, "edc");
+
+        AbstractLogManager logManager = isMessageLogEnabled ? new LogManager(origin) : new NoopLogManager(origin);
         context.registerService(XRoadMessageLog.class, new XRoadMessageLogImpl(monitor, logManager));
     }
 

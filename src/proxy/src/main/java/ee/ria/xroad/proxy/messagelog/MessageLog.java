@@ -37,7 +37,6 @@ import ee.ria.xroad.common.messagelog.SoapLogMessage;
 import ee.ria.xroad.common.messagelog.TimestampRecord;
 import ee.ria.xroad.common.signature.SignatureData;
 import ee.ria.xroad.common.util.CacheInputStream;
-import ee.ria.xroad.common.util.JobManager;
 
 import lombok.extern.slf4j.Slf4j;
 
@@ -61,16 +60,16 @@ public final class MessageLog {
     /**
      * Initializes the message log using the provided actor system. Use control aware mailbox.
      *
-     * @param jobManager the job manager
-     * @return false if NullLogManager was initialized, true otherwise
+     * @param origin the origin of the log messages
+     * @return LogManager instance
      */
-    public static AbstractLogManager init(JobManager jobManager) {
+    public static AbstractLogManager init(String origin) {
         Class<? extends AbstractLogManager> clazz = getLogManagerImpl();
 
         log.trace("Using implementation class: {}", clazz);
 
         try {
-            logManager = clazz.getDeclaredConstructor(JobManager.class).newInstance(jobManager);
+            logManager = clazz.getDeclaredConstructor(String.class).newInstance(origin);
         } catch (Exception e) {
             throw new RuntimeException("Failed to initialize LogManager", e);
         }

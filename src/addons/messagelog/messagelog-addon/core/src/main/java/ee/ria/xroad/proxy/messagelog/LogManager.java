@@ -38,7 +38,6 @@ import ee.ria.xroad.common.messagelog.MessageRecord;
 import ee.ria.xroad.common.messagelog.RestLogMessage;
 import ee.ria.xroad.common.messagelog.SoapLogMessage;
 import ee.ria.xroad.common.messagelog.TimestampRecord;
-import ee.ria.xroad.common.util.JobManager;
 import ee.ria.xroad.common.util.TimeUtils;
 
 import lombok.extern.slf4j.Slf4j;
@@ -80,23 +79,17 @@ public class LogManager extends AbstractLogManager {
     private final Timestamper timestamper;
     private final TimestamperJob timestamperJob;
 
+    private final String origin;
+
     // package private for testing
     final TaskQueue taskQueue;
 
-    // todo: jobManager is not used, can be removed
-    LogManager(JobManager jobManager) {
-        super(jobManager);
-
-        timestamper = getTimestamperImpl();
-        taskQueue = getTaskQueueImpl(timestamper);
-        timestamperJob = createTimestamperJob(taskQueue);
-    }
-
-    public LogManager() {
-        super();
-        timestamper = getTimestamperImpl();
-        taskQueue = getTaskQueueImpl(timestamper);
-        timestamperJob = createTimestamperJob(taskQueue);
+    public LogManager(String origin) {
+        super(origin);
+        this.origin = origin;
+        this.timestamper = getTimestamperImpl();
+        this.taskQueue = getTaskQueueImpl(timestamper, origin);
+        this.timestamperJob = createTimestamperJob(taskQueue);
     }
 
     @Override
@@ -169,8 +162,8 @@ public class LogManager extends AbstractLogManager {
 
     // ------------------------------------------------------------------------
 
-    protected TaskQueue getTaskQueueImpl(Timestamper timestamperParam) {
-        return new TaskQueue(timestamperParam, this);
+    protected TaskQueue getTaskQueueImpl(Timestamper timestamperParam, String originParam) {
+        return new TaskQueue(timestamperParam, this, originParam);
     }
 
     protected Timestamper getTimestamperImpl() {
@@ -197,7 +190,7 @@ public class LogManager extends AbstractLogManager {
         }
     }
 
-    private static MessageRecord createMessageRecord(SoapLogMessage message) throws Exception {
+    private MessageRecord createMessageRecord(SoapLogMessage message) throws Exception {
         log.trace("createMessageRecord()");
 
         String loggedMessage = new MessageBodyManipulator().getLoggableMessageText(message);
@@ -208,7 +201,8 @@ public class LogManager extends AbstractLogManager {
                 message.getSignature().getSignatureXml(),
                 message.isResponse(),
                 message.isClientSide() ? message.getClient() : message.getService().getClientId(),
-                message.getXRequestId());
+                message.getXRequestId(),
+                this.origin);
 
         messageRecord.setTime(new Date().getTime());
 
@@ -221,7 +215,7 @@ public class LogManager extends AbstractLogManager {
         return messageRecord;
     }
 
-    private static MessageRecord createMessageRecord(RestLogMessage message) throws Exception {
+    private MessageRecord createMessageRecord(RestLogMessage message) throws Exception {
         log.trace("createMessageRecord()");
 
         final MessageBodyManipulator manipulator = new MessageBodyManipulator();
@@ -231,7 +225,8 @@ public class LogManager extends AbstractLogManager {
                 message.getSignature().getSignatureXml(),
                 message.isResponse(),
                 message.isClientSide() ? message.getClient() : message.getService().getClientId(),
-                message.getXRequestId());
+                message.getXRequestId(),
+                this.origin);
 
         messageRecord.setTime(new Date().getTime());
 
@@ -261,7 +256,7 @@ public class LogManager extends AbstractLogManager {
         return messageRecord;
     }
 
-    static TimestampRecord saveTimestampRecord(Timestamper.TimestampSucceeded message) throws Exception {
+    TimestampRecord saveTimestampRecord(Timestamper.TimestampSucceeded message) throws Exception {
         log.trace("saveTimestampRecord()");
 
         putStatusMapSuccess(message.getUrl());
@@ -297,11 +292,12 @@ public class LogManager extends AbstractLogManager {
     }
 
 
-    private static TimestampRecord createTimestampRecord(Timestamper.TimestampSucceeded message) {
+    private TimestampRecord createTimestampRecord(Timestamper.TimestampSucceeded message) {
         TimestampRecord timestampRecord = new TimestampRecord();
         timestampRecord.setTime(new Date().getTime());
         timestampRecord.setTimestamp(encodeBase64(message.getTimestampDer()));
         timestampRecord.setHashChainResult(message.getHashChainResult());
+        timestampRecord.setOrigin(this.origin);
 
         return timestampRecord;
     }

@@ -11,6 +11,7 @@
 
         <property name="time" access="field"/>
         <property name="archived" access="field"/>
+        <property name="origin" access="field" type="string" update="false"/>
 
         <subclass name="ee.ria.xroad.common.messagelog.MessageRecord" discriminator-value="m">
             <property name="queryId" access="field" type="string" update="false"/>

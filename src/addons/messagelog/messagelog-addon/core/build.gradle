@@ -3,15 +3,10 @@ plugins {
 }
 
 dependencies {
-//    implementation(project(':proxy'))
-//    implementation(project(':common:common-jetty'))
     implementation(project(':common:common-globalconf'))
-    implementation(project(':common:common-scheduler'))
     implementation(project(':serverconf'))
     implementation(project(':common:common-messagelog'))
-//    implementation(project(':common:common-op-monitoring'))
     implementation(project(':common:common-verifier'))
-//    implementation(project(':asic-util'))
     implementation(project(':addons:messagelog:messagelog-db'))
 
 }
