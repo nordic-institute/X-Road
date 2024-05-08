@@ -41,6 +41,10 @@ public abstract class AbstractLogManager {
 
     protected static Map<String, DiagnosticsStatus> statusMap = new ConcurrentHashMap<>();
 
+    protected AbstractLogManager() {
+    }
+
+    //todo: job manager is not used and can be removed
     protected AbstractLogManager(JobManager jobManager) {
         if (jobManager == null) {
             throw new IllegalArgumentException("jobManager cannot be null");
@@ -51,7 +55,9 @@ public abstract class AbstractLogManager {
 
     public abstract TimestampRecord timestamp(Long messageRecordId) throws Exception;
 
-    public abstract Map<String, DiagnosticsStatus> getDiagnosticStatus();
+    public Map<String, DiagnosticsStatus> getDiagnosticStatus() {
+        throw new RuntimeException("Must be implemented by subclass");
+    }
 
     public void shutdown() {
         // NO-OP

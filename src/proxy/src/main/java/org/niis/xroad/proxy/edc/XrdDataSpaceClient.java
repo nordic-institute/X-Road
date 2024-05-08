@@ -29,13 +29,11 @@ import ee.ria.xroad.common.message.RestRequest;
 import ee.ria.xroad.common.message.RestResponse;
 import ee.ria.xroad.common.message.SoapMessageImpl;
 import ee.ria.xroad.common.signature.SignatureData;
-import ee.ria.xroad.common.util.CacheInputStream;
 import ee.ria.xroad.proxy.messagelog.MessageLog;
 
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.hc.core5.http.ContentType;
-import org.apache.hc.core5.http.io.entity.InputStreamEntity;
 import org.apache.hc.core5.http.io.support.ClassicRequestBuilder;
 import org.apache.http.Header;
 import org.niis.xroad.edc.sig.XrdSignatureService;
@@ -52,7 +50,6 @@ import static ee.ria.xroad.common.message.RestRequest.Verb.OPTIONS;
 import static ee.ria.xroad.common.message.RestRequest.Verb.PATCH;
 import static ee.ria.xroad.common.message.RestRequest.Verb.POST;
 import static ee.ria.xroad.common.message.RestRequest.Verb.PUT;
-import static ee.ria.xroad.common.util.HeaderValueUtils.HEADER_CONTENT_TYPE;
 import static org.niis.xroad.edc.sig.PocConstants.HEADER_XRD_SIG;
 
 @Slf4j
@@ -61,8 +58,6 @@ public class XrdDataSpaceClient {
 
     public RestResponse processRestReqeust(RestRequest restRequest,
                                            AuthorizedAssetRegistry.GrantedAssetInfo assetInfo) throws Exception {
-
-        CacheInputStream body = restRequest.getBody().getCachedContents();
 
         var path = assetInfo.endpoint();
         if (path.endsWith("/")) {
@@ -83,7 +78,8 @@ public class XrdDataSpaceClient {
         headersToSign.put(assetInfo.authKey(), assetInfo.authCode());
 
         // todo: sign using streams, not body.readAllBytes()
-        var signatureResponse = xrdSignatureService.sign(restRequest.getClientId(), body.readAllBytes(), headersToSign);
+        var signatureResponse = xrdSignatureService.sign(restRequest.getClientId(),
+                restRequest.getBody().getCachedContents().readAllBytes(), headersToSign);
         for (Map.Entry<String, String> entry : headersToSign.entrySet()) {
             dsRequest.addHeader(entry.getKey(), entry.getValue());
         }
@@ -96,17 +92,15 @@ public class XrdDataSpaceClient {
         if (POST.equals(method) || PUT.equals(method) || PATCH.equals(method)
                 || DELETE.equals(method) || OPTIONS.equals(method)) {
             // Attach body to the request
-            var contentType = signatureResponse.getSignatureHeaders().get(HEADER_CONTENT_TYPE);
-            if (StringUtils.isBlank(contentType)) {
-                contentType = "application/json";
-            }
-
-            dsRequest.setEntity(new InputStreamEntity(body, ContentType.parse(contentType)));
+            // todo: use stream.
+            dsRequest.setEntity(restRequest.getBody().getCachedContents().readAllBytes(), ContentType.APPLICATION_JSON);
+//            dsRequest.setEntity(new InputStreamEntity(restRequest.getBody().getCachedContents(), ContentType.APPLICATION_JSON));
         }
 
         var signatureData = new SignatureData(signatureResponse.getSignatureDecoded(), null, null);
 
-        MessageLog.log(restRequest, signatureData, body, true, restRequest.getXRequestId());
+        MessageLog.log(restRequest, signatureData, restRequest.getBody().getCachedContents(),
+                true, restRequest.getXRequestId());
         var response = EdcDataPlaneHttpClient.sendRestRequest(dsRequest.build(), restRequest);
         MessageLog.log(restRequest, response, getSignatureFromHeaders(response.getHeaders()),
                 response.getBody().getCachedContents(), true,

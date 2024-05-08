@@ -27,7 +27,6 @@
 package org.niis.xroad.edc.sig;
 
 import ee.ria.xroad.common.identifier.ClientId;
-import ee.ria.xroad.common.identifier.ServiceId;
 import ee.ria.xroad.signer.SignerProxy;
 
 import eu.europa.esig.dss.enumerations.JWSSerializationType;

@@ -28,36 +28,22 @@
 package org.niis.xroad.edc.extension.messagelog;
 
 import ee.ria.xroad.common.messagelog.AbstractLogManager;
+import ee.ria.xroad.common.messagelog.LogMessage;
+import ee.ria.xroad.common.messagelog.TimestampRecord;
 
-import org.eclipse.edc.spi.EdcException;
-import org.eclipse.edc.spi.monitor.Monitor;
-import org.niis.xroad.edc.spi.messagelog.LogMessage;
-import org.niis.xroad.edc.spi.messagelog.XRoadMessageLog;
+public class NoopLogManager extends AbstractLogManager {
 
-public class XRoadMessageLogImpl implements XRoadMessageLog {
-
-    private final Monitor monitor;
-    private final AbstractLogManager logManager;
-
-    public XRoadMessageLogImpl(Monitor monitor, AbstractLogManager logManager) {
-        this.monitor = monitor;
-        this.logManager = logManager;
-    }
-
-    @Override
-    public void log(ee.ria.xroad.common.messagelog.LogMessage logMessage) {
-        monitor.debug("Logging message to message log.");
-        try {
-            logManager.log(logMessage);
-        } catch (Exception e) {
-            throw new EdcException("Failed to log message", e);
-        }
+    public NoopLogManager() {
     }
 
     @Override
     public void log(LogMessage message) {
-        monitor.debug("Logging message to message log.");
-        // todo: implement or remove
+        // noop
+    }
+
+    @Override
+    public TimestampRecord timestamp(Long messageRecordId) {
+        return null;
     }
 
 }

@@ -27,8 +27,12 @@
 
 package org.niis.xroad.edc.extension.messagelog;
 
+import ee.ria.xroad.common.messagelog.AbstractLogManager;
+import ee.ria.xroad.proxy.messagelog.LogManager;
+
 import org.eclipse.edc.runtime.metamodel.annotation.Extension;
 import org.eclipse.edc.runtime.metamodel.annotation.Provides;
+import org.eclipse.edc.runtime.metamodel.annotation.Setting;
 import org.eclipse.edc.spi.system.ServiceExtension;
 import org.eclipse.edc.spi.system.ServiceExtensionContext;
 import org.niis.xroad.edc.spi.messagelog.XRoadMessageLog;
@@ -38,6 +42,9 @@ import org.niis.xroad.edc.spi.messagelog.XRoadMessageLog;
 public class XRoadMessageLogExtension implements ServiceExtension {
 
     static final String NAME = "X-Road Messagelog";
+
+    @Setting
+    private static final String XROAD_MESSAGELOG_ENABLED = "xroad.messagelog.enabled";
 
     @Override
     public String name() {
@@ -49,9 +56,9 @@ public class XRoadMessageLogExtension implements ServiceExtension {
     public void initialize(ServiceExtensionContext context) {
         var monitor = context.getMonitor();
 
-        XRoadMessageLogImpl messageLog = new XRoadMessageLogImpl(monitor);
-
-        context.registerService(XRoadMessageLog.class, messageLog);
+        boolean isMessageLogEnabled = context.getSetting(XROAD_MESSAGELOG_ENABLED, false);
+        AbstractLogManager logManager = isMessageLogEnabled ? new LogManager() : new NoopLogManager();
+        context.registerService(XRoadMessageLog.class, new XRoadMessageLogImpl(monitor, logManager));
     }
 
 }

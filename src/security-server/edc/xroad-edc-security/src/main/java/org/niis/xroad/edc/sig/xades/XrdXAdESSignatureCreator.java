@@ -44,6 +44,7 @@ import eu.europa.esig.dss.xades.signature.ExtensionBuilder;
 import eu.europa.esig.dss.xades.signature.XAdESService;
 import eu.europa.esig.dss.xades.validation.XAdESSignature;
 import eu.europa.esig.dss.xades.validation.XMLDocumentValidator;
+import eu.europa.esig.dss.xml.common.definition.DSSNamespace;
 import eu.europa.esig.dss.xml.utils.DomUtils;
 import eu.europa.esig.xades.definition.XAdESNamespace;
 import lombok.RequiredArgsConstructor;
@@ -60,7 +61,6 @@ import java.util.Map;
 import static ee.ria.xroad.common.util.CryptoUtils.readCertificate;
 import static eu.europa.esig.dss.enumerations.SignaturePackaging.DETACHED;
 import static org.niis.xroad.edc.sig.xades.XrdXAdESUtils.DOCUMENT_NAME_HEADERS;
-import static org.niis.xroad.edc.sig.xades.XrdXAdESUtils.DOCUMENT_NAME_PAYLOAD;
 
 @RequiredArgsConstructor
 public class XrdXAdESSignatureCreator implements XrdSignatureCreator {
@@ -75,13 +75,15 @@ public class XrdXAdESSignatureCreator implements XrdSignatureCreator {
         if (messageHeaders != null && !messageHeaders.isEmpty()) {
             documentsToSign.add(new InMemoryDocument(XrdXAdESUtils.serializeHeaders(messageHeaders).getBytes(), DOCUMENT_NAME_HEADERS));
         }
-        documentsToSign.add(new InMemoryDocument(messageBody, DOCUMENT_NAME_PAYLOAD));
+//      todo:  documentsToSign.add(new InMemoryDocument(messageBody, DOCUMENT_NAME_PAYLOAD));
+        documentsToSign.add(new InMemoryDocument(messageBody, "/message.xml"));
 
         XAdESSignatureParameters parameters = new XAdESSignatureParameters();
         parameters.setXadesNamespace(XAdESNamespace.XADES_132);
         parameters.setSignatureLevel(signatureLevel);
         parameters.setSignaturePackaging(DETACHED);
         parameters.setDigestAlgorithm(DigestAlgorithm.SHA512);
+        parameters.setXadesNamespace(new DSSNamespace("http://uri.etsi.org/01903/v1.3.2#", "xades"));
 
         X509Certificate cert = readCertificate(signingInfo.getCert().getCertificateBytes());
         parameters.setSigningCertificate(new CertificateToken(cert));
@@ -93,12 +95,12 @@ public class XrdXAdESSignatureCreator implements XrdSignatureCreator {
         DSSDocument signedDocument = service.signDocument(documentsToSign, parameters, signatureValue);
 
 //      todo: is adding ocsp required?
-//        var extendedDoc = new OcspExtensionBuilder().addOcspToken(signedDocument, signingInfo.getCert().getOcspBytes());
+        var extendedDoc = new OcspExtensionBuilder().addOcspToken(signedDocument, signingInfo.getCert().getOcspBytes());
 
 //        var serializedHeaders = XrdXAdESUtils.serializeHeaders(messageHeaders);
 
         //zipping might save up to 50% of the size
-        return Base64.getEncoder().encodeToString(DSSUtils.toByteArray(signedDocument));
+        return Base64.getEncoder().encodeToString(DSSUtils.toByteArray(extendedDoc));
     }
 
     static class OcspExtensionBuilder extends ExtensionBuilder {

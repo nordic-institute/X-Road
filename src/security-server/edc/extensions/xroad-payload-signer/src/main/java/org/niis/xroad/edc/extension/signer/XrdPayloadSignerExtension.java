@@ -46,6 +46,7 @@ import org.eclipse.edc.web.spi.WebService;
 import org.eclipse.edc.web.spi.configuration.WebServiceConfigurer;
 import org.eclipse.edc.web.spi.configuration.WebServiceSettings;
 import org.niis.xroad.edc.sig.XrdSignatureService;
+import org.niis.xroad.edc.spi.messagelog.XRoadMessageLog;
 
 import java.util.concurrent.Executors;
 
@@ -93,6 +94,9 @@ public class XrdPayloadSignerExtension implements ServiceExtension {
     @Inject
     private ExecutorInstrumentation executorInstrumentation;
 
+    @Inject(required = false)
+    private XRoadMessageLog xRoadMessageLog;
+
     @Override
     public String name() {
         return NAME;
@@ -115,7 +119,7 @@ public class XrdPayloadSignerExtension implements ServiceExtension {
 
         var signService = new XrdSignatureService();
         var publicApiController = new XrdDataPlanePublicApiController(pipelineService, dataAddressResolver,
-                new XrdEdcSignService(signService, monitor), monitor, executorService);
+                new XrdEdcSignService(signService, monitor), monitor, executorService, xRoadMessageLog);
 
         //TODO xroad8 this added port mapping is added due to a strange behavior ir edc jersey registry. Consider refactor.
         webServer.addPortMapping(configuration.getContextAlias(), configuration.getPort(), configuration.getPath());

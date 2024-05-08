@@ -83,9 +83,17 @@ public class LogManager extends AbstractLogManager {
     // package private for testing
     final TaskQueue taskQueue;
 
+    // todo: jobManager is not used, can be removed
     LogManager(JobManager jobManager) {
         super(jobManager);
 
+        timestamper = getTimestamperImpl();
+        taskQueue = getTaskQueueImpl(timestamper);
+        timestamperJob = createTimestamperJob(taskQueue);
+    }
+
+    public LogManager() {
+        super();
         timestamper = getTimestamperImpl();
         taskQueue = getTaskQueueImpl(timestamper);
         timestamperJob = createTimestamperJob(taskQueue);

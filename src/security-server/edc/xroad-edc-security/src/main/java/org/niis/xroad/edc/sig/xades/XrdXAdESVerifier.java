@@ -71,7 +71,8 @@ public class XrdXAdESVerifier extends XrdSignatureVerifierBase implements XrdSig
         if (detachedHeaders != null && !detachedHeaders.isEmpty()) {
             detachedPayloads.add(new InMemoryDocument(XrdXAdESUtils.serializeHeaders(detachedHeaders).getBytes(), DOCUMENT_NAME_HEADERS));
         }
-        detachedPayloads.add(new InMemoryDocument(detachedPayload, DOCUMENT_NAME_PAYLOAD));
+//      todo:  detachedPayloads.add(new InMemoryDocument(detachedPayload, DOCUMENT_NAME_PAYLOAD));
+        detachedPayloads.add(new InMemoryDocument(detachedPayload, "/message.xml"));
         validator.setDetachedContents(detachedPayloads);
 
         Reports reports = validator.validateDocument();
