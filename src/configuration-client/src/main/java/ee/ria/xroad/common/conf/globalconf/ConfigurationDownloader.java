@@ -45,7 +45,6 @@ import java.net.URL;
 import java.net.URLConnection;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.security.cert.CertificateEncodingException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -63,7 +62,6 @@ import static ee.ria.xroad.common.util.CryptoUtils.createDigestCalculator;
 import static ee.ria.xroad.common.util.CryptoUtils.decodeBase64;
 import static ee.ria.xroad.common.util.CryptoUtils.encodeBase64;
 import static ee.ria.xroad.common.util.CryptoUtils.getAlgorithmId;
-import static java.lang.String.valueOf;
 
 /**
  * Downloads configuration directory from a configuration location defined
@@ -199,13 +197,16 @@ class ConfigurationDownloader {
         List<DownloadedContent> result = new ArrayList<>();
         ConfigurationLocation location = configuration.getLocation();
 
+        var contentHandler = ContentHandler.forVersion(configuration.getVersion());
+
         for (ConfigurationFile file : configuration.getFiles()) {
             Path contentFileName = fileNameProvider.getFileName(file);
             if (shouldDownload(file, contentFileName)) {
                 byte[] content = downloadContent(location, file);
 
                 verifyContent(content, file);
-                handleContent(content, file);
+                validateContent(file);
+                contentHandler.handleContent(content, file);
 
                 result.add(new DownloadedContent(file, content));
             } else {
@@ -317,7 +318,7 @@ class ConfigurationDownloader {
         HttpURLConnection connection = (HttpURLConnection) url.openConnection();
         ConfigurationHttpUrlConnectionConfig.apply(connection);
         if (connection.getResponseCode() == HttpStatus.SC_NOT_FOUND) {
-            int fallBackVersion = CURRENT_GLOBAL_CONFIGURATION_VERSION - 1;
+            int fallBackVersion = CURRENT_GLOBAL_CONFIGURATION_VERSION - 1; // TODO: support falling back multiple versions
             log.info("Global conf version {} query resulted in HTTP {}, defaulting back to version {}.",
                     CURRENT_GLOBAL_CONFIGURATION_VERSION, HttpStatus.SC_NOT_FOUND, fallBackVersion);
             uriBuilder.setParameter(VERSION_QUERY_PARAMETER, String.valueOf(fallBackVersion));
@@ -351,44 +352,6 @@ class ConfigurationDownloader {
 
     void validateContent(ConfigurationFile file) {
         //make possible with current structure to be overridden and validations called
-    }
-
-    @SuppressWarnings("checkstyle:MagicNumber")
-    void handleContent(byte[] content, ConfigurationFile file) throws CertificateEncodingException, IOException {
-        boolean isVersion4 = valueOf(CURRENT_GLOBAL_CONFIGURATION_VERSION).equals(file.getMetadata().getConfigurationVersion());
-        boolean isVersion3 = valueOf(3).equals(file.getMetadata().getConfigurationVersion());
-        switch (file.getContentIdentifier()) {
-            case ConfigurationConstants.CONTENT_ID_PRIVATE_PARAMETERS:
-                PrivateParametersProvider pp;
-                if (isVersion4 || isVersion3) {
-                    pp = new PrivateParametersV3(content);
-                } else {
-                    pp = new PrivateParametersV2(content);
-                }
-                handlePrivateParameters(pp.getPrivateParameters(), file);
-                break;
-            case ConfigurationConstants.CONTENT_ID_SHARED_PARAMETERS:
-                SharedParametersProvider sp;
-                if (isVersion4) {
-                    sp = new SharedParametersV4(content);
-                } else if (isVersion3) {
-                    sp = new SharedParametersV3(content);
-                } else {
-                    sp = new SharedParametersV2(content);
-                }
-                handleSharedParameters(sp.getSharedParameters(), file);
-                break;
-            default:
-                break;
-        }
-    }
-
-    void handlePrivateParameters(PrivateParameters privateParameters, ConfigurationFile file) {
-        verifyInstanceIdentifier(privateParameters.getInstanceIdentifier(), file);
-    }
-
-    void handleSharedParameters(SharedParameters sharedParameters, ConfigurationFile file) {
-        verifyInstanceIdentifier(sharedParameters.getInstanceIdentifier(), file);
     }
 
     void persistContent(byte[] content, Path destination, ConfigurationFile file) throws Exception {
