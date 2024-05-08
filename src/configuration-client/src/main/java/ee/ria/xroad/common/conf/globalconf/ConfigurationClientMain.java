@@ -187,12 +187,6 @@ public final class ConfigurationClientMain {
 
         var configurationDownloader = new ConfigurationDownloader(configurationPath) {
             @Override
-            void handleContent(byte[] content, ConfigurationFile file) throws CertificateEncodingException, IOException {
-                validateContent(file);
-                super.handleContent(content, file);
-            }
-
-            @Override
             void validateContent(ConfigurationFile file) {
                 paramsValidator.tryMarkValid(file.getContentIdentifier());
             }
