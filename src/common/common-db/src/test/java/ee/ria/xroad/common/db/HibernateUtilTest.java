@@ -30,21 +30,32 @@ import ee.ria.xroad.common.SystemProperties;
 
 import org.hibernate.HibernateException;
 import org.hibernate.cfg.Configuration;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.Mock;
 import org.mockito.MockedStatic;
 import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.fail;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.CALLS_REAL_METHODS;
-import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
 class HibernateUtilTest {
     private static final String TEST_SESSION_FACTORY_NAME = "testSessionFactory";
+
+    @Mock
+    private Configuration configuration;
+
+    @BeforeEach
+    public void setUp() {
+        when(configuration.configure()).thenReturn(configuration);
+        when(configuration.configure(anyString())).thenReturn(configuration);
+    }
 
     @Test
     void getSessionFactoryHideErrorDetails() {
@@ -53,13 +64,10 @@ class HibernateUtilTest {
                 MockedStatic<HibernateUtil> db = Mockito.mockStatic(HibernateUtil.class, CALLS_REAL_METHODS);
                 MockedStatic<SystemProperties> system = Mockito.mockStatic(SystemProperties.class)
         ) {
-            var config = mock(Configuration.class);
-            db.when(HibernateUtil::createEmptyConfiguration).thenReturn(config);
+            db.when(HibernateUtil::createEmptyConfiguration).thenReturn(configuration);
             system.when(SystemProperties::getDatabasePropertiesFile)
                     .thenReturn(HibernateUtilTest.class.getResource("/empty_db.properties").getFile());
-            when(config.configure())
-                    .thenReturn(config);
-            when(config.buildSessionFactory())
+            when(configuration.buildSessionFactory())
                     .thenThrow(new HibernateException("username and ip address"));
             HibernateUtil.getSessionFactory(TEST_SESSION_FACTORY_NAME);
 

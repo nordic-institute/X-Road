@@ -157,7 +157,7 @@ abstract class AbstractClientProxyHandler extends HandlerBase {
     }
 
     protected void failure(Response response, Callback callback, CodedExceptionWithHttpStatus e,
-                           OpMonitoringData opMonitoringData) throws IOException {
+                           OpMonitoringData opMonitoringData) {
 
         updateOpMonitoringResponseOutTs(opMonitoringData);
 
