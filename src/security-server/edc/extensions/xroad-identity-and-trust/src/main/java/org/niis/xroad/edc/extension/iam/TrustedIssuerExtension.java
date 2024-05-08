@@ -49,8 +49,10 @@ public class TrustedIssuerExtension implements ServiceExtension {
         // register VC issuers
         //TODO should we trust only single issuer?
         trustedIssuerRegistry.addIssuer(new Issuer("did:web:gx-compliance.i.x-road.rocks:main", Map.of()));
-        trustedIssuerRegistry.addIssuer(new Issuer("did:web:xroad-8-member1.s3.eu-west-1.amazonaws.com", Map.of()));
         trustedIssuerRegistry.addIssuer(new Issuer("did:web:gx-notary.i.x-road.rocks:main", Map.of()));
+
+        trustedIssuerRegistry.addIssuer(new Issuer("did:web:xroad-8-ss0.s3.eu-west-1.amazonaws.com", Map.of()));
+        trustedIssuerRegistry.addIssuer(new Issuer("did:web:xroad-8-ss1.s3.eu-west-1.amazonaws.com", Map.of()));
 
     }
 }

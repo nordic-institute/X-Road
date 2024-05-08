@@ -95,7 +95,7 @@ public class IdentityHubCredentialInsertionExtension implements ServiceExtension
     @SneakyThrows
     public void initialize(ServiceExtensionContext context) {
         String participantId = context.getConfig().getString(BootServicesExtension.PARTICIPANT_ID);
-        String publicKey = getDataFromFile(context, "credentials/%s/public.pem".formatted(getProp(context, "EDC_HOSTNAME")));
+        String publicKey = getPublicKey(context);
 
         context.getMonitor().info("Inserting credentials for participant %s".formatted(participantId));
         createParticipantContext(context, participantId, publicKey);
@@ -166,11 +166,11 @@ public class IdentityHubCredentialInsertionExtension implements ServiceExtension
         keyPairResourceStore.create(keyPairResource);
     }
 
-    private String getDataFromFile(ServiceExtensionContext context, String path) throws IOException {
-        context.getMonitor().debug("Reading file %s".formatted(path));
-        try (var in = Thread.currentThread().getContextClassLoader().getResourceAsStream(path)) {
-            return new String(in.readAllBytes(), StandardCharsets.UTF_8);
-        }
+    private String getPublicKey(ServiceExtensionContext context) throws IOException {
+        var basePath = context.getConfig().getString(CREDENTIALS_DIR_PATH);
+        var publicKeyFile = Path.of(basePath, "public.pem");
+        return Files.readString(publicKeyFile);
+
     }
 
     private String getProp(ServiceExtensionContext context, String key) {

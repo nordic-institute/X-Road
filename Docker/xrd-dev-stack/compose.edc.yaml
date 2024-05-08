@@ -21,8 +21,8 @@ services:
   ss0:
     environment:
       - EDC_HOSTNAME=ss0
-      - EDC_DID=did:web:xroad-8-member1.s3.eu-west-1.amazonaws.com
-      - EDC_DID_KEY_ID=DE9DH3UqFQpV64LraOgqmMFSgTIlk6K1BnfU2k5vBfs
+      - EDC_DID=did:web:xroad-8-ss0.s3.eu-west-1.amazonaws.com
+      - EDC_DID_KEY_ID=JWK2020-RSA
     ports:
       - "4293:9953" #EDC connector debug
       - "4294:9954" #EDC ih debug
@@ -35,8 +35,8 @@ services:
   ss1:
     environment:
       - EDC_HOSTNAME=ss1
-      - EDC_DID=did:web:xroad-8-member1.s3.eu-west-1.amazonaws.com
-      - EDC_DID_KEY_ID=DE9DH3UqFQpV64LraOgqmMFSgTIlk6K1BnfU2k5vBfs
+      - EDC_DID=did:web:xroad-8-ss1.s3.eu-west-1.amazonaws.com
+      - EDC_DID_KEY_ID=JWK2020-RSA
     ports:
       - "4393:9953" #EDC connector debug
       - "4394:9954" #EDC ih debug

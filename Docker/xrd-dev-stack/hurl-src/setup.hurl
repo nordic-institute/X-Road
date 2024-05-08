@@ -920,7 +920,7 @@ X-XSRF-TOKEN: {{cs_xsrf_token}}
 Content-Type: application/json
 {
   "member_name":"Test member",
-  "did":"did:web:xroad-8-member1.s3.eu-west-1.amazonaws.com"
+  "did":"did:web:xroad-8-ss0.s3.eu-west-1.amazonaws.com"
 }
 
 HTTP 200
@@ -930,7 +930,7 @@ X-XSRF-TOKEN: {{cs_xsrf_token}}
 Content-Type: application/json
 {
   "member_name":"Test client",
-  "did":"did:web:xroad-8-member1.s3.eu-west-1.amazonaws.com"
+  "did":"did:web:xroad-8-ss1.s3.eu-west-1.amazonaws.com"
 }
 
 HTTP 200
