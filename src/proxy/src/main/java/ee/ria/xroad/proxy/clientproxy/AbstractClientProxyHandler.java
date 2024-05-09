@@ -40,7 +40,6 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.http.client.HttpClient;
-import org.eclipse.jetty.io.EndPoint;
 import org.eclipse.jetty.server.Request;
 import org.eclipse.jetty.server.Response;
 import org.eclipse.jetty.util.Callback;
@@ -158,7 +157,7 @@ abstract class AbstractClientProxyHandler extends HandlerBase {
     }
 
     protected void failure(Response response, Callback callback, CodedExceptionWithHttpStatus e,
-                           OpMonitoringData opMonitoringData) throws IOException {
+                           OpMonitoringData opMonitoringData) {
 
         updateOpMonitoringResponseOutTs(opMonitoringData);
 
@@ -174,10 +173,11 @@ abstract class AbstractClientProxyHandler extends HandlerBase {
     }
 
     static IsAuthenticationData getIsAuthenticationData(RequestWrapper request) {
-        var ssd = (EndPoint.SslSessionData) request.getAttribute(EndPoint.SslSessionData.ATTRIBUTE);
-
         var isPlaintextConnection = !"https".equals(request.getHttpURI().getScheme()); // if not HTTPS, it's plaintext
-        var cert = (ssd == null || ArrayUtils.isEmpty(ssd.peerCertificates())) ? null : ssd.peerCertificates()[0];
+        var cert = request.getPeerCertificates()
+                .filter(ArrayUtils::isNotEmpty)
+                .map(arr -> arr[0])
+                .orElse(null);
         return new IsAuthenticationData(cert, isPlaintextConnection);
     }
 

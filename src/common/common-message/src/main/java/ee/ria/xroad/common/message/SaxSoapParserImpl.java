@@ -56,6 +56,7 @@ import javax.xml.parsers.SAXParserFactory;
 
 import java.io.BufferedWriter;
 import java.io.ByteArrayOutputStream;
+import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStreamWriter;
 import java.io.Writer;
@@ -263,8 +264,8 @@ public class SaxSoapParserImpl implements SoapParser {
         return false;
     }
 
-    private InputStream excludeUtf8Bom(String contentType, InputStream soapStream) {
-        return hasUtf8Charset(contentType) ? new BOMInputStream(soapStream) : soapStream;
+    private InputStream excludeUtf8Bom(String contentType, InputStream soapStream) throws IOException {
+        return hasUtf8Charset(contentType) ? BOMInputStream.builder().setInputStream(soapStream).get() : soapStream;
     }
 
     @SneakyThrows
