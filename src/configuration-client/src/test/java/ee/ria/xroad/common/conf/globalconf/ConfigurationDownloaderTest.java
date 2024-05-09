@@ -33,7 +33,7 @@ import org.hamcrest.Description;
 import org.hamcrest.Matcher;
 import org.hamcrest.MatcherAssert;
 import org.hamcrest.TypeSafeMatcher;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import javax.net.ssl.HostnameVerifier;
 import javax.net.ssl.HttpsURLConnection;
@@ -47,13 +47,13 @@ import java.util.List;
 
 import static java.util.stream.Collectors.toList;
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
  * Tests for configuration downloader
  */
-public class ConfigurationDownloaderTest {
+class ConfigurationDownloaderTest {
     private static final int MAX_ATTEMPTS = 5;
     private static final String LOCATION_URL_SUCCESS = "http://x-road.global/";
     private static final String LOCATION_HTTPS_URL_SUCCESS = "https://x-road.global/";
@@ -63,7 +63,7 @@ public class ConfigurationDownloaderTest {
      * from, must be random.
      */
     @Test
-    public void downloadConfigurationFilesInRandomOrder() {
+    void downloadConfigurationFilesInRandomOrder() {
         // We need multiple attempts as shuffling may give original order
         // sometimes.
         for (int i = 0; i < MAX_ATTEMPTS; i++) {
@@ -87,7 +87,7 @@ public class ConfigurationDownloaderTest {
      * successful download was done.
      */
     @Test
-    public void rememberLastSuccessfulDownloadLocation() {
+    void rememberLastSuccessfulDownloadLocation() {
         int version = 3;
         // We loop in order to make failing due to wrong URL more certain.
         for (int i = 0; i < MAX_ATTEMPTS; i++) {
@@ -106,7 +106,7 @@ public class ConfigurationDownloaderTest {
     }
 
     @Test
-    public void presetVersionPrevailsWhenVersionNotEnforced() {
+    void presetVersionPrevailsWhenVersionNotEnforced() {
         // Given
         int presetVersion = 1;
         ConfigurationDownloader downloader =
@@ -121,7 +121,7 @@ public class ConfigurationDownloaderTest {
     }
 
     @Test
-    public void v4PrevailsWhenVersionNeitherPresetNorEnforced() {
+    void v4PrevailsWhenVersionNeitherPresetNorEnforced() {
         // Given
         String url = LOCATION_URL_SUCCESS;
         ConfigurationDownloader downloader = getDownloader(url + "?version=" + 4);
@@ -135,7 +135,7 @@ public class ConfigurationDownloaderTest {
     }
 
     @Test
-    public void v3PrevailsWhenVersionNeitherPresetNorEnforcedAndV4NotAvailable() {
+    void v3PrevailsWhenVersionNeitherPresetNorEnforcedAndV4NotAvailable() {
         // Given
         String url = LOCATION_URL_SUCCESS + "/nope";
         ConfigurationDownloader downloader = getDownloader(url + "?version=" + 3);
@@ -149,7 +149,7 @@ public class ConfigurationDownloaderTest {
     }
 
     @Test
-    public void enforcedVersionPrevailsPresetVersion() {
+    void enforcedVersionPrevailsPresetVersion() {
         // Given
         String url = LOCATION_URL_SUCCESS;
         int enforcedVersion = 2;
@@ -170,15 +170,15 @@ public class ConfigurationDownloaderTest {
      * @throws IOException
      */
     @Test
-    public void downloaderConnectionsTimeout() throws IOException {
+    void downloaderConnectionsTimeout() throws IOException {
         URLConnection connection = ConfigurationDownloader.getDownloadURLConnection(
                 new URL("http://test.download.com"));
-        assertEquals(connection.getReadTimeout(), ConfigurationDownloader.READ_TIMEOUT);
+        assertEquals(ConfigurationDownloader.READ_TIMEOUT, connection.getReadTimeout());
         assertTrue(connection.getReadTimeout() > 0);
     }
 
     @Test
-    public void downloaderWithTestEnvNoopHostnameVerifier() throws IOException {
+    void downloaderWithTestEnvNoopHostnameVerifier() throws IOException {
         System.setProperty(SystemProperties.CONFIGURATION_CLIENT_GLOBAL_CONF_HOSTNAME_VERIFICATION, "false");
         HttpsURLConnection connection =
                 (HttpsURLConnection) ConfigurationDownloader.getDownloadURLConnection(new URL("https://ConfigurationDownloaderTest.com"));
@@ -186,7 +186,7 @@ public class ConfigurationDownloaderTest {
     }
 
     @Test
-    public void downloaderWithDefaultHostnameVerifier() throws IOException {
+    void downloaderWithDefaultHostnameVerifier() throws IOException {
         System.setProperty(SystemProperties.CONFIGURATION_CLIENT_GLOBAL_CONF_HOSTNAME_VERIFICATION, "true");
         HttpsURLConnection connection =
                 (HttpsURLConnection) ConfigurationDownloader.getDownloadURLConnection(new URL("https://ConfigurationDownloaderTest.com"));
