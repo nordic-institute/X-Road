@@ -30,12 +30,12 @@ import ee.ria.xroad.common.conf.globalconf.ConfigurationClientJob;
 import ee.ria.xroad.common.util.process.ExternalProcessRunner;
 
 import com.google.common.collect.Lists;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Answers;
 import org.mockito.Mock;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.mockito.junit.jupiter.MockitoExtension;
 import org.quartz.JobExecutionContext;
 import org.quartz.JobKey;
 
@@ -48,8 +48,8 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-@RunWith(MockitoJUnitRunner.class)
-public class ProxyConfigurationBackupJobTest {
+@ExtendWith(MockitoExtension.class)
+class ProxyConfigurationBackupJobTest {
     @Mock
     private ExternalProcessRunner externalProcessRunner;
 
@@ -58,13 +58,13 @@ public class ProxyConfigurationBackupJobTest {
 
     private ProxyConfigurationBackupJob configurationBackupJob;
 
-    @Before
-    public void setUp() {
+    @BeforeEach
+    void setUp() {
         configurationBackupJob = new ProxyConfigurationBackupJob(externalProcessRunner);
     }
 
     @Test
-    public void shouldTriggerBashScript() throws Exception {
+    void shouldTriggerBashScript() throws Exception {
         when(jobExecutionContext.getScheduler().getCurrentlyExecutingJobs()).thenReturn(new ArrayList<>());
         when(externalProcessRunner.executeAndThrowOnFailure(anyString()))
                 .thenReturn(new ExternalProcessRunner.ProcessResult("", 0, new ArrayList<>()));
@@ -75,7 +75,7 @@ public class ProxyConfigurationBackupJobTest {
     }
 
     @Test
-    public void shouldRetryIfConditionMet() throws Exception {
+    void shouldRetryIfConditionMet() throws Exception {
         when(jobExecutionContext.getJobDetail().getKey())
                 .thenReturn(new JobKey(ProxyConfigurationBackupJob.class.getSimpleName()));
 
