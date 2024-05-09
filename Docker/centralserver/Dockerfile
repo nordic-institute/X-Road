@@ -102,4 +102,5 @@ ENV EDC_TLS_CERT_PATH=/etc/xroad/ssl/management-service.p12
 
 CMD ["/root/entrypoint.sh"]
 
+VOLUME ["/etc/xroad", "/var/lib/xroad", "/var/lib/postgresql/14/main/"]
 EXPOSE 4000 2222

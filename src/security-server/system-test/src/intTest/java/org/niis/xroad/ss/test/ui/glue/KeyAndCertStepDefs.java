@@ -59,7 +59,7 @@ public class KeyAndCertStepDefs extends BaseUiStepDefs {
     }
 
     @Step("User can log-out out of token {}")
-    public void validateCanLoginToken(String token) {
+    public void validateCanLogoutToken(String token) {
         keyAndCertPageObj.section(token).btnLogout().shouldBe(visible);
     }
 
@@ -269,4 +269,18 @@ public class KeyAndCertStepDefs extends BaseUiStepDefs {
         keyAndCertPageObj.section(token).tokenLabeledKeyGenerateCsrButton(keyLabel).shouldBe(disabled);
     }
 
+    @Step("Change the pin section is expanded")
+    public void changeThePinSectionIsExpanded() {
+        keyAndCertPageObj.tokenEdit.btnChangeToken().shouldBe(visible).click();
+    }
+
+    @Step("PIN is changed from {string} to {string}")
+    public void pinIsChangedFromTo(String oldPin, String newPin) {
+        keyAndCertPageObj.tokenEdit.inputOldPin().setValue(oldPin);
+        keyAndCertPageObj.tokenEdit.inputNewPin().setValue(newPin);
+        keyAndCertPageObj.tokenEdit.inputNewPinConfirm().setValue(newPin);
+        keyAndCertPageObj.tokenEdit.btnSave().shouldBe(enabled).click();
+        commonPageObj.snackBar.success().shouldBe(visible);
+        commonPageObj.snackBar.btnClose().click();
+    }
 }

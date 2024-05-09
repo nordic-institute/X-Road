@@ -74,3 +74,18 @@ Feature: 0300 - SS: Keys and certificates
     And CSR is generated for token "softToken-0", key "key for multiple csr", certification service "X-Road Test CA CN", format "DER"
     And CSR is generated for token "softToken-0", key "key for multiple csr", certification service "X-Road Test CA CN", format "DER"
     Then Token "softToken-0", key "key for multiple csr" has 4 certificate signing requests
+
+  Scenario: Token PIN can be changed
+    Given Keys and certificates tab is selected
+    And Token: softToken-0 edit page is opened
+    And Change the pin section is expanded
+    When PIN is changed from "T0ken1zer3" to "T0ken1zer3New"
+    Then Token: softToken-0 is logged-out
+    And User logs in token: softToken-0 with PIN: T0ken1zer3New
+    And Token: softToken-0 is logged-in
+    When Token: softToken-0 edit page is opened
+    And Change the pin section is expanded
+    And PIN is changed from "T0ken1zer3New" to "T0ken1zer3"
+    Then Token: softToken-0 is logged-out
+    And User logs in token: softToken-0 with PIN: T0ken1zer3
+    And Token: softToken-0 is logged-in

@@ -170,7 +170,7 @@ public class CertHashBasedOcspResponder implements StartStop {
 
     private final class RequestHandler extends Handler.Abstract {
         @Override
-        public boolean handle(Request request, Response response, Callback callback) throws Exception {
+        public boolean handle(Request request, Response response, Callback callback) {
             log.trace("Received {} request from {}", request.getMethod(), getRemoteAddr(request));
 
             try {

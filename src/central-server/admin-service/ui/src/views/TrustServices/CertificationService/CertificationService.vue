@@ -47,10 +47,8 @@
 </template>
 
 <script lang="ts">
-import Vue, { defineComponent } from 'vue';
-import PageNavigation, {
-  PageNavigationTab,
-} from '@/components/layout/PageNavigation.vue';
+import { defineComponent } from 'vue';
+import PageNavigation, { PageNavigationTab } from '@/components/layout/PageNavigation.vue';
 import { Colors, Permissions, RouteName } from '@/global';
 import { mapStores } from 'pinia';
 import { useCertificationService } from '@/store/modules/trust-services';

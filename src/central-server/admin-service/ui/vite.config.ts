@@ -69,11 +69,11 @@ export default defineConfig(({ command, mode }) => {
       proxy: {
         '/api': {
           secure: false,
-          target: env.PROXY_ADDRESS || 'https://127.0.0.1:4000',
+          target: env.PROXY_ADDRESS || 'https://127.0.0.1:4100',
         },
         '/login': {
           secure: false,
-          target: env.PROXY_ADDRESS || 'https://127.0.0.1:4000',
+          target: env.PROXY_ADDRESS || 'https://127.0.0.1:4100',
         },
       },
     },

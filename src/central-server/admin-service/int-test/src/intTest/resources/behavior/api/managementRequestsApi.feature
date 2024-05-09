@@ -20,6 +20,19 @@ Feature: Management requests API
     Then security server 'CS:E2E:member-1:SS-X' has no authentication certificates
 
   @Modifying
+  Scenario: Add/delete Authentication certificate for non existing member
+    Given new security server 'CS:E2E:member-2:SS-X' authentication certificate registered with origin 'SECURITY_SERVER'
+    And Authentication header is set to REGISTRATION_OFFICER
+    And member 'CS:E2E:member-2' does not exist
+    When management request is approved
+    Then user can get security server 'CS:E2E:member-2:SS-X' authentication certificates
+    And member 'CS:E2E:member-2' name is 'member-2'
+    When Authentication header is set to MANAGEMENT_SERVICE
+    And authentication certificate of 'CS:E2E:member-2:SS-X' is deleted
+    And Authentication header is set to REGISTRATION_OFFICER
+    Then security server 'CS:E2E:member-2:SS-X' has no authentication certificates
+
+  @Modifying
   Scenario: Add/delete not yet approved Authentication certificate
     And new security server 'CS:E2E:member-1:SS-X' authentication certificate registered with origin 'SECURITY_SERVER'
     And Authentication header is set to REGISTRATION_OFFICER
@@ -43,6 +56,17 @@ Feature: Management requests API
     Then management request is with status 'APPROVED'
     And user can get security server 'CS:E2E:member-1:SS-X' authentication certificates
 
+
+  @Modifying
+  Scenario: Dont' auto approve Authentication certificate for non existing member
+    Given Authentication header is set to REGISTRATION_OFFICER
+    And member 'CS:E2E:member-2' does not exist
+    When Authentication header is set to MANAGEMENT_SERVICE
+    And new security server 'CS:E2E:member-2:SS-X' authentication certificate registered with origin 'SECURITY_SERVER'
+    And Authentication header is set to REGISTRATION_OFFICER
+    Then management request is with status 'WAITING'
+    And member 'CS:E2E:member-2' does not exist
+
   @Modifying
   Scenario: Decline authentication certificate registration
     Given new security server 'CS:E2E:member-1:SS-X' authentication certificate registered with origin 'SECURITY_SERVER'
@@ -63,6 +87,18 @@ Feature: Management requests API
     And Authentication header is set to REGISTRATION_OFFICER
     And management request is approved
     Then security server 'CS:E2E:member-1:SS-X' clients contains 'CS:E2E:member-2'
+
+  @Modifying
+  Scenario: Register non existing member as security server client
+    Given new security server 'CS:E2E:member-1:SS-X' authentication certificate registered with origin 'SECURITY_SERVER'
+    And Authentication header is set to REGISTRATION_OFFICER
+    And management request is approved
+    When Authentication header is set to MANAGEMENT_SERVICE
+    And client 'CS:E2E:member-2' is registered as security server 'CS:E2E:member-1:SS-X' client from 'SECURITY_SERVER'
+    And Authentication header is set to REGISTRATION_OFFICER
+    And management request is approved
+    Then security server 'CS:E2E:member-1:SS-X' clients contains 'CS:E2E:member-2'
+    And member 'CS:E2E:member-2' name is 'member-2'
 
   @Modifying
   Scenario: Delete member as security server client
@@ -115,6 +151,17 @@ Feature: Management requests API
     And security server 'CS:E2E:member-1:SS-X' clients contains 'CS:E2E:member-2'
 
   @Modifying
+  Scenario: Don't auto approve registration of non existing member as security server client
+    Given new security server 'CS:E2E:member-1:SS-X' authentication certificate registered with origin 'SECURITY_SERVER'
+    And Authentication header is set to REGISTRATION_OFFICER
+    And management request is approved
+    When Authentication header is set to MANAGEMENT_SERVICE
+    And client 'CS:E2E:member-2' is registered as security server 'CS:E2E:member-1:SS-X' client from 'SECURITY_SERVER'
+    And Authentication header is set to REGISTRATION_OFFICER
+    Then management request is with status 'WAITING'
+    And member 'CS:E2E:member-2' does not exist
+
+  @Modifying
   Scenario: Decline registration of member as security server client
     Given new security server 'CS:E2E:member-1:SS-X' authentication certificate registered with origin 'SECURITY_SERVER'
     And Authentication header is set to REGISTRATION_OFFICER
@@ -139,6 +186,20 @@ Feature: Management requests API
     And Authentication header is set to REGISTRATION_OFFICER
     And management request is approved
     Then security server 'CS:E2E:member-1:SS-X' clients contains 'CS:E2E:member-2:subsystem-1'
+    And member 'CS:E2E:member-2' subsystems contains 'subsystem-1'
+
+  @Modifying
+  Scenario: Register a new subsystem of non existing member as security server client
+    Given new security server 'CS:E2E:member-1:SS-X' authentication certificate registered with origin 'SECURITY_SERVER'
+    And Authentication header is set to REGISTRATION_OFFICER
+    And management request is approved
+    And member 'CS:E2E:member-2' does not exist
+    When Authentication header is set to MANAGEMENT_SERVICE
+    And client 'CS:E2E:member-2:subsystem-1' is registered as security server 'CS:E2E:member-1:SS-X' client from 'SECURITY_SERVER'
+    And Authentication header is set to REGISTRATION_OFFICER
+    And management request is approved
+    Then security server 'CS:E2E:member-1:SS-X' clients contains 'CS:E2E:member-2:subsystem-1'
+    And member 'CS:E2E:member-2' name is 'member-2'
     And member 'CS:E2E:member-2' subsystems contains 'subsystem-1'
 
   @Modifying
@@ -190,6 +251,18 @@ Feature: Management requests API
     Then management request is with status 'APPROVED'
     And security server 'CS:E2E:member-1:SS-X' clients contains 'CS:E2E:member-2'
     And member 'CS:E2E:member-2' subsystems contains 'subsystem-1'
+
+  @Modifying
+  Scenario: Dont't auto approve registration of subsystem of non existing member as security server client
+    Given new security server 'CS:E2E:member-1:SS-X' authentication certificate registered with origin 'SECURITY_SERVER'
+    And Authentication header is set to REGISTRATION_OFFICER
+    And management request is approved
+    And member 'CS:E2E:member-2' does not exist
+    When Authentication header is set to MANAGEMENT_SERVICE
+    And client 'CS:E2E:member-2:subsystem-1' is registered as security server 'CS:E2E:member-1:SS-X' client from 'SECURITY_SERVER'
+    And Authentication header is set to REGISTRATION_OFFICER
+    And management request is with status 'WAITING'
+    And member 'CS:E2E:member-2' does not exist
 
   @Modifying
   Scenario: Decline registration of subsystem as security server client

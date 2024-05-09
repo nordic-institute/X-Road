@@ -29,7 +29,7 @@ import ee.ria.xroad.common.CodedException;
 
 import jakarta.xml.soap.SOAPFault;
 import lombok.SneakyThrows;
-import org.apache.commons.lang3.StringEscapeUtils;
+import org.apache.commons.text.StringEscapeUtils;
 
 /**
  * Soap interface implementation representing an error message.

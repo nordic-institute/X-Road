@@ -36,6 +36,7 @@ import org.eclipse.jetty.util.Callback;
 
 import java.io.IOException;
 import java.nio.ByteBuffer;
+import java.nio.charset.StandardCharsets;
 
 import static ee.ria.xroad.common.util.JettyUtils.setContentLength;
 import static ee.ria.xroad.common.util.JettyUtils.setContentType;
@@ -58,8 +59,7 @@ public abstract class HandlerBase extends Handler.Abstract {
                                   Response response,
                                   Callback callback,
                                   CodedException ex) throws IOException {
-        String faultXml = ex instanceof CodedException.Fault
-                ? ((CodedException.Fault) ex).getFaultXml() : SoapFault.createFaultXml(ex);
+        String faultXml = SoapFault.createFaultXml(ex);
         String encoding = MimeUtils.UTF8;
         byte[] messageBytes = faultXml.getBytes(encoding);
 
@@ -76,11 +76,9 @@ public abstract class HandlerBase extends Handler.Abstract {
      * @param response HTTP servlet response for sending the plain fault
      * @param status   HTTP status code
      * @param message  fault message
-     * @throws IOException if an I/O error occurred
      */
-    public void sendPlainTextErrorResponse(Response response, Callback callback, int status, String message)
-            throws IOException {
-        byte[] messageBytes = message.getBytes("UTF-8");
+    public void sendPlainTextErrorResponse(Response response, Callback callback, int status, String message) {
+        byte[] messageBytes = message.getBytes(StandardCharsets.UTF_8);
         response.setStatus(status);
         setContentType(response, MimeTypes.TEXT_PLAIN_UTF8);
         setContentLength(response, messageBytes.length);

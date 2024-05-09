@@ -38,13 +38,11 @@ import ee.ria.xroad.proxy.util.PerformanceLogger;
 
 import lombok.extern.slf4j.Slf4j;
 import org.apache.http.client.HttpClient;
-import org.eclipse.jetty.io.EndPoint;
 import org.eclipse.jetty.server.Request;
 import org.eclipse.jetty.server.Response;
 import org.eclipse.jetty.util.Callback;
 
 import java.io.IOException;
-import java.security.cert.X509Certificate;
 
 import static ee.ria.xroad.common.ErrorCodes.SERVER_SERVERPROXY_X;
 import static ee.ria.xroad.common.ErrorCodes.X_INVALID_HTTP_METHOD;
@@ -114,10 +112,10 @@ class ServerProxyHandler extends HandlerBase {
                                                         OpMonitoringData opMonitoringData) {
 
         if (VALUE_MESSAGE_TYPE_REST.equals(request.getHeaders().get(HEADER_MESSAGE_TYPE))) {
-            return new ServerRestMessageProcessor(request, response, client, getClientSslCertChain(request),
+            return new ServerRestMessageProcessor(request, response, client, request.getPeerCertificates().orElse(null),
                     opMonitoringData);
         } else {
-            return new ServerMessageProcessor(request, response, client, getClientSslCertChain(request),
+            return new ServerMessageProcessor(request, response, client, request.getPeerCertificates().orElse(null),
                     opMonitorClient, opMonitoringData);
         }
     }
@@ -126,14 +124,5 @@ class ServerProxyHandler extends HandlerBase {
     protected void failure(Request request, Response response, Callback callback, CodedException e)
             throws IOException {
         sendErrorResponse(request, response, callback, e);
-    }
-
-    private static X509Certificate[] getClientSslCertChain(RequestWrapper request) {
-        Object attribute = request.getAttribute(EndPoint.SslSessionData.ATTRIBUTE);
-        if (attribute != null) {
-            return ((EndPoint.SslSessionData) attribute).peerCertificates();
-        } else {
-            return null;
-        }
     }
 }

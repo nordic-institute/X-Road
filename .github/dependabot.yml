@@ -3,7 +3,7 @@ updates:
   - package-ecosystem: "gradle"
     directory: "/src"
     schedule:
-      interval: "daily"
+      interval: "weekly"
     groups:
       java-minor-patch:
         applies-to: version-updates
@@ -15,7 +15,7 @@ updates:
   - package-ecosystem: "npm"
     directory: "/src"
     schedule:
-      interval: "daily"
+      interval: "weekly"
     groups:
       javascript-minor-patch:
         applies-to: version-updates

@@ -86,8 +86,7 @@ public class MemberServiceImpl implements MemberService {
             throw new DataIntegrityException(MEMBER_EXISTS, request.getClientId().toShortString());
         }
 
-        var persistedEntity = saveMember(request);
-        return securityServerClientMapper.toDto(persistedEntity);
+        return securityServerClientMapper.toDto(saveMember(request));
     }
 
     private XRoadMemberEntity saveMember(MemberCreationRequest request) {

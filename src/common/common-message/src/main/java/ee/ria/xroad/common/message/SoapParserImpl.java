@@ -46,6 +46,7 @@ import org.glassfish.jaxb.runtime.api.AccessorException;
 import javax.xml.namespace.QName;
 
 import java.io.ByteArrayInputStream;
+import java.io.IOException;
 import java.io.InputStream;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -105,10 +106,8 @@ public class SoapParserImpl implements SoapParser {
         return parseMessage(rawXml, soap, charset, contentType);
     }
 
-    private InputStream excludeUtf8Bom(String contentType,
-                                       InputStream soapStream) {
-        return hasUtf8Charset(contentType)
-                ? new BOMInputStream(soapStream) : soapStream;
+    private InputStream excludeUtf8Bom(String contentType, InputStream soapStream) throws IOException {
+        return hasUtf8Charset(contentType) ? BOMInputStream.builder().setInputStream(soapStream).get() : soapStream;
     }
 
     protected Soap parseMessage(byte[] rawXml, SOAPMessage soap,
