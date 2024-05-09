@@ -26,12 +26,14 @@ dependencies {
     implementation libs.edc.identity.hub.credentials
     implementation libs.edc.identity.hub.participants
     implementation libs.edc.identity.hub.keypairs
+    implementation libs.edc.keypair.spi
     implementation libs.edc.identity.hub.store.spi
 
     implementation libs.edc.identity.hub.did
 
     implementation libs.edc.ldp.verifiable.credentials
-
+    implementation libs.edc.verifiablecredential.spi
+    implementation libs.edc.verifiable.presentation.lib
     implementation libs.edc.jsonLd.spi
     implementation libs.edc.jsonLd.lib
 

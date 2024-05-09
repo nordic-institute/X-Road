@@ -34,16 +34,16 @@ import org.eclipse.edc.iam.verifiablecredentials.spi.model.CredentialSubject;
 import org.eclipse.edc.iam.verifiablecredentials.spi.model.Issuer;
 import org.eclipse.edc.iam.verifiablecredentials.spi.model.VerifiableCredential;
 import org.eclipse.edc.iam.verifiablecredentials.spi.model.VerifiableCredentialContainer;
-import org.eclipse.edc.identityhub.spi.ParticipantContextService;
-import org.eclipse.edc.identityhub.spi.events.diddocument.DidDocumentObservable;
-import org.eclipse.edc.identityhub.spi.model.KeyPairResource;
-import org.eclipse.edc.identityhub.spi.model.KeyPairState;
-import org.eclipse.edc.identityhub.spi.model.VcState;
-import org.eclipse.edc.identityhub.spi.model.VerifiableCredentialResource;
-import org.eclipse.edc.identityhub.spi.model.participant.KeyDescriptor;
-import org.eclipse.edc.identityhub.spi.model.participant.ParticipantManifest;
+import org.eclipse.edc.identithub.spi.did.events.DidDocumentObservable;
+import org.eclipse.edc.identityhub.spi.keypair.model.KeyPairResource;
+import org.eclipse.edc.identityhub.spi.keypair.model.KeyPairState;
+import org.eclipse.edc.identityhub.spi.participantcontext.ParticipantContextService;
+import org.eclipse.edc.identityhub.spi.participantcontext.model.KeyDescriptor;
+import org.eclipse.edc.identityhub.spi.participantcontext.model.ParticipantManifest;
 import org.eclipse.edc.identityhub.spi.store.CredentialStore;
 import org.eclipse.edc.identityhub.spi.store.KeyPairResourceStore;
+import org.eclipse.edc.identityhub.spi.verifiablecredentials.model.VcState;
+import org.eclipse.edc.identityhub.spi.verifiablecredentials.model.VerifiableCredentialResource;
 import org.eclipse.edc.runtime.metamodel.annotation.Extension;
 import org.eclipse.edc.runtime.metamodel.annotation.Inject;
 import org.eclipse.edc.runtime.metamodel.annotation.Setting;
@@ -61,7 +61,6 @@ import java.util.Map;
 import java.util.UUID;
 
 import static org.niis.xroad.edc.extension.iam.IatpScopeExtension.CREDENTIAL_FORMAT;
-
 
 /**
  * Identity Hub's management API is missing an endpoint for inserting credentials.

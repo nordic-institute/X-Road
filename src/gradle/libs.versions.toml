@@ -22,7 +22,7 @@ protoc = "3.25.3"
 grpc = "1.63.0"
 swaggerParser = "2.1.22"
 logback = "1.4.14"
-edc = "0.6.2"
+edc = "0.6.3"
 edcJetty = "11.0.20"
 nimbusJoseJwt = "9.37.3"
 dss = "6.0"
@@ -204,7 +204,7 @@ edc-http-lib = { module = "org.eclipse.edc:http-lib", version.ref = "edc" }
 
 edc-identity-did-core = { module = "org.eclipse.edc:identity-did-core", version.ref = "edc" }
 edc-identity-did-web = { module = "org.eclipse.edc:identity-did-web", version.ref = "edc" }
-edc-identity-hub-api = { module = "org.eclipse.edc:identity-hub-api", version.ref = "edc" }
+edc-identity-hub-api = { module = "org.eclipse.edc:presentation-api", version.ref = "edc" }
 edc-identity-hub-did = { module = "org.eclipse.edc:identity-hub-did", version.ref = "edc" }
 edc-identity-hub-credentials = { module = "org.eclipse.edc:identity-hub-credentials", version.ref = "edc" }
 edc-identity-hub-keypairs = { module = "org.eclipse.edc:identity-hub-keypairs", version.ref = "edc" }
@@ -212,14 +212,18 @@ edc-identity-hub-participants = { module = "org.eclipse.edc:identity-hub-partici
 edc-identity-hub-store-spi = { module = "org.eclipse.edc:identity-hub-store-spi", version.ref = "edc" }
 edc-identity-hub-spi-did = { module = "org.eclipse.edc:identity-hub-did-spi", version.ref = "edc" }
 edc-identity-hub-did-localpub = { module = "org.eclipse.edc:local-did-publisher", version.ref = "edc" }
+edc-verifiable-presentation-lib = { module = "org.eclipse.edc:verifiable-presentation-lib", version.ref = "edc" }
 
-edc-identity-hub-mgmt-config = { module = "org.eclipse.edc:identityhub-management-api-configuration", version.ref = "edc" }
+edc-identity-hub-mgmt-config = { module = "org.eclipse.edc:api-configuration", version.ref = "edc" }
 edc-identity-hub-mgmt-authentication = { module = "org.eclipse.edc:identityhub-api-authentication", version.ref = "edc" }
 edc-identity-hub-mgmt-authorization = { module = "org.eclipse.edc:identityhub-api-authorization", version.ref = "edc" }
-edc-identity-hub-mgmt-participantcontext = { module = "org.eclipse.edc:participant-context-mgmt-api", version.ref = "edc" }
-edc-identity-hub-mgmt-verifiablecredential = { module = "org.eclipse.edc:verifiable-credential-mgmt-api", version.ref = "edc" }
-edc-identity-hub-mgmt-did = { module = "org.eclipse.edc:did-mgmt-api", version.ref = "edc" }
-edc-identity-hub-mgmt-keypairs = { module = "org.eclipse.edc:keypair-mgmt-api", version.ref = "edc" }
+edc-identity-hub-mgmt-participantcontext = { module = "org.eclipse.edc:participant-context-api", version.ref = "edc" }
+edc-identity-hub-mgmt-verifiablecredential = { module = "org.eclipse.edc:verifiable-credentials-api", version.ref = "edc" }
+edc-verifiablecredential-spi = { module = "org.eclipse.edc:verifiable-credential-spi", version.ref = "edc" }
+
+edc-identity-hub-mgmt-did = { module = "org.eclipse.edc:did-api", version.ref = "edc" }
+edc-identity-hub-mgmt-keypairs = { module = "org.eclipse.edc:keypair-api", version.ref = "edc" }
+edc-keypair-spi = { module = "org.eclipse.edc:keypair-spi", version.ref = "edc" }
 
 edc-identity-trust-spi = { module = "org.eclipse.edc:identity-trust-spi", version.ref = "edc" }
 edc-identity-trust-core = { module = "org.eclipse.edc:identity-trust-core", version.ref = "edc" }
