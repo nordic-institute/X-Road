@@ -36,9 +36,10 @@ import java.security.cert.CertificateEncodingException;
 import static ee.ria.xroad.common.ErrorCodes.X_MALFORMED_GLOBALCONF;
 
 abstract class ContentHandler {
+    public static final String DEFAULT_FALLBACK_VERSION = "2";
 
     static ContentHandler forVersion(String version) {
-        return switch (version) {
+        return switch (version != null ? version : DEFAULT_FALLBACK_VERSION) {
             case "4" -> new ContentHandlerV4();
             case "3" -> new ContentHandlerV3();
             default -> new ContentHandlerV2();
