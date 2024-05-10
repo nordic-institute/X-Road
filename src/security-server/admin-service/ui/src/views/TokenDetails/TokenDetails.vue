@@ -277,7 +277,7 @@ export default defineComponent({
       try {
         let successMsg = this.$t('keys.tokenSaved') as string;
         if (this.isChangePinOpen) {
-          this.updatePin(
+          await this.updatePin(
             this.id,
             this.values.token.oldPin,
             this.values.token.newPin,
@@ -285,7 +285,7 @@ export default defineComponent({
           successMsg = this.$t('token.pinChanged') as string;
         }
         if (this.isFieldDirty('token.friendlyName')) {
-          this.updateToken({
+          await this.updateToken({
             ...this.token,
             name: this.values.token.friendlyName,
           });

@@ -34,6 +34,8 @@ import ee.ria.xroad.common.message.RestRequest;
 import ee.ria.xroad.common.opmonitoring.OpMonitoringData;
 import ee.ria.xroad.common.util.JsonUtils;
 import ee.ria.xroad.common.util.MimeUtils;
+import ee.ria.xroad.common.util.RequestWrapper;
+import ee.ria.xroad.common.util.ResponseWrapper;
 import ee.ria.xroad.common.util.XmlUtils;
 import ee.ria.xroad.proxy.conf.KeyConf;
 import ee.ria.xroad.proxy.util.MessageProcessorBase;
@@ -92,7 +94,7 @@ public class ClientRestMessageHandler extends AbstractClientProxyHandler {
     }
 
     @Override
-    Optional<MessageProcessorBase> createRequestProcessor(Request request, Response response,
+    Optional<MessageProcessorBase> createRequestProcessor(RequestWrapper request, ResponseWrapper response,
                                                           OpMonitoringData opMonitoringData) throws Exception {
         final var target = getTarget(request);
         if (target != null && target.startsWith("/r" + RestMessage.PROTOCOL_VERSION + "/")) {
@@ -115,7 +117,7 @@ public class ClientRestMessageHandler extends AbstractClientProxyHandler {
         return Optional.empty();
     }
 
-    private RestRequest createRestRequest(Request jRequest) {
+    private RestRequest createRestRequest(RequestWrapper jRequest) {
         return new RestRequest(
                 jRequest.getMethod(),
                 jRequest.getHttpURI().getPath(),
@@ -125,7 +127,7 @@ public class ClientRestMessageHandler extends AbstractClientProxyHandler {
         );
     }
 
-    private List<Header> headers(Request req) {
+    private List<Header> headers(RequestWrapper req) {
         return req.getHeaders().stream()
                 .map(f -> new BasicHeader(f.getName(), f.getValue()))
                 .collect(Collectors.toList());
@@ -177,6 +179,8 @@ public class ClientRestMessageHandler extends AbstractClientProxyHandler {
                 responseOut.write(XmlUtils.prettyPrintXml(doc, "UTF-8", 0).getBytes());
             } catch (Exception e) {
                 log.error("Unable to generate XML document");
+            } finally {
+                callback.failed(ex);
             }
         } else {
             try (JsonGenerator jsonGenerator = JsonUtils.getObjectWriter()
@@ -186,6 +190,8 @@ public class ClientRestMessageHandler extends AbstractClientProxyHandler {
                 jsonGenerator.writeStringField("message", ex.getFaultString());
                 jsonGenerator.writeStringField("detail", ex.getFaultDetail());
                 jsonGenerator.writeEndObject();
+            } finally {
+                callback.succeeded();
             }
         }
     }

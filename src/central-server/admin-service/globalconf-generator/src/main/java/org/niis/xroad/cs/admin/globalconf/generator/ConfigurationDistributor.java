@@ -79,9 +79,13 @@ public class ConfigurationDistributor {
 
     @SneakyThrows
     public void moveDirectoryContentFile(String source, String target) {
-        var versionPath = generatedConfDir.resolve(getVersionSubPath());
-        var sourcePath = versionPath.resolve(source);
-        Files.move(sourcePath, versionPath.resolve(target), StandardCopyOption.ATOMIC_MOVE);
+        var sourcePath = getVersionLocationPath().resolve(source);
+        Files.move(sourcePath, getVersionLocationPath().resolve(target), StandardCopyOption.ATOMIC_MOVE);
+    }
+
+    @SneakyThrows
+    public void deleteDirectoryContentFile(String target) {
+        FileUtils.delete(getVersionLocationPath().resolve(target));
     }
 
     private void writeConfigurationFile(ConfigurationPart configurationPart) {
@@ -115,8 +119,12 @@ public class ConfigurationDistributor {
         return getVersionSubPath().resolve(DIRECTORY_TIMESTAMP_FORMATTER.format(timestamp));
     }
 
-    private Path getConfigLocationPath() {
+    public Path getConfigLocationPath() {
         return generatedConfDir.resolve(getSubPath());
+    }
+
+    public Path getVersionLocationPath() {
+        return generatedConfDir.resolve(getVersionSubPath());
     }
 
     private void checkInitialized() {

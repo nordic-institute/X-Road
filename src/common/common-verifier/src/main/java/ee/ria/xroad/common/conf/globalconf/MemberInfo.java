@@ -37,5 +37,16 @@ public final class MemberInfo {
 
     private final ClientId.Conf id;
     private final String name;
+    private final String did;
+
+    public MemberInfo(ClientId.Conf id, String name) {
+        this(id, name, null);
+    }
+
+    public MemberInfo(ClientId.Conf id, String name, String did) {
+        this.id = id;
+        this.name = name;
+        this.did = did;
+    }
 
 }

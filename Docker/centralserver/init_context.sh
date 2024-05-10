@@ -1,9 +1,8 @@
 #!/bin/bash
 
 rm -rf ./build
-mkdir -p ./build
+mkdir -p ./build/packages
+mkdir -p ./build/libs
 
-cp -r ../../ansible/roles/xroad-ca/files/etc ./build/
-cp -r ../../ansible/roles/xroad-ca/files/home ./build/
-cp -r ./files ./build/
-mkdir -p ./build/usr
+cp ../../src/central-server/ds-catalog-service/build/libs/ds-catalog-service.jar ./build/libs
+cp ../../src/security-server/edc/runtime/identity-hub/build/libs/edc-identity-hub.jar ./build/libs

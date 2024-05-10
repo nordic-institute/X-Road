@@ -53,13 +53,6 @@
 </template>
 <script lang="ts" setup>
 import { useForm } from 'vee-validate';
-import { ErrorInfo } from '@/openapi-types';
-import {
-  getErrorInfo,
-  getTranslatedFieldErrors,
-  isFieldError,
-} from '@/util/helpers';
-import { AxiosError } from 'axios';
 import { useSystem } from '@/store/modules/system';
 import { useBasicForm } from '@/util/composables';
 
@@ -73,7 +66,6 @@ const props = defineProps({
 const emit = defineEmits(['save', 'cancel']);
 
 const { updateCentralServerAddress } = useSystem();
-const { showError, showSuccess, t, loading } = useBasicForm();
 
 const { meta, setFieldError, defineField, handleSubmit } = useForm({
   validationSchema: { serviceAddress: 'required' },
@@ -82,6 +74,10 @@ const { meta, setFieldError, defineField, handleSubmit } = useForm({
 const [address, addressAttrs] = defineField('serviceAddress', {
   props: (state) => ({ 'error-messages': state.errors }),
 });
+const { showOrTranslateErrors, showSuccess, t, loading } = useBasicForm(
+  setFieldError,
+  { serviceAddress: 'centralServerAddressDto.centralServerAddress' },
+);
 
 const onServerAddressSave = handleSubmit((values) => {
   loading.value = true;
@@ -92,25 +88,7 @@ const onServerAddressSave = handleSubmit((values) => {
       showSuccess(t('systemSettings.editCentralServerAddressSuccess'));
       emit('save');
     })
-    .catch((error) => {
-      const errorInfo: ErrorInfo = getErrorInfo(error as AxiosError);
-      if (isFieldError(errorInfo)) {
-        // backend validation error
-        let fieldErrors = errorInfo.error?.validation_errors;
-        if (fieldErrors) {
-          setFieldError(
-            'serviceAddress',
-            getTranslatedFieldErrors(
-              'centralServerAddressDto.centralServerAddress',
-              fieldErrors,
-            ),
-          );
-        }
-      } else {
-        showError(error);
-        emit('cancel');
-      }
-    })
+    .catch((error) => showOrTranslateErrors(error))
     .finally(() => (loading.value = false));
 });
 

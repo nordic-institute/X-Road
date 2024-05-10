@@ -25,6 +25,8 @@
  */
 package org.niis.xroad.edc.sig.jades;
 
+import ee.ria.xroad.common.conf.globalconf.GlobalConf;
+
 import eu.europa.esig.dss.enumerations.DigestAlgorithm;
 import eu.europa.esig.dss.model.DSSException;
 import eu.europa.esig.dss.model.TimestampBinary;
@@ -51,7 +53,7 @@ import static ee.ria.xroad.common.util.CryptoUtils.getAlgorithmIdentifier;
 
 @Slf4j
 public class DssTspSource implements TSPSource {
-    private static final String TSP_URL = "http://cs:8899";
+    private static final String TSP_URL = GlobalConf.getApprovedTspUrls(GlobalConf.getInstanceIdentifier()).get(0);
     private static final int DEFAULT_TIMESTAMPER_CLIENT_CONNECT_TIMEOUT = 20000;
     private static final int DEFAULT_TIMESTAMPER_CLIENT_READ_TIMEOUT = 60000;
 

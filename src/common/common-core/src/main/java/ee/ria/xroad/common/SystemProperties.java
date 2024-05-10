@@ -142,10 +142,6 @@ public final class SystemProperties {
     public static final String PROXY_SERVER_LISTEN_PORT =
             PREFIX + "proxy.server-listen-port";
 
-    /** Property name of the Server Proxy's listen port number. */
-    public static final String PROXY_EDC_LISTEN_PORT =
-            PREFIX + "proxy.edc-listen-port";
-
     /** Property name of the cached OCSP response path for signer operation. */
     public static final String OCSP_CACHE_PATH =
             PREFIX + "signer.ocsp-cache-path";
@@ -174,13 +170,12 @@ public final class SystemProperties {
     public static final String JETTY_CLIENTPROXY_CONFIGURATION_FILE =
             PREFIX + "proxy.jetty-clientproxy-configuration-file";
 
+    public static final String JETTY_CLIENTPROXY_MAX_HEADER_SIZE =
+            PREFIX + "proxy.jetty-max-header-size";
+
     /** Property name of the ServerProxy Jetty server configuration file. */
     public static final String JETTY_SERVERPROXY_CONFIGURATION_FILE =
             PREFIX + "proxy.jetty-serverproxy-configuration-file";
-
-    /** Property name of the EdcProxy Jetty server configuration file. */
-    public static final String JETTY_EDCPROXY_CONFIGURATION_FILE =
-            PREFIX + "proxy.jetty-edcproxy-configuration-file";
 
     /** Property name of the CertHashBasedOcspResponder Jetty server configuration file. */
     public static final String JETTY_OCSP_RESPONDER_CONFIGURATION_FILE =
@@ -341,6 +336,8 @@ public final class SystemProperties {
     private static final String DEFAULT_CLIENTPROXY_POOL_DEFAULT_MAX_CONN_PER_ROUTE = "2500";
 
     private static final String DEFAULT_CLIENTPROXY_TIMEOUT = "30000";
+
+    private static final int DEFAULT_CLIENT_PROXY_JETTY_HEADER_SIZE = 16384;
 
     private static final String DEFAULT_CLIENTPROXY_USE_FASTEST_CONNECTING_SSL_SOCKET_AUTOCLOSE = "true";
 
@@ -853,14 +850,6 @@ public final class SystemProperties {
     }
 
     /**
-     * @return path to the edc proxy jetty server configuration file, '/etc/xroad/jetty/edcproxy.xml' by default.
-     */
-    public static String getJettyEdcProxyConfFile() {
-        return System.getProperty(JETTY_EDCPROXY_CONFIGURATION_FILE,
-                getConfPath() + DefaultFilepaths.JETTY_EDCPROXY_CONFIGURATION_FILE);
-    }
-
-    /**
      * @return path to the cert hash based OCSP responder jetty server configuration file,
      * '/etc/xroad/jetty/ocsp-responder.xml' by default.
      */
@@ -927,6 +916,11 @@ public final class SystemProperties {
                 Integer.toString(PortNumbers.CLIENT_HTTP_PORT)));
     }
 
+    public static int getClientProxyJettyMaxHeaderSize() {
+        return Integer.parseInt(System.getProperty(JETTY_CLIENTPROXY_MAX_HEADER_SIZE,
+                Integer.toString(DEFAULT_CLIENT_PROXY_JETTY_HEADER_SIZE)));
+    }
+
     /**
      * @return the HTTPS port on which the client proxy is listening, '8443' by default.
      */
@@ -954,13 +948,6 @@ public final class SystemProperties {
      */
     public static int getServerProxyListenPort() {
         return Integer.parseInt(System.getProperty(PROXY_SERVER_LISTEN_PORT, Integer.toString(PortNumbers.PROXY_PORT)));
-    }
-
-    /**
-     * @return the HTTP port on which the edc proxy listens for messages, '19291' by default.
-     */
-    public static int getEdcProxyListenPort() {
-        return Integer.parseInt(System.getProperty(PROXY_EDC_LISTEN_PORT, Integer.toString(PortNumbers.PROXY_EDC_PORT)));
     }
 
     /**

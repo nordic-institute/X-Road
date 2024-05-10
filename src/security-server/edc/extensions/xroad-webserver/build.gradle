@@ -1,0 +1,15 @@
+plugins {
+    id 'java-library'
+}
+
+dependencies {
+    implementation(project(':security-server:edc:xroad-edc-security')) {
+        exclude group: 'org.eclipse.jetty'
+    }
+
+    api libs.jetty.servlet
+    implementation libs.edc.core.spi
+    implementation libs.edc.web.spi
+    implementation libs.edc.connector.core
+    implementation libs.edc.http.lib
+}

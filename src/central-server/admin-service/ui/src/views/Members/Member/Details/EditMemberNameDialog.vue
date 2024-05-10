@@ -74,7 +74,7 @@ const { defineComponentBinds, errors, meta, handleSubmit } = useForm({
 });
 const memberName = defineComponentBinds('memberName');
 
-const { editMemberName } = useMember();
+const { editMember } = useMember();
 const { showError, showSuccess } = useNotifications();
 const loading = ref(false);
 
@@ -85,9 +85,10 @@ function cancelEdit() {
 const { t } = i18n.global;
 const saveNewMemberName = handleSubmit((values) => {
   loading.value = true;
-  editMemberName(toIdentifier(props.member.client_id), {
-    member_name: values.memberName,
-  })
+  editMember(toIdentifier(props.member.client_id),
+    { member_name: values.memberName },
+    { did: props.member.did }
+  )
     .then(() => {
       showSuccess(t('members.member.details.memberNameSaved'));
       emits('save');

@@ -5,7 +5,7 @@ plugins {
 dependencies {
     api project(':common:common-core')
 
-    api('org.quartz-scheduler:quartz:2.3.2') {
+    api(libs.quartz) {
         exclude module: 'c3p0'
     }
 }

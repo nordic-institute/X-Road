@@ -30,12 +30,12 @@ import ee.ria.xroad.common.SystemProperties;
 import ee.ria.xroad.common.conf.globalconf.AuthKey;
 import ee.ria.xroad.common.conf.globalconf.GlobalConf;
 import ee.ria.xroad.common.opmonitoring.OpMonitoringData;
+import ee.ria.xroad.common.util.RequestWrapper;
+import ee.ria.xroad.common.util.ResponseWrapper;
 import ee.ria.xroad.proxy.conf.KeyConf;
 import ee.ria.xroad.proxy.util.MessageProcessorBase;
 
 import org.apache.http.client.HttpClient;
-import org.eclipse.jetty.server.Request;
-import org.eclipse.jetty.server.Response;
 import org.niis.xroad.proxy.edc.AssetAuthorizationManager;
 
 import java.util.Optional;
@@ -60,13 +60,13 @@ public class ClientSoapMessageHandler extends AbstractClientProxyHandler {
 
     @Override
     Optional<MessageProcessorBase> createRequestProcessor(
-            Request request, Response response,
+            RequestWrapper request, ResponseWrapper response,
             OpMonitoringData opMonitoringData) throws Exception {
         verifyCanProcess(request);
 
 
-        boolean forceLegacyTransport = TRUE.toString().equalsIgnoreCase(request.getHeaders().get("X-Road-Force-Legacy-Transport"));
-        if (!forceLegacyTransport) {
+        boolean useDs = TRUE.toString().equalsIgnoreCase(request.getHeaders().get("X-Road-Use-DS-Transport"));
+        if (useDs) {
             //TODO xroad8 this bean setup is far from usable, refactor once design stabilizes.
             return Optional.of(new ClientSoapMessageDsProcessor(request, response, client,
                     getIsAuthenticationData(request), opMonitoringData, assetAuthorizationManager));
@@ -77,7 +77,7 @@ public class ClientSoapMessageHandler extends AbstractClientProxyHandler {
 
     }
 
-    private void verifyCanProcess(Request request) {
+    private void verifyCanProcess(RequestWrapper request) {
         if (!isPostRequest(request)) {
             throw new ClientException(X_INVALID_HTTP_METHOD,
                     "Must use POST request method instead of %s",

@@ -27,17 +27,24 @@ package ee.ria.xroad.common.db;
 
 import ee.ria.xroad.common.util.NoCoverage;
 
-import org.hibernate.engine.jdbc.dialect.spi.BasicDialectResolver;
+import org.hibernate.dialect.Database;
+import org.hibernate.dialect.Dialect;
+import org.hibernate.engine.jdbc.dialect.spi.DialectResolutionInfo;
+import org.hibernate.engine.jdbc.dialect.spi.DialectResolver;
 
 /**
  * See {@link Postgres10FixedImplicitSequenceDialect} for details.
  */
 @NoCoverage
-public class Postgres10FixedImplicitSequenceDialectResolver extends BasicDialectResolver {
+public class Postgres10FixedImplicitSequenceDialectResolver implements DialectResolver {
 
-    @SuppressWarnings("checkstyle:magicnumber")
-    public Postgres10FixedImplicitSequenceDialectResolver() {
-        super("PostgreSQL", 10, Postgres10FixedImplicitSequenceDialect.class);
+
+    @SuppressWarnings("checkstyle:MagicNumber")
+    @Override
+    public Dialect resolveDialect(DialectResolutionInfo info) {
+        if (Database.POSTGRESQL.matchesResolutionInfo(info) && info.getDatabaseMajorVersion() >= 10) {
+            return new Postgres10FixedImplicitSequenceDialect();
+        }
+        return null;
     }
-
 }

@@ -39,6 +39,7 @@ import ee.ria.xroad.common.util.CryptoUtils;
 import ee.ria.xroad.common.util.HttpSender;
 import ee.ria.xroad.common.util.MimeUtils;
 import ee.ria.xroad.proxy.conf.KeyConf;
+import ee.ria.xroad.proxy.conf.SigningCtxProvider;
 import ee.ria.xroad.proxy.messagelog.MessageLog;
 import ee.ria.xroad.proxy.protocol.ProxyMessage;
 import ee.ria.xroad.proxy.protocol.ProxyMessageDecoder;
@@ -74,8 +75,6 @@ import static ee.ria.xroad.common.util.MimeUtils.HEADER_ORIGINAL_CONTENT_TYPE;
 import static ee.ria.xroad.common.util.MimeUtils.HEADER_REQUEST_ID;
 import static ee.ria.xroad.common.util.MimeUtils.VALUE_MESSAGE_TYPE_REST;
 import static ee.ria.xroad.common.util.TimeUtils.getEpochMillisecond;
-import static org.eclipse.jetty.io.Content.Sink.asOutputStream;
-import static org.eclipse.jetty.io.Content.Source.asInputStream;
 
 @Slf4j
 class ClientRestMessageProcessor extends AbstractClientMessageProcessor {
@@ -261,13 +260,15 @@ class ClientRestMessageProcessor extends AbstractClientMessageProcessor {
 
         for (Header h : rest.getHeaders()) {
             if ("Date".equalsIgnoreCase(h.getName())) {
-                jResponse.getHeaders().put(h.getName(), h.getValue());
+                jResponse.putHeader(h.getName(), h.getValue());
             } else {
-                jResponse.getHeaders().add(h.getName(), h.getValue());
+                jResponse.addHeader(h.getName(), h.getValue());
             }
         }
         if (response.hasRestBody()) {
-            IOUtils.copy(response.getRestBody(), asOutputStream(jResponse));
+            try (var out = jResponse.getOutputStream()) {
+                IOUtils.copy(response.getRestBody(), out);
+            }
         }
     }
 
@@ -307,7 +308,7 @@ class ClientRestMessageProcessor extends AbstractClientMessageProcessor {
 
                 //Optimize the case without request body (e.g. simple get requests)
                 //TBD: Optimize the case without body logging
-                try (InputStream in = asInputStream(jRequest)) {
+                try (InputStream in = jRequest.getInputStream()) {
                     @SuppressWarnings("checkstyle:magicnumber")
                     byte[] buf = new byte[4096];
                     int count = in.read(buf);
@@ -316,14 +317,14 @@ class ClientRestMessageProcessor extends AbstractClientMessageProcessor {
                         try (TeeInputStream tee = new TeeInputStream(in, cache)) {
                             cache.write(buf, 0, count);
                             enc.restBody(buf, count, tee);
-                            enc.sign(KeyConf.getSigningCtx(senderId));
+                            enc.sign(SigningCtxProvider.getSigningCtx(senderId));
                             MessageLog.log(restRequest, enc.getSignature(), cache.getCachedContents(), true,
                                     restRequest.getXRequestId());
                         } finally {
                             cache.consume();
                         }
                     } else {
-                        enc.sign(KeyConf.getSigningCtx(senderId));
+                        enc.sign(SigningCtxProvider.getSigningCtx(senderId));
                         MessageLog.log(restRequest, enc.getSignature(), null, true, restRequest.getXRequestId());
                     }
                 }

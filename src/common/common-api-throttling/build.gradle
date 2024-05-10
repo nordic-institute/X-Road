@@ -4,14 +4,14 @@ plugins {
 }
 
 dependencies {
-    compileOnly("jakarta.servlet:jakarta.servlet-api:$jakartaServletApiVersion")
+    compileOnly(libs.jakarta.servletApi)
 
-    api("com.google.guava:guava:$guavaVersion")
-    api("com.github.vladimir-bukhtoyarov:bucket4j-core:$bucket4jVersion")
+    api(libs.guava)
+    api(libs.bucket4j.core)
 
-    implementation("org.slf4j:slf4j-api:$slf4jVersion")
+    implementation(libs.slf4j.api)
 
-    testFixturesImplementation("org.springframework.boot:spring-boot-starter-test:$springBootVersion")
-    testFixturesCompileOnly("org.projectlombok:lombok:${lombokVersion}")
-    testFixturesAnnotationProcessor("org.projectlombok:lombok:${lombokVersion}")
+    testFixturesImplementation(libs.springBoot.starterTest)
+    testFixturesCompileOnly(libs.lombok)
+    testFixturesAnnotationProcessor(libs.lombok)
 }

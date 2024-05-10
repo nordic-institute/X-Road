@@ -32,8 +32,9 @@ import feign.Feign;
 import feign.hc5.ApacheHttp5Client;
 import feign.jackson.JacksonDecoder;
 import feign.jackson.JacksonEncoder;
-import feign.jaxrs.JakartaContract;
+import feign.jaxrs3.JAXRS3Contract;
 import jakarta.ws.rs.core.MediaType;
+import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.hc.client5.http.config.RequestConfig;
 import org.apache.hc.client5.http.impl.classic.CloseableHttpClient;
@@ -43,12 +44,11 @@ import org.apache.hc.client5.http.io.HttpClientConnectionManager;
 import org.apache.hc.client5.http.ssl.NoopHostnameVerifier;
 import org.apache.hc.client5.http.ssl.SSLConnectionSocketFactoryBuilder;
 import org.apache.hc.core5.http.HttpHeaders;
-import org.apache.hc.core5.ssl.SSLContexts;
-import org.eclipse.edc.connector.api.management.asset.v3.AssetApi;
-import org.eclipse.edc.connector.api.management.contractdefinition.ContractDefinitionApi;
-import org.eclipse.edc.connector.api.management.contractnegotiation.ContractNegotiationApi;
-import org.eclipse.edc.connector.api.management.policy.PolicyDefinitionApi;
-import org.eclipse.edc.connector.api.management.transferprocess.TransferProcessApi;
+import org.eclipse.edc.connector.controlplane.api.management.asset.v3.AssetApi;
+import org.eclipse.edc.connector.controlplane.api.management.contractdefinition.ContractDefinitionApi;
+import org.eclipse.edc.connector.controlplane.api.management.contractnegotiation.ContractNegotiationApi;
+import org.eclipse.edc.connector.controlplane.api.management.policy.PolicyDefinitionApi;
+import org.eclipse.edc.connector.controlplane.api.management.transferprocess.TransferProcessApi;
 import org.eclipse.edc.connector.dataplane.selector.api.v2.DataplaneSelectorApi;
 import org.eclipse.edc.jsonld.util.JacksonJsonLd;
 import org.niis.xroad.edc.management.client.FeignAssetApi;
@@ -57,6 +57,8 @@ import org.niis.xroad.edc.management.client.FeignContractDefinitionApi;
 import org.niis.xroad.edc.management.client.FeignContractNegotiationApi;
 import org.niis.xroad.edc.management.client.FeignPolicyDefinitionApi;
 import org.niis.xroad.edc.management.client.FeignTransferProcessApi;
+import org.niis.xroad.edc.management.client.FeignXroadEdrApi;
+import org.niis.xroad.ssl.SSLContextBuilder;
 
 @Slf4j
 public class EdcManagementApiFactory {
@@ -97,9 +99,13 @@ public class EdcManagementApiFactory {
         return createFeignClient(FeignTransferProcessApi.class, "/v2/transferprocesses");
     }
 
+    public FeignXroadEdrApi xrdEdrApi() {
+        return createFeignClient(FeignXroadEdrApi.class, "/v1/xrd-edr");
+    }
+
     private <T> T createFeignClient(Class<T> apiClass, String path) {
         return Feign.builder().client(client)
-                .contract(new JakartaContract())
+                .contract(new JAXRS3Contract())
                 .encoder(new JacksonEncoder(objectMapper))
                 .decoder(new JacksonDecoder(objectMapper))
                 .requestInterceptor(requestTemplate -> {
@@ -127,10 +133,11 @@ public class EdcManagementApiFactory {
                 .build();
     }
 
+    @SneakyThrows
     private HttpClientConnectionManager buildConnectionManager() {
         final var sslSocketFactory = SSLConnectionSocketFactoryBuilder.create()
                 .setHostnameVerifier(new NoopHostnameVerifier())
-                .setSslContext(SSLContexts.createDefault())
+                .setSslContext(SSLContextBuilder.create().sslContext())
                 .build();
 
         return PoolingHttpClientConnectionManagerBuilder.create()

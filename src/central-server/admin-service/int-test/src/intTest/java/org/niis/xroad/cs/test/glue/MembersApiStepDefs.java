@@ -32,10 +32,10 @@ import io.cucumber.java.en.Step;
 import org.niis.xroad.cs.openapi.model.ClientDto;
 import org.niis.xroad.cs.openapi.model.MemberAddDto;
 import org.niis.xroad.cs.openapi.model.MemberGlobalGroupDto;
-import org.niis.xroad.cs.openapi.model.MemberNameDto;
 import org.niis.xroad.cs.openapi.model.NewMemberIdDto;
 import org.niis.xroad.cs.openapi.model.SecurityServerDto;
 import org.niis.xroad.cs.openapi.model.SubsystemDto;
+import org.niis.xroad.cs.openapi.model.UpdateMemberRequestDto;
 import org.niis.xroad.cs.test.api.FeignMembersApi;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -49,6 +49,7 @@ import static org.junit.Assert.fail;
 import static org.niis.xroad.cs.openapi.model.XRoadIdDto.TypeEnum.MEMBER;
 import static org.springframework.http.HttpStatus.CONFLICT;
 import static org.springframework.http.HttpStatus.CREATED;
+import static org.springframework.http.HttpStatus.NOT_FOUND;
 import static org.springframework.http.HttpStatus.NO_CONTENT;
 import static org.springframework.http.HttpStatus.OK;
 
@@ -179,7 +180,9 @@ public class MembersApiStepDefs extends BaseStepDefs {
     @Step("user updates member {string} name to {string}")
     public void userUpdatesMemberName(String memberId, String memberName) {
         try {
-            final var response = membersApi.updateMemberName(memberId, new MemberNameDto().memberName(memberName));
+            var request = new UpdateMemberRequestDto();
+            request.setMemberName(memberName);
+            final var response = membersApi.updateMember(memberId, request);
             validateMemberResponse(response, OK, memberId, memberName);
         } catch (FeignException feignException) {
             putStepData(StepDataKey.RESPONSE_STATUS, feignException.status());
@@ -215,6 +218,18 @@ public class MembersApiStepDefs extends BaseStepDefs {
                 .assertion(equalsStatusCodeAssertion(OK))
                 .assertion(equalsAssertion(1, "body.?[serverId.encodedId=='" + serverId + "'].size()"))
                 .execute();
+    }
+
+    @Step("member {string} does not exist")
+    public void memberDoesntExist(String memberId) {
+        try {
+            membersApi.getMember(memberId);
+            fail("should fail");
+        } catch (FeignException exception) {
+            validate(exception)
+                    .assertion(equalsAssertion(NOT_FOUND.value(), "status"))
+                    .execute();
+        }
     }
 
     @Step("Owned servers list for not existing member should be empty")

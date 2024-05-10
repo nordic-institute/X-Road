@@ -26,11 +26,24 @@
  */
 package org.niis.xroad.edc.sig;
 
+import ee.ria.xroad.common.conf.globalconf.GlobalConf;
 import ee.ria.xroad.signer.SignerProxy;
+
+import eu.europa.esig.dss.model.x509.CertificateToken;
+import eu.europa.esig.dss.spi.x509.CommonTrustedCertificateSource;
 
 import java.util.Map;
 
 public interface XrdSignatureCreator {
     String sign(SignerProxy.MemberSigningInfoDto signingInfo, byte[] messageBody, Map<String, String> messageHeaders)
             throws XrdSignatureCreationException;
+
+    default CommonTrustedCertificateSource getTrustedListsCertificateSource() {
+        var trustedCertSource = new CommonTrustedCertificateSource();
+        GlobalConf.getAllCaCerts()
+                        .forEach(cert -> trustedCertSource.addCertificate(new CertificateToken(cert)));
+        GlobalConf.getOcspResponderCertificates()
+                        .forEach(cert -> trustedCertSource.addCertificate(new CertificateToken(cert)));
+        return trustedCertSource;
+    }
 }

@@ -94,6 +94,7 @@ public class HardwareModuleWorker extends AbstractModuleWorker {
 
     @Override
     public void stop() {
+        super.stop();
         if (pkcs11Module == null) {
             return;
         }

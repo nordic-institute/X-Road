@@ -26,26 +26,19 @@
  */
 package org.niis.xroad.edc.sig.jws;
 
-import ee.ria.xroad.common.util.CryptoUtils;
 import ee.ria.xroad.signer.SignerProxy;
 
 import com.nimbusds.jose.JOSEException;
 import com.nimbusds.jose.JWSAlgorithm;
 import com.nimbusds.jose.JWSHeader;
 import com.nimbusds.jose.JWSObject;
-import com.nimbusds.jose.JWSSigner;
-import com.nimbusds.jose.crypto.impl.RSASSAProvider;
 import com.nimbusds.jose.util.Base64;
-import com.nimbusds.jose.util.Base64URL;
 import lombok.RequiredArgsConstructor;
 import org.niis.xroad.edc.sig.XrdSignatureCreationException;
 import org.niis.xroad.edc.sig.XrdSignatureCreator;
 
 import java.util.List;
 import java.util.Map;
-
-import static ee.ria.xroad.common.util.CryptoUtils.calculateDigest;
-import static ee.ria.xroad.common.util.CryptoUtils.getDigestAlgorithmId;
 
 @RequiredArgsConstructor
 public class XrdJWSSignatureCreator implements XrdSignatureCreator {
@@ -74,29 +67,4 @@ public class XrdJWSSignatureCreator implements XrdSignatureCreator {
         return jwsObject.serialize(true);
     }
 
-    private static final class XrdJWSSigner extends RSASSAProvider implements JWSSigner {
-
-        @Override
-        public Base64URL sign(final JWSHeader header, final byte[] signingInput) throws JOSEException {
-            try {
-                String signAlgoId = switch (header.getAlgorithm().getName()) {
-                    case "RS256" -> CryptoUtils.SHA256WITHRSA_ID;
-                    case "RS384" -> CryptoUtils.SHA384WITHRSA_ID;
-                    case "RS512" -> CryptoUtils.SHA512WITHRSA_ID;
-                    default -> throw new JOSEException("Unsupported signing algorithm");
-                };
-
-                String digAlgoId = getDigestAlgorithmId(signAlgoId);
-                byte[] digest = calculateDigest(digAlgoId, signingInput);
-
-                byte[] sig = SignerProxy.sign(header.getKeyID(), signAlgoId, digest);
-
-                return Base64URL.encode(sig);
-            } catch (Exception e) {
-                throw new JOSEException("Failed to sign", e);
-            }
-        }
-
-
-    }
 }

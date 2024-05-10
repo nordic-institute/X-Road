@@ -210,7 +210,7 @@ public class LogArchiveTest {
 
         TimestampRecord record = new TimestampRecord();
         record.setId(recordNo);
-        record.setTimestamp("ts");
+        record.setTimestamp("dGltZXN0YW1w");
         record.setHashChainResult("foo");
         record.setTime((long) (Math.random() * 100000L));
 

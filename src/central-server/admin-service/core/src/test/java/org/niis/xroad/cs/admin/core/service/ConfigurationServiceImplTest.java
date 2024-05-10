@@ -42,6 +42,7 @@ import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.niis.xroad.common.exception.NotFoundException;
 import org.niis.xroad.common.exception.ServiceException;
+import org.niis.xroad.cs.admin.api.domain.ConfigurationSigningKey;
 import org.niis.xroad.cs.admin.api.dto.ConfigurationParts;
 import org.niis.xroad.cs.admin.api.dto.File;
 import org.niis.xroad.cs.admin.api.dto.GlobalConfDownloadUrl;
@@ -76,6 +77,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.mockStatic;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
@@ -213,14 +215,22 @@ class ConfigurationServiceImplTest {
         }
 
         @Test
-        void getNodeAddressesWithConfigurationSigningKeys() {
-            when(configurationSourceRepository.findAll()).thenReturn(List.of(configurationSource, configurationSource));
-            when(configurationSource.getConfigurationSigningKeys()).thenReturn(Set.of(new ConfigurationSigningKeyEntity()));
+        void getNodeAddressesWithOrderedConfigurationSigningKeys() {
+            ConfigurationSigningKeyEntity confSigningkey1 = mock(ConfigurationSigningKeyEntity.class);
+            when(confSigningkey1.getId()).thenReturn(2);
+
+            ConfigurationSigningKeyEntity confSigningkey2 = mock(ConfigurationSigningKeyEntity.class);
+            when(confSigningkey2.getId()).thenReturn(1);
+
+            when(configurationSourceRepository.findAll()).thenReturn(List.of(configurationSource));
+            when(configurationSource.getConfigurationSigningKeys()).thenReturn(Set.of(confSigningkey1, confSigningkey2));
             when(configurationSource.getHaNodeName()).thenReturn(HA_NODE_NAME);
             when(systemParameterService.getCentralServerAddress(HA_NODE_NAME)).thenReturn(CENTRAL_SERVICE);
 
-            assertThat(configurationServiceHa.getNodeAddressesWithConfigurationSigningKeys().get(CENTRAL_SERVICE))
-                    .hasSize(2);
+            List<ConfigurationSigningKey> configurationSigningKeys =
+                    configurationServiceHa.getNodeAddressesWithOrderedConfigurationSigningKeys().get(CENTRAL_SERVICE);
+            assertThat(configurationSigningKeys).hasSize(2);
+            assertThat(configurationSigningKeys.get(0).getId()).isLessThan(configurationSigningKeys.get(1).getId());
         }
     }
 

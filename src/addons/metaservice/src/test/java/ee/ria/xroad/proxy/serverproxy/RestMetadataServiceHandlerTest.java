@@ -36,6 +36,8 @@ import ee.ria.xroad.common.message.RestResponse;
 import ee.ria.xroad.common.metadata.RestServiceDetailsListType;
 import ee.ria.xroad.common.opmonitoring.OpMonitoringData;
 import ee.ria.xroad.common.util.CachingStream;
+import ee.ria.xroad.common.util.RequestWrapper;
+import ee.ria.xroad.common.util.ResponseWrapper;
 import ee.ria.xroad.proxy.conf.KeyConf;
 import ee.ria.xroad.proxy.protocol.ProxyMessage;
 import ee.ria.xroad.proxy.protocol.ProxyMessageDecoder;
@@ -55,8 +57,6 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.http.HttpStatus;
 import org.apache.http.client.HttpClient;
 import org.eclipse.jetty.http.HttpFields;
-import org.eclipse.jetty.server.Request;
-import org.eclipse.jetty.server.Response;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.BeforeClass;
@@ -114,8 +114,8 @@ public class RestMetadataServiceHandlerTest {
     public ExpectedException thrown = ExpectedException.none();
 
     private HttpClient httpClientMock;
-    private Request mockRequest;
-    private Response mockResponse;
+    private RequestWrapper mockRequest;
+    private ResponseWrapper mockResponse;
     private ProxyMessage mockProxyMessage;
     private WireMockServer mockServer;
 
@@ -154,8 +154,8 @@ public class RestMetadataServiceHandlerTest {
         });
         var mockHeaders = mock(HttpFields.class);
         httpClientMock = mock(HttpClient.class);
-        mockRequest = mock(Request.class);
-        mockResponse = mock(Response.class);
+        mockRequest = mock(RequestWrapper.class);
+        mockResponse = mock(ResponseWrapper.class);
         mockProxyMessage = mock(ProxyMessage.class);
 
         when(mockRequest.getHeaders()).thenReturn(mockHeaders);

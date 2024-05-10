@@ -1,6 +1,6 @@
 # X-Road: System Parameters User Guide
 
-Version: 2.85
+Version: 2.86
 Doc. ID: UG-SYSPAR
 
 
@@ -96,6 +96,7 @@ Doc. ID: UG-SYSPAR
 | 20.11.2023 | 2.83    | Update information regarding connector-host parameter                                                                                                                                                                                                                                                                                                                                                          | Taavi Meinberg             |
 | 08.12.2023 | 2.84    | Update the *complementary-user-role-mappings* parameter definition                                                                                                                                                                                                                                                                                                                                             | Petteri Kivimäki           |
 | 08.12.2023 | 2.85    | Update security server proxy client http and https default ports                                                                                                                                                                                                                                                                                                                                               | Mikk-Erik Bachmann         |
+| 16.04.2024 | 2.86    | Default value of the parameter *acceptable-timestamp-failure-period* set to 172800 for FI-package                                                                                                                                                                                                                                                                                                              | Ovidijus Narkevicius       |
 
 ## Table of Contents
 
@@ -359,7 +360,7 @@ Proxy-ui has been removed in version 6.24 and it's parameters are not used anymo
 | enabled-body-logging-remote-producer-subsystems  |                                            |   |   | Subsystem-specific overrides for **remote producer** subsystems, that is, remote subsystems that produce services which we use.<br/><br/>Parameter is used when message-body-logging = false. |
 | disabled-body-logging-local-producer-subsystems  |                                            |   |   | Same as enabled-body-logging-local-producer-subsystems, but this parameter is used when message-body-logging = true. |
 | disabled-body-logging-remote-producer-subsystems |                                            |   |   | Same as enabled-body-logging-remote-producer-subsystems, but this parameter is used when message-body-logging = true. |
-| acceptable-timestamp-failure-period              | 14400                                      | 18000   |   | Defines the time period (in seconds) for how long is time-stamping allowed to fail (for whatever reasons) before the message log stops accepting any more messages (and consequently the security server stops accepting requests). Set to 0 to disable this check. The value of this parameter should not be lower than the value of the central server system parameter *timeStampingIntervalSeconds.* |
+| acceptable-timestamp-failure-period              | 14400                                      | 172800   |   | Defines the time period (in seconds) for how long is time-stamping allowed to fail (for whatever reasons) before the message log stops accepting any more messages (and consequently the security server stops accepting requests). Set to 0 to disable this check. The value of this parameter should not be lower than the value of the central server system parameter *timeStampingIntervalSeconds.* |
 | archive-interval                                 | 0 0 0/6 1/1 \* ? \*                        |   |   | CRON expression \[[CRON](#Ref_CRON)\] defining the interval of archiving the time-stamped messages. |
 | archive-max-filesize                             | 33554432                                   |   |   | Maximum size for archived files in bytes. Reaching the maximum value triggers file rotation. |
 | archive-path                                     | /var/lib/xroad                             |   |   | Absolute path to the directory where time-stamped log records are archived. |

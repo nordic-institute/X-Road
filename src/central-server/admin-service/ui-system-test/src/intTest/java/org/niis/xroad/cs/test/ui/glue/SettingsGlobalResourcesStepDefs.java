@@ -74,4 +74,10 @@ public class SettingsGlobalResourcesStepDefs extends BaseUiStepDefs {
                 .shouldBe(enabled, visible)
                 .click();
     }
+
+    @Step("Error message for group code is displayed with text {string}")
+    public void groupCodeShowsError(String errorText) {
+        globalResourcesPage.globalGroupForm.groupCodeErrorMessageWithText(errorText)
+                .shouldBe(visible);
+    }
 }

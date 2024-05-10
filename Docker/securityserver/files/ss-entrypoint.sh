@@ -1,8 +1,12 @@
 #!/bin/bash
 
+log() { echo "$(date --utc -Iseconds) INFO [entrypoint] $*"; }
+
 # Update X-Road configuration on startup, if necessary
 INSTALLED_VERSION=$(dpkg-query --showformat='${Version}' --show xroad-proxy)
 PACKAGED_VERSION="$(cat /root/VERSION)"
+
+log "Starting X-Road security server version $INSTALLED_VERSION"
 
 if [ "$INSTALLED_VERSION" == "$PACKAGED_VERSION" ]; then
     if [ -f /etc/xroad/VERSION ]; then
@@ -32,18 +36,26 @@ then
     unset XROAD_TOKEN_PIN
 fi
 
-#initialize transport keys
+log "Enabling public postgres access.."
+sed -i 's/#listen_addresses = \x27localhost\x27/listen_addresses = \x27*\x27/g' /etc/postgresql/*/main/postgresql.conf
+sed -ri 's/host    replication     all             127.0.0.1\/32/host    all             all             0.0.0.0\/0/g' /etc/postgresql/*/main/pg_hba.conf
+
+log "initializing transport keys"
 mkdir -p -m0750 /var/run/xroad
 chown xroad:xroad /var/run/xroad
 su - xroad -c sh -c /usr/share/xroad/scripts/xroad-base.sh
 
-# dataspaces
-sed -i "s|localhost|${EDC_HOSTNAME}|g" /etc/xroad-edc/edc-configuration.properties
+log "DS: Setting up dataspaces.."
+sed -i "s|did:web:localhost#key-id|${EDC_DID}#${EDC_DID_KEY_ID}|g" /etc/xroad-edc/edc-connector.properties
 
-chmod +x /usr/share/xroad/bin/xroad-edc
+sed -i "s|did:web:localhost|${EDC_DID}|g" /etc/xroad-edc/edc-connector.properties
+sed -i "s|did:web:localhost|${EDC_DID}|g" /etc/xroad-edc/edc-identity-hub.properties
+
+sed -i "s|localhost|${EDC_HOSTNAME}|g" /etc/xroad-edc/edc-connector.properties
+sed -i "s|localhost|${EDC_HOSTNAME}|g" /etc/xroad-edc/edc-identity-hub.properties
+
+cp -r /etc/xroad-edc/credentials/${EDC_HOSTNAME}/* /etc/xroad-edc/credentials/
+
 # end of dataspaces
-
-
-
 
 exec /usr/bin/supervisord -n -c /etc/supervisor/supervisord.conf

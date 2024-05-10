@@ -486,4 +486,27 @@
         <ocspFreshnessSeconds>42</ocspFreshnessSeconds>
     </globalSettings>
 
+    <dataspacesSettings>
+        <securityServers>
+            <securityServer>
+                <serverId>EE:BUSINESS:consumer:consumerServerCode</serverId>
+                <protocolUrl>https://www.foo.com:9194/bar/protocol</protocolUrl>
+            </securityServer>
+            <securityServer>
+                <serverId>EE:BUSINESS:producer:producerServerCode</serverId>
+                <protocolUrl>127.0.0.1:9194/protocol</protocolUrl>
+            </securityServer>
+        </securityServers>
+        <members>
+            <member>
+                <member>producerId</member>
+                <did>did:web:producer</did>
+            </member>
+            <member>
+                <member>consumerId</member>
+                <did>did:web:consumer</did>
+            </member>
+        </members>
+    </dataspacesSettings>
+
 </tns:conf>

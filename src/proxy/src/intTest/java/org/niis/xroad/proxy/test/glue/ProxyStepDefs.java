@@ -34,7 +34,7 @@ import ee.ria.xroad.common.signature.SignatureBuilder;
 import ee.ria.xroad.common.signature.SignatureData;
 import ee.ria.xroad.common.signature.SignatureVerifier;
 import ee.ria.xroad.common.util.MessageFileNames;
-import ee.ria.xroad.proxy.conf.KeyConf;
+import ee.ria.xroad.proxy.conf.SigningCtxProvider;
 import ee.ria.xroad.signer.SignerProxy;
 import ee.ria.xroad.signer.protocol.dto.KeyInfo;
 import ee.ria.xroad.signer.protocol.dto.KeyUsageInfo;
@@ -138,7 +138,7 @@ public class ProxyStepDefs extends BaseStepDefs {
 
     private void exec(String client, int count, int threads) throws InterruptedException {
         final var clientId = getClientId(client);
-        final var signingCtx = KeyConf.getSigningCtx(clientId);
+        final var signingCtx = SigningCtxProvider.getSigningCtx(clientId);
 
         List<String> messages = new ArrayList<>();
         for (int i = 0; i < count; i++) {

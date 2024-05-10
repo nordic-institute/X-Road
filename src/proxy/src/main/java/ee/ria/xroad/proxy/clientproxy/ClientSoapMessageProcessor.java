@@ -39,7 +39,10 @@ import ee.ria.xroad.common.message.SoapUtils;
 import ee.ria.xroad.common.opmonitoring.OpMonitoringData;
 import ee.ria.xroad.common.util.HttpSender;
 import ee.ria.xroad.common.util.MimeUtils;
+import ee.ria.xroad.common.util.RequestWrapper;
+import ee.ria.xroad.common.util.ResponseWrapper;
 import ee.ria.xroad.proxy.conf.KeyConf;
+import ee.ria.xroad.proxy.conf.SigningCtxProvider;
 import ee.ria.xroad.proxy.messagelog.MessageLog;
 import ee.ria.xroad.proxy.protocol.ProxyMessage;
 import ee.ria.xroad.proxy.protocol.ProxyMessageDecoder;
@@ -50,8 +53,6 @@ import org.apache.commons.io.IOUtils;
 import org.apache.http.client.HttpClient;
 import org.bouncycastle.cert.ocsp.OCSPResp;
 import org.bouncycastle.util.Arrays;
-import org.eclipse.jetty.server.Request;
-import org.eclipse.jetty.server.Response;
 import org.niis.xroad.proxy.clientproxy.validate.RequestValidator;
 import org.niis.xroad.proxy.clientproxy.validate.SoapResponseValidator;
 
@@ -78,15 +79,11 @@ import static ee.ria.xroad.common.SystemProperties.isSslEnabled;
 import static ee.ria.xroad.common.util.AbstractHttpSender.CHUNKED_LENGTH;
 import static ee.ria.xroad.common.util.CryptoUtils.decodeBase64;
 import static ee.ria.xroad.common.util.CryptoUtils.encodeBase64;
-import static ee.ria.xroad.common.util.JettyUtils.getContentType;
-import static ee.ria.xroad.common.util.JettyUtils.setContentType;
 import static ee.ria.xroad.common.util.MimeUtils.HEADER_ORIGINAL_CONTENT_TYPE;
 import static ee.ria.xroad.common.util.MimeUtils.HEADER_ORIGINAL_SOAP_ACTION;
 import static ee.ria.xroad.common.util.MimeUtils.HEADER_REQUEST_ID;
 import static ee.ria.xroad.common.util.TimeUtils.getEpochMillisecond;
 import static org.eclipse.jetty.http.HttpStatus.OK_200;
-import static org.eclipse.jetty.io.Content.Sink.asOutputStream;
-import static org.eclipse.jetty.io.Content.Source.asInputStream;
 
 @Slf4j
 class ClientSoapMessageProcessor extends AbstractClientMessageProcessor {
@@ -156,7 +153,7 @@ class ClientSoapMessageProcessor extends AbstractClientMessageProcessor {
         });
     }
 
-    ClientSoapMessageProcessor(Request request, Response response,
+    ClientSoapMessageProcessor(RequestWrapper request, ResponseWrapper response,
                                HttpClient httpClient, IsAuthenticationData clientCert, OpMonitoringData opMonitoringData)
             throws Exception {
         super(request, response, httpClient, clientCert, opMonitoringData);
@@ -343,10 +340,10 @@ class ClientSoapMessageProcessor extends AbstractClientMessageProcessor {
         opMonitoringData.setResponseOutTs(getEpochMillisecond(), true);
 
         jResponse.setStatus(OK_200);
-        setContentType(jResponse, response.getSoapContentType(), MimeUtils.UTF8);
+        jResponse.setContentType(response.getSoapContentType(), MimeUtils.UTF8);
 
-        try (InputStream is = response.getSoapContent()) {
-            IOUtils.copy(is, asOutputStream(jResponse));
+        try (InputStream is = response.getSoapContent(); var out = jResponse.getOutputStream()) {
+            IOUtils.copy(is, out);
         }
     }
 
@@ -406,11 +403,11 @@ class ClientSoapMessageProcessor extends AbstractClientMessageProcessor {
 
     public void handleSoap() {
         try (SoapMessageHandler handler = new SoapMessageHandler()) {
-            SoapMessageDecoder soapMessageDecoder = new SoapMessageDecoder(getContentType(jRequest),
+            SoapMessageDecoder soapMessageDecoder = new SoapMessageDecoder(jRequest.getContentType(),
                     handler, new SaxSoapParserImpl());
             try {
                 originalSoapAction = validateSoapActionHeader(jRequest.getHeaders().get("SOAPAction"));
-                soapMessageDecoder.parse(asInputStream(jRequest));
+                soapMessageDecoder.parse(jRequest.getInputStream());
             } catch (Exception ex) {
                 throw new ClientException(translateException(ex));
             }
@@ -421,7 +418,6 @@ class ClientSoapMessageProcessor extends AbstractClientMessageProcessor {
             continueReadingResponse();
         }
     }
-
 
     private final class SoapMessageHandler implements SoapMessageDecoder.Callback {
 
@@ -479,7 +475,7 @@ class ClientSoapMessageProcessor extends AbstractClientMessageProcessor {
             updateOpMonitoringData();
 
             try {
-                request.sign(KeyConf.getSigningCtx(requestSoap.getClient()));
+                request.sign(SigningCtxProvider.getSigningCtx(requestSoap.getClient()));
                 logRequestMessage();
                 request.writeSignature();
             } catch (Exception ex) {

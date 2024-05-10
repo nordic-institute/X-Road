@@ -33,7 +33,7 @@ import jakarta.ws.rs.GET;
 import jakarta.ws.rs.POST;
 import jakarta.ws.rs.Path;
 import jakarta.ws.rs.PathParam;
-import org.eclipse.edc.connector.api.management.contractnegotiation.ContractNegotiationApi;
+import org.eclipse.edc.connector.controlplane.api.management.contractnegotiation.ContractNegotiationApi;
 
 public interface FeignContractNegotiationApi extends ContractNegotiationApi {
     @POST

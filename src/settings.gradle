@@ -1,7 +1,9 @@
-pluginManagement {
-  plugins {
-    id 'com.github.johnrengelman.shadow' version "$shadowJarVersion"
-  }
+dependencyResolutionManagement {
+    repositoriesMode.set(RepositoriesMode.FAIL_ON_PROJECT_REPOS)
+    repositories {
+        mavenCentral()
+        mavenLocal()
+    }
 }
 
 // Common projects
@@ -22,6 +24,7 @@ include "common:common-verifier"
 include "common:common-rpc"
 include "common:common-int-test"
 include 'common:common-globalconf'
+include 'common:common-keyconf'
 include 'common:common-core'
 include 'common:common-jetty'
 include 'common:common-message'
@@ -62,6 +65,8 @@ include 'central-server:management-service:int-test'
 
 include "central-server:registration-service"
 
+include 'central-server:ds-catalog-service'
+
 include "security-server"
 include "security-server:openapi-model"
 include "security-server:admin-service"
@@ -69,14 +74,20 @@ include "security-server:admin-service:application"
 include 'security-server:admin-service:infra-jpa'
 include "security-server:admin-service:ui"
 include "security-server:admin-service:int-test"
-include 'security-server:edc'
+include 'security-server:edc:spi:xroad-core-spi'
 include 'security-server:edc:spi:xroad-messagelog-spi'
+include 'security-server:edc:extensions:xroad-edr'
 include 'security-server:edc:extensions:xroad-messagelog'
 include 'security-server:edc:extensions:xroad-payload-signer'
 include 'security-server:edc:extensions:xroad-policy'
+include 'security-server:edc:extensions:xroad-identity-and-trust'
+include 'security-server:edc:extensions:xroad-webserver'
 include 'security-server:edc-client'
 include 'security-server:edc:xroad-edc-security'
+include 'security-server:edc:runtime:connector'
+include 'security-server:edc:runtime:identity-hub'
 include "security-server:system-test"
+include 'security-server:e2e-test'
 
 // Utils
 include "signer-console"
@@ -100,4 +111,5 @@ project(":addons:proxymonitor-metaservice").projectDir = file('addons/proxymonit
 
 include "addons:op-monitoring"
 include "addons:wsdlvalidator"
+
 

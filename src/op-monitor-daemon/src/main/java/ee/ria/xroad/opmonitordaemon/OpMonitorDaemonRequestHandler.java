@@ -31,6 +31,8 @@ import ee.ria.xroad.common.util.HandlerBase;
 import ee.ria.xroad.common.util.JsonUtils;
 import ee.ria.xroad.common.util.MimeTypes;
 import ee.ria.xroad.common.util.MimeUtils;
+import ee.ria.xroad.common.util.RequestWrapper;
+import ee.ria.xroad.common.util.ResponseWrapper;
 
 import com.codahale.metrics.MetricRegistry;
 import com.fasterxml.jackson.databind.ObjectWriter;
@@ -111,7 +113,7 @@ class OpMonitorDaemonRequestHandler extends HandlerBase {
 
             log.info("Received query request from {}", getRemoteAddr(request));
 
-            new QueryRequestProcessor(request, response,
+            new QueryRequestProcessor(RequestWrapper.of(request), ResponseWrapper.of(response),
                     healthMetricRegistry).process();
         } catch (Throwable t) { // We want to catch serious errors as well
             log.error("Error while handling query request", t);
@@ -142,7 +144,7 @@ class OpMonitorDaemonRequestHandler extends HandlerBase {
             log.info("Received store request from {}", getRemoteAddr(request));
 
             new StoreRequestProcessor(
-                    request, healthMetricRegistry).process();
+                    RequestWrapper.of(request), healthMetricRegistry).process();
         } catch (Throwable t) { // We want to catch serious errors as well
             log.error("Error while handling data store request", t);
 

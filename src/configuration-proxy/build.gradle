@@ -1,5 +1,5 @@
 plugins {
-    id 'com.github.johnrengelman.shadow'
+    alias(libs.plugins.shadow)
 }
 
 dependencies {
@@ -7,10 +7,10 @@ dependencies {
     implementation project(':common:common-jetty')
     implementation project(':signer-protocol')
 
-    implementation "commons-cli:commons-cli:$commonsCliVersion"
+    implementation libs.commons.cli
 
     testImplementation project(':common:common-test')
-    testImplementation "org.assertj:assertj-core:$assertjVersion"
+    testImplementation libs.assertj.core
 }
 
 ext {

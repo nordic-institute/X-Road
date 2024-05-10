@@ -1,6 +1,6 @@
 # Security Server Sidecar User Guide <!-- omit in toc -->
 
-Version: 1.10  
+Version: 1.11  
 Doc. ID: UG-SS-SIDECAR
 
 ## Version history <!-- omit in toc -->
@@ -18,6 +18,7 @@ Doc. ID: UG-SS-SIDECAR
  28.11.2021 | 1.8     | Add license info                                        | Petteri Kivimäki
  11.10.2022 | 1.9     | Minor documentation updates regarding upgrade process   | Monika Liutkute
  06.07.2023 | 1.10    | Sidecar repo migration                                  | Eneli Reimets
+ 22.02.2024 | 1.11    | Local database files mapping with docker volume         | Eneli Reimets
 
 ## License
 
@@ -290,9 +291,25 @@ It is recommended to configure persistent [storage](https://docs.docker.com/stor
 | /var/lib/xroad               | Backups and messagelog archives                           |
 | /var/lib/postgresql/12/main  | Local database files (not applicable to external database |
 
-For example, to use a volume for the configuration folder, add the following parameter to the docker run command:
+*Note* Use docker volume instead of bind mount for local database files to avoid permissions issues. For more information see: [Volumes](https://docs.docker.com/storage/volumes/)
+
+For example, to run sidecar using volumes for each mount point execute the following command:
 ```bash
-docker run ... -v <config volume name>:/etc/xroad ...
+docker run --detach \
+  --name sss-7.4.1 \
+  -p 127.0.0.1:4170:4000 \
+  -p 127.0.0.1:5588:5588 \
+  -p 8443:8443 \
+  -p 5500:5500 \
+  -p 5577:5577 \
+  --network xroad-network \
+  -e XROAD_TOKEN_PIN=1234 \
+  -e XROAD_ADMIN_USER=xrd \
+  -e XROAD_ADMIN_PASSWORD=secret \
+  -v sidecar_config_volume:/etc/xroad \
+  -v sidecar_backup_volume:/var/lib/xroad \
+  -v sidecar_db_volume:/var/lib/postgresql/12/main \
+  niis/xroad-security-server-sidecar:7.4.1
 ```
 
 ### 2.8 Automatic backups

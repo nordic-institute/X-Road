@@ -67,19 +67,11 @@
 </template>
 
 <script lang="ts" setup>
-import { computed, ref } from 'vue';
-import { ErrorInfo } from '@/openapi-types';
+import { computed } from 'vue';
 import { useMember } from '@/store/modules/members';
-import { useNotifications } from '@/store/modules/notifications';
 import { useMemberClass } from '@/store/modules/member-class';
-import {
-  getErrorInfo,
-  getTranslatedFieldErrors,
-  isFieldError,
-} from '@/util/helpers';
-import { AxiosError } from 'axios';
 import { useForm } from 'vee-validate';
-import { i18n } from '@/plugins/i18n';
+import { useBasicForm } from '@/util/composables';
 
 const emits = defineEmits(['save', 'cancel']);
 const { defineField, setFieldError, meta, resetForm, handleSubmit } = useForm({
@@ -101,7 +93,10 @@ const [memberClass, memberClassAttrs] = defineField('memberClass', {
 
 const { add: addMember } = useMember();
 const memberClassStore = useMemberClass();
-const { showError, showSuccess } = useNotifications();
+const { showSuccess, t, loading, showOrTranslateErrors } = useBasicForm(
+  setFieldError,
+  { memberCode: 'memberAddDto.memberId.memberCode' },
+);
 
 const memberClasses = computed(() => memberClassStore.memberClasses);
 
@@ -110,8 +105,6 @@ function cancel() {
   resetForm();
 }
 
-const loading = ref(false);
-const { t } = i18n.global;
 const add = handleSubmit((values) => {
   loading.value = true;
   addMember({
@@ -130,23 +123,7 @@ const add = handleSubmit((values) => {
       emits('save');
       resetForm();
     })
-    .catch((error) => {
-      const errorInfo: ErrorInfo = getErrorInfo(error as AxiosError);
-      if (isFieldError(errorInfo)) {
-        let fieldErrors = errorInfo.error?.validation_errors;
-        if (fieldErrors) {
-          setFieldError(
-            'memberCode',
-            getTranslatedFieldErrors(
-              'memberAddDto.memberId.memberCode',
-              fieldErrors,
-            ),
-          );
-        }
-      } else {
-        showError(error);
-      }
-    })
+    .catch((error) => showOrTranslateErrors(error))
     .finally(() => (loading.value = false));
 });
 

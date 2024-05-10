@@ -65,13 +65,7 @@
 <script lang="ts" setup>
 import { computed, PropType } from 'vue';
 import { useForm } from 'vee-validate';
-import { ErrorInfo, MemberClass } from '@/openapi-types';
-import {
-  getErrorInfo,
-  getTranslatedFieldErrors,
-  isFieldError,
-} from '@/util/helpers';
-import { AxiosError } from 'axios';
+import { MemberClass } from '@/openapi-types';
 import { useMemberClass } from '@/store/modules/member-class';
 import { useBasicForm } from '@/util/composables';
 
@@ -101,7 +95,11 @@ const [description, descriptionAttrs] = defineField('description', {
   props: (state) => ({ 'error-messages': state.errors }),
 });
 
-const { loading, showSuccess, showError, t } = useBasicForm();
+const { loading, showSuccess, showOrTranslateErrors, t } = useBasicForm(setFieldError, {
+    code: 'memberClassDto.code',
+    description: 'memberClassDescriptionDto.description',
+  },
+);
 const { add, update } = useMemberClass();
 
 const modeAdd = computed(() => !props.memberClass?.code);
@@ -132,25 +130,7 @@ const onSaveMemberClass = handleSubmit((values) => {
       showSuccess(t('systemSettings.memberClassSaved'));
       emit('save');
     })
-    .catch((error) => {
-      const errorInfo: ErrorInfo = getErrorInfo(error as AxiosError);
-      if (isFieldError(errorInfo)) {
-        let fieldErrors = errorInfo.error?.validation_errors;
-        if (fieldErrors) {
-          setFieldError(
-            'code',
-            getTranslatedFieldErrors('memberClassDto.code', fieldErrors),
-          );
-          setFieldError(
-            'description',
-            getTranslatedFieldErrors('memberClassDto.description', fieldErrors),
-          );
-          return;
-        }
-      } else {
-        showError(error);
-      }
-    })
+    .catch((error) => showOrTranslateErrors(error))
     .finally(() => (loading.value = false));
 });
 </script>

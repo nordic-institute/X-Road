@@ -1,0 +1,62 @@
+---
+name: X-Road initialization scenario
+author: Raido Kaju <raido.kaju@niis.org>
+description: Sets up the X-Road instance for GMT testing
+
+compose-file: !include Docker/xrd-dev-stack/compose.yaml
+services:
+  cs:
+    image: ghcr.io/nordic-institute/xrddev-central-server:latest
+  ss0:
+    image: ghcr.io/nordic-institute/xrddev-security-server:latest
+  ss1:
+    image: ghcr.io/nordic-institute/xrddev-security-server:latest
+  testca:
+    image: ghcr.io/nordic-institute/xrddev-testca:latest
+  issoap:
+    image: niis/example-adapter:latest
+  isrest:
+    volumes:
+      - ./Docker/xrd-dev-stack/wiremock_mappings:/home/wiremock/mappings
+  hurl:
+    volumes:
+      - ./Docker/xrd-dev-stack/hurl-src:/hurl-src:ro
+      - ca-volume:/hurl-files/ca:ro
+    # Workaround to keep the hurl container running so that we can do the setup, which runs an exec command
+    command: --interactive hurl-src/setup.hurl
+    setup-commands:
+      - hurl --insecure --variables-file /hurl-src/vars.env --file-root /hurl-files /hurl-src/setup.hurl --very-verbose --retry 18 --retry-interval 10000
+  tester:
+    image: alpine
+    volumes:
+      - ./Docker/xrd-dev-stack/gmt-test-suite:/tests:ro
+    # Workaround to keep the container running, not sure why it drops otherwise
+    command: tail -f /dev/null
+    setup-commands:
+      - apk add --no-cache curl bash
+
+flow:
+  - name: Test with 100
+    container: tester
+    commands:
+      - type: console
+        command: /tests/run-tests.sh /tests 100 100
+        note: Run 100 sequential and 100 parallel requests
+        log-stdout: false
+        log-stderr: true
+  - name: Test with 200
+    container: tester
+    commands:
+      - type: console
+        command: /tests/run-tests.sh /tests 200 200
+        note: Run 200 sequential and 200 parallel requests
+        log-stdout: false
+        log-stderr: true
+  - name: Test with 500
+    container: tester
+    commands:
+      - type: console
+        command: /tests/run-tests.sh /tests 500 500
+        note: Run 500 sequential and 500 parallel requests
+        log-stdout: false
+        log-stderr: true

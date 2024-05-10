@@ -36,6 +36,7 @@ import ee.ria.xroad.common.message.SoapMessageImpl;
 import ee.ria.xroad.common.metadata.ObjectFactory;
 import ee.ria.xroad.common.opmonitoring.OpMonitoringData;
 import ee.ria.xroad.common.util.MimeTypes;
+import ee.ria.xroad.common.util.RequestWrapper;
 import ee.ria.xroad.proxy.conf.KeyConf;
 import ee.ria.xroad.proxy.protocol.ProxyMessage;
 import ee.ria.xroad.proxy.testsuite.TestSuiteGlobalConf;
@@ -55,7 +56,6 @@ import jakarta.xml.soap.MessageFactory;
 import jakarta.xml.soap.SOAPException;
 import jakarta.xml.soap.SOAPMessage;
 import org.apache.http.client.HttpClient;
-import org.eclipse.jetty.server.Request;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Rule;
@@ -117,7 +117,7 @@ public class ProxyMonitorServiceHandlerMetricsTest {
     @Rule
     public final RestoreMonitorClientAfterTest monitorClientRestoreRule = new RestoreMonitorClientAfterTest();
 
-    private Request mockRequest;
+    private RequestWrapper mockRequest;
     private ProxyMessage mockProxyMessage;
 
     /**
@@ -151,7 +151,7 @@ public class ProxyMonitorServiceHandlerMetricsTest {
             }
         });
 
-        mockRequest = mock(Request.class);
+        mockRequest = mock(RequestWrapper.class);
         mockProxyMessage = mock(ProxyMessage.class);
 
         when(mockProxyMessage.getSoapContentType()).thenReturn(MimeTypes.TEXT_XML_UTF8);

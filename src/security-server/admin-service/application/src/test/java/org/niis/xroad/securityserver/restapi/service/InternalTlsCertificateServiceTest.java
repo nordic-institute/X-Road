@@ -85,7 +85,7 @@ public class InternalTlsCertificateServiceTest {
             new ExternalProcessRunner() {
                 @Override
                 public ProcessResult execute(String command, String... args) throws ProcessNotExecutableException,
-                        ProcessFailedException {
+                                                                                    ProcessFailedException {
                     if (command.equals(MOCK_SUCCESS_SCRIPT)) {
                         return new ProcessResult(command, 0, Collections.singletonList(SUCCESS));
                     }

@@ -1,0 +1,62 @@
+plugins {
+    id("java")
+    id("application")
+    alias(libs.plugins.shadow)
+}
+
+configurations {
+    sqlDependencies
+
+    configureEach {
+        exclude group: 'org.eclipse.edc', module: 'jetty-core'
+    }
+
+}
+
+dependencies {
+    implementation libs.websocket.jakarta.server
+
+    implementation libs.edc.util.lib
+    implementation libs.edc.configuration.filesystem
+    implementation libs.edc.vault.filesystem
+    implementation libs.edc.dsp
+
+    implementation libs.edc.jsonLd.spi
+    implementation libs.edc.control.plane.api.client
+    implementation libs.edc.control.plane.core
+    implementation libs.edc.data.plane.core
+
+    implementation libs.edc.api.observability
+    implementation libs.edc.control.plane.api.client
+
+    // federated catalog
+    implementation libs.edc.federated.catalog.api
+    implementation libs.edc.federated.catalog.core
+
+    implementation libs.edc.identity.trust.core
+    implementation libs.edc.identity.did.core
+    implementation libs.edc.identity.did.web
+
+    implementation(project(":security-server:edc:extensions:xroad-identity-and-trust"))
+    implementation(project(":security-server:edc:extensions:xroad-webserver"))
+
+    testImplementation libs.edc.junit
+    testImplementation(project(':common:common-test')) {
+        exclude group: 'org.eclipse.jetty'
+    }
+}
+
+application {
+    mainClass.set("org.eclipse.edc.boot.system.runtime.BaseRuntime")
+}
+
+
+var distTar = tasks.named("distTar")
+var distZip = tasks.named("distZip")
+
+shadowJar {
+    mergeServiceFiles()
+    archiveFileName.set("ds-catalog-service.jar")
+    dependsOn(distTar, distZip)
+}
+

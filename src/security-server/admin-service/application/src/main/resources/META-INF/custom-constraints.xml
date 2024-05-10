@@ -50,8 +50,7 @@ http://xmlns.jcp.org/xml/ns/validation/mapping/validation-mapping-2.0.xsd"
     </bean>
     <bean class="LocalGroupAdd" ignore-annotations="false">
         <field name="code">
-            <constraint annotation="org.niis.xroad.restapi.openapi.validator.NoControlChars">
-            </constraint>
+            <constraint annotation="org.niis.xroad.restapi.openapi.validator.IdentifierChars"/>
         </field>
         <field name="description">
             <constraint annotation="org.niis.xroad.restapi.openapi.validator.NoControlChars">

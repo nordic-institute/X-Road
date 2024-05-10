@@ -1,0 +1,2 @@
+org.niis.xroad.edc.extension.webservice.XrdEdcHttpClientExtension
+org.niis.xroad.edc.extension.webservice.XrdJettyExtension

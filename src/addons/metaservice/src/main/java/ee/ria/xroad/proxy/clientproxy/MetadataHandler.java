@@ -27,12 +27,12 @@ package ee.ria.xroad.proxy.clientproxy;
 
 import ee.ria.xroad.common.CodedException;
 import ee.ria.xroad.common.opmonitoring.OpMonitoringData;
+import ee.ria.xroad.common.util.RequestWrapper;
+import ee.ria.xroad.common.util.ResponseWrapper;
 import ee.ria.xroad.proxy.util.MessageProcessorBase;
 
 import lombok.extern.slf4j.Slf4j;
 import org.apache.http.client.HttpClient;
-import org.eclipse.jetty.server.Request;
-import org.eclipse.jetty.server.Response;
 
 import java.util.Optional;
 
@@ -53,7 +53,7 @@ public class MetadataHandler extends AbstractClientProxyHandler {
     }
 
     @Override
-    Optional<MessageProcessorBase> createRequestProcessor(Request request, Response response,
+    Optional<MessageProcessorBase> createRequestProcessor(RequestWrapper request, ResponseWrapper response,
                                                           OpMonitoringData opMonitoringData) {
         var target = getTarget(request);
         log.trace("createRequestProcessor({})", target);

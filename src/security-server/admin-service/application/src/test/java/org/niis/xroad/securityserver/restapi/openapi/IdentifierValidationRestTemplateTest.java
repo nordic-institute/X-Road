@@ -410,7 +410,7 @@ public class IdentifierValidationRestTemplateTest extends AbstractApiControllerT
         Map<String, List<String>> expectedFieldValidationErrors = new HashMap<>();
         // LocalGroupAdd code with control char
         expectedFieldValidationErrors.put(FIELD_LOCALGROUPADD_CODE,
-                Collections.singletonList(IdentifierValidationErrorInfo.CONTROL_CHAR.getErrorCode()));
+                Collections.singletonList(IdentifierValidationErrorInfo.IDENTIFIERS_CHAR.getErrorCode()));
         assertAddLocalGroupValidationError(HAS_CONTROL_CHAR, "aa", expectedFieldValidationErrors);
 
         // LocalGroupAdd desc with control char
@@ -421,7 +421,7 @@ public class IdentifierValidationRestTemplateTest extends AbstractApiControllerT
 
         // LocalGroupAdd code and desc with control char
         expectedFieldValidationErrors.put(FIELD_LOCALGROUPADD_CODE,
-                Collections.singletonList(IdentifierValidationErrorInfo.CONTROL_CHAR.getErrorCode()));
+                Collections.singletonList(IdentifierValidationErrorInfo.IDENTIFIERS_CHAR.getErrorCode()));
         assertAddLocalGroupValidationError(HAS_CONTROL_CHAR, HAS_CONTROL_CHAR, expectedFieldValidationErrors);
     }
 

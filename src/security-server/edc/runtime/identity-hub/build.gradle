@@ -1,0 +1,55 @@
+import com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar
+
+plugins {
+    id("java")
+    id("application")
+    alias(libs.plugins.shadow)
+}
+
+configurations {
+    configureEach {
+        exclude group: 'org.eclipse.edc', module: 'jetty-core'
+    }
+}
+
+dependencies {
+    implementation libs.edc.configuration.filesystem
+    implementation libs.edc.vault.filesystem
+
+    implementation libs.edc.identity.trust.spi
+    implementation libs.bundles.edc.connector
+    implementation libs.bundles.edc.did
+
+    // embedded Identity Hub
+    implementation libs.bundles.edc.identity.hub.management.api
+    implementation libs.edc.identity.hub.api
+    implementation libs.edc.identity.hub.credentials
+    implementation libs.edc.identity.hub.participants
+    implementation libs.edc.identity.hub.keypairs
+    implementation libs.edc.keypair.spi
+    implementation libs.edc.identity.hub.store.spi
+
+    implementation libs.edc.identity.hub.did
+
+    implementation libs.edc.ldp.verifiable.credentials
+    implementation libs.edc.verifiablecredential.spi
+    implementation libs.edc.verifiable.presentation.lib
+    implementation libs.edc.jsonLd.spi
+    implementation libs.edc.jsonLd.lib
+
+    implementation(project(":security-server:edc:extensions:xroad-identity-and-trust"))
+    implementation(project(":security-server:edc:extensions:xroad-webserver"))
+
+    testImplementation libs.edc.jws2020.lib
+    testImplementation libs.edc.junit
+    testImplementation libs.mockito.jupiter
+}
+
+application {
+    mainClass.set("org.eclipse.edc.boot.system.runtime.BaseRuntime")
+}
+
+shadowJar {
+    mergeServiceFiles()
+    archiveFileName.set("edc-identity-hub.jar")
+}

@@ -16,9 +16,7 @@ spring:
         id:
           db_structure_naming_strategy: legacy #TODO Migrate to newer strategies
         dialect_resolvers: >
-          ee.ria.xroad.common.db.Postgres10FixedImplicitSequenceDialectResolver,
-          ee.ria.xroad.common.db.Postgres12FixedImplicitSequenceDialectResolver,
-          ee.ria.xroad.common.db.Postgres14FixedImplicitSequenceDialectResolver
+          ee.ria.xroad.common.db.Postgres10FixedImplicitSequenceDialectResolver
   profiles:
     include: nontest
   jackson:

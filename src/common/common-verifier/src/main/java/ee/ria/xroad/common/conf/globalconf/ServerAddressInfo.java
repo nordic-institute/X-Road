@@ -27,12 +27,16 @@
 
 package ee.ria.xroad.common.conf.globalconf;
 
+import static ee.ria.xroad.common.SystemProperties.isSslEnabled;
+
 public record ServerAddressInfo(
         String address,
         boolean dsSupported,
-        @Deprecated
-        String dsManagementUrl,
-        String dsProtocolUrl,
-        @Deprecated
-        String dsPublicUrl) {
+        String ownerDid,
+        String baseDsProtocolUrl) {
+
+    public String getProtocolUrl() {
+        var protocol = isSslEnabled() ? "https" : "http";
+        return String.format("%s://%s", protocol, baseDsProtocolUrl);
+    }
 }

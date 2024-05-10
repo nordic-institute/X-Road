@@ -33,7 +33,7 @@ import jakarta.ws.rs.GET;
 import jakarta.ws.rs.POST;
 import jakarta.ws.rs.Path;
 import jakarta.ws.rs.PathParam;
-import org.eclipse.edc.connector.api.management.transferprocess.TransferProcessApi;
+import org.eclipse.edc.connector.controlplane.api.management.transferprocess.TransferProcessApi;
 
 public interface FeignTransferProcessApi extends TransferProcessApi {
     @POST
@@ -64,4 +64,14 @@ public interface FeignTransferProcessApi extends TransferProcessApi {
     @Path("/{id}/terminate")
     @Override
     void terminateTransferProcess(@PathParam("id") String id, JsonObject requestBody);
+
+    @POST
+    @Path("/{id}/suspend")
+    @Override
+    void suspendTransferProcess(@PathParam("id") String id, JsonObject jsonObject);
+
+    @POST
+    @Path("/{id}/resume")
+    @Override
+    void resumeTransferProcess(@PathParam("id") String id);
 }

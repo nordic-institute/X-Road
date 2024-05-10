@@ -92,7 +92,7 @@ public final class HibernateUtil {
             } catch (Exception e) {
                 log.error("Failed to create session factory", e);
 
-                throw new CodedException(X_DATABASE_ERROR, e);
+                throw new CodedException(X_DATABASE_ERROR, e, "Error accessing database (%s)", name);
             }
         }
     }
@@ -144,7 +144,7 @@ public final class HibernateUtil {
     private static SessionFactoryCtx createSessionFactoryCtx(String name, Interceptor interceptor) throws Exception {
         log.trace("Creating session factory for '{}'...", name);
 
-        Configuration configuration = new Configuration();
+        Configuration configuration = createEmptyConfiguration();
         if (interceptor != null) {
             configuration.setInterceptor(interceptor);
         }
@@ -158,6 +158,10 @@ public final class HibernateUtil {
         SessionFactory sessionFactory = configuration.buildSessionFactory();
 
         return new SessionFactoryCtx(sessionFactory);
+    }
+
+    static Configuration createEmptyConfiguration() {
+        return new Configuration();
     }
 
     private static void applySystemProperties(Configuration configuration, String name) {

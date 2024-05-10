@@ -34,12 +34,12 @@ import ee.ria.xroad.common.opmonitoring.OpMonitoringSystemProperties;
 import ee.ria.xroad.common.util.AbstractHttpSender;
 import ee.ria.xroad.common.util.HttpSender;
 import ee.ria.xroad.common.util.MimeUtils;
+import ee.ria.xroad.common.util.RequestWrapper;
 import ee.ria.xroad.common.util.TimeUtils;
 import ee.ria.xroad.proxy.protocol.ProxyMessage;
 
 import lombok.extern.slf4j.Slf4j;
 import org.apache.http.client.HttpClient;
-import org.eclipse.jetty.server.Request;
 
 import java.io.InputStream;
 import java.net.URI;
@@ -96,7 +96,7 @@ public class OpMonitoringServiceHandlerImpl implements ServiceHandler {
     }
 
     @Override
-    public void startHandling(Request servletRequest, ProxyMessage proxyRequestMessage,
+    public void startHandling(RequestWrapper servletRequest, ProxyMessage proxyRequestMessage,
                               HttpClient opMonitorClient, OpMonitoringData opMonitoringData) throws Exception {
         log.trace("startHandling({})", proxyRequestMessage.getSoap().getService());
 
@@ -128,7 +128,7 @@ public class OpMonitoringServiceHandlerImpl implements ServiceHandler {
         return new HttpSender(opMonitorClient);
     }
 
-    private void sendRequest(Request servletRequest, ProxyMessage proxyRequestMessage,
+    private void sendRequest(RequestWrapper servletRequest, ProxyMessage proxyRequestMessage,
                              OpMonitoringData opMonitoringData) throws Exception {
         log.trace("sendRequest {}", OP_MONITOR_ADDRESS);
 

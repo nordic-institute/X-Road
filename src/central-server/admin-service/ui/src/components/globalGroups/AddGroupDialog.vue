@@ -59,9 +59,10 @@
 import { useGlobalGroups } from '@/store/modules/global-groups';
 import { useForm } from 'vee-validate';
 import { useBasicForm } from '@/util/composables';
+import { AxiosError } from 'axios';
 
 const emit = defineEmits(['save', 'cancel']);
-const { defineField, meta, handleSubmit } = useForm({
+const { defineField, meta, handleSubmit, setFieldError } = useForm({
   validationSchema: {
     code: 'required',
     description: 'required',
@@ -75,7 +76,12 @@ const [description, descriptionAttrs] = defineField('description', {
 });
 
 const { add } = useGlobalGroups();
-const { loading, showSuccess, t, showError } = useBasicForm();
+const { loading, showSuccess, t, showOrTranslateErrors } = useBasicForm(
+  setFieldError,
+  {
+    code: 'globalGroupCodeAndDescriptionDto.code',
+  },
+);
 
 const save = handleSubmit((values) => {
   loading.value = true;
@@ -84,7 +90,7 @@ const save = handleSubmit((values) => {
       showSuccess(t('globalResources.globalGroupSuccessfullyAdded'));
       emit('save');
     })
-    .catch((error) => showError(error))
+    .catch((error) => showOrTranslateErrors(error as AxiosError))
     .finally(() => (loading.value = false));
 });
 </script>

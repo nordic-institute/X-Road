@@ -97,6 +97,7 @@ class SharedParameters {
         private String name;
         private List<Subsystem> subsystems;
         private ClientId id;
+        private String did;
     }
 
     @Data
@@ -114,9 +115,7 @@ class SharedParameters {
         private List<byte[]> authCerts;
         private List<ClientId> clients;
         private boolean dsEnabled;
-        private String dsManagementUrl;
         private String dsProtocolUrl;
-        private String dsPublicUrl;
     }
 
     @Data

@@ -22,11 +22,11 @@ end box
 
 box "Consumer ClientProxy" #ConsumerColor
     participant C_HANDLER as "Request Handler" #Business
-    participant C_EDC_CALLBACK as "EDC callback" #Business
     participant C_GLOBAL_CONF as "GlobalConf" #Business
 end box
 
 box "Consumer EDC" #ConsumerColor
+    participant C_EDC_EDR as "X-Road EDR" #Business
     participant C_EDC_CP as "Control Plane" #Business
     participant C_EDC_DPS as "Data Plane Selector" #Business
     participant C_EDC_DP as "Data Plane" #Business
@@ -43,7 +43,7 @@ box "Provider ecosystem" #ProviderColor
 end box
 
 title
- **X-Road protocol over Data Plane v0.1**
+ **X-Road protocol over Data Plane v0.2**
 end title
 autonumber 1
 
@@ -60,25 +60,29 @@ deactivate C_GLOBAL_CONF
 
 == Request asset access ==
 
-C_HANDLER ->> C_EDC_CP: Fetch Catalog
+C_HANDLER -> C_EDC_EDR: Request asset access
+activate C_EDC_EDR
+C_EDC_EDR -> C_EDC_CP: Fetch Catalog
 activate C_EDC_CP
 C_EDC_CP ->> P_EDC_CP: Resolve policies
 activate P_EDC_CP
 return Response
 return Catalog response
 
-
-C_HANDLER ->> C_EDC_CP: Initiate contract negotiation
+C_EDC_EDR -> C_EDC_CP: Initiate contract negotiation
 activate C_EDC_CP
+C_EDC_EDR <-- C_EDC_CP : Contract negotiation initiated
 C_EDC_CP ->> P_EDC_CP: Negotiate contract
 activate P_EDC_CP
 return Negotiation result
-return Contract data
-
+C_EDC_EDR <<- C_EDC_CP: Contract negotiated (Event)
+deactivate C_EDC_CP
 
 == Start asset Transfer Process ==
-C_HANDLER ->> C_EDC_CP: Initiate data transfer
+
+C_EDC_EDR -> C_EDC_CP: Initiate data transfer
 activate C_EDC_CP
+C_EDC_EDR <-- C_EDC_CP: Transfer process initiated
 
 C_EDC_CP ->> P_EDC_CP : send data request with destination type HttpProxy
 activate P_EDC_CP
@@ -90,15 +94,10 @@ P_EDC_CP ->> C_EDC_CP : send data address
 
 deactivate P_EDC_CP
 C_EDC_CP ->> C_EDC_CP : convert data address\n into endpoint data\nreference and dispatch
-
-
-C_HANDLER ->> C_EDC_CALLBACK: Poll for asset data status
-activate C_EDC_CALLBACK
-C_EDC_CP ->> C_EDC_CALLBACK: send asset fetch data (url, token)
-
-return Asset fetch data
+C_EDC_EDR <<- C_EDC_CP: Endpoint data reference (Event)
 deactivate C_EDC_CP
-deactivate C_EDC_CALLBACK
+C_HANDLER <-- C_EDC_EDR: Endpoint data reference for Asset
+deactivate C_EDC_EDR
 
 == Data querying ==
 
@@ -106,6 +105,7 @@ C_HANDLER ->> P_EDC_DP : query data over public endpoint (any verb is supported)
 
 activate P_EDC_DP
 P_EDC_DP ->> P_EDC_CP : send token for validation
+activate P_EDC_CP
 P_EDC_CP ->> P_EDC_CP : validate token
 P_EDC_CP ->> P_EDC_DP : data address
 deactivate P_EDC_CP

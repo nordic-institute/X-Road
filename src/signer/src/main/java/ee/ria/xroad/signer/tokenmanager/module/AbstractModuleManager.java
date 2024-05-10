@@ -119,7 +119,13 @@ public abstract class AbstractModuleManager implements WorkerWithLifecycle, Toke
             mergeConfiguration();
         }
 
-        moduleWorkers.forEach((key, worker) -> worker.refresh());
+        moduleWorkers.forEach((key, worker) -> {
+            try {
+                worker.refresh();
+            } catch (Exception e) {
+                log.error("Error refreshing module '{}'.", key);
+            }
+        });
 
         if (!SLAVE.equals(serverNodeType)) {
             persistConfiguration();
@@ -233,7 +239,7 @@ public abstract class AbstractModuleManager implements WorkerWithLifecycle, Toke
 
                 newModules.put(moduleWorker.getModuleType().getType(), moduleWorker);
             } catch (Exception e) {
-                throw new RuntimeException(e);
+                log.error("Error loading module '{}'.", moduleType, e);
             }
         });
         return newModules;

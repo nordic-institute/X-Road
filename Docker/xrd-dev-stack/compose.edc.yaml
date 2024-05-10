@@ -1,0 +1,48 @@
+# Additional settings for local edc env.
+# Rules:
+# 1. Each container has its own port range. Ex: 4100-4199, 4200-4299, etc.
+
+services:
+  cs:
+    environment:
+      - EDC_HOSTNAME=cs
+      - EDC_DID=did:web:xroad-8-member1.s3.eu-west-1.amazonaws.com
+      - EDC_DID_KEY_ID=DE9DH3UqFQpV64LraOgqmMFSgTIlk6K1BnfU2k5vBfs
+      - EDC_TLS_CERT_PATH=/etc/xroad/ssl/management-service.p12
+    ports:
+      - "4193:9953" #EDC connector debug
+      - "4194:9954" #EDC ih debug
+      - "4151:9191" #EDC api port
+      - "4152:9192" #EDC control port
+      - "4153:9193" #EDC management port
+      - "4154:9194" #EDC protocol port
+      - "4155:9291" #EDC public port
+      - "4156:9293" #EDC XRD public port
+  ss0:
+    environment:
+      - EDC_HOSTNAME=ss0
+      - EDC_DID=did:web:xroad-8-ss0.s3.eu-west-1.amazonaws.com
+      - EDC_DID_KEY_ID=JWK2020-RSA
+    ports:
+      - "4293:9953" #EDC connector debug
+      - "4294:9954" #EDC ih debug
+      - "4251:9191" #EDC api port
+      - "4252:9192" #EDC control port
+      - "4253:9193" #EDC management port
+      - "4254:9194" #EDC protocol port
+      - "4255:9291" #EDC public port
+      - "4256:9293" #EDC XRD public port
+  ss1:
+    environment:
+      - EDC_HOSTNAME=ss1
+      - EDC_DID=did:web:xroad-8-ss1.s3.eu-west-1.amazonaws.com
+      - EDC_DID_KEY_ID=JWK2020-RSA
+    ports:
+      - "4393:9953" #EDC connector debug
+      - "4394:9954" #EDC ih debug
+      - "4351:9191" #EDC api port
+      - "4352:9192" #EDC control port
+      - "4353:9193" #EDC management port
+      - "4354:9194" #EDC protocol port
+      - "4355:9291" #EDC public port
+      - "4356:9293" #EDC XRD public port

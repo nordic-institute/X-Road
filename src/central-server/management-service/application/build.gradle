@@ -1,5 +1,5 @@
 plugins {
-    id 'org.springframework.boot'
+    alias(libs.plugins.springBoot)
 }
 
 base {

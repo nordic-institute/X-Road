@@ -30,6 +30,7 @@ import ee.ria.xroad.common.OcspTestUtils;
 import ee.ria.xroad.common.TestCertUtil;
 import ee.ria.xroad.common.TestCertUtil.PKCS12;
 import ee.ria.xroad.common.cert.CertChain;
+import ee.ria.xroad.common.conf.EmptyKeyConf;
 import ee.ria.xroad.common.conf.globalconf.AuthKey;
 import ee.ria.xroad.common.conf.globalconf.GlobalConf;
 import ee.ria.xroad.common.identifier.ClientId;
@@ -37,6 +38,8 @@ import ee.ria.xroad.common.ocsp.OcspVerifier;
 import ee.ria.xroad.common.ocsp.OcspVerifierOptions;
 import ee.ria.xroad.common.util.TimeUtils;
 import ee.ria.xroad.proxy.conf.SigningCtx;
+import ee.ria.xroad.proxy.conf.SigningCtxProvider;
+import ee.ria.xroad.proxy.conf.SigningInfo;
 import ee.ria.xroad.proxy.util.TestUtil;
 
 import lombok.extern.slf4j.Slf4j;
@@ -61,19 +64,28 @@ public class TestSuiteKeyConf extends EmptyKeyConf {
     Map<String, SigningCtx> signingCtx = new HashMap<>();
     Map<String, OCSPResp> ocspResponses = new HashMap<>();
 
+    public TestSuiteKeyConf() {
+        SigningCtxProvider.setSigningCtxProvider(new SigningCtxProvider.DefaultSigningCtxProvider() {
+            @Override
+            public SigningCtx getSigningCtx(ClientId clientId) {
+                String orgName = clientId.getMemberCode();
+                SigningCtx ctx = currentTestCase().getSigningCtx(orgName);
+                if (ctx != null) {
+                    return ctx;
+                }
+
+                if (!signingCtx.containsKey(orgName)) {
+                    signingCtx.put(orgName, TestUtil.getSigningCtx(orgName));
+                }
+
+                return signingCtx.get(orgName);
+            }
+        });
+    }
+
     @Override
-    public SigningCtx getSigningCtx(ClientId clientId) {
-        String orgName = clientId.getMemberCode();
-        SigningCtx ctx = currentTestCase().getSigningCtx(orgName);
-        if (ctx != null) {
-            return ctx;
-        }
-
-        if (!signingCtx.containsKey(orgName)) {
-            signingCtx.put(orgName, TestUtil.getSigningCtx(orgName));
-        }
-
-        return signingCtx.get(orgName);
+    public SigningInfo getSigningInfo(ClientId clientId) {
+        return super.getSigningInfo(clientId);
     }
 
     @Override

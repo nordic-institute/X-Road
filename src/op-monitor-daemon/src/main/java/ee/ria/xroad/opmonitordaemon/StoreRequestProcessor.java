@@ -26,13 +26,13 @@
 package ee.ria.xroad.opmonitordaemon;
 
 import ee.ria.xroad.common.util.JsonUtils;
+import ee.ria.xroad.common.util.RequestWrapper;
 
 import com.codahale.metrics.MetricRegistry;
 import com.fasterxml.jackson.databind.ObjectReader;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.eclipse.jetty.io.Content;
-import org.eclipse.jetty.server.Request;
 
 import java.nio.charset.StandardCharsets;
 import java.util.List;
@@ -50,14 +50,14 @@ class StoreRequestProcessor {
     /**
      * The servlet request.
      */
-    private Request request;
+    private RequestWrapper request;
 
     /**
      * The registry of health data.
      */
     private MetricRegistry healthMetricRegistry;
 
-    StoreRequestProcessor(Request request,
+    StoreRequestProcessor(RequestWrapper request,
                           MetricRegistry healthMetricRegistry) {
         this.request = request;
         this.healthMetricRegistry = healthMetricRegistry;
@@ -70,7 +70,8 @@ class StoreRequestProcessor {
      * @throws Exception in case of any errors
      */
     void process() throws Exception {
-        String rawJson = Content.Source.asString(request, StandardCharsets.UTF_8);
+        String rawJson = IOUtils.toString(request.getInputStream(),
+                StandardCharsets.UTF_8);
 
         log.trace("Incoming JSON: {}", rawJson);
 

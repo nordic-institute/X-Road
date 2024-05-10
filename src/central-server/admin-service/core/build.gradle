@@ -10,7 +10,7 @@ configurations {
 }
 
 dependencies {
-    annotationProcessor("org.hibernate:hibernate-jpamodelgen:$hibernateVersion")
+    annotationProcessor(libs.hibernate.jpamodelgen)
 
     api project(':central-server:admin-service:core-api')
     api project(':monitoring-conf')
@@ -24,14 +24,14 @@ dependencies {
     api("jakarta.transaction:jakarta.transaction-api")
     api("jakarta.persistence:jakarta.persistence-api")
 
-    implementation("org.apache.commons:commons-compress:$commonsCompressVersion")
+    implementation(libs.apache.commonsCompress)
 
     testImplementation project(':common:common-test')
     testImplementation('org.springframework.boot:spring-boot-starter-test')
     testImplementation('org.springframework.security:spring-security-test')
     testImplementation('org.liquibase:liquibase-core')
-    testImplementation("org.xmlunit:xmlunit-core:$xmlUnitVersion")
-    testImplementation("org.xmlunit:xmlunit-assertj3:$xmlUnitVersion")
+    testImplementation(libs.xmlunit.core)
+    testImplementation(libs.xmlunit.assertj3)
 }
 
 sourceSets {

@@ -27,12 +27,18 @@ package org.niis.xroad.ss.test.ui.glue;
 
 import com.codeborne.selenide.Selenide;
 import com.codeborne.selenide.SelenideElement;
+import com.codeborne.selenide.logevents.SelenideLogger;
+import io.qameta.allure.selenide.AllureSelenide;
+import io.qameta.allure.selenide.LogType;
+import jakarta.annotation.PostConstruct;
 import org.niis.xroad.common.test.glue.BaseStepDefs;
 import org.niis.xroad.ss.test.ui.TargetHostUrlProvider;
 import org.niis.xroad.ss.test.ui.page.CommonPageObj;
 import org.openqa.selenium.OutputType;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
+
+import java.util.logging.Level;
 
 import static com.codeborne.selenide.Condition.empty;
 import static org.openqa.selenium.Keys.COMMAND;
@@ -45,6 +51,11 @@ public abstract class BaseUiStepDefs extends BaseStepDefs {
 
     @Autowired
     protected TargetHostUrlProvider targetHostUrlProvider;
+
+    @PostConstruct
+    private void init() {
+        SelenideLogger.addListener("SS UI tests", new AllureSelenide().enableLogs(LogType.BROWSER, Level.ALL));
+    }
 
     /**
      * Vue.JS adds additional elements on top of input and simple clear just does not work.

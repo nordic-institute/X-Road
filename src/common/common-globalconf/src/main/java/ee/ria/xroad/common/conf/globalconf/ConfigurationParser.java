@@ -169,7 +169,7 @@ public class ConfigurationParser {
                 readSignedData(is);
                 nextPart = ConfigurationPart.SIGNATURE;
             } else {
-                byte[] signature = decodeBase64(IOUtils.toString(is, Charset.defaultCharset()));
+                byte[] signature = decodeBase64Signature(is);
                 verifySignedData(signature);
                 handleSignedData();
             }
@@ -213,6 +213,15 @@ public class ConfigurationParser {
                 }
             } catch (Exception e) {
                 throw translateException(e);
+            }
+        }
+
+        private byte[] decodeBase64Signature(InputStream signatureIs) {
+            try {
+                return decodeBase64(IOUtils.toString(signatureIs, Charset.defaultCharset()));
+            } catch (Exception e) {
+                throw new CodedException(X_INVALID_SIGNATURE_VALUE, e,
+                        "Failed to decode signature of configuration instance %s", getInstanceIdentifier());
             }
         }
 

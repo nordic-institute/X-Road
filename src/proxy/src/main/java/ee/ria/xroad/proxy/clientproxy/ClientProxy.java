@@ -71,6 +71,8 @@ public class ClientProxy implements StartStop {
     // SSL session timeout
     private static final int SSL_SESSION_TIMEOUT = 600;
 
+    private static final int MAX_HEADER_SIZE = SystemProperties.getClientProxyJettyMaxHeaderSize();
+
     private static final String CLIENTPROXY_HANDLERS = SystemProperties.PREFIX + "proxy.clientHandlers";
 
     private static final String CLIENT_HTTP_CONNECTOR_NAME = "ClientConnector";
@@ -176,6 +178,8 @@ public class ClientProxy implements StartStop {
                 .map(HttpConnectionFactory.class::cast)
                 .forEach(httpCf -> {
                     httpCf.getHttpConfiguration().setSendServerVersion(false);
+                    httpCf.getHttpConfiguration().setResponseHeaderSize(MAX_HEADER_SIZE);
+                    httpCf.getHttpConfiguration().setRequestHeaderSize(MAX_HEADER_SIZE);
                     httpCf.getHttpConfiguration().setUriCompliance(UriCompliance.DEFAULT
                             .with("x-road", UriCompliance.Violation.AMBIGUOUS_PATH_SEPARATOR));
                     Optional.ofNullable(httpCf.getHttpConfiguration().getCustomizer(SecureRequestCustomizer.class))

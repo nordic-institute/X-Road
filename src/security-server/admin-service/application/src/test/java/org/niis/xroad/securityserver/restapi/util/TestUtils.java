@@ -103,7 +103,7 @@ public final class TestUtils {
     public static final String CLIENT_ID_M2_SS6 = "FI:GOV:M2:SS6";
     public static final String CLIENT_ID_INVALID_INSTANCE_IDENTIFIER = "DUMMY:PRO:M2:SS6";
     public static final String CLIENT_ID_INVALID_MEMBER_CLASS = "FI:DUMMY:M2:SS6";
-    public static final String NEW_GROUPCODE = "NEW_GROUPCODE";
+    public static final String NEW_GROUPCODE = "NEW-GROUPCODE";
     public static final String GROUP_DESC = "GROUP_DESC";
     public static final String NEW_GROUP_DESC = "NEW_GROUP_DESC";
     public static final String INVALID_GROUP_ID = "NOT_VALID";

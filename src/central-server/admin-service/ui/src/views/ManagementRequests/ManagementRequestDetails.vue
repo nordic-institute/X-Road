@@ -73,6 +73,7 @@
         "
         :request-id="managementRequest.id"
         :security-server-id="managementRequest.security_server_id.encoded_id"
+        :new-member="newMember"
         @approve="approve"
         @cancel="showApproveDialog = false"
       />
@@ -92,14 +93,11 @@
 </template>
 
 <script lang="ts">
-import Vue, { defineComponent } from 'vue';
+import { defineComponent } from 'vue';
 import { mapActions, mapStores } from 'pinia';
 import { useManagementRequests } from '@/store/modules/management-requests';
 import { managementTypeToText } from '@/util/helpers';
-import {
-  ManagementRequestDetailedView,
-  ManagementRequestType,
-} from '@/openapi-types';
+import { ManagementRequestDetailedView, ManagementRequestType } from '@/openapi-types';
 import MrDeclineDialog from '@/components/managementRequests/MrDeclineDialog.vue';
 import MrConfirmDialog from '@/components/managementRequests/MrConfirmDialog.vue';
 import MrCertificateInformation from '@/components/managementRequests/details/MrCertificateInformation.vue';
@@ -175,6 +173,18 @@ export default defineComponent({
         ManagementRequestType.CLIENT_ENABLE_REQUEST,
         ManagementRequestType.OWNER_CHANGE_REQUEST,
       ].includes(this.managementRequestsStore.currentManagementRequest.type);
+    },
+    newMember(): boolean {
+      if (this.managementRequestsStore.currentManagementRequest) {
+        const req = this.managementRequestsStore.currentManagementRequest;
+        return (
+          [
+            ManagementRequestType.CLIENT_REGISTRATION_REQUEST,
+            ManagementRequestType.AUTH_CERT_REGISTRATION_REQUEST,
+          ].includes(req.type) && !req.client_owner_name
+        );
+      }
+      return false;
     },
   },
   created() {

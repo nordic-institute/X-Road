@@ -89,11 +89,9 @@ public class RestEdcProxyTest extends AbstractProxyIntegrationTest {
         return Map.of(
                 SystemProperties.DATASPACES_ENABLED, Boolean.TRUE.toString(),
                 SystemProperties.DATASPACES_CONTROL_PORT, "19192",
-                SystemProperties.DATASPACES_MANAGEMENT_PORT, "29193", // here 2
+                SystemProperties.DATASPACES_MANAGEMENT_PORT, "29193",
                 SystemProperties.DATASPACES_PUBLIC_PORT, "19291",
-                SystemProperties.DATASPACES_PROTOCOL_PORT, "19194",
-                SystemProperties.JETTY_EDCPROXY_CONFIGURATION_FILE, "src/test/edcproxy.xml"
-                // SystemProperties.PROXY_EDC_LISTEN_PORT, String.valueOf(getFreePort()) TODO
+                SystemProperties.DATASPACES_PROTOCOL_PORT, "19194"
         );
     }
 
@@ -550,7 +548,7 @@ public class RestEdcProxyTest extends AbstractProxyIntegrationTest {
     @SneakyThrows
     private static void prepareServerEdc() {
         EdcManagementApiFactory apiFactory = new EdcManagementApiFactory(
-                "http://localhost:19193".formatted("19193"));
+                "http://localhost:%s".formatted("19193"));
 
         var assetRegistrationJob = new AssetsRegistrationJob(apiFactory.dataplaneSelectorApi(),
                 apiFactory.assetsApi(), apiFactory.policyDefinitionApi(), apiFactory.contractDefinitionApi());

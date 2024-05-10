@@ -1,21 +1,21 @@
 /*
  * The MIT License
- * <p>
+ *
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
  * Copyright (c) 2015-2017 Estonian Information System Authority (RIA), Population Register Centre (VRK)
- * <p>
+ *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
  * in the Software without restriction, including without limitation the rights
  * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
  * copies of the Software, and to permit persons to whom the Software is
  * furnished to do so, subject to the following conditions:
- * <p>
+ *
  * The above copyright notice and this permission notice shall be included in
  * all copies or substantial portions of the Software.
- * <p>
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -39,9 +39,9 @@ import org.niis.xroad.cs.openapi.SecurityServersApi;
 import org.niis.xroad.cs.openapi.model.ClientDto;
 import org.niis.xroad.cs.openapi.model.PagedSecurityServersDto;
 import org.niis.xroad.cs.openapi.model.PagingSortingParametersDto;
-import org.niis.xroad.cs.openapi.model.SecurityServerAddressDto;
 import org.niis.xroad.cs.openapi.model.SecurityServerAuthenticationCertificateDetailsDto;
 import org.niis.xroad.cs.openapi.model.SecurityServerDto;
+import org.niis.xroad.cs.openapi.model.UpdateSecurityServerRequestDto;
 import org.niis.xroad.restapi.config.audit.AuditEventMethod;
 import org.niis.xroad.restapi.converter.SecurityServerIdConverter;
 import org.niis.xroad.restapi.openapi.ControllerUtil;
@@ -145,9 +145,12 @@ public class SecurityServersApiController implements SecurityServersApi {
     @Override
     @PreAuthorize("hasAuthority('EDIT_SECURITY_SERVER_ADDRESS')")
     @AuditEventMethod(event = EDIT_SECURITY_SERVER_ADDRESS)
-    public ResponseEntity<SecurityServerDto> updateSecurityServerAddress(String id, SecurityServerAddressDto securityServerAddress) {
+    public ResponseEntity<SecurityServerDto> updateSecurityServer(String id, UpdateSecurityServerRequestDto requestDto) {
         var securityServerId = securityServerIdConverter.convertId(id);
-        return securityServerService.updateSecurityServerAddress(securityServerId, securityServerAddress.getServerAddress())
+        return securityServerService.updateSecurityServer(securityServerId,
+                        requestDto.getServerAddress(),
+                        requestDto.getDsEnabled(),
+                        requestDto.getProtocolUrl())
                 .map(securityServerDtoConverter::toDto)
                 .map(ResponseEntity::ok)
                 .orElseThrow(() -> new NotFoundException(SECURITY_SERVER_NOT_FOUND, id));

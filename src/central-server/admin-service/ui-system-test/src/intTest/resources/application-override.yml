@@ -4,6 +4,10 @@ logging:
     ROOT: INFO
     cucumber: TRACE
     org.springframework: INFO
+    org:
+      openqa:
+        selenium:
+          devtools: WARN
 
 test-automation:
   report-name: xroad-cs-ui-test-suite
@@ -24,6 +28,7 @@ test-automation:
     browser-size: "1280x900"
     driver-manager-enabled: true
     headless: true
+    chrome-options-args: "--guest,--disable-features=OptimizationHints"
     timeout: 10000
     page-load-timeout: 10000
     screenshots: true
@@ -31,9 +36,5 @@ test-automation:
     proxy-host: 127.0.0.1
     file-download: proxy
   custom:
-    docker-root: "../../../../Docker/centralserver/"
-    package-host: "replace-me"
-    package-source: develop
-    package-repo: "${test-automation.custom.package-host}/${test-automation.custom.package-source}/debian"
-    package-repo-key: "${test-automation.custom.package-host}/${test-automation.custom.package-source}/jenkins@niis.org.gpg"
+    image-name : "xrd-centralserver-dev:latest"
     #central-server-url-override: "replace-me" #Use when you want to run against custom target.

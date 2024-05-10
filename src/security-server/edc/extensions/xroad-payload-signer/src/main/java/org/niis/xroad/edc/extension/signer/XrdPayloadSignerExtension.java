@@ -33,11 +33,11 @@ import ee.ria.xroad.signer.protocol.RpcSignerClient;
 import org.eclipse.edc.connector.contract.spi.negotiation.store.ContractNegotiationStore;
 import org.eclipse.edc.connector.dataplane.api.validation.ConsumerPullTransferDataAddressResolver;
 import org.eclipse.edc.connector.dataplane.spi.pipeline.PipelineService;
+import org.eclipse.edc.http.spi.EdcHttpClient;
 import org.eclipse.edc.policy.engine.spi.PolicyEngine;
 import org.eclipse.edc.runtime.metamodel.annotation.Extension;
 import org.eclipse.edc.runtime.metamodel.annotation.Inject;
 import org.eclipse.edc.runtime.metamodel.annotation.Setting;
-import org.eclipse.edc.spi.http.EdcHttpClient;
 import org.eclipse.edc.spi.monitor.Monitor;
 import org.eclipse.edc.spi.system.ExecutorInstrumentation;
 import org.eclipse.edc.spi.system.ServiceExtension;
@@ -145,7 +145,7 @@ public class XrdPayloadSignerExtension implements ServiceExtension {
     }
 
     private void initSignerClient(Monitor monitor) {
-        monitor.info("Hello from '%s' extension".formatted(NAME));
+        monitor.info("Initializing Signer client");
         try {
             RpcSignerClient.init("localhost", 5560, 10000);
         } catch (Exception e) {

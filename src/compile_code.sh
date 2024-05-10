@@ -8,19 +8,21 @@ case "$i" in
     "-release")
         RELEASE="RELEASE"
         ;;
-    "sonar"|"-sonar")
-        SONAR=1
-        ;;
     "-nodaemon")
         NODAEMON=1
+        ;;
+    "--skip-tests")
+        SKIP_TESTS=1
         ;;
 esac
 done
 
-ARGUMENTS=("-PxroadBuildType=$RELEASE" --stacktrace build runProxyTest runMetaserviceTest runProxymonitorMetaserviceTest)
+ARGUMENTS=("-PxroadBuildType=$RELEASE" --stacktrace build )
 
-if [[ -n "$SONAR" ]]; then
-    ARGUMENTS+=(dependencyCheckAnalyze sonarqube)
+if [[ -n "$SKIP_TESTS" ]]; then
+    ARGUMENTS+=(-xcheckstyleMain -xlicenseMain -xtest -xintegrationTest -xintTest)
+else
+    ARGUMENTS+=(runProxyTest runMetaserviceTest runProxymonitorMetaserviceTest)
 fi
 
 if [[ -n "$NODAEMON" ]]; then

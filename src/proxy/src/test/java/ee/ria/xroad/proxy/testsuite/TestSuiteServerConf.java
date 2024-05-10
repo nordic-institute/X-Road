@@ -27,6 +27,7 @@ package ee.ria.xroad.proxy.testsuite;
 
 import ee.ria.xroad.common.TestCertUtil;
 import ee.ria.xroad.common.TestCertUtil.PKCS12;
+import ee.ria.xroad.common.conf.EmptyServerConf;
 import ee.ria.xroad.common.conf.InternalSSLKey;
 import ee.ria.xroad.common.conf.serverconf.IsAuthentication;
 import ee.ria.xroad.common.conf.serverconf.model.DescriptionType;

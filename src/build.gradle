@@ -1,24 +1,17 @@
 buildscript {
-    repositories {
-        mavenCentral()
-    }
     dependencies {
-        classpath('gradle.plugin.com.hierynomus.gradle.plugins:license-gradle-plugin:0.16.1') {
+        classpath (libs.licenseGradlePlugin) {
             exclude group: 'org.springframework', module: 'spring-core'
         }
     }
 }
 
 plugins {
-    id 'org.sonarqube' version '4.4.1.3373'
-    id 'org.owasp.dependencycheck' version '9.0.9'
+    alias(libs.plugins.sonarqube)
     id 'jacoco-report-aggregation'
     id 'java'
     id 'idea'
-    id "io.spring.dependency-management" version "${springDependenciesVersion}" apply false
-    id 'org.springframework.boot' version "${springBootVersion}" apply false
-    id 'com.google.protobuf' version "$protobufGradleVersion" apply false
-    id 'org.siouan.frontend-jdk17' version "$frontendPluginVersion" apply false
+    alias(libs.plugins.springBoot) apply false
 }
 
 sonarqube {
@@ -29,57 +22,13 @@ sonarqube {
         property "sonar.projectName", "X-Road"
         property "sonar.projectDescription", "Data Exchange Layer"
         property "sonar.projectVersion", xroadVersion
-        property "sonar.dependencyCheck.reportPath", "build/reports/owasp-dependency-check/dependency-check-report.xml"
-        property "sonar.dependencyCheck.htmlReportPath", "build/reports/owasp-dependency-check/dependency-check-report.html"
         property "sonar.exclusions", "**/build/generated-sources/**"
-        property "sonar.coverage.jacoco.xmlReportPaths", "${rootProject.layout.buildDirectory.get().asFile}/reports/jacoco/jacocoAggregatedReport/jacocoAggregatedReport.xml"
+        property "sonar.coverage.jacoco.xmlReportPaths", "${rootProject.layout.buildDirectory.get().asFile}/reports/jacoco/testCodeCoverageReport/testCodeCoverageReport.xml"
 
         property "sonar.issue.ignore.multicriteria", "e1"
         //# ignore 'Local-Variable Type Inference should be used"
         property "sonar.issue.ignore.multicriteria.e1.ruleKey", "java:S6212"
         property "sonar.issue.ignore.multicriteria.e1.resourceKey", "**/*.java"
-    }
-}
-
-dependencyCheck {
-    outputDirectory = "${project.layout.buildDirectory.get().asFile}/reports/owasp-dependency-check"
-    suppressionFile = "${project.rootDir}/dependencycheck-suppressions.xml"
-    format = "ALL"
-    skipProjects = [
-        ":e2e-tests",
-        ":central-server:admin-service:ui-system-test",
-        ":central-server:admin-service:int-test",
-        ":central-server:management-service:int-test"
-    ]
-    nvd {
-        apiKey = "${nvdApiKey}"
-        delay = 6000
-    }
-    analyzers {
-        experimentalEnabled = false
-        archiveEnabled = false
-        jarEnabled = true
-        centralEnabled = false
-        bundleAuditEnabled = false
-        nexusEnabled = false
-        nuspecEnabled = false
-        opensslEnabled = false
-        msbuildEnabled = false
-        assemblyEnabled = false
-        pyDistributionEnabled = false
-        pyPackageEnabled = false
-        rubygemsEnabled = false
-        cmakeEnabled = false
-        autoconfEnabled = false
-        composerEnabled = false
-        nodeEnabled = false
-        nodeAudit {
-            enabled = false
-            pnpmEnabled = false
-        }
-        ossIndex {
-            enabled = false
-        }
     }
 }
 
@@ -89,11 +38,6 @@ subprojects {
 }
 
 allprojects {
-
-    repositories {
-        mavenCentral()
-        mavenLocal()
-    }
 
     version = '1.0'
 
@@ -131,45 +75,17 @@ configure(subprojects.findAll { !["shared-ui", "ui"].contains(it.name) }) {
     }
 
     dependencies {
-        //With require constraints we define lowest compliant dependency version (transitive dependencies are incl.)
-        constraints {
-            add('implementation', 'com.fasterxml.jackson.core:jackson-databind') {
-                because("Vulnerability fix regarding CVE-2022-42003")
-                version {
-                    require("$jacksonBomVersion")
-                }
-            }
-            add('implementation', 'org.yaml:snakeyaml') {
-                because("Vulnerability fix regarding CVE-2022-25857")
-                version {
-                    require("$snakeyamlVersion")
-                }
-            }
-            add('implementation', 'org.apache.commons:commons-text') {
-                because("Vulnerability fix regarding CVE-2022-42889")
-                version {
-                    require("$commonsTextVersion")
-                }
-            }
-            add('implementation', 'com.fasterxml.woodstox:woodstox-core') {
-                because("Vulnerability fix regarding CVE-2022-40152")
-                version {
-                    require("$woodstoxVersion")
-                }
-            }
-        }
+        testImplementation(libs.junit.jupiterEngine)
+        testImplementation(libs.junit.vintageEngine)
 
-        testImplementation("org.junit.jupiter:junit-jupiter-engine:$junitVersion")
-        testImplementation("org.junit.vintage:junit-vintage-engine:$junitVersion")
+        compileOnly libs.lombok
+        annotationProcessor libs.lombok
 
-        compileOnly "org.projectlombok:lombok:${lombokVersion}"
-        annotationProcessor "org.projectlombok:lombok:${lombokVersion}"
+        testCompileOnly libs.lombok
+        testAnnotationProcessor libs.lombok
 
-        testCompileOnly "org.projectlombok:lombok:${lombokVersion}"
-        testAnnotationProcessor "org.projectlombok:lombok:${lombokVersion}"
-
-        intTestCompileOnly "org.projectlombok:lombok:${lombokVersion}"
-        intTestAnnotationProcessor "org.projectlombok:lombok:${lombokVersion}"
+        intTestCompileOnly libs.lombok
+        intTestAnnotationProcessor libs.lombok
     }
 
     test {
@@ -186,6 +102,7 @@ configure(subprojects.findAll { !["shared-ui", "ui"].contains(it.name) }) {
 
     tasks.withType(JavaCompile).configureEach {
         options.encoding = "UTF-8"
+        options.compilerArgs << '-parameters'
     }
 
     tasks.withType(JavaExec).configureEach {
@@ -304,3 +221,4 @@ tasks.register("installGitHooks", Copy) {
     fileMode 0775
 }
 assemble.dependsOn installGitHooks
+tasks.sonar.dependsOn testCodeCoverageReport

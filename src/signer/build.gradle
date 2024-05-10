@@ -1,5 +1,5 @@
 plugins {
-    id 'com.github.johnrengelman.shadow'
+    alias(libs.plugins.shadow)
 }
 
 project.ext.schemaTargetDir = layout.buildDirectory.dir("generated-sources").get().asFile
@@ -20,7 +20,7 @@ sourceSets {
 }
 
 dependencies {
-    implementation(platform("org.springframework.boot:spring-boot-dependencies:$springBootVersion"))
+    implementation(platform(libs.springBoot.bom))
 
     implementation project(':common:common-core')
     implementation project(':common:common-jetty')
@@ -35,7 +35,7 @@ dependencies {
     testImplementation project(':common:common-test')
     testImplementation project(path: ':common:common-verifier', configuration: 'testArtifacts')
 
-    testImplementation "org.mockito:mockito-core:$mockitoVersion"
+    testImplementation libs.mockito.core
 
 
     intTestRuntimeOnly project(':addons:hwtoken')
@@ -43,8 +43,7 @@ dependencies {
     intTestImplementation project(":common:common-test")
     intTestImplementation project(":common:common-int-test")
 
-    xjc "org.glassfish.jaxb:jaxb-xjc:$jaxbVersion"
-    xjc "org.glassfish.jaxb:jaxb-runtime:$jaxbVersion"
+    xjc libs.bundles.jaxb
 }
 
 jar {

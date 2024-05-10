@@ -26,14 +26,7 @@
  */
 package org.niis.xroad.edc.sig.jades;
 
-import ee.ria.xroad.common.CodedException;
-import ee.ria.xroad.common.ErrorCodes;
-import ee.ria.xroad.common.cert.CertChain;
-import ee.ria.xroad.common.cert.CertChainVerifier;
-import ee.ria.xroad.common.certificateprofile.impl.SignCertificateProfileInfoParameters;
-import ee.ria.xroad.common.conf.globalconf.GlobalConf;
 import ee.ria.xroad.common.identifier.ClientId;
-import ee.ria.xroad.common.util.CertUtils;
 
 import eu.europa.esig.dss.diagnostic.DiagnosticData;
 import eu.europa.esig.dss.diagnostic.SignatureWrapper;
@@ -44,19 +37,14 @@ import eu.europa.esig.dss.jades.HTTPHeaderDigest;
 import eu.europa.esig.dss.jades.validation.JWSCompactDocumentValidator;
 import eu.europa.esig.dss.model.DSSDocument;
 import eu.europa.esig.dss.model.InMemoryDocument;
-import eu.europa.esig.dss.validation.CommonCertificateVerifier;
 import eu.europa.esig.dss.validation.SignedDocumentValidator;
 import eu.europa.esig.dss.validation.reports.Reports;
 import lombok.extern.slf4j.Slf4j;
-import org.bouncycastle.cert.ocsp.OCSPResp;
-import org.bouncycastle.util.encoders.Base64;
-import org.niis.xroad.edc.sig.PocConstants;
 import org.niis.xroad.edc.sig.XrdSignatureVerificationException;
 import org.niis.xroad.edc.sig.XrdSignatureVerifier;
+import org.niis.xroad.edc.sig.XrdSignatureVerifierBase;
 
-import java.security.cert.X509Certificate;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.List;
 import java.util.Map;
 
@@ -64,7 +52,7 @@ import java.util.Map;
  * POC for JWS verification. Loosely based on SignatureVerifier.
  */
 @Slf4j
-public class XrdJAdESVerifier implements XrdSignatureVerifier {
+public class XrdJAdESVerifier extends XrdSignatureVerifierBase implements XrdSignatureVerifier {
 
     @Override
     public void verifySignature(String signature, byte[] detachedPayload, Map<String, String> detachedHeaders, ClientId signerClientId)
@@ -80,17 +68,6 @@ public class XrdJAdESVerifier implements XrdSignatureVerifier {
         } catch (Exception e) {
             throw new XrdSignatureVerificationException("Verification has failed", e);
         }
-    }
-
-    private void validateXroad(X509Certificate cert,
-                               ClientId clientId, Map<String, String> detachedHeaders) throws Exception {
-        var ocsResponse = new OCSPResp(Base64.decode(detachedHeaders.get(PocConstants.HEADER_XRD_SIG_OCSP)));
-        verifyCertificateChain(new Date(), clientId, cert, List.of(ocsResponse));
-        verifySignerName(clientId, cert);
-
-        CertUtils.isSigningCert(cert);
-        CertUtils.isValid(cert); //TODO probably overlaps with native dss checks?
-        log.info("XRD checks: Signature is valid.");
     }
 
     private void validateDss(InMemoryDocument signedDocument, byte[] detachedPayload, Map<String, String> detachedHeaders) {
@@ -125,37 +102,4 @@ public class XrdJAdESVerifier implements XrdSignatureVerifier {
         log.info("DSS checks: signature is valid.");
     }
 
-    private void assertTrue(boolean val) {
-        if (!val) {
-            throw new CodedException(ErrorCodes.X_INCONSISTENT_RESPONSE, "JAdES signature verification failed.");
-
-        }
-    }
-
-    protected SignedDocumentValidator getValidator(DSSDocument signedDocument) {
-        SignedDocumentValidator validator = SignedDocumentValidator.fromDocument(signedDocument);
-        validator.setCertificateVerifier(new CommonCertificateVerifier());
-
-        return validator;
-    }
-
-    private static void verifySignerName(ClientId signer, X509Certificate signingCert) throws Exception {
-        ClientId cn = GlobalConf.getSubjectName(
-                new SignCertificateProfileInfoParameters(
-                        signer, signer.getMemberCode()
-                ),
-                signingCert);
-        if (!signer.memberEquals(cn)) {
-            throw new CodedException(ErrorCodes.X_INCORRECT_CERTIFICATE,
-                    "Name in certificate (%s) does not match "
-                            + "name in message (%s)", cn, signer);
-        }
-    }
-
-    private void verifyCertificateChain(Date atDate, ClientId signer, X509Certificate signingCert,
-                                        List<OCSPResp> ocspResps) {
-        CertChain certChain = CertChain.create(signer.getXRoadInstance(), signingCert, null);
-
-        new CertChainVerifier(certChain).verify(ocspResps, atDate);
-    }
 }

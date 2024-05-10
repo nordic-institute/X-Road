@@ -70,9 +70,6 @@ public class ServiceChangeCheckerTest {
     public void testNoChanges() {
         List<ServiceType> randoms = Arrays.asList(random1, random2);
         assertTrue(serviceChangeChecker.check(randoms, randoms).isEmpty());
-
-        List<ServiceType> empty = Arrays.asList(random1, random2);
-        assertTrue(serviceChangeChecker.check(empty, empty).isEmpty());
     }
 
     @Test

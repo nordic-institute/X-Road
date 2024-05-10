@@ -86,6 +86,10 @@
             <constraint annotation="org.niis.xroad.restapi.openapi.validator.IdentifierChars"></constraint>
         </field>
     </bean>
-
+    <bean class="GlobalGroupCodeAndDescriptionDto" ignore-annotations="false">
+        <field name="code">
+            <constraint annotation="org.niis.xroad.restapi.openapi.validator.IdentifierChars"></constraint>
+        </field>
+    </bean>
 
 </constraint-mappings>

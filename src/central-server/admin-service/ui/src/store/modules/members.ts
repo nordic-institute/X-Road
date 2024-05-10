@@ -28,6 +28,7 @@ import axios from 'axios';
 import {
   Client,
   ClientId,
+  Did,
   MemberAdd,
   MemberGlobalGroup,
   MemberName,
@@ -63,9 +64,9 @@ export const useMember = defineStore('member', {
     deleteById(memberId: string) {
       return axios.delete(`/members/${memberId}`);
     },
-    editMemberName(memberId: string, memberName: MemberName) {
+    editMember(memberId: string, memberName: MemberName, did: Did) {
       return axios
-        .patch<Client>(`/members/${memberId}`, memberName)
+        .patch<Client>(`/members/${memberId}`, {...memberName, ...did})
         .then((resp) => {
           this.currentMember = resp.data;
         })

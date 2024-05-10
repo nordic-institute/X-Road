@@ -15,7 +15,7 @@ sourceSets {
 }
 
 dependencies {
-    implementation(platform("org.springframework.boot:spring-boot-dependencies:$springBootVersion"))
+    implementation(platform(libs.springBoot.bom))
 
     api project(":common:common-core")
 
@@ -23,8 +23,7 @@ dependencies {
     testImplementation project(':common:common-message')
     testImplementation project(':common:common-test')
 
-    xjc "org.glassfish.jaxb:jaxb-xjc:$jaxbVersion"
-    xjc "org.glassfish.jaxb:jaxb-runtime:$jaxbVersion"
+    xjc libs.bundles.jaxb
 }
 
 tasks.register('xjc') {

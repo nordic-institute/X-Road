@@ -217,7 +217,6 @@ defineExpose({
 
     if (saveButton.value) {
       blur();
-      console.log('dialog', saveButton.value)
       saveButton.value.focus();
     }
   },

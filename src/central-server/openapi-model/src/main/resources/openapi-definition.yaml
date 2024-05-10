@@ -1764,12 +1764,14 @@ paths:
       description:
         <h3>CS administrator edits the name of an X-Road member.</h3>
         <p>Attempting to edit name with subsystem id results in http 400</p>
-      operationId: updateMemberName
+      operationId: updateMember
       requestBody:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/MemberName'
+              allOf:
+                - $ref: '#/components/schemas/MemberName'
+                - $ref: '#/components/schemas/Did'
         description: member name
         required: true
       responses:
@@ -2295,13 +2297,15 @@ paths:
         - security-servers
     patch:
       description: <h3>CS administrator changes the address of a security server.</h3>
-      operationId: updateSecurityServerAddress
+      operationId: updateSecurityServer
       requestBody:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/SecurityServerAddress'
-        description: security server address
+              allOf:
+                - $ref: '#/components/schemas/SecurityServerAddress'
+                - $ref: '#/components/schemas/SecurityServerDataSpaceConfig'
+        description: security server address and other options
         required: true
       responses:
         '200':
@@ -3871,6 +3875,7 @@ components:
     Client:
       allOf:
         - $ref: '#/components/schemas/MemberName'
+        - $ref: '#/components/schemas/Did'
       description: x-road member
       required:
         - client_id
@@ -3974,6 +3979,17 @@ components:
         member_name:
           description: Member name.
           example: Member123
+          format: text
+          maxLength: 255
+          minLength: 1
+          type: string
+      type: object
+    Did:
+      description: Decentralized identifier
+      properties:
+        did:
+          description: Decentralized identifier
+          example: did:web:123
           format: text
           maxLength: 255
           minLength: 1
@@ -4118,6 +4134,7 @@ components:
       allOf:
         - $ref: '#/components/schemas/SecurityServerAddress'
         - $ref: '#/components/schemas/ModificationTimestamps'
+        - $ref: "#/components/schemas/SecurityServerDataSpaceConfig"
       description: security server information
       properties:
         server_id:
@@ -4588,15 +4605,22 @@ components:
           type: string
       required:
         - server_code
+    SecurityServerDataSpaceConfig:
+      description: security server dataspace configuration
+      properties:
+        ds_enabled:
+          type: boolean
+        protocol_url:
+          type: string
+      required:
+        - ds_enabled
+      type: object
     ManagementRequestDetailedView:
       type: object
       description: Management Request detailed view
       allOf:
         - $ref: '#/components/schemas/ManagementRequestListView'
       properties:
-        client_owner_name:
-          type: string
-          readOnly: true
         comments:
           type: string
           format: text
@@ -4666,6 +4690,9 @@ components:
           $ref: '#/components/schemas/ManagementRequestStatus'
         client_id:
           $ref: '#/components/schemas/ClientId'
+        client_owner_name:
+          type: string
+          readOnly: true
         created_at:
           type: string
           format: date-time

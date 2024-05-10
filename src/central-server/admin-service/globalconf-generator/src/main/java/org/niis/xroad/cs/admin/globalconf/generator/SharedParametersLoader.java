@@ -87,7 +87,7 @@ class SharedParametersLoader {
     }
 
     private List<SharedParameters.ConfigurationSource> getSources() {
-        return configurationService.getNodeAddressesWithConfigurationSigningKeys().entrySet().stream()
+        return configurationService.getNodeAddressesWithOrderedConfigurationSigningKeys().entrySet().stream()
                 .map(this::toSource)
                 .toList();
     }
@@ -175,9 +175,7 @@ class SharedParametersLoader {
                 .map(AuthCert::getCert)
                 .toList());
         result.setDsEnabled(ss.isDsEnabled());
-        result.setDsManagementUrl(ss.getDsManagementUrl());
         result.setDsProtocolUrl(ss.getDsProtocolUrl());
-        result.setDsPublicUrl(ss.getDsPublicUrl());
         return result;
     }
 
@@ -253,6 +251,7 @@ class SharedParametersLoader {
             member.setMemberCode(client.getMemberCode());
             member.setName(client.getMemberName());
             member.setSubsystems(getSubsystemList(clientId));
+            member.setDid(client.getMemberDid());
             return member;
         }
 

@@ -43,10 +43,6 @@ public final class PortNumbers {
     /** Port for connection between client and server proxy. */
     public static final int PROXY_PORT = 5500;
 
-    /** Proxy edc port */
-    // todo: xroad-8 poc, recheck
-    public static final int PROXY_EDC_PORT = 19299;
-
     /** Server proxy listens for OCSP requests. */
     public static final int PROXY_OCSP_PORT = 5577;
 

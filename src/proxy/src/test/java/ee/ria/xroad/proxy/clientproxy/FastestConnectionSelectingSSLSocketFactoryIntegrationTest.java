@@ -173,7 +173,7 @@ public class FastestConnectionSelectingSSLSocketFactoryIntegrationTest {
 
     private SSLConnectionSocketFactory createSSLSocketFactory() throws Exception {
         SSLContext ctx = SSLContext.getInstance(CryptoUtils.SSL_PROTOCOL);
-        ctx.init(new KeyManager[]{AuthKeyManager.getInstance()},
+        ctx.init(new KeyManager[]{new AuthKeyManager()},
                 new TrustManager[]{new NoopTrustManager()},
                 new SecureRandom());
 

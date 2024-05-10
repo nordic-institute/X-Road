@@ -35,11 +35,11 @@ import ee.ria.xroad.common.message.SoapMessageImpl;
 import ee.ria.xroad.common.opmonitoring.OpMonitoringData;
 import ee.ria.xroad.common.util.HttpSender;
 import ee.ria.xroad.common.util.MimeUtils;
+import ee.ria.xroad.common.util.RequestWrapper;
+import ee.ria.xroad.common.util.ResponseWrapper;
 
 import lombok.extern.slf4j.Slf4j;
 import org.apache.http.client.HttpClient;
-import org.eclipse.jetty.server.Request;
-import org.eclipse.jetty.server.Response;
 import org.niis.xroad.proxy.ProxyMessageProcessor;
 
 import java.net.URI;
@@ -54,17 +54,23 @@ import static ee.ria.xroad.common.ErrorCodes.X_INVALID_SOAPACTION;
 @Slf4j
 public abstract class MessageProcessorBase implements ProxyMessageProcessor {
 
-    /** The servlet request. */
-    protected final Request jRequest;
+    /**
+     * The servlet request.
+     */
+    protected final RequestWrapper jRequest;
 
-    /** The servlet response. */
-    protected final Response jResponse;
+    /**
+     * The servlet response.
+     */
+    protected final ResponseWrapper jResponse;
 
-    /** The http client instance. */
+    /**
+     * The http client instance.
+     */
     protected final HttpClient httpClient;
 
-    protected MessageProcessorBase(Request request,
-                                   Response response,
+    protected MessageProcessorBase(RequestWrapper request,
+                                   ResponseWrapper response,
                                    HttpClient httpClient) {
         this.jRequest = request;
         this.jResponse = response;
@@ -95,6 +101,7 @@ public abstract class MessageProcessorBase implements ProxyMessageProcessor {
     /**
      * Update operational monitoring data with SOAP message header data and
      * the size of the message.
+     *
      * @param opMonitoringData monitoring data to update
      * @param soapMessage      SOAP message
      */
@@ -147,6 +154,7 @@ public abstract class MessageProcessorBase implements ProxyMessageProcessor {
      * Validates SOAPAction header value.
      * Valid header values are: (empty string),(""),("URI-reference")
      * In addition, this implementation allows missing (null) header.
+     *
      * @return the argument as-is if it is valid
      * @throws CodedException if the the argument is invalid
      * @see <a href="https://www.w3.org/TR/2000/NOTE-SOAP-20000508/#_Toc478383528">SOAP 1.1</a>
@@ -172,19 +180,20 @@ public abstract class MessageProcessorBase implements ProxyMessageProcessor {
 
     /**
      * Logs a warning if identifier contains invalid characters.
+     *
      * @see ee.ria.xroad.common.validation.SpringFirewallValidationRules
      * @see ee.ria.xroad.common.validation.LegacyEncodedIdentifierValidator;
      */
     public static boolean checkIdentifier(final XRoadId id) {
         if (id != null) {
             if (!validateIdentifierField(id.getXRoadInstance())) {
-                log.warn("Invalid character(s) in identifier {}", id.toString());
+                log.warn("Invalid character(s) in identifier {}", id);
                 return false;
             }
 
             for (String f : id.getFieldsForStringFormat()) {
                 if (f != null && !validateIdentifierField(f)) {
-                    log.warn("Invalid character(s) in identifier {}", id.toString());
+                    log.warn("Invalid character(s) in identifier {}", id);
                     return false;
                 }
             }

@@ -8,7 +8,7 @@ dependencies {
     implementation project(':serverconf')
 
     testImplementation project(':common:common-test')
-    testImplementation "commons-cli:commons-cli:$commonsCliVersion"
+    testImplementation libs.commons.cli
 }
 
 tasks.register('runOpMonitoringBufferMemoryUsage', JavaExec) {
