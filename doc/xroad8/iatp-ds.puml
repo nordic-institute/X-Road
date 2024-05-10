@@ -1,0 +1,51 @@
+@startuml
+
+skinParam NoteBackgroundColor WhiteSmoke
+skinParam NoteFontColor Black
+skinParam ParticipantBackgroundColor WhiteSmoke
+skinParam ActorBackgroundColor WhiteSmoke
+skinParam AgentBackgroundColor White
+skinParam AgentBorderColor SkyBlue
+skinparam shadowing false
+skinparam BoxPadding 10
+
+!define ConsumerColor f8f2ff
+!define ProviderColor d9edff
+
+autonumber
+
+box "Participant A" #ConsumerColor
+    participant A_C as "Connector"
+    participant A_IH as "Identity Hub"
+end box
+
+box "Participant B" #ProviderColor
+    participant B_C as "Connector"
+end box
+
+title
+ **Identity and Trust Protocol**
+end title
+autonumber 1
+
+A_C ->> B_C : DSP Request (with DID JWS)
+activate A_C
+activate B_C
+B_C ->> A_IH : Fetch DID Document
+activate A_IH
+A_IH ->> B_C : DID Document
+B_C ->> B_C : Verify JWS
+B_C ->> A_IH : Fetch Verifiable Presentation
+A_IH ->> B_C : Verifiable Presentation
+B_C ->> A_IH : Fetch Verifiable Presentation's issuer DID Document
+A_IH ->> B_C : DID Document
+B_C ->> B_C : Verify Verifiable Presentation & extract Verifiable Credential from it
+B_C ->> A_IH : Fetch Credential's issuer DID Document
+A_IH ->> B_C : DID Document
+deactivate A_IH
+B_C ->> B_C : Verify Verifiable Credential (i.a. issuer being preconfigured trustworthy)
+B_C ->> B_C : Extract participant identity from Verifiable Credential
+B_C ->> B_C : Apply access policy based on participant identity
+B_C ->> A_C : DSP Response
+
+@enduml
