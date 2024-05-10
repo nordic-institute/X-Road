@@ -47,9 +47,36 @@ import lombok.extern.slf4j.Slf4j;
 import org.eclipse.edc.connector.controlplane.api.management.asset.v3.AssetApi;
 import org.eclipse.edc.connector.controlplane.api.management.contractdefinition.ContractDefinitionApi;
 import org.eclipse.edc.connector.controlplane.api.management.policy.PolicyDefinitionApi;
+import org.eclipse.edc.connector.controlplane.api.management.policy.transform.JsonObjectFromPolicyDefinitionTransformer;
+import org.eclipse.edc.connector.controlplane.api.management.policy.transform.JsonObjectToPolicyDefinitionTransformer;
 import org.eclipse.edc.connector.controlplane.asset.spi.domain.Asset;
+import org.eclipse.edc.connector.controlplane.contract.spi.types.offer.ContractDefinition;
+import org.eclipse.edc.connector.controlplane.policy.spi.PolicyDefinition;
+import org.eclipse.edc.connector.controlplane.transform.odrl.from.JsonObjectFromPolicyTransformer;
+import org.eclipse.edc.connector.controlplane.transform.odrl.to.JsonObjectToPolicyTransformer;
+import org.eclipse.edc.connector.core.agent.NoOpParticipantIdMapper;
 import org.eclipse.edc.connector.dataplane.selector.api.v2.DataplaneSelectorApi;
 import org.eclipse.edc.connector.dataplane.selector.spi.instance.DataPlaneInstance;
+import org.eclipse.edc.jsonld.util.JacksonJsonLd;
+import org.eclipse.edc.policy.model.Action;
+import org.eclipse.edc.policy.model.AndConstraint;
+import org.eclipse.edc.policy.model.AtomicConstraint;
+import org.eclipse.edc.policy.model.LiteralExpression;
+import org.eclipse.edc.policy.model.Operator;
+import org.eclipse.edc.policy.model.Permission;
+import org.eclipse.edc.policy.model.Policy;
+import org.eclipse.edc.policy.model.PolicyType;
+import org.eclipse.edc.spi.agent.ParticipantIdMapper;
+import org.eclipse.edc.spi.query.Criterion;
+import org.eclipse.edc.spi.query.QuerySpec;
+import org.eclipse.edc.transform.TransformerContextImpl;
+import org.eclipse.edc.transform.TypeTransformerRegistryImpl;
+import org.eclipse.edc.transform.spi.TransformerContext;
+import org.eclipse.edc.transform.spi.TypeTransformerRegistry;
+import org.eclipse.edc.transform.transformer.edc.from.JsonObjectFromCriterionTransformer;
+import org.eclipse.edc.transform.transformer.edc.from.JsonObjectFromQuerySpecTransformer;
+import org.eclipse.edc.transform.transformer.edc.to.JsonObjectToQuerySpecTransformer;
+import org.eclipse.edc.transform.transformer.edc.to.JsonValueToGenericTypeTransformer;
 import org.niis.xroad.proxy.configuration.ProxyEdcConfig;
 import org.springframework.context.annotation.Conditional;
 import org.springframework.scheduling.annotation.Scheduled;
@@ -58,34 +85,21 @@ import org.springframework.stereotype.Component;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
+import java.util.function.Predicate;
 
 import static jakarta.json.Json.createArrayBuilder;
 import static jakarta.json.Json.createObjectBuilder;
 import static java.util.concurrent.TimeUnit.SECONDS;
-import static org.eclipse.edc.connector.controlplane.asset.spi.domain.Asset.EDC_ASSET_DATA_ADDRESS;
-import static org.eclipse.edc.connector.controlplane.asset.spi.domain.Asset.EDC_ASSET_PROPERTIES;
-import static org.eclipse.edc.connector.controlplane.asset.spi.domain.Asset.EDC_ASSET_TYPE;
-import static org.eclipse.edc.connector.controlplane.asset.spi.domain.Asset.PROPERTY_CONTENT_TYPE;
-import static org.eclipse.edc.connector.controlplane.asset.spi.domain.Asset.PROPERTY_NAME;
-import static org.eclipse.edc.connector.controlplane.contract.spi.types.offer.ContractDefinition.CONTRACT_DEFINITION_ACCESSPOLICY_ID;
-import static org.eclipse.edc.connector.controlplane.contract.spi.types.offer.ContractDefinition.CONTRACT_DEFINITION_ASSETS_SELECTOR;
-import static org.eclipse.edc.connector.controlplane.contract.spi.types.offer.ContractDefinition.CONTRACT_DEFINITION_CONTRACTPOLICY_ID;
-import static org.eclipse.edc.connector.controlplane.policy.spi.PolicyDefinition.EDC_POLICY_DEFINITION_POLICY;
-import static org.eclipse.edc.connector.controlplane.policy.spi.PolicyDefinition.EDC_POLICY_DEFINITION_TYPE;
-import static org.eclipse.edc.connector.dataplane.selector.spi.instance.DataPlaneInstance.ALLOWED_DEST_TYPES;
-import static org.eclipse.edc.connector.dataplane.selector.spi.instance.DataPlaneInstance.ALLOWED_SOURCE_TYPES;
 import static org.eclipse.edc.connector.dataplane.selector.spi.instance.DataPlaneInstance.DATAPLANE_INSTANCE_TYPE;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.CONTEXT;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.ID;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.TYPE;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.VOCAB;
-import static org.eclipse.edc.jsonld.spi.PropertyAndTypeNames.ODRL_POLICY_TYPE_SET;
 import static org.eclipse.edc.spi.constants.CoreConstants.EDC_NAMESPACE;
-import static org.eclipse.edc.spi.query.Criterion.CRITERION_OPERAND_LEFT;
-import static org.eclipse.edc.spi.query.Criterion.CRITERION_OPERAND_RIGHT;
-import static org.eclipse.edc.spi.query.Criterion.CRITERION_OPERATOR;
+import static org.eclipse.edc.spi.query.Criterion.criterion;
 
 @Component
 @Conditional(ProxyEdcConfig.DataspacesEnabledCondition.class)
@@ -108,7 +122,7 @@ public class AssetsRegistrationJob {
     private final ScheduledExecutorService scheduler = Executors.newSingleThreadScheduledExecutor();
     private final TransformerContext context;
     private final ObjectMapper objectMapper = new ObjectMapper();
-
+    private final ParticipantIdMapper participantIdMapper = new NoOpParticipantIdMapper();
     private final String providerDataplaneId = "http-provider-dataplane";
 
     public AssetsRegistrationJob(DataplaneSelectorApi dataplaneSelectorApi, AssetApi assetApi,
@@ -122,13 +136,13 @@ public class AssetsRegistrationJob {
 
     private TypeTransformerRegistry registerTransformers() {
         var jsonLdObjectMapper = JacksonJsonLd.createObjectMapper();
-        var registry = new ManagementApiTypeTransformerRegistryImpl(new TypeTransformerRegistryImpl());
+        var registry = new TypeTransformerRegistryImpl();
         var jsonBuilderFactory = Json.createBuilderFactory(Map.of());
 
         registry.register(new JsonValueToGenericTypeTransformer(jsonLdObjectMapper));
 
-        registry.register(new JsonObjectToPolicyTransformer());
-        registry.register(new JsonObjectFromPolicyTransformer(jsonBuilderFactory));
+        registry.register(new JsonObjectToPolicyTransformer(participantIdMapper));
+        registry.register(new JsonObjectFromPolicyTransformer(jsonBuilderFactory, participantIdMapper));
 
         registry.register(new JsonObjectToPolicyDefinitionTransformer());
         registry.register(new JsonObjectFromPolicyDefinitionTransformer(jsonBuilderFactory, JacksonJsonLd.createObjectMapper()));
@@ -171,11 +185,13 @@ public class AssetsRegistrationJob {
                             .build())
                     .add(DataPlaneInstance.PROPERTIES, createObjectBuilder()
                             .add("https://w3id.org/edc/v0.0.1/ns/publicApiUrl", "%s://%s:%s/xroad/public/"
-                                    .formatted(SystemProperties.isSslEnabled() ? "https" : "http",GlobalConf.getSecurityServerAddress(ServerConf.getIdentifier()),
-                                        SystemProperties.dataspacesPublicListenPort()))
-                        .build())
-                .build()
-        );} catch (Exception e) {
+                                    .formatted(SystemProperties.isSslEnabled() ?
+                                                    "https" : "http", GlobalConf.getSecurityServerAddress(ServerConf.getIdentifier()),
+                                            SystemProperties.dataspacesPublicListenPort()))
+                            .build())
+                    .build()
+            );
+        } catch (Exception e) {
             log.error("Failed to create dataplane and its assets", e);
         }
     }
@@ -221,7 +237,7 @@ public class AssetsRegistrationJob {
                 .map(x -> x.getString(ID))
                 .forEach(jobContext.policyDefinitionIds::add);
 
-        contractDefinitionApi.queryAllContractDefinitions(toJsonObject(QuerySpec.Builder.newInstance()
+        contractDefinitionApi.queryContractDefinitions(toJsonObject(QuerySpec.Builder.newInstance()
                         // .filter(criterion) // todo: edc: Querying Map types is not yet supported
                         .build()))
                 .stream()
@@ -410,16 +426,12 @@ public class AssetsRegistrationJob {
     }
 
     private void createContractDefinitionForAsset(String assetId, String policyId, JobContext jobContext) {
-        String contractDefId = "%s-contract-def".formatted(policyId);
-        jobContext.contractDefinitionIds.remove(contractDefId);
+        log.info("Creating contract definition for asset {}", assetId);
+        String contractDefId = "%s-contract-definition".formatted(assetId);
         try {
             contractDefinitionApi.getContractDefinition(contractDefId);
         } catch (FeignException.NotFound notFound) {
-            log.info("Creating contract definition for asset {}", assetId);
-            String contractDefId = "%s-contract-definition".formatted(assetId);
-        try {
-            contractDefinitionApi.getContractDefinition(contractDefId);
-        } catch (FeignException.NotFound notFound) {contractDefinitionApi.createContractDefinition(createObjectBuilder()
+            contractDefinitionApi.createContractDefinition(createObjectBuilder()
                     .add(CONTEXT, createObjectBuilder().add(VOCAB, EDC_NAMESPACE))
                     .add(ID, contractDefId)
                     .add(ContractDefinition.CONTRACT_DEFINITION_ACCESSPOLICY_ID, policyId)

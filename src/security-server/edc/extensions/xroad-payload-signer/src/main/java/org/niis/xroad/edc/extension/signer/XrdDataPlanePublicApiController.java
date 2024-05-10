@@ -40,7 +40,8 @@ import jakarta.ws.rs.core.Context;
 import jakarta.ws.rs.core.HttpHeaders;
 import jakarta.ws.rs.core.Response;
 import jakarta.ws.rs.core.StreamingOutput;
-import org.eclipse.edc.connector.contract.spi.negotiation.store.ContractNegotiationStore;
+import org.eclipse.edc.connector.controlplane.contract.spi.negotiation.store.ContractNegotiationStore;
+import org.eclipse.edc.connector.controlplane.contract.spi.types.agreement.ContractAgreement;
 import org.eclipse.edc.connector.dataplane.api.controller.ContainerRequestContextApiImpl;
 import org.eclipse.edc.connector.dataplane.api.controller.DataFlowRequestSupplier;
 import org.eclipse.edc.connector.dataplane.api.controller.DataPlanePublicApi;
@@ -53,7 +54,6 @@ import org.eclipse.edc.policy.engine.spi.PolicyEngine;
 import org.eclipse.edc.spi.monitor.Monitor;
 import org.eclipse.edc.spi.result.Result;
 import org.eclipse.edc.spi.types.domain.DataAddress;
-import org.eclipse.edc.spi.types.domain.agreement.ContractAgreement;
 import org.eclipse.edc.web.spi.exception.NotAuthorizedException;
 
 import java.io.ByteArrayOutputStream;

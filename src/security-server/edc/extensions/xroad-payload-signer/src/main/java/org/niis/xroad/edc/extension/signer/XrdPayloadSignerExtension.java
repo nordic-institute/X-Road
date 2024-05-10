@@ -30,7 +30,7 @@ package org.niis.xroad.edc.extension.signer;
 import ee.ria.xroad.common.SystemPropertiesLoader;
 import ee.ria.xroad.signer.protocol.RpcSignerClient;
 
-import org.eclipse.edc.connector.contract.spi.negotiation.store.ContractNegotiationStore;
+import org.eclipse.edc.connector.controlplane.contract.spi.negotiation.store.ContractNegotiationStore;
 import org.eclipse.edc.connector.dataplane.api.validation.ConsumerPullTransferDataAddressResolver;
 import org.eclipse.edc.connector.dataplane.spi.pipeline.PipelineService;
 import org.eclipse.edc.http.spi.EdcHttpClient;

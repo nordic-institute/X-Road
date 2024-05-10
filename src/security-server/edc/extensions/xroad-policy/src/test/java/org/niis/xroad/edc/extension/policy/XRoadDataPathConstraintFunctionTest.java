@@ -29,6 +29,7 @@ package org.niis.xroad.edc.extension.policy;
 
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import org.eclipse.edc.json.JacksonTypeManager;
 import org.eclipse.edc.policy.engine.spi.PolicyContextImpl;
 import org.eclipse.edc.policy.model.Operator;
 import org.eclipse.edc.policy.model.Permission;
@@ -49,7 +50,7 @@ class XRoadDataPathConstraintFunctionTest {
 
     private final ObjectMapper objectMapper = new ObjectMapper();
 
-    private final TypeManager typeManager = new TypeManager();
+    private final TypeManager typeManager = new JacksonTypeManager();
 
     @Test
     void test() throws Exception {

@@ -3,14 +3,15 @@ plugins {
 }
 
 dependencies {
-    implementation("org.eclipse.edc:core-spi:$edcVersion")
-    implementation("org.eclipse.edc:policy-engine-spi:$edcVersion")
+    implementation libs.edc.core.spi
+    implementation libs.edc.policy.engine.spi
 
     implementation(project(':common:common-domain'))
     implementation(project(':common:common-verifier')) {
         exclude group: 'org.eclipse.jetty'
     }
 
-    testImplementation("org.eclipse.edc:junit:$edcVersion")
-    testImplementation("org.mockito:mockito-core:$mockitoVersion")
+    testImplementation libs.edc.junit
+    testImplementation libs.assertj.core
+    testImplementation libs.mockito.jupiter
 }
