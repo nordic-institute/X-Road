@@ -54,6 +54,7 @@ import java.util.UUID;
 import static ee.ria.xroad.common.ErrorCodes.translateException;
 import static ee.ria.xroad.common.util.TimeUtils.getEpochMillisecond;
 import static org.eclipse.jetty.http.HttpStatus.OK_200;
+import static org.niis.xroad.edc.sig.PocConstants.HEADER_XRD_SIG;
 
 /**
  * TODO missing opmon data
@@ -132,8 +133,9 @@ class ClientSoapMessageDsProcessor extends AbstractClientMessageProcessor {
         responseValidator.checkConsistency(requestSoap, responseSoap);
 
         //TODO handle bad request/edc failure
-        xrdSignatureService.verify(response.headers(), responseSoap.getBytes(), requestSoap.getService().getClientId());
-
+        var signature = response.headers().get(HEADER_XRD_SIG);
+        xrdSignatureService.verify(signature, () -> ((SoapMessageImpl) response.soapMessage()).getBytes(), () -> null,
+                requestSoap.getService().getClientId());
     }
 
     private void processResponse(EdcDataPlaneHttpClient.EdcSoapWrapper response, ResponseWrapper jResponse) throws Exception {

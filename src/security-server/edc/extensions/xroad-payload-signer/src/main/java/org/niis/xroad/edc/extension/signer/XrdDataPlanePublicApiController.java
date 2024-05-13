@@ -27,6 +27,7 @@
 package org.niis.xroad.edc.extension.signer;
 
 import ee.ria.xroad.common.identifier.ServiceId;
+import ee.ria.xroad.common.message.RestMessage;
 import ee.ria.xroad.common.message.RestRequest;
 import ee.ria.xroad.common.message.RestResponse;
 import ee.ria.xroad.common.message.SoapMessageImpl;
@@ -54,6 +55,7 @@ import jakarta.ws.rs.core.HttpHeaders;
 import jakarta.ws.rs.core.Response;
 import jakarta.ws.rs.core.StreamingOutput;
 import lombok.SneakyThrows;
+import org.apache.http.Header;
 import org.apache.http.message.BasicHeader;
 import org.bouncycastle.util.io.TeeOutputStream;
 import org.eclipse.edc.connector.dataplane.api.controller.ContainerRequestContextApi;
@@ -66,12 +68,16 @@ import org.eclipse.edc.connector.dataplane.spi.response.TransferErrorResponse;
 import org.eclipse.edc.connector.dataplane.util.sink.AsyncStreamingDataSink;
 import org.eclipse.edc.spi.monitor.Monitor;
 import org.eclipse.edc.spi.types.domain.transfer.DataFlowStartMessage;
+import org.niis.xroad.edc.sig.SignatureResponse;
 import org.niis.xroad.edc.spi.messagelog.XRoadMessageLog;
 
 import java.io.ByteArrayInputStream;
+import java.time.ZonedDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.Base64;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.concurrent.ExecutorService;
 
@@ -171,7 +177,6 @@ public class XrdDataPlanePublicApiController implements DataPlanePublicApi {
         AsyncStreamingDataSink.AsyncResponseContext asyncResponseContext = callback -> {
             StreamingOutput output = t -> callback.outputStreamConsumer().accept(t);
 
-            byte[] responseBytes;
             try {
                 var digestCalculator = CryptoUtils.createDigestCalculator(CryptoUtils.DEFAULT_CERT_HASH_ALGORITHM_ID);
                 CachingStream cachingStream = new CachingStream();
@@ -183,6 +188,7 @@ public class XrdDataPlanePublicApiController implements DataPlanePublicApi {
 
                 Map<String, String> headers = new HashMap<>();
                 headers.put("Content-Type", callback.mediaType());
+                headers.put("Date", DateTimeFormatter.RFC_1123_DATE_TIME.withLocale(Locale.US).format(ZonedDateTime.now()));
                 //TODO edc is not passing response headers??
                 var resp = handleSuccess(cachingStream, headers, serviceId, contextApi, isSoap);
 
@@ -217,15 +223,24 @@ public class XrdDataPlanePublicApiController implements DataPlanePublicApi {
                 });
     }
 
+    private List<Header> toHeadersList(Map<String, String> headers) {
+        return headers.entrySet().stream()
+                .map(e -> new BasicHeader(e.getKey(), e.getValue()))
+                .collect(toList());
+    }
+
+
     @SneakyThrows
     private void logRequest(DataFlowStartMessage dataFlowRequest, ContainerRequestContextApi contextApi,
                             ServiceId.Conf serviceId, boolean isSoap) {
+
+        byte[] requestBody = dataFlowRequest.getProperties().get(BODY).getBytes();
 
         if (isSoap) {
             var soapParser = new SoapParserImpl();
             // todo: use stream?
             SoapMessageImpl soapMessage = (SoapMessageImpl) soapParser.parse(MimeTypes.TEXT_XML_UTF8,
-                    new ByteArrayInputStream(dataFlowRequest.getProperties().get(BODY).getBytes()));
+                    new ByteArrayInputStream(requestBody));
 
             SoapLogMessage logMessage = new SoapLogMessage(
                     soapMessage,
@@ -236,18 +251,17 @@ public class XrdDataPlanePublicApiController implements DataPlanePublicApi {
         } else { // rest message
             RestRequest restRequest = new RestRequest(
                     contextApi.method(),
-                    contextApi.path(),
+                    "/r1/DEV/COM/1234/TestService/mock1", // todo: contextApi.path(),
                     contextApi.queryParams(),
-                    contextApi.headers(),
+                    toHeadersList(contextApi.headers()),
                     contextApi.headers().get(MimeUtils.HEADER_REQUEST_ID)
             );
 
-            String body = dataFlowRequest.getProperties().get(BODY);
             CachingStream cs = new CachingStream();
-            cs.write(body.getBytes());
+            cs.write(requestBody);
 
             RestLogMessage logMessage = new RestLogMessage(contextApi.headers().get(MimeUtils.HEADER_QUERY_ID),
-                    serviceId.getClientId(),
+                    restRequest.getClientId(),
                     serviceId,
                     restRequest, // rest message
                     new SignatureData(getSignatureFromHeaders(contextApi.headers())),
@@ -266,49 +280,60 @@ public class XrdDataPlanePublicApiController implements DataPlanePublicApi {
     private Response handleSuccess(CachingStream cachingStream, Map<String, String> headers, ServiceId.Conf serviceId,
                                    ContainerRequestContextApi contextApi, boolean isSoap) {
         try {
-            Map<String, String> additionalHeaders = this.signService.signPayload(serviceId,
-                    cachingStream.getCachedContents().readAllBytes(), headers);
+            var queryId = contextApi.headers().get(MimeUtils.HEADER_QUERY_ID);
+            var xRequestId = contextApi.headers().get(MimeUtils.HEADER_REQUEST_ID);
             // todo: use stream
-            var builder = Response.ok(cachingStream.getCachedContents().readAllBytes());
-            headers.forEach(builder::header);
-            additionalHeaders.forEach(builder::header);
+            byte[] responseContent = cachingStream.getCachedContents().readAllBytes();
+            SignatureResponse signatureResponse;
 
             if (isSoap) {
+                signatureResponse = this.signService.sign(serviceId, () -> responseContent, () -> null);
+
                 SoapParserImpl soapParser = new SoapParserImpl();
                 SoapMessageImpl soapMessage = (SoapMessageImpl) soapParser.parse(MimeTypes.TEXT_XML_UTF8,
                         cachingStream.getCachedContents());
 
                 var logMessage = new SoapLogMessage(
                         soapMessage,
-                        new SignatureData(getSignatureFromHeaders(additionalHeaders)),
+                        new SignatureData(signatureResponse.getSignatureDecoded()),
                         false,
-                        contextApi.headers().get(MimeUtils.HEADER_REQUEST_ID));
+                        xRequestId);
                 xRoadMessageLog.log(logMessage);
+
+                var builder = Response.ok(responseContent);
+                headers.forEach(builder::header);
+                builder.header(HEADER_XRD_SIG, signatureResponse.getSignature());
+                return builder.build();
+
             } else { // REST message
-                var restResponse = new RestResponse(serviceId.getClientId(),
-                        contextApi.headers().get(MimeUtils.HEADER_QUERY_ID),
-                        // requestHash,
+                var clientId = RestMessage.decodeClientId(contextApi.headers().get("X-Road-Client"));
+                byte[] requestHash = Base64.getEncoder().encode("todo".getBytes()); // todo: calculate request hash
+                var restResponse = new RestResponse(clientId,
+                        queryId,
+                        requestHash,
                         serviceId,
                         HTTP_OK, "OK",   // todo: can't get them here
-                        headers.entrySet().stream()
-                                .map(e -> new BasicHeader(e.getKey(), e.getValue()))
-                                .collect(toList()),
-                        contextApi.headers().get(MimeUtils.HEADER_REQUEST_ID));
+                        toHeadersList(headers),
+                        xRequestId);
+                new String(restResponse.getMessageBytes());
+                signatureResponse = this.signService.sign(serviceId, restResponse::getMessageBytes, () -> responseContent);
 
                 var logMessage = new RestLogMessage(
-                        contextApi.headers().get(MimeUtils.HEADER_QUERY_ID),
-                        serviceId.getClientId(),
+                        queryId,
+                        restResponse.getClientId(),
                         serviceId,
                         restResponse,
-                        new SignatureData(getSignatureFromHeaders(additionalHeaders)),
+                        new SignatureData(signatureResponse.getSignatureDecoded()),
                         cachingStream.getCachedContents(),
                         false,
-                        contextApi.headers().get(MimeUtils.HEADER_REQUEST_ID)
-                );
+                        xRequestId);
                 xRoadMessageLog.log(logMessage);
-            }
 
-            return builder.build();
+                var builder = Response.ok(responseContent);
+                restResponse.getHeaders().forEach(h -> builder.header(h.getName(), h.getValue()));
+                builder.header(HEADER_XRD_SIG, signatureResponse.getSignature());
+                return builder.build();
+            }
         } catch (Exception e) {
             monitor.severe("Failed to sign response payload", e);
             throw new RuntimeException(e);

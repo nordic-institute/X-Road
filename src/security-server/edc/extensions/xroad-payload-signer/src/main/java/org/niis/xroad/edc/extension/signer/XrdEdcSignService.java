@@ -32,12 +32,14 @@ import ee.ria.xroad.common.identifier.ServiceId;
 import lombok.RequiredArgsConstructor;
 import org.eclipse.edc.connector.dataplane.api.controller.ContainerRequestContextApiImpl;
 import org.eclipse.edc.spi.monitor.Monitor;
+import org.niis.xroad.edc.sig.SignatureResponse;
 import org.niis.xroad.edc.sig.XrdSignatureCreationException;
 import org.niis.xroad.edc.sig.XrdSignatureService;
 import org.niis.xroad.edc.sig.XrdSignatureVerificationException;
 
 import java.nio.charset.StandardCharsets;
 import java.util.Map;
+import java.util.function.Supplier;
 
 import static ee.ria.xroad.common.util.UriUtils.uriSegmentPercentDecode;
 
@@ -46,6 +48,15 @@ public class XrdEdcSignService {
     private final XrdSignatureService signService;
 
     private final Monitor monitor;
+
+    public SignatureResponse sign(ServiceId.Conf serviceId, Supplier<byte[]> messageSupplier, Supplier<byte[]> attachmentSupplier) {
+        monitor.debug("Signing request payload..");
+        try {
+            return signService.sign(serviceId.getClientId(), messageSupplier, attachmentSupplier);
+        } catch (XrdSignatureCreationException e) {
+            throw new RuntimeException("Failed to sign response payload", e);
+        }
+    }
 
     public Map<String, String> signPayload(ServiceId.Conf serviceId, byte[] body, Map<String, String> headers) {
         monitor.debug("Signing response payload..");

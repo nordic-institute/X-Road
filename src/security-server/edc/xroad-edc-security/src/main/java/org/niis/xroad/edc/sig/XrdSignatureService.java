@@ -48,6 +48,7 @@ import javax.xml.validation.SchemaFactory;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
+import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
 import static eu.europa.esig.dss.enumerations.SignatureLevel.JAdES_BASELINE_B;
@@ -72,6 +73,25 @@ public class XrdSignatureService {
         XmlDefinerUtils.getInstance().setSchemaFactoryBuilder(new JaxpSchemaFactoryBuilder());
     }
 
+    public SignatureResponse sign(ClientId signingClientId, Supplier<byte[]> messageSupplier, Supplier<byte[]> attachmentSupplier)
+            throws XrdSignatureCreationException {
+
+        var signingInfo = getMemberSigningInfo(signingClientId);
+        var signer = switch (MODE) {
+            case JWS -> new XrdJWSSignatureCreator();
+            case JADES_B -> new XrdJAdESSignatureCreator(JAdES_BASELINE_B, JWSSerializationType.COMPACT_SERIALIZATION);
+            case JADES_B_LT ->
+                    new XrdJAdESSignatureCreator(JAdES_BASELINE_LT, JWSSerializationType.FLATTENED_JSON_SERIALIZATION);
+            case XADES_B -> new XrdXAdESSignatureCreator();
+        };
+
+        var signature = signer.sign(signingInfo, messageSupplier, attachmentSupplier);
+
+        Map<String, String> signatureHeaders = new HashMap<>();
+        signatureHeaders.put(HEADER_XRD_SIG, signature);
+        return new SignatureResponse(signatureHeaders, signature);
+    }
+
     public SignatureResponse sign(ClientId signingClientId, byte[] messageBody, Map<String, String> messageHeaders)
             throws XrdSignatureCreationException {
 
@@ -79,7 +99,8 @@ public class XrdSignatureService {
         var signer = switch (MODE) {
             case JWS -> new XrdJWSSignatureCreator();
             case JADES_B -> new XrdJAdESSignatureCreator(JAdES_BASELINE_B, JWSSerializationType.COMPACT_SERIALIZATION);
-            case JADES_B_LT -> new XrdJAdESSignatureCreator(JAdES_BASELINE_LT, JWSSerializationType.FLATTENED_JSON_SERIALIZATION);
+            case JADES_B_LT ->
+                    new XrdJAdESSignatureCreator(JAdES_BASELINE_LT, JWSSerializationType.FLATTENED_JSON_SERIALIZATION);
             case XADES_B -> new XrdXAdESSignatureCreator();
         };
 
@@ -95,7 +116,7 @@ public class XrdSignatureService {
 
         Map<String, String> signatureHeaders = new HashMap<>();
         signatureHeaders.put(HEADER_XRD_SIG, signature);
-        signatureHeaders.put(HEADER_XRD_SIG_OCSP, Base64.toBase64String(signingInfo.getCert().getOcspBytes()));
+//        signatureHeaders.put(HEADER_XRD_SIG_OCSP, Base64.toBase64String(signingInfo.getCert().getOcspBytes()));
         return new SignatureResponse(signatureHeaders, signature);
     }
 
@@ -115,6 +136,13 @@ public class XrdSignatureService {
                 .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
 
         verifier.verifySignature(signature, detachedPayload, filteredHeaders, signerClientId);
+    }
+
+    public void verify(String signature, Supplier<byte[]> messageSupplier, Supplier<byte[]> attachmentSupplier, ClientId signerClientId)
+            throws XrdSignatureVerificationException {
+
+        var verifier = new XrdXAdESVerifier();
+        verifier.verifySignature(signature, messageSupplier, attachmentSupplier, signerClientId);
     }
 
     private SignerProxy.MemberSigningInfoDto getMemberSigningInfo(ClientId clientId) throws XrdSignatureCreationException {

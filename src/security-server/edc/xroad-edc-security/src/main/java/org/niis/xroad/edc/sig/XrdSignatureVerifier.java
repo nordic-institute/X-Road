@@ -29,9 +29,15 @@ package org.niis.xroad.edc.sig;
 import ee.ria.xroad.common.identifier.ClientId;
 
 import java.util.Map;
+import java.util.function.Supplier;
 
 public interface XrdSignatureVerifier {
 
     void verifySignature(String signature, byte[] detachedPayload, Map<String, String> detachedHeaders, ClientId signerClientId)
             throws XrdSignatureVerificationException;
+
+    default void verifySignature(String signature, Supplier<byte[]> messageSupplier, Supplier<byte[]> attachmentSupplier,  ClientId signerClientId)
+            throws XrdSignatureVerificationException {
+        throw new UnsupportedOperationException("Must be implemented by subclass");
+    }
 }

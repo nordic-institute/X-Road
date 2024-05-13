@@ -42,7 +42,6 @@ import java.net.URI;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 import java.util.stream.Collectors;
 
 import static ee.ria.xroad.common.util.UriUtils.uriSegmentPercentDecode;
@@ -111,26 +110,6 @@ public class RestRequest extends RestMessage {
         this.headers.add(new BasicHeader(MimeUtils.HEADER_REQUEST_ID, xRequestId));
         decodeIdentifiers();
     }
-
-
-    public RestRequest(String verb, String path, String query, Map<String, String> headers, String xRequestId) {
-        this.verb = Verb.valueOf(verb);
-        this.headers = headers.entrySet().stream()
-                .map(entry -> new BasicHeader(entry.getKey(), entry.getValue()))
-                .collect(Collectors.toList());
-
-//         headers.stream()
-//                .filter(h -> !SKIPPED_HEADERS.contains(h.getName().toLowerCase())
-//                        && !MimeUtils.HEADER_REQUEST_ID.equalsIgnoreCase(h.getName())
-//                        && !MimeUtils.HEADER_REQUEST_HASH.equalsIgnoreCase(h.getName()))
-//                .collect(Collectors.toCollection(ArrayList::new));
-        this.requestPath = path;
-        this.query = query;
-        this.xRequestId = xRequestId;
-//        this.headers.add(new BasicHeader(MimeUtils.HEADER_REQUEST_ID, xRequestId));
-//        decodeIdentifiers();
-    }
-
 
     /**
      * serialize

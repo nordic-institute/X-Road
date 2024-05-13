@@ -30,6 +30,7 @@ package org.niis.xroad.edc.sig;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 
+import java.util.Base64;
 import java.util.Map;
 
 @RequiredArgsConstructor
@@ -40,7 +41,7 @@ public class SignatureResponse {
     private final String signature;
 
     public String getSignatureDecoded() {
-        return new String(java.util.Base64.getDecoder().decode(signature));
+        return new String(Base64.getDecoder().decode(signature));
     }
 
 }

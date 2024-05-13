@@ -109,7 +109,7 @@ class ClientRestMessageDsProcessor extends AbstractClientMessageProcessor {
         jRequest.getInputStream().transferTo(cachingStream);
         restRequest.setBody(cachingStream);
 
-        var response = xrdDataSpaceClient.processRestReqeust(restRequest, assetInfo);
+        var response = xrdDataSpaceClient.processRestRequest(restRequest, assetInfo);
         processResponse(response, jResponse);
     }
 
@@ -124,7 +124,8 @@ class ClientRestMessageDsProcessor extends AbstractClientMessageProcessor {
 
         //TODO handle bad request/edc failure
         // todo: use streams
-        xrdSignatureService.verify(headers, payload, restRequest.getServiceId().getClientId());
+        var signature = response.getSignature();
+        xrdSignatureService.verify(signature, response::getMessageBytes, () -> payload, restRequest.getServiceId().getClientId());
 
         headers.forEach(jResponse.getHeaders()::add);
 

@@ -33,10 +33,17 @@ import eu.europa.esig.dss.model.x509.CertificateToken;
 import eu.europa.esig.dss.spi.x509.CommonTrustedCertificateSource;
 
 import java.util.Map;
+import java.util.function.Supplier;
 
 public interface XrdSignatureCreator {
     String sign(SignerProxy.MemberSigningInfoDto signingInfo, byte[] messageBody, Map<String, String> messageHeaders)
             throws XrdSignatureCreationException;
+
+    default String sign(SignerProxy.MemberSigningInfoDto signingInfo, Supplier<byte[]> messageSupplier, Supplier<byte[]> attachmentSupplier)
+        throws XrdSignatureCreationException {
+
+        throw new XrdSignatureCreationException("Unsupported operation. Should be implemented in subclass");
+    }
 
     default CommonTrustedCertificateSource getTrustedListsCertificateSource() {
         var trustedCertSource = new CommonTrustedCertificateSource();

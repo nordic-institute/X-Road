@@ -58,14 +58,19 @@ public abstract class XrdSignatureVerifierBase {
     }
 
     protected void validateXroad(X509Certificate cert,
-                               ClientId clientId, Map<String, String> detachedHeaders) throws Exception {
-        var ocsResponse = new OCSPResp(Base64.decode(detachedHeaders.get(PocConstants.HEADER_XRD_SIG_OCSP)));
+                                 ClientId clientId, OCSPResp ocsResponse) throws Exception {
         verifyCertificateChain(new Date(), clientId, cert, List.of(ocsResponse));
         verifySignerName(clientId, cert);
 
         CertUtils.isSigningCert(cert);
         CertUtils.isValid(cert); //TODO probably overlaps with native dss checks?
         log.info("XRD checks: Signature is valid.");
+    }
+
+    protected void validateXroad(X509Certificate cert,
+                               ClientId clientId, Map<String, String> detachedHeaders) throws Exception {
+        var ocsResponse = new OCSPResp(Base64.decode(detachedHeaders.get(PocConstants.HEADER_XRD_SIG_OCSP)));
+        validateXroad(cert, clientId, ocsResponse);
     }
 
     private static void verifySignerName(ClientId signer, X509Certificate signingCert) throws Exception {

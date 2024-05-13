@@ -56,12 +56,15 @@ import org.niis.xroad.ssl.SSLContextBuilder;
 import java.security.KeyManagementException;
 import java.security.NoSuchAlgorithmException;
 import java.util.Arrays;
+import java.util.Base64;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
 import static ee.ria.xroad.common.ErrorCodes.X_INTERNAL_ERROR;
+import static ee.ria.xroad.common.util.MimeUtils.HEADER_REQUEST_HASH;
 import static org.apache.hc.core5.util.Timeout.ofSeconds;
+import static org.niis.xroad.edc.sig.PocConstants.HEADER_XRD_SIG;
 
 /**
  * Right now it is a simplified version of actual client. Consider adding improved configuration and error handling.
@@ -77,19 +80,21 @@ public class EdcDataPlaneHttpClient {
                 log.info("EDC responded with code {}", response.getCode());
 
                 List<org.apache.http.Header> headers = Arrays.stream(response.getHeaders())
+                        .filter(h -> !HEADER_XRD_SIG.equalsIgnoreCase(h.getName()))
                         .map(h -> (org.apache.http.Header) new BasicHeader(h.getName(), h.getValue()))
                         .toList();
 
-                byte[] requestHash = new byte[0]; // todo:
+                byte[] requestHash = Base64.getDecoder().decode(response.getHeader(HEADER_REQUEST_HASH).getValue());
+                var signature = response.getHeader(HEADER_XRD_SIG).getValue();
 
-                RestResponse restResponse = new RestResponse(req.getClientId(), req.getQueryId(), // requestHash,
+                RestResponse restResponse = new RestResponse(req.getClientId(), req.getQueryId(), requestHash,
                         req.getServiceId(), response.getCode(), response.getReasonPhrase(), headers,
                         req.getXRequestId());
 
                 CachingStream responseBodyStream = new CachingStream();
                 response.getEntity().getContent().transferTo(responseBodyStream);
-
                 restResponse.setBody(responseBodyStream);
+                restResponse.setSignature(signature);
 
                 return restResponse;
             });

@@ -34,6 +34,7 @@ import ee.ria.xroad.common.util.MimeUtils;
 import com.google.common.escape.Escaper;
 import com.google.common.net.UrlEscapers;
 import lombok.Getter;
+import lombok.Setter;
 import org.apache.http.Header;
 import org.apache.http.message.BasicHeader;
 
@@ -63,8 +64,12 @@ public class RestResponse extends RestMessage {
     private final ClientId clientId;
     private final String xRequestId;
 
+    @Setter
+    private String signature;
+
     /**
      * create response from raw messageBytes
+     *
      * @param messageBytes
      */
     private RestResponse(byte[] messageBytes, ClientId clientId, String queryId, byte[] requestHash,
@@ -97,6 +102,7 @@ public class RestResponse extends RestMessage {
                         && !h.getName().equalsIgnoreCase(MimeUtils.HEADER_QUERY_ID)
                         && !h.getName().equalsIgnoreCase(MimeUtils.HEADER_REQUEST_HASH)
                         && !h.getName().equalsIgnoreCase(MimeUtils.HEADER_CLIENT_ID)
+                        && !h.getName().equalsIgnoreCase(MimeUtils.HEADER_SERVICE_ID)
                         && !h.getName().equalsIgnoreCase(MimeUtils.HEADER_REQUEST_ID))
                 .collect(Collectors.toCollection(ArrayList::new));
 
@@ -106,21 +112,6 @@ public class RestResponse extends RestMessage {
         tmp.add(new BasicHeader(MimeUtils.HEADER_REQUEST_ID, xRequestId));
         tmp.add(new BasicHeader(MimeUtils.HEADER_REQUEST_HASH, CryptoUtils.encodeBase64(requestHash)));
         this.headers = tmp;
-    }
-
-    public RestResponse(ClientId clientId, String queryId, ServiceId serviceId, int code,
-                         String reason, List<Header> headers, String xRequestId) {
-        //todo: handle the request hash
-
-        this.responseCode = code;
-        this.reason = reason;
-        this.queryId = queryId;
-//        this.requestHash = requestHash;
-        this.requestHash = null;
-        this.serviceId = serviceId;
-        this.clientId = clientId;
-        this.xRequestId = xRequestId;
-        this.headers = headers;
     }
 
     @Override

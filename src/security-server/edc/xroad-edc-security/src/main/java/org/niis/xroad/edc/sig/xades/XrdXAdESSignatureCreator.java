@@ -57,10 +57,12 @@ import java.util.ArrayList;
 import java.util.Base64;
 import java.util.List;
 import java.util.Map;
+import java.util.function.Supplier;
 
 import static ee.ria.xroad.common.util.CryptoUtils.readCertificate;
 import static eu.europa.esig.dss.enumerations.SignaturePackaging.DETACHED;
 import static org.niis.xroad.edc.sig.xades.XrdXAdESUtils.DOCUMENT_NAME_HEADERS;
+import static org.niis.xroad.edc.sig.xades.XrdXAdESUtils.DOCUMENT_NAME_PAYLOAD;
 
 @RequiredArgsConstructor
 public class XrdXAdESSignatureCreator implements XrdSignatureCreator {
@@ -69,21 +71,46 @@ public class XrdXAdESSignatureCreator implements XrdSignatureCreator {
     private final SignatureLevel signatureLevel = SignatureLevel.XAdES_BASELINE_B;
 
     @Override
+    public String sign(SignerProxy.MemberSigningInfoDto signingInfo, Supplier<byte[]> messageSupplier, Supplier<byte[]> attachmentSupplier)
+            throws XrdSignatureCreationException {
+
+        List<DSSDocument> documentsToSign = new ArrayList<>();
+        byte[] messagePart = messageSupplier.get();
+        if (messagePart != null) {
+            documentsToSign.add(new InMemoryDocument(messagePart, "/message.xml"));
+        }
+
+        byte[] attachmentPart = attachmentSupplier.get();
+        if (attachmentPart != null) {
+            documentsToSign.add(new InMemoryDocument(attachmentPart, "/attachment1"));
+        }
+
+        return signDocuments(signingInfo, documentsToSign);
+    }
+
+    @Override
     public String sign(SignerProxy.MemberSigningInfoDto signingInfo, byte[] messageBody, Map<String, String> messageHeaders)
             throws XrdSignatureCreationException {
         List<DSSDocument> documentsToSign = new ArrayList<>();
         if (messageHeaders != null && !messageHeaders.isEmpty()) {
             documentsToSign.add(new InMemoryDocument(XrdXAdESUtils.serializeHeaders(messageHeaders).getBytes(), DOCUMENT_NAME_HEADERS));
+//            documentsToSign.add(new InMemoryDocument(XrdXAdESUtils.serializeHeaders(messageHeaders).getBytes(), "/message.xml"));
         }
-//      todo:  documentsToSign.add(new InMemoryDocument(messageBody, DOCUMENT_NAME_PAYLOAD));
-        documentsToSign.add(new InMemoryDocument(messageBody, "/message.xml"));
+        documentsToSign.add(new InMemoryDocument(messageBody, DOCUMENT_NAME_PAYLOAD));
+//        documentsToSign.add(new InMemoryDocument(messageBody, "/message.xml"));
+//        documentsToSign.add(new InMemoryDocument(messageBody, "/attachment1"));
 
+        return signDocuments(signingInfo, documentsToSign);
+    }
+
+    private String signDocuments(SignerProxy.MemberSigningInfoDto signingInfo, List<DSSDocument> documentsToSign)
+            throws XrdSignatureCreationException {
         XAdESSignatureParameters parameters = new XAdESSignatureParameters();
         parameters.setXadesNamespace(XAdESNamespace.XADES_132);
         parameters.setSignatureLevel(signatureLevel);
         parameters.setSignaturePackaging(DETACHED);
         parameters.setDigestAlgorithm(DigestAlgorithm.SHA512);
-        parameters.setXadesNamespace(new DSSNamespace("http://uri.etsi.org/01903/v1.3.2#", "xades"));
+        parameters.setXadesNamespace(new DSSNamespace(XAdESNamespace.XADES_132.getUri(), "xades"));
 
         X509Certificate cert = readCertificate(signingInfo.getCert().getCertificateBytes());
         parameters.setSigningCertificate(new CertificateToken(cert));
@@ -94,7 +121,7 @@ public class XrdXAdESSignatureCreator implements XrdSignatureCreator {
 
         DSSDocument signedDocument = service.signDocument(documentsToSign, parameters, signatureValue);
 
-//      todo: is adding ocsp required?
+//      todo: adding ocsp. Might be not the most effective way.
         var extendedDoc = new OcspExtensionBuilder().addOcspToken(signedDocument, signingInfo.getCert().getOcspBytes());
 
 //        var serializedHeaders = XrdXAdESUtils.serializeHeaders(messageHeaders);
@@ -104,7 +131,6 @@ public class XrdXAdESSignatureCreator implements XrdSignatureCreator {
     }
 
     static class OcspExtensionBuilder extends ExtensionBuilder {
-
         DSSDocument addOcspToken(DSSDocument document, byte[] ocspBytes) {
             params = new XAdESSignatureParameters();
             documentValidator = new XMLDocumentValidator(document);
