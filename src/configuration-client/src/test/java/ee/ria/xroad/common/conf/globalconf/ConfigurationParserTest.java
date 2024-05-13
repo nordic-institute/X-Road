@@ -180,17 +180,12 @@ class ConfigurationParserTest {
             @Override
             public List<ConfigurationLocation> getLocations() {
                 try {
-                    return Arrays.asList(new ConfigurationLocation(this,
+                    return List.of(new ConfigurationLocation(instanceIdentifier,
                             downloadURL,
-                            Arrays.asList(verificationCert.getEncoded())));
+                            List.of(verificationCert.getEncoded())));
                 } catch (CertificateEncodingException e) {
                     throw new RuntimeException(e);
                 }
-            }
-
-            @Override
-            public boolean hasChanged() {
-                return false;
             }
         };
     }

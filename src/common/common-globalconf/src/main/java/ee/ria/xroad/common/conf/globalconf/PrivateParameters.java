@@ -58,13 +58,8 @@ public class PrivateParameters {
         @Override
         public List<ConfigurationLocation> getLocations() {
             return sources.stream()
-                    .map(l -> new ConfigurationLocation(this, l.getDownloadURL(), l.getVerificationCerts()))
+                    .map(l -> new ConfigurationLocation(this.getInstanceIdentifier(), l.getDownloadURL(), l.getVerificationCerts()))
                     .collect(Collectors.toList());
-        }
-
-        @Override
-        public boolean hasChanged() {
-            return false;
         }
     }
 

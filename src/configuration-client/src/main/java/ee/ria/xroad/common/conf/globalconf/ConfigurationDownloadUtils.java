@@ -43,7 +43,7 @@ public final class ConfigurationDownloadUtils {
         List<ConfigurationLocation> httpsUrls = urls.stream()
                 .filter(location -> startWithHttpAndNotWithHttps(location.getDownloadURL()))
                 .map(location -> new ConfigurationLocation(
-                        location.getSource(),
+                        location.getInstanceIdentifier(),
                         location.getDownloadURL().replaceFirst(HTTP, HTTPS),
                         location.getVerificationCerts()))
                 .collect(Collectors.toList());

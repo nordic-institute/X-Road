@@ -140,7 +140,7 @@ class ConfigurationClientTest {
             @Override
             public List<ConfigurationLocation> getLocations() {
                 try {
-                    return List.of(new ConfigurationLocation(this,
+                    return List.of(new ConfigurationLocation(this.getInstanceIdentifier(),
                             fileName,
                             List.of(TestCertUtil.getConsumer().certChain[0].getEncoded())));
                 } catch (CertificateEncodingException e) {

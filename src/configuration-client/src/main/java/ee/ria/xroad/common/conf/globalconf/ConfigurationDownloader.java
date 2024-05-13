@@ -303,7 +303,7 @@ class ConfigurationDownloader {
             // Force a.k.a. add "version" query parameter to the URI or replace if already exists
             uriBuilder.setParameter(VERSION_QUERY_PARAMETER, configurationVersion.toString());
         }
-        return new ConfigurationLocation(location.getSource(), uriBuilder.build().toString(), location.getVerificationCerts());
+        return new ConfigurationLocation(location.getInstanceIdentifier(), uriBuilder.build().toString(), location.getVerificationCerts());
 
     }
 

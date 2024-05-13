@@ -42,12 +42,4 @@ public interface ConfigurationSource {
      */
     List<ConfigurationLocation> getLocations();
 
-    /**
-     * @return whether the configuration has changed. For XML based
-     * configuration implementations, this might mean checking if the
-     * underlying XML file has changed (for example, by comparing the
-     * XML checksums).
-     */
-    boolean hasChanged();
-
 }
