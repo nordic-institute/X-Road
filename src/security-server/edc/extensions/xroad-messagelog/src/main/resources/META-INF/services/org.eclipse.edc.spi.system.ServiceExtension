@@ -1,1 +1,2 @@
 org.niis.xroad.edc.extension.messagelog.XRoadMessageLogExtension
+org.niis.xroad.edc.extension.messagelog.GlobalConfUpdaterExtension

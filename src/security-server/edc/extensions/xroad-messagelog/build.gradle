@@ -9,6 +9,7 @@ dependencies {
 
     implementation(project(":addons:messagelog:messagelog-addon:core"))
     implementation(project(":common:common-messagelog"))
+    implementation(project(":common:common-verifier")) // for the GlobalConf reload
 
     implementation(project(":common:common-domain")) {
         exclude group: 'org.eclipse.jetty'
