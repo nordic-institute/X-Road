@@ -13,8 +13,7 @@ warn() {
 
 # Ensure XROAD_HOME is set and not empty
 if [ -z "$XROAD_HOME" ]; then
-  echo "XROAD_HOME is not set. Exiting."
-  exit 1
+  errorExit "XROAD_HOME is not set. Exiting."
 fi
 
 TARGET_PACKAGE_SOURCE=internal

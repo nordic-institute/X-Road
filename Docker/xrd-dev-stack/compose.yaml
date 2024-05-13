@@ -1,6 +1,7 @@
 services:
   cs:
     image: ${CS_IMG}
+    container_name: cs
     deploy:
       resources:
         reservations:
@@ -11,8 +12,11 @@ services:
       interval: 5s
       retries: 40
       test: [ "CMD", "curl", "-f", "-k", "https://localhost:4000" ]
+    networks:
+      - xroad-network
   ss0:
     image: ${SS_IMG}
+    container_name: ss0
     deploy:
       resources:
         reservations:
@@ -23,8 +27,11 @@ services:
       interval: 5s
       retries: 40
       test: [ "CMD", "curl", "-f", "-k", "https://localhost:4000" ]
+    networks:
+      - xroad-network
   ss1:
     image: ${SS_IMG}
+    container_name: ss1
     deploy:
       resources:
         reservations:
@@ -35,8 +42,11 @@ services:
       interval: 5s
       retries: 40
       test: [ "CMD", "curl", "-f", "-k", "https://localhost:4000" ]
+    networks:
+      - xroad-network
   testca:
     image: ${CA_IMG}
+    container_name: testca
     deploy:
       resources:
         reservations:
@@ -49,8 +59,11 @@ services:
       test: [ "CMD", "curl", "-f", "-k", "http://localhost:8888/testca/certs" ]
     volumes:
       - ca-volume:/home/ca/certs
+    networks:
+      - xroad-network
   issoap:
     image: ${IS_SOAP_IMG}
+    container_name: issoap
     deploy:
       resources:
         reservations:
@@ -62,8 +75,11 @@ services:
       retries: 40
       test: [ "CMD", "curl", "-f", "-k", "http://localhost:8080/example-adapter/Endpoint?wsdl" ]
     entrypoint: ["java", "-Xms64m", "-Xmx256m", "-jar", "/example-adapter.war"]
+    networks:
+      - xroad-network
   isrest:
     image: wiremock/wiremock:latest
+    container_name: isrest
     deploy:
       resources:
         reservations:
@@ -76,6 +92,8 @@ services:
       test: [ "CMD", "curl", "-f", "-k", "http://localhost:8080/__admin/health" ]
     volumes:
       - ./wiremock_mappings:/home/wiremock/mappings
+    networks:
+      - xroad-network
   hurl:
     image: ghcr.io/orange-opensource/hurl:latest
     deploy:
@@ -100,5 +118,12 @@ services:
         condition: service_healthy
       isrest:
         condition: service_healthy
+    networks:
+      - xroad-network
 volumes:
   ca-volume:
+networks:
+  # Use implicitly named network so that is easier to add container outside the compose
+  xroad-network:
+    name: xroad-network
+    driver: bridge
