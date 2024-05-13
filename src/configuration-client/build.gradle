@@ -11,6 +11,7 @@ dependencies {
     implementation libs.commons.cli
 
     testImplementation project(':common:common-test')
+    testImplementation libs.wiremock.standalone
 }
 
 ext {
