@@ -17,14 +17,13 @@ log() { echo "$(date --utc -Iseconds) INFO [entrypoint] $*"; }
 warn() { echo "$(date --utc -Iseconds) WARN [entrypoint] $*" >&2; }
 
 init_db_dir() {
-  local postgres_dir=/var/lib/postgresql/16
-  local pgdata="$postgres_dir/main"
+  local pgdata=/var/lib/postgresql/16/main
   if [ ! -s "$pgdata/PG_VERSION" ]; then
     log "Initializing local database at \"$pgdata\""
     mkdir -p "$pgdata"
     chmod 0700 "$pgdata"
     chown postgres:postgres "$pgdata"
-    sudo -u postgres "$postgres_dir/bin/initdb" -D "$pgdata"
+    sudo -u postgres /usr/lib/postgresql/16/bin/initdb -D "$pgdata"
   fi
 }
 
@@ -178,7 +177,7 @@ if [[ "$RECONFIG_REQUIRED" == "true" ]]; then
   fi
   if [[ "$LOCAL_DB" == "true" ]]; then
     init_db_dir
-    pg_ctlcluster 12 main start
+    pg_ctlcluster 16 main start
   else
     if [[ -n "$XROAD_DB_PWD" ]]; then
       if [[ -w "$ROOT_PROPERTIES" ]]; then
@@ -205,7 +204,7 @@ if [[ "$RECONFIG_REQUIRED" == "true" ]]; then
     touch /.xroad-reconfigured
   fi
   if [[ "$LOCAL_DB" == "true" ]]; then
-    pg_ctlcluster 12 main stop
+    pg_ctlcluster 16 main stop
     sleep 1
     crudini --set --existing=section /etc/supervisor/conf.d/xroad.conf program:postgres autostart true &>/dev/null || :
   else
