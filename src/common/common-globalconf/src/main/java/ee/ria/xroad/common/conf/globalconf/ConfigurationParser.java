@@ -133,7 +133,7 @@ public class ConfigurationParser {
     }
 
     private String getInstanceIdentifier() {
-        return configuration.getLocation().getSource().getInstanceIdentifier();
+        return configuration.getLocation().getInstanceIdentifier();
     }
 
     /**

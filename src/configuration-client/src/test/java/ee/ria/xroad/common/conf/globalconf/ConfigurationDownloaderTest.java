@@ -387,13 +387,8 @@ class ConfigurationDownloaderTest {
             return result;
         }
 
-        @Override
-        public boolean hasChanged() {
-            return false;
-        }
-
         private ConfigurationLocation getLocation(String url) {
-            return new ConfigurationLocation(this, url, new ArrayList<>());
+            return new ConfigurationLocation(this.getInstanceIdentifier(), url, new ArrayList<>());
         }
     }
 

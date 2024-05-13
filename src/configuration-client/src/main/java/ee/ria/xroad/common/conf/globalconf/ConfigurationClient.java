@@ -27,6 +27,7 @@ package ee.ria.xroad.common.conf.globalconf;
 
 import ee.ria.xroad.common.CodedException;
 import ee.ria.xroad.common.SystemProperties;
+import ee.ria.xroad.common.conf.ConfProvider;
 
 import lombok.extern.slf4j.Slf4j;
 
@@ -74,7 +75,7 @@ class ConfigurationClient {
     synchronized void execute() throws Exception {
         log.debug("Configuration client executing...");
 
-        if (configurationAnchor == null || configurationAnchor.hasChanged()) {
+        if (configurationAnchor == null || (configurationAnchor instanceof ConfProvider cp && cp.hasChanged())) {
             log.debug("Initializing configuration anchor");
 
             initConfigurationAnchor();

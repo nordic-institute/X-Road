@@ -55,7 +55,7 @@ import static ee.ria.xroad.common.util.CryptoUtils.readCertificate;
 @Slf4j
 public class ConfigurationLocation {
 
-    private final ConfigurationSource source;
+    private final String instanceIdentifier;
 
     private final String downloadURL;
 
@@ -112,13 +112,6 @@ public class ConfigurationLocation {
         }
 
         return null;
-    }
-
-    /**
-     * @return Instance identifier of this configuration location
-     */
-    public String getInstanceIdentifier() {
-        return source.getInstanceIdentifier();
     }
 
     @Override

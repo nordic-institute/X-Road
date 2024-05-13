@@ -65,16 +65,16 @@ class SharedParametersConfigurationLocations {
                     getSharedParametersConfigurationSources(source.getInstanceIdentifier());
             locations = sharedParametersConfigurationSources.stream()
                     .map(confSource -> new ConfigurationLocation(
-                            source, getDownloadUrl(confSource.getAddress(), configurationDirectory),
+                            source.getInstanceIdentifier(), getDownloadUrl(confSource.getAddress(), configurationDirectory),
                             getVerificationCerts(configurationDirectory, confSource)))
                     .collect(Collectors.toList());
         } catch (CertificateEncodingException | DataIntegrityException | IOException e) {
-            log.error("Unable to acquire shared parameters for instance " + source.getInstanceIdentifier(), e);
+            log.error("Unable to acquire shared parameters for instance {}", source.getInstanceIdentifier(), e);
         }
 
         locations.addAll(locations.stream()
                 .map(location -> new ConfigurationLocation(
-                        location.getSource(), location.getDownloadURL().replaceFirst(HTTPS, HTTP), location.getVerificationCerts()))
+                        location.getInstanceIdentifier(), location.getDownloadURL().replaceFirst(HTTPS, HTTP), location.getVerificationCerts()))
                 .toList());
         return locations;
     }
