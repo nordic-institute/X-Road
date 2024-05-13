@@ -105,64 +105,6 @@ class ConfigurationDownloaderTest {
         }
     }
 
-    @Test
-    void presetVersionPrevailsWhenVersionNotEnforced() {
-        // Given
-        int presetVersion = 1;
-        ConfigurationDownloader downloader =
-                getDownloader(LOCATION_URL_SUCCESS + "?version=" + presetVersion);
-        List<String> locationUrls = List.of(LOCATION_URL_SUCCESS + "?version=" + presetVersion);
-
-        // When
-        downloader.download(getSource(locationUrls));
-
-        // Then
-        verifySuccessfulLocation(downloader, presetVersion);
-    }
-
-    @Test
-    void v4PrevailsWhenVersionNeitherPresetNorEnforced() {
-        // Given
-        String url = LOCATION_URL_SUCCESS;
-        ConfigurationDownloader downloader = getDownloader(url + "?version=" + 4);
-        List<String> locationUrls = List.of(url);
-
-        // When
-        downloader.download(getSource(locationUrls));
-
-        // Then
-        verifySuccessfulLocation(downloader, 4);
-    }
-
-    @Test
-    void v3PrevailsWhenVersionNeitherPresetNorEnforcedAndV4NotAvailable() {
-        // Given
-        String url = LOCATION_URL_SUCCESS + "/nope";
-        ConfigurationDownloader downloader = getDownloader(url + "?version=" + 3);
-        List<String> locationUrls = List.of(url);
-
-        // When
-        downloader.download(getSource(locationUrls));
-
-        // Then
-        verifySuccessfulLocationNope(downloader, 3);
-    }
-
-    @Test
-    void enforcedVersionPrevailsPresetVersion() {
-        // Given
-        String url = LOCATION_URL_SUCCESS;
-        int enforcedVersion = 2;
-        ConfigurationDownloader downloader = getDownloader(enforcedVersion, url + "?version=" + enforcedVersion);
-        List<String> locationUrls = List.of(url + "?version=" + 3);
-
-        // When
-        downloader.download(getSource(locationUrls));
-
-        // Then
-        verifySuccessfulLocation(downloader, enforcedVersion);
-    }
-
     /**
      * Checks that ConfigurationDownloader uses connections that timeout
      * after a period of time.

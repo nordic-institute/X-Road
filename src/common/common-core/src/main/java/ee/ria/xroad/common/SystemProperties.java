@@ -56,7 +56,7 @@ public final class SystemProperties {
     public static final int CURRENT_GLOBAL_CONFIGURATION_VERSION = 4;
 
     /** Minimum supported version number of the global configuration **/
-    static final int MINIMUM_SUPPORTED_GLOBAL_CONFIGURATION_VERSION = 2;
+    public static final int MINIMUM_SUPPORTED_GLOBAL_CONFIGURATION_VERSION = 2;
 
     /** Default minimum supported global conf version on central server */
     public static final String DEFAULT_MINIMUM_CENTRAL_SERVER_GLOBAL_CONFIGURATION_VERSION = "2";
