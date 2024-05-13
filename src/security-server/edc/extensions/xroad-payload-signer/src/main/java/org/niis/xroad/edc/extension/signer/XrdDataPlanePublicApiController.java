@@ -89,6 +89,7 @@ import static jakarta.ws.rs.core.Response.Status.INTERNAL_SERVER_ERROR;
 import static jakarta.ws.rs.core.Response.status;
 import static java.net.HttpURLConnection.HTTP_OK;
 import static java.util.stream.Collectors.toList;
+import static org.apache.commons.lang3.StringUtils.defaultIfBlank;
 import static org.eclipse.edc.connector.dataplane.spi.schema.DataFlowRequestSchema.BODY;
 import static org.niis.xroad.edc.sig.PocConstants.HEADER_XRD_SIG;
 
@@ -229,7 +230,6 @@ public class XrdDataPlanePublicApiController implements DataPlanePublicApi {
                 .collect(toList());
     }
 
-
     @SneakyThrows
     private void logRequest(DataFlowStartMessage dataFlowRequest, ContainerRequestContextApi contextApi,
                             ServiceId.Conf serviceId, boolean isSoap) {
@@ -251,8 +251,8 @@ public class XrdDataPlanePublicApiController implements DataPlanePublicApi {
         } else { // rest message
             RestRequest restRequest = new RestRequest(
                     contextApi.method(),
-                    "/r1/DEV/COM/1234/TestService/mock1", // todo: contextApi.path(),
-                    contextApi.queryParams(),
+                    "/r%d/%s".formatted(RestMessage.PROTOCOL_VERSION, serviceId.toShortString()),
+                    defaultIfBlank(contextApi.queryParams(), null),
                     toHeadersList(contextApi.headers()),
                     contextApi.headers().get(MimeUtils.HEADER_REQUEST_ID)
             );
