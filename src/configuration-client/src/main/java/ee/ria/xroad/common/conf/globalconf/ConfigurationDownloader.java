@@ -77,7 +77,6 @@ class ConfigurationDownloader {
     public static final int READ_TIMEOUT = 30000;
     protected final FileNameProvider fileNameProvider;
     private final Map<String, ConfigurationLocation> successfulLocations = new HashMap<>();
-    private final Map<ConfigurationLocation, LocationVersionResolver> locationResolvers = new HashMap<>();
     private final SharedParametersConfigurationLocations sharedParametersConfigurationLocations;
 
     @Getter
@@ -299,8 +298,7 @@ class ConfigurationDownloader {
     }
 
     private ConfigurationLocation toVersionedLocation(ConfigurationLocation location) throws Exception {
-        return locationResolvers.computeIfAbsent(location, this::locationVersionResolver)
-                .toVersionedLocation();
+        return this.locationVersionResolver(location).toVersionedLocation();
     }
 
     byte[] downloadContent(ConfigurationLocation location, ConfigurationFile file) throws Exception {

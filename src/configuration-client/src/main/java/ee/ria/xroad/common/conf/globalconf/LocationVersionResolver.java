@@ -16,7 +16,6 @@ import java.net.URL;
 abstract class LocationVersionResolver {
     private static final String VERSION_QUERY_PARAMETER = "version";
     private final ConfigurationLocation location;
-    private ConfigurationLocation resolvedLocation;
 
     static LocationVersionResolver fixed(ConfigurationLocation location, int version) {
         return new FixedVersionResolver(location, version);
@@ -28,15 +27,9 @@ abstract class LocationVersionResolver {
     abstract String chooseVersion(String url) throws Exception;
 
     ConfigurationLocation toVersionedLocation() throws Exception {
-        if (resolvedLocation != null) {
-            return resolvedLocation;
-        }
-
         String versionedUrl = chooseVersion(location.getDownloadURL());
-
-        resolvedLocation = new ConfigurationLocation(
+        return new ConfigurationLocation(
                 location.getInstanceIdentifier(), versionedUrl, location.getVerificationCerts());
-        return resolvedLocation;
     }
 
 
@@ -84,7 +77,6 @@ abstract class LocationVersionResolver {
                     connection.disconnect();
                 }
             }
-
         }
 
         private boolean versionParameterPresent(URIBuilder uriBuilder) {
@@ -94,7 +86,6 @@ abstract class LocationVersionResolver {
             }
             return false;
         }
-
     }
 
     private static class FixedVersionResolver extends LocationVersionResolver {
@@ -111,7 +102,6 @@ abstract class LocationVersionResolver {
                     .setParameter(VERSION_QUERY_PARAMETER, String.valueOf(version))
                     .toString();
         }
-
     }
 
 }
