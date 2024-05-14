@@ -140,20 +140,6 @@ class ConfigurationDownloaderTest {
         getParser(downloader).reset();
     }
 
-    private void verifySuccessfulLocationNope(ConfigurationDownloader downloader, int expectedLocationVersion) {
-        List<String> successfulDownloadUrls = getParser(downloader).getConfigurationUrls();
-
-        MatcherAssert.assertThat(successfulDownloadUrls, hasSuccessfulUrl(LOCATION_URL_SUCCESS + "/nope", expectedLocationVersion));
-        MatcherAssert.assertThat(successfulDownloadUrls, hasSuccessfulUrl(LOCATION_HTTPS_URL_SUCCESS + "/nope", expectedLocationVersion));
-    }
-
-    private void verifySuccessfulLocation(ConfigurationDownloader downloader, int expectedLocationVersion) {
-        List<String> successfulDownloadUrls = getParser(downloader).getConfigurationUrls();
-
-        MatcherAssert.assertThat(successfulDownloadUrls, hasSuccessfulUrl(LOCATION_URL_SUCCESS, expectedLocationVersion));
-        MatcherAssert.assertThat(successfulDownloadUrls, hasSuccessfulUrl(LOCATION_HTTPS_URL_SUCCESS, expectedLocationVersion));
-    }
-
     private void verifyOnlyOneSuccessfulLocation(ConfigurationDownloader downloader, int expectedLocationVersion) {
         List<String> successfulDownloadUrls = getParser(downloader).getConfigurationUrls();
 
