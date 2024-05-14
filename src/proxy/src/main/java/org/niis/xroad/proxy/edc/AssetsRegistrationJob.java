@@ -426,8 +426,10 @@ public class AssetsRegistrationJob {
     }
 
     private void createContractDefinitionForAsset(String assetId, String policyId, JobContext jobContext) {
-        log.info("Creating contract definition for asset {}", assetId);
+        var stopWatch = StopWatch.createStarted();
+        log.info("Creating contract definition for asset {}..", assetId);
         String contractDefId = "%s-contract-definition".formatted(assetId);
+        jobContext.contractDefinitionIds.remove(contractDefId);
         try {
             contractDefinitionApi.getContractDefinition(contractDefId);
         } catch (FeignException.NotFound notFound) {
@@ -446,6 +448,7 @@ public class AssetsRegistrationJob {
                                     .add(Criterion.CRITERION_OPERAND_RIGHT, assetId)))
                     .build());
         }
+        log.info("Contract definition for asset {} created in {} ms", assetId, stopWatch.getTime());
     }
 
     private Optional<JsonObject> fetchAsset(String assetId) {

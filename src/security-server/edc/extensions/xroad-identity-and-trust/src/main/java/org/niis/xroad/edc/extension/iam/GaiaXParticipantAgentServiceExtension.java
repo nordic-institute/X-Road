@@ -61,6 +61,7 @@ public class GaiaXParticipantAgentServiceExtension implements ServiceExtension {
                 return ofNullable(token.getListClaim(CLAIMTOKEN_VC_KEY)).orElse(emptyList())
                         .stream()
                         .filter(VerifiableCredential.class::isInstance)
+                        .filter(vc -> ((VerifiableCredential) vc).getId().endsWith("participant.json") ) //TODO check against xrd credential.
                         .map(o -> (VerifiableCredential) o)
                         .map(VerifiableCredential::getIssuer)
                         .map(Issuer::id)
