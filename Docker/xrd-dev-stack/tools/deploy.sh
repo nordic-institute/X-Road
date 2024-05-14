@@ -35,6 +35,9 @@ deploy_module() {
     jar_path="$XROAD_HOME/src/configuration-client/build/libs/configuration-client-1.0.jar"
     service_name="xroad-confclient"
     ;;
+  "asicverifier")
+    jar_path="$XROAD_HOME/src/asicverifier/build/libs/asicverifier.jar"
+    ;;
   "op-monitor-daemon")
     jar_path="$XROAD_HOME/src/op-monitor-daemon/build/libs/op-monitor-daemon-1.0.jar"
     service_name="all"
@@ -71,14 +74,16 @@ deploy_module() {
 
   for container in "${containers[@]}"; do
     docker cp "$jar_path" "$container:$target_path"
-    docker exec -it "$container" supervisorctl restart "$service_name"
+    if [ -n "$service_name" ]; then
+      docker exec -it "$container" supervisorctl restart "$service_name"
+    fi
   done
 }
 
 set -o xtrace
 
 case $1 in
-"proxy" | "messagelog-addon" | "metaservice-addon" | "proxy-ui-api" | "signer" | "configuration-client" | "op-monitor-daemon" | "edc-connector" | "edc-ih")
+"proxy" | "messagelog-addon" | "metaservice-addon" | "proxy-ui-api" | "signer" | "configuration-client" | "asicverifier" | "op-monitor-daemon" | "edc-connector" | "edc-ih")
   deploy_module "$1" "xrd-dev-stack-ss0-1" "xrd-dev-stack-ss1-1"
   ;;
 "cs-admin-service" | "cs-management-service" | "cs-registration-service" | "cs-edc")

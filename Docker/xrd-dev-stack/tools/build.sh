@@ -39,6 +39,9 @@ case $1 in
 "messagelog-addon")
   gradleModule="addons/messagelog/messagelog-addon"
   ;;
+"asicverifier")
+  gradleModule="asicverifier"
+  ;;
 esac
 
 cd "$XROAD_HOME"/src/
