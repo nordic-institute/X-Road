@@ -39,6 +39,8 @@ import org.eclipse.edc.spi.types.domain.edr.EndpointDataReference;
 import java.util.Optional;
 import java.util.concurrent.TimeUnit;
 
+import static java.lang.System.currentTimeMillis;
+
 @RequiredArgsConstructor
 public class InMemoryAuthorizedAssetRegistry implements AuthorizedAssetRegistry {
 
@@ -49,12 +51,12 @@ public class InMemoryAuthorizedAssetRegistry implements AuthorizedAssetRegistry 
             .expireAfter(new Expiry<CacheKey, EndpointDataReference>() {
                 @Override
                 public long expireAfterCreate(CacheKey key, EndpointDataReference value, long currentTime) {
-                    long expirationUnixTimeNanos = extractExpirationTimeFromJWT(value.getAuthCode()) * 1000;
+                    long expirationUnixTimeNanos = extractExpirationTimeFromJWT(value.getAuthCode());;
 
-                    var expiresIn = Math.max(expirationUnixTimeNanos - currentTime, 0);
+                    var expiresIn = Math.max(expirationUnixTimeNanos - currentTimeMillis(), 0);
                     monitor.debug("transferId %s will expire in %s seconds".formatted(value.getId(),
-                            TimeUnit.NANOSECONDS.toSeconds(expiresIn)));
-                    return expiresIn;
+                            TimeUnit.MILLISECONDS.toSeconds(expiresIn)));
+                    return TimeUnit.MILLISECONDS.toNanos(expiresIn);
                 }
 
                 @Override
@@ -110,6 +112,6 @@ public class InMemoryAuthorizedAssetRegistry implements AuthorizedAssetRegistry 
                 monitor.severe("Failed to parse JWT expiration date", e);
             }
         }
-        return System.currentTimeMillis();
+        return currentTimeMillis();
     }
 }

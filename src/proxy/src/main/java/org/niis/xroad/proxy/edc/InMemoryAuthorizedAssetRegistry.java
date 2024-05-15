@@ -38,6 +38,8 @@ import org.springframework.stereotype.Component;
 import java.util.Optional;
 import java.util.concurrent.TimeUnit;
 
+import static java.lang.System.currentTimeMillis;
+
 @Slf4j
 @Component
 public class InMemoryAuthorizedAssetRegistry implements AuthorizedAssetRegistry {
@@ -47,11 +49,11 @@ public class InMemoryAuthorizedAssetRegistry implements AuthorizedAssetRegistry 
             .expireAfter(new Expiry<CacheKey, GrantedAssetInfo>() {
                 @Override
                 public long expireAfterCreate(CacheKey key, GrantedAssetInfo value, long currentTime) {
-                    long expirationUnixTimeNanos = extractExpirationTimeFromJWT(value.authCode()) * 1000;
+                    long expirationUnixTimeNanos = extractExpirationTimeFromJWT(value.authCode());
 
-                    var expiresIn = Math.max(expirationUnixTimeNanos - currentTime, 0);
-                    log.trace("transferId {} will expire in {} seconds", value.id(), TimeUnit.NANOSECONDS.toSeconds(expiresIn));
-                    return expiresIn;
+                    var expiresIn = Math.max(expirationUnixTimeNanos - currentTimeMillis(), 0);
+                    log.trace("transferId {} will expire in {} seconds", value.id(), TimeUnit.MILLISECONDS.toSeconds(expiresIn));
+                    return TimeUnit.MILLISECONDS.toNanos(expiresIn);
                 }
 
                 @Override
@@ -107,6 +109,6 @@ public class InMemoryAuthorizedAssetRegistry implements AuthorizedAssetRegistry 
                 log.error("Failed to parse JWT expirationdate", e);
             }
         }
-        return System.currentTimeMillis();
+        return currentTimeMillis();
     }
 }
