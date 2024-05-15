@@ -53,7 +53,7 @@ public class InMemoryAuthorizedAssetRegistry implements AuthorizedAssetRegistry 
 
                     var expiresIn = Math.max(expirationUnixTimeNanos - currentTimeMillis(), 0);
                     log.trace("transferId {} will expire in {} seconds", value.id(), TimeUnit.MILLISECONDS.toSeconds(expiresIn));
-                    return expiresIn;
+                    return TimeUnit.MILLISECONDS.toNanos(expiresIn);
                 }
 
                 @Override
