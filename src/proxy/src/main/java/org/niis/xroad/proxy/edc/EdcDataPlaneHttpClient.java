@@ -31,6 +31,7 @@ import ee.ria.xroad.common.message.RestResponse;
 import ee.ria.xroad.common.message.Soap;
 import ee.ria.xroad.common.message.SoapParserImpl;
 import ee.ria.xroad.common.util.CachingStream;
+import ee.ria.xroad.proxy.util.HeadersComparator;
 
 import lombok.AccessLevel;
 import lombok.Getter;
@@ -82,6 +83,7 @@ public class EdcDataPlaneHttpClient {
                 List<org.apache.http.Header> headers = Arrays.stream(response.getHeaders())
                         .filter(h -> !HEADER_XRD_SIG.equalsIgnoreCase(h.getName()))
                         .map(h -> (org.apache.http.Header) new BasicHeader(h.getName(), h.getValue()))
+                        .sorted(new HeadersComparator())
                         .toList();
 
                 byte[] requestHash = Base64.getDecoder().decode(response.getHeader(HEADER_REQUEST_HASH).getValue());
@@ -165,6 +167,5 @@ public class EdcDataPlaneHttpClient {
             Map<String, String> headers
     ) {
     }
-
 
 }

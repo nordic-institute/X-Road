@@ -24,22 +24,28 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.edc.sig;
 
-import ee.ria.xroad.common.identifier.ClientId;
+package ee.ria.xroad.proxy.util;
 
-import java.util.Map;
-import java.util.function.Supplier;
+import org.apache.http.Header;
 
-public interface XrdSignatureVerifier {
+import java.util.Comparator;
 
-    void verifySignature(String signature, byte[] detachedPayload, Map<String, String> detachedHeaders, ClientId signerClientId)
-            throws XrdSignatureVerificationException;
+public class HeadersComparator implements Comparator<Header> {
 
-    default void verifySignature(String signature, Supplier<byte[]> messageSupplier, Supplier<byte[]> attachmentSupplier,
-                                 ClientId signerClientId)
-            throws XrdSignatureVerificationException {
-        throw new UnsupportedOperationException("Must be implemented by subclass");
+    @Override
+    public int compare(Header h1, Header h2) {
+        int nameCompare = h1.getName().compareToIgnoreCase(h2.getName());
+        if (nameCompare != 0) {
+            return nameCompare;
+        }
+        if (h1.getValue() == null) {
+            return h2.getValue() == null ? 0 : -1;
+        }
+        if (h2.getValue() == null) {
+            return 1;
+        }
+        return h1.getValue().compareTo(h2.getValue());
     }
 
 }

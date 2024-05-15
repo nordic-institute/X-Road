@@ -79,6 +79,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.ExecutorService;
 
 import static jakarta.ws.rs.core.MediaType.APPLICATION_JSON;
@@ -173,7 +174,7 @@ public class XrdDataPlanePublicApiController implements DataPlanePublicApi {
 
         boolean isSoap = isSoap(context);
 
-        logRequest(dataFlowRequest, contextApi, serviceId, isSoap);
+        logAndVerifyRequest(dataFlowRequest, contextApi, serviceId, isSoap);
 
         AsyncStreamingDataSink.AsyncResponseContext asyncResponseContext = callback -> {
             StreamingOutput output = t -> callback.outputStreamConsumer().accept(t);
@@ -224,17 +225,35 @@ public class XrdDataPlanePublicApiController implements DataPlanePublicApi {
                 });
     }
 
-    private List<Header> toHeadersList(Map<String, String> headers) {
+    private List<Header> toHeadersList(Map<String, String> headers, String... exclude) {
+        Set<String> excludedHeaders = exclude != null ? Set.of(exclude) : Set.of();
         return headers.entrySet().stream()
+                .filter(e -> !excludedHeaders.contains(e.getKey()))
                 .map(e -> new BasicHeader(e.getKey(), e.getValue()))
+                .sorted((h1, h2) -> {
+                    int nameCompare = h1.getName().compareToIgnoreCase(h2.getName());
+                    if (nameCompare != 0) {
+                        return nameCompare;
+                    }
+                    if (h1.getValue() == null) {
+                        return h2.getValue() == null ? 0 : -1;
+                    }
+                    if (h2.getValue() == null) {
+                        return 1;
+                    }
+                    return h1.getValue().compareTo(h2.getValue());
+                })
                 .collect(toList());
     }
 
     @SneakyThrows
-    private void logRequest(DataFlowStartMessage dataFlowRequest, ContainerRequestContextApi contextApi,
-                            ServiceId.Conf serviceId, boolean isSoap) {
+    private void logAndVerifyRequest(DataFlowStartMessage dataFlowRequest, ContainerRequestContextApi contextApi,
+                                     ServiceId.Conf serviceId, boolean isSoap) {
 
         byte[] requestBody = dataFlowRequest.getProperties().get(BODY).getBytes();
+        String signatureXml = getSignatureFromHeaders(contextApi.headers());
+        String signature = contextApi.headers().get(HEADER_XRD_SIG);
+        String xRequestId = contextApi.headers().get(MimeUtils.HEADER_REQUEST_ID);
 
         if (isSoap) {
             var soapParser = new SoapParserImpl();
@@ -244,18 +263,18 @@ public class XrdDataPlanePublicApiController implements DataPlanePublicApi {
 
             SoapLogMessage logMessage = new SoapLogMessage(
                     soapMessage,
-                    new SignatureData(getSignatureFromHeaders(contextApi.headers())),
+                    new SignatureData(signatureXml),
                     false,
-                    contextApi.headers().get(MimeUtils.HEADER_REQUEST_ID));
+                    xRequestId);
             xRoadMessageLog.log(logMessage);
+            signService.verifyRequest(signature, soapMessage::getBytes, () -> null, soapMessage.getClient());
         } else { // rest message
             RestRequest restRequest = new RestRequest(
                     contextApi.method(),
                     "/r%d/%s".formatted(RestMessage.PROTOCOL_VERSION, serviceId.toShortString()),
                     defaultIfBlank(contextApi.queryParams(), null),
-                    toHeadersList(contextApi.headers()),
-                    contextApi.headers().get(MimeUtils.HEADER_REQUEST_ID)
-            );
+                    toHeadersList(contextApi.headers(), HEADER_XRD_SIG, "Authorization"),
+                    xRequestId);
 
             CachingStream cs = new CachingStream();
             cs.write(requestBody);
@@ -263,13 +282,14 @@ public class XrdDataPlanePublicApiController implements DataPlanePublicApi {
             RestLogMessage logMessage = new RestLogMessage(contextApi.headers().get(MimeUtils.HEADER_QUERY_ID),
                     restRequest.getClientId(),
                     serviceId,
-                    restRequest, // rest message
-                    new SignatureData(getSignatureFromHeaders(contextApi.headers())),
-                    cs.getCachedContents(), //body
+                    restRequest,
+                    new SignatureData(signatureXml),
+                    cs.getCachedContents(),
                     false,
-                    contextApi.headers().get(MimeUtils.HEADER_REQUEST_ID)
-            );
+                    xRequestId);
+
             xRoadMessageLog.log(logMessage);
+            signService.verifyRequest(signature, restRequest::getMessageBytes, () -> requestBody, restRequest.getClientId());
         }
     }
 

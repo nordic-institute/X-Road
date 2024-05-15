@@ -30,18 +30,13 @@ import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.identifier.ServiceId;
 
 import lombok.RequiredArgsConstructor;
-import org.eclipse.edc.connector.dataplane.api.controller.ContainerRequestContextApiImpl;
 import org.eclipse.edc.spi.monitor.Monitor;
 import org.niis.xroad.edc.sig.SignatureResponse;
 import org.niis.xroad.edc.sig.XrdSignatureCreationException;
 import org.niis.xroad.edc.sig.XrdSignatureService;
 import org.niis.xroad.edc.sig.XrdSignatureVerificationException;
 
-import java.nio.charset.StandardCharsets;
-import java.util.Map;
 import java.util.function.Supplier;
-
-import static ee.ria.xroad.common.util.UriUtils.uriSegmentPercentDecode;
 
 @RequiredArgsConstructor
 public class XrdEdcSignService {
@@ -58,34 +53,9 @@ public class XrdEdcSignService {
         }
     }
 
-    public Map<String, String> signPayload(ServiceId.Conf serviceId, byte[] body, Map<String, String> headers) {
-        monitor.debug("Signing response payload..");
-        try {
-            var signatureResponse = signService.sign(serviceId.getClientId(), body, headers);
-            monitor.debug("Response payload signed. Signature: " + signatureResponse.getSignature());
-            return signatureResponse.getSignatureHeaders();
-        } catch (XrdSignatureCreationException e) {
-            throw new RuntimeException("Failed to sign response payload", e);
-        }
+    public void verifyRequest(String signature, Supplier<byte[]> message, Supplier<byte[]> attachment,
+                              ClientId clientId) throws XrdSignatureVerificationException {
+        signService.verify(signature, message, attachment, clientId);
     }
 
-    public void verifyRequest(ContainerRequestContextApiImpl contextApi) throws XrdSignatureVerificationException {
-        var clientId = decodeClientId(contextApi.headers().get("X-Road-Client"));
-        signService.verify(contextApi.headers(), contextApi.body().getBytes(StandardCharsets.UTF_8), clientId);
-
-    }
-
-    @SuppressWarnings("checkstyle:magicnumber")
-    public static ClientId decodeClientId(String value) {
-        final String[] parts = value.split("/", 5);
-        if (parts.length < 3 || parts.length > 4) {
-            throw new IllegalArgumentException("Invalid Client Id");
-        }
-        return ClientId.Conf.create(
-                uriSegmentPercentDecode(parts[0]),
-                uriSegmentPercentDecode(parts[1]),
-                uriSegmentPercentDecode(parts[2]),
-                parts.length == 4 ? uriSegmentPercentDecode(parts[3]) : null
-        );
-    }
 }

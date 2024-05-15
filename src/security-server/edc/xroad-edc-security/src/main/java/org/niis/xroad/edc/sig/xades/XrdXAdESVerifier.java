@@ -65,7 +65,8 @@ public class XrdXAdESVerifier extends XrdSignatureVerifierBase implements XrdSig
     }
 
     @Override
-    public void verifySignature(String signatureBase64, Supplier<byte[]> messageSupplier, Supplier<byte[]> attachmentSupplier, ClientId signerClientId)
+    public void verifySignature(String signatureBase64, Supplier<byte[]> messageSupplier,
+                                Supplier<byte[]> attachmentSupplier, ClientId signerClientId)
             throws XrdSignatureVerificationException {
 
         try {
@@ -77,7 +78,8 @@ public class XrdXAdESVerifier extends XrdSignatureVerifierBase implements XrdSig
         }
     }
 
-    private void validateSignature(InMemoryDocument signatureDocument, Supplier<byte[]> messageSupplier, Supplier<byte[]> attachmentSupplier, ClientId signerClientId) {
+    private void validateSignature(InMemoryDocument signatureDocument, Supplier<byte[]> messageSupplier,
+                                   Supplier<byte[]> attachmentSupplier, ClientId signerClientId) {
 
         List<DSSDocument> detachedPayloads = new ArrayList<>();
 
@@ -99,9 +101,9 @@ public class XrdXAdESVerifier extends XrdSignatureVerifierBase implements XrdSig
                                    ClientId signerClientId) throws Exception {
 
         List<DSSDocument> detachedPayloads = new ArrayList<>();
-        if (detachedHeaders != null && !detachedHeaders.isEmpty()) {
+//        if (detachedHeaders != null && !detachedHeaders.isEmpty()) {
 //            detachedPayloads.add(new InMemoryDocument(XrdXAdESUtils.serializeHeaders(detachedHeaders).getBytes(), DOCUMENT_NAME_HEADERS));
-        }
+//        }
 //        detachedPayloads.add(new InMemoryDocument(detachedPayload, DOCUMENT_NAME_PAYLOAD));
         detachedPayloads.add(new InMemoryDocument(detachedPayload, "/message.xml"));
 
