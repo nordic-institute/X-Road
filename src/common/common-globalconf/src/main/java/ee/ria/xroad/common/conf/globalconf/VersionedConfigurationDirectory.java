@@ -140,9 +140,8 @@ public class VersionedConfigurationDirectory implements ConfigurationDirectory {
                     parametersToUse = existingParameters.refresh(fileExpiresOn);
                 } else {
                     log.trace("Reloading PrivateParameters from {} ", privateParametersPath);
-                    parametersToUse = isCurrentVersion(privateParametersPath) || isVersion(privateParametersPath, 3)
-                            ? new PrivateParametersV3(privateParametersPath, fileExpiresOn)
-                            : new PrivateParametersV2(privateParametersPath, fileExpiresOn);
+                    parametersToUse = ParametersProviderFactory.forGlobalConfVersion(getVersion(privateParametersPath))
+                            .privateParametersProvider(privateParametersPath, fileExpiresOn);
                 }
                 basePrivateParams.put(instanceId, parametersToUse);
             } catch (Exception e) {
@@ -186,13 +185,8 @@ public class VersionedConfigurationDirectory implements ConfigurationDirectory {
                     parametersToUse = existingParameters.refresh(fileExpiresOn);
                 } else {
                     log.trace("Reloading SharedParameters from {} ", sharedParametersPath);
-                    if (isCurrentVersion(sharedParametersPath)) {
-                        parametersToUse = new SharedParametersV4(sharedParametersPath, fileExpiresOn);
-                    } else if (isVersion(sharedParametersPath, 3)) {
-                        parametersToUse = new SharedParametersV3(sharedParametersPath, fileExpiresOn);
-                    } else {
-                        parametersToUse = new SharedParametersV2(sharedParametersPath, fileExpiresOn);
-                    }
+                    parametersToUse = ParametersProviderFactory.forGlobalConfVersion(getVersion(sharedParametersPath))
+                            .sharedParametersProvider(sharedParametersPath, fileExpiresOn);
                 }
                 baseSharedParams.put(instanceId, parametersToUse);
             } catch (Exception e) {

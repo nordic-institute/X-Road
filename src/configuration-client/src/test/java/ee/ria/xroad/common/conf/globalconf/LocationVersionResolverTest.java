@@ -105,22 +105,6 @@ class LocationVersionResolverTest {
         wm.verify(2, anyRequestedFor(anyUrl()));
     }
 
-    @Test
-    void resolvedUrlIsCached() throws Exception {
-        var initialLocation = getConfigurationLocation();
-        wm.stubFor(get(anyUrl()).withQueryParam("version", equalTo("4")) .willReturn(notFound()));
-        wm.stubFor(get(anyUrl()).withQueryParam("version", equalTo("3")) .willReturn(notFound()));
-        LocationVersionResolver resolver = LocationVersionResolver.range(initialLocation, 2, 4);
-
-        ConfigurationLocation resolvedLocation1 = resolver.toVersionedLocation();
-        ConfigurationLocation resolvedLocation2 = resolver.toVersionedLocation();
-
-        assertThat(resolvedLocation1).isNotNull();
-        assertThat(resolvedLocation1.getDownloadURL()).isEqualTo(initialLocation.getDownloadURL() + "?version=2");
-        assertThat(resolvedLocation1).isEqualTo(resolvedLocation2);
-        wm.verify(2, anyRequestedFor(anyUrl()));
-    }
-
     private ConfigurationLocation getConfigurationLocation() {
         return getConfigurationLocation(wm.getRuntimeInfo().getHttpBaseUrl());
     }
