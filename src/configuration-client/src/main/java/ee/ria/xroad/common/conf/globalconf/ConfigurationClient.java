@@ -42,8 +42,7 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 import static ee.ria.xroad.common.ErrorCodes.X_INVALID_XML;
-import static ee.ria.xroad.common.conf.globalconf.VersionedConfigurationDirectory.isCurrentVersion;
-import static ee.ria.xroad.common.conf.globalconf.VersionedConfigurationDirectory.isVersion;
+import static ee.ria.xroad.common.conf.globalconf.VersionedConfigurationDirectory.getVersion;
 
 /**
  * Configuration client downloads the configuration from sources found in the configuration anchor.
@@ -142,11 +141,9 @@ class ConfigurationClient {
                 log.debug("Skipping reading private parameters as {} does not exist", privateParamsPath);
                 return null;
             }
-
-            PrivateParametersProvider p = isCurrentVersion(privateParamsPath) || isVersion(privateParamsPath, 3)
-                    ? new PrivateParametersV3(privateParamsPath, OffsetDateTime.MAX)
-                    : new PrivateParametersV2(privateParamsPath, OffsetDateTime.MAX);
-            return p.getPrivateParameters();
+            return ParametersProviderFactory.forGlobalConfVersion(getVersion(privateParamsPath))
+                    .privateParametersProvider(privateParamsPath, OffsetDateTime.MAX)
+                    .getPrivateParameters();
         } catch (Exception e) {
             log.error("Failed to read additional configuration sources from" + globalConfigurationDir, e);
             return null;

@@ -35,20 +35,24 @@ import java.security.cert.CertificateEncodingException;
 
 import static ee.ria.xroad.common.ErrorCodes.X_MALFORMED_GLOBALCONF;
 
-abstract class ContentHandler {
-    public static final String DEFAULT_FALLBACK_VERSION = "2";
 
-    static ContentHandler forVersion(String version) {
-        return switch (version != null ? version : DEFAULT_FALLBACK_VERSION) {
-            case "4" -> new ContentHandlerV4();
-            case "3" -> new ContentHandlerV3();
-            default -> new ContentHandlerV2();
-        };
+final class ContentHandler {
+    ParametersProviderFactory parametersProviderFactory;
+
+    private ContentHandler(ParametersProviderFactory parametersProviderFactory) {
+        this.parametersProviderFactory = parametersProviderFactory;
     }
 
-    abstract PrivateParametersProvider createPrivateParametersProvider(byte[] content);
+    static ContentHandler forVersion(String version) {
+        return new ContentHandler(ParametersProviderFactory.forGlobalConfVersion(version));
+    }
 
-    abstract SharedParametersProvider createSharedParametersProvider(byte[] content) throws CertificateEncodingException, IOException;
+    PrivateParametersProvider createPrivateParametersProvider(byte[] content) throws CertificateEncodingException, IOException {
+        return parametersProviderFactory.privateParametersProvider(content);
+    }
+    SharedParametersProvider createSharedParametersProvider(byte[] content) throws CertificateEncodingException, IOException {
+        return parametersProviderFactory.sharedParametersProvider(content);
+    }
 
     void handleContent(byte[] content, ConfigurationFile file) throws CertificateEncodingException, IOException {
         switch (file.getContentIdentifier()) {
@@ -85,45 +89,4 @@ abstract class ContentHandler {
                     file.getInstanceIdentifier(), instanceIdentifier);
         }
     }
-
-    private static class ContentHandlerV2 extends ContentHandler {
-
-        @Override
-        PrivateParametersProvider createPrivateParametersProvider(byte[] content) {
-            return new PrivateParametersV2(content);
-        }
-
-        @Override
-        SharedParametersProvider createSharedParametersProvider(byte[] content) throws CertificateEncodingException, IOException {
-            return new SharedParametersV2(content);
-        }
-    }
-
-    private static class ContentHandlerV3 extends ContentHandler {
-
-        @Override
-        PrivateParametersProvider createPrivateParametersProvider(byte[] content) {
-            return new PrivateParametersV3(content);
-        }
-
-        @Override
-        SharedParametersProvider createSharedParametersProvider(byte[] content) throws CertificateEncodingException, IOException {
-            return new SharedParametersV3(content);
-        }
-    }
-
-    private static class ContentHandlerV4 extends ContentHandler {
-
-        @Override
-        PrivateParametersProvider createPrivateParametersProvider(byte[] content) {
-            // Version 4 private parameters are the same as version 3
-            return new PrivateParametersV3(content);
-        }
-
-        @Override
-        SharedParametersProvider createSharedParametersProvider(byte[] content) throws CertificateEncodingException, IOException {
-            return new SharedParametersV4(content);
-        }
-    }
-
 }

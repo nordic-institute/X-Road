@@ -41,8 +41,7 @@ import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-import static ee.ria.xroad.common.conf.globalconf.VersionedConfigurationDirectory.isCurrentVersion;
-import static ee.ria.xroad.common.conf.globalconf.VersionedConfigurationDirectory.isVersion;
+import static ee.ria.xroad.common.conf.globalconf.VersionedConfigurationDirectory.getVersion;
 import static org.niis.xroad.common.exception.util.CommonDeviationMessage.INVALID_DOWNLOAD_URL_FORMAT;
 
 @Slf4j
@@ -120,14 +119,10 @@ class SharedParametersConfigurationLocations {
         Path sharedParamsPath = fileNameProvider.getConfigurationDirectory(instanceIdentifier)
                 .resolve(ConfigurationConstants.FILE_NAME_SHARED_PARAMETERS);
         if (Files.exists(sharedParamsPath)) {
-            if (isCurrentVersion(sharedParamsPath)) {
-                SharedParameters sharedParams = new SharedParametersV4(sharedParamsPath, OffsetDateTime.MAX).getSharedParameters();
-                return sharedParams.getSources();
-            }
-            if (isVersion(sharedParamsPath, 3)) {
-                SharedParameters sharedParams = new SharedParametersV3(sharedParamsPath, OffsetDateTime.MAX).getSharedParameters();
-                return sharedParams.getSources();
-            }
+            return ParametersProviderFactory.forGlobalConfVersion(getVersion(sharedParamsPath))
+                    .sharedParametersProvider(sharedParamsPath, OffsetDateTime.MAX)
+                    .getSharedParameters()
+                    .getSources();
         }
         return List.of();
     }
