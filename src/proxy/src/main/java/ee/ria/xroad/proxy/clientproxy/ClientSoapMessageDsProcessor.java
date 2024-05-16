@@ -130,6 +130,7 @@ class ClientSoapMessageDsProcessor extends AbstractClientMessageProcessor {
     private void validateResponse(SoapMessageImpl requestSoap, EdcDataPlaneHttpClient.EdcSoapWrapper response) throws Exception {
         SoapMessageImpl responseSoap = (SoapMessageImpl) response.soapMessage();
 
+        checkRequestHash(requestSoap, responseSoap);
         responseValidator.checkConsistency(requestSoap, responseSoap);
 
         //TODO handle bad request/edc failure

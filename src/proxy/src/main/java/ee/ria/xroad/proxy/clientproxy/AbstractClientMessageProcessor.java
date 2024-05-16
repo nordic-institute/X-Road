@@ -31,6 +31,8 @@ import ee.ria.xroad.common.conf.globalconf.GlobalConf;
 import ee.ria.xroad.common.conf.serverconf.IsAuthenticationData;
 import ee.ria.xroad.common.identifier.SecurityServerId;
 import ee.ria.xroad.common.identifier.ServiceId;
+import ee.ria.xroad.common.message.RequestHash;
+import ee.ria.xroad.common.message.SoapMessageImpl;
 import ee.ria.xroad.common.message.SoapUtils;
 import ee.ria.xroad.common.opmonitoring.OpMonitoringData;
 import ee.ria.xroad.common.util.HttpSender;
@@ -43,6 +45,7 @@ import lombok.EqualsAndHashCode;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.http.client.HttpClient;
 import org.apache.http.client.protocol.HttpClientContext;
+import org.bouncycastle.util.Arrays;
 
 import java.net.URI;
 import java.net.URISyntaxException;
@@ -53,10 +56,13 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
+import static ee.ria.xroad.common.ErrorCodes.X_INCONSISTENT_RESPONSE;
 import static ee.ria.xroad.common.ErrorCodes.X_INVALID_SECURITY_SERVER;
 import static ee.ria.xroad.common.ErrorCodes.X_UNKNOWN_MEMBER;
 import static ee.ria.xroad.common.SystemProperties.getServerProxyPort;
 import static ee.ria.xroad.common.SystemProperties.isSslEnabled;
+import static ee.ria.xroad.common.util.CryptoUtils.decodeBase64;
+import static ee.ria.xroad.common.util.CryptoUtils.encodeBase64;
 import static ee.ria.xroad.common.util.MimeUtils.HEADER_HASH_ALGO_ID;
 import static ee.ria.xroad.common.util.MimeUtils.HEADER_ORIGINAL_CONTENT_TYPE;
 import static ee.ria.xroad.common.util.MimeUtils.HEADER_PROXY_VERSION;
@@ -206,6 +212,26 @@ abstract class AbstractClientMessageProcessor extends MessageProcessorBase {
         return httpSender.getResponseHeaders().get(HEADER_HASH_ALGO_ID);
     }
 
+    protected void checkRequestHash(SoapMessageImpl request, SoapMessageImpl response) {
+        RequestHash requestHashFromResponse = response.getHeader().getRequestHash();
+
+        if (requestHashFromResponse != null) {
+            byte[] requestHash = request.getHash();
+
+            if (log.isTraceEnabled()) {
+                log.trace("Calculated request message hash: {}\nRequest message (base64): {}",
+                        encodeBase64(requestHash), encodeBase64(request.getBytes()));
+            }
+
+            if (!Arrays.areEqual(requestHash, decodeBase64(requestHashFromResponse.getHash()))) {
+                throw new CodedException(X_INCONSISTENT_RESPONSE,
+                        "Request message hash does not match request message");
+            }
+        } else {
+            throw new CodedException(X_INCONSISTENT_RESPONSE,
+                    "Response from server proxy is missing request message hash");
+        }
+    }
 
     @EqualsAndHashCode
     public static final class TargetHostsUserToken {

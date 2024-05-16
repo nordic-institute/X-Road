@@ -25,6 +25,7 @@
  */
 package ee.ria.xroad.proxy.clientproxy;
 
+import ee.ria.xroad.common.CodedException;
 import ee.ria.xroad.common.conf.globalconf.GlobalConf;
 import ee.ria.xroad.common.conf.serverconf.IsAuthenticationData;
 import ee.ria.xroad.common.identifier.ClientId;
@@ -32,11 +33,14 @@ import ee.ria.xroad.common.message.RestRequest;
 import ee.ria.xroad.common.message.RestResponse;
 import ee.ria.xroad.common.opmonitoring.OpMonitoringData;
 import ee.ria.xroad.common.util.CachingStream;
+import ee.ria.xroad.common.util.CryptoUtils;
 import ee.ria.xroad.common.util.ResponseWrapper;
 
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.IOUtils;
 import org.apache.http.client.HttpClient;
+import org.bouncycastle.operator.DigestCalculator;
+import org.bouncycastle.util.io.TeeOutputStream;
 import org.niis.xroad.edc.sig.XrdSignatureService;
 import org.niis.xroad.proxy.clientproxy.validate.RequestValidator;
 import org.niis.xroad.proxy.edc.AssetAuthorizationManager;
@@ -45,10 +49,13 @@ import org.niis.xroad.proxy.edc.XrdDataSpaceClient;
 
 import java.io.ByteArrayInputStream;
 import java.io.InputStream;
+import java.io.OutputStream;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
 
+import static ee.ria.xroad.common.ErrorCodes.X_INCONSISTENT_RESPONSE;
 import static ee.ria.xroad.common.util.TimeUtils.getEpochMillisecond;
 
 @Slf4j
@@ -105,13 +112,18 @@ class ClientRestMessageDsProcessor extends AbstractClientMessageProcessor {
 //        //TODO op monitoring should know about DataSpace
         updateOpMonitoringDataByRestRequest(opMonitoringData, restRequest);
 
+        DigestCalculator dc = CryptoUtils.createDigestCalculator(CryptoUtils.DEFAULT_DIGEST_ALGORITHM_ID);
         CachingStream cachingStream = new CachingStream();
-        jRequest.getInputStream().transferTo(cachingStream);
+        TeeOutputStream teeOutputStream = new TeeOutputStream(dc.getOutputStream(), cachingStream);
+        IOUtils.copy(jRequest.getInputStream(), teeOutputStream);
+        byte[] requestBodyDigest = null;
         if (cachingStream.getCachedContents().size() > 0) {
             restRequest.setBody(cachingStream);
+            requestBodyDigest = dc.getDigest();
         }
 
         var response = xrdDataSpaceClient.processRestRequest(restRequest, assetInfo);
+        verifyDigest(response, requestBodyDigest);
         processResponse(response, jResponse);
     }
 
@@ -133,6 +145,24 @@ class ClientRestMessageDsProcessor extends AbstractClientMessageProcessor {
 
         try (InputStream body = new ByteArrayInputStream(payload)) {
             IOUtils.copy(body, jResponse.getOutputStream());
+        }
+    }
+
+    private void verifyDigest(RestResponse response, byte[] requestBodyDigest) throws Exception {
+        byte[] requestDigest;
+        if (requestBodyDigest != null) {
+            DigestCalculator dc = CryptoUtils.createDigestCalculator(CryptoUtils.DEFAULT_DIGEST_ALGORITHM_ID);
+            try (OutputStream out = dc.getOutputStream()) {
+                out.write(restRequest.getHash());
+                out.write(requestBodyDigest);
+            }
+            requestDigest = dc.getDigest();
+        } else {
+            requestDigest = restRequest.getHash();
+        }
+
+        if (!Arrays.equals(requestDigest, response.getRequestHash())) {
+            throw new CodedException(X_INCONSISTENT_RESPONSE, "Response message hash does not match request message");
         }
     }
 

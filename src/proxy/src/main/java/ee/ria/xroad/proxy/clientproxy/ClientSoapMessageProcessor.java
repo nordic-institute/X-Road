@@ -29,7 +29,6 @@ import ee.ria.xroad.common.CodedException;
 import ee.ria.xroad.common.cert.CertChain;
 import ee.ria.xroad.common.conf.serverconf.IsAuthenticationData;
 import ee.ria.xroad.common.identifier.ServiceId;
-import ee.ria.xroad.common.message.RequestHash;
 import ee.ria.xroad.common.message.SaxSoapParserImpl;
 import ee.ria.xroad.common.message.SoapFault;
 import ee.ria.xroad.common.message.SoapMessage;
@@ -52,7 +51,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.IOUtils;
 import org.apache.http.client.HttpClient;
 import org.bouncycastle.cert.ocsp.OCSPResp;
-import org.bouncycastle.util.Arrays;
 import org.niis.xroad.proxy.clientproxy.validate.RequestValidator;
 import org.niis.xroad.proxy.clientproxy.validate.SoapResponseValidator;
 
@@ -69,7 +67,6 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 
-import static ee.ria.xroad.common.ErrorCodes.X_INCONSISTENT_RESPONSE;
 import static ee.ria.xroad.common.ErrorCodes.X_INTERNAL_ERROR;
 import static ee.ria.xroad.common.ErrorCodes.X_MISSING_SIGNATURE;
 import static ee.ria.xroad.common.ErrorCodes.X_MISSING_SOAP;
@@ -77,8 +74,6 @@ import static ee.ria.xroad.common.ErrorCodes.X_SERVICE_FAILED_X;
 import static ee.ria.xroad.common.ErrorCodes.translateException;
 import static ee.ria.xroad.common.SystemProperties.isSslEnabled;
 import static ee.ria.xroad.common.util.AbstractHttpSender.CHUNKED_LENGTH;
-import static ee.ria.xroad.common.util.CryptoUtils.decodeBase64;
-import static ee.ria.xroad.common.util.CryptoUtils.encodeBase64;
 import static ee.ria.xroad.common.util.MimeUtils.HEADER_ORIGINAL_CONTENT_TYPE;
 import static ee.ria.xroad.common.util.MimeUtils.HEADER_ORIGINAL_SOAP_ACTION;
 import static ee.ria.xroad.common.util.MimeUtils.HEADER_REQUEST_ID;
@@ -229,7 +224,7 @@ class ClientSoapMessageProcessor extends AbstractClientMessageProcessor {
         }
 
         responseValidator.checkConsistency(requestSoap, response.getSoap());
-        checkRequestHash();
+        checkRequestHash(requestSoap, response.getSoap());
 
         logResponseMessage();
     }
@@ -303,28 +298,6 @@ class ClientSoapMessageProcessor extends AbstractClientMessageProcessor {
 
         if (response.getSignature() == null) {
             throw new CodedException(X_MISSING_SIGNATURE, "Response does not have signature");
-        }
-    }
-
-
-    private void checkRequestHash() throws Exception {
-        RequestHash requestHashFromResponse = response.getSoap().getHeader().getRequestHash();
-
-        if (requestHashFromResponse != null) {
-            byte[] requestHash = requestSoap.getHash();
-
-            if (log.isTraceEnabled()) {
-                log.trace("Calculated request message hash: {}\nRequest message (base64): {}",
-                        encodeBase64(requestHash), encodeBase64(requestSoap.getBytes()));
-            }
-
-            if (!Arrays.areEqual(requestHash, decodeBase64(requestHashFromResponse.getHash()))) {
-                throw new CodedException(X_INCONSISTENT_RESPONSE,
-                        "Request message hash does not match request message");
-            }
-        } else {
-            throw new CodedException(X_INCONSISTENT_RESPONSE,
-                    "Response from server proxy is missing request message hash");
         }
     }
 
