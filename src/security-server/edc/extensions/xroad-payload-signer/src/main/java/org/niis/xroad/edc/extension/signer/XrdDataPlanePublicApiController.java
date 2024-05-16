@@ -35,6 +35,7 @@ import ee.ria.xroad.common.message.SoapParserImpl;
 import ee.ria.xroad.common.messagelog.RestLogMessage;
 import ee.ria.xroad.common.messagelog.SoapLogMessage;
 import ee.ria.xroad.common.signature.SignatureData;
+import ee.ria.xroad.common.util.CacheInputStream;
 import ee.ria.xroad.common.util.CachingStream;
 import ee.ria.xroad.common.util.CryptoUtils;
 import ee.ria.xroad.common.util.MimeTypes;
@@ -55,6 +56,7 @@ import jakarta.ws.rs.core.HttpHeaders;
 import jakarta.ws.rs.core.Response;
 import jakarta.ws.rs.core.StreamingOutput;
 import lombok.SneakyThrows;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.http.Header;
 import org.apache.http.message.BasicHeader;
 import org.bouncycastle.util.io.TeeOutputStream;
@@ -149,7 +151,7 @@ public class XrdDataPlanePublicApiController implements DataPlanePublicApi {
     }
 
     private boolean isSoap(ContainerRequestContext context) {
-        return context.getHeaderString("Content-Type").contains("text/xml");
+        return StringUtils.contains(context.getHeaderString("Content-Type"), "text/xml");
     }
 
     private void handle(ContainerRequestContext context, AsyncResponse response) {
@@ -247,10 +249,11 @@ public class XrdDataPlanePublicApiController implements DataPlanePublicApi {
     }
 
     @SneakyThrows
-    private void logAndVerifyRequest(DataFlowStartMessage dataFlowRequest, ContainerRequestContextApi contextApi,
-                                     ServiceId.Conf serviceId, boolean isSoap) {
-
-        byte[] requestBody = dataFlowRequest.getProperties().get(BODY).getBytes();
+    private byte[] logAndVerifyRequest(DataFlowStartMessage dataFlowRequest, ContainerRequestContextApi contextApi,
+                                       ServiceId.Conf serviceId, boolean isSoap) {
+        // todo: use stream?
+        byte[] requestBody =  dataFlowRequest.getProperties().containsKey(BODY) ?
+                dataFlowRequest.getProperties().get(BODY).getBytes() : null;
         String signatureXml = getSignatureFromHeaders(contextApi.headers());
         String signature = contextApi.headers().get(HEADER_XRD_SIG);
         String xRequestId = contextApi.headers().get(MimeUtils.HEADER_REQUEST_ID);
@@ -266,8 +269,11 @@ public class XrdDataPlanePublicApiController implements DataPlanePublicApi {
                     new SignatureData(signatureXml),
                     false,
                     xRequestId);
+
             xRoadMessageLog.log(logMessage);
             signService.verifyRequest(signature, soapMessage::getBytes, () -> null, soapMessage.getClient());
+
+            return soapMessage.getHash();
         } else { // rest message
             RestRequest restRequest = new RestRequest(
                     contextApi.method(),
@@ -276,21 +282,29 @@ public class XrdDataPlanePublicApiController implements DataPlanePublicApi {
                     toHeadersList(contextApi.headers(), HEADER_XRD_SIG, "Authorization"),
                     xRequestId);
 
-            CachingStream cs = new CachingStream();
-            cs.write(requestBody);
-
             RestLogMessage logMessage = new RestLogMessage(contextApi.headers().get(MimeUtils.HEADER_QUERY_ID),
                     restRequest.getClientId(),
                     serviceId,
                     restRequest,
                     new SignatureData(signatureXml),
-                    cs.getCachedContents(),
+                    bodyAsStream(requestBody),
                     false,
                     xRequestId);
 
             xRoadMessageLog.log(logMessage);
             signService.verifyRequest(signature, restRequest::getMessageBytes, () -> requestBody, restRequest.getClientId());
+
+            return "todo:".getBytes();
         }
+    }
+
+    private CacheInputStream bodyAsStream(byte[] body) throws Exception {
+        if (body != null) {
+            CachingStream cs = new CachingStream();
+            cs.write(body);
+            return cs.getCachedContents();
+        }
+        return null;
     }
 
     private String getSignatureFromHeaders(Map<String, String> headers) {

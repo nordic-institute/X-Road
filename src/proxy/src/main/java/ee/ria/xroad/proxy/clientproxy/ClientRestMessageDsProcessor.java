@@ -107,7 +107,9 @@ class ClientRestMessageDsProcessor extends AbstractClientMessageProcessor {
 
         CachingStream cachingStream = new CachingStream();
         jRequest.getInputStream().transferTo(cachingStream);
-        restRequest.setBody(cachingStream);
+        if (cachingStream.getCachedContents().size() > 0) {
+            restRequest.setBody(cachingStream);
+        }
 
         var response = xrdDataSpaceClient.processRestRequest(restRequest, assetInfo);
         processResponse(response, jResponse);

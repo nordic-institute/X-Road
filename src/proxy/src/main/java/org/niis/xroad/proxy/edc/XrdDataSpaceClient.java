@@ -35,6 +35,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.hc.core5.http.ContentType;
 import org.apache.hc.core5.http.io.support.ClassicRequestBuilder;
+import org.apache.http.message.BasicHeader;
 import org.niis.xroad.edc.sig.XrdSignatureService;
 
 import java.net.URI;
@@ -67,7 +68,7 @@ public class XrdDataSpaceClient {
         }
 
         // todo: sign using streams, not body.readAllBytes()
-        var payload = restRequest.getBody().getCachedContents().readAllBytes();
+        var payload = restRequest.getBody() != null ? restRequest.getBody().getCachedContents().readAllBytes() : null;
         var signatureResponse = xrdSignatureService.sign(restRequest.getClientId(), restRequest::getMessageBytes,
                 () -> payload);
 
@@ -85,13 +86,14 @@ public class XrdDataSpaceClient {
             dsRequest.setEntity(restRequest.getBody().getCachedContents().readAllBytes(), ContentType.APPLICATION_JSON);
         }
 
-        MessageLog.log(restRequest, toSignatureData(signatureResponse.getSignature()), restRequest.getBody().getCachedContents(),
+        MessageLog.log(restRequest, toSignatureData(signatureResponse.getSignature()),
+                restRequest.getBody() != null ? restRequest.getBody().getCachedContents() : null,
                 true, restRequest.getXRequestId());
         var response = EdcDataPlaneHttpClient.sendRestRequest(dsRequest.build(), restRequest);
         MessageLog.log(restRequest, response, toSignatureData(response.getSignature()),
                 response.getBody().getCachedContents(), true,
                 restRequest.getXRequestId());
-
+        response.getHeaders().add(new BasicHeader(HEADER_XRD_SIG, response.getSignature()));
         return response;
     }
 
