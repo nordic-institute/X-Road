@@ -31,13 +31,11 @@ import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 
 import java.util.Base64;
-import java.util.Map;
 
 @RequiredArgsConstructor
 @Getter
 public class SignatureResponse {
 
-    private final Map<String, String> signatureHeaders;
     private final String signature;
 
     public String getSignatureDecoded() {

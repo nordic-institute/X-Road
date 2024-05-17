@@ -61,8 +61,6 @@ import java.util.function.Supplier;
 
 import static ee.ria.xroad.common.util.CryptoUtils.readCertificate;
 import static eu.europa.esig.dss.enumerations.SignaturePackaging.DETACHED;
-import static org.niis.xroad.edc.sig.xades.XrdXAdESUtils.DOCUMENT_NAME_HEADERS;
-import static org.niis.xroad.edc.sig.xades.XrdXAdESUtils.DOCUMENT_NAME_PAYLOAD;
 
 @RequiredArgsConstructor
 public class XrdXAdESSignatureCreator implements XrdSignatureCreator {
@@ -91,16 +89,7 @@ public class XrdXAdESSignatureCreator implements XrdSignatureCreator {
     @Override
     public String sign(SignerProxy.MemberSigningInfoDto signingInfo, byte[] messageBody, Map<String, String> messageHeaders)
             throws XrdSignatureCreationException {
-        List<DSSDocument> documentsToSign = new ArrayList<>();
-        if (messageHeaders != null && !messageHeaders.isEmpty()) {
-            documentsToSign.add(new InMemoryDocument(XrdXAdESUtils.serializeHeaders(messageHeaders).getBytes(), DOCUMENT_NAME_HEADERS));
-//            documentsToSign.add(new InMemoryDocument(XrdXAdESUtils.serializeHeaders(messageHeaders).getBytes(), "/message.xml"));
-        }
-        documentsToSign.add(new InMemoryDocument(messageBody, DOCUMENT_NAME_PAYLOAD));
-//        documentsToSign.add(new InMemoryDocument(messageBody, "/message.xml"));
-//        documentsToSign.add(new InMemoryDocument(messageBody, "/attachment1"));
-
-        return signDocuments(signingInfo, documentsToSign);
+        throw new UnsupportedOperationException("Not implemented");
     }
 
     private String signDocuments(SignerProxy.MemberSigningInfoDto signingInfo, List<DSSDocument> documentsToSign)
@@ -121,10 +110,7 @@ public class XrdXAdESSignatureCreator implements XrdSignatureCreator {
 
         DSSDocument signedDocument = service.signDocument(documentsToSign, parameters, signatureValue);
 
-//      todo: adding ocsp. Might be not the most effective way.
         var extendedDoc = new OcspExtensionBuilder().addOcspToken(signedDocument, signingInfo.getCert().getOcspBytes());
-
-//        var serializedHeaders = XrdXAdESUtils.serializeHeaders(messageHeaders);
 
         //zipping might save up to 50% of the size
         return Base64.getEncoder().encodeToString(DSSUtils.toByteArray(extendedDoc));

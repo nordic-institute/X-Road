@@ -48,12 +48,14 @@ public class GlobalConfUpdaterExtension implements ServiceExtension {
     @Setting
     private static final String XROAD_GLOBAL_CONF_RELOAD_INTERVAL = "xroad.globalconf.reload.interval";
 
+    private static final int DEFAULT_RELOAD_INTERVAL_SECONDS = 60;
+
     @Override
     public void initialize(ServiceExtensionContext context) {
         var monitor = context.getMonitor();
         GlobalConfUpdater globalConfUpdater = new GlobalConfUpdater(monitor);
 
-        int reloadIntervalSeconds = context.getSetting(XROAD_GLOBAL_CONF_RELOAD_INTERVAL, 60);
+        int reloadIntervalSeconds = context.getSetting(XROAD_GLOBAL_CONF_RELOAD_INTERVAL, DEFAULT_RELOAD_INTERVAL_SECONDS);
 
         executor.scheduleWithFixedDelay(globalConfUpdater::update, reloadIntervalSeconds, reloadIntervalSeconds, SECONDS);
     }

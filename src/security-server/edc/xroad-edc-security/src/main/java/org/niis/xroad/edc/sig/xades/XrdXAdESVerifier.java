@@ -32,12 +32,12 @@ import ee.ria.xroad.common.identifier.ClientId;
 import eu.europa.esig.dss.diagnostic.DiagnosticData;
 import eu.europa.esig.dss.diagnostic.SignatureWrapper;
 import eu.europa.esig.dss.diagnostic.TimestampWrapper;
-import eu.europa.esig.dss.enumerations.RevocationType;
 import eu.europa.esig.dss.model.DSSDocument;
 import eu.europa.esig.dss.model.InMemoryDocument;
 import eu.europa.esig.dss.validation.SignedDocumentValidator;
 import eu.europa.esig.dss.validation.reports.Reports;
 import lombok.extern.slf4j.Slf4j;
+import org.bouncycastle.cert.ocsp.OCSPResp;
 import org.niis.xroad.edc.sig.XrdSignatureVerificationException;
 import org.niis.xroad.edc.sig.XrdSignatureVerifier;
 import org.niis.xroad.edc.sig.XrdSignatureVerifierBase;
@@ -53,15 +53,8 @@ import java.util.function.Supplier;
 public class XrdXAdESVerifier extends XrdSignatureVerifierBase implements XrdSignatureVerifier {
 
     @Override
-    public void verifySignature(String signature, byte[] detachedPayload, Map<String, String> detachedHeaders, ClientId signerClientId)
-            throws XrdSignatureVerificationException {
-        try {
-            byte[] decoded = Base64.getDecoder().decode(signature);
-            InMemoryDocument signatureDocument = new InMemoryDocument(decoded);
-            validateSignature(signatureDocument, detachedPayload, detachedHeaders, signerClientId);
-        } catch (Exception e) {
-            throw new XrdSignatureVerificationException("Verification has failed", e);
-        }
+    public void verifySignature(String signature, byte[] detachedPayload, Map<String, String> detachedHeaders, ClientId signerClientId) throws XrdSignatureVerificationException {
+        throw new UnsupportedOperationException("Not implemented");
     }
 
     @Override
@@ -79,7 +72,7 @@ public class XrdXAdESVerifier extends XrdSignatureVerifierBase implements XrdSig
     }
 
     private void validateSignature(InMemoryDocument signatureDocument, Supplier<byte[]> messageSupplier,
-                                   Supplier<byte[]> attachmentSupplier, ClientId signerClientId) {
+                                   Supplier<byte[]> attachmentSupplier, ClientId signerClientId) throws Exception {
 
         List<DSSDocument> detachedPayloads = new ArrayList<>();
 
@@ -96,21 +89,8 @@ public class XrdXAdESVerifier extends XrdSignatureVerifierBase implements XrdSig
         validate(signatureDocument, detachedPayloads, signerClientId);
     }
 
-
-    private void validateSignature(InMemoryDocument signatureDocument, byte[] detachedPayload, Map<String, String> detachedHeaders,
-                                   ClientId signerClientId) throws Exception {
-
-        List<DSSDocument> detachedPayloads = new ArrayList<>();
-//        if (detachedHeaders != null && !detachedHeaders.isEmpty()) {
-//            detachedPayloads.add(new InMemoryDocument(XrdXAdESUtils.serializeHeaders(detachedHeaders).getBytes(), DOCUMENT_NAME_HEADERS));
-//        }
-//        detachedPayloads.add(new InMemoryDocument(detachedPayload, DOCUMENT_NAME_PAYLOAD));
-        detachedPayloads.add(new InMemoryDocument(detachedPayload, "/message.xml"));
-
-        validate(signatureDocument, detachedPayloads, signerClientId);
-    }
-
-    private void validate(InMemoryDocument signatureDocument, List<DSSDocument> detachedPayloads, ClientId signerClientId) {
+    private void validate(InMemoryDocument signatureDocument, List<DSSDocument> detachedPayloads, ClientId signerClientId)
+            throws Exception {
         SignedDocumentValidator validator = getValidator(signatureDocument);
 
         validator.setDetachedContents(detachedPayloads);
@@ -119,13 +99,12 @@ public class XrdXAdESVerifier extends XrdSignatureVerifierBase implements XrdSig
         DiagnosticData diagnosticData = reports.getDiagnosticData();
 
         var cert = validator.getSignatures().get(0).getCertificates().get(0);
-        // todo:
-        //validateXroad(cert.getCertificate(), signerClientId, new OCSPResp(new byte[0]));
+        var ocspResp = new OCSPResp(validator.getSignatures().get(0).getOCSPSource().getRevocationValuesBinaries().get(0).getBinaries());
+        validateXroad(cert.getCertificate(), signerClientId, ocspResp);
 
         List<SignatureWrapper> signatures = diagnosticData.getSignatures();
         for (SignatureWrapper signatureWrapper : signatures) {
             assertTrue(signatureWrapper.isSignatureValid());
-            signatureWrapper.foundRevocations().getRelatedRevocationsByType(RevocationType.OCSP); //todo:
 
             List<TimestampWrapper> timestampList = signatureWrapper.getTimestampList();
             for (TimestampWrapper timestampWrapper : timestampList) {

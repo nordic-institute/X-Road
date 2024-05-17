@@ -87,9 +87,9 @@ public class XrdSignatureService {
 
         var signature = signer.sign(signingInfo, messageSupplier, attachmentSupplier);
 
-        Map<String, String> signatureHeaders = new HashMap<>();
-        signatureHeaders.put(HEADER_XRD_SIG, signature);
-        return new SignatureResponse(signatureHeaders, signature);
+//        Map<String, String> signatureHeaders = new HashMap<>();
+//        signatureHeaders.put(HEADER_XRD_SIG, signature);
+        return new SignatureResponse(signature);
     }
 
     public SignatureResponse sign(ClientId signingClientId, byte[] messageBody, Map<String, String> messageHeaders)
@@ -113,11 +113,7 @@ public class XrdSignatureService {
 
         headersToSign.forEach((key, value) -> log.info("Will sign header: {}={}", key, value));
         var signature = signer.sign(signingInfo, messageBody, headersToSign);
-
-        Map<String, String> signatureHeaders = new HashMap<>();
-        signatureHeaders.put(HEADER_XRD_SIG, signature);
-//        signatureHeaders.put(HEADER_XRD_SIG_OCSP, Base64.toBase64String(signingInfo.getCert().getOcspBytes()));
-        return new SignatureResponse(signatureHeaders, signature);
+        return new SignatureResponse(signature);
     }
 
     public void verify(Map<String, String> headers, byte[] detachedPayload, ClientId signerClientId)

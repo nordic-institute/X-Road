@@ -84,7 +84,6 @@ class ClientSoapMessageDsProcessor extends AbstractClientMessageProcessor {
         opMonitoringData.setXRequestId(xRequestId);
         updateOpMonitoringClientSecurityServerAddress();
 
-
         SoapMessageImpl requestSoap = deserializeToSoap(jRequest.getContentType(), jRequest.getInputStream());
 
         updateOpMonitoringDataBySoapMessage(opMonitoringData, requestSoap);
