@@ -51,7 +51,7 @@ public class InMemoryAuthorizedAssetRegistry implements AuthorizedAssetRegistry 
             .expireAfter(new Expiry<CacheKey, EndpointDataReference>() {
                 @Override
                 public long expireAfterCreate(CacheKey key, EndpointDataReference value, long currentTime) {
-                    long expirationUnixTimeNanos = extractExpirationTimeFromJWT(value.getAuthCode());;
+                    long expirationUnixTimeNanos = extractExpirationTimeFromJWT(value.getAuthCode());
 
                     var expiresIn = Math.max(expirationUnixTimeNanos - currentTimeMillis(), 0);
                     monitor.debug("transferId %s will expire in %s seconds".formatted(value.getId(),

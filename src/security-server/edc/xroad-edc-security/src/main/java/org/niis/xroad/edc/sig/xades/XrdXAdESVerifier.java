@@ -53,7 +53,8 @@ import java.util.function.Supplier;
 public class XrdXAdESVerifier extends XrdSignatureVerifierBase implements XrdSignatureVerifier {
 
     @Override
-    public void verifySignature(String signature, byte[] detachedPayload, Map<String, String> detachedHeaders, ClientId signerClientId) throws XrdSignatureVerificationException {
+    public void verifySignature(String signature, byte[] detachedPayload, Map<String, String> detachedHeaders,
+                                ClientId signerClientId) throws XrdSignatureVerificationException {
         throw new UnsupportedOperationException("Not implemented");
     }
 

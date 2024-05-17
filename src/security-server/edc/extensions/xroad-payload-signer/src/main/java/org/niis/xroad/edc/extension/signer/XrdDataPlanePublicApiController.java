@@ -254,8 +254,8 @@ public class XrdDataPlanePublicApiController implements DataPlanePublicApi {
     private byte[] logAndVerifyRequest(DataFlowStartMessage dataFlowRequest, ContainerRequestContextApi contextApi,
                                        ServiceId.Conf serviceId, boolean isSoap) {
         // todo: use stream?
-        byte[] requestBody = dataFlowRequest.getProperties().containsKey(BODY) ?
-                dataFlowRequest.getProperties().get(BODY).getBytes() : null;
+        byte[] requestBody = dataFlowRequest.getProperties().containsKey(BODY)
+                ? dataFlowRequest.getProperties().get(BODY).getBytes() : null;
         String signatureXml = getSignatureFromHeaders(contextApi.headers());
         String signature = contextApi.headers().get(HEADER_XRD_SIG);
         String xRequestId = contextApi.headers().get(MimeUtils.HEADER_REQUEST_ID);
