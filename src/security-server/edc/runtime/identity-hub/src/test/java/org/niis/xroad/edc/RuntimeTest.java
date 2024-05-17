@@ -47,6 +47,7 @@ class RuntimeTest {
                 Map.entry("web.http.port", String.valueOf(Ports.getFreePort())),
                 Map.entry("web.http.path", "/api"),
                 Map.entry("edc.iam.sts.privatekey.alias", "alias_ss0"),
+                Map.entry("edc.ih.credentials.path", "%s/credentials/".formatted(resourcesDir)),
                 Map.entry("EDC_HOSTNAME", "ss0")
         ));
     }

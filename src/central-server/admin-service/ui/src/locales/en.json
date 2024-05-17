@@ -549,7 +549,8 @@
       "approve": {
         "title": "Approve management request",
         "bodyMessage": "Are you sure you want to approve the management request ID {id} from server {serverId}?",
-        "successMessage": "Management request ID {id} from {serverId} approved"
+        "successMessage": "Management request ID {id} from {serverId} approved",
+        "newMemberWarning": "The specified member does not currently exist. It will be created automatically when this request is approved."
       },
       "decline": {
         "title": "Decline management request",

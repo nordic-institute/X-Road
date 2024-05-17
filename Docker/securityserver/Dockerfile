@@ -104,4 +104,5 @@ ENV EDC_DID_KEY_ID=key-id
 
 CMD ["/root/entrypoint.sh"]
 
+VOLUME ["/etc/xroad", "/var/lib/xroad", "/var/lib/postgresql/14/main/"]
 EXPOSE 8080 8443 4000 5432 5500 5577 5558

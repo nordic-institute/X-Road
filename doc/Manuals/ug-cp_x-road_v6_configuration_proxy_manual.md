@@ -1,6 +1,6 @@
 # X-Road: Configuration Proxy Manual
 
-Version: 2.11  
+Version: 2.12  
 Doc. ID: UG-CP
 
 ## Version History
@@ -25,38 +25,42 @@ Doc. ID: UG-CP
 | 01.07.2021 | 2.9     | Update 3rd party key server                                                                                                                                                                   | Petteri Kivimäki |
 | 26.09.2022 | 2.10    | Remove Ubuntu 18.04 support                                                                                                                                                                   | Andres Rosenthal |
 | 30.10.2023 | 2.11    | Configuring TLS Certificates                                                                                                                                                                  | Madis Loitmaa    |
+| 25.04.2024 | 2.12    | Updated for Ubuntu 24.04                                                                                                                                                                       | Madis Loitmaa    |
 
 
 ## Table of Contents
 
 <!-- vim-markdown-toc GFM -->
 
-* [1 Introduction](#1-introduction)
-  * [1.1 Target Audience](#11-target-audience)
-  * [1.2 Terms and abbreviations](#12-terms-and-abbreviations)
-  * [1.3 References](#13-references)
-  * [1.4 X-Road Configuration Proxy](#14-x-road-configuration-proxy)
-* [2 Installation](#2-installation)
-  * [2.1 Supported Platforms](#21-supported-platforms)
-  * [2.2 Reference Data](#22-reference-data)
-  * [2.3 Requirements for the Configuration Proxy](#23-requirements-for-the-configuration-proxy)
-  * [2.4 Preparing OS](#24-preparing-os)
-  * [2.5 Installation](#25-installation)
-  * [2.6 Post-Installation Checks](#26-post-installation-checks)
-  * [2.7 Installing the Support for Hardware Tokens](#27-installing-the-support-for-hardware-tokens)
-  * [2.8 Configuring TLS Certificates](#28-configuring-tls-certificates)
-* [3 Configuration](#3-configuration)
-  * [3.1 Prerequisites](#31-prerequisites)
-    * [3.1.1 Security Token Activation](#311-security-token-activation)
-    * [3.1.2 User Access Privileges](#312-user-access-privileges)
-  * [3.2 General Configuration](#32-general-configuration)
-    * [3.2.1 Configuration Structure of the Instances](#321-configuration-structure-of-the-instances)
-  * [3.3 Proxy Instance Reference Data](#33-proxy-instance-reference-data)
-  * [3.4 Proxy Instance Configuration](#34-proxy-instance-configuration)
-  * [3.5 Additional Configuration](#35-additional-configuration)
-    * [3.5.1 Changing the Validity Interval](#351-changing-the-validity-interval)
-    * [3.5.2 Deleting the Signing Keys](#352-deleting-the-signing-keys)
-    * [3.5.3 Changing the Active Signing Key](#353-changing-the-active-signing-key)
+- [X-Road: Configuration Proxy Manual](#x-road-configuration-proxy-manual)
+  - [Version History](#version-history)
+  - [Table of Contents](#table-of-contents)
+  - [1 Introduction](#1-introduction)
+    - [1.1 Target Audience](#11-target-audience)
+    - [1.2 Terms and abbreviations](#12-terms-and-abbreviations)
+    - [1.3 References](#13-references)
+    - [1.4 X-Road Configuration Proxy](#14-x-road-configuration-proxy)
+  - [2 Installation](#2-installation)
+    - [2.1 Supported Platforms](#21-supported-platforms)
+    - [2.2 Reference Data](#22-reference-data)
+    - [2.3 Requirements for the Configuration Proxy](#23-requirements-for-the-configuration-proxy)
+    - [2.4 Preparing OS](#24-preparing-os)
+    - [2.5 Installation](#25-installation)
+    - [2.6 Post-Installation Checks](#26-post-installation-checks)
+    - [2.7 Installing the Support for Hardware Tokens](#27-installing-the-support-for-hardware-tokens)
+    - [2.8 Configuring TLS Certificates](#28-configuring-tls-certificates)
+  - [3 Configuration](#3-configuration)
+    - [3.1 Prerequisites](#31-prerequisites)
+      - [3.1.1 Security Token Activation](#311-security-token-activation)
+      - [3.1.2 User Access Privileges](#312-user-access-privileges)
+    - [3.2 General Configuration](#32-general-configuration)
+      - [3.2.1 Configuration Structure of the Instances](#321-configuration-structure-of-the-instances)
+    - [3.3 Proxy Instance Reference Data](#33-proxy-instance-reference-data)
+    - [3.4 Proxy Instance Configuration](#34-proxy-instance-configuration)
+    - [3.5 Additional Configuration](#35-additional-configuration)
+      - [3.5.1 Changing the Validity Interval](#351-changing-the-validity-interval)
+      - [3.5.2 Deleting the Signing Keys](#352-deleting-the-signing-keys)
+      - [3.5.3 Changing the Active Signing Key](#353-changing-the-active-signing-key)
 
 <!-- vim-markdown-toc -->
 
@@ -90,7 +94,7 @@ The configuration proxy can be configured to mediate several global configuratio
 
 ### 2.1 Supported Platforms
 
-The configuration proxy runs on the Ubuntu Server 20.04 LTS or 22.04 LTS operating system on a 64-bit platform. The configuration proxy's software is distributed as .deb packages through the official X-Road repository at [https://artifactory.niis.org/xroad-release-deb](https://artifactory.niis.org/xroad-release-deb).
+The configuration proxy runs on the Ubuntu Server 20.04 LTS, 22.04 or 24.04 LTS operating system on a 64-bit platform. The configuration proxy's software is distributed as .deb packages through the official X-Road repository at [https://artifactory.niis.org/xroad-release-deb](https://artifactory.niis.org/xroad-release-deb).
 
 The software can be installed both on physical and virtualized hardware (of the latter, Xen and Oracle VirtualBox have been tested).
 
@@ -157,14 +161,13 @@ To install the X-Road configuration proxy software, follow these steps.
 The installation is successful if the 'xroad-signer' service is started, the 'xroad-confproxy' cron job is added, and the configuration proxy management utilities are available from the command line.
 
 * Check from the command line that the 'xroad-signer' service is in the running state (example output follows). Notice that it is normal for the xroad-confclient to be in `stopped` state on the configuration proxy since it operates in one-shot mode.
+  
+  ```bash
+  systemctl list-units "xroad*" 
 
-  * Ubuntu 20.04 or 22.04
-    ```bash
-    systemctl list-units "xroad*" 
-
-    UNIT                     LOAD   ACTIVE SUB     DESCRIPTION
-    xroad-signer.service     loaded active running X-Road signer
-    ```
+  UNIT                     LOAD   ACTIVE SUB     DESCRIPTION
+  xroad-signer.service     loaded active running X-Road signer
+  ```
 
 * Check from the command line that the 'xroad-confproxy' cron job is present (example output follows):
 

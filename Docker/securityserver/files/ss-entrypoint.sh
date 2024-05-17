@@ -54,6 +54,8 @@ sed -i "s|did:web:localhost|${EDC_DID}|g" /etc/xroad-edc/edc-identity-hub.proper
 sed -i "s|localhost|${EDC_HOSTNAME}|g" /etc/xroad-edc/edc-connector.properties
 sed -i "s|localhost|${EDC_HOSTNAME}|g" /etc/xroad-edc/edc-identity-hub.properties
 
+cp -r /etc/xroad-edc/credentials/${EDC_HOSTNAME}/* /etc/xroad-edc/credentials/
+
 # end of dataspaces
 
 exec /usr/bin/supervisord -n -c /etc/supervisor/supervisord.conf

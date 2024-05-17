@@ -2,7 +2,7 @@
 
 **X-ROAD 7**
 
-Version: 2.49  
+Version: 2.50  
 Doc. ID: IG-SS
 
 ---
@@ -10,7 +10,7 @@ Doc. ID: IG-SS
 ## Version history <!-- omit in toc -->
 
 | Date       | Version | Description                                                                                                                                                                                                          | Author             |
-|------------|---------|----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|--------------------|
+| ---------- | ------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------ |
 | 01.12.2014 | 1.0     | Initial version                                                                                                                                                                                                      |                    |
 | 19.01.2015 | 1.1     | License information added                                                                                                                                                                                            |                    |
 | 18.03.2015 | 1.2     | Meta-package for Security Server added. Legacy securelog module removed                                                                                                                                              |                    |
@@ -69,6 +69,7 @@ Doc. ID: IG-SS
 | 27.11.2023 | 2.47    | Updated default proxy client http(s) ports                                                                                                                                                                           | Mikk-Erik Bachmann |
 | 19.12.2023 | 2.48    | Add RHEL 9 as supported platform                                                                                                                                                                                     | Justas Samuolis    |
 | 02.01.2024 | 2.49    | Loopback ports added                                                                                                                                                                                                 | Justas Samuolis    |
+| 26.04.2024 | 2.50    | Ubuntu 24.04 support                                                                                                                                                                                                 | Madis Loitmaa      |
 
 ## License
 
@@ -162,7 +163,7 @@ There are multiple alternatives how the Security Server can be deployed. The opt
 
 The Security Server is officially supported on the following platforms:
 
-* Ubuntu Server 20.04 or 22.04 Long-Term Support (LTS) operating system on a x86-64 platform.
+* Ubuntu Server 20.04, 22.04 or 24.04 Long-Term Support (LTS) operating system on a x86-64 platform.
 * Red Hat Enterprise Linux (RHEL) 7, 8, 9 (x86-64). See [IG-SS-RHEL](ig-ss_x-road_v6_security_server_installation_guide_for_rhel.md) for more information.
 
 The software can be installed both on physical and virtualized hardware (of the latter, Xen and Oracle VirtualBox have been tested).
@@ -176,8 +177,8 @@ The software can be installed both on physical and virtualized hardware (of the 
 
 
 | **Ref** |                                                                                                                      | **Explanation**                                                                                                                                                                                                                                                                            |
-|---------|----------------------------------------------------------------------------------------------------------------------|--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| 1.0     | Ubuntu 20.04, Ubuntu 22.04 (x86-64)<br>3 GB RAM, 3 GB free disk space                                                | Minimum requirements without the `monitoring` and `op-monitoring` add-ons. With the add-ons minimum of 4 GB of RAM is required.                                                                                                                                                            |
+| ------- | -------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| 1.0     | Ubuntu 20.04, 22.04 or 24.04 (x86-64)<br>3 GB RAM, 3 GB free disk space                                              | Minimum requirements without the `monitoring` and `op-monitoring` add-ons. With the add-ons minimum of 4 GB of RAM is required.                                                                                                                                                            |
 | 1.1     | https://artifactory.niis.org/xroad-release-deb                                                                       | X-Road package repository                                                                                                                                                                                                                                                                  |
 | 1.2     | https://artifactory.niis.org/api/gpg/key/public                                                                      | The repository key.<br /><br />Hash: `935CC5E7FA5397B171749F80D6E3973B`<br  />Fingerprint: `A01B FE41 B9D8 EAF4 872F  A3F1 FB0D 532C 10F6 EC5B`<br  />3rd party key server: [Ubuntu key server](https://keyserver.ubuntu.com/pks/lookup?search=0xfb0d532c10f6ec5b&fingerprint=on&op=index) |
 | 1.3     |                                                                                                                      | Account name in the user interface                                                                                                                                                                                                                                                         |
@@ -209,23 +210,23 @@ The network diagram below provides an example of a basic Security Server setup. 
 
 The table below lists the required connections between different components.
 
-| **Connection Type** | **Source**                                               | **Target**                                               | **Target Ports** | **Protocol** | **Note**                        |
-|---------------------|----------------------------------------------------------|----------------------------------------------------------|------------------|--------------|---------------------------------|
-| Out                 | Security Server                                          | Central Server                                           | 80, 4001         | tcp          |                                 |
-| Out                 | Security Server                                          | Management Security Server                               | 5500, 5577       | tcp          |                                 |
-| Out                 | Security Server                                          | OCSP Service                                             | 80 / 443         | tcp          |                                 |
-| Out                 | Security Server                                          | Timestamping Service                                     | 80 / 443         | tcp          |                                 |
-| Out                 | Security Server                                          | Data Exchange Partner Security Server (Service Producer) | 5500, 5577       | tcp          |                                 |
-| Out                 | Security Server                                          | Producer Information System                              | 80, 443, other   | tcp          | Target in the internal network  |
-| In                  | Monitoring Security Server                               | Security Server                                          | 5500, 5577       | tcp          |                                 |
-| In                  | Data Exchange Partner Security Server (Service Consumer) | Security Server                                          | 5500, 5577       | tcp          |                                 |
-| In                  | Consumer Information System                              | Security Server                                          | 8080, 8443       | tcp          | Source in the internal network  |
-| In                  | Admin                                                    | Security Server                                          | 4000             | tcp          | Source in the internal network  |
+| **Connection Type** | **Source**                                               | **Target**                                               | **Target Ports** | **Protocol** | **Note**                       |
+| ------------------- | -------------------------------------------------------- | -------------------------------------------------------- | ---------------- | ------------ | ------------------------------ |
+| Out                 | Security Server                                          | Central Server                                           | 80, 4001         | tcp          |                                |
+| Out                 | Security Server                                          | Management Security Server                               | 5500, 5577       | tcp          |                                |
+| Out                 | Security Server                                          | OCSP Service                                             | 80 / 443         | tcp          |                                |
+| Out                 | Security Server                                          | Timestamping Service                                     | 80 / 443         | tcp          |                                |
+| Out                 | Security Server                                          | Data Exchange Partner Security Server (Service Producer) | 5500, 5577       | tcp          |                                |
+| Out                 | Security Server                                          | Producer Information System                              | 80, 443, other   | tcp          | Target in the internal network |
+| In                  | Monitoring Security Server                               | Security Server                                          | 5500, 5577       | tcp          |                                |
+| In                  | Data Exchange Partner Security Server (Service Consumer) | Security Server                                          | 5500, 5577       | tcp          |                                |
+| In                  | Consumer Information System                              | Security Server                                          | 8080, 8443       | tcp          | Source in the internal network |
+| In                  | Admin                                                    | Security Server                                          | 4000             | tcp          | Source in the internal network |
 
 The table below lists the open ports for Security Server components utilizing the _loopback_ interface. A loopback interface is a virtual network interface on a computer, facilitating self-communication for processes and applications. This enables local communication and the ports must be accessible locally.
 
 | **Component**            | **Ports** | **Protocol** | **Note**                        |
-|--------------------------|-----------|--------------|---------------------------------|
+| ------------------------ | --------- | ------------ | ------------------------------- |
 | PostgreSQL database      | 5432      | tcp          | Default PostgreSQL port         |
 | OP Monitoring daemon     | 2080      | tcp          |                                 |
 | Environmental monitoring | 2552      | tcp          |                                 |
@@ -248,7 +249,7 @@ Minimum recommended hardware parameters:
 
 Requirements to software and settings:
 
-* an installed and configured Ubuntu 20.04 LTS or 22.04 LTS x86-64 operating system;
+* an installed and configured Ubuntu 20.04 LTS, 22.04 or 24.04 LTS x86-64 operating system;
 * if the Security Server is separated from other networks by a firewall and/or NAT, the necessary connections to and from the Security Server are allowed (**reference data: 1.4; 1.5; 1.6; 1.7**). The enabling of auxiliary services which are necessary for the functioning and management of the operating system (such as DNS, NTP, and SSH) stay outside the scope of this guide;
 * if the Security Server has a private IP address, a corresponding NAT record must be created in the firewall (**reference data: 1.9**).
 
@@ -417,30 +418,30 @@ To configure support for hardware security tokens (smartcard, USB token, Hardwar
 
 4.  After installing and configuring the driver, the `xroad-signer` service must be restarted:
 
-        sudo service xroad-signer restart
+        sudo systemctl restart xroad-signer
 
 If you are running a high availability (HA) hardware token setup (such as a cluster with replicated tokens) then you may need to constrain the token identifier format such that the token replicas can be seen as the same token. The token identifier format can be changed in `/etc/xroad/devices.ini` via the `token_id_format` property (default value: `{moduleType}{slotIndex}{serialNumber}{label}`). Removing certain parts of the identifier will allow the HA setup to work correctly when one of the tokens goes down and is replaced by a replica. For example, if the token replicas are reported to be on different slots the `{slotIndex}` part should be removed from the identifier format.
 
 Depending on the hardware token there may be a need for more additional configuration. All possible configurable parameters in the `/etc/xroad/devices.ini` are described in the next table.
 
-Parameter   | Type    | Default Value | Explanation
------------ | ------- |-------------- | ---------------------------------------
-*enabled*     | BOOLEAN | *true* | Indicates whether this device is enabled.
-*library*     | STRING  |      | The path to the pkcs#11 library of the device driver.
-*library_cant_create_os_threads* | BOOLEAN | *false* | Indicates whether application threads, which are executing calls to the pkcs#11 library, may not use native operating system calls to spawn new threads (in other words, the library’s code may not create its own threads).
-*os_locking_ok* | BOOLEAN | *false* | Indicates whether the pkcs#11 library may use the native operation system threading model for locking.
-*sign_verify_pin* | BOOLEAN | *false* | Indicates whether the PIN should be entered per signing operation.
-*token_id_format* | STRING | *{moduleType}{slotIndex}{serialNumber}{label}* | Specifies the identifier format used to uniquely identify a token. In certain high availability setups may need be constrained to support replicated tokens (eg. by removing the slot index part which may be diffirent for the token replicas).
-*sign_mechanism*  | STRING | *CKM_RSA_PKCS* | Specifies the signing mechanism. Supported values: *CKM_RSA_PKCS*, *CKM_RSA_PKCS_PSS*.
-*pub_key_attribute_encrypt*  | BOOLEAN | *true* | Indicates whether public key can be used for encryption.
-*pub_key_attribute_verify* | BOOLEAN | *true* | Indicates whether public key can be used for verification.
-*pub_key_attribute_wrap* | BOOLEAN | | Indicates whether public key can be used for wrapping other keys.
-*pub_key_attribute_allowed_mechanisms* | STRING LIST | | Specifies public key allowed mechanisms. Supported values: *CKM_RSA_PKCS*, *CKM_SHA256_RSA_PKCS*, *CKM_SHA384_RSA_PKCS*, *CKM_SHA512_RSA_PKCS*, and *CKM_RSA_PKCS_PSS*, *CKM_SHA256_RSA_PKCS_PSS*, *CKM_SHA384_RSA_PKCS_PSS*, *CKM_SHA512_RSA_PKCS_PSS*.
-*priv_key_attribute_sensitive* | BOOLEAN | *true* | Indicates whether private key is sensitive.
-*priv_key_attribute_decrypt* | BOOLEAN | *true* | Indicates whether private key can be used for encryption.
-*priv_key_attribute_sign* | BOOLEAN | *true* | Indicates whether private key can be used for signing.
-*priv_key_attribute_unwrap* | BOOLEAN | | Indicates whether private key can be used for unwrapping wrapped keys.
-*priv_key_attribute_allowed_mechanisms* | STRING LIST | | Specifies private key allowed mechanisms. Supported values: *CKM_RSA_PKCS*, *CKM_SHA256_RSA_PKCS*, *CKM_SHA384_RSA_PKCS*, *CKM_SHA512_RSA_PKCS*, and *CKM_RSA_PKCS_PSS*, *CKM_SHA256_RSA_PKCS_PSS*, *CKM_SHA384_RSA_PKCS_PSS*, *CKM_SHA512_RSA_PKCS_PSS*.
+| Parameter                               | Type        | Default Value                                  | Explanation                                                                                                                                                                                                                                               |
+|-----------------------------------------|-------------|------------------------------------------------|-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| *enabled*                               | BOOLEAN     | *true*                                         | Indicates whether this device is enabled.                                                                                                                                                                                                                 |
+| *library*                               | STRING      |                                                | The path to the pkcs#11 library of the device driver.                                                                                                                                                                                                     |
+| *library_cant_create_os_threads*        | BOOLEAN     | *false*                                        | Indicates whether application threads, which are executing calls to the pkcs#11 library, may not use native operating system calls to spawn new threads (in other words, the library’s code may not create its own threads).                              |
+| *os_locking_ok*                         | BOOLEAN     | *false*                                        | Indicates whether the pkcs#11 library may use the native operation system threading model for locking.                                                                                                                                                    |
+| *sign_verify_pin*                       | BOOLEAN     | *false*                                        | Indicates whether the PIN should be entered per signing operation.                                                                                                                                                                                        |
+| *token_id_format*                       | STRING      | *{moduleType}{slotIndex}{serialNumber}{label}* | Specifies the identifier format used to uniquely identify a token. In certain high availability setups may need be constrained to support replicated tokens (eg. by removing the slot index part which may be diffirent for the token replicas).          |
+| *sign_mechanism*                        | STRING      | *CKM_RSA_PKCS*                                 | Specifies the signing mechanism. Supported values: *CKM_RSA_PKCS*, *CKM_RSA_PKCS_PSS*.                                                                                                                                                                    |
+| *pub_key_attribute_encrypt*             | BOOLEAN     | *true*                                         | Indicates whether public key can be used for encryption.                                                                                                                                                                                                  |
+| *pub_key_attribute_verify*              | BOOLEAN     | *true*                                         | Indicates whether public key can be used for verification.                                                                                                                                                                                                |
+| *pub_key_attribute_wrap*                | BOOLEAN     |                                                | Indicates whether public key can be used for wrapping other keys.                                                                                                                                                                                         |
+| *pub_key_attribute_allowed_mechanisms*  | STRING LIST |                                                | Specifies public key allowed mechanisms. Supported values: *CKM_RSA_PKCS*, *CKM_SHA256_RSA_PKCS*, *CKM_SHA384_RSA_PKCS*, *CKM_SHA512_RSA_PKCS*, and *CKM_RSA_PKCS_PSS*, *CKM_SHA256_RSA_PKCS_PSS*, *CKM_SHA384_RSA_PKCS_PSS*, *CKM_SHA512_RSA_PKCS_PSS*.  |
+| *priv_key_attribute_sensitive*          | BOOLEAN     | *true*                                         | Indicates whether private key is sensitive.                                                                                                                                                                                                               |
+| *priv_key_attribute_decrypt*            | BOOLEAN     | *true*                                         | Indicates whether private key can be used for encryption.                                                                                                                                                                                                 |
+| *priv_key_attribute_sign*               | BOOLEAN     | *true*                                         | Indicates whether private key can be used for signing.                                                                                                                                                                                                    |
+| *priv_key_attribute_unwrap*             | BOOLEAN     |                                                | Indicates whether private key can be used for unwrapping wrapped keys.                                                                                                                                                                                    |
+| *priv_key_attribute_allowed_mechanisms* | STRING LIST |                                                | Specifies private key allowed mechanisms. Supported values: *CKM_RSA_PKCS*, *CKM_SHA256_RSA_PKCS*, *CKM_SHA384_RSA_PKCS*, *CKM_SHA512_RSA_PKCS*, and *CKM_RSA_PKCS_PSS*, *CKM_SHA256_RSA_PKCS_PSS*, *CKM_SHA384_RSA_PKCS_PSS*, *CKM_SHA512_RSA_PKCS_PSS*. |
 
 **Note 1:** Only parameter *library* is mandatory, all the others are optional.
 **Note 2:** The item separator of the type STRING LIST is ",".
@@ -465,14 +466,13 @@ ATTENTION: Reference items 2.1 - 2.3 in the reference data are provided to the S
 
 The Security Server code and the software token’s PIN will be determined during the installation at the latest, by the person performing the installation.
 
- Ref  |                                                   | Explanation
- ---- | ------------------------------------------------- | --------------------------------------------------
- 2.1  | &lt;global configuration anchor file&gt; or &lt;URL&gt; | Global configuration anchor file
- 2.2  | E.g.<br>GOV - government<br> COM - commercial     | Member class of the Security Server's owner
- 2.3  | &lt;security server owner register code&gt;       | Member code of the Security Server's owner
- 2.4  | &lt;choose security server identificator name&gt; | Security server's code
- 2.5  | &lt;choose PIN for software token&gt;             | Software token’s PIN
-
+| Ref |                                                         | Explanation                                 |
+|-----|---------------------------------------------------------|---------------------------------------------|
+| 2.1 | &lt;global configuration anchor file&gt; or &lt;URL&gt; | Global configuration anchor file            |
+| 2.2 | E.g.<br>GOV - government<br> COM - commercial           | Member class of the Security Server's owner |
+| 2.3 | &lt;security server owner register code&gt;             | Member code of the Security Server's owner  |
+| 2.4 | &lt;choose security server identificator name&gt;       | Security server's code                      |
+| 2.5 | &lt;choose PIN for software token&gt;                   | Software token’s PIN                        |
 
 ### 3.3 Configuration
 
@@ -792,12 +792,12 @@ Busy production systems may need scalable performance in addition to high availa
 
 The following table lists a summary of the Security Server deployment options and indicates whether they are aimed for development or production use.
 
-| Deployment               | Dev  | Prod  |
-|--------------------------|------|-------|
-| Local database           | x    |       |
-| Remote database          | x    |       |
-| High-availability Setup  |      | x     |
-| Load Balancing Setup     |      | x     |
+| Deployment              | Dev | Prod |
+| ----------------------- | --- | ---- |
+| Local database          | x   |      |
+| Remote database         | x   |      |
+| High-availability Setup |     | x    |
+| Load Balancing Setup    |     | x    |
 
 ## Annex D Create Database Structure Manually
 
