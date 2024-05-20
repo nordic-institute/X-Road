@@ -62,6 +62,7 @@ class SharedParametersV4MarshallerTest {
         final String result = marshaller.marshall(sharedParamsBuilder.build());
 
         assertThat(result).isNotBlank();
+        System.out.println(result);
     }
 
     @Test

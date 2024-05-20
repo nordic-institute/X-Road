@@ -83,6 +83,11 @@ public class SharedParametersV4 extends AbstractXmlConf<SharedParametersTypeV4> 
     }
 
     @Override
+    public SharedParametersMarshaller getMarshaller() {
+        return new SharedParametersV4Marshaller();
+    }
+
+    @Override
     public void load(String fileName) throws Exception {
         throwIfInitCompleted();
         super.load(fileName);
@@ -93,6 +98,7 @@ public class SharedParametersV4 extends AbstractXmlConf<SharedParametersTypeV4> 
         throwIfInitCompleted();
         super.load(data);
     }
+
 
     private void throwIfInitCompleted() {
         if (initCompleted) {

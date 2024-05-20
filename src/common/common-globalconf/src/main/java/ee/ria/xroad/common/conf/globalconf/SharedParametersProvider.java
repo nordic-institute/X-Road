@@ -38,4 +38,6 @@ public interface SharedParametersProvider {
     OffsetDateTime getExpiresOn();
 
     boolean hasChanged();
+
+    SharedParametersMarshaller getMarshaller();
 }

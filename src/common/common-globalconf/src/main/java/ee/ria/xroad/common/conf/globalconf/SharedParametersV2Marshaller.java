@@ -27,30 +27,35 @@
 package ee.ria.xroad.common.conf.globalconf;
 
 import ee.ria.xroad.common.conf.globalconf.sharedparameters.v2.ObjectFactory;
+import ee.ria.xroad.common.conf.globalconf.sharedparameters.v2.SharedParametersTypeV2;
 
 import jakarta.xml.bind.JAXBContext;
-import jakarta.xml.bind.Marshaller;
+import jakarta.xml.bind.JAXBElement;
 import lombok.SneakyThrows;
 
-import java.io.StringWriter;
+import javax.xml.validation.Schema;
 
 
-public class SharedParametersV2Marshaller {
-    private final JAXBContext jaxbContext = createJaxbContext();
+public class SharedParametersV2Marshaller extends AbstractSharedParametersMarshaller<SharedParametersTypeV2> {
+    private static final JAXBContext JAXB_CONTEXT = createJaxbContext();
 
-    @SneakyThrows
-    public String marshall(SharedParameters parameters) {
-        var writer = new StringWriter();
-        var marshaller = jaxbContext.createMarshaller();
-        marshaller.setProperty(Marshaller.JAXB_FORMATTED_OUTPUT, Boolean.TRUE);
-        marshaller.setSchema(SharedParametersSchemaValidatorV2.getSchema());
-        marshaller.marshal(new ObjectFactory().createConf(SharedParametersV2ToXmlConverter.INSTANCE.convert(parameters)), writer);
-        return writer.toString();
+    @Override
+    Schema getSchema() {
+        return SharedParametersSchemaValidatorV2.getSchema();
+    }
+
+    @Override
+    JAXBElement<SharedParametersTypeV2> convert(SharedParameters parameters) {
+        return new ObjectFactory().createConf(SharedParametersV2ToXmlConverter.INSTANCE.convert(parameters));
+    }
+
+    @Override
+    public JAXBContext getJaxbContext() {
+        return JAXB_CONTEXT;
     }
 
     @SneakyThrows
-    private JAXBContext createJaxbContext() {
+    private static JAXBContext createJaxbContext() {
         return JAXBContext.newInstance(ObjectFactory.class);
     }
-
 }

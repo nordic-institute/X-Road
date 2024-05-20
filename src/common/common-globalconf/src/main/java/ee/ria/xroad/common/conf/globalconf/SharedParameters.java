@@ -36,7 +36,7 @@ import lombok.NoArgsConstructor;
 import java.util.List;
 
 @Getter
-@Builder
+@Builder(toBuilder = true)
 public class SharedParameters {
     private final String instanceIdentifier;
     private final List<ConfigurationSource> sources;

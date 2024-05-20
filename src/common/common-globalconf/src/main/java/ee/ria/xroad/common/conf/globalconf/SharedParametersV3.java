@@ -101,6 +101,11 @@ public class SharedParametersV3 extends AbstractXmlConf<SharedParametersTypeV3> 
     }
 
     @Override
+    public SharedParametersMarshaller getMarshaller() {
+        return new SharedParametersV3Marshaller();
+    }
+
+    @Override
     protected JAXBContext getJAXBContext() {
         return JAXB_CONTEXT;
     }

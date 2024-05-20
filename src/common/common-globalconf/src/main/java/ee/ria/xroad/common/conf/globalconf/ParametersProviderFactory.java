@@ -6,7 +6,7 @@ import java.security.cert.CertificateEncodingException;
 import java.time.OffsetDateTime;
 import java.util.Map;
 
-final class ParametersProviderFactory {
+public final class ParametersProviderFactory {
     public static final int DEFAULT_VERSION = 2;
     private static final Map<Integer, ParamsConstructors> PARAMS_CONSTRUCTORS_MAP = Map.of(
             2, new ParamsConstructors(
@@ -47,21 +47,21 @@ final class ParametersProviderFactory {
     }
 
 
-    SharedParametersProvider sharedParametersProvider(byte[] content) throws CertificateEncodingException, IOException {
+    public SharedParametersProvider sharedParametersProvider(byte[] content) throws CertificateEncodingException, IOException {
         return paramsConstructors.sharedByContent.create(content);
     }
 
-    SharedParametersProvider sharedParametersProvider(Path sharedParametersPath, OffsetDateTime expiresOn)
+    public SharedParametersProvider sharedParametersProvider(Path sharedParametersPath, OffsetDateTime expiresOn)
             throws CertificateEncodingException, IOException {
         return paramsConstructors.sharedByPath.create(sharedParametersPath, expiresOn);
     }
 
-    PrivateParametersProvider privateParametersProvider(byte[] content)
+    public PrivateParametersProvider privateParametersProvider(byte[] content)
             throws CertificateEncodingException, IOException {
         return paramsConstructors.privateByContent.create(content);
     }
 
-    PrivateParametersProvider privateParametersProvider(Path privateParametersPath, OffsetDateTime expiresOn)
+    public PrivateParametersProvider privateParametersProvider(Path privateParametersPath, OffsetDateTime expiresOn)
             throws CertificateEncodingException, IOException {
         return paramsConstructors.privateByPath.create(privateParametersPath, expiresOn);
     }
