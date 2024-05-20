@@ -108,6 +108,11 @@ public class SharedParametersV2 extends AbstractXmlConf<SharedParametersTypeV2> 
         return JAXB_CONTEXT;
     }
 
+    @Override
+    public SharedParametersMarshaller getMarshaller() {
+        return new SharedParametersV2Marshaller();
+    }
+
     private static JAXBContext createJAXBContext() {
         try {
             return JAXBContext.newInstance(ObjectFactory.class);

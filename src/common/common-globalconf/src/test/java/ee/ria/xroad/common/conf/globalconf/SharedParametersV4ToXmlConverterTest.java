@@ -158,19 +158,6 @@ class SharedParametersV4ToXmlConverterTest {
                 getMembers(), List.of(getSecurityServer()), List.of(new SharedParameters.GlobalGroup("group-code",
                         "group-description", List.of(subsystemId(memberId(), "SUB1")))),
                 new SharedParameters.GlobalSettings(List.of(getMemberClass()), 333));
-
-//        parameters.setInstanceIdentifier("INSTANCE");
-//        parameters.setSources(getConfigurationSources());
-//        parameters.setApprovedCAs(List.of(getApprovedCA()));
-//        parameters.setApprovedTSAs(List.of(new SharedParameters.ApprovedTSA("tsa-name",
-//                "tsa-url",
-//                "tsa cert".getBytes(UTF_8))));
-//        parameters.setMembers(getMembers());
-//        parameters.setSecurityServers(List.of(getSecurityServer()));
-//        parameters.setGlobalGroups(List.of(new SharedParameters.GlobalGroup("group-code", "group-description",
-//                List.of(subsystemId(memberId(), "SUB1")))));
-//        parameters.setGlobalSettings(new SharedParameters.GlobalSettings(List.of(getMemberClass()), 333));
-//        return parameters;
     }
 
     private static List<SharedParameters.ConfigurationSource> getConfigurationSources() {
