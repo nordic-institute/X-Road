@@ -36,7 +36,7 @@ public class PrivateParametersV3Converter {
     PrivateParameters convert(PrivateParametersTypeV3 source) {
         var target = new PrivateParameters();
         target.setInstanceIdentifier(source.getInstanceIdentifier());
-        target.setTimeStampingIntervalSeconds(source.getTimeStampingIntervalSeconds());
+        target.setTimeStampingIntervalSeconds(source.getTimeStampingIntervalSeconds().intValue());
 
         if (source.getManagementService() != null) {
             var managementService = new PrivateParameters.ManagementService();

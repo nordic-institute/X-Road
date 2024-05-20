@@ -26,6 +26,7 @@
  */
 package org.niis.xroad.cs.admin.globalconf.generator;
 
+import ee.ria.xroad.common.conf.globalconf.PrivateParameters;
 import ee.ria.xroad.common.conf.globalconf.privateparameters.v2.ConfigurationAnchorType;
 import ee.ria.xroad.common.conf.globalconf.privateparameters.v2.ConfigurationSourceType;
 import ee.ria.xroad.common.conf.globalconf.privateparameters.v2.ManagementServiceType;
@@ -86,7 +87,7 @@ class PrivateParametersV2ConverterTest {
     }
 
     private static PrivateParameters.ConfigurationAnchor getConfigurationAnchor() {
-        PrivateParameters.ConfigurationSource source = getConfigurationSource();
+        PrivateParameters.Source source = getConfigurationSource();
         PrivateParameters.ConfigurationAnchor anchor = new PrivateParameters.ConfigurationAnchor();
         anchor.setGeneratedAt(Instant.EPOCH);
         anchor.setInstanceIdentifier(OTHER_INSTANCE);
@@ -104,8 +105,8 @@ class PrivateParametersV2ConverterTest {
         );
     }
 
-    private static PrivateParameters.ConfigurationSource getConfigurationSource() {
-        var source = new PrivateParameters.ConfigurationSource();
+    private static PrivateParameters.Source getConfigurationSource() {
+        var source = new PrivateParameters.Source();
         source.setDownloadURL(DOWNLOAD_URL);
         source.setVerificationCerts(List.of(VERIFICATION_CERT));
         return source;

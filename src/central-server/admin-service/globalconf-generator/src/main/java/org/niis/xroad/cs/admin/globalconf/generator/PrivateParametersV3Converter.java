@@ -26,6 +26,7 @@
  */
 package org.niis.xroad.cs.admin.globalconf.generator;
 
+import ee.ria.xroad.common.conf.globalconf.PrivateParameters;
 import ee.ria.xroad.common.conf.globalconf.privateparameters.v3.ConfigurationAnchorType;
 import ee.ria.xroad.common.conf.globalconf.privateparameters.v3.ConfigurationSourceType;
 import ee.ria.xroad.common.conf.globalconf.privateparameters.v3.ObjectFactory;
@@ -50,5 +51,5 @@ interface PrivateParametersV3Converter {
     ConfigurationAnchorType convertAnchor(PrivateParameters.ConfigurationAnchor configurationAnchor);
 
     @Mapping(source = "verificationCerts", target = "verificationCert")
-    ConfigurationSourceType convertSource(PrivateParameters.ConfigurationSource configurationSource);
+    ConfigurationSourceType convertSource(PrivateParameters.Source configurationSource);
 }
