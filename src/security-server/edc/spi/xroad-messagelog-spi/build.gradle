@@ -5,6 +5,5 @@ plugins {
 dependencies {
     api libs.edc.core.spi
 
-    implementation(project(":common:common-domain"))  // for the ClientId, ServiceId identifiers
     implementation(project(":common:common-messagelog"))
 }

@@ -76,7 +76,6 @@ public class XrdXAdESVerifier extends XrdSignatureVerifierBase implements XrdSig
                                    Supplier<byte[]> attachmentSupplier, ClientId signerClientId) throws Exception {
 
         List<DSSDocument> detachedPayloads = new ArrayList<>();
-
         byte[] messagePart = messageSupplier.get();
         if (messagePart != null) {
             detachedPayloads.add(new InMemoryDocument(messagePart, "/message.xml"));

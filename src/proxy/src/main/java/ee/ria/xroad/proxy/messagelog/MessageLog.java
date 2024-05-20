@@ -123,24 +123,10 @@ public final class MessageLog {
         }
     }
 
-    public static void log(SoapMessageImpl message, SignatureData signature, boolean clientSide) {
-        log(message, signature, clientSide, null);
-    }
-
-    public static void log(RestRequest message, SignatureData signature, CacheInputStream body, boolean clientside) {
-        log(message, signature, body, clientside, null);
-    }
-
-    public static void log(RestRequest request, RestResponse message,
-                           SignatureData signature, CacheInputStream body, boolean clientside) {
-        log(request, message, signature, body, clientside, null);
-    }
-
     public static Map<String, DiagnosticsStatus> getDiagnosticStatus() {
         assertInitialized();
         return logManager.getDiagnosticStatus();
     }
-
 
     /**
      * Returns a time-stamp record for a given message record.

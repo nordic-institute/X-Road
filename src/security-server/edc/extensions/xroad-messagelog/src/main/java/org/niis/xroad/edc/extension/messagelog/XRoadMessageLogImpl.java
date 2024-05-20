@@ -28,10 +28,10 @@
 package org.niis.xroad.edc.extension.messagelog;
 
 import ee.ria.xroad.common.messagelog.AbstractLogManager;
+import ee.ria.xroad.common.messagelog.LogMessage;
 
 import org.eclipse.edc.spi.EdcException;
 import org.eclipse.edc.spi.monitor.Monitor;
-import org.niis.xroad.edc.spi.messagelog.LogMessage;
 import org.niis.xroad.edc.spi.messagelog.XRoadMessageLog;
 
 public class XRoadMessageLogImpl implements XRoadMessageLog {
@@ -45,19 +45,13 @@ public class XRoadMessageLogImpl implements XRoadMessageLog {
     }
 
     @Override
-    public void log(ee.ria.xroad.common.messagelog.LogMessage logMessage) {
+    public void log(LogMessage logMessage) {
         monitor.debug("Logging message to message log.");
         try {
             logManager.log(logMessage);
         } catch (Exception e) {
-            throw new EdcException("Failed to log message", e);
+            throw new EdcException("Failed to log to messagelog", e);
         }
-    }
-
-    @Override
-    public void log(LogMessage message) {
-        monitor.debug("Logging message to message log.");
-        // todo: implement or remove
     }
 
 }

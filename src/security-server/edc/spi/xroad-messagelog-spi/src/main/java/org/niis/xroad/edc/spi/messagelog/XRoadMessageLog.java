@@ -27,9 +27,10 @@
 
 package org.niis.xroad.edc.spi.messagelog;
 
+import ee.ria.xroad.common.messagelog.LogMessage;
+
 public interface XRoadMessageLog {
 
-    void log(ee.ria.xroad.common.messagelog.LogMessage logMessage);
+    void log(LogMessage logMessage);
 
-    void log(LogMessage message);
 }

@@ -83,7 +83,9 @@ public class XrdDataSpaceClient {
                 || DELETE.equals(method) || OPTIONS.equals(method)) {
             // Attach body to the request
             // todo: use stream.
-            dsRequest.setEntity(restRequest.getBody().getCachedContents().readAllBytes(), ContentType.APPLICATION_JSON);
+            if (restRequest.getBody() != null) {
+                dsRequest.setEntity(restRequest.getBody().getCachedContents().readAllBytes(), ContentType.APPLICATION_JSON);
+            }
         }
 
         MessageLog.log(restRequest, toSignatureData(signatureResponse.getSignature()),

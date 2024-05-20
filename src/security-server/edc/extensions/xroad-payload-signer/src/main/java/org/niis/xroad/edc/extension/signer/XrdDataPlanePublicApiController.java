@@ -61,7 +61,6 @@ import lombok.SneakyThrows;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.http.Header;
 import org.apache.http.message.BasicHeader;
-import org.bouncycastle.util.io.TeeOutputStream;
 import org.eclipse.edc.connector.dataplane.api.controller.ContainerRequestContextApi;
 import org.eclipse.edc.connector.dataplane.api.controller.ContainerRequestContextApiImpl;
 import org.eclipse.edc.connector.dataplane.api.controller.DataFlowRequestSupplier;
@@ -184,13 +183,8 @@ public class XrdDataPlanePublicApiController implements DataPlanePublicApi {
             StreamingOutput output = t -> callback.outputStreamConsumer().accept(t);
 
             try {
-                var digestCalculator = CryptoUtils.createDigestCalculator(CryptoUtils.DEFAULT_CERT_HASH_ALGORITHM_ID);
                 CachingStream cachingStream = new CachingStream();
-                TeeOutputStream tos = new TeeOutputStream(digestCalculator.getOutputStream(), cachingStream);
-                output.write(tos);
-
-//                var digest = digestCalculator.getDigest();
-//                responseBytes = IOUtils.toByteArray(cachingStream.getCachedContents());
+                output.write(cachingStream);
 
                 Map<String, String> headers = new HashMap<>();
                 headers.put("Content-Type", callback.mediaType());
@@ -199,19 +193,9 @@ public class XrdDataPlanePublicApiController implements DataPlanePublicApi {
                 var resp = handleSuccess(cachingStream, headers, serviceId, contextApi, isSoap, requestDigest);
 
                 return response.resume(resp);
-
             } catch (Exception e) {
                 throw new RuntimeException(e);
             }
-
-            //Instead of streaming directly to consumer, we will stream to a byte array and then sign the response
-//            var outputStream = new ByteArrayOutputStream();
-//            try {
-//                output.write(outputStream);
-//            } catch (IOException e) {
-//                throw new RuntimeException(e);
-//            }
-
 
         };
 
@@ -336,8 +320,6 @@ public class XrdDataPlanePublicApiController implements DataPlanePublicApi {
         try {
             var queryId = contextApi.headers().get(MimeUtils.HEADER_QUERY_ID);
             var xRequestId = contextApi.headers().get(MimeUtils.HEADER_REQUEST_ID);
-            // todo: use stream
-            byte[] responseContent = cachingStream.getCachedContents().readAllBytes();
             SignatureResponse signatureResponse;
 
             if (isSoap) {
@@ -361,6 +343,8 @@ public class XrdDataPlanePublicApiController implements DataPlanePublicApi {
 
             } else { // REST message
                 var clientId = RestMessage.decodeClientId(contextApi.headers().get("X-Road-Client"));
+                // todo: use stream
+                byte[] responseContent = cachingStream.getCachedContents().readAllBytes();
                 var restResponse = new RestResponse(clientId,
                         queryId,
                         requestDigest,

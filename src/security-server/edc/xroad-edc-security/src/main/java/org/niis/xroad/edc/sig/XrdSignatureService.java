@@ -86,9 +86,6 @@ public class XrdSignatureService {
         };
 
         var signature = signer.sign(signingInfo, messageSupplier, attachmentSupplier);
-
-//        Map<String, String> signatureHeaders = new HashMap<>();
-//        signatureHeaders.put(HEADER_XRD_SIG, signature);
         return new SignatureResponse(signature);
     }
 
