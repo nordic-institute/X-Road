@@ -291,7 +291,9 @@ class ConfigurationDownloader {
 
     private LocationVersionResolver locationVersionResolver(ConfigurationLocation location) {
         if (configurationVersion == null) {
-            return LocationVersionResolver.range(location, MINIMUM_SUPPORTED_GLOBAL_CONFIGURATION_VERSION, CURRENT_GLOBAL_CONFIGURATION_VERSION);
+            return LocationVersionResolver.range(location,
+                    MINIMUM_SUPPORTED_GLOBAL_CONFIGURATION_VERSION,
+                    CURRENT_GLOBAL_CONFIGURATION_VERSION);
         } else {
             return LocationVersionResolver.fixed(location, configurationVersion);
         }

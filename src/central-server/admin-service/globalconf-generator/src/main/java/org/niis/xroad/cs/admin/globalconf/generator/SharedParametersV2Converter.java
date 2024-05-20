@@ -26,6 +26,7 @@
  */
 package org.niis.xroad.cs.admin.globalconf.generator;
 
+import ee.ria.xroad.common.conf.globalconf.SharedParameters;
 import ee.ria.xroad.common.conf.globalconf.sharedparameters.v2.ApprovedCATypeV2;
 import ee.ria.xroad.common.conf.globalconf.sharedparameters.v2.GlobalGroupType;
 import ee.ria.xroad.common.conf.globalconf.sharedparameters.v2.GlobalSettingsType;
@@ -70,10 +71,10 @@ abstract class SharedParametersV2Converter {
     @Mapping(source = "memberClasses", target = "memberClass")
     abstract GlobalSettingsType convert(SharedParameters.GlobalSettings globalSettings);
 
-    @Mapping(source = "intermediateCAs", target = "intermediateCA")
+    @Mapping(source = "intermediateCas", target = "intermediateCA")
     abstract ApprovedCATypeV2 convert(SharedParameters.ApprovedCA approvedCa);
 
-    @Mapping(source = "authCerts", target = "authCertHash", qualifiedByName = "toAuthCertHashes")
+    @Mapping(source = "authCertHashes", target = "authCertHash", qualifiedByName = "toAuthCertHashes")
     @Mapping(source = "clients", target = "client", qualifiedByName = "clientsById")
     @Mapping(target = "owner", qualifiedByName = "clientById")
     abstract SecurityServerType convert(SharedParameters.SecurityServer securityServer, @Context Map<ClientId, Object> clientMap);

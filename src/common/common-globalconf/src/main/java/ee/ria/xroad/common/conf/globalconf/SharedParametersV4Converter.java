@@ -56,7 +56,7 @@ public class SharedParametersV4Converter {
         List<SharedParameters.ConfigurationSource> configurationSources = getConfigurationSources(source.getSource());
         List<SharedParameters.ApprovedCA> approvedCAs = getApprovedCAs(source.getApprovedCA());
         List<SharedParameters.ApprovedTSA> approvedTSAs = getApprovedTSAs(source.getApprovedTSA());
-        List<SharedParameters.Member> members = getMembers(source.getMember());
+        List<SharedParameters.Member> members = getMembers(instanceIdentifier, source.getMember());
         List<SharedParameters.SecurityServer> securityServers = getSecurityServers(source);
         List<SharedParameters.GlobalGroup> globalGroups = getGlobalGroups(source.getGlobalGroup());
         SharedParameters.GlobalSettings globalSettings = getGlobalSettings(source.getGlobalSettings());
@@ -89,12 +89,11 @@ public class SharedParametersV4Converter {
         return approvedTSAs;
     }
 
-    private List<SharedParameters.Member> getMembers(List<MemberType> memberTypes) {
-        List<SharedParameters.Member> members = new ArrayList<>();
+    private List<SharedParameters.Member> getMembers(String instanceIdentifier, List<MemberType> memberTypes) {
         if (memberTypes != null) {
-            members.addAll(memberTypes.stream().map(this::toMember).toList());
+            return memberTypes.stream().map(source -> toMember(instanceIdentifier, source)).toList();
         }
-        return members;
+        return List.of();
     }
 
     private List<SharedParameters.SecurityServer> getSecurityServers(SharedParametersTypeV4 source) {
@@ -191,13 +190,15 @@ public class SharedParametersV4Converter {
         return target;
     }
 
-    private SharedParameters.Member toMember(MemberType source) {
+    private SharedParameters.Member toMember(String instanceIdentifier, MemberType source) {
         var target = new SharedParameters.Member();
         target.setMemberClass(toMemberClass(source.getMemberClass()));
         target.setMemberCode(source.getMemberCode());
         target.setName(source.getName());
+        target.setId(toClientId(instanceIdentifier, source));
         if (source.getSubsystem() != null) {
-            target.setSubsystems(source.getSubsystem().stream().map(this::toSubsystem).toList());
+            target.setSubsystems(source.getSubsystem().stream().map(subsystem ->
+                    toSubsystem(instanceIdentifier, source, subsystem)).toList());
         }
         return target;
     }
@@ -209,10 +210,8 @@ public class SharedParametersV4Converter {
         return target;
     }
 
-    private SharedParameters.Subsystem toSubsystem(SubsystemType source) {
-        var target = new SharedParameters.Subsystem();
-        target.setSubsystemCode(source.getSubsystemCode());
-        return target;
+    private SharedParameters.Subsystem toSubsystem(String instanceIdentifier, MemberType memberType, SubsystemType source) {
+        return new SharedParameters.Subsystem(source.getSubsystemCode(), toClientId(instanceIdentifier, memberType, source));
     }
 
     private SharedParameters.SecurityServer toSecurityServer(
@@ -259,7 +258,7 @@ public class SharedParametersV4Converter {
 
     private SharedParameters.GlobalSettings toGlobalSettings(GlobalSettingsType source) {
         var target = new SharedParameters.GlobalSettings();
-        target.setOcspFreshnessSeconds(source.getOcspFreshnessSeconds());
+        target.setOcspFreshnessSeconds(source.getOcspFreshnessSeconds().intValue());
         if (source.getMemberClass() != null) {
             target.setMemberClasses(source.getMemberClass().stream().map(this::toMemberClass).toList());
         }

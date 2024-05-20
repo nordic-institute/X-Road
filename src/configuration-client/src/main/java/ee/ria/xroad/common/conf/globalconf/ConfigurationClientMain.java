@@ -50,10 +50,8 @@ import org.quartz.JobExecutionContext;
 import org.quartz.JobExecutionException;
 import org.quartz.JobListener;
 
-import java.io.IOException;
 import java.io.PrintWriter;
 import java.nio.file.Path;
-import java.security.cert.CertificateEncodingException;
 import java.util.Collections;
 import java.util.List;
 import java.util.Set;
