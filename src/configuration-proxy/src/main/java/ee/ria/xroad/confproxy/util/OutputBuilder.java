@@ -27,10 +27,9 @@ package ee.ria.xroad.confproxy.util;
 
 import ee.ria.xroad.common.SystemProperties;
 import ee.ria.xroad.common.conf.globalconf.ConfigurationPartMetadata;
-import ee.ria.xroad.common.conf.globalconf.SharedParametersV3;
-import ee.ria.xroad.common.conf.globalconf.SharedParametersV4;
+import ee.ria.xroad.common.conf.globalconf.ParametersProviderFactory;
+import ee.ria.xroad.common.conf.globalconf.SharedParameters;
 import ee.ria.xroad.common.conf.globalconf.VersionedConfigurationDirectory;
-import ee.ria.xroad.common.conf.globalconf.sharedparameters.v4.ConfigurationSourceType;
 import ee.ria.xroad.common.util.CryptoUtils;
 import ee.ria.xroad.common.util.HashCalculator;
 import ee.ria.xroad.common.util.MimeTypes;
@@ -61,7 +60,6 @@ import java.time.temporal.ChronoUnit;
 import java.util.Date;
 import java.util.List;
 
-import static ee.ria.xroad.common.SystemProperties.CURRENT_GLOBAL_CONFIGURATION_VERSION;
 import static ee.ria.xroad.common.conf.globalconf.ConfigurationConstants.CONTENT_ID_SHARED_PARAMETERS;
 import static ee.ria.xroad.common.util.CryptoUtils.calculateDigest;
 import static ee.ria.xroad.common.util.CryptoUtils.encodeBase64;
@@ -77,7 +75,6 @@ import static ee.ria.xroad.common.util.MimeUtils.HEADER_VERSION;
 import static ee.ria.xroad.common.util.MimeUtils.mpMixedContentType;
 import static ee.ria.xroad.common.util.MimeUtils.mpRelatedContentType;
 import static ee.ria.xroad.common.util.MimeUtils.randomBoundary;
-import static java.lang.String.valueOf;
 
 /**
  * Utility class that encapsulates the process of signing the downloaded
@@ -240,48 +237,27 @@ public class OutputBuilder implements AutoCloseable {
     private InputStream toInputStreamWithOverriddenConfigurationSources(InputStream sharedParamsInputStream, String configurationVersion)
             throws Exception {
         ByteArrayOutputStream os = new ByteArrayOutputStream();
-        boolean isVersion4 = valueOf(CURRENT_GLOBAL_CONFIGURATION_VERSION).equals(configurationVersion);
         try (sharedParamsInputStream) {
-            if (isVersion4) {
-                SharedParametersV4 sharedParameters = new SharedParametersV4(sharedParamsInputStream.readAllBytes());
-                List<ConfigurationSourceType> sources = sharedParameters.getConfType().getSource();
-                sources.clear();
-                sources.add(buildConfProxyConfigurationSourceV4());
-                sharedParameters.save(os);
-            } else {
-                SharedParametersV3 sharedParameters = new SharedParametersV3(sharedParamsInputStream.readAllBytes());
-                List<ee.ria.xroad.common.conf.globalconf.sharedparameters.v3.ConfigurationSourceType>
-                        sources = sharedParameters.getConfType().getSource();
-                sources.add(buildConfProxyConfigurationSourceV3());
-                sources.clear();
-                sharedParameters.save(os);
-            }
+            var sharedParametersProvider = ParametersProviderFactory.forGlobalConfVersion(configurationVersion)
+                    .sharedParametersProvider(sharedParamsInputStream.readAllBytes());
+            var sp = sharedParametersProvider
+                    .getSharedParameters().toBuilder()
+                    .sources(List.of(buildConfProxyConfigurationSource()))
+                    .build();
+            sharedParametersProvider.getMarshaller().marshall(sp, os);
             return new ByteArrayInputStream(os.toByteArray());
         }
     }
 
-    private ConfigurationSourceType buildConfProxyConfigurationSourceV4() {
-        ConfigurationSourceType confProxySource = new ConfigurationSourceType();
+    private SharedParameters.ConfigurationSource buildConfProxyConfigurationSource() {
+        SharedParameters.ConfigurationSource confProxySource = new SharedParameters.ConfigurationSource();
         confProxySource.setAddress(SystemProperties.getConfigurationProxyAddress());
         // PS! Need to allocate both external & internal in order not to break 7.4.0 versioned clients of confproxy
         // as their shared-parameters.xsd requires at least 1 internal & 1 external verification cert to be present.
         // If 7.4.0 is no longer supported we can decide the configuration type from whether private-params
         // configuration part is present & then add the verification certs just to the matching type.
-        confProxySource.getExternalVerificationCert().addAll(conf.getVerificationCerts());
-        confProxySource.getInternalVerificationCert().addAll(conf.getVerificationCerts());
-        return confProxySource;
-    }
-
-    private ee.ria.xroad.common.conf.globalconf.sharedparameters.v3.ConfigurationSourceType buildConfProxyConfigurationSourceV3() {
-        ee.ria.xroad.common.conf.globalconf.sharedparameters.v3.ConfigurationSourceType confProxySource =
-                new ee.ria.xroad.common.conf.globalconf.sharedparameters.v3.ConfigurationSourceType();
-        confProxySource.setAddress(SystemProperties.getConfigurationProxyAddress());
-        // PS! Need to allocate both external & internal in order not to break 7.4.0 versioned clients of confproxy
-        // as their shared-parameters.xsd requires at least 1 internal & 1 external verification cert to be present.
-        // If 7.4.0 is no longer supported we can decide the configuration type from whether private-params
-        // configuration part is present & then add the verification certs just to the matching type.
-        confProxySource.getExternalVerificationCert().addAll(conf.getVerificationCerts());
-        confProxySource.getInternalVerificationCert().addAll(conf.getVerificationCerts());
+        confProxySource.setExternalVerificationCerts(conf.getVerificationCerts());
+        confProxySource.setInternalVerificationCerts(conf.getVerificationCerts());
         return confProxySource;
     }
 
