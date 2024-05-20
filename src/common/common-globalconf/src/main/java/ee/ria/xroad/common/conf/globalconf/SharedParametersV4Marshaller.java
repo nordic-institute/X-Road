@@ -24,31 +24,27 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.cs.admin.globalconf.generator;
+package ee.ria.xroad.common.conf.globalconf;
 
-import ee.ria.xroad.common.conf.globalconf.PrivateParameters;
-import ee.ria.xroad.common.conf.globalconf.PrivateParametersSchemaValidatorV3;
-import ee.ria.xroad.common.conf.globalconf.privateparameters.v3.ObjectFactory;
+import ee.ria.xroad.common.conf.globalconf.sharedparameters.v4.ObjectFactory;
 
 import jakarta.xml.bind.JAXBContext;
 import jakarta.xml.bind.Marshaller;
 import lombok.SneakyThrows;
-import org.springframework.stereotype.Component;
 
 import java.io.StringWriter;
 
-@Component
-public class PrivateParametersV3Marshaller {
+public class SharedParametersV4Marshaller {
 
     private final JAXBContext jaxbContext = createJaxbContext();
 
     @SneakyThrows
-    String marshall(PrivateParameters parameters) {
+    public String marshall(SharedParameters parameters) {
         var writer = new StringWriter();
         var marshaller = jaxbContext.createMarshaller();
         marshaller.setProperty(Marshaller.JAXB_FORMATTED_OUTPUT, Boolean.TRUE);
-        marshaller.setSchema(PrivateParametersSchemaValidatorV3.getSchema());
-        marshaller.marshal(new ObjectFactory().createConf(PrivateParametersV3Converter.INSTANCE.convert(parameters)),
+        marshaller.setSchema(SharedParametersSchemaValidatorV4.getSchema());
+        marshaller.marshal(new ObjectFactory().createConf(SharedParametersV4ToXmlConverter.INSTANCE.convert(parameters)),
                 writer);
         return writer.toString();
     }

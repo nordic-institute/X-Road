@@ -25,9 +25,7 @@
  * THE SOFTWARE.
  */
 
-package org.niis.xroad.cs.admin.globalconf.generator;
-
-import ee.ria.xroad.common.conf.globalconf.SharedParameters;
+package ee.ria.xroad.common.conf.globalconf;
 
 import jakarta.xml.bind.MarshalException;
 import org.junit.jupiter.api.Test;

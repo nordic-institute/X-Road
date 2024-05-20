@@ -26,6 +26,8 @@
  */
 package org.niis.xroad.cs.admin.globalconf.generator;
 
+import ee.ria.xroad.common.conf.globalconf.SharedParametersV3Marshaller;
+
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
@@ -34,7 +36,7 @@ import org.springframework.stereotype.Component;
 @RequiredArgsConstructor
 @Slf4j
 public class SharedParametersV3Generator {
-    private final SharedParametersV3Marshaller marshaller;
+    private final SharedParametersV3Marshaller marshaller = new SharedParametersV3Marshaller();
     private final SharedParametersLoader loader;
 
     String generate() {

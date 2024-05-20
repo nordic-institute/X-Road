@@ -24,31 +24,27 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.cs.admin.globalconf.generator;
+package ee.ria.xroad.common.conf.globalconf;
 
-import ee.ria.xroad.common.conf.globalconf.SharedParameters;
-import ee.ria.xroad.common.conf.globalconf.SharedParametersSchemaValidatorV3;
 import ee.ria.xroad.common.conf.globalconf.sharedparameters.v3.ObjectFactory;
 
 import jakarta.xml.bind.JAXBContext;
 import jakarta.xml.bind.Marshaller;
 import lombok.SneakyThrows;
-import org.springframework.stereotype.Component;
 
 import java.io.StringWriter;
 
-@Component
 public class SharedParametersV3Marshaller {
 
     private final JAXBContext jaxbContext = createJaxbContext();
 
     @SneakyThrows
-    String marshall(SharedParameters parameters) {
+    public String marshall(SharedParameters parameters) {
         var writer = new StringWriter();
         var marshaller = jaxbContext.createMarshaller();
         marshaller.setProperty(Marshaller.JAXB_FORMATTED_OUTPUT, Boolean.TRUE);
         marshaller.setSchema(SharedParametersSchemaValidatorV3.getSchema());
-        marshaller.marshal(new ObjectFactory().createConf(SharedParametersV3Converter.INSTANCE.convert(parameters)),
+        marshaller.marshal(new ObjectFactory().createConf(SharedParametersV3ToXmlConverter.INSTANCE.convert(parameters)),
                 writer);
         return writer.toString();
     }

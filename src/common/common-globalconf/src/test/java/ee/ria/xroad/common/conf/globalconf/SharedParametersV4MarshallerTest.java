@@ -24,9 +24,7 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.cs.admin.globalconf.generator;
-
-import ee.ria.xroad.common.conf.globalconf.SharedParameters;
+package ee.ria.xroad.common.conf.globalconf;
 
 import jakarta.xml.bind.MarshalException;
 import org.junit.jupiter.api.Test;
@@ -34,12 +32,13 @@ import org.junit.jupiter.api.Test;
 import java.nio.charset.StandardCharsets;
 import java.util.List;
 
+import static java.nio.charset.StandardCharsets.UTF_8;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
-class SharedParametersV3MarshallerTest {
+class SharedParametersV4MarshallerTest {
 
-    private final SharedParametersV3Marshaller marshaller = new SharedParametersV3Marshaller();
+    private final SharedParametersV4Marshaller marshaller = new SharedParametersV4Marshaller();
 
     @Test
     void marshall() {
@@ -52,6 +51,13 @@ class SharedParametersV3MarshallerTest {
         configurationSource.setExternalVerificationCerts(List.of("external-conf-signing-cert".getBytes(StandardCharsets.UTF_8)));
         sharedParamsBuilder.globalSettings(new SharedParameters.GlobalSettings(null, 60));
         sharedParamsBuilder.sources(List.of(configurationSource));
+        SharedParameters.ApprovedCA approvedCA = new SharedParameters.ApprovedCA();
+        approvedCA.setName("Test CA");
+        approvedCA.setTopCA(new SharedParameters.CaInfo("ca-cert".getBytes(UTF_8), List.of(
+                new SharedParameters.OcspInfo("ocsp:url", "ocsp-cert".getBytes(UTF_8)))));
+        approvedCA.setCertificateProfileInfo("certProfileInfo");
+        approvedCA.setAcmeServer(new SharedParameters.AcmeServer("http.test-ca/acme", "12.3.4.5", "4", "5"));
+        sharedParamsBuilder.approvedCAs(List.of(approvedCA));
 
         final String result = marshaller.marshall(sharedParamsBuilder.build());
 

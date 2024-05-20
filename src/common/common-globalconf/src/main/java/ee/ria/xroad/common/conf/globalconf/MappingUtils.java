@@ -24,32 +24,27 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.cs.admin.globalconf.generator;
+package ee.ria.xroad.common.conf.globalconf;
 
+import ee.ria.xroad.common.identifier.ClientId;
+import ee.ria.xroad.common.identifier.ServiceId;
 
-import ee.ria.xroad.common.conf.globalconf.PrivateParameters;
-import ee.ria.xroad.common.conf.globalconf.privateparameters.v2.ConfigurationAnchorType;
-import ee.ria.xroad.common.conf.globalconf.privateparameters.v2.ConfigurationSourceType;
-import ee.ria.xroad.common.conf.globalconf.privateparameters.v2.ObjectFactory;
-import ee.ria.xroad.common.conf.globalconf.privateparameters.v2.PrivateParametersType;
+import java.time.Instant;
+import java.time.ZoneOffset;
+import java.time.ZonedDateTime;
 
-import org.mapstruct.Mapper;
-import org.mapstruct.Mapping;
-import org.mapstruct.ReportingPolicy;
-import org.mapstruct.factory.Mappers;
+class MappingUtils {
 
-@Mapper(uses = {ObjectFactory.class, MappingUtils.class},
-        unmappedTargetPolicy = ReportingPolicy.ERROR)
-interface PrivateParametersV2Converter {
-    PrivateParametersV2Converter INSTANCE = Mappers.getMapper(PrivateParametersV2Converter.class);
+    ClientId.Conf mapClientId(ClientId value) {
+        return value != null ? ClientId.Conf.ensure(value) : null;
+    }
 
-    @Mapping(source = "configurationAnchors", target = "configurationAnchor")
-    PrivateParametersType convert(PrivateParameters parameters);
+    ServiceId.Conf mapServiceId(ServiceId value) {
+        return value != null ? ServiceId.Conf.ensure(value) : null;
+    }
 
-    @Mapping(source = "sources", target = "source")
-    ConfigurationAnchorType convertAnchor(PrivateParameters.ConfigurationAnchor configurationAnchor);
-
-    @Mapping(source = "verificationCerts", target = "verificationCert")
-    ConfigurationSourceType convertSource(PrivateParameters.Source configurationSource);
-
+    // Required for conversion to XMLGregorianCalendar, Instant -> ZonedDateTime -> XMLGregorianCalendar
+    ZonedDateTime mapInstant(Instant value) {
+        return value != null ? value.atZone(ZoneOffset.UTC) : null;
+    }
 }

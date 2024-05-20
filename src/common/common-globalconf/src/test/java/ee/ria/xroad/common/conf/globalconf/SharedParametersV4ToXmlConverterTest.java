@@ -24,11 +24,10 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.cs.admin.globalconf.generator;
+package ee.ria.xroad.common.conf.globalconf;
 
-import ee.ria.xroad.common.conf.globalconf.SharedParameters;
-import ee.ria.xroad.common.conf.globalconf.sharedparameters.v2.ObjectFactory;
-import ee.ria.xroad.common.conf.globalconf.sharedparameters.v2.SharedParametersTypeV2;
+import ee.ria.xroad.common.conf.globalconf.sharedparameters.v4.ObjectFactory;
+import ee.ria.xroad.common.conf.globalconf.sharedparameters.v4.SharedParametersTypeV4;
 import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.util.CryptoUtils;
 
@@ -55,10 +54,13 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatNoException;
 
 @Slf4j
-class SharedParametersV2ConverterTest {
+class SharedParametersV4ToXmlConverterTest {
 
     private static final Map<String, String> FIELD_NAME_MAP = Map.ofEntries(
             entry("securityServer", "securityServers"),
+            entry("source", "sources"),
+            entry("internalVerificationCert", "internalVerificationCerts"),
+            entry("externalVerificationCert", "externalVerificationCerts"),
             entry("approvedCA", "approvedCAs"),
             entry("approvedTSA", "approvedTSAs"),
             entry("member", "members"),
@@ -74,7 +76,7 @@ class SharedParametersV2ConverterTest {
     @Test
     void shouldConvertAllFields() throws IOException, OperatorCreationException {
         var sharedParameters = getSharedParameters();
-        var xmlType = SharedParametersV2Converter.INSTANCE.convert(sharedParameters);
+        var xmlType = SharedParametersV4ToXmlConverter.INSTANCE.convert(sharedParameters);
 
         var conf = RecursiveComparisonConfiguration.builder()
                 .withIntrospectionStrategy(compareRenamedFields())
@@ -83,7 +85,8 @@ class SharedParametersV2ConverterTest {
                         "securityServers.authCerts",
                         "members.id",
                         "members.subsystems.id",
-                        "centralService"
+                        "centralService",
+                        "any"
                 )
                 .withEqualsForFields((a, b) -> new BigInteger(a.toString()).compareTo(new BigInteger(b.toString())) == 0,
                         "globalSettings.ocspFreshnessSeconds")
@@ -101,12 +104,12 @@ class SharedParametersV2ConverterTest {
 
         assertIdReferences(xmlType);
         assertThat(xmlType.getSecurityServer().get(0).getAuthCertHash().get(0))
-                .isEqualTo(CryptoUtils.certSha1Hash(sharedParameters.getSecurityServers().get(0).getAuthCertHashes().get(0)));
+                .isEqualTo(CryptoUtils.certHash(sharedParameters.getSecurityServers().get(0).getAuthCertHashes().get(0)));
     }
 
     @Test
     void shouldBeAbleToMarshall() throws JAXBException {
-        var xmlType = SharedParametersV2Converter.INSTANCE.convert(getSharedParameters());
+        var xmlType = SharedParametersV4ToXmlConverter.INSTANCE.convert(getSharedParameters());
 
         JAXBContext jaxbContext = JAXBContext.newInstance(ObjectFactory.class);
         var writer = new StringWriter();
@@ -121,10 +124,10 @@ class SharedParametersV2ConverterTest {
 
     @Test
     void shouldReturnNullWhenInputIsNull() {
-        assertThat(SharedParametersV2Converter.INSTANCE.convert((SharedParameters) null)).isNull();
+        assertThat(SharedParametersV4ToXmlConverter.INSTANCE.convert((SharedParameters) null)).isNull();
     }
 
-    private static void assertIdReferences(SharedParametersTypeV2 xmlType) {
+    private static void assertIdReferences(SharedParametersTypeV4 xmlType) {
         var ownerMember = xmlType.getMember().get(0);
         var client = ownerMember.getSubsystem().get(0);
 
@@ -150,11 +153,32 @@ class SharedParametersV2ConverterTest {
     }
 
     private static SharedParameters getSharedParameters() {
-        return new SharedParameters("INSTANCE", List.of(), List.of(getApprovedCA()),
+        return new SharedParameters("INSTANCE", getConfigurationSources(), List.of(getApprovedCA()),
                 List.of(new SharedParameters.ApprovedTSA("tsa-name", "tsa-url", "tsa cert".getBytes(UTF_8))),
                 getMembers(), List.of(getSecurityServer()), List.of(new SharedParameters.GlobalGroup("group-code",
-                "group-description", List.of(subsystemId(memberId(), "SUB1")))),
+                        "group-description", List.of(subsystemId(memberId(), "SUB1")))),
                 new SharedParameters.GlobalSettings(List.of(getMemberClass()), 333));
+
+//        parameters.setInstanceIdentifier("INSTANCE");
+//        parameters.setSources(getConfigurationSources());
+//        parameters.setApprovedCAs(List.of(getApprovedCA()));
+//        parameters.setApprovedTSAs(List.of(new SharedParameters.ApprovedTSA("tsa-name",
+//                "tsa-url",
+//                "tsa cert".getBytes(UTF_8))));
+//        parameters.setMembers(getMembers());
+//        parameters.setSecurityServers(List.of(getSecurityServer()));
+//        parameters.setGlobalGroups(List.of(new SharedParameters.GlobalGroup("group-code", "group-description",
+//                List.of(subsystemId(memberId(), "SUB1")))));
+//        parameters.setGlobalSettings(new SharedParameters.GlobalSettings(List.of(getMemberClass()), 333));
+//        return parameters;
+    }
+
+    private static List<SharedParameters.ConfigurationSource> getConfigurationSources() {
+        var configurationSource = new SharedParameters.ConfigurationSource();
+        configurationSource.setAddress("cs");
+        configurationSource.setInternalVerificationCerts(List.of("internal-conf-singing-cert".getBytes(UTF_8)));
+        configurationSource.setExternalVerificationCerts(List.of("external-conf-singing-cert".getBytes(UTF_8)));
+        return List.of(configurationSource);
     }
 
     private static SharedParameters.ApprovedCA getApprovedCA() {
@@ -164,6 +188,7 @@ class SharedParametersV2ConverterTest {
         approvedCA.setTopCA(getCaInfo());
         approvedCA.setCertificateProfileInfo("certificateProfileInfo");
         approvedCA.setIntermediateCas(List.of(getCaInfo()));
+        approvedCA.setAcmeServer(new SharedParameters.AcmeServer("http://testca.com/acme", "192.99.88.7", "1", "2"));
         return approvedCA;
     }
 
@@ -206,6 +231,10 @@ class SharedParametersV2ConverterTest {
     }
 
     private static ClientId.Conf subsystemId(ClientId.Conf clientId, String subsystemCode) {
-        return ClientId.Conf.create(clientId.getXRoadInstance(), clientId.getXRoadInstance(), clientId.getMemberCode(), subsystemCode);
+        return ClientId.Conf.create(clientId.getXRoadInstance(),
+                clientId.getXRoadInstance(),
+                clientId.getMemberCode(),
+                subsystemCode);
     }
+
 }
