@@ -24,32 +24,34 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.cs.admin.globalconf.generator;
+package ee.ria.xroad.common.conf.globalconf;
 
-import ee.ria.xroad.common.conf.globalconf.PrivateParameters;
-import ee.ria.xroad.common.conf.globalconf.privateparameters.v3.ConfigurationAnchorType;
-import ee.ria.xroad.common.conf.globalconf.privateparameters.v3.ConfigurationSourceType;
 import ee.ria.xroad.common.conf.globalconf.privateparameters.v3.ObjectFactory;
-import ee.ria.xroad.common.conf.globalconf.privateparameters.v3.PrivateParametersTypeV3;
 
-import org.mapstruct.Mapper;
-import org.mapstruct.Mapping;
-import org.mapstruct.ReportingPolicy;
-import org.mapstruct.factory.Mappers;
+import jakarta.xml.bind.JAXBContext;
+import jakarta.xml.bind.Marshaller;
+import lombok.SneakyThrows;
 
-@Mapper(uses = {ObjectFactory.class, MappingUtils.class},
-        unmappedTargetPolicy = ReportingPolicy.ERROR)
-interface PrivateParametersV3Converter {
+import java.io.StringWriter;
 
-    PrivateParametersV3Converter INSTANCE = Mappers.getMapper(PrivateParametersV3Converter.class);
+public class PrivateParametersV3Marshaller {
 
-    @Mapping(source = "configurationAnchors", target = "configurationAnchor")
-    @Mapping(target = "any", ignore = true)
-    PrivateParametersTypeV3 convert(PrivateParameters parameters);
+    private final JAXBContext jaxbContext = createJaxbContext();
 
-    @Mapping(source = "sources", target = "source")
-    ConfigurationAnchorType convertAnchor(PrivateParameters.ConfigurationAnchor configurationAnchor);
+    @SneakyThrows
+    public String marshall(PrivateParameters parameters) {
+        var writer = new StringWriter();
+        var marshaller = jaxbContext.createMarshaller();
+        marshaller.setProperty(Marshaller.JAXB_FORMATTED_OUTPUT, Boolean.TRUE);
+        marshaller.setSchema(PrivateParametersSchemaValidatorV3.getSchema());
+        marshaller.marshal(new ObjectFactory().createConf(PrivateParametersV3ToXmlConverter.INSTANCE.convert(parameters)),
+                writer);
+        return writer.toString();
+    }
 
-    @Mapping(source = "verificationCerts", target = "verificationCert")
-    ConfigurationSourceType convertSource(PrivateParameters.Source configurationSource);
+    @SneakyThrows
+    private JAXBContext createJaxbContext() {
+        return JAXBContext.newInstance(ObjectFactory.class);
+    }
+
 }

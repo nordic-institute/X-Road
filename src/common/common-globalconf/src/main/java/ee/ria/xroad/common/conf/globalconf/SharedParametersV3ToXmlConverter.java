@@ -24,19 +24,18 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.cs.admin.globalconf.generator;
+package ee.ria.xroad.common.conf.globalconf;
 
 
-import ee.ria.xroad.common.conf.globalconf.SharedParameters;
-import ee.ria.xroad.common.conf.globalconf.sharedparameters.v4.ApprovedCATypeV3;
-import ee.ria.xroad.common.conf.globalconf.sharedparameters.v4.ConfigurationSourceType;
-import ee.ria.xroad.common.conf.globalconf.sharedparameters.v4.GlobalGroupType;
-import ee.ria.xroad.common.conf.globalconf.sharedparameters.v4.GlobalSettingsType;
-import ee.ria.xroad.common.conf.globalconf.sharedparameters.v4.MemberType;
-import ee.ria.xroad.common.conf.globalconf.sharedparameters.v4.ObjectFactory;
-import ee.ria.xroad.common.conf.globalconf.sharedparameters.v4.SecurityServerType;
-import ee.ria.xroad.common.conf.globalconf.sharedparameters.v4.SharedParametersTypeV4;
-import ee.ria.xroad.common.conf.globalconf.sharedparameters.v4.SubsystemType;
+import ee.ria.xroad.common.conf.globalconf.sharedparameters.v3.ApprovedCATypeV3;
+import ee.ria.xroad.common.conf.globalconf.sharedparameters.v3.ConfigurationSourceType;
+import ee.ria.xroad.common.conf.globalconf.sharedparameters.v3.GlobalGroupType;
+import ee.ria.xroad.common.conf.globalconf.sharedparameters.v3.GlobalSettingsType;
+import ee.ria.xroad.common.conf.globalconf.sharedparameters.v3.MemberType;
+import ee.ria.xroad.common.conf.globalconf.sharedparameters.v3.ObjectFactory;
+import ee.ria.xroad.common.conf.globalconf.sharedparameters.v3.SecurityServerType;
+import ee.ria.xroad.common.conf.globalconf.sharedparameters.v3.SharedParametersTypeV3;
+import ee.ria.xroad.common.conf.globalconf.sharedparameters.v3.SubsystemType;
 import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.util.CryptoUtils;
 
@@ -55,11 +54,11 @@ import java.util.Map;
 
 @Mapper(uses = {ObjectFactory.class, MappingUtils.class}, unmappedTargetPolicy = ReportingPolicy.ERROR)
 
-abstract class SharedParametersV4Converter {
-    public static final SharedParametersV4Converter INSTANCE = Mappers.getMapper(SharedParametersV4Converter.class);
+abstract class SharedParametersV3ToXmlConverter {
+    public static final SharedParametersV3ToXmlConverter INSTANCE = Mappers.getMapper(SharedParametersV3ToXmlConverter.class);
     protected static final ObjectFactory OBJECT_FACTORY = new ObjectFactory();
 
-    SharedParametersTypeV4 convert(SharedParameters sharedParameters) {
+    SharedParametersTypeV3 convert(SharedParameters sharedParameters) {
         return sharedParameters != null ? convert(sharedParameters, createClientIdMap(sharedParameters)) : null;
     }
 
@@ -71,7 +70,7 @@ abstract class SharedParametersV4Converter {
     @Mapping(source = "globalGroups", target = "globalGroup")
     @Mapping(target = "centralService", ignore = true)
     @Mapping(target = "any", ignore = true)
-    abstract SharedParametersTypeV4 convert(SharedParameters sharedParameters,
+    abstract SharedParametersTypeV3 convert(SharedParameters sharedParameters,
                                             @Context Map<ClientId, Object> clientMap);
 
     @Mapping(source = "memberClasses", target = "memberClass")

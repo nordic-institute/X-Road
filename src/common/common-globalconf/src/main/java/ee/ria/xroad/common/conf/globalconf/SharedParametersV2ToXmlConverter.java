@@ -24,19 +24,16 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.cs.admin.globalconf.generator;
+package ee.ria.xroad.common.conf.globalconf;
 
-
-import ee.ria.xroad.common.conf.globalconf.SharedParameters;
-import ee.ria.xroad.common.conf.globalconf.sharedparameters.v3.ApprovedCATypeV3;
-import ee.ria.xroad.common.conf.globalconf.sharedparameters.v3.ConfigurationSourceType;
-import ee.ria.xroad.common.conf.globalconf.sharedparameters.v3.GlobalGroupType;
-import ee.ria.xroad.common.conf.globalconf.sharedparameters.v3.GlobalSettingsType;
-import ee.ria.xroad.common.conf.globalconf.sharedparameters.v3.MemberType;
-import ee.ria.xroad.common.conf.globalconf.sharedparameters.v3.ObjectFactory;
-import ee.ria.xroad.common.conf.globalconf.sharedparameters.v3.SecurityServerType;
-import ee.ria.xroad.common.conf.globalconf.sharedparameters.v3.SharedParametersTypeV3;
-import ee.ria.xroad.common.conf.globalconf.sharedparameters.v3.SubsystemType;
+import ee.ria.xroad.common.conf.globalconf.sharedparameters.v2.ApprovedCATypeV2;
+import ee.ria.xroad.common.conf.globalconf.sharedparameters.v2.GlobalGroupType;
+import ee.ria.xroad.common.conf.globalconf.sharedparameters.v2.GlobalSettingsType;
+import ee.ria.xroad.common.conf.globalconf.sharedparameters.v2.MemberType;
+import ee.ria.xroad.common.conf.globalconf.sharedparameters.v2.ObjectFactory;
+import ee.ria.xroad.common.conf.globalconf.sharedparameters.v2.SecurityServerType;
+import ee.ria.xroad.common.conf.globalconf.sharedparameters.v2.SharedParametersTypeV2;
+import ee.ria.xroad.common.conf.globalconf.sharedparameters.v2.SubsystemType;
 import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.util.CryptoUtils;
 
@@ -54,35 +51,27 @@ import java.util.List;
 import java.util.Map;
 
 @Mapper(uses = {ObjectFactory.class, MappingUtils.class}, unmappedTargetPolicy = ReportingPolicy.ERROR)
-
-abstract class SharedParametersV3Converter {
-    public static final SharedParametersV3Converter INSTANCE = Mappers.getMapper(SharedParametersV3Converter.class);
+abstract class SharedParametersV2ToXmlConverter {
+    public static final SharedParametersV2ToXmlConverter INSTANCE = Mappers.getMapper(SharedParametersV2ToXmlConverter.class);
     protected static final ObjectFactory OBJECT_FACTORY = new ObjectFactory();
 
-    SharedParametersTypeV3 convert(SharedParameters sharedParameters) {
+    SharedParametersTypeV2 convert(SharedParameters sharedParameters) {
         return sharedParameters != null ? convert(sharedParameters, createClientIdMap(sharedParameters)) : null;
     }
 
-    @Mapping(source = "sources", target = "source")
     @Mapping(source = "approvedCAs", target = "approvedCA")
     @Mapping(source = "approvedTSAs", target = "approvedTSA")
     @Mapping(source = "members", target = "member")
     @Mapping(source = "securityServers", target = "securityServer")
     @Mapping(source = "globalGroups", target = "globalGroup")
     @Mapping(target = "centralService", ignore = true)
-    @Mapping(target = "any", ignore = true)
-    abstract SharedParametersTypeV3 convert(SharedParameters sharedParameters,
-                                            @Context Map<ClientId, Object> clientMap);
+    abstract SharedParametersTypeV2 convert(SharedParameters sharedParameters, @Context Map<ClientId, Object> clientMap);
 
     @Mapping(source = "memberClasses", target = "memberClass")
     abstract GlobalSettingsType convert(SharedParameters.GlobalSettings globalSettings);
 
-    @Mapping(source = "internalVerificationCerts", target = "internalVerificationCert")
-    @Mapping(source = "externalVerificationCerts", target = "externalVerificationCert")
-    abstract ConfigurationSourceType convert(SharedParameters.ConfigurationSource configurationSource);
-
     @Mapping(source = "intermediateCas", target = "intermediateCA")
-    abstract ApprovedCATypeV3 convert(SharedParameters.ApprovedCA approvedCa);
+    abstract ApprovedCATypeV2 convert(SharedParameters.ApprovedCA approvedCa);
 
     @Mapping(source = "authCertHashes", target = "authCertHash", qualifiedByName = "toAuthCertHashes")
     @Mapping(source = "clients", target = "client", qualifiedByName = "clientsById")
@@ -127,7 +116,7 @@ abstract class SharedParametersV3Converter {
 
     @SneakyThrows
     private byte[] toAuthCertHash(byte[] authCert) {
-        return CryptoUtils.certHash(authCert);
+        return CryptoUtils.certSha1Hash(authCert);
     }
 
     private Map<ClientId, Object> createClientIdMap(SharedParameters sharedParameters) {

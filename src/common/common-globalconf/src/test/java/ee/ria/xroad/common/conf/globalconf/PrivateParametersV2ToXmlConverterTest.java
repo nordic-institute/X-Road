@@ -24,9 +24,8 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.cs.admin.globalconf.generator;
+package ee.ria.xroad.common.conf.globalconf;
 
-import ee.ria.xroad.common.conf.globalconf.PrivateParameters;
 import ee.ria.xroad.common.conf.globalconf.privateparameters.v2.ConfigurationAnchorType;
 import ee.ria.xroad.common.conf.globalconf.privateparameters.v2.ConfigurationSourceType;
 import ee.ria.xroad.common.conf.globalconf.privateparameters.v2.ManagementServiceType;
@@ -43,7 +42,7 @@ import static java.nio.charset.StandardCharsets.UTF_8;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertAll;
 
-class PrivateParametersV2ConverterTest {
+class PrivateParametersV2ToXmlConverterTest {
     private static final String INSTANCE = "INSTANCE";
     private static final String DOWNLOAD_URL = "http://example.com";
     private static final byte[] VERIFICATION_CERT = "VERIFICATION_CERT".getBytes(UTF_8);
@@ -57,7 +56,7 @@ class PrivateParametersV2ConverterTest {
     void shouldMapAllProperties() {
         PrivateParameters privateParameters = getPrivateParameters();
 
-        var xmlType = PrivateParametersV2Converter.INSTANCE.convert(privateParameters);
+        var xmlType = PrivateParametersV2ToXmlConverter.INSTANCE.convert(privateParameters);
 
         assertPrivateParameters(xmlType);
     }
@@ -78,9 +77,9 @@ class PrivateParametersV2ConverterTest {
                 () -> assertThat(privateParameters).isNotNull(),
                 () -> assertThat(privateParameters.getInstanceIdentifier()).isEqualTo(INSTANCE),
                 () -> assertThat(privateParameters.getConfigurationAnchor())
-                        .satisfiesExactly(PrivateParametersV2ConverterTest::assertConfigurationAnchor),
+                        .satisfiesExactly(PrivateParametersV2ToXmlConverterTest::assertConfigurationAnchor),
                 () -> assertThat(privateParameters.getManagementService()).satisfies(
-                        PrivateParametersV2ConverterTest::assertManagementService),
+                        PrivateParametersV2ToXmlConverterTest::assertManagementService),
                 () -> assertThat(privateParameters.getTimeStampingIntervalSeconds()).isEqualTo(BigInteger.valueOf(TIMESTAMPING_INTERVAL)),
                 () -> assertThat(privateParameters).hasNoNullFieldsOrProperties()
         );
@@ -100,7 +99,7 @@ class PrivateParametersV2ConverterTest {
                 () -> assertThat(anchor.getInstanceIdentifier()).isEqualTo(OTHER_INSTANCE),
                 () -> assertThat(anchor.getGeneratedAt().toGregorianCalendar().toInstant()).isEqualTo(Instant.EPOCH),
                 () -> assertThat(anchor.getSource())
-                        .satisfiesExactly(PrivateParametersV2ConverterTest::assertConfigurationSource),
+                        .satisfiesExactly(PrivateParametersV2ToXmlConverterTest::assertConfigurationSource),
                 () -> assertThat(anchor).hasNoNullFieldsOrProperties()
         );
     }

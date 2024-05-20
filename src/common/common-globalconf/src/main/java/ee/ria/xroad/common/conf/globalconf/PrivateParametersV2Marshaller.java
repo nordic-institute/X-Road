@@ -24,31 +24,27 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.cs.admin.globalconf.generator;
+package ee.ria.xroad.common.conf.globalconf;
 
 
-import ee.ria.xroad.common.conf.globalconf.PrivateParameters;
-import ee.ria.xroad.common.conf.globalconf.PrivateParametersSchemaValidatorV2;
 import ee.ria.xroad.common.conf.globalconf.privateparameters.v2.ObjectFactory;
 
 import jakarta.xml.bind.JAXBContext;
 import jakarta.xml.bind.Marshaller;
 import lombok.SneakyThrows;
-import org.springframework.stereotype.Component;
 
 import java.io.StringWriter;
 
-@Component
-class PrivateParametersV2Marshaller {
+public class PrivateParametersV2Marshaller {
     private final JAXBContext jaxbContext = createJaxbContext();
 
     @SneakyThrows
-    String marshall(PrivateParameters parameters) {
+    public String marshall(PrivateParameters parameters) {
         var writer = new StringWriter();
         var marshaller = jaxbContext.createMarshaller();
         marshaller.setProperty(Marshaller.JAXB_FORMATTED_OUTPUT, Boolean.TRUE);
         marshaller.setSchema(PrivateParametersSchemaValidatorV2.getSchema());
-        marshaller.marshal(new ObjectFactory().createConf(PrivateParametersV2Converter.INSTANCE.convert(parameters)), writer);
+        marshaller.marshal(new ObjectFactory().createConf(PrivateParametersV2ToXmlConverter.INSTANCE.convert(parameters)), writer);
         return writer.toString();
     }
 

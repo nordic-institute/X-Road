@@ -24,38 +24,31 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.cs.admin.globalconf.generator;
+package ee.ria.xroad.common.conf.globalconf;
 
-import ee.ria.xroad.common.conf.globalconf.SharedParameters;
-import ee.ria.xroad.common.conf.globalconf.SharedParametersSchemaValidatorV4;
-import ee.ria.xroad.common.conf.globalconf.sharedparameters.v4.ObjectFactory;
+import ee.ria.xroad.common.conf.globalconf.privateparameters.v3.ConfigurationAnchorType;
+import ee.ria.xroad.common.conf.globalconf.privateparameters.v3.ConfigurationSourceType;
+import ee.ria.xroad.common.conf.globalconf.privateparameters.v3.ObjectFactory;
+import ee.ria.xroad.common.conf.globalconf.privateparameters.v3.PrivateParametersTypeV3;
 
-import jakarta.xml.bind.JAXBContext;
-import jakarta.xml.bind.Marshaller;
-import lombok.SneakyThrows;
-import org.springframework.stereotype.Component;
+import org.mapstruct.Mapper;
+import org.mapstruct.Mapping;
+import org.mapstruct.ReportingPolicy;
+import org.mapstruct.factory.Mappers;
 
-import java.io.StringWriter;
+@Mapper(uses = {ObjectFactory.class, MappingUtils.class},
+        unmappedTargetPolicy = ReportingPolicy.ERROR)
+interface PrivateParametersV3ToXmlConverter {
 
-@Component
-public class SharedParametersV4Marshaller {
+    PrivateParametersV3ToXmlConverter INSTANCE = Mappers.getMapper(PrivateParametersV3ToXmlConverter.class);
 
-    private final JAXBContext jaxbContext = createJaxbContext();
+    @Mapping(source = "configurationAnchors", target = "configurationAnchor")
+    @Mapping(target = "any", ignore = true)
+    PrivateParametersTypeV3 convert(PrivateParameters parameters);
 
-    @SneakyThrows
-    String marshall(SharedParameters parameters) {
-        var writer = new StringWriter();
-        var marshaller = jaxbContext.createMarshaller();
-        marshaller.setProperty(Marshaller.JAXB_FORMATTED_OUTPUT, Boolean.TRUE);
-        marshaller.setSchema(SharedParametersSchemaValidatorV4.getSchema());
-        marshaller.marshal(new ObjectFactory().createConf(SharedParametersV4Converter.INSTANCE.convert(parameters)),
-                writer);
-        return writer.toString();
-    }
+    @Mapping(source = "sources", target = "source")
+    ConfigurationAnchorType convertAnchor(PrivateParameters.ConfigurationAnchor configurationAnchor);
 
-    @SneakyThrows
-    private JAXBContext createJaxbContext() {
-        return JAXBContext.newInstance(ObjectFactory.class);
-    }
-
+    @Mapping(source = "verificationCerts", target = "verificationCert")
+    ConfigurationSourceType convertSource(PrivateParameters.Source configurationSource);
 }

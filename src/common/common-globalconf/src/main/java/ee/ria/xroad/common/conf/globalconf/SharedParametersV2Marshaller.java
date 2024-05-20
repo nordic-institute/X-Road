@@ -24,27 +24,33 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.cs.admin.globalconf.generator;
+package ee.ria.xroad.common.conf.globalconf;
 
-import ee.ria.xroad.common.identifier.ClientId;
-import ee.ria.xroad.common.identifier.ServiceId;
+import ee.ria.xroad.common.conf.globalconf.sharedparameters.v2.ObjectFactory;
 
-import java.time.Instant;
-import java.time.ZoneOffset;
-import java.time.ZonedDateTime;
+import jakarta.xml.bind.JAXBContext;
+import jakarta.xml.bind.Marshaller;
+import lombok.SneakyThrows;
 
-class MappingUtils {
+import java.io.StringWriter;
 
-    ClientId.Conf mapClientId(ClientId value) {
-        return value != null ? ClientId.Conf.ensure(value) : null;
+
+public class SharedParametersV2Marshaller {
+    private final JAXBContext jaxbContext = createJaxbContext();
+
+    @SneakyThrows
+    public String marshall(SharedParameters parameters) {
+        var writer = new StringWriter();
+        var marshaller = jaxbContext.createMarshaller();
+        marshaller.setProperty(Marshaller.JAXB_FORMATTED_OUTPUT, Boolean.TRUE);
+        marshaller.setSchema(SharedParametersSchemaValidatorV2.getSchema());
+        marshaller.marshal(new ObjectFactory().createConf(SharedParametersV2ToXmlConverter.INSTANCE.convert(parameters)), writer);
+        return writer.toString();
     }
 
-    ServiceId.Conf mapServiceId(ServiceId value) {
-        return value != null ? ServiceId.Conf.ensure(value) : null;
+    @SneakyThrows
+    private JAXBContext createJaxbContext() {
+        return JAXBContext.newInstance(ObjectFactory.class);
     }
 
-    // Required for conversion to XMLGregorianCalendar, Instant -> ZonedDateTime -> XMLGregorianCalendar
-    ZonedDateTime mapInstant(Instant value) {
-        return value != null ? value.atZone(ZoneOffset.UTC) : null;
-    }
 }
