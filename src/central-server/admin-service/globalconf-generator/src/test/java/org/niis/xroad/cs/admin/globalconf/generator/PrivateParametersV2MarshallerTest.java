@@ -27,6 +27,7 @@
 
 package org.niis.xroad.cs.admin.globalconf.generator;
 
+import ee.ria.xroad.common.conf.globalconf.PrivateParameters;
 import ee.ria.xroad.common.identifier.ClientId;
 
 import jakarta.xml.bind.MarshalException;

@@ -81,7 +81,7 @@ class ConfigurationClient {
         }
 
         downloadConfigurationFromAnchor();
-        List<ConfigurationSource> configurationSources = getAdditionalConfigurationSources();
+        var configurationSources = getAdditionalConfigurationSources();
 
         FederationConfigurationSourceFilter sourceFilter =
                 new FederationConfigurationSourceFilterImpl(configurationAnchor.getInstanceIdentifier());
@@ -91,7 +91,7 @@ class ConfigurationClient {
         downloadConfigurationFromAdditionalSources(configurationSources, sourceFilter);
     }
 
-    protected List<ConfigurationSource> getAdditionalConfigurationSources() {
+    protected List<? extends ConfigurationSource> getAdditionalConfigurationSources() {
         PrivateParameters privateParameters = loadPrivateParameters();
         return privateParameters != null ? privateParameters.getConfigurationAnchors() : List.of();
     }
@@ -150,7 +150,7 @@ class ConfigurationClient {
         }
     }
 
-    protected void deleteExtraConfigurationDirectories(List<ConfigurationSource> configurationSources,
+    protected void deleteExtraConfigurationDirectories(List<? extends ConfigurationSource> configurationSources,
                                                        FederationConfigurationSourceFilter sourceFilter) {
         Set<String> directoriesToKeep;
         if (configurationSources != null) {
@@ -171,7 +171,7 @@ class ConfigurationClient {
         ConfigurationDirectory.deleteExtraDirs(globalConfigurationDir, directoriesToKeep);
     }
 
-    private void downloadConfigurationFromAdditionalSources(List<ConfigurationSource> configurationSources,
+    private void downloadConfigurationFromAdditionalSources(List<? extends ConfigurationSource> configurationSources,
                                                             FederationConfigurationSourceFilter sourceFilter) throws Exception {
         if (configurationSources != null) {
             for (ConfigurationSource source : configurationSources) {

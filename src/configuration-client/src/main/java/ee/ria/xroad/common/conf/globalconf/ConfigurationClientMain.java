@@ -149,7 +149,7 @@ public final class ConfigurationClientMain {
         client = new ConfigurationClient(configurationPath, configurationVersion) {
             @Override
             protected void deleteExtraConfigurationDirectories(
-                    List<ConfigurationSource> configurationSources,
+                    List<? extends ConfigurationSource> configurationSources,
                     FederationConfigurationSourceFilter sourceFilter) {
                 // do not delete anything
             }
@@ -167,7 +167,7 @@ public final class ConfigurationClientMain {
         client = new ConfigurationClient(configurationPath) {
             @Override
             protected void deleteExtraConfigurationDirectories(
-                    List<ConfigurationSource> configurationSources,
+                    List<? extends ConfigurationSource> configurationSources,
                     FederationConfigurationSourceFilter sourceFilter) {
                 // do not delete anything
             }
@@ -207,7 +207,7 @@ public final class ConfigurationClientMain {
         ConfigurationAnchor configurationAnchor = new ConfigurationAnchor(configurationAnchorFile);
         client = new ConfigurationClient(configurationPath, configurationDownloader, configurationAnchor) {
             @Override
-            protected void deleteExtraConfigurationDirectories(List<ConfigurationSource> configurationSources,
+            protected void deleteExtraConfigurationDirectories(List<? extends ConfigurationSource> configurationSources,
                                                                FederationConfigurationSourceFilter sourceFilter) {
                 // do not delete any files
             }
