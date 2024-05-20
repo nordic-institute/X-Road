@@ -1,24 +1,25 @@
 # Security Server Sidecar User Guide <!-- omit in toc -->
 
-Version: 1.11  
+Version: 1.12  
 Doc. ID: UG-SS-SIDECAR
 
 ## Version history <!-- omit in toc -->
 
- Date       | Version | Description                                             | Author
- ---------- |---------|---------------------------------------------------------| --------------------
- 13.11.2020 | 1.0     | Initial version                                         | Alberto Fernandez Lorenzo
- 24.12.2020 | 1.1     | Add description of features of different image versions | Petteri Kivimäki
- 21.01.2021 | 1.2     | Removal of kubernetes related sections                  | Alberto Fernandez Lorenzo
- 10.02.2021 | 1.3     | Modify description of different supported platforms     | Raul Martinez Lopez
- 06.05.2021 | 1.4     | Updated X-Road version                                  | Raul Martinez Lopez
- 12.07.2021 | 1.5     | Added 6.25.0 to 6.26.0 upgrade steps                    | Raul Martinez Lopez
- 15.10.2021 | 1.6     | Minor documentation updates                             | Janne Mattila
- 02.11.2021 | 1.7     | Updates for Sidecar 7.0.0                               | Jarkko Hyöty
- 28.11.2021 | 1.8     | Add license info                                        | Petteri Kivimäki
- 11.10.2022 | 1.9     | Minor documentation updates regarding upgrade process   | Monika Liutkute
- 06.07.2023 | 1.10    | Sidecar repo migration                                  | Eneli Reimets
- 22.02.2024 | 1.11    | Local database files mapping with docker volume         | Eneli Reimets
+| Date       | Version | Description                                             | Author                    |
+|------------|---------|---------------------------------------------------------|---------------------------|
+| 13.11.2020 | 1.0     | Initial version                                         | Alberto Fernandez Lorenzo |
+| 24.12.2020 | 1.1     | Add description of features of different image versions | Petteri Kivimäki          |
+| 21.01.2021 | 1.2     | Removal of kubernetes related sections                  | Alberto Fernandez Lorenzo |
+| 10.02.2021 | 1.3     | Modify description of different supported platforms     | Raul Martinez Lopez       |
+| 06.05.2021 | 1.4     | Updated X-Road version                                  | Raul Martinez Lopez       |
+| 12.07.2021 | 1.5     | Added 6.25.0 to 6.26.0 upgrade steps                    | Raul Martinez Lopez       |
+| 15.10.2021 | 1.6     | Minor documentation updates                             | Janne Mattila             |
+| 02.11.2021 | 1.7     | Updates for Sidecar 7.0.0                               | Jarkko Hyöty              |
+| 28.11.2021 | 1.8     | Add license info                                        | Petteri Kivimäki          |
+| 11.10.2022 | 1.9     | Minor documentation updates regarding upgrade process   | Monika Liutkute           |
+| 06.07.2023 | 1.10    | Sidecar repo migration                                  | Eneli Reimets             |
+| 22.02.2024 | 1.11    | Local database files mapping with docker volume         | Eneli Reimets             |
+| 13.05.2024 | 1.12    | Add additional upgrade details for Sidecar 7.5          | Ovidijus Narkevicius      |
 
 ## License
 
@@ -160,7 +161,7 @@ docker run --detach \
   # Optional parameters - BEGIN
   -v <config-volume>:/etc/xroad \
   -v <archive-volume>:/var/lib/xroad \
-  -v <database-volume>:/var/lib/postgresql/12/main \
+  -v <database-volume>:/var/lib/postgresql/16/main \
   -e XROAD_DB_HOST=<database-host> \
   -e XROAD_DB_PORT=<database-port> \
   -e XROAD_DB_PWD=<postgres password> \
@@ -197,7 +198,7 @@ In production use, either persistent volumes should be used. Using a separate da
 
 ### 2.5 Using an External Database
 
-For full compatibility, the external database must be PostgreSQL version 12 (for example backup and restore does not work if the version differs).
+For full compatibility, the external database must be PostgreSQL version 16 (for example backup and restore does not work if the version differs).
 When starting the container, provide the external database server hostname, server port, and superuser credentials (for creating the necessary users and tables) as parameters. 
 For example:
 
@@ -211,7 +212,7 @@ docker run -d \
 -e POSTGRES_PASSWORD=<postgres password> \
 --name remote-db \
 --network xroad-network \
-postgres:12
+postgres:16
 
 # Run sidecar
 docker run -d \
@@ -285,11 +286,11 @@ It is possible to adjust the logging level. To do this, set the environment vari
 
 It is recommended to configure persistent [storage](https://docs.docker.com/storage) for the files in the following locations:
 
-| Mount point                  | Description                                               |
-|------------------------------|-----------------------------------------------------------|
-| /etc/xroad                   | X-Road configuration                                      |
-| /var/lib/xroad               | Backups and messagelog archives                           |
-| /var/lib/postgresql/12/main  | Local database files (not applicable to external database |
+| Mount point                 | Description                                               |
+|-----------------------------|-----------------------------------------------------------|
+| /etc/xroad                  | X-Road configuration                                      |
+| /var/lib/xroad              | Backups and messagelog archives                           |
+| /var/lib/postgresql/16/main | Local database files (not applicable to external database |
 
 *Note* Use docker volume instead of bind mount for local database files to avoid permissions issues. For more information see: [Volumes](https://docs.docker.com/storage/volumes/)
 
@@ -308,7 +309,7 @@ docker run --detach \
   -e XROAD_ADMIN_PASSWORD=secret \
   -v sidecar_config_volume:/etc/xroad \
   -v sidecar_backup_volume:/var/lib/xroad \
-  -v sidecar_db_volume:/var/lib/postgresql/12/main \
+  -v sidecar_db_volume:/var/lib/postgresql/16/main \
   niis/xroad-security-server-sidecar:7.4.1
 ```
 
@@ -337,8 +338,9 @@ Upgrading to a new image is supported, provided that:
 
 * The new container image has the same or subsequent minor version of the X-Road Security Server
   * As an exception, upgrading from 6.26.0 to 7.0.x is supported despite the major version change.
+  * As an exception, upgrading from 7.4.2 to 7.5.x is supported using backup archive if local database is used.
 * A volume is used for `/etc/xroad`
-* A remote database is used, or a volume is mapped to `/var/lib/postgresql/12/data`
+* A remote database is used, or a volume is mapped to `/var/lib/postgresql/16/main`
 * The `xroad.properties` file with `serverconf.database.admin_user` etc. credentials is either mapped to `/etc/xroad.properties` or present in `/etc/xroad/xroad.properties`
 * The same image type (slim or full) and variant (ee, fi, ...) are used for the new container
 
@@ -366,6 +368,7 @@ Notes:
 * If `xroad.properties` file containing the database administrator credentials will be missing during the upgrade, 
 then non admin user credentials from `db.properties` will be used, which might cause issues if those credentials won't have enough 
 permissions to execute database updates
+* If remote database is used, then upgrade it up to PostgreSQL 16 version when upgrading to 7.5.x.
 
 ### 4.1 Upgrading from version 6.26.0 to 7.0.0
 
@@ -384,7 +387,7 @@ In case the prerequisites are not fully met, it is possible to manually prepare 
   ```
 * Create a new container with volume mounts using the temporary image, and make a copy of the xroad.properties file
   ```
-  docker run -v sidecar-config:/etc/xroad -v sidecar-db:/var/lib/postgresql/12/data ... -n <container-name-temp> sidecar-temp-image
+  docker run -v sidecar-config:/etc/xroad -v sidecar-db:/var/lib/postgresql/16/data ... -n <container-name-temp> sidecar-temp-image
   ```
   Copy `/etc/xroad.properties` into the volume unless it is a bind mounted file. If `/etc/xroad.properties` is a bind mounted file, verify that the `serverconf.database.admin_user` etc. credentials exist and are correct.
   ```
@@ -392,6 +395,38 @@ In case the prerequisites are not fully met, it is possible to manually prepare 
   docker stop <container-name-temp>
   ```
 * Upgrade using the upgrade instructions above
+* 
+### 4.2 Upgrading from version 7.4.2 to 7.5.x with local database
+
+Upgrading from 7.4.2 to 7.5.x is supported, if the above prerequisites are met. 
+However, due to a newer PostgreSQL version(16, previously 12) used in new sidecar image, it isn't straightforward to upgrade using the same database volume.
+
+* Create a backup for the current sidecar instance using UI or command line and download it.
+* Stop the old container and rename it.
+  ``` bash
+  docker stop <container name>
+  docker rename <container name> <container name prev>
+  ```
+
+* start a new container using the new image and the old volumes, except the old database volume.
+  ``` bash
+  docker run -d \
+  -v sidecar_config_volume:/etc/xroad \
+  -v sidecar_backup_volume:/var/lib/xroad \
+  -v <new DB volume name>:/var/lib/postgresql/16/main
+  ... published ports and other parameters, e.g network ...
+  -e XROAD_ADMIN_USER=<admin user> \
+  -e XROAD_ADMIN_PASSWORD=<admin password> \
+  --name <container name> \
+  niis/xroad-security-server-sidecar:<new version[-type[-variant]>
+  ```
+  
+  * Restore from backup:
+  ``` bash
+    sudo -iu xroad /usr/share/xroad/scripts/restore_xroad_proxy_configuration.sh -F -f <backup file>
+  ```
+
+See [IG-SS](#Ref_IG-SS) for backup and restore details.
 
 ## 5 High Availability Setup
 
