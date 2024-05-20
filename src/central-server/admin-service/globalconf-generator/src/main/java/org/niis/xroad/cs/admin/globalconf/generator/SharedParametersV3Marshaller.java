@@ -26,6 +26,7 @@
  */
 package org.niis.xroad.cs.admin.globalconf.generator;
 
+import ee.ria.xroad.common.conf.globalconf.SharedParameters;
 import ee.ria.xroad.common.conf.globalconf.SharedParametersSchemaValidatorV3;
 import ee.ria.xroad.common.conf.globalconf.sharedparameters.v3.ObjectFactory;
 

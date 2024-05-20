@@ -34,7 +34,6 @@ import java.io.FileInputStream;
 import java.io.InputStream;
 import java.security.cert.CertificateEncodingException;
 import java.security.cert.X509Certificate;
-import java.util.Arrays;
 import java.util.List;
 
 import static ee.ria.xroad.common.ErrorCodes.X_CERT_NOT_FOUND;

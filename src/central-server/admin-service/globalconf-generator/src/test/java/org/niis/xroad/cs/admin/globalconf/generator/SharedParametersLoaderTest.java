@@ -26,6 +26,7 @@
  */
 package org.niis.xroad.cs.admin.globalconf.generator;
 
+import ee.ria.xroad.common.conf.globalconf.SharedParameters;
 import ee.ria.xroad.common.identifier.ClientId;
 
 import org.junit.jupiter.api.Test;
@@ -176,7 +177,7 @@ class SharedParametersLoaderTest {
             assertThat(ss.getServerCode()).isEqualTo(SECURITY_SERVER_CODE);
             assertThat(ss.getClients()).singleElement()
                     .isEqualTo(ClientId.Conf.create(XROAD_INSTANCE, "CLASS", "M2", "S1"));
-            assertThat(ss.getAuthCerts()).singleElement().isEqualTo(SECURITY_SERVER_AUTH_CERT);
+            assertThat(ss.getAuthCertHashes()).singleElement().isEqualTo(SECURITY_SERVER_AUTH_CERT);
         });
     }
 
@@ -198,11 +199,11 @@ class SharedParametersLoaderTest {
             assertThat(approvedCA.getTopCA().getOcsp()).singleElement().satisfies(ocsp -> {
                 assertThat(ocsp.getUrl()).isEqualTo(CA_OCSP_URL);
                 assertThat(ocsp.getCert()).isEqualTo(CA_OCSP_CERT);
-            assertThat(approvedCA.getAcmeServer().getDirectoryURL()).isEqualTo(CA_ACME_SERVER_URL);
-            assertThat(approvedCA.getAcmeServer().getIpAddress()).isEqualTo(CA_ACME_SERVER_IP_ADDRESS);
+                assertThat(approvedCA.getAcmeServer().getDirectoryURL()).isEqualTo(CA_ACME_SERVER_URL);
+                assertThat(approvedCA.getAcmeServer().getIpAddress()).isEqualTo(CA_ACME_SERVER_IP_ADDRESS);
             });
 
-            assertThat(approvedCA.getIntermediateCAs())
+            assertThat(approvedCA.getIntermediateCas())
                     .isNotNull()
                     .singleElement()
                     .satisfies(caInfo -> {
@@ -280,13 +281,21 @@ class SharedParametersLoaderTest {
                 .satisfiesExactly(
                         member -> {
                             assertThat(member.getMemberCode()).isEqualTo("M1");
-                            assertThat(member.getSubsystems()).map(SharedParameters.Subsystem::getSubsystemCode)
-                                    .containsOnly("S1");
+                            assertThat(member.getId()).isEqualTo(ClientId.Conf.create(XROAD_INSTANCE, "CLASS", "M1"));
+
+                            assertThat(member.getSubsystems())
+                                    .containsOnly(new SharedParameters.Subsystem("S1",
+                                            ClientId.Conf.create(XROAD_INSTANCE, "CLASS", "M1", "S1")));
                         },
                         member -> {
                             assertThat(member.getMemberCode()).isEqualTo("M2");
-                            assertThat(member.getSubsystems()).map(SharedParameters.Subsystem::getSubsystemCode)
-                                    .containsOnly("S1", "S2");
+                            assertThat(member.getId()).isEqualTo(ClientId.Conf.create(XROAD_INSTANCE, "CLASS", "M2"));
+                            assertThat(member.getSubsystems())
+                                    .containsOnly(
+                                            new SharedParameters.Subsystem("S1",
+                                                    ClientId.Conf.create(XROAD_INSTANCE, "CLASS", "M2", "S1")),
+                                            new SharedParameters.Subsystem("S2",
+                                                    ClientId.Conf.create(XROAD_INSTANCE, "CLASS", "M2", "S2")));
                         }
                 );
     }

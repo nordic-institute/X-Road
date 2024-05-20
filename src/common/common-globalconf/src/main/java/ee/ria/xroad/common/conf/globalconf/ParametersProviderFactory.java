@@ -51,15 +51,18 @@ final class ParametersProviderFactory {
         return paramsConstructors.sharedByContent.create(content);
     }
 
-    SharedParametersProvider sharedParametersProvider(Path sharedParametersPath, OffsetDateTime expiresOn) throws CertificateEncodingException, IOException {
+    SharedParametersProvider sharedParametersProvider(Path sharedParametersPath, OffsetDateTime expiresOn)
+            throws CertificateEncodingException, IOException {
         return paramsConstructors.sharedByPath.create(sharedParametersPath, expiresOn);
     }
 
-    PrivateParametersProvider privateParametersProvider(byte[] content) throws CertificateEncodingException, IOException {
+    PrivateParametersProvider privateParametersProvider(byte[] content)
+            throws CertificateEncodingException, IOException {
         return paramsConstructors.privateByContent.create(content);
     }
 
-    PrivateParametersProvider privateParametersProvider(Path privateParametersPath, OffsetDateTime expiresOn) throws CertificateEncodingException, IOException {
+    PrivateParametersProvider privateParametersProvider(Path privateParametersPath, OffsetDateTime expiresOn)
+            throws CertificateEncodingException, IOException {
         return paramsConstructors.privateByPath.create(privateParametersPath, expiresOn);
     }
 

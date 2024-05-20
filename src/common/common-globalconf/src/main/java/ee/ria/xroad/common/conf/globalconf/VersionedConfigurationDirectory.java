@@ -48,6 +48,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Consumer;
 import java.util.function.Predicate;
 import java.util.stream.Stream;
@@ -75,6 +76,8 @@ public class VersionedConfigurationDirectory implements ConfigurationDirectory {
 
     protected final Map<String, PrivateParametersProvider> privateParameters;
     protected final Map<String, SharedParametersProvider> sharedParameters;
+
+    private final ConcurrentHashMap<String, SharedParametersCache> sharedParametersCacheMap = new ConcurrentHashMap<>();
 
     // ------------------------------------------------------------------------
 
@@ -262,6 +265,21 @@ public class VersionedConfigurationDirectory implements ConfigurationDirectory {
             return true;
         }
         return false;
+    }
+
+    public Optional<SharedParametersCache> findSharedParametersCache(String instanceId) {
+        return findShared(instanceId).map(this::getSharedParametersCache);
+    }
+
+    public List<SharedParametersCache> getSharedParametersCaches() {
+        return getShared().stream()
+                .map(this::getSharedParametersCache)
+                .toList();
+    }
+
+    private SharedParametersCache getSharedParametersCache(SharedParameters sharedParams) {
+        return sharedParametersCacheMap.computeIfAbsent(sharedParams.getInstanceIdentifier(),
+                k -> new SharedParametersCache(sharedParams));
     }
 
     /**

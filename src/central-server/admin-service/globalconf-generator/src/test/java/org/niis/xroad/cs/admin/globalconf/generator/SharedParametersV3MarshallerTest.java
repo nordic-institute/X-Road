@@ -26,6 +26,8 @@
  */
 package org.niis.xroad.cs.admin.globalconf.generator;
 
+import ee.ria.xroad.common.conf.globalconf.SharedParameters;
+
 import jakarta.xml.bind.MarshalException;
 import org.junit.jupiter.api.Test;
 
@@ -41,28 +43,28 @@ class SharedParametersV3MarshallerTest {
 
     @Test
     void marshall() {
-        SharedParameters sharedParams = new SharedParameters();
-        sharedParams.setInstanceIdentifier("CS");
+        var sharedParamsBuilder = SharedParameters.builder();
+        sharedParamsBuilder.instanceIdentifier("CS");
 
         var configurationSource = new SharedParameters.ConfigurationSource();
         configurationSource.setAddress("cs");
         configurationSource.setInternalVerificationCerts(List.of("internal-conf-signing-cert".getBytes(StandardCharsets.UTF_8)));
         configurationSource.setExternalVerificationCerts(List.of("external-conf-signing-cert".getBytes(StandardCharsets.UTF_8)));
-        sharedParams.setGlobalSettings(new SharedParameters.GlobalSettings(null, 60));
-        sharedParams.setSources(List.of(configurationSource));
+        sharedParamsBuilder.globalSettings(new SharedParameters.GlobalSettings(null, 60));
+        sharedParamsBuilder.sources(List.of(configurationSource));
 
-        final String result = marshaller.marshall(sharedParams);
+        final String result = marshaller.marshall(sharedParamsBuilder.build());
 
         assertThat(result).isNotBlank();
     }
 
     @Test
     void marshallShouldFailWhenInvalid() {
-        SharedParameters sharedParams = new SharedParameters();
-        sharedParams.setInstanceIdentifier("CS");
-        sharedParams.setSources(List.of(new SharedParameters.ConfigurationSource())); // missing address or cert
-        sharedParams.setGlobalSettings(new SharedParameters.GlobalSettings(null, 60));
-        assertThrows(MarshalException.class, () -> marshaller.marshall(sharedParams));
+        var sharedParamsBuilder = SharedParameters.builder();
+        sharedParamsBuilder.instanceIdentifier("CS");
+        sharedParamsBuilder.sources(List.of(new SharedParameters.ConfigurationSource())); // missing address or cert
+        sharedParamsBuilder.globalSettings(new SharedParameters.GlobalSettings(null, 60));
+        assertThrows(MarshalException.class, () -> marshaller.marshall(sharedParamsBuilder.build()));
     }
 
 

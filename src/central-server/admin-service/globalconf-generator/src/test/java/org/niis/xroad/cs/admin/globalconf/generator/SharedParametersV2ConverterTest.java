@@ -26,6 +26,7 @@
  */
 package org.niis.xroad.cs.admin.globalconf.generator;
 
+import ee.ria.xroad.common.conf.globalconf.SharedParameters;
 import ee.ria.xroad.common.conf.globalconf.sharedparameters.v2.ObjectFactory;
 import ee.ria.xroad.common.conf.globalconf.sharedparameters.v2.SharedParametersTypeV2;
 import ee.ria.xroad.common.identifier.ClientId;
@@ -62,7 +63,7 @@ class SharedParametersV2ConverterTest {
             entry("approvedTSA", "approvedTSAs"),
             entry("member", "members"),
             entry("globalGroup", "globalGroups"),
-            entry("intermediateCA", "intermediateCAs"),
+            entry("intermediateCA", "intermediateCas"),
             entry("subsystem", "subsystems"),
             entry("client", "clients"),
             entry("memberClass", "memberClasses"),
@@ -100,7 +101,7 @@ class SharedParametersV2ConverterTest {
 
         assertIdReferences(xmlType);
         assertThat(xmlType.getSecurityServer().get(0).getAuthCertHash().get(0))
-                .isEqualTo(CryptoUtils.certSha1Hash(sharedParameters.getSecurityServers().get(0).getAuthCerts().get(0)));
+                .isEqualTo(CryptoUtils.certSha1Hash(sharedParameters.getSecurityServers().get(0).getAuthCertHashes().get(0)));
     }
 
     @Test
@@ -149,16 +150,11 @@ class SharedParametersV2ConverterTest {
     }
 
     private static SharedParameters getSharedParameters() {
-        var parameters = new SharedParameters();
-        parameters.setInstanceIdentifier("INSTANCE");
-        parameters.setApprovedCAs(List.of(getApprovedCA()));
-        parameters.setApprovedTSAs(List.of(new SharedParameters.ApprovedTSA("tsa-name", "tsa-url", "tsa cert".getBytes(UTF_8))));
-        parameters.setMembers(getMembers());
-        parameters.setSecurityServers(List.of(getSecurityServer()));
-        parameters.setGlobalGroups(List.of(new SharedParameters.GlobalGroup("group-code", "group-description",
-                List.of(subsystemId(memberId(), "SUB1")))));
-        parameters.setGlobalSettings(new SharedParameters.GlobalSettings(List.of(getMemberClass()), 333));
-        return parameters;
+        return new SharedParameters("INSTANCE", List.of(), List.of(getApprovedCA()),
+                List.of(new SharedParameters.ApprovedTSA("tsa-name", "tsa-url", "tsa cert".getBytes(UTF_8))),
+                getMembers(), List.of(getSecurityServer()), List.of(new SharedParameters.GlobalGroup("group-code",
+                "group-description", List.of(subsystemId(memberId(), "SUB1")))),
+                new SharedParameters.GlobalSettings(List.of(getMemberClass()), 333));
     }
 
     private static SharedParameters.ApprovedCA getApprovedCA() {
@@ -167,13 +163,13 @@ class SharedParametersV2ConverterTest {
         approvedCA.setAuthenticationOnly(true);
         approvedCA.setTopCA(getCaInfo());
         approvedCA.setCertificateProfileInfo("certificateProfileInfo");
-        approvedCA.setIntermediateCAs(List.of(getCaInfo()));
+        approvedCA.setIntermediateCas(List.of(getCaInfo()));
         return approvedCA;
     }
 
     private static SharedParameters.CaInfo getCaInfo() {
-        return new SharedParameters.CaInfo(List.of(
-                new SharedParameters.OcspInfo("ocsp:url", "ocsp-cert".getBytes(UTF_8))), "ca-cert".getBytes(UTF_8));
+        return new SharedParameters.CaInfo("ca-cert".getBytes(UTF_8), List.of(
+                new SharedParameters.OcspInfo("ocsp:url", "ocsp-cert".getBytes(UTF_8))));
     }
 
     private static List<SharedParameters.Member> getMembers() {
@@ -197,7 +193,7 @@ class SharedParametersV2ConverterTest {
         securityServer.setServerCode("security-server-code");
         securityServer.setAddress("security-server-address");
         securityServer.setClients(List.of(subsystemId(memberId(), "SUB1")));
-        securityServer.setAuthCerts(List.of("ss-auth-cert".getBytes(UTF_8)));
+        securityServer.setAuthCertHashes(List.of("ss-auth-cert".getBytes(UTF_8)));
         return securityServer;
     }
 

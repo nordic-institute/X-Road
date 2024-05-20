@@ -27,8 +27,12 @@
 
 package org.niis.xroad.cs.admin.globalconf.generator;
 
+import ee.ria.xroad.common.conf.globalconf.SharedParameters;
+
 import jakarta.xml.bind.MarshalException;
 import org.junit.jupiter.api.Test;
+
+import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -39,39 +43,40 @@ class SharedParametersV2MarshallerTest {
 
     @Test
     void marshall() {
-        SharedParameters sharedParams = new SharedParameters();
-        sharedParams.setInstanceIdentifier("CS");
-        sharedParams.setGlobalSettings(new SharedParameters.GlobalSettings(null, 60));
+        var sharedParams = getSharedParams(new SharedParameters.GlobalSettings(List.of(), 333), "CS");
 
         final String result = marshaller.marshall(sharedParams);
 
         assertThat(result).isNotBlank();
     }
 
+    private SharedParameters getSharedParams(SharedParameters.GlobalSettings globalSettings, String instanceIdentifier) {
+        return new SharedParameters(instanceIdentifier, List.of(), List.of(),
+                List.of(), List.of(), List.of(), List.of(),
+                globalSettings);
+    }
+
     @Test
     void marshallShouldFailWhenInvalid() {
-        SharedParameters sharedParams = new SharedParameters();
         // missing setInstanceIdentifier("CS");
-        sharedParams.setGlobalSettings(new SharedParameters.GlobalSettings(null, 60));
+        SharedParameters sharedParams = getSharedParams(new SharedParameters.GlobalSettings(null, 60), null);
+
 
         assertThrows(MarshalException.class, () -> marshaller.marshall(sharedParams));
     }
 
     @Test
     void marshallShouldFailWhenInvalid2() {
-        SharedParameters sharedParams = new SharedParameters();
-        sharedParams.setInstanceIdentifier("CS");
         // missing GlobalSettings
+        SharedParameters sharedParams = getSharedParams(null, "CS");
 
         assertThrows(MarshalException.class, () -> marshaller.marshall(sharedParams));
     }
 
     @Test
     void marshallShouldFailWhenInvalid3() {
-        SharedParameters sharedParams = new SharedParameters();
-        sharedParams.setInstanceIdentifier("CS");
-        sharedParams.setGlobalSettings(new SharedParameters.GlobalSettings(null, null));
         // missing ocspFreshnessSeconds
+        SharedParameters sharedParams = getSharedParams(new SharedParameters.GlobalSettings(null, null), "CS");
 
         assertThrows(MarshalException.class, () -> marshaller.marshall(sharedParams));
     }

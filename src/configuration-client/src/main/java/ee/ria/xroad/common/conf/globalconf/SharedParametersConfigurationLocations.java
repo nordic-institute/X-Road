@@ -73,7 +73,9 @@ class SharedParametersConfigurationLocations {
 
         locations.addAll(locations.stream()
                 .map(location -> new ConfigurationLocation(
-                        location.getInstanceIdentifier(), location.getDownloadURL().replaceFirst(HTTPS, HTTP), location.getVerificationCerts()))
+                        location.getInstanceIdentifier(),
+                        location.getDownloadURL().replaceFirst(HTTPS, HTTP),
+                        location.getVerificationCerts()))
                 .toList());
         return locations;
     }
