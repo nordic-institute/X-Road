@@ -28,10 +28,9 @@ package org.niis.xroad.edc.sig;
 
 import lombok.experimental.UtilityClass;
 
-@SuppressWarnings("checkstyle:LineLength")
 @UtilityClass
 public class PocConstants {
+
     public static final String HEADER_XRD_SIG = "X-Road-Message-Signature";
-    public static final String HEADER_XRD_SIG_OCSP = "X-Road-Message-Sig-OCSP";
 
 }

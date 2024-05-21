@@ -41,12 +41,10 @@ import eu.europa.esig.dss.validation.CommonCertificateVerifier;
 import eu.europa.esig.dss.validation.SignedDocumentValidator;
 import lombok.extern.slf4j.Slf4j;
 import org.bouncycastle.cert.ocsp.OCSPResp;
-import org.bouncycastle.util.encoders.Base64;
 
 import java.security.cert.X509Certificate;
 import java.util.Date;
 import java.util.List;
-import java.util.Map;
 
 @Slf4j
 public abstract class XrdSignatureVerifierBase {
@@ -65,12 +63,6 @@ public abstract class XrdSignatureVerifierBase {
         CertUtils.isSigningCert(cert);
         CertUtils.isValid(cert); //TODO probably overlaps with native dss checks?
         log.info("XRD checks: Signature is valid.");
-    }
-
-    protected void validateXroad(X509Certificate cert,
-                               ClientId clientId, Map<String, String> detachedHeaders) throws Exception {
-        var ocsResponse = new OCSPResp(Base64.decode(detachedHeaders.get(PocConstants.HEADER_XRD_SIG_OCSP)));
-        validateXroad(cert, clientId, ocsResponse);
     }
 
     private static void verifySignerName(ClientId signer, X509Certificate signingCert) throws Exception {

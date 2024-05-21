@@ -32,10 +32,13 @@ import ee.ria.xroad.common.identifier.ClientId;
 import eu.europa.esig.dss.diagnostic.DiagnosticData;
 import eu.europa.esig.dss.diagnostic.SignatureWrapper;
 import eu.europa.esig.dss.diagnostic.TimestampWrapper;
+import eu.europa.esig.dss.enumerations.DigestAlgorithm;
 import eu.europa.esig.dss.model.DSSDocument;
+import eu.europa.esig.dss.model.DigestDocument;
 import eu.europa.esig.dss.model.InMemoryDocument;
 import eu.europa.esig.dss.validation.SignedDocumentValidator;
 import eu.europa.esig.dss.validation.reports.Reports;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.bouncycastle.cert.ocsp.OCSPResp;
 import org.niis.xroad.edc.sig.XrdSignatureVerificationException;
@@ -45,48 +48,50 @@ import org.niis.xroad.edc.sig.XrdSignatureVerifierBase;
 import java.util.ArrayList;
 import java.util.Base64;
 import java.util.List;
-import java.util.Map;
-import java.util.function.Supplier;
+import java.util.Optional;
 
 
+@RequiredArgsConstructor
 @Slf4j
 public class XrdXAdESVerifier extends XrdSignatureVerifierBase implements XrdSignatureVerifier {
 
-    @Override
-    public void verifySignature(String signature, byte[] detachedPayload, Map<String, String> detachedHeaders,
-                                ClientId signerClientId) throws XrdSignatureVerificationException {
-        throw new UnsupportedOperationException("Not implemented");
-    }
+    private final DigestAlgorithm digestAlgorithm;
 
     @Override
-    public void verifySignature(String signatureBase64, Supplier<byte[]> messageSupplier,
-                                Supplier<byte[]> attachmentSupplier, ClientId signerClientId)
+    public void verifySignature(String signatureBase64, byte[] message,
+                                byte[] attachment, ClientId signerClientId)
             throws XrdSignatureVerificationException {
-
         try {
             byte[] decoded = Base64.getDecoder().decode(signatureBase64);
             InMemoryDocument signatureDocument = new InMemoryDocument(decoded);
-            validateSignature(signatureDocument, messageSupplier, attachmentSupplier, signerClientId);
+
+            List<DSSDocument> detachedPayloads = new ArrayList<>();
+            Optional.ofNullable(message).ifPresent(m -> detachedPayloads.add(new InMemoryDocument(m, "/message.xml")));
+            Optional.ofNullable(attachment).ifPresent(a -> detachedPayloads.add(new InMemoryDocument(attachment, "/attachment1")));
+
+            validate(signatureDocument, detachedPayloads, signerClientId);
         } catch (Exception e) {
             throw new XrdSignatureVerificationException("Verification has failed", e);
         }
     }
 
-    private void validateSignature(InMemoryDocument signatureDocument, Supplier<byte[]> messageSupplier,
-                                   Supplier<byte[]> attachmentSupplier, ClientId signerClientId) throws Exception {
+    @Override
+    public void verifySignature(String signatureBase64, byte[] message, String attachmentDigest, ClientId signerClientId)
+            throws XrdSignatureVerificationException {
 
-        List<DSSDocument> detachedPayloads = new ArrayList<>();
-        byte[] messagePart = messageSupplier.get();
-        if (messagePart != null) {
-            detachedPayloads.add(new InMemoryDocument(messagePart, "/message.xml"));
+        try {
+            byte[] decoded = Base64.getDecoder().decode(signatureBase64);
+            InMemoryDocument signatureDocument = new InMemoryDocument(decoded);
+
+            List<DSSDocument> detachedPayloads = new ArrayList<>();
+            Optional.ofNullable(message).ifPresent(m -> detachedPayloads.add(new InMemoryDocument(m, "/message.xml")));
+            Optional.ofNullable(attachmentDigest)
+                    .ifPresent(a -> detachedPayloads.add(new DigestDocument(digestAlgorithm, attachmentDigest, "/attachment1")));
+
+            validate(signatureDocument, detachedPayloads, signerClientId);
+        } catch (Exception e) {
+            throw new XrdSignatureVerificationException("Verification has failed", e);
         }
-
-        byte[] attachmentPart = attachmentSupplier.get();
-        if (attachmentPart != null) {
-            detachedPayloads.add(new InMemoryDocument(attachmentPart, "/attachment1"));
-        }
-
-        validate(signatureDocument, detachedPayloads, signerClientId);
     }
 
     private void validate(InMemoryDocument signatureDocument, List<DSSDocument> detachedPayloads, ClientId signerClientId)

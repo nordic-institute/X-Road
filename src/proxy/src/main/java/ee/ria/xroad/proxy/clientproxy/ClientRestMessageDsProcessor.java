@@ -37,22 +37,17 @@ import ee.ria.xroad.common.util.CryptoUtils;
 import ee.ria.xroad.common.util.ResponseWrapper;
 
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.io.IOUtils;
+import org.apache.commons.io.output.TeeOutputStream;
 import org.apache.http.client.HttpClient;
 import org.bouncycastle.operator.DigestCalculator;
-import org.bouncycastle.util.io.TeeOutputStream;
 import org.niis.xroad.edc.sig.XrdSignatureService;
 import org.niis.xroad.proxy.clientproxy.validate.RequestValidator;
 import org.niis.xroad.proxy.edc.AssetAuthorizationManager;
 import org.niis.xroad.proxy.edc.AuthorizedAssetRegistry;
 import org.niis.xroad.proxy.edc.XrdDataSpaceClient;
 
-import java.io.ByteArrayInputStream;
-import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.Arrays;
-import java.util.HashMap;
-import java.util.Map;
 import java.util.UUID;
 
 import static ee.ria.xroad.common.ErrorCodes.X_INCONSISTENT_RESPONSE;
@@ -112,43 +107,35 @@ class ClientRestMessageDsProcessor extends AbstractClientMessageProcessor {
 //        //TODO op monitoring should know about DataSpace
         updateOpMonitoringDataByRestRequest(opMonitoringData, restRequest);
 
-        DigestCalculator dc = CryptoUtils.createDigestCalculator(CryptoUtils.DEFAULT_DIGEST_ALGORITHM_ID);
         CachingStream cachingStream = new CachingStream();
+        DigestCalculator dc = CryptoUtils.createDigestCalculator(CryptoUtils.DEFAULT_DIGEST_ALGORITHM_ID);
         TeeOutputStream teeOutputStream = new TeeOutputStream(dc.getOutputStream(), cachingStream);
-        IOUtils.copy(jRequest.getInputStream(), teeOutputStream);
+        jRequest.getInputStream().transferTo(teeOutputStream);
+
         byte[] requestBodyDigest = null;
         if (cachingStream.getCachedContents().size() > 0) {
             restRequest.setBody(cachingStream);
             requestBodyDigest = dc.getDigest();
         }
 
-        var response = xrdDataSpaceClient.processRestRequest(restRequest, assetInfo);
-        verifyDigest(response, requestBodyDigest);
+        var response = xrdDataSpaceClient.processRestRequest(restRequest, assetInfo, requestBodyDigest);
+        verifyRequestDigest(response, requestBodyDigest);
         processResponse(response, jResponse);
     }
 
     private void processResponse(RestResponse response, ResponseWrapper jResponse) throws Exception {
         log.trace("sendResponse()");
-        jResponse.setStatus(response.getResponseCode());
-
-        Map<String, String> headers = new HashMap<>();
-        response.getHeaders().forEach(h -> headers.put(h.getName(), h.getValue()));
-
-        byte[] payload = response.getBody().getCachedContents().readAllBytes();
 
         //TODO handle bad request/edc failure
-        // todo: use streams
-        var signature = response.getSignature();
-        xrdSignatureService.verify(signature, response::getMessageBytes, () -> payload, restRequest.getServiceId().getClientId());
+        xrdSignatureService.verify(response.getSignature(), response.getMessageBytes(), response.getBodyDigest(),
+                restRequest.getServiceId().getClientId());
 
-        headers.forEach(jResponse.getHeaders()::add);
-
-        try (InputStream body = new ByteArrayInputStream(payload)) {
-            IOUtils.copy(body, jResponse.getOutputStream());
-        }
+        jResponse.setStatus(response.getResponseCode());
+        response.getHeaders().forEach(h -> jResponse.addHeader(h.getName(), h.getValue()));
+        response.getBody().getCachedContents().transferTo(jResponse.getOutputStream());
     }
 
-    private void verifyDigest(RestResponse response, byte[] requestBodyDigest) throws Exception {
+    private void verifyRequestDigest(RestResponse response, byte[] requestBodyDigest) throws Exception {
         byte[] requestDigest;
         if (requestBodyDigest != null) {
             DigestCalculator dc = CryptoUtils.createDigestCalculator(CryptoUtils.DEFAULT_DIGEST_ALGORITHM_ID);

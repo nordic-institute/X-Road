@@ -27,11 +27,14 @@
 
 package org.niis.xroad.edc.sig.xades;
 
+
+import ee.ria.xroad.common.util.CryptoUtils;
 import ee.ria.xroad.signer.SignerProxy;
 
 import eu.europa.esig.dss.enumerations.DigestAlgorithm;
 import eu.europa.esig.dss.enumerations.SignatureLevel;
 import eu.europa.esig.dss.model.DSSDocument;
+import eu.europa.esig.dss.model.DigestDocument;
 import eu.europa.esig.dss.model.InMemoryDocument;
 import eu.europa.esig.dss.model.SignatureValue;
 import eu.europa.esig.dss.model.ToBeSigned;
@@ -56,8 +59,7 @@ import java.security.cert.X509Certificate;
 import java.util.ArrayList;
 import java.util.Base64;
 import java.util.List;
-import java.util.Map;
-import java.util.function.Supplier;
+import java.util.Optional;
 
 import static ee.ria.xroad.common.util.CryptoUtils.readCertificate;
 import static eu.europa.esig.dss.enumerations.SignaturePackaging.DETACHED;
@@ -65,31 +67,32 @@ import static eu.europa.esig.dss.enumerations.SignaturePackaging.DETACHED;
 @RequiredArgsConstructor
 public class XrdXAdESSignatureCreator implements XrdSignatureCreator {
 
+    private static final DigestAlgorithm DIGEST_ALGORITHM = DigestAlgorithm.forJavaName(CryptoUtils.DEFAULT_DIGEST_ALGORITHM_ID);
+
     private final XrdDssSigner signer = new XrdDssSigner();
     private final SignatureLevel signatureLevel = SignatureLevel.XAdES_BASELINE_B;
 
     @Override
-    public String sign(SignerProxy.MemberSigningInfoDto signingInfo, Supplier<byte[]> messageSupplier, Supplier<byte[]> attachmentSupplier)
+    public String sign(SignerProxy.MemberSigningInfoDto signingInfo, byte[] message)
             throws XrdSignatureCreationException {
 
         List<DSSDocument> documentsToSign = new ArrayList<>();
-        byte[] messagePart = messageSupplier.get();
-        if (messagePart != null) {
-            documentsToSign.add(new InMemoryDocument(messagePart, "/message.xml"));
-        }
-
-        byte[] attachmentPart = attachmentSupplier.get();
-        if (attachmentPart != null) {
-            documentsToSign.add(new InMemoryDocument(attachmentPart, "/attachment1"));
-        }
+        Optional.ofNullable(message)
+                .ifPresent(messagePart -> documentsToSign.add(new InMemoryDocument(messagePart, "/message.xml")));
 
         return signDocuments(signingInfo, documentsToSign);
     }
 
     @Override
-    public String sign(SignerProxy.MemberSigningInfoDto signingInfo, byte[] messageBody, Map<String, String> messageHeaders)
+    public String sign(SignerProxy.MemberSigningInfoDto signingInfo, byte[] message, String attachmentDigest)
             throws XrdSignatureCreationException {
-        throw new UnsupportedOperationException("Not implemented");
+        List<DSSDocument> documentsToSign = new ArrayList<>();
+        Optional.ofNullable(message)
+                .ifPresent(messagePart -> documentsToSign.add(new InMemoryDocument(messagePart, "/message.xml")));
+
+        Optional.ofNullable(attachmentDigest)
+                .ifPresent(attachmentPart -> documentsToSign.add(new DigestDocument(DIGEST_ALGORITHM, attachmentPart, "/attachment1")));
+        return signDocuments(signingInfo, documentsToSign);
     }
 
     private String signDocuments(SignerProxy.MemberSigningInfoDto signingInfo, List<DSSDocument> documentsToSign)
@@ -98,7 +101,7 @@ public class XrdXAdESSignatureCreator implements XrdSignatureCreator {
         parameters.setXadesNamespace(XAdESNamespace.XADES_132);
         parameters.setSignatureLevel(signatureLevel);
         parameters.setSignaturePackaging(DETACHED);
-        parameters.setDigestAlgorithm(DigestAlgorithm.SHA512);
+        parameters.setDigestAlgorithm(DIGEST_ALGORITHM);
         parameters.setXadesNamespace(new DSSNamespace(XAdESNamespace.XADES_132.getUri(), "xades"));
 
         X509Certificate cert = readCertificate(signingInfo.getCert().getCertificateBytes());

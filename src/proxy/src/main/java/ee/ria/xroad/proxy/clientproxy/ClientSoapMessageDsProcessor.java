@@ -134,7 +134,7 @@ class ClientSoapMessageDsProcessor extends AbstractClientMessageProcessor {
 
         //TODO handle bad request/edc failure
         var signature = response.headers().get(HEADER_XRD_SIG);
-        xrdSignatureService.verify(signature, () -> ((SoapMessageImpl) response.soapMessage()).getBytes(), () -> null,
+        xrdSignatureService.verify(signature, ((SoapMessageImpl) response.soapMessage()).getBytes(),
                 requestSoap.getService().getClientId());
     }
 

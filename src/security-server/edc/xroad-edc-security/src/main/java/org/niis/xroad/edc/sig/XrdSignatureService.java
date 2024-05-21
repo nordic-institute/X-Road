@@ -27,45 +27,25 @@
 package org.niis.xroad.edc.sig;
 
 import ee.ria.xroad.common.identifier.ClientId;
+import ee.ria.xroad.common.util.CryptoUtils;
 import ee.ria.xroad.signer.SignerProxy;
 
-import eu.europa.esig.dss.enumerations.JWSSerializationType;
+import eu.europa.esig.dss.enumerations.DigestAlgorithm;
 import eu.europa.esig.dss.xml.common.SchemaFactoryBuilder;
 import eu.europa.esig.dss.xml.common.XmlDefinerUtils;
-import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
-import org.bouncycastle.util.encoders.Base64;
-import org.niis.xroad.edc.sig.jades.XrdJAdESSignatureCreator;
-import org.niis.xroad.edc.sig.jades.XrdJAdESVerifier;
-import org.niis.xroad.edc.sig.jws.XrdJWSSignatureCreator;
-import org.niis.xroad.edc.sig.jws.XrdJwsVerifier;
 import org.niis.xroad.edc.sig.xades.XrdXAdESSignatureCreator;
 import org.niis.xroad.edc.sig.xades.XrdXAdESVerifier;
 
 import javax.xml.XMLConstants;
 import javax.xml.validation.SchemaFactory;
 
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Set;
-import java.util.function.Supplier;
-import java.util.stream.Collectors;
-
-import static eu.europa.esig.dss.enumerations.SignatureLevel.JAdES_BASELINE_B;
-import static eu.europa.esig.dss.enumerations.SignatureLevel.JAdES_BASELINE_LT;
-import static org.niis.xroad.edc.sig.PocConstants.HEADER_XRD_SIG;
-import static org.niis.xroad.edc.sig.PocConstants.HEADER_XRD_SIG_OCSP;
-
 @Slf4j
 public class XrdSignatureService {
-    private static final XrdSignatureMode MODE = XrdSignatureMode.XADES_B;
 
-    //TODO these headers are disabled as they can be modified by jetty server or http-client.
-    private static final Set<String> IGNORED_HEADERS = Set.of(HEADER_XRD_SIG,
-            "Accept-Encoding",
-            "Date",
-            "Content-Type",
-            "Content-Length");
+    private static final DigestAlgorithm DIGEST_ALGORITHM = DigestAlgorithm.forJavaName(CryptoUtils.DEFAULT_DIGEST_ALGORITHM_ID);
+
+    private final XrdSignatureVerifier signatureVerifier = new XrdXAdESVerifier(DIGEST_ALGORITHM);
 
     static {
         // force usage of internal xerces implementation in DSS. Otherwise, not compatible Apache Xerces will be used in proxy
@@ -73,69 +53,39 @@ public class XrdSignatureService {
         XmlDefinerUtils.getInstance().setSchemaFactoryBuilder(new JaxpSchemaFactoryBuilder());
     }
 
-    public SignatureResponse sign(ClientId signingClientId, Supplier<byte[]> messageSupplier, Supplier<byte[]> attachmentSupplier)
+    public SignatureResponse sign(ClientId signingClientId, byte[] message)
             throws XrdSignatureCreationException {
 
         var signingInfo = getMemberSigningInfo(signingClientId);
-        var signer = switch (MODE) {
-            case JWS -> new XrdJWSSignatureCreator();
-            case JADES_B -> new XrdJAdESSignatureCreator(JAdES_BASELINE_B, JWSSerializationType.COMPACT_SERIALIZATION);
-            case JADES_B_LT ->
-                    new XrdJAdESSignatureCreator(JAdES_BASELINE_LT, JWSSerializationType.FLATTENED_JSON_SERIALIZATION);
-            case XADES_B -> new XrdXAdESSignatureCreator();
-        };
-
-        var signature = signer.sign(signingInfo, messageSupplier, attachmentSupplier);
+        var signer = new XrdXAdESSignatureCreator();
+        var signature = signer.sign(signingInfo, message);
         return new SignatureResponse(signature);
     }
 
-    public SignatureResponse sign(ClientId signingClientId, byte[] messageBody, Map<String, String> messageHeaders)
+    public SignatureResponse sign(ClientId signingClientId, byte[] message, String attachmentDigest)
             throws XrdSignatureCreationException {
 
         var signingInfo = getMemberSigningInfo(signingClientId);
-        var signer = switch (MODE) {
-            case JWS -> new XrdJWSSignatureCreator();
-            case JADES_B -> new XrdJAdESSignatureCreator(JAdES_BASELINE_B, JWSSerializationType.COMPACT_SERIALIZATION);
-            case JADES_B_LT ->
-                    new XrdJAdESSignatureCreator(JAdES_BASELINE_LT, JWSSerializationType.FLATTENED_JSON_SERIALIZATION);
-            case XADES_B -> new XrdXAdESSignatureCreator();
-        };
-
-        Map<String, String> headersToSign = new HashMap<>();
-        headersToSign.put(HEADER_XRD_SIG_OCSP, Base64.toBase64String(signingInfo.getCert().getOcspBytes()));
-        for (Map.Entry<String, String> entry : messageHeaders.entrySet()) {
-            if (!IGNORED_HEADERS.contains(entry.getKey()))
-                headersToSign.put(entry.getKey(), entry.getValue());
-        }
-
-        headersToSign.forEach((key, value) -> log.info("Will sign header: {}={}", key, value));
-        var signature = signer.sign(signingInfo, messageBody, headersToSign);
+        var signer = new XrdXAdESSignatureCreator();
+        var signature = signer.sign(signingInfo, message, attachmentDigest);
         return new SignatureResponse(signature);
     }
 
-    public void verify(Map<String, String> headers, byte[] detachedPayload, ClientId signerClientId)
+    public void verify(String signature, byte[] message, ClientId signerClientId)
             throws XrdSignatureVerificationException {
-
-        var verifier = switch (MODE) {
-            case JWS -> new XrdJwsVerifier();
-            case JADES_B, JADES_B_LT -> new XrdJAdESVerifier();
-            case XADES_B -> new XrdXAdESVerifier();
-        };
-
-        var signature = headers.get(HEADER_XRD_SIG); // currently only header is supported for signature.
-        var filteredHeaders = headers.entrySet().stream()
-                .filter(entry -> !IGNORED_HEADERS.contains(entry.getKey()))
-                .peek(entry -> log.info("Will verify header: {}={}", entry.getKey(), entry.getValue()))
-                .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
-
-        verifier.verifySignature(signature, detachedPayload, filteredHeaders, signerClientId);
+        verify(signature, message, (byte[]) null, signerClientId);
     }
 
-    public void verify(String signature, Supplier<byte[]> messageSupplier, Supplier<byte[]> attachmentSupplier, ClientId signerClientId)
+    public void verify(String signature, byte[] message, byte[] attachment, ClientId signerClientId)
             throws XrdSignatureVerificationException {
 
-        var verifier = new XrdXAdESVerifier();
-        verifier.verifySignature(signature, messageSupplier, attachmentSupplier, signerClientId);
+        signatureVerifier.verifySignature(signature, message, attachment, signerClientId);
+    }
+
+    public void verify(String signature, byte[] message, String attachmentDigest, ClientId signerClientId)
+            throws XrdSignatureVerificationException {
+
+        signatureVerifier.verifySignature(signature, message, attachmentDigest, signerClientId);
     }
 
     private SignerProxy.MemberSigningInfoDto getMemberSigningInfo(ClientId clientId) throws XrdSignatureCreationException {
@@ -144,14 +94,6 @@ public class XrdSignatureService {
         } catch (Exception e) {
             throw new XrdSignatureCreationException("Failed to get member sign cert info", e);
         }
-    }
-
-    @Getter
-    public enum XrdSignatureMode {
-        JWS,
-        JADES_B,
-        JADES_B_LT,
-        XADES_B,
     }
 
     static class JaxpSchemaFactoryBuilder extends SchemaFactoryBuilder {

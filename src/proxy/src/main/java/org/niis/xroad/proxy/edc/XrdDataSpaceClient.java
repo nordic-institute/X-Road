@@ -34,6 +34,7 @@ import ee.ria.xroad.proxy.messagelog.MessageLog;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.hc.core5.http.ContentType;
+import org.apache.hc.core5.http.io.entity.InputStreamEntity;
 import org.apache.hc.core5.http.io.support.ClassicRequestBuilder;
 import org.apache.http.message.BasicHeader;
 import org.niis.xroad.edc.sig.XrdSignatureService;
@@ -46,6 +47,7 @@ import static ee.ria.xroad.common.message.RestRequest.Verb.OPTIONS;
 import static ee.ria.xroad.common.message.RestRequest.Verb.PATCH;
 import static ee.ria.xroad.common.message.RestRequest.Verb.POST;
 import static ee.ria.xroad.common.message.RestRequest.Verb.PUT;
+import static ee.ria.xroad.common.util.CryptoUtils.encodeBase64;
 import static org.niis.xroad.edc.sig.PocConstants.HEADER_XRD_SIG;
 
 @Slf4j
@@ -53,7 +55,7 @@ public class XrdDataSpaceClient {
     private final XrdSignatureService xrdSignatureService = new XrdSignatureService();
 
     public RestResponse processRestRequest(RestRequest restRequest,
-                                           AuthorizedAssetRegistry.GrantedAssetInfo assetInfo) throws Exception {
+                                           AuthorizedAssetRegistry.GrantedAssetInfo assetInfo, byte[] requestDigest) throws Exception {
 
         var path = assetInfo.endpoint();
         if (path.endsWith("/")) {
@@ -67,31 +69,32 @@ public class XrdDataSpaceClient {
             path += "?" + restRequest.getQuery();
         }
 
-        // todo: sign using streams, not body.readAllBytes()
-        var payload = restRequest.getBody() != null ? restRequest.getBody().getCachedContents().readAllBytes() : null;
-        var signatureResponse = xrdSignatureService.sign(restRequest.getClientId(), restRequest::getMessageBytes,
-                () -> payload);
+        var encodedDigest = requestDigest != null ? encodeBase64(requestDigest) : null;
+        var signatureResponse = xrdSignatureService.sign(restRequest.getClientId(), restRequest.getMessageBytes(),
+                encodedDigest);
 
         final var dsRequest = ClassicRequestBuilder.create(restRequest.getVerb().name()).setUri(new URI(path));
         dsRequest.addHeader(HEADER_XRD_SIG, signatureResponse.getSignature());
         dsRequest.addHeader(assetInfo.authKey(), assetInfo.authCode());
         restRequest.getHeaders().forEach(header -> dsRequest.addHeader(header.getName(), header.getValue()));
 
+        MessageLog.log(restRequest, toSignatureData(signatureResponse.getSignature()),
+                restRequest.getBody() != null ? restRequest.getBody().getCachedContents() : null,
+                true, restRequest.getXRequestId());
+
         //handle body
         var method = restRequest.getVerb();
         if (POST.equals(method) || PUT.equals(method) || PATCH.equals(method)
                 || DELETE.equals(method) || OPTIONS.equals(method)) {
             // Attach body to the request
-            // todo: use stream.
             if (restRequest.getBody() != null) {
-                dsRequest.setEntity(restRequest.getBody().getCachedContents().readAllBytes(), ContentType.APPLICATION_JSON);
+                var cachedStream = restRequest.getBody().getCachedContents();
+                dsRequest.setEntity(new InputStreamEntity(cachedStream, cachedStream.size(), ContentType.APPLICATION_JSON));
             }
         }
 
-        MessageLog.log(restRequest, toSignatureData(signatureResponse.getSignature()),
-                restRequest.getBody() != null ? restRequest.getBody().getCachedContents() : null,
-                true, restRequest.getXRequestId());
         var response = EdcDataPlaneHttpClient.sendRestRequest(dsRequest.build(), restRequest);
+
         MessageLog.log(restRequest, response, toSignatureData(response.getSignature()),
                 response.getBody().getCachedContents(), true,
                 restRequest.getXRequestId());
@@ -105,7 +108,7 @@ public class XrdDataSpaceClient {
         if (path.endsWith("/")) {
             path = path.substring(0, path.length() - 1);
         }
-        var signatureResponse = xrdSignatureService.sign(soapRequest.getClient(), soapRequest::getBytes, () -> null);
+        var signatureResponse = xrdSignatureService.sign(soapRequest.getClient(), soapRequest.getBytes());
 
         final var dsRequest = ClassicRequestBuilder.post(new URI(path))
                 .addHeader(assetInfo.authKey(), assetInfo.authCode())

@@ -31,6 +31,7 @@ import ee.ria.xroad.common.message.RestResponse;
 import ee.ria.xroad.common.message.Soap;
 import ee.ria.xroad.common.message.SoapParserImpl;
 import ee.ria.xroad.common.util.CachingStream;
+import ee.ria.xroad.common.util.CryptoUtils;
 import ee.ria.xroad.proxy.util.HeadersComparator;
 
 import lombok.AccessLevel;
@@ -38,6 +39,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.io.IOUtils;
 import org.apache.hc.client5.http.config.ConnectionConfig;
 import org.apache.hc.client5.http.config.RequestConfig;
 import org.apache.hc.client5.http.impl.classic.CloseableHttpClient;
@@ -52,6 +54,8 @@ import org.apache.hc.core5.http.Header;
 import org.apache.hc.core5.http.config.Registry;
 import org.apache.hc.core5.http.config.RegistryBuilder;
 import org.apache.http.message.BasicHeader;
+import org.bouncycastle.operator.DigestCalculator;
+import org.bouncycastle.util.io.TeeOutputStream;
 import org.niis.xroad.ssl.SSLContextBuilder;
 
 import java.security.KeyManagementException;
@@ -63,6 +67,7 @@ import java.util.Map;
 import java.util.stream.Collectors;
 
 import static ee.ria.xroad.common.ErrorCodes.X_INTERNAL_ERROR;
+import static ee.ria.xroad.common.util.CryptoUtils.encodeBase64;
 import static ee.ria.xroad.common.util.MimeUtils.HEADER_REQUEST_HASH;
 import static org.apache.hc.core5.util.Timeout.ofSeconds;
 import static org.niis.xroad.edc.sig.PocConstants.HEADER_XRD_SIG;
@@ -86,17 +91,25 @@ public class EdcDataPlaneHttpClient {
                         .sorted(new HeadersComparator())
                         .toList();
 
-                byte[] requestHash = Base64.getDecoder().decode(response.getHeader(HEADER_REQUEST_HASH).getValue());
+                byte[] requestHashFromResponse = Base64.getDecoder().decode(response.getHeader(HEADER_REQUEST_HASH).getValue());
                 var signature = response.getHeader(HEADER_XRD_SIG).getValue();
 
-                RestResponse restResponse = new RestResponse(req.getClientId(), req.getQueryId(), requestHash,
+                RestResponse restResponse = new RestResponse(req.getClientId(), req.getQueryId(), requestHashFromResponse,
                         req.getServiceId(), response.getCode(), response.getReasonPhrase(), headers,
                         req.getXRequestId());
 
-                CachingStream responseBodyStream = new CachingStream();
-                response.getEntity().getContent().transferTo(responseBodyStream);
-                restResponse.setBody(responseBodyStream);
-                restResponse.setSignature(signature);
+                try {
+                    CachingStream responseBodyStream = new CachingStream();
+                    DigestCalculator dc = CryptoUtils.createDigestCalculator(CryptoUtils.DEFAULT_DIGEST_ALGORITHM_ID);
+                    TeeOutputStream tos = new TeeOutputStream(responseBodyStream, dc.getOutputStream());
+                    IOUtils.copyLarge(response.getEntity().getContent(), tos);
+
+                    restResponse.setBody(responseBodyStream);
+                    restResponse.setBodyDigest(encodeBase64(dc.getDigest()));
+                    restResponse.setSignature(signature);
+                } catch (Exception e) {
+                    throw new CodedException(X_INTERNAL_ERROR, e, "Unable to read response body");
+                }
 
                 return restResponse;
             });
@@ -137,7 +150,6 @@ public class EdcDataPlaneHttpClient {
         var connectionManager = new BasicHttpClientConnectionManager(socketFactoryRegistry);
         connectionManager.setConnectionConfig(ConnectionConfig.custom()
                 .setConnectTimeout(ofSeconds(httpClientProperties.getConnectionTimeoutSeconds()))
-
                 .build());
 
         return HttpClientBuilder.create()
