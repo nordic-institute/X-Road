@@ -50,7 +50,7 @@ public class SharedParametersV2Marshaller extends AbstractSharedParametersMarsha
     }
 
     @Override
-    public JAXBContext getJaxbContext() {
+    JAXBContext getJaxbContext() {
         return JAXB_CONTEXT;
     }
 
