@@ -27,31 +27,36 @@
 package ee.ria.xroad.common.conf.globalconf;
 
 import ee.ria.xroad.common.conf.globalconf.privateparameters.v3.ObjectFactory;
+import ee.ria.xroad.common.conf.globalconf.privateparameters.v3.PrivateParametersTypeV3;
 
 import jakarta.xml.bind.JAXBContext;
-import jakarta.xml.bind.Marshaller;
+import jakarta.xml.bind.JAXBElement;
 import lombok.SneakyThrows;
 
-import java.io.StringWriter;
+import javax.xml.validation.Schema;
 
-public class PrivateParametersV3Marshaller {
+public class PrivateParametersV3Marshaller
+        extends AbstractParametersMarshaller<PrivateParameters, PrivateParametersTypeV3> {
+    private static final JAXBContext JAXB_CONTEXT = createJaxbContext();
 
-    private final JAXBContext jaxbContext = createJaxbContext();
-
-    @SneakyThrows
-    public String marshall(PrivateParameters parameters) {
-        var writer = new StringWriter();
-        var marshaller = jaxbContext.createMarshaller();
-        marshaller.setProperty(Marshaller.JAXB_FORMATTED_OUTPUT, Boolean.TRUE);
-        marshaller.setSchema(PrivateParametersSchemaValidatorV3.getSchema());
-        marshaller.marshal(new ObjectFactory().createConf(PrivateParametersV3ToXmlConverter.INSTANCE.convert(parameters)),
-                writer);
-        return writer.toString();
-    }
 
     @SneakyThrows
-    private JAXBContext createJaxbContext() {
+    private static JAXBContext createJaxbContext() {
         return JAXBContext.newInstance(ObjectFactory.class);
     }
 
+    @Override
+    JAXBContext getJaxbContext() {
+        return JAXB_CONTEXT;
+    }
+
+    @Override
+    Schema getSchema() {
+        return PrivateParametersSchemaValidatorV3.getSchema();
+    }
+
+    @Override
+    JAXBElement<PrivateParametersTypeV3> convert(PrivateParameters parameters) {
+        return new ObjectFactory().createConf(PrivateParametersV3ToXmlConverter.INSTANCE.convert(parameters));
+    }
 }

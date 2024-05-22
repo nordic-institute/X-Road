@@ -26,38 +26,40 @@
  */
 package ee.ria.xroad.common.conf.globalconf;
 
-
-import ee.ria.xroad.common.conf.globalconf.privateparameters.v2.ObjectFactory;
-import ee.ria.xroad.common.conf.globalconf.privateparameters.v2.PrivateParametersType;
-
 import jakarta.xml.bind.JAXBContext;
 import jakarta.xml.bind.JAXBElement;
+import jakarta.xml.bind.JAXBException;
+import jakarta.xml.bind.Marshaller;
 import lombok.SneakyThrows;
 
 import javax.xml.validation.Schema;
 
-public class PrivateParametersV2Marshaller extends AbstractParametersMarshaller<PrivateParameters, PrivateParametersType> {
-    private static final JAXBContext JAXB_CONTEXT = createJaxbContext();
+import java.io.OutputStream;
+import java.io.StringWriter;
 
-    @Override
-    JAXBContext getJaxbContext() {
-        return JAXB_CONTEXT;
-    }
+abstract class AbstractParametersMarshaller<P, T> {
+    abstract JAXBContext getJaxbContext();
 
-    @Override
-    Schema getSchema() {
-        return PrivateParametersSchemaValidatorV2.getSchema();
-    }
+    abstract Schema getSchema();
 
-    @Override
-    JAXBElement<PrivateParametersType> convert(PrivateParameters parameters) {
-        return new ObjectFactory().createConf(PrivateParametersV2ToXmlConverter.INSTANCE.convert(parameters));
-    }
-
+    abstract JAXBElement<T> convert(P parameters);
 
     @SneakyThrows
-    private static JAXBContext createJaxbContext() {
-        return JAXBContext.newInstance(ObjectFactory.class);
+    public String marshall(P parameters) {
+        var writer = new StringWriter();
+        createJaxbMarshaller().marshal(convert(parameters), writer);
+        return writer.toString();
     }
 
+    @SneakyThrows
+    public void marshall(P parameters, OutputStream outputStream) {
+        createJaxbMarshaller().marshal(convert(parameters), outputStream);
+    }
+
+    private Marshaller createJaxbMarshaller() throws JAXBException {
+        var marshaller = getJaxbContext().createMarshaller();
+        marshaller.setProperty(Marshaller.JAXB_FORMATTED_OUTPUT, Boolean.TRUE);
+        marshaller.setSchema(getSchema());
+        return marshaller;
+    }
 }
