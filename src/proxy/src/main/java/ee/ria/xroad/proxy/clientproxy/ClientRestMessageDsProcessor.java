@@ -131,7 +131,7 @@ class ClientRestMessageDsProcessor extends AbstractClientMessageProcessor {
                 restRequest.getServiceId().getClientId());
 
         jResponse.setStatus(response.getResponseCode());
-        response.getHeaders().forEach(h -> jResponse.addHeader(h.getName(), h.getValue()));
+        response.getHeaders().forEach(h -> jResponse.putHeader(h.getName(), h.getValue()));
         response.getBody().getCachedContents().transferTo(jResponse.getOutputStream());
     }
 
