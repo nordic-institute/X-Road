@@ -25,7 +25,7 @@
  * THE SOFTWARE.
  */
 
-package org.niis.xroad.cs.admin.globalconf.generator;
+package ee.ria.xroad.common.conf.globalconf;
 
 import ee.ria.xroad.common.identifier.ClientId;
 

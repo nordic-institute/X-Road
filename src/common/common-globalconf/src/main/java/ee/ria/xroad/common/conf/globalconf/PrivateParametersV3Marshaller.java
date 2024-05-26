@@ -24,35 +24,39 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.cs.admin.globalconf.generator;
+package ee.ria.xroad.common.conf.globalconf;
 
-import ee.ria.xroad.common.conf.globalconf.SharedParametersSchemaValidatorV2;
-import ee.ria.xroad.common.conf.globalconf.sharedparameters.v2.ObjectFactory;
+import ee.ria.xroad.common.conf.globalconf.privateparameters.v3.ObjectFactory;
+import ee.ria.xroad.common.conf.globalconf.privateparameters.v3.PrivateParametersTypeV3;
 
 import jakarta.xml.bind.JAXBContext;
-import jakarta.xml.bind.Marshaller;
+import jakarta.xml.bind.JAXBElement;
 import lombok.SneakyThrows;
-import org.springframework.stereotype.Component;
 
-import java.io.StringWriter;
+import javax.xml.validation.Schema;
 
-@Component
-class SharedParametersV2Marshaller {
-    private final JAXBContext jaxbContext = createJaxbContext();
+public class PrivateParametersV3Marshaller
+        extends AbstractParametersMarshaller<PrivateParameters, PrivateParametersTypeV3> {
+    private static final JAXBContext JAXB_CONTEXT = createJaxbContext();
 
-    @SneakyThrows
-    String marshall(SharedParameters parameters) {
-        var writer = new StringWriter();
-        var marshaller = jaxbContext.createMarshaller();
-        marshaller.setProperty(Marshaller.JAXB_FORMATTED_OUTPUT, Boolean.TRUE);
-        marshaller.setSchema(SharedParametersSchemaValidatorV2.getSchema());
-        marshaller.marshal(new ObjectFactory().createConf(SharedParametersV2Converter.INSTANCE.convert(parameters)), writer);
-        return writer.toString();
-    }
 
     @SneakyThrows
-    private JAXBContext createJaxbContext() {
+    private static JAXBContext createJaxbContext() {
         return JAXBContext.newInstance(ObjectFactory.class);
     }
 
+    @Override
+    JAXBContext getJaxbContext() {
+        return JAXB_CONTEXT;
+    }
+
+    @Override
+    Schema getSchema() {
+        return PrivateParametersSchemaValidatorV3.getSchema();
+    }
+
+    @Override
+    JAXBElement<PrivateParametersTypeV3> convert(PrivateParameters parameters) {
+        return new ObjectFactory().createConf(PrivateParametersV3ToXmlConverter.INSTANCE.convert(parameters));
+    }
 }

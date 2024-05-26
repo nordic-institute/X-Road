@@ -24,27 +24,42 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.cs.admin.globalconf.generator;
+package ee.ria.xroad.common.conf.globalconf;
 
-import ee.ria.xroad.common.identifier.ClientId;
-import ee.ria.xroad.common.identifier.ServiceId;
+import jakarta.xml.bind.JAXBContext;
+import jakarta.xml.bind.JAXBElement;
+import jakarta.xml.bind.JAXBException;
+import jakarta.xml.bind.Marshaller;
+import lombok.SneakyThrows;
 
-import java.time.Instant;
-import java.time.ZoneOffset;
-import java.time.ZonedDateTime;
+import javax.xml.validation.Schema;
 
-class MappingUtils {
+import java.io.OutputStream;
+import java.io.StringWriter;
 
-    ClientId.Conf mapClientId(ClientId value) {
-        return value != null ? ClientId.Conf.ensure(value) : null;
+abstract class AbstractParametersMarshaller<P, T> {
+    abstract JAXBContext getJaxbContext();
+
+    abstract Schema getSchema();
+
+    abstract JAXBElement<T> convert(P parameters);
+
+    @SneakyThrows
+    public String marshall(P parameters) {
+        var writer = new StringWriter();
+        createJaxbMarshaller().marshal(convert(parameters), writer);
+        return writer.toString();
     }
 
-    ServiceId.Conf mapServiceId(ServiceId value) {
-        return value != null ? ServiceId.Conf.ensure(value) : null;
+    @SneakyThrows
+    public void marshall(P parameters, OutputStream outputStream) {
+        createJaxbMarshaller().marshal(convert(parameters), outputStream);
     }
 
-    // Required for conversion to XMLGregorianCalendar, Instant -> ZonedDateTime -> XMLGregorianCalendar
-    ZonedDateTime mapInstant(Instant value) {
-        return value != null ? value.atZone(ZoneOffset.UTC) : null;
+    private Marshaller createJaxbMarshaller() throws JAXBException {
+        var marshaller = getJaxbContext().createMarshaller();
+        marshaller.setProperty(Marshaller.JAXB_FORMATTED_OUTPUT, Boolean.TRUE);
+        marshaller.setSchema(getSchema());
+        return marshaller;
     }
 }

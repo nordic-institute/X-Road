@@ -1,5 +1,6 @@
 /*
  * The MIT License
+ *
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
@@ -25,16 +26,36 @@
  */
 package ee.ria.xroad.common.conf.globalconf;
 
-import java.time.OffsetDateTime;
+import ee.ria.xroad.common.conf.globalconf.sharedparameters.v2.ObjectFactory;
+import ee.ria.xroad.common.conf.globalconf.sharedparameters.v2.SharedParametersTypeV2;
 
-public interface PrivateParametersProvider {
+import jakarta.xml.bind.JAXBContext;
+import jakarta.xml.bind.JAXBElement;
+import lombok.SneakyThrows;
 
-    PrivateParametersProvider refresh(OffsetDateTime fileExpiresOn);
+import javax.xml.validation.Schema;
 
-    PrivateParameters getPrivateParameters();
 
-    OffsetDateTime getExpiresOn();
+public class SharedParametersV2Marshaller extends AbstractSharedParametersMarshaller<SharedParametersTypeV2> {
+    private static final JAXBContext JAXB_CONTEXT = createJaxbContext();
 
-    boolean hasChanged();
+    @Override
+    Schema getSchema() {
+        return SharedParametersSchemaValidatorV2.getSchema();
+    }
 
+    @Override
+    JAXBElement<SharedParametersTypeV2> convert(SharedParameters parameters) {
+        return new ObjectFactory().createConf(SharedParametersV2ToXmlConverter.INSTANCE.convert(parameters));
+    }
+
+    @Override
+    JAXBContext getJaxbContext() {
+        return JAXB_CONTEXT;
+    }
+
+    @SneakyThrows
+    private static JAXBContext createJaxbContext() {
+        return JAXBContext.newInstance(ObjectFactory.class);
+    }
 }

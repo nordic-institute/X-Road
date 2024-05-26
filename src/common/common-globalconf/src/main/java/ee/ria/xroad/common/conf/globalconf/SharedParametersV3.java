@@ -70,11 +70,16 @@ public class SharedParametersV3 extends AbstractXmlConf<SharedParametersTypeV3> 
         initCompleted = true;
     }
 
-    public SharedParametersV3(SharedParametersV3 original, OffsetDateTime newExpiresOn) throws CertificateEncodingException, IOException {
+    private SharedParametersV3(SharedParametersV3 original, OffsetDateTime newExpiresOn) throws CertificateEncodingException, IOException {
         super(original);
         expiresOn = newExpiresOn;
         sharedParameters = converter.convert(confType);
         initCompleted = true;
+    }
+
+    @Override
+    public SharedParametersProvider refresh(OffsetDateTime fileExpiresOn) throws CertificateEncodingException, IOException {
+        return new SharedParametersV3(this, fileExpiresOn);
     }
 
     @Override
@@ -93,6 +98,11 @@ public class SharedParametersV3 extends AbstractXmlConf<SharedParametersTypeV3> 
         if (initCompleted) {
             throw new IllegalStateException("This object can not be reloaded");
         }
+    }
+
+    @Override
+    public SharedParametersMarshaller getMarshaller() {
+        return new SharedParametersV3Marshaller();
     }
 
     @Override

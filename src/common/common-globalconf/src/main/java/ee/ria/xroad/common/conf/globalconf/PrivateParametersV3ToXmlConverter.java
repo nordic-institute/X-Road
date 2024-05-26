@@ -24,7 +24,7 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.cs.admin.globalconf.generator;
+package ee.ria.xroad.common.conf.globalconf;
 
 import ee.ria.xroad.common.conf.globalconf.privateparameters.v3.ConfigurationAnchorType;
 import ee.ria.xroad.common.conf.globalconf.privateparameters.v3.ConfigurationSourceType;
@@ -38,9 +38,9 @@ import org.mapstruct.factory.Mappers;
 
 @Mapper(uses = {ObjectFactory.class, MappingUtils.class},
         unmappedTargetPolicy = ReportingPolicy.ERROR)
-interface PrivateParametersV3Converter {
+interface PrivateParametersV3ToXmlConverter {
 
-    PrivateParametersV3Converter INSTANCE = Mappers.getMapper(PrivateParametersV3Converter.class);
+    PrivateParametersV3ToXmlConverter INSTANCE = Mappers.getMapper(PrivateParametersV3ToXmlConverter.class);
 
     @Mapping(source = "configurationAnchors", target = "configurationAnchor")
     @Mapping(target = "any", ignore = true)
@@ -50,5 +50,5 @@ interface PrivateParametersV3Converter {
     ConfigurationAnchorType convertAnchor(PrivateParameters.ConfigurationAnchor configurationAnchor);
 
     @Mapping(source = "verificationCerts", target = "verificationCert")
-    ConfigurationSourceType convertSource(PrivateParameters.ConfigurationSource configurationSource);
+    ConfigurationSourceType convertSource(PrivateParameters.Source configurationSource);
 }

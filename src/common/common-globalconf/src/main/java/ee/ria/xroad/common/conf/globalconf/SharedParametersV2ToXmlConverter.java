@@ -24,7 +24,7 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.cs.admin.globalconf.generator;
+package ee.ria.xroad.common.conf.globalconf;
 
 import ee.ria.xroad.common.conf.globalconf.sharedparameters.v2.ApprovedCATypeV2;
 import ee.ria.xroad.common.conf.globalconf.sharedparameters.v2.GlobalGroupType;
@@ -51,8 +51,8 @@ import java.util.List;
 import java.util.Map;
 
 @Mapper(uses = {ObjectFactory.class, MappingUtils.class}, unmappedTargetPolicy = ReportingPolicy.ERROR)
-abstract class SharedParametersV2Converter {
-    public static final SharedParametersV2Converter INSTANCE = Mappers.getMapper(SharedParametersV2Converter.class);
+abstract class SharedParametersV2ToXmlConverter {
+    public static final SharedParametersV2ToXmlConverter INSTANCE = Mappers.getMapper(SharedParametersV2ToXmlConverter.class);
     protected static final ObjectFactory OBJECT_FACTORY = new ObjectFactory();
 
     SharedParametersTypeV2 convert(SharedParameters sharedParameters) {
@@ -70,10 +70,10 @@ abstract class SharedParametersV2Converter {
     @Mapping(source = "memberClasses", target = "memberClass")
     abstract GlobalSettingsType convert(SharedParameters.GlobalSettings globalSettings);
 
-    @Mapping(source = "intermediateCAs", target = "intermediateCA")
+    @Mapping(source = "intermediateCas", target = "intermediateCA")
     abstract ApprovedCATypeV2 convert(SharedParameters.ApprovedCA approvedCa);
 
-    @Mapping(source = "authCerts", target = "authCertHash", qualifiedByName = "toAuthCertHashes")
+    @Mapping(source = "authCertHashes", target = "authCertHash", qualifiedByName = "toAuthCertHashes")
     @Mapping(source = "clients", target = "client", qualifiedByName = "clientsById")
     @Mapping(target = "owner", qualifiedByName = "clientById")
     abstract SecurityServerType convert(SharedParameters.SecurityServer securityServer, @Context Map<ClientId, Object> clientMap);

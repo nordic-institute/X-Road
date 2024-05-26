@@ -24,31 +24,40 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.cs.admin.globalconf.generator;
+package ee.ria.xroad.common.conf.globalconf;
 
 
-import ee.ria.xroad.common.conf.globalconf.privateparameters.v2.ConfigurationAnchorType;
-import ee.ria.xroad.common.conf.globalconf.privateparameters.v2.ConfigurationSourceType;
 import ee.ria.xroad.common.conf.globalconf.privateparameters.v2.ObjectFactory;
 import ee.ria.xroad.common.conf.globalconf.privateparameters.v2.PrivateParametersType;
 
-import org.mapstruct.Mapper;
-import org.mapstruct.Mapping;
-import org.mapstruct.ReportingPolicy;
-import org.mapstruct.factory.Mappers;
+import jakarta.xml.bind.JAXBContext;
+import jakarta.xml.bind.JAXBElement;
+import lombok.SneakyThrows;
 
-@Mapper(uses = {ObjectFactory.class, MappingUtils.class},
-        unmappedTargetPolicy = ReportingPolicy.ERROR)
-interface PrivateParametersV2Converter {
-    PrivateParametersV2Converter INSTANCE = Mappers.getMapper(PrivateParametersV2Converter.class);
+import javax.xml.validation.Schema;
 
-    @Mapping(source = "configurationAnchors", target = "configurationAnchor")
-    PrivateParametersType convert(PrivateParameters parameters);
+public class PrivateParametersV2Marshaller extends AbstractParametersMarshaller<PrivateParameters, PrivateParametersType> {
+    private static final JAXBContext JAXB_CONTEXT = createJaxbContext();
 
-    @Mapping(source = "sources", target = "source")
-    ConfigurationAnchorType convertAnchor(PrivateParameters.ConfigurationAnchor configurationAnchor);
+    @Override
+    JAXBContext getJaxbContext() {
+        return JAXB_CONTEXT;
+    }
 
-    @Mapping(source = "verificationCerts", target = "verificationCert")
-    ConfigurationSourceType convertSource(PrivateParameters.ConfigurationSource configurationSource);
+    @Override
+    Schema getSchema() {
+        return PrivateParametersSchemaValidatorV2.getSchema();
+    }
+
+    @Override
+    JAXBElement<PrivateParametersType> convert(PrivateParameters parameters) {
+        return new ObjectFactory().createConf(PrivateParametersV2ToXmlConverter.INSTANCE.convert(parameters));
+    }
+
+
+    @SneakyThrows
+    private static JAXBContext createJaxbContext() {
+        return JAXBContext.newInstance(ObjectFactory.class);
+    }
 
 }

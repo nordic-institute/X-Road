@@ -1,5 +1,6 @@
 /*
  * The MIT License
+ *
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
@@ -25,16 +26,11 @@
  */
 package ee.ria.xroad.common.conf.globalconf;
 
-import java.time.OffsetDateTime;
+import java.io.OutputStream;
 
-public interface PrivateParametersProvider {
+public interface SharedParametersMarshaller {
 
-    PrivateParametersProvider refresh(OffsetDateTime fileExpiresOn);
+    String marshall(SharedParameters parameters);
 
-    PrivateParameters getPrivateParameters();
-
-    OffsetDateTime getExpiresOn();
-
-    boolean hasChanged();
-
+    void marshall(SharedParameters parameters, OutputStream outputStream);
 }

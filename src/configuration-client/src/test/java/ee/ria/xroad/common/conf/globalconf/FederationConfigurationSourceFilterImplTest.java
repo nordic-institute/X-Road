@@ -27,161 +27,170 @@ package ee.ria.xroad.common.conf.globalconf;
 
 import ee.ria.xroad.common.SystemProperties;
 
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.contrib.java.lang.system.RestoreSystemProperties;
+import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Test;
 
 import static ee.ria.xroad.common.SystemProperties.AllowedFederationMode.ALL;
 import static ee.ria.xroad.common.SystemProperties.AllowedFederationMode.NONE;
-import static org.hamcrest.CoreMatchers.is;
-import static org.junit.Assert.assertThat;
+import static org.assertj.core.api.Assertions.assertThat;
 
 /**
  * Tests for {@link FederationConfigurationSourceFilter}
  */
-public class FederationConfigurationSourceFilterImplTest {
-
-    @Rule
-    public final RestoreSystemProperties restoreSystemProperties
-            = new RestoreSystemProperties();
-
+class FederationConfigurationSourceFilterImplTest {
 
     private static final String FILTER_SEPARATOR = ",";
 
     private static final String DEFAULT_OWN_INSTANCE = "aaabbbccc";
 
+    private static String initialAllowedFederations;
+
+    @BeforeAll
+    static void saveAllowedFederations() {
+        initialAllowedFederations = System.getProperty(SystemProperties.CONFIGURATION_CLIENT_ALLOWED_FEDERATIONS);
+    }
+
+    @AfterAll
+    static void restoreAllowedFederations() {
+        if (initialAllowedFederations == null) {
+            System.clearProperty(SystemProperties.CONFIGURATION_CLIENT_ALLOWED_FEDERATIONS);
+        } else {
+            System.setProperty(SystemProperties.CONFIGURATION_CLIENT_ALLOWED_FEDERATIONS, initialAllowedFederations);
+        }
+    }
 
     @Test
-    public void shouldNotAllowAnyWhenNotConfigured() {
+    void shouldNotAllowAnyWhenNotConfigured() {
         System.clearProperty(SystemProperties.CONFIGURATION_CLIENT_ALLOWED_FEDERATIONS);
         FederationConfigurationSourceFilter filter = new FederationConfigurationSourceFilterImpl(DEFAULT_OWN_INSTANCE);
-        assertThat(filter.shouldDownloadConfigurationFor("EE"), is(false));
-        assertThat(filter.shouldDownloadConfigurationFor(DEFAULT_OWN_INSTANCE), is(true));
+        assertThat(filter.shouldDownloadConfigurationFor("EE")).isFalse();
+        assertThat(filter.shouldDownloadConfigurationFor(DEFAULT_OWN_INSTANCE)).isTrue();
     }
 
 
     @Test
-    public void shouldNotAllowAnyWhenEmptyFilterList() {
+    void shouldNotAllowAnyWhenEmptyFilterList() {
         setFilter(" ");
         FederationConfigurationSourceFilter filter = new FederationConfigurationSourceFilterImpl(DEFAULT_OWN_INSTANCE);
-        assertThat(filter.shouldDownloadConfigurationFor("EE"), is(false));
-        assertThat(filter.shouldDownloadConfigurationFor("fi-prod"), is(false));
-        assertThat(filter.shouldDownloadConfigurationFor(DEFAULT_OWN_INSTANCE), is(true));
+        assertThat(filter.shouldDownloadConfigurationFor("EE")).isFalse();
+        assertThat(filter.shouldDownloadConfigurationFor("fi-prod")).isFalse();
+        assertThat(filter.shouldDownloadConfigurationFor(DEFAULT_OWN_INSTANCE)).isTrue();
     }
 
     @Test
-    public void shouldNotAllowAnyWhenConfigured() {
+    void shouldNotAllowAnyWhenConfigured() {
         setFilter(NONE.name());
         FederationConfigurationSourceFilter filter = new FederationConfigurationSourceFilterImpl(DEFAULT_OWN_INSTANCE);
-        assertThat(filter.shouldDownloadConfigurationFor("JE"), is(false));
-        assertThat(filter.shouldDownloadConfigurationFor("fi-test"), is(false));
-        assertThat(filter.shouldDownloadConfigurationFor(DEFAULT_OWN_INSTANCE), is(true));
+        assertThat(filter.shouldDownloadConfigurationFor("JE")).isFalse();
+        assertThat(filter.shouldDownloadConfigurationFor("fi-test")).isFalse();
+        assertThat(filter.shouldDownloadConfigurationFor(DEFAULT_OWN_INSTANCE)).isTrue();
     }
 
     @Test
-    public void shouldNotAllowAnyWhenConfiguredWithMixedCase() {
+    void shouldNotAllowAnyWhenConfiguredWithMixedCase() {
         setFilter("nOnE");
         FederationConfigurationSourceFilter filter = new FederationConfigurationSourceFilterImpl(DEFAULT_OWN_INSTANCE);
-        assertThat(filter.shouldDownloadConfigurationFor("test"), is(false));
-        assertThat(filter.shouldDownloadConfigurationFor("EE-test"), is(false));
-        assertThat(filter.shouldDownloadConfigurationFor(DEFAULT_OWN_INSTANCE), is(true));
+        assertThat(filter.shouldDownloadConfigurationFor("test")).isFalse();
+        assertThat(filter.shouldDownloadConfigurationFor("EE-test")).isFalse();
+        assertThat(filter.shouldDownloadConfigurationFor(DEFAULT_OWN_INSTANCE)).isTrue();
     }
 
     @Test
-    public void shouldNotAllowAnyWhenConfiguredWithNoneAndAllAndCustomInstances() {
+    void shouldNotAllowAnyWhenConfiguredWithNoneAndAllAndCustomInstances() {
         buildAndSetFilter("fi-prod", "aLL", "EE", "nOne");
         FederationConfigurationSourceFilter filter = new FederationConfigurationSourceFilterImpl(DEFAULT_OWN_INSTANCE);
-        assertThat(filter.shouldDownloadConfigurationFor("any"), is(false));
-        assertThat(filter.shouldDownloadConfigurationFor("does not matter"), is(false));
-        assertThat(filter.shouldDownloadConfigurationFor("EE"), is(false));
-        assertThat(filter.shouldDownloadConfigurationFor("fi-prod"), is(false));
-        assertThat(filter.shouldDownloadConfigurationFor(DEFAULT_OWN_INSTANCE), is(true));
+        assertThat(filter.shouldDownloadConfigurationFor("any")).isFalse();
+        assertThat(filter.shouldDownloadConfigurationFor("does not matter")).isFalse();
+        assertThat(filter.shouldDownloadConfigurationFor("EE")).isFalse();
+        assertThat(filter.shouldDownloadConfigurationFor("fi-prod")).isFalse();
+        assertThat(filter.shouldDownloadConfigurationFor(DEFAULT_OWN_INSTANCE)).isTrue();
     }
 
     @Test
-    public void shouldAllowAllWhenConfigured() {
+    void shouldAllowAllWhenConfigured() {
         setFilter(ALL.name());
         FederationConfigurationSourceFilter filter = new FederationConfigurationSourceFilterImpl(DEFAULT_OWN_INSTANCE);
-        assertThat(filter.shouldDownloadConfigurationFor("EE"), is(true));
-        assertThat(filter.shouldDownloadConfigurationFor("fi-prod"), is(true));
-        assertThat(filter.shouldDownloadConfigurationFor(DEFAULT_OWN_INSTANCE), is(true));
+        assertThat(filter.shouldDownloadConfigurationFor("EE")).isTrue();
+        assertThat(filter.shouldDownloadConfigurationFor("fi-prod")).isTrue();
+        assertThat(filter.shouldDownloadConfigurationFor(DEFAULT_OWN_INSTANCE)).isTrue();
     }
 
     @Test
-    public void shouldAllowAllWhenConfiguredWithMixedCase() {
+    void shouldAllowAllWhenConfiguredWithMixedCase() {
         setFilter("aLl");
         FederationConfigurationSourceFilter filter = new FederationConfigurationSourceFilterImpl(DEFAULT_OWN_INSTANCE);
-        assertThat(filter.shouldDownloadConfigurationFor("FI"), is(true));
-        assertThat(filter.shouldDownloadConfigurationFor("fi-TEST"), is(true));
-        assertThat(filter.shouldDownloadConfigurationFor(DEFAULT_OWN_INSTANCE), is(true));
+        assertThat(filter.shouldDownloadConfigurationFor("FI")).isTrue();
+        assertThat(filter.shouldDownloadConfigurationFor("fi-TEST")).isTrue();
+        assertThat(filter.shouldDownloadConfigurationFor(DEFAULT_OWN_INSTANCE)).isTrue();
     }
 
     @Test
-    public void shouldAllowAllWhenConfiguredWithAllAndCustomInstances() {
+    void shouldAllowAllWhenConfiguredWithAllAndCustomInstances() {
         buildAndSetFilter("fi-prod", "aLL", "EE");
         FederationConfigurationSourceFilter filter = new FederationConfigurationSourceFilterImpl(DEFAULT_OWN_INSTANCE);
-        assertThat(filter.shouldDownloadConfigurationFor("any"), is(true));
-        assertThat(filter.shouldDownloadConfigurationFor("does not matter"), is(true));
-        assertThat(filter.shouldDownloadConfigurationFor(DEFAULT_OWN_INSTANCE), is(true));
+        assertThat(filter.shouldDownloadConfigurationFor("any")).isTrue();
+        assertThat(filter.shouldDownloadConfigurationFor("does not matter")).isTrue();
+        assertThat(filter.shouldDownloadConfigurationFor(DEFAULT_OWN_INSTANCE)).isTrue();
 
     }
 
     @Test
-    public void shouldOnlyAllowCustomInstancesWhenConfiguredWithMixedCase() {
+    void shouldOnlyAllowCustomInstancesWhenConfiguredWithMixedCase() {
         buildAndSetFilter("fi-prod", "EE");
         FederationConfigurationSourceFilter filter = new FederationConfigurationSourceFilterImpl(DEFAULT_OWN_INSTANCE);
-        assertThat(filter.shouldDownloadConfigurationFor("FI-PROd"), is(true));
-        assertThat(filter.shouldDownloadConfigurationFor("ee"), is(true));
-        assertThat(filter.shouldDownloadConfigurationFor("EE-TEST"), is(false));
-        assertThat(filter.shouldDownloadConfigurationFor("dev-fi"), is(false));
-        assertThat(filter.shouldDownloadConfigurationFor(DEFAULT_OWN_INSTANCE), is(true));
+        assertThat(filter.shouldDownloadConfigurationFor("FI-PROd")).isTrue();
+        assertThat(filter.shouldDownloadConfigurationFor("ee")).isTrue();
+        assertThat(filter.shouldDownloadConfigurationFor("EE-TEST")).isFalse();
+        assertThat(filter.shouldDownloadConfigurationFor("dev-fi")).isFalse();
+        assertThat(filter.shouldDownloadConfigurationFor(DEFAULT_OWN_INSTANCE)).isTrue();
     }
 
     @Test
-    public void shouldAllowCustomInstances() {
+    void shouldAllowCustomInstances() {
         setFilter("fi-test,ee,some");
         FederationConfigurationSourceFilter filter = new FederationConfigurationSourceFilterImpl(DEFAULT_OWN_INSTANCE);
-        assertThat(filter.shouldDownloadConfigurationFor("FI-test"), is(true));
-        assertThat(filter.shouldDownloadConfigurationFor("EE"), is(true));
-        assertThat(filter.shouldDownloadConfigurationFor("some"), is(true));
-        assertThat(filter.shouldDownloadConfigurationFor("dev-fi"), is(false));
-        assertThat(filter.shouldDownloadConfigurationFor(DEFAULT_OWN_INSTANCE), is(true));
+        assertThat(filter.shouldDownloadConfigurationFor("FI-test")).isTrue();
+        assertThat(filter.shouldDownloadConfigurationFor("EE")).isTrue();
+        assertThat(filter.shouldDownloadConfigurationFor("some")).isTrue();
+        assertThat(filter.shouldDownloadConfigurationFor("dev-fi")).isFalse();
+        assertThat(filter.shouldDownloadConfigurationFor(DEFAULT_OWN_INSTANCE)).isTrue();
     }
 
     @Test
-    public void shouldParseFilterWithExtraSpaces() {
+    void shouldParseFilterWithExtraSpaces() {
         setFilter("fi-prOD  ,    ee , fi-test, ");
         FederationConfigurationSourceFilter filter = new FederationConfigurationSourceFilterImpl(DEFAULT_OWN_INSTANCE);
-        assertThat(filter.shouldDownloadConfigurationFor("FI-PROd"), is(true));
-        assertThat(filter.shouldDownloadConfigurationFor("EE"), is(true));
-        assertThat(filter.shouldDownloadConfigurationFor("fi-TEST"), is(true));
-        assertThat(filter.shouldDownloadConfigurationFor("ee-TEST"), is(false));
-        assertThat(filter.shouldDownloadConfigurationFor(" "), is(false));
-        assertThat(filter.shouldDownloadConfigurationFor("  "), is(false));
-        assertThat(filter.shouldDownloadConfigurationFor("dev-fi"), is(false));
-        assertThat(filter.shouldDownloadConfigurationFor(DEFAULT_OWN_INSTANCE), is(true));
+        assertThat(filter.shouldDownloadConfigurationFor("FI-PROd")).isTrue();
+        assertThat(filter.shouldDownloadConfigurationFor("EE")).isTrue();
+        assertThat(filter.shouldDownloadConfigurationFor("fi-TEST")).isTrue();
+        assertThat(filter.shouldDownloadConfigurationFor("ee-TEST")).isFalse();
+        assertThat(filter.shouldDownloadConfigurationFor(" ")).isFalse();
+        assertThat(filter.shouldDownloadConfigurationFor("  ")).isFalse();
+        assertThat(filter.shouldDownloadConfigurationFor("dev-fi")).isFalse();
+        assertThat(filter.shouldDownloadConfigurationFor(DEFAULT_OWN_INSTANCE)).isTrue();
     }
 
     @Test
-    public void shouldAlwaysAllowOwnInstance() {
+    void shouldAlwaysAllowOwnInstance() {
         final String own = "fi-dev";
         setFilter(NONE.name());
         FederationConfigurationSourceFilter filter = new FederationConfigurationSourceFilterImpl(own);
-        assertThat(filter.shouldDownloadConfigurationFor(" "), is(false));
-        assertThat(filter.shouldDownloadConfigurationFor("  "), is(false));
-        assertThat(filter.shouldDownloadConfigurationFor("dev-fi"), is(false));
-        assertThat(filter.shouldDownloadConfigurationFor(DEFAULT_OWN_INSTANCE), is(false));
-        assertThat(filter.shouldDownloadConfigurationFor(own), is(true));
+        assertThat(filter.shouldDownloadConfigurationFor(" ")).isFalse();
+        assertThat(filter.shouldDownloadConfigurationFor("  ")).isFalse();
+        assertThat(filter.shouldDownloadConfigurationFor("dev-fi")).isFalse();
+        assertThat(filter.shouldDownloadConfigurationFor(DEFAULT_OWN_INSTANCE)).isFalse();
+        assertThat(filter.shouldDownloadConfigurationFor(own)).isTrue();
     }
 
     @Test
-    public void shouldWorkWithSomeSpecialCharacters() {
+    void shouldWorkWithSomeSpecialCharacters() {
         buildAndSetFilter("ää-ÖÖÖ", "èé-ãâ");
         FederationConfigurationSourceFilter filter = new FederationConfigurationSourceFilterImpl(DEFAULT_OWN_INSTANCE);
-        assertThat(filter.shouldDownloadConfigurationFor("ÄÄ-ööö"), is(true));
-        assertThat(filter.shouldDownloadConfigurationFor("ÈÉ-ÃÂ"), is(true));
-        assertThat(filter.shouldDownloadConfigurationFor("dev-fi"), is(false));
-        assertThat(filter.shouldDownloadConfigurationFor(DEFAULT_OWN_INSTANCE), is(true));
+        assertThat(filter.shouldDownloadConfigurationFor("ÄÄ-ööö")).isTrue();
+        assertThat(filter.shouldDownloadConfigurationFor("ÈÉ-ÃÂ")).isTrue();
+        assertThat(filter.shouldDownloadConfigurationFor("dev-fi")).isFalse();
+        assertThat(filter.shouldDownloadConfigurationFor(DEFAULT_OWN_INSTANCE)).isTrue();
     }
 
     private void setFilter(String filter) {

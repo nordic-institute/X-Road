@@ -24,39 +24,19 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.cs.admin.globalconf.generator;
+package ee.ria.xroad.common;
 
-import ee.ria.xroad.common.identifier.ClientId;
+import org.assertj.core.api.Condition;
 
-import lombok.Data;
+public final class TestExceptionUtils {
 
-import java.time.Instant;
-import java.util.List;
-
-@Data
-class PrivateParameters {
-    private String instanceIdentifier;
-    private List<ConfigurationAnchor> configurationAnchors;
-    private ManagementService managementService;
-    private Integer timeStampingIntervalSeconds;
-
-    @Data
-    public static class ConfigurationAnchor {
-        private Instant generatedAt;
-        private String instanceIdentifier;
-        private List<ConfigurationSource> sources;
+    private TestExceptionUtils() {
     }
 
-    @Data
-    public static class ConfigurationSource {
-        private String downloadURL;
-        private List<byte[]> verificationCerts;
+    public static Condition<Throwable> codedException(String faultCode) {
+        return new Condition<>(
+                t -> t instanceof CodedException codedException && codedException.getFaultCode().equals(faultCode),
+                "CodedException with fault code '%s'", faultCode);
     }
 
-    @Data
-    public static class ManagementService {
-        private String authCertRegServiceAddress;
-        private byte[] authCertRegServiceCert;
-        private ClientId managementRequestServiceProviderId;
-    }
 }

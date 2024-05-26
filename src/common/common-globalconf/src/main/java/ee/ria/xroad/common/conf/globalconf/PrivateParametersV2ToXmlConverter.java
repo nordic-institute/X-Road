@@ -1,5 +1,6 @@
 /*
  * The MIT License
+ *
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
@@ -25,16 +26,29 @@
  */
 package ee.ria.xroad.common.conf.globalconf;
 
-import java.time.OffsetDateTime;
 
-public interface PrivateParametersProvider {
+import ee.ria.xroad.common.conf.globalconf.privateparameters.v2.ConfigurationAnchorType;
+import ee.ria.xroad.common.conf.globalconf.privateparameters.v2.ConfigurationSourceType;
+import ee.ria.xroad.common.conf.globalconf.privateparameters.v2.ObjectFactory;
+import ee.ria.xroad.common.conf.globalconf.privateparameters.v2.PrivateParametersType;
 
-    PrivateParametersProvider refresh(OffsetDateTime fileExpiresOn);
+import org.mapstruct.Mapper;
+import org.mapstruct.Mapping;
+import org.mapstruct.ReportingPolicy;
+import org.mapstruct.factory.Mappers;
 
-    PrivateParameters getPrivateParameters();
+@Mapper(uses = {ObjectFactory.class, MappingUtils.class},
+        unmappedTargetPolicy = ReportingPolicy.ERROR)
+interface PrivateParametersV2ToXmlConverter {
+    PrivateParametersV2ToXmlConverter INSTANCE = Mappers.getMapper(PrivateParametersV2ToXmlConverter.class);
 
-    OffsetDateTime getExpiresOn();
+    @Mapping(source = "configurationAnchors", target = "configurationAnchor")
+    PrivateParametersType convert(PrivateParameters parameters);
 
-    boolean hasChanged();
+    @Mapping(source = "sources", target = "source")
+    ConfigurationAnchorType convertAnchor(PrivateParameters.ConfigurationAnchor configurationAnchor);
+
+    @Mapping(source = "verificationCerts", target = "verificationCert")
+    ConfigurationSourceType convertSource(PrivateParameters.Source configurationSource);
 
 }

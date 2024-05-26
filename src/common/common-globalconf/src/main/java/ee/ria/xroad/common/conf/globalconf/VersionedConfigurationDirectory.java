@@ -48,6 +48,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Consumer;
 import java.util.function.Predicate;
 import java.util.stream.Stream;
@@ -75,6 +76,8 @@ public class VersionedConfigurationDirectory implements ConfigurationDirectory {
 
     protected final Map<String, PrivateParametersProvider> privateParameters;
     protected final Map<String, SharedParametersProvider> sharedParameters;
+
+    private final ConcurrentHashMap<String, SharedParametersCache> sharedParametersCacheMap = new ConcurrentHashMap<>();
 
     // ------------------------------------------------------------------------
 
@@ -140,9 +143,8 @@ public class VersionedConfigurationDirectory implements ConfigurationDirectory {
                     parametersToUse = existingParameters.refresh(fileExpiresOn);
                 } else {
                     log.trace("Reloading PrivateParameters from {} ", privateParametersPath);
-                    parametersToUse = isCurrentVersion(privateParametersPath) || isVersion(privateParametersPath, 3)
-                            ? new PrivateParametersV3(privateParametersPath, fileExpiresOn)
-                            : new PrivateParametersV2(privateParametersPath, fileExpiresOn);
+                    parametersToUse = ParametersProviderFactory.forGlobalConfVersion(getVersion(privateParametersPath))
+                            .privateParametersProvider(privateParametersPath, fileExpiresOn);
                 }
                 basePrivateParams.put(instanceId, parametersToUse);
             } catch (Exception e) {
@@ -186,13 +188,8 @@ public class VersionedConfigurationDirectory implements ConfigurationDirectory {
                     parametersToUse = existingParameters.refresh(fileExpiresOn);
                 } else {
                     log.trace("Reloading SharedParameters from {} ", sharedParametersPath);
-                    if (isCurrentVersion(sharedParametersPath)) {
-                        parametersToUse = new SharedParametersV4(sharedParametersPath, fileExpiresOn);
-                    } else if (isVersion(sharedParametersPath, 3)) {
-                        parametersToUse = new SharedParametersV3(sharedParametersPath, fileExpiresOn);
-                    } else {
-                        parametersToUse = new SharedParametersV2(sharedParametersPath, fileExpiresOn);
-                    }
+                    parametersToUse = ParametersProviderFactory.forGlobalConfVersion(getVersion(sharedParametersPath))
+                            .sharedParametersProvider(sharedParametersPath, fileExpiresOn);
                 }
                 baseSharedParams.put(instanceId, parametersToUse);
             } catch (Exception e) {
@@ -268,6 +265,21 @@ public class VersionedConfigurationDirectory implements ConfigurationDirectory {
             return true;
         }
         return false;
+    }
+
+    public Optional<SharedParametersCache> findSharedParametersCache(String instanceId) {
+        return findShared(instanceId).map(this::getSharedParametersCache);
+    }
+
+    public List<SharedParametersCache> getSharedParametersCaches() {
+        return getShared().stream()
+                .map(this::getSharedParametersCache)
+                .toList();
+    }
+
+    private SharedParametersCache getSharedParametersCache(SharedParameters sharedParams) {
+        return sharedParametersCacheMap.computeIfAbsent(sharedParams.getInstanceIdentifier(),
+                k -> new SharedParametersCache(sharedParams));
     }
 
     /**

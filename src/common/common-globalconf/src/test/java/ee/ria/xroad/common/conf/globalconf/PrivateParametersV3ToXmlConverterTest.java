@@ -23,7 +23,7 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.cs.admin.globalconf.generator;
+package ee.ria.xroad.common.conf.globalconf;
 
 import ee.ria.xroad.common.conf.globalconf.privateparameters.v3.ConfigurationAnchorType;
 import ee.ria.xroad.common.conf.globalconf.privateparameters.v3.ConfigurationSourceType;
@@ -41,7 +41,7 @@ import static java.nio.charset.StandardCharsets.UTF_8;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertAll;
 
-class PrivateParametersV3ConverterTest {
+class PrivateParametersV3ToXmlConverterTest {
 
     private static final String INSTANCE = "INSTANCE";
     private static final String DOWNLOAD_URL = "http://example.com";
@@ -57,7 +57,7 @@ class PrivateParametersV3ConverterTest {
     void shouldMapAllProperties() {
         PrivateParameters privateParameters = getPrivateParameters();
 
-        var xmlType = PrivateParametersV3Converter.INSTANCE.convert(privateParameters);
+        var xmlType = PrivateParametersV3ToXmlConverter.INSTANCE.convert(privateParameters);
 
         assertPrivateParameters(xmlType);
     }
@@ -78,16 +78,16 @@ class PrivateParametersV3ConverterTest {
                 () -> assertThat(privateParameters).isNotNull(),
                 () -> assertThat(privateParameters.getInstanceIdentifier()).isEqualTo(INSTANCE),
                 () -> assertThat(privateParameters.getConfigurationAnchor())
-                        .satisfiesExactly(PrivateParametersV3ConverterTest::assertConfigurationAnchor),
+                        .satisfiesExactly(PrivateParametersV3ToXmlConverterTest::assertConfigurationAnchor),
                 () -> assertThat(privateParameters.getManagementService()).satisfies(
-                        PrivateParametersV3ConverterTest::assertManagementService),
+                        PrivateParametersV3ToXmlConverterTest::assertManagementService),
                 () -> assertThat(privateParameters.getTimeStampingIntervalSeconds()).isEqualTo(BigInteger.valueOf(TIMESTAMPING_INTERVAL)),
                 () -> assertThat(privateParameters).hasNoNullFieldsOrProperties()
         );
     }
 
     private static PrivateParameters.ConfigurationAnchor getConfigurationAnchor() {
-        PrivateParameters.ConfigurationSource source = getConfigurationSource();
+        PrivateParameters.Source source = getConfigurationSource();
         PrivateParameters.ConfigurationAnchor anchor = new PrivateParameters.ConfigurationAnchor();
         anchor.setGeneratedAt(Instant.EPOCH);
         anchor.setInstanceIdentifier(OTHER_INSTANCE);
@@ -100,13 +100,13 @@ class PrivateParametersV3ConverterTest {
                 () -> assertThat(anchor.getInstanceIdentifier()).isEqualTo(OTHER_INSTANCE),
                 () -> assertThat(anchor.getGeneratedAt().toGregorianCalendar().toInstant()).isEqualTo(Instant.EPOCH),
                 () -> assertThat(anchor.getSource())
-                        .satisfiesExactly(PrivateParametersV3ConverterTest::assertConfigurationSource),
+                        .satisfiesExactly(PrivateParametersV3ToXmlConverterTest::assertConfigurationSource),
                 () -> assertThat(anchor).hasNoNullFieldsOrProperties()
         );
     }
 
-    private static PrivateParameters.ConfigurationSource getConfigurationSource() {
-        var source = new PrivateParameters.ConfigurationSource();
+    private static PrivateParameters.Source getConfigurationSource() {
+        var source = new PrivateParameters.Source();
         source.setDownloadURL(DOWNLOAD_URL);
         source.setVerificationCerts(List.of(VERIFICATION_CERT));
         return source;

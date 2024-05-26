@@ -25,21 +25,21 @@
  */
 package ee.ria.xroad.common.conf.globalconf;
 
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import java.util.ArrayList;
 import java.util.List;
 
 import static ee.ria.xroad.common.conf.globalconf.ConfigurationDownloadTestDataGenerator.getSourceWithCerts;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotEquals;
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
-public class ConfigurationDownloadUtilsTest {
+class ConfigurationDownloadUtilsTest {
 
     @Test
-    public void shuffleLocationsPreferHttps() {
+    void shuffleLocationsPreferHttps() {
         List<String> locationUrlsInOrder = new ArrayList<>();
         locationUrlsInOrder.add("http://node1/inertnalconf");
         locationUrlsInOrder.add("http://node2/inertnalconf");
@@ -67,7 +67,7 @@ public class ConfigurationDownloadUtilsTest {
     }
 
     @Test
-    public void withHttpsReturnStartWithHttpAndNotWithHttpsFalse() {
+    void withHttpsReturnStartWithHttpAndNotWithHttpsFalse() {
         assertFalse(ConfigurationDownloadUtils.startWithHttpAndNotWithHttps("https://"));
     }
 }
