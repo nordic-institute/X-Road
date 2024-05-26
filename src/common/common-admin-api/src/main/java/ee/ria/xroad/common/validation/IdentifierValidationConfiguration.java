@@ -1,5 +1,6 @@
 /*
  * The MIT License
+ *
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
@@ -23,52 +24,27 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package ee.ria.xroad.proxy;
-
-import ee.ria.xroad.common.opmonitoring.AbstractOpMonitoringBuffer;
-import ee.ria.xroad.common.signature.BatchSigner;
-import ee.ria.xroad.proxy.clientproxy.ClientProxy;
-import ee.ria.xroad.proxy.opmonitoring.OpMonitoring;
-import ee.ria.xroad.proxy.serverproxy.ServerProxy;
-import ee.ria.xroad.proxy.util.CertHashBasedOcspResponder;
+package ee.ria.xroad.common.validation;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.context.annotation.Import;
 
-@Import({
-        ProxyRpcConfig.class,
-        ProxyAdminPortConfig.class,
-        ProxyAddonConfig.class,
-        ProxyDiagnosticsConfig.class,
-        ProxyJobConfig.class,
-        ProxyMessageLogConfig.class
-})
 @Configuration
-public class ProxyConfig {
+public class IdentifierValidationConfiguration {
 
-    @Bean(destroyMethod = "shutdown")
-    BatchSigner batchSigner() {
-        return BatchSigner.init();
+    @Bean
+    IdentifierValidator identifierValidator(Config config) {
+        return IdentifierValidator.get(config.isStrictIdentifierChecks());
     }
 
-    @Bean(initMethod = "start", destroyMethod = "stop")
-    ClientProxy clientProxy() throws Exception {
-        return new ClientProxy();
+
+    public interface Config {
+        /**
+         * Restrict identifiers (member code, subsystem code etc.) to match <code>^[a-zA-Z0-9'()+,-.=?]*</code>.
+         * Setting value to false enables legacy compatibility mode, that logs a warning when entity is created with
+         * incompatible identifier.
+         */
+        boolean isStrictIdentifierChecks();
     }
 
-    @Bean(initMethod = "start", destroyMethod = "stop")
-    ServerProxy serverProxy() throws Exception {
-        return new ServerProxy();
-    }
-
-    @Bean(initMethod = "start", destroyMethod = "stop")
-    CertHashBasedOcspResponder certHashBasedOcspResponder() throws Exception {
-        return new CertHashBasedOcspResponder();
-    }
-
-    @Bean(initMethod = "start", destroyMethod = "stop")
-    AbstractOpMonitoringBuffer opMonitoringBuffer() throws Exception {
-        return OpMonitoring.init();
-    }
 }

@@ -25,6 +25,7 @@
  */
 package org.niis.xroad.securityserver.restapi.config;
 
+import org.niis.xroad.securityserver.app.RestApiApplication;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.env.EnvironmentPostProcessor;
 import org.springframework.boot.env.YamlPropertySourceLoader;
@@ -41,6 +42,9 @@ public class CommonPropertyEnvironmentPostProcessor implements EnvironmentPostPr
 
     @Override
     public void postProcessEnvironment(ConfigurableEnvironment environment, SpringApplication application) {
+        if (!application.getAllSources().contains(RestApiApplication.class)) {
+            return;
+        }
         Resource path = new ClassPathResource("common-application.yml");
         PropertySource<?> propertySource = loadYaml(path);
         environment.getPropertySources().addLast(propertySource);

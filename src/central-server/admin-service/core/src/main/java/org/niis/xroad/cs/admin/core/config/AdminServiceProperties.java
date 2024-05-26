@@ -32,7 +32,7 @@ import org.niis.xroad.common.api.throttle.IpThrottlingFilterConfig;
 import org.niis.xroad.restapi.config.AllowedFilesConfig;
 import org.niis.xroad.restapi.config.AllowedHostnamesConfig;
 import org.niis.xroad.restapi.config.ApiCachingConfiguration;
-import org.niis.xroad.restapi.config.IdentifierValidationConfiguration;
+import ee.ria.xroad.common.validation.IdentifierValidationConfiguration;
 import org.niis.xroad.restapi.config.LimitRequestSizesFilter;
 import org.niis.xroad.restapi.config.UserRoleConfig;
 import org.niis.xroad.restapi.domain.Role;

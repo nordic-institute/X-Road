@@ -27,11 +27,13 @@ package org.niis.xroad.securityserver.restapi.config;
 
 import ee.ria.xroad.common.SystemProperties;
 
+import org.niis.xroad.securityserver.acmechallenge.config.AcmeChallengeConfig;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.env.EnvironmentPostProcessor;
 import org.springframework.boot.env.YamlPropertySourceLoader;
 import org.springframework.core.env.ConfigurableEnvironment;
 import org.springframework.core.env.PropertySource;
+import org.springframework.core.io.ClassPathResource;
 import org.springframework.core.io.FileSystemResource;
 import org.springframework.core.io.Resource;
 
@@ -43,9 +45,14 @@ public class AcmeEabPropertyEnvironmentPostProcessor implements EnvironmentPostP
 
     @Override
     public void postProcessEnvironment(ConfigurableEnvironment environment, SpringApplication application) {
-        Resource path = new FileSystemResource(SystemProperties.getConfPath() + "conf.d/acme.yml");
-        if (path.exists()) {
-            PropertySource<?> propertySource = loadYaml(path);
+        Resource externalAcmeConfPath = new FileSystemResource(SystemProperties.getConfPath() + "conf.d/acme.yml");
+        if (externalAcmeConfPath.exists()) {
+            PropertySource<?> propertySource = loadYaml(externalAcmeConfPath);
+            environment.getPropertySources().addLast(propertySource);
+        }
+        if (application.getAllSources().contains(AcmeChallengeConfig.class)) {
+            Resource internalAcmeConfPath = new ClassPathResource("application-acme.yml");
+            PropertySource<?> propertySource = loadYaml(internalAcmeConfPath);
             environment.getPropertySources().addLast(propertySource);
         }
     }

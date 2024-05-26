@@ -1,0 +1,10 @@
+spring:
+  application:
+    name: AcmeChallengeServer
+
+server:
+  port: 80
+  ssl:
+    enabled: false
+  servlet:
+    context-path: "/.well-known/acme-challenge"

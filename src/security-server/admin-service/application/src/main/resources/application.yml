@@ -17,19 +17,5 @@ spring:
   profiles:
     include: nontest
 
-# TLS
-# (can be overridden with external ssl.properties)
-server:
-  ssl:
-    key-store: /etc/xroad/ssl/proxy-ui-api.p12
-    key-store-password: proxy-ui-api
-    enabled: true
-    ciphers: TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256,TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384,TLS_ECDHE_ECDSA_WITH_AES_128_GCM_SHA256,TLS_ECDHE_ECDSA_WITH_AES_256_GCM_SHA384
-    protocol: TLS
-    enabled-protocols: TLSv1.2
-  compression:
-    enabled: true
-    mime-types: application/json,application/xml,text/html,text/xml,text/plain,application/javascript,text/css,image/jpeg
-
 logging:
   config: file:/etc/xroad/conf.d/proxy-ui-api-logback.xml

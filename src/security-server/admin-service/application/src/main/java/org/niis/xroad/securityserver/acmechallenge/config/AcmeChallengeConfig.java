@@ -1,6 +1,5 @@
 /*
  * The MIT License
- *
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
@@ -24,29 +23,34 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.restapi.config;
+package org.niis.xroad.securityserver.acmechallenge.config;
 
-import ee.ria.xroad.common.validation.IdentifierValidator;
-
+import org.niis.xroad.restapi.auth.securityconfigurer.MultiAuthWebSecurityConfig;
+import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.core.annotation.Order;
+import org.springframework.security.config.annotation.web.builders.HttpSecurity;
+import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
+import org.springframework.security.config.http.SessionCreationPolicy;
+import org.springframework.security.web.SecurityFilterChain;
 
 @Configuration
-public class IdentifierValidationConfiguration {
+@ComponentScan("org.niis.xroad.securityserver.acmechallenge")
+@EnableAutoConfiguration
+public class AcmeChallengeConfig {
 
     @Bean
-    IdentifierValidator identifierValidator(Config config) {
-        return IdentifierValidator.get(config.isStrictIdentifierChecks());
-    }
-
-
-    public interface Config {
-        /**
-         * Restrict identifiers (member code, subsystem code etc.) to match <code>^[a-zA-Z0-9'()+,-.=?]*</code>.
-         * Setting value to false enables legacy compatibility mode, that logs a warning when entity is created with
-         * incompatible identifier.
-         */
-        boolean isStrictIdentifierChecks();
+    @Order(MultiAuthWebSecurityConfig.STATIC_ASSETS_SECURITY_ORDER)
+    public SecurityFilterChain staticAssetsSecurityFilterChain(HttpSecurity http) throws Exception {
+        return http
+                .securityMatcher("/**")
+                .authorizeHttpRequests(customizer -> customizer.anyRequest().permitAll())
+                .sessionManagement(customizer -> customizer.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+                .csrf(AbstractHttpConfigurer::disable)
+                .formLogin(AbstractHttpConfigurer::disable)
+                .build();
     }
 
 }

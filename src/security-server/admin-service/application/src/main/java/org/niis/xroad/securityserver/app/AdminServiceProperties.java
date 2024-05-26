@@ -24,14 +24,14 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.securityserver.restapi.config;
+package org.niis.xroad.securityserver.app;
 
 import lombok.Getter;
 import lombok.Setter;
 import org.niis.xroad.common.api.throttle.IpThrottlingFilterConfig;
 import org.niis.xroad.restapi.config.AllowedHostnamesConfig;
 import org.niis.xroad.restapi.config.ApiCachingConfiguration;
-import org.niis.xroad.restapi.config.IdentifierValidationConfiguration;
+import ee.ria.xroad.common.validation.IdentifierValidationConfiguration;
 import org.niis.xroad.restapi.config.LimitRequestSizesFilter;
 import org.niis.xroad.restapi.config.UserRoleConfig;
 import org.niis.xroad.restapi.domain.Role;

@@ -23,33 +23,25 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.securityserver.restapi;
+package org.niis.xroad.securityserver.acmechallenge.controller;
 
-import ee.ria.xroad.common.Version;
+import org.springframework.core.io.FileSystemResource;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RestController;
 
-import org.springframework.boot.SpringApplication;
-import org.springframework.boot.autoconfigure.SpringBootApplication;
-import org.springframework.boot.web.servlet.ServletComponentScan;
-import org.springframework.cache.annotation.EnableCaching;
+import java.io.IOException;
+import java.nio.charset.Charset;
 
-/**
- * main spring boot application.
- */
-@ServletComponentScan
-@SpringBootApplication(scanBasePackages = {"org.niis.xroad.securityserver.restapi", "org.niis.xroad.restapi"})
-@EnableCaching
-@SuppressWarnings("checkstyle:HideUtilityClassConstructor")
-public class RestApiApplication {
+@RestController
+public class AcmeChallengeController {
 
-    private static final String APP_NAME = "xroad-proxy-ui-api";
-
-    /**
-     * start application
-     */
-    public static void main(String[] args) {
-        Version.outputVersionInfo(APP_NAME);
-
-        SpringApplication.run(RestApiApplication.class, args
-        );
+    @GetMapping(value = "/{token}")
+    public ResponseEntity<String> getChallenge(@PathVariable("token") String token) throws IOException {
+        FileSystemResource fileSystemResource = new FileSystemResource("/etc/xroad/acme-challenge/" + token);
+        return new ResponseEntity<>(fileSystemResource.getContentAsString(Charset.defaultCharset()), HttpStatus.OK);
     }
+
 }
