@@ -42,7 +42,7 @@ import org.eclipse.edc.identityhub.spi.participantcontext.model.KeyDescriptor;
 import org.eclipse.edc.identityhub.spi.participantcontext.model.ParticipantManifest;
 import org.eclipse.edc.identityhub.spi.store.CredentialStore;
 import org.eclipse.edc.identityhub.spi.store.KeyPairResourceStore;
-import org.eclipse.edc.identityhub.spi.verifiablecredentials.model.VcState;
+import org.eclipse.edc.identityhub.spi.verifiablecredentials.model.VcStatus;
 import org.eclipse.edc.identityhub.spi.verifiablecredentials.model.VerifiableCredentialResource;
 import org.eclipse.edc.runtime.metamodel.annotation.Extension;
 import org.eclipse.edc.runtime.metamodel.annotation.Inject;
@@ -145,7 +145,7 @@ public class IdentityHubCredentialInsertionExtension implements ServiceExtension
         var verifiableCredentialResource = VerifiableCredentialResource.Builder.newInstance()
                 .issuerId("test-issuer")
                 .holderId("test-holder")
-                .state(VcState.ISSUED)
+                .state(VcStatus.ISSUED)
                 .participantId(participantId)
                 .credential(verifiableCredentialContainer)
                 .id(UUID.randomUUID().toString())

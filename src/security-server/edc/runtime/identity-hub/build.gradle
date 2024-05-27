@@ -23,7 +23,7 @@ dependencies {
     // embedded Identity Hub
     implementation libs.bundles.edc.identity.hub.management.api
     implementation libs.edc.identity.hub.api
-    implementation libs.edc.identity.hub.credentials
+    implementation libs.edc.identity.hub.core
     implementation libs.edc.identity.hub.participants
     implementation libs.edc.identity.hub.keypairs
     implementation libs.edc.keypair.spi

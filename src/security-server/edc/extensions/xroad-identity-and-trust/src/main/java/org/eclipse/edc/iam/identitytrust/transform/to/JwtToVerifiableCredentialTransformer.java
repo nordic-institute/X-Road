@@ -76,7 +76,7 @@ public class JwtToVerifiableCredentialTransformer extends AbstractJwtTransformer
                 extractDate(vc.get(EXPIRATION_DATE_PROPERTY), claims.getExpirationTime()).ifPresent(builder::expirationDate);
 
                 // issuance date
-                extractDate(vc.get(ISSUANCE_DATE_PROPERTY), claims.getExpirationTime()).ifPresent(builder::issuanceDate);
+                extractDate(vc.get(ISSUANCE_DATE_PROPERTY), claims.getIssueTime()).ifPresent(builder::issuanceDate);
 
                 builder.issuer(new Issuer(claims.getIssuer(), Map.of()));
                 builder.name(claims.getSubject()); // todo: is this correct?
