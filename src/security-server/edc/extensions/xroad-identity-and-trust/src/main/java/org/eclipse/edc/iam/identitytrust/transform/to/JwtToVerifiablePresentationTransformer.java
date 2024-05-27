@@ -80,8 +80,15 @@ public class JwtToVerifiablePresentationTransformer extends AbstractJwtTransform
 
     @Nullable
     private VerifiableCredential extractCredentials(Object credential, TransformerContext context) {
-        if (credential instanceof String) { // VC is JWT
-            return context.transform(credential.toString(), VerifiableCredential.class);
+        if (credential instanceof String credentialString) { // VC is json-ls string
+//            return context.transform(credential.toString(), VerifiableCredential.class);
+            try {
+                var jsonObject = objectMapper.readValue(credentialString, JsonObject.class);
+                var expanded = jsonLd.expand(jsonObject);
+                return context.transform(expanded.getContent(), VerifiableCredential.class);
+            } catch (JsonProcessingException e) {
+                context.reportProblem("Error parsing VC from JWT");
+            }
         }
         // VC is LDP
         var input = objectMapper.convertValue(credential, JsonObject.class);
