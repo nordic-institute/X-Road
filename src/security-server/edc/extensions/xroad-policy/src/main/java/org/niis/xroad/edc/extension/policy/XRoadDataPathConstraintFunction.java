@@ -37,7 +37,8 @@ import org.eclipse.edc.spi.monitor.Monitor;
 import org.eclipse.edc.spi.types.TypeManager;
 import org.niis.xroad.edc.extension.policy.util.PathGlob;
 
-import java.util.HashSet;
+import java.util.Collection;
+import java.util.Set;
 
 @RequiredArgsConstructor
 public class XRoadDataPathConstraintFunction implements AtomicConstraintFunction<Permission> {
@@ -64,12 +65,12 @@ public class XRoadDataPathConstraintFunction implements AtomicConstraintFunction
         String requestedPath = context.getContextData(String.class); //todo: xroad8 put to dedicated dto?
         Endpoint requested = Endpoint.from(requestedPath);
 
-        HashSet<String> allowedEndpointPatterns = typeManager.readValue(allowedPaths, HashSet.class);
+        Collection<String> allowedEndpointPatterns = Set.of(allowedPaths);
 
         for (String allowedPath : allowedEndpointPatterns) {
             Endpoint allowed = Endpoint.from(allowedPath);
             boolean matches = switch (operator) {
-                case IS_ANY_OF -> (ANY_METHOD.equals(allowed.method) || requested.method.equals(allowed.method))
+                case IS_ANY_OF, EQ -> (ANY_METHOD.equals(allowed.method) || requested.method.equals(allowed.method))
                         && (ANY_PATH.equals(allowed.path) || PathGlob.matches(allowed.path, requested.path));
                 default -> {
                     context.reportProblem("Operator " + operator + " not supported");

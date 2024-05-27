@@ -86,7 +86,7 @@ public interface ServerConfProvider {
      * @param serviceCode service code
      * @return clients that are allowed to invoke the service with allowed path glob
      */
-    Map<XRoadId, Set<String>> getEndpointClients(ClientId serviceProvider, String serviceCode);
+    Map<XRoadId, Set<AccessRightPath>> getEndpointClients(ClientId serviceProvider, String serviceCode);
 
     /**
      * @param serviceProvider the service provider identifier

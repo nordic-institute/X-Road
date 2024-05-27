@@ -16,9 +16,9 @@ services:
     deploy:
       resources:
         reservations:
-          memory: 512M
+          memory: 1G
         limits:
-          memory: 2560M
+          memory: 3G
     healthcheck:
       interval: 5s
       retries: 40
@@ -28,9 +28,9 @@ services:
     deploy:
       resources:
         reservations:
-          memory: 512M
+          memory: 1G
         limits:
-          memory: 2560M
+          memory: 3G
     healthcheck:
       interval: 5s
       retries: 40

@@ -25,38 +25,42 @@
  * THE SOFTWARE.
  */
 
-package org.niis.xroad.edc.extension.policy.util;
+package org.niis.xroad.edc.extension.policy;
 
-import ee.ria.xroad.common.identifier.ClientId;
-
-import lombok.experimental.UtilityClass;
+import lombok.RequiredArgsConstructor;
+import org.eclipse.edc.policy.engine.spi.AtomicConstraintFunction;
 import org.eclipse.edc.policy.engine.spi.PolicyContext;
-import org.eclipse.edc.spi.agent.ParticipantAgent;
-import org.niis.xroad.restapi.converter.ClientIdConverter;
+import org.eclipse.edc.policy.model.Operator;
+import org.eclipse.edc.policy.model.Permission;
+import org.eclipse.edc.spi.monitor.Monitor;
+import org.niis.xroad.edc.extension.policy.util.PolicyContextHelper;
 
 import java.util.Optional;
 
-@UtilityClass
-public class PolicyHelper {
 
-    public static final String CLIENT_ID_KEY = "xroad_client_id";
-    private final ClientIdConverter clientIdConverter = new ClientIdConverter();
+@RequiredArgsConstructor
+public class GxLegalRegistrationNumberConstraintFunction implements AtomicConstraintFunction<Permission> {
 
-    public static Optional<String> getClientIdFromContext(PolicyContext context) {
-        var participantAgent = context.getContextData(ParticipantAgent.class);
+    public static final String GX_LEGAL_REGISTRATION_NO = "gx:lrnVatId";
 
-        if (participantAgent != null) {
-            var claims = participantAgent.getClaims();
-            if (claims.containsKey(CLIENT_ID_KEY)) {
-                return Optional.of(claims.get(CLIENT_ID_KEY).toString());
-            }
+    private final Monitor monitor;
+
+    @Override
+    public boolean evaluate(Operator operator, Object rightValue, Permission rule, PolicyContext context) {
+        monitor.debug("GxLegalRegistrationNumberConstraintFunction.evaluate");
+
+        if (!(rightValue instanceof String legalRegistrationNumber)) {
+            context.reportProblem("Right-value expected to be String but was " + rightValue.getClass());
+            return false;
         }
-
-        return Optional.empty();
+        Optional<String> subject = PolicyContextHelper.getGxLrnVatId(context);
+        return subject.map(vatId -> switch (operator) {
+            //TODO list not handled
+            case EQ, IN -> legalRegistrationNumber.equals(vatId);
+            default -> {
+                context.reportProblem("Unsupported operator: " + operator);
+                yield false;
+            }
+        }).orElse(false);
     }
-
-    public static ClientId parseClientId(String value) {
-        return clientIdConverter.convertId(value);
-    }
-
 }

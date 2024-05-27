@@ -43,4 +43,5 @@ public class AccessRightType {
     private XRoadId subjectId;
     private EndpointType endpoint;
     private Date rightsGiven;
+    private String additionalConditions;
 }

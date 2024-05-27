@@ -63,7 +63,7 @@ public final class GaiaXJws2020SignatureSuite implements SignatureSuite {
 
         var node = LdNode.of(document);
 
-        return Jws2020Proof.Builder.newInstance()
+        return ExtJws2020Proof.Builder.newInstance()
                 .id(node.id())
                 .document(document)
                 .created(node.scalar(DataIntegrityVocab.CREATED).xsdDateTime())

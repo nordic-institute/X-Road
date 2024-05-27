@@ -27,9 +27,9 @@ import org.eclipse.edc.iam.verifiablecredentials.spi.model.VerifiableCredentialC
 import org.eclipse.edc.identithub.verifiablepresentation.generators.LdpPresentationGenerator;
 import org.eclipse.edc.keys.spi.PrivateKeyResolver;
 import org.eclipse.edc.security.signature.jws2020.JsonWebKeyPair;
-import org.eclipse.edc.security.signature.jws2020.Jws2020ProofDraft;
 import org.eclipse.edc.spi.EdcException;
 import org.eclipse.edc.verifiablecredentials.linkeddata.LdpIssuer;
+import org.eclipse.edc.verifiablecredentials.signature.ExtJws2020ProofDraft;
 import org.jetbrains.annotations.NotNull;
 import org.niis.xroad.edc.ih.CryptoConverter;
 
@@ -173,7 +173,7 @@ public class ExtLdpPresentationGenerator extends LdpPresentationGenerator {
 
         var keypair = new JsonWebKeyPair(keyIdUri, verificationMethodType, controllerUri, jwk);
 
-        var proofDraft = Jws2020ProofDraft.Builder.newInstance()
+        var proofDraft = ExtJws2020ProofDraft.Builder.newInstance()
                 .proofPurpose(ASSERTION_METHOD)
                 .verificationMethod(new JsonWebKeyPair(URI.create(controller + "#" + publicKeyId), verificationMethodType, controllerUri,
                         null))

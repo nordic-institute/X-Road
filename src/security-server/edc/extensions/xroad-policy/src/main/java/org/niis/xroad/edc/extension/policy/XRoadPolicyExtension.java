@@ -33,14 +33,11 @@ import org.eclipse.edc.policy.engine.spi.RuleBindingRegistry;
 import org.eclipse.edc.policy.model.Permission;
 import org.eclipse.edc.runtime.metamodel.annotation.Extension;
 import org.eclipse.edc.runtime.metamodel.annotation.Inject;
-import org.eclipse.edc.runtime.metamodel.annotation.Provider;
 import org.eclipse.edc.runtime.metamodel.annotation.Provides;
-import org.eclipse.edc.spi.iam.AudienceResolver;
 import org.eclipse.edc.spi.iam.IdentityService;
 import org.eclipse.edc.spi.system.ServiceExtension;
 import org.eclipse.edc.spi.system.ServiceExtensionContext;
 import org.eclipse.edc.spi.types.TypeManager;
-import org.eclipse.edc.spi.types.domain.message.RemoteMessage;
 
 import static org.eclipse.edc.policy.model.OdrlNamespace.ODRL_SCHEMA;
 import static org.niis.xroad.edc.extension.policy.XRoadPolicyExtension.NAME;
@@ -90,16 +87,21 @@ public class XRoadPolicyExtension implements ServiceExtension {
                 new XRoadGlobalGroupMemberConstraintFunction(monitor));
         registerFunction(XRoadGlobalGroupMemberConstraintFunction.KEY, "contract.negotiation",
                 new XRoadGlobalGroupMemberConstraintFunction(monitor));
-
         registerFunction(XRoadDataPathConstraintFunction.KEY, XROAD_DATAPLANE_TRANSFER_SCOPE,
                 new XRoadDataPathConstraintFunction(monitor, typeManager));
 
+        registerFunction(GxLegalRegistrationNumberConstraintFunction.GX_LEGAL_REGISTRATION_NO, "catalog",
+                new GxLegalRegistrationNumberConstraintFunction(monitor));
+        registerFunction(GxLegalRegistrationNumberConstraintFunction.GX_LEGAL_REGISTRATION_NO, "request.catalog",
+                new GxLegalRegistrationNumberConstraintFunction(monitor));
+        registerFunction(GxLegalRegistrationNumberConstraintFunction.GX_LEGAL_REGISTRATION_NO, "contract.negotiation",
+                new GxLegalRegistrationNumberConstraintFunction(monitor));
         // todo: REMOVE this!!!! Only for testing purposes. Must be replaced with real identity service
 //        var defaultXRoadClient = "CS:ORG:my-member:my-subsystem";
-        var defaultXRoadClient = "a:b:c:d";
-        var xroadClientId = context.getSetting("edc.mock.xroad.clientid", defaultXRoadClient);
-        context.registerService(IdentityService.class, new XRoadMockIdentityService(typeManager, context.getParticipantId(),
-                xroadClientId));
+//        var defaultXRoadClient = "a:b:c:d";
+//        var xroadClientId = context.getSetting("edc.mock.xroad.clientid", defaultXRoadClient);
+//        context.registerService(IdentityService.class, new XRoadMockIdentityService(typeManager, context.getParticipantId(),
+//                xroadClientId));
     }
 
     private void registerFunction(String key, String scope, AtomicConstraintFunction<Permission> function) {
@@ -111,9 +113,9 @@ public class XRoadPolicyExtension implements ServiceExtension {
     }
 
     // todo: REMOVE this!!!! Only for testing purposes
-    @Provider
-    public AudienceResolver audienceResolver() {
-        return RemoteMessage::getCounterPartyAddress;
-    }
+//    @Provider
+//    public AudienceResolver audienceResolver() {
+//        return RemoteMessage::getCounterPartyAddress;
+//    }
 
 }

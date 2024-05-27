@@ -36,7 +36,7 @@ import org.eclipse.edc.policy.engine.spi.PolicyContext;
 import org.eclipse.edc.policy.model.Operator;
 import org.eclipse.edc.policy.model.Permission;
 import org.eclipse.edc.spi.monitor.Monitor;
-import org.niis.xroad.edc.extension.policy.util.PolicyHelper;
+import org.niis.xroad.edc.extension.policy.util.PolicyContextHelper;
 
 import java.util.Optional;
 
@@ -56,10 +56,10 @@ public class XRoadGlobalGroupMemberConstraintFunction implements AtomicConstrain
             context.reportProblem("Right-value expected to be String but was " + rightValue.getClass());
             return false;
         }
-        Optional<String> subject = PolicyHelper.getClientIdFromContext(context);
+        Optional<String> subject = PolicyContextHelper.getClientIdFromContext(context);
         if (subject.isPresent()) {
             GlobalGroupId globalGroupId = parseGlobalGroup(globalGroupCode);
-            var clientId = PolicyHelper.parseClientId(subject.get());
+            var clientId = PolicyContextHelper.parseClientId(subject.get());
             return switch (operator) {
                 case EQ, IN -> GlobalConf.isSubjectInGlobalGroup(clientId, globalGroupId);
                 default -> {

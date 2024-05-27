@@ -1,0 +1,19 @@
+[
+  {
+    "edctype": "AndConstraint",
+    "constraints": [
+      {
+        "edctype": "AtomicConstraint",
+        "leftExpression": {
+          "edctype": "dataspaceconnector:literalexpression",
+          "value": "gx:lrnVatId"
+        },
+        "rightExpression": {
+          "edctype": "dataspaceconnector:literalexpression",
+          "value": "EE102114496"
+        },
+        "operator": "EQ"
+      }
+    ]
+  }
+]

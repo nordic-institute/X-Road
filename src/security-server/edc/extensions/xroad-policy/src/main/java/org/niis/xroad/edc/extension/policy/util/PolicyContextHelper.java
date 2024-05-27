@@ -25,41 +25,49 @@
  * THE SOFTWARE.
  */
 
-package org.niis.xroad.edc.extension.policy;
+package org.niis.xroad.edc.extension.policy.util;
 
-import lombok.RequiredArgsConstructor;
-import org.eclipse.edc.policy.engine.spi.AtomicConstraintFunction;
+import ee.ria.xroad.common.identifier.ClientId;
+
+import lombok.experimental.UtilityClass;
 import org.eclipse.edc.policy.engine.spi.PolicyContext;
-import org.eclipse.edc.policy.model.Operator;
-import org.eclipse.edc.policy.model.Permission;
-import org.eclipse.edc.spi.monitor.Monitor;
-import org.niis.xroad.edc.extension.policy.util.PolicyContextHelper;
+import org.eclipse.edc.spi.agent.ParticipantAgent;
+import org.niis.xroad.restapi.converter.ClientIdConverter;
 
 import java.util.Optional;
 
-@RequiredArgsConstructor
-public class XRoadClientIdConstraintFunction implements AtomicConstraintFunction<Permission> {
+@UtilityClass
+public class PolicyContextHelper {
+    private final ClientIdConverter clientIdConverter = new ClientIdConverter();
+    private static final String ATTR_IDENTIFIER = "https://w3id.org/xroad/credentials/identifier";
+    private static final String ATTR_GX_LRN_VAT_ID =
+            "https://registry.lab.gaia-x.eu/development/api/trusted-shape-registry/v1/shapes/jsonld/trustframework#vatID";
 
-    static final String KEY = "xroad:clientId";
 
-    private final Monitor monitor;
+    public static Optional<String> getGxLrnVatId(PolicyContext context) {
+        var participantAgent = context.getContextData(ParticipantAgent.class);
 
-    @Override
-    public boolean evaluate(Operator operator, Object rightValue, Permission permission, PolicyContext context) {
-        monitor.debug("RoadClientIdConstraintFunction");
-
-        if (!(rightValue instanceof String allowedClientId)) {
-            context.reportProblem("Right-value expected to be String but was " + rightValue.getClass());
-            return false;
+        if (participantAgent != null) {
+            var identifier = participantAgent.getAttributes().get(ATTR_GX_LRN_VAT_ID);
+            return Optional.ofNullable(identifier);
         }
 
-        Optional<String> clientId = PolicyContextHelper.getClientIdFromContext(context);
-        return clientId.map(s -> switch (operator) {
-            case EQ -> s.equals(allowedClientId);
-            default -> {
-                context.reportProblem("Operator " + operator + " not supported");
-                yield false;
-            }
-        }).orElse(false);
+        return Optional.empty();
     }
+
+    public static Optional<String> getClientIdFromContext(PolicyContext context) {
+        var participantAgent = context.getContextData(ParticipantAgent.class);
+
+        if (participantAgent != null) {
+            var identifier = participantAgent.getAttributes().get(ATTR_IDENTIFIER);
+            return Optional.ofNullable(identifier);
+        }
+
+        return Optional.empty();
+    }
+
+    public static ClientId parseClientId(String value) {
+        return clientIdConverter.convertId(value);
+    }
+
 }

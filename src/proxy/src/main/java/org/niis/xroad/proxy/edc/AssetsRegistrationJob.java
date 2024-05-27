@@ -29,21 +29,19 @@ package org.niis.xroad.proxy.edc;
 
 import ee.ria.xroad.common.SystemProperties;
 import ee.ria.xroad.common.conf.globalconf.GlobalConf;
+import ee.ria.xroad.common.conf.serverconf.AccessRightPath;
 import ee.ria.xroad.common.conf.serverconf.ServerConf;
 import ee.ria.xroad.common.identifier.ClientId;
-import ee.ria.xroad.common.identifier.GlobalGroupId;
-import ee.ria.xroad.common.identifier.LocalGroupId;
 import ee.ria.xroad.common.identifier.ServiceId;
 import ee.ria.xroad.common.identifier.XRoadId;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import feign.FeignException;
 import jakarta.annotation.PostConstruct;
 import jakarta.json.Json;
 import jakarta.json.JsonObject;
 import jakarta.ws.rs.core.MediaType;
-import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.time.StopWatch;
 import org.eclipse.edc.connector.controlplane.api.management.asset.v3.AssetApi;
 import org.eclipse.edc.connector.controlplane.api.management.contractdefinition.ContractDefinitionApi;
 import org.eclipse.edc.connector.controlplane.api.management.policy.PolicyDefinitionApi;
@@ -58,14 +56,6 @@ import org.eclipse.edc.connector.core.agent.NoOpParticipantIdMapper;
 import org.eclipse.edc.connector.dataplane.selector.api.v2.DataplaneSelectorApi;
 import org.eclipse.edc.connector.dataplane.selector.spi.instance.DataPlaneInstance;
 import org.eclipse.edc.jsonld.util.JacksonJsonLd;
-import org.eclipse.edc.policy.model.Action;
-import org.eclipse.edc.policy.model.AndConstraint;
-import org.eclipse.edc.policy.model.AtomicConstraint;
-import org.eclipse.edc.policy.model.LiteralExpression;
-import org.eclipse.edc.policy.model.Operator;
-import org.eclipse.edc.policy.model.Permission;
-import org.eclipse.edc.policy.model.Policy;
-import org.eclipse.edc.policy.model.PolicyType;
 import org.eclipse.edc.spi.agent.ParticipantIdMapper;
 import org.eclipse.edc.spi.query.Criterion;
 import org.eclipse.edc.spi.query.QuerySpec;
@@ -109,11 +99,8 @@ public class AssetsRegistrationJob {
     private static final int FIVE_MINUTES = 5 * 60;
 
     private static final String XROAD_NAMESPACE = "https://x-road.eu/v0.1/ns/";
-    private static final String XROAD_JOB_MANAGED_PROPERTY = XROAD_NAMESPACE + "xroadJobManaged";
+    static final String XROAD_JOB_MANAGED_PROPERTY = XROAD_NAMESPACE + "xroadJobManaged";
 
-    private static final String XROAD_CLIENT_ID_CONSTRAINT = "xroad:clientId";
-    private static final String XROAD_DATAPATH_CONSTRAINT = "xroad:datapath";
-    private static final String XROAD_GLOBALGROUP_CONSTRAINT = "xroad:globalGroupMember";
 
     private final DataplaneSelectorApi dataplaneSelectorApi;
     private final AssetApi assetApi;
@@ -121,7 +108,7 @@ public class AssetsRegistrationJob {
     private final ContractDefinitionApi contractDefinitionApi;
     private final ScheduledExecutorService scheduler = Executors.newSingleThreadScheduledExecutor();
     private final TransformerContext context;
-    private final ObjectMapper objectMapper = new ObjectMapper();
+
     private final ParticipantIdMapper participantIdMapper = new NoOpParticipantIdMapper();
     private final String providerDataplaneId = "http-provider-dataplane";
 
@@ -292,63 +279,18 @@ public class AssetsRegistrationJob {
     }
 
     private void createPolicyAndContractDefinition(ServiceId.Conf service, String assetId, ClientId.Conf member, JobContext jobContext) {
-        Map<XRoadId, Set<String>> allowedClients = ServerConf.getAllowedClients(member, service.getServiceCode());
+        Map<XRoadId, Set<AccessRightPath>> allowedClients = ServerConf.getAllowedClients(member, service.getServiceCode());
 
         for (XRoadId subjectId : allowedClients.keySet()) {
-            Set<String> endpointPatterns = allowedClients.get(subjectId);
-            if (!endpointPatterns.isEmpty()) {
-                AtomicConstraint clientConstraint;
-                if (subjectId instanceof GlobalGroupId) {
-                    clientConstraint = AtomicConstraint.Builder.newInstance()
-                            .leftExpression(new LiteralExpression(XROAD_GLOBALGROUP_CONSTRAINT))
-                            .operator(Operator.EQ)
-                            .rightExpression(new LiteralExpression(subjectId.asEncodedId()))
-                            .build();
-                } else if (subjectId instanceof LocalGroupId) {
-                    // todo: implement. not yet supported.
-                    continue;
-                } else {
-                    // single client id
-                    clientConstraint = AtomicConstraint.Builder.newInstance()
-                            .leftExpression(new LiteralExpression(XROAD_CLIENT_ID_CONSTRAINT))
-                            .operator(Operator.EQ)
-                            .rightExpression(new LiteralExpression(subjectId.asEncodedId()))
-                            .build();
-                }
-
-                AtomicConstraint datapathConstraint = AtomicConstraint.Builder.newInstance()
-                        .leftExpression(new LiteralExpression(XROAD_DATAPATH_CONSTRAINT))
-                        .operator(Operator.IS_ANY_OF)
-                        .rightExpression(new LiteralExpression(toJsonArrayString(endpointPatterns)))
-                        .build();
-
-                String policyDefinitionId = "%s:%s-policyDef".formatted(assetId, subjectId.asEncodedId());
-
-                PolicyDefinition policyDefinition = PolicyDefinition.Builder.newInstance()
-                        .id(policyDefinitionId)
-                        .policy(Policy.Builder.newInstance()
-                                .type(PolicyType.SET)
-                                .permission(Permission.Builder.newInstance()
-                                        .action(Action.Builder.newInstance().type("http://www.w3.org/ns/odrl/2/use").build())
-                                        .constraint(AndConstraint.Builder.newInstance()
-                                                .constraint(clientConstraint)
-                                                .constraint(datapathConstraint)
-                                                .build())
-                                        .build())
-                                .build())
-                        .privateProperties(Map.of(
-                                XROAD_JOB_MANAGED_PROPERTY, Boolean.TRUE.toString()))
-                        .build();
-
-                createOrUpdatePolicyDef(policyDefinitionId, policyDefinition, jobContext);
-                createContractDefinitionForAsset(assetId, policyDefinitionId, jobContext);
+            var endpointPatterns = allowedClients.get(subjectId);
+            if (endpointPatterns.isEmpty()) {
+                continue;
             }
-        }
-    }
 
-    @SneakyThrows
-    private String toJsonArrayString(Set<String> endpointPatterns) {
-        return objectMapper.writeValueAsString(endpointPatterns);
+            var policyDefinition = EdcPolicyDefinitionBuilder.newPolicyDefinition(assetId, subjectId, endpointPatterns);
+            createOrUpdatePolicyDef(policyDefinition.getId(), policyDefinition, jobContext);
+            createContractDefinitionForAsset(assetId, policyDefinition.getId(), jobContext);
+        }
     }
 
     private JsonObject toJsonObject(Object object) {
