@@ -124,7 +124,8 @@ public class XrdDataPlanePublicApiController implements DataPlanePublicApi {
     public XrdDataPlanePublicApiController(PipelineService pipelineService, DataAddressResolver dataAddressResolver,
                                            XrdEdcSignService xrdEdcSignService, Monitor monitor,
                                            ExecutorService executorService,
-                                           ContractNegotiationStore contractNegotiationStore, PolicyEngine policyEngine, XRoadMessageLog xRoadMessageLog) {
+                                           ContractNegotiationStore contractNegotiationStore, PolicyEngine policyEngine,
+                                           XRoadMessageLog xRoadMessageLog) {
         this.pipelineService = pipelineService;
         this.dataAddressResolver = dataAddressResolver;
         this.signService = xrdEdcSignService;
@@ -228,7 +229,8 @@ public class XrdDataPlanePublicApiController implements DataPlanePublicApi {
                     TeeOutputStream teeOutputStream = new TeeOutputStream(dc.getOutputStream(), cachingStream);
                     output.write(teeOutputStream);
                     byte[] responseBodyDigest = dc.getDigest();
-                    return response.resume(handleSuccessRest(cachingStream, headers, serviceId, contextApi, requestDigest, responseBodyDigest));
+                    return response.resume(handleSuccessRest(cachingStream, headers, serviceId, contextApi, requestDigest,
+                            responseBodyDigest));
                 }
             } catch (Exception e) {
                 throw new RuntimeException(e);
@@ -367,7 +369,8 @@ public class XrdDataPlanePublicApiController implements DataPlanePublicApi {
                     toSortedHeadersList(headers),
                     xRequestId);
 
-            SignatureResponse signatureResponse = this.signService.sign(serviceId, restResponse.getMessageBytes(), encodeBase64(responseBodyDigest));
+            SignatureResponse signatureResponse = this.signService.sign(serviceId, restResponse.getMessageBytes(),
+                    encodeBase64(responseBodyDigest));
 
             var logMessage = new RestLogMessage(
                     queryId,

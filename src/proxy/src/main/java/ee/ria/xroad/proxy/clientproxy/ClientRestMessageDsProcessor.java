@@ -126,10 +126,10 @@ class ClientRestMessageDsProcessor extends AbstractClientMessageProcessor {
 
     private void processResponse(RestResponse response, ResponseWrapper jResponse) throws Exception {
         log.trace("sendResponse()");
-        if (response.statusCode() == HttpStatus.SC_FORBIDDEN) {
+        if (response.getResponseCode() == HttpStatus.SC_FORBIDDEN) {
             throw new CodedException.Fault("Server.ServerProxy.AccessDenied", "Access denied");
         }
-        jResponse.setStatus(response.statusCode());
+        jResponse.setStatus(response.getResponseCode());
 
         //TODO handle bad request/edc failure
         xrdSignatureService.verify(response.getSignature(), response.getMessageBytes(), response.getBodyDigest(),
