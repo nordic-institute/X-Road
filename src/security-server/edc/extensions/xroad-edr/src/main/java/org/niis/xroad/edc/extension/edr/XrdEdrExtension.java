@@ -31,6 +31,7 @@ import org.eclipse.edc.connector.api.management.configuration.ManagementApiConfi
 import org.eclipse.edc.connector.controlplane.services.spi.catalog.CatalogService;
 import org.eclipse.edc.connector.controlplane.services.spi.contractnegotiation.ContractNegotiationService;
 import org.eclipse.edc.connector.controlplane.services.spi.transferprocess.TransferProcessService;
+import org.eclipse.edc.connector.controlplane.transform.odrl.OdrlTransformersFactory;
 import org.eclipse.edc.connector.controlplane.transform.odrl.to.JsonObjectToPolicyTransformer;
 import org.eclipse.edc.jsonld.spi.JsonLd;
 import org.eclipse.edc.runtime.metamodel.annotation.Extension;
@@ -89,27 +90,31 @@ public class XrdEdrExtension implements ServiceExtension {
     @Override
     public void initialize(ServiceExtensionContext context) {
         jsonLdService.registerNamespace(XRD_PREFIX, XRD_NAMESPACE);
-        transformerRegistry.register(new JsonObjectToNegotiateAssetRequestDtoTransformer());
-        transformerRegistry.register(new JsonObjectFromEndpointDataReferenceTransformer());
-        transformerRegistry.register(new JsonObjectToCatalogTransformer());
-        transformerRegistry.register(new JsonObjectToDataServiceTransformer());
-        transformerRegistry.register(new JsonObjectToDatasetTransformer());
-        transformerRegistry.register(new JsonObjectToDistributionTransformer());
-        transformerRegistry.register(new JsonObjectToPolicyTransformer(participantIdMapper));
+
+        var edrTransformerRegistry = transformerRegistry.forContext("edr-api");
+        edrTransformerRegistry.register(new JsonObjectToNegotiateAssetRequestDtoTransformer());
+        edrTransformerRegistry.register(new JsonObjectFromEndpointDataReferenceTransformer());
+        edrTransformerRegistry.register(new JsonObjectToCatalogTransformer());
+        edrTransformerRegistry.register(new JsonObjectToDataServiceTransformer());
+        edrTransformerRegistry.register(new JsonObjectToDatasetTransformer());
+        edrTransformerRegistry.register(new JsonObjectToDistributionTransformer());
+        edrTransformerRegistry.register(new JsonObjectToPolicyTransformer(participantIdMapper));
+
+        OdrlTransformersFactory.jsonObjectToOdrlTransformers(participantIdMapper).forEach(edrTransformerRegistry::register);
 
         AssetInProgressRegistry inProgressRegistry = new AssetInProgressRegistry();
         AuthorizedAssetRegistry authorizedAssetRegistry = new InMemoryAuthorizedAssetRegistry(monitor);
         AssetAuthorizationManager assetAuthorizationManager = new AssetAuthorizationManager(catalogService,
-                contractNegotiationService, transformerRegistry, authorizedAssetRegistry, inProgressRegistry);
+                contractNegotiationService, edrTransformerRegistry, authorizedAssetRegistry, inProgressRegistry);
 
         localCallbackRegistry.registerHandler(new ContractNegotiationCallbackHandler(transferProcessService,
                 inProgressRegistry, monitor));
-        localCallbackRegistry.registerHandler(new TransferProcessCallbackHandler(transformerRegistry,
+        localCallbackRegistry.registerHandler(new TransferProcessCallbackHandler(edrTransformerRegistry,
                 authorizedAssetRegistry,
                 inProgressRegistry, monitor));
 
         webService.registerResource(apiConfig.getContextAlias(),
-                new XrdEdrController(transformerRegistry, assetAuthorizationManager));
+                new XrdEdrController(edrTransformerRegistry, assetAuthorizationManager));
     }
 
 }

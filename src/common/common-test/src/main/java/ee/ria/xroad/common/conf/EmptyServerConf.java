@@ -25,6 +25,7 @@
  */
 package ee.ria.xroad.common.conf;
 
+import ee.ria.xroad.common.conf.serverconf.AccessRightPath;
 import ee.ria.xroad.common.conf.serverconf.IsAuthentication;
 import ee.ria.xroad.common.conf.serverconf.ServerConfProvider;
 import ee.ria.xroad.common.conf.serverconf.model.ClientType;
@@ -115,7 +116,7 @@ public class EmptyServerConf implements ServerConfProvider {
     }
 
     @Override
-    public Map<XRoadId, Set<String>> getEndpointClients(ClientId serviceProvider, String serviceCode) {
+    public Map<XRoadId, Set<AccessRightPath>> getEndpointClients(ClientId serviceProvider, String serviceCode) {
         return Map.of();
     }
 

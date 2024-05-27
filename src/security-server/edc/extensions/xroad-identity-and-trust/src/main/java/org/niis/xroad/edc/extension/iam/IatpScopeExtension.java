@@ -84,8 +84,8 @@ public class IatpScopeExtension implements ServiceExtension {
     @Override
     public void initialize(ServiceExtensionContext context) {
         // register signature suite
-        var suite = new Jws2020SignatureSuite(typeManager.getMapper(JSON_LD));
-        signatureSuiteRegistry.register(VcConstants.JWS_2020_SIGNATURE_SUITE, suite);
+//        var suite = new Jws2020SignatureSuite(typeManager.getMapper(JSON_LD));
+//        signatureSuiteRegistry.register(VcConstants.JWS_2020_SIGNATURE_SUITE, suite);
 
         // register a default scope provider
         var contextMappingFunction = new DefaultScopeExtractor(
@@ -101,5 +101,4 @@ public class IatpScopeExtension implements ServiceExtension {
 
         typeTransformerRegistry.register(new JsonValueToGenericTypeTransformer(typeManager.getMapper(JSON_LD)));
     }
-
 }

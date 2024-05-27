@@ -26,6 +26,7 @@
 package ee.ria.xroad.proxy.messagelog;
 
 import ee.ria.xroad.common.conf.InternalSSLKey;
+import ee.ria.xroad.common.conf.serverconf.AccessRightPath;
 import ee.ria.xroad.common.conf.serverconf.IsAuthentication;
 import ee.ria.xroad.common.conf.serverconf.ServerConfProvider;
 import ee.ria.xroad.common.conf.serverconf.model.DescriptionType;
@@ -88,7 +89,7 @@ public class EmptyServerConf implements ServerConfProvider {
     }
 
     @Override
-    public Map<XRoadId, Set<String>> getEndpointClients(ClientId serviceProvider, String serviceCode) {
+    public Map<XRoadId, Set<AccessRightPath>> getEndpointClients(ClientId serviceProvider, String serviceCode) {
         throw new NotImplementedException("Not implemented");
     }
 

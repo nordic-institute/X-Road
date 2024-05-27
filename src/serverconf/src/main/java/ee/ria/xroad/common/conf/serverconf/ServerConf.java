@@ -160,7 +160,7 @@ public class ServerConf {
      * @param serviceCode service code
      * @return Returns clients list with path globs for the given service.
      */
-    public static Map<XRoadId, Set<String>> getAllowedClients(ClientId serviceProvider, String serviceCode) {
+    public static Map<XRoadId, Set<AccessRightPath>> getAllowedClients(ClientId serviceProvider, String serviceCode) {
         return getInstance().getEndpointClients(serviceProvider, serviceCode);
     }
 

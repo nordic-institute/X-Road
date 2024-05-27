@@ -39,7 +39,7 @@ dependencies {
     implementation libs.edc.identity.did.web
 
     // sql store
-    sqlDependencies libs.bundles.edc.sql.store
+    implementation libs.bundles.edc.sql.store
 
     // x-road extensions
     implementation(project(":security-server:edc:extensions:xroad-messagelog")) {
@@ -49,6 +49,7 @@ dependencies {
         exclude group: 'org.eclipse.jetty'
     }
     implementation(project(":security-server:edc:extensions:xroad-edr"))
+    implementation(project(":security-server:edc:extensions:xroad-policy"))
     implementation(project(":security-server:edc:extensions:xroad-identity-and-trust"))
     implementation(project(":security-server:edc:extensions:xroad-webserver"))
 

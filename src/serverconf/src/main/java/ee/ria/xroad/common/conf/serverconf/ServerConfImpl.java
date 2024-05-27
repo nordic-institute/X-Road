@@ -157,18 +157,18 @@ public class ServerConfImpl implements ServerConfProvider {
     }
 
     @Override
-    public Map<XRoadId, Set<String>> getEndpointClients(ClientId serviceProvider, String serviceCode) {
+    public Map<XRoadId, Set<AccessRightPath>> getEndpointClients(ClientId serviceProvider, String serviceCode) {
         return tx(session -> {
             ClientType client = clientDao.getClient(session, serviceProvider);
 
-            Map<XRoadId, Set<String>> map = new HashMap<>();
+            Map<XRoadId, Set<AccessRightPath>> map = new HashMap<>();
             for (AccessRightType acl : client.getAcl()) {
                 if (serviceCode.equals(acl.getEndpoint().getServiceCode())) {
                     String endpoint = "%s %s".formatted(acl.getEndpoint().getMethod(), acl.getEndpoint().getPath());
                     if (!map.containsKey(acl.getSubjectId())) {
                         map.put(acl.getSubjectId(), new HashSet<>());
                     }
-                    map.get(acl.getSubjectId()).add(endpoint);
+                    map.get(acl.getSubjectId()).add(new AccessRightPath(endpoint, acl.getAdditionalConditions()));
                 }
             }
 

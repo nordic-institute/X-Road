@@ -62,6 +62,8 @@ import org.apache.http.Header;
 import org.apache.http.message.BasicHeader;
 import org.bouncycastle.operator.DigestCalculator;
 import org.bouncycastle.util.io.TeeOutputStream;
+import org.eclipse.edc.connector.controlplane.contract.spi.negotiation.store.ContractNegotiationStore;
+import org.eclipse.edc.connector.controlplane.contract.spi.types.agreement.ContractAgreement;
 import org.eclipse.edc.connector.dataplane.api.controller.ContainerRequestContextApi;
 import org.eclipse.edc.connector.dataplane.api.controller.ContainerRequestContextApiImpl;
 import org.eclipse.edc.connector.dataplane.api.controller.DataFlowRequestSupplier;
@@ -70,9 +72,13 @@ import org.eclipse.edc.connector.dataplane.spi.pipeline.PipelineService;
 import org.eclipse.edc.connector.dataplane.spi.resolver.DataAddressResolver;
 import org.eclipse.edc.connector.dataplane.spi.response.TransferErrorResponse;
 import org.eclipse.edc.connector.dataplane.util.sink.AsyncStreamingDataSink;
+import org.eclipse.edc.policy.engine.spi.PolicyContextImpl;
+import org.eclipse.edc.policy.engine.spi.PolicyEngine;
 import org.eclipse.edc.spi.EdcException;
 import org.eclipse.edc.spi.monitor.Monitor;
+import org.eclipse.edc.spi.result.Result;
 import org.eclipse.edc.spi.types.domain.transfer.DataFlowStartMessage;
+import org.eclipse.edc.web.spi.exception.NotAuthorizedException;
 import org.niis.xroad.edc.sig.SignatureResponse;
 import org.niis.xroad.edc.spi.messagelog.XRoadMessageLog;
 
@@ -111,11 +117,14 @@ public class XrdDataPlanePublicApiController implements DataPlanePublicApi {
     private final XrdEdcSignService signService;
     private final XRoadMessageLog xRoadMessageLog;
     private final Monitor monitor;
+    private final ContractNegotiationStore contractNegotiationStore;
+    private final PolicyEngine policyEngine;
     private final ExecutorService executorService;
 
     public XrdDataPlanePublicApiController(PipelineService pipelineService, DataAddressResolver dataAddressResolver,
                                            XrdEdcSignService xrdEdcSignService, Monitor monitor,
-                                           ExecutorService executorService, XRoadMessageLog xRoadMessageLog) {
+                                           ExecutorService executorService,
+                                           ContractNegotiationStore contractNegotiationStore, PolicyEngine policyEngine, XRoadMessageLog xRoadMessageLog) {
         this.pipelineService = pipelineService;
         this.dataAddressResolver = dataAddressResolver;
         this.signService = xrdEdcSignService;
@@ -123,6 +132,8 @@ public class XrdDataPlanePublicApiController implements DataPlanePublicApi {
         this.executorService = executorService;
         this.xRoadMessageLog = xRoadMessageLog;
         this.requestSupplier = new DataFlowRequestSupplier();
+        this.contractNegotiationStore = contractNegotiationStore;
+        this.policyEngine = policyEngine;
     }
 
     @GET
@@ -171,6 +182,18 @@ public class XrdDataPlanePublicApiController implements DataPlanePublicApi {
         if (tokenValidation.failed()) {
             response.resume(error(FORBIDDEN, tokenValidation.getFailureDetail()));
             return;
+        }
+
+        String contractId = contextApi.headers().get("x-contract-id"); //todo: maybe possible to get internally
+        if (contractId == null) {
+            response.resume(error(BAD_REQUEST, "Missing contract id header"));
+            return;
+        } else {
+            boolean policyValid = validatePolicy(contractId, contextApi);
+            if (!policyValid) {
+                response.resume(error(FORBIDDEN, "Request is not allowed."));
+                return;
+            }
         }
 
         var dataAddress = tokenValidation.getContent();
@@ -393,6 +416,21 @@ public class XrdDataPlanePublicApiController implements DataPlanePublicApi {
             monitor.severe("Failed to sign response payload", e);
             throw new RuntimeException(e);
         }
+    }
+
+    private boolean validatePolicy(String contractId, ContainerRequestContextApiImpl contextApi) {
+        ContractAgreement contractAgreement = this.contractNegotiationStore.findContractAgreement(contractId);
+        if (contractAgreement == null) {
+            throw new NotAuthorizedException("Contract agreement %s not authorized".formatted(contractId));
+        }
+
+        String dataPath = "%s /%s".formatted(contextApi.method(), contextApi.path());
+        Result<Void> policyResult = this.policyEngine.evaluate("xroad.dataplane.transfer",
+                contractAgreement.getPolicy(),
+                PolicyContextImpl.Builder.newInstance()
+                        .additional(String.class, dataPath) //todo: xroad8, use dedicated dto?
+                        .build());
+        return policyResult.succeeded();
     }
 
     private static Response error(Response.Status status, String error) {

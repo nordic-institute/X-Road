@@ -1,0 +1,19 @@
+plugins {
+    id 'java-library'
+}
+
+dependencies {
+    implementation libs.edc.core.spi
+    implementation libs.edc.policy.engine.spi
+
+    implementation(project(':common:common-domain')) {
+        exclude group: 'org.eclipse.jetty'
+    }
+    implementation(project(':common:common-verifier')) {
+        exclude group: 'org.eclipse.jetty'
+    }
+
+    testImplementation libs.edc.junit
+    testImplementation libs.assertj.core
+    testImplementation libs.mockito.jupiter
+}

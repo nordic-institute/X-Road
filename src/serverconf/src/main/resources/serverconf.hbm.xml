@@ -156,6 +156,7 @@
         <many-to-one name="endpoint" column="endpoint_id" access="field" class="EndpointType" not-null="true"
                      cascade="save-update" lazy="false"/>
         <property name="rightsGiven" access="field" not-null="true"/>
+        <property name="additionalConditions" column="additional_conditions" type="java.lang.String" access="field"/>
     </class>
 
     <class name="EndpointType" table="ENDPOINT">
