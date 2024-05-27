@@ -8,11 +8,11 @@
 metrics = "4.2.25"
 jetty = "12.0.7"
 jaxb = "4.0.5"
-hibernate = "6.5.1.Final"
+hibernate = "6.5.2.Final"
 mapstruct = "1.5.5.Final"
 jackson = "2.17.1"
 mockito = "5.12.0"
-springBoot = "3.2.5"
+springBoot = "3.3.0"
 junitJupiter = "5.10.2"
 xmlUnit = "2.10.0"
 bouncyCastle = "1.78.1"
@@ -69,7 +69,7 @@ testAutomation-selenide = { module = "com.nortal.test:test-automation-selenide",
 testAutomation-assert = { module = "com.nortal.test:test-automation-assert", version.ref = "testAutomationFramework" }
 testAutomation-restassured = { module = "com.nortal.test:test-automation-restassured", version.ref = "testAutomationFramework" }
 
-jakarta-validationApi = { module = "jakarta.validation:jakarta.validation-api", version = "3.0.2" }
+jakarta-validationApi = { module = "jakarta.validation:jakarta.validation-api", version = "3.1.0" }
 jakarta-servletApi = { module = "jakarta.servlet:jakarta.servlet-api", version = "6.0.0" }
 jakarta-injectApi = { module = "jakarta.inject:jakarta.inject-api", version = "2.0.1" }
 jakarta-bindApi = { module = "jakarta.xml.bind:jakarta.xml.bind-api", version = "4.0.2" }
@@ -90,7 +90,7 @@ jackson-annotations = { module = "com.fasterxml.jackson.core:jackson-annotations
 mockito-core = { module = "org.mockito:mockito-core", version.ref = "mockito" }
 mockito-jupiter = { module = "org.mockito:mockito-junit-jupiter", version.ref = "mockito" }
 
-apache-commonsCompress = { module = "org.apache.commons:commons-compress", version = "1.26.1" }
+apache-commonsCompress = { module = "org.apache.commons:commons-compress", version = "1.26.2" }
 apache-commonsLang3 = { module = "org.apache.commons:commons-lang3", version = "3.14.0" }
 apache-commonsText = { module = "org.apache.commons:commons-text", version = "1.12.0" }
 apache-commonsConfiguration2 = { module = "org.apache.commons:commons-configuration2", version = "2.10.1" }
@@ -104,7 +104,7 @@ apache-httpclient5 = { module = "org.apache.httpcomponents.client5:httpclient5",
 apache-mime4jCore = { module = "org.apache.james:apache-mime4j-core", version = "0.8.11" }
 apache-ant = { module = "org.apache.ant:ant", version = "1.10.14" }
 
-commons-cli = { module = "commons-cli:commons-cli", version = "1.7.0" }
+commons-cli = { module = "commons-cli:commons-cli", version = "1.8.0" }
 commons-codec = { module = "commons-codec:commons-codec", version = "1.17.0" }
 commons-io = { module = "commons-io:commons-io", version = "2.16.1" }
 commons-collections = { module = "commons-collections:commons-collections", version = "3.2.2" }
@@ -122,11 +122,11 @@ lombokMapstructBinding = { module = "org.projectlombok:lombok-mapstruct-binding"
 logback-classic = { module = "ch.qos.logback:logback-classic", version.ref = "logback" }
 logback-access = { module = "ch.qos.logback:logback-access", version.ref = "logback" }
 
-assertj-core = { module = "org.assertj:assertj-core", version = "3.25.3" }
-wiremock-standalone = { module = "org.wiremock:wiremock-standalone", version = "3.5.4" }
+assertj-core = { module = "org.assertj:assertj-core", version = "3.26.0" }
+wiremock-standalone = { module = "org.wiremock:wiremock-standalone", version = "3.6.0" }
 postgresql = { module = "org.postgresql:postgresql", version = "42.7.3" }
 hsqldb = { module = "org.hsqldb:hsqldb", version = "2.7.2" }
-liquibase-core = { module = "org.liquibase:liquibase-core", version = "4.27.0" }
+liquibase-core = { module = "org.liquibase:liquibase-core", version = "4.28.0" }
 xerces-impl = { module = "xerces:xercesImpl", version = "2.12.2" }
 feign-hc5 = { module = "io.github.openfeign:feign-hc5", version = "13.2.1" }
 guava = { module = "com.google.guava:guava", version = "33.0.0-jre" }
