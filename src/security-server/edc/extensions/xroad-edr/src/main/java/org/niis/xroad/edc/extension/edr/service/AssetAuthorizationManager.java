@@ -74,7 +74,9 @@ public class AssetAuthorizationManager {
             .build();
 
     public EndpointDataReference getOrRequestAssetAccess(NegotiateAssetRequestDto requestDto) {
-
+        if (requestDto.isOneTimeUseToken()) {
+            return requestAccess(requestDto);
+        }
         return authorizedAssetRegistry.getAssetInfo(requestDto.getClientId(), requestDto.getAssetId())
                 .orElseGet(() -> requestAccess(requestDto));
     }

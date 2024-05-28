@@ -91,8 +91,8 @@ class ClientRestMessageDsProcessor extends AbstractClientMessageProcessor {
 
             //TODO xroad8 in POC we're not selecting fastest server, neither handle failure with fallbacks
             var targetServerInfo = proxyRequestCtx.targetSecurityServers().servers().stream().findFirst().orElseThrow();
-
-            var assetInfo = assetAuthorizationManager.getOrRequestAssetAccess(senderId, targetServerInfo, restRequest.getServiceId());
+            var assetInfo = assetAuthorizationManager.getOrRequestAssetAccess(senderId, targetServerInfo, restRequest.getServiceId(),
+                    proxyRequestCtx.alwaysReevaluatePolicies());
 
             processRequest(assetInfo);
         } finally {

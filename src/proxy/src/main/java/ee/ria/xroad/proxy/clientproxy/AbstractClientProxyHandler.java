@@ -151,7 +151,8 @@ abstract class AbstractClientProxyHandler extends HandlerBase {
             RequestWrapper clientRequest,
             ResponseWrapper clientResponse,
             OpMonitoringData opMonitoringData,
-            TargetSecurityServerLookup.TargetSecurityServers targetSecurityServers
+            TargetSecurityServerLookup.TargetSecurityServers targetSecurityServers,
+            boolean alwaysReevaluatePolicies
     ) {
     }
 

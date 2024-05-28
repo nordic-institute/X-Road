@@ -76,7 +76,6 @@ public class XrdDataSpaceClient {
 
         final var dsRequest = ClassicRequestBuilder.create(restRequest.getVerb().name()).setUri(new URI(path));
         dsRequest.addHeader(HEADER_XRD_SIG, signatureResponse.getSignature());
-        dsRequest.addHeader("x-contract-id", assetInfo.contractId()); // todo: maybe possible to get from somewhere else on edc?
         dsRequest.addHeader(assetInfo.authKey(), assetInfo.authCode());
         restRequest.getHeaders().forEach(header -> dsRequest.addHeader(header.getName(), header.getValue()));
 

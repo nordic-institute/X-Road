@@ -95,7 +95,7 @@ class ClientSoapMessageDsProcessor extends AbstractClientMessageProcessor {
         var targetServerInfo = targetServers.servers().stream().findFirst().orElseThrow();
 
         ClientId client = requestSoap.getClient();
-        var assetInfo = assetAuthorizationManager.getOrRequestAssetAccess(client, targetServerInfo, requestSoap.getService());
+        var assetInfo = assetAuthorizationManager.getOrRequestAssetAccess(client, targetServerInfo, requestSoap.getService(), false);
 
         processRequest(requestSoap, assetInfo, xRequestId);
     }

@@ -40,6 +40,7 @@ public class NegotiateAssetRequestDto {
     public static final String XRD_EDR_REQUEST_ASSET_ID = EDC_NAMESPACE + "assetId";
     public static final String XRD_EDR_REQUEST_DTO_COUNTERPARTY_ADDRESS = EDC_NAMESPACE + "counterPartyAddress";
     public static final String XRD_EDR_REQUEST_DTO_COUNTERPARTY_ID = EDC_NAMESPACE + "counterPartyId";
+    public static final String XRD_EDR_REQUEST_DTO_ONE_TIME_USE_TOKEN = EDC_NAMESPACE + "oneTimeUseToken";
 
     @Getter
     private String clientId;
@@ -49,6 +50,8 @@ public class NegotiateAssetRequestDto {
     private String counterPartyId;
     @Getter
     private String counterPartyAddress;
+    @Getter
+    private boolean oneTimeUseToken = false;
 
     public static final class Builder {
         private final NegotiateAssetRequestDto dto;
@@ -74,6 +77,11 @@ public class NegotiateAssetRequestDto {
 
         public Builder counterPartyAddress(String counterPartyAddress) {
             dto.counterPartyAddress = counterPartyAddress;
+            return this;
+        }
+
+        public Builder oneTimeUseToken(Boolean oneTimeUseToken) {
+            dto.oneTimeUseToken = oneTimeUseToken;
             return this;
         }
 

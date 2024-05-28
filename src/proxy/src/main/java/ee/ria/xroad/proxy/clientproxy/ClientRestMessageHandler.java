@@ -101,11 +101,13 @@ public class ClientRestMessageHandler extends AbstractClientProxyHandler {
         if (target != null && target.startsWith("/r" + RestMessage.PROTOCOL_VERSION + "/")) {
             verifyCanProcess();
 
+            boolean forcePolicyReevaluation = TRUE.toString().equalsIgnoreCase(request.getHeaders().get("1"));
+            boolean forceLegacyTransport = TRUE.toString().equalsIgnoreCase(request.getHeaders().get("X-Road-Force-Legacy-Transport"));
+
             var restRequest = createRestRequest(request);
             var proxyCtx = new ProxyRequestCtx(target, request, response, opMonitoringData,
-                    resolveTargetSecurityServers(restRequest.getServiceId().getClientId()));
+                    resolveTargetSecurityServers(restRequest.getServiceId().getClientId()), forcePolicyReevaluation);
 
-            boolean forceLegacyTransport = TRUE.toString().equalsIgnoreCase(request.getHeaders().get("X-Road-Force-Legacy-Transport"));
             if (proxyCtx.targetSecurityServers().dsEnabledServers() && !forceLegacyTransport) {
                 //TODO xroad8 this bean setup is far from usable, refactor once design stabilizes.
                 return Optional.of(new ClientRestMessageDsProcessor(proxyCtx, restRequest, client,

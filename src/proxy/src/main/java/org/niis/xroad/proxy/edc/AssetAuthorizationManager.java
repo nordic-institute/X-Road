@@ -54,14 +54,20 @@ public class AssetAuthorizationManager {
 
     public AuthorizedAssetRegistry.GrantedAssetInfo getOrRequestAssetAccess(ClientId senderId,
                                                                             ServerAddressInfo providerServerAddress,
-                                                                            ServiceId providerServiceId) {
-        return authorizedAssetRegistry.getAssetInfo(senderId.asEncodedId(), providerServiceId.asEncodedId())
-                .orElseGet(() -> requestAccess(senderId, providerServerAddress, providerServiceId));
+                                                                            ServiceId providerServiceId,
+                                                                            boolean alwaysReevaluatePolicies) {
+        if (alwaysReevaluatePolicies) {
+            return requestAccess(senderId, providerServerAddress, providerServiceId, true);
+        } else {
+            return authorizedAssetRegistry.getAssetInfo(senderId.asEncodedId(), providerServiceId.asEncodedId())
+                    .orElseGet(() -> requestAccess(senderId, providerServerAddress, providerServiceId, false));
+        }
     }
 
     public AuthorizedAssetRegistry.GrantedAssetInfo requestAccess(ClientId senderId,
                                                                   ServerAddressInfo providerServerAddress,
-                                                                  ServiceId providerServiceId) {
+                                                                  ServiceId providerServiceId,
+                                                                  boolean oneTimeUseToken) {
 
         var request = createObjectBuilder()
                 .add(CONTEXT, createObjectBuilder()
@@ -72,6 +78,7 @@ public class AssetAuthorizationManager {
                 .add("assetId", providerServiceId.asEncodedId())
                 .add("counterPartyId", providerServerAddress.ownerDid())
                 .add("counterPartyAddress", providerServerAddress.getProtocolUrl())
+                .add("oneTimeUseToken", oneTimeUseToken)
                 .build();
         JsonObject response = xrdEdrApi.requestAssetAccess(request);
 
