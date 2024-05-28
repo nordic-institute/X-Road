@@ -64,6 +64,14 @@ application {
 var distTar = tasks.named("distTar")
 var distZip = tasks.named("distZip")
 
+sourceSets {
+    main {
+        resources {
+            srcDir 'src/main/resources'
+        }
+    }
+}
+
 shadowJar {
     mergeServiceFiles()
     archiveFileName.set("edc-connector-inmemory.jar")
@@ -71,6 +79,7 @@ shadowJar {
 }
 
 tasks.register('shadowJarWithSql', ShadowJar) {
+    from sourceSets.main.output
     configurations = [project.configurations.runtimeClasspath, project.configurations.sqlDependencies]
     exclude('META-INF/*.RSA', 'META-INF/*.SF', 'META-INF/*.DSA')
     archiveFileName.set("edc-connector.jar")
@@ -79,6 +88,10 @@ tasks.register('shadowJarWithSql', ShadowJar) {
     }
     mergeServiceFiles()
     dependsOn(distTar, distZip)
+}
+
+processResources {
+    duplicatesStrategy = DuplicatesStrategy.INCLUDE
 }
 
 assemble.dependsOn("shadowJarWithSql")
