@@ -22,9 +22,9 @@ protoc = "3.25.3"
 grpc = "1.63.0"
 swaggerParser = "2.1.22"
 logback = "1.4.14"
-edc = "0.6.3"
+edc = "0.6.4"
 edcJetty = "11.0.20"
-nimbusJoseJwt = "9.37.3"
+nimbusJoseJwt = "9.38"
 dss = "6.0"
 caffeine = "3.1.8"
 swaggerAnnotations = "2.2.17"
@@ -206,7 +206,7 @@ edc-identity-did-core = { module = "org.eclipse.edc:identity-did-core", version.
 edc-identity-did-web = { module = "org.eclipse.edc:identity-did-web", version.ref = "edc" }
 edc-identity-hub-api = { module = "org.eclipse.edc:presentation-api", version.ref = "edc" }
 edc-identity-hub-did = { module = "org.eclipse.edc:identity-hub-did", version.ref = "edc" }
-edc-identity-hub-credentials = { module = "org.eclipse.edc:identity-hub-credentials", version.ref = "edc" }
+edc-identity-hub-core = { module = "org.eclipse.edc:identity-hub-core", version.ref = "edc" }
 edc-identity-hub-keypairs = { module = "org.eclipse.edc:identity-hub-keypairs", version.ref = "edc" }
 edc-identity-hub-participants = { module = "org.eclipse.edc:identity-hub-participants", version.ref = "edc" }
 edc-identity-hub-store-spi = { module = "org.eclipse.edc:identity-hub-store-spi", version.ref = "edc" }
