@@ -34,7 +34,6 @@ class RuntimeTest {
         extension.setConfiguration(Map.ofEntries(
                 Map.entry("edc.vault.hashicorp.url", "http://url"),
                 Map.entry("edc.vault.hashicorp.token", "token"),
-
                 Map.entry("edc.iam.issuer.id", "did:web:localhost"),
                 Map.entry("edc.participant.id", "did:web:localhost"),
                 Map.entry("edc.iam.trusted-issuer.localhost.id", "did:web:localhost"),
@@ -44,6 +43,8 @@ class RuntimeTest {
                 Map.entry("web.http.resolution.port", String.valueOf(Ports.getFreePort())),
                 Map.entry("web.http.port", String.valueOf(Ports.getFreePort())),
                 Map.entry("web.http.path", "/api"),
+                Map.entry("web.http.control.port", String.valueOf(Ports.getFreePort())),
+                Map.entry("web.http.control.path", "/control"),
                 Map.entry("edc.iam.sts.privatekey.alias", "alias_ss0"),
                 Map.entry("edc.ih.credentials.path", "%s/credentials/".formatted(resourcesDir)),
                 Map.entry("EDC_HOSTNAME", "ss0")
