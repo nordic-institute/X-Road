@@ -18,7 +18,7 @@ dependencies {
 
     implementation libs.edc.util.lib
     implementation libs.edc.configuration.filesystem
-    implementation libs.edc.vault.filesystem
+    implementation libs.edc.vault.hashicorp
     implementation libs.edc.dsp
 
     implementation libs.edc.jsonLd.spi

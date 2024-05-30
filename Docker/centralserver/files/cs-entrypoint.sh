@@ -90,6 +90,10 @@ sed -i "s|did:web:localhost|${EDC_DID}|g" /etc/xroad-edc/edc-identity-hub.proper
 
 sed -i "s|localhost|${EDC_HOSTNAME}|g" /etc/xroad-edc/edc-connector.properties
 sed -i "s|localhost|${EDC_HOSTNAME}|g" /etc/xroad-edc/edc-identity-hub.properties
+sed -i "s|localhost|${EDC_HOSTNAME}|g" /usr/share/xroad/scripts/init_vault.sh
+
+log "DS: starting vault server in dev mode with initial values"
+/usr/share/xroad/scripts/init_vault.sh
 
 # end of dataspaces
 
