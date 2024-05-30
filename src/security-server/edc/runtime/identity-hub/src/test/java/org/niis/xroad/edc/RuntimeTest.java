@@ -21,21 +21,19 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 
 import java.io.File;
-import java.io.IOException;
 import java.util.Map;
 
 @ExtendWith(EdcExtension.class)
 class RuntimeTest {
 
     @BeforeEach
-    void setUp(EdcExtension extension) throws IOException {
+    void setUp(EdcExtension extension) {
         System.setProperty("xroad.common.grpc-internal-tls-enabled", "false");
 
         var resourcesDir = new File("src/test/resources").getAbsolutePath();
         extension.setConfiguration(Map.ofEntries(
-                Map.entry("edc.vault", "%s/vault.properties".formatted(resourcesDir)),
-                Map.entry("edc.keystore", "%s/cert.pfx".formatted(resourcesDir)),
-                Map.entry("edc.keystore.password", "123456"),
+                Map.entry("edc.vault.hashicorp.url", "http://url"),
+                Map.entry("edc.vault.hashicorp.token", "token"),
 
                 Map.entry("edc.iam.issuer.id", "did:web:localhost"),
                 Map.entry("edc.participant.id", "did:web:localhost"),
