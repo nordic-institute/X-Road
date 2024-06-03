@@ -58,7 +58,6 @@ import jakarta.ws.rs.core.Context;
 import jakarta.ws.rs.core.HttpHeaders;
 import jakarta.ws.rs.core.Response;
 import jakarta.ws.rs.core.StreamingOutput;
-import org.apache.commons.lang3.StringUtils;
 import org.apache.http.Header;
 import org.apache.http.message.BasicHeader;
 import org.bouncycastle.operator.DigestCalculator;
@@ -81,6 +80,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.ExecutorService;
 
@@ -155,8 +155,10 @@ public class XrdDataPlanePublicApiController {
         handle(requestContext, response);
     }
 
-    private boolean isSoap(ContainerRequestContext context) {
-        return StringUtils.contains(context.getHeaderString("Content-Type"), "text/xml");
+    private boolean isSoap(DataFlowStartMessage dataFlowStartMessage) {
+        return Optional.ofNullable(dataFlowStartMessage.getSourceDataAddress().getStringProperty("Content-Type"))
+                .map(contentType -> contentType.contains("text/xml"))
+                .orElse(false);
     }
 
     private void handle(ContainerRequestContext requestContext, AsyncResponse response) {
@@ -201,8 +203,7 @@ public class XrdDataPlanePublicApiController {
             return;
         }
         var serviceId = ServiceId.Conf.fromEncodedId(assetId);
-        //TODO dataFlowStartMessage.getSourceDataAddress().getStringProperty("content-type")
-        boolean isSoap = false;
+        boolean isSoap = isSoap(dataFlowStartMessage);
 
         byte[] requestDigest = logAndVerifyRequest(dataFlowStartMessage, contextApi, serviceId, isSoap);
 
@@ -250,19 +251,7 @@ public class XrdDataPlanePublicApiController {
         return headers.entrySet().stream()
                 .filter(e -> !excludedHeaders.contains(e.getKey()))
                 .map(e -> new BasicHeader(e.getKey(), e.getValue()))
-                .sorted((h1, h2) -> {
-                    int nameCompare = h1.getName().compareToIgnoreCase(h2.getName());
-                    if (nameCompare != 0) {
-                        return nameCompare;
-                    }
-                    if (h1.getValue() == null) {
-                        return h2.getValue() == null ? 0 : -1;
-                    }
-                    if (h2.getValue() == null) {
-                        return 1;
-                    }
-                    return h1.getValue().compareTo(h2.getValue());
-                })
+                .sorted(new RestMessage.HeadersComparator())
                 .collect(toList());
     }
 

@@ -26,13 +26,13 @@
 package org.niis.xroad.proxy.edc;
 
 import ee.ria.xroad.common.CodedException;
+import ee.ria.xroad.common.message.RestMessage;
 import ee.ria.xroad.common.message.RestRequest;
 import ee.ria.xroad.common.message.RestResponse;
 import ee.ria.xroad.common.message.Soap;
 import ee.ria.xroad.common.message.SoapParserImpl;
 import ee.ria.xroad.common.util.CachingStream;
 import ee.ria.xroad.common.util.CryptoUtils;
-import ee.ria.xroad.proxy.util.HeadersComparator;
 
 import lombok.AccessLevel;
 import lombok.Getter;
@@ -88,7 +88,7 @@ public class EdcDataPlaneHttpClient {
                 List<org.apache.http.Header> headers = Arrays.stream(response.getHeaders())
                         .filter(h -> !HEADER_XRD_SIG.equalsIgnoreCase(h.getName()))
                         .map(h -> (org.apache.http.Header) new BasicHeader(h.getName(), h.getValue()))
-                        .sorted(new HeadersComparator())
+                        .sorted(new RestMessage.HeadersComparator())
                         .toList();
 
                 byte[] requestHashFromResponse = Base64.getDecoder().decode(response.getHeader(HEADER_REQUEST_HASH).getValue());

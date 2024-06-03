@@ -38,7 +38,6 @@ import ee.ria.xroad.common.util.RequestWrapper;
 import ee.ria.xroad.common.util.ResponseWrapper;
 import ee.ria.xroad.common.util.XmlUtils;
 import ee.ria.xroad.proxy.conf.KeyConf;
-import ee.ria.xroad.proxy.util.HeadersComparator;
 import ee.ria.xroad.proxy.util.MessageProcessorBase;
 
 import com.fasterxml.jackson.core.JsonGenerator;
@@ -125,15 +124,14 @@ public class ClientRestMessageHandler extends AbstractClientProxyHandler {
                 jRequest.getMethod(),
                 jRequest.getHttpURI().getPath(),
                 jRequest.getHttpURI().getQuery(),
-                sortedHeaders(jRequest),
+                getHeaders(jRequest),
                 UUID.randomUUID().toString()
         );
     }
 
-    private List<Header> sortedHeaders(RequestWrapper req) {
+    private List<Header> getHeaders(RequestWrapper req) {
         return req.getHeaders().stream()
                 .map(f -> new BasicHeader(f.getName(), f.getValue()))
-                .sorted(new HeadersComparator())
                 .collect(Collectors.toList());
     }
 
