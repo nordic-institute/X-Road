@@ -68,8 +68,7 @@ public class CertificateDetailsConverter {
      */
     public CertificateDetails convert(CertificateInfo certificateInfo) {
         X509Certificate x509Certificate = CryptoUtils.readCertificate(certificateInfo.getCertificateBytes());
-        CertificateDetails certificate = convert(x509Certificate);
-        return certificate;
+        return convert(x509Certificate);
     }
 
     /**
@@ -97,9 +96,9 @@ public class CertificateDetailsConverter {
         } catch (CodedException certParsingFailed) {
         }
         certificate.setIssuerCommonName(issuerCommonName);
-        certificate.setIssuerDistinguishedName(x509Certificate.getIssuerDN().getName());
+        certificate.setIssuerDistinguishedName(x509Certificate.getIssuerX500Principal().toString());
         certificate.setSubjectCommonName(subjectCommonName);
-        certificate.setSubjectDistinguishedName(x509Certificate.getSubjectDN().getName());
+        certificate.setSubjectDistinguishedName(x509Certificate.getSubjectX500Principal().getName());
         certificate.setSubjectAlternativeNames(subjectAlternativeNames);
 
         certificate.setSerial(x509Certificate.getSerialNumber().toString());
@@ -111,8 +110,7 @@ public class CertificateDetailsConverter {
         certificate.setKeyUsages(new HashSet<>(keyUsageConverter.convert(x509Certificate.getKeyUsage())));
 
         PublicKey publicKey = x509Certificate.getPublicKey();
-        if (publicKey instanceof RSAPublicKey) {
-            RSAPublicKey rsaPublicKey = (RSAPublicKey) publicKey;
+        if (publicKey instanceof RSAPublicKey rsaPublicKey) {
             certificate.setRsaPublicKeyExponent(rsaPublicKey.getPublicExponent().intValue());
             certificate.setRsaPublicKeyModulus(rsaPublicKey.getModulus().toString(RADIX_FOR_HEX));
         }

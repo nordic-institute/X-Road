@@ -54,7 +54,7 @@ public class BackupStepDefs extends BaseStepDefs {
     public void getBackups() {
         try {
             var result = backupsApi.getBackups();
-            putStepData(StepDataKey.RESPONSE_STATUS, result.getStatusCodeValue());
+            putStepData(StepDataKey.RESPONSE_STATUS, result.getStatusCode().value());
             putStepData(StepDataKey.RESPONSE_BODY, result.getBody());
             putStepData(StepDataKey.RESPONSE, result);
         } catch (FeignException feignException) {
@@ -79,7 +79,7 @@ public class BackupStepDefs extends BaseStepDefs {
                 getSystemResourceAsStream("files/backups/" + fileName));
         try {
             var result = backupsApi.uploadBackup(false, backup);
-            putStepData(StepDataKey.RESPONSE_STATUS, result.getStatusCodeValue());
+            putStepData(StepDataKey.RESPONSE_STATUS, result.getStatusCode().value());
             putStepData(StepDataKey.RESPONSE_BODY, result.getBody());
         } catch (FeignException feignException) {
             putStepData(StepDataKey.RESPONSE_STATUS, feignException.status());
@@ -91,7 +91,7 @@ public class BackupStepDefs extends BaseStepDefs {
     public void createBackup() {
         try {
             newBackup = backupsApi.addBackup();
-            putStepData(StepDataKey.RESPONSE_STATUS, newBackup.getStatusCodeValue());
+            putStepData(StepDataKey.RESPONSE_STATUS, newBackup.getStatusCode().value());
         } catch (FeignException feignException) {
             putStepData(StepDataKey.RESPONSE_STATUS, feignException.status());
             putStepData(StepDataKey.ERROR_RESPONSE_BODY, feignException.contentUTF8());
@@ -102,7 +102,7 @@ public class BackupStepDefs extends BaseStepDefs {
     public void deleteBackup(String fileName) {
         try {
             var response = backupsApi.deleteBackup(fileName);
-            putStepData(StepDataKey.RESPONSE_STATUS, response.getStatusCodeValue());
+            putStepData(StepDataKey.RESPONSE_STATUS, response.getStatusCode().value());
         } catch (FeignException feignException) {
             putStepData(StepDataKey.RESPONSE_STATUS, feignException.status());
             putStepData(StepDataKey.ERROR_RESPONSE_BODY, feignException.contentUTF8());
@@ -125,7 +125,7 @@ public class BackupStepDefs extends BaseStepDefs {
     public void backupIsDownloaded(String backupFilename) {
         try {
             var result = backupsApi.downloadBackup(backupFilename);
-            putStepData(StepDataKey.RESPONSE_STATUS, result.getStatusCodeValue());
+            putStepData(StepDataKey.RESPONSE_STATUS, result.getStatusCode().value());
         } catch (FeignException feignException) {
             putStepData(StepDataKey.RESPONSE_STATUS, feignException.status());
             putStepData(StepDataKey.ERROR_RESPONSE_BODY, feignException.contentUTF8());
