@@ -28,23 +28,23 @@
 package org.niis.xroad.edc.extension.edr.callback;
 
 import lombok.RequiredArgsConstructor;
+import org.apache.commons.lang3.time.StopWatch;
 import org.eclipse.edc.connector.controlplane.services.spi.callback.CallbackEventRemoteMessage;
 import org.eclipse.edc.connector.controlplane.transfer.spi.event.TransferProcessStarted;
+import org.eclipse.edc.edr.spi.store.EndpointDataReferenceStore;
 import org.eclipse.edc.spi.EdcException;
 import org.eclipse.edc.spi.event.Event;
 import org.eclipse.edc.spi.monitor.Monitor;
 import org.eclipse.edc.spi.result.Result;
-import org.eclipse.edc.spi.types.domain.edr.EndpointDataReference;
-import org.eclipse.edc.transform.spi.TypeTransformerRegistry;
 import org.niis.xroad.edc.extension.edr.service.AssetInProgressRegistry;
 import org.niis.xroad.edc.extension.edr.service.AuthorizedAssetRegistry;
 
 @RequiredArgsConstructor
 public class TransferProcessCallbackHandler implements LocalCallbackHandler {
 
-    private final TypeTransformerRegistry transformerRegistry;
     private final AuthorizedAssetRegistry authorizedAssetRegistry;
     private final AssetInProgressRegistry inProgressRegistry;
+    private final EndpointDataReferenceStore edrStore;
     private final Monitor monitor;
 
     @Override
@@ -55,26 +55,28 @@ public class TransferProcessCallbackHandler implements LocalCallbackHandler {
         return Result.success();
     }
 
-    private Result<Void> saveEdr(TransferProcessStarted transferProcessStarted) {
-        monitor.debug("Saving EDR");
-
+    private Result<Void> saveEdr(TransferProcessStarted processCompleted) {
+        var start = StopWatch.createStarted();
         try {
             AssetInProgressRegistry.AssetInProgress assetInProgress = inProgressRegistry
-                    .getByTransferProcessId(transferProcessStarted.getTransferProcessId())
+                    .getByTransferProcessId(processCompleted.getTransferProcessId())
                     .orElseThrow(() -> new EdcException("AssetInProgress not found for transferProcessId: "
-                            + transferProcessStarted.getTransferProcessId()));
+                            + processCompleted.getTransferProcessId()));
 
-            EndpointDataReference edr = transformerRegistry.transform(transferProcessStarted.getDataAddress(), EndpointDataReference.class)
-                    .orElseThrow(f -> new EdcException("Failed to transform EndpointDataReference: " + f.getFailureDetail()));
+            var edrDataAddress = edrStore.resolveByTransferProcess(processCompleted.getTransferProcessId())
+                    .orElseThrow(f -> new EdcException("Failed to resolve EDR data address: " + f.getFailureDetail()));
 
             authorizedAssetRegistry.registerAsset(
                     assetInProgress.getClientId(),
                     assetInProgress.getServiceId(),
-                    edr);
+                    edrDataAddress);
 
             assetInProgress.complete();
         } catch (Exception exception) {
+            monitor.severe("Failed to save EDR", exception);
             return Result.failure(exception.getMessage());
+        } finally {
+            monitor.debug("EDR save took %s ms".formatted(start.getTime()));
         }
 
         return Result.success();
