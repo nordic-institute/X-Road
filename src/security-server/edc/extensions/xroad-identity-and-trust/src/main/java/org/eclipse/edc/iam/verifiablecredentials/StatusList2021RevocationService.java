@@ -21,12 +21,16 @@ import org.eclipse.edc.iam.verifiablecredentials.spi.model.VerifiableCredential;
 import org.eclipse.edc.iam.verifiablecredentials.spi.model.statuslist.BitString;
 import org.eclipse.edc.iam.verifiablecredentials.spi.model.statuslist.StatusList2021Credential;
 import org.eclipse.edc.iam.verifiablecredentials.spi.model.statuslist.StatusListStatus;
+import org.eclipse.edc.spi.result.AbstractResult;
 import org.eclipse.edc.spi.result.Result;
 import org.eclipse.edc.util.collection.Cache;
 
 import java.io.IOException;
 import java.net.URI;
 import java.util.Map;
+import java.util.stream.Collectors;
+
+import static org.eclipse.edc.spi.result.Result.success;
 
 /**
  * Service to check if a particular {@link VerifiableCredential} is "valid", where "validity" is defined as not revoked and not suspended.
@@ -44,7 +48,7 @@ public class StatusList2021RevocationService implements RevocationListService {
         this.objectMapper = objectMapper.copy()
                 .enable(DeserializationFeature.ACCEPT_SINGLE_VALUE_AS_ARRAY) // technically, credential subjects and credential status can be objects AND Arrays
                 .disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES); // let's make sure this is disabled, because the "@context" would cause problems
-        cache = new Cache<>(this::updateCredential, cacheValidity);
+        cache = new Cache<>(this::downloadStatusListCredential, cacheValidity);
     }
 
     @Override
@@ -55,7 +59,43 @@ public class StatusList2021RevocationService implements RevocationListService {
                 .orElse(Result.failure("Could not check the validity of the credential with ID '%s'".formatted(credential.getId())));
     }
 
+    @Override
+    public Result<String> getStatusPurpose(VerifiableCredential credential) {
+        if (credential.getCredentialStatus().isEmpty()) {
+            return success(null);
+        }
+        var res = credential.getCredentialStatus().stream()
+                .map(StatusListStatus::parse)
+                .map(this::getStatusInternal)
+                .collect(Collectors.groupingBy(AbstractResult::succeeded)); //partition by succeeded/failed
+
+        if (res.containsKey(false)) {
+            return Result.failure(res.get(false).stream().map(AbstractResult::getFailureDetail).toList());
+        }
+
+        var list = res.get(true).stream()
+                .filter(r -> r.getContent() != null)
+                .map(AbstractResult::getContent).toList();
+
+        // get(0) is OK, because there should only be 1 credentialStatus
+        return list.isEmpty() ? success(null) : success(list.get(0));
+
+    }
+
     private Result<Void> checkStatus(StatusListStatus status) {
+        var index = status.getStatusListIndex();
+        return getStatusInternal(status)
+                .compose(purpose -> purpose != null ?
+                        Result.failure("Credential status is '%s', status at index %d is '1'".formatted(purpose, index)) :
+                        success());
+    }
+
+    /**
+     * Obtains the status purpose for a particular credentialStatus entry if it is set, otherwise returns a successful result with a {@code null} content.
+     * So, a successful result with a non-null content indicates, that the respective credentialStatus is set.
+     */
+    private Result<String> getStatusInternal(StatusListStatus status) {
+        var index = status.getStatusListIndex();
         var slCredUrl = status.getStatusListCredential();
         var credential = cache.get(slCredUrl);
         var slCred = StatusList2021Credential.parse(credential);
@@ -75,15 +115,14 @@ public class StatusList2021RevocationService implements RevocationListService {
         }
         var bitString = bitStringResult.getContent();
 
-        var index = status.getStatusListIndex();
         // check that the value at index in the bitset is "1"
         if (bitString.get(index)) {
-            return Result.failure("Credential status is '%s', status at index %d is '1'".formatted(purpose, index));
+            return success(purpose);
         }
-        return Result.success();
+        return success(null);
     }
 
-    private VerifiableCredential updateCredential(String credentialUrl) {
+    private VerifiableCredential downloadStatusListCredential(String credentialUrl) {
         try {
             return objectMapper.readValue(URI.create(credentialUrl).toURL(), VerifiableCredential.class);
         } catch (IOException e) {
