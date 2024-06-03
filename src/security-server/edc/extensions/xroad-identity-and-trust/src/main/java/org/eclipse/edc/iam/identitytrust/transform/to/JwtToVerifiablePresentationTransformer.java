@@ -18,6 +18,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.nimbusds.jwt.SignedJWT;
 import jakarta.json.JsonObject;
+import org.apache.commons.lang3.time.StopWatch;
 import org.eclipse.edc.iam.verifiablecredentials.spi.model.VerifiableCredential;
 import org.eclipse.edc.iam.verifiablecredentials.spi.model.VerifiablePresentation;
 import org.eclipse.edc.jsonld.spi.JsonLd;
@@ -80,24 +81,28 @@ public class JwtToVerifiablePresentationTransformer extends AbstractJwtTransform
 
     @Nullable
     private VerifiableCredential extractCredentials(Object credential, TransformerContext context) {
-        if (credential instanceof String credentialString) { // VC is json-ls string
+        var timer = StopWatch.createStarted();
+        try {
+            if (credential instanceof String credentialString) { // VC is json-ls string
 //            return context.transform(credential.toString(), VerifiableCredential.class);
-            try {
-                var jsonObject = objectMapper.readValue(credentialString, JsonObject.class);
-                var expanded = jsonLd.expand(jsonObject);
-                return context.transform(expanded.getContent(), VerifiableCredential.class);
-            } catch (JsonProcessingException e) {
-                context.reportProblem("Error parsing VC from JWT");
+                try {
+                    var jsonObject = objectMapper.readValue(credentialString, JsonObject.class);
+                    var expanded = jsonLd.expand(jsonObject);
+                    return context.transform(expanded.getContent(), VerifiableCredential.class);
+                } catch (JsonProcessingException e) {
+                    context.reportProblem("Error parsing VC from JWT");
+                }
             }
+            // VC is LDP
+            var input = objectMapper.convertValue(credential, JsonObject.class);
+            var expansion = jsonLd.expand(input);
+            if (expansion.succeeded()) {
+                return context.transform(expansion.getContent(), VerifiableCredential.class);
+            }
+            context.reportProblem("Error expanding embedded VC: %s".formatted(expansion.getFailureDetail()));
+            return null;
+        } finally {
+            monitor.debug("JwtToVerifiablePresentationTransformer#extractCredentials took %s ms".formatted(timer.getTime()));
         }
-        // VC is LDP
-        var input = objectMapper.convertValue(credential, JsonObject.class);
-        var expansion = jsonLd.expand(input);
-        if (expansion.succeeded()) {
-            return context.transform(expansion.getContent(), VerifiableCredential.class);
-        }
-        context.reportProblem("Error expanding embedded VC: %s".formatted(expansion.getFailureDetail()));
-        return null;
-
     }
 }

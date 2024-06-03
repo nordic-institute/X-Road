@@ -101,7 +101,7 @@ public class ClientRestMessageHandler extends AbstractClientProxyHandler {
         if (target != null && target.startsWith("/r" + RestMessage.PROTOCOL_VERSION + "/")) {
             verifyCanProcess();
 
-            boolean forcePolicyReevaluation = TRUE.toString().equalsIgnoreCase(request.getHeaders().get("1"));
+            boolean forcePolicyReevaluation = TRUE.toString().equalsIgnoreCase(request.getHeaders().get("X-Road-Force-Policy-Reevaluation"));
             boolean forceLegacyTransport = TRUE.toString().equalsIgnoreCase(request.getHeaders().get("X-Road-Force-Legacy-Transport"));
 
             var restRequest = createRestRequest(request);

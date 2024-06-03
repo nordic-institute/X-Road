@@ -27,12 +27,13 @@
 
 package org.niis.xroad.edc.extension.edr.service;
 
+import org.eclipse.edc.spi.types.domain.DataAddress;
 import org.eclipse.edc.spi.types.domain.edr.EndpointDataReference;
 
 import java.util.Optional;
 
 public interface AuthorizedAssetRegistry {
-    Optional<EndpointDataReference> getAssetInfo(String clientId, String serviceId);
+    Optional<DataAddress> getAssetInfo(String clientId, String serviceId);
 
-    void registerAsset(String clientId, String serviceId, EndpointDataReference assetInfo);
+    void registerAsset(String clientId, String serviceId, DataAddress assetInfo);
 }

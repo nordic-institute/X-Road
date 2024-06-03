@@ -178,6 +178,7 @@ edc-catalog-api = { module = "org.eclipse.edc:catalog-api", version.ref = "edc" 
 edc-configuration-filesystem = { module = "org.eclipse.edc:configuration-filesystem", version.ref = "edc" }
 edc-connector-core = { module = "org.eclipse.edc:connector-core", version.ref = "edc" }
 edc-contract-definition-api = { module = "org.eclipse.edc:contract-definition-api", version.ref = "edc" }
+edc-contract-spi = { module = "org.eclipse.edc:contract-spi", version.ref = "edc" }
 edc-contract-negotiation-api = { module = "org.eclipse.edc:contract-negotiation-api", version.ref = "edc" }
 edc-control-plane-api-client = { module = "org.eclipse.edc:control-plane-api-client", version.ref = "edc" }
 edc-control-plane-api = { module = "org.eclipse.edc:control-plane-api", version.ref = "edc" }
@@ -185,15 +186,17 @@ edc-control-plane-core = { module = "org.eclipse.edc:control-plane-core", versio
 edc-control-plane-transform = { module = "org.eclipse.edc:control-plane-transform", version.ref = "edc" }
 edc-core-spi = { module = "org.eclipse.edc:core-spi", version.ref = "edc" }
 edc-core-connector = { module = "org.eclipse.edc:connector-core", version.ref = "edc" }
+edc-core-edrstore = { module = "org.eclipse.edc:edr-store-core", version.ref = "edc" }
 edc-ext-http = { module = "org.eclipse.edc:http", version.ref = "edc" }
 edc-ext-observability = { module = "org.eclipse.edc:api-observability", version.ref = "edc" }
 edc-ext-jsonld = { module = "org.eclipse.edc:json-ld", version.ref = "edc" }
 edc-crypto-common-lib = { module = "org.eclipse.edc:crypto-common-lib", version.ref = "edc" }
+edc-data-plane-spi = { module = "org.eclipse.edc:data-plane-spi", version.ref = "edc" }
 edc-data-plane-control-api = { module = "org.eclipse.edc:data-plane-control-api", version.ref = "edc" }
 edc-data-plane-core = { module = "org.eclipse.edc:data-plane-core", version.ref = "edc" }
 edc-data-plane-http = { module = "org.eclipse.edc:data-plane-http", version.ref = "edc" }
 edc-data-plane-http-spi = { module = "org.eclipse.edc:data-plane-http-spi", version.ref = "edc" }
-edc-data-plane-public-api = { module = "org.eclipse.edc:data-plane-public-api", version.ref = "edc" }
+edc-data-plane-public-api = { module = "org.eclipse.edc:data-plane-public-api-v2", version.ref = "edc" }
 edc-data-plane-selector-api = { module = "org.eclipse.edc:data-plane-selector-api", version.ref = "edc" }
 edc-data-plane-selector-core = { module = "org.eclipse.edc:data-plane-selector-core", version.ref = "edc" }
 edc-data-plane-util = { module = "org.eclipse.edc:data-plane-util", version.ref = "edc" }
@@ -241,6 +244,8 @@ edc-management-api-configuration = { module = "org.eclipse.edc:management-api-co
 edc-policy-definition-api = { module = "org.eclipse.edc:policy-definition-api", version.ref = "edc" }
 edc-policy-engine-spi = { module = "org.eclipse.edc:policy-engine-spi", version.ref = "edc" }
 edc-transfer-data-plane = { module = "org.eclipse.edc:transfer-data-plane", version.ref = "edc" }
+edc-transfer-data-plane-signaling = { module = "org.eclipse.edc:transfer-data-plane-signaling", version.ref = "edc" }
+edc-edr-store-receiver = { module = "org.eclipse.edc:edr-store-receiver", version.ref = "edc" }
 edc-transfer-process-api = { module = "org.eclipse.edc:transfer-process-api", version.ref = "edc" }
 edc-transform-lib = { module = "org.eclipse.edc:transform-lib", version.ref = "edc" }
 edc-token-spi = { module = "org.eclipse.edc:token-spi", version.ref = "edc" }
@@ -258,7 +263,7 @@ edc-contract-definition-store-sql = { module = "org.eclipse.edc:contract-definit
 edc-contract-negotiation-store-sql = { module = "org.eclipse.edc:contract-negotiation-store-sql", version.ref = "edc" }
 edc-policy-definition-store-sql = { module = "org.eclipse.edc:policy-definition-store-sql", version.ref = "edc" }
 edc-transfer-process-store-sql = { module = "org.eclipse.edc:transfer-process-store-sql", version.ref = "edc" }
-
+edc-edrindex-sql = { module = "org.eclipse.edc:edr-index-sql", version.ref = "edc" }
 edc-junit = { module = "org.eclipse.edc:junit", version.ref = "edc" }
 
 [bundles]
@@ -276,7 +281,8 @@ edc-sql-store = [
   "edc-contract-definition-store-sql",
   "edc-contract-negotiation-store-sql",
   "edc-policy-definition-store-sql",
-  "edc-transfer-process-store-sql"
+  "edc-transfer-process-store-sql",
+  "edc-edrindex-sql"
 ]
 edc-connector = ["edc-boot", "edc-core-connector", "edc-ext-http", "edc-ext-observability", "edc-ext-jsonld"]
 edc-did = ["edc-identity-did-web", "edc-identity-did-core", "edc-identity-hub-did", "edc-identity-hub-did-localpub"]

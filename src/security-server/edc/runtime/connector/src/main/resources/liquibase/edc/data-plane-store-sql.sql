@@ -24,14 +24,14 @@ CREATE TABLE IF NOT EXISTS edc_data_plane
   trace_context        JSON,
   error_detail         VARCHAR,
   callback_address     VARCHAR,
-  trackable            BOOLEAN,
   lease_id             VARCHAR
   CONSTRAINT data_plane_lease_lease_id_fk
   REFERENCES edc_lease
   ON DELETE SET NULL,
   source               JSON,
   destination          JSON,
-  properties           JSON
+  properties           JSON,
+  flow_type            VARCHAR
 );
 
 COMMENT ON COLUMN edc_data_plane.trace_context IS 'Java Map serialized as JSON';

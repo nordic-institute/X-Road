@@ -37,6 +37,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.json.JsonObject;
 import jakarta.json.JsonStructure;
+import org.apache.commons.lang3.time.StopWatch;
 import org.eclipse.edc.iam.identitytrust.spi.verification.CredentialVerifier;
 import org.eclipse.edc.iam.identitytrust.spi.verification.SignatureSuiteRegistry;
 import org.eclipse.edc.iam.identitytrust.spi.verification.VerifierContext;
@@ -89,6 +90,7 @@ public final class LdpVerifier implements CredentialVerifier {
     @Override
     public Result<Void> verify(String rawInput, VerifierContext verifierContext) {
         JsonObject jo;
+        var timer = StopWatch.createStarted();
         try {
             jo = jsonLdMapper.readValue(rawInput, JsonObject.class);
         } catch (JsonProcessingException e) {
@@ -98,7 +100,7 @@ public final class LdpVerifier implements CredentialVerifier {
                 ? JsonUtils.toJsonArray(jo.get(Keywords.CONTEXT))
                 : null;
         var expansion = jsonLd.expand(jo);
-
+        System.out.println("Verification  post expansion took %s ms".formatted(timer.getTime()));
         if (documentLoader == null) {
             // default loader
             documentLoader = SchemeRouter.defaultInstance();
@@ -110,6 +112,8 @@ public final class LdpVerifier implements CredentialVerifier {
                 return failure("Could not verify VP-LDP: message: %s, code: %s".formatted(e.getMessage(), e.getCode()));
             } catch (VerificationError e) {
                 return failure("Could not verify VP-LDP: %s | message: %s".formatted(e.getCode(), e.getMessage()));
+            } finally {
+                System.out.println("Verification took %s ms".formatted(timer.getTime()));
             }
         });
     }

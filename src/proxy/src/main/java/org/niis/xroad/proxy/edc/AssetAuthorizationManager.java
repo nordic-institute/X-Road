@@ -83,11 +83,10 @@ public class AssetAuthorizationManager {
         JsonObject response = xrdEdrApi.requestAssetAccess(request);
 
         AuthorizedAssetRegistry.GrantedAssetInfo grantedAssetInfo = new AuthorizedAssetRegistry.GrantedAssetInfo(
-                response.getString("id"),
-                response.getString("contractId"),
+                "dummy",
                 response.getString("endpoint"),
-                response.getString("authKey"),
-                response.getString("authCode")
+                response.getString("authType"),
+                response.getString("authorization")
         );
         authorizedAssetRegistry.registerAsset(senderId.asEncodedId(), providerServiceId.asEncodedId(), grantedAssetInfo);
 

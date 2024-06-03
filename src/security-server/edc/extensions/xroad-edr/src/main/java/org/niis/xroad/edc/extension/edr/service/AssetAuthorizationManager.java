@@ -43,8 +43,8 @@ import org.eclipse.edc.spi.EdcException;
 import org.eclipse.edc.spi.monitor.ConsoleMonitor;
 import org.eclipse.edc.spi.query.QuerySpec;
 import org.eclipse.edc.spi.response.StatusResult;
+import org.eclipse.edc.spi.types.domain.DataAddress;
 import org.eclipse.edc.spi.types.domain.callback.CallbackAddress;
-import org.eclipse.edc.spi.types.domain.edr.EndpointDataReference;
 import org.eclipse.edc.transform.spi.TypeTransformerRegistry;
 import org.niis.xroad.edc.extension.edr.dto.NegotiateAssetRequestDto;
 
@@ -59,7 +59,7 @@ import static org.eclipse.edc.spi.query.Criterion.criterion;
 @RequiredArgsConstructor
 public class AssetAuthorizationManager {
 
-    private static final long TIMEOUT_SECONDS = 20; // todo: parameterize?
+    private static final long TIMEOUT_SECONDS = 90; // todo: parameterize?
 
     private final CatalogService catalogService;
     private final ContractNegotiationService contractNegotiationService;
@@ -73,7 +73,7 @@ public class AssetAuthorizationManager {
             .events(Set.of("contract.negotiation.finalized"))
             .build();
 
-    public EndpointDataReference getOrRequestAssetAccess(NegotiateAssetRequestDto requestDto) {
+    public DataAddress getOrRequestAssetAccess(NegotiateAssetRequestDto requestDto) {
         if (requestDto.isOneTimeUseToken()) {
             return requestAccess(requestDto);
         }
@@ -81,7 +81,7 @@ public class AssetAuthorizationManager {
                 .orElseGet(() -> requestAccess(requestDto));
     }
 
-    public EndpointDataReference requestAccess(NegotiateAssetRequestDto requestDto) {
+    public DataAddress requestAccess(NegotiateAssetRequestDto requestDto) {
 
         var clientId = requestDto.getClientId();
         var serviceId = requestDto.getAssetId();

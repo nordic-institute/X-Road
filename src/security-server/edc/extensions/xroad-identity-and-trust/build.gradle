@@ -20,7 +20,7 @@ dependencies {
     implementation libs.edc.jws2020.lib
     implementation libs.edc.token.core
     implementation libs.edc.util.lib
-
+    implementation libs.apache.commonsLang3
     constraints {
         // Overwrite the default 1.1 version to fix RDF normalization inconsistencies
         add("implementation", "com.apicatalog:titanium-json-ld:1.4.0")

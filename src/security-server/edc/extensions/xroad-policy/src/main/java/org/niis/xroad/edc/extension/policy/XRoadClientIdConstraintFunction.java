@@ -28,6 +28,7 @@
 package org.niis.xroad.edc.extension.policy;
 
 import lombok.RequiredArgsConstructor;
+import org.apache.commons.lang3.time.StopWatch;
 import org.eclipse.edc.policy.engine.spi.AtomicConstraintFunction;
 import org.eclipse.edc.policy.engine.spi.PolicyContext;
 import org.eclipse.edc.policy.model.Operator;
@@ -46,20 +47,23 @@ public class XRoadClientIdConstraintFunction implements AtomicConstraintFunction
 
     @Override
     public boolean evaluate(Operator operator, Object rightValue, Permission permission, PolicyContext context) {
-        monitor.debug("RoadClientIdConstraintFunction");
-
-        if (!(rightValue instanceof String allowedClientId)) {
-            context.reportProblem("Right-value expected to be String but was " + rightValue.getClass());
-            return false;
-        }
-
-        Optional<String> clientId = PolicyContextHelper.getClientIdFromContext(context);
-        return clientId.map(s -> switch (operator) {
-            case EQ -> s.equals(allowedClientId);
-            default -> {
-                context.reportProblem("Operator " + operator + " not supported");
-                yield false;
+        var stopWatch = StopWatch.createStarted();
+        try {
+            if (!(rightValue instanceof String allowedClientId)) {
+                context.reportProblem("Right-value expected to be String but was " + rightValue.getClass());
+                return false;
             }
-        }).orElse(false);
+
+            Optional<String> clientId = PolicyContextHelper.getClientIdFromContext(context);
+            return clientId.map(s -> switch (operator) {
+                case EQ -> s.equals(allowedClientId);
+                default -> {
+                    context.reportProblem("Operator " + operator + " not supported");
+                    yield false;
+                }
+            }).orElse(false);
+        } finally {
+            monitor.debug("RoadClientIdConstraintFunction took " + stopWatch.getTime() + " ms");
+        }
     }
 }

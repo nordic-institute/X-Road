@@ -45,6 +45,7 @@ import ee.ria.xroad.common.util.MimeUtils;
 
 import jakarta.ws.rs.DELETE;
 import jakarta.ws.rs.GET;
+import jakarta.ws.rs.HEAD;
 import jakarta.ws.rs.PATCH;
 import jakarta.ws.rs.POST;
 import jakarta.ws.rs.PUT;
@@ -62,23 +63,13 @@ import org.apache.http.Header;
 import org.apache.http.message.BasicHeader;
 import org.bouncycastle.operator.DigestCalculator;
 import org.bouncycastle.util.io.TeeOutputStream;
-import org.eclipse.edc.connector.controlplane.contract.spi.negotiation.store.ContractNegotiationStore;
-import org.eclipse.edc.connector.controlplane.contract.spi.types.agreement.ContractAgreement;
-import org.eclipse.edc.connector.dataplane.api.controller.ContainerRequestContextApi;
-import org.eclipse.edc.connector.dataplane.api.controller.ContainerRequestContextApiImpl;
-import org.eclipse.edc.connector.dataplane.api.controller.DataFlowRequestSupplier;
-import org.eclipse.edc.connector.dataplane.api.controller.DataPlanePublicApi;
+import org.eclipse.edc.connector.dataplane.spi.iam.DataPlaneAuthorizationService;
 import org.eclipse.edc.connector.dataplane.spi.pipeline.PipelineService;
-import org.eclipse.edc.connector.dataplane.spi.resolver.DataAddressResolver;
 import org.eclipse.edc.connector.dataplane.spi.response.TransferErrorResponse;
 import org.eclipse.edc.connector.dataplane.util.sink.AsyncStreamingDataSink;
-import org.eclipse.edc.policy.engine.spi.PolicyContextImpl;
-import org.eclipse.edc.policy.engine.spi.PolicyEngine;
 import org.eclipse.edc.spi.EdcException;
 import org.eclipse.edc.spi.monitor.Monitor;
-import org.eclipse.edc.spi.result.Result;
 import org.eclipse.edc.spi.types.domain.transfer.DataFlowStartMessage;
-import org.eclipse.edc.web.spi.exception.NotAuthorizedException;
 import org.niis.xroad.edc.sig.SignatureResponse;
 import org.niis.xroad.edc.spi.messagelog.XRoadMessageLog;
 
@@ -99,6 +90,7 @@ import static jakarta.ws.rs.core.MediaType.WILDCARD;
 import static jakarta.ws.rs.core.Response.Status.BAD_REQUEST;
 import static jakarta.ws.rs.core.Response.Status.FORBIDDEN;
 import static jakarta.ws.rs.core.Response.Status.INTERNAL_SERVER_ERROR;
+import static jakarta.ws.rs.core.Response.Status.UNAUTHORIZED;
 import static jakarta.ws.rs.core.Response.status;
 import static java.net.HttpURLConnection.HTTP_OK;
 import static java.util.stream.Collectors.toList;
@@ -109,61 +101,57 @@ import static org.niis.xroad.edc.sig.PocConstants.HEADER_XRD_SIG;
 
 @Path("{any:.*}")
 @Produces(WILDCARD)
-public class XrdDataPlanePublicApiController implements DataPlanePublicApi {
+public class XrdDataPlanePublicApiController {
 
     private final PipelineService pipelineService;
-    private final DataAddressResolver dataAddressResolver;
     private final DataFlowRequestSupplier requestSupplier;
     private final XrdEdcSignService signService;
     private final XRoadMessageLog xRoadMessageLog;
     private final Monitor monitor;
-    private final ContractNegotiationStore contractNegotiationStore;
-    private final PolicyEngine policyEngine;
-    private final ExecutorService executorService;
 
-    public XrdDataPlanePublicApiController(PipelineService pipelineService, DataAddressResolver dataAddressResolver,
+    private final ExecutorService executorService;
+    private final DataPlaneAuthorizationService authorizationService;
+
+    public XrdDataPlanePublicApiController(PipelineService pipelineService,
                                            XrdEdcSignService xrdEdcSignService, Monitor monitor,
                                            ExecutorService executorService,
-                                           ContractNegotiationStore contractNegotiationStore, PolicyEngine policyEngine,
-                                           XRoadMessageLog xRoadMessageLog) {
+                                           XRoadMessageLog xRoadMessageLog, DataPlaneAuthorizationService authorizationService) {
         this.pipelineService = pipelineService;
-        this.dataAddressResolver = dataAddressResolver;
         this.signService = xrdEdcSignService;
         this.monitor = monitor;
         this.executorService = executorService;
         this.xRoadMessageLog = xRoadMessageLog;
+        this.authorizationService = authorizationService;
         this.requestSupplier = new DataFlowRequestSupplier();
-        this.contractNegotiationStore = contractNegotiationStore;
-        this.policyEngine = policyEngine;
     }
 
     @GET
-    @Override
     public void get(@Context ContainerRequestContext requestContext, @Suspended AsyncResponse response) {
         handle(requestContext, response);
     }
 
+    @HEAD
+    public void head(@Context ContainerRequestContext requestContext, @Suspended AsyncResponse response) {
+        handle(requestContext, response);
+    }
+
+    @POST
+    public void post(@Context ContainerRequestContext requestContext, @Suspended AsyncResponse response) {
+        handle(requestContext, response);
+    }
+
+    @PUT
+    public void put(@Context ContainerRequestContext requestContext, @Suspended AsyncResponse response) {
+        handle(requestContext, response);
+    }
+
     @DELETE
-    @Override
     public void delete(@Context ContainerRequestContext requestContext, @Suspended AsyncResponse response) {
         handle(requestContext, response);
     }
 
     @PATCH
-    @Override
     public void patch(@Context ContainerRequestContext requestContext, @Suspended AsyncResponse response) {
-        handle(requestContext, response);
-    }
-
-    @PUT
-    @Override
-    public void put(@Context ContainerRequestContext requestContext, @Suspended AsyncResponse response) {
-        handle(requestContext, response);
-    }
-
-    @POST
-    @Override
-    public void post(@Context ContainerRequestContext requestContext, @Suspended AsyncResponse response) {
         handle(requestContext, response);
     }
 
@@ -171,46 +159,51 @@ public class XrdDataPlanePublicApiController implements DataPlanePublicApi {
         return StringUtils.contains(context.getHeaderString("Content-Type"), "text/xml");
     }
 
-    private void handle(ContainerRequestContext context, AsyncResponse response) {
-        var contextApi = new ContainerRequestContextApiImpl(context);
+    private void handle(ContainerRequestContext requestContext, AsyncResponse response) {
+        var contextApi = new ContainerRequestContextApiImpl(requestContext);
+
         var token = contextApi.headers().get(HttpHeaders.AUTHORIZATION);
         if (token == null) {
-            response.resume(error(BAD_REQUEST, "Missing token"));
+            response.resume(error(UNAUTHORIZED, "Missing Authorization Header"));
             return;
         }
 
-        var tokenValidation = dataAddressResolver.resolve(token);
-        if (tokenValidation.failed()) {
-            response.resume(error(FORBIDDEN, tokenValidation.getFailureDetail()));
+        var sourceDataAddress = authorizationService.authorize(token, buildRequestData(requestContext));
+        if (sourceDataAddress.failed()) {
+            response.resume(error(FORBIDDEN, sourceDataAddress.getFailureDetail()));
             return;
         }
 
-        String contractId = contextApi.headers().get("x-contract-id"); //todo: maybe possible to get internally
-        if (contractId == null) {
-            response.resume(error(BAD_REQUEST, "Missing contract id header"));
-            return;
-        } else {
-            boolean policyValid = validatePolicy(contractId, contextApi);
-            if (!policyValid) {
-                response.resume(error(FORBIDDEN, "Request is not allowed."));
-                return;
-            }
-        }
+        var startMessage = requestSupplier.apply(contextApi, sourceDataAddress.getContent());
 
-        var dataAddress = tokenValidation.getContent();
-        // reads the request input stream into byte[]
-        var dataFlowRequest = requestSupplier.apply(contextApi, dataAddress);
+        processRequest(contextApi, startMessage, response);
+    }
 
-        var assetId = dataAddress.getStringProperty("assetId");
+    private Map<String, Object> buildRequestData(ContainerRequestContext requestContext) {
+        var requestData = new HashMap<String, Object>();
+        requestData.put("headers", requestContext.getHeaders());
+
+        var uriInfo = requestContext.getUriInfo();
+        requestData.put("path", uriInfo);
+
+        var path = uriInfo.getPath();
+        requestData.put("resolvedPath", path.startsWith("/") ? path.substring(1) : path);
+        requestData.put("method", requestContext.getMethod());
+        requestData.put("content-type", requestContext.getMediaType());
+        return requestData;
+    }
+
+    private void processRequest(ContainerRequestContextApiImpl contextApi, DataFlowStartMessage dataFlowStartMessage, AsyncResponse response) {
+        var assetId = dataFlowStartMessage.getAssetId();
         if (isBlank(assetId)) {
             response.resume(error(BAD_REQUEST, "Missing assetId"));
             return;
         }
         var serviceId = ServiceId.Conf.fromEncodedId(assetId);
+        //TODO dataFlowStartMessage.getSourceDataAddress().getStringProperty("content-type")
+        boolean isSoap = false;
 
-        boolean isSoap = isSoap(context);
-
-        byte[] requestDigest = logAndVerifyRequest(dataFlowRequest, contextApi, serviceId, isSoap);
+        byte[] requestDigest = logAndVerifyRequest(dataFlowStartMessage, contextApi, serviceId, isSoap);
 
         AsyncStreamingDataSink.AsyncResponseContext asyncResponseContext = callback -> {
             StreamingOutput output = t -> callback.outputStreamConsumer().accept(t);
@@ -238,7 +231,7 @@ public class XrdDataPlanePublicApiController implements DataPlanePublicApi {
         };
 
         var sink = new AsyncStreamingDataSink(asyncResponseContext, executorService);
-        pipelineService.transfer(dataFlowRequest, sink)
+        pipelineService.transfer(dataFlowStartMessage, sink)
                 .whenComplete((result, throwable) -> {
                     if (throwable == null) {
                         if (result.failed()) {
@@ -421,20 +414,6 @@ public class XrdDataPlanePublicApiController implements DataPlanePublicApi {
         }
     }
 
-    private boolean validatePolicy(String contractId, ContainerRequestContextApiImpl contextApi) {
-        ContractAgreement contractAgreement = this.contractNegotiationStore.findContractAgreement(contractId);
-        if (contractAgreement == null) {
-            throw new NotAuthorizedException("Contract agreement %s not authorized".formatted(contractId));
-        }
-
-        String dataPath = "%s /%s".formatted(contextApi.method(), contextApi.path());
-        Result<Void> policyResult = this.policyEngine.evaluate("xroad.dataplane.transfer",
-                contractAgreement.getPolicy(),
-                PolicyContextImpl.Builder.newInstance()
-                        .additional(String.class, dataPath) //todo: xroad8, use dedicated dto?
-                        .build());
-        return policyResult.succeeded();
-    }
 
     private static Response error(Response.Status status, String error) {
         return status(status).type(APPLICATION_JSON).entity(new TransferErrorResponse(List.of(error))).build();

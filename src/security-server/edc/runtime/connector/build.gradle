@@ -24,13 +24,12 @@ dependencies {
     implementation libs.edc.configuration.filesystem
     implementation libs.edc.vault.filesystem
     implementation libs.edc.management.api
-    implementation libs.edc.transfer.data.plane
+    implementation libs.edc.transfer.data.plane.signaling
 
     implementation libs.edc.data.plane.selector.api
     implementation libs.edc.data.plane.selector.core
 
     implementation libs.edc.data.plane.control.api
-    implementation libs.edc.data.plane.public.api
     implementation libs.edc.data.plane.core
     implementation libs.edc.data.plane.http
 

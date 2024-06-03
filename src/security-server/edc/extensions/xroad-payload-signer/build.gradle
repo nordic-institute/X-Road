@@ -25,7 +25,6 @@ dependencies {
     implementation libs.edc.data.plane.core
     implementation libs.edc.data.plane.http
     implementation libs.edc.data.plane.util
-    implementation libs.edc.data.plane.public.api
 
     implementation libs.edc.jsonLd
     implementation libs.edc.jws2020.lib

@@ -79,6 +79,7 @@ public class ContractNegotiationCallbackHandler implements LocalCallbackHandler 
 
         TransferRequest initTransferRequest = TransferRequest.Builder.newInstance()
                 .id(UUID.randomUUID().toString())
+                .transferType("Any-PULL")
                 .assetId(contractAgreement.getAssetId())
                 .contractId(contractAgreement.getId())
                 .counterPartyAddress(contractNegotiationFinalized.getCounterPartyAddress())

@@ -34,6 +34,7 @@ import com.github.benmanes.caffeine.cache.Expiry;
 import com.nimbusds.jwt.JWTParser;
 import lombok.RequiredArgsConstructor;
 import org.eclipse.edc.spi.monitor.Monitor;
+import org.eclipse.edc.spi.types.domain.DataAddress;
 import org.eclipse.edc.spi.types.domain.edr.EndpointDataReference;
 
 import java.util.Optional;
@@ -47,40 +48,40 @@ public class InMemoryAuthorizedAssetRegistry implements AuthorizedAssetRegistry 
     private final Monitor monitor;
 
     @SuppressWarnings("checkstyle:MagicNumber")
-    private final Cache<CacheKey, EndpointDataReference> cache = Caffeine.newBuilder()
-            .expireAfter(new Expiry<CacheKey, EndpointDataReference>() {
+    private final Cache<CacheKey, DataAddress> cache = Caffeine.newBuilder()
+            /* TODO latest edr seem to use disposable tokens? .expireAfter(new Expiry<CacheKey, DataAddress>() {
                 @Override
-                public long expireAfterCreate(CacheKey key, EndpointDataReference value, long currentTime) {
-                    long expirationUnixTimeNanos = extractExpirationTimeFromJWT(value.getAuthCode());
+                public long expireAfterCreate(CacheKey key, DataAddress value, long currentTime) {
+                    long expirationUnixTimeNanos = extractExpirationTimeFromJWT(value.getStringProperty("https://w3id.org/edc/v0.0.1/ns/authorization"));
 
                     var expiresIn = Math.max(expirationUnixTimeNanos - currentTimeMillis(), 0);
-                    monitor.debug("transferId %s will expire in %s seconds".formatted(value.getId(),
+                    monitor.debug("transfer %s -> %s will expire in %s seconds".formatted(key.clientId, key.serviceId,
                             TimeUnit.MILLISECONDS.toSeconds(expiresIn)));
                     return TimeUnit.MILLISECONDS.toNanos(expiresIn);
                 }
 
                 @Override
-                public long expireAfterUpdate(CacheKey key, EndpointDataReference value,
+                public long expireAfterUpdate(CacheKey key, DataAddress value,
                                               long currentTime, long currentDuration) {
                     return currentDuration;
                 }
 
                 @Override
-                public long expireAfterRead(CacheKey key, EndpointDataReference value,
+                public long expireAfterRead(CacheKey key, DataAddress value,
                                             long currentTime, long currentDuration) {
                     return currentDuration;
                 }
-            })
+            })*/
             .build();
 
     @Override
-    public Optional<EndpointDataReference> getAssetInfo(String clientId, String serviceId) {
+    public Optional<DataAddress> getAssetInfo(String clientId, String serviceId) {
         return Optional.ofNullable(cache.getIfPresent(new CacheKey(clientId, serviceId)));
     }
 
     @Override
-    public void registerAsset(String clientId, String serviceId, EndpointDataReference assetInfo) {
-        cache.put(new CacheKey(clientId, serviceId), assetInfo);
+    public void registerAsset(String clientId, String serviceId, DataAddress assetDataAddress) {
+        cache.put(new CacheKey(clientId, serviceId), assetDataAddress);
     }
 
     public record CacheKey(String clientId, String serviceId) {

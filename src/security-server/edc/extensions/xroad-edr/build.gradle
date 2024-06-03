@@ -6,6 +6,9 @@ dependencies {
     implementation project(":security-server:edc:spi:xroad-core-spi")
 
     implementation libs.edc.core.spi
+    implementation libs.edc.core.edrstore
+    implementation(libs.edc.edr.store.receiver)
+
     implementation libs.edc.callback.event.dispatcher
     implementation libs.edc.management.api
     implementation libs.edc.web.spi
@@ -17,5 +20,6 @@ dependencies {
     implementation libs.caffeine
     implementation libs.nimbus.jose.jwt
 
+    implementation libs.apache.commonsLang3
     api libs.swagger.annotations.jakarta
 }

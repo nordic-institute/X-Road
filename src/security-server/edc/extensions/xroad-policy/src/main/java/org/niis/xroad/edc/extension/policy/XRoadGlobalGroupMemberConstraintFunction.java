@@ -31,6 +31,7 @@ import ee.ria.xroad.common.conf.globalconf.GlobalConf;
 import ee.ria.xroad.common.identifier.GlobalGroupId;
 
 import lombok.RequiredArgsConstructor;
+import org.apache.commons.lang3.time.StopWatch;
 import org.eclipse.edc.policy.engine.spi.AtomicConstraintFunction;
 import org.eclipse.edc.policy.engine.spi.PolicyContext;
 import org.eclipse.edc.policy.model.Operator;
@@ -50,25 +51,29 @@ public class XRoadGlobalGroupMemberConstraintFunction implements AtomicConstrain
 
     @Override
     public boolean evaluate(Operator operator, Object rightValue, Permission rule, PolicyContext context) {
-        monitor.debug("XRoadGlobalGroupMemberConstraintFunction.evaluate");
+        var stopWatch = StopWatch.createStarted();
+        try {
 
-        if (!(rightValue instanceof String globalGroupCode)) {
-            context.reportProblem("Right-value expected to be String but was " + rightValue.getClass());
+            if (!(rightValue instanceof String globalGroupCode)) {
+                context.reportProblem("Right-value expected to be String but was " + rightValue.getClass());
+                return false;
+            }
+            Optional<String> subject = PolicyContextHelper.getClientIdFromContext(context);
+            if (subject.isPresent()) {
+                GlobalGroupId globalGroupId = parseGlobalGroup(globalGroupCode);
+                var clientId = PolicyContextHelper.parseClientId(subject.get());
+                return switch (operator) {
+                    case EQ, IN -> GlobalConf.isSubjectInGlobalGroup(clientId, globalGroupId);
+                    default -> {
+                        context.reportProblem("Unsupported operator: " + operator);
+                        yield false;
+                    }
+                };
+            }
             return false;
+        } finally {
+            monitor.debug("XRoadGlobalGroupMemberConstraintFunction took " + stopWatch.getTime() + " ms");
         }
-        Optional<String> subject = PolicyContextHelper.getClientIdFromContext(context);
-        if (subject.isPresent()) {
-            GlobalGroupId globalGroupId = parseGlobalGroup(globalGroupCode);
-            var clientId = PolicyContextHelper.parseClientId(subject.get());
-            return switch (operator) {
-                case EQ, IN -> GlobalConf.isSubjectInGlobalGroup(clientId, globalGroupId);
-                default -> {
-                    context.reportProblem("Unsupported operator: " + operator);
-                    yield false;
-                }
-            };
-        }
-        return false;
     }
 
     private GlobalGroupId parseGlobalGroup(String encodedGlobalGroup) {

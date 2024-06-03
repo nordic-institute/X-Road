@@ -46,28 +46,29 @@ public class InMemoryAuthorizedAssetRegistry implements AuthorizedAssetRegistry 
 
     @SuppressWarnings("checkstyle:MagicNumber")
     private final Cache<CacheKey, GrantedAssetInfo> cache = Caffeine.newBuilder()
-            .expireAfter(new Expiry<CacheKey, GrantedAssetInfo>() {
-                @Override
-                public long expireAfterCreate(CacheKey key, GrantedAssetInfo value, long currentTime) {
-                    long expirationUnixTimeNanos = extractExpirationTimeFromJWT(value.authCode());
-
-                    var expiresIn = Math.max(expirationUnixTimeNanos - currentTimeMillis(), 0);
-                    log.trace("transferId {} will expire in {} seconds", value.id(), TimeUnit.MILLISECONDS.toSeconds(expiresIn));
-                    return TimeUnit.MILLISECONDS.toNanos(expiresIn);
-                }
-
-                @Override
-                public long expireAfterUpdate(CacheKey key, GrantedAssetInfo value,
-                                              long currentTime, long currentDuration) {
-                    return currentDuration;
-                }
-
-                @Override
-                public long expireAfterRead(CacheKey key, GrantedAssetInfo value,
-                                            long currentTime, long currentDuration) {
-                    return currentDuration;
-                }
-            })
+//TODO dp signaling token does not have exp set on it
+//            .expireAfter(new Expiry<CacheKey, GrantedAssetInfo>() {
+//                @Override
+//                public long expireAfterCreate(CacheKey key, GrantedAssetInfo value, long currentTime) {
+//                    long expirationUnixTimeNanos = extractExpirationTimeFromJWT(value.authCode());
+//
+//                    var expiresIn = Math.max(expirationUnixTimeNanos - currentTimeMillis(), 0);
+//                    log.trace("transferId {} will expire in {} seconds", value.id(), TimeUnit.MILLISECONDS.toSeconds(expiresIn));
+//                    return TimeUnit.MILLISECONDS.toNanos(expiresIn);
+//                }
+//
+//                @Override
+//                public long expireAfterUpdate(CacheKey key, GrantedAssetInfo value,
+//                                              long currentTime, long currentDuration) {
+//                    return currentDuration;
+//                }
+//
+//                @Override
+//                public long expireAfterRead(CacheKey key, GrantedAssetInfo value,
+//                                            long currentTime, long currentDuration) {
+//                    return currentDuration;
+//                }
+//            })
             .build();
 
     @Override

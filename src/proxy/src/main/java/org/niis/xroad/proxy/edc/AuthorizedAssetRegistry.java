@@ -31,7 +31,6 @@ import java.util.Optional;
 
 public interface AuthorizedAssetRegistry {
     record GrantedAssetInfo(String id,
-                            String contractId,
                             String endpoint,
                             String authKey,
                             String authCode) {

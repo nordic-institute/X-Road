@@ -5,7 +5,8 @@ plugins {
 dependencies {
     implementation libs.edc.core.spi
     implementation libs.edc.policy.engine.spi
-
+    implementation libs.edc.contract.spi
+    implementation libs.edc.data.plane.spi
     implementation(project(':common:common-domain')) {
         exclude group: 'org.eclipse.jetty'
     }
@@ -16,4 +17,5 @@ dependencies {
     testImplementation libs.edc.junit
     testImplementation libs.assertj.core
     testImplementation libs.mockito.jupiter
+
 }

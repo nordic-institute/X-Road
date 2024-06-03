@@ -76,7 +76,7 @@ public class XrdDataSpaceClient {
 
         final var dsRequest = ClassicRequestBuilder.create(restRequest.getVerb().name()).setUri(new URI(path));
         dsRequest.addHeader(HEADER_XRD_SIG, signatureResponse.getSignature());
-        dsRequest.addHeader(assetInfo.authKey(), assetInfo.authCode());
+        dsRequest.addHeader("Authorization", assetInfo.authCode());
         restRequest.getHeaders().forEach(header -> dsRequest.addHeader(header.getName(), header.getValue()));
 
         MessageLog.log(restRequest, toSignatureData(signatureResponse.getSignature()),

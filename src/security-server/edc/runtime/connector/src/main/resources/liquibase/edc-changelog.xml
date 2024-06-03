@@ -14,6 +14,7 @@
         <sqlFile path="edc/contract-negotiation-store-sql.sql" relativeToChangelogFile="true"/>
         <sqlFile path="edc/policy-definition-store-sql.sql" relativeToChangelogFile="true"/>
         <sqlFile path="edc/transfer-process-store-sql.sql" relativeToChangelogFile="true"/>
+        <sqlFile path="edc/edr-index-sql.sql" relativeToChangelogFile="true"/>
     </changeSet>
 
     <changeSet id="separate-admin-user" author="niis" context="admin" runAlways="true" runOnChange="true" runOrder="last">
