@@ -66,7 +66,7 @@ public class CertificationServicesApiStepDefs extends BaseStepDefs {
         try {
             var result = certificationServicesApi.getCertificationService(id);
             putStepData(RESPONSE, result);
-            putStepData(RESPONSE_STATUS, result.getStatusCodeValue());
+            putStepData(RESPONSE_STATUS, result.getStatusCode().value());
         } catch (FeignException feignException) {
             putStepData(RESPONSE_STATUS, feignException.status());
             putStepData(ERROR_RESPONSE_BODY, feignException.contentUTF8());
@@ -83,7 +83,7 @@ public class CertificationServicesApiStepDefs extends BaseStepDefs {
         try {
             var result = certificationServicesApi.getCertificationServiceCertificate(id);
             putStepData(RESPONSE, result);
-            putStepData(RESPONSE_STATUS, result.getStatusCodeValue());
+            putStepData(RESPONSE_STATUS, result.getStatusCode().value());
         } catch (FeignException feignException) {
             putStepData(RESPONSE_STATUS, feignException.status());
             putStepData(ERROR_RESPONSE_BODY, feignException.contentUTF8());
@@ -95,7 +95,7 @@ public class CertificationServicesApiStepDefs extends BaseStepDefs {
         try {
             var result = certificationServicesApi.deleteCertificationService(id);
             putStepData(RESPONSE, result);
-            putStepData(RESPONSE_STATUS, result.getStatusCodeValue());
+            putStepData(RESPONSE_STATUS, result.getStatusCode().value());
         } catch (FeignException feignException) {
             putStepData(RESPONSE_STATUS, feignException.status());
             putStepData(ERROR_RESPONSE_BODY, feignException.contentUTF8());
@@ -144,7 +144,7 @@ public class CertificationServicesApiStepDefs extends BaseStepDefs {
         try {
             var result = certificationServicesApi.getCertificationServices();
             putStepData(RESPONSE, result);
-            putStepData(RESPONSE_STATUS, result.getStatusCodeValue());
+            putStepData(RESPONSE_STATUS, result.getStatusCode().value());
         } catch (FeignException feignException) {
             putStepData(RESPONSE_STATUS, feignException.status());
             putStepData(ERROR_RESPONSE_BODY, feignException.contentUTF8());
@@ -191,7 +191,7 @@ public class CertificationServicesApiStepDefs extends BaseStepDefs {
 
             putStepData(CERTIFICATION_SERVICE_ID, result.getBody().getId());
             putStepData(RESPONSE, result);
-            putStepData(RESPONSE_STATUS, result.getStatusCodeValue());
+            putStepData(RESPONSE_STATUS, result.getStatusCode().value());
         } catch (FeignException feignException) {
             putStepData(RESPONSE_STATUS, feignException.status());
             putStepData(ERROR_RESPONSE_BODY, feignException.contentUTF8());
@@ -209,7 +209,7 @@ public class CertificationServicesApiStepDefs extends BaseStepDefs {
                     .updateCertificationService(id, request);
 
             putStepData(RESPONSE, result);
-            putStepData(RESPONSE_STATUS, result.getStatusCodeValue());
+            putStepData(RESPONSE_STATUS, result.getStatusCode().value());
         } catch (FeignException feignException) {
             putStepData(RESPONSE_STATUS, feignException.status());
             putStepData(ERROR_RESPONSE_BODY, feignException.contentUTF8());
@@ -246,7 +246,7 @@ public class CertificationServicesApiStepDefs extends BaseStepDefs {
         try {
             var result = certificationServicesApi.getCertificationServiceOcspResponders(id);
             putStepData(RESPONSE, result);
-            putStepData(RESPONSE_STATUS, result.getStatusCodeValue());
+            putStepData(RESPONSE_STATUS, result.getStatusCode().value());
         } catch (FeignException feignException) {
             putStepData(RESPONSE_STATUS, feignException.status());
             putStepData(ERROR_RESPONSE_BODY, feignException.contentUTF8());

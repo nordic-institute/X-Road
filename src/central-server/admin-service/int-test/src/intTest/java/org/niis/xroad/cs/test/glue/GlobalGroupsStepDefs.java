@@ -93,7 +93,7 @@ public class GlobalGroupsStepDefs extends BaseStepDefs {
                     .assertion(equalsAssertion(0, "body.memberCount"))
                     .execute();
 
-            putStepData(RESPONSE_STATUS, response.getStatusCodeValue());
+            putStepData(RESPONSE_STATUS, response.getStatusCode().value());
         } catch (FeignException feignException) {
             putStepData(RESPONSE_STATUS, feignException.status());
             putStepData(ERROR_RESPONSE_BODY, feignException.contentUTF8());
@@ -122,7 +122,7 @@ public class GlobalGroupsStepDefs extends BaseStepDefs {
                     .execute();
 
             putStepData(RESPONSE, response);
-            putStepData(RESPONSE_STATUS, response.getStatusCodeValue());
+            putStepData(RESPONSE_STATUS, response.getStatusCode().value());
         } catch (FeignException feignException) {
             putStepData(RESPONSE_STATUS, feignException.status());
             putStepData(ERROR_RESPONSE_BODY, feignException.contentUTF8());
@@ -191,7 +191,7 @@ public class GlobalGroupsStepDefs extends BaseStepDefs {
             final ResponseEntity<Void> response = globalGroupsApi.deleteGlobalGroupMember(code, memberIdentifier);
 
             putStepData(RESPONSE, response);
-            putStepData(RESPONSE_STATUS, response.getStatusCodeValue());
+            putStepData(RESPONSE_STATUS, response.getStatusCode());
 
             validate(response)
                     .assertion(equalsStatusCodeAssertion(NO_CONTENT))
@@ -211,7 +211,7 @@ public class GlobalGroupsStepDefs extends BaseStepDefs {
                     .findGlobalGroupMembers(groupCode, filterDto);
 
             putStepData(RESPONSE, response);
-            putStepData(RESPONSE_STATUS, response.getStatusCodeValue());
+            putStepData(RESPONSE_STATUS, response.getStatusCode().value());
 
             validate(response)
                     .assertion(equalsStatusCodeAssertion(OK))

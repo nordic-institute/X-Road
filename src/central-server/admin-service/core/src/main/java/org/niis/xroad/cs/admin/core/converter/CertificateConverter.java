@@ -94,10 +94,10 @@ public class CertificateConverter {
                 .setVersion(certificate.getVersion())
                 .setSerial(valueOf(certificate.getSerialNumber()))
                 .setSignatureAlgorithm(certificate.getSigAlgName())
-                .setIssuerDistinguishedName(certificate.getIssuerDN().getName())
+                .setIssuerDistinguishedName(certificate.getIssuerX500Principal().toString())
                 .setNotBefore(certificate.getNotBefore().toInstant())
                 .setNotAfter(certificate.getNotAfter().toInstant())
-                .setSubjectDistinguishedName(certificate.getSubjectDN().getName())
+                .setSubjectDistinguishedName(certificate.getSubjectX500Principal().getName())
                 .setPublicKeyAlgorithm(certificate.getPublicKey().getAlgorithm())
                 .setKeyUsages(keyUsageConverter.convert(certificate.getKeyUsage()))
                 .setSubjectAlternativeNames(getSubjectAlternativeNames(certificate))
@@ -107,8 +107,7 @@ public class CertificateConverter {
                 .setEncoded(cert);
 
         final PublicKey publicKey = certificate.getPublicKey();
-        if (publicKey instanceof RSAPublicKey) {
-            final RSAPublicKey rsaPublicKey = (RSAPublicKey) publicKey;
+        if (publicKey instanceof RSAPublicKey rsaPublicKey) {
             certificateDetails.setRsaPublicKeyExponent(rsaPublicKey.getPublicExponent());
             certificateDetails.setRsaPublicKeyModulus(rsaPublicKey.getModulus().toString(RADIX_FOR_HEX));
         }

@@ -135,7 +135,7 @@ public class CertificateInfoSensor extends AbstractSensor {
                 ));
             } catch (Exception e) {
                 log.error("Extracting monitoring information failed for certificate type {} with certificate {}",
-                        certificateType, certificate.getIssuerDN().getName());
+                        certificateType, certificate.getIssuerX500Principal().toString());
                 return Stream.empty();
             }
 
