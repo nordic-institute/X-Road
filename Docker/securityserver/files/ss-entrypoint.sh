@@ -56,6 +56,9 @@ sed -i "s|localhost|${EDC_HOSTNAME}|g" /etc/xroad-edc/edc-identity-hub.propertie
 
 cp -r /etc/xroad-edc/credentials/${EDC_HOSTNAME}/* /etc/xroad-edc/credentials/
 
+log "DS: starting vault server in dev mode with initial values"
+/usr/share/xroad/scripts/init_vault.sh
+
 # end of dataspaces
 
 exec /usr/bin/supervisord -n -c /etc/supervisor/supervisord.conf

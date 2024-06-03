@@ -172,8 +172,8 @@ public class AssetsRegistrationJob {
                             .build())
                     .add(DataPlaneInstance.PROPERTIES, createObjectBuilder()
                             .add("https://w3id.org/edc/v0.0.1/ns/publicApiUrl", "%s://%s:%s/xroad/public/"
-                                    .formatted(SystemProperties.isSslEnabled() ?
-                                                    "https" : "http", GlobalConf.getSecurityServerAddress(ServerConf.getIdentifier()),
+                                    .formatted(SystemProperties.isSslEnabled()
+                                                    ? "https" : "http", GlobalConf.getSecurityServerAddress(ServerConf.getIdentifier()),
                                             SystemProperties.dataspacesPublicListenPort()))
                             .build())
                     .build()

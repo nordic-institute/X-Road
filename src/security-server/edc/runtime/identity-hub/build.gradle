@@ -14,7 +14,7 @@ configurations {
 
 dependencies {
     implementation libs.edc.configuration.filesystem
-    implementation libs.edc.vault.filesystem
+    implementation libs.edc.vault.hashicorp
 
     implementation libs.edc.identity.trust.spi
     implementation libs.bundles.edc.connector

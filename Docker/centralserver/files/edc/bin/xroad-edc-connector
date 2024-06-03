@@ -8,9 +8,6 @@ if [ -f /var/run/xroad/xroad-grpc-internal-env.properties ]; then
 fi
 
 
-exec java -Dedc.keystore="/etc/xroad-edc/certs/cert.pfx" \
-    -Dedc.keystore.password=123456 \
-    -Dedc.vault="/etc/xroad-edc/edc-vault.properties" \
-    -Dedc.fs.config="/etc/xroad-edc/edc-connector.properties" \
+exec java -Dedc.fs.config="/etc/xroad-edc/edc-connector.properties" \
     -Xdebug -agentlib:jdwp=transport=dt_socket,address=*:9953,server=y,suspend=n \
     -Xmx256m -jar /usr/share/xroad/jlib/ds-catalog-service.jar

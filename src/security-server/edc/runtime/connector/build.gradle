@@ -22,7 +22,7 @@ dependencies {
     implementation libs.edc.control.plane.core
     implementation libs.edc.dsp
     implementation libs.edc.configuration.filesystem
-    implementation libs.edc.vault.filesystem
+    implementation libs.edc.vault.hashicorp
     implementation libs.edc.management.api
     implementation libs.edc.transfer.data.plane.signaling
 

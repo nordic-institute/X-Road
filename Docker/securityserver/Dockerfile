@@ -19,6 +19,11 @@ RUN apt-get -qq update \
     && useradd -m xrd -s /usr/sbin/nologin -p '$6$JeOzaeWnLAQSUVuO$GOJ0wUKSVQnOR4I2JgZxdKr.kMO.YGS21SGaAshaYhayv8kSV9WuIFCZHTGAX8WRRTB/2ojuLnJg4kMoyzpcu1' \
     && echo "xroad-proxy xroad-common/username string xrd" | debconf-set-selections \
     && apt-get -qq -y install --no-install-recommends postgresql postgresql-contrib \
+    && curl -sL "https://apt.releases.hashicorp.com/gpg" | gpg --dearmor -o /usr/share/keyrings/hashicorp-archive-keyring.gpg \
+    && echo "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/hashicorp-archive-keyring.gpg] https://apt.releases.hashicorp.com jammy main" | tee /etc/apt/sources.list.d/hashicorp.list \
+    && apt-get update && apt-get -qq install vault \
+    # workaround to fix vault issue
+    && apt install --reinstall -y vault \
     && apt-get -qq clean \
     && rm -rf var/lib/apt/lists/*
 
@@ -95,11 +100,14 @@ COPY build/liquibase/ /usr/share/xroad/db
 
 COPY files/edc/etc /etc/xroad-edc/
 COPY files/edc/setup_edc_db.sh /usr/share/xroad/scripts/setup_edc_db.sh
+COPY files/edc/init_vault.sh /usr/share/xroad/scripts/init_vault.sh
 COPY files/edc/bin/ /usr/share/xroad/bin/
 
 ENV EDC_HOSTNAME=localhost
 ENV EDC_DID=did:web:localhost
 ENV EDC_DID_KEY_ID=key-id
+ENV VAULT_DEV_ROOT_TOKEN_ID=00000000-0000-0000-0000-000000000001
+ENV VAULT_ADDR=http://127.0.0.1:8200
 # end of dataspaces
 
 CMD ["/root/entrypoint.sh"]
