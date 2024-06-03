@@ -30,15 +30,12 @@ package org.niis.xroad.edc.extension.edr.service;
 import com.apicatalog.jsonld.StringUtils;
 import com.github.benmanes.caffeine.cache.Cache;
 import com.github.benmanes.caffeine.cache.Caffeine;
-import com.github.benmanes.caffeine.cache.Expiry;
 import com.nimbusds.jwt.JWTParser;
 import lombok.RequiredArgsConstructor;
 import org.eclipse.edc.spi.monitor.Monitor;
 import org.eclipse.edc.spi.types.domain.DataAddress;
-import org.eclipse.edc.spi.types.domain.edr.EndpointDataReference;
 
 import java.util.Optional;
-import java.util.concurrent.TimeUnit;
 
 import static java.lang.System.currentTimeMillis;
 
@@ -52,7 +49,8 @@ public class InMemoryAuthorizedAssetRegistry implements AuthorizedAssetRegistry 
             /* TODO latest edr seem to use disposable tokens? .expireAfter(new Expiry<CacheKey, DataAddress>() {
                 @Override
                 public long expireAfterCreate(CacheKey key, DataAddress value, long currentTime) {
-                    long expirationUnixTimeNanos = extractExpirationTimeFromJWT(value.getStringProperty("https://w3id.org/edc/v0.0.1/ns/authorization"));
+                    long expirationUnixTimeNanos = extractExpirationTimeFromJWT(
+                        value.getStringProperty("https://w3id.org/edc/v0.0.1/ns/authorization"));
 
                     var expiresIn = Math.max(expirationUnixTimeNanos - currentTimeMillis(), 0);
                     monitor.debug("transfer %s -> %s will expire in %s seconds".formatted(key.clientId, key.serviceId,

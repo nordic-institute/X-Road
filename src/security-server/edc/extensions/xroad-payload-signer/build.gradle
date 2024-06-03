@@ -20,7 +20,7 @@ dependencies {
     implementation libs.edc.http.lib
     implementation libs.nimbus.jose.jwt
 
-    implementation libs.edc.transfer.data.plane
+    implementation(libs.edc.transfer.spi)
 
     implementation libs.edc.data.plane.core
     implementation libs.edc.data.plane.http

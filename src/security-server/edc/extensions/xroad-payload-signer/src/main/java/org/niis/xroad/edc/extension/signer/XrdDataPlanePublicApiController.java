@@ -193,7 +193,8 @@ public class XrdDataPlanePublicApiController {
         return requestData;
     }
 
-    private void processRequest(ContainerRequestContextApiImpl contextApi, DataFlowStartMessage dataFlowStartMessage, AsyncResponse response) {
+    private void processRequest(ContainerRequestContextApiImpl contextApi, DataFlowStartMessage dataFlowStartMessage,
+                                AsyncResponse response) {
         var assetId = dataFlowStartMessage.getAssetId();
         if (isBlank(assetId)) {
             response.resume(error(BAD_REQUEST, "Missing assetId"));

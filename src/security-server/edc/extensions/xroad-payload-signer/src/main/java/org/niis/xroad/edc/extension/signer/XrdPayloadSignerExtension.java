@@ -125,7 +125,8 @@ public class XrdPayloadSignerExtension implements ServiceExtension {
         var publicEndpoint = context.getSetting(PUBLIC_API_CONFIG, null);
         if (publicEndpoint == null) {
             publicEndpoint = "https://%s:%d%s".formatted(hostname.get(), configuration.getPort(), configuration.getPath());
-            context.getMonitor().warning("Config property '%s' was not specified, the default '%s' will be used.".formatted(PUBLIC_API_CONFIG, publicEndpoint));
+            context.getMonitor().warning("Config property '%s' was not specified, the default '%s' will be used."
+                    .formatted(PUBLIC_API_CONFIG, publicEndpoint));
         }
 
         monitor.debug("X-Road public endpoint is set to: %s".formatted(publicEndpoint));
