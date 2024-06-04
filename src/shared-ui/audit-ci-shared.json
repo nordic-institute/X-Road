@@ -15,7 +15,8 @@
     "GHSA-67hx-6x53-jw92|*",
     "GHSA-pfq8-rq6v-vf5m|*",
     "GHSA-9c47-m6qq-7p4h|*",
-    "GHSA-3965-hpx2-q597|pug"
+    "GHSA-3965-hpx2-q597|pug",
+    "GHSA-2p57-rm9w-gvfp|ip"
   ],
   "registry": "https://registry.npmjs.org"
 }
