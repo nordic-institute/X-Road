@@ -27,7 +27,7 @@ COPY files/ca-entrypoint.sh /root/entrypoint.sh
 COPY --chown=root:root files/testca.conf /etc/supervisor/conf.d/testca.conf
 
 # ACME
-ARG A2C_VER=0.33.3
+ARG A2C_VER=0.34
 ADD https://github.com/grindsa/acme2certifier/releases/download/$A2C_VER/acme2certifier_$A2C_VER-1_all.deb /tmp/
 RUN apt update
 RUN apt -y install /tmp/acme2certifier_$A2C_VER-1_all.deb

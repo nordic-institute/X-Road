@@ -1,11 +1,11 @@
 acme:
   contacts:
-    0245437-2: member1@example.org
+    1234: member1@example.org
   eab-credentials:
     certificate-authorities:
-      '[X-Road Test CA CN]':
+      '[Test CA]':
         mac-key-base64-encoded: true
         members:
-          0245437-2:
+          1234:
             kid: keyid_1
             mac-key: k21lms0bWFjXzAxdd39Dnsk2nr20am1WAx

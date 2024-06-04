@@ -34,7 +34,7 @@ Feature: 0600 - SS: Backup and Restore
     Given Clients tab is selected
     And Client "random-sub-1" with status "SAVED" is present in the list
     And Client "random-sub-2" with status "SAVED" is missing in the list
-    When Subsystem add page is opened for Client "TestGov"
+    When Subsystem add page is opened for Client "Test member"
     And Subsystem code is set to "random-sub-2"
     When Add subsystem form is submitted
     And Register client send registration request dialog is confirmed

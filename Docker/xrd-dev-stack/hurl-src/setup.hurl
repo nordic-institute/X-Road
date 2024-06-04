@@ -28,13 +28,29 @@ Content-Type: application/json
 HTTP 200
 
 
-# Add member class to Central Server
+# Add member classes to Central Server
 POST https://{{cs_host}}:4000/api/v1/member-classes
 X-XSRF-TOKEN: {{cs_xsrf_token}}
 Content-Type: application/json
 {
   "code": "COM",
   "description": "Commercial"
+}
+
+POST https://{{cs_host}}:4000/api/v1/member-classes
+X-XSRF-TOKEN: {{cs_xsrf_token}}
+Content-Type: application/json
+{
+  "code": "GOV",
+  "description": "Governmental organisations"
+}
+
+POST https://{{cs_host}}:4000/api/v1/member-classes
+X-XSRF-TOKEN: {{cs_xsrf_token}}
+Content-Type: application/json
+{
+  "code": "ORG",
+  "description": "Non-profit organisations"
 }
 
 HTTP 201
@@ -544,7 +560,7 @@ Content-Type: application/octet-stream
 
 HTTP 201
 
-# Initialize management Security Server
+# Initialize SS1 Security Server
 POST https://{{ss1_host}}:4000/api/v1/initialization
 X-XSRF-TOKEN: {{ss1_xsrf_token}}
 Content-Type: application/json
@@ -824,6 +840,83 @@ POST https://{{cs_host}}:4000/api/v1/management-requests/{{ss0_test_service_req_
 X-XSRF-TOKEN: {{cs_xsrf_token}}
 
 HTTP 200
+
+# Add TestSaved to SS0
+POST https://{{ss0_host}}:4000/api/v1/clients
+X-XSRF-TOKEN: {{ss0_xsrf_token}}
+{
+  "ignore_warnings": true,
+  "client": {
+    "member_class": "COM",
+    "member_code": "1234",
+    "subsystem_code": "TestSaved",
+    "connection_type": "HTTP"
+  }
+}
+
+HTTP 201
+
+[Captures]
+ss0_test_saved_id: jsonpath "$.id"
+
+# Register TestSaved to SS0
+PUT https://{{ss0_host}}:4000/api/v1/clients/{{ss0_test_saved_id}}/register
+X-XSRF-TOKEN: {{ss0_xsrf_token}}
+
+HTTP 204
+
+# Accept SS0 TestSaved registration
+GET https://{{cs_host}}:4000/api/v1/management-requests?sort=id&desc=true&status=WAITING
+X-XSRF-TOKEN: {{cs_xsrf_token}}
+
+HTTP 200
+
+[Captures]
+ss0_test_saved_req_id: jsonpath "$.items[0].id"
+
+POST https://{{cs_host}}:4000/api/v1/management-requests/{{ss0_test_saved_req_id}}/approval
+X-XSRF-TOKEN: {{cs_xsrf_token}}
+
+HTTP 200
+
+# Add test-consumer to SS1 Security Server
+POST https://{{ss1_host}}:4000/api/v1/clients
+X-XSRF-TOKEN: {{ss1_xsrf_token}}
+{
+  "ignore_warnings": true,
+  "client": {
+    "member_class": "COM",
+    "member_code": "1234",
+    "subsystem_code": "test-consumer",
+    "connection_type": "HTTP"
+  }
+}
+
+HTTP 201
+
+[Captures]
+ss1_test-consumer_id: jsonpath "$.id"
+
+# Register test-consumer to SS1 Security Server
+PUT https://{{ss1_host}}:4000/api/v1/clients/{{ss1_test-consumer_id}}/register
+X-XSRF-TOKEN: {{ss1_xsrf_token}}
+
+HTTP 204
+
+# Accept SS1 test-consumer registration
+GET https://{{cs_host}}:4000/api/v1/management-requests?sort=id&desc=true&status=WAITING
+X-XSRF-TOKEN: {{cs_xsrf_token}}
+
+HTTP 200
+
+[Captures]
+ss1_test-consumer_req_id: jsonpath "$.items[0].id"
+
+POST https://{{cs_host}}:4000/api/v1/management-requests/{{ss1_test-consumer_req_id}}/approval
+X-XSRF-TOKEN: {{cs_xsrf_token}}
+
+HTTP 200
+
 
 
 # Add Central Server management service to SS0 Security Server

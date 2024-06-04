@@ -56,7 +56,7 @@ import java.util.concurrent.Future;
 @ConditionalOnProperty(value = "test-automation.containers.context-containers.ca-server.enabled", havingValue = "true")
 @SuppressWarnings("checkstyle:MagicNumber")
 public class TestCaAuxiliaryContainer extends AbstractAuxiliaryContainer<TestCaAuxiliaryContainer.TestCaContainer> {
-    private static final String NETWORK_ALIAS = "ca";
+    private static final String NETWORK_ALIAS = "testca";
 
     private final ContainerProperties testableContainerProperties;
 

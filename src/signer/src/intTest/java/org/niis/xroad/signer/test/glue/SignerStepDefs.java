@@ -567,7 +567,7 @@ public class SignerStepDefs extends BaseSignerStepDefs {
             Assertions.fail("Exception expected");
         } catch (CodedException codedException) {
             assertException("Signer.InternalError", "member_has_no_suitable_certs",
-                    "Signer.InternalError: Member 'MEMBER:CS/test/member-1' has no suitable certificates", codedException);
+                    "Signer.InternalError: Member 'MEMBER:DEV/test/member-1' has no suitable certificates", codedException);
         }
     }
 

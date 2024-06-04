@@ -52,7 +52,7 @@ import java.util.function.Supplier;
 public class ContainerSetup {
     public static final Supplier<Integer> JMX_PORT_SUPPLIER = Suppliers.memoize(ContainerSetup::findRandomPort);
     public static final String JMX_PORT_PROPERTY_KEY = "CONTAINER_JMX_PORT";
-    private static final String NETWORK_ALIAS = "ss1";
+    private static final String NETWORK_ALIAS = "ss0";
 
     @Bean
     public TestContainerConfigurator testContainerConfigurator(

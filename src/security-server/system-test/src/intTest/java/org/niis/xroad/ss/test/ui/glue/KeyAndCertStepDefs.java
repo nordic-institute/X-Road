@@ -181,8 +181,12 @@ public class KeyAndCertStepDefs extends BaseUiStepDefs {
     }
 
     @SuppressWarnings("checkstyle:MagicNumber")
-    @Step("CSR is generated for token {string}, key {string}, certification service {string}, format {string}")
-    public void csrIsGeneratedForKeyCertificationServiceFormat(String token, String key, String certService, String csrFormat) {
+    @Step("CSR is generated for token {string}, key {string}, certification service {string}, format {string}, security server {string}")
+    public void csrIsGeneratedForKeyCertificationServiceFormat(String token,
+                                                               String key,
+                                                               String certService,
+                                                               String csrFormat,
+                                                               String securityServer) {
         keyAndCertPageObj.section(token).tokenLabeledKeyGenerateCsrButton(key).shouldBe(enabled).click();
 
         keyAndCertPageObj.addKeyWizardCsrDetails.csrService().click();
@@ -193,8 +197,8 @@ public class KeyAndCertStepDefs extends BaseUiStepDefs {
 
         keyAndCertPageObj.addKeyWizardCsrDetails.continueButton().shouldBe(visible).click();
 
-        vTextField(keyAndCertPageObj.addKeyWizardGenerate.commonName()).setValue("ss1");
-        vTextField(keyAndCertPageObj.addKeyWizardGenerate.subjectAltName()).setValue("ss1");
+        vTextField(keyAndCertPageObj.addKeyWizardGenerate.commonName()).setValue(securityServer);
+        vTextField(keyAndCertPageObj.addKeyWizardGenerate.subjectAltName()).setValue(securityServer);
         vTextField(keyAndCertPageObj.addKeyWizardGenerate.organizationName()).setValue(randomAlphabetic(10));
 
         keyAndCertPageObj.addKeyWizardGenerate.generateButton().click();

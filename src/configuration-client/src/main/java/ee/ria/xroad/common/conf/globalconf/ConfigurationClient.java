@@ -91,7 +91,7 @@ class ConfigurationClient {
         downloadConfigurationFromAdditionalSources(configurationSources, sourceFilter);
     }
 
-    protected List<? extends ConfigurationSource> getAdditionalConfigurationSources() {
+    protected List<PrivateParameters.ConfigurationAnchor> getAdditionalConfigurationSources() {
         PrivateParameters privateParameters = loadPrivateParameters();
         return privateParameters != null ? privateParameters.getConfigurationAnchors() : List.of();
     }
