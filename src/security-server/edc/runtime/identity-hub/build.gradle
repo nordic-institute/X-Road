@@ -37,6 +37,7 @@ dependencies {
     implementation libs.edc.jsonLd.spi
 //TODO excluded until https://github.com/eclipse-edc/Connector/issues/4232 is fixed    implementation libs.edc.jsonLd.lib
 
+    implementation(project(":security-server:edc:extensions:xroad-jsonld"))
     implementation(project(":security-server:edc:extensions:xroad-identity-and-trust"))
     implementation(project(":security-server:edc:extensions:xroad-webserver"))
 

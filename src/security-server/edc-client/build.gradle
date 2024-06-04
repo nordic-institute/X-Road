@@ -32,6 +32,8 @@ dependencies {
     api libs.edc.control.plane.transform
     api libs.edc.management.api.configuration
 
+    api(project(":security-server:edc:extensions:xroad-jsonld"))
+
     testImplementation project(':common:common-test')
     testImplementation libs.hamcrest
 }

@@ -24,7 +24,7 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.edc.extension.iam;
+package org.niis.xroad.edc.extension.jsonld;
 
 import org.eclipse.edc.jsonld.spi.JsonLd;
 import org.eclipse.edc.runtime.metamodel.annotation.Extension;
@@ -39,8 +39,7 @@ import java.net.URI;
 import java.net.URISyntaxException;
 
 import static java.lang.String.format;
-import static org.niis.xroad.edc.extension.iam.GaiaXJsonLdExtension.NAME;
-import static org.niis.xroad.edc.extension.iam.XRoadVcConstants.GX_TRUSTED_SHAPE_REGISTRY_URL;
+import static org.niis.xroad.edc.extension.jsonld.GaiaXJsonLdExtension.NAME;
 
 @Extension(NAME)
 public class GaiaXJsonLdExtension implements ServiceExtension {
@@ -53,7 +52,7 @@ public class GaiaXJsonLdExtension implements ServiceExtension {
     public void initialize(ServiceExtensionContext context) {
         var contextDir = "json-ld-context";
         getResourceUri(contextDir + File.separator + "trusted-shape-registry.jsonld")
-                .onSuccess(uri -> jsonLdService.registerCachedDocument(GX_TRUSTED_SHAPE_REGISTRY_URL, uri))
+                .onSuccess(uri -> jsonLdService.registerCachedDocument(XRoadVcConstants.GX_TRUSTED_SHAPE_REGISTRY_URL, uri))
                 .onFailure(failure -> context.getMonitor().warning("Failed to register cached json-ld document: " + failure.getFailureDetail()));
 
         getResourceUri(contextDir + File.separator + "jws-2020-v1.jsonld")

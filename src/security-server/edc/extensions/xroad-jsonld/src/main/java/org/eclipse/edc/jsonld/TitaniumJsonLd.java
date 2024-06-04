@@ -28,6 +28,7 @@ import jakarta.json.JsonValue;
 import org.eclipse.edc.jsonld.document.JarLoader;
 import org.eclipse.edc.jsonld.spi.JsonLd;
 import org.eclipse.edc.jsonld.spi.JsonLdKeywords;
+import org.eclipse.edc.spi.EdcException;
 import org.eclipse.edc.spi.constants.CoreConstants;
 import org.eclipse.edc.spi.monitor.Monitor;
 import org.eclipse.edc.spi.result.Result;
@@ -199,12 +200,11 @@ public class TitaniumJsonLd implements JsonLd {
 //                    .orElse(loader.loadDocument(uri, options));
             //TODO this fixes loading on every call . Can be removed once fixed in main branch.
             return Optional.ofNullable(documentCache.get(uri))
-                    .orElseGet(()-> {
-                        System.out.println("Loading document from URI: " + uri);
+                    .orElseGet(() -> {
                         try {
                             return loader.loadDocument(uri, options);
                         } catch (JsonLdError e) {
-                            throw new RuntimeException(e);
+                            throw new EdcException("Failed to load document from URI: " + uri, e);
                         }
                     });
         }
