@@ -140,7 +140,7 @@ Content-Type: application/json
 HTTP 201
 
 
-# Set management subsystem for member 1234 as the management serice for the Central Server
+# Set management subsystem for member 1234 as the management service for the Central Server
 PATCH https://{{cs_host}}:4000/api/v1/management-services-configuration
 X-XSRF-TOKEN: {{cs_xsrf_token}}
 Content-Type: application/json
@@ -159,6 +159,7 @@ X-XSRF-TOKEN: {{cs_xsrf_token}}
 [MultipartFormData]
 certificate_profile_info: ee.ria.xroad.common.certificateprofile.impl.FiVRKCertificateProfileInfoProvider
 tls_auth: false
+acme_server_directory_url: http://{{ca_host}}:8887
 certificate: file,ca/ca.pem;
 
 HTTP 201
@@ -377,7 +378,7 @@ HTTP 200
 [Captures]
 ss0_sign_key_cert: body
 
-# Import auth certificate
+# Import sign certificate
 POST https://{{ss0_host}}:4000/api/v1/token-certificates
 X-XSRF-TOKEN: {{ss0_xsrf_token}}
 Content-Type: application/octet-stream
@@ -896,6 +897,71 @@ HTTP 201
 
 [Captures]
 ss1_test-consumer_id: jsonpath "$.id"
+
+# Add test-consumer sign key to the SS1 Security Server token
+POST https://{{ss1_host}}:4000/api/v1/tokens/0/keys-with-csrs
+X-XSRF-TOKEN: {{ss1_xsrf_token}}
+Content-Type: application/json
+{
+  "key_label": "token-consumer sign key",
+  "csr_generate_request": {
+    "key_usage_type": "SIGNING",
+    "ca_name": "{{ca_name}}",
+    "csr_format": "DER",
+    "member_id": "DEV:COM:1234",
+    "subject_field_values": {
+      "CN": "1234",
+      "C": "FI",
+      "O": "Test Consumer",
+      "subjectAltName": "{{ss1_host}}",
+      "serialNumber": "DEV/SS1/COM"
+    }
+  }
+}
+
+HTTP 200
+
+[Captures]
+test-consumer_sign_key_id: jsonpath "$.key.id"
+test-consumer_sign_key_csr_id: jsonpath "$.csr_id"
+
+# Get the sign key CSR
+GET https://{{ss1_host}}:4000/api/v1/keys/{{test-consumer_sign_key_id}}/csrs/{{test-consumer_sign_key_csr_id}}?csr_format=PEM
+X-XSRF-TOKEN: {{ss1_xsrf_token}}
+
+HTTP 200
+
+[Captures]
+test-consumer_sign_key_csr: body
+
+# Sign the sign key CSR (note that the test CA needs filename so we can't just send it under
+# [FormMultiPart] as we do with the other requests)
+POST http://{{ca_host}}:8888/testca/sign
+Content-Type: multipart/form-data; boundary=certboundary
+```
+--certboundary
+Content-Disposition: form-data; name="type"
+
+sign
+--certboundary
+Content-Disposition: form-data; name="certreq"; filename="sign.csr.pem"
+
+{{test-consumer_sign_key_csr}}
+--certboundary--
+```
+
+HTTP 200
+[Captures]
+test-consumer_sign_key_cert: body
+
+# Import auth certificate
+POST https://{{ss1_host}}:4000/api/v1/token-certificates
+X-XSRF-TOKEN: {{ss1_xsrf_token}}
+Content-Type: application/octet-stream
+```
+{{test-consumer_sign_key_cert}}
+```
+
 
 # Register test-consumer to SS1 Security Server
 PUT https://{{ss1_host}}:4000/api/v1/clients/{{ss1_test-consumer_id}}/register

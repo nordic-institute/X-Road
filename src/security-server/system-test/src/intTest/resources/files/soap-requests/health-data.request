@@ -20,7 +20,7 @@
            <id:xRoadInstance>DEV</id:xRoadInstance>
            <id:memberClass>COM</id:memberClass>
            <id:memberCode>1234</id:memberCode>
-            <id:serverCode>SS0</id:serverCode>
+           <id:serverCode>SS0</id:serverCode>
         </xroad:securityServer>
         <xroad:id>DBOxxqv2csKysKHNwRCrU4QV0EWkqSUY</xroad:id>
         <xroad:protocolVersion>4.0</xroad:protocolVersion>

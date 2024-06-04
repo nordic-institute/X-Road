@@ -28,7 +28,6 @@ package ee.ria.xroad.proxy;
 import ee.ria.xroad.common.SystemProperties;
 import ee.ria.xroad.common.conf.globalconf.GlobalConf;
 import ee.ria.xroad.common.conf.serverconf.ServerConf;
-import ee.ria.xroad.proxy.clientproxy.AcmeChallenge;
 import ee.ria.xroad.proxy.conf.KeyConf;
 import ee.ria.xroad.proxy.testutil.IntegrationTest;
 import ee.ria.xroad.proxy.testutil.TestGlobalConf;
@@ -54,7 +53,6 @@ import java.util.Set;
 
 import static ee.ria.xroad.common.SystemProperties.OCSP_RESPONDER_LISTEN_ADDRESS;
 import static ee.ria.xroad.common.SystemProperties.PROXY_SERVER_LISTEN_ADDRESS;
-import static org.mockito.Mockito.mock;
 
 /**
  * Base class for proxy integration tests
@@ -142,11 +140,6 @@ public abstract class AbstractProxyIntegrationTest {
         TestService testService() {
             service = new TestService(servicePort);
             return service;
-        }
-
-        @Bean(initMethod = "start", destroyMethod = "stop")
-        AcmeChallenge acmeChallenge() {
-            return mock(AcmeChallenge.class);
         }
     }
 

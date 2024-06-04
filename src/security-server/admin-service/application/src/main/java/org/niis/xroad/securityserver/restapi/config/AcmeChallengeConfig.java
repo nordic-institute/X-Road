@@ -23,52 +23,31 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package ee.ria.xroad.proxy;
+package org.niis.xroad.securityserver.restapi.config;
 
-import ee.ria.xroad.common.opmonitoring.AbstractOpMonitoringBuffer;
-import ee.ria.xroad.common.signature.BatchSigner;
-import ee.ria.xroad.proxy.clientproxy.ClientProxy;
-import ee.ria.xroad.proxy.opmonitoring.OpMonitoring;
-import ee.ria.xroad.proxy.serverproxy.ServerProxy;
-import ee.ria.xroad.proxy.util.CertHashBasedOcspResponder;
-
+import org.apache.catalina.connector.Connector;
+import org.apache.coyote.http11.Http11NioProtocol;
+import org.springframework.boot.web.embedded.tomcat.TomcatServletWebServerFactory;
+import org.springframework.boot.web.server.WebServerFactoryCustomizer;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.context.annotation.Import;
+import org.springframework.context.annotation.Profile;
 
-@Import({
-        ProxyRpcConfig.class,
-        ProxyAdminPortConfig.class,
-        ProxyAddonConfig.class,
-        ProxyDiagnosticsConfig.class,
-        ProxyJobConfig.class,
-        ProxyMessageLogConfig.class
-})
 @Configuration
-public class ProxyConfig {
+public class AcmeChallengeConfig {
 
-    @Bean(destroyMethod = "shutdown")
-    BatchSigner batchSigner() {
-        return BatchSigner.init();
+    @Profile("nontest")
+    @Bean
+    public WebServerFactoryCustomizer<TomcatServletWebServerFactory> acmeChallengeCustomizer() {
+        return this::acmeChallengeCustomizer;
     }
 
-    @Bean(initMethod = "start", destroyMethod = "stop")
-    ClientProxy clientProxy() throws Exception {
-        return new ClientProxy();
+    @SuppressWarnings("checkstyle:MagicNumber")
+    private void acmeChallengeCustomizer(TomcatServletWebServerFactory factory) {
+        var connector = new Connector(Http11NioProtocol.class.getName());
+        connector.setScheme("http");
+        connector.setPort(80);
+        factory.addAdditionalTomcatConnectors(connector);
     }
 
-    @Bean(initMethod = "start", destroyMethod = "stop")
-    ServerProxy serverProxy() throws Exception {
-        return new ServerProxy();
-    }
-
-    @Bean(initMethod = "start", destroyMethod = "stop")
-    CertHashBasedOcspResponder certHashBasedOcspResponder() throws Exception {
-        return new CertHashBasedOcspResponder();
-    }
-
-    @Bean(initMethod = "start", destroyMethod = "stop")
-    AbstractOpMonitoringBuffer opMonitoringBuffer() throws Exception {
-        return OpMonitoring.init();
-    }
 }

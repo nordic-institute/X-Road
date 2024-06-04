@@ -139,7 +139,7 @@ public class CsrfWebMvcTest {
                 .roles(Collections.singleton(Role.XROAD_SECURITYSERVER_OBSERVER.getGrantedAuthorityName()))
                 .permissions(userPermissions);
         String expectedUserJsonString = JsonUtils.getObjectWriter().writeValueAsString(expectedUser);
-        MockHttpServletRequestBuilder mockRequest = MockMvcRequestBuilders.get("/api/v1/user")
+        MockHttpServletRequestBuilder mockRequest = MockMvcRequestBuilders.get("http://localhost:4000/api/v1/user")
                 .session(getMockSession())
                 .header(XSRF_HEADER, tokenValue)
                 .cookie(new Cookie(XSRF_COOKIE, tokenValue));
@@ -196,7 +196,7 @@ public class CsrfWebMvcTest {
                 .roles(Collections.singleton(Role.XROAD_SECURITYSERVER_OBSERVER.getGrantedAuthorityName()))
                 .permissions(userPermissions);
         String expectedUserJsonString = JsonUtils.getObjectWriter().writeValueAsString(expectedUser);
-        MockHttpServletRequestBuilder mockRequest = MockMvcRequestBuilders.get("/api/v1/user");
+        MockHttpServletRequestBuilder mockRequest = MockMvcRequestBuilders.get("http://localhost:4000/api/v1/user");
         mockMvc.perform(mockRequest)
                 .andDo(print())
                 .andExpect(status().isOk())
