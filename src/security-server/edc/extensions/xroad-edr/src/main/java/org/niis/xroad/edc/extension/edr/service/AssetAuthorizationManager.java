@@ -67,7 +67,7 @@ public class AssetAuthorizationManager {
     private final AuthorizedAssetRegistry authorizedAssetRegistry;
     private final AssetInProgressRegistry inProgressRegistry;
 
-    private final TitaniumJsonLd jsonLd = new TitaniumJsonLd(new ConsoleMonitor());
+    private final TitaniumJsonLd jsonLd = new TitaniumJsonLd(new ConsoleMonitor()); //TODO jsonLd is not caching context. Register em.
     private final CallbackAddress negotiationCallback = CallbackAddress.Builder.newInstance()
             .uri("local://x-road")
             .events(Set.of("contract.negotiation.finalized"))

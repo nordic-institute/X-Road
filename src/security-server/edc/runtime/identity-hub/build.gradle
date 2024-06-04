@@ -35,7 +35,7 @@ dependencies {
     implementation libs.edc.verifiablecredential.spi
     implementation libs.edc.verifiable.presentation.lib
     implementation libs.edc.jsonLd.spi
-    implementation libs.edc.jsonLd.lib
+//TODO excluded until https://github.com/eclipse-edc/Connector/issues/4232 is fixed    implementation libs.edc.jsonLd.lib
 
     implementation(project(":security-server:edc:extensions:xroad-identity-and-trust"))
     implementation(project(":security-server:edc:extensions:xroad-webserver"))

@@ -95,6 +95,8 @@ hibernate-toolsAnt = { module = "org.hibernate.tool:hibernate-tools-ant", versio
 jackson-bom = { module = "com.fasterxml.jackson:jackson-bom", version.ref = "jackson" }
 jackson-annotations = { module = "com.fasterxml.jackson.core:jackson-annotations", version.ref = "jackson" }
 jackson-databind = { module = "com.fasterxml.jackson.core:jackson-databind", version.ref = "jackson" }
+jackson-jsonP = { module = "com.fasterxml.jackson.datatype:jackson-datatype-jakarta-jsonp", version.ref = "jackson" }
+jackson-datatypeJsr310 = { module = "com.fasterxml.jackson.datatype:jackson-datatype-jsr310", version.ref = "jackson" }
 
 mockito-core = { module = "org.mockito:mockito-core", version.ref = "mockito" }
 mockito-jupiter = { module = "org.mockito:mockito-junit-jupiter", version.ref = "mockito" }
@@ -189,7 +191,6 @@ edc-core-connector = { module = "org.eclipse.edc:connector-core", version.ref = 
 edc-core-edrstore = { module = "org.eclipse.edc:edr-store-core", version.ref = "edc" }
 edc-ext-http = { module = "org.eclipse.edc:http", version.ref = "edc" }
 edc-ext-observability = { module = "org.eclipse.edc:api-observability", version.ref = "edc" }
-edc-ext-jsonld = { module = "org.eclipse.edc:json-ld", version.ref = "edc" }
 edc-crypto-common-lib = { module = "org.eclipse.edc:crypto-common-lib", version.ref = "edc" }
 edc-data-plane-spi = { module = "org.eclipse.edc:data-plane-spi", version.ref = "edc" }
 edc-data-plane-control-api = { module = "org.eclipse.edc:data-plane-control-api", version.ref = "edc" }
@@ -284,7 +285,7 @@ edc-sql-store = [
   "edc-transfer-process-store-sql",
   "edc-edrindex-sql"
 ]
-edc-connector = ["edc-boot", "edc-core-connector", "edc-ext-http", "edc-ext-observability", "edc-ext-jsonld"]
+edc-connector = ["edc-boot", "edc-core-connector", "edc-ext-http", "edc-ext-observability", "edc-jsonLd"]
 edc-did = ["edc-identity-did-web", "edc-identity-did-core", "edc-identity-hub-did", "edc-identity-hub-did-localpub"]
 edc-identity-hub-management-api = ["edc-identity-hub-mgmt-config", "edc-identity-hub-mgmt-did", "edc-identity-hub-mgmt-participantcontext",
   "edc-identity-hub-mgmt-verifiablecredential",

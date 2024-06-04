@@ -53,6 +53,7 @@ dependencies {
     implementation(project(":security-server:edc:extensions:xroad-webserver"))
 
     testImplementation libs.edc.junit
+    testImplementation libs.mockito.jupiter
 }
 
 application {

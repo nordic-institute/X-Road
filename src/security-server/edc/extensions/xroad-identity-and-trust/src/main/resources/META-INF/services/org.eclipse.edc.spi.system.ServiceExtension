@@ -1,4 +1,5 @@
 org.niis.xroad.edc.extension.iam.IatpScopeExtension
 org.niis.xroad.edc.extension.iam.TrustedIssuerExtension
+org.niis.xroad.edc.extension.iam.GaiaXJsonLdExtension
 org.niis.xroad.edc.extension.iam.GaiaXParticipantAgentServiceExtension
 org.niis.xroad.edc.extension.iam.GaiaXSignatureExtension
