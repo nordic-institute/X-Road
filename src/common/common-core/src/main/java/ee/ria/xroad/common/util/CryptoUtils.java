@@ -75,6 +75,9 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
 
+import static org.apache.xml.security.signature.XMLSignature.ALGO_ID_SIGNATURE_ECDSA_SHA256;
+import static org.apache.xml.security.signature.XMLSignature.ALGO_ID_SIGNATURE_ECDSA_SHA384;
+import static org.apache.xml.security.signature.XMLSignature.ALGO_ID_SIGNATURE_ECDSA_SHA512;
 import static org.apache.xml.security.signature.XMLSignature.ALGO_ID_SIGNATURE_RSA_SHA1;
 import static org.apache.xml.security.signature.XMLSignature.ALGO_ID_SIGNATURE_RSA_SHA256;
 import static org.apache.xml.security.signature.XMLSignature.ALGO_ID_SIGNATURE_RSA_SHA256_MGF1;
@@ -93,7 +96,7 @@ public final class CryptoUtils {
             Security.addProvider(new BouncyCastleProvider());
 
             CERT_FACTORY = CertificateFactory.getInstance("X.509");
-            KEY_FACTORY = KeyFactory.getInstance("RSA");
+            KEY_FACTORY = KeyFactory.getInstance("EC");
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
@@ -136,10 +139,14 @@ public final class CryptoUtils {
     public static final String SHA256WITHRSAANDMGF1_ID = "SHA256withRSAandMGF1";
     public static final String SHA384WITHRSAANDMGF1_ID = "SHA384withRSAandMGF1";
     public static final String SHA512WITHRSAANDMGF1_ID = "SHA512withRSAandMGF1";
+    public static final String SHA256WITHECDSA_ID = "SHA256withECDSA";
+    public static final String SHA384WITHECDSA_ID = "SHA384withECDSA";
+    public static final String SHA512WITHECDSA_ID = "SHA512withECDSA";
 
     /** PKCS#11 sign mechanisms. */
     public static final String CKM_RSA_PKCS_NAME = "CKM_RSA_PKCS";
     public static final String CKM_RSA_PKCS_PSS_NAME = "CKM_RSA_PKCS_PSS";
+    public static final String CKM_ECDSA_NAME = "CKM_ECDSA";
 
     /** Digest provider instance. */
     public static final DigestCalculatorProvider DIGEST_PROVIDER = new BcDigestCalculatorProvider();
@@ -210,6 +217,9 @@ public final class CryptoUtils {
             case SHA256WITHRSAANDMGF1_ID -> ALGO_ID_SIGNATURE_RSA_SHA256_MGF1;
             case SHA384WITHRSAANDMGF1_ID -> ALGO_ID_SIGNATURE_RSA_SHA384_MGF1;
             case SHA512WITHRSAANDMGF1_ID -> ALGO_ID_SIGNATURE_RSA_SHA512_MGF1;
+            case SHA256WITHECDSA_ID -> ALGO_ID_SIGNATURE_ECDSA_SHA256;
+            case SHA384WITHECDSA_ID -> ALGO_ID_SIGNATURE_ECDSA_SHA384;
+            case SHA512WITHECDSA_ID -> ALGO_ID_SIGNATURE_ECDSA_SHA512;
             default -> throw new NoSuchAlgorithmException("Unknown algorithm id: " + algoId);
         };
     }
@@ -259,6 +269,12 @@ public final class CryptoUtils {
                 case SHA256_ID -> SHA256WITHRSAANDMGF1_ID;
                 case SHA384_ID -> SHA384WITHRSAANDMGF1_ID;
                 case SHA512_ID -> SHA512WITHRSAANDMGF1_ID;
+                default -> throw new NoSuchAlgorithmException("Unknown digest algorithm id: " + digestAlgorithmId);
+            };
+            case CKM_ECDSA_NAME -> switch (digestAlgorithmId) {
+                case SHA256_ID -> SHA256WITHECDSA_ID;
+                case SHA384_ID -> SHA384WITHECDSA_ID;
+                case SHA512_ID -> SHA512WITHECDSA_ID;
                 default -> throw new NoSuchAlgorithmException("Unknown digest algorithm id: " + digestAlgorithmId);
             };
             default -> throw new NoSuchAlgorithmException("Unknown signing mechanism: " + signMechanismName);

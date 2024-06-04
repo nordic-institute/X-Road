@@ -82,7 +82,7 @@ public final class SoftwareTokenType implements TokenType {
 
     @Override
     public String getSignMechanismName() {
-        return CryptoUtils.CKM_RSA_PKCS_NAME;
+        return CryptoUtils.CKM_ECDSA_NAME;
     }
 
     @Override

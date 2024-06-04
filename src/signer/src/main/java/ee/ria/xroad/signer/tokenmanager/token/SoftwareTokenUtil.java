@@ -49,6 +49,7 @@ import java.security.PrivateKey;
 import java.security.SecureRandom;
 import java.security.cert.Certificate;
 import java.security.cert.X509Certificate;
+import java.security.spec.ECGenParameterSpec;
 import java.sql.Timestamp;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -83,7 +84,7 @@ public final class SoftwareTokenUtil {
     static final String SOFT_TOKEN_KEY_BAK_DIR_NAME = ".softtoken.bak";
 
     // TODO make it configurable.
-    private static final String SIGNATURE_ALGORITHM = CryptoUtils.SHA512WITHRSA_ID;
+    private static final String SIGNATURE_ALGORITHM = CryptoUtils.SHA512WITHECDSA_ID;
 
     private static final FilenameFilter P12_FILTER = new FilenameFilter() {
         @Override
@@ -216,8 +217,9 @@ public final class SoftwareTokenUtil {
     }
 
     static KeyPair generateKeyPair(int keySize) throws Exception {
-        KeyPairGenerator keyPairGen = KeyPairGenerator.getInstance("RSA");
-        keyPairGen.initialize(keySize, new SecureRandom());
+        final var keyPairGen = KeyPairGenerator.getInstance("EC");
+        final var spec = new ECGenParameterSpec("secp521r1");
+        keyPairGen.initialize(spec, new SecureRandom());
 
         return keyPairGen.generateKeyPair();
     }

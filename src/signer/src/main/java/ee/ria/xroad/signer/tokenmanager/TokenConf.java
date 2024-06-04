@@ -235,7 +235,7 @@ public final class TokenConf extends AbstractXmlConf<KeyConfType> {
 
     private static Token from(DeviceType type) {
         String signMechanismName = StringUtil.isBlank(type.getSignMechanismName())
-                ? CryptoUtils.CKM_RSA_PKCS_NAME : type.getSignMechanismName();
+                ? CryptoUtils.CKM_ECDSA_NAME : type.getSignMechanismName();
 
         Token token = new Token(type.getDeviceType(), type.getId(), signMechanismName);
         token.setFriendlyName(type.getFriendlyName());

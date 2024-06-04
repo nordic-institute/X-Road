@@ -50,10 +50,13 @@ import java.util.GregorianCalendar;
 import java.util.Random;
 
 import static ee.ria.xroad.common.util.CryptoUtils.SHA1WITHRSA_ID;
+import static ee.ria.xroad.common.util.CryptoUtils.SHA256WITHECDSA_ID;
 import static ee.ria.xroad.common.util.CryptoUtils.SHA256WITHRSAANDMGF1_ID;
 import static ee.ria.xroad.common.util.CryptoUtils.SHA256WITHRSA_ID;
+import static ee.ria.xroad.common.util.CryptoUtils.SHA384WITHECDSA_ID;
 import static ee.ria.xroad.common.util.CryptoUtils.SHA384WITHRSAANDMGF1_ID;
 import static ee.ria.xroad.common.util.CryptoUtils.SHA384WITHRSA_ID;
+import static ee.ria.xroad.common.util.CryptoUtils.SHA512WITHECDSA_ID;
 import static ee.ria.xroad.common.util.CryptoUtils.SHA512WITHRSAANDMGF1_ID;
 import static ee.ria.xroad.common.util.CryptoUtils.SHA512WITHRSA_ID;
 import static ee.ria.xroad.common.util.CryptoUtils.calculateCertSha1HexHash;
@@ -92,6 +95,7 @@ public final class SignerUtil {
         return switch (signAlgoId) {
             case SHA256WITHRSAANDMGF1_ID, SHA384WITHRSAANDMGF1_ID, SHA512WITHRSAANDMGF1_ID -> digest; // Nothing to do
             case SHA1WITHRSA_ID, SHA256WITHRSA_ID, SHA384WITHRSA_ID, SHA512WITHRSA_ID -> createDataToSign(digest);
+            case SHA256WITHECDSA_ID, SHA384WITHECDSA_ID, SHA512WITHECDSA_ID -> digest;
             default -> throw new NoSuchAlgorithmException("Unknown sign algorithm id: " + signAlgoId);
         };
 

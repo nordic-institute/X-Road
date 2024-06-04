@@ -68,11 +68,15 @@ import java.security.cert.X509Certificate;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Set;
 
 import static ee.ria.xroad.common.ErrorCodes.X_INTERNAL_ERROR;
 import static ee.ria.xroad.common.ErrorCodes.X_TOKEN_PIN_POLICY_FAILURE;
 import static ee.ria.xroad.common.ErrorCodes.X_UNSUPPORTED_SIGN_ALGORITHM;
 import static ee.ria.xroad.common.ErrorCodes.translateException;
+import static ee.ria.xroad.common.util.CryptoUtils.SHA256WITHECDSA_ID;
+import static ee.ria.xroad.common.util.CryptoUtils.SHA384WITHECDSA_ID;
+import static ee.ria.xroad.common.util.CryptoUtils.SHA512WITHECDSA_ID;
 import static ee.ria.xroad.common.util.CryptoUtils.encodeBase64;
 import static ee.ria.xroad.common.util.CryptoUtils.loadPkcs12KeyStore;
 import static ee.ria.xroad.common.util.CryptoUtils.readCertificate;
@@ -111,8 +115,16 @@ import static java.nio.file.StandardCopyOption.ATOMIC_MOVE;
 @Slf4j
 public class SoftwareTokenWorker extends AbstractTokenWorker {
 
+    private static final Set<String> SUPPORTED_ALGORITHMS = Set.of(
+            CryptoUtils.SHA1WITHRSA_ID,
+            CryptoUtils.SHA256WITHRSA_ID,
+            CryptoUtils.SHA384WITHRSA_ID,
+            CryptoUtils.SHA512WITHRSA_ID,
+            SHA256WITHECDSA_ID, SHA384WITHECDSA_ID, SHA512WITHECDSA_ID
+    );
+
     // Use no digesting algorithm, since the input data is already a digest
-    private static final String SIGNATURE_ALGORITHM = "NONEwithRSA";
+    private static final String SIGNATURE_ALGORITHM = "NONEwithECDSA";
 
     private final Map<String, PrivateKey> privateKeys = new HashMap<>();
 
@@ -169,8 +181,8 @@ public class SoftwareTokenWorker extends AbstractTokenWorker {
         log.trace("generateKeys()");
 
         assertTokenAvailable();
-
-        java.security.KeyPair keyPair = generateKeyPair(SystemProperties.getSignerKeyLength());
+        final var size = 521;
+        java.security.KeyPair keyPair = generateKeyPair(size);
 
         String keyId = SignerUtil.randomId();
         savePkcs12Keystore(keyPair, keyId, getKeyStoreFileName(keyId), getPin());
@@ -224,15 +236,10 @@ public class SoftwareTokenWorker extends AbstractTokenWorker {
     }
 
     private static void checkSignatureAlgorithm(String signatureAlgorithmId) throws CodedException {
-        switch (signatureAlgorithmId) {
-            case CryptoUtils.SHA1WITHRSA_ID:
-            case CryptoUtils.SHA256WITHRSA_ID:
-            case CryptoUtils.SHA384WITHRSA_ID:
-            case CryptoUtils.SHA512WITHRSA_ID:
-                break;
-            default:
-                throw CodedException.tr(X_UNSUPPORTED_SIGN_ALGORITHM, "unsupported_sign_algorithm",
-                        "Unsupported signature algorithm '%s'", signatureAlgorithmId);
+        if (!SUPPORTED_ALGORITHMS.contains(signatureAlgorithmId)) {
+            throw CodedException
+                    .tr(X_UNSUPPORTED_SIGN_ALGORITHM, "unsupported_sign_algorithm",
+                            "Unsupported signature algorithm '%s'", signatureAlgorithmId);
         }
     }
 
