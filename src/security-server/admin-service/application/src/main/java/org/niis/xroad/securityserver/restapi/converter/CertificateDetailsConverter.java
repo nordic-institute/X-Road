@@ -98,7 +98,7 @@ public class CertificateDetailsConverter {
         certificate.setIssuerCommonName(issuerCommonName);
         certificate.setIssuerDistinguishedName(x509Certificate.getIssuerX500Principal().toString());
         certificate.setSubjectCommonName(subjectCommonName);
-        certificate.setSubjectDistinguishedName(x509Certificate.getSubjectX500Principal().getName());
+        certificate.setSubjectDistinguishedName(x509Certificate.getSubjectX500Principal().toString());
         certificate.setSubjectAlternativeNames(subjectAlternativeNames);
 
         certificate.setSerial(x509Certificate.getSerialNumber().toString());

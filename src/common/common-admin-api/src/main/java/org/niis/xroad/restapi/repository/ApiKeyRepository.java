@@ -56,7 +56,7 @@ public class ApiKeyRepository {
 
     @CacheEvict(allEntries = true, cacheNames = {LIST_ALL_KEYS_CACHE})
     public void delete(PersistentApiKeyType persistentApiKeyType) {
-        persistenceUtils.getCurrentSession().delete(persistentApiKeyType);
+        persistenceUtils.getCurrentSession().remove(persistentApiKeyType);
     }
 
     public PersistentApiKeyType getApiKey(long id) {

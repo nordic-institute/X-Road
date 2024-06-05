@@ -118,7 +118,7 @@ public class CertificateAuthorityService {
         // map of each subject - issuer DN pair for easy lookups
         Map<String, String> subjectsToIssuers = caCerts.stream().collect(
                 Collectors.toMap(
-                        x509 -> x509.getSubjectX500Principal().getName(),
+                        x509 -> x509.getSubjectX500Principal().toString(),
                         x509 -> x509.getIssuerX500Principal().toString()));
 
         // we only fetch ocsp responses for intermediate approved CAs
@@ -204,7 +204,7 @@ public class CertificateAuthorityService {
         // properties from X509Certificate
         builder.notAfter(FormatUtils.fromDateToOffsetDateTime(certificate.getNotAfter()));
         builder.issuerDistinguishedName(certificate.getIssuerX500Principal().toString());
-        String subjectName = certificate.getSubjectX500Principal().getName();
+        String subjectName = certificate.getSubjectX500Principal().toString();
         builder.subjectDistinguishedName(subjectName);
 
         // properties from ocsp response
@@ -230,7 +230,7 @@ public class CertificateAuthorityService {
     List<String> buildPath(X509Certificate certificate,
                            Map<String, String> subjectsToIssuers) {
         ArrayList<String> pathElements = new ArrayList<>();
-        String current = certificate.getSubjectX500Principal().getName();
+        String current = certificate.getSubjectX500Principal().toString();
         String issuer = certificate.getIssuerX500Principal().toString();
         pathElements.add(current);
         while (!current.equals(issuer) && subjectsToIssuers.containsKey(issuer)) {

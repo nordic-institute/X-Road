@@ -120,7 +120,7 @@ public class CertificateAuthorityServiceTest extends AbstractServiceTestContext 
         // see CertificateAuthorityService#getCertificateAuthorities implementation
         Map<String, String> subjectsToIssuers = caCerts.stream().collect(
                 Collectors.toMap(
-                        x509 -> x509.getSubjectX500Principal().getName(),
+                        x509 -> x509.getSubjectX500Principal().toString(),
                         x509 -> x509.getIssuerX500Principal().toString()));
         List<X509Certificate> filteredCerts = caCerts.stream()
                 .filter(cert -> subjectsToIssuers.containsKey(cert.getIssuerX500Principal().toString()))
@@ -203,7 +203,7 @@ public class CertificateAuthorityServiceTest extends AbstractServiceTestContext 
         X509Certificate certificate = CertificateTestUtils.getMockAuthCertificate();
         String subject = MOCK_AUTH_CERT_SUBJECT;
         String issuer = MOCK_AUTH_CERT_ISSUER;
-        assertEquals(subject, certificate.getSubjectX500Principal().getName());
+        assertEquals(subject, certificate.getSubjectX500Principal().toString());
         assertEquals(issuer, certificate.getIssuerX500Principal().toString());
 
         Map<String, String> subjectsToIssuers = new HashMap<>();
@@ -237,7 +237,7 @@ public class CertificateAuthorityServiceTest extends AbstractServiceTestContext 
         certificate = CertificateTestUtils.getMockCertificate();
         subject = "CN=N/A";
         issuer = "CN=N/A";
-        assertEquals(subject, certificate.getSubjectX500Principal().getName());
+        assertEquals(subject, certificate.getSubjectX500Principal().toString());
         assertEquals(issuer, certificate.getIssuerX500Principal().toString());
 
         subjectsToIssuers = new HashMap<>();
