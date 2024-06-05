@@ -17,7 +17,7 @@ RUN groupadd -o -g $gid builder && useradd -m -u $uid -g $gid builder \
 USER builder
 
 ENV GRADLE_USER_HOME /mnt/gradle-cache
-ENV JRUBY_VERSION=9.1.17.0
+ENV JRUBY_VERSION=9.4.7.0
 
 RUN cd ~ \
   && gpg --keyserver hkp://keyserver.ubuntu.com:80 --recv-keys 409B6B1796C275462A1703113804BB82D39DC0E3 7D2BAF1CF37B13E2069D6956105BD0E739499BDB \
