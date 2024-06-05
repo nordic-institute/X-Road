@@ -58,7 +58,7 @@ public class ApprovedCaConverter {
                 .setCertificateProfileInfo(entity.getCertProfileInfo())
                 .setTlsAuth(entity.getAuthenticationOnly())
                 .setIssuerDistinguishedName(certificate.getIssuerX500Principal().toString())
-                .setSubjectDistinguishedName(certificate.getSubjectX500Principal().getName())
+                .setSubjectDistinguishedName(certificate.getSubjectX500Principal().toString())
                 .setNotBefore(entity.getCaInfo().getValidFrom())
                 .setNotAfter(entity.getCaInfo().getValidTo())
                 .setCertificate(entity.getCaInfo().getCert())

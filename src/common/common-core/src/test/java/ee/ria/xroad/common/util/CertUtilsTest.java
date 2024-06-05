@@ -110,7 +110,7 @@ public class CertUtilsTest {
         byte[] bytes = Files.readAllBytes(file.toPath());
         X509Certificate[] certificate = CertUtils.readCertificateChain(bytes);
         assertNotNull(certificate);
-        assertEquals(certificate[0].getSubjectX500Principal().getName(), "CN=ubuntu-xroad-securityserver-dev");
+        assertEquals(certificate[0].getSubjectX500Principal().toString(), "CN=ubuntu-xroad-securityserver-dev");
     }
 
     /**

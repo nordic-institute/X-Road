@@ -97,7 +97,7 @@ public class CertificateConverter {
                 .setIssuerDistinguishedName(certificate.getIssuerX500Principal().toString())
                 .setNotBefore(certificate.getNotBefore().toInstant())
                 .setNotAfter(certificate.getNotAfter().toInstant())
-                .setSubjectDistinguishedName(certificate.getSubjectX500Principal().getName())
+                .setSubjectDistinguishedName(certificate.getSubjectX500Principal().toString())
                 .setPublicKeyAlgorithm(certificate.getPublicKey().getAlgorithm())
                 .setKeyUsages(keyUsageConverter.convert(certificate.getKeyUsage()))
                 .setSubjectAlternativeNames(getSubjectAlternativeNames(certificate))
