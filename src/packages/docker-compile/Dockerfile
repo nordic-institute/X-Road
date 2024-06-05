@@ -27,7 +27,7 @@ RUN cd ~ \
 
 RUN ~/.rvm/bin/rvm install jruby-$JRUBY_VERSION --binary --skip-gemsets \
   && ~/.rvm/bin/rvm jruby-$JRUBY_VERSION do jgem install jruby-openssl /tmp/jruby-launcher-1.1.19-java.gem \
-    gem-wrappers rubygems-bundler rake:13.0.6 rvm jruby-jars:$JRUBY_VERSION rexml:3.2.5 racc:1.4.16 bundler:1.14.6 warbler:2.0.4 bundler-audit parallel:1.19 rubocop:0.81 ruby-maven:3.3.11 \
+    gem-wrappers rubygems-bundler rake:13.0.6 rvm jruby-jars:$JRUBY_VERSION rexml:3.2.5 racc:1.4.16 bundler:1.14.6 warbler:2.0.4 bundler-audit:0.4.0 parallel:1.19 rubocop:0.81 ruby-maven:3.3.11 \
   && mkdir -p /var/tmp/xroad
 
 WORKDIR /mnt
