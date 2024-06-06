@@ -40,15 +40,12 @@ public class DidMethodResolver implements MethodResolver {
         var didDocument = resolverRegistry.resolve(id.toString())
                 .orElseThrow(failure -> new EdcException(failure.getFailureDetail()));
 
-        //TODO vanilla edc incorrectly solves verification method.
         return didDocument.getVerificationMethod().stream()
                 .map(verificationMethod -> new DataIntegrityKeyPair(
                         URI.create(verificationMethod.getId()),
                         URI.create(verificationMethod.getType()),
                         URI.create(verificationMethod.getController()),
-                        null,
-                        verificationMethod.serializePublicKey(),
-                        "RSA") //TODO harcdcoding for now..
+                        verificationMethod.serializePublicKey())
                 )
                 .findFirst()
                 .orElseThrow(() -> new DocumentError(DocumentError.ErrorType.Unknown, proof.method().type().toString()));

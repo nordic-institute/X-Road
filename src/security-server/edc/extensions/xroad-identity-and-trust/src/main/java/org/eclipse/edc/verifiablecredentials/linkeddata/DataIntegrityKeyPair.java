@@ -29,22 +29,20 @@ class DataIntegrityKeyPair implements VerificationKey {
     private final URI id;
     private final URI type;
     private final URI controller;
-    private String algorithm;
     private final byte[] privateKey;
     private final byte[] publicKey;
 
-    DataIntegrityKeyPair(URI id, URI type, URI controller, byte[] privateKey, byte[] publicKey, String algorithm) {
+    DataIntegrityKeyPair(URI id, URI type, URI controller, byte[] publicKey, byte[] privateKey) {
         super();
         this.id = id;
         this.type = type;
         this.controller = controller;
-        this.privateKey = privateKey;
         this.publicKey = publicKey;
-        this.algorithm = algorithm;
+        this.privateKey = privateKey;
     }
 
-    DataIntegrityKeyPair(URI id, URI type, URI controller, byte[] privateKey, String algorithm) {
-        this(id, type, controller, privateKey, null, algorithm);
+    DataIntegrityKeyPair(URI id, URI type, URI controller, byte[] publicKey) {
+        this(id, type, controller, publicKey, null);
     }
 
     @Override
@@ -68,7 +66,7 @@ class DataIntegrityKeyPair implements VerificationKey {
 
     @Override
     public String algorithm() {
-        return algorithm;
+        return type.toString();
     }
 
     public byte[] publicKey() {
@@ -85,13 +83,21 @@ class DataIntegrityKeyPair implements VerificationKey {
         if (obj == this) return true;
         if (obj == null || obj.getClass() != this.getClass()) return false;
         var that = (DataIntegrityKeyPair) obj;
-        return Objects.equals(this.id, that.id)
-                && Objects.equals(this.type, that.type)
-                && Objects.equals(this.controller, that.controller)
-                && Arrays.equals(this.privateKey, that.privateKey)
-                && Arrays.equals(this.publicKey, that.publicKey)
-                && Objects.equals(this.algorithm, that.algorithm);
+        return Objects.equals(this.id, that.id) &&
+                Objects.equals(this.type, that.type) &&
+                Objects.equals(this.controller, that.controller) &&
+                Arrays.equals(this.privateKey, that.privateKey) &&
+                Arrays.equals(this.publicKey, that.publicKey);
     }
 
+    @Override
+    public String toString() {
+        return "DataIntegrityKeyPair[" +
+                "id=" + id + ", " +
+                "type=" + type + ", " +
+                "controller=" + controller + ", " +
+                "privateKey=" + Arrays.toString(privateKey) + ", " +
+                "publicKey=" + Arrays.toString(publicKey) + ']';
+    }
 
 }
