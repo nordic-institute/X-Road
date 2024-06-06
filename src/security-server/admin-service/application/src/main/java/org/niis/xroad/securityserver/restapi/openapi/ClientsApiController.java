@@ -305,7 +305,7 @@ public class ClientsApiController implements ClientsApi {
     @PreAuthorize("hasAuthority('VIEW_CLIENT_INTERNAL_CERT_DETAILS')")
     public ResponseEntity<CertificateDetails> getClientTlsCertificate(String encodedId, String certHash) {
         ClientId clientId = clientIdConverter.convertId(encodedId);
-        Optional<CertificateType> certificateType = null;
+        Optional<CertificateType> certificateType;
         try {
             certificateType = clientService.getTlsCertificate(clientId, certHash);
         } catch (ClientNotFoundException e) {

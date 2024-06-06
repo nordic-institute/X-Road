@@ -50,8 +50,13 @@ public class ApiKeyRepository {
     private final PersistenceUtils persistenceUtils;
 
     @CacheEvict(allEntries = true, cacheNames = {LIST_ALL_KEYS_CACHE})
-    public void saveOrUpdate(PersistentApiKeyType persistentApiKeyType) {
-        persistenceUtils.getCurrentSession().saveOrUpdate(persistentApiKeyType);
+    public void save(PersistentApiKeyType persistentApiKeyType) {
+        persistenceUtils.getCurrentSession().persist(persistentApiKeyType);
+    }
+
+    @CacheEvict(allEntries = true, cacheNames = {LIST_ALL_KEYS_CACHE})
+    public PersistentApiKeyType update(PersistentApiKeyType persistentApiKeyType) {
+        return persistenceUtils.getCurrentSession().merge(persistentApiKeyType);
     }
 
     @CacheEvict(allEntries = true, cacheNames = {LIST_ALL_KEYS_CACHE})
