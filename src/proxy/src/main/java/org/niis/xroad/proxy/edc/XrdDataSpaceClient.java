@@ -112,7 +112,7 @@ public class XrdDataSpaceClient {
         var signatureResponse = xrdSignatureService.sign(soapRequest.getClient(), soapRequest.getBytes());
 
         final var dsRequest = ClassicRequestBuilder.post(new URI(path))
-                .addHeader(assetInfo.authKey(), assetInfo.authCode())
+                .addHeader("Authorization", assetInfo.authCode())
                 .addHeader(HEADER_XRD_SIG, signatureResponse.getSignature())
                 .setEntity(soapRequest.getBytes(), ContentType.parse(soapRequest.getContentType()));
 

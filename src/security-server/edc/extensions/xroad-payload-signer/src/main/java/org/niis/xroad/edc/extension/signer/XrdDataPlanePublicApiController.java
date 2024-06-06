@@ -97,6 +97,7 @@ import static java.util.stream.Collectors.toList;
 import static org.apache.commons.lang3.StringUtils.defaultIfBlank;
 import static org.apache.commons.lang3.StringUtils.isBlank;
 import static org.eclipse.edc.connector.dataplane.spi.schema.DataFlowRequestSchema.BODY;
+import static org.eclipse.edc.connector.dataplane.spi.schema.DataFlowRequestSchema.MEDIA_TYPE;
 import static org.niis.xroad.edc.sig.PocConstants.HEADER_XRD_SIG;
 
 @Path("{any:.*}")
@@ -156,7 +157,7 @@ public class XrdDataPlanePublicApiController {
     }
 
     private boolean isSoap(DataFlowStartMessage dataFlowStartMessage) {
-        return Optional.ofNullable(dataFlowStartMessage.getSourceDataAddress().getStringProperty("Content-Type"))
+        return Optional.ofNullable(dataFlowStartMessage.getProperties().get(MEDIA_TYPE))
                 .map(contentType -> contentType.contains("text/xml"))
                 .orElse(false);
     }
@@ -337,12 +338,21 @@ public class XrdDataPlanePublicApiController {
         return new String(Base64.getDecoder().decode(headers.get(HEADER_XRD_SIG)));
     }
 
+    private String getClientIdFromHeaders(Map<String, String> headers) {
+        for (Map.Entry<String, String> header : headers.entrySet()) {
+            if (header.getKey().equalsIgnoreCase(MimeUtils.HEADER_CLIENT_ID)) {
+                return header.getValue();
+            }
+        }
+        throw new EdcException("Missing clientID header.");
+    }
+
     private Response handleSuccessRest(CachingStream responseStream, Map<String, String> headers, ServiceId.Conf serviceId,
                                        ContainerRequestContextApi contextApi, byte[] requestDigest, byte[] responseBodyDigest) {
         try {
             var queryId = contextApi.headers().get(MimeUtils.HEADER_QUERY_ID);
             var xRequestId = contextApi.headers().get(MimeUtils.HEADER_REQUEST_ID);
-            var clientId = RestMessage.decodeClientId(contextApi.headers().get("X-Road-Client"));
+            var clientId = RestMessage.decodeClientId(getClientIdFromHeaders(contextApi.headers()));
 
             var restResponse = new RestResponse(clientId,
                     queryId,
