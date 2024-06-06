@@ -34,15 +34,14 @@ Feature: 0100 - SS: Proxy
         </soapenv:Body>
     </soapenv:Envelope>
     """
-    Then response is sent of http status code 200 and body path "Envelope.Body" is not empty
-
+    Then response is sent of http status code 200 and body path "Envelope.Body.getRandomResponse.data" is not empty
 
   Scenario: REST request is successful transferred over X-Road proxy
     When REST request is sent to "ss1" proxy
     """json
     {"data": 1.0, "service": "random"}
     """
-    Then response is sent of http status code 200 and body path "message" is equal to "Hello, world!"
+    Then response is sent of http status code 200 and body path "message" is equal to "Hello, world from POST service!"
 
   @DataSpace
   Scenario: Soap request is successful over proxy using DataSpace transport
@@ -75,7 +74,7 @@ Feature: 0100 - SS: Proxy
         </soapenv:Body>
     </soapenv:Envelope>
     """
-    Then response is sent of http status code 200 and body path "Envelope.Body" is not empty
+    Then response is sent of http status code 200 and body path "Envelope.Body.getRandomResponse.data" is not empty
 
   @DataSpace
   Scenario: REST request is successful transferred over proxy using DataSpace transport
@@ -83,4 +82,4 @@ Feature: 0100 - SS: Proxy
     """json
     {"data": 1.0, "service": "random"}
     """
-    Then response is sent of http status code 200 and body path "message" is equal to "Hello, world!"
+    Then response is sent of http status code 200 and body path "message" is equal to "Hello, world from POST service!"

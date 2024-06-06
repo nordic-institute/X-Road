@@ -42,7 +42,6 @@ import java.time.Duration;
 import java.util.Optional;
 
 import static org.awaitility.Awaitility.await;
-import static org.niis.xroad.e2e.container.Port.DID_HTTP;
 import static org.niis.xroad.e2e.container.Port.PROXY;
 import static org.niis.xroad.e2e.container.Port.UI;
 import static org.testcontainers.containers.wait.strategy.Wait.forListeningPort;
@@ -60,7 +59,6 @@ public class EnvSetup implements TestableContainerInitializer {
     public static final String SS0 = "ss0";
     public static final String SS1 = "ss1";
     public static final String HURL = "hurl";
-    public static final String DID_SERVER = "did-server";
 
     private final ComposeLoggerFactory composeLoggerFactory;
     private final CustomProperties customProperties;
@@ -83,8 +81,6 @@ public class EnvSetup implements TestableContainerInitializer {
 
                             .withExposedService(SS1, UI, forListeningPort())
                             .withExposedService(SS1, PROXY, forListeningPort())
-
-                            .withExposedService(DID_SERVER, DID_HTTP, forListeningPort())
 
                             .withEnv("CS_IMG", customProperties.getCsImage())
                             .withEnv("SS_IMG", customProperties.getSsImage())

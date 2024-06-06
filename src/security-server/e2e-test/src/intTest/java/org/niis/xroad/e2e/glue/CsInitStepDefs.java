@@ -51,10 +51,10 @@ public class CsInitStepDefs extends BaseE2EStepDefs {
             return;
         }
 
-        var hulRunning = envSetup.getContainerByServiceName(HURL)
+        var hurlRunning = envSetup.getContainerByServiceName(HURL)
                 .map(ContainerState::isRunning)
                 .orElse(true);
 
-        assertFalse(hulRunning);
+        assertFalse(hurlRunning);
     }
 }
