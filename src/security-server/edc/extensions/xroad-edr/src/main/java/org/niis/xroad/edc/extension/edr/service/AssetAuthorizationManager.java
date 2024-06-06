@@ -26,6 +26,7 @@
  */
 package org.niis.xroad.edc.extension.edr.service;
 
+import io.opentelemetry.instrumentation.annotations.WithSpan;
 import jakarta.json.Json;
 import jakarta.json.JsonObject;
 import jakarta.json.JsonReader;
@@ -73,6 +74,7 @@ public class AssetAuthorizationManager {
             .events(Set.of("contract.negotiation.finalized"))
             .build();
 
+    @WithSpan
     public DataAddress getOrRequestAssetAccess(NegotiateAssetRequestDto requestDto) {
         if (requestDto.isOneTimeUseToken()) {
             return requestAccess(requestDto);
@@ -81,7 +83,7 @@ public class AssetAuthorizationManager {
                 .orElseGet(() -> requestAccess(requestDto));
     }
 
-    public DataAddress requestAccess(NegotiateAssetRequestDto requestDto) {
+    private DataAddress requestAccess(NegotiateAssetRequestDto requestDto) {
 
         var clientId = requestDto.getClientId();
         var serviceId = requestDto.getAssetId();

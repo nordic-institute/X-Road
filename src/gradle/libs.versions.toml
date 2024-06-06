@@ -267,6 +267,12 @@ edc-transfer-process-store-sql = { module = "org.eclipse.edc:transfer-process-st
 edc-edrindex-sql = { module = "org.eclipse.edc:edr-index-sql", version.ref = "edc" }
 edc-junit = { module = "org.eclipse.edc:junit", version.ref = "edc" }
 
+edc-micrometer-core = { module = "org.eclipse.edc:micrometer-core", version.ref = "edc" }
+edc-micrometer-jersey = { module = "org.eclipse.edc:jersey-micrometer", version.ref = "edc" }
+edc-micrometer-jetty = { module = "org.eclipse.edc:jetty-micrometer", version.ref = "edc" }
+
+opentelemetry-instrumentation-annotations = { module = "io.opentelemetry.instrumentation:opentelemetry-instrumentation-annotations", version = "1.32.0" } # TODO older version to align with  edc
+
 [bundles]
 metrics = ["metrics-core", "metrics-jmx"]
 jaxb = ["jaxb-runtime", "jaxb-xjc"]
@@ -290,6 +296,7 @@ edc-did = ["edc-identity-did-web", "edc-identity-did-core", "edc-identity-hub-di
 edc-identity-hub-management-api = ["edc-identity-hub-mgmt-config", "edc-identity-hub-mgmt-did", "edc-identity-hub-mgmt-participantcontext",
   "edc-identity-hub-mgmt-verifiablecredential",
   "edc-identity-hub-mgmt-keypairs", "edc-identity-hub-mgmt-authentication", "edc-identity-hub-mgmt-authorization"]
+edc-monitoring = ["edc-micrometer-core", "edc-micrometer-jersey", "edc-micrometer-jetty"]
 
 [plugins]
 springBoot = { id = "org.springframework.boot", version.ref = "springBoot" }

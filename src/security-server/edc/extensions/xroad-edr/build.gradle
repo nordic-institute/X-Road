@@ -16,6 +16,7 @@ dependencies {
     implementation libs.edc.jsonLd.lib
     implementation libs.edc.transform.lib
     implementation libs.edc.control.plane.transform
+    implementation libs.opentelemetry.instrumentation.annotations
 
     implementation libs.caffeine
     implementation libs.nimbus.jose.jwt

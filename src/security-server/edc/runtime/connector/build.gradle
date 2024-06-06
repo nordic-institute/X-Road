@@ -11,6 +11,7 @@ configurations {
 
     configureEach {
         exclude group: 'org.eclipse.edc', module: 'jetty-core'
+        exclude group: 'com.apicatalog', module: 'titanium-json-ld-jre8' //transient dep that creates errors
     }
 }
 
@@ -39,6 +40,9 @@ dependencies {
 
     // sql store
     implementation libs.bundles.edc.sql.store
+
+    implementation libs.bundles.edc.monitoring
+    implementation 'io.opentelemetry:opentelemetry-exporter-otlp:1.38.0'
 
     // x-road extensions
     implementation(project(":security-server:edc:extensions:xroad-jsonld"))

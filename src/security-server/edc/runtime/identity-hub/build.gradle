@@ -9,6 +9,7 @@ plugins {
 configurations {
     configureEach {
         exclude group: 'org.eclipse.edc', module: 'jetty-core'
+        exclude group: 'com.apicatalog', module: 'titanium-json-ld-jre8' //transient dep that creates errors
     }
 }
 
@@ -36,6 +37,8 @@ dependencies {
     implementation libs.edc.verifiable.presentation.lib
     implementation libs.edc.jsonLd.spi
 //TODO excluded until https://github.com/eclipse-edc/Connector/issues/4232 is fixed    implementation libs.edc.jsonLd.lib
+
+    implementation libs.bundles.edc.monitoring
 
     implementation(project(":security-server:edc:extensions:xroad-jsonld"))
     implementation(project(":security-server:edc:extensions:xroad-identity-and-trust"))

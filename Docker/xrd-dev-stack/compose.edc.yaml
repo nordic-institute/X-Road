@@ -46,3 +46,27 @@ services:
       - "4354:9194" #EDC protocol port
       - "4355:9291" #EDC public port
       - "4356:9293" #EDC XRD public port
+  prometheus:
+    image: prom/prometheus:v2.52.0
+    container_name: prometheus
+    deploy:
+      resources:
+        reservations:
+          memory: 128M
+        limits:
+          memory: 256M
+    volumes:
+      - ./prometheus/:/etc/prometheus/
+    ports:
+      - 9090:9090
+  jaeger:
+    image: jaegertracing/all-in-one:1.57
+    container_name: jaeger
+    deploy:
+      resources:
+        reservations:
+          memory: 512M
+        limits:
+          memory: 512M
+    ports:
+      - 16686:16686

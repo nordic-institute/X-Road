@@ -12,4 +12,9 @@ source /usr/share/xroad/scripts/setup_edc_db.sh
 
 exec java -Dedc.fs.config="/etc/xroad-edc/edc-connector.properties" \
     -Xdebug -agentlib:jdwp=transport=dt_socket,address=*:9953,server=y,suspend=n \
+    -javaagent:/etc/xroad-edc/opentelemetry-javaagent.jar \
+    -Dotel.service.name="$EDC_HOSTNAME-edc-connector" \
+    -Dotel.exporter.prometheus.port=9464 \
+    -Dotel.metrics.exporter=prometheus \
+    -Dotel.exporter.otlp.endpoint=http://jaeger:4317 \
     -Xmx256m -jar /usr/share/xroad/jlib/edc-connector.jar
