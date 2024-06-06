@@ -8,16 +8,17 @@ dependencies {
 
     implementation(project(":security-server:edc:extensions:xroad-jsonld"))
 
-    implementation(libs.edc.identity.trust.core)
-        {
-            exclude group: 'org.eclipse.edc', module: 'verifiable-credentials' // we use our own fork of it to customize validation rules
-            exclude group: 'org.eclipse.edc', module: 'ldp-verifiable-credentials'
-            // we use our own fork of it in order to verify Gaia-X signatures
-        }
+    implementation(libs.edc.identity.trust.core) {
+        // we use our own fork of it in order to verify Gaia-X signatures
+        exclude group: 'org.eclipse.edc', module: 'ldp-verifiable-credentials'
+    }
 
+    implementation libs.edc.identity.trust.service
     implementation libs.edc.jersey.providers.lib
     implementation libs.edc.transform.lib
     implementation libs.edc.crypto.common.lib
+    implementation libs.edc.verifiable.credentials
+    implementation libs.edc.jwt.verifiable.credentials
     implementation libs.edc.jsonLd.spi
     implementation libs.edc.jws2020.lib
     implementation libs.edc.token.core
