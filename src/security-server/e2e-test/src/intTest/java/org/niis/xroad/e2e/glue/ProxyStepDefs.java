@@ -38,7 +38,9 @@ import static ee.ria.xroad.common.util.MimeUtils.HEADER_CLIENT_ID;
 import static io.restassured.RestAssured.given;
 import static io.restassured.config.XmlConfig.xmlConfig;
 import static org.hamcrest.CoreMatchers.equalTo;
-import static org.hamcrest.CoreMatchers.notNullValue;
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.emptyOrNullString;
+import static org.hamcrest.Matchers.not;
 
 @SuppressWarnings(value = {"SpringJavaInjectionPointsAutowiringInspection"})
 public class ProxyStepDefs extends BaseE2EStepDefs {
@@ -77,9 +79,14 @@ public class ProxyStepDefs extends BaseE2EStepDefs {
 
     @Step("response is sent of http status code {int} and body path {string} is not empty")
     public void responseValidated(int httpStatus, String path) {
-        response.assertThat()
+        // not working .body(path, not(emptyOrNullString()));
+        String value = response.assertThat()
                 .statusCode(httpStatus)
-                .body(path, notNullValue());
+                .extract()
+                .xmlPath()
+                .getString(path);
+        testReportService.attachText("path value", value);
+        assertThat(value, not(emptyOrNullString()));
     }
 
     @Step("REST request is sent to {string} proxy")
