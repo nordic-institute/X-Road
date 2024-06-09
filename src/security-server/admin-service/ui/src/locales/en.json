@@ -285,7 +285,7 @@
     "helpUsage": "Usage policy of the certificate: signing messages or authenticating Security Server.",
     "saveInfo": "Generate a new CSR and save it into a safe place.",
     "usage": "Usage",
-    "orderAcmeCertificate": "Generate a new CSR, order certificate from ACME Server with it and import the returned certificate to the token."
+    "orderAcmeCertificate": "Order certificate from ACME Server with the generated CSR and import the returned certificate to the token."
   },
   "customValidation": {
     "invalidEndpoint": "Endpoint contains illegal characters",

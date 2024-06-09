@@ -12,7 +12,9 @@ acme:
   # ACME external account binding credentials grouped by Certification Authorities(CA-s) and Members,
   # where CA-s have their name as key and should be surrounded '[ ]' marks to allow spaces in their names.
   # For Members the key is the Member Code, and they have two properties: kid and mac-key, which should be
-  # acquired externally from the CA.
+  # acquired externally from the CA. If the CA supports kid-based certificate type selection, then credentials starting
+  # with the prefix "auth-" can be used to order authentication certificate and credentials starting with "sign-" can
+  # be used to order signing certificates.
   # Property is-mac-key-base64-encoded should be true if the provided mac-keys are encoded in base64.
   eab-credentials:
     certificate-authorities:
