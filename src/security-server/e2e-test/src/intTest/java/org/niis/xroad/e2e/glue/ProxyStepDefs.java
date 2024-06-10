@@ -25,29 +25,47 @@
  */
 package org.niis.xroad.e2e.glue;
 
+import io.cucumber.datatable.DataTable;
 import io.cucumber.docstring.DocString;
 import io.cucumber.java.en.Step;
 import io.restassured.RestAssured;
+import io.restassured.builder.MultiPartSpecBuilder;
+import io.restassured.config.MultiPartConfig;
+import io.restassured.http.Header;
+import io.restassured.http.Headers;
 import io.restassured.response.ValidatableResponseOptions;
+import jakarta.xml.soap.MessageFactory;
+import jakarta.xml.soap.MimeHeaders;
+import jakarta.xml.soap.SOAPException;
+import jakarta.xml.soap.SOAPMessage;
 import org.niis.xroad.e2e.container.EnvSetup;
 import org.niis.xroad.e2e.container.Port;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpHeaders;
 
+import java.nio.charset.StandardCharsets;
+import java.util.LinkedHashMap;
+import java.util.Map;
+import java.util.StringTokenizer;
+
 import static ee.ria.xroad.common.util.MimeUtils.HEADER_CLIENT_ID;
 import static io.restassured.RestAssured.given;
 import static io.restassured.config.XmlConfig.xmlConfig;
+import static java.net.HttpURLConnection.HTTP_OK;
 import static org.hamcrest.CoreMatchers.equalTo;
+import static org.hamcrest.CoreMatchers.startsWith;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.emptyOrNullString;
 import static org.hamcrest.Matchers.not;
 
 @SuppressWarnings(value = {"SpringJavaInjectionPointsAutowiringInspection"})
 public class ProxyStepDefs extends BaseE2EStepDefs {
+
     @Autowired
     private EnvSetup envSetup;
 
     private ValidatableResponseOptions<?, ?> response;
+    private SOAPMessage soapMessage;
 
     @Step("SOAP request is sent to {string} proxy")
     public void requestSoapIsSentToProxy(String targetProxy, DocString docString) {
@@ -107,5 +125,106 @@ public class ProxyStepDefs extends BaseE2EStepDefs {
                 .then();
     }
 
+    @Step("multipart MIME message with SOAP request and attachments is sent to {string} proxy")
+    public void sendMultipartMimeMessageLegacy(String targetProxy, DocString docString) {
+        sendMultipartMimeMessage(targetProxy, docString, "legacy");
+    }
+
+    @Step("multipart MIME message with SOAP request and attachments is sent to {string} proxy using DataSpace transport")
+    public void sendMultipartMimeMessageUsingDataspace(String targetProxy, DocString docString) {
+        sendMultipartMimeMessage(targetProxy, docString, "dataspace");
+    }
+
+    private void sendMultipartMimeMessage(String targetProxy, DocString docString, String transport) {
+        var mapping = envSetup.getContainerMapping(targetProxy, Port.PROXY);
+
+        response = given()
+                .log().all()
+                .config(RestAssured.config().multiPartConfig(
+                        new MultiPartConfig()
+                                .defaultCharset(StandardCharsets.UTF_8)
+                                .defaultSubtype("related")))
+                .multiPart("soappart", docString.getContent(), "text/xml")
+                .multiPart(new MultiPartSpecBuilder("first attachment contents. size 35.")
+                        .controlName("att-1")
+                        .mimeType("application/octet-stream")
+                        .header("Content-ID", "att-1")
+                        .build())
+                .multiPart(new MultiPartSpecBuilder("this is second attachment contents. size is 47.")
+                        .controlName("att-2")
+                        .mimeType("text/plain")
+                        .header("Content-ID", "att-2")
+                        .build())
+                .header("X-Road-Use-DS-Transport", transport.equals("legacy") ? "false" : "true")
+                .post("http://%s:%s".formatted(mapping.host(), mapping.port()))
+                .then();
+    }
+
+    @Step("SOAP response contains the following attachments and sizes")
+    public void validateResponseAttachments(DataTable dataTable) {
+        // name: size
+        Map<String, String> data = dataTable.asMap(String.class, String.class);
+
+        response.assertThat().body("Envelope.Body.storeAttachmentsResponse.attachment.size()", equalTo(data.size()));
+
+        for (Map.Entry<String, String> att : data.entrySet()) {
+            response.assertThat()
+                    .body("Envelope.Body.storeAttachmentsResponse.attachment.find { it.name == '" + att.getKey() + "'}.size",
+                            equalTo(att.getValue()));
+        }
+    }
+
+    @Step("response is multipart MIME message")
+    public void responseIsMultipartMIMEMessage() {
+        response.assertThat()
+                .statusCode(HTTP_OK)
+                .header(HttpHeaders.CONTENT_TYPE, startsWith("multipart/related"));
+    }
+
+    @Step("response is parsed as SOAP message")
+    public void parseResponseToSoap() {
+        try {
+            MessageFactory factory = MessageFactory.newInstance();
+            soapMessage = factory.createMessage(toMimeHeaders(response.extract().headers()),
+                    response.extract().asInputStream());
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    @Step("multipart MIME SOAP response contains attachments with sizes")
+    public void assertSoapAttachments(DataTable dataTable) throws SOAPException {
+        // assert attachments count from multipart parts
+        Map<String, String> data = dataTable.asMap(String.class, String.class);
+
+        assertThat(data.size(), equalTo(soapMessage.countAttachments()));
+
+        soapMessage.getSOAPBody().getChildNodes().getLength();
+
+        // assert attachment names and sizes in SOAP response body
+        Map<String, String> collectedFromSoapBody = new LinkedHashMap<>();
+        for (int i = 0; i < soapMessage.getSOAPBody().getFirstChild().getChildNodes().getLength(); i++) {
+            var node = soapMessage.getSOAPBody().getFirstChild().getChildNodes().item(i);
+            String name = node.getChildNodes().item(0).getTextContent();
+            String size = node.getChildNodes().item(1).getTextContent();
+            collectedFromSoapBody.put(name, size);
+        }
+
+        assertThat(data, equalTo(collectedFromSoapBody));
+    }
+
+    private MimeHeaders toMimeHeaders(Headers headers) {
+        MimeHeaders mimeHeaders = new MimeHeaders();
+        for (Header header : headers) {
+            String name = header.getName();
+            String value = header.getValue();
+
+            StringTokenizer values = new StringTokenizer(value, ",");
+            while (values.hasMoreTokens()) {
+                mimeHeaders.addHeader(name, values.nextToken().trim());
+            }
+        }
+        return mimeHeaders;
+    }
 
 }

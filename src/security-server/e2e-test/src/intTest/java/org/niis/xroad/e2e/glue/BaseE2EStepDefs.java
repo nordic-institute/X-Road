@@ -27,7 +27,6 @@ package org.niis.xroad.e2e.glue;
 
 import org.niis.xroad.common.test.glue.BaseStepDefs;
 
-@SuppressWarnings("SpringJavaAutowiredMembersInspection")
 public abstract class BaseE2EStepDefs extends BaseStepDefs {
 
 }

@@ -869,6 +869,12 @@ X-XSRF-TOKEN: {{ss0_xsrf_token}}
     },
     {
       "service_code": "personDetails"
+    },
+    {
+       "service_code": "getAttachments"
+    },
+    {
+       "service_code": "storeAttachments"
     }
   ] 
 }
