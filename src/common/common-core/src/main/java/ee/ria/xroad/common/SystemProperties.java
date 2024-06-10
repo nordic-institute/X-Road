@@ -53,10 +53,10 @@ public final class SystemProperties {
             PREFIX + "common.configuration-path";
 
     /** Current version number of the global configuration **/
-    public static final int CURRENT_GLOBAL_CONFIGURATION_VERSION = 3;
+    public static final int CURRENT_GLOBAL_CONFIGURATION_VERSION = 4;
 
     /** Minimum supported version number of the global configuration **/
-    static final int MINIMUM_SUPPORTED_GLOBAL_CONFIGURATION_VERSION = 2;
+    public static final int MINIMUM_SUPPORTED_GLOBAL_CONFIGURATION_VERSION = 2;
 
     /** Default minimum supported global conf version on central server */
     public static final String DEFAULT_MINIMUM_CENTRAL_SERVER_GLOBAL_CONFIGURATION_VERSION = "2";
@@ -99,6 +99,26 @@ public final class SystemProperties {
     /** property name of the flag to allow generating csr for key with certificates */
     public static final String PROXY_UI_API_ALLOW_CSR_FOR_KEY_WITH_CERTIFICATE =
             PREFIX + "proxy-ui-api.allow-csr-for-key-with-certificate";
+
+    /** property name of the number of attempts to check whether the acme authorizations have completed */
+    public static final String PROXY_UI_API_ACME_AUTHORIZATION_WAIT_ATTEMPTS =
+            PREFIX + "proxy-ui-api.acme-authorization-wait-attempts";
+
+    /** property name of the amount of time to wait between acme authorization completion check attempts */
+    public static final String PROXY_UI_API_ACME_AUTHORIZATION_WAIT_INTERVAL =
+            PREFIX + "proxy-ui-api.acme-authorization-wait-interval";
+
+    /** property name of the number of attempts to check whether the acme certificate is ready */
+    public static final String PROXY_UI_API_ACME_CERTIFICATE_WAIT_ATTEMPTS =
+            PREFIX + "proxy-ui-api.acme-certificate-wait-attempts";
+
+    /** property name of the amount of time to wait between acme certificate completion check attempts */
+    public static final String PROXY_UI_API_ACME_CERTIFICATE_WAIT_INTERVAL =
+            PREFIX + "proxy-ui-api.acme-certificate-wait-interval";
+
+    /** property name of the amount of days the ACME server account's self-signed certificate is valid */
+    public static final String PROXY_UI_API_ACME_ACCOUNT_KEY_PAIR_EXPIRATION_IN_DAYS =
+            PREFIX + "proxy-ui-api.acme-certificate-account-key-pair-expiration";
 
     // Proxy ------------------------------------------------------------------
 
@@ -787,6 +807,26 @@ public final class SystemProperties {
     public static boolean getAllowCsrForKeyWithCertificate() {
         return Boolean.parseBoolean(System.getProperty(PROXY_UI_API_ALLOW_CSR_FOR_KEY_WITH_CERTIFICATE,
                 DEFAULT_ALLOW_CSR_FOR_KEY_WITH_CERTIFICATE));
+    }
+
+    public static int getAcmeAuthorizationWaitAttempts() {
+        return Integer.parseInt(System.getProperty(PROXY_UI_API_ACME_AUTHORIZATION_WAIT_ATTEMPTS, "5"));
+    }
+
+    public static long getAcmeAuthorizationWaitInterval() {
+        return Long.parseLong(System.getProperty(PROXY_UI_API_ACME_AUTHORIZATION_WAIT_INTERVAL, "5000"));
+    }
+
+    public static int getAcmeCertificateWaitAttempts() {
+        return Integer.parseInt(System.getProperty(PROXY_UI_API_ACME_CERTIFICATE_WAIT_ATTEMPTS, "5"));
+    }
+
+    public static long getAcmeCertificateWaitInterval() {
+        return Long.parseLong(System.getProperty(PROXY_UI_API_ACME_CERTIFICATE_WAIT_INTERVAL, "5000"));
+    }
+
+    public static long getAcmeAccountKeyPairExpirationInDays() {
+        return Long.parseLong(System.getProperty(PROXY_UI_API_ACME_ACCOUNT_KEY_PAIR_EXPIRATION_IN_DAYS, "365"));
     }
 
     /**

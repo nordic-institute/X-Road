@@ -27,9 +27,9 @@ package ee.ria.xroad.confproxy.util;
 
 import ee.ria.xroad.common.SystemProperties;
 import ee.ria.xroad.common.conf.globalconf.ConfigurationPartMetadata;
-import ee.ria.xroad.common.conf.globalconf.SharedParametersV3;
+import ee.ria.xroad.common.conf.globalconf.ParametersProviderFactory;
+import ee.ria.xroad.common.conf.globalconf.SharedParameters;
 import ee.ria.xroad.common.conf.globalconf.VersionedConfigurationDirectory;
-import ee.ria.xroad.common.conf.globalconf.sharedparameters.v3.ConfigurationSourceType;
 import ee.ria.xroad.common.util.CryptoUtils;
 import ee.ria.xroad.common.util.HashCalculator;
 import ee.ria.xroad.common.util.MimeTypes;
@@ -60,7 +60,6 @@ import java.time.temporal.ChronoUnit;
 import java.util.Date;
 import java.util.List;
 
-import static ee.ria.xroad.common.SystemProperties.CURRENT_GLOBAL_CONFIGURATION_VERSION;
 import static ee.ria.xroad.common.conf.globalconf.ConfigurationConstants.CONTENT_ID_SHARED_PARAMETERS;
 import static ee.ria.xroad.common.util.CryptoUtils.calculateDigest;
 import static ee.ria.xroad.common.util.CryptoUtils.encodeBase64;
@@ -76,7 +75,6 @@ import static ee.ria.xroad.common.util.MimeUtils.HEADER_VERSION;
 import static ee.ria.xroad.common.util.MimeUtils.mpMixedContentType;
 import static ee.ria.xroad.common.util.MimeUtils.mpRelatedContentType;
 import static ee.ria.xroad.common.util.MimeUtils.randomBoundary;
-import static java.lang.String.valueOf;
 
 /**
  * Utility class that encapsulates the process of signing the downloaded
@@ -105,6 +103,7 @@ public class OutputBuilder implements AutoCloseable {
     /**
      * Constructs an output builder for the given global configuration directory
      * and configuration proxy instance configuration.
+     *
      * @param confDirectory global configuration to be processed
      * @param configuration configuration proxy instance configuration
      * @throws IOException in case of errors when a temporary directory
@@ -121,6 +120,7 @@ public class OutputBuilder implements AutoCloseable {
     /**
      * Generates a signed directory MIME for the global configuration and
      * writes the directory contents to a temporary location.
+     *
      * @throws Exception if errors occur when reading global configuration files
      */
     public final void buildSignedDirectory() throws Exception {
@@ -141,6 +141,7 @@ public class OutputBuilder implements AutoCloseable {
     /**
      * Moves the signed global configuration to the location where it is
      * accessible to clients.
+     *
      * @throws IOException in case of unsuccessful file operations
      */
     public final void move() throws IOException {
@@ -160,6 +161,7 @@ public class OutputBuilder implements AutoCloseable {
 
     /**
      * Cleans up any remaining temporary files.
+     *
      * @throws IOException in case of unsuccessful file operations
      */
     @Override
@@ -170,6 +172,7 @@ public class OutputBuilder implements AutoCloseable {
 
     /**
      * Setup reference data and temporary directory for the output builder.
+     *
      * @throws IOException if temporary directory could not be created
      */
     private void setup() throws IOException {
@@ -197,6 +200,7 @@ public class OutputBuilder implements AutoCloseable {
 
     /**
      * Generates global configuration directory content MIME.
+     *
      * @param mimeContent output stream to write to
      * @throws Exception if reading global configuration files fails
      */
@@ -213,7 +217,7 @@ public class OutputBuilder implements AutoCloseable {
             confDir.eachFile((metadata, inputStream) -> {
                 try (FileOutputStream fos = createFileOutputStream(tempDirPath, metadata)) {
                     if (shouldOverrideConfigurationSources(metadata)) {
-                        inputStream = toInputStreamWithOverriddenConfigurationSources(inputStream);
+                        inputStream = toInputStreamWithOverriddenConfigurationSources(inputStream, metadata.getConfigurationVersion());
                     }
                     TeeInputStream tis = new TeeInputStream(inputStream, fos);
                     appendFileContent(encoder, instance, metadata, tis);
@@ -223,38 +227,43 @@ public class OutputBuilder implements AutoCloseable {
     }
 
     private boolean shouldOverrideConfigurationSources(ConfigurationPartMetadata metadata) {
-        boolean isVersion3 = valueOf(CURRENT_GLOBAL_CONFIGURATION_VERSION).equals(metadata.getConfigurationVersion());
+        boolean isVersionGt2 = metadata.getConfigurationVersion() != null
+                && Integer.parseInt(metadata.getConfigurationVersion()) > 2;
         boolean isSharedParams = CONTENT_ID_SHARED_PARAMETERS.equals(metadata.getContentIdentifier());
         boolean isMainInstance = confDir.getInstanceIdentifier().equals(metadata.getInstanceIdentifier());
-        return isVersion3 && isSharedParams && isMainInstance;
+        return isVersionGt2 && isSharedParams && isMainInstance;
     }
 
-    private InputStream toInputStreamWithOverriddenConfigurationSources(InputStream sharedParamsInputStream) throws Exception {
+    private InputStream toInputStreamWithOverriddenConfigurationSources(InputStream sharedParamsInputStream, String configurationVersion)
+            throws Exception {
         ByteArrayOutputStream os = new ByteArrayOutputStream();
         try (sharedParamsInputStream) {
-            SharedParametersV3 sharedParameters = new SharedParametersV3(sharedParamsInputStream.readAllBytes());
-            List<ConfigurationSourceType> sources = sharedParameters.getConfType().getSource();
-            sources.clear();
-            sources.add(buildConfProxyConfigurationSource());
-            sharedParameters.save(os);
+            var sharedParametersProvider = ParametersProviderFactory.forGlobalConfVersion(configurationVersion)
+                    .sharedParametersProvider(sharedParamsInputStream.readAllBytes());
+            var sp = sharedParametersProvider
+                    .getSharedParameters().toBuilder()
+                    .sources(List.of(buildConfProxyConfigurationSource()))
+                    .build();
+            sharedParametersProvider.getMarshaller().marshall(sp, os);
             return new ByteArrayInputStream(os.toByteArray());
         }
     }
 
-    private ConfigurationSourceType buildConfProxyConfigurationSource() {
-        ConfigurationSourceType confProxySource = new ConfigurationSourceType();
+    private SharedParameters.ConfigurationSource buildConfProxyConfigurationSource() {
+        SharedParameters.ConfigurationSource confProxySource = new SharedParameters.ConfigurationSource();
         confProxySource.setAddress(SystemProperties.getConfigurationProxyAddress());
         // PS! Need to allocate both external & internal in order not to break 7.4.0 versioned clients of confproxy
         // as their shared-parameters.xsd requires at least 1 internal & 1 external verification cert to be present.
         // If 7.4.0 is no longer supported we can decide the configuration type from whether private-params
         // configuration part is present & then add the verification certs just to the matching type.
-        confProxySource.getExternalVerificationCert().addAll(conf.getVerificationCerts());
-        confProxySource.getInternalVerificationCert().addAll(conf.getVerificationCerts());
+        confProxySource.setExternalVerificationCerts(conf.getVerificationCerts());
+        confProxySource.setInternalVerificationCerts(conf.getVerificationCerts());
         return confProxySource;
     }
 
     /**
      * Signs the global configuration directory content.
+     *
      * @param contentBytes configuration directory content bytes
      * @param mimeContent  output stream to write to
      * @throws Exception if errors are encountered while writing
@@ -296,6 +305,7 @@ public class OutputBuilder implements AutoCloseable {
 
     /**
      * Computes the verification hash of the certificate at the given path.
+     *
      * @param certPath path to the certificate file
      * @return verification hash for the certificate
      * @throws Exception if failed to open the certificate file
@@ -310,6 +320,7 @@ public class OutputBuilder implements AutoCloseable {
 
     /**
      * Opens a stream for writing the configuration file describes by the metadata to the target location.
+     *
      * @param targetPath location to write the file to
      * @param metadata   describes the configuration file
      * @return output stream for writing the file
@@ -328,6 +339,7 @@ public class OutputBuilder implements AutoCloseable {
 
     /**
      * Appends the metadata and hash of a configuration file to the content inside the encoder.
+     *
      * @param encoder     generates the configuration directory mime from the given file content
      * @param instance    configuration proxy instance name
      * @param metadata    describes the configuration file
@@ -367,6 +379,7 @@ public class OutputBuilder implements AutoCloseable {
 
     /**
      * Generates the signature of the configuration directory data.
+     *
      * @param keyId                id of the key used for signing
      * @param signatureAlgorithmId if of the algorithm used for signing
      * @param digest               digest bytes of the directory content

@@ -49,9 +49,30 @@
         <xrd-button
           :disabled="!meta.valid || !disableDone"
           data-test="generate-csr-button"
-          @click="generateCsr"
-          >{{ $t('csr.generateCsr') }}</xrd-button
-        >
+          :loading="genCsrLoading"
+          @click="generateCsr(false)"
+          >{{ $t('csr.generateCsr') }}
+        </xrd-button>
+      </div>
+      <div v-if="acmeCapable" class="generate-row">
+        <div>{{ $t('csr.orderAcmeCertificate') }}
+          <v-alert
+            v-if="externalAccountBindingRequiredButMissing"
+            border="start"
+            type="error"
+            variant="outlined"
+            density="compact"
+          >
+            {{ externalAccountBindingRequiredButMissingHint }}
+          </v-alert>
+        </div>
+        <xrd-button
+          :disabled="!meta.valid || !disableDone || externalAccountBindingRequiredButMissing"
+          data-test="acme-order-certificate-button"
+          :loading="genCsrLoading"
+          @click="generateCsr(true)"
+        >{{ $t('keys.orderAcmeCertificate') }}
+        </xrd-button>
       </div>
     </div>
     <div class="button-footer">
@@ -60,8 +81,8 @@
         :disabled="!disableDone"
         data-test="cancel-button"
         @click="cancel"
-        >{{ $t('action.cancel') }}</xrd-button
-      >
+        >{{ $t('action.cancel') }}
+      </xrd-button>
 
       <xrd-button
         outlined
@@ -69,21 +90,18 @@
         data-test="previous-button"
         :disabled="!disableDone"
         @click="previous"
-        >{{ $t('action.previous') }}</xrd-button
-      >
-      <xrd-button
-        :disabled="disableDone"
-        data-test="save-button"
-        @click="done"
-        >{{ $t(saveButtonText) }}</xrd-button
-      >
+        >{{ $t('action.previous') }}
+      </xrd-button>
+      <xrd-button :disabled="disableDone" data-test="save-button" @click="done"
+        >{{ $t(saveButtonText) }}
+      </xrd-button>
     </div>
   </div>
 </template>
 
 <script lang="ts">
 import { defineComponent, Ref } from 'vue';
-import { mapActions, mapState } from 'pinia';
+import { mapActions, mapState, mapWritableState } from 'pinia';
 import { useNotifications } from '@/store/modules/notifications';
 import { useCsr } from '@/store/modules/certificateSignRequest';
 import { AxiosError } from 'axios';
@@ -134,10 +152,31 @@ export default defineComponent({
   data() {
     return {
       disableDone: true,
+      genCsrLoading: false,
     };
   },
   computed: {
-    ...mapState(useCsr, ['csrTokenId']),
+    ...mapState(useCsr, [
+      'csrTokenId',
+      'acmeCapable',
+      'eabRequired',
+      'acmeEabCredentialsStatus',
+    ]),
+    ...mapWritableState(useCsr, ['acmeOrder']),
+    externalAccountBindingRequiredButMissing(): boolean {
+      return (
+        !!this.eabRequired &&
+        !this.acmeEabCredentialsStatus?.has_acme_external_account_credentials
+      );
+    },
+    externalAccountBindingRequiredButMissingHint(): string | undefined {
+      return this.externalAccountBindingRequiredButMissing
+        ? this.$t('csr.eabCredRequired')
+        : undefined;
+    },
+  },
+  created() {
+      this.acmeOrder = false;
   },
   methods: {
     ...mapActions(useNotifications, ['showError', 'showSuccess']),
@@ -158,13 +197,15 @@ export default defineComponent({
     done(): void {
       this.$emit('done');
     },
-    async generateCsr(): Promise<void> {
+    async generateCsr(withAcmeOrder: boolean): Promise<void> {
+      this.genCsrLoading = true;
       this.setCsrForm(
         this.csrForm.map((field: CsrSubjectFieldDescription) => ({
           ...field,
           default_value: this.values[field.id],
         })),
       );
+      this.acmeOrder = withAcmeOrder;
       if (this.keyAndCsr) {
         // Create Key AND CSR
 
@@ -174,24 +215,38 @@ export default defineComponent({
         }
 
         // Create key and CSR
-        try {
-          await this.generateKeyAndCsr(this.csrTokenId);
-          this.disableDone = false;
-        } catch (error) {
-          this.disableDone = true;
-          // Error comes from axios, so it most probably is AxiosError
-          this.showError(error as AxiosError);
-        }
+        await this.generateKeyAndCsr(this.csrTokenId)
+          .then(() => {
+            if (this.acmeOrder) {
+              this.showSuccess(this.$t('keys.acmeCertOrdered'));
+            }
+            this.disableDone = false;
+          })
+          .catch((error) => {
+            this.disableDone = true;
+            // Error comes from axios, so it most probably is AxiosError
+            this.showError(error as AxiosError);
+          })
+          .finally(() => {
+            this.genCsrLoading = false;
+          });
       } else {
         // Create only CSR
-        try {
-          await this.requestGenerateCsr();
-          this.disableDone = false;
-        } catch (error) {
-          this.disableDone = true;
-          // Error comes from axios, so it most probably is AxiosError
-          this.showError(error as AxiosError);
-        }
+        await this.requestGenerateCsr()
+          .then(() => {
+            if (this.acmeOrder) {
+              this.showSuccess(this.$t('keys.acmeCertOrdered'));
+            }
+            this.disableDone = false;
+          })
+          .catch((error) => {
+            this.disableDone = true;
+            // Error comes from axios, so it most probably is AxiosError
+            this.showError(error as AxiosError);
+          })
+          .finally(() => {
+            this.genCsrLoading = false;
+          });
       }
     },
   },

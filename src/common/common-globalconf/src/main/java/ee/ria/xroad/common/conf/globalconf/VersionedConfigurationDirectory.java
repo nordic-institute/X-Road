@@ -48,6 +48,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Consumer;
 import java.util.function.Predicate;
 import java.util.stream.Stream;
@@ -75,6 +76,8 @@ public class VersionedConfigurationDirectory implements ConfigurationDirectory {
 
     protected final Map<String, PrivateParametersProvider> privateParameters;
     protected final Map<String, SharedParametersProvider> sharedParameters;
+
+    private final ConcurrentHashMap<String, SharedParametersCache> sharedParametersCacheMap = new ConcurrentHashMap<>();
 
     // ------------------------------------------------------------------------
 
@@ -126,6 +129,7 @@ public class VersionedConfigurationDirectory implements ConfigurationDirectory {
         return privateParams;
     }
 
+    @SuppressWarnings("checkstyle:MagicNumber")
     private void loadPrivateParameters(Path instanceDir, Map<String, PrivateParametersProvider> basePrivateParams) {
         String instanceId = instanceDir.getFileName().toString();
         Path privateParametersPath = Paths.get(instanceDir.toString(), ConfigurationConstants.FILE_NAME_PRIVATE_PARAMETERS);
@@ -139,9 +143,8 @@ public class VersionedConfigurationDirectory implements ConfigurationDirectory {
                     parametersToUse = existingParameters.refresh(fileExpiresOn);
                 } else {
                     log.trace("Reloading PrivateParameters from {} ", privateParametersPath);
-                    parametersToUse = isCurrentVersion(privateParametersPath)
-                            ? new PrivateParametersV3(privateParametersPath, fileExpiresOn)
-                            : new PrivateParametersV2(privateParametersPath, fileExpiresOn);
+                    parametersToUse = ParametersProviderFactory.forGlobalConfVersion(getVersion(privateParametersPath))
+                            .privateParametersProvider(privateParametersPath, fileExpiresOn);
                 }
                 basePrivateParams.put(instanceId, parametersToUse);
             } catch (Exception e) {
@@ -170,6 +173,7 @@ public class VersionedConfigurationDirectory implements ConfigurationDirectory {
         return sharedParams;
     }
 
+    @SuppressWarnings("checkstyle:MagicNumber")
     private void loadSharedParameters(Path instanceDir, Map<String, SharedParametersProvider> baseSharedParams) {
         String instanceId = instanceDir.getFileName().toString();
         Path sharedParametersPath = Paths.get(instanceDir.toString(),
@@ -184,9 +188,8 @@ public class VersionedConfigurationDirectory implements ConfigurationDirectory {
                     parametersToUse = existingParameters.refresh(fileExpiresOn);
                 } else {
                     log.trace("Reloading SharedParameters from {} ", sharedParametersPath);
-                    parametersToUse = isCurrentVersion(sharedParametersPath)
-                            ? new SharedParametersV3(sharedParametersPath, fileExpiresOn)
-                            : new SharedParametersV2(sharedParametersPath, fileExpiresOn);
+                    parametersToUse = ParametersProviderFactory.forGlobalConfVersion(getVersion(sharedParametersPath))
+                            .sharedParametersProvider(sharedParametersPath, fileExpiresOn);
                 }
                 baseSharedParams.put(instanceId, parametersToUse);
             } catch (Exception e) {
@@ -264,6 +267,21 @@ public class VersionedConfigurationDirectory implements ConfigurationDirectory {
         return false;
     }
 
+    public Optional<SharedParametersCache> findSharedParametersCache(String instanceId) {
+        return findShared(instanceId).map(this::getSharedParametersCache);
+    }
+
+    public List<SharedParametersCache> getSharedParametersCaches() {
+        return getShared().stream()
+                .map(this::getSharedParametersCache)
+                .toList();
+    }
+
+    private SharedParametersCache getSharedParametersCache(SharedParameters sharedParams) {
+        return sharedParametersCacheMap.computeIfAbsent(sharedParams.getInstanceIdentifier(),
+                k -> new SharedParametersCache(sharedParams));
+    }
+
     /**
      * Applies the given function to all files belonging to the configuration directory.
      * @param consumer the function instance that should be applied to
@@ -332,8 +350,12 @@ public class VersionedConfigurationDirectory implements ConfigurationDirectory {
     }
 
     public static boolean isCurrentVersion(Path filePath) {
+        return isVersion(filePath, CURRENT_GLOBAL_CONFIGURATION_VERSION);
+    }
+
+    public static boolean isVersion(Path filePath, int version) {
         Integer confVersion = getVersion(filePath);
-        return confVersion != null && confVersion == CURRENT_GLOBAL_CONFIGURATION_VERSION;
+        return confVersion != null && confVersion == version;
     }
 
     public static Integer getVersion(Path filePath) {

@@ -15,16 +15,17 @@ Feature: 0300 - SS: Keys and certificates
     When Token: <$token> - Add key wizard is opened
     And Key Label is set to "<$label>"
     And CSR details Usage is set to "<$usage>", Client set to "<$client>", Certification Service to "<$certService>" and CSR format "PEM"
-    And Generate CSR is set to DNS "<$dns>", Organization "ui-test" and CSR successfully generated
+    And Generate "<$usage>" CSR is set to DNS "<$dns>" and Organization "ui-test"
+    And CSR with extension "pem" successfully generated
     And Token: <$token> - has key with label "<$label>"
     Then CSR is processed by test CA
     And Token: <$token> - Generated certificate is imported
     And Token: <$token> - has key "<$label>" with status "<$certStatus>"
     And Token: <$token>, key "<$label>" generate CSR button is disabled
     Examples:
-      | $token      | $usage         | $label             | $client          | $dns | $certService      | $certStatus |
-      | softToken-0 | SIGNING        | test signing token | CS:GOV:0245437-2 |      | X-Road Test CA CN | Registered  |
-      | softToken-0 | AUTHENTICATION | test auth token    |                  | ss1  | X-Road Test CA CN | Saved       |
+      | $token      | $usage         | $label             | $client      | $dns  | $certService | $certStatus |
+      | softToken-0 | SIGNING        | test signing key   | DEV:COM:1234 | ss0   | Test CA      | Registered  |
+      | softToken-0 | AUTHENTICATION | test auth key      |              | ss0   | Test CA      | Saved       |
 
   Scenario: Token edit page is navigable
     Given Keys and certificates tab is selected
@@ -37,12 +38,13 @@ Feature: 0300 - SS: Keys and certificates
     When Token: <$token> - Add key wizard is opened
     And Key Label is set to "<$label>"
     And CSR details Usage is set to "<$usage>", Client set to "<$client>", Certification Service to "<$certService>" and CSR format "PEM"
-    And Generate CSR is set to DNS "<$dns>", Organization "ui-test" and CSR successfully generated
+    And Generate "<$usage>" CSR is set to DNS "<$dns>" and Organization "ui-test"
+    And CSR with extension "pem" successfully generated
     And Token: <$token> - has <$authKeyAmount> auth keys, <$signKeyAmount> sign keys
     Examples:
-      | $token      | $usage         | $label | $client          | $dns | $certService      | $authKeyAmount | $signKeyAmount |
-      | softToken-0 | SIGNING        |        | CS:GOV:0245437-2 |      | X-Road Test CA CN | 1              | 2              |
-      | softToken-0 | AUTHENTICATION |        |                  | ss1  | X-Road Test CA CN | 2              | 2              |
+      | $token      | $usage         | $label | $client      | $dns | $certService | $authKeyAmount | $signKeyAmount |
+      | softToken-0 | SIGNING        |        | DEV:COM:1234 | ss0  | Test CA      | 1              | 2              |
+      | softToken-0 | AUTHENTICATION |        |              | ss0  | Test CA      | 2              | 2              |
 
   Scenario: Add key wizard is navigable
     Given Keys and certificates tab is selected
@@ -51,7 +53,7 @@ Feature: 0300 - SS: Keys and certificates
     Then Add key wizard is closed
     When Token: softToken-0 - Add key wizard is opened
     And Key Label is set to ""
-    And CSR details Usage is set to "AUTHENTICATION", Client set to "", Certification Service to "X-Road Test CA CN" and CSR format "DER"
+    And CSR details Usage is set to "AUTHENTICATION", Client set to "", Certification Service to "Test CA" and CSR format "DER"
     And Add key wizard Generate CSR step is closed
     And Token: softToken-0 - has 2 auth keys, 2 sign keys
 
@@ -68,11 +70,12 @@ Feature: 0300 - SS: Keys and certificates
     And Token: softToken-0 is present and expanded
     When Token: softToken-0 - Add key wizard is opened
     And Key Label is set to "key for multiple csr"
-    And CSR details Usage is set to "AUTHENTICATION", Client set to "", Certification Service to "X-Road Test CA CN" and CSR format "PEM"
-    And Generate CSR is set to DNS "ss1", Organization "ui-test" and CSR successfully generated
-    And CSR is generated for token "softToken-0", key "key for multiple csr", certification service "X-Road Test CA CN", format "DER"
-    And CSR is generated for token "softToken-0", key "key for multiple csr", certification service "X-Road Test CA CN", format "DER"
-    And CSR is generated for token "softToken-0", key "key for multiple csr", certification service "X-Road Test CA CN", format "DER"
+    And CSR details Usage is set to "AUTHENTICATION", Client set to "", Certification Service to "Test CA" and CSR format "PEM"
+    And Generate "AUTHENTICATION" CSR is set to DNS "ss0" and Organization "ui-test"
+    And CSR with extension "pem" successfully generated
+    And CSR is generated for token "softToken-0", key "key for multiple csr", certification service "Test CA", format "DER", security server "ss0"
+    And CSR is generated for token "softToken-0", key "key for multiple csr", certification service "Test CA", format "DER", security server "ss0"
+    And CSR is generated for token "softToken-0", key "key for multiple csr", certification service "Test CA", format "DER", security server "ss0"
     Then Token "softToken-0", key "key for multiple csr" has 4 certificate signing requests
 
   Scenario: Token PIN can be changed

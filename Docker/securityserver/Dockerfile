@@ -91,4 +91,4 @@ COPY --chown=root:root files/ss-xroad.conf /etc/supervisor/conf.d/xroad.conf
 CMD ["/root/entrypoint.sh"]
 
 VOLUME ["/etc/xroad", "/var/lib/xroad", "/var/lib/postgresql/16/main/"]
-EXPOSE 8080 8443 4000 5432 5500 5577 5558
+EXPOSE 8080 8443 4000 5432 5500 5577 5558 80

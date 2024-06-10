@@ -73,11 +73,16 @@ public class SharedParametersV2 extends AbstractXmlConf<SharedParametersTypeV2> 
         initCompleted = true;
     }
 
-    public SharedParametersV2(SharedParametersV2 original, OffsetDateTime newExpiresOn) throws CertificateEncodingException, IOException {
+    private SharedParametersV2(SharedParametersV2 original, OffsetDateTime newExpiresOn) throws CertificateEncodingException, IOException {
         super(original);
         expiresOn = newExpiresOn;
         sharedParameters = converter.convert(confType);
         initCompleted = true;
+    }
+
+    @Override
+    public SharedParametersProvider refresh(OffsetDateTime fileExpiresOn) throws CertificateEncodingException, IOException {
+        return new SharedParametersV2(this, fileExpiresOn);
     }
 
     @Override
@@ -101,6 +106,11 @@ public class SharedParametersV2 extends AbstractXmlConf<SharedParametersTypeV2> 
     @Override
     protected JAXBContext getJAXBContext() {
         return JAXB_CONTEXT;
+    }
+
+    @Override
+    public SharedParametersMarshaller getMarshaller() {
+        return new SharedParametersV2Marshaller();
     }
 
     private static JAXBContext createJAXBContext() {

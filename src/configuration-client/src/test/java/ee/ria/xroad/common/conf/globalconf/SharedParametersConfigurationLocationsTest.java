@@ -25,19 +25,19 @@
  */
 package ee.ria.xroad.common.conf.globalconf;
 
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import java.util.List;
 
 import static ee.ria.xroad.common.conf.globalconf.ConfigurationDownloadTestDataGenerator.getSource;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
-public class SharedParametersConfigurationLocationsTest {
+class SharedParametersConfigurationLocationsTest {
 
     @Test
-    public void whenLocationDownloadUrlNotMatchFormatThenNoSharedParametersReturned() {
+    void whenLocationDownloadUrlNotMatchFormatThenNoSharedParametersReturned() {
         var sharedParametersConfigurationLocations = new SharedParametersConfigurationLocations(
                 new FileNameProviderImpl("f"));
 
@@ -46,7 +46,7 @@ public class SharedParametersConfigurationLocationsTest {
     }
 
     @Test
-    public void getInternalconfLocationsFromSharedParameters() {
+    void getInternalconfLocationsFromSharedParameters() {
         var sharedParametersConfigurationLocations = new SharedParametersConfigurationLocations(
                 new FileNameProviderImpl("src/test/resources/V3"));
 
@@ -61,7 +61,7 @@ public class SharedParametersConfigurationLocationsTest {
     }
 
     @Test
-    public void getExtarnalconfLocationsFromSharedParameters() {
+    void getExtarnalconfLocationsFromSharedParameters() {
         var sharedParametersConfigurationLocations = new SharedParametersConfigurationLocations(
                 new FileNameProviderImpl("src/test/resources/V3"));
 
@@ -76,7 +76,7 @@ public class SharedParametersConfigurationLocationsTest {
     }
 
     @Test
-    public void getProxyConfLocationsFromSharedParameters() {
+    void getProxyConfLocationsFromSharedParameters() {
         var sharedParametersConfigurationLocations = new SharedParametersConfigurationLocations(
                 new FileNameProviderImpl("src/test/resources/V3"));
 
@@ -91,7 +91,7 @@ public class SharedParametersConfigurationLocationsTest {
     }
 
     @Test
-    public void getManyInternalconfLocationsFromSharedParameters() {
+    void getManyInternalconfLocationsFromSharedParameters() {
         var sharedParametersConfigurationLocations = new SharedParametersConfigurationLocations(
                 new FileNameProviderImpl("src/test/resources/V3-many-nodes"));
 
@@ -108,7 +108,7 @@ public class SharedParametersConfigurationLocationsTest {
     }
 
     @Test
-    public void whenGetLocationsFromVersion2SharedParametersThenNothingReturned() {
+    void whenGetLocationsFromVersion2SharedParametersThenNothingReturned() {
         var sharedParametersConfigurationLocations = new SharedParametersConfigurationLocations(
                 new FileNameProviderImpl("src/test/resources/V2"));
 

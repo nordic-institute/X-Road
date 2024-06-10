@@ -27,9 +27,12 @@ package ee.ria.xroad.common.util;
 
 import ee.ria.xroad.common.CodedException;
 import ee.ria.xroad.common.ErrorCodes;
+import ee.ria.xroad.common.SystemProperties;
 import ee.ria.xroad.common.conf.InternalSSLKey;
 
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.ArrayUtils;
+import org.bouncycastle.asn1.ASN1Encodable;
 import org.bouncycastle.asn1.ASN1ObjectIdentifier;
 import org.bouncycastle.asn1.ASN1Primitive;
 import org.bouncycastle.asn1.DEROctetString;
@@ -43,6 +46,12 @@ import org.bouncycastle.asn1.x509.AccessDescription;
 import org.bouncycastle.asn1.x509.AuthorityInformationAccess;
 import org.bouncycastle.asn1.x509.Extension;
 import org.bouncycastle.asn1.x509.GeneralName;
+import org.bouncycastle.asn1.x509.GeneralNames;
+import org.bouncycastle.asn1.x509.KeyUsage;
+import org.bouncycastle.cert.CertIOException;
+import org.bouncycastle.cert.X509CertificateHolder;
+import org.bouncycastle.cert.jcajce.JcaX509CertificateConverter;
+import org.bouncycastle.cert.jcajce.JcaX509v3CertificateBuilder;
 import org.bouncycastle.jce.provider.BouncyCastleProvider;
 import org.bouncycastle.openssl.PEMParser;
 import org.bouncycastle.openssl.jcajce.JcaPEMWriter;
@@ -65,6 +74,7 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.io.OutputStreamWriter;
 import java.io.Writer;
+import java.math.BigInteger;
 import java.security.KeyFactory;
 import java.security.KeyPair;
 import java.security.KeyStore;
@@ -83,10 +93,13 @@ import java.security.cert.X509Certificate;
 import java.security.spec.InvalidKeySpecException;
 import java.security.spec.PKCS8EncodedKeySpec;
 import java.security.spec.RSAPublicKeySpec;
+import java.time.temporal.ChronoUnit;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.Date;
 import java.util.List;
+import java.util.Optional;
 
 import static ee.ria.xroad.common.ErrorCodes.X_INTERNAL_ERROR;
 import static ee.ria.xroad.common.util.CryptoUtils.calculateCertHexHash;
@@ -118,6 +131,13 @@ public final class CertUtils {
                     EDI_PARTY_NAME_IDX));
 
     private CertUtils() {
+    }
+
+    public static String getCommonName(String subjectName) {
+        X500Name x500Name = new X500Name(subjectName);
+        RDN[] rdns = x500Name.getRDNs(BCStyle.CN);
+        ASN1Encodable commonName = rdns[0].getFirst().getValue();
+        return IETFUtils.valueToString(commonName);
     }
 
     /**
@@ -175,14 +195,25 @@ public final class CertUtils {
             for (final List<?> sanItem : subjectAlternativeNames) {
                 final Integer itemType = (Integer) sanItem.get(0);
                 if (itemType >= 0 && itemType <= MAX_IDX) {
-                    if (builder.length() > 0) builder.append(", ");
+                    if (!builder.isEmpty()) builder.append(", ");
                     builder.append(FIELD_NAMES.get(itemType));
                     builder.append(':');
                     builder.append(UNSUPPORTED_FIELDS.contains(itemType) ? "<unsupported>" : (String) sanItem.get(1));
                 }
             }
         }
-        return builder.length() == 0 ? null : builder.toString();
+        return builder.isEmpty() ? null : builder.toString();
+    }
+
+    public static String getSubjectAlternativeNameFromCsr(byte[] certRequest) throws IOException {
+        PKCS10CertificationRequest csr = new PKCS10CertificationRequest(certRequest);
+        return Optional.ofNullable(csr.getRequestedExtensions())
+                .map(extensions -> extensions.getExtension(Extension.subjectAlternativeName))
+                .map(sanExtension -> GeneralNames.getInstance(sanExtension.getExtnValue().getOctets()))
+                .map(GeneralNames::getNames)
+                .filter(ArrayUtils::isNotEmpty)
+                .map(names -> names[0].getName().toString())
+                .orElse(null);
     }
 
     /**
@@ -270,6 +301,27 @@ public final class CertUtils {
      */
     public static boolean isSelfSigned(X509Certificate cert) {
         return cert.getIssuerX500Principal().equals(cert.getSubjectX500Principal());
+    }
+
+    public static X509Certificate[] createSelfSignedCertificate(String commonName, KeyPair keyPair)
+            throws CertIOException, OperatorCreationException, CertificateException {
+        X500Name subject = new X500Name("CN=" + commonName);
+        JcaX509v3CertificateBuilder certificateBuilder =
+                new JcaX509v3CertificateBuilder(
+                        subject,
+                        BigInteger.ONE,
+                        Date.from(TimeUtils.now()),
+                        Date.from(TimeUtils.now().plus(SystemProperties.getAcmeAccountKeyPairExpirationInDays(), ChronoUnit.DAYS)),
+                        subject,
+                        keyPair.getPublic());
+        KeyUsage keyUsage = new KeyUsage(KeyUsage.digitalSignature);
+        certificateBuilder.addExtension(Extension.keyUsage, true, keyUsage);
+        ContentSigner signer = new JcaContentSignerBuilder(CryptoUtils.SHA512WITHRSA_ID).build(keyPair.getPrivate());
+        X509CertificateHolder holder = certificateBuilder.build(signer);
+        X509Certificate certificate = new JcaX509CertificateConverter().getCertificate(holder);
+        X509Certificate[] certificateChain = new X509Certificate[1];
+        certificateChain[0] = certificate;
+        return certificateChain;
     }
 
     /**

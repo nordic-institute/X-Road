@@ -72,8 +72,8 @@ public class GlobalConfVer3Test {
         confFiles.add(getConfFileName("bar", "shared-params.xml"));
         confFiles.add(getConfFileName("EE", "private-params.xml"));
         confFiles.add(getConfFileName("EE", "shared-params.xml"));
-        confFiles.add(getConfFileName("foo_ver2", "private-params.xml"));
-        confFiles.add(getConfFileName("foo_ver", "shared-params.xml"));
+        confFiles.add(getConfFileName("foo_v2", "private-params.xml"));
+        confFiles.add(getConfFileName("foo_v2", "shared-params.xml"));
 
         FileUtils.writeLines(files, StandardCharsets.UTF_8.name(), confFiles);
     }

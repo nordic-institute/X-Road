@@ -47,4 +47,8 @@ public class ApprovedCaDto {
     private final boolean topCa;
     // subject DN names from topmost CA to this CA
     private final List<String> subjectDnPath;
+    private final String certificateProfileInfo;
+    private final boolean acmeCapable;
+    private final boolean acmeEabRequired;
+    private final String acmeServerIpAddress;
 }

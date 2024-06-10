@@ -62,7 +62,7 @@ public class GlobalConfStepDefs {
     public void securityServersGlobalConfExpirationDateIsEqualTo(String expectedExpirationDateTime)
             throws IOException, InterruptedException {
         String metadataJson = testContainerService.getContainer()
-                .execInContainer("cat", "/etc/xroad/globalconf/CS/shared-params.xml.metadata").getStdout();
+                .execInContainer("cat", "/etc/xroad/globalconf/DEV/shared-params.xml.metadata").getStdout();
         var metadata = ConfigurationPartMetadata.read(new ByteArrayInputStream(metadataJson.getBytes()));
         assertThat(metadata.getExpirationDate()).isEqualTo(expectedExpirationDateTime);
     }

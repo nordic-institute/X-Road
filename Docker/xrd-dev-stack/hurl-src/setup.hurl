@@ -28,13 +28,29 @@ Content-Type: application/json
 HTTP 200
 
 
-# Add member class to Central Server
+# Add member classes to Central Server
 POST https://{{cs_host}}:4000/api/v1/member-classes
 X-XSRF-TOKEN: {{cs_xsrf_token}}
 Content-Type: application/json
 {
   "code": "COM",
   "description": "Commercial"
+}
+
+POST https://{{cs_host}}:4000/api/v1/member-classes
+X-XSRF-TOKEN: {{cs_xsrf_token}}
+Content-Type: application/json
+{
+  "code": "GOV",
+  "description": "Governmental organisations"
+}
+
+POST https://{{cs_host}}:4000/api/v1/member-classes
+X-XSRF-TOKEN: {{cs_xsrf_token}}
+Content-Type: application/json
+{
+  "code": "ORG",
+  "description": "Non-profit organisations"
 }
 
 HTTP 201
@@ -124,7 +140,7 @@ Content-Type: application/json
 HTTP 201
 
 
-# Set management subsystem for member 1234 as the management serice for the Central Server
+# Set management subsystem for member 1234 as the management service for the Central Server
 PATCH https://{{cs_host}}:4000/api/v1/management-services-configuration
 X-XSRF-TOKEN: {{cs_xsrf_token}}
 Content-Type: application/json
@@ -143,6 +159,7 @@ X-XSRF-TOKEN: {{cs_xsrf_token}}
 [MultipartFormData]
 certificate_profile_info: ee.ria.xroad.common.certificateprofile.impl.FiVRKCertificateProfileInfoProvider
 tls_auth: false
+acme_server_directory_url: http://{{ca_host}}:8887
 certificate: file,ca/ca.pem;
 
 HTTP 201
@@ -249,6 +266,7 @@ Content-Type: application/json
       "CN": "{{ss0_host}}",
       "C": "FI",
       "O": "Test member",
+      "subjectAltName": "{{ss0_host}}",
       "serialNumber": "DEV/SS0/COM"
     }
   }
@@ -315,9 +333,10 @@ Content-Type: application/json
     "csr_format": "DER",
     "member_id": "DEV:COM:1234",
     "subject_field_values": {
-      "CN": "{{ss0_host}}",
+      "CN": "1234",
       "C": "FI",
       "O": "Test member",
+      "subjectAltName": "{{ss0_host}}",
       "serialNumber": "DEV/SS0/COM"
     }
   }
@@ -359,7 +378,7 @@ HTTP 200
 [Captures]
 ss0_sign_key_cert: body
 
-# Import auth certificate
+# Import sign certificate
 POST https://{{ss0_host}}:4000/api/v1/token-certificates
 X-XSRF-TOKEN: {{ss0_xsrf_token}}
 Content-Type: application/octet-stream
@@ -542,7 +561,7 @@ Content-Type: application/octet-stream
 
 HTTP 201
 
-# Initialize management Security Server
+# Initialize SS1 Security Server
 POST https://{{ss1_host}}:4000/api/v1/initialization
 X-XSRF-TOKEN: {{ss1_xsrf_token}}
 Content-Type: application/json
@@ -580,6 +599,7 @@ Content-Type: application/json
       "CN": "{{ss1_host}}",
       "C": "FI",
       "O": "Test client",
+      "subjectAltName": "{{ss1_host}}",
       "serialNumber": "DEV/SS1/COM"
     }
   }
@@ -646,9 +666,10 @@ Content-Type: application/json
     "csr_format": "DER",
     "member_id": "DEV:COM:4321",
     "subject_field_values": {
-      "CN": "{{ss1_host}}",
+      "CN": "4321",
       "C": "FI",
       "O": "Test client",
+      "subjectAltName": "{{ss1_host}}",
       "serialNumber": "DEV/SS1/COM"
     }
   }
@@ -820,6 +841,148 @@ POST https://{{cs_host}}:4000/api/v1/management-requests/{{ss0_test_service_req_
 X-XSRF-TOKEN: {{cs_xsrf_token}}
 
 HTTP 200
+
+# Add TestSaved to SS0
+POST https://{{ss0_host}}:4000/api/v1/clients
+X-XSRF-TOKEN: {{ss0_xsrf_token}}
+{
+  "ignore_warnings": true,
+  "client": {
+    "member_class": "COM",
+    "member_code": "1234",
+    "subsystem_code": "TestSaved",
+    "connection_type": "HTTP"
+  }
+}
+
+HTTP 201
+
+[Captures]
+ss0_test_saved_id: jsonpath "$.id"
+
+# Register TestSaved to SS0
+PUT https://{{ss0_host}}:4000/api/v1/clients/{{ss0_test_saved_id}}/register
+X-XSRF-TOKEN: {{ss0_xsrf_token}}
+
+HTTP 204
+
+# Accept SS0 TestSaved registration
+GET https://{{cs_host}}:4000/api/v1/management-requests?sort=id&desc=true&status=WAITING
+X-XSRF-TOKEN: {{cs_xsrf_token}}
+
+HTTP 200
+
+[Captures]
+ss0_test_saved_req_id: jsonpath "$.items[0].id"
+
+POST https://{{cs_host}}:4000/api/v1/management-requests/{{ss0_test_saved_req_id}}/approval
+X-XSRF-TOKEN: {{cs_xsrf_token}}
+
+HTTP 200
+
+# Add test-consumer to SS1 Security Server
+POST https://{{ss1_host}}:4000/api/v1/clients
+X-XSRF-TOKEN: {{ss1_xsrf_token}}
+{
+  "ignore_warnings": true,
+  "client": {
+    "member_class": "COM",
+    "member_code": "1234",
+    "subsystem_code": "test-consumer",
+    "connection_type": "HTTP"
+  }
+}
+
+HTTP 201
+
+[Captures]
+ss1_test-consumer_id: jsonpath "$.id"
+
+# Add test-consumer sign key to the SS1 Security Server token
+POST https://{{ss1_host}}:4000/api/v1/tokens/0/keys-with-csrs
+X-XSRF-TOKEN: {{ss1_xsrf_token}}
+Content-Type: application/json
+{
+  "key_label": "token-consumer sign key",
+  "csr_generate_request": {
+    "key_usage_type": "SIGNING",
+    "ca_name": "{{ca_name}}",
+    "csr_format": "DER",
+    "member_id": "DEV:COM:1234",
+    "subject_field_values": {
+      "CN": "1234",
+      "C": "FI",
+      "O": "Test Consumer",
+      "subjectAltName": "{{ss1_host}}",
+      "serialNumber": "DEV/SS1/COM"
+    }
+  }
+}
+
+HTTP 200
+
+[Captures]
+test-consumer_sign_key_id: jsonpath "$.key.id"
+test-consumer_sign_key_csr_id: jsonpath "$.csr_id"
+
+# Get the sign key CSR
+GET https://{{ss1_host}}:4000/api/v1/keys/{{test-consumer_sign_key_id}}/csrs/{{test-consumer_sign_key_csr_id}}?csr_format=PEM
+X-XSRF-TOKEN: {{ss1_xsrf_token}}
+
+HTTP 200
+
+[Captures]
+test-consumer_sign_key_csr: body
+
+# Sign the sign key CSR (note that the test CA needs filename so we can't just send it under
+# [FormMultiPart] as we do with the other requests)
+POST http://{{ca_host}}:8888/testca/sign
+Content-Type: multipart/form-data; boundary=certboundary
+```
+--certboundary
+Content-Disposition: form-data; name="type"
+
+sign
+--certboundary
+Content-Disposition: form-data; name="certreq"; filename="sign.csr.pem"
+
+{{test-consumer_sign_key_csr}}
+--certboundary--
+```
+
+HTTP 200
+[Captures]
+test-consumer_sign_key_cert: body
+
+# Import auth certificate
+POST https://{{ss1_host}}:4000/api/v1/token-certificates
+X-XSRF-TOKEN: {{ss1_xsrf_token}}
+Content-Type: application/octet-stream
+```
+{{test-consumer_sign_key_cert}}
+```
+
+
+# Register test-consumer to SS1 Security Server
+PUT https://{{ss1_host}}:4000/api/v1/clients/{{ss1_test-consumer_id}}/register
+X-XSRF-TOKEN: {{ss1_xsrf_token}}
+
+HTTP 204
+
+# Accept SS1 test-consumer registration
+GET https://{{cs_host}}:4000/api/v1/management-requests?sort=id&desc=true&status=WAITING
+X-XSRF-TOKEN: {{cs_xsrf_token}}
+
+HTTP 200
+
+[Captures]
+ss1_test-consumer_req_id: jsonpath "$.items[0].id"
+
+POST https://{{cs_host}}:4000/api/v1/management-requests/{{ss1_test-consumer_req_id}}/approval
+X-XSRF-TOKEN: {{cs_xsrf_token}}
+
+HTTP 200
+
 
 
 # Add Central Server management service to SS0 Security Server

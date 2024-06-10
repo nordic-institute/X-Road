@@ -260,13 +260,16 @@ export default defineComponent({
     }
   },
   methods: {
-    ...mapActions(useCsr, ['fetchAllMemberIds']),
+    ...mapActions(useCsr, ['fetchAllMemberIds', 'hasAcmeEabCredentials']),
     done(): void {
       this.usage = this.values.csr.usage;
       this.csrClient = this.values.csr.client;
       this.certificationService = this.values.csr.certificationService;
       this.csrFormat = this.values.csr.csrFormat;
-      this.$emit('done');
+      this.hasAcmeEabCredentials()
+        .finally(() => {
+          this.$emit('done');
+        });
     },
     previous(): void {
       this.$emit('previous');

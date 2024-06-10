@@ -6,21 +6,21 @@
         xmlns:id="http://x-road.eu/xsd/identifiers">
     <SOAP-ENV:Header>
         <xroad:client id:objectType="MEMBER">
-           <id:xRoadInstance>CS</id:xRoadInstance>
-           <id:memberClass>GOV</id:memberClass>
-           <id:memberCode>0245437-2</id:memberCode>
+           <id:xRoadInstance>DEV</id:xRoadInstance>
+           <id:memberClass>COM</id:memberClass>
+           <id:memberCode>1234</id:memberCode>
         </xroad:client>
         <xroad:service id:objectType="SERVICE">
-           <id:xRoadInstance>CS</id:xRoadInstance>
-           <id:memberClass>GOV</id:memberClass>
-           <id:memberCode>0245437-2</id:memberCode>
+           <id:xRoadInstance>DEV</id:xRoadInstance>
+           <id:memberClass>COM</id:memberClass>
+           <id:memberCode>1234</id:memberCode>
            <id:serviceCode>getSecurityServerOperationalData</id:serviceCode>
         </xroad:service>
         <xroad:securityServer id:objectType="SERVER">
-            <id:xRoadInstance>CS</id:xRoadInstance>
-            <id:memberClass>GOV</id:memberClass>
-            <id:memberCode>0245437-2</id:memberCode>
-            <id:serverCode>SS1</id:serverCode>
+            <id:xRoadInstance>DEV</id:xRoadInstance>
+            <id:memberClass>COM</id:memberClass>
+            <id:memberCode>1234</id:memberCode>
+            <id:serverCode>SS0</id:serverCode>
         </xroad:securityServer>
         <xroad:id>DBOxxqv2csKysKHNwRCrU4QV0EWkqSUY</xroad:id>
         <xroad:protocolVersion>4.0</xroad:protocolVersion>

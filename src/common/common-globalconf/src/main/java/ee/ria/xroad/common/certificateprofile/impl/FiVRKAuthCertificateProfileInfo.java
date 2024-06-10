@@ -61,7 +61,12 @@ public class FiVRKAuthCertificateProfileInfo
                 // Server code
                 new EnumLocalizedFieldDescriptionImpl("CN", DnFieldLabelLocalizationKey.SERVER_DNS_NAME,
                         ""
-                ).setReadOnly(false)}
+                ).setReadOnly(false),
+
+                // Business category
+                new EnumLocalizedFieldDescriptionImpl("subjectAltName", DnFieldLabelLocalizationKey.SUBJECT_ALTERNATIVE_NAME,
+                        ""
+                ).setReadOnly(false) }
         );
     }
 }

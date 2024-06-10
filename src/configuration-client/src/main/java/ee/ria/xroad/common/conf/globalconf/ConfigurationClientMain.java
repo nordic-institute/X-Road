@@ -50,10 +50,8 @@ import org.quartz.JobExecutionContext;
 import org.quartz.JobExecutionException;
 import org.quartz.JobListener;
 
-import java.io.IOException;
 import java.io.PrintWriter;
 import java.nio.file.Path;
-import java.security.cert.CertificateEncodingException;
 import java.util.Collections;
 import java.util.List;
 import java.util.Set;
@@ -151,7 +149,7 @@ public final class ConfigurationClientMain {
         client = new ConfigurationClient(configurationPath, configurationVersion) {
             @Override
             protected void deleteExtraConfigurationDirectories(
-                    List<ConfigurationSource> configurationSources,
+                    List<? extends ConfigurationSource> configurationSources,
                     FederationConfigurationSourceFilter sourceFilter) {
                 // do not delete anything
             }
@@ -169,7 +167,7 @@ public final class ConfigurationClientMain {
         client = new ConfigurationClient(configurationPath) {
             @Override
             protected void deleteExtraConfigurationDirectories(
-                    List<ConfigurationSource> configurationSources,
+                    List<? extends ConfigurationSource> configurationSources,
                     FederationConfigurationSourceFilter sourceFilter) {
                 // do not delete anything
             }
@@ -186,12 +184,6 @@ public final class ConfigurationClientMain {
         final String configurationPath = SystemProperties.getConfigurationPath();
 
         var configurationDownloader = new ConfigurationDownloader(configurationPath) {
-            @Override
-            void handleContent(byte[] content, ConfigurationFile file) throws CertificateEncodingException, IOException {
-                validateContent(file);
-                super.handleContent(content, file);
-            }
-
             @Override
             void validateContent(ConfigurationFile file) {
                 paramsValidator.tryMarkValid(file.getContentIdentifier());
@@ -215,7 +207,7 @@ public final class ConfigurationClientMain {
         ConfigurationAnchor configurationAnchor = new ConfigurationAnchor(configurationAnchorFile);
         client = new ConfigurationClient(configurationPath, configurationDownloader, configurationAnchor) {
             @Override
-            protected void deleteExtraConfigurationDirectories(List<ConfigurationSource> configurationSources,
+            protected void deleteExtraConfigurationDirectories(List<? extends ConfigurationSource> configurationSources,
                                                                FederationConfigurationSourceFilter sourceFilter) {
                 // do not delete any files
             }
