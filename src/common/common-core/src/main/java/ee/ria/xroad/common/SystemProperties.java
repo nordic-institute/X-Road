@@ -120,6 +120,10 @@ public final class SystemProperties {
     public static final String PROXY_UI_API_ACME_ACCOUNT_KEY_PAIR_EXPIRATION_IN_DAYS =
             PREFIX + "proxy-ui-api.acme-certificate-account-key-pair-expiration";
 
+    /** property name of whether the service should listen on port 80 for incoming acme challenge requests */
+    public static final String PROXY_UI_API_ACME_CHALLENGE_PORT_ENABLED =
+            PREFIX + "proxy-ui-api.acme-challenge-port-enabled";
+
     // Proxy ------------------------------------------------------------------
 
     /** Property name of controlling SSL support between Proxies. */
