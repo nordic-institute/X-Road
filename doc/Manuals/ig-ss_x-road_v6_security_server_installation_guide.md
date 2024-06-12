@@ -2,7 +2,7 @@
 
 **X-ROAD 7**
 
-Version: 2.50  
+Version: 2.51  
 Doc. ID: IG-SS
 
 ---
@@ -10,7 +10,7 @@ Doc. ID: IG-SS
 ## Version history <!-- omit in toc -->
 
 | Date       | Version | Description                                                                                                                                                                                                          | Author             |
-| ---------- | ------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------ |
+| ---------- |---------|----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|--------------------|
 | 01.12.2014 | 1.0     | Initial version                                                                                                                                                                                                      |                    |
 | 19.01.2015 | 1.1     | License information added                                                                                                                                                                                            |                    |
 | 18.03.2015 | 1.2     | Meta-package for Security Server added. Legacy securelog module removed                                                                                                                                              |                    |
@@ -70,6 +70,7 @@ Doc. ID: IG-SS
 | 19.12.2023 | 2.48    | Add RHEL 9 as supported platform                                                                                                                                                                                     | Justas Samuolis    |
 | 02.01.2024 | 2.49    | Loopback ports added                                                                                                                                                                                                 | Justas Samuolis    |
 | 26.04.2024 | 2.50    | Ubuntu 24.04 support                                                                                                                                                                                                 | Madis Loitmaa      |
+ | 12.06.2024 | 2.51    | Add ACME server to the network diagram, add a section about enabling ACME support                                                                                                                                    | Petteri Kivimäki   |
 
 ## License
 
@@ -102,9 +103,10 @@ This document is licensed under the Creative Commons Attribution-ShareAlike 3.0 
   - [3.1 Prerequisites](#31-prerequisites)
   - [3.2 Reference Data](#32-reference-data)
   - [3.3 Configuration](#33-configuration)
-  - [3.4 Configuring firewall](#34-configuring-firewall)
+  - [3.4 Configuring Firewall](#34-configuring-firewall)
     - [3.4.1 Accepting Connections](#341-accepting-connections)
-  - [3.5 Configuring configuration backup encryption](#35-configuring-configuration-backup-encryption)
+  - [3.5 Configuring Configuration Backup Encryption](#35-configuring-configuration-backup-encryption)
+  - [3.6 Enabling ACME Support](#36-enabling-acme-support)
 - [4 Installation Error handling](#4-installation-error-handling)
   - [4.1 Cannot Set LC\_ALL to Default Locale](#41-cannot-set-lc_all-to-default-locale)
   - [4.2 PostgreSQL Is Not UTF8 Compatible](#42-postgresql-is-not-utf8-compatible)
@@ -143,16 +145,15 @@ See X-Road terms and abbreviations documentation \[[TA-TERMS](#Ref_TERMS)\].
 
 ### 1.3 References
 
-1.  <a id="Ref_UG-SS" class="anchor"></a>\[UG-SS\] X-Road 7. Security Server User Guide. Document ID: [UG-SS](ug-ss_x-road_6_security_server_user_guide.md)
+1. <a id="Ref_UG-SS" class="anchor"></a>\[UG-SS\] X-Road 7. Security Server User Guide. Document ID: [UG-SS](ug-ss_x-road_6_security_server_user_guide.md)
 
-2.  <a id="Ref_TERMS" class="anchor"></a>\[TA-TERMS\] X-Road Terms and Abbreviations. Document ID: [TA-TERMS](../terms_x-road_docs.md).
+2. <a id="Ref_TERMS" class="anchor"></a>\[TA-TERMS\] X-Road Terms and Abbreviations. Document ID: [TA-TERMS](../terms_x-road_docs.md)
 
 3. <a name="Ref_UG-SYSPAR" class="anchor"></a>\[UG-SYSPAR\] X-Road: System Parameters User Guide. Document ID:
-[UG-SYSPAR](ug-syspar_x-road_v6_system_parameters.md).
+[UG-SYSPAR](ug-syspar_x-road_v6_system_parameters.md)
 
 4. <a name="Ref_IG-XLB" class="anchor"></a>\[IG-XLB\] X-Road: External Load Balancer Installation Guide. Document ID:
-[IG-XLB](LoadBalancing/ig-xlb_x-road_external_load_balancer_installation_guide.md).
-
+[IG-XLB](LoadBalancing/ig-xlb_x-road_external_load_balancer_installation_guide.md)
 
 ## 2 Installation
 
@@ -177,12 +178,13 @@ The software can be installed both on physical and virtualized hardware (of the 
 
 
 | **Ref** |                                                                                                                      | **Explanation**                                                                                                                                                                                                                                                                            |
-| ------- | -------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| ------- |----------------------------------------------------------------------------------------------------------------------|--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
 | 1.0     | Ubuntu 20.04, 22.04 or 24.04 (x86-64)<br>3 GB RAM, 3 GB free disk space                                              | Minimum requirements without the `monitoring` and `op-monitoring` add-ons. With the add-ons minimum of 4 GB of RAM is required.                                                                                                                                                            |
 | 1.1     | https://artifactory.niis.org/xroad-release-deb                                                                       | X-Road package repository                                                                                                                                                                                                                                                                  |
 | 1.2     | https://artifactory.niis.org/api/gpg/key/public                                                                      | The repository key.<br /><br />Hash: `935CC5E7FA5397B171749F80D6E3973B`<br  />Fingerprint: `A01B FE41 B9D8 EAF4 872F  A3F1 FB0D 532C 10F6 EC5B`<br  />3rd party key server: [Ubuntu key server](https://keyserver.ubuntu.com/pks/lookup?search=0xfb0d532c10f6ec5b&fingerprint=on&op=index) |
 | 1.3     |                                                                                                                      | Account name in the user interface                                                                                                                                                                                                                                                         |
 | 1.4     | **Inbound ports from external network**                                                                              | Ports for inbound connections from the external network to the Security Server                                                                                                                                                                                                             |
+| &nbsp;  | TCP 80                                                                                                               | Incoming ACME challenge requests from ACME Server                                                                                                                                                                                                                                          |
 | &nbsp;  | TCP 5500                                                                                                             | Message exchange between Security Servers                                                                                                                                                                                                                                                  |
 | &nbsp;  | TCP 5577                                                                                                             | Querying of OCSP responses between Security Servers                                                                                                                                                                                                                                        |
 | 1.5     | **Outbound ports to external network**                                                                               | Ports for outbound connections from the Security Server to the external network                                                                                                                                                                                                            |
@@ -206,12 +208,12 @@ The software can be installed both on physical and virtualized hardware (of the 
 
 The network diagram below provides an example of a basic Security Server setup. Allowing incoming connections from the Monitoring Security Server on ports 5500/tcp and 5577/tcp is necessary for the X-Road Operator to be able to monitor the ecosystem and provide statistics and support for Members.
 
-![network diagram](img/ig-ss_network_diagram.png)
+![network diagram](img/ig-ss_network_diagram.svg)
 
 The table below lists the required connections between different components.
 
 | **Connection Type** | **Source**                                               | **Target**                                               | **Target Ports** | **Protocol** | **Note**                       |
-| ------------------- | -------------------------------------------------------- | -------------------------------------------------------- | ---------------- | ------------ | ------------------------------ |
+|---------------------|----------------------------------------------------------|----------------------------------------------------------|------------------|--------------|--------------------------------|
 | Out                 | Security Server                                          | Central Server                                           | 80, 4001         | tcp          |                                |
 | Out                 | Security Server                                          | Management Security Server                               | 5500, 5577       | tcp          |                                |
 | Out                 | Security Server                                          | OCSP Service                                             | 80 / 443         | tcp          |                                |
@@ -220,6 +222,7 @@ The table below lists the required connections between different components.
 | Out                 | Security Server                                          | Producer Information System                              | 80, 443, other   | tcp          | Target in the internal network |
 | In                  | Monitoring Security Server                               | Security Server                                          | 5500, 5577       | tcp          |                                |
 | In                  | Data Exchange Partner Security Server (Service Consumer) | Security Server                                          | 5500, 5577       | tcp          |                                |
+ | In                  | ACME Server                                              | Security Server                                          | 80               | tcp          |                                | 
 | In                  | Consumer Information System                              | Security Server                                          | 8080, 8443       | tcp          | Source in the internal network |
 | In                  | Admin                                                    | Security Server                                          | 4000             | tcp          | Source in the internal network |
 
@@ -498,7 +501,7 @@ If the configuration is successfully downloaded, the system asks for the followi
 * Security server code (**reference data: 2.4**), which is chosen by the Security Server administrator and which has to be unique across all the Security Servers belonging to the same X-Road member.
 * Software token’s PIN (**reference data: 2.5**). The PIN will be used to protect the keys stored in the software token. The PIN must be stored in a secure place, because it will be no longer possible to use or recover the private keys in the token once the PIN has been lost.
 
-### 3.4 Configuring firewall
+### 3.4 Configuring Firewall
 
 It is strongly recommended to protect the Security Server from unwanted access using a firewall (hardware or software based). The firewall can be
 applied to both incoming and outgoing connections depending on the security requirements of the environment where the Security Server is deployed. 
@@ -520,7 +523,7 @@ which makes the Security Server accept connections from any server. For country-
 
 The parameter can be changed by following the [System Parameters guide](ug-syspar_x-road_v6_system_parameters.md#21-changing-the-system-parameter-values-in-configuration-files).
 
-### 3.5 Configuring configuration backup encryption
+### 3.5 Configuring Configuration Backup Encryption
 
 It is possible to automatically encrypt Security Server configuration backups. Security server uses The GNU Privacy Guard (https://www.gnupg.org)
 for backup encryption and verification. Backups are always signed, but backup encryption is initially turned off.
@@ -552,6 +555,10 @@ The key can then be moved to an external host and imported to GPG keyring with t
 
     gpg --homedir /your_gpg_homedir_here --import server-public-key.gpg
 
+### 3.6 Enabling ACME Support
+
+Automated Certificate Management Environment (ACME) protocol enables automated certificate management of the authentication and sign
+certificates on the Security Server. More information about the required configuration is available in the [Security Server User Guide](ug-ss_x-road_6_security_server_user_guide.md#24-configuring-acme).
 
 ## 4 Installation Error handling
 

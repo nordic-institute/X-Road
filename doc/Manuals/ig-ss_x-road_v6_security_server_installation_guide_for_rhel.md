@@ -2,7 +2,7 @@
 
 **X-ROAD 7**
 
-Version: 1.27  
+Version: 1.28  
 Doc. ID: IG-SS-RHEL
 
 ---
@@ -40,7 +40,7 @@ Doc. ID: IG-SS-RHEL
 | 13.12.2023 | 1.25    | Remove Java 17 manual installation instructions for RHEL 8                                                                                                                                                           | Justas Samuolis  |
 | 19.12.2023 | 1.26    | Add RHEL 9 as supported platform                                                                                                                                                                                     | Justas Samuolis  |
 | 02.01.2024 | 1.27    | Loopback ports added                                                                                                                                                                                                 | Justas Samuolis  |
-
+| 12.06.2024 | 1.28    | Add ACME server to the network diagram, add a section about enabling ACME support                                                                                                                                    | Petteri Kivimäki |
 ## License
 
 This document is licensed under the Creative Commons Attribution-ShareAlike 3.0 Unported License. To view a copy of this license, visit http://creativecommons.org/licenses/by-sa/3.0/
@@ -77,7 +77,8 @@ This document is licensed under the Creative Commons Attribution-ShareAlike 3.0 
   - [3.1 Prerequisites](#31-prerequisites)
   - [3.2 Reference Data](#32-reference-data)
   - [3.3 Configuration](#33-configuration)
-  - [3.4 Configuring configuration backup encryption](#34-configuring-configuration-backup-encryption)
+  - [3.4 Configuring Configuration Backup Encryption](#34-configuring-configuration-backup-encryption)
+  - [3.5 Enabling ACME Support](#35-enabling-acme-support)
 - [4 Installation Error handling](#4-installation-error-handling)
   - [4.1 ERROR: Upgrade supported from version X.Y.Z or newer.](#41-error-upgrade-supported-from-version-xyz-or-newer)
 - [Annex A Security Server Default Database Properties](#annex-a-security-server-default-database-properties)
@@ -111,10 +112,9 @@ See X-Road terms and abbreviations documentation \[[TA-TERMS](#Ref_TERMS)\].
 
 ### 1.3 References
 
-1.  <a id="Ref_UG-SS" class="anchor"></a>\[UG-SS\] X-Road 7. Security Server User Guide. Document ID: [UG-SS](ug-ss_x-road_6_security_server_user_guide.md)
+1. <a id="Ref_UG-SS" class="anchor"></a>\[UG-SS\] X-Road 7. Security Server User Guide. Document ID: [UG-SS](ug-ss_x-road_6_security_server_user_guide.md)
 
-2.  <a id="Ref_TERMS" class="anchor"></a>\[TA-TERMS\] X-Road Terms and Abbreviations. Document ID: [TA-TERMS](../terms_x-road_docs.md).
-
+2. <a id="Ref_TERMS" class="anchor"></a>\[TA-TERMS\] X-Road Terms and Abbreviations. Document ID: [TA-TERMS](../terms_x-road_docs.md)
 
 ## 2 Installation
 
@@ -145,6 +145,7 @@ The software can be installed both on physical and virtualized hardware (of the 
 | 1.2 | https://artifactory.niis.org/api/gpg/key/public                                              | The repository key.<br /><br />Hash: `935CC5E7FA5397B171749F80D6E3973B`<br  />Fingerprint: `A01B FE41 B9D8 EAF4 872F  A3F1 FB0D 532C 10F6 EC5B`<br  />3rd party key server: [Ubuntu key server](https://keyserver.ubuntu.com/pks/lookup?search=0xfb0d532c10f6ec5b&fingerprint=on&op=index) |
 | 1.3 |                                                                                              | Account name in the user interface                                                                                                                                                                                                                                                         |
 | 1.4 | **Inbound ports from external network**                                                      | Ports for inbound connections from the external network to the security server                                                                                                                                                                                                             |
+| &nbsp;  | TCP 80                                                                                   | Incoming ACME challenge requests from ACME Server                                                                                                                                                                                                                                          |
 |     | TCP 5500                                                                                     | Message exchange between security servers                                                                                                                                                                                                                                                  |
 |     | TCP 5577                                                                                     | Querying of OCSP responses between security servers                                                                                                                                                                                                                                        |
 | 1.5 | **Outbound ports to external network**                                                       | Ports for outbound connections from the security server to the external network                                                                                                                                                                                                            |
@@ -169,7 +170,7 @@ It is strongly recommended to protect the security server from unwanted access u
 
 The network diagram below provides an example of a basic Security Server setup. Allowing incoming connections from the Monitoring Security Server on ports 5500/tcp and 5577/tcp is necessary for the X-Road Operator to be able to monitor the ecosystem and provide statistics and support for Members.
 
-![network diagram](img/ig-ss_network_diagram.png)
+![network diagram](img/ig-ss_network_diagram.svg)
 
 The table below lists the required connections between different components.
 
@@ -183,6 +184,7 @@ The table below lists the required connections between different components.
 | Out             | Security Server                                          | Producer Information System                              | 80, 443, other | tcp      | Target in the internal network |
 | In              | Monitoring Security Server                               | Security Server                                          | 5500, 5577     | tcp      |                                |
 | In              | Data Exchange Partner Security Server (Service Consumer) | Security Server                                          | 5500, 5577     | tcp      |                                |
+| In              | ACME Server                                              | Security Server                                          | 80             | tcp      |                                | 
 | In              | Consumer Information System                              | Security Server                                          | 8080, 8443     | tcp      | Source in the internal network |
 | In              | Admin                                                    | Security Server                                          | 4000           | tcp      | Source in the internal network |
 
@@ -478,7 +480,7 @@ If the configuration is successfully downloaded, the system asks for the followi
 * Security server code (**reference data: 2.4**), which is chosen by the security server administrator and which has to be unique across all the security servers belonging to the same X-Road member.
 * Software token’s PIN (**reference data: 2.5**). The PIN will be used to protect the keys stored in the software token. The PIN must be stored in a secure place, because it will be no longer possible to use or recover the private keys in the token once the PIN has been lost.
 
-### 3.4 Configuring configuration backup encryption
+### 3.4 Configuring Configuration Backup Encryption
 
 It is possible to automatically encrypt security server configuration backups. Security server uses The GNU Privacy Guard (https://www.gnupg.org)
 for backup encryption and verification. Backups are always signed, but backup encryption is initially turned off.
@@ -509,6 +511,11 @@ where `AA/GOV/TS1OWNER/TS1` is the security server id.
 The key can then be moved to an external host and imported to GPG keyring with the following command:
 
     gpg --homedir /your_gpg_homedir_here --import server-public-key.gpg
+
+### 3.5 Enabling ACME Support
+
+Automated Certificate Management Environment (ACME) protocol enables automated certificate management of the authentication and sign
+certificates on the Security Server. More information about the required configuration is available in the [Security Server User Guide](ug-ss_x-road_6_security_server_user_guide.md#24-configuring-acme).
 
 ## 4 Installation Error handling
 
