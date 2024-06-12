@@ -3236,7 +3236,9 @@ In case it is needed to pass additional flags to internally initialized `PGOPTIO
 
 ## 24 Configuring ACME
 
-Automated Certificate Management Environment \[[ACME](#Ref_ACME)\] protocol enables automated certificate management of the authentication and sign certificates on the Security Server. However, the ACME protocol can be used only if the Certificate Authority (CA) issuing the certificates supports it and the X-Road operator has enabled the use of the protocol on the Central Server. Therefore, also the communication between the CA's ACME server and the Security Server is disabled by default.
+Automated Certificate Management Environment \[[ACME](#Ref_ACME)\] protocol enables partly automated certificate management of the authentication and sign certificates on the Security Server. The Security Server supports automating most of the certificate request process, but the process has to be initiated manually. Also, activating and/or registering the received certificates is a manual task.
+
+The ACME protocol can be used only if the Certificate Authority (CA) issuing the certificates supports it and the X-Road operator has enabled the use of the protocol on the Central Server. Therefore, also the communication between the CA's ACME server and the Security Server is disabled by default. In addition, some member-specific configuration is required on the Security Server.
 
 **Enable connections from the ACME server**
 
