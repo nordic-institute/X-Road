@@ -26,6 +26,7 @@
  */
 package org.niis.xroad.cs.admin.globalconf.generator;
 
+import ee.ria.xroad.common.conf.globalconf.CertHash;
 import ee.ria.xroad.common.conf.globalconf.SharedParameters;
 import ee.ria.xroad.common.identifier.ClientId;
 
@@ -178,6 +179,7 @@ class SharedParametersLoader {
         result.setClients(getSecurityServerClients(ss.getId()));
         result.setAuthCertHashes(ss.getAuthCerts().stream()
                 .map(AuthCert::getCert)
+                .map(CertHash::new)
                 .toList());
         return result;
     }

@@ -138,8 +138,8 @@ public class SharedParametersCache {
 
     private void cacheSecurityServers() {
         for (SharedParameters.SecurityServer securityServer : sharedParameters.getSecurityServers()) {
-            for (byte[] certHash : securityServer.getAuthCertHashes()) {
-                serverByAuthCert.put(encodeBase64(certHash), securityServer);
+            for (CertHash certHash : securityServer.getAuthCertHashes()) {
+                serverByAuthCert.put(encodeBase64(certHash.getHash()), securityServer);
             }
 
             // Add owner of the security server
@@ -163,8 +163,8 @@ public class SharedParametersCache {
         }
 
         // Add the mapping from client to authentication certificate.
-        for (byte[] authCert : server.getAuthCertHashes()) {
-            addToMap(memberAuthCerts, client, authCert);
+        for (CertHash authCert : server.getAuthCertHashes()) {
+            addToMap(memberAuthCerts, client, authCert.getHash());
         }
 
         SecurityServerId securityServerId = SecurityServerId.Conf.create(

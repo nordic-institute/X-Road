@@ -49,6 +49,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import static ee.ria.xroad.common.util.CryptoUtils.SHA256_ID;
+
 public class SharedParametersV3Converter {
 
     SharedParameters convert(SharedParametersTypeV3 source) throws CertificateEncodingException, IOException {
@@ -218,7 +220,7 @@ public class SharedParametersV3Converter {
         target.setOwner(toClientId(instanceIdentifier, (MemberType) source.getOwner()));
         target.setServerCode(source.getServerCode());
         target.setAddress(source.getAddress());
-        target.setAuthCertHashes(source.getAuthCertHash());
+        target.setAuthCertHashes(source.getAuthCertHash().stream().map(hash -> new CertHash(SHA256_ID, hash)).toList());
         if (source.getClient() != null) {
             List<ClientId> clients = new ArrayList<>();
             for (JAXBElement<?> client : source.getClient()) {
