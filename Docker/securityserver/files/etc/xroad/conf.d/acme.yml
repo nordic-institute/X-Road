@@ -1,11 +1,11 @@
 acme:
   contacts:
-    1234: member1@example.org
+    '[DEV:COM:1234]': member1@example.org
   eab-credentials:
     certificate-authorities:
       '[Test CA]':
         mac-key-base64-encoded: true
         members:
-          1234:
+          '[DEV:COM:1234]':
             kid: 1
             mac-key: secretkey

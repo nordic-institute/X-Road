@@ -23,24 +23,24 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-import { saveResponseAsFile } from '@/util/helpers';
+import { saveResponseAsFile } from "@/util/helpers";
 import {
-  Key,
-  Client,
+  AcmeEabCredentialsStatus,
   CertificateAuthority,
+  Client,
+  CsrFormat,
+  CsrGenerate,
   CsrSubjectFieldDescription,
-  KeyWithCertificateSigningRequestId,
+  Key,
   KeyLabelWithCsrGenerate,
   KeyUsageType,
-  CsrFormat,
-  TokenType,
-  CsrGenerate,
+  KeyWithCertificateSigningRequestId,
   TokenCertificateSigningRequest,
-  AcmeEabCredentialsStatus
+  TokenType
 } from "@/openapi-types";
-import { defineStore } from 'pinia';
-import * as api from '@/util/api';
-import { encodePathParameter } from '@/util/api';
+import { defineStore } from "pinia";
+import * as api from "@/util/api";
+import { encodePathParameter } from "@/util/api";
 
 export interface CsrState {
   csrKey: Key | undefined;
@@ -288,18 +288,17 @@ export const useCsr = defineStore('csr', {
     },
 
     hasAcmeEabCredentials(caName?: string, csrClientId?: string, keyUsage?: KeyUsageType) {
-      const extractMemberCode = (clientId: string | undefined) => clientId?.substring(clientId.lastIndexOf(':') + 1);
-      const memberCode = extractMemberCode(csrClientId ?? this.csrClient)
       return api
         .get<AcmeEabCredentialsStatus>(
           `/certificate-authorities/${encodePathParameter(
             caName ?? this.certificationService,
-          )}/has-acme-eab-credentials`, {
+          )}/has-acme-eab-credentials`,
+          {
             params: {
               key_usage_type: keyUsage ?? this.usage,
-              member_code: memberCode
-            }
-          }
+              member_id: csrClientId ?? this.csrClient,
+            },
+          },
         )
         .then((res) => {
           this.acmeEabCredentialsStatus = res.data;

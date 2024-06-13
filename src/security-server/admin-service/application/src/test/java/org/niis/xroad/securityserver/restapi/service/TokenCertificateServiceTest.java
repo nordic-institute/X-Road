@@ -652,7 +652,7 @@ public class TokenCertificateServiceTest {
                 "ss0",
                 KeyUsageInfo.SIGNING,
                 acmeCA,
-                client.getMemberCode(),
+                client.asEncodedId(),
                 csrBytes);
         verify(signerProxyFacade).importCert(mockSignCertificate.getEncoded(),
                 CertificateInfo.STATUS_REGISTERED,

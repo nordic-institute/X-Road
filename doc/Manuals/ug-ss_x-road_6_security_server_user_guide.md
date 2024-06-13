@@ -3262,15 +3262,17 @@ Example of the `/etc/xroad/conf.d/acme.yml` file contents (can be found from `/e
 # remove '.example' form the file name and replace with correct values as needed or create a new file named 'acme.yml'.
 acme:
   # Contact emails for each Member used when ordering certificates from the ACME Servers,
-  # where the key is Member Code. When ordering Authentication Certificates, Security Server
-  # owner's Member Code is used.
+  # where the key is the Member ID in the form <instance_id>:<member_class>:<member_code> and
+  # should also be surrounded by '[ ]' marks to allow for ':'. When ordering Authentication Certificates,
+  # Security Server owner's Member ID is used.
   contacts:
-    1234567-8: member1@example.org
-    9090909-1: member2@example.org
+    '[EU:COM:1234567-8]': member1@example.org
+    '[EU:GOV:9090909-1]': member2@example.org
 
   # ACME external account binding credentials grouped by Certification Authorities(CA-s) and Members,
-  # where CAs have their name as key and should be surrounded '[ ]' marks to allow spaces in their names.
-  # For Members the key is the Member Code, and they have two properties: kid and mac-key, which should be
+  # where CAs have their name as key and should be surrounded by '[ ]' marks to allow spaces.
+  # For Members the key is the Member ID in the form <instance_id>:<member_class>:<member_code> and
+  # should also be surrounded by '[ ]' marks to allow for ':'. They have two properties: kid and mac-key, which should be
   # acquired externally from the CA. If the CA supports kid-based certificate type selection, then credentials starting
   # with the prefix "auth-" can be used to order authentication certificate and credentials starting with "sign-" can
   # be used to order signing certificates.
@@ -3280,7 +3282,7 @@ acme:
       '[Example Root CA]':
         mac-key-base64-encoded: true
         members:
-          1234567-8:
+          '[EU:COM:1234567-8]':
             auth-kid: key_2
             auth-mac-key: YXV0aGVudGljYXRpb25zZWNyZXRtYWNrZXk=
             sign-kid: key_3
@@ -3288,7 +3290,7 @@ acme:
       '[Some Other CA]':
         mac-key-base64-encoded: false
         members:
-          9090909-1:
+          '[EU:GOV:9090909-1]':
             kid: kid123
             mac-key: goodlongsecretwordthatisnotshort
 

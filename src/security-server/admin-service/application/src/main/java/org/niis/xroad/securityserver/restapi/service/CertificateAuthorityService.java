@@ -241,10 +241,10 @@ public class CertificateAuthorityService {
         return pathElements;
     }
 
-    public boolean hasAcmeExternalAccountBindingCredentials(String caName, String memberCode) {
+    public boolean hasAcmeExternalAccountBindingCredentials(String caName, String memberId) {
         return acmeProperties.hasEabCredentials(
                 caName,
-                Objects.requireNonNullElse(memberCode, currentSecurityServerId.getServerId().getMemberCode())
+                Objects.requireNonNullElse(memberId, currentSecurityServerId.getServerId().getOwner().asEncodedId())
         );
     }
 

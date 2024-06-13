@@ -229,11 +229,11 @@ public class TokenCertificateService {
                            GeneratedCertRequestInfo generatedCertRequestInfo)
             throws GlobalConfOutdatedException, KeyNotFoundException, InvalidCertificateException, CertificateAlreadyExistsException,
             WrongCertificateUsageException, CsrNotFoundException, AuthCertificateNotSupportedException, ClientNotFoundException {
-        String memberCode = keyUsage == KeyUsageInfo.SIGNING
-                ? memberId.getMemberCode()
-                : ServerConf.getIdentifier().getOwner().getMemberCode();
+        String memberEncodedId = keyUsage == KeyUsageInfo.SIGNING
+                ? memberId.asEncodedId()
+                : ServerConf.getIdentifier().getOwner().asEncodedId();
         List<X509Certificate> chain = acmeService.orderCertificateFromACMEServer(
-                subjectFieldValues.get("CN"), subjectAltName, keyUsage, caInfo, memberCode, generatedCertRequestInfo.getCertRequest());
+                subjectFieldValues.get("CN"), subjectAltName, keyUsage, caInfo, memberEncodedId, generatedCertRequestInfo.getCertRequest());
         if (chain != null) {
             log.info("Acme order was successful, importing certificate");
             try {
@@ -1096,15 +1096,15 @@ public class TokenCertificateService {
             } catch (IOException e) {
                 throw new ValidationFailureException(MALFORMED_CSR, e);
             }
-            String memberCode = keyUsage == KeyUsageInfo.SIGNING
-                    ? certRequestInfo.getMemberId().getMemberCode()
-                    : ServerConf.getIdentifier().getOwner().getMemberCode();
+            String memberId = keyUsage == KeyUsageInfo.SIGNING
+                    ? certRequestInfo.getMemberId().asEncodedId()
+                    : ServerConf.getIdentifier().getOwner().asEncodedId();
             List<X509Certificate> chain = acmeService.orderCertificateFromACMEServer(
                     commonName,
                     subjectAltName,
                     keyUsage,
                     caInfo,
-                    memberCode,
+                    memberId,
                     generatedCertRequestInfo.getCertRequest());
             if (chain != null) {
                 try {

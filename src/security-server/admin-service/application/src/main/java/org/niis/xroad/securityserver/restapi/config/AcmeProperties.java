@@ -72,22 +72,22 @@ public class AcmeProperties {
         private String signMacKey;
     }
 
-    public AcmeProperties.Credentials getEabCredentials(String caName, String memberCode) {
-        return getEabCredentialsOptional(caName, memberCode)
+    public AcmeProperties.Credentials getEabCredentials(String caName, String memberId) {
+        return getEabCredentialsOptional(caName, memberId)
                 .orElseThrow(() -> new NotFoundException(EAB_CREDENTIALS_MISSING));
     }
 
-    public boolean hasEabCredentials(String caName, String memberCode) {
-        return getEabCredentialsOptional(caName, memberCode).isPresent();
+    public boolean hasEabCredentials(String caName, String memberId) {
+        return getEabCredentialsOptional(caName, memberId).isPresent();
     }
 
 
-    private Optional<Credentials> getEabCredentialsOptional(String caName, String memberCode) {
+    private Optional<Credentials> getEabCredentialsOptional(String caName, String memberId) {
         return Optional.ofNullable(eabCredentials)
                 .map(EabCredentials::getCertificateAuthorities)
                 .map(certAuthorities -> certAuthorities.get(caName))
                 .map(CA::getMembers)
-                .map(members -> members.get(memberCode));
+                .map(members -> members.get(memberId));
     }
 
     public Boolean isEabMacKeyBase64Encoded(String caName) {
