@@ -434,7 +434,7 @@ Xroad-signer encapsulates keyconf, which tracks the configuration related to tok
 
 #### 3.2.3 Messaging
 
-Xroad-signer fetches information from certificate authority's OCSP responder using interface Q.
+Xroad-signer fetches information from certificate authority's OCSP responder using interface U.
 
 Xroad-signer offers interface S in \[[Figure 2](#Ref_Security_Server_process_diagram)\] for signing requests. It is used by xroad-proxy-ui-api and xroad-proxy. Additionally xroad-proxy is accessing directly the keyconf.xml encapsulated by xroad-signer.
 
