@@ -143,7 +143,7 @@ public class SharedParameters {
         private ClientId owner;
         private String serverCode;
         private String address;
-        private List<byte[]> authCertHashes;
+        private List<CertHash> authCertHashes;
         private List<ClientId> clients;
     }
 

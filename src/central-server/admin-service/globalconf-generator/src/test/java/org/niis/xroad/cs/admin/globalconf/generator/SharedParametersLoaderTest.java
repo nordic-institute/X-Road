@@ -26,6 +26,7 @@
  */
 package org.niis.xroad.cs.admin.globalconf.generator;
 
+import ee.ria.xroad.common.conf.globalconf.CertHash;
 import ee.ria.xroad.common.conf.globalconf.SharedParameters;
 import ee.ria.xroad.common.identifier.ClientId;
 
@@ -88,7 +89,7 @@ class SharedParametersLoaderTest {
     private static final String SECURITY_SERVER_ADDRESS = "security-server-address";
     private static final String SECURITY_SERVER_CODE = "SS1";
     private static final int SECURITY_SERVER_ID = 1;
-    private static final byte[] SECURITY_SERVER_AUTH_CERT = "auth cert".getBytes(UTF_8);
+    private static final CertHash SECURITY_SERVER_AUTH_CERT = new CertHash("auth cert".getBytes(UTF_8));
     private static final String GLOBAL_GROUP_CODE = "GG";
     private static final String GLOBAL_GROUP_DESCRIPTION = "GG description";
     private static final int GLOBAL_GROUP_ID = 2;
@@ -337,7 +338,7 @@ class SharedParametersLoaderTest {
         securityServer.setId(SECURITY_SERVER_ID);
         securityServer.setAddress(SECURITY_SERVER_ADDRESS);
         var authCert = new AuthCert();
-        authCert.setCert(SECURITY_SERVER_AUTH_CERT);
+        authCert.setCert("auth cert".getBytes(UTF_8));
         securityServer.setAuthCerts(Set.of(authCert));
         return List.of(securityServer);
     }

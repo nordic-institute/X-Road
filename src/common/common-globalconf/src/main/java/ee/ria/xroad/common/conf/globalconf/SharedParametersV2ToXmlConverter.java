@@ -108,15 +108,15 @@ abstract class SharedParametersV2ToXmlConverter {
     }
 
     @Named("toAuthCertHashes")
-    protected List<byte[]> toAuthCertHashes(List<byte[]> authCerts) {
+    protected List<byte[]> toAuthCertHashes(List<CertHash> authCerts) {
         return authCerts.stream()
                 .map(this::toAuthCertHash)
                 .toList();
     }
 
     @SneakyThrows
-    private byte[] toAuthCertHash(byte[] authCert) {
-        return CryptoUtils.certSha1Hash(authCert);
+    private byte[] toAuthCertHash(CertHash authCert) {
+        return authCert.getHash(CryptoUtils.SHA1_ID);
     }
 
     private Map<ClientId, Object> createClientIdMap(SharedParameters sharedParameters) {

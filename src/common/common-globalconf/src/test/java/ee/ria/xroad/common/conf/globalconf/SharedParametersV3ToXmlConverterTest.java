@@ -29,7 +29,6 @@ package ee.ria.xroad.common.conf.globalconf;
 import ee.ria.xroad.common.conf.globalconf.sharedparameters.v3.ObjectFactory;
 import ee.ria.xroad.common.conf.globalconf.sharedparameters.v3.SharedParametersTypeV3;
 import ee.ria.xroad.common.identifier.ClientId;
-import ee.ria.xroad.common.util.CryptoUtils;
 
 import jakarta.xml.bind.JAXBContext;
 import jakarta.xml.bind.JAXBElement;
@@ -48,6 +47,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 
+import static ee.ria.xroad.common.util.CryptoUtils.SHA256_ID;
 import static java.nio.charset.StandardCharsets.UTF_8;
 import static java.util.Map.entry;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -104,7 +104,7 @@ class SharedParametersV3ToXmlConverterTest {
 
         assertIdReferences(xmlType);
         assertThat(xmlType.getSecurityServer().get(0).getAuthCertHash().get(0))
-                .isEqualTo(CryptoUtils.certHash(sharedParameters.getSecurityServers().get(0).getAuthCertHashes().get(0)));
+                .isEqualTo(sharedParameters.getSecurityServers().get(0).getAuthCertHashes().get(0).getHash(SHA256_ID));
     }
 
     @Test
@@ -205,7 +205,7 @@ class SharedParametersV3ToXmlConverterTest {
         securityServer.setServerCode("security-server-code");
         securityServer.setAddress("security-server-address");
         securityServer.setClients(List.of(subsystemId(memberId(), "SUB1")));
-        securityServer.setAuthCertHashes(List.of("ss-auth-cert".getBytes(UTF_8)));
+        securityServer.setAuthCertHashes(List.of(new CertHash("ss-auth-cert".getBytes(UTF_8))));
         return securityServer;
     }
 
