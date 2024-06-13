@@ -2,8 +2,8 @@
 
 **Technical Specification** <!-- omit in toc -->
 
-Version: 1.16
-01.06.2023
+Version: 1.17
+12.06.2024
 <!-- 15 pages -->
 Doc. ID: ARC-SS
 
@@ -36,6 +36,7 @@ Doc. ID: ARC-SS
 | 01.06.2023 | 1.14    | Update references                                                                                    | Petteri Kivimäki   |
 | 20.06.2023 | 1.15    | Fixed Security Server Admin API OpenAPI specification link                                           | Madis Loitmaa      |
 | 03.10.2023 | 1.16    | Remove Akka references                                                                               | Ričardas Bučiūnas  |
+| 12.06.2024 | 1.17    | Add information about ACME support                                                                   | Petteri Kivimäki   |
 
 ## Table of Contents <!-- omit in toc -->
 
@@ -210,6 +211,8 @@ See X-Road terms and abbreviations documentation \[[TA-TERMS](#Ref_TERMS)\].
 
 26. <a id="Ref_REST_UI-API" class="anchor"></a>\[REST_UI-API\] X-Road Security Server Admin API OpenAPI Specification, <https://github.com/nordic-institute/X-Road/blob/develop/src/security-server/openapi-model/src/main/resources/META-INF/openapi-definition.yaml>.
 
+27. <a id="Ref_ACME" class="anchor"></a>\[ACME\] RFC8555: Automatic Certificate Management Environment (ACME), <https://datatracker.ietf.org/doc/html/rfc8555>
+
 ## 2 Component View
 
 [Figure 1](#Ref_Security_server_component_diagram) shows the main components and interfaces of the X-Road security server. The components and the interfaces are described in detail in the following sections.
@@ -296,6 +299,7 @@ These endpoints are used by the user interface frontend, and can be used by stan
 The management REST API is packaged in an executable Spring Boot\[[2](#Ref_2)\] *jar* archive.
 This Spring Boot application starts an embedded Tomcat\[[3](#Ref_3)\] servlet engine, which also serves the resources for the user interface frontend.
 Embedded Tomcat listens on a fixed port that is configured in internal configuration files.
+In addition, the application listens to incoming \[[ACME](#Ref_ACME)\] challenge requests from the ACME server on port 80.
 
 Management REST API endpoints are documented using an OpenAPI 3 definition: \[[REST_UI-API](#Ref_REST_UI-API)\].
 For more information on OpenAPI 3, see \[[OPENAPI](#Ref_OPENAPI)\].
@@ -354,7 +358,7 @@ Figure 2. Security server process diagram
 
 #### 3.1.1 Role and responsibilities
 
-Xroad-proxy-ui-api provides the Security Server user interface. It also provides the REST API that can be used for management operations.
+Xroad-proxy-ui-api provides the Security Server user interface. It also provides the REST API that can be used for management operations. In addition, it provides the \[[ACME](#Ref_ACME)\] interface for receiving incoming ACME challenge requests from the ACME server.
 
 #### 3.1.2 Encapsulated data
 
@@ -373,6 +377,12 @@ Xroad-proxy-ui-api accepts https traffic to interface A in \[[Figure 2](#Ref_Sec
 Interface A handles both requests to serve content for the UI and requests for REST API calls.
 Interface A is directly exposed to outside world.
 
+Xroad-proxy-ui-api accepts http traffic to interface E in \[[Figure 2](#Ref_Security_Server_process_diagram)\].
+Interface E handles incoming ACME challenge requests from the Certificate Authority's ACME server (see \[[ACME](#Ref_ACME)\]).
+Interface E is directly exposed to outside world.
+
+Xroad-proxy-ui-api communicates with certificate authority's ACME interface R (see \[[ACME](#Ref_ACME)\]).
+
 Xroad-proxy-ui-api communicates with Central Server's management services interface M (see \[[PR-MSERV](#Ref_PR-MSERV)\]).
 
 Global configuration is downloaded from Central Server (or Configuration Proxy in some cases) utilizing xroad-confclient and stored on disk.
@@ -389,13 +399,15 @@ Finally Xroad-proxy-ui-api reads/writes data to postgresql interface D.
 
 #### 3.1.4 Input/output ports
 
-Xroad-proxy-ui-api has a listening port for incoming https traffic. The Security Server ports are described in \[[IG-SS](#Ref_IG-SS)\] and \[[IG-SS-RHEL](#Ref_IG-SS-RHEL)\].
+Xroad-proxy-ui-api has listening ports for incoming https traffic. The Security Server ports are described in \[[IG-SS](#Ref_IG-SS)\] and \[[IG-SS-RHEL](#Ref_IG-SS-RHEL)\].
 
 Xroad-proxy-ui-api accesses xroad-confclient's admin port to command it to download global configuration. The output port is internal and specified in xroad-confclient's source code.
 
 Xroad-proxy-ui-api accesses xroad-signer's admin and signer protocol ports. Both ports are internal and must be looked up in the xroad-signer's source code.
 
 Xroad-proxy-ui-api accesses postgresql using the port specified in /etc/xroad/db.properties.
+
+Xroad-proxy-ui-api accesses certificate authority's ACME interface R (see \[[ACME](#Ref_ACME)\]) to manage authentication and sign certificates.
 
 #### 3.1.5 Persistent data
 
@@ -422,7 +434,7 @@ Xroad-signer encapsulates keyconf, which tracks the configuration related to tok
 
 #### 3.2.3 Messaging
 
-Xroad-signer fetches information from certificate authority's OCSP responder.
+Xroad-signer fetches information from certificate authority's OCSP responder using interface Q.
 
 Xroad-signer offers interface S in \[[Figure 2](#Ref_Security_Server_process_diagram)\] for signing requests. It is used by xroad-proxy-ui-api and xroad-proxy. Additionally xroad-proxy is accessing directly the keyconf.xml encapsulated by xroad-signer.
 
