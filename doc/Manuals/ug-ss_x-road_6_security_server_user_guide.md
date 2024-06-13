@@ -2,7 +2,7 @@
 
 **X-ROAD 7**
 
-Version: 2.84  
+Version: 2.85  
 Doc. ID: UG-SS
 
 ---
@@ -113,6 +113,7 @@ Doc. ID: UG-SS
 | 08.12.2023 | 2.82    | Disabled client state                                                                                                                                                                                                                                                                                                                                                                                       | Madis Loitmaa        |
 | 26.03.2024 | 2.83    | Passing additional parameters to psql                                                                                                                                                                                                                                                                                                                                                                       | Ovidijus Narkevicius |
 | 09.06.2024 | 2.84    | Acme related updates                                                                                                                                                                                                                                                                                                                                                                                        | Mikk-Erik Bachmann   |
+| 12.06.2024 | 2.85    | Acme related updates                                                                                                                                                                                                                                                                                                                                                                                        | Petteri Kivimäki     |
 
 ## Table of Contents <!-- omit in toc -->
 
@@ -301,27 +302,27 @@ See X-Road terms and abbreviations documentation \[[TA-TERMS](#Ref_TERMS)\].
 
 ### 1.3 References
 
-1.  <a id="Ref_ASiC" class="anchor"></a>\[ASiC\] ETSI TS 102 918, Electronic Signatures and Infrastructures (ESI); Associated Signature Containers (ASiC)
+1. <a id="Ref_ASiC" class="anchor"></a>\[ASiC\] ETSI TS 102 918, Electronic Signatures and Infrastructures (ESI); Associated Signature Containers (ASiC)
 
-2.  <a id="Ref_CRON" class="anchor"></a>\[CRON\] Quartz Scheduler CRON expression,  
+2. <a id="Ref_CRON" class="anchor"></a>\[CRON\] Quartz Scheduler CRON expression,  
     <http://www.quartz-scheduler.org/documentation/quartz-2.3.0/tutorials/tutorial-lesson-06.html>
 
-3.  <a id="Ref_INI" class="anchor"></a>\[INI\] INI file,  
+3. <a id="Ref_INI" class="anchor"></a>\[INI\] INI file,  
     <http://en.wikipedia.org/wiki/INI_file>
 
-4.  <a id="Ref_JDBC" class="anchor"></a>\[JDBC\] Connecting to the Database,   
+4. <a id="Ref_JDBC" class="anchor"></a>\[JDBC\] Connecting to the Database,   
     <https://jdbc.postgresql.org/documentation/93/connect.html>
 
-5.  <a id="Ref_JSON" class="anchor"></a>\[JSON\] Introducing JSON,  
+5. <a id="Ref_JSON" class="anchor"></a>\[JSON\] Introducing JSON,  
     <http://json.org/>
 
-6.  <a id="Ref_PR-MESS" class="anchor"></a>\[PR-MESS\] X-Road: Message Protocol v4.0. Document ID: [PR-MESS](../Protocols/pr-mess_x-road_message_protocol.md)
+6. <a id="Ref_PR-MESS" class="anchor"></a>\[PR-MESS\] X-Road: Message Protocol v4.0. Document ID: [PR-MESS](../Protocols/pr-mess_x-road_message_protocol.md)
 
-7.  <a id="Ref_SPEC-AL" class="anchor"></a>\[SPEC-AL\] X-Road: Audit log events. Document ID: [SPEC-AL](https://github.com/nordic-institute/X-Road/blob/master/doc/Architecture/spec-al_x-road_audit_log_events.md)
+7. <a id="Ref_SPEC-AL" class="anchor"></a>\[SPEC-AL\] X-Road: Audit log events. Document ID: [SPEC-AL](https://github.com/nordic-institute/X-Road/blob/master/doc/Architecture/spec-al_x-road_audit_log_events.md)
 
-8.  <a id="Ref_PR-OPMON" class="anchor"></a>\[PR-OPMON\] X-Road: Operational Monitoring Protocol. Document ID: [PR-OPMON](../OperationalMonitoring/Protocols/pr-opmon_x-road_operational_monitoring_protocol_Y-1096-2.md)
+8. <a id="Ref_PR-OPMON" class="anchor"></a>\[PR-OPMON\] X-Road: Operational Monitoring Protocol. Document ID: [PR-OPMON](../OperationalMonitoring/Protocols/pr-opmon_x-road_operational_monitoring_protocol_Y-1096-2.md)
 
-9.  <a id="Ref_PR-OPMONJMX" class="anchor"></a>\[PR-OPMONJMX\] X-Road: Operational Monitoring JMX Protocol. Document ID: [PR-OPMONJMX](../OperationalMonitoring/Protocols/pr-opmonjmx_x-road_operational_monitoring_jmx_protocol_Y-1096-3.md)
+9. <a id="Ref_PR-OPMONJMX" class="anchor"></a>\[PR-OPMONJMX\] X-Road: Operational Monitoring JMX Protocol. Document ID: [PR-OPMONJMX](../OperationalMonitoring/Protocols/pr-opmonjmx_x-road_operational_monitoring_jmx_protocol_Y-1096-3.md)
 
 10. <a id="Ref_UG-OPMONSYSPAR" class="anchor"></a>\[UG-OPMONSYSPAR\] X-Road: Operational Monitoring System Parameters. Document ID: [PR-OPMONSYSPAR](../OperationalMonitoring/Manuals/ug-opmonsyspar_x-road_operational_monitoring_system_parameters_Y-1099-1.md)
 
@@ -359,6 +360,7 @@ See X-Road terms and abbreviations documentation \[[TA-TERMS](#Ref_TERMS)\].
 
 25. <a id="Ref_UG-SIGDOC" class="anchor"></a>\[UG-SIGDOC\] X-Road: Signed Document Download and Verification Manual. Document ID: [UG-SIGDOC](../Manuals/ug-sigdoc_x-road_signed_document_download_and_verification_manual.md).
 
+26. <a id="Ref_ACME" class="anchor"></a>\[ACME\] RFC8555: Automatic Certificate Management Environment (ACME), <https://datatracker.ietf.org/doc/html/rfc8555>
 
 ## 2 User Management
 
@@ -755,7 +757,7 @@ If an approved CA supports ACME, then an alternative to creating the CSR, sendin
 
 2. Choose a **Certification Service** that supports ACME.
 
-3. Some Certification Services require their ACME Server account to be bound an external account for added security. If that is the case, the security server owner needs to have external accounts credentials configured in `/etc/xroad/conf.d/acme.yml` (more info on how to configure ACME can be found in section [24. Configuring ACME](#24-configuring-acme)).
+3. Some Certification Services require their ACME Server account to be bound an external account for added security. If that is the case, the Security Server owner needs to have external accounts credentials configured in `/etc/xroad/conf.d/acme.yml` (more info on how to configure ACME can be found in section [24. Configuring ACME](#24-configuring-acme)).
 
 4. On the CSR fields page make sure the **CN** field (and **SAN** if present) field has the correct DNS name. This is used by the ACME server to check that the member owns the domain the certificate is ordered for.
 
@@ -3234,15 +3236,26 @@ In case it is needed to pass additional flags to internally initialized `PGOPTIO
 
 ## 24 Configuring ACME
 
-Although the main ACME related configuration comes from the Global Configuration, in order to use ACME standard, some of the member-specific configurations have to be set on the Security Server side as well. These configurations go in the file **acme.yml**, that is in the configurations folder on the file system (default /etc/xroad/conf.d). An example file is added by the installer when installing or upgrading X-Road to version 7.5. These are:
+Automated Certificate Management Environment \[[ACME](#Ref_ACME)\] protocol enables partly automated certificate management of the authentication and sign certificates on the Security Server. The Security Server supports automating most of the certificate request process, but the process has to be initiated manually. Also, activating and/or registering the received certificates is a manual task.
 
-1. Contact information, usually an email address, of the member for whom the certificate is ordered. It is passed along to the Certificate Authority at the beginning of the communication between Security Server and the CA-s ACME server.
+The ACME protocol can be used only if the Certificate Authority (CA) issuing the certificates supports it and the X-Road operator has enabled the use of the protocol on the Central Server. Therefore, also the communication between the CA's ACME server and the Security Server is disabled by default. In addition, some member-specific configuration is required on the Security Server.
 
-2. Credentials (kid and hmac secret) for external account binding. Some CA-s require these for added security. They tie the X-Road member to an external account on the Certificate Authority side and so need to be acquired externally from the CA.
+**Enable connections from the ACME server**
 
-There are currently two ways to let the ACME server know which type of certificate to return (the chosen CA also needs to support them). The first one, which sends profile ids for authentication and signing certificates in http header, does not require any further configuration on the security server side. The second one uses certificate type specific external account credentials. For the authentication certificate add "**auth-**" prefix to the external account binding credentials property names in the acme.yml file. For the signing certificate add the prefix "**sign-**".
+The Security Server has a `[proxy-ui-api]` parameter [acme-challenge-port-enabled](ug-syspar_x-road_v6_system_parameters.md#39-management-rest-api-parameters-proxy-ui-api) that defines whether the Security Server listens to incoming ACME challenge requests on port 80. The default value for this parameter is `false` which means that  the Security Server does not listen on port 80. The parameter can be changed by following the [System Parameters guide](ug-syspar_x-road_v6_system_parameters.md#21-changing-the-system-parameter-values-in-configuration-files).
 
-acme.example.yml:
+**Member-specific configuration**
+
+Although the main ACME-related configuration is managed on the Central Server and distributed to the Security Servers over the Global Configuration, in order to use the ACME standard, some of the member-specific configurations have to be set on the Security Server side as well. These configurations go in the file `acme.yml`, that is in the configurations folder on the file system (default `/etc/xroad/conf.d`). An example file is added by the installer when installing or upgrading X-Road to version 7.5. The configurations to be added are:
+
+1. Contact information, usually an email address, of the member for whom the certificate is ordered. It is passed along to the Certificate Authority at the beginning of the communication between Security Server and the CA's ACME server.
+
+2. Credentials (kid and hmac secret) for external account binding. Some CAs require these for added security. They tie the X-Road member to an external account on the Certificate Authority's side and so need to be acquired externally from the CA.
+
+There are currently two ways to let the ACME server know which type of certificate to return (the chosen CA also needs to support them). The first one, which sends profile ids for authentication and signing certificates in http header, does not require any further configuration on the Security Server side. The second one uses certificate type specific external account credentials. For the authentication certificate add "**auth-**" prefix to the external account binding credentials property names in the `/etc/xroad/conf.d/acme.yml` file. For the signing certificate add the prefix "**sign-**".
+
+Example of the `/etc/xroad/conf.d/acme.yml` file contents (can be found from `/etc/xroad/conf.d/acme.example.yml`):
+
 ```yaml
 # Example acme.yml file that has properties related to Automatic Certificate Management Environment (ACME)
 # that is used to automate acquiring certificates from Certificate Authorities. To use this file
@@ -3256,7 +3269,7 @@ acme:
     9090909-1: member2@example.org
 
   # ACME external account binding credentials grouped by Certification Authorities(CA-s) and Members,
-  # where CA-s have their name as key and should be surrounded '[ ]' marks to allow spaces in their names.
+  # where CAs have their name as key and should be surrounded '[ ]' marks to allow spaces in their names.
   # For Members the key is the Member Code, and they have two properties: kid and mac-key, which should be
   # acquired externally from the CA. If the CA supports kid-based certificate type selection, then credentials starting
   # with the prefix "auth-" can be used to order authentication certificate and credentials starting with "sign-" can
@@ -3268,19 +3281,14 @@ acme:
         mac-key-base64-encoded: true
         members:
           1234567-8:
-            kid: key_1
-            mac-key: YWJjZDEyMzRFRkdINjdpajg5S2xNMG5vcHFyc1RVVnd4
             auth-kid: key_2
             auth-mac-key: YXV0aGVudGljYXRpb25zZWNyZXRtYWNrZXk=
             sign-kid: key_3
             sign-mac-key: c2VjcmV0X21hY19rZXlfZm9yX3NpZ25pbmc=
-          9090909-1:
-            kid: key_2
-            mac-key: Z29vZGxvbmdzZWNyZXR3b3JkdGhhdGlzbm90c2hvcnQ=
       '[Some Other CA]':
         mac-key-base64-encoded: false
         members:
-          1234567-8:
+          9090909-1:
             kid: kid123
             mac-key: goodlongsecretwordthatisnotshort
 
