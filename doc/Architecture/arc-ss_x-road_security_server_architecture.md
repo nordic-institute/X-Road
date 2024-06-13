@@ -407,7 +407,7 @@ Xroad-proxy-ui-api accesses xroad-signer's admin and signer protocol ports. Both
 
 Xroad-proxy-ui-api accesses postgresql using the port specified in /etc/xroad/db.properties.
 
-Xroad-proxy-ui-api accesses certificate authority's ACME interface R (see \[[ACME](#Ref_ACME)\]) to manage authentication and sign certificates.
+Xroad-proxy-ui-api accesses certificate authority's ACME interface R (see \[[ACME](#Ref_ACME)\]) to manage authentication and sign certificates. The output port is defined on the Central Server and distributed to the Security Servers using global configuration.
 
 #### 3.1.5 Persistent data
 
