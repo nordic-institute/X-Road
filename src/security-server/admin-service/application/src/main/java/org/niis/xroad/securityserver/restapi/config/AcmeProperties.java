@@ -28,16 +28,12 @@ package org.niis.xroad.securityserver.restapi.config;
 import lombok.Getter;
 import lombok.Setter;
 import org.niis.xroad.common.exception.NotFoundException;
-import org.springframework.boot.context.properties.ConfigurationProperties;
-import org.springframework.context.annotation.Configuration;
 
 import java.util.Map;
 import java.util.Optional;
 
 import static org.niis.xroad.securityserver.restapi.service.AcmeDeviationMessage.EAB_CREDENTIALS_MISSING;
 
-@Configuration
-@ConfigurationProperties(prefix = "acme")
 @Getter
 @Setter
 public class AcmeProperties {

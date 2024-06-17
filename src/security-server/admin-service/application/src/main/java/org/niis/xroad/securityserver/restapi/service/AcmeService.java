@@ -50,7 +50,6 @@ import org.shredzone.acme4j.Status;
 import org.shredzone.acme4j.challenge.Challenge;
 import org.shredzone.acme4j.challenge.Http01Challenge;
 import org.shredzone.acme4j.exception.AcmeException;
-import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.stereotype.Service;
 
 import javax.crypto.spec.SecretKeySpec;
@@ -96,7 +95,6 @@ import static org.niis.xroad.securityserver.restapi.service.AcmeDeviationMessage
 import static org.niis.xroad.securityserver.restapi.service.AcmeDeviationMessage.ORDER_FINALIZATION_FAILURE;
 
 @Slf4j
-@EnableConfigurationProperties(AcmeProperties.class)
 @Service
 @RequiredArgsConstructor
 public final class AcmeService {
