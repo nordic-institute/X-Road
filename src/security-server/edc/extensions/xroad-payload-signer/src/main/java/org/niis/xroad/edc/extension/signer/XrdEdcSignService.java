@@ -36,33 +36,31 @@ import org.niis.xroad.edc.sig.XrdSignatureCreationException;
 import org.niis.xroad.edc.sig.XrdSignatureService;
 import org.niis.xroad.edc.sig.XrdSignatureVerificationException;
 
+import java.util.List;
+
 @RequiredArgsConstructor
 public class XrdEdcSignService {
     private final XrdSignatureService signService;
 
     private final Monitor monitor;
 
-    public SignatureResponse sign(ServiceId.Conf serviceId, byte[] message, String attachmentDigest) {
-        monitor.debug("Signing request payload using digest..");
+    public SignatureResponse sign(ServiceId.Conf serviceId, byte[] message, List<byte[]> attachmentDigests) {
+        monitor.debug("Signing request payload with attachments.");
         try {
-            return signService.sign(serviceId.getClientId(), message, attachmentDigest);
+            return signService.sign(serviceId.getClientId(), message, attachmentDigests);
         } catch (XrdSignatureCreationException e) {
-            throw new RuntimeException("Failed to sign response payload", e);
-        }
-    }
-
-    public SignatureResponse sign(ServiceId.Conf serviceId, byte[] message) {
-        monitor.debug("Signing request payload..");
-        try {
-            return signService.sign(serviceId.getClientId(), message);
-        } catch (XrdSignatureCreationException e) {
-            throw new RuntimeException("Failed to sign response payload", e);
+            throw new RuntimeException("Signing failed.", e);
         }
     }
 
     public void verifyRequest(String signature, byte[] message, byte[] attachment,
                               ClientId clientId) throws XrdSignatureVerificationException {
         signService.verify(signature, message, attachment, clientId);
+    }
+
+    public void verifySignature(String signature, byte[] message, List<byte[]> attachmentDigests, ClientId clientId)
+            throws XrdSignatureVerificationException {
+        signService.verify(signature, message, attachmentDigests, clientId);
     }
 
 }

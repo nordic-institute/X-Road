@@ -49,6 +49,7 @@ import java.util.ArrayList;
 import java.util.Base64;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.IntStream;
 
 
 @RequiredArgsConstructor
@@ -76,7 +77,7 @@ public class XrdXAdESVerifier extends XrdSignatureVerifierBase implements XrdSig
     }
 
     @Override
-    public void verifySignature(String signatureBase64, byte[] message, String attachmentDigest, ClientId signerClientId)
+    public void verifySignature(String signatureBase64, byte[] message, List<String> attachmentDigests, ClientId signerClientId)
             throws XrdSignatureVerificationException {
 
         try {
@@ -85,8 +86,11 @@ public class XrdXAdESVerifier extends XrdSignatureVerifierBase implements XrdSig
 
             List<DSSDocument> detachedPayloads = new ArrayList<>();
             Optional.ofNullable(message).ifPresent(m -> detachedPayloads.add(new InMemoryDocument(m, "/message.xml")));
-            Optional.ofNullable(attachmentDigest)
-                    .ifPresent(a -> detachedPayloads.add(new DigestDocument(digestAlgorithm, attachmentDigest, "/attachment1")));
+            if (attachmentDigests != null) {
+                IntStream.range(0, attachmentDigests.size())
+                        .forEach(index -> detachedPayloads.add(new DigestDocument(digestAlgorithm, attachmentDigests.get(index),
+                                "/attachment" + (index + 1))));
+            }
 
             validate(signatureDocument, detachedPayloads, signerClientId);
         } catch (Exception e) {

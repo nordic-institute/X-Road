@@ -31,16 +31,18 @@ import ee.ria.xroad.common.message.ResponseSoapParserImpl;
 import ee.ria.xroad.common.message.RestMessage;
 import ee.ria.xroad.common.message.RestRequest;
 import ee.ria.xroad.common.message.RestResponse;
+import ee.ria.xroad.common.message.SaxSoapParserImpl;
+import ee.ria.xroad.common.message.SoapFault;
+import ee.ria.xroad.common.message.SoapMessage;
+import ee.ria.xroad.common.message.SoapMessageDecoder;
 import ee.ria.xroad.common.message.SoapMessageImpl;
-import ee.ria.xroad.common.message.SoapParser;
-import ee.ria.xroad.common.message.SoapParserImpl;
 import ee.ria.xroad.common.messagelog.RestLogMessage;
 import ee.ria.xroad.common.messagelog.SoapLogMessage;
 import ee.ria.xroad.common.signature.SignatureData;
 import ee.ria.xroad.common.util.CacheInputStream;
 import ee.ria.xroad.common.util.CachingStream;
 import ee.ria.xroad.common.util.CryptoUtils;
-import ee.ria.xroad.common.util.MimeTypes;
+import ee.ria.xroad.common.util.HeaderValueUtils;
 import ee.ria.xroad.common.util.MimeUtils;
 
 import jakarta.ws.rs.DELETE;
@@ -58,6 +60,8 @@ import jakarta.ws.rs.core.Context;
 import jakarta.ws.rs.core.HttpHeaders;
 import jakarta.ws.rs.core.Response;
 import jakarta.ws.rs.core.StreamingOutput;
+import lombok.Getter;
+import org.apache.commons.io.IOUtils;
 import org.apache.http.Header;
 import org.apache.http.message.BasicHeader;
 import org.bouncycastle.operator.DigestCalculator;
@@ -73,8 +77,11 @@ import org.niis.xroad.edc.sig.SignatureResponse;
 import org.niis.xroad.edc.spi.messagelog.XRoadMessageLog;
 
 import java.io.ByteArrayInputStream;
+import java.io.IOException;
+import java.io.InputStream;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
 import java.util.Base64;
 import java.util.HashMap;
 import java.util.List;
@@ -84,7 +91,7 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.ExecutorService;
 
-import static ee.ria.xroad.common.util.CryptoUtils.encodeBase64;
+import static ee.ria.xroad.common.util.CryptoUtils.createDigestCalculator;
 import static jakarta.ws.rs.core.MediaType.APPLICATION_JSON;
 import static jakarta.ws.rs.core.MediaType.WILDCARD;
 import static jakarta.ws.rs.core.Response.Status.BAD_REQUEST;
@@ -92,6 +99,7 @@ import static jakarta.ws.rs.core.Response.Status.FORBIDDEN;
 import static jakarta.ws.rs.core.Response.Status.INTERNAL_SERVER_ERROR;
 import static jakarta.ws.rs.core.Response.Status.UNAUTHORIZED;
 import static jakarta.ws.rs.core.Response.status;
+import static java.lang.Boolean.TRUE;
 import static java.net.HttpURLConnection.HTTP_OK;
 import static java.util.stream.Collectors.toList;
 import static org.apache.commons.lang3.StringUtils.defaultIfBlank;
@@ -156,9 +164,9 @@ public class XrdDataPlanePublicApiController {
         handle(requestContext, response);
     }
 
-    private boolean isSoap(DataFlowStartMessage dataFlowStartMessage) {
+    private boolean isRest(DataFlowStartMessage dataFlowStartMessage) {
         return Optional.ofNullable(dataFlowStartMessage.getProperties().get(MEDIA_TYPE))
-                .map(contentType -> contentType.contains("text/xml"))
+                .map(contentType -> contentType.contains("application/json"))
                 .orElse(false);
     }
 
@@ -204,29 +212,21 @@ public class XrdDataPlanePublicApiController {
             return;
         }
         var serviceId = ServiceId.Conf.fromEncodedId(assetId);
-        boolean isSoap = isSoap(dataFlowStartMessage);
+        boolean isSoap = !isRest(dataFlowStartMessage);
 
         byte[] requestDigest = logAndVerifyRequest(dataFlowStartMessage, contextApi, serviceId, isSoap);
 
         AsyncStreamingDataSink.AsyncResponseContext asyncResponseContext = callback -> {
-            StreamingOutput output = t -> callback.outputStreamConsumer().accept(t);
+            StreamingOutput providerResponseStream = t -> callback.outputStreamConsumer().accept(t);
             try {
                 Map<String, String> headers = new HashMap<>();
                 headers.put("Content-Type", callback.mediaType());
                 headers.put("Date", DateTimeFormatter.RFC_1123_DATE_TIME.withLocale(Locale.US).format(ZonedDateTime.now()));
 
-                CachingStream cachingStream = new CachingStream();
                 if (isSoap) {
-                    output.write(cachingStream);
-                    return response.resume(handleSuccessSoap(cachingStream, headers, serviceId, contextApi, requestDigest));
+                    return response.resume(handleSuccessSoap(providerResponseStream, headers, serviceId, contextApi, requestDigest));
                 } else {
-                    // calculate the body digest while caching stream, it will be required for signing response later
-                    DigestCalculator dc = CryptoUtils.createDigestCalculator(CryptoUtils.DEFAULT_DIGEST_ALGORITHM_ID);
-                    TeeOutputStream teeOutputStream = new TeeOutputStream(dc.getOutputStream(), cachingStream);
-                    output.write(teeOutputStream);
-                    byte[] responseBodyDigest = dc.getDigest();
-                    return response.resume(handleSuccessRest(cachingStream, headers, serviceId, contextApi, requestDigest,
-                            responseBodyDigest));
+                    return response.resume(handleSuccessRest(providerResponseStream, headers, serviceId, contextApi, requestDigest));
                 }
             } catch (Exception e) {
                 throw new RuntimeException(e);
@@ -259,28 +259,37 @@ public class XrdDataPlanePublicApiController {
     private byte[] logAndVerifyRequest(DataFlowStartMessage dataFlowRequest, ContainerRequestContextApi contextApi,
                                        ServiceId.Conf serviceId, boolean isSoap) {
         try {
+            // todo: must be removed in the future
+            boolean skipLogVerify = TRUE.toString().equalsIgnoreCase(contextApi.headers().get("X-Road-skip-log-and-verify"));
             // todo: use stream?
             byte[] requestBody = dataFlowRequest.getProperties().containsKey(BODY)
                     ? dataFlowRequest.getProperties().get(BODY).getBytes() : null;
-            String signatureXml = getSignatureFromHeaders(contextApi.headers());
-            String signature = contextApi.headers().get(HEADER_XRD_SIG);
+            String signatureXml = skipLogVerify ? null : getSignatureFromHeaders(contextApi.headers());
+            String signature = skipLogVerify ? null : contextApi.headers().get(HEADER_XRD_SIG);
             String xRequestId = contextApi.headers().get(MimeUtils.HEADER_REQUEST_ID);
 
             if (isSoap) {
-                var soapParser = new SoapParserImpl();
-                SoapMessageImpl soapMessage = (SoapMessageImpl) soapParser.parse(MimeTypes.TEXT_XML_UTF8,
-                        new ByteArrayInputStream(requestBody));
+                try (SoapMessageHandler handler = new SoapMessageHandler()) {
+                    SoapMessageDecoder decoder = new SoapMessageDecoder(contextApi.headers().get("Content-Type"),
+                            handler, new SaxSoapParserImpl());
+                    decoder.parse(new ByteArrayInputStream(requestBody));
 
-                SoapLogMessage logMessage = new SoapLogMessage(
-                        soapMessage,
-                        new SignatureData(signatureXml),
-                        false,
-                        xRequestId);
+                    SoapMessageImpl soapMessage = (SoapMessageImpl) handler.getSoapMessage();
 
-                xRoadMessageLog.log(logMessage);
-                signService.verifyRequest(signature, soapMessage.getBytes(), null, soapMessage.getClient());
+                    if (!skipLogVerify) {
+                        SoapLogMessage logMessage = new SoapLogMessage(
+                                soapMessage,
+                                new SignatureData(signatureXml),
+                                false,
+                                xRequestId);
 
-                return soapMessage.getHash();
+                        xRoadMessageLog.log(logMessage);
+                        signService.verifySignature(signature, soapMessage.getBytes(), handler.getAttachmentDigests(),
+                                soapMessage.getClient());
+                    }
+
+                    return soapMessage.getHash();
+                }
             } else { // rest message
                 RestRequest restRequest = new RestRequest(
                         contextApi.method(),
@@ -289,17 +298,19 @@ public class XrdDataPlanePublicApiController {
                         toSortedHeadersList(contextApi.headers(), HEADER_XRD_SIG, "Authorization"),
                         xRequestId);
 
-                RestLogMessage logMessage = new RestLogMessage(contextApi.headers().get(MimeUtils.HEADER_QUERY_ID),
-                        restRequest.getClientId(),
-                        serviceId,
-                        restRequest,
-                        new SignatureData(signatureXml),
-                        bodyAsStream(requestBody),
-                        false,
-                        xRequestId);
+                if (!skipLogVerify) {
+                    RestLogMessage logMessage = new RestLogMessage(contextApi.headers().get(MimeUtils.HEADER_QUERY_ID),
+                            restRequest.getClientId(),
+                            serviceId,
+                            restRequest,
+                            new SignatureData(signatureXml),
+                            bodyAsStream(requestBody),
+                            false,
+                            xRequestId);
 
-                xRoadMessageLog.log(logMessage);
-                signService.verifyRequest(signature, restRequest.getMessageBytes(), requestBody, restRequest.getClientId());
+                    xRoadMessageLog.log(logMessage);
+                    signService.verifyRequest(signature, restRequest.getMessageBytes(), requestBody, restRequest.getClientId());
+                }
 
                 return calculateRestRequestDigest(restRequest, requestBody);
             }
@@ -311,11 +322,11 @@ public class XrdDataPlanePublicApiController {
 
     private byte[] calculateRestRequestDigest(RestRequest request, byte[] body) throws Exception {
         if (body != null) {
-            var dc = CryptoUtils.createDigestCalculator(CryptoUtils.DEFAULT_DIGEST_ALGORITHM_ID);
+            var dc = createDigestCalculator(CryptoUtils.DEFAULT_DIGEST_ALGORITHM_ID);
             dc.getOutputStream().write(body);
             var bodyDigest = dc.getDigest();
 
-            dc = CryptoUtils.createDigestCalculator(CryptoUtils.DEFAULT_DIGEST_ALGORITHM_ID);
+            dc = createDigestCalculator(CryptoUtils.DEFAULT_DIGEST_ALGORITHM_ID);
             try (var out = dc.getOutputStream()) {
                 out.write(request.getHash());
                 out.write(bodyDigest);
@@ -347,9 +358,15 @@ public class XrdDataPlanePublicApiController {
         throw new EdcException("Missing clientID header.");
     }
 
-    private Response handleSuccessRest(CachingStream responseStream, Map<String, String> headers, ServiceId.Conf serviceId,
-                                       ContainerRequestContextApi contextApi, byte[] requestDigest, byte[] responseBodyDigest) {
+    private Response handleSuccessRest(StreamingOutput responseStream, Map<String, String> headers, ServiceId.Conf serviceId,
+                                       ContainerRequestContextApi contextApi, byte[] requestDigest) {
         try {
+            CachingStream cachedStream = new CachingStream();
+            DigestCalculator dc = createDigestCalculator(CryptoUtils.DEFAULT_DIGEST_ALGORITHM_ID);
+            TeeOutputStream teeOutputStream = new TeeOutputStream(dc.getOutputStream(), cachedStream);
+            responseStream.write(teeOutputStream);
+            byte[] responseBodyDigest = dc.getDigest();
+
             var queryId = contextApi.headers().get(MimeUtils.HEADER_QUERY_ID);
             var xRequestId = contextApi.headers().get(MimeUtils.HEADER_REQUEST_ID);
             var clientId = RestMessage.decodeClientId(getClientIdFromHeaders(contextApi.headers()));
@@ -363,7 +380,7 @@ public class XrdDataPlanePublicApiController {
                     xRequestId);
 
             SignatureResponse signatureResponse = this.signService.sign(serviceId, restResponse.getMessageBytes(),
-                    encodeBase64(responseBodyDigest));
+                    List.of(responseBodyDigest));
 
             var logMessage = new RestLogMessage(
                     queryId,
@@ -371,12 +388,12 @@ public class XrdDataPlanePublicApiController {
                     serviceId,
                     restResponse,
                     new SignatureData(signatureResponse.getSignatureDecoded()),
-                    responseStream.getCachedContents(),
+                    cachedStream.getCachedContents(),
                     false,
                     xRequestId);
             xRoadMessageLog.log(logMessage);
 
-            var builder = Response.ok((StreamingOutput) output -> responseStream.getCachedContents().transferTo(output));
+            var builder = Response.ok((StreamingOutput) output -> cachedStream.getCachedContents().transferTo(output));
             restResponse.getHeaders().forEach(h -> builder.header(h.getName(), h.getValue()));
             builder.header(HEADER_XRD_SIG, signatureResponse.getSignature());
             return builder.build();
@@ -386,37 +403,143 @@ public class XrdDataPlanePublicApiController {
         }
     }
 
-    private Response handleSuccessSoap(CachingStream responseStream, Map<String, String> headers, ServiceId.Conf serviceId,
+    private Response handleSuccessSoap(StreamingOutput responseStream, Map<String, String> headers, ServiceId.Conf serviceId,
                                        ContainerRequestContextApi contextApi, byte[] requestDigest) {
-        try {
-            var xRequestId = contextApi.headers().get(MimeUtils.HEADER_REQUEST_ID);
+        var xRequestId = contextApi.headers().get(MimeUtils.HEADER_REQUEST_ID);
 
-            SoapParser soapParser = new ResponseSoapParserImpl(requestDigest);
-            SoapMessageImpl soapMessage = (SoapMessageImpl) soapParser.parse(MimeTypes.TEXT_XML_UTF8,
-                    responseStream.getCachedContents());
-
-            SignatureResponse signatureResponse = this.signService.sign(serviceId, soapMessage.getBytes());
+        try (SoapResponseMessageHandler soapHandler = new SoapResponseMessageHandler(headers.get("Content-Type"))) {
+            // todo: no caching should be required here, piped streams to read the response should work
+            CachingStream cachedStream = new CachingStream();
+            responseStream.write(cachedStream);
+            SoapMessageDecoder decoder = new SoapMessageDecoder(headers.get("Content-Type"),
+                    soapHandler,
+                    new ResponseSoapParserImpl(requestDigest));
+            decoder.parse(cachedStream.getCachedContents());
+            SignatureResponse signatureResponse = this.signService.sign(serviceId, soapHandler.getSoapMessage().getBytes(),
+                    soapHandler.getAttachmentDigests());
 
             var logMessage = new SoapLogMessage(
-                    soapMessage,
+                    (SoapMessageImpl) soapHandler.getSoapMessage(),
                     new SignatureData(signatureResponse.getSignatureDecoded()),
                     false,
                     xRequestId);
             xRoadMessageLog.log(logMessage);
-
-            var builder = Response.ok(soapMessage.getBytes());
+            // todo: cached provider stream does not have the request hash in the soap header!
+            var builder = Response.ok((StreamingOutput) output -> soapHandler.cachedStream.getCachedContents().transferTo(output));
             headers.forEach(builder::header);
             builder.header(HEADER_XRD_SIG, signatureResponse.getSignature());
             return builder.build();
         } catch (Exception e) {
-            monitor.severe("Failed to sign response payload", e);
+            monitor.severe("Failed to process soap response", e);
             throw new RuntimeException(e);
         }
     }
 
-
     private static Response error(Response.Status status, String error) {
         return status(status).type(APPLICATION_JSON).entity(new TransferErrorResponse(List.of(error))).build();
+    }
+
+    @Getter
+    private static class SoapMessageHandler implements SoapMessageDecoder.Callback {
+
+        private SoapMessage soapMessage;
+        private final List<byte[]> attachmentDigests = new ArrayList<>();
+
+        @Override
+        public void fault(SoapFault fault) {
+        }
+
+        @Override
+        public void onCompleted() {
+        }
+
+        @Override
+        public void onError(Exception t) throws Exception {
+            throw t;
+        }
+
+        @Override
+        public void soap(SoapMessage message, Map<String, String> additionalHeaders) throws Exception {
+            this.soapMessage = message;
+        }
+
+        @Override
+        public void attachment(String contentType, InputStream content, Map<String, String> additionalHeaders) throws Exception {
+            byte[] attachmentDigest = CryptoUtils.calculateDigest(CryptoUtils.DEFAULT_DIGEST_ALGORITHM_ID, content);
+            attachmentDigests.add(attachmentDigest);
+        }
+    }
+
+    private static class SoapResponseMessageHandler extends SoapMessageHandler implements SoapMessageDecoder.Callback {
+
+        private static final byte[] CRLF = {'\r', '\n'};
+        private static final byte[] DASHDASH = {'-', '-'};
+        private final byte[] multipartBoundary;
+
+        private final CachingStream cachedStream;
+        private final boolean isMultipart;
+
+        public SoapResponseMessageHandler(String contentType) throws Exception {
+            this.cachedStream = new CachingStream();
+
+            String boundary = HeaderValueUtils.getBoundary(contentType);
+            this.isMultipart = boundary != null;
+            this.multipartBoundary = boundary != null ? boundary.getBytes() : null;
+        }
+
+        @Override
+        public void soap(SoapMessage message, Map<String, String> additionalHeaders) throws Exception {
+            super.soap(message, additionalHeaders);
+            if (isMultipart) {
+                writeBoundary();
+                writeHeaders(message.getContentType(), additionalHeaders);
+            }
+            cachedStream.write(message.getBytes());
+        }
+
+        @Override
+        public void onCompleted() {
+            try {
+                if (isMultipart) {
+                    cachedStream.write(DASHDASH);
+                    cachedStream.write(multipartBoundary);
+                    cachedStream.write(DASHDASH);
+                }
+            } catch (IOException e) {
+                throw new RuntimeException(e);
+            }
+        }
+
+        private void writeBoundary() throws Exception {
+            cachedStream.write(DASHDASH);
+            cachedStream.write(multipartBoundary);
+            cachedStream.write(CRLF);
+        }
+
+        private void writeHeaders(String contentType, Map<String, String> headers) throws Exception {
+            cachedStream.write(("Content-Type: " + contentType).getBytes());
+            cachedStream.write(CRLF);
+            for (Map.Entry<String, String> header : headers.entrySet()) {
+                cachedStream.write((header.getKey() + ": " + header.getValue()).getBytes());
+                cachedStream.write(CRLF);
+            }
+            cachedStream.write(CRLF);
+        }
+
+        @Override
+        public void attachment(String contentType, InputStream content, Map<String, String> additionalHeaders) throws Exception {
+            writeBoundary();
+            writeHeaders(contentType, additionalHeaders);
+
+            var dc = createDigestCalculator(CryptoUtils.DEFAULT_DIGEST_ALGORITHM_ID);
+            TeeOutputStream teeOutputStream = new TeeOutputStream(dc.getOutputStream(), cachedStream);
+
+            IOUtils.copy(content, teeOutputStream);
+
+            cachedStream.write(CRLF);
+
+            getAttachmentDigests().add(dc.getDigest());
+        }
     }
 
 }

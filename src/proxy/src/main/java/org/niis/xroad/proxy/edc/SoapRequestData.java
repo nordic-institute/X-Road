@@ -24,18 +24,18 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.edc.sig;
 
-import ee.ria.xroad.common.identifier.ClientId;
+package org.niis.xroad.proxy.edc;
+
+import ee.ria.xroad.common.message.SoapMessageImpl;
+import ee.ria.xroad.common.util.CachingStream;
 
 import java.util.List;
 
-public interface XrdSignatureVerifier {
-
-    void verifySignature(String signature, byte[] message, byte[] attachment, ClientId signerClientId)
-            throws XrdSignatureVerificationException;
-
-    void verifySignature(String signature, byte[] message, List<String> attachmentDigests, ClientId signerClientId)
-            throws XrdSignatureVerificationException;
-
+public record SoapRequestData(
+        String contentType,
+        SoapMessageImpl soapMessage,
+        List<byte[]> attachmentDigests,
+        CachingStream cachedStream
+) {
 }

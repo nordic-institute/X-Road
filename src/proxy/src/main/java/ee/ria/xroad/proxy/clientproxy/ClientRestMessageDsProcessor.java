@@ -49,6 +49,7 @@ import org.niis.xroad.proxy.edc.XrdDataSpaceClient;
 
 import java.io.OutputStream;
 import java.util.Arrays;
+import java.util.List;
 import java.util.UUID;
 
 import static ee.ria.xroad.common.ErrorCodes.X_INCONSISTENT_RESPONSE;
@@ -132,7 +133,7 @@ class ClientRestMessageDsProcessor extends AbstractClientMessageProcessor {
         jResponse.setStatus(response.getResponseCode());
 
         //TODO handle bad request/edc failure
-        xrdSignatureService.verify(response.getSignature(), response.getMessageBytes(), response.getBodyDigest(),
+        xrdSignatureService.verify(response.getSignature(), response.getMessageBytes(), List.of(response.getBodyDigest()),
                 restRequest.getServiceId().getClientId());
 
         jResponse.setStatus(response.getResponseCode());

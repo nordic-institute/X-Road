@@ -60,7 +60,9 @@ import java.util.ArrayList;
 import java.util.Base64;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.IntStream;
 
+import static ee.ria.xroad.common.util.CryptoUtils.encodeBase64;
 import static ee.ria.xroad.common.util.CryptoUtils.readCertificate;
 import static eu.europa.esig.dss.enumerations.SignaturePackaging.DETACHED;
 
@@ -76,22 +78,20 @@ public class XrdXAdESSignatureCreator implements XrdSignatureCreator {
     public String sign(SignerProxy.MemberSigningInfoDto signingInfo, byte[] message)
             throws XrdSignatureCreationException {
 
-        List<DSSDocument> documentsToSign = new ArrayList<>();
-        Optional.ofNullable(message)
-                .ifPresent(messagePart -> documentsToSign.add(new InMemoryDocument(messagePart, "/message.xml")));
-
-        return signDocuments(signingInfo, documentsToSign);
+        return sign(signingInfo, message, null);
     }
 
     @Override
-    public String sign(SignerProxy.MemberSigningInfoDto signingInfo, byte[] message, String attachmentDigest)
+    public String sign(SignerProxy.MemberSigningInfoDto signingInfo, byte[] message, List<byte[]> attachmentDigests)
             throws XrdSignatureCreationException {
         List<DSSDocument> documentsToSign = new ArrayList<>();
         Optional.ofNullable(message)
                 .ifPresent(messagePart -> documentsToSign.add(new InMemoryDocument(messagePart, "/message.xml")));
-
-        Optional.ofNullable(attachmentDigest)
-                .ifPresent(attachmentPart -> documentsToSign.add(new DigestDocument(DIGEST_ALGORITHM, attachmentPart, "/attachment1")));
+        if (attachmentDigests != null) {
+            IntStream.range(0, attachmentDigests.size())
+                    .forEach(i -> documentsToSign.add(new DigestDocument(DIGEST_ALGORITHM,
+                            encodeBase64(attachmentDigests.get(i)), "/attachment" + (i + 1))));
+        }
         return signDocuments(signingInfo, documentsToSign);
     }
 

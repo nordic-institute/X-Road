@@ -40,6 +40,8 @@ import org.niis.xroad.edc.sig.xades.XrdXAdESVerifier;
 import javax.xml.XMLConstants;
 import javax.xml.validation.SchemaFactory;
 
+import java.util.List;
+
 @Slf4j
 public class XrdSignatureService {
 
@@ -62,12 +64,12 @@ public class XrdSignatureService {
         return new SignatureResponse(signature);
     }
 
-    public SignatureResponse sign(ClientId signingClientId, byte[] message, String attachmentDigest)
+    public SignatureResponse sign(ClientId signingClientId, byte[] message, List<byte[]> attachmentDigests)
             throws XrdSignatureCreationException {
 
         var signingInfo = getMemberSigningInfo(signingClientId);
         var signer = new XrdXAdESSignatureCreator();
-        var signature = signer.sign(signingInfo, message, attachmentDigest);
+        var signature = signer.sign(signingInfo, message, attachmentDigests);
         return new SignatureResponse(signature);
     }
 
@@ -82,10 +84,11 @@ public class XrdSignatureService {
         signatureVerifier.verifySignature(signature, message, attachment, signerClientId);
     }
 
-    public void verify(String signature, byte[] message, String attachmentDigest, ClientId signerClientId)
+    public void verify(String signature, byte[] message, List<byte[]> attachmentDigests, ClientId signerClientId)
             throws XrdSignatureVerificationException {
 
-        signatureVerifier.verifySignature(signature, message, attachmentDigest, signerClientId);
+        signatureVerifier.verifySignature(signature, message, attachmentDigests.stream().map(CryptoUtils::encodeBase64).toList(),
+                signerClientId);
     }
 
     private SignerProxy.MemberSigningInfoDto getMemberSigningInfo(ClientId clientId) throws XrdSignatureCreationException {

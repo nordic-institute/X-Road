@@ -67,7 +67,7 @@ public class RestResponse extends RestMessage {
     @Setter
     private String signature;
     @Setter
-    private String bodyDigest;
+    private byte[] bodyDigest;
 
     /**
      * create response from raw messageBytes

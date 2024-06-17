@@ -30,6 +30,9 @@ import ee.ria.xroad.common.message.RestMessage;
 import ee.ria.xroad.common.message.RestRequest;
 import ee.ria.xroad.common.message.RestResponse;
 import ee.ria.xroad.common.message.Soap;
+import ee.ria.xroad.common.message.SoapFault;
+import ee.ria.xroad.common.message.SoapMessage;
+import ee.ria.xroad.common.message.SoapMessageDecoder;
 import ee.ria.xroad.common.message.SoapParserImpl;
 import ee.ria.xroad.common.util.CachingStream;
 import ee.ria.xroad.common.util.CryptoUtils;
@@ -55,11 +58,14 @@ import org.apache.hc.core5.http.config.Registry;
 import org.apache.hc.core5.http.config.RegistryBuilder;
 import org.apache.http.message.BasicHeader;
 import org.bouncycastle.operator.DigestCalculator;
+import org.bouncycastle.util.io.TeeInputStream;
 import org.bouncycastle.util.io.TeeOutputStream;
 import org.niis.xroad.ssl.SSLContextBuilder;
 
+import java.io.InputStream;
 import java.security.KeyManagementException;
 import java.security.NoSuchAlgorithmException;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Base64;
 import java.util.List;
@@ -67,7 +73,6 @@ import java.util.Map;
 import java.util.stream.Collectors;
 
 import static ee.ria.xroad.common.ErrorCodes.X_INTERNAL_ERROR;
-import static ee.ria.xroad.common.util.CryptoUtils.encodeBase64;
 import static ee.ria.xroad.common.util.MimeUtils.HEADER_REQUEST_HASH;
 import static org.apache.hc.core5.util.Timeout.ofSeconds;
 import static org.niis.xroad.edc.sig.PocConstants.HEADER_XRD_SIG;
@@ -105,7 +110,7 @@ public class EdcDataPlaneHttpClient {
                     IOUtils.copyLarge(response.getEntity().getContent(), tos);
 
                     restResponse.setBody(responseBodyStream);
-                    restResponse.setBodyDigest(encodeBase64(dc.getDigest()));
+                    restResponse.setBodyDigest(dc.getDigest());
                     restResponse.setSignature(signature);
                 } catch (Exception e) {
                     throw new CodedException(X_INTERNAL_ERROR, e, "Unable to read response body");
@@ -127,9 +132,17 @@ public class EdcDataPlaneHttpClient {
                 Map<String, String> headers = Arrays.stream(response.getHeaders())
                         .collect(Collectors.toMap(Header::getName, Header::getValue));
 
-                SoapParserImpl soapParser = new SoapParserImpl();
-                Soap soap = soapParser.parse(response.getEntity().getContentType(), response.getEntity().getContent());
-                return new EdcSoapWrapper(soap, headers);
+                CachingStream cachedResponse = new CachingStream();
+                TeeInputStream teeInputStream = new TeeInputStream(response.getEntity().getContent(), cachedResponse);
+
+                try (SoapResponseMessageHandler handler = new SoapResponseMessageHandler()) {
+                    SoapMessageDecoder decoder = new SoapMessageDecoder(response.getEntity().getContentType(), handler,
+                            new SoapParserImpl());
+                    decoder.parse(teeInputStream);
+                    return new EdcSoapWrapper(handler.soapMessage, headers, cachedResponse, handler.attachmentDigests);
+                } catch (Exception e) {
+                    throw new CodedException(X_INTERNAL_ERROR, e, "Unable to read response body");
+                }
             });
         } catch (Exception e) {
             throw new CodedException(X_INTERNAL_ERROR, e, "Error during edc dataplane request. Root Cause: " + e.getMessage());
@@ -176,8 +189,41 @@ public class EdcDataPlaneHttpClient {
 
     public record EdcSoapWrapper(
             Soap soapMessage,
-            Map<String, String> headers
+            Map<String, String> headers,
+            CachingStream cachedMessage,
+            List<byte[]> attachmentDigests
     ) {
+    }
+
+    private static final class SoapResponseMessageHandler implements SoapMessageDecoder.Callback {
+
+        private SoapMessage soapMessage;
+        private final List<byte[]> attachmentDigests = new ArrayList<>();
+
+        @Override
+        public void fault(SoapFault fault) {
+        }
+
+        @Override
+        public void onCompleted() {
+
+        }
+
+        @Override
+        public void onError(Exception t) throws Exception {
+            throw t;
+        }
+
+        @Override
+        public void soap(SoapMessage message, Map<String, String> additionalHeaders) {
+            this.soapMessage = message;
+        }
+
+        @Override
+        public void attachment(String contentType, InputStream content, Map<String, String> additionalHeaders) throws Exception {
+            byte[] attachmentDigest = CryptoUtils.calculateDigest(CryptoUtils.DEFAULT_DIGEST_ALGORITHM_ID, content);
+            attachmentDigests.add(attachmentDigest);
+        }
     }
 
 }

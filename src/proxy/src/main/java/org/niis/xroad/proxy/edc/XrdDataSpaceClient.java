@@ -41,13 +41,13 @@ import org.niis.xroad.edc.sig.XrdSignatureService;
 
 import java.net.URI;
 import java.util.Base64;
+import java.util.List;
 
 import static ee.ria.xroad.common.message.RestRequest.Verb.DELETE;
 import static ee.ria.xroad.common.message.RestRequest.Verb.OPTIONS;
 import static ee.ria.xroad.common.message.RestRequest.Verb.PATCH;
 import static ee.ria.xroad.common.message.RestRequest.Verb.POST;
 import static ee.ria.xroad.common.message.RestRequest.Verb.PUT;
-import static ee.ria.xroad.common.util.CryptoUtils.encodeBase64;
 import static org.niis.xroad.edc.sig.PocConstants.HEADER_XRD_SIG;
 
 @Slf4j
@@ -69,9 +69,8 @@ public class XrdDataSpaceClient {
             path += "?" + restRequest.getQuery();
         }
 
-        var encodedDigest = requestDigest != null ? encodeBase64(requestDigest) : null;
         var signatureResponse = xrdSignatureService.sign(restRequest.getClientId(), restRequest.getMessageBytes(),
-                encodedDigest);
+                List.of(requestDigest));
 
 
         final var dsRequest = ClassicRequestBuilder.create(restRequest.getVerb().name()).setUri(new URI(path));
@@ -103,20 +102,22 @@ public class XrdDataSpaceClient {
         return response;
     }
 
-    public EdcDataPlaneHttpClient.EdcSoapWrapper processSoapRequest(SoapMessageImpl soapRequest, String xRequestId,
+    public EdcDataPlaneHttpClient.EdcSoapWrapper processSoapRequest(SoapRequestData soapRequest, String xRequestId,
                                                                     AuthorizedAssetRegistry.GrantedAssetInfo assetInfo) throws Exception {
         var path = assetInfo.endpoint();
         if (path.endsWith("/")) {
             path = path.substring(0, path.length() - 1);
         }
-        var signatureResponse = xrdSignatureService.sign(soapRequest.getClient(), soapRequest.getBytes());
+        var signatureResponse = xrdSignatureService.sign(soapRequest.soapMessage().getClient(), soapRequest.soapMessage().getBytes(),
+                soapRequest.attachmentDigests());
 
         final var dsRequest = ClassicRequestBuilder.post(new URI(path))
                 .addHeader("Authorization", assetInfo.authCode())
                 .addHeader(HEADER_XRD_SIG, signatureResponse.getSignature())
-                .setEntity(soapRequest.getBytes(), ContentType.parse(soapRequest.getContentType()));
+                .setEntity(new InputStreamEntity(soapRequest.cachedStream().getCachedContents(),
+                        ContentType.parse(soapRequest.contentType())));
 
-        MessageLog.log(soapRequest, toSignatureData(signatureResponse.getSignature()), true, xRequestId);
+        MessageLog.log(soapRequest.soapMessage(), toSignatureData(signatureResponse.getSignature()), true, xRequestId);
         var response = EdcDataPlaneHttpClient.sendSoapRequest(dsRequest.build());
         MessageLog.log((SoapMessageImpl) response.soapMessage(), toSignatureData(response.headers().get(HEADER_XRD_SIG)), true, xRequestId);
         return response;

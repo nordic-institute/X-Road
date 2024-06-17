@@ -28,12 +28,14 @@ package org.niis.xroad.edc.sig;
 
 import ee.ria.xroad.signer.SignerProxy;
 
+import java.util.List;
+
 public interface XrdSignatureCreator {
 
     String sign(SignerProxy.MemberSigningInfoDto signingInfo, byte[] message)
             throws XrdSignatureCreationException;
 
-    String sign(SignerProxy.MemberSigningInfoDto signingInfo, byte[] message, String attachmentDigest)
+    String sign(SignerProxy.MemberSigningInfoDto signingInfo, byte[] message, List<byte[]> attachmentDigests)
             throws XrdSignatureCreationException;
 
 }
