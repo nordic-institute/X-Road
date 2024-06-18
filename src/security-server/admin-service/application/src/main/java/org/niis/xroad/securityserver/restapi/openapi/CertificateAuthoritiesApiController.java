@@ -181,8 +181,8 @@ public class CertificateAuthoritiesApiController implements CertificateAuthoriti
             + "(#keyUsageType == T(org.niis.xroad.securityserver.restapi.openapi.model.KeyUsageType).SIGNING))")
     public ResponseEntity<AcmeEabCredentialsStatus> hasAcmeExternalAccountBindingCredentials(String caName,
                                                                                              KeyUsageType keyUsageType,
-                                                                                             String memberCode) {
-        boolean hasAcmeEabCredentials = certificateAuthorityService.hasAcmeExternalAccountBindingCredentials(caName, memberCode);
+                                                                                             String memberId) {
+        boolean hasAcmeEabCredentials = certificateAuthorityService.hasAcmeExternalAccountBindingCredentials(caName, memberId);
         return new ResponseEntity<>(new AcmeEabCredentialsStatus(hasAcmeEabCredentials), HttpStatus.OK);
     }
 

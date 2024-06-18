@@ -50,7 +50,6 @@ import org.shredzone.acme4j.Status;
 import org.shredzone.acme4j.challenge.Challenge;
 import org.shredzone.acme4j.challenge.Http01Challenge;
 import org.shredzone.acme4j.exception.AcmeException;
-import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.stereotype.Service;
 
 import javax.crypto.spec.SecretKeySpec;
@@ -96,7 +95,6 @@ import static org.niis.xroad.securityserver.restapi.service.AcmeDeviationMessage
 import static org.niis.xroad.securityserver.restapi.service.AcmeDeviationMessage.ORDER_FINALIZATION_FAILURE;
 
 @Slf4j
-@EnableConfigurationProperties(AcmeProperties.class)
 @Service
 @RequiredArgsConstructor
 public final class AcmeService {
@@ -116,18 +114,18 @@ public final class AcmeService {
                                                                 String subjectAltName,
                                                                 KeyUsageInfo keyUsage,
                                                                 ApprovedCAInfo caInfo,
-                                                                String memberCode,
+                                                                String memberId,
                                                                 byte[] certRequest) {
         KeyPair keyPair;
         try {
-            keyPair = getAccountKeyPair(memberCode);
+            keyPair = getAccountKeyPair(memberId);
         } catch (GeneralSecurityException | OperatorCreationException | IOException e) {
             throw new AcmeServiceException(ACCOUNT_KEY_PAIR_ERROR, e);
         }
 
         Account account;
         try {
-            account = startSession(keyUsage, caInfo, keyPair, memberCode);
+            account = startSession(keyUsage, caInfo, keyPair, memberId);
         } catch (AcmeException e) {
             throw new AcmeServiceException(ACCOUNT_CREATION_FAILURE, e);
         }
@@ -151,7 +149,7 @@ public final class AcmeService {
 
     }
 
-    private KeyPair getAccountKeyPair(String memberCode) throws GeneralSecurityException, IOException, OperatorCreationException {
+    private KeyPair getAccountKeyPair(String memberId) throws GeneralSecurityException, IOException, OperatorCreationException {
         File acmeKeystoreFile = new File(acmeAccountKeystorePath);
         KeyStore keyStore;
         if (acmeKeystoreFile.exists()) {
@@ -160,12 +158,12 @@ public final class AcmeService {
             keyStore = KeyStore.getInstance("PKCS12");
             keyStore.load(null, null);
         }
-        X509Certificate certificate = (X509Certificate) keyStore.getCertificate(memberCode);
+        X509Certificate certificate = (X509Certificate) keyStore.getCertificate(memberId);
         KeyPair keyPair;
         if (certificate != null) {
             log.debug("Loading keypair");
             PublicKey publicKey = certificate.getPublicKey();
-            PrivateKey privateKey = (PrivateKey) keyStore.getKey(memberCode, memberCode.toCharArray());
+            PrivateKey privateKey = (PrivateKey) keyStore.getKey(memberId, memberId.toCharArray());
             keyPair = new KeyPair(publicKey, privateKey);
         } else {
             log.debug("Creating keypair");
@@ -173,12 +171,12 @@ public final class AcmeService {
             keyPairGenerator.initialize(SystemProperties.getSignerKeyLength(), new SecureRandom());
             keyPair = keyPairGenerator.generateKeyPair();
 
-            X509Certificate[] certificateChain = createSelfSignedCertificate(memberCode, keyPair);
+            X509Certificate[] certificateChain = createSelfSignedCertificate(memberId, keyPair);
 
             keyStore.setKeyEntry(
-                    memberCode,
+                    memberId,
                     keyPair.getPrivate(),
-                    memberCode.toCharArray(),
+                    memberId.toCharArray(),
                     certificateChain);
             try (OutputStream outputStream = new FileOutputStream(acmeKeystoreFile)) {
                 keyStore.store(outputStream, null);
@@ -188,7 +186,7 @@ public final class AcmeService {
         return keyPair;
     }
 
-    private Account startSession(KeyUsageInfo keyUsage, ApprovedCAInfo caInfo, KeyPair keyPair, String memberCode) throws AcmeException {
+    private Account startSession(KeyUsageInfo keyUsage, ApprovedCAInfo caInfo, KeyPair keyPair, String memberId) throws AcmeException {
         log.info("Creating session with directory url: {}", caInfo.getAcmeServerDirectoryUrl());
         String acmeUri;
         if (caInfo.getAuthenticationCertificateProfileId() != null) {
@@ -204,30 +202,34 @@ public final class AcmeService {
                 .agreeToTermsOfService()
                 .useKeyPair(keyPair);
         Optional.ofNullable(acmeProperties.getContacts())
-                .map(contacts -> contacts.get(memberCode))
+                .map(contacts -> contacts.get(memberId))
                 .ifPresent(accountBuilder::addContact);
         if (metadata.isExternalAccountRequired()) {
-            AcmeProperties.Credentials credential = acmeProperties.getEabCredentials(caInfo.getName(), memberCode);
-            String kid, secret;
-            if (credential.getAuthKid() != null && keyUsage == KeyUsageInfo.AUTHENTICATION) {
-                kid = credential.getAuthKid();
-                secret = credential.getAuthMacKey();
-            } else if (credential.getSignKid() != null && keyUsage == KeyUsageInfo.SIGNING) {
-                kid = credential.getSignKid();
-                secret = credential.getSignMacKey();
-            } else {
-                kid = credential.getKid();
-                secret = credential.getMacKey();
-            }
-            if (acmeProperties.isEabMacKeyBase64Encoded(caInfo.getName())) {
-                String secretWithPadding = padBase64(secret);
-                accountBuilder.withKeyIdentifier(kid, secretWithPadding);
-            } else {
-                accountBuilder.withKeyIdentifier(kid, new SecretKeySpec(secret.getBytes(StandardCharsets.UTF_8), "HMAC"));
-            }
-            accountBuilder.withMacAlgorithm(AlgorithmIdentifiers.HMAC_SHA256);
+            accountWithEabCredentials(accountBuilder, keyUsage, caInfo, memberId);
         }
         return accountBuilder.create(session);
+    }
+
+    private void accountWithEabCredentials(AccountBuilder accountBuilder, KeyUsageInfo keyUsage, ApprovedCAInfo caInfo, String memberId) {
+        AcmeProperties.Credentials credential = acmeProperties.getEabCredentials(caInfo.getName(), memberId);
+        String kid, secret;
+        if (credential.getAuthKid() != null && keyUsage == KeyUsageInfo.AUTHENTICATION) {
+            kid = credential.getAuthKid();
+            secret = credential.getAuthMacKey();
+        } else if (credential.getSignKid() != null && keyUsage == KeyUsageInfo.SIGNING) {
+            kid = credential.getSignKid();
+            secret = credential.getSignMacKey();
+        } else {
+            kid = credential.getKid();
+            secret = credential.getMacKey();
+        }
+        if (acmeProperties.isEabMacKeyBase64Encoded(caInfo.getName())) {
+            String secretWithPadding = padBase64(secret);
+            accountBuilder.withKeyIdentifier(kid, secretWithPadding);
+        } else {
+            accountBuilder.withKeyIdentifier(kid, new SecretKeySpec(secret.getBytes(StandardCharsets.UTF_8), "HMAC"));
+        }
+        accountBuilder.withMacAlgorithm(AlgorithmIdentifiers.HMAC_SHA256);
     }
 
     private static Metadata getMetadata(Session session) {

@@ -61,7 +61,7 @@ public interface XRoadId extends Serializable {
     }
 
     /**
-     * Returns as encoded ident ifier.
+     * Returns as encoded identifier.
      *
      * @param includeType if true XRoadObjectType is added before identifier itself.
      * @return identifier

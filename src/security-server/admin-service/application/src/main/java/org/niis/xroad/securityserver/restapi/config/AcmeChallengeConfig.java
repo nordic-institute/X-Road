@@ -25,6 +25,9 @@
  */
 package org.niis.xroad.securityserver.restapi.config;
 
+import ee.ria.xroad.common.SystemProperties;
+
+import lombok.extern.slf4j.Slf4j;
 import org.apache.catalina.connector.Connector;
 import org.apache.coyote.http11.Http11NioProtocol;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
@@ -33,7 +36,18 @@ import org.springframework.boot.web.server.WebServerFactoryCustomizer;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Profile;
+import org.springframework.core.io.FileSystemResource;
+import org.springframework.core.io.Resource;
+import org.yaml.snakeyaml.LoaderOptions;
+import org.yaml.snakeyaml.TypeDescription;
+import org.yaml.snakeyaml.Yaml;
+import org.yaml.snakeyaml.constructor.Constructor;
 
+import java.io.InputStream;
+import java.nio.file.Files;
+import java.util.Map;
+
+@Slf4j
 @Configuration
 public class AcmeChallengeConfig {
 
@@ -50,6 +64,52 @@ public class AcmeChallengeConfig {
         connector.setScheme("http");
         connector.setPort(80);
         factory.addAdditionalTomcatConnectors(connector);
+    }
+
+    @Bean
+    public AcmeProperties acmeProperties() {
+        Resource path = new FileSystemResource(SystemProperties.getConfPath() + "conf.d/acme.yml");
+        Constructor constructor = createAcmeYamlConstructor();
+        Yaml yaml = new Yaml(constructor);
+        try (InputStream input = Files.newInputStream(path.getFile().toPath())) {
+            return yaml.loadAs(input, AcmeProperties.class);
+        } catch (Exception e) {
+            log.warn("Failed to load yaml configuration from " + path, e);
+            return new AcmeProperties();
+        }
+    }
+
+    private static Constructor createAcmeYamlConstructor() {
+        Constructor constructor = new Constructor(AcmeProperties.class, new LoaderOptions());
+
+        TypeDescription acmePropertiesDescriptor = new TypeDescription(AcmeProperties.class);
+        acmePropertiesDescriptor.substituteProperty("eab-credentials",
+                AcmeProperties.EabCredentials.class,
+                "getEabCredentials",
+                "setEabCredentials");
+        constructor.addTypeDescription(acmePropertiesDescriptor);
+
+        TypeDescription eabCredentialsDescriptor = new TypeDescription(AcmeProperties.EabCredentials.class);
+        eabCredentialsDescriptor.substituteProperty("certificate-authorities",
+                Map.class,
+                "getCertificateAuthorities",
+                "setCertificateAuthorities",
+                String.class,
+                AcmeProperties.CA.class);
+        constructor.addTypeDescription(eabCredentialsDescriptor);
+
+        TypeDescription isMacKeyBase64EncodedDescriptor = new TypeDescription(AcmeProperties.CA.class);
+        isMacKeyBase64EncodedDescriptor.substituteProperty("mac-key-base64-encoded",
+                boolean.class,
+                "isMacKeyBase64Encoded",
+                "setMacKeyBase64Encoded");
+        constructor.addTypeDescription(isMacKeyBase64EncodedDescriptor);
+
+        TypeDescription macKeyDescriptor = new TypeDescription(AcmeProperties.Credentials.class);
+        macKeyDescriptor.substituteProperty("mac-key", String.class, "getMacKey", "setMacKey");
+        constructor.addTypeDescription(macKeyDescriptor);
+
+        return constructor;
     }
 
 }

@@ -4696,12 +4696,14 @@ paths:
         - in: query
           name: key_usage_type
           description: which usage type this CSR is for
+          example: SIGNING
           required: true
           schema:
             $ref: '#/components/schemas/KeyUsageType'
         - in: query
-          name: member_code
-          description: code of the member
+          name: member_id
+          description: <instance_id>:<member_class>:<member_code>
+          example: FI:GOV:123
           required: false
           schema:
             type: string
