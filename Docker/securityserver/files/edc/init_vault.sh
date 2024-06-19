@@ -23,4 +23,4 @@ vault kv put --mount secret did%3Aweb%3Ass1%253A9396 content=@/etc/xroad-edc/cer
 
 #private keys
 vault kv put --mount secret did%3Aweb%3Ass0%253A9396-private-key content=@/etc/xroad-edc/certs/ss0.pkcs8
-vault kv put --mount secret did%3Aweb%3Ass1%253A9396-private-key content=@/etc/xroad-edc/certs/ss1.pksc8
+vault kv put --mount secret did%3Aweb%3Ass1%253A9396-private-key content=@/etc/xroad-edc/certs/ss1.pkcs8

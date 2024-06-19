@@ -1,5 +1,3 @@
-import com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar
-
 plugins {
     id("java")
     id("application")
@@ -41,7 +39,7 @@ dependencies {
     implementation libs.bundles.edc.monitoring
 
     implementation(project(":security-server:edc:extensions:xroad-jsonld"))
-    implementation(project(":security-server:edc:extensions:xroad-identity-and-trust"))
+    implementation(project(":security-server:edc:extensions:xroad-ldp-verifiable-credentials"))
     implementation(project(":security-server:edc:extensions:xroad-webserver"))
 
     testImplementation libs.edc.jws2020.lib

@@ -22,10 +22,8 @@ import com.apicatalog.ld.signature.key.KeyPair;
 import com.nimbusds.jose.JOSEException;
 import com.nimbusds.jose.JWSAlgorithm;
 import com.nimbusds.jose.JWSHeader;
-import com.nimbusds.jose.JWSObject;
 import com.nimbusds.jose.Payload;
 import com.nimbusds.jose.jwk.JWK;
-import com.nimbusds.jose.util.Base64URL;
 import org.eclipse.edc.security.token.jwt.CryptoConverter;
 
 import java.text.ParseException;
