@@ -168,13 +168,6 @@ public class AssetsRegistrationJob {
                             .build())
                     .add(DataPlaneInstance.ALLOWED_DEST_TYPES, createArrayBuilder()
                             .add("HttpData")
-                            .add("HttpProxy")
-                            .build())
-                    .add(DataPlaneInstance.PROPERTIES, createObjectBuilder()
-                            .add("https://w3id.org/edc/v0.0.1/ns/publicApiUrl", "%s://%s:%s/xroad/public/"
-                                    .formatted(SystemProperties.isSslEnabled()
-                                                    ? "https" : "http", GlobalConf.getSecurityServerAddress(ServerConf.getIdentifier()),
-                                            SystemProperties.dataspacesPublicListenPort()))
                             .build())
                     .build()
             );
@@ -183,13 +176,12 @@ public class AssetsRegistrationJob {
         }
     }
 
-    @Scheduled(initialDelay = FIVE_MINUTES, fixedDelay = FIVE_MINUTES, timeUnit = SECONDS) //every 5 minutes;
+    @Scheduled(initialDelay = FIVE_MINUTES, fixedDelay = FIVE_MINUTES, timeUnit = SECONDS)
     public void registerAssets() throws Exception {
         final JobContext jobContext = fetchAllJobManagedIds();
         process(jobContext);
         deleteNotRelevantObjects(jobContext);
     }
-
 
     private JobContext fetchAllJobManagedIds() {
         JobContext jobContext = new JobContext();
