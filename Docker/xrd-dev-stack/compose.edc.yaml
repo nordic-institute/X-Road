@@ -67,6 +67,6 @@ services:
         reservations:
           memory: 512M
         limits:
-          memory: 512M
+          memory: 1G
     ports:
       - 16686:16686
