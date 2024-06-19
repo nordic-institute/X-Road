@@ -47,14 +47,14 @@ public class GxLegalRegistrationNumberConstraintFunction implements AtomicConstr
 
     @Override
     public boolean evaluate(Operator operator, Object rightValue, Permission rule, PolicyContext context) {
-        monitor.debug("GxLegalRegistrationNumberConstraintFunction.evaluate");
+
 
         if (!(rightValue instanceof String legalRegistrationNumber)) {
             context.reportProblem("Right-value expected to be String but was " + rightValue.getClass());
             return false;
         }
         Optional<String> subject = PolicyContextHelper.getGxLrnVatId(context);
-        return subject.map(vatId -> switch (operator) {
+        var result = subject.map(vatId -> switch (operator) {
             //TODO list not handled
             case EQ, IN -> legalRegistrationNumber.equals(vatId);
             default -> {
@@ -62,5 +62,8 @@ public class GxLegalRegistrationNumberConstraintFunction implements AtomicConstr
                 yield false;
             }
         }).orElse(false);
+
+        monitor.debug("GxLegalRegistrationNumberConstraintFunction.evaluate: " + result + " for " + legalRegistrationNumber + " and " + subject.orElse("null"));
+        return result;
     }
 }
