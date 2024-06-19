@@ -89,36 +89,36 @@ public class ExtJws2020ProofDraft extends ProofDraft {
         private Builder() {
         }
 
-        public static ExtJws2020ProofDraft.Builder newInstance() {
-            return new ExtJws2020ProofDraft.Builder();
+        public static Builder newInstance() {
+            return new Builder();
         }
 
-        public ExtJws2020ProofDraft.Builder created(Instant created) {
+        public Builder created(Instant created) {
             this.created = created;
             return this;
         }
 
-        public ExtJws2020ProofDraft.Builder verificationMethod(VerificationMethod verificationMethod) {
+        public Builder verificationMethod(VerificationMethod verificationMethod) {
             this.method = verificationMethod;
             return this;
         }
 
-        public ExtJws2020ProofDraft.Builder proofPurpose(URI proofPurpose) {
+        public Builder proofPurpose(URI proofPurpose) {
             this.proofPurpose = proofPurpose;
             return this;
         }
 
-        public ExtJws2020ProofDraft.Builder method(VerificationMethod method) {
+        public Builder method(VerificationMethod method) {
             this.method = method;
             return this;
         }
 
-        public ExtJws2020ProofDraft.Builder id(URI id) {
+        public Builder id(URI id) {
             this.id = id;
             return this;
         }
 
-        public ExtJws2020ProofDraft.Builder mapper(ObjectMapper mapper) {
+        public Builder mapper(ObjectMapper mapper) {
             this.mapper = mapper;
             return this;
         }

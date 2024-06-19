@@ -12,6 +12,9 @@ dependencies {
         // we use our own fork of it in order to verify Gaia-X signatures
         exclude group: 'org.eclipse.edc', module: 'ldp-verifiable-credentials'
     }
+    implementation(project(":security-server:edc:extensions:xroad-ldp-verifiable-credentials"))
+
+//    implementation libs.edc.identity.trust.transform  // we use our own fork to allow "evidence" property in the Gaia-x compliance VC
 
     implementation libs.edc.identity.trust.service
     implementation libs.edc.jersey.providers.lib

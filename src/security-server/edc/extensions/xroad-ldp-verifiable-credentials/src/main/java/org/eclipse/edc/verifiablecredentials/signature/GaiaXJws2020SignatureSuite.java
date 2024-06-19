@@ -27,7 +27,6 @@ import com.apicatalog.vc.suite.SignatureSuite;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.json.JsonObject;
 import org.eclipse.edc.security.signature.jws2020.Jwk2020KeyAdapter;
-import org.eclipse.edc.security.signature.jws2020.Jws2020Proof;
 
 import static com.apicatalog.vc.VcVocab.SECURITY_VOCAB;
 
