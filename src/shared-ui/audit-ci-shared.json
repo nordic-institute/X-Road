@@ -19,6 +19,7 @@
     "GHSA-2p57-rm9w-gvfp|ip",
     "GHSA-9c47-m6qq-7p4h|find-babel-config>json5",
     "GHSA-3965-hpx2-q597|pug",
+    "GHSA-grv7-fg5c-xmjg|*>braces*",
     "GHSA-3h5v-q93c-6h6q|ws"
   ],
   "registry": "https://registry.npmjs.org"
