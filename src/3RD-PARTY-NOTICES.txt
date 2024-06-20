@@ -67,7 +67,6 @@ SUCH DAMAGE.
 Copyright (c) 2002 $ copyright Pivotal, Inc.
 Copyright 2002 $ year the original author or authors
 Copyright $L Ben Manes
-Copyright (c) 2021-2023 '(?i)Copyright s+( (C ) s+)? d
 (c) A Test Line
 Copyright 2004-2006, 2009, 2017-2018, 2021 Acegi Technology Pty Limited
 Copyright 1996 Aki Yoshida
@@ -77,6 +76,7 @@ Copyright 2013-2023 Ben Manes
 Copyright 2018 Ben Manes and Ohad Eytan
 Copyright 2016 Branimir Lambov
 Copyright (c) 2013-2017, 2019 Brett Wooldridge
+Copyright 2012-2021 Brian Campbell
 (c) 2006 Brooks Moses
 (c) 1999 COPYRIGHT World Wide Web Consortium (Massachusetts Institute of Technology, Institut National de Recherche en Informatique et en Automatique, Keio University)
 Copyright 2021-2022 Carl Mastrangelo
@@ -88,7 +88,6 @@ copyright 2010-2017 Coda Hale, Yammer Inc., Dropwizard Team
 Copyright (c) 2009 Collaborative Development Group, C.S. Dept., University of Bari
 Copyright (c) 2002-2023 Contributors
 (c) Copyright 2003-2006, 2008-2011, 2013-2020, 2022-2024 Contributors
-Copyright E2012-20 d d
 Copyright (c) 2018-2020, 2022-2023 Eclipse Foundation
 Copyright 2018, 2022 Eclipse Foundation
 Copyright (c) Eclipse Foundation, Inc.
@@ -111,7 +110,7 @@ Copyright (c) 1998 Hewlett-Packard Company
 Copyright 2015, 2021 Higher Frequency Trading http://www.higherfrequencytrading.com
 Copyright (c) 2004-2006, 2017 IBM
 (c) Copyright 2003 IBM Corp.
-Copyright (c) 2004-2005, 2013, 2016 IBM Corporation
+Copyright (c) 2004-2005, 2013 IBM Corporation
 Copyright (c) 2005 IBM Corporation Ltd
 Copyright (c) 2000, 2003-2006, 2010, 2017 IBM Corporation and others
 Copyright (c) 2006 IBM Corporation and others. Contributors
@@ -175,6 +174,7 @@ Copyright 2010-2011, 2013, 2017, 2019-2020, 2022-2023 Red Hat, Inc.
 Copyright 2010-2011, 2013-2014, 2020-2021 Red Hat, Inc., and individual contributors
 Copyright 2008, 2010, 2013-2016, 2018, 2020-2021 Red Hat, Inc., and individual contributors by the @authors
 Copyright 2017 Remko Popma
+Copyright (c) 2015-2021, 2023-2024 Richard Shred Korber http://acme4j.shredzone.org
 (c) 2011-2012 SERLI
 Copyright (c) 2015 SmartBear Software Inc.
 Copyright (c) 2008 SnakeYAML
@@ -201,6 +201,7 @@ Copyright 2019 The Guava Authors
 Copyright (c) 2009 The JSR-330 Expert Group
 Copyright (c) 2004, 2006 The Linux Foundation and its contributors
 Copyright 2012-2014, 2017, 2019 The Netty Project
+Copyright 2020 The Open Sans Project Authors (https://github.com/googlefonts/opensans) OFL-1.1 (http://scripts.sil.org/OFL)
 Copyright 2016-2024 The OpenZipkin Authors
 Copyright 2014-2023 The gRPC
 Copyright 2014-2024 The gRPC Authors
@@ -238,22 +239,18 @@ Copyright 2007-2011 by the Sphinx team
 Copyright (c) 2009 codehaus.org
 Copyright 2006 contributors
 Copyright (c) 2019 current.year Eclipse Foundation
-copyright e (c)
 Copyright 2015-2016, 2018-2019, 2021, 2023-2024 gRPC
 Copyright (c) 2001-2011 http://www.apache.org/' The Apache Software Foundation
 Copyright (c) 1999-2017 http://www.oracle.com' Oracle and/or its affiliates
 Copyright (c) 1999 http://www.w3.org
 Copyright (c) 2008 http://www.w3.org/' title World Wide Web Consortium' W3C
 Copyright (c) 2001-2011 https://www.apache.org/' The Apache Software Foundation
-(c) in Fig
 Copyright 2004 present by the Checker Framework
 Copyright 2007 present the original author or authors
 Copyright (c) project.inceptionYear Mort Bay Consulting Pty Ltd and others
 Copyright (c) 2017 public
-copyright statement. https://issues.apache.org/jira/browse/LOG4J2-111
 Copyright (c) 2015-2021 the original
 Copyright 2002-2024 the original author or authors
-Copyright today.year The Error Prone
 Copyright 2012 today.year the original author or authors
 (c) value.ch
 Copyright 2001 xa9 Institute
@@ -802,6 +799,7 @@ ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 Copyright (c) 1997 $lastEditYear PostgreSQL Global Development Group
 Copyright 20162022 The ANTLR Project
+Copyright (c) Felix Bohm
 Copyright (c) 2012-2016 Gil Tene
 Copyright 2008 Google Inc.
 Copyright 2023 Google LLC.
@@ -813,9 +811,11 @@ Copyright (c) 2004 Open Cloud Limited
 copyright PostgreSQL Global Development Group
 Copyright (c) 1997, 2001, 2003-2024 PostgreSQL Global Development Group
 Copyright (c) 2003-2020 PostgreSQL Global Development Group Require-Capability
+Copyright (c) 2015, 2018, 2023 Richard Shred Korber http://acme4j.shredzone.org
 (c) 2003-2004 Serguei A. Mokhov, <mokhov@cs.concordia.ca>
 Copyright 2016-2022 The ANTLR Project
 Copyright (c) 1996-2023 The PostgreSQL Global Development Group
+Copyright (c) jQuery Foundation, Inc. and Contributors
 copyright to PostgreSQL Global Development Group
 Bojan Skaljac <skaljac@gmail.com> 2006
 copr web page (https://copr.fedorainfracloud.org/coprs/g/pgjdbc/pgjdbc-travis/builds/)
@@ -944,6 +944,8 @@ Copyright (c) 2020 Larry Li
 Copyright (c) 2002-2006 Marc Prud'hommeaux <mwp1@cornell.edu>
 Copyright Mathias Bynens <https://mathiasbynens.be/>
 Copyright (c) 2016 Mike Lischke
+Copyright 2009-2012, 2014 Mozilla Foundation and contributors
+Copyright (c) 2009-2011 Mozilla Foundation and contributors
 Copyright (c) 1999-2009 OW2 Consortium <https://www.ow2.org/>
 Copyright (c) 1997-1998, 2003-2024 Oracle and/or its affiliates
 (c) Copyright 1998-2002 Palo Alto Re search Center Incroporated
@@ -962,6 +964,7 @@ Copyright (c) 2012-2022 The ANTLR Project Contributors
 Copyright (c) 1999 The Apache Software Foundation
 Copyright (c) 2014 The Chromium Authors
 Copyright 2015 The Chromium Authors
+Copyright 2011 The Closure Compiler Authors
 Copyright 2011 The Dojo Foundation
 Copyright (c) 2012 The Polymer Authors
 Copyright (c) 2014 The Polymer Project Authors
@@ -1810,7 +1813,7 @@ Copyright (c) 2000-2011 INRIA, France Telecom
 Copyright (c) 2015 Machinery
 Copyright (c) 2002-2006 Marc Prud'hommeaux <mwp1@cornell.edu>
 Copyright (c) 1995 Mort Bay Consulting Pty Ltd and others
-Copyright (c) 1998, 2008, 2013, 2018-2022, 2024 Oracle and/or its affiliates
+Copyright (c) 1998, 2008, 2013, 2018-2022 Oracle and/or its affiliates
 Copyright (c) 2002 Palo Alto Research Center, Incorporated
 Copyright (c) 2002, 2010 Palo Alto Research Center, Incorporated (PARC)
 Copyright (c) 1999-2024 QOS.ch
@@ -2259,7 +2262,7 @@ Copyright (c) 1989, 1991 Free Software Foundation, Inc.
 Copyright (c) 2012 JAPrn Zaefferer
 (c) 2013 Jobst Hoffmann
 Copyright 2011 John Resig
-Copyright (c) 2018, 2020-2021, 2024 Oracle and/or its affiliates
+Copyright (c) 2018, 2020-2021 Oracle and/or its affiliates
 Copyright 2011 The Dojo Foundation
 Copyright (c) 2012-2016 University of Washington
 copyrighted by the Free Software Foundation
@@ -4368,6 +4371,7 @@ Software without prior written authorization of the copyright holder.
 
 ----
 
+Copyright (c) 2021 Alexey Raspopov, Kostiantyn Denysov, Anton Verinov
 Copyright (c) 2006 Damien Miller <djm@mindrot.org>
 
 Permission to use, copy, modify, and/or distribute this software for any purpose
@@ -5937,6 +5941,7 @@ Copyright (c) 2007-2013 Geovise BVBA
 Copyright (c) 2008, 2020, 2022 Oracle and/or its affiliates
 Copyright (c) 2006-2011, 2013-2015 Red Hat Inc.
 (c) 2011, 2015, 2023 Red Hat Inc.
+Copyright (c) 2015-2021, 2023-2024 Richard Shred Korber http://acme4j.shredzone.org
 Copyright (c) 2012-2017 The ANTLR Project
 Copyright (c) 2007-2015 Timothy Wall
 Copyright (c) 2007 Wayne Meissner
@@ -7121,27 +7126,44 @@ Important Recommendations
 
 ----
 
+Copyright (c) Abdelrahman Awad <logaretm1@gmail.com>
+Copyright (c) 2016 Alex Indigo
+Copyright 2013, 2017 Andrey Sitnik <andrey@sitnik.ru>
+(c) 2020 Anthony Fu (https://github.com/antfu)
 Copyright (c) 2009 Anton Grigoryev
 (c) 2006 Brooks Moses
 (c) 1996, 2004 Carsten Heinz
+Copyright 2010-2011 Chris Winberry <chris@winberry.net>
 Copyright 2012 Codehaus
 Copyright 2019 David Bau
 Copyright (c) 2005-2006 David Heinemeier Hansson
+Copyright (c) 2011 Debuggable Limited <felix@debuggable.com>
+Copyright (c) 2015-2022 Douglas Christopher Wilson
+Copyright (c) 2015-2022 Douglas Christopher Wilson <doug@somethingdoug.com>
 Copyright Dr B. R Gladman (gladman@seven77.demon.co.uk) and Sam Simpson (s.simpson@mia.co.uk)
 (c) ECFieldElement A1
+(c) 2021 Eduardo San Martin Morote
 Copyright (c) 2015-2018 Estonian Information System
+Copyright (c) 2012 Felix Geisendorfer (felix@debuggable.com) and contributors
+Copyright (c) 2017-2018 Fredrik Nicol
 Copyright (c) 1989, 1991 Free Software Foundation, Inc.
 Copyright (c) 2015 Google Inc.
 Copyright 2022 Google LLC
 Copyright (c) 2000-2011 INRIA, France Telecom
 Copyright (c) 2012 JAPrn Zaefferer
+Copyright (c) 2012 James Halliday, Josh Duff, and other contributors
 (c) 2013 Jobst Hoffmann
+Copyright (c) 2016-2023 John Jeremy Leider
 Copyright 2011 John Resig
+Copyright (c) 2014 Jonathan Ong
+Copyright (c) 2014 Jonathan Ong <me@jongleberry.com>
 Copyright (c) 2004 Kohsuke Kawaguchi
 Copyright (c) 2008 Kohsuke Kawaguchi and codehaus.org
 Copyright (c) 2002-2006 Marc Prud'hommeaux <mwp1@cornell.edu>
 Copyright Mathias Bynens <https://mathiasbynens.be/>
+Copyright (c) 2024 Matt Zabriskie and contributors
 Copyright (c) 2004-2010 Michael Roth <mroth@nessie.de>
+Copyright (c) Microsoft Corporation
 (c) Nat224.isOne
 Copyright (c) 2019 Nordic Institute for Interoperability Solutions (NIIS)
 Copyright (c) 2018-2021 Oracle and/or its affiliates
@@ -7150,6 +7172,13 @@ Copyright (c) 2004-2023 QOS.ch
 Copyright (c) 2004-2023 QOS.ch Sarl (Switzerland)
 Copyright 2014 R. Tyler Croy, Sun Microsystems, Inc.
 Copyright 2018-2020 Raffaello Giulietti
+Copyright (c) 2015 Rich Harris
+Copyright 2018 Rich Harris
+Copyright (c) 2015-2018, 2020, 2024 Richard Shred Korber http://acme4j.shredzone.org
+Copyright (c) 2016-2018 Rob Wu <rob@robwu.nl>
+Copyright (c) 2022 Sacha Bouillez (https://github.com/prazdevs)
+Copyright (c) 2022 Sacha PraZ Bouillez <https://github.com/prazdevs>
+Copyright (c) Sindre Sorhus <sindresorhus@gmail.com> (https://sindresorhus.com)
 Copyright (c) 2001-2002 SourceForge ISO-RELAX Project (ASAMI Tomoharu, Daisuke Okajima, Kohsuke Kawaguchi, and MURATA Makoto)
 Copyright (c) 2009 Sun Microsystems, Inc.
 Copyright 2011 Sun Microsystems, Inc.
@@ -7165,12 +7194,29 @@ Copyright (c) 2012-2016 University of Washington
 Copyright 2019 VMware, Inc.
 Copyright (c) 2023 Werner Randelshofer, Switzerland
 Copyright (c) 2019 Yaoyuan <ibireme@gmail.com>
+Copyright (c) 2014 Yehuda Katz, Tom Dale, Stefan Penner and contributors
 Copyright (c) 2019 Yibo Cai
 copyrighted by the Free Software Foundation
+Copyright (c) 2012-2014 by various contributors
 Copyright (c) 2009, 2012 codehaus.org
 Copyright (c) 2017 codehaus.org, jglick@cloudbees.com
+Copyright (c) 2020 kazuya kawaguchi
+Copyright (c) 2019 present Eduardo San Martin
+Copyright (c) 2019 present Eduardo San Martin Morote
+Copyright (c) 2014 present Evan
+Copyright (c) 2014 present Evan You, Eduardo San Martin Morote
+Copyright (c) 2014 present Matt Zabriskie & Collaborators
+Copyright 2014 present Olivier Lalonde <olalonde@gmail.com> , James Talmage <james@talmage.io> , Ruben Verborgh
+Copyright (c) 2021 present Sacha Bouillez (https://github.com/prazdevs)
+(c) 2018 present Yuxi
 Copyright 2004 present by the Checker Framework
 Copyright 2004 present by the Checker Framework developers
+Copyright (c) 2020 present, Anthony Fu
+Copyright (c) 2013, 2018 present, Yuxi
+Copyright (c) 2018 present, iamkun
+(c) 2018 s
+Copyright (c) 2015-2020 these people (https://github.com/Rich-Harris/estree-walker/graphs/contributors)
+Copyright (c) year lib.author and contributors
 Lukas Zaruba, lukas.zaruba@lundegaard.eu, 2019
 
 Permission is hereby granted, free of charge, to any person obtaining
@@ -7193,9 +7239,6 @@ TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
 SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 ----
-
-Copyright (c) 2002 Palo Alto Research Center, Incorporated
-Copyright (c) 2002 Palo Alto Research Center, Incorporated (PARC)
 
 MOZILLA PUBLIC LICENSE
 Version 1.0
@@ -7889,6 +7932,10 @@ bug reports on your work be reported to you.
 
 ----
 
+Copyright 2020 The Open Sans Project
+Copyright 2020 The Open Sans Project Authors (https://github.com/googlefonts/opensans)
+Copyright 2020 The Open Sans Project Authors (https://github.com/googlefonts/opensans) OFL-1.1 (http://scripts.sil.org/OFL)
+
 -----------------------------------------------------------
 SIL OPEN FONT LICENSE Version 1.1 - 26 February 2007
 -----------------------------------------------------------
@@ -8175,6 +8222,8 @@ OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
 ----
 
+Copyright (c) 2015-2016, 2019-2020 Richard Shred Korber http://acme4j.shredzone.org
+
   1. You may make and give away verbatim copies of the source form of the
      software without restriction, provided that you duplicate all of the
      original copyright notices and associated disclaimers.
@@ -8407,22 +8456,46 @@ be directed to site-policy@w3.org.
 
 ----
 
-Copyright (c) 2002 Palo Alto Research Center, Incorporated
-Copyright (c) 2002 Palo Alto Research Center, Incorporated (PARC)
+W3C Software and Document Notice and License
 
-Use and copying of this software and preparation of derivative works
-based upon this software are permitted. Any copy of this software or of
-any derivative work must include the above copyright notice of
-{copyright-holder}, this paragraph and the one after it. Any
-distribution of this software or derivative works must comply with all
-applicable United States export control laws.
+Status: This license takes effect 13 May, 2015.
 
-This software is made available AS IS, and {copyright-holder} DISCLAIMS
-ALL WARRANTIES, EXPRESS OR IMPLIED, INCLUDING WITHOUT LIMITATION THE
-IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR
-PURPOSE, AND NOTWITHSTANDING ANY OTHER PROVISION CONTAINED HEREIN, ANY
-LIABILITY FOR DAMAGES RESULTING FROM THE SOFTWARE OR ITS USE IS
-EXPRESSLY DISCLAIMED, WHETHER ARISING IN CONTRACT, TORT (INCLUDING
-NEGLIGENCE) OR STRICT LIABILITY, EVEN IF {copyright-holder} IS ADVISED
-OF THE POSSIBILITY OF SUCH DAMAGES.
+This work is being provided by the copyright holders under the following license.
+License
+
+By obtaining and/or copying this work, you (the licensee) agree that you have
+read, understood, and will comply with the following terms and conditions.
+
+Permission to copy, modify, and distribute this work, with or without
+modification, for any purpose and without fee or royalty is hereby granted,
+provided that you include the following on ALL copies of the work or portions
+thereof, including modifications:
+
+    The full text of this NOTICE in a location viewable to users of the
+    redistributed or derivative work.
+
+    Any pre-existing intellectual property disclaimers, notices, or terms and
+    conditions. If none exist, the W3C Software and Document Short Notice should
+    be included.
+
+    Notice of any changes or modifications, through a copyright statement on the
+    new code or document such as "This software or document includes material
+    copied from or derived from [title and URI of the W3C document]. Copyright ©
+    [YEAR] W3C® (MIT, ERCIM, Keio, Beihang)."
+
+Disclaimers
+
+THIS WORK IS PROVIDED "AS IS," AND COPYRIGHT HOLDERS MAKE NO REPRESENTATIONS OR
+WARRANTIES, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO, WARRANTIES OF
+MERCHANTABILITY OR FITNESS FOR ANY PARTICULAR PURPOSE OR THAT THE USE OF THE
+SOFTWARE OR DOCUMENT WILL NOT INFRINGE ANY THIRD PARTY PATENTS, COPYRIGHTS,
+TRADEMARKS OR OTHER RIGHTS.
+
+COPYRIGHT HOLDERS WILL NOT BE LIABLE FOR ANY DIRECT, INDIRECT, SPECIAL OR
+CONSEQUENTIAL DAMAGES ARISING OUT OF ANY USE OF THE SOFTWARE OR DOCUMENT.
+
+The name and trademarks of copyright holders may NOT be used in advertising or
+publicity pertaining to the work without specific, written prior permission.
+Title to copyright in this work will at all times remain with copyright holders.
+Notes
 
