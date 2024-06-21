@@ -36,13 +36,14 @@ import org.niis.xroad.cs.admin.api.domain.GlobalGroupMember;
 import org.niis.xroad.cs.admin.api.domain.SecurityServer;
 import org.niis.xroad.cs.admin.api.domain.XRoadMember;
 import org.niis.xroad.cs.admin.api.dto.MemberCreationRequest;
-import org.niis.xroad.cs.admin.api.service.GlobalGroupMemberService;
 import org.niis.xroad.cs.admin.api.service.MemberService;
+import org.niis.xroad.cs.admin.core.entity.MemberIdEntity;
 import org.niis.xroad.cs.admin.core.entity.XRoadMemberEntity;
 import org.niis.xroad.cs.admin.core.entity.mapper.GlobalGroupMemberMapper;
 import org.niis.xroad.cs.admin.core.entity.mapper.SecurityServerClientMapper;
 import org.niis.xroad.cs.admin.core.entity.mapper.SecurityServerMapper;
 import org.niis.xroad.cs.admin.core.repository.GlobalGroupMemberRepository;
+import org.niis.xroad.cs.admin.core.repository.IdentifierRepository;
 import org.niis.xroad.cs.admin.core.repository.MemberClassRepository;
 import org.niis.xroad.cs.admin.core.repository.XRoadMemberRepository;
 import org.niis.xroad.restapi.config.audit.AuditDataHelper;
@@ -67,8 +68,7 @@ public class MemberServiceImpl implements MemberService {
     private final XRoadMemberRepository xRoadMemberRepository;
     private final MemberClassRepository memberClassRepository;
     private final GlobalGroupMemberRepository globalGroupMemberRepository;
-
-    private final GlobalGroupMemberService globalGroupMemberService;
+    private final IdentifierRepository<MemberIdEntity> memberIds;
 
     private final SecurityServerMapper securityServerMapper;
     private final SecurityServerClientMapper securityServerClientMapper;
@@ -97,9 +97,11 @@ public class MemberServiceImpl implements MemberService {
                         request.getMemberClass()
                 ));
 
+        var memberIdEntity = memberIds.findOrCreate(MemberIdEntity.ensure(request.getClientId()));
+
         var entity = new XRoadMemberEntity(
                 request.getMemberName(),
-                request.getClientId(),
+                memberIdEntity,
                 memberClass);
 
         return xRoadMemberRepository.save(entity);
@@ -112,7 +114,7 @@ public class MemberServiceImpl implements MemberService {
 
         XRoadMemberEntity member = xRoadMemberRepository.findMember(clientId)
                 .orElseThrow(() -> new NotFoundException(MEMBER_NOT_FOUND));
-        globalGroupMemberService.removeClientFromGlobalGroups(clientId);
+        // dependant entities are removed by cascading database constraints
         xRoadMemberRepository.delete(member);
     }
 

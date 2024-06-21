@@ -52,6 +52,8 @@ import lombok.Setter;
 import java.util.HashSet;
 import java.util.Set;
 
+import static jakarta.persistence.FetchType.EAGER;
+
 /**
  * Entity representing a client (member or subsystem) of a X-Road Instance
  * Can and optionally be an owner or a client of one or more security servers
@@ -73,13 +75,13 @@ public abstract class SecurityServerClientEntity extends AuditableEntity {
     @Getter
     private int id;
 
-    @ManyToOne(fetch = FetchType.EAGER, cascade = CascadeType.ALL)
+    @ManyToOne(fetch = EAGER)
     @JoinColumn(name = "server_client_id", nullable = false, updatable = false)
     @Access(AccessType.FIELD)
     @Getter
     private ClientIdEntity identifier;
 
-    @OneToMany(fetch = FetchType.EAGER, mappedBy = "securityServerClient")
+    @OneToMany(fetch = EAGER, mappedBy = "securityServerClient")
     @Access(AccessType.FIELD)
     @Getter
     @Setter

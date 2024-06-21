@@ -41,6 +41,9 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
+import static jakarta.persistence.FetchType.EAGER;
+import static jakarta.persistence.FetchType.LAZY;
+
 @Entity
 @NoArgsConstructor
 @Table(name = ServerClientEntity.TABLE_NAME)
@@ -55,13 +58,13 @@ public class ServerClientEntity {
     @Getter
     private int id;
 
-    @ManyToOne(fetch = FetchType.LAZY, cascade = {CascadeType.PERSIST, CascadeType.REFRESH})
+    @ManyToOne(fetch = LAZY)
     @JoinColumn(name = "security_server_client_id", nullable = false)
     @Getter
     @Setter
     private SecurityServerClientEntity securityServerClient;
 
-    @ManyToOne(fetch = FetchType.EAGER, cascade = {CascadeType.PERSIST, CascadeType.REFRESH})
+    @ManyToOne(fetch = EAGER)
     @JoinColumn(name = "security_server_id", nullable = false)
     @Getter
     @Setter

@@ -36,11 +36,12 @@ import org.niis.xroad.common.exception.NotFoundException;
 import org.niis.xroad.common.exception.ValidationFailureException;
 import org.niis.xroad.cs.admin.api.domain.Subsystem;
 import org.niis.xroad.cs.admin.api.dto.SubsystemCreationRequest;
-import org.niis.xroad.cs.admin.api.service.GlobalGroupMemberService;
 import org.niis.xroad.cs.admin.api.service.SubsystemService;
 import org.niis.xroad.cs.admin.core.entity.ServerClientEntity;
 import org.niis.xroad.cs.admin.core.entity.SubsystemEntity;
+import org.niis.xroad.cs.admin.core.entity.SubsystemIdEntity;
 import org.niis.xroad.cs.admin.core.entity.mapper.SecurityServerClientMapper;
+import org.niis.xroad.cs.admin.core.repository.IdentifierRepository;
 import org.niis.xroad.cs.admin.core.repository.ServerClientRepository;
 import org.niis.xroad.cs.admin.core.repository.SubsystemRepository;
 import org.niis.xroad.cs.admin.core.repository.XRoadMemberRepository;
@@ -73,7 +74,7 @@ public class SubsystemServiceImpl implements SubsystemService {
     private final SubsystemRepository subsystemRepository;
     private final XRoadMemberRepository xRoadMemberRepository;
     private final ServerClientRepository serverClientRepository;
-    private final GlobalGroupMemberService globalGroupMemberService;
+    private final IdentifierRepository<SubsystemIdEntity> subsystemIds;
     private final SecurityServerClientMapper subsystemConverter;
     private final AuditDataHelper auditDataHelper;
 
@@ -99,7 +100,8 @@ public class SubsystemServiceImpl implements SubsystemService {
                         "code",
                         request.getMemberId().getMemberCode()
                 ));
-        var subsystemEntity = new SubsystemEntity(memberEntity, request.getSubsystemId());
+        var subsystemIdEntity = subsystemIds.findOrCreate(SubsystemIdEntity.ensure(request.getSubsystemId()));
+        var subsystemEntity = new SubsystemEntity(memberEntity, subsystemIdEntity);
         return subsystemRepository.save(subsystemEntity);
     }
 
@@ -123,6 +125,8 @@ public class SubsystemServiceImpl implements SubsystemService {
         auditDataHelper.put(OWNER_CODE, securityServerId.getOwner().getMemberCode());
         auditDataHelper.put(CLIENT_IDENTIFIER, subsystemId);
 
+        // FIXME: incoming securityserverId is incorrectly composed in the front-end
+
         SubsystemEntity subsystem = subsystemRepository.findOneBy(subsystemId)
                 .orElseThrow(() -> new NotFoundException(SUBSYSTEM_NOT_FOUND));
         ServerClientEntity serverClient = subsystem.getServerClients().stream()
@@ -145,8 +149,7 @@ public class SubsystemServiceImpl implements SubsystemService {
         if (isRegistered(subsystem)) {
             throw new ValidationFailureException(SUBSYSTEM_REGISTERED_AND_CANNOT_BE_DELETED);
         }
-
-        globalGroupMemberService.removeClientFromGlobalGroups(subsystemClientId);
+        // dependant entities are removed by cascading database constraints
         subsystemRepository.deleteById(subsystem.getId());
     }
 
