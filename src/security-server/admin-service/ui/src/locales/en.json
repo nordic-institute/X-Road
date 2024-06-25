@@ -561,6 +561,7 @@
     "CN": "Server DNS Name",
     "confirmPin": "Confirm PIN",
     "csr": {
+      "certificationService": "Certification Service",
       "certService": "Certification Service",
       "client": "Client",
       "csrFormat": "CSR Format",

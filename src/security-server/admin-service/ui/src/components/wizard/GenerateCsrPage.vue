@@ -38,7 +38,7 @@
             type="text"
             :disabled="item.read_only"
             variant="outlined"
-            autofocus
+            :autofocus="autoFocusedField === item.id"
             :data-test="`dynamic-csr-input_${item.id}`"
           ></v-text-field>
         </div>
@@ -137,6 +137,12 @@ export default defineComponent({
     },
     externalAccountBindingRequiredButMissingHint(): string | undefined {
       return this.externalAccountBindingRequiredButMissing ? this.$t('csr.eabCredRequired') : undefined;
+    },
+    autoFocusedField(){
+      return  this.csrForm
+        .filter((field) => !field.read_only)
+        .map((field) => field.id)
+        .shift();
     },
   },
   created() {

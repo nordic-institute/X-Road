@@ -156,7 +156,7 @@
     />
 
     <AcmeOrderCertificateDialog
-      :dialog="showAcmeOrderCertificateDialog"
+      v-if="selectedCsr && showAcmeOrderCertificateDialog"
       :csr="selectedCsr as TokenCertificateSigningRequest"
       :keyUsage="selectedKey?.usage"
       @cancel="showAcmeOrderCertificateDialog = false"
