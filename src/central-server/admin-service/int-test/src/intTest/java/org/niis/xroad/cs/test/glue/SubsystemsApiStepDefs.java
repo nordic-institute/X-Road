@@ -29,7 +29,6 @@ package org.niis.xroad.cs.test.glue;
 
 import feign.FeignException;
 import io.cucumber.java.en.Step;
-import lombok.extern.slf4j.Slf4j;
 import org.niis.xroad.cs.openapi.model.ClientDto;
 import org.niis.xroad.cs.openapi.model.NewSubsystemIdDto;
 import org.niis.xroad.cs.openapi.model.SubsystemAddDto;
@@ -45,7 +44,6 @@ import static org.springframework.http.HttpStatus.BAD_REQUEST;
 import static org.springframework.http.HttpStatus.CREATED;
 import static org.springframework.http.HttpStatus.NO_CONTENT;
 
-@Slf4j
 @SuppressWarnings("SpringJavaInjectionPointsAutowiringInspection")
 public class SubsystemsApiStepDefs extends BaseStepDefs {
 
@@ -67,7 +65,6 @@ public class SubsystemsApiStepDefs extends BaseStepDefs {
                 .subsystemId(clientIdDto);
 
         final ResponseEntity<ClientDto> response = subsystemsApi.addSubsystem(dto);
-        log.info("subsystem body: {}", response);
         validate(response)
                 .assertion(equalsAssertion(XRoadIdDto.TypeEnum.SUBSYSTEM, "body.clientId.type"))
                 .assertion(equalsStatusCodeAssertion(CREATED))
