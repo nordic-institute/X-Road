@@ -57,8 +57,8 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
  */
 @SuppressWarnings("java:S2925")
 @SpringBootTest(properties = {
-                "xroad.proxy-ui-api.rate-limit-requests-per-minute=10",
-                "xroad.proxy-ui-api.rate-limit-requests-per-second=5"})
+        "xroad.proxy-ui-api.rate-limit-requests-per-minute=10",
+        "xroad.proxy-ui-api.rate-limit-requests-per-second=5"})
 @ActiveProfiles({"nontest", "test"})
 @AutoConfigureMockMvc(print = MockMvcPrint.NONE)
 class ApplicationIpRateLimitTest {
