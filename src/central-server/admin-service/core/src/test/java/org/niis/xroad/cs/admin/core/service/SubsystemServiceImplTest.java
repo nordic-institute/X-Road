@@ -53,11 +53,13 @@ import org.niis.xroad.cs.admin.core.entity.SecurityServerEntity;
 import org.niis.xroad.cs.admin.core.entity.SecurityServerIdEntity;
 import org.niis.xroad.cs.admin.core.entity.ServerClientEntity;
 import org.niis.xroad.cs.admin.core.entity.SubsystemEntity;
+import org.niis.xroad.cs.admin.core.entity.SubsystemIdEntity;
 import org.niis.xroad.cs.admin.core.entity.XRoadMemberEntity;
 import org.niis.xroad.cs.admin.core.entity.mapper.ClientIdMapper;
 import org.niis.xroad.cs.admin.core.entity.mapper.ClientIdMapperImpl;
 import org.niis.xroad.cs.admin.core.entity.mapper.SecurityServerClientMapper;
 import org.niis.xroad.cs.admin.core.entity.mapper.SecurityServerClientMapperImpl;
+import org.niis.xroad.cs.admin.core.repository.IdentifierRepository;
 import org.niis.xroad.cs.admin.core.repository.ServerClientRepository;
 import org.niis.xroad.cs.admin.core.repository.SubsystemRepository;
 import org.niis.xroad.cs.admin.core.repository.XRoadMemberRepository;
@@ -99,6 +101,8 @@ public class SubsystemServiceImplTest implements WithInOrder {
     @Mock
     private GlobalGroupMemberService globalGroupMemberService;
     @Mock
+    private IdentifierRepository<SubsystemIdEntity> subsystemIds;
+    @Mock
     private AuditDataHelper auditDataHelper;
 
     @Spy
@@ -117,11 +121,16 @@ public class SubsystemServiceImplTest implements WithInOrder {
         private final String memberName = "member name";
         private final MemberId memberId = MemberId.create("TEST", "CLASS", "MEMBER");
         private final SubsystemId subsystemId = SubsystemId.create("TEST", "CLASS", "MEMBER", "SUBSYSTEM");
+        private final SubsystemIdEntity subsystemIdEntity = SubsystemIdEntity.ensure(subsystemId);
         private final XRoadMemberEntity xRoadMember = new XRoadMemberEntity(memberName, memberId, new MemberClassEntity("CLASS", "DESC"));
 
         @Test
         @DisplayName("should create client when not already present")
         void shouldCreateClientWhenNotAlreadyPresent() {
+            when(subsystemIds.findOrCreate(subsystemIdEntity)).thenReturn(subsystemIdEntity);
+            when(subsystemRepository.save(any())).thenAnswer(invocation -> invocation.getArgument(0));
+
+            when(xRoadMemberRepository.findMember(memberId)).thenReturn(Optional.of(xRoadMember));
             when(subsystemRepository.findOneBy(subsystemId)).thenReturn(Optional.empty());
             when(subsystemRepository.save(any())).thenAnswer(invocation -> invocation.getArgument(0));
 
