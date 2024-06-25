@@ -102,7 +102,7 @@ This document is licensed under the Creative Commons Attribution-ShareAlike 3.0 
 
 ### 1.1 Target Audience
 
-The intended audience of this Installation Guide are X-Road Security server system administrators responsible for installing and using X-Road software. The daily operation and maintenance of the security server is covered by its User Guide \[[UG-SS](#Ref_UG-SS)\].
+The intended audience of this Installation Guide are X-Road Security server system administrators responsible for installing and using X-Road software. The daily operation and maintenance of the Security Server is covered by its User Guide \[[UG-SS](#Ref_UG-SS)\].
 
 The document is intended for readers with a moderate knowledge of Linux server management, computer networks, and the X-Road working principles.
 
@@ -122,9 +122,9 @@ See X-Road terms and abbreviations documentation \[[TA-TERMS](#Ref_TERMS)\].
 
 ### 2.1 Prerequisites to Installation
 
-There are multiple alternatives how the security server can be deployed. The options are described in [Annex C Deployment Options](#annex-c-deployment-options).
+There are multiple alternatives how the Security Server can be deployed. The options are described in [Annex C Deployment Options](#annex-c-deployment-options).
 
-The security server runs on the following platforms:
+The Security Server runs on the following platforms:
 
 * Red Hat Enterprise Linux (RHEL) versions 7, 8 and 9 on a x86-64 platform.
 * Ubuntu Server 20.04 and 22.04 on a x86-64 platform. See [IG-SS](ig-ss_x-road_v6_security_server_installation_guide.md) for more information.
@@ -145,27 +145,27 @@ The software can be installed both on physical and virtualized hardware (of the 
 | 1.1    | https://artifactory.niis.org/xroad-release-rpm                                               | X-Road package repository                                                                                                                                                                                                                                                                  |
 | 1.2    | https://artifactory.niis.org/api/gpg/key/public                                              | The repository key.<br /><br />Hash: `935CC5E7FA5397B171749F80D6E3973B`<br  />Fingerprint: `A01B FE41 B9D8 EAF4 872F  A3F1 FB0D 532C 10F6 EC5B`<br  />3rd party key server: [Ubuntu key server](https://keyserver.ubuntu.com/pks/lookup?search=0xfb0d532c10f6ec5b&fingerprint=on&op=index) |
 | 1.3    |                                                                                              | Account name in the user interface                                                                                                                                                                                                                                                         |
-| 1.4    | **Inbound ports from external network**                                                      | Ports for inbound connections from the external network to the security server                                                                                                                                                                                                             |
+| 1.4    | **Inbound ports from external network**                                                      | Ports for inbound connections from the external network to the Security Server                                                                                                                                                                                                             |
 | &nbsp; | TCP 80                                                                                       | Incoming ACME challenge requests from ACME Servers                                                                                                                                                                                                                                         |
-|        | TCP 5500                                                                                     | Message exchange between security servers                                                                                                                                                                                                                                                  |
-|        | TCP 5577                                                                                     | Querying of OCSP responses between security servers                                                                                                                                                                                                                                        |
-| 1.5    | **Outbound ports to external network**                                                       | Ports for outbound connections from the security server to the external network                                                                                                                                                                                                            |
-|        | TCP 5500                                                                                     | Message exchange between security servers                                                                                                                                                                                                                                                  |
-|        | TCP 5577                                                                                     | Querying of OCSP responses between security servers                                                                                                                                                                                                                                        |
-|        | TCP 4001                                                                                     | Communication with the central server                                                                                                                                                                                                                                                      |
-|        | TCP 80,443                                                                                   | Downloading global configuration from the central server                                                                                                                                                                                                                                   |
+|        | TCP 5500                                                                                     | Message exchange between Security Servers                                                                                                                                                                                                                                                  |
+|        | TCP 5577                                                                                     | Querying of OCSP responses between Security Servers                                                                                                                                                                                                                                        |
+| 1.5    | **Outbound ports to external network**                                                       | Ports for outbound connections from the Security Server to the external network                                                                                                                                                                                                            |
+|        | TCP 5500                                                                                     | Message exchange between Security Servers                                                                                                                                                                                                                                                  |
+|        | TCP 5577                                                                                     | Querying of OCSP responses between Security Servers                                                                                                                                                                                                                                        |
+|        | TCP 4001                                                                                     | Communication with the Central Server                                                                                                                                                                                                                                                      |
+|        | TCP 80,443                                                                                   | Downloading global configuration from the Central Server                                                                                                                                                                                                                                   |
 |        | TCP 80,443                                                                                   | Most common OCSP and time-stamping services                                                                                                                                                                                                                                                |
 |        | TCP 80,443                                                                                   | Communication with ACME servers                                                                                                                                                                                                                                                            |
-| 1.6    | **Inbound ports from internal network**                                                      | Ports for inbound connections from the internal network to the security server                                                                                                                                                                                                             |
+| 1.6    | **Inbound ports from internal network**                                                      | Ports for inbound connections from the internal network to the Security Server                                                                                                                                                                                                             |
 |        | TCP 4000                                                                                     | User interface and management REST API (local network). **Must not be accessible from the internet!**                                                                                                                                                                                      |
 |        | TCP 8080 (or TCP 80), 8443 (or TCP 443)                                                      | Information system access points (in the local network). **Must not be accessible from the external network without strong authentication. If open to the external network, IP filtering is strongly recommended.**                                                                        |
-| 1.7    | **Outbound ports to internal network**                                                       | Ports for inbound connections from the internal network to the security server                                                                                                                                                                                                             |
+| 1.7    | **Outbound ports to internal network**                                                       | Ports for inbound connections from the internal network to the Security Server                                                                                                                                                                                                             |
 |        | TCP 80, 443, *other*                                                                         | Producer information system endpoints                                                                                                                                                                                                                                                      |
-|        | TCP 2080                                                                                     | Message exchange between security server and operational data monitoring daemon (by default on localhost)                                                                                                                                                                                  |
+|        | TCP 2080                                                                                     | Message exchange between Security Server and operational data monitoring daemon (by default on localhost)                                                                                                                                                                                  |
 | 1.8    |                                                                                              | Security server internal IP address(es) and hostname(s)                                                                                                                                                                                                                                    |
 | 1.9    |                                                                                              | Security server public IP address, NAT address                                                                                                                                                                                                                                             |
 
-It is strongly recommended to protect the security server from unwanted access using a firewall (hardware or software based). The firewall can be applied to both incoming and outgoing connections depending on the security requirements of the environment where the security server is deployed. It is recommended to allow incoming traffic to specific ports only from explicitly defined sources using IP filtering. **Special attention should be paid with the firewall configuration since incorrect configuration may leave the security server vulnerable to exploits and attacks.**
+It is strongly recommended to protect the Security Server from unwanted access using a firewall (hardware or software based). The firewall can be applied to both incoming and outgoing connections depending on the security requirements of the environment where the Security Server is deployed. It is recommended to allow incoming traffic to specific ports only from explicitly defined sources using IP filtering. **Special attention should be paid with the firewall configuration since incorrect configuration may leave the Security Server vulnerable to exploits and attacks.**
 
 
 #### 2.2.1 Network Diagram
@@ -220,8 +220,8 @@ Requirements to software and settings:
 
 * an installed and configured RHEL (v7.3 or newer; 8.0 or newer; 9.3 or newer) x86-64 operating system;
 * Java 17 should be installed;
-* if the security server is separated from other networks by a firewall and/or NAT, the necessary connections to and from the security server are allowed (**reference data: 1.4; 1.5; 1.6; 1.7**). The enabling of auxiliary services which are necessary for the functioning and management of the operating system (such as DNS, NTP, and SSH) stay outside the scope of this guide;
-* if the security server has a private IP address, a corresponding NAT record must be created in the firewall (**reference data: 1.9**).
+* if the Security Server is separated from other networks by a firewall and/or NAT, the necessary connections to and from the Security Server are allowed (**reference data: 1.4; 1.5; 1.6; 1.7**). The enabling of auxiliary services which are necessary for the functioning and management of the operating system (such as DNS, NTP, and SSH) stay outside the scope of this guide;
+* if the Security Server has a private IP address, a corresponding NAT record must be created in the firewall (**reference data: 1.9**).
 
 #### 2.3.1 Installing Java 17
 
@@ -297,7 +297,7 @@ If you are installing the default setup with local PostgreSQL database and want 
 
 *This is an optional step.* 
 
-Optionally, the security server can use a remote database server. To avoid installing the default local PostgreSQL server during security server installation, install the `xroad-database-remote` -package, which will also install the PostgreSQL client and create the `xroad` system user and configuration directories (`/etc/xroad`).
+Optionally, the Security Server can use a remote database server. To avoid installing the default local PostgreSQL server during Security Server installation, install the `xroad-database-remote` -package, which will also install the PostgreSQL client and create the `xroad` system user and configuration directories (`/etc/xroad`).
 ```bash
 sudo yum install xroad-database-remote
 ```
@@ -311,9 +311,9 @@ psql -h <database host> -U <superuser> -tAc 'show server_version'
 10.16 (Ubuntu 10.16-0ubuntu0.18.04.1)
 ```
 
-The security server installer can create the database and users for you, but you need to create a configuration file containing the database administrator credentials. 
+The Security Server installer can create the database and users for you, but you need to create a configuration file containing the database administrator credentials. 
 
-For advanced setup, e.g. when using separate instances for the different databases, sharing a database with several security servers, or if storing the database administrator password on the security server is not an option, you can create the database users and structure manually as described in [Annex D Create Database Structure Manually](#annex-d-create-database-structure-manually) and then continue to section 2.7. Otherwise, perform the following steps:
+For advanced setup, e.g. when using separate instances for the different databases, sharing a database with several Security Servers, or if storing the database administrator password on the Security Server is not an option, you can create the database users and structure manually as described in [Annex D Create Database Structure Manually](#annex-d-create-database-structure-manually) and then continue to section 2.7. Otherwise, perform the following steps:
 
 Create the property file for database credentials:
 ```bash
@@ -367,7 +367,7 @@ echo "ENABLE_MESSAGELOG=false" | sudo tee /etc/sysconfig/xroad-addon-messagelog
 
 ### 2.8 Security Server Installation
 
-Issue the following command to install the security server packages (use package `xroad-securityserver-ee` to include configuration specific to Estonia; use package `xroad-securityserver-fi` to include configuration specific to Finland; use package `xroad-securityserver-is` to include configuration specific to Iceland):
+Issue the following command to install the Security Server packages (use package `xroad-securityserver-ee` to include configuration specific to Estonia; use package `xroad-securityserver-fi` to include configuration specific to Finland; use package `xroad-securityserver-is` to include configuration specific to Iceland):
 
   ```bash
   sudo yum install xroad-securityserver
@@ -398,7 +398,7 @@ Edit `/etc/xroad/conf.d/local.ini` and add the following properties in the `[pro
 
 #### 2.8.2 Start Security Server
 
-Once the installation is completed, start the security server
+Once the installation is completed, start the Security Server
 
   ```bash
   sudo systemctl start xroad-proxy
@@ -424,7 +424,7 @@ The installation is successful if system services are started and the user inter
   xroad-signer.service           loaded active running X-Road signer
   ```
 
-* Ensure that the security server user interface at https://SECURITYSERVER:4000/ (**reference data: 1.8; 1.6**) can be opened in a Web browser. To log in, use the account name chosen during the installation (**reference data: 1.3**). While the user interface is still starting up, the Web browser may display a connection refused -error.
+* Ensure that the Security Server user interface at https://SECURITYSERVER:4000/ (**reference data: 1.8; 1.6**) can be opened in a Web browser. To log in, use the account name chosen during the installation (**reference data: 1.3**). While the user interface is still starting up, the Web browser may display a connection refused -error.
 
 ### 2.10 Installing the Support for Hardware Tokens
 
@@ -432,30 +432,30 @@ Hardware security tokens (smartcard, USB token, Hardware Security Module) have n
 
 ### 2.11 Installing the Support for Environmental Monitoring
 
-The support for environmental monitoring functionality on a security server is provided by package xroad-monitor that is installed by default. The package installs and starts the `xroad-monitor` process that will gather and make available the monitoring information.
+The support for environmental monitoring functionality on a Security Server is provided by package xroad-monitor that is installed by default. The package installs and starts the `xroad-monitor` process that will gather and make available the monitoring information.
 
 ## 3 Security Server Initial Configuration
 
-During the security server initial configuration, the server’s X-Road membership information and the software token’s PIN are set.
+During the Security Server initial configuration, the server’s X-Road membership information and the software token’s PIN are set.
 
 
 ### 3.1 Prerequisites
 
-Configuring the security server assumes that the security server owner is a member of the X-Road.
+Configuring the Security Server assumes that the Security Server owner is a member of the X-Road.
 
 
 ### 3.2 Reference Data
 
-ATTENTION: Reference items 2.1 - 2.3 in the reference data are provided to the security server owner by the X-Road central’s administrator.
+ATTENTION: Reference items 2.1 - 2.3 in the reference data are provided to the Security Server owner by the X-Road central’s administrator.
 
-The security server code and the software token’s PIN will be determined during the installation at the latest, by the person performing the installation.
+The Security Server code and the software token’s PIN will be determined during the installation at the latest, by the person performing the installation.
 
  Ref  |                                                   | Explanation
  ---- | ------------------------------------------------- | --------------------------------------------------
  2.1  | &lt;global configuration anchor file&gt; or &lt;URL&gt; | Global configuration anchor file
- 2.2  | E.g.<br>GOV - government<br> COM - commercial     | Member class of the security server's owner
- 2.3  | &lt;security server owner register code&gt;       | Member code of the security server's owner
- 2.4  | &lt;choose security server identificator name&gt; | Security server's code
+ 2.2  | E.g.<br>GOV - government<br> COM - commercial     | Member class of the Security Server's owner
+ 2.3  | &lt;Security Server owner register code&gt;       | Member code of the Security Server's owner
+ 2.4  | &lt;choose Security Server identificator name&gt; | Security server's code
  2.5  | &lt;choose PIN for software token&gt;             | Software token’s PIN
 
 
@@ -475,17 +475,17 @@ Upon first log-in, the system asks for the following information.
 
 If the configuration is successfully downloaded, the system asks for the following information.
 
-* The security server owner’s member class (**reference data: 2.2**).
-* The security server owner’s member code (**reference data: 2.3**).
+* The Security Server owner’s member class (**reference data: 2.2**).
+* The Security Server owner’s member code (**reference data: 2.3**).
 
-  If the member class and member code are correctly entered, the system displays the security server owner’s name as registered in the X-Road center.
+  If the member class and member code are correctly entered, the system displays the Security Server owner’s name as registered in the X-Road center.
 
-* Security server code (**reference data: 2.4**), which is chosen by the security server administrator and which has to be unique across all the security servers belonging to the same X-Road member.
+* Security server code (**reference data: 2.4**), which is chosen by the Security Server administrator and which has to be unique across all the Security Servers belonging to the same X-Road member.
 * Software token’s PIN (**reference data: 2.5**). The PIN will be used to protect the keys stored in the software token. The PIN must be stored in a secure place, because it will be no longer possible to use or recover the private keys in the token once the PIN has been lost.
 
 ### 3.4 Configuring Configuration Backup Encryption
 
-It is possible to automatically encrypt security server configuration backups. Security server uses The GNU Privacy Guard (https://www.gnupg.org)
+It is possible to automatically encrypt Security Server configuration backups. Security server uses The GNU Privacy Guard (https://www.gnupg.org)
 for backup encryption and verification. Backups are always signed, but backup encryption is initially turned off.
 To turn encryption on, please override the default configuration in the file `/etc/xroad/conf.d/local.ini`, in the `[proxy]` section (add or edit this section).
 
@@ -494,22 +494,22 @@ To turn encryption on, please override the default configuration in the file `/e
     backup-encryption-keyids = <keyid1>, <keyid2>, ...
 
 To turn backup encryption on, please change the `backup-encryption-enabled` property value to `true`.
-By default, backups are encrypted using security server's backup encryption key. Additional encryption keys can be imported in the /etc/xroad/gpghome keyring and key identifiers listed using the backup-encryption-keyids parameter. It is recommended to set up at least one additional key, otherwise the backups will be unusable in case security server's private key is lost. It is up to security server's administrator to check that keys used are sufficiently strong, there are no automatic checks.
+By default, backups are encrypted using Security Server's backup encryption key. Additional encryption keys can be imported in the /etc/xroad/gpghome keyring and key identifiers listed using the backup-encryption-keyids parameter. It is recommended to set up at least one additional key, otherwise the backups will be unusable in case Security Server's private key is lost. It is up to Security Server's administrator to check that keys used are sufficiently strong, there are no automatic checks.
 
 Warning. All keys listed in backup-encryption-keyids must be present in the gpg keyring or backup fails.
 
 All these keys are used to encrypt backups so that ANY of these keys can decrypt the backups. This is useful both for verifying encrypted backups'
-consistency and decrypting backups in case security server's backup encryption key gets lost for whatever reason.
+consistency and decrypting backups in case Security Server's backup encryption key gets lost for whatever reason.
 
-To externally verify a backup archive's consistency, security server's backup encryption public key has to be exported
-and imported into external GPG keyring. Note that this can be done only after security server has been initialised - the
-security server backup encryption key is generated during initialisation.
+To externally verify a backup archive's consistency, Security Server's backup encryption public key has to be exported
+and imported into external GPG keyring. Note that this can be done only after Security Server has been initialised - the
+Security Server backup encryption key is generated during initialisation.
 
-To export security server's backup encryption public key use the following command:
+To export Security Server's backup encryption public key use the following command:
 
     gpg --homedir /etc/xroad/gpghome --armor --output server-public-key.gpg --export AA/GOV/TS1OWNER/TS1
 
-where `AA/GOV/TS1OWNER/TS1` is the security server id.
+where `AA/GOV/TS1OWNER/TS1` is the Security Server id.
 
 The key can then be moved to an external host and imported to GPG keyring with the following command:
 
@@ -524,13 +524,13 @@ certificates on the Security Server. More information about the required configu
 
 ### 4.1 ERROR: Upgrade supported from version X.Y.Z or newer.
 
-The following error message may come up during the security server upgrade.
+The following error message may come up during the Security Server upgrade.
 
 `ERROR: Upgrade supported from version X.Y.Z or newer.`
 
-Upgrading the packages from the current version to the target version is not supported directly. The fix is to upgrade the security server to the target version step by step.
+Upgrading the packages from the current version to the target version is not supported directly. The fix is to upgrade the Security Server to the target version step by step.
 
-For example, the following security server packages are currently installed.
+For example, the following Security Server packages are currently installed.
 
 ```bash
 [root@rh1 ~]# yum list installed | grep xroad
@@ -559,7 +559,7 @@ xroad-securityserver.noarch                                                     
 xroad-securityserver.noarch                                                                        7.3.0-1.el7                                                                         artifactory.niis.org_xroad-release-rpm_rhel_7_current
 ```
 
-Now trying to upgrade the central server packages directly will produce the following error.
+Now trying to upgrade the Central Server packages directly will produce the following error.
 
 ```bash
 [root@rh1 ~]# yum upgrade xroad-securityserver
@@ -569,7 +569,7 @@ error: %pre(xroad-securityserver-7.3.0-1.el7.noarch) scriptlet failed, exit stat
 Error in PREIN scriptlet in rpm package xroad-securityserver-7.3.0-1.el7.noarch
 ```
 
-The fix is to upgrade the security server in two separate steps. First, upgrade to 7.1.x with the following command.
+The fix is to upgrade the Security Server in two separate steps. First, upgrade to 7.1.x with the following command.
 
 ```bash
 yum install xroad-securityserver-7.1.0-1.el7 xroad-addon-messagelog-7.1.0-1.el7 xroad-addon-metaservices-7.1.0-1.el7 xroad-addon-proxymonitor-7.1.0-1.el7 xroad-addon-wsdlvalidator-7.1.0-1.el7 xroad-base-7.1.0-1.el7 xroad-confclient-7.1.0-1.el7 xroad-database-local-7.1.0-1.el7 xroad-monitor-7.1.0-1.el7 xroad-proxy-7.1.0-1.el7 xroad-proxy-ui-api-7.1.0-1.el7 xroad-securityserver-7.1.0-1.el7 xroad-signer-7.1.0-1.el7
@@ -630,19 +630,19 @@ op-monitor.hibernate.connection.password = <randomly generated password>
 
 ### C.1 General
 
-X-Road security server has multiple deployment options. The simplest choice is to have a single security server with local database. This is usually fine for majority of the cases, but there are multiple reasons to tailor the deployment.
+X-Road Security Server has multiple deployment options. The simplest choice is to have a single Security Server with local database. This is usually fine for majority of the cases, but there are multiple reasons to tailor the deployment.
 
 
 ### C.2 Local Database
 
-The simplest deployment option is to use a single security server with local database. For development and testing purposes there is rarely need for anything else, but for production the requirements may be stricter.
+The simplest deployment option is to use a single Security Server with local database. For development and testing purposes there is rarely need for anything else, but for production the requirements may be stricter.
 
 ![Security server with local database](img/ig-ss_local_db.svg)
 
 
 ### C.3 Remote Database
 
-It is possible to use a remote database with security server. This option is sometimes used in development and testing when there's need to externalize the database state.
+It is possible to use a remote database with Security Server. This option is sometimes used in development and testing when there's need to externalize the database state.
 
 Security server supports a variety of cloud databases including AWS RDS and Azure Database for PostgreSQL. This deployment option is useful when doing development in cloud environment, where use of cloud native database is the first choice.
 
@@ -651,21 +651,21 @@ Security server supports a variety of cloud databases including AWS RDS and Azur
 
 ### C.4 High Availability Setup
 
-In production systems it's rarely acceptable to have a single point of failure. Security server supports provider side high availability setup via so called internal load balancing mechanism. The setup works so that the same member / member class / member code / subsystem / service code is configured on multiple security servers and X-Road will then route the request to the server that responds the fastest. Note that this deployment option does not provide performance benefits, just redundancy.
+In production systems it's rarely acceptable to have a single point of failure. Security server supports provider side high availability setup via so called internal load balancing mechanism. The setup works so that the same member / member class / member code / subsystem / service code is configured on multiple Security Servers and X-Road will then route the request to the server that responds the fastest. Note that this deployment option does not provide performance benefits, just redundancy.
 
 ![Security server high-availability setup](img/ig-ss_high_availability.svg)
 
 
 ### C.5 Load Balancing Setup
 
-Busy production systems may need scalable performance in addition to high availability. X-Road supports external load balancing mechanism to address both of these problems simultaneously. A load balancer is added in front of a security server cluster to route the requests based on selected algorithm. This deployment option is extensively documented in \[[IG-XLB](#Ref_IG-XLB)\].
+Busy production systems may need scalable performance in addition to high availability. X-Road supports external load balancing mechanism to address both of these problems simultaneously. A load balancer is added in front of a Security Server cluster to route the requests based on selected algorithm. This deployment option is extensively documented in \[[IG-XLB](#Ref_IG-XLB)\].
 
 ![Security server load balancing setup](img/ig-ss_load_balancing.svg)
 
 
 ### C.6 Summary
 
-The following table lists a summary of the security server deployment options and indicates whether they are aimed for development or production use.
+The following table lists a summary of the Security Server deployment options and indicates whether they are aimed for development or production use.
 
 | Deployment               | Dev  | Prod  |
 |--------------------------|------|-------|
@@ -677,9 +677,9 @@ The following table lists a summary of the security server deployment options an
 
 ## Annex D Create Database Structure Manually
 
-Depending on installed components, the security server uses one to three databases (catalogs):
+Depending on installed components, the Security Server uses one to three databases (catalogs):
 
-* _serverconf_ for storing security server configuration (required)
+* _serverconf_ for storing Security Server configuration (required)
 * _messagelog_ for storing message records (optional, but installed by default)
 * _op-monitor_ for operational monitoring data (optional)
 
@@ -690,7 +690,7 @@ Login to the database server(s) as the superuser (`postgres` by default) to run 
 psql -h <database host>:<port> -U <superuser> -d postgres
 ```
 
-Run the following commands to create the necessary database structures. If necessary, customize the database and role names to suit your environment (e.g when the same database server is shared between several security server instances, it is necessary to have separate database names and roles for each server). By default, the database, database user, and schema use the same name (e.g. serverconf), and the admin user is named with \_admin prefix (e.g. serverconf_admin).
+Run the following commands to create the necessary database structures. If necessary, customize the database and role names to suit your environment (e.g when the same database server is shared between several Security Server instances, it is necessary to have separate database names and roles for each server). By default, the database, database user, and schema use the same name (e.g. serverconf), and the admin user is named with \_admin prefix (e.g. serverconf_admin).
 
 **serverconf** (required)
 ```sql
