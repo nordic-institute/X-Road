@@ -2,7 +2,7 @@
 
 **X-ROAD 7**
 
-Version: 1.28  
+Version: 1.29  
 Doc. ID: IG-SS-RHEL
 
 ---
@@ -41,6 +41,7 @@ Doc. ID: IG-SS-RHEL
 | 19.12.2023 | 1.26    | Add RHEL 9 as supported platform                                                                                                                                                                                     | Justas Samuolis  |
 | 02.01.2024 | 1.27    | Loopback ports added                                                                                                                                                                                                 | Justas Samuolis  |
 | 12.06.2024 | 1.28    | Add ACME server to the network diagram, add a section about enabling ACME support                                                                                                                                    | Petteri Kivimäki |
+| 25.06.2024 | 1.29    | Add global configuration download port 443 to the network diagram                                                                                                                                                    | Petteri Kivimäki |
 ## License
 
 This document is licensed under the Creative Commons Attribution-ShareAlike 3.0 Unported License. To view a copy of this license, visit http://creativecommons.org/licenses/by-sa/3.0/
@@ -152,7 +153,7 @@ The software can be installed both on physical and virtualized hardware (of the 
 |        | TCP 5500                                                                                     | Message exchange between security servers                                                                                                                                                                                                                                                  |
 |        | TCP 5577                                                                                     | Querying of OCSP responses between security servers                                                                                                                                                                                                                                        |
 |        | TCP 4001                                                                                     | Communication with the central server                                                                                                                                                                                                                                                      |
-|        | TCP 80                                                                                       | Downloading global configuration from the central server                                                                                                                                                                                                                                   |
+|        | TCP 80,443                                                                                   | Downloading global configuration from the central server                                                                                                                                                                                                                                   |
 |        | TCP 80,443                                                                                   | Most common OCSP and time-stamping services                                                                                                                                                                                                                                                |
 |        | TCP 80,443                                                                                   | Communication with ACME servers                                                                                                                                                                                                                                                            |
 | 1.6    | **Inbound ports from internal network**                                                      | Ports for inbound connections from the internal network to the security server                                                                                                                                                                                                             |
@@ -177,7 +178,7 @@ The table below lists the required connections between different components.
 
 | Connection Type | Source                                                   | Target                                                   | Target Ports   | Protocol | Note                           |
 |-----------------|----------------------------------------------------------|----------------------------------------------------------|----------------|----------|--------------------------------|
-| Out             | Security Server                                          | Central Server                                           | 80, 4001       | tcp      |                                |
+| Out             | Security Server                                          | Central Server                                           | 80, 443, 4001  | tcp      |                                |
 | Out             | Security Server                                          | Management Security Server                               | 5500, 5577     | tcp      |                                |
 | Out             | Security Server                                          | OCSP Service                                             | 80 / 443       | tcp      |                                |
 | Out             | Security Server                                          | Timestamping Service                                     | 80 / 443       | tcp      |                                |
