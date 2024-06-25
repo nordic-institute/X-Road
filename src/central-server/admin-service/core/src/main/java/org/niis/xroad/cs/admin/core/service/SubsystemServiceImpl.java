@@ -125,8 +125,6 @@ public class SubsystemServiceImpl implements SubsystemService {
         auditDataHelper.put(OWNER_CODE, securityServerId.getOwner().getMemberCode());
         auditDataHelper.put(CLIENT_IDENTIFIER, subsystemId);
 
-        // FIXME: incoming securityserverId is incorrectly composed in the front-end
-
         SubsystemEntity subsystem = subsystemRepository.findOneBy(subsystemId)
                 .orElseThrow(() -> new NotFoundException(SUBSYSTEM_NOT_FOUND));
         ServerClientEntity serverClient = subsystem.getServerClients().stream()

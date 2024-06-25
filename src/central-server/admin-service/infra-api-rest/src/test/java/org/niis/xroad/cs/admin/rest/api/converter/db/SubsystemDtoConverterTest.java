@@ -36,6 +36,7 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.niis.xroad.cs.admin.api.domain.ManagementRequestStatus;
+import org.niis.xroad.cs.admin.api.domain.SecurityServerId;
 import org.niis.xroad.cs.admin.api.domain.ServerClient;
 import org.niis.xroad.cs.admin.api.domain.Subsystem;
 import org.niis.xroad.cs.admin.api.domain.SubsystemId;
@@ -98,6 +99,7 @@ public class SubsystemDtoConverterTest extends AbstractDtoConverterTest implemen
             UsedSecurityServersDto convertedServerClient = converted.getUsedSecurityServers().get(0);
             assertEquals(SERVER_CODE, convertedServerClient.getServerCode());
             assertEquals(MEMBER_NAME, convertedServerClient.getServerOwner());
+            assertEquals(SECURITY_SERVER_ENCODED_ID, convertedServerClient.getEncodedId());
             assertEquals(ManagementRequestStatus.APPROVED.name(), convertedServerClient.getStatus());
         }
 
@@ -127,6 +129,8 @@ public class SubsystemDtoConverterTest extends AbstractDtoConverterTest implemen
             doReturn(clientIdDto).when(clientIdDtoConverter).toDto(clientId);
             doReturn(serverClients).when(subsystem).getServerClients();
 
+            when(serverClient.getServerId()).thenReturn(SecurityServerId.create(INSTANCE_ID, MEMBER_CLASS_CODE,
+                    MEMBER_CODE, SERVER_CODE));
             when(serverClient.getServerOwner()).thenReturn(MEMBER_NAME);
             when(serverClient.getServerCode()).thenReturn(SERVER_CODE);
             when(serverClient.isEnabled()).thenReturn(true);
