@@ -1,6 +1,6 @@
-<mxfile host="Electron" modified="2024-06-13T06:12:12.369Z" agent="Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) draw.io/21.5.1 Chrome/112.0.5615.204 Electron/24.6.0 Safari/537.36" etag="LR96D78D3JV2Z68UKy2U" version="21.5.1" type="device" pages="2">
+<mxfile host="Electron" modified="2024-06-25T05:13:07.823Z" agent="Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) draw.io/21.5.1 Chrome/112.0.5615.204 Electron/24.6.0 Safari/537.36" etag="PfMlKyzF1cCU62MMdsr9" version="21.5.1" type="device" pages="2">
   <diagram id="JbDlwLFTd4TnMdRyGuPK" name="Ubuntu">
-    <mxGraphModel dx="1652" dy="570" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="827" pageHeight="1169" math="0" shadow="0">
+    <mxGraphModel dx="1941" dy="769" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="827" pageHeight="1169" math="0" shadow="0">
       <root>
         <mxCell id="0" />
         <mxCell id="1" parent="0" />
@@ -191,7 +191,7 @@
         <mxCell id="kSdXtpaPyCY8reuJcLhx-1" value="Internet" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;dashed=1;fontColor=#663CDC;fontStyle=1;fontSize=16;rotation=-90;" parent="1" vertex="1">
           <mxGeometry x="-35" y="370" width="160" height="20" as="geometry" />
         </mxCell>
-        <mxCell id="dGm3NTITXOxpyXIQVVI5-1" value="OUT&lt;br style=&quot;font-size: 14px&quot;&gt;80/tcp&lt;br&gt;4001/tcp" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];fontSize=14;fontColor=#663CDC;" parent="1" vertex="1" connectable="0">
+        <mxCell id="dGm3NTITXOxpyXIQVVI5-1" value="OUT&lt;br style=&quot;font-size: 14px&quot;&gt;80/tcp&lt;br&gt;443/tcp&lt;br&gt;4001/tcp" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];fontSize=14;fontColor=#663CDC;" parent="1" vertex="1" connectable="0">
           <mxGeometry x="90" y="336.9966676635742" as="geometry">
             <mxPoint x="547" y="-15" as="offset" />
           </mxGeometry>
@@ -218,10 +218,10 @@
             <mxPoint x="-2" as="offset" />
           </mxGeometry>
         </mxCell>
-        <mxCell id="zzmGdBNQsPMlx_Z5qOPW-1" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=-0.014;exitY=0.604;exitDx=0;exitDy=0;entryX=0;entryY=1;entryDx=0;entryDy=0;strokeColor=#663CDC;exitPerimeter=0;" edge="1" parent="1" source="u03GMos91zHW6Dz8kfea-2" target="-LHDCUS2X9Ota37iXmGD-2">
+        <mxCell id="zzmGdBNQsPMlx_Z5qOPW-1" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=-0.014;exitY=0.604;exitDx=0;exitDy=0;entryX=0;entryY=1;entryDx=0;entryDy=0;strokeColor=#663CDC;exitPerimeter=0;" parent="1" source="u03GMos91zHW6Dz8kfea-2" target="-LHDCUS2X9Ota37iXmGD-2" edge="1">
           <mxGeometry relative="1" as="geometry" />
         </mxCell>
-        <mxCell id="zzmGdBNQsPMlx_Z5qOPW-2" value="&lt;font style=&quot;border-color: var(--border-color); font-size: 14px;&quot; color=&quot;#663cdc&quot;&gt;OUT&lt;/font&gt;&lt;br style=&quot;border-color: var(--border-color); color: rgb(102, 60, 220); font-size: 14px;&quot;&gt;&lt;font color=&quot;#663cdc&quot; style=&quot;font-size: 14px;&quot;&gt;80/tcp&lt;br&gt;443/tcp&lt;/font&gt;" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];" vertex="1" connectable="0" parent="zzmGdBNQsPMlx_Z5qOPW-1">
+        <mxCell id="zzmGdBNQsPMlx_Z5qOPW-2" value="&lt;font style=&quot;border-color: var(--border-color); font-size: 14px;&quot; color=&quot;#663cdc&quot;&gt;OUT&lt;/font&gt;&lt;br style=&quot;border-color: var(--border-color); color: rgb(102, 60, 220); font-size: 14px;&quot;&gt;&lt;font color=&quot;#663cdc&quot; style=&quot;font-size: 14px;&quot;&gt;80/tcp&lt;br&gt;443/tcp&lt;/font&gt;" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];" parent="zzmGdBNQsPMlx_Z5qOPW-1" vertex="1" connectable="0">
           <mxGeometry x="0.7971" y="1" relative="1" as="geometry">
             <mxPoint y="12" as="offset" />
           </mxGeometry>
