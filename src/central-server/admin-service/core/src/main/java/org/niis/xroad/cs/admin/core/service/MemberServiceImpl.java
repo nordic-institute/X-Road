@@ -36,6 +36,7 @@ import org.niis.xroad.cs.admin.api.domain.GlobalGroupMember;
 import org.niis.xroad.cs.admin.api.domain.SecurityServer;
 import org.niis.xroad.cs.admin.api.domain.XRoadMember;
 import org.niis.xroad.cs.admin.api.dto.MemberCreationRequest;
+import org.niis.xroad.cs.admin.api.service.GlobalGroupMemberService;
 import org.niis.xroad.cs.admin.api.service.MemberService;
 import org.niis.xroad.cs.admin.core.entity.MemberIdEntity;
 import org.niis.xroad.cs.admin.core.entity.XRoadMemberEntity;
@@ -69,6 +70,8 @@ public class MemberServiceImpl implements MemberService {
     private final MemberClassRepository memberClassRepository;
     private final GlobalGroupMemberRepository globalGroupMemberRepository;
     private final IdentifierRepository<MemberIdEntity> memberIds;
+
+    private final GlobalGroupMemberService globalGroupMemberService;
 
     private final SecurityServerMapper securityServerMapper;
     private final SecurityServerClientMapper securityServerClientMapper;
@@ -114,7 +117,8 @@ public class MemberServiceImpl implements MemberService {
 
         XRoadMemberEntity member = xRoadMemberRepository.findMember(clientId)
                 .orElseThrow(() -> new NotFoundException(MEMBER_NOT_FOUND));
-        // dependant entities are removed by cascading database constraints
+        globalGroupMemberService.removeClientFromGlobalGroups(clientId);
+        // other dependant entities are removed by cascading database constraints
         xRoadMemberRepository.delete(member);
     }
 

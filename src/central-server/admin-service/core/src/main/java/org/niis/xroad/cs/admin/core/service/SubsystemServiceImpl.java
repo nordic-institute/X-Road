@@ -36,6 +36,7 @@ import org.niis.xroad.common.exception.NotFoundException;
 import org.niis.xroad.common.exception.ValidationFailureException;
 import org.niis.xroad.cs.admin.api.domain.Subsystem;
 import org.niis.xroad.cs.admin.api.dto.SubsystemCreationRequest;
+import org.niis.xroad.cs.admin.api.service.GlobalGroupMemberService;
 import org.niis.xroad.cs.admin.api.service.SubsystemService;
 import org.niis.xroad.cs.admin.core.entity.ServerClientEntity;
 import org.niis.xroad.cs.admin.core.entity.SubsystemEntity;
@@ -75,6 +76,7 @@ public class SubsystemServiceImpl implements SubsystemService {
     private final XRoadMemberRepository xRoadMemberRepository;
     private final ServerClientRepository serverClientRepository;
     private final IdentifierRepository<SubsystemIdEntity> subsystemIds;
+    private final GlobalGroupMemberService globalGroupMemberService;
     private final SecurityServerClientMapper subsystemConverter;
     private final AuditDataHelper auditDataHelper;
 
@@ -147,7 +149,9 @@ public class SubsystemServiceImpl implements SubsystemService {
         if (isRegistered(subsystem)) {
             throw new ValidationFailureException(SUBSYSTEM_REGISTERED_AND_CANNOT_BE_DELETED);
         }
-        // dependant entities are removed by cascading database constraints
+
+        globalGroupMemberService.removeClientFromGlobalGroups(subsystemClientId);
+        // other dependant entities are removed by cascading database constraints
         subsystemRepository.deleteById(subsystem.getId());
     }
 

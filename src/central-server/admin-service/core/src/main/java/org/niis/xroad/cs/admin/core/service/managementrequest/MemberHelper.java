@@ -29,7 +29,9 @@ import ee.ria.xroad.common.identifier.ClientId;
 import lombok.RequiredArgsConstructor;
 import org.niis.xroad.common.exception.NotFoundException;
 import org.niis.xroad.cs.admin.api.domain.MemberId;
+import org.niis.xroad.cs.admin.core.entity.MemberIdEntity;
 import org.niis.xroad.cs.admin.core.entity.XRoadMemberEntity;
+import org.niis.xroad.cs.admin.core.repository.IdentifierRepository;
 import org.niis.xroad.cs.admin.core.repository.MemberClassRepository;
 import org.niis.xroad.cs.admin.core.repository.XRoadMemberRepository;
 import org.niis.xroad.restapi.config.audit.AuditDataHelper;
@@ -44,6 +46,7 @@ import static org.niis.xroad.restapi.config.audit.RestApiAuditProperty.MEMBER_NA
 @RequiredArgsConstructor
 public class MemberHelper {
 
+    private final IdentifierRepository<MemberIdEntity> memberIds;
     private final XRoadMemberRepository xRoadMemberRepository;
     private final MemberClassRepository memberClassRepository;
     private final AuditDataHelper auditData;
@@ -54,13 +57,14 @@ public class MemberHelper {
                 .orElseGet(() -> createNew(memberId));
     }
 
-    private XRoadMemberEntity createNew(ClientId clientId) {
+    private XRoadMemberEntity createNew(MemberId clientId) {
         auditData.put(MEMBER_NAME, clientId.getMemberCode());
         auditData.put(MEMBER_CLASS, clientId.getMemberClass());
         auditData.put(MEMBER_CODE, clientId.getMemberCode());
 
-        var memberClass = memberClassRepository.findByCode(clientId.getMemberClass())
-                .orElseThrow(() -> new NotFoundException(MEMBER_CLASS_NOT_FOUND, "code", clientId.getMemberClass()));
-        return xRoadMemberRepository.save(new XRoadMemberEntity(clientId.getMemberCode(), clientId, memberClass));
+        var memberId = memberIds.findOrCreate(MemberIdEntity.ensure(clientId));
+        var memberClass = memberClassRepository.findByCode(memberId.getMemberClass())
+                .orElseThrow(() -> new NotFoundException(MEMBER_CLASS_NOT_FOUND, "code", memberId.getMemberClass()));
+        return xRoadMemberRepository.save(new XRoadMemberEntity(memberId.getMemberCode(), memberId, memberClass));
     }
 }
