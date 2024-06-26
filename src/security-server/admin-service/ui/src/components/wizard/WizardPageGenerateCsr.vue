@@ -40,18 +40,18 @@
             variant="outlined"
             :disabled="item.read_only"
             :data-test="`dynamic-csr-input_${item.id}`"
-            autofocus
+            :autofocus="autofocusField === item.id"
           ></v-text-field>
         </div>
       </div>
       <div class="generate-row">
         <div>{{ $t('csr.saveInfo') }}</div>
         <xrd-button
-          :disabled="!meta.valid || !disableDone"
+          :disabled="generateCsrDisabled"
           data-test="generate-csr-button"
-          :loading="genCsrLoading"
+          :loading="generateCsrLoading"
           @click="generateCsr(false)"
-          >{{ $t('csr.generateCsr') }}
+        >{{ $t('csr.generateCsr') }}
         </xrd-button>
       </div>
       <div v-if="acmeCapable" class="generate-row">
@@ -67,9 +67,9 @@
           </v-alert>
         </div>
         <xrd-button
-          :disabled="!meta.valid || !disableDone || externalAccountBindingRequiredButMissing"
+          :disabled="orderCertificateDisabled"
           data-test="acme-order-certificate-button"
-          :loading="genCsrLoading"
+          :loading="orderCertificateLoading"
           @click="generateCsr(true)"
         >{{ $t('keys.orderAcmeCertificate') }}
         </xrd-button>
@@ -81,7 +81,7 @@
         :disabled="!disableDone"
         data-test="cancel-button"
         @click="cancel"
-        >{{ $t('action.cancel') }}
+      >{{ $t('action.cancel') }}
       </xrd-button>
 
       <xrd-button
@@ -90,10 +90,10 @@
         data-test="previous-button"
         :disabled="!disableDone"
         @click="previous"
-        >{{ $t('action.previous') }}
+      >{{ $t('action.previous') }}
       </xrd-button>
       <xrd-button :disabled="disableDone" data-test="save-button" @click="done"
-        >{{ $t(saveButtonText) }}
+      >{{ $t(saveButtonText) }}
       </xrd-button>
     </div>
   </div>
@@ -174,9 +174,36 @@ export default defineComponent({
         ? this.$t('csr.eabCredRequired')
         : undefined;
     },
+    orderCertificateDisabled(): boolean {
+      return (
+        !this.meta.valid ||
+        !this.disableDone ||
+        this.externalAccountBindingRequiredButMissing ||
+        this.generateCsrLoading
+      );
+    },
+    generateCsrDisabled(): boolean {
+      return (
+        !this.meta.valid ||
+        !this.disableDone ||
+        this.orderCertificateLoading
+      );
+    },
+    orderCertificateLoading(): boolean {
+      return (this.genCsrLoading && this.acmeOrder);
+    },
+    generateCsrLoading(): boolean {
+      return (this.genCsrLoading && !this.acmeOrder);
+    },
+    autofocusField(): string | undefined {
+      return this.csrForm
+        .filter(field => !field.read_only)
+        .map(field => field.id)
+        .shift();
+    },
   },
   created() {
-      this.acmeOrder = false;
+    this.acmeOrder = false;
   },
   methods: {
     ...mapActions(useNotifications, ['showError', 'showSuccess']),
