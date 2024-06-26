@@ -1365,6 +1365,7 @@ public final class SystemProperties {
     }
 
     private static final String DEFAULT_XROAD_SSL_CIPHER_SUITES = "TLS_ECDHE_RSA_WITH_AES_256_CBC_SHA384,"
+            + "TLS_AES_128_GCM_SHA256,"
             + "TLS_DHE_RSA_WITH_AES_256_CBC_SHA256";
 
     /**
