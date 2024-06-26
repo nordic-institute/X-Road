@@ -32,6 +32,7 @@ import io.cucumber.java.en.Step;
 import org.niis.xroad.cs.openapi.model.ClientDto;
 import org.niis.xroad.cs.openapi.model.NewSubsystemIdDto;
 import org.niis.xroad.cs.openapi.model.SubsystemAddDto;
+import org.niis.xroad.cs.openapi.model.XRoadIdDto;
 import org.niis.xroad.cs.test.api.FeignSubsystemsApi;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
@@ -64,8 +65,8 @@ public class SubsystemsApiStepDefs extends BaseStepDefs {
                 .subsystemId(clientIdDto);
 
         final ResponseEntity<ClientDto> response = subsystemsApi.addSubsystem(dto);
-
         validate(response)
+                .assertion(equalsAssertion(XRoadIdDto.TypeEnum.SUBSYSTEM, "body.clientId.type"))
                 .assertion(equalsStatusCodeAssertion(CREATED))
                 .execute();
     }
