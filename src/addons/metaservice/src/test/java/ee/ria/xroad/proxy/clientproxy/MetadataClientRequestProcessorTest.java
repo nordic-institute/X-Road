@@ -58,6 +58,8 @@ import java.util.stream.Collectors;
 
 import static ee.ria.xroad.proxy.util.MetadataRequests.LIST_CLIENTS;
 import static ee.ria.xroad.proxy.util.MetaserviceTestUtil.xmlUtf8ContentTypes;
+import static java.nio.charset.StandardCharsets.UTF_8;
+import static net.javacrumbs.jsonunit.assertj.JsonAssertions.assertThatJson;
 import static org.hamcrest.Matchers.arrayContaining;
 import static org.hamcrest.Matchers.containsInAnyOrder;
 import static org.hamcrest.Matchers.in;
@@ -209,6 +211,32 @@ public class MetadataClientRequestProcessorTest {
         processorToTest.process();
 
         assertContentTypeIsIn(List.of("application/json; charset=utf-8"));
+
+        assertThatJson(new String(mockServletOutputStream.getAsBytes(), UTF_8))
+                .isEqualTo("""
+                        {
+                            "member": [
+                                {
+                                    "id": {
+                                        "member_class": "BUSINESS",
+                                        "member_code": "producer",
+                                        "object_type": "MEMBER",
+                                        "xroad_instance": "EE"
+                                    },
+                                    "name": "producer-name"
+                                },
+                                {
+                                    "id": {
+                                        "member_class": "BUSINESS",
+                                        "member_code": "producer",
+                                        "object_type": "SUBSYSTEM",
+                                        "subsystem_code": "subsystem",
+                                        "xroad_instance": "EE"
+                                    },
+                                    "name": "producer-name"
+                                }
+                            ]
+                        }""");
     }
 
     @Test
