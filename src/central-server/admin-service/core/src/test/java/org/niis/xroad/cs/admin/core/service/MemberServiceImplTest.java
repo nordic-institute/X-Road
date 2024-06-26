@@ -50,6 +50,7 @@ import org.niis.xroad.cs.admin.api.service.GlobalGroupMemberService;
 import org.niis.xroad.cs.admin.core.entity.GlobalGroupEntity;
 import org.niis.xroad.cs.admin.core.entity.GlobalGroupMemberEntity;
 import org.niis.xroad.cs.admin.core.entity.MemberClassEntity;
+import org.niis.xroad.cs.admin.core.entity.MemberIdEntity;
 import org.niis.xroad.cs.admin.core.entity.SecurityServerEntity;
 import org.niis.xroad.cs.admin.core.entity.XRoadMemberEntity;
 import org.niis.xroad.cs.admin.core.entity.mapper.ClientIdMapper;
@@ -60,6 +61,7 @@ import org.niis.xroad.cs.admin.core.entity.mapper.SecurityServerClientMapper;
 import org.niis.xroad.cs.admin.core.entity.mapper.SecurityServerClientMapperImpl;
 import org.niis.xroad.cs.admin.core.entity.mapper.SecurityServerMapper;
 import org.niis.xroad.cs.admin.core.repository.GlobalGroupMemberRepository;
+import org.niis.xroad.cs.admin.core.repository.IdentifierRepository;
 import org.niis.xroad.cs.admin.core.repository.MemberClassRepository;
 import org.niis.xroad.cs.admin.core.repository.XRoadMemberRepository;
 import org.niis.xroad.restapi.config.audit.AuditDataHelper;
@@ -96,6 +98,8 @@ class MemberServiceImplTest {
     @Mock
     private MemberClassRepository memberClassRepository;
     @Mock
+    private IdentifierRepository<MemberIdEntity> memberIds;
+    @Mock
     private GlobalGroupMemberService globalGroupMemberService;
     @Mock
     private SecurityServerMapper securityServerMapper;
@@ -119,10 +123,12 @@ class MemberServiceImplTest {
     class AddMethod {
         private final String memberName = "member name";
         private final MemberId memberId = MemberId.create("TEST", MEMBER_CLASS, "MEMBER");
+        private final MemberIdEntity memberIdEntity = MemberIdEntity.create(memberId);
 
         @Test
         @DisplayName("should create client when not already present")
         void shouldCreateClientWhenNotAlreadyPresent() {
+            when(memberIds.findOrCreate(memberIdEntity)).thenReturn(memberIdEntity);
             when(xRoadMemberRepository.findOneBy(memberId)).thenReturn(Optional.empty());
             when(xRoadMemberRepository.save(any())).thenAnswer(invocation -> invocation.getArgument(0));
 

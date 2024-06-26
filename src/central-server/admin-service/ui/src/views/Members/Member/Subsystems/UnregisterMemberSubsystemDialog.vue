@@ -70,6 +70,10 @@ export default defineComponent({
       type: String,
       required: true,
     },
+    serverId: {
+      type: String,
+      required: true,
+    },
     member: {
       type: Object as PropType<{ client_id: ClientId }>,
       required: true,
@@ -95,7 +99,7 @@ export default defineComponent({
       this.subsystemStore
         .unregisterById(
           toIdentifier(this.member.client_id) + ':' + this.subsystemCode,
-          toIdentifier(this.member.client_id) + ':' + this.serverCode,
+          this.serverId,
         )
         .then(() => {
           this.showSuccess(
