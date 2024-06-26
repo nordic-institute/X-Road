@@ -25,6 +25,7 @@
  -->
 <template>
   <xrd-simple-dialog
+    v-if="dialog"
     title="keys.orderAcmeCertificate"
     save-button-text="action.order"
     :disable-save="!meta.valid || hasAcmeEabRequiredButNoCredentials"
@@ -62,6 +63,10 @@ import { KeyUsageType, TokenCertificateSigningRequest } from "@/openapi-types";
 
 export default defineComponent({
   props: {
+    dialog: {
+      type: Boolean,
+      required: true,
+    },
     csr: {
       type: Object as PropType<TokenCertificateSigningRequest>,
       required: true,
