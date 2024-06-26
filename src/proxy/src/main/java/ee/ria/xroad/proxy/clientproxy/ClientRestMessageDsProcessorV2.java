@@ -47,7 +47,8 @@ class ClientRestMessageDsProcessorV2 extends ClientRestMessageProcessor {
     private final AbstractClientProxyHandler.ProxyRequestCtx proxyRequestCtx;
 
     ClientRestMessageDsProcessorV2(AbstractClientProxyHandler.ProxyRequestCtx proxyRequestCtx, RestRequest restRequest,
-                                   HttpClient httpClient, IsAuthenticationData clientCert, AssetAuthorizationManager assetAuthorizationManager)
+                                   HttpClient httpClient, IsAuthenticationData clientCert,
+                                   AssetAuthorizationManager assetAuthorizationManager)
             throws Exception {
         super(proxyRequestCtx, restRequest, httpClient, clientCert);
         this.assetAuthorizationManager = assetAuthorizationManager;
@@ -58,7 +59,8 @@ class ClientRestMessageDsProcessorV2 extends ClientRestMessageProcessor {
     List<URI> getServiceAddresses(ServiceId serviceProvider, SecurityServerId serverId) throws Exception {
         //TODO xroad8 in POC we're not selecting fastest server, neither handle failure with fallbacks
         var targetServerInfo = proxyRequestCtx.targetSecurityServers().servers().stream().findFirst().orElseThrow();
-        assetInfo = assetAuthorizationManager.getOrRequestAssetAccess(restRequest.getClientId(), targetServerInfo, restRequest.getServiceId(),
+        assetInfo = assetAuthorizationManager.getOrRequestAssetAccess(restRequest.getClientId(),
+                targetServerInfo, restRequest.getServiceId(),
                 proxyRequestCtx.alwaysReevaluatePolicies());
 
         return List.of(URI.create(assetInfo.endpoint()));

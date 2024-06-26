@@ -27,7 +27,6 @@
 package org.niis.xroad.edc.extension.signer;
 
 import ee.ria.xroad.common.signature.BatchSigner;
-
 import ee.ria.xroad.proxy.serverproxy.HttpClientCreator;
 
 import jakarta.ws.rs.POST;

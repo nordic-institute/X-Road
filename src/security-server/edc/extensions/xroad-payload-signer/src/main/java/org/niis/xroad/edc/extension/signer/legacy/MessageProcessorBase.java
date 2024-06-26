@@ -80,7 +80,7 @@ public abstract class MessageProcessorBase {
      *
      * @throws Exception in case of any errors
      */
-    abstract public void process() throws Exception;
+    public abstract void process() throws Exception;
 
 
     /**

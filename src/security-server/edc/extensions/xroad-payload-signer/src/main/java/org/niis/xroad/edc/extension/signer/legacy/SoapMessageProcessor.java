@@ -286,7 +286,7 @@ public class SoapMessageProcessor extends MessageProcessorBase {
     }
 
     private void verifyAccess() throws Exception {
-       monitor.debug("verifyAccess()");
+        monitor.debug("verifyAccess()");
 
         if (!ServerConf.serviceExists(requestServiceId)) {
             throw new CodedException(X_UNKNOWN_SERVICE, "Unknown service: %s", requestServiceId);
