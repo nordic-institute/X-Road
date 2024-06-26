@@ -162,7 +162,7 @@ abstract class AbstractClientMessageProcessor extends MessageProcessorBase {
         }
     }
 
-    static List<URI> getServiceAddresses(ServiceId serviceProvider, SecurityServerId serverId)
+    List<URI> getServiceAddresses(ServiceId serviceProvider, SecurityServerId serverId)
             throws Exception {
         log.trace("getServiceAddresses({}, {})", serviceProvider, serverId);
 

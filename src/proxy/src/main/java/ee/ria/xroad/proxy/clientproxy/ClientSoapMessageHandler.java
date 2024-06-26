@@ -68,7 +68,7 @@ public class ClientSoapMessageHandler extends AbstractClientProxyHandler {
         boolean useDs = TRUE.toString().equalsIgnoreCase(request.getHeaders().get("X-Road-Use-DS-Transport"));
         if (useDs) {
             //TODO xroad8 this bean setup is far from usable, refactor once design stabilizes.
-            return Optional.of(new ClientSoapMessageDsProcessor(request, response, client,
+            return Optional.of(new ClientSoapMessageDsProcessorV2(request, response, client,
                     getIsAuthenticationData(request), opMonitoringData, assetAuthorizationManager));
         } else {
             return Optional.of(new ClientSoapMessageProcessor(request, response, client,

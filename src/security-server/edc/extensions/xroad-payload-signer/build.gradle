@@ -4,6 +4,8 @@ plugins {
 
 dependencies {
     implementation project(":serverconf")
+    // todo: better remove this dependency
+    implementation project(":proxy")
     implementation project(':signer-protocol')
     implementation project(':common:common-core')
     implementation project(':common:common-keyconf')

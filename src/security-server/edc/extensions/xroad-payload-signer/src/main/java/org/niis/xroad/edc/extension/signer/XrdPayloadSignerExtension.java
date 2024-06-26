@@ -33,12 +33,10 @@ import ee.ria.xroad.signer.protocol.RpcSignerClient;
 import org.eclipse.edc.connector.dataplane.spi.Endpoint;
 import org.eclipse.edc.connector.dataplane.spi.iam.DataPlaneAuthorizationService;
 import org.eclipse.edc.connector.dataplane.spi.iam.PublicEndpointGeneratorService;
-import org.eclipse.edc.connector.dataplane.spi.pipeline.PipelineService;
 import org.eclipse.edc.http.spi.EdcHttpClient;
 import org.eclipse.edc.runtime.metamodel.annotation.Extension;
 import org.eclipse.edc.runtime.metamodel.annotation.Inject;
 import org.eclipse.edc.spi.monitor.Monitor;
-import org.eclipse.edc.spi.system.ExecutorInstrumentation;
 import org.eclipse.edc.spi.system.Hostname;
 import org.eclipse.edc.spi.system.ServiceExtension;
 import org.eclipse.edc.spi.system.ServiceExtensionContext;
@@ -47,10 +45,7 @@ import org.eclipse.edc.web.spi.WebServer;
 import org.eclipse.edc.web.spi.WebService;
 import org.eclipse.edc.web.spi.configuration.WebServiceConfigurer;
 import org.eclipse.edc.web.spi.configuration.WebServiceSettings;
-import org.niis.xroad.edc.sig.XrdSignatureService;
 import org.niis.xroad.edc.spi.messagelog.XRoadMessageLog;
-
-import java.util.concurrent.Executors;
 
 @SuppressWarnings("checkstyle:MagicNumber") //TODO xroad8
 @Extension(value = XrdPayloadSignerExtension.NAME)
@@ -61,7 +56,7 @@ public class XrdPayloadSignerExtension implements ServiceExtension {
     private static final String PUBLIC_API_CONFIG = "web.http.xroad.public";
     private static final String PUBLIC_CONTEXT_ALIAS = "xroad";
     private static final String PUBLIC_CONTEXT_PATH = "/xroad/public";
-    private static final int DEFAULT_THREAD_POOL = 10;
+//    private static final int DEFAULT_THREAD_POOL = 10;
 
     private static final WebServiceSettings PUBLIC_SETTINGS = WebServiceSettings.Builder.newInstance()
             .apiConfigKey(PUBLIC_API_CONFIG)
@@ -77,8 +72,8 @@ public class XrdPayloadSignerExtension implements ServiceExtension {
     @Inject
     private WebServiceConfigurer webServiceConfigurer;
 
-    @Inject
-    private PipelineService pipelineService;
+//    @Inject
+//    private PipelineService pipelineService;
 
     @Inject
     private WebService webService;
@@ -89,8 +84,8 @@ public class XrdPayloadSignerExtension implements ServiceExtension {
     @Inject
     private TypeManager typeManager;
 
-    @Inject
-    private ExecutorInstrumentation executorInstrumentation;
+//    @Inject
+//    private ExecutorInstrumentation executorInstrumentation;
 
     @Inject
     private Hostname hostname;
@@ -117,10 +112,10 @@ public class XrdPayloadSignerExtension implements ServiceExtension {
         loadSystemProperties(monitor);
 
         var configuration = webServiceConfigurer.configure(context, webServer, PUBLIC_SETTINGS);
-        var executorService = executorInstrumentation.instrument(
-                Executors.newFixedThreadPool(DEFAULT_THREAD_POOL),
-                "Data plane proxy transfers"
-        );
+//        var executorService = executorInstrumentation.instrument(
+//                Executors.newFixedThreadPool(DEFAULT_THREAD_POOL),
+//                "Data plane proxy transfers"
+//        );
 
         var publicEndpoint = context.getSetting(PUBLIC_API_CONFIG, null);
         if (publicEndpoint == null) {
@@ -134,9 +129,8 @@ public class XrdPayloadSignerExtension implements ServiceExtension {
         var endpoint = Endpoint.url(publicEndpoint);
         generatorService.addGeneratorFunction("HttpData", dataAddress -> endpoint);
 
-        var signService = new XrdSignatureService();
-        var publicApiController = new XrdDataPlanePublicApiController(pipelineService,
-                new XrdEdcSignService(signService, monitor), monitor, executorService,
+//        var signService = new XrdSignatureService();
+        var publicApiController = new XrdDataPlaneProxyApiController(monitor,
                 xRoadMessageLog, authorizationService);
 
         //TODO xroad8 this added port mapping is added due to a strange behavior ir edc jersey registry. Consider refactor.
