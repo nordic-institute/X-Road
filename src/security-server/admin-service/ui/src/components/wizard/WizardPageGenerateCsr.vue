@@ -40,7 +40,7 @@
             variant="outlined"
             :disabled="item.read_only"
             :data-test="`dynamic-csr-input_${item.id}`"
-            autofocus
+            :autofocus="autofocusField === item.id"
           ></v-text-field>
         </div>
       </div>
@@ -195,6 +195,12 @@ export default defineComponent({
     },
     generateCsrLoading(): boolean {
       return (this.genCsrLoading && !this.acmeOrder);
+    },
+    autofocusField(): string | undefined {
+      return this.csrForm
+        .filter(field => !field.read_only)
+        .map(field => field.id)
+        .shift();
     },
   },
   created() {
