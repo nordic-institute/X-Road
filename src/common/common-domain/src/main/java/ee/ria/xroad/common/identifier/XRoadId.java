@@ -27,6 +27,7 @@ package ee.ria.xroad.common.identifier;
 
 import ee.ria.xroad.common.util.NoCoverage;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.xml.bind.annotation.adapters.XmlJavaTypeAdapter;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
 
@@ -49,6 +50,8 @@ public interface XRoadId extends Serializable {
 
     String getXRoadInstance();
 
+    // FIXME: this class is used for JSON response in metaservices, but separate DTO should be used instead.
+    @JsonIgnore
     String[] getFieldsForStringFormat();
 
     /**
