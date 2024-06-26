@@ -186,7 +186,6 @@ export default defineComponent({
       return (
         !this.meta.valid ||
         !this.disableDone ||
-        this.externalAccountBindingRequiredButMissing ||
         this.orderCertificateLoading
       );
     },
