@@ -51,8 +51,8 @@ public class TrustedIssuerExtension implements ServiceExtension {
         trustedIssuerRegistry.addIssuer(new Issuer("did:web:gx-compliance.i.x-road.rocks:main", Map.of()));
         trustedIssuerRegistry.addIssuer(new Issuer("did:web:gx-notary.i.x-road.rocks:main", Map.of()));
 
-        trustedIssuerRegistry.addIssuer(new Issuer("did:web:xroad-8-ss0.s3.eu-west-1.amazonaws.com", Map.of()));
-        trustedIssuerRegistry.addIssuer(new Issuer("did:web:xroad-8-ss1.s3.eu-west-1.amazonaws.com", Map.of()));
+        trustedIssuerRegistry.addIssuer(new Issuer("did:web:ss0%3A9396", Map.of()));
+        trustedIssuerRegistry.addIssuer(new Issuer("did:web:ss1%3A9396", Map.of()));
 
     }
 }

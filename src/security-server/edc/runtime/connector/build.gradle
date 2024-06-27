@@ -57,6 +57,8 @@ dependencies {
     implementation(project(":security-server:edc:extensions:xroad-identity-and-trust"))
     implementation(project(":security-server:edc:extensions:xroad-webserver"))
 
+    implementation libs.apache.commonsLang3
+
     testImplementation libs.edc.junit
     testImplementation libs.mockito.jupiter
 }

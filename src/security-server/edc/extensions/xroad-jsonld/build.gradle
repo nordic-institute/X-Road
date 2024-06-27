@@ -4,10 +4,10 @@ plugins {
 
 dependencies {
     implementation libs.edc.boot
-    api libs.edc.jsonLd
-    api libs.edc.jsonLd.spi
-    api libs.jackson.jsonP
-    api libs.jackson.datatypeJsr310
+    implementation libs.edc.jsonLd
+    implementation libs.edc.jsonLd.spi
+    implementation libs.jackson.jsonP
+    implementation libs.jackson.datatypeJsr310
 
     constraints {
         // Overwrite the default 1.1 version to fix RDF normalization inconsistencies

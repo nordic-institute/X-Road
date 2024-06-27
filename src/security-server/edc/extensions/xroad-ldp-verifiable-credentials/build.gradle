@@ -1,0 +1,19 @@
+plugins {
+    id 'java-library'
+}
+
+dependencies {
+    implementation libs.edc.boot
+    implementation libs.edc.jsonLd
+
+    implementation libs.edc.jws2020.lib
+    implementation libs.edc.token.core
+    implementation libs.edc.crypto.common.lib
+    implementation libs.edc.util.lib
+    implementation libs.apache.commonsLang3
+}
+
+checkstyle {
+    checkstyleMain.enabled = false
+    checkstyleTest.enabled = false
+}

@@ -60,8 +60,6 @@ import java.util.Base64;
 import java.util.Map;
 import java.util.UUID;
 
-import static org.niis.xroad.edc.extension.iam.IatpScopeExtension.CREDENTIAL_FORMAT;
-
 /**
  * Identity Hub's management API is missing an endpoint for inserting credentials.
  * This extension is a "dirty" workaround to insert a Verifiable Credential into the Identity Hub.
@@ -71,6 +69,8 @@ import static org.niis.xroad.edc.extension.iam.IatpScopeExtension.CREDENTIAL_FOR
 public class IdentityHubCredentialInsertionExtension implements ServiceExtension {
 
     static final String NAME = "X-Road Credential insertion extension for Identity Hub";
+
+    private static final String CREDENTIAL_TYPE = "XRoadCredential";
 
     @Setting(value = "DID of this connector", required = true)
     public static final String CONNECTOR_DID_PROPERTY = "edc.iam.issuer.id";
@@ -136,7 +136,7 @@ public class IdentityHubCredentialInsertionExtension implements ServiceExtension
         var verifiableCredential = VerifiableCredential.Builder.newInstance()
                 .credentialSubject(CredentialSubject.Builder.newInstance().id("test-subject").claim("test-key", "test-val").build())
                 .issuanceDate(Instant.now())
-                .type(CREDENTIAL_FORMAT)
+                .type(CREDENTIAL_TYPE)
                 .issuer(new Issuer(participantId, Map.of()))
                 .id(participantId)
                 .build();

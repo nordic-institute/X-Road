@@ -253,7 +253,7 @@ Content-Type: application/json
     }
   }
 }
-# TODO: This should return 201 according to the definition: 
+# TODO: This should return 201 according to the definition:
 # https://github.com/nordic-institute/X-Road/blob/e14d198f704b34b4d1789c2972e816152b6a35f8/src/security-server/openapi-model/src/main/resources/META-INF/openapi-definition.yaml#L4846
 HTTP 200
 
@@ -480,7 +480,7 @@ X-XSRF-TOKEN: {{ss0_xsrf_token}}
     {
       "service_code": "ownerChange"
     }
-  ] 
+  ]
 }
 
 # Enable management subsystem on management Security Server
@@ -584,7 +584,7 @@ Content-Type: application/json
     }
   }
 }
-# TODO: This should return 201 according to the definition: 
+# TODO: This should return 201 according to the definition:
 # https://github.com/nordic-institute/X-Road/blob/e14d198f704b34b4d1789c2972e816152b6a35f8/src/security-server/openapi-model/src/main/resources/META-INF/openapi-definition.yaml#L4846
 HTTP 200
 
@@ -870,7 +870,7 @@ X-XSRF-TOKEN: {{ss0_xsrf_token}}
     {
       "service_code": "personDetails"
     }
-  ] 
+  ]
 }
 
 HTTP 201
@@ -920,7 +920,7 @@ X-XSRF-TOKEN: {{cs_xsrf_token}}
 Content-Type: application/json
 {
   "member_name":"Test member",
-  "did":"did:web:xroad-8-ss0.s3.eu-west-1.amazonaws.com"
+  "did":"did:web:ss0%3A9396"
 }
 
 HTTP 200
@@ -930,7 +930,7 @@ X-XSRF-TOKEN: {{cs_xsrf_token}}
 Content-Type: application/json
 {
   "member_name":"Test client",
-  "did":"did:web:xroad-8-ss1.s3.eu-west-1.amazonaws.com"
+  "did":"did:web:ss1%3A9396"
 }
 
 HTTP 200
