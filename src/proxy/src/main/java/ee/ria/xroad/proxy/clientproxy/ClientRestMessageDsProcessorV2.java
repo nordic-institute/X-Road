@@ -63,7 +63,7 @@ class ClientRestMessageDsProcessorV2 extends ClientRestMessageProcessor {
                 targetServerInfo, restRequest.getServiceId(),
                 proxyRequestCtx.alwaysReevaluatePolicies());
 
-        return List.of(URI.create(assetInfo.endpoint()));
+        return List.of(URI.create(assetInfo.endpoint() + "/proxy"));
     }
 
     @Override

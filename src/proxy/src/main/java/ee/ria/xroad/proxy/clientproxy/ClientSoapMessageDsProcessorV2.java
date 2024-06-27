@@ -64,7 +64,7 @@ class ClientSoapMessageDsProcessorV2 extends ClientSoapMessageProcessor {
         assetInfo = assetAuthorizationManager.getOrRequestAssetAccess(requestSoap.getClient(), targetServerInfo,
                 requestSoap.getService(), false);
 
-        return List.of(URI.create(assetInfo.endpoint()));
+        return List.of(URI.create(assetInfo.endpoint() + "/proxy"));
     }
 
     @Override

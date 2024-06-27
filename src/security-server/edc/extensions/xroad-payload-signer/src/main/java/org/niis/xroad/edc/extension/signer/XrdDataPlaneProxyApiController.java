@@ -60,7 +60,7 @@ import static jakarta.ws.rs.core.Response.Status.FORBIDDEN;
 import static jakarta.ws.rs.core.Response.Status.UNAUTHORIZED;
 import static jakarta.ws.rs.core.Response.status;
 
-@Path("{any:.*}")
+@Path("/proxy")
 @Produces(WILDCARD)
 public class XrdDataPlaneProxyApiController {
 
