@@ -49,6 +49,5 @@ public class ApprovedCaDto {
     private final List<String> subjectDnPath;
     private final String certificateProfileInfo;
     private final boolean acmeCapable;
-    private final boolean acmeEabRequired;
     private final String acmeServerIpAddress;
 }

@@ -278,6 +278,7 @@
     "csrDetails": "CSR details",
     "csrFormat": "CSR Format",
     "eabCredRequired": "Selected Certification Authority requires external account binding for ACME, but the credentials are missing from the configuration.",
+    "failedFetchAcmeMetadata": "Failed to fetch ACME metadata for selected Certification Authority, this may cause errors on the next steps.",
     "generateCsr": "Generate CSR",
     "helpCertificationService": "Certification Authority (CA) that will issue the certificate.",
     "helpClient": "X-Road member the certificate will be issued for.",
@@ -564,7 +565,8 @@
       "certService": "Certification Service",
       "client": "Client",
       "csrFormat": "CSR Format",
-      "usage": "Usage"
+      "usage": "Usage",
+      "certificationService": "Certification Service"
     },
     "dns": "DNS",
     "keys": {

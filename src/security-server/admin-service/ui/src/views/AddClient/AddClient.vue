@@ -226,7 +226,7 @@ function csrDetailsReady(): void {
 
   fetchCsrForm()
     .then(() => hasAcmeEabCredentials())
-    .then(() => currentStep.value++)
+    .finally(() => currentStep.value++)
     .catch((error) => showError(error));
 }
 

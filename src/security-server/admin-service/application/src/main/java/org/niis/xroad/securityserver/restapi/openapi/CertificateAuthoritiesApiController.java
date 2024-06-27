@@ -182,8 +182,13 @@ public class CertificateAuthoritiesApiController implements CertificateAuthoriti
     public ResponseEntity<AcmeEabCredentialsStatus> hasAcmeExternalAccountBindingCredentials(String caName,
                                                                                              KeyUsageType keyUsageType,
                                                                                              String memberId) {
-        boolean hasAcmeEabCredentials = certificateAuthorityService.hasAcmeExternalAccountBindingCredentials(caName, memberId);
-        return new ResponseEntity<>(new AcmeEabCredentialsStatus(hasAcmeEabCredentials), HttpStatus.OK);
+        try {
+            final var isAcmeEabRequired = certificateAuthorityService.isAcmeExternalAccountBindingRequired(caName);
+            final var hasAcmeEabCredentials = certificateAuthorityService.hasAcmeExternalAccountBindingCredentials(caName, memberId);
+            return new ResponseEntity<>(new AcmeEabCredentialsStatus(isAcmeEabRequired, hasAcmeEabCredentials), HttpStatus.OK);
+        } catch (CertificateAuthorityNotFoundException e) {
+            throw new ResourceNotFoundException(e);
+        }
     }
 
     @Override

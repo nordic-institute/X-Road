@@ -4717,8 +4717,16 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/AcmeEabCredentialsStatus'
+        '400':
+          description: request was invalid
+        '401':
+          description: authentication credentials are missing
         '403':
           description: request has been refused
+        '406':
+          description: request specified an invalid format
+        '500':
+          description: internal server error
   /certificate-authorities/{ca_name}/acme-order:
     post:
       tags:
@@ -5940,9 +5948,6 @@ components:
         acme_capable:
           type: boolean
           description: if certificate authority supports ACME
-        acme_eab_required:
-          type: boolean
-          description: if certificate authority required external account binding for ACME
         acme_server_ip_addresses:
           type: array
           description: ACME server IP address(es) that can be helpful in configuring the firewall rules.
@@ -6210,7 +6215,11 @@ components:
       description: Whether there are credentials in the configuration for the given Member and CA. Used for binding the CA external account with the ACME server's account.
       required:
         - has_acme_external_account_credentials
+        - acme_eab_required
       properties:
+        acme_eab_required:
+          type: boolean
+          description: if certificate authority required external account binding for ACME
         has_acme_external_account_credentials:
           type: boolean
           description: whether there are credentials present in the configuration.

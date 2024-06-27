@@ -60,6 +60,7 @@ import { useField } from "vee-validate";
 import { mapActions, mapState } from "pinia";
 import { useCsr } from "@/store/modules/certificateSignRequest";
 import { KeyUsageType, TokenCertificateSigningRequest } from "@/openapi-types";
+import { useNotifications } from '@/store/modules/notifications';
 
 export default defineComponent({
   props: {
@@ -103,14 +104,15 @@ export default defineComponent({
   watch: {
     certificateService(newValue: string) {
       const newCA = this.acmeCertificateServices.find(ca => ca.name == newValue);
-      if (newCA?.acme_eab_required) {
+      if (newCA?.acme_capable) {
         this.hasAcmeEabCredentials(newCA.name, this.csr.owner_id, this.keyUsage)
           .then((res) => {
-            this.hasAcmeEabRequiredButNoCredentials = !res.has_acme_external_account_credentials;
+            this.hasAcmeEabRequiredButNoCredentials = res.acme_eab_required && !res.has_acme_external_account_credentials;
             if (this.hasAcmeEabRequiredButNoCredentials) {
               this.setErrors(this.$t('csr.eabCredRequired'));
             }
-          });
+          })
+          .catch((error) => this.showError(error, true));
       } else {
         this.hasAcmeEabRequiredButNoCredentials = false;
       }
@@ -118,6 +120,7 @@ export default defineComponent({
   },
   methods: {
     ...mapActions(useCsr, ['hasAcmeEabCredentials']),
+    ...mapActions(useNotifications, ['showError']),
     cancel(): void {
       this.$emit('cancel');
       this.clear();

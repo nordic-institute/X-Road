@@ -54,11 +54,9 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.security.cert.X509Certificate;
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
-import java.util.Optional;
 import java.util.stream.Collectors;
 
 import static org.niis.xroad.restapi.exceptions.DeviationCodes.ERROR_CA_CERT_PROCESSING;
@@ -189,17 +187,7 @@ public class CertificateAuthorityService {
         builder.name(approvedCAInfo.getName());
         builder.certificateProfileInfo(approvedCAInfo.getCertificateProfileInfo());
         builder.acmeServerIpAddress(approvedCAInfo.getAcmeServerIpAddress());
-        boolean acmeCapable = approvedCAInfo.getAcmeServerDirectoryUrl() != null;
-        builder.acmeCapable(acmeCapable);
-        if (acmeCapable) {
-            try {
-                builder.acmeEabRequired(
-                        acmeService.isExternalAccountBindingRequired(approvedCAInfo.getAcmeServerDirectoryUrl()));
-            } catch (AcmeServiceException e) {
-                log.warn("Acme Server for {} not reachable: {}", approvedCAInfo.getName(), e.getCause().getMessage());
-                builder.acmeEabRequired(false);
-            }
-        }
+        builder.acmeCapable(approvedCAInfo.getAcmeServerDirectoryUrl() != null);
 
         // properties from X509Certificate
         builder.notAfter(FormatUtils.fromDateToOffsetDateTime(certificate.getNotAfter()));
@@ -241,6 +229,15 @@ public class CertificateAuthorityService {
         return pathElements;
     }
 
+    public boolean isAcmeExternalAccountBindingRequired(String caName) throws CertificateAuthorityNotFoundException {
+        final var approvedCAInfo = getCertificateAuthorityInfo(caName);
+        if (approvedCAInfo.getAcmeServerDirectoryUrl() != null) {
+            return acmeService.isExternalAccountBindingRequired(approvedCAInfo.getAcmeServerDirectoryUrl());
+
+        }
+        return false;
+    }
+
     public boolean hasAcmeExternalAccountBindingCredentials(String caName, String memberId) {
         return acmeProperties.hasEabCredentials(
                 caName,
@@ -262,7 +259,7 @@ public class CertificateAuthorityService {
     public CertificateProfileInfo getCertificateProfile(String caName, KeyUsageInfo keyUsageInfo, ClientId memberId,
                                                         boolean isNewMember)
             throws CertificateAuthorityNotFoundException, CertificateProfileInstantiationException,
-            WrongKeyUsageException, ClientNotFoundException {
+                   WrongKeyUsageException, ClientNotFoundException {
         ApprovedCAInfo caInfo = getCertificateAuthorityInfo(caName);
         if (Boolean.TRUE.equals(caInfo.getAuthenticationOnly()) && KeyUsageInfo.SIGNING == keyUsageInfo) {
             throw new WrongKeyUsageException();
@@ -302,15 +299,11 @@ public class CertificateAuthorityService {
      * @throws CertificateAuthorityNotFoundException if matching CA was not found
      */
     public ApprovedCAInfo getCertificateAuthorityInfo(String caName) throws CertificateAuthorityNotFoundException {
-        Collection<ApprovedCAInfo> cas = globalConfService.getApprovedCAsForThisInstance();
-        Optional<ApprovedCAInfo> ca = cas.stream()
+        return globalConfService.getApprovedCAsForThisInstance().stream()
                 .filter(item -> caName.equals(item.getName()))
-                .findFirst();
-        if (ca.isEmpty()) {
-            throw new CertificateAuthorityNotFoundException("certificate authority "
-                    + caName + " not_found");
-        }
-        return ca.get();
+                .findFirst()
+                .orElseThrow(() -> new CertificateAuthorityNotFoundException("certificate authority "
+                        + caName + " not_found"));
     }
 
     /**
