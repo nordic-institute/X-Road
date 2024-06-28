@@ -109,7 +109,7 @@ public class TimestampingServicesApiStepDefs extends BaseStepDefs {
 
         try {
             final ResponseEntity<TimestampingServiceDto> response = timestampingServicesApi.addTimestampingService(url, certificate);
-            this.responseStatusCode = response.getStatusCodeValue();
+            this.responseStatusCode = response.getStatusCode().value();
         } catch (FeignException feignException) {
             this.responseStatusCode = feignException.status();
         }
@@ -126,7 +126,7 @@ public class TimestampingServicesApiStepDefs extends BaseStepDefs {
     public void userTriesToDeleteTimestampingServiceWithNonExistingId() {
         try {
             final ResponseEntity<Void> response = timestampingServicesApi.deleteTimestampingService(MIN_VALUE);
-            this.responseStatusCode = response.getStatusCodeValue();
+            this.responseStatusCode = response.getStatusCode().value();
         } catch (FeignException feignException) {
             this.responseStatusCode = feignException.status();
         }

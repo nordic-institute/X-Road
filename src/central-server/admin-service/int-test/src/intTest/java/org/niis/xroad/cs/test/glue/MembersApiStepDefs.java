@@ -170,7 +170,7 @@ public class MembersApiStepDefs extends BaseStepDefs {
     public void userRequestsMemberDetails(String memberId) {
         try {
             var result = membersApi.getMember(memberId);
-            putStepData(StepDataKey.RESPONSE_STATUS, result.getStatusCodeValue());
+            putStepData(StepDataKey.RESPONSE_STATUS, result.getStatusCode().value());
         } catch (FeignException feignException) {
             putStepData(StepDataKey.RESPONSE_STATUS, feignException.status());
             putStepData(StepDataKey.ERROR_RESPONSE_BODY, feignException.contentUTF8());

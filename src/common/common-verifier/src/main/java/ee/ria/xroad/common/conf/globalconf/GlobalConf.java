@@ -373,7 +373,7 @@ public final class GlobalConf {
      */
     public static SecurityServerId getServerId(X509Certificate cert)
             throws Exception {
-        log.trace("getServerId({})", cert.getSubjectDN());
+        log.trace("getServerId({})", cert.getSubjectX500Principal());
 
         return getInstance().getServerId(cert);
     }
@@ -386,7 +386,7 @@ public final class GlobalConf {
      * security server
      */
     public static boolean isSecurityServerAuthCert(X509Certificate cert) {
-        log.trace("isSecurityServerAuthCert({})", cert.getSubjectDN());
+        log.trace("isSecurityServerAuthCert({})", cert.getSubjectX500Principal());
         try {
             return getInstance().getServerId(cert) != null;
         } catch (Exception e) {
@@ -415,7 +415,7 @@ public final class GlobalConf {
     public static boolean authCertMatchesMember(X509Certificate cert,
                                                 ClientId memberId) throws Exception {
         log.trace("authCertMatchesMember({}: {}, {})",
-                cert.getSerialNumber(), cert.getSubjectDN(),
+                cert.getSerialNumber(), cert.getSubjectX500Principal(),
                 memberId);
 
         return getInstance().authCertMatchesMember(cert, memberId);

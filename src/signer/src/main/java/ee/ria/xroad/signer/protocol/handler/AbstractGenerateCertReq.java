@@ -44,7 +44,7 @@ import org.bouncycastle.asn1.x509.ExtensionsGenerator;
 import org.bouncycastle.asn1.x509.GeneralName;
 import org.bouncycastle.asn1.x509.GeneralNames;
 import org.bouncycastle.asn1.x509.KeyUsage;
-import org.bouncycastle.openssl.PEMWriter;
+import org.bouncycastle.openssl.jcajce.JcaPEMWriter;
 import org.bouncycastle.operator.ContentSigner;
 import org.bouncycastle.operator.DefaultSignatureAlgorithmIdentifierFinder;
 import org.bouncycastle.pkcs.PKCS10CertificationRequest;
@@ -128,7 +128,7 @@ public abstract class AbstractGenerateCertReq<ReqT extends AbstractMessage,
     private static byte[] toPem(PKCS10CertificationRequest req) throws Exception {
         ByteArrayOutputStream out = new ByteArrayOutputStream();
 
-        try (PEMWriter pw = new PEMWriter(new OutputStreamWriter(out))) {
+        try (var pw = new JcaPEMWriter(new OutputStreamWriter(out))) {
             pw.writeObject(req);
         }
 

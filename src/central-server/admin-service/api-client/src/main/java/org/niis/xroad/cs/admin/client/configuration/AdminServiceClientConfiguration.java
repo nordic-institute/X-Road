@@ -34,6 +34,7 @@ import feign.codec.Decoder;
 import feign.codec.Encoder;
 import feign.codec.ErrorDecoder;
 import feign.hc5.ApacheHttp5Client;
+import org.apache.hc.client5.http.config.ConnectionConfig;
 import org.apache.hc.client5.http.config.RequestConfig;
 import org.apache.hc.client5.http.impl.classic.CloseableHttpClient;
 import org.apache.hc.client5.http.impl.classic.HttpClients;
@@ -99,7 +100,6 @@ public class AdminServiceClientConfiguration {
         return HttpClients.custom()
                 .setConnectionManager(buildConnectionManager(propertyProvider))
                 .setDefaultRequestConfig(RequestConfig.custom()
-                        .setConnectTimeout(ofSeconds(httpClientProperties.getConnectionTimeoutSeconds()))
                         .setResponseTimeout(ofSeconds(httpClientProperties.getResponseTimeoutSeconds()))
                         .setConnectionRequestTimeout(ofSeconds(httpClientProperties.getConnectionRequestTimeoutSeconds()))
                         .build())
@@ -112,6 +112,8 @@ public class AdminServiceClientConfiguration {
 
     private HttpClientConnectionManager buildConnectionManager(final AdminServiceClientPropertyProvider propertyProvider)
             throws CertificateException, NoSuchAlgorithmException, KeyStoreException, IOException, KeyManagementException {
+        var httpClientProperties = propertyProvider.getHttpClientProperties();
+
         final var sslcontext = SSLContexts.custom()
                 .setProtocol("TLSv1.3")
                 .loadTrustMaterial(
@@ -125,6 +127,10 @@ public class AdminServiceClientConfiguration {
                 .build();
 
         return PoolingHttpClientConnectionManagerBuilder.create()
+                .setDefaultConnectionConfig(ConnectionConfig.custom()
+                        .setConnectTimeout(ofSeconds(httpClientProperties.getConnectionTimeoutSeconds()))
+                        .build()
+                )
                 .setMaxConnPerRoute(propertyProvider.getHttpClientProperties().getMaxConnectionsPerRoute())
                 .setMaxConnTotal(propertyProvider.getHttpClientProperties().getMaxConnectionsTotal())
                 .setSSLSocketFactory(sslSocketFactory)

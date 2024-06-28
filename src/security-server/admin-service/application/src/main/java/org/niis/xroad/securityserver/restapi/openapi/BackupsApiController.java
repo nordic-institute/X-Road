@@ -28,16 +28,14 @@ package org.niis.xroad.securityserver.restapi.openapi;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.niis.xroad.common.exception.NotFoundException;
+import org.niis.xroad.common.exception.ServiceException;
+import org.niis.xroad.common.exception.ValidationFailureException;
 import org.niis.xroad.restapi.common.backup.dto.BackupFile;
 import org.niis.xroad.restapi.common.backup.service.BackupService;
 import org.niis.xroad.restapi.common.backup.service.ConfigurationRestorationService;
 import org.niis.xroad.restapi.config.audit.AuditEventMethod;
 import org.niis.xroad.restapi.config.audit.RestApiAuditEvent;
-import org.niis.xroad.restapi.exceptions.ErrorDeviation;
-import org.niis.xroad.restapi.openapi.BadRequestException;
 import org.niis.xroad.restapi.openapi.ControllerUtil;
-import org.niis.xroad.restapi.openapi.InternalServerErrorException;
-import org.niis.xroad.restapi.openapi.ResourceNotFoundException;
 import org.niis.xroad.restapi.service.UnhandledWarningsException;
 import org.niis.xroad.securityserver.restapi.converter.BackupConverter;
 import org.niis.xroad.securityserver.restapi.openapi.model.Backup;
@@ -58,8 +56,9 @@ import java.io.IOException;
 import java.util.List;
 import java.util.Set;
 
-import static org.niis.xroad.restapi.exceptions.DeviationCodes.ERROR_BACKUP_RESTORE_INTERRUPTED;
-import static org.niis.xroad.restapi.exceptions.DeviationCodes.ERROR_GENERATE_BACKUP_INTERRUPTED;
+import static org.niis.xroad.common.exception.util.CommonDeviationMessage.BACKUP_GENERATION_INTERRUPTED;
+import static org.niis.xroad.common.exception.util.CommonDeviationMessage.BACKUP_RESTORATION_INTERRUPTED;
+import static org.niis.xroad.common.exception.util.CommonDeviationMessage.INTERNAL_ERROR;
 
 /**
  * Backups controller
@@ -88,11 +87,7 @@ public class BackupsApiController implements BackupsApi {
     @PreAuthorize("hasAuthority('BACKUP_CONFIGURATION')")
     @AuditEventMethod(event = RestApiAuditEvent.DELETE_BACKUP)
     public ResponseEntity<Void> deleteBackup(String filename) {
-        try {
-            backupService.deleteBackup(filename);
-        } catch (NotFoundException e) {
-            throw new ResourceNotFoundException(e.getErrorDeviation());
-        }
+        backupService.deleteBackup(filename);
 
         return new ResponseEntity<>(HttpStatus.NO_CONTENT);
     }
@@ -100,12 +95,7 @@ public class BackupsApiController implements BackupsApi {
     @Override
     @PreAuthorize("hasAuthority('BACKUP_CONFIGURATION')")
     public ResponseEntity<Resource> downloadBackup(String filename) {
-        byte[] backupFile = null;
-        try {
-            backupFile = backupService.readBackupFile(filename);
-        } catch (NotFoundException e) {
-            throw new ResourceNotFoundException(e.getErrorDeviation());
-        }
+        byte[] backupFile = backupService.readBackupFile(filename);
         return ControllerUtil.createAttachmentResourceResponse(backupFile, filename);
     }
 
@@ -117,9 +107,9 @@ public class BackupsApiController implements BackupsApi {
             BackupFile backupFile = backupGenerator.generateBackup();
             return new ResponseEntity<>(backupConverter.convert(backupFile), HttpStatus.CREATED);
         } catch (InterruptedException e) {
-            throw new InternalServerErrorException(new ErrorDeviation(ERROR_GENERATE_BACKUP_INTERRUPTED));
+            throw new ServiceException(BACKUP_GENERATION_INTERRUPTED);
         } catch (NotFoundException e) {
-            throw new InternalServerErrorException(e.getErrorDeviation());
+            throw new ServiceException(e);
         }
     }
 
@@ -135,9 +125,9 @@ public class BackupsApiController implements BackupsApi {
             backupExt.setLocalConfPresent((new File("/etc/xroad/services/local.conf")).exists());
             return new ResponseEntity<>(backupExt, HttpStatus.CREATED);
         } catch (InterruptedException e) {
-            throw new InternalServerErrorException(new ErrorDeviation(ERROR_GENERATE_BACKUP_INTERRUPTED));
+            throw new ServiceException(BACKUP_GENERATION_INTERRUPTED);
         } catch (NotFoundException e) {
-            throw new InternalServerErrorException(e.getErrorDeviation());
+            throw new ServiceException(e);
         }
     }
 
@@ -150,9 +140,9 @@ public class BackupsApiController implements BackupsApi {
                     file.getBytes());
             return new ResponseEntity<>(backupConverter.convert(backupFile), HttpStatus.CREATED);
         } catch (UnhandledWarningsException e) {
-            throw new BadRequestException(e);
+            throw new ValidationFailureException(e);
         } catch (IOException e) {
-            throw new RuntimeException(e);
+            throw new ServiceException(INTERNAL_ERROR, e);
         }
     }
 
@@ -165,8 +155,10 @@ public class BackupsApiController implements BackupsApi {
         TokensLoggedOut tokensLoggedOut = new TokensLoggedOut().hsmTokensLoggedOut(hasHardwareTokens);
         try {
             configurationRestorationService.restoreFromBackup(filename);
+        } catch (NotFoundException e) {
+            throw new ServiceException(e);
         } catch (InterruptedException e) {
-            throw new InternalServerErrorException(new ErrorDeviation(ERROR_BACKUP_RESTORE_INTERRUPTED));
+            throw new ServiceException(BACKUP_RESTORATION_INTERRUPTED);
         }
         return new ResponseEntity<>(tokensLoggedOut, HttpStatus.OK);
     }

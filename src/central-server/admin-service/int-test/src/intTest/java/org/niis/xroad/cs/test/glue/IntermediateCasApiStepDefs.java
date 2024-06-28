@@ -96,7 +96,7 @@ public class IntermediateCasApiStepDefs extends BaseStepDefs {
             intermediateCaId = response.getBody().getId();
 
             putStepData(RESPONSE, response);
-            putStepData(RESPONSE_STATUS, response.getStatusCodeValue());
+            putStepData(RESPONSE_STATUS, response.getStatusCode().value());
         } catch (FeignException feignException) {
             putStepData(RESPONSE_STATUS, feignException.status());
             putStepData(ERROR_RESPONSE_BODY, feignException.contentUTF8());

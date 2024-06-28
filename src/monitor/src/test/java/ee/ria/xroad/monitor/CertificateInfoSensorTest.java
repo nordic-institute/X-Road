@@ -185,7 +185,7 @@ class CertificateInfoSensorTest {
     void testFailingCertExtractionSystemMetricsRequest() throws Exception {
         X509Certificate mockCert = mock(X509Certificate.class, Mockito.RETURNS_DEEP_STUBS);
         when(mockCert.getEncoded()).thenThrow(new IllegalStateException("some random exception"));
-        when(mockCert.getIssuerDN().getName()).thenReturn("DN");
+        when(mockCert.getIssuerX500Principal().toString()).thenReturn("DN");
 
         CertificateInfoCollector collector = new CertificateInfoCollector()
                 .addExtractor(new CertificateInfoSensor.CertificateInfoExtractor() {

@@ -68,7 +68,7 @@ public class ClientsStepDefs extends BaseStepDefs {
                     getStr(params, "$securityServer"),
                     params.get("$excludingGroup"));
             putStepData(StepDataKey.RESPONSE, response);
-            putStepData(StepDataKey.RESPONSE_STATUS, response.getStatusCodeValue());
+            putStepData(StepDataKey.RESPONSE_STATUS, response.getStatusCode().value());
         } catch (FeignException feignException) {
             putStepData(StepDataKey.RESPONSE_STATUS, feignException.status());
             putStepData(StepDataKey.ERROR_RESPONSE_BODY, feignException.contentUTF8());

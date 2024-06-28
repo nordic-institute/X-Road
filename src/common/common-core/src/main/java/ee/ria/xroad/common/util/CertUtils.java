@@ -527,6 +527,6 @@ public final class CertUtils {
      * @return the string identifying the certificate
      */
     public static String identify(X509Certificate certificate) {
-        return certificate.getIssuerDN() + " " + certificate.getSerialNumber();
+        return certificate.getIssuerX500Principal() + " " + certificate.getSerialNumber();
     }
 }

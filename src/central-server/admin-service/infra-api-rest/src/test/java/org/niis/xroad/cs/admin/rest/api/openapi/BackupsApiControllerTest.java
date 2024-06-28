@@ -36,7 +36,7 @@ import org.niis.xroad.restapi.common.backup.service.BaseConfigurationBackupGener
 
 import static org.junit.jupiter.api.Assertions.assertThrowsExactly;
 import static org.mockito.Mockito.when;
-import static org.niis.xroad.restapi.exceptions.DeviationCodes.ERROR_GENERATE_BACKUP_INTERRUPTED;
+import static org.niis.xroad.common.exception.util.CommonDeviationMessage.BACKUP_GENERATION_INTERRUPTED;
 
 @ExtendWith(MockitoExtension.class)
 class BackupsApiControllerTest {
@@ -51,6 +51,6 @@ class BackupsApiControllerTest {
     void addBackupShouldHandleInterruptedException() throws InterruptedException {
         when(centralServerConfigurationBackupGenerator.generateBackup()).thenThrow(new InterruptedException());
         var error = assertThrowsExactly(ServiceException.class, backupsApiController::addBackup);
-        Assertions.assertThat(error.getErrorDeviation().getCode()).isEqualTo(ERROR_GENERATE_BACKUP_INTERRUPTED);
+        Assertions.assertThat(error.getErrorDeviation().getCode()).isEqualTo(BACKUP_GENERATION_INTERRUPTED.getCode());
     }
 }

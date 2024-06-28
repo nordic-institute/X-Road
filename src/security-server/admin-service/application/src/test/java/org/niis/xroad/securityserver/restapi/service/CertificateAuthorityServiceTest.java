@@ -120,10 +120,10 @@ public class CertificateAuthorityServiceTest extends AbstractServiceTestContext 
         // see CertificateAuthorityService#getCertificateAuthorities implementation
         Map<String, String> subjectsToIssuers = caCerts.stream().collect(
                 Collectors.toMap(
-                        x509 -> x509.getSubjectDN().getName(),
-                        x509 -> x509.getIssuerDN().getName()));
+                        x509 -> x509.getSubjectX500Principal().toString(),
+                        x509 -> x509.getIssuerX500Principal().toString()));
         List<X509Certificate> filteredCerts = caCerts.stream()
-                .filter(cert -> subjectsToIssuers.containsKey(cert.getIssuerDN().getName()))
+                .filter(cert -> subjectsToIssuers.containsKey(cert.getIssuerX500Principal().toString()))
                 .toList();
 
         String[] ocspResponses = filteredCerts.stream()
@@ -203,8 +203,8 @@ public class CertificateAuthorityServiceTest extends AbstractServiceTestContext 
         X509Certificate certificate = CertificateTestUtils.getMockAuthCertificate();
         String subject = MOCK_AUTH_CERT_SUBJECT;
         String issuer = MOCK_AUTH_CERT_ISSUER;
-        assertEquals(subject, certificate.getSubjectDN().getName());
-        assertEquals(issuer, certificate.getIssuerDN().getName());
+        assertEquals(subject, certificate.getSubjectX500Principal().toString());
+        assertEquals(issuer, certificate.getIssuerX500Principal().toString());
 
         Map<String, String> subjectsToIssuers = new HashMap<>();
         subjectsToIssuers.put(subject, issuer);
@@ -237,8 +237,8 @@ public class CertificateAuthorityServiceTest extends AbstractServiceTestContext 
         certificate = CertificateTestUtils.getMockCertificate();
         subject = "CN=N/A";
         issuer = "CN=N/A";
-        assertEquals(subject, certificate.getSubjectDN().getName());
-        assertEquals(issuer, certificate.getIssuerDN().getName());
+        assertEquals(subject, certificate.getSubjectX500Principal().toString());
+        assertEquals(issuer, certificate.getIssuerX500Principal().toString());
 
         subjectsToIssuers = new HashMap<>();
         subjectsToIssuers.put(subject, issuer);

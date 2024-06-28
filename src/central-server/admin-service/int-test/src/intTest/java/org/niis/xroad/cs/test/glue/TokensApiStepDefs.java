@@ -55,7 +55,7 @@ public class TokensApiStepDefs extends BaseStepDefs {
     public void userTriesToLoginTokenWithPassword(String tokenId, String password) {
         try {
             response = tokensApi.loginToken(tokenId, new TokenPasswordDto().password(password));
-            putStepData(StepDataKey.RESPONSE_STATUS, response.getStatusCodeValue());
+            putStepData(StepDataKey.RESPONSE_STATUS, response.getStatusCode().value());
         } catch (FeignException feignException) {
             putStepData(StepDataKey.RESPONSE_STATUS, feignException.status());
         }
@@ -136,7 +136,7 @@ public class TokensApiStepDefs extends BaseStepDefs {
     public void userCanLogoutTokenTokenId(String tokenId) {
         try {
             response = tokensApi.logoutToken(tokenId);
-            putStepData(StepDataKey.RESPONSE_STATUS, response.getStatusCodeValue());
+            putStepData(StepDataKey.RESPONSE_STATUS, response.getStatusCode().value());
         } catch (FeignException feignException) {
             putStepData(StepDataKey.RESPONSE_STATUS, feignException.status());
         }
