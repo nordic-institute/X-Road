@@ -32,9 +32,7 @@ import ee.ria.xroad.proxy.serverproxy.HttpClientCreator;
 import jakarta.ws.rs.POST;
 import jakarta.ws.rs.Path;
 import jakarta.ws.rs.Produces;
-import jakarta.ws.rs.container.AsyncResponse;
 import jakarta.ws.rs.container.ContainerRequestContext;
-import jakarta.ws.rs.container.Suspended;
 import jakarta.ws.rs.core.Context;
 import jakarta.ws.rs.core.HttpHeaders;
 import jakarta.ws.rs.core.Response;
@@ -88,24 +86,34 @@ public class XrdDataPlaneProxyApiController {
     }
 
     @POST
-    public void post(@Context ContainerRequestContext requestContext, @Suspended AsyncResponse response) {
-        handle(requestContext, response);
+    public Response post(@Context ContainerRequestContext requestContext) {
+        return handle(requestContext);
     }
 
-    private void handle(ContainerRequestContext requestContext, AsyncResponse response) {
+    private Response handle(ContainerRequestContext requestContext) {
         var token = requestContext.getHeaderString(HttpHeaders.AUTHORIZATION);
         if (token == null) {
-            response.resume(error(UNAUTHORIZED, "Missing Authorization Header"));
-            return;
+            return error(UNAUTHORIZED, "Missing Authorization Header");
         }
 
         var sourceDataAddress = authorizationService.authorize(token, buildRequestData(requestContext));
         if (sourceDataAddress.failed()) {
-            response.resume(error(FORBIDDEN, sourceDataAddress.getFailureDetail()));
-            return;
+            return error(FORBIDDEN, sourceDataAddress.getFailureDetail());
         }
 
-        processProxyRequest(requestContext, response);
+        try {
+            return getMessageProcessor(requestContext).process();
+        } catch (Exception e) {
+            throw new EdcException("Request processing failed", e);
+        }
+    }
+
+    private MessageProcessorBase getMessageProcessor(ContainerRequestContext requestContext) {
+        if (VALUE_MESSAGE_TYPE_REST.equals(requestContext.getHeaderString(HEADER_MESSAGE_TYPE))) {
+            return new RestMessageProcessor(requestContext, httpClient, xRoadMessageLog, monitor);
+        } else {
+            return new SoapMessageProcessor(requestContext, httpClient, xRoadMessageLog, monitor);
+        }
     }
 
     private Map<String, Object> buildRequestData(ContainerRequestContext requestContext) {
@@ -120,22 +128,6 @@ public class XrdDataPlaneProxyApiController {
         requestData.put("method", requestContext.getMethod());
         requestData.put("content-type", requestContext.getMediaType());
         return requestData;
-    }
-
-    private void processProxyRequest(ContainerRequestContext requestContext, AsyncResponse response) {
-        try {
-            MessageProcessorBase processor;
-
-            if (VALUE_MESSAGE_TYPE_REST.equals(requestContext.getHeaderString(HEADER_MESSAGE_TYPE))) {
-                processor = new RestMessageProcessor(requestContext, response, httpClient, xRoadMessageLog, monitor);
-            } else {
-                processor = new SoapMessageProcessor(requestContext, response, httpClient, xRoadMessageLog, monitor);
-            }
-
-            processor.process();
-        } catch (Exception e) {
-            throw new EdcException("Request processing failed", e);
-        }
     }
 
     private static Response error(Response.Status status, String error) {

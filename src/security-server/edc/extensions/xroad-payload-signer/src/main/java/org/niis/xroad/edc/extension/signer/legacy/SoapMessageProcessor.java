@@ -41,8 +41,9 @@ import ee.ria.xroad.common.message.SoapMessageDecoder;
 import ee.ria.xroad.common.message.SoapMessageImpl;
 import ee.ria.xroad.common.message.SoapUtils;
 import ee.ria.xroad.common.messagelog.SoapLogMessage;
-import ee.ria.xroad.common.util.CachingStream;
+import ee.ria.xroad.common.util.AbstractHttpSender;
 import ee.ria.xroad.common.util.HttpSender;
+import ee.ria.xroad.common.util.MimeUtils;
 import ee.ria.xroad.common.util.TimeUtils;
 import ee.ria.xroad.proxy.conf.SigningCtx;
 import ee.ria.xroad.proxy.conf.SigningCtxProvider;
@@ -50,16 +51,13 @@ import ee.ria.xroad.proxy.protocol.ProxyMessage;
 import ee.ria.xroad.proxy.protocol.ProxyMessageDecoder;
 import ee.ria.xroad.proxy.protocol.ProxyMessageEncoder;
 
-import jakarta.ws.rs.container.AsyncResponse;
 import jakarta.ws.rs.container.ContainerRequestContext;
 import jakarta.ws.rs.core.Response;
 import jakarta.ws.rs.core.StreamingOutput;
 import org.apache.http.client.HttpClient;
-import org.eclipse.edc.spi.EdcException;
 import org.eclipse.edc.spi.monitor.Monitor;
 import org.niis.xroad.edc.spi.messagelog.XRoadMessageLog;
 
-import java.io.IOException;
 import java.io.InputStream;
 import java.net.URI;
 import java.net.URISyntaxException;
@@ -85,6 +83,8 @@ import static ee.ria.xroad.common.util.MimeUtils.HEADER_HASH_ALGO_ID;
 import static ee.ria.xroad.common.util.MimeUtils.HEADER_ORIGINAL_CONTENT_TYPE;
 import static ee.ria.xroad.common.util.MimeUtils.HEADER_ORIGINAL_SOAP_ACTION;
 import static ee.ria.xroad.common.util.MimeUtils.HEADER_REQUEST_ID;
+import static ee.ria.xroad.common.util.MimeUtils.randomBoundary;
+import static java.util.Optional.ofNullable;
 
 public class SoapMessageProcessor extends MessageProcessorBase {
 
@@ -98,102 +98,75 @@ public class SoapMessageProcessor extends MessageProcessorBase {
     private String xRequestId;
 
     private ProxyMessageDecoder decoder;
-    private ProxyMessageEncoder encoder;
 
     private SigningCtx responseSigningCtx;
 
     private XRoadMessageLog xRoadMessageLog;
-    private Response.ResponseBuilder responseBuilder;
 
-    private CachingStream cachingStream;
-
-    public SoapMessageProcessor(ContainerRequestContext request, AsyncResponse response,
+    public SoapMessageProcessor(ContainerRequestContext request,
                                 HttpClient httpClient, XRoadMessageLog messageLog, Monitor monitor) {
-        super(request, response, httpClient, monitor);
+        super(request, httpClient, monitor);
 
 //        this.clientSslCerts = clientSslCerts;
         this.xRoadMessageLog = messageLog;
-
-        try {
-            this.cachingStream = new CachingStream();
-        } catch (IOException e) {
-            throw new EdcException(e);
-        }
     }
 
     @Override
-    public void process() throws Exception {
-        monitor.debug(() -> "process(%s)".formatted(jRequest.getMediaType().toString()));
+    public Response process() throws Exception {
+        monitor.debug(() -> "process(%s)".formatted(requestContext.getMediaType().toString()));
 
-        xRequestId = jRequest.getHeaderString(HEADER_REQUEST_ID);
+        xRequestId = requestContext.getHeaderString(HEADER_REQUEST_ID);
+        DefaultServiceHandlerImpl handler = new DefaultServiceHandlerImpl();
 
         try {
             readMessage();
-
-            handleRequest();
-
-            sign();
-            logResponseMessage();
-            writeSignature();
-
-            close();
-
-            postprocess();
-        } catch (Exception ex) {
-            handleException(ex);
-        } finally {
-            if (requestMessage != null) {
-                requestMessage.consume();
-            }
-        }
-    }
-
-    @Override
-    public boolean verifyMessageExchangeSucceeded() {
-        return responseSoap != null && responseFault == null;
-    }
-
-    @Override
-    protected void preprocess() {
-        encoder = new ProxyMessageEncoder(cachingStream, SoapUtils.getHashAlgoId());
-
-        responseBuilder = Response.ok()
-                .type(encoder.getContentType())
-                .header(HEADER_HASH_ALGO_ID, SoapUtils.getHashAlgoId());
-    }
-
-    @Override
-    protected void postprocess() throws Exception {
-    }
-
-    private void handleRequest() throws Exception {
-        DefaultServiceHandlerImpl handler = new DefaultServiceHandlerImpl();
-
-        if (handler.shouldVerifyAccess()) {
             verifyAccess();
-        }
-
-        if (handler.shouldVerifySignature()) {
             verifySignature();
-        }
-
-        if (handler.shouldLogSignature()) {
             logRequestMessage();
-        }
 
-        try {
-            handler.startHandling(jRequest, requestMessage);
-            parseResponse(handler);
+            handler.sendProviderRequest();
+
+            // preparing in advance to be able to return in response http header
+            String multipartBoundary = randomBoundary();
+
+            StreamingOutput streamingOutput = output -> {
+                ProxyMessageEncoder encoder = new ProxyMessageEncoder(output, SoapUtils.getHashAlgoId(), multipartBoundary);
+                try {
+                    parseResponse(handler.getResponseContentType(), handler.getResponseContent(), encoder);
+                    sign(encoder);
+                    logResponseMessage(encoder);
+                    writeSignature(encoder);
+
+                    close(encoder);
+                } catch (Exception ex) {
+                    try {
+                        handleException(ex, encoder);
+                    } catch (Exception e) {
+                        throw new RuntimeException("Exception handling failed", e);
+                    }
+                } finally {
+                    handler.finishHandling();
+                }
+            };
+
+            return Response.ok()
+                    .type(MimeUtils.mpMixedContentType(multipartBoundary))
+                    .header(HEADER_HASH_ALGO_ID, SoapUtils.getHashAlgoId())
+                    // Preserve the original content type of the service response
+                    .header(HEADER_ORIGINAL_CONTENT_TYPE, handler.getResponseContentType())
+                    .entity(streamingOutput)
+                    .build();
+
         } finally {
-            handler.finishHandling();
+            ofNullable(requestMessage).ifPresent(ProxyMessage::consume);
         }
     }
 
     private void readMessage() throws Exception {
         monitor.debug("readMessage()");
 
-        originalSoapAction = validateSoapActionHeader(jRequest.getHeaderString(HEADER_ORIGINAL_SOAP_ACTION));
-        requestMessage = new ProxyMessage(jRequest.getHeaderString(HEADER_ORIGINAL_CONTENT_TYPE)) {
+        originalSoapAction = validateSoapActionHeader(requestContext.getHeaderString(HEADER_ORIGINAL_SOAP_ACTION));
+        requestMessage = new ProxyMessage(requestContext.getHeaderString(HEADER_ORIGINAL_CONTENT_TYPE)) {
             @Override
             public void soap(SoapMessageImpl soapMessage, Map<String, String> additionalHeaders) throws Exception {
                 super.soap(soapMessage, additionalHeaders);
@@ -211,10 +184,10 @@ public class SoapMessageProcessor extends MessageProcessorBase {
             }
         };
 
-        decoder = new ProxyMessageDecoder(requestMessage, jRequest.getMediaType().toString(), false,
-                getHashAlgoId(jRequest));
+        decoder = new ProxyMessageDecoder(requestMessage, requestContext.getMediaType().toString(), false,
+                getHashAlgoId(requestContext));
         try {
-            decoder.parse(jRequest.getEntityStream());
+            decoder.parse(requestContext.getEntityStream());
         } catch (CodedException e) {
             throw e.withPrefix(X_SERVICE_FAILED_X);
         }
@@ -285,7 +258,7 @@ public class SoapMessageProcessor extends MessageProcessorBase {
         }
     }
 
-    private void verifyAccess() throws Exception {
+    private void verifyAccess() {
         monitor.debug("verifyAccess()");
 
         if (!ServerConf.serviceExists(requestServiceId)) {
@@ -316,14 +289,14 @@ public class SoapMessageProcessor extends MessageProcessorBase {
         decoder.verify(requestMessage.getSoap().getClient(), requestMessage.getSignature());
     }
 
-    private void logRequestMessage() throws Exception {
+    private void logRequestMessage() {
         monitor.debug("logRequestMessage()");
 
         xRoadMessageLog.log(new SoapLogMessage(requestMessage.getSoap(),
                 requestMessage.getSignature(), false, xRequestId));
     }
 
-    private void logResponseMessage() throws Exception {
+    private void logResponseMessage(ProxyMessageEncoder encoder) {
         if (responseSoap != null && encoder != null) {
             monitor.debug("logResponseMessage()");
 
@@ -331,7 +304,7 @@ public class SoapMessageProcessor extends MessageProcessorBase {
         }
     }
 
-    private void sendRequest(String serviceAddress, HttpSender httpSender) throws Exception {
+    private void sendRequest(String serviceAddress, HttpSender httpSender) {
         monitor.debug(() -> "sendRequest(%s)".formatted(serviceAddress));
 
         URI uri;
@@ -344,24 +317,19 @@ public class SoapMessageProcessor extends MessageProcessorBase {
 
         monitor.debug(() -> "Sending request to %s".formatted(uri));
         try (InputStream in = requestMessage.getSoapContent()) {
-            httpSender.doPost(uri, in, CHUNKED_LENGTH, jRequest.getHeaderString(HEADER_ORIGINAL_CONTENT_TYPE));
+            httpSender.doPost(uri, in, CHUNKED_LENGTH, requestContext.getHeaderString(HEADER_ORIGINAL_CONTENT_TYPE));
         } catch (Exception ex) {
             throw translateException(ex).withPrefix(X_SERVICE_FAILED_X);
         }
     }
 
-    private void parseResponse(DefaultServiceHandlerImpl handler) throws Exception {
+    private void parseResponse(String responseContentType, InputStream responseContent, ProxyMessageEncoder encoder) throws Exception {
         monitor.debug("parseResponse()");
 
-        preprocess();
-
-        // Preserve the original content type of the service response
-        responseBuilder.header(HEADER_ORIGINAL_CONTENT_TYPE, handler.getResponseContentType());
-
-        try (SoapMessageHandler messageHandler = new SoapMessageHandler()) {
-            SoapMessageDecoder soapMessageDecoder = new SoapMessageDecoder(handler.getResponseContentType(),
+        try (SoapMessageHandler messageHandler = new SoapMessageHandler(encoder)) {
+            SoapMessageDecoder soapMessageDecoder = new SoapMessageDecoder(responseContentType,
                     messageHandler, new ResponseSoapParserImpl(requestMessage.getSoap().getHash()));
-            soapMessageDecoder.parse(handler.getResponseContent());
+            soapMessageDecoder.parse(responseContent);
         } catch (Exception ex) {
             throw translateException(ex).withPrefix(X_SERVICE_FAILED_X);
         }
@@ -378,47 +346,37 @@ public class SoapMessageProcessor extends MessageProcessorBase {
             throw new CodedException(X_INVALID_MESSAGE, "No response message received from service").withPrefix(
                     X_SERVICE_FAILED_X);
         }
-
     }
 
-    private void sign() throws Exception {
+    private void sign(ProxyMessageEncoder encoder) throws Exception {
         monitor.debug(() -> "sign(%s)".formatted(requestServiceId.getClientId()));
 
         encoder.sign(responseSigningCtx);
     }
 
-    private void writeSignature() throws Exception {
+    private void writeSignature(ProxyMessageEncoder encoder) throws Exception {
         monitor.debug("writeSignature()");
 
         encoder.writeSignature();
     }
 
-    private void close() throws Exception {
+    private void close(ProxyMessageEncoder encoder) throws Exception {
         monitor.debug("close()");
 
         encoder.close();
-
-        //todo: should start streaming earlier
-        jResponse.resume(responseBuilder
-                .entity((StreamingOutput) out -> cachingStream.getCachedContents().transferTo(out))
-                .build());
     }
 
-    private void handleException(Exception ex) throws Exception {
-        if (encoder != null) {
-            CodedException exception;
+    private void handleException(Exception ex, ProxyMessageEncoder encoder) throws Exception {
+        CodedException exception;
 
-            if (ex instanceof CodedException.Fault) {
-                exception = (CodedException.Fault) ex;
-            } else {
-                exception = translateWithPrefix(SERVER_SERVERPROXY_X, ex);
-            }
-
-            encoder.fault(SoapFault.createFaultXml(exception));
-            encoder.close();
+        if (ex instanceof CodedException.Fault) {
+            exception = (CodedException.Fault) ex;
         } else {
-            throw ex;
+            exception = translateWithPrefix(SERVER_SERVERPROXY_X, ex);
         }
+
+        encoder.fault(SoapFault.createFaultXml(exception));
+        encoder.close();
     }
 
 //    private X509Certificate getClientAuthCert() {
@@ -429,19 +387,7 @@ public class SoapMessageProcessor extends MessageProcessorBase {
 
         private HttpSender sender;
 
-        public boolean shouldVerifyAccess() {
-            return true;
-        }
-
-        public boolean shouldVerifySignature() {
-            return true;
-        }
-
-        public boolean shouldLogSignature() {
-            return true;
-        }
-
-        public void startHandling(ContainerRequestContext request, ProxyMessage proxyRequestMessage) throws Exception {
+        public void sendProviderRequest() throws Exception {
             sender = createHttpSender();
 
             monitor.debug("processRequest(%s)".formatted(requestServiceId));
@@ -464,8 +410,8 @@ public class SoapMessageProcessor extends MessageProcessorBase {
             sendRequest(address, sender);
         }
 
-        public void finishHandling() throws Exception {
-            sender.close();
+        public void finishHandling() {
+            ofNullable(sender).ifPresent(AbstractHttpSender::close);
             sender = null;
         }
 
@@ -479,17 +425,24 @@ public class SoapMessageProcessor extends MessageProcessorBase {
     }
 
     private final class SoapMessageHandler implements SoapMessageDecoder.Callback {
+
+        private final ProxyMessageEncoder proxyMessageEncoder;
+
+        public SoapMessageHandler(ProxyMessageEncoder proxyMessageEncoder) {
+            this.proxyMessageEncoder = proxyMessageEncoder;
+        }
+
         @Override
         public void soap(SoapMessage message, Map<String, String> headers) throws Exception {
             responseSoap = (SoapMessageImpl) message;
 
-            encoder.soap(responseSoap, headers);
+            proxyMessageEncoder.soap(responseSoap, headers);
         }
 
         @Override
         public void attachment(String contentType, InputStream content, Map<String, String> additionalHeaders)
                 throws Exception {
-            encoder.attachment(contentType, content, additionalHeaders);
+            proxyMessageEncoder.attachment(contentType, content, additionalHeaders);
         }
 
         @Override

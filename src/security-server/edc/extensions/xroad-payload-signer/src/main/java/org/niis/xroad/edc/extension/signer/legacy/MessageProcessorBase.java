@@ -29,12 +29,11 @@ package org.niis.xroad.edc.extension.signer.legacy;
 
 import ee.ria.xroad.common.CodedException;
 import ee.ria.xroad.common.conf.globalconf.GlobalConf;
-import ee.ria.xroad.common.conf.serverconf.ServerConf;
 import ee.ria.xroad.common.identifier.XRoadId;
 import ee.ria.xroad.common.util.HttpSender;
 
-import jakarta.ws.rs.container.AsyncResponse;
 import jakarta.ws.rs.container.ContainerRequestContext;
+import jakarta.ws.rs.core.Response;
 import org.apache.http.client.HttpClient;
 import org.eclipse.edc.spi.monitor.Monitor;
 
@@ -50,12 +49,7 @@ public abstract class MessageProcessorBase {
     /**
      * The servlet request.
      */
-    protected final ContainerRequestContext jRequest;
-
-    /**
-     * The servlet response.
-     */
-    protected final AsyncResponse jResponse;
+    protected final ContainerRequestContext requestContext;
 
     /**
      * The http client instance.
@@ -64,11 +58,9 @@ public abstract class MessageProcessorBase {
     protected final Monitor monitor;
 
     protected MessageProcessorBase(ContainerRequestContext request,
-                                   AsyncResponse response,
                                    HttpClient httpClient,
                                    Monitor monitor) {
-        this.jRequest = request;
-        this.jResponse = response;
+        this.requestContext = request;
         this.httpClient = httpClient;
         this.monitor = monitor;
 
@@ -80,7 +72,7 @@ public abstract class MessageProcessorBase {
      *
      * @throws Exception in case of any errors
      */
-    public abstract void process() throws Exception;
+    public abstract Response process() throws Exception;
 
 
     /**
@@ -88,29 +80,6 @@ public abstract class MessageProcessorBase {
      */
     protected HttpSender createHttpSender() {
         return new HttpSender(httpClient);
-    }
-
-    /**
-     * Called when processing started.
-     */
-    protected void preprocess() throws Exception {
-    }
-
-    /**
-     * Called when processing successfully completed.
-     */
-    protected void postprocess() throws Exception {
-    }
-
-    /**
-     * Check that message transfer was successful.
-     */
-    public boolean verifyMessageExchangeSucceeded() {
-        return true;
-    }
-
-    protected static String getSecurityServerAddress() {
-        return GlobalConf.getSecurityServerAddress(ServerConf.getIdentifier());
     }
 
     /**

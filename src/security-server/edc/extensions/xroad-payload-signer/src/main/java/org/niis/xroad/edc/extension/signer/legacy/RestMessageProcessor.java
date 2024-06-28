@@ -40,6 +40,7 @@ import ee.ria.xroad.common.message.SoapUtils;
 import ee.ria.xroad.common.messagelog.RestLogMessage;
 import ee.ria.xroad.common.util.CachingStream;
 import ee.ria.xroad.common.util.CryptoUtils;
+import ee.ria.xroad.common.util.MimeUtils;
 import ee.ria.xroad.common.util.TimeUtils;
 import ee.ria.xroad.proxy.conf.SigningCtx;
 import ee.ria.xroad.proxy.conf.SigningCtxProvider;
@@ -47,10 +48,10 @@ import ee.ria.xroad.proxy.protocol.ProxyMessage;
 import ee.ria.xroad.proxy.protocol.ProxyMessageDecoder;
 import ee.ria.xroad.proxy.protocol.ProxyMessageEncoder;
 
-import jakarta.ws.rs.container.AsyncResponse;
 import jakarta.ws.rs.container.ContainerRequestContext;
 import jakarta.ws.rs.core.Response;
 import jakarta.ws.rs.core.StreamingOutput;
+import lombok.Getter;
 import org.apache.commons.io.input.TeeInputStream;
 import org.apache.http.Header;
 import org.apache.http.HttpEntityEnclosingRequest;
@@ -72,11 +73,9 @@ import org.apache.http.protocol.BasicHttpContext;
 import org.apache.http.protocol.HttpContext;
 import org.apache.http.util.EntityUtils;
 import org.bouncycastle.operator.DigestCalculator;
-import org.eclipse.edc.spi.EdcException;
 import org.eclipse.edc.spi.monitor.Monitor;
 import org.niis.xroad.edc.spi.messagelog.XRoadMessageLog;
 
-import java.io.IOException;
 import java.io.OutputStream;
 import java.util.Arrays;
 
@@ -95,6 +94,8 @@ import static ee.ria.xroad.common.ErrorCodes.translateWithPrefix;
 import static ee.ria.xroad.common.util.MimeUtils.HEADER_HASH_ALGO_ID;
 import static ee.ria.xroad.common.util.MimeUtils.HEADER_ORIGINAL_CONTENT_TYPE;
 import static ee.ria.xroad.common.util.MimeUtils.HEADER_REQUEST_ID;
+import static ee.ria.xroad.common.util.MimeUtils.randomBoundary;
+import static java.util.Optional.ofNullable;
 
 public class RestMessageProcessor extends MessageProcessorBase {
 
@@ -104,7 +105,6 @@ public class RestMessageProcessor extends MessageProcessorBase {
     private ServiceId requestServiceId;
 
     private ProxyMessageDecoder decoder;
-    private ProxyMessageEncoder encoder;
 
     private SigningCtx responseSigningCtx;
 
@@ -113,86 +113,63 @@ public class RestMessageProcessor extends MessageProcessorBase {
 
     private String xRequestId;
     private XRoadMessageLog xRoadMessageLog;
-    private Response.ResponseBuilder responseBuilder;
 
-    private CachingStream cachingStream;
-
-    public RestMessageProcessor(ContainerRequestContext request, AsyncResponse response,
+    public RestMessageProcessor(ContainerRequestContext request,
                                 HttpClient httpClient,
                                 XRoadMessageLog messageLog, Monitor monitor) {
-        super(request, response, httpClient, monitor);
+        super(request, httpClient, monitor);
 
 //        this.clientSslCerts = clientSslCerts;
         this.xRoadMessageLog = messageLog;
-
-        try {
-            cachingStream = new CachingStream();
-        } catch (IOException e) {
-            throw new EdcException(e);
-        }
     }
 
     @Override
-    public void process() throws Exception {
-        monitor.debug("process(%s)".formatted(jRequest.getMediaType().toString()));
+    public Response process() {
+        monitor.debug("process(%s)".formatted(requestContext.getMediaType().toString()));
 
-        xRequestId = jRequest.getHeaderString(HEADER_REQUEST_ID);
+        xRequestId = requestContext.getHeaderString(HEADER_REQUEST_ID);
 
-        try {
-            readMessage();
-            handleRequest();
-            sign();
-            logResponseMessage();
-            writeSignature();
-            close();
-            postprocess();
-        } catch (Exception ex) {
-            handleException(ex);
-        } finally {
-            if (requestMessage != null) {
-                requestMessage.consume();
+        String multipartBoundary = randomBoundary();
+
+        StreamingOutput streamingOut = output -> {
+            ProxyMessageEncoder encoder = new ProxyMessageEncoder(output, CryptoUtils.DEFAULT_DIGEST_ALGORITHM_ID, multipartBoundary);
+            try {
+                readMessage();
+                handleRequest(encoder);
+                sign(encoder);
+                logResponseMessage(encoder);
+                writeSignature(encoder);
+                close(encoder);
+            } catch (Exception ex) {
+                try {
+                    handleException(ex, encoder);
+                } catch (Exception e) {
+                    throw new RuntimeException("Exception handling failed", e);
+                }
+            } finally {
+                ofNullable(requestMessage).ifPresent(ProxyMessage::consume);
+                ofNullable(restResponseBody).ifPresent(CachingStream::consume);
             }
-            if (restResponseBody != null) {
-                restResponseBody.consume();
-            }
-        }
+        };
+
+        return Response.ok()
+                .type(MimeUtils.mpMixedContentType(multipartBoundary))
+                .header(HEADER_HASH_ALGO_ID, SoapUtils.getHashAlgoId())
+                .entity(streamingOut)
+                .build();
     }
 
-    @Override
-    public boolean verifyMessageExchangeSucceeded() {
-        return restResponse != null && !restResponse.isErrorResponse();
-    }
+    private void handleRequest(ProxyMessageEncoder encoder) throws Exception {
+        verifyAccess();
+        verifySignature();
+        logRequestMessage();
 
-    @Override
-    protected void preprocess() throws Exception {
-        encoder = new ProxyMessageEncoder(cachingStream, CryptoUtils.DEFAULT_DIGEST_ALGORITHM_ID);
-
-        responseBuilder = Response.ok()
-                .type(encoder.getContentType())
-                .header(HEADER_HASH_ALGO_ID, SoapUtils.getHashAlgoId());
-    }
-
-    @Override
-    protected void postprocess() {
-    }
-
-    private void handleRequest() throws Exception {
         DefaultRestServiceHandlerImpl handler = new DefaultRestServiceHandlerImpl();
-        if (handler.shouldVerifyAccess()) {
-            verifyAccess();
-        }
-        if (handler.shouldVerifySignature()) {
-            verifySignature();
-        }
-        if (handler.shouldLogSignature()) {
-            logRequestMessage();
-        }
+
         try {
-            preprocess();
-            handler.startHandling(jRequest, requestMessage, decoder, encoder,
+            handler.startHandling(requestContext, requestMessage, decoder, encoder,
                     httpClient);
         } finally {
-            handler.finishHandling();
             restResponse = handler.getRestResponse();
             restResponseBody = handler.getRestResponseBody();
         }
@@ -201,7 +178,7 @@ public class RestMessageProcessor extends MessageProcessorBase {
     private void readMessage() throws Exception {
         monitor.debug("readMessage()");
 
-        requestMessage = new ProxyMessage(jRequest.getHeaderString(HEADER_ORIGINAL_CONTENT_TYPE)) {
+        requestMessage = new ProxyMessage(requestContext.getHeaderString(HEADER_ORIGINAL_CONTENT_TYPE)) {
             @Override
             public void rest(RestRequest message) throws Exception {
                 super.rest(message);
@@ -214,10 +191,10 @@ public class RestMessageProcessor extends MessageProcessorBase {
             }
         };
 
-        decoder = new ProxyMessageDecoder(requestMessage, jRequest.getMediaType().toString(), false,
-                getHashAlgoId(jRequest));
+        decoder = new ProxyMessageDecoder(requestMessage, requestContext.getMediaType().toString(), false,
+                getHashAlgoId(requestContext));
         try {
-            decoder.parse(jRequest.getEntityStream());
+            decoder.parse(requestContext.getEntityStream());
         } catch (CodedException e) {
             throw e.withPrefix(X_SERVICE_FAILED_X);
         }
@@ -323,7 +300,7 @@ public class RestMessageProcessor extends MessageProcessorBase {
         xRoadMessageLog.log(logMessage);
     }
 
-    private void logResponseMessage() {
+    private void logResponseMessage(ProxyMessageEncoder encoder) {
         monitor.debug("log response message");
         RestLogMessage logMessage = new RestLogMessage(requestMessage.getRest().getQueryId(),
                 requestMessage.getRest().getClientId(),
@@ -337,27 +314,22 @@ public class RestMessageProcessor extends MessageProcessorBase {
         xRoadMessageLog.log(logMessage);
     }
 
-    private void sign() throws Exception {
+    private void sign(ProxyMessageEncoder encoder) throws Exception {
         monitor.debug("sign(%s)".formatted(requestServiceId.getClientId()));
         encoder.sign(responseSigningCtx);
     }
 
-    private void writeSignature() throws Exception {
+    private void writeSignature(ProxyMessageEncoder encoder) throws Exception {
         monitor.debug("writeSignature()");
         encoder.writeSignature();
     }
 
-    private void close() throws Exception {
+    private void close(ProxyMessageEncoder encoder) throws Exception {
         monitor.debug("close()");
         encoder.close();
-
-        //todo: should start streaming earlier
-        jResponse.resume(responseBuilder
-                .entity((StreamingOutput) out -> cachingStream.getCachedContents().transferTo(out))
-                .build());
     }
 
-    private void handleException(Exception ex) throws Exception {
+    private void handleException(Exception ex, ProxyMessageEncoder encoder) throws Exception {
         monitor.debug("Request failed", ex);
 
         if (encoder != null) {
@@ -378,6 +350,7 @@ public class RestMessageProcessor extends MessageProcessorBase {
 //        return clientSslCerts != null ? clientSslCerts[0] : null;
 //    }
 
+    @Getter
     private static final class DefaultRestServiceHandlerImpl {
 
         private RestResponse restResponse;
@@ -389,18 +362,6 @@ public class RestMessageProcessor extends MessageProcessorBase {
                 return address.concat(path.substring(1));
             }
             return address.concat(path);
-        }
-
-        public boolean shouldVerifyAccess() {
-            return true;
-        }
-
-        public boolean shouldVerifySignature() {
-            return true;
-        }
-
-        public boolean shouldLogSignature() {
-            return true;
         }
 
         public void startHandling(ContainerRequestContext request, ProxyMessage requestProxyMessage,
@@ -484,17 +445,6 @@ public class RestMessageProcessor extends MessageProcessorBase {
             }
         }
 
-        public RestResponse getRestResponse() {
-            return restResponse;
-        }
-
-        public CachingStream getRestResponseBody() {
-            return restResponseBody;
-        }
-
-        public void finishHandling() throws Exception {
-            // NOP
-        }
     }
 
 }
