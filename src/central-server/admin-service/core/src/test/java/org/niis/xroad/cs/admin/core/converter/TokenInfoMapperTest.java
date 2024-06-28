@@ -66,7 +66,7 @@ class TokenInfoMapperTest {
     @Test
     void toTarget() {
         final TokenInfo tokenInfo = createTokenInfo();
-        final EnumSet<PossibleTokenAction> possibleActions = mock(EnumSet.class);
+        final EnumSet<PossibleTokenAction> possibleActions = EnumSet.allOf(PossibleTokenAction.class);
         final List<ConfigurationSigningKeyWithDetails> configurationSigningKeys = mock(List.class);
 
         when(configurationSigningKeysService.findDetailedByToken(any())).thenReturn(configurationSigningKeys);

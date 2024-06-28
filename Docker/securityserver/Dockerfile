@@ -10,7 +10,7 @@ RUN apt-get -qq update \
     && apt-get -qq -y upgrade \
     && apt-get -qq -y install --no-install-recommends \
         ca-certificates gnupg supervisor net-tools iproute2 locales \
-        openjdk-17-jre-headless rlwrap ca-certificates-java \
+        openjdk-21-jre-headless rlwrap ca-certificates-java \
         crudini adduser expect curl rsyslog dpkg-dev \
     && echo "LC_ALL=en_US.UTF-8" >>/etc/environment \
     && locale-gen en_US.UTF-8 \
