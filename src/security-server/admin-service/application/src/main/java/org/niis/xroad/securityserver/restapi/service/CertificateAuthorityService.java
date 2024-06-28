@@ -230,12 +230,8 @@ public class CertificateAuthorityService {
     }
 
     public boolean isAcmeExternalAccountBindingRequired(String caName) throws CertificateAuthorityNotFoundException {
-        final var approvedCAInfo = getCertificateAuthorityInfo(caName);
-        if (approvedCAInfo.getAcmeServerDirectoryUrl() != null) {
-            return acmeService.isExternalAccountBindingRequired(approvedCAInfo.getAcmeServerDirectoryUrl());
-
-        }
-        return false;
+        final var acmeUrl = getCertificateAuthorityInfo(caName).getAcmeServerDirectoryUrl();
+        return acmeUrl != null && acmeService.isExternalAccountBindingRequired(acmeUrl);
     }
 
     public boolean hasAcmeExternalAccountBindingCredentials(String caName, String memberId) {
