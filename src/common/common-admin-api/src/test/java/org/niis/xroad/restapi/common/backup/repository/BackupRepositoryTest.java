@@ -1,6 +1,5 @@
 package org.niis.xroad.restapi.common.backup.repository;
 
-import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -38,7 +37,7 @@ class BackupRepositoryTest {
 
     @Test
     void getAbsoluteBackupFilePath() {
-       assertThat(repository.getAbsoluteBackupFilePath(BACKUP_FILE_NAME)).isEqualTo(backupDir.resolve(BACKUP_FILE_NAME));
+        assertThat(repository.getAbsoluteBackupFilePath(BACKUP_FILE_NAME)).isEqualTo(backupDir.resolve(BACKUP_FILE_NAME));
     }
 
     @Test
@@ -47,6 +46,7 @@ class BackupRepositoryTest {
         backupDir.resolve(BACKUP_FILE_NAME).toFile().createNewFile();
         assertThat(repository.fileExists(BACKUP_FILE_NAME)).isTrue();
     }
+
     @Test
     void fileExistsShouldFailOnRelativePathName() throws IOException {
         assertThatThrownBy(() -> repository.fileExists("../secret/folder/file.txt"))
