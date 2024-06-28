@@ -235,7 +235,7 @@ public final class AcmeService {
     private static Metadata getMetadata(Session session) {
         try {
             return session.getMetadata();
-        } catch (AcmeException e) {
+        } catch (Exception e) {
             throw new AcmeServiceException(FETCHING_METADATA_ERROR, e);
         }
     }

@@ -59,7 +59,6 @@ public class CertificateAuthorityConverter {
         ca.setPath(String.join(":", approvedCaDto.getSubjectDnPath()));
         ca.setTopCa(approvedCaDto.isTopCa());
         ca.acmeCapable(approvedCaDto.isAcmeCapable());
-        ca.acmeEabRequired(approvedCaDto.isAcmeEabRequired());
         ca.certificateProfileInfo(approvedCaDto.getCertificateProfileInfo());
         ca.acmeServerIpAddresses(ofNullable(approvedCaDto.getAcmeServerIpAddress())
                 .map(ips -> ips.split(","))

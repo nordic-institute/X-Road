@@ -36,7 +36,7 @@ import {
   KeyUsageType,
   KeyWithCertificateSigningRequestId,
   TokenCertificateSigningRequest,
-  TokenType
+  TokenType,
 } from "@/openapi-types";
 import { defineStore } from "pinia";
 import * as api from "@/util/api";
@@ -57,6 +57,7 @@ export interface CsrState {
   memberIds: string[];
   isNewMember: boolean;
   acmeEabCredentialsStatus: AcmeEabCredentialsStatus | undefined;
+  failedFetchAcmeMetadata: boolean;
   acmeOrder: boolean;
 }
 
@@ -77,6 +78,7 @@ export const useCsr = defineStore('csr', {
       memberIds: [],
       isNewMember: false,
       acmeEabCredentialsStatus: undefined,
+      failedFetchAcmeMetadata: false,
       acmeOrder: false,
     };
   },
@@ -92,10 +94,7 @@ export const useCsr = defineStore('csr', {
       )?.acme_capable,
 
     eabRequired: (state) =>
-      state.certificationServiceList.find(
-        (certificateAuthority) =>
-          certificateAuthority.name == state.certificationService,
-      )?.acme_eab_required,
+      state.acmeEabCredentialsStatus?.acme_eab_required,
 
     csrRequestBody(state): CsrGenerate {
       // Creates an object that can be used as body for generate CSR request
@@ -278,7 +277,7 @@ export const useCsr = defineStore('csr', {
       if (!usage) {
         throw new Error('Key usage is missing');
       }
-      return api.post(`/certificate-authorities/${encodePathParameter(caName)}/acme-order`,{
+      return api.post(`/certificate-authorities/${encodePathParameter(caName)}/acme-order`, {
         csr_id: csr.id,
         key_usage_type: usage,
       })
@@ -288,6 +287,8 @@ export const useCsr = defineStore('csr', {
     },
 
     hasAcmeEabCredentials(caName?: string, csrClientId?: string, keyUsage?: KeyUsageType) {
+      this.failedFetchAcmeMetadata = false;
+
       return api
         .get<AcmeEabCredentialsStatus>(
           `/certificate-authorities/${encodePathParameter(
@@ -305,6 +306,7 @@ export const useCsr = defineStore('csr', {
           return res.data;
         })
         .catch((error) => {
+          this.failedFetchAcmeMetadata = error?.response?.data?.error?.code === 'acme.fetching_metadata_error';
           throw error;
         });
     },
