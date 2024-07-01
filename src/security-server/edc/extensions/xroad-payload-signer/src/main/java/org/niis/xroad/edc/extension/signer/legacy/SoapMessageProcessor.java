@@ -101,7 +101,7 @@ public class SoapMessageProcessor extends MessageProcessorBase {
 
     private SigningCtx responseSigningCtx;
 
-    private XRoadMessageLog xRoadMessageLog;
+    private final XRoadMessageLog xRoadMessageLog;
 
     public SoapMessageProcessor(ContainerRequestContext request,
                                 HttpClient httpClient, XRoadMessageLog messageLog, Monitor monitor) {
@@ -323,7 +323,7 @@ public class SoapMessageProcessor extends MessageProcessorBase {
         }
     }
 
-    private void parseResponse(String responseContentType, InputStream responseContent, ProxyMessageEncoder encoder) throws Exception {
+    private void parseResponse(String responseContentType, InputStream responseContent, ProxyMessageEncoder encoder) {
         monitor.debug("parseResponse()");
 
         try (SoapMessageHandler messageHandler = new SoapMessageHandler(encoder)) {
@@ -387,7 +387,7 @@ public class SoapMessageProcessor extends MessageProcessorBase {
 
         private HttpSender sender;
 
-        public void sendProviderRequest() throws Exception {
+        public void sendProviderRequest() {
             sender = createHttpSender();
 
             monitor.debug("processRequest(%s)".formatted(requestServiceId));
@@ -428,7 +428,7 @@ public class SoapMessageProcessor extends MessageProcessorBase {
 
         private final ProxyMessageEncoder proxyMessageEncoder;
 
-        public SoapMessageHandler(ProxyMessageEncoder proxyMessageEncoder) {
+        SoapMessageHandler(ProxyMessageEncoder proxyMessageEncoder) {
             this.proxyMessageEncoder = proxyMessageEncoder;
         }
 

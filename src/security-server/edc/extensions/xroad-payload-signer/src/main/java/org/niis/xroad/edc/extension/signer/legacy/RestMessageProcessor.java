@@ -112,7 +112,7 @@ public class RestMessageProcessor extends MessageProcessorBase {
     private CachingStream restResponseBody;
 
     private String xRequestId;
-    private XRoadMessageLog xRoadMessageLog;
+    private final XRoadMessageLog xRoadMessageLog;
 
     public RestMessageProcessor(ContainerRequestContext request,
                                 HttpClient httpClient,
