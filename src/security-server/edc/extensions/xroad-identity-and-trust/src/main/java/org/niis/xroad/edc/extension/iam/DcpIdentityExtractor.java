@@ -26,7 +26,7 @@
  */
 package org.niis.xroad.edc.extension.iam;
 
-import org.eclipse.edc.iam.identitytrust.spi.IatpParticipantAgentServiceExtension;
+import org.eclipse.edc.iam.identitytrust.spi.DcpParticipantAgentServiceExtension;
 import org.eclipse.edc.iam.verifiablecredentials.spi.model.VerifiableCredential;
 import org.eclipse.edc.spi.EdcException;
 import org.eclipse.edc.spi.agent.ParticipantAgentServiceExtension;
@@ -46,7 +46,7 @@ import static org.eclipse.edc.spi.agent.ParticipantAgent.PARTICIPANT_IDENTITY;
  * Implementation of {@link ParticipantAgentServiceExtension} which extracts the identity of a participant
  * from the MembershipCredential
  */
-public class IatpIdentityExtractor implements IatpParticipantAgentServiceExtension {
+public class DcpIdentityExtractor implements DcpParticipantAgentServiceExtension {
 
     private static final String VC_CLAIM = "vc";
     //private static final String IDENTITY_CREDENTIAL = "MembershipCredential";

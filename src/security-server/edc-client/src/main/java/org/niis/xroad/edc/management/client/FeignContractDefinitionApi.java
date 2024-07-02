@@ -35,30 +35,30 @@ import jakarta.ws.rs.POST;
 import jakarta.ws.rs.PUT;
 import jakarta.ws.rs.Path;
 import jakarta.ws.rs.PathParam;
-import org.eclipse.edc.connector.controlplane.api.management.contractdefinition.ContractDefinitionApi;
+import org.eclipse.edc.connector.controlplane.api.management.contractdefinition.v3.ContractDefinitionApiV3;
 
-public interface FeignContractDefinitionApi extends ContractDefinitionApi {
+public interface FeignContractDefinitionApi extends ContractDefinitionApiV3 {
 
     @POST
     @Path("/request")
     @Override
-    JsonArray queryContractDefinitions(JsonObject querySpecJson);
+    JsonArray queryContractDefinitionsV3(JsonObject querySpecJson);
 
     @GET
     @Path("{id}")
     @Override
-    JsonObject getContractDefinition(@PathParam("id") String id);
+    JsonObject getContractDefinitionV3(@PathParam("id") String id);
 
     @POST
     @Override
-    JsonObject createContractDefinition(JsonObject createObject);
+    JsonObject createContractDefinitionV3(JsonObject createObject);
 
     @DELETE
     @Path("{id}")
     @Override
-    void deleteContractDefinition(@PathParam("id") String id);
+    void deleteContractDefinitionV3(@PathParam("id") String id);
 
     @PUT
     @Override
-    void updateContractDefinition(JsonObject updateObject);
+    void updateContractDefinitionV3(JsonObject updateObject);
 }

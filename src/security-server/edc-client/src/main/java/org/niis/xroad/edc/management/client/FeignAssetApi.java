@@ -44,24 +44,24 @@ public interface FeignAssetApi extends AssetApi {
 
     @POST
     @Override
-    JsonObject createAsset(JsonObject assetJson);
+    JsonObject createAssetV3(JsonObject assetJson);
 
     @POST
     @Path("/request")
     @Override
-    JsonArray requestAssets(JsonObject querySpecJson);
+    JsonArray requestAssetsV3(JsonObject querySpecJson);
 
     @GET
     @Path("{id}")
     @Override
-    JsonObject getAsset(@PathParam("id") String id);
+    JsonObject getAssetV3(@PathParam("id") String id);
 
     @DELETE
     @Path("{id}")
     @Override
-    void removeAsset(@PathParam("id") String id);
+    void removeAssetV3(@PathParam("id") String id);
 
     @PUT
     @Override
-    void updateAsset(JsonObject assetJson);
+    void updateAssetV3(JsonObject assetJson);
 }

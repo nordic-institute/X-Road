@@ -29,49 +29,41 @@ package org.niis.xroad.edc.management.client;
 
 import jakarta.json.JsonArray;
 import jakarta.json.JsonObject;
+import jakarta.ws.rs.DELETE;
 import jakarta.ws.rs.GET;
 import jakarta.ws.rs.POST;
+import jakarta.ws.rs.PUT;
 import jakarta.ws.rs.Path;
-import jakarta.ws.rs.PathParam;
-import org.eclipse.edc.connector.controlplane.api.management.transferprocess.v3.TransferProcessApiV3;
+import org.eclipse.edc.connector.dataplane.selector.control.api.DataplaneSelectorControlApi;
 
-public interface FeignTransferProcessApi extends TransferProcessApiV3 {
+public interface FeignDataplaneSelectorControlApi extends DataplaneSelectorControlApi {
+
     @POST
-    @Path("request")
     @Override
-    JsonArray queryTransferProcessesV3(JsonObject querySpecJson);
+    JsonObject registerDataplane(JsonObject request);
+
+    @PUT
+    @Path("/{id}/unregister")
+    @Override
+    void unregisterDataplane(String id);
+
+    @DELETE
+    @Path("/{id}")
+    @Override
+    void deleteDataplane(String id);
+
+    @POST
+    @Path("/select")
+    @Override
+    JsonObject selectDataplane(JsonObject request);
 
     @GET
-    @Path("{id}")
     @Override
-    JsonObject getTransferProcessV3(@PathParam("id") String id);
+    JsonArray getAllDataPlaneInstances();
 
     @GET
-    @Path("/{id}/state")
+    @Path("/{id}")
     @Override
-    JsonObject getTransferProcessStateV3(@PathParam("id") String id);
+    JsonObject findDataPlaneById(String id);
 
-    @POST
-    @Override
-    JsonObject initiateTransferProcessV3(JsonObject request);
-
-    @POST
-    @Path("/{id}/deprovision")
-    @Override
-    void deprovisionTransferProcessV3(@PathParam("id") String id);
-
-    @POST
-    @Path("/{id}/terminate")
-    @Override
-    void terminateTransferProcessV3(@PathParam("id") String id, JsonObject requestBody);
-
-    @POST
-    @Path("/{id}/suspend")
-    @Override
-    void suspendTransferProcessV3(@PathParam("id") String id, JsonObject jsonObject);
-
-    @POST
-    @Path("/{id}/resume")
-    @Override
-    void resumeTransferProcessV3(@PathParam("id") String id);
 }

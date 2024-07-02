@@ -23,6 +23,7 @@ dependencies {
     implementation libs.edc.verifiable.credentials
     implementation libs.edc.jwt.verifiable.credentials
     implementation libs.edc.jsonLd.spi
+    implementation libs.edc.jsonLd.lib
     implementation libs.edc.jws2020.lib
     implementation libs.edc.token.core
     implementation libs.edc.util.lib

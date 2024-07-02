@@ -1,5 +1,5 @@
 /*
- *  Copyright (c) 2020 - 2022 Microsoft Corporation
+ *  Copyright (c) 2022 Microsoft Corporation
  *
  *  This program and the accompanying materials are made available under the
  *  terms of the Apache License, Version 2.0 which is available at
@@ -12,10 +12,11 @@
  *
  */
 
-
 package org.eclipse.edc.web.jetty;
 
-import org.eclipse.edc.spi.system.ServiceExtensionContext;
+
+import org.eclipse.edc.spi.monitor.Monitor;
+import org.eclipse.edc.spi.system.configuration.Config;
 import org.eclipse.edc.web.spi.WebServer;
 import org.eclipse.edc.web.spi.configuration.WebServiceConfiguration;
 import org.eclipse.edc.web.spi.configuration.WebServiceConfigurer;
@@ -25,16 +26,18 @@ import static java.lang.String.format;
 
 public class WebServiceConfigurerImpl implements WebServiceConfigurer {
 
+    private final Monitor monitor;
+
+    public WebServiceConfigurerImpl(Monitor monitor) {
+        this.monitor = monitor;
+    }
 
     @Override
-    public WebServiceConfiguration configure(ServiceExtensionContext context, WebServer webServer, WebServiceSettings settings) {
-
+    public WebServiceConfiguration configure(Config config, WebServer webServer, WebServiceSettings settings) {
         var apiConfig = settings.apiConfigKey();
-        var config = context.getConfig(apiConfig);
         var port = settings.getDefaultPort();
         var path = settings.getDefaultPath();
         var contextAlias = settings.getContextAlias();
-        var monitor = context.getMonitor();
 
         if (!config.getEntries().isEmpty()) {
             port = config.getInteger("port", port);
@@ -43,9 +46,7 @@ public class WebServiceConfigurerImpl implements WebServiceConfigurer {
             monitor.warning(format("Settings for [%s] and/or [%s] were not provided. Using default"
                     + " value(s) instead.", apiConfig + ".path", apiConfig + ".path"));
 
-            if (settings.useDefaultContext()) {
-                contextAlias = webServer.getDefaultContextName();
-            } else {
+            if (!settings.useDefaultContext()) {
                 webServer.addPortMapping(contextAlias, port, path);
             }
         }
@@ -54,9 +55,7 @@ public class WebServiceConfigurerImpl implements WebServiceConfigurer {
 
         return WebServiceConfiguration.Builder.newInstance()
                 .path(path)
-                .contextAlias(contextAlias)
                 .port(port)
                 .build();
-
     }
 }

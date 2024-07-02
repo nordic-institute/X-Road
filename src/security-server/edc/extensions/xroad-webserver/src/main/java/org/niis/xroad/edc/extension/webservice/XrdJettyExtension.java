@@ -30,7 +30,7 @@ import org.eclipse.edc.web.spi.WebServer;
 import org.eclipse.edc.web.spi.configuration.WebServiceConfigurer;
 
 @SuppressWarnings("checkstyle:MagicNumber")
-@Provides({WebServer.class, JettyService.class})
+@Provides({ WebServer.class, JettyService.class })
 public class XrdJettyExtension implements ServiceExtension {
 
     @Setting
@@ -74,8 +74,8 @@ public class XrdJettyExtension implements ServiceExtension {
     }
 
     @Provider
-    public WebServiceConfigurer webServiceContextConfigurator() {
-        return new WebServiceConfigurerImpl();
+    public WebServiceConfigurer webServiceContextConfigurator(ServiceExtensionContext context) {
+        return new WebServiceConfigurerImpl(context.getMonitor());
     }
 
     private void safelyInitSignerClient(Monitor monitor) {
@@ -96,7 +96,6 @@ public class XrdJettyExtension implements ServiceExtension {
 
 
     private void initSignerClient(Monitor monitor) {
-
         monitor.info("Initializing Signer client");
         try {
             RpcSignerClient.init("localhost", 5560, 10000);
@@ -104,4 +103,5 @@ public class XrdJettyExtension implements ServiceExtension {
             throw new RuntimeException(e);
         }
     }
+
 }

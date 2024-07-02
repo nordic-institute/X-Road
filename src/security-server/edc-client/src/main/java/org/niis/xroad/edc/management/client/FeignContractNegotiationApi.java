@@ -33,35 +33,35 @@ import jakarta.ws.rs.GET;
 import jakarta.ws.rs.POST;
 import jakarta.ws.rs.Path;
 import jakarta.ws.rs.PathParam;
-import org.eclipse.edc.connector.controlplane.api.management.contractnegotiation.ContractNegotiationApi;
+import org.eclipse.edc.connector.controlplane.api.management.contractnegotiation.v3.ContractNegotiationApiV3;
 
-public interface FeignContractNegotiationApi extends ContractNegotiationApi {
+public interface FeignContractNegotiationApi extends ContractNegotiationApiV3 {
     @POST
     @Path("/request")
     @Override
-    JsonArray queryNegotiations(JsonObject querySpecJson);
+    JsonArray queryNegotiationsV3(JsonObject querySpecJson);
 
     @GET
     @Path("/{id}")
     @Override
-    JsonObject getNegotiation(@PathParam("id") String id);
+    JsonObject getNegotiationV3(@PathParam("id") String id);
 
     @GET
     @Path("/{id}/state")
     @Override
-    JsonObject getNegotiationState(@PathParam("id") String id);
+    JsonObject getNegotiationStateV3(@PathParam("id") String id);
 
     @GET
     @Path("/{id}/agreement")
     @Override
-    JsonObject getAgreementForNegotiation(@PathParam("id") String negotiationId);
+    JsonObject getAgreementForNegotiationV3(@PathParam("id") String negotiationId);
 
     @POST
     @Override
-    JsonObject initiateContractNegotiation(JsonObject requestObject);
+    JsonObject initiateContractNegotiationV3(JsonObject requestObject);
 
     @POST
     @Path("/{id}/terminate")
     @Override
-    void terminateNegotiation(@PathParam("id") String id, JsonObject terminateNegotiation);
+    void terminateNegotiationV3(@PathParam("id") String id, JsonObject terminateNegotiation);
 }

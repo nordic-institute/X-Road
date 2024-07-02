@@ -40,16 +40,16 @@ import org.eclipse.edc.transform.transformer.edc.to.JsonValueToGenericTypeTransf
 import java.util.Set;
 
 import static org.eclipse.edc.spi.constants.CoreConstants.JSON_LD;
-import static org.niis.xroad.edc.extension.iam.IatpScopeExtension.NAME;
+import static org.niis.xroad.edc.extension.iam.DcpScopeExtension.NAME;
 
 /**
  * Scope claim is always empty in the consumer's JWT and it's not configurable.
  * Provider expects one to be present in a specific format.
  */
 @Extension(NAME)
-public class IatpScopeExtension implements ServiceExtension {
+public class DcpScopeExtension implements ServiceExtension {
 
-    static final String NAME = "X-Road IATP scope extension";
+    static final String NAME = "X-Road DCP scope extension";
 
     public static final String CATALOG_REQUEST_SCOPE = "request.catalog";
     public static final String NEGOTIATION_REQUEST_SCOPE = "request.contract.negotiation";

@@ -34,7 +34,7 @@ dependencies {
     implementation libs.edc.verifiablecredential.spi
     implementation libs.edc.verifiable.presentation.lib
     implementation libs.edc.jsonLd.spi
-//TODO excluded until https://github.com/eclipse-edc/Connector/issues/4232 is fixed    implementation libs.edc.jsonLd.lib
+    implementation libs.edc.jsonLd.lib
 
     implementation libs.bundles.edc.monitoring
 
@@ -54,4 +54,9 @@ application {
 shadowJar {
     mergeServiceFiles()
     archiveFileName.set("edc-identity-hub.jar")
+}
+
+checkstyle {
+    checkstyleMain.enabled = false
+    checkstyleTest.enabled = false
 }

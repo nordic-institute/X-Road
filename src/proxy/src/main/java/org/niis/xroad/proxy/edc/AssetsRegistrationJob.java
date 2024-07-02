@@ -43,17 +43,18 @@ import jakarta.ws.rs.core.MediaType;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.time.StopWatch;
 import org.eclipse.edc.connector.controlplane.api.management.asset.v3.AssetApi;
-import org.eclipse.edc.connector.controlplane.api.management.contractdefinition.ContractDefinitionApi;
-import org.eclipse.edc.connector.controlplane.api.management.policy.PolicyDefinitionApi;
+import org.eclipse.edc.connector.controlplane.api.management.contractdefinition.v3.ContractDefinitionApiV3;
 import org.eclipse.edc.connector.controlplane.api.management.policy.transform.JsonObjectFromPolicyDefinitionTransformer;
 import org.eclipse.edc.connector.controlplane.api.management.policy.transform.JsonObjectToPolicyDefinitionTransformer;
+import org.eclipse.edc.connector.controlplane.api.management.policy.v3.PolicyDefinitionApiV3;
 import org.eclipse.edc.connector.controlplane.asset.spi.domain.Asset;
 import org.eclipse.edc.connector.controlplane.contract.spi.types.offer.ContractDefinition;
 import org.eclipse.edc.connector.controlplane.policy.spi.PolicyDefinition;
 import org.eclipse.edc.connector.controlplane.transform.odrl.from.JsonObjectFromPolicyTransformer;
 import org.eclipse.edc.connector.controlplane.transform.odrl.to.JsonObjectToPolicyTransformer;
 import org.eclipse.edc.connector.core.agent.NoOpParticipantIdMapper;
-import org.eclipse.edc.connector.dataplane.selector.api.v2.DataplaneSelectorApi;
+import org.eclipse.edc.connector.dataplane.selector.api.v2.DataplaneSelectorApiV2;
+import org.eclipse.edc.connector.dataplane.selector.control.api.DataplaneSelectorControlApi;
 import org.eclipse.edc.connector.dataplane.selector.spi.instance.DataPlaneInstance;
 import org.eclipse.edc.jsonld.util.JacksonJsonLd;
 import org.eclipse.edc.spi.agent.ParticipantIdMapper;
@@ -102,18 +103,22 @@ public class AssetsRegistrationJob {
     static final String XROAD_JOB_MANAGED_PROPERTY = XROAD_NAMESPACE + "xroadJobManaged";
 
 
-    private final DataplaneSelectorApi dataplaneSelectorApi;
+    private final DataplaneSelectorControlApi dataplaneSelectorControlApi;
+
+    private final DataplaneSelectorApiV2 dataplaneSelectorApi;
     private final AssetApi assetApi;
-    private final PolicyDefinitionApi policyDefinitionApi;
-    private final ContractDefinitionApi contractDefinitionApi;
+    private final PolicyDefinitionApiV3 policyDefinitionApi;
+    private final ContractDefinitionApiV3 contractDefinitionApi;
     private final ScheduledExecutorService scheduler = Executors.newSingleThreadScheduledExecutor();
     private final TransformerContext context;
 
     private final ParticipantIdMapper participantIdMapper = new NoOpParticipantIdMapper();
     private final String providerDataplaneId = "http-provider-dataplane";
 
-    public AssetsRegistrationJob(DataplaneSelectorApi dataplaneSelectorApi, AssetApi assetApi,
-                                 PolicyDefinitionApi policyDefinitionApi, ContractDefinitionApi contractDefinitionApi) {
+    public AssetsRegistrationJob(DataplaneSelectorControlApi dataplaneSelectorControlApi,
+                                 DataplaneSelectorApiV2 dataplaneSelectorApi, AssetApi assetApi,
+                                 PolicyDefinitionApiV3 policyDefinitionApi, ContractDefinitionApiV3 contractDefinitionApi) {
+        this.dataplaneSelectorControlApi = dataplaneSelectorControlApi;
         this.dataplaneSelectorApi = dataplaneSelectorApi;
         this.assetApi = assetApi;
         this.policyDefinitionApi = policyDefinitionApi;
@@ -154,7 +159,7 @@ public class AssetsRegistrationJob {
         // todo: recheck
         try {
             log.info("Creating dataplane");
-            dataplaneSelectorApi.addDataPlaneInstance(createObjectBuilder()
+            dataplaneSelectorApi.addDataPlaneInstanceV2(createObjectBuilder()
                     .add(CONTEXT, createObjectBuilder().add(VOCAB, EDC_NAMESPACE))
                     .add(TYPE, DATAPLANE_INSTANCE_TYPE)
                     .add(ID, providerDataplaneId)
@@ -168,6 +173,9 @@ public class AssetsRegistrationJob {
                             .build())
                     .add(DataPlaneInstance.ALLOWED_DEST_TYPES, createArrayBuilder()
                             .add("HttpData")
+                            .build())
+                    .add(DataPlaneInstance.ALLOWED_TRANSFER_TYPES, createArrayBuilder()
+                            .add("Any-PULL")
                             .build())
                     .build()
             );
@@ -189,7 +197,7 @@ public class AssetsRegistrationJob {
                 "=",
                 Boolean.TRUE.toString());
 
-        assetApi.requestAssets(toJsonObject(QuerySpec.Builder.newInstance()
+        assetApi.requestAssetsV3(toJsonObject(QuerySpec.Builder.newInstance()
                         .filter(criterion)
                         .build()))
                 .stream()
@@ -207,7 +215,7 @@ public class AssetsRegistrationJob {
             }
         };
 
-        policyDefinitionApi.queryPolicyDefinitions(toJsonObject(QuerySpec.Builder.newInstance()
+        policyDefinitionApi.queryPolicyDefinitionsV3(toJsonObject(QuerySpec.Builder.newInstance()
                         // .filter(criterion)  // todo: edc: Querying Map types is not yet supported
                         .build()))
                 .stream()
@@ -216,7 +224,7 @@ public class AssetsRegistrationJob {
                 .map(x -> x.getString(ID))
                 .forEach(jobContext.policyDefinitionIds::add);
 
-        contractDefinitionApi.queryContractDefinitions(toJsonObject(QuerySpec.Builder.newInstance()
+        contractDefinitionApi.queryContractDefinitionsV3(toJsonObject(QuerySpec.Builder.newInstance()
                         // .filter(criterion) // todo: edc: Querying Map types is not yet supported
                         .build()))
                 .stream()
@@ -231,7 +239,7 @@ public class AssetsRegistrationJob {
     private void deleteNotRelevantObjects(JobContext jobContext) {
         jobContext.assetIds.forEach(assetId -> {
             try {
-                assetApi.removeAsset(assetId);
+                assetApi.removeAssetV3(assetId);
             } catch (Exception e) {
                 log.info("Error deleting asset [{}]", assetId, e);
             }
@@ -239,7 +247,7 @@ public class AssetsRegistrationJob {
 
         jobContext.policyDefinitionIds.forEach(policyId -> {
             try {
-                policyDefinitionApi.deletePolicyDefinition(policyId);
+                policyDefinitionApi.deletePolicyDefinitionV3(policyId);
             } catch (Exception e) {
                 log.info("Error deleting policy definition [{}]", policyId, e);
             }
@@ -247,7 +255,7 @@ public class AssetsRegistrationJob {
 
         jobContext.contractDefinitionIds.forEach(contractId -> {
             try {
-                contractDefinitionApi.deleteContractDefinition(contractId);
+                contractDefinitionApi.deleteContractDefinitionV3(contractId);
             } catch (Exception e) {
                 log.info("Error deleting contract definition [{}]", contractId, e);
             }
@@ -293,15 +301,15 @@ public class AssetsRegistrationJob {
         JsonObject policyDefJson = toJsonObject(policyDefinition);
         jobContext.policyDefinitionIds.remove(policyDefinitionId);
         if (policyDefinitionExists(policyDefinitionId)) {
-            policyDefinitionApi.updatePolicyDefinition(policyDefinitionId, policyDefJson);
+            policyDefinitionApi.updatePolicyDefinitionV3(policyDefinitionId, policyDefJson);
         } else {
-            policyDefinitionApi.createPolicyDefinition(policyDefJson);
+            policyDefinitionApi.createPolicyDefinitionV3(policyDefJson);
         }
     }
 
     private boolean policyDefinitionExists(String policyDefinitionId) {
         try {
-            policyDefinitionApi.getPolicyDefinition(policyDefinitionId);
+            policyDefinitionApi.getPolicyDefinitionV3(policyDefinitionId);
             return true;
         } catch (FeignException.NotFound notFound) {
             return false;
@@ -315,7 +323,7 @@ public class AssetsRegistrationJob {
         Optional<JsonObject> assetOptional = fetchAsset(assetId);
         if (assetOptional.isEmpty()) {
             log.info("Creating new asset for service {}", assetId);
-            assetApi.createAsset(createObjectBuilder()
+            assetApi.createAssetV3(createObjectBuilder()
                     .add(CONTEXT, createObjectBuilder().add(VOCAB, EDC_NAMESPACE))
                     .add(TYPE, Asset.EDC_ASSET_TYPE)
                     .add(ID, assetId)
@@ -354,7 +362,7 @@ public class AssetsRegistrationJob {
                         .add("dataAddress", updatedDataAddress)
                         .build();
 
-                assetApi.updateAsset(updatedAsset);
+                assetApi.updateAssetV3(updatedAsset);
             }
         }
     }
@@ -365,9 +373,9 @@ public class AssetsRegistrationJob {
         String contractDefId = "%s-contract-definition".formatted(assetId);
         jobContext.contractDefinitionIds.remove(contractDefId);
         try {
-            contractDefinitionApi.getContractDefinition(contractDefId);
+            contractDefinitionApi.getContractDefinitionV3(contractDefId);
         } catch (FeignException.NotFound notFound) {
-            contractDefinitionApi.createContractDefinition(createObjectBuilder()
+            contractDefinitionApi.createContractDefinitionV3(createObjectBuilder()
                     .add(CONTEXT, createObjectBuilder().add(VOCAB, EDC_NAMESPACE))
                     .add(ID, contractDefId)
                     .add(ContractDefinition.CONTRACT_DEFINITION_ACCESSPOLICY_ID, policyId)
@@ -387,7 +395,7 @@ public class AssetsRegistrationJob {
 
     private Optional<JsonObject> fetchAsset(String assetId) {
         try {
-            return Optional.of(assetApi.getAsset(assetId));
+            return Optional.of(assetApi.getAssetV3(assetId));
         } catch (FeignException.NotFound notFound) {
             return Optional.empty();
         }
