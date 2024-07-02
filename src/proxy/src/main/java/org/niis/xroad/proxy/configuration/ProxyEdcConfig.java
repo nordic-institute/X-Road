@@ -35,7 +35,6 @@ import org.eclipse.edc.connector.controlplane.api.management.contractdefinition.
 import org.eclipse.edc.connector.controlplane.api.management.contractnegotiation.v3.ContractNegotiationApiV3;
 import org.eclipse.edc.connector.controlplane.api.management.policy.v3.PolicyDefinitionApiV3;
 import org.eclipse.edc.connector.controlplane.api.management.transferprocess.v3.TransferProcessApiV3;
-import org.eclipse.edc.connector.dataplane.selector.api.v2.DataplaneSelectorApiV2;
 import org.eclipse.edc.connector.dataplane.selector.control.api.DataplaneSelectorControlApi;
 import org.niis.xroad.edc.management.client.FeignXroadEdrApi;
 import org.niis.xroad.edc.management.client.configuration.EdcControlApiFactory;
@@ -72,11 +71,6 @@ public class ProxyEdcConfig {
     @Bean
     DataplaneSelectorControlApi dataplaneSelectorControlApi(EdcControlApiFactory edcControlApiFactory) {
         return edcControlApiFactory.dataplaneSelectorControlApi();
-    }
-
-    @Bean
-    DataplaneSelectorApiV2 dataplaneSelectorApi(EdcManagementApiFactory edcManagementApiFactory) {
-        return edcManagementApiFactory.dataplaneSelectorApi();
     }
 
     @Bean

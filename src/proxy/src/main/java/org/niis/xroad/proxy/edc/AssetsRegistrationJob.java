@@ -53,7 +53,6 @@ import org.eclipse.edc.connector.controlplane.policy.spi.PolicyDefinition;
 import org.eclipse.edc.connector.controlplane.transform.odrl.from.JsonObjectFromPolicyTransformer;
 import org.eclipse.edc.connector.controlplane.transform.odrl.to.JsonObjectToPolicyTransformer;
 import org.eclipse.edc.connector.core.agent.NoOpParticipantIdMapper;
-import org.eclipse.edc.connector.dataplane.selector.api.v2.DataplaneSelectorApiV2;
 import org.eclipse.edc.connector.dataplane.selector.control.api.DataplaneSelectorControlApi;
 import org.eclipse.edc.connector.dataplane.selector.spi.instance.DataPlaneInstance;
 import org.eclipse.edc.jsonld.util.JacksonJsonLd;
@@ -104,8 +103,6 @@ public class AssetsRegistrationJob {
 
 
     private final DataplaneSelectorControlApi dataplaneSelectorControlApi;
-
-    private final DataplaneSelectorApiV2 dataplaneSelectorApi;
     private final AssetApi assetApi;
     private final PolicyDefinitionApiV3 policyDefinitionApi;
     private final ContractDefinitionApiV3 contractDefinitionApi;
@@ -115,11 +112,9 @@ public class AssetsRegistrationJob {
     private final ParticipantIdMapper participantIdMapper = new NoOpParticipantIdMapper();
     private final String providerDataplaneId = "http-provider-dataplane";
 
-    public AssetsRegistrationJob(DataplaneSelectorControlApi dataplaneSelectorControlApi,
-                                 DataplaneSelectorApiV2 dataplaneSelectorApi, AssetApi assetApi,
+    public AssetsRegistrationJob(DataplaneSelectorControlApi dataplaneSelectorControlApi, AssetApi assetApi,
                                  PolicyDefinitionApiV3 policyDefinitionApi, ContractDefinitionApiV3 contractDefinitionApi) {
         this.dataplaneSelectorControlApi = dataplaneSelectorControlApi;
-        this.dataplaneSelectorApi = dataplaneSelectorApi;
         this.assetApi = assetApi;
         this.policyDefinitionApi = policyDefinitionApi;
         this.contractDefinitionApi = contractDefinitionApi;
@@ -159,7 +154,7 @@ public class AssetsRegistrationJob {
         // todo: recheck
         try {
             log.info("Creating dataplane");
-            dataplaneSelectorApi.addDataPlaneInstanceV2(createObjectBuilder()
+            dataplaneSelectorControlApi.registerDataplane(createObjectBuilder()
                     .add(CONTEXT, createObjectBuilder().add(VOCAB, EDC_NAMESPACE))
                     .add(TYPE, DATAPLANE_INSTANCE_TYPE)
                     .add(ID, providerDataplaneId)

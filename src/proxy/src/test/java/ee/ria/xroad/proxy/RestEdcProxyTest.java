@@ -553,8 +553,8 @@ public class RestEdcProxyTest extends AbstractProxyIntegrationTest {
         EdcControlApiFactory controlApiFactory = new EdcControlApiFactory(
                 "http://localhost:%s".formatted("19192"));
 
-        var assetRegistrationJob = new AssetsRegistrationJob(controlApiFactory.dataplaneSelectorControlApi(),
-                managementApiFactory.dataplaneSelectorApi(), managementApiFactory.assetsApi(),
+        var assetRegistrationJob = new AssetsRegistrationJob(
+                controlApiFactory.dataplaneSelectorControlApi(), managementApiFactory.assetsApi(),
                 managementApiFactory.policyDefinitionApi(), managementApiFactory.contractDefinitionApi());
         assetRegistrationJob.registerDataPlane();
         assetRegistrationJob.registerAssets();
