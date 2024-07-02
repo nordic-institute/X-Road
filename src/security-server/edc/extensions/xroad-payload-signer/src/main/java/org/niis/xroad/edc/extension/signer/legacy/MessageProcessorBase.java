@@ -28,43 +28,74 @@
 package org.niis.xroad.edc.extension.signer.legacy;
 
 import ee.ria.xroad.common.CodedException;
+import ee.ria.xroad.common.cert.CertChain;
+import ee.ria.xroad.common.cert.CertHelper;
 import ee.ria.xroad.common.conf.globalconf.GlobalConf;
+import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.identifier.XRoadId;
 import ee.ria.xroad.common.util.HttpSender;
 
 import jakarta.ws.rs.container.ContainerRequestContext;
 import jakarta.ws.rs.core.Response;
+import org.apache.commons.lang3.ArrayUtils;
 import org.apache.http.client.HttpClient;
+import org.bouncycastle.cert.ocsp.OCSPResp;
 import org.eclipse.edc.spi.monitor.Monitor;
 
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.security.cert.X509Certificate;
+import java.util.List;
 
 import static ee.ria.xroad.common.ErrorCodes.X_INTERNAL_ERROR;
 import static ee.ria.xroad.common.ErrorCodes.X_INVALID_SOAPACTION;
+import static ee.ria.xroad.common.ErrorCodes.X_SSL_AUTH_FAILED;
 import static ee.ria.xroad.common.util.MimeUtils.HEADER_HASH_ALGO_ID;
 
 public abstract class MessageProcessorBase {
 
-    /**
-     * The servlet request.
-     */
     protected final ContainerRequestContext requestContext;
-
-    /**
-     * The http client instance.
-     */
+    private final X509Certificate[] clientSslCerts;
     protected final HttpClient httpClient;
     protected final Monitor monitor;
 
     protected MessageProcessorBase(ContainerRequestContext request,
+                                   X509Certificate[] clientSslCerts,
                                    HttpClient httpClient,
                                    Monitor monitor) {
         this.requestContext = request;
+        this.clientSslCerts = clientSslCerts;
         this.httpClient = httpClient;
         this.monitor = monitor;
 
         GlobalConf.verifyValidity();
+    }
+
+    protected void verifySslClientCert(List<OCSPResp> ocspResponses, ClientId clientId) throws Exception {
+        if (ArrayUtils.isEmpty(clientSslCerts)) {
+            throw new CodedException(X_SSL_AUTH_FAILED, "Client SSL certificate is missing");
+        }
+
+        if (ocspResponses.isEmpty()) {
+            throw new CodedException(X_SSL_AUTH_FAILED,
+                    "Cannot verify TLS certificate, corresponding OCSP response is missing");
+        }
+
+        String instanceIdentifier = clientId.getXRoadInstance();
+        X509Certificate trustAnchor = GlobalConf.getCaCert(instanceIdentifier,
+                clientSslCerts[clientSslCerts.length - 1]);
+
+        if (trustAnchor == null) {
+            throw new Exception("Unable to find trust anchor");
+        }
+
+        try {
+            CertChain chain = CertChain.create(instanceIdentifier, ArrayUtils.add(clientSslCerts,
+                    trustAnchor));
+            CertHelper.verifyAuthCert(chain, ocspResponses, clientId);
+        } catch (Exception e) {
+            throw new CodedException(X_SSL_AUTH_FAILED, e);
+        }
     }
 
     /**
