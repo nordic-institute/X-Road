@@ -26,7 +26,7 @@
  */
 package org.niis.xroad.edc.extension.iam;
 
-import org.eclipse.edc.iam.identitytrust.spi.IatpParticipantAgentServiceExtension;
+import org.eclipse.edc.iam.identitytrust.spi.DcpParticipantAgentServiceExtension;
 import org.eclipse.edc.runtime.metamodel.annotation.Extension;
 import org.eclipse.edc.runtime.metamodel.annotation.Provider;
 import org.eclipse.edc.spi.system.ServiceExtension;
@@ -42,8 +42,8 @@ public class GaiaXParticipantAgentServiceExtension implements ServiceExtension {
     static final String NAME = "X-Road participant agent extension";
 
     @Provider
-    public IatpParticipantAgentServiceExtension createGaiaXIatpParticipantAgentServiceExtension() {
-        return new IatpIdentityExtractor();
+    public DcpParticipantAgentServiceExtension createGaiaXDcpParticipantAgentServiceExtension() {
+        return new DcpIdentityExtractor();
     }
 
 }

@@ -45,11 +45,12 @@ import org.apache.hc.client5.http.ssl.NoopHostnameVerifier;
 import org.apache.hc.client5.http.ssl.SSLConnectionSocketFactoryBuilder;
 import org.apache.hc.core5.http.HttpHeaders;
 import org.eclipse.edc.connector.controlplane.api.management.asset.v3.AssetApi;
-import org.eclipse.edc.connector.controlplane.api.management.contractdefinition.ContractDefinitionApi;
-import org.eclipse.edc.connector.controlplane.api.management.contractnegotiation.ContractNegotiationApi;
-import org.eclipse.edc.connector.controlplane.api.management.policy.PolicyDefinitionApi;
-import org.eclipse.edc.connector.controlplane.api.management.transferprocess.TransferProcessApi;
-import org.eclipse.edc.connector.dataplane.selector.api.v2.DataplaneSelectorApi;
+import org.eclipse.edc.connector.controlplane.api.management.catalog.v3.CatalogApiV3;
+import org.eclipse.edc.connector.controlplane.api.management.contractdefinition.v3.ContractDefinitionApiV3;
+import org.eclipse.edc.connector.controlplane.api.management.contractnegotiation.v3.ContractNegotiationApiV3;
+import org.eclipse.edc.connector.controlplane.api.management.policy.v3.PolicyDefinitionApiV3;
+import org.eclipse.edc.connector.controlplane.api.management.transferprocess.v3.TransferProcessApiV3;
+import org.eclipse.edc.connector.dataplane.selector.api.v2.DataplaneSelectorApiV2;
 import org.eclipse.edc.jsonld.util.JacksonJsonLd;
 import org.niis.xroad.edc.management.client.FeignAssetApi;
 import org.niis.xroad.edc.management.client.FeignCatalogApi;
@@ -71,32 +72,33 @@ public class EdcManagementApiFactory {
 
     }
 
-    public DataplaneSelectorApi dataplaneSelectorApi() {
-        return createFeignClient(DataplaneSelectorApi.class, "/v2/dataplanes");
+    public DataplaneSelectorApiV2 dataplaneSelectorApi() {
+        return createFeignClient(DataplaneSelectorApiV2.class, "/v2/dataplanes");
     }
+
 
     public AssetApi assetsApi() {
         return createFeignClient(FeignAssetApi.class, "/v3/assets");
     }
 
-    public FeignCatalogApi catalogApi() {
-        return createFeignClient(FeignCatalogApi.class, "/v2/catalog");
+    public CatalogApiV3 catalogApi() {
+        return createFeignClient(FeignCatalogApi.class, "/v3/catalog");
     }
 
-    public PolicyDefinitionApi policyDefinitionApi() {
-        return createFeignClient(FeignPolicyDefinitionApi.class, "/v2/policydefinitions");
+    public PolicyDefinitionApiV3 policyDefinitionApi() {
+        return createFeignClient(FeignPolicyDefinitionApi.class, "/v3/policydefinitions");
     }
 
-    public ContractDefinitionApi contractDefinitionApi() {
-        return createFeignClient(FeignContractDefinitionApi.class, "/v2/contractdefinitions");
+    public ContractDefinitionApiV3 contractDefinitionApi() {
+        return createFeignClient(FeignContractDefinitionApi.class, "/v3/contractdefinitions");
     }
 
-    public ContractNegotiationApi contractNegotiationApi() {
-        return createFeignClient(FeignContractNegotiationApi.class, "/v2/contractnegotiations");
+    public ContractNegotiationApiV3 contractNegotiationApi() {
+        return createFeignClient(FeignContractNegotiationApi.class, "/v3/contractnegotiations");
     }
 
-    public TransferProcessApi transferProcessApi() {
-        return createFeignClient(FeignTransferProcessApi.class, "/v2/transferprocesses");
+    public TransferProcessApiV3 transferProcessApi() {
+        return createFeignClient(FeignTransferProcessApi.class, "/v3/transferprocesses");
     }
 
     public FeignXroadEdrApi xrdEdrApi() {

@@ -28,7 +28,6 @@
 package org.niis.xroad.edc.extension.edr;
 
 import jakarta.json.Json;
-import org.eclipse.edc.connector.api.management.configuration.ManagementApiConfiguration;
 import org.eclipse.edc.connector.controlplane.services.spi.catalog.CatalogService;
 import org.eclipse.edc.connector.controlplane.services.spi.contractnegotiation.ContractNegotiationService;
 import org.eclipse.edc.connector.controlplane.services.spi.transferprocess.TransferProcessService;
@@ -45,6 +44,7 @@ import org.eclipse.edc.spi.system.ServiceExtensionContext;
 import org.eclipse.edc.transform.spi.TypeTransformerRegistry;
 import org.eclipse.edc.transform.transformer.edc.from.JsonObjectFromDataAddressTransformer;
 import org.eclipse.edc.web.spi.WebService;
+import org.eclipse.edc.web.spi.configuration.ApiContext;
 import org.niis.xroad.edc.extension.edr.callback.ContractNegotiationCallbackHandler;
 import org.niis.xroad.edc.extension.edr.callback.LocalCallbackRegistryImpl;
 import org.niis.xroad.edc.extension.edr.callback.TransferProcessCallbackHandler;
@@ -70,8 +70,6 @@ public class XrdEdrExtension implements ServiceExtension {
 
     @Inject
     private WebService webService;
-    @Inject
-    private ManagementApiConfiguration apiConfig;
     @Inject
     private TypeTransformerRegistry transformerRegistry;
     @Inject
@@ -118,7 +116,7 @@ public class XrdEdrExtension implements ServiceExtension {
         localCallbackRegistry.registerHandler(new TransferProcessCallbackHandler(authorizedAssetRegistry,
                 inProgressRegistry, edrStore, monitor));
 
-        webService.registerResource(apiConfig.getContextAlias(),
+        webService.registerResource(ApiContext.MANAGEMENT,
                 new XrdEdrController(edrTransformerRegistry, assetAuthorizationManager));
     }
 

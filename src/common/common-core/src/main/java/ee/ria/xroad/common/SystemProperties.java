@@ -1720,7 +1720,7 @@ public final class SystemProperties {
         return Boolean.parseBoolean(System.getProperty(DATASPACES_ENABLED, Boolean.FALSE.toString()));
     }
 
-    public static String dataspacesManagementListenAddress() {
+    public static String dataspacesListenAddress() {
         return "localhost";
     }
 

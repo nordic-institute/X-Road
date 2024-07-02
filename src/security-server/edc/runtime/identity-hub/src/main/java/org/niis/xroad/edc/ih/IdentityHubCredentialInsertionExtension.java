@@ -46,7 +46,6 @@ import org.eclipse.edc.identityhub.spi.verifiablecredentials.model.VcStatus;
 import org.eclipse.edc.identityhub.spi.verifiablecredentials.model.VerifiableCredentialResource;
 import org.eclipse.edc.runtime.metamodel.annotation.Extension;
 import org.eclipse.edc.runtime.metamodel.annotation.Inject;
-import org.eclipse.edc.runtime.metamodel.annotation.Setting;
 import org.eclipse.edc.spi.system.ServiceExtension;
 import org.eclipse.edc.spi.system.ServiceExtensionContext;
 
@@ -71,9 +70,6 @@ public class IdentityHubCredentialInsertionExtension implements ServiceExtension
     static final String NAME = "X-Road Credential insertion extension for Identity Hub";
 
     private static final String CREDENTIAL_TYPE = "XRoadCredential";
-
-    @Setting(value = "DID of this connector", required = true)
-    public static final String CONNECTOR_DID_PROPERTY = "edc.iam.issuer.id";
 
     private static final String CREDENTIALS_DIR_PATH = "edc.ih.credentials.path";
 
@@ -110,7 +106,7 @@ public class IdentityHubCredentialInsertionExtension implements ServiceExtension
                 .participantId(participantId)
                 .did(participantId)
                 .key(KeyDescriptor.Builder.newInstance()
-                        .keyId(System.getenv("EDC_DID_KEY_ID"))
+                        .keyId(participantId + "#" + System.getenv("EDC_DID_KEY_ID"))
                         .privateKeyAlias(context.getConfig().getString("edc.iam.sts.privatekey.alias"))
                         .publicKeyPem(publicKey)
                         .build())
@@ -155,7 +151,8 @@ public class IdentityHubCredentialInsertionExtension implements ServiceExtension
 
     private void createKeyPairs(ServiceExtensionContext context, String participantId, String publicKey) {
         var keyPairResource = KeyPairResource.Builder.newInstance()
-                .keyId(System.getenv("EDC_DID_KEY_ID"))
+                .id(UUID.randomUUID().toString())
+                .keyId(participantId + "#" + System.getenv("EDC_DID_KEY_ID"))
                 .privateKeyAlias(context.getConfig().getString("edc.iam.sts.privatekey.alias"))
                 .isDefaultPair(true)
                 .participantId(participantId)

@@ -53,7 +53,7 @@ import org.jetbrains.annotations.NotNull;
 import java.time.Clock;
 
 import static org.eclipse.edc.iam.identitytrust.core.IdentityAndTrustExtension.CONNECTOR_DID_PROPERTY;
-import static org.eclipse.edc.iam.identitytrust.core.IdentityAndTrustExtension.IATP_SELF_ISSUED_TOKEN_CONTEXT;
+import static org.eclipse.edc.iam.identitytrust.core.IdentityAndTrustExtension.DCP_SELF_ISSUED_TOKEN_CONTEXT;
 import static org.eclipse.edc.spi.constants.CoreConstants.JSON_LD;
 
 @Provides(IdentityService.class)
@@ -119,7 +119,7 @@ public class XRoadIdentityAndTrustServiceExtension implements ServiceExtension {
     @NotNull
     private TokenValidationAction tokenValidationAction() {
         return (tokenRepresentation) -> {
-            var rules = rulesRegistry.getRules(IATP_SELF_ISSUED_TOKEN_CONTEXT);
+            var rules = rulesRegistry.getRules(DCP_SELF_ISSUED_TOKEN_CONTEXT);
             return tokenValidationService.validate(tokenRepresentation, didPublicKeyResolver, rules);
         };
     }

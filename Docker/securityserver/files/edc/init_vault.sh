@@ -18,8 +18,8 @@ wait_for_vault
 
 #public keys
 vault kv put --mount secret public-key content=@/etc/xroad-edc/certs/public-key
-vault kv put --mount secret did%3Aweb%3Ass0%253A9396 content=@/etc/xroad-edc/certs/ss0.crt
-vault kv put --mount secret did%3Aweb%3Ass1%253A9396 content=@/etc/xroad-edc/certs/ss1.crt
+vault kv put --mount secret did%3Aweb%3Ass0%253A9396%23JWK2020-RSA content=@/etc/xroad-edc/certs/ss0.crt
+vault kv put --mount secret did%3Aweb%3Ass1%253A9396%23JWK2020-RSA content=@/etc/xroad-edc/certs/ss1.crt
 
 #private keys
 vault kv put --mount secret did%3Aweb%3Ass0%253A9396-private-key content=@/etc/xroad-edc/certs/ss0.pkcs8

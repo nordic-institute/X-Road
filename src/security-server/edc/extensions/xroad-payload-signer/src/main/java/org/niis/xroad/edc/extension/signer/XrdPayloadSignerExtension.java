@@ -116,7 +116,8 @@ public class XrdPayloadSignerExtension implements ServiceExtension {
 
         loadSystemProperties(monitor);
 
-        var configuration = webServiceConfigurer.configure(context, webServer, PUBLIC_SETTINGS);
+        var config = context.getConfig(PUBLIC_SETTINGS.apiConfigKey());
+        var configuration = webServiceConfigurer.configure(config, webServer, PUBLIC_SETTINGS);
         var executorService = executorInstrumentation.instrument(
                 Executors.newFixedThreadPool(DEFAULT_THREAD_POOL),
                 "Data plane proxy transfers"
@@ -142,9 +143,9 @@ public class XrdPayloadSignerExtension implements ServiceExtension {
                 xRoadMessageLog, authorizationService);
 
         //TODO xroad8 this added port mapping is added due to a strange behavior ir edc jersey registry. Consider refactor.
-        webServer.addPortMapping(configuration.getContextAlias(), configuration.getPort(), configuration.getPath());
-        webService.registerResource(configuration.getContextAlias(), proxyApiController);
-        webService.registerResource(configuration.getContextAlias(), lcController);
+        webServer.addPortMapping(PUBLIC_SETTINGS.getContextAlias(), configuration.getPort(), configuration.getPath());
+        webService.registerResource(PUBLIC_SETTINGS.getContextAlias(), proxyApiController);
+        webService.registerResource(PUBLIC_SETTINGS.getContextAlias(), lcController);
         initSignerClient(monitor);
     }
 
