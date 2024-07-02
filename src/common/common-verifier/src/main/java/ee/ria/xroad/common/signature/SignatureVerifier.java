@@ -56,6 +56,7 @@ import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
 import java.security.cert.X509Certificate;
 import java.util.ArrayList;
+import java.util.Base64;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
@@ -394,7 +395,7 @@ public class SignatureVerifier {
         @Override
         public boolean engineCanResolveURI(ResourceResolverContext context) {
             return switch (context.attr.getValue()) {
-                case MessageFileNames.MESSAGE, MessageFileNames.SIG_HASH_CHAIN_RESULT -> true;
+                case MessageFileNames.MESSAGE, MessageFileNames.SIG_HASH_CHAIN_RESULT, "/attachment1" -> true;
                 default -> false;
             };
         }
@@ -407,6 +408,14 @@ public class SignatureVerifier {
 
                     if (part != null && part.getMessage() != null) {
                         return new XMLSignatureInput(part.getMessage());
+                    }
+
+                    break;
+                case "/attachment1": //TODO xroad8, in general / prefix is not expected by dss. Check specs.
+                    MessagePart partA = getPart("/attachment1");
+
+                    if (partA != null) {
+                        return new XMLSignatureInput(Base64.getEncoder().encodeToString(partA.getData()));
                     }
 
                     break;

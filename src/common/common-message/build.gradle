@@ -27,6 +27,8 @@ dependencies {
 
     testImplementation(project(':common:common-test'))
 
+    api(libs.dss.spi)
+    api libs.dss.evidence.record.xml
     xjc(libs.bundles.jaxb)
 }
 

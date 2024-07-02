@@ -18,5 +18,6 @@ dependencies {
     api libs.dss.token
     api libs.dss.utils.apache.commons
     api libs.dss.xml.common
+    api libs.dss.evidence.record.xml
     api libs.nimbus.jose.jwt
 }

@@ -109,13 +109,13 @@ abstract class AbstractTimestampRequest {
         String tsaHashAlg = MessageLogProperties.getHashAlg();
 
         log.trace("Creating time-stamp request (algorithm: {})", tsaHashAlg);
-
-        byte[] digest = calculateDigest(tsaHashAlg, data);
+//TODO xroad8 we pass data directly, no need to hash it again.
+//        byte[] digest = calculateDigest(tsaHashAlg, data);
 
         ASN1ObjectIdentifier algorithm =
                 getAlgorithmIdentifier(tsaHashAlg).getAlgorithm();
 
-        return reqgen.generate(algorithm, digest);
+        return reqgen.generate(algorithm, data);
     }
 
     protected byte[] getTimestampDer(TimeStampResponse tsResponse)

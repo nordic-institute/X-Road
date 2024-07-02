@@ -9,6 +9,7 @@ dependencies {
     implementation(project(':common:common-verifier'))
     implementation(project(':addons:messagelog:messagelog-db'))
 
+    implementation libs.dss.xml.utils
 }
 
 jar {

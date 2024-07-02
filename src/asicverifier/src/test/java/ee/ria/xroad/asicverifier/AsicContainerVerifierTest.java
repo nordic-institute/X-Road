@@ -28,13 +28,12 @@ package ee.ria.xroad.asicverifier;
 import ee.ria.xroad.common.ExpectedCodedException;
 import ee.ria.xroad.common.SystemProperties;
 import ee.ria.xroad.common.TestCertUtil;
-import ee.ria.xroad.common.asic.AsicContainerVerifier;
+import ee.ria.xroad.common.asic.dss.DSSAsicVerifier;
 import ee.ria.xroad.common.conf.globalconf.GlobalConf;
 import ee.ria.xroad.common.conf.globalconf.TestGlobalConfImpl;
 
 import lombok.RequiredArgsConstructor;
 import org.junit.BeforeClass;
-import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -45,17 +44,13 @@ import java.security.cert.X509Certificate;
 import java.util.Arrays;
 import java.util.Collection;
 
-import static ee.ria.xroad.common.ErrorCodes.X_HASHCHAIN_UNUSED_INPUTS;
-import static ee.ria.xroad.common.ErrorCodes.X_INVALID_HASH_CHAIN_REF;
-import static ee.ria.xroad.common.ErrorCodes.X_INVALID_SIGNATURE_VALUE;
-import static ee.ria.xroad.common.ErrorCodes.X_MALFORMED_SIGNATURE;
-
 /**
  * Tests to verify correct ASiC container verifier behavior.
+ * TODO refactor to cover only dss cases.
  */
 @RunWith(Parameterized.class)
 @RequiredArgsConstructor
-@Ignore(value = "Test data must be updated to conform to the latest changes in X-Road message headers")
+//@Ignore(value = "Test data must be updated to conform to the latest changes in X-Road message headers")
 public class AsicContainerVerifierTest {
 
     private final String containerFile;
@@ -69,7 +64,7 @@ public class AsicContainerVerifierTest {
      */
     @BeforeClass
     public static void setUpConf() {
-        System.setProperty(SystemProperties.CONFIGURATION_PATH, "../common/common-globalconf/src/test/resources/globalconf_good");
+        System.setProperty(SystemProperties.CONFIGURATION_PATH, "src/test/resources/globalconf_2024");
         System.setProperty(SystemProperties.CONFIGURATION_ANCHOR_FILE,
                 "../common/common-globalconf/src/test/resources/configuration-anchor1.xml");
 
@@ -87,23 +82,13 @@ public class AsicContainerVerifierTest {
     @Parameters(name = "{index}: verify(\"{0}\") should throw \"{1}\"")
     public static Collection<Object[]> data() {
         return Arrays.asList(new Object[][]{
-                {"valid-signed-message.asice", null},
-                {"valid-signed-hashchain.asice", null},
-                {"valid-batch-ts.asice", null},
-                {"wrong-message.asice", X_INVALID_SIGNATURE_VALUE},
-                {"invalid-digest.asice", X_INVALID_SIGNATURE_VALUE},
-                {"invalid-signed-hashchain.asice", X_MALFORMED_SIGNATURE + "." + X_INVALID_HASH_CHAIN_REF},
-                {"invalid-hashchain-modified-message.asice", X_MALFORMED_SIGNATURE + "." + X_HASHCHAIN_UNUSED_INPUTS},
-                // This verification actually passes, since the hash chain
-                // is not verified and the signature is correct otherwise
-                {"invalid-not-signed-hashchain.asice", null},
-                {"invalid-incorrect-references.asice", X_MALFORMED_SIGNATURE},
-                {"invalid-ts-hashchainresult.asice", X_MALFORMED_SIGNATURE}
+                {"DEV-cc519c02-d8fa-4be4-98d2-94c63f98c96e-request-cg.asice", null}
         });
     }
 
     /**
      * Test to ensure container file verification result is as expected.
+     *
      * @throws Exception in case of any unexpected errors
      */
     @Test
@@ -114,7 +99,6 @@ public class AsicContainerVerifierTest {
     }
 
     private static void verify(String fileName) throws Exception {
-        AsicContainerVerifier verifier = new AsicContainerVerifier("src/test/resources/" + fileName);
-        verifier.verify();
+        new DSSAsicVerifier().validate("src/test/resources/" + fileName);
     }
 }

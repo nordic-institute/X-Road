@@ -25,6 +25,8 @@
  */
 package ee.ria.xroad.common.hashchain;
 
+import ee.ria.xroad.common.util.CryptoUtils;
+
 import jakarta.xml.bind.JAXBContext;
 import jakarta.xml.bind.JAXBElement;
 import jakarta.xml.bind.Marshaller;
@@ -33,16 +35,19 @@ import org.slf4j.LoggerFactory;
 
 import java.io.StringWriter;
 import java.util.ArrayList;
+import java.util.Base64;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
 import static ee.ria.xroad.common.hashchain.DigestList.digestHashStep;
+import static ee.ria.xroad.common.util.CryptoUtils.encodeBase64;
 import static ee.ria.xroad.common.util.CryptoUtils.getDigestAlgorithmURI;
 import static ee.ria.xroad.common.util.MessageFileNames.attachment;
 import static java.lang.Integer.numberOfLeadingZeros;
 
 /**
+ * TODO xroad8 - additional logging is not optimal. revise.
  * Builds Merkle tree from a set of hashes. Then constructs hash chains
  * for all the input hashes.
  *
@@ -287,7 +292,7 @@ public final class HashChainBuilder {
                         nodes[i], nodes[i + 1]);
 
                 // Store the digest as parent of two inputs.
-                LOG.trace("Storing at {}", parentIdx(i));
+                LOG.trace("Storing at {} value {}", parentIdx(i), CryptoUtils.encodeBase64(stepDigest));
                 nodes[parentIdx(i)] = stepDigest;
             }
         }
@@ -303,12 +308,16 @@ public final class HashChainBuilder {
             int itemIdx = nodes.length + i;
 
             // Combine inputs[i] and inputs[i + 1]
-            LOG.trace("Inputs: Combining {} and {}", i, i + 1);
+            LOG.trace("Inputs: Combining {} ({}) and {} ({})",
+                    i, encodeBase64(inputs.get(i)),
+                    i + 1, encodeBase64(inputs.get(i+1)));
             byte[] stepDigest = digestHashStep(hashAlgorithm,
                     inputs.get(i), inputs.get(i + 1));
 
             // Store the digest as parent of two inputs.
-            LOG.trace("Storing at {}", parentIdx(itemIdx));
+            LOG.trace("Storing value {} at {}",
+                    encodeBase64(stepDigest),
+                    parentIdx(itemIdx));
             nodes[parentIdx(itemIdx)] = stepDigest;
         }
     }
@@ -316,7 +325,7 @@ public final class HashChainBuilder {
     /**
      * Returns the topmost hash of the Merkle tree.
      */
-    byte[] getTreeTop() {
+    public byte[] getTreeTop() {
         if (inputs.size() == 1) {
             // For single input, we do not build the nodes array
             // and directly return the input.
@@ -369,8 +378,8 @@ public final class HashChainBuilder {
         // Combine them and store in the current node.
         byte[] stepDigest = digestHashStep(hashAlgorithm,
                 leftValue, rightValue);
-        LOG.trace("Fixing: {} + {} -> {}", new Object[]{
-                leftIdx(nodeIdx), rightIdx(nodeIdx), nodeIdx});
+        LOG.trace("Fixing: {} + {} -> {}. value: {}", new Object[]{
+                leftIdx(nodeIdx), rightIdx(nodeIdx), nodeIdx, Base64.getEncoder().encodeToString(stepDigest)});
         nodes[nodeIdx] = stepDigest;
         return stepDigest;
     }
@@ -408,7 +417,7 @@ public final class HashChainBuilder {
     /**
      * Returns XML-encoded hash chain for a n-th input data item.
      */
-    private String makeHashChain(int itemIndex) throws Exception {
+    public String makeHashChain(int itemIndex) throws Exception {
         LOG.trace("makeHashChain({})", itemIndex);
 
         HashChainType hashChain = new HashChainType();

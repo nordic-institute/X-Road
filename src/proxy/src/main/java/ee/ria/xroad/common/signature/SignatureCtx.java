@@ -30,6 +30,17 @@ import ee.ria.xroad.common.hashchain.HashChainBuilder;
 import ee.ria.xroad.common.util.CryptoUtils;
 import ee.ria.xroad.common.util.MessageFileNames;
 
+import eu.europa.esig.dss.enumerations.DigestAlgorithm;
+import eu.europa.esig.dss.enumerations.SignatureLevel;
+import eu.europa.esig.dss.model.DSSDocument;
+import eu.europa.esig.dss.model.DigestDocument;
+import eu.europa.esig.dss.model.ToBeSigned;
+import eu.europa.esig.dss.model.x509.CertificateToken;
+import eu.europa.esig.dss.validation.CommonCertificateVerifier;
+import eu.europa.esig.dss.xades.XAdESSignatureParameters;
+import eu.europa.esig.dss.xades.signature.XAdESService;
+import eu.europa.esig.dss.xml.common.definition.DSSNamespace;
+import eu.europa.esig.xades.definition.XAdESNamespace;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.SneakyThrows;
@@ -38,21 +49,22 @@ import org.apache.xml.security.signature.XMLSignatureInput;
 import org.apache.xml.security.utils.resolver.ResourceResolverContext;
 import org.apache.xml.security.utils.resolver.ResourceResolverException;
 import org.apache.xml.security.utils.resolver.ResourceResolverSpi;
+import org.bouncycastle.cert.ocsp.OCSPResp;
 
-import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
+import java.util.Base64;
 import java.util.List;
 
 import static ee.ria.xroad.common.ErrorCodes.X_INTERNAL_ERROR;
 import static ee.ria.xroad.common.util.CryptoUtils.getDigestAlgorithmId;
 import static ee.ria.xroad.common.util.MessageFileNames.MESSAGE;
 import static ee.ria.xroad.common.util.MessageFileNames.SIG_HASH_CHAIN;
-import static ee.ria.xroad.common.util.MessageFileNames.SIG_HASH_CHAIN_RESULT;
+import static eu.europa.esig.dss.enumerations.SignaturePackaging.DETACHED;
 
 /**
  * This class handles the (batch) signature creation. After requests
  * have been added to the context, the signature is created.
- *
+ * <p>
  * Depending on the amount of input hashes (one hash for a single message,
  * multiple hashes for a single message with attachments etc.) the result
  * is a XML signature with one referenced message or a referenced hash chain
@@ -72,6 +84,12 @@ class SignatureCtx {
     private String[] hashChains;
 
     private SignatureXmlBuilder builder;
+    @Getter
+    private XAdESSignatureParameters parameters;
+    @Getter
+    private List<DSSDocument> documentsToSign = new ArrayList<>();
+    @Getter
+    private final List<OCSPResp> ocspResponses = new ArrayList<>();
 
     @SneakyThrows
     SignatureCtx(String signatureAlgorithmId) {
@@ -116,20 +134,39 @@ class SignatureCtx {
 
         SigningRequest firstRequest = requests.get(0);
 
+        //TODO xroad8, POC.
+        parameters = new XAdESSignatureParameters();
+        parameters.setSignatureLevel(SignatureLevel.XAdES_BASELINE_B);
+        parameters.setSignaturePackaging(DETACHED);
+        parameters.setDigestAlgorithm(DigestAlgorithm.forJavaName(CryptoUtils.DEFAULT_DIGEST_ALGORITHM_ID));
+        parameters.setXadesNamespace(new DSSNamespace(XAdESNamespace.XADES_132.getUri(), "xades"));
+        parameters.setSigningCertificate(new CertificateToken(firstRequest.getSigningCert()));
         builder = new SignatureXmlBuilder(firstRequest, digestAlgorithmId);
 
-        // If only one single hash (message), then no hash chain
-        if (requests.size() == 1 && firstRequest.isSingleMessage()) {
-            return builder.createDataToBeSigned(MESSAGE, createResourceResolver(
-                    firstRequest.getParts().get(0).getMessage()), signatureAlgorithmUri);
-        }
+        ocspResponses.addAll(firstRequest.getOcspResponses());
 
-        buildHashChain();
+        firstRequest.getParts()
+                .forEach(part -> documentsToSign.add(new DigestDocument(
+                        DigestAlgorithm.forJavaName(part.getHashAlgoId()),
+                        Base64.getEncoder().encodeToString(part.getData()),
+                        part.getName())));
 
-        byte[] hashChainResultBytes = hashChainResult.getBytes(StandardCharsets.UTF_8);
+        XAdESService service = new XAdESService(new CommonCertificateVerifier());
+        ToBeSigned toBeSigned = service.getDataToSign(documentsToSign, parameters);
 
-        return builder.createDataToBeSigned(SIG_HASH_CHAIN_RESULT, createResourceResolver(hashChainResultBytes),
-                signatureAlgorithmUri);
+        return toBeSigned.getBytes();
+        //        // If only one single hash (message), then no hash chain
+//        if (requests.size() == 1 && firstRequest.isSingleMessage()) {
+//            return builder.createDataToBeSigned(MESSAGE, createResourceResolver(
+//                    firstRequest.getParts().get(0).getMessage()), signatureAlgorithmUri);
+//        }
+//
+//        buildHashChain();
+//
+//        byte[] hashChainResultBytes = hashChainResult.getBytes(StandardCharsets.UTF_8);
+//
+//        return builder.createDataToBeSigned(SIG_HASH_CHAIN_RESULT, createResourceResolver(hashChainResultBytes),
+//                signatureAlgorithmUri);
     }
 
     private void buildHashChain() throws Exception {

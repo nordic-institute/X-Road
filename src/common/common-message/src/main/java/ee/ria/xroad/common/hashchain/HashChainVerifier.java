@@ -165,11 +165,12 @@ public final class HashChainVerifier {
         }
     }
 
-    private static HashChainResultType parseHashChainResult(InputStream xml) throws Exception {
+    //TODO xroad8, reusing for now, but must be externalized.
+    public static HashChainResultType parseHashChainResult(InputStream xml) throws Exception {
         return validateAndParse(xml, HashChainResultType.class);
     }
 
-    private static HashChainType parseHashChain(InputStream xml) throws Exception {
+    public static HashChainType parseHashChain(InputStream xml) throws Exception {
         return validateAndParse(xml, HashChainType.class);
     }
 

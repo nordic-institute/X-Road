@@ -40,6 +40,7 @@ import ee.ria.xroad.common.messagelog.SoapLogMessage;
 import ee.ria.xroad.common.messagelog.TimestampRecord;
 import ee.ria.xroad.common.util.TimeUtils;
 
+import eu.europa.esig.dss.xml.utils.XMLCanonicalizer;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.input.BoundedInputStream;
 
@@ -54,6 +55,7 @@ import java.util.concurrent.ScheduledFuture;
 
 import static ee.ria.xroad.common.ErrorCodes.X_LOGGING_FAILED_X;
 import static ee.ria.xroad.common.ErrorCodes.X_MLOG_TIMESTAMPER_FAILED;
+import static ee.ria.xroad.common.hashchain.HashChainConstants.CANONICALIZATION_METHOD;
 import static ee.ria.xroad.common.messagelog.MessageLogProperties.getAcceptableTimestampFailurePeriodSeconds;
 import static ee.ria.xroad.common.messagelog.MessageLogProperties.getHashAlg;
 import static ee.ria.xroad.common.messagelog.MessageLogProperties.getTimestampRetryDelay;
@@ -286,8 +288,7 @@ public class LogManager extends AbstractLogManager {
     static void putStatusMapFailures(Exception e) {
         int errorCode = DiagnosticsUtils.getErrorCode(e);
         for (String tspUrl : ServerConf.getTspUrl()) {
-            statusMap.put(tspUrl,
-                    new DiagnosticsStatus(errorCode, TimeUtils.offsetDateTimeNow(), tspUrl));
+            statusMap.put(tspUrl, new DiagnosticsStatus(errorCode, TimeUtils.offsetDateTimeNow(), tspUrl));
         }
     }
 
@@ -333,8 +334,7 @@ public class LogManager extends AbstractLogManager {
 
     private void verifyCanLogMessage(boolean shouldTimestampImmediately) {
         if (ServerConf.getTspUrl().isEmpty()) {
-            throw new CodedException(X_MLOG_TIMESTAMPER_FAILED,
-                    "Cannot time-stamp messages: no timestamping services configured");
+            throw new CodedException(X_MLOG_TIMESTAMPER_FAILED, "Cannot time-stamp messages: no timestamping services configured");
         }
 
         if (!shouldTimestampImmediately) {
@@ -353,11 +353,12 @@ public class LogManager extends AbstractLogManager {
     }
 
     static String signatureHash(String signatureXml) throws Exception {
-        return encodeBase64(getInputHash(signatureXml));
+        byte[] canonicalizedDocument = XMLCanonicalizer.createInstance(CANONICALIZATION_METHOD).canonicalize(signatureXml.getBytes(UTF_8));
+        return encodeBase64(getInputHash(canonicalizedDocument));
     }
 
-    private static byte[] getInputHash(String str) throws Exception {
-        return calculateDigest(getHashAlg(), str.getBytes(UTF_8));
+    private static byte[] getInputHash(byte[] input) throws Exception {
+        return calculateDigest(getHashAlg(), input);
     }
 
     /**

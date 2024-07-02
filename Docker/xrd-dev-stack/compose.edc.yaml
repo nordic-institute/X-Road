@@ -62,6 +62,8 @@ services:
   jaeger:
     image: jaegertracing/all-in-one:1.57
     container_name: jaeger
+    environment:
+      - MEMORY_MAX_TRACES=1000
     deploy:
       resources:
         reservations:

@@ -95,10 +95,9 @@ public class XrdXAdESSignatureCreator implements XrdSignatureCreator {
         return signDocuments(signingInfo, documentsToSign);
     }
 
-    private String signDocuments(SignerProxy.MemberSigningInfoDto signingInfo, List<DSSDocument> documentsToSign)
+    public String signDocuments(SignerProxy.MemberSigningInfoDto signingInfo, List<DSSDocument> documentsToSign)
             throws XrdSignatureCreationException {
         XAdESSignatureParameters parameters = new XAdESSignatureParameters();
-        parameters.setXadesNamespace(XAdESNamespace.XADES_132);
         parameters.setSignatureLevel(signatureLevel);
         parameters.setSignaturePackaging(DETACHED);
         parameters.setDigestAlgorithm(DIGEST_ALGORITHM);
@@ -119,8 +118,8 @@ public class XrdXAdESSignatureCreator implements XrdSignatureCreator {
         return Base64.getEncoder().encodeToString(DSSUtils.toByteArray(extendedDoc));
     }
 
-    static class OcspExtensionBuilder extends ExtensionBuilder {
-        DSSDocument addOcspToken(DSSDocument document, byte[] ocspBytes) {
+    public static class OcspExtensionBuilder extends ExtensionBuilder {
+        public DSSDocument addOcspToken(DSSDocument document, byte[] ocspBytes) {
             params = new XAdESSignatureParameters();
             documentValidator = new XMLDocumentValidator(document);
 

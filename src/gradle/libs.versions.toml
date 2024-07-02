@@ -171,6 +171,10 @@ dss-xades = { module = "eu.europa.ec.joinup.sd-dss:dss-xades", version.ref = "ds
 dss-token = { module = "eu.europa.ec.joinup.sd-dss:dss-token", version.ref = "dss" }
 dss-utils-apache-commons = { module = "eu.europa.ec.joinup.sd-dss:dss-utils-apache-commons", version.ref = "dss" }
 dss-xml-common = { module = "eu.europa.ec.joinup.sd-dss:dss-xml-common", version.ref = "dss" }
+dss-xml-utils = { module = "eu.europa.ec.joinup.sd-dss:dss-xml-utils", version.ref = "dss" }
+dss-evidence-record-xml = { module = "eu.europa.ec.joinup.sd-dss:dss-evidence-record-xml", version.ref = "dss" }
+dss-asic-xades = { module = "eu.europa.ec.joinup.sd-dss:dss-asic-xades", version.ref = "dss" }
+dss-spi = { module = "eu.europa.ec.joinup.sd-dss:dss-spi", version.ref = "dss" }
 
 edc-api-observability = { module = "org.eclipse.edc:api-observability", version.ref = "edc" }
 edc-asset-api = { module = "org.eclipse.edc:asset-api", version.ref = "edc" }

@@ -55,7 +55,8 @@ class BatchTimestampRequest extends AbstractTimestampRequest {
         HashChainBuilder hcBuilder = buildHashChain(signatureHashes);
         hashChainResult = hcBuilder.getHashChainResult(TS_HASH_CHAIN);
         hashChains = hcBuilder.getHashChains(SIGNATURE);
-        return hashChainResult.getBytes(UTF_8.name());
+        //TODO We sign root hash, not whole xml.
+        return hcBuilder.getTreeTop();
     }
 
     @Override

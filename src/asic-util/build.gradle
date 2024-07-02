@@ -3,6 +3,8 @@ dependencies {
     implementation project(':common:common-verifier')
 //TODO xroad8
 //    implementation libs.xerces.impl
+    implementation libs.dss.asic.xades
+    implementation libs.dss.evidence.record.xml
 
     testImplementation project(':common:common-test')
 }

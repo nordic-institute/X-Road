@@ -25,12 +25,19 @@
  */
 package ee.ria.xroad.common.hashchain;
 
+import eu.europa.esig.dss.enumerations.DigestAlgorithm;
+import eu.europa.esig.dss.evidencerecord.common.validation.ByteArrayComparator;
+import eu.europa.esig.dss.model.DSSMessageDigest;
+import eu.europa.esig.dss.spi.DSSMessageDigestCalculator;
 import org.bouncycastle.asn1.ASN1Encodable;
 import org.bouncycastle.asn1.DEROctetString;
 import org.bouncycastle.asn1.DERSequence;
 import org.bouncycastle.asn1.DERUTF8String;
 
-import static ee.ria.xroad.common.util.CryptoUtils.calculateDigest;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+
 import static ee.ria.xroad.common.util.CryptoUtils.getDigestAlgorithmURI;
 import static org.bouncycastle.asn1.ASN1Encoding.DER;
 
@@ -45,24 +52,32 @@ final class DigestList {
      */
     static byte[] digestHashStep(String digestMethod, byte[]... items)
             throws Exception {
-        return calculateDigest(digestMethod,
-                concatDigests(getDigestAlgorithmURI(digestMethod), items));
+        return concatDigests(getDigestAlgorithmURI(digestMethod), items);
     }
 
     /**
      * Takes as input a sequence of hashes and combines them using DigestList
      * data structure.
      */
-    static byte[] concatDigests(String digestMethodUri, byte[]... items)
+    private static byte[] concatDigests(String digestMethodUri, byte[]... items)
             throws Exception {
-        ASN1Encodable[] digestList = new ASN1Encodable[items.length];
-
-        for (int i = 0; i < items.length; ++i) {
-            digestList[i] = singleDigest(digestMethodUri, items[i]);
+        //TODO xroad8 taken from EvidenceRecordTimeStampSequenceVerifier
+        // 1. Create list of hash values
+        List<byte[]> hashValueList = new ArrayList<>(Arrays.asList(items));
+        // 2a. Exception
+        var digestAlgorithm = DigestAlgorithm.forXML(digestMethodUri);
+        if (hashValueList.size() == 1) {
+            return new DSSMessageDigest(digestAlgorithm, hashValueList.get(0)).getValue();
         }
-
-        DERSequence step = new DERSequence(digestList);
-        return step.getEncoded(DER);
+        // 2b. Binary ascending sort
+        hashValueList.sort(ByteArrayComparator.getInstance());
+        // 3. Concatenate
+        final DSSMessageDigestCalculator digestCalculator = new DSSMessageDigestCalculator(digestAlgorithm);
+        for (byte[] hashValue : hashValueList) {
+            digestCalculator.update(hashValue);
+        }
+        // 4. Calculate hash value
+        return digestCalculator.getMessageDigest().getValue();
     }
 
     /**
