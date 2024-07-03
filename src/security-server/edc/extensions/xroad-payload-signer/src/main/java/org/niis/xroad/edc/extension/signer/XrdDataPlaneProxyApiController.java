@@ -46,6 +46,9 @@ import org.niis.xroad.edc.extension.signer.legacy.RestMessageProcessor;
 import org.niis.xroad.edc.extension.signer.legacy.SoapMessageProcessor;
 import org.niis.xroad.edc.spi.messagelog.XRoadMessageLog;
 
+import javax.net.ssl.SSLSession;
+
+import java.security.cert.X509Certificate;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -68,13 +71,16 @@ public class XrdDataPlaneProxyApiController {
     private final DataPlaneAuthorizationService authorizationService;
 
     private final HttpClient httpClient;
+    private final boolean needClientAuth;
 
     public XrdDataPlaneProxyApiController(Monitor monitor,
                                           XRoadMessageLog xRoadMessageLog,
-                                          DataPlaneAuthorizationService authorizationService) {
+                                          DataPlaneAuthorizationService authorizationService,
+                                          boolean needClientAuth) {
         this.monitor = monitor;
         this.xRoadMessageLog = xRoadMessageLog;
         this.authorizationService = authorizationService;
+        this.needClientAuth = needClientAuth;
 
         try {
             HttpClientCreator creator = new HttpClientCreator();
@@ -110,10 +116,24 @@ public class XrdDataPlaneProxyApiController {
 
     private MessageProcessorBase getMessageProcessor(ContainerRequestContext requestContext) {
         if (VALUE_MESSAGE_TYPE_REST.equals(requestContext.getHeaderString(HEADER_MESSAGE_TYPE))) {
-            return new RestMessageProcessor(requestContext, httpClient, xRoadMessageLog, monitor);
+            return new RestMessageProcessor(requestContext, httpClient, getClientSslCerts(requestContext),
+                    needClientAuth, xRoadMessageLog, monitor);
         } else {
-            return new SoapMessageProcessor(requestContext, httpClient, xRoadMessageLog, monitor);
+            return new SoapMessageProcessor(requestContext, httpClient, getClientSslCerts(requestContext),
+                    needClientAuth, xRoadMessageLog, monitor);
         }
+    }
+
+    private X509Certificate[] getClientSslCerts(ContainerRequestContext requestContext) {
+        if (needClientAuth) {
+            try {
+                return (X509Certificate[]) ((SSLSession) requestContext.getProperty("org.eclipse.jetty.servlet.request.ssl_session"))
+                        .getPeerCertificates();
+            } catch (Exception e) {
+                monitor.severe("Failed to get client SSL certificates", e);
+            }
+        }
+        return null;
     }
 
     private Map<String, Object> buildRequestData(ContainerRequestContext requestContext) {

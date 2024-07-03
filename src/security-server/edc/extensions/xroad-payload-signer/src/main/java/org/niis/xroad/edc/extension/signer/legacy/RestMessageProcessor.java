@@ -28,7 +28,6 @@
 package org.niis.xroad.edc.extension.signer.legacy;
 
 import ee.ria.xroad.common.CodedException;
-import ee.ria.xroad.common.SystemProperties;
 import ee.ria.xroad.common.conf.serverconf.ServerConf;
 import ee.ria.xroad.common.conf.serverconf.model.ClientType;
 import ee.ria.xroad.common.conf.serverconf.model.DescriptionType;
@@ -116,8 +115,8 @@ public class RestMessageProcessor extends MessageProcessorBase {
 
     public RestMessageProcessor(ContainerRequestContext request,
                                 HttpClient httpClient, X509Certificate[] clientSslCerts,
-                                XRoadMessageLog messageLog, Monitor monitor) {
-        super(request, clientSslCerts, httpClient, monitor);
+                                boolean needClientAuth, XRoadMessageLog messageLog, Monitor monitor) {
+        super(request, clientSslCerts, needClientAuth, httpClient, monitor);
         this.xRoadMessageLog = messageLog;
     }
 
@@ -184,8 +183,7 @@ public class RestMessageProcessor extends MessageProcessorBase {
                 verifyClientStatus();
                 responseSigningCtx = SigningCtxProvider.getSigningCtx(requestServiceId.getClientId());
 
-                // todo: xroad8, separate property for edc?
-                if (SystemProperties.isSslEnabled()) {
+                if (needClientAuth) {
                     verifySslClientCert(requestMessage.getOcspResponses(), requestMessage.getRest().getClientId());
                 }
             }

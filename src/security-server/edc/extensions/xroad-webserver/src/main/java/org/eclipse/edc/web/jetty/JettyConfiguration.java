@@ -62,12 +62,13 @@ public class JettyConfiguration {
                 .forEach(e -> split(tempMappings, e));
 
         var portMappings = tempMappings.entrySet().stream()
-                .map(e -> new PortMapping(e.getKey(), Integer.parseInt(e.getValue().getOrDefault("port", "" + DEFAULT_PORT)),
-                        e.getValue().getOrDefault("path", DEFAULT_PATH)))
+                .map(e -> new PortMapping(e.getKey(),
+                        Integer.parseInt(e.getValue().getOrDefault("port", "" + DEFAULT_PORT)),
+                        e.getValue().getOrDefault("path", DEFAULT_PATH),
+                        Boolean.parseBoolean(e.getValue().getOrDefault("needClientAuth", "false"))))
                 .collect(Collectors.toSet());
 
         jettyConfig.portMappings.addAll(portMappings);
-
 
         if (jettyConfig.getPortMappings().isEmpty()) {
             jettyConfig.portMapping(PortMapping.getDefault());
@@ -100,7 +101,6 @@ public class JettyConfiguration {
                     key, map));
         }
         map.put(keyComponentPart, value);
-
     }
 
 

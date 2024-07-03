@@ -28,9 +28,10 @@ import org.eclipse.edc.web.jetty.JettyService;
 import org.eclipse.edc.web.jetty.WebServiceConfigurerImpl;
 import org.eclipse.edc.web.spi.WebServer;
 import org.eclipse.edc.web.spi.configuration.WebServiceConfigurer;
+import org.niis.xroad.edc.spi.XrdWebServer;
 
 @SuppressWarnings("checkstyle:MagicNumber")
-@Provides({ WebServer.class, JettyService.class })
+@Provides({ XrdWebServer.class, WebServer.class, JettyService.class })
 public class XrdJettyExtension implements ServiceExtension {
 
     @Setting
@@ -59,6 +60,7 @@ public class XrdJettyExtension implements ServiceExtension {
         jettyService = new JettyService(configuration, monitor);
         context.registerService(JettyService.class, jettyService);
         context.registerService(WebServer.class, jettyService);
+        context.registerService(XrdWebServer.class, jettyService);
     }
 
     @Override
