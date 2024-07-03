@@ -49,7 +49,7 @@ import java.util.Map;
 
 @Slf4j
 @Configuration
-public class AcmeChallengeConfig {
+public class AcmeConfig {
 
     @Profile("nontest")
     @ConditionalOnProperty(value = "xroad.proxy-ui-api.acme-challenge-port-enabled", havingValue = "true")
@@ -98,16 +98,20 @@ public class AcmeChallengeConfig {
                 AcmeProperties.CA.class);
         constructor.addTypeDescription(eabCredentialsDescriptor);
 
-        TypeDescription isMacKeyBase64EncodedDescriptor = new TypeDescription(AcmeProperties.CA.class);
-        isMacKeyBase64EncodedDescriptor.substituteProperty("mac-key-base64-encoded",
+        TypeDescription caDescriptor = new TypeDescription(AcmeProperties.CA.class);
+        caDescriptor.substituteProperty("mac-key-base64-encoded",
                 boolean.class,
                 "isMacKeyBase64Encoded",
                 "setMacKeyBase64Encoded");
-        constructor.addTypeDescription(isMacKeyBase64EncodedDescriptor);
+        constructor.addTypeDescription(caDescriptor);
 
-        TypeDescription macKeyDescriptor = new TypeDescription(AcmeProperties.Credentials.class);
-        macKeyDescriptor.substituteProperty("mac-key", String.class, "getMacKey", "setMacKey");
-        constructor.addTypeDescription(macKeyDescriptor);
+        TypeDescription credentialsDescription = new TypeDescription(AcmeProperties.Credentials.class);
+        credentialsDescription.substituteProperty("mac-key", String.class, "getMacKey", "setMacKey");
+        credentialsDescription.substituteProperty("auth-mac-key", String.class, "getAuthMacKey", "setAuthMacKey");
+        credentialsDescription.substituteProperty("sign-mac-key", String.class, "getSignMacKey", "setSignMacKey");
+        credentialsDescription.substituteProperty("auth-kid", String.class, "getAuthKid", "setAuthKid");
+        credentialsDescription.substituteProperty("sign-kid", String.class, "getSignKid", "setSignKid");
+        constructor.addTypeDescription(credentialsDescription);
 
         return constructor;
     }
