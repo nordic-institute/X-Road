@@ -35,7 +35,7 @@ services:
   ss1:
     environment:
       - EDC_HOSTNAME=ss1
-      - EDC_DID=did:web:ss1%3A9396
+      - EDC_DID=did:web:ss0%3A9396:ss1
       - EDC_DID_KEY_ID=JWK2020-RSA
     ports:
       - "4393:9953" #EDC connector debug

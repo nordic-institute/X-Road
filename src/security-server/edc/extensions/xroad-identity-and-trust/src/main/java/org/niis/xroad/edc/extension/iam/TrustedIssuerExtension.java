@@ -52,7 +52,7 @@ public class TrustedIssuerExtension implements ServiceExtension {
         trustedIssuerRegistry.addIssuer(new Issuer("did:web:gx-notary.i.x-road.rocks:main", Map.of()));
 
         trustedIssuerRegistry.addIssuer(new Issuer("did:web:ss0%3A9396", Map.of()));
-        trustedIssuerRegistry.addIssuer(new Issuer("did:web:ss1%3A9396", Map.of()));
+        trustedIssuerRegistry.addIssuer(new Issuer("did:web:ss0%3A9396:ss1", Map.of()));
 
     }
 }

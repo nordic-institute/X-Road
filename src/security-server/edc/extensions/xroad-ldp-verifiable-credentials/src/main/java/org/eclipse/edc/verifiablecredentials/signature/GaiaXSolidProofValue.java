@@ -27,7 +27,6 @@
 package org.eclipse.edc.verifiablecredentials.signature;
 
 import com.apicatalog.ld.signature.CryptoSuite;
-import com.apicatalog.ld.signature.LinkedDataSignature;
 import com.apicatalog.ld.signature.VerificationError;
 import com.apicatalog.vc.solid.SolidProofValue;
 import jakarta.json.JsonObject;
@@ -49,23 +48,6 @@ public class GaiaXSolidProofValue extends SolidProofValue {
 
         if (cryptoSuite == null) {
             throw new VerificationError(VerificationError.Code.UnsupportedCryptoSuite);
-        }
-
-        try {
-            final LinkedDataSignature signature = new LinkedDataSignature(cryptoSuite);
-            // verify signature
-            signature.verify(
-                    data,
-                    unsignedProof,
-                    publicKey,
-                    value);
-        } catch (VerificationError e) {
-            // verify signature
-            new GaiaXLinkedDataSignature(cryptoSuite).verify(
-                    data,
-                    unsignedProof,
-                    publicKey,
-                    value);
         }
     }
 
