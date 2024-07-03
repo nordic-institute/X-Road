@@ -54,17 +54,19 @@ import static ee.ria.xroad.common.util.MimeUtils.HEADER_HASH_ALGO_ID;
 
 public abstract class MessageProcessorBase {
 
-    protected final ContainerRequestContext requestContext;
     private final X509Certificate[] clientSslCerts;
+
+    protected final ContainerRequestContext requestContext;
+    protected final boolean needClientAuth;
     protected final HttpClient httpClient;
     protected final Monitor monitor;
 
     protected MessageProcessorBase(ContainerRequestContext request,
-                                   X509Certificate[] clientSslCerts,
-                                   HttpClient httpClient,
-                                   Monitor monitor) {
+                                   X509Certificate[] clientSslCerts, boolean needClientAuth,
+                                   HttpClient httpClient, Monitor monitor) {
         this.requestContext = request;
         this.clientSslCerts = clientSslCerts;
+        this.needClientAuth = needClientAuth;
         this.httpClient = httpClient;
         this.monitor = monitor;
 

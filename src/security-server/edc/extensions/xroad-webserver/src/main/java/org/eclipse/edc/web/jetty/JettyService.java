@@ -35,7 +35,6 @@ import jakarta.servlet.Servlet;
 import lombok.SneakyThrows;
 import org.eclipse.edc.spi.EdcException;
 import org.eclipse.edc.spi.monitor.Monitor;
-import org.eclipse.edc.web.spi.WebServer;
 import org.eclipse.jetty.http.HttpVersion;
 import org.eclipse.jetty.server.HttpConfiguration;
 import org.eclipse.jetty.server.HttpConnectionFactory;
@@ -49,6 +48,7 @@ import org.eclipse.jetty.servlet.ServletHolder;
 import org.eclipse.jetty.servlet.Source;
 import org.eclipse.jetty.util.ssl.SslContextFactory;
 import org.jetbrains.annotations.NotNull;
+import org.niis.xroad.edc.spi.XrdWebServer;
 import org.niis.xroad.ssl.EdcSSLConstants;
 import org.niis.xroad.ssl.SSLContextBuilder;
 
@@ -72,7 +72,7 @@ import static org.eclipse.jetty.servlet.ServletContextHandler.NO_SESSIONS;
  * This is ant extended vanilla JettyService with customized SSL context.
  * NOTE: package and name is kept as is due to jersey-core dependency.
  */
-public class JettyService implements WebServer {
+public class JettyService implements XrdWebServer {
 
     private static final int SSL_SESSION_TIMEOUT = 600;
     private static final String LOG_ANNOUNCE = "org.eclipse.jetty.util.log.announce";
@@ -111,11 +111,9 @@ public class JettyService implements WebServer {
                     throw new IllegalArgumentException("A binding for port " + mapping.getPort() + " already exists");
                 }
 
-
                 connector = configuration.isSslDisabled()
-                        ? httpServerConnector(mapping.getPort()) : httpsServerConnector(mapping.getPort());
+                        ? httpServerConnector(mapping.getPort()) : httpsServerConnector(mapping);
                 monitor.info("HTTPS context '" + mapping.getName() + "' listening on port " + mapping.getPort());
-
 
                 connector.setName(mapping.getName());
                 connector.setPort(mapping.getPort());
@@ -175,7 +173,12 @@ public class JettyService implements WebServer {
      */
     @Override
     public void addPortMapping(String contextName, int port, String path) {
-        var portMapping = new PortMapping(contextName, port, path);
+        addPortMapping(contextName, port, path, false);
+    }
+
+    @Override
+    public void addPortMapping(String contextName, int port, String path, boolean needClientAuth) {
+        var portMapping = new PortMapping(contextName, port, path, needClientAuth);
         if (server != null && (server.isStarted() || server.isStarting())) {
             return;
         }
@@ -195,10 +198,10 @@ public class JettyService implements WebServer {
 
     @NotNull
     @SneakyThrows
-    private ServerConnector httpsServerConnector(int port) {
+    private ServerConnector httpsServerConnector(PortMapping portMapping) {
         boolean sniEnabled = false;
         var cf = new SslContextFactory.Server();
-        cf.setNeedClientAuth(false); //TODO mtls?
+        cf.setNeedClientAuth(portMapping.isNeedClientAuth());
         cf.setIncludeProtocols(EdcSSLConstants.SSL_PROTOCOL);
         cf.setIncludeCipherSuites(EdcSSLConstants.SSL_CYPHER_SUITES);
         cf.setSessionCachingEnabled(true);
@@ -206,7 +209,6 @@ public class JettyService implements WebServer {
 
         var tlsCertPath = System.getenv("EDC_TLS_CERT_PATH");
         if (tlsCertPath != null) {
-
             cf.setSslContext(SSLContextBuilder.create(() -> getTlsCertificateChain(tlsCertPath)).sslContext());
         } else {
             cf.setSslContext(SSLContextBuilder.create().sslContext());
@@ -216,7 +218,7 @@ public class JettyService implements WebServer {
 
         var httpsConfiguration = getDefaultHttpConfiguration();
         httpsConfiguration.setSecureScheme("https");
-        httpsConfiguration.setSecurePort(port);
+        httpsConfiguration.setSecurePort(portMapping.getPort());
         httpsConfiguration.addCustomizer(new SecureRequestCustomizer(sniEnabled));
 
         var httpConnectionFactory = new HttpConnectionFactory(httpsConfiguration);
@@ -229,7 +231,6 @@ public class JettyService implements WebServer {
         KeyStore keyStore = CryptoUtils.loadPkcs12KeyStore(Paths.get(pkcs12Path).toFile(), "management-service".toCharArray());
 
         keyStore.getKey("management-service", "management-service".toCharArray());
-
 
         var cert = keyStore.getCertificate("management-service");
         var certChain = CertChain.create("cs", new X509Certificate[]{

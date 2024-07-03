@@ -6,6 +6,7 @@ dependencies {
     implementation(project(':security-server:edc:xroad-edc-security')) {
         exclude group: 'org.eclipse.jetty'
     }
+    implementation project(":security-server:edc:spi:xroad-core-spi")
 
     api libs.jetty.servlet
     implementation libs.edc.core.spi
