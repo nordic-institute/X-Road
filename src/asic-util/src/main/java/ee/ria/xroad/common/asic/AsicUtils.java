@@ -92,8 +92,8 @@ public final class AsicUtils {
     }
 
     private static void appendCert(StringBuilder builder, X509Certificate cert) {
-        builder.append("        Subject: " + cert.getSubjectDN().getName() + "\n");
-        builder.append("        Issuer: " + cert.getIssuerDN().getName() + "\n");
+        builder.append("        Subject: " + cert.getSubjectX500Principal().toString() + "\n");
+        builder.append("        Issuer: " + cert.getIssuerX500Principal().toString() + "\n");
         builder.append("        Serial number: " + cert.getSerialNumber() + "\n");
         builder.append("        Valid from: " + cert.getNotBefore() + "\n");
         builder.append("        Valid until: " + cert.getNotAfter() + "\n");

@@ -105,7 +105,7 @@ public class ApiKeyService {
         PersistentApiKeyType apiKey = new PersistentApiKeyType(encodedKey,
                 Collections.unmodifiableCollection(roles));
 
-        apiKeyRepository.saveOrUpdate(apiKey);
+        apiKeyRepository.save(apiKey);
         auditLog(apiKey);
 
         return new PlaintextApiKeyDto(apiKey.getId(), plainKey, encodedKey, roles);
@@ -176,8 +176,7 @@ public class ApiKeyService {
         Set<Role> roles = Role.getForNames(roleNames);
         verifyUserCanUpdateApiKeyRoles(apiKeyType, roles);
         apiKeyType.setRoles(roles);
-        apiKeyRepository.saveOrUpdate(apiKeyType);
-        return apiKeyType;
+        return apiKeyRepository.update(apiKeyType);
     }
 
     /**
