@@ -87,7 +87,7 @@ class ClientRestMessageProcessor extends AbstractClientMessageProcessor {
     private ProxyMessage response;
 
     private ClientId senderId;
-    private final RestRequest restRequest;
+    protected final RestRequest restRequest;
 
     private byte[] restBodyDigest;
 

@@ -40,7 +40,6 @@ import org.eclipse.edc.spi.types.TypeManager;
 import org.eclipse.edc.verifiablecredentials.linkeddata.LdpIssuer;
 import org.niis.xroad.edc.ih.vp.ExtLdpPresentationGenerator;
 
-import static org.eclipse.edc.identityhub.core.CoreServicesExtension.OWN_DID_PROPERTY;
 import static org.eclipse.edc.spi.constants.CoreConstants.JSON_LD;
 
 @Extension("Xroad IH core customizations.")
@@ -63,13 +62,9 @@ public class CoreServicesExtension implements ServiceExtension {
         var ldpIssuer = LdpIssuer.Builder.newInstance().jsonLd(jsonLd).monitor(context.getMonitor()).build();
 
         //This overrides default JSON_LD VP creator
-        presentationCreatorRegistry.addCreator(new ExtLdpPresentationGenerator(privateKeyResolver, getOwnDid(context),
+        presentationCreatorRegistry.addCreator(new ExtLdpPresentationGenerator(privateKeyResolver,
                         signatureSuiteRegistry, DEFAULT_SUITE, ldpIssuer, typeManager.getMapper(JSON_LD)),
                 CredentialFormat.JSON_LD);
-    }
-
-    private String getOwnDid(ServiceExtensionContext context) {
-        return context.getConfig().getString(OWN_DID_PROPERTY);
     }
 
 }

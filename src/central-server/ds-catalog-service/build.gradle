@@ -33,7 +33,6 @@ dependencies {
     implementation libs.edc.federated.catalog.api
     implementation libs.edc.federated.catalog.core
 
-    implementation libs.edc.identity.trust.core
     implementation libs.edc.identity.did.core
     implementation libs.edc.identity.did.web
 

@@ -33,45 +33,45 @@ import jakarta.ws.rs.GET;
 import jakarta.ws.rs.POST;
 import jakarta.ws.rs.Path;
 import jakarta.ws.rs.PathParam;
-import org.eclipse.edc.connector.controlplane.api.management.transferprocess.TransferProcessApi;
+import org.eclipse.edc.connector.controlplane.api.management.transferprocess.v3.TransferProcessApiV3;
 
-public interface FeignTransferProcessApi extends TransferProcessApi {
+public interface FeignTransferProcessApi extends TransferProcessApiV3 {
     @POST
     @Path("request")
     @Override
-    JsonArray queryTransferProcesses(JsonObject querySpecJson);
+    JsonArray queryTransferProcessesV3(JsonObject querySpecJson);
 
     @GET
     @Path("{id}")
     @Override
-    JsonObject getTransferProcess(@PathParam("id") String id);
+    JsonObject getTransferProcessV3(@PathParam("id") String id);
 
     @GET
     @Path("/{id}/state")
     @Override
-    JsonObject getTransferProcessState(@PathParam("id") String id);
+    JsonObject getTransferProcessStateV3(@PathParam("id") String id);
 
     @POST
     @Override
-    JsonObject initiateTransferProcess(JsonObject request);
+    JsonObject initiateTransferProcessV3(JsonObject request);
 
     @POST
     @Path("/{id}/deprovision")
     @Override
-    void deprovisionTransferProcess(@PathParam("id") String id);
+    void deprovisionTransferProcessV3(@PathParam("id") String id);
 
     @POST
     @Path("/{id}/terminate")
     @Override
-    void terminateTransferProcess(@PathParam("id") String id, JsonObject requestBody);
+    void terminateTransferProcessV3(@PathParam("id") String id, JsonObject requestBody);
 
     @POST
     @Path("/{id}/suspend")
     @Override
-    void suspendTransferProcess(@PathParam("id") String id, JsonObject jsonObject);
+    void suspendTransferProcessV3(@PathParam("id") String id, JsonObject jsonObject);
 
     @POST
     @Path("/{id}/resume")
     @Override
-    void resumeTransferProcess(@PathParam("id") String id);
+    void resumeTransferProcessV3(@PathParam("id") String id);
 }

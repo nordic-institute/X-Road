@@ -35,31 +35,31 @@ import jakarta.ws.rs.POST;
 import jakarta.ws.rs.PUT;
 import jakarta.ws.rs.Path;
 import jakarta.ws.rs.PathParam;
-import org.eclipse.edc.connector.controlplane.api.management.policy.PolicyDefinitionApi;
+import org.eclipse.edc.connector.controlplane.api.management.policy.v3.PolicyDefinitionApiV3;
 
-public interface FeignPolicyDefinitionApi extends PolicyDefinitionApi {
+public interface FeignPolicyDefinitionApi extends PolicyDefinitionApiV3 {
 
     @POST
     @Path("request")
     @Override
-    JsonArray queryPolicyDefinitions(JsonObject querySpecJson);
+    JsonArray queryPolicyDefinitionsV3(JsonObject querySpecJson);
 
     @GET
     @Path("{id}")
     @Override
-    JsonObject getPolicyDefinition(@PathParam("id") String id);
+    JsonObject getPolicyDefinitionV3(@PathParam("id") String id);
 
     @POST
     @Override
-    JsonObject createPolicyDefinition(JsonObject request);
+    JsonObject createPolicyDefinitionV3(JsonObject request);
 
     @DELETE
     @Path("{id}")
     @Override
-    void deletePolicyDefinition(@PathParam("id") String id);
+    void deletePolicyDefinitionV3(@PathParam("id") String id);
 
     @PUT
     @Path("{id}")
     @Override
-    void updatePolicyDefinition(@PathParam("id") String id, JsonObject input);
+    void updatePolicyDefinitionV3(@PathParam("id") String id, JsonObject input);
 }

@@ -32,9 +32,9 @@ import jakarta.ws.rs.POST;
 import jakarta.ws.rs.Path;
 import jakarta.ws.rs.container.AsyncResponse;
 import jakarta.ws.rs.container.Suspended;
-import org.eclipse.edc.connector.controlplane.api.management.catalog.CatalogApi;
+import org.eclipse.edc.connector.controlplane.api.management.catalog.v3.CatalogApiV3;
 
-public interface FeignCatalogApi extends CatalogApi {
+public interface FeignCatalogApi extends CatalogApiV3 {
 
     /**
      * TODO @Suspended is not supported by feign.
@@ -49,10 +49,10 @@ public interface FeignCatalogApi extends CatalogApi {
     @POST
     @Path("/request")
     @Override
-    void requestCatalog(JsonObject requestBody, @Suspended AsyncResponse response);
+    void requestCatalogV3(JsonObject requestBody, @Suspended AsyncResponse response);
 
     @POST
     @Path("dataset/request")
     @Override
-    void getDataset(JsonObject requestBody, @Suspended AsyncResponse response);
+    void getDatasetV3(JsonObject requestBody, @Suspended AsyncResponse response);
 }

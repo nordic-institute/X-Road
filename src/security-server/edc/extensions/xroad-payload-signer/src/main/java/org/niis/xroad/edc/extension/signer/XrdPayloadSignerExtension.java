@@ -116,7 +116,8 @@ public class XrdPayloadSignerExtension implements ServiceExtension {
 
         loadSystemProperties(monitor);
 
-        var configuration = webServiceConfigurer.configure(context, webServer, PUBLIC_SETTINGS);
+        var config = context.getConfig(PUBLIC_SETTINGS.apiConfigKey());
+        var configuration = webServiceConfigurer.configure(config, webServer, PUBLIC_SETTINGS);
         var executorService = executorInstrumentation.instrument(
                 Executors.newFixedThreadPool(DEFAULT_THREAD_POOL),
                 "Data plane proxy transfers"
@@ -135,16 +136,18 @@ public class XrdPayloadSignerExtension implements ServiceExtension {
         generatorService.addGeneratorFunction("HttpData", dataAddress -> endpoint);
 
         var signService = new XrdSignatureService();
-        var publicApiController = new XrdDataPlanePublicApiController(pipelineService,
+        var proxyApiController = new XrdDataPlaneProxyApiController(monitor,
+                xRoadMessageLog, authorizationService);
+        var lcController = new XrdDataPlanePublicApiController(pipelineService,
                 new XrdEdcSignService(signService, monitor), monitor, executorService,
                 xRoadMessageLog, authorizationService);
 
         //TODO xroad8 this added port mapping is added due to a strange behavior ir edc jersey registry. Consider refactor.
-        webServer.addPortMapping(configuration.getContextAlias(), configuration.getPort(), configuration.getPath());
-        webService.registerResource(configuration.getContextAlias(), publicApiController);
+        webServer.addPortMapping(PUBLIC_SETTINGS.getContextAlias(), configuration.getPort(), configuration.getPath());
+        webService.registerResource(PUBLIC_SETTINGS.getContextAlias(), proxyApiController);
+        webService.registerResource(PUBLIC_SETTINGS.getContextAlias(), lcController);
         initSignerClient(monitor);
     }
-
 
     @Override
     public void shutdown() {

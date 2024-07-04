@@ -25,18 +25,21 @@ dependencies {
     implementation libs.edc.configuration.filesystem
     implementation libs.edc.vault.hashicorp
     implementation libs.edc.management.api
+    implementation libs.edc.control.api.configuration
     implementation libs.edc.transfer.data.plane.signaling
 
     implementation libs.edc.data.plane.selector.api
+    implementation libs.edc.data.plane.selector.control.api
     implementation libs.edc.data.plane.selector.core
 
     implementation libs.edc.data.plane.control.api
     implementation libs.edc.data.plane.core
     implementation libs.edc.data.plane.http
 
-    implementation libs.edc.identity.trust.core
     implementation libs.edc.identity.did.core
     implementation libs.edc.identity.did.web
+
+    implementation libs.edc.jsonLd.lib
 
     // sql store
     implementation libs.bundles.edc.sql.store
@@ -56,6 +59,8 @@ dependencies {
     implementation(project(":security-server:edc:extensions:xroad-policy"))
     implementation(project(":security-server:edc:extensions:xroad-identity-and-trust"))
     implementation(project(":security-server:edc:extensions:xroad-webserver"))
+
+    implementation libs.apache.commonsLang3
 
     testImplementation libs.edc.junit
     testImplementation libs.mockito.jupiter

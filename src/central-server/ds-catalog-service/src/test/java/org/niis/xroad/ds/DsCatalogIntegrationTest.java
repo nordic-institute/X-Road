@@ -55,8 +55,6 @@ class DsCatalogIntegrationTest {
                 Map.entry("edc.iam.issuer.id", "did:web:localhost"),
                 Map.entry("edc.participant.id", "did:web:localhost"),
                 Map.entry("edc.iam.trusted-issuer.localhost.id", "did:web:localhost"),
-                Map.entry("edc.ih.iam.id", "did:web:localhost"),
-                Map.entry("edc.ih.iam.publickey.alias", "did:web:localhost"),
                 Map.entry("web.http.resolution.path", "/resolution"),
                 Map.entry("web.http.resolution.port", TestPortUtils.findRandomPort().toString()),
                 Map.entry("web.http.port", TestPortUtils.findRandomPort().toString()),

@@ -100,7 +100,7 @@ import static org.eclipse.edc.connector.dataplane.spi.schema.DataFlowRequestSche
 import static org.eclipse.edc.connector.dataplane.spi.schema.DataFlowRequestSchema.MEDIA_TYPE;
 import static org.niis.xroad.edc.sig.PocConstants.HEADER_XRD_SIG;
 
-@Path("{any:.*}")
+@Path("/lc/{any:.*}")
 @Produces(WILDCARD)
 public class XrdDataPlanePublicApiController {
 

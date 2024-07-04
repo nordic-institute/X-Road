@@ -49,6 +49,7 @@ import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Ignore;
 import org.junit.Test;
+import org.niis.xroad.edc.management.client.configuration.EdcControlApiFactory;
 import org.niis.xroad.edc.management.client.configuration.EdcManagementApiFactory;
 import org.niis.xroad.proxy.edc.AssetsRegistrationJob;
 import org.slf4j.LoggerFactory;
@@ -547,11 +548,14 @@ public class RestEdcProxyTest extends AbstractProxyIntegrationTest {
 
     @SneakyThrows
     private static void prepareServerEdc() {
-        EdcManagementApiFactory apiFactory = new EdcManagementApiFactory(
+        EdcManagementApiFactory managementApiFactory = new EdcManagementApiFactory(
                 "http://localhost:%s".formatted("19193"));
+        EdcControlApiFactory controlApiFactory = new EdcControlApiFactory(
+                "http://localhost:%s".formatted("19192"));
 
-        var assetRegistrationJob = new AssetsRegistrationJob(apiFactory.dataplaneSelectorApi(),
-                apiFactory.assetsApi(), apiFactory.policyDefinitionApi(), apiFactory.contractDefinitionApi());
+        var assetRegistrationJob = new AssetsRegistrationJob(
+                controlApiFactory.dataplaneSelectorControlApi(), managementApiFactory.assetsApi(),
+                managementApiFactory.policyDefinitionApi(), managementApiFactory.contractDefinitionApi());
         assetRegistrationJob.registerDataPlane();
         assetRegistrationJob.registerAssets();
     }

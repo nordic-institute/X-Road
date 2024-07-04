@@ -108,7 +108,7 @@ class ClientSoapMessageProcessor extends AbstractClientMessageProcessor {
      * Holds the incoming request SOAP message.
      */
     private volatile String originalSoapAction;
-    private volatile SoapMessageImpl requestSoap;
+    protected volatile SoapMessageImpl requestSoap;
     private volatile ServiceId requestServiceId;
 
     /**

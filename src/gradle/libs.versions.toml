@@ -22,7 +22,7 @@ protoc = "3.25.3"
 grpc = "1.63.0"
 swaggerParser = "2.1.22"
 logback = "1.4.14"
-edc = "0.7.0"
+edc = "0.7.1"
 edcJetty = "11.0.21"
 nimbusJoseJwt = "9.39.1"
 dss = "6.0"
@@ -202,6 +202,7 @@ edc-data-plane-core = { module = "org.eclipse.edc:data-plane-core", version.ref 
 edc-data-plane-http = { module = "org.eclipse.edc:data-plane-http", version.ref = "edc" }
 edc-data-plane-http-spi = { module = "org.eclipse.edc:data-plane-http-spi", version.ref = "edc" }
 edc-data-plane-public-api = { module = "org.eclipse.edc:data-plane-public-api-v2", version.ref = "edc" }
+edc-data-plane-selector-control-api = { module = "org.eclipse.edc:data-plane-selector-control-api", version.ref = "edc" }
 edc-data-plane-selector-api = { module = "org.eclipse.edc:data-plane-selector-api", version.ref = "edc" }
 edc-data-plane-selector-core = { module = "org.eclipse.edc:data-plane-selector-core", version.ref = "edc" }
 edc-data-plane-util = { module = "org.eclipse.edc:data-plane-util", version.ref = "edc" }
@@ -249,6 +250,7 @@ edc-ldp-verifiable-credentials = { module = "org.eclipse.edc:ldp-verifiable-cred
 edc-jwt-verifiable-credentials = { module = "org.eclipse.edc:jwt-verifiable-credentials", version.ref = "edc" }
 edc-management-api = { module = "org.eclipse.edc:management-api", version.ref = "edc" }
 edc-management-api-configuration = { module = "org.eclipse.edc:management-api-configuration", version.ref = "edc" }
+edc-control-api-configuration = { module = "org.eclipse.edc:control-api-configuration", version.ref = "edc" }
 edc-policy-definition-api = { module = "org.eclipse.edc:policy-definition-api", version.ref = "edc" }
 edc-policy-engine-spi = { module = "org.eclipse.edc:policy-engine-spi", version.ref = "edc" }
 edc-transfer-data-plane-signaling = { module = "org.eclipse.edc:transfer-data-plane-signaling", version.ref = "edc" }

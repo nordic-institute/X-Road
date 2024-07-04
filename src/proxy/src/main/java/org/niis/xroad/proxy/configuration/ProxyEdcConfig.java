@@ -30,13 +30,14 @@ package org.niis.xroad.proxy.configuration;
 import ee.ria.xroad.common.SystemProperties;
 
 import org.eclipse.edc.connector.controlplane.api.management.asset.v3.AssetApi;
-import org.eclipse.edc.connector.controlplane.api.management.contractdefinition.ContractDefinitionApi;
-import org.eclipse.edc.connector.controlplane.api.management.contractnegotiation.ContractNegotiationApi;
-import org.eclipse.edc.connector.controlplane.api.management.policy.PolicyDefinitionApi;
-import org.eclipse.edc.connector.controlplane.api.management.transferprocess.TransferProcessApi;
-import org.eclipse.edc.connector.dataplane.selector.api.v2.DataplaneSelectorApi;
-import org.niis.xroad.edc.management.client.FeignCatalogApi;
+import org.eclipse.edc.connector.controlplane.api.management.catalog.v3.CatalogApiV3;
+import org.eclipse.edc.connector.controlplane.api.management.contractdefinition.v3.ContractDefinitionApiV3;
+import org.eclipse.edc.connector.controlplane.api.management.contractnegotiation.v3.ContractNegotiationApiV3;
+import org.eclipse.edc.connector.controlplane.api.management.policy.v3.PolicyDefinitionApiV3;
+import org.eclipse.edc.connector.controlplane.api.management.transferprocess.v3.TransferProcessApiV3;
+import org.eclipse.edc.connector.dataplane.selector.control.api.DataplaneSelectorControlApi;
 import org.niis.xroad.edc.management.client.FeignXroadEdrApi;
+import org.niis.xroad.edc.management.client.configuration.EdcControlApiFactory;
 import org.niis.xroad.edc.management.client.configuration.EdcManagementApiFactory;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Condition;
@@ -55,8 +56,21 @@ public class ProxyEdcConfig {
     EdcManagementApiFactory edcManagementApiFactory() {
         return new EdcManagementApiFactory(String.format("%s://%s:%s",
                 SystemProperties.isSslEnabled() ? "https" : "http",
-                SystemProperties.dataspacesManagementListenAddress(),
+                SystemProperties.dataspacesListenAddress(),
                 SystemProperties.dataspacesManagementListenPort()));
+    }
+
+    @Bean
+    EdcControlApiFactory edcControlApiFactory() {
+        return new EdcControlApiFactory(String.format("%s://%s:%s",
+                SystemProperties.isSslEnabled() ? "https" : "http",
+                SystemProperties.dataspacesListenAddress(),
+                SystemProperties.dataspacesControlListenPort()));
+    }
+
+    @Bean
+    DataplaneSelectorControlApi dataplaneSelectorControlApi(EdcControlApiFactory edcControlApiFactory) {
+        return edcControlApiFactory.dataplaneSelectorControlApi();
     }
 
     @Bean
@@ -65,33 +79,28 @@ public class ProxyEdcConfig {
     }
 
     @Bean
-    PolicyDefinitionApi policyDefinitionApi(EdcManagementApiFactory edcManagementApiFactory) {
+    PolicyDefinitionApiV3 policyDefinitionApi(EdcManagementApiFactory edcManagementApiFactory) {
         return edcManagementApiFactory.policyDefinitionApi();
     }
 
     @Bean
-    DataplaneSelectorApi dataplaneSelectorApi(EdcManagementApiFactory edcManagementApiFactory) {
-        return edcManagementApiFactory.dataplaneSelectorApi();
-    }
-
-    @Bean
-    ContractDefinitionApi contractDefinitionApi(EdcManagementApiFactory edcManagementApiFactory) {
+    ContractDefinitionApiV3 contractDefinitionApi(EdcManagementApiFactory edcManagementApiFactory) {
         return edcManagementApiFactory.contractDefinitionApi();
     }
 
     @Bean
-    ContractNegotiationApi contractNegotiationApi(EdcManagementApiFactory edcManagementApiFactory) {
+    ContractNegotiationApiV3 contractNegotiationApi(EdcManagementApiFactory edcManagementApiFactory) {
         return edcManagementApiFactory.contractNegotiationApi();
     }
 
 
     @Bean
-    FeignCatalogApi feignCatalogApi(EdcManagementApiFactory edcManagementApiFactory) {
+    CatalogApiV3 feignCatalogApi(EdcManagementApiFactory edcManagementApiFactory) {
         return edcManagementApiFactory.catalogApi();
     }
 
     @Bean
-    TransferProcessApi transferProcessApi(EdcManagementApiFactory edcManagementApiFactory) {
+    TransferProcessApiV3 transferProcessApi(EdcManagementApiFactory edcManagementApiFactory) {
         return edcManagementApiFactory.transferProcessApi();
     }
 

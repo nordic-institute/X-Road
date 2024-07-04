@@ -171,7 +171,7 @@ public class VerifiableCredentialValidationServiceImpl implements VerifiableCred
 
     private Result<Void> verifyCredentialIntegrity(JsonObject credential, CredentialSubject complianceCredentialSubject) {
         /* TODO: the RFC8785 normalization currently used in Gaia-X compliance credenential's integrity checks
-        do not work when priorly the credential is expanded and compacted again which is the case with IATP.
+        do not work when priorly the credential is expanded and compacted again which is the case with DCP.
         https://gitlab.com/gaia-x/technical-committee/federation-services/icam/-/issues/81 - Ticket for replacing
         the normalization with a more robust solution (URDNA2015)
         */
