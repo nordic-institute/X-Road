@@ -25,6 +25,7 @@ dependencies {
     implementation libs.edc.configuration.filesystem
     implementation libs.edc.vault.hashicorp
     implementation libs.edc.management.api
+    implementation libs.edc.control.api.configuration
     implementation libs.edc.transfer.data.plane.signaling
 
     implementation libs.edc.data.plane.selector.api

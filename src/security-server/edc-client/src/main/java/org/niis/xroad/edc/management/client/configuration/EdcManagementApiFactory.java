@@ -50,7 +50,6 @@ import org.eclipse.edc.connector.controlplane.api.management.contractdefinition.
 import org.eclipse.edc.connector.controlplane.api.management.contractnegotiation.v3.ContractNegotiationApiV3;
 import org.eclipse.edc.connector.controlplane.api.management.policy.v3.PolicyDefinitionApiV3;
 import org.eclipse.edc.connector.controlplane.api.management.transferprocess.v3.TransferProcessApiV3;
-import org.eclipse.edc.connector.dataplane.selector.api.v2.DataplaneSelectorApiV2;
 import org.eclipse.edc.jsonld.util.JacksonJsonLd;
 import org.niis.xroad.edc.management.client.FeignAssetApi;
 import org.niis.xroad.edc.management.client.FeignCatalogApi;
@@ -71,11 +70,6 @@ public class EdcManagementApiFactory {
         this.baseUrl = baseUrl;
 
     }
-
-    public DataplaneSelectorApiV2 dataplaneSelectorApi() {
-        return createFeignClient(DataplaneSelectorApiV2.class, "/v2/dataplanes");
-    }
-
 
     public AssetApi assetsApi() {
         return createFeignClient(FeignAssetApi.class, "/v3/assets");
