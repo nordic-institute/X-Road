@@ -2,7 +2,7 @@
 set -e
 
 VERSION=7.6.0
-LAST_SUPPORTED_VERSION=7.3.0
+LAST_SUPPORTED_VERSION=7.4.0
 
 warn() {
   echo "$(tput setaf 3)*** $*$(tput sgr0)"
