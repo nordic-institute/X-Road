@@ -1,7 +1,7 @@
 #!/bin/bash
 set -e
 
-VERSION=7.5.0
+VERSION=7.6.0
 LAST_SUPPORTED_VERSION=7.3.0
 
 warn() {

@@ -1,5 +1,7 @@
 # Change Log
 
+## 7.6.0 - UNRELEASED
+
 ## 7.5.0 - 2024-07-04
 - XRDDEV-2496: As a Central Server Administrator I want to be able to configure a trusted CA with ACME enabled so that we can speed up onboarding
 - XRDDEV-2532: As a Central Server user I would like to be able to use the Escape and Enter keys in dialogs so that navigating the interface would be more ergonomic
