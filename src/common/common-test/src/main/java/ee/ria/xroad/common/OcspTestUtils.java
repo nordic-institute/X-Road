@@ -62,9 +62,9 @@ public final class OcspTestUtils {
      */
     @SneakyThrows
     public static OCSPResp createOCSPResponse(X509Certificate subject,
-            X509Certificate issuer,
-            X509Certificate signer, PrivateKey signerKey,
-            CertificateStatus certStatus) {
+                                              X509Certificate issuer,
+                                              X509Certificate signer, PrivateKey signerKey,
+                                              CertificateStatus certStatus) {
         return createOCSPResponse(subject, issuer, signer, signerKey,
                 certStatus, null, null);
     }
@@ -82,9 +82,9 @@ public final class OcspTestUtils {
      * @throws Exception in case of any errors
      */
     public static OCSPResp createOCSPResponse(X509Certificate subject,
-            X509Certificate issuer, X509Certificate signer, PrivateKey signerKey,
-            CertificateStatus certStatus, Date thisUpdate, Date nextUpdate)
-                    throws Exception {
+                                              X509Certificate issuer, X509Certificate signer, PrivateKey signerKey,
+                                              CertificateStatus certStatus, Date thisUpdate, Date nextUpdate)
+            throws Exception {
         BasicOCSPRespBuilder builder = new BasicOCSPRespBuilder(
                 new RespID(new X500Name(
                         signer.getSubjectX500Principal().getName())));

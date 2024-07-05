@@ -69,9 +69,9 @@ public class AsicContainerVerifierTest {
      */
     @BeforeClass
     public static void setUpConf() {
-        System.setProperty(SystemProperties.CONFIGURATION_PATH, "../common/common-util/src/test/resources/globalconf_good");
+        System.setProperty(SystemProperties.CONFIGURATION_PATH, "../common/common-globalconf/src/test/resources/globalconf_good");
         System.setProperty(SystemProperties.CONFIGURATION_ANCHOR_FILE,
-                "../common/common-util/src/test/resources/configuration-anchor1.xml");
+                "../common/common-globalconf/src/test/resources/configuration-anchor1.xml");
 
         GlobalConf.reload(new TestGlobalConfImpl() {
             @Override
@@ -86,7 +86,7 @@ public class AsicContainerVerifierTest {
      */
     @Parameters(name = "{index}: verify(\"{0}\") should throw \"{1}\"")
     public static Collection<Object[]> data() {
-        return Arrays.asList(new Object[][] {
+        return Arrays.asList(new Object[][]{
                 {"valid-signed-message.asice", null},
                 {"valid-signed-hashchain.asice", null},
                 {"valid-batch-ts.asice", null},

@@ -67,6 +67,7 @@ public class ClientInternalServersStepDefs extends BaseUiStepDefs {
                 .shouldBe(visible);
 
     }
+
     @Step("Information System TLS certificate is deleted")
     public void deleteTlsCert() {
         clientInfoPageObj.internalServers.linkTLSCertificate()

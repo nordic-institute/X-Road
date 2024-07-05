@@ -35,6 +35,7 @@ import ee.ria.xroad.common.message.SoapFault;
 import ee.ria.xroad.common.message.SoapMessageImpl;
 import ee.ria.xroad.common.signature.SignatureData;
 import ee.ria.xroad.common.util.CryptoUtils;
+import ee.ria.xroad.common.util.HeaderValueUtils;
 import ee.ria.xroad.common.util.MessageFileNames;
 import ee.ria.xroad.common.util.MimeTypes;
 import ee.ria.xroad.common.util.MimeUtils;
@@ -163,7 +164,7 @@ public class ProxyMessageDecoder {
     public void parse(InputStream is) throws Exception {
         LOG.trace("parse()");
 
-        String baseContentType = HttpField.valueParameters(contentType, null);
+        String baseContentType = HttpField.getValueParameters(contentType, null);
         if (faultAllowed && baseContentType.equalsIgnoreCase(TEXT_XML)) {
             parseFault(is);
         } else if (baseContentType.equalsIgnoreCase(MULTIPART_MIXED)) {
@@ -202,7 +203,7 @@ public class ProxyMessageDecoder {
 
     private void parseMultipart(InputStream is) throws Exception {
         // Multipart content type requires boundary!
-        if (!MimeUtils.hasBoundary(contentType.toLowerCase())) {
+        if (!HeaderValueUtils.hasBoundary(contentType.toLowerCase())) {
             throw new CodedException(X_INVALID_CONTENT_TYPE,
                     "Multipart content type is missing required boundary");
         }
@@ -219,7 +220,7 @@ public class ProxyMessageDecoder {
         OCSP, SOAP, REST, RESTBODY, ATTACHMENT, HASH_CHAIN_RESULT, HASH_CHAIN, SIGNATURE, NONE
     }
 
-    private class ContentHandler extends AbstractContentHandler {
+    private final class ContentHandler extends AbstractContentHandler {
         private NextPart nextPart = NextPart.OCSP;
         private boolean rest = false;
         private Map<String, String> headers;

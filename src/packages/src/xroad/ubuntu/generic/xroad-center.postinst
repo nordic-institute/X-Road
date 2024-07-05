@@ -87,7 +87,12 @@ setup_database() {
     fi
     local db_admin_user="${db_admin_conn_user%%@*}"
 
-    export PGOPTIONS="-c client-min-messages=warning -c search_path=$db_schema,public"
+    # Reading custom libpq ENV variables
+    if [ -f /etc/xroad/db_libpq.env ]; then
+      source /etc/xroad/db_libpq.env
+    fi
+
+    export PGOPTIONS="-c client-min-messages=warning -c search_path=$db_schema,public ${PGOPTIONS_EXTRA-}"
 
     local hosts
     IFS=',' read -ra hosts <<<"$db_host"
@@ -102,8 +107,8 @@ setup_database() {
     }
 
     psql_adminuser() {
-            PGDATABASE="$db_database" PGUSER="$db_admin_user" PGPASSWORD="$db_admin_password" remote_psql "$@"
-        }
+        PGDATABASE="$db_database" PGUSER="$db_admin_user" PGPASSWORD="$db_admin_password" remote_psql "$@"
+    }
 
     if [[ -f ${root_properties} && $(get_prop ${root_properties} postgres.connection.password) != "" ]]; then
         local db_master_passwd=$(get_prop ${root_properties} postgres.connection.password)

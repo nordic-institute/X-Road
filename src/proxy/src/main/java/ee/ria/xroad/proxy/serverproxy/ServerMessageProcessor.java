@@ -45,6 +45,8 @@ import ee.ria.xroad.common.message.SoapMessageImpl;
 import ee.ria.xroad.common.message.SoapUtils;
 import ee.ria.xroad.common.opmonitoring.OpMonitoringData;
 import ee.ria.xroad.common.util.HttpSender;
+import ee.ria.xroad.common.util.RequestWrapper;
+import ee.ria.xroad.common.util.ResponseWrapper;
 import ee.ria.xroad.common.util.TimeUtils;
 import ee.ria.xroad.proxy.conf.KeyConf;
 import ee.ria.xroad.proxy.conf.SigningCtx;
@@ -54,8 +56,6 @@ import ee.ria.xroad.proxy.protocol.ProxyMessageDecoder;
 import ee.ria.xroad.proxy.protocol.ProxyMessageEncoder;
 import ee.ria.xroad.proxy.util.MessageProcessorBase;
 
-import jakarta.servlet.http.HttpServletRequest;
-import jakarta.servlet.http.HttpServletResponse;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -124,10 +124,10 @@ class ServerMessageProcessor extends MessageProcessorBase {
     private HttpClient opMonitorHttpClient;
     private OpMonitoringData opMonitoringData;
 
-    ServerMessageProcessor(HttpServletRequest servletRequest, HttpServletResponse servletResponse,
-            HttpClient httpClient, X509Certificate[] clientSslCerts, HttpClient opMonitorHttpClient,
-            OpMonitoringData opMonitoringData) {
-        super(servletRequest, servletResponse, httpClient);
+    ServerMessageProcessor(RequestWrapper request, ResponseWrapper response,
+                           HttpClient httpClient, X509Certificate[] clientSslCerts,
+                           HttpClient opMonitorHttpClient, OpMonitoringData opMonitoringData) {
+        super(request, response, httpClient);
 
         this.clientSslCerts = clientSslCerts;
         this.opMonitorHttpClient = opMonitorHttpClient;
@@ -138,9 +138,9 @@ class ServerMessageProcessor extends MessageProcessorBase {
 
     @Override
     public void process() throws Exception {
-        log.info("process({})", servletRequest.getContentType());
+        log.info("process({})", jRequest.getContentType());
 
-        xRequestId = servletRequest.getHeader(HEADER_REQUEST_ID);
+        xRequestId = jRequest.getHeaders().get(HEADER_REQUEST_ID);
 
         opMonitoringData.setXRequestId(xRequestId);
         updateOpMonitoringClientSecurityServerAddress();
@@ -196,11 +196,11 @@ class ServerMessageProcessor extends MessageProcessorBase {
     }
 
     @Override
-    protected void preprocess() throws Exception {
-        encoder = new ProxyMessageEncoder(servletResponse.getOutputStream(), SoapUtils.getHashAlgoId());
+    protected void preprocess() {
+        encoder = new ProxyMessageEncoder(jResponse.getOutputStream(), SoapUtils.getHashAlgoId());
 
-        servletResponse.setContentType(encoder.getContentType());
-        servletResponse.addHeader(HEADER_HASH_ALGO_ID, SoapUtils.getHashAlgoId());
+        jResponse.setContentType(encoder.getContentType());
+        jResponse.addHeader(HEADER_HASH_ALGO_ID, SoapUtils.getHashAlgoId());
     }
 
     @Override
@@ -252,7 +252,7 @@ class ServerMessageProcessor extends MessageProcessorBase {
         }
 
         try {
-            handler.startHandling(servletRequest, requestMessage, opMonitorHttpClient, opMonitoringData);
+            handler.startHandling(jRequest, requestMessage, opMonitorHttpClient, opMonitoringData);
             parseResponse(handler);
         } finally {
             handler.finishHandling();
@@ -262,8 +262,8 @@ class ServerMessageProcessor extends MessageProcessorBase {
     private void readMessage() throws Exception {
         log.trace("readMessage()");
 
-        originalSoapAction = validateSoapActionHeader(servletRequest.getHeader(HEADER_ORIGINAL_SOAP_ACTION));
-        requestMessage = new ProxyMessage(servletRequest.getHeader(HEADER_ORIGINAL_CONTENT_TYPE)) {
+        originalSoapAction = validateSoapActionHeader(jRequest.getHeaders().get(HEADER_ORIGINAL_SOAP_ACTION));
+        requestMessage = new ProxyMessage(jRequest.getHeaders().get(HEADER_ORIGINAL_CONTENT_TYPE)) {
             @Override
             public void soap(SoapMessageImpl soapMessage, Map<String, String> additionalHeaders) throws Exception {
                 super.soap(soapMessage, additionalHeaders);
@@ -283,10 +283,10 @@ class ServerMessageProcessor extends MessageProcessorBase {
             }
         };
 
-        decoder = new ProxyMessageDecoder(requestMessage, servletRequest.getContentType(), false,
-                getHashAlgoId(servletRequest));
+        decoder = new ProxyMessageDecoder(requestMessage, jRequest.getContentType(), false,
+                getHashAlgoId(jRequest));
         try {
-            decoder.parse(servletRequest.getInputStream());
+            decoder.parse(jRequest.getInputStream());
         } catch (CodedException e) {
             throw e.withPrefix(X_SERVICE_FAILED_X);
         }
@@ -429,7 +429,7 @@ class ServerMessageProcessor extends MessageProcessorBase {
         log.info("Sending request to {}", uri);
         try (InputStream in = requestMessage.getSoapContent()) {
             opMonitoringData.setRequestOutTs(getEpochMillisecond());
-            httpSender.doPost(uri, in, CHUNKED_LENGTH, servletRequest.getHeader(HEADER_ORIGINAL_CONTENT_TYPE));
+            httpSender.doPost(uri, in, CHUNKED_LENGTH, jRequest.getHeaders().get(HEADER_ORIGINAL_CONTENT_TYPE));
             opMonitoringData.setResponseInTs(getEpochMillisecond());
         } catch (Exception ex) {
             if (ex instanceof CodedException) {
@@ -446,7 +446,7 @@ class ServerMessageProcessor extends MessageProcessorBase {
         preprocess();
 
         // Preserve the original content type of the service response
-        servletResponse.addHeader(HEADER_ORIGINAL_CONTENT_TYPE, handler.getResponseContentType());
+        jResponse.addHeader(HEADER_ORIGINAL_CONTENT_TYPE, handler.getResponseContentType());
 
         try (SoapMessageHandler messageHandler = new SoapMessageHandler()) {
             SoapMessageDecoder soapMessageDecoder = new SoapMessageDecoder(handler.getResponseContentType(),
@@ -522,8 +522,8 @@ class ServerMessageProcessor extends MessageProcessorBase {
         return clientSslCerts != null ? clientSslCerts[0] : null;
     }
 
-    private static String getHashAlgoId(HttpServletRequest servletRequest) {
-        String hashAlgoId = servletRequest.getHeader(HEADER_HASH_ALGO_ID);
+    private static String getHashAlgoId(RequestWrapper request) {
+        String hashAlgoId = request.getHeaders().get(HEADER_HASH_ALGO_ID);
 
         if (hashAlgoId == null) {
             throw new CodedException(X_INTERNAL_ERROR, "Could not get hash algorithm identifier from message");
@@ -532,7 +532,7 @@ class ServerMessageProcessor extends MessageProcessorBase {
         return hashAlgoId;
     }
 
-    private class DefaultServiceHandlerImpl implements ServiceHandler {
+    private final class DefaultServiceHandlerImpl implements ServiceHandler {
 
         private HttpSender sender;
 
@@ -557,8 +557,8 @@ class ServerMessageProcessor extends MessageProcessorBase {
         }
 
         @Override
-        public void startHandling(HttpServletRequest servletRequest, ProxyMessage proxyRequestMessage,
-                HttpClient opMonitorClient, OpMonitoringData monitoringData) throws Exception {
+        public void startHandling(RequestWrapper request, ProxyMessage proxyRequestMessage,
+                                  HttpClient opMonitorClient, OpMonitoringData monitoringData) throws Exception {
             sender = createHttpSender();
 
             log.trace("processRequest({})", requestServiceId);
@@ -598,7 +598,7 @@ class ServerMessageProcessor extends MessageProcessorBase {
         }
     }
 
-    private class SoapMessageHandler implements SoapMessageDecoder.Callback {
+    private final class SoapMessageHandler implements SoapMessageDecoder.Callback {
         @Override
         public void soap(SoapMessage message, Map<String, String> headers) throws Exception {
             responseSoap = (SoapMessageImpl) message;
@@ -639,7 +639,7 @@ class ServerMessageProcessor extends MessageProcessorBase {
     /**
      * Soap parser that adds the request message hash to the response message header.
      */
-    private class ResponseSoapParserImpl extends SaxSoapParserImpl {
+    private final class ResponseSoapParserImpl extends SaxSoapParserImpl {
 
         private boolean inHeader;
         private boolean inBody;

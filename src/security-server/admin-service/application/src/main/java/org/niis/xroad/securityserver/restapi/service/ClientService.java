@@ -438,7 +438,7 @@ public class ClientService {
      * @return
      */
     private List<ClientType> subtractLocalFromGlobalClients(List<ClientType> globalClients,
-            List<ClientType> localClients) {
+                                                            List<ClientType> localClients) {
         List<String> localClientIds = localClients.stream().map(localClient ->
                 localClient.getIdentifier().toShortString()).collect(Collectors.toList());
 
@@ -619,7 +619,6 @@ public class ClientService {
     }
 
 
-
     /**
      * Merge two client lists into one with only unique clients. The distinct clients in the latter list
      * {@code moreClients} are favoured in the case of duplicates.
@@ -712,10 +711,10 @@ public class ClientService {
      * member class that is not defined in this instance's configuration
      */
     public ClientType addLocalClient(String memberClass,
-            String memberCode,
-            String subsystemCode,
-            IsAuthentication isAuthentication,
-            boolean ignoreWarnings) throws ClientAlreadyExistsException,
+                                     String memberCode,
+                                     String subsystemCode,
+                                     IsAuthentication isAuthentication,
+                                     boolean ignoreWarnings) throws ClientAlreadyExistsException,
             AdditionalMemberAlreadyExistsException, UnhandledWarningsException, InvalidMemberClassException {
 
         if (!isValidMemberClass(memberClass)) {
@@ -825,11 +824,15 @@ public class ClientService {
         if (!allowedStatuses.contains(clientType.getClientStatus())) {
             throw new ActionNotPossibleException("cannot delete client with status " + clientType.getClientStatus());
         }
+        removeLocalClient(clientType);
+    }
 
+    private void removeLocalClient(ClientType clientType) {
         ServerConfType serverConfType = serverConfService.getServerConf();
         if (!serverConfType.getClient().remove(clientType)) {
-            throw new RuntimeException("client to be deleted was somehow missing from serverconf");
+            throw new RuntimeException("client to be deleted was somehow missing from server conf");
         }
+        identifierRepository.remove(clientType.getIdentifier());
     }
 
     /**
@@ -921,10 +924,10 @@ public class ClientService {
         /** list only clients that are missing from this security server */
         private boolean excludeLocal;
         /**
-          true = include only clients who have local valid sign cert (registered & OCSP good) <br>
-          false = include only clients who don't have a local valid sign cert <br>
-          null = don't care whether client has a local valid sign cert <br>
-          NOTE: parameter does not have an effect on whether local or global clients are searched
+         true = include only clients who have local valid sign cert (registered & OCSP good) <br>
+         false = include only clients who don't have a local valid sign cert <br>
+         null = don't care whether client has a local valid sign cert <br>
+         NOTE: parameter does not have an effect on whether local or global clients are searched
          */
         private Boolean hasValidLocalSignCert;
     }

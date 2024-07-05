@@ -54,7 +54,7 @@ public interface FeignInitializationApi extends InitializationApi {
     @RequestMapping(
             method = RequestMethod.GET,
             value = "/initialization/status",
-            produces = { "application/json" }
+            produces = {"application/json"}
     )
     ResponseEntity<InitializationStatusDto> getInitializationStatusWithHeader(
             @RequestHeader(AUTHORIZATION) String authentication

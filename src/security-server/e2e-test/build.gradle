@@ -1,0 +1,48 @@
+dependencies {
+    intTestImplementation project(":common:common-int-test")
+    intTestImplementation(libs.testAutomation.assert)
+    intTestImplementation(libs.testAutomation.restassured)
+
+    intTestImplementation(libs.feign.hc5)
+}
+
+tasks.register('e2eTest', Test) {
+    useJUnitPlatform()
+
+    setDescription("Runs e2e tests.")
+    group = 'verification'
+
+    testClassesDirs = sourceSets.intTest.output.classesDirs
+    classpath = sourceSets.intTest.runtimeClasspath
+
+    def systemTestArgs = ["-XX:MaxMetaspaceSize=200m"]
+
+    if (project.hasProperty('e2eTestServeReport')) {
+        systemTestArgs += "-Dtest-automation.report.allure.serve-report.enabled=" + project.getProperty('e2eTestServeReport')
+    }
+    if (project.hasProperty('e2eTestCSImage')) {
+        systemTestArgs += "-Dtest-automation.custom.cs-image=" + project.getProperty('e2eTestCSImage')
+    }
+    if (project.hasProperty('e2eTestSSImage')) {
+        systemTestArgs += "-Dtest-automation.custom.ss-image=" + project.getProperty('e2eTestSSImage')
+    }
+    if (project.hasProperty('e2eTestCAImage')) {
+        systemTestArgs += "-Dtest-automation.custom.cs-image=" + project.getProperty('e2eTestCAImage')
+    }
+    if (project.hasProperty('e2eTestISSOAPImage')) {
+        systemTestArgs += "-Dtest-automation.custom.issoap-image=" + project.getProperty('e2eTestISSOAPImage')
+    }
+    if (project.hasProperty('e2eTestUseCustomEnv')) {
+        systemTestArgs += "-Dtest-automation.custom.use-custom-env=" + project.getProperty('e2eTestUseCustomEnv')
+    }
+    jvmArgs systemTestArgs
+
+    maxHeapSize("256m")
+
+    testLogging {
+        showStackTraces(true)
+        showExceptions(true)
+        showCauses(true)
+        showStandardStreams(true)
+    }
+}

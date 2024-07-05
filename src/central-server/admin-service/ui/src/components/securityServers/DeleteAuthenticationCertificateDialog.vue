@@ -27,11 +27,12 @@
 
 <template>
   <xrd-simple-dialog
-    :disable-save="!meta.valid"
-    :loading="loading"
     title="securityServers.securityServer.dialog.deleteAuthCertificate.title"
     save-button-text="action.delete"
     cancel-button-text="action.cancel"
+    submittable
+    :disable-save="!meta.valid"
+    :loading="loading"
     @cancel="cancel"
     @save="deleteCert"
   >
@@ -44,7 +45,8 @@
     </template>
     <template #content>
       <v-text-field
-        v-model="value"
+        v-model="securityServerCode"
+        v-bind="securityServerCodeAttrs"
         data-test="verify-server-code"
         variant="outlined"
         autofocus
@@ -54,83 +56,76 @@
           )
         "
         :label="$t('fields.securityServerCode')"
-        :error-messages="errors"
       >
       </v-text-field>
     </template>
   </xrd-simple-dialog>
 </template>
 
-<script lang="ts">
-import { SecurityServer, SecurityServerId } from '@/openapi-types';
+<script lang="ts" setup>
+import { SecurityServerId } from '@/openapi-types';
 import { useNotifications } from '@/store/modules/notifications';
-import { useSecurityServer } from '@/store/modules/security-servers';
 import { useSecurityServerAuthCert } from '@/store/modules/security-servers-authentication-certificates';
-import { defineComponent, PropType } from 'vue';
-import { useField } from 'vee-validate';
-import { mapActions, mapStores } from 'pinia';
+import { ref, PropType } from 'vue';
+import { useForm } from 'vee-validate';
+import { i18n } from '@/plugins/i18n';
 
-export default defineComponent({
-  props: {
-    authenticationCertificateId: {
-      type: String,
+const props = defineProps({
+  authenticationCertificateId: {
+    type: String,
+    required: true,
+  },
+  securityServerId: {
+    type: Object as PropType<SecurityServerId>,
+    required: true,
+  },
+});
+
+const emits = defineEmits(['delete', 'cancel']);
+
+const { meta, defineField, handleSubmit } = useForm({
+  validationSchema: {
+    securityServerCode: {
       required: true,
-    },
-    securityServerId: {
-      type: Object as PropType<SecurityServerId>,
-      required: true,
+      is: props.securityServerId.server_code,
     },
   },
-  emits: ['cancel', 'delete'],
-  setup(props) {
-    const { value, meta, errors } = useField(
-      'securityServerCode',
-      {
-        required: true,
-        is: props.securityServerId.server_code,
-      },
-      { initialValue: '' },
-    );
-    return { value, meta, errors };
+});
+const [securityServerCode, securityServerCodeAttrs] = defineField(
+  'securityServerCode',
+  {
+    props: (state) => ({ 'error-messages': state.errors }),
   },
-  data() {
-    return {
-      loading: false,
-    };
-  },
-  computed: {
-    ...mapStores(useSecurityServerAuthCert, useSecurityServer),
-    securityServer(): SecurityServer | null {
-      return this.securityServerStore.currentSecurityServer;
-    },
-  },
-  methods: {
-    ...mapActions(useNotifications, ['showSuccess', 'showError']),
-    cancel(): void {
-      this.$emit('cancel');
-    },
-    deleteCert(): void {
-      this.loading = true;
-      this.securityServerAuthCertStore
-        .deleteAuthenticationCertificate(
-          this.securityServerId.encoded_id as string,
-          this.authenticationCertificateId,
-        )
-        .then(() => {
-          this.showSuccess(
-            this.$t(
-              'securityServers.securityServer.dialog.deleteAuthCertificate.success',
-            ),
-          );
-          this.$emit('delete');
-        })
-        .catch((error) => {
-          this.showError(error);
-          this.$emit('cancel');
-        })
-        .finally(() => (this.loading = false));
-    },
-  },
+);
+
+const { deleteAuthenticationCertificate } = useSecurityServerAuthCert();
+const { showSuccess, showError } = useNotifications();
+
+function cancel() {
+  emits('cancel');
+}
+
+const loading = ref(false);
+const { t } = i18n.global;
+const deleteCert = handleSubmit(() => {
+  loading.value = true;
+  deleteAuthenticationCertificate(
+    props.securityServerId.encoded_id as string,
+    props.authenticationCertificateId,
+  )
+    .then(() => {
+      showSuccess(
+        t(
+          'securityServers.securityServer.dialog.deleteAuthCertificate.success',
+        ),
+      );
+      emits('delete');
+    })
+    .catch((error) => {
+      showError(error);
+      emits('cancel');
+    })
+    .finally(() => (loading.value = false));
 });
 </script>
 

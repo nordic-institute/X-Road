@@ -130,10 +130,8 @@ class MultipartMessage {
         }
     }
 
-    @Value
-    private static class RawPart implements Part {
-        String content;
 
+    private record RawPart(String content) implements Part {
         public String toString() {
             return content;
         }

@@ -36,6 +36,8 @@ import ee.ria.xroad.common.message.RestResponse;
 import ee.ria.xroad.common.metadata.RestServiceDetailsListType;
 import ee.ria.xroad.common.opmonitoring.OpMonitoringData;
 import ee.ria.xroad.common.util.CachingStream;
+import ee.ria.xroad.common.util.RequestWrapper;
+import ee.ria.xroad.common.util.ResponseWrapper;
 import ee.ria.xroad.proxy.conf.KeyConf;
 import ee.ria.xroad.proxy.protocol.ProxyMessage;
 import ee.ria.xroad.proxy.protocol.ProxyMessageDecoder;
@@ -50,12 +52,11 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.PropertyNamingStrategy;
 import com.github.tomakehurst.wiremock.WireMockServer;
 import com.github.tomakehurst.wiremock.client.WireMock;
-import jakarta.servlet.http.HttpServletRequest;
-import jakarta.servlet.http.HttpServletResponse;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.http.HttpStatus;
 import org.apache.http.client.HttpClient;
+import org.eclipse.jetty.http.HttpFields;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.BeforeClass;
@@ -71,9 +72,9 @@ import java.util.stream.Collectors;
 import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
 import static com.github.tomakehurst.wiremock.client.WireMock.urlPathEqualTo;
 import static com.github.tomakehurst.wiremock.core.WireMockConfiguration.options;
-import static ee.ria.xroad.common.metadata.MetadataRequests.ALLOWED_METHODS;
-import static ee.ria.xroad.common.metadata.MetadataRequests.GET_OPENAPI;
-import static ee.ria.xroad.common.metadata.MetadataRequests.LIST_METHODS;
+import static ee.ria.xroad.proxy.util.MetadataRequests.ALLOWED_METHODS;
+import static ee.ria.xroad.proxy.util.MetadataRequests.GET_OPENAPI;
+import static ee.ria.xroad.proxy.util.MetadataRequests.LIST_METHODS;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
@@ -113,8 +114,8 @@ public class RestMetadataServiceHandlerTest {
     public ExpectedException thrown = ExpectedException.none();
 
     private HttpClient httpClientMock;
-    private HttpServletRequest mockRequest;
-    private HttpServletResponse mockResponse;
+    private RequestWrapper mockRequest;
+    private ResponseWrapper mockResponse;
     private ProxyMessage mockProxyMessage;
     private WireMockServer mockServer;
 
@@ -139,6 +140,7 @@ public class RestMetadataServiceHandlerTest {
             public DescriptionType getDescriptionType(ServiceId service) {
                 return DescriptionType.OPENAPI3;
             }
+
             @Override
             public String getServiceDescriptionURL(ServiceId service) {
                 if (SUBSYSTEM_FOR_JSON_FILE.equals(service.getSubsystemCode())) {
@@ -150,11 +152,13 @@ public class RestMetadataServiceHandlerTest {
                 }
             }
         });
-
+        var mockHeaders = mock(HttpFields.class);
         httpClientMock = mock(HttpClient.class);
-        mockRequest = mock(HttpServletRequest.class);
-        mockResponse = mock(HttpServletResponse.class);
+        mockRequest = mock(RequestWrapper.class);
+        mockResponse = mock(ResponseWrapper.class);
         mockProxyMessage = mock(ProxyMessage.class);
+
+        when(mockRequest.getHeaders()).thenReturn(mockHeaders);
 
         mockServer = new WireMockServer(options().port(MOCK_SERVER_PORT));
 
@@ -256,8 +260,6 @@ public class RestMetadataServiceHandlerTest {
 
         RestMetadataServiceHandlerImpl handlerToTest = new RestMetadataServiceHandlerImpl();
         ServiceId.Conf serviceId = ServiceId.Conf.create(DEFAULT_CLIENT, GET_OPENAPI);
-
-        when(mockRequest.getRequestURL()).thenReturn(new StringBuffer("https://securityserver:5500"));
 
         RestRequest mockRestRequest = mock(RestRequest.class);
         when(mockRestRequest.getQuery()).thenReturn("serviceCode=foobar");

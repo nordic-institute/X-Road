@@ -129,7 +129,7 @@ final class ManagementRequestBuilder {
     }
 
     SoapMessageImpl buildClientDisableRequest(SecurityServerId.Conf securityServer,
-                                            ClientId.Conf client) throws Exception {
+                                              ClientId.Conf client) throws Exception {
         log.debug("buildClientDisableRequest(server: {}, client: {})", securityServer, client);
 
         ClientRequestType request = FACTORY.createClientRequestType();
@@ -140,7 +140,7 @@ final class ManagementRequestBuilder {
     }
 
     SoapMessageImpl buildClientEnableRequest(SecurityServerId.Conf securityServer,
-                                              ClientId.Conf client) throws Exception {
+                                             ClientId.Conf client) throws Exception {
         log.debug("buildClientEnableRequest(server: {}, client: {})", securityServer, client);
 
         ClientRequestType request = FACTORY.createClientRequestType();

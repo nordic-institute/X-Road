@@ -26,6 +26,8 @@
 
 package org.niis.xroad.securityserver.restapi.wsdl;
 
+import ee.ria.xroad.common.util.CryptoUtils;
+
 import javax.net.ssl.HttpsURLConnection;
 import javax.net.ssl.KeyManager;
 import javax.net.ssl.SSLContext;
@@ -47,8 +49,8 @@ final class HttpUrlConnectionConfig {
 
     static void apply(HttpURLConnection conn) {
         if (conn instanceof HttpsURLConnection) {
-            ((HttpsURLConnection)conn).setSSLSocketFactory(SSL_SOCKET_FACTORY);
-            ((HttpsURLConnection)conn).setHostnameVerifier(HostnameVerifiers.ACCEPT_ALL);
+            ((HttpsURLConnection) conn).setSSLSocketFactory(SSL_SOCKET_FACTORY);
+            ((HttpsURLConnection) conn).setHostnameVerifier(HostnameVerifiers.ACCEPT_ALL);
         }
         conn.setConnectTimeout(CONNECT_TIMEOUT_MS);
         conn.setReadTimeout(READ_TIMEOUT_MS);
@@ -60,9 +62,9 @@ final class HttpUrlConnectionConfig {
 
     static {
         try {
-            final SSLContext ctx = SSLContext.getInstance("TLSv1.2");
-            ctx.init(new KeyManager[] {new ClientSslKeyManager()},
-                    new TrustManager[] {new NoopTrustManager()},
+            final SSLContext ctx = SSLContext.getInstance(CryptoUtils.SSL_PROTOCOL);
+            ctx.init(new KeyManager[]{new ClientSslKeyManager()},
+                    new TrustManager[]{new NoopTrustManager()},
                     new SecureRandom());
             SSL_SOCKET_FACTORY = ctx.getSocketFactory();
         } catch (NoSuchAlgorithmException | KeyManagementException e) {

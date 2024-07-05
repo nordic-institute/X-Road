@@ -12,7 +12,7 @@ for i in "$@" ; do
 done
 
 dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" >&/dev/null && pwd)"
-version="${1:-7.4.1}"
+version="${1:-7.5.0}"
 tag="${2:-xroad-security-server-sidecar}"
 repo="${3-}"
 dist="${4-}"

@@ -25,7 +25,7 @@
  */
 package ee.ria.xroad.proxy.antidos;
 
-import ee.ria.xroad.common.util.SystemMetrics;
+import ee.ria.xroad.proxy.util.SystemMetrics;
 
 import lombok.extern.slf4j.Slf4j;
 import org.eclipse.jetty.io.EndPoint;
@@ -63,7 +63,7 @@ public class AntiDosConnector extends ServerConnector {
     private final Semaphore semaphore = new Semaphore(configuration.getMaxParallelConnections());
 
     private final AntiDosConnectionManager<SocketChannelWrapperImpl> manager =
-            new AntiDosConnectionManager<SocketChannelWrapperImpl>(configuration) {
+            new AntiDosConnectionManager<>(configuration) {
                 @Override
                 void closeConnection(SocketChannelWrapperImpl sock) throws IOException {
                     try {
@@ -142,7 +142,7 @@ public class AntiDosConnector extends ServerConnector {
         };
     }
 
-    private class QueueManager implements Runnable {
+    private final class QueueManager implements Runnable {
         @Override
         public void run() {
             try {

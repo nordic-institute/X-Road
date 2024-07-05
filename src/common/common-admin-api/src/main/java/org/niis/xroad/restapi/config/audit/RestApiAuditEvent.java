@@ -104,6 +104,7 @@ public enum RestApiAuditEvent {
     GENERATE_CSR("Generate CSR"),
     DELETE_CSR("Delete CSR"),
     GENERATE_KEY_AND_CSR("Generate key and CSR"),
+    ACME_ORDER_CERTIFICATE("Acme order certificate"),
     ACTIVATE_SIGNING_KEY("Activate signing key"),
     ACTIVATE_INTERNAL_CONFIGURATION_SIGNING_KEY("Activate internal configuration signing key"),
     ACTIVATE_EXTERNAL_CONFIGURATION_SIGNING_KEY("Activate external configuration signing key"),

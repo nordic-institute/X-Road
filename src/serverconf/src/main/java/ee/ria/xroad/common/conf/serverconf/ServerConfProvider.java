@@ -112,7 +112,7 @@ public interface ServerConfProvider {
      * has permission to invoke filtered by description type
      */
     List<ServiceId.Conf> getAllowedServicesByDescriptionType(ClientId serviceProvider, ClientId client,
-                                                        DescriptionType descriptionType);
+                                                             DescriptionType descriptionType);
 
     /**
      * @param client the client identifier

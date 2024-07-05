@@ -29,14 +29,14 @@
     title="systemSettings.selectSecurityServer.title"
     save-button-text="action.select"
     width="824"
-    z-index="1999"
+    submittable
     scrollable
     :disable-save="!selected || !changed"
     @cancel="cancel"
     @save="registerServiceProvider"
   >
     <template #content>
-      <div style="height: 500px">
+      <div>
         <v-text-field
           v-model="pagingOptions.search"
           :label="$t('systemSettings.selectSecurityServer.search')"
@@ -55,6 +55,7 @@
           v-model="selectedSecurityServers"
           class="elevation-0 xrd-table"
           item-value="server_id.encoded_id"
+          max-height="420"
           show-select
           select-strategy="single"
           :loading="loading"
@@ -84,10 +85,9 @@ import {
 import { mapActions, mapStores } from 'pinia';
 import { useNotifications } from '@/store/modules/notifications';
 import { debounce } from '@/util/helpers';
-import { DataQuery, DataTableHeader, Event } from '@/ui-types';
+import { DataQuery, DataTableHeader } from '@/ui-types';
 import { useSecurityServer } from '@/store/modules/security-servers';
 import { TranslateResult } from 'vue-i18n';
-import { VDataTableServer } from 'vuetify/labs/VDataTable';
 import { defaultItemsPerPageOptions } from '@/util/defaults';
 import { useManagementServices } from '@/store/modules/management-services';
 
@@ -96,16 +96,13 @@ import { useManagementServices } from '@/store/modules/management-services';
 let that: any;
 
 export default defineComponent({
-  components: {
-    VDataTableServer,
-  },
   props: {
     currentSecurityServer: {
       type: String,
       default: '',
     },
   },
-  emits: [Event.Cancel, Event.Select],
+  emits: ['cancel', 'select'],
   data() {
     const options = defaultItemsPerPageOptions();
     return {
@@ -185,6 +182,7 @@ export default defineComponent({
         this.loading = false;
       }
     },
+    // @ts-expect-error
     changeOptions: async function ({ itemsPerPage, page, sortBy }) {
       this.pagingOptions.itemsPerPage = itemsPerPage;
       this.pagingOptions.page = page;
@@ -193,7 +191,7 @@ export default defineComponent({
       await this.findServers();
     },
     cancel(): void {
-      this.$emit(Event.Cancel);
+      this.$emit('cancel');
     },
     registerServiceProvider(): void {
       this.loading = true;
@@ -210,7 +208,7 @@ export default defineComponent({
                 this.managementServicesConfiguration.security_server_id,
             }),
           );
-          this.$emit(Event.Select, this.selectedSecurityServers);
+          this.$emit('select', this.selectedSecurityServers);
         })
         .catch((error) => {
           this.showError(error);
@@ -229,6 +227,7 @@ export default defineComponent({
 .checkbox-column {
   width: 50px;
 }
+
 .search-input {
   width: 300px;
 }

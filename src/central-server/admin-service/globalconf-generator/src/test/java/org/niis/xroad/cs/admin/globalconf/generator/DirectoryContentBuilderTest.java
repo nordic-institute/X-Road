@@ -48,7 +48,7 @@ class DirectoryContentBuilderTest {
                 Instant.parse("2022-12-08T08:05:01.123Z"),
                 "/V2/some/path",
                 "CS-INSTANCE",
-                 2);
+                2);
         var dirContent = directoryContentBuilder
                 .contentPart(ConfigurationPart.builder()
                         .filename("config-file.txt")

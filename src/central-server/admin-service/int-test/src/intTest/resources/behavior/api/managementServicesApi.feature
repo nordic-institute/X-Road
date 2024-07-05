@@ -10,8 +10,11 @@ Feature: Management services API
     And new subsystem "CS:E2E:member-for-management:Management" is added
     And Authentication header is set to MANAGEMENT_SERVICE
     And new security server 'CS:E2E:member-for-management:SS0' authentication certificate registered with origin 'SECURITY_SERVER'
+    And Authentication header is set to REGISTRATION_OFFICER
     And management request is approved
+    And Authentication header is set to MANAGEMENT_SERVICE
     And client 'CS:E2E:member-for-management:Management' is registered as security server 'CS:E2E:member-for-management:SS0' client from 'SECURITY_SERVER'
+    And Authentication header is set to REGISTRATION_OFFICER
     And management request is approved
     And Authentication header is set to SECURITY_OFFICER
     When Management services provider id is set to "CS:E2E:member-for-management:Management"
@@ -32,6 +35,7 @@ Feature: Management services API
     And new subsystem "CS:E2E:member-for-management:Management" is added
     And Authentication header is set to MANAGEMENT_SERVICE
     And new security server 'CS:E2E:member-for-management:SS0' authentication certificate registered with origin 'SECURITY_SERVER'
+    And Authentication header is set to REGISTRATION_OFFICER
     And management request is approved
     And Authentication header is set to SECURITY_OFFICER
     When Management services provider id is set to "CS:E2E:member-for-management:Management"

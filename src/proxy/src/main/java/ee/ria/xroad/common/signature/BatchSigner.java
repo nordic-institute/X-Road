@@ -68,11 +68,12 @@ public class BatchSigner {
 
     private final Map<String, WorkerImpl> workers = new ConcurrentHashMap<>();
 
-    public static void init() {
+    public static BatchSigner init() {
         instance = new BatchSigner();
+        return instance;
     }
 
-    public static void shutdown() {
+    public void shutdown() {
         if (instance != null) {
             instance.workers.values().forEach(WorkerImpl::stop);
         }
@@ -228,7 +229,7 @@ public class BatchSigner {
      * and algorithm id.
      */
     @Data
-    private static class SigningRequestWrapper {
+    private static final class SigningRequestWrapper {
         private final long createdOn = System.currentTimeMillis();
         private final CompletableFuture<SignatureData> clientFuture;
         private final String keyId;

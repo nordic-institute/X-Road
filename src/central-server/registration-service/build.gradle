@@ -1,6 +1,5 @@
 plugins {
-    id 'io.spring.dependency-management'
-    id 'org.springframework.boot'
+    alias(libs.plugins.springBoot)
 }
 
 bootJar {
@@ -12,27 +11,23 @@ bootJar {
     }
 }
 
-archivesBaseName = 'centralserver-registration-service'
-
-dependencyManagement {
-    imports {
-        mavenBom "org.springframework.cloud:spring-cloud-dependencies:${springCloudVersion}"
-    }
+base {
+    archivesName = 'centralserver-registration-service'
 }
 
 dependencies {
+    implementation(platform(libs.springBoot.bom))
+    annotationProcessor(platform(libs.springBoot.bom))
+    implementation(platform(libs.springCloud.bom))
+
     annotationProcessor "org.springframework:spring-context-indexer"
     annotationProcessor "org.springframework.boot:spring-boot-configuration-processor"
 
     implementation(project(":common:common-api-throttling"))
     implementation(project(":central-server:admin-service:api-client"))
     implementation(project(':central-server:openapi-model'))
-    implementation(project(':common:common-util')) {
-        exclude group: 'org.eclipse.jetty'
-        exclude group: 'org.quartz-scheduler'
-    }
+    implementation(project(':common:common-globalconf'))
 
-    implementation project(':common:common-ui')
     implementation(project(':common:common-management-request')) {
         exclude group: 'org.springframework.boot', module: 'spring-boot-starter-tomcat'
     }
@@ -46,8 +41,8 @@ dependencies {
 
     implementation('org.springframework.boot:spring-boot-starter-jetty')
 
-    implementation('jakarta.validation:jakarta.validation-api')
-    implementation("com.github.vladimir-bukhtoyarov:bucket4j-core:$bucket4jVersion")
+    implementation(libs.jakarta.validationApi)
+    implementation(libs.bucket4j.core)
 
     testImplementation project(':common:common-test')
     testImplementation(testFixtures(project(":common:common-management-request"))) {
@@ -55,6 +50,6 @@ dependencies {
     }
     testImplementation(testFixtures(project(":common:common-api-throttling")))
     testImplementation('org.springframework.boot:spring-boot-starter-test')
-    testImplementation('org.wiremock:wiremock:3.3.1')
+    testImplementation(libs.wiremock.standalone)
 }
 

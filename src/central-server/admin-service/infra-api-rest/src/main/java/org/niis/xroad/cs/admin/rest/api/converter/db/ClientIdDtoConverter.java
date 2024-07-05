@@ -38,8 +38,6 @@ import org.niis.xroad.restapi.converter.DtoConverter;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 
-import static ee.ria.xroad.common.util.Fn.self;
-
 @Slf4j
 @Service
 @Qualifier("clientIdDtoToModelMapper")
@@ -50,14 +48,13 @@ public class ClientIdDtoConverter extends DtoConverter<ClientId, ClientIdDto> {
 
     @Override
     public ClientIdDto toDto(ClientId source) {
-        return self(new ClientIdDto(), self -> {
-            self.setInstanceId(source.getXRoadInstance());
-            self.setMemberClass(source.getMemberClass());
-            self.setMemberCode(source.getMemberCode());
-            self.setSubsystemCode(source.getSubsystemCode());
-            self.setEncodedId(source.asEncodedId());
-            self.setType(xRoadObjectTypeConverter.convert(source.getObjectType()));
-        });
+        return new ClientIdDto()
+                .instanceId(source.getXRoadInstance())
+                .memberClass(source.getMemberClass())
+                .memberCode(source.getMemberCode())
+                .subsystemCode(source.getSubsystemCode())
+                .encodedId(source.asEncodedId())
+                .type(xRoadObjectTypeConverter.convert(source.getObjectType()));
     }
 
     @Override

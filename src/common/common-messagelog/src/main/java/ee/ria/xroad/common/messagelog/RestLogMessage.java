@@ -50,8 +50,8 @@ public final class RestLogMessage extends LogMessage {
      * Create Loggable Rest Message
      */
     public RestLogMessage(String queryId, ClientId client, ServiceId service, RestMessage message,
-            SignatureData signature,
-            CacheInputStream body, boolean clientside) {
+                          SignatureData signature,
+                          CacheInputStream body, boolean clientside) {
         super(signature, clientside);
         this.queryId = queryId;
         this.client = client;
@@ -64,7 +64,7 @@ public final class RestLogMessage extends LogMessage {
      * Create Loggable Rest Message with xRequestId
      */
     public RestLogMessage(String queryId, ClientId client, ServiceId service, RestMessage message,
-            SignatureData signature, CacheInputStream body, boolean clientside, String xRequestId) {
+                          SignatureData signature, CacheInputStream body, boolean clientside, String xRequestId) {
         super(signature, clientside, xRequestId);
         this.queryId = queryId;
         this.client = client;

@@ -85,6 +85,7 @@ public enum ErrorMessage implements DeviationProvider {
     TIMESTAMPING_AUTHORITY_NOT_FOUND("timestamping_authority_not_found", "Timestamping authority not found"),
     OCSP_RESPONDER_NOT_FOUND("ocsp_responder_not_found", "OCSP Responder not found"),
     INVALID_URL("invalid_url", "Invalid url"),
+    INVALID_IP_ADDRESS("invalid_ip_address", "Invalid ip address"),
     CONFIGURATION_NOT_FOUND("configuration_not_found", "Configuration Source not found"),
     CONFIGURATION_PART_FILE_NOT_FOUND("configuration_part_file_not_found", "Configuration part file not found"),
     CONFIGURATION_PART_VALIDATOR_NOT_FOUND("configuration_part_validator_not_found", "Configuration part validator not found"),

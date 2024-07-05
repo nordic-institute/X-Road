@@ -70,7 +70,6 @@ public final class MetricRegistryHolder {
     }
 
 
-
     /**
      * Either registers a new sensor to metricRegistry, or reuses already registered one.
      */
@@ -90,7 +89,6 @@ public final class MetricRegistryHolder {
     public Histogram getOrCreateHistogram(String metricName) {
         return metrics.histogram(metricName, this::createDefaultHistogram);
     }
-
 
 
     private Histogram createDefaultHistogram() {

@@ -171,7 +171,7 @@ public class ServicesApiController implements ServicesApi {
     @Override
     @AuditEventMethod(event = RestApiAuditEvent.ADD_SERVICE_ACCESS_RIGHTS)
     public ResponseEntity<Set<ServiceClient>> addServiceServiceClients(String encodedServiceId,
-            ServiceClients serviceClients) {
+                                                                       ServiceClients serviceClients) {
         ClientId clientId = serviceConverter.parseClientId(encodedServiceId);
         String fullServiceCode = serviceConverter.parseFullServiceCode(encodedServiceId);
         List<ServiceClientDto> serviceClientDtos;

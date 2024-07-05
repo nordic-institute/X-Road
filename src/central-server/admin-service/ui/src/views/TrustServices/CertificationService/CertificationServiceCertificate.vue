@@ -26,12 +26,15 @@
  -->
 <template>
   <main id="certification-service-certificate-details" class="mt-8">
-    <CertificateDetails :certificate-details="certificateDetails" />
+    <CertificateDetails
+      v-if="certificateDetails"
+      :certificate-details="certificateDetails"
+    />
   </main>
 </template>
 
 <script lang="ts">
-import Vue, { defineComponent } from 'vue';
+import { defineComponent } from 'vue';
 import { mapStores } from 'pinia';
 import { useCertificationService } from '@/store/modules/trust-services';
 import CertificateDetails from '@/components/certificate/CertificateDetails.vue';

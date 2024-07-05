@@ -31,9 +31,10 @@
     </template>
     <template #append-title>
       <xrd-search
-        v-model="query"
+        :model-value="modelValue"
         class="search-box"
         data-test="search-query-field"
+        @update:model-value="$emit('update:model-value', $event)"
       />
       <slot name="append-search" />
     </template>
@@ -66,14 +67,6 @@ export default defineComponent({
   },
   emits: ['update:model-value'],
   computed: {
-    query: {
-      get() {
-        return this.modelValue;
-      },
-      set(newValue: string) {
-        this.$emit('update:model-value', newValue);
-      },
-    },
     titleValue() {
       return this.titleKey ? this.$t(this.titleKey) : this.title;
     },

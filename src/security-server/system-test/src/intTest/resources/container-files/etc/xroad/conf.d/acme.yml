@@ -1,0 +1,10 @@
+contacts:
+  "DEV:COM:1234": member1@example.org
+eab-credentials:
+  certificate-authorities:
+    "Test CA":
+      mac-key-base64-encoded: true
+      members:
+        "DEV:COM:1234":
+          kid: keyid_1
+          mac-key: k21lms0bWFjXzAxdd39Dnsk2nr20am1WAx

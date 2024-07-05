@@ -21,8 +21,8 @@ Feature: 0700 - SS: Permissions
     * Settings Tab is missing
     * Diagnostics Tab is missing
     * Add clients button is present
-    * Client "TestGov" is opened
-    * Client Details is as follows: Member Name "TestGov", Member Class "GOV", Member Code "0245437-2", Sign Cert: "X-Road Test CA CN"
+    * Client "Test member" is opened
+    * Client Details is as follows: Member Name "Test member", Member Class "COM", Member Code "1234", Sign Cert: "Test CA"
 
     * Keys and certificates tab is selected
     * Token: softToken-0 is present
@@ -39,7 +39,7 @@ Feature: 0700 - SS: Permissions
     * Settings Tab is present
     * Diagnostics Tab is missing
     * Add clients button is missing
-    * Client "TestOrg" details are not available
+    * Client "TestClient" details are not available
 
     * Keys and certificates tab is selected
     * Token: softToken-0 is present
@@ -60,7 +60,7 @@ Feature: 0700 - SS: Permissions
     * Add clients button is missing
 
     * Client "TestService" is opened
-    * Client Details is as follows: Member Name "TestGov", Member Class "GOV", Member Code "0245437-2", Sign Cert: "X-Road Test CA CN"
+    * Client Details is as follows: Member Name "Test member", Member Class "COM", Member Code "1234", Sign Cert: "Test CA"
 
     * Local groups sub-tab is selected
     * Add Local group button is missing
@@ -89,7 +89,7 @@ Feature: 0700 - SS: Permissions
     * Add clients button is missing
 
     * Client "TestService" is opened
-    * Client Details is as follows: Member Name "TestGov", Member Class "GOV", Member Code "0245437-2", Sign Cert: "X-Road Test CA CN"
+    * Client Details is as follows: Member Name "Test member", Member Class "COM", Member Code "1234", Sign Cert: "Test CA"
 
     * Local groups sub-tab is selected
     * Add Local group button is present

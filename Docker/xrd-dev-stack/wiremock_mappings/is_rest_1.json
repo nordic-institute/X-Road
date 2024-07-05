@@ -1,0 +1,14 @@
+{
+  "request": {
+    "method": "POST",
+    "url": "/integration/mock_1"
+  },
+  "response": {
+    "status": 200,
+    "body": "{\"message\": \"Hello, world!\"}",
+    "headers": {
+      "Content-Type": "application/json",
+      "mock-response": "true"
+    }
+  }
+}

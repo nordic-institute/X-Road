@@ -26,10 +26,8 @@
  */
 package org.niis.xroad.cs.admin.core.entity;
 
-import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
-import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
@@ -40,6 +38,9 @@ import jakarta.persistence.Table;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+
+import static jakarta.persistence.FetchType.EAGER;
+import static jakarta.persistence.FetchType.LAZY;
 
 @Entity
 @NoArgsConstructor
@@ -55,13 +56,13 @@ public class ServerClientEntity {
     @Getter
     private int id;
 
-    @ManyToOne(fetch = FetchType.LAZY, cascade = {CascadeType.PERSIST, CascadeType.REFRESH})
+    @ManyToOne(fetch = LAZY)
     @JoinColumn(name = "security_server_client_id", nullable = false)
     @Getter
     @Setter
     private SecurityServerClientEntity securityServerClient;
 
-    @ManyToOne(fetch = FetchType.EAGER, cascade = {CascadeType.PERSIST, CascadeType.REFRESH})
+    @ManyToOne(fetch = EAGER)
     @JoinColumn(name = "security_server_id", nullable = false)
     @Getter
     @Setter

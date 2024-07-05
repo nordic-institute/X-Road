@@ -88,7 +88,7 @@
     v-if="showEditServerAddressDialog"
     :service-address="serverAddress || ''"
     @cancel="showEditServerAddressDialog = false"
-    @edit="refreshData"
+    @save="refreshData"
   />
   <!-- Management Services -->
 </template>
@@ -147,7 +147,11 @@ export default defineComponent({
     refreshData() {
       this.showEditServerAddressDialog = false;
       this.fetchSystemStatus();
-      this.$refs.managementServices.fetchManagementServicesConfiguration();
+      (
+        this.$refs.managementServices as {
+          fetchManagementServicesConfiguration: () => void;
+        }
+      ).fetchManagementServicesConfiguration();
     },
   },
 });

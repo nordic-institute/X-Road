@@ -49,7 +49,7 @@ import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
 public class GlobalConfVer3Test {
-    private static final String GOOD_CONF_DIR = "../common-util/src/test/resources/globalconf_good_v3";
+    private static final String GOOD_CONF_DIR = "../common-globalconf/src/test/resources/globalconf_good_v3";
     private static final Path GOOD_CONF_FILES = Paths.get(GOOD_CONF_DIR, "files");
 
     @Rule
@@ -72,8 +72,8 @@ public class GlobalConfVer3Test {
         confFiles.add(getConfFileName("bar", "shared-params.xml"));
         confFiles.add(getConfFileName("EE", "private-params.xml"));
         confFiles.add(getConfFileName("EE", "shared-params.xml"));
-        confFiles.add(getConfFileName("foo_ver2", "private-params.xml"));
-        confFiles.add(getConfFileName("foo_ver", "shared-params.xml"));
+        confFiles.add(getConfFileName("foo_v2", "private-params.xml"));
+        confFiles.add(getConfFileName("foo_v2", "shared-params.xml"));
 
         FileUtils.writeLines(files, StandardCharsets.UTF_8.name(), confFiles);
     }

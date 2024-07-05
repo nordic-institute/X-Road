@@ -39,14 +39,13 @@ import ee.ria.xroad.proxy.util.SSLContextUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.eclipse.jetty.server.CustomRequestLog;
+import org.eclipse.jetty.server.Handler;
 import org.eclipse.jetty.server.HttpConnectionFactory;
 import org.eclipse.jetty.server.SecureRequestCustomizer;
 import org.eclipse.jetty.server.Server;
 import org.eclipse.jetty.server.ServerConnector;
 import org.eclipse.jetty.server.Slf4jRequestLogWriter;
-import org.eclipse.jetty.server.handler.HandlerCollection;
-import org.eclipse.jetty.server.handler.RequestLogHandler;
-import org.eclipse.jetty.util.resource.Resource;
+import org.eclipse.jetty.util.resource.ResourceFactory;
 import org.eclipse.jetty.util.ssl.SslContextFactory;
 import org.eclipse.jetty.xml.XmlConfiguration;
 
@@ -114,9 +113,12 @@ public class ServerProxy implements StartStop {
 
         log.debug("Configuring server from {}", file);
 
-        try (Resource in = Resource.newResource(file)) {
-            new XmlConfiguration(in).configure(server);
-        }
+        new XmlConfiguration(ResourceFactory.root().newResource(file)).configure(server);
+
+        final var writer = new Slf4jRequestLogWriter();
+        writer.setLoggerName(getClass().getPackage().getName() + ".RequestLog");
+        final var reqLog = new CustomRequestLog(writer, CustomRequestLog.EXTENDED_NCSA_FORMAT);
+        server.setRequestLog(reqLog);
     }
 
     private void createClient() throws Exception {
@@ -170,17 +172,9 @@ public class ServerProxy implements StartStop {
     private void createHandlers() {
         log.trace("createHandlers()");
 
-        final Slf4jRequestLogWriter writer = new Slf4jRequestLogWriter();
-        writer.setLoggerName(getClass().getPackage().getName() + ".RequestLog");
-        final CustomRequestLog reqLog = new CustomRequestLog(writer, CustomRequestLog.EXTENDED_NCSA_FORMAT);
-
-        RequestLogHandler logHandler = new RequestLogHandler();
-        logHandler.setRequestLog(reqLog);
-
         ServerProxyHandler proxyHandler = new ServerProxyHandler(client, opMonitorClient);
 
-        HandlerCollection handler = new HandlerCollection();
-        handler.addHandler(logHandler);
+        var handler = new Handler.Sequence();
         handler.addHandler(proxyHandler);
 
         server.setHandler(handler);

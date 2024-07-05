@@ -27,10 +27,3 @@ coverage
 *.sln
 *.sw?
 /niis-shared-ui-3.0.0.tgz
-
-# yarn v2
-.yarn/cache
-.yarn/unplugged
-.yarn/build-state.yml
-.yarn/install-state.gz
-.pnp.*

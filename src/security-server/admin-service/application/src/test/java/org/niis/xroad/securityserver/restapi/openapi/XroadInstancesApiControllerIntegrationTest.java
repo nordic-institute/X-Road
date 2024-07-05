@@ -58,7 +58,7 @@ public class XroadInstancesApiControllerIntegrationTest extends AbstractApiContr
     }
 
     @Test
-    @WithMockUser(authorities = { "VIEW_XROAD_INSTANCES" })
+    @WithMockUser(authorities = {"VIEW_XROAD_INSTANCES"})
     public void getMemberClassesForInstance() {
         ResponseEntity<Set<String>> response = xroadInstancesApiController.getXroadInstances();
         assertEquals(HttpStatus.OK, response.getStatusCode());

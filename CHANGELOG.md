@@ -1,5 +1,33 @@
 # Change Log
 
+## 7.5.0 - 2024-07-04
+- XRDDEV-2496: As a Central Server Administrator I want to be able to configure a trusted CA with ACME enabled so that we can speed up onboarding
+- XRDDEV-2532: As a Central Server user I would like to be able to use the Escape and Enter keys in dialogs so that navigating the interface would be more ergonomic
+- XRDDEV-2561: Security Server client identifier is not removed from the serverconf identifier table when a client is deleted from a Security Server.
+- XRDDEV-2584: As a Developer I want to update the Jetty library we use in X-Road so that we ge access to new features and continue getting security updates
+- XRDDEV-2585: As a Developer I want to update Spring Boot to version 3.2 so that we can take advantage of the latest version
+- XRDDEV-2581: Delete button in the Information System TLS certificate view is misplaced
+- XRDDEV-2539: HSM recovery is delayed by 20 minutes on restart and IsCachedOcspResponse always set to false
+- XRDDEV-2586: As an X-Road user I would like to be able to define custom variables for libpq based CLI tools used to communicate with PostgreSQL so that I can properly configure mTLS and clustering as well as other advanced settings
+- XRDDEV-918: As a Product Owner I want that openAPI document updates / refreshes produce same type of warnings as WSDL updates / refreshes, so that API is consistent between different types of service descriptions
+- XRDDEV-2554: As an X-Road user I want adding and removing Central Server nodes to not require re-importing the configuration anchor so that it can be done more seemlessly
+- XRDDEV-2613: Global configuration directories are not correctly cleaned up if generating fails (e.g. due to token being signed out)
+- XRDDEV-2614: A user who has only the Registration Officer role is not able to add a new member on the Central Server.
+- XRDDEV-2523: As a Developer I want to have instructions for deploying the Security Server Sidecar on Microsoft Azure using Kubernetes so that I can use Azure to run my Security Server.
+- XRDDEV-2580: Security Server Sidecar does not start on Kubernetes if the PostgreSQL data directory is stored in a volume using a persistent volume claim.
+- XRDDEV-2619: As a Central Server Administrator I want to be able to approve management requests that create a new member so that the process is more streamlined
+- XRDDEV-2621: As the Finnish X-Road operator I want the TSA expiration period in the metapackage to be increased so that it follows the recommendation from the threat modeling session
+- XRDDEV-2623: The Security Server UI shows success message after PIN code change even if the current PIN is incorrect and changing the PIN code fails.
+- XRDDEV-2505: As a Central Server user I want the Central Server and Configuration Proxy to support Ubuntu 24.04 so that I can use the latest version
+- XRDDEV-2507: As a Security Server user I want the software to support Ubuntu 24.04 so that I can use the latest version
+- XRDDEV-2594: As a Developer I want our RHEL 7 environments to be upgraded so that we don't use end-of-life software
+- XRDDEV-2620: Security Server reporting too much information in the response when database connection fails
+- XRDDEV-2508: As a Security Server user I want to have instructions on how to upgrade my installation to Ubuntu 24.04 so that I can use the latest version
+- XRDDEV-2506: As a Central Server user I want instructions on how to upgrade the Central Server and Configuration Proxy to Ubuntu 24.04 so that I can use the latest supported version
+- XRDDEV-2609: As a Developer I want to update the base image we use for our Docker containers so that we continue using a supported version of Ubuntu after support for 20.04 has been dropped
+- XRDDEV-2535: As a Security Server Administrator I want to be able to request an authentication certificate using ACME from a trusted CA which supports ACME
+- XRDDEV-2534: As a Security Server Administrator I want to be able to request a signing certificate using ACME from a trusted CA which supports ACME
+
 ## 7.4.2 - 2024-03-18
 - XRDDEV-2592: Central Server regenerates shared-params.xml with a new hash if two sign keys are present
 - XRDDEV-2610: Signer does not allow using SoftToken if HSM connection fails

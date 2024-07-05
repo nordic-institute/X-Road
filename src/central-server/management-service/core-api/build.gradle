@@ -4,8 +4,7 @@ plugins {
 
 dependencies {
     api project(':common:common-management-request')
-    api(project(':common:common-util')) {
+    api(project(':common:common-message')) {
         exclude group: 'org.eclipse.jetty'
-        exclude group: 'org.quartz-scheduler'
     }
 }

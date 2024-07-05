@@ -2,8 +2,8 @@
 
 **Technical Specification**
 
-Version: 1.12<br/>
-.11.2023
+Version: 1.13<br/>
+19.12.2023
 <!-- 3 pages -->
 Doc. ID: ARC-TEC
 
@@ -11,22 +11,23 @@ Doc. ID: ARC-TEC
 
 ## Version history
 
-| Date       | Version | Description                                            | Author            |
-|------------|---------|--------------------------------------------------------|-------------------|
-| 02.02.2018 | 1.0     | Initial version                                        | Antti Luoma       |
-| 02.03.2018 | 1.1     | Added uniform terms and conditions reference           | Tatu Repo         |
-| 17.04.2019 | 1.2     | Added RHEL7, Ubuntu 18.04, systemd and Postgres 10     | Petteri Kivimäki  |
-| 11.09.2019 | 1.3     | Remove Ubuntu 14.04 support                            | Jarkko Hyöty      |
-| 12.05.2020 | 1.4     | Add link to X-Road core tech radar                     | Petteri Kivimäki  |
-| 15.09.2020 | 1.5     | Updated to match Security Server REST API architecture | Janne Mattila     |
-| 02.06.2021 | 1.6     | Backup encryption related updates                      | Andres Allkivi    |
-| 07.09.2021 | 1.7     | Update technologies                                    | Ilkka Seppälä     |
-| 26.09.2022 | 1.8     | Remove Ubuntu 18.04 support                            | Andres Rosenthal  |
-| 08.06.2023 | 1.9     | Central Server technologies update                     | Justas Samuolis   |
-| 05.10.2023 | 1.10    | Update to Java 17                                      | Justas Samuolis   |
-| 04.10.2023 | 1.11    | Remove Akka references                                 | Ričardas Bučiūnas |
-| 20.11.2023 | 1.12    | Update version references                              | Ričardas Bučiūnas |
-
+| Date        | Version | Description                                            | Author            |
+|-------------|---------|--------------------------------------------------------|-------------------|
+| 02.02.2018  | 1.0     | Initial version                                        | Antti Luoma       |
+| 02.03.2018  | 1.1     | Added uniform terms and conditions reference           | Tatu Repo         |
+| 17.04.2019  | 1.2     | Added RHEL7, Ubuntu 18.04, systemd and Postgres 10     | Petteri Kivimäki  |
+| 11.09.2019  | 1.3     | Remove Ubuntu 14.04 support                            | Jarkko Hyöty      |
+| 12.05.2020  | 1.4     | Add link to X-Road core tech radar                     | Petteri Kivimäki  |
+| 15.09.2020  | 1.5     | Updated to match Security Server REST API architecture | Janne Mattila     |
+| 02.06.2021  | 1.6     | Backup encryption related updates                      | Andres Allkivi    |
+| 07.09.2021  | 1.7     | Update technologies                                    | Ilkka Seppälä     |
+| 26.09.2022  | 1.8     | Remove Ubuntu 18.04 support                            | Andres Rosenthal  |
+| 08.06.2023  | 1.9     | Central Server technologies update                     | Justas Samuolis   |
+| 05.10.2023  | 1.10    | Update to Java 17                                      | Justas Samuolis   |
+| 04.10.2023  | 1.11    | Remove Akka references                                 | Ričardas Bučiūnas |
+| 20.11.2023  | 1.12    | Update version references                              | Ričardas Bučiūnas |
+| 19.12.2023  | 1.13    | Added RHEL 9                                           | Justas Samuolis   |
+ 
 ## Table of Contents
 
 <!-- toc -->
@@ -89,6 +90,7 @@ Table 1. Technology matrix of the X-Road
 | Ubuntu 22.04                       |          X          |         X          |            X            |                 X                 |
 | Red Hat Enterprise Linux 7 (RHEL7) |          X          |                    |                         |                 X                 |
 | Red Hat Enterprise Linux 8 (RHEL8) |          X          |                    |                         |                 X                 |
+| Red Hat Enterprise Linux 9 (RHEL9) |          X          |                    |                         |                 X                 |
 | PostgreSQL 12+\[[5](#Ref_5)\]      |          X          |         X          |                         |                 X                 |
 | nginx                              |                     |         X          |            X            |                                   |
 | PAM                                |          X          |         X          |                         |                                   |
@@ -117,7 +119,7 @@ See [[ARC-G]](#ARC-G) for general X-Road architecture details.
 \[4\] Central Server uses embedded Jetty for management service and registration service.
 
 <a id="Ref_5" class="anchor"></a>
-\[5\] PostgreSQL version varies depending on operating system. By default, RHEL7 uses version 9, RHEL8 - 10, Ubuntu 20.04 - 12, Ubuntu 22.04 - 14. User may also use external PostgreSQL server. 
+\[5\] PostgreSQL version varies depending on operating system. By default, RHEL7 uses version 9, RHEL8 - 10, RHEL9 - 13, Ubuntu 20.04 - 12, Ubuntu 22.04 - 14. User may also use external PostgreSQL server. 
 
 ## 3 Central Server technologies
 
@@ -211,7 +213,7 @@ Table 4. Technology matrix of the Security Server
 \[2\] The use of hardware cryptographic devices requires that a PKCS \#11 driver is installed and configured in the system.
 
 <a id="Ref_3" class="anchor"></a>
-\[3\] PostgreSQL version varies depending on operating system. By default, RHEL7 uses version 9, RHEL8 - 10, Ubuntu 20.04 - 12, Ubuntu 22.04 - 14. User may also use external PostgreSQL server.
+\[3\] PostgreSQL version varies depending on operating system. By default, RHEL7 uses version 9, RHEL8 - 10,  RHEL9 - 13, Ubuntu 20.04 - 12, Ubuntu 22.04 - 14. User may also use external PostgreSQL server.
 
 See [[ARC-SS]](#ARC-SS) for the Security Server details.
 
@@ -234,7 +236,7 @@ Table 5. Technology matrix of the operational monitoring daemon
 | systemd                       |            X             |                       |                      |            X             |
 
 <a id="Ref_1" class="anchor"></a>
-\[1\] PostgreSQL version varies depending on operating system. By default, RHEL7 uses version 9, RHEL8 - 10, Ubuntu 20.04 - 12, Ubuntu 22.04 - 14. User may also use external PostgreSQL server.
+\[1\] PostgreSQL version varies depending on operating system. By default, RHEL7 uses version 9, RHEL8 - 10,  RHEL9 - 13, Ubuntu 20.04 - 12, Ubuntu 22.04 - 14. User may also use external PostgreSQL server.
 
 
 See [[ARC-OPMOND]](#ARC-OPMOND) for the operational monitoring daemon details.

@@ -47,7 +47,7 @@ final class HandlerLoader {
     }
 
     private static Handler instantiate(Class<? extends Handler> handlerClass,
-            HttpClient client) throws Exception {
+                                       HttpClient client) throws Exception {
         try {
             Constructor<? extends Handler> constructor =
                     handlerClass.getConstructor(HttpClient.class);

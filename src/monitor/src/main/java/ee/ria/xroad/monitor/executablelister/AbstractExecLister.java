@@ -50,8 +50,11 @@ import java.util.List;
 abstract class AbstractExecLister<T> {
 
     protected abstract String getCommand();
+
     protected abstract Splitter getParsedDataSplitter();
+
     protected abstract int numberOfColumnsToParse();
+
     protected abstract T parse(List<String> columns);
 
     boolean discardFirstDataLineFromParsed() {

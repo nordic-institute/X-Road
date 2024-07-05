@@ -35,7 +35,8 @@ import static ee.ria.xroad.common.ErrorCodes.translateException;
  * and handling errors
  */
 public final class DatabaseContextHelper {
-    private DatabaseContextHelper() { }
+    private DatabaseContextHelper() {
+    }
 
     /**
      * server config tx

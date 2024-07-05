@@ -34,7 +34,6 @@ import com.google.common.cache.CacheBuilder;
 import com.google.common.util.concurrent.UncheckedExecutionException;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.xml.security.algorithms.MessageDigestAlgorithm;
-import org.bouncycastle.asn1.DERBitString;
 import org.bouncycastle.asn1.ocsp.ResponderID;
 import org.bouncycastle.cert.X509CertificateHolder;
 import org.bouncycastle.cert.ocsp.BasicOCSPResp;
@@ -114,7 +113,7 @@ public final class OcspVerifier {
      *                   if verification fails or the status of OCSP is not good.
      */
     public void verifyValidityAndStatus(OCSPResp response,
-            X509Certificate subject, X509Certificate issuer) throws Exception {
+                                        X509Certificate subject, X509Certificate issuer) throws Exception {
         verifyValidityAndStatus(response, subject, issuer, new Date());
     }
 
@@ -130,7 +129,7 @@ public final class OcspVerifier {
      *                   if verification fails or the status of OCSP is not good.
      */
     public void verifyValidityAndStatus(OCSPResp response,
-            X509Certificate subject, X509Certificate issuer, Date atDate)
+                                        X509Certificate subject, X509Certificate issuer, Date atDate)
             throws Exception {
         verifyValidity(response, subject, issuer, atDate);
         verifyStatus(response);
@@ -147,7 +146,7 @@ public final class OcspVerifier {
      *                   if verification fails.
      */
     public void verifyValidity(OCSPResp response, X509Certificate subject,
-            X509Certificate issuer) throws Exception {
+                               X509Certificate issuer) throws Exception {
         verifyValidity(response, subject, issuer, new Date());
     }
 
@@ -163,7 +162,7 @@ public final class OcspVerifier {
      *                   if verification fails.
      */
     public void verifyValidity(OCSPResp response, X509Certificate subject,
-            X509Certificate issuer, Date atDate) throws Exception {
+                               X509Certificate issuer, Date atDate) throws Exception {
         if (log.isDebugEnabled()) {
             log.debug("verifyValidity(subject: {}, issuer: {}, atDate: {})",
                     subject.getSubjectX500Principal().getName(),
@@ -203,7 +202,7 @@ public final class OcspVerifier {
     }
 
     private SingleResp verifyResponseValidityCached(final OCSPResp response, final X509Certificate subject,
-            final X509Certificate issuer) throws Exception {
+                                                    final X509Certificate issuer) throws Exception {
         try {
             final String key = response.hashCode() + ":" + subject.hashCode() + ":" + issuer.hashCode();
             return RESPONSE_VALIDITY_CACHE.get(key, () -> verifyResponseValidity(response, subject, issuer));
@@ -349,10 +348,8 @@ public final class OcspVerifier {
         } else if (respId.getKeyHash() != null) {
             DigestCalculator dc = createDigestCalculator(SHA1_ID);
             for (X509Certificate cert : knownCerts) {
-                X509CertificateHolder certHolder =
-                        new X509CertificateHolder(cert.getEncoded());
-                DERBitString keyData =
-                        certHolder.getSubjectPublicKeyInfo().getPublicKeyData();
+                X509CertificateHolder certHolder = new X509CertificateHolder(cert.getEncoded());
+                var keyData = certHolder.getSubjectPublicKeyInfo().getPublicKeyData();
                 byte[] d = calculateDigest(dc, keyData.getBytes());
                 if (MessageDigestAlgorithm.isEqual(respId.getKeyHash(), d)) {
                     return cert;
@@ -391,7 +388,7 @@ public final class OcspVerifier {
     }
 
     private static boolean isAuthorizedOcspSigner(X509Certificate ocspCert,
-            X509Certificate issuer) throws Exception {
+                                                  X509Certificate issuer) throws Exception {
         // 1. Matches a local configuration of OCSP signing authority for the
         // certificate in question; or
         if (GlobalConf.isOcspResponderCert(issuer, ocspCert)) {

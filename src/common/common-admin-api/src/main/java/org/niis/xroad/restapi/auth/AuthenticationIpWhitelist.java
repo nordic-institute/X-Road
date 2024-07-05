@@ -109,7 +109,7 @@ public class AuthenticationIpWhitelist {
      */
     private void validateWhitelistEntries(Iterable<String> entries) {
         entries.forEach(entry -> new IpAddressMatcher(entry).matches(VALID_IP_ADDRESS));
-        for (String entry: entries) {
+        for (String entry : entries) {
             new IpAddressMatcher(entry).matches(VALID_IP_ADDRESS);
         }
     }

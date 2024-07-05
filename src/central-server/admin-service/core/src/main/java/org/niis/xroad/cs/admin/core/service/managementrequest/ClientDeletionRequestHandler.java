@@ -27,7 +27,6 @@
 package org.niis.xroad.cs.admin.core.service.managementrequest;
 
 
-import io.vavr.control.Option;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.niis.xroad.common.exception.NotFoundException;
@@ -47,6 +46,7 @@ import org.niis.xroad.cs.admin.core.repository.SecurityServerRepository;
 import org.niis.xroad.cs.admin.core.repository.ServerClientRepository;
 import org.springframework.stereotype.Service;
 
+import java.util.Optional;
 import java.util.Set;
 
 import static org.niis.xroad.cs.admin.api.domain.ManagementRequestStatus.DECLINED;
@@ -78,11 +78,12 @@ public class ClientDeletionRequestHandler implements RequestHandler<ClientDeleti
         final SecurityServerIdEntity serverId = serverIds.findOne(SecurityServerIdEntity.create(request.getSecurityServerId()));
         final ClientIdEntity clientId = clientIds.findOne(ClientIdEntity.ensure(request.getClientId()));
 
-        final Option<SecurityServerEntity> securityServerOpt = servers.findBy(serverId, clientId);
+        final Optional<SecurityServerEntity> securityServerOpt = servers.findBy(serverId, clientId);
 
         securityServerOpt
-                .peek(server -> deleteSecurityServerClient(server, clientId))
-                .onEmpty(() -> tryToRevokePreviousRegistration(serverId, clientId));
+                .ifPresentOrElse(
+                        server -> deleteSecurityServerClient(server, clientId),
+                        () -> tryToRevokePreviousRegistration(serverId, clientId));
 
         final var requestEntity = new ClientDeletionRequestEntity(request.getOrigin(), serverId, clientId, request.getComments());
         final var persistedRequest = deletionRequests.save(requestEntity);
@@ -109,7 +110,7 @@ public class ClientDeletionRequestHandler implements RequestHandler<ClientDeleti
     }
 
     private void deleteSecurityServerClient(final SecurityServerEntity securityServer, final ClientIdEntity clientId) {
-        clients.findOneBy(clientId).toJavaOptional().ifPresentOrElse(
+        clients.findOneBy(clientId).ifPresentOrElse(
                 client -> securityServer.getServerClients()
                         .stream()
                         .filter(serverClient -> client.equals(serverClient.getSecurityServerClient()))

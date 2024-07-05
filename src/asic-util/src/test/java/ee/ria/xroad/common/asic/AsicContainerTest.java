@@ -54,7 +54,7 @@ public class AsicContainerTest {
      */
     @Parameters(name = "{index}: verify(\"{0}\") should throw \"{1}\"")
     public static Collection<Object[]> data() {
-        return Arrays.asList(new Object[][] {
+        return Arrays.asList(new Object[][]{
                 {"valid-signed-message.asice", null},
                 {"no-mimetype.asice", X_ASIC_MIME_TYPE_NOT_FOUND},
                 {"no-message.asice", X_ASIC_MESSAGE_NOT_FOUND},
@@ -85,7 +85,7 @@ public class AsicContainerTest {
         thrown.expectError(errorCode);
 
         try (FileInputStream in =
-                new FileInputStream("src/test/resources/" + containerFile)) {
+                     new FileInputStream("src/test/resources/" + containerFile)) {
             // just try to create the container -- the contents are verified
             // in the constructor
             AsicContainer.read(in);

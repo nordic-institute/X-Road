@@ -107,8 +107,8 @@ public class TransactionRollbackIntegrationTest extends AbstractFacadeMockingTes
         LocalGroupType localGroupType = localGroupService.getLocalGroup(GROUP_ID);
         String originalDescription = localGroupType.getDescription();
         dummyTransactionRollingbackService.updateDescriptionAndRollback(GROUP_ID,
-                    originalDescription + "_UPDATED",
-                    DummyTransactionRollingbackService.ExceptionType.NONE);
+                originalDescription + "_UPDATED",
+                DummyTransactionRollingbackService.ExceptionType.NONE);
 
         LocalGroupType updatedGroup = localGroupService.getLocalGroup(GROUP_ID);
         assertEquals(originalDescription + "_UPDATED", updatedGroup.getDescription());

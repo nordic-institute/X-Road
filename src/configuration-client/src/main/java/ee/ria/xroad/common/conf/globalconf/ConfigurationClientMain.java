@@ -33,25 +33,25 @@ import ee.ria.xroad.common.Version;
 import ee.ria.xroad.common.util.AdminPort;
 import ee.ria.xroad.common.util.JobManager;
 import ee.ria.xroad.common.util.JsonUtils;
+import ee.ria.xroad.common.util.RequestWrapper;
+import ee.ria.xroad.common.util.ResponseWrapper;
 import ee.ria.xroad.common.util.TimeUtils;
 
-import jakarta.servlet.http.HttpServletRequest;
-import jakarta.servlet.http.HttpServletResponse;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.cli.BasicParser;
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.CommandLineParser;
 import org.apache.commons.cli.Options;
 import org.apache.commons.lang3.StringUtils;
+import org.eclipse.jetty.http.MimeTypes;
 import org.niis.xroad.schedule.backup.ProxyConfigurationBackupJob;
 import org.quartz.JobDataMap;
 import org.quartz.JobExecutionContext;
 import org.quartz.JobExecutionException;
 import org.quartz.JobListener;
 
-import java.io.IOException;
+import java.io.PrintWriter;
 import java.nio.file.Path;
-import java.security.cert.CertificateEncodingException;
 import java.util.Collections;
 import java.util.List;
 import java.util.Set;
@@ -74,7 +74,7 @@ public final class ConfigurationClientMain {
 
     private static final String APP_NAME = "xroad-confclient";
 
-    private static ConfigurationClientJobListener listener;
+    private static final ConfigurationClientJobListener LISTENER;
 
     private static final int NUM_ARGS_FROM_CONF_PROXY_FULL = 3;
     private static final int NUM_ARGS_FROM_CONF_PROXY = 2;
@@ -85,7 +85,7 @@ public final class ConfigurationClientMain {
                 .with(CONF_FILE_PROXY, "configuration-client")
                 .load();
 
-        listener = new ConfigurationClientJobListener();
+        LISTENER = new ConfigurationClientJobListener();
     }
 
     private static final String OPTION_VERIFY_PRIVATE_PARAMS_EXISTS = "verifyPrivateParamsExists";
@@ -139,14 +139,17 @@ public final class ConfigurationClientMain {
     }
 
     private static int download(String configurationAnchorFile, String configurationPath, int configurationVersion) {
-        log.debug("Downloading configuration using anchor {} path = {})", configurationAnchorFile, configurationPath);
+        log.debug("Downloading configuration using anchor {} path = {} version {}",
+                configurationAnchorFile,
+                configurationPath,
+                configurationVersion);
 
         System.setProperty(SystemProperties.CONFIGURATION_ANCHOR_FILE, configurationAnchorFile);
 
         client = new ConfigurationClient(configurationPath, configurationVersion) {
             @Override
             protected void deleteExtraConfigurationDirectories(
-                    List<ConfigurationSource> configurationSources,
+                    List<? extends ConfigurationSource> configurationSources,
                     FederationConfigurationSourceFilter sourceFilter) {
                 // do not delete anything
             }
@@ -164,7 +167,7 @@ public final class ConfigurationClientMain {
         client = new ConfigurationClient(configurationPath) {
             @Override
             protected void deleteExtraConfigurationDirectories(
-                    List<ConfigurationSource> configurationSources,
+                    List<? extends ConfigurationSource> configurationSources,
                     FederationConfigurationSourceFilter sourceFilter) {
                 // do not delete anything
             }
@@ -181,12 +184,6 @@ public final class ConfigurationClientMain {
         final String configurationPath = SystemProperties.getConfigurationPath();
 
         var configurationDownloader = new ConfigurationDownloader(configurationPath) {
-            @Override
-            void handleContent(byte[] content, ConfigurationFile file) throws CertificateEncodingException, IOException {
-                validateContent(file);
-                super.handleContent(content, file);
-            }
-
             @Override
             void validateContent(ConfigurationFile file) {
                 paramsValidator.tryMarkValid(file.getContentIdentifier());
@@ -210,7 +207,7 @@ public final class ConfigurationClientMain {
         ConfigurationAnchor configurationAnchor = new ConfigurationAnchor(configurationAnchorFile);
         client = new ConfigurationClient(configurationPath, configurationDownloader, configurationAnchor) {
             @Override
-            protected void deleteExtraConfigurationDirectories(List<ConfigurationSource> configurationSources,
+            protected void deleteExtraConfigurationDirectories(List<? extends ConfigurationSource> configurationSources,
                                                                FederationConfigurationSourceFilter sourceFilter) {
                 // do not delete any files
             }
@@ -269,7 +266,7 @@ public final class ConfigurationClientMain {
 
         adminPort.addHandler("/execute", new AdminPort.SynchronousCallback() {
             @Override
-            public void handle(HttpServletRequest request, HttpServletResponse response) {
+            public void handle(RequestWrapper request, ResponseWrapper response) {
                 log.info("handler /execute");
 
                 try {
@@ -282,13 +279,12 @@ public final class ConfigurationClientMain {
 
         adminPort.addHandler("/status", new AdminPort.SynchronousCallback() {
             @Override
-            public void handle(HttpServletRequest request, HttpServletResponse response) {
-                try {
+            public void handle(RequestWrapper request, ResponseWrapper response) {
+                try (var writer = new PrintWriter(response.getOutputStream())) {
                     log.info("handler /status");
 
-                    response.setCharacterEncoding("UTF8");
-                    JsonUtils.getObjectWriter()
-                            .writeValue(response.getWriter(), ConfigurationClientJobListener.getStatus());
+                    response.setContentType(MimeTypes.Type.APPLICATION_JSON_UTF_8);
+                    JsonUtils.getObjectWriter().writeValue(writer, ConfigurationClientJobListener.getStatus());
                 } catch (Exception e) {
                     log.error("Error getting conf client status", e);
                 }
@@ -302,7 +298,7 @@ public final class ConfigurationClientMain {
         adminPort.start();
 
         jobManager = new JobManager();
-        jobManager.getJobScheduler().getListenerManager().addJobListener(listener);
+        jobManager.getJobScheduler().getListenerManager().addJobListener(LISTENER);
 
         JobDataMap data = new JobDataMap();
         data.put("client", client);
@@ -343,7 +339,7 @@ public final class ConfigurationClientMain {
      * Listens for daemon job completions and collects results.
      */
     @Slf4j
-    private static class ConfigurationClientJobListener implements JobListener {
+    private static final class ConfigurationClientJobListener implements JobListener {
         public static final String LISTENER_NAME = "confClientJobListener";
 
         // Access only via synchronized getter/setter.

@@ -29,8 +29,8 @@ package org.niis.xroad.common.managemenetrequest.test;
 import ee.ria.xroad.common.message.SoapMessageImpl;
 import ee.ria.xroad.common.util.CryptoUtils;
 import ee.ria.xroad.common.util.MimeTypes;
+import ee.ria.xroad.common.util.MultiPartOutputStream;
 
-import org.eclipse.jetty.util.MultiPartOutputStream;
 
 import java.security.PrivateKey;
 

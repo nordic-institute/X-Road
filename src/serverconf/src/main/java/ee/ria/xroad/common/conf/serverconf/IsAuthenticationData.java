@@ -25,19 +25,15 @@
  */
 package ee.ria.xroad.common.conf.serverconf;
 
-import lombok.Data;
-
 import java.security.cert.X509Certificate;
 
 /**
  * The client information system authentication data contains
  * the client IS certificate (optional) and flag indicating whether
  * the client made plaintext connection.
+ *
+ * @param cert
+ * @param isPlaintextConnection
  */
-@Data
-public class IsAuthenticationData {
-
-    private final X509Certificate cert;
-    private final boolean isPlaintextConnection;
-
+public record IsAuthenticationData(X509Certificate cert, boolean isPlaintextConnection) {
 }

@@ -103,6 +103,7 @@ public class ClientListStepDefs extends BaseUiStepDefs {
     public void triggerTableSorting(String column) {
         clientPageObj.tableHeader(column).click();
     }
+
     @Step("Client table sorting change to {string} column desc")
     public void triggerTableSortingDesc(String column) {
         clientPageObj.tableHeader(column).click();

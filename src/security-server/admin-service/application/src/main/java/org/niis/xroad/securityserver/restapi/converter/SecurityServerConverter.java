@@ -56,7 +56,7 @@ public class SecurityServerConverter {
      */
     public SecurityServer convert(SecurityServerId securityServerId) {
         SecurityServer securityServer = new SecurityServer();
-        securityServer.setId(securityServerIdConverter.convert(securityServerId));
+        securityServer.setId(securityServerIdConverter.convertId(securityServerId));
         securityServer.setInstanceId(securityServerId.getXRoadInstance());
         securityServer.setMemberClass(securityServerId.getMemberClass());
         securityServer.setMemberCode(securityServerId.getMemberCode());
@@ -73,8 +73,8 @@ public class SecurityServerConverter {
      */
     public Set<SecurityServer> convert(Iterable<? extends SecurityServerId> securityServerIds) {
         return Streams.stream(securityServerIds)
-                      .map(this::convert)
-                      .collect(Collectors.toSet());
+                .map(this::convert)
+                .collect(Collectors.toSet());
     }
 
 

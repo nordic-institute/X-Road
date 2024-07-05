@@ -26,16 +26,17 @@
 package org.niis.xroad.cs.test.ui.container;
 
 import com.nortal.test.testcontainers.configurator.TestContainerConfigurator;
-import com.nortal.test.testcontainers.images.builder.ImageFromDockerfile;
 import lombok.extern.slf4j.Slf4j;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.testcontainers.containers.GenericContainer;
+import org.testcontainers.images.RemoteDockerImage;
+import org.testcontainers.utility.DockerImageName;
+import org.testcontainers.utility.LazyFuture;
+import org.testcontainers.utility.MountableFile;
 
-import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -45,28 +46,16 @@ import java.util.Map;
 @SuppressWarnings("checkstyle:MagicNumber")
 public class ContainerSetup {
     private static final String VERIFY_EXTERNAL_CONFIGURATION_PATH = "usr/share/xroad/scripts/verify_external_configuration.sh";
-    private static final String VERIFY_EXTERNAL_CONFIGURATION_FILE_PATH =
-            "src/intTest/resources/container-files/" + VERIFY_EXTERNAL_CONFIGURATION_PATH;
+    private static final String VERIFY_EXTERNAL_CONFIGURATION_FILE_PATH = "container-files/verify_external_configuration.sh";
 
     @Bean
     public TestContainerConfigurator testContainerConfigurator(
-            @Value("${test-automation.custom.docker-root}") String dockerRoot,
-            @Value("${test-automation.custom.package-repo}") String packageRepo,
-            @Value("${test-automation.custom.package-repo-key}") String packageRepoKey) {
+            @Value("${test-automation.custom.image-name}") String imageName) {
         return new TestContainerConfigurator() {
             @NotNull
             @Override
-            public ImageFromDockerfile imageDefinition() {
-                Path csDockerRoot = Paths.get(dockerRoot);
-                Path dockerfilePath = csDockerRoot.resolve("Dockerfile");
-
-                return new ImageFromDockerfile("cs-system-test", true)
-                        .withBuildArg("DIST", "jammy")
-                        .withBuildArg("REPO", packageRepo)
-                        .withBuildArg("REPO_KEY", packageRepoKey)
-                        .withFileFromPath("Dockerfile", dockerfilePath)
-                        .withFileFromFile(".", csDockerRoot.resolve("build/").toFile())
-                        .withFileFromPath(VERIFY_EXTERNAL_CONFIGURATION_PATH, Paths.get(VERIFY_EXTERNAL_CONFIGURATION_FILE_PATH));
+            public LazyFuture<String> imageDefinition() {
+                return new RemoteDockerImage(DockerImageName.parse(imageName));
             }
 
             @NotNull
@@ -94,7 +83,8 @@ public class ContainerSetup {
 
             @Override
             public void afterStart(@NotNull GenericContainer<?> genericContainer) {
-                //do nothing
+                var extConfVerifierScript = MountableFile.forClasspathResource(VERIFY_EXTERNAL_CONFIGURATION_FILE_PATH);
+                genericContainer.copyFileToContainer(extConfVerifierScript, VERIFY_EXTERNAL_CONFIGURATION_PATH);
             }
         };
     }

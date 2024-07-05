@@ -109,12 +109,13 @@ export const useNotifications = defineStore('notifications', {
     },
 
     // Show error notification with axios error object
-    showError(errorObject: unknown): void {
+    showError(errorObject: unknown, asWarning = false): void {
       // Show error using the x-road specific data in an axios error object
       // Don't show errors when the error code is 401 which is usually because of session expiring
       if (axios.isAxiosError(errorObject)) {
         if (errorObject?.response?.status !== 401) {
           const notification = createEmptyNotification(-1);
+          notification.isWarning = asWarning;
 
           // Add validation errors
 

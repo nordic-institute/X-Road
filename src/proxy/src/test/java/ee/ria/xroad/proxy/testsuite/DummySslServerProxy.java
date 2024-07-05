@@ -31,15 +31,14 @@ import ee.ria.xroad.common.TestCertUtil;
 import ee.ria.xroad.common.util.CryptoUtils;
 import ee.ria.xroad.common.util.StartStop;
 
-import jakarta.servlet.ServletException;
-import jakarta.servlet.http.HttpServletRequest;
-import jakarta.servlet.http.HttpServletResponse;
+import org.eclipse.jetty.server.Handler;
 import org.eclipse.jetty.server.HttpConnectionFactory;
 import org.eclipse.jetty.server.Request;
+import org.eclipse.jetty.server.Response;
 import org.eclipse.jetty.server.SecureRequestCustomizer;
 import org.eclipse.jetty.server.Server;
 import org.eclipse.jetty.server.ServerConnector;
-import org.eclipse.jetty.server.handler.AbstractHandler;
+import org.eclipse.jetty.util.Callback;
 import org.eclipse.jetty.util.ssl.SslContextFactory;
 
 import javax.net.ssl.KeyManager;
@@ -49,7 +48,6 @@ import javax.net.ssl.TrustManager;
 import javax.net.ssl.X509ExtendedKeyManager;
 import javax.net.ssl.X509TrustManager;
 
-import java.io.IOException;
 import java.net.Socket;
 import java.security.Principal;
 import java.security.PrivateKey;
@@ -79,8 +77,8 @@ public class DummySslServerProxy extends Server implements StartStop {
         cf.setSslSessionTimeout(5000);
 
         SSLContext ctx = SSLContext.getInstance(CryptoUtils.SSL_PROTOCOL);
-        ctx.init(new KeyManager[] {keyManager},
-                new TrustManager[] {new DummyAuthTrustManager()},
+        ctx.init(new KeyManager[]{keyManager},
+                new TrustManager[]{new DummyAuthTrustManager()},
                 new SecureRandom());
         cf.setSslContext(ctx);
 
@@ -103,14 +101,14 @@ public class DummySslServerProxy extends Server implements StartStop {
         setHandler(new DummyHandler());
     }
 
-    public static class DummyHandler extends AbstractHandler {
+    public static class DummyHandler extends Handler.Abstract {
 
         @Override
-        public void handle(String target, Request baseRequest,
-                HttpServletRequest request, HttpServletResponse response) throws IOException, ServletException {
+        public boolean handle(Request request, Response response, Callback callback) {
 
-            baseRequest.setHandled(true);
             response.setStatus(200);
+            callback.succeeded();
+            return true;
         }
     }
 
@@ -123,7 +121,7 @@ public class DummySslServerProxy extends Server implements StartStop {
 
         @Override
         public String chooseClientAlias(String[] keyType, Principal[] issuers,
-                Socket socket) {
+                                        Socket socket) {
             return "AuthKeyManager";
         }
 
@@ -134,13 +132,13 @@ public class DummySslServerProxy extends Server implements StartStop {
 
         @Override
         public String chooseServerAlias(String keyType, Principal[] issuers,
-                Socket socket) {
+                                        Socket socket) {
             return "AuthKeyManager";
         }
 
         @Override
         public X509Certificate[] getCertificateChain(String alias) {
-            return new X509Certificate[] {TestCertUtil.getInternalKey().certChain[0]};
+            return new X509Certificate[]{TestCertUtil.getInternalKey().certChain[0]};
         }
 
         @Override
@@ -150,13 +148,13 @@ public class DummySslServerProxy extends Server implements StartStop {
 
         @Override
         public String chooseEngineClientAlias(String[] keyType, Principal[] issuers,
-                SSLEngine engine) {
+                                              SSLEngine engine) {
             return "AuthKeyManager";
         }
 
         @Override
         public String chooseEngineServerAlias(String keyType, Principal[] issuers,
-                SSLEngine engine) {
+                                              SSLEngine engine) {
             return "AuthKeyManager";
         }
 
@@ -176,7 +174,7 @@ public class DummySslServerProxy extends Server implements StartStop {
 
         @Override
         public X509Certificate[] getAcceptedIssuers() {
-            return new X509Certificate[] {TestCertUtil.getCaCert()};
+            return new X509Certificate[]{TestCertUtil.getCaCert()};
         }
 
     }

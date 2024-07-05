@@ -82,7 +82,7 @@ public class ServerProxyConnectionAborted extends MessageTestCase {
         assertErrorCode(SERVER_CLIENTPROXY_X, X_NETWORK_ERROR);
     }
 
-    private class AbortingServer implements Runnable {
+    private static final class AbortingServer implements Runnable {
         @Override
         public void run() {
             try {

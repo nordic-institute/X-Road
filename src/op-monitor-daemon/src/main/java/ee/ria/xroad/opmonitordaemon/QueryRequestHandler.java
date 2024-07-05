@@ -92,7 +92,7 @@ abstract class QueryRequestHandler {
      * is available (before writing to output stream)
      */
     abstract void handle(SoapMessageImpl requestSoap, OutputStream out,
-            Consumer<String> contentTypeCallback) throws Exception;
+                         Consumer<String> contentTypeCallback) throws Exception;
 
     private static JAXBContext initJaxbCtx() {
         try {
@@ -107,7 +107,6 @@ abstract class QueryRequestHandler {
         try {
             final SchemaFactory factory = SchemaFactory.newInstance(XMLConstants.W3C_XML_SCHEMA_NS_URI);
             factory.setFeature(XMLConstants.FEATURE_SECURE_PROCESSING, true);
-            factory.setProperty(XMLConstants.ACCESS_EXTERNAL_DTD, "");
             factory.setProperty(XMLConstants.ACCESS_EXTERNAL_SCHEMA, "file,jar:file");
             return factory.newSchema(ResourceUtils.getClasspathResource("op-monitoring.xsd"));
         } catch (SAXException e) {
@@ -141,7 +140,7 @@ abstract class QueryRequestHandler {
 
     @SuppressWarnings("unchecked")
     static <T> T getRequestData(SoapMessageImpl requestSoap,
-            Class<?> clazz) throws Exception {
+                                Class<?> clazz) throws Exception {
         Unmarshaller unmarshaller = createUnmarshaller(clazz);
 
         try {
@@ -155,7 +154,7 @@ abstract class QueryRequestHandler {
 
     static SoapMessageImpl createResponse(
             SoapMessageImpl requestMessage, JAXBElement<?> jaxbElement)
-                    throws Exception {
+            throws Exception {
         return createResponse(requestMessage, createMarshaller(), jaxbElement);
     }
 
@@ -249,15 +248,15 @@ abstract class QueryRequestHandler {
 
         @Override
         public String addMtomAttachment(DataHandler data,
-                String elementNamespace, String elementLocalName) {
+                                        String elementNamespace, String elementLocalName) {
             // not using MTOM attachments
             return null;
         }
 
         @Override
         public String addMtomAttachment(byte[] data, int offset, int length,
-                String mimeType, String elementNamespace,
-                String elementLocalName) {
+                                        String mimeType, String elementNamespace,
+                                        String elementLocalName) {
             // not using MTOM attachments
             return null;
         }

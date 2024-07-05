@@ -87,7 +87,7 @@
     </div>
     <div class="button-footer">
       <xrd-button outlined data-test="cancel-button" @click="cancel"
-        >{{ $t('action.cancel') }}
+      >{{ $t('action.cancel') }}
       </xrd-button>
 
       <xrd-button
@@ -96,7 +96,7 @@
         class="previous-button"
         data-test="previous-button"
         @click="previous"
-        >{{ $t('action.previous') }}
+      >{{ $t('action.previous') }}
       </xrd-button>
       <xrd-button :disabled="!meta.valid" data-test="save-button" @click="done">
         {{ $t(saveButtonText) }}
@@ -115,7 +115,8 @@ import { useUser } from '@/store/modules/user';
 import { useCsr } from '@/store/modules/certificateSignRequest';
 import { defineRule, PublicPathState, useForm } from 'vee-validate';
 import { FieldValidationMetaInfo } from '@vee-validate/i18n';
-import i18n from '@/plugins/i18n';
+import { i18n } from '@/plugins/i18n';
+import { useNotifications } from '@/store/modules/notifications';
 
 defineRule(
   'requiredIfSigning',
@@ -260,13 +261,16 @@ export default defineComponent({
     }
   },
   methods: {
-    ...mapActions(useCsr, ['fetchAllMemberIds']),
+    ...mapActions(useCsr, ['fetchAllMemberIds', 'hasAcmeEabCredentials']),
+    ...mapActions(useNotifications, ['showError']),
     done(): void {
       this.usage = this.values.csr.usage;
       this.csrClient = this.values.csr.client;
       this.certificationService = this.values.csr.certificationService;
       this.csrFormat = this.values.csr.csrFormat;
-      this.$emit('done');
+      this.hasAcmeEabCredentials()
+        .catch((error) => this.showError(error, true))
+        .finally(() => this.$emit('done'));
     },
     previous(): void {
       this.$emit('previous');

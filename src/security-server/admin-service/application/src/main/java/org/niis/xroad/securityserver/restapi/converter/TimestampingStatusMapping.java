@@ -76,7 +76,7 @@ public enum TimestampingStatusMapping {
                 .findFirst();
         if (result.isPresent()) {
             return result;
-        }  else {
+        } else {
             return getFor(DIAGNOSTICS_ERROR_CODE_UNKNOWN);
         }
     }

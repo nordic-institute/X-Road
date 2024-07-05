@@ -55,13 +55,14 @@ public class StaticAssetsWebSecurityConfig {
                         "/css/**",
                         "/js/**",
                         "/fonts/**",
-                        "/assets/**"
+                        "/assets/**",
+                        "/.well-known/**"
                 )
                 .headers(headerPolicyDirectives("default-src 'self' 'unsafe-inline' data: ;"
-                                                + "script-src 'self' 'unsafe-inline' 'unsafe-eval';"
-                                                + "style-src 'self' 'unsafe-inline' ;"
-                                                + "font-src data: 'self'"
-                                )
+                                + "script-src 'self' 'unsafe-inline' 'unsafe-eval';"
+                                + "style-src 'self' 'unsafe-inline' ;"
+                                + "font-src data: 'self'"
+                        )
                 )
                 .authorizeHttpRequests(customizer -> customizer.anyRequest().permitAll())
                 .sessionManagement(customizer -> customizer.sessionCreationPolicy(SessionCreationPolicy.STATELESS))

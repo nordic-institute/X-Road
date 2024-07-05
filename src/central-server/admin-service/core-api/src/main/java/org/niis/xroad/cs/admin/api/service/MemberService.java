@@ -28,13 +28,13 @@ package org.niis.xroad.cs.admin.api.service;
 
 import ee.ria.xroad.common.identifier.ClientId;
 
-import io.vavr.control.Option;
 import org.niis.xroad.cs.admin.api.domain.GlobalGroupMember;
 import org.niis.xroad.cs.admin.api.domain.SecurityServer;
 import org.niis.xroad.cs.admin.api.domain.XRoadMember;
 import org.niis.xroad.cs.admin.api.dto.MemberCreationRequest;
 
 import java.util.List;
+import java.util.Optional;
 
 public interface MemberService {
 
@@ -42,11 +42,11 @@ public interface MemberService {
 
     void delete(ClientId clientId);
 
-    Option<XRoadMember> findMember(ClientId clientId);
+    Optional<XRoadMember> findMember(ClientId clientId);
 
     List<GlobalGroupMember> getMemberGlobalGroups(ClientId memberId);
 
     List<SecurityServer> getMemberOwnedServers(ClientId memberId);
 
-    Option<XRoadMember> updateMemberName(ClientId clientId, String newName);
+    Optional<XRoadMember> updateMemberName(ClientId clientId, String newName);
 }

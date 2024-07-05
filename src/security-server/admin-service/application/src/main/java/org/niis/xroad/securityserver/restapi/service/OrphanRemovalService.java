@@ -141,6 +141,7 @@ public class OrphanRemovalService {
         private List<KeyInfo> keys;
         private List<CertificateInfo> certs;
         private List<CertRequestInfo> csrs;
+
         boolean isEmpty() {
             return keys.isEmpty() && certs.isEmpty() && csrs.isEmpty();
         }

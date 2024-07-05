@@ -16,6 +16,17 @@
 log() { echo "$(date --utc -Iseconds) INFO [entrypoint] $*"; }
 warn() { echo "$(date --utc -Iseconds) WARN [entrypoint] $*" >&2; }
 
+init_db_dir() {
+  local pgdata=/var/lib/postgresql/16/main
+  if [ ! -s "$pgdata/PG_VERSION" ]; then
+    log "Initializing local database at \"$pgdata\""
+    mkdir -p "$pgdata"
+    chmod 0700 "$pgdata"
+    chown postgres:postgres "$pgdata"
+    sudo -u postgres /usr/lib/postgresql/16/bin/initdb -D "$pgdata"
+  fi
+}
+
 XROAD_SCRIPT_LOCATION=/usr/share/xroad/scripts
 DB_PROPERTIES=/etc/xroad/db.properties
 
@@ -89,7 +100,7 @@ if [ "$INSTALLED_VERSION" == "$PACKAGED_VERSION" ]; then
     RECONFIG_REQUIRED=true
   fi
 else
-    warn "Installed version ($INSTALLED_VERSION) does not match packaged version ($PACKAGED_VERSION)"
+  warn "Installed version ($INSTALLED_VERSION) does not match packaged version ($PACKAGED_VERSION)"
 fi
 
 # Generate internal and admin UI TLS keys and certificates if necessary
@@ -125,8 +136,8 @@ if [ ! -f ${DB_PROPERTIES} ]; then
       chmod 640 /etc/xroad/db.properties
       set_db_props() {
         crudini --set --inplace "$ROOT_PROPERTIES" "" "$1.database.admin_user" "${XROAD_DATABASE_NAME}_$1_admin"
-        echo "$1.hibernate.connection.username= ${XROAD_DATABASE_NAME}_$1" >> "${DB_PROPERTIES}"
-        echo "$1.hibernate.connection.url = jdbc:postgresql://${XROAD_DB_HOST}:${XROAD_DB_PORT}/${XROAD_DATABASE_NAME}_$1" >> "${DB_PROPERTIES}"
+        echo "$1.hibernate.connection.username= ${XROAD_DATABASE_NAME}_$1" >>"${DB_PROPERTIES}"
+        echo "$1.hibernate.connection.url = jdbc:postgresql://${XROAD_DB_HOST}:${XROAD_DB_PORT}/${XROAD_DATABASE_NAME}_$1" >>"${DB_PROPERTIES}"
       }
       set_db_props serverconf
       if [ -n "$opmonitor" ]; then
@@ -165,7 +176,8 @@ if [[ "$RECONFIG_REQUIRED" == "true" ]]; then
     fi
   fi
   if [[ "$LOCAL_DB" == "true" ]]; then
-    pg_ctlcluster 12 main start
+    init_db_dir
+    pg_ctlcluster 16 main start
   else
     if [[ -n "$XROAD_DB_PWD" ]]; then
       if [[ -w "$ROOT_PROPERTIES" ]]; then
@@ -184,7 +196,7 @@ if [[ "$RECONFIG_REQUIRED" == "true" ]]; then
   while ((count++ < 60)) && ! pg_isready -q -t 2 -h "$db_addr" -p "$db_port"; do
     sleep 1
   done
-  ((count>=60)) && warn "Unable to determine database $db_addr:$db_port status"
+  ((count >= 60)) && warn "Unable to determine database $db_addr:$db_port status"
 
   log "Reconfiguring packages"
   if dpkg-reconfigure -fnoninteractive "${RECONFIG[@]}" 2>&1 | sed 's/^/    /'; then
@@ -192,11 +204,11 @@ if [[ "$RECONFIG_REQUIRED" == "true" ]]; then
     touch /.xroad-reconfigured
   fi
   if [[ "$LOCAL_DB" == "true" ]]; then
-    pg_ctlcluster 12 main stop
+    pg_ctlcluster 16 main stop
     sleep 1
-    crudini --set --existing=section /etc/supervisor/conf.d/xroad.conf program:postgres autostart true &>/dev/null ||:
+    crudini --set --existing=section /etc/supervisor/conf.d/xroad.conf program:postgres autostart true &>/dev/null || :
   else
-    crudini --set --existing=section /etc/supervisor/conf.d/xroad.conf program:postgres autostart false &>/dev/null ||:
+    crudini --set --existing=section /etc/supervisor/conf.d/xroad.conf program:postgres autostart false &>/dev/null || :
   fi
 fi
 XROAD_DB_PWD=
@@ -214,4 +226,3 @@ rm -rf /var/run/xroad
 mkdir -p -m0750 /var/run/xroad
 chown xroad:xroad /var/run/xroad
 su - xroad -c sh -c /usr/share/xroad/scripts/xroad-base.sh
-

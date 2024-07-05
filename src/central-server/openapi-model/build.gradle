@@ -1,21 +1,21 @@
 plugins {
     id 'java-library'
-    id 'org.openapi.generator' version "$openApiGeneratorVersion"
+    alias(libs.plugins.openapi.generator)
 }
 
 dependencies {
-    compileOnly("org.springframework.boot:spring-boot-starter-web:$springBootVersion")
-    compileOnly("io.swagger.parser.v3:swagger-parser-v3:$swaggerParserVersion")
+    compileOnly(libs.springBoot.starterWeb)
+    compileOnly(libs.swagger.parserV3)
 
-    api("io.swagger.core.v3:swagger-annotations:$swaggerAnnotationsVersion")
-    api("jakarta.validation:jakarta.validation-api:$jakartaValidationApiVersion")
+    api(libs.swagger.annotations)
+    api(libs.jakarta.validationApi)
 }
 
 sourceSets {
     main {
         java.srcDirs = [
             'src/main/java',
-            "${buildDir}/generated-sources/openapi/src/main/java",
+            layout.buildDirectory.dir("generated-sources/openapi/src/main/java"),
         ]
     }
 }
@@ -23,10 +23,11 @@ sourceSets {
 openApiGenerate {
     generatorName = "spring"
     inputSpec = "$projectDir/src/main/resources/openapi-definition.yaml"
-    outputDir = "$buildDir/generated-sources/openapi"
+    outputDir = "${layout.buildDirectory.get().asFile}/generated-sources/openapi"
     apiPackage = "org.niis.xroad.cs.openapi"
     modelPackage = "org.niis.xroad.cs.openapi.model"
     modelNameSuffix = "Dto"
+    templateDir = "$projectDir/src/main/resources/template"
     importMappings.set([
         User           : "org.niis.xroad.restapi.openapi.model.User",
         ErrorInfo      : "org.niis.xroad.restapi.openapi.model.ErrorInfo",

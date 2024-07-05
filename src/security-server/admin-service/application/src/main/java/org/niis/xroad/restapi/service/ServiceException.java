@@ -41,7 +41,7 @@ public abstract class ServiceException extends DeviationAwareException {
     }
 
     protected ServiceException(String msg, Throwable t, ErrorDeviation errorDeviation,
-            Collection<WarningDeviation> warningDeviations) {
+                               Collection<WarningDeviation> warningDeviations) {
         super(msg, t, errorDeviation, warningDeviations);
     }
 
@@ -54,7 +54,7 @@ public abstract class ServiceException extends DeviationAwareException {
     }
 
     protected ServiceException(Throwable t, ErrorDeviation errorDeviation,
-            Collection<WarningDeviation> warningDeviations) {
+                               Collection<WarningDeviation> warningDeviations) {
         super(t, errorDeviation, warningDeviations);
     }
 

@@ -27,7 +27,6 @@ package org.niis.xroad.cs.admin.core.service;
 
 import ee.ria.xroad.common.identifier.ClientId;
 
-import io.vavr.control.Option;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
@@ -133,7 +132,7 @@ class ManagementServicesServiceImplTest {
         void shouldReturnWithSubsystem() {
             var serviceProviderClientId = ClientId.Conf.create(INSTANCE, MEMBER_CLASS, MEMBER_CODE, SUBSYSTEM_CODE);
             when(systemParameterService.getManagementServiceProviderId()).thenReturn(serviceProviderClientId);
-            when(memberService.findMember(serviceProviderClientId)).thenReturn(Option.of(xRoadMember));
+            when(memberService.findMember(serviceProviderClientId)).thenReturn(Optional.of(xRoadMember));
 
             when(subsystemService.findByIdentifier(serviceProviderClientId)).thenReturn(Optional.of(subsystem));
             var serverClient = new ServerClient();
@@ -155,7 +154,7 @@ class ManagementServicesServiceImplTest {
         @Test
         void shouldReturnWithMember() {
             when(systemParameterService.getManagementServiceProviderId()).thenReturn(clientId);
-            when(memberService.findMember(clientId)).thenReturn(Option.of(xRoadMember));
+            when(memberService.findMember(clientId)).thenReturn(Optional.of(xRoadMember));
 
             var serverClient0 = new ServerClient();
             serverClient0.setServerId(SecurityServerId.create(clientId, "SS0"));
@@ -231,13 +230,13 @@ class ManagementServicesServiceImplTest {
         void shouldRegister() {
             final int requestId = 123;
             when(systemParameterService.getManagementServiceProviderId()).thenReturn(managementServiceProviderId);
-            when(clients.findOneBy(managementServiceProviderId)).thenReturn(Option.of(securityServerClientEntity));
+            when(clients.findOneBy(managementServiceProviderId)).thenReturn(Optional.of(securityServerClientEntity));
             when(securityServerClientEntity.getServerClients()).thenReturn(Set.of());
             when(managementRequestService.add(isA(ClientRegistrationRequest.class))).thenReturn(clientRegistrationRequest);
             when(clientRegistrationRequest.getProcessingStatus()).thenReturn(SUBMITTED_FOR_APPROVAL);
             when(clientRegistrationRequest.getId()).thenReturn(requestId);
 
-            when(memberService.findMember(managementServiceProviderId)).thenReturn(Option.of(xRoadMember));
+            when(memberService.findMember(managementServiceProviderId)).thenReturn(Optional.of(xRoadMember));
             when(subsystemService.findByIdentifier(managementServiceProviderId)).thenReturn(Optional.of(subsystem));
 
             managementServicesService.registerManagementServicesSecurityServer(securityServerId);
@@ -269,7 +268,7 @@ class ManagementServicesServiceImplTest {
         @Test
         void shouldFailSubsystemRegistered() {
             when(systemParameterService.getManagementServiceProviderId()).thenReturn(managementServiceProviderId);
-            when(clients.findOneBy(managementServiceProviderId)).thenReturn(Option.of(securityServerClientEntity));
+            when(clients.findOneBy(managementServiceProviderId)).thenReturn(Optional.of(securityServerClientEntity));
             when(securityServerClientEntity.getServerClients()).thenReturn(Set.of(mock(ServerClientEntity.class)));
 
             assertThatThrownBy(() -> managementServicesService.registerManagementServicesSecurityServer(securityServerId))

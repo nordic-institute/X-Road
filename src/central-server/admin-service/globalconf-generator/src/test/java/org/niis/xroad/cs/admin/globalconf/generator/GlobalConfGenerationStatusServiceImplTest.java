@@ -91,7 +91,8 @@ class GlobalConfGenerationStatusServiceImplTest {
 
     @Test
     @SneakyThrows
-    @SuppressWarnings("java:S2925") // ignore Thread.sleep() rule on Sonar
+    @SuppressWarnings("java:S2925")
+        // ignore Thread.sleep() rule on Sonar
     void timestampUpdatedOnConsecutiveSuccesses() {
         globalConfGenerationStatusService.handleGlobalConfGenerationEvent(SUCCESS);
         var firstStatus = globalConfGenerationStatusService.get();
@@ -108,7 +109,8 @@ class GlobalConfGenerationStatusServiceImplTest {
 
     @Test
     @SneakyThrows
-    @SuppressWarnings("java:S2925") // ignore Thread.sleep() rule on Sonar
+    @SuppressWarnings("java:S2925")
+        // ignore Thread.sleep() rule on Sonar
     void timestampNotUpdatedOnConsecutiveFailures() {
         globalConfGenerationStatusService.handleGlobalConfGenerationEvent(FAILURE);
         var firstStatus = globalConfGenerationStatusService.get();

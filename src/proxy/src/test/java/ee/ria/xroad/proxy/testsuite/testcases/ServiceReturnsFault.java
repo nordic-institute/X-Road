@@ -29,14 +29,18 @@ import ee.ria.xroad.common.util.MimeTypes;
 import ee.ria.xroad.proxy.testsuite.Message;
 import ee.ria.xroad.proxy.testsuite.MessageTestCase;
 
-import jakarta.servlet.http.HttpServletRequest;
-import jakarta.servlet.http.HttpServletResponse;
 import org.apache.commons.io.IOUtils;
+import org.eclipse.jetty.http.HttpStatus;
+import org.eclipse.jetty.server.Handler;
 import org.eclipse.jetty.server.Request;
-import org.eclipse.jetty.server.handler.AbstractHandler;
+import org.eclipse.jetty.server.Response;
+import org.eclipse.jetty.util.Callback;
 
 import java.io.FileInputStream;
 import java.io.IOException;
+
+import static ee.ria.xroad.common.util.JettyUtils.setContentType;
+import static org.eclipse.jetty.io.Content.Sink.asOutputStream;
 
 /**
  * Client sends normal message. Service sends fault with 500 error code.
@@ -52,22 +56,19 @@ public class ServiceReturnsFault extends MessageTestCase {
     }
 
     @Override
-    public AbstractHandler getServiceHandler() {
-        return new AbstractHandler() {
+    public Handler.Abstract getServiceHandler() {
+        return new Handler.Abstract() {
             @Override
-            public void handle(String target, Request baseRequest,
-                    HttpServletRequest request, HttpServletResponse response)
-                    throws IOException {
-                response.setContentType(MimeTypes.TEXT_XML);
-                response.setStatus(
-                        HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
+            public boolean handle(Request request, Response response, Callback callback) throws IOException {
+                setContentType(response, MimeTypes.TEXT_XML);
+                response.setStatus(HttpStatus.INTERNAL_SERVER_ERROR_500);
 
                 try (FileInputStream in =
-                        new FileInputStream(QUERIES_DIR + "/fault.query")) {
-                    IOUtils.copy(in, response.getOutputStream());
+                             new FileInputStream(QUERIES_DIR + "/fault.query")) {
+                    IOUtils.copy(in, asOutputStream(response));
                 }
-
-                baseRequest.setHandled(true);
+                callback.succeeded();
+                return true;
             }
         };
     }

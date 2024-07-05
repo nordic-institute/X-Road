@@ -77,7 +77,7 @@ public class TimestampingServiceApiControllerTest extends AbstractApiControllerT
     }
 
     @Test
-    @WithMockUser(authorities = { "VIEW_TSPS" })
+    @WithMockUser(authorities = {"VIEW_TSPS"})
     public void getApprovedTimestampingServices() {
         ResponseEntity<Set<TimestampingService>> response =
                 timestampingServicesApiController.getApprovedTimestampingServices();
@@ -89,7 +89,7 @@ public class TimestampingServiceApiControllerTest extends AbstractApiControllerT
     }
 
     @Test
-    @WithMockUser(authorities = { "VIEW_TSPS" })
+    @WithMockUser(authorities = {"VIEW_TSPS"})
     public void getApprovedTimestampingServicesEmptyList() {
         when(globalConfService.getApprovedTspsForThisInstance()).thenReturn(new ArrayList<TspType>());
 

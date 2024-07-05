@@ -25,7 +25,6 @@
  */
 package org.niis.xroad.securityserver.restapi.service;
 
-import ee.ria.xroad.common.conf.serverconf.model.AccessRightType;
 import ee.ria.xroad.common.conf.serverconf.model.ClientType;
 import ee.ria.xroad.common.conf.serverconf.model.DescriptionType;
 import ee.ria.xroad.common.conf.serverconf.model.EndpointType;
@@ -51,6 +50,7 @@ import org.niis.xroad.restapi.util.FormatUtils;
 import org.niis.xroad.securityserver.restapi.repository.ServiceDescriptionRepository;
 import org.niis.xroad.securityserver.restapi.util.EndpointHelper;
 import org.niis.xroad.securityserver.restapi.util.SecurityServerFormatUtils;
+import org.niis.xroad.securityserver.restapi.util.ServiceFormatter;
 import org.niis.xroad.securityserver.restapi.wsdl.InvalidWsdlException;
 import org.niis.xroad.securityserver.restapi.wsdl.OpenApiParser;
 import org.niis.xroad.securityserver.restapi.wsdl.UnsupportedOpenApiVersionException;
@@ -79,7 +79,9 @@ import static org.niis.xroad.restapi.exceptions.DeviationCodes.ERROR_INVALID_SER
 import static org.niis.xroad.restapi.exceptions.DeviationCodes.ERROR_SERVICE_EXISTS;
 import static org.niis.xroad.restapi.exceptions.DeviationCodes.ERROR_WRONG_TYPE;
 import static org.niis.xroad.restapi.exceptions.DeviationCodes.ERROR_WSDL_EXISTS;
+import static org.niis.xroad.restapi.exceptions.DeviationCodes.WARNING_ADDING_ENDPOINTS;
 import static org.niis.xroad.restapi.exceptions.DeviationCodes.WARNING_ADDING_SERVICES;
+import static org.niis.xroad.restapi.exceptions.DeviationCodes.WARNING_DELETING_ENDPOINTS;
 import static org.niis.xroad.restapi.exceptions.DeviationCodes.WARNING_DELETING_SERVICES;
 import static org.niis.xroad.restapi.exceptions.DeviationCodes.WARNING_OPENAPI_VALIDATION_WARNINGS;
 import static org.niis.xroad.restapi.exceptions.DeviationCodes.WARNING_WSDL_VALIDATION_WARNINGS;
@@ -103,6 +105,7 @@ public class ServiceDescriptionService {
     private final ServiceDescriptionRepository serviceDescriptionRepository;
     private final ClientService clientService;
     private final ServiceChangeChecker serviceChangeChecker;
+    private final EndpointTypeChangeChecker endpointTypeChangeChecker;
     private final ServiceService serviceService;
     private final WsdlValidator wsdlValidator;
     private final UrlValidator urlValidator;
@@ -117,7 +120,7 @@ public class ServiceDescriptionService {
      * @throws ServiceDescriptionNotFoundException if serviceDescriptions with given ids were not found
      */
     public void disableServices(long serviceDescriptionId,
-            String disabledNotice) throws ServiceDescriptionNotFoundException {
+                                String disabledNotice) throws ServiceDescriptionNotFoundException {
         toggleServices(false, serviceDescriptionId, disabledNotice);
     }
 
@@ -138,7 +141,7 @@ public class ServiceDescriptionService {
      * @throws ServiceDescriptionNotFoundException if serviceDescriptions with given ids were not found
      */
     private void toggleServices(boolean toEnabled, long serviceDescriptionId,
-            String disabledNotice) throws ServiceDescriptionNotFoundException {
+                                String disabledNotice) throws ServiceDescriptionNotFoundException {
 
         if (!toEnabled) {
             auditDataHelper.put(RestApiAuditProperty.DISABLED_NOTICE, disabledNotice);
@@ -264,6 +267,7 @@ public class ServiceDescriptionService {
 
     /**
      * Validate that all service URLs begin with HTTP or HTTPS. This should be checked only when ADDING a new WSDL
+     *
      * @param parsedServices
      * @throws InvalidServiceUrlException if one or more URLs do not start with HTTP or HTTPS
      */
@@ -290,7 +294,7 @@ public class ServiceDescriptionService {
      * @return Only the newly created EndpointTypes
      */
     private Collection<EndpointType> resolveNewEndpoints(ClientType client,
-            ServiceDescriptionType newServiceDescription) {
+                                                         ServiceDescriptionType newServiceDescription) {
         Map<String, EndpointType> endpointMap = new HashMap<>();
 
         // add all new endpoints into a hashmap with a combination key
@@ -323,19 +327,19 @@ public class ServiceDescriptionService {
      * @param serviceCode
      * @param ignoreWarnings
      * @return
-     * @throws OpenApiParser.ParsingException if parsing openapi3 description results in errors
-     * @throws ClientNotFoundException if client is not found with given id
-     * @throws UnhandledWarningsException if ignoreWarnings is false and parsing openapi3 description results
-     * in warnings
-     * @throws UrlAlreadyExistsException if trying to add duplicate url
-     * @throws ServiceCodeAlreadyExistsException if trying to add duplicate ServiceCode
-     * @throws MissingParameterException if given ServiceCode is null
-     * @throws InvalidUrlException if url is invalid'
+     * @throws OpenApiParser.ParsingException     if parsing openapi3 description results in errors
+     * @throws ClientNotFoundException            if client is not found with given id
+     * @throws UnhandledWarningsException         if ignoreWarnings is false and parsing openapi3 description results
+     *                                            in warnings
+     * @throws UrlAlreadyExistsException          if trying to add duplicate url
+     * @throws ServiceCodeAlreadyExistsException  if trying to add duplicate ServiceCode
+     * @throws MissingParameterException          if given ServiceCode is null
+     * @throws InvalidUrlException                if url is invalid'
      * @throws UnsupportedOpenApiVersionException if the openapi version is not supported
      */
     @PreAuthorize("hasAuthority('ADD_OPENAPI3')")
     public ServiceDescriptionType addOpenApi3ServiceDescription(ClientId clientId, String url,
-            String serviceCode, boolean ignoreWarnings)
+                                                                String serviceCode, boolean ignoreWarnings)
             throws OpenApiParser.ParsingException, ClientNotFoundException,
             UnhandledWarningsException,
             UrlAlreadyExistsException,
@@ -423,12 +427,12 @@ public class ServiceDescriptionService {
 
         Set<ServiceType> duplicateServices = serviceDescription.getService().stream()
                 .filter(candidateService -> {
-                    String candidateFullServiceCode = FormatUtils.getServiceFullName(candidateService);
+                    String candidateFullServiceCode = ServiceFormatter.getServiceFullName(candidateService);
                     boolean existsByServiceCode = existingServices.stream()
-                            .map(s -> s.getServiceCode())
+                            .map(ServiceType::getServiceCode)
                             .anyMatch(serviceCode -> serviceCode.equalsIgnoreCase(candidateService.getServiceCode()));
                     boolean existsByFullServiceCode = existingServices.stream()
-                            .map(s -> FormatUtils.getServiceFullName(s))
+                            .map(ServiceFormatter::getServiceFullName)
                             .anyMatch(fullServiceCode -> fullServiceCode.equalsIgnoreCase(candidateFullServiceCode));
                     return existsByFullServiceCode || existsByServiceCode;
                 })
@@ -436,10 +440,10 @@ public class ServiceDescriptionService {
 
         // throw error with service metadata if conflicted
         if (!duplicateServices.isEmpty()) {
-            List<String> errorMetadata = new ArrayList();
+            List<String> errorMetadata = new ArrayList<>();
             for (ServiceType service : duplicateServices) {
                 // error metadata contains service name and service description url
-                errorMetadata.add(FormatUtils.getServiceFullName(service));
+                errorMetadata.add(ServiceFormatter.getServiceFullName(service));
                 errorMetadata.add(service.getServiceDescription().getUrl());
             }
             throw new ServiceCodeAlreadyExistsException(errorMetadata);
@@ -454,15 +458,15 @@ public class ServiceDescriptionService {
      * @param url
      * @param serviceCode
      * @return
-     * @throws ClientNotFoundException if client not found with given id
-     * @throws MissingParameterException if given ServiceCode is null
+     * @throws ClientNotFoundException           if client not found with given id
+     * @throws MissingParameterException         if given ServiceCode is null
      * @throws ServiceCodeAlreadyExistsException if trying to add duplicate ServiceCode
-     * @throws UrlAlreadyExistsException if trying to add duplicate url
-     * @throws InvalidUrlException if url is invalid
+     * @throws UrlAlreadyExistsException         if trying to add duplicate url
+     * @throws InvalidUrlException               if url is invalid
      */
     @PreAuthorize("hasAuthority('ADD_OPENAPI3')")
     public ServiceDescriptionType addRestEndpointServiceDescription(ClientId clientId, String url,
-            String serviceCode) throws
+                                                                    String serviceCode) throws
             ClientNotFoundException, MissingParameterException, ServiceCodeAlreadyExistsException,
             UrlAlreadyExistsException, InvalidUrlException {
 
@@ -545,17 +549,17 @@ public class ServiceDescriptionService {
      * @param id
      * @param ignoreWarnings
      * @return
-     * @throws WsdlParser.WsdlNotFoundException WSDL not found
-     * @throws InvalidWsdlException Invalid wsdl
-     * @throws ServiceDescriptionNotFoundException service description is not found
+     * @throws WsdlParser.WsdlNotFoundException     WSDL not found
+     * @throws InvalidWsdlException                 Invalid wsdl
+     * @throws ServiceDescriptionNotFoundException  service description is not found
      * @throws WrongServiceDescriptionTypeException wrong type of service description
-     * @throws UnhandledWarningsException Unhandledwarnings in openapi3 or wsdl description
-     * @throws InvalidUrlException invalid url
-     * @throws InvalidServiceUrlException if the WSDL has services with invalid urls
-     * @throws ServiceAlreadyExistsException service code already exists if refreshing wsdl
-     * @throws WsdlUrlAlreadyExistsException url is already in use by this client
-     * @throws OpenApiParser.ParsingException openapi3 description parsing fails
-     * @throws UnsupportedOpenApiVersionException if the openapi version is not supported
+     * @throws UnhandledWarningsException           Unhandledwarnings in openapi3 or wsdl description
+     * @throws InvalidUrlException                  invalid url
+     * @throws InvalidServiceUrlException           if the WSDL has services with invalid urls
+     * @throws ServiceAlreadyExistsException        service code already exists if refreshing wsdl
+     * @throws WsdlUrlAlreadyExistsException        url is already in use by this client
+     * @throws OpenApiParser.ParsingException       openapi3 description parsing fails
+     * @throws UnsupportedOpenApiVersionException   if the openapi version is not supported
      */
     public ServiceDescriptionType refreshServiceDescription(Long id, boolean ignoreWarnings)
             throws WsdlParser.WsdlNotFoundException, InvalidWsdlException,
@@ -602,7 +606,7 @@ public class ServiceDescriptionService {
      */
     @PreAuthorize("hasAuthority('REFRESH_WSDL')")
     private ServiceDescriptionType refreshWSDLServiceDescription(ServiceDescriptionType serviceDescriptionType,
-            boolean ignoreWarnings)
+                                                                 boolean ignoreWarnings)
             throws WsdlParser.WsdlNotFoundException, InvalidWsdlException,
             WrongServiceDescriptionTypeException,
             UnhandledWarningsException, InvalidUrlException, ServiceAlreadyExistsException,
@@ -628,14 +632,14 @@ public class ServiceDescriptionService {
      * @param ignoreWarnings
      * @return {@link ServiceDescriptionType}
      * @throws WrongServiceDescriptionTypeException if service type is not openapi3
-     * @throws UnhandledWarningsException if unhandled warnings are found and ignoreWarnings if false
-     * @throws OpenApiParser.ParsingException if parsing openapi3 description fails
-     * @throws InvalidUrlException if url is invalid
-     * @throws UnsupportedOpenApiVersionException if the openapi version is not supported
+     * @throws UnhandledWarningsException           if unhandled warnings are found and ignoreWarnings if false
+     * @throws OpenApiParser.ParsingException       if parsing openapi3 description fails
+     * @throws InvalidUrlException                  if url is invalid
+     * @throws UnsupportedOpenApiVersionException   if the openapi version is not supported
      */
     @PreAuthorize("hasAuthority('REFRESH_OPENAPI3')")
     private ServiceDescriptionType refreshOpenApi3ServiceDescription(ServiceDescriptionType serviceDescriptionType,
-            boolean ignoreWarnings) throws WrongServiceDescriptionTypeException,
+                                                                     boolean ignoreWarnings) throws WrongServiceDescriptionTypeException,
             UnhandledWarningsException, OpenApiParser.ParsingException, InvalidUrlException,
             UnsupportedOpenApiVersionException {
 
@@ -667,14 +671,14 @@ public class ServiceDescriptionService {
      * @param restServiceCode
      * @param newRestServiceCode
      * @return {@link ServiceDescriptionType}
-     * @throws UrlAlreadyExistsException if trying to add duplicate url
-     * @throws ServiceCodeAlreadyExistsException if trying to add duplicate ServiceCode
+     * @throws UrlAlreadyExistsException           if trying to add duplicate url
+     * @throws ServiceCodeAlreadyExistsException   if trying to add duplicate ServiceCode
      * @throws ServiceDescriptionNotFoundException if ServiceDescription not found
-     * @throws InvalidUrlException if url is invalid
+     * @throws InvalidUrlException                 if url is invalid
      */
     @PreAuthorize("hasAuthority('EDIT_REST')")
     public ServiceDescriptionType updateRestServiceDescription(Long id, String url, String restServiceCode,
-            String newRestServiceCode)
+                                                               String newRestServiceCode)
             throws UrlAlreadyExistsException, ServiceCodeAlreadyExistsException, ServiceDescriptionNotFoundException,
             WrongServiceDescriptionTypeException, InvalidUrlException {
 
@@ -721,17 +725,18 @@ public class ServiceDescriptionService {
      * @param newRestServiceCode
      * @param ignoreWarnings
      * @return
-     * @throws UrlAlreadyExistsException if trying to add duplicate url
-     * @throws ServiceCodeAlreadyExistsException if trying to add duplicate ServiceCode
-     * @throws UnhandledWarningsException if ignoreWarnings false and warning-level issues in openapi3
-     * description
-     * @throws OpenApiParser.ParsingException if openapi3 parser finds errors in the parsed document
-     * @throws InvalidUrlException if url is invalid
+     * @throws UrlAlreadyExistsException          if trying to add duplicate url
+     * @throws ServiceCodeAlreadyExistsException  if trying to add duplicate ServiceCode
+     * @throws UnhandledWarningsException         if ignoreWarnings false and warning-level issues in openapi3
+     *                                            description
+     * @throws OpenApiParser.ParsingException     if openapi3 parser finds errors in the parsed document
+     * @throws InvalidUrlException                if url is invalid
      * @throws UnsupportedOpenApiVersionException if the openapi version is not supported
      */
     @PreAuthorize("hasAuthority('EDIT_OPENAPI3')")
     public ServiceDescriptionType updateOpenApi3ServiceDescription(Long id, String url, String restServiceCode,
-            String newRestServiceCode, Boolean ignoreWarnings) throws UrlAlreadyExistsException,
+                                                                   String newRestServiceCode, Boolean ignoreWarnings)
+            throws UrlAlreadyExistsException,
             ServiceCodeAlreadyExistsException, UnhandledWarningsException, OpenApiParser.ParsingException,
             WrongServiceDescriptionTypeException, ServiceDescriptionNotFoundException,
             InvalidUrlException, UnsupportedOpenApiVersionException {
@@ -781,67 +786,69 @@ public class ServiceDescriptionService {
      * @param serviceCode
      * @param ignoreWarnings
      * @param serviceDescription
-     * @throws OpenApiParser.ParsingException if there are errors in the openapi3 description document
-     * @throws UnhandledWarningsException if ignoreWarnings is false and parser returns warnings from openapi
+     * @throws OpenApiParser.ParsingException     if there are errors in the openapi3 description document
+     * @throws UnhandledWarningsException         if ignoreWarnings is false and parser returns warnings from openapi
      * @throws UnsupportedOpenApiVersionException if the openapi version is not supported
      */
     private void parseOpenApi3ToServiceDescription(String url, String serviceCode, boolean ignoreWarnings,
-            ServiceDescriptionType serviceDescription) throws
+                                                   ServiceDescriptionType serviceDescription) throws
             OpenApiParser.ParsingException, UnhandledWarningsException, UnsupportedOpenApiVersionException {
         OpenApiParser.Result result = openApiParser.parse(url);
-        if (!ignoreWarnings && result.hasWarnings()) {
-            WarningDeviation openapiParserWarnings = new WarningDeviation(WARNING_OPENAPI_VALIDATION_WARNINGS,
-                    result.getWarnings());
-            throw new UnhandledWarningsException(Arrays.asList(openapiParserWarnings));
-        }
-
-        List<EndpointType> oldServiceDescriptionEndpoints = endpointHelper.getEndpoints(serviceDescription);
 
         // Create endpoints from parsed results
-        List<EndpointType> parsedEndpoints = result.getOperations().stream()
-                .map(operation -> new EndpointType(serviceCode, operation.getMethod(), operation.getPath(),
-                        true))
-                .collect(Collectors.toList());
-        parsedEndpoints.add(new EndpointType(serviceCode, EndpointType.ANY_METHOD, EndpointType.ANY_PATH, true));
+        List<EndpointType> newEndpoints = endpointHelper.getNewEndpoints(serviceCode, result);
+
+        List<EndpointType> oldEndpoints = endpointHelper.getEndpoints(serviceDescription);
 
         /*
           Change existing, manually added, endpoints to generated if they're found from parsedEndpoints and belong to
           the service description in question
          */
-        oldServiceDescriptionEndpoints.forEach(ep -> {
-            if (parsedEndpoints.stream().anyMatch(parsedEp -> parsedEp.isEquivalent(ep))) {
-                ep.setGenerated(true);
-            }
-        });
+        oldEndpoints.stream()
+                .filter(ep -> newEndpoints.stream().anyMatch(parsedEp -> parsedEp.isEquivalent(ep)))
+                .forEach(ep -> ep.setGenerated(true));
+
+        // find what services were added or removed
+        EndpointTypeChangeChecker.ServiceChanges serviceChanges = endpointTypeChangeChecker.check(
+                serviceDescription.getClient().getEndpoint(),
+                oldEndpoints,
+                newEndpoints,
+                serviceDescription.getClient().getAcl()
+        );
+
+        handleWarnings(ignoreWarnings, result, serviceChanges);
 
         // Remove ACLs that don't exist in the parsed endpoints list and belong to the service description in question
-        List<AccessRightType> aclToBeRemoved = serviceDescription.getClient().getAcl().stream()
-                .filter(accessRightType -> {
-                    EndpointType endpoint = accessRightType.getEndpoint();
-                    return endpoint.isGenerated()
-                            && oldServiceDescriptionEndpoints.contains(endpoint)
-                            && parsedEndpoints.stream()
-                            .noneMatch(parsedEndpoint -> parsedEndpoint.isEquivalent(endpoint));
-                })
-                .collect(Collectors.toList());
-        serviceDescription.getClient().getAcl().removeAll(aclToBeRemoved);
+        serviceDescription.getClient().getAcl().removeAll(serviceChanges.getRemovedAcls());
 
         /*
           Remove generated endpoints that are not found from the parsed endpoints and belong to the service
           description in question
         */
-        List<EndpointType> endpointsToBeRemoved = oldServiceDescriptionEndpoints.stream()
-                .filter(ep -> ep.isGenerated() && parsedEndpoints.stream()
-                        .noneMatch(parsedEp -> parsedEp.isEquivalent(ep)))
-                .collect(Collectors.toList());
-        serviceDescription.getClient().getEndpoint().removeAll(endpointsToBeRemoved);
+        serviceDescription.getClient().getEndpoint().removeAll(serviceChanges.getRemovedEndpoints());
 
         // Add parsed endpoints to endpoints list if it is not already there
-        List<EndpointType> endpointsToBeAdded = parsedEndpoints.stream()
-                .filter(parsedEp -> serviceDescription.getClient().getEndpoint().stream()
-                        .noneMatch(ep -> ep.isEquivalent(parsedEp)))
-                .collect(Collectors.toList());
-        serviceDescription.getClient().getEndpoint().addAll(endpointsToBeAdded);
+        serviceDescription.getClient().getEndpoint().addAll(serviceChanges.getAddedEndpoints());
+    }
+
+    private void handleWarnings(boolean ignoreWarnings,
+                                OpenApiParser.Result result,
+                                EndpointTypeChangeChecker.ServiceChanges serviceChanges)
+            throws UnhandledWarningsException {
+
+        if (ignoreWarnings || (!result.hasWarnings() && serviceChanges.isEmpty())) {
+            return;
+        }
+
+        // collect all types of warnings, throw Exception if not ignored
+        List<WarningDeviation> allWarnings = new ArrayList<>();
+        if (result.hasWarnings()) {
+            allWarnings.add(new WarningDeviation(WARNING_OPENAPI_VALIDATION_WARNINGS, result.getWarnings()));
+        }
+        if (!serviceChanges.isEmpty()) {
+            allWarnings.addAll(createServiceChangeWarnings(serviceChanges));
+        }
+        throw new UnhandledWarningsException(allWarnings);
     }
 
     /**
@@ -852,7 +859,7 @@ public class ServiceDescriptionService {
      * @param serviceDescriptiontype
      */
     private void updateServiceCodes(String serviceCode, String newserviceCode,
-            ServiceDescriptionType serviceDescriptiontype) {
+                                    ServiceDescriptionType serviceDescriptiontype) {
         // Update endpoint service codes
         ClientType client = serviceDescriptiontype.getClient();
         client.getEndpoint().stream()
@@ -924,7 +931,7 @@ public class ServiceDescriptionService {
      * please.</b>
      */
     private ServiceDescriptionType updateWsdlUrl(ServiceDescriptionType serviceDescriptionType, String url,
-            boolean ignoreWarnings)
+                                                 boolean ignoreWarnings)
             throws InvalidWsdlException, WsdlParser.WsdlNotFoundException,
             WrongServiceDescriptionTypeException, UnhandledWarningsException,
             ServiceAlreadyExistsException, InvalidUrlException, WsdlUrlAlreadyExistsException, InterruptedException,
@@ -1014,19 +1021,33 @@ public class ServiceDescriptionService {
      * Update the url, timeout and SSL authentication of each service to match its value before it was refreshed.
      */
     private List<ServiceType> updateServicePoperties(ServiceDescriptionType serviceDescriptionType,
-            List<ServiceType> newServices) {
+                                                     List<ServiceType> newServices) {
         return newServices.stream()
                 .map(newService -> {
-                    String newServiceFullName = FormatUtils.getServiceFullName(newService);
+                    String newServiceFullName = ServiceFormatter.getServiceFullName(newService);
                     serviceDescriptionType.getService().forEach(s -> {
-                        if (newServiceFullName.equals(FormatUtils.getServiceFullName(s))) {
+                        if (newServiceFullName.equals(ServiceFormatter.getServiceFullName(s))) {
                             newService.setUrl(s.getUrl());
                             newService.setTimeout(s.getTimeout());
                             newService.setSslAuthentication(s.getSslAuthentication());
                         }
                     });
                     return newService;
-                }).collect(Collectors.toList());
+                }).toList();
+    }
+
+    /**
+     * @return warnings about adding or deleting endpoints
+     */
+    private List<WarningDeviation> createServiceChangeWarnings(EndpointTypeChangeChecker.ServiceChanges changes) {
+        List<WarningDeviation> warnings = new ArrayList<>();
+        if (!CollectionUtils.isEmpty(changes.getAddedEndpoints())) {
+            warnings.add(new WarningDeviation(WARNING_ADDING_ENDPOINTS, changes.getAddedEndpointsCodes()));
+        }
+        if (!CollectionUtils.isEmpty(changes.getRemovedEndpoints())) {
+            warnings.add(new WarningDeviation(WARNING_DELETING_ENDPOINTS, changes.getRemovedEndpointsCodes()));
+        }
+        return warnings;
     }
 
     /**
@@ -1052,7 +1073,7 @@ public class ServiceDescriptionService {
      * one we are updating now.
      */
     private void checkForExistingWsdl(ClientType client, String url,
-            Long updatedServiceDescriptionId) throws WsdlUrlAlreadyExistsException {
+                                      Long updatedServiceDescriptionId) throws WsdlUrlAlreadyExistsException {
         for (ServiceDescriptionType serviceDescription : client.getServiceDescription()) {
             if (!serviceDescription.getId().equals(updatedServiceDescriptionId)) {
                 if (serviceDescription.getUrl().equalsIgnoreCase(url)) {
@@ -1063,8 +1084,8 @@ public class ServiceDescriptionService {
     }
 
     private ServiceDescriptionType buildWsdlServiceDescription(ClientType client,
-            Collection<WsdlParser.ServiceInfo> parsedServices,
-            String url) {
+                                                               Collection<WsdlParser.ServiceInfo> parsedServices,
+                                                               String url) {
         ServiceDescriptionType serviceDescriptionType = getServiceDescriptionOfType(client, url, DescriptionType.WSDL);
 
         // create services
@@ -1079,7 +1100,7 @@ public class ServiceDescriptionService {
     }
 
     private ServiceDescriptionType getServiceDescriptionOfType(ClientType client, String url,
-            DescriptionType descriptionType) {
+                                                               DescriptionType descriptionType) {
         ServiceDescriptionType serviceDescriptionType = new ServiceDescriptionType();
         serviceDescriptionType.setClient(client);
         serviceDescriptionType.setDisabled(true);
@@ -1091,7 +1112,7 @@ public class ServiceDescriptionService {
     }
 
     private ServiceType serviceInfoToServiceType(WsdlParser.ServiceInfo serviceInfo,
-            ServiceDescriptionType serviceDescriptionType) {
+                                                 ServiceDescriptionType serviceDescriptionType) {
         ServiceType newService = new ServiceType();
         newService.setServiceCode(serviceInfo.name);
         newService.setServiceVersion(serviceInfo.version);
@@ -1128,7 +1149,7 @@ public class ServiceDescriptionService {
                 .stream()
                 .filter(serviceDescriptionType -> !Objects.equals(serviceDescriptionType.getId(), idToSkip))
                 .map(ServiceDescriptionType::getService)
-                .flatMap(List::stream).collect(Collectors.toList());
+                .flatMap(List::stream).toList();
     }
 
     /**
@@ -1136,24 +1157,24 @@ public class ServiceDescriptionService {
      * in other service descriptions. Throw exception if conflicts
      */
     private void checkForExistingServices(ClientType client,
-            Collection<WsdlParser.ServiceInfo> parsedServices,
-            Long idToSkip) throws ServiceAlreadyExistsException {
+                                          Collection<WsdlParser.ServiceInfo> parsedServices,
+                                          Long idToSkip) throws ServiceAlreadyExistsException {
         List<ServiceType> existingServices = getClientsExistingServices(client, idToSkip);
 
         Set<ServiceType> conflictedServices = parsedServices
                 .stream()
                 .flatMap(newService -> existingServices
                         .stream()
-                        .filter(existingService -> FormatUtils.getServiceFullName(existingService)
+                        .filter(existingService -> ServiceFormatter.getServiceFullName(existingService)
                                 .equalsIgnoreCase(SecurityServerFormatUtils.getServiceFullName(newService))))
                 .collect(Collectors.toSet());
 
         // throw error with service metadata if conflicted
         if (!conflictedServices.isEmpty()) {
-            List<String> errorMetadata = new ArrayList();
+            List<String> errorMetadata = new ArrayList<>();
             for (ServiceType conflictedService : conflictedServices) {
                 // error metadata contains service name and service description url
-                errorMetadata.add(FormatUtils.getServiceFullName(conflictedService));
+                errorMetadata.add(ServiceFormatter.getServiceFullName(conflictedService));
                 errorMetadata.add(conflictedService.getServiceDescription().getUrl());
             }
             throw new ServiceAlreadyExistsException(errorMetadata);
@@ -1161,7 +1182,7 @@ public class ServiceDescriptionService {
     }
 
     @Data
-    private class WsdlProcessingResult {
+    private static final class WsdlProcessingResult {
         private Collection<WsdlParser.ServiceInfo> parsedServices = new ArrayList<>();
         private List<WarningDeviation> warnings = new ArrayList<>();
     }
@@ -1178,21 +1199,21 @@ public class ServiceDescriptionService {
      * Fatal problems result in thrown exception, warnings are returned in
      * WsdlProcessingResult
      *
-     * @param client client who is associated with the wsdl
-     * @param url url of the wsdl
+     * @param client                      client who is associated with the wsdl
+     * @param url                         url of the wsdl
      * @param updatedServiceDescriptionId id of the service description we
-     * will update with this wsdl, or null
-     * if we're adding a new one
+     *                                    will update with this wsdl, or null
+     *                                    if we're adding a new one
      * @return parsed and validated wsdl and possible warnings
      * @throws WsdlParser.WsdlNotFoundException if a wsdl was not found at the url
-     * @throws InvalidUrlException if url was empty or invalid
-     * @throws InvalidWsdlException if wsdl was invalid (either parsing or validation)
-     * @throws InvalidServiceUrlException if the WSDL has services with invalid urls
-     * @throws WsdlUrlAlreadyExistsException conflict: another service description has same url
-     * @throws ServiceAlreadyExistsException conflict: same service exists in another SD
+     * @throws InvalidUrlException              if url was empty or invalid
+     * @throws InvalidWsdlException             if wsdl was invalid (either parsing or validation)
+     * @throws InvalidServiceUrlException       if the WSDL has services with invalid urls
+     * @throws WsdlUrlAlreadyExistsException    conflict: another service description has same url
+     * @throws ServiceAlreadyExistsException    conflict: same service exists in another SD
      */
     private WsdlProcessingResult processWsdl(ClientType client, String url,
-            Long updatedServiceDescriptionId)
+                                             Long updatedServiceDescriptionId)
             throws WsdlParser.WsdlNotFoundException,
             InvalidWsdlException,
             InvalidUrlException,
@@ -1237,7 +1258,7 @@ public class ServiceDescriptionService {
      * validate that all services have legal service code (name) and version
      *
      * @throws InvalidServiceIdentifierException if there was at least one
-     * invalid service code or version
+     *                                           invalid service code or version
      */
     private void validateServiceIdentifierFields(Collection<WsdlParser.ServiceInfo> serviceInfos)
             throws InvalidServiceIdentifierException {

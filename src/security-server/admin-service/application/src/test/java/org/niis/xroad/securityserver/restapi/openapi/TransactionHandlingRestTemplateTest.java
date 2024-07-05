@@ -101,7 +101,7 @@ public class TransactionHandlingRestTemplateTest extends AbstractApiControllerTe
     @WithMockUser(authorities = "VIEW_CLIENTS")
     public void localGroupMembersAreFetched() {
         ResponseEntity<Object> response = restTemplate.getForEntity("/api/v1/local-groups/"
-                + 1L,
+                        + 1L,
                 Object.class);
         assertEquals(HttpStatus.OK, response.getStatusCode());
     }

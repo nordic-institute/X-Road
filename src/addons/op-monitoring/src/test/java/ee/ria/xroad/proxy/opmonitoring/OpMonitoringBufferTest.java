@@ -71,6 +71,7 @@ class OpMonitoringBufferTest {
     @Mock
     private CloseableHttpClient httpClient;
 
+    @SuppressWarnings("checkstyle:FinalClass")
     private class TestOpMonitoringBuffer extends OpMonitoringBuffer {
         TestOpMonitoringBuffer() throws Exception {
             super();
@@ -92,7 +93,7 @@ class OpMonitoringBufferTest {
         }
     }
 
-    private static class TestOpMonitoringDataProcessor extends OpMonitoringDataProcessor {
+    private static final class TestOpMonitoringDataProcessor extends OpMonitoringDataProcessor {
         @Override
         String getIpAddress() {
             return "127.0.0.1";
@@ -195,6 +196,7 @@ class OpMonitoringBufferTest {
     }
 
     @SneakyThrows
+    @SuppressWarnings("squid:S2925")
     private void doSleep(long min, long max) {
         var sleep = RandomUtils.nextLong(min, max);
         Thread.sleep(sleep);

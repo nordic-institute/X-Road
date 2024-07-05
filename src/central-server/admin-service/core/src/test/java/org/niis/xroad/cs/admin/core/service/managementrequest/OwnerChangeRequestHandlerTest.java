@@ -27,7 +27,6 @@
 
 package org.niis.xroad.cs.admin.core.service.managementrequest;
 
-import io.vavr.control.Option;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
@@ -127,7 +126,7 @@ class OwnerChangeRequestHandlerTest {
     @Test
     void canAutoApproveFalse() {
         System.setProperty(CENTER_AUTO_APPROVE_OWNER_CHANGE_REQUESTS, "true");
-        when(members.findMember(clientId)).thenReturn(Option.none());
+        when(members.findMember(clientId)).thenReturn(Optional.empty());
 
         final OwnerChangeRequest request = new OwnerChangeRequest(CENTER, securityServerId, clientId);
 
@@ -148,7 +147,7 @@ class OwnerChangeRequestHandlerTest {
     @Test
     void canAutoApproveTrue() {
         System.setProperty(CENTER_AUTO_APPROVE_OWNER_CHANGE_REQUESTS, "true");
-        when(members.findMember(clientId)).thenReturn(Option.of(mock(XRoadMemberEntity.class)));
+        when(members.findMember(clientId)).thenReturn(Optional.of(mock(XRoadMemberEntity.class)));
 
         final OwnerChangeRequest request = new OwnerChangeRequest(CENTER, securityServerId, clientId);
 
@@ -190,7 +189,7 @@ class OwnerChangeRequestHandlerTest {
         when(ownerChangeRequestRepository.findBy(securityServerId, EnumSet.of(SUBMITTED_FOR_APPROVAL, WAITING)))
                 .thenReturn(List.of());
 
-        when(servers.findBy(securityServerId)).thenReturn(Option.none());
+        when(servers.findBy(securityServerId)).thenReturn(Optional.empty());
 
         assertThatThrownBy(() -> ownerChangeRequestHandler.add(request))
                 .isInstanceOf(DataIntegrityException.class)
@@ -205,7 +204,7 @@ class OwnerChangeRequestHandlerTest {
         when(ownerChangeRequestRepository.findBy(securityServerId, EnumSet.of(SUBMITTED_FOR_APPROVAL, WAITING)))
                 .thenReturn(List.of());
 
-        when(servers.findBy(securityServerId)).thenReturn(Option.of(securityServerEntity));
+        when(servers.findBy(securityServerId)).thenReturn(Optional.of(securityServerEntity));
         Set<ServerClientEntity> mockClients = Set.of(mockServerClientEntity(), mockServerClientEntity());
         when(securityServerEntity.getServerClients()).thenReturn(mockClients);
 
@@ -222,7 +221,7 @@ class OwnerChangeRequestHandlerTest {
         when(ownerChangeRequestRepository.findBy(securityServerId, EnumSet.of(SUBMITTED_FOR_APPROVAL, WAITING)))
                 .thenReturn(List.of());
 
-        when(servers.findBy(securityServerId)).thenReturn(Option.of(securityServerEntity));
+        when(servers.findBy(securityServerId)).thenReturn(Optional.of(securityServerEntity));
         Set<ServerClientEntity> mockClients = Set.of(
                 mockServerClientEntity(MemberIdEntity.create(INSTANCE, MEMBER_CLASS, MEMBER_CODE)));
         when(securityServerEntity.getServerClients()).thenReturn(mockClients);
@@ -245,7 +244,7 @@ class OwnerChangeRequestHandlerTest {
         when(ownerChangeRequestRepository.findBy(securityServerId, EnumSet.of(SUBMITTED_FOR_APPROVAL, WAITING)))
                 .thenReturn(List.of());
 
-        when(servers.findBy(securityServerId)).thenReturn(Option.of(securityServerEntity));
+        when(servers.findBy(securityServerId)).thenReturn(Optional.of(securityServerEntity));
         Set<ServerClientEntity> mockClients = Set.of(
                 mockServerClientEntity(MemberIdEntity.create(INSTANCE, MEMBER_CLASS, MEMBER_CODE)));
         when(securityServerEntity.getServerClients()).thenReturn(mockClients);
@@ -287,7 +286,7 @@ class OwnerChangeRequestHandlerTest {
         when(ownerChangeRequestRepository.findBy(securityServerId, EnumSet.of(SUBMITTED_FOR_APPROVAL, WAITING)))
                 .thenReturn(List.of());
 
-        when(servers.findBy(securityServerId)).thenReturn(Option.of(securityServerEntity));
+        when(servers.findBy(securityServerId)).thenReturn(Optional.of(securityServerEntity));
         Set<ServerClientEntity> mockClients = Set.of(
                 mockServerClientEntity(MemberIdEntity.create(INSTANCE, MEMBER_CLASS, MEMBER_CODE)));
         when(securityServerEntity.getServerClients()).thenReturn(mockClients);
@@ -324,8 +323,8 @@ class OwnerChangeRequestHandlerTest {
         when(ownerChangeRequestEntity.getProcessingStatus()).thenReturn(WAITING);
         when(ownerChangeRequestEntity.getSecurityServerId()).thenReturn(securityServerIdEntity);
         when(ownerChangeRequestEntity.getClientId()).thenReturn(clientIdEntity);
-        when(servers.findBy(securityServerIdEntity)).thenReturn(Option.of(securityServerEntity));
-        when(members.findOneBy(clientIdEntity)).thenReturn(Option.of(xRoadMemberEntity));
+        when(servers.findBy(securityServerIdEntity)).thenReturn(Optional.of(securityServerEntity));
+        when(members.findOneBy(clientIdEntity)).thenReturn(Optional.of(xRoadMemberEntity));
 
         when(ownerChangeRequestRepository.save(ownerChangeRequestEntity)).thenReturn(savedOwnerChangeRequestEntity);
         when(requestMapper.toDto(savedOwnerChangeRequestEntity)).thenReturn(ownerChangeRequestDto);
@@ -338,7 +337,7 @@ class OwnerChangeRequestHandlerTest {
         when(currentOwnerMock.getIdentifier()).thenReturn(currentOwnerIdentifier);
         when(securityServerEntity.getServerClients())
                 .thenReturn(Set.of(new ServerClientEntity(securityServerEntity, xRoadMemberEntity)));
-        when(members.findOneBy(currentOwnerMock.getIdentifier())).thenReturn(Option.of(currentOwnerMock));
+        when(members.findOneBy(currentOwnerMock.getIdentifier())).thenReturn(Optional.of(currentOwnerMock));
         when(ownedServersMock.isEmpty()).thenReturn(true);
 
         final OwnerChangeRequest result = ownerChangeRequestHandler.approve(request);

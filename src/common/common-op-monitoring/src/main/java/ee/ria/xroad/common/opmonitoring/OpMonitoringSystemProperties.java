@@ -221,7 +221,7 @@ public final class OpMonitoringSystemProperties {
         return System.getProperty(OP_MONITOR_SCHEME, "http");
     }
 
-     /**
+    /**
      * @return the port number on which the operational monitoring daemon listens.
      */
     public static int getOpMonitorPort() {

@@ -10,7 +10,7 @@ configurations {
 }
 
 dependencies {
-    annotationProcessor("org.hibernate:hibernate-jpamodelgen:$hibernateVersion")
+    annotationProcessor(libs.hibernate.jpamodelgen)
 
     api project(':central-server:admin-service:core-api')
     api project(':monitoring-conf')
@@ -24,22 +24,21 @@ dependencies {
     api("jakarta.transaction:jakarta.transaction-api")
     api("jakarta.persistence:jakarta.persistence-api")
 
-    implementation("io.vavr:vavr:$vavrVersion")
-    implementation("org.apache.commons:commons-compress:1.21")
+    implementation(libs.apache.commonsCompress)
 
     testImplementation project(':common:common-test')
     testImplementation('org.springframework.boot:spring-boot-starter-test')
     testImplementation('org.springframework.security:spring-security-test')
     testImplementation('org.liquibase:liquibase-core')
-    testImplementation('org.xmlunit:xmlunit-core:2.9.0')
-    testImplementation('org.xmlunit:xmlunit-assertj3:2.9.0')
+    testImplementation(libs.xmlunit.core)
+    testImplementation(libs.xmlunit.assertj3)
 }
 
 sourceSets {
     main {
         java.srcDirs = [
             'src/main/java',
-            "${buildDir}/generated/sources/annotationProcessor/java/main"
+            layout.buildDirectory.dir("generated/sources/annotationProcessor/java/main")
         ]
     }
 }

@@ -135,7 +135,7 @@ public class TokensApiControllerTest extends AbstractApiControllerTestContext {
     }
 
     @Test
-    @WithMockUser(authorities = { "VIEW_KEYS" })
+    @WithMockUser(authorities = {"VIEW_KEYS"})
     public void getTokens() {
         ResponseEntity<Set<Token>> response = tokensApiController.getTokens();
         assertEquals(HttpStatus.OK, response.getStatusCode());
@@ -147,7 +147,7 @@ public class TokensApiControllerTest extends AbstractApiControllerTestContext {
     }
 
     @Test
-    @WithMockUser(authorities = { "VIEW_KEYS" })
+    @WithMockUser(authorities = {"VIEW_KEYS"})
     public void getToken() {
         try {
             tokensApiController.getToken(TOKEN_NOT_FOUND_TOKEN_ID);
@@ -161,7 +161,7 @@ public class TokensApiControllerTest extends AbstractApiControllerTestContext {
     }
 
     @Test
-    @WithMockUser(authorities = { "GENERATE_KEY" })
+    @WithMockUser(authorities = {"GENERATE_KEY"})
     public void addKey() {
         ResponseEntity<Key> response = tokensApiController.addKey(GOOD_TOKEN_ID, new KeyLabel().label(KEY_LABEL));
         assertEquals(HttpStatus.CREATED, response.getStatusCode());

@@ -107,7 +107,7 @@
                   copyUrl(managementServicesConfiguration.wsdl_address)
                 "
               >
-                <v-icon class="xrd-large-button-icon" icon="icon-copy" />
+                <v-icon class="xrd-large-button-icon" icon="mdi-content-copy" />
                 {{ $t('action.copy') }}
               </xrd-button>
             </td>
@@ -131,7 +131,7 @@
                   copyUrl(managementServicesConfiguration.services_address)
                 "
               >
-                <v-icon class="xrd-large-button-icon" icon="icon-copy" />
+                <v-icon class="xrd-large-button-icon" icon="mdi-content-copy" />
                 {{ $t('action.copy') }}
               </xrd-button>
             </td>
@@ -180,14 +180,14 @@ import { useNotifications } from '@/store/modules/notifications';
 import { Permissions } from '@/global';
 import { useUser } from '@/store/modules/user';
 import { XrdEmptyPlaceholderRow } from '@niis/shared-ui';
-import SelectSubsystemDialog from "@/components/systemSettings/managementServices/SelectSubsystemDialog.vue";
-import SelectSecurityServerDialog from "@/components/systemSettings/managementServices/SelectSecurityServerDialog.vue";
+import SelectSubsystemDialog from './SelectSubsystemDialog.vue';
+import SelectSecurityServerDialog from './SelectSecurityServerDialog.vue';
 
 export default defineComponent({
   components: {
     SelectSubsystemDialog,
     SelectSecurityServerDialog,
-    XrdEmptyPlaceholderRow
+    XrdEmptyPlaceholderRow,
   },
   data() {
     return {

@@ -77,7 +77,8 @@ final class OperationalDataRecordManager {
     }
 
     static OperationalDataRecords queryRecords(long recordsFrom, long recordsTo, ClientId clientFilter,
-            ClientId serviceProviderFilter, Set<String> outputFields) throws Exception {
+                                               ClientId serviceProviderFilter,
+                                               Set<String> outputFields) throws Exception {
         OperationalDataRecords records = doInTransaction(session -> queryOperationalDataInTransaction(session,
                 recordsFrom, recordsTo, clientFilter, serviceProviderFilter, outputFields));
 
@@ -132,7 +133,9 @@ final class OperationalDataRecordManager {
      */
     @SuppressWarnings("unchecked")
     private static OperationalDataRecords queryOperationalDataInTransaction(Session session, long recordsFrom,
-            long recordsTo, ClientId clientFilter, ClientId serviceProviderFilter, Set<String> outputFields) {
+                                                                            long recordsTo, ClientId clientFilter,
+                                                                            ClientId serviceProviderFilter,
+                                                                            Set<String> outputFields) {
 
         final OperationalDataRecordQuery
                 query = new OperationalDataRecordQuery(session, clientFilter, serviceProviderFilter, outputFields);
@@ -171,14 +174,14 @@ final class OperationalDataRecordManager {
     }
 
     private static boolean recordsOverflow(Session session, long lastMonitoringDataTs, long recordsTo,
-            ClientId clientFilter, ClientId serviceProviderFilter) {
+                                           ClientId clientFilter, ClientId serviceProviderFilter) {
         // Indicate overflow only if some records are not included.
         return lastMonitoringDataTs < recordsTo && hasRecordsLeft(session, lastMonitoringDataTs, recordsTo,
                 clientFilter, serviceProviderFilter);
     }
 
     private static boolean hasRecordsLeft(Session session, long lastMonitoringDataTs, long recordsTo,
-            ClientId clientFilter, ClientId serviceProviderFilter) {
+                                          ClientId clientFilter, ClientId serviceProviderFilter) {
         if (lastMonitoringDataTs == recordsTo) {
             return false;
         }

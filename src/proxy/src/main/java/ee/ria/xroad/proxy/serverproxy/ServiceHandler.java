@@ -27,9 +27,9 @@ package ee.ria.xroad.proxy.serverproxy;
 
 import ee.ria.xroad.common.identifier.ServiceId;
 import ee.ria.xroad.common.opmonitoring.OpMonitoringData;
+import ee.ria.xroad.common.util.RequestWrapper;
 import ee.ria.xroad.proxy.protocol.ProxyMessage;
 
-import jakarta.servlet.http.HttpServletRequest;
 import org.apache.http.client.HttpClient;
 
 import java.io.InputStream;
@@ -37,16 +37,19 @@ import java.io.InputStream;
 interface ServiceHandler {
 
     boolean shouldVerifyAccess();
+
     boolean shouldVerifySignature();
+
     boolean shouldLogSignature();
 
     boolean canHandle(ServiceId requestServiceId, ProxyMessage requestMessage);
 
-    void startHandling(HttpServletRequest servletRequest,
-            ProxyMessage requestMessage, HttpClient opMonitorClient,
-            OpMonitoringData opMonitoringData) throws Exception;
+    void startHandling(RequestWrapper request, ProxyMessage requestMessage,
+                       HttpClient opMonitorClient, OpMonitoringData opMonitoringData) throws Exception;
+
     void finishHandling() throws Exception;
 
     String getResponseContentType();
+
     InputStream getResponseContent() throws Exception;
 }

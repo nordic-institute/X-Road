@@ -25,7 +25,6 @@
  */
 package org.niis.xroad.restapi.util;
 
-import ee.ria.xroad.common.conf.serverconf.model.ServiceType;
 
 import org.apache.commons.lang3.StringUtils;
 import org.niis.xroad.common.exception.NotFoundException;
@@ -116,20 +115,7 @@ public final class FormatUtils {
         return StringUtils.startsWith(url, HTTPS_PROTOCOL);
     }
 
-    /**
-     * Get the full service name (e.g. myService.v1) from ServiceType object
-     *
-     * @param serviceType
-     * @return full service name as String
-     */
-    public static String getServiceFullName(ServiceType serviceType) {
-        StringBuilder sb = new StringBuilder();
-        sb.append(serviceType.getServiceCode());
-        if (!StringUtils.isEmpty(serviceType.getServiceVersion())) {
-            sb.append(".").append(serviceType.getServiceVersion());
-        }
-        return sb.toString();
-    }
+
 
     /**
      * in case of NumberFormatException we throw ResourceNotFoundException. Client should not

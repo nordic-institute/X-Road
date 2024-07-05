@@ -46,7 +46,7 @@ public class CommonStepDefs extends BaseStepDefs {
         SYSTEM_ADMINISTRATOR("d56e1ca7-4134-4ed4-8030-5f330bdb602a"),
         REGISTRATION_OFFICER("4a5842e5-4ede-49f1-ab32-1b6be33d81c3"),
         SECURITY_OFFICER("3964334d-1f65-4629-a4a4-73c62ade0c9c"),
-        MANAGEMENT_SERVICE("de628164-9485-409c-b654-7dda28bb3872");
+        SERVICE_ADMINISTRATOR("de628164-9485-409c-b654-7dda28bb3872");
 
         private final String token;
 

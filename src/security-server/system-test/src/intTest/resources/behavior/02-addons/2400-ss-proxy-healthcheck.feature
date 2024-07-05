@@ -13,11 +13,11 @@ Feature: 2400 - SS Proxy: healthcheck
     Then Token: softToken-0 is logged-out
     And healthcheck has errors and error message is "No certificate chain available in authentication key."
     When predefined signer softtoken is uploaded
-    And User logs in token: softToken-0 with PIN: 1234
+    And User logs in token: softToken-0 with PIN: Secret1234
     Then  Token: softToken-0 is logged-in
     And healthcheck has no errors
 
-  Scenario: Healthcheck is fails HSM is not operational
+  Scenario: Healthcheck is fails when HSM is not operational
     Given healthcheck has no errors
     When property "hsm-health-check-enabled" is set to "true"
     And service "xroad-proxy" is "restarted"

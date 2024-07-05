@@ -33,9 +33,12 @@ import ee.ria.xroad.signer.protocol.dto.KeyUsageInfo;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
+import org.niis.xroad.restapi.config.audit.AuditEventMethod;
+import org.niis.xroad.restapi.config.audit.RestApiAuditEvent;
 import org.niis.xroad.restapi.converter.ClientIdConverter;
 import org.niis.xroad.restapi.exceptions.ErrorDeviation;
 import org.niis.xroad.restapi.openapi.BadRequestException;
+import org.niis.xroad.restapi.openapi.ConflictException;
 import org.niis.xroad.restapi.openapi.ControllerUtil;
 import org.niis.xroad.restapi.openapi.InternalServerErrorException;
 import org.niis.xroad.restapi.openapi.ResourceNotFoundException;
@@ -43,15 +46,23 @@ import org.niis.xroad.securityserver.restapi.converter.CertificateAuthorityConve
 import org.niis.xroad.securityserver.restapi.converter.CsrSubjectFieldDescriptionConverter;
 import org.niis.xroad.securityserver.restapi.converter.KeyUsageTypeMapping;
 import org.niis.xroad.securityserver.restapi.dto.ApprovedCaDto;
+import org.niis.xroad.securityserver.restapi.openapi.model.AcmeEabCredentialsStatus;
+import org.niis.xroad.securityserver.restapi.openapi.model.AcmeOrder;
 import org.niis.xroad.securityserver.restapi.openapi.model.CertificateAuthority;
 import org.niis.xroad.securityserver.restapi.openapi.model.CsrSubjectFieldDescription;
 import org.niis.xroad.securityserver.restapi.openapi.model.KeyUsageType;
+import org.niis.xroad.securityserver.restapi.service.ActionNotPossibleException;
+import org.niis.xroad.securityserver.restapi.service.CertificateAlreadyExistsException;
 import org.niis.xroad.securityserver.restapi.service.CertificateAuthorityNotFoundException;
 import org.niis.xroad.securityserver.restapi.service.CertificateAuthorityService;
 import org.niis.xroad.securityserver.restapi.service.CertificateProfileInstantiationException;
 import org.niis.xroad.securityserver.restapi.service.ClientNotFoundException;
+import org.niis.xroad.securityserver.restapi.service.CsrNotFoundException;
+import org.niis.xroad.securityserver.restapi.service.GlobalConfOutdatedException;
+import org.niis.xroad.securityserver.restapi.service.InvalidCertificateException;
 import org.niis.xroad.securityserver.restapi.service.KeyNotFoundException;
 import org.niis.xroad.securityserver.restapi.service.KeyService;
+import org.niis.xroad.securityserver.restapi.service.TokenCertificateService;
 import org.niis.xroad.securityserver.restapi.service.WrongKeyUsageException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -73,6 +84,7 @@ import java.util.Set;
 public class CertificateAuthoritiesApiController implements CertificateAuthoritiesApi {
 
     private final CertificateAuthorityService certificateAuthorityService;
+    private final TokenCertificateService tokenCertificateService;
     private final CertificateAuthorityConverter certificateAuthorityConverter;
     private final KeyService keyService;
     private final CsrSubjectFieldDescriptionConverter subjectConverter;
@@ -93,7 +105,7 @@ public class CertificateAuthoritiesApiController implements CertificateAuthoriti
             + "or (hasAuthority('GENERATE_SIGN_CERT_REQ') and "
             + "#keyUsageType == T(org.niis.xroad.securityserver.restapi.openapi.model.KeyUsageType).SIGNING)")
     public ResponseEntity<Set<CertificateAuthority>> getApprovedCertificateAuthorities(KeyUsageType keyUsageType,
-            Boolean includeIntermediateCas) {
+                                                                                       Boolean includeIntermediateCas) {
         KeyUsageInfo keyUsageInfo = KeyUsageTypeMapping.map(keyUsageType).orElse(null);
         Collection<ApprovedCaDto> caDtos = null;
         try {
@@ -160,6 +172,46 @@ public class CertificateAuthoritiesApiController implements CertificateAuthoriti
         } catch (CertificateProfileInstantiationException e) {
             throw new InternalServerErrorException(e);
         }
+    }
+
+    @Override
+    @PreAuthorize("(hasAuthority('IMPORT_AUTH_CERT') and "
+            + " (#keyUsageType == T(org.niis.xroad.securityserver.restapi.openapi.model.KeyUsageType).AUTHENTICATION))"
+            + " or (hasAuthority('IMPORT_SIGN_CERT') and "
+            + "(#keyUsageType == T(org.niis.xroad.securityserver.restapi.openapi.model.KeyUsageType).SIGNING))")
+    public ResponseEntity<AcmeEabCredentialsStatus> hasAcmeExternalAccountBindingCredentials(String caName,
+                                                                                             KeyUsageType keyUsageType,
+                                                                                             String memberId) {
+        try {
+            final var isAcmeEabRequired = certificateAuthorityService.isAcmeExternalAccountBindingRequired(caName);
+            final var hasAcmeEabCredentials = certificateAuthorityService.hasAcmeExternalAccountBindingCredentials(caName, memberId);
+            return new ResponseEntity<>(new AcmeEabCredentialsStatus(isAcmeEabRequired, hasAcmeEabCredentials), HttpStatus.OK);
+        } catch (CertificateAuthorityNotFoundException e) {
+            throw new ResourceNotFoundException(e);
+        }
+    }
+
+    @Override
+    @PreAuthorize("(hasAuthority('IMPORT_AUTH_CERT') and "
+            + " (#acmeOrder.keyUsageType == T(org.niis.xroad.securityserver.restapi.openapi.model.KeyUsageType).AUTHENTICATION))"
+            + " or (hasAuthority('IMPORT_SIGN_CERT') and "
+            + "(#acmeOrder.keyUsageType == T(org.niis.xroad.securityserver.restapi.openapi.model.KeyUsageType).SIGNING))")
+    @AuditEventMethod(event = RestApiAuditEvent.ACME_ORDER_CERTIFICATE)
+    public ResponseEntity<Void> orderAcmeCertificate(String caName, AcmeOrder acmeOrder) {
+        KeyUsageInfo keyUsageInfo = KeyUsageTypeMapping.map(acmeOrder.getKeyUsageType()).get();
+        try {
+            tokenCertificateService.orderAcmeCertificate(caName, acmeOrder.getCsrId(), keyUsageInfo);
+        } catch (ClientNotFoundException | CertificateAuthorityNotFoundException | KeyNotFoundException
+                 | TokenCertificateService.AuthCertificateNotSupportedException e) {
+            throw new BadRequestException(e);
+        } catch (ActionNotPossibleException | GlobalConfOutdatedException | CertificateAlreadyExistsException e) {
+            throw new ConflictException(e);
+        } catch (CsrNotFoundException e) {
+            throw new ResourceNotFoundException(e);
+        } catch (TokenCertificateService.WrongCertificateUsageException | InvalidCertificateException e) {
+            throw new InternalServerErrorException(e);
+        }
+        return ResponseEntity.noContent().build();
     }
 
 }

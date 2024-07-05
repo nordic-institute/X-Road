@@ -96,10 +96,13 @@ components:
         id:
           type: integer
           format: int64
+          description: Description
         name:
           type: string
+          description: Description
         tag:
           type: string
+          description: Description
     Pets:
       type: array
       items:
@@ -114,5 +117,7 @@ components:
         code:
           type: integer
           format: int32
+          description: Description
         message:
           type: string
+          description: Description

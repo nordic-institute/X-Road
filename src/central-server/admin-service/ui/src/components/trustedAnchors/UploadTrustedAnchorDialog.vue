@@ -29,6 +29,7 @@
     :title="$t('globalConf.trustedAnchor.dialog.upload.title')"
     save-button-text="action.confirm"
     :loading="uploading"
+    focus-on-save
     width="850"
     @cancel="close"
     @save="confirm"

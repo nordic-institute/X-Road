@@ -42,6 +42,7 @@ import java.security.cert.CertPathBuilderException;
 import java.security.cert.X509Certificate;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 
@@ -51,7 +52,7 @@ import static org.junit.Assert.fail;
 /**
  * Test cases for verifying the functionality of
  * java.security.cert.CertPathBuilder and java.security.cert.CertPathBuilder.
- *
+ * <p>
  * Please note that the certificates used in these tests are valid for 1 year,
  * starting from September 2012 unless stated otherwise.
  */
@@ -64,6 +65,7 @@ public class CertChainTest {
 
     /**
      * Tests verifying a simple certificate chain without intermediates.
+     *
      * @throws Exception if an error occurs
      */
     @Test
@@ -72,13 +74,14 @@ public class CertChainTest {
         X509Certificate userCert = TestCertUtil.getCertChainCert("user_0.p12");
 
         CertChain chain = new CertChain("EE", userCert, rootCa,
-                new ArrayList<X509Certificate>());
+                new ArrayList<>());
         verify(chain, getAllOcspResponses(),
                 makeDate(userCert.getNotBefore(), 1));
     }
 
     /**
      * Tests verifying a certificate chain with 3 intermediate certificates.
+     *
      * @throws Exception if an error occurs
      */
     @Test
@@ -99,6 +102,7 @@ public class CertChainTest {
 
     /**
      * Test that verifying a chain with missing intermediate certificate fails.
+     *
      * @throws Exception if an error occurs
      */
     @Test
@@ -121,6 +125,7 @@ public class CertChainTest {
 
     /**
      * Tests that verifying the chain with invalid user certificate fails.
+     *
      * @throws Exception if an error occurs
      */
     @Test
@@ -146,6 +151,7 @@ public class CertChainTest {
 
     /**
      * Tests that verifying a chain with invalid CA certificate fails.
+     *
      * @throws Exception if an error occurs
      */
     @Test
@@ -177,6 +183,7 @@ public class CertChainTest {
 
     /**
      * Tests that verifying a chain with missing OCSP responses fails.
+     *
      * @throws Exception if an error occurs
      */
     @Test
@@ -206,6 +213,7 @@ public class CertChainTest {
 
     /**
      * Tests that verifying a chain with invalid OCSP responses fails.
+     *
      * @throws Exception if an error occurs
      */
     @Test
@@ -235,12 +243,12 @@ public class CertChainTest {
 
     // -- Utility methods
 
-    private static void  verify(CertChain chain, List<OCSPResp> ocspResponses,
-            Date atDate) {
+    private static void verify(CertChain chain, List<OCSPResp> ocspResponses,
+                               Date atDate) {
         new CertChainVerifier(chain).verify(ocspResponses, atDate);
     }
 
-    private static void  verifyChainOnly(CertChain chain, Date atDate) {
+    private static void verifyChainOnly(CertChain chain, Date atDate) {
         new CertChainVerifier(chain).verifyChainOnly(atDate);
     }
 
@@ -265,7 +273,7 @@ public class CertChainTest {
 
     private static List<OCSPResp> generateOcspResponses(
             List<X509Certificate> certs, CertificateStatus status)
-                    throws Exception {
+            throws Exception {
         List<OCSPResp> responses = new ArrayList<>();
         for (X509Certificate cert : certs) {
             responses.add(OcspTestUtils.createOCSPResponse(cert,
@@ -278,7 +286,7 @@ public class CertChainTest {
     }
 
     private static X509Certificate getIssuerCert(X509Certificate subject,
-            List<X509Certificate> certs) throws Exception {
+                                                 List<X509Certificate> certs) throws Exception {
         for (X509Certificate cert : certs) {
             if (cert.getSubjectX500Principal().equals(
                     subject.getIssuerX500Principal())) {
@@ -289,11 +297,11 @@ public class CertChainTest {
         return TestCertUtil.getCertChainCert("root_ca.p12");
     }
 
-    private static class CertChainTestGlobalConf extends EmptyGlobalConf {
+    private static final class CertChainTestGlobalConf extends EmptyGlobalConf {
         @Override
         public List<X509Certificate> getOcspResponderCertificates() {
             try {
-                return Arrays.asList(TestCertUtil.getOcspSigner().certChain[0]);
+                return Collections.singletonList(TestCertUtil.getOcspSigner().certChain[0]);
             } catch (Exception e) {
                 throw new RuntimeException(e);
             }
@@ -301,7 +309,7 @@ public class CertChainTest {
 
         @Override
         public X509Certificate getCaCert(String instanceIdentifier,
-                X509Certificate orgCert) throws Exception {
+                                         X509Certificate orgCert) throws Exception {
             List<X509Certificate> certs = new ArrayList<>();
             certs.add(TestCertUtil.getCertChainCert("ca_1.p12"));
             certs.add(TestCertUtil.getCertChainCert("ca_2.p12"));

@@ -145,7 +145,7 @@ public class GlobalGroupMemberServiceImpl implements GlobalGroupMemberService {
 
     private XRoadMemberEntity getMemberIdEntity(MemberId memberId) {
         return xRoadMemberRepository.findMember(memberId)
-                .getOrElseThrow(() -> new NotFoundException(MEMBER_NOT_FOUND));
+                .orElseThrow(() -> new NotFoundException(MEMBER_NOT_FOUND));
     }
 
     private GlobalGroupEntity getGlobalGroupEntity(String groupCode) {

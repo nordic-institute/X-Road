@@ -1,4 +1,4 @@
-project.ext.schemaTargetDir = new File("$buildDir/generated-sources")
+project.ext.schemaTargetDir = layout.buildDirectory.dir("generated-sources").get().asFile
 
 configurations {
     xjc
@@ -6,24 +6,23 @@ configurations {
 
 sourceSets {
     main {
-        java.srcDirs = ["src/main/java", "$buildDir/generated-sources"]
+        java.srcDirs = ["src/main/java", schemaTargetDir]
     }
 }
 
 dependencies {
-    implementation "org.glassfish.jaxb:jaxb-runtime:$jaxbVersion"
+    implementation libs.jaxb.runtime
 
-    xjc "org.glassfish.jaxb:jaxb-runtime:$jaxbVersion"
-    xjc "org.glassfish.jaxb:jaxb-xjc:$jaxbVersion"
+    xjc libs.bundles.jaxb
 }
 
-task createDirs() {
+tasks.register('createDirs') {
     doLast {
         project.ext.schemaTargetDir.mkdirs()
     }
 }
 
-task xjc() {
+tasks.register('xjc') {
     inputs.files fileTree(dir: 'src/main/resources', include: '*.xsd')
     outputs.dir schemaTargetDir
 
@@ -42,21 +41,6 @@ task xjc() {
     }
 
 }
-
-task licenseFormatJava(type: nl.javadude.gradle.plugins.license.License) {
-    source = fileTree('src/main/java')
-}
-
-task licenseTestJava(type: nl.javadude.gradle.plugins.license.License) {
-    source = fileTree('src/main/java')
-    check = true
-}
-
-licenseFormatMain.enabled = false
-licenseMain.enabled = false
-
-licenseFormat.dependsOn licenseFormatJava
-licenseTest.dependsOn licenseTestJava
 
 xjc.dependsOn createDirs
 compileJava.dependsOn xjc

@@ -68,7 +68,7 @@ import static org.junit.Assert.assertTrue;
  * Tests the global configuration functionality.
  */
 public class GlobalConfTest {
-    private static final String GOOD_CONF_DIR = "../common-util/src/test/resources/globalconf_good_v2";
+    private static final String GOOD_CONF_DIR = "../common-globalconf/src/test/resources/globalconf_good_v2";
     private static final Path GOOD_CONF_FILES = Paths.get(GOOD_CONF_DIR, "files");
 
     @Rule
@@ -364,9 +364,9 @@ public class GlobalConfTest {
     public void getKnownAddresses() {
         Set<String> expectedAddresses = new HashSet<>(
                 Arrays.asList(
-                    "127.0.0.1",
-                    "https://www.foo.com/bar",
-                    "https://foo.bar.baz"));
+                        "127.0.0.1",
+                        "https://www.foo.com/bar",
+                        "https://foo.bar.baz"));
         Set<String> actualAddresses = GlobalConf.getKnownAddresses();
 
         assertEquals(expectedAddresses, actualAddresses);

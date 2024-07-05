@@ -278,7 +278,7 @@ public class TokenCertificatesApiControllerIntegrationTest extends AbstractApiCo
     @Test
     @WithMockUser(authorities = "IMPORT_SIGN_CERT")
     public void importInvalidSignCertificate() throws Exception {
-        Resource body = CertificateTestUtils.getResource(new byte[] {0, 0, 0, 0});
+        Resource body = CertificateTestUtils.getResource(new byte[]{0, 0, 0, 0});
         try {
             tokenCertificatesApiController.importCertificate(body);
         } catch (BadRequestException e) {
@@ -468,7 +468,7 @@ public class TokenCertificatesApiControllerIntegrationTest extends AbstractApiCo
     }
 
     @Test
-    @WithMockUser(authorities = { "DELETE_SIGN_CERT", "DELETE_AUTH_CERT" })
+    @WithMockUser(authorities = {"DELETE_SIGN_CERT", "DELETE_AUTH_CERT"})
     public void deleteCertificate() throws Exception {
         ResponseEntity<Void> response =
                 tokenCertificatesApiController.deleteCertificate(MOCK_CERTIFICATE_HASH);
@@ -476,7 +476,7 @@ public class TokenCertificatesApiControllerIntegrationTest extends AbstractApiCo
     }
 
     @Test
-    @WithMockUser(authorities = { "DELETE_SIGN_CERT", "DELETE_AUTH_CERT" })
+    @WithMockUser(authorities = {"DELETE_SIGN_CERT", "DELETE_AUTH_CERT"})
     public void deleteCertificateNotFound() throws Exception {
         doThrow(CodedException
                 .tr(X_CERT_NOT_FOUND, "mock code", "mock msg")
@@ -495,7 +495,7 @@ public class TokenCertificatesApiControllerIntegrationTest extends AbstractApiCo
     }
 
     @Test
-    @WithMockUser(authorities = { "VIEW_KEYS" })
+    @WithMockUser(authorities = {"VIEW_KEYS"})
     public void getPossibleActionsForCertificate() throws Exception {
         ResponseEntity<List<PossibleAction>> response = tokenCertificatesApiController
                 .getPossibleActionsForCertificate(MOCK_CERTIFICATE_HASH);

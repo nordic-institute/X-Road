@@ -34,6 +34,7 @@ import ee.ria.xroad.signer.protocol.dto.KeyUsageInfo;
 import org.junit.Before;
 import org.junit.Test;
 import org.niis.xroad.securityserver.restapi.dto.ApprovedCaDto;
+import org.niis.xroad.securityserver.restapi.openapi.model.AcmeOrder;
 import org.niis.xroad.securityserver.restapi.openapi.model.CertificateAuthority;
 import org.niis.xroad.securityserver.restapi.openapi.model.KeyUsageType;
 import org.niis.xroad.securityserver.restapi.service.KeyNotFoundException;
@@ -57,6 +58,7 @@ import static org.junit.Assert.fail;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyBoolean;
 import static org.mockito.Mockito.doAnswer;
+import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.when;
 
 /**
@@ -102,18 +104,21 @@ public class CertificateAuthoritiesApiControllerTest extends AbstractApiControll
                     public DnFieldDescription[] getSubjectFields() {
                         return new DnFieldDescription[0];
                     }
+
                     @Override
                     public X500Principal createSubjectDn(DnFieldValue[] values) {
                         return null;
                     }
+
                     @Override
                     public void validateSubjectField(DnFieldValue field) throws Exception {
                     }
                 });
+        doNothing().when(tokenCertificateService).orderAcmeCertificate(any(), any(), any());
     }
 
     @Test
-    @WithMockUser(authorities = { "VIEW_APPROVED_CERTIFICATE_AUTHORITIES" })
+    @WithMockUser(authorities = {"VIEW_APPROVED_CERTIFICATE_AUTHORITIES"})
     public void getApprovedCertificatesWithViewPermission() throws Exception {
         // basically test that these do not throw exceptions
         caController.getApprovedCertificateAuthorities(KeyUsageType.AUTHENTICATION, false);
@@ -124,7 +129,7 @@ public class CertificateAuthoritiesApiControllerTest extends AbstractApiControll
     }
 
     @Test
-    @WithMockUser(authorities = { "GENERATE_AUTH_CERT_REQ" })
+    @WithMockUser(authorities = {"GENERATE_AUTH_CERT_REQ"})
     public void getApprovedCertificateAuthoritiesAuthWithAuthPermission() throws Exception {
         caController.getApprovedCertificateAuthorities(KeyUsageType.AUTHENTICATION, false);
         caController.getApprovedCertificateAuthorities(null, false);
@@ -137,7 +142,7 @@ public class CertificateAuthoritiesApiControllerTest extends AbstractApiControll
     }
 
     @Test
-    @WithMockUser(authorities = { "GENERATE_SIGN_CERT_REQ" })
+    @WithMockUser(authorities = {"GENERATE_SIGN_CERT_REQ"})
     public void getApprovedCertificateAuthoritiesAuthWithSignPermission() throws Exception {
         caController.getApprovedCertificateAuthorities(KeyUsageType.SIGNING, false);
 
@@ -154,7 +159,7 @@ public class CertificateAuthoritiesApiControllerTest extends AbstractApiControll
     }
 
     @Test
-    @WithMockUser(authorities = { "GENERATE_AUTH_CERT_REQ" })
+    @WithMockUser(authorities = {"GENERATE_AUTH_CERT_REQ"})
     public void getSubjectFieldDescriptionsAuthWithAuthPermission() throws Exception {
         caController.getSubjectFieldDescriptions(GENERAL_PURPOSE_CA_NAME, KeyUsageType.AUTHENTICATION,
                 GOOD_AUTH_KEY_ID, "FI:GOV:M1", false);
@@ -168,7 +173,7 @@ public class CertificateAuthoritiesApiControllerTest extends AbstractApiControll
     }
 
     @Test
-    @WithMockUser(authorities = { "GENERATE_SIGN_CERT_REQ" })
+    @WithMockUser(authorities = {"GENERATE_SIGN_CERT_REQ"})
     public void getSubjectFieldDescriptionsAuthWithSignPermission() throws Exception {
         caController.getSubjectFieldDescriptions(GENERAL_PURPOSE_CA_NAME, KeyUsageType.SIGNING,
                 GOOD_SIGN_KEY_ID, "FI:GOV:M1", false);
@@ -182,7 +187,7 @@ public class CertificateAuthoritiesApiControllerTest extends AbstractApiControll
     }
 
     @Test
-    @WithMockUser(authorities = { "GENERATE_SIGN_CERT_REQ", "GENERATE_AUTH_CERT_REQ" })
+    @WithMockUser(authorities = {"GENERATE_SIGN_CERT_REQ", "GENERATE_AUTH_CERT_REQ"})
     public void getSubjectFieldsKeyIsOptional() throws Exception {
         caController.getSubjectFieldDescriptions(GENERAL_PURPOSE_CA_NAME, KeyUsageType.SIGNING,
                 null, "FI:GOV:M1", false);
@@ -190,5 +195,27 @@ public class CertificateAuthoritiesApiControllerTest extends AbstractApiControll
                 null, "FI:GOV:M1", false);
         // for Sonar "Add at least one assertion to this test case"
         assertTrue("should not have thrown exception", true);
+    }
+
+    @Test
+    @WithMockUser(authorities = { "IMPORT_SIGN_CERT" })
+    public void orderAcmeCertificateAuthWithSignPermission() {
+        caController.orderAcmeCertificate(GENERAL_PURPOSE_CA_NAME, new AcmeOrder("012", KeyUsageType.SIGNING));
+        try {
+            caController.orderAcmeCertificate(GENERAL_PURPOSE_CA_NAME, new AcmeOrder("012", KeyUsageType.AUTHENTICATION));
+            fail("should have thrown exception");
+        } catch (AccessDeniedException expected) {
+        }
+    }
+
+    @Test
+    @WithMockUser(authorities = { "IMPORT_AUTH_CERT" })
+    public void orderAcmeCertificateSignWithAuthPermission() {
+        caController.orderAcmeCertificate(GENERAL_PURPOSE_CA_NAME, new AcmeOrder("012", KeyUsageType.AUTHENTICATION));
+        try {
+            caController.orderAcmeCertificate(GENERAL_PURPOSE_CA_NAME, new AcmeOrder("012", KeyUsageType.SIGNING));
+            fail("should have thrown exception");
+        } catch (AccessDeniedException expected) {
+        }
     }
 }

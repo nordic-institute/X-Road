@@ -26,7 +26,7 @@
 package ee.ria.xroad.proxy.antidos;
 
 import ee.ria.xroad.common.conf.globalconf.GlobalConf;
-import ee.ria.xroad.common.util.SystemMetrics;
+import ee.ria.xroad.proxy.util.SystemMetrics;
 
 import lombok.extern.slf4j.Slf4j;
 
@@ -46,7 +46,7 @@ import java.util.concurrent.LinkedBlockingQueue;
 class AntiDosConnectionManager<T extends SocketChannelWrapper> {
 
     // Tiny wrapper class for active connections of a partner
-    private class HostData {
+    final class HostData {
         final Deque<T> connections = new LinkedBlockingDeque<>();
     }
 

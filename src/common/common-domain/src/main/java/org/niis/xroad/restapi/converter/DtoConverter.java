@@ -26,22 +26,8 @@
  */
 package org.niis.xroad.restapi.converter;
 
-import ee.ria.xroad.common.util.NoCoverage;
-
-public abstract class DtoConverter<T, DTO> extends AbstractConverter<T, DTO> {
-    public abstract DTO toDto(T source);
+public abstract class DtoConverter<T, DTO> extends UniDirectionalDtoConverter<T, DTO> {
 
     public abstract T fromDto(DTO source);
 
-    @Override
-    @NoCoverage
-    public final T convertToA(DTO source) {
-        return fromDto(source);
-    }
-
-    @Override
-    @NoCoverage
-    public final DTO convertToB(T source) {
-        return toDto(source);
-    }
 }

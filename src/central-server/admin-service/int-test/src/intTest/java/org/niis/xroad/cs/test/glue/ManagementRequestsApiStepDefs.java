@@ -93,12 +93,6 @@ public class ManagementRequestsApiStepDefs extends BaseStepDefs {
     private Integer managementRequestId;
     private Map<String, byte[]> certificates = new HashMap<>();
 
-    @Step("new security server {string} authentication certificate registered with origin {string} and approved")
-    public void newSecurityServerRegisteredAndApproved(String securityServerId, String origin) {
-        newSecurityServerRegistered(securityServerId, origin);
-        managementRequestIsApproved();
-    }
-
     @SuppressWarnings("checkstyle:MagicNumber")
     @Step("new security server {string} authentication certificate registered with origin {string}")
     public void newSecurityServerRegistered(String securityServerId, String origin) {

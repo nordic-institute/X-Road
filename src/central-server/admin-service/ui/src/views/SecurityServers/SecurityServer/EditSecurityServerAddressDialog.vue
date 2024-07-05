@@ -32,6 +32,7 @@
     title="securityServers.dialogs.editAddress.title"
     data-test="security-server-address-edit-dialog"
     save-button-text="action.save"
+    submittable
     :scrollable="false"
     :show-close="true"
     :loading="loading"
@@ -41,121 +42,74 @@
   >
     <template #content>
       <v-text-field
-        v-bind="securityServerAddress"
+        v-model="securityServerAddress"
+        v-bind="securityServerAddressAttrs"
         data-test="security-server-address-edit-field"
-        :label="$t('securityServers.dialogs.editAddress.addressField')"
         autofocus
         variant="outlined"
         class="dlg-row-input"
         name="securityServerAddress"
-        :error-messages="errors.securityServerAddress"
+        :label="$t('securityServers.dialogs.editAddress.addressField')"
       />
     </template>
   </xrd-simple-dialog>
 </template>
 
-<script lang="ts">
-import { defineComponent } from 'vue';
+<script lang="ts" setup>
 import { useSecurityServer } from '@/store/modules/security-servers';
-import { useNotifications } from '@/store/modules/notifications';
-import { ErrorInfo } from '@/openapi-types';
-import {
-  getErrorInfo,
-  getTranslatedFieldErrors,
-  isFieldError,
-} from '@/util/helpers';
-import { AxiosError } from 'axios';
 import { useForm } from 'vee-validate';
-import { mapActions, mapStores } from 'pinia';
+import { useBasicForm } from '@/util/composables';
 
 /**
  * Component for a Security server details view
  */
-export default defineComponent({
-  props: {
-    securityServerId: {
-      type: String,
-      required: true,
-    },
-    address: {
-      type: String,
-      required: true,
-    },
+
+const props = defineProps({
+  securityServerId: {
+    type: String,
+    required: true,
   },
-  emits: ['cancel', 'addressUpdated'],
-  setup(props) {
-    const {
-      values,
-      errors,
-      meta,
-      resetForm,
-      setFieldError,
-      defineComponentBinds,
-    } = useForm({
-      validationSchema: {
-        securityServerAddress: 'required',
-      },
-      initialValues: { securityServerAddress: props.address },
-    });
-    const securityServerAddress = defineComponentBinds('securityServerAddress');
-    return {
-      values,
-      meta,
-      errors,
-      resetForm,
-      setFieldError,
-      securityServerAddress,
-    };
+  address: {
+    type: String,
+    required: true,
   },
-  data() {
-    return {
-      loading: false,
-      showDialog: false,
-    };
+});
+
+const emits = defineEmits(['save', 'cancel']);
+
+const { meta, resetForm, setFieldError, defineField, handleSubmit } = useForm({
+  validationSchema: {
+    securityServerAddress: 'required|address',
   },
-  computed: {
-    ...mapStores(useSecurityServer),
+  initialValues: { securityServerAddress: props.address },
+});
+const [securityServerAddress, securityServerAddressAttrs] = defineField(
+  'securityServerAddress',
+  {
+    props: (state) => ({ 'error-messages': state.errors }),
   },
-  methods: {
-    ...mapActions(useNotifications, ['showError', 'showSuccess']),
-    close(): void {
-      this.resetForm();
-      this.$emit('cancel');
-    },
-    saveAddress: async function () {
-      try {
-        this.loading = true;
-        await this.securityServerStore.updateAddress(
-          this.securityServerId,
-          this.values.securityServerAddress,
-        );
-        this.showSuccess(
-          this.$t('securityServers.dialogs.editAddress.success'),
-        );
-        this.$emit('addressUpdated');
-      } catch (updateError: unknown) {
-        const errorInfo: ErrorInfo = getErrorInfo(updateError as AxiosError);
-        if (isFieldError(errorInfo)) {
-          // backend validation error
-          let fieldErrors = errorInfo.error?.validation_errors;
-          if (fieldErrors) {
-            this.setFieldError(
-              'securityServerAddress',
-              getTranslatedFieldErrors(
-                'securityServerAddressDto.serverAddress',
-                fieldErrors,
-              ),
-            );
-          }
-        } else {
-          this.showError(updateError);
-          this.close();
-        }
-      } finally {
-        this.loading = false;
-      }
-    },
-  },
+);
+
+const { updateAddress } = useSecurityServer();
+const { showOrTranslateErrors, showSuccess, loading, t } = useBasicForm(
+  setFieldError,
+  { securityServerAddress: 'securityServerAddressDto.serverAddress' },
+);
+
+function close() {
+  resetForm();
+  emits('cancel');
+}
+
+const saveAddress = handleSubmit((values) => {
+  loading.value = true;
+  updateAddress(props.securityServerId, values.securityServerAddress)
+    .then(() => {
+      showSuccess(t('securityServers.dialogs.editAddress.success'));
+      emits('save');
+    })
+    .catch((error) => showOrTranslateErrors(error))
+    .finally(() => (loading.value = false));
 });
 </script>
 

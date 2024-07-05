@@ -26,9 +26,11 @@
 import 'vuetify/styles';
 import '@mdi/font/css/materialdesignicons.css';
 import { createVuetify } from 'vuetify';
+import * as components from 'vuetify/components';
 import { aliases, mdi } from 'vuetify/iconsets/mdi';
 
 export default createVuetify({
+  components,
   defaults: {
     VTextField: {
       color: 'primary',

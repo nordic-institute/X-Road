@@ -47,23 +47,21 @@
         class="server-name"
         data-test="app-toolbar-server-instance-address"
       >
-        {{
-          `${initializationParameters.instance_identifier} : ${initializationParameters.central_server_address}`
-        }}
+        {{ serverName }}
       </div>
       <div
         v-show="isHighAvailabilityConfigured"
         class="node-name"
         data-test="app-toolbar-node-name"
       >
-        {{ `${systemStatus.high_availability_status.node_name}` }}
+        {{ `${systemStatus.high_availability_status?.node_name}` }}
       </div>
     </div>
   </v-app-bar>
 </template>
 
 <script lang="ts">
-import Vue, { defineComponent } from 'vue';
+import { defineComponent } from 'vue';
 import { Colors } from '@/global';
 import { mapState } from 'pinia';
 import { useSystem } from '@/store/modules/system';
@@ -79,6 +77,11 @@ export default defineComponent({
     ...mapState(useSystem, ['getSystemStatus', 'isServerInitialized']),
     initializationParameters() {
       return this.getSystemStatus?.initialization_status;
+    },
+    serverName() {
+      return this.initializationParameters
+        ? `${this.initializationParameters.instance_identifier} : ${this.initializationParameters.central_server_address}`
+        : '';
     },
     isInitialized(): boolean {
       return this.isServerInitialized;

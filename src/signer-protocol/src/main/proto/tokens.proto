@@ -78,6 +78,8 @@ message CertRequestInfoProto {
   string id = 1;
   optional ClientIdProto member_id = 2;
   string subject_name = 3;
+  string subject_alt_name = 4;
+  optional string certificate_profile = 5;
   // Add other fields as needed
 }
 

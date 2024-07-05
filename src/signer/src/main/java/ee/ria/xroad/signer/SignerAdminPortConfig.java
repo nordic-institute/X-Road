@@ -29,19 +29,21 @@ import ee.ria.xroad.common.CertificationServiceDiagnostics;
 import ee.ria.xroad.common.SystemProperties;
 import ee.ria.xroad.common.util.AdminPort;
 import ee.ria.xroad.common.util.JsonUtils;
+import ee.ria.xroad.common.util.RequestWrapper;
+import ee.ria.xroad.common.util.ResponseWrapper;
 import ee.ria.xroad.signer.certmanager.OcspClientWorker;
 import ee.ria.xroad.signer.job.OcspClientExecuteScheduler;
 
 import jakarta.annotation.PostConstruct;
 import jakarta.annotation.PreDestroy;
-import jakarta.servlet.http.HttpServletRequest;
-import jakarta.servlet.http.HttpServletResponse;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
 import java.io.IOException;
 import java.util.Optional;
+
+import static org.eclipse.jetty.http.MimeTypes.Type.APPLICATION_JSON_UTF_8;
 
 @Slf4j
 @Configuration
@@ -60,7 +62,7 @@ public class SignerAdminPortConfig {
 
         port.addHandler("/execute", new AdminPort.SynchronousCallback() {
             @Override
-            public void handle(HttpServletRequest request, HttpServletResponse response) {
+            public void handle(RequestWrapper request, ResponseWrapper response) {
                 try {
                     if (ocspClientExecuteScheduler.isPresent()) {
                         ocspClientExecuteScheduler.get().execute();
@@ -75,7 +77,7 @@ public class SignerAdminPortConfig {
 
         port.addHandler("/status", new AdminPort.SynchronousCallback() {
             @Override
-            public void handle(HttpServletRequest request, HttpServletResponse response) {
+            public void handle(RequestWrapper request, ResponseWrapper response) {
                 log.info("handler /status");
                 CertificationServiceDiagnostics diagnostics = null;
                 try {
@@ -89,10 +91,10 @@ public class SignerAdminPortConfig {
                 if (diagnostics == null) {
                     diagnostics = diagnosticsDefault;
                 }
-                try {
-                    response.setCharacterEncoding("UTF8");
+                try (var responseOut = response.getOutputStream()) {
+                    response.setContentType(APPLICATION_JSON_UTF_8);
                     JsonUtils.getObjectWriter()
-                            .writeValue(response.getWriter(), diagnostics);
+                            .writeValue(responseOut, diagnostics);
                 } catch (IOException e) {
                     log.error("Error writing response", e);
                 }

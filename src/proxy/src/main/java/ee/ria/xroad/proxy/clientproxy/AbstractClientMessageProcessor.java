@@ -38,11 +38,11 @@ import ee.ria.xroad.common.identifier.ServiceId;
 import ee.ria.xroad.common.message.SoapUtils;
 import ee.ria.xroad.common.opmonitoring.OpMonitoringData;
 import ee.ria.xroad.common.util.HttpSender;
+import ee.ria.xroad.common.util.RequestWrapper;
+import ee.ria.xroad.common.util.ResponseWrapper;
 import ee.ria.xroad.proxy.ProxyMain;
 import ee.ria.xroad.proxy.util.MessageProcessorBase;
 
-import jakarta.servlet.http.HttpServletRequest;
-import jakarta.servlet.http.HttpServletResponse;
 import lombok.EqualsAndHashCode;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.http.client.HttpClient;
@@ -84,10 +84,10 @@ abstract class AbstractClientMessageProcessor extends MessageProcessorBase {
         }
     }
 
-    protected AbstractClientMessageProcessor(HttpServletRequest servletRequest, HttpServletResponse servletResponse,
-            HttpClient httpClient, IsAuthenticationData clientCert, OpMonitoringData opMonitoringData)
-            throws Exception {
-        super(servletRequest, servletResponse, httpClient);
+    protected AbstractClientMessageProcessor(RequestWrapper request, ResponseWrapper response,
+                                             HttpClient httpClient, IsAuthenticationData clientCert,
+                                             OpMonitoringData opMonitoringData) throws Exception {
+        super(request, response, httpClient);
 
         this.clientCert = clientCert;
         this.opMonitoringData = opMonitoringData;
@@ -136,7 +136,7 @@ abstract class AbstractClientMessageProcessor extends MessageProcessorBase {
         // Preserve the original content type in the "x-original-content-type"
         // HTTP header, which will be used to send the request to the
         // service provider
-        httpSender.addHeader(HEADER_ORIGINAL_CONTENT_TYPE, servletRequest.getContentType());
+        httpSender.addHeader(HEADER_ORIGINAL_CONTENT_TYPE, jRequest.getContentType());
 
         return addresses;
     }

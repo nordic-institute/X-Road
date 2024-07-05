@@ -318,13 +318,13 @@ public class CachingKeyConfImplTest {
      * @param slowCacheReadTimeMs how much cache refresh is slowed
      */
     private void doConcurrentSigningInfoReads(AtomicInteger dataRefreshes,
-            List<ClientId> clients,
-            BooleanSupplier keyConfHasChanged,
-            BooleanSupplier authKeyIsValid,
-            BooleanSupplier signingInfoIsValid,
-            int concurrentThreads,
-            int loops,
-            int slowCacheReadTimeMs) throws Exception {
+                                              List<ClientId> clients,
+                                              BooleanSupplier keyConfHasChanged,
+                                              BooleanSupplier authKeyIsValid,
+                                              BooleanSupplier signingInfoIsValid,
+                                              int concurrentThreads,
+                                              int loops,
+                                              int slowCacheReadTimeMs) throws Exception {
 
         final TestCachingKeyConfImpl testCachingKeyConf = new TestCachingKeyConfImpl(
                 dataRefreshes,
@@ -360,12 +360,12 @@ public class CachingKeyConfImplTest {
      * @param slowCacheReadTimeMs how much cache refresh is slowed
      */
     private void doConcurrentAuthKeyReads(AtomicInteger dataRefreshes,
-            BooleanSupplier keyConfHasChanged,
-            BooleanSupplier authKeyIsValid,
-            BooleanSupplier signingInfoIsValid,
-            int concurrentThreads,
-            int loops,
-            int slowCacheReadTimeMs) throws Exception {
+                                          BooleanSupplier keyConfHasChanged,
+                                          BooleanSupplier authKeyIsValid,
+                                          BooleanSupplier signingInfoIsValid,
+                                          int concurrentThreads,
+                                          int loops,
+                                          int slowCacheReadTimeMs) throws Exception {
 
         TestCachingKeyConfImpl testCachingKeyConf = new TestCachingKeyConfImpl(
                 dataRefreshes,
@@ -385,8 +385,8 @@ public class CachingKeyConfImplTest {
     }
 
     private void doConcurrentCacheReads(CacheReadOperation readOperation,
-            int threads,
-            int loops) throws Exception {
+                                        int threads,
+                                        int loops) throws Exception {
 
         ExecutorService executorService = Executors.newFixedThreadPool(threads);
 
@@ -447,10 +447,10 @@ public class CachingKeyConfImplTest {
         final CountDownLatch ready = new CountDownLatch(1);
 
         TestCachingKeyConfImpl(AtomicInteger dataRefreshes,
-                BooleanSupplier keyConfHasChanged,
-                BooleanSupplier authKeyIsValid,
-                BooleanSupplier signingInfoIsValid,
-                int cacheReadDelayMs) {
+                               BooleanSupplier keyConfHasChanged,
+                               BooleanSupplier authKeyIsValid,
+                               BooleanSupplier signingInfoIsValid,
+                               int cacheReadDelayMs) {
             this.dataRefreshes = dataRefreshes;
             this.keyConfHasChanged = keyConfHasChanged;
             this.authKeyIsValid = authKeyIsValid;

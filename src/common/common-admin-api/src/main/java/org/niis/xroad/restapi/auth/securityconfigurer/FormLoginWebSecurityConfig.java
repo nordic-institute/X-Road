@@ -131,7 +131,7 @@ public class FormLoginWebSecurityConfig {
         return new SimpleUrlAuthenticationFailureHandler() {
             @Override
             public void onAuthenticationFailure(HttpServletRequest request,
-                    HttpServletResponse response, AuthenticationException exception)
+                                                HttpServletResponse response, AuthenticationException exception)
                     throws IOException {
                 response.setContentType("application/json;charset=UTF-8");
                 response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "Authentication Failed");
@@ -147,7 +147,7 @@ public class FormLoginWebSecurityConfig {
         return new SimpleUrlAuthenticationSuccessHandler() {
             @Override
             public void onAuthenticationSuccess(HttpServletRequest request,
-                    HttpServletResponse response, Authentication authentication)
+                                                HttpServletResponse response, Authentication authentication)
                     throws IOException {
                 response.setContentType("application/json;charset=UTF-8");
                 response.getWriter().println("OK");

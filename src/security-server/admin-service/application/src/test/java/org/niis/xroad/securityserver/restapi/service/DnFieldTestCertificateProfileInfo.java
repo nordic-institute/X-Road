@@ -45,7 +45,7 @@ public class DnFieldTestCertificateProfileInfo implements CertificateProfileInfo
     }
 
     DnFieldTestCertificateProfileInfo(DnFieldDescription description, boolean valid) {
-        this.descriptions = new DnFieldDescription[] {description};
+        this.descriptions = new DnFieldDescription[]{description};
         this.valid = valid;
     }
 

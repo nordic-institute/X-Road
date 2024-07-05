@@ -4674,6 +4674,93 @@ paths:
           description: request specified an invalid format
         '500':
           description: internal server error
+  /certificate-authorities/{ca_name}/has-acme-eab-credentials:
+    get:
+      tags:
+        - certificate-authorities
+      summary: Does the member have external CA account credentials for its ACME server in the configurations.
+      operationId: hasAcmeExternalAccountBindingCredentials
+      description: <h3>Check whether given member has external CA account credentials for its ACME server.</h3>
+        <p>Determines whether the administrator can order the certificate from ACME server with the generated CSR. The credentials are stored in the acme.yml configuration file</p>
+      parameters:
+        - in: path
+          name: ca_name
+          description: common name of the CA
+          example: X-Road Test CA CN
+          required: true
+          schema:
+            type: string
+            format: text
+            minLength: 1
+            maxLength: 255
+        - in: query
+          name: key_usage_type
+          description: which usage type this CSR is for
+          example: SIGNING
+          required: true
+          schema:
+            $ref: '#/components/schemas/KeyUsageType'
+        - in: query
+          name: member_id
+          description: <instance_id>:<member_class>:<member_code>
+          example: FI:GOV:123
+          required: false
+          schema:
+            type: string
+            format: text
+            minLength: 1
+            maxLength: 255
+      responses:
+        '200':
+          description: acme eab credentials status
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AcmeEabCredentialsStatus'
+        '400':
+          description: request was invalid
+        '401':
+          description: authentication credentials are missing
+        '403':
+          description: request has been refused
+        '406':
+          description: request specified an invalid format
+        '500':
+          description: internal server error
+  /certificate-authorities/{ca_name}/acme-order:
+    post:
+      tags:
+        - certificate-authorities
+      summary: order certificate from CA hosted ACME server with the given CSR
+      operationId: orderAcmeCertificate
+      description: <h3>Administrator orders the certificate with previously generated CSR whose certificate profile matches chosen CA-s configured profile.</h3>
+      parameters:
+        - in: path
+          name: ca_name
+          description: common name of the CA
+          example: X-Road Test CA CN
+          required: true
+          schema:
+            type: string
+            format: text
+            minLength: 1
+            maxLength: 255
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AcmeOrder'
+      responses:
+        '200':
+          description: acme certificate order was successful
+        '400':
+          description: request was invalid
+        '403':
+          description: request has been refused
+        '409':
+          description: an existing item already exists, outdated global conf or token not logged in
+        '500':
+          description: internal server error
   /system/timestamping-services:
     get:
       tags:
@@ -5453,6 +5540,7 @@ components:
         messagelog_enabled:
           type: boolean
           readOnly: true
+          description: MessageLog status
     BackupEncryptionStatus:
       type: object
       description: backup encryption statuses
@@ -5462,11 +5550,14 @@ components:
         backup_encryption_status:
           type: boolean
           readOnly: true
+          description: backup encryption status
         backup_encryption_keys:
           type: array
+          description: backup encryption keys
           items:
             type: string
             format: text
+            description: backup encryption key
     MessageLogEncryptionStatus:
       type: object
       description: message log encryption statuses
@@ -5478,14 +5569,18 @@ components:
         message_log_archive_encryption_status:
           type: boolean
           readOnly: true
+          description: message log archive encryption status
         message_log_database_encryption_status:
           type: boolean
           readOnly: true
+          description: message log database encryption status
         message_log_grouping_rule:
           type: string
           readOnly: true
+          description: message log grouping rule
         members:
           type: array
+          description: message log encryption members
           items:
             $ref: '#/components/schemas/MessageLogArchiveEncryptionMember'
     MessageLogArchiveEncryptionMember:
@@ -5497,9 +5592,11 @@ components:
         member_id:
           type: string
           readOnly: true
+          description: member id
         keys:
           type: array
           uniqueItems: true
+          description: array of keys
           items:
             type: string
             format: text
@@ -5507,6 +5604,7 @@ components:
         default_key_used:
           type: boolean
           readOnly: true
+          description: default key used
     Anchor:
       type: object
       description: security server anchor
@@ -5559,6 +5657,7 @@ components:
       properties:
         local_conf_present:
           type: boolean
+          description: if local configuration is present in the backup
     BackupArchive:
       type: object
       description: security server backup archive file
@@ -5566,6 +5665,7 @@ components:
         file:
           type: string
           format: binary
+          description: backup archive file
     TokenCertificateSigningRequest:
       type: object
       description: CSR for certificate that is stored in a Token. Also includes the possible actions that can be
@@ -5588,6 +5688,12 @@ components:
           example: FI:GOV:123
           minLength: 1
           maxLength: 767
+          readOnly: true
+        certificate_profile:
+          type: string
+          format: text
+          description: Fully qualified class name that was used to create the CSR. Implements the ee.ria.xroad.common.certificateprofile.CertificateProfileInfoProvider interface.
+          example: org.example.TestCertificateInfoProvider
           readOnly: true
         possible_actions:
           $ref: '#/components/schemas/PossibleActions'
@@ -5832,6 +5938,23 @@ components:
         authentication_only:
           type: boolean
           description: if certificate authority is limited for authentication use only
+        certificate_profile_info:
+          type: string
+          format: text
+          description: Fully qualified class name that was used to create the CSR. Implements the ee.ria.xroad.common.certificateprofile.CertificateProfileInfoProvider interface.
+          example: org.example.TestCertificateInfoProvider
+          minLength: 1
+          maxLength: 1024
+        acme_capable:
+          type: boolean
+          description: if certificate authority supports ACME
+        acme_server_ip_addresses:
+          type: array
+          description: ACME server IP address(es) that can be helpful in configuring the firewall rules.
+          example: [ "12.34.5.6", "AB:cd:67::89" ]
+          items:
+            type: string
+            format: text
     CertificateStatus:
       type: string
       format: enum
@@ -6068,6 +6191,40 @@ components:
           description: user-provided values for subject DN parameters
           additionalProperties:
             type: string
+        acme_order:
+          type: boolean
+          default: false
+          description: whether or not order certificate from acme server with the generated csr
+    AcmeOrder:
+      type: object
+      description: request to order certificate with the given CSR for the given usage type
+      required:
+        - csr_id
+        - key_usage_type
+      properties:
+        csr_id:
+          type: string
+          format: text
+          description: id of the CSR
+          minLength: 1
+          maxLength: 40
+        key_usage_type:
+          $ref: '#/components/schemas/KeyUsageType'
+    AcmeEabCredentialsStatus:
+      type: object
+      description: Whether there are credentials in the configuration for the given Member and CA. Used for binding the CA external account with the ACME server's account.
+      required:
+        - has_acme_external_account_credentials
+        - acme_eab_required
+      properties:
+        acme_eab_required:
+          type: boolean
+          description: if certificate authority required external account binding for ACME
+        has_acme_external_account_credentials:
+          type: boolean
+          description: whether there are credentials present in the configuration.
+          example: true
+          readOnly: true
     CsrSubjectFieldDescription:
       type: object
       description: object describing input fields for CSR subject DN info
@@ -6260,10 +6417,12 @@ components:
       properties:
         status_class:
           readOnly: true
+          description: diagnostics status class
           allOf:
             - $ref: '#/components/schemas/DiagnosticStatusClass'
         status_code:
           readOnly: true
+          description: diagnostics status code
           allOf:
             - $ref: '#/components/schemas/ConfigurationStatus'
         prev_update_at:
@@ -6507,6 +6666,7 @@ components:
         member_name:
           type: string
           format: text
+          description: member's name
     Members:
       type: object
       description: Request object containing an array of member ids. The id must be an X-Road member id or subsystem id
@@ -6599,6 +6759,7 @@ components:
         orphans_exist:
           type: boolean
           default: false
+          description: whether or not orphans exist in the database
     SecurityServer:
       type: object
       description: security server information
@@ -6794,6 +6955,7 @@ components:
         service_code:
           type: string
           example: example_service_code
+          description: service code
         method:
           type: string
           description: http method mapped to this endpoint

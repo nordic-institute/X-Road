@@ -38,6 +38,7 @@ import org.niis.xroad.restapi.converter.ClientIdConverter;
 import org.niis.xroad.restapi.openapi.BadRequestException;
 import org.niis.xroad.restapi.openapi.ConflictException;
 import org.niis.xroad.restapi.openapi.ControllerUtil;
+import org.niis.xroad.restapi.openapi.InternalServerErrorException;
 import org.niis.xroad.restapi.openapi.ResourceNotFoundException;
 import org.niis.xroad.securityserver.restapi.converter.CsrFormatMapping;
 import org.niis.xroad.securityserver.restapi.converter.KeyConverter;
@@ -53,12 +54,17 @@ import org.niis.xroad.securityserver.restapi.openapi.model.TokenName;
 import org.niis.xroad.securityserver.restapi.openapi.model.TokenPassword;
 import org.niis.xroad.securityserver.restapi.openapi.model.TokenPinUpdate;
 import org.niis.xroad.securityserver.restapi.service.ActionNotPossibleException;
+import org.niis.xroad.securityserver.restapi.service.CertificateAlreadyExistsException;
 import org.niis.xroad.securityserver.restapi.service.CertificateAuthorityNotFoundException;
 import org.niis.xroad.securityserver.restapi.service.ClientNotFoundException;
+import org.niis.xroad.securityserver.restapi.service.CsrNotFoundException;
 import org.niis.xroad.securityserver.restapi.service.DnFieldHelper;
+import org.niis.xroad.securityserver.restapi.service.GlobalConfOutdatedException;
+import org.niis.xroad.securityserver.restapi.service.InvalidCertificateException;
 import org.niis.xroad.securityserver.restapi.service.InvalidCharactersException;
 import org.niis.xroad.securityserver.restapi.service.KeyAndCertificateRequestService;
 import org.niis.xroad.securityserver.restapi.service.KeyService;
+import org.niis.xroad.securityserver.restapi.service.TokenCertificateService;
 import org.niis.xroad.securityserver.restapi.service.TokenNotFoundException;
 import org.niis.xroad.securityserver.restapi.service.TokenService;
 import org.niis.xroad.securityserver.restapi.service.WeakPinException;
@@ -185,10 +191,12 @@ public class TokensApiController implements TokensApi {
 
     @Override
     @PreAuthorize("hasAuthority('GENERATE_KEY') "
-            + " and (hasAuthority('GENERATE_AUTH_CERT_REQ') or hasAuthority('GENERATE_SIGN_CERT_REQ'))")
+            + " and (hasAuthority('GENERATE_AUTH_CERT_REQ') or hasAuthority('GENERATE_SIGN_CERT_REQ'))"
+            + " and (!#keyLabelWithCsrGenerate.csrGenerateRequest.acmeOrder"
+            + "      or hasAuthority('IMPORT_AUTH_CERT') or hasAuthority('IMPORT_SIGN_CERT'))")
     @AuditEventMethod(event = RestApiAuditEvent.GENERATE_KEY_AND_CSR)
     public ResponseEntity<KeyWithCertificateSigningRequestId> addKeyAndCsr(String tokenId,
-            KeyLabelWithCsrGenerate keyLabelWithCsrGenerate) {
+                                                                           KeyLabelWithCsrGenerate keyLabelWithCsrGenerate) {
 
         // squid:S3655 throwing NoSuchElementException if there is no value present is
         // fine since keyUsageInfo is mandatory parameter
@@ -212,14 +220,18 @@ public class TokensApiController implements TokensApi {
                     keyUsageInfo,
                     csrGenerate.getCaName(),
                     csrGenerate.getSubjectFieldValues(),
-                    csrFormat);
+                    csrFormat,
+                    csrGenerate.getAcmeOrder());
         } catch (ClientNotFoundException | CertificateAuthorityNotFoundException
-                | DnFieldHelper.InvalidDnParameterException e) {
+                 | DnFieldHelper.InvalidDnParameterException | TokenCertificateService.AuthCertificateNotSupportedException e) {
             throw new BadRequestException(e);
-        } catch (ActionNotPossibleException e) {
+        } catch (ActionNotPossibleException | GlobalConfOutdatedException | CsrNotFoundException
+                 | CertificateAlreadyExistsException e) {
             throw new ConflictException(e);
         } catch (TokenNotFoundException e) {
             throw new ResourceNotFoundException(e);
+        } catch (TokenCertificateService.WrongCertificateUsageException | InvalidCertificateException e) {
+            throw new InternalServerErrorException(e);
         }
 
         KeyWithCertificateSigningRequestId result = new KeyWithCertificateSigningRequestId();

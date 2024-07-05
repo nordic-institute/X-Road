@@ -27,6 +27,7 @@
 package org.niis.xroad.cs.admin.core.entity.mapper;
 
 import org.mapstruct.Mapper;
+import org.mapstruct.Mapping;
 import org.mapstruct.MappingConstants;
 import org.niis.xroad.cs.admin.api.converter.GenericUniDirectionalMapper;
 import org.niis.xroad.cs.admin.api.domain.ApprovedCa;
@@ -34,4 +35,10 @@ import org.niis.xroad.cs.admin.core.entity.ApprovedCaEntity;
 
 @Mapper(componentModel = MappingConstants.ComponentModel.SPRING)
 public interface ApprovedCaMapper extends GenericUniDirectionalMapper<ApprovedCaEntity, ApprovedCa> {
+
+    @Override
+    @Mapping(target = "authenticationCertificateProfileId", source = "authCertProfileId")
+    @Mapping(target = "signingCertificateProfileId", source = "signCertProfileId")
+    ApprovedCa toTarget(ApprovedCaEntity approvedCaEntity);
+
 }

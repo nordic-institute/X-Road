@@ -42,6 +42,8 @@ import static java.lang.annotation.RetentionPolicy.RUNTIME;
 @Constraint(validatedBy = XRoadIdValidator.class)
 public @interface ValidXRoadId {
     String message() default "Invalid X-Road identifier";
+
     Class<?>[] groups() default {};
+
     Class<? extends Payload>[] payload() default {};
 }

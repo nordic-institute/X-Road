@@ -62,6 +62,7 @@ public final class GenerateTestData {
 
     /**
      * Main program entry point.
+     *
      * @param args command-line arguments
      * @throws Exception in case of any errors
      */
@@ -69,18 +70,18 @@ public final class GenerateTestData {
         // simple conf with private & shared params + additional file
         new TestConfDir("test-conf-simple").addEntry(new ConfDirEntry(CONTENT_ID_PRIVATE_PARAMETERS,
                         "EE", "/" + FILE_NAME_PRIVATE_PARAMETERS), FILE_NAME_PRIVATE_PARAMETERS)
-            .addEntry(new ConfDirEntry(CONTENT_ID_SHARED_PARAMETERS, "EE", "/"
-                            + FILE_NAME_SHARED_PARAMETERS), FILE_NAME_SHARED_PARAMETERS)
-            .addEntry(new ConfDirEntry("FOO", "EE", "/foo.xml"), "/foo.xml")
+                .addEntry(new ConfDirEntry(CONTENT_ID_SHARED_PARAMETERS, "EE", "/"
+                        + FILE_NAME_SHARED_PARAMETERS), FILE_NAME_SHARED_PARAMETERS)
+                .addEntry(new ConfDirEntry("FOO", "EE", "/foo.xml"), "/foo.xml")
                 .save();
 
         // detached conf scenario
         new TestConfDir("test-conf-detached").addEntry(new ConfDirEntry(CONTENT_ID_PRIVATE_PARAMETERS,
-                        "EE", "/" + FILE_NAME_PRIVATE_PARAMETERS), FILE_NAME_PRIVATE_PARAMETERS).save();
+                "EE", "/" + FILE_NAME_PRIVATE_PARAMETERS), FILE_NAME_PRIVATE_PARAMETERS).save();
     }
 
     @RequiredArgsConstructor
-    private static class TestConfDir {
+    private static final class TestConfDir {
 
         private final String name;
         private final List<ConfDirEntry> entries = new ArrayList<>();
@@ -126,7 +127,7 @@ public final class GenerateTestData {
     }
 
     @Data
-    private static class ConfDirEntry {
+    private static final class ConfDirEntry {
         final String contentIdentifier;
         final String instanceIdentifier;
         final String fileName;
@@ -135,17 +136,17 @@ public final class GenerateTestData {
 
     private static String getContentMultipart(ConfDirEntry entry) throws Exception {
         return "--innerboundary\n"
-               + "Content-type: application/octet-stream\n"
-               + "Content-transfer-encoding: base64\n"
-               + "Content-identifier: " + entry.getContentIdentifier()
-               + "; instance=\"" + entry.getInstanceIdentifier() + "\"\n"
-               + "Content-location: " + entry.getFileName() + "\n"
-               + "Hash-algorithm-id: http://www.w3.org/2001/04/xmlenc#sha512\n\n"
-               + hash(entry.getContent());
+                + "Content-type: application/octet-stream\n"
+                + "Content-transfer-encoding: base64\n"
+                + "Content-identifier: " + entry.getContentIdentifier()
+                + "; instance=\"" + entry.getInstanceIdentifier() + "\"\n"
+                + "Content-location: " + entry.getFileName() + "\n"
+                + "Hash-algorithm-id: http://www.w3.org/2001/04/xmlenc#sha512\n\n"
+                + hash(entry.getContent());
     }
 
     private static String getTopMultipart(String signedContent, String signatureBase64,
-            String verificationCertHashBase64) {
+                                          String verificationCertHashBase64) {
         return "Content-Type: multipart/related; charset=UTF-8;boundary=envelopeboundary\n\n"
                 + "--envelopeboundary\n"
                 + "Content-Type: multipart/mixed; charset=UTF-8;boundary=innerboundary\n\n"

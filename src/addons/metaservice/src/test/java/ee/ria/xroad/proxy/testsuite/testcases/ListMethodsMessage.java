@@ -97,7 +97,7 @@ public class ListMethodsMessage extends MessageTestCase {
         ServerConf.reload(new TestSuiteServerConf() {
             @Override
             public List<ServiceId.Conf> getServicesByDescriptionType(ClientId serviceProvider,
-                                                                DescriptionType descriptionType) {
+                                                                     DescriptionType descriptionType) {
                 assertThat("Client id does not match expected", serviceProvider, is(expectedClientId));
                 return expectedServices;
             }

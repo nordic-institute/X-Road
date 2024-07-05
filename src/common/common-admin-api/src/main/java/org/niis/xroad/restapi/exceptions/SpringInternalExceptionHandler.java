@@ -70,7 +70,7 @@ public class SpringInternalExceptionHandler extends ResponseEntityExceptionHandl
     @Override
     protected ResponseEntity<Object> handleExceptionInternal(Exception ex, @Nullable Object body,
                                                              HttpHeaders headers, HttpStatusCode status,
-            WebRequest request) {
+                                                             WebRequest request) {
         auditEventLoggingFacade.auditLogFail(ex);
         log.error("exception caught", ex);
         ErrorInfo errorInfo = new ErrorInfo();

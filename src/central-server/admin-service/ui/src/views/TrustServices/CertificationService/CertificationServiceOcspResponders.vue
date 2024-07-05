@@ -27,6 +27,7 @@
 <template>
   <main id="certification-service-ocsp-responders" class="mt-8">
     <ocsp-responders-list
+      v-if="certificationServiceStore.currentCertificationService"
       :ca="certificationServiceStore.currentCertificationService"
     />
   </main>

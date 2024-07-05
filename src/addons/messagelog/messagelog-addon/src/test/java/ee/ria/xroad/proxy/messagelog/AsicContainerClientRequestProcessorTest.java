@@ -31,16 +31,15 @@ import ee.ria.xroad.common.message.RestRequest;
 import ee.ria.xroad.common.messagelog.AbstractLogManager;
 import ee.ria.xroad.common.messagelog.MessageLogProperties;
 import ee.ria.xroad.common.messagelog.archive.GroupingStrategy;
+import ee.ria.xroad.common.util.RequestWrapper;
+import ee.ria.xroad.common.util.ResponseWrapper;
 import ee.ria.xroad.proxy.clientproxy.AsicContainerClientRequestProcessor;
 
-import jakarta.servlet.ServletOutputStream;
-import jakarta.servlet.WriteListener;
-import jakarta.servlet.http.HttpServletRequest;
-import jakarta.servlet.http.HttpServletResponse;
 import org.apache.commons.lang3.SystemUtils;
 import org.bouncycastle.bcpg.BCPGInputStream;
 import org.bouncycastle.bcpg.PacketTags;
 import org.bouncycastle.bcpg.PublicKeyEncSessionPacket;
+import org.eclipse.jetty.http.HttpURI;
 import org.junit.After;
 import org.junit.Assume;
 import org.junit.Before;
@@ -52,6 +51,7 @@ import org.mockito.Mockito;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.io.OutputStream;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -71,12 +71,13 @@ import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
+
 @RunWith(Parameterized.class)
 public class AsicContainerClientRequestProcessorTest extends AbstractMessageLogTest {
 
     @Parameterized.Parameters(name = "encrypted = {0}")
     public static Object[] params() {
-        return new Object[] {Boolean.FALSE, Boolean.TRUE};
+        return new Object[]{Boolean.FALSE, Boolean.TRUE};
     }
 
     @Parameterized.Parameter(0)
@@ -84,16 +85,18 @@ public class AsicContainerClientRequestProcessorTest extends AbstractMessageLogT
 
     @Test
     public void assertVerificationConfiguration() throws IOException {
-        final HttpServletRequest request = mock(HttpServletRequest.class);
-        final HttpServletResponse response = mock(HttpServletResponse.class);
+        final var request = mock(RequestWrapper.class);
+        final var response = mock(ResponseWrapper.class);
 
         final MockOutputStream mockOutputStream = new MockOutputStream();
-        when(response.getOutputStream()).thenReturn(mockOutputStream);
 
         final AsicContainerClientRequestProcessor proc = new AsicContainerClientRequestProcessor(
                 "/verificationconf", request, response);
 
+        when(response.getOutputStream()).thenReturn(mockOutputStream);
+
         proc.process();
+
 
         try (ZipInputStream zip = new ZipInputStream(new ByteArrayInputStream(mockOutputStream.bos.toByteArray()))) {
             ZipEntry entry = zip.getNextEntry();
@@ -120,14 +123,16 @@ public class AsicContainerClientRequestProcessorTest extends AbstractMessageLogT
         startTimestamping();
         waitForTimestampSuccessful();
 
-        final HttpServletRequest request = mock(HttpServletRequest.class);
+        final var request = mock(RequestWrapper.class);
+        final var httpURI = mock(HttpURI.class);
+        when(request.getHttpURI()).thenReturn(httpURI);
         when(request.getParameter(Mockito.eq("xRoadInstance"))).thenReturn(message.getClientId().getXRoadInstance());
         when(request.getParameter(Mockito.eq("memberClass"))).thenReturn(message.getClientId().getMemberClass());
         when(request.getParameter(Mockito.eq("memberCode"))).thenReturn(message.getClientId().getMemberCode());
         when(request.getParameter(Mockito.eq("subsystemCode"))).thenReturn(message.getClientId().getSubsystemCode());
         when(request.getParameter(Mockito.eq("queryId"))).thenReturn(queryId);
 
-        final HttpServletResponse response = mock(HttpServletResponse.class);
+        final var response = mock(ResponseWrapper.class);
 
         final MockOutputStream mockOutputStream = new MockOutputStream();
         when(response.getOutputStream()).thenReturn(mockOutputStream);
@@ -136,6 +141,7 @@ public class AsicContainerClientRequestProcessorTest extends AbstractMessageLogT
                 new AsicContainerClientRequestProcessor("/asic", request, response);
 
         processor.process();
+
 
         if (encrypted) {
             // sanity check, we are excepting a gpg encrypted archive
@@ -172,15 +178,17 @@ public class AsicContainerClientRequestProcessorTest extends AbstractMessageLogT
         params.put("unique", null);
         params.put("requestOnly", null);
 
-        final HttpServletRequest request = mock(HttpServletRequest.class);
+        final var request = mock(RequestWrapper.class);
+        final var httpURI = mock(HttpURI.class);
+        when(request.getHttpURI()).thenReturn(httpURI);
         when(request.getParameter(Mockito.eq("xRoadInstance"))).thenReturn(message.getClientId().getXRoadInstance());
         when(request.getParameter(Mockito.eq("memberClass"))).thenReturn(message.getClientId().getMemberClass());
         when(request.getParameter(Mockito.eq("memberCode"))).thenReturn(message.getClientId().getMemberCode());
         when(request.getParameter(Mockito.eq("subsystemCode"))).thenReturn(message.getClientId().getSubsystemCode());
         when(request.getParameter(Mockito.eq("queryId"))).thenReturn(queryId);
-        when(request.getParameterMap()).thenReturn(params);
+        when(request.getParametersMap()).thenReturn(params);
 
-        final HttpServletResponse response = mock(HttpServletResponse.class);
+        final var response = mock(ResponseWrapper.class);
 
         final MockOutputStream mockOutputStream = new MockOutputStream();
         when(response.getOutputStream()).thenReturn(mockOutputStream);
@@ -218,19 +226,9 @@ public class AsicContainerClientRequestProcessorTest extends AbstractMessageLogT
         }
     }
 
-    static class MockOutputStream extends ServletOutputStream {
+    static class MockOutputStream extends OutputStream {
 
         final ByteArrayOutputStream bos = new ByteArrayOutputStream();
-
-        @Override
-        public boolean isReady() {
-            return true;
-        }
-
-        @Override
-        public void setWriteListener(WriteListener writeListener) {
-            throw new IllegalStateException();
-        }
 
         @Override
         public void write(byte[] b, int off, int len) {
@@ -275,6 +273,7 @@ public class AsicContainerClientRequestProcessorTest extends AbstractMessageLogT
 
     /**
      * Cleanup test environment for other tests.
+     *
      * @throws Exception in case of any unexpected errors
      */
     @After

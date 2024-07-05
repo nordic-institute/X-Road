@@ -60,7 +60,11 @@ import { defineComponent } from 'vue';
 import { mapActions, mapState, mapStores } from 'pinia';
 import { useUser } from '@/store/modules/user';
 import { Permissions } from '@/global';
-import { FileUploadResult, XrdFileUpload, XrdIconUpload} from '@niis/shared-ui';
+import {
+  FileUploadResult,
+  XrdFileUpload,
+  XrdIconUpload,
+} from '@niis/shared-ui';
 import UploadTrustedAnchorDialog from './UploadTrustedAnchorDialog.vue';
 import { useTrustedAnchor } from '@/store/modules/trusted-anchors';
 import { TrustedAnchor } from '@/openapi-types';

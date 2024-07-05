@@ -36,6 +36,7 @@ import org.niis.xroad.restapi.openapi.BadRequestException;
 import org.niis.xroad.restapi.util.FormatUtils;
 import org.niis.xroad.securityserver.restapi.openapi.model.Service;
 import org.niis.xroad.securityserver.restapi.util.EndpointHelper;
+import org.niis.xroad.securityserver.restapi.util.ServiceFormatter;
 import org.springframework.stereotype.Component;
 
 import java.util.ArrayList;
@@ -89,7 +90,7 @@ public class ServiceConverter {
 
         service.setId(convertId(serviceType, clientId));
         service.setServiceCode(serviceType.getServiceCode());
-        service.setFullServiceCode(FormatUtils.getServiceFullName(serviceType));
+        service.setFullServiceCode(ServiceFormatter.getServiceFullName(serviceType));
         if (serviceType.getUrl().startsWith(FormatUtils.HTTP_PROTOCOL)) {
             service.setSslAuth(false);
         } else {
@@ -117,7 +118,7 @@ public class ServiceConverter {
         StringBuilder builder = new StringBuilder();
         builder.append(clientIdConverter.convertId(clientId));
         builder.append(ENCODED_ID_SEPARATOR);
-        builder.append(FormatUtils.getServiceFullName(serviceType));
+        builder.append(ServiceFormatter.getServiceFullName(serviceType));
         return builder.toString();
     }
 

@@ -47,7 +47,6 @@ class WebServerCustomizer implements WebServerFactoryCustomizer<JettyServletWebS
         factory.addServerCustomizers(server -> {
             var errorHandler = new ErrorHandler();
             errorHandler.setShowStacks(false);
-            errorHandler.setShowServlet(false);
 
             server.setErrorHandler(errorHandler);
 

@@ -88,21 +88,9 @@ import { compareByServiceCode } from '@/util/sorting';
 import { encodePathParameter } from '@/util/api';
 import { mapActions } from 'pinia';
 import { useNotifications } from '@/store/modules/notifications';
-import {
-  VStepper,
-  VStepperHeader,
-  VStepperItem,
-  VStepperWindow,
-  VStepperWindowItem,
-} from 'vuetify/labs/VStepper';
 
 export default defineComponent({
   components: {
-    VStepper,
-    VStepperHeader,
-    VStepperItem,
-    VStepperWindow,
-    VStepperWindowItem,
     MemberOrGroupSelectionStep,
     ServiceSelectionStep,
   },

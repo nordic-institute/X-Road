@@ -18,10 +18,20 @@ Feature: Clients API
       | $identifier         |
       | CS:TEST:member:sub3 |
     And Authentication header is set to MANAGEMENT_SERVICE
-    And new security server 'CS:TEST:member:SS-1' authentication certificate registered with origin 'SECURITY_SERVER' and approved
-    And new security server 'CS:TEST:member:SS-2' authentication certificate registered with origin 'SECURITY_SERVER' and approved
-    And new security server 'CS:TEST2:member:SS-3' authentication certificate registered with origin 'SECURITY_SERVER' and approved
+    And new security server 'CS:TEST:member:SS-1' authentication certificate registered with origin 'SECURITY_SERVER'
+    And Authentication header is set to REGISTRATION_OFFICER
+    And management request is approved
+    And Authentication header is set to MANAGEMENT_SERVICE
+    And new security server 'CS:TEST:member:SS-2' authentication certificate registered with origin 'SECURITY_SERVER'
+    And Authentication header is set to REGISTRATION_OFFICER
+    And management request is approved
+    And Authentication header is set to MANAGEMENT_SERVICE
+    And new security server 'CS:TEST2:member:SS-3' authentication certificate registered with origin 'SECURITY_SERVER'
+    And Authentication header is set to REGISTRATION_OFFICER
+    And management request is approved
+    And Authentication header is set to MANAGEMENT_SERVICE
     And client 'CS:TEST:member:sub1' is registered as security server 'CS:TEST:member:SS-1' client from 'SECURITY_SERVER'
+    And Authentication header is set to REGISTRATION_OFFICER
     And management request is approved
 
   Scenario Outline: Clients are listed (positive scenario)

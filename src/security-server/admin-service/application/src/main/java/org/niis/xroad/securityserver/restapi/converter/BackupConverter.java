@@ -46,7 +46,7 @@ public class BackupConverter {
         return backup;
     }
 
-    public Set<Backup> convert(Iterable<BackupFile> files)  {
+    public Set<Backup> convert(Iterable<BackupFile> files) {
         return Streams.stream(files)
                 .map(this::convert)
                 .collect(Collectors.toSet());

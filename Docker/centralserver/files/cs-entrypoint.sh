@@ -25,17 +25,13 @@ if [ "$INSTALLED_VERSION" == "$PACKAGED_VERSION" ]; then
         # Update X-Road configuration on startup, if necessary
         log "Updating configuration from $CONFIG_VERSION to $PACKAGED_VERSION"
         cp -a /root/etc/xroad/* /etc/xroad/
-        pg_ctlcluster 14 main start
+        pg_ctlcluster 16 main start
         wait_db
         dpkg-reconfigure xroad-center
-        pg_ctlcluster 14 main stop
+        pg_ctlcluster 16 main stop
         nginx -s stop
         sleep 1
         echo "$PACKAGED_VERSION" >/etc/xroad/version
-    fi
-    if [ ! -f /home/ca/CA/.init ]; then
-        log "Initializing TEST-CA..."
-        su ca -c 'cd /home/ca/CA && ./init.sh' >&/dev/null
     fi
 else
     echo "WARN: Installed version ($INSTALLED_VERSION) does not match packaged version ($PACKAGED_VERSION)" >&2
@@ -52,7 +48,7 @@ if ! crudini --get /etc/xroad/conf.d/local.ini registration-service api-token &>
   log "Creating API token for registration service..."
   TOKEN=$(tr -C -d "[:alnum:]" </dev/urandom | head -c32)
   ENCODED=$(echo -n "$TOKEN" | sha256sum -b | cut -d' ' -f1)
-  pg_ctlcluster 14 main start
+  pg_ctlcluster 16 main start
   wait_db
   su -c "psql -q centerui_production" postgres <<EOF
 SET ROLE centerui;
@@ -67,7 +63,7 @@ END
 \$\$
 ;
 EOF
-  pg_ctlcluster 14 main stop
+  pg_ctlcluster 16 main stop
   crudini --set /etc/xroad/conf.d/local.ini registration-service api-token "$TOKEN"
   crudini --set /etc/xroad/conf.d/local.ini management-service api-token "$TOKEN"
 fi
@@ -77,7 +73,11 @@ if ! crudini --get /etc/xroad/conf.d/local.ini signer enforce-token-pin-policy &
   crudini --set /etc/xroad/conf.d/local.ini signer enforce-token-pin-policy "true"
 fi
 
-#initialize transport keys
+log "Enabling public postgres access.."
+sed -i 's/#listen_addresses = \x27localhost\x27/listen_addresses = \x27*\x27/g' /etc/postgresql/*/main/postgresql.conf
+sed -ri 's/host    replication     all             127.0.0.1\/32/host    all             all             0.0.0.0\/0/g' /etc/postgresql/*/main/pg_hba.conf
+
+log "initializing transport keys"
 mkdir -p -m0750 /var/run/xroad
 chown xroad:xroad /var/run/xroad
 su - xroad -c sh -c /usr/share/xroad/scripts/xroad-base.sh

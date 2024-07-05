@@ -66,7 +66,7 @@ public class CDATAMessage extends MessageTestCase {
 
     private void validateCDATA(Message receivedResponse) throws Exception {
         SoapMessageImpl soap = (SoapMessageImpl) receivedResponse.getSoap();
-        SOAPElement cdata = ((SOAPElement)soap.getSoap().getSOAPHeader()
+        SOAPElement cdata = ((SOAPElement) soap.getSoap().getSOAPHeader()
                 .getChildElements(new QName(SoapHeader.NS_XROAD, "xml"))
                 .next());
         if (!cdata.getTextContent().equals(CDATA)) {

@@ -39,6 +39,7 @@
       :loading="restoring"
       title="backup.restoreFromBackup.dialog.title"
       text="backup.restoreFromBackup.dialog.confirmation"
+      focus-on-accept
       :data="{ file: filename }"
       @cancel="showConfirmation = false"
       @accept="restoreFromBackup"

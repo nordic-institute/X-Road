@@ -207,23 +207,9 @@ import { toClipboard } from '@/util/helpers';
 import { mapActions, mapState } from 'pinia';
 import { useNotifications } from '@/store/modules/notifications';
 import { useUser } from '@/store/modules/user';
-import {
-  VStepper,
-  VStepperHeader,
-  VStepperItem,
-  VStepperWindow,
-  VStepperWindowItem,
-} from 'vuetify/labs/VStepper';
 
 export default defineComponent({
   name: 'CreateApiKeyStepper',
-  components: {
-    VStepper,
-    VStepperHeader,
-    VStepperItem,
-    VStepperWindow,
-    VStepperWindowItem,
-  },
   data() {
     return {
       step: 1,

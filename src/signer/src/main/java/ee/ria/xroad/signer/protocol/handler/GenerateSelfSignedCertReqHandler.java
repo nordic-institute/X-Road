@@ -145,7 +145,7 @@ public class GenerateSelfSignedCertReqHandler extends AbstractRpcHandler<Generat
         }
 
         @Data
-        private class CertContentSigner implements ContentSigner {
+        private final class CertContentSigner implements ContentSigner {
 
             private final ByteArrayOutputStream out = new ByteArrayOutputStream();
 

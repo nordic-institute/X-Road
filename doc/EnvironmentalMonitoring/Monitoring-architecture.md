@@ -1,6 +1,6 @@
 # X-Road: Environmental Monitoring Architecture
 
-Version: 1.10  
+Version: 1.11  
 Doc. ID: ARC-ENVMON
 
 | Date       | Version | Description                                                                                                     | Author            |
@@ -16,7 +16,7 @@ Doc. ID: ARC-ENVMON
 | 25.06.2020 | 1.8     | Add chapter [2.2.1 JMX interface](#221-jmx-interface)                                                           | Petteri Kivimäki  |
 | 01.06.2023 | 1.9     | Update references                                                                                               | Petteri Kivimäki  |
 | 04.10.2023 | 1.10    | Remove Akka references                                                                                          | Ričardas Bučiūnas |
-
+| 16.02.2024 | 1.11    | Add information about JMX and authentication                                                                    | Petteri Kivimäki  |
 
 # Table of Contents
 <!-- toc -->
@@ -138,11 +138,13 @@ The service also publishes the monitoring data via JMX. Local monitoring agents 
 
 JMX is enabled by adding the required configuration in `/etc/xroad/services/local.properties` file. The file is opened for editing and changes are made on the `XROAD_MONITOR_PARAMS` variable value. After the `XROAD_MONITOR_PARAMS` variable value has been updated, the `xroad-monitor` service must be restarted.
 
-The example configuration below enables JMX, binds it to port `9999` on any available interface with SSL and password authentication enabled:
+The example configuration below enables JMX, binds it to port `9999` on any available interface with SSL and password authentication enabled, and defines the password file location (`/path/to/password/file.txt`):
 
 ```properties
-XROAD_MONITOR_PARAMS=-Djava.rmi.server.hostname=0.0.0.0 -Dcom.sun.management.jmxremote.port=9999 -Dcom.sun.management.jmxremote.authenticate=true -Dcom.sun.management.jmxremote.ssl=true
+XROAD_MONITOR_PARAMS=-Djava.rmi.server.hostname=0.0.0.0 -Dcom.sun.management.jmxremote.port=9999 -Dcom.sun.management.jmxremote.authenticate=true -Dcom.sun.management.jmxremote.password.file=/path/to/password/file.txt -Dcom.sun.management.jmxremote.ssl=true
 ```
+
+**Note:** The password file must be owned and readable by the `xroad` user only. More information about different authentication alternatives is available [here](https://docs.oracle.com/en/java/javase/17/management/monitoring-and-management-using-jmx-technology.html#GUID-2F341A54-B0B0-4268-BDD7-5CFAB52A6C90). 
 
 ### 2.3 Central monitoring client
 

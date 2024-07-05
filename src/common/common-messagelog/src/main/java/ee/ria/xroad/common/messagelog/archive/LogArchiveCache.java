@@ -79,8 +79,8 @@ class LogArchiveCache implements Closeable {
     private final EncryptionConfig encryptionConfig;
 
     LogArchiveCache(LinkingInfoBuilder linkingInfoBuilder,
-            EncryptionConfig encryptionConfig,
-            Path workingDir) {
+                    EncryptionConfig encryptionConfig,
+                    Path workingDir) {
         this.linkingInfoBuilder = linkingInfoBuilder;
         this.encryptionConfig = encryptionConfig;
         this.workingDir = workingDir;

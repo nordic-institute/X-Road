@@ -31,12 +31,12 @@ import ee.ria.xroad.common.conf.globalconf.MemberInfo;
 import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.metadata.ClientListType;
 import ee.ria.xroad.common.metadata.ClientType;
-import ee.ria.xroad.common.metadata.MetadataRequests;
 import ee.ria.xroad.common.metadata.ObjectFactory;
 import ee.ria.xroad.common.util.AbstractHttpSender;
 import ee.ria.xroad.proxy.testsuite.Message;
 import ee.ria.xroad.proxy.testsuite.MessageTestCase;
 import ee.ria.xroad.proxy.testsuite.TestSuiteGlobalConf;
+import ee.ria.xroad.proxy.util.MetadataRequests;
 import ee.ria.xroad.proxy.util.MetaserviceTestUtil;
 
 import jakarta.xml.bind.JAXBContext;

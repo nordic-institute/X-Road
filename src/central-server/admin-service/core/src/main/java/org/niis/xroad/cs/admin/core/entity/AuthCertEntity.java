@@ -28,10 +28,8 @@ package org.niis.xroad.cs.admin.core.entity;
 
 import jakarta.persistence.Access;
 import jakarta.persistence.AccessType;
-import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
-import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
@@ -44,6 +42,8 @@ import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+
+import static jakarta.persistence.FetchType.LAZY;
 
 @Entity
 @Table(name = AuthCertEntity.TABLE_NAME)
@@ -62,7 +62,7 @@ public class AuthCertEntity extends AuditableEntity {
     @Getter
     private int id;
 
-    @ManyToOne(fetch = FetchType.LAZY, cascade = CascadeType.PERSIST)
+    @ManyToOne(fetch = LAZY)
     @JoinColumn(name = "security_server_id", updatable = false)
     @Access(AccessType.FIELD)
     @NotNull

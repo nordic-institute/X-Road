@@ -120,6 +120,9 @@ fi
 
 sed -i "s/^xroadVersion.*$/xroadVersion=$VERSION/" gradle.properties
 sed -i "s/^VERSION=$CURRENT_VERSION.*$/VERSION=$VERSION/" packages/build-rpm.sh
+sed -i "s/{1:-$CURRENT_VERSION}/{1:-$VERSION}/" ../sidecar/docker-build.sh
+sed -i "s/xroad-security-server-sidecar:$CURRENT_VERSION-slim/xroad-security-server-sidecar:$VERSION-slim/" ../sidecar/kubernetes/security-server-sidecar-slim.yaml
+sed -i "s/xroad-security-server-sidecar:$CURRENT_VERSION/xroad-security-server-sidecar:$VERSION/" ../sidecar/kubernetes/security-server-sidecar.yaml
 
 echo "Version updated to $VERSION"
 

@@ -1,0 +1,19 @@
+plugins {
+    id 'java-library'
+}
+
+dependencies {
+    annotationProcessor(libs.mapstructProcessor)
+    annotationProcessor(libs.lombokMapstructBinding)
+
+    implementation(platform(libs.springBoot.bom))
+    implementation(libs.mapstruct)
+
+    api project(":common:common-core")
+    api project(":common:common-domain")
+    api project(':common:common-jetty')
+
+    testImplementation project(':common:common-test')
+    testImplementation(libs.junit.jupiter.params)
+}
+

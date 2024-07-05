@@ -1,8 +1,12 @@
 #!/bin/bash
 set -e
 
-VERSION=7.4.2
-LAST_SUPPORTED_VERSION=7.2.0
+VERSION=7.5.0
+LAST_SUPPORTED_VERSION=7.3.0
+
+warn() {
+  echo "$(tput setaf 3)*** $*$(tput sgr0)"
+}
 
 if [[ $1 == "-release" ]] ; then
   RELEASE=1
@@ -25,7 +29,7 @@ else
   CMD=${2-bb}
 fi
 
-echo "using packageVersion $SNAPSHOT"
+warn "using packageVersion $SNAPSHOT"
 
 DIR=$(cd "$(dirname "$0")" && pwd)
 cd "$DIR"

@@ -40,6 +40,7 @@
       v-if="showConfirmation"
       title="backup.deleteBackup.dialog.title"
       text="backup.deleteBackup.dialog.confirmation"
+      focus-on-accept
       :data="{ file: filename }"
       @cancel="showConfirmation = false"
       @accept="deleteBackup"

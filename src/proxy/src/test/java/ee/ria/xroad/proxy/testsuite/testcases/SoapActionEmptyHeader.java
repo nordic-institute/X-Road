@@ -28,7 +28,7 @@ package ee.ria.xroad.proxy.testsuite.testcases;
 import ee.ria.xroad.proxy.testsuite.Message;
 import ee.ria.xroad.proxy.testsuite.MessageTestCase;
 
-import jakarta.servlet.http.HttpServletRequest;
+import org.eclipse.jetty.server.Request;
 
 /**
  * Check that SOAPAction header is preserved
@@ -51,8 +51,8 @@ public class SoapActionEmptyHeader extends MessageTestCase {
     }
 
     @Override
-    protected void onServiceReceivedHttpRequest(HttpServletRequest request) throws Exception {
-        if (!"".equals(request.getHeader("SOAPAction"))) {
+    protected void onServiceReceivedHttpRequest(Request request) throws Exception {
+        if (!"".equals(request.getHeaders().get("SOAPAction"))) {
             throw new Exception("Expected empty SOAPAction header");
         }
     }

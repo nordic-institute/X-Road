@@ -43,6 +43,7 @@ import static java.util.stream.Collectors.toList;
 @RequiredArgsConstructor
 public class GroupMemberViewConverter {
     private final ClientIdDtoConverter clientIdDtoConverter;
+
     public GroupMemberListViewDto convert(GlobalGroupMemberView entity) {
         return new GroupMemberListViewDto()
                 .id(entity.getId())

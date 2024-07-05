@@ -28,19 +28,19 @@ package ee.ria.xroad.proxy.testsuite.testcases;
 import ee.ria.xroad.proxy.testsuite.Message;
 import ee.ria.xroad.proxy.testsuite.MessageTestCase;
 
-import jakarta.servlet.http.HttpServletRequest;
-import jakarta.servlet.http.HttpServletResponse;
 import org.apache.commons.io.IOUtils;
+import org.eclipse.jetty.server.Handler;
 import org.eclipse.jetty.server.Request;
-import org.eclipse.jetty.server.handler.AbstractHandler;
-
-import java.io.IOException;
+import org.eclipse.jetty.server.Response;
+import org.eclipse.jetty.util.Callback;
 
 import static ee.ria.xroad.common.ErrorCodes.SERVER_CLIENTPROXY_X;
 import static ee.ria.xroad.common.ErrorCodes.X_INVALID_CONTENT_TYPE;
 import static ee.ria.xroad.common.ErrorCodes.X_SERVICE_FAILED_X;
 import static ee.ria.xroad.common.util.CryptoUtils.DEFAULT_DIGEST_ALGORITHM_ID;
+import static ee.ria.xroad.common.util.JettyUtils.setContentType;
 import static ee.ria.xroad.common.util.MimeUtils.HEADER_HASH_ALGO_ID;
+import static org.eclipse.jetty.io.Content.Source.asInputStream;
 
 /**
  * Client sends normal message, SP aborts connection
@@ -62,20 +62,18 @@ public class ServerProxyNoBoundary extends MessageTestCase {
     }
 
     @Override
-    public AbstractHandler getServerProxyHandler() {
-        return new AbstractHandler() {
+    public Handler.Abstract getServerProxyHandler() {
+        return new Handler.Abstract() {
             @Override
-            public void handle(String target, Request baseRequest,
-                    HttpServletRequest request, HttpServletResponse response)
-                    throws IOException {
+            public boolean handle(Request request, Response response, Callback callback) {
                 // Read all of the request.
-                IOUtils.readLines(request.getInputStream());
+                IOUtils.readLines(asInputStream(request));
 
-                response.setContentType("multipart/mixed");
-                response.setContentLength(1000);
-                response.setHeader(HEADER_HASH_ALGO_ID,
+                setContentType(response, "multipart/mixed");
+                response.getHeaders().put(HEADER_HASH_ALGO_ID,
                         DEFAULT_DIGEST_ALGORITHM_ID);
-                baseRequest.setHandled(true);
+                callback.succeeded();
+                return true;
             }
         };
     }

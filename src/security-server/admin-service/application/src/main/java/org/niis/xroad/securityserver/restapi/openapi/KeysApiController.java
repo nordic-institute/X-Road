@@ -38,6 +38,7 @@ import org.niis.xroad.restapi.converter.ClientIdConverter;
 import org.niis.xroad.restapi.openapi.BadRequestException;
 import org.niis.xroad.restapi.openapi.ConflictException;
 import org.niis.xroad.restapi.openapi.ControllerUtil;
+import org.niis.xroad.restapi.openapi.InternalServerErrorException;
 import org.niis.xroad.restapi.openapi.ResourceNotFoundException;
 import org.niis.xroad.restapi.service.UnhandledWarningsException;
 import org.niis.xroad.securityserver.restapi.converter.CsrFormatMapping;
@@ -50,11 +51,13 @@ import org.niis.xroad.securityserver.restapi.openapi.model.Key;
 import org.niis.xroad.securityserver.restapi.openapi.model.KeyName;
 import org.niis.xroad.securityserver.restapi.openapi.model.PossibleAction;
 import org.niis.xroad.securityserver.restapi.service.ActionNotPossibleException;
+import org.niis.xroad.securityserver.restapi.service.CertificateAlreadyExistsException;
 import org.niis.xroad.securityserver.restapi.service.CertificateAuthorityNotFoundException;
 import org.niis.xroad.securityserver.restapi.service.ClientNotFoundException;
 import org.niis.xroad.securityserver.restapi.service.CsrNotFoundException;
 import org.niis.xroad.securityserver.restapi.service.DnFieldHelper;
 import org.niis.xroad.securityserver.restapi.service.GlobalConfOutdatedException;
+import org.niis.xroad.securityserver.restapi.service.InvalidCertificateException;
 import org.niis.xroad.securityserver.restapi.service.KeyNotFoundException;
 import org.niis.xroad.securityserver.restapi.service.KeyService;
 import org.niis.xroad.securityserver.restapi.service.PossibleActionEnum;
@@ -126,9 +129,11 @@ public class KeysApiController implements KeysApi {
     @SuppressWarnings({"squid:S3655", "checkstyle:LineLength"}) // squid: see reason below. checkstyle: for readability
     @Override
     @PreAuthorize("(hasAuthority('GENERATE_AUTH_CERT_REQ') and "
-            + "#csrGenerate.keyUsageType == T(org.niis.xroad.securityserver.restapi.openapi.model.KeyUsageType).AUTHENTICATION)"
+            + "#csrGenerate.keyUsageType == T(org.niis.xroad.securityserver.restapi.openapi.model.KeyUsageType).AUTHENTICATION and"
+            + "(!#csrGenerate.acmeOrder or hasAuthority('IMPORT_AUTH_CERT')))"
             + " or (hasAuthority('GENERATE_SIGN_CERT_REQ') and "
-            + "#csrGenerate.keyUsageType == T(org.niis.xroad.securityserver.restapi.openapi.model.KeyUsageType).SIGNING)")
+            + "#csrGenerate.keyUsageType == T(org.niis.xroad.securityserver.restapi.openapi.model.KeyUsageType).SIGNING and"
+            + "(!#csrGenerate.acmeOrder or hasAuthority('IMPORT_SIGN_CERT')))")
     @AuditEventMethod(event = RestApiAuditEvent.GENERATE_CSR)
     public ResponseEntity<Resource> generateCsr(String keyId, CsrGenerate csrGenerate) {
 
@@ -137,7 +142,6 @@ public class KeysApiController implements KeysApi {
         KeyUsageInfo keyUsageInfo = KeyUsageTypeMapping.map(csrGenerate.getKeyUsageType()).get();
         ClientId.Conf memberId = null;
         if (KeyUsageInfo.SIGNING == keyUsageInfo) {
-            // memberId not used for authentication csrs
             memberId = clientIdConverter.convertId(csrGenerate.getMemberId());
         }
 
@@ -152,16 +156,23 @@ public class KeysApiController implements KeysApi {
                     keyUsageInfo,
                     csrGenerate.getCaName(),
                     csrGenerate.getSubjectFieldValues(),
-                    csrFormat).getCertRequest();
+                    csrFormat,
+                    csrGenerate.getAcmeOrder()).getCertRequest();
         } catch (WrongKeyUsageException | DnFieldHelper.InvalidDnParameterException
-                | ClientNotFoundException | CertificateAuthorityNotFoundException e) {
+                 | ClientNotFoundException | CertificateAuthorityNotFoundException
+                 | TokenCertificateService.AuthCertificateNotSupportedException e) {
             throw new BadRequestException(e);
         } catch (KeyNotFoundException e) {
             throw new ResourceNotFoundException(e);
-        } catch (ActionNotPossibleException e) {
+        } catch (ActionNotPossibleException | GlobalConfOutdatedException | CertificateAlreadyExistsException
+                 | CsrNotFoundException e) {
             throw new ConflictException(e);
+        } catch (TokenCertificateService.WrongCertificateUsageException | InvalidCertificateException e) {
+            throw new InternalServerErrorException(e);
         }
-
+        if (csrGenerate.getAcmeOrder()) {
+            return new ResponseEntity<>(HttpStatus.NO_CONTENT);
+        }
         String filename = csrFilenameCreator.createCsrFilename(keyUsageInfo, csrFormat, memberId,
                 serverConfService.getSecurityServerId());
 

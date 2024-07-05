@@ -42,6 +42,8 @@ import ee.ria.xroad.common.message.SoapUtils;
 import ee.ria.xroad.common.opmonitoring.OpMonitoringData;
 import ee.ria.xroad.common.util.CachingStream;
 import ee.ria.xroad.common.util.CryptoUtils;
+import ee.ria.xroad.common.util.RequestWrapper;
+import ee.ria.xroad.common.util.ResponseWrapper;
 import ee.ria.xroad.common.util.TimeUtils;
 import ee.ria.xroad.proxy.conf.KeyConf;
 import ee.ria.xroad.proxy.conf.SigningCtx;
@@ -51,8 +53,6 @@ import ee.ria.xroad.proxy.protocol.ProxyMessageDecoder;
 import ee.ria.xroad.proxy.protocol.ProxyMessageEncoder;
 import ee.ria.xroad.proxy.util.MessageProcessorBase;
 
-import jakarta.servlet.http.HttpServletRequest;
-import jakarta.servlet.http.HttpServletResponse;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.input.TeeInputStream;
 import org.apache.commons.lang3.ArrayUtils;
@@ -127,12 +127,12 @@ class ServerRestMessageProcessor extends MessageProcessorBase {
 
     private String xRequestId;
 
-    ServerRestMessageProcessor(HttpServletRequest servletRequest,
-                               HttpServletResponse servletResponse,
+    ServerRestMessageProcessor(RequestWrapper request,
+                               ResponseWrapper response,
                                HttpClient httpClient,
                                X509Certificate[] clientSslCerts,
                                OpMonitoringData opMonitoringData) {
-        super(servletRequest, servletResponse, httpClient);
+        super(request, response, httpClient);
 
         this.clientSslCerts = clientSslCerts;
         this.opMonitoringData = opMonitoringData;
@@ -141,9 +141,9 @@ class ServerRestMessageProcessor extends MessageProcessorBase {
 
     @Override
     public void process() throws Exception {
-        log.info("process({})", servletRequest.getContentType());
+        log.info("process({})", jRequest.getContentType());
 
-        xRequestId = servletRequest.getHeader(HEADER_REQUEST_ID);
+        xRequestId = jRequest.getHeaders().get(HEADER_REQUEST_ID);
 
         opMonitoringData.setXRequestId(xRequestId);
         updateOpMonitoringClientSecurityServerAddress();
@@ -199,9 +199,9 @@ class ServerRestMessageProcessor extends MessageProcessorBase {
 
     @Override
     protected void preprocess() throws Exception {
-        encoder = new ProxyMessageEncoder(servletResponse.getOutputStream(), CryptoUtils.DEFAULT_DIGEST_ALGORITHM_ID);
-        servletResponse.setContentType(encoder.getContentType());
-        servletResponse.addHeader(HEADER_HASH_ALGO_ID, SoapUtils.getHashAlgoId());
+        encoder = new ProxyMessageEncoder(jResponse.getOutputStream(), CryptoUtils.DEFAULT_DIGEST_ALGORITHM_ID);
+        jResponse.setContentType(encoder.getContentType());
+        jResponse.putHeader(HEADER_HASH_ALGO_ID, SoapUtils.getHashAlgoId());
     }
 
     @Override
@@ -246,7 +246,7 @@ class ServerRestMessageProcessor extends MessageProcessorBase {
         }
         try {
             preprocess();
-            handler.startHandling(servletRequest, requestMessage, decoder, encoder,
+            handler.startHandling(jRequest, requestMessage, decoder, encoder,
                     httpClient, null, opMonitoringData);
         } finally {
             handler.finishHandling();
@@ -258,7 +258,7 @@ class ServerRestMessageProcessor extends MessageProcessorBase {
     private void readMessage() throws Exception {
         log.trace("readMessage()");
 
-        requestMessage = new ProxyMessage(servletRequest.getHeader(HEADER_ORIGINAL_CONTENT_TYPE)) {
+        requestMessage = new ProxyMessage(jRequest.getHeaders().get(HEADER_ORIGINAL_CONTENT_TYPE)) {
             @Override
             public void rest(RestRequest message) throws Exception {
                 super.rest(message);
@@ -271,10 +271,10 @@ class ServerRestMessageProcessor extends MessageProcessorBase {
             }
         };
 
-        decoder = new ProxyMessageDecoder(requestMessage, servletRequest.getContentType(), false,
-                getHashAlgoId(servletRequest));
+        decoder = new ProxyMessageDecoder(requestMessage, jRequest.getContentType(), false,
+                getHashAlgoId(jRequest));
         try {
-            decoder.parse(servletRequest.getInputStream());
+            decoder.parse(jRequest.getInputStream());
         } catch (CodedException e) {
             throw e.withPrefix(X_SERVICE_FAILED_X);
         }
@@ -331,7 +331,7 @@ class ServerRestMessageProcessor extends MessageProcessorBase {
         }
 
         try {
-            CertChain chain = CertChain.create(instanceIdentifier, (X509Certificate[]) ArrayUtils.add(clientSslCerts,
+            CertChain chain = CertChain.create(instanceIdentifier, ArrayUtils.add(clientSslCerts,
                     trustAnchor));
             CertHelper.verifyAuthCert(chain, requestMessage.getOcspResponses(), requestMessage.getRest().getClientId());
         } catch (Exception e) {
@@ -348,7 +348,7 @@ class ServerRestMessageProcessor extends MessageProcessorBase {
 
         DescriptionType descriptionType = ServerConf.getDescriptionType(requestServiceId);
         if (descriptionType != null && descriptionType != DescriptionType.REST
-                    && descriptionType != DescriptionType.OPENAPI3) {
+                && descriptionType != DescriptionType.OPENAPI3) {
             throw new CodedException(X_INVALID_SERVICE_TYPE,
                     "Service is a SOAP service and cannot be called using REST interface");
         }
@@ -425,8 +425,8 @@ class ServerRestMessageProcessor extends MessageProcessorBase {
         return clientSslCerts != null ? clientSslCerts[0] : null;
     }
 
-    private static String getHashAlgoId(HttpServletRequest servletRequest) {
-        String hashAlgoId = servletRequest.getHeader(HEADER_HASH_ALGO_ID);
+    private static String getHashAlgoId(RequestWrapper request) {
+        String hashAlgoId = request.getHeaders().get(HEADER_HASH_ALGO_ID);
 
         if (hashAlgoId == null) {
             throw new CodedException(X_INTERNAL_ERROR, "Could not get hash algorithm identifier from message");
@@ -435,7 +435,7 @@ class ServerRestMessageProcessor extends MessageProcessorBase {
         return hashAlgoId;
     }
 
-    private static class DefaultRestServiceHandlerImpl implements RestServiceHandler {
+    private static final class DefaultRestServiceHandlerImpl implements RestServiceHandler {
 
         private RestResponse restResponse;
         private CachingStream restResponseBody;
@@ -469,7 +469,7 @@ class ServerRestMessageProcessor extends MessageProcessorBase {
         }
 
         @Override
-        public void startHandling(HttpServletRequest servletRequest, ProxyMessage requestProxyMessage,
+        public void startHandling(RequestWrapper request, ProxyMessage requestProxyMessage,
                                   ProxyMessageDecoder messageDecoder, ProxyMessageEncoder messageEncoder,
                                   HttpClient restClient, HttpClient opMonitorClient,
                                   OpMonitoringData monitoringData) throws Exception {
@@ -540,7 +540,7 @@ class ServerRestMessageProcessor extends MessageProcessorBase {
                     statusLine.getStatusCode(),
                     statusLine.getReasonPhrase(),
                     Arrays.asList(response.getAllHeaders()),
-                    servletRequest.getHeader(HEADER_REQUEST_ID)
+                    request.getHeaders().get(HEADER_REQUEST_ID)
 
             );
             messageEncoder.restResponse(restResponse);

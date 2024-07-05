@@ -29,12 +29,13 @@ package org.niis.xroad.cs.admin.jpa.repository;
 import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.identifier.XRoadObjectType;
 
-import io.vavr.control.Option;
 import org.niis.xroad.cs.admin.core.entity.MemberClassEntity;
 import org.niis.xroad.cs.admin.core.entity.MemberIdEntity;
 import org.niis.xroad.cs.admin.core.entity.XRoadMemberEntity;
 import org.niis.xroad.cs.admin.core.repository.XRoadMemberRepository;
 import org.springframework.stereotype.Repository;
+
+import java.util.Optional;
 
 @Repository
 public interface JpaXRoadMemberRepository extends JpaSecurityServerClientRepository<XRoadMemberEntity>, XRoadMemberRepository {
@@ -47,7 +48,7 @@ public interface JpaXRoadMemberRepository extends JpaSecurityServerClientReposit
      * @param clientId member or subsystem ID
      * @return XRoadMember or Optional.empty() if none exists
      */
-    default Option<XRoadMemberEntity> findMember(ClientId clientId) {
+    default Optional<XRoadMemberEntity> findMember(ClientId clientId) {
         ClientId memberId = clientId.getObjectType().equals(XRoadObjectType.MEMBER) ? clientId
                 : MemberIdEntity.create(clientId);
         return findOneBy(memberId);

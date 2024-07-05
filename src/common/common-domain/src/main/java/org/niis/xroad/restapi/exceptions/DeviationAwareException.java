@@ -72,7 +72,7 @@ public class DeviationAwareException extends Exception implements DeviationAware
      * @param warningDeviations
      */
     public DeviationAwareException(String msg, Throwable t, ErrorDeviation errorDeviation,
-                                          Collection<WarningDeviation> warningDeviations) {
+                                   Collection<WarningDeviation> warningDeviations) {
         super(msg, t);
         this.errorDeviation = errorDeviation;
         this.warningDeviations = warningDeviations;
@@ -108,7 +108,7 @@ public class DeviationAwareException extends Exception implements DeviationAware
      * @param warningDeviations
      */
     public DeviationAwareException(Throwable t, ErrorDeviation errorDeviation,
-            Collection<WarningDeviation> warningDeviations) {
+                                   Collection<WarningDeviation> warningDeviations) {
         super(t);
         this.errorDeviation = errorDeviation;
         this.warningDeviations = warningDeviations;

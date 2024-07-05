@@ -36,15 +36,15 @@ import ee.ria.xroad.common.opmonitoring.OpMonitoringData;
 import ee.ria.xroad.common.util.CachingStream;
 import ee.ria.xroad.common.util.MimeTypes;
 import ee.ria.xroad.common.util.MimeUtils;
-import ee.ria.xroad.common.util.OpenapiDescriptionFiletype;
+import ee.ria.xroad.common.util.RequestWrapper;
 import ee.ria.xroad.proxy.protocol.ProxyMessage;
 import ee.ria.xroad.proxy.protocol.ProxyMessageDecoder;
 import ee.ria.xroad.proxy.protocol.ProxyMessageEncoder;
+import ee.ria.xroad.proxy.util.OpenapiDescriptionFiletype;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.PropertyNamingStrategy;
-import jakarta.servlet.http.HttpServletRequest;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.http.Header;
 import org.apache.http.HttpResponse;
@@ -62,16 +62,16 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.net.URI;
 import java.net.URISyntaxException;
-import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 import java.util.List;
 
 import static ee.ria.xroad.common.ErrorCodes.X_INTERNAL_ERROR;
 import static ee.ria.xroad.common.ErrorCodes.X_INVALID_REQUEST;
-import static ee.ria.xroad.common.metadata.MetadataRequests.ALLOWED_METHODS;
-import static ee.ria.xroad.common.metadata.MetadataRequests.GET_OPENAPI;
-import static ee.ria.xroad.common.metadata.MetadataRequests.LIST_METHODS;
 import static ee.ria.xroad.common.util.MimeUtils.HEADER_REQUEST_ID;
+import static ee.ria.xroad.proxy.util.MetadataRequests.ALLOWED_METHODS;
+import static ee.ria.xroad.proxy.util.MetadataRequests.GET_OPENAPI;
+import static ee.ria.xroad.proxy.util.MetadataRequests.LIST_METHODS;
 
 /**
  * Handler for REST metadata services
@@ -123,7 +123,7 @@ public class RestMetadataServiceHandlerImpl implements RestServiceHandler {
     }
 
     @Override
-    public void startHandling(HttpServletRequest servletRequest, ProxyMessage requestProxyMessage,
+    public void startHandling(RequestWrapper servletRequest, ProxyMessage requestProxyMessage,
                               ProxyMessageDecoder messageDecoder, ProxyMessageEncoder messageEncoder,
                               HttpClient restClient, HttpClient opMonitorClient,
                               OpMonitoringData opMonitoringData) throws Exception {
@@ -134,7 +134,7 @@ public class RestMetadataServiceHandlerImpl implements RestServiceHandler {
                 HttpStatus.SC_OK,
                 "OK",
                 requestProxyMessage.getRest().getHeaders(),
-                servletRequest.getHeader(HEADER_REQUEST_ID)
+                servletRequest.getHeaders().get(HEADER_REQUEST_ID)
         );
 
         restResponseBody = new CachingStream();
@@ -171,10 +171,10 @@ public class RestMetadataServiceHandlerImpl implements RestServiceHandler {
         );
     }
 
-    private void handleGetOpenApi(ProxyMessage requestProxyMessage) throws IOException,
-            HttpClientCreator.HttpClientCreatorException, URISyntaxException {
+    private void handleGetOpenApi(ProxyMessage requestProxyMessage)
+            throws IOException, HttpClientCreator.HttpClientCreatorException, URISyntaxException {
         List<NameValuePair> pairs = URLEncodedUtils.parse(requestProxyMessage.getRest().getQuery(),
-                Charset.forName("UTF-8"));
+                StandardCharsets.UTF_8);
         String targetServiceCode = null;
         for (NameValuePair pair : pairs) {
             log.trace("{} : {}", pair.getName(), pair.getValue());

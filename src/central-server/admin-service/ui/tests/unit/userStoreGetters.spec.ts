@@ -26,8 +26,8 @@
  */
 
 import { mainTabs } from '@/global';
-import { createPinia } from 'pinia';
-import { setActivePinia } from 'pinia';
+import { createPinia, setActivePinia } from 'pinia';
+import { beforeEach, describe, expect, it } from 'vitest';
 import { useUser } from '@/store/modules/user';
 
 const testPermissions: string[] = [

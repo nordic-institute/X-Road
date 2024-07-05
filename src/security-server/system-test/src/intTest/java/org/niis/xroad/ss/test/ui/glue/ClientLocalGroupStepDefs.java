@@ -40,7 +40,6 @@ import static com.codeborne.selenide.Condition.enabled;
 import static com.codeborne.selenide.Condition.text;
 import static com.codeborne.selenide.Condition.visible;
 import static org.apache.commons.lang3.StringUtils.isNotBlank;
-import static org.niis.xroad.common.test.ui.utils.VuetifyHelper.selectorOptionOf;
 import static org.niis.xroad.common.test.ui.utils.VuetifyHelper.vCheckbox;
 import static org.niis.xroad.common.test.ui.utils.VuetifyHelper.vTextField;
 import static org.openqa.selenium.Keys.ENTER;
@@ -142,11 +141,9 @@ public class ClientLocalGroupStepDefs extends BaseUiStepDefs {
 
         clientInfoPageObj.localGroups.details.btnAddMembers().click();
 
-        clientInfoPageObj.localGroups.details.addMember.inputInstance().click();
-        selectorOptionOf(instance).click();
+        clientInfoPageObj.localGroups.details.addMember.selectMemberInstance().clickAndSelect(instance);
 
-        clientInfoPageObj.localGroups.details.addMember.inputMemberCode().click();
-        selectorOptionOf(memberClass).click();
+        clientInfoPageObj.localGroups.details.addMember.selectMemberClass().clickAndSelect(memberClass);
 
         clientInfoPageObj.localGroups.details.addMember.btnSearch().click();
     }

@@ -273,7 +273,7 @@ public class SignerStepDefs extends BaseSignerStepDefs {
         final KeyInfo keyInToken = findKeyInToken(friendlyName, keyName);
 
         scenarioCert = SignerProxy.generateSelfSignedCert(keyInToken.getId(), getClientId(client), KeyUsageInfo.SIGNING,
-                "CN=" + client, Date.from(now().minus(5, DAYS)), Date.from(now().plus(5, DAYS)));
+                client, Date.from(now().minus(5, DAYS)), Date.from(now().plus(5, DAYS)));
         this.certHash = calculateCertHexHash(scenarioCert);
     }
 
@@ -567,7 +567,7 @@ public class SignerStepDefs extends BaseSignerStepDefs {
             Assertions.fail("Exception expected");
         } catch (CodedException codedException) {
             assertException("Signer.InternalError", "member_has_no_suitable_certs",
-                    "Signer.InternalError: Member 'MEMBER:CS/test/member-1' has no suitable certificates", codedException);
+                    "Signer.InternalError: Member 'MEMBER:DEV/test/member-1' has no suitable certificates", codedException);
         }
     }
 

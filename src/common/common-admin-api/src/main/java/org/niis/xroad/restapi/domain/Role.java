@@ -58,7 +58,7 @@ public enum Role {
      */
     public static Set<Role> getForNames(Collection<String> names) throws InvalidRoleNameException {
         Set<Role> roles = EnumSet.noneOf(Role.class);
-        for (String name: names) {
+        for (String name : names) {
             try {
                 Role.valueOf(name);
             } catch (IllegalArgumentException e) {

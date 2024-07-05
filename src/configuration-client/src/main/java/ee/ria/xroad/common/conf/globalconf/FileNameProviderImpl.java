@@ -55,9 +55,9 @@ public class FileNameProviderImpl implements FileNameProvider {
                 break;
             default:
                 fileName = Paths.get(
-                    !StringUtils.isBlank(file.getContentFileName())
-                        ? file.getContentFileName()
-                        : file.getContentLocation()).getFileName().toString();
+                        !StringUtils.isBlank(file.getContentFileName())
+                                ? file.getContentFileName()
+                                : file.getContentLocation()).getFileName().toString();
                 break;
         }
 

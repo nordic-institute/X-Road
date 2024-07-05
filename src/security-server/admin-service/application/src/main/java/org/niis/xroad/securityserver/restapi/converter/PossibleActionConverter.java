@@ -42,8 +42,8 @@ public class PossibleActionConverter {
     public List<PossibleAction> convert(
             Iterable<PossibleActionEnum> actionEnums) {
         return Streams.stream(actionEnums)
-                       .map(this::convert)
-                       .collect(Collectors.toList());
+                .map(this::convert)
+                .collect(Collectors.toList());
     }
 
     public PossibleAction convert(PossibleActionEnum possibleActionEnum) {

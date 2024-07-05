@@ -1,6 +1,6 @@
 # X-Road: Security Server Configuration Data Model
 
-Version: 1.9  
+Version: 1.10  
 Doc. ID: DM-SS
 
 ## Version history
@@ -20,6 +20,7 @@ Doc. ID: DM-SS
 | 26.09.2022 | 1.7     | Remove Ubuntu 18.04 support                                         | Andres Rosenthal                |
 | 10.05.2023 | 1.8     | Security Categories removed.                                        | Justas Samuolis                 |
 | 08.12.2023 | 1.9     | Added "Disabled" and related "in progress" client states            | Madis Loitmaa                   |
+| 26.01.2024 | 1.10    | When client is deleted, respective identifier is deleted as well    | Eneli Reimets                   |
 
 ## Table of Contents
 <!-- vim-markdown-toc GFM -->
@@ -299,7 +300,7 @@ Operations (insertions, updates and deletions of records) on the tables of this 
 
 ### 2.10 IDENTIFIER
 
-Identifier that can be used to identify various objects on X-Road. An identifier record is only created together with records of other entities and only one record of each identifier is ever created. For example, if a security server client record is created and its identifier is not found among identifier records, new one is created. The record is never modified or deleted.
+Identifier that can be used to identify various objects on X-Road. An identifier record is only created together with records of other entities and only one record of each identifier is ever created. For example, if a security server client record is created and its identifier is not found among identifier records, new one is created. The record is never modified or deleted. An exception, when an entity of client is deleted, respective identifier is deleted as well.
 
 #### 2.10.1 Attributes
 

@@ -131,8 +131,8 @@ public final class OperationalDataRecordsGenerator {
 
         Option firstTimestamp = new Option("t", "timestamp", true,
                 "first timestamp (default: " + DEFAULT_FIRST_TIMESTAMP + "),"
-                + " every record in one batch has the same timestamp, for"
-                + " next batch timestamp is increased by 1");
+                        + " every record in one batch has the same timestamp, for"
+                        + " next batch timestamp is increased by 1");
         firstTimestamp.setRequired(false);
         options.addOption(firstTimestamp);
 
@@ -154,7 +154,7 @@ public final class OperationalDataRecordsGenerator {
 
         Option shortStringLength = new Option("ssl", "short-string-length",
                 true, "short string length (default: "
-                        + DEFAULT_SHORT_LONG_STRING_LENGTH + ")");
+                + DEFAULT_SHORT_LONG_STRING_LENGTH + ")");
         shortStringLength.setRequired(false);
         options.addOption(shortStringLength);
 
@@ -171,7 +171,7 @@ public final class OperationalDataRecordsGenerator {
     }
 
     private static void storeRecords(int count, long timestamp,
-            String longString, String shortString) throws Exception {
+                                     String longString, String shortString) throws Exception {
         List<OperationalDataRecord> records = generateRecords(count, timestamp,
                 longString, shortString);
 
@@ -179,7 +179,7 @@ public final class OperationalDataRecordsGenerator {
     }
 
     private static List<OperationalDataRecord> generateRecords(int count,
-            long timestamp, String longString, String shortString) {
+                                                               long timestamp, String longString, String shortString) {
         List<OperationalDataRecord> records = new ArrayList<>();
         OperationalDataRecord record;
 

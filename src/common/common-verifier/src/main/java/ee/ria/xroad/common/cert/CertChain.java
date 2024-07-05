@@ -70,7 +70,7 @@ public class CertChain {
      * @return the certificate chain
      */
     public static CertChain create(String instanceIdentifier,
-            X509Certificate[] chain) {
+                                   X509Certificate[] chain) {
         if (chain.length < 2) {
             throw new CodedException(X_CANNOT_CREATE_CERT_PATH,
                     "Chain must have at least user's certificate "
@@ -101,7 +101,7 @@ public class CertChain {
      * @return the certificate chain
      */
     public static CertChain create(String instanceIdentifier,
-            X509Certificate cert, List<X509Certificate> additionalCerts) {
+                                   X509Certificate cert, List<X509Certificate> additionalCerts) {
         try {
             X509Certificate trustAnchor =
                     GlobalConf.getCaCert(instanceIdentifier, cert);

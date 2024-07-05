@@ -233,7 +233,7 @@ function migrate_conf_value {
 migrate_conf_value /etc/xroad/conf.d/local.ini proxy ocsp-cache-path signer ocsp-cache-path
 migrate_conf_value /etc/xroad/conf.d/local.ini proxy enforce-token-pin-policy signer enforce-token-pin-policy
 
-# RHEL7 java-11-* package makes java binaries available since %post scriptlet
+# RHEL7 java-17-* package makes java binaries available since %post scriptlet
 %if 0%{?el7}
 %execute_init_or_update_resources
 %endif
@@ -248,8 +248,8 @@ migrate_conf_value /etc/xroad/conf.d/local.ini proxy enforce-token-pin-policy si
 # restart (if running) nginx after /etc/xroad/nginx/xroad-proxy.conf has (possibly) been removed, so that port 4000 is freed
 %systemd_try_restart nginx.service
 
-# RHEL8 java-11-* package makes java binaries available since %posttrans scriptlet
-%if 0%{?el8}
+# RHEL8/9 java-17-* package makes java binaries available since %posttrans scriptlet
+%if 0%{?el8} || 0%{?el9}
 %execute_init_or_update_resources
 %endif
 

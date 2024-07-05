@@ -35,7 +35,7 @@
         :outlined="false"
         data-test="approve-button"
         text
-        @click="$refs.approveDialog.openDialog()"
+        @click="showApproveDialog = true"
       >
         {{ $t('action.approve') }}
       </xrd-button>
@@ -45,29 +45,40 @@
         :outlined="false"
         data-test="decline-button"
         text
-        @click="$refs.declineDialog.openDialog()"
+        @click="showDeclineDialog = true"
       >
         {{ $t('action.decline') }}
       </xrd-button>
     </div>
     <mr-confirm-dialog
-      ref="approveDialog"
+      v-if="
+        showApproveDialog &&
+        managementRequest.id &&
+        managementRequest.security_server_id.encoded_id
+      "
       :request-id="managementRequest.id"
       :security-server-id="managementRequest.security_server_id.encoded_id"
-      @approve="$emit('approve')"
+      :new-member="newMember"
+      @approve="approve"
+      @cancel="showApproveDialog = false"
     />
     <mr-decline-dialog
-      ref="declineDialog"
+      v-if="
+        showDeclineDialog &&
+        managementRequest.id &&
+        managementRequest.security_server_id.encoded_id
+      "
       :request-id="managementRequest.id"
       :security-server-id="managementRequest.security_server_id.encoded_id"
-      @decline="$emit('decline')"
+      @decline="decline"
+      @cancel="showDeclineDialog = false"
     />
   </div>
 </template>
 
 <script lang="ts">
 import { defineComponent, PropType } from 'vue';
-import { ManagementRequestListView } from '@/openapi-types';
+import { ManagementRequestListView, ManagementRequestType } from '@/openapi-types';
 import { mapState } from 'pinia';
 import { useUser } from '@/store/modules/user';
 import { Permissions } from '@/global';
@@ -92,6 +103,7 @@ export default defineComponent({
   data() {
     return {
       showApproveDialog: false,
+      showDeclineDialog: false,
     };
   },
   computed: {
@@ -102,9 +114,36 @@ export default defineComponent({
     showDeclineButton(): boolean {
       return this.hasPermission(Permissions.VIEW_MANAGEMENT_REQUEST_DETAILS);
     },
+    newClientOwner(): boolean {
+      const req = this.managementRequest;
+      return (
+        !!req &&
+        req.type === ManagementRequestType.CLIENT_REGISTRATION_REQUEST &&
+        !req.client_owner_name
+      );
+    },
+    newServerOwner(): boolean {
+      const req = this.managementRequest;
+      return (
+        !!req &&
+        req.type === ManagementRequestType.AUTH_CERT_REGISTRATION_REQUEST &&
+        !req.security_server_owner
+      );
+    },
+    newMember(): boolean {
+      return this.newClientOwner || this.newServerOwner;
+    },
   },
-
-  methods: {},
+  methods: {
+    approve() {
+      this.showApproveDialog = false;
+      this.$emit('approve');
+    },
+    decline() {
+      this.showDeclineDialog = false;
+      this.$emit('decline');
+    },
+  },
 });
 </script>
 

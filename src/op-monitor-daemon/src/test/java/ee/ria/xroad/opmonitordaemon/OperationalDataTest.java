@@ -156,7 +156,7 @@ public class OperationalDataTest extends BaseTestUsingDB {
 
     private long selectCount() {
         return (Long) session.createQuery(
-                "select count(*) from OperationalDataRecord")
+                        "select count(*) from OperationalDataRecord")
                 .uniqueResult();
     }
 

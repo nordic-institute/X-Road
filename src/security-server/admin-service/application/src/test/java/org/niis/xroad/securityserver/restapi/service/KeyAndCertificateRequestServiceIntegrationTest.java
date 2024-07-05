@@ -105,7 +105,7 @@ public class KeyAndCertificateRequestServiceIntegrationTest extends AbstractServ
             String keyId = (String) invocation.getArguments()[0];
             return getTokenWithKey(tokens, keyId);
         });
-        when(signerProxyFacade.generateCertRequest(any(), any(), any(), any(), any()))
+        when(signerProxyFacade.generateCertRequest(any(), any(), any(), any(), any(), any(), any()))
                 .thenAnswer(invocation -> {
                     // keyInfo is immutable, so we need some work to replace KeyInfo with
                     // one that has correct usage
@@ -131,8 +131,10 @@ public class KeyAndCertificateRequestServiceIntegrationTest extends AbstractServ
                     return new SignerProxy.GeneratedCertRequestInfo(null, null, null, null, null);
                 });
         when(globalConfFacade.getApprovedCAs(any())).thenReturn(Arrays.asList(
-                new ApprovedCAInfo(MOCK_CA, false,
-                        "ee.ria.xroad.common.certificateprofile.impl.FiVRKCertificateProfileInfoProvider")));
+                new ApprovedCAInfo(MOCK_CA,
+                        false,
+                        "ee.ria.xroad.common.certificateprofile.impl.FiVRKCertificateProfileInfoProvider",
+                        null, null, null, null)));
         ClientId.Conf ownerId = ClientId.Conf.create("FI", "GOV", "M1");
         SecurityServerId.Conf ownerSsId = SecurityServerId.Conf.create(ownerId, "TEST-INMEM-SS");
         when(currentSecurityServerId.getServerId()).thenReturn(ownerSsId);
@@ -168,11 +170,11 @@ public class KeyAndCertificateRequestServiceIntegrationTest extends AbstractServ
                 .addKeyAndCertRequest(SOFTWARE_TOKEN_ID, "keylabel",
                         ClientId.Conf.create("FI", "GOV", "M1"),
                         KeyUsageInfo.SIGNING, MOCK_CA, dnParams,
-                        CertificateRequestFormat.PEM);
+                        CertificateRequestFormat.PEM, false);
         verify(signerProxyFacade, times(1))
                 .generateKey(SOFTWARE_TOKEN_ID, "keylabel");
         verify(signerProxyFacade, times(1))
-                .generateCertRequest(any(), any(), any(), any(), any());
+                .generateCertRequest(any(), any(), any(), any(), any(), any(), any());
     }
 
     private HashMap<String, String> createCsrDnParams() {
@@ -181,6 +183,7 @@ public class KeyAndCertificateRequestServiceIntegrationTest extends AbstractServ
         dnParams.put("O", "foobar-o");
         dnParams.put("serialNumber", "FI/ss1/GOV");
         dnParams.put("CN", "foobar-cn");
+        dnParams.put("subjectAltName", "example.com");
         return dnParams;
     }
 
@@ -192,7 +195,7 @@ public class KeyAndCertificateRequestServiceIntegrationTest extends AbstractServ
                 .addKeyAndCertRequest(SOFTWARE_TOKEN_ID, "keylabel",
                         null,
                         KeyUsageInfo.AUTHENTICATION, MOCK_CA, dnParams,
-                        CertificateRequestFormat.PEM);
+                        CertificateRequestFormat.PEM, false);
         assertNotNull(info);
     }
 
@@ -204,7 +207,7 @@ public class KeyAndCertificateRequestServiceIntegrationTest extends AbstractServ
                 .addKeyAndCertRequest(OTHER_TOKEN_ID, "keylabel",
                         null,
                         KeyUsageInfo.AUTHENTICATION, MOCK_CA, dnParams,
-                        CertificateRequestFormat.PEM);
+                        CertificateRequestFormat.PEM, false);
     }
 
     @Test
@@ -217,7 +220,7 @@ public class KeyAndCertificateRequestServiceIntegrationTest extends AbstractServ
                     .addKeyAndCertRequest(SOFTWARE_TOKEN_ID, "keylabel",
                             notFoundClient,
                             KeyUsageInfo.SIGNING, MOCK_CA, dnParams,
-                            CertificateRequestFormat.PEM);
+                            CertificateRequestFormat.PEM, false);
             fail("should throw exception");
         } catch (ClientNotFoundException expected) {
             // our mock sets key id = label
@@ -240,7 +243,7 @@ public class KeyAndCertificateRequestServiceIntegrationTest extends AbstractServ
                     .addKeyAndCertRequest(SOFTWARE_TOKEN_ID, "keylabel",
                             notFoundClient,
                             KeyUsageInfo.SIGNING, MOCK_CA, dnParams,
-                            CertificateRequestFormat.PEM);
+                            CertificateRequestFormat.PEM, false);
             fail("should throw exception");
         } catch (DeviationAwareRuntimeException expected) {
             // delete key -attempt will not reach signerProxyFacade

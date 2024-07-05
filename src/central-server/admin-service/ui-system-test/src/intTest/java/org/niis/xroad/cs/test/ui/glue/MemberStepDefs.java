@@ -50,8 +50,7 @@ public class MemberStepDefs extends BaseUiStepDefs {
         vTextField(memberPageObj.addDialog().inputMemberCode()).setValue(memberCode);
         vTextField(memberPageObj.addDialog().inputMemberName()).setValue(memberName);
 
-        memberPageObj.addDialog().selectMemberClass().click();
-        memberPageObj.addDialog().selectMemberClassOption(memberClass).click();
+        memberPageObj.addDialog().selectMemberClass().clickAndSelect(memberClass);
 
         commonPageObj.dialog.btnSave().shouldBe(Condition.enabled).click();
 

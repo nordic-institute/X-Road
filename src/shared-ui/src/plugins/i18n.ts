@@ -25,26 +25,19 @@
  * THE SOFTWARE.
  */
 import { createI18n } from 'vue-i18n';
-import merge from 'deepmerge';
 
 import en from '../locales/en.json';
 
-type Translation = { [name: string]: string | string[] | Translation };
-type En = { en: Translation };
-type Translations = En;
+type MessageSchema = typeof en;
 
-export function createSharedI18n(...messageSources: Translations[]) {
 
-  let messages: Translations = { en };
-
-  messages = messageSources.reduce((result, current) => merge(result, current), messages);
-
-  return createI18n<[Translation], 'en'>({
+export default createI18n<[MessageSchema], 'en'>({
     legacy: false,
     locale: import.meta.env.VITE_VUE_APP_I18N_LOCALE || 'en',
     fallbackLocale: import.meta.env.VITE_VUE_APP_I18N_FALLBACK_LOCALE || 'en',
     silentFallbackWarn: true,
     allowComposition: true,
-    messages: messages,
-  });
-}
+    messages: { en },
+});
+
+

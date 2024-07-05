@@ -29,17 +29,17 @@ import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.identifier.SecurityServerId;
 import ee.ria.xroad.common.identifier.XRoadId;
 
+import jakarta.inject.Named;
 import org.niis.xroad.common.exception.ValidationFailureException;
 import org.niis.xroad.restapi.util.FormatUtils;
-import org.springframework.stereotype.Component;
 
 import static org.niis.xroad.common.exception.util.CommonDeviationMessage.INVALID_ENCODED_ID;
 
 /**
  * Converter for encoded client ids
  */
-@Component
-public class SecurityServerIdConverter extends AbstractConverter<SecurityServerId, String> {
+@Named("securityServerIdConverter")
+public class SecurityServerIdConverter extends DtoConverter<SecurityServerId, String> {
 
     public static final int SECURITY_SERVER_CODE_INDEX = 3;
 
@@ -53,6 +53,10 @@ public class SecurityServerIdConverter extends AbstractConverter<SecurityServerI
      * @return
      */
     public SecurityServerId convertId(String encodedId) {
+        if (encodedId == null) {
+            return null;
+        }
+
         validateEncodedString(encodedId);
         int serverCodeSeparatorIndex = encodedId.lastIndexOf(
                 XRoadId.ENCODED_ID_SEPARATOR);
@@ -82,12 +86,12 @@ public class SecurityServerIdConverter extends AbstractConverter<SecurityServerI
     }
 
     @Override
-    protected SecurityServerId convertToA(String encodedId) {
+    public SecurityServerId fromDto(String encodedId) {
         return convertId(encodedId);
     }
 
     @Override
-    protected String convertToB(SecurityServerId securityServerId) {
+    public String toDto(SecurityServerId securityServerId) {
         return convertId(securityServerId);
     }
 }

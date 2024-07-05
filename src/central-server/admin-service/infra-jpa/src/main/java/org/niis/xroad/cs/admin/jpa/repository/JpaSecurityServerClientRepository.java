@@ -29,7 +29,6 @@ package org.niis.xroad.cs.admin.jpa.repository;
 import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.identifier.XRoadObjectType;
 
-import io.vavr.control.Option;
 import jakarta.persistence.criteria.Join;
 import jakarta.persistence.criteria.Predicate;
 import org.niis.xroad.cs.admin.core.entity.ClientIdEntity;
@@ -50,12 +49,12 @@ public interface JpaSecurityServerClientRepository<T extends SecurityServerClien
         JpaSpecificationExecutor<T>,
         SecurityServerClientRepository<T> {
 
-    default Option<T> findOneBy(ClientId id) {
+    default Optional<T> findOneBy(ClientId id) {
         return findOneBy(id, null);
     }
 
-    default Option<T> findOneBy(ClientId id, XRoadObjectType explicitType) {
-        return Option.ofOptional(findOne(clientIdSpec(id, explicitType)));
+    default Optional<T> findOneBy(ClientId id, XRoadObjectType explicitType) {
+        return findOne(clientIdSpec(id, explicitType));
     }
 
     default long count(ClientId id) {

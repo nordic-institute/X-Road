@@ -187,6 +187,7 @@ public class HealthChecksTest {
                     containsString("At least one HSM are non operational"));
         }
     }
+
     @Test
     public void checkGlobalConfShouldReturnOkStatusWhenValid() {
 
@@ -370,6 +371,6 @@ public class HealthChecksTest {
 
         when(mockKeyConfProvider.getOcspResponse((X509Certificate) notNull())).thenReturn(mockResponse);
 
-        return  mockKeyConfProvider;
+        return mockKeyConfProvider;
     }
 }

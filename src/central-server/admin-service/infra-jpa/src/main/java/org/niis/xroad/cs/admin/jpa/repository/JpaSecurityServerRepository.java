@@ -30,7 +30,6 @@ import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.identifier.SecurityServerId;
 import ee.ria.xroad.common.identifier.XRoadObjectType;
 
-import io.vavr.control.Option;
 import jakarta.persistence.criteria.CriteriaBuilder;
 import jakarta.persistence.criteria.Join;
 import jakarta.persistence.criteria.Predicate;
@@ -54,6 +53,8 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.stereotype.Repository;
 
+import java.util.Optional;
+
 @Repository
 public interface JpaSecurityServerRepository extends
         JpaRepository<SecurityServerEntity, Integer>, JpaSpecificationExecutor<SecurityServerEntity>,
@@ -63,18 +64,14 @@ public interface JpaSecurityServerRepository extends
         return findAll(multifieldSearch(query), pageable);
     }
 
-    Option<SecurityServerEntity> findByOwnerIdAndServerCode(Integer ownerId, String serverCode);
+    Optional<SecurityServerEntity> findByOwnerIdAndServerCode(Integer ownerId, String serverCode);
 
-    default Option<SecurityServerEntity> findBy(SecurityServerId serverId, ClientId clientId) {
-        return Option.ofOptional(
-                findOne(serverIdSpec(serverId).and(clientIdSpec(clientId)))
-        );
+    default Optional<SecurityServerEntity> findBy(SecurityServerId serverId, ClientId clientId) {
+        return findOne(serverIdSpec(serverId).and(clientIdSpec(clientId)));
     }
 
-    default Option<SecurityServerEntity> findBy(SecurityServerId serverId) {
-        return Option.ofOptional(
-                findOne(serverIdSpec(serverId))
-        );
+    default Optional<SecurityServerEntity> findBy(SecurityServerId serverId) {
+        return findOne(serverIdSpec(serverId));
     }
 
     default boolean existsBy(SecurityServerId serverId) {

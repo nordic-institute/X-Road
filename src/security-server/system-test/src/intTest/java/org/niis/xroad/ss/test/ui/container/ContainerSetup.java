@@ -28,7 +28,6 @@ package org.niis.xroad.ss.test.ui.container;
 import com.google.common.base.Suppliers;
 import com.nortal.test.testcontainers.configuration.TestableContainerProperties;
 import com.nortal.test.testcontainers.configurator.TestContainerConfigurator;
-import com.nortal.test.testcontainers.images.builder.ImageFromDockerfile;
 import com.nortal.test.testcontainers.images.builder.ReusableImageFromDockerfile;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
@@ -37,8 +36,8 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.testcontainers.containers.GenericContainer;
+import org.testcontainers.utility.LazyFuture;
 
-import java.io.File;
 import java.net.ServerSocket;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -53,33 +52,22 @@ import java.util.function.Supplier;
 public class ContainerSetup {
     public static final Supplier<Integer> JMX_PORT_SUPPLIER = Suppliers.memoize(ContainerSetup::findRandomPort);
     public static final String JMX_PORT_PROPERTY_KEY = "CONTAINER_JMX_PORT";
-    private static final String NETWORK_ALIAS = "ss1";
+    private static final String NETWORK_ALIAS = "ss0";
 
     @Bean
     public TestContainerConfigurator testContainerConfigurator(
-
             TestableContainerProperties testableContainerProperties,
-            @Value("${test-automation.custom.docker-root}") String dockerRoot,
-            @Value("${test-automation.custom.package-repo}") String packageRepo,
-            @Value("${test-automation.custom.package-repo-key}") String packageRepoKey) {
+            @Value("${test-automation.custom.image-name}") String imageName) {
         return new TestContainerConfigurator() {
             @NotNull
             @Override
-            public ImageFromDockerfile imageDefinition() {
-                Path dockerfileRoot = Paths.get(dockerRoot);
-                File filesToAdd = Paths.get("src/intTest/resources/container-files/").toFile();
-
+            public LazyFuture<String> imageDefinition() {
+                Path dockerfileRoot = Paths.get("src/intTest/resources/container-files/");
                 return new ReusableImageFromDockerfile("ss-system-test",
                         !testableContainerProperties.getReuseBetweenRuns(),
                         testableContainerProperties.getReuseBetweenRuns())
-                        .withBuildArg("DIST", "jammy")
-                        .withBuildArg("REPO", packageRepo)
-                        .withBuildArg("REPO_KEY", packageRepoKey)
-                        .withFileFromPath("Dockerfile", dockerfileRoot.resolve("Dockerfile"))
-                        .withFileFromPath("files/ss-entrypoint.sh", dockerfileRoot.resolve("files/ss-entrypoint.sh"))
-                        .withFileFromPath("files/ss-xroad.conf", dockerfileRoot.resolve("files/ss-xroad.conf"))
-                        .withFileFromPath("files/override-docker.ini", dockerfileRoot.resolve("files/override-docker.ini"))
-                        .withFileFromFile(".", filesToAdd);
+                        .withBuildArg("BASE_IMAGE", imageName)
+                        .withFileFromFile(".", dockerfileRoot.toFile());
             }
 
             @NotNull
@@ -120,10 +108,10 @@ public class ContainerSetup {
 
                 // allow connection to postgres
                 genericContainer.execInContainer("sed", "-i",
-                        "s/#listen_addresses = 'localhost'/listen_addresses = '*'/", "/etc/postgresql/14/main/postgresql.conf");
+                        "s/#listen_addresses = 'localhost'/listen_addresses = '*'/", "/etc/postgresql/16/main/postgresql.conf");
                 genericContainer.execInContainer("sed", "-ri",
                         "s/host    replication     all             127.0.0.1\\/32/host    all             all             0.0.0.0\\/0/g",
-                        "/etc/postgresql/14/main/pg_hba.conf");
+                        "/etc/postgresql/16/main/pg_hba.conf");
                 genericContainer.execInContainer("supervisorctl", "restart", "postgres");
             }
         };

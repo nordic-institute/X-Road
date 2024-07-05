@@ -28,9 +28,10 @@ package org.niis.xroad.cs.admin.core.repository;
 
 import ee.ria.xroad.common.identifier.ClientId;
 
-import io.vavr.control.Option;
 import org.niis.xroad.cs.admin.core.entity.MemberClassEntity;
 import org.niis.xroad.cs.admin.core.entity.XRoadMemberEntity;
+
+import java.util.Optional;
 
 public interface XRoadMemberRepository extends SecurityServerClientRepository<XRoadMemberEntity> {
 
@@ -42,5 +43,5 @@ public interface XRoadMemberRepository extends SecurityServerClientRepository<XR
      * @param clientId member or subsystem ID
      * @return XRoadMember or Optional.empty() if none exists
      */
-    Option<XRoadMemberEntity> findMember(ClientId clientId);
+    Optional<XRoadMemberEntity> findMember(ClientId clientId);
 }

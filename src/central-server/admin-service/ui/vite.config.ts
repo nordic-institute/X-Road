@@ -29,7 +29,6 @@ import { resolve } from 'node:path';
 
 import { defineConfig, loadEnv } from 'vite';
 import vue from '@vitejs/plugin-vue';
-import vueJsx from '@vitejs/plugin-vue-jsx';
 import vuetify from 'vite-plugin-vuetify';
 import viteBasicSslPlugin from '@vitejs/plugin-basic-ssl';
 
@@ -40,8 +39,9 @@ export default defineConfig(({ command, mode }) => {
   return {
     plugins: [
       vue(),
-      vueJsx(),
-      vuetify({ autoImport: true }),
+      vuetify({
+        autoImport: false,
+      }),
       viteBasicSslPlugin(),
     ],
     resolve: {
@@ -53,6 +53,15 @@ export default defineConfig(({ command, mode }) => {
     build: {
       cssCodeSplit: false,
     },
+    test: {
+      globals: true,
+      environment: 'happy-dom',
+      server: {
+        deps: {
+          inline: ['vuetify'],
+        },
+      },
+    },
     server: {
       https: true,
       port: 8080,
@@ -60,11 +69,11 @@ export default defineConfig(({ command, mode }) => {
       proxy: {
         '/api': {
           secure: false,
-          target: env.PROXY_ADDRESS || 'https://127.0.0.1:4000',
+          target: env.PROXY_ADDRESS || 'https://127.0.0.1:4100',
         },
         '/login': {
           secure: false,
-          target: env.PROXY_ADDRESS || 'https://127.0.0.1:4000',
+          target: env.PROXY_ADDRESS || 'https://127.0.0.1:4100',
         },
       },
     },

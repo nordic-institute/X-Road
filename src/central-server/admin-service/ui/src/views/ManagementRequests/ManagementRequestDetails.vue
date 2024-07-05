@@ -38,7 +38,7 @@
           outlined
           class="mr-4"
           data-test="approve-button"
-          @click="$refs.approveDialog.openDialog()"
+          @click="showApproveDialog = true"
         >
           {{ $t('action.approve') }}
         </xrd-button>
@@ -46,7 +46,7 @@
           outlined
           class="mr-4"
           data-test="decline-button"
-          @click="$refs.declineDialog.openDialog()"
+          @click="showDeclineDialog = true"
         >
           {{ $t('action.decline') }}
         </xrd-button>
@@ -66,30 +66,38 @@
         />
       </div>
       <mr-confirm-dialog
-        ref="approveDialog"
+        v-if="
+          showApproveDialog &&
+          managementRequest.id &&
+          managementRequest.security_server_id.encoded_id
+        "
         :request-id="managementRequest.id"
         :security-server-id="managementRequest.security_server_id.encoded_id"
-        @approve="fetchData"
+        :new-member="newMember"
+        @approve="approve"
+        @cancel="showApproveDialog = false"
       />
       <mr-decline-dialog
-        ref="declineDialog"
+        v-if="
+          showDeclineDialog &&
+          managementRequest.id &&
+          managementRequest.security_server_id.encoded_id
+        "
         :request-id="managementRequest.id"
         :security-server-id="managementRequest.security_server_id.encoded_id"
-        @decline="fetchData"
+        @decline="decline"
+        @cancel="showDeclineDialog = false"
       />
     </titled-view>
   </details-view>
 </template>
 
 <script lang="ts">
-import Vue, { defineComponent } from 'vue';
+import { defineComponent } from 'vue';
 import { mapActions, mapStores } from 'pinia';
 import { useManagementRequests } from '@/store/modules/management-requests';
 import { managementTypeToText } from '@/util/helpers';
-import {
-  ManagementRequestDetailedView,
-  ManagementRequestType,
-} from '@/openapi-types';
+import { ManagementRequestDetailedView, ManagementRequestType } from '@/openapi-types';
 import MrDeclineDialog from '@/components/managementRequests/MrDeclineDialog.vue';
 import MrConfirmDialog from '@/components/managementRequests/MrConfirmDialog.vue';
 import MrCertificateInformation from '@/components/managementRequests/details/MrCertificateInformation.vue';
@@ -125,6 +133,8 @@ export default defineComponent({
   data() {
     return {
       loading: false,
+      showApproveDialog: false,
+      showDeclineDialog: false,
       backTo: {
         name: RouteName.ManagementRequests,
       },
@@ -164,12 +174,39 @@ export default defineComponent({
         ManagementRequestType.OWNER_CHANGE_REQUEST,
       ].includes(this.managementRequestsStore.currentManagementRequest.type);
     },
+    newClientOwner(): boolean {
+      const req = this.managementRequestsStore.currentManagementRequest;
+      return (
+        !!req &&
+        req.type === ManagementRequestType.CLIENT_REGISTRATION_REQUEST &&
+        !req.client_owner_name
+      );
+    },
+    newServerOwner(): boolean {
+      const req = this.managementRequestsStore.currentManagementRequest;
+      return (
+        !!req &&
+        req.type === ManagementRequestType.AUTH_CERT_REGISTRATION_REQUEST &&
+        !req.security_server_owner
+      );
+    },
+    newMember(): boolean {
+      return this.newClientOwner || this.newServerOwner;
+    },
   },
   created() {
     this.fetchData();
   },
   methods: {
     ...mapActions(useNotifications, ['showError']),
+    approve() {
+      this.showApproveDialog = false;
+      this.fetchData();
+    },
+    decline() {
+      this.showDeclineDialog = false;
+      this.fetchData();
+    },
     fetchData: async function () {
       this.loading = true;
       try {

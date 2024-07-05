@@ -108,7 +108,7 @@ public class SecurityServerServiceImpl implements SecurityServerService {
 
     @Override
     public Optional<SecurityServer> find(SecurityServerId id) {
-        return securityServerRepository.findBy(id).toJavaOptional()
+        return securityServerRepository.findBy(id)
                 .map(securityServerMapper::toTarget);
     }
 
@@ -143,7 +143,7 @@ public class SecurityServerServiceImpl implements SecurityServerService {
 
     @Override
     public Optional<SecurityServer> findByOwnerAndServerCode(XRoadMember owner, String serverCode) {
-        return securityServerRepository.findByOwnerIdAndServerCode(owner.getId(), serverCode).toJavaOptional()
+        return securityServerRepository.findByOwnerIdAndServerCode(owner.getId(), serverCode)
                 .map(securityServerMapper::toTarget);
     }
 
@@ -159,13 +159,13 @@ public class SecurityServerServiceImpl implements SecurityServerService {
         return securityServerRepository.findBy(serverId)
                 .map(server -> clientService.find(
                         new ClientService.SearchParameters().setSecurityServerId(server.getId())))
-                .getOrElseThrow(() -> new NotFoundException(SECURITY_SERVER_NOT_FOUND));
+                .orElseThrow(() -> new NotFoundException(SECURITY_SERVER_NOT_FOUND));
     }
 
     @Override
     public Set<SecurityServerAuthenticationCertificateDetails> findAuthCertificates(SecurityServerId id) {
         return securityServerRepository.findBy(id)
-                .getOrElseThrow(() -> new NotFoundException(SECURITY_SERVER_NOT_FOUND))
+                .orElseThrow(() -> new NotFoundException(SECURITY_SERVER_NOT_FOUND))
                 .getAuthCerts().stream()
                 .map(certificateConverter::toCertificateDetails)
                 .collect(toSet());
@@ -178,7 +178,7 @@ public class SecurityServerServiceImpl implements SecurityServerService {
         auditDataHelper.put(OWNER_CLASS, serverId.getOwner().getMemberClass());
         auditDataHelper.put(ADDRESS, newAddress);
 
-        return securityServerRepository.findBy(serverId).toJavaOptional()
+        return securityServerRepository.findBy(serverId)
                 .map(securityServer -> {
                     securityServer.setAddress(newAddress);
                     return securityServer;
@@ -193,7 +193,7 @@ public class SecurityServerServiceImpl implements SecurityServerService {
         auditDataHelper.put(OWNER_CLASS, serverId.getOwner().getMemberClass());
 
         final SecurityServerEntity securityServerEntity = securityServerRepository.findBy(serverId)
-                .getOrElseThrow(() -> new NotFoundException(SECURITY_SERVER_NOT_FOUND));
+                .orElseThrow(() -> new NotFoundException(SECURITY_SERVER_NOT_FOUND));
 
         registerClientDeletionRequests(securityServerEntity);
         registerAuthCertsDeleteRequests(securityServerEntity);

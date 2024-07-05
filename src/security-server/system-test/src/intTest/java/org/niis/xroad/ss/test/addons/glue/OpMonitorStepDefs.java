@@ -95,7 +95,7 @@ public class OpMonitorStepDefs extends BaseStepDefs {
                 .parse(MimeTypes.TEXT_XML, IOUtils.toInputStream(Objects.requireNonNull(response.getBody()), UTF_8));
 
         assertEquals("600", findRecordsContentId(soupMessage.getSoap(), "statisticsPeriodSeconds"));
-        assertEquals("3", findRecordsContentId(soupMessage.getSoap(), "successfulRequestCount"));
+        assertEquals("1", findRecordsContentId(soupMessage.getSoap(), "successfulRequestCount"));
     }
 
     @Step("Valid Security Server Operational data response is returned")
@@ -139,6 +139,7 @@ public class OpMonitorStepDefs extends BaseStepDefs {
     private static String findRecordsContentId(SoapMessage message, String elementTagName) {
         return findRecordsContentId(message.getSoap().getSOAPBody(), elementTagName);
     }
+
     @SneakyThrows
     private static String findRecordsContentId(SOAPMessage message, String elementTagName) {
         return findRecordsContentId(message.getSOAPBody(), elementTagName);

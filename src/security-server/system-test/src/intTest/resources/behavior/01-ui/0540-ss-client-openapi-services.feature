@@ -50,10 +50,10 @@ Feature: 0540 - SS: Client OpenApi REST services
     And Service "OPENAPI3 (http://mock-server:1080/test-services/testopenapi2.json)" is expanded
     And Service with code "s4c2" is opened
     And Service add subjects dialog is opened
-    When Service subject lookup is executed with member name "TestGov" and subsystem code "test"
-    And Subject with id "CS:GOV:0245437-2:TestSaved" and "CS:GOV:0245437-2:test-consumer" is selected from the table. There are total 3 entries
-    Then Service Access Rights table member with id "CS:GOV:0245437-2:TestSaved" is present
-    And Service Access Rights table member with id "CS:GOV:0245437-2:test-consumer" is present
+    When Service subject lookup is executed with member name "Test member" and subsystem code "test"
+    And Subject with id "DEV:COM:1234:TestSaved" and "DEV:COM:1234:test-consumer" is selected from the table. There are total 3 entries
+    Then Service Access Rights table member with id "DEV:COM:1234:TestSaved" is present
+    And Service Access Rights table member with id "DEV:COM:1234:test-consumer" is present
 
 
   Scenario: Client service has one access rights removed
@@ -61,10 +61,10 @@ Feature: 0540 - SS: Client OpenApi REST services
     And Services sub-tab is selected
     And Service "OPENAPI3 (http://mock-server:1080/test-services/testopenapi2.json)" is expanded
     And Service with code "s4c2" is opened
-    And Service Access Rights table member with id "CS:GOV:0245437-2:TestSaved" is present
-    When Service Access Rights subject with id "CS:GOV:0245437-2:TestSaved" is removed
-    Then Service Access Rights table member with id "CS:GOV:0245437-2:TestSaved" is missing
-    And Service Access Rights table member with id "CS:GOV:0245437-2:test-consumer" is present
+    And Service Access Rights table member with id "DEV:COM:1234:TestSaved" is present
+    When Service Access Rights subject with id "DEV:COM:1234:TestSaved" is removed
+    Then Service Access Rights table member with id "DEV:COM:1234:TestSaved" is missing
+    And Service Access Rights table member with id "DEV:COM:1234:test-consumer" is present
 
   Scenario: Client service has all access rights removed
     Given Client "TestService" is opened
@@ -72,14 +72,14 @@ Feature: 0540 - SS: Client OpenApi REST services
     And Service "OPENAPI3 (http://mock-server:1080/test-services/testopenapi2.json)" is expanded
     And Service with code "s4c2" is opened
     And Service add subjects dialog is opened
-    And Service subject lookup is executed with member name "TestGov" and subsystem code "test"
-    When Subject with id "CS:GOV:0245437-2:TestSaved" and "CS:GOV:0245437-2:TestService" is selected from the table. There are total 2 entries
-    Then Service Access Rights table member with id "CS:GOV:0245437-2:TestSaved" is present
-    And Service Access Rights table member with id "CS:GOV:0245437-2:test-consumer" is present
+    And Service subject lookup is executed with member name "Test member" and subsystem code "test"
+    When Subject with id "DEV:COM:1234:TestSaved" and "DEV:COM:1234:TestService" is selected from the table. There are total 2 entries
+    Then Service Access Rights table member with id "DEV:COM:1234:TestSaved" is present
+    And Service Access Rights table member with id "DEV:COM:1234:test-consumer" is present
     When Service has all Access Rights removed
-    Then Service Access Rights table member with id "CS:GOV:0245437-2:TestSaved" is missing
-    And Service Access Rights table member with id "CS:GOV:0245437-2:test-consumer" is missing
-    And Service Access Rights table member with id "CS:GOV:0245437-2:TestService" is missing
+    Then Service Access Rights table member with id "DEV:COM:1234:TestSaved" is missing
+    And Service Access Rights table member with id "DEV:COM:1234:test-consumer" is missing
+    And Service Access Rights table member with id "DEV:COM:1234:TestService" is missing
 
   Scenario: Client service has new endpoint added to it
     Given Client "TestService" is opened
@@ -123,7 +123,7 @@ Feature: 0540 - SS: Client OpenApi REST services
     Given Client "TestService" is opened
     And Services sub-tab is selected
     When Service "OPENAPI3 (http://mock-server:1080/test-services/testopenapi1.yaml)" is updated with url "http://mock-server:1080/test-services/testopenapi11.yaml" and service code "s4c100"
-    Then Rest service details are saved and success message "Description saved" is shown
+    Then Rest service details are saved with warnings and success message "Description saved" is shown
     Then Service "OPENAPI3 (http://mock-server:1080/test-services/testopenapi1.yaml)" is missing in the list
     And Service "OPENAPI3 (http://mock-server:1080/test-services/testopenapi11.yaml)" is present in the list
 

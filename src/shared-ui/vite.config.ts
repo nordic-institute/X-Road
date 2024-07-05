@@ -26,9 +26,6 @@
  */
 import { defineConfig } from 'vite';
 import vue from '@vitejs/plugin-vue';
-import vueJsx from '@vitejs/plugin-vue-jsx';
-import vuetify from 'vite-plugin-vuetify';
-import dts from 'vite-plugin-dts';
 import * as path from "path";
 import { resolve } from "node:path";
 
@@ -38,9 +35,6 @@ import { resolve } from "node:path";
 export default defineConfig({
   plugins: [
     vue(),
-    dts(),
-    vueJsx(),
-    vuetify({ autoImport: true }),
   ],
   resolve: {
     alias: {

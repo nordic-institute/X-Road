@@ -40,7 +40,7 @@ import java.io.IOException;
 public class StringDeserializerModifier extends BeanDeserializerModifier {
     @Override
     public JsonDeserializer<?> modifyDeserializer(DeserializationConfig config, BeanDescription beanDesc,
-            JsonDeserializer<?> deserializer) {
+                                                  JsonDeserializer<?> deserializer) {
         if (deserializer instanceof StringDeserializer) {
             deserializer = new StringTrimmerDeserializer();
         }

@@ -26,6 +26,8 @@
  */
 package org.niis.xroad.cs.admin.globalconf.generator;
 
+import ee.ria.xroad.common.conf.globalconf.PrivateParameters;
+
 import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
 import org.apache.commons.lang3.StringUtils;
@@ -85,8 +87,8 @@ class PrivateParametersLoader {
         return configurationAnchor;
     }
 
-    private PrivateParameters.ConfigurationSource toConfigurationSource(AnchorUrl anchorUrl) {
-        var configurationSource = new PrivateParameters.ConfigurationSource();
+    private PrivateParameters.Source toConfigurationSource(AnchorUrl anchorUrl) {
+        var configurationSource = new PrivateParameters.Source();
         configurationSource.setDownloadURL(anchorUrl.getUrl());
         configurationSource.setVerificationCerts(
                 anchorUrl.getAnchorUrlCerts().stream()

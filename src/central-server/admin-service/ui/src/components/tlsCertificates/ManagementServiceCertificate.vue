@@ -38,7 +38,7 @@ import { defineComponent } from 'vue';
 import { mapStores } from 'pinia';
 import CertificateDetails from '@/components/certificate/CertificateDetails.vue';
 import { CertificateDetails as CertificateDetailsType } from '@/openapi-types';
-import { useManagementServices } from "@/store/modules/management-services";
+import { useManagementServices } from '@/store/modules/management-services';
 
 export default defineComponent({
   name: 'ManagementServiceCertificate',
@@ -52,7 +52,8 @@ export default defineComponent({
     ...mapStores(useManagementServices),
   },
   created() {
-    this.managementServicesStore.getCertificate()
+    this.managementServicesStore
+      .getCertificate()
       .then((resp) => (this.certificateDetails = resp.data));
   },
 });

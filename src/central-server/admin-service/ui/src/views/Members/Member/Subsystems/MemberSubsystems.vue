@@ -168,7 +168,7 @@
       :member="memberStore.currentMember"
       data-test="add-member-to-group"
       @cancel="cancel"
-      @added-subsystem="addedSubsystem"
+      @save="addedSubsystem"
     />
 
     <delete-member-subsystem-dialog
@@ -181,10 +181,11 @@
     />
 
     <unregister-member-subsystem-dialog
-      v-if="clickedSubsystemCode && showUnregisterDialog"
+      v-if="clickedSubsystemCode && clickedServer && showUnregisterDialog"
       :member="memberStore.currentMember"
+      :server-id="clickedServer.encoded_id!"
       :subsystem-code="clickedSubsystemCode"
-      :server-code="clickedServerCode"
+      :server-code="clickedServer.server_code!"
       data-test="unregister-subsystem"
       @cancel="cancel"
       @unregistered-subsystem="unregisteredSubsystem"
@@ -250,7 +251,7 @@ export default defineComponent({
       subsystems: [] as Subsystem[],
 
       clickedSubsystemCode: '',
-      clickedServerCode: '',
+      clickedServer: null as UsedSecurityServers | null,
     };
   },
   computed: {
@@ -292,7 +293,7 @@ export default defineComponent({
     unregisterClicked(subsystem: Subsystem, subitem: UsedSecurityServers) {
       this.clickedSubsystemCode = subsystem.subsystem_id
         ?.subsystem_code as string;
-      this.clickedServerCode = subitem.server_code as string;
+      this.clickedServer = subitem;
       this.showUnregisterDialog = true;
     },
     addedSubsystem() {
@@ -307,7 +308,7 @@ export default defineComponent({
     unregisteredSubsystem() {
       this.showUnregisterDialog = false;
       this.clickedSubsystemCode = '';
-      this.clickedServerCode = '';
+      this.clickedServer = null;
       this.refetchSubsystems();
     },
     cancel() {
@@ -315,7 +316,7 @@ export default defineComponent({
       this.showDeleteDialog = false;
       this.showUnregisterDialog = false;
       this.clickedSubsystemCode = '';
-      this.clickedServerCode = '';
+      this.clickedServer = null;
     },
     refetchSubsystems() {
       this.loading = true;

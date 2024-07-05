@@ -1,7 +1,5 @@
-import nl.javadude.gradle.plugins.license.License
-
 plugins {
-    id 'com.github.johnrengelman.shadow'
+    alias(libs.plugins.shadow)
 }
 
 sourceSets {
@@ -13,30 +11,33 @@ sourceSets {
 }
 
 dependencies {
-    implementation project(':common:common-util')
-    implementation project(':common:common-verifier')
-    implementation project(':serverconf')
-    implementation project(':signer-protocol')
-    implementation project(':common:common-messagelog')
-    implementation project(':common:common-op-monitoring')
+    implementation(platform(libs.springBoot.bom))
 
-    implementation "org.eclipse.jetty:jetty-xml:$jettyVersion"
-    implementation "xerces:xercesImpl:$xercesVersion"
+    implementation(project(':common:common-jetty'))
+    implementation(project(':common:common-message'))
+    implementation(project(':common:common-globalconf'))
+    implementation(project(':common:common-scheduler'))
+    implementation(project(':common:common-verifier'))
+    implementation(project(':serverconf'))
+    implementation(project(':signer-protocol'))
+    implementation(project(':common:common-messagelog'))
+    implementation(project(':common:common-op-monitoring'))
 
-    implementation "com.fasterxml.jackson.dataformat:jackson-dataformat-yaml"
+    implementation('org.springframework:spring-context')
+    implementation("com.fasterxml.jackson.dataformat:jackson-dataformat-yaml")
+    implementation(libs.jetty.xml)
+    implementation(libs.xerces.impl)
+    implementation(libs.semver4j)
 
-    implementation 'org.semver4j:semver4j:5.0.0'
+    testImplementation(project(':common:common-test'))
 
-    testImplementation project(':common:common-test')
-    testImplementation project(path: ':common:common-util', configuration: 'testArtifacts')
+    testImplementation(libs.hsqldb)
+    testImplementation(libs.restAssured)
+    testImplementation(libs.wsdl4j)
 
-    testImplementation "org.hsqldb:hsqldb:$hsqldbVersion"
-    testImplementation 'io.rest-assured:rest-assured:5.3.1'
-    testImplementation 'wsdl4j:wsdl4j:1.6.3'
-
-    intTestRuntimeOnly project(':signer')
-    intTestImplementation project(":common:common-test")
-    intTestImplementation project(":common:common-int-test")
+    intTestRuntimeOnly(project(':signer'))
+    intTestImplementation(project(":common:common-test"))
+    intTestImplementation(project(":common:common-int-test"))
 }
 
 jar {
@@ -56,22 +57,7 @@ shadowJar {
 testJar.enabled = true
 assemble.finalizedBy shadowJar
 
-task licenseFormatJava(type: License) {
-    source = fileTree('src/main/java')
-}
-
-task licenseTestJava(type: License) {
-    source = fileTree('src/main/java')
-    check = true
-}
-
-licenseFormatMain.enabled = false
-licenseMain.enabled = false
-
-licenseFormat.dependsOn licenseFormatJava
-licenseTest.dependsOn licenseTestJava
-
-task runProxyMain(type: JavaExec) {
+tasks.register('runProxyMain', JavaExec) {
     jvmArgs '-Dxroad.proxy.sslEnabled=false',
         '-Dxroad.proxy.globalConfDistributor.enabled=false',
         "-Dxroad.proxy.ocspCachePath=build/ocsp-cache",
@@ -100,7 +86,7 @@ test {
     }
 }
 
-task integrationTest(type: Test) {
+tasks.register('integrationTest', Test) {
     description = 'Runs integration tests.'
     group = 'verification'
     shouldRunAfter test
@@ -112,7 +98,7 @@ task integrationTest(type: Test) {
     }
 }
 
-task runProxyTest(type: JavaExec) {
+tasks.register('runProxyTest', JavaExec) {
     group = "verification"
     shouldRunAfter integrationTest
     jvmArgs '-Xmx2g',
@@ -136,7 +122,7 @@ jacoco {
     applyTo runProxyTest
 }
 
-task runBatchSigner(type: JavaExec) {
+tasks.register('runBatchSigner', JavaExec) {
     jvmArgs '-Dlogback.configurationFile=src/test/logback-batchsigner.xml'
 
     mainClass = 'ee.ria.xroad.common.signature.BatchSigner'

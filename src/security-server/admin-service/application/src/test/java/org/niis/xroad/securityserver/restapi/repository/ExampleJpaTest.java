@@ -87,7 +87,8 @@ public class ExampleJpaTest {
             jdbcTemplate.update("INSERT INTO CLIENT (id, conf_id, identifier)"
                     + " values (2000, 1000, null)");
 
-        } catch (DataIntegrityViolationException expected) { }
+        } catch (DataIntegrityViolationException expected) {
+        }
     }
 
 }

@@ -40,7 +40,9 @@ import org.niis.xroad.cs.admin.api.service.GlobalGroupMemberService;
 import org.niis.xroad.cs.admin.api.service.SubsystemService;
 import org.niis.xroad.cs.admin.core.entity.ServerClientEntity;
 import org.niis.xroad.cs.admin.core.entity.SubsystemEntity;
+import org.niis.xroad.cs.admin.core.entity.SubsystemIdEntity;
 import org.niis.xroad.cs.admin.core.entity.mapper.SecurityServerClientMapper;
+import org.niis.xroad.cs.admin.core.repository.IdentifierRepository;
 import org.niis.xroad.cs.admin.core.repository.ServerClientRepository;
 import org.niis.xroad.cs.admin.core.repository.SubsystemRepository;
 import org.niis.xroad.cs.admin.core.repository.XRoadMemberRepository;
@@ -73,6 +75,7 @@ public class SubsystemServiceImpl implements SubsystemService {
     private final SubsystemRepository subsystemRepository;
     private final XRoadMemberRepository xRoadMemberRepository;
     private final ServerClientRepository serverClientRepository;
+    private final IdentifierRepository<SubsystemIdEntity> subsystemIds;
     private final GlobalGroupMemberService globalGroupMemberService;
     private final SecurityServerClientMapper subsystemConverter;
     private final AuditDataHelper auditDataHelper;
@@ -83,7 +86,7 @@ public class SubsystemServiceImpl implements SubsystemService {
         auditDataHelper.put(MEMBER_CODE, request.getMemberId().getMemberCode());
         auditDataHelper.put(MEMBER_SUBSYSTEM_CODE, request.getSubsystemId().getSubsystemCode());
 
-        final boolean exists = subsystemRepository.findOneBy(request.getSubsystemId()).isDefined();
+        final boolean exists = subsystemRepository.findOneBy(request.getSubsystemId()).isPresent();
         if (exists) {
             throw new DataIntegrityException(SUBSYSTEM_EXISTS, request.getSubsystemId().toShortString());
         }
@@ -94,19 +97,20 @@ public class SubsystemServiceImpl implements SubsystemService {
 
     private SubsystemEntity saveSubsystem(SubsystemCreationRequest request) {
         var memberEntity = xRoadMemberRepository.findMember(request.getMemberId())
-                .getOrElseThrow(() -> new NotFoundException(
+                .orElseThrow(() -> new NotFoundException(
                         MEMBER_NOT_FOUND,
                         "code",
                         request.getMemberId().getMemberCode()
                 ));
-        var subsystemEntity = new SubsystemEntity(memberEntity, request.getSubsystemId());
+        var subsystemIdEntity = subsystemIds.findOrCreate(SubsystemIdEntity.ensure(request.getSubsystemId()));
+        var subsystemEntity = new SubsystemEntity(memberEntity, subsystemIdEntity);
         return subsystemRepository.save(subsystemEntity);
     }
 
     @Override
     public Set<Subsystem> findByMemberIdentifier(ClientId id) {
         return xRoadMemberRepository.findMember(id)
-                .getOrElseThrow(() -> new NotFoundException(MEMBER_NOT_FOUND))
+                .orElseThrow(() -> new NotFoundException(MEMBER_NOT_FOUND))
                 .getSubsystems().stream().map(subsystemConverter::toDto)
                 .collect(toSet());
     }
@@ -124,7 +128,7 @@ public class SubsystemServiceImpl implements SubsystemService {
         auditDataHelper.put(CLIENT_IDENTIFIER, subsystemId);
 
         SubsystemEntity subsystem = subsystemRepository.findOneBy(subsystemId)
-                .getOrElseThrow(() -> new NotFoundException(SUBSYSTEM_NOT_FOUND));
+                .orElseThrow(() -> new NotFoundException(SUBSYSTEM_NOT_FOUND));
         ServerClientEntity serverClient = subsystem.getServerClients().stream()
                 .filter(sc -> securityServerId.equals(sc.getSecurityServer().getServerId()))
                 .findFirst()
@@ -140,13 +144,14 @@ public class SubsystemServiceImpl implements SubsystemService {
         auditDataHelper.put(MEMBER_SUBSYSTEM_CODE, subsystemClientId.getSubsystemCode());
 
         var subsystem = subsystemRepository.findOneBy(subsystemClientId)
-                .getOrElseThrow(() -> new NotFoundException(SUBSYSTEM_NOT_FOUND));
+                .orElseThrow(() -> new NotFoundException(SUBSYSTEM_NOT_FOUND));
 
         if (isRegistered(subsystem)) {
             throw new ValidationFailureException(SUBSYSTEM_REGISTERED_AND_CANNOT_BE_DELETED);
         }
 
         globalGroupMemberService.removeClientFromGlobalGroups(subsystemClientId);
+        // other dependant entities are removed by cascading database constraints
         subsystemRepository.deleteById(subsystem.getId());
     }
 

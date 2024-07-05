@@ -79,8 +79,8 @@ public class GlobalConfService {
 
     @Autowired
     public GlobalConfService(GlobalConfFacade globalConfFacade, ServerConfService serverConfService,
-            @Value("${url.download-configuration-anchor}") String downloadConfigurationAnchorUrl,
-            RestTemplateBuilder restTemplateBuilder) {
+                             @Value("${url.download-configuration-anchor}") String downloadConfigurationAnchorUrl,
+                             RestTemplateBuilder restTemplateBuilder) {
         this.globalConfFacade = globalConfFacade;
         this.serverConfService = serverConfService;
         this.downloadConfigurationAnchorUrl = String.format(downloadConfigurationAnchorUrl, CONF_CLIENT_ADMIN_PORT);

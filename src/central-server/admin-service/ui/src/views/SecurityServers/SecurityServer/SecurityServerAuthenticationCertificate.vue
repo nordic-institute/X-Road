@@ -28,6 +28,7 @@
 <template>
   <main id="security-server-authentication-certificate" class="mt-8">
     <CertificateDetails
+      v-if="securityServerAuthenticationCertificate"
       :certificate-details="securityServerAuthenticationCertificate"
     />
   </main>
@@ -38,7 +39,7 @@ import CertificateDetails from '@/components/certificate/CertificateDetails.vue'
 import { SecurityServerAuthenticationCertificateDetails } from '@/openapi-types';
 import { useSecurityServerAuthCert } from '@/store/modules/security-servers-authentication-certificates';
 import { mapStores } from 'pinia';
-import Vue, { defineComponent } from 'vue';
+import { defineComponent } from 'vue';
 
 export default defineComponent({
   name: 'SecurityServerAuthenticationCertificate',

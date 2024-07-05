@@ -27,12 +27,17 @@
   <div data-test="finish-content">
     <div class="wizard-step-form-content px-12 pt-10">
       <div class="wizard-finish-info">
+        <template v-if="acmeOrder">
+          <p>{{ $t('wizard.finish.acme.infoLine') }}</p>
+        </template>
+        <template v-else>
         <p>{{ $t('wizard.finish.infoLine1') }}</p>
         <p>{{ $t('wizard.finish.infoLine2') }}</p>
         <br />
         <p>{{ $t('wizard.finish.todo1') }}</p>
         <p>{{ $t('wizard.finish.todo2') }}</p>
         <p>{{ $t('wizard.finish.todo3') }}</p>
+        </template>
         <br />
         <br />
         <p>{{ $t('wizard.finish.note') }}</p>
@@ -123,7 +128,7 @@ export default defineComponent({
       'tokens',
     ]),
     ...mapState(useUser, ['currentSecurityServer']),
-    ...mapState(useCsr, ['csrTokenId']),
+    ...mapState(useCsr, ['csrTokenId', 'acmeOrder']),
 
     showRegisterOption(): boolean {
       return (

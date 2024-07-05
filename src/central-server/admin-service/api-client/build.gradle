@@ -5,9 +5,11 @@ plugins {
 dependencies {
     api project(':central-server:openapi-model')
 
-    implementation project(':common:common-util')
+    implementation project(':common:common-core')
     implementation project(':common:common-verifier')
 
+    compileOnly(libs.jakarta.servletApi)
+
     api("org.springframework.cloud:spring-cloud-starter-openfeign")
-    api("io.github.openfeign:feign-hc5:$openFeignVersion")
+    api(libs.feign.hc5)
 }

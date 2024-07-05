@@ -24,54 +24,45 @@
    THE SOFTWARE.
  -->
 <template>
-  <v-sheet
-    class="wrapper xrd-view-common pa-4 mt-4 rounded"
-    data-test="certificate-details-dialog"
-  >
-    <xrd-sub-view-title :title="$t('cert.certificate')" @close="close" />
-    <template v-if="certificate">
-      <div class="detail-view-cert-hash">
-        <certificateHash :hash="certificate.hash" />
-        <xrd-button
-          v-if="showDeleteButton"
-          outlined
-          data-test="tls-certificate-delete-button"
-          @click="deleteCertificate()"
-          >{{ $t('action.delete') }}
-        </xrd-button>
-      </div>
-      <certificateInfo :certificate="certificate" />
+  <CertificateView v-if="certificate" data-test="certificate-details-dialog" :certificate-details="certificate">
+    <template #tools>
+      <xrd-button
+        v-if="showDeleteButton"
+        data-test="tls-certificate-delete-button"
+        outlined
+        @click="deleteCertificate()"
+      >
+        {{ $t('action.delete') }}
+      </xrd-button>
     </template>
+  </CertificateView>
 
-    <!-- Confirm dialog for delete -->
-    <xrd-confirm-dialog
-      v-if="confirm"
-      title="cert.deleteCertTitle"
-      text="cert.deleteCertConfirm"
-      @cancel="confirm = false"
-      @accept="doDeleteCertificate()"
-    />
-  </v-sheet>
+  <!-- Confirm dialog for delete -->
+  <xrd-confirm-dialog
+    v-if="confirm"
+    title="cert.deleteCertTitle"
+    text="cert.deleteCertConfirm"
+    @cancel="confirm = false"
+    @accept="doDeleteCertificate()"
+  />
 </template>
 
 <script lang="ts">
 import { defineComponent } from 'vue';
 
 import { Permissions } from '@/global';
-import CertificateInfo from '@/components/certificate/CertificateInfo.vue';
-import CertificateHash from '@/components/certificate/CertificateHash.vue';
 import * as api from '@/util/api';
-import { CertificateDetails } from '@/openapi-types';
 import { encodePathParameter } from '@/util/api';
+import { CertificateDetails } from '@/openapi-types';
 import { mapActions, mapState } from 'pinia';
 import { useUser } from '@/store/modules/user';
 import { useNotifications } from '@/store/modules/notifications';
 import { useClient } from '@/store/modules/client';
+import CertificateView from '@/components/certificate/CertificateView.vue';
 
 export default defineComponent({
   components: {
-    CertificateInfo,
-    CertificateHash,
+    CertificateView,
   },
   props: {
     id: {
@@ -147,14 +138,4 @@ export default defineComponent({
 </script>
 
 <style lang="scss" scoped>
-@import '@/assets/detail-views';
-
-.wrapper {
-  display: flex;
-  justify-content: center;
-  flex-direction: column;
-  max-width: 850px;
-  height: 100%;
-  width: 100%;
-}
 </style>

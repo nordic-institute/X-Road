@@ -26,79 +26,79 @@
  -->
 <template>
   <xrd-confirm-dialog
-    v-if="showDialog"
-    :dialog="true"
     title="managementRequests.dialog.approve.title"
-    text="managementRequests.dialog.approve.bodyMessage"
+    focus-on-accept
     :data="messageData"
     :loading="loading"
-    @cancel="showDialog = false"
+    @cancel="$emit('cancel')"
     @accept="approve()"
-  />
+  >
+    <template #text>
+     {{$t('managementRequests.dialog.approve.bodyMessage', messageData)}}
+      <v-alert
+        v-if="newMember"
+        data-test="new-member-warning"
+        class="mt-2"
+        color="warning"
+        icon="$warning"
+        density="compact"
+        variant="outlined"
+        :text="$t('managementRequests.dialog.approve.newMemberWarning')"
+      />
+    </template>
+  </xrd-confirm-dialog>
 </template>
 
-<script lang="ts">
-import { defineComponent } from 'vue';
-import { mapActions, mapStores } from 'pinia';
+<script lang="ts" setup>
+import { ref, computed } from 'vue';
 import { useManagementRequests } from '@/store/modules/management-requests';
 import { useNotifications } from '@/store/modules/notifications';
+import { i18n } from '@/plugins/i18n';
 
 /**
  * General component for Management request actions
  */
-export default defineComponent({
-  props: {
-    requestId: {
-      type: Number,
-      required: true,
-    },
-    securityServerId: {
-      type: String,
-      required: true,
-    },
+
+const props = defineProps({
+  requestId: {
+    type: Number,
+    required: true,
   },
-  emits: ['approve'],
-  data() {
-    return {
-      loading: false,
-      showDialog: false,
-    };
+  securityServerId: {
+    type: String,
+    required: true,
   },
-  computed: {
-    ...mapStores(useManagementRequests),
-    messageData(): Record<string, unknown> {
-      return {
-        id: this.requestId,
-        serverId: this.securityServerId,
-      };
-    },
-  },
-  methods: {
-    ...mapActions(useNotifications, ['showError', 'showSuccess']),
-    approve() {
-      this.loading = true;
-      this.managementRequestsStore
-        .approve(this.requestId)
-        .then(() => {
-          this.showSuccess(
-            this.$t(
-              'managementRequests.dialog.approve.successMessage',
-              this.messageData,
-            ),
-          );
-          this.$emit('approve');
-        })
-        .catch((error) => {
-          this.showError(error);
-        })
-        .finally(() => {
-          this.loading = false;
-          this.showDialog = false;
-        });
-    },
-    openDialog() {
-      this.showDialog = true;
-    },
+  newMember: {
+    type: Boolean,
+    default: false,
   },
 });
+const emits = defineEmits(['approve', 'cancel']);
+
+const { approve: approveManagementRequest } = useManagementRequests();
+const { showSuccess, showError } = useNotifications();
+
+const messageData = computed(() => ({
+  id: props.requestId,
+  serverId: props.securityServerId,
+}));
+
+const loading = ref(false);
+const { t } = i18n.global;
+
+function approve() {
+  loading.value = true;
+  approveManagementRequest(props.requestId)
+    .then(() => {
+      showSuccess(
+        t(
+          'managementRequests.dialog.approve.successMessage',
+          messageData.value,
+        ),
+      );
+      emits('approve');
+    })
+    .catch((error) => showError(error))
+    .finally(() => (loading.value = false));
+}
 </script>

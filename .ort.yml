@@ -1,0 +1,345 @@
+---
+excludes:
+  paths:
+    - pattern: "ansible/**"
+      reason: "OTHER"
+      comment: "This directory contains Ansible scripts."
+
+    - pattern: "doc/**"
+      reason: "DOCUMENTATION_OF"
+      comment: "This directory contains documentation."
+
+    - pattern: "Docker/**"
+      reason: "OTHER"
+      comment: "This directory contains Docker image files."
+
+    - pattern: "img/**"
+      reason: "DATA_FILE_OF"
+      comment: "This directory contains images."
+
+    - pattern: "sidecar/**"
+      reason: "OTHER"
+      comment: "This directory contains Sidecar Docker image files."
+
+    - pattern: "src/3RD-PARTY-NOTICES.txt"
+      reason: "OTHER"
+      comment: "File including 3rd party license notices."
+
+    - pattern: "src/addons/messagelog/messagelog-addon/src/test/**"
+      reason: "TEST_OF"
+      comment: "This directory contains tests."
+
+    - pattern: "src/addons/metaservice/src/test/**"
+      reason: "TEST_OF"
+      comment: "This directory contains tests."
+
+    - pattern: "src/addons/op-monitoring/src/test/**"
+      reason: "TEST_OF"
+      comment: "This directory contains tests."
+
+    - pattern: "src/addons/proxymonitor/metaservice/src/test/**"
+      reason: "TEST_OF"
+      comment: "This directory contains tests."
+
+    - pattern: "src/addons/wsdlvalidator/src/test/**"
+      reason: "TEST_OF"
+      comment: "This directory contains tests."
+
+    - pattern: "src/common/asic-util/src/test/**"
+      reason: "TEST_OF"
+      comment: "This directory contains tests."
+
+    - pattern: "src/common/asic-verifier/src/test/**"
+      reason: "TEST_OF"
+      comment: "This directory contains tests."
+
+    - pattern: "src/buildSrc/**"
+      reason: "OPTIONAL_COMPONENT_OF"
+      comment: "Not included in distributed build artifacts."
+
+    - pattern: "src/central-server/admin-service/int-test/**"
+      reason: "TEST_OF"
+      comment: "This directory contains tests."
+
+    - pattern: "src/central-server/admin-service/ui/tests/**"
+      reason: "TEST_OF"
+      comment: "This directory contains tests."
+
+    - pattern: "src/central-server/admin-service/ui-system-test/**"
+      reason: "TEST_OF"
+      comment: "This directory contains tests."
+
+    - pattern: "src/central-server/management-service/int-test/**"
+      reason: "TEST_OF"
+      comment: "This directory contains tests."
+
+    - pattern: "src/central-server/registration-service/src/test/**"
+      reason: "TEST_OF"
+      comment: "This directory contains tests."
+
+    - pattern: "src/common/common-admin-api/src/test/**"
+      reason: "TEST_OF"
+      comment: "This directory contains tests."
+
+    - pattern: "src/common/common-api-throttling/src/testFixtures/**"
+      reason: "TEST_OF"
+      comment: "This directory contains tests."
+
+    - pattern: "src/common/common-domain/src/test/**"
+      reason: "TEST_OF"
+      comment: "This directory contains tests."
+
+    - pattern: "src/common/common-int-test/**"
+      reason: "TEST_OF"
+      comment: "This directory contains tests."
+
+    - pattern: "src/common/common-management-request/src/test/**"
+      reason: "TEST_OF"
+      comment: "This directory contains tests."
+
+    - pattern: "src/common/common-management-request/src/testFixtures/**"
+      reason: "TEST_OF"
+      comment: "This directory contains tests."
+
+    - pattern: "src/common/common-messagelog/src/test/**"
+      reason: "TEST_OF"
+      comment: "This directory contains tests."
+
+    - pattern: "src/common/common-test/**"
+      reason: "TEST_OF"
+      comment: "This directory contains tests."
+
+    - pattern: "src/common/common-ui/src/test/**"
+      reason: "TEST_OF"
+      comment: "This directory contains tests."
+
+    - pattern: "src/common/common-core/src/test/**"
+      reason: "TEST_OF"
+      comment: "This directory contains tests."
+
+    - pattern: "src/common/common-jetty/src/test/**"
+      reason: "TEST_OF"
+      comment: "This directory contains tests."
+
+    - pattern: "src/common/common-globalconf/src/test/**"
+      reason: "TEST_OF"
+      comment: "This directory contains tests."
+
+    - pattern: "src/common/common-message/src/test/**"
+      reason: "TEST_OF"
+      comment: "This directory contains tests."
+
+    - pattern: "src/common/common-scheduler/src/test/**"
+      reason: "TEST_OF"
+      comment: "This directory contains tests."
+
+    - pattern: "src/common/common-verifier/src/test/**"
+      reason: "TEST_OF"
+      comment: "This directory contains tests."
+
+    - pattern: "src/config/**"
+      reason: "OTHER"
+      comment: "This directory contains configuration files."
+
+    - pattern: "src/configuration-client/src/test/**"
+      reason: "TEST_OF"
+      comment: "This directory contains tests."
+
+    - pattern: "src/configuration-proxy/src/test/**"
+      reason: "TEST_OF"
+      comment: "This directory contains tests."
+
+    - pattern: "src/gradle/**"
+      reason: "BUILD_TOOL_OF"
+      comment: "This directory contains Gradle build tool."
+
+    - pattern: "src/e2e-tests/**"
+      reason: "TEST_OF"
+      comment: "This directory contains tests."
+
+    - pattern: "src/gradlew"
+      reason: "BUILD_TOOL_OF"
+      comment: "This is a build tool."
+
+    - pattern: "src/gradlew.bat"
+      reason: "BUILD_TOOL_OF"
+      comment: "This is a build tool."
+
+    - pattern: "src/monitor/src/test/**"
+      reason: "TEST_OF"
+      comment: "This directory contains tests."
+
+    - pattern: "src/monitor-test/**"
+      reason: "TEST_OF"
+      comment: "This directory contains tests."
+
+    - pattern: "src/monitoring-conf/src/test/**"
+      reason: "TEST_OF"
+      comment: "This directory contains tests."
+
+    - pattern: "src/op-monitor-daemon/src/test/**"
+      reason: "TEST_OF"
+      comment: "This directory contains tests."
+
+    - pattern: "src/packages/**"
+      reason: "BUILD_TOOL_OF"
+      comment: "This directory contains packaging scripts."
+
+    - pattern: "src/proxy/src/test/**"
+      reason: "TEST_OF"
+      comment: "This directory contains tests."
+
+    - pattern: "src/security-server/admin-service/int-test/**"
+      reason: "TEST_OF"
+      comment: "This directory contains tests."
+
+    - pattern: "src/security-server/admin-service/ui/tests/**"
+      reason: "TEST_OF"
+      comment: "This directory contains tests."
+
+    - pattern: "src/security-server/system-test/**"
+      reason: "TEST_OF"
+      comment: "This directory contains tests."
+
+    - pattern: "src/serverconf/src/test/**"
+      reason: "TEST_OF"
+      comment: "This directory contains tests."
+
+    - pattern: "src/shared-ui/.storybook/**"
+      reason: "TEST_OF"
+      comment: "This directory contains tests."
+
+    - pattern: "src/shared-ui/tests/**"
+      reason: "TEST_OF"
+      comment: "This directory contains tests."
+
+    - pattern: "src/signer/src/test/**"
+      reason: "TEST_OF"
+      comment: "This directory contains tests."
+
+    - pattern: "src/signer-protocol/src/intTest/**"
+      reason: "TEST_OF"
+      comment: "This directory contains tests."
+
+    - pattern: "src/systemtest/op-monitoring/**"
+      reason: "TEST_OF"
+      comment: "This directory contains tests."
+
+  scopes:
+    - pattern: "checkstyle"
+      reason: "BUILD_DEPENDENCY_OF"
+      comment: "Packages for code styling checks (testing) only."
+
+    - pattern: "devDependencies"
+      reason: "DEV_DEPENDENCY_OF"
+      comment: "Packages for development only."
+
+    - pattern: "jacocoAgent"
+      reason: "TEST_DEPENDENCY_OF"
+      comment: "Packages for code coverage (testing) only."
+
+    - pattern: "jacocoAnt"
+      reason: "TEST_DEPENDENCY_OF"
+      comment: "Packages for code coverage (testing) only."
+
+    - pattern: "aggregateCodeCoverageReportResults"
+      reason: "TEST_DEPENDENCY_OF"
+      comment: "Packages for testing only."
+
+    - pattern: ".*[Tt]est.*"
+      reason: "TEST_DEPENDENCY_OF"
+      comment: "Packages for testing only."
+
+    - pattern: "annotationProcessor"
+      reason: "DEV_DEPENDENCY_OF"
+      comment: "Packages for development only."
+
+    - pattern: "compileClasspath"
+      reason: "DEV_DEPENDENCY_OF"
+      comment: "Packages for development only."
+
+    - pattern: "compileOnly"
+      reason: "DEV_DEPENDENCY_OF"
+      comment: "Packages for development only."
+
+    - pattern: "compileProtoPath"
+      reason: "DEV_DEPENDENCY_OF"
+      comment: "Packages for development only."
+
+    - pattern: "protobufToolsLocator.*"
+      reason: "DEV_DEPENDENCY_OF"
+      comment: "Packages for development only."
+
+    - pattern: "schema"
+      reason: "DEV_DEPENDENCY_OF"
+      comment: "Packages for development only."
+
+    - pattern: "xjc"
+      reason: "DEV_DEPENDENCY_OF"
+      comment: "Packages for development only."
+
+resolutions:
+  rule_violations:
+    - message: ".*free-restricted license LicenseRef-scancode-ubuntu-font-1.0 in NPM:@fontsource:open-sans.*"
+      reason: "LICENSE_ACQUIRED_EXCEPTION"
+      comment: "The files meant by this license hit are not in use in X-Road."
+    - message: "free-restricted license LicenseRef-scancode-ecma-documentation in Maven:org.apache.cxf.*"
+      reason: "NOT_MODIFIED_EXCEPTION"
+      comment: "The LicenseRef-scancode-ecma-documentation license allows redistributing without modifications. As long as the files licensed with the said license are redistributed without modifications, the condition is satisfied."
+    - message: "free-restricted license Bitstream-Vera in Maven:org.jetbrains.kotlin:kotlin-reflect:1.7.22."
+      reason: "NOT_MODIFIED_EXCEPTION"
+      comment: "The Bitstream-Vera license allows redistributing without modifications, and requires marking of modifications in a certain way. As long as the files licensed with the said license are redistributed without modifications, the condition is satisfied."
+    - message: "proprietary-free license LicenseRef-scancode-efsl-1.0 in Maven:jakarta.*"
+      reason: "NOT_MODIFIED_EXCEPTION"
+      comment: "The LicenseRef-scancode-efsl-1.0 allows redistributing without modifications. As long as the files licensed with the said license are redistributed without modifications, the condition is satisfied."
+    - message: "proprietary-free license LicenseRef-scancode-sun-jsr-spec-04-2006 in Maven.*"
+      reason: "NOT_MODIFIED_EXCEPTION"
+      comment: "The LicenseRef-scancode-sun-jsr-spec-04-2006 allows redistributing without modifications. As long as the files licensed with the said license are redistributed without modifications, the condition is satisfied."
+    - message: "proprietary-free license LicenseRef-scancode-iptc-2006 in Maven:org.apache.tika:tika-core.*"
+      reason: "NOT_MODIFIED_EXCEPTION"
+      comment: "The LicenseRef-scancode-iptc-2006 allows redistributing without modifications. As long as the files licensed with the said license are redistributed without modifications, the condition is satisfied."
+    - message: "property:advertising-clause license BSD-4-Clause in Maven:org.jetbrains.kotlin:kotlin-reflect:1.7.22."
+      reason: "LICENSE_ACQUIRED_EXCEPTION"
+      comment: "For Apache Portable runtime in Apache Harmony DRLVM, the file strings/apr_snprintf.c contains an advertising-clause, which must be followed in case the file is used: All advertising materials mentioning features or use of this software must display the following acknowledgement: This product includes software developed or owned by Caldera International, Inc."
+    - message: "property:advertising-clause license OpenSSL in Maven:io.netty:netty-tcnative-classes:2.0.*"
+      reason: "LICENSE_ACQUIRED_EXCEPTION"
+      comment: "For OpenSSL toolkit, the following advertising-clause, which must be followed in case the toolkit is used: All advertising materials mentioning features or use of this software must display the following acknowledgment: 'This product includes software developed by the OpenSSL Project for use in the OpenSSL Toolkit. (http://www.openssl.org/)' and All advertising materials mentioning features or use of this software must display the following acknowledgement: 'This product includes cryptographic software written by Eric Young (eay@cryptsoft.com)' The word 'cryptographic' can be left out if the rouines from the library being used are not cryptographic related :-)."
+    - message: "proprietary-free license LicenseRef-scancode-sun-sdk-spec-1.1 in Maven:javax.xml.bind:jaxb-api:2.3.1."
+      reason: "LICENSE_ACQUIRED_EXCEPTION"
+      comment: "The Streaming API for XML (JSR-173) for Java (TM) Specification is under a limited license from BEA Systems Inc - different from the license stated in the message above - and requires that only compliant and test framework passing implementations are distributed. As this spcification is not implemented at all, the license conditions are satisfied."
+    - message: "property:advertising-clause license LicenseRef-scancode-rsa-md4 in PNPM:@niis:workspace-root:1.0.0."
+      reason: "LICENSE_ACQUIRED_EXCEPTION"
+      comment: "The LicenseRef-scancode-rsa-md4 in src/libs/iaikPkcs11Wrapper.AUTHORS is taken into account, and therefore the license conditions are satisfied."
+    - message: "property:advertising-clause license LicenseRef-scancode-rsa-md4 in Gradle:ee.ria.xroad:src:1.0."
+      reason: "LICENSE_ACQUIRED_EXCEPTION"
+      comment: "The LicenseRef-scancode-rsa-md4 in src/libs/iaikPkcs11Wrapper.AUTHORS is taken into account, and therefore the license conditions are satisfied."
+    - message: "commercial license LicenseRef-scancode-proprietary-license in Maven:org.apache.commons:commons-compress:1.26.*"
+      reason: "LICENSE_ACQUIRED_EXCEPTION"
+      comment: "This PKWare technology is not in use, therefore license is sufficient."
+    - message: "proprietary-free license LicenseRef-doubleopen-jsr-356-websocket-spec in Maven:org.apache.cxf:cxf.*"
+      reason: "LICENSE_ACQUIRED_EXCEPTION"
+      comment: "The Java API for Websocket (JSR-356) Specification is under a limited license from Oracle - as these files are not modified the implementation should satisfy the requirements for a compliant implementation. Therefore the license conditions are satisfied."
+    - message: "commercial license LicenseRef-doubleopen-apple-xcode-sdk in Maven:org.jetbrains.kotlin:kotlin.*"
+      reason: "LICENSE_ACQUIRED_EXCEPTION"
+      comment: "The Apple SDK is not used, and no related technology is distributed, therefore the license is sufficient."
+    - message: "commercial license LicenseRef-scancode-proprietary-license in Maven:javax.xml.bind:jaxb-api:2.3.1."
+      reason: "LICENSE_ACQUIRED_EXCEPTION"
+      comment: "The Streaming API for XML (JSR-173) Specification is under a limited license from BEA Systems - as these files are not modified the implementation should satisfy the requirements for a compliant implementation. Therefore the license conditions are satisfied."
+    - message: "proprietary-free license LicenseRef-verbatim-no-modifications in Maven:org.hsqldb:hsqldb:2.7.*"
+      reason: "NOT_MODIFIED_EXCEPTION"
+      comment: "The license represented by LicenseRef-verbatim-no-modifications allows redistributing without modifications. As long as the files licensed with the said license are redistributed without modifications, the condition is satisfied."
+
+license_choices:
+  repository_license_choices:
+    - given: "GPL-2.0-only OR Apache-2.0"
+      choice: "Apache-2.0"
+    - given: "GPL-2.0-only OR BSD-3-Clause"
+      choice: "BSD-3-Clause"
+    - given: "GPL-2.0-only OR CDDL-1.1"
+      choice: "CDDL-1.1"
+    - given: "BSD-3-Clause AND Apache-2.0 AND W3C AND LicenseRef-scancode-public-domain AND MIT AND SAX-PD AND EPL-1.0 AND (Apache-2.0 OR Apache-1.1 OR BSD-3-Clause OR LicenseRef-scancode-public-domain OR LicenseRef-scancode-indiana-extreme) AND (MIT OR GPL-1.0-or-later)"
+      choice: "BSD-3-Clause AND Apache-2.0 AND W3C AND LicenseRef-scancode-public-domain AND MIT AND SAX-PD AND EPL-1.0"
+    - given: "CDDL-1.0 OR GPL-2.0-only"
+      choice: "CDDL-1.0"
+    - given: "BSD-3-Clause AND Apache-2.0 AND (GPL-2.0-only OR GPL-2.0-only WITH Classpath-exception-2.0) AND MIT"
+      choice: "BSD-3-Clause AND Apache-2.0 AND GPL-2.0-only WITH Classpath-exception-2.0 AND MIT"

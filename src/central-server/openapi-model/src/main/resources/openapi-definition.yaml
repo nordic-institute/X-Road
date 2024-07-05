@@ -3211,6 +3211,22 @@ components:
         tls_auth:
           description: can the CA be used for TLS authentication
           type: boolean
+        acme_server_directory_url:
+          type: string
+          format: url
+          minLength: 1
+        acme_server_ip_address:
+          type: string
+          format: text
+          minLength: 1
+        authentication_certificate_profile_id:
+          format: text
+          type: string
+          minLength: 1
+        signing_certificate_profile_id:
+          format: text
+          type: string
+          minLength: 1
       required:
         - id
         - tls_auth
@@ -3435,6 +3451,18 @@ components:
         tls_auth:
           description: can the CA be used for TLS authentication
           type: string
+        acme_server_directory_url:
+          format: url
+          type: string
+        acme_server_ip_address:
+          format: text
+          type: string
+        authentication_certificate_profile_id:
+          format: text
+          type: string
+        signing_certificate_profile_id:
+          format: text
+          type: string
       type: object
     DistinguishedName:
       type: object
@@ -3548,6 +3576,7 @@ components:
     GlobalGroupResource:
       allOf:
         - $ref: '#/components/schemas/GlobalGroupCodeAndDescription'
+        - $ref: '#/components/schemas/ModificationTimestamps'
       description: group
       properties:
         member_count:
@@ -3929,6 +3958,8 @@ components:
         - subsystem_id
         - used_security_servers
     UsedSecurityServers:
+      allOf:
+        - $ref: '#/components/schemas/EncodedId'
       properties:
         server_code:
           description: security server code
@@ -4520,7 +4551,7 @@ components:
         encoded_id:
           readOnly: true
           type: string
-          description: Encoded ID of Security Serve, Member or Subsystem Id
+          description: Encoded ID of Security Server, Member or Subsystem Id
     ClientId:
       type: object
       description: Client identifier
@@ -4579,9 +4610,6 @@ components:
       allOf:
         - $ref: '#/components/schemas/ManagementRequestListView'
       properties:
-        client_owner_name:
-          type: string
-          readOnly: true
         comments:
           type: string
           format: text
@@ -4651,6 +4679,9 @@ components:
           $ref: '#/components/schemas/ManagementRequestStatus'
         client_id:
           $ref: '#/components/schemas/ClientId'
+        client_owner_name:
+          type: string
+          readOnly: true
         created_at:
           type: string
           format: date-time

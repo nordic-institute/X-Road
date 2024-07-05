@@ -1,17 +1,18 @@
 # Kubernetes Security Server Sidecar Security User Guide <!-- omit in toc -->
 
-Version: 1.4  
+Version: 1.5  
 Doc. ID: UG-K-SS-SEC-SIDECAR
 
 ## Version history <!-- omit in toc -->
 
- Date       | Version | Description                                  | Author
- ---------- |---------|----------------------------------------------| --------------------
- 25.01.2021 | 1.0     | Initial version                              | Alberto Fernandez Lorenzo
- 09.03.2021 | 1.1     | Add Horizontal Pod Autoscaler best practices | Alberto Fernandez Lorenzo
- 28.11.2021 | 1.2     | Add license info                             | Petteri Kivimäki
- 11.10.2022 | 1.3     | Updating links                               | Monika Liutkute
- 06.07.2023 | 1.4     | Sidecar repo migration                       | Eneli Reimets
+| Date       | Version | Description                                  | Author                    |
+|------------| ------- |----------------------------------------------| ------------------------- |
+| 25.01.2021 | 1.0     | Initial version                              | Alberto Fernandez Lorenzo |
+| 09.03.2021 | 1.1     | Add Horizontal Pod Autoscaler best practices | Alberto Fernandez Lorenzo |
+| 28.11.2021 | 1.2     | Add license info                             | Petteri Kivimäki          |
+| 11.10.2022 | 1.3     | Updating links                               | Monika Liutkute           |
+| 06.07.2023 | 1.4     | Sidecar repo migration                       | Eneli Reimets             |
+| 11.04.2024 | 1.5     | Updated for AKS                              | Madis Loitmaa             |
 
 ## License
 
@@ -20,49 +21,48 @@ To view a copy of this license, visit <https://creativecommons.org/licenses/by-s
 
 ## Table of contents
 
-* [License](#license)
-* [1 Introduction](#1-introduction)
-  * [1.1 Target Audience](#11-target-audience)
-* [2 Reference Data](#2-reference-data)
-* [3 Handling passwords and secrets](#3-handling-passwords-and-secrets)
-  * [3.1 Secrets as volume](#31-secrets-as-volume)
-  * [3.2 Secrets as environment variables](#32-secrets-as-environment-variables)
-* [4 User accounts](#4-user-accounts)
-  * [4.1 Create a kubeconfig](#41-create-a-kubeconfig)
-  * [4.2 Grant Cluster access to users](#42-grant-cluster-access-to-users)
-  * [4.3 Restrict namespace access to a cluster](#43-restrict-namespace-access-to-a-cluster)
-  * [4.4 Kubernetes Dashboard](#44-kubernetes-dashboard)
-* [5 Network policies](#5-network-policies)
-  * [5.1 Create Network policies](#51-create-network-policies)
-* [6 Pod Security Policies](#6-pod-security-policies)
-  * [6.1 Pod Security Policies in AWS EKS](#61-pod-security-policies-in-aws-eks)
-  * [6.2 Creating a Pod Security Policy](#62-creating-a-pod-security-policy)
-* [7 Assign Resources to Containers and Pods](#7-assign-resources-to-containers-and-pods)
-* [8 Monitoring](#8-monitoring)
-* [9 Backups](#9-backups)
-* [10 Message logs](#10-message-logs)
-* [11 Horizontal Pod Autoscaler best practices](#11-horizontal-pod-autoscaler-best-practices)
+- [License](#license)
+- [Table of contents](#table-of-contents)
+- [1 Introduction](#1-introduction)
+  - [1.1 Target Audience](#11-target-audience)
+- [2 Reference Data](#2-reference-data)
+- [3 Handling passwords and secrets](#3-handling-passwords-and-secrets)
+  - [3.1 Secrets as volume](#31-secrets-as-volume)
+  - [3.2 Secrets as environment variables](#32-secrets-as-environment-variables)
+- [4 User accounts](#4-user-accounts)
+  - [4.1 Create a kubeconfig](#41-create-a-kubeconfig)
+    - [4.1.2 Create a kubeconfig for Amazon EKS](#412-create-a-kubeconfig-for-amazon-eks)
+    - [4.1.2 Create a kubeconfig for Azure AKS](#412-create-a-kubeconfig-for-azure-aks)
+    - [4.1.3 Test the configuration](#413-test-the-configuration)
+  - [4.2 Grant cluster access to users](#42-grant-cluster-access-to-users)
+  - [4.3 Restrict namespace access to a cluster](#43-restrict-namespace-access-to-a-cluster)
+  - [4.4 Kubernetes Dashboard](#44-kubernetes-dashboard)
+- [5 Network policies](#5-network-policies)
+  - [5.1 Create Network policies](#51-create-network-policies)
+- [6 Pod Security Admission](#6-pod-security-admission)
+- [7 Assign Resources to Containers and Pods](#7-assign-resources-to-containers-and-pods)
+- [8 Monitoring](#8-monitoring)
+- [9 Backups](#9-backups)
+- [10 Message logs](#10-message-logs)
+- [11 Horizontal Pod Autoscaler best practices](#11-horizontal-pod-autoscaler-best-practices)
 
 ## 1 Introduction
 
 ### 1.1 Target Audience
 
-This User Guide is meant for X-Road Security Server system administrators responsible for installing and using X-Road Security Server Sidecar in AWS EKS environment.
+This User Guide is meant for X-Road Security Server system administrators responsible for installing and using X-Road Security Server Sidecar in Amazon Elastic Kubernetes Service (Amazon EKS) or Azure Kubernetes Service (AKS) environment.
 
 This document will discuss how to secure the installation of a Security Server Sidecar cluster explained in the [Kubernetes User Guide](kubernetes_security_server_sidecar_user_guide.md).
-The document is intended for readers with a moderate knowledge of Linux server management, computer networks, Docker, Kubernetes, AWS EKS and X-Road.
+The document is intended for readers with a moderate knowledge of Linux server management, computer networks, Docker, Kubernetes (including it's cloud provider's specialties (Amazon EKS or Azure AKS)) and X-Road.
 
 ## 2 Reference Data
 
 Please check the Reference data in the [Kubernetes User Guide](kubernetes_security_server_sidecar_user_guide.md#44-reference-data).
 
-**Ref** | **Value**                                | **Explanation**
-------- | ----------------------------------------- | ----------------------------------------------------------
-4.1    | &lt;role arn&gt;                    | The ARN of the IAM role to add.
-4.2    | &lt;kubernetes groups&gt;            | A list of groups within Kubernetes to which the role is mapped. Typically "system:masters" and "system:nodes".
-4.3    | &lt;user arn&gt;                    | The ARN of the IAM user to add.
-4.4    | &lt;user name&gt;                    | The user name within Kubernetes to map to the IAM user.
-4.5    | &lt;networkpolicy name&gt;                    | Unique name that identifies a NetworkPolicy inside a namespace.
+| **Ref** | **Value**              | **Explanation**                                                                                                |
+| ------- | ---------------------- | -------------------------------------------------------------------------------------------------------------- |
+| 4.1     | \<network policy name> | Unique name that identifies a NetworkPolicy inside a namespace.                                                |
+| 4.2     | \<resource group>      | Name of resource group in AKS.                                                                                 |
 
 ## 3 Handling passwords and secrets
 
@@ -80,10 +80,10 @@ For the Security Server Sidecar container, the first option is used to store the
 If you don't have an existing SSH key, you can create one by running:
 
 ```bash
-ssh-keygen -f /path/to/.ssh/
+ssh-keygen -f /path/to/.ssh/id_rsa
 ```
 
-Then create a Kubernetes Secret to store the SSH key by running (**Reference Data: 3.1, 3.14**);
+Then create a Kubernetes Secret to store the SSH key by running (**Reference Data: 3.1, 3.7**);
 
 ```bash
 kubectl create secret generic <secret name> --from-file=private-key=/path/to/.ssh/id_rsa --from-file=public-key=/path/to/.ssh/id_rsa.pub --namespace=<namespace name>
@@ -91,9 +91,9 @@ kubectl create secret generic <secret name> --from-file=private-key=/path/to/.ss
 
 We can then consume these secrets as a volume in Kubernetes, i.e. by including the Secret under the definition of volumes in the Pod deployment manifest. We should define the key name, path and permissions, and then mount the volume on a path inside the container.
 
-Below is an example of using Secrets in a Pod deployment manifest file (**Reference Data: 3.13, 3.14**):
+Below is an example of using Secrets in a Pod deployment manifest file (**Reference Data: 3.6, 3.7**):
 
-``` yaml
+```yaml
 [...]
 volumes:
 - name: <manifest volume name>
@@ -117,7 +117,7 @@ volumes:
 
 This example shows how to create a secret for the Security Server Sidecar as environment variables with sensitive data.
 
-1. Create a manifest file called for example 'secret-env-variables.yaml' and fill it with the desired values of the environment variables ( **Reference Data: 1.4, 1.5, 1.6, 1.7, 1.8, 1.9, 1.10**):
+1. Create a manifest file called for example `secret-env-variables.yaml` and fill it with the desired values of the environment variables ( **Reference Data: 1.4, 1.5, 1.6, 1.7, 1.8, 1.9, 1.10**):
 
     ```yaml
     apiVersion: v1
@@ -144,11 +144,11 @@ This example shows how to create a secret for the Security Server Sidecar as env
 
 Then we can consume the Secrets as environment variables by modifying the deployment Pod manifest of each container that requires the secret as follows (the Secret key becomes the environment variable name in the Pod):
 
-``` yaml
+```yaml
 [...]
 containers:
   - name: security-server-sidecar
-    image: niis/xroad-security-server-sidecar:latest
+    image: niis/xroad-security-server-sidecar:<image tag>
     imagePullPolicy: "Always"
     envFrom:
     - secretRef:
@@ -158,11 +158,11 @@ containers:
 
 Alternatively, if we don't want to include all the environment variables in a single Secret, we can reference it by key in the environment variable definition. Below is an example of how to do that with the variable "XROAD_DB_PWD":
 
-``` yaml
+```yaml
 [...]
 containers:
   - name: security-server-sidecar
-    image: niis/xroad-security-server-sidecar:6.26.0
+    image: niis/xroad-security-server-sidecar:<image tag>
     imagePullPolicy: "Always"
     env:
     - name: XROAD_TOKEN_PIN
@@ -189,19 +189,34 @@ containers:
 
 ## 4 User accounts
 
-Amazon EKS uses IAM to provide authentication to your Kubernetes cluster through the `aws eks get-token` command (available in AWS CLI version 1.16.156 or later, or on the AWS IAM Authenticator for Kubernetes). However, for authorization, it still relies on native Kubernetes Role Based Access Control (RBAC). This means that IAM is only used for authentication of valid IAM entities. All the permissions required for interacting with the Kubernetes API of your Amazon EKS cluster are managed through the native Kubernetes RBAC system.
+Amazon EKS and Azure AKS command line utilities can be used to authenticate user to your Kubernetes cluster. However, for authorization, they still rely on native Kubernetes Role Based Access Control (RBAC). All the permissions required for interacting with the Kubernetes API of your cluster are managed through the native Kubernetes RBAC system.
 
 ### 4.1 Create a kubeconfig
 
 A kubeconfig file is a file used to configure access to Kubernetes when used in conjunction with the kubectl command-line tool.
 
+
+#### 4.1.2 Create a kubeconfig for Amazon EKS
+ 
 To create a kubeconfig file, we should first be authenticated through the AWS CLI. More information on how to authenticate with AWS CLI can be found [here](https://aws.amazon.com/premiumsupport/knowledge-center/authenticate-mfa-cli/).
 
-Then, open a terminal and run the following command (**Reference Data: 3.21, 3.22**):
+Then, open a terminal and run the following command (**Reference Data: 3.12, 3.13**):
 
 ```bash
 aws eks --region <cluster region> update-kubeconfig --name <cluster name>
 ```
+
+#### 4.1.2 Create a kubeconfig for Azure AKS
+
+To create a kubeconfig file, we should first be authenticated through the Azure CLI. More information on how to authenticate with Azure CLI can be found [here](https://docs.microsoft.com/en-us/cli/azure/authenticate-azure-cli).
+
+Then, open a terminal and run the following command (**Reference Data: 3.12, 4.2**):
+
+```bash
+az aks get-credentials --resource-group <resource group> --name <cluster name>
+```
+
+#### 4.1.3 Test the configuration
 
 We can test the configuration by running the following command (you should see one Kubernetes service):
 
@@ -220,88 +235,51 @@ cat /root/.kube/config
 
 ### 4.2 Grant cluster access to users
 
-When we create an Amazon EKS cluster, the IAM user or role entity, such as a federated user that creates the cluster, is automatically granted system:masters permissions in the cluster's RBAC configuration on the control plane. This IAM entity does not appear in the ConfigMap or any other visible configuration, so make sure to keep track of which IAM entity originally created the cluster. To grant additional AWS users or roles the ability to interact with your cluster, we must edit the aws-auth ConfigMap within Kubernetes.
-Below are the steps to add IAM users or roles to your cluster:
+Kubernetes has fine-grained built-in role based access control (RBAC) that can be used to for regulating access to Kubernetes cluster. More information about Kubernetes RBAC can be found in [official documentation](https://kubernetes.io/docs/reference/access-authn-authz/rbac/). 
 
-1. Check if you have already applied the 'aws-auth' ConfigMap:
-
-    ```bash
-    kubectl describe configmap -n kube-system aws-auth
-    ```
-
-2. If you don't have any ConfigMap you can download it by running:
-
-    ```bash
-    curl -o aws-auth-cm.yaml https://s3.us-west-2.amazonaws.com/amazon-eks/cloudformation/2020-10-29/aws-auth-cm.yaml
-    ```
-
-3. Edit the ConfigMap file to introduce the InstanceNodeARN and then apply the changes by running:
-
-    ```bash
-    kubectl apply -f aws-auth-cm.yaml
-    ```
-
-4. To add an IAM user or role to an Amazon EKS cluster, edit the 'aws-auth' ConfigMap by running:
-
-    ```bash
-    kubectl edit -n kube-system configmap/aws-auth
-    ```
-
-5. Add your IAM users, roles, or AWS accounts to the ConfigMap file (**Reference Data: 4.1, 4.2, 4.3, 4.4**):
-
-    ``` yaml
-    apiVersion: v1
-    data:
-    mapRoles: |
-      - rolearn: <role arn>
-        username: <system:node:{{EC2PrivateDNSName}}>
-        groups:
-          - <kubernetes group>
-          - <kubernetes group>
-    mapUsers: |
-      - userarn: <user arn>
-        username: <user name>
-        groups:
-          - <kubernetes group>
-          - <kubernetes group>
-      - userarn: <user arn>
-        username: <user name>
-        groups:
-          - <kubernetes group>
-    ```
-
-    To add an IAM role: add the role details to the mapRoles section of the ConfigMap under data or add the whole section if it does not already exist in the file, as shown above.
-    To add an IAM user: add the user details to the mapUsers section of the ConfigMap under data or add the whole section if it does not already exist in the file, as shown above.
-
-6. Save the ConfigMap file and exit the text editor.
+Both Amazon EKS and Azure AKS provide methods for integrating their IAM roles with Kubernetes RBAC:
+- [Grant access to Kubernetes Amazon EKS APIs](https://docs.aws.amazon.com/eks/latest/userguide/grant-k8s-access.html)
+- [Use Azure role-based access control for Kubernetes Authorization](https://learn.microsoft.com/en-us/azure/aks/manage-azure-rbac)
 
 ### 4.3 Restrict namespace access to a cluster
 
-If the same Cluster is shared by different developers and teams, it is advisable to create isolated environments by creating namespaces and restrict access within each namespace. More information about how to assign permissions to a namespace in an AWS EKS Cluster on the [AWS Documentation](https://aws.amazon.com/premiumsupport/knowledge-center/eks-iam-permissions-namespaces/).
+If the same Cluster is shared by different developers and teams, it is advisable to create isolated environments by creating namespaces and restrict access within each namespace. More information about how to assign permissions to a namespace in:
+- [Amazon EKS Cluster](https://aws.amazon.com/premiumsupport/knowledge-center/eks-iam-permissions-namespaces/)
+- [Azure AKS Cluster](https://learn.microsoft.com/en-us/azure/aks/concepts-identity)
 
 ### 4.4 Kubernetes Dashboard
 
 Dashboard is a web-based Kubernetes user interface. You can use Dashboard to deploy containerized applications to a Kubernetes cluster, troubleshoot your containerized application, and manage the cluster resources.
 
-The Dashboard UI is not deployed by default. To deploy it, run the following command:
+The Dashboard UI is not deployed by default. To deploy it using `helm` run the following commands:
 
 ```bash
-kubectl apply -f https://raw.githubusercontent.com/kubernetes/dashboard/v2.0.0/aio/deploy/recommended.yaml
+# Add kubernetes-dashboard repository
+helm repo add kubernetes-dashboard https://kubernetes.github.io/dashboard/
+# Deploy a Helm Release named "kubernetes-dashboard" using the kubernetes-dashboard chart
+helm upgrade --install kubernetes-dashboard kubernetes-dashboard/kubernetes-dashboard --create-namespace --namespace kubernetes-dashboard
 ```
 
 You can access Dashboard using the kubectl command-line tool by running the following command:
 
 ```bash
-kubectl proxy
+kubectl -n kubernetes-dashboard port-forward svc/kubernetes-dashboard-kong-proxy 4433:443
 ```
 
-Kubectl will make Dashboard available at `http://localhost:8001/api/v1/namespaces/kubernetes-dashboard/services/https:kubernetes-dashboard:/proxy/`.
+Kubectl will make Dashboard available at <https://localhost:4433>.
 
-In the login view, you will be required to enter a token, as described in section [4 User Accounts](#4-user-accounts). AWS EKS provides authentication to the Kubernetes Cluster through the `aws eks get-token` command, so in order to get the token you can run (**Reference Data: 3.21**):
+In the login view, you will be required to enter a token. To try out Kubernetes Dashboard you can [create a sample user](https://github.com/kubernetes/dashboard/blob/master/docs/user/access-control/creating-sample-user.md) and get the token with the following command:
 
 ```bash
-aws eks get-token --cluster-name <cluster name>
+kubectl -n kubernetes-dashboard create token admin-user
 ```
+
+Additional information on Kubernetes Dashboard can be found in the following links:
+- [Kubernetes Dashboard project page](https://github.com/kubernetes/dashboard)
+- [Accessing Dashboard](https://github.com/kubernetes/dashboard/blob/master/docs/user/accessing-dashboard/README.md)
+- [Access Control](https://github.com/kubernetes/dashboard/blob/master/docs/user/access-control/README.md)
+- [Creating sample user](https://github.com/kubernetes/dashboard/blob/master/docs/user/access-control/creating-sample-user.md)
+
 
 Installing the Kubernetes Dashboard could have potential security risks:
 
@@ -322,13 +300,11 @@ The most relevant network policies to enforce are:
 
 Network Policies are similar to AWS security groups in the sense that allows creating network ingress and egress rules. The difference with Network Policies is that it allows assigning them to pods using pod selectors and labels instead of instances of an AWS security group.
 
-Network Policies can be configured in AWS with a network provider with network policy support, such as Calico, Cilium, Kube-router, Romana, Weave Net. In this case, we will be using Calico.
+Network Policies can be configured with a network provider with network policy support, such as Calico, Cilium, Kube-router, Romana, Weave Net. In this case, we will be using Calico.
 
-To install Calico, apply the Calico manifest by running:
-
-```bash
-kubectl apply -f https://raw.githubusercontent.com/aws/amazon-vpc-cni-k8s/release-1.6/config/v1.6/calico.yaml
-```
+To install Calico, follow the instructions for your cloud provider:
+- [Amazon EKS](https://docs.tigera.io/calico/latest/getting-started/kubernetes/managed-public-cloud/eks)
+- [Azure AKS](https://docs.tigera.io/calico/latest/getting-started/kubernetes/managed-public-cloud/aks)
 
 Verify the installation by running:
 
@@ -342,7 +318,7 @@ In this example, it will be shown how to isolate the Primary Pod described in [M
 
 1. Modify the Primary Pod manifest adding the label "role:primary" to identify it:
 
-    ``` yaml
+    ```yaml
     [...]
     metadata:
       name: <service name>
@@ -354,7 +330,7 @@ In this example, it will be shown how to isolate the Primary Pod described in [M
 
 2. Modify the Secondary Pod manifest adding the label "role:secondary" to identify it:
 
-    ``` yaml
+    ```yaml
     [...]
     spec:
       selector:
@@ -371,9 +347,9 @@ In this example, it will be shown how to isolate the Primary Pod described in [M
 
 3. Apply the changes in the manifests.
 
-4. Create a NetworkPolicy to deny all the ingress traffic for the Primary Pod (**Reference Data: 3.1, 4.5**):
+4. Create a NetworkPolicy to deny all the ingress traffic for the Primary Pod (**Reference Data: 3.1, 4.1**):
 
-    ``` yaml
+    ```yaml
     kind: NetworkPolicy
     apiVersion: networking.k8s.io/v1
     metadata:
@@ -393,9 +369,9 @@ In this example, it will be shown how to isolate the Primary Pod described in [M
     kubectl apply -f /path/to/file.yaml
     ```
 
-6. After all the ingress traffic is denied, create a network policy that allows the traffic from the Secondary Pods to the Primary Pod through the port 22 (**Reference Data: 3.1, 4.5**):
+6. After all the ingress traffic is denied, create a network policy that allows the traffic from the Secondary Pods to the Primary Pod through the port 22 (**Reference Data: 3.1, 4.1**):
 
-    ``` yaml
+    ```yaml
     kind: NetworkPolicy
     apiVersion: networking.k8s.io/v1
     metadata:
@@ -405,14 +381,14 @@ In this example, it will be shown how to isolate the Primary Pod described in [M
       podSelector:
         matchLabels:
           role: primary
-    ingress:
-    - from:
-      - podSelector:
-          matchLabels:
-            role: secondary
-      ports:
-      - protocol: TCP
-        port: 22
+      ingress:
+      - from:
+        - podSelector:
+            matchLabels:
+                role: secondary
+        ports:
+        - protocol: TCP
+          port: 22
     ```
 
 7. Apply the manifest:
@@ -435,145 +411,24 @@ In this example, it will be shown how to isolate the Primary Pod described in [M
 
 The [security-server-sidecar-network-policy-examples manifest template](files/security-server-sidecar-network-policy-examples.yaml) contains examples of all the above network policies.
 
-## 6 Pod Security Policies
 
-Pod Security Policies are a cluster-level resource which holds a collection of flags that control security aspects of the pod specification. These flags define the conditions with which a pod should be run within the cluster when created. If a request for creating a pod does not meet these conditions, the request is rejected and the pod is not created.
+## 6 Pod Security Admission
 
-The most relevant pod security policies to enforce are:
+[Pod Security Admission](https://kubernetes.io/docs/concepts/security/pod-security-admission/) places requirements on Pod's Security Context and other related field according to the levels defined in the [Pod Security Standards](https://kubernetes.io/docs/concepts/security/pod-security-standards/). The Pod Security Admission controller is enabled by default in Kubernetes 1.21 and later. It is recommended to enable the Pod Security Admission controller to enforce the Pod Security Standards.
 
-* Disable privileged containers: We can disable them for every installation by setting the flag `privileged: false`.
-* Prevent privilege escalation: We can disable it by setting the flag `allowPrivilegeEscalation: false`. This flag is recommended to set even if the container is run as a non-root user.
-* Enforce non-root users: Prevent privilege escalation: We can disable it by setting the flag `allowPrivilegeEscalation: false`. This flag is recommended to set even if the container is run as a non-root user.We can enforce to run the container as non-root user by setting the rule MustRunAsNonRoot under the flag runAsUser. However, running the sidecar requires the container to run as root so we cannot use MustRunAsNonRoot for now.
-* Prevent hostPath volumes: Mounting volumes using hostPath poses a serious risk of accessing the host file system by attackers. Nevertheless, if we need to use them, we can allow only with specified directories and permissions with the flag allowedHostPaths.
+X-Road sidecar container image adheres to `baseline` level of the Pod Security Standards as the container cannot be run as non-root user for now.
 
-### 6.1 Pod Security Policies in AWS EKS
+Pod Security Admission can be configured using metadata labels for namespaces. To enforce `baseline` level for the namespace sidecar container is running in, add the following label to the namespace:
 
-Kubernetes does not enable pod security policies by default. To enforce them every time a new pod is created in the cluster, you need to enable the Pod Security Policy at the cluster level via an admission controller. AWS EKS from version 1.13 supports the Kubernetes admission controller with a default privileged policy named eks.privileged. We can verify that the default policy exist by running:
+```yaml
+pod-security.kubernetes.io/enforce=baseline
+```
+
+To add the label to an existing namespace run the following `kubectl` command (**Reference Data: 3.1**):
 
 ```bash
-kubectl describe psp eks.privileged
+kubectl label --overwrite ns <namespace name> pod-security.kubernetes.io/enforce=baseline
 ```
-
-The eks.privileged default Pod Security Policy is equivalent to run Kubernetes with the PodSecurityPolicy controller disabled. Also, any authenticated users will be able to create any pods on the cluster with the eks.privileged policy. We can verify that by running the following command:
-
-```bash
-kubectl describe clusterrolebindings eks:podsecuritypolicy:authenticated
-```
-
-### 6.2 Creating a Pod Security Policy
-
-Prior to creating a Pod Security Policy, we should first create a dedicated namespace, as well as a service account and role binding to authorize a non-admin user to use that policy. For example, we can create a namespace called sidecar-psp-restrictive and a service account called sidecar-eks-user and its respective role binding under that namespace with the following commands:
-
-```bash
-kubectl create ns sidecar-psp-restrictive
-
-kubectl -n sidecar-psp-restrictive create sa sidecar-eks-user
-```
-
-Then we should proceed to create a Pod Security Policy with the recommended flags. At the same time, it's also important to make sure you authorize users and service accounts to use the Pod Security Policy. We can do that by creating a Role/ClusterRole that allows a user, in this case named sidecar-eks-user, to use the policy, in this case named eks.restrictive, and a RoleBinding/ClusterRoleBinding to bind to the role in the namespace, in this case named sidecar-psp-restrictive.
-
-Below is an example of the Pod Security Policy Role and RoleBinding configuration in yaml file named sidecar-restrictive-psp.yaml:
-
-``` yaml
-apiVersion: policy/v1beta1
-kind: PodSecurityPolicy
-metadata:
-  name: eks.restrictive
-  annotations:
-    kubernetes.io/description: 'eks.restrictive policy in sidecar-psp-restrictive namespace'
-    seccomp.security.alpha.kubernetes.io/allowedProfileNames: '*'
-  labels:
-    kubernetes.io/cluster-service: "true"
-    eks.amazonaws.com/component: pod-security-policy
-spec:
-  privileged: false
-  allowPrivilegeEscalation: false
-  volumes:
-    - 'configMap'
-    - 'emptyDir'
-    - 'projected'
-    - 'secret'
-    - 'downwardAPI'
-    - 'persistentVolumeClaim'
-    - 'awsElasticBlockStore'
-  hostNetwork: false
-  hostIPC: false
-  hostPID: false
-  hostPorts:
-      - min: 1025
-        max: 65535
-  runAsUser:
-    # Running the sidecar requires the container to run as root so we cannot use MustRunAsNonRoot.
-    rule: 'RunAsAny'
-  seLinux:
-    # Assuming the nodes are using AppArmor rather than SELinux
-    rule: 'RunAsAny'
-  supplementalGroups:
-    rule: 'MustRunAs'
-    ranges:
-      # Forbid adding the root group
-      - min: 1
-        max: 65535
-  fsGroup:
-    rule: 'MustRunAs'
-    ranges:
-      # Forbid adding the root group
-      - min: 1
-        max: 65535
----
-apiVersion: rbac.authorization.k8s.io/v1
-kind: Role
-metadata:
-  name: sidecar:psp:unprivileged
-  namespace: sidecar-psp-restrictive
-  labels:
-      kubernetes.io/cluster-service: "true"
-      eks.amazonaws.com/component: pod-security-policy
-rules:
-- apiGroups:
-  - policy
-  resourceNames:
-  - eks.restrictive
-  resources:
-  - podsecuritypolicy
-  verbs:
-  - use
----
-apiVersion: rbac.authorization.k8s.io/v1
-kind: RoleBinding
-metadata:
-  name: sidecar-user:psp:unprivileged
-  namespace: sidecar-psp-restrictive
-  annotations:
-    kubernetes.io/description: 'Allow service account sidecar-eks-user to use eks.restrictive psp in sidecar-psp-restrictive namespace.'
-  labels:
-    kubernetes.io/cluster-service: "true"
-    eks.amazonaws.com/component: pod-security-policy
-roleRef:
-  apiGroup: rbac.authorization.k8s.io
-  kind: Role
-  name: sidecar:psp:unprivileged
-  subjects:
-  - kind: ServiceAccount
-    name: sidecar-eks-user
-    namespace: sidecar-psp-restrictive
-```
-
-Then, you can apply the Pod Security Policy and its corresponding Role and RoleBinding configuration:
-
-```bash
-kubectl -n sidecar-psp-restrictive apply -f sidecar-restrictive-psp.yaml
-```
-
-It's worth noting that once we enable a Pod Security Policy, the admission controller will enforce it when creating or updating pods, otherwise the pod won't be created. However, if you modify the Pod Security Policy after the pods are already running, those that violate the policy as a consequence of this modification will not be shut down. In case of multiple Pod Security Policies available, the admission controller will select the first one alphabetically sorted by their name.
-
-After the Pod Security Policy is created, you can verify that the sidecar-eks-user under the namespace sidecar-psp-restrictive can use the eks.restrictive Pod Security Policy with the following command:
-
-```bash
-kubectl --as=system:serviceaccount:sidecar-psp-restrictive:sidecar-eks-user -n sidecar-psp-restrictive auth can-i use podsecuritypolicy/eks.restrictive
-```
-
-Now the user sidecar-eks-user should be able to create pods that match the conditions on the Pod Security Policy eks.restrictive.
 
 ## 7 Assign Resources to Containers and Pods
 
@@ -586,11 +441,11 @@ Pod scheduling is based on requests. A Pod is scheduled to run on a Node only if
 
 To specify a CPU request for a container, include the `resources:requests` field in the Container resource manifest. To specify a CPU limit, include `resources:limits`. Modify the X-Road Security Server deployment manifest to add the resources:
 
-``` yaml
+```yaml
 [...]
 containers:
   - name: security-server-sidecar
-    image: niis/xroad-security-server-sidecar:6.26.0
+    image: niis/xroad-security-server-sidecar:<image tag>
     imagePullPolicy: "Always"
     resources:
       limits:
@@ -614,15 +469,15 @@ You can also combine the value with the suffix `m` to mean milli. For example, 1
 
 ## 8 Monitoring
 
-The following steps are recommended for monitoring using AWS CloudWatch so that we can detect potential security risks in your Cluster.
+The following steps are recommended for monitoring using AWS CloudWatch and Azure Monitor so that we can detect potential security risks in your Cluster.
 
-* **Collect control panel logs**: The control plane logs capture Kubernetes audit events and requests to the Kubernetes API server, among other components. Analysis of these logs will help detect some types of attacks against the cluster, and security auditors will want to know that you collect and retain this data.
-AWS EKS Clusters can be configured to send control panel logs to Amazon CloudWatch. At a minimum, you will want to collect the following logs:
-* api - the Kubernetes API server log.
-* audit - the Kubernetes audit log.
-* authenticator - the EKS component used to authenticate AWS IAM entities to the Kubernetes API.
+* **Collect control plane logs**: The control plane logs capture Kubernetes audit events and requests to the Kubernetes API server, among other components. Analysis of these logs will help detect some types of attacks against the cluster, and security auditors will want to know that you collect and retain this data.
+* Amazon EKS Clusters can be configured to send control plane logs to Amazon CloudWatch. Similarly, Azure AKS control plane logs can be sent to Azure Monitor as resource logs. At a minimum, you will want to collect the following logs:
+  * api - the Kubernetes API server log.
+  * audit - the Kubernetes audit log.
+  * authenticator - the EKS component used to authenticate AWS IAM entities to the Kubernetes API.
 
-* **Monitor container and cluster performance for anomalies**:  Irregular spikes in application load or node usage can be a signal that an application may need programmatic troubleshooting, but they can also signal unauthorized activity in the cluster.  Monitoring key metrics provides critical visibility into your workload’s functional health and that it may need performance tuning or that it may require further investigation. For collecting these metrics, it is required to set up Amazon CloudWatch Container Insights for your cluster.
+* **Monitor container and cluster performance for anomalies**:  Irregular spikes in application load or node usage can be a signal that an application may need programmatic troubleshooting, but they can also signal unauthorized activity in the cluster. Monitoring key metrics provides critical visibility into your workload’s functional health and that it may need performance tuning or that it may require further investigation. For collecting these metrics, it is required to set up Amazon CloudWatch Container Insights for your cluster. Azure has similar capabilities with Container Insights.
 
 * **Monitor Node (EC2 Instance) Health and Security**: EKS provides no automated detection of node issues. Changes in node CPU, memory, or network metrics that do not correlate with the cluster workload activity can be signs of security events or other issues.
 
@@ -632,7 +487,7 @@ The restoration of backups is a process that is executed with root permission an
 
 ## 10 Message logs
 
-The backup of the log messages may contain sensitive information. Therefore, it is recommended to save the automatic backups in an AWS EFS type volume and periodically send the backups to an AWS S3 Bucket with encryption both in transit and rest. More information can be found in [the Kubernetes User Guide](kubernetes_security_server_sidecar_user_guide.md#8-message-log-archives).
+The backup of the log messages may contain sensitive information. Therefore, it is recommended to save the automatic backups in an AWS EFS or Azure Files type volume and periodically send the backups to an AWS S3 Bucket or Azure Blob Storage with encryption both in transit and rest. More information can be found in [the Kubernetes User Guide](kubernetes_security_server_sidecar_user_guide.md#8-message-log-archives).
 
 ## 11 Horizontal Pod Autoscaler best practices
 

@@ -32,7 +32,6 @@ import com.nortal.test.core.report.ReportFormatter;
 import com.nortal.test.core.report.html.ReportHtmlTableGenerator;
 import feign.FeignException;
 import io.cucumber.java.en.Step;
-import lombok.Data;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.context.ApplicationContext;
@@ -125,8 +124,8 @@ public class ApiSecurityCheckStepDefs extends BaseStepDefs {
         table.add(List.of("#", "Status", "FeignClient", "Method", "Response code"));
         Set<String> resultStatuses = new HashSet<>();
         for (ResultDto result : results) {
-            String statusText = getStatusText(result.getStatus(), expectedStatus);
-            table.add(List.of(statusText, result.getFeignClient(), result.getMethod(), String.valueOf(result.getStatus())));
+            String statusText = getStatusText(result.status(), expectedStatus);
+            table.add(List.of(statusText, result.feignClient(), result.method(), String.valueOf(result.status())));
             resultStatuses.add(statusText);
         }
         ReportFormatter.Attachment attachment = new ReportFormatter.Attachment().setName("RESULTS");
@@ -197,11 +196,8 @@ public class ApiSecurityCheckStepDefs extends BaseStepDefs {
         }
     }
 
-    @Data
-    private static class ResultDto {
-        private final String feignClient;
-        private final String method;
-        private final String status;
+
+    private record ResultDto(String feignClient, String method, String status) {
     }
 
 }

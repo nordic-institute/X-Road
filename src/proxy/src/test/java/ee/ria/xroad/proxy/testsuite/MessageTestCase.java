@@ -33,13 +33,11 @@ import ee.ria.xroad.common.identifier.ServiceId;
 import ee.ria.xroad.common.message.SoapFault;
 import ee.ria.xroad.common.message.SoapMessageImpl;
 import ee.ria.xroad.common.util.AbstractHttpSender;
-import ee.ria.xroad.common.util.AsyncHttpSender;
 import ee.ria.xroad.common.util.CryptoUtils;
 import ee.ria.xroad.common.util.MimeTypes;
 import ee.ria.xroad.proxy.conf.KeyConf;
 import ee.ria.xroad.proxy.conf.SigningCtx;
 
-import jakarta.servlet.http.HttpServletRequest;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
@@ -55,7 +53,8 @@ import org.apache.http.impl.nio.reactor.DefaultConnectingIOReactor;
 import org.apache.http.impl.nio.reactor.IOReactorConfig;
 import org.apache.http.nio.reactor.ConnectingIOReactor;
 import org.bouncycastle.operator.DigestCalculator;
-import org.eclipse.jetty.server.handler.AbstractHandler;
+import org.eclipse.jetty.server.Handler;
+import org.eclipse.jetty.server.Request;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
@@ -189,14 +188,14 @@ public class MessageTestCase {
     /**
      * @return the server proxy HTTP handler
      */
-    public AbstractHandler getServerProxyHandler() {
+    public Handler.Abstract getServerProxyHandler() {
         return null;
     }
 
     /**
      * @return the service HTTP handler
      */
-    public AbstractHandler getServiceHandler() {
+    public Handler.Abstract getServiceHandler() {
         return null;
     }
 
@@ -338,7 +337,7 @@ public class MessageTestCase {
     }
 
     protected InputStream getQueryInputStream(String fileName,
-            boolean addUtf8Bom) throws Exception {
+                                              boolean addUtf8Bom) throws Exception {
         InputStream is = changeQueryId(new FileInputStream(fileName));
 
         return addUtf8Bom ? addUtf8Bom(is) : is;
@@ -390,7 +389,7 @@ public class MessageTestCase {
         this.queryId = CryptoUtils.encodeHex(dc.getDigest());
     }
 
-    protected void onServiceReceivedHttpRequest(HttpServletRequest request) throws Exception {
+    protected void onServiceReceivedHttpRequest(Request request) throws Exception {
         // NOP
     }
 

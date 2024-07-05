@@ -27,7 +27,6 @@
 
 package org.niis.xroad.cs.admin.core.service.managementrequest;
 
-import io.vavr.control.Option;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
@@ -45,6 +44,8 @@ import org.niis.xroad.cs.admin.core.entity.mapper.RequestMapper;
 import org.niis.xroad.cs.admin.core.repository.IdentifierRepository;
 import org.niis.xroad.cs.admin.core.repository.RequestRepository;
 import org.niis.xroad.cs.admin.core.repository.SecurityServerRepository;
+
+import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -99,7 +100,7 @@ class AddressChangeRequestHandlerTest {
 
         SecurityServerIdEntity securityServerIdEntity = mock(SecurityServerIdEntity.class);
         when(serverIds.findOne(SecurityServerIdEntity.create(securityServerId))).thenReturn(securityServerIdEntity);
-        when(securityServerRepository.findBy(securityServerIdEntity)).thenReturn(Option.of(securityServerEntity));
+        when(securityServerRepository.findBy(securityServerIdEntity)).thenReturn(Optional.of(securityServerEntity));
         when(securityServerEntity.getAddress()).thenReturn("ss.old");
         when(addressChangeRequests.save(argumentCaptor.capture())).thenReturn(requestEntity);
 

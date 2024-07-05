@@ -32,7 +32,6 @@ import org.niis.xroad.cs.openapi.model.XRoadIdDto;
 import org.niis.xroad.restapi.converter.DtoConverter;
 import org.springframework.stereotype.Service;
 
-import static ee.ria.xroad.common.util.Fn.self;
 
 @Slf4j
 @Service
@@ -40,14 +39,13 @@ public class SecurityServerIdDtoConverter extends DtoConverter<SecurityServerId,
 
     @Override
     public SecurityServerIdDto toDto(SecurityServerId source) {
-        return self(new SecurityServerIdDto(), self -> {
-            self.memberClass(source.getMemberClass());
-            self.memberCode(source.getMemberCode());
-            self.serverCode(source.getServerCode());
-            self.instanceId(source.getXRoadInstance());
-            self.encodedId(source.asEncodedId());
-            self.type(XRoadIdDto.TypeEnum.SERVER);
-        });
+        return new SecurityServerIdDto()
+                .memberClass(source.getMemberClass())
+                .memberCode(source.getMemberCode())
+                .serverCode(source.getServerCode())
+                .instanceId(source.getXRoadInstance())
+                .encodedId(source.asEncodedId())
+                .type(XRoadIdDto.TypeEnum.SERVER);
     }
 
     @Override

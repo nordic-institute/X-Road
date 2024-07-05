@@ -1,8 +1,8 @@
 plugins {
-    id 'com.github.johnrengelman.shadow'
+    alias(libs.plugins.shadow)
 }
 
-project.ext.schemaTargetDir = new File("$buildDir/generated-sources")
+project.ext.schemaTargetDir = layout.buildDirectory.dir("generated-sources").get().asFile
 
 configurations {
     xjc
@@ -10,37 +10,37 @@ configurations {
 
 sourceSets {
     main {
-        java.srcDirs = ['src/main/java', "${buildDir}/generated-sources"]
-        resources.srcDirs = ['src/main/resources', '../common/common-util/src/main/resources']
+        java.srcDirs = ['src/main/java', schemaTargetDir]
+        resources.srcDirs = ['src/main/resources', '../common/common-domain/src/main/resources']
     }
 }
 
 dependencies {
-    implementation "jakarta.validation:jakarta.validation-api:$jakartaValidationApiVersion"
-    implementation "io.dropwizard.metrics:metrics-core:$metricsVersion"
-    implementation "io.dropwizard.metrics:metrics-jmx:$metricsVersion"
+    implementation libs.jakarta.validationApi
+    implementation libs.bundles.metrics
 
+    implementation project(':common:common-domain')
+    implementation project(':common:common-scheduler')
     implementation project(':common:common-verifier')
-    implementation project(':common:common-util')
+    implementation project(':common:common-jetty')
     implementation project(':common:common-db')
     implementation project(':common:common-op-monitoring')
     implementation project(':monitoring-conf')
 
     // Using HSQLDB for an in-memory database in tests.
-    testImplementation "org.hsqldb:hsqldb:$hsqldbVersion"
-    testImplementation 'commons-cli:commons-cli:1.4'
+    testImplementation libs.hsqldb
+    testImplementation libs.commons.cli
 
-    xjc "org.glassfish.jaxb:jaxb-xjc:$jaxbVersion"
-    xjc "org.glassfish.jaxb:jaxb-runtime:$jaxbVersion"
+    xjc libs.bundles.jaxb
 }
 
-task createDirs() {
+tasks.register('createDirs') {
     doLast {
         project.ext.schemaTargetDir.mkdirs()
     }
 }
 
-task xjc() {
+tasks.register('xjc') {
     inputs.files fileTree(dir: 'src/main/resources', include: '*.xsd')
     outputs.dir schemaTargetDir
 
@@ -53,8 +53,8 @@ task xjc() {
         ant.xjc(
             destdir: project.ext.schemaTargetDir,
             package: 'ee.ria.xroad.opmonitordaemon.message',
-            schema: "${buildDir}/resources/main/op-monitoring.xsd",
-            binding: "${buildDir}/resources/main/identifiers-bindings.xml"
+            schema: "${layout.buildDirectory.get().asFile}/resources/main/op-monitoring.xsd",
+            binding: "${layout.buildDirectory.get().asFile}/resources/main/identifiers-bindings.xml"
         )
     }
 }
@@ -68,7 +68,8 @@ shadowJar {
     mergeServiceFiles()
 }
 
-task testsJar(type: Jar, dependsOn: testClasses) {
+tasks.register('testsJar', Jar) {
+    dependsOn testClasses
     archiveClassifier = 'tests'
     manifest {
         attributes 'Main-Class': 'ee.ria.xroad.opmonitordaemon.OperationalDataRecordsGenerator'
@@ -81,21 +82,6 @@ task testsJar(type: Jar, dependsOn: testClasses) {
 jar.enabled = false
 assemble.dependsOn shadowJar
 assemble.dependsOn testsJar
-
-task licenseFormatJava(type: nl.javadude.gradle.plugins.license.License) {
-    source = fileTree('src/main/java')
-}
-
-task licenseTestJava(type: nl.javadude.gradle.plugins.license.License) {
-    source = fileTree('src/main/java')
-    check = true
-}
-
-licenseFormatMain.enabled = false
-licenseMain.enabled = false
-
-licenseFormat.dependsOn licenseFormatJava
-licenseTest.dependsOn licenseTestJava
 
 xjc.dependsOn createDirs
 xjc.dependsOn processResources

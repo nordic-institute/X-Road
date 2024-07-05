@@ -35,8 +35,8 @@
         $t('trustServices.trustService.details.subjectDistinguishedName')
       "
       :info-text="
-        intermediateCasServiceStore.currentSelectedIntermediateCa.ca_certificate
-          .subject_distinguished_name || ''
+        intermediateCasServiceStore.currentSelectedIntermediateCa
+          ?.ca_certificate.subject_distinguished_name || ''
       "
       data-test="subject-distinguished-name-card"
     />
@@ -47,8 +47,8 @@
         $t('trustServices.trustService.details.issuerDistinguishedName')
       "
       :info-text="
-        intermediateCasServiceStore.currentSelectedIntermediateCa.ca_certificate
-          .issuer_distinguished_name || ''
+        intermediateCasServiceStore.currentSelectedIntermediateCa
+          ?.ca_certificate.issuer_distinguished_name || ''
       "
       data-test="issuer-distinguished-name-card"
     />
@@ -61,7 +61,7 @@
         <date-time
           :value="
             intermediateCasServiceStore.currentSelectedIntermediateCa
-              .ca_certificate.not_before
+              ?.ca_certificate.not_before
           "
         />
       </info-card>
@@ -72,7 +72,7 @@
         <date-time
           :value="
             intermediateCasServiceStore.currentSelectedIntermediateCa
-              .ca_certificate.not_after
+              ?.ca_certificate.not_after
           "
         />
       </info-card>

@@ -81,7 +81,7 @@ public class TokenConverter {
         token.setSerialNumber(tokenInfo.getSerialNumber());
         token.setTokenInfos(new ArrayList<>());
 
-        for (String key: tokenInfo.getTokenInfo().keySet()) {
+        for (String key : tokenInfo.getTokenInfo().keySet()) {
             KeyValuePair keyValuePair = new KeyValuePair();
             keyValuePair.setKey(key);
             keyValuePair.setValue(tokenInfo.getTokenInfo().get(key));
@@ -95,7 +95,7 @@ public class TokenConverter {
         return token;
     }
 
-   /**
+    /**
      * Convert a group of {@link TokenInfo tokenInfos} to a list of {@link Token tokens}
      * @param tokenInfos
      * @return List of {@link TokenInfo tokenInfos}

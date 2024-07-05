@@ -38,6 +38,7 @@ import static ee.ria.xroad.common.ErrorCodes.X_INVALID_SOAPACTION;
 public class SoapActionMalformedHeader extends MessageTestCase {
 
     private static final String HEADER_VALUE = "http://example.org/action";
+
     /**
      * Constructs the test case.
      */

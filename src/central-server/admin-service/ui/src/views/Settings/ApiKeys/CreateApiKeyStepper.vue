@@ -205,23 +205,9 @@ import * as api from '@/util/api';
 import { toClipboard } from '@/util/helpers';
 import { mapActions, mapState } from 'pinia';
 import { useNotifications } from '@/store/modules/notifications';
-import {
-  VStepper,
-  VStepperHeader,
-  VStepperItem,
-  VStepperWindow,
-  VStepperWindowItem,
-} from 'vuetify/labs/VStepper';
 import { useUser } from '@/store/modules/user';
 
 export default defineComponent({
-  components: {
-    VStepper,
-    VStepperItem,
-    VStepperHeader,
-    VStepperWindowItem,
-    VStepperWindow,
-  },
   data() {
     return {
       step: 0,

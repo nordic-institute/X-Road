@@ -55,13 +55,13 @@ class OpMonitorSslKeyManager extends X509ExtendedKeyManager {
 
     @Override
     public String chooseClientAlias(String[] keyType, Principal[] issuers,
-            Socket socket) {
+                                    Socket socket) {
         return ALIAS;
     }
 
     @Override
     public String chooseServerAlias(String keyType, Principal[] issuers,
-            Socket socket) {
+                                    Socket socket) {
         return ALIAS;
     }
 
@@ -70,7 +70,7 @@ class OpMonitorSslKeyManager extends X509ExtendedKeyManager {
         if (sslKey != null) {
             return sslKey.getCertChain();
         } else {
-            return new X509Certificate[] {};
+            return new X509Certificate[]{};
         }
     }
 
@@ -91,13 +91,13 @@ class OpMonitorSslKeyManager extends X509ExtendedKeyManager {
 
     @Override
     public String chooseEngineClientAlias(String[] keyType, Principal[] issuers,
-            SSLEngine engine) {
+                                          SSLEngine engine) {
         return ALIAS;
     }
 
     @Override
     public String chooseEngineServerAlias(String keyType, Principal[] issuers,
-            SSLEngine engine) {
+                                          SSLEngine engine) {
         return ALIAS;
     }
 

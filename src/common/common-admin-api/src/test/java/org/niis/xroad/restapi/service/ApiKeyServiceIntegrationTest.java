@@ -217,7 +217,8 @@ class ApiKeyServiceIntegrationTest extends AbstractSpringMvcTest {
     }
 
     @Test
-    @SuppressWarnings("java:S2699") // Add at least one assertion to this test case
+    @SuppressWarnings("java:S2699")
+        // Add at least one assertion to this test case
     void testMultipleRoles() throws InvalidRoleNameException {
         mockUserRoles(EnumSet.allOf(Role.class));
         // user having all roles can create API with all roles
@@ -236,7 +237,8 @@ class ApiKeyServiceIntegrationTest extends AbstractSpringMvcTest {
     }
 
     @Test
-    @SuppressWarnings("java:S2699") // Add at least one assertion to this test case
+    @SuppressWarnings("java:S2699")
+        // Add at least one assertion to this test case
     void testRemoveRolesFromApiKey() throws InvalidRoleNameException {
         mockUserRoles(EnumSet.allOf(Role.class));
         final PlaintextApiKeyDto apiKey = apiKeyService.create(Arrays.stream(Role.values()).map(Role::name).collect(toList()));

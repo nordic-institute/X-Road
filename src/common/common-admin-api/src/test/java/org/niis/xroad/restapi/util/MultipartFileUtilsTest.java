@@ -43,7 +43,7 @@ class MultipartFileUtilsTest {
 
     @Test
     void readBytes() {
-        final byte[] bytes = new byte[] {1, 2, 3};
+        final byte[] bytes = new byte[]{1, 2, 3};
         final MultipartFile multipartFile = new MockMultipartFile("test", bytes);
 
         final byte[] result = MultipartFileUtils.readBytes(multipartFile);

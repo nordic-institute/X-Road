@@ -77,6 +77,22 @@ export const useCertificationService = defineStore('certificationService', {
       );
       formData.append('tls_auth', newCas.tls_auth || '');
       formData.append('certificate', newCas.certificate);
+      formData.append(
+        'acme_server_directory_url',
+        newCas.acme_server_directory_url || '',
+      );
+      formData.append(
+        'acme_server_ip_address',
+        newCas.acme_server_ip_address || '',
+      );
+      formData.append(
+        'authentication_certificate_profile_id',
+        newCas.authentication_certificate_profile_id || '',
+      );
+      formData.append(
+        'signing_certificate_profile_id',
+        newCas.signing_certificate_profile_id || '',
+      );
       return axios
         .post('/certification-services', formData)
         .finally(() => this.fetchAll());
@@ -135,10 +151,10 @@ export const useOcspResponderService = defineStore('ocspResponderService', {
         .get<OcspResponder[]>(this.getCurrentCaOcspRespondersPath)
         .then((resp) => (this.currentOcspResponders = resp.data));
     },
-    addOcspResponder(url: string, certificate: File | null) {
+    addOcspResponder(url: string, certificate: File | undefined) {
       const formData = new FormData();
       formData.append('url', url);
-      if(certificate){
+      if (certificate) {
         formData.append('certificate', certificate);
       }
 
@@ -146,7 +162,11 @@ export const useOcspResponderService = defineStore('ocspResponderService', {
         .post(this.getCurrentCaOcspRespondersPath, formData)
         .finally(() => this.fetchOcspResponders());
     },
-    updateOcspResponder(id: number, url: string, certificate: File | null) {
+    updateOcspResponder(
+      id: number,
+      url: string,
+      certificate: File | undefined,
+    ) {
       const formData = new FormData();
       formData.append('url', url);
       if (certificate) {
@@ -223,7 +243,7 @@ export const useIntermediateCasService = defineStore('intermediateCasService', {
   },
 });
 
-export interface TimestampingServiceStoreState {
+export interface TimestampingServicesStoreState {
   timestampingServices: TimestampingService[];
 }
 
@@ -256,7 +276,7 @@ export const useTimestampingServicesStore = defineStore(
       updateTimestampingService(
         id: number,
         url: string,
-        certificate: File | null,
+        certificate: File | undefined,
       ) {
         const formData = new FormData();
         formData.append('url', url || '');

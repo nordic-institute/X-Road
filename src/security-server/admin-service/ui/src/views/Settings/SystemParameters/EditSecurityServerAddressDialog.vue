@@ -75,7 +75,7 @@ export default defineComponent({
       defineComponentBinds,
     } = useForm({
       validationSchema: {
-        securityServerAddress: 'required|max:255',
+        securityServerAddress: 'required|address|max:255',
       },
       initialValues: { securityServerAddress: props.address },
     });

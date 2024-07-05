@@ -62,7 +62,6 @@ public class ProxyMonitorStepDefs extends BaseStepDefs {
     private FeignXRoadSoapRequestsApi xRoadSoapRequestsApi;
 
 
-
     private static final Marshaller MARSHALLER = createMarshaller();
 
     @SuppressWarnings("checkstyle:OperatorWrap")
@@ -88,7 +87,7 @@ public class ProxyMonitorStepDefs extends BaseStepDefs {
                 .assertion(equalsStatusCodeAssertion(HttpStatus.OK))
                 .assertion(xpath(response.getBody(),
                         "//monitoring:getSecurityServerMetricsResponse/monitoring:metricSet/monitoring:name",
-                        "SERVER:CS/GOV/0245437-2/SS1"))
+                        "SERVER:DEV/COM/1234/SS0"))
                 .execute();
     }
 
@@ -101,8 +100,8 @@ public class ProxyMonitorStepDefs extends BaseStepDefs {
 
         assertThat(evalXpath(response.getBody(),
                 "//monitoring:getSecurityServerMetricsResponse//monitoring:numericMetric[./monitoring:name/text()='"
-                + metricName
-                + "']/monitoring:value"))
+                        + metricName
+                        + "']/monitoring:value"))
                 .isNotEmpty()
                 .containsOnlyDigits();
     }
@@ -111,10 +110,10 @@ public class ProxyMonitorStepDefs extends BaseStepDefs {
     @SneakyThrows
     private SoapMessageImpl buildMetricsRequest(final String queryId, final String metricName) {
         SoapHeader header = new SoapHeader();
-        ClientId member = ClientId.Conf.create("CS", "GOV", "0245437-2");
+        ClientId member = ClientId.Conf.create("DEV", "COM", "1234");
         header.setClient(member);
         header.setService(ServiceId.Conf.create(member, "getSecurityServerMetrics"));
-        header.setSecurityServer(SecurityServerId.Conf.create(member, "SS1"));
+        header.setSecurityServer(SecurityServerId.Conf.create(member, "SS0"));
         header.setQueryId(queryId);
         header.setProtocolVersion(new ProtocolVersion());
 

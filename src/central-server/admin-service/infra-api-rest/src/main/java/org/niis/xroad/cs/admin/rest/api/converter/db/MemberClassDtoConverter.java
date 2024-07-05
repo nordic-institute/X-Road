@@ -34,8 +34,6 @@ import org.niis.xroad.cs.openapi.model.MemberClassDto;
 import org.niis.xroad.restapi.converter.DtoConverter;
 import org.springframework.stereotype.Service;
 
-import static ee.ria.xroad.common.util.Fn.self;
-
 @Slf4j
 @Service
 @RequiredArgsConstructor
@@ -44,10 +42,9 @@ public class MemberClassDtoConverter extends DtoConverter<MemberClass, MemberCla
 
     @Override
     public MemberClassDto toDto(MemberClass source) {
-        return self(new MemberClassDto(), self -> {
-            self.setCode(source.getCode());
-            self.setDescription(source.getDescription());
-        });
+        return new MemberClassDto()
+                .code(source.getCode())
+                .description(source.getDescription());
     }
 
     @Override

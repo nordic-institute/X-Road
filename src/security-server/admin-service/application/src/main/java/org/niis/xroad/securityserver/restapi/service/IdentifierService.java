@@ -111,7 +111,7 @@ public class IdentifierService {
             throws ServiceClientNotFoundException {
         Map<XRoadObjectType, List<XRoadId.Conf>> idsPerType = serviceClientIds.stream()
                 .collect(groupingBy(XRoadId.Conf::getObjectType));
-        for (XRoadObjectType type: idsPerType.keySet()) {
+        for (XRoadObjectType type : idsPerType.keySet()) {
             if (!isValidServiceClientType(type)) {
                 throw new ServiceClientNotFoundException("Invalid service client subject object type " + type);
             }

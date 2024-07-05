@@ -56,7 +56,7 @@ public class SslClientCertVerificationError extends SslMessageTestCase {
         GlobalConf.reload(new TestSuiteGlobalConf() {
             @Override
             public boolean authCertMatchesMember(X509Certificate cert,
-                    ClientId member) {
+                                                 ClientId member) {
                 return false;
             }
         });

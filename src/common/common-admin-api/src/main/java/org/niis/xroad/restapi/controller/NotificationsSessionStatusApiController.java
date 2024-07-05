@@ -28,8 +28,6 @@ package org.niis.xroad.restapi.controller;
 
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpSession;
-import lombok.AllArgsConstructor;
-import lombok.Data;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.niis.xroad.restapi.openapi.ControllerUtil;
@@ -57,10 +55,8 @@ public class NotificationsSessionStatusApiController {
         return new ResponseEntity<>(new StatusData(isStillAlive),
                 HttpStatus.OK);
     }
-    @Data
-    @AllArgsConstructor
-    private static class StatusData {
-        private boolean valid;
+
+    public record StatusData(boolean valid) {
     }
 
 }

@@ -33,6 +33,7 @@ import XrdEmptyPlaceholder from './XrdEmptyPlaceholder.vue';
 import XrdEmptyPlaceholderRow from './XrdEmptyPlaceholderRow.vue';
 import XrdExpandable from './XrdExpandable.vue';
 import XrdFileUpload from './XrdFileUpload.vue';
+import XrdFileUploadField from './XrdFileUploadField.vue';
 import XrdFormLabel from './XrdFormLabel.vue';
 import XrdHelpDialog from './XrdHelpDialog.vue';
 import XrdHelpIcon from './XrdHelpIcon.vue';
@@ -52,6 +53,7 @@ export {
   XrdEmptyPlaceholderRow,
   XrdExpandable,
   XrdFileUpload,
+  XrdFileUploadField,
   XrdFormLabel,
   XrdHelpDialog,
   XrdHelpIcon,

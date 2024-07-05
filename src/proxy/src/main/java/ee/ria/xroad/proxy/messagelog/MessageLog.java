@@ -64,7 +64,7 @@ public final class MessageLog {
      * @param jobManager the job manager
      * @return false if NullLogManager was initialized, true otherwise
      */
-    public static boolean init(JobManager jobManager) {
+    public static AbstractLogManager init(JobManager jobManager) {
         Class<? extends AbstractLogManager> clazz = getLogManagerImpl();
 
         log.trace("Using implementation class: {}", clazz);
@@ -75,13 +75,8 @@ public final class MessageLog {
             throw new RuntimeException("Failed to initialize LogManager", e);
         }
 
-        return NullLogManager.class != clazz;
+        return logManager;
     }
-
-    public static void shutdown() {
-        logManager.shutdown();
-    }
-
 
     /**
      * Save the message and signature to message log. Attachments are not logged.

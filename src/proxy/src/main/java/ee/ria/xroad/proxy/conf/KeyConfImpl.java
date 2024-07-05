@@ -113,7 +113,7 @@ class KeyConfImpl implements KeyConfProvider {
 
     @Override
     public OCSPResp getOcspResponse(String certHash) throws Exception {
-        String[] responses = SignerProxy.getOcspResponses(new String[] {certHash});
+        String[] responses = SignerProxy.getOcspResponses(new String[]{certHash});
 
         for (String base64Encoded : responses) {
             return base64Encoded != null
@@ -142,7 +142,7 @@ class KeyConfImpl implements KeyConfProvider {
 
     @Override
     public void setOcspResponses(List<X509Certificate> certs,
-            List<OCSPResp> responses) throws Exception {
+                                 List<OCSPResp> responses) throws Exception {
         String[] base64EncodedResponses = new String[responses.size()];
 
         for (int i = 0; i < responses.size(); i++) {
@@ -154,12 +154,12 @@ class KeyConfImpl implements KeyConfProvider {
     }
 
     static SigningCtx createSigningCtx(ClientId subject, String keyId,
-            byte[] certBytes, String signMechanismName) {
+                                       byte[] certBytes, String signMechanismName) {
         return new SigningCtxImpl(subject, new SignerSigningKey(keyId, signMechanismName), readCertificate(certBytes));
     }
 
     static CertChain getAuthCertChain(String instanceIdentifier,
-            byte[] authCertBytes) {
+                                      byte[] authCertBytes) {
         X509Certificate authCert = readCertificate(authCertBytes);
         try {
             return GlobalConf.getCertChain(instanceIdentifier, authCert);

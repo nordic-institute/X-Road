@@ -1,0 +1,35 @@
+#Logging configuration
+logging:
+  level:
+    ROOT: INFO
+    cucumber: TRACE
+    com:
+      codeborne:
+        selenide:
+          proxy: ERROR
+    org.springframework: INFO
+
+test-automation:
+  report-name: xroad-e2e-test-suite
+  environment: disposable
+  spring-component-scan: "org.niis.xroad.common.test,org.niis.xroad.e2e"
+  cucumber:
+    execution:
+      parallel:
+        enabled: false # Tests are executed in sequential order
+    glue-append: "org.niis.xroad.e2e.glue,org.niis.xroad.common.test.glue"
+    filter:
+      tags: "not @Skip"
+  containers:
+    testable-container:
+      enabled: false
+  custom:
+    cs-image: "ghcr.io/nordic-institute/xrddev-central-server:latest"
+    ss-image: "ghcr.io/nordic-institute/xrddev-security-server:latest"
+    ca-image: "ghcr.io/nordic-institute/xrddev-testca:latest"
+    issoap-image: "niis/example-adapter:latest"
+    use-custom-env: false
+    custom-env-mapping: # original : custom
+      "ss0_8080": "ss0_4210"
+      "ss1_8080": "ss1_4310"
+

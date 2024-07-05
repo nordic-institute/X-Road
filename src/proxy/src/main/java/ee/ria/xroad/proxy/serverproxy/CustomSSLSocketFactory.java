@@ -53,8 +53,8 @@ import static ee.ria.xroad.common.ErrorCodes.X_SSL_AUTH_FAILED;
 class CustomSSLSocketFactory extends SSLConnectionSocketFactory {
 
     CustomSSLSocketFactory(SSLContext sslContext,
-            String[] supportedCipherSuites,
-            HostnameVerifier hostNameVerifier) {
+                           String[] supportedCipherSuites,
+                           HostnameVerifier hostNameVerifier) {
         super(sslContext, null, supportedCipherSuites, hostNameVerifier);
     }
 
@@ -89,7 +89,7 @@ class CustomSSLSocketFactory extends SSLConnectionSocketFactory {
     }
 
     private static void checkServerTrusted(ServiceId service,
-            X509Certificate cert) throws Exception {
+                                           X509Certificate cert) throws Exception {
         if (!ServerConf.isSslAuthentication(service)) {
             return;
         }

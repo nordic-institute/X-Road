@@ -95,7 +95,7 @@ public class OwnerChangeRequestHandler implements RequestHandler<OwnerChangeRequ
     @Override
     public boolean canAutoApprove(OwnerChangeRequest request) {
         return SystemProperties.getCenterAutoApproveOwnerChangeRequests()
-                && members.findMember(request.getClientId()).isDefined();
+                && members.findMember(request.getClientId()).isPresent();
     }
 
     @Override
@@ -122,7 +122,7 @@ public class OwnerChangeRequestHandler implements RequestHandler<OwnerChangeRequ
         }
 
         final SecurityServerEntity securityServer = servers.findBy(request.getSecurityServerId())
-                .getOrElseThrow(() -> new DataIntegrityException(MR_SERVER_NOT_FOUND,
+                .orElseThrow(() -> new DataIntegrityException(MR_SERVER_NOT_FOUND,
                         request.getSecurityServerId().toString()));
 
         // New owner must be registered as a client on the security server
@@ -162,11 +162,11 @@ public class OwnerChangeRequestHandler implements RequestHandler<OwnerChangeRequ
         validateRequestStatus(ownerChangeRequestEntity, EnumSet.of(SUBMITTED_FOR_APPROVAL, WAITING));
 
         final SecurityServerEntity securityServer = servers.findBy(ownerChangeRequestEntity.getSecurityServerId())
-                .getOrElseThrow(() -> new DataIntegrityException(MR_SERVER_NOT_FOUND,
+                .orElseThrow(() -> new DataIntegrityException(MR_SERVER_NOT_FOUND,
                         ownerChangeRequestEntity.getSecurityServerId().toString()));
 
         final XRoadMemberEntity newOwner = members.findOneBy(ownerChangeRequestEntity.getClientId())
-                .getOrElseThrow(() -> new DataIntegrityException(MR_MEMBER_NOT_FOUND,
+                .orElseThrow(() -> new DataIntegrityException(MR_MEMBER_NOT_FOUND,
                         ownerChangeRequestEntity.getClientId().toString()));
 
         final var currentOwner = securityServer.getOwner();
@@ -215,7 +215,7 @@ public class OwnerChangeRequestHandler implements RequestHandler<OwnerChangeRequ
 
     private void updateGlobalGroups(ClientIdEntity currentOwnerIdentifier, XRoadMemberEntity newOwner) {
         var currentOwner = members.findOneBy(currentOwnerIdentifier)
-                .getOrElseThrow(() -> new DataIntegrityException(MR_MEMBER_NOT_FOUND, currentOwnerIdentifier));
+                .orElseThrow(() -> new DataIntegrityException(MR_MEMBER_NOT_FOUND, currentOwnerIdentifier));
         if (currentOwner.getOwnedServers().isEmpty()) {
             groupMemberService.removeMemberFromGlobalGroup(DEFAULT_SECURITY_SERVER_OWNERS_GROUP,
                     MemberId.create(currentOwner.getIdentifier()));

@@ -25,7 +25,6 @@
  */
 package ee.ria.xroad.common.util.healthcheck;
 
-import jakarta.servlet.http.HttpServletResponse;
 import org.apache.commons.io.IOUtils;
 import org.apache.http.HttpEntity;
 import org.apache.http.client.methods.CloseableHttpResponse;
@@ -33,6 +32,7 @@ import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.utils.URIBuilder;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClients;
+import org.eclipse.jetty.http.HttpStatus;
 import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.Before;
@@ -133,7 +133,7 @@ public class MaintenanceModeTest {
         testPort.setMaintenanceMode(true);
         try (CloseableHttpResponse response = testClient.execute(healthCheckGet)) {
             verify(testProvider, times(0)).get();
-            assertEquals(HttpServletResponse.SC_SERVICE_UNAVAILABLE, response.getStatusLine().getStatusCode());
+            assertEquals(HttpStatus.SERVICE_UNAVAILABLE_503, response.getStatusLine().getStatusCode());
             HttpEntity responseEntity = response.getEntity();
             assertNotNull("HealthCheckPorts's response did not contain a message", responseEntity);
             String responseMessage = IOUtils.toString(responseEntity.getContent());
@@ -153,7 +153,7 @@ public class MaintenanceModeTest {
         testPort.setMaintenanceMode(false);
         try (CloseableHttpResponse response = testClient.execute(healthCheckGet)) {
             verify(testProvider, times(1)).get();
-            assertEquals(HttpServletResponse.SC_OK, response.getStatusLine().getStatusCode());
+            assertEquals(HttpStatus.OK_200, response.getStatusLine().getStatusCode());
         }
     }
 }

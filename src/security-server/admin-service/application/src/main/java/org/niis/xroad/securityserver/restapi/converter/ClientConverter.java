@@ -100,7 +100,6 @@ public class ClientConverter {
     }
 
 
-
     /**
      * Convert MemberInfo into Client
      * @param memberInfo

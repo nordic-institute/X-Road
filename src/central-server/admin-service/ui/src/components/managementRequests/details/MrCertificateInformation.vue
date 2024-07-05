@@ -28,19 +28,19 @@
   <data-block block-title-key="managementRequestDetails.certificateformation">
     <data-line
       label-text-key="managementRequestDetails.ca"
-      :value="managementRequest.certificate_details.subject_common_name"
+      :value="managementRequest.certificate_details?.subject_common_name"
     />
     <data-line
       label-text-key="managementRequestDetails.serialNumber"
-      :value="managementRequest.certificate_details.serial"
+      :value="managementRequest.certificate_details?.serial"
     />
     <data-line
       label-text-key="managementRequestDetails.subject"
-      :value="managementRequest.certificate_details.subject_distinguished_name"
+      :value="managementRequest.certificate_details?.subject_distinguished_name"
     />
     <data-line label-text-key="managementRequestDetails.expires">
       <date-time
-        :value="managementRequest.certificate_details.not_after"
+        :value="managementRequest.certificate_details?.not_after"
         with-seconds
       />
     </data-line>

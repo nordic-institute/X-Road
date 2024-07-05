@@ -29,11 +29,11 @@ import ee.ria.xroad.common.identifier.ServiceId;
 import ee.ria.xroad.common.message.RestResponse;
 import ee.ria.xroad.common.opmonitoring.OpMonitoringData;
 import ee.ria.xroad.common.util.CachingStream;
+import ee.ria.xroad.common.util.RequestWrapper;
 import ee.ria.xroad.proxy.protocol.ProxyMessage;
 import ee.ria.xroad.proxy.protocol.ProxyMessageDecoder;
 import ee.ria.xroad.proxy.protocol.ProxyMessageEncoder;
 
-import jakarta.servlet.http.HttpServletRequest;
 import org.apache.http.client.HttpClient;
 
 /**
@@ -41,12 +41,14 @@ import org.apache.http.client.HttpClient;
  */
 public interface RestServiceHandler {
     boolean shouldVerifyAccess();
+
     boolean shouldVerifySignature();
+
     boolean shouldLogSignature();
 
     boolean canHandle(ServiceId requestServiceId, ProxyMessage requestMessage);
 
-    void startHandling(HttpServletRequest servletRequest,
+    void startHandling(RequestWrapper request,
                        ProxyMessage requestMessage,
                        ProxyMessageDecoder messageDecoder,
                        ProxyMessageEncoder messageEncoder,

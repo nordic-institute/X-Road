@@ -27,13 +27,14 @@
 <template>
   <main id="intermediate-ca-ocsp-responders" class="mt-8">
     <OcspRespondersList
+      v-if="intermediateCasServiceStore.currentSelectedIntermediateCa"
       :ca="intermediateCasServiceStore.currentSelectedIntermediateCa"
     />
   </main>
 </template>
 
 <script lang="ts">
-import Vue, { defineComponent } from 'vue';
+import { defineComponent } from 'vue';
 import { mapStores } from 'pinia';
 import {
   useCertificationService,

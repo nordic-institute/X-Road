@@ -8,23 +8,25 @@ case "$i" in
     "-release")
         RELEASE="RELEASE"
         ;;
-    "sonar"|"-sonar")
-        SONAR=1
-        ;;
     "-nodaemon")
         NODAEMON=1
+        ;;
+    "--skip-tests")
+        SKIP_TESTS=1
         ;;
 esac
 done
 
-ARGUMENTS=("-PxroadBuildType=$RELEASE" --stacktrace build runProxyTest runMetaserviceTest runProxymonitorMetaserviceTest)
+ARGUMENTS=("-PxroadBuildType=$RELEASE" --stacktrace build )
 
-if [[ -n "$SONAR" ]]; then
-    ARGUMENTS+=(dependencyCheckAnalyze sonarqube)
+if [[ -n "$SKIP_TESTS" ]]; then
+    ARGUMENTS+=(-xtest -xintegrationTest -xintTest)
+else
+    ARGUMENTS+=(runProxyTest runMetaserviceTest runProxymonitorMetaserviceTest)
 fi
 
 if [[ -n "$NODAEMON" ]]; then
-    ARGUMENTS+=(--no-daemon -v /var/run/docker.sock:/var/run/docker.sock)
+    ARGUMENTS+=(--no-daemon)
 fi
 
 ./gradlew "${ARGUMENTS[@]}"

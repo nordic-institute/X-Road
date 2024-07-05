@@ -27,8 +27,6 @@ package org.niis.xroad.cs.admin.rest.api.openapi;
 
 import ee.ria.xroad.common.identifier.ClientId;
 
-import io.vavr.control.Option;
-import io.vavr.control.Try;
 import lombok.RequiredArgsConstructor;
 import org.niis.xroad.common.exception.NotFoundException;
 import org.niis.xroad.common.exception.ValidationFailureException;
@@ -57,6 +55,7 @@ import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
 
 import java.util.List;
+import java.util.Optional;
 
 import static java.util.stream.Collectors.toList;
 import static org.niis.xroad.cs.admin.api.exception.ErrorMessage.INVALID_MEMBER_ID;
@@ -84,12 +83,12 @@ public class MembersApiController implements MembersApi {
     @AuditEventMethod(event = ADD_MEMBER)
     public ResponseEntity<ClientDto> addMember(MemberAddDto memberAddDto) {
 
-        return Try.success(memberAddDto)
+        return Optional.of(memberAddDto)
                 .map(memberCreationRequestMapper::toTarget)
                 .map(memberService::add)
                 .map(clientDtoConverter::toDto)
                 .map(ResponseEntity.status(HttpStatus.CREATED)::body)
-                .get();
+                .orElseGet(() -> ResponseEntity.badRequest().build());
     }
 
     @Override
@@ -107,12 +106,12 @@ public class MembersApiController implements MembersApi {
     @PreAuthorize("hasAnyAuthority('VIEW_MEMBER_DETAILS')")
     public ResponseEntity<ClientDto> getMember(String id) {
         verifyMemberId(id);
-        return Option.of(id)
+        return Optional.of(id)
                 .map(clientIdConverter::convertId)
                 .flatMap(memberService::findMember)
                 .map(clientDtoConverter::toDto)
                 .map(ResponseEntity::ok)
-                .getOrElseThrow(() -> new NotFoundException(ErrorMessage.MEMBER_NOT_FOUND));
+                .orElseThrow(() -> new NotFoundException(ErrorMessage.MEMBER_NOT_FOUND));
     }
 
     @Override
@@ -154,12 +153,12 @@ public class MembersApiController implements MembersApi {
     @AuditEventMethod(event = EDIT_MEMBER_NAME)
     public ResponseEntity<ClientDto> updateMemberName(String id, MemberNameDto memberName) {
         verifyMemberId(id);
-        return Option.of(id)
+        return Optional.of(id)
                 .map(clientIdConverter::convertId)
                 .flatMap(clientId -> memberService.updateMemberName(clientId, memberName.getMemberName()))
                 .map(clientDtoConverter::toDto)
                 .map(ResponseEntity::ok)
-                .getOrElseThrow(() -> new NotFoundException(ErrorMessage.MEMBER_NOT_FOUND));
+                .orElseThrow(() -> new NotFoundException(ErrorMessage.MEMBER_NOT_FOUND));
     }
 
     private void verifyMemberId(String id) {

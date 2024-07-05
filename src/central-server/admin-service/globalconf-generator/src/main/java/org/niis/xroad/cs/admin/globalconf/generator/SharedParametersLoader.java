@@ -26,6 +26,8 @@
  */
 package org.niis.xroad.cs.admin.globalconf.generator;
 
+import ee.ria.xroad.common.conf.globalconf.CertHash;
+import ee.ria.xroad.common.conf.globalconf.SharedParameters;
 import ee.ria.xroad.common.identifier.ClientId;
 
 import lombok.RequiredArgsConstructor;
@@ -57,6 +59,7 @@ import java.util.List;
 import java.util.Map;
 
 import static java.util.stream.Collectors.toList;
+import static org.apache.commons.lang3.StringUtils.isNotBlank;
 
 @Component
 @RequiredArgsConstructor
@@ -74,16 +77,8 @@ class SharedParametersLoader {
 
 
     SharedParameters load() {
-        var parameters = new SharedParameters();
-        parameters.setSources(getSources());
-        parameters.setInstanceIdentifier(systemParameterService.getInstanceIdentifier());
-        parameters.setApprovedCAs(getApprovedCAs());
-        parameters.setApprovedTSAs(getApprovedTSAs());
-        parameters.setMembers(getMembers());
-        parameters.setSecurityServers(getSecurityServers());
-        parameters.setGlobalGroups(getGlobalGroups());
-        parameters.setGlobalSettings(getGlobalSettings());
-        return parameters;
+        return new SharedParameters(systemParameterService.getInstanceIdentifier(), getSources(), getApprovedCAs(),
+                getApprovedTSAs(), getMembers(), getSecurityServers(), getGlobalGroups(), getGlobalSettings());
     }
 
     private List<SharedParameters.ConfigurationSource> getSources() {
@@ -127,14 +122,25 @@ class SharedParametersLoader {
         approvedCA.setName(ca.getName());
         approvedCA.setAuthenticationOnly(ca.getTlsAuth());
         approvedCA.setCertificateProfileInfo(ca.getCertificateProfileInfo());
-        approvedCA.setTopCA(new SharedParameters.CaInfo(toOcspInfos(ca.getOcspResponders()), ca.getCertificate()));
-        approvedCA.setIntermediateCAs(toCaInfos(ca.getIntermediateCas()));
+        approvedCA.setTopCA(new SharedParameters.CaInfo(ca.getCertificate(), toOcspInfos(ca.getOcspResponders())));
+        approvedCA.setIntermediateCas(toCaInfos(ca.getIntermediateCas()));
+        if (isNotBlank(ca.getAcmeServerDirectoryUrl())) {
+            approvedCA.setAcmeServer(
+                    new SharedParameters.AcmeServer(ca.getAcmeServerDirectoryUrl(),
+                            isNotBlank(ca.getAcmeServerIpAddress()) ? ca.getAcmeServerIpAddress() : null,
+                            isNotBlank(ca.getAuthenticationCertificateProfileId()) ? ca.getAuthenticationCertificateProfileId() : null,
+                            isNotBlank(ca.getSigningCertificateProfileId()) ? ca.getSigningCertificateProfileId() : null
+                    )
+            );
+        } else {
+            approvedCA.setAcmeServer(null);
+        }
         return approvedCA;
     }
 
     private List<SharedParameters.CaInfo> toCaInfos(List<CertificateAuthority> cas) {
         return cas.stream()
-                .map(ca -> new SharedParameters.CaInfo(toOcspInfos(ca.getOcspResponders()), ca.getCaCertificate().getEncoded()))
+                .map(ca -> new SharedParameters.CaInfo(ca.getCaCertificate().getEncoded(), toOcspInfos(ca.getOcspResponders())))
                 .toList();
     }
 
@@ -171,8 +177,9 @@ class SharedParametersLoader {
         result.setAddress(ss.getAddress());
         result.setServerCode(ss.getServerCode());
         result.setClients(getSecurityServerClients(ss.getId()));
-        result.setAuthCerts(ss.getAuthCerts().stream()
+        result.setAuthCertHashes(ss.getAuthCerts().stream()
                 .map(AuthCert::getCert)
+                .map(CertHash::new)
                 .toList());
         return result;
     }

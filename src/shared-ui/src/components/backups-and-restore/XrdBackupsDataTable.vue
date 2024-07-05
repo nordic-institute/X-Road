@@ -72,14 +72,12 @@ import { BackupHandler, BackupItem } from '../../types';
 import XrdDeleteBackupButton from "./XrdDeleteBackupButton.vue";
 import XrdRestoreBackupButton from "./XrdRestoreBackupButton.vue";
 import XrdDownloadBackupButton from "./XrdDownloadBackupButton.vue";
-import { VDataTable } from "vuetify/labs/VDataTable";
 
 export default defineComponent({
   components: {
     XrdDownloadBackupButton,
     XrdRestoreBackupButton,
     XrdDeleteBackupButton,
-    VDataTable
   },
   props:{
     backups: {

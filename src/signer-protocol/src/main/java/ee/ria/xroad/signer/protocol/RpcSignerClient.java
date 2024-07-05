@@ -56,19 +56,24 @@ public final class RpcSignerClient {
      *
      * @throws Exception
      */
-    public static void init() throws Exception {
-        init(getGrpcInternalHost(), getGrpcSignerPort(), getSignerClientTimeout());
+    public static RpcSignerClient init() throws Exception {
+        return init(getGrpcInternalHost(), getGrpcSignerPort(), getSignerClientTimeout());
     }
 
-    public static void init(String host, int port, int clientTimeoutMillis) throws Exception {
+    public static RpcSignerClient init(String host, int port, int clientTimeoutMillis) throws Exception {
         var client = RpcClient.newClient(host, port, clientTimeoutMillis, SignerRpcExecutionContext::new);
         instance = new RpcSignerClient(client);
+        return instance;
     }
 
     public static void shutdown() {
         if (instance != null) {
-            instance.client.shutdown();
+            instance.stop();
         }
+    }
+
+    public void stop() {
+        client.shutdown();
     }
 
     @Getter

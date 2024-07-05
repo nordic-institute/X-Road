@@ -24,108 +24,101 @@
    THE SOFTWARE.
  -->
 <template>
-  <div class="certificate-details-wrapper xrd-default-shadow">
-    <xrd-sub-view-title :title="$t('cert.certificate')" @close="close" />
-    <div class="pl-4">
-      <div v-if="certificate" class="detail-view-tools">
-        <xrd-button
-          v-if="showActivate"
-          class="button-spacing"
-          outlined
-          data-test="activate-button"
-          @click="activateCertificate(certificate.certificate_details.hash)"
-          >{{ $t('action.activate') }}</xrd-button
-        >
-        <xrd-button
-          v-if="showDisable"
-          class="button-spacing"
-          outlined
-          data-test="deactivate-button"
-          @click="deactivateCertificate(certificate.certificate_details.hash)"
-          >{{ $t('action.deactivate') }}</xrd-button
-        >
-        <xrd-button
-          v-if="showUnregister"
-          class="button-spacing"
-          outlined
-          data-test="unregister-button"
-          @click="confirmUnregisterCertificate = true"
-          >{{ $t('action.unregister') }}</xrd-button
-        >
-        <xrd-button
-          v-if="showDelete"
-          class="button-spacing"
-          outlined
-          data-test="delete-button"
-          @click="showConfirmDelete()"
-        >
-          <xrd-icon-base class="xrd-large-button-icon">
-            <xrd-icon-declined />
-          </xrd-icon-base>
-          {{ $t('action.delete') }}</xrd-button
-        >
-      </div>
-      <template v-if="certificate && certificate.certificate_details">
-        <div class="detail-view-cert-hash">
-          <certificateHash :hash="certificate.certificate_details.hash" />
-        </div>
-        <certificateInfo :certificate="certificate.certificate_details" />
-      </template>
-    </div>
+  <CertificateView v-if="certificate" :certificate-details="certificate.certificate_details">
+    <template #tools>
+      <xrd-button
+        v-if="showActivate"
+        class="button-spacing"
+        outlined
+        data-test="activate-button"
+        @click="activateCertificate(certificate.certificate_details.hash)"
+      >
+        {{ $t('action.activate') }}
+      </xrd-button>
+      <xrd-button
+        v-if="showDisable"
+        class="button-spacing"
+        outlined
+        data-test="deactivate-button"
+        @click="deactivateCertificate(certificate.certificate_details.hash)"
+      >
+        {{ $t('action.deactivate') }}
+      </xrd-button>
+      <xrd-button
+        v-if="showUnregister"
+        class="button-spacing"
+        outlined
+        data-test="unregister-button"
+        @click="confirmUnregisterCertificate = true"
+      >
+        {{ $t('action.unregister') }}
+      </xrd-button>
+      <xrd-button
+        v-if="showDelete"
+        class="button-spacing"
+        outlined
+        data-test="delete-button"
+        @click="showConfirmDelete()"
+      >
+        <xrd-icon-base class="xrd-large-button-icon">
+          <xrd-icon-declined />
+        </xrd-icon-base>
+        {{ $t('action.delete') }}
+      </xrd-button>
+    </template>
+  </CertificateView>
 
-    <!-- Confirm dialog for delete -->
-    <xrd-confirm-dialog
-      v-if="confirm"
-      title="cert.deleteCertTitle"
-      text="cert.deleteCertConfirm"
-      @cancel="confirm = false"
-      @accept="deleteCertificate()"
-    />
+  <!-- Confirm dialog for delete -->
+  <xrd-confirm-dialog
+    v-if="confirm"
+    title="cert.deleteCertTitle"
+    text="cert.deleteCertConfirm"
+    @cancel="confirm = false"
+    @accept="deleteCertificate()"
+  />
 
-    <!-- Confirm dialog for unregister certificate -->
-    <xrd-confirm-dialog
-      v-if="confirmUnregisterCertificate"
-      :loading="unregisterLoading"
-      title="keys.unregisterTitle"
-      text="keys.unregisterText"
-      @cancel="confirmUnregisterCertificate = false"
-      @accept="unregisterCert()"
-    />
+  <!-- Confirm dialog for unregister certificate -->
+  <xrd-confirm-dialog
+    v-if="confirmUnregisterCertificate"
+    :loading="unregisterLoading"
+    title="keys.unregisterTitle"
+    text="keys.unregisterText"
+    @cancel="confirmUnregisterCertificate = false"
+    @accept="unregisterCert()"
+  />
 
-    <!-- Confirm dialog for unregister error handling -->
-    <UnregisterErrorDialog
-      v-if="unregisterErrorResponse"
-      :error-response="unregisterErrorResponse"
-      :dialog="confirmUnregisterError"
-      @cancel="confirmUnregisterError = false"
-      @accept="markForDeletion()"
-    />
-  </div>
+  <!-- Confirm dialog for unregister error handling -->
+  <UnregisterErrorDialog
+    v-if="unregisterErrorResponse"
+    :error-response="unregisterErrorResponse"
+    :dialog="confirmUnregisterError"
+    @cancel="confirmUnregisterError = false"
+    @accept="markForDeletion()"
+  />
+
 </template>
 
 <script lang="ts">
 import { defineComponent } from 'vue';
 import * as api from '@/util/api';
+import { encodePathParameter } from '@/util/api';
 import { Permissions } from '@/global';
 import {
-  TokenCertificate,
-  PossibleActions as PossibleActionsList,
   KeyUsageType,
   PossibleAction,
+  PossibleActions as PossibleActionsList,
+  TokenCertificate,
 } from '@/openapi-types';
-import CertificateInfo from '@/components/certificate/CertificateInfo.vue';
-import CertificateHash from '@/components/certificate/CertificateHash.vue';
 import UnregisterErrorDialog from './UnregisterErrorDialog.vue';
-import { encodePathParameter } from '@/util/api';
 import { PossibleActions } from '@/openapi-types/models/PossibleActions';
 import { mapActions, mapState } from 'pinia';
 import { useNotifications } from '@/store/modules/notifications';
 import { useUser } from '@/store/modules/user';
+import CertificateView from '@/components/certificate/CertificateView.vue';
 
 export default defineComponent({
   components: {
-    CertificateInfo,
-    CertificateHash,
+    CertificateView,
     UnregisterErrorDialog,
   },
   props: {
@@ -337,7 +330,6 @@ export default defineComponent({
 </script>
 
 <style lang="scss" scoped>
-@import '@/assets/detail-views';
 
 .button-spacing {
   margin-left: 20px;

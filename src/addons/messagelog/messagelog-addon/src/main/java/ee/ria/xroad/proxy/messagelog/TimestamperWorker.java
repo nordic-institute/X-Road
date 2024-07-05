@@ -91,7 +91,7 @@ public class TimestamperWorker {
     }
 
     private AbstractTimestampRequest createTimestampRequest(Long[] logRecords,
-            String[] signatureHashes) {
+                                                            String[] signatureHashes) {
         if (logRecords.length == 1) {
             log.debug("Creating regular time-stamp");
 

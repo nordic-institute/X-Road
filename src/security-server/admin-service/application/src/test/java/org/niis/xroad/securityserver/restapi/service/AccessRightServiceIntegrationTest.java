@@ -241,6 +241,7 @@ public class AccessRightServiceIntegrationTest extends AbstractServiceIntegratio
         } catch (AccessRightService.AccessRightNotFoundException expected) {
         }
     }
+
     @Test
     public void removeObsoleteSoapServiceAccessRights() throws Exception {
         ClientId.Conf serviceOwner = TestUtils.getM1Ss1ClientId();
@@ -571,7 +572,7 @@ public class AccessRightServiceIntegrationTest extends AbstractServiceIntegratio
 
         // should have 3 subjects with 3 identical access rights each
         assertEquals(3, dtosById.size());
-        for (XRoadId subjectId: dtosById.keySet()) {
+        for (XRoadId subjectId : dtosById.keySet()) {
             List<ServiceClientAccessRightDto> accessRights = dtosById.get(subjectId);
             assertNotNull(accessRights);
             assertEquals(3, accessRights.size());
@@ -586,7 +587,7 @@ public class AccessRightServiceIntegrationTest extends AbstractServiceIntegratio
     }
 
     private ServiceClientAccessRightDto findServiceClientAccessRightDto(String serviceCode,
-            List<ServiceClientAccessRightDto> accessRights) {
+                                                                        List<ServiceClientAccessRightDto> accessRights) {
         return accessRights.stream()
                 .filter(dto -> dto.getServiceCode().equals(serviceCode))
                 .findFirst()

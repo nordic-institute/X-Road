@@ -1,6 +1,6 @@
 # X-Road: Central Server Installation Guide <!-- omit in toc -->
 
-Version: 2.37
+Version: 2.40
 Doc. ID: IG-CS
 
 ---
@@ -55,7 +55,9 @@ Doc. ID: IG-CS
 | 13.09.2023 | 2.35    | Database integrity check errors before center upgrade                                                                                                                                         | Eneli Reimets      |
 | 14.10.2023 | 2.36    | Add Global configuration distribution over https                                                                                                                                              | Eneli Reimets      |
 | 08.12.2023 | 2.37    | Minor updates                                                                                                                                                                                 | Petteri Kivimäki   |
-
+| 02.01.2024 | 2.38    | Loopback ports added                                                                                                                                                                          | Justas Samuolis    |
+| 25.04.2024 | 2.39    | Updated for Ubuntu 24.04                                                                                                                                                                      | Madis Loitmaa      |
+ | 12.06.2024 | 2.40    | Update network diagram                                                                                                                                                                        | Petteri Kivimäki   |
 ## Table of Contents <!-- omit in toc -->
 
 <!-- toc -->
@@ -91,7 +93,7 @@ Doc. ID: IG-CS
   - [4.2 Global configuration V2 support](#42-global-configuration-v2-support)
   - [4.3 Global configuration V3 support](#43-global-configuration-v3-support)
 - [5 Installation Error Handling](#5-installation-error-handling)
-  - [5.1 Cannot Set LC_ALL to Default Locale](#51-cannot-set-lc_all-to-default-locale)
+  - [5.1 Cannot Set LC\_ALL to Default Locale](#51-cannot-set-lc_all-to-default-locale)
   - [5.2 PostgreSQL Is Not UTF8 Compatible](#52-postgresql-is-not-utf8-compatible)
   - [5.3 Could Not Create Default Cluster](#53-could-not-create-default-cluster)
   - [5.4 Is Postgres Running on Port 5432?](#54-is-postgres-running-on-port-5432)
@@ -141,7 +143,7 @@ See X-Road terms and abbreviations documentation \[[TA-TERMS](#Ref_TERMS)\].
 
 ### 2.1 Prerequisites to Installation
 
-The Central Server software assumes an existing installation of the Ubuntu 20.04 LTS or 22.04 LTS operating system, on an x86-64bit platform. To provide management services, a Security Server is installed alongside the Central Server.
+The Central Server software assumes an existing installation of the Ubuntu 20.04 LTS, 22.04 LTS or 24.04 LTS operating system, on an x86-64bit platform. To provide management services, a Security Server is installed alongside the Central Server.
 
 The Central Server’s software can be installed both on physical and virtualized hardware (of the latter, Xen and Oracle VirtualBox have been tested).
 
@@ -177,21 +179,32 @@ It is strongly recommended to protect the Central Server from unwanted access us
 
 The network diagram below provides an example of a basic Central Server setup.
 
-![network diagram](img/ig-cs_network_diagram.png)
+![network diagram](img/ig-cs_network_diagram.svg)
 
 The table below lists the required connections between different components. Please note that required connections between Security Servers and trust services (OCSP service, time-stamping service) have been omitted from the diagram and the table below. Their configuration is described in [IG-SS](#Ref_IG-SS).
 
-**Connection Type** | **Source**                        | **Target**                    | **Target Ports** | **Protocol** | **Note**                                                                                    |
------------|-----------------------------------|-------------------------------|------------------|-----------|---------------------------------------------------------------------------------------------|
-Out | Monitoring Security Server        | X-Road Member Security Server | 5500, 5577       | tcp | Operational and environmental monitoring data collection                                    |
-In  | X-Road Member Security Server     | Central Server                | 80, 443          | tcp | Global configuration distribution                                                           |
-In  | X-Road Member Security Server     | Central Server                | 4001             | tcp | Authentication certificate registration requests from X-Road Members' Security Servers      |
-In  | Management Security Server        | Central Server                | 4002             | tcp | Source in the internal network. Management service requests from Management Security Server |
-In  | X-Road Member Security Server     | Management Security Server    | 5500, 5577       | tcp | Management service requests from X-Road Members' Security Servers                           |
-In  | Central Monitoring Client         | Monitoring Security Server    | 8080, 8443       | tcp | Source in the internal network                                                              |
-In  | Admin, management REST API client | Central Server                | 4000             | tcp | Source in the internal network                                                              |
-In  | Admin                             | Management Security Server    | 4000             | tcp | Source in the internal network                                                              |
-In  | Admin                             | Monitoring Security Server    | 4000             | tcp | Source in the internal network                                                              |
+| **Connection Type** | **Source**                        | **Target**                    | **Target Ports**    | **Protocol** | **Note**                                                                                                                                                                         |
+|---------------------|-----------------------------------|-------------------------------|---------------------|--------------|----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| Out                 | Monitoring Security Server        | X-Road Member Security Server | 5500, 5577          | tcp          | Operational and environmental monitoring data collection                                                                                                                         |
+| In                  | X-Road Member Security Server     | Central Server                | 80, 443             | tcp          | Global configuration distribution                                                                                                                                                |
+| In                  | X-Road Member Security Server     | Central Server                | 4001                | tcp          | Authentication certificate registration requests from X-Road Members' Security Servers                                                                                           |
+| In                  | Management Security Server        | Central Server                | 80, 443, 4001, 4002 | tcp          | Source in the internal network. Management service requests from Management Security Server. Global configuration distribution. Authentication certificate registration requests |
+| In                  | Monitoring Security Server        | Central Server                | 80, 443, 4001       | tcp          | Source in the internal network. Global configuration distribution. Authentication certificate registration requests                                                                                                              |
+| In                  | X-Road Member Security Server     | Management Security Server    | 5500, 5577          | tcp          | Management service requests from X-Road Members' Security Servers                                                                                                                |
+| In                  | Central Monitoring Client         | Monitoring Security Server    | 8080, 8443          | tcp          | Source in the internal network                                                                                                                                                   |
+| In                  | Admin, management REST API client | Central Server                | 4000                | tcp          | Source in the internal network                                                                                                                                                   |
+| In                  | Admin                             | Management Security Server    | 4000                | tcp          | Source in the internal network                                                                                                                                                   |
+| In                  | Admin                             | Monitoring Security Server    | 4000                | tcp          | Source in the internal network                                                                                                                                                   |
+
+The table below lists the open ports for Central Server components utilizing the _loopback_ interface. A loopback interface is a virtual network interface on a computer, facilitating self-communication for processes and applications. This enables local communication and the ports must be accessible locally.
+
+| **Component**        | **Ports** | **Protocol** | **Note**                                      |
+|----------------------|-----------|--------------|-----------------------------------------------|
+| Registration Service | 8084      | tcp          | For incoming requests to Registration Service |
+| Management Service   | 8085      | tcp          | For incoming requests to Management Service   |
+| PostgreSQL database  | 5432      | tcp          | Default PostgreSQL database port              |
+| Signer               | 5560      | tcp          | Signer gRPC port                              |
+| Audit log            | 514       | udp          |                                               |
 
 ### 2.3 Requirements to the Central Server
 
@@ -202,7 +215,7 @@ Minimum recommended hardware parameters:
 - 100 Mbps network interface card.
 
 Requirements for software and settings:
-- an installed and configured Ubuntu 20.04 LTS or 22.04 LTS x86-64 operating system;
+- an installed and configured Ubuntu 20.04 LTS, 22.04 LTS or 24.04 x86-64 operating system;
 - the necessary connections are allowed in the firewall (reference data: 1.4; 1.4.1; 1.5; 1.6),
 - if the Central Server has a private IP address, a corresponding NAT record must be created in the firewall (reference data: 1.8).
 
@@ -394,19 +407,17 @@ Configuration parameters for management web service are specified in the [UG-SYS
 
 The installation is successful if the system services are started and the user interface is responding.
 
--   Ensure from the command line that relevant X-Road services are in the `running` state (example output follows). Notice that it is normal for the xroad-confclient to be in `stopped` state on the Central Server since it operates in one-shot mode.
+-   Ensure from the command line that relevant X-Road services are in the `running` state (example output follows). Notice that it is normal for the xroad-confclient to be in `stopped` state on the Central Server since it operates in one-shot mode.    
+    ```bash
+    sudo systemctl list-units "xroad*"
 
-    - Ubuntu 20.04 or 22.04
-        ```bash
-        sudo systemctl list-units "xroad*"
-
-        UNIT                                      LOAD   ACTIVE SUB     DESCRIPTION
-        xroad-base.service                        loaded active exited  X-Road initialization
-        xroad-center-management-service.service   loaded active running X-Road Central Server Management Service
-        xroad-center-registration-service.service loaded active running X-Road Central Server Registration Service
-        xroad-center.service                      loaded active running X-Road Central Server
-        xroad-signer.service                      loaded active running X-Road signer
-        ```
+    UNIT                                      LOAD   ACTIVE SUB     DESCRIPTION
+    xroad-base.service                        loaded active exited  X-Road initialization
+    xroad-center-management-service.service   loaded active running X-Road Central Server Management Service
+    xroad-center-registration-service.service loaded active running X-Road Central Server Registration Service
+    xroad-center.service                      loaded active running X-Road Central Server
+    xroad-signer.service                      loaded active running X-Road signer
+    ```
 
 -   Ensure that the Central Server user interface at https://SECURITYSERVER:4000/ (**reference data: 1.8; 1.6**) can be opened in a Web browser. To log in, use the account name chosen during the installation (**reference data: 1.3**). While the user interface is still starting up, the Web browser may display the “502 Bad Gateway” error.
 

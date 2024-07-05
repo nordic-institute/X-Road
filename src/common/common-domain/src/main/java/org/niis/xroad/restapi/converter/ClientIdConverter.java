@@ -27,9 +27,9 @@ package org.niis.xroad.restapi.converter;
 
 import ee.ria.xroad.common.identifier.ClientId;
 
+import jakarta.inject.Named;
 import org.niis.xroad.common.exception.ValidationFailureException;
 import org.niis.xroad.restapi.util.FormatUtils;
-import org.springframework.stereotype.Service;
 
 import java.util.Arrays;
 import java.util.List;
@@ -41,8 +41,8 @@ import static org.niis.xroad.common.exception.util.CommonDeviationMessage.INVALI
 /**
  * Converter for encoded client ids
  */
-@Service
-public class ClientIdConverter extends AbstractConverter<ClientId, String> {
+@Named("clientIdConverter")
+public class ClientIdConverter extends DtoConverter<ClientId, String> {
 
     public static final int INSTANCE_INDEX = 0;
     public static final int MEMBER_CLASS_INDEX = 1;
@@ -120,12 +120,12 @@ public class ClientIdConverter extends AbstractConverter<ClientId, String> {
     }
 
     @Override
-    protected ClientId convertToA(String source) {
+    public ClientId fromDto(String source) {
         return convertId(source);
     }
 
     @Override
-    protected String convertToB(ClientId source) {
+    public String toDto(ClientId source) {
         return convertId(source);
     }
 }

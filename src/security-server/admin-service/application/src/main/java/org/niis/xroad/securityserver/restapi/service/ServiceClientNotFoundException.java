@@ -34,9 +34,11 @@ public class ServiceClientNotFoundException extends NotFoundException {
     public ServiceClientNotFoundException() {
         super(new ErrorDeviation(ERROR_SERVICE_CLIENT_NOT_FOUND));
     }
+
     public ServiceClientNotFoundException(String s) {
         super(s, new ErrorDeviation(ERROR_SERVICE_CLIENT_NOT_FOUND));
     }
+
     public ServiceClientNotFoundException(Throwable t) {
         super(t, new ErrorDeviation(ERROR_SERVICE_CLIENT_NOT_FOUND));
     }

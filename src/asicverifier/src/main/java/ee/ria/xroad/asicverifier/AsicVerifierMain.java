@@ -33,12 +33,10 @@ import ee.ria.xroad.common.asic.AsicContainerVerifier;
 import ee.ria.xroad.common.asic.AsicUtils;
 import ee.ria.xroad.common.conf.globalconf.GlobalConf;
 
-import org.apache.commons.io.IOUtils;
-
-import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.Files;
+import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Scanner;
 import java.util.zip.ZipEntry;
@@ -48,6 +46,8 @@ import java.util.zip.ZipInputStream;
  * ASiC container verifier utility program.
  */
 public final class AsicVerifierMain {
+
+    private static final Path CURRENT_DIR = Paths.get("").toAbsolutePath();
 
     private AsicVerifierMain() {
     }
@@ -137,10 +137,11 @@ public final class AsicVerifierMain {
 
     @SuppressWarnings("javasecurity:S2083")
     private static void writeToFile(String fileName, InputStream contents) throws IOException {
-        try (FileOutputStream file = new FileOutputStream(fileName)) {
-            IOUtils.copy(contents, file);
+        final var targetFile = CURRENT_DIR.resolve(fileName);
+        if (targetFile.normalize().startsWith(CURRENT_DIR.normalize())) {
+            Files.copy(contents, targetFile);
+            System.out.println("Created file " + fileName);
         }
-        System.out.println("Created file " + fileName);
     }
 
     private static void showUsage() {

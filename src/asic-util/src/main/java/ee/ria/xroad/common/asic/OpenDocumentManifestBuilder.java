@@ -27,8 +27,6 @@ package ee.ria.xroad.common.asic;
 
 import ee.ria.xroad.common.util.MimeTypes;
 
-import lombok.Data;
-
 import java.util.ArrayList;
 import java.util.List;
 
@@ -47,7 +45,7 @@ class OpenDocumentManifestBuilder {
         StringBuilder fileEntries = new StringBuilder();
 
         fileEntries.append(getFileEntry("/", MimeTypes.ASIC_ZIP));
-        entries.forEach(e -> fileEntries.append(getFileEntry(e.getFileName(), e.getMediaType())));
+        entries.forEach(e -> fileEntries.append(getFileEntry(e.fileName(), e.mediaType())));
 
         return getBaseDocument(fileEntries.toString());
     }
@@ -66,9 +64,7 @@ class OpenDocumentManifestBuilder {
                 + "</manifest:manifest>\n";
     }
 
-    @Data
-    private static class Entry {
-        private final String fileName;
-        private final String mediaType;
+
+    private record Entry(String fileName, String mediaType) {
     }
 }

@@ -29,99 +29,70 @@
     title="trustServices.timestampingService.dialog.add.title"
     save-button-text="action.add"
     cancel-button-text="action.cancel"
+    submittable
     :loading="loading"
-    :disable-save="!meta.valid || !certFile || !certFileTitle"
+    :disable-save="!canAdd"
     @save="save"
-    @cancel="cancel"
+    @cancel="$emit('cancel')"
   >
     <template #content>
-      <div class="dlg-input-width">
+      <div class="dlg-input-width space-out-bottom">
         <v-text-field
-          v-bind="tasUrl"
-          :label="$t('trustServices.timestampingService.url')"
-          :error-messages="errors.url"
+          v-model="tasUrl"
+          v-bind="tasUrlAttrs"
           variant="outlined"
+          data-test="timestamping-service-url-input"
           autofocus
           persistent-hint
-          data-test="timestamping-service-url-input"
+          :label="$t('trustServices.timestampingService.url')"
         ></v-text-field>
       </div>
 
       <div class="dlg-input-width">
-        <xrd-file-upload
-          v-slot="{ upload }"
-          accepts=".der, .crt, .pem, .cer"
-          @file-changed="onFileUploaded"
-        >
-          <v-text-field
-            v-model="certFileTitle"
-            variant="outlined"
-            :label="$t('trustServices.uploadCertificate')"
-            append-inner-icon="icon-Upload"
-            data-test="timestamping-service-file-input"
-            @click="upload"
-          ></v-text-field>
-        </xrd-file-upload>
+        <CertificateFileUpload
+          v-model:file="certFile"
+          data-test="timestamping-service-file-input"
+          label-key="trustServices.uploadCertificate"
+        />
       </div>
     </template>
   </xrd-simple-dialog>
 </template>
 
-<script lang="ts">
-import { defineComponent } from 'vue';
-import { FileUploadResult, XrdFileUpload } from '@niis/shared-ui';
+<script lang="ts" setup>
+import { computed } from 'vue';
 import { useTimestampingServicesStore } from '@/store/modules/trust-services';
-import { mapActions, mapStores } from 'pinia';
-import { useNotifications } from '@/store/modules/notifications';
 import { useForm } from 'vee-validate';
+import CertificateFileUpload from '@/components/ui/CertificateFileUpload.vue';
+import { useBasicForm, useFileRef } from '@/util/composables';
 
-export default defineComponent({
-  components: { XrdFileUpload },
-  emits: ['save', 'cancel'],
-  setup() {
-    const { values, errors, meta, defineComponentBinds } = useForm({
-      validationSchema: { url: 'required|url' },
-    });
-    const tasUrl = defineComponentBinds('url');
-    return { values, errors, meta, tasUrl };
-  },
-  data() {
-    return {
-      showCASettingsDialog: false,
-      certFile: null as File | null,
-      certFileTitle: '',
-      loading: false,
-    };
-  },
-  computed: {
-    ...mapStores(useTimestampingServicesStore),
-  },
-  methods: {
-    ...mapActions(useNotifications, ['showError', 'showSuccess']),
-    onFileUploaded(result: FileUploadResult): void {
-      this.certFile = result.file;
-      this.certFileTitle = result.file.name;
-    },
-    save(): void {
-      if (!this.certFile) return;
+const emits = defineEmits(['save', 'cancel']);
 
-      this.loading = true;
-      this.timestampingServicesStore
-        .addTimestampingService(this.values.url, this.certFile)
-        .then(() => {
-          this.showSuccess(
-            this.$t('trustServices.timestampingService.dialog.add.success'),
-          );
-          this.$emit('save');
-        })
-        .catch((error) => {
-          this.showError(error);
-        })
-        .finally(() => (this.loading = false));
-    },
-    cancel(): void {
-      this.$emit('cancel');
-    },
-  },
+const { meta, defineField, handleSubmit } = useForm({
+  validationSchema: { url: 'required|url' },
+});
+const [tasUrl, tasUrlAttrs] = defineField('url', {
+  props: (state) => ({ 'error-messages': state.errors }),
+});
+
+const { showSuccess, showError, t, loading } = useBasicForm();
+const { addTimestampingService } = useTimestampingServicesStore();
+
+const certFile = useFileRef();
+const canAdd = computed(() => meta.value.valid && certFile.value);
+
+const save = handleSubmit((values) => {
+  if (!certFile.value) {
+    return;
+  }
+
+  loading.value = true;
+  addTimestampingService(values.url, certFile.value)
+    .then(() => {
+      showSuccess(t('trustServices.timestampingService.dialog.add.success'));
+      emits('save');
+    })
+    .catch((error) => showError(error))
+    .finally(() => (loading.value = false));
 });
 </script>

@@ -33,7 +33,7 @@ class TestConnectionManager
     private final TestSystemMetrics systemMetrics;
 
     TestConnectionManager(TestConfiguration configuration,
-            TestSystemMetrics systemMetrics) {
+                          TestSystemMetrics systemMetrics) {
         super(configuration);
         this.systemMetrics = systemMetrics;
     }

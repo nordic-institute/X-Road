@@ -46,6 +46,7 @@ public class SecurityServersStepDefs extends BaseUiStepDefs {
     public void serversListIsDisplayed() {
         securityServersPageObj.listView().shouldBe(visible);
     }
+
     @Step("list doesn't contain security server with code {string}")
     public void securityServerIsInList(final String serverCode) {
         securityServersPageObj.listRowOf(serverCode).shouldNotBe(visible);

@@ -30,10 +30,7 @@ package org.niis.xroad.cs.admin.globalconf.generator;
 import ee.ria.xroad.common.SystemProperties;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import lombok.Builder;
 import lombok.RequiredArgsConstructor;
-import lombok.Value;
-import lombok.extern.jackson.Jacksonized;
 import lombok.extern.slf4j.Slf4j;
 import org.niis.xroad.cs.admin.api.dto.GlobalConfGenerationStatus;
 import org.niis.xroad.cs.admin.api.service.GlobalConfGenerationStatusService;
@@ -68,14 +65,14 @@ public class GlobalConfGenerationStatusServiceImpl implements GlobalConfGenerati
     }
 
     private void saveSuccess() {
-        writeFile(GlobalConfGenerationStatusInternal.builder().success(true).time(now()).build());
+        writeFile(new GlobalConfGenerationStatusInternal(now(), true));
     }
 
     private void saveFailure() {
         final GlobalConfGenerationStatus lastStatus = get();
 
         if (lastStatus.getStatus() != FAILURE) {
-            writeFile(GlobalConfGenerationStatusInternal.builder().time(now()).success(false).build());
+            writeFile(new GlobalConfGenerationStatusInternal(now(), false));
         }
     }
 
@@ -94,19 +91,14 @@ public class GlobalConfGenerationStatusServiceImpl implements GlobalConfGenerati
             final String content = Files.readString(Paths.get(SystemProperties.getLogPath(), STATUS_FILE_NAME));
             final GlobalConfGenerationStatusInternal statusInternal =
                     objectMapper.readValue(content, GlobalConfGenerationStatusInternal.class);
-            return new GlobalConfGenerationStatus(statusInternal.isSuccess() ? SUCCESS : FAILURE, statusInternal.getTime());
+            return new GlobalConfGenerationStatus(statusInternal.success() ? SUCCESS : FAILURE, statusInternal.time());
         } catch (Exception e) {
             log.warn("Failed to read global conf generation status file", e);
             return new GlobalConfGenerationStatus(UNKNOWN, null);
         }
     }
 
-    @Value
-    @Jacksonized
-    @Builder
-    private static class GlobalConfGenerationStatusInternal {
-        Instant time;
-        boolean success;
+    private record GlobalConfGenerationStatusInternal(Instant time, boolean success) {
     }
 
 }

@@ -1,7 +1,9 @@
-pluginManagement {
-  plugins {
-    id 'com.github.johnrengelman.shadow' version "$shadowJarVersion"
-  }
+dependencyResolutionManagement {
+    repositoriesMode.set(RepositoriesMode.FAIL_ON_PROJECT_REPOS)
+    repositories {
+        mavenCentral()
+        mavenLocal()
+    }
 }
 
 // Common projects
@@ -18,11 +20,14 @@ include "common:common-domain"
 include "common:common-management-request"
 include "common:common-messagelog"
 include "common:common-op-monitoring"
-include "common:common-ui"
-include "common:common-util"
 include "common:common-verifier"
 include "common:common-rpc"
 include "common:common-int-test"
+include 'common:common-globalconf'
+include 'common:common-core'
+include 'common:common-jetty'
+include 'common:common-message'
+include 'common:common-scheduler'
 
 // Main projects
 include "proxy"
@@ -67,6 +72,7 @@ include 'security-server:admin-service:infra-jpa'
 include "security-server:admin-service:ui"
 include "security-server:admin-service:int-test"
 include "security-server:system-test"
+include 'security-server:e2e-test'
 
 // Utils
 include "signer-console"
@@ -89,4 +95,5 @@ project(":addons:proxymonitor-metaservice").projectDir = file('addons/proxymonit
 
 include "addons:op-monitoring"
 include "addons:wsdlvalidator"
+
 

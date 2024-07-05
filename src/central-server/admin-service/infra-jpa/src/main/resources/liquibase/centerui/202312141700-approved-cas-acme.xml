@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<databaseChangeLog xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+                   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                   xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.5.xsd"
+                   logicalFilePath="centerui/202311091700-approved-cas-acme.xml">
+
+    <changeSet author="niis" id="202312141700-approved-cas-acme">
+        <comment>Add acme related columns.
+        </comment>
+        <addColumn tableName="approved_cas">
+            <column name="acme_server_directory_url" type="VARCHAR(255)"/>
+            <column name="acme_server_ip_address" type="VARCHAR(255)"/>
+        </addColumn>
+    </changeSet>
+</databaseChangeLog>

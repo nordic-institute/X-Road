@@ -28,9 +28,9 @@ package org.niis.xroad.cs.admin.core.entity;
 
 import ee.ria.xroad.common.util.NoCoverage;
 
-import io.vavr.control.Option;
 import jakarta.persistence.Transient;
 
+import java.util.Optional;
 import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.Supplier;
@@ -66,24 +66,27 @@ public interface EntityExistsAwareEntity<SELF extends EntityExistsAwareEntity<SE
     }
 
     @Transient
-    default Option<SELF> ifExists(Consumer<SELF> consumer) {
-        return Option.of((SELF) this)
-                .filter(SELF::exists)
-                .peek(consumer);
+    default Optional<SELF> ifExists(Consumer<SELF> consumer) {
+        SELF self = (SELF) this;
+        if (self.exists()) {
+            consumer.accept(self);
+            return Optional.of(self);
+        }
+        return Optional.empty();
     }
 
+
     @Transient
-    default <R> Option<R> ifExists(Function<SELF, R> function) {
-        return Option.of((SELF) this)
+    default <R> Optional<R> ifExists(Function<SELF, R> function) {
+        return Optional.of((SELF) this)
                 .filter(SELF::exists)
                 .map(function);
     }
 
     @Transient
     default SELF ifNotExists(Supplier<SELF> supplier) {
-        return Option.of((SELF) this)
-                .filter(SELF::exists)
-                .getOrElse(supplier);
+        SELF self = (SELF) this;
+        return self.exists() ? self : supplier.get();
     }
 
     @Transient

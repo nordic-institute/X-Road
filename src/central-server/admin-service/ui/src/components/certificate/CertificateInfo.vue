@@ -87,7 +87,7 @@
  * Component for displaying detailed certificate information
  */
 
-import Vue, { defineComponent } from 'vue';
+import { defineComponent } from 'vue';
 import CertificateLine from './CertificateLine.vue';
 import { CertificateDetails } from '@/openapi-types';
 

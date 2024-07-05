@@ -19,9 +19,7 @@
     "**/openapi-types.ts",
     "scripts/dtsgen-wrapper.js",
     "tests/e2e/testdata/**",
-    "build/",
-    "yarn.lock",
-    ".yarn/"
+    "build/"
   ],
   "license": "LICENSE.txt",
   "licenseFormats": {

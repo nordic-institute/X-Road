@@ -165,8 +165,8 @@ public class CertChainVerifier {
     }
 
     private void verifyOcspResponses(List<X509Certificate> certs,
-            List<OCSPResp> ocspResponses, PKIXCertPathValidatorResult result,
-            Date atDate) throws Exception {
+                                     List<OCSPResp> ocspResponses, PKIXCertPathValidatorResult result,
+                                     Date atDate) throws Exception {
         for (X509Certificate subject : certs) {
             X509Certificate issuer =
                     GlobalConf.getCaCert(certChain.getInstanceIdentifier(),
@@ -176,7 +176,7 @@ public class CertChainVerifier {
             if (response == null) {
                 throw new CodedException(X_CERT_VALIDATION,
                         "Unable to find OCSP response for certificate "
-                        + subject.getSubjectX500Principal().getName());
+                                + subject.getSubjectX500Principal().getName());
             }
 
             OcspVerifier verifier = new OcspVerifier(GlobalConf.getOcspFreshnessSeconds(),
@@ -197,7 +197,7 @@ public class CertChainVerifier {
     }
 
     private static PKIXCertPathValidatorResult verifyCertPath(CertPath certPath,
-            PKIXBuilderParameters pkixParams) throws Exception {
+                                                              PKIXBuilderParameters pkixParams) throws Exception {
         CertPathValidator certPathValidator =
                 CertPathValidator.getInstance(VALIDATION_ALGORITHM);
 

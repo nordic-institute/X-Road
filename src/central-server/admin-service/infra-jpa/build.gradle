@@ -4,7 +4,7 @@ plugins {
 
 dependencies {
     implementation project(':central-server:admin-service:core')
-    implementation project(':common:common-util')
+    implementation project(':common:common-domain')
 
     api('org.springframework.boot:spring-boot-starter-data-jpa')
     implementation("org.hibernate.validator:hibernate-validator")
@@ -14,8 +14,8 @@ configurations {
     changelogJar
 }
 
-task changelogJar(type: Jar) {
-    classifier 'resources'
+tasks.register('changelogJar', Jar) {
+    archiveClassifier = 'resources'
     from sourceSets.main.resources
 }
 

@@ -1,0 +1,38 @@
+version: 2
+updates:
+  - package-ecosystem: "gradle"
+    directory: "/src"
+    schedule:
+      interval: "weekly"
+    groups:
+      java-minor-patch:
+        applies-to: version-updates
+        update-types:
+          - "minor"
+          - "patch"
+    reviewers:
+      - "nordic-institute/xrd-developers"
+  - package-ecosystem: "npm"
+    directory: "/src"
+    schedule:
+      interval: "weekly"
+    groups:
+      javascript-minor-patch:
+        applies-to: version-updates
+        update-types:
+          - "minor"
+          - "patch"
+    reviewers:
+      - "nordic-institute/xrd-developers"
+  - package-ecosystem: "github-actions"
+    directory: "/.github/workflows"
+    schedule:
+      interval: "weekly"
+    groups:
+      actions-minor-patch:
+        applies-to: version-updates
+        update-types:
+          - "minor"
+          - "patch"
+    reviewers:
+      - "nordic-institute/xrd-developers"

@@ -96,7 +96,7 @@ public final class LogRecordManager {
      * @throws Exception if an error occurs while communicating with database.
      */
     public static <R> R getByQueryIdUnique(String queryId, ClientId clientId, Boolean isResponse,
-            Function<MessageRecord, R> processor)
+                                           Function<MessageRecord, R> processor)
             throws Exception {
         log.trace(GET_BY_QUERY_ID_LOG_FORMAT, queryId, clientId, isResponse);
 
@@ -112,7 +112,7 @@ public final class LogRecordManager {
      * @throws Exception if an error occurs while communicating with database.
      */
     public static <R> R getByQueryId(String queryId, ClientId clientId, Boolean isResponse,
-            Function<List<MessageRecord>, R> processor)
+                                     Function<List<MessageRecord>, R> processor)
             throws Exception {
         log.trace(GET_BY_QUERY_ID_LOG_FORMAT, queryId, clientId, isResponse);
 
@@ -222,7 +222,7 @@ public final class LogRecordManager {
      * @param hashChains the time-stamp hash chains.
      */
     private static void setMessageRecordsTimestamped(Session session, Long[] messageRecords,
-            TimestampRecord timestampRecord, String[] hashChains) {
+                                                     TimestampRecord timestampRecord, String[] hashChains) {
         if (log.isTraceEnabled()) {
             log.trace("setMessageRecordsTimestamped({}, {})", Arrays.toString(messageRecords),
                     timestampRecord.getId());
@@ -242,7 +242,7 @@ public final class LogRecordManager {
 
     private static void setMessageRecordsTimestamped(Long[] messageRecords, TimestampRecord
             timestampRecord,
-            String[] hashChains, Connection connection, int batchSize) throws SQLException {
+                                                     String[] hashChains, Connection connection, int batchSize) throws SQLException {
         log.trace("setMessageRecordsTimestamped({})", messageRecords.length);
 
         int storedCount = 0;
@@ -290,20 +290,20 @@ public final class LogRecordManager {
     }
 
     private static MessageRecord getMessageRecord(Session session, String queryId, ClientId clientId,
-            Boolean isResponse) {
+                                                  Boolean isResponse) {
         final CriteriaQuery<MessageRecord> query = createRecordCriteria(session, queryId, clientId, isResponse);
         return session.createQuery(query).setReadOnly(true).setMaxResults(1).uniqueResult();
     }
 
     private static List<MessageRecord> getMessageRecords(Session session, String queryId, ClientId
             clientId,
-            Boolean isResponse) {
+                                                         Boolean isResponse) {
         final CriteriaQuery<MessageRecord> query = createRecordCriteria(session, queryId, clientId, isResponse);
         return session.createQuery(query).setReadOnly(true).getResultList();
     }
 
     private static CriteriaQuery<MessageRecord> createRecordCriteria(Session session, String queryId, ClientId clientId,
-            Boolean isResponse) {
+                                                                     Boolean isResponse) {
 
         final CriteriaBuilder cb = session.getCriteriaBuilder();
         final CriteriaQuery<MessageRecord> query = cb.createQuery(MessageRecord.class);

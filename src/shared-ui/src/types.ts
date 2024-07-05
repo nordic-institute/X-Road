@@ -25,6 +25,7 @@
  * THE SOFTWARE.
  */
 export type FileUploadResult = {
+  /**@deprecated*/
   buffer: ArrayBuffer;
   file: File;
 };

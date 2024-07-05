@@ -153,13 +153,6 @@ import { useAddClient } from '@/store/modules/addClient';
 import { useNotifications } from '@/store/modules/notifications';
 import { useCsr } from '@/store/modules/certificateSignRequest';
 import { useGeneral } from '@/store/modules/general';
-import {
-  VStepper,
-  VStepperHeader,
-  VStepperItem,
-  VStepperWindow,
-  VStepperWindowItem,
-} from 'vuetify/labs/components';
 
 const NO_SELECTION = 999;
 

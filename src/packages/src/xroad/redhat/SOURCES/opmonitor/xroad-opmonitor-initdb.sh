@@ -2,8 +2,8 @@
 #
 # Database setup
 #
-is_rhel8() {
-    ([[ -f /etc/os-release ]] && source /etc/os-release && [[ "$ID_LIKE" == *rhel* && "$VERSION_ID" == 8* ]])
+is_rhel8or9() {
+     ([[ -f /etc/os-release ]] && source /etc/os-release && [[ "$ID" == *rhel* && ("$VERSION_ID" == 8* || "$VERSION_ID" == 9*) ]])
 }
 
 get_prop() {
@@ -31,7 +31,7 @@ init_local_postgres() {
     fi
 
     if [ ! -e "$PGDATA/PG_VERSION" ]; then
-        if is_rhel8; then
+        if is_rhel8or9; then
             cmd="--initdb"
         else
             cmd="initdb"

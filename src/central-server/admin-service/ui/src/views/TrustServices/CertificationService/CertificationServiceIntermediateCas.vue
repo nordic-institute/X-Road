@@ -27,13 +27,14 @@
 <template>
   <main id="certification-service-indermediate-cas" class="mt-8">
     <intermediate-cas-list
+      v-if="certificationServiceStore.currentCertificationService"
       :cs="certificationServiceStore.currentCertificationService"
     />
   </main>
 </template>
 
 <script lang="ts">
-import Vue, { defineComponent } from 'vue';
+import { defineComponent } from 'vue';
 import { mapStores } from 'pinia';
 import { useCertificationService } from '@/store/modules/trust-services';
 import IntermediateCasList from '@/components/intermediateCas/IntermediateCasList.vue';

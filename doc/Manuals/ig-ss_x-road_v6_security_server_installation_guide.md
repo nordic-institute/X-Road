@@ -2,7 +2,7 @@
 
 **X-ROAD 7**
 
-Version: 2.47  
+Version: 2.52  
 Doc. ID: IG-SS
 
 ---
@@ -67,6 +67,11 @@ Doc. ID: IG-SS
 | 01.06.2023 | 2.45    | Update references                                                                                                                                                                                                    | Petteri Kivimäki   |
 | 20.11.2023 | 2.46    | Update firewall configuration documentation                                                                                                                                                                          | Taavi Meinberg     |
 | 27.11.2023 | 2.47    | Updated default proxy client http(s) ports                                                                                                                                                                           | Mikk-Erik Bachmann |
+| 19.12.2023 | 2.48    | Add RHEL 9 as supported platform                                                                                                                                                                                     | Justas Samuolis    |
+| 02.01.2024 | 2.49    | Loopback ports added                                                                                                                                                                                                 | Justas Samuolis    |
+| 26.04.2024 | 2.50    | Ubuntu 24.04 support                                                                                                                                                                                                 | Madis Loitmaa      |
+ | 12.06.2024 | 2.51    | Add ACME server to the network diagram, add a section about enabling ACME support                                                                                                                                    | Petteri Kivimäki   |
+| 25.06.2024 | 2.52    | Add global configuration download port 443 to the network diagram                                                                                                                                                    | Petteri Kivimäki   |
 
 ## License
 
@@ -99,9 +104,10 @@ This document is licensed under the Creative Commons Attribution-ShareAlike 3.0 
   - [3.1 Prerequisites](#31-prerequisites)
   - [3.2 Reference Data](#32-reference-data)
   - [3.3 Configuration](#33-configuration)
-  - [3.4 Configuring firewall](#34-configuring-firewall)
+  - [3.4 Configuring Firewall](#34-configuring-firewall)
     - [3.4.1 Accepting Connections](#341-accepting-connections)
-  - [3.5 Configuring configuration backup encryption](#35-configuring-configuration-backup-encryption)
+  - [3.5 Configuring Configuration Backup Encryption](#35-configuring-configuration-backup-encryption)
+  - [3.6 Enabling ACME Support](#36-enabling-acme-support)
 - [4 Installation Error handling](#4-installation-error-handling)
   - [4.1 Cannot Set LC\_ALL to Default Locale](#41-cannot-set-lc_all-to-default-locale)
   - [4.2 PostgreSQL Is Not UTF8 Compatible](#42-postgresql-is-not-utf8-compatible)
@@ -140,16 +146,15 @@ See X-Road terms and abbreviations documentation \[[TA-TERMS](#Ref_TERMS)\].
 
 ### 1.3 References
 
-1.  <a id="Ref_UG-SS" class="anchor"></a>\[UG-SS\] X-Road 7. Security Server User Guide. Document ID: [UG-SS](ug-ss_x-road_6_security_server_user_guide.md)
+1. <a id="Ref_UG-SS" class="anchor"></a>\[UG-SS\] X-Road 7. Security Server User Guide. Document ID: [UG-SS](ug-ss_x-road_6_security_server_user_guide.md)
 
-2.  <a id="Ref_TERMS" class="anchor"></a>\[TA-TERMS\] X-Road Terms and Abbreviations. Document ID: [TA-TERMS](../terms_x-road_docs.md).
+2. <a id="Ref_TERMS" class="anchor"></a>\[TA-TERMS\] X-Road Terms and Abbreviations. Document ID: [TA-TERMS](../terms_x-road_docs.md)
 
 3. <a name="Ref_UG-SYSPAR" class="anchor"></a>\[UG-SYSPAR\] X-Road: System Parameters User Guide. Document ID:
-[UG-SYSPAR](ug-syspar_x-road_v6_system_parameters.md).
+[UG-SYSPAR](ug-syspar_x-road_v6_system_parameters.md)
 
 4. <a name="Ref_IG-XLB" class="anchor"></a>\[IG-XLB\] X-Road: External Load Balancer Installation Guide. Document ID:
-[IG-XLB](LoadBalancing/ig-xlb_x-road_external_load_balancer_installation_guide.md).
-
+[IG-XLB](LoadBalancing/ig-xlb_x-road_external_load_balancer_installation_guide.md)
 
 ## 2 Installation
 
@@ -160,8 +165,8 @@ There are multiple alternatives how the Security Server can be deployed. The opt
 
 The Security Server is officially supported on the following platforms:
 
-* Ubuntu Server 20.04 or 22.04 Long-Term Support (LTS) operating system on a x86-64 platform.
-* Red Hat Enterprise Linux (RHEL) 7 and 8 (x86-64). See [IG-SS-RHEL](ig-ss_x-road_v6_security_server_installation_guide_for_rhel.md) for more information.
+* Ubuntu Server 20.04, 22.04 or 24.04 Long-Term Support (LTS) operating system on a x86-64 platform.
+* Red Hat Enterprise Linux (RHEL) 7, 8, 9 (x86-64). See [IG-SS-RHEL](ig-ss_x-road_v6_security_server_installation_guide_for_rhel.md) for more information.
 
 The software can be installed both on physical and virtualized hardware (of the latter, Xen and Oracle VirtualBox have been tested).
 
@@ -173,29 +178,31 @@ The software can be installed both on physical and virtualized hardware (of the 
 **Caution**: Data necessary for the functioning of the operating system is not included.
 
 
-| **Ref** |                                                                                                                      | **Explanation**                                                                                                                                                                                                                                                                            |
-|---------|----------------------------------------------------------------------------------------------------------------------|--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| 1.0     | Ubuntu 20.04, Ubuntu 22.04 (x86-64)<br>3 GB RAM, 3 GB free disk space                                                | Minimum requirements without the `monitoring` and `op-monitoring` add-ons. With the add-ons minimum of 4 GB of RAM is required.                                                                                                                                                            |
-| 1.1     | https://artifactory.niis.org/xroad-release-deb                                                                       | X-Road package repository                                                                                                                                                                                                                                                                  |
-| 1.2     | https://artifactory.niis.org/api/gpg/key/public                                                                      | The repository key.<br /><br />Hash: `935CC5E7FA5397B171749F80D6E3973B`<br  />Fingerprint: `A01B FE41 B9D8 EAF4 872F  A3F1 FB0D 532C 10F6 EC5B`<br  />3rd party key server: [Ubuntu key server](https://keyserver.ubuntu.com/pks/lookup?search=0xfb0d532c10f6ec5b&fingerprint=on&op=index) |
-| 1.3     |                                                                                                                      | Account name in the user interface                                                                                                                                                                                                                                                         |
-| 1.4     | **Inbound ports from external network**                                                                              | Ports for inbound connections from the external network to the Security Server                                                                                                                                                                                                             |
-| &nbsp;  | TCP 5500                                                                                                             | Message exchange between Security Servers                                                                                                                                                                                                                                                  |
-| &nbsp;  | TCP 5577                                                                                                             | Querying of OCSP responses between Security Servers                                                                                                                                                                                                                                        |
-| 1.5     | **Outbound ports to external network**                                                                               | Ports for outbound connections from the Security Server to the external network                                                                                                                                                                                                            |
-| &nbsp;  | TCP 5500                                                                                                             | Message exchange between Security Servers                                                                                                                                                                                                                                                  |
-| &nbsp;  | TCP 5577                                                                                                             | Querying of OCSP responses between Security Servers                                                                                                                                                                                                                                        |
-| &nbsp;  | TCP 4001                                                                                                             | Communication with the central server                                                                                                                                                                                                                                                      |
-| &nbsp;  | TCP 80                                                                                                               | Downloading global configuration from the central server                                                                                                                                                                                                                                   |
-| &nbsp;  | TCP 80,443                                                                                                           | Most common OCSP and time-stamping services                                                                                                                                                                                                                                                |
-| 1.6     | **Inbound ports from internal network**                                                                              | Ports for inbound connections from the internal network to the Security Server                                                                                                                                                                                                             |
-| &nbsp;  | TCP 4000                                                                                                             | User interface and management REST API (local network). **Must not be accessible from the internet!**                                                                                                                                                                                      |
-| &nbsp;  | TCP 8080, 8443                                                                                                       | Information system access points (in the local network). **Must not be accessible from the external network without strong authentication. If open to the external network, IP filtering is strongly recommended.**                                                                        |
-| 1.7     | **Outbound ports to internal network**                                                                               | Ports for inbound connections from the internal network to the Security Server                                                                                                                                                                                                             |
-| &nbsp;  | TCP 80, 443, *other*                                                                                                 | Producer information system endpoints                                                                                                                                                                                                                                                      |
-| &nbsp;  | TCP 2080                                                                                                             | Message exchange between Security Server and operational data monitoring daemon (by default on localhost)                                                                                                                                                                                  |
-| 1.8     |                                                                                                                      | Security server internal IP address(es) and hostname(s)                                                                                                                                                                                                                                    |
-| 1.9     |                                                                                                                      | Security server public IP address, NAT address                                                                                                                                                                                                                                             |
+| **Ref** |                                                                                                                     | **Explanation**                                                                                                                                                                                                                                                                            |
+| ------- |---------------------------------------------------------------------------------------------------------------------|--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| 1.0     | Ubuntu 20.04, 22.04 or 24.04 (x86-64)<br>3 GB RAM, 3 GB free disk space                                             | Minimum requirements without the `monitoring` and `op-monitoring` add-ons. With the add-ons minimum of 4 GB of RAM is required.                                                                                                                                                            |
+| 1.1     | https://artifactory.niis.org/xroad-release-deb                                                                      | X-Road package repository                                                                                                                                                                                                                                                                  |
+| 1.2     | https://artifactory.niis.org/api/gpg/key/public                                                                     | The repository key.<br /><br />Hash: `935CC5E7FA5397B171749F80D6E3973B`<br  />Fingerprint: `A01B FE41 B9D8 EAF4 872F  A3F1 FB0D 532C 10F6 EC5B`<br  />3rd party key server: [Ubuntu key server](https://keyserver.ubuntu.com/pks/lookup?search=0xfb0d532c10f6ec5b&fingerprint=on&op=index) |
+| 1.3     |                                                                                                                     | Account name in the user interface                                                                                                                                                                                                                                                         |
+| 1.4     | **Inbound ports from external network**                                                                             | Ports for inbound connections from the external network to the Security Server                                                                                                                                                                                                             |
+| &nbsp;  | TCP 80                                                                                                              | Incoming ACME challenge requests from ACME Servers                                                                                                                                                                                                                                         |
+| &nbsp;  | TCP 5500                                                                                                            | Message exchange between Security Servers                                                                                                                                                                                                                                                  |
+| &nbsp;  | TCP 5577                                                                                                            | Querying of OCSP responses between Security Servers                                                                                                                                                                                                                                        |
+| 1.5     | **Outbound ports to external network**                                                                              | Ports for outbound connections from the Security Server to the external network                                                                                                                                                                                                            |
+| &nbsp;  | TCP 5500                                                                                                            | Message exchange between Security Servers                                                                                                                                                                                                                                                  |
+| &nbsp;  | TCP 5577                                                                                                            | Querying of OCSP responses between Security Servers                                                                                                                                                                                                                                        |
+| &nbsp;  | TCP 4001                                                                                                            | Communication with the Central Server                                                                                                                                                                                                                                                      |
+| &nbsp;  | TCP 80,443                                                                                                          | Downloading global configuration from the Central Server                                                                                                                                                                                                                                   |
+| &nbsp;  | TCP 80,443                                                                                                          | Most common OCSP and time-stamping services                                                                                                                                                                                                                                                |
+| &nbsp;  | TCP 80,443                                                                                                          | Communication with ACME servers                                                                                                                                                                                                                                                            |
+| 1.6     | **Inbound ports from internal network**                                                                             | Ports for inbound connections from the internal network to the Security Server                                                                                                                                                                                                             |
+| &nbsp;  | TCP 4000                                                                                                            | User interface and management REST API (local network). **Must not be accessible from the internet!**                                                                                                                                                                                      |
+| &nbsp;  | TCP 8080, 8443                                                                                                      | Information system access points (in the local network). **Must not be accessible from the external network without strong authentication. If open to the external network, IP filtering is strongly recommended.**                                                                        |
+| 1.7     | **Outbound ports to internal network**                                                                              | Ports for inbound connections from the internal network to the Security Server                                                                                                                                                                                                             |
+| &nbsp;  | TCP 80, 443, *other*                                                                                                | Producer information system endpoints                                                                                                                                                                                                                                                      |
+| &nbsp;  | TCP 2080                                                                                                            | Message exchange between Security Server and operational data monitoring daemon (by default on localhost)                                                                                                                                                                                  |
+| 1.8     |                                                                                                                     | Security server internal IP address(es) and hostname(s)                                                                                                                                                                                                                                    |
+| 1.9     |                                                                                                                     | Security server public IP address, NAT address                                                                                                                                                                                                                                             |
 | 1.10    | &lt;by default, the server’s IP addresses and names are added to the certificate’s Distinguished Name (DN) field&gt; | Information about the user interface TLS certificate                                                                                                                                                                                                                                       |
 | 1.11    | &lt;by default, the server’s IP addresses and names are added to the certificate’s Distinguished Name (DN) field&gt; | Information about the services TLS certificate                                                                                                                                                                                                                                             |
 
@@ -203,23 +210,38 @@ The software can be installed both on physical and virtualized hardware (of the 
 
 The network diagram below provides an example of a basic Security Server setup. Allowing incoming connections from the Monitoring Security Server on ports 5500/tcp and 5577/tcp is necessary for the X-Road Operator to be able to monitor the ecosystem and provide statistics and support for Members.
 
-![network diagram](img/ig-ss_network_diagram.png)
+![network diagram](img/ig-ss_network_diagram.svg)
 
 The table below lists the required connections between different components.
 
 | **Connection Type** | **Source**                                               | **Target**                                               | **Target Ports** | **Protocol** | **Note**                       |
 |---------------------|----------------------------------------------------------|----------------------------------------------------------|------------------|--------------|--------------------------------|
-| Out                 | Security Server                                          | Central Server                                           | 80, 4001         | tcp          |                                |
+| Out                 | Security Server                                          | Central Server                                           | 80, 443, 4001    | tcp          |                                |
 | Out                 | Security Server                                          | Management Security Server                               | 5500, 5577       | tcp          |                                |
 | Out                 | Security Server                                          | OCSP Service                                             | 80 / 443         | tcp          |                                |
 | Out                 | Security Server                                          | Timestamping Service                                     | 80 / 443         | tcp          |                                |
 | Out                 | Security Server                                          | Data Exchange Partner Security Server (Service Producer) | 5500, 5577       | tcp          |                                |
 | Out                 | Security Server                                          | Producer Information System                              | 80, 443, other   | tcp          | Target in the internal network |
+| Out                 | Security Server                                          | ACME Server                                              | 80 / 443         | tcp          |                                |
 | In                  | Monitoring Security Server                               | Security Server                                          | 5500, 5577       | tcp          |                                |
 | In                  | Data Exchange Partner Security Server (Service Consumer) | Security Server                                          | 5500, 5577       | tcp          |                                |
+ | In                  | ACME Server                                              | Security Server                                          | 80               | tcp          |                                | 
 | In                  | Consumer Information System                              | Security Server                                          | 8080, 8443       | tcp          | Source in the internal network |
 | In                  | Admin                                                    | Security Server                                          | 4000             | tcp          | Source in the internal network |
 
+The table below lists the open ports for Security Server components utilizing the _loopback_ interface. A loopback interface is a virtual network interface on a computer, facilitating self-communication for processes and applications. This enables local communication and the ports must be accessible locally.
+
+| **Component**            | **Ports** | **Protocol** | **Note**                        |
+| ------------------------ | --------- | ------------ | ------------------------------- |
+| PostgreSQL database      | 5432      | tcp          | Default PostgreSQL port         |
+| OP Monitoring daemon     | 2080      | tcp          |                                 |
+| Environmental monitoring | 2552      | tcp          |                                 |
+| Signer                   | 5559      | tcp          | Signer admin port               |
+| Signer                   | 5560      | tcp          | Signer gRPC port                |
+| Proxy                    | 5566      | tcp          | Proxy admin port                |
+| Proxy                    | 5567      | tcp          | Proxy gRPC server port          |
+| Configuration Client     | 5675      | tcp          | Configuration Client admin port |
+| Audit Log                | 514       | udp          |                                 |
 
 ### 2.3 Requirements for the Security Server
 
@@ -233,7 +255,7 @@ Minimum recommended hardware parameters:
 
 Requirements to software and settings:
 
-* an installed and configured Ubuntu 20.04 LTS or 22.04 LTS x86-64 operating system;
+* an installed and configured Ubuntu 20.04 LTS, 22.04 or 24.04 LTS x86-64 operating system;
 * if the Security Server is separated from other networks by a firewall and/or NAT, the necessary connections to and from the Security Server are allowed (**reference data: 1.4; 1.5; 1.6; 1.7**). The enabling of auxiliary services which are necessary for the functioning and management of the operating system (such as DNS, NTP, and SSH) stay outside the scope of this guide;
 * if the Security Server has a private IP address, a corresponding NAT record must be created in the firewall (**reference data: 1.9**).
 
@@ -402,30 +424,30 @@ To configure support for hardware security tokens (smartcard, USB token, Hardwar
 
 4.  After installing and configuring the driver, the `xroad-signer` service must be restarted:
 
-        sudo service xroad-signer restart
+        sudo systemctl restart xroad-signer
 
 If you are running a high availability (HA) hardware token setup (such as a cluster with replicated tokens) then you may need to constrain the token identifier format such that the token replicas can be seen as the same token. The token identifier format can be changed in `/etc/xroad/devices.ini` via the `token_id_format` property (default value: `{moduleType}{slotIndex}{serialNumber}{label}`). Removing certain parts of the identifier will allow the HA setup to work correctly when one of the tokens goes down and is replaced by a replica. For example, if the token replicas are reported to be on different slots the `{slotIndex}` part should be removed from the identifier format.
 
 Depending on the hardware token there may be a need for more additional configuration. All possible configurable parameters in the `/etc/xroad/devices.ini` are described in the next table.
 
-Parameter   | Type    | Default Value | Explanation
------------ | ------- |-------------- | ---------------------------------------
-*enabled*     | BOOLEAN | *true* | Indicates whether this device is enabled.
-*library*     | STRING  |      | The path to the pkcs#11 library of the device driver.
-*library_cant_create_os_threads* | BOOLEAN | *false* | Indicates whether application threads, which are executing calls to the pkcs#11 library, may not use native operating system calls to spawn new threads (in other words, the library’s code may not create its own threads).
-*os_locking_ok* | BOOLEAN | *false* | Indicates whether the pkcs#11 library may use the native operation system threading model for locking.
-*sign_verify_pin* | BOOLEAN | *false* | Indicates whether the PIN should be entered per signing operation.
-*token_id_format* | STRING | *{moduleType}{slotIndex}{serialNumber}{label}* | Specifies the identifier format used to uniquely identify a token. In certain high availability setups may need be constrained to support replicated tokens (eg. by removing the slot index part which may be diffirent for the token replicas).
-*sign_mechanism*  | STRING | *CKM_RSA_PKCS* | Specifies the signing mechanism. Supported values: *CKM_RSA_PKCS*, *CKM_RSA_PKCS_PSS*.
-*pub_key_attribute_encrypt*  | BOOLEAN | *true* | Indicates whether public key can be used for encryption.
-*pub_key_attribute_verify* | BOOLEAN | *true* | Indicates whether public key can be used for verification.
-*pub_key_attribute_wrap* | BOOLEAN | | Indicates whether public key can be used for wrapping other keys.
-*pub_key_attribute_allowed_mechanisms* | STRING LIST | | Specifies public key allowed mechanisms. Supported values: *CKM_RSA_PKCS*, *CKM_SHA256_RSA_PKCS*, *CKM_SHA384_RSA_PKCS*, *CKM_SHA512_RSA_PKCS*, and *CKM_RSA_PKCS_PSS*, *CKM_SHA256_RSA_PKCS_PSS*, *CKM_SHA384_RSA_PKCS_PSS*, *CKM_SHA512_RSA_PKCS_PSS*.
-*priv_key_attribute_sensitive* | BOOLEAN | *true* | Indicates whether private key is sensitive.
-*priv_key_attribute_decrypt* | BOOLEAN | *true* | Indicates whether private key can be used for encryption.
-*priv_key_attribute_sign* | BOOLEAN | *true* | Indicates whether private key can be used for signing.
-*priv_key_attribute_unwrap* | BOOLEAN | | Indicates whether private key can be used for unwrapping wrapped keys.
-*priv_key_attribute_allowed_mechanisms* | STRING LIST | | Specifies private key allowed mechanisms. Supported values: *CKM_RSA_PKCS*, *CKM_SHA256_RSA_PKCS*, *CKM_SHA384_RSA_PKCS*, *CKM_SHA512_RSA_PKCS*, and *CKM_RSA_PKCS_PSS*, *CKM_SHA256_RSA_PKCS_PSS*, *CKM_SHA384_RSA_PKCS_PSS*, *CKM_SHA512_RSA_PKCS_PSS*.
+| Parameter                               | Type        | Default Value                                  | Explanation                                                                                                                                                                                                                                               |
+|-----------------------------------------|-------------|------------------------------------------------|-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| *enabled*                               | BOOLEAN     | *true*                                         | Indicates whether this device is enabled.                                                                                                                                                                                                                 |
+| *library*                               | STRING      |                                                | The path to the pkcs#11 library of the device driver.                                                                                                                                                                                                     |
+| *library_cant_create_os_threads*        | BOOLEAN     | *false*                                        | Indicates whether application threads, which are executing calls to the pkcs#11 library, may not use native operating system calls to spawn new threads (in other words, the library’s code may not create its own threads).                              |
+| *os_locking_ok*                         | BOOLEAN     | *false*                                        | Indicates whether the pkcs#11 library may use the native operation system threading model for locking.                                                                                                                                                    |
+| *sign_verify_pin*                       | BOOLEAN     | *false*                                        | Indicates whether the PIN should be entered per signing operation.                                                                                                                                                                                        |
+| *token_id_format*                       | STRING      | *{moduleType}{slotIndex}{serialNumber}{label}* | Specifies the identifier format used to uniquely identify a token. In certain high availability setups may need be constrained to support replicated tokens (eg. by removing the slot index part which may be diffirent for the token replicas).          |
+| *sign_mechanism*                        | STRING      | *CKM_RSA_PKCS*                                 | Specifies the signing mechanism. Supported values: *CKM_RSA_PKCS*, *CKM_RSA_PKCS_PSS*.                                                                                                                                                                    |
+| *pub_key_attribute_encrypt*             | BOOLEAN     | *true*                                         | Indicates whether public key can be used for encryption.                                                                                                                                                                                                  |
+| *pub_key_attribute_verify*              | BOOLEAN     | *true*                                         | Indicates whether public key can be used for verification.                                                                                                                                                                                                |
+| *pub_key_attribute_wrap*                | BOOLEAN     |                                                | Indicates whether public key can be used for wrapping other keys.                                                                                                                                                                                         |
+| *pub_key_attribute_allowed_mechanisms*  | STRING LIST |                                                | Specifies public key allowed mechanisms. Supported values: *CKM_RSA_PKCS*, *CKM_SHA256_RSA_PKCS*, *CKM_SHA384_RSA_PKCS*, *CKM_SHA512_RSA_PKCS*, and *CKM_RSA_PKCS_PSS*, *CKM_SHA256_RSA_PKCS_PSS*, *CKM_SHA384_RSA_PKCS_PSS*, *CKM_SHA512_RSA_PKCS_PSS*.  |
+| *priv_key_attribute_sensitive*          | BOOLEAN     | *true*                                         | Indicates whether private key is sensitive.                                                                                                                                                                                                               |
+| *priv_key_attribute_decrypt*            | BOOLEAN     | *true*                                         | Indicates whether private key can be used for encryption.                                                                                                                                                                                                 |
+| *priv_key_attribute_sign*               | BOOLEAN     | *true*                                         | Indicates whether private key can be used for signing.                                                                                                                                                                                                    |
+| *priv_key_attribute_unwrap*             | BOOLEAN     |                                                | Indicates whether private key can be used for unwrapping wrapped keys.                                                                                                                                                                                    |
+| *priv_key_attribute_allowed_mechanisms* | STRING LIST |                                                | Specifies private key allowed mechanisms. Supported values: *CKM_RSA_PKCS*, *CKM_SHA256_RSA_PKCS*, *CKM_SHA384_RSA_PKCS*, *CKM_SHA512_RSA_PKCS*, and *CKM_RSA_PKCS_PSS*, *CKM_SHA256_RSA_PKCS_PSS*, *CKM_SHA384_RSA_PKCS_PSS*, *CKM_SHA512_RSA_PKCS_PSS*. |
 
 **Note 1:** Only parameter *library* is mandatory, all the others are optional.
 **Note 2:** The item separator of the type STRING LIST is ",".
@@ -450,14 +472,13 @@ ATTENTION: Reference items 2.1 - 2.3 in the reference data are provided to the S
 
 The Security Server code and the software token’s PIN will be determined during the installation at the latest, by the person performing the installation.
 
- Ref  |                                                   | Explanation
- ---- | ------------------------------------------------- | --------------------------------------------------
- 2.1  | &lt;global configuration anchor file&gt; or &lt;URL&gt; | Global configuration anchor file
- 2.2  | E.g.<br>GOV - government<br> COM - commercial     | Member class of the Security Server's owner
- 2.3  | &lt;security server owner register code&gt;       | Member code of the Security Server's owner
- 2.4  | &lt;choose security server identificator name&gt; | Security server's code
- 2.5  | &lt;choose PIN for software token&gt;             | Software token’s PIN
-
+| Ref |                                                         | Explanation                                 |
+|-----|---------------------------------------------------------|---------------------------------------------|
+| 2.1 | &lt;global configuration anchor file&gt; or &lt;URL&gt; | Global configuration anchor file            |
+| 2.2 | E.g.<br>GOV - government<br> COM - commercial           | Member class of the Security Server's owner |
+| 2.3 | &lt;Security Server owner register code&gt;             | Member code of the Security Server's owner  |
+| 2.4 | &lt;choose Security Server identificator name&gt;       | Security server's code                      |
+| 2.5 | &lt;choose PIN for software token&gt;                   | Software token’s PIN                        |
 
 ### 3.3 Configuration
 
@@ -483,7 +504,7 @@ If the configuration is successfully downloaded, the system asks for the followi
 * Security server code (**reference data: 2.4**), which is chosen by the Security Server administrator and which has to be unique across all the Security Servers belonging to the same X-Road member.
 * Software token’s PIN (**reference data: 2.5**). The PIN will be used to protect the keys stored in the software token. The PIN must be stored in a secure place, because it will be no longer possible to use or recover the private keys in the token once the PIN has been lost.
 
-### 3.4 Configuring firewall
+### 3.4 Configuring Firewall
 
 It is strongly recommended to protect the Security Server from unwanted access using a firewall (hardware or software based). The firewall can be
 applied to both incoming and outgoing connections depending on the security requirements of the environment where the Security Server is deployed. 
@@ -505,7 +526,7 @@ which makes the Security Server accept connections from any server. For country-
 
 The parameter can be changed by following the [System Parameters guide](ug-syspar_x-road_v6_system_parameters.md#21-changing-the-system-parameter-values-in-configuration-files).
 
-### 3.5 Configuring configuration backup encryption
+### 3.5 Configuring Configuration Backup Encryption
 
 It is possible to automatically encrypt Security Server configuration backups. Security server uses The GNU Privacy Guard (https://www.gnupg.org)
 for backup encryption and verification. Backups are always signed, but backup encryption is initially turned off.
@@ -537,6 +558,10 @@ The key can then be moved to an external host and imported to GPG keyring with t
 
     gpg --homedir /your_gpg_homedir_here --import server-public-key.gpg
 
+### 3.6 Enabling ACME Support
+
+Automated Certificate Management Environment (ACME) protocol enables partly automated certificate management of the authentication and sign
+certificates on the Security Server. More information about the required configuration is available in the [Security Server User Guide](ug-ss_x-road_6_security_server_user_guide.md#24-configuring-acme).
 
 ## 4 Installation Error handling
 
@@ -777,12 +802,12 @@ Busy production systems may need scalable performance in addition to high availa
 
 The following table lists a summary of the Security Server deployment options and indicates whether they are aimed for development or production use.
 
-| Deployment               | Dev  | Prod  |
-|--------------------------|------|-------|
-| Local database           | x    |       |
-| Remote database          | x    |       |
-| High-availability Setup  |      | x     |
-| Load Balancing Setup     |      | x     |
+| Deployment              | Dev | Prod |
+| ----------------------- | --- | ---- |
+| Local database          | x   |      |
+| Remote database         | x   |      |
+| High-availability Setup |     | x    |
+| Load Balancing Setup    |     | x    |
 
 ## Annex D Create Database Structure Manually
 

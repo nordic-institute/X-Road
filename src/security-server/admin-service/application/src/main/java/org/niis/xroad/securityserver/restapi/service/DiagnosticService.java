@@ -269,12 +269,12 @@ public class DiagnosticService {
     /**
      * Thrown when trying to send a diagnostic request
      */
-    public static class DiagnosticRequestException extends ServiceException {
+    public static final class DiagnosticRequestException extends ServiceException {
         public DiagnosticRequestException() {
             super(new ErrorDeviation(ERROR_DIAGNOSTIC_REQUEST_FAILED));
         }
     }
 
-    private static class TimestampingStatusResponse extends HashMap<String, DiagnosticsStatus> {
+    private static final class TimestampingStatusResponse extends HashMap<String, DiagnosticsStatus> {
     }
 }

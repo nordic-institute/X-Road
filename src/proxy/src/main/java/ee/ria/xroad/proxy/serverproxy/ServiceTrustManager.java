@@ -54,7 +54,7 @@ class ServiceTrustManager implements X509TrustManager {
     @Override
     public X509Certificate[] getAcceptedIssuers() {
         log.trace("getAcceptedIssuers()");
-        return new X509Certificate[] {};
+        return new X509Certificate[]{};
     }
 
 }

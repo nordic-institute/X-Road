@@ -28,10 +28,8 @@ package org.niis.xroad.cs.admin.core.entity;
 
 import jakarta.persistence.Access;
 import jakarta.persistence.AccessType;
-import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
-import jakarta.persistence.FetchType;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
@@ -40,6 +38,9 @@ import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import org.springframework.data.annotation.Immutable;
+
+import static jakarta.persistence.FetchType.EAGER;
+import static jakarta.persistence.FetchType.LAZY;
 
 @Entity
 @Immutable
@@ -54,11 +55,11 @@ public class GlobalGroupMembersViewEntity extends AuditableEntity {
     @Column(name = "id", unique = true, nullable = false)
     private int id;
 
-    @ManyToOne(fetch = FetchType.LAZY)
+    @ManyToOne(fetch = LAZY)
     @JoinColumn(name = "global_group_id")
     private GlobalGroupEntity globalGroup;
 
-    @ManyToOne(fetch = FetchType.EAGER, cascade = CascadeType.PERSIST)
+    @ManyToOne(fetch = EAGER)
     @JoinColumn(name = "group_member_id", nullable = false, updatable = false)
     private ClientIdEntity identifier;
 

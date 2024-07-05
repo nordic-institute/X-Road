@@ -44,11 +44,11 @@ import ee.ria.xroad.common.metadata.MethodListType;
 import ee.ria.xroad.common.metadata.ObjectFactory;
 import ee.ria.xroad.common.opmonitoring.OpMonitoringData;
 import ee.ria.xroad.common.util.MimeTypes;
+import ee.ria.xroad.common.util.RequestWrapper;
 import ee.ria.xroad.common.util.XmlUtils;
 import ee.ria.xroad.proxy.common.WsdlRequestData;
 import ee.ria.xroad.proxy.protocol.ProxyMessage;
 
-import jakarta.servlet.http.HttpServletRequest;
 import jakarta.xml.bind.JAXBContext;
 import jakarta.xml.bind.JAXBElement;
 import jakarta.xml.bind.JAXBException;
@@ -94,9 +94,9 @@ import java.util.UUID;
 import static ee.ria.xroad.common.ErrorCodes.X_INVALID_REQUEST;
 import static ee.ria.xroad.common.ErrorCodes.X_INVALID_SERVICE_TYPE;
 import static ee.ria.xroad.common.ErrorCodes.X_UNKNOWN_SERVICE;
-import static ee.ria.xroad.common.metadata.MetadataRequests.ALLOWED_METHODS;
-import static ee.ria.xroad.common.metadata.MetadataRequests.GET_WSDL;
-import static ee.ria.xroad.common.metadata.MetadataRequests.LIST_METHODS;
+import static ee.ria.xroad.proxy.util.MetadataRequests.ALLOWED_METHODS;
+import static ee.ria.xroad.proxy.util.MetadataRequests.GET_WSDL;
+import static ee.ria.xroad.proxy.util.MetadataRequests.LIST_METHODS;
 
 @Slf4j
 class MetadataServiceHandlerImpl implements ServiceHandler {
@@ -144,7 +144,7 @@ class MetadataServiceHandlerImpl implements ServiceHandler {
     @Override
     @SneakyThrows
     public boolean canHandle(ServiceId requestServiceId,
-            ProxyMessage requestProxyMessage) {
+                             ProxyMessage requestProxyMessage) {
 
         requestMessage = requestProxyMessage.getSoap();
 
@@ -160,9 +160,9 @@ class MetadataServiceHandlerImpl implements ServiceHandler {
     }
 
     @Override
-    public void startHandling(HttpServletRequest servletRequest,
-            ProxyMessage proxyRequestMessage, HttpClient opMonitorClient,
-            OpMonitoringData opMonitoringData) throws Exception {
+    public void startHandling(RequestWrapper servletRequest,
+                              ProxyMessage proxyRequestMessage, HttpClient opMonitorClient,
+                              OpMonitoringData opMonitoringData) throws Exception {
 
         final String serviceCode = requestMessage.getService().getServiceCode();
 

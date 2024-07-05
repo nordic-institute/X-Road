@@ -28,10 +28,12 @@ package org.niis.xroad.ss.test.ui.page;
 
 import com.codeborne.selenide.ElementsCollection;
 import com.codeborne.selenide.SelenideElement;
+import org.niis.xroad.common.test.ui.utils.VuetifyHelper.Select;
 
 import static com.codeborne.selenide.Selenide.$$x;
 import static com.codeborne.selenide.Selenide.$x;
 import static java.lang.String.format;
+import static org.niis.xroad.common.test.ui.utils.VuetifyHelper.vSelect;
 
 public class ClientInfoPageObj {
     public final ClientInfoNavigation navigation = new ClientInfoNavigation();
@@ -39,6 +41,7 @@ public class ClientInfoPageObj {
     public final LocalGroups localGroups = new LocalGroups();
     public final InternalServers internalServers = new InternalServers();
     public final Services services = new Services();
+    public final ServiceWarningDialog warningDialog = new ServiceWarningDialog();
 
     public static class Details {
         public SelenideElement rowMemberName() {
@@ -180,12 +183,13 @@ public class ClientInfoPageObj {
         }
 
         public static class AddMember {
-            public SelenideElement inputInstance() {
-                return $x("//div[@role ='button' and div/label[text() = 'Instance']]");
+
+            public Select selectMemberInstance() {
+                return vSelect($x("//div[@data-test='select-member-instance']"));
             }
 
-            public SelenideElement inputMemberCode() {
-                return $x("//div[@role ='button' and div/label[text() = 'Member class']]");
+            public Select selectMemberClass() {
+                return vSelect($x("//div[@data-test='select-member-class']"));
             }
 
             public SelenideElement btnSearch() {
@@ -198,7 +202,7 @@ public class ClientInfoPageObj {
 
             public SelenideElement checkboxSelectMember(String member) {
                 return $x(format("//table[contains(@class,'members-table')]//tr[td[3][text()='%s']]"
-                       + "//div[@data-test='add-local-group-member-checkbox']", member));
+                        + "//div[@data-test='add-local-group-member-checkbox']", member));
             }
         }
     }
@@ -524,6 +528,18 @@ public class ClientInfoPageObj {
 
         public SelenideElement btnCancelWizardMemberPage() {
             return $x("(//button[@data-test='cancel-button'])[1]");
+        }
+    }
+
+    public static class ServiceWarningDialog {
+        public SelenideElement title() {
+            return $x("//div[@data-test='service-warning-dialog-title']");
+        }
+        public SelenideElement btnCancel() {
+            return $x("//button[@data-test='dialog-cancel-button']");
+        }
+        public SelenideElement btnContinue() {
+            return $x("//button[@data-test='service-url-change-button']");
         }
     }
 }

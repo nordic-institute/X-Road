@@ -77,7 +77,7 @@ class ClientDisableRequestHandler implements RequestHandler<ClientDisableRequest
     }
 
     private Optional<ServerClientEntity> findServerClient(SecurityServerIdEntity serverId, ClientIdEntity clientId) {
-        return servers.findBy(serverId, clientId).toJavaOptional()
+        return servers.findBy(serverId, clientId)
                 .flatMap(securityServer -> securityServer.getServerClients().stream()
                         .filter(serverClient -> serverClient.getSecurityServerClient().getIdentifier().equals(clientId))
                         .findFirst());

@@ -36,6 +36,7 @@ import ee.ria.xroad.common.message.SoapMessageEncoder;
 import ee.ria.xroad.common.message.SoapMessageImpl;
 import ee.ria.xroad.common.message.SoapUtils;
 import ee.ria.xroad.common.opmonitoring.OpMonitoringData;
+import ee.ria.xroad.common.util.RequestWrapper;
 import ee.ria.xroad.common.util.XmlUtils;
 import ee.ria.xroad.proxy.ProxyMain;
 import ee.ria.xroad.proxy.protocol.ProxyMessage;
@@ -46,7 +47,6 @@ import ee.ria.xroad.proxymonitor.message.ObjectFactory;
 import ee.ria.xroad.proxymonitor.message.StringMetricType;
 import ee.ria.xroad.proxymonitor.util.MonitorClient;
 
-import jakarta.servlet.http.HttpServletRequest;
 import jakarta.xml.bind.JAXBContext;
 import jakarta.xml.bind.JAXBException;
 import jakarta.xml.bind.Marshaller;
@@ -111,9 +111,8 @@ public class ProxyMonitorServiceHandlerImpl implements ServiceHandler {
     }
 
     @Override
-    public void startHandling(HttpServletRequest servletRequest,
-                              ProxyMessage proxyRequestMessage, HttpClient opMonitorClient,
-                              OpMonitoringData opMonitoringData) throws Exception {
+    public void startHandling(RequestWrapper servletRequest, ProxyMessage proxyRequestMessage,
+                              HttpClient opMonitorClient, OpMonitoringData opMonitoringData) throws Exception {
 
         // It's required that in case of proxy monitor service (where SOAP
         // message is not forwarded) the requestOutTs must be equal with the
@@ -218,12 +217,11 @@ public class ProxyMonitorServiceHandlerImpl implements ServiceHandler {
     }
 
     private static SoapMessageImpl createResponse(SoapMessageImpl requestMessage, Object response) throws Exception {
-        SoapMessageImpl responseMessage = SoapUtils.toResponse(requestMessage,
+        return SoapUtils.toResponse(requestMessage,
                 soap -> {
                     soap.getSOAPBody().removeContents();
                     marshal(response, soap.getSOAPBody());
                 });
-        return responseMessage;
     }
 
     private static void marshal(Object object, Node out) throws Exception {

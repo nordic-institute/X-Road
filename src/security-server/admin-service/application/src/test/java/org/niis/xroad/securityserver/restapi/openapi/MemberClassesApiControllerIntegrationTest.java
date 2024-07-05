@@ -97,7 +97,7 @@ public class MemberClassesApiControllerIntegrationTest extends AbstractApiContro
     }
 
     @Test
-    @WithMockUser(authorities = { "VIEW_MEMBER_CLASSES" })
+    @WithMockUser(authorities = {"VIEW_MEMBER_CLASSES"})
     public void getMemberClassesForInstance() {
         ResponseEntity<Set<String>> response =
                 memberClassesApiController.getMemberClassesForInstance(INSTANCE_A);
@@ -123,7 +123,7 @@ public class MemberClassesApiControllerIntegrationTest extends AbstractApiContro
     }
 
     @Test
-    @WithMockUser(authorities = { "VIEW_MEMBER_CLASSES" })
+    @WithMockUser(authorities = {"VIEW_MEMBER_CLASSES"})
     public void getMemberClasses() {
         ResponseEntity<Set<String>> response =
                 memberClassesApiController.getMemberClasses(true);

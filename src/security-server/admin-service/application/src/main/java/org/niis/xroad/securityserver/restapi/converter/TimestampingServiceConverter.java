@@ -40,20 +40,20 @@ import java.util.stream.Collectors;
 @Component
 public class TimestampingServiceConverter {
 
-    public TimestampingService convert(TspType tsp)  {
+    public TimestampingService convert(TspType tsp) {
         TimestampingService timestampingService = new TimestampingService();
         timestampingService.setUrl(tsp.getUrl());
         timestampingService.setName(tsp.getName());
         return timestampingService;
     }
 
-    public Set<TimestampingService> convert(Iterable<TspType> tsps)  {
+    public Set<TimestampingService> convert(Iterable<TspType> tsps) {
         return Streams.stream(tsps)
                 .map(this::convert)
                 .collect(Collectors.toSet());
     }
 
-    public TspType convert(TimestampingService timestampingService)  {
+    public TspType convert(TimestampingService timestampingService) {
         TspType tspType = new TspType();
         tspType.setUrl(timestampingService.getUrl());
         tspType.setName(timestampingService.getName());

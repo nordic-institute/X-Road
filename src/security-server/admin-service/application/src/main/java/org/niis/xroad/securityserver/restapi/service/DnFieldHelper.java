@@ -74,7 +74,7 @@ public class DnFieldHelper {
         Set<String> unprocessedParameters = new HashSet<>(dnParameters.keySet());
         List<DnFieldValue> dnValues = new ArrayList<>();
         // match all dn fields with either default values or actual parameters
-        for (DnFieldDescription description: profile.getSubjectFields()) {
+        for (DnFieldDescription description : profile.getSubjectFields()) {
             String fieldValue = null;
             boolean parameterIsMissing = StringUtils.isBlank(dnParameters.get(description.getId()));
             if (description.isRequired() && (!description.isReadOnly()) && parameterIsMissing) {
@@ -92,7 +92,7 @@ public class DnFieldHelper {
             throw new InvalidDnParameterException("extraneous parameters: " + unprocessedParameters);
         }
         // validate
-        for (DnFieldValue dnValue: dnValues) {
+        for (DnFieldValue dnValue : dnValues) {
             try {
                 profile.validateSubjectField(dnValue);
             } catch (Exception e) {
@@ -109,6 +109,7 @@ public class DnFieldHelper {
         public InvalidDnParameterException(Throwable t) {
             super(t, new ErrorDeviation(ERROR_INVALID_DN_PARAMETER));
         }
+
         public InvalidDnParameterException(String s) {
             super(s, new ErrorDeviation(ERROR_INVALID_DN_PARAMETER));
         }

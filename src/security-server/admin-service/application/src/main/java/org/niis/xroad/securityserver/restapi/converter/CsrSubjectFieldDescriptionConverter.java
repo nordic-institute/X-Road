@@ -72,6 +72,7 @@ public class CsrSubjectFieldDescriptionConverter {
                 .map(this::convert)
                 .collect(Collectors.toSet());
     }
+
     /**
      * convert an array of DnFieldDescriptions into a list of CsrSubjectFieldDescriptions
      * @param dnFieldDescriptions

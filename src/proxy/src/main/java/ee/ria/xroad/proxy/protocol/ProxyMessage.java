@@ -34,6 +34,7 @@ import ee.ria.xroad.common.message.SoapMessageImpl;
 import ee.ria.xroad.common.signature.SignatureData;
 import ee.ria.xroad.common.util.CacheInputStream;
 import ee.ria.xroad.common.util.CachingStream;
+import ee.ria.xroad.common.util.HeaderValueUtils;
 import ee.ria.xroad.common.util.MimeTypes;
 import ee.ria.xroad.common.util.MimeUtils;
 import ee.ria.xroad.common.util.MultipartEncoder;
@@ -87,7 +88,7 @@ public class ProxyMessage implements ProxyMessageConsumer {
      */
     public ProxyMessage(String originalContentType) {
         this.originalContentType = originalContentType;
-        this.originalMimeBoundary = MimeUtils.getBoundary(originalContentType);
+        this.originalMimeBoundary = HeaderValueUtils.getBoundary(originalContentType);
     }
 
     /**
@@ -262,6 +263,7 @@ public class ProxyMessage implements ProxyMessageConsumer {
     public boolean hasRestBody() {
         return attachmentCache != null && (restMessage != null || restResponse != null);
     }
+
     /**
      * Get rest body as inputstream.
      */

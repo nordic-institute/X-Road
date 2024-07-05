@@ -25,8 +25,6 @@
  */
 package ee.ria.xroad.common.asic;
 
-import lombok.Data;
-
 import java.util.ArrayList;
 import java.util.List;
 
@@ -48,13 +46,13 @@ class AsicManifestBuilder {
     }
 
     String build() {
-        String sigRef = getSigReference(sigReference.getUri(), sigReference.getMimeType());
+        String sigRef = getSigReference(sigReference.uri(), sigReference.mimeType());
 
         StringBuilder dataObjectRefs = new StringBuilder();
 
         for (UriWithMimeTypeAndDigestInfo u : dataObjectReferences) {
-            dataObjectRefs.append(getDataObjectReference(u.getUri(), u.getMimeType(), u.getDigestMethod(),
-                    u.getDigestValue()));
+            dataObjectRefs.append(getDataObjectReference(u.uri(), u.mimeType(), u.digestMethod(),
+                    u.digestValue()));
         }
 
         return getBaseDocument(sigRef, dataObjectRefs.toString());
@@ -81,17 +79,11 @@ class AsicManifestBuilder {
                 + "</asic:ASiCManifest>";
     }
 
-    @Data
-    private static class UriWithMimeType {
-        private final String uri;
-        private final String mimeType;
+
+    private record UriWithMimeType(String uri, String mimeType) {
     }
 
-    @Data
-    private static class UriWithMimeTypeAndDigestInfo {
-        private final String uri;
-        private final String mimeType;
-        private final String digestMethod;
-        private final String digestValue;
+
+    private record UriWithMimeTypeAndDigestInfo(String uri, String mimeType, String digestMethod, String digestValue) {
     }
 }

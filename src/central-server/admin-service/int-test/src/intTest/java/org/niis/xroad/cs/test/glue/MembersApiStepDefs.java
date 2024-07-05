@@ -49,6 +49,7 @@ import static org.junit.Assert.fail;
 import static org.niis.xroad.cs.openapi.model.XRoadIdDto.TypeEnum.MEMBER;
 import static org.springframework.http.HttpStatus.CONFLICT;
 import static org.springframework.http.HttpStatus.CREATED;
+import static org.springframework.http.HttpStatus.NOT_FOUND;
 import static org.springframework.http.HttpStatus.NO_CONTENT;
 import static org.springframework.http.HttpStatus.OK;
 
@@ -215,6 +216,18 @@ public class MembersApiStepDefs extends BaseStepDefs {
                 .assertion(equalsStatusCodeAssertion(OK))
                 .assertion(equalsAssertion(1, "body.?[serverId.encodedId=='" + serverId + "'].size()"))
                 .execute();
+    }
+
+    @Step("member {string} does not exist")
+    public void memberDoesntExist(String memberId) {
+        try {
+            membersApi.getMember(memberId);
+            fail("should fail");
+        } catch (FeignException exception) {
+            validate(exception)
+                    .assertion(equalsAssertion(NOT_FOUND.value(), "status"))
+                    .execute();
+        }
     }
 
     @Step("Owned servers list for not existing member should be empty")

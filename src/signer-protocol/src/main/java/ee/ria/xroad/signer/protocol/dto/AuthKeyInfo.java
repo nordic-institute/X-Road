@@ -34,7 +34,7 @@ import java.io.Serializable;
  * Authentication key info DTO.
  */
 @Value
-@ToString(exclude = { "password" })
+@ToString(exclude = {"password"})
 public class AuthKeyInfo implements Serializable {
 
     private final String alias;

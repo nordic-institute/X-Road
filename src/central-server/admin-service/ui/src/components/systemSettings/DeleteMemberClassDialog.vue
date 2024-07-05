@@ -27,17 +27,16 @@
 <template>
   <xrd-confirm-dialog
     data-test="system-settings-member-class-delete-confirm-dialog"
-    :loading="deleting"
     title="action.confirm"
     text="systemSettings.deleteMemberClass"
+    focus-on-accept
+    :loading="deleting"
     @cancel="cancelDelete"
     @accept="acceptDelete"
   />
 </template>
 <script lang="ts">
 import { defineComponent, PropType } from 'vue';
-import { useForm } from 'vee-validate';
-import { Event } from '@/ui-types';
 import { MemberClass } from '@/openapi-types';
 import { mapStores } from 'pinia';
 import { useMemberClass } from '@/store/modules/member-class';
@@ -50,23 +49,7 @@ export default defineComponent({
       required: true,
     },
   },
-  emits: [Event.Cancel, Event.Delete],
-  setup(props) {
-    const { meta, values, errors, setFieldError, defineComponentBinds } =
-      useForm({
-        validationSchema: {
-          code: 'required|min:1|max:255',
-          description: 'required|min:1',
-        },
-        initialValues: {
-          code: props.memberClass?.code || '',
-          description: props.memberClass?.description || '',
-        },
-      });
-    const classCode = defineComponentBinds('code');
-    const classDescription = defineComponentBinds('description');
-    return { meta, values, errors, setFieldError, classCode, classDescription };
-  },
+  emits: ['cancel', 'delete'],
   data() {
     return {
       deleting: false,
@@ -77,7 +60,7 @@ export default defineComponent({
   },
   methods: {
     cancelDelete() {
-      this.$emit(Event.Cancel);
+      this.$emit('cancel');
     },
     async acceptDelete() {
       this.deleting = true;
@@ -86,10 +69,10 @@ export default defineComponent({
         this.notificationsStore.showSuccess(
           this.$t('systemSettings.memberClassDeleted'),
         );
-        this.$emit(Event.Delete);
+        this.$emit('delete');
       } catch (error: unknown) {
         this.notificationsStore.showError(error);
-        this.$emit(Event.Cancel);
+        this.$emit('cancel');
       }
       this.deleting = false;
     },

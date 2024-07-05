@@ -26,10 +26,11 @@
  -->
 <template>
   <xrd-simple-dialog
-    :disable-save="!formReady"
+    :disable-save="!meta.valid"
     :loading="loading"
     cancel-button-text="action.cancel"
     title="members.member.subsystems.addClient"
+    submittable
     @cancel="cancel"
     @save="add"
   >
@@ -37,6 +38,7 @@
       <div class="dlg-input-width">
         <v-text-field
           v-model="subsystemCode"
+          v-bind="subsystemCodeAttrs"
           :label="$t('members.member.subsystems.subsystemcode')"
           variant="outlined"
           autofocus
@@ -47,74 +49,65 @@
   </xrd-simple-dialog>
 </template>
 
-<script lang="ts">
-import { defineComponent, PropType } from 'vue';
-import { mapActions, mapState, mapStores } from 'pinia';
+<script lang="ts" setup>
+import { PropType, ref } from 'vue';
 import { ClientId } from '@/openapi-types';
-import { useClient } from '@/store/modules/clients';
-import { useMember } from '@/store/modules/members';
-import { useSystem } from '@/store/modules/system';
 import { useNotifications } from '@/store/modules/notifications';
 import { useSubsystem } from '@/store/modules/subsystems';
+import { useForm } from 'vee-validate';
+import { i18n } from '@/plugins/i18n';
 
-export default defineComponent({
-  name: 'AddMemberSubsystemDialog',
-  props: {
-    member: {
-      type: Object as PropType<{ client_id: ClientId }>,
-      required: true,
-    },
+const props = defineProps({
+  member: {
+    type: Object as PropType<{ client_id: ClientId }>,
+    required: true,
   },
-  emits: ['cancel', 'added-subsystem'],
-  data() {
-    return {
-      loading: false,
-      subsystemCode: '',
-    };
-  },
-  computed: {
-    ...mapStores(useClient, useMember, useSubsystem),
-    ...mapState(useSystem, ['getSystemStatus']),
-    formReady(): boolean {
-      return !!this.subsystemCode;
+});
+
+const emits = defineEmits(['save', 'cancel']);
+
+const { defineField, meta, handleSubmit, resetForm } = useForm({
+  validationSchema: { subsystemCode: 'required' },
+  initialValues: { subsystemCode: '' },
+});
+
+const { addSubsystem } = useSubsystem();
+const { showError, showSuccess } = useNotifications();
+
+const [subsystemCode, subsystemCodeAttrs] = defineField('subsystemCode', {
+  props: (state) => ({ 'error-messages': state.errors }),
+});
+
+const loading = ref(false);
+
+function cancel() {
+  emits('cancel');
+  resetForm();
+}
+
+const { t } = i18n.global;
+const add = handleSubmit((values) => {
+  loading.value = true;
+  addSubsystem({
+    subsystem_id: {
+      member_class: props.member.client_id.member_class,
+      member_code: props.member.client_id.member_code,
+      subsystem_code: values.subsystemCode,
     },
-  },
-  methods: {
-    ...mapActions(useNotifications, ['showError', 'showSuccess']),
-    cancel(): void {
-      this.$emit('cancel');
-      this.clearForm();
-    },
-    clearForm(): void {
-      this.subsystemCode = '';
-    },
-    add(): void {
-      this.loading = true;
-      this.subsystemStore
-        .addSubsystem({
-          subsystem_id: {
-            member_class: this.member.client_id.member_class,
-            member_code: this.member.client_id.member_code,
-            subsystem_code: this.subsystemCode,
-          },
-        })
-        .then(() => {
-          this.showSuccess(
-            this.$t('members.member.subsystems.subsystemSuccessfullyAdded', {
-              subsystemCode: this.subsystemCode,
-            }),
-          );
-          this.$emit('added-subsystem');
-          this.clearForm();
-        })
-        .catch((error) => {
-          this.showError(error);
-          this.$emit('cancel');
-        })
-        .finally(() => {
-          this.loading = false;
-        });
-    },
-  },
+  })
+    .then(() => {
+      showSuccess(
+        t('members.member.subsystems.subsystemSuccessfullyAdded', {
+          subsystemCode: values.subsystemCode,
+        }),
+      );
+      emits('save');
+      resetForm();
+    })
+    .catch((error) => {
+      showError(error);
+      emits('cancel');
+    })
+    .finally(() => (loading.value = false));
 });
 </script>

@@ -68,21 +68,21 @@ public class HealthDataMetricsUtilTest {
 
         jmxKey = getLastRequestTimestampGaugeName(serviceId, false);
         assertEquals(jmxKey, "lastUnsuccessfulRequestTimestamp("
-                    + serviceId.toShortString() + ")");
+                + serviceId.toShortString() + ")");
 
         regex = HealthDataMetricsUtil.formatMetricMatchRegexp(jmxKey);
         assertTrue(jmxKey.matches(regex));
 
         jmxKey = getRequestCounterName(serviceId, true);
         assertEquals(jmxKey, "successfulRequestCount("
-                        + serviceId.toShortString() + ")");
+                + serviceId.toShortString() + ")");
 
         regex = HealthDataMetricsUtil.formatMetricMatchRegexp(jmxKey);
         assertTrue(jmxKey.matches(regex));
 
         jmxKey = getRequestCounterName(serviceId, false);
         assertEquals(jmxKey, "unsuccessfulRequestCount("
-                        + serviceId.toShortString() + ")");
+                + serviceId.toShortString() + ")");
 
         regex = HealthDataMetricsUtil.formatMetricMatchRegexp(jmxKey);
         assertTrue(jmxKey.matches(regex));
@@ -108,10 +108,10 @@ public class HealthDataMetricsUtilTest {
         String escapedId = HealthDataMetricsUtil.escapeServiceId(serviceId);
         String expectedServiceId =
                 "EE&#47;with&#47;slashes/GOV&#47;with&#47;slashes/"
-                + "testmember&#47;with&#47;slashes"
-                + "/testsub&#47;with&#47;slashes"
-                + "/testservice&#47;with&#47;slashes"
-                + "/v1&#47;with&#47;slashes";
+                        + "testmember&#47;with&#47;slashes"
+                        + "/testsub&#47;with&#47;slashes"
+                        + "/testservice&#47;with&#47;slashes"
+                        + "/v1&#47;with&#47;slashes";
         assertEquals(expectedServiceId, escapedId);
         System.out.println(escapedId);
 

@@ -135,7 +135,7 @@ public class GlobalConfFacade {
      * @throws Exception
      */
     public ClientId.Conf getSubjectName(SignCertificateProfileInfoParameters signCertificateProfileInfoParameters,
-            X509Certificate cert) throws Exception {
+                                        X509Certificate cert) throws Exception {
         return GlobalConf.getSubjectName(signCertificateProfileInfoParameters, cert);
     }
 
@@ -192,7 +192,7 @@ public class GlobalConfFacade {
      * {@link GlobalConf#isSecurityServerClient(ClientId, SecurityServerId)}}
      */
     public boolean isSecurityServerClient(ClientId client,
-            SecurityServerId securityServer) {
+                                          SecurityServerId securityServer) {
         return GlobalConf.isSecurityServerClient(client, securityServer);
     }
 

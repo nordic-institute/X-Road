@@ -1,6 +1,8 @@
 dependencies {
     implementation(project(':proxy'))
-    implementation(project(':common:common-util'))
+    implementation(project(':common:common-jetty'))
+    implementation(project(':common:common-globalconf'))
+    implementation(project(':common:common-scheduler'))
     implementation(project(':serverconf'))
     implementation(project(':common:common-messagelog'))
     implementation(project(':common:common-op-monitoring'))
@@ -10,8 +12,8 @@ dependencies {
 
     testImplementation project(':common:common-test')
     testImplementation project(':addons:messagelog:messagelog-archiver')
-    testImplementation "org.hsqldb:hsqldb:$hsqldbVersion"
-    testImplementation "org.bouncycastle:bcpg-jdk15on:${bouncyCastleVersion}"
+    testImplementation libs.hsqldb
+    testImplementation libs.bouncyCastle.bcpg
 }
 
 jar {
@@ -19,9 +21,9 @@ jar {
     from project(':addons:messagelog:messagelog-db').sourceSets.main.output
 }
 
-task copyGpg(type: Copy) {
+tasks.register('copyGpg', Copy) {
     from 'src/test/gpg'
-    into "${buildDir}/gpg"
+    into layout.buildDirectory.dir("gpg")
 }
 
 test.dependsOn copyGpg

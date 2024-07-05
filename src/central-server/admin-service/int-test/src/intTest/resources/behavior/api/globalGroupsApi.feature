@@ -48,8 +48,13 @@ Feature: Global groups API
     And new member 'CS:TEST:m-1' is added
     And new member 'CS:E2E:m-2' is added
     And Authentication header is set to MANAGEMENT_SERVICE
-    And new security server 'CS:E2E:m-2:SS-1' authentication certificate registered with origin 'SECURITY_SERVER' and approved
-    And new security server 'CS:TEST:m-1:SS-2' authentication certificate registered with origin 'SECURITY_SERVER' and approved
+    And new security server 'CS:E2E:m-2:SS-1' authentication certificate registered with origin 'SECURITY_SERVER'
+    And Authentication header is set to REGISTRATION_OFFICER
+    And management request is approved
+    And Authentication header is set to MANAGEMENT_SERVICE
+    And new security server 'CS:TEST:m-1:SS-2' authentication certificate registered with origin 'SECURITY_SERVER'
+    And Authentication header is set to REGISTRATION_OFFICER
+    And management request is approved
     Then global group 'security-server-owners' has filter model as follows
       | $instances     | CS       |
       | $memberClasses | E2E,TEST |
@@ -65,12 +70,25 @@ Feature: Global groups API
     And new member 'CS:E2E:m-2' is added
     And new member 'CS:TEST:m-3' is added
     And Authentication header is set to MANAGEMENT_SERVICE
-    And new security server 'CS:E2E:m-2:SS-1' authentication certificate registered with origin 'SECURITY_SERVER' and approved
-    And new security server 'CS:E2E:m-2:SS-2' authentication certificate registered with origin 'SECURITY_SERVER' and approved
-    And new security server 'CS:TEST:m-1:SS-3' authentication certificate registered with origin 'SECURITY_SERVER' and approved
-    And new security server 'CS:TEST:m-3:SS-4' authentication certificate registered with origin 'SECURITY_SERVER' and approved
-    And new security server 'CS:TEST:m-1:SS-5' authentication certificate registered with origin 'SECURITY_SERVER' and approved
+    And new security server 'CS:E2E:m-2:SS-1' authentication certificate registered with origin 'SECURITY_SERVER'
     And Authentication header is set to REGISTRATION_OFFICER
+    And management request is approved
+    And Authentication header is set to MANAGEMENT_SERVICE
+    And new security server 'CS:E2E:m-2:SS-2' authentication certificate registered with origin 'SECURITY_SERVER'
+    And Authentication header is set to REGISTRATION_OFFICER
+    And management request is approved
+    And Authentication header is set to MANAGEMENT_SERVICE
+    And new security server 'CS:TEST:m-1:SS-3' authentication certificate registered with origin 'SECURITY_SERVER'
+    And Authentication header is set to REGISTRATION_OFFICER
+    And management request is approved
+    And Authentication header is set to MANAGEMENT_SERVICE
+    And new security server 'CS:TEST:m-3:SS-4' authentication certificate registered with origin 'SECURITY_SERVER'
+    And Authentication header is set to REGISTRATION_OFFICER
+    And management request is approved
+    And Authentication header is set to MANAGEMENT_SERVICE
+    And new security server 'CS:TEST:m-1:SS-5' authentication certificate registered with origin 'SECURITY_SERVER'
+    And Authentication header is set to REGISTRATION_OFFICER
+    And management request is approved
     Then global group 'security-server-owners' members list is queried and validated using params
       | $q   | $sortBy    | $desc | $types           | $instance | $class | $codes      | $subsystems | $pageSize | $page | $itemsInPage | $total | $sortFieldExp |
       |      |            |       |                  |           |        |             |             | 2         | 1     | 2            | 3      |               |
@@ -199,7 +217,9 @@ Feature: Global groups API
     And Authentication header is set to REGISTRATION_OFFICER
     And new member 'CS:E2E:m-2' is added
     And Authentication header is set to MANAGEMENT_SERVICE
-    And new security server 'CS:E2E:m-2:SS-1' authentication certificate registered with origin 'SECURITY_SERVER' and approved
+    And new security server 'CS:E2E:m-2:SS-1' authentication certificate registered with origin 'SECURITY_SERVER'
+    And Authentication header is set to REGISTRATION_OFFICER
+    And management request is approved
     When global group "security-server-owners" member 'CS:E2E:m-2' is deleted
     Then Response is of status code 400 and error code 'owners_global_group_member_cannot_be_deleted'
 

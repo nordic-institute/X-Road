@@ -59,6 +59,7 @@ import ee.ria.xroad.common.util.UriUtils;
 import jakarta.persistence.criteria.CriteriaBuilder;
 import jakarta.persistence.criteria.CriteriaQuery;
 import jakarta.persistence.criteria.Join;
+import jakarta.persistence.criteria.Predicate;
 import jakarta.persistence.criteria.Root;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.ObjectUtils;
@@ -68,6 +69,7 @@ import org.hibernate.SharedSessionContract;
 
 import java.net.URI;
 import java.security.cert.X509Certificate;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;
@@ -217,7 +219,7 @@ public class ServerConfImpl implements ServerConfProvider {
 
     @Override
     public List<ServiceId.Conf> getAllowedServicesByDescriptionType(ClientId serviceProvider, ClientId client,
-            DescriptionType descriptionType) {
+                                                                    DescriptionType descriptionType) {
         return tx(session -> {
             List<ServiceId.Conf> allServices =
                     serviceDao.getServicesByDescriptionType(session, serviceProvider, descriptionType);
@@ -393,7 +395,7 @@ public class ServerConfImpl implements ServerConfProvider {
     }
 
     private boolean internalIsQueryAllowed(Session session, ClientId client, ServiceId service, String method,
-            String path) {
+                                           String path) {
 
         if (client == null) {
             return false;
@@ -441,12 +443,17 @@ public class ServerConfImpl implements ServerConfProvider {
         final Join<AccessRightType, XRoadId> identifier = acl.join("subjectId");
         acl.fetch("endpoint");
 
+        var orPredicates = new ArrayList<Predicate>();
+        if (localClientId != null) {
+            orPredicates.add(cb.equal(identifier, localClientId));
+        }
+        orPredicates.add(cb.equal(identifier.get("type"), XRoadObjectType.GLOBALGROUP));
+        orPredicates.add(cb.equal(identifier.get("type"), XRoadObjectType.LOCALGROUP));
+
         query.select(acl).where(cb.and(
                         cb.equal(root, serviceOwner),
                         cb.equal(endpoint.get("serviceCode"), service.getServiceCode())),
-                cb.or(cb.equal(identifier, localClientId),
-                        cb.equal(identifier.get("type"), XRoadObjectType.GLOBALGROUP),
-                        cb.equal(identifier.get("type"), XRoadObjectType.LOCALGROUP)));
+                cb.or(orPredicates.toArray(new Predicate[0])));
 
         return session.createQuery(query).setReadOnly(true).list().stream()
                 .filter(it -> subjectMatches(serviceOwner, it.getSubjectId(), client))

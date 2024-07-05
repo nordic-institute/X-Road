@@ -1,17 +1,18 @@
-task copyGpg(type: Copy) {
+dependencies {
+    implementation project(':common:common-message')
+    implementation project(':common:common-scheduler')
+    implementation project(':common:common-globalconf')
+    implementation project(':common:common-verifier')
+    implementation project(':asic-util')
+
+    testImplementation project(':common:common-test')
+    testImplementation libs.bouncyCastle.bcpg
+    testImplementation libs.mockito.core
+}
+
+tasks.register('copyGpg', Copy) {
     from 'src/test/gpg'
     into "build/gpg"
 }
 
 test.dependsOn copyGpg
-
-dependencies {
-    implementation project(':common:common-util')
-    implementation project(':common:common-verifier')
-    implementation project(':asic-util')
-
-    testImplementation "org.bouncycastle:bcpg-jdk15on:${bouncyCastleVersion}"
-    testImplementation project(':common:common-test')
-    testImplementation "org.mockito:mockito-core:$mockitoVersion"
-}
-

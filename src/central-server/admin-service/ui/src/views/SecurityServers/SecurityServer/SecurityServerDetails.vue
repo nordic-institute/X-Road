@@ -113,7 +113,7 @@
       :address="address"
       :security-server-id="serverId"
       @cancel="showEditAddressDialog = false"
-      @address-updated="showEditAddressDialog = false"
+      @save="showEditAddressDialog = false"
     />
   </div>
 </template>

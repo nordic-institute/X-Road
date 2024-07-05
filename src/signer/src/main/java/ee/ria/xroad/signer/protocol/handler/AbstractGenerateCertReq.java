@@ -29,14 +29,21 @@ import ee.ria.xroad.common.CodedException;
 import ee.ria.xroad.common.SystemProperties;
 import ee.ria.xroad.common.util.CryptoUtils;
 import ee.ria.xroad.signer.protocol.AbstractRpcHandler;
+import ee.ria.xroad.signer.protocol.dto.KeyUsageInfo;
 import ee.ria.xroad.signer.tokenmanager.token.TokenWorkerProvider;
 import ee.ria.xroad.signer.util.TokenAndKey;
 
 import com.google.protobuf.AbstractMessage;
 import com.google.protobuf.ByteString;
 import lombok.extern.slf4j.Slf4j;
+import org.bouncycastle.asn1.pkcs.PKCSObjectIdentifiers;
 import org.bouncycastle.asn1.x500.X500Name;
 import org.bouncycastle.asn1.x509.AlgorithmIdentifier;
+import org.bouncycastle.asn1.x509.Extension;
+import org.bouncycastle.asn1.x509.ExtensionsGenerator;
+import org.bouncycastle.asn1.x509.GeneralName;
+import org.bouncycastle.asn1.x509.GeneralNames;
+import org.bouncycastle.asn1.x509.KeyUsage;
 import org.bouncycastle.openssl.PEMWriter;
 import org.bouncycastle.operator.ContentSigner;
 import org.bouncycastle.operator.DefaultSignatureAlgorithmIdentifierFinder;
@@ -69,8 +76,8 @@ import static ee.ria.xroad.signer.util.ExceptionHelper.tokenNotFound;
 public abstract class AbstractGenerateCertReq<ReqT extends AbstractMessage,
         RespT extends AbstractMessage> extends AbstractRpcHandler<ReqT, RespT> {
 
-    PKCS10CertificationRequest buildSignedCertRequest(TokenAndKey tokenAndKey, String subjectName)
-            throws Exception {
+    PKCS10CertificationRequest buildSignedCertRequest(TokenAndKey tokenAndKey, String subjectName,
+                                                      String subjectAltName, KeyUsageInfo keyUsage) throws Exception {
 
         if (tokenAndKey.getKey().getPublicKey() == null) {
             throw new CodedException(X_INTERNAL_ERROR, "Key '%s' has no public key", tokenAndKey.getKeyId());
@@ -80,6 +87,25 @@ public abstract class AbstractGenerateCertReq<ReqT extends AbstractMessage,
 
         JcaPKCS10CertificationRequestBuilder certRequestBuilder = new JcaPKCS10CertificationRequestBuilder(
                 new X500Name(subjectName), publicKey);
+
+        ExtensionsGenerator extGen = new ExtensionsGenerator();
+        // Add subject alternative name (SAN) extension if subjectAltName is not null or empty
+        if (subjectAltName != null && !subjectAltName.isEmpty()) {
+            GeneralName subjectAlternativeName = new GeneralName(GeneralName.dNSName, subjectAltName);
+            GeneralNames subjectAltNames = new GeneralNames(subjectAlternativeName);
+            extGen.addExtension(Extension.subjectAlternativeName, false, subjectAltNames.toASN1Primitive());
+        }
+        if (KeyUsageInfo.SIGNING.equals(keyUsage)) {
+            extGen.addExtension(Extension.keyUsage, false, new KeyUsage(KeyUsage.nonRepudiation | KeyUsage.keyCertSign));
+        }
+        if (KeyUsageInfo.AUTHENTICATION.equals(keyUsage)) {
+            extGen.addExtension(Extension.keyUsage,
+                    false,
+                    new KeyUsage(KeyUsage.digitalSignature | KeyUsage.dataEncipherment | KeyUsage.keyEncipherment));
+        }
+        if (!extGen.isEmpty()) {
+            certRequestBuilder.addAttribute(PKCSObjectIdentifiers.pkcs_9_at_extensionRequest, extGen.generate());
+        }
 
         ContentSigner signer = new TokenContentSigner(tokenWorkerProvider, tokenAndKey);
 

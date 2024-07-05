@@ -71,7 +71,7 @@ class TestLogManager extends LogManager {
      */
     @Override
     protected Duration getTimestamperJobInitialDelay() {
-        return Duration.of(1,  ChronoUnit.MINUTES);
+        return Duration.of(1, ChronoUnit.MINUTES);
     }
 
     @Override

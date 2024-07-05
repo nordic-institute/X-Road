@@ -28,6 +28,7 @@
   <xrd-confirm-dialog
     title="members.member.subsystems.deleteSubsystem"
     accept-button-text="action.delete"
+    focus-on-accept
     @cancel="cancel"
     @accept="deleteSubsystem"
   >
@@ -59,7 +60,6 @@ import { useNotifications } from '@/store/modules/notifications';
 import { useSubsystem } from '@/store/modules/subsystems';
 import { ClientId } from '@/openapi-types';
 import { toIdentifier, toShortMemberId } from '@/util/helpers';
-import { Event } from '@/ui-types';
 
 export default defineComponent({
   props: {
@@ -72,7 +72,7 @@ export default defineComponent({
       required: true,
     },
   },
-  emits: [Event.Cancel, Event.Delete],
+  emits: ['delete', 'cancel'],
   data() {
     return {
       loading: false,
@@ -88,7 +88,7 @@ export default defineComponent({
   methods: {
     ...mapActions(useNotifications, ['showError', 'showSuccess']),
     cancel(): void {
-      this.$emit(Event.Cancel);
+      this.$emit('cancel');
     },
     deleteSubsystem(): void {
       this.loading = true;
@@ -102,11 +102,11 @@ export default defineComponent({
               subsystemCode: this.subsystemCode,
             }),
           );
-          this.$emit(Event.Delete);
+          this.$emit('delete');
         })
         .catch((error) => {
           this.showError(error);
-          this.$emit(Event.Cancel);
+          this.$emit('cancel');
         })
         .finally(() => {
           this.loading = false;

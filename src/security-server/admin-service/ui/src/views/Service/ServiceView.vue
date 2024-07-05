@@ -38,11 +38,9 @@
       class="xrd-tabs"
       color="primary"
       slider-size="2"
+      slider-color="primary"
+      :show-arrows="true"
     >
-      <v-tabs-slider
-        color="primary"
-        class="xrd-sub-tabs-slider"
-      ></v-tabs-slider>
       <v-tab
         v-for="tab in tabs"
         :key="tab.key"

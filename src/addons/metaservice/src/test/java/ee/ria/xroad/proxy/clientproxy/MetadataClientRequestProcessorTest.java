@@ -30,16 +30,18 @@ import ee.ria.xroad.common.conf.globalconf.MemberInfo;
 import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.metadata.ClientListType;
 import ee.ria.xroad.common.metadata.ObjectFactory;
+import ee.ria.xroad.common.util.RequestWrapper;
+import ee.ria.xroad.common.util.ResponseWrapper;
 import ee.ria.xroad.proxy.conf.KeyConf;
 import ee.ria.xroad.proxy.testsuite.TestSuiteGlobalConf;
 import ee.ria.xroad.proxy.testsuite.TestSuiteKeyConf;
 import ee.ria.xroad.proxy.util.MetaserviceTestUtil;
 
-import jakarta.servlet.http.HttpServletRequest;
-import jakarta.servlet.http.HttpServletResponse;
 import jakarta.xml.bind.JAXBContext;
 import jakarta.xml.bind.JAXBException;
 import jakarta.xml.bind.Unmarshaller;
+import org.eclipse.jetty.http.HttpFields;
+import org.eclipse.jetty.http.HttpURI;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Rule;
@@ -47,18 +49,20 @@ import org.junit.Test;
 import org.junit.rules.ExpectedException;
 import org.mockito.ArgumentCaptor;
 
-import java.io.IOException;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.Enumeration;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
-import static ee.ria.xroad.common.metadata.MetadataRequests.LIST_CLIENTS;
+import static ee.ria.xroad.proxy.util.MetadataRequests.LIST_CLIENTS;
 import static ee.ria.xroad.proxy.util.MetaserviceTestUtil.xmlUtf8ContentTypes;
+import static java.nio.charset.StandardCharsets.UTF_8;
+import static net.javacrumbs.jsonunit.assertj.JsonAssertions.assertThatJson;
 import static org.hamcrest.Matchers.arrayContaining;
 import static org.hamcrest.Matchers.containsInAnyOrder;
-import static org.hamcrest.Matchers.isIn;
+import static org.hamcrest.Matchers.in;
 import static org.hamcrest.core.Is.is;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertThat;
@@ -74,15 +78,14 @@ public class MetadataClientRequestProcessorTest {
 
     private static final String EXPECTED_XR_INSTANCE = "EE";
 
-
     private static Unmarshaller unmarshaller;
 
     @Rule
     public ExpectedException thrown = ExpectedException.none();
 
-    private HttpServletRequest mockRequest;
-    private HttpServletRequest mockJsonRequest;
-    private HttpServletResponse mockResponse;
+    private RequestWrapper mockRequest;
+    private RequestWrapper mockJsonRequest;
+    private ResponseWrapper mockResponse;
     private MetaserviceTestUtil.StubServletOutputStream mockServletOutputStream;
 
 
@@ -98,18 +101,21 @@ public class MetadataClientRequestProcessorTest {
      * Init data for tests
      */
     @Before
-    public void init() throws IOException {
+    public void init() {
 
         GlobalConf.reload(new TestSuiteGlobalConf());
         KeyConf.reload(new TestSuiteKeyConf());
 
-        mockRequest = mock(HttpServletRequest.class);
-        mockJsonRequest = mock(HttpServletRequest.class);
-        mockResponse = mock(HttpServletResponse.class);
+        mockRequest = mock(RequestWrapper.class);
+        mockJsonRequest = mock(RequestWrapper.class);
+        mockResponse = mock(ResponseWrapper.class);
         mockServletOutputStream = new MetaserviceTestUtil.StubServletOutputStream();
-        when(mockResponse.getOutputStream()).thenReturn(mockServletOutputStream);
-        when(mockJsonRequest.getHeaders("Accept"))
-                .thenReturn(Collections.enumeration(Arrays.asList("application/json")));
+        var mockHeaders = mock(HttpFields.class);
+        var mockHttpUri = mock(HttpURI.class);
+        when(mockJsonRequest.getHeaders()).thenReturn(mockHeaders);
+        when(mockJsonRequest.getHttpURI()).thenReturn(mockHttpUri);
+        when(mockHeaders.getValues("Accept"))
+                .thenReturn(Collections.enumeration(List.of("application/json")));
     }
 
 
@@ -145,22 +151,28 @@ public class MetadataClientRequestProcessorTest {
 
             @Override
             public List<MemberInfo> getMembers(String... instanceIdentifier) {
-                String[] instances = instanceIdentifier;
-                assertThat("Wrong Xroad instance in query", instances, arrayContaining(EXPECTED_XR_INSTANCE));
+                assertThat("Wrong Xroad instance in query", instanceIdentifier, arrayContaining(EXPECTED_XR_INSTANCE));
                 return expectedMembers;
             }
 
         });
 
+        var mockHeaders = mock(HttpFields.class);
+        var mockHttpUri = mock(HttpURI.class);
+        when(mockRequest.getHeaders()).thenReturn(mockHeaders);
+        when(mockRequest.getHttpURI()).thenReturn(mockHttpUri);
+
         MetadataClientRequestProcessor processorToTest =
                 new MetadataClientRequestProcessor(LIST_CLIENTS, mockRequest, mockResponse);
 
+        when(mockRequest.getParametersMap()).thenReturn(Map.of());
+        when(mockResponse.getOutputStream()).thenReturn(mockServletOutputStream);
         processorToTest.process();
 
         assertContentTypeIsIn(xmlUtf8ContentTypes());
 
         List<MemberInfo> members = unmarshaller.unmarshal(
-                mockServletOutputStream.getResponseSource(), ClientListType.class)
+                        mockServletOutputStream.getResponseSource(), ClientListType.class)
                 .getValue()
                 .getMember()
                 .stream()
@@ -185,8 +197,7 @@ public class MetadataClientRequestProcessorTest {
         GlobalConf.reload(new TestSuiteGlobalConf() {
             @Override
             public List<MemberInfo> getMembers(String... instanceIdentifier) {
-                String[] instances = instanceIdentifier;
-                assertThat("Wrong Xroad instance in query", instances, arrayContaining(EXPECTED_XR_INSTANCE));
+                assertThat("Wrong Xroad instance in query", instanceIdentifier, arrayContaining(EXPECTED_XR_INSTANCE));
                 return expectedMembers;
             }
         });
@@ -194,9 +205,38 @@ public class MetadataClientRequestProcessorTest {
         MetadataClientRequestProcessor processorToTest =
                 new MetadataClientRequestProcessor(LIST_CLIENTS, mockJsonRequest, mockResponse);
 
+        when(mockJsonRequest.getParametersMap()).thenReturn(Map.of());
+        when(mockResponse.getOutputStream()).thenReturn(mockServletOutputStream);
+
         processorToTest.process();
 
-        assertContentTypeIsIn(Arrays.asList("application/json; charset=utf-8"));
+        assertContentTypeIsIn(List.of("application/json; charset=utf-8"));
+
+        assertThatJson(new String(mockServletOutputStream.getAsBytes(), UTF_8))
+                .isEqualTo("""
+                        {
+                            "member": [
+                                {
+                                    "id": {
+                                        "member_class": "BUSINESS",
+                                        "member_code": "producer",
+                                        "object_type": "MEMBER",
+                                        "xroad_instance": "EE"
+                                    },
+                                    "name": "producer-name"
+                                },
+                                {
+                                    "id": {
+                                        "member_class": "BUSINESS",
+                                        "member_code": "producer",
+                                        "object_type": "SUBSYSTEM",
+                                        "subsystem_code": "subsystem",
+                                        "xroad_instance": "EE"
+                                    },
+                                    "name": "producer-name"
+                                }
+                            ]
+                        }""");
     }
 
     @Test
@@ -212,8 +252,8 @@ public class MetadataClientRequestProcessorTest {
         assertFalse(MetadataClientRequestProcessor.acceptsJson(Collections.emptyEnumeration()));
 
         assertFalse(MetadataClientRequestProcessor.acceptsJson(Collections.enumeration(Arrays.asList(
-                "x-this/that;q=1.0;param=value",
-                "text/xml, */*"
+                        "x-this/that;q=1.0;param=value",
+                        "text/xml, */*"
                 )))
         );
     }
@@ -224,7 +264,7 @@ public class MetadataClientRequestProcessorTest {
     private void assertContentTypeIsIn(List<String> allowedContentTypes) {
         ArgumentCaptor<String> contentTypeCaptor = ArgumentCaptor.forClass(String.class);
         verify(mockResponse).setContentType(contentTypeCaptor.capture());
-        assertThat("Wrong content type", contentTypeCaptor.getValue(), isIn(allowedContentTypes));
+        assertThat("Wrong content type", contentTypeCaptor.getValue(), is(in(allowedContentTypes)));
     }
 
     private static MemberInfo createMember(String member, String subsystem) {

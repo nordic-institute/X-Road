@@ -38,23 +38,23 @@
   </div>
 </template>
 
-<script lang="ts">
-
-import { defineComponent } from "vue";
-
-export default defineComponent({
-  props:{
-    title: {
-      type: String,
-      required: true,
-    },
-    showClose: {
-      type: Boolean,
-      default: true,
-    },
+<script lang="ts" setup>
+defineProps({
+  title: {
+    type: String,
+    required: true,
   },
-  emits:['close'],
+  showClose: {
+    type: Boolean,
+    default: true,
+  },
+  closeOnEscape: {
+    type: Boolean,
+    default: true,
+  },
 });
+
+defineEmits(['close']);
 </script>
 
 <style lang="scss" scoped>

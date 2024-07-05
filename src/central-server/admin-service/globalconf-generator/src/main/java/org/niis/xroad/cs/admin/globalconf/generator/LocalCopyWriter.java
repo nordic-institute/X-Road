@@ -89,10 +89,10 @@ class LocalCopyWriter {
 
     private String configurationMetadataJson() {
         return String.format("{\"contentIdentifier\":\"DUMMY\","
-                + "\"instanceIdentifier\":\"%s\",\"contentFileName\":null,"
-                + "\"contentLocation\":\"\","
-                + "\"expirationDate\":\"%s\","
-                + "\"configurationVersion\":\"%d\"}",
+                        + "\"instanceIdentifier\":\"%s\",\"contentFileName\":null,"
+                        + "\"contentLocation\":\"\","
+                        + "\"expirationDate\":\"%s\","
+                        + "\"configurationVersion\":\"%d\"}",
                 instanceIdentifier, EXPIRE_TIME_FORMAT.format(confExpireTime), configurationVersion);
     }
 

@@ -30,7 +30,7 @@
     <router-view name="top" />
     <v-row align="center" justify="center" style="margin-top: 0">
       <transition name="fade" mode="out-in">
-        <div class="base-full-width">
+        <div v-if="true" class="base-full-width">
           <router-view name="subTabs" />
           <div class="sticky">
             <router-view name="alerts" />
@@ -56,7 +56,9 @@
         }}</v-card-text>
         <v-card-actions class="xrd-card-actions">
           <v-spacer></v-spacer>
-          <xrd-button @click="logout()">{{ $t('action.ok') }}</xrd-button>
+          <xrd-button autofocus @click="logout()">{{
+            $t('action.ok')
+          }}</xrd-button>
         </v-card-actions>
       </v-card>
     </v-dialog>

@@ -123,7 +123,7 @@ public class SettingsTlsCertificatesStepDefs extends BaseUiStepDefs {
 
     @Step("dialog Generate CSR button is clicked")
     public void generateCsrIsClicked() {
-        final var file =  settingsTlsCertificatesPageObj.createCsrDialog.btnGenerateCsr().download();
+        final var file = settingsTlsCertificatesPageObj.createCsrDialog.btnGenerateCsr().download();
         scenarioContext.putStepData(DOWNLOADED_CSR, file);
     }
 

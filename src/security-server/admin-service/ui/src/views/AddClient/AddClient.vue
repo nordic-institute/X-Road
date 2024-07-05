@@ -150,13 +150,6 @@ import { AddMemberWizardModes, RouteName } from '@/global';
 import { useAddClient } from '@/store/modules/addClient';
 import { useNotifications } from '@/store/modules/notifications';
 import { useCsr } from '@/store/modules/certificateSignRequest';
-import {
-  VStepper,
-  VStepperHeader,
-  VStepperItem,
-  VStepperWindow,
-  VStepperWindowItem,
-} from 'vuetify/labs/VStepper';
 
 const NO_SELECTION = 999;
 
@@ -171,6 +164,7 @@ const {
   storeCsrClient,
   storeCsrIsNewMember,
   fetchCsrForm,
+  hasAcmeEabCredentials,
 } = useCsr();
 
 const currentStep = ref(1);
@@ -231,7 +225,8 @@ function csrDetailsReady(): void {
   storeCsrIsNewMember(true);
 
   fetchCsrForm()
-    .then(() => currentStep.value++)
+    .then(() => hasAcmeEabCredentials())
+    .finally(() => currentStep.value++)
     .catch((error) => showError(error));
 }
 

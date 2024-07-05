@@ -28,7 +28,7 @@ import { Client } from '@/openapi-types';
 import { createClientId, deepClone, Mutable } from '@/util/helpers';
 import { ExtendedClient } from '@/ui-types';
 import { ClientTypes } from '@/global';
-import i18n from '@/plugins/i18n';
+import { i18n } from '@/plugins/i18n';
 import { defineStore } from 'pinia';
 
 const UNKNOWN_NAME: string = i18n.global.t('client.unknownMember') as string;

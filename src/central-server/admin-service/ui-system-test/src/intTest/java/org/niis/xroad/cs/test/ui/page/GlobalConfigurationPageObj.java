@@ -145,6 +145,7 @@ public class GlobalConfigurationPageObj {
         public SelenideElement textContentIdentifier(String contentIdentifier) {
             return $x(format("//span[@data-test='configuration-part-%s']", contentIdentifier));
         }
+
         public SelenideElement textUpdatedAt(String contentIdentifier) {
             return $x(format("//span[@data-test='configuration-part-%s-updated-at']", contentIdentifier));
         }

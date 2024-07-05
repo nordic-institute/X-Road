@@ -30,10 +30,15 @@ Feature: Subsystems API
     And new subsystem 'CS:E2E:test-member:Subsystem-2' is added
     And Authentication header is set to MANAGEMENT_SERVICE
     And new security server 'CS:E2E:test-member:SS-X' authentication certificate registered with origin 'SECURITY_SERVER'
+    And Authentication header is set to REGISTRATION_OFFICER
     And management request is approved
+    And Authentication header is set to MANAGEMENT_SERVICE
     And client 'CS:E2E:test-member:Subsystem-1' is registered as security server 'CS:E2E:test-member:SS-X' client from 'SECURITY_SERVER'
+    And Authentication header is set to REGISTRATION_OFFICER
     And management request is approved
+    And Authentication header is set to MANAGEMENT_SERVICE
     And client 'CS:E2E:test-member:Subsystem-2' is registered as security server 'CS:E2E:test-member:SS-X' client from 'SECURITY_SERVER'
+    And Authentication header is set to REGISTRATION_OFFICER
     And management request is approved
     And security server 'CS:E2E:test-member:SS-X' clients contains 'CS:E2E:test-member:Subsystem-1'
     And security server 'CS:E2E:test-member:SS-X' clients contains 'CS:E2E:test-member:Subsystem-2'

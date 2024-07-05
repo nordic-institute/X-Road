@@ -87,7 +87,7 @@ public class ServiceDescriptionsApiControllerIntegrationTest extends AbstractApi
     }
 
     @Test
-    @WithMockUser(authorities = { "ENABLE_DISABLE_WSDL", "VIEW_CLIENT_SERVICES" })
+    @WithMockUser(authorities = {"ENABLE_DISABLE_WSDL", "VIEW_CLIENT_SERVICES"})
     public void enableServiceDescription() {
         // serviceDescription that was disabled
         serviceDescriptionsApiController.enableServiceDescription("2");
@@ -120,14 +120,14 @@ public class ServiceDescriptionsApiControllerIntegrationTest extends AbstractApi
     }
 
     private Optional<ServiceDescription> getServiceDescription(Set<ServiceDescription> serviceDescriptions,
-            String id) {
+                                                               String id) {
         return serviceDescriptions.stream()
                 .filter(serviceDescription -> serviceDescription.getId().equals(id))
                 .findFirst();
     }
 
     @Test
-    @WithMockUser(authorities = { "ENABLE_DISABLE_WSDL", "VIEW_CLIENT_SERVICES" })
+    @WithMockUser(authorities = {"ENABLE_DISABLE_WSDL", "VIEW_CLIENT_SERVICES"})
     public void disableServiceDescription() {
         // serviceDescription that was disabled
         serviceDescriptionsApiController.disableServiceDescription("2",
@@ -162,7 +162,7 @@ public class ServiceDescriptionsApiControllerIntegrationTest extends AbstractApi
     }
 
     @Test
-    @WithMockUser(authorities = { "VIEW_CLIENT_DETAILS", "DELETE_WSDL", "VIEW_CLIENT_SERVICES" })
+    @WithMockUser(authorities = {"VIEW_CLIENT_DETAILS", "DELETE_WSDL", "VIEW_CLIENT_SERVICES"})
     public void deleteServiceDescription() {
         Client client = clientsApiController.getClient(TestUtils.CLIENT_ID_SS1).getBody();
         assertNotNull(client);
@@ -175,7 +175,7 @@ public class ServiceDescriptionsApiControllerIntegrationTest extends AbstractApi
     }
 
     @Test
-    @WithMockUser(authorities = { "VIEW_CLIENT_DETAILS", "VIEW_CLIENT_SERVICES", "EDIT_WSDL" })
+    @WithMockUser(authorities = {"VIEW_CLIENT_DETAILS", "VIEW_CLIENT_SERVICES", "EDIT_WSDL"})
     public void updateServiceDescription() {
         Client client = clientsApiController.getClient(TestUtils.CLIENT_ID_SS1).getBody();
         assertNotNull(client);
@@ -217,7 +217,7 @@ public class ServiceDescriptionsApiControllerIntegrationTest extends AbstractApi
     }
 
     @Test
-    @WithMockUser(authorities = { "VIEW_CLIENT_SERVICES", "REFRESH_WSDL" })
+    @WithMockUser(authorities = {"VIEW_CLIENT_SERVICES", "REFRESH_WSDL"})
     public void refreshServiceDescription() {
         ServiceDescription serviceDescription = getServiceDescription(
                 clientsApiController.getClientServiceDescriptions(TestUtils.CLIENT_ID_SS2).getBody(), "3").get();
@@ -253,13 +253,13 @@ public class ServiceDescriptionsApiControllerIntegrationTest extends AbstractApi
     }
 
     @Test(expected = BadRequestException.class)
-    @WithMockUser(authorities = { "REFRESH_REST" })
+    @WithMockUser(authorities = {"REFRESH_REST"})
     public void refreshRestServiceDescriptionWithoutRights() {
         serviceDescriptionsApiController.refreshServiceDescription("6", new IgnoreWarnings().ignoreWarnings(false));
     }
 
     @Test
-    @WithMockUser(authorities = { "VIEW_CLIENT_SERVICES" })
+    @WithMockUser(authorities = {"VIEW_CLIENT_SERVICES"})
     public void getServiceDescription() {
         ResponseEntity<ServiceDescription> response =
                 serviceDescriptionsApiController.getServiceDescription("1");
@@ -289,7 +289,7 @@ public class ServiceDescriptionsApiControllerIntegrationTest extends AbstractApi
     }
 
     @Test
-    @WithMockUser(authorities = { "VIEW_CLIENT_SERVICES" })
+    @WithMockUser(authorities = {"VIEW_CLIENT_SERVICES"})
     public void getServiceDescriptionServices() {
         ResponseEntity<Set<Service>> response =
                 serviceDescriptionsApiController.getServiceDescriptionServices("1");

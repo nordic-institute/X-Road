@@ -54,7 +54,7 @@ public class MimeSoap extends MessageTestCase {
         if (!requestContentType.equalsIgnoreCase(
                 receivedRequest.getContentType())) {
             throw new Exception(String.format("Unexpected content type. "
-                    + "Expected '%s', but was '%s'",
+                            + "Expected '%s', but was '%s'",
                     requestContentType,
                     receivedRequest.getContentType()));
         }

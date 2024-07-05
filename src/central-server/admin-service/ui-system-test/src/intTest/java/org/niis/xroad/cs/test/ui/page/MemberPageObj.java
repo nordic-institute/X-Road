@@ -27,8 +27,10 @@
 package org.niis.xroad.cs.test.ui.page;
 
 import com.codeborne.selenide.SelenideElement;
+import org.niis.xroad.common.test.ui.utils.VuetifyHelper.Select;
 
 import static com.codeborne.selenide.Selenide.$x;
+import static org.niis.xroad.common.test.ui.utils.VuetifyHelper.vSelect;
 
 @SuppressWarnings("InnerClassMayBeStatic")
 public class MemberPageObj {
@@ -71,13 +73,8 @@ public class MemberPageObj {
             return $x("//div[@data-test='add-member-code-input']");
         }
 
-        public SelenideElement selectMemberClass() {
-            return $x("//div[@data-test='add-member-class-input']");
-        }
-
-        public SelenideElement selectMemberClassOption(String option) {
-            var xpath = "//div[@role='listbox']//div[contains(@class, 'v-list-item') and contains(./descendant-or-self::*/text(),'%s')]";
-            return $x(String.format(xpath, option));
+        public Select selectMemberClass() {
+            return vSelect($x("//div[@data-test='add-member-class-input']"));
         }
     }
 }

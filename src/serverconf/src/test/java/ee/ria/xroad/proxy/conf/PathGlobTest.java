@@ -49,7 +49,7 @@ public class PathGlobTest {
      */
     @Parameterized.Parameters(name = "{index}: <{0}> matches <{1}> is {2}")
     public static List<Object[]> params() {
-        return Arrays.asList(new Object[][] {
+        return Arrays.asList(new Object[][]{
                 {"**", "", true},
                 {"***", "match/anything/*", true},
                 {"**", "/a/b/c", true},

@@ -27,14 +27,15 @@ package ee.ria.xroad.proxy.clientproxy;
 
 import ee.ria.xroad.common.CodedException;
 import ee.ria.xroad.common.conf.globalconf.GlobalConf;
+import ee.ria.xroad.common.util.RequestWrapper;
+import ee.ria.xroad.common.util.ResponseWrapper;
 import ee.ria.xroad.proxy.conf.KeyConf;
 import ee.ria.xroad.proxy.testsuite.TestSuiteGlobalConf;
 import ee.ria.xroad.proxy.testsuite.TestSuiteKeyConf;
 import ee.ria.xroad.proxy.util.MessageProcessorBase;
 
-import jakarta.servlet.http.HttpServletRequest;
-import jakarta.servlet.http.HttpServletResponse;
 import org.apache.http.client.HttpClient;
+import org.eclipse.jetty.http.HttpURI;
 import org.hamcrest.CoreMatchers;
 import org.junit.Before;
 import org.junit.Rule;
@@ -42,7 +43,6 @@ import org.junit.Test;
 import org.junit.rules.ExpectedException;
 
 import static ee.ria.xroad.common.ErrorCodes.X_INVALID_REQUEST;
-import static ee.ria.xroad.common.metadata.MetadataRequests.LIST_CLIENTS;
 import static org.hamcrest.CoreMatchers.instanceOf;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.Matchers.hasProperty;
@@ -61,8 +61,9 @@ public class MetadataHandlerTest {
     public ExpectedException thrown = ExpectedException.none();
 
     private HttpClient httpClientMock;
-    private HttpServletRequest mockRequest;
-    private HttpServletResponse mockResponse;
+    private RequestWrapper mockRequest;
+    private HttpURI mockHttpUri;
+    private ResponseWrapper mockResponse;
 
 
     /**
@@ -74,8 +75,12 @@ public class MetadataHandlerTest {
         KeyConf.reload(new TestSuiteKeyConf());
 
         httpClientMock = mock(HttpClient.class);
-        mockRequest = mock(HttpServletRequest.class);
-        mockResponse = mock(HttpServletResponse.class);
+        mockRequest = mock(RequestWrapper.class);
+        mockResponse = mock(ResponseWrapper.class);
+        mockHttpUri = mock(HttpURI.class);
+
+        when(mockRequest.getHttpURI()).thenReturn(mockHttpUri);
+        when(mockHttpUri.getPath()).thenReturn("/target");
 
     }
 
@@ -88,7 +93,7 @@ public class MetadataHandlerTest {
 
 
         MessageProcessorBase returnValue =
-                handlerToTest.createRequestProcessor("something", mockRequest, mockResponse, null);
+                handlerToTest.createRequestProcessor(mockRequest, mockResponse, null);
 
         assertNull("Was expecting a null return value", returnValue);
     }
@@ -102,7 +107,7 @@ public class MetadataHandlerTest {
 
 
         MessageProcessorBase returnValue =
-                handlerToTest.createRequestProcessor("something", mockRequest, mockResponse, null);
+                handlerToTest.createRequestProcessor(mockRequest, mockResponse, null);
 
         assertNull("Was expecting a null return value", returnValue);
     }
@@ -112,12 +117,14 @@ public class MetadataHandlerTest {
 
         MetadataHandler handlerToTest = new MetadataHandler(httpClientMock);
         when(mockRequest.getMethod()).thenReturn("GET");
+        when(mockHttpUri.getPath()).thenReturn(null);
 
         thrown.expect(CodedException.class);
         thrown.expect(hasProperty("faultCode", is(X_INVALID_REQUEST)));
         thrown.expectMessage(CoreMatchers.containsString("Target must not be null"));
 
-        handlerToTest.createRequestProcessor(null, mockRequest, mockResponse, null);
+
+        handlerToTest.createRequestProcessor(mockRequest, mockResponse, null);
     }
 
 
@@ -125,11 +132,11 @@ public class MetadataHandlerTest {
     public void shouldReturnProcessorWhenAbleToProcess() throws Exception {
 
         when(mockRequest.getMethod()).thenReturn("GET");
+        when(mockHttpUri.getPath()).thenReturn("/listClients");
 
         MetadataHandler handlerToTest = new MetadataHandler(httpClientMock);
 
-        MessageProcessorBase result = handlerToTest.createRequestProcessor(
-                LIST_CLIENTS, mockRequest, mockResponse, null);
+        MessageProcessorBase result = handlerToTest.createRequestProcessor(mockRequest, mockResponse, null);
 
         assertNotNull("Was expecting actual message processor");
 

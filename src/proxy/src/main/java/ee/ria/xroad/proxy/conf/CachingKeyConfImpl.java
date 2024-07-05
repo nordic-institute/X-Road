@@ -221,7 +221,7 @@ class CachingKeyConfImpl extends KeyConfImpl {
      * if one fails to call destroy.
      */
     static FileWatcherRunner createChangeWatcher(WeakReference<CachingKeyConfImpl> ref,
-            FileContentChangeChecker changeChecker) {
+                                                 FileContentChangeChecker changeChecker) {
         return FileWatcherRunner.create()
                 .watchForChangesIn(Paths.get(changeChecker.getFileName()))
                 .listenToCreate()

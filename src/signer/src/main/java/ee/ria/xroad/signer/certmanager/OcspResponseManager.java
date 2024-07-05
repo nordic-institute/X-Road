@@ -82,7 +82,7 @@ public class OcspResponseManager {
      * @throws Exception if an error occurs
      */
     private byte[] getOcspResponse(String certHash) throws Exception {
-        GetOcspResponses message = new GetOcspResponses(new String[] {certHash});
+        GetOcspResponses message = new GetOcspResponses(new String[]{certHash});
 
         GetOcspResponsesResponse result = handleGetOcspResponses(message);
 

@@ -1,13 +1,13 @@
 plugins {
-    id 'com.github.johnrengelman.shadow'
+    alias(libs.plugins.shadow)
 }
 
 dependencies {
-    implementation 'commons-cli:commons-cli:1.4'
-    implementation 'com.googlecode.clichemaven:cliche:110413'
+    implementation(libs.commons.cli)
+    implementation(libs.cliche)
 
-    implementation project(':common:common-util')
-    implementation project(':signer-protocol')
+    implementation(project(':common:common-domain'))
+    implementation(project(':signer-protocol'))
 }
 
 ext {
@@ -29,9 +29,12 @@ shadowJar {
 }
 
 jar.enabled = false
-build.dependsOn shadowJar
 
-task runSignerConsole(type: JavaExec) {
+build {
+    dependsOn shadowJar
+}
+
+tasks.register('runSignerConsole', JavaExec) {
     jvmArgs '-Djava.library.path=../passwordstore'
     mainClass = 'ee.ria.xroad.signer.console.SignerCLI'
     classpath = sourceSets.test.runtimeClasspath

@@ -180,7 +180,7 @@ public class LocalGroupService {
         auditLog(memberIds, localGroupType);
 
         List<GroupMemberType> membersToBeAdded = new ArrayList<>(memberIds.size());
-        for (ClientId memberId: memberIds) {
+        for (ClientId memberId : memberIds) {
             Optional<ClientType> foundMember = clientService.findByClientId(memberId);
             if (!foundMember.isPresent()) {
                 throw new LocalGroupMemberNotFoundException(CLIENT_WITH_ID

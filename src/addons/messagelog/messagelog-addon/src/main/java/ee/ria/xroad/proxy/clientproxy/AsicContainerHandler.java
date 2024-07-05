@@ -27,14 +27,15 @@ package ee.ria.xroad.proxy.clientproxy;
 
 import ee.ria.xroad.common.CodedException;
 import ee.ria.xroad.common.opmonitoring.OpMonitoringData;
+import ee.ria.xroad.common.util.RequestWrapper;
+import ee.ria.xroad.common.util.ResponseWrapper;
 import ee.ria.xroad.proxy.util.MessageProcessorBase;
 
-import jakarta.servlet.http.HttpServletRequest;
-import jakarta.servlet.http.HttpServletResponse;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.http.client.HttpClient;
 
 import static ee.ria.xroad.common.ErrorCodes.X_INVALID_REQUEST;
+import static ee.ria.xroad.common.util.JettyUtils.getTarget;
 
 /**
  * AsicContainerHandler
@@ -50,9 +51,9 @@ public class AsicContainerHandler extends AbstractClientProxyHandler {
     }
 
     @Override
-    MessageProcessorBase createRequestProcessor(String target,
-            HttpServletRequest request, HttpServletResponse response,
-            OpMonitoringData opMonitoringData) throws Exception {
+    MessageProcessorBase createRequestProcessor(RequestWrapper request, ResponseWrapper response,
+                                                OpMonitoringData opMonitoringData) throws Exception {
+        var target = getTarget(request);
         log.trace("createRequestProcessor({})", target);
 
         // opMonitoringData is null, do not use it.
@@ -66,9 +67,10 @@ public class AsicContainerHandler extends AbstractClientProxyHandler {
                     "Target must not be null");
         }
 
-        AsicContainerClientRequestProcessor processor =
-                new AsicContainerClientRequestProcessor(target, request,
-                        response);
+        AsicContainerClientRequestProcessor processor = new AsicContainerClientRequestProcessor(
+                target,
+                request,
+                response);
 
         if (processor.canProcess()) {
             log.trace("Processing with AsicContainerRequestProcessor");

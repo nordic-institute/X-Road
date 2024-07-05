@@ -150,13 +150,13 @@ public class EmptyServerConf implements ServerConfProvider {
 
     @Override
     public List<ServiceId.Conf> getAllowedServices(ClientId serviceProvider,
-            ClientId client) {
+                                                   ClientId client) {
         return emptyList();
     }
 
     @Override
     public List<ServiceId.Conf> getAllowedServicesByDescriptionType(ClientId serviceProvider,
-                                                               ClientId client, DescriptionType descriptionType) {
+                                                                    ClientId client, DescriptionType descriptionType) {
         return emptyList();
     }
 

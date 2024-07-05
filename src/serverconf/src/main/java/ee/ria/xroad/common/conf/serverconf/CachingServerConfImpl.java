@@ -39,7 +39,6 @@ import ee.ria.xroad.common.identifier.ServiceId;
 
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
-import lombok.Value;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.ObjectUtils;
 import org.hibernate.Session;
@@ -275,9 +274,7 @@ public class CachingServerConfImpl extends ServerConfImpl {
         internalKeyCache.invalidateAll();
     }
 
-    @Value
-    private static class AclCacheKey {
-        final ClientId client;
-        final ServiceId serviceId;
+
+    private record AclCacheKey(ClientId client, ServiceId serviceId) {
     }
 }
