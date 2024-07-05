@@ -1,6 +1,6 @@
 # Change Log
 
-## 7.5.0 - UNRELEASED
+## 7.5.0 - 2024-07-04
 - XRDDEV-2496: As a Central Server Administrator I want to be able to configure a trusted CA with ACME enabled so that we can speed up onboarding
 - XRDDEV-2532: As a Central Server user I would like to be able to use the Escape and Enter keys in dialogs so that navigating the interface would be more ergonomic
 - XRDDEV-2561: Security Server client identifier is not removed from the serverconf identifier table when a client is deleted from a Security Server.
