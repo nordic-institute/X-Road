@@ -67,7 +67,6 @@ import java.security.Security;
 import java.security.cert.X509Certificate;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Base64;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
@@ -175,18 +174,12 @@ public class AsicContainerVerifier {
         verifier.setSignatureResourceResolver(new ResourceResolverSpi() {
             @Override
             public boolean engineCanResolveURI(ResourceResolverContext context) {
-                if ("/attachment1".equals(context.attr.getValue())) {
-                    return asic.getAttachmentDigest() != null;
-                }
                 return asic.hasEntry(context.attr.getValue());
             }
 
             @Override
             public XMLSignatureInput engineResolveURI(ResourceResolverContext context)
                     throws ResourceResolverException {
-                if ("/attachment1".equals(context.attr.getValue())) {
-                    return new XMLSignatureInput(Base64.getEncoder().encodeToString(asic.getAttachmentDigest()));
-                }
                 return new XMLSignatureInput(asic.getEntry(context.attr.getValue()));
             }
         });
