@@ -10,16 +10,16 @@ jetty = "12.0.7"
 jaxb = "4.0.5"
 hibernate = "6.5.2.Final"
 mapstruct = "1.5.5.Final"
-jackson = "2.17.1"
+jackson = "2.17.2"
 mockito = "5.12.0"
 springBoot = "3.3.1"
-junitJupiter = "5.10.2"
+junitJupiter = "5.10.3"
 xmlUnit = "2.10.0"
 bouncyCastle = "1.78.1"
 slf4j = "2.0.13"
 testAutomationFramework = "0.2.17"
 protoc = "3.25.3"
-grpc = "1.64.0"
+grpc = "1.65.0"
 swaggerParser = "2.1.22"
 logback = "1.4.14"
 
@@ -117,14 +117,14 @@ openapi-parser = { module = "org.openapi4j:openapi-parser", version = "1.0.7" }
 openapi-styleValidatorLib = { module = "org.openapitools.openapistylevalidator:openapi-style-validator-lib", version = "1.11" }
 openapi-empoaSwaggerCore = { module = "org.openapitools.empoa:empoa-swagger-core", version = "2.1.0" }
 
-lombok = { module = "org.projectlombok:lombok", version = "1.18.32" }
+lombok = { module = "org.projectlombok:lombok", version = "1.18.34" }
 lombokMapstructBinding = { module = "org.projectlombok:lombok-mapstruct-binding", version = "0.2.0" }
 
 logback-classic = { module = "ch.qos.logback:logback-classic", version.ref = "logback" }
 logback-access = { module = "ch.qos.logback:logback-access", version.ref = "logback" }
 
 assertj-core = { module = "org.assertj:assertj-core", version = "3.26.0" }
-wiremock-standalone = { module = "org.wiremock:wiremock-standalone", version = "3.7.0" }
+wiremock-standalone = { module = "org.wiremock:wiremock-standalone", version = "3.8.0" }
 postgresql = { module = "org.postgresql:postgresql", version = "42.7.3" }
 hsqldb = { module = "org.hsqldb:hsqldb", version = "2.7.3" }
 liquibase-core = { module = "org.liquibase:liquibase-core", version = "4.28.0" }
@@ -145,10 +145,10 @@ quartz = { module = "org.quartz-scheduler:quartz", version = "2.3.2" }
 antlrST4 = { module = "org.antlr:ST4", version = "4.3.4" }
 systemRules = { module = "com.github.stefanbirkner:system-rules", version = "1.19.0" }
 semver4j = { module = "org.semver4j:semver4j", version = "5.3.0" }
-restAssured = { module = "io.rest-assured:rest-assured", version = "5.4.0" }
+restAssured = { module = "io.rest-assured:rest-assured", version = "5.5.0" }
 cliche = { module = "com.googlecode.clichemaven:cliche", version = "110413" }
 acme4j = { module = "org.shredzone.acme4j:acme4j-client", version = "3.3.1" }
-jsonUnit-assertj = { module = "net.javacrumbs.json-unit:json-unit-assertj", version = "3.2.7" }
+jsonUnit-assertj = { module = "net.javacrumbs.json-unit:json-unit-assertj", version = "3.4.0" }
 
 [bundles]
 metrics = ["metrics-core", "metrics-jmx"]
@@ -157,8 +157,8 @@ testAutomation = ["testAutomation-containers", "testAutomation-allure", "testAut
 
 [plugins]
 springBoot = { id = "org.springframework.boot", version.ref = "springBoot" }
-openapi-generator = { id = "org.openapi.generator", version = "7.6.0" }
-sonarqube = { id = "org.sonarqube", version = "5.0.0.4638" }
+openapi-generator = { id = "org.openapi.generator", version = "7.7.0" }
+sonarqube = { id = "org.sonarqube", version = "5.1.0.4882" }
 protobuf = { id = "com.google.protobuf", version = "0.9.4" }
 frontendJDK17 = { id = "org.siouan.frontend-jdk17", version = "8.1.0" }
 shadow = { id = "com.github.johnrengelman.shadow", version = "8.1.1" }
