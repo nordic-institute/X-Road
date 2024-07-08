@@ -2,13 +2,24 @@
 
 set -e # Exit immediately if a command exits with a non-zero status.
 
+# Global variable to determine if text coloring is enabled
+isTextColoringEnabled=$(command -v tput >/dev/null && tput setaf 1 &>/dev/null && echo true || echo false)
+
 errorExit() {
-  echo "$(tput setaf 5)*** $*(tput sgr0)" 1>&2
+  if $isTextColoringEnabled; then
+    echo "$(tput setaf 5)*** $*(tput sgr0)" 1>&2
+  else
+    echo "*** $*" 1>&2
+  fi
   exit 1
 }
 
 warn() {
-  echo "$(tput setaf 3)*** $*$(tput sgr0)"
+  if $isTextColoringEnabled; then
+    echo "$(tput setaf 3)*** $*$(tput sgr0)"
+  else
+    echo "*** $*"
+  fi
 }
 
 # Ensure XROAD_HOME is set and not empty
