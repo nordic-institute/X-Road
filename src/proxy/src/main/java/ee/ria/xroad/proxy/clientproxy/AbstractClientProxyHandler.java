@@ -27,6 +27,7 @@ package ee.ria.xroad.proxy.clientproxy;
 
 import ee.ria.xroad.common.CodedException;
 import ee.ria.xroad.common.CodedExceptionWithHttpStatus;
+import ee.ria.xroad.common.SystemProperties;
 import ee.ria.xroad.common.conf.serverconf.IsAuthenticationData;
 import ee.ria.xroad.common.opmonitoring.OpMonitoringData;
 import ee.ria.xroad.common.util.HandlerBase;
@@ -45,6 +46,7 @@ import org.eclipse.jetty.server.Response;
 import org.eclipse.jetty.util.Callback;
 
 import java.io.IOException;
+import java.security.cert.X509Certificate;
 
 import static ee.ria.xroad.common.ErrorCodes.SERVER_CLIENTPROXY_X;
 import static ee.ria.xroad.common.ErrorCodes.translateWithPrefix;
@@ -176,9 +178,16 @@ abstract class AbstractClientProxyHandler extends HandlerBase {
         var isPlaintextConnection = !"https".equals(request.getHttpURI().getScheme()); // if not HTTPS, it's plaintext
         var cert = request.getPeerCertificates()
                 .filter(ArrayUtils::isNotEmpty)
-                .map(arr -> arr[0])
-                .orElse(null);
-        return new IsAuthenticationData(cert, isPlaintextConnection);
+                .map(arr -> arr[0]);
+
+        if (SystemProperties.shouldLogClientCert()) {
+            cert.map(X509Certificate::getSubjectX500Principal)
+                    .ifPresentOrElse(
+                            subject -> log.info("Client certificate's subject: {}", subject),
+                            () -> log.info("Client certificate not found"));
+        }
+
+        return new IsAuthenticationData(cert.orElse(null), isPlaintextConnection);
     }
 
     private static long logPerformanceBegin(Request request) {

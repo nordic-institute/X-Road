@@ -126,45 +126,47 @@ public final class SystemProperties {
 
     // Proxy ------------------------------------------------------------------
 
+    private static final String PROXY_PREFIX = PREFIX + "proxy.";
+
     /** Property name of controlling SSL support between Proxies. */
     public static final String PROXY_SSL_SUPPORT =
-            PREFIX + "proxy.ssl-enabled";
+            PROXY_PREFIX + "ssl-enabled";
 
     /** Property name of the configuration anchor file. */
     public static final String CONFIGURATION_ANCHOR_FILE =
-            PREFIX + "proxy.configuration-anchor-file";
+            PROXY_PREFIX + "configuration-anchor-file";
 
     /** Property name of the Proxy's local configuration file. */
     public static final String DATABASE_PROPERTIES =
-            PREFIX + "proxy.database-properties";
+            PROXY_PREFIX + "database-properties";
 
     /** Property name of the Proxy's connector host name. */
     public static final String PROXY_CONNECTOR_HOST =
-            PREFIX + "proxy.connector-host";
+            PROXY_PREFIX + "connector-host";
 
     /** Property name of the Client Proxy's port number. */
     public static final String PROXY_CLIENT_HTTP_PORT =
-            PREFIX + "proxy.client-http-port";
+            PROXY_PREFIX + "client-http-port";
 
     /** Property name of the Client Proxy's port number. */
     public static final String PROXY_CLIENT_HTTPS_PORT =
-            PREFIX + "proxy.client-https-port";
+            PROXY_PREFIX + "client-https-port";
 
     /** Property name of the Client Proxy's timeout (milliseconds). */
     public static final String PROXY_CLIENT_TIMEOUT =
-            PREFIX + "proxy.client-timeout";
+            PROXY_PREFIX + "client-timeout";
 
     /** Property name of the Server Proxy's port number. */
     public static final String PROXY_SERVER_PORT =
-            PREFIX + "proxy.server-port";
+            PROXY_PREFIX + "server-port";
 
     /** Property name of the Server Proxy's listen address. */
     public static final String PROXY_SERVER_LISTEN_ADDRESS =
-            PREFIX + "proxy.server-listen-address";
+            PROXY_PREFIX + "server-listen-address";
 
     /** Property name of the Server Proxy's listen port number. */
     public static final String PROXY_SERVER_LISTEN_PORT =
-            PREFIX + "proxy.server-listen-port";
+            PROXY_PREFIX + "server-listen-port";
 
     /** Property name of the cached OCSP response path for signer operation. */
     public static final String OCSP_CACHE_PATH =
@@ -172,147 +174,151 @@ public final class SystemProperties {
 
     /** Property name of the Ocsp Responder port. */
     public static final String OCSP_RESPONDER_PORT =
-            PREFIX + "proxy.ocsp-responder-port";
+            PROXY_PREFIX + "ocsp-responder-port";
 
     /** Property name of the Ocsp Responder listen address. */
     public static final String OCSP_RESPONDER_LISTEN_ADDRESS =
-            PREFIX + "proxy.ocsp-responder-listen-address";
+            PROXY_PREFIX + "ocsp-responder-listen-address";
 
     /** Property name of the Ocsp Responder Client connect timeout. */
     public static final String OCSP_RESPONDER_CLIENT_CONNECT_TIMEOUT =
-            PREFIX + "proxy.ocsp-responder-client-connect-timeout";
+            PROXY_PREFIX + "ocsp-responder-client-connect-timeout";
 
     /** Property name of the Ocsp Responder Client read timeout. */
     public static final String OCSP_RESPONDER_CLIENT_READ_TIMEOUT =
-            PREFIX + "proxy.ocsp-responder-client-read-timeout";
+            PROXY_PREFIX + "ocsp-responder-client-read-timeout";
 
     /** Property name of the flag to turn off proxy client SSL verification. */
     public static final String PROXY_VERIFY_CLIENT_CERT =
-            PREFIX + "proxy.verify-client-cert";
+            PROXY_PREFIX + "verify-client-cert";
+
+    /** Property name of the flag to turn on proxy client SSL logging. */
+    public static final String PROXY_LOG_CLIENT_CERT =
+            PROXY_PREFIX + "log-client-cert";
 
     /** Property name of the ClientProxy Jetty server configuration file. */
     public static final String JETTY_CLIENTPROXY_CONFIGURATION_FILE =
-            PREFIX + "proxy.jetty-clientproxy-configuration-file";
+            PROXY_PREFIX + "jetty-clientproxy-configuration-file";
 
     /** Property name of the ServerProxy Jetty server configuration file. */
     public static final String JETTY_SERVERPROXY_CONFIGURATION_FILE =
-            PREFIX + "proxy.jetty-serverproxy-configuration-file";
+            PROXY_PREFIX + "jetty-serverproxy-configuration-file";
 
     /** Property name of the CertHashBasedOcspResponder Jetty server configuration file. */
     public static final String JETTY_OCSP_RESPONDER_CONFIGURATION_FILE =
-            PREFIX + "proxy.jetty-ocsp-responder-configuration-file";
+            PROXY_PREFIX + "jetty-ocsp-responder-configuration-file";
 
     /** Property name of the ClientProxy HTTPS connector and ServerProxy HTTP client supported TLS protocols */
     private static final String PROXY_CLIENT_TLS_PROTOCOLS =
-            PREFIX + "proxy.client-tls-protocols";
+            PROXY_PREFIX + "client-tls-protocols";
 
     /** Property name of the ClientProxy HTTPS connector and ServerProxy HTTP client supported TLS cipher suites */
     private static final String PROXY_CLIENT_TLS_CIPHERS =
-            PREFIX + "proxy.client-tls-ciphers";
+            PROXY_PREFIX + "client-tls-ciphers";
 
     /** Property name of the ClientProxy HTTPS client and ServerProxy HTTPS connector supported TLS cipher suites */
-    private static final String PROXY_XROAD_TLS_CIPHERS = PREFIX + "proxy.xroad-tls-ciphers";
+    private static final String PROXY_XROAD_TLS_CIPHERS = PROXY_PREFIX + "xroad-tls-ciphers";
 
     private static final String SIGNER_ENFORCE_TOKEN_PIN_POLICY =
             PREFIX + "signer.enforce-token-pin-policy";
 
     public static final String SERVER_CONF_CACHE_PERIOD =
-            PREFIX + "proxy.server-conf-cache-period";
+            PROXY_PREFIX + "server-conf-cache-period";
 
-    public static final String SERVER_CONF_CLIENT_CACHE_SIZE = PREFIX + "proxy.server-conf-client-cache-size";
+    public static final String SERVER_CONF_CLIENT_CACHE_SIZE = PROXY_PREFIX + "server-conf-client-cache-size";
 
-    public static final String SERVER_CONF_SERVICE_CACHE_SIZE = PREFIX + "proxy.server-conf-service-cache-size";
+    public static final String SERVER_CONF_SERVICE_CACHE_SIZE = PROXY_PREFIX + "server-conf-service-cache-size";
 
-    public static final String SERVER_CONF_ACL_CACHE_SIZE = PREFIX + "proxy.server-conf-acl-cache-size";
+    public static final String SERVER_CONF_ACL_CACHE_SIZE = PROXY_PREFIX + "server-conf-acl-cache-size";
 
 
     /** Property name of the idle time that connections to the ServerProxy Connector are allowed, in milliseconds */
     private static final String SERVERPROXY_CONNECTOR_MAX_IDLE_TIME =
-            PREFIX + "proxy.server-connector-max-idle-time";
+            PROXY_PREFIX + "server-connector-max-idle-time";
 
     /**
      * Property name of the idle time that connections to the serverproxy connector are initially allowed,
      * in milliseconds
      */
     private static final String SERVERPROXY_CONNECTOR_INITIAL_IDLE_TIME =
-            PREFIX + "proxy.server-connector-initial-idle-time";
+            PROXY_PREFIX + "server-connector-initial-idle-time";
 
     /** Property name of the server Connector socket SO_LINGER timer, in seconds, value of -1 means off */
     private static final String SERVERPROXY_CONNECTOR_SO_LINGER =
-            PREFIX + "proxy.server-connector-so-linger";
+            PROXY_PREFIX + "server-connector-so-linger";
 
     /** Property name of the server's minimum supported client version */
     private static final String SERVERPROXY_MIN_SUPPORTED_CLIENT_VERSION =
-            PREFIX + "proxy.server-min-supported-client-version";
+            PROXY_PREFIX + "server-min-supported-client-version";
 
     private static final String SERVERPROXY_SUPPORT_CLIENTS_POOLED_CONNECTIONS =
-            PREFIX + "proxy.server-support-clients-pooled-connections";
+            PROXY_PREFIX + "server-support-clients-pooled-connections";
 
     /**
      * Property name of the idle time that connections to the clientproxy connector are initially allowed,
      * in milliseconds
      */
     private static final String CLIENTPROXY_CONNECTOR_INITIAL_IDLE_TIME =
-            PREFIX + "proxy.client-connector-initial-idle-time";
+            PROXY_PREFIX + "client-connector-initial-idle-time";
 
     /** Property name of the idle time that ClientProxy connections are allowed, in milliseconds */
     private static final String CLIENTPROXY_CONNECTOR_MAX_IDLE_TIME =
-            PREFIX + "proxy.client-connector-max-idle-time";
+            PROXY_PREFIX + "client-connector-max-idle-time";
 
     /** Property name of the client connector socket SO_LINGER timer, in seconds, value of -1 means off */
     private static final String CLIENTPROXY_CONNECTOR_SO_LINGER =
-            PREFIX + "proxy.client-connector-so-linger";
+            PROXY_PREFIX + "client-connector-so-linger";
 
     /**
      * Property name for he connection maximum idle time that should be set for client proxy apache HttpClient,
      * in milliseconds, value 0 means infinite timeout, -1 means the system default
      */
     private static final String CLIENTPROXY_HTTPCLIENT_TIMEOUT =
-            PREFIX + "proxy.client-httpclient-timeout";
+            PROXY_PREFIX + "client-httpclient-timeout";
 
     /** Property name for the so_linger value that should be set for client proxy apache HttpClient */
     private static final String CLIENTPROXY_HTTPCLIENT_SO_LINGER =
-            PREFIX + "proxy.client-httpclient-so-linger";
+            PROXY_PREFIX + "client-httpclient-so-linger";
 
     private static final String CLIENTPROXY_POOL_IDLE_MONITOR_INTERVAL =
-            PREFIX + "proxy.client-idle-connection-monitor-interval";
+            PROXY_PREFIX + "client-idle-connection-monitor-interval";
 
     private static final String CLIENTPROXY_POOL_IDLE_MONITOR_IDLE_TIME =
-            PREFIX + "proxy.client-idle-connection-monitor-timeout";
+            PROXY_PREFIX + "client-idle-connection-monitor-timeout";
 
     private static final String CLIENTPROXY_POOL_USE_IDLE_CONNECTION_MONITOR =
-            PREFIX + "proxy.client-use-idle-connection-monitor";
+            PROXY_PREFIX + "client-use-idle-connection-monitor";
 
     private static final String CLIENTPROXY_POOL_TOTAL_MAX_CONNECTIONS =
-            PREFIX + "proxy.pool-total-max-connections";
+            PROXY_PREFIX + "pool-total-max-connections";
 
     private static final String CLIENTPROXY_POOL_DEFAULT_MAX_CONN_PER_ROUTE =
-            PREFIX + "proxy.pool-total-default-max-connections-per-route";
+            PROXY_PREFIX + "pool-total-default-max-connections-per-route";
 
     private static final String CLIENTPROXY_USE_FASTEST_CONNECTING_SSL_SOCKET_AUTOCLOSE =
-            PREFIX + "proxy.client-use-fastest-connecting-ssl-socket-autoclose";
+            PROXY_PREFIX + "client-use-fastest-connecting-ssl-socket-autoclose";
 
     public static final String CLIENTPROXY_FASTEST_CONNECTING_SSL_URI_CACHE_PERIOD =
-            PREFIX + "proxy.client-fastest-connecting-ssl-uri-cache-period";
+            PROXY_PREFIX + "client-fastest-connecting-ssl-uri-cache-period";
 
     private static final String CLIENTPROXY_POOL_VALIDATE_CONNECTIONS_AFTER_INACTIVITY_OF_MS =
-            PREFIX + "proxy.pool-validate-connections-after-inactivity-of-millis";
+            PROXY_PREFIX + "pool-validate-connections-after-inactivity-of-millis";
 
     private static final String CLIENTPROXY_POOL_REUSE_CONNECTIONS =
-            PREFIX + "proxy.pool-enable-connection-reuse";
+            PROXY_PREFIX + "pool-enable-connection-reuse";
 
-    private static final String PROXY_HEALTH_CHECK_INTERFACE = PREFIX + "proxy.health-check-interface";
+    private static final String PROXY_HEALTH_CHECK_INTERFACE = PROXY_PREFIX + "health-check-interface";
 
-    public static final String PROXY_HEALTH_CHECK_PORT = PREFIX + "proxy.health-check-port";
+    public static final String PROXY_HEALTH_CHECK_PORT = PROXY_PREFIX + "health-check-port";
 
     private static final String ENFORCE_CLIENT_IS_CERT_VALIDITY_PERIOD_CHECK =
-            PREFIX + "proxy.enforce-client-is-cert-validity-period-check";
+            PROXY_PREFIX + "enforce-client-is-cert-validity-period-check";
 
-    private static final String PROXY_BACKUP_ENCRYPTION_ENABLED = PREFIX + "proxy.backup-encryption-enabled";
+    private static final String PROXY_BACKUP_ENCRYPTION_ENABLED = PROXY_PREFIX + "backup-encryption-enabled";
 
-    private static final String PROXY_BACKUP_ENCRYPTION_KEY_IDS = PREFIX + "proxy.backup-encryption-keyids";
+    private static final String PROXY_BACKUP_ENCRYPTION_KEY_IDS = PROXY_PREFIX + "backup-encryption-keyids";
 
-    private static final String HSM_HEALTH_CHECK_ENABLED = PREFIX + "proxy.hsm-health-check-enabled";
+    private static final String HSM_HEALTH_CHECK_ENABLED = PROXY_PREFIX + "hsm-health-check-enabled";
 
     private static final String DEFAULT_HSM_HEALTH_CHECK_ENABLED = "false";
     private static final String DEFAULT_PROXY_BACKUP_ENCRYPTED = "false";
@@ -381,7 +387,7 @@ public final class SystemProperties {
     public static final String DEFAULT_SIGNER_ENFORCE_TOKEN_PIN_POLICY = "false";
 
     private static final String OCSP_VERIFIER_CACHE_PERIOD =
-            PREFIX + "proxy.ocsp-verifier-cache-period";
+            PROXY_PREFIX + "ocsp-verifier-cache-period";
 
     private static final int OCSP_VERIFIER_CACHE_PERIOD_MAX = 180;
 
@@ -639,7 +645,7 @@ public final class SystemProperties {
     /**
      * Property name for gRPC proxy port.
      */
-    public static final String PROXY_GRPC_PORT = PREFIX + "proxy.grpc-port";
+    public static final String PROXY_GRPC_PORT = PROXY_PREFIX + "grpc-port";
 
     /**
      * Property name for gRPC internal keystore location.
@@ -1033,7 +1039,7 @@ public final class SystemProperties {
      * @return whether OCSP-response retrieval loop should be activated
      */
     public static boolean isOcspResponseRetrievalActive() {
-        return "true".equalsIgnoreCase(System.getProperty(OCSP_RESPONSE_RETRIEVAL_ACTIVE, "true"));
+        return Boolean.parseBoolean(System.getProperty(OCSP_RESPONSE_RETRIEVAL_ACTIVE, "true"));
     }
 
     /**
@@ -1129,7 +1135,7 @@ public final class SystemProperties {
      * @return whether SSL should be used between client and server proxies, 'true' by default.
      */
     public static boolean isSslEnabled() {
-        return "true".equalsIgnoreCase(System.getProperty(PROXY_SSL_SUPPORT, "true"));
+        return Boolean.parseBoolean(System.getProperty(PROXY_SSL_SUPPORT, "true"));
     }
 
     /**
@@ -1144,7 +1150,7 @@ public final class SystemProperties {
      * @return whether configuration of trusted anchors is enabled in the central server UI, 'true' by default.
      */
     public static boolean getCenterTrustedAnchorsAllowed() {
-        return "true".equalsIgnoreCase(System.getProperty(CENTER_TRUSTED_ANCHORS_ALLOWED,
+        return Boolean.parseBoolean(System.getProperty(CENTER_TRUSTED_ANCHORS_ALLOWED,
                 DEFAULT_CENTER_TRUSTED_ANCHORS_ALLOWED));
     }
 
@@ -1321,7 +1327,17 @@ public final class SystemProperties {
      * 'true' by default.
      */
     public static boolean shouldVerifyClientCert() {
-        return "true".equalsIgnoreCase(System.getProperty(PROXY_VERIFY_CLIENT_CERT, "true"));
+        return Boolean.parseBoolean(System.getProperty(PROXY_VERIFY_CLIENT_CERT, "true"));
+    }
+
+    /**
+     * This parameter may be set to true for cases where there is a need to log client's SSL certificate.
+     *
+     * @return whether the client proxy should log client's SSL certificate,
+     * 'false' by default.
+     */
+    public static boolean shouldLogClientCert() {
+        return Boolean.parseBoolean(System.getProperty(PROXY_LOG_CLIENT_CERT, "false"));
     }
 
     /**
@@ -1362,7 +1378,7 @@ public final class SystemProperties {
      * @return whether Anti-Dos should be used, 'true' by default.
      */
     public static boolean isAntiDosEnabled() {
-        return "true".equalsIgnoreCase(System.getProperty(ANTIDOS_ENABLED, "true"));
+        return Boolean.parseBoolean(System.getProperty(ANTIDOS_ENABLED, "true"));
     }
 
     /**
@@ -1663,7 +1679,7 @@ public final class SystemProperties {
      * @return Whether to throw an exception about expired or not yet valid certificates, 'false' by default..
      */
     public static boolean isClientIsCertValidityPeriodCheckEnforced() {
-        return "true".equalsIgnoreCase(System.getProperty(ENFORCE_CLIENT_IS_CERT_VALIDITY_PERIOD_CHECK,
+        return Boolean.parseBoolean(System.getProperty(ENFORCE_CLIENT_IS_CERT_VALIDITY_PERIOD_CHECK,
                 DEFAULT_ENFORCE_CLIENT_IS_CERT_VALIDITY_PERIOD_CHECK));
     }
 
@@ -1672,7 +1688,7 @@ public final class SystemProperties {
      * 'false' by default.
      */
     public static boolean isBackupEncryptionEnabled() {
-        return "true".equalsIgnoreCase(System.getProperty(PROXY_BACKUP_ENCRYPTION_ENABLED,
+        return Boolean.parseBoolean(System.getProperty(PROXY_BACKUP_ENCRYPTION_ENABLED,
                 DEFAULT_PROXY_BACKUP_ENCRYPTED));
     }
 
