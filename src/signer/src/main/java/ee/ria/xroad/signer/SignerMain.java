@@ -78,8 +78,8 @@ public final class SignerMain {
     private static void startup() {
         long start = System.currentTimeMillis();
         Version.outputVersionInfo(APP_NAME);
-        int signerPort = SystemProperties.getSignerPort();
-        log.info("Starting Signer on port {}...", signerPort);
+        int grpcSignerPort = SystemProperties.getGrpcSignerPort();
+        log.info("Starting Signer on port {}...", grpcSignerPort);
 
         springCtx = new AnnotationConfigApplicationContext(SignerConfig.class);
         springCtx.registerShutdownHook();

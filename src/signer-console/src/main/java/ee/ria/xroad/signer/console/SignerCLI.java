@@ -814,7 +814,7 @@ public class SignerCLI {
     }
 
     private static void startCommandLoop() throws IOException {
-        String prompt = "signer@" + SystemProperties.getSignerPort();
+        String prompt = "signer@" + SystemProperties.getGrpcSignerPort();
 
         String description = "Enter '?list' to get list of available commands\n"
                 + "Enter '?help <command>' to get command description\n"

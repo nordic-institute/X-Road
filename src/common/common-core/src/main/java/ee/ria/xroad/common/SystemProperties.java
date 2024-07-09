@@ -395,10 +395,6 @@ public final class SystemProperties {
     public static final String DEVICE_CONFIGURATION_FILE =
             PREFIX + "signer.device-configuration-file";
 
-    /** Property name of the Signer's port number. */
-    public static final String SIGNER_PORT =
-            PREFIX + "signer.port";
-
     /** Property name of the Signer's admin port number. */
     public static final String SIGNER_ADMIN_PORT =
             PREFIX + "signer.admin-port";
@@ -981,13 +977,6 @@ public final class SystemProperties {
      */
     public static String getServerProxyListenAddress() {
         return System.getProperty(PROXY_SERVER_LISTEN_ADDRESS, DEFAULT_CONNECTOR_HOST);
-    }
-
-    /**
-     * @return the HTTP port on which the signer listens for signing requests, '5558' by default.
-     */
-    public static int getSignerPort() {
-        return Integer.parseInt(System.getProperty(SIGNER_PORT, Integer.toString(PortNumbers.SIGNER_PORT)));
     }
 
     /**
