@@ -49,9 +49,6 @@ public final class PortNumbers {
     /** Admin port for proxy. */
     public static final int ADMIN_PORT = 5566;
 
-    /** Signer listens for HTTP queries. */
-    public static final int SIGNER_PORT = 5558;
-
     /** Signer Admin port. */
     public static final int SIGNER_ADMIN_PORT = 5559;
 

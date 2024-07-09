@@ -80,7 +80,7 @@ public abstract class BaseTestSignerSetup {
             @NotNull
             @Override
             public List<Integer> exposedPorts() {
-                return List.of(5558, 5560);
+                return List.of(5559, 5560);
             }
         };
     }
