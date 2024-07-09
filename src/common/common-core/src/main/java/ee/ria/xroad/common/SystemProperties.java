@@ -320,19 +320,21 @@ public final class SystemProperties {
 
     private static final String HSM_HEALTH_CHECK_ENABLED = PROXY_PREFIX + "hsm-health-check-enabled";
 
-    private static final String DEFAULT_HSM_HEALTH_CHECK_ENABLED = "false";
-    private static final String DEFAULT_PROXY_BACKUP_ENCRYPTED = "false";
-    private static final String DEFAULT_CENTER_TRUSTED_ANCHORS_ALLOWED = "false";
+    private static final String FALSE = Boolean.FALSE.toString();
+    private static final String TRUE = Boolean.TRUE.toString();
+    private static final String DEFAULT_HSM_HEALTH_CHECK_ENABLED = FALSE;
+    private static final String DEFAULT_PROXY_BACKUP_ENCRYPTED = FALSE;
+    private static final String DEFAULT_CENTER_TRUSTED_ANCHORS_ALLOWED = FALSE;
 
-    private static final String DEFAULT_CENTER_AUTO_APPROVE_AUTH_CERT_REG_REQUESTS = "false";
+    private static final String DEFAULT_CENTER_AUTO_APPROVE_AUTH_CERT_REG_REQUESTS = FALSE;
 
-    private static final String DEFAULT_CENTER_AUTO_APPROVE_CLIENT_REG_REQUESTS = "false";
+    private static final String DEFAULT_CENTER_AUTO_APPROVE_CLIENT_REG_REQUESTS = FALSE;
 
-    private static final String DEFAULT_CENTER_AUTO_APPROVE_OWNER_CHANGE_REQUESTS = "false";
+    private static final String DEFAULT_CENTER_AUTO_APPROVE_OWNER_CHANGE_REQUESTS = FALSE;
 
-    private static final String DEFAULT_AUTO_UPDATE_TIMESTAMP_SERVICE_URL = "false";
+    private static final String DEFAULT_AUTO_UPDATE_TIMESTAMP_SERVICE_URL = FALSE;
 
-    private static final String DEFAULT_ALLOW_CSR_FOR_KEY_WITH_CERTIFICATE = "false";
+    private static final String DEFAULT_ALLOW_CSR_FOR_KEY_WITH_CERTIFICATE = FALSE;
 
     private static final String DEFAULT_SERVERPROXY_CONNECTOR_MAX_IDLE_TIME = "0";
 
@@ -340,7 +342,7 @@ public final class SystemProperties {
 
     private static final String DEFAULT_SERVERPROXY_CONNECTOR_SO_LINGER = "-1";
 
-    private static final String DEFAULT_SERVERPROXY_SUPPORT_CLIENTS_POOLED_CONNECTIONS = "false";
+    private static final String DEFAULT_SERVERPROXY_SUPPORT_CLIENTS_POOLED_CONNECTIONS = FALSE;
 
     private static final String DEFAULT_CLIENTPROXY_CONNECTOR_MAX_IDLE_TIME = "0";
 
@@ -356,7 +358,7 @@ public final class SystemProperties {
 
     private static final String DEFAULT_CLIENTPROXY_POOL_IDLE_MONITOR_IDLE_TIME = "60000";
 
-    private static final String DEFAULT_CLIENTPROXY_POOL_USE_IDLE_CONNECTION_MONITOR = "true";
+    private static final String DEFAULT_CLIENTPROXY_POOL_USE_IDLE_CONNECTION_MONITOR = TRUE;
 
     private static final String DEFAULT_CLIENTPROXY_POOL_TOTAL_MAX_CONNECTIONS = "10000";
 
@@ -364,27 +366,27 @@ public final class SystemProperties {
 
     private static final String DEFAULT_CLIENTPROXY_TIMEOUT = "30000";
 
-    private static final String DEFAULT_CLIENTPROXY_USE_FASTEST_CONNECTING_SSL_SOCKET_AUTOCLOSE = "true";
+    private static final String DEFAULT_CLIENTPROXY_USE_FASTEST_CONNECTING_SSL_SOCKET_AUTOCLOSE = TRUE;
 
     private static final String DEFAULT_CLIENTPROXY_FASTEST_CONNECTING_SSL_URI_CACHE_PERIOD = "3600";
 
-    private static final String DEFAULT_ENV_MONITOR_LIMIT_REMOTE_DATA_SET = "false";
+    private static final String DEFAULT_ENV_MONITOR_LIMIT_REMOTE_DATA_SET = FALSE;
 
     private static final String DEFAULT_CLIENTPROXY_POOL_VALIDATE_CONNECTIONS_AFTER_INACTIVITY_OF_MS = "2000";
 
-    private static final String DEFAULT_ENFORCE_CLIENT_IS_CERT_VALIDITY_PERIOD_CHECK = "false";
+    private static final String DEFAULT_ENFORCE_CLIENT_IS_CERT_VALIDITY_PERIOD_CHECK = FALSE;
 
     /**
      * The default value of the on/off switch for a group of settings that affect whether or not pooled connections
      * for the ClientProxy can be actually reused
      **/
-    private static final String DEFAULT_CLIENTPROXY_POOL_REUSE_CONNECTIONS = "false";
+    private static final String DEFAULT_CLIENTPROXY_POOL_REUSE_CONNECTIONS = FALSE;
 
     private static final String DEFAULT_PROXY_HEALTH_CHECK_INTERFACE = "0.0.0.0";
 
     private static final String DEFAULT_PROXY_HEALTH_CHECK_PORT = "0";
 
-    public static final String DEFAULT_SIGNER_ENFORCE_TOKEN_PIN_POLICY = "false";
+    public static final String DEFAULT_SIGNER_ENFORCE_TOKEN_PIN_POLICY = FALSE;
 
     private static final String OCSP_VERIFIER_CACHE_PERIOD =
             PROXY_PREFIX + "ocsp-verifier-cache-period";
@@ -1039,7 +1041,7 @@ public final class SystemProperties {
      * @return whether OCSP-response retrieval loop should be activated
      */
     public static boolean isOcspResponseRetrievalActive() {
-        return Boolean.parseBoolean(System.getProperty(OCSP_RESPONSE_RETRIEVAL_ACTIVE, "true"));
+        return Boolean.parseBoolean(System.getProperty(OCSP_RESPONSE_RETRIEVAL_ACTIVE, TRUE));
     }
 
     /**
@@ -1091,11 +1093,11 @@ public final class SystemProperties {
     }
 
     public static boolean isConfigurationClientGlobalConfTlsCertVerificationEnabled() {
-        return Boolean.parseBoolean(System.getProperty(CONFIGURATION_CLIENT_GLOBAL_CONF_TLS_CERT_VERIFICATION, "true"));
+        return Boolean.parseBoolean(System.getProperty(CONFIGURATION_CLIENT_GLOBAL_CONF_TLS_CERT_VERIFICATION, TRUE));
     }
 
     public static boolean isConfigurationClientGlobalConfHostnameVerificationEnabled() {
-        return Boolean.parseBoolean(System.getProperty(CONFIGURATION_CLIENT_GLOBAL_CONF_HOSTNAME_VERIFICATION, "true"));
+        return Boolean.parseBoolean(System.getProperty(CONFIGURATION_CLIENT_GLOBAL_CONF_HOSTNAME_VERIFICATION, TRUE));
     }
 
     public static String getConfigurationClientAllowedFederations() {
@@ -1135,7 +1137,7 @@ public final class SystemProperties {
      * @return whether SSL should be used between client and server proxies, 'true' by default.
      */
     public static boolean isSslEnabled() {
-        return Boolean.parseBoolean(System.getProperty(PROXY_SSL_SUPPORT, "true"));
+        return Boolean.parseBoolean(System.getProperty(PROXY_SSL_SUPPORT, TRUE));
     }
 
     /**
@@ -1327,7 +1329,7 @@ public final class SystemProperties {
      * 'true' by default.
      */
     public static boolean shouldVerifyClientCert() {
-        return Boolean.parseBoolean(System.getProperty(PROXY_VERIFY_CLIENT_CERT, "true"));
+        return Boolean.parseBoolean(System.getProperty(PROXY_VERIFY_CLIENT_CERT, TRUE));
     }
 
     /**
@@ -1337,7 +1339,7 @@ public final class SystemProperties {
      * 'false' by default.
      */
     public static boolean shouldLogClientCert() {
-        return Boolean.parseBoolean(System.getProperty(PROXY_LOG_CLIENT_CERT, "false"));
+        return Boolean.parseBoolean(System.getProperty(PROXY_LOG_CLIENT_CERT, FALSE));
     }
 
     /**
@@ -1378,7 +1380,7 @@ public final class SystemProperties {
      * @return whether Anti-Dos should be used, 'true' by default.
      */
     public static boolean isAntiDosEnabled() {
-        return Boolean.parseBoolean(System.getProperty(ANTIDOS_ENABLED, "true"));
+        return Boolean.parseBoolean(System.getProperty(ANTIDOS_ENABLED, TRUE));
     }
 
     /**
