@@ -26,4 +26,4 @@ COPY --chown=root:root files/hwtoken.jar /root/lib/hwtoken.jar
 COPY --chown=root:root etc /etc
 COPY --chown=root:root var /var
 
-EXPOSE 5559 5560
+EXPOSE 5558 5559 5560
