@@ -1,6 +1,6 @@
 # Kubernetes Security Server Sidecar User Guide <!-- omit in toc -->
 
-Version: 1.10  
+Version: 1.11  
 Doc. ID: UG-K-SS-SIDECAR
 
 ## Version history <!-- omit in toc -->
@@ -18,7 +18,7 @@ Doc. ID: UG-K-SS-SIDECAR
 | 10.08.2023 | 1.8     | Typo error fixes in yml scripts                       | Eneli Reimets             |
 | 02.04.2024 | 1.9     | Add Azure Kubernetes Service (AKS) references         | Madis Loitmaa             |
 | 13.05.2024 | 1.10    | Add additional upgrade details for Sidecar 7.5        | Ovidijus Narkevicius      |
-
+| 10.07.2024 | 1.11    | Fix incorrect section numbering                       | Petteri Kivimäki          |
 ## License
 
 This document is licensed under the Creative Commons Attribution-ShareAlike 4.0 International License.
@@ -62,6 +62,7 @@ To view a copy of this license, visit <https://creativecommons.org/licenses/by-s
 - [6 Monitoring](#6-monitoring)
 - [7 Version update](#7-version-update)
   - [7.1 Upgrading from 6.26.0 to 7.0.0](#71-upgrading-from-6260-to-700)
+  - [7.2 Upgrading from version 7.4.2 to 7.5.x with local database](#72-upgrading-from-version-742-to-75x-with-local-database)
 - [8 Message log archives](#8-message-log-archives)
 - [9 Automatic scaling of the secondary pods](#9-automatic-scaling-of-the-secondary-pods)
 - [10 Load Balancer setup example](#10-load-balancer-setup-example)
@@ -676,7 +677,7 @@ In addition, unless `/etc/xroad.properties` is mounted as secrets file, copy it 
 kubectl exec -n <namespace> <sidecar-pod-name> -- cp /etc/xroad.properties /etc/xroad/
 ```
 
-### 4.2 Upgrading from version 7.4.2 to 7.5.x with local database
+### 7.2 Upgrading from version 7.4.2 to 7.5.x with local database
 
 Upgrading from 7.4.2 to 7.5.x is supported, if the above prerequisites are met.
 However, due to different versions of PostgreSQL (current 16, previously 12), it isn't straightforward to upgrade using the same database volume.
