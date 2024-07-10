@@ -132,7 +132,7 @@ jobs:
       - name: List docker build files
         run: ls -lah ./Docker/centralserver/build
       - name: Build CS docker image
-        uses: docker/build-push-action@v5
+        uses: docker/build-push-action@v6
         with:
           context: ./Docker/centralserver/
           push: true
@@ -190,7 +190,7 @@ jobs:
           name: debian-packages
           path: ./Docker/securityserver/build/packages/
       - name: Build SS docker image
-        uses: docker/build-push-action@v5
+        uses: docker/build-push-action@v6
         with:
           context: ./Docker/securityserver/
           push: true
@@ -257,7 +257,7 @@ jobs:
           name: debian-packages
           path: ./Docker/centralserver/build/packages/
       - name: Build CS docker image
-        uses: docker/build-push-action@v5
+        uses: docker/build-push-action@v6
         with:
           context: ./Docker/centralserver/
           push: true
@@ -271,7 +271,7 @@ jobs:
       - name: Copy debian packages for SS
         run: cp ./Docker/centralserver/build/packages/* ./Docker/securityserver/build/packages/
       - name: Build SS docker image
-        uses: docker/build-push-action@v5
+        uses: docker/build-push-action@v6
         with:
           context: ./Docker/securityserver/
           push: true
