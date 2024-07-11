@@ -197,7 +197,6 @@ public abstract class RestMessage {
 
     static void serializeHeaders(List<Header> headers, OutputStream os, Predicate<Header> filter) throws IOException {
         headers.stream()
-                .sorted(new HeadersComparator())
                 .forEach(h -> {
                     if (filter.test(h)) {
                         try {

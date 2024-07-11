@@ -99,11 +99,15 @@ public final class CryptoUtils {
         }
     }
 
-    /** SSL protocol name. */
+    /**
+     * SSL protocol name.
+     */
 //    public static final String SSL_PROTOCOL = "TLSv1.2";
     public static final String SSL_PROTOCOL = "TLSv1.3";
-
-    /** Global default digest method identifier and URL. */
+    public static final String[] SSL_SUPPORTED_PROTOCOLS = {"TLSv1.2", SSL_PROTOCOL};
+    /**
+     * Global default digest method identifier and URL.
+     */
     public static final String DEFAULT_DIGEST_ALGORITHM_ID = CryptoUtils.SHA512_ID;
     public static final String DEFAULT_DIGEST_ALGORITHM_URI = DigestMethod.SHA512;
 

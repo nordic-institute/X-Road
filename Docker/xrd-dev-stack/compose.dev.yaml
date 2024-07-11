@@ -32,6 +32,16 @@ services:
       - "4390:9999" # Proxy debug port
       - "4391:9998" # Signer debug port
       - "4392:9997" # Proxy UI debug port
+  ss2:
+    environment:
+      - XROAD_TOKEN_PIN=Secret1234
+    ports:
+      - "4700:4000" # Frontend
+      - "4710:8080" # Proxy
+      - "4720:5432" # Database
+      - "4790:9999" # Proxy debug port
+      - "4791:9998" # Signer debug port
+      - "4792:9997" # Proxy UI debug port
   testca:
     ports:
       - "4400:8888"

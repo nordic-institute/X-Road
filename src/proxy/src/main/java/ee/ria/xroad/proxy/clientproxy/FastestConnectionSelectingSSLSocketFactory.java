@@ -189,7 +189,7 @@ public class FastestConnectionSelectingSSLSocketFactory
 
     @Override
     protected void prepareSocket(final SSLSocket socket) throws IOException {
-        socket.setEnabledProtocols(new String[]{CryptoUtils.SSL_PROTOCOL});
+        socket.setEnabledProtocols(CryptoUtils.SSL_SUPPORTED_PROTOCOLS);
         socket.setEnabledCipherSuites(SystemProperties.getXroadTLSCipherSuites());
     }
 

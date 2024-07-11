@@ -224,7 +224,7 @@ public class ServerProxy implements StartStop {
     private static ServerConnector createClientProxySslConnector(Server server) throws Exception {
         var cf = new SslContextFactory.Server();
         cf.setNeedClientAuth(true);
-        cf.setIncludeProtocols(CryptoUtils.SSL_PROTOCOL);
+        cf.setIncludeProtocols(CryptoUtils.SSL_SUPPORTED_PROTOCOLS);
         cf.setIncludeCipherSuites(SystemProperties.getXroadTLSCipherSuites());
         cf.setSessionCachingEnabled(true);
         cf.setSslSessionTimeout(SSL_SESSION_TIMEOUT);

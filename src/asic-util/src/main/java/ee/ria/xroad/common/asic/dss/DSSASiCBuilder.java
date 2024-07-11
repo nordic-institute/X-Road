@@ -70,10 +70,10 @@ public class DSSASiCBuilder {
 
     public DSSDocument createContainer(AsicContainer legacyContainer) {
         List<DSSDocument> dssDocs = new ArrayList<>();
-        dssDocs.add(new InMemoryDocument(legacyContainer.getEntry(MessageFileNames.MESSAGE), "message.xml"));
+        dssDocs.add(new InMemoryDocument(legacyContainer.getEntry(MessageFileNames.MESSAGE), MessageFileNames.MESSAGE));
         dssDocs.add(new InMemoryDocument(MIMETYPE.getBytes(StandardCharsets.UTF_8), ENTRY_MIMETYPE));
         if (legacyContainer.getAttachment() != null) {
-            dssDocs.add(new InMemoryDocument(legacyContainer.getAttachment(), ENTRY_ATTACHMENT + "1"));
+            dssDocs.add(new InMemoryDocument(legacyContainer.getAttachment(), MessageFileNames.attachment(1)));
         }
         var signature = new InMemoryDocument(legacyContainer.getEntry(ENTRY_SIGNATURE), "signatures.xml");
         var creationDate = new Date(legacyContainer.getCreationTime());

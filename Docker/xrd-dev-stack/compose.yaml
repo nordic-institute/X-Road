@@ -35,6 +35,20 @@ services:
       interval: 5s
       retries: 40
       test: [ "CMD", "curl", "-f", "-k", "https://localhost:4000" ]
+  ss2:
+    image: ${SS_XRD7_IMG}
+    profiles:
+      - xrd7
+    deploy:
+      resources:
+        reservations:
+          memory: 1G
+        limits:
+          memory: 2G
+    healthcheck:
+      interval: 5s
+      retries: 40
+      test: [ "CMD", "curl", "-f", "-k", "https://localhost:4000" ]
   testca:
     image: ${CA_IMG}
     deploy:

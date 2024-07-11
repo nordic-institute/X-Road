@@ -395,9 +395,13 @@ public class SignatureVerifier {
         @Override
         public boolean engineCanResolveURI(ResourceResolverContext context) {
             return switch (context.attr.getValue()) {
-                case MessageFileNames.MESSAGE, MessageFileNames.SIG_HASH_CHAIN_RESULT, "/attachment1" -> true;
-                default -> false;
+                case MessageFileNames.MESSAGE, MessageFileNames.SIG_HASH_CHAIN_RESULT -> true;
+                default -> isAttachment(context.attr.getValue());
             };
+        }
+
+        private boolean isAttachment(String uri) {
+            return uri.startsWith("/attachment");
         }
 
         @Override
@@ -411,19 +415,18 @@ public class SignatureVerifier {
                     }
 
                     break;
-                case "/attachment1": //TODO xroad8, in general / prefix is not expected by dss. Check specs.
-                    MessagePart partA = getPart("/attachment1");
-
-                    if (partA != null) {
-                        return new XMLSignatureInput(Base64.getEncoder().encodeToString(partA.getData()));
-                    }
-
-                    break;
                 case MessageFileNames.SIG_HASH_CHAIN_RESULT:
                     return new XMLSignatureInput(is(hashChainResult));
                 default: // do nothing
             }
 
+            if (isAttachment(context.attr.getValue())) {
+                MessagePart part = getPart(context.attr.getValue());
+
+                if (part != null && part.getData() != null){
+                    return new XMLSignatureInput(Base64.getEncoder().encodeToString(part.getData()));
+                }
+            }
             return null;
         }
     }

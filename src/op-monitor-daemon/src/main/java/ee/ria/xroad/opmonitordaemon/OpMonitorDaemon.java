@@ -132,7 +132,7 @@ final class OpMonitorDaemon implements StartStop {
         cf.setNeedClientAuth(true);
         cf.setSessionCachingEnabled(true);
         cf.setSslSessionTimeout(SSL_SESSION_TIMEOUT);
-        cf.setIncludeProtocols(CryptoUtils.SSL_PROTOCOL);
+        cf.setIncludeProtocols(CryptoUtils.SSL_SUPPORTED_PROTOCOLS);
         cf.setIncludeCipherSuites(SystemProperties.getXroadTLSCipherSuites());
 
         SSLContext ctx = SSLContext.getInstance(CryptoUtils.SSL_PROTOCOL);

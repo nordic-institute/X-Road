@@ -58,6 +58,8 @@ public class DSSAsicVerifier {
     private SignedDocumentValidator getValidator(DSSDocument signedDocument) {
         SignedDocumentValidator validator = SignedDocumentValidator.fromDocument(signedDocument);
         validator.setTokenExtractionStrategy(TokenExtractionStrategy.EXTRACT_ALL);
+        validator.setEnableEtsiValidationReport(false);
+
         var certVerifier = new CommonCertificateVerifier();
         certVerifier.setDefaultDigestAlgorithm(DigestAlgorithm.forJavaName(CryptoUtils.DEFAULT_DIGEST_ALGORITHM_ID));
         validator.setCertificateVerifier(certVerifier);
@@ -72,6 +74,7 @@ public class DSSAsicVerifier {
     @SneakyThrows //TODO handle exception
     private CommonTrustedCertificateSource loadGlobalConfData() {
         CommonTrustedCertificateSource trustedCertificateSource = new CommonTrustedCertificateSource();
+
 
         GlobalConf.getTspCertificates().forEach(cert -> {
             try {
@@ -93,6 +96,18 @@ public class DSSAsicVerifier {
             }
 
         });
+
+        GlobalConf.getOcspResponderCertificates().forEach(cert -> {
+            try {
+                var certToken = DSSUtils.loadCertificate(cert.getEncoded());
+                trustedCertificateSource.addCertificate(certToken);
+                log.debug("Loaded OCSP cert: {}", cert.getSubjectDN());
+            } catch (CertificateEncodingException e) {
+                throw new RuntimeException(e); //TODO
+            }
+        });
+
+
         return trustedCertificateSource;
     }
 }
