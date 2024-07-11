@@ -16,7 +16,9 @@ dependencies {
     implementation project(':common:common-message')
     implementation project(':common:common-globalconf')
     implementation project(':common:common-scheduler')
+
     testImplementation project(':common:common-test')
+    testImplementation(libs.julOverSlf4j)
     xjc libs.bundles.jaxb
 }
 
