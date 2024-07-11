@@ -84,26 +84,4 @@
         </memberClass>
         <ocspFreshnessSeconds>3600</ocspFreshnessSeconds>
     </globalSettings>
-    <dataspacesSettings>
-        <securityServers>
-            <securityServer>
-                <serverId>DEV:COM:4321:SS1</serverId>
-                <protocolUrl>ss1:9194/protocol</protocolUrl>
-            </securityServer>
-            <securityServer>
-                <serverId>DEV:COM:1234:SS0</serverId>
-                <protocolUrl>ss0:9194/protocol</protocolUrl>
-            </securityServer>
-        </securityServers>
-        <members>
-            <member>
-                <member>id0</member>
-                <did>did:web:xroad-8-ss0.s3.eu-west-1.amazonaws.com</did>
-            </member>
-            <member>
-                <member>id3</member>
-                <did>did:web:xroad-8-ss1.s3.eu-west-1.amazonaws.com</did>
-            </member>
-        </members>
-    </dataspacesSettings>
 </ns3:conf>
