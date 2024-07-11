@@ -62,3 +62,6 @@ echo "Building xrd-testca image.."
 cd "$XROAD_HOME"/Docker/testca
 ./init_context.sh
 docker build -t xrd-testca .
+
+echo "Building payloadgen image.."
+docker build -t xrd-payloadgen "$XROAD_HOME"/Docker/test-services/payloadgen/

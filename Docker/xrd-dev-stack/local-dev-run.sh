@@ -13,6 +13,9 @@ for i in "$@"; do
   "--local")
     ENV_FILE=".env.local"
     ;;
+  "--perftest")
+    PERFTEST=1
+    ;;
   esac
 done
 
@@ -22,7 +25,11 @@ if [[ $# -eq 0 ]]; then
   echo "--local: Use .env.local file"
 fi
 
-docker compose $COMPOSE_FILE_ARGS --env-file "$ENV_FILE" up -d
+COMPOSE_EXTRA_ARGS=""
+if [[ -n "$PERFTEST" ]]; then
+  COMPOSE_EXTRA_ARGS="--profile perftest"
+fi
+docker compose $COMPOSE_EXTRA_ARGS $COMPOSE_FILE_ARGS --env-file "$ENV_FILE" up -d
 
 if [[ -n "$INITIALIZE" ]]; then
   docker compose $COMPOSE_FILE_ARGS \
@@ -34,4 +41,27 @@ if [[ -n "$INITIALIZE" ]]; then
     --very-verbose \
     --retry 12 \
     --retry-interval 8000
+fi
+
+if [[ -n "$PERFTEST" && -n "$INITIALIZE" ]]; then
+  docker compose $COMPOSE_FILE_ARGS \
+    --env-file "$ENV_FILE" \
+    run hurl \
+    --insecure \
+    --variables-file /hurl-src/vars.env \
+    --file-root /hurl-files /hurl-src/perftest-ss0.hurl \
+    --very-verbose \
+    --retry 12 \
+    --retry-interval 4000
+
+  #disable the messagelog body logging
+  docker compose $COMPOSE_FILE_ARGS \
+    exec ss0 sh -c "sed -i 's/message-body-logging=true/message-body-logging=false/' /etc/xroad/conf.d/addons/message-log.ini"
+  docker compose $COMPOSE_FILE_ARGS \
+    exec ss0 sh -c "supervisorctl restart xroad-proxy"
+
+  docker compose $COMPOSE_FILE_ARGS \
+    exec ss1 sh -c "sed -i 's/message-body-logging=true/message-body-logging=false/' /etc/xroad/conf.d/addons/message-log.ini"
+  docker compose $COMPOSE_FILE_ARGS \
+    exec ss1 sh -c "supervisorctl restart xroad-proxy"
 fi
