@@ -331,7 +331,7 @@ class SignatureVerifierTest {
 
         @BeforeEach
         void before() {
-            loadGlobalConf("src/test/signatures/non-batch-sig/globalconf_v4",
+            loadGlobalConf("src/test/signatures/non-batch-sig/globalconf_v3",
                     "../common-globalconf/src/test/resources/configuration-anchor1.xml", false);
         }
 
