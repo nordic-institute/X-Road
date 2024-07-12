@@ -110,7 +110,9 @@ class JsonLdExpansionTest {
                 Map.entry("web.http.xroad.public.port", String.valueOf(Ports.getFreePort())),
                 Map.entry("edc.dataplane.token.validation.endpoint", "http://localhost:9192/control/token"),
                 Map.entry("edc.jsonld.https.enabled", "true"),
-                Map.entry("edc.jsonld.http.enabled", "true")
+                Map.entry("edc.jsonld.http.enabled", "true"),
+                Map.entry("edc.transfer.proxy.token.verifier.publickey.alias", "public-key"),
+                Map.entry("edc.transfer.proxy.token.signer.privatekey.alias", "private-key")
         ));
 
         edcExtension = extension;

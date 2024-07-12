@@ -44,7 +44,9 @@ class RuntimeTest {
                 Map.entry("web.http.control.port", String.valueOf(Ports.getFreePort())),
                 Map.entry("web.http.control.path", "/control"),
                 Map.entry("web.http.xroad.public.port", String.valueOf(Ports.getFreePort())),
-                Map.entry("edc.dataplane.token.validation.endpoint", "http://localhost:9192/control/token")
+                Map.entry("edc.dataplane.token.validation.endpoint", "http://localhost:9192/control/token"),
+                Map.entry("edc.transfer.proxy.token.verifier.publickey.alias", "public-key"),
+                Map.entry("edc.transfer.proxy.token.signer.privatekey.alias", "private-key")
         ));
     }
 

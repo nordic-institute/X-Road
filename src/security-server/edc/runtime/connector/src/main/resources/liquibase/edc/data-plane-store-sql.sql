@@ -6,8 +6,8 @@ CREATE TABLE IF NOT EXISTS edc_lease
   leased_at      BIGINT,
   lease_duration INTEGER NOT NULL,
   lease_id       VARCHAR NOT NULL
-  CONSTRAINT lease_pk
-  PRIMARY KEY
+    CONSTRAINT lease_pk
+      PRIMARY KEY
 );
 
 COMMENT ON COLUMN edc_lease.leased_at IS 'posix timestamp of lease';
@@ -25,16 +25,20 @@ CREATE TABLE IF NOT EXISTS edc_data_plane
   error_detail         VARCHAR,
   callback_address     VARCHAR,
   lease_id             VARCHAR
-  CONSTRAINT data_plane_lease_lease_id_fk
-  REFERENCES edc_lease
-  ON DELETE SET NULL,
+    CONSTRAINT data_plane_lease_lease_id_fk
+      REFERENCES edc_lease
+      ON DELETE SET NULL,
   source               JSON,
   destination          JSON,
   properties           JSON,
-  flow_type            VARCHAR
+  flow_type            VARCHAR,
+  transfer_type_destination VARCHAR
 );
 
 COMMENT ON COLUMN edc_data_plane.trace_context IS 'Java Map serialized as JSON';
 COMMENT ON COLUMN edc_data_plane.source IS 'DataAddress serialized as JSON';
 COMMENT ON COLUMN edc_data_plane.destination IS 'DataAddress serialized as JSON';
 COMMENT ON COLUMN edc_data_plane.properties IS 'Java Map serialized as JSON';
+
+-- This will help to identify states that need to be transitioned without a table scan when the entries grow
+CREATE INDEX IF NOT EXISTS data_plane_state ON edc_data_plane (state,state_time_stamp);

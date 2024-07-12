@@ -6,8 +6,8 @@ CREATE TABLE IF NOT EXISTS edc_lease
   leased_at      BIGINT,
   lease_duration INTEGER NOT NULL,
   lease_id       VARCHAR NOT NULL
-  CONSTRAINT lease_pk
-  PRIMARY KEY
+    CONSTRAINT lease_pk
+      PRIMARY KEY
 );
 
 COMMENT ON COLUMN edc_lease.leased_at IS 'posix timestamp of lease';
@@ -17,8 +17,8 @@ COMMENT ON COLUMN edc_lease.lease_duration IS 'duration of lease in milliseconds
 CREATE TABLE IF NOT EXISTS edc_transfer_process
 (
   transferprocess_id       VARCHAR           NOT NULL
-  CONSTRAINT transfer_process_pk
-  PRIMARY KEY,
+    CONSTRAINT transfer_process_pk
+      PRIMARY KEY,
   type                       VARCHAR           NOT NULL,
   state                      INTEGER           NOT NULL,
   state_count                INTEGER DEFAULT 0 NOT NULL,
@@ -44,9 +44,9 @@ CREATE TABLE IF NOT EXISTS edc_transfer_process
   contract_id                VARCHAR,
   data_destination           JSON,
   lease_id                   VARCHAR
-  CONSTRAINT transfer_process_lease_lease_id_fk
-  REFERENCES edc_lease
-  ON DELETE SET NULL
+    CONSTRAINT transfer_process_lease_lease_id_fk
+      REFERENCES edc_lease
+      ON DELETE SET NULL
 );
 
 COMMENT ON COLUMN edc_transfer_process.trace_context IS 'Java Map serialized as JSON';
@@ -63,27 +63,8 @@ COMMENT ON COLUMN edc_transfer_process.deprovisioned_resources IS 'List of depro
 CREATE UNIQUE INDEX IF NOT EXISTS transfer_process_id_uindex
   ON edc_transfer_process (transferprocess_id);
 
-CREATE TABLE IF NOT EXISTS edc_data_request
-(
-  datarequest_id      VARCHAR NOT NULL
-  CONSTRAINT data_request_pk
-  PRIMARY KEY,
-  process_id          VARCHAR NOT NULL,
-  connector_address   VARCHAR NOT NULL,
-  protocol            VARCHAR NOT NULL,
-  asset_id            VARCHAR NOT NULL,
-  contract_id         VARCHAR NOT NULL,
-  data_destination    JSON    NOT NULL,
-  transfer_process_id VARCHAR NOT NULL
-  CONSTRAINT data_request_transfer_process_id_fk
-  REFERENCES edc_transfer_process
-  ON UPDATE RESTRICT ON DELETE CASCADE
-);
-
-COMMENT ON COLUMN edc_data_request.data_destination IS 'DataAddress serialized as JSON';
-
-CREATE UNIQUE INDEX IF NOT EXISTS data_request_id_uindex
-  ON edc_data_request (datarequest_id);
-
 CREATE UNIQUE INDEX IF NOT EXISTS lease_lease_id_uindex
   ON edc_lease (lease_id);
+
+-- This will help to identify states that need to be transitioned without a table scan when the entries grow
+CREATE INDEX IF NOT EXISTS transfer_process_state ON edc_transfer_process (state,state_time_stamp);
