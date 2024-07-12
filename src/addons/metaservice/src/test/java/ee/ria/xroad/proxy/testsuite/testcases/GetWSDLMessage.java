@@ -207,18 +207,16 @@ public class GetWSDLMessage extends MessageTestCase {
             @Override
             public void body(BodyDescriptor bd, InputStream is) throws IOException {
 
-                switch (nextPart) {
-                    case 0: // SOAP
-                        nextPart = 1;
-                        break;
-                    default: // Attachment => WSDL
-                        try {
-                            definition = wsdlReader.readWSDL(null, new InputSource(is));
-                        } catch (WSDLException e) {
-                            throw new IOException(e);
+                // Attachment => WSDL
+                if (nextPart == 0) { // SOAP
+                    nextPart = 1;
+                } else {
+                    try {
+                        definition = wsdlReader.readWSDL(null, new InputSource(is));
+                    } catch (WSDLException e) {
+                        throw new IOException(e);
 
-                        }
-                        break;
+                    }
                 }
             }
         }

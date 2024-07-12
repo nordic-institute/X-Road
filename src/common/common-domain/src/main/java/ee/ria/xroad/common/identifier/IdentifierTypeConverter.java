@@ -30,6 +30,7 @@ import ee.ria.xroad.common.CodedException;
 import jakarta.xml.bind.annotation.adapters.XmlAdapter;
 
 import static ee.ria.xroad.common.ErrorCodes.X_INVALID_CLIENT_IDENTIFIER;
+import static ee.ria.xroad.common.identifier.XRoadObjectType.SERVICE;
 
 /**
  * Adapter class for converting between DTO and XML identifier types.
@@ -159,15 +160,9 @@ final class IdentifierTypeConverter {
         }
 
         @Override
-        public ServiceId unmarshal(XRoadServiceIdentifierType v)
-                throws Exception {
-            if (v != null) {
-                switch (v.getObjectType()) {
-                    case SERVICE:
-                        return parseServiceId(v);
-                    default:
-                        return null;
-                }
+        public ServiceId unmarshal(XRoadServiceIdentifierType v) throws Exception {
+            if (v != null && SERVICE.equals(v.getObjectType())) {
+                return parseServiceId(v);
             } else {
                 return null;
             }
@@ -228,31 +223,25 @@ final class IdentifierTypeConverter {
 
         @Override
         public XRoadIdentifierType marshal(XRoadId v) throws Exception {
-            if (v == null) {
-                return null;
-            }
-
             return switch (v.getObjectType()) {
                 case MEMBER, SUBSYSTEM -> printClientId((ClientId) v);
                 case SERVICE -> printServiceId((ServiceId) v);
                 case SERVER -> printSecurityServerId((SecurityServerId) v);
                 case GLOBALGROUP -> printGlobalGroupId((GlobalGroupId) v);
                 case LOCALGROUP -> printLocalGroupId((LocalGroupId) v);
+                case null -> null;
             };
         }
 
         @Override
         public XRoadId unmarshal(XRoadIdentifierType v) throws Exception {
-            if (v == null) {
-                return null;
-            }
-
             return switch (v.getObjectType()) {
                 case MEMBER, SUBSYSTEM -> parseClientId(v);
                 case SERVICE -> parseServiceId(v);
                 case SERVER -> parseSecurityServerId(v);
                 case GLOBALGROUP -> parseGlobalGroupId(v);
                 case LOCALGROUP -> parseLocalGroupId(v);
+                case null -> null;
             };
         }
     }

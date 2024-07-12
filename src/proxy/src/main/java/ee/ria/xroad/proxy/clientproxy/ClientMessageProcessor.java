@@ -65,7 +65,6 @@ import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
-import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.TimeUnit;
 
 import static ee.ria.xroad.common.ErrorCodes.X_INCONSISTENT_RESPONSE;
@@ -142,14 +141,11 @@ class ClientMessageProcessor extends AbstractClientMessageProcessor {
             createSoapHandlerExecutor();
 
     private static ExecutorService createSoapHandlerExecutor() {
-        return Executors.newCachedThreadPool(new ThreadFactory() {
-            @Override
-            public Thread newThread(Runnable r) {
-                Thread handlerThread = new Thread(r);
-                handlerThread.setName(Thread.currentThread().getName() + "-soap");
+        return Executors.newCachedThreadPool(r -> {
+            Thread handlerThread = new Thread(r);
+            handlerThread.setName(Thread.currentThread().getName() + "-soap");
 
-                return handlerThread;
-            }
+            return handlerThread;
         });
     }
 

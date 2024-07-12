@@ -59,21 +59,15 @@ public interface ManagementRequestViewMapper extends GenericUniDirectionalMapper
 
     @Named("toClientId")
     static ClientId toClientId(ManagementRequestViewEntity entity) {
-        if (entity.getClientType() != null) {
-            switch (entity.getClientType()) {
-                case MEMBER:
-                    return MemberId.create(entity.getClientXroadInstance(),
-                            entity.getClientMemberClass(),
-                            entity.getClientMemberCode());
-                case SUBSYSTEM:
-                    return SubsystemId.create(entity.getClientXroadInstance(),
-                            entity.getClientMemberClass(),
-                            entity.getClientMemberCode(),
-                            entity.getClientSubsystemCode());
-                default:
-                    break;
-            }
-        }
-        return null;
+        return switch (entity.getClientType()) {
+            case MEMBER -> MemberId.create(entity.getClientXroadInstance(),
+                    entity.getClientMemberClass(),
+                    entity.getClientMemberCode());
+            case SUBSYSTEM -> SubsystemId.create(entity.getClientXroadInstance(),
+                    entity.getClientMemberClass(),
+                    entity.getClientMemberCode(),
+                    entity.getClientSubsystemCode());
+            case null, default -> null;
+        };
     }
 }

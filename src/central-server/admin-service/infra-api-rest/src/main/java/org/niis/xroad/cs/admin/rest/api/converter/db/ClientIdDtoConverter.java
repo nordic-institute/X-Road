@@ -61,25 +61,17 @@ public class ClientIdDtoConverter extends DtoConverter<ClientId, ClientIdDto> {
     public ClientId fromDto(ClientIdDto source) {
         XRoadIdDto.TypeEnum type = source.getType();
 
-        if (type != null) {
-            switch (type) {
-                case MEMBER:
-                    return MemberId.create(
-                            source.getInstanceId(),
-                            source.getMemberClass(),
-                            source.getMemberCode());
-
-                case SUBSYSTEM:
-                    return SubsystemId.create(
-                            source.getInstanceId(),
-                            source.getMemberClass(),
-                            source.getMemberCode(),
-                            source.getSubsystemCode());
-
-                default://Ignore other cases
-            }
-        }
-
-        throw new IllegalArgumentException("illegal ClientId type: " + type);
+        return switch (type) {
+            case MEMBER -> MemberId.create(
+                    source.getInstanceId(),
+                    source.getMemberClass(),
+                    source.getMemberCode());
+            case SUBSYSTEM -> SubsystemId.create(
+                    source.getInstanceId(),
+                    source.getMemberClass(),
+                    source.getMemberCode(),
+                    source.getSubsystemCode());
+            case null, default -> throw new IllegalArgumentException("illegal ClientId type: " + type);
+        };
     }
 }

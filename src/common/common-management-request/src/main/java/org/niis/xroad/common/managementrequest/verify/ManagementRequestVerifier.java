@@ -202,7 +202,6 @@ public final class ManagementRequestVerifier {
                 case ADDRESS_CHANGE_REQUEST -> new AddressChangeRequestCallback(this);
                 case CLIENT_DISABLE_REQUEST -> new ClientDisableRequestCallback(this);
                 case CLIENT_ENABLE_REQUEST -> new ClientEnableRequestCallback(this);
-                default -> throw new CodedException(X_INVALID_REQUEST, "Unsupported request type %s", requestType);
             };
         }
 

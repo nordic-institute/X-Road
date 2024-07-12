@@ -224,14 +224,11 @@ public class ConfigurationInfoApiStepDefs extends BaseStepDefs {
     }
 
     private String resolveFileNamePart(String contentIdentifier) {
-        switch (contentIdentifier) {
-            case "SHARED-PARAMETERS":
-                return "shared-params";
-            case "PRIVATE-PARAMETERS":
-                return "private-params";
-            default:
-                throw new RuntimeException();
-        }
+        return switch (contentIdentifier) {
+            case "SHARED-PARAMETERS" -> "shared-params";
+            case "PRIVATE-PARAMETERS" -> "private-params";
+            default -> throw new RuntimeException();
+        };
     }
 
     @Step("{} configuration part {} was not uploaded")

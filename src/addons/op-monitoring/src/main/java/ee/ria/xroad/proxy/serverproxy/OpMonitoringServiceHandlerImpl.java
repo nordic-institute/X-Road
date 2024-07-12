@@ -86,13 +86,11 @@ public class OpMonitoringServiceHandlerImpl implements ServiceHandler {
     @Override
     public boolean canHandle(ServiceId requestServiceId,
                              ProxyMessage proxyRequestMessage) {
-        switch (requestServiceId.getServiceCode()) {
-            case GET_SECURITY_SERVER_HEALTH_DATA: // $FALL-THROUGH$
-            case GET_SECURITY_SERVER_OPERATIONAL_DATA:
-                return requestServiceId.getClientId().equals(ServerConf.getIdentifier().getOwner());
-            default:
-                return false;
-        }
+        return switch (requestServiceId.getServiceCode()) { // $FALL-THROUGH$
+            case GET_SECURITY_SERVER_HEALTH_DATA, GET_SECURITY_SERVER_OPERATIONAL_DATA ->
+                    requestServiceId.getClientId().equals(ServerConf.getIdentifier().getOwner());
+            default -> false;
+        };
     }
 
     @Override

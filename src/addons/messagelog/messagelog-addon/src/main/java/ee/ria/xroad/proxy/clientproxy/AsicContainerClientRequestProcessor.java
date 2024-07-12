@@ -135,14 +135,9 @@ public class AsicContainerClientRequestProcessor extends MessageProcessorBase {
     public void process() {
         try {
             switch (target) {
-                case ASIC:
-                    handleAsicRequest();
-                    return;
-                case VERIFICATIONCONF:
-                    handleVerificationConfRequest();
-                    return;
-                default:
-                    break;
+                case ASIC -> handleAsicRequest();
+                case VERIFICATIONCONF -> handleVerificationConfRequest();
+                default -> { }
             }
         } catch (CodedExceptionWithHttpStatus ex) {
             throw ex;

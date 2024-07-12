@@ -77,14 +77,11 @@ public class FederationConfigurationSourceFilterImpl implements FederationConfig
         if (ownInstance.equalsIgnoreCase(instanceIdentifier)) {
             return true;
         }
-        switch (allowedFederationMode) {
-            case CUSTOM:
-                return allowedFederationPartners.contains(instanceIdentifier);
-            case ALL:
-                return true;
-            default:
-                return false;
-        }
+        return switch (allowedFederationMode) {
+            case CUSTOM -> allowedFederationPartners.contains(instanceIdentifier);
+            case ALL -> true;
+            default -> false;
+        };
     }
 
     private void parseAndSetAllowedInstances(List<String> initial) {
