@@ -134,7 +134,7 @@ public class XrdPayloadSignerExtension implements ServiceExtension {
         monitor.debug("X-Road public endpoint is set to: %s".formatted(publicEndpoint));
 
         var endpoint = Endpoint.url(publicEndpoint);
-        generatorService.addGeneratorFunction("HttpData", dataAddress -> endpoint);
+        generatorService.addGeneratorFunction("XrdHttpData", dataAddress -> endpoint);
 
         var signService = new XrdSignatureService();
         var proxyApiController = new XrdDataPlaneProxyApiController(monitor,
