@@ -65,3 +65,9 @@ docker build -t xrd-testca .
 
 echo "Building payloadgen image.."
 docker build -t xrd-payloadgen "$XROAD_HOME"/Docker/test-services/payloadgen/
+
+if [[ "$(uname)" == "Darwin" && "$(uname -m)" == "arm64" ]]; then
+  echo "Building example-adapter image for arm64 architecture.."
+  echo "This step can be removed when arm64 image will be available to download"
+  docker build -t niis/example-adapter "$XROAD_HOME"/Docker/test-services/example-adapter/
+fi
