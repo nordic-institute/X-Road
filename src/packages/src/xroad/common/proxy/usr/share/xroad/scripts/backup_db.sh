@@ -37,5 +37,9 @@ if [ -f /etc/xroad/db_libpq.env ]; then
   source /etc/xroad/db_libpq.env
 fi
 
+if [ ! -z $PGOPTIONS_EXTRA ]; then
+  PGOPTIONS_EXTRA=" ${PGOPTIONS_EXTRA}"
+fi
+
 PGOPTIONS="$pg_options ${PGOPTIONS_EXTRA-}" PGPASSWORD="${db_admin_password}" PGHOST="${PGHOST:-$db_addr}" PGPORT="${PGPORT:-$db_port}" \
     pg_dump -n "$db_schema" -x -O -F c -U "$db_admin_user" -f "$dump_file" "$db_database"
