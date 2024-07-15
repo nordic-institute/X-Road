@@ -20,8 +20,6 @@ if [[ -n "${ADMIN_USER}" && -n "${ADMIN_PASSWORD}" ]]; then
   PASSWORD=${ADMIN_PASSWORD}
 fi
 
-echo "$PASSWORD"
-
 # Reading custom libpq ENV variables
 if [ -f /etc/xroad/db_libpq.env ]; then
   source /etc/xroad/db_libpq.env
