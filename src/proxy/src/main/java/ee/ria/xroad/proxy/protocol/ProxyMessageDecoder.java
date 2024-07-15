@@ -402,7 +402,7 @@ public class ProxyMessageDecoder {
             callback.restBody(proxyIs);
             attachmentsByteCount += cos.getByteCount();
             restBodyDigest = dc.getDigest();
-            verifier.addPart(MessageFileNames.attachment(++attachmentNo), getHashAlgoId(), restBodyDigest);
+            verifier.addPart(MessageFileNames.attachmentOfIdx(++attachmentNo), getHashAlgoId(), restBodyDigest);
         } catch (Exception ex) {
             throw translateException(ex);
         }
@@ -462,7 +462,7 @@ public class ProxyMessageDecoder {
                     attachmentsByteCount += cos.getByteCount();
 
                     verifier.addPart(
-                            MessageFileNames.attachment(++attachmentNo),
+                            MessageFileNames.attachmentOfIdx(++attachmentNo),
                             getHashAlgoId(), dc.getDigest());
                 } catch (Exception ex) {
                     throw translateException(ex);

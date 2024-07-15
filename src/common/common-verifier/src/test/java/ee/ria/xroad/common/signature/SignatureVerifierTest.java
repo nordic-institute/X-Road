@@ -62,7 +62,7 @@ import static ee.ria.xroad.common.ErrorCodes.X_MALFORMED_SIGNATURE;
 import static ee.ria.xroad.common.util.CryptoUtils.SHA512_ID;
 import static ee.ria.xroad.common.util.CryptoUtils.calculateDigest;
 import static ee.ria.xroad.common.util.MessageFileNames.MESSAGE;
-import static ee.ria.xroad.common.util.MessageFileNames.attachment;
+import static ee.ria.xroad.common.util.MessageFileNames.attachmentOfIdx;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 /**
@@ -331,7 +331,7 @@ class SignatureVerifierTest {
 
         @BeforeEach
         void before() {
-            loadGlobalConf("src/test/signatures/non-batch-sig/globalconf_v3",
+            loadGlobalConf("../common-globalconf/src/test/resources/globalconf_good2_v3",
                     "../common-globalconf/src/test/resources/configuration-anchor1.xml", false);
         }
 
@@ -339,7 +339,7 @@ class SignatureVerifierTest {
         void verifyValid() throws Exception {
             List<MessagePart> hashes = new ArrayList<>();
             hashes.add(new MessagePart(MESSAGE, SHA512_ID, calculateDigest(SHA512_ID, messageBytes), messageBytes));
-            hashes.add(new MessagePart(attachment(1), SHA512_ID, calculateDigest(SHA512_ID, attachmentBytes), null));
+            hashes.add(new MessagePart(attachmentOfIdx(1), SHA512_ID, calculateDigest(SHA512_ID, attachmentBytes), null));
 
             SignatureVerifier verifier = createSignatureVerifier(NON_BATCH_SIG);
             verifier.addParts(hashes);
@@ -351,7 +351,7 @@ class SignatureVerifierTest {
         void failOnInvalidHash() throws Exception {
             List<MessagePart> hashes = new ArrayList<>();
             hashes.add(new MessagePart(MESSAGE, SHA512_ID, calculateDigest(SHA512_ID, messageBytes), messageBytes));
-            hashes.add(new MessagePart(attachment(1), SHA512_ID, calculateDigest(SHA512_ID, new byte[]{1}), null));
+            hashes.add(new MessagePart(attachmentOfIdx(1), SHA512_ID, calculateDigest(SHA512_ID, new byte[]{1}), null));
 
             SignatureVerifier verifier = createSignatureVerifier(NON_BATCH_SIG);
             verifier.addParts(hashes);

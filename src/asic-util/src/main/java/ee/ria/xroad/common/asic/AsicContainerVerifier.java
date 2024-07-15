@@ -41,12 +41,14 @@ import ee.ria.xroad.common.signature.Signature;
 import ee.ria.xroad.common.signature.SignatureData;
 import ee.ria.xroad.common.signature.SignatureVerifier;
 import ee.ria.xroad.common.signature.TimestampVerifier;
+import ee.ria.xroad.common.util.CryptoUtils;
 import ee.ria.xroad.common.util.MessageFileNames;
 import ee.ria.xroad.common.util.MimeTypes;
 
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
+import org.apache.xml.security.signature.XMLSignatureDigestInput;
 import org.apache.xml.security.signature.XMLSignatureInput;
 import org.apache.xml.security.signature.XMLSignatureStreamInput;
 import org.apache.xml.security.utils.resolver.ResourceResolverContext;
@@ -175,14 +177,25 @@ public class AsicContainerVerifier {
         attachmentHashes.clear();
 
         verifier.setSignatureResourceResolver(new ResourceResolverSpi() {
+            /**
+             * attachment1 is a special rase for non batch signature operations. Note: more than one attachment  is not supported.
+             */
+            private static final String ATTACHMENT1 = MessageFileNames.attachmentOfIdx(1);
+
             @Override
             public boolean engineCanResolveURI(ResourceResolverContext context) {
+                if (ATTACHMENT1.equals(context.attr.getValue())) {
+                    return asic.getAttachmentDigest() != null;
+                }
                 return asic.hasEntry(context.attr.getValue());
             }
 
             @Override
-            public XMLSignatureInput engineResolveURI(ResourceResolverContext context)
-                    throws ResourceResolverException {
+            public XMLSignatureInput engineResolveURI(ResourceResolverContext context) throws ResourceResolverException {
+                if (ATTACHMENT1.equals(context.attr.getValue())) {
+                    return new XMLSignatureDigestInput(CryptoUtils.encodeBase64(asic.getAttachmentDigest()));
+                }
+
                 return new XMLSignatureStreamInput(asic.getEntry(context.attr.getValue()));
             }
         });

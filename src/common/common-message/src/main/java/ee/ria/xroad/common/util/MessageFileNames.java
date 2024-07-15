@@ -78,7 +78,7 @@ public final class MessageFileNames {
      * @param idx index of attachment
      * @return String
      */
-    public static String attachment(int idx) {
+    public static String attachmentOfIdx(int idx) {
         return ATTACHMENT + idx;
     }
 }
