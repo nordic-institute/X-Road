@@ -66,7 +66,11 @@ setup_database() {
     local db_database="centerui_production"
     local db_master_user=postgres
 
-    local db_url=$(get_prop ${db_properties} 'spring.datasource.url' "jdbc:postgresql://${db_host}/${db_database}")
+    local db_url=$(get_prop ${db_properties} 'spring.datasource.url')
+    if [[ -z "$db_url" ]]; then
+      db_url="jdbc:postgresql://$db_host/$db_database"
+      crudini --set "${db_properties}" '' spring.datasource.url "${db_url}"
+    fi
     pat='^jdbc:postgresql://([^/]*)($|/([^\?]*)(.*)$)'
     if [[ "$db_url" =~ $pat ]]; then
       db_host=${new_db_host:-${BASH_REMATCH[1]}}
@@ -74,8 +78,6 @@ setup_database() {
     else
       log "Unable to parse '$db_url', using 'jdbc:postgresql://$db_host/$db_database'"
     fi
-
-    crudini --set "${db_properties}" '' spring.datasource.url "jdbc:postgresql://${db_host}/${db_database}"
 
     local db_admin_conn_user=$(get_prop ${root_properties} 'centerui.database.admin_user')
     local db_admin_password=$(get_prop ${root_properties} 'centerui.database.admin_password' 'centerui')
