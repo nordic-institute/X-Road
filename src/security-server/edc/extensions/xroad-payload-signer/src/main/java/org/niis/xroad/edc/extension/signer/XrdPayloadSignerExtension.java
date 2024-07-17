@@ -43,11 +43,11 @@ import org.eclipse.edc.spi.system.Hostname;
 import org.eclipse.edc.spi.system.ServiceExtension;
 import org.eclipse.edc.spi.system.ServiceExtensionContext;
 import org.eclipse.edc.spi.types.TypeManager;
-import org.eclipse.edc.web.spi.WebServer;
 import org.eclipse.edc.web.spi.WebService;
 import org.eclipse.edc.web.spi.configuration.WebServiceConfigurer;
 import org.eclipse.edc.web.spi.configuration.WebServiceSettings;
 import org.niis.xroad.edc.sig.XrdSignatureService;
+import org.niis.xroad.edc.spi.XrdWebServer;
 import org.niis.xroad.edc.spi.messagelog.XRoadMessageLog;
 
 import java.util.concurrent.Executors;
@@ -72,7 +72,7 @@ public class XrdPayloadSignerExtension implements ServiceExtension {
             .build();
 
     @Inject
-    private WebServer webServer;
+    private XrdWebServer webServer;
 
     @Inject
     private WebServiceConfigurer webServiceConfigurer;
@@ -117,6 +117,7 @@ public class XrdPayloadSignerExtension implements ServiceExtension {
         loadSystemProperties(monitor);
 
         var config = context.getConfig(PUBLIC_SETTINGS.apiConfigKey());
+        var needClientAuth = config.getBoolean("needClientAuth", false);
         var configuration = webServiceConfigurer.configure(config, webServer, PUBLIC_SETTINGS);
         var executorService = executorInstrumentation.instrument(
                 Executors.newFixedThreadPool(DEFAULT_THREAD_POOL),
@@ -133,17 +134,18 @@ public class XrdPayloadSignerExtension implements ServiceExtension {
         monitor.debug("X-Road public endpoint is set to: %s".formatted(publicEndpoint));
 
         var endpoint = Endpoint.url(publicEndpoint);
-        generatorService.addGeneratorFunction("HttpData", dataAddress -> endpoint);
+        generatorService.addGeneratorFunction("XrdHttpData", dataAddress -> endpoint);
 
         var signService = new XrdSignatureService();
         var proxyApiController = new XrdDataPlaneProxyApiController(monitor,
-                xRoadMessageLog, authorizationService);
+                xRoadMessageLog, authorizationService, needClientAuth);
         var lcController = new XrdDataPlanePublicApiController(pipelineService,
                 new XrdEdcSignService(signService, monitor), monitor, executorService,
                 xRoadMessageLog, authorizationService);
 
         //TODO xroad8 this added port mapping is added due to a strange behavior ir edc jersey registry. Consider refactor.
-        webServer.addPortMapping(PUBLIC_SETTINGS.getContextAlias(), configuration.getPort(), configuration.getPath());
+        webServer.addPortMapping(PUBLIC_SETTINGS.getContextAlias(), configuration.getPort(), configuration.getPath(),
+                needClientAuth);
         webService.registerResource(PUBLIC_SETTINGS.getContextAlias(), proxyApiController);
         webService.registerResource(PUBLIC_SETTINGS.getContextAlias(), lcController);
         initSignerClient(monitor);

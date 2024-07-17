@@ -77,6 +77,7 @@ import org.eclipse.edc.spi.monitor.Monitor;
 import org.niis.xroad.edc.spi.messagelog.XRoadMessageLog;
 
 import java.io.OutputStream;
+import java.security.cert.X509Certificate;
 import java.util.Arrays;
 
 import static ee.ria.xroad.common.ErrorCodes.SERVER_SERVERPROXY_X;
@@ -99,8 +100,6 @@ import static java.util.Optional.ofNullable;
 
 public class RestMessageProcessor extends MessageProcessorBase {
 
-//    private final X509Certificate[] clientSslCerts;
-
     private ProxyMessage requestMessage;
     private ServiceId requestServiceId;
 
@@ -115,11 +114,9 @@ public class RestMessageProcessor extends MessageProcessorBase {
     private final XRoadMessageLog xRoadMessageLog;
 
     public RestMessageProcessor(ContainerRequestContext request,
-                                HttpClient httpClient,
-                                XRoadMessageLog messageLog, Monitor monitor) {
-        super(request, httpClient, monitor);
-
-//        this.clientSslCerts = clientSslCerts;
+                                HttpClient httpClient, X509Certificate[] clientSslCerts,
+                                boolean needClientAuth, XRoadMessageLog messageLog, Monitor monitor) {
+        super(request, clientSslCerts, needClientAuth, httpClient, monitor);
         this.xRoadMessageLog = messageLog;
     }
 
@@ -185,9 +182,10 @@ public class RestMessageProcessor extends MessageProcessorBase {
                 requestServiceId = message.getServiceId();
                 verifyClientStatus();
                 responseSigningCtx = SigningCtxProvider.getSigningCtx(requestServiceId.getClientId());
-//                if (SystemProperties.isSslEnabled()) {
-//                    verifySslClientCert();
-//                }
+
+                if (needClientAuth) {
+                    verifySslClientCert(requestMessage.getOcspResponses(), requestMessage.getRest().getClientId());
+                }
             }
         };
 
@@ -226,29 +224,6 @@ public class RestMessageProcessor extends MessageProcessorBase {
             throw new CodedException(X_UNKNOWN_MEMBER, "Client '%s' not found", client);
         }
     }
-
-//    private void verifySslClientCert() throws Exception {
-//        if (requestMessage.getOcspResponses().isEmpty()) {
-//            throw new CodedException(X_SSL_AUTH_FAILED,
-//                    "Cannot verify TLS certificate, corresponding OCSP response is missing");
-//        }
-//
-//        String instanceIdentifier = requestMessage.getRest().getClientId().getXRoadInstance();
-//        X509Certificate trustAnchor = GlobalConf.getCaCert(instanceIdentifier,
-//                clientSslCerts[clientSslCerts.length - 1]);
-//
-//        if (trustAnchor == null) {
-//            throw new Exception("Unable to find trust anchor");
-//        }
-//
-//        try {
-//            CertChain chain = CertChain.create(instanceIdentifier, ArrayUtils.add(clientSslCerts,
-//                    trustAnchor));
-//            CertHelper.verifyAuthCert(chain, requestMessage.getOcspResponses(), requestMessage.getRest().getClientId());
-//        } catch (Exception e) {
-//            throw new CodedException(X_SSL_AUTH_FAILED, e);
-//        }
-//    }
 
     private void verifyAccess() {
         monitor.debug("verifyAccess()");
@@ -345,10 +320,6 @@ public class RestMessageProcessor extends MessageProcessorBase {
             throw ex;
         }
     }
-
-//    private X509Certificate getClientAuthCert() {
-//        return clientSslCerts != null ? clientSslCerts[0] : null;
-//    }
 
     @Getter
     private static final class DefaultRestServiceHandlerImpl {

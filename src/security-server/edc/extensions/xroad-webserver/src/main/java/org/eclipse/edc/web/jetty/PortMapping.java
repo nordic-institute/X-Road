@@ -14,6 +14,7 @@
 
 package org.eclipse.edc.web.jetty;
 
+import lombok.Getter;
 import org.apache.commons.lang3.builder.ToStringBuilder;
 
 /**
@@ -24,33 +25,30 @@ import org.apache.commons.lang3.builder.ToStringBuilder;
  */
 public class PortMapping {
     private final String alias;
+    @Getter
     private final int port;
+    @Getter
     private final String path;
+    @Getter
+    private final boolean needClientAuth;
 
     public static PortMapping getDefault() {
         return getDefault(JettyConfiguration.DEFAULT_PORT);
     }
 
     public static PortMapping getDefault(int port) {
-        return new PortMapping(JettyConfiguration.DEFAULT_CONTEXT_NAME, port, JettyConfiguration.DEFAULT_PATH);
+        return new PortMapping(JettyConfiguration.DEFAULT_CONTEXT_NAME, port, JettyConfiguration.DEFAULT_PATH, false);
     }
 
-    public PortMapping(String name, int port, String path) {
+    public PortMapping(String name, int port, String path, boolean needClientAuth) {
         alias = name;
         this.port = port;
         this.path = path;
+        this.needClientAuth = needClientAuth;
     }
 
     public String getName() {
         return alias;
-    }
-
-    public int getPort() {
-        return port;
-    }
-
-    public String getPath() {
-        return path;
     }
 
     @Override
@@ -59,6 +57,7 @@ public class PortMapping {
                 .append("alias", alias)
                 .append("port", port)
                 .append("path", path)
+                .append("needClientAuth", needClientAuth)
                 .toString();
     }
 }

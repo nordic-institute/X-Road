@@ -61,6 +61,7 @@ import org.niis.xroad.edc.spi.messagelog.XRoadMessageLog;
 import java.io.InputStream;
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.security.cert.X509Certificate;
 import java.util.Map;
 
 import static ee.ria.xroad.common.ErrorCodes.SERVER_SERVERPROXY_X;
@@ -88,8 +89,6 @@ import static java.util.Optional.ofNullable;
 
 public class SoapMessageProcessor extends MessageProcessorBase {
 
-//    private final X509Certificate[] clientSslCerts;
-
     private String originalSoapAction;
     private ProxyMessage requestMessage;
     private ServiceId requestServiceId;
@@ -104,10 +103,10 @@ public class SoapMessageProcessor extends MessageProcessorBase {
     private final XRoadMessageLog xRoadMessageLog;
 
     public SoapMessageProcessor(ContainerRequestContext request,
-                                HttpClient httpClient, XRoadMessageLog messageLog, Monitor monitor) {
-        super(request, httpClient, monitor);
+                                HttpClient httpClient, X509Certificate[] clientSslCerts,
+                                boolean needClientAuth, XRoadMessageLog messageLog, Monitor monitor) {
+        super(request, clientSslCerts, needClientAuth, httpClient, monitor);
 
-//        this.clientSslCerts = clientSslCerts;
         this.xRoadMessageLog = messageLog;
     }
 
@@ -178,9 +177,9 @@ public class SoapMessageProcessor extends MessageProcessorBase {
 
                 responseSigningCtx = SigningCtxProvider.getSigningCtx(requestServiceId.getClientId());
 
-//                if (SystemProperties.isSslEnabled()) {
-//                    verifySslClientCert();
-//                }
+                if (needClientAuth) {
+                    verifySslClientCert(requestMessage.getOcspResponses(), requestMessage.getSoap().getClient());
+                }
             }
         };
 
@@ -218,32 +217,6 @@ public class SoapMessageProcessor extends MessageProcessorBase {
             throw new CodedException(X_UNKNOWN_MEMBER, "Client '%s' not found", client);
         }
     }
-
-//    private void verifySslClientCert() throws Exception {
-////        log.trace("verifySslClientCert()");
-//
-//        if (requestMessage.getOcspResponses().isEmpty()) {
-//            throw new CodedException(X_SSL_AUTH_FAILED,
-//                    "Cannot verify TLS certificate, corresponding OCSP response is missing");
-//        }
-//
-//        String instanceIdentifier = requestMessage.getSoap().getClient().getXRoadInstance();
-//
-//        X509Certificate trustAnchor = GlobalConf.getCaCert(instanceIdentifier,
-//                clientSslCerts[clientSslCerts.length - 1]);
-//
-//        if (trustAnchor == null) {
-//            throw new Exception("Unable to find trust anchor");
-//        }
-//
-//        try {
-//            CertChain chain = CertChain.create(instanceIdentifier, (X509Certificate[]) ArrayUtils.add(clientSslCerts,
-//                    trustAnchor));
-//            CertHelper.verifyAuthCert(chain, requestMessage.getOcspResponses(), requestMessage.getSoap().getClient());
-//        } catch (Exception e) {
-//            throw new CodedException(X_SSL_AUTH_FAILED, e);
-//        }
-//    }
 
     private void verifySecurityServer() {
         final SecurityServerId requestServerId = requestMessage.getSoap().getSecurityServer();
@@ -378,10 +351,6 @@ public class SoapMessageProcessor extends MessageProcessorBase {
         encoder.fault(SoapFault.createFaultXml(exception));
         encoder.close();
     }
-
-//    private X509Certificate getClientAuthCert() {
-//        return clientSslCerts != null ? clientSslCerts[0] : null;
-//    }
 
     private final class DefaultServiceHandlerImpl {
 

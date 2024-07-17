@@ -170,7 +170,7 @@ public class AssetsRegistrationJob {
                             .add("HttpData")
                             .build())
                     .add(DataPlaneInstance.ALLOWED_TRANSFER_TYPES, createArrayBuilder()
-                            .add("Any-PULL")
+                            .add("XrdHttpData-PULL")
                             .build())
                     .build()
             );
