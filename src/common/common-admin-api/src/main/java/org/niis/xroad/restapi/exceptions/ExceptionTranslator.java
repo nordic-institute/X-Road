@@ -74,9 +74,8 @@ public class ExceptionTranslator {
         HttpStatusCode status = resolveHttpStatus(e, defaultStatus);
         ErrorInfo errorDto = new ErrorInfo();
         errorDto.setStatus(status.value());
-        if (e instanceof DeviationAware) {
+        if (e instanceof DeviationAware errorCodedException) {
             // add information about errors and warnings
-            DeviationAware errorCodedException = (DeviationAware) e;
             if (errorCodedException.getErrorDeviation() != null) {
                 errorDto.setError(convert(errorCodedException.getErrorDeviation()));
             }
@@ -85,16 +84,15 @@ public class ExceptionTranslator {
                     errorDto.addWarningsItem(convert(warning));
                 }
             }
-        } else if (e instanceof CodedException) {
+        } else if (e instanceof CodedException ce) {
             // map fault code and string from core CodedException
-            CodedException c = (CodedException) e;
-            Deviation deviation = new ErrorDeviation(CORE_CODED_EXCEPTION_PREFIX + c.getFaultCode(), c.getFaultString());
+            Deviation deviation = new ErrorDeviation(CORE_CODED_EXCEPTION_PREFIX + ce.getFaultCode(), ce.getFaultString());
             errorDto.setError(convert(deviation));
-        } else if (e instanceof MethodArgumentNotValidException) {
-            errorDto.setError(validationErrorHelper.createError((MethodArgumentNotValidException) e));
-        } else if (e instanceof ConstraintViolationException) {
+        } else if (e instanceof MethodArgumentNotValidException manve) {
+            errorDto.setError(validationErrorHelper.createError(manve));
+        } else if (e instanceof ConstraintViolationException cve) {
             Map<String, List<String>> violations = new HashMap<>();
-            ((ConstraintViolationException) e).getConstraintViolations()
+            cve.getConstraintViolations()
                     .forEach(constraintViolation -> violations.put(constraintViolation.getPropertyPath().toString(),
                             List.of(constraintViolation.getMessage())));
             errorDto.setError(new CodeWithDetails().code(ERROR_VALIDATION_FAILURE).validationErrors(violations));
@@ -117,8 +115,8 @@ public class ExceptionTranslator {
     }
 
     public HttpStatusCode resolveHttpStatus(Exception e, HttpStatus defaultStatus) {
-        if (e instanceof ServiceException) {
-            return HttpStatus.resolve(((ServiceException) e).getHttpStatus());
+        if (e instanceof ServiceException se) {
+            return HttpStatus.resolve(se.getHttpStatus());
         }
         return getAnnotatedResponseStatus(e, defaultStatus);
     }

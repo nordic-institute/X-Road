@@ -37,8 +37,8 @@ public class HardwareModuleManagerImpl extends DefaultModuleManagerImpl {
 
     @Override
     protected AbstractModuleWorker createModuleWorker(ModuleType module) throws Exception {
-        if (module instanceof HardwareModuleType) {
-            return createWorker((HardwareModuleType) module);
+        if (module instanceof HardwareModuleType hmt) {
+            return createWorker(hmt);
         }
 
         return super.createModuleWorker(module);

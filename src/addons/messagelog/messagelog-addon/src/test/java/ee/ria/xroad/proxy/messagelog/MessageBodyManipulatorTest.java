@@ -103,16 +103,16 @@ public class MessageBodyManipulatorTest {
     public static SoapMessageImpl createRequest(String fileName)
             throws Exception {
         Soap message = createSoapMessage(fileName);
-        if (!(message instanceof SoapMessageImpl)) {
+        if (!(message instanceof SoapMessageImpl soapMessage)) {
             throw new RuntimeException(
                     "Got " + message.getClass() + " instead of SoapMessage");
         }
 
-        if (((SoapMessageImpl) message).isResponse()) {
+        if (soapMessage.isResponse()) {
             throw new RuntimeException("Got response instead of request");
         }
 
-        return (SoapMessageImpl) message;
+        return soapMessage;
     }
 
     /**
@@ -124,16 +124,16 @@ public class MessageBodyManipulatorTest {
     public static SoapMessageImpl createResponse(String fileName)
             throws Exception {
         Soap message = createSoapMessage(fileName);
-        if (!(message instanceof SoapMessageImpl)) {
+        if (!(message instanceof SoapMessageImpl soapMessage)) {
             throw new RuntimeException(
                     "Got " + message.getClass() + " instead of SoapResponse");
         }
 
-        if (((SoapMessageImpl) message).isRequest()) {
+        if (soapMessage.isRequest()) {
             throw new RuntimeException("Got request instead of response");
         }
 
-        return (SoapMessageImpl) message;
+        return soapMessage;
     }
 
     /**

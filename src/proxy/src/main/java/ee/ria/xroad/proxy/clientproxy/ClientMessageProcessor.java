@@ -137,16 +137,13 @@ class ClientMessageProcessor extends AbstractClientMessageProcessor {
      */
     private ProxyMessage response;
 
-    private static final ExecutorService SOAP_HANDLER_EXECUTOR =
-            createSoapHandlerExecutor();
+    private static final ExecutorService SOAP_HANDLER_EXECUTOR = Executors.newThreadPerTaskExecutor(ClientMessageProcessor::threadBuilder);
 
-    private static ExecutorService createSoapHandlerExecutor() {
-        return Executors.newCachedThreadPool(r -> {
-            Thread handlerThread = new Thread(r);
-            handlerThread.setName(Thread.currentThread().getName() + "-soap");
+    private static Thread threadBuilder(Runnable task) {
+        Thread handlerThread = Thread.ofVirtual().unstarted(task);
+        handlerThread.setName(Thread.currentThread().getName() + "-soap");
 
-            return handlerThread;
-        });
+        return handlerThread;
     }
 
     ClientMessageProcessor(RequestWrapper request, ResponseWrapper response,

@@ -59,41 +59,24 @@ public interface RequestMapper extends GenericUniDirectionalMapper<RequestEntity
 
     @Override
     default Request toTarget(RequestEntity source) {
-        if (source == null) {
-            return null;
-        }
-        if (source instanceof AuthenticationCertificateDeletionRequestEntity authenticationCertificateDeletionRequestEntity) {
-            return toDto(authenticationCertificateDeletionRequestEntity);
-        }
-        if (source instanceof ClientDeletionRequestEntity clientDeletionRequestEntity) {
-            return toDto(clientDeletionRequestEntity);
-        }
-        if (source instanceof AddressChangeRequestEntity addressChangeRequestEntity) {
-            return toDto(addressChangeRequestEntity);
-        }
-        if (source instanceof RequestWithProcessingEntity requestWithProcessingEntity) {
-            return toTarget(requestWithProcessingEntity);
-        }
-
-        throw new IllegalArgumentException("Cannot map " + source.getClass());
+        return switch (source) {
+            case null -> null;
+            case AuthenticationCertificateDeletionRequestEntity entity -> toDto(entity);
+            case ClientDeletionRequestEntity entity -> toDto(entity);
+            case AddressChangeRequestEntity entity -> toDto(entity);
+            case RequestWithProcessingEntity entity -> toTarget(entity);
+            default -> throw new IllegalArgumentException("Cannot map " + source.getClass());
+        };
     }
 
     default RequestWithProcessing toTarget(RequestWithProcessingEntity source) {
-        if (source == null) {
-            return null;
-        }
-
-        if (source instanceof AuthenticationCertificateRegistrationRequestEntity authenticationCertificateRegistrationRequestEntity) {
-            return toDto(authenticationCertificateRegistrationRequestEntity);
-        }
-        if (source instanceof ClientRegistrationRequestEntity clientRegistrationRequestEntity) {
-            return toDto(clientRegistrationRequestEntity);
-        }
-        if (source instanceof OwnerChangeRequestEntity ownerChangeRequestEntity) {
-            return toDto(ownerChangeRequestEntity);
-        }
-
-        throw new IllegalArgumentException("Cannot map " + source.getClass());
+        return switch (source) {
+            case null -> null;
+            case AuthenticationCertificateRegistrationRequestEntity entity -> toDto(entity);
+            case ClientRegistrationRequestEntity entity -> toDto(entity);
+            case OwnerChangeRequestEntity entity -> toDto(entity);
+            default -> throw new IllegalArgumentException("Cannot map " + source.getClass());
+        };
     }
 
     AuthenticationCertificateDeletionRequest toDto(AuthenticationCertificateDeletionRequestEntity source);
