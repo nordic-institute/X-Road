@@ -2,7 +2,7 @@
 
 **Technical Specification**
 
-Version: 1.13<br/>
+Version: 1.14<br/>
 19.12.2023
 <!-- 3 pages -->
 Doc. ID: ARC-TEC
@@ -11,22 +11,23 @@ Doc. ID: ARC-TEC
 
 ## Version history
 
-| Date        | Version | Description                                            | Author            |
-|-------------|---------|--------------------------------------------------------|-------------------|
-| 02.02.2018  | 1.0     | Initial version                                        | Antti Luoma       |
-| 02.03.2018  | 1.1     | Added uniform terms and conditions reference           | Tatu Repo         |
-| 17.04.2019  | 1.2     | Added RHEL7, Ubuntu 18.04, systemd and Postgres 10     | Petteri Kivimäki  |
-| 11.09.2019  | 1.3     | Remove Ubuntu 14.04 support                            | Jarkko Hyöty      |
-| 12.05.2020  | 1.4     | Add link to X-Road core tech radar                     | Petteri Kivimäki  |
-| 15.09.2020  | 1.5     | Updated to match Security Server REST API architecture | Janne Mattila     |
-| 02.06.2021  | 1.6     | Backup encryption related updates                      | Andres Allkivi    |
-| 07.09.2021  | 1.7     | Update technologies                                    | Ilkka Seppälä     |
-| 26.09.2022  | 1.8     | Remove Ubuntu 18.04 support                            | Andres Rosenthal  |
-| 08.06.2023  | 1.9     | Central Server technologies update                     | Justas Samuolis   |
-| 05.10.2023  | 1.10    | Update to Java 17                                      | Justas Samuolis   |
-| 04.10.2023  | 1.11    | Remove Akka references                                 | Ričardas Bučiūnas |
-| 20.11.2023  | 1.12    | Update version references                              | Ričardas Bučiūnas |
-| 19.12.2023  | 1.13    | Added RHEL 9                                           | Justas Samuolis   |
+| Date       | Version | Description                                            | Author               |
+|------------|---------|--------------------------------------------------------|----------------------|
+| 02.02.2018 | 1.0     | Initial version                                        | Antti Luoma          |
+| 02.03.2018 | 1.1     | Added uniform terms and conditions reference           | Tatu Repo            |
+| 17.04.2019 | 1.2     | Added RHEL7, Ubuntu 18.04, systemd and Postgres 10     | Petteri Kivimäki     |
+| 11.09.2019 | 1.3     | Remove Ubuntu 14.04 support                            | Jarkko Hyöty         |
+| 12.05.2020 | 1.4     | Add link to X-Road core tech radar                     | Petteri Kivimäki     |
+| 15.09.2020 | 1.5     | Updated to match Security Server REST API architecture | Janne Mattila        |
+| 02.06.2021 | 1.6     | Backup encryption related updates                      | Andres Allkivi       |
+| 07.09.2021 | 1.7     | Update technologies                                    | Ilkka Seppälä        |
+| 26.09.2022 | 1.8     | Remove Ubuntu 18.04 support                            | Andres Rosenthal     |
+| 08.06.2023 | 1.9     | Central Server technologies update                     | Justas Samuolis      |
+| 05.10.2023 | 1.10    | Update to Java 17                                      | Justas Samuolis      |
+| 04.10.2023 | 1.11    | Remove Akka references                                 | Ričardas Bučiūnas    |
+| 20.11.2023 | 1.12    | Update version references                              | Ričardas Bučiūnas    |
+| 19.12.2023 | 1.13    | Added RHEL 9                                           | Justas Samuolis      |
+| 17.07.2024 | 1.14    | Update to Java 21                                      | Ovidijus Narkevičius |
  
 ## Table of Contents
 
@@ -81,7 +82,7 @@ Table 1. Technology matrix of the X-Road
 
 | **Technology**                     | **Security Server** | **Central Server** | **Configuration proxy** | **Operational Monitoring Daemon** |
 |------------------------------------|:-------------------:|:------------------:|:-----------------------:|:---------------------------------:|
-| Java 17                            |          X          |         X          |            X            |                 X                 |
+| Java 21                            |          X          |         X          |            X            |                 X                 |
 | C                                  |          X          |         X          |                         |                                   |
 | Logback                            |          X          |         X          |            X            |                 X                 |
 | gRPC                               |          X          |         X          |            X            |                 X                 |
@@ -130,7 +131,7 @@ Table 2. Technology matrix of the Central Server
 
 | **Technology**                | **Signer** | **Password Store** | **Management/Registration Service** | **Database** | **User Interface** | **Rest API** | **Backend Scripts** | **Configuration Client** |
 |-------------------------------|:----------:|:------------------:|:-----------------------------------:|:------------:|:------------------:|:------------:|:-------------------:|:------------------------:|
-| Java 17                       |     X      |                    |                  X                  |              |                    |      X       |                     |            X             |
+| Java 21                       |     X      |                    |                  X                  |              |                    |      X       |                     |            X             |
 | C                             |            |         X          |                                     |              |                    |              |                     |                          |
 | Logback                       |     X      |                    |                  X                  |              |                    |      X       |                     |            X             |
 | gRPC                          |     X      |                    |                                     |              |                    |      X       |                     |                          |
@@ -167,7 +168,7 @@ Table 3. Technology matrix of the configuration proxy
 
 | **Technology**           | **Web Server** | **Configuration Processor** | **Signer** | **Configuration Client** |
 |--------------------------|:--------------:|:---------------------------:|:----------:|:------------------------:|
-| Java 17                  |                |              X              |     X      |            X             |
+| Java 21                  |                |              X              |     X      |            X             |
 | Logback                  |                |              X              |     X      |            X             |
 | gRPC                     |                |              X              |     X      |                          |
 | nginx                    |       X        |                             |            |                          |
@@ -188,7 +189,7 @@ Table 4. Technology matrix of the Security Server
 
 | **Technology**                | **Signer** | **Proxy** | **Password Store** | **Message Log** | **Metadata Services** | **Database** | **Configuration Client** | **User Interface frontend** | **REST API** | **Monitor** | **Environmental Monitoring Service** | **Operational Monitoring Buffer** | **Operational Monitoring Services** |
 |-------------------------------|:----------:|:---------:|:------------------:|:---------------:|:---------------------:|:------------:|:------------------------:|:---------------------------:|:------------:|:-----------:|:------------------------------------:|:---------------------------------:|:-----------------------------------:|
-| Java 17                       |     X      |     X     |                    |        X        |           X           |              |            X             |                             |      X       |      X      |                  X                   |                 X                 |                  X                  |
+| Java 21                       |     X      |     X     |                    |        X        |           X           |              |            X             |                             |      X       |      X      |                  X                   |                 X                 |                  X                  |
 | C                             |            |           |         X          |                 |                       |              |                          |                             |              |             |                                      |                                   |                                     |
 | Logback                       |     X      |     X     |                    |        X        |           X           |              |            X             |                             |      X       |             |                  X                   |                 X                 |                  X                  |
 | gRPC                          |     X      |     X     |                    |        X        |                       |              |                          |                             |      X       |      X      |                  X                   |                 X                 |                                     |
@@ -227,7 +228,7 @@ Table 5. Technology matrix of the operational monitoring daemon
 
 | Technology                    | Op. Mon.<br/>Daemon Main | Op. Mon.<br/>Database | Op. Mon.<br/>Service | Configuration<br/>Client |
 |:------------------------------|:------------------------:|:---------------------:|:--------------------:|:------------------------:|
-| Java 17                       |            X             |           X           |          X           |            X             |
+| Java 21                       |            X             |           X           |          X           |            X             |
 | Logback                       |            X             |           X           |          X           |            X             |
 | gRPC                          |            X             |           X           |                      |                          |
 | PostgreSQL 12+\[[1](#Ref_1)\] |            X             |           X           |                      |                          |
