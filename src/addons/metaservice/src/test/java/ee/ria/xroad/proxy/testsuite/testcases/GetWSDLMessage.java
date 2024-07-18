@@ -206,11 +206,11 @@ public class GetWSDLMessage extends MessageTestCase {
 
             @Override
             public void body(BodyDescriptor bd, InputStream is) throws IOException {
-
-                // Attachment => WSDL
-                if (nextPart == 0) { // SOAP
+                if (nextPart == 0) {
+                    // SOAP
                     nextPart = 1;
                 } else {
+                    // Attachment => WSDL
                     try {
                         definition = wsdlReader.readWSDL(null, new InputSource(is));
                     } catch (WSDLException e) {
