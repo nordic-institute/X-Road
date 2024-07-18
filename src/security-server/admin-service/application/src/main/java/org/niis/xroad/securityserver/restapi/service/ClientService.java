@@ -820,7 +820,7 @@ public class ClientService {
             throw new CannotDeleteOwnerException();
         }
         // cant delete with statuses STATUS_REGINPROG and STATUS_REGISTERED
-        Set<String> allowedStatuses = Set.of(STATUS_SAVED, STATUS_DELINPROG, STATUS_GLOBALERR, STATUS_DISABLING_INPROG, STATUS_DISABLED);
+        Set<String> allowedStatuses = Set.of(STATUS_SAVED, STATUS_DELINPROG, STATUS_GLOBALERR);
         if (!allowedStatuses.contains(clientType.getClientStatus())) {
             throw new ActionNotPossibleException("cannot delete client with status " + clientType.getClientStatus());
         }
