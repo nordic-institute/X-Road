@@ -508,7 +508,7 @@ public class ClientService {
         auditDataHelper.put(clientId);
 
         ClientType client = getLocalClientOrThrowNotFound(clientId);
-        List<String> allowedStatuses = Arrays.asList(STATUS_REGISTERED, STATUS_REGINPROG);
+        List<String> allowedStatuses = Arrays.asList(STATUS_REGISTERED, STATUS_REGINPROG, STATUS_DISABLED);
         if (!allowedStatuses.contains(client.getClientStatus())) {
             throw new ActionNotPossibleException("cannot unregister client with status " + client.getClientStatus());
         }
