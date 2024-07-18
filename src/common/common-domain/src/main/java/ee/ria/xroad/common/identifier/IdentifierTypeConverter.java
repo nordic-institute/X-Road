@@ -223,25 +223,31 @@ final class IdentifierTypeConverter {
 
         @Override
         public XRoadIdentifierType marshal(XRoadId v) throws Exception {
+            if (v == null) {
+                return null;
+            }
+
             return switch (v.getObjectType()) {
                 case MEMBER, SUBSYSTEM -> printClientId((ClientId) v);
                 case SERVICE -> printServiceId((ServiceId) v);
                 case SERVER -> printSecurityServerId((SecurityServerId) v);
                 case GLOBALGROUP -> printGlobalGroupId((GlobalGroupId) v);
                 case LOCALGROUP -> printLocalGroupId((LocalGroupId) v);
-                case null -> null;
             };
         }
 
         @Override
         public XRoadId unmarshal(XRoadIdentifierType v) throws Exception {
+            if (v == null) {
+                return null;
+            }
+
             return switch (v.getObjectType()) {
                 case MEMBER, SUBSYSTEM -> parseClientId(v);
                 case SERVICE -> parseServiceId(v);
                 case SERVER -> parseSecurityServerId(v);
                 case GLOBALGROUP -> parseGlobalGroupId(v);
                 case LOCALGROUP -> parseLocalGroupId(v);
-                case null -> null;
             };
         }
     }

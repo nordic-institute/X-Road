@@ -162,9 +162,9 @@ public class SkKlass3CertificateProfileInfoProvider implements CertificateProfil
 
         // Returns the hardcoded member class based on the first number in the serial number.
         private static String getMemberClass(String sn) throws Exception {
-            return switch (sn.charAt(0)) { // Fall through
+            return switch (sn.charAt(0)) {
                 case '1', '2', '3', '4', '5', '6' -> COM_MEMBER;
-                case '7' -> GOV_MEMBER; // Fall through
+                case '7' -> GOV_MEMBER;
                 case '8', '9' -> NGO_MEMBER;
                 default -> throw new Exception("Malformed serial number: " + sn);
             };
