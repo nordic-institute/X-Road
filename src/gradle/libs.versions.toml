@@ -12,7 +12,7 @@ hibernate = "6.5.2.Final"
 mapstruct = "1.5.5.Final"
 jackson = "2.17.2"
 mockito = "5.12.0"
-springBoot = "3.3.1"
+springBoot = "3.3.2"
 junitJupiter = "5.10.3"
 xmlUnit = "2.10.0"
 bouncyCastle = "1.78.1"
@@ -92,11 +92,11 @@ mockito-core = { module = "org.mockito:mockito-core", version.ref = "mockito" }
 mockito-jupiter = { module = "org.mockito:mockito-junit-jupiter", version.ref = "mockito" }
 
 apache-commonsCompress = { module = "org.apache.commons:commons-compress", version = "1.26.2" }
-apache-commonsLang3 = { module = "org.apache.commons:commons-lang3", version = "3.14.0" }
+apache-commonsLang3 = { module = "org.apache.commons:commons-lang3", version = "3.15.0" }
 apache-commonsText = { module = "org.apache.commons:commons-text", version = "1.12.0" }
 apache-commonsConfiguration2 = { module = "org.apache.commons:commons-configuration2", version = "2.11.0" }
 apache-httpmime = { module = "org.apache.httpcomponents:httpmime", version = "4.5.14" }
-apache-cxfToolsValidator = { module = "org.apache.cxf:cxf-tools-validator", version = "4.0.4" }
+apache-cxfToolsValidator = { module = "org.apache.cxf:cxf-tools-validator", version = "4.0.5" }
 apache-tikaCore = { module = "org.apache.tika:tika-core", version = "2.9.2" }
 apache-xmlsec = { module = "org.apache.santuario:xmlsec", version = "4.0.2" }
 apache-httpclient = { module = "org.apache.httpcomponents:httpclient", version = "4.5.14" }
@@ -106,7 +106,7 @@ apache-mime4jCore = { module = "org.apache.james:apache-mime4j-core", version = 
 apache-ant = { module = "org.apache.ant:ant", version = "1.10.14" }
 
 commons-cli = { module = "commons-cli:commons-cli", version = "1.8.0" }
-commons-codec = { module = "commons-codec:commons-codec", version = "1.17.0" }
+commons-codec = { module = "commons-codec:commons-codec", version = "1.17.1" }
 commons-io = { module = "commons-io:commons-io", version = "2.16.1" }
 commons-collections = { module = "commons-collections:commons-collections", version = "3.2.2" }
 
@@ -148,7 +148,7 @@ semver4j = { module = "org.semver4j:semver4j", version = "5.3.0" }
 restAssured = { module = "io.rest-assured:rest-assured", version = "5.5.0" }
 cliche = { module = "com.googlecode.clichemaven:cliche", version = "110413" }
 acme4j = { module = "org.shredzone.acme4j:acme4j-client", version = "3.3.1" }
-jsonUnit-assertj = { module = "net.javacrumbs.json-unit:json-unit-assertj", version = "3.4.0" }
+jsonUnit-assertj = { module = "net.javacrumbs.json-unit:json-unit-assertj", version = "3.4.1" }
 
 [bundles]
 metrics = ["metrics-core", "metrics-jmx"]
