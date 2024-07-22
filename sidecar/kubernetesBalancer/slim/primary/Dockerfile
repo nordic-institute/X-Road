@@ -4,7 +4,7 @@ FROM $TAG:$VERSION-slim
 RUN apt-get -qq update \
     && apt-get -qq install openssh-server rsync
 
-RUN adduser --system --shell /bin/bash --ingroup xroad xroad-slave \
+RUN adduser --system --shell /bin/bash --home /home/xroad-slave --ingroup xroad xroad-slave \
 && mkdir -m 550 -p /home/xroad-slave/.ssh \
 && chown xroad-slave /home/xroad-slave/.ssh \
 && crudini --set /etc/xroad/conf.d/node.ini node type 'master' \
