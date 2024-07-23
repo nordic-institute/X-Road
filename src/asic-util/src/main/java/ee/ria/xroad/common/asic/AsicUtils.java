@@ -100,8 +100,8 @@ public final class AsicUtils {
     }
 
     private static String getMessageFromCause(Throwable cause) {
-        if (cause instanceof CodedException) {
-            return ((CodedException) cause).getFaultString();
+        if (cause instanceof CodedException ce) {
+            return ce.getFaultString();
         }
 
         return cause.getMessage();

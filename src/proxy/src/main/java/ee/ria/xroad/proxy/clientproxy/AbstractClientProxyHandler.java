@@ -193,8 +193,8 @@ abstract class AbstractClientProxyHandler extends HandlerBase {
     private static long logPerformanceBegin(Request request) {
         long start;
         Object obj = request.getAttribute(START_TIME_ATTRIBUTE);
-        if (obj instanceof Long) {
-            start = (Long) obj;
+        if (obj instanceof Long l) {
+            start = l;
         } else {
             start = PerformanceLogger.log(log, "Received request from " + getRemoteAddr(request));
             log.info("Received request from {}", getRemoteAddr(request));

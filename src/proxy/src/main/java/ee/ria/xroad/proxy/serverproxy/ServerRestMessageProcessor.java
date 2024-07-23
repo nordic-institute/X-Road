@@ -87,7 +87,6 @@ import java.util.List;
 import static ee.ria.xroad.common.ErrorCodes.SERVER_SERVERPROXY_X;
 import static ee.ria.xroad.common.ErrorCodes.X_ACCESS_DENIED;
 import static ee.ria.xroad.common.ErrorCodes.X_INTERNAL_ERROR;
-import static ee.ria.xroad.common.ErrorCodes.X_INVALID_REQUEST;
 import static ee.ria.xroad.common.ErrorCodes.X_INVALID_SERVICE_TYPE;
 import static ee.ria.xroad.common.ErrorCodes.X_MISSING_REST;
 import static ee.ria.xroad.common.ErrorCodes.X_MISSING_SIGNATURE;
@@ -494,7 +493,6 @@ class ServerRestMessageProcessor extends MessageProcessorBase {
                 case OPTIONS -> new HttpOptions(address);
                 case HEAD -> new HttpHead(address);
                 case TRACE -> new HttpTrace(address);
-                default -> throw new CodedException(X_INVALID_REQUEST, "Unsupported REST verb");
             };
 
             int timeout = TimeUtils.secondsToMillis(ServerConf

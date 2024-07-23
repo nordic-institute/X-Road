@@ -85,36 +85,21 @@ public class ManagementRequestDtoConverter extends DtoConverter<Request, Managem
     private final ManagementRequestDtoTypeConverter requestTypeConverter;
 
     public ManagementRequestDto toDto(Request request) {
-        ManagementRequestDto result;
-
-        if (request instanceof AuthenticationCertificateRegistrationRequest req) {
-            result = new AuthenticationCertificateRegistrationRequestDto()
+        ManagementRequestDto result = switch (request) {
+            case AuthenticationCertificateRegistrationRequest req -> new AuthenticationCertificateRegistrationRequestDto()
                     .serverAddress(req.getAddress())
                     .authenticationCertificate(req.getAuthCert());
-        } else if (request instanceof AuthenticationCertificateDeletionRequest req) {
-            result = new AuthenticationCertificateDeletionRequestDto().authenticationCertificate(req.getAuthCert());
-
-        } else if (request instanceof ClientRegistrationRequest req) {
-            result = new ClientRegistrationRequestDto().clientId(clientIdConverter.convertId(req.getClientId()));
-
-        } else if (request instanceof ClientDeletionRequest req) {
-            result = new ClientDeletionRequestDto().clientId(clientIdConverter.convertId(req.getClientId()));
-
-        } else if (request instanceof ClientDisableRequest req) {
-            result = new ClientDisableRequestDto().clientId(clientIdConverter.convertId(req.getClientId()));
-
-        } else if (request instanceof ClientEnableRequest req) {
-            result = new ClientEnableRequestDto().clientId(clientIdConverter.convertId(req.getClientId()));
-
-        } else if (request instanceof OwnerChangeRequest req) {
-            result = new OwnerChangeRequestDto().clientId(clientIdConverter.convertId(req.getClientId()));
-
-        } else if (request instanceof AddressChangeRequest req) {
-            result = new AddressChangeRequestDto().serverAddress(req.getServerAddress());
-
-        } else {
-            throw new ValidationFailureException(MR_UNKNOWN_TYPE, request);
-        }
+            case AuthenticationCertificateDeletionRequest req -> new AuthenticationCertificateDeletionRequestDto()
+                    .authenticationCertificate(req.getAuthCert());
+            case ClientRegistrationRequest req -> new ClientRegistrationRequestDto()
+                    .clientId(clientIdConverter.convertId(req.getClientId()));
+            case ClientDeletionRequest req -> new ClientDeletionRequestDto().clientId(clientIdConverter.convertId(req.getClientId()));
+            case ClientDisableRequest req -> new ClientDisableRequestDto().clientId(clientIdConverter.convertId(req.getClientId()));
+            case ClientEnableRequest req -> new ClientEnableRequestDto().clientId(clientIdConverter.convertId(req.getClientId()));
+            case OwnerChangeRequest req -> new OwnerChangeRequestDto().clientId(clientIdConverter.convertId(req.getClientId()));
+            case AddressChangeRequest req -> new AddressChangeRequestDto().serverAddress(req.getServerAddress());
+            case null, default -> throw new ValidationFailureException(MR_UNKNOWN_TYPE, request);
+        };
 
         if (request instanceof RequestWithProcessing req) {
             result.status(statusMapper.convert(req.getProcessingStatus()));
@@ -129,58 +114,42 @@ public class ManagementRequestDtoConverter extends DtoConverter<Request, Managem
     }
 
     public Request fromDto(ManagementRequestDto request) {
-        if (request instanceof AuthenticationCertificateRegistrationRequestDto req) {
-            return new AuthenticationCertificateRegistrationRequest(
+        return switch (request) {
+            case AuthenticationCertificateRegistrationRequestDto req -> new AuthenticationCertificateRegistrationRequest(
                     originMapper.convert(req.getOrigin()),
                     securityServerIdMapper.convertId(req.getSecurityServerId()))
-
                     .setAuthCert(req.getAuthenticationCertificate())
                     .setAddress(req.getServerAddress());
-
-
-        } else if (request instanceof AuthenticationCertificateDeletionRequestDto req) {
-            return new AuthenticationCertificateDeletionRequest(
+            case AuthenticationCertificateDeletionRequestDto req -> new AuthenticationCertificateDeletionRequest(
                     originMapper.convert(req.getOrigin()),
                     securityServerIdMapper.convertId(req.getSecurityServerId()))
                     .setAuthCert(req.getAuthenticationCertificate());
-
-        } else if (request instanceof ClientRegistrationRequestDto req) {
-            return new ClientRegistrationRequest(
-                    originMapper.convert(req.getOrigin()),
-
-                    securityServerIdMapper.convertId(req.getSecurityServerId()),
-                    fromEncodedId(req.getClientId()));
-
-        } else if (request instanceof ClientDeletionRequestDto req) {
-            return new ClientDeletionRequest(
+            case ClientRegistrationRequestDto req -> new ClientRegistrationRequest(
                     originMapper.convert(req.getOrigin()),
                     securityServerIdMapper.convertId(req.getSecurityServerId()),
                     fromEncodedId(req.getClientId()));
-        } else if (request instanceof ClientDisableRequestDto req) {
-            return new ClientDisableRequest(
+            case ClientDeletionRequestDto req -> new ClientDeletionRequest(
                     originMapper.convert(req.getOrigin()),
                     securityServerIdMapper.convertId(req.getSecurityServerId()),
                     fromEncodedId(req.getClientId()));
-        } else if (request instanceof ClientEnableRequestDto req) {
-            return new ClientEnableRequest(
+            case ClientDisableRequestDto req -> new ClientDisableRequest(
                     originMapper.convert(req.getOrigin()),
                     securityServerIdMapper.convertId(req.getSecurityServerId()),
                     fromEncodedId(req.getClientId()));
-        } else if (request instanceof OwnerChangeRequestDto req) {
-            return new OwnerChangeRequest(
+            case ClientEnableRequestDto req -> new ClientEnableRequest(
                     originMapper.convert(req.getOrigin()),
                     securityServerIdMapper.convertId(req.getSecurityServerId()),
                     fromEncodedId(req.getClientId()));
-
-        } else if (request instanceof AddressChangeRequestDto req) {
-            return new AddressChangeRequest(
+            case OwnerChangeRequestDto req -> new OwnerChangeRequest(
+                    originMapper.convert(req.getOrigin()),
+                    securityServerIdMapper.convertId(req.getSecurityServerId()),
+                    fromEncodedId(req.getClientId()));
+            case AddressChangeRequestDto req -> new AddressChangeRequest(
                     originMapper.convert(req.getOrigin()),
                     securityServerIdMapper.convertId(req.getSecurityServerId()),
                     req.getServerAddress());
-
-        } else {
-            throw new ValidationFailureException(MR_UNKNOWN_TYPE, request);
-        }
+            case null, default -> throw new ValidationFailureException(MR_UNKNOWN_TYPE, request);
+        };
     }
 
     public ClientId fromEncodedId(String encodedId) {

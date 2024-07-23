@@ -30,6 +30,7 @@ import ee.ria.xroad.common.CodedException;
 import jakarta.xml.bind.annotation.adapters.XmlAdapter;
 
 import static ee.ria.xroad.common.ErrorCodes.X_INVALID_CLIENT_IDENTIFIER;
+import static ee.ria.xroad.common.identifier.XRoadObjectType.SERVICE;
 
 /**
  * Adapter class for converting between DTO and XML identifier types.
@@ -159,15 +160,9 @@ final class IdentifierTypeConverter {
         }
 
         @Override
-        public ServiceId unmarshal(XRoadServiceIdentifierType v)
-                throws Exception {
-            if (v != null) {
-                switch (v.getObjectType()) {
-                    case SERVICE:
-                        return parseServiceId(v);
-                    default:
-                        return null;
-                }
+        public ServiceId unmarshal(XRoadServiceIdentifierType v) throws Exception {
+            if (v != null && SERVICE.equals(v.getObjectType())) {
+                return parseServiceId(v);
             } else {
                 return null;
             }

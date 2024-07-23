@@ -149,8 +149,8 @@ public class ManagementRequestServiceImpl implements ManagementRequestService {
     public void revoke(Integer requestId) {
         var request = findRequest(requestId);
 
-        if (request instanceof RequestWithProcessingEntity) {
-            var processing = ((RequestWithProcessingEntity) request).getRequestProcessing();
+        if (request instanceof RequestWithProcessingEntity requestWithProcessingEntity) {
+            var processing = requestWithProcessingEntity.getRequestProcessing();
             if (!REVOCABLE_MR_STATUSES.contains(processing.getStatus())) {
                 throw new ValidationFailureException(ErrorMessage.MR_INVALID_STATE);
             }

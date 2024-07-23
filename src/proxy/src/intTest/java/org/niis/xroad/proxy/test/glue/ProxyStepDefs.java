@@ -219,14 +219,12 @@ public class ProxyStepDefs extends BaseStepDefs {
         HashChainReferenceResolver resolver = new HashChainReferenceResolver() {
             @Override
             public InputStream resolve(String uri) {
-                switch (uri) {
-                    case MessageFileNames.SIG_HASH_CHAIN:
-                        return new ByteArrayInputStream(batchSignResult.signatureData().getHashChain().getBytes(StandardCharsets.UTF_8));
-                    case MessageFileNames.MESSAGE:
-                        return new ByteArrayInputStream(batchSignResult.message().getBytes(StandardCharsets.UTF_8));
-                    default:
-                        return null;
-                }
+                return switch (uri) {
+                    case MessageFileNames.SIG_HASH_CHAIN ->
+                            new ByteArrayInputStream(batchSignResult.signatureData().getHashChain().getBytes(StandardCharsets.UTF_8));
+                    case MessageFileNames.MESSAGE -> new ByteArrayInputStream(batchSignResult.message().getBytes(StandardCharsets.UTF_8));
+                    default -> null;
+                };
             }
 
             @Override

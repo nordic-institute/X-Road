@@ -209,14 +209,10 @@ public class HashChainVerifierTest {
                 HASH_CHAIN, "hc-verifier2-hashchain.xml") {
             @Override
             public boolean shouldResolve(String uri, byte[] digestValue) {
-                switch (uri) {
-                    case "/attachment1":
-                    case "/attachment2":
-                    case "/attachment3":
-                        return false;
-                    default:
-                        return true;
-                }
+                return switch (uri) {
+                    case "/attachment1", "/attachment2", "/attachment3" -> false;
+                    default -> true;
+                };
             }
         };
 
