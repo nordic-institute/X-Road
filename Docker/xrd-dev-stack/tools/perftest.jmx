@@ -18,7 +18,7 @@
           </elementProp>
           <elementProp name="loadtest-threads" elementType="Argument">
             <stringProp name="Argument.name">loadtest-threads</stringProp>
-            <stringProp name="Argument.value">${__P(threads,8)}</stringProp>
+            <stringProp name="Argument.value">${__P(threads,50)}</stringProp>
             <stringProp name="Argument.metadata">=</stringProp>
           </elementProp>
           <elementProp name="loadtest-duration" elementType="Argument">
@@ -181,7 +181,7 @@ xmlns:prod=&quot;http://test.x-road.global/producer&quot;&gt;&#xd;
           </elementProp>
         </HTTPSamplerProxy>
         <hashTree>
-          <HeaderManager guiclass="HeaderPanel" testclass="HeaderManager" testname="HTTP Header Manager" enabled="true">
+          <HeaderManager guiclass="HeaderPanel" testclass="HeaderManager" testname="HTTP Header Manager">
             <collectionProp name="HeaderManager.headers">
               <elementProp name="" elementType="Header">
                 <stringProp name="Header.name">X-Road-Client</stringProp>
@@ -194,7 +194,7 @@ xmlns:prod=&quot;http://test.x-road.global/producer&quot;&gt;&#xd;
             </collectionProp>
           </HeaderManager>
           <hashTree/>
-          <ResponseAssertion guiclass="AssertionGui" testclass="ResponseAssertion" testname="Response Assertion" enabled="true">
+          <ResponseAssertion guiclass="AssertionGui" testclass="ResponseAssertion" testname="Response Assertion">
             <collectionProp name="Asserion.test_strings">
               <stringProp name="49586">200</stringProp>
             </collectionProp>
@@ -352,7 +352,7 @@ xmlns:prod=&quot;http://test.x-road.global/producer&quot;&gt;&#xd;
           </elementProp>
         </HTTPSamplerProxy>
         <hashTree>
-          <HeaderManager guiclass="HeaderPanel" testclass="HeaderManager" testname="HTTP Header Manager" enabled="true">
+          <HeaderManager guiclass="HeaderPanel" testclass="HeaderManager" testname="HTTP Header Manager">
             <collectionProp name="HeaderManager.headers">
               <elementProp name="" elementType="Header">
                 <stringProp name="Header.name">Content-Type</stringProp>
@@ -365,7 +365,7 @@ xmlns:prod=&quot;http://test.x-road.global/producer&quot;&gt;&#xd;
             </collectionProp>
           </HeaderManager>
           <hashTree/>
-          <ResponseAssertion guiclass="AssertionGui" testclass="ResponseAssertion" testname="Response Assertion" enabled="true">
+          <ResponseAssertion guiclass="AssertionGui" testclass="ResponseAssertion" testname="Response Assertion">
             <collectionProp name="Asserion.test_strings">
               <stringProp name="1463334682">getRandomResponse</stringProp>
             </collectionProp>
@@ -377,7 +377,7 @@ xmlns:prod=&quot;http://test.x-road.global/producer&quot;&gt;&#xd;
           <hashTree/>
         </hashTree>
       </hashTree>
-      <ThreadGroup guiclass="ThreadGroupGui" testclass="ThreadGroup" testname="load-test-rest-testservice-xroad" enabled="true">
+      <ThreadGroup guiclass="ThreadGroupGui" testclass="ThreadGroup" testname="load-test-rest-testservice-xroad">
         <stringProp name="ThreadGroup.num_threads">${loadtest-threads}</stringProp>
         <stringProp name="ThreadGroup.ramp_time">${loadtest-rampup}</stringProp>
         <stringProp name="ThreadGroup.duration">${loadtest-duration}</stringProp>
@@ -423,7 +423,7 @@ xmlns:prod=&quot;http://test.x-road.global/producer&quot;&gt;&#xd;
           <stringProp name="filename"></stringProp>
         </ResultCollector>
         <hashTree/>
-        <HTTPSamplerProxy guiclass="HttpTestSampleGui" testclass="HTTPSamplerProxy" testname="loadtest-rest-testservice-xroad-1k" enabled="true">
+        <HTTPSamplerProxy guiclass="HttpTestSampleGui" testclass="HTTPSamplerProxy" testname="loadtest-rest-testservice-xroad-1k">
           <stringProp name="HTTPSampler.path">/r1/${xroad-instance}/${service-memberclass}/${service-membercode}/${service-subsystemcode}/payloadgen/data/1000</stringProp>
           <boolProp name="HTTPSampler.follow_redirects">true</boolProp>
           <stringProp name="HTTPSampler.method">GET</stringProp>
@@ -434,7 +434,7 @@ xmlns:prod=&quot;http://test.x-road.global/producer&quot;&gt;&#xd;
           </elementProp>
         </HTTPSamplerProxy>
         <hashTree>
-          <HeaderManager guiclass="HeaderPanel" testclass="HeaderManager" testname="HTTP Header Manager" enabled="true">
+          <HeaderManager guiclass="HeaderPanel" testclass="HeaderManager" testname="HTTP Header Manager">
             <collectionProp name="HeaderManager.headers">
               <elementProp name="" elementType="Header">
                 <stringProp name="Header.name">X-Road-Client</stringProp>
@@ -494,7 +494,7 @@ xmlns:prod=&quot;http://test.x-road.global/producer&quot;&gt;&#xd;
           <hashTree/>
         </hashTree>
       </hashTree>
-      <ThreadGroup guiclass="ThreadGroupGui" testclass="ThreadGroup" testname="load-test-soap-getrandom" enabled="true">
+      <ThreadGroup guiclass="ThreadGroupGui" testclass="ThreadGroup" testname="load-test-soap-getrandom">
         <boolProp name="ThreadGroup.delayedStart">true</boolProp>
         <stringProp name="ThreadGroup.num_threads">${loadtest-threads}</stringProp>
         <stringProp name="ThreadGroup.ramp_time">${loadtest-rampup}</stringProp>
@@ -508,7 +508,7 @@ xmlns:prod=&quot;http://test.x-road.global/producer&quot;&gt;&#xd;
         </elementProp>
       </ThreadGroup>
       <hashTree>
-        <HTTPSamplerProxy guiclass="HttpTestSampleGui" testclass="HTTPSamplerProxy" testname="getrandom-xroad" enabled="true">
+        <HTTPSamplerProxy guiclass="HttpTestSampleGui" testclass="HTTPSamplerProxy" testname="getrandom-xroad">
           <boolProp name="HTTPSampler.follow_redirects">true</boolProp>
           <stringProp name="HTTPSampler.method">POST</stringProp>
           <boolProp name="HTTPSampler.use_keepalive">true</boolProp>
@@ -552,7 +552,7 @@ xmlns:prod=&quot;http://test.x-road.global/producer&quot;&gt;&#xd;
           </elementProp>
         </HTTPSamplerProxy>
         <hashTree>
-          <HeaderManager guiclass="HeaderPanel" testclass="HeaderManager" testname="HTTP Header Manager" enabled="true">
+          <HeaderManager guiclass="HeaderPanel" testclass="HeaderManager" testname="HTTP Header Manager">
             <collectionProp name="HeaderManager.headers">
               <elementProp name="" elementType="Header">
                 <stringProp name="Header.name">Content-Type</stringProp>
@@ -562,10 +562,14 @@ xmlns:prod=&quot;http://test.x-road.global/producer&quot;&gt;&#xd;
                 <stringProp name="Header.name">SOAPAction</stringProp>
                 <stringProp name="Header.value"></stringProp>
               </elementProp>
+              <elementProp name="" elementType="Header">
+                <stringProp name="Header.name">X-Road-Force-Legacy-Transport</stringProp>
+                <stringProp name="Header.value">${rest-use-legacy-transport}</stringProp>
+              </elementProp>
             </collectionProp>
           </HeaderManager>
           <hashTree/>
-          <ResponseAssertion guiclass="AssertionGui" testclass="ResponseAssertion" testname="has-correct-body" enabled="true">
+          <ResponseAssertion guiclass="AssertionGui" testclass="ResponseAssertion" testname="has-correct-body">
             <collectionProp name="Asserion.test_strings">
               <stringProp name="1463334682">getRandomResponse</stringProp>
             </collectionProp>
@@ -576,7 +580,7 @@ xmlns:prod=&quot;http://test.x-road.global/producer&quot;&gt;&#xd;
             <stringProp name="Assertion.custom_message"></stringProp>
           </ResponseAssertion>
           <hashTree/>
-          <ResponseAssertion guiclass="AssertionGui" testclass="ResponseAssertion" testname="not-soap-fault" enabled="true">
+          <ResponseAssertion guiclass="AssertionGui" testclass="ResponseAssertion" testname="not-soap-fault">
             <collectionProp name="Asserion.test_strings">
               <stringProp name="2097215100">Fault&gt;</stringProp>
             </collectionProp>
@@ -632,7 +636,7 @@ xmlns:prod=&quot;http://test.x-road.global/producer&quot;&gt;&#xd;
           </elementProp>
         </HTTPSamplerProxy>
         <hashTree>
-          <HeaderManager guiclass="HeaderPanel" testclass="HeaderManager" testname="HTTP Header Manager" enabled="true">
+          <HeaderManager guiclass="HeaderPanel" testclass="HeaderManager" testname="HTTP Header Manager">
             <collectionProp name="HeaderManager.headers">
               <elementProp name="" elementType="Header">
                 <stringProp name="Header.name">Content-Type</stringProp>

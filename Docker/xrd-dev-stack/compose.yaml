@@ -13,6 +13,9 @@ services:
       test: [ "CMD", "curl", "-f", "-k", "https://localhost:4000" ]
   ss0:
     image: ${SS_IMG}
+    environment:
+      - PROXY_JMX_PORT=4299
+      - SIGNER_JMX_PORT=4298
     deploy:
       resources:
         reservations:
@@ -25,6 +28,10 @@ services:
       test: [ "CMD", "curl", "-f", "-k", "https://localhost:4000" ]
   ss1:
     image: ${SS_IMG}
+    environment:
+      - XROAD_TOKEN_PIN=Secret1234
+      - PROXY_JMX_PORT=4399
+      - SIGNER_JMX_PORT=4398
     deploy:
       resources:
         reservations:

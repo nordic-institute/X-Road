@@ -48,7 +48,6 @@ services:
       - "4356:9293" #EDC XRD public port
   prometheus:
     image: prom/prometheus:v2.52.0
-    container_name: prometheus
     deploy:
       resources:
         reservations:
@@ -61,7 +60,6 @@ services:
       - 9090:9090
   jaeger:
     image: jaegertracing/all-in-one:1.57
-    container_name: jaeger
     environment:
       - MEMORY_MAX_TRACES=1000
     deploy:

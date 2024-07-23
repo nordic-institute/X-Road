@@ -22,6 +22,8 @@ services:
       - "4290:9999" # Proxy debug port
       - "4291:9998" # Signer debug port
       - "4292:9997" # Proxy UI debug port
+      - "4299:4299" # Proxy JMX port
+      - "4298:4298" # Signer JMX port
   ss1:
     environment:
       - XROAD_TOKEN_PIN=Secret1234
@@ -32,6 +34,8 @@ services:
       - "4390:9999" # Proxy debug port
       - "4391:9998" # Signer debug port
       - "4392:9997" # Proxy UI debug port
+      - "4399:4399" # Proxy JMX port
+      - "4398:4398" # Signer JMX port
   ss2:
     environment:
       - XROAD_TOKEN_PIN=Secret1234

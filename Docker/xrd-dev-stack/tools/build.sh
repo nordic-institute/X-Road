@@ -15,6 +15,7 @@ case $1 in
   ;;
 "signer")
   gradleModule="signer"
+  gradleArgs+="-xintTest -xintTest"
   ;;
 "proxy-ui-api")
   gradleModule="security-server/admin-service"

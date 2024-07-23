@@ -27,6 +27,7 @@ if [[ $# -eq 0 ]]; then
   echo "--initialize: Initialize the environment"
   echo "--local: Use .env.local file"
   echo "--init-ss2: Will initialize SS2"
+  echo "--perftest: Will initialize perftest"
 fi
 
 COMPOSE_EXTRA_ARGS=""
@@ -36,6 +37,7 @@ fi
 if [[ -n "$PERFTEST" ]]; then
   COMPOSE_EXTRA_ARGS="--profile perftest"
 fi
+
 docker compose $COMPOSE_EXTRA_ARGS $COMPOSE_FILE_ARGS --env-file "$ENV_FILE" up -d
 
 if [[ -n "$INITIALIZE" ]]; then
@@ -74,13 +76,13 @@ if [[ -n "$PERFTEST" && -n "$INITIALIZE" ]]; then
     --retry-interval 4000
 
   #disable the messagelog body logging
-  docker compose $COMPOSE_FILE_ARGS \
+  docker compose $COMPOSE_FILE_ARGS --env-file "$ENV_FILE" \
     exec ss0 sh -c "sed -i 's/message-body-logging=true/message-body-logging=false/' /etc/xroad/conf.d/addons/message-log.ini"
-  docker compose $COMPOSE_FILE_ARGS \
+  docker compose $COMPOSE_FILE_ARGS --env-file "$ENV_FILE" \
     exec ss0 sh -c "supervisorctl restart xroad-proxy"
 
-  docker compose $COMPOSE_FILE_ARGS \
+  docker compose $COMPOSE_FILE_ARGS --env-file "$ENV_FILE" \
     exec ss1 sh -c "sed -i 's/message-body-logging=true/message-body-logging=false/' /etc/xroad/conf.d/addons/message-log.ini"
-  docker compose $COMPOSE_FILE_ARGS \
+  docker compose $COMPOSE_FILE_ARGS --env-file "$ENV_FILE" \
     exec ss1 sh -c "supervisorctl restart xroad-proxy"
 fi
