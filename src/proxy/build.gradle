@@ -32,6 +32,7 @@ dependencies {
     implementation(libs.xerces.impl)
     implementation libs.caffeine
     implementation(libs.semver4j)
+    implementation libs.opentelemetry.instrumentation.annotations
 
     testImplementation(project(':common:common-test'))
 

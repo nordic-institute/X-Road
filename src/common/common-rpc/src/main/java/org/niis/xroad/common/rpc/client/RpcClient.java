@@ -42,6 +42,8 @@ import io.grpc.netty.shaded.io.grpc.netty.NettyChannelBuilder;
 import io.grpc.netty.shaded.io.netty.channel.nio.NioEventLoopGroup;
 import io.grpc.netty.shaded.io.netty.channel.socket.nio.NioSocketChannel;
 import io.grpc.netty.shaded.io.netty.util.concurrent.DefaultThreadFactory;
+import io.opentelemetry.api.OpenTelemetry;
+import io.opentelemetry.instrumentation.grpc.v1_6.GrpcTelemetry;
 import lombok.extern.slf4j.Slf4j;
 import org.niis.xroad.common.rpc.InsecureRpcCredentialsConfigurer;
 import org.niis.xroad.common.rpc.RpcCredentialsConfigurer;
@@ -51,6 +53,7 @@ import java.util.concurrent.ForkJoinPool;
 
 import static ee.ria.xroad.common.ErrorCodes.SIGNER_X;
 import static java.util.concurrent.TimeUnit.MILLISECONDS;
+import static org.niis.xroad.common.rpc.server.RpcServer.loadTelemetry;
 
 @Slf4j
 public final class RpcClient<C extends RpcClient.ExecutionContext> {
@@ -90,6 +93,10 @@ public final class RpcClient<C extends RpcClient.ExecutionContext> {
             }
         };
 
+        //TODO move to a common place
+        OpenTelemetry openTelemetry = loadTelemetry();
+        var grpcTelemetry = GrpcTelemetry.create(openTelemetry);
+
         final var workerGroupThreadFactory = new DefaultThreadFactory("rpc-client-" + port + "-nio-worker", true);
         final ManagedChannel channel = NettyChannelBuilder.forAddress(host, port, credentials)
                 .executor(ForkJoinPool.commonPool())
@@ -97,6 +104,7 @@ public final class RpcClient<C extends RpcClient.ExecutionContext> {
                 .channelFactory(NioSocketChannel::new)
                 .eventLoopGroup(new NioEventLoopGroup(0, workerGroupThreadFactory))
                 .intercept(timeoutInterceptor)
+                .intercept(grpcTelemetry.newClientInterceptor())
                 .build();
 
         var executionContext = contextFactory.createContext(channel);

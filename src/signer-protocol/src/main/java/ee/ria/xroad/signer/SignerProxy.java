@@ -37,6 +37,7 @@ import ee.ria.xroad.signer.protocol.dto.TokenInfo;
 import ee.ria.xroad.signer.protocol.dto.TokenInfoAndKeyId;
 
 import com.google.protobuf.ByteString;
+import io.opentelemetry.instrumentation.annotations.WithSpan;
 import lombok.AccessLevel;
 import lombok.NoArgsConstructor;
 import lombok.Value;
@@ -562,6 +563,7 @@ public final class SignerProxy {
      * corresponding cert in {@code certHashes}
      * @throws Exception if something failed
      */
+    @WithSpan("SignerProxy#getOcspResponses")
     public static String[] getOcspResponses(String[] certHashes) throws Exception {
 
         var response = RpcSignerClient.execute(ctx -> ctx.getBlockingOcspService()
@@ -656,6 +658,7 @@ public final class SignerProxy {
         return response.getSignMechanismName();
     }
 
+    @WithSpan("SignerProxy#sign")
     public static byte[] sign(String keyId, String signatureAlgorithmId, byte[] digest) throws Exception {
         var response = RpcSignerClient.execute(ctx -> ctx.getBlockingKeyService()
                 .sign(SignReq.newBuilder()

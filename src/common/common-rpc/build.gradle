@@ -22,6 +22,7 @@ dependencies {
     api(libs.grpc.nettyShaded)
     api(libs.protobuf.javaUtil)
     api(libs.jakarta.annotationApi)
+    api(libs.opentelemetry.instrumentation.grpc)
 }
 
 protobuf {

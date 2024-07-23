@@ -96,7 +96,7 @@ public class XrdSignatureService {
         }
     }
 
-    public static class JaxpSchemaFactoryBuilder extends SchemaFactoryBuilder {
+    private static class JaxpSchemaFactoryBuilder extends SchemaFactoryBuilder {
         @Override
         protected SchemaFactory instantiateFactory() {
             return SchemaFactory.newInstance(XMLConstants.W3C_XML_SCHEMA_NS_URI,

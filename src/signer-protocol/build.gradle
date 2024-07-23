@@ -18,6 +18,7 @@ sourceSets {
 dependencies {
     implementation project(':common:common-domain')
     api project(':common:common-rpc')
+    api libs.opentelemetry.instrumentation.annotations
 }
 
 protobuf {

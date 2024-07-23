@@ -26,6 +26,7 @@
 package ee.ria.xroad.signer.protocol;
 
 import io.grpc.Channel;
+import io.opentelemetry.instrumentation.annotations.WithSpan;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import org.niis.xroad.common.rpc.client.RpcClient;
@@ -80,17 +81,24 @@ public final class RpcSignerClient {
     public static class SignerRpcExecutionContext implements RpcClient.ExecutionContext {
         private final TokenServiceGrpc.TokenServiceBlockingStub blockingTokenService;
         private final CertificateServiceGrpc.CertificateServiceBlockingStub blockingCertificateService;
+
         private final KeyServiceGrpc.KeyServiceBlockingStub blockingKeyService;
+        private final KeyServiceGrpc.KeyServiceStub asyncKeyService;
+
         private final OcspServiceGrpc.OcspServiceBlockingStub blockingOcspService;
 
         public SignerRpcExecutionContext(Channel channel) {
             blockingTokenService = TokenServiceGrpc.newBlockingStub(channel).withWaitForReady();
             blockingCertificateService = CertificateServiceGrpc.newBlockingStub(channel).withWaitForReady();
+
             blockingKeyService = KeyServiceGrpc.newBlockingStub(channel).withWaitForReady();
+            asyncKeyService = KeyServiceGrpc.newStub(channel).withWaitForReady();
+
             blockingOcspService = OcspServiceGrpc.newBlockingStub(channel).withWaitForReady();
         }
     }
 
+    @WithSpan("RpcSignerClient#execute")
     public static <V> V execute(RpcClient.RpcExecution<V, SignerRpcExecutionContext> grpcCall) throws Exception {
         return getInstance().client.execute(grpcCall);
     }

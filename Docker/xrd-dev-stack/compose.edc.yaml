@@ -59,9 +59,13 @@ services:
     ports:
       - 9090:9090
   jaeger:
-    image: jaegertracing/all-in-one:1.57
+    image: jaegertracing/all-in-one:1.59
+
     environment:
-      - MEMORY_MAX_TRACES=1000
+      - MEMORY_MAX_TRACES=20000
+      - COLLECTOR_OTLP_ENABLED=true
+      - COLLECTOR_OTLP_HTTP_HOST_PORT=0.0.0.0:4318
+      - COLLECTOR_OTLP_GRPC_HOST_PORT=0.0.0.0:4317
     deploy:
       resources:
         reservations:
@@ -70,3 +74,4 @@ services:
           memory: 1G
     ports:
       - 16686:16686
+      - 4318:4318

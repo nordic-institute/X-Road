@@ -36,6 +36,9 @@ import io.grpc.netty.shaded.io.grpc.netty.NettyServerBuilder;
 import io.grpc.netty.shaded.io.netty.channel.nio.NioEventLoopGroup;
 import io.grpc.netty.shaded.io.netty.channel.socket.nio.NioServerSocketChannel;
 import io.grpc.netty.shaded.io.netty.util.concurrent.DefaultThreadFactory;
+import io.opentelemetry.api.GlobalOpenTelemetry;
+import io.opentelemetry.api.OpenTelemetry;
+import io.opentelemetry.instrumentation.grpc.v1_6.GrpcTelemetry;
 import lombok.extern.slf4j.Slf4j;
 import org.niis.xroad.common.rpc.InsecureRpcCredentialsConfigurer;
 import org.niis.xroad.common.rpc.RpcCredentialsConfigurer;
@@ -45,6 +48,7 @@ import java.net.InetSocketAddress;
 import java.security.KeyStoreException;
 import java.security.NoSuchAlgorithmException;
 import java.security.UnrecoverableKeyException;
+import java.util.ServiceLoader;
 import java.util.concurrent.ForkJoinPool;
 import java.util.function.Consumer;
 
@@ -67,7 +71,19 @@ public class RpcServer implements StartStop {
                 .executor(ForkJoinPool.commonPool());
 
         configFunc.accept(builder);
+
+        OpenTelemetry openTelemetry = loadTelemetry();
+        var grpcTelemetry = GrpcTelemetry.create(openTelemetry);
+        builder.intercept(grpcTelemetry.newServerInterceptor());
         server = builder.build();
+    }
+
+    public static OpenTelemetry loadTelemetry() {
+//        var loader = ServiceLoader.load(OpenTelemetry.class);
+
+        var implementation = GlobalOpenTelemetry.get();
+        log.info("Loading telemetry implementation: {}", implementation.getClass().getSimpleName());
+        return implementation;
     }
 
     @Override
