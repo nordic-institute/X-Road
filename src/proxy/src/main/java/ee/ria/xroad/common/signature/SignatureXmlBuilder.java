@@ -146,7 +146,13 @@ final class SignatureXmlBuilder {
         this.hashAlgorithmURI = getDigestAlgorithmURI(hashAlgorithmId);
     }
 
-    byte[] createDataToBeSigned(String docName, ResourceResolverSpi resourceResolver, String signatureAlgorithmUri)
+    byte[] addAndCalculateDataToBeSigned(String docName, ResourceResolverSpi resourceResolver, String signatureAlgorithmUri)
+            throws Exception {
+        addDataToBeSigned(docName, resourceResolver, signatureAlgorithmUri);
+        return calculateDataToBeSigned();
+    }
+
+    void addDataToBeSigned(String docName, ResourceResolverSpi resourceResolver, String signatureAlgorithmUri)
             throws Exception {
         this.documentName = docName;
 
@@ -162,8 +168,6 @@ final class SignatureXmlBuilder {
 
         createObjectContainer();
         createQualifyingProperties();
-
-        return createDataToBeSigned();
     }
 
     String createSignatureXml(byte[] signatureValue) throws Exception {
@@ -196,7 +200,7 @@ final class SignatureXmlBuilder {
         return hashAlgorithmURI;
     }
 
-    private byte[] createDataToBeSigned() throws Exception {
+     byte[] calculateDataToBeSigned() throws Exception {
         try {
             SignedInfo si = signature.getSignedInfo();
 

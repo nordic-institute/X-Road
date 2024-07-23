@@ -29,18 +29,11 @@ import ee.ria.xroad.common.CodedException;
 import ee.ria.xroad.common.SystemProperties;
 import ee.ria.xroad.signer.SignerProxy;
 
-import eu.europa.esig.dss.enumerations.SignatureAlgorithm;
-import eu.europa.esig.dss.model.DSSDocument;
-import eu.europa.esig.dss.model.SignatureValue;
-import eu.europa.esig.dss.spi.DSSUtils;
-import eu.europa.esig.dss.validation.CommonCertificateVerifier;
-import eu.europa.esig.dss.xades.signature.XAdESService;
 import eu.europa.esig.dss.xml.common.XmlDefinerUtils;
 import lombok.Data;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import org.niis.xroad.edc.sig.XrdSignatureService;
-import org.niis.xroad.edc.sig.xades.XrdXAdESSignatureCreator;
 
 import java.security.cert.X509Certificate;
 import java.util.ArrayList;
@@ -69,7 +62,7 @@ import static ee.ria.xroad.common.util.CryptoUtils.getDigestAlgorithmId;
  * chain is produced for each request.
  */
 @Slf4j
-public class BatchSigner {
+public class BatchSigner implements MessageSigner {
 
     private static final int TIMEOUT_MILLIS = SystemProperties.getSignerClientTimeout();
 
@@ -83,6 +76,7 @@ public class BatchSigner {
         return instance;
     }
 
+    @Override
     public void shutdown() {
         if (instance != null) {
             instance.workers.values().forEach(WorkerImpl::stop);
@@ -98,7 +92,8 @@ public class BatchSigner {
      * @return the signature data
      * @throws Exception in case of any errors
      */
-    public static SignatureData sign(String keyId, String signatureAlgorithmId, SigningRequest request)
+    @Override
+    public SignatureData sign(String keyId, String signatureAlgorithmId, SigningRequest request)
             throws Exception {
         if (instance == null) {
             throw new IllegalStateException("BatchSigner is not initialized");
@@ -149,7 +144,7 @@ public class BatchSigner {
 
         protected WorkerImpl(String keyId) {
             try {
-                batchSigningEnabled = false; //TODO xroad8, forcibly disabling, global toggle does not exist anymore?
+                batchSigningEnabled = SignerProxy.isTokenBatchSigningEnabled(keyId);
             } catch (Exception e) {
                 log.error("Failed to query if batch signing is enabled for token with key {}", keyId, e);
                 throw new RuntimeException(e);
@@ -165,16 +160,8 @@ public class BatchSigner {
         }
 
         private void sendSignatureResponse(BatchSignatureCtx ctx, byte[] signatureValue) throws Exception {
-            //TODO xroad8 cert verifier and service should be reusable.
-            // This is not optimized, just works.
-            XAdESService service = new XAdESService(new CommonCertificateVerifier());
+            String signature = ctx.createSignatureXml(signatureValue);
 
-            var sig = new SignatureValue(SignatureAlgorithm.forJAVA(ctx.getSignatureAlgorithmId()), signatureValue);
-
-            DSSDocument signedDocument = service.signDocument(ctx.getDocumentsToSign(), ctx.getParameters(), sig);
-            var extendedDoc = new XrdXAdESSignatureCreator.OcspExtensionBuilder()
-                    .addOcspToken(signedDocument, ctx.getOcspResponses().get(0).getEncoded());
-            String signature = new String(DSSUtils.toByteArray(extendedDoc));
             // Each client gets corresponding hash chain -- client index in the
             // clients list determines the hash chain.
             for (int i = 0; i < ctx.getClients().size(); i++) {

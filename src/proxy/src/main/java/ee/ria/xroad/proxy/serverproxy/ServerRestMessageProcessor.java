@@ -141,7 +141,7 @@ class ServerRestMessageProcessor extends MessageProcessorBase {
 
     @Override
     public void process() throws Exception {
-        log.info("process({})", jRequest.getContentType());
+        log.trace("process({})", jRequest.getContentType());
 
         xRequestId = jRequest.getHeaders().get(HEADER_REQUEST_ID);
 

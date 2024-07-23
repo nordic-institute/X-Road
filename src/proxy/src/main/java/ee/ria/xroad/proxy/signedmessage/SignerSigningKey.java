@@ -26,7 +26,7 @@
 package ee.ria.xroad.proxy.signedmessage;
 
 import ee.ria.xroad.common.SystemProperties;
-import ee.ria.xroad.common.signature.BatchSigner;
+import ee.ria.xroad.common.signature.MessageSigner;
 import ee.ria.xroad.common.signature.SignatureData;
 import ee.ria.xroad.common.signature.SigningRequest;
 import ee.ria.xroad.common.util.CryptoUtils;
@@ -42,17 +42,26 @@ import static ee.ria.xroad.common.ErrorCodes.translateWithPrefix;
 @Slf4j
 public class SignerSigningKey implements SigningKey {
 
-    /** The private key ID. */
+    /**
+     * The private key ID.
+     */
     private final String keyId;
 
-    /** The sign mechanism name (PKCS#11) */
+    /**
+     * The sign mechanism name (PKCS#11)
+     */
     private final String signMechanismName;
+
+    private final MessageSigner signer;
 
     /**
      * Creates a new SignerSigningKey with provided keyId.
+     *
      * @param keyId the private key ID.
      */
-    public SignerSigningKey(String keyId, String signMechanismName) {
+    public SignerSigningKey(String keyId, String signMechanismName, MessageSigner signer) {
+        this.signer = signer;
+
         if (keyId == null) {
             throw new IllegalArgumentException("KeyId must not be null");
         }
@@ -72,11 +81,11 @@ public class SignerSigningKey implements SigningKey {
         log.trace("Calculating signature using algorithm {}", signAlgoId);
 
         if (SystemProperties.USE_DUMMY_SIGNATURE) {
-            return new SignatureData("dymmySignatureXML", "dummyHashChainResult", "dummyHashChain");
+            return new SignatureData("dummySignatureXML", "dummyHashChainResult", "dummyHashChain");
         }
 
         try {
-            return BatchSigner.sign(keyId, signAlgoId, request);
+            return signer.sign(keyId, signAlgoId, request);
         } catch (Exception e) {
             throw translateWithPrefix(X_CANNOT_CREATE_SIGNATURE, e);
         }

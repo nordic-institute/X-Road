@@ -23,49 +23,31 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package ee.ria.xroad.proxy.conf;
+package ee.ria.xroad.common.signature;
 
-import ee.ria.xroad.common.identifier.ClientId;
-import ee.ria.xroad.common.signature.MessageSigner;
-import ee.ria.xroad.proxy.signedmessage.SignerSigningKey;
+import ee.ria.xroad.signer.SignerProxy;
 
-import lombok.experimental.UtilityClass;
 import lombok.extern.slf4j.Slf4j;
 
+import static ee.ria.xroad.common.util.CryptoUtils.calculateDigest;
+import static ee.ria.xroad.common.util.CryptoUtils.getDigestAlgorithmId;
+
 @Slf4j
-@UtilityClass
-public class SigningCtxProvider {
-    private static DefaultSigningCtxProvider ctxProvider = new DefaultSigningCtxProvider();
+public class SimpleSigner implements MessageSigner {
 
-    private static MessageSigner signer;
+    @Override
+    public SignatureData sign(String keyId, String signatureAlgorithmId, SigningRequest request) throws Exception {
+        log.trace("processing sign request");
 
-    public static SigningCtx getSigningCtx(ClientId clientId) {
-        return ctxProvider.getSigningCtx(clientId);
+        final var ctx = new SignatureCtx(signatureAlgorithmId);
+        ctx.add(request);
+
+        final byte[] digest = calculateDigest(getDigestAlgorithmId(ctx.getSignatureAlgorithmId()), ctx.getDataToBeSigned());
+        final byte[] response = SignerProxy.sign(keyId, signatureAlgorithmId, digest);
+
+        String signature = ctx.createSignatureXml(response);
+        return ctx.createSignatureData(signature, 0);
     }
 
 
-    public static void setSigningCtxProvider(DefaultSigningCtxProvider provider) {
-        log.warn("Setting signing context provider to '{}'", provider.getClass().getName());
-        ctxProvider = provider;
-    }
-
-    public static class DefaultSigningCtxProvider {
-        public SigningCtx getSigningCtx(ClientId clientId) {
-            log.debug("Retrieving signing info for member '{}'", clientId);
-
-            var signingInfo = KeyConf.getSigningInfo(clientId);
-
-            return getSigningCtx(signingInfo);
-        }
-
-        private SigningCtx getSigningCtx(SigningInfo signingInfo) {
-            return new SigningCtxImpl(signingInfo.getClientId(),
-                    new SignerSigningKey(signingInfo.getKeyId(), signingInfo.getSignMechanismName(), signer), signingInfo.getCert());
-        }
-    }
-
-    @Deprecated
-    public static void setSigner(MessageSigner signer) {
-        SigningCtxProvider.signer = signer;
-    }
 }

@@ -30,17 +30,6 @@ import ee.ria.xroad.common.hashchain.HashChainBuilder;
 import ee.ria.xroad.common.util.CryptoUtils;
 import ee.ria.xroad.common.util.MessageFileNames;
 
-import eu.europa.esig.dss.enumerations.DigestAlgorithm;
-import eu.europa.esig.dss.enumerations.SignatureLevel;
-import eu.europa.esig.dss.model.DSSDocument;
-import eu.europa.esig.dss.model.DigestDocument;
-import eu.europa.esig.dss.model.ToBeSigned;
-import eu.europa.esig.dss.model.x509.CertificateToken;
-import eu.europa.esig.dss.validation.CommonCertificateVerifier;
-import eu.europa.esig.dss.xades.XAdESSignatureParameters;
-import eu.europa.esig.dss.xades.signature.XAdESService;
-import eu.europa.esig.dss.xml.common.definition.DSSNamespace;
-import eu.europa.esig.xades.definition.XAdESNamespace;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.SneakyThrows;
@@ -49,8 +38,8 @@ import org.apache.xml.security.signature.XMLSignatureInput;
 import org.apache.xml.security.utils.resolver.ResourceResolverContext;
 import org.apache.xml.security.utils.resolver.ResourceResolverException;
 import org.apache.xml.security.utils.resolver.ResourceResolverSpi;
-import org.bouncycastle.cert.ocsp.OCSPResp;
 
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Base64;
 import java.util.List;
@@ -59,7 +48,7 @@ import static ee.ria.xroad.common.ErrorCodes.X_INTERNAL_ERROR;
 import static ee.ria.xroad.common.util.CryptoUtils.getDigestAlgorithmId;
 import static ee.ria.xroad.common.util.MessageFileNames.MESSAGE;
 import static ee.ria.xroad.common.util.MessageFileNames.SIG_HASH_CHAIN;
-import static eu.europa.esig.dss.enumerations.SignaturePackaging.DETACHED;
+import static ee.ria.xroad.common.util.MessageFileNames.SIG_HASH_CHAIN_RESULT;
 
 /**
  * This class handles the (batch) signature creation. After requests
@@ -84,12 +73,6 @@ class SignatureCtx {
     private String[] hashChains;
 
     private SignatureXmlBuilder builder;
-    @Getter
-    private XAdESSignatureParameters parameters;
-    @Getter
-    private List<DSSDocument> documentsToSign = new ArrayList<>();
-    @Getter
-    private final List<OCSPResp> ocspResponses = new ArrayList<>();
 
     @SneakyThrows
     SignatureCtx(String signatureAlgorithmId) {
@@ -128,45 +111,30 @@ class SignatureCtx {
     synchronized byte[] getDataToBeSigned() throws Exception {
         log.trace("getDataToBeSigned(requests = {})", requests.size());
 
-        if (requests.size() == 0) {
+        if (requests.isEmpty()) {
             throw new CodedException(X_INTERNAL_ERROR, "No requests in signing context");
         }
 
         SigningRequest firstRequest = requests.get(0);
 
-        //TODO xroad8, POC.
-        parameters = new XAdESSignatureParameters();
-        parameters.setSignatureLevel(SignatureLevel.XAdES_BASELINE_B);
-        parameters.setSignaturePackaging(DETACHED);
-        parameters.setDigestAlgorithm(DigestAlgorithm.forJavaName(CryptoUtils.DEFAULT_DIGEST_ALGORITHM_ID));
-        parameters.setXadesNamespace(new DSSNamespace(XAdESNamespace.XADES_132.getUri(), "xades"));
-        parameters.setSigningCertificate(new CertificateToken(firstRequest.getSigningCert()));
         builder = new SignatureXmlBuilder(firstRequest, digestAlgorithmId);
 
-        ocspResponses.addAll(firstRequest.getOcspResponses());
+        // If only one single hash (message), then no hash chain
+        if (requests.size() == 1) {
+            for (MessagePart part : firstRequest.getParts()) {
+                var data = MESSAGE.equals(part.getName()) ? part.getMessage() : part.getData();
+                builder.addDataToBeSigned(part.getName(),
+                        createResourceResolver(data),
+                        signatureAlgorithmUri);
+            }
+            return builder.calculateDataToBeSigned();
+        }
+        buildHashChain();
 
-        firstRequest.getParts()
-                .forEach(part -> documentsToSign.add(new DigestDocument(
-                        DigestAlgorithm.forJavaName(part.getHashAlgoId()),
-                        Base64.getEncoder().encodeToString(part.getData()),
-                        part.getName())));
+        byte[] hashChainResultBytes = hashChainResult.getBytes(StandardCharsets.UTF_8);
 
-        XAdESService service = new XAdESService(new CommonCertificateVerifier());
-        ToBeSigned toBeSigned = service.getDataToSign(documentsToSign, parameters);
-
-        return toBeSigned.getBytes();
-        //        // If only one single hash (message), then no hash chain
-//        if (requests.size() == 1 && firstRequest.isSingleMessage()) {
-//            return builder.createDataToBeSigned(MESSAGE, createResourceResolver(
-//                    firstRequest.getParts().get(0).getMessage()), signatureAlgorithmUri);
-//        }
-//
-//        buildHashChain();
-//
-//        byte[] hashChainResultBytes = hashChainResult.getBytes(StandardCharsets.UTF_8);
-//
-//        return builder.createDataToBeSigned(SIG_HASH_CHAIN_RESULT, createResourceResolver(hashChainResultBytes),
-//                signatureAlgorithmUri);
+        return builder.addAndCalculateDataToBeSigned(SIG_HASH_CHAIN_RESULT, createResourceResolver(hashChainResultBytes),
+                signatureAlgorithmUri);
     }
 
     private void buildHashChain() throws Exception {
@@ -187,7 +155,7 @@ class SignatureCtx {
     private static byte[][] getHashChainInputs(SigningRequest request) {
         return request.getParts().stream()
                 .map(MessagePart::getData)
-                .toArray(size -> new byte[size][]);
+                .toArray(byte[][]::new);
     }
 
     /**
@@ -198,22 +166,33 @@ class SignatureCtx {
             throw new IllegalArgumentException("Data must not be null");
         }
 
+        //TODO xroad8, merge wih verifier
         return new ResourceResolverSpi() {
             @Override
             public boolean engineCanResolveURI(ResourceResolverContext context) {
-                switch (context.attr.getValue()) {
-                    case MessageFileNames.MESSAGE:
-                    case MessageFileNames.SIG_HASH_CHAIN_RESULT:
-                        return true;
-                    default:
-                        return false;
-                }
+                return switch (context.attr.getValue()) {
+                    case MessageFileNames.MESSAGE, MessageFileNames.SIG_HASH_CHAIN_RESULT -> true;
+                    default -> isAttachment(context.attr.getValue());
+                };
+            }
+
+            private boolean isAttachment(String uri) {
+                return uri.startsWith("/attachment");
             }
 
             @Override
-            public XMLSignatureInput engineResolveURI(ResourceResolverContext context)
-                    throws ResourceResolverException {
-                return new XMLSignatureInput(data);
+            public XMLSignatureInput engineResolveURI(ResourceResolverContext context) throws ResourceResolverException {
+                switch (context.attr.getValue()) {
+                    case MessageFileNames.MESSAGE:
+                    case MessageFileNames.SIG_HASH_CHAIN_RESULT:
+                        return new XMLSignatureInput(data);
+                    default: // do nothing
+                }
+
+                if (isAttachment(context.attr.getValue())) {
+                    return new XMLSignatureInput(Base64.getEncoder().encodeToString(data));
+                }
+                return null;
             }
         };
     }
