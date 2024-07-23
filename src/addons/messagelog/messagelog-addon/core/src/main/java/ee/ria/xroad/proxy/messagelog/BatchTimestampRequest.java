@@ -25,7 +25,7 @@
  */
 package ee.ria.xroad.proxy.messagelog;
 
-import ee.ria.xroad.common.hashchain.HashChainBuilder;
+import ee.ria.xroad.common.hashchain.EvidenceRecordHashChainBuilder;
 import ee.ria.xroad.common.messagelog.MessageLogProperties;
 
 import org.bouncycastle.tsp.TimeStampResponse;
@@ -33,7 +33,6 @@ import org.bouncycastle.tsp.TimeStampResponse;
 import static ee.ria.xroad.common.util.CryptoUtils.decodeBase64;
 import static ee.ria.xroad.common.util.MessageFileNames.SIGNATURE;
 import static ee.ria.xroad.common.util.MessageFileNames.TS_HASH_CHAIN;
-import static java.nio.charset.StandardCharsets.UTF_8;
 
 
 class BatchTimestampRequest extends AbstractTimestampRequest {
@@ -52,7 +51,7 @@ class BatchTimestampRequest extends AbstractTimestampRequest {
 
     @Override
     byte[] getRequestData() throws Exception {
-        HashChainBuilder hcBuilder = buildHashChain(signatureHashes);
+        var hcBuilder = buildHashChain(signatureHashes);
         hashChainResult = hcBuilder.getHashChainResult(TS_HASH_CHAIN);
         hashChains = hcBuilder.getHashChains(SIGNATURE);
         //TODO We sign root hash, not whole xml.
@@ -66,9 +65,8 @@ class BatchTimestampRequest extends AbstractTimestampRequest {
                 hashChainResult, hashChains, url);
     }
 
-    private HashChainBuilder buildHashChain(String[] hashes) throws Exception {
-        HashChainBuilder hcBuilder =
-                new HashChainBuilder(MessageLogProperties.getHashAlg());
+    private EvidenceRecordHashChainBuilder buildHashChain(String[] hashes) throws Exception {
+        var hcBuilder = new EvidenceRecordHashChainBuilder(MessageLogProperties.getHashAlg());
 
         for (String signatureHashBase64 : hashes) {
             hcBuilder.addInputHash(decodeBase64(signatureHashBase64));

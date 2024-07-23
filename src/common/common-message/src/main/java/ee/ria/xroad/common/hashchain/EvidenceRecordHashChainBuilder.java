@@ -25,6 +25,8 @@
  */
 package ee.ria.xroad.common.hashchain;
 
+import ee.ria.xroad.common.util.CryptoUtils;
+
 import jakarta.xml.bind.JAXBContext;
 import jakarta.xml.bind.JAXBElement;
 import jakarta.xml.bind.Marshaller;
@@ -33,47 +35,51 @@ import org.slf4j.LoggerFactory;
 
 import java.io.StringWriter;
 import java.util.ArrayList;
+import java.util.Base64;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import static ee.ria.xroad.common.hashchain.DigestList.digestHashStep;
+import static ee.ria.xroad.common.util.CryptoUtils.encodeBase64;
 import static ee.ria.xroad.common.util.CryptoUtils.getDigestAlgorithmURI;
 import static ee.ria.xroad.common.util.MessageFileNames.attachment;
 import static java.lang.Integer.numberOfLeadingZeros;
 
 /**
+ * TODO xroad8 - additional logging is not optimal. revise.
  * Builds Merkle tree from a set of hashes. Then constructs hash chains
  * for all the input hashes.
- *
+ * <p>
  * First, call the add method to add inputs to the tree. Then call
  * finishBuilding to compute the tree.
  * After computing, three methods are available to get the results.
  * - getTreeTop -- returns topmost hash of the Merkle tree that can be
- *   signed/time-stamped.
+ * signed/time-stamped.
  * - getHashChainResult -- returns XML-encoded form of the hash chain result.
  * - getHashChains -- returns array of XML-encoded hash chains, one for
- *   each input data item.
- *
+ * each input data item.
+ * <p>
  * Implementation: the binary Merkle tree is stored as an array.
  * This representation does not use pointers to child nodes, the indexes of
  * children can be calculated from the parent.
  * See http://en.wikipedia.org/wiki/Binary_tree#Arrays for details.
- *
+ * <p>
  * Physically, the tree is stored in two separate arrays: inputs (leaf nodes)
  * and nodes (non-leaf nodes). In terms of index calculations these are
  * treated as a single array consisting of nodes+inputs.
- *
+ * <p>
  * For incomplete binary trees, some inputs and nodes can be null.
  */
-public final class HashChainBuilder {
+public final class EvidenceRecordHashChainBuilder {
 
     private static final int INTEGER_BITS = 32;
 
     private static final Logger LOG =
-            LoggerFactory.getLogger(HashChainBuilder.class);
+            LoggerFactory.getLogger(EvidenceRecordHashChainBuilder.class);
 
-    /** For accessing JAXB functionality. Shared between all the builders. */
+    /**
+     * For accessing JAXB functionality. Shared between all the builders.
+     */
     private static JAXBContext jaxbCtx;
 
     /**
@@ -83,13 +89,19 @@ public final class HashChainBuilder {
 
     private static final String STEP = "STEP";
 
-    /** Hash algorithm used to hash tree nodes and inputs. */
+    /**
+     * Hash algorithm used to hash tree nodes and inputs.
+     */
     private final String hashAlgorithm;
 
-    /** Hash algorithm URI used in XML. */
+    /**
+     * Hash algorithm URI used in XML.
+     */
     private final String hashAlgorithmUri;
 
-    /** Array of input hashes. */
+    /**
+     * Array of input hashes.
+     */
     private final List<byte[]> inputs = new ArrayList<>();
 
     /**
@@ -98,30 +110,41 @@ public final class HashChainBuilder {
      */
     private final Map<Integer, byte[][]> multiparts = new HashMap<>();
 
-    /** The file name to be used for data refs. */
+    /**
+     * The file name to be used for data refs.
+     */
     private String dataRefFileName;
 
-    /** Array of intermediate Merkle tree nodes. */
+    /**
+     * Array of intermediate Merkle tree nodes.
+     */
     private byte[][] nodes;
 
-    /** Maximum index a tree node can have. */
+    /**
+     * Maximum index a tree node can have.
+     */
     private int maxIndex;
 
-    /** Used for serializing XML objects. */
+    /**
+     * Used for serializing XML objects.
+     */
     private Marshaller marshaller;
 
-    /** Factory for creating XML objects. */
+    /**
+     * Factory for creating XML objects.
+     */
     private ObjectFactory objectFactory = new ObjectFactory();
 
     /**
      * Constructs a hash chain builder.
+     *
      * @param hashAlgorithm Identifier (not URL) of the hash algorithm
      *                      used in the hash chain. We assume that the
      *                      input data items were created with the same
      *                      algorithm. Example: SHA-256.
      * @throws Exception in case of errors
      */
-    public HashChainBuilder(String hashAlgorithm) throws Exception {
+    public EvidenceRecordHashChainBuilder(String hashAlgorithm) throws Exception {
         this.hashAlgorithm = hashAlgorithm;
         hashAlgorithmUri = getDigestAlgorithmURI(hashAlgorithm);
 
@@ -132,6 +155,7 @@ public final class HashChainBuilder {
 
     /**
      * Adds new input hash to the tree.
+     *
      * @param hash input hash to add
      */
     public void addInputHash(byte[] hash) {
@@ -146,6 +170,7 @@ public final class HashChainBuilder {
      * Adds a set of input hashes to the tree.
      * It is assumed that all the hashes come from the same message,
      * the first one being SOAP message and the rest being attachments.
+     *
      * @param hashes set of input nashes to add
      * @throws Exception in case of errors
      */
@@ -159,7 +184,7 @@ public final class HashChainBuilder {
             inputs.add(hashes[0]);
         } else {
             // Digest the attachments and add a single input.
-            inputs.add(digestHashStep(hashAlgorithm, hashes));
+            inputs.add(EvidenceRecordDigestList.digestHashStep(hashAlgorithm, hashes));
             // Record the original inputs in separate map.
             multiparts.put(inputs.size() - 1, hashes);
         }
@@ -167,6 +192,7 @@ public final class HashChainBuilder {
 
     /**
      * Finalizes the tree and computes the intermediate nodes and top hash.
+     *
      * @throws Exception in case of errors
      */
     public void finishBuilding() throws Exception {
@@ -194,6 +220,7 @@ public final class HashChainBuilder {
     /**
      * Returns the top hash of the Merkle tree, encoded as the HashChainResult
      * XML element. This data can be signed or time-stamped.
+     *
      * @param hashChainFileName name of the file containing the hash chain
      * @return top hash of the Merkle tree, encoded as the HashChainResult
      * XML element
@@ -227,6 +254,7 @@ public final class HashChainBuilder {
 
     /**
      * Returns XML-encoded hash chain for every input data item.
+     *
      * @param dataFileName name of the file containing data input items
      * @return XML-encoded hash chain for every input data item
      * @throws Exception in case of any errors
@@ -283,11 +311,11 @@ public final class HashChainBuilder {
                  i += 2) {
                 // Combine nodes[i] and nodes[i + 1]
                 LOG.trace("Nodes: Combining {} and {}", i, i + 1);
-                byte[] stepDigest = digestHashStep(hashAlgorithm,
+                byte[] stepDigest = EvidenceRecordDigestList.digestHashStep(hashAlgorithm,
                         nodes[i], nodes[i + 1]);
 
                 // Store the digest as parent of two inputs.
-                LOG.trace("Storing at {}", parentIdx(i));
+                LOG.trace("Storing at {} value {}", parentIdx(i), CryptoUtils.encodeBase64(stepDigest));
                 nodes[parentIdx(i)] = stepDigest;
             }
         }
@@ -303,12 +331,16 @@ public final class HashChainBuilder {
             int itemIdx = nodes.length + i;
 
             // Combine inputs[i] and inputs[i + 1]
-            LOG.trace("Inputs: Combining {} and {}", i, i + 1);
-            byte[] stepDigest = digestHashStep(hashAlgorithm,
+            LOG.trace("Inputs: Combining {} ({}) and {} ({})",
+                    i, encodeBase64(inputs.get(i)),
+                    i + 1, encodeBase64(inputs.get(i + 1)));
+            byte[] stepDigest = EvidenceRecordDigestList.digestHashStep(hashAlgorithm,
                     inputs.get(i), inputs.get(i + 1));
 
             // Store the digest as parent of two inputs.
-            LOG.trace("Storing at {}", parentIdx(itemIdx));
+            LOG.trace("Storing value {} at {}",
+                    encodeBase64(stepDigest),
+                    parentIdx(itemIdx));
             nodes[parentIdx(itemIdx)] = stepDigest;
         }
     }
@@ -316,7 +348,7 @@ public final class HashChainBuilder {
     /**
      * Returns the topmost hash of the Merkle tree.
      */
-    byte[] getTreeTop() {
+    public byte[] getTreeTop() {
         if (inputs.size() == 1) {
             // For single input, we do not build the nodes array
             // and directly return the input.
@@ -330,6 +362,7 @@ public final class HashChainBuilder {
      * For incomplete trees, the hashInputs and hashNodes methods did not
      * create the necessary intermediate nodes. This method walks the tree,
      * discovers the missing nodes and, if necessary, creates them.
+     *
      * @return the hash of the fixed tree node.
      */
     private byte[] fixTree(int nodeIdx) throws Exception {
@@ -367,9 +400,10 @@ public final class HashChainBuilder {
 
         // We have values from both left and right subtrees.
         // Combine them and store in the current node.
-        byte[] stepDigest = digestHashStep(hashAlgorithm,
+        byte[] stepDigest = EvidenceRecordDigestList.digestHashStep(hashAlgorithm,
                 leftValue, rightValue);
-        LOG.trace("Fixing: {} + {} -> {}", leftIdx(nodeIdx), rightIdx(nodeIdx), nodeIdx);
+        LOG.trace("Fixing: {} + {} -> {}. value: {}", new Object[]{
+                leftIdx(nodeIdx), rightIdx(nodeIdx), nodeIdx, Base64.getEncoder().encodeToString(stepDigest)});
         nodes[nodeIdx] = stepDigest;
         return stepDigest;
     }
@@ -407,7 +441,7 @@ public final class HashChainBuilder {
     /**
      * Returns XML-encoded hash chain for a n-th input data item.
      */
-    private String makeHashChain(int itemIndex) throws Exception {
+    public String makeHashChain(int itemIndex) throws Exception {
         LOG.trace("makeHashChain({})", itemIndex);
 
         HashChainType hashChain = new HashChainType();
