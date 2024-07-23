@@ -38,11 +38,7 @@
           <DisableClientButton v-if="showDisable" :id="id" @done="fetchData" />
           <EnableClientButton v-if="showEnable" :id="id" @done="fetchData" />
           <DeleteClientButton v-if="showDelete" :id="id" />
-          <UnregisterClientButton
-            v-if="showUnregister"
-            :id="id"
-            @done="fetchData"
-          />
+          <UnregisterClientButton v-if="showUnregister" :id="id" @done="fetchData" />
         </div>
       </v-row>
 
@@ -90,18 +86,24 @@ export default defineComponent({
       if (!this.client) return false;
       return (
         this.client &&
-        this.hasPermission(Permissions.SEND_CLIENT_DEL_REQ) &&
-        (this.client.status === ClientStatus.REGISTERED ||
-          this.client.status === ClientStatus.REGISTRATION_IN_PROGRESS)
+        this.hasPermission(Permissions.SEND_CLIENT_DEL_REQ) && [
+          ClientStatus.REGISTERED,
+          ClientStatus.REGISTRATION_IN_PROGRESS,
+          ClientStatus.DISABLED,
+        ].includes(this.client.status)
       );
     },
 
     showDelete(): boolean {
       if (
         !this.client ||
-        this.client.status === ClientStatus.REGISTERED ||
-        this.client.status === ClientStatus.REGISTRATION_IN_PROGRESS ||
-        this.client.status === ClientStatus.ENABLING_IN_PROGRESS
+        this.hasPermission(Permissions.SEND_CLIENT_DEL_REQ) && [
+          ClientStatus.REGISTERED,
+          ClientStatus.REGISTRATION_IN_PROGRESS,
+          ClientStatus.ENABLING_IN_PROGRESS,
+          ClientStatus.DISABLING_IN_PROGRESS,
+          ClientStatus.DISABLED,
+        ].includes(this.client.status)
       ) {
         return false;
       }

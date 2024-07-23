@@ -508,7 +508,7 @@ public class ClientService {
         auditDataHelper.put(clientId);
 
         ClientType client = getLocalClientOrThrowNotFound(clientId);
-        List<String> allowedStatuses = Arrays.asList(STATUS_REGISTERED, STATUS_REGINPROG);
+        List<String> allowedStatuses = Arrays.asList(STATUS_REGISTERED, STATUS_REGINPROG, STATUS_DISABLED);
         if (!allowedStatuses.contains(client.getClientStatus())) {
             throw new ActionNotPossibleException("cannot unregister client with status " + client.getClientStatus());
         }
@@ -820,7 +820,7 @@ public class ClientService {
             throw new CannotDeleteOwnerException();
         }
         // cant delete with statuses STATUS_REGINPROG and STATUS_REGISTERED
-        Set<String> allowedStatuses = Set.of(STATUS_SAVED, STATUS_DELINPROG, STATUS_GLOBALERR, STATUS_DISABLING_INPROG, STATUS_DISABLED);
+        Set<String> allowedStatuses = Set.of(STATUS_SAVED, STATUS_DELINPROG, STATUS_GLOBALERR);
         if (!allowedStatuses.contains(clientType.getClientStatus())) {
             throw new ActionNotPossibleException("cannot delete client with status " + clientType.getClientStatus());
         }
