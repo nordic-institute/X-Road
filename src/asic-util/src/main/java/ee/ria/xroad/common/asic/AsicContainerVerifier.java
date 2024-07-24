@@ -261,10 +261,9 @@ public class AsicContainerVerifier {
             Soap soap = new SaxSoapParserImpl().parse(
                     MimeTypes.TEXT_XML_UTF8,
                     new ByteArrayInputStream(messageBytes));
-            if (!(soap instanceof SoapMessageImpl)) {
+            if (!(soap instanceof SoapMessageImpl msg)) {
                 throw new RuntimeException("Unexpected SOAP: " + soap.getClass());
             }
-            SoapMessageImpl msg = (SoapMessageImpl) soap;
             return msg.isRequest()
                     ? msg.getClient() : msg.getService().getClientId();
         } catch (CodedException ce) {

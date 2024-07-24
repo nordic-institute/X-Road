@@ -373,29 +373,41 @@ public class ClientServiceIntegrationTest extends AbstractServiceIntegrationTest
     }
 
     @Test
-    public void deleteLocalClientWithStatusDisabledIsPossible() throws Exception {
+    public void deleteLocalClientWithStatusDisabledIsNotPossible() throws Exception {
         String status = STATUS_DISABLED;
         var startMembers = countMembers();
         var startSubsystems = countSubsystems();
         var startIdentifiers = countClientIdentifiers();
 
-        addAndDeleteLocalClient(MEMBER_FI_GOV_M3, status);
-        addAndDeleteLocalClient(SUBSYSTEM_FI_GOV_M3_SS_NEW, status);
+        try {
+            addAndDeleteLocalClient(MEMBER_FI_GOV_M3, status);
+        } catch (ActionNotPossibleException expected) {
+        }
+        try {
+            addAndDeleteLocalClient(SUBSYSTEM_FI_GOV_M3_SS_NEW, status);
+        } catch (ActionNotPossibleException expected) {
+        }
 
-        assertAfterDelete(startMembers, startSubsystems, startIdentifiers);
+        assertAfterCouldNotDelete(startMembers, startSubsystems, startIdentifiers);
     }
 
     @Test
-    public void deleteLocalClientWithStatusDisablingInProgressIsPossible() throws Exception {
+    public void deleteLocalClientWithStatusDisablingInProgressIsNotPossible() throws Exception {
         String status = STATUS_DISABLING_INPROG;
         var startMembers = countMembers();
         var startSubsystems = countSubsystems();
         var startIdentifiers = countClientIdentifiers();
 
-        addAndDeleteLocalClient(MEMBER_FI_GOV_M3, status);
-        addAndDeleteLocalClient(SUBSYSTEM_FI_GOV_M3_SS_NEW, status);
+        try {
+            addAndDeleteLocalClient(MEMBER_FI_GOV_M3, status);
+        } catch (ActionNotPossibleException expected) {
+        }
+        try {
+            addAndDeleteLocalClient(SUBSYSTEM_FI_GOV_M3_SS_NEW, status);
+        } catch (ActionNotPossibleException expected) {
+        }
 
-        assertAfterDelete(startMembers, startSubsystems, startIdentifiers);
+        assertAfterCouldNotDelete(startMembers, startSubsystems, startIdentifiers);
     }
 
     private void assertAfterDelete(long startMembers, long startSubsystems, long startIdentifiers) {

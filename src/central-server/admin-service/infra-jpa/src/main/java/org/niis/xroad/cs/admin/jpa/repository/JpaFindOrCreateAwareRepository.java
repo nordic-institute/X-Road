@@ -97,7 +97,7 @@ public interface JpaFindOrCreateAwareRepository<ENTITY, ID> extends JpaRepositor
 
         Optional<String> idColumnName = getIdColumnName(model);
         if (idColumnName.isPresent()) {
-            boolean isPersisted = model instanceof EntityExistsAwareEntity && ((EntityExistsAwareEntity) model).exists();
+            boolean isPersisted = model instanceof EntityExistsAwareEntity entity && entity.exists();
             if (isPersisted) {
                 return exampleMatcher.withOnlyPaths(idColumnName.get());
             } else {

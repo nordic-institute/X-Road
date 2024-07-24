@@ -61,7 +61,7 @@ import static org.niis.xroad.common.exception.util.CommonDeviationMessage.INVALI
 @Repository
 @RequiredArgsConstructor
 public class BackupRepository {
-    private static final String CONFIGURATION_BACKUP_PATH = SystemProperties.getConfBackupPath();
+    private final String configurationBackupPath = SystemProperties.getConfBackupPath();
     // Set maximum number of levels of directories to visit, subdirectories are excluded
     private static final int DIR_MAX_DEPTH = 1;
 
@@ -73,10 +73,10 @@ public class BackupRepository {
      * @return list of backup files
      */
     public List<BackupFile> getBackupFiles() {
-        var backupPath = Paths.get(CONFIGURATION_BACKUP_PATH);
+        var backupPath = Paths.get(configurationBackupPath);
         if (!Files.exists(backupPath)) {
             log.warn("Backup directory [{}] does not exist.",
-                    CONFIGURATION_BACKUP_PATH);
+                    configurationBackupPath);
             return Collections.emptyList();
         }
 
@@ -89,7 +89,7 @@ public class BackupRepository {
                     })
                     .collect(Collectors.toList());
         } catch (IOException ioe) {
-            log.error("can't read backup files from configuration path ({})", CONFIGURATION_BACKUP_PATH, ioe);
+            log.error("can't read backup files from configuration path ({})", configurationBackupPath, ioe);
             return Collections.emptyList();
         }
     }
@@ -171,7 +171,7 @@ public class BackupRepository {
      * Return configuration backup path with a trailing slash
      */
     public String getConfigurationBackupPath() {
-        return CONFIGURATION_BACKUP_PATH + (CONFIGURATION_BACKUP_PATH.endsWith(File.separator) ? "" : File.separator);
+        return configurationBackupPath + (configurationBackupPath.endsWith(File.separator) ? "" : File.separator);
     }
 
     /**
@@ -181,7 +181,11 @@ public class BackupRepository {
      * @return path to the file
      */
     public Path getAbsoluteBackupFilePath(String filename) {
-        return Paths.get(CONFIGURATION_BACKUP_PATH).resolve(filename);
+        final var resolved = Paths.get(configurationBackupPath).resolve(filename);
+        if (!resolved.normalize().startsWith(Paths.get(configurationBackupPath))) {
+            throw new ServiceException(INVALID_FILENAME, filename);
+        }
+        return resolved;
     }
 
 

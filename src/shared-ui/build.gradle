@@ -1,7 +1,7 @@
 import org.siouan.frontendgradleplugin.infrastructure.gradle.RunPnpm
 
 plugins {
-    alias(libs.plugins.frontendJDK17)
+    alias(libs.plugins.frontendJDK21)
 }
 
 frontend {

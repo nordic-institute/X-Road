@@ -49,8 +49,7 @@ public final class ConfigurationClientUtils {
      * @return error code
      */
     public static int getErrorCode(Exception e) {
-        if (e instanceof CodedException) {
-            CodedException ce = (CodedException) e;
+        if (e instanceof CodedException ce) {
             switch (ce.getFaultCode()) {
                 case X_HTTP_ERROR:
                     return ERROR_CODE_CANNOT_DOWNLOAD_CONF;

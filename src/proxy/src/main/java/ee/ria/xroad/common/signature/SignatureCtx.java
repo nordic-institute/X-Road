@@ -165,13 +165,10 @@ class SignatureCtx {
         return new ResourceResolverSpi() {
             @Override
             public boolean engineCanResolveURI(ResourceResolverContext context) {
-                switch (context.attr.getValue()) {
-                    case MessageFileNames.MESSAGE:
-                    case MessageFileNames.SIG_HASH_CHAIN_RESULT:
-                        return true;
-                    default:
-                        return false;
-                }
+                return switch (context.attr.getValue()) {
+                    case MessageFileNames.MESSAGE, MessageFileNames.SIG_HASH_CHAIN_RESULT -> true;
+                    default -> false;
+                };
             }
 
             @Override

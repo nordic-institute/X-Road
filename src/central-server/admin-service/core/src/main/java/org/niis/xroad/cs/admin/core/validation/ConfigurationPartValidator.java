@@ -48,17 +48,10 @@ public class ConfigurationPartValidator {
         final String content = new String(data, UTF_8);
         try {
             switch (contentIdentifier) {
-                case CONTENT_ID_MONITORING:
-                    MonitoringParametersSchemaValidator.validate(content);
-                    break;
-                case CONTENT_ID_OCSP_FETCH_INTERVAL:
-                    OcspFetchIntervalSchemaValidator.validate(content);
-                    break;
-                case CONTENT_ID_OCSP_NEXT_UPDATE:
-                    OcspNextUpdateSchemaValidator.validate(content);
-                    break;
-                default:
-                    throw new ValidationFailureException(CONFIGURATION_PART_VALIDATOR_NOT_FOUND);
+                case CONTENT_ID_MONITORING -> MonitoringParametersSchemaValidator.validate(content);
+                case CONTENT_ID_OCSP_FETCH_INTERVAL -> OcspFetchIntervalSchemaValidator.validate(content);
+                case CONTENT_ID_OCSP_NEXT_UPDATE -> OcspNextUpdateSchemaValidator.validate(content);
+                default -> throw new ValidationFailureException(CONFIGURATION_PART_VALIDATOR_NOT_FOUND);
             }
         } catch (Exception e) {
             throw new ValidationFailureException(CONFIGURATION_PART_VALIDATION_FAILED, e);

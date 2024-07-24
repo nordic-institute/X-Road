@@ -350,16 +350,12 @@ final class Helper {
         return new NamespaceContext() {
             @Override
             public String getNamespaceURI(String prefix) {
-                switch (prefix) {
-                    case "asic":
-                        return NS_ASIC;
-                    case "ds":
-                        return NS_DS;
-                    case "xades":
-                        return NS_XADES;
-                    default:
-                        return null;
-                }
+                return switch (prefix) {
+                    case "asic" -> NS_ASIC;
+                    case "ds" -> NS_DS;
+                    case "xades" -> NS_XADES;
+                    default -> null;
+                };
             }
 
             @SuppressWarnings("rawtypes")

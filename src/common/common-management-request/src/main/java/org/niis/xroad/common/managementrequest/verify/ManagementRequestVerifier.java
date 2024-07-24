@@ -160,25 +160,16 @@ public final class ManagementRequestVerifier {
             throw new CodedException(X_INVALID_REQUEST, "Failed to parse SOAP request. Decoder was not fully initialized.");
         }
         Object request = cb.getManagementRequestDecoderCallback().getRequest();
-        if (request == null) {
-            throw new CodedException(X_INVALID_REQUEST, "Failed to parse SOAP request");
-        }
 
-        if (request instanceof AuthCertRegRequestType authCertRegRequestType) {
-            return new Result(cb.getSoapMessage(), authCertRegRequestType);
-        }
-        if (request instanceof AuthCertDeletionRequestType authCertDeletionRequestType) {
-            return new Result(cb.getSoapMessage(), authCertDeletionRequestType);
-        }
-        if (request instanceof ClientRequestType clientRequestType) {
-            return new Result(cb.getSoapMessage(), cb.getRequestType(), clientRequestType);
-        }
-        if (request instanceof AddressChangeRequestType addressChangeRequestType) {
-            return new Result(cb.getSoapMessage(), addressChangeRequestType);
-        }
-
-        throw new CodedException(X_INVALID_REQUEST, "Unrecognized soap request of type '%s'",
-                request.getClass().getSimpleName());
+        return switch (request) {
+            case null -> throw new CodedException(X_INVALID_REQUEST, "Failed to parse SOAP request");
+            case AuthCertRegRequestType authCertRegRequestType -> new Result(cb.getSoapMessage(), authCertRegRequestType);
+            case AuthCertDeletionRequestType authCertDeletionRequestType -> new Result(cb.getSoapMessage(), authCertDeletionRequestType);
+            case ClientRequestType clientRequestType -> new Result(cb.getSoapMessage(), cb.getRequestType(), clientRequestType);
+            case AddressChangeRequestType addressChangeRequestType -> new Result(cb.getSoapMessage(), addressChangeRequestType);
+            default -> throw new CodedException(X_INVALID_REQUEST, "Unrecognized soap request of type '%s'",
+                    request.getClass().getSimpleName());
+        };
     }
 
     @Getter
@@ -202,7 +193,6 @@ public final class ManagementRequestVerifier {
                 case ADDRESS_CHANGE_REQUEST -> new AddressChangeRequestCallback(this);
                 case CLIENT_DISABLE_REQUEST -> new ClientDisableRequestCallback(this);
                 case CLIENT_ENABLE_REQUEST -> new ClientEnableRequestCallback(this);
-                default -> throw new CodedException(X_INVALID_REQUEST, "Unsupported request type %s", requestType);
             };
         }
 
