@@ -1,0 +1,65 @@
+# E2E specific hurl execution on boot.
+services:
+  ss0:
+    environment:
+      - SIGNER_TELEMETRY_PARAMS=$TELEMETRY_COMMON_PARAMS -Dotel.service.name=ss0-signer -Xmx96m -XX:MaxMetaspaceSize=128m
+      - PROXY_TELEMETRY_PARAMS=$TELEMETRY_COMMON_PARAMS -Dotel.service.name=ss0-proxy -Xmx768m -XX:MaxMetaspaceSize=200m
+      - OTEL_INSTRUMENTATION_JDBC_ENABLED=false
+    deploy:
+      resources:
+        reservations:
+          memory: 2G
+        limits:
+          memory: 4G
+    depends_on:
+      jaeger:
+        condition: service_healthy
+  ss1:
+    environment:
+      - SIGNER_TELEMETRY_PARAMS=$TELEMETRY_COMMON_PARAMS -Dotel.service.name=ss1-signer -Xmx96m -XX:MaxMetaspaceSize=128m
+      - PROXY_TELEMETRY_PARAMS=$TELEMETRY_COMMON_PARAMS -Dotel.service.name=ss1-proxy -Xmx768m -XX:MaxMetaspaceSize=200m
+      - OTEL_INSTRUMENTATION_JDBC_ENABLED=false
+    deploy:
+      resources:
+        reservations:
+          memory: 2G
+        limits:
+          memory: 4G
+    depends_on:
+      jaeger:
+        condition: service_healthy
+  jaeger:
+    image: jaegertracing/all-in-one:1.59
+    environment:
+      - MEMORY_MAX_TRACES=2000
+      - COLLECTOR_OTLP_ENABLED=true
+      - COLLECTOR_OTLP_HTTP_HOST_PORT=0.0.0.0:4318
+      - COLLECTOR_OTLP_GRPC_HOST_PORT=0.0.0.0:4317
+    deploy:
+      resources:
+        reservations:
+          memory: 512M
+        limits:
+          memory: 768M
+    ports:
+      - 16686:16686
+    networks:
+      - xroad-network
+    healthcheck:
+      interval: 5s
+      retries: 40
+      test: [ "CMD", "wget", "-qO-", "http://127.0.0.1:16686/" ]
+  payloadgen:
+    image: xrd-payloadgen:latest
+    deploy:
+      resources:
+        reservations:
+          memory: 64M
+        limits:
+          memory: 128M
+    networks:
+      - xroad-network
+    healthcheck:
+      interval: 5s
+      retries: 40
+      test: [ "CMD", "wget", "-qO-", "http://127.0.0.1:8080/data/1" ]

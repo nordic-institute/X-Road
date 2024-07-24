@@ -37,6 +37,7 @@ import ee.ria.xroad.proxy.opmonitoring.OpMonitoring;
 import ee.ria.xroad.proxy.util.MessageProcessorBase;
 import ee.ria.xroad.proxy.util.PerformanceLogger;
 
+import io.opentelemetry.instrumentation.annotations.WithSpan;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.ArrayUtils;
@@ -71,6 +72,7 @@ abstract class AbstractClientProxyHandler extends HandlerBase {
                                                          OpMonitoringData opMonitoringData) throws Exception;
 
     @Override
+    @WithSpan
     public boolean handle(Request request, Response response, Callback callback) throws Exception {
         boolean handled = false;
 

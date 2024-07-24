@@ -53,6 +53,7 @@ import ee.ria.xroad.proxy.protocol.ProxyMessageDecoder;
 import ee.ria.xroad.proxy.protocol.ProxyMessageEncoder;
 import ee.ria.xroad.proxy.util.MessageProcessorBase;
 
+import io.opentelemetry.instrumentation.annotations.WithSpan;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.input.TeeInputStream;
 import org.apache.commons.lang3.ArrayUtils;
@@ -139,6 +140,7 @@ class ServerRestMessageProcessor extends MessageProcessorBase {
     }
 
     @Override
+    @WithSpan
     public void process() throws Exception {
         log.info("process({})", jRequest.getContentType());
 
