@@ -48,6 +48,10 @@ import ee.ria.xroad.proxy.protocol.ProxyMessage;
 import ee.ria.xroad.proxy.protocol.ProxyMessageDecoder;
 import ee.ria.xroad.proxy.protocol.ProxyMessageEncoder;
 
+import io.opentelemetry.api.GlobalOpenTelemetry;
+import io.opentelemetry.api.OpenTelemetry;
+import io.opentelemetry.context.Context;
+import io.opentelemetry.instrumentation.annotations.WithSpan;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.IOUtils;
 import org.apache.http.client.HttpClient;
@@ -65,6 +69,7 @@ import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
+import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.TimeUnit;
 
 import static ee.ria.xroad.common.ErrorCodes.X_INCONSISTENT_RESPONSE;
@@ -137,13 +142,18 @@ class ClientMessageProcessor extends AbstractClientMessageProcessor {
      */
     private ProxyMessage response;
 
-    private static final ExecutorService SOAP_HANDLER_EXECUTOR = Executors.newThreadPerTaskExecutor(ClientMessageProcessor::threadBuilder);
+    private static final ExecutorService SOAP_HANDLER_EXECUTOR = createSoapHandlerExecutor();
 
-    private static Thread threadBuilder(Runnable task) {
-        Thread handlerThread = Thread.ofVirtual().unstarted(task);
-        handlerThread.setName(Thread.currentThread().getName() + "-soap");
+    private static ExecutorService createSoapHandlerExecutor() {
+        ThreadFactory factory = Thread.ofVirtual().name("soap-handler-executor", 0L).factory();
 
-        return handlerThread;
+        var executor = Executors.newThreadPerTaskExecutor(factory);
+        if (OpenTelemetry.noop().equals(GlobalOpenTelemetry.get())) {
+            return executor;
+        }
+
+        log.info("OpenTelemetry is enabled, wrapping executor with OpenTelemetry context propagation");
+        return Context.taskWrapping(executor);
     }
 
     ClientMessageProcessor(RequestWrapper request, ResponseWrapper response,
@@ -156,6 +166,7 @@ class ClientMessageProcessor extends AbstractClientMessageProcessor {
     }
 
     @Override
+    @WithSpan
     public void process() throws Exception {
         log.trace("process()");
 
@@ -423,6 +434,7 @@ class ClientMessageProcessor extends AbstractClientMessageProcessor {
         }
     }
 
+    @WithSpan
     public void handleSoap() {
         try (SoapMessageHandler handler = new SoapMessageHandler()) {
             SoapMessageDecoder soapMessageDecoder = new SoapMessageDecoder(jRequest.getContentType(),
