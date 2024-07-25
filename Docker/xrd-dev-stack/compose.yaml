@@ -83,7 +83,9 @@ services:
     volumes:
       - ./wiremock_mappings:/home/wiremock/mappings
   hurl:
-    image: ghcr.io/orange-opensource/hurl:latest
+    build:
+        context: .
+        dockerfile: ./hurl/Dockerfile
     deploy:
       resources:
         reservations:
@@ -91,7 +93,6 @@ services:
         limits:
           memory: 128M
     volumes:
-      - ./hurl-src:/hurl-src
       - ca-volume:/hurl-files/ca
     depends_on:
       cs:
