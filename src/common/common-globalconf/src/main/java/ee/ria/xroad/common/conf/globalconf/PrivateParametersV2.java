@@ -69,11 +69,16 @@ public class PrivateParametersV2 extends AbstractXmlConf<PrivateParametersType> 
         initCompleted = true;
     }
 
-    PrivateParametersV2(PrivateParametersV2 original, OffsetDateTime newExpiresOn) {
+    private PrivateParametersV2(PrivateParametersV2 original, OffsetDateTime newExpiresOn) {
         super(original);
         expiresOn = newExpiresOn;
         privateParameters = original.getPrivateParameters();
         initCompleted = true;
+    }
+
+    @Override
+    public PrivateParametersProvider refresh(OffsetDateTime fileExpiresOn) {
+        return new PrivateParametersV2(this, fileExpiresOn);
     }
 
     @Override

@@ -46,6 +46,10 @@ public class CertRequest {
 
     private final String subjectName;
 
+    private final String subjectAltName;
+
+    private final String certificateProfile;
+
     /**
      * Converts this object to value object.
      *
@@ -55,6 +59,8 @@ public class CertRequest {
         final CertRequestInfoProto.Builder builder = CertRequestInfoProto.newBuilder()
                 .setId(id)
                 .setSubjectName(subjectName);
+        ofNullable(subjectAltName).ifPresent(builder::setSubjectAltName);
+        ofNullable(certificateProfile).ifPresent(builder::setCertificateProfile);
         ofNullable(memberId).map(ClientIdMapper::toDto).ifPresent(builder::setMemberId);
         return builder.build();
     }

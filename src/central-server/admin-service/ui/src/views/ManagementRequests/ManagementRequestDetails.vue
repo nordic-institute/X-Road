@@ -174,17 +174,24 @@ export default defineComponent({
         ManagementRequestType.OWNER_CHANGE_REQUEST,
       ].includes(this.managementRequestsStore.currentManagementRequest.type);
     },
+    newClientOwner(): boolean {
+      const req = this.managementRequestsStore.currentManagementRequest;
+      return (
+        !!req &&
+        req.type === ManagementRequestType.CLIENT_REGISTRATION_REQUEST &&
+        !req.client_owner_name
+      );
+    },
+    newServerOwner(): boolean {
+      const req = this.managementRequestsStore.currentManagementRequest;
+      return (
+        !!req &&
+        req.type === ManagementRequestType.AUTH_CERT_REGISTRATION_REQUEST &&
+        !req.security_server_owner
+      );
+    },
     newMember(): boolean {
-      if (this.managementRequestsStore.currentManagementRequest) {
-        const req = this.managementRequestsStore.currentManagementRequest;
-        return (
-          [
-            ManagementRequestType.CLIENT_REGISTRATION_REQUEST,
-            ManagementRequestType.AUTH_CERT_REGISTRATION_REQUEST,
-          ].includes(req.type) && !req.client_owner_name
-        );
-      }
-      return false;
+      return this.newClientOwner || this.newServerOwner;
     },
   },
   created() {

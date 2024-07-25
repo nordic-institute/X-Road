@@ -87,18 +87,18 @@ Feature: 0510 - SS: Client Local groups
     And Local group description is set to ""
     Then Form shows an error "The Description field is required"
     And Local group description is set to "edited"
-    When Local group search dialog is opened and members for instance "CS" and member class "GOV" are filtered
+    When Local group search dialog is opened and members for instance "DEV" and member class "COM" are filtered
     And Following members are added to local group:
-      | CS:GOV:0245437-2:random-sub-1  |
-      | CS:GOV:0245437-2:test-consumer |
+      | DEV:COM:1234:random-sub-1  |
+      | DEV:COM:1234:test-consumer |
     Then Following members are present in local group:
-      | CS:GOV:0245437-2:random-sub-1  |
-      | CS:GOV:0245437-2:test-consumer |
+      | DEV:COM:1234:random-sub-1  |
+      | DEV:COM:1234:test-consumer |
 
   Scenario: Local group group-1 member is removed
     When Client "TestService" is opened
     And Local groups sub-tab is selected
     And Local group "group-1" is selected
-    And Local group member "CS:GOV:0245437-2:test-consumer" is removed
+    And Local group member "DEV:COM:1234:test-consumer" is removed
     Then Following members are missing in local group:
-      | CS:GOV:0245437-2:test-consumer |
+      | DEV:COM:1234:test-consumer |

@@ -38,9 +38,6 @@ import org.niis.xroad.common.exception.ValidationFailureException;
 import org.niis.xroad.restapi.common.backup.dto.BackupFile;
 import org.niis.xroad.restapi.exceptions.DeviationCodes;
 import org.niis.xroad.restapi.exceptions.WarningDeviation;
-import org.niis.xroad.restapi.openapi.BadRequestException;
-import org.niis.xroad.restapi.openapi.InternalServerErrorException;
-import org.niis.xroad.restapi.openapi.ResourceNotFoundException;
 import org.niis.xroad.restapi.service.UnhandledWarningsException;
 import org.niis.xroad.securityserver.restapi.openapi.model.Backup;
 import org.niis.xroad.securityserver.restapi.openapi.model.TokensLoggedOut;
@@ -170,7 +167,7 @@ public class BackupsApiControllerTest extends AbstractApiControllerTestContext {
         try {
             ResponseEntity<Void> response = backupsApiController.deleteBackup(filename);
             fail("should throw ResourceNotFoundException");
-        } catch (ResourceNotFoundException expected) {
+        } catch (NotFoundException expected) {
             // success
         }
     }
@@ -199,7 +196,7 @@ public class BackupsApiControllerTest extends AbstractApiControllerTestContext {
             ResponseEntity<Resource> response = backupsApiController
                     .downloadBackup(filename);
             fail("should throw ResourceNotFoundException");
-        } catch (ResourceNotFoundException expected) {
+        } catch (NotFoundException expected) {
             // success
         }
     }
@@ -223,7 +220,7 @@ public class BackupsApiControllerTest extends AbstractApiControllerTestContext {
         try {
             ResponseEntity<Backup> response = backupsApiController.addBackup();
             fail("should throw InternalServerErrorException");
-        } catch (InternalServerErrorException expected) {
+        } catch (ServiceException expected) {
             // success
         }
     }
@@ -266,7 +263,7 @@ public class BackupsApiControllerTest extends AbstractApiControllerTestContext {
         try {
             ResponseEntity<Backup> response = backupsApiController.uploadBackup(false, mockMultipartFile);
             fail("should throw BadRequestException");
-        } catch (BadRequestException expected) {
+        } catch (ServiceException expected) {
             // success
         }
     }
@@ -313,7 +310,7 @@ public class BackupsApiControllerTest extends AbstractApiControllerTestContext {
         try {
             backupsApiController.restoreBackup(BACKUP_FILE_1_NAME);
             fail("should throw BadRequestException");
-        } catch (NotFoundException e) {
+        } catch (ServiceException e) {
             Assert.assertEquals(DeviationCodes.ERROR_BACKUP_FILE_NOT_FOUND, e.getErrorDeviation().getCode());
         }
     }
@@ -325,7 +322,7 @@ public class BackupsApiControllerTest extends AbstractApiControllerTestContext {
         try {
             backupsApiController.restoreBackup(BACKUP_FILE_1_NAME);
             fail("should throw InternalServerErrorException");
-        } catch (InternalServerErrorException e) {
+        } catch (ServiceException e) {
             // expected
         }
     }

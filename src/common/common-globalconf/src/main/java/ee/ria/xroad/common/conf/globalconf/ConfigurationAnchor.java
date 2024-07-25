@@ -85,7 +85,7 @@ public class ConfigurationAnchor
     @Override
     public List<ConfigurationLocation> getLocations() {
         return confType.getSource().stream()
-                .map(l -> new ConfigurationLocation(this, l.getDownloadURL(), l.getVerificationCert()))
+                .map(l -> new ConfigurationLocation(this.getInstanceIdentifier(), l.getDownloadURL(), l.getVerificationCert()))
                 .collect(Collectors.toList());
     }
 

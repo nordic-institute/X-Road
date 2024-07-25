@@ -53,11 +53,11 @@ class SingleTimestampRequest extends AbstractTimestampRequest {
     byte[] getRequestData() throws Exception {
         LogRecord record = LogRecordManager.get(logRecords[0]);
 
-        if (record == null || !(record instanceof MessageRecord)) {
+        if (!(record instanceof MessageRecord mr)) {
             throw new CodedException(X_INTERNAL_ERROR, "Could not find message record #" + logRecords[0]);
         }
 
-        message = (MessageRecord) record;
+        message = mr;
 
         signature = new Signature(message.getSignature());
 

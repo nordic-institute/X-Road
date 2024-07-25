@@ -124,19 +124,12 @@ public class AuditDataHelper {
     }
 
     private String getAuditLoggedValue(IsAuthentication isAuthentication) {
-        if (isAuthentication == null) {
-            return null;
-        }
-        switch (isAuthentication) {
-            case SSLAUTH:
-                return "HTTPS";
-            case SSLNOAUTH:
-                return "HTTPS NO AUTH";
-            case NOSSL:
-                return "HTTP";
-            default:
-                throw new IllegalStateException("invalid isAuthentication " + isAuthentication);
-        }
+        return switch (isAuthentication) {
+            case SSLAUTH -> "HTTPS";
+            case SSLNOAUTH -> "HTTPS NO AUTH";
+            case NOSSL -> "HTTP";
+            case null -> null;
+        };
     }
 
     /**

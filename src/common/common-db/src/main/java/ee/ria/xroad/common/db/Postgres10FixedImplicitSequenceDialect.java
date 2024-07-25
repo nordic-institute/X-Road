@@ -41,23 +41,28 @@ import org.hibernate.dialect.PostgreSQLDialect;
 @NoCoverage
 public class Postgres10FixedImplicitSequenceDialect extends PostgreSQLDialect {
 
+    @SuppressWarnings("checkstyle:MagicNumber")
     @Override
     public String getQuerySequencesString() {
-        return String.join(" ",
-                "SELECT",
-                "    current_catalog AS sequence_catalog,",
-                "    schemaname AS sequence_schema,",
-                "    sequencename AS sequence_name,",
-                "    start_value,",
-                "    min_value AS minimum_value,",
-                "    max_value AS maximum_value,",
-                "    increment_by AS increment",
-                "FROM pg_catalog.pg_sequences",
-                "WHERE schemaname NOT IN (SELECT schema_name",
-                "                         FROM INFORMATION_SCHEMA.schemata",
-                "                         WHERE schema_name <> 'public' AND",
-                "                               schema_owner = 'postgres' AND",
-                "                               schema_name IS NOT NULL)");
+        if (getVersion().getDatabaseMajorVersion() >= 10) {
+            return String.join(" ",
+                    "SELECT",
+                    "    current_catalog AS sequence_catalog,",
+                    "    schemaname AS sequence_schema,",
+                    "    sequencename AS sequence_name,",
+                    "    start_value,",
+                    "    min_value AS minimum_value,",
+                    "    max_value AS maximum_value,",
+                    "    increment_by AS increment",
+                    "FROM pg_catalog.pg_sequences",
+                    "WHERE schemaname NOT IN (SELECT schema_name",
+                    "                         FROM INFORMATION_SCHEMA.schemata",
+                    "                         WHERE schema_name <> 'public' AND",
+                    "                               schema_owner = 'postgres' AND",
+                    "                               schema_name IS NOT NULL)");
+        } else {
+            return super.getQuerySequencesString();
+        }
     }
 
 }

@@ -166,24 +166,22 @@ public class Message {
         @Override
         public void body(BodyDescriptor bd, InputStream is)
                 throws MimeException, IOException {
-            switch (nextPart) {
-                case 0: // SOAP
-                    try {
-                        soap = new SoapParserImpl().parse(
-                                contentTypeWithCharset(
-                                        bd.getMimeType(),
-                                        bd.getCharset()
-                                ),
-                                is);
-                    } catch (Exception e) {
-                        throw new RuntimeException(e);
-                    }
+            // ATTACHMENT
+            if (nextPart == 0) { // SOAP
+                try {
+                    soap = new SoapParserImpl().parse(
+                            contentTypeWithCharset(
+                                    bd.getMimeType(),
+                                    bd.getCharset()
+                            ),
+                            is);
+                } catch (Exception e) {
+                    throw new RuntimeException(e);
+                }
 
-                    nextPart = 1;
-                    break;
-                default: // ATTACHMENT
-                    numAttachments++;
-                    break;
+                nextPart = 1;
+            } else {
+                numAttachments++;
             }
         }
     }

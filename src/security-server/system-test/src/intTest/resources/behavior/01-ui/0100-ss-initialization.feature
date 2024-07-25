@@ -14,7 +14,7 @@ Feature: 0100 - SS: Initialization
     And Configuration anchor "configuration_anchor_CS_internal.xml" is uploaded
     And Configuration anchor details are confirmed
     Then Configuration anchor selection is submitted
-    When Initial configuration of Owner member is set to class: GOV, code: 0245437-2 & Security Server Code: SS1
+    When Initial configuration of Owner member is set to class: COM, code: 1234 & Security Server Code: SS0
     Then Owner member configuration is submitted
     And Alert about token policy being enforced is present
     When PIN is set to "T0ken1zer3"

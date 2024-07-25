@@ -47,6 +47,7 @@ public class KeyAndCertPageObj {
     public final AddKeyWizardDetails addKeyWizardDetails = new AddKeyWizardDetails();
     public final AddKeyWizardCsrDetails addKeyWizardCsrDetails = new AddKeyWizardCsrDetails();
     public final AddKeyWizardGenerate addKeyWizardGenerate = new AddKeyWizardGenerate();
+    public final AcmeOrderCertificateDialog acmeOrderCertificateDialog = new AcmeOrderCertificateDialog();
 
     public static class TokenLoginDialog {
         public SelenideElement inputPin() {
@@ -163,9 +164,23 @@ public class KeyAndCertPageObj {
                     + "//tr//button[@data-test='delete-csr-button'][%d]", token, pos));
         }
 
+        public SelenideElement btnAcmeOrderAuthCertByPos(int pos) {
+            return $x(format(X_TOKEN_EXPANDABLE_W_FOLLOWING + "div[@data-test='auth-keys-table']"
+                    + "//tr//button[@data-test='order-acme-certificate-button'][%d]", token, pos));
+        }
+
         public SelenideElement btnDeleteSignCsrByPos(int pos) {
             return $x(format(X_TOKEN_EXPANDABLE_W_FOLLOWING + "div[@data-test='sign-keys-table']"
                     + "//tr//button[@data-test='delete-csr-button'][%d]", token, pos));
+        }
+
+        public SelenideElement btnAcmeOrderSignCertByPos(int pos) {
+            return $x(format(X_TOKEN_EXPANDABLE_W_FOLLOWING + "div[@data-test='sign-keys-table']"
+                    + "//tr//button[@data-test='order-acme-certificate-button'][%d]", token, pos));
+        }
+
+        public SelenideElement btnAcmeOrderCertByLabel(String label) {
+            return $x(format("//tbody[//span[text() = '%s']]//button[@data-test='order-acme-certificate-button']", label));
         }
 
         public SelenideElement btnImportCert() {
@@ -244,13 +259,30 @@ public class KeyAndCertPageObj {
             return $x("//button[@data-test='generate-csr-button']");
         }
 
+        public SelenideElement acmeOrderButton() {
+            return $x("//button[@data-test='acme-order-certificate-button']");
+        }
+
         public SelenideElement organizationName() {
             return $x("//div[@data-test='dynamic-csr-input_O']");
         }
 
-        public SelenideElement serverDNS() {
+        public SelenideElement commonName() {
             return $x("//div[@data-test='dynamic-csr-input_CN']");
         }
+
+        public SelenideElement subjectAltName() {
+            return $x("//div[@data-test='dynamic-csr-input_subjectAltName']");
+        }
+
+    }
+
+    public static class AcmeOrderCertificateDialog {
+
+        public SelenideElement certificateAuthority() {
+            return $x("//div[@data-test='csr-certification-service-select']");
+        }
+
     }
 
 }

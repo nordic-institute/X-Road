@@ -115,12 +115,11 @@ public class LogManager extends AbstractLogManager {
 
     @Override
     public void log(LogMessage message) throws Exception {
-        MessageRecord logRecord;
-        if (message instanceof SoapLogMessage) {
-            logRecord = createMessageRecord((SoapLogMessage) message);
-        } else {
-            logRecord = createMessageRecord((RestLogMessage) message);
-        }
+        MessageRecord logRecord = switch (message) {
+            case SoapLogMessage sm -> createMessageRecord(sm);
+            case RestLogMessage rm -> createMessageRecord(rm);
+        };
+
         log(logRecord);
     }
 
@@ -175,18 +174,16 @@ public class LogManager extends AbstractLogManager {
 
         Timestamper.TimestampResult result = timestamper.handleTimestampTask(new Timestamper.TimestampTask(logRecord));
 
-        if (result instanceof Timestamper.TimestampSucceeded) {
-            return saveTimestampRecord((Timestamper.TimestampSucceeded) result);
-        } else if (result instanceof Timestamper.TimestampFailed) {
-            Exception e = ((Timestamper.TimestampFailed) result).getCause();
-
-            log.error("Timestamping failed", e);
-
-            putStatusMapFailures(e);
-
-            throw e;
-        } else {
-            throw new RuntimeException("Unexpected result from Timestamper: " + result.getClass());
+        switch (result) {
+            case Timestamper.TimestampSucceeded tts:
+                return saveTimestampRecord(tts);
+            case Timestamper.TimestampFailed ttf:
+                Exception e = ttf.getCause();
+                log.error("Timestamping failed", e);
+                putStatusMapFailures(e);
+                throw e;
+            default:
+                throw new RuntimeException("Unexpected result from Timestamper: " + result.getClass());
         }
     }
 

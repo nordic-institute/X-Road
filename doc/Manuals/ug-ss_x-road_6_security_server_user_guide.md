@@ -2,7 +2,7 @@
 
 **X-ROAD 7**
 
-Version: 2.83  
+Version: 2.85  
 Doc. ID: UG-SS
 
 ---
@@ -112,6 +112,8 @@ Doc. ID: UG-SS
 | 11.12.2023 | 2.81    | Add a chapter about LDAP over PAM configuration                                                                                                                                                                                                                                                                                                                                                             | Ričardas Bučiūnas    |
 | 08.12.2023 | 2.82    | Disabled client state                                                                                                                                                                                                                                                                                                                                                                                       | Madis Loitmaa        |
 | 26.03.2024 | 2.83    | Passing additional parameters to psql                                                                                                                                                                                                                                                                                                                                                                       | Ovidijus Narkevicius |
+| 09.06.2024 | 2.84    | Acme related updates                                                                                                                                                                                                                                                                                                                                                                                        | Mikk-Erik Bachmann   |
+| 12.06.2024 | 2.85    | Acme related updates                                                                                                                                                                                                                                                                                                                                                                                        | Petteri Kivimäki     |
 
 ## Table of Contents <!-- omit in toc -->
 
@@ -258,6 +260,7 @@ Doc. ID: UG-SS
 - [21 Adding command line arguments](#21-adding-command-line-arguments)
 - [22 Additional Security Hardening](#22-additional-security-hardening)
 - [23 Passing additional parameters to psql](#23-passing-additional-parameters-to-psql)
+- [24 Configuring ACME](#24-configuring-acme)
 
 <!-- vim-markdown-toc -->
 <!-- tocstop -->
@@ -299,27 +302,27 @@ See X-Road terms and abbreviations documentation \[[TA-TERMS](#Ref_TERMS)\].
 
 ### 1.3 References
 
-1.  <a id="Ref_ASiC" class="anchor"></a>\[ASiC\] ETSI TS 102 918, Electronic Signatures and Infrastructures (ESI); Associated Signature Containers (ASiC)
+1. <a id="Ref_ASiC" class="anchor"></a>\[ASiC\] ETSI TS 102 918, Electronic Signatures and Infrastructures (ESI); Associated Signature Containers (ASiC)
 
-2.  <a id="Ref_CRON" class="anchor"></a>\[CRON\] Quartz Scheduler CRON expression,  
+2. <a id="Ref_CRON" class="anchor"></a>\[CRON\] Quartz Scheduler CRON expression,  
     <http://www.quartz-scheduler.org/documentation/quartz-2.3.0/tutorials/tutorial-lesson-06.html>
 
-3.  <a id="Ref_INI" class="anchor"></a>\[INI\] INI file,  
+3. <a id="Ref_INI" class="anchor"></a>\[INI\] INI file,  
     <http://en.wikipedia.org/wiki/INI_file>
 
-4.  <a id="Ref_JDBC" class="anchor"></a>\[JDBC\] Connecting to the Database,   
+4. <a id="Ref_JDBC" class="anchor"></a>\[JDBC\] Connecting to the Database,   
     <https://jdbc.postgresql.org/documentation/93/connect.html>
 
-5.  <a id="Ref_JSON" class="anchor"></a>\[JSON\] Introducing JSON,  
+5. <a id="Ref_JSON" class="anchor"></a>\[JSON\] Introducing JSON,  
     <http://json.org/>
 
-6.  <a id="Ref_PR-MESS" class="anchor"></a>\[PR-MESS\] X-Road: Message Protocol v4.0. Document ID: [PR-MESS](../Protocols/pr-mess_x-road_message_protocol.md)
+6. <a id="Ref_PR-MESS" class="anchor"></a>\[PR-MESS\] X-Road: Message Protocol v4.0. Document ID: [PR-MESS](../Protocols/pr-mess_x-road_message_protocol.md)
 
-7.  <a id="Ref_SPEC-AL" class="anchor"></a>\[SPEC-AL\] X-Road: Audit log events. Document ID: [SPEC-AL](https://github.com/nordic-institute/X-Road/blob/master/doc/Architecture/spec-al_x-road_audit_log_events.md)
+7. <a id="Ref_SPEC-AL" class="anchor"></a>\[SPEC-AL\] X-Road: Audit log events. Document ID: [SPEC-AL](https://github.com/nordic-institute/X-Road/blob/master/doc/Architecture/spec-al_x-road_audit_log_events.md)
 
-8.  <a id="Ref_PR-OPMON" class="anchor"></a>\[PR-OPMON\] X-Road: Operational Monitoring Protocol. Document ID: [PR-OPMON](../OperationalMonitoring/Protocols/pr-opmon_x-road_operational_monitoring_protocol_Y-1096-2.md)
+8. <a id="Ref_PR-OPMON" class="anchor"></a>\[PR-OPMON\] X-Road: Operational Monitoring Protocol. Document ID: [PR-OPMON](../OperationalMonitoring/Protocols/pr-opmon_x-road_operational_monitoring_protocol_Y-1096-2.md)
 
-9.  <a id="Ref_PR-OPMONJMX" class="anchor"></a>\[PR-OPMONJMX\] X-Road: Operational Monitoring JMX Protocol. Document ID: [PR-OPMONJMX](../OperationalMonitoring/Protocols/pr-opmonjmx_x-road_operational_monitoring_jmx_protocol_Y-1096-3.md)
+9. <a id="Ref_PR-OPMONJMX" class="anchor"></a>\[PR-OPMONJMX\] X-Road: Operational Monitoring JMX Protocol. Document ID: [PR-OPMONJMX](../OperationalMonitoring/Protocols/pr-opmonjmx_x-road_operational_monitoring_jmx_protocol_Y-1096-3.md)
 
 10. <a id="Ref_UG-OPMONSYSPAR" class="anchor"></a>\[UG-OPMONSYSPAR\] X-Road: Operational Monitoring System Parameters. Document ID: [PR-OPMONSYSPAR](../OperationalMonitoring/Manuals/ug-opmonsyspar_x-road_operational_monitoring_system_parameters_Y-1099-1.md)
 
@@ -357,6 +360,7 @@ See X-Road terms and abbreviations documentation \[[TA-TERMS](#Ref_TERMS)\].
 
 25. <a id="Ref_UG-SIGDOC" class="anchor"></a>\[UG-SIGDOC\] X-Road: Signed Document Download and Verification Manual. Document ID: [UG-SIGDOC](../Manuals/ug-sigdoc_x-road_signed_document_download_and_verification_manual.md).
 
+26. <a id="Ref_ACME" class="anchor"></a>\[ACME\] RFC8555: Automatic Certificate Management Environment (ACME), <https://datatracker.ietf.org/doc/html/rfc8555>
 
 ## 2 User Management
 
@@ -626,6 +630,32 @@ To import a certificate from a security token, follow these steps.
 
 5.  Click the **Import** button on the row of the certificate. By default, the certificate is imported in the "Registered" state.
 
+#### 3.1.4 Ordering the Signing Certificate from the ACME server
+
+If an approved CA supports ACME, then an alternative to creating the CSR, sending it to be signed by the CA by some outside means and later importing it manually, is to order the certificate from the ACME server of the CA. In this case all these steps are done automatically. To do this:
+
+1. Start the same way as in Section [3.1.1](#331-registering-an-authentication-certificate) 
+
+2. In step 4.ii.d choose a **Certification Service** that supports ACME.
+
+3. Some Certification Services require their ACME Server account to be bound to an external account for added security. If that is the case, the chosen **Client** in step 4.ii.b needs to have external accounts credentials configured in `/etc/xroad/conf.d/acme.yml` (more info on how to configure ACME can be found in section [24. Configuring ACME](#24-configuring-acme)).
+
+4. In step 4.iii make sure the **SAN** field has the correct DNS name. This is used by the ACME server to check that the member owns the domain the certificate is ordered for.
+
+5. Press the **Order certificate** button. This will generate the CSR similarly to the **Generate CSR** button and also order the certificate from the ACME Server. When the order is successful, then certificate is returned and imported to the new key automatically.
+
+Signing Certificate can also be ordered with an already existing CSR. For that follow these steps.
+
+1. On the **Navigation tabs**, select **Keys and Certificates**
+
+2. Show more details about a token by clicking the caret next to the token name.
+
+3. On the row of the desired signing key, click **Order Certificate**. This link is only shown if the CSR has been generated beforehand and there are Certificate Authorities available that support ACME and use the same Certificate Profile that the CSR was created with.
+
+4. In the dialog that opens select the issuer of the certificate from the **Certification Service** drop-down list.
+
+5. Click **Order**. When the order succeeds, the certificate is downloaded and imported to the chosen key automatically.
+
 
 ### 3.2 Configuring the Authentication Key and Certificate for the Security Server
 
@@ -695,9 +725,11 @@ To generate a certificate signing request (CSR) for the authentication key, foll
 
 4.  Click **GENERATE CSR** to complete the generation of the CSR and save the prompted file to the local file system.
 
+    1. Or click **ORDER CERTIFICATE** to also use the CSR to immediately make an order to the ACME server if the chosen Certification Service supports it.
+
 5. Click **DONE**
 
-After the generation of the CSR, a "Request" record is added under the key's row in the table, indicating that a certificate signing request has been created for this key. The record is added even if the request file was not saved to the local file system.
+After the generation of the CSR, a "Request" record is added under the key's row in the table, indicating that a certificate signing request has been created for this key. The record is added even if the request file was not saved to the local file system. (In case of a successful ACME order, the certificate will also be imported to the Security Server and be shown under the key's row instead of the CSR.)
 
 **To certify the authentication key, transmit the certificate signing request to the approved certification service provider and accept the authentication certificate created from the certificate signing request.**
 
@@ -716,6 +748,32 @@ To import the authentication certificate to the Security Server, follow these st
 
 4.  Locate the certificate file from the local file system and click **OK**. After importing the certificate, the "Request" record under the authentication key's row is replaced with the information from the imported certificate. By default, the certificate is imported in the "Saved" (see Section [5.2.2](#522-registration-states-of-the-authentication-certificate)) and "Disabled" states (see Section [5.3](#53-validity-states-of-certificates)).
 
+
+#### 3.2.4 Ordering the Authentication Certificate from the ACME server
+
+If an approved CA supports ACME, then an alternative to creating the CSR, sending it to be signed by the CA by some outside means and later importing it manually, is to order the certificate from the ACME server of the CA. In this case all these steps are done automatically. To do this:
+
+1. Start the same way as in Section [3.2.1](#321-generating-an-authentication-key) or [3.2.2](#322-generating-a-certificate-signing-request-for-an-authentication-key).
+
+2. Choose a **Certification Service** that supports ACME.
+
+3. Some Certification Services require their ACME Server account to be bound an external account for added security. If that is the case, the Security Server owner needs to have external accounts credentials configured in `/etc/xroad/conf.d/acme.yml` (more info on how to configure ACME can be found in section [24. Configuring ACME](#24-configuring-acme)).
+
+4. On the CSR fields page make sure the **CN** field (and **SAN** if present) field has the correct DNS name. This is used by the ACME server to check that the member owns the domain the certificate is ordered for.
+
+5. Press the **Order certificate** button. This will generate the CSR similarly to the **Generate CSR** button and also order the certificate from the ACME Server. When the order is successful, then certificate is returned and imported to the new key automatically.
+
+Authentication Certificate can also be ordered with an already existing CSR. For that follow these steps.
+
+1. On the **Navigation tabs**, select **Keys and Certificates**
+
+2. Show more details about a token by clicking the caret next to the token name.
+
+3. On the row of the desired authentication key, click **Order Certificate**. This link is only shown if the CSR has been generated beforehand and there are Certificate Authorities available that support ACME and use the same Certificate Profile that the CSR was created with. 
+
+4. In the dialog that opens select the issuer of the certificate from the **Certification Service** drop-down list.
+
+5. Click **Order**. When the order succeeds, the certificate is downloaded and imported to the chosen key automatically.
 
 ### 3.3 Registering the Security Server in the X-Road Governing Authority
 
@@ -875,9 +933,11 @@ Follow these steps.
     
     4. CSR details page: Select the Certification Authority (CA) that will issue the certificate in **Certification Service** field and format of the certificate signing request according to the CA's requirements in the **CSR Format** field. Click **NEXT**.
     
-    5. Generate CSR page: Define **Organization Name (O)** and click **NEXT**
+    5. Generate CSR page: Fill in empty CSR fields as needed (like **Organization Name (O)** and **Subject Alternative Name (SAN)**) that are based on the certificate profile that the chosen CA uses, and click **NEXT**
     
-    6. Finish page: click **SUBMIT** and the new client will be added to the Clients list and the new key and CSR will appear in the Keys and Certificates view.
+       1. If the CA supports it, an ACME certificate order can be made with the generated CSR by checking the "**Order certificate from ACME Server with the generated CSR and import the returned certificate to the token.**" checkbox. 
+
+    6. Finish page: click **SUBMIT** and the new client will be added to the Clients list and the new key and CSR (or certificate in case of ACME) will appear in the Keys and Certificates view.
 
 The new client is added to the list of Security Server clients in the "Saved" state.
 
@@ -3173,3 +3233,65 @@ This example shows how SSL configurations for _psql_ could look like. List of po
 Some of the variables like `PGOPTIONS`, `PGDATABASE`, `PGUSER`, `PGPASSWORD` are already used by scripts(created and initialized with values from `/etc/xroad/db.properties` file) so adding same variables to `db_libpq.env` won't have any effect on script behaviour.
 
 In case it is needed to pass additional flags to internally initialized `PGOPTIONS` variable, then `PGOPTIONS_EXTRA` variable can be used. It will be appended to `PGOPTIONS` variable.
+
+## 24 Configuring ACME
+
+Automated Certificate Management Environment \[[ACME](#Ref_ACME)\] protocol enables partly automated certificate management of the authentication and sign certificates on the Security Server. The Security Server supports automating most of the certificate request process, but the process has to be initiated manually. Also, activating and/or registering the received certificates is a manual task.
+
+The ACME protocol can be used only if the Certificate Authority (CA) issuing the certificates supports it and the X-Road operator has enabled the use of the protocol on the Central Server. Therefore, also the communication between the CA's ACME server and the Security Server is disabled by default. In addition, some member-specific configuration is required on the Security Server.
+
+**Enable connections from the ACME server**
+
+The Security Server has a `[proxy-ui-api]` parameter [acme-challenge-port-enabled](ug-syspar_x-road_v6_system_parameters.md#39-management-rest-api-parameters-proxy-ui-api) that defines whether the Security Server listens to incoming ACME challenge requests on port 80. The default value for this parameter is `false` which means that  the Security Server does not listen on port 80. The parameter can be changed by following the [System Parameters guide](ug-syspar_x-road_v6_system_parameters.md#21-changing-the-system-parameter-values-in-configuration-files).
+
+**Member-specific configuration**
+
+Although the main ACME-related configuration is managed on the Central Server and distributed to the Security Servers over the Global Configuration, in order to use the ACME standard, some of the member-specific configurations have to be set on the Security Server side as well. These configurations go in the file `acme.yml`, that is in the configurations folder on the file system (default `/etc/xroad/conf.d`). An example file is added by the installer when installing or upgrading X-Road to version 7.5. The configurations to be added are:
+
+1. Contact information, usually an email address, of the member for whom the certificate is ordered. It is passed along to the Certificate Authority at the beginning of the communication between Security Server and the CA's ACME server.
+
+2. Credentials (kid and hmac secret) for external account binding. Some CAs require these for added security. They tie the X-Road member to an external account on the Certificate Authority's side and so need to be acquired externally from the CA.
+
+There are currently two ways to let the ACME server know which type of certificate to return (the chosen CA also needs to support them). The first one, which sends profile ids for authentication and signing certificates in http header, does not require any further configuration on the Security Server side. The second one uses certificate type specific external account credentials. For the authentication certificate add "**auth-**" prefix to the external account binding credentials property names in the `/etc/xroad/conf.d/acme.yml` file. For the signing certificate add the prefix "**sign-**".
+
+Example of the `/etc/xroad/conf.d/acme.yml` file contents (can be found from `/etc/xroad/conf.d/acme.example.yml`):
+
+```yaml
+# Example acme.yml file that has properties related to Automatic Certificate Management Environment (ACME)
+# that is used to automate acquiring certificates from Certificate Authorities. To use this file
+# remove '.example' form the file name and replace with correct values as needed or create a new file named 'acme.yml'.
+
+# Contact emails for each Member used when ordering certificates from the ACME Servers,
+# where the key is the Member ID in the form <instance_id>:<member_class>:<member_code> and
+# should also be surrounded by quotation marks to allow for ':' (both single and double work). 
+# When ordering Authentication Certificates, Security Server owner's Member ID is used.
+contacts:
+  'EU:COM:1234567-8': member1@example.org
+  'EU:GOV:9090909-1': member2@example.org
+
+# ACME external account binding credentials grouped by Certification Authorities(CA-s) and Members,
+# where CAs have their name as key and should be surrounded by quotation marks to allow spaces.
+# For Members the key is the Member ID in the form <instance_id>:<member_class>:<member_code> and
+# should also be surrounded by quotation marks to allow for ':'. They have two properties: kid and mac-key, which should be
+# acquired externally from the CA. If the CA supports kid-based certificate type selection, then credentials starting
+# with the prefix "auth-" can be used to order authentication certificate and credentials starting with "sign-" can
+# be used to order signing certificates.
+# Property mac-key-base64-encoded should be true if the provided mac-keys are encoded in base64.
+eab-credentials:
+  certificate-authorities:
+    'Example Root CA':
+      mac-key-base64-encoded: true
+      members:
+        'EU:COM:1234567-8':
+          auth-kid: key_2
+          auth-mac-key: YXV0aGVudGljYXRpb25zZWNyZXRtYWNrZXk=
+          sign-kid: key_3
+          sign-mac-key: c2VjcmV0X21hY19rZXlfZm9yX3NpZ25pbmc=
+    'Some Other CA':
+      mac-key-base64-encoded: false
+      members:
+        'EU:GOV:9090909-1':
+          kid: kid123
+          mac-key: goodlongsecretwordthatisnotshort
+
+```

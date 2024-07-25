@@ -26,6 +26,8 @@
  */
 package org.niis.xroad.cs.admin.globalconf.generator;
 
+import ee.ria.xroad.common.conf.globalconf.PrivateParametersV3Marshaller;
+
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
@@ -34,7 +36,7 @@ import org.springframework.stereotype.Component;
 @RequiredArgsConstructor
 @Slf4j
 public class PrivateParametersV3Generator {
-    private final PrivateParametersV3Marshaller marshaller;
+    private final PrivateParametersV3Marshaller marshaller = new PrivateParametersV3Marshaller();
     private final PrivateParametersLoader loader;
 
     String generate() {

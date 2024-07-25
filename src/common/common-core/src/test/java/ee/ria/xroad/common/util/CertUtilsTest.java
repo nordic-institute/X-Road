@@ -47,6 +47,7 @@ import java.security.spec.InvalidKeySpecException;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 
 /**
@@ -109,7 +110,7 @@ public class CertUtilsTest {
         byte[] bytes = Files.readAllBytes(file.toPath());
         X509Certificate[] certificate = CertUtils.readCertificateChain(bytes);
         assertNotNull(certificate);
-        assertEquals(certificate[0].getSubjectDN().getName(), "CN=ubuntu-xroad-securityserver-dev");
+        assertEquals(certificate[0].getSubjectX500Principal().toString(), "CN=ubuntu-xroad-securityserver-dev");
     }
 
     /**
@@ -132,7 +133,7 @@ public class CertUtilsTest {
         CertificateFactory cf = CertificateFactory.getInstance("X.509");
         try (FileInputStream in = new FileInputStream(certPath)) {
             X509Certificate cert = (X509Certificate) cf.generateCertificate(in);
-            assertEquals(null, CertUtils.getSubjectAlternativeNames(cert));
+            assertNull(CertUtils.getSubjectAlternativeNames(cert));
         }
     }
 

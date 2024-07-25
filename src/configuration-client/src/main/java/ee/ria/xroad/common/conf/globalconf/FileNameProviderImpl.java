@@ -45,21 +45,14 @@ public class FileNameProviderImpl implements FileNameProvider {
 
     @Override
     public Path getFileName(ConfigurationFile file) {
-        String fileName;
-        switch (file.getContentIdentifier()) {
-            case ConfigurationConstants.CONTENT_ID_PRIVATE_PARAMETERS:
-                fileName = FILE_NAME_PRIVATE_PARAMETERS;
-                break;
-            case ConfigurationConstants.CONTENT_ID_SHARED_PARAMETERS:
-                fileName = FILE_NAME_SHARED_PARAMETERS;
-                break;
-            default:
-                fileName = Paths.get(
-                        !StringUtils.isBlank(file.getContentFileName())
-                                ? file.getContentFileName()
-                                : file.getContentLocation()).getFileName().toString();
-                break;
-        }
+        String fileName = switch (file.getContentIdentifier()) {
+            case ConfigurationConstants.CONTENT_ID_PRIVATE_PARAMETERS -> FILE_NAME_PRIVATE_PARAMETERS;
+            case ConfigurationConstants.CONTENT_ID_SHARED_PARAMETERS -> FILE_NAME_SHARED_PARAMETERS;
+            default -> Paths.get(
+                    !StringUtils.isBlank(file.getContentFileName())
+                            ? file.getContentFileName()
+                            : file.getContentLocation()).getFileName().toString();
+        };
 
         return Paths.get(globalConfigurationDirectory,
                 escapeInstanceIdentifier(file.getInstanceIdentifier()),

@@ -47,6 +47,10 @@ import ee.ria.xroad.proxy.protocol.ProxyMessage;
 import ee.ria.xroad.proxy.protocol.ProxyMessageDecoder;
 import ee.ria.xroad.proxy.protocol.ProxyMessageEncoder;
 
+import io.opentelemetry.api.GlobalOpenTelemetry;
+import io.opentelemetry.api.OpenTelemetry;
+import io.opentelemetry.context.Context;
+import io.opentelemetry.instrumentation.annotations.WithSpan;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.IOUtils;
 import org.apache.http.client.HttpClient;
@@ -140,12 +144,15 @@ class ClientSoapMessageProcessor extends AbstractClientMessageProcessor {
     private static final ExecutorService SOAP_HANDLER_EXECUTOR = createSoapHandlerExecutor();
 
     private static ExecutorService createSoapHandlerExecutor() {
-        return Executors.newCachedThreadPool(r -> {
-            Thread handlerThread = new Thread(r);
-            handlerThread.setName(Thread.currentThread().getName() + "-soap");
+        ThreadFactory factory = Thread.ofVirtual().name("soap-handler-executor", 0L).factory();
 
-            return handlerThread;
-        });
+        var executor = Executors.newThreadPerTaskExecutor(factory);
+        if (OpenTelemetry.noop().equals(GlobalOpenTelemetry.get())) {
+            return executor;
+        }
+
+        log.info("OpenTelemetry is enabled, wrapping executor with OpenTelemetry context propagation");
+        return Context.taskWrapping(executor);
     }
 
     ClientSoapMessageProcessor(RequestWrapper request, ResponseWrapper response,
@@ -158,6 +165,7 @@ class ClientSoapMessageProcessor extends AbstractClientMessageProcessor {
     }
 
     @Override
+    @WithSpan
     public void process() throws Exception {
         log.trace("process()");
 
@@ -374,6 +382,7 @@ class ClientSoapMessageProcessor extends AbstractClientMessageProcessor {
         }
     }
 
+    @WithSpan
     public void handleSoap() {
         try (SoapMessageHandler handler = new SoapMessageHandler()) {
             SoapMessageDecoder soapMessageDecoder = new SoapMessageDecoder(jRequest.getContentType(),

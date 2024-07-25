@@ -27,6 +27,7 @@ package ee.ria.xroad.common.conf.globalconf;
 
 import ee.ria.xroad.common.CodedException;
 import ee.ria.xroad.common.SystemProperties;
+import ee.ria.xroad.common.conf.ConfProvider;
 
 import lombok.extern.slf4j.Slf4j;
 
@@ -41,7 +42,7 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 import static ee.ria.xroad.common.ErrorCodes.X_INVALID_XML;
-import static ee.ria.xroad.common.conf.globalconf.VersionedConfigurationDirectory.isCurrentVersion;
+import static ee.ria.xroad.common.conf.globalconf.VersionedConfigurationDirectory.getVersion;
 
 /**
  * Configuration client downloads the configuration from sources found in the configuration anchor.
@@ -73,14 +74,14 @@ class ConfigurationClient {
     synchronized void execute() throws Exception {
         log.debug("Configuration client executing...");
 
-        if (configurationAnchor == null || configurationAnchor.hasChanged()) {
+        if (configurationAnchor == null || (configurationAnchor instanceof ConfProvider cp && cp.hasChanged())) {
             log.debug("Initializing configuration anchor");
 
             initConfigurationAnchor();
         }
 
         downloadConfigurationFromAnchor();
-        List<ConfigurationSource> configurationSources = getAdditionalConfigurationSources();
+        var configurationSources = getAdditionalConfigurationSources();
 
         FederationConfigurationSourceFilter sourceFilter =
                 new FederationConfigurationSourceFilterImpl(configurationAnchor.getInstanceIdentifier());
@@ -90,7 +91,7 @@ class ConfigurationClient {
         downloadConfigurationFromAdditionalSources(configurationSources, sourceFilter);
     }
 
-    protected List<ConfigurationSource> getAdditionalConfigurationSources() {
+    protected List<PrivateParameters.ConfigurationAnchor> getAdditionalConfigurationSources() {
         PrivateParameters privateParameters = loadPrivateParameters();
         return privateParameters != null ? privateParameters.getConfigurationAnchors() : List.of();
     }
@@ -130,6 +131,7 @@ class ConfigurationClient {
         handleResult(downloader.download(configurationAnchor), true);
     }
 
+    @SuppressWarnings("checkstyle:MagicNumber")
     private PrivateParameters loadPrivateParameters() {
         try {
             Path privateParamsPath = Path.of(globalConfigurationDir, configurationAnchor.getInstanceIdentifier(),
@@ -139,18 +141,16 @@ class ConfigurationClient {
                 log.debug("Skipping reading private parameters as {} does not exist", privateParamsPath);
                 return null;
             }
-
-            PrivateParametersProvider p = isCurrentVersion(privateParamsPath)
-                    ? new PrivateParametersV3(privateParamsPath, OffsetDateTime.MAX)
-                    : new PrivateParametersV2(privateParamsPath, OffsetDateTime.MAX);
-            return p.getPrivateParameters();
+            return ParametersProviderFactory.forGlobalConfVersion(getVersion(privateParamsPath))
+                    .privateParametersProvider(privateParamsPath, OffsetDateTime.MAX)
+                    .getPrivateParameters();
         } catch (Exception e) {
             log.error("Failed to read additional configuration sources from" + globalConfigurationDir, e);
             return null;
         }
     }
 
-    protected void deleteExtraConfigurationDirectories(List<ConfigurationSource> configurationSources,
+    protected void deleteExtraConfigurationDirectories(List<? extends ConfigurationSource> configurationSources,
                                                        FederationConfigurationSourceFilter sourceFilter) {
         Set<String> directoriesToKeep;
         if (configurationSources != null) {
@@ -171,7 +171,7 @@ class ConfigurationClient {
         ConfigurationDirectory.deleteExtraDirs(globalConfigurationDir, directoriesToKeep);
     }
 
-    private void downloadConfigurationFromAdditionalSources(List<ConfigurationSource> configurationSources,
+    private void downloadConfigurationFromAdditionalSources(List<? extends ConfigurationSource> configurationSources,
                                                             FederationConfigurationSourceFilter sourceFilter) throws Exception {
         if (configurationSources != null) {
             for (ConfigurationSource source : configurationSources) {

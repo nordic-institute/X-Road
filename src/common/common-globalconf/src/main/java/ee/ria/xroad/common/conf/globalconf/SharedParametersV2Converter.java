@@ -48,13 +48,15 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import static ee.ria.xroad.common.util.CryptoUtils.SHA1_ID;
+
 public class SharedParametersV2Converter {
 
     SharedParameters convert(SharedParametersTypeV2 source) throws CertificateEncodingException, IOException {
         String instanceIdentifier = source.getInstanceIdentifier();
         List<SharedParameters.ApprovedCA> approvedCAs = getApprovedCAs(source.getApprovedCA());
         List<SharedParameters.ApprovedTSA> approvedTSAs = getApprovedTSAs(source.getApprovedTSA());
-        List<SharedParameters.Member> members = getMembers(source.getMember());
+        List<SharedParameters.Member> members = getMembers(instanceIdentifier, source.getMember());
         List<SharedParameters.SecurityServer> securityServers = getSecurityServers(source);
         List<SharedParameters.GlobalGroup> globalGroups = getGlobalGroups(source.getGlobalGroup());
         SharedParameters.GlobalSettings globalSettings = getGlobalSettings(source.getGlobalSettings());
@@ -78,12 +80,11 @@ public class SharedParametersV2Converter {
         return approvedTSAs;
     }
 
-    private List<SharedParameters.Member> getMembers(List<MemberType> memberTypes) {
-        List<SharedParameters.Member> members = new ArrayList<>();
+    private List<SharedParameters.Member> getMembers(String instanceIdentifier, List<MemberType> memberTypes) {
         if (memberTypes != null) {
-            members.addAll(memberTypes.stream().map(this::toMember).toList());
+            return memberTypes.stream().map(source -> toMember(instanceIdentifier, source)).toList();
         }
-        return members;
+        return List.of();
     }
 
     private List<SharedParameters.SecurityServer> getSecurityServers(SharedParametersTypeV2 source) {
@@ -160,13 +161,15 @@ public class SharedParametersV2Converter {
         return target;
     }
 
-    private SharedParameters.Member toMember(MemberType source) {
+    private SharedParameters.Member toMember(String instanceIdentifier, MemberType source) {
         var target = new SharedParameters.Member();
         target.setMemberClass(toMemberClass(source.getMemberClass()));
         target.setMemberCode(source.getMemberCode());
         target.setName(source.getName());
+        target.setId(toClientId(instanceIdentifier, source));
         if (source.getSubsystem() != null) {
-            target.setSubsystems(source.getSubsystem().stream().map(this::toSubsystem).toList());
+            target.setSubsystems(source.getSubsystem().stream().map(subsystem ->
+                    toSubsystem(instanceIdentifier, source, subsystem)).toList());
         }
         return target;
     }
@@ -178,10 +181,8 @@ public class SharedParametersV2Converter {
         return target;
     }
 
-    private SharedParameters.Subsystem toSubsystem(SubsystemType source) {
-        var target = new SharedParameters.Subsystem();
-        target.setSubsystemCode(source.getSubsystemCode());
-        return target;
+    private SharedParameters.Subsystem toSubsystem(String instanceIdentifier, MemberType memberType, SubsystemType source) {
+        return new SharedParameters.Subsystem(source.getSubsystemCode(), toClientId(instanceIdentifier, memberType, source));
     }
 
     private SharedParameters.SecurityServer toSecurityServer(
@@ -192,7 +193,7 @@ public class SharedParametersV2Converter {
         if (StringUtils.isNotBlank(source.getAddress())) {
             target.setServerAddress(new SharedParameters.ServerAddress(source.getAddress()));
         }
-        target.setAuthCertHashes(source.getAuthCertHash());
+        target.setAuthCertHashes(source.getAuthCertHash().stream().map(hash -> new CertHash(SHA1_ID, hash)).toList());
         if (source.getClient() != null) {
             List<ClientId> clients = new ArrayList<>();
             for (JAXBElement<?> client : source.getClient()) {
@@ -230,7 +231,7 @@ public class SharedParametersV2Converter {
 
     private SharedParameters.GlobalSettings toGlobalSettings(GlobalSettingsType source) {
         var target = new SharedParameters.GlobalSettings();
-        target.setOcspFreshnessSeconds(source.getOcspFreshnessSeconds());
+        target.setOcspFreshnessSeconds(source.getOcspFreshnessSeconds().intValue());
         if (source.getMemberClass() != null) {
             target.setMemberClasses(source.getMemberClass().stream().map(this::toMemberClass).toList());
         }

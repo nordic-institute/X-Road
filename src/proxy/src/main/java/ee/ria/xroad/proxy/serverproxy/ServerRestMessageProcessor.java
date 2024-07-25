@@ -53,6 +53,7 @@ import ee.ria.xroad.proxy.protocol.ProxyMessageDecoder;
 import ee.ria.xroad.proxy.protocol.ProxyMessageEncoder;
 import ee.ria.xroad.proxy.util.MessageProcessorBase;
 
+import io.opentelemetry.instrumentation.annotations.WithSpan;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.input.TeeInputStream;
 import org.apache.commons.lang3.ArrayUtils;
@@ -87,7 +88,6 @@ import java.util.List;
 import static ee.ria.xroad.common.ErrorCodes.SERVER_SERVERPROXY_X;
 import static ee.ria.xroad.common.ErrorCodes.X_ACCESS_DENIED;
 import static ee.ria.xroad.common.ErrorCodes.X_INTERNAL_ERROR;
-import static ee.ria.xroad.common.ErrorCodes.X_INVALID_REQUEST;
 import static ee.ria.xroad.common.ErrorCodes.X_INVALID_SERVICE_TYPE;
 import static ee.ria.xroad.common.ErrorCodes.X_MISSING_REST;
 import static ee.ria.xroad.common.ErrorCodes.X_MISSING_SIGNATURE;
@@ -140,6 +140,7 @@ class ServerRestMessageProcessor extends MessageProcessorBase {
     }
 
     @Override
+    @WithSpan
     public void process() throws Exception {
         log.info("process({})", jRequest.getContentType());
 
@@ -494,7 +495,6 @@ class ServerRestMessageProcessor extends MessageProcessorBase {
                 case OPTIONS -> new HttpOptions(address);
                 case HEAD -> new HttpHead(address);
                 case TRACE -> new HttpTrace(address);
-                default -> throw new CodedException(X_INVALID_REQUEST, "Unsupported REST verb");
             };
 
             int timeout = TimeUtils.secondsToMillis(ServerConf

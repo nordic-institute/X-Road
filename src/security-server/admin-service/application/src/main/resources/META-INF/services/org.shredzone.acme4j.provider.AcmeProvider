@@ -1,0 +1,2 @@
+org.niis.xroad.securityserver.restapi.service.AcmeXroadProvider
+org.niis.xroad.securityserver.restapi.service.AcmeProfileIdProvider

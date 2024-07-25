@@ -84,7 +84,7 @@ class DummyServerProxy extends Server implements StartStop {
             }
 
             // Read all of the request (and copy it to /dev/null).
-            IOUtils.copy(asInputStream(request), new NullOutputStream());
+            IOUtils.copy(asInputStream(request), NullOutputStream.INSTANCE);
 
             if (currentTestCase().getResponseFile() != null) {
                 var handled = createResponseFromFile(currentTestCase().getResponseFile(), request, response);

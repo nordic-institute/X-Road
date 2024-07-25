@@ -49,10 +49,10 @@ Feature: 0200 - Signer: HardwareToken
     Then token "xrd-softhsm-0" has exact keys "First key,Second key,KeyX"
 
   Scenario: Cert request is (re)generated
-    When the SIGNING cert request is generated for token "xrd-softhsm-0" key "Second key" for client "CS:test:member-2"
+    When the SIGNING cert request is generated for token "xrd-softhsm-0" key "Second key" for client "DEV:test:member-2"
     And token and key can be retrieved by cert request
     Then cert request can be deleted
-    When the SIGNING cert request is generated for token "xrd-softhsm-0" key "Second key" for client "CS:test:member-2"
+    When the SIGNING cert request is generated for token "xrd-softhsm-0" key "Second key" for client "DEV:test:member-2"
     And cert request is regenerated
 
   Scenario: A key with Sign certificate is created
@@ -60,20 +60,20 @@ Feature: 0200 - Signer: HardwareToken
     And name "SignKey from CA" is set for generated key
     And token "xrd-softhsm-0" has exact keys "First key,Second key,KeyX,SignKey from CA"
     And sign mechanism for token "xrd-softhsm-0" key "SignKey from CA" is not null
-    When the SIGNING cert request is generated for token "xrd-softhsm-0" key "SignKey from CA" for client "CS:ORG:2908758-4:Management"
+    When the SIGNING cert request is generated for token "xrd-softhsm-0" key "SignKey from CA" for client "DEV:COM:1234:MANAGEMENT"
     And SIGN CSR is processed by test CA
-    And Generated certificate with initial status "registered" is imported for client "CS:ORG:2908758-4:Management"
+    And Generated certificate with initial status "registered" is imported for client "DEV:COM:1234:MANAGEMENT"
     Then token info can be retrieved by key id
 
   Scenario: A key with Auth certificate is not created in hardware token
     Given new key "key-200" generated for token "xrd-softhsm-0"
     And name "BadAuthKey from CA" is set for generated key
     When token "xrd-softhsm-0" has exact keys "First key,Second key,KeyX,SignKey from CA,BadAuthKey from CA"
-    Then the AUTHENTICATION cert request is generated for token "xrd-softhsm-0" key "BadAuthKey from CA" for client "CS:ORG:2908758-4:Management" throws exception
+    Then the AUTHENTICATION cert request is generated for token "xrd-softhsm-0" key "BadAuthKey from CA" for client "DEV:COM:1234:MANAGEMENT" throws exception
 
   Scenario: Self signed certificate is generated
     Given token "xrd-softhsm-0" key "First key" has 0 certificates
-    When self signed cert generated for token "xrd-softhsm-0" key "First key", client "CS:test:member-1"
+    When self signed cert generated for token "xrd-softhsm-0" key "First key", client "DEV:test:member-1"
     Then token "xrd-softhsm-0" key "First key" has 1 certificates
     And keyId can be retrieved by cert hash
     And token and keyId can be retrieved by cert hash
@@ -81,12 +81,12 @@ Feature: 0200 - Signer: HardwareToken
 
   Scenario: Self Signed Certificate can be (re)imported
     Given tokens list contains token "xrd-softhsm-0"
-    When Wrong Certificate is not imported for client "CS:test:member-2"
-    And self signed cert generated for token "xrd-softhsm-0" key "Second key", client "CS:test:member-2"
+    When Wrong Certificate is not imported for client "DEV:test:member-2"
+    And self signed cert generated for token "xrd-softhsm-0" key "Second key", client "DEV:test:member-2"
     And certificate info can be retrieved by cert hash
     When certificate can be deleted
     Then token "xrd-softhsm-0" key "Second key" has 0 certificates
-    When Certificate is imported for client "CS:test:member-2"
+    When Certificate is imported for client "DEV:test:member-2"
     Then token "xrd-softhsm-0" key "Second key" has 1 certificates
 
   Scenario: Sign fails with an unknown algorithm error
@@ -99,13 +99,13 @@ Feature: 0200 - Signer: HardwareToken
 
   Scenario: Member signing info can be retrieved
     Given tokens list contains token "xrd-softhsm-0"
-    * Member signing info for client "CS:ORG:2908758-4:Management" is retrieved
+    * Member signing info for client "DEV:COM:1234:MANAGEMENT" is retrieved
 
   Scenario: Member certs are retrieved
-    Then member "CS:test:member-1" has 2 certificate
+    Then member "DEV:test:member-1" has 2 certificate
 
   Scenario: Cert status can be updated
-    Given self signed cert generated for token "xrd-softhsm-0" key "KeyX", client "CS:test:member-2"
+    Given self signed cert generated for token "xrd-softhsm-0" key "KeyX", client "DEV:test:member-2"
     And certificate info can be retrieved by cert hash
     Then certificate can be deactivated
     And certificate can be activated

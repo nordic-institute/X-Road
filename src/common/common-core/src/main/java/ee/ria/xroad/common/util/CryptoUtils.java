@@ -61,6 +61,7 @@ import java.math.BigInteger;
 import java.nio.charset.StandardCharsets;
 import java.security.KeyFactory;
 import java.security.KeyStore;
+import java.security.KeyStoreException;
 import java.security.NoSuchAlgorithmException;
 import java.security.PrivateKey;
 import java.security.PublicKey;
@@ -351,7 +352,7 @@ public final class CryptoUtils {
      * @param subjectSerialNumber the subject certificate serial number
      * @param issuer the issuer certificate
      * @return the certificate id
-     * @throws Exception if the certificate if cannot be created
+     * @throws Exception if the certificate id cannot be created
      */
     public static CertificateID createCertId(BigInteger subjectSerialNumber,
                                              X509Certificate issuer) throws Exception {
@@ -766,7 +767,7 @@ public final class CryptoUtils {
      * @throws Exception if any errors occur
      */
     public static KeyStore loadPkcs12KeyStore(File file, char[] password)
-            throws Exception {
+            throws CertificateException, IOException, KeyStoreException, NoSuchAlgorithmException {
         return loadKeyStore("pkcs12", file, password);
     }
 
@@ -779,7 +780,8 @@ public final class CryptoUtils {
      * @throws Exception if any errors occur
      */
     public static KeyStore loadKeyStore(String type, File file,
-                                        char[] password) throws Exception {
+                                        char[] password)
+            throws IOException, KeyStoreException, CertificateException, NoSuchAlgorithmException {
         KeyStore keyStore = KeyStore.getInstance(type);
         try (FileInputStream fis = new FileInputStream(file)) {
             keyStore.load(fis, password);

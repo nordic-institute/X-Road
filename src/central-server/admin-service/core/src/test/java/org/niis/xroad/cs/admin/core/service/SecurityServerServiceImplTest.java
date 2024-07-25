@@ -331,8 +331,8 @@ class SecurityServerServiceImplTest implements WithInOrder {
 
         private void verifyAuthCertDeleteRequest(List<Request> requests) {
             final AuthenticationCertificateDeletionRequest request = requests.stream()
-                    .filter(req -> req instanceof AuthenticationCertificateDeletionRequest)
-                    .map(req -> (AuthenticationCertificateDeletionRequest) req)
+                    .filter(AuthenticationCertificateDeletionRequest.class::isInstance)
+                    .map(AuthenticationCertificateDeletionRequest.class::cast)
                     .findFirst().orElseThrow();
 
             assertThat(request.getOrigin()).isEqualTo(CENTER);
@@ -343,8 +343,8 @@ class SecurityServerServiceImplTest implements WithInOrder {
 
         private void verifyClientDeletionRequest(List<Request> requests, String code) {
             final ClientDeletionRequest request = requests.stream()
-                    .filter(req -> req instanceof ClientDeletionRequest)
-                    .map(req -> (ClientDeletionRequest) req)
+                    .filter(ClientDeletionRequest.class::isInstance)
+                    .map(ClientDeletionRequest.class::cast)
                     .filter(req -> code.equals(req.getClientId().getMemberCode()))
                     .findFirst().orElseThrow();
 

@@ -42,6 +42,7 @@ import org.niis.xroad.restapi.exceptions.ErrorDeviation;
 import org.niis.xroad.restapi.service.ServiceException;
 import org.niis.xroad.restapi.util.FormatUtils;
 import org.niis.xroad.securityserver.restapi.cache.CurrentSecurityServerId;
+import org.niis.xroad.securityserver.restapi.config.AcmeProperties;
 import org.niis.xroad.securityserver.restapi.dto.ApprovedCaDto;
 import org.niis.xroad.securityserver.restapi.facade.GlobalConfFacade;
 import org.niis.xroad.securityserver.restapi.facade.SignerProxyFacade;
@@ -53,10 +54,9 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.security.cert.X509Certificate;
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
+import java.util.Objects;
 import java.util.stream.Collectors;
 
 import static org.niis.xroad.restapi.exceptions.DeviationCodes.ERROR_CA_CERT_PROCESSING;
@@ -82,6 +82,8 @@ public class CertificateAuthorityService {
     private final ClientService clientService;
     private final SignerProxyFacade signerProxyFacade;
     private final CurrentSecurityServerId currentSecurityServerId;
+    private final AcmeService acmeService;
+    private final AcmeProperties acmeProperties;
 
     /**
      * {@link CertificateAuthorityService#getCertificateAuthorities(KeyUsageInfo, boolean)}
@@ -114,14 +116,14 @@ public class CertificateAuthorityService {
         // map of each subject - issuer DN pair for easy lookups
         Map<String, String> subjectsToIssuers = caCerts.stream().collect(
                 Collectors.toMap(
-                        x509 -> x509.getSubjectDN().getName(),
-                        x509 -> x509.getIssuerDN().getName()));
+                        x509 -> x509.getSubjectX500Principal().toString(),
+                        x509 -> x509.getIssuerX500Principal().toString()));
 
         // we only fetch ocsp responses for intermediate approved CAs
         // configured as approved CA and its issuer cert is also an approved CA
         List<X509Certificate> filteredCerts = caCerts.stream()
-                .filter(cert -> subjectsToIssuers.containsKey(cert.getIssuerDN().getName()))
-                .collect(Collectors.toList());
+                .filter(cert -> subjectsToIssuers.containsKey(cert.getIssuerX500Principal().toString()))
+                .toList();
 
         String[] base64EncodedOcspResponses;
         try {
@@ -154,7 +156,7 @@ public class CertificateAuthorityService {
         if (!includeIntermediateCas) {
             // remove intermediate CAs
             dtos = dtos.stream()
-                    .filter(dto -> dto.isTopCa())
+                    .filter(ApprovedCaDto::isTopCa)
                     .collect(Collectors.toList());
         }
 
@@ -183,11 +185,14 @@ public class CertificateAuthorityService {
         ApprovedCaDto.ApprovedCaDtoBuilder builder = ApprovedCaDto.builder();
         builder.authenticationOnly(Boolean.TRUE.equals(approvedCAInfo.getAuthenticationOnly()));
         builder.name(approvedCAInfo.getName());
+        builder.certificateProfileInfo(approvedCAInfo.getCertificateProfileInfo());
+        builder.acmeServerIpAddress(approvedCAInfo.getAcmeServerIpAddress());
+        builder.acmeCapable(approvedCAInfo.getAcmeServerDirectoryUrl() != null);
 
         // properties from X509Certificate
         builder.notAfter(FormatUtils.fromDateToOffsetDateTime(certificate.getNotAfter()));
-        builder.issuerDistinguishedName(certificate.getIssuerDN().getName());
-        String subjectName = certificate.getSubjectDN().getName();
+        builder.issuerDistinguishedName(certificate.getIssuerX500Principal().toString());
+        String subjectName = certificate.getSubjectX500Principal().toString();
         builder.subjectDistinguishedName(subjectName);
 
         // properties from ocsp response
@@ -197,20 +202,12 @@ public class CertificateAuthorityService {
         } catch (OcspUtils.OcspStatusExtractionException e) {
             throw new InconsistentCaDataException(e);
         }
-        if (ocspResponseStatus == null) {
-            builder.ocspResponse(OCSP_RESPONSE_NOT_AVAILABLE);
-        } else {
-            builder.ocspResponse(ocspResponseStatus);
-        }
+        builder.ocspResponse(Objects.requireNonNullElse(ocspResponseStatus, OCSP_RESPONSE_NOT_AVAILABLE));
 
         // path and is-top-ca info
         List<String> subjectDnPath = buildPath(certificate, subjectsToIssuers);
         builder.subjectDnPath(subjectDnPath);
-        if (subjectDnPath.size() > 1 || !subjectName.equals(subjectDnPath.get(0))) {
-            builder.topCa(false);
-        } else {
-            builder.topCa(true);
-        }
+        builder.topCa(subjectDnPath.size() <= 1 && subjectName.equals(subjectDnPath.get(0)));
 
         return builder.build();
     }
@@ -221,8 +218,8 @@ public class CertificateAuthorityService {
     List<String> buildPath(X509Certificate certificate,
                            Map<String, String> subjectsToIssuers) {
         ArrayList<String> pathElements = new ArrayList<>();
-        String current = certificate.getSubjectDN().getName();
-        String issuer = certificate.getIssuerDN().getName();
+        String current = certificate.getSubjectX500Principal().toString();
+        String issuer = certificate.getIssuerX500Principal().toString();
         pathElements.add(current);
         while (!current.equals(issuer) && subjectsToIssuers.containsKey(issuer)) {
             pathElements.add(0, issuer);
@@ -230,6 +227,18 @@ public class CertificateAuthorityService {
             issuer = subjectsToIssuers.get(current);
         }
         return pathElements;
+    }
+
+    public boolean isAcmeExternalAccountBindingRequired(String caName) throws CertificateAuthorityNotFoundException {
+        final var acmeUrl = getCertificateAuthorityInfo(caName).getAcmeServerDirectoryUrl();
+        return acmeUrl != null && acmeService.isExternalAccountBindingRequired(acmeUrl);
+    }
+
+    public boolean hasAcmeExternalAccountBindingCredentials(String caName, String memberId) {
+        return acmeProperties.hasEabCredentials(
+                caName,
+                Objects.requireNonNullElse(memberId, currentSecurityServerId.getServerId().getOwner().asEncodedId())
+        );
     }
 
     /**
@@ -246,7 +255,7 @@ public class CertificateAuthorityService {
     public CertificateProfileInfo getCertificateProfile(String caName, KeyUsageInfo keyUsageInfo, ClientId memberId,
                                                         boolean isNewMember)
             throws CertificateAuthorityNotFoundException, CertificateProfileInstantiationException,
-            WrongKeyUsageException, ClientNotFoundException {
+                   WrongKeyUsageException, ClientNotFoundException {
         ApprovedCAInfo caInfo = getCertificateAuthorityInfo(caName);
         if (Boolean.TRUE.equals(caInfo.getAuthenticationOnly()) && KeyUsageInfo.SIGNING == keyUsageInfo) {
             throw new WrongKeyUsageException();
@@ -286,15 +295,11 @@ public class CertificateAuthorityService {
      * @throws CertificateAuthorityNotFoundException if matching CA was not found
      */
     public ApprovedCAInfo getCertificateAuthorityInfo(String caName) throws CertificateAuthorityNotFoundException {
-        Collection<ApprovedCAInfo> cas = globalConfService.getApprovedCAsForThisInstance();
-        Optional<ApprovedCAInfo> ca = cas.stream()
+        return globalConfService.getApprovedCAsForThisInstance().stream()
                 .filter(item -> caName.equals(item.getName()))
-                .findFirst();
-        if (!ca.isPresent()) {
-            throw new CertificateAuthorityNotFoundException("certificate authority "
-                    + caName + " not_found");
-        }
-        return ca.get();
+                .findFirst()
+                .orElseThrow(() -> new CertificateAuthorityNotFoundException("certificate authority "
+                        + caName + " not_found"));
     }
 
     /**

@@ -27,6 +27,7 @@ openApiGenerate {
     apiPackage = "org.niis.xroad.cs.openapi"
     modelPackage = "org.niis.xroad.cs.openapi.model"
     modelNameSuffix = "Dto"
+    templateDir = "$projectDir/src/main/resources/template"
     importMappings.set([
         User           : "org.niis.xroad.restapi.openapi.model.User",
         ErrorInfo      : "org.niis.xroad.restapi.openapi.model.ErrorInfo",

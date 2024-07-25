@@ -169,7 +169,6 @@ public class TaskQueue {
         } else if (timestampResult instanceof TimestampFailed) {
             handleTimestampFailed((TimestampFailed) timestampResult);
         }
-
     }
 
     private TimestampTask createTimestampTask(List<Task> timestampTasks) {

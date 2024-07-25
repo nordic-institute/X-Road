@@ -87,39 +87,40 @@ public class ClientDtoConverter extends DtoConverter<SecurityServerClient, Clien
         ClientId clientId = clientIdDtoConverter.fromDto(clientIdDto);
         XRoadIdDto.TypeEnum clientType = clientIdDto.getType();
 
-        if (clientType != null) {
-            switch (clientType) {
-                case MEMBER:
-                    String memberClassCode = clientIdDto.getMemberClass();
-                    MemberClass memberClass = memberClassService
-                            .findByCode(memberClassCode)
-                            .orElseThrow(() -> new NotFoundException(
-                                    MEMBER_CLASS_NOT_FOUND,
-                                    "code",
-                                    memberClassCode
-                            ));
-                    return new XRoadMember(
-                            source.getMemberName(),
-                            clientId,
-                            memberClass
-                    );
-                case SUBSYSTEM:
-                    XRoadMember xRoadMember = memberService
-                            .findMember(clientId.getMemberId())
-                            .orElseThrow(() -> new NotFoundException(
-                                    MEMBER_NOT_FOUND,
-                                    "code",
-                                    clientIdDto.getMemberCode()
-                            ));
-                    return new Subsystem(
-                            xRoadMember,
-                            clientId
-                    );
-                default://Ignore other cases
-            }
+
+        switch (clientType) {
+            case MEMBER:
+                String memberClassCode = clientIdDto.getMemberClass();
+                MemberClass memberClass = memberClassService
+                        .findByCode(memberClassCode)
+                        .orElseThrow(() -> new NotFoundException(
+                                MEMBER_CLASS_NOT_FOUND,
+                                "code",
+                                memberClassCode
+                        ));
+                return new XRoadMember(
+                        source.getMemberName(),
+                        clientId,
+                        memberClass
+                );
+            case SUBSYSTEM:
+                XRoadMember xRoadMember = memberService
+                        .findMember(clientId.getMemberId())
+                        .orElseThrow(() -> new NotFoundException(
+                                MEMBER_NOT_FOUND,
+                                "code",
+                                clientIdDto.getMemberCode()
+                        ));
+                return new Subsystem(
+                        xRoadMember,
+                        clientId
+                );
+            case null:
+            default:
+                throw new IllegalArgumentException("Invalid client type: " + clientType);
         }
 
-        throw new IllegalArgumentException("Invalid client type: " + clientType);
+
     }
 
     @Service

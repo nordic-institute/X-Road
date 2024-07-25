@@ -18,6 +18,7 @@ dependencies {
     testImplementation libs.xmlunit.matchers
     testImplementation libs.hsqldb
     testImplementation libs.mockito.core
+    testImplementation libs.jsonUnit.assertj
 }
 
 tasks.register('runMetaserviceTest', JavaExec) {

@@ -119,18 +119,13 @@ public class TokenCertificateConverter {
         } catch (OcspUtils.OcspStatusExtractionException e) {
             throw new RuntimeException("extracting OCSP status failed", e);
         }
-        switch (ocspResponseStatus) {
-            case CertificateInfo.OCSP_RESPONSE_GOOD:
-                return CertificateOcspStatus.OCSP_RESPONSE_GOOD;
-            case CertificateInfo.OCSP_RESPONSE_SUSPENDED:
-                return CertificateOcspStatus.OCSP_RESPONSE_SUSPENDED;
-            case CertificateInfo.OCSP_RESPONSE_REVOKED:
-                return CertificateOcspStatus.OCSP_RESPONSE_REVOKED;
-            case CertificateInfo.OCSP_RESPONSE_UNKNOWN:
-                return CertificateOcspStatus.OCSP_RESPONSE_UNKNOWN;
-            default:
-                throw new AssertionError("unexpected ocsp response status: " + ocspResponseStatus);
-        }
+        return switch (ocspResponseStatus) {
+            case CertificateInfo.OCSP_RESPONSE_GOOD -> CertificateOcspStatus.OCSP_RESPONSE_GOOD;
+            case CertificateInfo.OCSP_RESPONSE_SUSPENDED -> CertificateOcspStatus.OCSP_RESPONSE_SUSPENDED;
+            case CertificateInfo.OCSP_RESPONSE_REVOKED -> CertificateOcspStatus.OCSP_RESPONSE_REVOKED;
+            case CertificateInfo.OCSP_RESPONSE_UNKNOWN -> CertificateOcspStatus.OCSP_RESPONSE_UNKNOWN;
+            default -> throw new AssertionError("unexpected ocsp response status: " + ocspResponseStatus);
+        };
     }
 
     /**

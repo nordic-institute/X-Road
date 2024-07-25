@@ -34,6 +34,7 @@ import ee.ria.xroad.signer.protocol.dto.KeyUsageInfo;
 import org.junit.Before;
 import org.junit.Test;
 import org.niis.xroad.securityserver.restapi.dto.ApprovedCaDto;
+import org.niis.xroad.securityserver.restapi.openapi.model.AcmeOrder;
 import org.niis.xroad.securityserver.restapi.openapi.model.CertificateAuthority;
 import org.niis.xroad.securityserver.restapi.openapi.model.KeyUsageType;
 import org.niis.xroad.securityserver.restapi.service.KeyNotFoundException;
@@ -57,6 +58,7 @@ import static org.junit.Assert.fail;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyBoolean;
 import static org.mockito.Mockito.doAnswer;
+import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.when;
 
 /**
@@ -112,6 +114,7 @@ public class CertificateAuthoritiesApiControllerTest extends AbstractApiControll
                     public void validateSubjectField(DnFieldValue field) throws Exception {
                     }
                 });
+        doNothing().when(tokenCertificateService).orderAcmeCertificate(any(), any(), any());
     }
 
     @Test
@@ -192,5 +195,27 @@ public class CertificateAuthoritiesApiControllerTest extends AbstractApiControll
                 null, "FI:GOV:M1", false);
         // for Sonar "Add at least one assertion to this test case"
         assertTrue("should not have thrown exception", true);
+    }
+
+    @Test
+    @WithMockUser(authorities = { "IMPORT_SIGN_CERT" })
+    public void orderAcmeCertificateAuthWithSignPermission() {
+        caController.orderAcmeCertificate(GENERAL_PURPOSE_CA_NAME, new AcmeOrder("012", KeyUsageType.SIGNING));
+        try {
+            caController.orderAcmeCertificate(GENERAL_PURPOSE_CA_NAME, new AcmeOrder("012", KeyUsageType.AUTHENTICATION));
+            fail("should have thrown exception");
+        } catch (AccessDeniedException expected) {
+        }
+    }
+
+    @Test
+    @WithMockUser(authorities = { "IMPORT_AUTH_CERT" })
+    public void orderAcmeCertificateSignWithAuthPermission() {
+        caController.orderAcmeCertificate(GENERAL_PURPOSE_CA_NAME, new AcmeOrder("012", KeyUsageType.AUTHENTICATION));
+        try {
+            caController.orderAcmeCertificate(GENERAL_PURPOSE_CA_NAME, new AcmeOrder("012", KeyUsageType.SIGNING));
+            fail("should have thrown exception");
+        } catch (AccessDeniedException expected) {
+        }
     }
 }

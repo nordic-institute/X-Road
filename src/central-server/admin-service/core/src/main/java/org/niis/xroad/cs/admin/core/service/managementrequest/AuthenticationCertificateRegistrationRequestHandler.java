@@ -140,7 +140,7 @@ public class AuthenticationCertificateRegistrationRequestHandler implements
                 authCertRegRequest = newRequest(request);
                 break;
             case 1:
-                AuthenticationCertificateRegistrationRequestEntity existingRequest = pendingRequests.get(0);
+                AuthenticationCertificateRegistrationRequestEntity existingRequest = pendingRequests.getFirst();
                 Predicate<Void> isDifferentOrigin = __ ->
                         !existingRequest.getOrigin().equals(origin);
                 Predicate<Void> isSameSecurityServerId = __ ->

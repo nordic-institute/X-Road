@@ -180,17 +180,10 @@ class MetadataServiceHandlerImpl implements ServiceHandler {
 
 
         switch (serviceCode) {
-            case LIST_METHODS:
-                handleListMethods(requestMessage);
-                return;
-            case ALLOWED_METHODS:
-                handleAllowedMethods(requestMessage);
-                return;
-            case GET_WSDL:
-                handleGetWsdl(requestMessage);
-                return;
-            default: // do nothing
-                return;
+            case LIST_METHODS -> handleListMethods(requestMessage);
+            case ALLOWED_METHODS -> handleAllowedMethods(requestMessage);
+            case GET_WSDL -> handleGetWsdl(requestMessage);
+            default -> { }
         }
     }
 

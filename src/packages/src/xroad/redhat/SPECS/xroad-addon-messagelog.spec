@@ -109,7 +109,7 @@ fi
 %post -p /bin/bash
 %systemd_post xroad-addon-messagelog.service
 
-# RHEL7 java-17-* package makes java binaries available since %post scriptlet
+# RHEL7 java-21-* package makes java binaries available since %post scriptlet
 %if 0%{?el7}
 %manage_messagelog_activation
 %endif
@@ -137,7 +137,7 @@ fi
 %systemd_postun_with_restart xroad-proxy.service xroad-addon-messagelog.service
 
 %posttrans -p /bin/bash
-# RHEL8/9 java-17-* package makes java binaries available since %posttrans scriptlet
+# RHEL8/9 java-21-* package makes java binaries available since %posttrans scriptlet
 %if 0%{?el8} || 0%{?el9}
 %manage_messagelog_activation
 %endif

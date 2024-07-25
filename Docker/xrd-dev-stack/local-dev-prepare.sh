@@ -2,24 +2,34 @@
 
 set -e # Exit immediately if a command exits with a non-zero status.
 
+# Global variable to determine if text coloring is enabled
+isTextColoringEnabled=$(command -v tput >/dev/null && tput setaf 1 &>/dev/null && echo true || echo false)
+
 errorExit() {
-  echo "$(tput setaf 5)*** $*(tput sgr0)" 1>&2
+  if $isTextColoringEnabled; then
+    echo "$(tput setaf 5)*** $*(tput sgr0)" 1>&2
+  else
+    echo "*** $*" 1>&2
+  fi
   exit 1
 }
 
 warn() {
-  echo "$(tput setaf 3)*** $*$(tput sgr0)"
+  if $isTextColoringEnabled; then
+    echo "$(tput setaf 3)*** $*$(tput sgr0)"
+  else
+    echo "*** $*"
+  fi
 }
 
 # Ensure XROAD_HOME is set and not empty
 if [ -z "$XROAD_HOME" ]; then
-  echo "XROAD_HOME is not set. Exiting."
-  exit 1
+  errorExit "XROAD_HOME is not set. Exiting."
 fi
 
 TARGET_PACKAGE_SOURCE=internal
 GRADLE_BUILD=1
-PACKAGES_LOCAL_PATH="$XROAD_HOME"/src/packages/build/ubuntu22.04
+PACKAGES_LOCAL_PATH="$XROAD_HOME"/src/packages/build/ubuntu24.04
 
 for i in "$@"; do
   case "$i" in
@@ -62,3 +72,12 @@ echo "Building xrd-testca image.."
 cd "$XROAD_HOME"/Docker/testca
 ./init_context.sh
 docker build -t xrd-testca .
+
+echo "Building payloadgen image.."
+docker build -t xrd-payloadgen "$XROAD_HOME"/Docker/test-services/payloadgen/
+
+if [[ "$(uname)" == "Darwin" && "$(uname -m)" == "arm64" ]]; then
+  echo "Building example-adapter image for arm64 architecture.."
+  echo "This step can be removed when arm64 image will be available to download"
+  docker build -t niis/example-adapter "$XROAD_HOME"/Docker/test-services/example-adapter/
+fi
