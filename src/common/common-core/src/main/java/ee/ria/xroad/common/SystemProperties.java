@@ -1740,7 +1740,7 @@ public final class SystemProperties {
         return System.getProperty(DATASPACES_PROTOCOL_PORT, "9194");
     }
 
-    public static boolean isBatchMessageSigningEnabled(){
-        return true;
+    public static boolean isBatchMessageSigningEnabled() {
+        return false;
     }
 }
