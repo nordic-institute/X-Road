@@ -29,11 +29,9 @@ import ee.ria.xroad.common.CodedException;
 import ee.ria.xroad.common.SystemProperties;
 import ee.ria.xroad.signer.SignerProxy;
 
-import eu.europa.esig.dss.xml.common.XmlDefinerUtils;
 import lombok.Data;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
-import org.niis.xroad.edc.sig.XrdSignatureService;
 
 import java.security.cert.X509Certificate;
 import java.util.ArrayList;
@@ -71,7 +69,6 @@ public class BatchSigner implements MessageSigner {
     private final Map<String, WorkerImpl> workers = new ConcurrentHashMap<>();
 
     public static BatchSigner init() {
-        XmlDefinerUtils.getInstance().setSchemaFactoryBuilder(new XrdSignatureService.JaxpSchemaFactoryBuilder());
         instance = new BatchSigner();
         return instance;
     }

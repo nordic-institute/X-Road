@@ -27,6 +27,7 @@ package ee.ria.xroad.common.signature;
 
 import lombok.RequiredArgsConstructor;
 import org.apache.xml.security.signature.XMLSignatureInput;
+import org.apache.xml.security.signature.XMLSignatureNodeInput;
 import org.apache.xml.security.utils.resolver.ResourceResolverContext;
 import org.apache.xml.security.utils.resolver.ResourceResolverException;
 import org.apache.xml.security.utils.resolver.ResourceResolverSpi;
@@ -53,6 +54,6 @@ public class IdResolver extends ResourceResolverSpi {
     public XMLSignatureInput engineResolveURI(ResourceResolverContext context) throws ResourceResolverException {
         Element elem = getElementById(document, context.attr.getValue().substring(1));
 
-        return elem == null ? null : new XMLSignatureInput(elem);
+        return elem == null ? null : new XMLSignatureNodeInput(elem);
     }
 }

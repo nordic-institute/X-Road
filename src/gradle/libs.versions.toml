@@ -108,7 +108,7 @@ apache-commonsConfiguration2 = { module = "org.apache.commons:commons-configurat
 apache-httpmime = { module = "org.apache.httpcomponents:httpmime", version = "4.5.14" }
 apache-cxfToolsValidator = { module = "org.apache.cxf:cxf-tools-validator", version = "4.0.4" }
 apache-tikaCore = { module = "org.apache.tika:tika-core", version = "2.9.2" }
-apache-xmlsec = { module = "org.apache.santuario:xmlsec", version = "3.0.4" } # newer versions are not compatible with DSS
+apache-xmlsec = { module = "org.apache.santuario:xmlsec", version = "4.0.2" } # newer versions are not compatible with DSS
 apache-httpclient = { module = "org.apache.httpcomponents:httpclient", version = "4.5.14" }
 apache-httpasyncclient = { module = "org.apache.httpcomponents:httpasyncclient", version = "4.1.5" }
 apache-httpclient5 = { module = "org.apache.httpcomponents.client5:httpclient5", version = "5.3.1" }
@@ -281,7 +281,6 @@ edc-micrometer-jersey = { module = "org.eclipse.edc:jersey-micrometer", version.
 edc-micrometer-jetty = { module = "org.eclipse.edc:jetty-micrometer", version.ref = "edc" }
 
 opentelemetry-instrumentation-annotations = { module = "io.opentelemetry.instrumentation:opentelemetry-instrumentation-annotations", version = "2.6.0" } # TODO older version to align with  edc
-opentelemetry-instrumentation-grpc = { module = "io.opentelemetry.instrumentation:opentelemetry-grpc-1.6", version = "2.6.0-alpha" } # TODO older version to align with  edc
 
 [bundles]
 metrics = ["metrics-core", "metrics-jmx"]

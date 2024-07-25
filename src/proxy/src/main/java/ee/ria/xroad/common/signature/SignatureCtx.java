@@ -34,6 +34,8 @@ import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.xml.security.signature.XMLSignatureByteInput;
+import org.apache.xml.security.signature.XMLSignatureDigestInput;
 import org.apache.xml.security.signature.XMLSignatureInput;
 import org.apache.xml.security.utils.resolver.ResourceResolverContext;
 import org.apache.xml.security.utils.resolver.ResourceResolverException;
@@ -41,7 +43,6 @@ import org.apache.xml.security.utils.resolver.ResourceResolverSpi;
 
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
-import java.util.Base64;
 import java.util.List;
 
 import static ee.ria.xroad.common.ErrorCodes.X_INTERNAL_ERROR;
@@ -185,12 +186,12 @@ class SignatureCtx {
                 switch (context.attr.getValue()) {
                     case MessageFileNames.MESSAGE:
                     case MessageFileNames.SIG_HASH_CHAIN_RESULT:
-                        return new XMLSignatureInput(data);
+                        return new XMLSignatureByteInput(data);
                     default: // do nothing
                 }
 
                 if (isAttachment(context.attr.getValue())) {
-                    return new XMLSignatureInput(Base64.getEncoder().encodeToString(data));
+                    return new XMLSignatureDigestInput(CryptoUtils.encodeBase64(data));
                 }
                 return null;
             }
