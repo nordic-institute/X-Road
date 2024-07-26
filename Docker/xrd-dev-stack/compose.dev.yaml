@@ -4,6 +4,7 @@
 
 services:
   cs:
+    container_name: cs
     environment:
       - XROAD_TOKEN_PIN=Secret1234
     ports:
@@ -12,7 +13,10 @@ services:
       - "4190:9950" # Admin debug
       - "4191:9951" # Management debug
       - "4192:9952" # Registration debug
+    networks:
+      - xroad-network
   ss0:
+    container_name: ss0
     environment:
       - XROAD_TOKEN_PIN=Secret1234
     ports:
@@ -24,7 +28,10 @@ services:
       - "4292:9997" # Proxy UI debug port
       - "4299:4299" # Proxy JMX port
       - "4298:4298" # Signer JMX port
+    networks:
+      - xroad-network
   ss1:
+    container_name: ss1
     environment:
       - XROAD_TOKEN_PIN=Secret1234
     ports:
@@ -36,9 +43,8 @@ services:
       - "4392:9997" # Proxy UI debug port
       - "4399:4399" # Proxy JMX port
       - "4398:4398" # Signer JMX port
-      - "4390:9999" # Proxy debug port
-      - "4391:9998" # Signer debug port
-      - "4392:9997" # Proxy UI debug port
+    networks:
+      - xroad-network
   ss2:
     environment:
       - XROAD_TOKEN_PIN=Secret1234
@@ -50,15 +56,29 @@ services:
       - "4791:9998" # Signer debug port
       - "4792:9997" # Proxy UI debug port
   testca:
+    container_name: testca
     ports:
       - "4400:8888"
       - "4403:9998"
+    networks:
+      - xroad-network
   isrest:
+    container_name: isrest
     ports:
       - "4500:8080"
+    networks:
+      - xroad-network
   issoap:
+    container_name: issoap
     ports:
       - "4600:8080"
-  payloadgen:
-    ports:
-      - "4700:8080"
+    networks:
+      - xroad-network
+  hurl:
+    networks:
+      - xroad-network
+networks:
+  # Use implicitly named network so that is easier to add container outside the compose
+  xroad-network:
+    name: xroad-network
+    driver: bridge

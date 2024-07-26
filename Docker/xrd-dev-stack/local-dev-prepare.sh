@@ -2,24 +2,34 @@
 
 set -e # Exit immediately if a command exits with a non-zero status.
 
+# Global variable to determine if text coloring is enabled
+isTextColoringEnabled=$(command -v tput >/dev/null && tput setaf 1 &>/dev/null && echo true || echo false)
+
 errorExit() {
-  echo "$(tput setaf 5)*** $*(tput sgr0)" 1>&2
+  if $isTextColoringEnabled; then
+    echo "$(tput setaf 5)*** $*(tput sgr0)" 1>&2
+  else
+    echo "*** $*" 1>&2
+  fi
   exit 1
 }
 
 warn() {
-  echo "$(tput setaf 3)*** $*$(tput sgr0)"
+  if $isTextColoringEnabled; then
+    echo "$(tput setaf 3)*** $*$(tput sgr0)"
+  else
+    echo "*** $*"
+  fi
 }
 
 # Ensure XROAD_HOME is set and not empty
 if [ -z "$XROAD_HOME" ]; then
-  echo "XROAD_HOME is not set. Exiting."
-  exit 1
+  errorExit "XROAD_HOME is not set. Exiting."
 fi
 
 TARGET_PACKAGE_SOURCE=internal
 GRADLE_BUILD=1
-PACKAGES_LOCAL_PATH="$XROAD_HOME"/src/packages/build/ubuntu22.04
+PACKAGES_LOCAL_PATH="$XROAD_HOME"/src/packages/build/ubuntu24.04
 
 for i in "$@"; do
   case "$i" in
@@ -49,14 +59,14 @@ cd "$XROAD_HOME"/Docker/centralserver
 ./init_context.sh
 mkdir -p build/packages
 cp "$PACKAGES_LOCAL_PATH"/* build/packages/
-docker build --build-arg PACKAGE_SOURCE=$TARGET_PACKAGE_SOURCE -t xrd-centralserver-dev .
+docker build --build-arg PACKAGE_SOURCE=$TARGET_PACKAGE_SOURCE -t xrd8-centralserver-dev .
 
 echo "Building xrd-securityserver-dev image.."
 cd "$XROAD_HOME"/Docker/securityserver
 ./init_context.sh
 mkdir -p build/packages
 cp "$PACKAGES_LOCAL_PATH"/* build/packages/
-docker build --build-arg PACKAGE_SOURCE=$TARGET_PACKAGE_SOURCE -t xrd-securityserver-dev .
+docker build --build-arg PACKAGE_SOURCE=$TARGET_PACKAGE_SOURCE -t xrd8-securityserver-dev .
 
 echo "Building xrd-testca image.."
 cd "$XROAD_HOME"/Docker/testca

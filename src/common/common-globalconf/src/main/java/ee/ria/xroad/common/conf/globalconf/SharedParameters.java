@@ -26,30 +26,20 @@
 package ee.ria.xroad.common.conf.globalconf;
 
 import ee.ria.xroad.common.identifier.ClientId;
-import ee.ria.xroad.common.identifier.SecurityServerId;
 
+import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
 import lombok.Getter;
-import org.bouncycastle.asn1.x500.X500Name;
-import org.bouncycastle.cert.X509CertificateHolder;
+import lombok.NoArgsConstructor;
+import lombok.RequiredArgsConstructor;
 
-import java.io.IOException;
-import java.math.BigInteger;
-import java.security.cert.CertificateEncodingException;
-import java.security.cert.X509Certificate;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Map;
-import java.util.Objects;
-import java.util.Set;
-import java.util.stream.Collectors;
 
-import static ee.ria.xroad.common.util.CryptoUtils.encodeBase64;
-import static ee.ria.xroad.common.util.CryptoUtils.readCertificate;
+import static ee.ria.xroad.common.SystemProperties.isSslEnabled;
 
 @Getter
+@Builder(toBuilder = true)
 public class SharedParameters {
     private final String instanceIdentifier;
     private final List<ConfigurationSource> sources;
@@ -60,24 +50,9 @@ public class SharedParameters {
     private final List<GlobalGroup> globalGroups;
     private final GlobalSettings globalSettings;
 
-    // Utility maps of existing data to speed up searches, filled at conf initialization
-    private final Map<X500Name, X509Certificate> subjectsAndCaCerts = new HashMap<>();
-    private final Map<X509Certificate, String> caCertsAndCertProfiles = new HashMap<>();
-    private final Map<X509Certificate, ApprovedCA> caCertsAndApprovedCAData = new HashMap<>();
-    private final Map<X509Certificate, List<OcspInfo>> caCertsAndOcspData = new HashMap<>();
-    private final List<X509Certificate> verificationCaCerts = new ArrayList<>();
-    private final Map<ClientId, Set<ServerAddress>> memberAddresses = new HashMap<>();
-    private final Map<ClientId, String> memberDids = new HashMap<>();
-    private final Map<ClientId, Set<byte[]>> memberAuthCerts = new HashMap<>();
-    private final Map<String, SecurityServer> serverByAuthCert = new HashMap<>();
-    private final Map<SecurityServerId, Set<ClientId>> securityServerClients = new HashMap<>();
-    private final Set<String> knownAddresses = new HashSet<>();
-    private final Map<SecurityServerId, SecurityServer> securityServersById = new HashMap<>();
-
     public SharedParameters(String instanceIdentifier, List<ConfigurationSource> sources, List<ApprovedCA> approvedCAs,
                             List<ApprovedTSA> approvedTSAs, List<Member> members, List<SecurityServer> securityServers,
-                            List<GlobalGroup> globalGroups, GlobalSettings globalSettings)
-            throws CertificateEncodingException, IOException {
+                            List<GlobalGroup> globalGroups, GlobalSettings globalSettings) {
         this.instanceIdentifier = instanceIdentifier;
         this.sources = sources;
         this.approvedCAs = approvedCAs;
@@ -86,110 +61,8 @@ public class SharedParameters {
         this.securityServers = securityServers;
         this.globalGroups = globalGroups;
         this.globalSettings = globalSettings;
-
-        cacheCaCerts();
-        cacheKnownAddresses();
-        cacheSecurityServers();
     }
 
-    private void cacheCaCerts() throws CertificateEncodingException, IOException {
-        List<X509Certificate> allCaCerts = new ArrayList<>();
-
-        for (ApprovedCA ca : approvedCAs) {
-            List<SharedParameters.CaInfo> topCAs = List.of(ca.getTopCA());
-            List<SharedParameters.CaInfo> intermediateCAs = ca.getIntermediateCas();
-
-            cacheOcspData(topCAs);
-            cacheOcspData(intermediateCAs);
-
-            List<X509Certificate> pkiCaCerts = new ArrayList<>();
-
-            pkiCaCerts.addAll(getTopOrIntermediateCaCerts(topCAs));
-            pkiCaCerts.addAll(getTopOrIntermediateCaCerts(intermediateCAs));
-
-            Boolean authenticationOnly = ca.getAuthenticationOnly();
-            if (authenticationOnly == null || !authenticationOnly) {
-                verificationCaCerts.addAll(pkiCaCerts);
-            }
-
-            for (X509Certificate pkiCaCert : pkiCaCerts) {
-                caCertsAndCertProfiles.put(pkiCaCert, ca.getCertificateProfileInfo());
-                caCertsAndApprovedCAData.put(pkiCaCert, ca);
-            }
-            allCaCerts.addAll(pkiCaCerts);
-
-            for (X509Certificate cert : allCaCerts) {
-                X509CertificateHolder certHolder =
-                        new X509CertificateHolder(cert.getEncoded());
-                subjectsAndCaCerts.put(certHolder.getSubject(), cert);
-            }
-        }
-    }
-
-    private void cacheOcspData(List<CaInfo> typesUnderCA) {
-        for (CaInfo caInfo : typesUnderCA) {
-            X509Certificate cert = readCertificate(caInfo.getCert());
-            List<OcspInfo> caOcspTypes = caInfo.getOcsp();
-            caCertsAndOcspData.put(cert, caOcspTypes);
-        }
-    }
-
-    private static List<X509Certificate> getTopOrIntermediateCaCerts(List<CaInfo> typesUnderCA) {
-        return typesUnderCA.stream()
-                .map(c -> readCertificate(c.getCert()))
-                .collect(Collectors.toList());
-    }
-
-    private void cacheKnownAddresses() {
-        securityServers.stream().map(SecurityServer::getServerAddress)
-                .filter(Objects::nonNull)
-                .map(ServerAddress::getAddress)
-                .forEach(knownAddresses::add);
-    }
-
-    private void cacheSecurityServers() {
-        for (SecurityServer securityServer : securityServers) {
-            for (byte[] certHash : securityServer.getAuthCertHashes()) {
-                serverByAuthCert.put(encodeBase64(certHash), securityServer);
-            }
-
-            // Add owner of the security server
-            addServerClient(securityServer.getOwner(), securityServer);
-
-            // cache security server information by serverId
-            SecurityServerId securityServerId = SecurityServerId.Conf.create(
-                    instanceIdentifier, securityServer.getOwner().getMemberClass(),
-                    securityServer.getOwner().getMemberCode(), securityServer.getServerCode()
-            );
-            securityServersById.put(securityServerId, securityServer);
-
-            securityServer.getClients().forEach(client -> addServerClient(client, securityServer));
-        }
-    }
-
-    private void addServerClient(ClientId client, SecurityServer server) {
-        // Add the mapping from client to security server address.
-        if (server.getServerAddress() != null) {
-            addToMap(memberAddresses, client, server.getServerAddress());
-        }
-
-        // Add the mapping from client to authentication certificate.
-        for (byte[] authCert : server.getAuthCertHashes()) {
-            addToMap(memberAuthCerts, client, authCert);
-        }
-
-        SecurityServerId securityServerId = SecurityServerId.Conf.create(
-                instanceIdentifier, server.getOwner().getMemberClass(),
-                server.getOwner().getMemberCode(), server.getServerCode()
-        );
-
-        addToMap(securityServerClients, securityServerId, client);
-    }
-
-    private static <K, V> void addToMap(Map<K, Set<V>> map, K key, V value) {
-        Set<V> coll = map.computeIfAbsent(key, k -> new HashSet<>());
-        coll.add(value);
-    }
 
     @Data
     public static class ConfigurationSource {
@@ -204,18 +77,23 @@ public class SharedParameters {
         private String memberCode;
         private String name;
         private List<Subsystem> subsystems;
+        private ClientId id;
         private String did;
     }
 
     @Data
+    @AllArgsConstructor
+    @NoArgsConstructor
     public static class MemberClass {
         private String code;
         private String description;
     }
 
     @Data
+    @AllArgsConstructor
     public static class Subsystem {
         private String subsystemCode;
+        private ClientId id;
     }
 
     @Data
@@ -229,24 +107,34 @@ public class SharedParameters {
     }
 
     @Data
+    @AllArgsConstructor
+    @NoArgsConstructor
     public static class CaInfo {
         private byte[] cert;
         private List<OcspInfo> ocsp;
     }
 
     @Data
+    @AllArgsConstructor
+    @NoArgsConstructor
     public static class AcmeServer {
         private String directoryURL;
         private String ipAddress;
+        private String authenticationCertificateProfileId;
+        private String signingCertificateProfileId;
     }
 
     @Data
+    @AllArgsConstructor
+    @NoArgsConstructor
     public static class OcspInfo {
         private String url;
         private byte[] cert;
     }
 
     @Data
+    @AllArgsConstructor
+    @NoArgsConstructor
     public static class ApprovedTSA {
         private String name;
         private String url;
@@ -254,15 +142,19 @@ public class SharedParameters {
     }
 
     @Data
+    @RequiredArgsConstructor
     public static class SecurityServer {
         private ClientId owner;
+        private String ownerDid;
         private String serverCode;
-        private List<byte[]> authCertHashes;
+        private List<CertHash> authCertHashes;
         private List<ClientId> clients;
-        private ServerAddress serverAddress;
+        private final ServerAddress serverAddress;
     }
 
     @Data
+    @AllArgsConstructor
+    @NoArgsConstructor
     public static class GlobalGroup {
         private String groupCode;
         private String description;
@@ -270,20 +162,25 @@ public class SharedParameters {
     }
 
     @Data
+    @AllArgsConstructor
+    @NoArgsConstructor
     public static class GlobalSettings {
         private List<MemberClass> memberClasses;
-        private BigInteger ocspFreshnessSeconds;
+        private Integer ocspFreshnessSeconds;
     }
 
-    @Data
-    public static class ServerAddress {
-        private String address;
-        private boolean dsSupported;
-        private String dsProtocolUrl;
-        private String ownerDid;
+    public record ServerAddress(
+            String address,
+            String dsProtocolUrl
+    ) {
 
-        public ServerAddress(String address) {
-            this.address = address;
+        public boolean isDsSupported() {
+            return dsProtocolUrl != null;
+        }
+
+        public String protocolUrl() {
+            var protocol = isSslEnabled() ? "https" : "http";
+            return String.format("%s://%s", protocol, dsProtocolUrl);
         }
     }
 }

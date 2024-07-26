@@ -55,6 +55,7 @@ public class SubsystemDtoConverter extends DtoConverter<Subsystem, SubsystemDto>
                     UsedSecurityServersDto usedSecurityServersDto = new UsedSecurityServersDto();
                     usedSecurityServersDto.setServerCode(serverClient.getServerCode());
                     usedSecurityServersDto.setServerOwner(serverClient.getServerOwner());
+                    usedSecurityServersDto.setEncodedId(serverClient.getServerId().asEncodedId());
 
                     var securityServerRegStatus = resolveSecurityServerStatus(serverClient, source.getIdentifier());
                     usedSecurityServersDto.setStatus(securityServerRegStatus);

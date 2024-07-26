@@ -76,16 +76,12 @@ public class DummyTransactionRollingbackService {
         }
         localGroupType.setDescription(description);
         localGroupType.setUpdated(new Date());
-        switch (exceptionType) {
-            case EXCEPTION:
-                throw new Exception("failing on purpose");
-            case RUNTIME_EXCEPTION:
-                throw new RuntimeException("failing on purpose");
-            case SERVICE_EXCEPTION:
-                throw new LocalGroupService.DuplicateLocalGroupCodeException("failing on purpose");
-            default:
-        }
-        return localGroupType;
+        return switch (exceptionType) {
+            case EXCEPTION -> throw new Exception("failing on purpose");
+            case RUNTIME_EXCEPTION -> throw new RuntimeException("failing on purpose");
+            case SERVICE_EXCEPTION -> throw new LocalGroupService.DuplicateLocalGroupCodeException("failing on purpose");
+            default -> localGroupType;
+        };
     }
 
     public enum ExceptionType {

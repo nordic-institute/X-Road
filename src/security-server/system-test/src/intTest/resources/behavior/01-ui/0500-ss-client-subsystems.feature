@@ -9,11 +9,11 @@ Feature: 0500 - SS: Client Subsystems
     And Clients tab is selected
 
   Scenario: Add subsystem was cancelled
-    When Subsystem add page is opened for Client "TestGov"
+    When Subsystem add page is opened for Client "Test member"
     And Subsystem selection window is opened
-    And Subsystem with ID "CS:GOV:0245437-2:TestService" is selected from the window
+    And Subsystem with ID "DEV:COM:1234:TestService" is selected from the window
     And Register subsystem is unchecked
-    Then Add subsystem form is set to MemberName: "TestGov", MemberClass: "GOV", MemberCode: "0245437-2", SubsystemCode: "TestService"
+    Then Add subsystem form is set to MemberName: "Test member", MemberClass: "COM", MemberCode: "1234", SubsystemCode: "TestService"
     When Add subsystem form is closed
     Then Client "TestService" is missing in the list
 
@@ -27,13 +27,13 @@ Feature: 0500 - SS: Client Subsystems
     When Add subsystem form is submitted
     Then Client "<$subsystem>" with status "<$status>" is present in the list
     Examples:
-      | $member | $memberClass | $memberCode | $subsystem    | $subsystemIdentifier           | $status    |
-      | TestGov | GOV          | 0245437-2   | TestService   | CS:GOV:0245437-2:TestService   | REGISTERED |
-      | TestGov | GOV          | 0245437-2   | TestSaved     | CS:GOV:0245437-2:TestSaved     | REGISTERED |
-      | TestGov | GOV          | 0245437-2   | test-consumer | CS:GOV:0245437-2:test-consumer | SAVED      |
+      | $member     | $memberClass | $memberCode | $subsystem    | $subsystemIdentifier       | $status    |
+      | Test member | COM          | 1234        | TestService   | DEV:COM:1234:TestService   | REGISTERED |
+      | Test member | COM          | 1234        | TestSaved     | DEV:COM:1234:TestSaved     | REGISTERED |
+      | Test member | COM          | 1234        | test-consumer | DEV:COM:1234:test-consumer | SAVED      |
 
   Scenario: New Subsystem is added, but management registration fails
-    When Subsystem add page is opened for Client "TestGov"
+    When Subsystem add page is opened for Client "Test member"
     And Subsystem code is set to "random-sub-1"
     When Add subsystem form is submitted
     And Register client send registration request dialog is confirmed

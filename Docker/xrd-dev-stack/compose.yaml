@@ -82,7 +82,7 @@ services:
       interval: 5s
       retries: 40
       test: [ "CMD", "curl", "-f", "-k", "http://localhost:8080/example-adapter/Endpoint?wsdl" ]
-    entrypoint: ["java", "-Xms64m", "-Xmx256m", "-jar", "/example-adapter.war"]
+    entrypoint: [ "java", "-Xms64m", "-Xmx256m", "-jar", "/example-adapter.war" ]
   isrest:
     image: wiremock/wiremock:latest
     deploy:
@@ -97,22 +97,10 @@ services:
       test: [ "CMD", "curl", "-f", "-k", "http://localhost:8080/__admin/health" ]
     volumes:
       - ./wiremock_mappings:/home/wiremock/mappings
-  payloadgen:
-    image: xrd-payloadgen:latest
-    profiles:
-      - perftest
-    deploy:
-      resources:
-        reservations:
-          memory: 64M
-        limits:
-          memory: 128M
-    healthcheck:
-      interval: 5s
-      retries: 40
-      test: [ "CMD", "wget", "-qO-", "http://127.0.0.1:8080/data/1" ]
   hurl:
-    image: ghcr.io/orange-opensource/hurl:latest
+    build:
+        context: .
+        dockerfile: ./hurl/Dockerfile
     deploy:
       resources:
         reservations:
@@ -120,7 +108,6 @@ services:
         limits:
           memory: 128M
     volumes:
-      - ./hurl-src:/hurl-src
       - ca-volume:/hurl-files/ca
     depends_on:
       cs:

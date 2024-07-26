@@ -1,0 +1,13 @@
+[Unit]
+Description=uWSGI instance to serve acme2certifier
+After=network.target
+
+[Service]
+User=www-data
+Group=www-data
+WorkingDirectory=/var/www/acme2certifier
+Environment="PATH=/var/www/acme2certifier"
+ExecStart=uwsgi --ini acme2certifier.ini
+
+[Install]
+WantedBy=multi-user.target

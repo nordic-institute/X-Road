@@ -1,6 +1,6 @@
 # Kubernetes Security Server Sidecar User Guide <!-- omit in toc -->
 
-Version: 1.9  
+Version: 1.11  
 Doc. ID: UG-K-SS-SIDECAR
 
 ## Version history <!-- omit in toc -->
@@ -17,7 +17,8 @@ Doc. ID: UG-K-SS-SIDECAR
 | 06.07.2023 | 1.7     | Sidecar repo migration                                | Eneli Reimets             |
 | 10.08.2023 | 1.8     | Typo error fixes in yml scripts                       | Eneli Reimets             |
 | 02.04.2024 | 1.9     | Add Azure Kubernetes Service (AKS) references         | Madis Loitmaa             |
-
+| 13.05.2024 | 1.10    | Add additional upgrade details for Sidecar 7.5        | Ovidijus Narkevicius      |
+| 10.07.2024 | 1.11    | Fix incorrect section numbering                       | Petteri Kivimäki          |
 ## License
 
 This document is licensed under the Creative Commons Attribution-ShareAlike 4.0 International License.
@@ -61,6 +62,7 @@ To view a copy of this license, visit <https://creativecommons.org/licenses/by-s
 - [6 Monitoring](#6-monitoring)
 - [7 Version update](#7-version-update)
   - [7.1 Upgrading from 6.26.0 to 7.0.0](#71-upgrading-from-6260-to-700)
+  - [7.2 Upgrading from version 7.4.2 to 7.5.x with local database](#72-upgrading-from-version-742-to-75x-with-local-database)
 - [8 Message log archives](#8-message-log-archives)
 - [9 Automatic scaling of the secondary pods](#9-automatic-scaling-of-the-secondary-pods)
 - [10 Load Balancer setup example](#10-load-balancer-setup-example)
@@ -267,7 +269,7 @@ It is recommended to configure persistent volumes for the files in the following
 |-----------------------------|------------------------------------------------------------------------------------|
 | /etc/xroad                  | X-Road configuration                                                               |
 | /var/lib/xroad              | Backups and messagelog archives                                                    |
-| /var/lib/postgresql/12/main | Local database files (not applicable to load balancer or external DB configuration |
+| /var/lib/postgresql/16/main | Local database files (not applicable to load balancer or external DB configuration |
 
 #### 4.5.4 Kubernetes Secrets
 
@@ -655,9 +657,10 @@ Upgrading to a new Sidecar container image is supported, provided that:
 * The new container image has the same or subsequent minor version of the X-Road Security Server.
   As an exception, upgrading from 6.26.0 to 7.0.x is supported despite the major version change.
 * A volume is used for `/etc/xroad`.
-* An external database is used (or a volume is mapped to `/var/lib/postgresql/12/data`).
+* An external database is used (or a volume is mapped to `/var/lib/postgresql/16/main`).
 * The `xroad.properties` file with `serverconf.database.admin_user` etc. credentials is either mapped to `/etc/xroad.properties` or present in `/etc/xroad/xroad.properties`.
 * The same image type (slim or full) and variant (ee, fi, ...) are used for the new container.
+* If remote database is used, then upgrade it up to PostgreSQL 16 version when upgrading to 7.5.x.
 
 To update the version of the Security Server Sidecar, re-deploy the Pod with a newer version of the Sidecar container image. In case of the scenario [2.3 Multiple Pods using a Load Balancer](#23-multiple-pods-using-a-load-balancer), it is possible to do a rolling upgrade if there are no changes to the database schema. In the case of database schema changes, one needs to take the cluster off-line (scale the secondary replica set to zero), upgrade the primary, and then upgrade (and scale up) the secondaries.
 
@@ -673,6 +676,13 @@ In addition, unless `/etc/xroad.properties` is mounted as secrets file, copy it 
 ```
 kubectl exec -n <namespace> <sidecar-pod-name> -- cp /etc/xroad.properties /etc/xroad/
 ```
+
+### 7.2 Upgrading from version 7.4.2 to 7.5.x with local database
+
+Upgrading from 7.4.2 to 7.5.x is supported, if the above prerequisites are met.
+However, due to different versions of PostgreSQL (current 16, previously 12), it isn't straightforward to upgrade using the same database volume.
+
+Safest way to upgrade is to create a new database volume and restore X-Road instance from a backup. More information about backup and restore flows can be [User Guide](../Manuals/ug-ss_x-road_6_security_server_user_guide.md#13-back-up-and-restore)
 
 **Note:** Version 7.0.0 introduces changes to the database schemas, so a rolling upgrade in a load balancer scenario is not possible.
 

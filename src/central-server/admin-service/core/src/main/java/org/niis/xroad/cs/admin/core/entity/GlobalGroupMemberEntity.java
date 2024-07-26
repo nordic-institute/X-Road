@@ -26,10 +26,8 @@
  */
 package org.niis.xroad.cs.admin.core.entity;
 
-import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
-import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
@@ -39,6 +37,9 @@ import jakarta.persistence.SequenceGenerator;
 import jakarta.persistence.Table;
 import lombok.Getter;
 import lombok.Setter;
+
+import static jakarta.persistence.FetchType.EAGER;
+import static jakarta.persistence.FetchType.LAZY;
 
 @Entity
 @Table(name = GlobalGroupMemberEntity.TABLE_NAME)
@@ -54,13 +55,13 @@ public class GlobalGroupMemberEntity extends AuditableEntity {
     @Setter
     private int id;
 
-    @ManyToOne(fetch = FetchType.LAZY)
+    @ManyToOne(fetch = LAZY)
     @JoinColumn(name = "global_group_id")
     @Getter
     @Setter
     private GlobalGroupEntity globalGroup;
 
-    @ManyToOne(fetch = FetchType.EAGER, cascade = {CascadeType.PERSIST, CascadeType.REMOVE})
+    @ManyToOne(fetch = EAGER)
     @JoinColumn(name = "group_member_id")
     @Getter
     @Setter
@@ -78,9 +79,7 @@ public class GlobalGroupMemberEntity extends AuditableEntity {
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
-        if (!(o instanceof GlobalGroupMemberEntity)) return false;
-
-        final GlobalGroupMemberEntity member = (GlobalGroupMemberEntity) o;
+        if (!(o instanceof GlobalGroupMemberEntity member)) return false;
 
         return identifier.equals(member.identifier);
     }

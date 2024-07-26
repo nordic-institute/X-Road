@@ -31,17 +31,13 @@ import java.time.OffsetDateTime;
 
 public interface SharedParametersProvider {
 
-    default SharedParametersProvider refresh(OffsetDateTime fileExpiresOn) throws CertificateEncodingException, IOException {
-        if (this instanceof SharedParametersV3 v3) {
-            return new SharedParametersV3(v3, fileExpiresOn);
-        } else {
-            return new SharedParametersV2((SharedParametersV2) this, fileExpiresOn);
-        }
-    }
+    SharedParametersProvider refresh(OffsetDateTime fileExpiresOn) throws CertificateEncodingException, IOException;
 
     SharedParameters getSharedParameters();
 
     OffsetDateTime getExpiresOn();
 
     boolean hasChanged();
+
+    SharedParametersMarshaller getMarshaller();
 }

@@ -28,12 +28,10 @@ package org.niis.xroad.cs.admin.core.entity;
 
 import jakarta.persistence.Access;
 import jakarta.persistence.AccessType;
-import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.DiscriminatorColumn;
 import jakarta.persistence.DiscriminatorType;
 import jakarta.persistence.Entity;
-import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
@@ -51,6 +49,8 @@ import lombok.Setter;
 
 import java.util.HashSet;
 import java.util.Set;
+
+import static jakarta.persistence.FetchType.EAGER;
 
 /**
  * Entity representing a client (member or subsystem) of a X-Road Instance
@@ -73,13 +73,13 @@ public abstract class SecurityServerClientEntity extends AuditableEntity {
     @Getter
     private int id;
 
-    @ManyToOne(fetch = FetchType.EAGER, cascade = CascadeType.ALL)
+    @ManyToOne(fetch = EAGER)
     @JoinColumn(name = "server_client_id", nullable = false, updatable = false)
     @Access(AccessType.FIELD)
     @Getter
     private ClientIdEntity identifier;
 
-    @OneToMany(fetch = FetchType.EAGER, mappedBy = "securityServerClient")
+    @OneToMany(fetch = EAGER, mappedBy = "securityServerClient")
     @Access(AccessType.FIELD)
     @Getter
     @Setter

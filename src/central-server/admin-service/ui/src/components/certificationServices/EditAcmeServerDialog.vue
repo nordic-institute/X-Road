@@ -65,6 +65,26 @@
             persistent-hint
             data-test="acme-server-ip-address-input"
           />
+          <v-text-field
+            v-model="authenticationCertificateProfileId"
+            v-bind="authenticationCertificateProfileIdAttrs"
+            variant="outlined"
+            :label="$t('fields.authenticationCertificateProfileId')"
+            :hint="$t('trustServices.acmeServerAuthProfileIdExplanation')"
+            persistent-hint
+            data-test="auth-cert-profile-id-input"
+            class="pt-4"
+          />
+          <v-text-field
+            v-model="signingCertificateProfileId"
+            v-bind="signingCertificateProfileIdAttrs"
+            variant="outlined"
+            :label="$t('fields.signingCertificateProfileId')"
+            :hint="$t('trustServices.acmeServerSignProfileIdExplanation')"
+            persistent-hint
+            data-test="sign-cert-profile-id-input"
+            class="pt-4"
+          />
         </v-sheet>
       </div>
     </template>
@@ -103,6 +123,8 @@ const { meta, defineField, handleSubmit } = useForm({
     acmeServerDirectoryUrl:
       props.certificationService.acme_server_directory_url,
     acmeServerIpAddress: props.certificationService.acme_server_ip_address,
+    authenticationCertificateProfileId: props.certificationService.authentication_certificate_profile_id,
+    signingCertificateProfileId: props.certificationService.signing_certificate_profile_id
   },
 });
 
@@ -118,6 +140,18 @@ const [acmeServerIpAddress, acmeServerIpAddressAttrs] = defineField(
     props: (state) => ({ 'error-messages': state.errors }),
   },
 );
+const [authenticationCertificateProfileId, authenticationCertificateProfileIdAttrs] = defineField(
+  'authenticationCertificateProfileId',
+  {
+    props: (state) => ({ 'error-messages': state.errors }),
+  },
+);
+const [signingCertificateProfileId, signingCertificateProfileIdAttrs] = defineField(
+  'signingCertificateProfileId',
+  {
+    props: (state) => ({ 'error-messages': state.errors }),
+  },
+);
 
 const { update } = useCertificationService();
 
@@ -128,6 +162,8 @@ const updateCertificationServiceSettings = handleSubmit((values) => {
       ? values.acmeServerDirectoryUrl
       : '',
     acme_server_ip_address: isAcme.value ? values.acmeServerIpAddress : '',
+    authentication_certificate_profile_id: isAcme.value ? values.authenticationCertificateProfileId : '',
+    signing_certificate_profile_id: isAcme.value ? values.signingCertificateProfileId : '',
   })
     .then(() => {
       showSuccess(t('trustServices.trustService.settings.saveSuccess'));

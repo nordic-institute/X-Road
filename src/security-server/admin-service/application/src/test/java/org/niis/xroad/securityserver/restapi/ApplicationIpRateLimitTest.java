@@ -49,6 +49,7 @@ import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
+import static org.assertj.core.api.InstanceOfAssertFactories.LIST;
 import static org.springframework.http.HttpStatus.TOO_MANY_REQUESTS;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 
@@ -56,12 +57,9 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
  * application test
  */
 @SuppressWarnings("java:S2925")
-@SpringBootTest(classes = {
-        RestApiApplication.class},
-        webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT,
-        properties = {
-                "xroad.proxy-ui-api.rate-limit-requests-per-minute=10",
-                "xroad.proxy-ui-api.rate-limit-requests-per-second=5"})
+@SpringBootTest(properties = {
+        "xroad.proxy-ui-api.rate-limit-requests-per-minute=10",
+        "xroad.proxy-ui-api.rate-limit-requests-per-second=5"})
 @ActiveProfiles({"nontest", "test"})
 @AutoConfigureMockMvc(print = MockMvcPrint.NONE)
 class ApplicationIpRateLimitTest {
@@ -84,7 +82,7 @@ class ApplicationIpRateLimitTest {
         void shouldTriggerRateLimitPerMin(RepetitionInfo repetitionInfo) throws Exception {
             var expectedStatus = repetitionInfo.getCurrentRepetition() == RUNS_PER_MINUTE
                     ? MockMvcResultMatchers.status().is(TOO_MANY_REQUESTS.value()) : MockMvcResultMatchers.status().is2xxSuccessful();
-            mvc.perform(get("/api/v1/system/version"))
+            mvc.perform(get("http://localhost:4000/api/v1/system/version"))
                     .andExpect(expectedStatus);
 
             TimeUnit.MILLISECONDS.sleep(500);
@@ -96,14 +94,14 @@ class ApplicationIpRateLimitTest {
     @WithMockUser(authorities = "VIEW_VERSION")
     void shouldTriggerRateLimitPerSec() throws Exception {
         try (var executor = new ParallelMockMvcExecutor(mvc)) {
-            executor.run(() -> (get("/api/v1/system/version")), RUNS_PER_SECOND);
+            executor.run(() -> (get("http://localhost:4000/api/v1/system/version")), RUNS_PER_SECOND);
 
             List<Integer> result = executor.getExecuted().stream()
                     .map(MvcResult::getResponse)
                     .map(MockHttpServletResponse::getStatus)
                     .collect(Collectors.toList());
 
-            assertThat(result).asList().containsOnlyOnce(TOO_MANY_REQUESTS.value());
+            assertThat(result).asInstanceOf(LIST).containsOnlyOnce(TOO_MANY_REQUESTS.value());
         }
     }
 }

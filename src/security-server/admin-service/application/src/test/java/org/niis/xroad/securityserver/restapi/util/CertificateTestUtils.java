@@ -275,6 +275,23 @@ public final class CertificateTestUtils {
                     + "t74ogJvSf22HLx+oew/6fHoS/EgEsv9IaX6IwUY5yN8cMdJOh8KkpFSLwY8pA2dn"
                     + "sUTKacwQnP/ti/60ufPvsR+OVxONBLGwVw==");
 
+    private static final byte[] MOCK_SIGN_CSR =
+            CryptoUtils.decodeBase64("MIICqjCCAZICAQAwRDELMAkGA1UEBhMCRkkxDDAK"
+                    + "BgNVBAoMA09yZzETMBEGA1UEBRMKQ1MvU1MwL0dPVjESMBAGA1UEAwwJMDI0NTQzNy"
+                    + "0yMIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEArwj8NdvYIqILt7rtCp7C"
+                    + "Rxndkg2M390FZ0m+Qk3kcAcnCxYb2aZRG51QlKR200UaYBzmEuAl5eNsgbNk23PrfB"
+                    + "TUNAQT8ajCXiNdF8USPU10FexBkf2GanQJxEj/VfDCjTmFmb6vyMYSeYBoRx+kaX4P"
+                    + "s482tXaEUY3DZs5TDX5c6DedrGH/2e7v+iLfwb1e6qHfURsNKZugZBdf34KRMuCsHp"
+                    + "XCgwMPSbRwlBKjK7jM5fDP1Iw7BdukZciYmxMnw0+Ty/mPOrPciAOrg/dGdidYFqJn"
+                    + "i3z6gmwQhq40wynjLVk0HsBtiIL9E29mriFYkc/Orca8ET01x/VZkukLCQIDAQABoC"
+                    + "EwHwYJKoZIhvcNAQkOMRIwEDAOBgNVHREEBzAFggNzczAwDQYJKoZIhvcNAQELBQAD"
+                    + "ggEBAB5qbPD0jXkTHlm8oWuU+FWBMWzGusD3R2l97uPGvbC6LtGhpeUYggzOZf07GM"
+                    + "iclqZNdgcu+SsDrn5EqsF7lCUg2mtwT7ospasX+Woqekfb7NO1aurii+9KWkZF+xqa"
+                    + "xy1o0oE/nwBs0K7oJY36CsNU/azkVf4X82lUXFPPWXbl368JfAFBs5JB0pfBmk9kEd"
+                    + "g8nA+RsjXVSa1j4hvLO3yzHr1ZDL/mUeHwElY30HYCp2lLpk8avmTnRoMMVCQfOJkR"
+                    + "ed+WE98mxiUYrxH0VrLdeYQoY25yttcRGvRBja0Efd7kGszsLWJFcbXIE6Spb9WIao"
+                    + "sjUK2X4oAjwb2LQZM=");
+
     private CertificateTestUtils() {
         // noop
     }
@@ -332,6 +349,10 @@ public final class CertificateTestUtils {
      */
     public static byte[] getMockAuthCertificateBytes() {
         return MOCK_AUTH_CERT_BYTES;
+    }
+
+    public static byte[] getMockSignCsrBytes() {
+        return MOCK_SIGN_CSR;
     }
 
     /**

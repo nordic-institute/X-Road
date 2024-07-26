@@ -3,12 +3,12 @@
 # internal or external
 ARG PACKAGE_SOURCE
 
-FROM ubuntu:22.04 AS base
+FROM ubuntu:24.04 AS base
 ENV DEBIAN_FRONTEND=noninteractive
 
 RUN apt-get -qq update \
   && apt-get -qq upgrade \
-  && apt-get -qq install --no-install-recommends sudo ca-certificates gnupg supervisor net-tools locales openjdk-17-jre-headless  \
+  && apt-get -qq install --no-install-recommends sudo ca-certificates gnupg supervisor net-tools locales openjdk-21-jre-headless  \
     rlwrap ca-certificates-java crudini adduser expect curl rsyslog dpkg-dev nano \
   && echo "LC_ALL=en_US.UTF-8" >>/etc/environment \
   && locale-gen en_US.UTF-8 \
@@ -37,10 +37,10 @@ ADD ["${REPO}/dists/${DIST}/Release","/tmp/Release"]
 RUN echo "deb $REPO $DIST $COMPONENT" >/etc/apt/sources.list.d/xroad.list \
   && apt-key add '/tmp/repokey.gpg' \
   # Install
-  && pg_ctlcluster 14 main start \
+  && pg_ctlcluster 16 main start \
   && apt-get -qq update \
   && apt-get -qq install xroad-centralserver xroad-autologin \
-  && pg_ctlcluster 14 main stop \
+  && pg_ctlcluster 16 main stop \
   # Clean up
   && rm -rf /tmp/repo \
   && apt-get remove -qq dpkg-dev && apt-get -qq clean && apt-get -qq autoremove \
@@ -54,10 +54,10 @@ RUN --mount=type=bind,source=build/packages,target=/tmp/packages \
   && cd /tmp/repo && dpkg-scanpackages -m . > Packages \
   && echo "deb [trusted=yes] file:/tmp/repo /" >/etc/apt/sources.list.d/xroad.list \
   # Install
-  && pg_ctlcluster 14 main start \
+  && pg_ctlcluster 16 main start \
   && apt-get -qq update \
   && apt-get -qq install xroad-centralserver xroad-autologin \
-  && pg_ctlcluster 14 main stop \
+  && pg_ctlcluster 16 main stop \
   # Clean up
   && rm -rf /tmp/repo \
   && apt-get remove -qq dpkg-dev && apt-get -qq clean && apt-get -qq autoremove \
@@ -110,5 +110,5 @@ ENV VAULT_ADDR=http://127.0.0.1:8200
 
 CMD ["/root/entrypoint.sh"]
 
-VOLUME ["/etc/xroad", "/var/lib/xroad", "/var/lib/postgresql/14/main/"]
+VOLUME ["/etc/xroad", "/var/lib/xroad", "/var/lib/postgresql/16/main/"]
 EXPOSE 4000 2222

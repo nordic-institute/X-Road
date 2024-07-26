@@ -73,7 +73,7 @@ public class TrustServicesStepDefs extends BaseUiStepDefs {
         commonPageObj.snackBar.btnClose().click();
     }
 
-    @Step("new ca certificate is uploaded")
+    @Step("new CA certificate is uploaded")
     public void newCaCertificateIsUploaded() throws Exception {
         trustServicesPageObj.btnAddCertificationService().click();
         certificationServiceName = "e2e-test-acme-cert-service-" + UUID.randomUUID();
@@ -100,7 +100,7 @@ public class TrustServicesStepDefs extends BaseUiStepDefs {
         commonPageObj.dialog.btnSave().shouldBe(Condition.enabled);
     }
 
-    @Step("new acme certification service is added with valid values")
+    @Step("new ACME certification service is added with valid values")
     public void newAcmeCertificationServiceIsAddedWithValidValues() {
         vTextField(trustServicesPageObj.addCaSettingsDialog.inputCertificateProfile()).clear()
                 .setValue(CERTIFICATE_PROFILE);
@@ -109,6 +109,10 @@ public class TrustServicesStepDefs extends BaseUiStepDefs {
                 .setValue("https://test-ca/acme");
         vTextField(trustServicesPageObj.addCaSettingsDialog.inputAcmeServerIpAddress()).clear()
                 .setValue("192.3.4.5");
+        vTextField(trustServicesPageObj.addCaSettingsDialog.inputAuthCertProfileId()).clear()
+                .setValue("1");
+        vTextField(trustServicesPageObj.addCaSettingsDialog.inputSignCertProfileId()).clear()
+                .setValue("2");
         commonPageObj.dialog.btnSave().click();
 
         commonPageObj.snackBar.success().shouldBe(Condition.visible);
@@ -215,12 +219,20 @@ public class TrustServicesStepDefs extends BaseUiStepDefs {
 
         String newDirectoryUrl = "https://new-test-ca/acme";
         String newIpAddress = "198.7.6.5";
+        String newAuthCertProfileId = "10";
+        String newSignCertProfileId = "11";
         vTextField(trustServicesPageObj.certServiceDetails.caSettings.inputAcmeServerDirectoryUrl())
                 .clear()
                 .setValue(newDirectoryUrl);
         vTextField(trustServicesPageObj.certServiceDetails.caSettings.inputAcmeServerIpAddress())
                 .clear()
                 .setValue(newIpAddress);
+        vTextField(trustServicesPageObj.certServiceDetails.caSettings.inputAuthCertProfileId())
+                .clear()
+                .setValue(newAuthCertProfileId);
+        vTextField(trustServicesPageObj.certServiceDetails.caSettings.inputSignCertProfileId())
+                .clear()
+                .setValue(newSignCertProfileId);
 
         commonPageObj.dialog.btnSave().shouldBe(Condition.enabled).click();
 
@@ -229,6 +241,8 @@ public class TrustServicesStepDefs extends BaseUiStepDefs {
 
         trustServicesPageObj.certServiceDetails.caSettings.acmeServerDirectoryUrl().shouldHave(text(newDirectoryUrl));
         trustServicesPageObj.certServiceDetails.caSettings.acmeServerIpAddress().shouldHave(text(newIpAddress));
+        trustServicesPageObj.certServiceDetails.caSettings.authenticationCertificateProfileId().shouldHave(text(newAuthCertProfileId));
+        trustServicesPageObj.certServiceDetails.caSettings.signingCertificateProfileId().shouldHave(text(newSignCertProfileId));
     }
 
     @Step("changed acme settings fields are validated")
@@ -247,8 +261,8 @@ public class TrustServicesStepDefs extends BaseUiStepDefs {
         commonPageObj.dialog.btnSave().shouldBe(Condition.disabled);
     }
 
-    @Step("user can remove ca acme capability")
-    public void userCanRemoceCaAcmeCapability() {
+    @Step("user can remove CA ACME capability")
+    public void userCanRemoveCaAcmeCapability() {
         vCheckbox(trustServicesPageObj.addCaSettingsDialog.checkboxAcme()).shouldBeChecked().click();
         commonPageObj.dialog.btnSave().shouldBe(Condition.enabled).click();
 
@@ -257,6 +271,8 @@ public class TrustServicesStepDefs extends BaseUiStepDefs {
 
         trustServicesPageObj.certServiceDetails.caSettings.acmeServerDirectoryUrl().shouldHave(text("-"));
         trustServicesPageObj.certServiceDetails.caSettings.acmeServerIpAddress().shouldHave(text("-"));
+        trustServicesPageObj.certServiceDetails.caSettings.authenticationCertificateProfileId().shouldHave(text("-"));
+        trustServicesPageObj.certServiceDetails.caSettings.signingCertificateProfileId().shouldHave(text("-"));
     }
 
     @Step("user clicks on delete trust service")

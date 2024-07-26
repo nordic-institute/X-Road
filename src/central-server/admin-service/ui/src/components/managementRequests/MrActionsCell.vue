@@ -114,14 +114,24 @@ export default defineComponent({
     showDeclineButton(): boolean {
       return this.hasPermission(Permissions.VIEW_MANAGEMENT_REQUEST_DETAILS);
     },
-    newMember(): boolean {
+    newClientOwner(): boolean {
+      const req = this.managementRequest;
       return (
-        [
-          ManagementRequestType.CLIENT_REGISTRATION_REQUEST,
-          ManagementRequestType.AUTH_CERT_REGISTRATION_REQUEST,
-        ].includes(this.managementRequest.type) &&
-        !this.managementRequest.client_owner_name
+        !!req &&
+        req.type === ManagementRequestType.CLIENT_REGISTRATION_REQUEST &&
+        !req.client_owner_name
       );
+    },
+    newServerOwner(): boolean {
+      const req = this.managementRequest;
+      return (
+        !!req &&
+        req.type === ManagementRequestType.AUTH_CERT_REGISTRATION_REQUEST &&
+        !req.security_server_owner
+      );
+    },
+    newMember(): boolean {
+      return this.newClientOwner || this.newServerOwner;
     },
   },
   methods: {

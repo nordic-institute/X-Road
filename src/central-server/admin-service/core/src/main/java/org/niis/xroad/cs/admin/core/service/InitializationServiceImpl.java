@@ -156,8 +156,8 @@ public class InitializationServiceImpl implements InitializationService {
             try {
                 signerProxyFacade.initSoftwareToken(configDto.getSoftwareTokenPin().toCharArray());
             } catch (Exception e) {
-                if (e instanceof CodedException
-                        && ((CodedException) e).getFaultCode().contains(ErrorCodes.X_TOKEN_PIN_POLICY_FAILURE)) {
+                if (e instanceof CodedException ce
+                        && ce.getFaultCode().contains(ErrorCodes.X_TOKEN_PIN_POLICY_FAILURE)) {
                     log.warn("Signer saw Token pin policy failure, remember to restart also the central server after "
                             + "configuring policy enforcement", e);
                     throw new ValidationFailureException(INIT_SIGNER_PIN_POLICY_FAILED);
@@ -235,7 +235,7 @@ public class InitializationServiceImpl implements InitializationService {
                 isSWTokenInitialized = tokenInfo.getStatus() != TokenStatusInfo.NOT_INITIALIZED;
             }
         } catch (Exception e) {
-            if (!((e instanceof CodedException) && X_KEY_NOT_FOUND.equals(((CodedException) e).getFaultCode()))) {
+            if (!((e instanceof CodedException ce) && X_KEY_NOT_FOUND.equals(ce.getFaultCode()))) {
                 throw new SignerNotReachableException("could not list all tokens", e);
             }
         }

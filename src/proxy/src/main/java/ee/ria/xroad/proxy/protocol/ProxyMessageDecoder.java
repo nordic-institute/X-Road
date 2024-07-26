@@ -41,6 +41,7 @@ import ee.ria.xroad.common.util.MimeTypes;
 import ee.ria.xroad.common.util.MimeUtils;
 import ee.ria.xroad.proxy.signedmessage.Verifier;
 
+import io.opentelemetry.instrumentation.annotations.WithSpan;
 import lombok.Getter;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.io.input.TeeInputStream;
@@ -161,6 +162,7 @@ public class ProxyMessageDecoder {
      * @param is input stream from which to decode the message
      * @throws Exception if the stream content type does not match the expected one
      */
+    @WithSpan
     public void parse(InputStream is) throws Exception {
         LOG.trace("parse()");
 
@@ -182,6 +184,7 @@ public class ProxyMessageDecoder {
      * @param signatureData the signature
      * @throws Exception in case verification fails
      */
+    @WithSpan
     public void verify(ClientId sender, SignatureData signatureData)
             throws Exception {
         verifier.verify(sender, signatureData);

@@ -236,19 +236,16 @@ public class RestRequest extends RestMessage {
         if (parts.length > 2) {
             throw new IllegalArgumentException("Invalid RepresentedParty Id");
         }
-        switch (parts.length) {
-            case 1:
-                return new RepresentedParty(
-                        null,
-                        uriSegmentPercentDecode(parts[0])
-                );
-            case 2:
-                return new RepresentedParty(
-                        uriSegmentPercentDecode(parts[0]),
-                        uriSegmentPercentDecode(parts[1])
-                );
-            default:
-                return null;
-        }
+        return switch (parts.length) {
+            case 1 -> new RepresentedParty(
+                    null,
+                    uriSegmentPercentDecode(parts[0])
+            );
+            case 2 -> new RepresentedParty(
+                    uriSegmentPercentDecode(parts[0]),
+                    uriSegmentPercentDecode(parts[1])
+            );
+            default -> null;
+        };
     }
 }

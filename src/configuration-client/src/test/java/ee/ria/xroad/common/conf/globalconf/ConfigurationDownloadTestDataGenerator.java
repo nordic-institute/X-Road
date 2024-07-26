@@ -69,13 +69,8 @@ public final class ConfigurationDownloadTestDataGenerator {
             return result;
         }
 
-        @Override
-        public boolean hasChanged() {
-            return false;
-        }
-
         private ConfigurationLocation getLocation(String url, List<byte[]> certs) {
-            return new ConfigurationLocation(this, url, certs);
+            return new ConfigurationLocation(this.getInstanceIdentifier(), url, certs);
         }
     }
 }

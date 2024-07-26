@@ -284,12 +284,10 @@ public class AsicContainer {
     }
 
     String get(String entryName) {
-        switch (entryName) {
-            case ENTRY_TIMESTAMP:
-                return getTimestampValueBase64();
-            default:
-                return entries.get(entryName);
+        if (entryName.equals(ENTRY_TIMESTAMP)) {
+            return getTimestampValueBase64();
         }
+        return entries.get(entryName);
     }
 
     public String getTimestampValueBase64() {

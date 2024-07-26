@@ -30,7 +30,6 @@ import ee.ria.xroad.common.identifier.SecurityServerId;
 
 import jakarta.persistence.Access;
 import jakarta.persistence.AccessType;
-import jakarta.persistence.CascadeType;
 import jakarta.persistence.Entity;
 import jakarta.persistence.FetchType;
 import jakarta.persistence.JoinColumn;
@@ -41,10 +40,12 @@ import lombok.Getter;
 import org.niis.xroad.cs.admin.api.domain.ManagementRequestStatus;
 import org.niis.xroad.cs.admin.api.domain.Origin;
 
+import static jakarta.persistence.CascadeType.PERSIST;
+
 @Entity
 public abstract class RequestWithProcessingEntity extends RequestEntity {
 
-    @ManyToOne(fetch = FetchType.EAGER, cascade = {CascadeType.PERSIST})
+    @ManyToOne(fetch = FetchType.EAGER, cascade = PERSIST)
     @JoinColumn(name = "request_processing_id", updatable = false, nullable = false)
     @Access(AccessType.FIELD)
     @NotNull

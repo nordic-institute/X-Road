@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<schema xmlns="http://www.w3.org/2001/XMLSchema"
+        xmlns:tns="http://x-road.eu/xsd/xroad.xsd"
+        targetNamespace="http://x-road.eu/xsd/xroad.xsd">
+
+    <include schemaLocation="../common/private-parameters.xsd"/>
+
+    <element name="conf" type="tns:PrivateParametersTypeV3">
+        <annotation>
+            <documentation>
+                Set of configuration parameters that are used only by members of this X-Road instance.
+            </documentation>
+        </annotation>
+    </element>
+
+    <complexType name="PrivateParametersTypeV3">
+        <sequence>
+            <element name="instanceIdentifier" type="string">
+                <annotation>
+                    <documentation>
+                        Code that uniquely identifies this instance of the X-Road system within a federation of
+                        systems.
+                    </documentation>
+                </annotation>
+            </element>
+            <element name="configurationAnchor" type="tns:ConfigurationAnchorType" minOccurs="0" maxOccurs="unbounded">
+                <annotation>
+                    <documentation>
+                        Information about a source of configuration.
+                    </documentation>
+                </annotation>
+            </element>
+            <element name="managementService" type="tns:ManagementServiceType">
+                <annotation>
+                    <documentation>
+                        Parameters of management services called by the security servers.
+                    </documentation>
+                </annotation>
+            </element>
+            <element name="timeStampingIntervalSeconds" type="integer">
+                <annotation>
+                    <documentation>
+                        Time interval (in seconds) after which a logged signature should be time-stamped.
+                        This ensures that the time-stamped signature can be used as evidence at some later date.
+                    </documentation>
+                </annotation>
+            </element>
+            <any processContents="lax" minOccurs="0" maxOccurs="unbounded"/>
+        </sequence>
+    </complexType>
+
+</schema>

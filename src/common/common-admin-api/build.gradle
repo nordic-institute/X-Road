@@ -65,12 +65,13 @@ openApiGenerate {
         generateSupportingFiles: "false"
     ]
     configOptions = [
-        useJakartaEe         : "true",
-        interfaceOnly        : "true",
-        useTags              : "true",
-        documentationProvider: "none",
-        skipDefaultInterface : "true",
-        openApiNullable      : "false"
+        useJakartaEe          : "true",
+        interfaceOnly         : "true",
+        useTags               : "true",
+        documentationProvider : "none",
+        skipDefaultInterface  : "true",
+        openApiNullable       : "false",
+        containerDefaultToNull: "true"
     ]
 }
 

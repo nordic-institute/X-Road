@@ -29,6 +29,8 @@ import ee.ria.xroad.common.CodedException;
 import ee.ria.xroad.common.certificateprofile.CertificateProfileInfo;
 import ee.ria.xroad.common.certificateprofile.DnFieldValue;
 import ee.ria.xroad.common.certificateprofile.impl.SignCertificateProfileInfoParameters;
+import ee.ria.xroad.common.conf.globalconf.ApprovedCAInfo;
+import ee.ria.xroad.common.conf.serverconf.ServerConf;
 import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.util.CertUtils;
 import ee.ria.xroad.common.util.CryptoUtils;
@@ -42,6 +44,7 @@ import ee.ria.xroad.signer.protocol.dto.TokenInfoAndKeyId;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.niis.xroad.common.exception.ValidationFailureException;
 import org.niis.xroad.restapi.config.audit.AuditDataHelper;
 import org.niis.xroad.restapi.config.audit.AuditEventHelper;
 import org.niis.xroad.restapi.config.audit.RestApiAuditEvent;
@@ -61,11 +64,14 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.io.IOException;
+import java.security.cert.CertificateEncodingException;
 import java.security.cert.X509Certificate;
 import java.util.EnumSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 import static ee.ria.xroad.common.ErrorCodes.SIGNER_X;
 import static ee.ria.xroad.common.ErrorCodes.X_CERT_EXISTS;
@@ -73,11 +79,14 @@ import static ee.ria.xroad.common.ErrorCodes.X_CERT_NOT_FOUND;
 import static ee.ria.xroad.common.ErrorCodes.X_CSR_NOT_FOUND;
 import static ee.ria.xroad.common.ErrorCodes.X_INCORRECT_CERTIFICATE;
 import static ee.ria.xroad.common.ErrorCodes.X_WRONG_CERT_USAGE;
+import static ee.ria.xroad.common.util.CertUtils.getCommonName;
+import static ee.ria.xroad.common.util.CertUtils.getSubjectAlternativeNameFromCsr;
 import static org.niis.xroad.restapi.exceptions.DeviationCodes.ERROR_AUTH_CERT_NOT_SUPPORTED;
 import static org.niis.xroad.restapi.exceptions.DeviationCodes.ERROR_CERTIFICATE_NOT_FOUND_WITH_ID;
 import static org.niis.xroad.restapi.exceptions.DeviationCodes.ERROR_CERTIFICATE_WRONG_USAGE;
 import static org.niis.xroad.restapi.exceptions.DeviationCodes.ERROR_SIGN_CERT_NOT_SUPPORTED;
 import static org.niis.xroad.securityserver.restapi.service.KeyService.isCausedByKeyNotFound;
+import static org.niis.xroad.securityserver.restapi.service.TokenDeviationMessage.MALFORMED_CSR;
 
 /**
  * token certificate service
@@ -93,6 +102,7 @@ public class TokenCertificateService {
     private static final String NOT_FOUND = "not found";
     private static final String IMPORT_AUTH_CERT = "IMPORT_AUTH_CERT";
     private static final String IMPORT_SIGN_CERT = "IMPORT_SIGN_CERT";
+    private static final String DN_SUBJECT_ALT_NAME = "subjectAltName";
 
     private final GlobalConfService globalConfService;
     private final GlobalConfFacade globalConfFacade;
@@ -108,31 +118,36 @@ public class TokenCertificateService {
     private final SecurityHelper securityHelper;
     private final AuditDataHelper auditDataHelper;
     private final AuditEventHelper auditEventHelper;
+    private final AcmeService acmeService;
 
     /**
      * Create a CSR
+     *
      * @param keyId
      * @param memberId
      * @param keyUsage
      * @param caName
      * @param subjectFieldValues user-submitted parameters for subject DN
      * @param format
+     * @param isAcmeOrder
      * @return GeneratedCertRequestInfo containing details and bytes of the cert request
-     * @throws CertificateAuthorityNotFoundException if ca authority with name {@code caName} does not exist
-     * @throws ClientNotFoundException if client with {@code memberId} id was not found
-     * @throws KeyNotFoundException if key with {@code keyId} was not found
-     * @throws WrongKeyUsageException if keyUsage param did not match the key's usage type
+     * @throws CertificateAuthorityNotFoundException     if ca authority with name {@code caName} does not exist
+     * @throws ClientNotFoundException                   if client with {@code memberId} id was not found
+     * @throws KeyNotFoundException                      if key with {@code keyId} was not found
+     * @throws WrongKeyUsageException                    if keyUsage param did not match the key's usage type
      * @throws DnFieldHelper.InvalidDnParameterException if required dn parameters were missing, or if there
-     * were some extra parameters
-     * @throws ActionNotPossibleException if generate csr was not possible for this key
+     *                                                   were some extra parameters
+     * @throws ActionNotPossibleException                if generate csr was not possible for this key
      */
     public GeneratedCertRequestInfo generateCertRequest(String keyId, ClientId.Conf memberId, KeyUsageInfo keyUsage,
                                                         String caName, Map<String, String> subjectFieldValues,
-                                                        CertificateRequestFormat format)
+                                                        CertificateRequestFormat format, Boolean isAcmeOrder)
             throws CertificateAuthorityNotFoundException, ClientNotFoundException,
             WrongKeyUsageException,
             KeyNotFoundException,
-            DnFieldHelper.InvalidDnParameterException, ActionNotPossibleException {
+            DnFieldHelper.InvalidDnParameterException, ActionNotPossibleException,
+            CertificateAlreadyExistsException, GlobalConfOutdatedException, CsrNotFoundException,
+            WrongCertificateUsageException, InvalidCertificateException, AuthCertificateNotSupportedException {
 
         // validate key and memberId existence
         TokenInfo tokenInfo = tokenService.getTokenForKeyId(keyId);
@@ -141,6 +156,7 @@ public class TokenCertificateService {
         auditDataHelper.put(key);
         auditDataHelper.put(RestApiAuditProperty.KEY_USAGE, keyUsage);
         auditDataHelper.put(memberId);
+        auditDataHelper.put(RestApiAuditProperty.IS_ACME_ORDER, isAcmeOrder);
 
         if (keyUsage == KeyUsageInfo.SIGNING) {
             // validate that the member exists or has a subsystem on this server
@@ -172,20 +188,59 @@ public class TokenCertificateService {
             throw new DeviationAwareRuntimeException(e, e.getErrorDeviation());
         }
 
+        String subjectAltName = null;
+        if (subjectFieldValues.get(DN_SUBJECT_ALT_NAME) != null
+                && !subjectFieldValues.get(DN_SUBJECT_ALT_NAME).isEmpty()) {
+            // Set subject alternative name (SAN)
+            subjectAltName = subjectFieldValues.get(DN_SUBJECT_ALT_NAME);
+            auditDataHelper.put(RestApiAuditProperty.SUBJECT_ALT_NAME, subjectAltName);
+        }
         List<DnFieldValue> dnFieldValues = dnFieldHelper.processDnParameters(profile, subjectFieldValues);
+        // Remove subjectAltName from dn field values since it's not a valid field value
+        List<DnFieldValue> filteredDnFieldValues = dnFieldValues.stream().filter(v -> !v.getId().equals(DN_SUBJECT_ALT_NAME))
+                .collect(Collectors.toList());
 
-        String subjectName = dnFieldHelper.createSubjectName(dnFieldValues);
+        String subjectName = dnFieldHelper.createSubjectName(filteredDnFieldValues);
         auditDataHelper.put(RestApiAuditProperty.SUBJECT_NAME, subjectName);
         auditDataHelper.put(RestApiAuditProperty.CERTIFICATION_SERVICE_NAME, caName);
         auditDataHelper.put(RestApiAuditProperty.CSR_FORMAT, format);
 
+        ApprovedCAInfo caInfo = certificateAuthorityService.getCertificateAuthorityInfo(caName);
+        GeneratedCertRequestInfo generatedCertRequestInfo;
         try {
-            return signerProxyFacade.generateCertRequest(keyId, memberId,
-                    keyUsage, subjectName, format);
+            generatedCertRequestInfo = signerProxyFacade.generateCertRequest(keyId, memberId,
+                    keyUsage, subjectName, subjectAltName, format, caInfo.getCertificateProfileInfo());
         } catch (CodedException e) {
             throw e;
         } catch (Exception e) {
             throw new SignerNotReachableException("Generate cert request failed", e);
+        }
+        if (isAcmeOrder && caInfo.getAcmeServerDirectoryUrl() != null) {
+            acmeOrderAndImportCert(memberId, keyUsage, subjectFieldValues, subjectAltName, caInfo, generatedCertRequestInfo);
+        }
+        return generatedCertRequestInfo;
+    }
+
+    private void acmeOrderAndImportCert(ClientId.Conf memberId,
+                           KeyUsageInfo keyUsage,
+                           Map<String, String> subjectFieldValues,
+                           String subjectAltName,
+                           ApprovedCAInfo caInfo,
+                           GeneratedCertRequestInfo generatedCertRequestInfo)
+            throws GlobalConfOutdatedException, KeyNotFoundException, InvalidCertificateException, CertificateAlreadyExistsException,
+            WrongCertificateUsageException, CsrNotFoundException, AuthCertificateNotSupportedException, ClientNotFoundException {
+        String memberEncodedId = keyUsage == KeyUsageInfo.SIGNING
+                ? memberId.asEncodedId()
+                : ServerConf.getIdentifier().getOwner().asEncodedId();
+        List<X509Certificate> chain = acmeService.orderCertificateFromACMEServer(
+                subjectFieldValues.get("CN"), subjectAltName, keyUsage, caInfo, memberEncodedId, generatedCertRequestInfo.getCertRequest());
+        if (chain != null) {
+            log.info("Acme order was successful, importing certificate");
+            try {
+                importCertificate(chain.get(0).getEncoded(), false);
+            } catch (CertificateEncodingException e) {
+                throw new InvalidCertificateException(e);
+            }
         }
     }
 
@@ -211,7 +266,6 @@ public class TokenCertificateService {
         // validate key and memberId existence
         TokenInfo tokenInfo = tokenService.getTokenForKeyId(keyId);
         KeyInfo keyInfo = keyService.getKey(tokenInfo, keyId);
-        getCsr(keyInfo, csrId);
 
         // currently regenerate is part of "generate csr" or
         // "combo generate key + csr" operations in the web application.
@@ -791,7 +845,7 @@ public class TokenCertificateService {
      * Return possible actions for one csr
      * Key not found exceptions are wrapped as RuntimeExceptions
      * since them happening is considered to be internal error.
-     * @throws CertificateNotFoundException
+     * @throws CsrNotFoundException
      */
     public EnumSet<PossibleActionEnum> getPossibleActionsForCsr(
             String csrId) throws CsrNotFoundException {
@@ -803,12 +857,8 @@ public class TokenCertificateService {
             throw new RuntimeException("internal error", e);
         }
         TokenInfo tokenInfo = tokenInfoAndKeyId.getTokenInfo();
-        KeyInfo keyInfo = tokenInfoAndKeyId.getKeyInfo();
-        CertRequestInfo certRequestInfo = getCsr(keyInfo, csrId);
 
-        EnumSet<PossibleActionEnum> possibleActions = possibleActionsRuleEngine.
-                getPossibleCsrActions(tokenInfo);
-        return possibleActions;
+        return possibleActionsRuleEngine.getPossibleCsrActions(tokenInfo);
     }
 
     /**
@@ -1013,6 +1063,60 @@ public class TokenCertificateService {
     }
 
     /**
+     * Order certificate with the given csr from the given CA's ACME server
+     */
+    public void orderAcmeCertificate(String caName, String csrId, KeyUsageInfo keyUsage)
+            throws CertificateAuthorityNotFoundException, CsrNotFoundException, KeyNotFoundException,
+            ActionNotPossibleException, CertificateAlreadyExistsException, ClientNotFoundException,
+            GlobalConfOutdatedException, WrongCertificateUsageException, InvalidCertificateException,
+            AuthCertificateNotSupportedException {
+        auditDataHelper.put(RestApiAuditProperty.KEY_USAGE, keyUsage);
+        auditDataHelper.put(RestApiAuditProperty.CERTIFICATION_SERVICE_NAME, caName);
+
+        ApprovedCAInfo caInfo = certificateAuthorityService.getCertificateAuthorityInfo(caName);
+        TokenInfoAndKeyId tokenInfoAndKeyId = tokenService.getTokenAndKeyIdForCertificateRequestId(csrId);
+        KeyInfo keyInfo = tokenInfoAndKeyId.getKeyInfo();
+
+        auditDataHelper.put(tokenInfoAndKeyId.getTokenInfo());
+        auditDataHelper.put(keyInfo);
+
+        CertRequestInfo certRequestInfo = getCsr(keyInfo, csrId);
+        auditDataHelper.put(RestApiAuditProperty.SUBJECT_NAME, certRequestInfo.getSubjectName());
+
+        GeneratedCertRequestInfo generatedCertRequestInfo =
+                regenerateCertRequest(keyInfo.getId(), csrId, CertificateRequestFormat.DER);
+        if (caInfo.getAcmeServerDirectoryUrl() != null) {
+            String commonName = getCommonName(certRequestInfo.getSubjectName());
+            String subjectAltName;
+            try {
+                subjectAltName = getSubjectAlternativeNameFromCsr(generatedCertRequestInfo.getCertRequest());
+                if (subjectAltName != null) {
+                    auditDataHelper.put(RestApiAuditProperty.SUBJECT_ALT_NAME, subjectAltName);
+                }
+            } catch (IOException e) {
+                throw new ValidationFailureException(MALFORMED_CSR, e);
+            }
+            String memberId = keyUsage == KeyUsageInfo.SIGNING
+                    ? certRequestInfo.getMemberId().asEncodedId()
+                    : ServerConf.getIdentifier().getOwner().asEncodedId();
+            List<X509Certificate> chain = acmeService.orderCertificateFromACMEServer(
+                    commonName,
+                    subjectAltName,
+                    keyUsage,
+                    caInfo,
+                    memberId,
+                    generatedCertRequestInfo.getCertRequest());
+            if (chain != null) {
+                try {
+                    importCertificate(chain.get(0).getEncoded(), false);
+                } catch (CertificateEncodingException e) {
+                    throw new InvalidCertificateException(e);
+                }
+            }
+        }
+    }
+
+    /**
      * Finds csr with matching id from KeyInfo, or throws {@link CsrNotFoundException}
      * @throws CsrNotFoundException
      */
@@ -1020,7 +1124,7 @@ public class TokenCertificateService {
         Optional<CertRequestInfo> csr = keyInfo.getCertRequests().stream()
                 .filter(csrInfo -> csrInfo.getId().equals(csrId))
                 .findFirst();
-        if (!csr.isPresent()) {
+        if (csr.isEmpty()) {
             throw new CsrNotFoundException("csr with id " + csrId + " " + NOT_FOUND);
         }
         return csr.get();

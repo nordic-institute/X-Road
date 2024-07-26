@@ -18,6 +18,7 @@ for i in "$@"; do
     ;;
   "--perftest")
     PERFTEST=1
+    COMPOSE_FILE_ARGS="$COMPOSE_FILE_ARGS -f compose.perftest.yaml"
     ;;
   esac
 done
@@ -33,9 +34,6 @@ fi
 COMPOSE_EXTRA_ARGS=""
 if [[ -n "$INIT_SS2" ]]; then
   COMPOSE_EXTRA_ARGS="--profile xrd7"
-fi
-if [[ -n "$PERFTEST" ]]; then
-  COMPOSE_EXTRA_ARGS="--profile perftest"
 fi
 
 docker compose $COMPOSE_EXTRA_ARGS $COMPOSE_FILE_ARGS --env-file "$ENV_FILE" up -d

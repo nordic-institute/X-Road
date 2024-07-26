@@ -55,7 +55,8 @@ public class StaticAssetsWebSecurityConfig {
                         "/css/**",
                         "/js/**",
                         "/fonts/**",
-                        "/assets/**"
+                        "/assets/**",
+                        "/.well-known/**"
                 )
                 .headers(headerPolicyDirectives("default-src 'self' 'unsafe-inline' data: ;"
                                 + "script-src 'self' 'unsafe-inline' 'unsafe-eval';"

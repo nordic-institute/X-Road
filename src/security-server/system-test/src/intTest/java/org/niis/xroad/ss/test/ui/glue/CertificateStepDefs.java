@@ -41,7 +41,15 @@ public class CertificateStepDefs extends BaseUiStepDefs {
     @Step("Certificate fields as follows:")
     public void validateCert(DataTable dataTable) {
         Map<String, String> values = dataTable.asMap();
-        values.forEach((key, expectedValue) -> certificatePageObj.signatureField(key).shouldBe(Condition.text(expectedValue)));
+        values.forEach((key, expectedValue) -> {
+            if (key.contains("Distinguished Name")) {
+                for (String dnAttribute : expectedValue.split(",")) {
+                    certificatePageObj.signatureField(key).shouldHave(Condition.text(dnAttribute));
+                }
+            } else {
+                certificatePageObj.signatureField(key).shouldBe(Condition.text(expectedValue));
+            }
+        });
     }
 
     @Step("Certificate is closed")

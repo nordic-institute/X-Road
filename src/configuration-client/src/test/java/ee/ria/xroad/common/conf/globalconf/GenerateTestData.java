@@ -36,6 +36,7 @@ import org.bouncycastle.operator.DigestCalculator;
 
 import java.io.FileOutputStream;
 import java.io.InputStream;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -122,7 +123,7 @@ public final class GenerateTestData {
 
     private static String getFileContent(Path file) throws Exception {
         try (InputStream in = Files.newInputStream(file)) {
-            return IOUtils.toString(in);
+            return IOUtils.toString(in, StandardCharsets.UTF_8);
         }
     }
 
@@ -164,7 +165,7 @@ public final class GenerateTestData {
 
     static String hash(String content) throws Exception {
         DigestCalculator dc = createDigestCalculator("SHA-512");
-        IOUtils.write(content, dc.getOutputStream());
+        IOUtils.write(content, dc.getOutputStream(), StandardCharsets.UTF_8);
 
         return encodeBase64(dc.getDigest());
     }

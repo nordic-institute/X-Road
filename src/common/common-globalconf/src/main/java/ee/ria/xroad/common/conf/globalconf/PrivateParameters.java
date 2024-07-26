@@ -30,7 +30,6 @@ import ee.ria.xroad.common.identifier.ClientId;
 
 import lombok.Data;
 
-import java.math.BigInteger;
 import java.time.Instant;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -38,9 +37,9 @@ import java.util.stream.Collectors;
 @Data
 public class PrivateParameters {
     private String instanceIdentifier;
-    private BigInteger timeStampingIntervalSeconds;
+    private Integer timeStampingIntervalSeconds;
     private ManagementService managementService;
-    private List<ConfigurationSource> configurationAnchors;
+    private List<ConfigurationAnchor> configurationAnchors;
 
     @Data
     public static class ManagementService {
@@ -58,13 +57,8 @@ public class PrivateParameters {
         @Override
         public List<ConfigurationLocation> getLocations() {
             return sources.stream()
-                    .map(l -> new ConfigurationLocation(this, l.getDownloadURL(), l.getVerificationCerts()))
+                    .map(l -> new ConfigurationLocation(this.getInstanceIdentifier(), l.getDownloadURL(), l.getVerificationCerts()))
                     .collect(Collectors.toList());
-        }
-
-        @Override
-        public boolean hasChanged() {
-            return false;
         }
     }
 

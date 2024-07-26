@@ -36,16 +36,17 @@ Feature: 0500 - CS: Trust Services
     And user can change the TLS Auth setting
     And user can change the certificate profile
 
-  Scenario: Add acme certification service
-    Given new ca certificate is uploaded
+  Scenario: Add ACME certification service
+    Given new CA certificate is uploaded
     And new acme certification service fields dont allow invalid values
-    When new acme certification service is added with valid values
+    When new ACME certification service is added with valid values
     Then new certification service is visible in the Certification Services list
 
   Scenario: View and change acme certification service settings
-    Given new ca certificate is uploaded
-    And new acme certification service is added with valid values
+    Given new CA certificate is uploaded
+    And new ACME certification service is added with valid values
     And user opens certification service details
     When user navigates to CA settings
     Then user can change the acme settings
     And changed acme settings fields are validated
+    And user can remove CA ACME capability

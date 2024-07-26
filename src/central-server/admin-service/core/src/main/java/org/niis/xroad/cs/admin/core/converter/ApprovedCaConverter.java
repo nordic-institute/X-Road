@@ -57,8 +57,8 @@ public class ApprovedCaConverter {
                 .setName(entity.getName())
                 .setCertificateProfileInfo(entity.getCertProfileInfo())
                 .setTlsAuth(entity.getAuthenticationOnly())
-                .setIssuerDistinguishedName(certificate.getIssuerDN().getName())
-                .setSubjectDistinguishedName(certificate.getSubjectDN().getName())
+                .setIssuerDistinguishedName(certificate.getIssuerX500Principal().toString())
+                .setSubjectDistinguishedName(certificate.getSubjectX500Principal().toString())
                 .setNotBefore(entity.getCaInfo().getValidFrom())
                 .setNotAfter(entity.getCaInfo().getValidTo())
                 .setCertificate(entity.getCaInfo().getCert())
@@ -71,7 +71,9 @@ public class ApprovedCaConverter {
                 .setCreatedAt(entity.getCreatedAt())
                 .setUpdatedAt(entity.getUpdatedAt())
                 .setAcmeServerDirectoryUrl(entity.getAcmeServerDirectoryUrl())
-                .setAcmeServerIpAddress(entity.getAcmeServerIpAddress());
+                .setAcmeServerIpAddress(entity.getAcmeServerIpAddress())
+                .setAuthenticationCertificateProfileId(entity.getAuthCertProfileId())
+                .setSigningCertificateProfileId(entity.getSignCertProfileId());
     }
 
     public List<CertificationServiceListItem> toListItems(Collection<ApprovedCaEntity> entities) {

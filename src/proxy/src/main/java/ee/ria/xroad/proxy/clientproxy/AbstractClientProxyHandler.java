@@ -27,6 +27,7 @@ package ee.ria.xroad.proxy.clientproxy;
 
 import ee.ria.xroad.common.CodedException;
 import ee.ria.xroad.common.CodedExceptionWithHttpStatus;
+import ee.ria.xroad.common.SystemProperties;
 import ee.ria.xroad.common.conf.serverconf.IsAuthenticationData;
 import ee.ria.xroad.common.opmonitoring.OpMonitoringData;
 import ee.ria.xroad.common.util.HandlerBase;
@@ -36,6 +37,7 @@ import ee.ria.xroad.proxy.opmonitoring.OpMonitoring;
 import ee.ria.xroad.proxy.util.MessageProcessorBase;
 import ee.ria.xroad.proxy.util.PerformanceLogger;
 
+import io.opentelemetry.instrumentation.annotations.WithSpan;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.ArrayUtils;
@@ -46,6 +48,7 @@ import org.eclipse.jetty.util.Callback;
 import org.niis.xroad.proxy.edc.TargetSecurityServerLookup;
 
 import java.io.IOException;
+import java.security.cert.X509Certificate;
 import java.util.Optional;
 
 import static ee.ria.xroad.common.ErrorCodes.SERVER_CLIENTPROXY_X;
@@ -71,6 +74,7 @@ abstract class AbstractClientProxyHandler extends HandlerBase {
                                                                    OpMonitoringData opMonitoringData) throws Exception;
 
     @Override
+    @WithSpan
     public boolean handle(Request request, Response response, Callback callback) throws Exception {
         boolean handled = false;
 
@@ -190,16 +194,23 @@ abstract class AbstractClientProxyHandler extends HandlerBase {
         var isPlaintextConnection = !"https".equals(request.getHttpURI().getScheme()); // if not HTTPS, it's plaintext
         var cert = request.getPeerCertificates()
                 .filter(ArrayUtils::isNotEmpty)
-                .map(arr -> arr[0])
-                .orElse(null);
-        return new IsAuthenticationData(cert, isPlaintextConnection);
+                .map(arr -> arr[0]);
+
+        if (SystemProperties.shouldLogClientCert()) {
+            cert.map(X509Certificate::getSubjectX500Principal)
+                    .ifPresentOrElse(
+                            subject -> log.info("Client certificate's subject: {}", subject),
+                            () -> log.info("Client certificate not found"));
+        }
+
+        return new IsAuthenticationData(cert.orElse(null), isPlaintextConnection);
     }
 
     private static long logPerformanceBegin(Request request) {
         long start;
         Object obj = request.getAttribute(START_TIME_ATTRIBUTE);
-        if (obj instanceof Long) {
-            start = (Long) obj;
+        if (obj instanceof Long l) {
+            start = l;
         } else {
             start = PerformanceLogger.log(log, "Received request from " + getRemoteAddr(request));
             log.info("Received request from {}", getRemoteAddr(request));

@@ -41,17 +41,12 @@ public interface ClientIdMapper extends GenericUniDirectionalMapper<ClientIdEnti
 
     @Override
     default ClientId toTarget(ClientIdEntity source) {
-        if (source == null) {
-            return null;
-        }
-        if (source instanceof MemberIdEntity) {
-            return toMemberId((MemberIdEntity) source);
-        }
-        if (source instanceof SubsystemIdEntity) {
-            return toSubsystemId((SubsystemIdEntity) source);
-        }
-
-        throw new IllegalArgumentException("Cannot map " + source.getClass());
+        return switch (source) {
+            case null -> null;
+            case MemberIdEntity mie -> toMemberId(mie);
+            case SubsystemIdEntity sie -> toSubsystemId(sie);
+            default -> throw new IllegalArgumentException("Cannot map " + source.getClass());
+        };
     }
 
     MemberId toMemberId(MemberIdEntity source);

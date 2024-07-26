@@ -1,11 +1,11 @@
-FROM ubuntu:focal
+FROM ubuntu:noble
 ENV DEBIAN_FRONTEND=noninteractive
 
 RUN apt-get -qq update \
   && apt-get -qq upgrade \
   && apt-get -qq install \
     sudo ca-certificates gnupg supervisor net-tools iproute2 locales \
-    openjdk-17-jre-headless rlwrap ca-certificates-java \
+    openjdk-21-jre-headless rlwrap ca-certificates-java \
     crudini adduser expect curl wget openssl nano-tiny \
   && echo "LC_ALL=en_US.UTF-8" >>/etc/environment \
   && locale-gen en_US.UTF-8 \
@@ -18,9 +18,9 @@ RUN apt-get -qq update \
   && apt-get -qq clean
 
 ARG VERSION
-ARG DIST=focal-$VERSION
-ARG REPO=https://artifactory.niis.org/xroad-release-deb
-ARG REPO_KEY=https://artifactory.niis.org/api/gpg/key/public
+ARG DIST=noble
+ARG REPO=https://s3-eu-west-1.amazonaws.com/niis-xroad-development/develop/debian
+ARG REPO_KEY=https://s3-eu-west-1.amazonaws.com/niis-xroad-development/develop/jenkins@niis.org.gpg
 ARG COMPONENT=main
 ARG CERTS_PATH=/etc/xroad/ssl
 

@@ -254,22 +254,10 @@ public final class GlobalConf {
         return getInstance().getSecurityServerAddress(serverId);
     }
 
-    public static Collection<ServerAddressInfo> getProviderSecurityServers(ClientId serviceProvider) {
+    public static Collection<SharedParameters.SecurityServer> getProviderSecurityServers(ClientId serviceProvider) {
         log.trace("getProviderSecurityServers({})", serviceProvider);
 
         return getInstance().getProviderSecurityServers(serviceProvider);
-    }
-
-    /**
-     * Returns address of the given security server with additional information.
-     * IP address converted to string, such as "192.168.2.2"
-     * @param serverId the security server identifier
-     * @return address information.
-     */
-    public static ServerAddressInfo getSecurityServerAddressInfo(SecurityServerId serverId) {
-        log.trace("getSecurityServerAddressInfo({})", serverId);
-
-        return getInstance().getSecurityServerAddressInfo(serverId);
     }
 
     /**
@@ -391,7 +379,7 @@ public final class GlobalConf {
      */
     public static SecurityServerId getServerId(X509Certificate cert)
             throws Exception {
-        log.trace("getServerId({})", cert.getSubjectDN());
+        log.trace("getServerId({})", cert.getSubjectX500Principal());
 
         return getInstance().getServerId(cert);
     }
@@ -404,7 +392,7 @@ public final class GlobalConf {
      * security server
      */
     public static boolean isSecurityServerAuthCert(X509Certificate cert) {
-        log.trace("isSecurityServerAuthCert({})", cert.getSubjectDN());
+        log.trace("isSecurityServerAuthCert({})", cert.getSubjectX500Principal());
         try {
             return getInstance().getServerId(cert) != null;
         } catch (Exception e) {
@@ -433,7 +421,7 @@ public final class GlobalConf {
     public static boolean authCertMatchesMember(X509Certificate cert,
                                                 ClientId memberId) throws Exception {
         log.trace("authCertMatchesMember({}: {}, {})",
-                cert.getSerialNumber(), cert.getSubjectDN(),
+                cert.getSerialNumber(), cert.getSubjectX500Principal(),
                 memberId);
 
         return getInstance().authCertMatchesMember(cert, memberId);

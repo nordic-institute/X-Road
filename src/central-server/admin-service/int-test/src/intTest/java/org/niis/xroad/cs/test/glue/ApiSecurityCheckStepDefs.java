@@ -90,8 +90,8 @@ public class ApiSecurityCheckStepDefs extends BaseStepDefs {
                                 method.invoke(feignClient, getMethodArguments(method));
                             }
                         } catch (InvocationTargetException e) {
-                            if (e.getTargetException() instanceof FeignException) {
-                                status = String.valueOf(((FeignException) e.getTargetException()).status());
+                            if (e.getTargetException() instanceof FeignException fe) {
+                                status = String.valueOf(fe.status());
                             } else {
                                 status = e.getMessage();
                             }

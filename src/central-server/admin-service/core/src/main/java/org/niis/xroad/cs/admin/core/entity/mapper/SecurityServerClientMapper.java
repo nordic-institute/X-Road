@@ -43,14 +43,11 @@ public interface SecurityServerClientMapper extends GenericUniDirectionalMapper<
 
     @Override
     default SecurityServerClient toTarget(SecurityServerClientEntity source) {
-        if (source instanceof SubsystemEntity) {
-            return toDto((SubsystemEntity) source);
-        }
-        if (source instanceof XRoadMemberEntity) {
-            return toDto((XRoadMemberEntity) source);
-        }
-
-        throw new IllegalArgumentException("Cannot map " + source.getClass());
+        return switch (source) {
+            case SubsystemEntity entity -> toDto(entity);
+            case XRoadMemberEntity entity -> toDto(entity);
+            default -> throw new IllegalArgumentException("Cannot map " + source.getClass());
+        };
     }
 
     Subsystem toDto(SubsystemEntity source);

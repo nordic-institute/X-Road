@@ -30,10 +30,10 @@ import ee.ria.xroad.common.TestCertUtil;
 
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.IOUtils;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.TemporaryFolder;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.io.TempDir;
 
+import java.io.File;
 import java.io.FileInputStream;
 import java.io.InputStream;
 import java.nio.file.Files;
@@ -41,23 +41,23 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.security.cert.CertificateEncodingException;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 
 import static ee.ria.xroad.common.ErrorCodes.X_MALFORMED_GLOBALCONF;
 import static ee.ria.xroad.common.conf.globalconf.ConfigurationConstants.CONTENT_ID_PRIVATE_PARAMETERS;
 import static ee.ria.xroad.common.conf.globalconf.ConfigurationConstants.CONTENT_ID_SHARED_PARAMETERS;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.fail;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.fail;
 
 /**
  * Tests to verify configuration downloading procedure.
  */
 @Slf4j
-public class ConfigurationClientTest {
-    @Rule
-    public TemporaryFolder tempConfFolder = new TemporaryFolder();
+class ConfigurationClientTest {
+
+    @TempDir
+    File tempDir;
 
     /**
      * Test to ensure a simple configuration will be downloaded.
@@ -65,7 +65,7 @@ public class ConfigurationClientTest {
      * @throws Exception in case of any errors
      */
     @Test
-    public void downloadSimpleConf() throws Exception {
+    void downloadSimpleConf() throws Exception {
         String confPath = "src/test/resources/test-conf-simple";
 
         List<String> receivedParts = new ArrayList<>();
@@ -87,7 +87,7 @@ public class ConfigurationClientTest {
      * @throws Exception in case of any unexpected errors
      */
     @Test
-    public void downloadDetachedConf() throws Exception {
+    void downloadDetachedConf() throws Exception {
         String confPath = "src/test/resources/test-conf-detached";
 
         List<String> receivedParts = new ArrayList<>();
@@ -109,7 +109,7 @@ public class ConfigurationClientTest {
      * @throws Exception in case of any unexpected errors
      */
     @Test
-    public void downloadConfFail() throws Exception {
+    void downloadConfFail() throws Exception {
         String confPath = "src/test/resources/test-conf-malformed";
 
         List<String> receivedParts = new ArrayList<>();
@@ -140,9 +140,9 @@ public class ConfigurationClientTest {
             @Override
             public List<ConfigurationLocation> getLocations() {
                 try {
-                    return Arrays.asList(new ConfigurationLocation(this,
-                            fileName, Arrays.asList(
-                            TestCertUtil.getConsumer().certChain[0].getEncoded())));
+                    return List.of(new ConfigurationLocation(this.getInstanceIdentifier(),
+                            fileName,
+                            List.of(TestCertUtil.getConsumer().certChain[0].getEncoded())));
                 } catch (CertificateEncodingException e) {
                     throw new RuntimeException(e);
                 }
@@ -156,14 +156,14 @@ public class ConfigurationClientTest {
     }
 
     private void initInstanceIdentifier() throws Exception {
-        ConfigurationDirectory.saveInstanceIdentifier(tempConfFolder.getRoot().getAbsolutePath(), "EE");
+        ConfigurationDirectory.saveInstanceIdentifier(tempDir.getAbsolutePath(), "EE");
     }
 
     private ConfigurationClient getClient(final String confPath, final List<String> receivedParts) {
         ConfigurationAnchor configurationAnchor = getConfigurationAnchor(confPath + ".txt");
 
         ConfigurationDownloader configurations = new ConfigurationDownloader(
-                tempConfFolder.getRoot().getAbsolutePath(), 2) {
+                tempDir.getAbsolutePath(), 2) {
             @Override
             ConfigurationParser getParser() {
                 return new ConfigurationParser() {
@@ -207,6 +207,6 @@ public class ConfigurationClientTest {
             }
         };
 
-        return new ConfigurationClient(tempConfFolder.getRoot().getAbsolutePath(), configurations, configurationAnchor);
+        return new ConfigurationClient(tempDir.getAbsolutePath(), configurations, configurationAnchor);
     }
 }

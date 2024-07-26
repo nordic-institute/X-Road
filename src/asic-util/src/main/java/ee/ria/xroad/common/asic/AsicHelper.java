@@ -116,8 +116,8 @@ final class AsicHelper {
         for (Object expectedEntry : AsicContainerEntries.getALL_ENTRIES()) {
             String name;
 
-            if (expectedEntry instanceof String) {
-                name = (String) expectedEntry;
+            if (expectedEntry instanceof String strEntry) {
+                name = strEntry;
             } else if (expectedEntry instanceof Pattern) {
                 name = ENTRY_SIGNATURE;
             } else {
@@ -152,10 +152,10 @@ final class AsicHelper {
     }
 
     private static boolean matches(Object expectedEntry, String name) {
-        if (expectedEntry instanceof String) {
-            return ((String) expectedEntry).equalsIgnoreCase(name);
-        } else if (expectedEntry instanceof Pattern) {
-            return ((Pattern) expectedEntry).matcher(name).matches();
+        if (expectedEntry instanceof String str) {
+            return str.equalsIgnoreCase(name);
+        } else if (expectedEntry instanceof Pattern pattern) {
+            return pattern.matcher(name).matches();
         }
 
         return false;

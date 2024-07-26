@@ -87,15 +87,16 @@ public class CertificateAuthorityServiceTest extends AbstractServiceTestContext 
         evictCache(); // start with empty cache
         List<ApprovedCAInfo> approvedCAInfos = new ArrayList<>();
         approvedCAInfos.add(new ApprovedCAInfo("fi-not-auth-only", false,
-                "ee.ria.xroad.common.certificateprofile.impl.FiVRKCertificateProfileInfoProvider"));
+                "ee.ria.xroad.common.certificateprofile.impl.FiVRKCertificateProfileInfoProvider",
+                "http://ca-with-acme", null, null, null));
         // @deprecated The {@link SkEsteIdCertificateProfileInfoProvider} profile has been marked deprecated starting
         // from X-Road 7.2.0 and will be removed in a future version. This test should then also be cleaned up.
         approvedCAInfos.add(new ApprovedCAInfo("est-auth-only", true,
-                "ee.ria.xroad.common.certificateprofile.impl.SkEsteIdCertificateProfileInfoProvider"));
+                "ee.ria.xroad.common.certificateprofile.impl.SkEsteIdCertificateProfileInfoProvider", null, null, null, null));
         approvedCAInfos.add(new ApprovedCAInfo("mock-top-ca", false,
-                "ee.ria.xroad.common.certificateprofile.impl.FiVRKCertificateProfileInfoProvider"));
+                "ee.ria.xroad.common.certificateprofile.impl.FiVRKCertificateProfileInfoProvider", null, null, null, null));
         approvedCAInfos.add(new ApprovedCAInfo("mock-intermediate-ca", false,
-                "ee.ria.xroad.common.certificateprofile.impl.FiVRKCertificateProfileInfoProvider"));
+                "ee.ria.xroad.common.certificateprofile.impl.FiVRKCertificateProfileInfoProvider", null, null, null, null));
         when(globalConfFacade.getApprovedCAs(any())).thenReturn(approvedCAInfos);
 
         List<X509Certificate> caCerts = new ArrayList<>();
@@ -119,11 +120,11 @@ public class CertificateAuthorityServiceTest extends AbstractServiceTestContext 
         // see CertificateAuthorityService#getCertificateAuthorities implementation
         Map<String, String> subjectsToIssuers = caCerts.stream().collect(
                 Collectors.toMap(
-                        x509 -> x509.getSubjectDN().getName(),
-                        x509 -> x509.getIssuerDN().getName()));
+                        x509 -> x509.getSubjectX500Principal().toString(),
+                        x509 -> x509.getIssuerX500Principal().toString()));
         List<X509Certificate> filteredCerts = caCerts.stream()
-                .filter(cert -> subjectsToIssuers.containsKey(cert.getIssuerDN().getName()))
-                .collect(Collectors.toList());
+                .filter(cert -> subjectsToIssuers.containsKey(cert.getIssuerX500Principal().toString()))
+                .toList();
 
         String[] ocspResponses = filteredCerts.stream()
                 .map(cert -> {
@@ -134,7 +135,7 @@ public class CertificateAuthorityServiceTest extends AbstractServiceTestContext 
                         throw new RuntimeException(e);
                     }
                 })
-                .collect(Collectors.toList())
+                .toList()
                 .toArray(new String[]{});
         doReturn(ocspResponses).when(signerProxyFacade).getOcspResponses(any());
         when(clientRepository.getClient(any())).thenReturn(new ClientType());
@@ -202,8 +203,8 @@ public class CertificateAuthorityServiceTest extends AbstractServiceTestContext 
         X509Certificate certificate = CertificateTestUtils.getMockAuthCertificate();
         String subject = MOCK_AUTH_CERT_SUBJECT;
         String issuer = MOCK_AUTH_CERT_ISSUER;
-        assertEquals(subject, certificate.getSubjectDN().getName());
-        assertEquals(issuer, certificate.getIssuerDN().getName());
+        assertEquals(subject, certificate.getSubjectX500Principal().toString());
+        assertEquals(issuer, certificate.getIssuerX500Principal().toString());
 
         Map<String, String> subjectsToIssuers = new HashMap<>();
         subjectsToIssuers.put(subject, issuer);
@@ -236,8 +237,8 @@ public class CertificateAuthorityServiceTest extends AbstractServiceTestContext 
         certificate = CertificateTestUtils.getMockCertificate();
         subject = "CN=N/A";
         issuer = "CN=N/A";
-        assertEquals(subject, certificate.getSubjectDN().getName());
-        assertEquals(issuer, certificate.getIssuerDN().getName());
+        assertEquals(subject, certificate.getSubjectX500Principal().toString());
+        assertEquals(issuer, certificate.getIssuerX500Principal().toString());
 
         subjectsToIssuers = new HashMap<>();
         subjectsToIssuers.put(subject, issuer);
@@ -264,6 +265,7 @@ public class CertificateAuthorityServiceTest extends AbstractServiceTestContext 
         assertTrue(ca.isTopCa());
         assertEquals("good", ca.getOcspResponse());
         assertEquals(OffsetDateTime.parse("2038-01-01T00:00Z"), ca.getNotAfter());
+        assertTrue(ca.isAcmeCapable());
 
         caDtos = certificateAuthorityService.getCertificateAuthorities(KeyUsageInfo.AUTHENTICATION);
         assertEquals(3, caDtos.size());
@@ -276,6 +278,7 @@ public class CertificateAuthorityServiceTest extends AbstractServiceTestContext 
         assertTrue(ca2.isTopCa());
         assertEquals("not available", ca2.getOcspResponse());
         assertEquals(OffsetDateTime.parse("2039-11-23T09:20:27Z"), ca2.getNotAfter());
+        assertFalse(ca2.isAcmeCapable());
 
         evictCache();
         when(globalConfFacade.getAllCaCerts(any())).thenReturn(new ArrayList<>());
@@ -359,7 +362,7 @@ public class CertificateAuthorityServiceTest extends AbstractServiceTestContext 
         // cant instantiate
         List<ApprovedCAInfo> approvedCAInfos = new ArrayList<>();
         approvedCAInfos.add(new ApprovedCAInfo("provider-class-does-not-exist", false,
-                "ee.ria.xroad.common.certificateprofile.impl.NonExistentProvider"));
+                "ee.ria.xroad.common.certificateprofile.impl.NonExistentProvider", null, null, null, null));
         when(globalConfFacade.getApprovedCAs(any())).thenReturn(approvedCAInfos);
 
         try {

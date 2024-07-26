@@ -31,7 +31,7 @@ protobuf {
         grpc { artifact = libs.grpc.protocGenGrpcJava.get().toString() }
     }
     generateProtoTasks {
-        all()*.plugins { grpc { option('jakarta_omit') } }
+        all()*.plugins { grpc { option('@generated=omit') } }
     }
 }
 

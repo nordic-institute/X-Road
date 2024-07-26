@@ -45,9 +45,7 @@ import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
 
-import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 
 public class GlobalConfVer3Test {
@@ -74,8 +72,8 @@ public class GlobalConfVer3Test {
         confFiles.add(getConfFileName("bar", "shared-params.xml"));
         confFiles.add(getConfFileName("EE", "private-params.xml"));
         confFiles.add(getConfFileName("EE", "shared-params.xml"));
-        confFiles.add(getConfFileName("foo_ver2", "private-params.xml"));
-        confFiles.add(getConfFileName("foo_ver", "shared-params.xml"));
+        confFiles.add(getConfFileName("foo_v2", "private-params.xml"));
+        confFiles.add(getConfFileName("foo_v2", "shared-params.xml"));
 
         FileUtils.writeLines(files, StandardCharsets.UTF_8.name(), confFiles);
     }
@@ -115,26 +113,5 @@ public class GlobalConfVer3Test {
                 ClientId.Conf.create("EE", "BUSINESS", "member2"),
                 GlobalGroupId.Conf.create("non-existent-instance", "non-existent-group"))
         );
-    }
-
-    @Test
-    public void testMemberDid() {
-        List<MemberInfo> members = GlobalConf.getMembers("EE");
-
-        MemberInfo memberInfo = findMemberInfo(members, "consumer");
-        assertEquals("did:web:consumer", memberInfo.getDid());
-
-        memberInfo = findMemberInfo(members, "producer");
-        assertEquals("did:web:producer", memberInfo.getDid());
-
-        memberInfo = findMemberInfo(members, "foo");
-        assertNull(memberInfo.getDid());
-    }
-
-    private static MemberInfo findMemberInfo(List<MemberInfo> members, String memberCode) {
-        return members.stream()
-                .filter(m -> m.getId().equals(ClientId.Conf.create("EE", "BUSINESS", memberCode)))
-                .findFirst()
-                .orElseThrow();
     }
 }

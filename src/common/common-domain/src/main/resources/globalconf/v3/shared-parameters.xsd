@@ -109,13 +109,6 @@
                     </documentation>
                 </annotation>
             </element>
-            <element name="dataspacesSettings" type="tns:DataspaceSettingsType" minOccurs="0">
-                <annotation>
-                    <documentation>
-                        Contains Dataspaces related settings.
-                    </documentation>
-                </annotation>
-            </element>
         </sequence>
     </complexType>
 
@@ -193,37 +186,5 @@
         </sequence>
     </complexType>
 
-    <complexType name="DataspaceSettingsType">
-        <sequence>
-            <element name="securityServers" minOccurs="0">
-                <complexType>
-                    <sequence>
-                        <element name="securityServer" maxOccurs="unbounded">
-                            <complexType>
-                                <sequence>
-                                    <element name="serverId" type="string"/>
-                                    <element name="protocolUrl" type="string"/>
-                                </sequence>
-                            </complexType>
-                        </element>
-                    </sequence>
-                </complexType>
-            </element>
-            <element name="members" minOccurs="0">
-                <complexType>
-                    <sequence>
-                        <element name="member" maxOccurs="unbounded">
-                            <complexType>
-                                <sequence>
-                                    <element name="member" type="IDREF"/>
-                                    <element name="did" type="string"/>
-                                </sequence>
-                            </complexType>
-                        </element>
-                    </sequence>
-                </complexType>
-            </element>
-        </sequence>
-    </complexType>
 </schema>
 

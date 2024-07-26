@@ -74,6 +74,7 @@
             @cancel="cancel"
             @previous="currentStep = 2"
             @done="done"
+            :key="csrGenPageKey"
           />
         </v-stepper-window-item>
       </v-stepper-window>
@@ -110,6 +111,7 @@ export default defineComponent({
   data() {
     return {
       currentStep: 1,
+      csrGenPageKey: 0,
     };
   },
   created() {
@@ -133,11 +135,15 @@ export default defineComponent({
       this.fetchCsrForm().then(
         () => {
           this.currentStep = 3;
+          this.rerenderCsrGenPage();
         },
         (error) => {
           this.showError(error);
         },
       );
+    },
+    rerenderCsrGenPage(): void {
+      this.csrGenPageKey += 1;
     },
     cancel(): void {
       this.resetCsrState();

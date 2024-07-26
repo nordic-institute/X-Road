@@ -26,6 +26,8 @@
  */
 package org.niis.xroad.cs.admin.globalconf.generator;
 
+import ee.ria.xroad.common.conf.globalconf.CertHash;
+import ee.ria.xroad.common.conf.globalconf.SharedParameters;
 import ee.ria.xroad.common.identifier.ClientId;
 
 import org.junit.jupiter.api.Test;
@@ -75,6 +77,8 @@ class SharedParametersLoaderTest {
     private static final String CA_PROFILE_INFO = "profile-info";
     private static final String CA_OCSP_URL = "ca ocsp url";
     private static final byte[] CA_OCSP_CERT = "ca ocsp cert".getBytes(UTF_8);
+    private static final String CA_ACME_SERVER_URL = "http://testca/acme";
+    private static final String CA_ACME_SERVER_IP_ADDRESS = "1.2.3.4";
     private static final byte[] INTERMEDIATE_CA_CERT = "intermediate ca cert".getBytes(UTF_8);
     private static final String INTERMEDIATE_CA_OCSP_URL = "intermediate ca ocsp url";
     private static final byte[] INTERMEDIATE_CA_OCSP_CERT = "intermediate ca ocsp cert".getBytes(UTF_8);
@@ -85,7 +89,7 @@ class SharedParametersLoaderTest {
     private static final String SECURITY_SERVER_ADDRESS = "security-server-address";
     private static final String SECURITY_SERVER_CODE = "SS1";
     private static final int SECURITY_SERVER_ID = 1;
-    private static final byte[] SECURITY_SERVER_AUTH_CERT = "auth cert".getBytes(UTF_8);
+    private static final CertHash SECURITY_SERVER_AUTH_CERT = new CertHash("auth cert".getBytes(UTF_8));
     private static final String GLOBAL_GROUP_CODE = "GG";
     private static final String GLOBAL_GROUP_DESCRIPTION = "GG description";
     private static final int GLOBAL_GROUP_ID = 2;
@@ -170,11 +174,11 @@ class SharedParametersLoaderTest {
     private void assertSecurityServers(SharedParameters parameters) {
         assertThat(parameters.getSecurityServers()).singleElement().satisfies(ss -> {
             assertThat(ss.getOwner()).isEqualTo(ClientId.Conf.create(XROAD_INSTANCE, "CLASS", "M1"));
-            assertThat(ss.getAddress()).isEqualTo(SECURITY_SERVER_ADDRESS);
+            assertThat(ss.getServerAddress().address()).isEqualTo(SECURITY_SERVER_ADDRESS);
             assertThat(ss.getServerCode()).isEqualTo(SECURITY_SERVER_CODE);
             assertThat(ss.getClients()).singleElement()
                     .isEqualTo(ClientId.Conf.create(XROAD_INSTANCE, "CLASS", "M2", "S1"));
-            assertThat(ss.getAuthCerts()).singleElement().isEqualTo(SECURITY_SERVER_AUTH_CERT);
+            assertThat(ss.getAuthCertHashes()).singleElement().isEqualTo(SECURITY_SERVER_AUTH_CERT);
         });
     }
 
@@ -196,9 +200,11 @@ class SharedParametersLoaderTest {
             assertThat(approvedCA.getTopCA().getOcsp()).singleElement().satisfies(ocsp -> {
                 assertThat(ocsp.getUrl()).isEqualTo(CA_OCSP_URL);
                 assertThat(ocsp.getCert()).isEqualTo(CA_OCSP_CERT);
+                assertThat(approvedCA.getAcmeServer().getDirectoryURL()).isEqualTo(CA_ACME_SERVER_URL);
+                assertThat(approvedCA.getAcmeServer().getIpAddress()).isEqualTo(CA_ACME_SERVER_IP_ADDRESS);
             });
 
-            assertThat(approvedCA.getIntermediateCAs())
+            assertThat(approvedCA.getIntermediateCas())
                     .isNotNull()
                     .singleElement()
                     .satisfies(caInfo -> {
@@ -236,6 +242,8 @@ class SharedParametersLoaderTest {
         certificationService.setTlsAuth(true);
         certificationService.setOcspResponders(List.of(getOcspResponder(CA_OCSP_URL, CA_OCSP_CERT)));
         certificationService.setIntermediateCas(List.of(getCertificateAuthority()));
+        certificationService.setAcmeServerDirectoryUrl(CA_ACME_SERVER_URL);
+        certificationService.setAcmeServerIpAddress(CA_ACME_SERVER_IP_ADDRESS);
         return certificationService;
 
     }
@@ -274,13 +282,21 @@ class SharedParametersLoaderTest {
                 .satisfiesExactly(
                         member -> {
                             assertThat(member.getMemberCode()).isEqualTo("M1");
-                            assertThat(member.getSubsystems()).map(SharedParameters.Subsystem::getSubsystemCode)
-                                    .containsOnly("S1");
+                            assertThat(member.getId()).isEqualTo(ClientId.Conf.create(XROAD_INSTANCE, "CLASS", "M1"));
+
+                            assertThat(member.getSubsystems())
+                                    .containsOnly(new SharedParameters.Subsystem("S1",
+                                            ClientId.Conf.create(XROAD_INSTANCE, "CLASS", "M1", "S1")));
                         },
                         member -> {
                             assertThat(member.getMemberCode()).isEqualTo("M2");
-                            assertThat(member.getSubsystems()).map(SharedParameters.Subsystem::getSubsystemCode)
-                                    .containsOnly("S1", "S2");
+                            assertThat(member.getId()).isEqualTo(ClientId.Conf.create(XROAD_INSTANCE, "CLASS", "M2"));
+                            assertThat(member.getSubsystems())
+                                    .containsOnly(
+                                            new SharedParameters.Subsystem("S1",
+                                                    ClientId.Conf.create(XROAD_INSTANCE, "CLASS", "M2", "S1")),
+                                            new SharedParameters.Subsystem("S2",
+                                                    ClientId.Conf.create(XROAD_INSTANCE, "CLASS", "M2", "S2")));
                         }
                 );
     }
@@ -322,7 +338,7 @@ class SharedParametersLoaderTest {
         securityServer.setId(SECURITY_SERVER_ID);
         securityServer.setAddress(SECURITY_SERVER_ADDRESS);
         var authCert = new AuthCert();
-        authCert.setCert(SECURITY_SERVER_AUTH_CERT);
+        authCert.setCert("auth cert".getBytes(UTF_8));
         securityServer.setAuthCerts(Set.of(authCert));
         return List.of(securityServer);
     }

@@ -30,6 +30,7 @@ dependencies {
     api(libs.jakarta.bindApi)
     api(libs.jakarta.soapApi)
     api(libs.jakarta.servletApi)
+    api(libs.opentelemetry.instrumentation.annotations)
 
     implementation(libs.logback.classic)
 

@@ -3223,6 +3223,14 @@ components:
           type: string
           format: text
           minLength: 1
+        authentication_certificate_profile_id:
+          format: text
+          type: string
+          minLength: 1
+        signing_certificate_profile_id:
+          format: text
+          type: string
+          minLength: 1
       required:
         - id
         - tls_auth
@@ -3451,6 +3459,12 @@ components:
           format: url
           type: string
         acme_server_ip_address:
+          format: text
+          type: string
+        authentication_certificate_profile_id:
+          format: text
+          type: string
+        signing_certificate_profile_id:
           format: text
           type: string
       type: object
@@ -3949,6 +3963,8 @@ components:
         - subsystem_id
         - used_security_servers
     UsedSecurityServers:
+      allOf:
+        - $ref: '#/components/schemas/EncodedId'
       properties:
         server_code:
           description: security server code
@@ -4552,7 +4568,7 @@ components:
         encoded_id:
           readOnly: true
           type: string
-          description: Encoded ID of Security Serve, Member or Subsystem Id
+          description: Encoded ID of Security Server, Member or Subsystem Id
     ClientId:
       type: object
       description: Client identifier

@@ -8,7 +8,7 @@ Running the X-Road software requires Linux (Ubuntu or RHEL). As a development en
 * Docker
 
 *Required for building natively (without Docker)*
-* OpenJDK / JDK version 11
+* OpenJDK / JDK version 21
 * Gradle
 * GCC
 * make

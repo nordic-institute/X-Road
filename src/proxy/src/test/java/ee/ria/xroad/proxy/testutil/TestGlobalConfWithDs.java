@@ -32,7 +32,7 @@ import ee.ria.xroad.common.certificateprofile.AuthCertificateProfileInfo;
 import ee.ria.xroad.common.certificateprofile.SignCertificateProfileInfo;
 import ee.ria.xroad.common.certificateprofile.impl.EjbcaSignCertificateProfileInfo;
 import ee.ria.xroad.common.conf.globalconf.EmptyGlobalConf;
-import ee.ria.xroad.common.conf.globalconf.ServerAddressInfo;
+import ee.ria.xroad.common.conf.globalconf.SharedParameters;
 import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.identifier.SecurityServerId;
 
@@ -65,10 +65,13 @@ public class TestGlobalConfWithDs extends EmptyGlobalConf {
     }
 
     @Override
-    public Collection<ServerAddressInfo> getProviderSecurityServers(ClientId clientId) {
-        return Set.of(
-                new ServerAddressInfo("127.0.0.1", true, "dsId",
-                        "http://127.0.0.1:%s/protocol".formatted(SystemProperties.dataspacesProtocolPort())));
+    public Collection<SharedParameters.SecurityServer> getProviderSecurityServers(ClientId clientId) {
+        var serverAddress = new SharedParameters.ServerAddress(
+                "127.0.0.1",
+                "http://127.0.0.1:%s/protocol".formatted(SystemProperties.dataspacesProtocolPort()));
+        var securityServer = new SharedParameters.SecurityServer(serverAddress);
+        securityServer.setOwnerDid("dsid");
+        return Set.of(securityServer);
     }
 
     @Override

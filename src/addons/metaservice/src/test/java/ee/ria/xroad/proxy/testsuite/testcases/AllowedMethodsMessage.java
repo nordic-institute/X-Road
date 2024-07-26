@@ -44,9 +44,9 @@ import java.util.List;
 import static ee.ria.xroad.proxy.util.MetaserviceTestUtil.createService;
 import static ee.ria.xroad.proxy.util.MetaserviceTestUtil.verifyAndGetSingleBodyElementOfType;
 import static org.hamcrest.CoreMatchers.is;
+import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.containsInAnyOrder;
-import static org.hamcrest.Matchers.isIn;
-import static org.junit.Assert.assertThat;
+import static org.hamcrest.Matchers.in;
 
 /**
  * The simplest case -- normal message and normal response.
@@ -90,7 +90,7 @@ public class AllowedMethodsMessage extends MessageTestCase {
 
         assertThat("Wrong allowed services", resultServices, containsInAnyOrder(expectedServices.toArray()));
 
-        assertThat("Wrong content type", receivedResponse.getContentType(), isIn(expectedContentTypes));
+        assertThat("Wrong content type", receivedResponse.getContentType(), is(in(expectedContentTypes)));
     }
 
     @Override

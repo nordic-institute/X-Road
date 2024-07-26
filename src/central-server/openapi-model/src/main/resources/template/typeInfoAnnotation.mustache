@@ -1,0 +1,13 @@
+{{#jackson}}
+
+@JsonTypeInfo(use = JsonTypeInfo.Id.NAME, include = JsonTypeInfo.As.PROPERTY, property = "{{{discriminator.propertyBaseName}}}", visible = true)
+{{#discriminator.mappedModels}}
+{{#-first}}
+@JsonSubTypes({
+{{/-first}}
+  @JsonSubTypes.Type(value = {{modelName}}.class, name = "{{^vendorExtensions.x-discriminator-value}}{{mappingName}}{{/vendorExtensions.x-discriminator-value}}{{#vendorExtensions.x-discriminator-value}}{{{vendorExtensions.x-discriminator-value}}}{{/vendorExtensions.x-discriminator-value}}"),
+{{#-last}}
+})
+{{/-last}}
+{{/discriminator.mappedModels}}
+{{/jackson}}

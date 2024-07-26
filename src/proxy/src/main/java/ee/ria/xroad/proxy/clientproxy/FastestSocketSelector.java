@@ -83,15 +83,14 @@ final class FastestSocketSelector {
     }
 
     SocketInfo select(int timeout) throws IOException {
-        switch (addresses.size()) {
-            case 0:
-                throw new IOException("No addresses to select from");
-            case 1:
-                return connect(timeout);
-            default:
+        return switch (addresses.size()) {
+            case 0 -> throw new IOException("No addresses to select from");
+            case 1 -> connect(timeout);
+            default -> {
                 log.info("Selecting the fastest connection from following addresses: {}", addresses);
-                return doSelect(timeout);
-        }
+                yield doSelect(timeout);
+            }
+        };
     }
 
     @SuppressWarnings("squid:S2095")

@@ -117,22 +117,23 @@ public interface JpaFlattenedSecurityServerClientRepository extends
                 predicates.add(clientNotPartOfGroupPredicate(root, builder,
                         params.getExcludingGroup()));
             }
-            if (params.getClientType() != null) {
-                switch (params.getClientType()) {
-                    case MEMBER:
-                        predicates.add(memberPredicate(root, builder));
-                        break;
-                    case SUBSYSTEM:
-                        predicates.add(subsystemPredicate(root, builder));
-                        break;
-                    default:
-                        throw new IllegalArgumentException("Invalid client type " + params.getClientType());
-                }
+            switch (params.getClientType()) {
+                case MEMBER:
+                    predicates.add(memberPredicate(root, builder));
+                    break;
+                case SUBSYSTEM:
+                    predicates.add(subsystemPredicate(root, builder));
+                    break;
+                case null:
+                    break;
+                default:
+                    throw new IllegalArgumentException("Invalid client type " + params.getClientType());
             }
+
             if (predicates.isEmpty()) {
                 predicates.add(idIsNotNull(root, builder));
             }
-            return builder.and(predicates.toArray(new Predicate[predicates.size()]));
+            return builder.and(predicates.toArray(new Predicate[0]));
         };
     }
 

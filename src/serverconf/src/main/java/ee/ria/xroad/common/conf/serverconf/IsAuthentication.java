@@ -57,8 +57,8 @@ public enum IsAuthentication {
      */
     public static void verifyClientAuthentication(ClientId client,
                                                   IsAuthenticationData auth) throws Exception {
-        IsAuthentication isAuthentication =
-                ServerConf.getIsAuthentication(client);
+
+        IsAuthentication isAuthentication = ServerConf.getIsAuthentication(client);
         if (isAuthentication == null) {
             // Means the client was not found in the server conf.
             // The getIsAuthentication method implemented in ServerConfCommonImpl

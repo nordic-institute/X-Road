@@ -51,10 +51,9 @@ public class AuditEventHandlerInterceptor implements HandlerInterceptor {
 
     @Override
     public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler) {
-        if (handler instanceof HandlerMethod) {
+        if (handler instanceof HandlerMethod method) {
             // controller method calls are HandlerMethods, there are also other handlers
             // such as ResourceHttpRequestHandlers when serving static resources
-            HandlerMethod method = (HandlerMethod) handler;
             Method javaMethod = method.getMethod();
             if (javaMethod.isAnnotationPresent(AuditEventMethod.class)) {
                 AuditEventMethod auditEventMethod = method.getMethodAnnotation(AuditEventMethod.class);

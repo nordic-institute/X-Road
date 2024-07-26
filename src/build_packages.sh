@@ -11,14 +11,24 @@ BUILD_LOCALLY=true
 BUILD_IN_DOCKER=false
 BUILD_ALL_PACKAGES=true
 BUILD_PACKAGES_FOR_RELEASE=""
+# Global variable to determine if text coloring is enabled
+isTextColoringEnabled=$(command -v tput >/dev/null && tput setaf 1 &>/dev/null && echo true || echo false)
 
 errorExit() {
-  echo "$(tput setaf 5)*** $*(tput sgr0)" 1>&2
+  if $isTextColoringEnabled; then
+    echo "$(tput setaf 1)*** $*(tput sgr0)" 1>&2
+  else
+    echo "*** $*" 1>&2
+  fi
   exit 1
 }
 
 warn() {
-  echo "$(tput setaf 3)*** $*$(tput sgr0)"
+  if $isTextColoringEnabled; then
+    echo "$(tput setaf 3)*** $*$(tput sgr0)"
+  else
+    echo "*** $*"
+  fi
 }
 
 usage() {
@@ -37,7 +47,11 @@ usage() {
 }
 
 currentBuildPlan() {
-  echo "$(tput setaf 2)Current build plan is:"
+  if $isTextColoringEnabled; then
+    echo "$(tput setaf 2)Current build plan is:"
+  else
+    echo "Current build plan is:"
+  fi
   if ! $HAS_DOCKER; then
     echo "-- Docker not installed. Building only .deb packages for $(lsb_release -sc) distribution"
   else
@@ -53,7 +67,10 @@ currentBuildPlan() {
       echo "-- Building all supported packages"
     fi
   fi
-  echo "$(tput sgr0)"
+  echo ""
+  if $isTextColoringEnabled; then
+    echo "$(tput sgr0)"
+  fi
 }
 
 buildInDocker() {
@@ -84,8 +101,12 @@ buildLocally() {
   ./compile_code.sh "$@" || errorExit "Error running build of binaries."
 
   if [ "$(uname)" == "Darwin" ]; then
-    echo "MacOS does not support passwordstore compilation. Compiling in docker..."
-    buildPasswordStoreInDocker
+    if [ ! -f "$XROAD/lib/libpasswordstore.so" ]; then
+      echo "MacOS does not support passwordstore compilation. Compiling in docker..."
+      buildPasswordStoreInDocker
+    else
+      echo "Passwordstore already compiled. Skipping"
+    fi
   fi
 }
 

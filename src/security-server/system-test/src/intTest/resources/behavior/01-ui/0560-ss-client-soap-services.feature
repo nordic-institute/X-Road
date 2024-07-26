@@ -69,10 +69,10 @@ Feature: 0560 - SS: Client SOAP (through WSDL) services
     And Service "WSDL (http://mock-server:1080/test-services/testservice1.wsdl)" is expanded
     And Service with code "testOp1" is opened
     And Service add subjects dialog is opened
-    And Service subject lookup is executed with member name "TestGov" and subsystem code "test"
-    And Subject with id "CS:GOV:0245437-2:TestSaved" and "CS:GOV:0245437-2:test-consumer" is selected from the table. There are total 3 entries
-    Then Service Access Rights table member with id "CS:GOV:0245437-2:TestSaved" is present
-    And Service Access Rights table member with id "CS:GOV:0245437-2:test-consumer" is present
+    And Service subject lookup is executed with member name "Test member" and subsystem code "test"
+    And Subject with id "DEV:COM:1234:TestSaved" and "DEV:COM:1234:test-consumer" is selected from the table. There are total 3 entries
+    Then Service Access Rights table member with id "DEV:COM:1234:TestSaved" is present
+    And Service Access Rights table member with id "DEV:COM:1234:test-consumer" is present
 
   Scenario: Client service access rights subjects search filter clearing restore initial state
     When Client "TestService" is opened
@@ -91,10 +91,10 @@ Feature: 0560 - SS: Client SOAP (through WSDL) services
     And Services sub-tab is selected
     And Service "WSDL (http://mock-server:1080/test-services/testservice1.wsdl)" is expanded
     And Service with code "testOp1" is opened
-    And Service Access Rights table member with id "CS:GOV:0245437-2:TestSaved" is present
-    When Service Access Rights subject with id "CS:GOV:0245437-2:TestSaved" is removed
-    Then Service Access Rights table member with id "CS:GOV:0245437-2:TestSaved" is missing
-    And Service Access Rights table member with id "CS:GOV:0245437-2:test-consumer" is present
+    And Service Access Rights table member with id "DEV:COM:1234:TestSaved" is present
+    When Service Access Rights subject with id "DEV:COM:1234:TestSaved" is removed
+    Then Service Access Rights table member with id "DEV:COM:1234:TestSaved" is missing
+    And Service Access Rights table member with id "DEV:COM:1234:test-consumer" is present
 
   Scenario: Client service has all access rights removed
     When Client "TestService" is opened
@@ -102,14 +102,14 @@ Feature: 0560 - SS: Client SOAP (through WSDL) services
     And Service "WSDL (http://mock-server:1080/test-services/testservice1.wsdl)" is expanded
     And Service with code "testOp1" is opened
     And Service add subjects dialog is opened
-    And Service subject lookup is executed with member name "TestGov" and subsystem code "test"
-    And Subject with id "CS:GOV:0245437-2:TestSaved" and "CS:GOV:0245437-2:TestService" is selected from the table. There are total 2 entries
-    Then Service Access Rights table member with id "CS:GOV:0245437-2:TestSaved" is present
-    And Service Access Rights table member with id "CS:GOV:0245437-2:test-consumer" is present
+    And Service subject lookup is executed with member name "Test member" and subsystem code "test"
+    And Subject with id "DEV:COM:1234:TestSaved" and "DEV:COM:1234:TestService" is selected from the table. There are total 2 entries
+    Then Service Access Rights table member with id "DEV:COM:1234:TestSaved" is present
+    And Service Access Rights table member with id "DEV:COM:1234:test-consumer" is present
     When Service has all Access Rights removed
-    Then Service Access Rights table member with id "CS:GOV:0245437-2:TestSaved" is missing
-    And Service Access Rights table member with id "CS:GOV:0245437-2:test-consumer" is missing
-    And Service Access Rights table member with id "CS:GOV:0245437-2:TestService" is missing
+    Then Service Access Rights table member with id "DEV:COM:1234:TestSaved" is missing
+    And Service Access Rights table member with id "DEV:COM:1234:test-consumer" is missing
+    And Service Access Rights table member with id "DEV:COM:1234:TestService" is missing
 
   Scenario: Newly added services are enabled and one of them disabled
     Given Client "TestService" is opened

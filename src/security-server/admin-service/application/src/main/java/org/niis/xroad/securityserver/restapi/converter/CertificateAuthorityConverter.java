@@ -30,8 +30,11 @@ import org.niis.xroad.securityserver.restapi.dto.ApprovedCaDto;
 import org.niis.xroad.securityserver.restapi.openapi.model.CertificateAuthority;
 import org.springframework.stereotype.Component;
 
+import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
+
+import static java.util.Optional.ofNullable;
 
 /**
  * Converter for CertificateAuthority related data between openapi and service domain classes
@@ -55,6 +58,12 @@ public class CertificateAuthorityConverter {
                 .orElse(null));
         ca.setPath(String.join(":", approvedCaDto.getSubjectDnPath()));
         ca.setTopCa(approvedCaDto.isTopCa());
+        ca.acmeCapable(approvedCaDto.isAcmeCapable());
+        ca.certificateProfileInfo(approvedCaDto.getCertificateProfileInfo());
+        ca.acmeServerIpAddresses(ofNullable(approvedCaDto.getAcmeServerIpAddress())
+                .map(ips -> ips.split(","))
+                .map(List::of)
+                .orElse(null));
         return ca;
     }
 

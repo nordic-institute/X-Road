@@ -25,7 +25,7 @@
  */
 package org.niis.xroad.proxy.edc;
 
-import ee.ria.xroad.common.conf.globalconf.ServerAddressInfo;
+import ee.ria.xroad.common.conf.globalconf.SharedParameters;
 import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.identifier.ServiceId;
 
@@ -53,19 +53,19 @@ public class AssetAuthorizationManager {
     private final AuthorizedAssetRegistry authorizedAssetRegistry;
 
     public AuthorizedAssetRegistry.GrantedAssetInfo getOrRequestAssetAccess(ClientId senderId,
-                                                                            ServerAddressInfo providerServerAddress,
+                                                                            SharedParameters.SecurityServer providerSecurityServer,
                                                                             ServiceId providerServiceId,
                                                                             boolean alwaysReevaluatePolicies) {
         if (alwaysReevaluatePolicies) {
-            return requestAccess(senderId, providerServerAddress, providerServiceId, true);
+            return requestAccess(senderId, providerSecurityServer, providerServiceId, true);
         } else {
             return authorizedAssetRegistry.getAssetInfo(senderId.asEncodedId(), providerServiceId.asEncodedId())
-                    .orElseGet(() -> requestAccess(senderId, providerServerAddress, providerServiceId, false));
+                    .orElseGet(() -> requestAccess(senderId, providerSecurityServer, providerServiceId, false));
         }
     }
 
     public AuthorizedAssetRegistry.GrantedAssetInfo requestAccess(ClientId senderId,
-                                                                  ServerAddressInfo providerServerAddress,
+                                                                  SharedParameters.SecurityServer providerSecurityServer,
                                                                   ServiceId providerServiceId,
                                                                   boolean oneTimeUseToken) {
 
@@ -76,8 +76,8 @@ public class AssetAuthorizationManager {
                 .add(TYPE, "NegotiateAssetRequestDto")
                 .add("xrd:clientId", senderId.asEncodedId())
                 .add("assetId", providerServiceId.asEncodedId())
-                .add("counterPartyId", providerServerAddress.ownerDid())
-                .add("counterPartyAddress", providerServerAddress.getProtocolUrl())
+                .add("counterPartyId", providerSecurityServer.getOwnerDid())
+                .add("counterPartyAddress", providerSecurityServer.getServerAddress().protocolUrl())
                 .add("oneTimeUseToken", oneTimeUseToken)
                 .build();
         JsonObject response = xrdEdrApi.requestAssetAccess(request);

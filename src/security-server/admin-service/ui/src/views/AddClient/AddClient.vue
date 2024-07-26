@@ -164,6 +164,7 @@ const {
   storeCsrClient,
   storeCsrIsNewMember,
   fetchCsrForm,
+  hasAcmeEabCredentials,
 } = useCsr();
 
 const currentStep = ref(1);
@@ -224,7 +225,8 @@ function csrDetailsReady(): void {
   storeCsrIsNewMember(true);
 
   fetchCsrForm()
-    .then(() => currentStep.value++)
+    .then(() => hasAcmeEabCredentials())
+    .finally(() => currentStep.value++)
     .catch((error) => showError(error));
 }
 

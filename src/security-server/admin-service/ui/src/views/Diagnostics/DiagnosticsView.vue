@@ -444,16 +444,6 @@
                       location="right"
                     >
                       <template #activator="{ props }">
-                        <v-icon
-                          size="small"
-                          :class="
-                            messageLogEncryptionTooltipIconType(
-                              messageLogEnabled,
-                            )
-                          "
-                          v-bind="props"
-                          icon="icon-Error"
-                        />
                         <xrd-icon-base
                           v-bind="props"
                           :class="

@@ -9,7 +9,7 @@ ENV LC_ALL en_US.UTF-8
 
 RUN apt-get -qq update \
   && apt-get -qq install curl software-properties-common gawk \
-  openjdk-17-jdk-headless build-essential git unzip debhelper \
+  openjdk-21-jdk-headless build-essential git unzip debhelper \
   && apt-get -qq install softhsm opensc \
   && apt-get -qq autoremove \
   && apt-get -qq clean
