@@ -26,9 +26,11 @@
  */
 package ee.ria.xroad.common.conf.globalconf;
 
+import ee.ria.xroad.common.conf.globalconf.sharedparameters.v4.DataspaceSettingsType;
 import ee.ria.xroad.common.conf.globalconf.sharedparameters.v4.ObjectFactory;
 import ee.ria.xroad.common.conf.globalconf.sharedparameters.v4.SharedParametersTypeV4;
 import ee.ria.xroad.common.identifier.ClientId;
+import ee.ria.xroad.common.identifier.SecurityServerId;
 
 import jakarta.xml.bind.JAXBContext;
 import jakarta.xml.bind.JAXBElement;
@@ -70,7 +72,8 @@ class SharedParametersV4ToXmlConverterTest {
             entry("client", "clients"),
             entry("memberClass", "memberClasses"),
             entry("authCertHash", "authCerts"),
-            entry("groupMember", "groupMembers")
+            entry("groupMember", "groupMembers"),
+            entry("serverAddress", "address")
     );
 
     @Test
@@ -86,14 +89,17 @@ class SharedParametersV4ToXmlConverterTest {
                         "members.id",
                         "members.subsystems.id",
                         "centralService",
-                        "any"
+                        "dataspacesSettings"
                 )
                 .withEqualsForFields((a, b) -> new BigInteger(a.toString()).compareTo(new BigInteger(b.toString())) == 0,
                         "globalSettings.ocspFreshnessSeconds")
+                .withEqualsForFields((a, b) -> b instanceof SharedParameters.ServerAddress addr && addr.address().equals(a),
+                        "securityServers.address")
                 .build();
 
         assertThat(xmlType)
                 .hasNoNullFieldsOrPropertiesExcept("centralService")
+                .hasFieldOrProperty("dataspacesSettings")
                 .usingRecursiveComparison(conf)
                 .isEqualTo(sharedParameters);
 
@@ -105,6 +111,21 @@ class SharedParametersV4ToXmlConverterTest {
         assertIdReferences(xmlType);
         assertThat(xmlType.getSecurityServer().get(0).getAuthCertHash().get(0))
                 .isEqualTo(sharedParameters.getSecurityServers().get(0).getAuthCertHashes().get(0).getHash(SHA256_ID));
+
+        List<DataspaceSettingsType.SecurityServers.SecurityServer> dsSupportedServers =
+                sharedParameters.getSecurityServers().stream()
+                        .filter(s -> s.getServerAddress().isDsSupported())
+                        .map(s -> {
+                            var ss = new DataspaceSettingsType.SecurityServers.SecurityServer();
+                            ss.setServerId(SecurityServerId.Conf.create(s.getOwner(), s.getServerCode()).asEncodedId());
+                            ss.setProtocolUrl(s.getServerAddress().dsProtocolUrl());
+                            return ss;
+                        })
+                        .toList();
+
+        assertThat(xmlType.getDataspacesSettings().getSecurityServers().getSecurityServer())
+                .usingRecursiveFieldByFieldElementComparator()
+                .containsExactlyInAnyOrderElementsOf(dsSupportedServers);
     }
 
     @Test
@@ -156,7 +177,7 @@ class SharedParametersV4ToXmlConverterTest {
         return new SharedParameters("INSTANCE", getConfigurationSources(), List.of(getApprovedCA()),
                 List.of(new SharedParameters.ApprovedTSA("tsa-name", "tsa-url", "tsa cert".getBytes(UTF_8))),
                 getMembers(), List.of(getSecurityServer()), List.of(new SharedParameters.GlobalGroup("group-code",
-                        "group-description", List.of(subsystemId(memberId(), "SUB1")))),
+                "group-description", List.of(subsystemId(memberId(), "SUB1")))),
                 new SharedParameters.GlobalSettings(List.of(getMemberClass()), 333));
     }
 
@@ -192,6 +213,7 @@ class SharedParametersV4ToXmlConverterTest {
         var clientId = memberId();
         member.setId(clientId);
         member.setSubsystems(List.of(subsystem(clientId, "SUB1")));
+        member.setDid("did:web:" + member.getMemberCode());
         return List.of(member);
     }
 
@@ -200,12 +222,16 @@ class SharedParametersV4ToXmlConverterTest {
     }
 
     private static SharedParameters.SecurityServer getSecurityServer() {
-        var securityServer = new SharedParameters.SecurityServer();
+        var securityServer = new SharedParameters.SecurityServer(new SharedParameters.ServerAddress(
+                "security-server-address",
+                "ds-protocol-url"));
         securityServer.setOwner(memberId());
+        securityServer.setOwnerDid("dsId");
+
         securityServer.setServerCode("security-server-code");
-        securityServer.setAddress("security-server-address");
         securityServer.setClients(List.of(subsystemId(memberId(), "SUB1")));
         securityServer.setAuthCertHashes(List.of(new CertHash("ss-auth-cert".getBytes(UTF_8))));
+
         return securityServer;
     }
 

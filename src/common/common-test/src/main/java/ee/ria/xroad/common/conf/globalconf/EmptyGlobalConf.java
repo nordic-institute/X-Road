@@ -126,12 +126,7 @@ public class EmptyGlobalConf implements GlobalConfProvider {
     }
 
     @Override
-    public Collection<ServerAddressInfo> getProviderSecurityServers(ClientId clientId) {
-        return null;
-    }
-
-    @Override
-    public ServerAddressInfo getSecurityServerAddressInfo(SecurityServerId serverId) {
+    public Collection<SharedParameters.SecurityServer> getProviderSecurityServers(ClientId clientId) {
         return null;
     }
 

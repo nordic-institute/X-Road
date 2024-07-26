@@ -101,8 +101,12 @@ buildLocally() {
   ./compile_code.sh "$@" || errorExit "Error running build of binaries."
 
   if [ "$(uname)" == "Darwin" ]; then
-    echo "MacOS does not support passwordstore compilation. Compiling in docker..."
-    buildPasswordStoreInDocker
+    if [ ! -f "$XROAD/lib/libpasswordstore.so" ]; then
+      echo "MacOS does not support passwordstore compilation. Compiling in docker..."
+      buildPasswordStoreInDocker
+    else
+      echo "Passwordstore already compiled. Skipping"
+    fi
   fi
 }
 

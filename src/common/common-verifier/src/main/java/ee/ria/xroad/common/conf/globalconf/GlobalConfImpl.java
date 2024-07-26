@@ -55,6 +55,7 @@ import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 import static ee.ria.xroad.common.ErrorCodes.X_INTERNAL_ERROR;
 import static ee.ria.xroad.common.ErrorCodes.X_MALFORMED_GLOBALCONF;
@@ -65,8 +66,8 @@ import static ee.ria.xroad.common.util.CryptoUtils.certHash;
 import static ee.ria.xroad.common.util.CryptoUtils.certSha1Hash;
 import static ee.ria.xroad.common.util.CryptoUtils.encodeBase64;
 import static ee.ria.xroad.common.util.CryptoUtils.readCertificate;
-import static java.util.stream.Collectors.toSet;
 import static java.util.Optional.ofNullable;
+import static java.util.stream.Collectors.toSet;
 
 /**
  * Global configuration implementation
@@ -227,11 +228,11 @@ public class GlobalConfImpl implements GlobalConfProvider {
             return Collections.emptySet();
         }
 
-        SharedParameters p = getSharedParameters(clientId.getXRoadInstance());
-        return ofNullable(p.getMemberAddresses().get(clientId))
-                .map(addresses -> addresses.stream().map(SharedParameters.ServerAddress::getAddress).collect(Collectors.toSet()))
-                .orElse(Set.of());
-        return getSharedParametersCache(clientId.getXRoadInstance()).getMemberAddresses().get(clientId);
+        return getSharedParametersCache(clientId.getXRoadInstance()).getSecurityServersByClientId().get(clientId).stream()
+                .map(SharedParameters.SecurityServer::getServerAddress)
+                .map(SharedParameters.ServerAddress::address)
+                .filter(StringUtils::isNotBlank)
+                .collect(Collectors.toSet());
     }
 
     @Override
@@ -240,47 +241,21 @@ public class GlobalConfImpl implements GlobalConfProvider {
             final SharedParameters.SecurityServer server = getSharedParametersCache(serverId.getXRoadInstance())
                     .getSecurityServersById().get(serverId);
             if (server != null) {
-                return server.getAddress();
+                return server.getServerAddress().address();
             }
         }
         return null;
     }
 
     @Override
-    public Collection<ServerAddressInfo> getProviderSecurityServers(ClientId clientId) {
+    public Collection<SharedParameters.SecurityServer> getProviderSecurityServers(ClientId clientId) {
         if (clientId == null) {
             return Collections.emptySet();
         }
 
-        SharedParameters p = getSharedParameters(clientId.getXRoadInstance());
-        return ofNullable(p.getMemberAddresses().get(clientId))
-                .map(addresses -> addresses.stream()
-                        .map(this::mapServerAddressInfo)
-                        .collect(Collectors.toSet()))
-                .orElse(Set.of());
-    }
-
-    @Override
-    public ServerAddressInfo getSecurityServerAddressInfo(SecurityServerId serverId) {
-        if (serverId != null) {
-            SharedParameters p = getSharedParameters(serverId.getXRoadInstance());
-
-            final SharedParameters.SecurityServer server = p.getSecurityServersById().get(serverId);
-            if (server != null && server.getServerAddress() != null) {
-                return mapServerAddressInfo(server.getServerAddress());
-            }
-        }
-
-        return null;
-    }
-
-    //TODO xroad8 use mapstruct? maybe move to a different place in any case.
-    private ServerAddressInfo mapServerAddressInfo(SharedParameters.ServerAddress serverAddress) {
-        return new ServerAddressInfo(serverAddress.getAddress(),
-                serverAddress.isDsSupported(),
-                serverAddress.getOwnerDid(),
-                serverAddress.getDsProtocolUrl()
-        );
+        return getSharedParametersCache(clientId.getXRoadInstance())
+                .getSecurityServersByClientId()
+                .getOrDefault(clientId, Collections.emptySet());
     }
 
     @Override

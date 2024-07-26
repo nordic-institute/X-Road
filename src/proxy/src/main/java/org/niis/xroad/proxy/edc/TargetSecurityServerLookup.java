@@ -27,12 +27,15 @@ package org.niis.xroad.proxy.edc;
 
 import ee.ria.xroad.common.SystemProperties;
 import ee.ria.xroad.common.conf.globalconf.GlobalConf;
-import ee.ria.xroad.common.conf.globalconf.ServerAddressInfo;
+import ee.ria.xroad.common.conf.globalconf.SharedParameters;
 import ee.ria.xroad.common.identifier.ClientId;
 
 import lombok.AccessLevel;
 import lombok.NoArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+
+import java.util.Collection;
+import java.util.List;
 
 @Slf4j
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
@@ -42,7 +45,7 @@ public class TargetSecurityServerLookup {
         // Resolve available security servers
         var allServers = GlobalConf.getProviderSecurityServers(clientId);
         if (SystemProperties.isDataspacesEnabled()) {
-            var dsEnabledServers = allServers.stream().filter(ServerAddressInfo::dsSupported).toList();
+            var dsEnabledServers = allServers.stream().filter(ss -> ss.getServerAddress().isDsSupported()).toList();
             if (dsEnabledServers.isEmpty()) {
                 log.trace("Falling back to legacy protocol, there are no DataSpace compliant Security Servers for this service.");
                 return new TargetSecurityServers(allServers, false);
@@ -50,13 +53,15 @@ public class TargetSecurityServerLookup {
                 return new TargetSecurityServers(dsEnabledServers, true);
             }
         } else {
-            return new TargetSecurityServers(allServers, false);
+
         }
+
+        return new TargetSecurityServers(allServers, false);
     }
 
     public record TargetSecurityServers(
-            java.util.Collection<ServerAddressInfo> servers,
-            boolean dsEnabledServers
+            Collection<SharedParameters.SecurityServer> servers,
+            boolean useDataSpaces
     ) {
     }
 }

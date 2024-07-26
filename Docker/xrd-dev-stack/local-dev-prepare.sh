@@ -59,14 +59,14 @@ cd "$XROAD_HOME"/Docker/centralserver
 ./init_context.sh
 mkdir -p build/packages
 cp "$PACKAGES_LOCAL_PATH"/* build/packages/
-docker build --build-arg PACKAGE_SOURCE=$TARGET_PACKAGE_SOURCE -t xrd-centralserver-dev .
+docker build --build-arg PACKAGE_SOURCE=$TARGET_PACKAGE_SOURCE -t xrd8-centralserver-dev .
 
 echo "Building xrd-securityserver-dev image.."
 cd "$XROAD_HOME"/Docker/securityserver
 ./init_context.sh
 mkdir -p build/packages
 cp "$PACKAGES_LOCAL_PATH"/* build/packages/
-docker build --build-arg PACKAGE_SOURCE=$TARGET_PACKAGE_SOURCE -t xrd-securityserver-dev .
+docker build --build-arg PACKAGE_SOURCE=$TARGET_PACKAGE_SOURCE -t xrd8-securityserver-dev .
 
 echo "Building xrd-testca image.."
 cd "$XROAD_HOME"/Docker/testca

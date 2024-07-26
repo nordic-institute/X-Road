@@ -26,12 +26,9 @@
  */
 package ee.ria.xroad.common.conf.globalconf;
 
-import ee.ria.xroad.common.conf.globalconf.sharedparameters.v3.DataspaceSettingsType;
 import ee.ria.xroad.common.conf.globalconf.sharedparameters.v3.ObjectFactory;
 import ee.ria.xroad.common.conf.globalconf.sharedparameters.v3.SharedParametersTypeV3;
 import ee.ria.xroad.common.identifier.ClientId;
-import ee.ria.xroad.common.identifier.SecurityServerId;
-import ee.ria.xroad.common.util.CryptoUtils;
 
 import jakarta.xml.bind.JAXBContext;
 import jakarta.xml.bind.JAXBElement;
@@ -73,7 +70,8 @@ class SharedParametersV3ToXmlConverterTest {
             entry("client", "clients"),
             entry("memberClass", "memberClasses"),
             entry("authCertHash", "authCerts"),
-            entry("groupMember", "groupMembers")
+            entry("groupMember", "groupMembers"),
+            entry("serverAddress", "address")
     );
 
     @Test
@@ -88,16 +86,16 @@ class SharedParametersV3ToXmlConverterTest {
                         "securityServers.authCerts",
                         "members.id",
                         "members.subsystems.id",
-                        "centralService",
-                        "dataspacesSettings"
+                        "centralService"
                 )
                 .withEqualsForFields((a, b) -> new BigInteger(a.toString()).compareTo(new BigInteger(b.toString())) == 0,
                         "globalSettings.ocspFreshnessSeconds")
+                .withEqualsForFields((a, b) -> b instanceof SharedParameters.ServerAddress addr && addr.address().equals(a),
+                        "securityServers.address")
                 .build();
 
         assertThat(xmlType)
                 .hasNoNullFieldsOrPropertiesExcept("centralService")
-                .hasFieldOrProperty("dataspacesSettings")
                 .usingRecursiveComparison(conf)
                 .isEqualTo(sharedParameters);
 
@@ -109,20 +107,6 @@ class SharedParametersV3ToXmlConverterTest {
         assertIdReferences(xmlType);
         assertThat(xmlType.getSecurityServer().get(0).getAuthCertHash().get(0))
                 .isEqualTo(sharedParameters.getSecurityServers().get(0).getAuthCertHashes().get(0).getHash(SHA256_ID));
-
-        List<DataspaceSettingsType.SecurityServers.SecurityServer> dsSupportedServers =
-                sharedParameters.getSecurityServers().stream()
-                        .filter(SharedParameters.SecurityServer::isDsEnabled)
-                        .map(s -> {
-                            var ss = new DataspaceSettingsType.SecurityServers.SecurityServer();
-                            ss.setServerId(SecurityServerId.Conf.create(s.getOwner(), s.getServerCode()).asEncodedId());
-                            ss.setProtocolUrl(s.getDsProtocolUrl());
-                            return ss;
-                        })
-                        .toList();
-        assertThat(xmlType.getDataspacesSettings().getSecurityServers().getSecurityServer())
-                .usingRecursiveFieldByFieldElementComparator()
-                .containsExactlyInAnyOrderElementsOf(dsSupportedServers);
     }
 
     @Test
@@ -210,7 +194,6 @@ class SharedParametersV3ToXmlConverterTest {
         var clientId = memberId();
         member.setId(clientId);
         member.setSubsystems(List.of(subsystem(clientId, "SUB1")));
-        member.setDid("did:web:" + member.getMemberCode());
         return List.of(member);
     }
 
@@ -219,14 +202,11 @@ class SharedParametersV3ToXmlConverterTest {
     }
 
     private static SharedParameters.SecurityServer getSecurityServer() {
-        var securityServer = new SharedParameters.SecurityServer();
+        var securityServer = new SharedParameters.SecurityServer(new SharedParameters.ServerAddress("security-server-address", null));
         securityServer.setOwner(memberId());
         securityServer.setServerCode("security-server-code");
-        securityServer.setAddress("security-server-address");
         securityServer.setClients(List.of(subsystemId(memberId(), "SUB1")));
         securityServer.setAuthCertHashes(List.of(new CertHash("ss-auth-cert".getBytes(UTF_8))));
-        securityServer.setDsEnabled(true);
-        securityServer.setDsProtocolUrl("ds-protocol-url");
         return securityServer;
     }
 

@@ -280,8 +280,6 @@ edc-micrometer-core = { module = "org.eclipse.edc:micrometer-core", version.ref 
 edc-micrometer-jersey = { module = "org.eclipse.edc:jersey-micrometer", version.ref = "edc" }
 edc-micrometer-jetty = { module = "org.eclipse.edc:jetty-micrometer", version.ref = "edc" }
 
-opentelemetry-instrumentation-annotations = { module = "io.opentelemetry.instrumentation:opentelemetry-instrumentation-annotations", version = "1.32.0" } # TODO older version to align with  edc
-
 [bundles]
 metrics = ["metrics-core", "metrics-jmx"]
 jaxb = ["jaxb-runtime", "jaxb-xjc"]

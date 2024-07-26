@@ -44,12 +44,11 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
-import java.util.stream.Collectors;
 
 import static ee.ria.xroad.common.util.CryptoUtils.encodeBase64;
 import static ee.ria.xroad.common.util.CryptoUtils.readCertificate;
-import static org.apache.commons.lang3.StringUtils.isNotBlank;
 
 @Getter
 public class SharedParametersCache {
@@ -61,12 +60,12 @@ public class SharedParametersCache {
     private final Map<X509Certificate, SharedParameters.ApprovedCA> caCertsAndApprovedCAData = new HashMap<>();
     private final Map<X509Certificate, List<SharedParameters.OcspInfo>> caCertsAndOcspData = new HashMap<>();
     private final List<X509Certificate> verificationCaCerts = new ArrayList<>();
-    private final Map<ClientId, Set<String>> memberAddresses = new HashMap<>();
     private final Map<ClientId, Set<byte[]>> memberAuthCerts = new HashMap<>();
     private final Map<String, SharedParameters.SecurityServer> serverByAuthCert = new HashMap<>();
     private final Map<SecurityServerId, Set<ClientId>> securityServerClients = new HashMap<>();
     private final Set<String> knownAddresses = new HashSet<>();
     private final Map<SecurityServerId, SharedParameters.SecurityServer> securityServersById = new HashMap<>();
+    private final Map<ClientId, Set<SharedParameters.SecurityServer>> securityServersByClientId = new HashMap<>();
 
     public String getInstanceIdentifier() {
         return sharedParameters.getInstanceIdentifier();
@@ -127,11 +126,14 @@ public class SharedParametersCache {
     private static List<X509Certificate> getTopOrIntermediateCaCerts(List<SharedParameters.CaInfo> typesUnderCA) {
         return typesUnderCA.stream()
                 .map(c -> readCertificate(c.getCert()))
-                .collect(Collectors.toList());
+                .toList();
     }
 
     private void cacheKnownAddresses() {
-        sharedParameters.getSecurityServers().stream().map(SharedParameters.SecurityServer::getAddress)
+        sharedParameters.getSecurityServers().stream()
+                .map(SharedParameters.SecurityServer::getServerAddress)
+                .filter(Objects::nonNull)
+                .map(SharedParameters.ServerAddress::address)
                 .filter(StringUtils::isNotBlank)
                 .forEach(knownAddresses::add);
     }
@@ -158,9 +160,7 @@ public class SharedParametersCache {
 
     private void addServerClient(ClientId client, SharedParameters.SecurityServer server) {
         // Add the mapping from client to security server address.
-        if (isNotBlank(server.getAddress())) {
-            addToMap(memberAddresses, client, server.getAddress());
-        }
+        addToMap(securityServersByClientId, client, server);
 
         // Add the mapping from client to authentication certificate.
         for (CertHash authCert : server.getAuthCertHashes()) {

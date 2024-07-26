@@ -108,7 +108,7 @@ public class ClientRestMessageHandler extends AbstractClientProxyHandler {
             var proxyCtx = new ProxyRequestCtx(target, request, response, opMonitoringData,
                     resolveTargetSecurityServers(restRequest.getServiceId().getClientId()), forcePolicyReevaluation);
 
-            if (proxyCtx.targetSecurityServers().dsEnabledServers() && !forceLegacyTransport) {
+            if (proxyCtx.targetSecurityServers().useDataSpaces() && !forceLegacyTransport) {
                 //TODO xroad8 this bean setup is far from usable, refactor once design stabilizes.
                 return Optional.of(new ClientRestMessageDsProcessorV2(proxyCtx, restRequest, client,
                         getIsAuthenticationData(request), assetAuthorizationManager));

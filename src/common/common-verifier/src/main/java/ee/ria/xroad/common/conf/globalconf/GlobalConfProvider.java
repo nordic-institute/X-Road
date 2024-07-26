@@ -114,15 +114,7 @@ public interface GlobalConfProvider {
      */
     String getSecurityServerAddress(SecurityServerId serverId);
 
-    Collection<ServerAddressInfo> getProviderSecurityServers(ClientId clientId);
-
-    /**
-     * Returns address of the given security server with additional information.
-     * IP address converted to string, such as "192.168.2.2"
-     * @param serverId the security server identifier
-     * @return address information.
-     */
-    ServerAddressInfo getSecurityServerAddressInfo(SecurityServerId serverId);
+    Collection<SharedParameters.SecurityServer> getProviderSecurityServers(ClientId clientId);
 
     /**
      * Returns a list of OCSP responder addresses for the given member

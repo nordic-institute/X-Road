@@ -29,7 +29,6 @@ package ee.ria.xroad.common.conf.globalconf;
 
 import ee.ria.xroad.common.conf.globalconf.sharedparameters.v3.ApprovedCATypeV3;
 import ee.ria.xroad.common.conf.globalconf.sharedparameters.v3.ConfigurationSourceType;
-import ee.ria.xroad.common.conf.globalconf.sharedparameters.v3.DataspaceSettingsType;
 import ee.ria.xroad.common.conf.globalconf.sharedparameters.v3.GlobalGroupType;
 import ee.ria.xroad.common.conf.globalconf.sharedparameters.v3.GlobalSettingsType;
 import ee.ria.xroad.common.conf.globalconf.sharedparameters.v3.MemberType;
@@ -38,12 +37,10 @@ import ee.ria.xroad.common.conf.globalconf.sharedparameters.v3.SecurityServerTyp
 import ee.ria.xroad.common.conf.globalconf.sharedparameters.v3.SharedParametersTypeV3;
 import ee.ria.xroad.common.conf.globalconf.sharedparameters.v3.SubsystemType;
 import ee.ria.xroad.common.identifier.ClientId;
-import ee.ria.xroad.common.identifier.SecurityServerId;
 import ee.ria.xroad.common.util.CryptoUtils;
 
 import jakarta.xml.bind.JAXBElement;
 import lombok.SneakyThrows;
-import org.apache.commons.lang3.StringUtils;
 import org.mapstruct.Context;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
@@ -54,7 +51,6 @@ import org.mapstruct.factory.Mappers;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.stream.Collectors;
 
 @Mapper(uses = {ObjectFactory.class, MappingUtils.class}, unmappedTargetPolicy = ReportingPolicy.ERROR)
 
@@ -73,56 +69,9 @@ abstract class SharedParametersV3ToXmlConverter {
     @Mapping(source = "securityServers", target = "securityServer")
     @Mapping(source = "globalGroups", target = "globalGroup")
     @Mapping(target = "centralService", ignore = true)
-    @Mapping(target = "dataspacesSettings", source = "sharedParameters", qualifiedByName = "mapDataspacesSettings")
     abstract SharedParametersTypeV3 convert(SharedParameters sharedParameters,
                                             @Context Map<ClientId, Object> clientMap);
 
-    @Named("mapDataspacesSettings")
-    protected DataspaceSettingsType mapDataspacesSettings(SharedParameters sharedParameters,
-                                                          @Context Map<ClientId, Object> clientMap) {
-
-        DataspaceSettingsType result = new DataspaceSettingsType();
-
-        if (sharedParameters.getSecurityServers() != null) {
-            var servers = sharedParameters.getSecurityServers().stream()
-                    .filter(SharedParameters.SecurityServer::isDsEnabled)
-                    .map(s -> {
-                        var securityServer = new DataspaceSettingsType.SecurityServers.SecurityServer();
-                        securityServer.setServerId(SecurityServerId.Conf.create(s.getOwner(), s.getServerCode()).asEncodedId());
-                        securityServer.setProtocolUrl(s.getDsProtocolUrl());
-                        return securityServer;
-                    })
-                    .collect(Collectors.toSet());
-
-            if (!servers.isEmpty()) {
-                if (result.getSecurityServers() == null) {
-                    result.setSecurityServers(new DataspaceSettingsType.SecurityServers());
-                }
-                result.setSecurityServers(new DataspaceSettingsType.SecurityServers());
-                result.getSecurityServers().getSecurityServer().addAll(servers);
-            }
-        }
-
-        if (sharedParameters.getMembers() != null) {
-            for (SharedParameters.Member member : sharedParameters.getMembers()) {
-                if (StringUtils.isNotBlank(member.getDid())) {
-                    var xmlMember = new DataspaceSettingsType.Members.Member();
-                    xmlMember.setMember(clientMap.get(member.getId()));
-                    xmlMember.setDid(member.getDid());
-
-                    if (result.getMembers() == null) {
-                        result.setMembers(new DataspaceSettingsType.Members());
-                    }
-                    result.getMembers().getMember().add(xmlMember);
-                }
-            }
-        }
-
-        if (result.getSecurityServers() != null || result.getMembers() != null) {
-            return result;
-        }
-        return null;
-    }
 
     @Mapping(source = "memberClasses", target = "memberClass")
     abstract GlobalSettingsType convert(SharedParameters.GlobalSettings globalSettings);
@@ -136,6 +85,7 @@ abstract class SharedParametersV3ToXmlConverter {
 
     @Mapping(source = "authCertHashes", target = "authCertHash", qualifiedByName = "toAuthCertHashes")
     @Mapping(source = "clients", target = "client", qualifiedByName = "clientsById")
+    @Mapping(source = "serverAddress.address", target = "address")
     @Mapping(target = "owner", qualifiedByName = "clientById")
     abstract SecurityServerType convert(SharedParameters.SecurityServer securityServer, @Context Map<ClientId, Object> clientMap);
 
