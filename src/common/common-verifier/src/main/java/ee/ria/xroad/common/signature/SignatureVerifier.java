@@ -36,17 +36,13 @@ import ee.ria.xroad.common.hashchain.HashChainReferenceResolver;
 import ee.ria.xroad.common.hashchain.HashChainVerifier;
 import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.util.CertUtils;
-import ee.ria.xroad.common.util.CryptoUtils;
 import ee.ria.xroad.common.util.MessageFileNames;
 
 import lombok.extern.slf4j.Slf4j;
 import org.apache.xml.security.signature.Manifest;
 import org.apache.xml.security.signature.MissingResourceFailureException;
 import org.apache.xml.security.signature.XMLSignature;
-import org.apache.xml.security.signature.XMLSignatureByteInput;
-import org.apache.xml.security.signature.XMLSignatureDigestInput;
 import org.apache.xml.security.signature.XMLSignatureInput;
-import org.apache.xml.security.signature.XMLSignatureStreamInput;
 import org.apache.xml.security.utils.resolver.ResourceResolverContext;
 import org.apache.xml.security.utils.resolver.ResourceResolverException;
 import org.apache.xml.security.utils.resolver.ResourceResolverSpi;
@@ -60,6 +56,7 @@ import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
 import java.security.cert.X509Certificate;
 import java.util.ArrayList;
+import java.util.Base64;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
@@ -414,20 +411,20 @@ public class SignatureVerifier {
                     MessagePart part = getPart(MessageFileNames.MESSAGE);
 
                     if (part != null && part.getMessage() != null) {
-                        return new XMLSignatureByteInput(part.getMessage());
+                        return new XMLSignatureInput(part.getMessage());
                     }
 
                     break;
                 case MessageFileNames.SIG_HASH_CHAIN_RESULT:
-                    return new XMLSignatureStreamInput(is(hashChainResult));
+                    return new XMLSignatureInput(is(hashChainResult));
                 default: // do nothing
             }
 
             if (isAttachment(context.attr.getValue())) {
                 MessagePart part = getPart(context.attr.getValue());
 
-                if (part != null && part.getData() != null) {
-                    return new XMLSignatureDigestInput(CryptoUtils.encodeBase64(part.getData()));
+                if (part != null && part.getData() != null){
+                    return new XMLSignatureInput(Base64.getEncoder().encodeToString(part.getData()));
                 }
             }
             return null;
