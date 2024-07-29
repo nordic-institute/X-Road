@@ -3,8 +3,8 @@
     <instanceIdentifier>DEV</instanceIdentifier>
     <source>
         <address>cs</address>
-        <internalVerificationCert>MIIC2DCCAcCgAwIBAgIBATANBgkqhkiG9w0BAQ0FADAdMRswGQYDVQQDDBJpbnRlcm5hbFNpZ25pbmdLZXkwHhcNNzAwMTAxMDAwMDAwWhcNMzgwMTAxMDAwMDAwWjAdMRswGQYDVQQDDBJpbnRlcm5hbFNpZ25pbmdLZXkwggEiMA0GCSqGSIb3DQEBAQUAA4IBDwAwggEKAoIBAQCVnkhIxrLOx36RI36qpGbNbSm7JhHViW/cudYEGLsVSa0gi4dLsFFwrQqGkeE6Lr96k/JevY68sVOBzcE015NzFAOynMDqcJDEdYdCX5HkU0JGU6lS4ThOhrEUzyUTJVPRG90hkbM10R0RHFXo8+7TP2ZlTsmFsgCcGObU4Y9JAdusicTb7qLnEfSlLA4Ut/2K0yOlddA7khIABCWEk1xCQQm/7E99SxNYhhSWtqdFmrG9Gqs+CflVhZy/Ki9kvXa198noY6EwMbYyOYmGqn5xN4KvpMK1MduMD9BG8w3K3mm6w2NRThsILzvvaOZ26X+BlgBm07jo7BhAi2O/DhqhAgMBAAGjIzAhMA4GA1UdDwEB/wQEAwICRDAPBgNVHRMBAf8EBTADAQH/MA0GCSqGSIb3DQEBDQUAA4IBAQA4xu/g7uQuzqDTy7HV1RZ0gzuO9ZhFXLyJWP+zlChcESd4ihkIqJyHcpuXCME77xSm5DQfNUHTKvmaw9wc1mckZ8II46PHDjhkC2XhjR2z9UtfmKihb1dBdAXdv6vBwlBxG33OY4jSesZKGHDUg5kRy6x1kqU+JTM9LPe/wBcq9KUCzvC7loRwCD4VTNWMfJaKPLPgDXqn/bAtEB38jpbf47ICQGuBxGF5JAgpzXvTRxrDJZ0SI2tEzRwE6dSp1z+ThVjoA6YDOB7sOrXIv84aj1q9iubJtwbja9bPNRsA5MN5R7FeNFiEK577jh1Ih+eg7X3X3Qrmoa8jD++7esy/</internalVerificationCert>
-        <externalVerificationCert>MIIC2DCCAcCgAwIBAgIBATANBgkqhkiG9w0BAQ0FADAdMRswGQYDVQQDDBJleHRlcm5hbFNpZ25pbmdLZXkwHhcNNzAwMTAxMDAwMDAwWhcNMzgwMTAxMDAwMDAwWjAdMRswGQYDVQQDDBJleHRlcm5hbFNpZ25pbmdLZXkwggEiMA0GCSqGSIb3DQEBAQUAA4IBDwAwggEKAoIBAQDwGj9bGDS9Xwgl2SRZ7kri0GYq3QA5BBV12za1YU3NFPqfjgyKenbFLdMlOXNFzQXbTNMvKk5eRGxPDwsWgLq5s6FHuaUcmyBuaBZTk/ITc9Rq7gaC7iQ809mxpcNJFonrSPw2sscraVY0AYIgDhmt8WvBeumP2J8oymfpK0McoAXwzCeF88Zo9kBXPNodWvzVGLx/qKvQK820Z9cRNkuxTvVJpWxanf3Fq4yDMtXiam9KFj3Y+K4e1IItr3irF0MG9EUQmzKTrJC6pmDP2HlXMPmWUI1IaRheOP6ZwUpJlCdJ04gfb7Y778i2hJuvsb9tKCCuGcL7l0jTWqKHxyfVAgMBAAGjIzAhMA4GA1UdDwEB/wQEAwICRDAPBgNVHRMBAf8EBTADAQH/MA0GCSqGSIb3DQEBDQUAA4IBAQAvDMuW9HX7hsywBGIGt9xT2BMlTV84bdd5i2NtdQY7hFlxQK5R9z6A7ahPzvFZJOjAu3qHJ+3R7r6GQbBvGtWPtR+U5nUuT/7tl6ccR9lYtv8gQBZsev3tL2zVXb9X3cA5bnUSwppUsaBjh92vI8ak9fyFZ1y7rYqbAGIVd8QUrVOZnVCvYTdlQP0JDv6EldOFni2qWo9fKTRw1894csmaSk2iBuZp1RU3n2BQSwfhOndUgT6WuJbVNDJNPD8PjDnhSoeOhLrgHHhU+6CMmF7MYr7SLz4GennWay82WCfNUFw0ols1FONilZyRjNq1qM+gt5SEL4+qsL+vER7CZ51J</externalVerificationCert>
+        <internalVerificationCert>MIIC2DCCAcCgAwIBAgIBATANBgkqhkiG9w0BAQ0FADAdMRswGQYDVQQDDBJpbnRlcm5hbFNpZ25pbmdLZXkwHhcNNzAwMTAxMDAwMDAwWhcNMzgwMTAxMDAwMDAwWjAdMRswGQYDVQQDDBJpbnRlcm5hbFNpZ25pbmdLZXkwggEiMA0GCSqGSIb3DQEBAQUAA4IBDwAwggEKAoIBAQCY9L2NC1JDr5KprKiSXA/D/xBaw/Wg/HcLc+8gW2ESDXoDTd+X9YwYAVqyzmpY5mHnHTNa6dBQGWvGz0HAOIlqB4eLPadD8jW8Fo4fyEVItjEEEzFAuS1BcUQQzr8H4mfqe6lJ0YzgD3yWEhVA66halAUsgChQIPdA7O62hQ1fkvTvp4gze0g92u01m6U7N+TaCPFdIUlRsg/VrtcmYvpHZBjRD7JNluCQjkpHj2Rm8lmKomjHE2N2La0/5FPcds1Iw0nvlyFPhSB86DvtYJv+56O1rXQxdf/EWfRfb3644kE/rHmoQSqoJfBmCp5Eb/E3oxhOOwzFXDgcby/ATlqxAgMBAAGjIzAhMA4GA1UdDwEB/wQEAwICRDAPBgNVHRMBAf8EBTADAQH/MA0GCSqGSIb3DQEBDQUAA4IBAQB7P9vUTDJ2DSc8Dqqkpe8SwFIE6BLjePGIElXwOMRywWbGRHanIHvlSWcfJ/OytNTMfGYWH0orXrqKOSLtE0a3PSz1M6tazCFP/V1AK5Y3d4jgXgrYHjgGqHumsRgcpM5MFxU7gzqEi1Kp2jndlzco0Ho0KWZK30+rCGCfgAP1WHiyczWL6YQdYqe56OML9Zq3goaHrY568GHP6Tai1ho5qrnhgS0uKmBZ1eouo06doyEuPtoS8qLg6q8yZkXX6tuGiBzIUQLL0cT0059LJNfFbsJvy34ka4EzTlqqnbGkguaRJlQIuv7aKTZ6A4XPYEWcNXRaGJmqrfWVQzc6KXn/</internalVerificationCert>
+        <externalVerificationCert>MIIC2DCCAcCgAwIBAgIBATANBgkqhkiG9w0BAQ0FADAdMRswGQYDVQQDDBJleHRlcm5hbFNpZ25pbmdLZXkwHhcNNzAwMTAxMDAwMDAwWhcNMzgwMTAxMDAwMDAwWjAdMRswGQYDVQQDDBJleHRlcm5hbFNpZ25pbmdLZXkwggEiMA0GCSqGSIb3DQEBAQUAA4IBDwAwggEKAoIBAQCozJ4MKRCRs2lO9W8XYs95Kcave30VatvXh9JELnB05Tl2W2EG32v0qSodVU/wEVQpoc9FZ+dvIPbxEh4hRBqVhgUfb9CWGe86FcNI4lYyqeDsL3ZNgQqvaaycNnXblIwkSfzlt0EOQrG3vi1i8BcbZ5Z1oY0poUPl8nisDkD3ILXaZ5n5YJycF8K1hfd7Jp1B51uCHipaw/9SA7e736msbcO4153JIf/a+FhvVHP3mIFXAMUYRKVSVBVtyP5bjy97LdYNZAsvroVodiwTNFgn47lR7ZRuTlnGfT8kLaaHBx0mRuNhsXRERAehDOebw3DEn7kwHp+z5x+VXRAar+OBAgMBAAGjIzAhMA4GA1UdDwEB/wQEAwICRDAPBgNVHRMBAf8EBTADAQH/MA0GCSqGSIb3DQEBDQUAA4IBAQCAYaKx36KO8lpGP+eP/VkzixFUtydNkmN9PkMQU40r9iqVvjxAzuNE6TPrRm3mm7D+R//1qoVQuLMUXYPGrngz8sp8boh36GzWkAy8Zj5PZSYRAbRnarfBNAuyoapYofaVenpRo4n06pQG2tX9Dt84Gj11Tly0efOhrs/R92ueBtafStxnSLqRB7CvNSjeRS80Y+ZxXf+rA2lbszmY785T+MrfonAwq55zIGoYMeAzfdy5YFMfxJm9hsLSKZCKUyFPAbGbYlXp5FeIAR5d9UAPQcJv3H2IxJ4qfYeY7tqPqS5RZbPcYt9v2FfRliPgV3WNHw0PsYYnLJKP8SdRyyrq</externalVerificationCert>
     </source>
     <approvedCA>
         <name>Test CA</name>
@@ -17,6 +17,9 @@
             </ocsp>
         </topCA>
         <certificateProfileInfo>ee.ria.xroad.common.certificateprofile.impl.FiVRKCertificateProfileInfoProvider</certificateProfileInfo>
+        <acmeServer>
+            <directoryURL>http://testca:8887</directoryURL>
+        </acmeServer>
     </approvedCA>
     <approvedTSA>
         <name>Test TSA</name>
@@ -36,15 +39,21 @@
         <subsystem id="id2">
             <subsystemCode>TestService</subsystemCode>
         </subsystem>
+        <subsystem id="id3">
+            <subsystemCode>TestSaved</subsystemCode>
+        </subsystem>
+        <subsystem id="id4">
+            <subsystemCode>test-consumer</subsystemCode>
+        </subsystem>
     </member>
-    <member id="id3">
+    <member id="id5">
         <memberClass>
             <code>COM</code>
             <description>Commercial</description>
         </memberClass>
         <memberCode>4321</memberCode>
         <name>Test client</name>
-        <subsystem id="id4">
+        <subsystem id="id6">
             <subsystemCode>TestClient</subsystemCode>
         </subsystem>
     </member>
@@ -52,15 +61,17 @@
         <owner>id0</owner>
         <serverCode>SS0</serverCode>
         <address>ss0</address>
-        <authCertHash>doUtNhEOGtC25LLCQJ9iOE3ZRMXj9EhDAZTcusuEUIs=</authCertHash>
+        <authCertHash>MAoNRMuKf4US1zC7owbWpQmSlCw8VfOXQSuT32sYiDE=</authCertHash>
         <client>id1</client>
         <client>id2</client>
+        <client>id3</client>
     </securityServer>
     <securityServer>
-        <owner>id3</owner>
+        <owner>id5</owner>
         <serverCode>SS1</serverCode>
         <address>ss1</address>
-        <authCertHash>pE1fROGYVuLoU9x0avWSU3qRZsGuCsG8neuchZ+VR50=</authCertHash>
+        <authCertHash>mdIRWihyZYANU337iuZi7TS8H6f5Ko+plyhcJOEcR+o=</authCertHash>
+        <client>id6</client>
         <client>id4</client>
     </securityServer>
     <globalGroup>
@@ -82,6 +93,14 @@
             <code>COM</code>
             <description>Commercial</description>
         </memberClass>
+        <memberClass>
+            <code>GOV</code>
+            <description>Governmental organisations</description>
+        </memberClass>
+        <memberClass>
+            <code>ORG</code>
+            <description>Non-profit organisations</description>
+        </memberClass>
         <ocspFreshnessSeconds>3600</ocspFreshnessSeconds>
     </globalSettings>
     <dataspacesSettings>
@@ -98,11 +117,11 @@
         <members>
             <member>
                 <member>id0</member>
-                <did>did:web:xroad-8-ss0.s3.eu-west-1.amazonaws.com</did>
+                <did>did:web:ss0%3A9396</did>
             </member>
             <member>
-                <member>id3</member>
-                <did>did:web:xroad-8-ss1.s3.eu-west-1.amazonaws.com</did>
+                <member>id5</member>
+                <did>did:web:ss1%3A9396</did>
             </member>
         </members>
     </dataspacesSettings>

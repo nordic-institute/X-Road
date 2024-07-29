@@ -82,7 +82,7 @@ public class AsicContainerVerifierTest {
     @Parameters(name = "{index}: verify(\"{0}\") should throw \"{1}\"")
     public static Collection<Object[]> data() {
         return Arrays.asList(new Object[][]{
-                {"DEV-7012d0aa-a51d-4200-94ed-1e68f43bccfc-request-4d.asice", null}
+                {"S-1307-request-qbmf.asice", null}
         });
     }
 
