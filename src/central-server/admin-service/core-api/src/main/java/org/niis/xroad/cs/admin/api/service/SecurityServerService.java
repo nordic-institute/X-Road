@@ -63,4 +63,5 @@ public interface SecurityServerService {
 
     void deleteAuthCertificate(SecurityServerId serverId, Integer certificateId);
 
+    void deleteClient(SecurityServerId securityServerId, ClientId clientId);
 }

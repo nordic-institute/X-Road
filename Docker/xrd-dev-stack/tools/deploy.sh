@@ -64,10 +64,10 @@ set -o xtrace
 
 case $1 in
 "proxy" | "messagelog-addon" | "metaservice-addon" | "proxy-ui-api" | "signer" | "configuration-client" | "op-monitor-daemon")
-  deploy_module "$1" "xrd-dev-stack-ss0-1" "xrd-dev-stack-ss1-1"
+  deploy_module "$1" "ss0" "ss1"
   ;;
 "cs-admin-service" | "cs-management-service" | "cs-registration-service")
-  deploy_module "$1" "xrd-dev-stack-cs-1"
+  deploy_module "$1" "cs"
   ;;
 *)
   echo "Usage: $0 [modulename] [host]"

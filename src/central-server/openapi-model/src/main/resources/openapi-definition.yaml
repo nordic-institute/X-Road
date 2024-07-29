@@ -1878,6 +1878,58 @@ paths:
       tags:
         - members
         - security-servers
+  /members/{member_id}/client-of-servers:
+    get:
+      description: <h3>CS administrator views a servers, where member is registered as a client.</h3>
+      operationId: getClientOfServers
+      parameters:
+        - $ref: '#/components/parameters/MemberIdParam'
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                description: array of member security servers
+                items:
+                  $ref: '#/components/schemas/SecurityServer'
+                type: array
+                uniqueItems: false
+          description: List of member's global groups
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+      tags:
+        - members
+        - security-servers
+  /members/{member_id}/servers/{server_id}:
+    delete:
+      description: <h3>CS administrator unregisters a member from a Security Server</h3>
+      operationId: unregisterMember
+      parameters:
+        - $ref: '#/components/parameters/MemberIdParam'
+        - $ref: '#/components/parameters/ServerIdParam'
+      responses:
+        '204':
+          $ref: '#/components/responses/NoContent'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+      summary: delete a member
+      tags:
+        - members
+        - security-servers
   /subsystems:
     post:
       description:

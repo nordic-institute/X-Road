@@ -30,6 +30,7 @@ import ee.ria.xroad.common.identifier.SecurityServerId;
 
 import lombok.RequiredArgsConstructor;
 import org.niis.xroad.common.exception.ValidationFailureException;
+import org.niis.xroad.cs.admin.api.service.SecurityServerService;
 import org.niis.xroad.cs.admin.api.service.SubsystemService;
 import org.niis.xroad.cs.admin.rest.api.converter.SubsystemCreationRequestMapper;
 import org.niis.xroad.cs.admin.rest.api.converter.db.ClientDtoConverter;
@@ -61,6 +62,7 @@ import static org.springframework.http.ResponseEntity.noContent;
 public class SubsystemsApiController implements SubsystemsApi {
 
     private final SubsystemService subsystemService;
+    private final SecurityServerService securityServerService;
     private final ClientDtoConverter clientDtoConverter;
     private final ClientIdConverter clientIdConverter;
     private final SecurityServerIdConverter securityServerIdConverter;
@@ -86,7 +88,7 @@ public class SubsystemsApiController implements SubsystemsApi {
         ClientId clientId = clientIdConverter.convertId(subsystemId);
         SecurityServerId securityServerId = securityServerIdConverter.convertId(serverId);
 
-        subsystemService.unregisterSubsystem(clientId, securityServerId);
+        securityServerService.deleteClient(securityServerId, clientId);
         return noContent().build();
     }
 

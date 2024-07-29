@@ -27,6 +27,7 @@
 package org.niis.xroad.cs.admin.core.service;
 
 import ee.ria.xroad.common.identifier.ClientId;
+import ee.ria.xroad.common.identifier.SecurityServerId;
 
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
@@ -39,6 +40,8 @@ import org.niis.xroad.cs.admin.api.dto.MemberCreationRequest;
 import org.niis.xroad.cs.admin.api.service.GlobalGroupMemberService;
 import org.niis.xroad.cs.admin.api.service.MemberService;
 import org.niis.xroad.cs.admin.core.entity.MemberIdEntity;
+import org.niis.xroad.cs.admin.core.entity.SecurityServerClientEntity;
+import org.niis.xroad.cs.admin.core.entity.ServerClientEntity;
 import org.niis.xroad.cs.admin.core.entity.XRoadMemberEntity;
 import org.niis.xroad.cs.admin.core.entity.mapper.GlobalGroupMemberMapper;
 import org.niis.xroad.cs.admin.core.entity.mapper.SecurityServerClientMapper;
@@ -46,10 +49,12 @@ import org.niis.xroad.cs.admin.core.entity.mapper.SecurityServerMapper;
 import org.niis.xroad.cs.admin.core.repository.GlobalGroupMemberRepository;
 import org.niis.xroad.cs.admin.core.repository.IdentifierRepository;
 import org.niis.xroad.cs.admin.core.repository.MemberClassRepository;
+import org.niis.xroad.cs.admin.core.repository.ServerClientRepository;
 import org.niis.xroad.cs.admin.core.repository.XRoadMemberRepository;
 import org.niis.xroad.restapi.config.audit.AuditDataHelper;
 import org.springframework.stereotype.Service;
 
+import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
 
@@ -57,9 +62,14 @@ import static java.util.stream.Collectors.toList;
 import static org.niis.xroad.cs.admin.api.exception.ErrorMessage.MEMBER_CLASS_NOT_FOUND;
 import static org.niis.xroad.cs.admin.api.exception.ErrorMessage.MEMBER_EXISTS;
 import static org.niis.xroad.cs.admin.api.exception.ErrorMessage.MEMBER_NOT_FOUND;
+import static org.niis.xroad.cs.admin.api.exception.ErrorMessage.SUBSYSTEM_NOT_REGISTERED_TO_SECURITY_SERVER;
+import static org.niis.xroad.restapi.config.audit.RestApiAuditProperty.CLIENT_IDENTIFIER;
 import static org.niis.xroad.restapi.config.audit.RestApiAuditProperty.MEMBER_CLASS;
 import static org.niis.xroad.restapi.config.audit.RestApiAuditProperty.MEMBER_CODE;
 import static org.niis.xroad.restapi.config.audit.RestApiAuditProperty.MEMBER_NAME;
+import static org.niis.xroad.restapi.config.audit.RestApiAuditProperty.OWNER_CLASS;
+import static org.niis.xroad.restapi.config.audit.RestApiAuditProperty.OWNER_CODE;
+import static org.niis.xroad.restapi.config.audit.RestApiAuditProperty.SERVER_CODE;
 
 @Service
 @Transactional
@@ -70,6 +80,7 @@ public class MemberServiceImpl implements MemberService {
     private final MemberClassRepository memberClassRepository;
     private final GlobalGroupMemberRepository globalGroupMemberRepository;
     private final IdentifierRepository<MemberIdEntity> memberIds;
+    private final ServerClientRepository serverClientRepository;
 
     private final GlobalGroupMemberService globalGroupMemberService;
 
@@ -137,12 +148,40 @@ public class MemberServiceImpl implements MemberService {
 
     @Override
     public List<SecurityServer> getMemberOwnedServers(ClientId memberId) {
-        return xRoadMemberRepository.findMember(memberId)
+        return xRoadMemberRepository.findMember(memberId).stream()
                 .map(XRoadMemberEntity::getOwnedServers)
-                .map(securityServerEntities -> securityServerEntities.stream()
-                        .map(securityServerMapper::toTarget)
-                        .collect(toList()))
-                .orElseGet(List::of);
+                .flatMap(Collection::stream)
+                .map(securityServerMapper::toTarget)
+                .collect(toList());
+    }
+
+    @Override
+    public List<SecurityServer> getMemberClientOfServers(ClientId memberId) {
+
+        return xRoadMemberRepository.findOneBy(memberId).stream()
+                .map(SecurityServerClientEntity::getServerClients)
+                .flatMap(Collection::stream)
+                .map(ServerClientEntity::getSecurityServer)
+                .map(securityServerMapper::toTarget)
+                .collect(toList());
+    }
+
+    @Override
+    public void unregisterMember(ClientId memberId, SecurityServerId securityServerId) {
+        auditData.put(SERVER_CODE, securityServerId.getServerCode());
+        auditData.put(OWNER_CLASS, securityServerId.getOwner().getMemberClass());
+        auditData.put(OWNER_CODE, securityServerId.getOwner().getMemberCode());
+        auditData.put(CLIENT_IDENTIFIER, memberId);
+
+        var member = xRoadMemberRepository.findOneBy(memberId)
+                .orElseThrow(() -> new NotFoundException(MEMBER_NOT_FOUND));
+
+        ServerClientEntity serverClient = member.getServerClients().stream()
+                .filter(sc -> securityServerId.equals(sc.getSecurityServer().getServerId()))
+                .findFirst()
+                .orElseThrow(() -> new NotFoundException(SUBSYSTEM_NOT_REGISTERED_TO_SECURITY_SERVER));
+
+        serverClientRepository.delete(serverClient);
     }
 
     @Override

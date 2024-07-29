@@ -26,12 +26,14 @@
 package org.niis.xroad.cs.admin.rest.api.openapi;
 
 import ee.ria.xroad.common.identifier.ClientId;
+import ee.ria.xroad.common.identifier.SecurityServerId;
 
 import lombok.RequiredArgsConstructor;
 import org.niis.xroad.common.exception.NotFoundException;
 import org.niis.xroad.common.exception.ValidationFailureException;
 import org.niis.xroad.cs.admin.api.exception.ErrorMessage;
 import org.niis.xroad.cs.admin.api.service.MemberService;
+import org.niis.xroad.cs.admin.api.service.SecurityServerService;
 import org.niis.xroad.cs.admin.api.service.SubsystemService;
 import org.niis.xroad.cs.admin.rest.api.converter.GroupMemberConverter;
 import org.niis.xroad.cs.admin.rest.api.converter.MemberCreationRequestMapper;
@@ -47,6 +49,7 @@ import org.niis.xroad.cs.openapi.model.SecurityServerDto;
 import org.niis.xroad.cs.openapi.model.SubsystemDto;
 import org.niis.xroad.restapi.config.audit.AuditEventMethod;
 import org.niis.xroad.restapi.converter.ClientIdConverter;
+import org.niis.xroad.restapi.converter.SecurityServerIdConverter;
 import org.niis.xroad.restapi.openapi.ControllerUtil;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -62,6 +65,8 @@ import static org.niis.xroad.cs.admin.api.exception.ErrorMessage.INVALID_MEMBER_
 import static org.niis.xroad.restapi.config.audit.RestApiAuditEvent.ADD_MEMBER;
 import static org.niis.xroad.restapi.config.audit.RestApiAuditEvent.DELETE_MEMBER;
 import static org.niis.xroad.restapi.config.audit.RestApiAuditEvent.EDIT_MEMBER_NAME;
+import static org.niis.xroad.restapi.config.audit.RestApiAuditEvent.UNREGISTER_MEMBER;
+import static org.springframework.http.ResponseEntity.noContent;
 
 @Controller
 @RequestMapping(ControllerUtil.API_V1_PREFIX)
@@ -71,10 +76,12 @@ public class MembersApiController implements MembersApi {
 
     private final MemberService memberService;
     private final SubsystemService subsystemService;
+    private final SecurityServerService securityServerService;
     private final ClientDtoConverter clientDtoConverter;
     private final ClientIdConverter clientIdConverter;
     private final SubsystemDtoConverter subsystemDtoConverter;
     private final GroupMemberConverter groupMemberConverter;
+    private final SecurityServerIdConverter securityServerIdConverter;
     private final SecurityServerDtoConverter securityServerDtoConverter;
     private final MemberCreationRequestMapper memberCreationRequestMapper;
 
@@ -146,6 +153,30 @@ public class MembersApiController implements MembersApi {
                 .collect(toList());
 
         return ResponseEntity.ok(result);
+    }
+
+    @Override
+    @PreAuthorize("hasAnyAuthority('VIEW_MEMBER_DETAILS')")
+    public ResponseEntity<List<SecurityServerDto>> getClientOfServers(String memberId) {
+        verifyMemberId(memberId);
+
+        var result = memberService.getMemberClientOfServers(clientIdConverter.convertId(memberId)).stream()
+                .map(securityServerDtoConverter::toDto)
+                .collect(toList());
+
+        return ResponseEntity.ok(result);
+    }
+
+    @Override
+    @PreAuthorize("hasAuthority('UNREGISTER_MEMBER')")
+    @AuditEventMethod(event = UNREGISTER_MEMBER)
+    public ResponseEntity<Void> unregisterMember(String memberId, String serverId) {
+        verifyMemberId(memberId);
+        ClientId clientId = clientIdConverter.convertId(memberId);
+        SecurityServerId securityServerId = securityServerIdConverter.convertId(serverId);
+
+        securityServerService.deleteClient(securityServerId, clientId);
+        return noContent().build();
     }
 
     @Override
