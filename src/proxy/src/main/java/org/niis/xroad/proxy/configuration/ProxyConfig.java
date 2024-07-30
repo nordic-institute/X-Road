@@ -25,11 +25,9 @@
  */
 package org.niis.xroad.proxy.configuration;
 
-import ee.ria.xroad.common.SystemProperties;
 import ee.ria.xroad.common.opmonitoring.AbstractOpMonitoringBuffer;
-import ee.ria.xroad.common.signature.BatchSigner;
+import ee.ria.xroad.common.signature.DSSSigner;
 import ee.ria.xroad.common.signature.MessageSigner;
-import ee.ria.xroad.common.signature.SimpleSigner;
 import ee.ria.xroad.proxy.ProxyAddonConfig;
 import ee.ria.xroad.proxy.ProxyAdminPortConfig;
 import ee.ria.xroad.proxy.ProxyDiagnosticsConfig;
@@ -62,12 +60,12 @@ public class ProxyConfig {
     @Bean(destroyMethod = "shutdown")
     MessageSigner messageSigner() {
         MessageSigner signer;
-        if (SystemProperties.isBatchMessageSigningEnabled()) {
-            signer = BatchSigner.init();
-        } else {
-            signer = new SimpleSigner();
-        }
-
+//        if (SystemProperties.isBatchMessageSigningEnabled()) {
+//            signer = BatchSigner.init();
+//        } else {
+//            signer = new SimpleSigner();
+//        }
+        signer = new DSSSigner();
         //TODO this is a hack, we should not set the signer here
         SigningCtxProvider.setSigner(signer);
         return signer;

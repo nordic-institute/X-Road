@@ -28,6 +28,8 @@
 package org.niis.xroad.edc.extension.signer;
 
 import ee.ria.xroad.common.SystemPropertiesLoader;
+import ee.ria.xroad.common.signature.DSSSigner;
+import ee.ria.xroad.proxy.conf.SigningCtxProvider;
 import ee.ria.xroad.signer.protocol.RpcSignerClient;
 
 import org.eclipse.edc.connector.dataplane.spi.Endpoint;
@@ -135,6 +137,9 @@ public class XrdPayloadSignerExtension implements ServiceExtension {
 
         var endpoint = Endpoint.url(publicEndpoint);
         generatorService.addGeneratorFunction("XrdHttpData", dataAddress -> endpoint);
+
+        //TODO this is a hack, we should not set the signer here
+        SigningCtxProvider.setSigner(new DSSSigner());
 
         var signService = new XrdSignatureService();
         var proxyApiController = new XrdDataPlaneProxyApiController(monitor,

@@ -13,7 +13,7 @@
         <collectionProp name="Arguments.arguments">
           <elementProp name="host" elementType="Argument">
             <stringProp name="Argument.name">host</stringProp>
-            <stringProp name="Argument.value">${__P(host, ec2-3-249-119-166.eu-west-1.compute.amazonaws.com )}</stringProp>
+            <stringProp name="Argument.value">${__P(host, ec2-52-17-177-61.eu-west-1.compute.amazonaws.com )}</stringProp>
             <stringProp name="Argument.metadata">=</stringProp>
             <stringProp name="Argument.desc">Host of Webservice</stringProp>
           </elementProp>

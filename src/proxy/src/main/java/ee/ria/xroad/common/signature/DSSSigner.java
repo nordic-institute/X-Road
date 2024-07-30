@@ -34,29 +34,31 @@ import eu.europa.esig.dss.enumerations.DigestAlgorithm;
 import eu.europa.esig.dss.enumerations.SignatureAlgorithm;
 import eu.europa.esig.dss.enumerations.SignatureLevel;
 import eu.europa.esig.dss.model.DSSDocument;
-import eu.europa.esig.dss.model.DSSException;
 import eu.europa.esig.dss.model.DigestDocument;
 import eu.europa.esig.dss.model.SignatureValue;
-import eu.europa.esig.dss.model.TimestampBinary;
 import eu.europa.esig.dss.model.ToBeSigned;
 import eu.europa.esig.dss.model.x509.CertificateToken;
 import eu.europa.esig.dss.spi.DSSUtils;
 import eu.europa.esig.dss.spi.x509.CommonTrustedCertificateSource;
-import eu.europa.esig.dss.spi.x509.tsp.TSPSource;
 import eu.europa.esig.dss.validation.CommonCertificateVerifier;
 import eu.europa.esig.dss.xades.XAdESSignatureParameters;
 import eu.europa.esig.dss.xades.signature.XAdESService;
+import eu.europa.esig.dss.xml.common.TransformerFactoryBuilder;
+import eu.europa.esig.dss.xml.common.XmlDefinerUtils;
 import eu.europa.esig.dss.xml.common.definition.DSSNamespace;
 import eu.europa.esig.xades.definition.XAdESNamespace;
+import io.opentelemetry.instrumentation.annotations.WithSpan;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.lang3.time.StopWatch;
+import org.niis.xroad.edc.sig.XrdSignatureService;
+import org.niis.xroad.edc.sig.xades.XrdXAdESSignatureCreator;
+
+import javax.xml.XMLConstants;
 
 import java.security.cert.CertificateEncodingException;
 import java.util.ArrayList;
 import java.util.Base64;
 import java.util.List;
-import java.util.concurrent.TimeUnit;
 
 import static ee.ria.xroad.common.ErrorCodes.X_CANNOT_CREATE_SIGNATURE;
 import static ee.ria.xroad.common.util.CryptoUtils.calculateDigest;
@@ -67,18 +69,18 @@ import static eu.europa.esig.dss.enumerations.SignaturePackaging.DETACHED;
 public class DSSSigner implements MessageSigner {
     private static final DSSNamespace XADES_NAMESPACE = new DSSNamespace(XAdESNamespace.XADES_132.getUri(), "xades");
 
-//    private final XAdESService xAdESService = new XAdESService(new CommonCertificateVerifier());
-
-
     static {
+        XmlDefinerUtils.getInstance().setTransformerFactoryBuilder(
+                TransformerFactoryBuilder.getSecureTransformerBuilder()
+                        .removeAttribute(XMLConstants.ACCESS_EXTERNAL_DTD)
+                        .removeAttribute(XMLConstants.ACCESS_EXTERNAL_STYLESHEET));
 
-//        XmlDefinerUtils.getInstance().setSchemaFactoryBuilder(new XrdSignatureService.JaxpSchemaFactoryBuilder());
+        XmlDefinerUtils.getInstance().setSchemaFactoryBuilder(new XrdSignatureService.JaxpSchemaFactoryBuilder().removeAttribute(XMLConstants.ACCESS_EXTERNAL_DTD)
+                .removeAttribute(XMLConstants.ACCESS_EXTERNAL_STYLESHEET));
     }
 
     @Override
     public SignatureData sign(String keyId, String signatureAlgorithmId, SigningRequest request) throws Exception {
-        StopWatch stopWatch = StopWatch.createStarted();
-
         var params = createParams(request);
         List<DSSDocument> documentsToSign = new ArrayList<>();
         request.getParts()
@@ -90,27 +92,25 @@ public class DSSSigner implements MessageSigner {
         var signatureValue = signRequest(keyId, signatureAlgorithmId, getDataToSign(params, documentsToSign));
         var sig = new SignatureValue(SignatureAlgorithm.forJAVA(signatureAlgorithmId), signatureValue);
 
-      var verifier=  new CommonCertificateVerifier();
-      verifier.setAIASource(null);
-      verifier.setTrustedCertSources(loadGlobalConfData());
+        var verifier = new CommonCertificateVerifier();
+        verifier.setAIASource(null);
+        verifier.setTrustedCertSources(loadGlobalConfData());
 
         final XAdESService xAdESService = new XAdESService(verifier);
-        xAdESService.setTspSource(new TSPSource() {
-            @Override
-            @SneakyThrows
-            public TimestampBinary getTimeStampResponse(DigestAlgorithm digestAlgorithm, byte[] digest) throws DSSException {
-                return new TimestampBinary(request.getOcspResponses().get(0).getEncoded());
-            }
-        });
 
         DSSDocument signedDocument = xAdESService.signDocument(documentsToSign, params, sig);
-        long extendStart = System.currentTimeMillis();
-//        var extendedDoc = new XrdXAdESSignatureCreator.OcspExtensionBuilder()
-//                .addOcspToken(signedDocument, request.getOcspResponses().get(0).getEncoded());
-        log.info("SimpleSigner#extend: {} ns", System.currentTimeMillis() - extendStart);
-        String signature = new String(DSSUtils.toByteArray(signedDocument));
-        log.info("SimpleSigner#sign: {} ms", stopWatch.getTime(TimeUnit.MILLISECONDS));
+
+        var extendedDoc = extendDocument(signedDocument, request.getOcspResponses().get(0).getEncoded());
+
+        String signature = new String(DSSUtils.toByteArray(extendedDoc));
+
         return new SignatureData(signature, null, null);
+    }
+
+    @WithSpan
+    private DSSDocument extendDocument(DSSDocument signedDocument, byte[] ocspResponse) {
+        return new XrdXAdESSignatureCreator.OcspExtensionBuilder()
+                .addOcspToken(signedDocument, ocspResponse);
     }
 
     @SneakyThrows
@@ -152,6 +152,7 @@ public class DSSSigner implements MessageSigner {
 
         return trustedCertificateSource;
     }
+
     private byte[] signRequest(String keyId, String signatureAlgorithmId, byte[] dataToSign) {
         try {
             byte[] digest = calculateDigest(getDigestAlgorithmId(signatureAlgorithmId), dataToSign);
@@ -164,7 +165,7 @@ public class DSSSigner implements MessageSigner {
 
     private XAdESSignatureParameters createParams(SigningRequest request) {
         var parameters = new XAdESSignatureParameters();
-        parameters.setSignatureLevel(SignatureLevel.XAdES_C);
+        parameters.setSignatureLevel(SignatureLevel.XAdES_BASELINE_B);
         parameters.setSignaturePackaging(DETACHED);
         parameters.setDigestAlgorithm(DigestAlgorithm.forJavaName(CryptoUtils.DEFAULT_DIGEST_ALGORITHM_ID));
         parameters.setXadesNamespace(XADES_NAMESPACE);
