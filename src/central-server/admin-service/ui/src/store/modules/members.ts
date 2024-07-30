@@ -74,9 +74,9 @@ export const useMember = defineStore('member', {
           throw error;
         });
     },
-    getClientOfServers(memberId: string) {
+    getUsedServers(memberId: string) {
       return axios
-        .get<SecurityServer[]>(`/members/${memberId}/client-of-servers`)
+        .get<SecurityServer[]>(`/members/${memberId}/used-servers`)
         .then((resp) => resp.data)
         .catch((error) => {
           throw error;

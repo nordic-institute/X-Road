@@ -1878,10 +1878,10 @@ paths:
       tags:
         - members
         - security-servers
-  /members/{member_id}/client-of-servers:
+  /members/{member_id}/used-servers:
     get:
       description: <h3>CS administrator views a servers, where member is registered as a client.</h3>
-      operationId: getClientOfServers
+      operationId: getUsedServers
       parameters:
         - $ref: '#/components/parameters/MemberIdParam'
       responses:

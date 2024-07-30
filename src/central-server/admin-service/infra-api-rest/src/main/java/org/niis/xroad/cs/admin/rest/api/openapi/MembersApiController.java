@@ -125,11 +125,11 @@ public class MembersApiController implements MembersApi {
     @PreAuthorize("hasAuthority('VIEW_MEMBER_DETAILS')")
     public ResponseEntity<List<SubsystemDto>> getSubsystems(String id) {
         verifyMemberId(id);
-        return ResponseEntity.ok(subsystemService.findByMemberIdentifier(
-                        clientIdConverter.convertId(id))
-                .stream()
-                .map(subsystemDtoConverter::toDto)
-                .collect(toList()));
+        return ResponseEntity.ok(
+                subsystemService.findByMemberIdentifier(clientIdConverter.convertId(id)).stream()
+                        .map(subsystemDtoConverter::toDto)
+                        .toList()
+        );
     }
 
     @Override
@@ -148,23 +148,23 @@ public class MembersApiController implements MembersApi {
     public ResponseEntity<List<SecurityServerDto>> getOwnedServers(final String memberId) {
         verifyMemberId(memberId);
 
-        var result = memberService.getMemberOwnedServers(clientIdConverter.convertId(memberId)).stream()
-                .map(securityServerDtoConverter::toDto)
-                .collect(toList());
-
-        return ResponseEntity.ok(result);
+        return ResponseEntity.ok(
+                memberService.getMemberOwnedServers(clientIdConverter.convertId(memberId)).stream()
+                        .map(securityServerDtoConverter::toDto)
+                        .toList()
+        );
     }
 
     @Override
     @PreAuthorize("hasAnyAuthority('VIEW_MEMBER_DETAILS')")
-    public ResponseEntity<List<SecurityServerDto>> getClientOfServers(String memberId) {
+    public ResponseEntity<List<SecurityServerDto>> getUsedServers(String memberId) {
         verifyMemberId(memberId);
 
-        var result = memberService.getMemberClientOfServers(clientIdConverter.convertId(memberId)).stream()
-                .map(securityServerDtoConverter::toDto)
-                .collect(toList());
-
-        return ResponseEntity.ok(result);
+        return ResponseEntity.ok(
+                memberService.getMemberClientOfServers(clientIdConverter.convertId(memberId)).stream()
+                        .map(securityServerDtoConverter::toDto)
+                        .toList()
+        );
     }
 
     @Override

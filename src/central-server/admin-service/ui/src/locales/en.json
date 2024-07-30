@@ -594,7 +594,7 @@
         "globalGroups": "Global Groups",
         "group": "Group",
         "ownedServers": "Owned Servers",
-        "clientOfServers": "Used Servers",
+        "usedServers": "Used Servers",
         "server": "Server",
         "enterCode": "Enter Member Code",
         "deleteMember": "Delete member",

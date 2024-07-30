@@ -62,13 +62,14 @@
 
     <!-- Owned Servers -->
     <div id="used-servers">
-      <ServersList title-key="members.member.details.clientOfServers" :loading="loadingClientOfServers"
-                   :servers="clientOfServers"
+      <ServersList title-key="members.member.details.usedServers" :loading="loadingUsedServers"
+                   :servers="usedServers"
                    data-test="used-servers-table">
         <template #actions="{ server }">
           <xrd-button
             v-if="allowUnregisterMember"
             text
+            :data-test="`unregister-${server.server_id.server_code}`"
             :outlined="false"
             @click="unregisterFromServer = server"
           >
@@ -208,8 +209,8 @@ export default defineComponent({
       loadingOwnedServers: false,
       ownedServers: [] as SecurityServer[],
 
-      loadingClientOfServers: false,
-      clientOfServers: [] as SecurityServer[],
+      loadingUsedServers: false,
+      usedServers: [] as SecurityServer[],
       unregisterFromServer: null as SecurityServer | null,
 
       loadingGroups: false,
@@ -283,11 +284,11 @@ export default defineComponent({
       this.showDeleteDialog = false;
     },
     loadClientServers() {
-      this.loadingClientOfServers = true;
-      this.memberStore.getClientOfServers(this.memberid)
-        .then((resp) => this.clientOfServers = resp)
+      this.loadingUsedServers = true;
+      this.memberStore.getUsedServers(this.memberid)
+        .then((resp) => this.usedServers = resp)
         .catch((error) => this.showError(error))
-        .finally(() => this.loadingClientOfServers = false);
+        .finally(() => this.loadingUsedServers = false);
     },
   },
 });
