@@ -44,7 +44,7 @@
       <template #[`item.server_id.server_code`]="{ item }">
         <div
           class="server-code xrd-clickable"
-          :data-test="`owned-server-${item.server_id.server_code}`"
+          :data-test="`server-${item.server_id.server_code}`"
           @click="toSecurityServerDetails(item)"
         >
           {{ item.server_id.server_code }}

@@ -61,10 +61,10 @@
     </div>
 
     <!-- Owned Servers -->
-    <div id="client-of-servers">
+    <div id="used-servers">
       <ServersList title-key="members.member.details.clientOfServers" :loading="loadingClientOfServers"
                    :servers="clientOfServers"
-                   data-test="client-of-servers-table">
+                   data-test="used-servers-table">
         <template #actions="{ server }">
           <xrd-button
             v-if="allowUnregisterMember"
