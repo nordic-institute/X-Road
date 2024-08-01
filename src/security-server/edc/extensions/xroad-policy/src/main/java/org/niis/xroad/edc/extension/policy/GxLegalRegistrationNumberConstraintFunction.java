@@ -63,7 +63,8 @@ public class GxLegalRegistrationNumberConstraintFunction implements AtomicConstr
             }
         }).orElse(false);
 
-        monitor.debug("GxLegalRegistrationNumberConstraintFunction.evaluate: " + result + " for " + legalRegistrationNumber + " and " + subject.orElse("null"));
+        monitor.debug("GxLegalRegistrationNumberConstraintFunction.evaluate: "
+                + result + " for " + legalRegistrationNumber + " and " + subject.orElse("null"));
         return result;
     }
 }
