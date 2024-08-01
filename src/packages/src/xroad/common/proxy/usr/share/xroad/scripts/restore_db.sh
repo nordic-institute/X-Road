@@ -56,10 +56,10 @@ psql_dbuser() {
 pgrestore() {
   # no --clean for force restore
   if [[ $FORCE_RESTORE == true ]] ; then
-    PGHOST="$db_addr" PGPORT="$db_port" PGUSER="$db_admin_user" PGPASSWORD="$db_admin_password" \
+    PGHOST="${PGHOST:-$db_addr}" PGPORT="${PGPORT:-$db_port}" PGUSER="$db_admin_user" PGPASSWORD="$db_admin_password" \
       pg_restore --no-owner --single-transaction -d "$db_database" --schema="$db_schema" "$dump_file"
   else
-    PGHOST="$db_addr" PGPORT="$db_port" PGUSER="$db_admin_user" PGPASSWORD="$db_admin_password" \
+    PGHOST="${PGHOST:-$db_addr}" PGPORT="${PGPORT:-$db_port}" PGUSER="$db_admin_user" PGPASSWORD="$db_admin_password" \
       pg_restore --no-owner --single-transaction --clean -d "$db_database" --schema="$db_schema" "$dump_file"
   fi
 }
