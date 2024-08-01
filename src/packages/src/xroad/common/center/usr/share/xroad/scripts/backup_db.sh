@@ -6,8 +6,8 @@ prepare_db_props
 
 TMP=$(mktemp)
 DUMP_FILE=$1
-HOST=${db_host}
-PORT=${db_port}
+HOST=${db_host:-127.0.0.1}
+PORT=${db_port:-5432}
 USER=${db_user}
 SCHEMA=${db_schema}
 PASSWORD=${db_password}
@@ -28,7 +28,7 @@ if [ -f /etc/xroad/db_libpq.env ]; then
 fi
 
 PGOPTIONS="-c client-min-messages=warning ${PGOPTIONS_EXTRA-}" PGPASSWORD="$PASSWORD" \
-    pg_dump -n "${SCHEMA:-$USER}" -x -O -F p -h "${HOST:-127.0.0.1}" -p "${PORT:-5432}" -U "${USER:-centerui}" -f "${DUMP_FILE}" \
+    pg_dump -n "${SCHEMA:-$USER}" -x -O -F p -h "${PGHOST:-$HOST}" -p "${PGPORT:-$PORT}" -U "${USER:-centerui}" -f "${DUMP_FILE}" \
     "${DATABASE:-centerui_production}" 1>"$TMP" 2>&1
 RET=$?
 
