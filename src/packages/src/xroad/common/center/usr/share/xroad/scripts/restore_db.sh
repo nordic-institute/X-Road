@@ -59,7 +59,7 @@ local_psql() {
 }
 
 remote_psql() {
-    psql -h "$HOST" -p "$PORT" -qtA "$@"
+    psql -h "${PGHOST:-$HOST}" -p "${PGPORT:-$PORT}" -qtA "$@"
 }
 
 psql_adminuser() {
