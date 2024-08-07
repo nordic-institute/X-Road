@@ -19,6 +19,9 @@ services:
     volumes:
       - ./Docker/xrd-dev-stack/wiremock_mappings:/home/wiremock/mappings
   hurl:
+    build:
+      context: ./Docker/xrd-dev-stack/.
+      dockerfile: ./hurl/Dockerfile
     volumes:
       - ./Docker/xrd-dev-stack/hurl-src:/hurl-src:ro
       - ca-volume:/hurl-files/ca:ro
