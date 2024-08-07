@@ -40,29 +40,29 @@ import lombok.Value;
 @EqualsAndHashCode(exclude = "readOnly")
 public class HardwareTokenType implements TokenType {
 
-    private final String moduleType;
+    String moduleType;
 
-    private final String tokenIdFormat;
+    String tokenIdFormat;
 
-    private final iaik.pkcs.pkcs11.Token token;
+    iaik.pkcs.pkcs11.Token token;
 
-    private final boolean readOnly;
+    boolean readOnly;
 
-    private final Integer slotIndex;
+    Integer slotIndex;
 
-    private final String serialNumber;
+    String serialNumber;
 
-    private final String label;
+    String label;
 
-    private boolean pinVerificationPerSigning;
+    boolean pinVerificationPerSigning;
 
-    private boolean batchSigningEnabled;
+    boolean batchSigningEnabled;
 
-    private final String signMechanismName;
+    String signMechanismName;
 
-    private final PrivKeyAttributes privKeyAttributes;
+    PrivKeyAttributes privKeyAttributes;
 
-    private final PubKeyAttributes pubKeyAttributes;
+    PubKeyAttributes pubKeyAttributes;
 
     @Override
     public String getId() {
