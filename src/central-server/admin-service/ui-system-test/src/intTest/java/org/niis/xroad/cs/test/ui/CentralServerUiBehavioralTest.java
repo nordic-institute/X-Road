@@ -30,9 +30,4 @@ import org.junit.platform.suite.api.SelectClasspathResource;
 
 @SelectClasspathResource("/behavior/ui")
 public class CentralServerUiBehavioralTest extends TestRunner {
-    static {
-        System.out.println("HERE>");
-        System.out.println(System.getenv("TESTCONTAINERS_RYUK_DISABLED"));
-
-    }
 }
