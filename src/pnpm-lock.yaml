@@ -126,10 +126,10 @@ importers:
     devDependencies:
       '@typescript-eslint/eslint-plugin':
         specifier: ~8.0.1
-        version: 8.0.1(@typescript-eslint/parser@7.17.0)(eslint@8.57.0)(typescript@5.5.4)
+        version: 8.0.1(@typescript-eslint/parser@8.0.1)(eslint@8.57.0)(typescript@5.5.4)
       '@typescript-eslint/parser':
-        specifier: ~7.17.0
-        version: 7.17.0(eslint@8.57.0)(typescript@5.5.4)
+        specifier: ~8.0.1
+        version: 8.0.1(eslint@8.57.0)(typescript@5.5.4)
       eslint-plugin-vue-scoped-css:
         specifier: ^2.8.1
         version: 2.8.1(eslint@8.57.0)(vue-eslint-parser@9.4.3)
@@ -480,7 +480,7 @@ packages:
     engines: {node: ^12.22.0 || ^14.17.0 || >=16.0.0}
     dependencies:
       ajv: 6.12.6
-      debug: 4.3.4
+      debug: 4.3.6
       espree: 9.6.1
       globals: 13.24.0
       ignore: 5.3.1
@@ -497,7 +497,7 @@ packages:
     engines: {node: ^18.18.0 || ^20.9.0 || >=21.1.0}
     dependencies:
       ajv: 6.12.6
-      debug: 4.3.5
+      debug: 4.3.6
       espree: 10.0.1
       globals: 14.0.0
       ignore: 5.3.1
@@ -523,7 +523,7 @@ packages:
     engines: {node: '>=10.10.0'}
     dependencies:
       '@humanwhocodes/object-schema': 2.0.3
-      debug: 4.3.4
+      debug: 4.3.6
       minimatch: 3.1.2
     transitivePeerDependencies:
       - supports-color
@@ -843,7 +843,7 @@ packages:
       - supports-color
     dev: true
 
-  /@typescript-eslint/eslint-plugin@8.0.1(@typescript-eslint/parser@7.17.0)(eslint@8.57.0)(typescript@5.5.4):
+  /@typescript-eslint/eslint-plugin@8.0.1(@typescript-eslint/parser@8.0.1)(eslint@8.57.0)(typescript@5.5.4):
     resolution: {integrity: sha512-5g3Y7GDFsJAnY4Yhvk8sZtFfV6YNF2caLzjrRPUBzewjPCaj0yokePB4LJSobyCzGMzjZZYFbwuzbfDHlimXbQ==}
     engines: {node: ^18.18.0 || ^20.9.0 || >=21.1.0}
     peerDependencies:
@@ -855,7 +855,7 @@ packages:
         optional: true
     dependencies:
       '@eslint-community/regexpp': 4.10.0
-      '@typescript-eslint/parser': 7.17.0(eslint@8.57.0)(typescript@5.5.4)
+      '@typescript-eslint/parser': 8.0.1(eslint@8.57.0)(typescript@5.5.4)
       '@typescript-eslint/scope-manager': 8.0.1
       '@typescript-eslint/type-utils': 8.0.1(eslint@8.57.0)(typescript@5.5.4)
       '@typescript-eslint/utils': 8.0.1(eslint@8.57.0)(typescript@5.5.4)
@@ -884,6 +884,27 @@ packages:
       '@typescript-eslint/types': 7.17.0
       '@typescript-eslint/typescript-estree': 7.17.0(typescript@5.5.4)
       '@typescript-eslint/visitor-keys': 7.17.0
+      debug: 4.3.6
+      eslint: 8.57.0
+      typescript: 5.5.4
+    transitivePeerDependencies:
+      - supports-color
+    dev: true
+
+  /@typescript-eslint/parser@8.0.1(eslint@8.57.0)(typescript@5.5.4):
+    resolution: {integrity: sha512-5IgYJ9EO/12pOUwiBKFkpU7rS3IU21mtXzB81TNwq2xEybcmAZrE9qwDtsb5uQd9aVO9o0fdabFyAmKveXyujg==}
+    engines: {node: ^18.18.0 || ^20.9.0 || >=21.1.0}
+    peerDependencies:
+      eslint: ^8.57.0 || ^9.0.0
+      typescript: '*'
+    peerDependenciesMeta:
+      typescript:
+        optional: true
+    dependencies:
+      '@typescript-eslint/scope-manager': 8.0.1
+      '@typescript-eslint/types': 8.0.1
+      '@typescript-eslint/typescript-estree': 8.0.1(typescript@5.5.4)
+      '@typescript-eslint/visitor-keys': 8.0.1
       debug: 4.3.6
       eslint: 8.57.0
       typescript: 5.5.4
