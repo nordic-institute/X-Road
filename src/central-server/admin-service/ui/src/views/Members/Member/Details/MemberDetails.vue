@@ -60,7 +60,7 @@
                    data-test="owned-servers-table" />
     </div>
 
-    <!-- Owned Servers -->
+    <!-- Used Servers -->
     <div id="used-servers">
       <ServersList title-key="members.member.details.usedServers" :loading="loadingUsedServers"
                    :servers="usedServers"
