@@ -17,7 +17,7 @@ junitJupiter = "5.10.3"
 xmlUnit = "2.10.0"
 bouncyCastle = "1.78.1"
 slf4j = "2.0.13"
-testAutomationFramework = "0.2.17"
+testAutomationFramework = "0.2.18"
 protoc = "3.25.4"
 grpc = "1.65.1"
 swaggerParser = "2.1.22"
@@ -127,7 +127,7 @@ assertj-core = { module = "org.assertj:assertj-core", version = "3.26.3" }
 wiremock-standalone = { module = "org.wiremock:wiremock-standalone", version = "3.9.1" }
 postgresql = { module = "org.postgresql:postgresql", version = "42.7.3" }
 hsqldb = { module = "org.hsqldb:hsqldb", version = "2.7.3" }
-liquibase-core = { module = "org.liquibase:liquibase-core", version = "4.29.0" }
+liquibase-core = { module = "org.liquibase:liquibase-core", version = "4.29.1" }
 xerces-impl = { module = "xerces:xercesImpl", version = "2.12.2" }
 feign-hc5 = { module = "io.github.openfeign:feign-hc5", version = "13.3" }
 guava = { module = "com.google.guava:guava", version = "33.0.0-jre" }
