@@ -211,7 +211,7 @@ public class ProxyMessageEncoder implements ProxyMessageConsumer {
         mpEncoder.write(proxyIs);
 
         restBodyDigest = calc.getDigest();
-        signer.addPart(MessageFileNames.attachment(++attachmentNo), hashAlgoId, restBodyDigest);
+        signer.addPart(MessageFileNames.attachmentOfIdx(++attachmentNo), hashAlgoId, restBodyDigest);
         attachmentsByteCount += cos.getByteCount();
     }
 
@@ -273,7 +273,7 @@ public class ProxyMessageEncoder implements ProxyMessageConsumer {
 
         attachmentsByteCount += cos.getByteCount();
 
-        signer.addPart(MessageFileNames.attachment(++attachmentNo),
+        signer.addPart(MessageFileNames.attachmentOfIdx(++attachmentNo),
                 hashAlgoId, calc.getDigest());
     }
 

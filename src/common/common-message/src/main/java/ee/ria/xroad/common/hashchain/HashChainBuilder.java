@@ -39,7 +39,7 @@ import java.util.Map;
 
 import static ee.ria.xroad.common.hashchain.DigestList.digestHashStep;
 import static ee.ria.xroad.common.util.CryptoUtils.getDigestAlgorithmURI;
-import static ee.ria.xroad.common.util.MessageFileNames.attachment;
+import static ee.ria.xroad.common.util.MessageFileNames.attachmentOfIdx;
 import static java.lang.Integer.numberOfLeadingZeros;
 
 /**
@@ -550,7 +550,7 @@ public final class HashChainBuilder {
             } else {
                 // All the other inputs are attachments, starting from 1.
                 ret.getHashValueOrStepRefOrDataRef().add(
-                        dataRef(attachment(i), inputSet[i]));
+                        dataRef(attachmentOfIdx(i), inputSet[i]));
             }
         }
 

@@ -30,6 +30,7 @@ import ee.ria.xroad.common.ExpectedCodedException;
 import ee.ria.xroad.common.SystemProperties;
 import ee.ria.xroad.common.TestSecurityUtil;
 import ee.ria.xroad.common.conf.globalconf.GlobalConf;
+import ee.ria.xroad.common.conf.globalconf.TestGlobalConfImpl;
 
 import org.apache.commons.io.IOUtils;
 import org.bouncycastle.asn1.ASN1Primitive;
@@ -65,7 +66,7 @@ public class TimestampVerifierTest {
                 "../common-globalconf/src/test/resources/globalconf_good_v2");
         System.setProperty(SystemProperties.CONFIGURATION_ANCHOR_FILE,
                 "../common-globalconf/src/test/resources/configuration-anchor1.xml");
-        GlobalConf.reload();
+        GlobalConf.reload(new TestGlobalConfImpl());
     }
 
     /**
