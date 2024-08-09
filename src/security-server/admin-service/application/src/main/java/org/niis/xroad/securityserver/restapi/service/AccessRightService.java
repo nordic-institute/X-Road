@@ -395,7 +395,7 @@ public class AccessRightService {
     private List<AccessRightType> getEndpointAccessRights(ClientType clientType, List<EndpointType> endpointTypes,
                                                           Set<XRoadId> subjectIds) {
 
-        List<Long> endpointIds = endpointTypes.stream().map(e -> e.getId()).collect(Collectors.toList());
+        List<Long> endpointIds = endpointTypes.stream().map(EndpointType::getId).toList();
         return clientType.getAcl().stream()
                 .filter(acl -> endpointIds.contains(acl.getEndpoint().getId())
                         && subjectIds.contains(acl.getSubjectId()))
@@ -557,7 +557,7 @@ public class AccessRightService {
         // list endpoints, which this subject / service client has already been granted access to
         Set<EndpointType> existingAccessibleEndpoints = clientType.getAcl().stream()
                 .filter(accessRightType -> accessRightType.getSubjectId().equals(subjectId))
-                .map(accessRightType -> accessRightType.getEndpoint())
+                .map(AccessRightType::getEndpoint)
                 .collect(Collectors.toSet());
 
         if (existingAccessibleEndpoints.contains(endpoint)) {
