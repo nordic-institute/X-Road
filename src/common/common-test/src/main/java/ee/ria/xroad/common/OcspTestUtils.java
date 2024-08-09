@@ -102,9 +102,8 @@ public final class OcspTestUtils {
         X509CertificateHolder[] chain = {new X509CertificateHolder(signer.getEncoded())};
         Object responseObject = builder.build(contentSigner, chain, new Date());
 
-        OCSPResp resp = new OCSPRespBuilder().build(
+        return new OCSPRespBuilder().build(
                 OCSPRespBuilder.SUCCESSFUL, responseObject);
-        return resp;
     }
 
     /**
@@ -113,9 +112,8 @@ public final class OcspTestUtils {
      * @throws Exception in case of any errors
      */
     public static OCSPResp createSigRequiredOCSPResponse() throws Exception {
-        OCSPResp resp = new OCSPRespBuilder().build(
+        return new OCSPRespBuilder().build(
                 OCSPRespBuilder.SIG_REQUIRED, null);
-        return resp;
     }
 
 }

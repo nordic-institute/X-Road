@@ -460,8 +460,7 @@ public final class CertUtils {
             final RSAPrivateKey rpk = RSAPrivateKey.getInstance(pki.parsePrivateKey());
             final PublicKey publicKey = kf.generatePublic(new RSAPublicKeySpec(rpk.getModulus(),
                     rpk.getPublicExponent()));
-            KeyPair kp = new KeyPair(publicKey, privateKey);
-            return kp;
+            return new KeyPair(publicKey, privateKey);
         }
     }
 

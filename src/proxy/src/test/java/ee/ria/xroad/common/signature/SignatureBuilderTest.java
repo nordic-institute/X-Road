@@ -50,6 +50,7 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.Date;
 
+import static java.nio.charset.StandardCharsets.UTF_8;
 import static java.nio.file.StandardOpenOption.CREATE;
 import static java.nio.file.StandardOpenOption.TRUNCATE_EXISTING;
 import static java.nio.file.StandardOpenOption.WRITE;
@@ -128,7 +129,7 @@ public class SignatureBuilderTest {
         assertNull(data.getHashChain());
 
         if (WRITE_TEST_DATA) {
-            Files.write(getFilePath("sign-0.xml"), data.getSignatureXml().getBytes("UTF-8"),
+            Files.writeString(getFilePath("sign-0.xml"), data.getSignatureXml(), UTF_8,
                     CREATE, WRITE, TRUNCATE_EXISTING);
         }
     }
@@ -161,12 +162,12 @@ public class SignatureBuilderTest {
         assertNotNull(data.getHashChain());
 
         if (WRITE_TEST_DATA) {
-            Files.write(getFilePath("sign-0-extra-certs.xml"), data.getSignatureXml().getBytes("UTF-8"),
+            Files.writeString(getFilePath("sign-0-extra-certs.xml"), data.getSignatureXml(), UTF_8,
                     CREATE, WRITE, TRUNCATE_EXISTING);
-            Files.write(getFilePath("sign-0-extra-certs-hash-chain-result.xml"),
-                    data.getHashChainResult().getBytes("UTF-8"), CREATE, WRITE, TRUNCATE_EXISTING);
-            Files.write(getFilePath("sign-0-extra-certs-hash-chain.xml"),
-                    data.getHashChain().getBytes("UTF-8"), CREATE, WRITE, TRUNCATE_EXISTING);
+            Files.writeString(getFilePath("sign-0-extra-certs-hash-chain-result.xml"),
+                    data.getHashChainResult(), UTF_8, CREATE, WRITE, TRUNCATE_EXISTING);
+            Files.writeString(getFilePath("sign-0-extra-certs-hash-chain.xml"),
+                    data.getHashChain(), UTF_8, CREATE, WRITE, TRUNCATE_EXISTING);
         }
     }
 }

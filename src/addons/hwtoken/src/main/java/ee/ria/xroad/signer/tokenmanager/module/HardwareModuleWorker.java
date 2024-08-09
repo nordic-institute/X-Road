@@ -88,8 +88,8 @@ public class HardwareModuleWorker extends AbstractModuleWorker {
         }
 
         return new DefaultInitializeArgs(null,
-                libraryCantCreateOsThreads == null ? false : libraryCantCreateOsThreads,
-                osLockingOk == null ? false : osLockingOk);
+                libraryCantCreateOsThreads != null && libraryCantCreateOsThreads,
+                osLockingOk != null && osLockingOk);
     }
 
     @Override

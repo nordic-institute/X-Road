@@ -899,9 +899,8 @@ public class TokenCertificateService {
             throw new RuntimeException("internal error", e);
         }
 
-        EnumSet<PossibleActionEnum> possibleActions = possibleActionsRuleEngine.
+        return possibleActionsRuleEngine.
                 getPossibleCertificateActions(tokenInfo, keyInfo, certificateInfo);
-        return possibleActions;
     }
 
     /**

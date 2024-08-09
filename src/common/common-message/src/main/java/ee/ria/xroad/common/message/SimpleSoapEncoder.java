@@ -56,7 +56,7 @@ public class SimpleSoapEncoder implements SoapMessageEncoder {
 
     @Override
     public void soap(SoapMessage message, Map<String, String> additionalHeaders) throws Exception {
-        if (additionalHeaders != null && additionalHeaders.size() > 0) {
+        if (additionalHeaders != null && !additionalHeaders.isEmpty()) {
             throw new IllegalArgumentException("Additional headers not supported!");
         }
         outputStream.write(message.getBytes());

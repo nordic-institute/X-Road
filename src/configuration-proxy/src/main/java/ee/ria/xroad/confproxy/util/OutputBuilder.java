@@ -296,7 +296,7 @@ public class OutputBuilder implements AutoCloseable {
             encoder.write(signature.getBytes());
         }
 
-        log.debug("Generated signed directory:\n{}\n", mimeContent.toString());
+        log.debug("Generated signed directory:\n{}\n", mimeContent);
 
         Files.write(tempConfPath, mimeContent.toByteArray());
 

@@ -201,19 +201,11 @@ public class PossibleActionsRuleEngine {
                                        boolean canUnregister) {
 
         boolean canDeleteCertFromTokenRenderer;
-        if (tokenInfo.isReadOnly() && !savedToConfiguration) {
-            canDeleteCertFromTokenRenderer = false;
-        } else {
-            canDeleteCertFromTokenRenderer = true;
-        }
+        canDeleteCertFromTokenRenderer = !tokenInfo.isReadOnly() || savedToConfiguration;
 
-        if (!canUnregister
+        return !canUnregister
                 && canDeleteCertFromTokenRenderer
-                && (savedToConfiguration || tokenInfo.isActive())) {
-            return true;
-        } else {
-            return false;
-        }
+                && (savedToConfiguration || tokenInfo.isActive());
     }
 
     /**

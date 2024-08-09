@@ -77,7 +77,7 @@ public class Openapi3Anonymiser {
         if (openapiVersion != null && !openapiVersion.toString().startsWith("\"3.")) {
             throw new CodedException(X_INTERNAL_ERROR,
                     String.format("Incompatible openapi version. Openapi version 3 or greater expected. "
-                            + "Given openapi document is of version %s", openapiVersion.toString()));
+                            + "Given openapi document is of version %s", openapiVersion));
         }
 
         final JsonNode servers = tree.get(SERVERS);

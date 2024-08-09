@@ -181,8 +181,7 @@ public class ClientService {
      * @return the client, or null if matching client was not found
      */
     public ClientType getLocalClient(ClientId id) {
-        ClientType clientType = clientRepository.getClient(id);
-        return clientType;
+        return clientRepository.getClient(id);
     }
 
     /**

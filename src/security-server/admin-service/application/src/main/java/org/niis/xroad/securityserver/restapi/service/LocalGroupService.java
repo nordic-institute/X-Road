@@ -234,7 +234,7 @@ public class LocalGroupService {
     private void deleteAccessRightsByXRoadId(ClientType clientType, XRoadId xRoadId) {
         List<AccessRightType> acls = clientType.getAcl().stream()
                 .filter(acl -> acl.getSubjectId().equals(xRoadId))
-                .collect(Collectors.toList());
+                .toList();
         clientType.getAcl().removeAll(acls);
     }
 

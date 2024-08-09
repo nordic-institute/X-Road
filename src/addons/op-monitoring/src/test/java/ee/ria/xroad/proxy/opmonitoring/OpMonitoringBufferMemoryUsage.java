@@ -32,8 +32,8 @@ import ee.ria.xroad.common.opmonitoring.OpMonitoringData;
 
 import com.google.common.base.Strings;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.cli.BasicParser;
 import org.apache.commons.cli.CommandLine;
+import org.apache.commons.cli.DefaultParser;
 import org.apache.commons.cli.HelpFormatter;
 import org.apache.commons.cli.Option;
 import org.apache.commons.cli.Options;
@@ -68,7 +68,7 @@ public final class OpMonitoringBufferMemoryUsage {
      * @param args args
      * @throws Exception if something goes wrong.
      */
-    public static void main(String args[]) throws Exception {
+    public static void main(String[] args) throws Exception {
 
         CommandLine cmd = parseCommandLine(args);
 
@@ -102,9 +102,9 @@ public final class OpMonitoringBufferMemoryUsage {
                 (after - before) / MB);
     }
 
-    private static CommandLine parseCommandLine(String args[]) {
+    private static CommandLine parseCommandLine(String[] args) {
         try {
-            return new BasicParser().parse(OPTIONS, args);
+            return new DefaultParser().parse(OPTIONS, args);
         } catch (ParseException e) {
             log.error("Parsing command line failed: {}", e.getMessage());
 

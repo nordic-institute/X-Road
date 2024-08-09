@@ -134,11 +134,7 @@ public class CachingKeyConfImplTest {
             @Override
             public boolean getAsBoolean() {
                 int number = counter.getAndIncrement();
-                if (number == 10) {
-                    return false;
-                } else {
-                    return true;
-                }
+                return number != 10;
             }
         };
         doConcurrentSigningInfoReads(callsToGetInfo, clients,

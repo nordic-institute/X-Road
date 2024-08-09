@@ -137,14 +137,13 @@ public class KeyAndCertificateRequestService {
         } catch (KeyNotFoundException e) {
             throw new DeviationAwareRuntimeException(e, e.getErrorDeviation());
         }
-        KeyAndCertRequestInfo info = new KeyAndCertRequestInfo(refreshedKeyInfo,
+
+        return new KeyAndCertRequestInfo(refreshedKeyInfo,
                 csrInfo.getCertReqId(),
                 csrInfo.getCertRequest(),
                 csrInfo.getFormat(),
                 csrInfo.getMemberId(),
                 csrInfo.getKeyUsage());
-
-        return info;
     }
 
     /**

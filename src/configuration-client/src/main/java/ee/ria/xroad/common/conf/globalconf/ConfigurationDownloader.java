@@ -121,8 +121,8 @@ class ConfigurationDownloader {
 
         Optional<String> prevCachedKey = findLocationWithPreviousSuccess(locations)
                 .map(locationWithPreviousSuccess -> {
-                    locations.add(0, successfulLocations.get(locationWithPreviousSuccess.getDownloadURL()));
-                    log.debug("Previously cached key: " + locationWithPreviousSuccess.getDownloadURL());
+                    locations.addFirst(successfulLocations.get(locationWithPreviousSuccess.getDownloadURL()));
+                    log.debug("Previously cached key: {}", locationWithPreviousSuccess.getDownloadURL());
                     return locationWithPreviousSuccess.getDownloadURL();
                 });
 
@@ -140,7 +140,7 @@ class ConfigurationDownloader {
                 rememberLastSuccessfulLocation(cacheKey, location);
                 return result.success(config);
             } catch (Exception e) {
-                log.warn("Unable to download Global Configuration. Because " + e);
+                log.warn("Unable to download Global Configuration. Because {}", e.toString());
                 successfulLocations.remove(cacheKey);
                 result.addFailure(location, e);
             }
@@ -242,7 +242,7 @@ class ConfigurationDownloader {
                         .forEach(File::delete);
             }
         } catch (IOException e) {
-            log.error("Error deleting file in directory " + instanceDirectory, e);
+            log.error("Error deleting file in directory {}", instanceDirectory, e);
         }
 
     }
@@ -253,7 +253,7 @@ class ConfigurationDownloader {
         // if null content was not downloaded as it was not changed
         byte[] content;
 
-        public DownloadedContent(ConfigurationFile file, byte[] content) {
+        DownloadedContent(ConfigurationFile file, byte[] content) {
             this.file = file;
             this.content = content;
         }
@@ -275,12 +275,12 @@ class ConfigurationDownloader {
         if (Files.exists(file)) {
             String contentHash = configurationFile.getHash();
             String existingHash = encodeBase64(hash(file, configurationFile.getHashAlgorithmId()));
-            if (!StringUtils.equals(existingHash, contentHash)) {
+            if (StringUtils.equals(existingHash, contentHash)) {
+                return false;
+            } else {
                 log.trace("Downloading {} because file has changed ({} != {})",
                         configurationFile.getContentLocation(), existingHash, contentHash);
                 return true;
-            } else {
-                return false;
             }
         }
 

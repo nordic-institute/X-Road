@@ -97,11 +97,7 @@ public class EndpointsApiControllerTest extends AbstractApiControllerTestContext
             Optional<MemberInfo> m = globalMemberInfos.stream()
                     .filter(g -> g.getId().equals(clientId))
                     .findFirst();
-            if (m.isPresent()) {
-                return m.get().getName();
-            } else {
-                return null;
-            }
+            return m.map(MemberInfo::getName).orElse(null);
         });
         when(globalConfFacade.getGlobalGroupDescription(any())).thenReturn("");
     }

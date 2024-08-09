@@ -94,7 +94,6 @@ import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URISyntaxException;
-import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.Arrays;
@@ -120,6 +119,7 @@ import static ee.ria.xroad.proxy.util.MetaserviceTestUtil.TestSoapBuilder;
 import static ee.ria.xroad.proxy.util.MetaserviceTestUtil.parseEndpointUrlsFromWSDLDefinition;
 import static ee.ria.xroad.proxy.util.MetaserviceTestUtil.parseOperationNamesFromWSDLDefinition;
 import static ee.ria.xroad.proxy.util.MetaserviceTestUtil.verifyAndGetSingleBodyElementOfType;
+import static java.nio.charset.StandardCharsets.UTF_8;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.Matchers.containsInAnyOrder;
 import static org.hamcrest.Matchers.containsString;
@@ -656,9 +656,10 @@ public class MetadataServiceHandlerTest {
     }
 
     private String readFile(String filename) throws IOException, URISyntaxException {
-        return new String(Files.readAllBytes(Paths.get(
-                ClassLoader.getSystemResource(filename).toURI()
-        )), "UTF-8");
+        return Files.readString(
+                Paths.get(ClassLoader.getSystemResource(filename).toURI()),
+                UTF_8
+        );
     }
 
     private void setUpDatabase(ServiceId.Conf serviceId, boolean isRest) throws Exception {
@@ -742,9 +743,9 @@ public class MetadataServiceHandlerTest {
         public void body(BodyDescriptor bd, InputStream is) throws MimeException, IOException {
 
             // steal the string here
-            contentAsString = IOUtils.toString(is, "UTF-8");
+            contentAsString = IOUtils.toString(is, UTF_8);
             log.debug("we have WSDL: {}", contentAsString);
-            is = new ByteArrayInputStream(contentAsString.getBytes(StandardCharsets.UTF_8));
+            is = new ByteArrayInputStream(contentAsString.getBytes(UTF_8));
 
             try {
                 message = (message != null) ? message : messageFactory.createMessage(null, is);

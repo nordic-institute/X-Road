@@ -43,7 +43,7 @@ import java.security.NoSuchAlgorithmException;
 public class SslClientCipherSuiteSetupError extends SslMessageTestCase {
 
     String propertyName = "xroad.proxy.xroad-tls-ciphers";
-    String origCipherSuites[] = SystemProperties.getXroadTLSCipherSuites();
+    String[] origCipherSuites = SystemProperties.getXroadTLSCipherSuites();
 
     /**
      * Constructs the test case.

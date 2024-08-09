@@ -309,9 +309,8 @@ public class KeyService {
     public EnumSet<PossibleActionEnum> getPossibleActionsForKey(String keyId) throws KeyNotFoundException {
         TokenInfo tokenInfo = tokenService.getTokenForKeyId(keyId);
         KeyInfo keyInfo = getKey(tokenInfo, keyId);
-        EnumSet<PossibleActionEnum> possibleActions = possibleActionsRuleEngine
+        return possibleActionsRuleEngine
                 .getPossibleKeyActions(tokenInfo, keyInfo);
-        return possibleActions;
     }
 
 }

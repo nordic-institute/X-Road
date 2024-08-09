@@ -118,7 +118,7 @@ public class ServiceClientConverter {
     public XRoadId convertId(ServiceClient serviceClient) {
         XRoadObjectType serviceClientType = ServiceClientTypeMapping.map(serviceClient.getServiceClientType()).get();
         String encodedId = serviceClient.getId();
-        XRoadId xRoadId = switch (serviceClientType) {
+        return switch (serviceClientType) {
             case SUBSYSTEM -> {
                 if (!clientIdConverter.isEncodedSubsystemId(encodedId)) {
                     throw new BadRequestException("Invalid subsystem id " + encodedId);
@@ -129,7 +129,6 @@ public class ServiceClientConverter {
             case LOCALGROUP -> LocalGroupId.Conf.create(serviceClient.getLocalGroupCode());
             default -> throw new BadRequestException("Invalid service client type");
         };
-        return xRoadId;
     }
 
     /**

@@ -322,11 +322,9 @@ public class AccessRightServiceIntegrationTest extends AbstractServiceIntegratio
         assertEquals(initialAccessRights + 2, countAccessRights());
         assertEquals(initialServiceClients + 1, countServiceClients(serviceOwner));
 
-        XRoadId ss6Id = serviceOwner;
-
         // remove access from ss6
         accessRightService.deleteServiceClientAccessRights(serviceOwner,
-                new HashSet<>(Arrays.asList("openapi3-test")), ss6Id);
+                new HashSet<>(List.of("openapi3-test")), serviceOwner);
         assertEquals(initialAccessRights + 2 - 4, countAccessRights());
         assertEquals(initialServiceClients + 1 - 1, countServiceClients(serviceOwner));
 
@@ -338,12 +336,10 @@ public class AccessRightServiceIntegrationTest extends AbstractServiceIntegratio
         ClientId serviceOwner = ClientId.Conf.create("FI", "GOV", "M2", "SS6");
         int initialServiceClientsSs6 = countServiceClients(serviceOwner);
 
-        XRoadId ss6Id = serviceOwner;
-
         // remove access from ss6. But ss6 does not have calculatePrime service
         try {
             accessRightService.deleteServiceClientAccessRights(serviceOwner,
-                    new HashSet<>(Arrays.asList("openapi3-test", "calculatePrime")), ss6Id);
+                    new HashSet<>(Arrays.asList("openapi3-test", "calculatePrime")), serviceOwner);
             fail("should throw exception");
         } catch (ServiceNotFoundException expected) {
         }
@@ -356,7 +352,6 @@ public class AccessRightServiceIntegrationTest extends AbstractServiceIntegratio
 
 
         ClientId serviceOwner = ClientId.Conf.create("FI", "GOV", "M2", "SS6");
-        XRoadId ss6Id = serviceOwner;
 
         // openapi3-test base endpoint access has been granted only to subject #8 = ss6
         // try to remove from subject ss1, which should fail

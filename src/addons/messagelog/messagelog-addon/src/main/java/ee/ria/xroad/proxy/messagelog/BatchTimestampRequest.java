@@ -55,7 +55,7 @@ class BatchTimestampRequest extends AbstractTimestampRequest {
         HashChainBuilder hcBuilder = buildHashChain(signatureHashes);
         hashChainResult = hcBuilder.getHashChainResult(TS_HASH_CHAIN);
         hashChains = hcBuilder.getHashChains(SIGNATURE);
-        return hashChainResult.getBytes(UTF_8.name());
+        return hashChainResult.getBytes(UTF_8);
     }
 
     @Override

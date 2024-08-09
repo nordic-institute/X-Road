@@ -59,7 +59,7 @@ public class GlobalConfChangeChecker {
      */
     public boolean hasChanged(String key) {
         Boolean changed = changes.get(key);
-        boolean result = (changed == null) ? false : changed;
+        boolean result = changed != null && changed;
         log.trace("result: {}", result);
         return result;
     }

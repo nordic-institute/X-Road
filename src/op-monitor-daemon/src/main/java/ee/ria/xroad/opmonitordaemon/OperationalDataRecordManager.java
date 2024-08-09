@@ -193,6 +193,6 @@ final class OperationalDataRecordManager {
         query.between(lastMonitoringDataTs + 1, recordsTo);
         query.setMaxRecords(1);
 
-        return query.list().size() > 0;
+        return !query.list().isEmpty();
     }
 }

@@ -95,8 +95,7 @@ public final class OcspUtils {
             OCSPResp response = new OCSPResp(ocspBytes);
             BasicOCSPResp basicResponse = (BasicOCSPResp) response.getResponseObject();
             SingleResp resp = basicResponse.getResponses()[0];
-            CertificateStatus status = resp.getCertStatus();
-            return status;
+            return resp.getCertStatus();
         } catch (IOException | OCSPException e) {
             throw new OcspStatusExtractionException(e);
         }

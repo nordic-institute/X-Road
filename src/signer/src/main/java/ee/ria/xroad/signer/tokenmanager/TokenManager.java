@@ -57,7 +57,6 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.function.BiFunction;
 import java.util.function.Function;
-import java.util.stream.Collectors;
 
 import static ee.ria.xroad.common.ErrorCodes.X_WRONG_CERT_USAGE;
 import static ee.ria.xroad.signer.util.ExceptionHelper.certWithHashNotFound;
@@ -156,10 +155,9 @@ public final class TokenManager {
      * @return list of tokens
      */
     public static synchronized List<TokenInfo> listTokens() {
-        return unmodifiableList(
-                currentTokens.stream()
-                        .map(Token::toDTO)
-                        .collect(Collectors.toList()));
+        return currentTokens.stream()
+                .map(Token::toDTO)
+                .toList();
     }
 
     /**

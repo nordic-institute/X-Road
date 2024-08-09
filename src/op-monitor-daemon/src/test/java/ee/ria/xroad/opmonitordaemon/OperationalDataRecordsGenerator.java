@@ -70,7 +70,7 @@ public final class OperationalDataRecordsGenerator {
      * @param args args
      * @throws Exception if something goes wrong.
      */
-    public static void main(String args[]) throws Exception {
+    public static void main(String[] args) throws Exception {
 
         CommandLine cmd = parseCommandLine(args);
 

@@ -118,11 +118,7 @@ public class GlobalConfCheckerTest extends AbstractFacadeMockingTestContext {
             Optional<MemberInfo> m = globalMemberInfos.stream()
                     .filter(g -> g.getId().equals(clientId))
                     .findFirst();
-            if (m.isPresent()) {
-                return m.get().getName();
-            } else {
-                return null;
-            }
+            return m.map(MemberInfo::getName).orElse(null);
         });
 
         when(globalConfFacade.getInstanceIdentifier()).thenReturn(TestUtils.INSTANCE_FI);

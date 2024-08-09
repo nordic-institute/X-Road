@@ -29,5 +29,5 @@ package org.niis.xroad.cs.admin.api.dto;
 public enum TokenInitStatus {
     INITIALIZED,
     NOT_INITIALIZED,
-    UNKNOWN;
+    UNKNOWN
 }

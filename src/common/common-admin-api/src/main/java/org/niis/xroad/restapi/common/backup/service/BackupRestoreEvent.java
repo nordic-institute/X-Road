@@ -25,5 +25,5 @@
 package org.niis.xroad.restapi.common.backup.service;
 
 public enum BackupRestoreEvent {
-    START, END;
+    START, END
 }

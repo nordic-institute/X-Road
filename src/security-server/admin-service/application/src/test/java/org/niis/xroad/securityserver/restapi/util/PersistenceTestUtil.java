@@ -53,7 +53,6 @@ public class PersistenceTestUtil {
 
     private String deriveEntityName(Class entityClass) {
         int entityNameOffset = entityClass.getPackageName().length() + 1;
-        String entityName = entityClass.getName().substring(entityNameOffset);
-        return entityName;
+        return entityClass.getName().substring(entityNameOffset);
     }
 }

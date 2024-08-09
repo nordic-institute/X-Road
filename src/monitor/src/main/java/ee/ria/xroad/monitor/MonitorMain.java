@@ -67,7 +67,7 @@ public final class MonitorMain {
      *
      * @param args
      */
-    public static void main(String args[]) throws Exception {
+    public static void main(String[] args) throws Exception {
         log.info("Starting X-Road Environmental Monitoring");
         Version.outputVersionInfo(APP_NAME);
 

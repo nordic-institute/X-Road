@@ -35,6 +35,8 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.IOUtils;
 import org.bouncycastle.util.Arrays;
 
+import static java.nio.charset.StandardCharsets.UTF_8;
+
 /**
  * Client sends message with attachment. Server responds with attachment. Both
  * messages and contents of the SOAP message part have the UTF-8 BOM bytes.
@@ -66,7 +68,7 @@ public class Utf8BomAttachment2 extends MessageTestCase {
                 getRequestInput(false).getRight());
         byte[] requestSoapBytes = Arrays.copyOfRange(
                 requestFileBytes, 64, 1156
-                        + getQueryId().getBytes("UTF-8").length);
+                        + getQueryId().getBytes(UTF_8).length);
 
         byte[] requestHash = CryptoUtils.calculateDigest(
                 CryptoUtils.getAlgorithmId(requestHashFromResponse

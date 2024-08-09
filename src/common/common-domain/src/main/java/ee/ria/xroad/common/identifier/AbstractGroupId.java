@@ -77,11 +77,9 @@ public interface AbstractGroupId extends XRoadId {
 
     static boolean equals(AbstractGroupId self, Object other) {
         if (self == other) return true;
-        if (!(other instanceof AbstractGroupId)) return false;
+        if (!(other instanceof AbstractGroupId identifier)) return false;
         if (!XRoadId.equals(self, other)) return false;
-        AbstractGroupId identifier = (AbstractGroupId) other;
-        if (!Objects.equals(self.getGroupCode(), identifier.getGroupCode())) return false;
-        return true;
+        return Objects.equals(self.getGroupCode(), identifier.getGroupCode());
     }
 
     static int hashCode(AbstractGroupId self) {

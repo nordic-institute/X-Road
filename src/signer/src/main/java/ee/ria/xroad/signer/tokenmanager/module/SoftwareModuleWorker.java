@@ -25,6 +25,7 @@
  */
 package ee.ria.xroad.signer.tokenmanager.module;
 
+import ee.ria.xroad.common.util.CryptoUtils;
 import ee.ria.xroad.signer.protocol.dto.TokenInfo;
 import ee.ria.xroad.signer.tokenmanager.TokenManager;
 import ee.ria.xroad.signer.tokenmanager.token.AbstractTokenWorker;
@@ -43,7 +44,7 @@ import java.util.Map;
 public class SoftwareModuleWorker extends AbstractModuleWorker {
 
     private static final List<TokenType> TOKENS =
-            Collections.singletonList(new SoftwareTokenType());
+            Collections.singletonList(new SoftwareTokenType(CryptoUtils.CKM_RSA_PKCS_NAME));
 
     public SoftwareModuleWorker(ModuleType moduleType) {
         super(moduleType);

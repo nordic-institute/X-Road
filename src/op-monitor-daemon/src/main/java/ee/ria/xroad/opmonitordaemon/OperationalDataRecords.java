@@ -73,8 +73,7 @@ class OperationalDataRecords {
     }
 
     Long getLastMonitoringDataTs() {
-        return records.size() == 0
-                ? null : records.get(records.size() - 1).getMonitoringDataTs();
+        return records.isEmpty() ? null : records.getLast().getMonitoringDataTs();
     }
 
     String getPayload(ObjectWriter objectWriter) throws JsonProcessingException {

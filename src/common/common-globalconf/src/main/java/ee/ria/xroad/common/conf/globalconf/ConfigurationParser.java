@@ -248,8 +248,7 @@ public class ConfigurationParser {
             }
         }
 
-        X509Certificate getVerificationCert(ConfigurationLocation location, ConfigurationSignature parameters)
-                throws Exception {
+        X509Certificate getVerificationCert(ConfigurationLocation location, ConfigurationSignature parameters) {
             if (HASH_TO_CERT.containsKey(parameters.getVerificationCertHash())) {
                 log.trace("Return certificate from HASH_TO_CERT map");
 
@@ -295,17 +294,17 @@ public class ConfigurationParser {
         }
 
         @Override
-        public void startHeader() throws MimeException {
+        public void startHeader() {
             headers = new HashMap<>();
         }
 
         @Override
-        public void field(Field field) throws MimeException {
+        public void field(Field field) {
             headers.put(field.getName().toLowerCase(), field.getBody());
         }
 
         @Override
-        public void body(BodyDescriptor bd, InputStream is) throws MimeException, IOException {
+        public void body(BodyDescriptor bd, InputStream is) {
             if (nextPart == ContentPart.HEADER) {
                 parseExpirationDate();
                 verifyConfUpToDate();

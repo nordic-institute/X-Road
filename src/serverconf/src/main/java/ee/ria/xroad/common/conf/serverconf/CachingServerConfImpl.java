@@ -260,11 +260,11 @@ public class CachingServerConfImpl extends ServerConfImpl {
     public void logStatistics() {
         if (log.isTraceEnabled()) {
             log.trace("ServerConf.clientCache : entries: {}, stats: {}", clientCache.size(),
-                    clientCache.stats().toString());
+                    clientCache.stats());
             log.trace("ServerConf.serviceCache: entries: {}, stats: {}", serviceCache.size(),
-                    serviceCache.stats().toString());
+                    serviceCache.stats());
             log.trace("ServerConf.aclCache    : entries: {}, stats: {}", aclCache.size(),
-                    aclCache.stats().toString());
+                    aclCache.stats());
         }
     }
 

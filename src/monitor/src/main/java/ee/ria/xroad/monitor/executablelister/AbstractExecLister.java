@@ -122,9 +122,9 @@ abstract class AbstractExecLister<T> {
             String discardedHeaderLine = input.readLine();
             jmxRepresentation.add(discardedHeaderLine);
         }
-        String line = null;
+        String line;
         while ((line = input.readLine()) != null) {
-            if (line.trim().length() > 0) {
+            if (!line.trim().isEmpty()) {
                 jmxRepresentation.add(line);
                 T data = parseLine(line, splitter);
                 parsed.add(data);
@@ -142,8 +142,7 @@ abstract class AbstractExecLister<T> {
                     + columns.size()
                     + ": " + line);
         }
-        T data = parse(columns);
-        return data;
+        return parse(columns);
     }
 
 }
