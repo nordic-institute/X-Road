@@ -53,7 +53,7 @@ import static ee.ria.xroad.common.util.MessageFileNames.SIG_HASH_CHAIN_RESULT;
 /**
  * This class handles the (batch) signature creation. After requests
  * have been added to the context, the signature is created.
- *
+ * <p>
  * Depending on the amount of input hashes (one hash for a single message,
  * multiple hashes for a single message with attachments etc.) the result
  * is a XML signature with one referenced message or a referenced hash chain
@@ -111,18 +111,18 @@ class SignatureCtx {
     synchronized byte[] getDataToBeSigned() throws Exception {
         log.trace("getDataToBeSigned(requests = {})", requests.size());
 
-        if (requests.size() == 0) {
+        if (requests.isEmpty()) {
             throw new CodedException(X_INTERNAL_ERROR, "No requests in signing context");
         }
 
-        SigningRequest firstRequest = requests.get(0);
+        SigningRequest firstRequest = requests.getFirst();
 
         builder = new SignatureXmlBuilder(firstRequest, digestAlgorithmId);
 
         // If only one single hash (message), then no hash chain
         if (requests.size() == 1 && firstRequest.isSingleMessage()) {
             return builder.createDataToBeSigned(MESSAGE, createResourceResolver(
-                    firstRequest.getParts().get(0).getMessage()), signatureAlgorithmUri);
+                    firstRequest.getParts().getFirst().getMessage()), signatureAlgorithmUri);
         }
 
         buildHashChain();
@@ -151,7 +151,7 @@ class SignatureCtx {
     private static byte[][] getHashChainInputs(SigningRequest request) {
         return request.getParts().stream()
                 .map(MessagePart::getData)
-                .toArray(size -> new byte[size][]);
+                .toArray(byte[][]::new);
     }
 
     /**

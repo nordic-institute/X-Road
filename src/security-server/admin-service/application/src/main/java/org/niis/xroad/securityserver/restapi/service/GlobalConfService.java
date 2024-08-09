@@ -188,10 +188,9 @@ public class GlobalConfService {
     public List<TspType> getApprovedTspsForThisInstance() {
         List<SharedParameters.ApprovedTSA> approvedTspTypes =
                 globalConfFacade.getApprovedTsps(globalConfFacade.getInstanceIdentifier());
-        List<TspType> tsps = approvedTspTypes.stream()
+        return approvedTspTypes.stream()
                 .map(this::createTspType)
                 .collect(Collectors.toList());
-        return tsps;
     }
 
     /**

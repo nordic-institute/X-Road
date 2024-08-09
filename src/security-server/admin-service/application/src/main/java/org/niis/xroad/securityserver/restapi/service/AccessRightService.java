@@ -194,10 +194,10 @@ public class AccessRightService {
             List<AccessRightType> accessRightsToBeRemoved = clientType.getAcl().stream()
                     .filter(acl -> acl.getEndpoint().getId().equals(endpointType.getId())
                             && subjectIds.contains(acl.getSubjectId()))
-                    .collect(Collectors.toList());
+                    .toList();
             if (accessRightsToBeRemoved.size() != subjectIds.size()) {
                 throw new AccessRightNotFoundException("All local service client identifiers + "
-                        + subjectIds.toString()
+                        + subjectIds
                         + " weren't found in the access rights list of the given client: "
                         + clientType.getIdentifier());
             }
@@ -396,11 +396,10 @@ public class AccessRightService {
                                                           Set<XRoadId> subjectIds) {
 
         List<Long> endpointIds = endpointTypes.stream().map(e -> e.getId()).collect(Collectors.toList());
-        List<AccessRightType> accessRights = clientType.getAcl().stream()
+        return clientType.getAcl().stream()
                 .filter(acl -> endpointIds.contains(acl.getEndpoint().getId())
                         && subjectIds.contains(acl.getSubjectId()))
                 .collect(Collectors.toList());
-        return accessRights;
     }
 
     /**
@@ -573,12 +572,11 @@ public class AccessRightService {
         clientType.getAcl().add(newAccessRight);
 
         // return a dto
-        ServiceClientAccessRightDto dto = ServiceClientAccessRightDto.builder()
+        return ServiceClientAccessRightDto.builder()
                 .serviceCode(endpoint.getServiceCode())
                 .rightsGiven(FormatUtils.fromDateToOffsetDateTime(rightsGiven))
                 .title(serviceDescriptionService.getServiceTitle(clientType, endpoint.getServiceCode()))
                 .build();
-        return dto;
     }
 
     /**
@@ -689,8 +687,8 @@ public class AccessRightService {
             if (!StringUtils.isEmpty(instance)) {
                 List<String> globalGroupInstancesMatchingSearch = globalGroupInstances.stream()
                         .filter(s -> s.contains(instance))
-                        .collect(Collectors.toList());
-                if (globalGroupInstancesMatchingSearch.size() > 0) {
+                        .toList();
+                if (!globalGroupInstancesMatchingSearch.isEmpty()) {
                     globalGroupInfos = globalConfFacade
                             .getGlobalGroups(globalGroupInstancesMatchingSearch.toArray(new String[]{}));
                 }
@@ -700,7 +698,7 @@ public class AccessRightService {
         } catch (CodedException e) {
             // no GlobalGroups found for the provided instance -> GlobalGroups are just ignored in the results
         }
-        if (globalGroupInfos != null && globalGroupInfos.size() > 0) {
+        if (globalGroupInfos != null && !globalGroupInfos.isEmpty()) {
             globalGroupInfos.forEach(globalGroupInfo -> {
                 ServiceClientDto serviceClientDto = new ServiceClientDto();
                 serviceClientDto.setSubjectId(globalGroupInfo.getId());
@@ -827,10 +825,9 @@ public class AccessRightService {
             String memberName = dto.getMemberName();
             String localGroupDescription = dto.getLocalGroupDescription();
             String globalGroupDescription = dto.getGlobalGroupDescription();
-            boolean isMatch = StringUtils.containsIgnoreCase(memberName, memberNameOrGroupDescription)
+            return StringUtils.containsIgnoreCase(memberName, memberNameOrGroupDescription)
                     || StringUtils.containsIgnoreCase(localGroupDescription, memberNameOrGroupDescription)
                     || StringUtils.containsIgnoreCase(globalGroupDescription, memberNameOrGroupDescription);
-            return isMatch;
         };
     }
 }

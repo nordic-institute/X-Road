@@ -376,22 +376,20 @@ public class PossibleActionsRuleEngineTest extends AbstractServiceTestContext {
         KeyUsageInfo usage;
         if (keyNotSupported) {
             tokenId = PossibleActionsRuleEngine.SOFTWARE_TOKEN_ID + 1;
-            usage = KeyUsageInfo.AUTHENTICATION;
         } else {
             tokenId = PossibleActionsRuleEngine.SOFTWARE_TOKEN_ID;
-            usage = KeyUsageInfo.AUTHENTICATION;
         }
+        usage = KeyUsageInfo.AUTHENTICATION;
         KeyInfo key = new TokenTestUtils.KeyInfoBuilder()
                 .keyUsageInfo(usage)
                 .cert(cert)
                 .build();
-        TokenInfo tokenInfo = new TokenTestUtils.TokenInfoBuilder()
+        return new TokenTestUtils.TokenInfoBuilder()
                 .readOnly(tokenReadOnly)
                 .active(tokenActive)
                 .key(key)
                 .id(tokenId)
                 .build();
-        return tokenInfo;
     }
 
     @Test

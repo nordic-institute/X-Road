@@ -91,23 +91,23 @@ public class HealthDataRequestHandler extends QueryRequestHandler {
         GetSecurityServerHealthDataType requestData = getRequestData(
                 requestSoap, GetSecurityServerHealthDataType.class);
 
-        Optional<ClientId.Conf> provider = Optional.ofNullable(
+        ClientId.Conf filterClientId = Optional.ofNullable(
                         requestData.getFilterCriteria())
-                .map(FilterCriteriaType::getClient);
+                .map(FilterCriteriaType::getClient)
+                .orElse(null);
 
         log.debug("Handle getSecurityServerHealthData: clientId: {}, "
-                + "filterCriteria.client: {}", clientId, provider.orElse(null));
+                + "filterCriteria.client: {}", clientId, filterClientId);
 
         SoapMessageImpl response = createResponse(requestSoap,
-                buildHealthDataResponse(provider));
+                buildHealthDataResponse(filterClientId));
 
         contentTypeCallback.accept(response.getContentType());
         out.write(response.getBytes());
     }
 
     @SuppressWarnings("unchecked")
-    private JAXBElement<?> buildHealthDataResponse(
-            Optional<ClientId.Conf> provider) throws Exception {
+    private JAXBElement<?> buildHealthDataResponse(ClientId.Conf clientId) throws Exception {
         GetSecurityServerHealthDataResponseType healthDataResponse =
                 OBJECT_FACTORY.createGetSecurityServerHealthDataResponseType();
 
@@ -122,7 +122,7 @@ public class HealthDataRequestHandler extends QueryRequestHandler {
                 statisticsPeriodSeconds.orElseThrow(
                         this::missingPeriod).getValue());
 
-        healthDataResponse.setServicesEvents(buildServicesEvents(provider));
+        healthDataResponse.setServicesEvents(buildServicesEvents(clientId));
 
         return OBJECT_FACTORY.createGetSecurityServerHealthDataResponse(
                 healthDataResponse);
@@ -146,16 +146,14 @@ public class HealthDataRequestHandler extends QueryRequestHandler {
                 .map(HealthDataRequestHandler::convertIdentifier);
     }
 
-    private ServicesEventsType buildServicesEvents(
-            Optional<ClientId.Conf> provider) {
+    private ServicesEventsType buildServicesEvents(ClientId.Conf clientId) {
         ServicesEventsType servicesEvents =
                 OBJECT_FACTORY.createServicesEventsType();
 
         servicesWithAvailableMetrics()
                 // If a client ID was provided in the request then
                 // only include service metrics for that provider
-                .filter(id -> provider.map(id.getClientId()::equals)
-                        .orElse(true))
+                .filter(id -> clientId == null || id.getClientId().equals(clientId))
                 .forEach(service -> servicesEvents.getServiceEvents().add(
                         buildServiceEvents(service)));
 

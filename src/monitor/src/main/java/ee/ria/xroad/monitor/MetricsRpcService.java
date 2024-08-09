@@ -100,11 +100,11 @@ public class MetricsRpcService extends MetricsServiceGrpc.MetricsServiceImplBase
         }
 
         private boolean isRequestedParameterName(String name) {
-            return metricNames == null || metricNames.size() == 0 || metricNames.contains(name);
+            return metricNames == null || metricNames.isEmpty() || metricNames.contains(name);
         }
 
         private boolean isMatchByChainedFilter(String name, Metric metric) {
-            return chainedFilter != null ? chainedFilter.matches(name, metric) : true;
+            return chainedFilter == null || chainedFilter.matches(name, metric);
         }
     }
 

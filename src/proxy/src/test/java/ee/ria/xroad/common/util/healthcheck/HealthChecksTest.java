@@ -91,7 +91,6 @@ public class HealthChecksTest {
 
         // prepare
         final HealthCheckResult expectedFirstResult = OK;
-        final HealthCheckResult expectedSecondResult = expectedFirstResult;
         final HealthCheckResult expectedThirdResult = failure("third result");
 
         final int okCache = 1;
@@ -110,7 +109,7 @@ public class HealthChecksTest {
 
         // execute & verify
         assertEquals("first result does not match", expectedFirstResult, testedProvider.get());
-        assertEquals("second result does not come from the cache", expectedSecondResult, testedProvider.get());
+        assertEquals("second result does not come from the cache", expectedFirstResult, testedProvider.get());
         Thread.sleep(okCache * 1000L + 500L);
         assertEquals("third result does come from the cache", expectedThirdResult, testedProvider.get());
     }
@@ -120,7 +119,6 @@ public class HealthChecksTest {
 
         // prepare
         final HealthCheckResult expectedFirstResult = failure("first result");
-        final HealthCheckResult expectedSecondResult = expectedFirstResult;
         final HealthCheckResult expectedThirdResult = OK;
 
         final int okCache = 1;
@@ -134,7 +132,7 @@ public class HealthChecksTest {
 
         // execute & verify
         assertEquals("first result does not match", expectedFirstResult, testedProvider.get());
-        assertEquals("second result does not come from the cache", expectedSecondResult, testedProvider.get());
+        assertEquals("second result does not come from the cache", expectedFirstResult, testedProvider.get());
         Thread.sleep(errorCache * 1000L + 500L);
         assertEquals("third result does come from the cache", expectedThirdResult, testedProvider.get());
     }

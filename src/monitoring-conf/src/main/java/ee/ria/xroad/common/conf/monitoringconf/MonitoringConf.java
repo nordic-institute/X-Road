@@ -54,8 +54,7 @@ public final class MonitoringConf {
     private MonitoringParameters monitoringParameters;
 
     public static MonitoringConf getInstance() {
-        MonitoringConf configuration = INSTANCE.get();
-        return configuration;
+        return INSTANCE.get();
     }
 
     /**
