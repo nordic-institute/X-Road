@@ -423,7 +423,7 @@ public class SignatureVerifier {
             if (isAttachment(context.attr.getValue())) {
                 MessagePart part = getPart(context.attr.getValue());
 
-                if (part != null && part.getData() != null){
+                if (part != null && part.getData() != null) {
                     return new XMLSignatureInput(Base64.getEncoder().encodeToString(part.getData()));
                 }
             }

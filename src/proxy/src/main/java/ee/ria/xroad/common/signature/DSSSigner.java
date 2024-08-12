@@ -75,7 +75,8 @@ public class DSSSigner implements MessageSigner {
                         .removeAttribute(XMLConstants.ACCESS_EXTERNAL_DTD)
                         .removeAttribute(XMLConstants.ACCESS_EXTERNAL_STYLESHEET));
 
-        XmlDefinerUtils.getInstance().setSchemaFactoryBuilder(new XrdSignatureService.JaxpSchemaFactoryBuilder().removeAttribute(XMLConstants.ACCESS_EXTERNAL_DTD)
+        XmlDefinerUtils.getInstance().setSchemaFactoryBuilder(new XrdSignatureService.JaxpSchemaFactoryBuilder()
+                .removeAttribute(XMLConstants.ACCESS_EXTERNAL_DTD)
                 .removeAttribute(XMLConstants.ACCESS_EXTERNAL_STYLESHEET));
     }
 

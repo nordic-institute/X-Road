@@ -200,7 +200,7 @@ final class SignatureXmlBuilder {
         return hashAlgorithmURI;
     }
 
-     byte[] calculateDataToBeSigned() throws Exception {
+    byte[] calculateDataToBeSigned() throws Exception {
         try {
             SignedInfo si = signature.getSignedInfo();
 

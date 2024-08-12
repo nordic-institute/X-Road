@@ -51,7 +51,6 @@ import java.util.Date;
 import java.util.List;
 import java.util.Objects;
 
-import static ee.ria.xroad.common.asic.AsicContainerEntries.ENTRY_ATTACHMENT;
 import static ee.ria.xroad.common.asic.AsicContainerEntries.ENTRY_MIMETYPE;
 import static ee.ria.xroad.common.asic.AsicContainerEntries.ENTRY_SIGNATURE;
 import static ee.ria.xroad.common.asic.AsicContainerEntries.ENTRY_TIMESTAMP;
@@ -109,7 +108,8 @@ public class DSSASiCBuilder {
         asicContent.getManifestDocuments().add(asicManifest);
         asicContent.getEvidenceRecordDocuments().addAll(evidenceRecords);
         final DSSDocument asicSignature = buildASiCContainer(asicContent, creationTime);
-        asicSignature.setName(getFinalDocumentName(asicSignature, SigningOperation.SIGN, SignatureLevel.XAdES_BASELINE_B, null, asicSignature.getMimeType()));
+        asicSignature.setName(getFinalDocumentName(asicSignature, SigningOperation.SIGN, SignatureLevel.XAdES_BASELINE_B,
+                null, asicSignature.getMimeType()));
 
         return asicSignature;
     }

@@ -48,7 +48,7 @@ public class EvidenceRecordManifestFactory {
 
     private DataObjectReferenceType createDataObjectRef(String signatureURI, byte[] digest, String digestAlgo) {
         var dataObjRef = ASIC_OBJECT_FACTORY.createDataObjectReferenceType();
-        dataObjRef.setMimeType("text/xml");//TODO const
+        dataObjRef.setMimeType("text/xml"); //TODO const
         dataObjRef.setURI(signatureURI);
         dataObjRef.setDigestMethod(createDigestMethod(digestAlgo));
         dataObjRef.setDigestValue(digest);
