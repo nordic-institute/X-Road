@@ -18,11 +18,11 @@
     "axios": "~1.7.3",
     "deepmerge": "^4.3.1",
     "vuetify": "3.6.14",
-    "vue": "^3.4.35",
+    "vue": "^3.4.37",
     "vue-i18n": "^9.13.1",
-    "vue-router": "^4.4.2",
+    "vue-router": "^4.4.3",
     "vee-validate": "^4.13.2",
-    "pinia": "^2.2.0",
+    "pinia": "^2.2.1",
     "pinia-plugin-persistedstate": "^3.2.1"
   },
   "engines": {
