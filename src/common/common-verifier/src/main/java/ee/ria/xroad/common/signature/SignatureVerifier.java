@@ -299,6 +299,7 @@ public class SignatureVerifier {
             HashChainVerifier.verify(is(hashChainResult), resolver,
                     getHashChainInputs());
         } catch (Exception e) {
+            log.debug("Hash chain verification failed. HashChain: {}, HashChainResult: {}", hashChain, hashChainResult);
             throw translateException(e).withPrefix(X_MALFORMED_SIGNATURE);
         }
     }
