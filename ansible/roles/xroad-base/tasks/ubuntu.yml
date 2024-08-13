@@ -28,11 +28,9 @@
   when: package_source == "remote" and (ansible_distribution == "Ubuntu")
 
 - name: Install X-Road apt repo key
-  ansible:
-    builtin:
-      apt_key:
-        file: /tmp/xroad.gpg
-        state: present
+  apt_key:
+    file: /tmp/xroad.gpg
+    state: present
   when: package_source == "remote" and (ansible_distribution == "Ubuntu")
 
 - name: Remove old repo config
