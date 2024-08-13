@@ -21,16 +21,8 @@
     group: root
   when: (disable_automatic_upgrades is defined) and (disable_automatic_upgrades)
 
-- name: Download X-Road apt repo key
-  get_url:
-    url: "{{ubuntu_apt_key}}"
-    dest: /tmp/xroad.gpg
-  when: package_source == "remote" and (ansible_distribution == "Ubuntu")
-
-- name: Install X-Road apt repo key
-  apt_key:
-    file: /tmp/xroad.gpg
-    state: present
+- name: Add X-Road apt repo key
+  command: "wget -qO- {{ ubuntu_apt_key }} | gpg --dearmor -o /etc/apt/trusted.gpg.d/xroad.gpg"
   when: package_source == "remote" and (ansible_distribution == "Ubuntu")
 
 - name: Remove old repo config
