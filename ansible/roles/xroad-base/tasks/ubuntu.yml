@@ -32,7 +32,7 @@
 
 - name: xroad apt repository
   apt_repository:
-    repo: "deb [arch=amd64 signed-by=/etc/apt/keyrings/xroad.gpg] {{ubuntu_repo_url}}/debian {{ansible_distribution_release}} main"
+    repo: "deb [arch=amd64 signed-by=/etc/apt/keyrings/xroad.gpg] https://s3-eu-west-1.amazonaws.com/niis-xroad-development/7.5.1/debian noble main"
     state: present
     filename: xroad
     update_cache: yes
