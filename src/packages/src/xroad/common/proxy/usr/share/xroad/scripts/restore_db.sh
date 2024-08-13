@@ -37,7 +37,7 @@ if [ -f /etc/xroad/db_libpq.env ]; then
   source /etc/xroad/db_libpq.env
 fi
 
-if [ ! -z $PGOPTIONS_EXTRA ]; then
+if [[ ! -z $PGOPTIONS_EXTRA ]]; then
   PGOPTIONS_EXTRA=" ${PGOPTIONS_EXTRA}"
 fi
 
