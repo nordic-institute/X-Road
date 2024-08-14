@@ -22,7 +22,7 @@
   when: (disable_automatic_upgrades is defined) and (disable_automatic_upgrades)
 
 - name: Add X-Road apt repo key
-  shell: "curl -sL {{ ubuntu_apt_key }} | sudo gpg --dearmor --batch --yes -o /etc/apt/keyrings/xroad.gpg"
+  shell: "curl -sL {{ ubuntu_apt_key }} | sudo gpg --dearmor --batch --yes -o {{ ubuntu_apt_key_file }}"
   when: package_source == "remote" and (ansible_distribution == "Ubuntu")
 
 - name: Remove old repo config
@@ -32,7 +32,7 @@
 
 - name: xroad apt repository
   apt_repository:
-    repo: "deb [arch=amd64 signed-by=/etc/apt/keyrings/xroad.gpg] https://s3-eu-west-1.amazonaws.com/niis-xroad-development/7.5.1/debian noble main"
+    repo: "{{ ubuntu_apt_repo_with_option }}"
     state: present
     filename: xroad
     update_cache: yes
