@@ -54,10 +54,10 @@ else
   fi
 
   if [[ ! -z $PGOPTIONS_EXTRA ]]; then
-    PGOPTIONS_EXTRA=" ${PGOPTIONS_EXTRA} "
+    PGOPTIONS_EXTRA=" ${PGOPTIONS_EXTRA}"
   fi
 
-  PGOPTIONS="${PGOPTIONS_EXTRA-}"PGDATABASE="$db_database" PGUSER="$db_user" PGPASSWORD="$db_password" psql -h "${PGHOST:-$db_host}" -p "${PGPORT:-$db_port}" -qtA -c \
+  PGOPTIONS="${PGOPTIONS_EXTRA-} "PGDATABASE="$db_database" PGUSER="$db_user" PGPASSWORD="$db_password" psql -h "${PGHOST:-$db_host}" -p "${PGPORT:-$db_port}" -qtA -c \
   "INSERT INTO apikey(id, encodedkey) VALUES ((SELECT NEXTVAL('hibernate_sequence')), '$encoded_token');
   INSERT INTO apikey_roles(apikey_id,role) VALUES ((SELECT id FROM apikey WHERE encodedkey = '$encoded_token'), 'XROAD_MANAGEMENT_SERVICE');"
   if [ $? -ne 0 ] ; then
