@@ -25,11 +25,12 @@
  */
 package ee.ria.xroad.common.messagelog;
 
-import ee.ria.xroad.common.asic.AsicContainer;
 import ee.ria.xroad.common.asic.TimestampData;
+import ee.ria.xroad.common.asic.dss.DSSASiCBuilder;
 import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.signature.SignatureData;
 
+import eu.europa.esig.dss.model.DSSDocument;
 import lombok.AccessLevel;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
@@ -156,7 +157,7 @@ public class MessageRecord extends AbstractLogRecord {
                 memberClass, memberCode, subsystemCode};
     }
 
-    public AsicContainer toAsicContainer() throws Exception {
+    public DSSDocument toAsicContainer() throws Exception {
         final boolean encrypted = keyId != null;
         final SignatureData signatureData = new SignatureData(signature, hashChainResult, hashChain);
 
@@ -187,7 +188,8 @@ public class MessageRecord extends AbstractLogRecord {
             plainAttachment = (attachment != null) ? attachment.getBinaryStream() : null;
         }
 
-        return new AsicContainer(plaintextMessage, signatureData, timestamp, plainAttachment, getTime());
+        return DSSASiCBuilder.newBuilder().createContainer(
+                plaintextMessage.getBytes(), plainAttachment, signatureData, timestamp, getTime());
     }
 
     public void setAttachmentStream(InputStream stream, long size) {

@@ -28,20 +28,13 @@ package ee.ria.xroad.common.signature;
 import ee.ria.xroad.common.CodedException;
 import ee.ria.xroad.common.hashchain.HashChainBuilder;
 import ee.ria.xroad.common.util.CryptoUtils;
-import ee.ria.xroad.common.util.MessageFileNames;
 
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.xml.security.signature.XMLSignatureInput;
-import org.apache.xml.security.utils.resolver.ResourceResolverContext;
-import org.apache.xml.security.utils.resolver.ResourceResolverException;
-import org.apache.xml.security.utils.resolver.ResourceResolverSpi;
 
-import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
-import java.util.Base64;
 import java.util.List;
 
 import static ee.ria.xroad.common.ErrorCodes.X_INTERNAL_ERROR;
@@ -117,24 +110,18 @@ class SignatureCtx {
 
         SigningRequest firstRequest = requests.get(0);
 
-        builder = new SignatureXmlBuilder(firstRequest, digestAlgorithmId);
+        builder = new SignatureXmlBuilder(firstRequest, digestAlgorithmId, signatureAlgorithmUri);
 
         // If only one single hash (message), then no hash chain
         if (requests.size() == 1) {
-            for (MessagePart part : firstRequest.getParts()) {
-                var data = MESSAGE.equals(part.getName()) ? part.getMessage() : part.getData();
-                builder.addDataToBeSigned(part.getName(),
-                        createResourceResolver(data),
-                        signatureAlgorithmUri);
-            }
+            builder.addDataToBeSigned(new SignatureResourceResolver(firstRequest.getParts(), null));
             return builder.calculateDataToBeSigned();
         }
+
         buildHashChain();
-
-        byte[] hashChainResultBytes = hashChainResult.getBytes(StandardCharsets.UTF_8);
-
-        return builder.addAndCalculateDataToBeSigned(SIG_HASH_CHAIN_RESULT, createResourceResolver(hashChainResultBytes),
-                signatureAlgorithmUri);
+        return builder.addAndCalculateDataToBeSigned(new SignatureResourceResolver(
+                List.of(new MessagePart(SIG_HASH_CHAIN_RESULT, null, null, null)), hashChainResult
+        ));
     }
 
     private void buildHashChain() throws Exception {
@@ -156,45 +143,6 @@ class SignatureCtx {
         return request.getParts().stream()
                 .map(MessagePart::getData)
                 .toArray(byte[][]::new);
-    }
-
-    /**
-     * This resource resolver will provide the message or hash chain data to be digested.
-     */
-    private ResourceResolverSpi createResourceResolver(final byte[] data) {
-        if (data == null) {
-            throw new IllegalArgumentException("Data must not be null");
-        }
-
-        //TODO xroad8, merge wih verifier
-        return new ResourceResolverSpi() {
-            @Override
-            public boolean engineCanResolveURI(ResourceResolverContext context) {
-                return switch (context.attr.getValue()) {
-                    case MessageFileNames.MESSAGE, MessageFileNames.SIG_HASH_CHAIN_RESULT -> true;
-                    default -> isAttachment(context.attr.getValue());
-                };
-            }
-
-            private boolean isAttachment(String uri) {
-                return uri.startsWith("/attachment");
-            }
-
-            @Override
-            public XMLSignatureInput engineResolveURI(ResourceResolverContext context) throws ResourceResolverException {
-                switch (context.attr.getValue()) {
-                    case MessageFileNames.MESSAGE:
-                    case MessageFileNames.SIG_HASH_CHAIN_RESULT:
-                        return new XMLSignatureInput(data);
-                    default: // do nothing
-                }
-
-                if (isAttachment(context.attr.getValue())) {
-                    return new XMLSignatureInput(Base64.getEncoder().encodeToString(data));
-                }
-                return null;
-            }
-        };
     }
 
 }

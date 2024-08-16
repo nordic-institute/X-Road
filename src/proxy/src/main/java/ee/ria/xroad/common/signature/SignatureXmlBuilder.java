@@ -36,7 +36,6 @@ import org.apache.xml.security.signature.ObjectContainer;
 import org.apache.xml.security.signature.SignedInfo;
 import org.apache.xml.security.signature.XMLSignature;
 import org.apache.xml.security.signature.XMLSignatureException;
-import org.apache.xml.security.utils.resolver.ResourceResolverSpi;
 import org.bouncycastle.cert.ocsp.OCSPResp;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
@@ -132,42 +131,44 @@ final class SignatureXmlBuilder {
     private final X509Certificate signingCert;
     private final String hashAlgorithmId;
     private final String hashAlgorithmURI;
+    private final String signatureAlgorithmUri;
 
     private Document document;
     private XMLSignature signature;
     private ObjectContainer objectContainer;
-    private String documentName;
+    private Element signedDataObjectProperties;
+    private int dataToBeSignedCount = 0;
 
-    SignatureXmlBuilder(SigningRequest request, String hashAlgorithmId) throws Exception {
+    SignatureXmlBuilder(SigningRequest request, String hashAlgorithmId, String signatureAlgorithmUri) throws Exception {
         this.signingCert = request.getSigningCert();
         this.extraCertificates.addAll(request.getExtraCertificates());
         this.ocspResponses.addAll(request.getOcspResponses());
         this.hashAlgorithmId = hashAlgorithmId;
         this.hashAlgorithmURI = getDigestAlgorithmURI(hashAlgorithmId);
+        this.signatureAlgorithmUri = signatureAlgorithmUri;
+
+        document = createDocument();
+        signature = createSignatureElement(document, signatureAlgorithmUri);
+        signature.addKeyInfo(signingCert);
+        signature.addResourceResolver(new IdResolver(document));
+        createObjectContainer();
+        createQualifyingProperties();
     }
 
-    byte[] addAndCalculateDataToBeSigned(String docName, ResourceResolverSpi resourceResolver, String signatureAlgorithmUri)
+    byte[] addAndCalculateDataToBeSigned(SignatureResourceResolver resourceResolver)
             throws Exception {
-        addDataToBeSigned(docName, resourceResolver, signatureAlgorithmUri);
+        addDataToBeSigned(resourceResolver);
         return calculateDataToBeSigned();
     }
 
-    void addDataToBeSigned(String docName, ResourceResolverSpi resourceResolver, String signatureAlgorithmUri)
-            throws Exception {
-        this.documentName = docName;
-
-        document = createDocument();
-
-        signature = createSignatureElement(document, signatureAlgorithmUri);
-        signature.addKeyInfo(signingCert);
-
-        signature.addResourceResolver(new IdResolver(document));
+    void addDataToBeSigned(SignatureResourceResolver resourceResolver) throws Exception {
         signature.addResourceResolver(resourceResolver);
+        for (MessagePart part : resourceResolver.getMessageParts()) {
+            signature.addDocument(part.getName(), null, getHashAlgorithmURI(),
+                    getSignatureRefereceIdForMessage(++dataToBeSignedCount), null);
+            createDataObjectFormat(signedDataObjectProperties, part.getName());
+        }
 
-        signature.addDocument(docName, null, getHashAlgorithmURI(), getSignatureRefereceIdForMessage(), null);
-
-        createObjectContainer();
-        createQualifyingProperties();
     }
 
     String createSignatureXml(byte[] signatureValue) throws Exception {
@@ -300,10 +301,12 @@ final class SignatureXmlBuilder {
     }
 
     private void createSignedDataObjectProperties(Element signedProperties) {
-        Element signedDataObjectProperties = createXadesElement(signedProperties, SIGNED_DATAOBJ_TAG);
+        signedDataObjectProperties = createXadesElement(signedProperties, SIGNED_DATAOBJ_TAG);
+    }
 
+    private void createDataObjectFormat(Element signedDataObjectProperties, String documentName) {
         Element dataObjectFormat = createXadesElement(signedDataObjectProperties, DATAOBJECTFORMAT_TAG);
-        dataObjectFormat.setAttribute(OBJECTREFERENCE_ATTR, "#" + getSignatureRefereceIdForMessage());
+        dataObjectFormat.setAttribute(OBJECTREFERENCE_ATTR, "#" + getSignatureRefereceIdForMessage(dataToBeSignedCount));
 
         Element mimeType = createXadesElement(dataObjectFormat, MIMETYPE_TAG);
 
@@ -326,7 +329,7 @@ final class SignatureXmlBuilder {
         createDigestAlgAndValue(getHashAlgorithmURI(), digest(cert, getHashAlgorithmId()), element);
     }
 
-    private void createDigestAlgAndValue(String algorithmUri, String digest, Element element) throws Exception {
+    private void createDigestAlgAndValue(String algorithmUri, String digest, Element element) {
         Element digestMethod = createDsElement(element, DIGEST_METHOD_TAG);
         digestMethod.setAttribute(ALGORITHM_ATTRIBUTE, algorithmUri);
 
@@ -359,7 +362,7 @@ final class SignatureXmlBuilder {
         return unsignedProperties;
     }
 
-    private void createRevocationValues(Element unsignedSignatureProperties) throws Exception {
+    private void createRevocationValues(Element unsignedSignatureProperties) throws IOException {
         Element revocationValues = createXadesElement(unsignedSignatureProperties, REVOCATION_VALUES_TAG);
         Element ocspValues = createXadesElement(revocationValues, OCSP_VALUES_TAG);
 

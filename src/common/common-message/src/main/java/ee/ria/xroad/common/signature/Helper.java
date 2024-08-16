@@ -142,12 +142,12 @@ final class Helper {
     private Helper() {
     }
 
-    static String getSignatureRefereceIdForMessage() {
-        return SIGNATURE_REFERENCE_ID + "0";
+    static String getSignatureRefereceIdForMessage(int index) {
+        return SIGNATURE_REFERENCE_ID + index;
     }
 
     static String getSignatureReferenceIdForSignedProperties() {
-        return SIGNATURE_REFERENCE_ID + "1";
+        return SIGNATURE_REFERENCE_ID + "0";
     }
 
     static Document createDocument() throws Exception {

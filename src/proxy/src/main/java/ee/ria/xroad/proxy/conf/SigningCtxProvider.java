@@ -27,6 +27,7 @@ package ee.ria.xroad.proxy.conf;
 
 import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.signature.MessageSigner;
+import ee.ria.xroad.common.signature.SimpleSigner;
 import ee.ria.xroad.proxy.signedmessage.SignerSigningKey;
 
 import lombok.experimental.UtilityClass;
@@ -37,7 +38,7 @@ import lombok.extern.slf4j.Slf4j;
 public class SigningCtxProvider {
     private static DefaultSigningCtxProvider ctxProvider = new DefaultSigningCtxProvider();
 
-    private static MessageSigner signer;
+    private static final MessageSigner signer = new SimpleSigner();
 
     public static SigningCtx getSigningCtx(ClientId clientId) {
         return ctxProvider.getSigningCtx(clientId);
@@ -62,10 +63,5 @@ public class SigningCtxProvider {
             return new SigningCtxImpl(signingInfo.getClientId(),
                     new SignerSigningKey(signingInfo.getKeyId(), signingInfo.getSignMechanismName(), signer), signingInfo.getCert());
         }
-    }
-
-    @Deprecated
-    public static void setSigner(MessageSigner signer) {
-        SigningCtxProvider.signer = signer;
     }
 }

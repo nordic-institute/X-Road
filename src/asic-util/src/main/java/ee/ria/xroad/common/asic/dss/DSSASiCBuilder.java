@@ -25,7 +25,8 @@
  */
 package ee.ria.xroad.common.asic.dss;
 
-import ee.ria.xroad.common.asic.AsicContainer;
+import ee.ria.xroad.common.asic.TimestampData;
+import ee.ria.xroad.common.signature.SignatureData;
 import ee.ria.xroad.common.util.MessageFileNames;
 
 import eu.europa.esig.dss.FileNameBuilder;
@@ -45,18 +46,14 @@ import eu.europa.esig.dss.model.InMemoryDocument;
 import eu.europa.esig.dss.signature.SigningOperation;
 import lombok.extern.slf4j.Slf4j;
 
+import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.Objects;
 
-import static ee.ria.xroad.common.asic.AsicContainerEntries.ENTRY_ATTACHMENT;
 import static ee.ria.xroad.common.asic.AsicContainerEntries.ENTRY_MIMETYPE;
-import static ee.ria.xroad.common.asic.AsicContainerEntries.ENTRY_SIGNATURE;
-import static ee.ria.xroad.common.asic.AsicContainerEntries.ENTRY_TIMESTAMP;
-import static ee.ria.xroad.common.asic.AsicContainerEntries.ENTRY_TS_HASH_CHAIN;
-import static ee.ria.xroad.common.asic.AsicContainerEntries.ENTRY_TS_HASH_CHAIN_RESULT;
 import static ee.ria.xroad.common.asic.AsicContainerEntries.MIMETYPE;
 
 
@@ -68,28 +65,30 @@ public class DSSASiCBuilder {
         return new DSSASiCBuilder();
     }
 
-    public DSSDocument createContainer(AsicContainer legacyContainer) {
+    public DSSDocument createContainer(byte[] plainTextMessage, InputStream plainAttachment,
+                                       SignatureData signatureData, TimestampData timestamp, long creationTime) {
         List<DSSDocument> dssDocs = new ArrayList<>();
-        dssDocs.add(new InMemoryDocument(legacyContainer.getEntry(MessageFileNames.MESSAGE), MessageFileNames.MESSAGE));
         dssDocs.add(new InMemoryDocument(MIMETYPE.getBytes(StandardCharsets.UTF_8), ENTRY_MIMETYPE));
-        if (legacyContainer.getAttachment() != null) {
-            dssDocs.add(new InMemoryDocument(legacyContainer.getAttachment(), MessageFileNames.attachment(1)));
+        dssDocs.add(new InMemoryDocument(plainTextMessage, MessageFileNames.MESSAGE));
+        if (plainAttachment != null) {
+            dssDocs.add(new InMemoryDocument(plainAttachment, MessageFileNames.attachment(1)));
         }
-        var signature = new InMemoryDocument(legacyContainer.getEntry(ENTRY_SIGNATURE), "signatures.xml");
-        var creationDate = new Date(legacyContainer.getCreationTime());
+        var signature = new InMemoryDocument(signatureData.getSignatureXml().getBytes(), "signatures.xml");
+        var creationDate = new Date(creationTime);
 
         List<DSSDocument> evidenceRecords = new ArrayList<>();
-        if (legacyContainer.hasEntry(ENTRY_TIMESTAMP)) {
+        if (timestamp != null) {
             log.trace("Timestamp found in container. Adding evidence record..");
 
             var evidenceRecordDocs = new HashChainToEvidenceRecordTransformer()
                     .createEvidenceRecord(
-                            legacyContainer.getTimestampValueBase64(),
-                            legacyContainer.getEntryAsString(ENTRY_TS_HASH_CHAIN),
-                            legacyContainer.getEntryAsString(ENTRY_TS_HASH_CHAIN_RESULT),
-                            legacyContainer.getEntryAsString(ENTRY_SIGNATURE));
+                            timestamp.getTimestampBase64(),
+                            timestamp.getHashChain(),
+                            timestamp.getHashChainResult(),
+                            signatureData.getSignatureXml());
             evidenceRecords.addAll(evidenceRecordDocs);
         }
+
         return createContainer(dssDocs, evidenceRecords, signature, creationDate);
     }
 

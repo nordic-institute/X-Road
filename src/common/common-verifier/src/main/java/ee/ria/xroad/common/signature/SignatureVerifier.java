@@ -44,7 +44,6 @@ import org.apache.xml.security.signature.MissingResourceFailureException;
 import org.apache.xml.security.signature.XMLSignature;
 import org.apache.xml.security.signature.XMLSignatureInput;
 import org.apache.xml.security.utils.resolver.ResourceResolverContext;
-import org.apache.xml.security.utils.resolver.ResourceResolverException;
 import org.apache.xml.security.utils.resolver.ResourceResolverSpi;
 import org.bouncycastle.cert.ocsp.OCSPResp;
 import org.w3c.dom.Node;
@@ -323,7 +322,7 @@ public class SignatureVerifier {
         s.addResourceResolver(new IdResolver(signature.getDocument()));
 
         if (resourceResolver == null) {
-            s.addResourceResolver(new SignatureResourceResolverImpl());
+            s.addResourceResolver(new SignatureResourceResolver(parts, hashChainResult));
         } else {
             s.addResourceResolver(resourceResolver);
         }
@@ -371,16 +370,6 @@ public class SignatureVerifier {
         return inputs;
     }
 
-    private MessagePart getPart(String name) {
-        for (MessagePart partHash : parts) {
-            if (partHash.getName().equals(name)) {
-                return partHash;
-            }
-        }
-
-        return null;
-    }
-
     private static DigestValue getDigestValue(MessagePart part)
             throws Exception {
         if (part.getData() != null) {
@@ -388,47 +377,6 @@ public class SignatureVerifier {
         }
 
         return null;
-    }
-
-    private final class SignatureResourceResolverImpl extends ResourceResolverSpi {
-
-        @Override
-        public boolean engineCanResolveURI(ResourceResolverContext context) {
-            return switch (context.attr.getValue()) {
-                case MessageFileNames.MESSAGE, MessageFileNames.SIG_HASH_CHAIN_RESULT -> true;
-                default -> isAttachment(context.attr.getValue());
-            };
-        }
-
-        private boolean isAttachment(String uri) {
-            return uri.startsWith("/attachment");
-        }
-
-        @Override
-        public XMLSignatureInput engineResolveURI(ResourceResolverContext context) throws ResourceResolverException {
-            switch (context.attr.getValue()) {
-                case MessageFileNames.MESSAGE:
-                    MessagePart part = getPart(MessageFileNames.MESSAGE);
-
-                    if (part != null && part.getMessage() != null) {
-                        return new XMLSignatureInput(part.getMessage());
-                    }
-
-                    break;
-                case MessageFileNames.SIG_HASH_CHAIN_RESULT:
-                    return new XMLSignatureInput(is(hashChainResult));
-                default: // do nothing
-            }
-
-            if (isAttachment(context.attr.getValue())) {
-                MessagePart part = getPart(context.attr.getValue());
-
-                if (part != null && part.getData() != null){
-                    return new XMLSignatureInput(Base64.getEncoder().encodeToString(part.getData()));
-                }
-            }
-            return null;
-        }
     }
 
     private final class HashChainReferenceResolverImpl

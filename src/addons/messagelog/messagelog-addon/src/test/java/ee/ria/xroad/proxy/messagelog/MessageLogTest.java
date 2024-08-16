@@ -27,7 +27,6 @@ package ee.ria.xroad.proxy.messagelog;
 
 import ee.ria.xroad.common.CodedException;
 import ee.ria.xroad.common.ExpectedCodedException;
-import ee.ria.xroad.common.asic.AsicContainer;
 import ee.ria.xroad.common.conf.serverconf.ServerConf;
 import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.message.RestRequest;
@@ -50,11 +49,12 @@ import ee.ria.xroad.messagelog.database.MessageRecordEncryption;
 import ee.ria.xroad.proxy.messagelog.Timestamper.TimestampFailed;
 import ee.ria.xroad.proxy.messagelog.Timestamper.TimestampSucceeded;
 
+import eu.europa.esig.dss.asic.common.ZipUtils;
+import eu.europa.esig.dss.model.DSSDocument;
 import jakarta.persistence.criteria.CriteriaBuilder;
 import jakarta.persistence.criteria.CriteriaQuery;
 import jakarta.persistence.criteria.Root;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.io.IOUtils;
 import org.apache.commons.io.filefilter.RegexFileFilter;
 import org.junit.After;
 import org.junit.Before;
@@ -81,6 +81,7 @@ import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 
 import static ee.ria.xroad.common.ErrorCodes.X_MLOG_TIMESTAMPER_FAILED;
+import static ee.ria.xroad.common.util.MessageFileNames.MESSAGE;
 import static ee.ria.xroad.proxy.messagelog.MessageLogDatabaseCtx.doInTransaction;
 import static ee.ria.xroad.proxy.messagelog.TestUtil.assertTaskQueueSize;
 import static ee.ria.xroad.proxy.messagelog.TestUtil.cleanUpDatabase;
@@ -214,10 +215,21 @@ public class MessageLogTest extends AbstractMessageLogTest {
         MessageRecordEncryption.getInstance().prepareDecryption(logRecord);
         assertEquals(logRecord.getXRequestId(), requestId);
         assertEquals(logRecord.getQueryId(), message.getQueryId());
-        final AsicContainer asic = logRecord.toAsicContainer();
-        assertArrayEquals(asic.getMessage().getBytes(StandardCharsets.UTF_8), message.getMessageBytes());
-        final byte[] attachment = IOUtils.readFully(asic.getAttachment(), body.length);
-        assertArrayEquals(body, attachment);
+        final DSSDocument asic = logRecord.toAsicContainer();
+
+        List<DSSDocument> asicContent = ZipUtils.getInstance().extractContainerContent(asic);
+
+        var messageDocument = asicContent.stream()
+                .filter(dssDocument -> dssDocument.getName().equals(MESSAGE))
+                .findFirst()
+                .orElseThrow();
+        assertArrayEquals(messageDocument.openStream().readAllBytes(), message.getMessageBytes());
+
+        var attachmentDocument = asicContent.stream()
+                .filter(dssDocument -> dssDocument.getName().equals("/attachment1"))
+                .findFirst()
+                .orElseThrow();
+        assertArrayEquals(attachmentDocument.openStream().readAllBytes(), body);
     }
 
     /**

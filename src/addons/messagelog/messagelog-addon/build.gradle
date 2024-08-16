@@ -20,6 +20,7 @@ dependencies {
     testImplementation project(':addons:messagelog:messagelog-archiver')
     testImplementation libs.hsqldb
     testImplementation libs.bouncyCastle.bcpg
+    testImplementation libs.dss.asic.xades
 }
 
 jar {
