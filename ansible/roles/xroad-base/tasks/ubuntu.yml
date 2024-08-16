@@ -34,7 +34,7 @@
 
 - name: xroad apt repository
   apt_repository:
-    repo: "{{ ubuntu_apt_repo_with_option }}"
+    repo: "deb [signed-by=/usr/share/keyrings/xroad.gpg] https://s3-eu-west-1.amazonaws.com/niis-xroad-development/7.5.1/debian jammy main"
     state: present
     filename: xroad
     update_cache: yes
