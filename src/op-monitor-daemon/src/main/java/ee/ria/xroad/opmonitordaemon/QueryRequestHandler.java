@@ -128,14 +128,10 @@ abstract class QueryRequestHandler {
             return false;
         }
 
-        if (event.getSeverity() == ValidationEvent.ERROR
-                && event.getLinkedException() instanceof AccessorException
-                && event.getLinkedException().getCause()
-                instanceof CodedException) {
-            return false;
-        }
-
-        return true;
+        return event.getSeverity() != ValidationEvent.ERROR
+                || !(event.getLinkedException() instanceof AccessorException)
+                || !(event.getLinkedException().getCause()
+                instanceof CodedException);
     }
 
     @SuppressWarnings("unchecked")

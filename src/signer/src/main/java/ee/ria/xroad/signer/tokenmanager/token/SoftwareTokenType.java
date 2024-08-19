@@ -25,20 +25,21 @@
  */
 package ee.ria.xroad.signer.tokenmanager.token;
 
-import ee.ria.xroad.common.util.CryptoUtils;
 import ee.ria.xroad.signer.tokenmanager.module.PrivKeyAttributes;
 import ee.ria.xroad.signer.tokenmanager.module.PubKeyAttributes;
 import ee.ria.xroad.signer.tokenmanager.module.SoftwareModuleType;
 
-import lombok.Data;
+import lombok.Value;
 
 /**
  * The software token type TDO.
  */
-@Data
-public final class SoftwareTokenType implements TokenType {
+@Value
+public class SoftwareTokenType implements TokenType {
 
     public static final String ID = "0";
+
+    String signMechanismName;
 
     @Override
     public String getModuleType() {
@@ -78,11 +79,6 @@ public final class SoftwareTokenType implements TokenType {
     @Override
     public boolean isPinVerificationPerSigning() {
         return false;
-    }
-
-    @Override
-    public String getSignMechanismName() {
-        return CryptoUtils.CKM_RSA_PKCS_NAME;
     }
 
     @Override

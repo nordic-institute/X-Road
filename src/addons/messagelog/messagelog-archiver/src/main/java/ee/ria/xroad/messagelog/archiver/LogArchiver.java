@@ -128,7 +128,7 @@ public class LogArchiver implements Job {
                     }
                 }
                 if (recordsArchived > 0) {
-                    if (recordIds.size() > 0) {
+                    if (!recordIds.isEmpty()) {
                         markArchived(session, recordIds);
                         recordIds.clear();
                     }

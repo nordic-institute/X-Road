@@ -242,7 +242,7 @@ public class SoftwareTokenWorker extends AbstractTokenWorker {
         assertTokenAvailable();
         assertKeyAvailable(keyId);
         KeyInfo keyInfo = getKeyInfo(keyId);
-        CertificateInfo certificateInfo = keyInfo.getCerts().get(0);
+        CertificateInfo certificateInfo = keyInfo.getCerts().getFirst();
         X509Certificate issuerX509Certificate = readCertificate(certificateInfo.getCertificateBytes());
         PrivateKey privateKey = getPrivateKey(keyId);
         JcaX509v3CertificateBuilder certificateBuilder = getCertificateBuilder(subjectName, publicKey,
@@ -331,11 +331,9 @@ public class SoftwareTokenWorker extends AbstractTokenWorker {
     private void initializePrivateKey(String keyId) throws Exception {
         PrivateKey pkey = loadPrivateKey(keyId);
 
-        if (pkey != null) {
-            log.debug("Found usable key '{}'", keyId);
+        log.debug("Found usable key '{}'", keyId);
 
-            privateKeys.put(keyId, pkey);
-        }
+        privateKeys.put(keyId, pkey);
     }
 
     @Override

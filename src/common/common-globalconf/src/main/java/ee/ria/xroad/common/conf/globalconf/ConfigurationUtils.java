@@ -25,9 +25,10 @@
  */
 package ee.ria.xroad.common.conf.globalconf;
 
-import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
 import java.time.OffsetDateTime;
+
+import static java.nio.charset.StandardCharsets.UTF_8;
 
 /**
  * Utility methods for configuration directory.
@@ -51,12 +52,7 @@ public final class ConfigurationUtils {
      * @return escaped string
      */
     public static String escapeInstanceIdentifier(String instanceIdentifier) {
-        try {
-            return URLEncoder.encode(instanceIdentifier, "UTF-8");
-        } catch (UnsupportedEncodingException e) {
-            //IGNORE, UTF-8 is always available
-            return null;
-        }
+        return URLEncoder.encode(instanceIdentifier, UTF_8);
     }
 
     /**
