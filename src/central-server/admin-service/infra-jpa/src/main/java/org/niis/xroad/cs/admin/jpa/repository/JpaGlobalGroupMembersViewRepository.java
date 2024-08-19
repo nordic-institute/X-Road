@@ -99,12 +99,12 @@ public interface JpaGlobalGroupMembersViewRepository extends JpaRepository<Globa
                                              CriteriaBuilder builder,
                                              GlobalGroupMemberService.Criteria criteria) {
         return builder.or(
-                caseInsensitiveLike(root, builder, criteria.getQuery(), root.get(GlobalGroupMembersViewEntity_.MEMBER_NAME)),
-                caseInsensitiveLike(root, builder, criteria.getQuery(), member.get(XRoadIdEntity_.MEMBER_CODE)),
-                caseInsensitiveLike(root, builder, criteria.getQuery(), member.get(XRoadIdEntity_.MEMBER_CLASS)),
-                caseInsensitiveLike(root, builder, criteria.getQuery(), member.get(XRoadIdEntity_.SUBSYSTEM_CODE)),
-                caseInsensitiveLike(root, builder, criteria.getQuery(), member.get(XRoadIdEntity_.X_ROAD_INSTANCE)),
-                caseInsensitiveLike(root, builder, criteria.getQuery(), member.get(XRoadIdEntity_.OBJECT_TYPE))
+                caseInsensitiveLike(builder, criteria.getQuery(), root.get(GlobalGroupMembersViewEntity_.MEMBER_NAME)),
+                caseInsensitiveLike(builder, criteria.getQuery(), member.get(XRoadIdEntity_.MEMBER_CODE)),
+                caseInsensitiveLike(builder, criteria.getQuery(), member.get(XRoadIdEntity_.MEMBER_CLASS)),
+                caseInsensitiveLike(builder, criteria.getQuery(), member.get(XRoadIdEntity_.SUBSYSTEM_CODE)),
+                caseInsensitiveLike(builder, criteria.getQuery(), member.get(XRoadIdEntity_.X_ROAD_INSTANCE)),
+                caseInsensitiveLike(builder, criteria.getQuery(), member.get(XRoadIdEntity_.OBJECT_TYPE))
         );
     }
 }

@@ -135,10 +135,10 @@ public interface JpaSecurityServerRepository extends
                 owner.join(SecurityServerClientEntity_.identifier);
 
         return builder.or(
-                CriteriaBuilderUtil.caseInsensitiveLike(root, builder, q, root.get(SecurityServerEntity_.serverCode)),
-                CriteriaBuilderUtil.caseInsensitiveLike(root, builder, q, owner.get(XRoadMemberEntity_.name)),
-                CriteriaBuilderUtil.caseInsensitiveLike(root, builder, q, identifier.get(XRoadMemberEntity_.MEMBER_CLASS)),
-                CriteriaBuilderUtil.caseInsensitiveLike(root, builder, q, identifier.get(XRoadMemberEntity_.MEMBER_CODE))
+                CriteriaBuilderUtil.caseInsensitiveLike(builder, q, root.get(SecurityServerEntity_.serverCode)),
+                CriteriaBuilderUtil.caseInsensitiveLike(builder, q, owner.get(XRoadMemberEntity_.name)),
+                CriteriaBuilderUtil.caseInsensitiveLike(builder, q, identifier.get(XRoadMemberEntity_.MEMBER_CLASS)),
+                CriteriaBuilderUtil.caseInsensitiveLike(builder, q, identifier.get(XRoadMemberEntity_.MEMBER_CODE))
         );
     }
 
