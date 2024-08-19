@@ -54,8 +54,7 @@ public final class GlobalConfExtensions {
      * @return instance
      */
     public static GlobalConfExtensions getInstance() {
-        GlobalConfExtensions configuration = INSTANCE.get();
-        return configuration;
+        return INSTANCE.get();
     }
 
     /**

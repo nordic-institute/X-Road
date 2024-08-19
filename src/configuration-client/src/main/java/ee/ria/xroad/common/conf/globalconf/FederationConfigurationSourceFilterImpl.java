@@ -85,7 +85,7 @@ public class FederationConfigurationSourceFilterImpl implements FederationConfig
     }
 
     private void parseAndSetAllowedInstances(List<String> initial) {
-        if (initial.size() == 0) {
+        if (initial.isEmpty()) {
             log.warn("Allowed federations list was empty, is the configuration malformed?");
             allowedFederationMode = NONE;
             allowedFederationPartners = Collections.emptySet();

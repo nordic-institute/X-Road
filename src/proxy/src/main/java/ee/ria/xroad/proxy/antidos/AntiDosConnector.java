@@ -156,7 +156,7 @@ public class AntiDosConnector extends ServerConnector {
                         // Wait until we can start processing
                         semaphore.acquire();
 
-                        log.trace("Processing connection: " + channel.socket());
+                        log.trace("Processing connection: {}", channel.socket());
 
                         getSelectorManager().accept(channel, null);
                     }

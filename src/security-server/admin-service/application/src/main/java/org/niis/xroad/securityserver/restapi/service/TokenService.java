@@ -252,11 +252,9 @@ public class TokenService {
         if (PIN_INCORRECT_FAULT_CODE.equals(e.getFaultCode())) {
             return true;
         } else if (LOGIN_FAILED_FAULT_CODE.equals(e.getFaultCode())) {
-            if (CKR_PIN_INCORRECT_MESSAGE.equals(e.getFaultString())) {
-                // only way to detect HSM pin incorrect is by matching to codedException
-                // fault string.
-                return true;
-            }
+            // only way to detect HSM pin incorrect is by matching to codedException
+            // fault string.
+            return CKR_PIN_INCORRECT_MESSAGE.equals(e.getFaultString());
         }
         return false;
     }

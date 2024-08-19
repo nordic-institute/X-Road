@@ -57,10 +57,10 @@ public class AnchorRepository {
         try {
             return Files.readAllBytes(path);
         } catch (NoSuchFileException nsfe) {
-            log.error("anchor file does not exist (" + path.toString() + ")");
+            log.error("anchor file does not exist (" + path + ")");
             throw nsfe;
         } catch (IOException ioe) {
-            log.error("can't read anchor file's content (" + path.toString() + ")");
+            log.error("can't read anchor file's content (" + path + ")");
             throw new RuntimeException(ioe);
         }
     }

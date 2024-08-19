@@ -188,7 +188,7 @@ public class ConfProxyUtilViewConf extends ConfProxyUtil {
             log.warn("Invalid certificate: {}", e);
             return " (INVALID CERTIFICATE - " + e.getMessage() + ")";
         }
-        return " (Certificate: " + certPath.toString() + ")";
+        return " (Certificate: " + certPath + ")";
     }
 
     /**
