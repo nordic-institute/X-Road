@@ -21,7 +21,8 @@ testAutomationFramework = "0.2.18"
 protoc = "3.25.4"
 grpc = "1.66.0"
 swaggerParser = "2.1.22"
-logback = "1.5.7"
+logback = "1.5.0"
+logbackAccess = "2.0.1"
 
 [libraries]
 metrics-core = { module = "io.dropwizard.metrics:metrics-core", version.ref = "metrics" }
@@ -121,7 +122,7 @@ lombok = { module = "org.projectlombok:lombok", version = "1.18.34" }
 lombokMapstructBinding = { module = "org.projectlombok:lombok-mapstruct-binding", version = "0.2.0" }
 
 logback-classic = { module = "ch.qos.logback:logback-classic", version.ref = "logback" }
-logback-access = { module = "ch.qos.logback:logback-access", version.ref = "logback" }
+logback-access = { module = "ch.qos.logback.access:tomcat", version.ref = "logbackAccess" }
 
 assertj-core = { module = "org.assertj:assertj-core", version = "3.26.3" }
 wiremock-standalone = { module = "org.wiremock:wiremock-standalone", version = "3.9.1" }
