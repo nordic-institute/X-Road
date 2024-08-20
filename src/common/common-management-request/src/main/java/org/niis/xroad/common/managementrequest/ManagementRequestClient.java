@@ -178,7 +178,6 @@ public final class ManagementRequestClient implements StartStop {
         centralHttpClient = createHttpClient(null, new TrustManager[]{tm});
     }
 
-    @SuppressWarnings("java:S4830")
     private void createProxyHttpClient() throws Exception {
         log.trace("createProxyHttpClient()");
 
@@ -193,6 +192,7 @@ public final class ManagementRequestClient implements StartStop {
         }
     }
 
+    @SuppressWarnings("java:S4830") // Won't fix: Works as designed ("Server certificates should be verified")
     private CloseableHttpClient createProxyHttpClientWithInternalKey() throws Exception {
         TrustManager tm = new X509TrustManager() {
             @Override
