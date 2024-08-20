@@ -5,23 +5,24 @@
 # In some cases referincing library directly like 'libs.protobuf.protoc' may not work, possible workaround could be:
 # protoc { artifact = libs.protobuf.protoc.get().toString() } where just using 'artifact = libs.protobuf.protoc' causes error
 
-metrics = "4.2.26"
+metrics = "4.2.27"
 jetty = "12.0.7"
 jaxb = "4.0.5"
 hibernate = "6.5.2.Final"
-mapstruct = "1.5.5.Final"
+mapstruct = "1.6.0"
 jackson = "2.17.2"
 mockito = "5.12.0"
 springBoot = "3.3.2"
-junitJupiter = "5.10.3"
+junitJupiter = "5.11.0"
 xmlUnit = "2.10.0"
 bouncyCastle = "1.78.1"
-slf4j = "2.0.13"
-testAutomationFramework = "0.2.17"
+slf4j = "2.0.16"
+testAutomationFramework = "0.2.18"
 protoc = "3.25.4"
-grpc = "1.65.1"
+grpc = "1.66.0"
 swaggerParser = "2.1.22"
-logback = "1.4.14"
+logback = "1.5.0"
+logbackAccess = "2.0.1"
 
 [libraries]
 metrics-core = { module = "io.dropwizard.metrics:metrics-core", version.ref = "metrics" }
@@ -91,8 +92,8 @@ jackson-annotations = { module = "com.fasterxml.jackson.core:jackson-annotations
 mockito-core = { module = "org.mockito:mockito-core", version.ref = "mockito" }
 mockito-jupiter = { module = "org.mockito:mockito-junit-jupiter", version.ref = "mockito" }
 
-apache-commonsCompress = { module = "org.apache.commons:commons-compress", version = "1.26.2" }
-apache-commonsLang3 = { module = "org.apache.commons:commons-lang3", version = "3.15.0" }
+apache-commonsCompress = { module = "org.apache.commons:commons-compress", version = "1.27.0" }
+apache-commonsLang3 = { module = "org.apache.commons:commons-lang3", version = "3.16.0" }
 apache-commonsText = { module = "org.apache.commons:commons-text", version = "1.12.0" }
 apache-commonsConfiguration2 = { module = "org.apache.commons:commons-configuration2", version = "2.11.0" }
 apache-httpmime = { module = "org.apache.httpcomponents:httpmime", version = "4.5.14" }
@@ -105,7 +106,7 @@ apache-httpclient5 = { module = "org.apache.httpcomponents.client5:httpclient5",
 apache-mime4jCore = { module = "org.apache.james:apache-mime4j-core", version = "0.8.11" }
 apache-ant = { module = "org.apache.ant:ant", version = "1.10.14" }
 
-commons-cli = { module = "commons-cli:commons-cli", version = "1.8.0" }
+commons-cli = { module = "commons-cli:commons-cli", version = "1.9.0" }
 commons-codec = { module = "commons-codec:commons-codec", version = "1.17.1" }
 commons-io = { module = "commons-io:commons-io", version = "2.16.1" }
 commons-collections = { module = "commons-collections:commons-collections", version = "3.2.2" }
@@ -121,18 +122,18 @@ lombok = { module = "org.projectlombok:lombok", version = "1.18.34" }
 lombokMapstructBinding = { module = "org.projectlombok:lombok-mapstruct-binding", version = "0.2.0" }
 
 logback-classic = { module = "ch.qos.logback:logback-classic", version.ref = "logback" }
-logback-access = { module = "ch.qos.logback:logback-access", version.ref = "logback" }
+logback-access = { module = "ch.qos.logback.access:tomcat", version.ref = "logbackAccess" }
 
 assertj-core = { module = "org.assertj:assertj-core", version = "3.26.3" }
 wiremock-standalone = { module = "org.wiremock:wiremock-standalone", version = "3.9.1" }
 postgresql = { module = "org.postgresql:postgresql", version = "42.7.3" }
 hsqldb = { module = "org.hsqldb:hsqldb", version = "2.7.3" }
-liquibase-core = { module = "org.liquibase:liquibase-core", version = "4.29.0" }
+liquibase-core = { module = "org.liquibase:liquibase-core", version = "4.29.1" }
 xerces-impl = { module = "xerces:xercesImpl", version = "2.12.2" }
 feign-hc5 = { module = "io.github.openfeign:feign-hc5", version = "13.3" }
 guava = { module = "com.google.guava:guava", version = "33.0.0-jre" }
 swagger-annotations = { module = "io.swagger.core.v3:swagger-annotations", version = "2.2.22" }
-awaitility = { module = "org.awaitility:awaitility", version = "4.2.1" }
+awaitility = { module = "org.awaitility:awaitility", version = "4.2.2" }
 bucket4j-core = { module = "com.bucket4j:bucket4j-core", version = "8.10.1" }
 libpam4j = { module = "org.kohsuke:libpam4j", version = "1.11" }
 wsdl4j = { module = "wsdl4j:wsdl4j", version = "1.6.3" }
@@ -147,9 +148,9 @@ systemRules = { module = "com.github.stefanbirkner:system-rules", version = "1.1
 semver4j = { module = "org.semver4j:semver4j", version = "5.3.0" }
 restAssured = { module = "io.rest-assured:rest-assured", version = "5.5.0" }
 cliche = { module = "com.googlecode.clichemaven:cliche", version = "110413" }
-acme4j = { module = "org.shredzone.acme4j:acme4j-client", version = "3.3.1" }
+acme4j = { module = "org.shredzone.acme4j:acme4j-client", version = "3.4.0" }
 jsonUnit-assertj = { module = "net.javacrumbs.json-unit:json-unit-assertj", version = "3.4.1" }
-opentelemetry-instrumentation-annotations = { module = "io.opentelemetry.instrumentation:opentelemetry-instrumentation-annotations", version = "2.6.0" }
+opentelemetry-instrumentation-annotations = { module = "io.opentelemetry.instrumentation:opentelemetry-instrumentation-annotations", version = "2.7.0" }
 
 [bundles]
 metrics = ["metrics-core", "metrics-jmx"]

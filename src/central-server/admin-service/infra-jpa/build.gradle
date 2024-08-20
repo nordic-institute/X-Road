@@ -7,6 +7,7 @@ dependencies {
     implementation project(':common:common-domain')
 
     api('org.springframework.boot:spring-boot-starter-data-jpa')
+    api(libs.hibernate.core)
     implementation("org.hibernate.validator:hibernate-validator")
 }
 

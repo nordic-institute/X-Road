@@ -29,8 +29,8 @@ import com.codeborne.selenide.Selenide;
 import io.cucumber.java.After;
 import io.cucumber.java.en.Step;
 import org.openqa.selenium.devtools.DevTools;
-import org.openqa.selenium.devtools.v122.network.Network;
-import org.openqa.selenium.devtools.v122.network.model.ConnectionType;
+import org.openqa.selenium.devtools.v127.network.Network;
+import org.openqa.selenium.devtools.v127.network.model.ConnectionType;
 
 import java.util.Optional;
 
@@ -64,7 +64,10 @@ public class CommonUiStepDefs extends BaseUiStepDefs {
                 350,
                 32 * 1024,
                 64 * 1024,
-                Optional.of(ConnectionType.fromString(connectionType))
+                Optional.of(ConnectionType.fromString(connectionType)),
+                Optional.empty(),
+                Optional.empty(),
+                Optional.empty()
         ));
     }
 }

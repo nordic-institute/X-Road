@@ -65,6 +65,7 @@ import static java.util.Collections.singleton;
 import static java.util.function.Predicate.isEqual;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotEquals;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
@@ -289,7 +290,7 @@ public class ServiceDescriptionServiceIntegrationTest extends AbstractServiceInt
         } catch (ServiceDescriptionService.InvalidServiceIdentifierException expected) {
             Set<String> invalidIdentifiers = new HashSet<>(Arrays.asList("xroadGetRandom:aa", "xroadGetRandom;aa",
                     "xroadGetRandom\\aa", "xroadGetRandom/aa", "xroadGetRandom%aa", "xroadGetRandom/../aa"));
-            assertEquals(invalidIdentifiers, new HashSet(expected.getErrorDeviation().getMetadata()));
+            assertEquals(invalidIdentifiers, new HashSet<>(expected.getErrorDeviation().getMetadata()));
             Assert.assertEquals(invalidIdentifiers.size(), expected.getErrorDeviation().getMetadata().size());
         }
     }
@@ -396,13 +397,13 @@ public class ServiceDescriptionServiceIntegrationTest extends AbstractServiceInt
     }
 
     /**
-     * Assert servicedescription contains the given codes. Checks codes only, no versions
-     * @param serviceDescriptionType
+     * Assert service description contains the given codes. Checks codes only, no versions
+     * @param serviceDescriptionType service description to check
      */
     private void assertServiceCodes(ServiceDescriptionType serviceDescriptionType, String... expectedCodes) {
         List<String> serviceCodes = serviceDescriptionType.getService()
                 .stream()
-                .map(service -> service.getServiceCode())
+                .map(ServiceType::getServiceCode)
                 .collect(Collectors.toList());
         assertEquals(Arrays.asList(expectedCodes), serviceCodes);
     }
@@ -423,7 +424,7 @@ public class ServiceDescriptionServiceIntegrationTest extends AbstractServiceInt
         assertTrue(clientType.getEndpoint()
                 .stream()
                 .map(EndpointType::getServiceCode)
-                .collect(Collectors.toList())
+                .toList()
                 .containsAll(Arrays.asList(GET_RANDOM_SERVICECODE, CALCULATE_PRIME)));
 
         // add 3 more services
@@ -437,7 +438,7 @@ public class ServiceDescriptionServiceIntegrationTest extends AbstractServiceInt
         assertTrue(clientType.getEndpoint()
                 .stream()
                 .map(EndpointType::getServiceCode)
-                .collect(Collectors.toList())
+                .toList()
                 .containsAll(Arrays.asList(GET_RANDOM_SERVICECODE, CALCULATE_PRIME, XROAD_GET_RANDOM_SERVICECODE,
                         BIG_ATTACHMENT_SERVICECODE, SMALL_ATTACHMENT_SERVICECODE)));
     }
@@ -450,7 +451,7 @@ public class ServiceDescriptionServiceIntegrationTest extends AbstractServiceInt
         assertTrue(clientType.getEndpoint()
                 .stream()
                 .map(EndpointType::getServiceCode)
-                .collect(Collectors.toList())
+                .toList()
                 .containsAll(Arrays.asList(GET_RANDOM_SERVICECODE, CALCULATE_PRIME)));
 
         ServiceDescriptionType serviceDescription = getServiceDescription(SOAPSERVICEDESCRIPTION_URL, clientType);
@@ -464,7 +465,7 @@ public class ServiceDescriptionServiceIntegrationTest extends AbstractServiceInt
         assertTrue(clientType.getEndpoint()
                 .stream()
                 .map(EndpointType::getServiceCode)
-                .collect(Collectors.toList())
+                .toList()
                 .containsAll(Arrays.asList(GET_RANDOM_SERVICECODE, HELLO_SERVICE)));
     }
 
@@ -476,7 +477,7 @@ public class ServiceDescriptionServiceIntegrationTest extends AbstractServiceInt
         assertTrue(clientType.getEndpoint()
                 .stream()
                 .map(EndpointType::getServiceCode)
-                .collect(Collectors.toList())
+                .toList()
                 .containsAll(Arrays.asList(GET_RANDOM_SERVICECODE, CALCULATE_PRIME)));
 
         ServiceDescriptionType serviceDescription = getServiceDescription(SOAPSERVICEDESCRIPTION_URL, clientType);
@@ -555,7 +556,7 @@ public class ServiceDescriptionServiceIntegrationTest extends AbstractServiceInt
         assertTrue(clientType.getEndpoint()
                 .stream()
                 .map(EndpointType::getServiceCode)
-                .collect(Collectors.toList())
+                .toList()
                 .containsAll(Arrays.asList(GET_RANDOM_SERVICECODE, CALCULATE_PRIME)));
 
         File testServiceWsdl = tempFolder.newFile("test.wsdl");
@@ -577,7 +578,7 @@ public class ServiceDescriptionServiceIntegrationTest extends AbstractServiceInt
         assertTrue(clientType.getEndpoint()
                 .stream()
                 .map(EndpointType::getServiceCode)
-                .collect(Collectors.toList())
+                .toList()
                 .containsAll(Arrays.asList(GET_RANDOM_SERVICECODE, CALCULATE_PRIME, XROAD_GET_RANDOM_SERVICECODE,
                         BMI_SERVICE)));
     }
@@ -591,7 +592,7 @@ public class ServiceDescriptionServiceIntegrationTest extends AbstractServiceInt
 
         assertEquals(5, getEndpointCountByServiceCode(client, "openapi3-test"));
         assertEquals(4, client.getAcl().size());
-        assertTrue(client.getEndpoint().stream().filter(ep -> ep.getMethod().equals("POST")).count() == 1);
+        assertEquals(1, client.getEndpoint().stream().filter(ep -> ep.getMethod().equals("POST")).count());
 
         serviceDescriptiontype.setUrl("file:src/test/resources/openapiparser/valid.yaml");
         serviceDescriptionRepository.saveOrUpdate(serviceDescriptiontype);
@@ -621,7 +622,7 @@ public class ServiceDescriptionServiceIntegrationTest extends AbstractServiceInt
 
         assertEquals(5, getEndpointCountByServiceCode(client, "openapi3-test"));
         assertEquals(4, client.getAcl().size());
-        assertTrue(client.getEndpoint().stream().filter(ep -> ep.getMethod().equals("POST")).count() == 1);
+        assertEquals(1, client.getEndpoint().stream().filter(ep -> ep.getMethod().equals("POST")).count());
 
         serviceDescriptiontype.setUrl("file:src/test/resources/openapiparser/valid_modified.yaml");
         serviceDescriptionRepository.saveOrUpdate(serviceDescriptiontype);
@@ -682,11 +683,13 @@ public class ServiceDescriptionServiceIntegrationTest extends AbstractServiceInt
         assertEquals(8, client.getEndpoint().size());
         assertTrue(client.getEndpoint().stream()
                 .map(EndpointType::getServiceCode)
-                .collect(Collectors.toList())
+                .toList()
                 .contains("testcode"));
         Boolean sslAuthentication = client.getServiceDescription().stream()
                 .flatMap(sd -> sd.getService().stream())
-                .filter(s -> s.getServiceCode().equals("testcode")).findFirst().get().getSslAuthentication();
+                .filter(s -> s.getServiceCode().equals("testcode"))
+                .findFirst()
+                .get().getSslAuthentication();
         assertNull(sslAuthentication);
     }
 
@@ -698,8 +701,10 @@ public class ServiceDescriptionServiceIntegrationTest extends AbstractServiceInt
         serviceDescriptionService.addRestEndpointServiceDescription(CLIENT_ID_SS1, "https://testurl.com", "testcode");
         Boolean sslAuthentication = client.getServiceDescription().stream()
                 .flatMap(sd -> sd.getService().stream())
-                .filter(s -> s.getServiceCode().equals("testcode")).findFirst().get().getSslAuthentication();
-        assertFalse(Boolean.FALSE.equals(sslAuthentication));
+                .filter(s -> s.getServiceCode().equals("testcode"))
+                .findFirst()
+                .get().getSslAuthentication();
+        assertNotEquals(Boolean.FALSE, sslAuthentication);
     }
 
     @Test
@@ -716,7 +721,7 @@ public class ServiceDescriptionServiceIntegrationTest extends AbstractServiceInt
             serviceDescriptionService.addRestEndpointServiceDescription(CLIENT_ID_SS1,
                     "http://testurl.com", "getRandom");
             throw new Exception("Should have thrown ServiceCodeAlreadyExistsException");
-        } catch (ServiceDescriptionService.ServiceCodeAlreadyExistsException e) {
+        } catch (ServiceDescriptionService.ServiceCodeAlreadyExistsException ignored) {
         }
 
         // Test adding service with duplicate full service code
@@ -724,7 +729,7 @@ public class ServiceDescriptionServiceIntegrationTest extends AbstractServiceInt
             serviceDescriptionService.addRestEndpointServiceDescription(CLIENT_ID_SS1,
                     "http:://testurl.com", "getRandom.v1");
             throw new Exception("Should have thrown ServiceCodeAlreadyExistsException");
-        } catch (ServiceDescriptionService.ServiceCodeAlreadyExistsException e) {
+        } catch (ServiceDescriptionService.ServiceCodeAlreadyExistsException ignored) {
         }
 
     }
@@ -740,10 +745,10 @@ public class ServiceDescriptionServiceIntegrationTest extends AbstractServiceInt
 
         client = clientService.getLocalClient(CLIENT_ID_SS1);
         assertEquals(SS1_ENDPOINTS + 3, client.getEndpoint().size());
-        assertTrue(client.getEndpoint().stream()
+        assertEquals(3, client.getEndpoint().stream()
                 .map(EndpointType::getServiceCode)
-                .filter(s -> "testcode".equals(s))
-                .collect(Collectors.toList()).size() == 3);
+                .filter("testcode"::equals)
+                .count());
 
         OpenApiParser.Result parsedOasResult = openApiParser.parse(urlString);
         assertEquals(OAS3_SERVICE_URL, parsedOasResult.getBaseUrl());
@@ -819,16 +824,16 @@ public class ServiceDescriptionServiceIntegrationTest extends AbstractServiceInt
     private boolean serviceDescriptionContainsServiceWithServiceCode(ServiceDescriptionType serviceDescription,
                                                                      String serviceCode) {
         return serviceDescription.getService().stream()
-                .map(s -> s.getServiceCode())
-                .collect(Collectors.toList())
+                .map(ServiceType::getServiceCode)
+                .toList()
                 .contains(serviceCode);
     }
 
     private int getEndpointCountByServiceCode(ClientType client, String serviceCode) {
         return client.getEndpoint().stream()
-                .map(e -> e.getServiceCode())
-                .filter(sc -> serviceCode.equals(sc))
-                .collect(Collectors.toList())
+                .map(EndpointType::getServiceCode)
+                .filter(serviceCode::equals)
+                .toList()
                 .size();
     }
 
@@ -840,7 +845,7 @@ public class ServiceDescriptionServiceIntegrationTest extends AbstractServiceInt
         ClientType client = clientService.getLocalClient(CLIENT_ID_SS6);
         assertEquals(5, getEndpointCountByServiceCode(client, "openapi3-test"));
         assertEquals(4, client.getAcl().size());
-        assertTrue(client.getEndpoint().stream().filter(ep -> ep.getMethod().equals("POST")).count() == 1);
+        assertEquals(1, client.getEndpoint().stream().filter(ep -> ep.getMethod().equals("POST")).count());
 
         serviceDescriptionService.updateOpenApi3ServiceDescription(6L, url.toString(), "openapi3-test",
                 "openapi3-test", false);
@@ -870,7 +875,7 @@ public class ServiceDescriptionServiceIntegrationTest extends AbstractServiceInt
         ClientType client = clientService.getLocalClient(CLIENT_ID_SS6);
         assertEquals(5, getEndpointCountByServiceCode(client, "openapi3-test"));
         assertEquals(4, client.getAcl().size());
-        assertTrue(client.getEndpoint().stream().filter(ep -> ep.getMethod().equals("POST")).count() == 1);
+        assertEquals(1, client.getEndpoint().stream().filter(ep -> ep.getMethod().equals("POST")).count());
 
         boolean foundWarnings = false;
         try {
@@ -923,14 +928,14 @@ public class ServiceDescriptionServiceIntegrationTest extends AbstractServiceInt
 
         // backend returns the title of the first matching service (which can be null or empty),
         // or null if no matches
-        assertEquals(null, serviceDescriptionService.getServiceTitle(testClient, "foo"));
+        assertNull(serviceDescriptionService.getServiceTitle(testClient, "foo"));
 
         sd1.getService().add(createServiceType("bar-title", "bar", "v2"));
-        assertEquals(null, serviceDescriptionService.getServiceTitle(testClient, "foo"));
+        assertNull(serviceDescriptionService.getServiceTitle(testClient, "foo"));
 
         sd1.getService().clear();
         sd1.getService().add(createServiceType(null, "foo", "v1"));
-        assertEquals(null, serviceDescriptionService.getServiceTitle(testClient, "foo"));
+        assertNull(serviceDescriptionService.getServiceTitle(testClient, "foo"));
 
         sd1.getService().clear();
         sd1.getService().add(createServiceType("", "foo", "v2"));
