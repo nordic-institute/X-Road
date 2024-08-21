@@ -21,8 +21,9 @@ testAutomationFramework = "0.2.18"
 protoc = "3.25.4"
 grpc = "1.66.0"
 swaggerParser = "2.1.22"
-logback = "1.5.0"
-logbackAccess = "2.0.1"
+#can go newer on spring boot v3.3.3
+logback = "1.5.6"
+logbackAccess = "2.0.2"
 
 [libraries]
 metrics-core = { module = "io.dropwizard.metrics:metrics-core", version.ref = "metrics" }
@@ -92,7 +93,7 @@ jackson-annotations = { module = "com.fasterxml.jackson.core:jackson-annotations
 mockito-core = { module = "org.mockito:mockito-core", version.ref = "mockito" }
 mockito-jupiter = { module = "org.mockito:mockito-junit-jupiter", version.ref = "mockito" }
 
-apache-commonsCompress = { module = "org.apache.commons:commons-compress", version = "1.27.0" }
+apache-commonsCompress = { module = "org.apache.commons:commons-compress", version = "1.27.1" }
 apache-commonsLang3 = { module = "org.apache.commons:commons-lang3", version = "3.16.0" }
 apache-commonsText = { module = "org.apache.commons:commons-text", version = "1.12.0" }
 apache-commonsConfiguration2 = { module = "org.apache.commons:commons-configuration2", version = "2.11.0" }
@@ -159,7 +160,7 @@ testAutomation = ["testAutomation-containers", "testAutomation-allure", "testAut
 
 [plugins]
 springBoot = { id = "org.springframework.boot", version.ref = "springBoot" }
-openapi-generator = { id = "org.openapi.generator", version = "7.7.0" }
+openapi-generator = { id = "org.openapi.generator", version = "7.8.0" }
 sonarqube = { id = "org.sonarqube", version = "5.1.0.4882" }
 protobuf = { id = "com.google.protobuf", version = "0.9.4" }
 frontendJDK21 = { id = "org.siouan.frontend-jdk21", version = "8.1.0" }
