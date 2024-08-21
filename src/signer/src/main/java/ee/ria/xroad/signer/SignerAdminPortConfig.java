@@ -25,10 +25,8 @@
  */
 package ee.ria.xroad.signer;
 
-import ee.ria.xroad.common.CertificationServiceDiagnostics;
 import ee.ria.xroad.common.SystemProperties;
 import ee.ria.xroad.common.util.AdminPort;
-import ee.ria.xroad.common.util.JsonUtils;
 import ee.ria.xroad.common.util.RequestWrapper;
 import ee.ria.xroad.common.util.ResponseWrapper;
 import ee.ria.xroad.signer.certmanager.OcspClientWorker;
@@ -40,23 +38,14 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
-import java.io.IOException;
 import java.util.Optional;
-
-import static org.eclipse.jetty.http.MimeTypes.Type.APPLICATION_JSON_UTF_8;
 
 @Slf4j
 @Configuration
 public class SignerAdminPortConfig {
 
     @Bean
-    CertificationServiceDiagnostics certificationServiceDiagnostics() {
-        return new CertificationServiceDiagnostics();
-    }
-
-    @Bean
-    AdminPort createAdminPort(final CertificationServiceDiagnostics diagnosticsDefault,
-                              final OcspClientWorker ocspClientWorker,
+    AdminPort createAdminPort(final OcspClientWorker ocspClientWorker,
                               final Optional<OcspClientExecuteScheduler> ocspClientExecuteScheduler) {
         AdminPort port = new SpringManagerAdminPort(SystemProperties.getSignerAdminPort());
 
@@ -71,32 +60,6 @@ public class SignerAdminPortConfig {
                     }
                 } catch (Exception ex) {
                     log.error("error occurred in execute handler", ex);
-                }
-            }
-        });
-
-        port.addHandler("/status", new AdminPort.SynchronousCallback() {
-            @Override
-            public void handle(RequestWrapper request, ResponseWrapper response) {
-                log.info("handler /status");
-                CertificationServiceDiagnostics diagnostics = null;
-                try {
-                    diagnostics = ocspClientWorker.getDiagnostics();
-                    if (diagnostics != null) {
-                        diagnosticsDefault.update(diagnostics.getCertificationServiceStatusMap());
-                    }
-                } catch (Exception e) {
-                    log.error("Error getting diagnostics status", e);
-                }
-                if (diagnostics == null) {
-                    diagnostics = diagnosticsDefault;
-                }
-                try (var responseOut = response.getOutputStream()) {
-                    response.setContentType(APPLICATION_JSON_UTF_8);
-                    JsonUtils.getObjectWriter()
-                            .writeValue(responseOut, diagnostics);
-                } catch (IOException e) {
-                    log.error("Error writing response", e);
                 }
             }
         });

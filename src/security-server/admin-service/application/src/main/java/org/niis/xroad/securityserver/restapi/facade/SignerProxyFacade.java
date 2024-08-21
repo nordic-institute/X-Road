@@ -25,6 +25,7 @@
  */
 package org.niis.xroad.securityserver.restapi.facade;
 
+import ee.ria.xroad.common.CertificationServiceDiagnostics;
 import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.identifier.SecurityServerId;
 import ee.ria.xroad.signer.SignerProxy;
@@ -249,4 +250,9 @@ public class SignerProxyFacade {
     public void updateSoftwareTokenPin(String tokenId, char[] oldPin, char[] newPin) throws Exception {
         SignerProxy.updateTokenPin(tokenId, oldPin, newPin);
     }
+
+    public CertificationServiceDiagnostics getCertificationServiceDiagnostics() throws Exception {
+        return SignerProxy.getCertificationServiceDiagnostics();
+    }
+
 }

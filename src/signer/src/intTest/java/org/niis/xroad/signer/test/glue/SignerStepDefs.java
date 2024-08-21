@@ -27,6 +27,7 @@
 
 package org.niis.xroad.signer.test.glue;
 
+import ee.ria.xroad.common.CertificationServiceDiagnostics;
 import ee.ria.xroad.common.CodedException;
 import ee.ria.xroad.common.OcspTestUtils;
 import ee.ria.xroad.common.TestCertUtil;
@@ -92,6 +93,7 @@ public class SignerStepDefs extends BaseSignerStepDefs {
     private String certHash;
     private CertificateInfo certInfo;
     private byte[] scenarioCert;
+    private CertificationServiceDiagnostics diagnosticsResponse;
 
     private final Map<String, String> tokenLabelToIdMapping = new HashMap<>();
 
@@ -588,7 +590,6 @@ public class SignerStepDefs extends BaseSignerStepDefs {
         Assertions.assertEquals(message, codedException.getMessage());
     }
 
-
     @Step("ocsp responses are set")
     public void ocspResponsesAreSet() throws Exception {
         X509Certificate subject = TestCertUtil.getConsumer().certChain[0];
@@ -636,5 +637,15 @@ public class SignerStepDefs extends BaseSignerStepDefs {
                 .hasMessageContaining("Signer: Signer client timed out.");
     }
 
+    @Step("certification service diagnostics is requested")
+    public void certificationServiceDiagnosticsWorks() throws Exception {
+        this.diagnosticsResponse = SignerProxy.getCertificationServiceDiagnostics();
+        testReportService.attachJson("CertificationServiceDiagnostics", this.diagnosticsResponse);
+    }
+
+    @Step("diagnostic response contains diagnostics for {string}")
+    public void diagnosticResponseContainsDiagnosticsFor(String ca) {
+        assertThat(diagnosticsResponse.getCertificationServiceStatusMap().get(ca).getOcspResponderStatusMap()).isNotEmpty();
+    }
 
 }

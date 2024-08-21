@@ -30,6 +30,7 @@ import io.opentelemetry.instrumentation.annotations.WithSpan;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import org.niis.xroad.common.rpc.client.RpcClient;
+import org.niis.xroad.signer.proto.AdminServiceGrpc;
 import org.niis.xroad.signer.proto.CertificateServiceGrpc;
 import org.niis.xroad.signer.proto.KeyServiceGrpc;
 import org.niis.xroad.signer.proto.OcspServiceGrpc;
@@ -86,6 +87,7 @@ public final class RpcSignerClient {
         private final KeyServiceGrpc.KeyServiceStub asyncKeyService;
 
         private final OcspServiceGrpc.OcspServiceBlockingStub blockingOcspService;
+        private final AdminServiceGrpc.AdminServiceBlockingStub adminServiceBlockingStub;
 
         public SignerRpcExecutionContext(Channel channel) {
             blockingTokenService = TokenServiceGrpc.newBlockingStub(channel).withWaitForReady();
@@ -95,6 +97,7 @@ public final class RpcSignerClient {
             asyncKeyService = KeyServiceGrpc.newStub(channel).withWaitForReady();
 
             blockingOcspService = OcspServiceGrpc.newBlockingStub(channel).withWaitForReady();
+            adminServiceBlockingStub = AdminServiceGrpc.newBlockingStub(channel).withWaitForReady();
         }
     }
 

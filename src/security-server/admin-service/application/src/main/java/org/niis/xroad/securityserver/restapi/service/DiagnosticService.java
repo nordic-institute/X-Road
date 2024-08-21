@@ -41,6 +41,7 @@ import org.niis.xroad.restapi.exceptions.DeviationAwareRuntimeException;
 import org.niis.xroad.restapi.exceptions.ErrorDeviation;
 import org.niis.xroad.restapi.service.ServiceException;
 import org.niis.xroad.securityserver.restapi.dto.OcspResponderDiagnosticsStatus;
+import org.niis.xroad.securityserver.restapi.facade.SignerProxyFacade;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.web.client.RestTemplateBuilder;
@@ -76,29 +77,28 @@ public class DiagnosticService {
     private static final int HTTP_CONNECT_TIMEOUT_MS = 1000;
     private static final int HTTP_CLIENT_TIMEOUT_MS = 60000;
     private final RestTemplate restTemplate;
+    private final SignerProxyFacade signerProxyFacade;
     private final String diagnosticsGlobalconfUrl;
     private final String diagnosticsTimestampingServicesUrl;
-    private final String diagnosticsOcspRespondersUrl;
     private final String diagnosticsAddOnStatusUrl;
     private final String backupEncryptionStatusUrl;
     private final String messageLogEncryptionStatusUrl;
 
     @Autowired
     public DiagnosticService(
+            SignerProxyFacade signerProxyFacade,
             @Value("${url.diagnostics-globalconf}") String diagnosticsGlobalconfUrl,
             @Value("${url.diagnostics-timestamping-services}") String diagnosticsTimestampingServicesUrl,
-            @Value("${url.diagnostics-ocsp-responders}") String diagnosticsOcspRespondersUrl,
             @Value("${url.diagnostics-addon-status}") String diagnosticsAddOnStatusUrl,
             @Value("${url.diagnostics-backup-encryption-status}") String backupEncryptionStatusUrl,
             @Value("${url.diagnostics-message-log-encryption-status}") String messageLogEncryptionStatusUrl,
             RestTemplateBuilder restTemplateBuilder) {
 
+        this.signerProxyFacade = signerProxyFacade;
         this.diagnosticsGlobalconfUrl = String.format(diagnosticsGlobalconfUrl,
                 SystemProperties.getConfigurationClientAdminPort());
         this.diagnosticsTimestampingServicesUrl = String.format(diagnosticsTimestampingServicesUrl,
                 PortNumbers.ADMIN_PORT);
-        this.diagnosticsOcspRespondersUrl = String.format(diagnosticsOcspRespondersUrl,
-                SystemProperties.getSignerAdminPort());
         this.diagnosticsAddOnStatusUrl = String.format(diagnosticsAddOnStatusUrl, PortNumbers.ADMIN_PORT);
         this.backupEncryptionStatusUrl = String.format(backupEncryptionStatusUrl,
                 PortNumbers.ADMIN_PORT);
@@ -164,17 +164,17 @@ public class DiagnosticService {
     public List<OcspResponderDiagnosticsStatus> queryOcspResponderStatus() {
         log.info("Query OCSP status");
         try {
-            ResponseEntity<CertificationServiceDiagnostics> response = sendGetRequest(diagnosticsOcspRespondersUrl,
-                    CertificationServiceDiagnostics.class);
+            CertificationServiceDiagnostics response = signerProxyFacade.getCertificationServiceDiagnostics();
 
-            return Objects.requireNonNull(response.getBody())
+            return Objects.requireNonNull(response)
                     .getCertificationServiceStatusMap()
                     .entrySet()
                     .stream()
                     .map(this::parseOcspResponderDiagnosticsStatus)
-                    .collect(Collectors.toList());
-        } catch (DiagnosticRequestException e) {
-            throw new DeviationAwareRuntimeException(e, e.getErrorDeviation());
+                    .toList();
+        } catch (Exception e) {
+            throw new DeviationAwareRuntimeException(e.getMessage(),
+                    new ErrorDeviation(ERROR_DIAGNOSTIC_REQUEST_FAILED));
         }
     }
 

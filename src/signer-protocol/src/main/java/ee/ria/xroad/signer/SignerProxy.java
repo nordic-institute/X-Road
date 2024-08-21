@@ -25,6 +25,9 @@
  */
 package ee.ria.xroad.signer;
 
+import ee.ria.xroad.common.CertificationServiceDiagnostics;
+import ee.ria.xroad.common.CertificationServiceStatus;
+import ee.ria.xroad.common.OcspResponderStatus;
 import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.identifier.SecurityServerId;
 import ee.ria.xroad.common.util.PasswordStore;
@@ -47,6 +50,7 @@ import org.niis.xroad.common.rpc.mapper.SecurityServerIdMapper;
 import org.niis.xroad.signer.proto.ActivateCertReq;
 import org.niis.xroad.signer.proto.ActivateTokenReq;
 import org.niis.xroad.signer.proto.CertificateRequestFormat;
+import org.niis.xroad.signer.proto.CertificationServiceDiagnosticsResp;
 import org.niis.xroad.signer.proto.DeleteCertReq;
 import org.niis.xroad.signer.proto.DeleteCertRequestReq;
 import org.niis.xroad.signer.proto.DeleteKeyReq;
@@ -86,8 +90,10 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
+import static java.time.Instant.ofEpochMilli;
 import static java.util.Arrays.asList;
 import static java.util.Optional.ofNullable;
+import static org.niis.xroad.restapi.util.FormatUtils.fromInstantToOffsetDateTime;
 
 /**
  * Responsible for managing cryptographic tokens (smartcards, HSMs, etc.) through the signer.
@@ -370,12 +376,13 @@ public final class SignerProxy {
 
     /**
      * Generates a certificate request for the given key and with provided parameters.
-     * @param keyId ID of the key
-     * @param memberId client ID of the certificate owner
-     * @param keyUsage specifies whether the certificate is for signing or authentication
-     * @param subjectName subject name of the certificate
+     *
+     * @param keyId          ID of the key
+     * @param memberId       client ID of the certificate owner
+     * @param keyUsage       specifies whether the certificate is for signing or authentication
+     * @param subjectName    subject name of the certificate
      * @param subjectAltName subject alternative name of the certificate
-     * @param format the format of the request
+     * @param format         the format of the request
      * @return GeneratedCertRequestInfo containing details and content of the certificate request
      * @throws Exception if any errors occur
      */
@@ -747,6 +754,13 @@ public final class SignerProxy {
         return response.getCertificateChain().toByteArray();
     }
 
+    public static CertificationServiceDiagnostics getCertificationServiceDiagnostics() throws Exception {
+        var signerResponse = RpcSignerClient.execute(ctx -> ctx.getAdminServiceBlockingStub()
+                .getCertificationServiceDiagnostics(Empty.newBuilder().build()));
+
+        return CertificationServiceDiagnosticsMapper.fromDto(signerResponse);
+    }
+
     @Value
     public static class MemberSigningInfoDto {
         String keyId;
@@ -758,6 +772,33 @@ public final class SignerProxy {
     public static class KeyIdInfo {
         String keyId;
         String signMechanismName;
+    }
+
+    private static final class CertificationServiceDiagnosticsMapper {
+
+        public static CertificationServiceDiagnostics fromDto(CertificationServiceDiagnosticsResp dto) {
+            Map<String, CertificationServiceStatus> statusMap = dto.getCertificationServiceStatusMapMap()
+                    .entrySet().stream()
+                    .collect(Collectors.toMap(Map.Entry::getKey,
+                            entry -> toDto(entry.getValue())));
+
+            CertificationServiceDiagnostics response = new CertificationServiceDiagnostics();
+            response.update(statusMap);
+            return response;
+        }
+
+        private static CertificationServiceStatus toDto(org.niis.xroad.signer.proto.CertificationServiceStatus status) {
+            var response = new CertificationServiceStatus(status.getName());
+            status.getOcspResponderStatusMapMap()
+                    .forEach((key, value) -> response.getOcspResponderStatusMap().put(key,
+                            new OcspResponderStatus(value.getStatus(),
+                                    value.getUrl(),
+                                    value.hasPrevUpdate() ? fromInstantToOffsetDateTime(ofEpochMilli(value.getPrevUpdate())) : null,
+                                    fromInstantToOffsetDateTime(ofEpochMilli(value.getNextUpdate())))
+                    ));
+            return response;
+        }
+
     }
 
 }
