@@ -23,7 +23,7 @@ grpc = "1.66.0"
 swaggerParser = "2.1.22"
 #can go newer on spring boot v3.3.3
 logback = "1.5.6"
-logbackAccess = "2.0.2"
+logbackAccess = "2.0.3"
 
 [libraries]
 metrics-core = { module = "io.dropwizard.metrics:metrics-core", version.ref = "metrics" }
