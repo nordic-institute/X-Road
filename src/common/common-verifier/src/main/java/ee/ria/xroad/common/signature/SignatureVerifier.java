@@ -68,6 +68,7 @@ import static ee.ria.xroad.common.ErrorCodes.X_INVALID_REFERENCE;
 import static ee.ria.xroad.common.ErrorCodes.X_INVALID_SIGNATURE_VALUE;
 import static ee.ria.xroad.common.ErrorCodes.X_MALFORMED_SIGNATURE;
 import static ee.ria.xroad.common.ErrorCodes.translateException;
+import static ee.ria.xroad.common.util.CryptoUtils.encodeBase64;
 import static ee.ria.xroad.common.util.MessageFileNames.SIG_HASH_CHAIN_RESULT;
 
 /**
@@ -300,6 +301,9 @@ public class SignatureVerifier {
                     getHashChainInputs());
         } catch (Exception e) {
             log.debug("Hash chain verification failed. HashChain: {}, HashChainResult: {}", hashChain, hashChainResult);
+            parts.forEach(part -> log.debug("Part: {}, {}, {}", part.getName(),
+                    encodeBase64(part.getData()),
+                    part.getMessage() != null ? encodeBase64(part.getMessage()) : null));
             throw translateException(e).withPrefix(X_MALFORMED_SIGNATURE);
         }
     }
