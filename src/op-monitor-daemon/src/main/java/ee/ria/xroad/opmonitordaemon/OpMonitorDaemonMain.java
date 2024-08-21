@@ -30,8 +30,6 @@ import ee.ria.xroad.common.SystemPropertiesLoader;
 import ee.ria.xroad.common.Version;
 import ee.ria.xroad.common.conf.globalconf.GlobalConf;
 import ee.ria.xroad.common.conf.globalconf.GlobalConfUpdater;
-import ee.ria.xroad.common.opmonitoring.OpMonitoringSystemProperties;
-import ee.ria.xroad.common.util.AdminPort;
 import ee.ria.xroad.common.util.JobManager;
 import ee.ria.xroad.common.util.StartStop;
 
@@ -129,27 +127,9 @@ public final class OpMonitorDaemonMain {
 
         SERVICES.add(jobManager);
         SERVICES.add(new OpMonitorDaemon());
-        SERVICES.add(createAdminPort());
 
         jobManager.registerRepeatingJob(GlobalConfUpdater.class,
                 SystemProperties.getConfigurationClientUpdateIntervalSeconds());
-    }
-
-    private static AdminPort createAdminPort() throws Exception {
-        AdminPort adminPort = new AdminPort(
-                OpMonitoringSystemProperties.getOpMonitorPort() + 1);
-
-        adminPort.addShutdownHook(() -> {
-            log.info("Operational monitoring daemon shutting down...");
-
-            try {
-                shutdown();
-            } catch (Exception e) {
-                log.error("Error during shutdown", e);
-            }
-        });
-
-        return adminPort;
     }
 
     private static void stopServices() throws Exception {
