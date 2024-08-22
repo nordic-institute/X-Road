@@ -50,7 +50,7 @@ To view a copy of this license, visit <https://creativecommons.org/licenses/by-s
   * [3.1 Enabling ACME Support](#31-enabling-acme-support)
 * [4 Upgrading](#4-upgrading)
   * [4.1 Upgrading from version 6.26.0 to 7.0.0](#41-upgrading-from-version-6260-to-700)
-  * [4.2 Upgrading from version 7.4.2 to 7.5.x with local database](4#2-Upgrading-from-version-742-to-75x-with-local-database)
+  * [4.2 Upgrading from version 7.4.2 to 7.5.x with local database](#42-Upgrading-from-version-742-to-75x-with-local-database)
 * [5 High Availability Setup](#5-high-availability-setup)
 
 <!-- vim-markdown-toc -->
@@ -340,7 +340,7 @@ See [IG-SS](#Ref_IG-SS) for configuration details.
 ### 3.1 Enabling ACME Support
 
 Automated Certificate Management Environment (ACME) protocol enables partly automated certificate management of the authentication and sign
-certificates on the Security Server. More information about the required configuration is available in the [Security Server User Guide](ug-ss_x-road_6_security_server_user_guide.md#24-configuring-acme).
+certificates on the Security Server. More information about the required configuration is available in the [Security Server User Guide](../Manuals/ug-ss_x-road_6_security_server_user_guide.md#24-configuring-acme).
 
 ## 4 Upgrading
 
