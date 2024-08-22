@@ -37,6 +37,7 @@ import ee.ria.xroad.common.SystemProperties;
 import ee.ria.xroad.common.util.JsonUtils;
 
 import lombok.extern.slf4j.Slf4j;
+import org.niis.xroad.proxy.proto.ProxyRpcClient;
 import org.niis.xroad.restapi.exceptions.DeviationAwareRuntimeException;
 import org.niis.xroad.restapi.exceptions.ErrorDeviation;
 import org.niis.xroad.restapi.service.ServiceException;
@@ -78,30 +79,29 @@ public class DiagnosticService {
     private static final int HTTP_CLIENT_TIMEOUT_MS = 60000;
     private final RestTemplate restTemplate;
     private final SignerProxyFacade signerProxyFacade;
+    private final ProxyRpcClient proxyRpcClient;
     private final String diagnosticsGlobalconfUrl;
     private final String diagnosticsTimestampingServicesUrl;
     private final String diagnosticsAddOnStatusUrl;
-    private final String backupEncryptionStatusUrl;
     private final String messageLogEncryptionStatusUrl;
 
     @Autowired
     public DiagnosticService(
             SignerProxyFacade signerProxyFacade,
+            ProxyRpcClient proxyRpcClient,
             @Value("${url.diagnostics-globalconf}") String diagnosticsGlobalconfUrl,
             @Value("${url.diagnostics-timestamping-services}") String diagnosticsTimestampingServicesUrl,
             @Value("${url.diagnostics-addon-status}") String diagnosticsAddOnStatusUrl,
-            @Value("${url.diagnostics-backup-encryption-status}") String backupEncryptionStatusUrl,
             @Value("${url.diagnostics-message-log-encryption-status}") String messageLogEncryptionStatusUrl,
             RestTemplateBuilder restTemplateBuilder) {
 
         this.signerProxyFacade = signerProxyFacade;
+        this.proxyRpcClient = proxyRpcClient;
         this.diagnosticsGlobalconfUrl = String.format(diagnosticsGlobalconfUrl,
                 SystemProperties.getConfigurationClientAdminPort());
         this.diagnosticsTimestampingServicesUrl = String.format(diagnosticsTimestampingServicesUrl,
                 PortNumbers.ADMIN_PORT);
         this.diagnosticsAddOnStatusUrl = String.format(diagnosticsAddOnStatusUrl, PortNumbers.ADMIN_PORT);
-        this.backupEncryptionStatusUrl = String.format(backupEncryptionStatusUrl,
-                PortNumbers.ADMIN_PORT);
         this.messageLogEncryptionStatusUrl = String.format(messageLogEncryptionStatusUrl,
                 PortNumbers.ADMIN_PORT);
 
@@ -198,9 +198,9 @@ public class DiagnosticService {
      */
     public BackupEncryptionStatusDiagnostics queryBackupEncryptionStatus() {
         try {
-            return sendGetRequest(backupEncryptionStatusUrl, BackupEncryptionStatusDiagnostics.class).getBody();
-        } catch (DiagnosticRequestException e) {
-            throw new DeviationAwareRuntimeException(e, e.getErrorDeviation());
+            return proxyRpcClient.getBackupEncryptionStatus();
+        } catch (Exception e) {
+            throw new DeviationAwareRuntimeException(e, new ErrorDeviation(ERROR_DIAGNOSTIC_REQUEST_FAILED));
         }
     }
 

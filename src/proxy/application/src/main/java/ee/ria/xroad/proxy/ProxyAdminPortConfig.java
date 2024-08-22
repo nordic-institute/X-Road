@@ -26,7 +26,6 @@
 package ee.ria.xroad.proxy;
 
 import ee.ria.xroad.common.AddOnStatusDiagnostics;
-import ee.ria.xroad.common.BackupEncryptionStatusDiagnostics;
 import ee.ria.xroad.common.DiagnosticsErrorCodes;
 import ee.ria.xroad.common.DiagnosticsStatus;
 import ee.ria.xroad.common.DiagnosticsUtils;
@@ -64,7 +63,6 @@ public class ProxyAdminPortConfig {
     private static final int DIAGNOSTICS_READ_TIMEOUT_MS = 15000; // 15 seconds
 
     private final AddOnStatusDiagnostics addOnStatus;
-    private final BackupEncryptionStatusDiagnostics backupEncryptionStatusDiagnostics;
     private final MessageLogEncryptionStatusDiagnostics messageLogEncryptionStatusDiagnostics;
     private final Optional<AssetsRegistrationJob> assetsRegistrationJobProvider;
     private final Optional<HealthCheckPort> healthCheckPort;
@@ -81,8 +79,6 @@ public class ProxyAdminPortConfig {
 
         addAddOnStatusHandler(adminPort);
 
-        addBackupEncryptionStatus(adminPort);
-
         addMessageLogEncryptionStatus(adminPort);
 
         assetsRegistrationJobProvider.ifPresent(assetsRegistrationJob ->
@@ -96,15 +92,6 @@ public class ProxyAdminPortConfig {
             @Override
             public void handle(RequestWrapper request, ResponseWrapper response) {
                 writeJsonResponse(addOnStatus, response);
-            }
-        });
-    }
-
-    private void addBackupEncryptionStatus(AdminPort adminPort) {
-        adminPort.addHandler("/backup-encryption-status", new AdminPort.SynchronousCallback() {
-            @Override
-            public void handle(RequestWrapper request, ResponseWrapper response) {
-                writeJsonResponse(backupEncryptionStatusDiagnostics, response);
             }
         });
     }

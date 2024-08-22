@@ -13,6 +13,7 @@ sourceSets {
 dependencies {
     implementation(platform(libs.springBoot.bom))
 
+    implementation(project(':proxy:proto-model'))
     implementation(project(':common:common-jetty'))
     implementation(project(':common:common-message'))
     implementation(project(':common:common-globalconf'))

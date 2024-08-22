@@ -25,32 +25,51 @@
  */
 package ee.ria.xroad.proxy;
 
+import ee.ria.xroad.common.BackupEncryptionStatusDiagnostics;
 import ee.ria.xroad.common.SystemProperties;
 import ee.ria.xroad.proxy.addon.AddOn;
+import ee.ria.xroad.proxy.admin.AdminService;
 import ee.ria.xroad.signer.protocol.RpcSignerClient;
 
+import io.grpc.BindableService;
+import io.grpc.ServerBuilder;
 import lombok.extern.slf4j.Slf4j;
 import org.niis.xroad.common.rpc.server.RpcServer;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+
+import java.util.List;
 
 @Slf4j
 @Configuration
 public class ProxyRpcConfig {
 
     @Bean(initMethod = "start", destroyMethod = "stop")
-    RpcServer proxyRpcServer(final AddOn.BindableServiceRegistry bindableServiceRegistry) throws Exception {
+    RpcServer proxyRpcServer(final AddOn.BindableServiceRegistry bindableServiceRegistry, List<BindableService> rpcServices) throws Exception {
         return RpcServer.newServer(
                 SystemProperties.getGrpcInternalHost(),
                 SystemProperties.getProxyGrpcPort(),
-                builder -> bindableServiceRegistry.getRegisteredServices().forEach(bindableService -> {
-                    log.info("Registering {} RPC service.", bindableService.getClass().getSimpleName());
-                    builder.addService(bindableService);
-                }));
+                builder -> {
+                    registerServices(bindableServiceRegistry.getRegisteredServices(), builder);
+                    registerServices(rpcServices, builder);
+                });
+    }
+
+    private void registerServices(List<BindableService> services, ServerBuilder<?> builder) {
+        services.forEach(service -> {
+            log.info("Registering {} RPC service.", service.getClass().getSimpleName());
+            builder.addService(service);
+        });
     }
 
     @Bean(destroyMethod = "stop")
     RpcSignerClient rpcSignerClient() throws Exception {
         return RpcSignerClient.init();
     }
+
+    @Bean
+    AdminService adminService(BackupEncryptionStatusDiagnostics backupEncryptionStatusDiagnostics) {
+        return new AdminService(backupEncryptionStatusDiagnostics);
+    }
+
 }
