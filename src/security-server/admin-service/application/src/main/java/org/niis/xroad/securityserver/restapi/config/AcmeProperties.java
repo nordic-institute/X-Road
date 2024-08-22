@@ -25,6 +25,7 @@
  */
 package org.niis.xroad.securityserver.restapi.config;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import lombok.Getter;
 import lombok.Setter;
 import org.niis.xroad.common.exception.NotFoundException;
@@ -36,6 +37,7 @@ import static org.niis.xroad.securityserver.restapi.service.AcmeDeviationMessage
 
 @Getter
 @Setter
+@JsonIgnoreProperties(ignoreUnknown = true)
 public class AcmeProperties {
 
     private EabCredentials eabCredentials;
