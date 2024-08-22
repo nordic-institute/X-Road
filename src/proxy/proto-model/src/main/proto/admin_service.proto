@@ -33,11 +33,16 @@ option java_multiple_files = true;
 
 service AdminService {
   rpc GetBackupEncryptionStatus(Empty) returns (BackupEncryptionStatusResp) {}
+  rpc GetAddOnStatus(Empty) returns (AddOnStatusResp) {}
 }
 
 message BackupEncryptionStatusResp {
   bool backup_encryption_status = 1;
   repeated string backup_encryption_keys = 2;
+}
+
+message AddOnStatusResp {
+  bool message_log_enabled = 1;
 }
 
 // might be imported fom common_messages, but the package includes 'signer'

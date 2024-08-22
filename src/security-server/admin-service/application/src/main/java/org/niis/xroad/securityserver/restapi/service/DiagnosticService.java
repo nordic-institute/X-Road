@@ -82,7 +82,6 @@ public class DiagnosticService {
     private final ProxyRpcClient proxyRpcClient;
     private final String diagnosticsGlobalconfUrl;
     private final String diagnosticsTimestampingServicesUrl;
-    private final String diagnosticsAddOnStatusUrl;
     private final String messageLogEncryptionStatusUrl;
 
     @Autowired
@@ -91,7 +90,6 @@ public class DiagnosticService {
             ProxyRpcClient proxyRpcClient,
             @Value("${url.diagnostics-globalconf}") String diagnosticsGlobalconfUrl,
             @Value("${url.diagnostics-timestamping-services}") String diagnosticsTimestampingServicesUrl,
-            @Value("${url.diagnostics-addon-status}") String diagnosticsAddOnStatusUrl,
             @Value("${url.diagnostics-message-log-encryption-status}") String messageLogEncryptionStatusUrl,
             RestTemplateBuilder restTemplateBuilder) {
 
@@ -101,7 +99,6 @@ public class DiagnosticService {
                 SystemProperties.getConfigurationClientAdminPort());
         this.diagnosticsTimestampingServicesUrl = String.format(diagnosticsTimestampingServicesUrl,
                 PortNumbers.ADMIN_PORT);
-        this.diagnosticsAddOnStatusUrl = String.format(diagnosticsAddOnStatusUrl, PortNumbers.ADMIN_PORT);
         this.messageLogEncryptionStatusUrl = String.format(messageLogEncryptionStatusUrl,
                 PortNumbers.ADMIN_PORT);
 
@@ -181,13 +178,13 @@ public class DiagnosticService {
     /**
      * Query proxy addons status from admin port over HTTP.
      *
-     * @return
+     * @return AddOnStatusDiagnostics
      */
     public AddOnStatusDiagnostics queryAddOnStatus() {
         try {
-            return sendGetRequest(diagnosticsAddOnStatusUrl, AddOnStatusDiagnostics.class).getBody();
-        } catch (DiagnosticRequestException e) {
-            throw new DeviationAwareRuntimeException(e, e.getErrorDeviation());
+            return proxyRpcClient.getAddOnStatus();
+        } catch (Exception e) {
+            throw new DeviationAwareRuntimeException(e, new ErrorDeviation(ERROR_DIAGNOSTIC_REQUEST_FAILED));
         }
     }
 

@@ -27,6 +27,7 @@
 
 package org.niis.xroad.proxy.proto;
 
+import ee.ria.xroad.common.AddOnStatusDiagnostics;
 import ee.ria.xroad.common.BackupEncryptionStatusDiagnostics;
 import ee.ria.xroad.common.SystemProperties;
 
@@ -52,6 +53,12 @@ public class ProxyRpcClient {
         return new BackupEncryptionStatusDiagnostics(
                 response.getBackupEncryptionStatus(),
                 response.getBackupEncryptionKeysList());
+    }
+
+    public AddOnStatusDiagnostics getAddOnStatus() throws Exception {
+        var response = proxyRpcClient.execute(ctx -> ctx.getAdminServiceBlockingStub()
+                .getAddOnStatus(Empty.newBuilder().build()));
+        return new AddOnStatusDiagnostics(response.getMessageLogEnabled());
     }
 
     @Getter

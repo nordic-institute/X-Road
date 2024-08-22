@@ -27,13 +27,17 @@
 
 package ee.ria.xroad.proxy.admin;
 
+import ee.ria.xroad.common.AddOnStatusDiagnostics;
 import ee.ria.xroad.common.BackupEncryptionStatusDiagnostics;
 
 import io.grpc.stub.StreamObserver;
 import lombok.RequiredArgsConstructor;
+import org.niis.xroad.proxy.proto.AddOnStatusResp;
 import org.niis.xroad.proxy.proto.AdminServiceGrpc;
 import org.niis.xroad.proxy.proto.BackupEncryptionStatusResp;
 import org.niis.xroad.proxy.proto.Empty;
+
+import java.util.function.Supplier;
 
 import static java.util.Collections.unmodifiableList;
 
@@ -41,15 +45,31 @@ import static java.util.Collections.unmodifiableList;
 public class AdminService extends AdminServiceGrpc.AdminServiceImplBase {
 
     private final BackupEncryptionStatusDiagnostics backupEncryptionStatusDiagnostics;
+    private final AddOnStatusDiagnostics addOnStatusDiagnostics;
 
     @Override
     public void getBackupEncryptionStatus(Empty request, StreamObserver<BackupEncryptionStatusResp> responseObserver) {
+        handleRequest(responseObserver, this::handleGetBackupEncryptionStatus);
+    }
+
+    @Override
+    public void getAddOnStatus(Empty request, StreamObserver<AddOnStatusResp> responseObserver) {
+        handleRequest(responseObserver, this::handleAddOnStatus);
+    }
+
+    private <T> void handleRequest(StreamObserver<T> responseObserver, Supplier<T> handler) {
         try {
-            responseObserver.onNext(handleGetBackupEncryptionStatus());
+            responseObserver.onNext(handler.get());
         } catch (Exception e) {
             responseObserver.onError(e);
         }
         responseObserver.onCompleted();
+    }
+
+    private AddOnStatusResp handleAddOnStatus() {
+        return AddOnStatusResp.newBuilder()
+                .setMessageLogEnabled(addOnStatusDiagnostics.isMessageLogEnabled())
+                .build();
     }
 
     private BackupEncryptionStatusResp handleGetBackupEncryptionStatus() {
