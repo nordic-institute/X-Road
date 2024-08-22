@@ -5,7 +5,7 @@ plugins {
 sourceSets {
     intTest {
         resources {
-            srcDir '../common/common-int-test/src/main/resources/'
+            srcDir '../../common/common-int-test/src/main/resources/'
         }
     }
 }
@@ -50,10 +50,12 @@ jar {
         attributes('Main-Class': 'ee.ria.xroad.proxy.ProxyMain')
     }
     archiveClassifier = 'plain'
+    archiveBaseName = 'proxy'
 }
 
 shadowJar {
     archiveClassifier = ''
+    archiveBaseName = 'proxy'
     exclude('**/module-info.class')
     from rootProject.file("LICENSE.txt")
     mergeServiceFiles()
@@ -67,9 +69,9 @@ tasks.register('runProxyMain', JavaExec) {
         '-Dxroad.proxy.globalConfDistributor.enabled=false',
         "-Dxroad.proxy.ocspCachePath=build/ocsp-cache",
         "-Dxroad.tempFiles.path=build/attach-tmp",
-        '-Dxroad.proxy.globalConfFile=../systemtest/conf/local_test/globalconf.xml',
-        '-Dxroad.proxy.configurationFile=../systemtest/conf/local_test/serverconf_consumer.xml',
-        '-Dxroad.key.configurationFile=../systemtest/conf/local_test/keyconf.xml',
+        '-Dxroad.proxy.globalConfFile=../../systemtest/conf/local_test/globalconf.xml',
+        '-Dxroad.proxy.configurationFile=../../systemtest/conf/local_test/serverconf_consumer.xml',
+        '-Dxroad.key.configurationFile=../../systemtest/conf/local_test/keyconf.xml',
         '-Dxroad.appLog.path=log',
         '-Dlogback.configurationFile=src/test/resources/logback-test.xml'
 

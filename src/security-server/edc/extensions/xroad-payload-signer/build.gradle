@@ -4,7 +4,7 @@ plugins {
 
 dependencies {
     implementation project(":serverconf")
-    implementation project(":proxy")
+    implementation project(":proxy:application")
     implementation project(':signer-protocol')
     implementation project(':common:common-core')
     implementation project(':common:common-keyconf')

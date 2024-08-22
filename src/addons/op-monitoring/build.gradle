@@ -1,7 +1,7 @@
 dependencies {
     implementation project(':common:common-op-monitoring')
 
-    implementation project(':proxy')
+    implementation project(':proxy:application')
     implementation project(':common:common-domain')
     implementation project(':common:common-message')
     implementation project(':common:common-jetty')

@@ -13,7 +13,7 @@ sourceSets {
 }
 
 dependencies {
-    implementation project(':proxy')
+    implementation project(':proxy:application')
     implementation project(':common:common-message')
     implementation project(':common:common-domain')
     implementation project(':common:common-jetty')
@@ -27,7 +27,7 @@ dependencies {
 
     implementation libs.guava
 
-    testImplementation project(path: ":proxy", configuration: 'testArtifacts')
+    testImplementation project(path: ":proxy:application", configuration: 'testArtifacts')
     testImplementation project(':common:common-keyconf')
     testImplementation project(':common:common-test')
     testImplementation libs.hamcrest

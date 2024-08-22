@@ -564,7 +564,7 @@ public class RestEdcProxyTest extends AbstractProxyIntegrationTest {
         Thread t = new Thread(() -> {
             try {
                 ProcessBuilder pb = new ProcessBuilder("./run-provider.sh", "--in-memory");
-                pb.directory(new File("../security-server/edc/"));
+                pb.directory(new File("../../security-server/edc/"));
 
                 providerProcess = pb.start();
                 // Redirect output and error streams to SLF4J
@@ -590,7 +590,7 @@ public class RestEdcProxyTest extends AbstractProxyIntegrationTest {
         Thread t = new Thread(() -> {
             try {
                 ProcessBuilder pb = new ProcessBuilder("./run-consumer.sh", "--in-memory");
-                pb.directory(new File("../security-server/edc/"));
+                pb.directory(new File("../../security-server/edc/"));
                 consumerProcess = pb.start();
                 // Redirect output and error streams to SLF4J
                 var logger = LoggerFactory.getLogger("EDC-CONSUMER");

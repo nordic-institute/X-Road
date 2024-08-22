@@ -1,7 +1,7 @@
 
 
 dependencies {
-    implementation(project(':proxy'))
+    implementation(project(':proxy:application'))
     implementation(project(':common:common-jetty'))
     implementation(project(':common:common-globalconf'))
     implementation(project(':serverconf'))
