@@ -34,6 +34,7 @@ import java.util.Date;
 import java.util.concurrent.TimeUnit;
 
 import static java.time.temporal.ChronoUnit.MICROS;
+import static java.util.Optional.ofNullable;
 
 /**
  * This class contains various time related utility methods.
@@ -122,6 +123,18 @@ public final class TimeUtils {
      */
     public static ZonedDateTime zonedDateTimeNow(ZoneId zoneId) {
         return ZonedDateTime.now(zoneId).truncatedTo(MICROS);
+    }
+
+    /**
+     * Converts OffsetDateTime to epoch milliseconds.
+     * @param offsetDateTime OffsetDateTime
+     * @return timestamp in milliseconds
+     */
+    public static Long offsetDateTimeToEpochMillis(OffsetDateTime offsetDateTime) {
+        return ofNullable(offsetDateTime)
+                .map(OffsetDateTime::toInstant)
+                .map(Instant::toEpochMilli)
+                .orElse(null);
     }
 
 }

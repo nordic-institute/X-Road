@@ -32,7 +32,6 @@ import ee.ria.xroad.common.CertificationServiceStatus;
 import ee.ria.xroad.common.DiagnosticsStatus;
 import ee.ria.xroad.common.MessageLogEncryptionStatusDiagnostics;
 import ee.ria.xroad.common.OcspResponderStatus;
-import ee.ria.xroad.common.PortNumbers;
 import ee.ria.xroad.common.SystemProperties;
 import ee.ria.xroad.common.util.JsonUtils;
 
@@ -58,7 +57,6 @@ import org.springframework.web.client.RestTemplate;
 
 import java.time.Duration;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -81,22 +79,18 @@ public class DiagnosticService {
     private final SignerProxyFacade signerProxyFacade;
     private final ProxyRpcClient proxyRpcClient;
     private final String diagnosticsGlobalconfUrl;
-    private final String diagnosticsTimestampingServicesUrl;
 
     @Autowired
     public DiagnosticService(
             SignerProxyFacade signerProxyFacade,
             ProxyRpcClient proxyRpcClient,
             @Value("${url.diagnostics-globalconf}") String diagnosticsGlobalconfUrl,
-            @Value("${url.diagnostics-timestamping-services}") String diagnosticsTimestampingServicesUrl,
             RestTemplateBuilder restTemplateBuilder) {
 
         this.signerProxyFacade = signerProxyFacade;
         this.proxyRpcClient = proxyRpcClient;
         this.diagnosticsGlobalconfUrl = String.format(diagnosticsGlobalconfUrl,
                 SystemProperties.getConfigurationClientAdminPort());
-        this.diagnosticsTimestampingServicesUrl = String.format(diagnosticsTimestampingServicesUrl,
-                PortNumbers.ADMIN_PORT);
 
         MappingJackson2HttpMessageConverter converter = new MappingJackson2HttpMessageConverter(
                 JsonUtils.getObjectMapperCopy());
@@ -134,18 +128,17 @@ public class DiagnosticService {
     public Set<DiagnosticsStatus> queryTimestampingStatus() {
         log.info("Query timestamper status");
         try {
-            ResponseEntity<TimestampingStatusResponse> response = sendGetRequest(diagnosticsTimestampingServicesUrl,
-                    TimestampingStatusResponse.class);
+            Map<String, DiagnosticsStatus> response = proxyRpcClient.getTimestampingStatus();
 
-            return Objects.requireNonNull(response.getBody())
+            return Objects.requireNonNull(response)
                     .entrySet().stream()
                     .map(diagnosticsStatusEntry -> {
                         DiagnosticsStatus diagnosticsStatus = diagnosticsStatusEntry.getValue();
                         diagnosticsStatus.setDescription(diagnosticsStatusEntry.getKey());
                         return diagnosticsStatus;
                     }).collect(Collectors.toSet());
-        } catch (DiagnosticRequestException e) {
-            throw new DeviationAwareRuntimeException(e, e.getErrorDeviation());
+        } catch (Exception e) {
+            throw new DeviationAwareRuntimeException(e, new ErrorDeviation(ERROR_DIAGNOSTIC_REQUEST_FAILED));
         }
     }
 
@@ -268,6 +261,4 @@ public class DiagnosticService {
         }
     }
 
-    private static final class TimestampingStatusResponse extends HashMap<String, DiagnosticsStatus> {
-    }
 }

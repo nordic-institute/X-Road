@@ -28,6 +28,7 @@
 package ee.ria.xroad.signer.protocol.handler;
 
 import ee.ria.xroad.common.CertificationServiceDiagnostics;
+import ee.ria.xroad.common.util.TimeUtils;
 import ee.ria.xroad.signer.certmanager.OcspClientWorker;
 import ee.ria.xroad.signer.protocol.AbstractRpcHandler;
 
@@ -39,8 +40,6 @@ import org.niis.xroad.signer.proto.OcspResponderStatus;
 import org.niis.xroad.signer.protocol.dto.Empty;
 import org.springframework.stereotype.Component;
 
-import java.time.Instant;
-import java.time.OffsetDateTime;
 import java.util.Map;
 import java.util.stream.Collectors;
 
@@ -86,8 +85,8 @@ public class GetCertificationServiceDiagnosticsReqHandler extends AbstractRpcHan
     private CertificationServiceStatus mapServiceStatusToProto(ee.ria.xroad.common.CertificationServiceStatus status) {
         Map<String, OcspResponderStatus> mappedStatuses = status.getOcspResponderStatusMap().entrySet().stream()
                 .collect(Collectors.toMap(Map.Entry::getKey, entry -> {
-                            var prevUpdate = offsetDateTimeToEpochMilli(entry.getValue().getPrevUpdate());
-                            var nextUpdate = offsetDateTimeToEpochMilli(entry.getValue().getNextUpdate());
+                            var prevUpdate = TimeUtils.offsetDateTimeToEpochMillis(entry.getValue().getPrevUpdate());
+                            var nextUpdate = TimeUtils.offsetDateTimeToEpochMillis(entry.getValue().getNextUpdate());
                             var builder = OcspResponderStatus.newBuilder()
                                     .setStatus(entry.getValue().getStatus())
                                     .setUrl(entry.getValue().getUrl());
@@ -101,13 +100,6 @@ public class GetCertificationServiceDiagnosticsReqHandler extends AbstractRpcHan
                 .setName(status.getName())
                 .putAllOcspResponderStatusMap(mappedStatuses)
                 .build();
-    }
-
-    private Long offsetDateTimeToEpochMilli(OffsetDateTime offsetDateTime) {
-        return ofNullable(offsetDateTime)
-                .map(OffsetDateTime::toInstant)
-                .map(Instant::toEpochMilli)
-                .orElse(null);
     }
 
 }

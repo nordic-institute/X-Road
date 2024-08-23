@@ -35,6 +35,7 @@ service AdminService {
   rpc GetBackupEncryptionStatus(Empty) returns (BackupEncryptionStatusResp) {}
   rpc GetAddOnStatus(Empty) returns (AddOnStatusResp) {}
   rpc GetMessageLogEncryptionStatus(Empty) returns (MessageLogEncryptionStatusResp) {}
+  rpc GetTimestampStatus(Empty) returns (TimestampStatusResp) {}
   rpc ClearConfCache(Empty) returns (Empty) {}
 }
 
@@ -58,6 +59,17 @@ message MessageLogArchiveEncryptionMember {
   string member_id = 1;
   repeated string keys = 2;
   bool default_key_used = 3;
+}
+
+message TimestampStatusResp {
+  map<string, DiagnosticsStatus> diagnostics_status = 1;
+}
+
+message DiagnosticsStatus {
+  int32 return_code = 1;
+  optional int64 prev_update = 2;
+  optional int64 next_update = 3;
+  optional string description = 4;
 }
 
 // might be imported fom common_messages, but the package includes 'signer'

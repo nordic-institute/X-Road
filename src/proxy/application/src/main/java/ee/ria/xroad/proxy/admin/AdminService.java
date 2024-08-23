@@ -30,8 +30,8 @@ package ee.ria.xroad.proxy.admin;
 import ee.ria.xroad.common.AddOnStatusDiagnostics;
 import ee.ria.xroad.common.BackupEncryptionStatusDiagnostics;
 import ee.ria.xroad.common.MessageLogEncryptionStatusDiagnostics;
-
 import ee.ria.xroad.common.conf.serverconf.ServerConf;
+import ee.ria.xroad.proxy.admin.handler.TimestampStatusHandler;
 
 import io.grpc.stub.StreamObserver;
 import lombok.RequiredArgsConstructor;
@@ -41,6 +41,7 @@ import org.niis.xroad.proxy.proto.BackupEncryptionStatusResp;
 import org.niis.xroad.proxy.proto.Empty;
 import org.niis.xroad.proxy.proto.MessageLogArchiveEncryptionMember;
 import org.niis.xroad.proxy.proto.MessageLogEncryptionStatusResp;
+import org.niis.xroad.proxy.proto.TimestampStatusResp;
 
 import java.util.List;
 import java.util.function.Supplier;
@@ -53,6 +54,8 @@ public class AdminService extends AdminServiceGrpc.AdminServiceImplBase {
     private final BackupEncryptionStatusDiagnostics backupEncryptionStatusDiagnostics;
     private final AddOnStatusDiagnostics addOnStatusDiagnostics;
     private final MessageLogEncryptionStatusDiagnostics messageLogEncryptionStatusDiagnostics;
+
+    private final TimestampStatusHandler timestampStatusHandler = new TimestampStatusHandler();
 
     @Override
     public void getBackupEncryptionStatus(Empty request, StreamObserver<BackupEncryptionStatusResp> responseObserver) {
@@ -67,6 +70,11 @@ public class AdminService extends AdminServiceGrpc.AdminServiceImplBase {
     @Override
     public void getMessageLogEncryptionStatus(Empty request, StreamObserver<MessageLogEncryptionStatusResp> responseObserver) {
         handleRequest(responseObserver, this::handleMessageLogEncryptionStatus);
+    }
+
+    @Override
+    public void getTimestampStatus(Empty request, StreamObserver<TimestampStatusResp> responseObserver) {
+        handleRequest(responseObserver, timestampStatusHandler::handle);
     }
 
     @Override

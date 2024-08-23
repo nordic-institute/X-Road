@@ -72,7 +72,6 @@ script:
 url:
   download-configuration-anchor: http://localhost:%s/execute
   diagnostics-globalconf: http://localhost:%s/status
-  diagnostics-timestamping-services: http://localhost:%s/timestampstatus
 
 common-module-endpoints:
   base-path: /api/v1

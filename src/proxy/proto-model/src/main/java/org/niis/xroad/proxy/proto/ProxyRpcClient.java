@@ -29,6 +29,7 @@ package org.niis.xroad.proxy.proto;
 
 import ee.ria.xroad.common.AddOnStatusDiagnostics;
 import ee.ria.xroad.common.BackupEncryptionStatusDiagnostics;
+import ee.ria.xroad.common.DiagnosticsStatus;
 import ee.ria.xroad.common.MessageLogArchiveEncryptionMember;
 import ee.ria.xroad.common.MessageLogEncryptionStatusDiagnostics;
 import ee.ria.xroad.common.SystemProperties;
@@ -39,6 +40,11 @@ import org.niis.xroad.common.rpc.client.RpcClient;
 
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
+
+import static java.time.Instant.ofEpochMilli;
+import static org.niis.xroad.restapi.util.FormatUtils.fromInstantToOffsetDateTime;
 
 public class ProxyRpcClient {
     private final RpcClient<ProxyRpcExecutionContext> proxyRpcClient;
@@ -83,6 +89,22 @@ public class ProxyRpcClient {
                 response.getMessageLogGroupingRule(),
                 memberList
         );
+    }
+
+    public Map<String, DiagnosticsStatus> getTimestampingStatus() throws Exception {
+        var statuses = proxyRpcClient.execute(ctx -> ctx.getAdminServiceBlockingStub()
+                .getTimestampStatus(Empty.getDefaultInstance()));
+
+        return statuses.getDiagnosticsStatusMap().entrySet()
+                .stream().collect(Collectors.toMap(Map.Entry::getKey, entry -> {
+                    var val = entry.getValue();
+                    return new ee.ria.xroad.common.DiagnosticsStatus(
+                            val.getReturnCode(),
+                            val.hasPrevUpdate() ? fromInstantToOffsetDateTime(ofEpochMilli(val.getPrevUpdate())) : null,
+                            val.hasNextUpdate() ? fromInstantToOffsetDateTime(ofEpochMilli(val.getNextUpdate())) : null,
+                            val.hasDescription() ? val.getDescription() : null
+                    );
+                }));
     }
 
     public void clearConfCache() throws Exception {
