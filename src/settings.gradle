@@ -32,7 +32,7 @@ include 'common:common-scheduler'
 
 // Main projects
 include "proxy"
-include "proxy:proto-model"
+include "proxy:rpc-client"
 include "proxy:application"
 include "signer"
 include "configuration-proxy"
