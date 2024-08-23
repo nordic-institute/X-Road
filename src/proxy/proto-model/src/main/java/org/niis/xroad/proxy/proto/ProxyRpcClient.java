@@ -54,7 +54,7 @@ public class ProxyRpcClient {
 
     public BackupEncryptionStatusDiagnostics getBackupEncryptionStatus() throws Exception {
         var response = proxyRpcClient.execute(ctx -> ctx.getAdminServiceBlockingStub()
-                .getBackupEncryptionStatus(Empty.newBuilder().build()));
+                .getBackupEncryptionStatus(Empty.getDefaultInstance()));
         return new BackupEncryptionStatusDiagnostics(
                 response.getBackupEncryptionStatus(),
                 response.getBackupEncryptionKeysList());
@@ -62,13 +62,13 @@ public class ProxyRpcClient {
 
     public AddOnStatusDiagnostics getAddOnStatus() throws Exception {
         var response = proxyRpcClient.execute(ctx -> ctx.getAdminServiceBlockingStub()
-                .getAddOnStatus(Empty.newBuilder().build()));
+                .getAddOnStatus(Empty.getDefaultInstance()));
         return new AddOnStatusDiagnostics(response.getMessageLogEnabled());
     }
 
     public MessageLogEncryptionStatusDiagnostics getMessageLogEncryptionStatus() throws Exception {
         var response = proxyRpcClient.execute(ctx -> ctx.getAdminServiceBlockingStub()
-                .getMessageLogEncryptionStatus(Empty.newBuilder().build()));
+                .getMessageLogEncryptionStatus(Empty.getDefaultInstance()));
 
         List<MessageLogArchiveEncryptionMember> memberList = response.getMembersList().stream()
                 .map(member -> new MessageLogArchiveEncryptionMember(
@@ -83,6 +83,11 @@ public class ProxyRpcClient {
                 response.getMessageLogGroupingRule(),
                 memberList
         );
+    }
+
+    public void clearConfCache() throws Exception {
+        proxyRpcClient.execute(ctx -> ctx.getAdminServiceBlockingStub()
+                .clearConfCache(Empty.getDefaultInstance()));
     }
 
     @Getter

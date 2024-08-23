@@ -71,25 +71,10 @@ public class ProxyAdminPortConfig {
 
         addMaintenanceHandler(adminPort);
 
-        addClearCacheHandler(adminPort);
-
         assetsRegistrationJobProvider.ifPresent(assetsRegistrationJob ->
                 addDsAssetCreationTriggerHandler(adminPort, assetsRegistrationJob));
 
         return adminPort;
-    }
-
-    private void addClearCacheHandler(AdminPort adminPort) {
-        adminPort.addHandler("/clearconfcache", new AdminPort.SynchronousCallback() {
-            @Override
-            public void handle(RequestWrapper request, ResponseWrapper response) {
-                ServerConf.clearCache();
-                try (var pw = new PrintWriter(response.getOutputStream())) {
-                    response.setContentType(MimeTypes.Type.APPLICATION_JSON_UTF_8);
-                    pw.println("Configuration cache cleared");
-                }
-            }
-        });
     }
 
     private void addMaintenanceHandler(AdminPort adminPort) {

@@ -31,6 +31,8 @@ import ee.ria.xroad.common.AddOnStatusDiagnostics;
 import ee.ria.xroad.common.BackupEncryptionStatusDiagnostics;
 import ee.ria.xroad.common.MessageLogEncryptionStatusDiagnostics;
 
+import ee.ria.xroad.common.conf.serverconf.ServerConf;
+
 import io.grpc.stub.StreamObserver;
 import lombok.RequiredArgsConstructor;
 import org.niis.xroad.proxy.proto.AddOnStatusResp;
@@ -67,13 +69,18 @@ public class AdminService extends AdminServiceGrpc.AdminServiceImplBase {
         handleRequest(responseObserver, this::handleMessageLogEncryptionStatus);
     }
 
+    @Override
+    public void clearConfCache(Empty request, StreamObserver<Empty> responseObserver) {
+        handleRequest(responseObserver, this::handleClearConfCache);
+    }
+
     private <T> void handleRequest(StreamObserver<T> responseObserver, Supplier<T> handler) {
         try {
             responseObserver.onNext(handler.get());
+            responseObserver.onCompleted();
         } catch (Exception e) {
             responseObserver.onError(e);
         }
-        responseObserver.onCompleted();
     }
 
     private AddOnStatusResp handleAddOnStatus() {
@@ -105,4 +112,10 @@ public class AdminService extends AdminServiceGrpc.AdminServiceImplBase {
                 .addAllMembers(members)
                 .build();
     }
+
+    private Empty handleClearConfCache() {
+        ServerConf.clearCache();
+        return Empty.getDefaultInstance();
+    }
+
 }
