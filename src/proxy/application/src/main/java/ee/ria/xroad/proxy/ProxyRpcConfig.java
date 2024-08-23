@@ -27,6 +27,7 @@ package ee.ria.xroad.proxy;
 
 import ee.ria.xroad.common.AddOnStatusDiagnostics;
 import ee.ria.xroad.common.BackupEncryptionStatusDiagnostics;
+import ee.ria.xroad.common.MessageLogEncryptionStatusDiagnostics;
 import ee.ria.xroad.common.SystemProperties;
 import ee.ria.xroad.proxy.addon.AddOn;
 import ee.ria.xroad.proxy.admin.AdminService;
@@ -70,8 +71,11 @@ public class ProxyRpcConfig {
 
     @Bean
     AdminService adminService(BackupEncryptionStatusDiagnostics backupEncryptionStatusDiagnostics,
-                              AddOnStatusDiagnostics addOnStatusDiagnostics) {
-        return new AdminService(backupEncryptionStatusDiagnostics, addOnStatusDiagnostics);
+                              AddOnStatusDiagnostics addOnStatusDiagnostics,
+                              MessageLogEncryptionStatusDiagnostics messageLogEncryptionStatusDiagnostics) {
+        return new AdminService(backupEncryptionStatusDiagnostics,
+                addOnStatusDiagnostics,
+                messageLogEncryptionStatusDiagnostics);
     }
 
 }

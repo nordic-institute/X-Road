@@ -34,6 +34,7 @@ option java_multiple_files = true;
 service AdminService {
   rpc GetBackupEncryptionStatus(Empty) returns (BackupEncryptionStatusResp) {}
   rpc GetAddOnStatus(Empty) returns (AddOnStatusResp) {}
+  rpc GetMessageLogEncryptionStatus(Empty) returns (MessageLogEncryptionStatusResp) {}
 }
 
 message BackupEncryptionStatusResp {
@@ -43,6 +44,19 @@ message BackupEncryptionStatusResp {
 
 message AddOnStatusResp {
   bool message_log_enabled = 1;
+}
+
+message MessageLogEncryptionStatusResp {
+  bool message_log_archive_encryption_status = 1;
+  bool message_log_database_encryption_status = 2;
+  string message_log_grouping_rule = 3;
+  repeated MessageLogArchiveEncryptionMember members = 4;
+}
+
+message MessageLogArchiveEncryptionMember {
+  string member_id = 1;
+  repeated string keys = 2;
+  bool default_key_used = 3;
 }
 
 // might be imported fom common_messages, but the package includes 'signer'

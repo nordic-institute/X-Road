@@ -28,7 +28,6 @@ package ee.ria.xroad.proxy;
 import ee.ria.xroad.common.DiagnosticsErrorCodes;
 import ee.ria.xroad.common.DiagnosticsStatus;
 import ee.ria.xroad.common.DiagnosticsUtils;
-import ee.ria.xroad.common.MessageLogEncryptionStatusDiagnostics;
 import ee.ria.xroad.common.PortNumbers;
 import ee.ria.xroad.common.conf.serverconf.ServerConf;
 import ee.ria.xroad.common.util.AdminPort;
@@ -61,7 +60,6 @@ public class ProxyAdminPortConfig {
     private static final int DIAGNOSTICS_CONNECTION_TIMEOUT_MS = 1200;
     private static final int DIAGNOSTICS_READ_TIMEOUT_MS = 15000; // 15 seconds
 
-    private final MessageLogEncryptionStatusDiagnostics messageLogEncryptionStatusDiagnostics;
     private final Optional<AssetsRegistrationJob> assetsRegistrationJobProvider;
     private final Optional<HealthCheckPort> healthCheckPort;
 
@@ -75,21 +73,10 @@ public class ProxyAdminPortConfig {
 
         addClearCacheHandler(adminPort);
 
-        addMessageLogEncryptionStatus(adminPort);
-
         assetsRegistrationJobProvider.ifPresent(assetsRegistrationJob ->
                 addDsAssetCreationTriggerHandler(adminPort, assetsRegistrationJob));
 
         return adminPort;
-    }
-
-    private void addMessageLogEncryptionStatus(AdminPort adminPort) {
-        adminPort.addHandler("/message-log-encryption-status", new AdminPort.SynchronousCallback() {
-            @Override
-            public void handle(RequestWrapper request, ResponseWrapper response) {
-                writeJsonResponse(messageLogEncryptionStatusDiagnostics, response);
-            }
-        });
     }
 
     private void addClearCacheHandler(AdminPort adminPort) {

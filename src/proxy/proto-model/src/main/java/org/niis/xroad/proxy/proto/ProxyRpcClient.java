@@ -29,11 +29,16 @@ package org.niis.xroad.proxy.proto;
 
 import ee.ria.xroad.common.AddOnStatusDiagnostics;
 import ee.ria.xroad.common.BackupEncryptionStatusDiagnostics;
+import ee.ria.xroad.common.MessageLogArchiveEncryptionMember;
+import ee.ria.xroad.common.MessageLogEncryptionStatusDiagnostics;
 import ee.ria.xroad.common.SystemProperties;
 
 import io.grpc.Channel;
 import lombok.Getter;
 import org.niis.xroad.common.rpc.client.RpcClient;
+
+import java.util.HashSet;
+import java.util.List;
 
 public class ProxyRpcClient {
     private final RpcClient<ProxyRpcExecutionContext> proxyRpcClient;
@@ -59,6 +64,25 @@ public class ProxyRpcClient {
         var response = proxyRpcClient.execute(ctx -> ctx.getAdminServiceBlockingStub()
                 .getAddOnStatus(Empty.newBuilder().build()));
         return new AddOnStatusDiagnostics(response.getMessageLogEnabled());
+    }
+
+    public MessageLogEncryptionStatusDiagnostics getMessageLogEncryptionStatus() throws Exception {
+        var response = proxyRpcClient.execute(ctx -> ctx.getAdminServiceBlockingStub()
+                .getMessageLogEncryptionStatus(Empty.newBuilder().build()));
+
+        List<MessageLogArchiveEncryptionMember> memberList = response.getMembersList().stream()
+                .map(member -> new MessageLogArchiveEncryptionMember(
+                        member.getMemberId(),
+                        new HashSet<>(member.getKeysList()),
+                        member.getDefaultKeyUsed()))
+                .toList();
+
+        return new MessageLogEncryptionStatusDiagnostics(
+                response.getMessageLogArchiveEncryptionStatus(),
+                response.getMessageLogDatabaseEncryptionStatus(),
+                response.getMessageLogGroupingRule(),
+                memberList
+        );
     }
 
     @Getter

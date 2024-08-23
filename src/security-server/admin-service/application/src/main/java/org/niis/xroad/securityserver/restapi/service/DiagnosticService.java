@@ -82,7 +82,6 @@ public class DiagnosticService {
     private final ProxyRpcClient proxyRpcClient;
     private final String diagnosticsGlobalconfUrl;
     private final String diagnosticsTimestampingServicesUrl;
-    private final String messageLogEncryptionStatusUrl;
 
     @Autowired
     public DiagnosticService(
@@ -90,7 +89,6 @@ public class DiagnosticService {
             ProxyRpcClient proxyRpcClient,
             @Value("${url.diagnostics-globalconf}") String diagnosticsGlobalconfUrl,
             @Value("${url.diagnostics-timestamping-services}") String diagnosticsTimestampingServicesUrl,
-            @Value("${url.diagnostics-message-log-encryption-status}") String messageLogEncryptionStatusUrl,
             RestTemplateBuilder restTemplateBuilder) {
 
         this.signerProxyFacade = signerProxyFacade;
@@ -98,8 +96,6 @@ public class DiagnosticService {
         this.diagnosticsGlobalconfUrl = String.format(diagnosticsGlobalconfUrl,
                 SystemProperties.getConfigurationClientAdminPort());
         this.diagnosticsTimestampingServicesUrl = String.format(diagnosticsTimestampingServicesUrl,
-                PortNumbers.ADMIN_PORT);
-        this.messageLogEncryptionStatusUrl = String.format(messageLogEncryptionStatusUrl,
                 PortNumbers.ADMIN_PORT);
 
         MappingJackson2HttpMessageConverter converter = new MappingJackson2HttpMessageConverter(
@@ -208,9 +204,9 @@ public class DiagnosticService {
      */
     public MessageLogEncryptionStatusDiagnostics queryMessageLogEncryptionStatus() {
         try {
-            return sendGetRequest(messageLogEncryptionStatusUrl, MessageLogEncryptionStatusDiagnostics.class).getBody();
-        } catch (DiagnosticRequestException e) {
-            throw new DeviationAwareRuntimeException(e, e.getErrorDeviation());
+            return proxyRpcClient.getMessageLogEncryptionStatus();
+        } catch (Exception e) {
+            throw new DeviationAwareRuntimeException(e, new ErrorDeviation(ERROR_DIAGNOSTIC_REQUEST_FAILED));
         }
     }
 

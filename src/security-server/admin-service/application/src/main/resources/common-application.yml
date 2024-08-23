@@ -74,7 +74,6 @@ url:
   diagnostics-globalconf: http://localhost:%s/status
   diagnostics-timestamping-services: http://localhost:%s/timestampstatus
   clear-configuration-cache: http://localhost:%s/clearconfcache
-  diagnostics-message-log-encryption-status: http://localhost:%s/message-log-encryption-status
 
 common-module-endpoints:
   base-path: /api/v1

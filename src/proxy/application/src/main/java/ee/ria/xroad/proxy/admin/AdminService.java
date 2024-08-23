@@ -29,6 +29,7 @@ package ee.ria.xroad.proxy.admin;
 
 import ee.ria.xroad.common.AddOnStatusDiagnostics;
 import ee.ria.xroad.common.BackupEncryptionStatusDiagnostics;
+import ee.ria.xroad.common.MessageLogEncryptionStatusDiagnostics;
 
 import io.grpc.stub.StreamObserver;
 import lombok.RequiredArgsConstructor;
@@ -36,7 +37,10 @@ import org.niis.xroad.proxy.proto.AddOnStatusResp;
 import org.niis.xroad.proxy.proto.AdminServiceGrpc;
 import org.niis.xroad.proxy.proto.BackupEncryptionStatusResp;
 import org.niis.xroad.proxy.proto.Empty;
+import org.niis.xroad.proxy.proto.MessageLogArchiveEncryptionMember;
+import org.niis.xroad.proxy.proto.MessageLogEncryptionStatusResp;
 
+import java.util.List;
 import java.util.function.Supplier;
 
 import static java.util.Collections.unmodifiableList;
@@ -46,6 +50,7 @@ public class AdminService extends AdminServiceGrpc.AdminServiceImplBase {
 
     private final BackupEncryptionStatusDiagnostics backupEncryptionStatusDiagnostics;
     private final AddOnStatusDiagnostics addOnStatusDiagnostics;
+    private final MessageLogEncryptionStatusDiagnostics messageLogEncryptionStatusDiagnostics;
 
     @Override
     public void getBackupEncryptionStatus(Empty request, StreamObserver<BackupEncryptionStatusResp> responseObserver) {
@@ -55,6 +60,11 @@ public class AdminService extends AdminServiceGrpc.AdminServiceImplBase {
     @Override
     public void getAddOnStatus(Empty request, StreamObserver<AddOnStatusResp> responseObserver) {
         handleRequest(responseObserver, this::handleAddOnStatus);
+    }
+
+    @Override
+    public void getMessageLogEncryptionStatus(Empty request, StreamObserver<MessageLogEncryptionStatusResp> responseObserver) {
+        handleRequest(responseObserver, this::handleMessageLogEncryptionStatus);
     }
 
     private <T> void handleRequest(StreamObserver<T> responseObserver, Supplier<T> handler) {
@@ -76,6 +86,23 @@ public class AdminService extends AdminServiceGrpc.AdminServiceImplBase {
         return BackupEncryptionStatusResp.newBuilder()
                 .setBackupEncryptionStatus(backupEncryptionStatusDiagnostics.isBackupEncryptionStatus())
                 .addAllBackupEncryptionKeys(unmodifiableList(backupEncryptionStatusDiagnostics.getBackupEncryptionKeys()))
+                .build();
+    }
+
+    private MessageLogEncryptionStatusResp handleMessageLogEncryptionStatus() {
+        List<MessageLogArchiveEncryptionMember> members = messageLogEncryptionStatusDiagnostics.getMembers().stream()
+                .map(member -> MessageLogArchiveEncryptionMember.newBuilder()
+                        .setMemberId(member.getMemberId())
+                        .addAllKeys(member.getKeys())
+                        .setDefaultKeyUsed(member.isDefaultKeyUsed())
+                        .build())
+                .toList();
+
+        return MessageLogEncryptionStatusResp.newBuilder()
+                .setMessageLogArchiveEncryptionStatus(messageLogEncryptionStatusDiagnostics.isMessageLogArchiveEncryptionStatus())
+                .setMessageLogDatabaseEncryptionStatus(messageLogEncryptionStatusDiagnostics.isMessageLogDatabaseEncryptionStatus())
+                .setMessageLogGroupingRule(messageLogEncryptionStatusDiagnostics.getMessageLogGroupingRule())
+                .addAllMembers(members)
                 .build();
     }
 }
