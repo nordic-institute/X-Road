@@ -833,6 +833,10 @@ public final class SystemProperties {
         return Long.parseLong(System.getProperty(PROXY_UI_API_ACME_ACCOUNT_KEY_PAIR_EXPIRATION_IN_DAYS, "365"));
     }
 
+    public static boolean isAcmeChallengePortEnabled() {
+        return "true".equalsIgnoreCase(System.getProperty(PROXY_UI_API_ACME_CHALLENGE_PORT_ENABLED, "false"));
+    }
+
     /**
      * @return path to the configuration anchor file, '/etc/xroad/configuration-anchor.xml' by default.
      */
