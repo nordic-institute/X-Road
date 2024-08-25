@@ -46,6 +46,7 @@
           v-for="cert in key.certificates"
           :key="cert.certificate_details.hash"
           :cert="cert"
+          :is-acme-certificate="isAcmeCertificate(cert)"
           @certificate-click="certificateClick(cert, key)"
         >
           <template #certificateAction>
@@ -77,6 +78,7 @@
           v-for="cert in key.certificates"
           :key="cert.certificate_details.hash"
           :cert="cert"
+          :is-acme-certificate="isAcmeCertificate(cert)"
           @certificate-click="certificateClick(cert, key)"
         >
           <template #certificateAction>
@@ -117,7 +119,7 @@
               <div>{{ $t('keys.request') }}</div>
             </div>
           </td>
-          <td colspan="4">{{ req.id }}</td>
+          <td colspan="5">{{ req.id }}</td>
           <td class="td-align-right">
             <xrd-button
               v-if="isAcmeCapable(req, key)"
@@ -183,12 +185,13 @@ import KeyRow from './KeyRow.vue';
 import CertificateRow from './CertificateRow.vue';
 import KeysTableThead from './KeysTableThead.vue';
 import {
+  CertificateAuthority,
   Key,
   KeyUsageType,
   PossibleAction,
   TokenCertificate,
   TokenCertificateSigningRequest,
-  TokenType,
+  TokenType
 } from "@/openapi-types";
 import { Permissions } from '@/global';
 import * as Sorting from './keyColumnSorting';
@@ -294,6 +297,12 @@ export default defineComponent({
           && certificationService.acme_capable
           && (key.usage == KeyUsageType.AUTHENTICATION || !certificationService.authentication_only),
       );
+    },
+    isAcmeCertificate(cert: TokenCertificate): boolean {
+      const certIssuer = this.certificationServiceList.find(
+        (certificationService) => certificationService.name == cert.certificate_details.issuer_common_name,
+      );
+      return certIssuer?.acme_capable ?? false;
     },
     canImportCertificate(key: Key): boolean {
       return (

@@ -26,6 +26,7 @@ dependencies {
     implementation(project(":common:common-globalconf"))
     implementation(project(":signer-protocol"))
     implementation(project(":serverconf"))
+    implementation(project(":common:common-acme"))
     implementation(project(":common:common-admin-api"))
     implementation(project(":common:common-management-request"))
     implementation(project(':common:common-api-throttling'))
@@ -48,7 +49,6 @@ dependencies {
     implementation(libs.logback.access){
         exclude group: 'org.apache.tomcat', module: 'tomcat-catalina'
     }
-    implementation(libs.acme4j)
 
     testImplementation(platform(libs.springBoot.bom))
     testImplementation(project(":common:common-test"))

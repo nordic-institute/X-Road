@@ -48,6 +48,11 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.ObjectUtils;
 import org.eclipse.jetty.util.StringUtil;
 
+import javax.xml.datatype.DatatypeConfigurationException;
+import javax.xml.datatype.DatatypeFactory;
+import javax.xml.datatype.XMLGregorianCalendar;
+
+import java.util.GregorianCalendar;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -283,6 +288,11 @@ public final class TokenConf extends AbstractXmlConf<KeyConfType> {
         cert.setStatus(type.getStatus());
         cert.setSavedToConfiguration(true);
         cert.setCertificate(type.getContents());
+        cert.setRenewedCertHash(type.getRenewedCertHash());
+        cert.setRenewalError(type.getRenewalError());
+        if (type.getNextRenewalTime() != null) {
+            cert.setNextAutomaticRenewalTime(type.getNextRenewalTime().toGregorianCalendar().toInstant());
+        }
 
         return cert;
     }
@@ -294,8 +304,24 @@ public final class TokenConf extends AbstractXmlConf<KeyConfType> {
         type.setId(cert.getId());
         type.setStatus(cert.getStatus());
         type.setContents(cert.getBytes());
+        type.setRenewedCertHash(cert.getRenewedCertHash());
+        type.setRenewalError(cert.getRenewalError());
+        type.setNextRenewalTime(getNextRenewalTimeXmlGregorianCalendar(cert));
 
         return type;
+    }
+
+    private static XMLGregorianCalendar getNextRenewalTimeXmlGregorianCalendar(Cert cert) {
+        if (cert.getNextAutomaticRenewalTime() == null) {
+            return null;
+        }
+        GregorianCalendar nextRenewalTimeGregorianCalendar = new GregorianCalendar();
+        nextRenewalTimeGregorianCalendar.setTimeInMillis(cert.getNextAutomaticRenewalTime().toEpochMilli());
+        try {
+            return DatatypeFactory.newInstance().newXMLGregorianCalendar(nextRenewalTimeGregorianCalendar);
+        } catch (DatatypeConfigurationException e) {
+            throw new RuntimeException(e);
+        }
     }
 
     private static CertRequest from(CertRequestType type) {

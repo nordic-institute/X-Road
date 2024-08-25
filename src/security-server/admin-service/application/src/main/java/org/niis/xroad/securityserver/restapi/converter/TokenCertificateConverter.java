@@ -41,6 +41,7 @@ import org.niis.xroad.securityserver.restapi.util.OcspUtils;
 import org.springframework.stereotype.Component;
 
 import java.time.OffsetDateTime;
+import java.time.ZoneOffset;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -89,6 +90,11 @@ public class TokenCertificateConverter {
         tokenCertificate.setSavedToConfiguration(certificateInfo.isSavedToConfiguration());
         tokenCertificate.setStatus(CertificateStatusMapping.map(certificateInfo.getStatus())
                 .orElse(null));
+        tokenCertificate.setRenewedCertHash(certificateInfo.getRenewedCertHash());
+        tokenCertificate.setRenewalError(certificateInfo.getRenewalError());
+        if (certificateInfo.getNextAutomaticRenewalTime() != null) {
+            tokenCertificate.setNextAutomaticRenewalTime(certificateInfo.getNextAutomaticRenewalTime().atOffset(ZoneOffset.UTC));
+        }
         return tokenCertificate;
     }
 

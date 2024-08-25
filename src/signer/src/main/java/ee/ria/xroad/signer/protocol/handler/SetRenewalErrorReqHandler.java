@@ -23,38 +23,26 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.securityserver.restapi.service;
+package ee.ria.xroad.signer.protocol.handler;
 
-import lombok.extern.slf4j.Slf4j;
-import org.shredzone.acme4j.connector.HttpConnector;
-import org.shredzone.acme4j.connector.NetworkSettings;
+import ee.ria.xroad.signer.protocol.AbstractRpcHandler;
+import ee.ria.xroad.signer.tokenmanager.TokenManager;
 
-import java.net.URISyntaxException;
-import java.net.URL;
-import java.net.http.HttpRequest;
+import org.niis.xroad.signer.proto.SetRenewalErrorReq;
+import org.niis.xroad.signer.protocol.dto.Empty;
+import org.springframework.stereotype.Component;
 
-import static ee.ria.xroad.common.Version.XROAD_VERSION;
-
-@Slf4j
-public class AcmeXroadHttpConnector extends HttpConnector {
-
-    static final String XROAD_ACME_USER_AGENT = "X-Road/" + XROAD_VERSION + " " + HttpConnector.defaultUserAgent();
-    private final NetworkSettings networkSettings;
-
-    public AcmeXroadHttpConnector(NetworkSettings networkSettings) {
-        super(networkSettings);
-        this.networkSettings = networkSettings;
-    }
+/**
+ * Handles requests for setting the certificate renewal error.
+ */
+@Component
+public class SetRenewalErrorReqHandler
+        extends AbstractRpcHandler<SetRenewalErrorReq, Empty> {
 
     @Override
-    public HttpRequest.Builder createRequestBuilder(URL url) {
-        try {
-            return HttpRequest.newBuilder(url.toURI())
-                    .header("User-Agent", XROAD_ACME_USER_AGENT)
-                    .timeout(networkSettings.getTimeout());
-        } catch (URISyntaxException ex) {
-            throw new IllegalArgumentException("Invalid URL", ex);
-        }
-    }
+    protected Empty handle(SetRenewalErrorReq request) throws Exception {
+        TokenManager.setRenewalError(request.getCertId(), request.getErrorMessage());
 
+        return Empty.getDefaultInstance();
+    }
 }

@@ -23,23 +23,38 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.securityserver.restapi.service;
+package org.niis.xroad.common.acme;
 
-import lombok.NonNull;
-import org.niis.xroad.common.exception.ServiceException;
-import org.niis.xroad.restapi.exceptions.DeviationProvider;
+import lombok.extern.slf4j.Slf4j;
+import org.shredzone.acme4j.connector.HttpConnector;
+import org.shredzone.acme4j.connector.NetworkSettings;
 
-public class AcmeServiceException extends ServiceException {
+import java.net.URISyntaxException;
+import java.net.URL;
+import java.net.http.HttpRequest;
 
-    public AcmeServiceException(@NonNull DeviationProvider deviationProvider,
-                                Object... metadata) {
-        super(deviationProvider, metadata);
+import static ee.ria.xroad.common.Version.XROAD_VERSION;
+
+@Slf4j
+public class AcmeXroadHttpConnector extends HttpConnector {
+
+    static final String XROAD_ACME_USER_AGENT = "X-Road/" + XROAD_VERSION + " " + HttpConnector.defaultUserAgent();
+    private final NetworkSettings networkSettings;
+
+    public AcmeXroadHttpConnector(NetworkSettings networkSettings) {
+        super(networkSettings);
+        this.networkSettings = networkSettings;
     }
 
-    public AcmeServiceException(@NonNull final DeviationProvider deviationProvider,
-                                final Throwable cause,
-                                final Object... metadata) {
-        super(deviationProvider, cause, metadata);
+    @Override
+    public HttpRequest.Builder createRequestBuilder(URL url) {
+        try {
+            return HttpRequest.newBuilder(url.toURI())
+                    .header("User-Agent", XROAD_ACME_USER_AGENT)
+                    .timeout(networkSettings.getTimeout());
+        } catch (URISyntaxException ex) {
+            throw new IllegalArgumentException("Invalid URL", ex);
+        }
     }
+
 }
-

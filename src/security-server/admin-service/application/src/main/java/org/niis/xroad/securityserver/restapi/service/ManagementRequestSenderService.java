@@ -65,7 +65,7 @@ public class ManagementRequestSenderService {
      * @return request ID in the central server database (e.g. for audit logs if wanted)
      * @throws GlobalConfOutdatedException
      */
-    Integer sendAuthCertRegisterRequest(String address, byte[] authCert)
+    public Integer sendAuthCertRegisterRequest(String address, byte[] authCert)
             throws GlobalConfOutdatedException {
         ManagementRequestSender sender = createManagementRequestSender();
         try {
@@ -91,7 +91,7 @@ public class ManagementRequestSenderService {
      * @throws GlobalConfOutdatedException
      * @throws ManagementRequestSendingFailedException if there is a problem sending the message
      */
-    Integer sendAuthCertDeletionRequest(byte[] authCert) throws
+    public Integer sendAuthCertDeletionRequest(byte[] authCert) throws
             GlobalConfOutdatedException, ManagementRequestSendingFailedException {
         ManagementRequestSender sender = createManagementRequestSender();
         try {

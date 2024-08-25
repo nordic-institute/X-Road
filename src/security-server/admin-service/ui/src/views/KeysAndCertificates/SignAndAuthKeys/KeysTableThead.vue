@@ -106,6 +106,13 @@
           />
         </div>
       </th>
+      <th
+        class="renewal-col"
+      >
+        <div class="header-title">
+          {{ $t('keys.renewal') }}
+        </div>
+      </th>
       <th class="action-col"></th>
     </tr>
   </thead>

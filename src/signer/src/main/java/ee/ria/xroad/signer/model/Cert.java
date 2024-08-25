@@ -38,6 +38,7 @@ import org.bouncycastle.cert.ocsp.OCSPResp;
 
 import java.security.cert.CertificateEncodingException;
 import java.security.cert.X509Certificate;
+import java.time.Instant;
 
 import static ee.ria.xroad.common.ErrorCodes.translateException;
 import static ee.ria.xroad.common.util.CryptoUtils.calculateCertHexHash;
@@ -75,6 +76,21 @@ public class Cert {
      * Holds the status of the certificate.
      */
     private String status;
+
+    /**
+     * Hash of the newer version of the certificate that is in the process of registration
+     */
+    private String renewedCertHash;
+
+    /**
+     * Error message thrown during the certificate automatic renewal process
+     */
+    private String renewalError;
+
+    /**
+     * Next planned automatic renewal time.
+     */
+    private Instant nextAutomaticRenewalTime;
 
     /**
      * Holds the precalculated sha1 hash of the certificate.
@@ -183,6 +199,19 @@ public class Cert {
             }
             if (ocspResponse != null) {
                 builder.setOcspBytes(ByteString.copyFrom(ocspResponse.getEncoded()));
+            }
+            if (renewedCertHash != null) {
+                builder.setRenewedCertHash(renewedCertHash);
+            }
+            if (renewalError != null) {
+                builder.setRenewalError(renewalError);
+            }
+            if (nextAutomaticRenewalTime != null) {
+                com.google.protobuf.Timestamp nextRenewalTimestamp = com.google.protobuf.Timestamp.newBuilder()
+                        .setSeconds(nextAutomaticRenewalTime.getEpochSecond())
+                        .setNanos(nextAutomaticRenewalTime.getNano())
+                        .build();
+                builder.setNextAutomaticRenewalTime(nextRenewalTimestamp);
             }
             return builder.build();
         } catch (Exception e) {

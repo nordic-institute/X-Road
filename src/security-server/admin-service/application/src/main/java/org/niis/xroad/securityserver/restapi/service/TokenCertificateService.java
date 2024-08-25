@@ -45,7 +45,7 @@ import ee.ria.xroad.signer.protocol.dto.TokenInfoAndKeyId;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.niis.xroad.common.exception.ValidationFailureException;
+import org.niis.xroad.common.acme.AcmeService;
 import org.niis.xroad.restapi.config.audit.AuditDataHelper;
 import org.niis.xroad.restapi.config.audit.AuditEventHelper;
 import org.niis.xroad.restapi.config.audit.RestApiAuditEvent;
@@ -64,9 +64,9 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.io.IOException;
 import java.security.cert.CertificateEncodingException;
 import java.security.cert.X509Certificate;
+import java.time.Instant;
 import java.util.EnumSet;
 import java.util.List;
 import java.util.Map;
@@ -80,13 +80,11 @@ import static ee.ria.xroad.common.ErrorCodes.X_CSR_NOT_FOUND;
 import static ee.ria.xroad.common.ErrorCodes.X_INCORRECT_CERTIFICATE;
 import static ee.ria.xroad.common.ErrorCodes.X_WRONG_CERT_USAGE;
 import static ee.ria.xroad.common.util.CertUtils.getCommonName;
-import static ee.ria.xroad.common.util.CertUtils.getSubjectAlternativeNameFromCsr;
 import static org.niis.xroad.restapi.exceptions.DeviationCodes.ERROR_AUTH_CERT_NOT_SUPPORTED;
 import static org.niis.xroad.restapi.exceptions.DeviationCodes.ERROR_CERTIFICATE_NOT_FOUND_WITH_ID;
 import static org.niis.xroad.restapi.exceptions.DeviationCodes.ERROR_CERTIFICATE_WRONG_USAGE;
 import static org.niis.xroad.restapi.exceptions.DeviationCodes.ERROR_SIGN_CERT_NOT_SUPPORTED;
 import static org.niis.xroad.securityserver.restapi.service.KeyService.isCausedByKeyNotFound;
-import static org.niis.xroad.securityserver.restapi.service.TokenDeviationMessage.MALFORMED_CSR;
 
 /**
  * token certificate service
@@ -420,6 +418,7 @@ public class TokenCertificateService {
             auditDataHelper.putCertificateHash(hash);
             signerProxyFacade.importCert(certBytes, certificateState, clientId);
             certificateInfo = getCertificateInfo(hash);
+            setNextPlannedAcmeAutomaticRenewalDate(clientId, x509Certificate, keyUsageInfo, certificateInfo);
         } catch (ClientNotFoundException | AccessDeniedException | AuthCertificateNotSupportedException e) {
             throw e;
         } catch (CodedException e) {
@@ -430,6 +429,19 @@ public class TokenCertificateService {
         }
         auditDataHelper.put(RestApiAuditProperty.KEY_USAGE, keyUsageInfo);
         return certificateInfo;
+    }
+
+    private void setNextPlannedAcmeAutomaticRenewalDate(ClientId.Conf clientId,
+                                                        X509Certificate x509Certificate,
+                                                        KeyUsageInfo keyUsageInfo,
+                                                        CertificateInfo certificateInfo) throws Exception {
+        ClientId memberId = clientId != null ? clientId : ServerConf.getIdentifier().getOwner();
+        X509Certificate caX509Certificate = globalConfFacade.getCaCert(memberId.getXRoadInstance(), x509Certificate);
+        ApprovedCAInfo approvedCA = globalConfFacade.getApprovedCA(memberId.getXRoadInstance(), caX509Certificate);
+        if (approvedCA.getAcmeServerDirectoryUrl() != null) {
+            Instant nextRenewalTime = acmeService.getNextRenewalTime(memberId.asEncodedId(), approvedCA, x509Certificate, keyUsageInfo);
+            signerProxyFacade.setNextPlannedRenewal(certificateInfo.getId(), nextRenewalTime);
+        }
     }
 
     /**
@@ -1114,14 +1126,9 @@ public class TokenCertificateService {
                 regenerateCertRequest(keyInfo.getId(), csrId, CertificateRequestFormat.DER);
         if (caInfo.getAcmeServerDirectoryUrl() != null) {
             String commonName = getCommonName(certRequestInfo.getSubjectName());
-            String subjectAltName;
-            try {
-                subjectAltName = getSubjectAlternativeNameFromCsr(generatedCertRequestInfo.getCertRequest());
-                if (subjectAltName != null) {
-                    auditDataHelper.put(RestApiAuditProperty.SUBJECT_ALT_NAME, subjectAltName);
-                }
-            } catch (IOException e) {
-                throw new ValidationFailureException(MALFORMED_CSR, e);
+            String subjectAltName = certRequestInfo.getSubjectAltName();
+            if (subjectAltName != null) {
+                auditDataHelper.put(RestApiAuditProperty.SUBJECT_ALT_NAME, subjectAltName);
             }
             String memberId = keyUsage == KeyUsageInfo.SIGNING
                     ? certRequestInfo.getMemberId().asEncodedId()

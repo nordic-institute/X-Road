@@ -23,18 +23,23 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
+package org.niis.xroad.common.acme;
 
-package org.niis.xroad.securityserver.restapi.service;
+import lombok.NonNull;
+import org.niis.xroad.common.exception.ServiceException;
+import org.niis.xroad.restapi.exceptions.DeviationProvider;
 
-import lombok.Getter;
-import lombok.RequiredArgsConstructor;
+public class AcmeServiceException extends ServiceException {
 
-@Getter
-@RequiredArgsConstructor
-public enum AcmeCustomSchema {
+    public AcmeServiceException(@NonNull DeviationProvider deviationProvider,
+                                Object... metadata) {
+        super(deviationProvider, metadata);
+    }
 
-    XRD_ACME("xrd-acme"),
-    XRD_ACME_PROFILE_ID("xrd-acme-profile-id");
-
-    private final String schema;
+    public AcmeServiceException(@NonNull final DeviationProvider deviationProvider,
+                                final Throwable cause,
+                                final Object... metadata) {
+        super(deviationProvider, cause, metadata);
+    }
 }
+

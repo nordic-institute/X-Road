@@ -18,7 +18,6 @@
   },
   "dependencies": {
     "@niis/shared-ui": "workspace:*",
-    "dayjs": "^1.11.13",
     "is-ip": "^5.0.1"
   },
   "devDependencies": {

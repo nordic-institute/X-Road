@@ -23,7 +23,7 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.securityserver.restapi.config;
+package org.niis.xroad.common.acme;
 
 import lombok.Getter;
 import lombok.Setter;
@@ -32,7 +32,7 @@ import org.niis.xroad.common.exception.NotFoundException;
 import java.util.Map;
 import java.util.Optional;
 
-import static org.niis.xroad.securityserver.restapi.service.AcmeDeviationMessage.EAB_CREDENTIALS_MISSING;
+import static org.niis.xroad.common.acme.AcmeDeviationMessage.EAB_CREDENTIALS_MISSING;
 
 @Getter
 @Setter
@@ -88,9 +88,9 @@ public class AcmeProperties {
 
     public Boolean isEabMacKeyBase64Encoded(String caName) {
         return Optional.ofNullable(eabCredentials)
-                .map(AcmeProperties.EabCredentials::getCertificateAuthorities)
+                .map(EabCredentials::getCertificateAuthorities)
                 .map(certAuthorities -> certAuthorities.get(caName))
-                .map(AcmeProperties.CA::isMacKeyBase64Encoded).orElse(false);
+                .map(CA::isMacKeyBase64Encoded).orElse(false);
     }
 
 }

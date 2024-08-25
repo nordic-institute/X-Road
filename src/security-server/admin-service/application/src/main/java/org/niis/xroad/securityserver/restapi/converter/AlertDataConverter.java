@@ -45,6 +45,10 @@ public class AlertDataConverter {
         alertData.setGlobalConfValidCheckSuccess(alertStatus.getGlobalConfValidCheckSuccess());
         alertData.setSoftTokenPinEntered(alertStatus.getSoftTokenPinEntered());
         alertData.setSoftTokenPinEnteredCheckSuccess(alertStatus.getSoftTokenPinEnteredCheckSuccess());
+        alertData.setCertificateRenewalJobSuccess(alertStatus.getCertificateRenewalJobSuccess());
+        alertData.setAuthCertificateIdsWithErrors(alertStatus.getAuthCertificateIdsWithErrors());
+        alertData.setSignCertificateIdsWithErrors(alertStatus.getSignCertificateIdsWithErrors());
+
         return alertData;
     }
 }

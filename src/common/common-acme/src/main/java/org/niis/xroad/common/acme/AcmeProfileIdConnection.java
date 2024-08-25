@@ -23,14 +23,14 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.securityserver.restapi.service;
+package org.niis.xroad.common.acme;
 
 import ee.ria.xroad.common.conf.globalconf.ApprovedCAInfo;
+import ee.ria.xroad.common.conf.globalconf.GlobalConf;
 
 import lombok.extern.slf4j.Slf4j;
 import org.bouncycastle.asn1.x509.KeyUsage;
 import org.bouncycastle.pkcs.PKCS10CertificationRequest;
-import org.niis.xroad.securityserver.restapi.util.SpringApplicationContext;
 import org.shredzone.acme4j.Session;
 import org.shredzone.acme4j.connector.DefaultConnection;
 import org.shredzone.acme4j.connector.HttpConnector;
@@ -48,7 +48,7 @@ import java.util.Collection;
 import java.util.Optional;
 import java.util.function.Consumer;
 
-import static org.niis.xroad.securityserver.restapi.service.AcmeXroadHttpConnector.XROAD_ACME_USER_AGENT;
+import static org.niis.xroad.common.acme.AcmeXroadHttpConnector.XROAD_ACME_USER_AGENT;
 
 @Slf4j
 public class AcmeProfileIdConnection extends DefaultConnection {
@@ -105,8 +105,7 @@ public class AcmeProfileIdConnection extends DefaultConnection {
     }
 
     private String buildProfileIdHeader(Session session) {
-        GlobalConfService globalConfService = SpringApplicationContext.getBean(GlobalConfService.class);
-        Collection<ApprovedCAInfo> approvedCAsForThisInstance = globalConfService.getApprovedCAsForThisInstance();
+        Collection<ApprovedCAInfo> approvedCAsForThisInstance = GlobalConf.getApprovedCAs(GlobalConf.getInstanceIdentifier());
         ApprovedCAInfo approvedCA = approvedCAsForThisInstance.stream()
                 .filter(ca -> isCABeingConnectedTo(session, ca))
                 .findFirst().orElseThrow();

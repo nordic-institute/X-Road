@@ -45,6 +45,7 @@ import org.niis.xroad.signer.proto.CertificateRequestFormat;
 import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Component;
 
+import java.time.Instant;
 import java.util.List;
 
 /**
@@ -195,6 +196,27 @@ public class SignerProxyFacade {
      */
     public void setCertStatus(String certId, String status) throws Exception {
         SignerProxy.setCertStatus(certId, status);
+    }
+
+    /**
+     * {@link SignerProxy#setCertStatus(String, String)}
+     */
+    public void setRenewedCertHash(String certId, String hash) throws Exception {
+        SignerProxy.setRenewedCertHash(certId, hash);
+    }
+
+    /**
+     * {@link SignerProxy#setRenewalError(String, String)}
+     */
+    public void setRenewalError(String certId, String errorMessage) throws Exception {
+        SignerProxy.setRenewalError(certId, errorMessage);
+    }
+
+    /**
+     * {@link SignerProxy#setNextPlannedRenewal(String, Instant)}
+     */
+    public void setNextPlannedRenewal(String certId, Instant nextRenewalTime) throws Exception {
+        SignerProxy.setNextPlannedRenewal(certId, nextRenewalTime);
     }
 
     /**

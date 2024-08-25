@@ -26,16 +26,20 @@
 package org.niis.xroad.securityserver.restapi.openapi;
 
 import ee.ria.xroad.common.CodedException;
+import ee.ria.xroad.common.conf.globalconf.ApprovedCAInfo;
 import ee.ria.xroad.common.identifier.ClientId;
+import ee.ria.xroad.common.identifier.SecurityServerId;
 import ee.ria.xroad.signer.SignerProxy;
 import ee.ria.xroad.signer.protocol.dto.CertificateInfo;
 import ee.ria.xroad.signer.protocol.dto.KeyInfo;
 import ee.ria.xroad.signer.protocol.dto.TokenInfo;
 import ee.ria.xroad.signer.protocol.dto.TokenInfoAndKeyId;
 
+import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
+import org.mockito.MockedStatic;
 import org.niis.xroad.restapi.exceptions.DeviationCodes;
 import org.niis.xroad.restapi.exceptions.ErrorDeviation;
 import org.niis.xroad.restapi.openapi.BadRequestException;
@@ -81,6 +85,8 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.doThrow;
+import static org.mockito.Mockito.mockStatic;
+import static org.mockito.Mockito.when;
 import static org.niis.xroad.securityserver.restapi.util.CertificateTestUtils.MOCK_AUTH_CERTIFICATE_HASH;
 import static org.niis.xroad.securityserver.restapi.util.CertificateTestUtils.MOCK_CERTIFICATE_HASH;
 import static org.niis.xroad.securityserver.restapi.util.CertificateTestUtils.getMockAuthCertificate;
@@ -96,6 +102,8 @@ public class TokenCertificatesApiControllerIntegrationTest extends AbstractApiCo
     @Autowired
     TokenCertificatesApiController tokenCertificatesApiController;
 
+    private MockedStatic<ServerConf> serverConfMockedStatic;
+
     private static final String AUTH_CERT_HASH = "auth-cert-hash";
     private static final String SIGN_CERT_HASH = "sign-cert-hash";
     private static final String UNKNOWN_CERT_HASH = "unknown-cert-hash";
@@ -106,6 +114,8 @@ public class TokenCertificatesApiControllerIntegrationTest extends AbstractApiCo
         doAnswer(answer -> null).when(globalConfProvider).verifyValidity();
         doAnswer(answer -> TestUtils.INSTANCE_FI).when(globalConfProvider).getInstanceIdentifier();
         doAnswer(answer -> TestUtils.getM1Ss1ClientId()).when(globalConfProvider).getSubjectName(any(), any());
+        when(globalConfFacade.getApprovedCA(any(), any()))
+                .thenReturn(new ApprovedCAInfo("testca", false, "ee.test.Profile", null, null, null, null));
         CertificateInfo signCertificateInfo = new CertificateInfoBuilder().certificate(getMockCertificate())
                 .certificateStatus("SAVED").build();
         CertificateInfo authCertificateInfo = new CertificateInfoBuilder().certificate(getMockAuthCertificate())
@@ -136,6 +146,14 @@ public class TokenCertificatesApiControllerIntegrationTest extends AbstractApiCo
         // by default all actions are possible
         doReturn(EnumSet.allOf(PossibleActionEnum.class)).when(possibleActionsRuleEngine)
                 .getPossibleCertificateActions(any(), any(), any());
+        serverConfMockedStatic = mockStatic(ServerConf.class);
+        serverConfMockedStatic.when(ServerConf::getIdentifier)
+                .thenReturn(SecurityServerId.Conf.create("EE", "ORG", "consumer", "server"));
+    }
+
+    @After
+    public void tearDown() {
+        serverConfMockedStatic.close();
     }
 
     @Test
