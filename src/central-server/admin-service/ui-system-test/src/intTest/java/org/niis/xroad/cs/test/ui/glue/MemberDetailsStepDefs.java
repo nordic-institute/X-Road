@@ -29,6 +29,7 @@ import com.codeborne.selenide.Condition;
 import io.cucumber.java.en.Step;
 import org.niis.xroad.cs.test.ui.page.MemberDetailsPageObj;
 
+import static com.codeborne.selenide.Condition.enabled;
 import static com.codeborne.selenide.Condition.visible;
 import static org.niis.xroad.common.test.ui.utils.VuetifyHelper.vTextField;
 
@@ -95,9 +96,45 @@ public class MemberDetailsStepDefs extends BaseUiStepDefs {
         memberDetailsPageObj.ownedServers().server(serverCode).shouldBe(visible);
     }
 
+    @Step("used servers contains server {string}")
+    public void usedServersContainsServer(String serverCode) {
+        memberDetailsPageObj.usedServers().server(serverCode).shouldBe(visible);
+    }
+
+    @Step("used servers list is empty")
+    public void usedServersIsEmpty() {
+        memberDetailsPageObj.usedServers().table().shouldHave(Condition.text("No data available"));
+    }
+
     @Step("user clicks on owned server {string}")
     public void userClicksOnOwnedServer(String serverCode) {
         memberDetailsPageObj.ownedServers().server(serverCode).click();
     }
 
+    @Step("user clicks on used server {string}")
+    public void userClicksOnUSedServer(String serverCode) {
+        memberDetailsPageObj.usedServers().server(serverCode).click();
+    }
+
+    @Step("user clicks button to unregister from used server {string}")
+    public void userClicksToUnregisterFromUsedServer(String serverCode) {
+        memberDetailsPageObj.usedServers().btnUnregister(serverCode).shouldBe(visible, enabled).click();
+    }
+
+    @Step("user clicks cancel in Unregister client dialog")
+    public void cancelUnregisterProcess() {
+        memberDetailsPageObj.unregisterDialog().dialog().shouldBe(visible);
+        memberDetailsPageObj.unregisterDialog().btnCancel().shouldBe(visible, enabled).click();
+        memberDetailsPageObj.unregisterDialog().dialog().shouldNotBe(visible);
+    }
+
+    @Step("user clicks Yes in Unregister client dialog")
+    public void confirmUnregisterProcess() {
+        memberDetailsPageObj.unregisterDialog().dialog().shouldBe(visible);
+        memberDetailsPageObj.unregisterDialog().btnConfirm().shouldBe(visible, enabled).click();
+        memberDetailsPageObj.unregisterDialog().dialog().shouldNotBe(visible);
+
+        commonPageObj.snackBar.success().shouldBe(visible);
+        commonPageObj.snackBar.btnClose().click();
+    }
 }

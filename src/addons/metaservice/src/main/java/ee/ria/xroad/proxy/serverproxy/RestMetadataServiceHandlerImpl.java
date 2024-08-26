@@ -196,11 +196,11 @@ public class RestMetadataServiceHandlerImpl implements RestServiceHandler {
         DescriptionType descriptionType = ServerConf.getDescriptionType(targetServiceId);
         if (descriptionType == null) {
             throw new CodedException(X_INTERNAL_ERROR,
-                    String.format("Service not found: %s", targetServiceId.toString()));
+                    String.format("Service not found: %s", targetServiceId));
         }
         if (descriptionType != DescriptionType.OPENAPI3) {
             throw new CodedException(X_INTERNAL_ERROR,
-                    String.format("Invalid service type: %s", descriptionType.toString()));
+                    String.format("Invalid service type: %s", descriptionType));
         }
 
         String serviceDescriptionURL = ServerConf.getServiceDescriptionURL(targetServiceId);

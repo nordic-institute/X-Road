@@ -27,7 +27,7 @@ package ee.ria.xroad.common.conf.globalconfextension;
 
 import org.apache.commons.io.IOUtils;
 
-import java.nio.charset.StandardCharsets;
+import static java.nio.charset.StandardCharsets.UTF_8;
 
 /**
  * OCSP fetch interval configuration file validator, which reads the configuration
@@ -39,7 +39,7 @@ public final class OcspFetchIntervalStdinValidator {
      * Program entry point
      */
     public static void main(String[] args) throws Exception {
-        String string = IOUtils.toString(System.in, StandardCharsets.UTF_8.toString());
+        String string = IOUtils.toString(System.in, UTF_8);
         System.out.println(string);
         OcspFetchIntervalSchemaValidator.validate(string);
     }

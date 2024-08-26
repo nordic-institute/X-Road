@@ -28,6 +28,7 @@ package ee.ria.xroad.common;
 import ee.ria.xroad.common.util.CryptoUtils;
 
 import java.util.Arrays;
+import java.util.Optional;
 
 /**
  * Contains system-wide constants for system properties.
@@ -559,6 +560,39 @@ public final class SystemProperties {
     private static final String PROXYUI_AUTH_CERT_REG_SIGNATURE_DIGEST_ALGORITHM_ID =
             PREFIX + "proxy-ui-api.auth-cert-reg-signature-digest-algorithm-id";
 
+    /**
+     * Property name of the Security Server url, used to send management requests from Proxy UI.
+     */
+    private static final String PROXYUI_SECURITY_SERVER_URL = PREFIX + "proxy-ui-api.security-server-url";
+
+    /**
+     * Property name of the management request sender client keystore path, used to send management requests from Proxy UI.
+     */
+    private static final String MANAGEMENT_REQUEST_SENDER_CLIENT_KEYSTORE =
+            PREFIX + "proxy-ui-api.management-request-sender-client-keystore";
+
+    /**
+     * Property name of the management request sender client keystore password, used to send management requests from Proxy UI.
+     */
+    private static final String MANAGEMENT_REQUEST_SENDER_CLIENT_KEYSTORE_PASSWORD =
+            PREFIX + "proxy-ui-api.management-request-sender-client-keystore-password";
+    private static final String MANAGEMENT_REQUEST_SENDER_CLIENT_KEYSTORE_PASSWORD_ENV =
+            propertyNameToEnvVariable(MANAGEMENT_REQUEST_SENDER_CLIENT_KEYSTORE_PASSWORD);
+
+    /**
+     * Property name of the management request sender client truststore path, used to send management requests from Proxy UI.
+     */
+    private static final String MANAGEMENT_REQUEST_SENDER_CLIENT_TRUSTSTORE =
+            PREFIX + "proxy-ui-api.management-request-sender-client-truststore";
+
+    /**
+     * Property name of the management request sender client truststore password, used to send management requests from Proxy UI.
+     */
+    private static final String MANAGEMENT_REQUEST_SENDER_CLIENT_TRUSTSTORE_PASSWORD =
+            PREFIX + "proxy-ui-api.management-request-sender-client-truststore-password";
+    private static final String MANAGEMENT_REQUEST_SENDER_CLIENT_TRUSTSTORE_PASSWORD_ENV =
+            propertyNameToEnvVariable(MANAGEMENT_REQUEST_SENDER_CLIENT_TRUSTSTORE_PASSWORD);
+
     // Proxy & Central monitor agent ------------------------------------------
 
     /** Property name of the proxy monitor info collection interval. */
@@ -658,7 +692,7 @@ public final class SystemProperties {
     public static final String GRPC_INTERNAL_KEYSTORE_PASSWORD =
             PREFIX + "common.grpc-internal-keystore-password";
     public static final String GRPC_INTERNAL_KEYSTORE_PASSWORD_ENV =
-            GRPC_INTERNAL_KEYSTORE_PASSWORD.toUpperCase().replaceAll("[.-]", "_");
+            propertyNameToEnvVariable(GRPC_INTERNAL_KEYSTORE_PASSWORD);
 
     /**
      * Property name for gRPC internal truststore location.
@@ -672,7 +706,7 @@ public final class SystemProperties {
     public static final String GRPC_INTERNAL_TRUSTSTORE_PASSWORD =
             PREFIX + "common.grpc-internal-truststore-password";
     public static final String GRPC_INTERNAL_TRUSTSTORE_PASSWORD_ENV =
-            GRPC_INTERNAL_TRUSTSTORE_PASSWORD.toUpperCase().replaceAll("[.-]", "_");
+            propertyNameToEnvVariable(GRPC_INTERNAL_TRUSTSTORE_PASSWORD);
 
     public static final String DATASPACES_ENABLED = PREFIX + "dataspaces.enabled";
     public static final String DATASPACES_CONTROL_PORT = PREFIX + "dataspaces.control.port";
@@ -913,6 +947,47 @@ public final class SystemProperties {
      */
     public static String getAuthCertRegSignatureDigestAlgorithmId() {
         return System.getProperty(PROXYUI_AUTH_CERT_REG_SIGNATURE_DIGEST_ALGORITHM_ID, CryptoUtils.SHA512_ID);
+    }
+
+    /**
+     * @return Security Server url, used to send management requests from Proxy UI. Defaults to 'https://localhost:8443'.
+     */
+    public static String getProxyUiSecurityServerUrl() {
+        return System.getProperty(PROXYUI_SECURITY_SERVER_URL, "https://localhost:" + getClientProxyHttpsPort());
+    }
+
+    /**
+     * @return path to the management request sender client keystore. Uses PKCS#12 format.
+     */
+    public static String getManagementRequestSenderClientKeystore() {
+        return System.getProperty(MANAGEMENT_REQUEST_SENDER_CLIENT_KEYSTORE);
+    }
+
+    /**
+     * @return management request sender client keystore password.
+     */
+    public static char[] getManagementRequestSenderClientKeystorePassword() {
+        return Optional.ofNullable(System.getProperty(MANAGEMENT_REQUEST_SENDER_CLIENT_KEYSTORE_PASSWORD,
+                        System.getenv().get(MANAGEMENT_REQUEST_SENDER_CLIENT_KEYSTORE_PASSWORD_ENV)))
+                .map(String::toCharArray)
+                .orElse(null);
+    }
+
+    /**
+     * @return path to the management request sender client truststore. Uses PKCS#12 format.
+     */
+    public static String getManagementRequestSenderClientTruststore() {
+        return System.getProperty(MANAGEMENT_REQUEST_SENDER_CLIENT_TRUSTSTORE);
+    }
+
+    /**
+     * @return management request sender client truststore password.
+     */
+    public static char[] getManagementRequestSenderClientTruststorePassword() {
+        return Optional.ofNullable(System.getProperty(MANAGEMENT_REQUEST_SENDER_CLIENT_TRUSTSTORE_PASSWORD,
+                        System.getenv().get(MANAGEMENT_REQUEST_SENDER_CLIENT_TRUSTSTORE_PASSWORD_ENV)))
+                .map(String::toCharArray)
+                .orElse(null);
     }
 
     /**
@@ -1782,5 +1857,9 @@ public final class SystemProperties {
 
     public static boolean isBatchMessageSigningEnabled() {
         return false;
+    }
+
+    private static String propertyNameToEnvVariable(String propName) {
+        return propName.toUpperCase().replaceAll("[.-]", "_");
     }
 }

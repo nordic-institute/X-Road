@@ -46,7 +46,9 @@ dependencies {
     implementation(libs.bucket4j.core)
     implementation(libs.swagger.parserV3)
     implementation(libs.jakarta.validationApi)
-    implementation(libs.logback.access)
+    implementation(libs.logback.access){
+        exclude group: 'org.apache.tomcat', module: 'tomcat-catalina'
+    }
     implementation(libs.acme4j)
 
     testImplementation(platform(libs.springBoot.bom))

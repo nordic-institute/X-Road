@@ -27,7 +27,6 @@
 package org.niis.xroad.cs.admin.core.service;
 
 import ee.ria.xroad.common.identifier.ClientId;
-import ee.ria.xroad.common.identifier.SecurityServerId;
 
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
@@ -38,7 +37,6 @@ import org.niis.xroad.cs.admin.api.domain.Subsystem;
 import org.niis.xroad.cs.admin.api.dto.SubsystemCreationRequest;
 import org.niis.xroad.cs.admin.api.service.GlobalGroupMemberService;
 import org.niis.xroad.cs.admin.api.service.SubsystemService;
-import org.niis.xroad.cs.admin.core.entity.ServerClientEntity;
 import org.niis.xroad.cs.admin.core.entity.SubsystemEntity;
 import org.niis.xroad.cs.admin.core.entity.SubsystemIdEntity;
 import org.niis.xroad.cs.admin.core.entity.mapper.SecurityServerClientMapper;
@@ -57,15 +55,10 @@ import static java.util.stream.Collectors.toSet;
 import static org.niis.xroad.cs.admin.api.exception.ErrorMessage.MEMBER_NOT_FOUND;
 import static org.niis.xroad.cs.admin.api.exception.ErrorMessage.SUBSYSTEM_EXISTS;
 import static org.niis.xroad.cs.admin.api.exception.ErrorMessage.SUBSYSTEM_NOT_FOUND;
-import static org.niis.xroad.cs.admin.api.exception.ErrorMessage.SUBSYSTEM_NOT_REGISTERED_TO_SECURITY_SERVER;
 import static org.niis.xroad.cs.admin.api.exception.ErrorMessage.SUBSYSTEM_REGISTERED_AND_CANNOT_BE_DELETED;
-import static org.niis.xroad.restapi.config.audit.RestApiAuditProperty.CLIENT_IDENTIFIER;
 import static org.niis.xroad.restapi.config.audit.RestApiAuditProperty.MEMBER_CLASS;
 import static org.niis.xroad.restapi.config.audit.RestApiAuditProperty.MEMBER_CODE;
 import static org.niis.xroad.restapi.config.audit.RestApiAuditProperty.MEMBER_SUBSYSTEM_CODE;
-import static org.niis.xroad.restapi.config.audit.RestApiAuditProperty.OWNER_CLASS;
-import static org.niis.xroad.restapi.config.audit.RestApiAuditProperty.OWNER_CODE;
-import static org.niis.xroad.restapi.config.audit.RestApiAuditProperty.SERVER_CODE;
 
 @Service
 @Transactional
@@ -118,23 +111,6 @@ public class SubsystemServiceImpl implements SubsystemService {
     @Override
     public Optional<Subsystem> findByIdentifier(ClientId id) {
         return subsystemRepository.findByIdentifier(id).map(subsystemConverter::toDto);
-    }
-
-    @Override
-    public void unregisterSubsystem(ClientId subsystemId, SecurityServerId securityServerId) {
-        auditDataHelper.put(SERVER_CODE, securityServerId.getServerCode());
-        auditDataHelper.put(OWNER_CLASS, securityServerId.getOwner().getMemberClass());
-        auditDataHelper.put(OWNER_CODE, securityServerId.getOwner().getMemberCode());
-        auditDataHelper.put(CLIENT_IDENTIFIER, subsystemId);
-
-        SubsystemEntity subsystem = subsystemRepository.findOneBy(subsystemId)
-                .orElseThrow(() -> new NotFoundException(SUBSYSTEM_NOT_FOUND));
-        ServerClientEntity serverClient = subsystem.getServerClients().stream()
-                .filter(sc -> securityServerId.equals(sc.getSecurityServer().getServerId()))
-                .findFirst()
-                .orElseThrow(() -> new NotFoundException(SUBSYSTEM_NOT_REGISTERED_TO_SECURITY_SERVER));
-
-        serverClientRepository.delete(serverClient);
     }
 
     @Override

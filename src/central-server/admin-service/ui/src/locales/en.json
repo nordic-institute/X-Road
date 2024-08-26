@@ -594,13 +594,17 @@
         "globalGroups": "Global Groups",
         "group": "Group",
         "ownedServers": "Owned Servers",
+        "usedServers": "Used Servers",
         "server": "Server",
         "enterCode": "Enter Member Code",
         "deleteMember": "Delete member",
         "confirmDelete": "Are you sure you want to delete the Member {member} from the system configuration? Enter the member code to confirm.",
         "editMemberName": "Edit Member's name",
         "memberNameSaved": "Member name successfully saved",
-        "memberDeleted": "Member deleted successfully"
+        "memberDeleted": "Member deleted successfully",
+        "areYouSureUnregister": "Are you sure you want to unregister the Member {memberCode} from server {serverCode} from the system configuration?",
+        "unregisterMember": "Unregister member",
+        "memberSuccessfullyUnregistered": "Member {memberCode} from server {serverCode} has been unregistered"
       },
       "managementRequests": {
         "created": "Created",

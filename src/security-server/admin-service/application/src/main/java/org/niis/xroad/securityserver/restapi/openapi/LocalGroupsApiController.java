@@ -100,7 +100,7 @@ public class LocalGroupsApiController implements LocalGroupsApi {
     @PreAuthorize("hasAuthority('EDIT_LOCAL_GROUP_MEMBERS')")
     @AuditEventMethod(event = ADD_LOCAL_GROUP_MEMBERS)
     public ResponseEntity<Members> addLocalGroupMember(String groupIdString, Members members) {
-        if (members == null || members.getItems() == null || members.getItems().size() < 1) {
+        if (members == null || members.getItems() == null || members.getItems().isEmpty()) {
             throw new BadRequestException("missing member id");
         }
         // remove duplicates

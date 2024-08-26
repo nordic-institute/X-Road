@@ -534,7 +534,7 @@ public class SaxSoapParserImpl implements SoapParser {
 
         protected final void valueInternal() {
             String value = "";
-            if (valueBuffer.length() > 0) {
+            if (!valueBuffer.isEmpty()) {
                 value = valueBuffer.toString();
                 valueBuffer.setLength(0);
             }

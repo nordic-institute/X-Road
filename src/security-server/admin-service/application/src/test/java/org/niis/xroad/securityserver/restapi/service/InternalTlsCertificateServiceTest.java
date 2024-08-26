@@ -165,7 +165,7 @@ public class InternalTlsCertificateServiceTest {
                     if (entry.getSize() > Integer.MAX_VALUE) {
                         throw new IllegalStateException("can work with so large files: " + entry.getSize());
                     }
-                    byte data[] = new byte[(int) entry.getSize()];
+                    byte[] data = new byte[(int) entry.getSize()];
                     IOUtils.readFully(tarIn, data);
                     files.put(entry.getName(), data);
                 }

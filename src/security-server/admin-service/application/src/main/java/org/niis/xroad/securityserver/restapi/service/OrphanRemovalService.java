@@ -89,19 +89,13 @@ public class OrphanRemovalService {
         Optional<ClientType> sibling = clientService.getAllLocalClients().stream()
                 .filter(c -> c.getIdentifier().memberEquals(clientId))
                 .findFirst();
-        if (sibling.isPresent()) {
-            return true;
-        }
-        return false;
+        return sibling.isPresent();
     }
 
     private boolean isAlive(ClientId clientId) {
         ClientType clientType = clientService.getLocalClient(clientId);
-        if (clientType != null) {
-            // cant have orphans if still alive
-            return true;
-        }
-        return false;
+        // cant have orphans if still alive
+        return clientType != null;
     }
 
     /**
@@ -168,9 +162,7 @@ public class OrphanRemovalService {
             otherCerts.removeAll(orphanCerts);
             List<CertRequestInfo> otherCsrs = new ArrayList<>(keyInfo.getCertRequests());
             otherCsrs.removeAll(orphanCsrs);
-            if (otherCerts.isEmpty() && otherCsrs.isEmpty()) {
-                return true;
-            }
+            return otherCerts.isEmpty() && otherCsrs.isEmpty();
         }
         return false;
     }

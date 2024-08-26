@@ -353,7 +353,7 @@ public class SystemPropertiesLoader {
     }
 
     void loadMutuallyAlternativeFilesInEntryOrder(List<String> filePaths) throws FileNotFoundException {
-        if (filePaths == null || filePaths.size() == 0) {
+        if (filePaths == null || filePaths.isEmpty()) {
             return;
         }
 
@@ -365,7 +365,7 @@ public class SystemPropertiesLoader {
             }
         }
 
-        if (viablePaths.size() > 0) {
+        if (!viablePaths.isEmpty()) {
             viablePaths.forEach(path -> load(new FileWithSections(path.toString())));
         } else {
             throw new FileNotFoundException("None of the following configuration files were found: "
@@ -391,7 +391,7 @@ public class SystemPropertiesLoader {
         } catch (NoSuchFileException e) {
             log.warn(CONF_FILE_DOES_NOT_EXIST_WARN, e.getFile());
         } catch (ConfigurationException | IOException e) {
-            log.warn("Error while loading {}: {}", file.getName(), e);
+            log.warn("Error while loading {}: {}", file.getName(), e.getMessage(), e);
         }
     }
 
