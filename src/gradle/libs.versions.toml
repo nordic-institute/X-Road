@@ -164,4 +164,4 @@ openapi-generator = { id = "org.openapi.generator", version = "7.8.0" }
 sonarqube = { id = "org.sonarqube", version = "5.1.0.4882" }
 protobuf = { id = "com.google.protobuf", version = "0.9.4" }
 frontendJDK21 = { id = "org.siouan.frontend-jdk21", version = "8.1.0" }
-shadow = { id = "com.github.johnrengelman.shadow", version = "8.1.1" }
+shadow = { id = "com.gradleup.shadow", version = "8.3.0" }
