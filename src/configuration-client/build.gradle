@@ -3,11 +3,16 @@ plugins {
 }
 
 dependencies {
+    implementation(platform(libs.springBoot.bom))
+
     implementation project(':common:common-globalconf')
     implementation project(':common:common-scheduler')
     implementation project(':common:common-jetty')
     implementation project(':common:common-verifier')
+    implementation project(':common:common-rpc')
 
+    implementation('org.springframework:spring-context')
+    implementation('org.springframework:spring-context-support')
     implementation libs.commons.cli
 
     testImplementation project(':common:common-test')
@@ -15,7 +20,7 @@ dependencies {
 }
 
 ext {
-    mainClassName = 'ee.ria.xroad.common.conf.globalconf.ConfigurationClientMain'
+    mainClassName = 'org.niis.xroad.confclient.ConfClientDaemonMain'
 }
 
 jar {

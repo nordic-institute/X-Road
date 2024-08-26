@@ -36,6 +36,7 @@ import org.quartz.Scheduler;
 import org.quartz.SchedulerException;
 import org.quartz.Trigger;
 import org.quartz.impl.StdSchedulerFactory;
+import org.quartz.spi.JobFactory;
 
 import java.util.Date;
 import java.util.List;
@@ -68,6 +69,18 @@ public class JobManager implements StartStop {
      */
     public JobManager() throws SchedulerException {
         jobScheduler = new StdSchedulerFactory().getScheduler();
+    }
+
+    /**
+     * Creates a new job manager.
+     *
+     * @param jobFactory job factory to use
+     *
+     * @throws SchedulerException if there is a problem with the underlying Scheduler
+     */
+    public JobManager(JobFactory jobFactory) throws SchedulerException {
+        jobScheduler = new StdSchedulerFactory().getScheduler();
+        jobScheduler.setJobFactory(jobFactory);
     }
 
     @Override

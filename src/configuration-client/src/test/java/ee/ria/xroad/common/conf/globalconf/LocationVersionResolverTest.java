@@ -89,7 +89,7 @@ class LocationVersionResolverTest {
     @Test
     void chooseFirstAvailableVersion() throws Exception {
         var initialLocation = getConfigurationLocation();
-        wm.stubFor(get(anyUrl()).withQueryParam("version", equalTo("4")) .willReturn(ok()));
+        wm.stubFor(get(anyUrl()).withQueryParam("version", equalTo("4")).willReturn(ok()));
         LocationVersionResolver resolver = LocationVersionResolver.range(initialLocation, 2, 4);
 
         ConfigurationLocation resolvedLocation = resolver.toVersionedLocation();
@@ -102,8 +102,8 @@ class LocationVersionResolverTest {
     @Test
     void fallbackToPreviousVersion() throws Exception {
         var initialLocation = getConfigurationLocation();
-        wm.stubFor(get(anyUrl()).withQueryParam("version", equalTo("4")) .willReturn(notFound()));
-        wm.stubFor(get(anyUrl()).withQueryParam("version", equalTo("3")) .willReturn(ok()));
+        wm.stubFor(get(anyUrl()).withQueryParam("version", equalTo("4")).willReturn(notFound()));
+        wm.stubFor(get(anyUrl()).withQueryParam("version", equalTo("3")).willReturn(ok()));
         LocationVersionResolver resolver = LocationVersionResolver.range(initialLocation, 2, 4);
 
         ConfigurationLocation resolvedLocation = resolver.toVersionedLocation();
@@ -118,8 +118,8 @@ class LocationVersionResolverTest {
     @Test
     void fallbackToDefaultVersion() throws Exception {
         var initialLocation = getConfigurationLocation();
-        wm.stubFor(get(anyUrl()).withQueryParam("version", equalTo("4")) .willReturn(notFound()));
-        wm.stubFor(get(anyUrl()).withQueryParam("version", equalTo("3")) .willReturn(notFound()));
+        wm.stubFor(get(anyUrl()).withQueryParam("version", equalTo("4")).willReturn(notFound()));
+        wm.stubFor(get(anyUrl()).withQueryParam("version", equalTo("3")).willReturn(notFound()));
         LocationVersionResolver resolver = LocationVersionResolver.range(initialLocation, 2, 4);
 
         ConfigurationLocation resolvedLocation = resolver.toVersionedLocation();

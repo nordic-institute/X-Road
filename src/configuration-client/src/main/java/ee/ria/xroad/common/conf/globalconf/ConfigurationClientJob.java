@@ -35,7 +35,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.niis.xroad.schedule.RetryingQuartzJob;
 import org.niis.xroad.schedule.backup.ProxyConfigurationBackupJob;
 import org.quartz.DisallowConcurrentExecution;
-import org.quartz.JobDataMap;
 import org.quartz.JobExecutionContext;
 import org.quartz.JobExecutionException;
 import org.quartz.SchedulerException;
@@ -48,35 +47,32 @@ import org.quartz.SchedulerException;
 public class ConfigurationClientJob extends RetryingQuartzJob {
     private static final int RETRY_DELAY_SEC = 3;
 
-    public ConfigurationClientJob() {
+    private final ConfigurationClient configClient;
+
+    public ConfigurationClientJob(ConfigurationClient configClient) {
         super(RETRY_DELAY_SEC);
+        this.configClient = configClient;
     }
 
     @Override
     protected void executeWithRetry(JobExecutionContext context) throws Exception {
-        JobDataMap data = context.getJobDetail().getJobDataMap();
-        Object client = data.get("client");
+        try {
+            configClient.execute();
 
-        if (client instanceof ConfigurationClient configClient) {
-            try {
-                configClient.execute();
+            DiagnosticsStatus status =
+                    new DiagnosticsStatus(DiagnosticsErrorCodes.RETURN_SUCCESS, TimeUtils.offsetDateTimeNow(),
+                            TimeUtils.offsetDateTimeNow()
+                                    .plusSeconds(SystemProperties.getConfigurationClientUpdateIntervalSeconds()));
 
-                DiagnosticsStatus status =
-                        new DiagnosticsStatus(DiagnosticsErrorCodes.RETURN_SUCCESS, TimeUtils.offsetDateTimeNow(),
-                                TimeUtils.offsetDateTimeNow()
-                                        .plusSeconds(SystemProperties.getConfigurationClientUpdateIntervalSeconds()));
-                context.setResult(status);
-            } catch (Exception e) {
-                DiagnosticsStatus status = new DiagnosticsStatus(ConfigurationClientUtils.getErrorCode(e),
-                        TimeUtils.offsetDateTimeNow(),
-                        TimeUtils.offsetDateTimeNow()
-                                .plusSeconds(SystemProperties.getConfigurationClientUpdateIntervalSeconds()));
-                context.setResult(status);
+            context.setResult(status);
+        } catch (Exception e) {
+            DiagnosticsStatus status = new DiagnosticsStatus(ConfigurationClientUtils.getErrorCode(e),
+                    TimeUtils.offsetDateTimeNow(),
+                    TimeUtils.offsetDateTimeNow()
+                            .plusSeconds(SystemProperties.getConfigurationClientUpdateIntervalSeconds()));
+            context.setResult(status);
 
-                throw new JobExecutionException(e);
-            }
-        } else {
-            throw new JobExecutionException("Could not get configuration client from job data");
+            throw new JobExecutionException(e);
         }
     }
 

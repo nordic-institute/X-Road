@@ -72,7 +72,7 @@ import static ee.ria.xroad.common.util.CryptoUtils.getAlgorithmId;
  * the configuration is downloaded.
  */
 @Slf4j
-class ConfigurationDownloader {
+public class ConfigurationDownloader {
 
     public static final int READ_TIMEOUT = 30000;
     protected final FileNameProvider fileNameProvider;
@@ -94,6 +94,12 @@ class ConfigurationDownloader {
         this.configurationVersion = null;
     }
 
+    public ConfigurationDownloader(FileNameProvider fileNameProvider) {
+        this.fileNameProvider = fileNameProvider;
+        this.sharedParametersConfigurationLocations = new SharedParametersConfigurationLocations(fileNameProvider);
+        this.configurationVersion = null;
+    }
+
     ConfigurationParser getParser() {
         return new ConfigurationParser();
     }
@@ -101,7 +107,7 @@ class ConfigurationDownloader {
     /**
      * Downloads the configuration from the given configuration source.
      *
-     * @param source the configuration source
+     * @param source             the configuration source
      * @param contentIdentifiers the content identifier to include
      * @return download result object which contains the state of the download and in case of success
      * the downloaded files.
@@ -265,7 +271,7 @@ class ConfigurationDownloader {
      * ii) Configuration file hash is different from the one that system has
      *
      * @param configurationFile new configuration file
-     * @param file current configuration file
+     * @param file              current configuration file
      * @return boolean value of whether the files should be downloaded or not
      * @throws Exception in case of unexpected exception happens
      */
