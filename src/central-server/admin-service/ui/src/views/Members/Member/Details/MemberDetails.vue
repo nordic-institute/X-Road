@@ -64,36 +64,38 @@
 
     <!-- Owned Servers -->
     <div id="owned-servers">
-      <searchable-titled-view
-        v-model="searchServers"
-        title-key="members.member.details.ownedServers"
-      >
-        <v-data-table
-          :loading="loadingServers"
-          :headers="serversHeaders"
-          :items="servers"
-          :search="searchServers"
-          :must-sort="true"
-          :items-per-page="-1"
-          class="elevation-0 data-table"
-          item-key="id"
-          :loader-height="2"
-          data-test="owned-servers-table"
-        >
-          <template #[`item.server_id.server_code`]="{ item }">
-            <div
-              class="server-code xrd-clickable"
-              :data-test="`owned-server-${item.server_id.server_code}`"
-              @click="toSecurityServerDetails(item)"
-            >
-              {{ item.server_id.server_code }}
-            </div>
-          </template>
-          <template #bottom>
-            <custom-data-table-footer />
-          </template>
-        </v-data-table>
-      </searchable-titled-view>
+      <ServersList title-key="members.member.details.ownedServers" :loading="loadingOwnedServers"
+                   :servers="ownedServers"
+                   data-test="owned-servers-table" />
+    </div>
+
+    <!-- Used Servers -->
+    <div id="used-servers">
+      <ServersList title-key="members.member.details.usedServers" :loading="loadingUsedServers"
+                   :servers="usedServers"
+                   data-test="used-servers-table">
+        <template #actions="{ server }">
+          <xrd-button
+            v-if="allowUnregisterMember"
+            text
+            :data-test="`unregister-${server.server_id.server_code}`"
+            :outlined="false"
+            @click="unregisterFromServer = server"
+          >
+            {{ $t('action.unregister') }}
+          </xrd-button>
+        </template>
+      </ServersList>
+
+      <UnregisterMemberDialog
+        v-if="allowUnregisterMember && unregisterFromServer"
+        :member="memberStore.currentMember"
+        :server="unregisterFromServer"
+        data-test="unregister-member"
+        @cancel="unregisterFromServer = null"
+        @unregister="unregisterFromServer = null; loadClientServers()"
+      />
+
     </div>
 
     <!-- Global Groups -->
@@ -171,19 +173,22 @@
 
 <script lang="ts">
 import { defineComponent } from 'vue';
-import { Colors, Permissions, RouteName } from '@/global';
+import { Colors, Permissions } from '@/global';
 import InfoCard from '@/components/ui/InfoCard.vue';
 import { mapActions, mapState, mapStores } from 'pinia';
 import { useMember } from '@/store/modules/members';
 import { MemberGlobalGroup, SecurityServer } from '@/openapi-types';
 import { useNotifications } from '@/store/modules/notifications';
 import { useUser } from '@/store/modules/user';
-import MemberDeleteDialog from '@/views/Members/Member/Details/DeleteMemberDialog.vue';
-import EditMemberNameDialog from '@/views/Members/Member/Details/EditMemberNameDialog.vue';
+import MemberDeleteDialog from './DeleteMemberDialog.vue';
+import EditMemberNameDialog from './EditMemberNameDialog.vue';
 import SearchableTitledView from '@/components/ui/SearchableTitledView.vue';
 import DateTime from '@/components/ui/DateTime.vue';
 import CustomDataTableFooter from '@/components/ui/CustomDataTableFooter.vue';
 import { DataTableHeader } from '@/ui-types';
+import ServersList from './ServersList.vue';
+import UnregisterMemberDialog from './UnregisterMemberDialog.vue';
+
 import EditMemberDidDialog from "@/views/Members/Member/Details/EditMemberDidDialog.vue";
 
 // To provide the Vue instance to debounce
@@ -196,6 +201,7 @@ let that: any;
 export default defineComponent({
   name: 'MemberDetails',
   components: {
+    ServersList,
     EditMemberDidDialog,
     CustomDataTableFooter,
     DateTime,
@@ -203,6 +209,7 @@ export default defineComponent({
     EditMemberNameDialog,
     MemberDeleteDialog,
     InfoCard,
+    UnregisterMemberDialog,
   },
   props: {
     memberid: {
@@ -218,21 +225,16 @@ export default defineComponent({
       showEditDidDialog: false,
       showDeleteDialog: false,
 
-      loadingServers: false,
-      searchServers: '',
-      servers: [] as SecurityServer[],
+      loadingOwnedServers: false,
+      ownedServers: [] as SecurityServer[],
+
+      loadingUsedServers: false,
+      usedServers: [] as SecurityServer[],
+      unregisterFromServer: null as SecurityServer | null,
 
       loadingGroups: false,
       searchGroups: '',
       globalGroups: [] as MemberGlobalGroup[],
-
-      serversHeaders: [
-        {
-          title: this.$t('global.server') as string,
-          align: 'start',
-          key: 'server_id.server_code',
-        },
-      ] as DataTableHeader[],
       groupsHeaders: [
         {
           key: 'group_code',
@@ -261,6 +263,9 @@ export default defineComponent({
     allowMemberRename(): boolean {
       return this.hasPermission(Permissions.EDIT_MEMBER_NAME);
     },
+    allowUnregisterMember(): boolean {
+      return this.hasPermission(Permissions.UNREGISTER_MEMBER);
+    },
   },
   created() {
     that = this;
@@ -278,18 +283,13 @@ export default defineComponent({
         this.loadingGroups = false;
       });
 
-    this.loadingServers = true;
-    this.memberStore
-      .getMemberOwnedServers(this.memberid)
-      .then((resp) => {
-        this.servers = resp;
-      })
-      .catch((error) => {
-        this.showError(error);
-      })
-      .finally(() => {
-        this.loadingServers = false;
-      });
+    this.loadingOwnedServers = true;
+    this.memberStore.getMemberOwnedServers(this.memberid)
+      .then((resp) => this.ownedServers = resp)
+      .catch((error) => this.showError(error))
+      .finally(() => this.loadingOwnedServers = false);
+
+    this.loadClientServers();
   },
   methods: {
     ...mapActions(useNotifications, ['showError', 'showSuccess']),
@@ -308,11 +308,12 @@ export default defineComponent({
     cancelDelete() {
       this.showDeleteDialog = false;
     },
-    toSecurityServerDetails(securityServer: SecurityServer): void {
-      this.$router.push({
-        name: RouteName.SecurityServerDetails,
-        params: { serverId: securityServer.server_id.encoded_id || '' },
-      });
+    loadClientServers() {
+      this.loadingUsedServers = true;
+      this.memberStore.getUsedServers(this.memberid)
+        .then((resp) => this.usedServers = resp)
+        .catch((error) => this.showError(error))
+        .finally(() => this.loadingUsedServers = false);
     },
   },
 });

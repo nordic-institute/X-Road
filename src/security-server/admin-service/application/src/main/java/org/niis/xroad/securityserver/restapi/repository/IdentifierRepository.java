@@ -105,8 +105,7 @@ public class IdentifierRepository {
     public ClientId.Conf getClientId(ClientId clientId) {
         Session session = persistenceUtils.getCurrentSession();
         IdentifierDAOImpl identifierDao = new IdentifierDAOImpl();
-        ClientId.Conf localClientId = identifierDao.findClientId(session, clientId);
-        return localClientId;
+        return identifierDao.findClientId(session, clientId);
     }
 
 }

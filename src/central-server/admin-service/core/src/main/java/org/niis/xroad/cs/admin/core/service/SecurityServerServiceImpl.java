@@ -54,7 +54,10 @@ import org.niis.xroad.cs.admin.core.converter.CertificateConverter;
 import org.niis.xroad.cs.admin.core.converter.PageConverter;
 import org.niis.xroad.cs.admin.core.converter.PageRequestDtoConverter;
 import org.niis.xroad.cs.admin.core.entity.AuthCertEntity;
+import org.niis.xroad.cs.admin.core.entity.SecurityServerClientEntity;
 import org.niis.xroad.cs.admin.core.entity.SecurityServerEntity;
+import org.niis.xroad.cs.admin.core.entity.SecurityServerIdEntity;
+import org.niis.xroad.cs.admin.core.entity.ServerClientEntity;
 import org.niis.xroad.cs.admin.core.entity.XRoadMemberEntity;
 import org.niis.xroad.cs.admin.core.entity.mapper.SecurityServerMapper;
 import org.niis.xroad.cs.admin.core.repository.AuthCertRepository;
@@ -70,10 +73,13 @@ import java.util.Set;
 import static java.util.stream.Collectors.toList;
 import static java.util.stream.Collectors.toSet;
 import static org.niis.xroad.cs.admin.api.domain.Origin.CENTER;
+import static org.niis.xroad.cs.admin.api.exception.ErrorMessage.MEMBER_NOT_REGISTERED_TO_SECURITY_SERVER;
 import static org.niis.xroad.cs.admin.api.exception.ErrorMessage.SECURITY_SERVER_NOT_FOUND;
 import static org.niis.xroad.cs.admin.api.exception.ErrorMessage.SS_AUTH_CERTIFICATE_NOT_FOUND;
+import static org.niis.xroad.cs.admin.api.exception.ErrorMessage.SUBSYSTEM_NOT_REGISTERED_TO_SECURITY_SERVER;
 import static org.niis.xroad.cs.admin.core.service.SystemParameterServiceImpl.DEFAULT_SECURITY_SERVER_OWNERS_GROUP;
 import static org.niis.xroad.restapi.config.audit.RestApiAuditProperty.ADDRESS;
+import static org.niis.xroad.restapi.config.audit.RestApiAuditProperty.CLIENT_IDENTIFIER;
 import static org.niis.xroad.restapi.config.audit.RestApiAuditProperty.OWNER_CLASS;
 import static org.niis.xroad.restapi.config.audit.RestApiAuditProperty.OWNER_CODE;
 import static org.niis.xroad.restapi.config.audit.RestApiAuditProperty.SERVER_CODE;
@@ -82,6 +88,8 @@ import static org.niis.xroad.restapi.config.audit.RestApiAuditProperty.SERVER_CO
 @Transactional
 @RequiredArgsConstructor
 public class SecurityServerServiceImpl implements SecurityServerService {
+
+    private static final String DELETE_SS_COMMENT_TPL = "%s deletion";
 
     private final StableSortHelper stableSortHelper;
     private final AuthCertRepository authCertRepository;
@@ -206,25 +214,40 @@ public class SecurityServerServiceImpl implements SecurityServerService {
     }
 
     private void registerClientDeletionRequests(SecurityServerEntity securityServerEntity) {
-        final String comment = String.format("%s deletion", securityServerEntity.getServerId().toString());
-        final List<ClientDeletionRequest> clientDeletionRequests =
-                securityServerEntity.getServerClients().stream()
-                        .map(client -> new ClientDeletionRequest(CENTER, securityServerEntity.getServerId(),
-                                client.getSecurityServerClient().getIdentifier()))
-                        .peek(req -> req.setComments(comment))
-                        .collect(toList());
-        clientDeletionRequests.forEach(managementRequestService::add);
+        final var comment = DELETE_SS_COMMENT_TPL.formatted(securityServerEntity.getServerId().toString());
+
+        securityServerEntity.getServerClients().stream()
+                .map(ServerClientEntity::getSecurityServerClient)
+                .map(SecurityServerClientEntity::getIdentifier)
+                .map(clientId -> createClientDeletionRequest(securityServerEntity.getServerId(), clientId, comment))
+                .forEach(managementRequestService::add);
+    }
+
+    private ClientDeletionRequest createClientDeletionRequest(SecurityServerId serverId, ClientId clientId, String comment) {
+        var request = new ClientDeletionRequest(CENTER, serverId, clientId);
+        request.setComments(comment);
+        return request;
+    }
+
+    private ClientDeletionRequest createClientDeletionRequest(SecurityServerId serverId, ClientId clientId) {
+        return createClientDeletionRequest(serverId, clientId, null);
     }
 
     private void registerAuthCertsDeleteRequests(SecurityServerEntity securityServerEntity) {
-        final String comment = String.format("%s deletion", securityServerEntity.getServerId().toString());
-        final List<AuthenticationCertificateDeletionRequest> certDeletionRequests =
-                securityServerEntity.getAuthCerts().stream()
-                        .map(cert -> new AuthenticationCertificateDeletionRequest(CENTER,
-                                securityServerEntity.getServerId(), cert.getCert()))
-                        .peek(req -> req.setComments(comment))
-                        .collect(toList());
-        certDeletionRequests.forEach(managementRequestService::add);
+        final var comment = DELETE_SS_COMMENT_TPL.formatted(securityServerEntity.getServerId().toString());
+
+        securityServerEntity.getAuthCerts().stream()
+                .map(AuthCertEntity::getCert)
+                .map(cert -> createAuthenticationCertificateDeletionRequest(securityServerEntity.getServerId(), cert, comment))
+                .forEach(managementRequestService::add);
+    }
+
+    private static AuthenticationCertificateDeletionRequest createAuthenticationCertificateDeletionRequest(SecurityServerIdEntity serverId,
+                                                                                                           byte[] cert,
+                                                                                                           String comment) {
+        var request = new AuthenticationCertificateDeletionRequest(CENTER, serverId, cert);
+        request.setComments(comment);
+        return request;
     }
 
     private void updateServerOwnersGroup(SecurityServerEntity securityServerEntity) {
@@ -253,6 +276,32 @@ public class SecurityServerServiceImpl implements SecurityServerService {
 
         final var certDeletionRequest = new AuthenticationCertificateDeletionRequest(CENTER, serverId, authCertificate.getCert());
         managementRequestService.add(certDeletionRequest);
+    }
+
+    @Override
+    public void deleteClient(SecurityServerId securityServerId, ClientId clientId) {
+        auditDataHelper.put(SERVER_CODE, securityServerId.getServerCode());
+        auditDataHelper.put(OWNER_CLASS, securityServerId.getOwner().getMemberClass());
+        auditDataHelper.put(OWNER_CODE, securityServerId.getOwner().getMemberCode());
+        auditDataHelper.put(CLIENT_IDENTIFIER, clientId);
+
+        final var securityServer = securityServerRepository.findBy(securityServerId)
+                .orElseThrow(() -> new NotFoundException(SECURITY_SERVER_NOT_FOUND));
+
+
+        securityServer.getServerClients().stream()
+                .filter(client -> client.getSecurityServerClient().getIdentifier().equals(clientId))
+                .findFirst().orElseThrow(() -> throwNotRegistered(clientId));
+
+        managementRequestService.add(new ClientDeletionRequest(CENTER, securityServerId, clientId));
+    }
+
+    private NotFoundException throwNotRegistered(ClientId clientId) {
+        if (clientId.getSubsystemCode() == null) {
+            return new NotFoundException(MEMBER_NOT_REGISTERED_TO_SECURITY_SERVER);
+        } else {
+            return new NotFoundException(SUBSYSTEM_NOT_REGISTERED_TO_SECURITY_SERVER);
+        }
     }
 
 }

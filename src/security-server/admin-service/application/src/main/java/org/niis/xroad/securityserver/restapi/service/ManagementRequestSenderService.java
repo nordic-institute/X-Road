@@ -26,6 +26,7 @@
 package org.niis.xroad.securityserver.restapi.service;
 
 import ee.ria.xroad.common.CodedException;
+import ee.ria.xroad.common.SystemProperties;
 import ee.ria.xroad.common.identifier.ClientId;
 
 import lombok.RequiredArgsConstructor;
@@ -215,6 +216,7 @@ public class ManagementRequestSenderService {
         globalConfService.verifyGlobalConfValidity();
         ClientId sender = currentSecurityServerId.getServerId().getOwner();
         ClientId receiver = globalConfFacade.getManagementRequestService();
-        return new ManagementRequestSender(sender, receiver);
+        return new ManagementRequestSender(sender, receiver, SystemProperties.getProxyUiSecurityServerUrl());
     }
+
 }

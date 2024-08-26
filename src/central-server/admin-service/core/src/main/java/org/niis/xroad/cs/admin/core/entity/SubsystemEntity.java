@@ -40,9 +40,11 @@ import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
+import static org.niis.xroad.cs.admin.core.entity.SubsystemEntity.DISCRIMINATOR_VALUE;
+
 @Entity
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
-@DiscriminatorValue("Subsystem")
+@DiscriminatorValue(DISCRIMINATOR_VALUE)
 public class SubsystemEntity extends SecurityServerClientEntity {
 
     public static final String DISCRIMINATOR_VALUE = "Subsystem";

@@ -29,9 +29,9 @@ package org.niis.xroad.cs.admin.jpa.repository.util;
 import jakarta.persistence.criteria.CriteriaBuilder;
 import jakarta.persistence.criteria.Expression;
 import jakarta.persistence.criteria.Predicate;
-import jakarta.persistence.criteria.Root;
 import lombok.AccessLevel;
 import lombok.NoArgsConstructor;
+import org.hibernate.query.criteria.JpaExpression;
 
 /**
  * Utility for working with CriteriaBuilder
@@ -43,14 +43,19 @@ public final class CriteriaBuilderUtil {
     public static final String LIKE_EXPRESSION_ESCAPE_STRING = String.valueOf(LIKE_EXPRESSION_ESCAPE_CHAR);
 
     /**
-     * Create a case-insensite LIKE expression Predicate. Also escape special characters \, % and _
+     * Create a case-insensitive LIKE expression Predicate. Also escape special characters \, % and _
      */
-    public static Predicate caseInsensitiveLike(Root root, CriteriaBuilder builder, String s, Expression expression) {
+    public static Predicate caseInsensitiveLike(CriteriaBuilder builder, String s, Expression<String> expression) {
         return builder.like(
                 builder.lower(expression),
                 builder.lower(builder.literal("%" + escapeSpecialChars(s) + "%")),
                 LIKE_EXPRESSION_ESCAPE_CHAR
         );
+    }
+
+    public static <T> Expression<String> castToString(Expression<T> expression) {
+        //TODO starting hibernate 6.6 use this: return ((JpaExpression<T>) expression).cast(String.class);
+        return ((JpaExpression<T>) expression).as(String.class);
     }
 
     private static String escapeSpecialChars(String s) {

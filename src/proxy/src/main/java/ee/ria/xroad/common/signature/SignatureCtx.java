@@ -115,7 +115,7 @@ class SignatureCtx {
             throw new CodedException(X_INTERNAL_ERROR, "No requests in signing context");
         }
 
-        SigningRequest firstRequest = requests.get(0);
+        SigningRequest firstRequest = requests.getFirst();
 
         builder = new SignatureXmlBuilder(firstRequest, digestAlgorithmId);
 

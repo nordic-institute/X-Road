@@ -498,6 +498,12 @@ X-XSRF-TOKEN: {{ss0_xsrf_token}}
     },
     {
       "service_code": "ownerChange"
+    },
+    {
+      "service_code": "clientEnable"
+    },
+    {
+      "service_code": "clientDisable"
     }
   ]
 }

@@ -27,6 +27,7 @@
 package org.niis.xroad.cs.admin.api.service;
 
 import ee.ria.xroad.common.identifier.ClientId;
+import ee.ria.xroad.common.identifier.SecurityServerId;
 
 import org.niis.xroad.cs.admin.api.domain.GlobalGroupMember;
 import org.niis.xroad.cs.admin.api.domain.SecurityServer;
@@ -47,6 +48,9 @@ public interface MemberService {
     List<GlobalGroupMember> getMemberGlobalGroups(ClientId memberId);
 
     List<SecurityServer> getMemberOwnedServers(ClientId memberId);
+    List<SecurityServer> getMemberClientOfServers(ClientId memberId);
+
+    void unregisterMember(ClientId memberId, SecurityServerId securityServerId);
 
     Optional<XRoadMember> updateMemberName(ClientId clientId, String newName, String did);
 }

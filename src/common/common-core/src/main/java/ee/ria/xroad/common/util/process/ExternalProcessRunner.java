@@ -112,8 +112,7 @@ public class ExternalProcessRunner {
             IOUtils.closeQuietly(process.getErrorStream());
             IOUtils.closeQuietly(process.getOutputStream());
         }
-        ProcessResult processResult = new ProcessResult(commandWithArgsString, exitCode, processOutput);
-        return processResult;
+        return new ProcessResult(commandWithArgsString, exitCode, processOutput);
     }
 
     /**
