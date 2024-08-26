@@ -36,7 +36,6 @@ import org.springframework.context.annotation.Import;
 @Import({
         ConfClientAdminPortConfig.class,
         ConfClientJobConfig.class,
-        ConfClientRpcConfig.class
 })
 @ComponentScan("org.niis.xroad.confclient")
 @Configuration
