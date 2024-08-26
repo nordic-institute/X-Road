@@ -22,7 +22,7 @@ protoc = "3.25.4"
 grpc = "1.66.0"
 swaggerParser = "2.1.22"
 logback = "1.5.7"
-logbackAccess = "2.0.2"
+logbackAccess = "2.0.3"
 
 [libraries]
 metrics-core = { module = "io.dropwizard.metrics:metrics-core", version.ref = "metrics" }
