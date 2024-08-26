@@ -70,7 +70,7 @@ public class AcmeConfig {
     public AcmeProperties acmeProperties() {
         Resource path = new FileSystemResource(SystemProperties.getConfPath() + "conf.d/acme.yml");
         if (!SystemProperties.isAcmeChallengePortEnabled() && !path.exists()) {
-            log.warn("Configuration {} not exists ", path);
+            log.warn("Configuration {} not exists", path);
             return new AcmeProperties();
         }
         Constructor constructor = createAcmeYamlConstructor();
