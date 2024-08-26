@@ -48,19 +48,19 @@ import static ee.ria.xroad.common.conf.globalconf.VersionedConfigurationDirector
  * Configuration client downloads the configuration from sources found in the configuration anchor.
  */
 @Slf4j
-class ConfigurationClient {
+public class ConfigurationClient {
     private final String globalConfigurationDir;
 
     private final ConfigurationDownloader downloader;
 
     private ConfigurationSource configurationAnchor;
 
-    ConfigurationClient(String globalConfigurationDir, int configurationVersion) {
+    public ConfigurationClient(String globalConfigurationDir, int configurationVersion) {
         this.globalConfigurationDir = globalConfigurationDir;
         downloader = new ConfigurationDownloader(globalConfigurationDir, configurationVersion);
     }
 
-    ConfigurationClient(String globalConfigurationDir) {
+    public ConfigurationClient(String globalConfigurationDir) {
         this.globalConfigurationDir = globalConfigurationDir;
         downloader = new ConfigurationDownloader(globalConfigurationDir);
     }
@@ -71,7 +71,7 @@ class ConfigurationClient {
         this.configurationAnchor = configurationAnchor;
     }
 
-    synchronized void execute() throws Exception {
+    public synchronized void execute() throws Exception {
         log.debug("Configuration client executing...");
 
         if (configurationAnchor == null || (configurationAnchor instanceof ConfProvider cp && cp.hasChanged())) {
@@ -145,7 +145,7 @@ class ConfigurationClient {
                     .privateParametersProvider(privateParamsPath, OffsetDateTime.MAX)
                     .getPrivateParameters();
         } catch (Exception e) {
-            log.error("Failed to read additional configuration sources from" + globalConfigurationDir, e);
+            log.error("Failed to read additional configuration sources from {}", globalConfigurationDir, e);
             return null;
         }
     }
