@@ -408,10 +408,6 @@ public final class SystemProperties {
     public static final String DEVICE_CONFIGURATION_FILE =
             PREFIX + "signer.device-configuration-file";
 
-    /** Property name of the Signer's admin port number. */
-    public static final String SIGNER_ADMIN_PORT =
-            PREFIX + "signer.admin-port";
-
     /** Property name of the SignerClient's timeout. */
     public static final String SIGNER_CLIENT_TIMEOUT =
             PREFIX + "signer.client-timeout";
@@ -1001,13 +997,6 @@ public final class SystemProperties {
      */
     public static String getServerProxyListenAddress() {
         return System.getProperty(PROXY_SERVER_LISTEN_ADDRESS, DEFAULT_CONNECTOR_HOST);
-    }
-
-    /**
-     * @return the port on which the signer admin listens for requests
-     */
-    public static int getSignerAdminPort() {
-        return Integer.parseInt(System.getProperty(SIGNER_ADMIN_PORT, Integer.toString(PortNumbers.SIGNER_ADMIN_PORT)));
     }
 
     /**

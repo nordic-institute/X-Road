@@ -49,9 +49,6 @@ public final class PortNumbers {
     /** Admin port for proxy. */
     public static final int ADMIN_PORT = 5566;
 
-    /** Signer Admin port. */
-    public static final int SIGNER_ADMIN_PORT = 5559;
-
     /**
      * Signer grpc service port.
      */

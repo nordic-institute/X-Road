@@ -2,7 +2,7 @@
 
 **X-ROAD 7**
 
-Version: 2.52  
+Version: 2.53  
 Doc. ID: IG-SS
 
 ---
@@ -70,8 +70,9 @@ Doc. ID: IG-SS
 | 19.12.2023 | 2.48    | Add RHEL 9 as supported platform                                                                                                                                                                                     | Justas Samuolis    |
 | 02.01.2024 | 2.49    | Loopback ports added                                                                                                                                                                                                 | Justas Samuolis    |
 | 26.04.2024 | 2.50    | Ubuntu 24.04 support                                                                                                                                                                                                 | Madis Loitmaa      |
- | 12.06.2024 | 2.51    | Add ACME server to the network diagram, add a section about enabling ACME support                                                                                                                                    | Petteri Kivimäki   |
+| 12.06.2024 | 2.51    | Add ACME server to the network diagram, add a section about enabling ACME support                                                                                                                                    | Petteri Kivimäki   |
 | 25.06.2024 | 2.52    | Add global configuration download port 443 to the network diagram                                                                                                                                                    | Petteri Kivimäki   |
+| 26.08.2024 | 2.53    | Signer admin port removed                                                                                                                                                                                            | Justas Samuolis    |
 
 ## License
 
@@ -236,7 +237,6 @@ The table below lists the open ports for Security Server components utilizing th
 | PostgreSQL database      | 5432      | tcp          | Default PostgreSQL port         |
 | OP Monitoring daemon     | 2080      | tcp          |                                 |
 | Environmental monitoring | 2552      | tcp          |                                 |
-| Signer                   | 5559      | tcp          | Signer admin port               |
 | Signer                   | 5560      | tcp          | Signer gRPC port                |
 | Proxy                    | 5566      | tcp          | Proxy admin port                |
 | Proxy                    | 5567      | tcp          | Proxy gRPC server port          |

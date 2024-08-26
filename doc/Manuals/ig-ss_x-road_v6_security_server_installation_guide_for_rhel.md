@@ -2,7 +2,7 @@
 
 **X-ROAD 7**
 
-Version: 1.30  
+Version: 1.31  
 Doc. ID: IG-SS-RHEL
 
 ---
@@ -43,6 +43,7 @@ Doc. ID: IG-SS-RHEL
 | 12.06.2024 | 1.28    | Add ACME server to the network diagram, add a section about enabling ACME support                                                                                                                                    | Petteri Kivimäki     |
 | 25.06.2024 | 1.29    | Add global configuration download port 443 to the network diagram                                                                                                                                                    | Petteri Kivimäki     |
 | 17.07.2024 | 1.30    | Java 21 installation instructions for RHEL 7                                                                                                                                                                         | Ovidijus Narkevičius |
+| 26.08.2024 | 1.31    | Signer admin port removed                                                                                                                                                                                            | Justas Samuolis      | 
 ## License
 
 This document is licensed under the Creative Commons Attribution-ShareAlike 3.0 Unported License. To view a copy of this license, visit http://creativecommons.org/licenses/by-sa/3.0/
@@ -199,7 +200,6 @@ The table below lists the open ports for Security Server components utilizing th
 | PostgreSQL database      | 5432      | tcp          | Default PostgreSQL port         | 
 | OP Monitoring daemon     | 2080      | tcp          |                                 | 
 | Environmental monitoring | 2552      | tcp          |                                 | 
-| Signer                   | 5559      | tcp          | Signer admin port               | 
 | Signer                   | 5560      | tcp          | Signer gRPC port                | 
 | Proxy                    | 5566      | tcp          | Proxy admin port                | 
 | Proxy                    | 5567      | tcp          | Proxy gRPC server port          | 

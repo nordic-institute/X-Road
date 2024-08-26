@@ -49,7 +49,7 @@ import org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler;
 
 @Slf4j
 @EnableScheduling
-@Import({SignerAdminPortConfig.class, SignerRpcConfig.class})
+@Import(SignerRpcConfig.class)
 @ComponentScan({"ee.ria.xroad.signer.protocol", "ee.ria.xroad.signer.job"})
 @Configuration
 public class SignerConfig {
