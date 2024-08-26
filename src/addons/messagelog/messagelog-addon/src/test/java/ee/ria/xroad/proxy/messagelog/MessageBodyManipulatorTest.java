@@ -63,7 +63,7 @@ import static org.junit.Assert.assertTrue;
 @Slf4j
 public class MessageBodyManipulatorTest {
 
-    public static final String QUERY_DIR = "../../../proxy/src/test/queries/";
+    public static final String QUERY_DIR = "../../../proxy/application/src/test/queries/";
 
     @Getter
     @Setter
