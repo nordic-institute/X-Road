@@ -29,7 +29,6 @@ import ee.ria.xroad.common.SystemProperties;
 
 import lombok.extern.slf4j.Slf4j;
 import org.niis.xroad.common.rpc.server.RpcServer;
-import org.niis.xroad.confclient.rpc.GlobalConfRpcService;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
@@ -38,12 +37,12 @@ import org.springframework.context.annotation.Configuration;
 public class ConfClientRpcConfig {
 
     @Bean(initMethod = "start", destroyMethod = "stop")
-    RpcServer proxyRpcServer(GlobalConfRpcService globalConfRpcService) throws Exception {
+    RpcServer proxyRpcServer() throws Exception {
         return RpcServer.newServer(
                 SystemProperties.getGrpcInternalHost(),
-                SystemProperties.getConfigurationClientGrpcPort(),
+                SystemProperties.getConfigurationClientPort(),
                 builder -> {
-                    builder.addService(globalConfRpcService);
+                    //add services
                 });
     }
 
