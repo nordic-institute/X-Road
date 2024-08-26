@@ -37,10 +37,12 @@ import io.grpc.BindableService;
 import io.grpc.ServerBuilder;
 import lombok.extern.slf4j.Slf4j;
 import org.niis.xroad.common.rpc.server.RpcServer;
+import org.niis.xroad.proxy.edc.AssetsRegistrationJob;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
 import java.util.List;
+import java.util.Optional;
 
 @Slf4j
 @Configuration
@@ -72,10 +74,12 @@ public class ProxyRpcConfig {
     @Bean
     AdminService adminService(BackupEncryptionStatusDiagnostics backupEncryptionStatusDiagnostics,
                               AddOnStatusDiagnostics addOnStatusDiagnostics,
-                              MessageLogEncryptionStatusDiagnostics messageLogEncryptionStatusDiagnostics) {
+                              MessageLogEncryptionStatusDiagnostics messageLogEncryptionStatusDiagnostics,
+                              Optional<AssetsRegistrationJob> assetsRegistrationJob) {
         return new AdminService(backupEncryptionStatusDiagnostics,
                 addOnStatusDiagnostics,
-                messageLogEncryptionStatusDiagnostics);
+                messageLogEncryptionStatusDiagnostics,
+                assetsRegistrationJob);
     }
 
 }

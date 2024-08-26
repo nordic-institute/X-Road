@@ -112,6 +112,11 @@ public class ProxyRpcClient {
                 .clearConfCache(Empty.getDefaultInstance()));
     }
 
+    public void triggerDsAssetUpdate() throws Exception {
+        proxyRpcClient.execute(ctx -> ctx.getAdminServiceBlockingStub()
+                .triggerDSAssetUpdate(Empty.getDefaultInstance()));
+    }
+
     @Getter
     private static class ProxyRpcExecutionContext implements RpcClient.ExecutionContext {
         private final AdminServiceGrpc.AdminServiceBlockingStub adminServiceBlockingStub;

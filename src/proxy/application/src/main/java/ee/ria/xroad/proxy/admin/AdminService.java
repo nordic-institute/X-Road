@@ -35,6 +35,7 @@ import ee.ria.xroad.proxy.admin.handler.TimestampStatusHandler;
 
 import io.grpc.stub.StreamObserver;
 import lombok.RequiredArgsConstructor;
+import org.niis.xroad.proxy.edc.AssetsRegistrationJob;
 import org.niis.xroad.proxy.proto.AddOnStatusResp;
 import org.niis.xroad.proxy.proto.AdminServiceGrpc;
 import org.niis.xroad.proxy.proto.BackupEncryptionStatusResp;
@@ -44,6 +45,7 @@ import org.niis.xroad.proxy.proto.MessageLogEncryptionStatusResp;
 import org.niis.xroad.proxy.proto.TimestampStatusResp;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.function.Supplier;
 
 import static java.util.Collections.unmodifiableList;
@@ -54,6 +56,7 @@ public class AdminService extends AdminServiceGrpc.AdminServiceImplBase {
     private final BackupEncryptionStatusDiagnostics backupEncryptionStatusDiagnostics;
     private final AddOnStatusDiagnostics addOnStatusDiagnostics;
     private final MessageLogEncryptionStatusDiagnostics messageLogEncryptionStatusDiagnostics;
+    private final Optional<AssetsRegistrationJob> assetsRegistrationJobProvider;
 
     private final TimestampStatusHandler timestampStatusHandler = new TimestampStatusHandler();
 
@@ -80,6 +83,24 @@ public class AdminService extends AdminServiceGrpc.AdminServiceImplBase {
     @Override
     public void clearConfCache(Empty request, StreamObserver<Empty> responseObserver) {
         handleRequest(responseObserver, this::handleClearConfCache);
+    }
+
+    @Override
+    public void triggerDSAssetUpdate(Empty request, StreamObserver<Empty> responseObserver) {
+        handleRequest(responseObserver, this::handleTriggerDSAssetUpdate);
+    }
+
+    private Empty handleTriggerDSAssetUpdate() {
+        assetsRegistrationJobProvider.ifPresent(assetsRegistrationJob -> {
+            assetsRegistrationJob.registerDataPlane();
+            try {
+                assetsRegistrationJob.registerAssets();
+            } catch (Exception e) {
+                throw new RuntimeException("Assets registration job failed.", e);
+            }
+        });
+
+        return Empty.getDefaultInstance();
     }
 
     private <T> void handleRequest(StreamObserver<T> responseObserver, Supplier<T> handler) {

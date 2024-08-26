@@ -37,6 +37,7 @@ service AdminService {
   rpc GetMessageLogEncryptionStatus(Empty) returns (MessageLogEncryptionStatusResp) {}
   rpc GetTimestampStatus(Empty) returns (TimestampStatusResp) {}
   rpc ClearConfCache(Empty) returns (Empty) {}
+  rpc TriggerDSAssetUpdate(Empty) returns (Empty) {}
 }
 
 message BackupEncryptionStatusResp {

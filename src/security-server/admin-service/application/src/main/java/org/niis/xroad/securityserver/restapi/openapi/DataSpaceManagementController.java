@@ -25,19 +25,15 @@
  */
 package org.niis.xroad.securityserver.restapi.openapi;
 
-import ee.ria.xroad.common.PortNumbers;
-
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.niis.xroad.proxy.proto.ProxyRpcClient;
 import org.niis.xroad.restapi.openapi.ControllerUtil;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.web.client.RestTemplateBuilder;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.client.RestTemplate;
 
 /**
  * TODO temporary controller for DS related operations
@@ -48,19 +44,13 @@ import org.springframework.web.client.RestTemplate;
 @PreAuthorize("isAuthenticated()")
 @RequiredArgsConstructor
 public class DataSpaceManagementController {
-    private final RestTemplate restTemplate;
-    private final String triggerUrl = String.format("http://localhost:%s/trigger-ds-asset-creation", PortNumbers.ADMIN_PORT);
-
-    @Autowired
-    public DataSpaceManagementController(RestTemplateBuilder restTemplateBuilder) {
-        this.restTemplate = restTemplateBuilder
-                .build();
-    }
+    private final ProxyRpcClient proxyRpcClient;
 
     @GetMapping("/ds/trigger-asset-update")
     public ResponseEntity<String> triggerAssetUpdate() {
         try {
-            return restTemplate.getForEntity(triggerUrl, String.class);
+            proxyRpcClient.triggerDsAssetUpdate();
+            return ResponseEntity.ok("OK");
         } catch (Exception e) {
             log.error("Failed to update assets", e);
             return ResponseEntity.internalServerError().build();
