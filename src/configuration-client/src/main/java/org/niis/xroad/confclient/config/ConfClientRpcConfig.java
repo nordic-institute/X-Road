@@ -26,25 +26,26 @@
 package org.niis.xroad.confclient.config;
 
 import ee.ria.xroad.common.SystemProperties;
-import ee.ria.xroad.common.conf.globalconf.ConfigurationClient;
 
+import lombok.extern.slf4j.Slf4j;
+import org.niis.xroad.common.rpc.server.RpcServer;
+import org.niis.xroad.confclient.rpc.GlobalConfRpcService;
 import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.context.annotation.Import;
 
-@Import({
-        ConfClientAdminPortConfig.class,
-        ConfClientJobConfig.class,
-        ConfClientRpcConfig.class
-})
-@ComponentScan("org.niis.xroad.confclient")
+@Slf4j
 @Configuration
-public class ConfClientRootConfig {
+public class ConfClientRpcConfig {
 
-    @Bean
-    ConfigurationClient configurationClient() {
-        return new ConfigurationClient(SystemProperties.getConfigurationPath());
+    @Bean(initMethod = "start", destroyMethod = "stop")
+    RpcServer proxyRpcServer(GlobalConfRpcService globalConfRpcService) throws Exception {
+        return RpcServer.newServer(
+                SystemProperties.getGrpcInternalHost(),
+                SystemProperties.getConfigurationClientGrpcPort(),
+                builder -> {
+                    builder.addService(globalConfRpcService);
+                });
     }
+
 
 }
