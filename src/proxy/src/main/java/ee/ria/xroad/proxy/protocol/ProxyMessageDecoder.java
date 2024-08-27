@@ -57,6 +57,7 @@ import org.eclipse.jetty.http.HttpField;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.HashMap;
@@ -457,13 +458,17 @@ public class ProxyMessageDecoder {
                             dc.getOutputStream());
                     TeeInputStream proxyIs = new TeeInputStream(is, cos, true);
 
+                    // TODO: attachment body capturing added for debugging issue XRDSD-443. Remove before release.
+                    var attachmentBodyOs = new ByteArrayOutputStream();
+                    proxyIs = new TeeInputStream(proxyIs, attachmentBodyOs, true);
+
                     callback.attachment(partContentType, proxyIs, headers);
 
                     attachmentsByteCount += cos.getByteCount();
 
                     verifier.addPart(
                             MessageFileNames.attachment(++attachmentNo),
-                            getHashAlgoId(), dc.getDigest());
+                            getHashAlgoId(), dc.getDigest(), attachmentBodyOs.toByteArray());
                 } catch (Exception ex) {
                     throw translateException(ex);
                 }
