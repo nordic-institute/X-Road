@@ -733,10 +733,11 @@ h3 {
 .diagnostic-card {
   width: 100%;
 
-  margin-bottom: 30px;
   &:first-of-type {
     margin-top: 40px;
   }
+
+  margin-bottom: 30px;
 
   /* eslint-disable-next-line vue-scoped-css/no-unused-selector */
   .v-card__title {

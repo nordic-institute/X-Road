@@ -98,11 +98,10 @@
   border-radius: 4px;
 
   // override Vuetify style
-  background-color: #ffffff;
   .v-stepper__content {
     padding: 0;
   }
-
+  background-color: #ffffff;
 }
 
 .wizard-view-title {
