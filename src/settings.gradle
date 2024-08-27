@@ -32,11 +32,11 @@ include 'common:common-scheduler'
 
 // Main projects
 include "proxy"
-include "proxy:rpc-client"
+include "proxy:proxy-rpc-client"
 include "proxy:application"
 include "signer"
 include "configuration-proxy"
-include "configuration-client:rpc-client"
+include "configuration-client:confclient-rpc-client"
 include "configuration-client:application"
 include "asicverifier"
 include "asic-util"
