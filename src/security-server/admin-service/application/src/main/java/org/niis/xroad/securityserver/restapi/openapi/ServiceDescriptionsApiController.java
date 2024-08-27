@@ -135,7 +135,7 @@ public class ServiceDescriptionsApiController implements ServiceDescriptionsApi 
     public ResponseEntity<ServiceDescription> updateServiceDescription(String id,
                                                                        ServiceDescriptionUpdate serviceDescriptionUpdate) {
         Long serviceDescriptionId = FormatUtils.parseLongIdOrThrowNotFound(id);
-        ServiceDescriptionType updatedServiceDescription = null;
+        ServiceDescriptionType updatedServiceDescription;
 
         try {
 

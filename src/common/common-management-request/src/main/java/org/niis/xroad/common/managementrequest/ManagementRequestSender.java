@@ -27,7 +27,6 @@
 package org.niis.xroad.common.managementrequest;
 
 import ee.ria.xroad.common.CodedException;
-import ee.ria.xroad.common.SystemProperties;
 import ee.ria.xroad.common.conf.globalconf.GlobalConf;
 import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.identifier.SecurityServerId;
@@ -70,6 +69,7 @@ import static ee.ria.xroad.common.util.MimeUtils.getBaseContentType;
 @Slf4j
 public final class ManagementRequestSender {
 
+    private final String securityServerUrl;
     private final ManagementRequestBuilder builder;
 
     /**
@@ -78,17 +78,17 @@ public final class ManagementRequestSender {
      * @param sender the sender
      * @param receiver the receiver
      */
-    public ManagementRequestSender(ClientId sender, ClientId receiver) {
+    public ManagementRequestSender(ClientId sender, ClientId receiver, String securityServerUrl) {
         this.builder = new ManagementRequestBuilder(sender, receiver);
+        this.securityServerUrl = securityServerUrl;
     }
 
-    protected URI getCentralServiceURI() throws Exception {
+    private URI getCentralServiceURI() throws Exception {
         return new URI(GlobalConf.getManagementRequestServiceAddress());
     }
 
-    protected URI getSecurityServerURI() throws Exception {
-        return new URI("https://localhost:"
-                + SystemProperties.getClientProxyHttpsPort());
+    private URI getSecurityServerURI() throws Exception {
+        return new URI(securityServerUrl);
     }
 
     // -- Management request send methods -------------------------------------
@@ -252,7 +252,6 @@ public final class ManagementRequestSender {
             return null;
         }
     }
-
 
     private static SoapMessageImpl getResponse(HttpSender sender,
                                                String expectedContentType) throws Exception {

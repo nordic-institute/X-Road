@@ -9,8 +9,9 @@
     </appender>
 
     <logger name="ee.ria.xroad" level="TRACE" />
+    <logger name="org.niis" level="TRACE" />
 
-    <root level="TRACE">
+    <root level="INFO">
         <appender-ref ref="STDOUT" />
     </root>
 </configuration>
