@@ -27,24 +27,29 @@ package org.niis.xroad.confclient.config;
 
 import ee.ria.xroad.common.SystemProperties;
 
+import io.grpc.BindableService;
 import lombok.extern.slf4j.Slf4j;
 import org.niis.xroad.common.rpc.server.RpcServer;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+
+import java.util.Collection;
 
 @Slf4j
 @Configuration
 public class ConfClientRpcConfig {
 
     @Bean(initMethod = "start", destroyMethod = "stop")
-    RpcServer proxyRpcServer() throws Exception {
+    RpcServer proxyRpcServer(Collection<BindableService> services) throws Exception {
         return RpcServer.newServer(
                 SystemProperties.getGrpcInternalHost(),
                 SystemProperties.getConfigurationClientPort(),
-                builder -> {
-                    //add services
-                });
-    }
+                builder -> services.forEach(service -> {
+                    log.info("Registering {} RPC service.", service.getClass().getSimpleName());
+                    builder.addService(service);
+                })
 
+        );
+    }
 
 }

@@ -72,7 +72,7 @@ Doc. ID: IG-SS
 | 26.04.2024 | 2.50    | Ubuntu 24.04 support                                                                                                                                                                                                 | Madis Loitmaa      |
 | 12.06.2024 | 2.51    | Add ACME server to the network diagram, add a section about enabling ACME support                                                                                                                                    | Petteri Kivimäki   |
 | 25.06.2024 | 2.52    | Add global configuration download port 443 to the network diagram                                                                                                                                                    | Petteri Kivimäki   |
-| 26.08.2024 | 2.53    | Signer admin port removed                                                                                                                                                                                            | Justas Samuolis    |
+| 26.08.2024 | 2.53    | Signer and Configuration client admin port removed                                                                                                                                                                   | Justas Samuolis    |
 
 ## License
 
@@ -232,16 +232,15 @@ The table below lists the required connections between different components.
 
 The table below lists the open ports for Security Server components utilizing the _loopback_ interface. A loopback interface is a virtual network interface on a computer, facilitating self-communication for processes and applications. This enables local communication and the ports must be accessible locally.
 
-| **Component**            | **Ports** | **Protocol** | **Note**                        |
-| ------------------------ | --------- | ------------ | ------------------------------- |
-| PostgreSQL database      | 5432      | tcp          | Default PostgreSQL port         |
-| OP Monitoring daemon     | 2080      | tcp          |                                 |
-| Environmental monitoring | 2552      | tcp          |                                 |
-| Signer                   | 5560      | tcp          | Signer gRPC port                |
-| Proxy                    | 5566      | tcp          | Proxy admin port                |
-| Proxy                    | 5567      | tcp          | Proxy gRPC server port          |
-| Configuration Client     | 5675      | tcp          | Configuration Client admin port |
-| Audit Log                | 514       | udp          |                                 |
+| **Component**            | **Ports** | **Protocol** | **Note**                |
+|--------------------------|-----------|--------------|-------------------------|
+| PostgreSQL database      | 5432      | tcp          | Default PostgreSQL port |
+| OP Monitoring daemon     | 2080      | tcp          |                         |
+| Environmental monitoring | 2552      | tcp          |                         |
+| Signer                   | 5560      | tcp          | Signer gRPC port        |
+| Proxy                    | 5566      | tcp          | Proxy admin port        |
+| Proxy                    | 5567      | tcp          | Proxy gRPC server port  |
+| Audit Log                | 514       | udp          |                         |
 
 ### 2.3 Requirements for the Security Server
 

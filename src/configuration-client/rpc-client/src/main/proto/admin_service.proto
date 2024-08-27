@@ -1,6 +1,5 @@
 /*
  * The MIT License
- *
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
@@ -24,19 +23,23 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
+syntax = "proto3";
 
-package org.niis.xroad.securityserver.restapi.config;
+package org.niis.xroad.confclient.proto;
 
-import org.niis.xroad.proxy.proto.ProxyRpcClient;
-import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Configuration;
+option java_multiple_files = true;
 
-@Configuration
-public class ProxyRpcClientConfig {
+service AdminService {
+  rpc Execute(Empty) returns (Empty) {}
+  rpc GetStatus(Empty) returns (DiagnosticsStatus) {}
+}
 
-    @Bean
-    ProxyRpcClient proxyRpcClient() throws Exception {
-        return new ProxyRpcClient();
-    }
+message DiagnosticsStatus {
+  int32 return_code = 1;
+  optional int64 prev_update = 2;
+  optional int64 next_update = 3;
+  optional string description = 4;
+}
 
+message Empty {
 }

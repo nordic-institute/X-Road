@@ -470,9 +470,6 @@ public final class SystemProperties {
     public static final String CONFIGURATION_CLIENT_PORT =
             PREFIX + "configuration-client.port";
 
-    public static final String CONFIGURATION_CLIENT_ADMIN_PORT =
-            PREFIX + "configuration-client.admin-port";
-
     public static final String CONFIGURATION_CLIENT_UPDATE_INTERVAL_SECONDS =
             PREFIX + "configuration-client.update-interval";
 
@@ -1135,14 +1132,6 @@ public final class SystemProperties {
     public static int getConfigurationClientPort() {
         return Integer.parseInt(System.getProperty(CONFIGURATION_CLIENT_PORT,
                 Integer.toString(PortNumbers.CONFIGURATION_CLIENT_PORT)));
-    }
-
-    /**
-     * @return the HTTP port on which the configuration client is listening, '5675' by default.
-     */
-    public static int getConfigurationClientAdminPort() {
-        return Integer.parseInt(System.getProperty(CONFIGURATION_CLIENT_ADMIN_PORT,
-                Integer.toString(PortNumbers.CONFIGURATION_CLIENT_ADMIN_PORT)));
     }
 
     /**

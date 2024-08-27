@@ -69,10 +69,6 @@ script:
   restore-configuration:
     path: /usr/share/xroad/scripts/restore_xroad_proxy_configuration.sh
 
-url:
-  download-configuration-anchor: http://localhost:%s/execute
-  diagnostics-globalconf: http://localhost:%s/status
-
 common-module-endpoints:
   base-path: /api/v1
 

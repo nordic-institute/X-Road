@@ -32,6 +32,7 @@ dependencies {
     implementation(project(":common:common-verifier"))
     implementation(project(":security-server:openapi-model"))
     implementation(project(":proxy:rpc-client"))
+    implementation(project(":configuration-client:rpc-client"))
 
     implementation("org.springframework.boot:spring-boot-starter-security")
     implementation("org.springframework.boot:spring-boot-starter-web")

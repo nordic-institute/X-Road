@@ -26,7 +26,6 @@
 package org.niis.xroad.securityserver.restapi.service;
 
 import ee.ria.xroad.common.CodedException;
-import ee.ria.xroad.common.SystemProperties;
 import ee.ria.xroad.common.conf.globalconf.ApprovedCAInfo;
 import ee.ria.xroad.common.conf.globalconf.GlobalGroupInfo;
 import ee.ria.xroad.common.conf.globalconf.MemberInfo;
@@ -36,22 +35,16 @@ import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.identifier.SecurityServerId;
 import ee.ria.xroad.common.identifier.XRoadId;
 
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.niis.xroad.confclient.proto.ConfClientRpcClient;
 import org.niis.xroad.restapi.exceptions.DeviationAwareRuntimeException;
 import org.niis.xroad.restapi.exceptions.ErrorDeviation;
 import org.niis.xroad.securityserver.restapi.facade.GlobalConfFacade;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.boot.web.client.RestTemplateBuilder;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
-import org.springframework.web.client.RestClientException;
-import org.springframework.web.client.RestTemplate;
 
 import java.security.cert.X509Certificate;
-import java.time.Duration;
 import java.util.Collection;
 import java.util.List;
 import java.util.Set;
@@ -67,27 +60,12 @@ import static org.niis.xroad.restapi.exceptions.DeviationCodes.ERROR_GLOBAL_CONF
  */
 @Slf4j
 @Service
+@RequiredArgsConstructor
 @PreAuthorize("isAuthenticated()")
 public class GlobalConfService {
-    private static final int CONF_CLIENT_ADMIN_PORT = SystemProperties.getConfigurationClientAdminPort();
-    private static final int REST_TEMPLATE_TIMEOUT_MS = 60000;
-
     private final GlobalConfFacade globalConfFacade;
     private final ServerConfService serverConfService;
-    private final RestTemplate restTemplate;
-    private final String downloadConfigurationAnchorUrl;
-
-    @Autowired
-    public GlobalConfService(GlobalConfFacade globalConfFacade, ServerConfService serverConfService,
-                             @Value("${url.download-configuration-anchor}") String downloadConfigurationAnchorUrl,
-                             RestTemplateBuilder restTemplateBuilder) {
-        this.globalConfFacade = globalConfFacade;
-        this.serverConfService = serverConfService;
-        this.downloadConfigurationAnchorUrl = String.format(downloadConfigurationAnchorUrl, CONF_CLIENT_ADMIN_PORT);
-        this.restTemplate = restTemplateBuilder
-                .setReadTimeout(Duration.ofMillis(REST_TEMPLATE_TIMEOUT_MS))
-                .build();
-    }
+    private final ConfClientRpcClient confClientRpcClient;
 
     /**
      * @param securityServerId
@@ -140,6 +118,7 @@ public class GlobalConfService {
 
     /**
      * Check the validity of the GlobalConf
+     *
      * @throws GlobalConfOutdatedException if conf is outdated
      */
     public void verifyGlobalConfValidity() throws GlobalConfOutdatedException {
@@ -212,25 +191,22 @@ public class GlobalConfService {
     }
 
     /**
-     * Sends an http request to configuration-client in order to trigger the downloading of the global conf
-     * @throws ConfigurationDownloadException if the request succeeds but configuration-client returns an error
+     * Sends the rpc request to configuration-client in order to trigger the downloading of the global conf
+     *
      * @throws DeviationAwareRuntimeException if the request fails
      */
-    public void executeDownloadConfigurationFromAnchor() throws ConfigurationDownloadException {
+    public void executeDownloadConfigurationFromAnchor() {
         log.info("Starting to download GlobalConf");
-        ResponseEntity<String> response = null;
         try {
-            response = restTemplate.getForEntity(downloadConfigurationAnchorUrl, String.class);
-        } catch (RestClientException e) {
+            confClientRpcClient.execute();
+        } catch (Exception e) {
             throw new DeviationAwareRuntimeException(e, new ErrorDeviation(ERROR_GLOBAL_CONF_DOWNLOAD_REQUEST));
-        }
-        if (response != null && response.getStatusCode() != HttpStatus.OK) {
-            throw new ConfigurationDownloadException(response.getBody());
         }
     }
 
     /**
      * Find member's name in the global conf
+     *
      * @param memberClass
      * @param memberCode
      * @return

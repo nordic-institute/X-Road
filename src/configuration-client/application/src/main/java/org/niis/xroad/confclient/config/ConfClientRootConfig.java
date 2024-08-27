@@ -34,7 +34,6 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
 
 @Import({
-        ConfClientAdminPortConfig.class,
         ConfClientJobConfig.class,
         ConfClientRpcConfig.class
 })
