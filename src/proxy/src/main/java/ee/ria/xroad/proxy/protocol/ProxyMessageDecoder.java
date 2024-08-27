@@ -458,7 +458,7 @@ public class ProxyMessageDecoder {
                             dc.getOutputStream());
                     TeeInputStream proxyIs = new TeeInputStream(is, cos, true);
 
-                    // TODO: attachment body capturing added for debugging issue XRDSD-443. Remove before release.
+                    // FIXME: attachment body capturing added for debugging issue XRDSD-443. Remove before release.
                     var attachmentBodyOs = new ByteArrayOutputStream();
                     proxyIs = new TeeInputStream(proxyIs, attachmentBodyOs, true);
 
