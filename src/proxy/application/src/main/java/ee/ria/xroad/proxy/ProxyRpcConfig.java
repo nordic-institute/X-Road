@@ -49,7 +49,8 @@ import java.util.Optional;
 public class ProxyRpcConfig {
 
     @Bean(initMethod = "start", destroyMethod = "stop")
-    RpcServer proxyRpcServer(final AddOn.BindableServiceRegistry bindableServiceRegistry, List<BindableService> rpcServices) throws Exception {
+    RpcServer proxyRpcServer(final AddOn.BindableServiceRegistry bindableServiceRegistry,
+                             List<BindableService> rpcServices) throws Exception {
         return RpcServer.newServer(
                 SystemProperties.getGrpcInternalHost(),
                 SystemProperties.getProxyGrpcPort(),

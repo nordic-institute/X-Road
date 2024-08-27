@@ -31,20 +31,20 @@ import org.niis.xroad.confclient.proto.ConfClientRpcClient;
 import org.niis.xroad.proxy.proto.ProxyRpcClient;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.context.annotation.Profile;
+
+import static org.mockito.Mockito.mock;
 
 @Configuration
-@Profile("!test")
-public class RpcClientsConfig {
+public class MockRpcClientsConfig {
 
-    @Bean(destroyMethod = "shutdown")
-    ProxyRpcClient proxyRpcClient() throws Exception {
-        return new ProxyRpcClient();
+    @Bean
+    public ProxyRpcClient proxyRpcClient() {
+        return mock(ProxyRpcClient.class);
     }
 
-    @Bean(destroyMethod = "shutdown")
-    ConfClientRpcClient confClientRpcClient() throws Exception {
-        return new ConfClientRpcClient();
+    @Bean
+    public ConfClientRpcClient confClientRpcClient() {
+        return mock(ConfClientRpcClient.class);
     }
 
 }
