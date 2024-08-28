@@ -52,13 +52,15 @@ public abstract class BaseTestSignerSetup {
     }
 
     public TestContainerConfigurator testContainerConfigurator(
-            TestableContainerProperties testableContainerProperties) {
+            TestableContainerProperties testableContainerProperties,
+            String signerPath, String hwTokenPath) {
         return new TestContainerConfigurator() {
             @NotNull
             @Override
             public ImageFromDockerfile imageDefinition() {
-                var appJarPath = Paths.get("../signer/build/libs/signer-1.0.jar");
-                var hwTokenJarPath = Paths.get("../addons/hwtoken/build/libs/hwtoken-1.0.jar");
+                var appJarPath = Paths.get(signerPath);
+                var hwTokenJarPath = Paths.get(hwTokenPath);
+
                 log.info("Will use {} jar for container creation", appJarPath);
 
                 File filesToAdd = Paths.get("build/resources/intTest/signer-container-files/").toFile();
