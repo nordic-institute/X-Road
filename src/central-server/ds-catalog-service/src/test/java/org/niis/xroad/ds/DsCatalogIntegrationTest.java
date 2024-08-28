@@ -29,6 +29,7 @@ package org.niis.xroad.ds;
 import ee.ria.xroad.common.TestPortUtils;
 
 import org.eclipse.edc.junit.extensions.EdcExtension;
+import org.eclipse.edc.util.io.Ports;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -46,10 +47,8 @@ class DsCatalogIntegrationTest {
 
         var resourcesDir = new File("src/test/resources").getAbsolutePath();
         extension.setConfiguration(Map.ofEntries(
-                Map.entry("fs.config", "%s/configuration/provider-configuration.properties".formatted(resourcesDir)),
-                Map.entry("edc.vault", "%s/configuration/provider-vault.properties".formatted(resourcesDir)),
-                Map.entry("edc.keystore", "%s/certs/cert.pfx".formatted(resourcesDir)),
-                Map.entry("edc.keystore.password", "123456"),
+                Map.entry("edc.vault.hashicorp.url", "http://url"),
+                Map.entry("edc.vault.hashicorp.token", "token"),
                 Map.entry("edc.receiver.http.endpoint", "http://localhost:4000/asset-authorization-callback"),
                 Map.entry("edc.dataplane.token.validation.endpoint", "http://localhost:9192/control/token"),
                 Map.entry("edc.iam.issuer.id", "did:web:localhost"),
@@ -59,8 +58,12 @@ class DsCatalogIntegrationTest {
                 Map.entry("web.http.resolution.port", TestPortUtils.findRandomPort().toString()),
                 Map.entry("web.http.port", TestPortUtils.findRandomPort().toString()),
                 Map.entry("web.http.path", "/api"),
+                Map.entry("web.http.catalog.port", String.valueOf(Ports.getFreePort())),
+                Map.entry("web.http.catalog.path", "/catalog"),
                 // edc somehow fails if no property is found
-                Map.entry("web.http.xroad.public.port", TestPortUtils.findRandomPort().toString())
+                Map.entry("web.http.xroad.public.port", TestPortUtils.findRandomPort().toString()),
+                Map.entry("edc.transfer.proxy.token.verifier.publickey.alias", "public-key"),
+                Map.entry("edc.transfer.proxy.token.signer.privatekey.alias", "private-key")
         ));
     }
 
