@@ -9,6 +9,7 @@ configurations {
 
     configureEach {
         exclude group: 'org.eclipse.edc', module: 'jetty-core'
+        exclude group: 'com.apicatalog', module: 'titanium-json-ld-jre8' //transient dep that creates errors
     }
 
 }
