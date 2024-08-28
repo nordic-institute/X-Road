@@ -39,7 +39,9 @@ public class ContainerSetup extends BaseTestSignerSetup {
     @Bean
     public TestContainerConfigurator testContainerConfigurator(
             TestableContainerProperties testableContainerProperties) {
-        return super.testContainerConfigurator(testableContainerProperties);
+        return super.testContainerConfigurator(testableContainerProperties,
+                "../signer/build/libs/signer-1.0.jar",
+                "../addons/hwtoken/build/libs/hwtoken-1.0.jar");
     }
 
     @Bean
