@@ -7,6 +7,7 @@ dependencies {
     testImplementation project(':common:common-test')
     testImplementation libs.bouncyCastle.bcpg
     testImplementation libs.mockito.core
+    testImplementation libs.dss.utils.apache.commons
 }
 
 tasks.register('copyGpg', Copy) {

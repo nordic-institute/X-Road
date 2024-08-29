@@ -34,7 +34,6 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 
-import java.io.File;
 import java.io.IOException;
 import java.util.Map;
 
@@ -45,7 +44,6 @@ class DsCatalogIntegrationTest {
     void setUp(EdcExtension extension) throws IOException {
         System.setProperty("xroad.common.grpc-internal-tls-enabled", "false");
 
-        var resourcesDir = new File("src/test/resources").getAbsolutePath();
         extension.setConfiguration(Map.ofEntries(
                 Map.entry("edc.vault.hashicorp.url", "http://url"),
                 Map.entry("edc.vault.hashicorp.token", "token"),

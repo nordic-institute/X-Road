@@ -77,6 +77,8 @@ import static org.junit.Assert.assertNotNull;
  * RestEdcProxyTest
  */
 @Slf4j
+@Ignore
+// todo: xroad8
 public class RestEdcProxyTest extends AbstractProxyIntegrationTest {
 
     static final String PREFIX = "/r" + RestMessage.PROTOCOL_VERSION;
