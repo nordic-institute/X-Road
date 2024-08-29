@@ -1,6 +1,7 @@
 ---
 package_source: "local"
 ubuntu_apt_repo: "deb [trusted=yes] file:///xroad /"
+ubuntu_apt_repo_with_option: "{{ubuntu_apt_repo}}"
 
 rhel_repo_baseurl: "file:///xroad"
 rhel_repo_gpgcheck: "no"

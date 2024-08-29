@@ -12,7 +12,7 @@ hibernate = "6.5.2.Final"
 mapstruct = "1.6.0"
 jackson = "2.17.2"
 mockito = "5.12.0"
-springBoot = "3.3.2"
+springBoot = "3.3.3"
 junitJupiter = "5.11.0"
 xmlUnit = "2.10.0"
 bouncyCastle = "1.78.1"
@@ -21,9 +21,8 @@ testAutomationFramework = "0.2.18"
 protoc = "3.25.4"
 grpc = "1.66.0"
 swaggerParser = "2.1.22"
-#can go newer on spring boot v3.3.3
-logback = "1.5.6"
-logbackAccess = "2.0.2"
+logback = "1.5.7"
+logbackAccess = "2.0.3"
 
 [libraries]
 metrics-core = { module = "io.dropwizard.metrics:metrics-core", version.ref = "metrics" }
@@ -127,7 +126,7 @@ logback-access = { module = "ch.qos.logback.access:tomcat", version.ref = "logba
 
 assertj-core = { module = "org.assertj:assertj-core", version = "3.26.3" }
 wiremock-standalone = { module = "org.wiremock:wiremock-standalone", version = "3.9.1" }
-postgresql = { module = "org.postgresql:postgresql", version = "42.7.3" }
+postgresql = { module = "org.postgresql:postgresql", version = "42.7.4" }
 hsqldb = { module = "org.hsqldb:hsqldb", version = "2.7.3" }
 liquibase-core = { module = "org.liquibase:liquibase-core", version = "4.29.1" }
 xerces-impl = { module = "xerces:xercesImpl", version = "2.12.2" }
@@ -164,4 +163,4 @@ openapi-generator = { id = "org.openapi.generator", version = "7.8.0" }
 sonarqube = { id = "org.sonarqube", version = "5.1.0.4882" }
 protobuf = { id = "com.google.protobuf", version = "0.9.4" }
 frontendJDK21 = { id = "org.siouan.frontend-jdk21", version = "8.1.0" }
-shadow = { id = "com.github.johnrengelman.shadow", version = "8.1.1" }
+shadow = { id = "com.gradleup.shadow", version = "8.3.0" }
