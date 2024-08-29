@@ -100,19 +100,27 @@ public final class AsicVerifierMain {
 
         try {
             if (isLegacyContainer(fileName)) {
-                AsicContainerVerifier verifier = new AsicContainerVerifier(fileName);
-                verifier.verify();
-                onVerificationSucceeded(verifier);
+                verifyLegacyContainer(fileName);
             } else {
-                var reports = new DSSAsicVerifier().validate(fileName);
-                validateResult(reports);
-                var message = getMessageFromContainer(fileName);
-                onVerificationSucceeded(reports, message);
+                verifyContainer(fileName);
             }
         } catch (Exception e) {
             onVerificationFailed(e);
         }
         extractMessage(fileName);
+    }
+
+    static void verifyContainer(String fileName) throws IOException {
+        var reports = new DSSAsicVerifier().validate(fileName);
+        validateResult(reports);
+        var message = getMessageFromContainer(fileName);
+        onVerificationSucceeded(reports, message);
+    }
+
+    static void verifyLegacyContainer(String fileName) throws Exception {
+        AsicContainerVerifier verifier = new AsicContainerVerifier(fileName);
+        verifier.verify();
+        onVerificationSucceeded(verifier);
     }
 
     private static void validateResult(Reports reports) {

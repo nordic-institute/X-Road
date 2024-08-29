@@ -25,12 +25,12 @@
  */
 package ee.ria.xroad.common.messagelog;
 
+import ee.ria.xroad.common.asic.AsicContainer;
 import ee.ria.xroad.common.asic.TimestampData;
 import ee.ria.xroad.common.asic.dss.DSSASiCBuilder;
 import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.signature.SignatureData;
 
-import eu.europa.esig.dss.model.DSSDocument;
 import lombok.AccessLevel;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
@@ -43,6 +43,7 @@ import javax.crypto.Cipher;
 import javax.crypto.CipherInputStream;
 
 import java.io.InputStream;
+import java.io.OutputStream;
 import java.nio.charset.StandardCharsets;
 import java.sql.Blob;
 
@@ -157,7 +158,7 @@ public class MessageRecord extends AbstractLogRecord {
                 memberClass, memberCode, subsystemCode};
     }
 
-    public DSSDocument toAsicContainer() throws Exception {
+    public void writeAsicContainer(OutputStream out) throws Exception {
         final boolean encrypted = keyId != null;
         final SignatureData signatureData = new SignatureData(signature, hashChainResult, hashChain);
 
@@ -188,9 +189,17 @@ public class MessageRecord extends AbstractLogRecord {
             plainAttachment = (attachment != null) ? attachment.getBinaryStream() : null;
         }
 
-        return DSSASiCBuilder.newBuilder().createContainer(
-                plaintextMessage.getBytes(), plainAttachment, signatureData, timestamp, getTime());
+        if (signatureData.isBatchSignature()) {
+            var legacyContainer = new AsicContainer(plaintextMessage, signatureData, timestamp, plainAttachment, getTime());
+            legacyContainer.write(out);
+        } else {
+            var container = DSSASiCBuilder.newBuilder().createContainer(
+                    plaintextMessage.getBytes(), plainAttachment, signatureData, timestamp, getTime());
+            container.writeTo(out);
+        }
     }
+
+
 
     public void setAttachmentStream(InputStream stream, long size) {
         this.attachmentStream = stream;

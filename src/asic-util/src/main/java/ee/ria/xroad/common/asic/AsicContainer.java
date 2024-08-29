@@ -32,10 +32,12 @@ import lombok.Getter;
 
 import java.io.ByteArrayInputStream;
 import java.io.InputStream;
+import java.io.OutputStream;
 import java.nio.charset.StandardCharsets;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.zip.ZipOutputStream;
 
 import static ee.ria.xroad.common.ErrorCodes.translateException;
 import static ee.ria.xroad.common.asic.AsicContainerEntries.ENTRY_ASIC_MANIFEST;
@@ -211,16 +213,16 @@ public class AsicContainer {
     }
 
 
-//    /**
-//     * Write this container to the given output stream in ZIP format.
-//     * @param out the stream for writing container
-//     * @throws Exception if errors occurred when writing ZIP entries
-//     */
-//    public void write(OutputStream out) throws Exception {
-//        try (ZipOutputStream zip = new ZipOutputStream(out)) {
-//            AsicHelper.write(this, zip);
-//        }
-//    }
+    /**
+     * Write this container to the given output stream in ZIP format.
+     * @param out the stream for writing container
+     * @throws Exception if errors occurred when writing ZIP entries
+     */
+    public void write(OutputStream out) throws Exception {
+        try (ZipOutputStream zip = new ZipOutputStream(out)) {
+            AsicHelper.write(this, zip);
+        }
+    }
 
     private void createManifests() throws Exception {
         createOpenDocumentManifest();

@@ -51,6 +51,7 @@ import ee.ria.xroad.proxy.messagelog.Timestamper.TimestampSucceeded;
 
 import eu.europa.esig.dss.asic.common.ZipUtils;
 import eu.europa.esig.dss.model.DSSDocument;
+import eu.europa.esig.dss.model.InMemoryDocument;
 import jakarta.persistence.criteria.CriteriaBuilder;
 import jakarta.persistence.criteria.CriteriaQuery;
 import jakarta.persistence.criteria.Root;
@@ -64,6 +65,7 @@ import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
 
 import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileFilter;
 import java.nio.charset.StandardCharsets;
@@ -89,6 +91,7 @@ import static ee.ria.xroad.proxy.messagelog.TestUtil.createMessage;
 import static ee.ria.xroad.proxy.messagelog.TestUtil.createRestRequest;
 import static ee.ria.xroad.proxy.messagelog.TestUtil.createSignature;
 import static ee.ria.xroad.proxy.messagelog.TestUtil.initForTest;
+import static java.util.stream.Collectors.toMap;
 import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
@@ -215,21 +218,38 @@ public class MessageLogTest extends AbstractMessageLogTest {
         MessageRecordEncryption.getInstance().prepareDecryption(logRecord);
         assertEquals(logRecord.getXRequestId(), requestId);
         assertEquals(logRecord.getQueryId(), message.getQueryId());
-        final DSSDocument asic = logRecord.toAsicContainer();
 
-        List<DSSDocument> asicContent = ZipUtils.getInstance().extractContainerContent(asic);
+        ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
+        logRecord.writeAsicContainer(outputStream);
+        List<DSSDocument> asicContent = ZipUtils.getInstance().extractContainerContent(new InMemoryDocument(outputStream.toByteArray()));
 
         var messageDocument = asicContent.stream()
                 .filter(dssDocument -> dssDocument.getName().equals(MESSAGE))
                 .findFirst()
                 .orElseThrow();
-        assertArrayEquals(messageDocument.openStream().readAllBytes(), message.getMessageBytes());
+        try (var documentInputStream = messageDocument.openStream()) {
+            assertArrayEquals(documentInputStream.readAllBytes(), message.getMessageBytes());
+        }
 
         var attachmentDocument = asicContent.stream()
                 .filter(dssDocument -> dssDocument.getName().equals("/attachment1"))
                 .findFirst()
                 .orElseThrow();
-        assertArrayEquals(attachmentDocument.openStream().readAllBytes(), body);
+        try (var documentInputStream = attachmentDocument.openStream()) {
+            assertArrayEquals(documentInputStream.readAllBytes(), body);
+        }
+
+        Map<String, DSSDocument> documentMap = asicContent.stream()
+                .filter(dssDocument -> dssDocument.getName().equals(MESSAGE) || dssDocument.getName().equals("/attachment1"))
+                .collect(toMap(DSSDocument::getName, dssDocument -> dssDocument));
+
+        try (var messageDocumentInputStream = documentMap.get(MESSAGE).openStream()) {
+            assertArrayEquals(messageDocumentInputStream.readAllBytes(), message.getMessageBytes());
+        }
+
+        try (var attachmentDocumentInputStream = documentMap.get("/attachment1").openStream()) {
+            assertArrayEquals(attachmentDocumentInputStream.readAllBytes(), body);
+        }
     }
 
     /**
