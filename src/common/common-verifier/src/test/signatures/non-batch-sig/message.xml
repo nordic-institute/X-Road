@@ -1,0 +1,11 @@
+POST
+/r1/DEV/COM/1234/TestService/mock1
+X-Road-Force-Legacy-Transport:true
+X-Road-Client:DEV/COM/4321/TestClient
+X-Road-Force-Policy-Reevaluation:true
+Content-Type:application/json
+Accept:*/*
+Postman-Token:81b4e8fa-6ec6-4a5f-9ee5-991567624ba1
+Accept-Encoding:gzip, deflate, br
+x-road-request-id:9bb842bb-9256-429b-8e9d-278c7b94f8f1
+x-road-id:DEV-7012d0aa-a51d-4200-94ed-1e68f43bccfc
