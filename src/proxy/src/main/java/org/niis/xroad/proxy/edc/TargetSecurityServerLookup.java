@@ -51,8 +51,6 @@ public class TargetSecurityServerLookup {
             } else {
                 return new TargetSecurityServers(dsEnabledServers, true);
             }
-        } else {
-
         }
 
         return new TargetSecurityServers(allServers, false);
