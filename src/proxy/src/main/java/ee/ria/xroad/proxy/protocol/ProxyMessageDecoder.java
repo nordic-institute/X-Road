@@ -57,7 +57,6 @@ import org.eclipse.jetty.http.HttpField;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.HashMap;
@@ -84,7 +83,6 @@ public class ProxyMessageDecoder {
 
     private static final Logger LOG =
             LoggerFactory.getLogger(ProxyMessageDecoder.class);
-    public static final int LOG_ATTACHMENT_MAX_SIZE = 1024 * 200;
 
     private final ProxyMessageConsumer callback;
 
@@ -459,17 +457,13 @@ public class ProxyMessageDecoder {
                             dc.getOutputStream());
                     TeeInputStream proxyIs = new TeeInputStream(is, cos, true);
 
-                    // FIXME: attachment body capturing added for debugging issue XRDSD-443. Remove before release.
-                    var attachmentBodyOs = new LimitedByteArrayOutputStream(LOG_ATTACHMENT_MAX_SIZE);
-                    proxyIs = new TeeInputStream(proxyIs, attachmentBodyOs, true);
-
                     callback.attachment(partContentType, proxyIs, headers);
 
                     attachmentsByteCount += cos.getByteCount();
 
                     verifier.addPart(
                             MessageFileNames.attachment(++attachmentNo),
-                            getHashAlgoId(), dc.getDigest(), attachmentBodyOs.toByteArray());
+                            getHashAlgoId(), dc.getDigest());
                 } catch (Exception ex) {
                     throw translateException(ex);
                 }
@@ -552,55 +546,4 @@ public class ProxyMessageDecoder {
 
         return hashAlgoId;
     }
-
-    // FIXME: remove before release. Added for debugging issue XRDSD-443.
-    private static class LimitedByteArrayOutputStream extends ByteArrayOutputStream {
-        private final int maxSize;
-        private boolean limitReached = false;
-
-        LimitedByteArrayOutputStream(int maxSize) {
-            super();
-            this.maxSize = maxSize;
-        }
-
-        boolean isLimitReached() {
-            return limitReached;
-        }
-
-        @Override
-        public synchronized void write(int b) {
-            if (count + 1 > maxSize) {
-                limitReached = true;
-                return;
-            }
-            super.write(b);
-        }
-
-        @Override
-        public synchronized void write(byte[] b, int off, int len) {
-            if (count + len > maxSize) {
-                limitReached = true;
-                return;
-            }
-            super.write(b, off, len);
-        }
-
-        @Override
-        public synchronized void write(byte[] b) throws IOException {
-            if (count + b.length > maxSize) {
-                limitReached = true;
-                return;
-            }
-            super.write(b);
-        }
-
-        @Override
-        public synchronized byte[] toByteArray() {
-            if (limitReached) {
-                return new byte[0];
-            }
-            return super.toByteArray();
-        }
-    }
-
 }
