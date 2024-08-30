@@ -54,8 +54,8 @@ importers:
         specifier: ^2.4.0
         version: 2.4.0(eslint@8.57.0)(vuetify@3.7.0)
       happy-dom:
-        specifier: ^14.12.3
-        version: 14.12.3
+        specifier: ^15.6.0
+        version: 15.6.0
       license-check-and-add:
         specifier: ~4.0.5
         version: 4.0.5
@@ -88,7 +88,7 @@ importers:
         version: 2.0.4(vite@5.4.2)(vue@3.4.38)(vuetify@3.7.0)
       vitest:
         specifier: ^2.0.5
-        version: 2.0.5(@types/node@22.5.0)(happy-dom@14.12.3)(sass@1.77.8)
+        version: 2.0.5(@types/node@22.5.0)(happy-dom@15.6.0)(sass@1.77.8)
       vue-eslint-parser:
         specifier: ^9.4.3
         version: 9.4.3(eslint@8.57.0)
@@ -2288,9 +2288,9 @@ packages:
       uglify-js: 3.19.2
     dev: true
 
-  /happy-dom@14.12.3:
-    resolution: {integrity: sha512-vsYlEs3E9gLwA1Hp+w3qzu+RUDFf4VTT8cyKqVICoZ2k7WM++Qyd2LwzyTi5bqMJFiIC/vNpTDYuxdreENRK/g==}
-    engines: {node: '>=16.0.0'}
+  /happy-dom@15.6.0:
+    resolution: {integrity: sha512-M2ikOwrC5+KVofexnA0DZbQ0/hSHm2ZFKCmS3Ora11KGNHgHBdlRzZ/dzpDDPxQyqko3yNohFepJclG2T0GeZQ==}
+    engines: {node: '>=18.0.0'}
     dependencies:
       entities: 4.5.0
       webidl-conversions: 7.0.0
@@ -3448,7 +3448,7 @@ packages:
     optionalDependencies:
       fsevents: 2.3.3
 
-  /vitest@2.0.5(@types/node@22.5.0)(happy-dom@14.12.3)(sass@1.77.8):
+  /vitest@2.0.5(@types/node@22.5.0)(happy-dom@15.6.0)(sass@1.77.8):
     resolution: {integrity: sha512-8GUxONfauuIdeSl5f9GTgVEpg5BTOlplET4WEDaeY2QBiN8wSm68vxN/tb5z405OwppfoCavnwXafiaYBC/xOA==}
     engines: {node: ^18.0.0 || >=20.0.0}
     hasBin: true
@@ -3484,7 +3484,7 @@ packages:
       chai: 5.1.1
       debug: 4.3.6
       execa: 8.0.1
-      happy-dom: 14.12.3
+      happy-dom: 15.6.0
       magic-string: 0.30.11
       pathe: 1.1.2
       std-env: 3.7.0
