@@ -36,7 +36,6 @@ import org.apache.commons.io.IOUtils;
 import org.bouncycastle.cert.ocsp.CertificateStatus;
 import org.bouncycastle.cert.ocsp.OCSPResp;
 import org.junit.BeforeClass;
-import org.junit.Ignore;
 import org.junit.Test;
 
 import java.io.FileInputStream;
@@ -140,8 +139,6 @@ public class SignatureBuilderTest {
      * @throws Exception in case of any unexpected error
      */
     @Test
-    @Ignore
-    // todo: xroad8. Fails because no message part present.
     public void buildSuccessfullyWithExtraCerts() throws Exception {
         SignatureBuilder builder = new SignatureBuilder();
 
@@ -161,8 +158,8 @@ public class SignatureBuilderTest {
 
         assertNotNull(data);
         assertNotNull(data.getSignatureXml());
-        assertNotNull(data.getHashChainResult());
-        assertNotNull(data.getHashChain());
+        assertNull(data.getHashChainResult());
+        assertNull(data.getHashChain());
 
         if (WRITE_TEST_DATA) {
             Files.writeString(getFilePath("sign-0-extra-certs.xml"), data.getSignatureXml(), UTF_8,

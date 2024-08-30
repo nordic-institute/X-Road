@@ -38,7 +38,6 @@ import org.apache.commons.io.FileUtils;
 import org.junit.After;
 import org.junit.Assume;
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
@@ -54,8 +53,6 @@ import static org.junit.Assert.assertTrue;
  * LogArchiveCacheTest.
  */
 @RunWith(Parameterized.class)
-@Ignore
-// todo: xroad8. Fails because of asic container creation using dss (when parsing hashchains and creating evidence records)
 public class LogArchiveTest {
 
     private static final int NUM_TIMESTAMPS = 3;
@@ -153,7 +150,7 @@ public class LogArchiveTest {
                 for (int j = 0; j < NUM_RECORDS_PER_TIMESTAMP; j++) {
                     MessageRecord messageRecord = nextMessageRecord();
                     messageRecord.setTimestampRecord(ts);
-                    messageRecord.setTimestampHashChain("foo");
+                    messageRecord.setTimestampHashChain("<HashChain xmlns=\"http://cyber.ee/hashchain\"><DefaultDigestMethod Algorithm=\"http://www.w3.org/2001/04/xmlenc#sha512\"/></HashChain>");
 
                     if (writer.write(messageRecord) && finishAfterRotate) {
                         break outer;
@@ -198,9 +195,9 @@ public class LogArchiveTest {
     private MessageRecord nextMessageRecord() {
         recordNo++;
 
-        MessageRecord record = new MessageRecord("qid" + recordNo,
-                "msg" + recordNo, "sig" + recordNo, false,
-                ClientId.Conf.create(GlobalConf.getInstanceIdentifier(), "memberClass", "memberCode", "subsystemCode"),
+        MessageRecord record = new MessageRecord("qid" + recordNo, "msg" + recordNo,
+                "<asic:XAdESSignatures xmlns:asic=\"http://uri.etsi.org/02918/v1.1.1#\" xmlns:ds=\"http://www.w3.org/2000/09/xmldsig#\"><ds:Signature/></asic:XAdESSignatures>",
+                false, ClientId.Conf.create(GlobalConf.getInstanceIdentifier(), "memberClass", "memberCode", "subsystemCode"),
                 "92060130-3ba8-4e35-89e2-41b90aac074b", "test");
         record.setId(recordNo);
         record.setTime((long) (Math.random() * 100000L));
@@ -214,7 +211,7 @@ public class LogArchiveTest {
         TimestampRecord record = new TimestampRecord();
         record.setId(recordNo);
         record.setTimestamp("dGltZXN0YW1w");
-        record.setHashChainResult("foo");
+        record.setHashChainResult("<HashChain xmlns=\"http://cyber.ee/hashchain\"><DefaultDigestMethod Algorithm=\"http://www.w3.org/2001/04/xmlenc#sha512\"/></HashChain>");
         record.setTime((long) (Math.random() * 100000L));
 
         return record;
