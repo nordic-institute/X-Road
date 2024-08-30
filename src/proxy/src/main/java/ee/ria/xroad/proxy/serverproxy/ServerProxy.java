@@ -26,6 +26,7 @@
 package ee.ria.xroad.proxy.serverproxy;
 
 import ee.ria.xroad.common.SystemProperties;
+import ee.ria.xroad.common.conf.globalconf.GlobalConfProvider;
 import ee.ria.xroad.common.conf.serverconf.ServerConf;
 import ee.ria.xroad.common.db.HibernateUtil;
 import ee.ria.xroad.common.opmonitoring.OpMonitoringDaemonHttpClient;
@@ -71,7 +72,9 @@ public class ServerProxy implements StartStop {
     private static final int CONNECTOR_SO_LINGER_MILLIS = SystemProperties.getServerProxyConnectorSoLinger();
     private static final String CLIENT_PROXY_CONNECTOR_NAME = "ClientProxyConnector";
 
-    private Server server = new Server();
+    private final Server server = new Server();
+
+    private final GlobalConfProvider globalConfProvider;
 
     private CloseableHttpClient client;
     private IdleConnectionMonitorThread connMonitor;
@@ -85,8 +88,8 @@ public class ServerProxy implements StartStop {
      *
      * @throws Exception in case of any errors
      */
-    public ServerProxy() throws Exception {
-        this(SystemProperties.getServerProxyListenAddress());
+    public ServerProxy(GlobalConfProvider globalConfProvider) throws Exception {
+        this(globalConfProvider, SystemProperties.getServerProxyListenAddress());
     }
 
     /**
@@ -95,7 +98,8 @@ public class ServerProxy implements StartStop {
      * @param listenAddress the address this server proxy should listen at
      * @throws Exception in case of any errors
      */
-    public ServerProxy(String listenAddress) throws Exception {
+    public ServerProxy(GlobalConfProvider globalConfProvider, String listenAddress) throws Exception {
+        this.globalConfProvider = globalConfProvider;
         this.listenAddress = listenAddress;
 
         configureServer();
@@ -216,12 +220,12 @@ public class ServerProxy implements StartStop {
         connMonitor.closeNow();
     }
 
-    private static ServerConnector createClientProxyConnector(Server server) {
+    private ServerConnector createClientProxyConnector(Server server) {
         return SystemProperties.isAntiDosEnabled()
-                ? new AntiDosConnector(server, ACCEPTOR_COUNT) : new ServerConnector(server, ACCEPTOR_COUNT, -1);
+                ? new AntiDosConnector(globalConfProvider, server, ACCEPTOR_COUNT) : new ServerConnector(server, ACCEPTOR_COUNT, -1);
     }
 
-    private static ServerConnector createClientProxySslConnector(Server server) throws Exception {
+    private ServerConnector createClientProxySslConnector(Server server) throws Exception {
         var cf = new SslContextFactory.Server();
         cf.setNeedClientAuth(true);
         cf.setIncludeProtocols(CryptoUtils.SSL_PROTOCOL);
@@ -231,7 +235,7 @@ public class ServerProxy implements StartStop {
         cf.setSslContext(SSLContextUtil.createXroadSSLContext());
 
         return SystemProperties.isAntiDosEnabled()
-                ? new AntiDosConnector(server, ACCEPTOR_COUNT, cf)
+                ? new AntiDosConnector(globalConfProvider, server, ACCEPTOR_COUNT, cf)
                 : new ServerConnector(server, ACCEPTOR_COUNT, -1, cf);
     }
 

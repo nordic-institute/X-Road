@@ -146,4 +146,10 @@ public class TestSuiteGlobalConf extends EmptyGlobalConf {
         // belongs to some X-Road member
         return SecurityServerId.Conf.create("FI", "COM", "1111", "SS1");
     }
+
+    @Override
+    public ClientId.Conf getSubjectName(SignCertificateProfileInfo.Parameters parameters, X509Certificate cert) throws Exception {
+        return getSignCertificateProfileInfo(parameters, cert)
+                .getSubjectIdentifier(cert);
+    }
 }

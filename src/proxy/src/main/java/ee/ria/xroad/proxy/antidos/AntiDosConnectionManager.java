@@ -26,6 +26,7 @@
 package ee.ria.xroad.proxy.antidos;
 
 import ee.ria.xroad.common.conf.globalconf.GlobalConf;
+import ee.ria.xroad.common.conf.globalconf.GlobalConfProvider;
 import ee.ria.xroad.proxy.util.SystemMetrics;
 
 import lombok.extern.slf4j.Slf4j;
@@ -53,6 +54,8 @@ class AntiDosConnectionManager<T extends SocketChannelWrapper> {
     // The IP used for unknown members
     private static final String UNKNOWN_ORG_IP = "0.0.0.0";
 
+    private final GlobalConfProvider globalConfProvider;
+
     // Holds the configuration
     protected final AntiDosConfiguration configuration;
 
@@ -70,7 +73,8 @@ class AntiDosConnectionManager<T extends SocketChannelWrapper> {
     // Fallback cpu load value in cases where OS fails to properly respond.
     private double previousCpuLoad = 0d;
 
-    AntiDosConnectionManager(AntiDosConfiguration configuration) {
+    AntiDosConnectionManager(GlobalConfProvider globalConfProvider, AntiDosConfiguration configuration) {
+        this.globalConfProvider = globalConfProvider;
         if (configuration == null) {
             throw new IllegalArgumentException("configuration cannot be null");
         }
@@ -247,10 +251,10 @@ class AntiDosConnectionManager<T extends SocketChannelWrapper> {
                 && heapUsage < maxHeapUsage;
     }
 
-    private static Set<String> getAllAddresses() {
+    private  Set<String> getAllAddresses() {
         Set<String> addresses = new HashSet<>();
         try {
-            addresses.addAll(GlobalConf.getKnownAddresses());
+            addresses.addAll(globalConfProvider.getKnownAddresses());
         } catch (Exception ignored) {
             // In case the conf was invalid, we do not sync. We should not
             // log this exception, since this method might be

@@ -26,6 +26,7 @@
 package ee.ria.xroad.proxy;
 
 import ee.ria.xroad.common.conf.globalconf.GlobalConfBeanConfig;
+import ee.ria.xroad.common.conf.globalconf.GlobalConfProvider;
 import ee.ria.xroad.common.opmonitoring.AbstractOpMonitoringBuffer;
 import ee.ria.xroad.common.signature.BatchSigner;
 import ee.ria.xroad.proxy.clientproxy.ClientProxy;
@@ -60,8 +61,8 @@ public class ProxyConfig {
     }
 
     @Bean(initMethod = "start", destroyMethod = "stop")
-    ServerProxy serverProxy() throws Exception {
-        return new ServerProxy();
+    ServerProxy serverProxy(GlobalConfProvider globalConfProvider) throws Exception {
+        return new ServerProxy(globalConfProvider);
     }
 
     @Bean(initMethod = "start", destroyMethod = "stop")
