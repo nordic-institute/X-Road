@@ -64,7 +64,6 @@ public class ProxyMain {
 
     public GenericApplicationContext createApplicationContext(Class<?>... ctxExtension) {
         var startTime = System.currentTimeMillis();
-        log.trace("startup()");
         Version.outputVersionInfo(APP_NAME);
         log.info("Starting proxy ({})...", readProxyVersion());
 

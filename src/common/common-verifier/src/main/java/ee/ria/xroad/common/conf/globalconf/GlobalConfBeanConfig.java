@@ -23,65 +23,69 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package ee.ria.xroad.proxy;
+package ee.ria.xroad.common.conf.globalconf;
 
-import ee.ria.xroad.common.AddOnStatusDiagnostics;
-import ee.ria.xroad.common.BackupEncryptionStatusDiagnostics;
 import ee.ria.xroad.common.SystemProperties;
-import ee.ria.xroad.common.conf.globalconf.GlobalConfProvider;
-import ee.ria.xroad.common.util.healthcheck.HealthCheckPort;
-import ee.ria.xroad.common.util.healthcheck.HealthChecks;
 
-import org.apache.commons.lang3.StringUtils;
-import org.springframework.beans.factory.annotation.Qualifier;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Condition;
 import org.springframework.context.annotation.ConditionContext;
 import org.springframework.context.annotation.Conditional;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.type.AnnotatedTypeMetadata;
+import org.springframework.scheduling.annotation.EnableScheduling;
 
-import java.util.Arrays;
 import java.util.List;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
 
+import static ee.ria.xroad.common.SystemProperties.getConfigurationPath;
+
+@Slf4j
 @Configuration
-public class ProxyDiagnosticsConfig {
+@EnableScheduling
+@RequiredArgsConstructor
+public class GlobalConfBeanConfig {
+    public static final String BEAN_GLOBAL_CONF_SCHEDULER = "globalConfRefreshScheduler";
 
     @Bean
-    BackupEncryptionStatusDiagnostics backupEncryptionStatusDiagnostics() {
-        return new BackupEncryptionStatusDiagnostics(
-                SystemProperties.isBackupEncryptionEnabled(),
-                getBackupEncryptionKeyIds());
-    }
-
-    @Bean
-    AddOnStatusDiagnostics addOnStatusDiagnostics(@Qualifier("messageLogEnabledStatus") Boolean messageLogEnabledStatus) {
-        return new AddOnStatusDiagnostics(messageLogEnabledStatus);
+    GlobalConfSource globalConfSource() {
+        log.info("GlobalConf source is set to: VersionedConfigurationDirectory(FS)");
+        return new FileSystemGlobalConfSource(getConfigurationPath());
     }
 
     @Bean
-    @Conditional(HealthCheckEnabledCondition.class)
-    HealthChecks healthChecks(GlobalConfProvider globalConfProvider) {
-        return new HealthChecks(globalConfProvider);
+    GlobalConfProvider globalConfProvider(GlobalConfSource source) {
+        var globalConf = new GlobalConfImpl(source);
+        GlobalConf.initialize(globalConf);
+        return globalConf;
     }
 
-    @Bean(initMethod = "start", destroyMethod = "stop")
-    @Conditional(HealthCheckEnabledCondition.class)
-    HealthCheckPort healthCheckPort(HealthChecks healthChecks) {
-        return new HealthCheckPort(healthChecks);
+    @Bean
+    @Conditional(GlobalConfBeanConfig.GlobalConfRefreshEnabledCondition.class)
+    GlobalConfRefreshJob globalConfRefreshJob(GlobalConfProvider globalConfProvider, List<GlobalConfReloadedListener> reloadedListeners) {
+        return new GlobalConfRefreshJob(globalConfProvider, reloadedListeners);
     }
 
-    static class HealthCheckEnabledCondition implements Condition {
+    @Bean(name = BEAN_GLOBAL_CONF_SCHEDULER)
+    @Conditional(GlobalConfBeanConfig.GlobalConfRefreshEnabledCondition.class)
+    ScheduledExecutorService globalConfRefreshScheduler() {
+        return Executors.newSingleThreadScheduledExecutor();
+    }
+
+    static class GlobalConfRefreshEnabledCondition implements Condition {
         @Override
         public boolean matches(ConditionContext context, AnnotatedTypeMetadata metadata) {
-            return SystemProperties.isHealthCheckEnabled();
+            return SystemProperties.isGlobalConfRefreshEnabled();
         }
     }
 
-    private static List<String> getBackupEncryptionKeyIds() {
-        return Arrays.stream(StringUtils.split(
-                        SystemProperties.getBackupEncryptionKeyIds(), ','))
-                .map(String::trim)
-                .toList();
+    public interface GlobalConfReloadedListener {
+        void onReloaded();
+
+        void onReloadFailed();
     }
+
 }

@@ -26,7 +26,7 @@
 package ee.ria.xroad.signer.protocol.handler;
 
 import ee.ria.xroad.common.CodedException;
-import ee.ria.xroad.common.conf.globalconf.GlobalConf;
+import ee.ria.xroad.common.conf.globalconf.GlobalConfProvider;
 import ee.ria.xroad.common.conf.globalconfextension.GlobalConfExtensions;
 import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.ocsp.OcspVerifier;
@@ -37,6 +37,7 @@ import ee.ria.xroad.signer.protocol.dto.KeyInfo;
 import ee.ria.xroad.signer.protocol.mapper.ClientIdMapper;
 import ee.ria.xroad.signer.tokenmanager.TokenManager;
 
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.bouncycastle.cert.ocsp.OCSPResp;
 import org.niis.xroad.signer.proto.GetMemberSigningInfoReq;
@@ -56,8 +57,9 @@ import static ee.ria.xroad.signer.protocol.dto.CertificateInfo.STATUS_REGISTERED
  */
 @Slf4j
 @Component
+@RequiredArgsConstructor
 public final class GetMemberSigningInfoReqHandler extends AbstractRpcHandler<GetMemberSigningInfoReq, GetMemberSigningInfoResp> {
-
+    private final GlobalConfProvider globalConfProvider;
 
     private record SelectedCertificate(KeyInfo key, CertificateInfo cert) {
     }
@@ -134,8 +136,8 @@ public final class GetMemberSigningInfoReqHandler extends AbstractRpcHandler<Get
         }
 
         OCSPResp ocsp = new OCSPResp(ocspBytes);
-        X509Certificate issuer = GlobalConf.getCaCert(instanceIdentifier, subject);
-        OcspVerifier verifier = new OcspVerifier(GlobalConf.getOcspFreshnessSeconds(), verifierOptions);
+        X509Certificate issuer = globalConfProvider.getCaCert(instanceIdentifier, subject);
+        OcspVerifier verifier = new OcspVerifier(globalConfProvider.getOcspFreshnessSeconds(), verifierOptions);
         verifier.verifyValidityAndStatus(ocsp, subject, issuer);
     }
 }

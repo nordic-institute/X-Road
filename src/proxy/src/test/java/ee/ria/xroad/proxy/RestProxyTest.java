@@ -26,7 +26,6 @@
 package ee.ria.xroad.proxy;
 
 
-import ee.ria.xroad.common.conf.globalconf.GlobalConf;
 import ee.ria.xroad.common.conf.serverconf.ServerConf;
 import ee.ria.xroad.common.conf.serverconf.model.DescriptionType;
 import ee.ria.xroad.common.identifier.ClientId;
@@ -294,7 +293,7 @@ public class RestProxyTest extends AbstractProxyIntegrationTest {
     @Test
     public void shouldSelectResolvableAddress() {
 
-        GlobalConf.reload(new TestGlobalConf() {
+        TEST_GLOBAL_CONF.setGlobalConfProvider(new TestGlobalConf() {
             @Override
             public Collection<String> getProviderAddress(ClientId provider) {
                 return Arrays.asList("127.0.0.1", "server.invalid.", "127.0.0,78", "\ufeffzero\u200B.width", "::1");

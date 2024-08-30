@@ -23,28 +23,25 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package ee.ria.xroad.common.conf.globalconf;
+package ee.ria.xroad.opmonitordaemon.config;
 
-import lombok.extern.slf4j.Slf4j;
-import org.quartz.DisallowConcurrentExecution;
-import org.quartz.Job;
-import org.quartz.JobExecutionContext;
-import org.quartz.JobExecutionException;
+import ee.ria.xroad.common.util.JobManager;
+import ee.ria.xroad.opmonitordaemon.OperationalDataRecordCleaner;
 
-/**
- * Periodic reload of global configuration
- */
-@Slf4j
-@DisallowConcurrentExecution
-public class GlobalConfUpdater implements Job {
-    @Override
-    public void execute(JobExecutionContext context) throws JobExecutionException {
-        try {
-            log.trace("Updating globalconf");
-            GlobalConf.reload();
-        } catch (Exception e) {
-            log.error("Error updating globalconf", e);
-            throw new JobExecutionException(e);
-        }
+import org.quartz.SchedulerException;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+
+@Configuration
+public class OpMonitorDaemonJobConfig {
+
+    @Bean(initMethod = "start", destroyMethod = "stop")
+    JobManager jobManager() throws SchedulerException {
+        final var jobManager = new JobManager();
+
+        OperationalDataRecordCleaner.init(jobManager);
+
+        return jobManager;
     }
+
 }

@@ -25,11 +25,12 @@
  */
 package ee.ria.xroad.signer.certmanager;
 
-import ee.ria.xroad.common.conf.globalconf.GlobalConf;
+import ee.ria.xroad.common.conf.globalconf.GlobalConfProvider;
 import ee.ria.xroad.common.util.CryptoUtils;
 import ee.ria.xroad.common.util.MimeTypes;
 import ee.ria.xroad.common.util.MimeUtils;
 
+import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.IOUtils;
@@ -41,6 +42,7 @@ import org.bouncycastle.cert.ocsp.OCSPReq;
 import org.bouncycastle.cert.ocsp.OCSPReqBuilder;
 import org.bouncycastle.cert.ocsp.OCSPResp;
 import org.bouncycastle.operator.ContentSigner;
+import org.springframework.stereotype.Component;
 
 import java.io.BufferedOutputStream;
 import java.io.DataOutputStream;
@@ -57,7 +59,10 @@ import java.util.List;
  * OCSP client downloads OCSP responses for specified certificates using responders defined in the Global Configuration.
  */
 @Slf4j
-final class OcspClient {
+@Component
+@RequiredArgsConstructor
+public final class OcspClient {
+    private final GlobalConfProvider globalConfProvider;
 
     // TODO make it configurable
     private static final int CONNECT_TIMEOUT_MS = 20000;
@@ -67,11 +72,8 @@ final class OcspClient {
     private static final String DIGEST_ALGORITHM_ID = CryptoUtils.SHA512_ID;
     private static final String SIGN_MECHANISM_NAME = CryptoUtils.CKM_RSA_PKCS_NAME;
 
-    private OcspClient() {
-    }
-
-    static OCSPResp queryCertStatus(X509Certificate subject) throws Exception {
-        X509Certificate issuer = GlobalConf.getCaCert(GlobalConf.getInstanceIdentifier(), subject);
+    OCSPResp queryCertStatus(X509Certificate subject) throws Exception {
+        X509Certificate issuer = globalConfProvider.getCaCert(globalConfProvider.getInstanceIdentifier(), subject);
 
         PrivateKey signerKey = getOcspRequestKey(subject);
         X509Certificate signer = getOcspSignerCert();
@@ -81,22 +83,22 @@ final class OcspClient {
     }
 
     @SneakyThrows
-    static String getSignAlgorithmId() {
+    String getSignAlgorithmId() {
         return CryptoUtils.getSignatureAlgorithmId(DIGEST_ALGORITHM_ID, SIGN_MECHANISM_NAME);
     }
 
-    static PrivateKey getOcspRequestKey(X509Certificate subject) {
+    PrivateKey getOcspRequestKey(X509Certificate subject) {
         // FUTURE task #8162. If key is used, the appropriate SIGN_MECHANISM_NAME must be used!
         return null;
     }
 
-    static X509Certificate getOcspSignerCert() {
+    X509Certificate getOcspSignerCert() {
         return null; // FUTURE task #8162.
     }
 
-    static OCSPResp fetchResponse(X509Certificate subject, X509Certificate issuer, PrivateKey signerKey,
-                                  X509Certificate signer, String signAlgoId) throws Exception {
-        List<String> responderURIs = GlobalConf.getOcspResponderAddresses(subject);
+    OCSPResp fetchResponse(X509Certificate subject, X509Certificate issuer, PrivateKey signerKey,
+                           X509Certificate signer, String signAlgoId) throws Exception {
+        List<String> responderURIs = globalConfProvider.getOcspResponderAddresses(subject);
 
         log.trace("responder URIs: {}", responderURIs);
 
@@ -117,8 +119,8 @@ final class OcspClient {
         throw new OCSPException("Unable to get valid OCSP response from any responders");
     }
 
-    static OCSPResp fetchResponse(String responderURI, X509Certificate subject, X509Certificate issuer,
-                                  PrivateKey signerKey, X509Certificate signer, String signAlgoId) throws Exception {
+    OCSPResp fetchResponse(String responderURI, X509Certificate subject, X509Certificate issuer,
+                           PrivateKey signerKey, X509Certificate signer, String signAlgoId) throws Exception {
         HttpURLConnection connection = createConnection(responderURI);
 
         OCSPReq ocspRequest = createRequest(subject, issuer, signerKey, signer, signAlgoId);

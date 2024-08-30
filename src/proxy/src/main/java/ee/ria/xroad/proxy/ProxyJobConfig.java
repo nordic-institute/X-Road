@@ -25,8 +25,6 @@
  */
 package ee.ria.xroad.proxy;
 
-import ee.ria.xroad.common.SystemProperties;
-import ee.ria.xroad.common.conf.globalconf.GlobalConfUpdater;
 import ee.ria.xroad.common.util.JobManager;
 import ee.ria.xroad.proxy.util.ServerConfStatsLogger;
 
@@ -44,10 +42,8 @@ public class ProxyJobConfig {
         final var jobManager = new JobManager();
 
         jobManager.registerRepeatingJob(ServerConfStatsLogger.class, STATS_LOG_REPEAT_INTERVAL);
-        jobManager.registerRepeatingJob(GlobalConfUpdater.class, SystemProperties.getConfigurationClientUpdateIntervalSeconds());
 
         return jobManager;
     }
-
 
 }

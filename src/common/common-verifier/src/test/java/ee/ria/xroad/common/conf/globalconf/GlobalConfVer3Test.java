@@ -45,6 +45,7 @@ import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
 
+import static ee.ria.xroad.common.SystemProperties.getConfigurationPath;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
@@ -62,7 +63,8 @@ public class GlobalConfVer3Test {
 
         createConfigurationFiles();
 
-        GlobalConf.reload();
+        var globalConf = new GlobalConfImpl(new FileSystemGlobalConfSource(getConfigurationPath()));
+        GlobalConf.initialize(globalConf);
     }
 
     private static void createConfigurationFiles() throws IOException {

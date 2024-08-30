@@ -26,6 +26,9 @@
 package ee.ria.xroad.signer;
 
 import ee.ria.xroad.common.SystemProperties;
+import ee.ria.xroad.common.conf.globalconf.GlobalConfBeanConfig;
+import ee.ria.xroad.common.conf.globalconf.GlobalConfProvider;
+import ee.ria.xroad.signer.certmanager.OcspClient;
 import ee.ria.xroad.signer.certmanager.OcspClientWorker;
 import ee.ria.xroad.signer.certmanager.OcspResponseManager;
 import ee.ria.xroad.signer.job.OcspClientExecuteScheduler;
@@ -49,8 +52,14 @@ import org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler;
 
 @Slf4j
 @EnableScheduling
-@Import({SignerAdminPortConfig.class, SignerRpcConfig.class})
-@ComponentScan({"ee.ria.xroad.signer.protocol", "ee.ria.xroad.signer.job"})
+@Import({SignerAdminPortConfig.class,
+        SignerRpcConfig.class,
+        GlobalConfBeanConfig.class
+})
+@ComponentScan({
+        "ee.ria.xroad.signer.protocol",
+        "ee.ria.xroad.signer.job",
+        "ee.ria.xroad.signer.certmanager"})
 @Configuration
 public class SignerConfig {
     private static final String MODULE_MANAGER_IMPL_CLASS = SystemProperties.PREFIX + "signer.moduleManagerImpl";
@@ -70,15 +79,16 @@ public class SignerConfig {
     }
 
     @Bean
-    OcspResponseManager ocspResponseManager() {
-        OcspResponseManager ocspResponseManager = new OcspResponseManager();
+    OcspResponseManager ocspResponseManager(GlobalConfProvider globalConfProvider, OcspClient ocspClient) {
+        OcspResponseManager ocspResponseManager = new OcspResponseManager(globalConfProvider, ocspClient);
         ocspResponseManager.init();
         return ocspResponseManager;
     }
 
     @Bean
-    OcspClientWorker ocspClientWorker(OcspResponseManager ocspResponseManager) {
-        return new OcspClientWorker(ocspResponseManager);
+    OcspClientWorker ocspClientWorker(GlobalConfProvider globalConfProvider, OcspResponseManager ocspResponseManager,
+                                      OcspClient ocspClient) {
+        return new OcspClientWorker(globalConfProvider, ocspResponseManager, ocspClient);
     }
 
     @Bean

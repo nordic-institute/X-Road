@@ -42,25 +42,21 @@ import java.util.function.Function;
 
 import static ee.ria.xroad.common.util.healthcheck.HealthCheckResult.OK;
 import static ee.ria.xroad.common.util.healthcheck.HealthCheckResult.failure;
-import static ee.ria.xroad.common.util.healthcheck.HealthChecks.cacheResultFor;
-import static ee.ria.xroad.common.util.healthcheck.HealthChecks.checkAuthKeyOcspStatus;
-import static ee.ria.xroad.common.util.healthcheck.HealthChecks.checkGlobalConfStatus;
-import static ee.ria.xroad.common.util.healthcheck.HealthChecks.checkHSMOperationStatus;
-import static ee.ria.xroad.common.util.healthcheck.HealthChecks.checkServerConfDatabaseStatus;
 
 /**
  * A {@link HealthCheckProvider} that does a bunch of health tests and gives an error if any of them fail
  */
 @Slf4j
 public class StoppableCombinationHealthCheckProvider implements StoppableHealthCheckProvider {
-
+    private final HealthChecks healthChecks;
     private final ExecutorService executorService;
     private final List<HealthCheckProvider> healthCheckProviders;
 
     /**
      * Create a new provider.
      */
-    public StoppableCombinationHealthCheckProvider() {
+    public StoppableCombinationHealthCheckProvider(HealthChecks healthChecks) {
+        this.healthChecks = healthChecks;
         this.executorService = Executors.newSingleThreadExecutor();
         this.healthCheckProviders = createProviderList();
 
@@ -85,20 +81,20 @@ public class StoppableCombinationHealthCheckProvider implements StoppableHealthC
         List<HealthCheckProvider> providers = new ArrayList<>();
 
         if (SystemProperties.isHSMHealthCheckEnabled()) {
-            providers.add(checkHSMOperationStatus()
+            providers.add(healthChecks.checkHSMOperationStatus()
                     .map(withTimeout(timeout, TimeUnit.SECONDS, "Hardware Security Modules status"))
-                    .map(cacheResultFor(resultValidFor, errorValidFor, TimeUnit.SECONDS)));
+                    .map(healthChecks.cacheResultFor(resultValidFor, errorValidFor, TimeUnit.SECONDS)));
         }
 
-        providers.add(checkGlobalConfStatus()
+        providers.add(healthChecks.checkGlobalConfStatus()
                 .map(withTimeout(timeout, TimeUnit.SECONDS, "Global conf validity"))
-                .map(cacheResultFor(resultValidFor, errorValidFor, TimeUnit.SECONDS)));
-        providers.add(checkAuthKeyOcspStatus()
+                .map(healthChecks.cacheResultFor(resultValidFor, errorValidFor, TimeUnit.SECONDS)));
+        providers.add(healthChecks.checkAuthKeyOcspStatus()
                 .map(withTimeout(timeout, TimeUnit.SECONDS, "Authentication key OCSP status"))
-                .map(cacheResultFor(resultValidFor, errorValidFor, TimeUnit.SECONDS)));
-        providers.add(checkServerConfDatabaseStatus()
+                .map(healthChecks.cacheResultFor(resultValidFor, errorValidFor, TimeUnit.SECONDS)));
+        providers.add(healthChecks.checkServerConfDatabaseStatus()
                 .map(withTimeout(timeout, TimeUnit.SECONDS, "Server conf database status"))
-                .map(cacheResultFor(resultValidFor, errorValidFor, TimeUnit.SECONDS)));
+                .map(healthChecks.cacheResultFor(resultValidFor, errorValidFor, TimeUnit.SECONDS)));
 
         return Collections.unmodifiableList(providers);
     }

@@ -40,7 +40,7 @@ import java.util.List;
 import java.util.Set;
 
 /**
- * API for implementing global configuration providers.
+ * Global configuration provider.
  */
 public interface GlobalConfProvider {
 
@@ -56,6 +56,8 @@ public interface GlobalConfProvider {
      * @return true if the global configuration is valid
      */
     boolean isValid();
+
+    void verifyValidity();
 
     /**
      * @return the instance identifier for this configuration source
@@ -113,6 +115,16 @@ public interface GlobalConfProvider {
      * @return IP address converted to string, such as "192.168.2.2".
      */
     String getSecurityServerAddress(SecurityServerId serverId);
+
+    /**
+     * @param parameters the parameters
+     * @param cert       the signing certificate
+     * @return subject client identifier
+     * @throws Exception if an error occurs
+     */
+    ClientId.Conf getSubjectName(
+            SignCertificateProfileInfo.Parameters parameters,
+            X509Certificate cert) throws Exception;
 
     /**
      * Returns a list of OCSP responder addresses for the given member

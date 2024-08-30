@@ -1,6 +1,5 @@
 /*
  * The MIT License
- *
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
@@ -24,22 +23,31 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.cs.registrationservice.service;
+package ee.ria.xroad.common.conf.globalconf;
 
-import ee.ria.xroad.common.conf.globalconf.GlobalConf;
+import java.util.List;
+import java.util.Optional;
 
-import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
-import org.springframework.scheduling.annotation.Scheduled;
-import org.springframework.stereotype.Service;
+public interface GlobalConfSource {
 
-import java.util.concurrent.TimeUnit;
+    /**
+     * Returns globalConf version.
+     */
+    Integer getVersion();
 
-@Service
-@ConditionalOnProperty(value = "test", havingValue = "false", matchIfMissing = true)
-class GlobalConfUpdater {
+    String getInstanceIdentifier();
 
-    @Scheduled(fixedRate = 1, timeUnit = TimeUnit.MINUTES)
-    public void update() {
-        GlobalConf.reload();
-    }
+    Optional<SharedParameters> findShared(String xRoadInstance);
+
+    Optional<PrivateParameters> findPrivate(String instanceIdentifier);
+
+    List<SharedParameters> getShared();
+
+    Optional<SharedParametersCache> findSharedParametersCache(String instanceIdentifier);
+
+    List<SharedParametersCache> getSharedParametersCaches();
+
+    boolean isExpired();
+
+    void reload();
 }

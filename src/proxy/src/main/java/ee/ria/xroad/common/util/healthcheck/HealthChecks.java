@@ -27,13 +27,14 @@ package ee.ria.xroad.common.util.healthcheck;
 
 import ee.ria.xroad.common.cert.CertChain;
 import ee.ria.xroad.common.conf.globalconf.AuthKey;
-import ee.ria.xroad.common.conf.globalconf.GlobalConf;
+import ee.ria.xroad.common.conf.globalconf.GlobalConfProvider;
 import ee.ria.xroad.common.conf.serverconf.ServerConf;
 import ee.ria.xroad.proxy.addon.module.HardwareSecurityModuleUtils;
 import ee.ria.xroad.proxy.conf.KeyConf;
 
 import com.google.common.base.Supplier;
 import com.google.common.base.Suppliers;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.bouncycastle.cert.ocsp.OCSPResp;
 
@@ -49,17 +50,16 @@ import static ee.ria.xroad.common.util.healthcheck.HealthCheckResult.failure;
  */
 
 @Slf4j
-public final class HealthChecks {
-
-    private HealthChecks() {
-        //Utility class
-    }
+@RequiredArgsConstructor
+public class HealthChecks {
+    private final GlobalConfProvider globalConfProvider;
 
     /**
      * A {@link HealthCheckProvider} that checks the authentication key and its OCSP response status
+     *
      * @return the result of the check
      */
-    public static HealthCheckProvider checkAuthKeyOcspStatus() {
+    public HealthCheckProvider checkAuthKeyOcspStatus() {
 
         return () -> {
 
@@ -98,9 +98,10 @@ public final class HealthChecks {
     /**
      * A {@link HealthCheckProvider} that checks it can access and retrieve data from the {@link ServerConf}
      * (the database behind it).
+     *
      * @return the result of the check
      */
-    public static HealthCheckProvider checkServerConfDatabaseStatus() {
+    public HealthCheckProvider checkServerConfDatabaseStatus() {
         return () -> {
             try {
                 if (!ServerConf.isAvailable()) {
@@ -117,13 +118,14 @@ public final class HealthChecks {
     }
 
     /**
-     * A {@link HealthCheckProvider} that verifies {@link GlobalConf} validity
+     * A {@link HealthCheckProvider} that verifies GlobalConf validity
+     *
      * @return the result of global conf check
      */
-    public static HealthCheckProvider checkGlobalConfStatus() {
+    public HealthCheckProvider checkGlobalConfStatus() {
         return () -> {
             try {
-                GlobalConf.verifyValidity();
+                globalConfProvider.verifyValidity();
                 return OK;
             } catch (Exception e) {
                 log.error("Exception when verifying global conf validity", e);
@@ -134,9 +136,10 @@ public final class HealthChecks {
 
     /**
      * A {@link HealthCheckProvider} that check if Hardware Security Modules are operational
+     *
      * @return the result of HSM check
      */
-    public static HealthCheckProvider checkHSMOperationStatus() {
+    public HealthCheckProvider checkHSMOperationStatus() {
         return () -> {
             try {
                 HardwareSecurityModuleUtils.verifyAllHSMOperational();
@@ -152,12 +155,13 @@ public final class HealthChecks {
      * Caches the result from the {@link HealthCheckProvider} for the specified time. You might want to check
      * often if a previously ok system is still ok but check more rarely if a previously
      * broken system is still broken
-     * @param resultValidFor the time a successful result is cached
+     *
+     * @param resultValidFor      the time a successful result is cached
      * @param errorResultValidFor the time an error result is cached
-     * @param timeUnit the {@link TimeUnit} for the given times
+     * @param timeUnit            the {@link TimeUnit} for the given times
      * @return
      */
-    public static Function<HealthCheckProvider, HealthCheckProvider> cacheResultFor(
+    public Function<HealthCheckProvider, HealthCheckProvider> cacheResultFor(
             int resultValidFor, int errorResultValidFor, TimeUnit timeUnit) {
 
         return (healthCheckProvider) -> new HealthCheckProvider() {
@@ -197,12 +201,13 @@ public final class HealthChecks {
 
     /**
      * As the name implies, caches the given result once and calls the given provider on subsequent calls.
-     * @param provider the provider for {@link HealthCheckResult}s beyond the first result
+     *
+     * @param provider         the provider for {@link HealthCheckResult}s beyond the first result
      * @param cachedOnceResult the first result to return
      * @return a provider wrapping the given provider
      */
-    public static HealthCheckProvider cacheResultOnce(HealthCheckProvider provider,
-                                                      HealthCheckResult cachedOnceResult) {
+    public HealthCheckProvider cacheResultOnce(HealthCheckProvider provider,
+                                               HealthCheckResult cachedOnceResult) {
         return new HealthCheckProvider() {
 
             private boolean once = true;

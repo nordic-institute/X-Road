@@ -28,6 +28,8 @@
 package org.niis.xroad.proxy.test.hook;
 
 import ee.ria.xroad.common.TestSecurityUtil;
+import ee.ria.xroad.common.conf.globalconf.GlobalConf;
+import ee.ria.xroad.common.conf.globalconf.TestGlobalConfImpl;
 import ee.ria.xroad.common.signature.BatchSigner;
 
 import com.nortal.test.core.services.hooks.BeforeSuiteHook;
@@ -52,6 +54,7 @@ public class BatchSignerInitHook implements BeforeSuiteHook {
 
         TestSecurityUtil.initSecurity();
         BatchSigner.init();
+        GlobalConf.initialize(new TestGlobalConfImpl());
     }
 
     @Override

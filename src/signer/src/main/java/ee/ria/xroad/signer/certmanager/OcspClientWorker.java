@@ -31,7 +31,7 @@ import ee.ria.xroad.common.CodedException;
 import ee.ria.xroad.common.DiagnosticsErrorCodes;
 import ee.ria.xroad.common.OcspResponderStatus;
 import ee.ria.xroad.common.cert.CertChain;
-import ee.ria.xroad.common.conf.globalconf.GlobalConf;
+import ee.ria.xroad.common.conf.globalconf.GlobalConfProvider;
 import ee.ria.xroad.common.conf.globalconfextension.GlobalConfExtensions;
 import ee.ria.xroad.common.conf.globalconfextension.OcspFetchInterval;
 import ee.ria.xroad.common.ocsp.OcspVerifier;
@@ -83,7 +83,9 @@ public class OcspClientWorker {
     private static final String VERIFY_OCSP_NEXTUPDATE = "verifyOcspNextUpdate";
     private static final String OCSP_FETCH_INTERVAL = "ocspFetchInterval";
 
+    private final GlobalConfProvider globalConfProvider;
     private final OcspResponseManager ocspResponseManager;
+    private final OcspClient ocspClient;
 
     private final GlobalConfChangeChecker changeChecker = new GlobalConfChangeChecker();
 
@@ -97,9 +99,9 @@ public class OcspClientWorker {
         log.trace("reload()");
         log.debug("Checking global configuration for validity and extension changes");
 
-        GlobalConf.reload();
+        globalConfProvider.reload();
 
-        if (!GlobalConf.isValid()) {
+        if (!globalConfProvider.isValid()) {
             log.error("Global configuration is not valid, skipping change detection");
 
             return;
@@ -110,7 +112,7 @@ public class OcspClientWorker {
         boolean sendReschedule = false;
         boolean sendExecute = false;
 
-        changeChecker.addChange(OCSP_FRESHNESS_SECONDS, GlobalConf.getOcspFreshnessSeconds());
+        changeChecker.addChange(OCSP_FRESHNESS_SECONDS, globalConfProvider.getOcspFreshnessSeconds());
         changeChecker.addChange(VERIFY_OCSP_NEXTUPDATE,
                 GlobalConfExtensions.getInstance().shouldVerifyOcspNextUpdate());
         changeChecker.addChange(OCSP_FETCH_INTERVAL, GlobalConfExtensions.getInstance().getOcspFetchInterval());
@@ -149,7 +151,7 @@ public class OcspClientWorker {
         log.trace("execute()");
         log.info("OCSP-response refresh cycle started");
 
-        if (!GlobalConf.isValid()) {
+        if (!globalConfProvider.isValid()) {
             log.debug("invalid global conf, returning");
             if (ocspClientExecuteScheduler != null) {
                 ocspClientExecuteScheduler.globalConfInvalidated();
@@ -243,13 +245,13 @@ public class OcspClientWorker {
     }
 
     OCSPResp queryCertStatus(X509Certificate subject, OcspVerifierOptions verifierOptions) throws Exception {
-        X509Certificate issuer = GlobalConf.getCaCert(GlobalConf.getInstanceIdentifier(), subject);
+        X509Certificate issuer = globalConfProvider.getCaCert(globalConfProvider.getInstanceIdentifier(), subject);
 
-        PrivateKey signerKey = OcspClient.getOcspRequestKey(subject);
-        X509Certificate signer = OcspClient.getOcspSignerCert();
-        String signAlgoId = OcspClient.getSignAlgorithmId();
+        PrivateKey signerKey = ocspClient.getOcspRequestKey(subject);
+        X509Certificate signer = ocspClient.getOcspSignerCert();
+        String signAlgoId = ocspClient.getSignAlgorithmId();
 
-        List<String> responderURIs = GlobalConf.getOcspResponderAddresses(subject);
+        List<String> responderURIs = globalConfProvider.getOcspResponderAddresses(subject);
 
         log.debug("responder URIs: {}", responderURIs);
 
@@ -257,7 +259,7 @@ public class OcspClientWorker {
             throw new ConnectException("No OCSP responder URIs available");
         }
 
-        final OcspVerifier verifier = new OcspVerifier(GlobalConf.getOcspFreshnessSeconds(), verifierOptions);
+        final OcspVerifier verifier = new OcspVerifier(globalConfProvider.getOcspFreshnessSeconds(), verifierOptions);
 
         for (String responderURI : responderURIs) {
             final OffsetDateTime prevUpdate = TimeUtils.offsetDateTimeNow();
@@ -267,7 +269,7 @@ public class OcspClientWorker {
 
             try {
                 log.debug("Fetching response from: {}", responderURI);
-                final OCSPResp response = OcspClient
+                final OCSPResp response = ocspClient
                         .fetchResponse(responderURI, subject, issuer, signerKey, signer, signAlgoId);
 
                 if (response != null) {
@@ -369,7 +371,7 @@ public class OcspClientWorker {
 
     private List<X509Certificate> getCertChain(X509Certificate cert) {
         try {
-            CertChain chain = GlobalConf.getCertChain(GlobalConf.getInstanceIdentifier(), cert);
+            CertChain chain = globalConfProvider.getCertChain(globalConfProvider.getInstanceIdentifier(), cert);
 
             if (chain == null) {
                 return Arrays.asList(cert);
@@ -389,7 +391,7 @@ public class OcspClientWorker {
         final Map<String, CertificationServiceStatus> serviceStatusMap = certServDiagnostics
                 .getCertificationServiceStatusMap();
 
-        final Collection<X509Certificate> caCerts = GlobalConf.getAllCaCerts();
+        final Collection<X509Certificate> caCerts = globalConfProvider.getAllCaCerts();
         serviceStatusMap.keySet().retainAll(caCerts.stream()
                 .map(X509Certificate::getSubjectDN)
                 .map(Principal::toString)
@@ -401,7 +403,7 @@ public class OcspClientWorker {
                 final CertificationServiceStatus serviceStatus = serviceStatusMap
                         .computeIfAbsent(key, CertificationServiceStatus::new);
 
-                final List<String> addresses = GlobalConf.getOcspResponderAddressesForCaCertificate(caCertificate);
+                final List<String> addresses = globalConfProvider.getOcspResponderAddressesForCaCertificate(caCertificate);
                 final Map<String, OcspResponderStatus> responderStatusMap = serviceStatus.getOcspResponderStatusMap();
                 responderStatusMap.keySet().retainAll(addresses);
 

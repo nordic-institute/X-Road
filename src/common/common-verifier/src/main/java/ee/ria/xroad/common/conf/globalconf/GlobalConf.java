@@ -28,7 +28,6 @@ package ee.ria.xroad.common.conf.globalconf;
 import ee.ria.xroad.common.CodedException;
 import ee.ria.xroad.common.SystemProperties;
 import ee.ria.xroad.common.cert.CertChain;
-import ee.ria.xroad.common.certificateprofile.AuthCertificateProfileInfo;
 import ee.ria.xroad.common.certificateprofile.SignCertificateProfileInfo;
 import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.identifier.GlobalGroupId;
@@ -43,74 +42,63 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Set;
 
-import static ee.ria.xroad.common.ErrorCodes.X_OUTDATED_GLOBALCONF;
-
 /**
  * Global configuration.
  */
 @Slf4j
+@Deprecated(forRemoval = true)
 public final class GlobalConf {
 
-    private static volatile GlobalConfProvider instance;
+    private static GlobalConfProvider instance;
 
     private GlobalConf() {
+    }
+
+    public static synchronized void initialize(GlobalConfProvider globalConfProvider) {
+        if (instance == null) {
+            instance = globalConfProvider;
+        } else {
+            log.warn("GlobalConf is already initialized");
+        }
     }
 
     /**
      * Returns the singleton instance of the configuration.
      */
-    static GlobalConfProvider getInstance() {
+    private static GlobalConfProvider getInstance() {
         if (instance == null) {
-            synchronized (GlobalConf.class) {
-                if (instance == null) {
-                    instance = new GlobalConfImpl();
-                }
-            }
+            throw new IllegalStateException("GlobalConf is not initialized");
         }
-        return instance;
-    }
 
-    /**
-     * Reloads the configuration.
-     */
-    public static void reload() {
-        log.debug("reload called");
-        if (instance == null) {
-            log.debug("creating instance");
-            getInstance();
-        } else {
-            log.debug("reloading instance");
-            instance.reload();
-        }
+        return instance;
     }
 
     /**
      * Reloads the configuration with given configuration instance.
      * Used in tests. DO NOT USE in other circumstances.
+     *
      * @param conf the configuration provider instance
      */
-    public static void reload(GlobalConfProvider conf) {
+    public static synchronized void reload(GlobalConfProvider conf) {
         log.trace("reload called with parameter class {}", conf.getClass());
-        synchronized (GlobalConf.class) {
-            instance = conf;
-        }
+        instance = conf;
     }
 
     /**
      * Resets global configuration to empty.
      * Used in tests. DO NOT USE in other circumstances.
      */
-    public static void reset() {
+    public static synchronized void reset() {
+        //TODO
         log.trace("reset called");
-        synchronized (GlobalConf.class) {
-            instance = null;
-        }
+        instance = null;
     }
 
     // ------------------------------------------------------------------------
 
     /**
      * Returns an absolute file name for the current instance.
+     *
      * @param fileName the file name
      * @return the absolute path to the file of the current instance
      */
@@ -120,8 +108,9 @@ public final class GlobalConf {
 
     /**
      * Returns an absolute file name for the specified instance.
+     *
      * @param instanceIdentifier the instance identifier
-     * @param fileName the file name
+     * @param fileName           the file name
      * @return the absolute path to the file of the specified instance
      */
     public static Path getFile(String instanceIdentifier, String fileName) {
@@ -134,12 +123,11 @@ public final class GlobalConf {
     /**
      * Verifies that the global configuration is valid. Throws exception
      * with error code ErrorCodes.X_OUTDATED_GLOBALCONF if the it is too old.
+     * <br/>DEPRECATED, use provider directly
      */
+    @Deprecated
     public static void verifyValidity() {
-        if (!isValid()) {
-            throw new CodedException(X_OUTDATED_GLOBALCONF,
-                    "Global configuration is expired");
-        }
+        getInstance().verifyValidity();
     }
 
     /**
@@ -147,6 +135,7 @@ public final class GlobalConf {
      * for security-critical tasks.
      * Configuration is considered to be valid if all the files of all
      * the instances are up-to-date (not expired).
+     *
      * @return true if the global configuration is valid
      */
     public static boolean isValid() {
@@ -233,6 +222,7 @@ public final class GlobalConf {
 
     /**
      * Returns address of the given service provider's proxy.
+     *
      * @param serviceProvider the service provider identifier
      * @return IP address converted to string, such as "192.168.2.2".
      */
@@ -245,6 +235,7 @@ public final class GlobalConf {
 
     /**
      * Returns address of the given service provider's proxy.
+     *
      * @return IP address converted to string, such as "192.168.2.2".
      */
     public static String getSecurityServerAddress(
@@ -257,6 +248,7 @@ public final class GlobalConf {
     /**
      * Returns a list of OCSP responder addresses for the given member
      * certificate.
+     *
      * @param member the member certificate
      * @return list of OCSP responder addresses
      * @throws Exception if an error occurs
@@ -270,20 +262,6 @@ public final class GlobalConf {
     }
 
     /**
-     * Returns a list of OCSP responder addresses for the given CA certificate.
-     * @param caCertificate the CA certificate
-     * @return list of OCSP responder addresses
-     * @throws Exception if an error occurs
-     */
-    public static List<String> getOcspResponderAddressesForCaCertificate(
-            X509Certificate caCertificate) throws Exception {
-        log.trace("getOcspResponderAddressesForCaCertificate({})", caCertificate != null
-                ? caCertificate.getSubjectX500Principal().getName() : "null");
-
-        return getInstance().getOcspResponderAddressesForCaCertificate(caCertificate);
-    }
-
-    /**
      * @return a list of known OCSP responder certificates
      */
     public static List<X509Certificate> getOcspResponderCertificates() {
@@ -294,7 +272,7 @@ public final class GlobalConf {
 
     /**
      * @param instanceIdentifier the instance identifier
-     * @param subject the member certificate
+     * @param subject            the member certificate
      * @return the issuer certificate for the member certificate
      * @throws Exception if an error occurs
      */
@@ -326,7 +304,7 @@ public final class GlobalConf {
 
     /**
      * @param instanceIdentifier the instance identifier
-     * @param subject the subject certificate
+     * @param subject            the subject certificate
      * @return the top CA and any intermediate CA certificates for a
      * given end entity
      * @throws Exception if an error occurs
@@ -340,7 +318,7 @@ public final class GlobalConf {
     }
 
     /**
-     * @param ca the CA certificate
+     * @param ca       the CA certificate
      * @param ocspCert the OCSP certificate
      * @return true, if the CA has the specified OCSP responder certificate,
      * false otherwise
@@ -381,6 +359,7 @@ public final class GlobalConf {
     /**
      * Checks if the authentication certificate belongs to registered
      * security server
+     *
      * @param cert the authentication certificate
      * @return true if the authentication certificate belongs to registered
      * security server
@@ -406,7 +385,7 @@ public final class GlobalConf {
     }
 
     /**
-     * @param cert the certificate
+     * @param cert     the certificate
      * @param memberId the member identifier
      * @return true, if cert can be used to authenticate as
      * member member
@@ -434,82 +413,14 @@ public final class GlobalConf {
 
     /**
      * @param parameters the parameters
-     * @param cert the certificate
-     * @return authentication certificate profile info for this certificate
-     * @throws Exception if an error occurs
-     */
-    public static AuthCertificateProfileInfo getAuthCertificateProfileInfo(
-            AuthCertificateProfileInfo.Parameters parameters,
-            X509Certificate cert) throws Exception {
-        log.trace("getAuthCertificateProfileInfo({}, {})",
-                parameters.getServerId(),
-                cert.getSubjectX500Principal());
-
-        return getInstance().getAuthCertificateProfileInfo(parameters, cert);
-    }
-
-    /**
-     * @param parameters the parameters
-     * @param cert the certificate
-     * @return signing certificate profile info for this certificate
-     * @throws Exception if an error occurs
-     */
-    public static SignCertificateProfileInfo getSignCertificateProfileInfo(
-            SignCertificateProfileInfo.Parameters parameters,
-            X509Certificate cert) throws Exception {
-        log.trace("getSignCertificateProfileInfo({}, {})",
-                parameters.getClientId(),
-                cert.getSubjectX500Principal());
-
-        return getInstance().getSignCertificateProfileInfo(parameters, cert);
-    }
-
-    /**
-     * @param parameters the parameters
-     * @param cert the signing certificate
+     * @param cert       the signing certificate
      * @return subject client identifier
      * @throws Exception if an error occurs
      */
     public static ClientId.Conf getSubjectName(
             SignCertificateProfileInfo.Parameters parameters,
             X509Certificate cert) throws Exception {
-        log.trace("getSubjectName({})", parameters.getClientId());
-
-        return getSignCertificateProfileInfo(parameters, cert)
-                .getSubjectIdentifier(cert);
-    }
-
-    /**
-     * @param instanceIdentifier the instance identifier
-     * @return all approved TSPs for the given instance identifier
-     */
-    public static List<String> getApprovedTspUrls(String instanceIdentifier) {
-        log.trace("getApprovedTsps({})", instanceIdentifier);
-
-        return getInstance().getApprovedTspUrls(instanceIdentifier);
-    }
-
-    /**
-     * @param instanceIdentifier the instance identifier
-     * @return all approved TSP types for the given instance identifier
-     */
-    public static List<SharedParameters.ApprovedTSA> getApprovedTsps(String instanceIdentifier) {
-        return getInstance().getApprovedTsps(instanceIdentifier);
-    }
-
-    /**
-     * @param instanceIdentifier the instance identifier
-     * @param approvedTspUrl the TSP url
-     * @return approved TSP name for the given instance identifier and TSP
-     * url
-     */
-    public static String getApprovedTspName(String instanceIdentifier,
-                                            String approvedTspUrl) {
-        log.trace("getApprovedTspName({}, {})", instanceIdentifier,
-                approvedTspUrl);
-
-        return getInstance().getApprovedTspName(instanceIdentifier,
-                approvedTspUrl);
+        return getInstance().getSubjectName(parameters, cert);
     }
 
     /**
@@ -533,7 +444,7 @@ public final class GlobalConf {
 
     /**
      * @param subject the client identifier
-     * @param group the global group
+     * @param group   the global group
      * @return true, if given subject belongs to given global group
      */
     public static boolean isSubjectInGlobalGroup(ClientId subject,
@@ -544,7 +455,7 @@ public final class GlobalConf {
     }
 
     /**
-     * @param client the client identifier
+     * @param client         the client identifier
      * @param securityServer the security server identifier
      * @return true, if client belongs to the security server
      */
@@ -553,16 +464,6 @@ public final class GlobalConf {
         log.trace("isSecurityServerClient({}, {})", client, securityServer);
 
         return getInstance().isSecurityServerClient(client, securityServer);
-    }
-
-    /**
-     * @param serverId the security server id
-     * @return true, if the given security server id exists.
-     */
-    public static boolean existsSecurityServer(SecurityServerId serverId) {
-        log.trace("existsSecurityServer({})", serverId);
-
-        return getInstance().existsSecurityServer(serverId);
     }
 
     /**
@@ -639,11 +540,12 @@ public final class GlobalConf {
 
     /**
      * Get ApprovedCAInfo matching given CA certificate
+     *
      * @param instanceIdentifier instance id
-     * @param cert intermediate or top CA cert
+     * @param cert               intermediate or top CA cert
      * @return ApprovedCAInfo (for the top CA)
      * @throws CodedException if something went wrong, for example
-     * {@code cert} was not an approved CA cert
+     *                        {@code cert} was not an approved CA cert
      */
     public static ApprovedCAInfo getApprovedCA(
             String instanceIdentifier, X509Certificate cert) throws CodedException {

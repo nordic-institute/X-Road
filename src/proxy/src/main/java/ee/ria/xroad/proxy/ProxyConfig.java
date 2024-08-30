@@ -25,6 +25,7 @@
  */
 package ee.ria.xroad.proxy;
 
+import ee.ria.xroad.common.conf.globalconf.GlobalConfBeanConfig;
 import ee.ria.xroad.common.opmonitoring.AbstractOpMonitoringBuffer;
 import ee.ria.xroad.common.signature.BatchSigner;
 import ee.ria.xroad.proxy.clientproxy.ClientProxy;
@@ -42,7 +43,8 @@ import org.springframework.context.annotation.Import;
         ProxyAddonConfig.class,
         ProxyDiagnosticsConfig.class,
         ProxyJobConfig.class,
-        ProxyMessageLogConfig.class
+        ProxyMessageLogConfig.class,
+        GlobalConfBeanConfig.class
 })
 @Configuration
 public class ProxyConfig {

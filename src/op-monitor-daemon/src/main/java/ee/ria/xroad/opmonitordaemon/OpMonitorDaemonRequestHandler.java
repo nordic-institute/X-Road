@@ -26,6 +26,7 @@
 package ee.ria.xroad.opmonitordaemon;
 
 import ee.ria.xroad.common.CodedException;
+import ee.ria.xroad.common.conf.globalconf.GlobalConfProvider;
 import ee.ria.xroad.common.opmonitoring.StoreOpMonitoringDataResponse;
 import ee.ria.xroad.common.util.HandlerBase;
 import ee.ria.xroad.common.util.JsonUtils;
@@ -68,9 +69,11 @@ class OpMonitorDaemonRequestHandler extends HandlerBase {
 
     private static final byte[] OK_RESPONSE_BYTES = getOkResponseBytes();
 
+    private final GlobalConfProvider globalConfProvider;
     private final MetricRegistry healthMetricRegistry;
 
-    OpMonitorDaemonRequestHandler(MetricRegistry healthMetricRegistry) {
+    OpMonitorDaemonRequestHandler(GlobalConfProvider globalConfProvider, MetricRegistry healthMetricRegistry) {
+        this.globalConfProvider = globalConfProvider;
         this.healthMetricRegistry = healthMetricRegistry;
     }
 
@@ -113,7 +116,7 @@ class OpMonitorDaemonRequestHandler extends HandlerBase {
 
             log.info("Received query request from {}", getRemoteAddr(request));
 
-            new QueryRequestProcessor(RequestWrapper.of(request), ResponseWrapper.of(response),
+            new QueryRequestProcessor(globalConfProvider, RequestWrapper.of(request), ResponseWrapper.of(response),
                     healthMetricRegistry).process();
         } catch (Throwable t) { // We want to catch serious errors as well
             log.error("Error while handling query request", t);

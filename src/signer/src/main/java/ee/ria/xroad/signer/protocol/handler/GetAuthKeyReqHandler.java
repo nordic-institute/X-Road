@@ -26,7 +26,7 @@
 package ee.ria.xroad.signer.protocol.handler;
 
 import ee.ria.xroad.common.CodedException;
-import ee.ria.xroad.common.conf.globalconf.GlobalConf;
+import ee.ria.xroad.common.conf.globalconf.GlobalConfProvider;
 import ee.ria.xroad.common.conf.globalconfextension.GlobalConfExtensions;
 import ee.ria.xroad.common.identifier.SecurityServerId;
 import ee.ria.xroad.common.ocsp.OcspVerifier;
@@ -43,6 +43,7 @@ import ee.ria.xroad.signer.tokenmanager.module.SoftwareModuleType;
 import ee.ria.xroad.signer.tokenmanager.token.SoftwareTokenType;
 import ee.ria.xroad.signer.tokenmanager.token.SoftwareTokenUtil;
 
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.bouncycastle.cert.ocsp.OCSPResp;
 import org.niis.xroad.signer.proto.AuthKeyInfoProto;
@@ -63,8 +64,10 @@ import static java.util.Optional.ofNullable;
  */
 @Slf4j
 @Component
+@RequiredArgsConstructor
 public class GetAuthKeyReqHandler
         extends AbstractRpcHandler<GetAuthKeyReq, AuthKeyInfoProto> {
+    private final GlobalConfProvider globalConfProvider;
 
     @Override
     @SuppressWarnings("squid:S3776")
@@ -150,7 +153,7 @@ public class GetAuthKeyReqHandler
             return false;
         }
 
-        SecurityServerId serverIdFromConf = GlobalConf.getServerId(cert);
+        SecurityServerId serverIdFromConf = globalConfProvider.getServerId(cert);
         try {
             cert.checkValidity();
 
@@ -185,9 +188,9 @@ public class GetAuthKeyReqHandler
 
         OCSPResp ocsp = new OCSPResp(ocspBytes);
         X509Certificate issuer =
-                GlobalConf.getCaCert(instanceIdentifier, subject);
+                globalConfProvider.getCaCert(instanceIdentifier, subject);
         OcspVerifier verifier =
-                new OcspVerifier(GlobalConf.getOcspFreshnessSeconds(), verifierOptions);
+                new OcspVerifier(globalConfProvider.getOcspFreshnessSeconds(), verifierOptions);
         verifier.verifyValidityAndStatus(ocsp, subject, issuer);
     }
 

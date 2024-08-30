@@ -126,6 +126,11 @@ public class EmptyGlobalConf implements GlobalConfProvider {
     }
 
     @Override
+    public ClientId.Conf getSubjectName(SignCertificateProfileInfo.Parameters parameters, X509Certificate cert) throws Exception {
+        return null;
+    }
+
+    @Override
     public boolean authCertMatchesMember(X509Certificate cert,
                                          ClientId memberId) throws Exception {
         return false;
@@ -247,6 +252,11 @@ public class EmptyGlobalConf implements GlobalConfProvider {
     @Override
     public boolean isValid() {
         return true;
+    }
+
+    @Override
+    public void verifyValidity() {
+
     }
 
     @Override

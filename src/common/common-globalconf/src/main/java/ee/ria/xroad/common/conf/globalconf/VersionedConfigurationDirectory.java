@@ -368,6 +368,10 @@ public class VersionedConfigurationDirectory implements ConfigurationDirectory {
         }
     }
 
+    public Integer getVersion() {
+        return getVersion(Path.of(getPath().toString(), instanceIdentifier, ConfigurationConstants.FILE_NAME_SHARED_PARAMETERS));
+    }
+
     protected static OffsetDateTime getFileExpiresOn(Path filePath) {
         try {
             OffsetDateTime expiresOn = getMetadata(filePath).getExpirationDate();

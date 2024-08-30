@@ -47,11 +47,11 @@ public class LocalGroupConverterTest extends AbstractConverterTestContext {
     public static final String MEMBER_NAME_PREFIX = "member-name-for-";
 
     private LocalGroupConverter localGroupConverter;
-    private ClientIdConverter clientIdConverter = new ClientIdConverter();
+    private ClientIdConverter clientIdConverter =  new ClientIdConverter();
 
     @Before
     public void setup() {
-        GlobalConfFacade globalConfFacade = new GlobalConfFacade() {
+        GlobalConfFacade globalConfFacade = new GlobalConfFacade(null) {
             @Override
             public String getMemberName(ClientId identifier) {
                 return MEMBER_NAME_PREFIX + identifier.getMemberCode();

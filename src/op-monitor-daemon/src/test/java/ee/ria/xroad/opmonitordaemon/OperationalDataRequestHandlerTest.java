@@ -26,6 +26,7 @@
 package ee.ria.xroad.opmonitordaemon;
 
 import ee.ria.xroad.common.CodedException;
+import ee.ria.xroad.common.conf.globalconf.GlobalConfProvider;
 import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.util.TimeUtils;
 import ee.ria.xroad.opmonitordaemon.message.GetSecurityServerOperationalDataResponseType;
@@ -38,6 +39,7 @@ import org.junit.rules.ExpectedException;
 import java.util.Collections;
 
 import static org.junit.Assert.assertNotNull;
+import static org.mockito.Mockito.mock;
 
 /**
  * Tests for verifying query request handler behavior.
@@ -70,7 +72,7 @@ public class OperationalDataRequestHandlerTest extends BaseTestUsingDB {
         ClientId client = ClientId.Conf.create(
                 "XTEE-CI-XM", "00000001", "GOV", "System1");
         OperationalDataRequestHandler handler =
-                new OperationalDataRequestHandler();
+                new OperationalDataRequestHandler(mock(GlobalConfProvider.class));
         long recordsAvailableBefore = TimeUtils.getEpochSecond();
 
         GetSecurityServerOperationalDataResponseType response = handler

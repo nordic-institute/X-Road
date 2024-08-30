@@ -1,6 +1,5 @@
 /*
  * The MIT License
- *
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
@@ -24,22 +23,24 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.cs.management.core.service;
+package ee.ria.xroad.opmonitordaemon.config;
 
-import ee.ria.xroad.common.conf.globalconf.GlobalConf;
+import ee.ria.xroad.common.conf.globalconf.GlobalConfBeanConfig;
+import ee.ria.xroad.common.conf.globalconf.GlobalConfProvider;
+import ee.ria.xroad.opmonitordaemon.OpMonitorDaemon;
 
-import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
-import org.springframework.scheduling.annotation.Scheduled;
-import org.springframework.stereotype.Service;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Import;
 
-import java.util.concurrent.TimeUnit;
+@Import({OpMonitorDaemonJobConfig.class,
+        GlobalConfBeanConfig.class
+})
+@Configuration
+public class OpMonitorDaemonRootConfig {
 
-@Service
-@ConditionalOnProperty(value = "test", havingValue = "false", matchIfMissing = true)
-class GlobalConfUpdater {
-
-    @Scheduled(fixedRate = 1, timeUnit = TimeUnit.MINUTES)
-    public void update() {
-        GlobalConf.reload();
+    @Bean(initMethod = "start", destroyMethod = "stop")
+    OpMonitorDaemon opMonitorDaemon(GlobalConfProvider globalConfProvider) throws Exception {
+        return new OpMonitorDaemon(globalConfProvider);
     }
 }

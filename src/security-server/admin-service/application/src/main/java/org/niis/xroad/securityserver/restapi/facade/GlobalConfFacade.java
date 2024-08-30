@@ -29,7 +29,7 @@ import ee.ria.xroad.common.CodedException;
 import ee.ria.xroad.common.certificateprofile.SignCertificateProfileInfo;
 import ee.ria.xroad.common.certificateprofile.impl.SignCertificateProfileInfoParameters;
 import ee.ria.xroad.common.conf.globalconf.ApprovedCAInfo;
-import ee.ria.xroad.common.conf.globalconf.GlobalConf;
+import ee.ria.xroad.common.conf.globalconf.GlobalConfProvider;
 import ee.ria.xroad.common.conf.globalconf.GlobalGroupInfo;
 import ee.ria.xroad.common.conf.globalconf.MemberInfo;
 import ee.ria.xroad.common.conf.globalconf.SharedParameters;
@@ -37,6 +37,7 @@ import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.identifier.GlobalGroupId;
 import ee.ria.xroad.common.identifier.SecurityServerId;
 
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.niis.xroad.securityserver.restapi.service.GlobalConfService;
 import org.springframework.stereotype.Component;
@@ -55,80 +56,84 @@ import java.util.Set;
  */
 @Slf4j
 @Component
+@RequiredArgsConstructor
+@Deprecated(forRemoval = true)
 public class GlobalConfFacade {
+    private final GlobalConfProvider globalConfProvider;
 
     /**
-     * {@link GlobalConf#getMemberName(ClientId)}
+     * {@link GlobalConfProvider#getMemberName(ClientId)}
      */
     public String getMemberName(ClientId identifier) {
-        return GlobalConf.getMemberName(identifier);
+        return globalConfProvider.getMemberName(identifier);
     }
 
     /**
-     * {@link GlobalConf#getGlobalGroupDescription(GlobalGroupId)}
+     * {@link GlobalConfProvider#getGlobalGroupDescription(GlobalGroupId)}
      */
     public String getGlobalGroupDescription(GlobalGroupId identifier) {
-        return GlobalConf.getGlobalGroupDescription(identifier);
+        return globalConfProvider.getGlobalGroupDescription(identifier);
     }
 
     /**
-     * {@link GlobalConf#getMembers(String...)}
+     * {@link GlobalConfProvider#getMembers(String...)}
      */
     public List<MemberInfo> getMembers(String... instanceIdentifiers) {
-        return GlobalConf.getMembers(instanceIdentifiers);
+        return globalConfProvider.getMembers(instanceIdentifiers);
     }
 
     /**
-     * {@link GlobalConf#getMemberClasses(String...)}
+     * {@link GlobalConfProvider#getMemberClasses(String...)}
      */
     public Set<String> getMemberClasses(String instanceIdentifier) {
-        return GlobalConf.getMemberClasses(instanceIdentifier);
+        return globalConfProvider.getMemberClasses(instanceIdentifier);
     }
 
     /**
-     * {@link GlobalConf#getMemberClasses(String...)}
+     * {@link GlobalConfProvider#getMemberClasses(String...)}
      */
     public Set<String> getMemberClasses() {
-        return GlobalConf.getMemberClasses();
+        return globalConfProvider.getMemberClasses();
     }
 
     /**
-     * {@link GlobalConf#getInstanceIdentifier()}
+     * {@link GlobalConfProvider#getInstanceIdentifier()}
      */
     public String getInstanceIdentifier() {
-        return GlobalConf.getInstanceIdentifier();
+        return globalConfProvider.getInstanceIdentifier();
     }
 
     /**
-     * {@link GlobalConf#getInstanceIdentifiers()}
+     * {@link GlobalConfProvider#getInstanceIdentifiers()}
      */
     public Set<String> getInstanceIdentifiers() {
-        return new HashSet<>(GlobalConf.getInstanceIdentifiers());
+        return new HashSet<>(globalConfProvider.getInstanceIdentifiers());
     }
 
     /**
-     * {@link GlobalConf#getGlobalGroups(String...)} ()}
+     * {@link GlobalConfProvider#getGlobalGroups(String...)} ()}
      */
     public List<GlobalGroupInfo> getGlobalGroups(String... instanceIdentifiers) {
-        return GlobalConf.getGlobalGroups(instanceIdentifiers);
+        return globalConfProvider.getGlobalGroups(instanceIdentifiers);
     }
 
     /**
-     * {@link GlobalConf#verifyValidity()}
+     * {@link GlobalConfProvider#verifyValidity()}
      */
     public void verifyValidity() {
-        GlobalConf.verifyValidity();
+        globalConfProvider.verifyValidity();
     }
 
     /**
-     * {@link GlobalConf#existsSecurityServer(SecurityServerId)}
+     * {@link GlobalConfProvider#existsSecurityServer(SecurityServerId)}
      */
     public boolean existsSecurityServer(SecurityServerId securityServerId) {
-        return GlobalConf.existsSecurityServer(securityServerId);
+        return globalConfProvider.existsSecurityServer(securityServerId);
     }
 
     /**
-     * {@link GlobalConf#getSubjectName(SignCertificateProfileInfo.Parameters, X509Certificate)}
+     * {@link GlobalConfProvider#getSubjectName(SignCertificateProfileInfo.Parameters, X509Certificate)}
+     *
      * @param signCertificateProfileInfoParameters
      * @param cert
      * @return
@@ -136,84 +141,78 @@ public class GlobalConfFacade {
      */
     public ClientId.Conf getSubjectName(SignCertificateProfileInfoParameters signCertificateProfileInfoParameters,
                                         X509Certificate cert) throws Exception {
-        return GlobalConf.getSubjectName(signCertificateProfileInfoParameters, cert);
+        return globalConfProvider.getSubjectName(signCertificateProfileInfoParameters, cert);
     }
 
     /**
-     * {@link GlobalConf#getApprovedCAs(String)}
+     * {@link GlobalConfProvider#getApprovedCAs(String)}
      */
     public Collection<ApprovedCAInfo> getApprovedCAs(String instanceIdentifier) {
-        return GlobalConf.getApprovedCAs(instanceIdentifier);
+        return globalConfProvider.getApprovedCAs(instanceIdentifier);
     }
 
     /**
-     * {@link GlobalConf#getAllCaCerts(String)}
+     * {@link GlobalConfProvider#getAllCaCerts(String)}
      */
     public Collection<X509Certificate> getAllCaCerts(String instanceIdentifier) {
-        return GlobalConf.getAllCaCerts(instanceIdentifier);
+        return globalConfProvider.getAllCaCerts(instanceIdentifier);
     }
 
     /**
-     * {@link GlobalConf#getServerOwner(SecurityServerId)}
+     * {@link GlobalConfProvider#getServerOwner(SecurityServerId)}
      */
     public ClientId getServerOwner(SecurityServerId serverId) {
-        return GlobalConf.getServerOwner(serverId);
+        return globalConfProvider.getServerOwner(serverId);
     }
 
     /**
-     * {@link GlobalConf#getManagementRequestService()}
+     * {@link GlobalConfProvider#getManagementRequestService()}
      */
     public ClientId getManagementRequestService() {
-        return GlobalConf.getManagementRequestService();
+        return globalConfProvider.getManagementRequestService();
     }
 
     /**
-     * {@link GlobalConf#getSecurityServers(String...)}
+     * {@link GlobalConfProvider#getSecurityServers(String...)}
      */
     public List<SecurityServerId.Conf> getSecurityServers(String... instanceIdentifiers) {
-        return GlobalConf.getSecurityServers(instanceIdentifiers);
+        return globalConfProvider.getSecurityServers(instanceIdentifiers);
     }
 
     /**
-     * {@link GlobalConf#getSecurityServerAddress(SecurityServerId)}
+     * {@link GlobalConfProvider#getSecurityServerAddress(SecurityServerId)}
      */
     public String getSecurityServerAddress(SecurityServerId securityServerId) {
-        return GlobalConf.getSecurityServerAddress(securityServerId);
+        return globalConfProvider.getSecurityServerAddress(securityServerId);
     }
 
     /**
-     * {@link GlobalConf#getApprovedTsps(String)}
+     * {@link GlobalConfProvider#getApprovedTsps(String)}
      */
     public List<SharedParameters.ApprovedTSA> getApprovedTsps(String instanceIdentifier) {
-        return GlobalConf.getApprovedTsps(instanceIdentifier);
+        return globalConfProvider.getApprovedTsps(instanceIdentifier);
     }
 
     /**
-     * {@link GlobalConf#isSecurityServerClient(ClientId, SecurityServerId)}}
+     * {@link GlobalConfProvider#isSecurityServerClient(ClientId, SecurityServerId)}}
      */
     public boolean isSecurityServerClient(ClientId client,
                                           SecurityServerId securityServer) {
-        return GlobalConf.isSecurityServerClient(client, securityServer);
+        return globalConfProvider.isSecurityServerClient(client, securityServer);
     }
 
     /**
-     * {@link GlobalConf#getApprovedCA(String, X509Certificate)}}
+     * {@link GlobalConfProvider#getApprovedCA(String, X509Certificate)}}
      */
     public ApprovedCAInfo getApprovedCA(String instanceIdentifier, X509Certificate cert) throws CodedException {
-        return GlobalConf.getApprovedCA(instanceIdentifier, cert);
+        return globalConfProvider.getApprovedCA(instanceIdentifier, cert);
     }
 
-    /**
-     * {@link GlobalConf#reload()}
-     */
     public void reload() {
-        GlobalConf.reload();
+        globalConfProvider.reload();
     }
 
-    /**
-     * {@link GlobalConf#reload()}
-     */
     public SecurityServerId getServerId(X509Certificate cert) throws Exception {
-        return GlobalConf.getServerId(cert);
+        return globalConfProvider.getServerId(cert);
     }
 }
