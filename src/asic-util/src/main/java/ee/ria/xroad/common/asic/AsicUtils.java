@@ -58,6 +58,7 @@ public final class AsicUtils {
 
     /**
      * Prepares the provided string for use in filenames.
+     *
      * @param str the string
      * @return resulting string with unsuitable characters escaped
      */
@@ -70,6 +71,7 @@ public final class AsicUtils {
 
     /**
      * Generates the output in case of failed verification.
+     *
      * @param cause throwable that caused the failure
      * @return failed verification output string
      */
@@ -81,6 +83,7 @@ public final class AsicUtils {
 
     /**
      * Generates the output in case of successful verification.
+     *
      * @param verifier container verifier that was successful
      * @return successful verification output string
      */
@@ -108,12 +111,12 @@ public final class AsicUtils {
 
     public static boolean isLegacyContainer(String fileName) throws IOException {
         try (ZipFile zipFile = new ZipFile(fileName)) {
-            List<String> containerEntries =  Collections.list(zipFile.entries()).stream()
+            List<String> containerEntries = Collections.list(zipFile.entries()).stream()
                     .map(e -> stripSlash(e.getName()))
                     .toList();
 
-            return containerEntries.contains(AsicContainerEntries.ENTRY_SIG_HASH_CHAIN) &&
-                    containerEntries.contains(AsicContainerEntries.ENTRY_SIG_HASH_CHAIN_RESULT);
+            return containerEntries.contains(AsicContainerEntries.ENTRY_SIG_HASH_CHAIN)
+                    && containerEntries.contains(AsicContainerEntries.ENTRY_SIG_HASH_CHAIN_RESULT);
         }
     }
 
@@ -134,8 +137,9 @@ public final class AsicUtils {
 
     /**
      * Generates the output in case of successful verification.
+     *
      * @param diagnosticData resulting from container verification
-     * @param message contents of the message.xml file
+     * @param message        contents of the message.xml file
      * @return successful verification output string
      */
     public static String buildSuccessOutput(DiagnosticData diagnosticData, String message) {
@@ -191,6 +195,7 @@ public final class AsicUtils {
 
     /**
      * Truncates string to certain length
+     *
      * @return string delimited to given length
      */
     public static String truncate(String s, int max) {
