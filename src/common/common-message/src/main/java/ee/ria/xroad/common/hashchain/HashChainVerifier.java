@@ -147,12 +147,6 @@ public final class HashChainVerifier {
 
         // Compare with the signed hash chain result.
         if (!Arrays.equals(digestedData, hashChainResult.getDigestValue())) {
-            if (log.isDebugEnabled()) {
-                log.debug("Hash chain result ({}) does not match hash chain calculation ({})",
-                        encodeBase64(hashChainResult.getDigestValue()),  encodeBase64(digestedData));
-                log.debug("Inputs: {}", inputs.entrySet().stream().map(
-                        e -> e.getKey() + " -> " + encodeBase64(e.getValue().getDigestValue())).toList());
-            }
             throw new CodedException(X_INVALID_HASH_CHAIN_RESULT,
                     "Hash chain result does not match hash chain calculation");
         }
