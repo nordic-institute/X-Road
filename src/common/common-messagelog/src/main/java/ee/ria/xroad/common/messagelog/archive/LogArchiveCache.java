@@ -199,7 +199,7 @@ class LogArchiveCache implements Closeable {
             // ZipOutputStream writing directly to a DigestOutputStream is extremely inefficient, hence the additional
             // buffering. Digesting a stream instead of an in-memory buffer because the archive can be
             // large (over 1GiB)
-            record.toAsicContainer().write(bos);
+            record.writeAsicContainer(bos);
             bos.flush();
             archivesTotalSize += cos.getCount();
         }

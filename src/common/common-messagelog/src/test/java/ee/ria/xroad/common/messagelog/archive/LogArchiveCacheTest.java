@@ -26,7 +26,6 @@
 package ee.ria.xroad.common.messagelog.archive;
 
 import ee.ria.xroad.common.SystemProperties;
-import ee.ria.xroad.common.asic.AsicContainer;
 import ee.ria.xroad.common.messagelog.MessageLogProperties;
 import ee.ria.xroad.common.messagelog.MessageRecord;
 
@@ -331,14 +330,11 @@ public class LogArchiveCacheTest {
         when(record.isResponse()).thenReturn(params.isResponse());
         when(record.getTime()).thenReturn(params.getCreationTime());
 
-        AsicContainer container = mock(AsicContainer.class);
         doAnswer(invocation -> {
             OutputStream os = (OutputStream) invocation.getArguments()[0];
             os.write(params.getBytes());
             return null;
-        }).when(container).write(any(OutputStream.class));
-
-        when(record.toAsicContainer()).thenReturn(container);
+        }).when(record).writeAsicContainer(any(OutputStream.class));
 
         return record;
     }

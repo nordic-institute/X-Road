@@ -26,15 +26,12 @@
 package org.niis.xroad.proxy.configuration;
 
 import ee.ria.xroad.common.opmonitoring.AbstractOpMonitoringBuffer;
-import ee.ria.xroad.common.signature.DSSSigner;
-import ee.ria.xroad.common.signature.MessageSigner;
 import ee.ria.xroad.proxy.ProxyAddonConfig;
 import ee.ria.xroad.proxy.ProxyAdminPortConfig;
 import ee.ria.xroad.proxy.ProxyDiagnosticsConfig;
 import ee.ria.xroad.proxy.ProxyJobConfig;
 import ee.ria.xroad.proxy.ProxyMessageLogConfig;
 import ee.ria.xroad.proxy.ProxyRpcConfig;
-import ee.ria.xroad.proxy.conf.SigningCtxProvider;
 import ee.ria.xroad.proxy.opmonitoring.OpMonitoring;
 import ee.ria.xroad.proxy.serverproxy.ServerProxy;
 import ee.ria.xroad.proxy.util.CertHashBasedOcspResponder;
@@ -56,21 +53,6 @@ import org.springframework.context.annotation.Import;
 @ComponentScan(basePackages = {"org.niis.xroad.proxy"})
 @Configuration
 public class ProxyConfig {
-
-    @Bean(destroyMethod = "shutdown")
-    MessageSigner messageSigner() {
-        MessageSigner signer;
-//        if (SystemProperties.isBatchMessageSigningEnabled()) {
-//            signer = BatchSigner.init();
-//        } else {
-//            signer = new SimpleSigner();
-//        }
-        signer = new DSSSigner();
-        //TODO this is a hack, we should not set the signer here
-        SigningCtxProvider.setSigner(signer);
-        return signer;
-    }
-
 
     @Bean(initMethod = "start", destroyMethod = "stop")
     ServerProxy serverProxy() throws Exception {

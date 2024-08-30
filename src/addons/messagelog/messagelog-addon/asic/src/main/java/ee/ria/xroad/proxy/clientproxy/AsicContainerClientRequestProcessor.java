@@ -29,7 +29,6 @@ import ee.ria.xroad.common.CodedException;
 import ee.ria.xroad.common.CodedExceptionWithHttpStatus;
 import ee.ria.xroad.common.ErrorCodes;
 import ee.ria.xroad.common.SystemProperties;
-import ee.ria.xroad.common.asic.AsicContainer;
 import ee.ria.xroad.common.asic.AsicContainerNameGenerator;
 import ee.ria.xroad.common.asic.AsicUtils;
 import ee.ria.xroad.common.conf.globalconf.ConfigurationConstants;
@@ -314,7 +313,7 @@ public class AsicContainerClientRequestProcessor extends MessageProcessorBase {
                     zos.putNextEntry(entry);
 
                     try (EntryStream es = new EntryStream(zos)) {
-                        record.toAsicContainer().write(es);
+                        record.writeAsicContainer(es);
                     }
                     zos.closeEntry();
                 }
@@ -365,7 +364,6 @@ public class AsicContainerClientRequestProcessor extends MessageProcessorBase {
                     throw new CodedException(X_INTERNAL_ERROR, MISSING_TIMESTAMP_FAULT_MESSAGE);
                 }
                 MessageRecordEncryption.getInstance().prepareDecryption(record);
-                final AsicContainer asicContainer = record.toAsicContainer();
 
                 String filename = nameGen.getArchiveFilename(queryId, response, record.getId());
                 if (encryptionEnabled) {
@@ -378,9 +376,9 @@ public class AsicContainerClientRequestProcessor extends MessageProcessorBase {
                         CONTENT_DISPOSITION_FILENAME_PREFIX + filename + "\"");
 
                 if (encryptionEnabled) {
-                    encryptContainer(encryptionConfig, asicContainer);
+                    writeEncryptedContainer(encryptionConfig, record);
                 } else {
-                    asicContainer.write(jResponse.getOutputStream());
+                    record.writeAsicContainer(jResponse.getOutputStream());
                 }
 
             } catch (CodedException ce) {
@@ -392,13 +390,13 @@ public class AsicContainerClientRequestProcessor extends MessageProcessorBase {
         });
     }
 
-    private void encryptContainer(EncryptionConfig encryptionConfig, AsicContainer asicContainer) throws Exception {
+    private void writeEncryptedContainer(EncryptionConfig encryptionConfig, MessageRecord messageRecord) throws Exception {
         final Path tempFile = Files.createTempFile(
                 Paths.get(SystemProperties.getTempFilesPath()), "asic", null);
         try {
             try (OutputStream os = new GPGOutputStream(encryptionConfig.getGpgHomeDir(), tempFile,
                     encryptionConfig.getEncryptionKeys())) {
-                asicContainer.write(os);
+                messageRecord.writeAsicContainer(os);
             }
             try (InputStream is = Files.newInputStream(tempFile); var out = jResponse.getOutputStream()) {
                 IOUtils.copyLarge(is, out);

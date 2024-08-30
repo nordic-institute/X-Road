@@ -27,10 +27,7 @@ package ee.ria.xroad.asicverifier;
 
 import ee.ria.xroad.common.ExpectedCodedException;
 import ee.ria.xroad.common.SystemProperties;
-import ee.ria.xroad.common.TestCertUtil;
-import ee.ria.xroad.common.asic.dss.DSSAsicVerifier;
 import ee.ria.xroad.common.conf.globalconf.GlobalConf;
-import ee.ria.xroad.common.conf.globalconf.TestGlobalConfImpl;
 
 import lombok.RequiredArgsConstructor;
 import org.junit.BeforeClass;
@@ -39,22 +36,27 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
 import org.junit.runners.Parameterized.Parameters;
+import org.mockito.MockedStatic;
+import org.mockito.Mockito;
 
-import java.security.cert.X509Certificate;
+import java.io.ByteArrayInputStream;
 import java.util.Arrays;
 import java.util.Collection;
 
+import static org.mockito.ArgumentMatchers.anyString;
+
 /**
  * Tests to verify correct ASiC container verifier behavior.
- * TODO refactor to cover only dss cases.
  */
 @RunWith(Parameterized.class)
 @RequiredArgsConstructor
-//@Ignore(value = "Test data must be updated to conform to the latest changes in X-Road message headers")
 public class AsicContainerVerifierTest {
+
+    private static MockedStatic<AsicVerifierMain> asicVerifierMainSpy;
 
     private final String containerFile;
     private final String errorCode;
+    private final Runnable verificationMethodCall;
 
     @Rule
     public ExpectedCodedException thrown = ExpectedCodedException.none();
@@ -64,16 +66,12 @@ public class AsicContainerVerifierTest {
      */
     @BeforeClass
     public static void setUpConf() {
+        asicVerifierMainSpy = Mockito.mockStatic(AsicVerifierMain.class, Mockito.CALLS_REAL_METHODS);
+
         System.setProperty(SystemProperties.CONFIGURATION_PATH, "src/test/resources/globalconf_2024");
         System.setProperty(SystemProperties.CONFIGURATION_ANCHOR_FILE,
                 "../common/common-globalconf/src/test/resources/configuration-anchor1.xml");
-
-        GlobalConf.reload(new TestGlobalConfImpl() {
-            @Override
-            public X509Certificate getCaCert(String instanceIdentifier, X509Certificate memberCert) throws Exception {
-                return TestCertUtil.getCaCert();
-            }
-        });
+        GlobalConf.reload();
     }
 
     /**
@@ -81,24 +79,48 @@ public class AsicContainerVerifierTest {
      */
     @Parameters(name = "{index}: verify(\"{0}\") should throw \"{1}\"")
     public static Collection<Object[]> data() {
+        Runnable legacyContainerVerifierCall = () -> {
+            try {
+                AsicVerifierMain.verifyLegacyContainer(anyString());
+            } catch (Exception e) {
+                throw new RuntimeException(e);
+            }
+        };
+        Runnable containerVerifierCall = () -> {
+            try {
+                AsicVerifierMain.verifyContainer(anyString());
+            } catch (Exception e) {
+                throw new RuntimeException(e);
+            }
+        };
+
+
         return Arrays.asList(new Object[][]{
-                {"S-1307-request-qbmf.asice", null}
+                {"valid-eidas.asice", null, containerVerifierCall},
+                {"valid-batch.asice", null, legacyContainerVerifierCall}
         });
     }
 
     /**
      * Test to ensure container file verification result is as expected.
-     *
      * @throws Exception in case of any unexpected errors
      */
     @Test
     public void test() throws Exception {
         thrown.expectError(errorCode);
 
+        // answer "Would you like to extract the signed files?" with "n"
+        System.setIn(new ByteArrayInputStream("n".getBytes()));
+
         verify(containerFile);
+        asicVerifierMainSpy.verify(verificationMethodCall::run);
+
     }
 
-    private static void verify(String fileName) throws Exception {
-        new DSSAsicVerifier().validate("src/test/resources/" + fileName);
+    private static void verify(String fileName) {
+        AsicVerifierMain.main(new String[] {
+                "src/test/resources/globalconf_2024",
+                "src/test/resources/" + fileName
+        });
     }
 }

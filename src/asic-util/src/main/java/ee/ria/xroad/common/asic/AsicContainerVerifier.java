@@ -238,7 +238,7 @@ public class AsicContainerVerifier {
         return new TimeStampToken(ContentInfo.getInstance(ASN1Primitive.fromByteArray(tsDerDecoded)));
     }
 
-    private static ClientId getSigner(String messageXml) {
+    public static ClientId getSigner(String messageXml) {
         final byte[] messageBytes = messageXml.getBytes(UTF_8);
 
         try {

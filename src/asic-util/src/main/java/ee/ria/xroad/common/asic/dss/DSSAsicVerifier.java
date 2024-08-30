@@ -46,13 +46,12 @@ import java.security.cert.CertificateEncodingException;
 @Slf4j
 public class DSSAsicVerifier {
 
-    public void validate(String filePath) {
+    public Reports validate(String filePath) {
         var document = new FileDocument(filePath);
         SignedDocumentValidator validator = getValidator(document);
-
-        Reports reports = validator.validateDocument();
+        var reports = validator.validateDocument();
         reports.setValidateXml(true);
-        reports.print();
+        return reports;
     }
 
     private SignedDocumentValidator getValidator(DSSDocument signedDocument) {

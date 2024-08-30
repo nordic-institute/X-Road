@@ -27,7 +27,6 @@ package ee.ria.xroad.proxy.messagelog;
 
 import ee.ria.xroad.common.CodedException;
 import ee.ria.xroad.common.ExpectedCodedException;
-import ee.ria.xroad.common.asic.AsicContainer;
 import ee.ria.xroad.common.conf.serverconf.ServerConf;
 import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.message.RestRequest;
@@ -50,11 +49,13 @@ import ee.ria.xroad.messagelog.database.MessageRecordEncryption;
 import ee.ria.xroad.proxy.messagelog.Timestamper.TimestampFailed;
 import ee.ria.xroad.proxy.messagelog.Timestamper.TimestampSucceeded;
 
+import eu.europa.esig.dss.asic.common.ZipUtils;
+import eu.europa.esig.dss.model.DSSDocument;
+import eu.europa.esig.dss.model.InMemoryDocument;
 import jakarta.persistence.criteria.CriteriaBuilder;
 import jakarta.persistence.criteria.CriteriaQuery;
 import jakarta.persistence.criteria.Root;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.io.IOUtils;
 import org.apache.commons.io.filefilter.RegexFileFilter;
 import org.junit.After;
 import org.junit.Before;
@@ -64,6 +65,7 @@ import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
 
 import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileFilter;
 import java.nio.charset.StandardCharsets;
@@ -81,6 +83,7 @@ import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 
 import static ee.ria.xroad.common.ErrorCodes.X_MLOG_TIMESTAMPER_FAILED;
+import static ee.ria.xroad.common.util.MessageFileNames.MESSAGE;
 import static ee.ria.xroad.proxy.messagelog.MessageLogDatabaseCtx.doInTransaction;
 import static ee.ria.xroad.proxy.messagelog.TestUtil.assertTaskQueueSize;
 import static ee.ria.xroad.proxy.messagelog.TestUtil.cleanUpDatabase;
@@ -88,6 +91,7 @@ import static ee.ria.xroad.proxy.messagelog.TestUtil.createMessage;
 import static ee.ria.xroad.proxy.messagelog.TestUtil.createRestRequest;
 import static ee.ria.xroad.proxy.messagelog.TestUtil.createSignature;
 import static ee.ria.xroad.proxy.messagelog.TestUtil.initForTest;
+import static java.util.stream.Collectors.toMap;
 import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
@@ -214,10 +218,38 @@ public class MessageLogTest extends AbstractMessageLogTest {
         MessageRecordEncryption.getInstance().prepareDecryption(logRecord);
         assertEquals(logRecord.getXRequestId(), requestId);
         assertEquals(logRecord.getQueryId(), message.getQueryId());
-        final AsicContainer asic = logRecord.toAsicContainer();
-        assertArrayEquals(asic.getMessage().getBytes(StandardCharsets.UTF_8), message.getMessageBytes());
-        final byte[] attachment = IOUtils.readFully(asic.getAttachment(), body.length);
-        assertArrayEquals(body, attachment);
+
+        ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
+        logRecord.writeAsicContainer(outputStream);
+        List<DSSDocument> asicContent = ZipUtils.getInstance().extractContainerContent(new InMemoryDocument(outputStream.toByteArray()));
+
+        var messageDocument = asicContent.stream()
+                .filter(dssDocument -> dssDocument.getName().equals(MESSAGE))
+                .findFirst()
+                .orElseThrow();
+        try (var documentInputStream = messageDocument.openStream()) {
+            assertArrayEquals(documentInputStream.readAllBytes(), message.getMessageBytes());
+        }
+
+        var attachmentDocument = asicContent.stream()
+                .filter(dssDocument -> dssDocument.getName().equals("/attachment1"))
+                .findFirst()
+                .orElseThrow();
+        try (var documentInputStream = attachmentDocument.openStream()) {
+            assertArrayEquals(documentInputStream.readAllBytes(), body);
+        }
+
+        Map<String, DSSDocument> documentMap = asicContent.stream()
+                .filter(dssDocument -> dssDocument.getName().equals(MESSAGE) || dssDocument.getName().equals("/attachment1"))
+                .collect(toMap(DSSDocument::getName, dssDocument -> dssDocument));
+
+        try (var messageDocumentInputStream = documentMap.get(MESSAGE).openStream()) {
+            assertArrayEquals(messageDocumentInputStream.readAllBytes(), message.getMessageBytes());
+        }
+
+        try (var attachmentDocumentInputStream = documentMap.get("/attachment1").openStream()) {
+            assertArrayEquals(attachmentDocumentInputStream.readAllBytes(), body);
+        }
     }
 
     /**
