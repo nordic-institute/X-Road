@@ -23,7 +23,7 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.signer.test.container;
+package org.niis.xroad.proxy.test.container;
 
 import com.nortal.test.testcontainers.configuration.TestableContainerProperties;
 import com.nortal.test.testcontainers.configurator.TestContainerConfigurator;
@@ -40,13 +40,14 @@ public class ContainerSetup extends BaseTestSignerSetup {
     public TestContainerConfigurator testContainerConfigurator(
             TestableContainerProperties testableContainerProperties) {
         return super.testContainerConfigurator(testableContainerProperties,
-                "../signer/build/libs/signer-1.0.jar",
-                "../addons/hwtoken/build/libs/hwtoken-1.0.jar");
+                "../../signer/build/libs/signer-1.0.jar",
+                "../../addons/hwtoken/build/libs/hwtoken-1.0.jar");
     }
 
     @Bean
     public TestContainerConfigurator.TestContainerInitListener testContainerInitListener() {
         return super.testContainerInitListener(true);
     }
+
 
 }

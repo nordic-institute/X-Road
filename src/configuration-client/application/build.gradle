@@ -1,5 +1,6 @@
 /*
  * The MIT License
+ *
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
@@ -23,29 +24,56 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.proxy.test.container;
 
-import com.nortal.test.testcontainers.configuration.TestableContainerProperties;
-import com.nortal.test.testcontainers.configurator.TestContainerConfigurator;
-import lombok.extern.slf4j.Slf4j;
-import org.niis.xroad.common.test.signer.container.BaseTestSignerSetup;
-import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Configuration;
-
-@Slf4j
-@Configuration
-public class ContainerSetup extends BaseTestSignerSetup {
-
-    @Bean
-    public TestContainerConfigurator testContainerConfigurator(
-            TestableContainerProperties testableContainerProperties) {
-        return super.testContainerConfigurator(testableContainerProperties);
-    }
-
-    @Bean
-    public TestContainerConfigurator.TestContainerInitListener testContainerInitListener() {
-        return super.testContainerInitListener(true);
-    }
-
-
+plugins {
+    alias(libs.plugins.shadow)
 }
+
+dependencies {
+    implementation(platform(libs.springBoot.bom))
+
+    implementation project(':common:common-globalconf')
+    implementation project(':common:common-scheduler')
+    implementation project(':common:common-jetty')
+    implementation project(':common:common-verifier')
+    implementation project(':common:common-rpc')
+
+    implementation('org.springframework:spring-context')
+    implementation('org.springframework:spring-context-support')
+    implementation libs.commons.cli
+
+    testImplementation project(':common:common-test')
+    testImplementation libs.wiremock.standalone
+}
+
+ext {
+    mainClassName = 'org.niis.xroad.confclient.ConfClientDaemonMain'
+}
+
+jar {
+    manifest {
+        attributes 'Main-Class': mainClassName
+    }
+    archiveBaseName = 'configuration-client'
+}
+
+shadowJar {
+    exclude('**/module-info.class')
+    archiveClassifier = ''
+    archiveBaseName = 'configuration-client'
+    mergeServiceFiles()
+}
+
+jar.enabled = false
+
+build {
+    dependsOn shadowJar
+}
+
+tasks.register('runConfigurationClient', JavaExec) {
+    jvmArgs '-Dxroad.conf.path=build/',
+        '-Dxroad.distributedfiles.signatureFreshness=-1' // disable freshness checking since we read local file
+    mainClass = mainClassName
+    classpath = sourceSets.main.runtimeClasspath
+}
+

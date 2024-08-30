@@ -31,9 +31,10 @@ include 'common:common-scheduler'
 
 // Main projects
 include "proxy"
+include "proxy:application"
 include "signer"
 include "configuration-proxy"
-include "configuration-client"
+include "configuration-client:application"
 include "asicverifier"
 include "asic-util"
 include "monitor"
