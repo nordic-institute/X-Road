@@ -1,0 +1,161 @@
+plugins {
+    alias(libs.plugins.shadow)
+}
+
+sourceSets {
+    intTest {
+        resources {
+            srcDir '../../common/common-int-test/src/main/resources/'
+        }
+    }
+}
+
+dependencies {
+    implementation(platform(libs.springBoot.bom))
+
+    implementation(project(':common:common-jetty'))
+    implementation(project(':common:common-message'))
+    implementation(project(':common:common-globalconf'))
+    implementation(project(':common:common-scheduler'))
+    implementation(project(':common:common-verifier'))
+    implementation(project(':serverconf'))
+    implementation(project(':signer-protocol'))
+    implementation(project(':common:common-messagelog'))
+    implementation(project(':common:common-op-monitoring'))
+
+    implementation('org.springframework:spring-context')
+    implementation("com.fasterxml.jackson.dataformat:jackson-dataformat-yaml")
+    implementation(libs.jetty.xml)
+    implementation(libs.xerces.impl)
+    implementation(libs.semver4j)
+
+    testImplementation(project(':common:common-test'))
+
+    testImplementation(libs.hsqldb)
+    testImplementation(libs.restAssured)
+    testImplementation(libs.wsdl4j)
+
+    intTestRuntimeOnly(project(':signer'))
+    intTestImplementation(project(":common:common-test"))
+    intTestImplementation(project(":common:common-int-test"))
+}
+
+jar {
+    manifest {
+        attributes('Main-Class': 'ee.ria.xroad.proxy.ProxyMain')
+    }
+    archiveClassifier = 'plain'
+    archiveBaseName = 'proxy'
+}
+
+shadowJar {
+    archiveClassifier = ''
+    archiveBaseName = 'proxy'
+    exclude('**/module-info.class')
+    from rootProject.file("LICENSE.txt")
+    mergeServiceFiles()
+}
+
+testJar.enabled = true
+assemble.finalizedBy shadowJar
+
+tasks.register('runProxyMain', JavaExec) {
+    jvmArgs '-Dxroad.proxy.sslEnabled=false',
+        '-Dxroad.proxy.globalConfDistributor.enabled=false',
+        "-Dxroad.proxy.ocspCachePath=build/ocsp-cache",
+        "-Dxroad.tempFiles.path=build/attach-tmp",
+        '-Dxroad.proxy.globalConfFile=../../systemtest/conf/local_test/globalconf.xml',
+        '-Dxroad.proxy.configurationFile=../../systemtest/conf/local_test/serverconf_consumer.xml',
+        '-Dxroad.key.configurationFile=../../systemtest/conf/local_test/keyconf.xml',
+        '-Dxroad.appLog.path=log',
+        '-Dlogback.configurationFile=src/test/resources/logback-test.xml'
+
+    //mainClass = 'ee.ria.xroad.proxy.ProxyMain'
+    mainClass = 'ee.ria.xroad.proxy.TestProxyMain'
+    classpath = sourceSets.main.runtimeClasspath
+    classpath += sourceSets.test.runtimeClasspath
+    classpath += files('src/test/resources')
+}
+
+apply plugin: "jacoco"
+
+test {
+    useJUnit {
+        excludeCategories 'ee.ria.xroad.proxy.testutil.IntegrationTest'
+    }
+    jacoco {
+        destinationFile = file("build/jacoco/unitTest.exec")
+    }
+}
+
+tasks.register('integrationTest', Test) {
+    description = 'Runs integration tests.'
+    group = 'verification'
+    shouldRunAfter test
+    jacoco {
+        destinationFile = file("build/jacoco/integrationTest.exec")
+    }
+    useJUnit {
+        includeCategories 'ee.ria.xroad.proxy.testutil.IntegrationTest'
+    }
+}
+
+tasks.register('runProxyTest', JavaExec) {
+    group = "verification"
+    shouldRunAfter integrationTest
+    jvmArgs '-Xmx2g',
+        "-Dxroad.proxy.ocspCachePath=build/ocsp-cache",
+        "-Dxroad.tempFiles.path=build/attach-tmp",
+        '-Dxroad.proxy.jetty-serverproxy-configuration-file=src/test/serverproxy.xml',
+        '-Dxroad.proxy.jetty-ocsp-responder-configuration-file=src/test/ocsp-responder.xml',
+        '-Dxroad.proxy.jetty-clientproxy-configuration-file=src/test/clientproxy.xml',
+        '-Dxroad.proxy.client-connector-so-linger=-1',
+        '-Dxroad.proxy.client-httpclient-so-linger=-1',
+        '-Dxroad.proxy.server-connector-so-linger=-1',
+        '-Dlogback.configurationFile=src/test/logback-proxytest.xml',
+        '-Dxroad.common.grpc-internal-tls-enabled=false'
+//      '-Djava.security.properties==src/main/resources/java.security'
+
+    mainClass = 'ee.ria.xroad.proxy.testsuite.ProxyTestSuite'
+    classpath = sourceSets.test.runtimeClasspath
+}
+
+jacoco {
+    applyTo runProxyTest
+}
+
+tasks.register('runBatchSigner', JavaExec) {
+    jvmArgs '-Dlogback.configurationFile=src/test/logback-batchsigner.xml'
+
+    mainClass = 'ee.ria.xroad.common.signature.BatchSigner'
+    classpath = sourceSets.test.runtimeClasspath
+}
+
+check.dependsOn integrationTest
+
+tasks.register('intTest', Test) {
+    useJUnitPlatform()
+
+    setDescription("Runs integration tests.")
+    group = 'verification'
+
+    testClassesDirs = sourceSets.intTest.output.classesDirs
+    classpath = sourceSets.intTest.runtimeClasspath
+
+    def intTestArgs = []
+    if (project.hasProperty('intTestProfilesInclude')) {
+        intTestArgs += "-Dspring.profiles.include=" + project.getProperty('intTestProfilesInclude')
+    }
+
+    jvmArgs intTestArgs
+    testLogging {
+        showStackTraces(true)
+        showExceptions(true)
+        showCauses(true)
+        showStandardStreams(true)
+    }
+}
+
+tasks.named('check') {
+    dependsOn tasks.named('intTest')
+}
