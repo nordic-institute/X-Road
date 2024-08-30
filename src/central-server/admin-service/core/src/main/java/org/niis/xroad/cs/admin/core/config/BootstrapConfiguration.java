@@ -26,6 +26,7 @@
  */
 package org.niis.xroad.cs.admin.core.config;
 
+import ee.ria.xroad.common.conf.globalconf.GlobalConfBeanConfig;
 import ee.ria.xroad.common.util.process.ExternalProcessRunner;
 
 import jakarta.servlet.Filter;
@@ -36,8 +37,10 @@ import org.niis.xroad.restapi.service.FileVerifier;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Import;
 import org.springframework.core.annotation.Order;
 
+@Import(GlobalConfBeanConfig.class)
 @Configuration
 public class BootstrapConfiguration {
 

@@ -28,19 +28,20 @@ package org.niis.xroad.common.managementrequest.verify.decode;
 
 import ee.ria.xroad.common.CodedException;
 import ee.ria.xroad.common.certificateprofile.impl.SignCertificateProfileInfoParameters;
-import ee.ria.xroad.common.conf.globalconf.GlobalConf;
+import ee.ria.xroad.common.conf.globalconf.GlobalConfProvider;
 import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.identifier.SecurityServerId;
 import ee.ria.xroad.common.message.SoapMessageImpl;
 import ee.ria.xroad.common.request.AuthCertRegRequestType;
+import ee.ria.xroad.common.util.CertUtils;
 import ee.ria.xroad.common.util.MimeUtils;
 
 import lombok.Getter;
-import lombok.RequiredArgsConstructor;
 import org.apache.commons.io.IOUtils;
 import org.bouncycastle.cert.ocsp.OCSPResp;
 import org.niis.xroad.common.managementrequest.verify.ManagementRequestParser;
 import org.niis.xroad.common.managementrequest.verify.ManagementRequestVerifier;
+import org.niis.xroad.common.managementrequest.verify.decode.util.ManagementRequestCertVerifier;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -57,13 +58,12 @@ import static ee.ria.xroad.common.ErrorCodes.translateException;
 import static ee.ria.xroad.common.util.CryptoUtils.readCertificate;
 import static org.niis.xroad.common.managementrequest.verify.decode.util.ManagementRequestVerificationUtils.assertAddress;
 import static org.niis.xroad.common.managementrequest.verify.decode.util.ManagementRequestVerificationUtils.validateServerId;
-import static org.niis.xroad.common.managementrequest.verify.decode.util.ManagementRequestVerificationUtils.verifyAuthCert;
-import static org.niis.xroad.common.managementrequest.verify.decode.util.ManagementRequestVerificationUtils.verifyCertificate;
 import static org.niis.xroad.common.managementrequest.verify.decode.util.ManagementRequestVerificationUtils.verifySignature;
 
 @Getter
-@RequiredArgsConstructor
 public class AuthCertRegRequestDecoderCallback implements ManagementRequestDecoderCallback {
+    private final GlobalConfProvider globalConfProvider;
+    private final ManagementRequestCertVerifier managementRequestCertVerifier;
     private final ManagementRequestVerifier.DecoderCallback rootCallback;
 
     private byte[] authSignatureBytes;
@@ -77,6 +77,13 @@ public class AuthCertRegRequestDecoderCallback implements ManagementRequestDecod
     private byte[] ownerCertOcspBytes;
 
     private AuthCertRegRequestType authCertRegRequestType;
+
+    public AuthCertRegRequestDecoderCallback(GlobalConfProvider globalConfProvider,
+                                             ManagementRequestVerifier.DecoderCallback rootCallback) {
+        this.globalConfProvider = globalConfProvider;
+        this.rootCallback = rootCallback;
+        this.managementRequestCertVerifier = new ManagementRequestCertVerifier(globalConfProvider);
+    }
 
     @Override
     public void attachment(InputStream content, Map<String, String> additionalHeaders) throws IOException {
@@ -136,14 +143,14 @@ public class AuthCertRegRequestDecoderCallback implements ManagementRequestDecod
 
         final X509Certificate ownerCert = readCertificate(this.ownerCertBytes);
         final OCSPResp ownerCertOcsp = new OCSPResp(this.ownerCertOcspBytes);
-        verifyCertificate(ownerCert, ownerCertOcsp);
+        managementRequestCertVerifier.verifyCertificate(ownerCert, ownerCertOcsp);
 
         if (!verifySignature(ownerCert, ownerSignatureBytes, ownerSignatureAlgoId, dataToVerify)) {
             throw new CodedException(X_INVALID_SIGNATURE_VALUE, "Owner signature verification failed.");
         }
 
-        if (!GlobalConf.getManagementRequestService().equals(soap.getService().getClientId())
-                || !GlobalConf.getInstanceIdentifier().equals(soap.getClient().getXRoadInstance())) {
+        if (!globalConfProvider.getManagementRequestService().equals(soap.getService().getClientId())
+                || !globalConfProvider.getInstanceIdentifier().equals(soap.getClient().getXRoadInstance())) {
             throw new CodedException(X_INVALID_REQUEST,
                     "Invalid management service address. Contact central server administrator.");
         }
@@ -179,10 +186,10 @@ public class AuthCertRegRequestDecoderCallback implements ManagementRequestDecod
 
 
     private ClientId getClientIdFromCert(X509Certificate cert, ClientId clientId) throws Exception {
-        return GlobalConf.getSubjectName(
+        return globalConfProvider.getSubjectName(
                 new SignCertificateProfileInfoParameters(
                         ClientId.Conf.create(
-                                GlobalConf.getInstanceIdentifier(),
+                                globalConfProvider.getInstanceIdentifier(),
                                 clientId.getMemberClass(),
                                 clientId.getMemberCode()
                         ),
@@ -192,4 +199,13 @@ public class AuthCertRegRequestDecoderCallback implements ManagementRequestDecod
         );
     }
 
+    public boolean verifyAuthCert(X509Certificate authCert) throws Exception {
+
+        var instanceId = globalConfProvider.getInstanceIdentifier();
+        var caCert = globalConfProvider.getCaCert(instanceId, authCert);
+        authCert.verify(caCert.getPublicKey());
+        authCert.checkValidity();
+
+        return CertUtils.isAuthCert(authCert);
+    }
 }

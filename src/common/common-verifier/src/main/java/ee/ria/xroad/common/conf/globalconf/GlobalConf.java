@@ -378,7 +378,6 @@ public final class GlobalConf {
      * @param serverId the security server id
      * @return the client id that owns the security server with the specified id
      * or null if the given id does not match an existing server
-     * @throws Exception if an error occurs
      */
     public static ClientId getServerOwner(SecurityServerId serverId) {
         return getInstance().getServerOwner(serverId);
@@ -503,17 +502,6 @@ public final class GlobalConf {
         log.trace("getManagementRequestServiceAddress()");
 
         return getInstance().getManagementRequestService();
-    }
-
-    /**
-     * @return SSL certificates of central servers
-     * @throws Exception if an error occurs
-     */
-    public static X509Certificate getCentralServerSslCertificate()
-            throws Exception {
-        log.trace("getCentralServerSslCertificate()");
-
-        return getInstance().getCentralServerSslCertificate();
     }
 
     /**

@@ -27,7 +27,7 @@
 package org.niis.xroad.common.managementrequest;
 
 import ee.ria.xroad.common.CodedException;
-import ee.ria.xroad.common.conf.globalconf.GlobalConf;
+import ee.ria.xroad.common.conf.globalconf.GlobalConfProvider;
 import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.identifier.SecurityServerId;
 import ee.ria.xroad.common.message.Soap;
@@ -68,23 +68,27 @@ import static ee.ria.xroad.common.util.MimeUtils.getBaseContentType;
  */
 @Slf4j
 public final class ManagementRequestSender {
-
+    private final GlobalConfProvider globalConfProvider;
+    private final ManagementRequestClient managementRequestClient;
     private final String securityServerUrl;
     private final ManagementRequestBuilder builder;
 
     /**
      * Creates the sender for the user ID, client and receiver used in
      * constructing the X-Road message.
-     * @param sender the sender
+     *
+     * @param sender   the sender
      * @param receiver the receiver
      */
-    public ManagementRequestSender(ClientId sender, ClientId receiver, String securityServerUrl) {
+    public ManagementRequestSender(GlobalConfProvider globalConfProvider, ClientId sender, ClientId receiver, String securityServerUrl) {
+        this.globalConfProvider = globalConfProvider;
         this.builder = new ManagementRequestBuilder(sender, receiver);
         this.securityServerUrl = securityServerUrl;
+        this.managementRequestClient = new ManagementRequestClient(globalConfProvider);
     }
 
     private URI getCentralServiceURI() throws Exception {
-        return new URI(GlobalConf.getManagementRequestServiceAddress());
+        return new URI(globalConfProvider.getManagementRequestServiceAddress());
     }
 
     private URI getSecurityServerURI() throws Exception {
@@ -97,16 +101,17 @@ public final class ManagementRequestSender {
      * Sends the authentication certificate registration request directly
      * to the central server. The request is sent as a signed mime multipart
      * message.
+     *
      * @param securityServer the security server id whose certificate is to be
-     * registered
-     * @param address the IP address of the security server
-     * @param authCert the authentication certificate bytes
+     *                       registered
+     * @param address        the IP address of the security server
+     * @param authCert       the authentication certificate bytes
      * @return request ID in the central server database
      * @throws Exception if an error occurs
      */
     public Integer sendAuthCertRegRequest(SecurityServerId.Conf securityServer, String address, byte[] authCert)
             throws Exception {
-        try (HttpSender sender = ManagementRequestClient.createCentralHttpSender()) {
+        try (HttpSender sender = managementRequestClient.createCentralHttpSender()) {
             return send(sender, getCentralServiceURI(), new AuthCertRegRequest(authCert, securityServer.getOwner(),
                     builder.buildAuthCertRegRequest(securityServer, address, authCert)));
         }
@@ -115,9 +120,10 @@ public final class ManagementRequestSender {
     /**
      * Sends the authentication certificate deletion request as a normal
      * X-Road message.
+     *
      * @param securityServer the security server id whose certificate is to be
-     * deleted
-     * @param authCert the authentication certificate bytes
+     *                       deleted
+     * @param authCert       the authentication certificate bytes
      * @return request ID in the central server database
      * @throws Exception if an error occurs
      */
@@ -129,13 +135,14 @@ public final class ManagementRequestSender {
 
     /**
      * Sends the SecurityServer address change request as a normal X-Road message.
+     *
      * @param securityServer the security server id
-     * @param address the new address
+     * @param address        the new address
      * @return request ID in the central server database
      * @throws Exception if an error occurs
      */
     public Integer sendAddressChangeRequest(SecurityServerId.Conf securityServer, String address) throws Exception {
-        try (HttpSender sender = ManagementRequestClient.createProxyHttpSender()) {
+        try (HttpSender sender = managementRequestClient.createProxyHttpSender()) {
             return send(sender, getSecurityServerURI(),
                     new AddressChangeRequest(securityServer.getOwner(), builder.buildAddressChangeRequest(securityServer, address)));
         }
@@ -143,13 +150,14 @@ public final class ManagementRequestSender {
 
     /**
      * Sends a client registration request as a normal X-Road message.
+     *
      * @param securityServer the security server id
-     * @param clientId the client id that will be registered
+     * @param clientId       the client id that will be registered
      * @return request ID in the central server database
      * @throws Exception if an error occurs
      */
     public Integer sendClientRegRequest(SecurityServerId.Conf securityServer, ClientId.Conf clientId) throws Exception {
-        try (HttpSender sender = ManagementRequestClient.createProxyHttpSender()) {
+        try (HttpSender sender = managementRequestClient.createProxyHttpSender()) {
             return send(sender, getSecurityServerURI(),
                     new ClientRegRequest(clientId, builder.buildClientRegRequest(securityServer, clientId)));
         }
@@ -157,8 +165,9 @@ public final class ManagementRequestSender {
 
     /**
      * Sends a client deletion request as a normal X-Road message.
+     *
      * @param securityServer the security server id
-     * @param clientId the client id that will be registered
+     * @param clientId       the client id that will be registered
      * @return request ID in the central server database
      * @throws Exception if an error occurs
      */
@@ -170,14 +179,15 @@ public final class ManagementRequestSender {
 
     /**
      * Sends an owner change request as a normal X-Road message.
+     *
      * @param securityServer the security server id
-     * @param clientId the client id of the new security server owner
+     * @param clientId       the client id of the new security server owner
      * @return request ID in the central server database
      * @throws Exception if an error occurs
      */
     public Integer sendOwnerChangeRequest(SecurityServerId.Conf securityServer,
                                           ClientId.Conf clientId) throws Exception {
-        try (HttpSender sender = ManagementRequestClient.createProxyHttpSender()) {
+        try (HttpSender sender = managementRequestClient.createProxyHttpSender()) {
             return send(sender, getSecurityServerURI(),
                     new OwnerChangeRequest(clientId, builder.buildOwnerChangeRequest(securityServer, clientId)));
         }
@@ -185,7 +195,7 @@ public final class ManagementRequestSender {
 
     public Integer sendClientDisableRequest(SecurityServerId.Conf securityServer,
                                             ClientId.Conf clientId) throws Exception {
-        try (HttpSender sender = ManagementRequestClient.createProxyHttpSender()) {
+        try (HttpSender sender = managementRequestClient.createProxyHttpSender()) {
             return send(sender, getSecurityServerURI(),
                     new ClientDisableRequest(clientId, builder.buildClientDisableRequest(securityServer, clientId)));
         }
@@ -193,7 +203,7 @@ public final class ManagementRequestSender {
 
     public Integer sendClientEnableRequest(SecurityServerId.Conf securityServer,
                                            ClientId.Conf clientId) throws Exception {
-        try (HttpSender sender = ManagementRequestClient.createProxyHttpSender()) {
+        try (HttpSender sender = managementRequestClient.createProxyHttpSender()) {
             return send(sender, getSecurityServerURI(),
                     new ClientEnableRequest(clientId, builder.buildClientEnableRequest(securityServer, clientId)));
         }
@@ -203,7 +213,7 @@ public final class ManagementRequestSender {
 
     private Integer sendToProxy(SoapMessageImpl request) throws Exception {
         try (HttpSender sender =
-                     ManagementRequestClient.createProxyHttpSender()) {
+                     managementRequestClient.createProxyHttpSender()) {
             return send(sender, getSecurityServerURI(),
                     new SimpleManagementRequest(request));
         }

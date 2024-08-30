@@ -155,7 +155,7 @@ public abstract class AbstractProxyIntegrationTest {
         @Bean
         @Primary
         GlobalConfProvider globalConfProvider() {
-            GlobalConf.initialize(TEST_GLOBAL_CONF);
+            GlobalConf.reload(TEST_GLOBAL_CONF);
             return TEST_GLOBAL_CONF;
         }
     }

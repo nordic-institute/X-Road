@@ -27,26 +27,18 @@
 package org.niis.xroad.common.managementrequest.verify.decode.util;
 
 import ee.ria.xroad.common.CodedException;
-import ee.ria.xroad.common.conf.globalconf.GlobalConf;
-import ee.ria.xroad.common.conf.globalconfextension.GlobalConfExtensions;
 import ee.ria.xroad.common.identifier.SecurityServerId;
-import ee.ria.xroad.common.ocsp.OcspVerifier;
-import ee.ria.xroad.common.ocsp.OcspVerifierOptions;
-import ee.ria.xroad.common.util.CertUtils;
 
 import com.google.common.base.CharMatcher;
 import com.google.common.net.InetAddresses;
 import com.google.common.net.InternetDomainName;
 import lombok.AccessLevel;
 import lombok.NoArgsConstructor;
-import org.bouncycastle.cert.ocsp.OCSPResp;
 
 import java.net.IDN;
-import java.security.GeneralSecurityException;
 import java.security.Signature;
 import java.security.cert.X509Certificate;
 
-import static ee.ria.xroad.common.ErrorCodes.X_CERT_VALIDATION;
 import static ee.ria.xroad.common.ErrorCodes.X_INVALID_CLIENT_IDENTIFIER;
 import static ee.ria.xroad.common.ErrorCodes.X_INVALID_REQUEST;
 import static ee.ria.xroad.common.ErrorCodes.translateException;
@@ -69,27 +61,6 @@ public final class ManagementRequestVerificationUtils {
         }
     }
 
-    public static void verifyCertificate(X509Certificate memberCert, OCSPResp memberCertOcsp) throws Exception {
-
-        X509Certificate issuer = GlobalConf.getCaCert(GlobalConf.getInstanceIdentifier(), memberCert);
-
-        try {
-            memberCert.verify(issuer.getPublicKey());
-            memberCert.checkValidity();
-        } catch (GeneralSecurityException e) {
-            throw new CodedException(X_CERT_VALIDATION,
-                    "Member (owner/client) sign certificate is invalid: %s", e.getMessage());
-        }
-
-        if (!CertUtils.isSigningCert(memberCert)) {
-            throw new CodedException(X_CERT_VALIDATION, "Member (owner/client) sign certificate is invalid");
-        }
-
-        new OcspVerifier(GlobalConf.getOcspFreshnessSeconds(),
-                new OcspVerifierOptions(GlobalConfExtensions.getInstance().shouldVerifyOcspNextUpdate()))
-                .verifyValidityAndStatus(memberCertOcsp, memberCert, issuer);
-    }
-
     public static void assertAddress(String address) {
         boolean valid;
         try {
@@ -101,15 +72,6 @@ public final class ManagementRequestVerificationUtils {
         if (!valid) throw new CodedException(X_INVALID_REQUEST, "Invalid server address");
     }
 
-    public static boolean verifyAuthCert(X509Certificate authCert) throws Exception {
-
-        var instanceId = GlobalConf.getInstanceIdentifier();
-        var caCert = GlobalConf.getCaCert(instanceId, authCert);
-        authCert.verify(caCert.getPublicKey());
-        authCert.checkValidity();
-
-        return CertUtils.isAuthCert(authCert);
-    }
 
     public static void validateServerId(SecurityServerId serverId) {
         if (isValidPart(serverId.getXRoadInstance())
