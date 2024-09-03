@@ -10,8 +10,8 @@ services:
       - EDC_DID_KEY_ID=DE9DH3UqFQpV64LraOgqmMFSgTIlk6K1BnfU2k5vBfs
       - EDC_TLS_CERT_PATH=/etc/xroad/ssl/management-service.p12
     ports:
-      - "4196:9953" #EDC connector debug
-      - "4197:9954" #EDC ih debug
+      - "4196:9956" #EDC connector debug
+      - "4197:9957" #EDC ih debug
       - "4151:9191" #EDC api port
       - "4152:9192" #EDC control port
       - "4153:9193" #EDC management port

@@ -8,5 +8,5 @@ if [ -f /var/run/xroad/xroad-grpc-internal-env.properties ]; then
 fi
 
 exec java -Dedc.fs.config="/etc/xroad-edc/edc-identity-hub.properties" \
-    -Xdebug -agentlib:jdwp=transport=dt_socket,address=*:9954,server=y,suspend=n \
+    -Xdebug -agentlib:jdwp=transport=dt_socket,address=*:9957,server=y,suspend=n \
     -Xmx256m -jar /usr/share/xroad/jlib/edc-identity-hub.jar
