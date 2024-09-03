@@ -66,7 +66,11 @@ setup_database() {
     local db_database="centerui_production"
     local db_master_user=postgres
 
-    local db_url=$(get_prop ${db_properties} 'spring.datasource.url' "jdbc:postgresql://${db_host}/${db_database}")
+    local db_url=$(get_prop ${db_properties} 'spring.datasource.url')
+    if [[ -z "$db_url" ]]; then
+      db_url="jdbc:postgresql://$db_host/$db_database"
+      crudini --set "${db_properties}" '' spring.datasource.url "${db_url}"
+    fi
     pat='^jdbc:postgresql://([^/]*)($|/([^\?]*)(.*)$)'
     if [[ "$db_url" =~ $pat ]]; then
       db_host=${new_db_host:-${BASH_REMATCH[1]}}
@@ -74,8 +78,6 @@ setup_database() {
     else
       log "Unable to parse '$db_url', using 'jdbc:postgresql://$db_host/$db_database'"
     fi
-
-    crudini --set "${db_properties}" '' spring.datasource.url "jdbc:postgresql://${db_host}/${db_database}"
 
     local db_admin_conn_user=$(get_prop ${root_properties} 'centerui.database.admin_user')
     local db_admin_password=$(get_prop ${root_properties} 'centerui.database.admin_password' 'centerui')
@@ -92,15 +94,19 @@ setup_database() {
       source /etc/xroad/db_libpq.env
     fi
 
-    export PGOPTIONS="-c client-min-messages=warning -c search_path=$db_schema,public ${PGOPTIONS_EXTRA-}"
+    if [[ ! -z $PGOPTIONS_EXTRA ]]; then
+      PGOPTIONS_EXTRA=" ${PGOPTIONS_EXTRA}"
+    fi
+
+    export PGOPTIONS="-c client-min-messages=warning -c search_path=$db_schema,public${PGOPTIONS_EXTRA-}"
 
     local hosts
     IFS=',' read -ra hosts <<<"$db_host"
     local db_addr=${hosts[0]%%:*}
     local db_port=${hosts[0]##*:}
 
-    local_psql() { su -l -c "psql -qtA -p $db_port ${*@Q}" postgres; }
-    remote_psql() { psql -h "$db_addr" -p "$db_port" -qtA "$@"; }
+    local_psql() { su -l -c "psql -qtA -p ${PGPORT:-$db_port} ${*@Q}" postgres; }
+    remote_psql() { psql -h "${PGHOST:-$db_addr}" -p "${PGPORT:-$db_port}" -qtA "$@"; }
 
     psql_dbuser() {
         PGDATABASE="$db_database" PGUSER="$db_user" PGPASSWORD="$db_password" remote_psql "$@"
