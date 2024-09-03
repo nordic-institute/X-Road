@@ -58,7 +58,7 @@ public class GenerateCertReqReqHandler extends AbstractGenerateCertReq<GenerateC
         }
 
         if (request.getKeyUsage() == KeyUsageInfo.AUTHENTICATION
-                && !SoftwareTokenType.ID.equals(tokenAndKey.getTokenId())) {
+                && !SoftwareTokenType.ID.equals(tokenAndKey.tokenId())) {
             throw CodedException.tr(X_WRONG_CERT_USAGE,
                     "auth_cert_under_softtoken",
                     "Authentication certificate requests can only be created under software tokens");

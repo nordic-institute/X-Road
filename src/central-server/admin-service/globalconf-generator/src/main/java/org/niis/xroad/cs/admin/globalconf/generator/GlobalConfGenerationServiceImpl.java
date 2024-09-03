@@ -27,7 +27,7 @@
 package org.niis.xroad.cs.admin.globalconf.generator;
 
 import ee.ria.xroad.common.SystemProperties;
-import ee.ria.xroad.common.util.CryptoUtils;
+import ee.ria.xroad.common.crypto.identifier.DigestAlgorithm;
 import ee.ria.xroad.common.util.TimeUtils;
 
 import lombok.RequiredArgsConstructor;
@@ -209,13 +209,13 @@ public class GlobalConfGenerationServiceImpl implements GlobalConfGenerationServ
     }
 
     @SneakyThrows
-    private String getConfSignCertHashAlgoId() {
-        return CryptoUtils.getAlgorithmId(systemParameterService.getConfSignCertHashAlgoUri());
+    private DigestAlgorithm getConfSignCertHashAlgoId() {
+        return systemParameterService.getConfSignCertHashAlgoUri();
     }
 
     @SneakyThrows
-    private String getConfHashAlgoId() {
-        return CryptoUtils.getAlgorithmId(systemParameterService.getConfHashAlgoUri());
+    private DigestAlgorithm getConfHashAlgoId() {
+        return systemParameterService.getConfHashAlgoUri();
     }
 
 

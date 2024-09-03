@@ -26,6 +26,7 @@
 package ee.ria.xroad.common.util;
 
 import ee.ria.xroad.common.CodedException;
+import ee.ria.xroad.common.crypto.identifier.SignAlgorithm;
 import ee.ria.xroad.common.identifier.ClientId;
 
 import org.bouncycastle.asn1.x500.X500Name;
@@ -113,7 +114,7 @@ public class FISubjectClientIdDecoderTest {
      */
     @Test(expected = CodedException.class)
     public void shouldFailIfTooManyComponents() throws GeneralSecurityException, IOException,
-            OperatorCreationException {
+                                                       OperatorCreationException {
         final X509Certificate cert = generateSelfSignedCertificate("C=FI, O=ACME, CN=1234567-8, serialNumber=1/2/3/4",
                 keyPair);
         FISubjectClientIdDecoder.getSubjectClientId(cert);
@@ -128,7 +129,7 @@ public class FISubjectClientIdDecoderTest {
      */
     @Test(expected = CodedException.class)
     public void shouldFailIfCountryDoesNotMatch() throws GeneralSecurityException, IOException,
-            OperatorCreationException {
+                                                         OperatorCreationException {
         final X509Certificate cert = generateSelfSignedCertificate(
                 "C=XX, O=ACME, CN=1234567-8, serialNumber=FI-TEST/serverCode/PUB", keyPair);
         FISubjectClientIdDecoder.getSubjectClientId(cert);
@@ -178,14 +179,14 @@ public class FISubjectClientIdDecoderTest {
      */
     @Test(expected = CodedException.class)
     public void shouldFailIfCountryDoesNotMatchLegacy() throws GeneralSecurityException, IOException,
-            OperatorCreationException {
+                                                               OperatorCreationException {
         final X509Certificate cert = generateSelfSignedCertificate("C=XX, O=FI-TEST, OU=PUB, CN=1234567-8", keyPair);
         FISubjectClientIdDecoder.getSubjectClientId(cert);
     }
 
     private X509Certificate generateSelfSignedCertificate(String dn, KeyPair pair) throws OperatorCreationException,
-            CertificateException {
-        ContentSigner signer = new JcaContentSignerBuilder(CryptoUtils.SHA256WITHRSA_ID).build(pair.getPrivate());
+                                                                                          CertificateException {
+        ContentSigner signer = new JcaContentSignerBuilder(SignAlgorithm.SHA256_WITH_RSA.name()).build(pair.getPrivate());
         X500Name name = new X500Name(dn);
         JcaX509v3CertificateBuilder builder = new JcaX509v3CertificateBuilder(name, BigInteger.ONE, new Date(),
                 new Date(), name, pair.getPublic()

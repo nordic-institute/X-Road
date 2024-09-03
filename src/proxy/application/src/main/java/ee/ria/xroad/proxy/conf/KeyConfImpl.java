@@ -30,8 +30,10 @@ import ee.ria.xroad.common.cert.CertChain;
 import ee.ria.xroad.common.conf.globalconf.AuthKey;
 import ee.ria.xroad.common.conf.globalconf.GlobalConfProvider;
 import ee.ria.xroad.common.conf.serverconf.ServerConfProvider;
+import ee.ria.xroad.common.crypto.identifier.SignMechanism;
 import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.identifier.SecurityServerId;
+import ee.ria.xroad.common.util.CryptoUtils;
 import ee.ria.xroad.proxy.signedmessage.SignerSigningKey;
 import ee.ria.xroad.signer.SignerProxy;
 import ee.ria.xroad.signer.protocol.dto.AuthKeyInfo;
@@ -49,10 +51,9 @@ import java.util.List;
 import static ee.ria.xroad.common.ErrorCodes.X_CANNOT_CREATE_SIGNATURE;
 import static ee.ria.xroad.common.util.CertUtils.getSha1Hashes;
 import static ee.ria.xroad.common.util.CryptoUtils.calculateCertSha1HexHash;
-import static ee.ria.xroad.common.util.CryptoUtils.decodeBase64;
-import static ee.ria.xroad.common.util.CryptoUtils.encodeBase64;
 import static ee.ria.xroad.common.util.CryptoUtils.loadPkcs12KeyStore;
-import static ee.ria.xroad.common.util.CryptoUtils.readCertificate;
+import static ee.ria.xroad.common.util.EncoderUtils.decodeBase64;
+import static ee.ria.xroad.common.util.EncoderUtils.encodeBase64;
 
 /**
  * Encapsulates KeyConf related functionality.
@@ -74,8 +75,8 @@ class KeyConfImpl implements KeyConfProvider {
         try {
             SignerProxy.MemberSigningInfoDto signingInfo = SignerProxy.getMemberSigningInfo(clientId);
 
-            return createSigningCtx(clientId, signingInfo.getKeyId(), signingInfo.getCert().getCertificateBytes(),
-                    signingInfo.getSignMechanismName());
+            return createSigningCtx(clientId, signingInfo.keyId(), signingInfo.cert().getCertificateBytes(),
+                    signingInfo.signMechanismName());
         } catch (Exception e) {
             throw new CodedException(X_CANNOT_CREATE_SIGNATURE, "Failed to get signing info for member '%s': %s",
                     clientId, e);
@@ -158,14 +159,17 @@ class KeyConfImpl implements KeyConfProvider {
     }
 
     SigningCtx createSigningCtx(ClientId subject, String keyId,
-                                byte[] certBytes, String signMechanismName) {
-        return new SigningCtxImpl(globalConfProvider, this, subject, new SignerSigningKey(keyId, signMechanismName),
-                readCertificate(certBytes));
+                                byte[] certBytes, SignMechanism signMechanismName) {
+        return new SigningCtxImpl(
+                globalConfProvider, this, subject,
+                new SignerSigningKey(keyId, signMechanismName),
+                CryptoUtils.readCertificate(certBytes)
+        );
     }
 
     CertChain getAuthCertChain(String instanceIdentifier,
                                byte[] authCertBytes) {
-        X509Certificate authCert = readCertificate(authCertBytes);
+        X509Certificate authCert = CryptoUtils.readCertificate(authCertBytes);
         try {
             return globalConfProvider.getCertChain(instanceIdentifier, authCert);
         } catch (Exception e) {

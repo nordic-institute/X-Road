@@ -27,7 +27,9 @@ package ee.ria.xroad.signer.protocol.handler;
 
 import ee.ria.xroad.common.CodedException;
 import ee.ria.xroad.common.SystemProperties;
-import ee.ria.xroad.common.util.CryptoUtils;
+import ee.ria.xroad.common.crypto.KeyManagers;
+import ee.ria.xroad.common.crypto.identifier.DigestAlgorithm;
+import ee.ria.xroad.common.crypto.identifier.SignAlgorithm;
 import ee.ria.xroad.signer.protocol.AbstractRpcHandler;
 import ee.ria.xroad.signer.protocol.dto.KeyUsageInfo;
 import ee.ria.xroad.signer.tokenmanager.token.TokenWorkerProvider;
@@ -60,9 +62,7 @@ import java.security.PublicKey;
 
 import static ee.ria.xroad.common.ErrorCodes.X_INTERNAL_ERROR;
 import static ee.ria.xroad.common.ErrorCodes.translateException;
-import static ee.ria.xroad.common.util.CryptoUtils.calculateDigest;
-import static ee.ria.xroad.common.util.CryptoUtils.decodeBase64;
-import static ee.ria.xroad.common.util.CryptoUtils.readX509PublicKey;
+import static ee.ria.xroad.common.crypto.Digests.calculateDigest;
 import static ee.ria.xroad.signer.util.ExceptionHelper.tokenNotFound;
 
 /**
@@ -79,11 +79,12 @@ public abstract class AbstractGenerateCertReq<ReqT extends AbstractMessage,
     PKCS10CertificationRequest buildSignedCertRequest(TokenAndKey tokenAndKey, String subjectName,
                                                       String subjectAltName, KeyUsageInfo keyUsage) throws Exception {
 
-        if (tokenAndKey.getKey().getPublicKey() == null) {
+        if (tokenAndKey.key().getPublicKey() == null) {
             throw new CodedException(X_INTERNAL_ERROR, "Key '%s' has no public key", tokenAndKey.getKeyId());
         }
 
-        PublicKey publicKey = readPublicKey(tokenAndKey.getKey().getPublicKey());
+        PublicKey publicKey = KeyManagers.getFor(tokenAndKey.getSignMechanism())
+                .readX509PublicKey(tokenAndKey.key().getPublicKey());
 
         JcaPKCS10CertificationRequestBuilder certRequestBuilder = new JcaPKCS10CertificationRequestBuilder(
                 new X500Name(subjectName), publicKey);
@@ -112,10 +113,6 @@ public abstract class AbstractGenerateCertReq<ReqT extends AbstractMessage,
         return certRequestBuilder.build(signer);
     }
 
-    private static PublicKey readPublicKey(String publicKeyBase64) throws Exception {
-        return readX509PublicKey(decodeBase64(publicKeyBase64));
-    }
-
     static byte[] convert(PKCS10CertificationRequest request, CertificateRequestFormat format)
             throws Exception {
         if (CertificateRequestFormat.PEM == format) {
@@ -141,19 +138,19 @@ public abstract class AbstractGenerateCertReq<ReqT extends AbstractMessage,
         private final TokenWorkerProvider tokenWorkerProvider;
         private final TokenAndKey tokenAndKey;
 
-        private final String digestAlgoId;
-        private final String signAlgoId;
+        private final DigestAlgorithm digestAlgoId;
+        private final SignAlgorithm signAlgoId;
 
         TokenContentSigner(final TokenWorkerProvider tokenWorkerProvider, final TokenAndKey tokenAndKey) throws NoSuchAlgorithmException {
             this.tokenAndKey = tokenAndKey;
             this.tokenWorkerProvider = tokenWorkerProvider;
             digestAlgoId = SystemProperties.getSignerCsrSignatureDigestAlgorithm();
-            signAlgoId = CryptoUtils.getSignatureAlgorithmId(digestAlgoId, tokenAndKey.getSignMechanism());
+            signAlgoId = SignAlgorithm.ofDigestAndMechanism(digestAlgoId, tokenAndKey.getSignMechanism());
         }
 
         @Override
         public AlgorithmIdentifier getAlgorithmIdentifier() {
-            return new DefaultSignatureAlgorithmIdentifierFinder().find(signAlgoId);
+            return new DefaultSignatureAlgorithmIdentifierFinder().find(signAlgoId.name());
         }
 
         @Override
@@ -168,13 +165,13 @@ public abstract class AbstractGenerateCertReq<ReqT extends AbstractMessage,
             try {
                 SignReq request = SignReq.newBuilder()
                         .setKeyId(tokenAndKey.getKeyId())
-                        .setSignatureAlgorithmId(signAlgoId)
+                        .setSignatureAlgorithmId(signAlgoId.name())
                         .setDigest(ByteString.copyFrom(calculateDigest(digestAlgoId, out.toByteArray())))
                         .build();
 
 
-                return tokenWorkerProvider.getTokenWorker(tokenAndKey.getTokenId())
-                        .orElseThrow(() -> tokenNotFound(tokenAndKey.getTokenId()))
+                return tokenWorkerProvider.getTokenWorker(tokenAndKey.tokenId())
+                        .orElseThrow(() -> tokenNotFound(tokenAndKey.tokenId()))
                         .handleSign(request);
             } catch (Exception e) {
                 throw translateException(e);

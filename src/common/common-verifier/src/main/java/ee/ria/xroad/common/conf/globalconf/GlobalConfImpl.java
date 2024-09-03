@@ -64,8 +64,7 @@ import static ee.ria.xroad.common.ErrorCodes.X_OUTDATED_GLOBALCONF;
 import static ee.ria.xroad.common.ErrorCodes.translateException;
 import static ee.ria.xroad.common.util.CryptoUtils.certHash;
 import static ee.ria.xroad.common.util.CryptoUtils.certSha1Hash;
-import static ee.ria.xroad.common.util.CryptoUtils.encodeBase64;
-import static ee.ria.xroad.common.util.CryptoUtils.readCertificate;
+import static ee.ria.xroad.common.util.EncoderUtils.encodeBase64;
 import static java.util.Collections.emptySet;
 import static java.util.stream.Collectors.toSet;
 
@@ -612,7 +611,7 @@ public class GlobalConfImpl implements GlobalConfProvider {
     public X509Certificate getCentralServerSslCertificate() throws Exception {
         byte[] certBytes = getPrivateParameters().getManagementService()
                 .getAuthCertRegServiceCert();
-        return certBytes != null ? readCertificate(certBytes) : null;
+        return certBytes != null ? CryptoUtils.readCertificate(certBytes) : null;
     }
 
     @Override

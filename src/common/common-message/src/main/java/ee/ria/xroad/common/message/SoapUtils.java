@@ -26,7 +26,8 @@
 package ee.ria.xroad.common.message;
 
 import ee.ria.xroad.common.CodedException;
-import ee.ria.xroad.common.util.CryptoUtils;
+import ee.ria.xroad.common.crypto.Digests;
+import ee.ria.xroad.common.crypto.identifier.DigestAlgorithm;
 
 import jakarta.xml.bind.annotation.XmlElement;
 import jakarta.xml.soap.MessageFactory;
@@ -122,8 +123,8 @@ public final class SoapUtils {
     /**
      * @return ID of the digest algorithm used to calculate SOAP message hashes
      */
-    public static String getHashAlgoId() {
-        return CryptoUtils.DEFAULT_DIGEST_ALGORITHM_ID;
+    public static DigestAlgorithm getHashAlgoId() {
+        return Digests.DEFAULT_DIGEST_ALGORITHM;
     }
 
     /**

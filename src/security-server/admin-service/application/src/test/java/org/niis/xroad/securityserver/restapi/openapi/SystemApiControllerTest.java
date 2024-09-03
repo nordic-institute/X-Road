@@ -207,8 +207,8 @@ public class SystemApiControllerTest extends AbstractApiControllerTestContext {
 
     @Test
     @WithMockUser(authorities = {"ADD_TSP"})
-    public void addDuplicateConfiguredTimestampingService() throws
-            SystemService.DuplicateConfiguredTimestampingServiceException, TimestampingServiceNotFoundException {
+    public void addDuplicateConfiguredTimestampingService()
+            throws SystemService.DuplicateConfiguredTimestampingServiceException, TimestampingServiceNotFoundException {
         TimestampingService timestampingService = TestUtils.createTimestampingService(TSA_1_URL, TSA_1_NAME);
 
         Mockito.doThrow(new SystemService.DuplicateConfiguredTimestampingServiceException("")).when(systemService)
@@ -226,8 +226,8 @@ public class SystemApiControllerTest extends AbstractApiControllerTestContext {
     @Test
     @WithMockUser(authorities = {"ADD_TSP"})
     public void addNonExistingConfiguredTimestampingService() throws
-            SystemService.DuplicateConfiguredTimestampingServiceException,
-            TimestampingServiceNotFoundException {
+                                                              SystemService.DuplicateConfiguredTimestampingServiceException,
+                                                              TimestampingServiceNotFoundException {
         TimestampingService timestampingService = TestUtils
                 .createTimestampingService("http://dummy.com", "Dummy");
 

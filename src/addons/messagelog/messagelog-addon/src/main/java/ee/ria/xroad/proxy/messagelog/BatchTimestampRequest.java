@@ -31,7 +31,7 @@ import ee.ria.xroad.common.messagelog.MessageLogProperties;
 
 import org.bouncycastle.tsp.TimeStampResponse;
 
-import static ee.ria.xroad.common.util.CryptoUtils.decodeBase64;
+import static ee.ria.xroad.common.util.EncoderUtils.decodeBase64;
 import static ee.ria.xroad.common.util.MessageFileNames.SIGNATURE;
 import static ee.ria.xroad.common.util.MessageFileNames.TS_HASH_CHAIN;
 import static java.nio.charset.StandardCharsets.UTF_8;

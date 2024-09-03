@@ -28,7 +28,8 @@ package ee.ria.xroad.common.signature;
 import ee.ria.xroad.common.OcspTestUtils;
 import ee.ria.xroad.common.TestCertUtil;
 import ee.ria.xroad.common.TestSecurityUtil;
-import ee.ria.xroad.common.util.CryptoUtils;
+import ee.ria.xroad.common.crypto.Digests;
+import ee.ria.xroad.common.crypto.identifier.DigestAlgorithm;
 import ee.ria.xroad.common.util.MessageFileNames;
 import ee.ria.xroad.common.util.TimeUtils;
 
@@ -107,8 +108,8 @@ public class SignatureBuilderTest {
     public void buildSuccessfullyNoExtraCerts() throws Exception {
         byte[] messageBytes = fileToBytes("message-0.xml");
 
-        MessagePart hash = new MessagePart(MessageFileNames.MESSAGE, CryptoUtils.SHA512_ID,
-                CryptoUtils.calculateDigest(CryptoUtils.SHA512_ID, messageBytes), messageBytes);
+        MessagePart hash = new MessagePart(MessageFileNames.MESSAGE, DigestAlgorithm.SHA512,
+                Digests.calculateDigest(DigestAlgorithm.SHA512, messageBytes), messageBytes);
 
         SignatureBuilder builder = new SignatureBuilder();
         builder.addPart(hash);
@@ -121,7 +122,7 @@ public class SignatureBuilderTest {
         builder.setSigningCert(subjectCert);
         builder.addOcspResponses(Collections.singletonList(ocsp));
 
-        SignatureData data = builder.build(new TestSigningKey(subjectKey), CryptoUtils.SHA512_ID);
+        SignatureData data = builder.build(new TestSigningKey(subjectKey), DigestAlgorithm.SHA512);
 
         assertNotNull(data);
         assertNotNull(data.getSignatureXml());
@@ -154,7 +155,7 @@ public class SignatureBuilderTest {
 
         builder.setSigningCert(subjectCert);
 
-        SignatureData data = builder.build(new TestSigningKey(subjectKey), CryptoUtils.SHA512_ID);
+        SignatureData data = builder.build(new TestSigningKey(subjectKey), DigestAlgorithm.SHA512);
 
         assertNotNull(data);
         assertNotNull(data.getSignatureXml());

@@ -26,6 +26,7 @@
 package ee.ria.xroad.signer.model;
 
 import ee.ria.xroad.common.identifier.ClientId;
+import ee.ria.xroad.common.util.CryptoUtils;
 import ee.ria.xroad.signer.protocol.dto.CertificateInfo;
 import ee.ria.xroad.signer.protocol.dto.CertificateInfoProto;
 import ee.ria.xroad.signer.protocol.mapper.ClientIdMapper;
@@ -43,7 +44,6 @@ import java.time.Instant;
 import static ee.ria.xroad.common.ErrorCodes.translateException;
 import static ee.ria.xroad.common.util.CryptoUtils.calculateCertHexHash;
 import static ee.ria.xroad.common.util.CryptoUtils.calculateCertSha1HexHash;
-import static ee.ria.xroad.common.util.CryptoUtils.readCertificate;
 
 /**
  * Model object that holds the information associated with a certificate.
@@ -138,7 +138,7 @@ public class Cert {
      */
     public void setCertificate(byte[] certBytes) {
         try {
-            setCertificate(readCertificate(certBytes));
+            setCertificate(CryptoUtils.readCertificate(certBytes));
         } catch (Exception e) {
             throw translateException(e);
         }

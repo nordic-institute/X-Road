@@ -25,12 +25,13 @@
  */
 package ee.ria.xroad.proxy.protocol;
 
+import ee.ria.xroad.common.crypto.Digests;
+import ee.ria.xroad.common.crypto.identifier.DigestAlgorithm;
 import ee.ria.xroad.common.message.RestRequest;
 import ee.ria.xroad.common.message.RestResponse;
 import ee.ria.xroad.common.message.SoapFault;
 import ee.ria.xroad.common.message.SoapMessageImpl;
 import ee.ria.xroad.common.signature.SignatureData;
-import ee.ria.xroad.common.util.CryptoUtils;
 import ee.ria.xroad.common.util.MessageFileNames;
 import ee.ria.xroad.common.util.MimeTypes;
 import ee.ria.xroad.common.util.MultipartEncoder;
@@ -51,7 +52,7 @@ import java.nio.charset.StandardCharsets;
 import java.util.Map;
 
 import static ee.ria.xroad.common.ErrorCodes.translateException;
-import static ee.ria.xroad.common.util.CryptoUtils.createDigestCalculator;
+import static ee.ria.xroad.common.crypto.Digests.createDigestCalculator;
 import static ee.ria.xroad.common.util.MimeUtils.randomBoundary;
 import static ee.ria.xroad.common.util.MimeUtils.toHeaders;
 
@@ -61,7 +62,7 @@ import static ee.ria.xroad.common.util.MimeUtils.toHeaders;
 @Slf4j
 public class ProxyMessageEncoder implements ProxyMessageConsumer {
 
-    private final String hashAlgoId;
+    private final DigestAlgorithm hashAlgoId;
 
     private final MultipartEncoder mpEncoder;
 
@@ -85,7 +86,7 @@ public class ProxyMessageEncoder implements ProxyMessageConsumer {
      * @param hashAlgoId hash algorithm id used when hashing parts
      * @throws IllegalArgumentException if hashAlgoId is null
      */
-    public ProxyMessageEncoder(OutputStream out, String hashAlgoId)
+    public ProxyMessageEncoder(OutputStream out, DigestAlgorithm hashAlgoId)
             throws IllegalArgumentException {
         this.hashAlgoId = hashAlgoId;
 
@@ -109,7 +110,7 @@ public class ProxyMessageEncoder implements ProxyMessageConsumer {
      * @param hashAlgoId hash algorithm id used when hashing parts
      * @throws IllegalArgumentException if hashAlgoId is null
      */
-    public ProxyMessageEncoder(OutputStream out, String hashAlgoId, String topBoundary)
+    public ProxyMessageEncoder(OutputStream out, DigestAlgorithm hashAlgoId, String topBoundary)
             throws IllegalArgumentException {
         this.hashAlgoId = hashAlgoId;
 
@@ -223,7 +224,7 @@ public class ProxyMessageEncoder implements ProxyMessageConsumer {
             final byte[] message = response.getMessageBytes();
             signer.addPart(MessageFileNames.MESSAGE,
                     hashAlgoId,
-                    CryptoUtils.calculateDigest(hashAlgoId, message),
+                    Digests.calculateDigest(hashAlgoId, message),
                     message);
 
             mpEncoder.startPart("application/x-road-rest-response");

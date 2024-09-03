@@ -117,7 +117,7 @@ public final class Key {
                 .setAvailable(available)
                 .addAllCerts(unmodifiableList(getCertsAsDTOs()))
                 .addAllCertRequests(unmodifiableList(getCertRequestsAsDTOs()))
-                .setSignMechanismName(token.getSignMechanismName());
+                .setSignMechanismName(token.getSignMechanismName().name());
 
         if (usage != null) {
             builder.setUsage(usage);

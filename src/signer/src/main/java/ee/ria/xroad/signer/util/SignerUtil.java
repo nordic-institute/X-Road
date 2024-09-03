@@ -25,8 +25,12 @@
  */
 package ee.ria.xroad.signer.util;
 
+import ee.ria.xroad.common.crypto.identifier.SignAlgorithm;
 import ee.ria.xroad.signer.protocol.dto.TokenInfo;
 
+import iaik.pkcs.pkcs11.Token;
+import iaik.pkcs.pkcs11.objects.Key;
+import iaik.pkcs.pkcs11.objects.X509PublicKeyCertificate;
 import jakarta.xml.bind.DatatypeConverter;
 import lombok.SneakyThrows;
 import org.bouncycastle.asn1.x500.X500Name;
@@ -43,14 +47,6 @@ import java.util.Calendar;
 import java.util.Date;
 import java.util.GregorianCalendar;
 import java.util.Random;
-
-import static ee.ria.xroad.common.util.CryptoUtils.SHA1WITHRSA_ID;
-import static ee.ria.xroad.common.util.CryptoUtils.SHA256WITHRSAANDMGF1_ID;
-import static ee.ria.xroad.common.util.CryptoUtils.SHA256WITHRSA_ID;
-import static ee.ria.xroad.common.util.CryptoUtils.SHA384WITHRSAANDMGF1_ID;
-import static ee.ria.xroad.common.util.CryptoUtils.SHA384WITHRSA_ID;
-import static ee.ria.xroad.common.util.CryptoUtils.SHA512WITHRSAANDMGF1_ID;
-import static ee.ria.xroad.common.util.CryptoUtils.SHA512WITHRSA_ID;
 
 /**
  * Collection of various utility methods.
@@ -82,13 +78,11 @@ public final class SignerUtil {
      * @return the data to be signed
      * @throws NoSuchAlgorithmException if the algorithm is not supported
      */
-    public static byte[] createDataToSign(byte[] digest, String signAlgoId) throws NoSuchAlgorithmException {
-        return switch (signAlgoId) {
-            case SHA256WITHRSAANDMGF1_ID, SHA384WITHRSAANDMGF1_ID, SHA512WITHRSAANDMGF1_ID -> digest; // Nothing to do
-            case SHA1WITHRSA_ID, SHA256WITHRSA_ID, SHA384WITHRSA_ID, SHA512WITHRSA_ID -> createDataToSign(digest);
-            default -> throw new NoSuchAlgorithmException("Unknown sign algorithm id: " + signAlgoId);
+    public static byte[] createDataToSign(byte[] digest, SignAlgorithm signAlgoId) throws NoSuchAlgorithmException {
+        return switch (signAlgoId.signMechanism()) {
+            case CKM_RSA_PKCS -> createDataToSign(digest);
+            case CKM_RSA_PKCS_PSS -> digest;
         };
-
     }
 
     private static byte[] createDataToSign(byte[] digest) {
@@ -108,7 +102,7 @@ public final class SignerUtil {
      * @param k the key
      * @return the id
      */
-    public static String keyId(iaik.pkcs.pkcs11.objects.Key k) {
+    public static String keyId(Key k) {
         if (k.getId() == null || k.getId().getByteArrayValue() == null) {
             return null;
         }
@@ -124,7 +118,7 @@ public final class SignerUtil {
      * @return the id
      */
     public static String keyId(
-            iaik.pkcs.pkcs11.objects.X509PublicKeyCertificate c) {
+            X509PublicKeyCertificate c) {
         if (c.getId() == null || c.getId().getByteArrayValue() == null) {
             return null;
         }
@@ -202,7 +196,7 @@ public final class SignerUtil {
      */
     @SneakyThrows
     public static String getFormattedTokenId(String tokenIdFormat, String moduleType,
-                                             iaik.pkcs.pkcs11.Token token) {
+                                             Token token) {
         iaik.pkcs.pkcs11.TokenInfo tokenInfo = token.getTokenInfo();
         String slotIndex = Long.toString(token.getSlot().getSlotID());
 

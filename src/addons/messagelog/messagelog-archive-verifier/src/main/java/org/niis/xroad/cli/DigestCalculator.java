@@ -26,25 +26,30 @@
  */
 package org.niis.xroad.cli;
 
-import ee.ria.xroad.common.util.CryptoUtils;
+import ee.ria.xroad.common.crypto.Digests;
+import ee.ria.xroad.common.crypto.identifier.DigestAlgorithm;
 
 import lombok.SneakyThrows;
+import org.apache.commons.lang3.StringUtils;
 
 import java.nio.charset.StandardCharsets;
-import java.util.Arrays;
-import java.util.List;
+import java.util.Set;
 
 public class DigestCalculator {
-    private static final List<String> SUPPORTED_DIGEST_ALGO_IDS = Arrays.asList("SHA-256", "SHA-384", "SHA-512");
+    private static final Set<DigestAlgorithm> SUPPORTED_DIGEST_ALGO_IDS = Set.of(
+            DigestAlgorithm.SHA256,
+            DigestAlgorithm.SHA384,
+            DigestAlgorithm.SHA512
+    );
 
-    private final String digestAlgoId;
+    private final DigestAlgorithm digestAlgoId;
 
-    public DigestCalculator(String digestAlgoId) {
-        this.digestAlgoId = digestAlgoId.toUpperCase();
+    public DigestCalculator(DigestAlgorithm digestAlgoId) {
+        this.digestAlgoId = digestAlgoId;
 
         if (!SUPPORTED_DIGEST_ALGO_IDS.contains(digestAlgoId)) {
             throw new IllegalArgumentException("Digest algorithm id '" + digestAlgoId + "' is not supported, "
-                    + "supported ones are:\n" + String.join(", ", SUPPORTED_DIGEST_ALGO_IDS));
+                    + "supported ones are:\n" + StringUtils.join(", ", SUPPORTED_DIGEST_ALGO_IDS));
         }
 
     }
@@ -58,6 +63,6 @@ public class DigestCalculator {
 
     @SneakyThrows
     private String hexDigest(byte[] fileBytes) {
-        return CryptoUtils.hexDigest(digestAlgoId, fileBytes);
+        return Digests.hexDigest(digestAlgoId, fileBytes);
     }
 }

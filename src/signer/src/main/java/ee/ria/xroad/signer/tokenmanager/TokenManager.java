@@ -287,8 +287,7 @@ public final class TokenManager {
      * @return the software token id
      */
     public static synchronized String getSoftwareTokenId() {
-        return forToken(t -> t.getType().equals(SoftwareModuleType.TYPE),
-                t -> t.getId()).orElse(null);
+        return forToken(t -> t.getType().equals(SoftwareModuleType.TYPE), Token::getId).orElse(null);
     }
 
     /**
@@ -297,7 +296,7 @@ public final class TokenManager {
      */
     public static synchronized String getModuleId(String tokenId) {
         return forToken(t -> t.getId().equals(tokenId),
-                t -> t.getModuleId()).orElse(null);
+                Token::getModuleId).orElse(null);
     }
 
     /**

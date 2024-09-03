@@ -25,7 +25,9 @@
  */
 package ee.ria.xroad.common;
 
-import ee.ria.xroad.common.util.CryptoUtils;
+import ee.ria.xroad.common.crypto.identifier.DigestAlgorithm;
+import ee.ria.xroad.common.crypto.identifier.SignAlgorithm;
+import ee.ria.xroad.common.crypto.identifier.SignMechanism;
 
 import java.util.Arrays;
 import java.util.Optional;
@@ -40,6 +42,7 @@ public final class SystemProperties {
 
     /** The prefix for all properties. */
     public static final String PREFIX = "xroad.";
+    private static final String SIGNER_PREFIX = PREFIX + "signer.";
 
     private static final String COMMA_SPLIT = "\\s*,\\s*";
 
@@ -182,8 +185,7 @@ public final class SystemProperties {
             PROXY_PREFIX + "server-listen-port";
 
     /** Property name of the cached OCSP response path for signer operation. */
-    public static final String OCSP_CACHE_PATH =
-            PREFIX + "signer.ocsp-cache-path";
+    public static final String OCSP_CACHE_PATH = SIGNER_PREFIX + "ocsp-cache-path";
 
     /** Property name of the Ocsp Responder port. */
     public static final String OCSP_RESPONDER_PORT =
@@ -232,8 +234,7 @@ public final class SystemProperties {
     /** Property name of the ClientProxy HTTPS client and ServerProxy HTTPS connector supported TLS cipher suites */
     private static final String PROXY_XROAD_TLS_CIPHERS = PROXY_PREFIX + "xroad-tls-ciphers";
 
-    private static final String SIGNER_ENFORCE_TOKEN_PIN_POLICY =
-            PREFIX + "signer.enforce-token-pin-policy";
+    private static final String SIGNER_ENFORCE_TOKEN_PIN_POLICY = SIGNER_PREFIX + "enforce-token-pin-policy";
 
     public static final String SERVER_CONF_CACHE_PERIOD =
             PROXY_PREFIX + "server-conf-cache-period";
@@ -332,6 +333,7 @@ public final class SystemProperties {
     private static final String PROXY_BACKUP_ENCRYPTION_KEY_IDS = PROXY_PREFIX + "backup-encryption-keyids";
 
     private static final String HSM_HEALTH_CHECK_ENABLED = PROXY_PREFIX + "hsm-health-check-enabled";
+    private static final String PROXY_MESSAGE_SIGN_DIGEST_NAME = PROXY_PREFIX + "message-sign-digest-name";
 
     private static final String FALSE = Boolean.FALSE.toString();
     private static final String TRUE = Boolean.TRUE.toString();
@@ -410,48 +412,41 @@ public final class SystemProperties {
     // Signer -----------------------------------------------------------------
 
     /** Property name of the key configuration file. */
-    public static final String KEY_CONFIGURATION_FILE =
-            PREFIX + "signer.key-configuration-file";
+    public static final String KEY_CONFIGURATION_FILE = SIGNER_PREFIX + "key-configuration-file";
 
     /** Property name of the device configuration file. */
-    public static final String DEVICE_CONFIGURATION_FILE =
-            PREFIX + "signer.device-configuration-file";
+    public static final String DEVICE_CONFIGURATION_FILE = SIGNER_PREFIX + "device-configuration-file";
 
     /** Property name of the Signer's admin port number. */
-    public static final String SIGNER_ADMIN_PORT =
-            PREFIX + "signer.admin-port";
+    public static final String SIGNER_ADMIN_PORT = SIGNER_PREFIX + "admin-port";
 
     /** Property name of the SignerClient's timeout. */
-    public static final String SIGNER_CLIENT_TIMEOUT =
-            PREFIX + "signer.client-timeout";
+    public static final String SIGNER_CLIENT_TIMEOUT = SIGNER_PREFIX + "client-timeout";
 
-    public static final String SIGNER_MODULE_INSTANCE_PROVIDER =
-            PREFIX + "signer.module-instance-provider";
+    public static final String SIGNER_MODULE_INSTANCE_PROVIDER = SIGNER_PREFIX + "module-instance-provider";
 
-    public static final String SIGNER_KEY_LENGTH =
-            PREFIX + "signer.key-length";
+    public static final String SIGNER_KEY_LENGTH = SIGNER_PREFIX + "key-length";
 
-    public static final String PASSWORD_STORE_IPC_KEY_PATHNAME =
-            PREFIX + "signer.password-store-ipc-key-pathname";
+    public static final String SIGNER_KEY_SIGN_ALGORITHM_NAME = SIGNER_PREFIX + "key-sign-algorithm-name";
+
+    public static final String PASSWORD_STORE_IPC_KEY_PATHNAME = SIGNER_PREFIX + "password-store-ipc-key-pathname";
 
     public static final int MIN_SIGNER_KEY_LENGTH = 2048;
     public static final int DEFAULT_SIGNER_KEY_LENGTH = MIN_SIGNER_KEY_LENGTH;
+    public static final SignAlgorithm DEFAULT_SIGNER_KEY_SIGN_ALGORITHM = SignAlgorithm.SHA512_WITH_RSA;
 
     public static final String DEFAULT_SIGNER_CLIENT_TIMEOUT = "60000";
 
-    public static final String SIGNER_CSR_SIGNATURE_DIGEST_ALGORITHM =
-            PREFIX + "signer.csr-signature-digest-algorithm";
+    public static final String SIGNER_CSR_SIGNATURE_DIGEST_ALGORITHM = SIGNER_PREFIX + "csr-signature-digest-algorithm";
 
-    public static final String OCSP_RESPONSE_RETRIEVAL_ACTIVE =
-            PREFIX + "signer.ocsp-response-retrieval-active";
+    public static final String OCSP_RESPONSE_RETRIEVAL_ACTIVE = SIGNER_PREFIX + "ocsp-response-retrieval-active";
 
-    public static final String SIGNER_OCSP_RETRY_DELAY =
-            PREFIX + "signer.ocsp-retry-delay";
+    public static final String SIGNER_OCSP_RETRY_DELAY = SIGNER_PREFIX + "ocsp-retry-delay";
 
     private static final String DEFAULT_SIGNER_OCSP_RETRY_DELAY = "60";
 
-    public static final String SIGNER_MODULE_MANAGER_UPDATE_INTERVAL =
-            PREFIX + "signer.module-manager-update-interval";
+    public static final String SIGNER_MODULE_MANAGER_UPDATE_INTERVAL = SIGNER_PREFIX + "module-manager-update-interval";
+    public static final String SOFTWARE_TOKEN_SIGN_MECHANISM = SIGNER_PREFIX + "software-token-sign-mechanism";
 
     public static final String DEFAULT_SIGNER_MODULE_MANAGER_UPDATE_INTERVAL = "60";
 
@@ -685,7 +680,7 @@ public final class SystemProperties {
     /**
      * Property name for gRPC signer port.
      */
-    public static final String GRPC_SIGNER_PORT = PREFIX + "signer.grpc-port";
+    public static final String GRPC_SIGNER_PORT = SIGNER_PREFIX + "grpc-port";
 
     /**
      * Property name for gRPC proxy port.
@@ -962,8 +957,10 @@ public final class SystemProperties {
      * @return signature digest algorithm ID used for generating authentication certificate registration request,
      * SHA-512 by default.
      */
-    public static String getAuthCertRegSignatureDigestAlgorithmId() {
-        return System.getProperty(PROXYUI_AUTH_CERT_REG_SIGNATURE_DIGEST_ALGORITHM_ID, CryptoUtils.SHA512_ID);
+    public static DigestAlgorithm getAuthCertRegSignatureDigestAlgorithmId() {
+        return Optional.ofNullable(System.getProperty(PROXYUI_AUTH_CERT_REG_SIGNATURE_DIGEST_ALGORITHM_ID))
+                .map(DigestAlgorithm::ofName)
+                .orElse(DigestAlgorithm.SHA512);
     }
 
     /**
@@ -1108,6 +1105,15 @@ public final class SystemProperties {
     }
 
     /**
+     * @return authentication and signing key sign algorithm name, by default SHA512WITHRSA.
+     */
+    public static SignAlgorithm getSignerKeySignatureAlgorithm() {
+        return Optional.ofNullable(System.getProperty(SIGNER_KEY_SIGN_ALGORITHM_NAME))
+                .map(SignAlgorithm::ofName)
+                .orElse(DEFAULT_SIGNER_KEY_SIGN_ALGORITHM);
+    }
+
+    /**
      * Get the pathname for password store IPC key generation (used as an input for ftok kernel function).
      *
      * @return path
@@ -1121,8 +1127,10 @@ public final class SystemProperties {
      *
      * @return algorithm
      */
-    public static String getSignerCsrSignatureDigestAlgorithm() {
-        return System.getProperty(SIGNER_CSR_SIGNATURE_DIGEST_ALGORITHM, CryptoUtils.SHA256_ID);
+    public static DigestAlgorithm getSignerCsrSignatureDigestAlgorithm() {
+        return Optional.ofNullable(System.getProperty(SIGNER_CSR_SIGNATURE_DIGEST_ALGORITHM))
+                .map(DigestAlgorithm::ofName)
+                .orElse(DigestAlgorithm.SHA256);
     }
 
     /**
@@ -1146,6 +1154,15 @@ public final class SystemProperties {
     public static int getModuleManagerUpdateInterval() {
         return Integer.parseInt(System.getProperty(SIGNER_MODULE_MANAGER_UPDATE_INTERVAL,
                 DEFAULT_SIGNER_MODULE_MANAGER_UPDATE_INTERVAL));
+    }
+
+    /**
+     * @return software token signing mechanism type, CKM_RSA_PKCS by default
+     */
+    public static SignMechanism getSoftwareTokenSignMechanism() {
+        return Optional.ofNullable(System.getProperty(SOFTWARE_TOKEN_SIGN_MECHANISM))
+                .map(SignMechanism::valueOf)
+                .orElse(SignMechanism.CKM_RSA_PKCS);
     }
 
     /**
@@ -1351,8 +1368,10 @@ public final class SystemProperties {
      * @return ID of the signing digest algorithm the configuration proxy uses when
      * signing generated global configuration directories, 'SHA-512' by default.
      */
-    public static String getConfigurationProxySignatureDigestAlgorithmId() {
-        return System.getProperty(CONFIGURATION_PROXY_SIGNATURE_DIGEST_ALGORITHM_ID, CryptoUtils.SHA512_ID);
+    public static DigestAlgorithm getConfigurationProxySignatureDigestAlgorithmId() {
+        return Optional.ofNullable(System.getProperty(CONFIGURATION_PROXY_SIGNATURE_DIGEST_ALGORITHM_ID))
+                .map(DigestAlgorithm::ofName)
+                .orElse(DigestAlgorithm.SHA512);
     }
 
     /**
@@ -1360,8 +1379,10 @@ public final class SystemProperties {
      * calculating hashes of files in the global configuratoin directory,
      * 'http://www.w3.org/2001/04/xmlenc#sha512' by default.
      */
-    public static String getConfigurationProxyHashAlgorithmUri() {
-        return System.getProperty(CONFIGURATION_PROXY_HASH_ALGORITHM_URI, CryptoUtils.DEFAULT_DIGEST_ALGORITHM_URI);
+    public static DigestAlgorithm getConfigurationProxyHashAlgorithmUri() {
+        return Optional.ofNullable(System.getProperty(CONFIGURATION_PROXY_HASH_ALGORITHM_URI))
+                .map(DigestAlgorithm::ofUri)
+                .orElse(DigestAlgorithm.SHA512);
     }
 
     /**
@@ -1824,6 +1845,16 @@ public final class SystemProperties {
      */
     public static boolean isHSMHealthCheckEnabled() {
         return Boolean.parseBoolean(System.getProperty(HSM_HEALTH_CHECK_ENABLED, DEFAULT_HSM_HEALTH_CHECK_ENABLED));
+    }
+
+    /**
+     * @return Digest name used for signing proxy messages
+     * 'SHA-512' by default
+     */
+    public static DigestAlgorithm getProxyMessageSignDigestName() {
+        return Optional.ofNullable(System.getProperty(PROXY_MESSAGE_SIGN_DIGEST_NAME))
+                .map(DigestAlgorithm::ofName)
+                .orElse(DigestAlgorithm.SHA512);
     }
 
     /**

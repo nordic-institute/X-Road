@@ -25,6 +25,7 @@
  */
 package ee.ria.xroad.common;
 
+import ee.ria.xroad.common.crypto.identifier.SignAlgorithm;
 import ee.ria.xroad.common.util.CryptoUtils;
 
 import lombok.SneakyThrows;
@@ -97,7 +98,7 @@ public final class OcspTestUtils {
         }
 
         ContentSigner contentSigner = CryptoUtils.createContentSigner(
-                subject.getSigAlgName(), signerKey);
+                SignAlgorithm.ofName(subject.getSigAlgName()), signerKey);
 
         X509CertificateHolder[] chain = {new X509CertificateHolder(signer.getEncoded())};
         Object responseObject = builder.build(contentSigner, chain, new Date());

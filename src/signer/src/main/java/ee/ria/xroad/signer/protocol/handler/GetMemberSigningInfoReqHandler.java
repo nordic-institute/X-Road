@@ -31,6 +31,7 @@ import ee.ria.xroad.common.conf.globalconfextension.GlobalConfExtensions;
 import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.ocsp.OcspVerifier;
 import ee.ria.xroad.common.ocsp.OcspVerifierOptions;
+import ee.ria.xroad.common.util.CryptoUtils;
 import ee.ria.xroad.signer.protocol.AbstractRpcHandler;
 import ee.ria.xroad.signer.protocol.dto.CertificateInfo;
 import ee.ria.xroad.signer.protocol.dto.KeyInfo;
@@ -49,7 +50,6 @@ import java.util.List;
 
 import static ee.ria.xroad.common.ErrorCodes.X_INTERNAL_ERROR;
 import static ee.ria.xroad.common.ErrorCodes.X_UNKNOWN_MEMBER;
-import static ee.ria.xroad.common.util.CryptoUtils.readCertificate;
 import static ee.ria.xroad.signer.protocol.dto.CertificateInfo.STATUS_REGISTERED;
 
 /**
@@ -122,7 +122,7 @@ public final class GetMemberSigningInfoReqHandler extends AbstractRpcHandler<Get
     }
 
     private void checkValidity(String instanceIdentifier, byte[] certBytes, byte[] ocspBytes) throws Exception {
-        X509Certificate subject = readCertificate(certBytes);
+        X509Certificate subject = CryptoUtils.readCertificate(certBytes);
         subject.checkValidity();
         verifyOcspResponse(instanceIdentifier, ocspBytes, subject, new OcspVerifierOptions(
                 GlobalConfExtensions.getInstance(globalConfProvider).shouldVerifyOcspNextUpdate()));

@@ -28,6 +28,7 @@ import ee.ria.xroad.common.TestCertUtil;
 import ee.ria.xroad.common.conf.globalconf.EmptyGlobalConf;
 import ee.ria.xroad.common.conf.globalconf.GlobalConfProvider;
 import ee.ria.xroad.common.conf.serverconf.ServerConfProvider;
+import ee.ria.xroad.common.crypto.identifier.SignMechanism;
 import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.identifier.SecurityServerId;
 import ee.ria.xroad.common.util.FileContentChangeChecker;
@@ -506,7 +507,7 @@ public class CachingKeyConfImplTest {
         protected SigningInfo getSigningInfo(ClientId clientId) throws Exception {
             dataRefreshes.incrementAndGet();
             delay(cacheReadDelayMs);
-            return new SigningInfo("keyid", "signmechanismname", null, null, null, null) {
+            return new SigningInfo("keyid", SignMechanism.valueOf("CKM_RSA_PKCS_PSS"), null, null, null, null) {
                 @Override
                 boolean verifyValidity(Date atDate) {
                     return signingInfoIsValid.getAsBoolean();

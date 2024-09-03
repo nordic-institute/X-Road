@@ -47,7 +47,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 
-import static ee.ria.xroad.common.util.CryptoUtils.SHA1_ID;
+import static ee.ria.xroad.common.crypto.identifier.DigestAlgorithm.SHA1;
 import static java.nio.charset.StandardCharsets.UTF_8;
 import static java.util.Map.entry;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -100,7 +100,7 @@ class SharedParametersV2ToXmlConverterTest {
 
         assertIdReferences(xmlType);
         assertThat(xmlType.getSecurityServer().get(0).getAuthCertHash().get(0))
-                .isEqualTo(sharedParameters.getSecurityServers().get(0).getAuthCertHashes().get(0).getHash(SHA1_ID));
+                .isEqualTo(sharedParameters.getSecurityServers().get(0).getAuthCertHashes().get(0).getHash(SHA1));
     }
 
     @Test

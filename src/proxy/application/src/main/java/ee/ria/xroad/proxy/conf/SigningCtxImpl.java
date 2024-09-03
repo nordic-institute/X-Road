@@ -26,12 +26,12 @@
 package ee.ria.xroad.proxy.conf;
 
 import ee.ria.xroad.common.CodedException;
+import ee.ria.xroad.common.SystemProperties;
 import ee.ria.xroad.common.cert.CertChain;
 import ee.ria.xroad.common.conf.globalconf.GlobalConfProvider;
 import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.signature.SignatureBuilder;
 import ee.ria.xroad.common.signature.SignatureData;
-import ee.ria.xroad.common.util.CryptoUtils;
 import ee.ria.xroad.proxy.signedmessage.SigningKey;
 
 import lombok.RequiredArgsConstructor;
@@ -49,10 +49,6 @@ import static ee.ria.xroad.common.ErrorCodes.X_CANNOT_CREATE_SIGNATURE;
  */
 @RequiredArgsConstructor
 public class SigningCtxImpl implements SigningCtx {
-
-    // TODO make it configurable.
-    private static final String DIGEST_ALGORITHM = CryptoUtils.SHA512_ID;
-
     private final GlobalConfProvider globalConfProvider;
     private final KeyConfProvider keyConfProvider;
     /**
@@ -79,7 +75,7 @@ public class SigningCtxImpl implements SigningCtx {
         builder.addOcspResponses(ocspResponses);
         builder.setSigningCert(cert);
 
-        return builder.build(key, DIGEST_ALGORITHM);
+        return builder.build(key, SystemProperties.getProxyMessageSignDigestName());
     }
 
     private List<OCSPResp> getOcspResponses(List<X509Certificate> certs) throws Exception {

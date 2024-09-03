@@ -33,6 +33,7 @@ import ee.ria.xroad.common.conf.globalconf.GlobalConfProvider;
 import ee.ria.xroad.common.conf.serverconf.ServerConfProvider;
 import ee.ria.xroad.common.conf.serverconf.model.ClientType;
 import ee.ria.xroad.common.conf.serverconf.model.DescriptionType;
+import ee.ria.xroad.common.crypto.identifier.DigestAlgorithm;
 import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.identifier.SecurityServerId;
 import ee.ria.xroad.common.identifier.ServiceId;
@@ -93,8 +94,7 @@ import static ee.ria.xroad.common.ErrorCodes.X_UNKNOWN_SERVICE;
 import static ee.ria.xroad.common.ErrorCodes.translateException;
 import static ee.ria.xroad.common.ErrorCodes.translateWithPrefix;
 import static ee.ria.xroad.common.util.AbstractHttpSender.CHUNKED_LENGTH;
-import static ee.ria.xroad.common.util.CryptoUtils.encodeBase64;
-import static ee.ria.xroad.common.util.CryptoUtils.getDigestAlgorithmURI;
+import static ee.ria.xroad.common.util.EncoderUtils.encodeBase64;
 import static ee.ria.xroad.common.util.MimeUtils.HEADER_HASH_ALGO_ID;
 import static ee.ria.xroad.common.util.MimeUtils.HEADER_ORIGINAL_CONTENT_TYPE;
 import static ee.ria.xroad.common.util.MimeUtils.HEADER_ORIGINAL_SOAP_ACTION;
@@ -206,7 +206,7 @@ class ServerMessageProcessor extends MessageProcessorBase {
         encoder = new ProxyMessageEncoder(jResponse.getOutputStream(), SoapUtils.getHashAlgoId());
 
         jResponse.setContentType(encoder.getContentType());
-        jResponse.addHeader(HEADER_HASH_ALGO_ID, SoapUtils.getHashAlgoId());
+        jResponse.addHeader(HEADER_HASH_ALGO_ID, SoapUtils.getHashAlgoId().name());
     }
 
     @Override
@@ -527,14 +527,14 @@ class ServerMessageProcessor extends MessageProcessorBase {
         return clientSslCerts != null ? clientSslCerts[0] : null;
     }
 
-    private static String getHashAlgoId(RequestWrapper request) {
+    private static DigestAlgorithm getHashAlgoId(RequestWrapper request) {
         String hashAlgoId = request.getHeaders().get(HEADER_HASH_ALGO_ID);
 
         if (hashAlgoId == null) {
             throw new CodedException(X_INTERNAL_ERROR, "Could not get hash algorithm identifier from message");
         }
 
-        return hashAlgoId;
+        return DigestAlgorithm.ofName(hashAlgoId);
     }
 
     private final class DefaultServiceHandlerImpl extends AbstractServiceHandler {
@@ -699,8 +699,8 @@ class ServerMessageProcessor extends MessageProcessorBase {
                     String hash = encodeBase64(hashBytes);
 
                     AttributesImpl hashAttrs = new AttributesImpl(attributes);
-                    String algoId = getDigestAlgorithmURI(SoapUtils.getHashAlgoId());
-                    hashAttrs.addAttribute("", "", ATTR_ALGORITHM_ID, "xs:string", algoId);
+                    DigestAlgorithm algoUri = SoapUtils.getHashAlgoId();
+                    hashAttrs.addAttribute("", "", ATTR_ALGORITHM_ID, "xs:string", algoUri.uri());
 
                     char[] tabs = headerElementTabs != null ? headerElementTabs : new char[0];
                     super.writeCharactersXml(tabs, 0, tabs.length, writer);

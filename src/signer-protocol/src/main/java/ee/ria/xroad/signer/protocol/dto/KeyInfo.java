@@ -31,7 +31,6 @@ import lombok.Value;
 
 import java.io.Serializable;
 import java.util.List;
-import java.util.stream.Collectors;
 
 
 @Value
@@ -82,13 +81,13 @@ public class KeyInfo implements Serializable {
     public List<CertificateInfo> getCerts() {
         return message.getCertsList().stream()
                 .map(CertificateInfo::new)
-                .collect(Collectors.toUnmodifiableList());
+                .toList();
     }
 
     public List<CertRequestInfo> getCertRequests() {
         return message.getCertRequestsList().stream()
                 .map(CertRequestInfo::new)
-                .collect(Collectors.toUnmodifiableList());
+                .toList();
     }
 
     @ToString.Include

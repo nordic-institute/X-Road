@@ -29,6 +29,7 @@ package org.niis.xroad.proxy.test.glue;
 
 import ee.ria.xroad.common.conf.globalconf.TestGlobalConfImpl;
 import ee.ria.xroad.common.conf.serverconf.ServerConfImpl;
+import ee.ria.xroad.common.crypto.identifier.DigestAlgorithm;
 import ee.ria.xroad.common.hashchain.HashChainReferenceResolver;
 import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.signature.MessagePart;
@@ -66,8 +67,7 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.concurrent.atomic.AtomicInteger;
 
-import static ee.ria.xroad.common.util.CryptoUtils.SHA512_ID;
-import static ee.ria.xroad.common.util.CryptoUtils.calculateDigest;
+import static ee.ria.xroad.common.crypto.Digests.calculateDigest;
 import static java.lang.String.format;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.fail;
@@ -153,8 +153,8 @@ public class ProxyStepDefs extends BaseStepDefs {
         for (final String message : messages) {
             callables.add(() -> {
                 try {
-                    MessagePart hashPart = new MessagePart(MessageFileNames.MESSAGE, SHA512_ID,
-                            calculateDigest(SHA512_ID, message.getBytes()), message.getBytes());
+                    MessagePart hashPart = new MessagePart(MessageFileNames.MESSAGE, DigestAlgorithm.SHA512,
+                            calculateDigest(DigestAlgorithm.SHA512, message.getBytes()), message.getBytes());
 
                     List<MessagePart> hashes = Collections.singletonList(hashPart);
 
