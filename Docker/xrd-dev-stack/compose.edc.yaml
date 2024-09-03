@@ -10,8 +10,8 @@ services:
       - EDC_DID_KEY_ID=DE9DH3UqFQpV64LraOgqmMFSgTIlk6K1BnfU2k5vBfs
       - EDC_TLS_CERT_PATH=/etc/xroad/ssl/management-service.p12
     ports:
-      - "4193:9953" #EDC connector debug
-      - "4194:9954" #EDC ih debug
+      - "4196:9956" #EDC connector debug
+      - "4197:9957" #EDC ih debug
       - "4151:9191" #EDC api port
       - "4152:9192" #EDC control port
       - "4153:9193" #EDC management port
@@ -24,8 +24,8 @@ services:
       - EDC_DID=did:web:ss0%3A9396
       - EDC_DID_KEY_ID=JWK2020-RSA
     ports:
-      - "4293:9953" #EDC connector debug
-      - "4294:9954" #EDC ih debug
+      - "4296:9953" #EDC connector debug
+      - "4297:9954" #EDC ih debug
       - "4251:9191" #EDC api port
       - "4252:9192" #EDC control port
       - "4253:9193" #EDC management port
@@ -38,8 +38,8 @@ services:
       - EDC_DID=did:web:ss1%3A9396
       - EDC_DID_KEY_ID=JWK2020-RSA
     ports:
-      - "4393:9953" #EDC connector debug
-      - "4394:9954" #EDC ih debug
+      - "4396:9953" #EDC connector debug
+      - "4397:9954" #EDC ih debug
       - "4351:9191" #EDC api port
       - "4352:9192" #EDC control port
       - "4353:9193" #EDC management port
@@ -75,3 +75,17 @@ services:
     ports:
       - 16686:16686
       - 4318:4318
+  openbao:
+    build:
+      context: ../
+      dockerfile: xrd-dev-stack/openbao/Dockerfile
+    container_name: openbao
+    deploy:
+      resources:
+        reservations:
+          memory: 32M
+        limits:
+          memory: 64M
+    networks:
+      - xroad-network
+
