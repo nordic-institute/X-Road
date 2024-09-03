@@ -25,6 +25,7 @@
  */
 package ee.ria.xroad.proxy.opmonitoring;
 
+import ee.ria.xroad.common.conf.serverconf.ServerConfProvider;
 import ee.ria.xroad.common.opmonitoring.AbstractOpMonitoringBuffer;
 import ee.ria.xroad.common.opmonitoring.OpMonitoringData;
 import ee.ria.xroad.common.opmonitoring.OpMonitoringSystemProperties;
@@ -82,8 +83,8 @@ public class OpMonitoringBuffer extends AbstractOpMonitoringBuffer {
         return new OpMonitoringDataProcessor();
     }
 
-    OpMonitoringDaemonSender createSender() throws Exception {
-        return new OpMonitoringDaemonSender(this);
+    OpMonitoringDaemonSender createSender(ServerConfProvider serverConfProvider) throws Exception {
+        return new OpMonitoringDaemonSender(serverConfProvider, this);
     }
 
     @Override

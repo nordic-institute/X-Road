@@ -27,7 +27,10 @@ package ee.ria.xroad.proxy.clientproxy;
 
 import ee.ria.xroad.common.CodedException;
 import ee.ria.xroad.common.cert.CertChain;
+import ee.ria.xroad.common.cert.CertChainFactory;
+import ee.ria.xroad.common.conf.globalconf.GlobalConfProvider;
 import ee.ria.xroad.common.conf.serverconf.IsAuthenticationData;
+import ee.ria.xroad.common.conf.serverconf.ServerConfProvider;
 import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.identifier.ServiceId;
 import ee.ria.xroad.common.message.RequestHash;
@@ -42,7 +45,7 @@ import ee.ria.xroad.common.util.HttpSender;
 import ee.ria.xroad.common.util.MimeUtils;
 import ee.ria.xroad.common.util.RequestWrapper;
 import ee.ria.xroad.common.util.ResponseWrapper;
-import ee.ria.xroad.proxy.conf.KeyConf;
+import ee.ria.xroad.proxy.conf.KeyConfProvider;
 import ee.ria.xroad.proxy.messagelog.MessageLog;
 import ee.ria.xroad.proxy.protocol.ProxyMessage;
 import ee.ria.xroad.proxy.protocol.ProxyMessageDecoder;
@@ -156,10 +159,15 @@ class ClientMessageProcessor extends AbstractClientMessageProcessor {
         return Context.taskWrapping(executor);
     }
 
-    ClientMessageProcessor(RequestWrapper request, ResponseWrapper response,
+    ClientMessageProcessor(GlobalConfProvider globalConfProvider,
+                           KeyConfProvider keyConfProvider,
+                           ServerConfProvider serverConfProvider,
+                           CertChainFactory certChainFactory,
+                           RequestWrapper request, ResponseWrapper response,
                            HttpClient httpClient, IsAuthenticationData clientCert, OpMonitoringData opMonitoringData)
             throws Exception {
-        super(request, response, httpClient, clientCert, opMonitoringData);
+        super(globalConfProvider, keyConfProvider, serverConfProvider, certChainFactory, request, response, httpClient, clientCert,
+                opMonitoringData);
         this.reqIns = new PipedInputStream();
         this.reqOuts = new PipedOutputStream(reqIns);
         this.xRequestId = UUID.randomUUID().toString();
@@ -278,7 +286,7 @@ class ClientMessageProcessor extends AbstractClientMessageProcessor {
 
         response = new ProxyMessage(httpSender.getResponseHeaders().get(HEADER_ORIGINAL_CONTENT_TYPE));
 
-        ProxyMessageDecoder decoder = new ProxyMessageDecoder(response, httpSender.getResponseContentType(),
+        ProxyMessageDecoder decoder = new ProxyMessageDecoder(globalConfProvider, response, httpSender.getResponseContentType(),
                 getHashAlgoId(httpSender));
         try {
             decoder.parse(httpSender.getResponseContent());
@@ -509,7 +517,7 @@ class ClientMessageProcessor extends AbstractClientMessageProcessor {
             updateOpMonitoringData();
 
             try {
-                request.sign(KeyConf.getSigningCtx(requestSoap.getClient()));
+                request.sign(keyConfProvider.getSigningCtx(requestSoap.getClient()));
                 logRequestMessage();
                 request.writeSignature();
             } catch (Exception ex) {
@@ -540,9 +548,9 @@ class ClientMessageProcessor extends AbstractClientMessageProcessor {
         }
 
         private void writeOcspResponses() throws Exception {
-            CertChain chain = KeyConf.getAuthKey().getCertChain();
+            CertChain chain = keyConfProvider.getAuthKey().getCertChain();
             // exclude TopCA
-            List<OCSPResp> ocspResponses = KeyConf.getAllOcspResponses(chain.getAllCertsWithoutTrustedRoot());
+            List<OCSPResp> ocspResponses = keyConfProvider.getAllOcspResponses(chain.getAllCertsWithoutTrustedRoot());
 
             for (OCSPResp ocsp : ocspResponses) {
                 request.ocspResponse(ocsp);

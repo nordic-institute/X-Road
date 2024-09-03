@@ -27,7 +27,7 @@ package ee.ria.xroad.proxy.conf;
 
 import ee.ria.xroad.common.CodedException;
 import ee.ria.xroad.common.cert.CertChain;
-import ee.ria.xroad.common.conf.globalconf.GlobalConf;
+import ee.ria.xroad.common.conf.globalconf.GlobalConfProvider;
 import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.signature.SignatureBuilder;
 import ee.ria.xroad.common.signature.SignatureData;
@@ -53,13 +53,21 @@ public class SigningCtxImpl implements SigningCtx {
     // TODO make it configurable.
     private static final String DIGEST_ALGORITHM = CryptoUtils.SHA512_ID;
 
-    /** The subject id of the signer. */
+    private final GlobalConfProvider globalConfProvider;
+    private final KeyConfProvider keyConfProvider;
+    /**
+     * The subject id of the signer.
+     */
     private final ClientId subject;
 
-    /** Encapsulates private key of the signer. */
+    /**
+     * Encapsulates private key of the signer.
+     */
     private final SigningKey key;
 
-    /** The certificate of the signer. */
+    /**
+     * The certificate of the signer.
+     */
     private final X509Certificate cert;
 
     @Override
@@ -79,11 +87,11 @@ public class SigningCtxImpl implements SigningCtx {
         allCerts.add(cert);
         allCerts.addAll(certs);
 
-        return KeyConf.getAllOcspResponses(allCerts);
+        return keyConfProvider.getAllOcspResponses(allCerts);
     }
 
     private List<X509Certificate> getIntermediateCaCerts() throws Exception {
-        CertChain chain = GlobalConf.getCertChain(subject.getXRoadInstance(), cert);
+        CertChain chain = globalConfProvider.getCertChain(subject.getXRoadInstance(), cert);
 
         if (chain == null) {
             throw new CodedException(X_CANNOT_CREATE_SIGNATURE, "Got empty certificate chain for certificate %s",

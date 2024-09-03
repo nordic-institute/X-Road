@@ -27,6 +27,8 @@ package ee.ria.xroad.proxy.protocol;
 
 import ee.ria.xroad.common.ErrorCodes;
 import ee.ria.xroad.common.ExpectedCodedException;
+import ee.ria.xroad.common.conf.globalconf.GlobalConfProvider;
+import ee.ria.xroad.common.conf.globalconf.TestGlobalConfImpl;
 import ee.ria.xroad.common.message.RestRequest;
 import ee.ria.xroad.common.message.SoapFault;
 import ee.ria.xroad.common.message.SoapMessageImpl;
@@ -57,12 +59,15 @@ public class ProxyMessageDecoderTest {
 
     DummyMessageConsumer callback;
 
+    GlobalConfProvider globalConfProvider;
+
     /**
      * Initialize.
      */
     @Before
     public void initialize() {
         callback = new DummyMessageConsumer();
+        globalConfProvider = new TestGlobalConfImpl();
     }
 
     @Rule
@@ -70,6 +75,7 @@ public class ProxyMessageDecoderTest {
 
     /**
      * Test to ensure a normal message is decoded correctly.
+     *
      * @throws Exception in case of any unexpected errors
      */
     @Test
@@ -85,6 +91,7 @@ public class ProxyMessageDecoderTest {
 
     /**
      * Test to ensure a SOAP fault request is decoded correctly.
+     *
      * @throws Exception in case of any unexpected errors
      */
     @Test
@@ -99,6 +106,7 @@ public class ProxyMessageDecoderTest {
 
     /**
      * Test to ensure a request with attachment with is decoded correctly.
+     *
      * @throws Exception in case of any unexpected errors
      */
     @Test
@@ -115,6 +123,7 @@ public class ProxyMessageDecoderTest {
 
     /**
      * Test to ensure a request with OCSP responses is decoded correctly.
+     *
      * @throws Exception in case of any unexpected errors
      */
     @Test
@@ -131,6 +140,7 @@ public class ProxyMessageDecoderTest {
 
     /**
      * Test to ensure an invalid message is decoded correctly.
+     *
      * @throws Exception in case of any unexpected errors
      */
     @Test
@@ -145,6 +155,7 @@ public class ProxyMessageDecoderTest {
 
     /**
      * Test to ensure a message with invalid content type is encoded correctly.
+     *
      * @throws Exception in case of any unexpected errors
      */
     @Test
@@ -160,6 +171,7 @@ public class ProxyMessageDecoderTest {
 
     /**
      * Test to ensure a null input is correctly handled.
+     *
      * @throws Exception in case of any unexpected errors
      */
     @Test
@@ -174,6 +186,7 @@ public class ProxyMessageDecoderTest {
 
     /**
      * Test to ensure a fault SOAP message is decoded correctly.
+     *
      * @throws Exception in case of any unexpected errors
      */
     @Test
@@ -186,6 +199,7 @@ public class ProxyMessageDecoderTest {
 
     /**
      * Test to ensure an invalid attachment is decoded correctly.
+     *
      * @throws Exception in case of any unexpected errors
      */
     @Test
@@ -201,6 +215,7 @@ public class ProxyMessageDecoderTest {
 
     /**
      * Test to ensure the decoder fails to parse a message with extra content.
+     *
      * @throws Exception in case of any unexpected errors
      */
     @Test
@@ -215,6 +230,7 @@ public class ProxyMessageDecoderTest {
 
     /**
      * Test to ensure a message with an invalid OCSP response is decoded correctly.
+     *
      * @throws Exception in case of any unexpected errors
      */
     @Test
@@ -232,6 +248,7 @@ public class ProxyMessageDecoderTest {
 
     /**
      * Test to ensure the decoder fails to parse a message with invalid SOAP content type.
+     *
      * @throws Exception in case of any unexpected errors
      */
     @Test
@@ -248,6 +265,7 @@ public class ProxyMessageDecoderTest {
 
     /**
      * Test to ensure a message with a fault instead of signature is decoded correctly.
+     *
      * @throws Exception in case of any unexpected errors
      */
     @Test
@@ -263,6 +281,7 @@ public class ProxyMessageDecoderTest {
 
     /**
      * Test to ensure a message with an invalid signature content type is decoded correctly.
+     *
      * @throws Exception in case of any unexpected errors
      */
     @Test
@@ -278,7 +297,7 @@ public class ProxyMessageDecoderTest {
     }
 
     private ProxyMessageDecoder createDecoder(String contentType) {
-        return new ProxyMessageDecoder(callback, contentType, true,
+        return new ProxyMessageDecoder(globalConfProvider, callback, contentType, true,
                 getHashAlgoId());
     }
 

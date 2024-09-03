@@ -42,6 +42,10 @@ public class FileSystemGlobalConfSource implements GlobalConfSource {
 
     private VersionedConfigurationDirectory configurationDirectory;
 
+    public FileSystemGlobalConfSource() {
+        this(getConfigurationPath());
+    }
+
     public FileSystemGlobalConfSource(String globalConfigurationDir) {
         try {
             configurationDirectory = new VersionedConfigurationDirectory(globalConfigurationDir);

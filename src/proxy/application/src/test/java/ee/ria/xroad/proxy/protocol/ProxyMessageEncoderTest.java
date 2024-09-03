@@ -25,6 +25,8 @@
  */
 package ee.ria.xroad.proxy.protocol;
 
+import ee.ria.xroad.common.conf.globalconf.GlobalConfProvider;
+import ee.ria.xroad.common.conf.globalconf.TestGlobalConfImpl;
 import ee.ria.xroad.common.message.SaxSoapParserImpl;
 import ee.ria.xroad.common.message.Soap;
 import ee.ria.xroad.common.message.SoapFault;
@@ -58,6 +60,7 @@ public class ProxyMessageEncoderTest {
 
     ByteArrayOutputStream out;
     ProxyMessageEncoder encoder;
+    GlobalConfProvider globalConfProvider;
 
     /**
      * Initialize.
@@ -66,10 +69,12 @@ public class ProxyMessageEncoderTest {
     public void initialize() {
         out = new ByteArrayOutputStream();
         encoder = new ProxyMessageEncoder(out, getHashAlgoId());
+        globalConfProvider = new TestGlobalConfImpl();
     }
 
     /**
      * Test to ensure a normal message is encoded correctly.
+     *
      * @throws Exception in case of any unexpected errors
      */
     @Test
@@ -92,6 +97,7 @@ public class ProxyMessageEncoderTest {
 
     /**
      * Test to ensure a normal message with OCSP responses is encoded correctly.
+     *
      * @throws Exception in case of any unexpected errors
      */
     @Test
@@ -116,6 +122,7 @@ public class ProxyMessageEncoderTest {
 
     /**
      * Test to ensure a normal message with an attachment is encoded correctly.
+     *
      * @throws Exception in case of any unexpected errors
      */
     @Test
@@ -139,6 +146,7 @@ public class ProxyMessageEncoderTest {
 
     /**
      * Test to ensure a SOAP fault message is encoded correctly.
+     *
      * @throws Exception in case of any unexpected errors
      */
     @Test
@@ -156,6 +164,7 @@ public class ProxyMessageEncoderTest {
 
     /**
      * Test to ensure a normal message with fault instead of signature is encoded correctly.
+     *
      * @throws Exception in case of any unexpected errors
      */
     @Test
@@ -176,7 +185,7 @@ public class ProxyMessageEncoderTest {
 
     private ProxyMessage decode() throws Exception {
         ProxyMessage proxyMessage = new ProxyMessage("text/xml");
-        ProxyMessageDecoder decoder = new ProxyMessageDecoder(proxyMessage, encoder.getContentType(), getHashAlgoId());
+        ProxyMessageDecoder decoder = new ProxyMessageDecoder(globalConfProvider, proxyMessage, encoder.getContentType(), getHashAlgoId());
         decoder.parse(new ByteArrayInputStream(out.toByteArray()));
 
         return proxyMessage;

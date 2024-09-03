@@ -25,7 +25,7 @@
  */
 package ee.ria.xroad.common.ocsp;
 
-import ee.ria.xroad.common.conf.globalconf.GlobalConf;
+import ee.ria.xroad.common.conf.globalconf.GlobalConfProvider;
 import ee.ria.xroad.common.conf.globalconfextension.GlobalConfExtensions;
 
 import lombok.extern.slf4j.Slf4j;
@@ -44,8 +44,13 @@ import java.util.concurrent.ConcurrentHashMap;
  */
 @Slf4j
 public class OcspCache {
+    private final GlobalConfProvider globalConfProvider;
 
     protected final Map<String, OCSPResp> cache = new ConcurrentHashMap<>();
+
+    public OcspCache(GlobalConfProvider globalConfProvider) {
+        this.globalConfProvider = globalConfProvider;
+    }
 
     /**
      * @param key the key
@@ -58,7 +63,8 @@ public class OcspCache {
 
     /**
      * Associates a key with the OCSP response.
-     * @param key the key
+     *
+     * @param key   the key
      * @param value the OCSP response
      * @return the OCSP response
      */
@@ -102,9 +108,9 @@ public class OcspCache {
         return cachedResponse;
     }
 
-    protected static boolean isExpired(OCSPResp response, Date atDate)
+    protected boolean isExpired(OCSPResp response, Date atDate)
             throws Exception {
-        OcspVerifier verifier = new OcspVerifier(GlobalConf.getOcspFreshnessSeconds(),
+        OcspVerifier verifier = new OcspVerifier(globalConfProvider,
                 new OcspVerifierOptions(GlobalConfExtensions.getInstance().shouldVerifyOcspNextUpdate()));
         return verifier.isExpired(response, atDate);
     }

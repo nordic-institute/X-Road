@@ -27,6 +27,7 @@ package ee.ria.xroad.common.conf.globalconf;
 
 import ee.ria.xroad.common.CodedException;
 import ee.ria.xroad.common.cert.CertChain;
+import ee.ria.xroad.common.cert.CertChainFactory;
 import ee.ria.xroad.common.certificateprofile.AuthCertificateProfileInfo;
 import ee.ria.xroad.common.certificateprofile.CertificateProfileInfoProvider;
 import ee.ria.xroad.common.certificateprofile.GetCertificateProfile;
@@ -72,9 +73,11 @@ import static java.util.stream.Collectors.toSet;
 public class GlobalConfImpl implements GlobalConfProvider {
 
     private final GlobalConfSource globalConfSource;
+    private final CertChainFactory certChainFactory;
 
     public GlobalConfImpl(GlobalConfSource globalConfSource) {
         this.globalConfSource = globalConfSource;
+        this.certChainFactory = new CertChainFactory(this);
     }
 
     @Override
@@ -380,7 +383,7 @@ public class GlobalConfImpl implements GlobalConfProvider {
             return null;
         }
 
-        return CertChain.create(instanceIdentifier, chain.toArray(new X509Certificate[chain.size()]));
+        return certChainFactory.create(instanceIdentifier, chain.toArray(new X509Certificate[chain.size()]));
     }
 
     X509Certificate getCaCertForSubject(X509Certificate subject, SharedParametersCache sharedParameters)

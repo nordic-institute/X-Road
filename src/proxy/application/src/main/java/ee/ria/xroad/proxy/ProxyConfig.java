@@ -25,11 +25,18 @@
  */
 package ee.ria.xroad.proxy;
 
+import ee.ria.xroad.common.cert.CertChainFactory;
+import ee.ria.xroad.common.cert.CertHelper;
 import ee.ria.xroad.common.conf.globalconf.GlobalConfBeanConfig;
 import ee.ria.xroad.common.conf.globalconf.GlobalConfProvider;
+import ee.ria.xroad.common.conf.serverconf.ServerConfBeanConfig;
+import ee.ria.xroad.common.conf.serverconf.ServerConfProvider;
 import ee.ria.xroad.common.opmonitoring.AbstractOpMonitoringBuffer;
 import ee.ria.xroad.common.signature.BatchSigner;
+import ee.ria.xroad.proxy.clientproxy.AuthTrustVerifier;
 import ee.ria.xroad.proxy.clientproxy.ClientProxy;
+import ee.ria.xroad.proxy.conf.CachingKeyConfImpl;
+import ee.ria.xroad.proxy.conf.KeyConfProvider;
 import ee.ria.xroad.proxy.opmonitoring.OpMonitoring;
 import ee.ria.xroad.proxy.serverproxy.ServerProxy;
 import ee.ria.xroad.proxy.util.CertHashBasedOcspResponder;
@@ -45,7 +52,8 @@ import org.springframework.context.annotation.Import;
         ProxyDiagnosticsConfig.class,
         ProxyJobConfig.class,
         ProxyMessageLogConfig.class,
-        GlobalConfBeanConfig.class
+        GlobalConfBeanConfig.class,
+        ServerConfBeanConfig.class
 })
 @Configuration
 public class ProxyConfig {
@@ -56,22 +64,49 @@ public class ProxyConfig {
     }
 
     @Bean(initMethod = "start", destroyMethod = "stop")
-    ClientProxy clientProxy() throws Exception {
-        return new ClientProxy();
+    ClientProxy clientProxy(GlobalConfProvider globalConfProvider,
+                            KeyConfProvider keyConfProvider,
+                            ServerConfProvider serverConfProvider,
+                            CertChainFactory certChainFactory,
+                            AuthTrustVerifier authTrustVerifier) throws Exception {
+        return new ClientProxy(globalConfProvider, keyConfProvider, serverConfProvider, certChainFactory, authTrustVerifier);
+    }
+
+    @Bean
+    CertHelper certHelper(GlobalConfProvider globalConfProvider) {
+        return new CertHelper(globalConfProvider);
+    }
+
+    @Bean
+    CertChainFactory certChainFactory(GlobalConfProvider globalConfProvider) {
+        return new CertChainFactory(globalConfProvider);
+    }
+
+    @Bean
+    AuthTrustVerifier authTrustVerifier(KeyConfProvider keyConfProvider, CertHelper certHelper, CertChainFactory certChainFactory) {
+        return new AuthTrustVerifier(keyConfProvider, certHelper, certChainFactory);
     }
 
     @Bean(initMethod = "start", destroyMethod = "stop")
-    ServerProxy serverProxy(GlobalConfProvider globalConfProvider) throws Exception {
-        return new ServerProxy(globalConfProvider);
+    ServerProxy serverProxy(GlobalConfProvider globalConfProvider,
+                            KeyConfProvider keyConfProvider,
+                            ServerConfProvider serverConfProvider,
+                            CertChainFactory certChainFactory) throws Exception {
+        return new ServerProxy(globalConfProvider, keyConfProvider, serverConfProvider, certChainFactory);
     }
 
     @Bean(initMethod = "start", destroyMethod = "stop")
-    CertHashBasedOcspResponder certHashBasedOcspResponder() throws Exception {
-        return new CertHashBasedOcspResponder();
+    CertHashBasedOcspResponder certHashBasedOcspResponder(KeyConfProvider keyConfProvider) throws Exception {
+        return new CertHashBasedOcspResponder(keyConfProvider);
     }
 
     @Bean(initMethod = "start", destroyMethod = "stop")
     AbstractOpMonitoringBuffer opMonitoringBuffer() throws Exception {
         return OpMonitoring.init();
+    }
+
+    @Bean
+    KeyConfProvider keyConfProvider(GlobalConfProvider globalConfProvider, ServerConfProvider serverConfProvider) throws Exception {
+        return CachingKeyConfImpl.newInstance(globalConfProvider, serverConfProvider);
     }
 }

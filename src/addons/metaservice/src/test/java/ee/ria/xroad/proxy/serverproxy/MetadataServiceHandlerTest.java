@@ -30,6 +30,7 @@ import ee.ria.xroad.common.ErrorCodes;
 import ee.ria.xroad.common.SystemProperties;
 import ee.ria.xroad.common.conf.globalconf.GlobalConf;
 import ee.ria.xroad.common.conf.serverconf.ServerConf;
+import ee.ria.xroad.common.conf.serverconf.ServerConfProvider;
 import ee.ria.xroad.common.conf.serverconf.model.ClientType;
 import ee.ria.xroad.common.conf.serverconf.model.DescriptionType;
 import ee.ria.xroad.common.conf.serverconf.model.ServerConfType;
@@ -505,6 +506,10 @@ public class MetadataServiceHandlerTest {
 
     private static final class TestMetadataServiceHandlerImpl extends MetadataServiceHandlerImpl {
         private OverwriteAttributeFilter filter;
+
+        TestMetadataServiceHandlerImpl(ServerConfProvider serverConfProvider) {
+            super(serverConfProvider);
+        }
 
         @Override
         protected OverwriteAttributeFilter getModifyWsdlFilter() {

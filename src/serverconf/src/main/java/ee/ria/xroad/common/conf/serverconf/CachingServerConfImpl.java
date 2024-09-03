@@ -28,7 +28,7 @@ package ee.ria.xroad.common.conf.serverconf;
 import ee.ria.xroad.common.CodedException;
 import ee.ria.xroad.common.SystemProperties;
 import ee.ria.xroad.common.conf.InternalSSLKey;
-import ee.ria.xroad.common.conf.globalconf.GlobalConf;
+import ee.ria.xroad.common.conf.globalconf.GlobalConfProvider;
 import ee.ria.xroad.common.conf.serverconf.model.ClientType;
 import ee.ria.xroad.common.conf.serverconf.model.DescriptionType;
 import ee.ria.xroad.common.conf.serverconf.model.EndpointType;
@@ -73,8 +73,8 @@ public class CachingServerConfImpl extends ServerConfImpl {
      * with internal key cache)
      */
     @SuppressWarnings("checkstyle:MagicNumber")
-    public CachingServerConfImpl() {
-        super();
+    public CachingServerConfImpl(GlobalConfProvider globalConfProvider) {
+        super(globalConfProvider);
         expireSeconds = SystemProperties.getServerConfCachePeriod();
 
         internalKeyCache = CacheBuilder.newBuilder()
@@ -127,7 +127,7 @@ public class CachingServerConfImpl extends ServerConfImpl {
         if (id == null) {
             return getAndCacheServerId(null);
         } else {
-            if (GlobalConf.getServerOwner(id) == null) {
+            if (globalConfProvider.getServerOwner(id) == null) {
                 // Globalconf and the cached value disagree on server owner (maybe changed)
                 return getAndCacheServerId(id);
             } else {

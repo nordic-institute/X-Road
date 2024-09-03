@@ -30,7 +30,7 @@ import ee.ria.xroad.common.util.JettyUtils;
 import ee.ria.xroad.common.util.MimeTypes;
 import ee.ria.xroad.common.util.MimeUtils;
 import ee.ria.xroad.common.util.StartStop;
-import ee.ria.xroad.proxy.conf.KeyConf;
+import ee.ria.xroad.proxy.conf.KeyConfProvider;
 
 import lombok.extern.slf4j.Slf4j;
 import org.bouncycastle.cert.ocsp.OCSPResp;
@@ -73,6 +73,7 @@ public class CertHashBasedOcspResponder implements StartStop {
 
     private static final String CERT_PARAM = "cert";
 
+    private final KeyConfProvider keyConfProvider;
     private final Server server = new Server();
 
     /**
@@ -80,8 +81,8 @@ public class CertHashBasedOcspResponder implements StartStop {
      *
      * @throws Exception in case of any errors
      */
-    public CertHashBasedOcspResponder() throws Exception {
-        this(SystemProperties.getOcspResponderListenAddress());
+    public CertHashBasedOcspResponder(KeyConfProvider keyConfProvider) throws Exception {
+        this(keyConfProvider, SystemProperties.getOcspResponderListenAddress());
     }
 
     /**
@@ -90,7 +91,8 @@ public class CertHashBasedOcspResponder implements StartStop {
      * @param host the address this responder should listen at
      * @throws Exception in case of any errors
      */
-    public CertHashBasedOcspResponder(String host) throws Exception {
+    public CertHashBasedOcspResponder(KeyConfProvider keyConfProvider, String host) throws Exception {
+        this.keyConfProvider = keyConfProvider;
         configureServer();
         createConnector(host);
         createHandler();
@@ -199,7 +201,7 @@ public class CertHashBasedOcspResponder implements StartStop {
         }
     }
 
-    private static List<OCSPResp> getOcspResponses(List<String> certHashes) throws Exception {
+    private List<OCSPResp> getOcspResponses(List<String> certHashes) throws Exception {
         List<OCSPResp> ocspResponses = new ArrayList<>(certHashes.size());
 
         for (String certHash : certHashes) {
@@ -209,8 +211,8 @@ public class CertHashBasedOcspResponder implements StartStop {
         return ocspResponses;
     }
 
-    private static OCSPResp getOcspResponse(String certHash) throws Exception {
-        OCSPResp ocsp = KeyConf.getOcspResponse(certHash);
+    private OCSPResp getOcspResponse(String certHash) throws Exception {
+        OCSPResp ocsp = keyConfProvider.getOcspResponse(certHash);
 
         if (ocsp == null) {
             throw new Exception("Could not find OCSP response for certificate " + certHash);

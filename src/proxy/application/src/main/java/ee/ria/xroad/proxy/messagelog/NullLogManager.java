@@ -26,6 +26,8 @@
 package ee.ria.xroad.proxy.messagelog;
 
 import ee.ria.xroad.common.DiagnosticsStatus;
+import ee.ria.xroad.common.conf.globalconf.GlobalConfProvider;
+import ee.ria.xroad.common.conf.serverconf.ServerConfProvider;
 import ee.ria.xroad.common.messagelog.AbstractLogManager;
 import ee.ria.xroad.common.messagelog.LogMessage;
 import ee.ria.xroad.common.messagelog.TimestampRecord;
@@ -39,8 +41,8 @@ import java.util.Map;
  */
 public class NullLogManager extends AbstractLogManager {
 
-    NullLogManager(JobManager jobManager) {
-        super(jobManager);
+    NullLogManager(JobManager jobManager, GlobalConfProvider globalConfProvider, ServerConfProvider serverConfProvider) {
+        super(jobManager, globalConfProvider, serverConfProvider);
     }
 
     @Override

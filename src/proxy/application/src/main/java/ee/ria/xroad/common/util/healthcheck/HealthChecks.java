@@ -28,9 +28,9 @@ package ee.ria.xroad.common.util.healthcheck;
 import ee.ria.xroad.common.cert.CertChain;
 import ee.ria.xroad.common.conf.globalconf.AuthKey;
 import ee.ria.xroad.common.conf.globalconf.GlobalConfProvider;
-import ee.ria.xroad.common.conf.serverconf.ServerConf;
+import ee.ria.xroad.common.conf.serverconf.ServerConfProvider;
 import ee.ria.xroad.proxy.addon.module.HardwareSecurityModuleUtils;
-import ee.ria.xroad.proxy.conf.KeyConf;
+import ee.ria.xroad.proxy.conf.KeyConfProvider;
 
 import com.google.common.base.Supplier;
 import com.google.common.base.Suppliers;
@@ -53,6 +53,8 @@ import static ee.ria.xroad.common.util.healthcheck.HealthCheckResult.failure;
 @RequiredArgsConstructor
 public class HealthChecks {
     private final GlobalConfProvider globalConfProvider;
+    private final KeyConfProvider keyConfProvider;
+    private final ServerConfProvider serverConfProvider;
 
     /**
      * A {@link HealthCheckProvider} that checks the authentication key and its OCSP response status
@@ -64,7 +66,7 @@ public class HealthChecks {
         return () -> {
 
             // this fails if signer is down
-            AuthKey authKey = KeyConf.getAuthKey();
+            AuthKey authKey = keyConfProvider.getAuthKey();
 
             if (authKey == null) {
                 return failure("No authentication key available. Signer might be down.");
@@ -84,7 +86,7 @@ public class HealthChecks {
             int ocspStatus;
 
             try {
-                ocspStatus = KeyConf.getOcspResponse(certificate).getStatus();
+                ocspStatus = keyConfProvider.getOcspResponse(certificate).getStatus();
             } catch (Exception e) {
                 log.error("Getting OCSP response for authentication key failed, got exception", e);
                 return failure("Getting OCSP response for authentication key failed.");
@@ -96,7 +98,7 @@ public class HealthChecks {
     }
 
     /**
-     * A {@link HealthCheckProvider} that checks it can access and retrieve data from the {@link ServerConf}
+     * A {@link HealthCheckProvider} that checks it can access and retrieve data from the {@link ServerConfProvider}
      * (the database behind it).
      *
      * @return the result of the check
@@ -104,11 +106,11 @@ public class HealthChecks {
     public HealthCheckProvider checkServerConfDatabaseStatus() {
         return () -> {
             try {
-                if (!ServerConf.isAvailable()) {
+                if (!serverConfProvider.isAvailable()) {
                     return failure("ServerConf is not available");
                 }
                 //this fails if the database has not been initialized
-                ServerConf.getIdentifier();
+                serverConfProvider.getIdentifier();
             } catch (RuntimeException e) {
                 log.error("Got exception while checking server configuration db status", e);
                 return failure("Server Conf database did not respond as expected");

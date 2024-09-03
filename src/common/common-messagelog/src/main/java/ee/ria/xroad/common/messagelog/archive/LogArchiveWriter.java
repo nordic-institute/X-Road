@@ -25,6 +25,8 @@
  */
 package ee.ria.xroad.common.messagelog.archive;
 
+import ee.ria.xroad.common.conf.globalconf.GlobalConfProvider;
+import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.messagelog.MessageLogProperties;
 import ee.ria.xroad.common.messagelog.MessageRecord;
 
@@ -49,6 +51,7 @@ public class LogArchiveWriter implements Closeable {
 
     private final SimpleDateFormat simpleDateFormat = new SimpleDateFormat("yyyyMMddHHmmss");
 
+    private final GlobalConfProvider globalConfProvider;
     private final Path outputPath;
     private final LogArchiveBase archiveBase;
 
@@ -68,7 +71,8 @@ public class LogArchiveWriter implements Closeable {
      * @param outputPath  directory where the log archive is created.
      * @param archiveBase interface to archive database.
      */
-    public LogArchiveWriter(Path outputPath, LogArchiveBase archiveBase) throws IOException {
+    public LogArchiveWriter(GlobalConfProvider globalConfProvider, Path outputPath, LogArchiveBase archiveBase) throws IOException {
+        this.globalConfProvider = globalConfProvider;
         this.outputPath = outputPath;
         this.archiveBase = archiveBase;
         this.linkingInfoBuilder = new LinkingInfoBuilder(MessageLogProperties.getHashAlg());
@@ -114,12 +118,17 @@ public class LogArchiveWriter implements Closeable {
     }
 
     private void prepareGrouping(MessageRecord logRecord) throws IOException {
-        grouping = groupingStrategy.forRecord(logRecord);
+        grouping = forRecord(groupingStrategy, logRecord);
         linkingInfoBuilder.reset(archiveBase.loadLastArchive(grouping.name()));
         logArchiveCache = new LogArchiveCache(
                 linkingInfoBuilder,
                 encryptionConfigProvider.forGrouping(grouping),
                 outputPath);
+    }
+
+    private Grouping forRecord(GroupingStrategy groupingStrategy, MessageRecord record) {
+        return groupingStrategy.forClient(ClientId.Conf.create(globalConfProvider.getInstanceIdentifier(),
+                record.getMemberClass(), record.getMemberCode(), record.getSubsystemCode()));
     }
 
     @Override

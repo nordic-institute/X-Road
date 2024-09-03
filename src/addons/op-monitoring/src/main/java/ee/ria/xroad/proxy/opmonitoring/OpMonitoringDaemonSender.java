@@ -25,7 +25,7 @@
  */
 package ee.ria.xroad.proxy.opmonitoring;
 
-import ee.ria.xroad.common.conf.serverconf.ServerConf;
+import ee.ria.xroad.common.conf.serverconf.ServerConfProvider;
 import ee.ria.xroad.common.opmonitoring.OpMonitoringDaemonEndpoints;
 import ee.ria.xroad.common.opmonitoring.OpMonitoringDaemonHttpClient;
 import ee.ria.xroad.common.opmonitoring.OpMonitoringData;
@@ -70,13 +70,15 @@ public class OpMonitoringDaemonSender implements StartStop {
             OpMonitoringSystemProperties.getOpMonitorBufferSocketTimeoutSeconds());
 
     private final OpMonitoringDataProcessor opMonitoringDataProcessor = new OpMonitoringDataProcessor();
+    private final ServerConfProvider serverConfProvider;
     private final OpMonitoringBuffer opMonitoringBuffer;
     private final CloseableHttpClient httpClient;
     private final ExecutorService executorService = Executors.newSingleThreadExecutor();
 
     private final AtomicBoolean processing = new AtomicBoolean(false);
 
-    OpMonitoringDaemonSender(OpMonitoringBuffer opMonitoringBuffer) throws Exception {
+    OpMonitoringDaemonSender(ServerConfProvider serverConfProvider, OpMonitoringBuffer opMonitoringBuffer) throws Exception {
+        this.serverConfProvider = serverConfProvider;
         this.httpClient = createHttpClient();
         this.opMonitoringBuffer = opMonitoringBuffer;
     }
@@ -142,7 +144,7 @@ public class OpMonitoringDaemonSender implements StartStop {
     }
 
     CloseableHttpClient createHttpClient() throws Exception {
-        return OpMonitoringDaemonHttpClient.createHttpClient(ServerConf.getSSLKey(),
+        return OpMonitoringDaemonHttpClient.createHttpClient(serverConfProvider.getSSLKey(),
                 1, 1,
                 TimeUtils.secondsToMillis(OpMonitoringSystemProperties.getOpMonitorBufferConnectionTimeoutSeconds()),
                 TimeUtils.secondsToMillis(OpMonitoringSystemProperties.getOpMonitorBufferSocketTimeoutSeconds()));

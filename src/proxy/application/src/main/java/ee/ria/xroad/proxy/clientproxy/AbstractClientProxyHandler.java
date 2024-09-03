@@ -28,11 +28,15 @@ package ee.ria.xroad.proxy.clientproxy;
 import ee.ria.xroad.common.CodedException;
 import ee.ria.xroad.common.CodedExceptionWithHttpStatus;
 import ee.ria.xroad.common.SystemProperties;
+import ee.ria.xroad.common.cert.CertChainFactory;
+import ee.ria.xroad.common.conf.globalconf.GlobalConfProvider;
 import ee.ria.xroad.common.conf.serverconf.IsAuthenticationData;
+import ee.ria.xroad.common.conf.serverconf.ServerConfProvider;
 import ee.ria.xroad.common.opmonitoring.OpMonitoringData;
 import ee.ria.xroad.common.util.HandlerBase;
 import ee.ria.xroad.common.util.RequestWrapper;
 import ee.ria.xroad.common.util.ResponseWrapper;
+import ee.ria.xroad.proxy.conf.KeyConfProvider;
 import ee.ria.xroad.proxy.opmonitoring.OpMonitoring;
 import ee.ria.xroad.proxy.util.MessageProcessorBase;
 import ee.ria.xroad.proxy.util.PerformanceLogger;
@@ -63,6 +67,12 @@ import static org.eclipse.jetty.server.Request.getRemoteAddr;
 abstract class AbstractClientProxyHandler extends HandlerBase {
 
     private static final String START_TIME_ATTRIBUTE = AbstractClientProxyHandler.class.getName() + ".START_TIME";
+
+    protected final GlobalConfProvider globalConfProvider;
+    protected final KeyConfProvider keyConfProvider;
+    protected final ServerConfProvider serverConfProvider;
+    protected final CertChainFactory certChainFactory;
+
     protected final HttpClient client;
 
     protected final boolean storeOpMonitoringData;

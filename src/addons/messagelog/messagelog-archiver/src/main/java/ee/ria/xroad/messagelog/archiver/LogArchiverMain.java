@@ -48,6 +48,7 @@ public final class LogArchiverMain {
     public static void main(String[] args) {
         Version.outputVersionInfo("MessageLogArchiver");
 
+        //TODO
         try {
             SystemPropertiesLoader.create()
                     .withCommonAndLocal()

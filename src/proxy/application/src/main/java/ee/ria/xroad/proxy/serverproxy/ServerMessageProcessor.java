@@ -28,9 +28,9 @@ package ee.ria.xroad.proxy.serverproxy;
 import ee.ria.xroad.common.CodedException;
 import ee.ria.xroad.common.SystemProperties;
 import ee.ria.xroad.common.cert.CertChain;
-import ee.ria.xroad.common.cert.CertHelper;
-import ee.ria.xroad.common.conf.globalconf.GlobalConf;
-import ee.ria.xroad.common.conf.serverconf.ServerConf;
+import ee.ria.xroad.common.cert.CertChainFactory;
+import ee.ria.xroad.common.conf.globalconf.GlobalConfProvider;
+import ee.ria.xroad.common.conf.serverconf.ServerConfProvider;
 import ee.ria.xroad.common.conf.serverconf.model.ClientType;
 import ee.ria.xroad.common.conf.serverconf.model.DescriptionType;
 import ee.ria.xroad.common.identifier.ClientId;
@@ -48,7 +48,7 @@ import ee.ria.xroad.common.util.HttpSender;
 import ee.ria.xroad.common.util.RequestWrapper;
 import ee.ria.xroad.common.util.ResponseWrapper;
 import ee.ria.xroad.common.util.TimeUtils;
-import ee.ria.xroad.proxy.conf.KeyConf;
+import ee.ria.xroad.proxy.conf.KeyConfProvider;
 import ee.ria.xroad.proxy.conf.SigningCtx;
 import ee.ria.xroad.proxy.messagelog.MessageLog;
 import ee.ria.xroad.proxy.protocol.ProxyMessage;
@@ -125,10 +125,14 @@ class ServerMessageProcessor extends MessageProcessorBase {
     private HttpClient opMonitorHttpClient;
     private OpMonitoringData opMonitoringData;
 
-    ServerMessageProcessor(RequestWrapper request, ResponseWrapper response,
+    ServerMessageProcessor(GlobalConfProvider globalConfProvider,
+                           KeyConfProvider keyConfProvider,
+                           ServerConfProvider serverConfProvider,
+                           CertChainFactory certChainFactory,
+                           RequestWrapper request, ResponseWrapper response,
                            HttpClient httpClient, X509Certificate[] clientSslCerts,
                            HttpClient opMonitorHttpClient, OpMonitoringData opMonitoringData) {
-        super(request, response, httpClient);
+        super(globalConfProvider, keyConfProvider, serverConfProvider, certChainFactory, request, response, httpClient);
 
         this.clientSslCerts = clientSslCerts;
         this.opMonitorHttpClient = opMonitorHttpClient;
@@ -179,8 +183,8 @@ class ServerMessageProcessor extends MessageProcessorBase {
             X509Certificate authCert = getClientAuthCert();
 
             if (authCert != null) {
-                opMonitoringData.setClientSecurityServerAddress(GlobalConf.getSecurityServerAddress(
-                        GlobalConf.getServerId(authCert)));
+                opMonitoringData.setClientSecurityServerAddress(globalConfProvider.getSecurityServerAddress(
+                        globalConfProvider.getServerId(authCert)));
             }
         } catch (Exception e) {
             log.error("Failed to assign operational monitoring data field {}",
@@ -215,13 +219,13 @@ class ServerMessageProcessor extends MessageProcessorBase {
 
         if (!StringUtils.isBlank(serviceHandlerNames)) {
             for (String serviceHandlerName : serviceHandlerNames.split(",")) {
-                handlers.add(ServiceHandlerLoader.load(serviceHandlerName));
+                handlers.add(ServiceHandlerLoader.load(serverConfProvider, serviceHandlerName));
 
-                log.debug("Loaded service handler: " + serviceHandlerName);
+                log.debug("Loaded service handler: {}", serviceHandlerName);
             }
         }
 
-        handlers.add(new DefaultServiceHandlerImpl()); // default handler
+        handlers.add(new DefaultServiceHandlerImpl(serverConfProvider)); // default handler
     }
 
     private ServiceHandler getServiceHandler(ProxyMessage request) {
@@ -238,7 +242,7 @@ class ServerMessageProcessor extends MessageProcessorBase {
         ServiceHandler handler = getServiceHandler(requestMessage);
 
         if (handler == null) {
-            handler = new DefaultServiceHandlerImpl();
+            handler = new DefaultServiceHandlerImpl(serverConfProvider);
         }
 
         if (handler.shouldVerifyAccess()) {
@@ -277,7 +281,7 @@ class ServerMessageProcessor extends MessageProcessorBase {
                 verifySecurityServer();
                 verifyClientStatus();
 
-                responseSigningCtx = KeyConf.getSigningCtx(requestServiceId.getClientId());
+                responseSigningCtx = keyConfProvider.getSigningCtx(requestServiceId.getClientId());
 
                 if (SystemProperties.isSslEnabled()) {
                     verifySslClientCert();
@@ -285,7 +289,7 @@ class ServerMessageProcessor extends MessageProcessorBase {
             }
         };
 
-        decoder = new ProxyMessageDecoder(requestMessage, jRequest.getContentType(), false,
+        decoder = new ProxyMessageDecoder(globalConfProvider, requestMessage, jRequest.getContentType(), false,
                 getHashAlgoId(jRequest));
         try {
             decoder.parse(jRequest.getInputStream());
@@ -326,7 +330,7 @@ class ServerMessageProcessor extends MessageProcessorBase {
     private void verifyClientStatus() {
         ClientId client = requestServiceId.getClientId();
 
-        String status = ServerConf.getMemberStatus(client);
+        String status = serverConfProvider.getMemberStatus(client);
 
         if (!ClientType.STATUS_REGISTERED.equals(status)) {
             throw new CodedException(X_UNKNOWN_MEMBER, "Client '%s' not found", client);
@@ -343,7 +347,7 @@ class ServerMessageProcessor extends MessageProcessorBase {
 
         String instanceIdentifier = requestMessage.getSoap().getClient().getXRoadInstance();
 
-        X509Certificate trustAnchor = GlobalConf.getCaCert(instanceIdentifier,
+        X509Certificate trustAnchor = globalConfProvider.getCaCert(instanceIdentifier,
                 clientSslCerts[clientSslCerts.length - 1]);
 
         if (trustAnchor == null) {
@@ -351,9 +355,8 @@ class ServerMessageProcessor extends MessageProcessorBase {
         }
 
         try {
-            CertChain chain = CertChain.create(instanceIdentifier, (X509Certificate[]) ArrayUtils.add(clientSslCerts,
-                    trustAnchor));
-            CertHelper.verifyAuthCert(chain, requestMessage.getOcspResponses(), requestMessage.getSoap().getClient());
+            CertChain chain = certChainFactory.create(instanceIdentifier, ArrayUtils.add(clientSslCerts, trustAnchor));
+            certHelper.verifyAuthCert(chain, requestMessage.getOcspResponses(), requestMessage.getSoap().getClient());
         } catch (Exception e) {
             throw new CodedException(X_SSL_AUTH_FAILED, e);
         }
@@ -363,7 +366,7 @@ class ServerMessageProcessor extends MessageProcessorBase {
         final SecurityServerId requestServerId = requestMessage.getSoap().getSecurityServer();
 
         if (requestServerId != null) {
-            final SecurityServerId serverId = ServerConf.getIdentifier();
+            final SecurityServerId serverId = serverConfProvider.getIdentifier();
 
             if (!requestServerId.equals(serverId)) {
                 throw new CodedException(X_INVALID_SECURITY_SERVER,
@@ -375,21 +378,21 @@ class ServerMessageProcessor extends MessageProcessorBase {
     private void verifyAccess() throws Exception {
         log.trace("verifyAccess()");
 
-        if (!ServerConf.serviceExists(requestServiceId)) {
+        if (!serverConfProvider.serviceExists(requestServiceId)) {
             throw new CodedException(X_UNKNOWN_SERVICE, "Unknown service: %s", requestServiceId);
         }
 
-        DescriptionType descriptionType = ServerConf.getDescriptionType(requestServiceId);
+        DescriptionType descriptionType = serverConfProvider.getDescriptionType(requestServiceId);
         if (descriptionType != null && descriptionType != DescriptionType.WSDL) {
             throw new CodedException(X_INVALID_SERVICE_TYPE,
                     "Service is a REST service and cannot be called using SOAP interface");
         }
 
-        if (!ServerConf.isQueryAllowed(requestMessage.getSoap().getClient(), requestServiceId)) {
+        if (!serverConfProvider.isQueryAllowed(requestMessage.getSoap().getClient(), requestServiceId)) {
             throw new CodedException(X_ACCESS_DENIED, "Request is not allowed: %s", requestServiceId);
         }
 
-        String disabledNotice = ServerConf.getDisabledNotice(requestServiceId);
+        String disabledNotice = serverConfProvider.getDisabledNotice(requestServiceId);
 
         if (disabledNotice != null) {
             throw new CodedException(X_SERVICE_DISABLED, "Service %s is disabled: %s", requestServiceId,
@@ -534,9 +537,13 @@ class ServerMessageProcessor extends MessageProcessorBase {
         return hashAlgoId;
     }
 
-    private final class DefaultServiceHandlerImpl implements ServiceHandler {
+    private final class DefaultServiceHandlerImpl extends AbstractServiceHandler {
 
         private HttpSender sender;
+
+        DefaultServiceHandlerImpl(ServerConfProvider serverConfProvider) {
+            super(serverConfProvider);
+        }
 
         @Override
         public boolean shouldVerifyAccess() {
@@ -565,14 +572,14 @@ class ServerMessageProcessor extends MessageProcessorBase {
 
             log.trace("processRequest({})", requestServiceId);
 
-            String address = ServerConf.getServiceAddress(requestServiceId);
+            String address = serverConfProvider.getServiceAddress(requestServiceId);
 
             if (address == null || address.isEmpty()) {
                 throw new CodedException(X_SERVICE_MISSING_URL, "Service address not specified for '%s'",
                         requestServiceId);
             }
 
-            int timeout = TimeUtils.secondsToMillis(ServerConf.getServiceTimeout(requestServiceId));
+            int timeout = TimeUtils.secondsToMillis(serverConfProvider.getServiceTimeout(requestServiceId));
 
             sender.setConnectionTimeout(timeout);
             sender.setSocketTimeout(timeout);

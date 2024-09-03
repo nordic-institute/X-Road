@@ -30,9 +30,9 @@ import ee.ria.xroad.common.SystemProperties;
 import ee.ria.xroad.common.cert.CertChain;
 import ee.ria.xroad.common.cert.CertChainVerifier;
 import ee.ria.xroad.common.conf.globalconf.AuthKey;
-import ee.ria.xroad.common.conf.globalconf.GlobalConf;
+import ee.ria.xroad.common.conf.globalconf.GlobalConfProvider;
 import ee.ria.xroad.common.conf.globalconfextension.GlobalConfExtensions;
-import ee.ria.xroad.common.conf.serverconf.ServerConf;
+import ee.ria.xroad.common.conf.serverconf.ServerConfProvider;
 import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.identifier.SecurityServerId;
 import ee.ria.xroad.common.util.FileContentChangeChecker;
@@ -65,7 +65,7 @@ import static ee.ria.xroad.common.util.CryptoUtils.readCertificate;
  * Encapsulates KeyConf related functionality.
  */
 @Slf4j
-class CachingKeyConfImpl extends KeyConfImpl {
+public class CachingKeyConfImpl extends KeyConfImpl {
 
     // Specifies how long data is cached
     private static final int CACHE_PERIOD_SECONDS = 300;
@@ -74,7 +74,8 @@ class CachingKeyConfImpl extends KeyConfImpl {
     private final Cache<SecurityServerId, AuthKeyInfo> authKeyInfoCache;
     private FileWatcherRunner keyConfChangeWatcher;
 
-    CachingKeyConfImpl() {
+    CachingKeyConfImpl(GlobalConfProvider globalConfProvider, ServerConfProvider serverConfProvider) {
+        super(globalConfProvider, serverConfProvider);
         signingInfoCache = CacheBuilder.newBuilder()
                 .expireAfterWrite(CACHE_PERIOD_SECONDS, TimeUnit.SECONDS)
                 .build();
@@ -101,7 +102,7 @@ class CachingKeyConfImpl extends KeyConfImpl {
                 signingInfoCache.invalidate(clientId);
                 signingInfo = signingInfoCache.get(clientId, () -> getSigningInfo(clientId));
             }
-            return signingInfo.getSigningCtx();
+            return signingInfo.getSigningCtx(globalConfProvider, this);
 
         } catch (ExecutionException e) {
             throw new CodedException(X_CANNOT_CREATE_SIGNATURE, "Failed to get signing info for member '%s': %s",
@@ -122,7 +123,7 @@ class CachingKeyConfImpl extends KeyConfImpl {
     @Override
     public AuthKey getAuthKey() {
         try {
-            final SecurityServerId serverId = ServerConf.getIdentifier();
+            final SecurityServerId serverId = serverConfProvider.getIdentifier();
             if (serverId == null) {
                 return NULL_AUTH_KEY;
             }
@@ -154,7 +155,7 @@ class CachingKeyConfImpl extends KeyConfImpl {
 
         // Lower bound for validity is "now", verify validity of the chain at that time.
         final Date notBefore = new Date();
-        CertChainVerifier verifier = new CertChainVerifier(certChain);
+        CertChainVerifier verifier = new CertChainVerifier(globalConfProvider, certChain);
         verifier.verify(ocspResponses, notBefore);
 
         final Date notAfter = calculateNotAfter(ocspResponses, certChain.notAfter());
@@ -184,8 +185,8 @@ class CachingKeyConfImpl extends KeyConfImpl {
      * An OCSP reponse validity time is min(thisUpdate + ocspFresnessSeconds, nextUpdate) or just
      * (thisUpdate + ocspFresnessSeconds) if nextUpdate is not enforced or missing
      */
-    static Date calculateNotAfter(List<OCSPResp> ocspResponses, Date notAfter) throws OCSPException {
-        final long freshnessMillis = 1000L * GlobalConf.getOcspFreshnessSeconds();
+    Date calculateNotAfter(List<OCSPResp> ocspResponses, Date notAfter) throws OCSPException {
+        final long freshnessMillis = 1000L * globalConfProvider.getOcspFreshnessSeconds();
         final boolean verifyNextUpdate = GlobalConfExtensions.getInstance().shouldVerifyOcspNextUpdate();
 
         for (OCSPResp resp : ocspResponses) {
@@ -206,9 +207,9 @@ class CachingKeyConfImpl extends KeyConfImpl {
     /**
      * Create a new CachingKeyConf instance and set up keyconf change watcher.
      */
-    static CachingKeyConfImpl newInstance() throws Exception {
+    public static CachingKeyConfImpl newInstance(GlobalConfProvider globalConfProvider, ServerConfProvider serverConfProvider) throws Exception {
         final FileContentChangeChecker changeChecker = new FileContentChangeChecker(SystemProperties.getKeyConfFile());
-        final CachingKeyConfImpl instance = new CachingKeyConfImpl();
+        final CachingKeyConfImpl instance = new CachingKeyConfImpl(globalConfProvider, serverConfProvider);
         // the change watcher can not be created in the constructor, because that would publish the
         // instance reference to another thread before the constructor finishes.
         instance.keyConfChangeWatcher = createChangeWatcher(new WeakReference<>(instance), changeChecker);

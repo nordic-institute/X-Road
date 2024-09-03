@@ -42,7 +42,7 @@ import java.util.Set;
 /**
  * Global configuration provider.
  */
-public interface GlobalConfProvider {
+public interface  GlobalConfProvider {
 
     /**
      * Reloads configuration from disk

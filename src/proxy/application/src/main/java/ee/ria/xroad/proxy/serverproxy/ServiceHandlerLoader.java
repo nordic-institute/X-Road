@@ -25,18 +25,23 @@
  */
 package ee.ria.xroad.proxy.serverproxy;
 
+import ee.ria.xroad.common.conf.serverconf.ServerConfProvider;
+
 final class ServiceHandlerLoader {
 
     private ServiceHandlerLoader() {
     }
 
-    static ServiceHandler load(String className) {
+    static ServiceHandler load(ServerConfProvider serverConfProvider, String className) {
         try {
             Class<?> clazz = Class.forName(className);
-            return (ServiceHandler) clazz.newInstance();
+            if (!AbstractServiceHandler.class.isAssignableFrom(clazz)) {
+                throw new RuntimeException("Failed to load service handler. Handler must implement AbstractServiceHandler: " + className);
+            }
+
+            return (ServiceHandler) clazz.getDeclaredConstructor(ServerConfProvider.class).newInstance(serverConfProvider);
         } catch (Exception e) {
-            throw new RuntimeException("Failed to load service handler: "
-                    + className, e);
+            throw new RuntimeException("Failed to load service handler: " + className, e);
         }
     }
 

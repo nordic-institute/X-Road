@@ -28,8 +28,8 @@ package ee.ria.xroad.proxy.conf;
 import ee.ria.xroad.common.CodedException;
 import ee.ria.xroad.common.cert.CertChain;
 import ee.ria.xroad.common.conf.globalconf.AuthKey;
-import ee.ria.xroad.common.conf.globalconf.GlobalConf;
-import ee.ria.xroad.common.conf.serverconf.ServerConf;
+import ee.ria.xroad.common.conf.globalconf.GlobalConfProvider;
+import ee.ria.xroad.common.conf.serverconf.ServerConfProvider;
 import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.identifier.SecurityServerId;
 import ee.ria.xroad.proxy.signedmessage.SignerSigningKey;
@@ -48,6 +48,7 @@ import java.util.List;
 
 import static ee.ria.xroad.common.ErrorCodes.X_CANNOT_CREATE_SIGNATURE;
 import static ee.ria.xroad.common.util.CertUtils.getSha1Hashes;
+import static ee.ria.xroad.common.util.CryptoUtils.calculateCertHexHash;
 import static ee.ria.xroad.common.util.CryptoUtils.calculateCertSha1HexHash;
 import static ee.ria.xroad.common.util.CryptoUtils.decodeBase64;
 import static ee.ria.xroad.common.util.CryptoUtils.encodeBase64;
@@ -59,8 +60,12 @@ import static ee.ria.xroad.common.util.CryptoUtils.readCertificate;
  */
 @Slf4j
 class KeyConfImpl implements KeyConfProvider {
+    protected final GlobalConfProvider globalConfProvider;
+    protected final ServerConfProvider serverConfProvider;
 
-    KeyConfImpl() {
+    KeyConfImpl(GlobalConfProvider globalConfProvider, ServerConfProvider serverConfProvider) {
+        this.globalConfProvider = globalConfProvider;
+        this.serverConfProvider = serverConfProvider;
     }
 
     @Override
@@ -83,7 +88,7 @@ class KeyConfImpl implements KeyConfProvider {
         PrivateKey pkey = null;
         CertChain certChain = null;
         try {
-            SecurityServerId serverId = ServerConf.getIdentifier();
+            SecurityServerId serverId = serverConfProvider.getIdentifier();
             log.debug("Retrieving authentication info for security "
                     + "server '{}'", serverId);
 
@@ -141,6 +146,25 @@ class KeyConfImpl implements KeyConfProvider {
     }
 
     @Override
+    public List<OCSPResp> getAllOcspResponses(List<X509Certificate> certs) throws Exception {
+        List<String> missingResponses = new ArrayList<>();
+        List<OCSPResp> responses = getOcspResponses(certs);
+        for (int i = 0; i < certs.size(); i++) {
+            if (responses.get(i) == null) {
+                missingResponses.add(calculateCertHexHash(certs.get(i)));
+            }
+        }
+
+        if (!missingResponses.isEmpty()) {
+            throw new CodedException(X_CANNOT_CREATE_SIGNATURE,
+                    "Could not get OCSP responses for certificates (%s)",
+                    missingResponses);
+        }
+
+        return responses;
+    }
+
+    @Override
     public void setOcspResponses(List<X509Certificate> certs,
                                  List<OCSPResp> responses) throws Exception {
         String[] base64EncodedResponses = new String[responses.size()];
@@ -153,19 +177,19 @@ class KeyConfImpl implements KeyConfProvider {
         SignerProxy.setOcspResponses(getSha1Hashes(certs), base64EncodedResponses);
     }
 
-    static SigningCtx createSigningCtx(ClientId subject, String keyId,
-                                       byte[] certBytes, String signMechanismName) {
-        return new SigningCtxImpl(subject, new SignerSigningKey(keyId, signMechanismName), readCertificate(certBytes));
+    SigningCtx createSigningCtx(ClientId subject, String keyId,
+                                byte[] certBytes, String signMechanismName) {
+        return new SigningCtxImpl(globalConfProvider, this, subject, new SignerSigningKey(keyId, signMechanismName),
+                readCertificate(certBytes));
     }
 
-    static CertChain getAuthCertChain(String instanceIdentifier,
-                                      byte[] authCertBytes) {
+    CertChain getAuthCertChain(String instanceIdentifier,
+                               byte[] authCertBytes) {
         X509Certificate authCert = readCertificate(authCertBytes);
         try {
-            return GlobalConf.getCertChain(instanceIdentifier, authCert);
+            return globalConfProvider.getCertChain(instanceIdentifier, authCert);
         } catch (Exception e) {
-            log.error("Failed to get cert chain for certificate "
-                    + authCert.getSubjectDN(), e);
+            log.error("Failed to get cert chain for certificate {}", authCert.getSubjectX500Principal(), e);
         }
 
         return null;

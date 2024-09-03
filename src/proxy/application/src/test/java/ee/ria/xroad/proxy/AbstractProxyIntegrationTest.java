@@ -26,12 +26,12 @@
 package ee.ria.xroad.proxy;
 
 import ee.ria.xroad.common.SystemProperties;
-import ee.ria.xroad.common.conf.globalconf.GlobalConf;
 import ee.ria.xroad.common.conf.globalconf.GlobalConfProvider;
 import ee.ria.xroad.common.conf.globalconf.GlobalConfSource;
 import ee.ria.xroad.common.conf.globalconf.TestGlobalConfWrapper;
 import ee.ria.xroad.common.conf.serverconf.ServerConf;
-import ee.ria.xroad.proxy.conf.KeyConf;
+import ee.ria.xroad.common.conf.serverconf.ServerConfProvider;
+import ee.ria.xroad.proxy.conf.KeyConfProvider;
 import ee.ria.xroad.proxy.testutil.IntegrationTest;
 import ee.ria.xroad.proxy.testutil.TestGlobalConf;
 import ee.ria.xroad.proxy.testutil.TestKeyConf;
@@ -129,12 +129,6 @@ public abstract class AbstractProxyIntegrationTest {
             System.setProperty(SystemProperties.GRPC_INTERNAL_TLS_ENABLED, Boolean.FALSE.toString());
             super.loadSystemProperties();
         }
-
-        @Override
-        protected void loadGlobalConf() {
-            KeyConf.reload(new TestKeyConf());
-            ServerConf.reload(TEST_SERVER_CONF);
-        }
     }
 
     @Configuration
@@ -155,8 +149,17 @@ public abstract class AbstractProxyIntegrationTest {
         @Bean
         @Primary
         GlobalConfProvider globalConfProvider() {
-            GlobalConf.reload(TEST_GLOBAL_CONF);
             return TEST_GLOBAL_CONF;
+        }
+
+        @Bean
+        KeyConfProvider keyConfProvider() {
+            return new TestKeyConf();
+        }
+
+        @Bean
+        ServerConfProvider serverConfProvider() {
+            return TEST_SERVER_CONF;
         }
     }
 

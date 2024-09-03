@@ -27,10 +27,11 @@ package ee.ria.xroad.proxy.clientproxy;
 
 import ee.ria.xroad.common.CodedException;
 import ee.ria.xroad.common.SystemProperties;
-import ee.ria.xroad.common.conf.globalconf.GlobalConf;
+import ee.ria.xroad.common.cert.CertChainFactory;
+import ee.ria.xroad.common.conf.globalconf.GlobalConfProvider;
 import ee.ria.xroad.common.conf.serverconf.IsAuthentication;
 import ee.ria.xroad.common.conf.serverconf.IsAuthenticationData;
-import ee.ria.xroad.common.conf.serverconf.ServerConf;
+import ee.ria.xroad.common.conf.serverconf.ServerConfProvider;
 import ee.ria.xroad.common.conf.serverconf.model.ClientType;
 import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.identifier.SecurityServerId;
@@ -41,6 +42,7 @@ import ee.ria.xroad.common.util.HttpSender;
 import ee.ria.xroad.common.util.RequestWrapper;
 import ee.ria.xroad.common.util.ResponseWrapper;
 import ee.ria.xroad.proxy.ProxyMain;
+import ee.ria.xroad.proxy.conf.KeyConfProvider;
 import ee.ria.xroad.proxy.util.MessageProcessorBase;
 
 import lombok.EqualsAndHashCode;
@@ -84,10 +86,14 @@ abstract class AbstractClientMessageProcessor extends MessageProcessorBase {
         }
     }
 
-    protected AbstractClientMessageProcessor(RequestWrapper request, ResponseWrapper response,
+    protected AbstractClientMessageProcessor(GlobalConfProvider globalConfProvider,
+                                             KeyConfProvider keyConfProvider,
+                                             ServerConfProvider serverConfProvider,
+                                             CertChainFactory certChainFactory,
+                                             RequestWrapper request, ResponseWrapper response,
                                              HttpClient httpClient, IsAuthenticationData clientCert,
                                              OpMonitoringData opMonitoringData) throws Exception {
-        super(request, response, httpClient);
+        super(globalConfProvider, keyConfProvider, serverConfProvider, certChainFactory, request, response, httpClient);
 
         this.clientCert = clientCert;
         this.opMonitoringData = opMonitoringData;
@@ -153,11 +159,11 @@ abstract class AbstractClientMessageProcessor extends MessageProcessorBase {
         }
     }
 
-    static List<URI> getServiceAddresses(ServiceId serviceProvider, SecurityServerId serverId)
+    List<URI> getServiceAddresses(ServiceId serviceProvider, SecurityServerId serverId)
             throws Exception {
         log.trace("getServiceAddresses({}, {})", serviceProvider, serverId);
 
-        Collection<String> hostNames = GlobalConf.getProviderAddress(serviceProvider.getClientId());
+        Collection<String> hostNames = globalConfProvider.getProviderAddress(serviceProvider.getClientId());
 
         if (hostNames == null || hostNames.isEmpty()) {
             throw new CodedException(X_UNKNOWN_MEMBER, "Could not find addresses for service provider \"%s\"",
@@ -165,7 +171,7 @@ abstract class AbstractClientMessageProcessor extends MessageProcessorBase {
         }
 
         if (serverId != null) {
-            final String securityServerAddress = GlobalConf.getSecurityServerAddress(serverId);
+            final String securityServerAddress = globalConfProvider.getSecurityServerAddress(serverId);
 
             if (securityServerAddress == null) {
                 throw new CodedException(X_INVALID_SECURITY_SERVER, "Could not find security server \"%s\"", serverId);
@@ -208,7 +214,7 @@ abstract class AbstractClientMessageProcessor extends MessageProcessorBase {
             throw new CodedException(X_INVALID_CLIENT_IDENTIFIER, "The client identifier is missing");
         }
 
-        String status = ServerConf.getMemberStatus(client);
+        String status = serverConfProvider.getMemberStatus(client);
         if (!ClientType.STATUS_REGISTERED.equals(status)) {
             throw new CodedException(X_UNKNOWN_MEMBER, "Client '%s' not found", client);
         }

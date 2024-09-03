@@ -26,7 +26,7 @@
 package ee.ria.xroad.common.cert;
 
 import ee.ria.xroad.common.CodedException;
-import ee.ria.xroad.common.conf.globalconf.GlobalConf;
+import ee.ria.xroad.common.conf.globalconf.GlobalConfProvider;
 import ee.ria.xroad.common.conf.globalconfextension.GlobalConfExtensions;
 import ee.ria.xroad.common.ocsp.OcspVerifier;
 import ee.ria.xroad.common.ocsp.OcspVerifierOptions;
@@ -62,24 +62,37 @@ import static ee.ria.xroad.common.cert.CertHelper.getOcspResponseForCert;
  */
 public class CertChainVerifier {
 
-    /** Default validation algorithm type is PKIX. */
+    /**
+     * Default validation algorithm type is PKIX.
+     */
     private static final String VALIDATION_ALGORITHM = "PKIX";
 
-    /** Holds the PKIX algorithm parameters. */
+    private final GlobalConfProvider globalConfProvider;
+
+    /**
+     * Holds the PKIX algorithm parameters.
+     */
     private final PKIXBuilderParameters pkixParams;
 
-    /** Holds the constructed certificate path. */
+    /**
+     * Holds the constructed certificate path.
+     */
     private CertPath certPath;
 
-    /** Holds the cert chain to be verified. */
-    private CertChain certChain;
+    /**
+     * Holds the cert chain to be verified.
+     */
+    private final CertChain certChain;
 
     /**
      * Builds the certificate path for the target certificate using a list
      * of trust anchors and a list of intermediate certificates.
-     * @param certChain the certificate chain object
+     *
+     * @param globalConfProvider the global configuration provider
+     * @param certChain          the certificate chain object
      */
-    public CertChainVerifier(CertChain certChain) {
+    public CertChainVerifier(GlobalConfProvider globalConfProvider, CertChain certChain) {
+        this.globalConfProvider = globalConfProvider;
         this.certChain = certChain;
 
         Set<TrustAnchor> trustAnchors =
@@ -118,6 +131,7 @@ public class CertChainVerifier {
 
     /**
      * Similar to verify(), but does not check validity of the certificates.
+     *
      * @param atDate the date at which to verify the chain
      */
     public void verifyChainOnly(Date atDate) {
@@ -132,9 +146,10 @@ public class CertChainVerifier {
      * OCSP response is found and verified.
      * If verification fails, throws CodedException with error code
      * InvalidCertPath...
+     *
      * @param ocspResponses list of OCSP responses that are used to
      *                      validate the certificates.
-     * @param atDate The date at which the verification is performed.
+     * @param atDate        The date at which the verification is performed.
      */
     public void verify(List<OCSPResp> ocspResponses, Date atDate) {
         if (ocspResponses == null || ocspResponses.isEmpty()) {
@@ -169,7 +184,7 @@ public class CertChainVerifier {
                                      Date atDate) throws Exception {
         for (X509Certificate subject : certs) {
             X509Certificate issuer =
-                    GlobalConf.getCaCert(certChain.getInstanceIdentifier(),
+                    globalConfProvider.getCaCert(certChain.getInstanceIdentifier(),
                             subject);
             OCSPResp response =
                     getOcspResponseForCert(subject, issuer, ocspResponses);
@@ -179,7 +194,7 @@ public class CertChainVerifier {
                                 + subject.getSubjectX500Principal().getName());
             }
 
-            OcspVerifier verifier = new OcspVerifier(GlobalConf.getOcspFreshnessSeconds(),
+            OcspVerifier verifier = new OcspVerifier(globalConfProvider,
                     new OcspVerifierOptions(GlobalConfExtensions.getInstance().shouldVerifyOcspNextUpdate()));
             verifier.verifyValidityAndStatus(response, subject, issuer,
                     atDate);

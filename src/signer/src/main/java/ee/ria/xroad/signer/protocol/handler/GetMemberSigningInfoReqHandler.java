@@ -137,7 +137,7 @@ public final class GetMemberSigningInfoReqHandler extends AbstractRpcHandler<Get
 
         OCSPResp ocsp = new OCSPResp(ocspBytes);
         X509Certificate issuer = globalConfProvider.getCaCert(instanceIdentifier, subject);
-        OcspVerifier verifier = new OcspVerifier(globalConfProvider.getOcspFreshnessSeconds(), verifierOptions);
+        OcspVerifier verifier = new OcspVerifier(globalConfProvider, verifierOptions);
         verifier.verifyValidityAndStatus(ocsp, subject, issuer);
     }
 }

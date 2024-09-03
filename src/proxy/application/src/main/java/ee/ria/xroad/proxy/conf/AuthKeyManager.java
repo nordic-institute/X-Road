@@ -27,6 +27,7 @@ package ee.ria.xroad.proxy.conf;
 
 import ee.ria.xroad.common.cert.CertChain;
 
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
 import javax.net.ssl.SSLEngine;
@@ -42,21 +43,12 @@ import java.util.List;
  * Authentication key manager used by the proxy.
  */
 @Slf4j
+@RequiredArgsConstructor
 public final class AuthKeyManager extends X509ExtendedKeyManager {
 
     private static final String ALIAS = "AuthKeyManager";
 
-    private static final AuthKeyManager INSTANCE = new AuthKeyManager();
-
-    /**
-     * @return the authentication key manager instance
-     */
-    public static AuthKeyManager getInstance() {
-        return INSTANCE;
-    }
-
-    private AuthKeyManager() {
-    }
+    private final KeyConfProvider keyConfProvider;
 
     @Override
     public String chooseClientAlias(String[] keyType, Principal[] issuers,
@@ -76,10 +68,9 @@ public final class AuthKeyManager extends X509ExtendedKeyManager {
     public X509Certificate[] getCertificateChain(String alias) {
         log.trace("getCertificateChain {}", alias);
 
-        CertChain certChain = KeyConf.getAuthKey().getCertChain();
-        List<X509Certificate> allCerts =
-                certChain.getAllCertsWithoutTrustedRoot();
-        return allCerts.toArray(new X509Certificate[allCerts.size()]);
+        CertChain certChain = keyConfProvider.getAuthKey().getCertChain();
+        List<X509Certificate> allCerts = certChain.getAllCertsWithoutTrustedRoot();
+        return allCerts.toArray(new X509Certificate[0]);
     }
 
     @Override
@@ -91,7 +82,7 @@ public final class AuthKeyManager extends X509ExtendedKeyManager {
     @Override
     public PrivateKey getPrivateKey(String alias) {
         log.trace("getPrivateKey {}", alias);
-        return KeyConf.getAuthKey().getKey();
+        return keyConfProvider.getAuthKey().getKey();
     }
 
     @Override

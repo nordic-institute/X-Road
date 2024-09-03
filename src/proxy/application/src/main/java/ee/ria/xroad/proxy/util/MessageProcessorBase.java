@@ -26,8 +26,10 @@
 package ee.ria.xroad.proxy.util;
 
 import ee.ria.xroad.common.CodedException;
-import ee.ria.xroad.common.conf.globalconf.GlobalConf;
-import ee.ria.xroad.common.conf.serverconf.ServerConf;
+import ee.ria.xroad.common.cert.CertChainFactory;
+import ee.ria.xroad.common.cert.CertHelper;
+import ee.ria.xroad.common.conf.globalconf.GlobalConfProvider;
+import ee.ria.xroad.common.conf.serverconf.ServerConfProvider;
 import ee.ria.xroad.common.conf.serverconf.model.DescriptionType;
 import ee.ria.xroad.common.identifier.XRoadId;
 import ee.ria.xroad.common.message.RestRequest;
@@ -37,6 +39,7 @@ import ee.ria.xroad.common.util.HttpSender;
 import ee.ria.xroad.common.util.MimeUtils;
 import ee.ria.xroad.common.util.RequestWrapper;
 import ee.ria.xroad.common.util.ResponseWrapper;
+import ee.ria.xroad.proxy.conf.KeyConfProvider;
 
 import lombok.extern.slf4j.Slf4j;
 import org.apache.http.client.HttpClient;
@@ -53,23 +56,45 @@ import static ee.ria.xroad.common.ErrorCodes.X_INVALID_SOAPACTION;
 @Slf4j
 public abstract class MessageProcessorBase {
 
-    /** The servlet request. */
+    protected final GlobalConfProvider globalConfProvider;
+    protected final KeyConfProvider keyConfProvider;
+    protected final ServerConfProvider serverConfProvider;
+
+    protected final CertChainFactory certChainFactory;
+    protected final CertHelper certHelper;
+
+    /**
+     * The servlet request.
+     */
     protected final RequestWrapper jRequest;
 
-    /** The servlet response. */
+    /**
+     * The servlet response.
+     */
     protected final ResponseWrapper jResponse;
 
-    /** The http client instance. */
+    /**
+     * The http client instance.
+     */
     protected final HttpClient httpClient;
 
-    protected MessageProcessorBase(RequestWrapper request,
+    protected MessageProcessorBase(GlobalConfProvider globalConfProvider,
+                                   KeyConfProvider keyConfProvider,
+                                   ServerConfProvider serverConfProvider,
+                                   CertChainFactory certChainFactory,
+                                   RequestWrapper request,
                                    ResponseWrapper response,
                                    HttpClient httpClient) {
+        this.globalConfProvider = globalConfProvider;
+        this.certHelper = new CertHelper(globalConfProvider);
+        this.keyConfProvider = keyConfProvider;
+        this.serverConfProvider = serverConfProvider;
+        this.certChainFactory = certChainFactory;
         this.jRequest = request;
         this.jResponse = response;
         this.httpClient = httpClient;
 
-        GlobalConf.verifyValidity();
+        globalConfProvider.verifyValidity();
     }
 
     /**
@@ -93,6 +118,7 @@ public abstract class MessageProcessorBase {
 
     /**
      * Processes the incoming message.
+     *
      * @throws Exception in case of any errors
      */
     public abstract void process() throws Exception;
@@ -100,6 +126,7 @@ public abstract class MessageProcessorBase {
     /**
      * Update operational monitoring data with SOAP message header data and
      * the size of the message.
+     *
      * @param opMonitoringData monitoring data to update
      * @param soapMessage      SOAP message
      */
@@ -133,7 +160,7 @@ public abstract class MessageProcessorBase {
             opMonitoringData.setRepresentedParty(request.getRepresentedParty());
             opMonitoringData.setMessageProtocolVersion(String.valueOf(request.getVersion()));
             opMonitoringData.setServiceType(Optional.ofNullable(
-                    ServerConf.getDescriptionType(request.getServiceId())).orElse(DescriptionType.REST).name());
+                    serverConfProvider.getDescriptionType(request.getServiceId())).orElse(DescriptionType.REST).name());
         }
     }
 
@@ -144,14 +171,15 @@ public abstract class MessageProcessorBase {
         return true;
     }
 
-    protected static String getSecurityServerAddress() {
-        return GlobalConf.getSecurityServerAddress(ServerConf.getIdentifier());
+    protected String getSecurityServerAddress() {
+        return globalConfProvider.getSecurityServerAddress(serverConfProvider.getIdentifier());
     }
 
     /**
      * Validates SOAPAction header value.
      * Valid header values are: (empty string),(""),("URI-reference")
      * In addition, this implementation allows missing (null) header.
+     *
      * @return the argument as-is if it is valid
      * @throws CodedException if the the argument is invalid
      * @see <a href="https://www.w3.org/TR/2000/NOTE-SOAP-20000508/#_Toc478383528">SOAP 1.1</a>
@@ -177,6 +205,7 @@ public abstract class MessageProcessorBase {
 
     /**
      * Logs a warning if identifier contains invalid characters.
+     *
      * @see ee.ria.xroad.common.validation.SpringFirewallValidationRules
      * @see ee.ria.xroad.common.validation.LegacyEncodedIdentifierValidator;
      */

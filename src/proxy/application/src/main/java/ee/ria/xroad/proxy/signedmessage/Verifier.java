@@ -26,6 +26,7 @@
 package ee.ria.xroad.proxy.signedmessage;
 
 import ee.ria.xroad.common.SystemProperties;
+import ee.ria.xroad.common.conf.globalconf.GlobalConfProvider;
 import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.message.SoapMessageImpl;
 import ee.ria.xroad.common.signature.MessagePart;
@@ -33,6 +34,7 @@ import ee.ria.xroad.common.signature.SignatureData;
 import ee.ria.xroad.common.signature.SignatureVerifier;
 import ee.ria.xroad.common.util.MessageFileNames;
 
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
 import java.util.ArrayList;
@@ -48,24 +50,29 @@ import static ee.ria.xroad.common.ErrorCodes.translateWithPrefix;
  * of the SOAP message and attachments.
  */
 @Slf4j
+@RequiredArgsConstructor
 public class Verifier {
-
+    private final GlobalConfProvider globalConfProvider;
     private final List<MessagePart> parts = new ArrayList<>();
 
-    /** Adds new hash to be verified.
-     * @param name name of the file in the BDOC container.
+    /**
+     * Adds new hash to be verified.
+     *
+     * @param name       name of the file in the BDOC container.
      * @param hashMethod identifier of the algorithm used to calculate the hash.
-     * @param data hash value.
+     * @param data       hash value.
      */
     public void addPart(String name, String hashMethod, byte[] data) {
         parts.add(new MessagePart(name, hashMethod, data, null));
 
     }
 
-    /** Adds new hash to be verified.
-     * @param name name of the file in the BDOC container.
+    /**
+     * Adds new hash to be verified.
+     *
+     * @param name       name of the file in the BDOC container.
      * @param hashMethod identifier of the algorithm used to calculate the hash.
-     * @param data hash value.
+     * @param data       hash value.
      */
     public void addPart(String name, String hashMethod, byte[] data, byte[] message) {
         parts.add(new MessagePart(name, hashMethod, data, message));
@@ -74,8 +81,9 @@ public class Verifier {
 
     /**
      * Adds the message part to be signed.
+     *
      * @param hashMethod identifier of the algorithm used to calculate the hash
-     * @param soap the signed message
+     * @param soap       the signed message
      */
     public void addMessagePart(String hashMethod, SoapMessageImpl soap) {
         parts.add(new MessagePart(MessageFileNames.MESSAGE, hashMethod,
@@ -84,7 +92,8 @@ public class Verifier {
 
     /**
      * Verify the signature.
-     * @param sender client ID of the sender
+     *
+     * @param sender    client ID of the sender
      * @param signature signature data
      * @throws Exception in case of any errors
      */
@@ -97,8 +106,7 @@ public class Verifier {
         }
 
         try {
-            SignatureVerifier signatureVerifier =
-                    new SignatureVerifier(signature);
+            SignatureVerifier signatureVerifier = new SignatureVerifier(globalConfProvider, signature);
 
             signatureVerifier.addParts(parts);
 

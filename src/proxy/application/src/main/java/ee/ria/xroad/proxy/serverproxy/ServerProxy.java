@@ -26,8 +26,9 @@
 package ee.ria.xroad.proxy.serverproxy;
 
 import ee.ria.xroad.common.SystemProperties;
+import ee.ria.xroad.common.cert.CertChainFactory;
 import ee.ria.xroad.common.conf.globalconf.GlobalConfProvider;
-import ee.ria.xroad.common.conf.serverconf.ServerConf;
+import ee.ria.xroad.common.conf.serverconf.ServerConfProvider;
 import ee.ria.xroad.common.db.HibernateUtil;
 import ee.ria.xroad.common.opmonitoring.OpMonitoringDaemonHttpClient;
 import ee.ria.xroad.common.opmonitoring.OpMonitoringSystemProperties;
@@ -35,6 +36,7 @@ import ee.ria.xroad.common.util.CryptoUtils;
 import ee.ria.xroad.common.util.StartStop;
 import ee.ria.xroad.common.util.TimeUtils;
 import ee.ria.xroad.proxy.antidos.AntiDosConnector;
+import ee.ria.xroad.proxy.conf.KeyConfProvider;
 import ee.ria.xroad.proxy.util.SSLContextUtil;
 
 import lombok.extern.slf4j.Slf4j;
@@ -75,6 +77,9 @@ public class ServerProxy implements StartStop {
     private final Server server = new Server();
 
     private final GlobalConfProvider globalConfProvider;
+    private final KeyConfProvider keyConfProvider;
+    private final ServerConfProvider serverConfProvider;
+    private final CertChainFactory certChainFactory;
 
     private CloseableHttpClient client;
     private IdleConnectionMonitorThread connMonitor;
@@ -88,8 +93,8 @@ public class ServerProxy implements StartStop {
      *
      * @throws Exception in case of any errors
      */
-    public ServerProxy(GlobalConfProvider globalConfProvider) throws Exception {
-        this(globalConfProvider, SystemProperties.getServerProxyListenAddress());
+    public ServerProxy(GlobalConfProvider globalConfProvider, KeyConfProvider keyConfProvider, ServerConfProvider serConfProvider, CertChainFactory certChainFactory) throws Exception {
+        this(globalConfProvider, keyConfProvider, serConfProvider, certChainFactory, SystemProperties.getServerProxyListenAddress());
     }
 
     /**
@@ -98,8 +103,11 @@ public class ServerProxy implements StartStop {
      * @param listenAddress the address this server proxy should listen at
      * @throws Exception in case of any errors
      */
-    public ServerProxy(GlobalConfProvider globalConfProvider, String listenAddress) throws Exception {
+    public ServerProxy(GlobalConfProvider globalConfProvider, KeyConfProvider keyConfProvider, ServerConfProvider serConfProvider, CertChainFactory certChainFactory, String listenAddress) throws Exception {
         this.globalConfProvider = globalConfProvider;
+        this.keyConfProvider = keyConfProvider;
+        this.serverConfProvider = serConfProvider;
+        this.certChainFactory = certChainFactory;
         this.listenAddress = listenAddress;
 
         configureServer();
@@ -138,7 +146,7 @@ public class ServerProxy implements StartStop {
     }
 
     private void createOpMonitorClient() throws Exception {
-        opMonitorClient = OpMonitoringDaemonHttpClient.createHttpClient(ServerConf.getSSLKey(),
+        opMonitorClient = OpMonitoringDaemonHttpClient.createHttpClient(serverConfProvider.getSSLKey(),
                 TimeUtils.secondsToMillis(OpMonitoringSystemProperties.getOpMonitorServiceConnectionTimeoutSeconds()),
                 TimeUtils.secondsToMillis(OpMonitoringSystemProperties.getOpMonitorServiceSocketTimeoutSeconds()));
     }
@@ -176,7 +184,7 @@ public class ServerProxy implements StartStop {
     private void createHandlers() {
         log.trace("createHandlers()");
 
-        ServerProxyHandler proxyHandler = new ServerProxyHandler(client, opMonitorClient);
+        ServerProxyHandler proxyHandler = new ServerProxyHandler(globalConfProvider, keyConfProvider, serverConfProvider, certChainFactory, client, opMonitorClient);
 
         var handler = new Handler.Sequence();
         handler.addHandler(proxyHandler);
@@ -232,7 +240,7 @@ public class ServerProxy implements StartStop {
         cf.setIncludeCipherSuites(SystemProperties.getXroadTLSCipherSuites());
         cf.setSessionCachingEnabled(true);
         cf.setSslSessionTimeout(SSL_SESSION_TIMEOUT);
-        cf.setSslContext(SSLContextUtil.createXroadSSLContext());
+        cf.setSslContext(SSLContextUtil.createXroadSSLContext(globalConfProvider, keyConfProvider));
 
         return SystemProperties.isAntiDosEnabled()
                 ? new AntiDosConnector(globalConfProvider, server, ACCEPTOR_COUNT, cf)

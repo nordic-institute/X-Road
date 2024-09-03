@@ -30,7 +30,6 @@ import ee.ria.xroad.common.conf.serverconf.model.DescriptionType;
 import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.identifier.SecurityServerId;
 import ee.ria.xroad.common.identifier.ServiceId;
-import ee.ria.xroad.common.metadata.RestServiceDetailsListType;
 
 import lombok.extern.slf4j.Slf4j;
 
@@ -41,9 +40,9 @@ import java.util.List;
  * Configuration of the current proxy server.
  */
 @Slf4j
+@Deprecated(forRemoval = true)
 public class ServerConf {
-
-    private static volatile ServerConfProvider instance = new ServerConfImpl();
+    private static volatile ServerConfProvider instance = new ServerConfImpl(null); //TODO this is temporary
 
     protected ServerConf() {
     }
@@ -57,6 +56,7 @@ public class ServerConf {
 
     /**
      * Reloads the configuration with given configuration instance.
+     *
      * @param conf the new configuration implementation
      */
     public static void reload(ServerConfProvider conf) {
@@ -163,24 +163,6 @@ public class ServerConf {
         return getInstance().getServicesByDescriptionType(serviceProvider, descriptionType);
     }
 
-    /**
-     * @param serviceProvider the service provider identifier
-     * @return all the REST services (REST base path, OpenAPI) offered by a service provider
-     */
-    public static RestServiceDetailsListType getRestServices(ClientId serviceProvider) {
-        log.trace("getRestServices({})", serviceProvider);
-        return getInstance().getRestServices(serviceProvider);
-    }
-
-    /**
-     * @param serviceProvider the service provider identifier
-     * @param client the client identifier
-     * @return all the REST services (REST base path, OpenAPI) offered by a service provider
-     */
-    public static RestServiceDetailsListType getAllowedRestServices(ClientId serviceProvider, ClientId client) {
-        log.trace("getRestServices({})", serviceProvider);
-        return getInstance().getAllowedRestServices(serviceProvider, client);
-    }
 
     /**
      * @param serviceProvider the service provider identifier
@@ -299,16 +281,6 @@ public class ServerConf {
         log.trace("getServiceAddress({})", service);
 
         return getInstance().getDescriptionType(service);
-    }
-
-    /**
-     * @param service the service identifier
-     * @return the service description url
-     */
-    public static String getServiceDescriptionURL(ServiceId service) {
-        log.trace("getServiceDescriptionURL({})", service);
-
-        return getInstance().getServiceDescriptionURL(service);
     }
 
     public static void logStatistics() {

@@ -27,7 +27,6 @@ package ee.ria.xroad.proxy.messagelog;
 
 import ee.ria.xroad.common.SystemProperties;
 import ee.ria.xroad.common.conf.globalconf.EmptyGlobalConf;
-import ee.ria.xroad.common.conf.globalconf.GlobalConf;
 import ee.ria.xroad.common.conf.globalconf.GlobalConfProvider;
 import ee.ria.xroad.common.conf.serverconf.ServerConf;
 import ee.ria.xroad.common.conf.serverconf.ServerConfProvider;
@@ -123,7 +122,6 @@ final class TestUtil {
                 "src/test/resources/hibernate.properties");
 
         ServerConf.reload(getServerConf());
-        GlobalConf.reload(getGlobalConf());
         MessageRecordEncryption.reload();
     }
 

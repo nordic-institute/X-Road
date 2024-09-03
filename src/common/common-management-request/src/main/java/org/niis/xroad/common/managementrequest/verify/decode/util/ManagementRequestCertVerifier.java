@@ -61,7 +61,7 @@ public class ManagementRequestCertVerifier {
             throw new CodedException(X_CERT_VALIDATION, "Member (owner/client) sign certificate is invalid");
         }
 
-        new OcspVerifier(globalConfProvider.getOcspFreshnessSeconds(),
+        new OcspVerifier(globalConfProvider,
                 new OcspVerifierOptions(GlobalConfExtensions.getInstance().shouldVerifyOcspNextUpdate()))
                 .verifyValidityAndStatus(memberCertOcsp, memberCert, issuer);
     }

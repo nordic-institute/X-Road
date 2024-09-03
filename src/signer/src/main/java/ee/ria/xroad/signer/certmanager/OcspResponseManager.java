@@ -70,7 +70,7 @@ public class OcspResponseManager {
     /**
      * Maps a certificate hash to an OCSP response.
      */
-    private final FileBasedOcspCache responseCache = new FileBasedOcspCache();
+    private final FileBasedOcspCache responseCache;
 
     // ------------------------------------------------------------------------
 

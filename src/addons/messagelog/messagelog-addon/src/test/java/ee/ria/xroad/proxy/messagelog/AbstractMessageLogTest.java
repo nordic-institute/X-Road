@@ -26,6 +26,7 @@
 package ee.ria.xroad.proxy.messagelog;
 
 import ee.ria.xroad.common.SystemProperties;
+import ee.ria.xroad.common.conf.globalconf.GlobalConfProvider;
 import ee.ria.xroad.common.message.RestRequest;
 import ee.ria.xroad.common.message.SoapMessageImpl;
 import ee.ria.xroad.common.messagelog.AbstractLogManager;
@@ -49,6 +50,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 
+import static ee.ria.xroad.proxy.messagelog.TestUtil.getGlobalConf;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
@@ -57,6 +59,7 @@ import static org.mockito.Mockito.mock;
 @Slf4j
 abstract class AbstractMessageLogTest {
 
+    GlobalConfProvider globalConfProvider;
     JobManager jobManager;
     LogManager logManager;
 
@@ -75,17 +78,18 @@ abstract class AbstractMessageLogTest {
         System.setProperty(MessageLogProperties.ARCHIVE_PATH, archivesDir);
 
         jobManager = new JobManager();
+        globalConfProvider = getGlobalConf();
 
         System.setProperty(MessageLogProperties.TIMESTAMP_IMMEDIATELY, timestampImmediately ? "true" : "false");
 
         System.setProperty(MessageLogProperties.MESSAGE_BODY_LOGGING_ENABLED, "true");
 
-        logManager = (LogManager) getLogManagerImpl().getDeclaredConstructor(JobManager.class).newInstance(jobManager);
+        logManager = (LogManager) getLogManagerImpl().getDeclaredConstructor(JobManager.class, GlobalConfProvider.class).newInstance(jobManager, globalConfProvider);
 
         if (!Files.exists(archivesPath)) {
             Files.createDirectory(archivesPath);
         }
-        logArchiverRef = new TestLogArchiver();
+        logArchiverRef = new TestLogArchiver(globalConfProvider);
         logCleanerRef = new TestLogCleaner();
     }
 

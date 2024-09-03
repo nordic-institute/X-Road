@@ -259,7 +259,7 @@ public class OcspClientWorker {
             throw new ConnectException("No OCSP responder URIs available");
         }
 
-        final OcspVerifier verifier = new OcspVerifier(globalConfProvider.getOcspFreshnessSeconds(), verifierOptions);
+        final OcspVerifier verifier = new OcspVerifier(globalConfProvider, verifierOptions);
 
         for (String responderURI : responderURIs) {
             final OffsetDateTime prevUpdate = TimeUtils.offsetDateTimeNow();

@@ -27,12 +27,11 @@ package ee.ria.xroad.proxy.testsuite;
 
 import ee.ria.xroad.common.SystemProperties;
 import ee.ria.xroad.common.TestPortUtils;
-import ee.ria.xroad.common.conf.globalconf.GlobalConf;
 import ee.ria.xroad.common.conf.globalconf.GlobalConfProvider;
 import ee.ria.xroad.common.conf.globalconf.GlobalConfSource;
-import ee.ria.xroad.common.conf.serverconf.ServerConf;
+import ee.ria.xroad.common.conf.serverconf.ServerConfProvider;
 import ee.ria.xroad.proxy.ProxyMain;
-import ee.ria.xroad.proxy.conf.KeyConf;
+import ee.ria.xroad.proxy.conf.KeyConfProvider;
 import ee.ria.xroad.proxy.serverproxy.ServerProxy;
 
 import lombok.AccessLevel;
@@ -136,12 +135,6 @@ public final class ProxyTestSuite {
 
             System.setProperty(SystemProperties.PROXY_CLIENT_TIMEOUT, "15000");
             System.setProperty(SystemProperties.DATABASE_PROPERTIES, "src/test/resources/hibernate.properties");
-        }
-
-        @Override
-        protected void loadGlobalConf() {
-            KeyConf.reload(new TestSuiteKeyConf());
-            ServerConf.reload(new TestSuiteServerConf());
         }
     }
 
@@ -295,9 +288,18 @@ public final class ProxyTestSuite {
         @Bean
         @Primary
         GlobalConfProvider globalConfProvider() {
-            var globalConf = new TestSuiteGlobalConf();
-            GlobalConf.reload(globalConf);
-            return globalConf;
+            return new TestSuiteGlobalConf();
+        }
+
+        @Bean
+        @Primary
+        KeyConfProvider keyConfProvider(GlobalConfProvider globalConfProvider) {
+            return new TestSuiteKeyConf(globalConfProvider);
+        }
+
+        @Bean
+        ServerConfProvider serverConfProvider() {
+            return new TestSuiteServerConf();
         }
     }
 

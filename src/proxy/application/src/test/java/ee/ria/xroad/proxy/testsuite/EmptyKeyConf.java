@@ -77,4 +77,9 @@ public class EmptyKeyConf implements KeyConfProvider {
         return ocspResponses;
     }
 
+    @Override
+    public List<OCSPResp> getAllOcspResponses(List<X509Certificate> certs) throws Exception {
+        return List.of();
+    }
+
 }

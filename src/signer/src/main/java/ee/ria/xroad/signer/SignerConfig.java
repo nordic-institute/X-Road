@@ -26,8 +26,10 @@
 package ee.ria.xroad.signer;
 
 import ee.ria.xroad.common.SystemProperties;
+import ee.ria.xroad.common.cert.CertChainFactory;
 import ee.ria.xroad.common.conf.globalconf.GlobalConfBeanConfig;
 import ee.ria.xroad.common.conf.globalconf.GlobalConfProvider;
+import ee.ria.xroad.signer.certmanager.FileBasedOcspCache;
 import ee.ria.xroad.signer.certmanager.OcspClient;
 import ee.ria.xroad.signer.certmanager.OcspClientWorker;
 import ee.ria.xroad.signer.certmanager.OcspResponseManager;
@@ -79,8 +81,13 @@ public class SignerConfig {
     }
 
     @Bean
-    OcspResponseManager ocspResponseManager(GlobalConfProvider globalConfProvider, OcspClient ocspClient) {
-        OcspResponseManager ocspResponseManager = new OcspResponseManager(globalConfProvider, ocspClient);
+    FileBasedOcspCache ocspCache(GlobalConfProvider globalConfProvider) {
+        return new FileBasedOcspCache(globalConfProvider);
+    }
+
+    @Bean
+    OcspResponseManager ocspResponseManager(GlobalConfProvider globalConfProvider, OcspClient ocspClient, FileBasedOcspCache ocspCache) {
+        OcspResponseManager ocspResponseManager = new OcspResponseManager(globalConfProvider, ocspClient, ocspCache);
         ocspResponseManager.init();
         return ocspResponseManager;
     }
@@ -89,6 +96,11 @@ public class SignerConfig {
     OcspClientWorker ocspClientWorker(GlobalConfProvider globalConfProvider, OcspResponseManager ocspResponseManager,
                                       OcspClient ocspClient) {
         return new OcspClientWorker(globalConfProvider, ocspResponseManager, ocspClient);
+    }
+
+    @Bean
+    CertChainFactory certChainFactory(GlobalConfProvider globalConfProvider) {
+        return new CertChainFactory(globalConfProvider);
     }
 
     @Bean

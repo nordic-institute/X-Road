@@ -333,16 +333,6 @@ public final class GlobalConf {
     }
 
     /**
-     * @return all the trusted and intermediate certificates that can be used
-     * to verify the other party in establishing SSL connection
-     */
-    public static X509Certificate[] getAuthTrustChain() {
-        log.trace("getAuthTrustChain()");
-
-        return getInstance().getAuthTrustChain();
-    }
-
-    /**
      * @param cert the authentication certificate
      * @return the security server id for the given authentication certificate
      * of null of the authentication certificate does not map to any security
@@ -354,24 +344,6 @@ public final class GlobalConf {
         log.trace("getServerId({})", cert.getSubjectX500Principal());
 
         return getInstance().getServerId(cert);
-    }
-
-    /**
-     * Checks if the authentication certificate belongs to registered
-     * security server
-     *
-     * @param cert the authentication certificate
-     * @return true if the authentication certificate belongs to registered
-     * security server
-     */
-    public static boolean isSecurityServerAuthCert(X509Certificate cert) {
-        log.trace("isSecurityServerAuthCert({})", cert.getSubjectX500Principal());
-        try {
-            return getInstance().getServerId(cert) != null;
-        } catch (Exception e) {
-            log.error("Error occurred while getting server id", e);
-            return false;
-        }
     }
 
     /**
@@ -502,15 +474,6 @@ public final class GlobalConf {
         log.trace("getManagementRequestServiceAddress()");
 
         return getInstance().getManagementRequestService();
-    }
-
-    /**
-     * @return the timestamping interval in seconds
-     */
-    public static int getTimestampingIntervalSeconds() {
-        log.trace("getTimestampingIntervalSeconds()");
-
-        return getInstance().getTimestampingIntervalSeconds();
     }
 
     /**
