@@ -104,7 +104,8 @@ class ClientRestMessageProcessor extends AbstractClientMessageProcessor {
                                RequestWrapper request, ResponseWrapper response,
                                HttpClient httpClient, IsAuthenticationData clientCert,
                                OpMonitoringData opMonitoringData) throws Exception {
-        super(globalConfProvider, keyConfProvider, serverConfProvider, certChainFactory, request, response, httpClient, clientCert, opMonitoringData);
+        super(globalConfProvider, keyConfProvider, serverConfProvider, certChainFactory, request, response, httpClient,
+                clientCert, opMonitoringData);
         this.xRequestId = UUID.randomUUID().toString();
     }
 

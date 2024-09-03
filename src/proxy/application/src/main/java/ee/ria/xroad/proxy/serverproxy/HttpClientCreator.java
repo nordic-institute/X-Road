@@ -27,10 +27,11 @@ package ee.ria.xroad.proxy.serverproxy;
 
 import ee.ria.xroad.common.SystemProperties;
 import ee.ria.xroad.common.conf.InternalSSLKey;
-import ee.ria.xroad.common.conf.serverconf.ServerConf;
+import ee.ria.xroad.common.conf.serverconf.ServerConfProvider;
 import ee.ria.xroad.common.util.CryptoUtils;
 import ee.ria.xroad.proxy.util.InternalKeyManager;
 
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.http.client.config.RequestConfig;
 import org.apache.http.config.RegistryBuilder;
@@ -55,13 +56,15 @@ import java.security.SecureRandom;
  * {@link ServerProxy} and the Metadata Service.
  */
 @Slf4j
+@RequiredArgsConstructor
 public class HttpClientCreator {
-
     // Configuration parameters.
     // TODO #2576 Make configurable in the future
     private static final int CLIENT_TIMEOUT = 30000; // 30 sec.
     private static final int CLIENT_MAX_TOTAL_CONNECTIONS = 10000;
     private static final int CLIENT_MAX_CONNECTIONS_PER_ROUTE = 2500;
+
+    private final ServerConfProvider serverConfProvider;
 
     /**
      * A custom exception to use with the {@link HttpClientCreator} class, replacing throwing pure {@link Exception}s.
@@ -148,21 +151,21 @@ public class HttpClientCreator {
         httpClient = cb.build();
     }
 
-    private static SSLConnectionSocketFactory createSSLSocketFactory() throws Exception {
+    private SSLConnectionSocketFactory createSSLSocketFactory() throws Exception {
         SSLContext ctx = SSLContext.getInstance(CryptoUtils.SSL_PROTOCOL);
         ctx.init(createServiceKeyManager(), new TrustManager[]{new ServiceTrustManager()}, new SecureRandom());
 
         log.info("SSL context successfully created");
 
         return new CustomSSLSocketFactory(ctx, SystemProperties.getProxyClientTLSProtocols(),
-                SystemProperties.getProxyClientTLSCipherSuites(), NoopHostnameVerifier.INSTANCE);
+                SystemProperties.getProxyClientTLSCipherSuites(), NoopHostnameVerifier.INSTANCE, serverConfProvider);
     }
 
-    private static KeyManager[] createServiceKeyManager() throws Exception {
-        InternalSSLKey key = ServerConf.getSSLKey();
+    private KeyManager[] createServiceKeyManager() throws Exception {
+        InternalSSLKey key = serverConfProvider.getSSLKey();
 
         if (key != null) {
-            return new KeyManager[]{new InternalKeyManager()};
+            return new KeyManager[]{new InternalKeyManager(serverConfProvider)};
         }
 
         return null;

@@ -25,7 +25,6 @@
  */
 package ee.ria.xroad.proxy.antidos;
 
-import ee.ria.xroad.common.conf.globalconf.GlobalConf;
 import ee.ria.xroad.common.conf.globalconf.GlobalConfProvider;
 import ee.ria.xroad.proxy.util.SystemMetrics;
 
@@ -251,7 +250,7 @@ class AntiDosConnectionManager<T extends SocketChannelWrapper> {
                 && heapUsage < maxHeapUsage;
     }
 
-    private  Set<String> getAllAddresses() {
+    private Set<String> getAllAddresses() {
         Set<String> addresses = new HashSet<>();
         try {
             addresses.addAll(globalConfProvider.getKnownAddresses());

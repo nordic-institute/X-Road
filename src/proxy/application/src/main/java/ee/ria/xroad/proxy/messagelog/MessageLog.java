@@ -72,7 +72,8 @@ public final class MessageLog {
         log.trace("Using implementation class: {}", clazz);
 
         try {
-            logManager = clazz.getDeclaredConstructor(JobManager.class, GlobalConfProvider.class).newInstance(jobManager, globalConfProvider);
+            logManager = clazz.getDeclaredConstructor(JobManager.class, GlobalConfProvider.class)
+                    .newInstance(jobManager, globalConfProvider);
         } catch (Exception e) {
             throw new RuntimeException("Failed to initialize LogManager", e);
         }

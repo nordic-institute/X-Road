@@ -25,6 +25,7 @@
  */
 package org.niis.xroad.securityserver.restapi.service;
 
+import ee.ria.xroad.common.conf.globalconf.GlobalConfProvider;
 import ee.ria.xroad.common.conf.serverconf.IsAuthentication;
 import ee.ria.xroad.common.conf.serverconf.model.ClientType;
 import ee.ria.xroad.common.conf.serverconf.model.ServerConfType;
@@ -46,7 +47,6 @@ import org.niis.xroad.restapi.service.ServiceException;
 import org.niis.xroad.restapi.service.UnhandledWarningsException;
 import org.niis.xroad.securityserver.restapi.dto.InitializationStatusDto;
 import org.niis.xroad.securityserver.restapi.dto.TokenInitStatusInfo;
-import org.niis.xroad.securityserver.restapi.facade.GlobalConfFacade;
 import org.niis.xroad.securityserver.restapi.facade.SignerProxyFacade;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -90,7 +90,7 @@ public class InitializationService {
     private final SystemService systemService;
     private final ServerConfService serverConfService;
     private final TokenService tokenService;
-    private final GlobalConfFacade globalConfFacade;
+    private final GlobalConfProvider globalConfProvider;
     private final ClientService clientService;
     private final SignerProxyFacade signerProxyFacade;
     private final AuditDataHelper auditDataHelper;
@@ -167,7 +167,7 @@ public class InitializationService {
         }
         verifyInitializationPrerequisites(securityServerCode, ownerMemberClass, ownerMemberCode, softwareTokenPin,
                 isServerCodeInitialized, isServerOwnerInitialized, isSoftwareTokenInitialized);
-        String instanceIdentifier = globalConfFacade.getInstanceIdentifier();
+        String instanceIdentifier = globalConfProvider.getInstanceIdentifier();
         ClientId.Conf ownerClientId = null;
         if (isServerOwnerInitialized) {
             ownerClientId = serverConfService.getSecurityServerOwnerId();
@@ -338,7 +338,7 @@ public class InitializationService {
         boolean isServerCodeInitialized = serverConfService.isServerCodeInitialized();
         boolean isServerOwnerInitialized = serverConfService.isServerOwnerInitialized();
         boolean isSoftwareTokenInitialized = tokenService.isSoftwareTokenInitialized();
-        String ownerMemberName = globalConfFacade.getMemberName(ownerClientId);
+        String ownerMemberName = globalConfProvider.getMemberName(ownerClientId);
         List<WarningDeviation> warnings = new ArrayList<>();
         if (isServerCodeInitialized) {
             warnings.add(new WarningDeviation(WARNING_SERVERCODE_EXISTS));
@@ -356,7 +356,7 @@ public class InitializationService {
         }
         if (!isServerCodeInitialized) {
             SecurityServerId.Conf serverId = SecurityServerId.Conf.create(ownerClientId, securityServerCode);
-            if (globalConfFacade.existsSecurityServer(serverId)) {
+            if (globalConfProvider.existsSecurityServer(serverId)) {
                 WarningDeviation memberWarning = new WarningDeviation(WARNING_INIT_SERVER_ID_EXISTS,
                         serverId.toShortString());
                 warnings.add(memberWarning);

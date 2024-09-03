@@ -52,10 +52,11 @@ public final class SSLContextUtil {
      *
      * @return
      */
-    public static SSLContext createXroadSSLContext(GlobalConfProvider globalConfProvider,
-                                                   KeyConfProvider keyConfProvider) throws KeyManagementException, NoSuchAlgorithmException {
+    public static SSLContext createXroadSSLContext(GlobalConfProvider globalConfProvider, KeyConfProvider keyConfProvider)
+            throws KeyManagementException, NoSuchAlgorithmException {
         SSLContext ctx = SSLContext.getInstance(CryptoUtils.SSL_PROTOCOL);
-        ctx.init(new KeyManager[]{new AuthKeyManager(keyConfProvider)}, new TrustManager[]{new AuthTrustManager(globalConfProvider)},
+        ctx.init(new KeyManager[]{new AuthKeyManager(keyConfProvider)},
+                new TrustManager[]{new AuthTrustManager(globalConfProvider)},
                 new SecureRandom());
         return ctx;
     }

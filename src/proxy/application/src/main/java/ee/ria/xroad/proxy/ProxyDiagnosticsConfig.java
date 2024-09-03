@@ -63,7 +63,8 @@ public class ProxyDiagnosticsConfig {
 
     @Bean
     @Conditional(HealthCheckEnabledCondition.class)
-    HealthChecks healthChecks(GlobalConfProvider globalConfProvider, KeyConfProvider keyConfProvider, ServerConfProvider serverConfProvider) {
+    HealthChecks healthChecks(GlobalConfProvider globalConfProvider, KeyConfProvider keyConfProvider,
+                              ServerConfProvider serverConfProvider) {
         return new HealthChecks(globalConfProvider, keyConfProvider, serverConfProvider);
     }
 

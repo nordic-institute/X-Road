@@ -39,7 +39,6 @@ import ee.ria.xroad.common.conf.globalconf.ConfigurationPartMetadata;
 import ee.ria.xroad.common.conf.globalconf.FileConsumer;
 import ee.ria.xroad.common.conf.globalconf.GlobalConfProvider;
 import ee.ria.xroad.common.conf.globalconf.VersionedConfigurationDirectory;
-import ee.ria.xroad.common.conf.serverconf.IsAuthentication;
 import ee.ria.xroad.common.conf.serverconf.ServerConfProvider;
 import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.messagelog.MessageLogProperties;
@@ -187,7 +186,7 @@ public class AsicContainerClientRequestProcessor extends MessageProcessorBase {
     private void verifyClientAuthentication(ClientId clientId) throws Exception {
         log.trace("verifyClientAuthentication({})", clientId);
         try {
-            IsAuthentication.verifyClientAuthentication(clientId, getIsAuthenticationData(jRequest));
+            verifyClientAuthentication(clientId, getIsAuthenticationData(jRequest));
         } catch (CodedException ex) {
             throw new CodedExceptionWithHttpStatus(UNAUTHORIZED_401, ex);
         }

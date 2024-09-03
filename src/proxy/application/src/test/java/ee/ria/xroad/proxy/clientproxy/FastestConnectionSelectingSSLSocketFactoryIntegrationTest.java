@@ -100,9 +100,10 @@ public class FastestConnectionSelectingSSLSocketFactoryIntegrationTest {
 
     @Before
     public void setup() {
-        keyConfProvider = new TestKeyConf();
         globalConfProvider = new TestGlobalConf();
-        authTrustVerifier = new AuthTrustVerifier(keyConfProvider, new CertHelper(globalConfProvider), new CertChainFactory(globalConfProvider));
+        keyConfProvider = new TestKeyConf(globalConfProvider);
+        authTrustVerifier = new AuthTrustVerifier(keyConfProvider, new CertHelper(globalConfProvider),
+                new CertChainFactory(globalConfProvider));
     }
 
     @Test

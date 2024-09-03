@@ -29,7 +29,6 @@ import ee.ria.xroad.common.CodedException;
 import ee.ria.xroad.common.SystemProperties;
 import ee.ria.xroad.common.cert.CertChainFactory;
 import ee.ria.xroad.common.conf.globalconf.GlobalConfProvider;
-import ee.ria.xroad.common.conf.serverconf.IsAuthentication;
 import ee.ria.xroad.common.conf.serverconf.IsAuthenticationData;
 import ee.ria.xroad.common.conf.serverconf.ServerConfProvider;
 import ee.ria.xroad.common.conf.serverconf.model.ClientType;
@@ -225,7 +224,7 @@ abstract class AbstractClientMessageProcessor extends MessageProcessorBase {
             return;
         }
         log.trace("verifyClientAuthentication()");
-        IsAuthentication.verifyClientAuthentication(sender, clientCert);
+        verifyClientAuthentication(sender, clientCert);
     }
 
     @EqualsAndHashCode

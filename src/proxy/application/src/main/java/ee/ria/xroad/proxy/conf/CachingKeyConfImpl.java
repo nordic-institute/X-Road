@@ -207,7 +207,8 @@ public class CachingKeyConfImpl extends KeyConfImpl {
     /**
      * Create a new CachingKeyConf instance and set up keyconf change watcher.
      */
-    public static CachingKeyConfImpl newInstance(GlobalConfProvider globalConfProvider, ServerConfProvider serverConfProvider) throws Exception {
+    public static CachingKeyConfImpl newInstance(GlobalConfProvider globalConfProvider, ServerConfProvider serverConfProvider)
+            throws Exception {
         final FileContentChangeChecker changeChecker = new FileContentChangeChecker(SystemProperties.getKeyConfFile());
         final CachingKeyConfImpl instance = new CachingKeyConfImpl(globalConfProvider, serverConfProvider);
         // the change watcher can not be created in the constructor, because that would publish the

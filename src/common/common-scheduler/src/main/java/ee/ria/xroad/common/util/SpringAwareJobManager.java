@@ -23,31 +23,17 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package ee.ria.xroad.proxy.util;
+package ee.ria.xroad.common.util;
 
-import ee.ria.xroad.common.SystemProperties;
-
-import org.junit.Test;
-
-import java.security.KeyManagementException;
-import java.security.NoSuchAlgorithmException;
-import java.util.Arrays;
-
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.hasItems;
+import org.quartz.SchedulerException;
+import org.springframework.scheduling.quartz.SpringBeanJobFactory;
 
 /**
- * Test for SSLContextUtil
+ * Spring aware job manager. Loads beans defined in jobs.
  */
-public class SSLContextUtilTest {
+public class SpringAwareJobManager extends JobManager {
 
-    /**
-     * Test that created SSLContext supports X-Road accepted cipher suites
-     */
-    @Test
-    public void xroadAcceptedCipherSuites() throws NoSuchAlgorithmException, KeyManagementException {
-        String[] supported = SSLContextUtil.createXroadSSLContext().createSSLEngine().getSupportedCipherSuites();
-        String[] accepted = SystemProperties.getXroadTLSCipherSuites();
-        assertThat(Arrays.asList(supported), hasItems(accepted));
+    public SpringAwareJobManager(SpringBeanJobFactory springBeanJobFactory) throws SchedulerException {
+        super(springBeanJobFactory);
     }
 }

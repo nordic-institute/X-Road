@@ -239,7 +239,7 @@ public class ClientProxy implements StartStop {
         cf.setIncludeCipherSuites(SystemProperties.getProxyClientTLSCipherSuites());
 
         SSLContext ctx = SSLContext.getInstance(CryptoUtils.SSL_PROTOCOL);
-        ctx.init(new KeyManager[]{new ClientSslKeyManager()}, new TrustManager[]{new ClientSslTrustManager()},
+        ctx.init(new KeyManager[]{new ClientSslKeyManager(serverConfProvider)}, new TrustManager[]{new ClientSslTrustManager()},
                 new SecureRandom());
 
         cf.setSslContext(ctx);
@@ -300,7 +300,8 @@ public class ClientProxy implements StartStop {
         }
 
         log.trace("Loading default client handler");
-        handlers.add(new ClientMessageHandler(globalConfProvider, keyConfProvider, serverConfProvider, certChainFactory, client)); // default handler
+        handlers.add(new ClientMessageHandler(globalConfProvider, keyConfProvider, serverConfProvider,
+                certChainFactory, client)); // default handler
 
         return handlers;
     }

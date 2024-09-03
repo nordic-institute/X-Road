@@ -88,22 +88,13 @@ public class ServerProxy implements StartStop {
 
     private CloseableHttpClient opMonitorClient;
 
-    /**
-     * Constructs and configures a new server proxy.
-     *
-     * @throws Exception in case of any errors
-     */
-    public ServerProxy(GlobalConfProvider globalConfProvider, KeyConfProvider keyConfProvider, ServerConfProvider serConfProvider, CertChainFactory certChainFactory) throws Exception {
+    public ServerProxy(GlobalConfProvider globalConfProvider, KeyConfProvider keyConfProvider, ServerConfProvider serConfProvider,
+                       CertChainFactory certChainFactory) throws Exception {
         this(globalConfProvider, keyConfProvider, serConfProvider, certChainFactory, SystemProperties.getServerProxyListenAddress());
     }
 
-    /**
-     * Constructs and configures a new client proxy with the specified listen address.
-     *
-     * @param listenAddress the address this server proxy should listen at
-     * @throws Exception in case of any errors
-     */
-    public ServerProxy(GlobalConfProvider globalConfProvider, KeyConfProvider keyConfProvider, ServerConfProvider serConfProvider, CertChainFactory certChainFactory, String listenAddress) throws Exception {
+    public ServerProxy(GlobalConfProvider globalConfProvider, KeyConfProvider keyConfProvider, ServerConfProvider serConfProvider,
+                       CertChainFactory certChainFactory, String listenAddress) throws Exception {
         this.globalConfProvider = globalConfProvider;
         this.keyConfProvider = keyConfProvider;
         this.serverConfProvider = serConfProvider;
@@ -136,7 +127,7 @@ public class ServerProxy implements StartStop {
     private void createClient() throws Exception {
         log.trace("createClient()");
 
-        HttpClientCreator creator = new HttpClientCreator();
+        HttpClientCreator creator = new HttpClientCreator(serverConfProvider);
 
         connMonitor = new IdleConnectionMonitorThread(creator.getConnectionManager());
         connMonitor.setIntervalMilliseconds(IDLE_MONITOR_INTERVAL);
@@ -157,7 +148,7 @@ public class ServerProxy implements StartStop {
         int port = SystemProperties.getServerProxyListenPort();
 
         ServerConnector connector = SystemProperties.isSslEnabled()
-                ? createClientProxySslConnector(server) : createClientProxyConnector(server);
+                ? createClientProxySslConnector() : createClientProxyConnector();
 
         connector.setName(CLIENT_PROXY_CONNECTOR_NAME);
         connector.setPort(port);
@@ -184,7 +175,8 @@ public class ServerProxy implements StartStop {
     private void createHandlers() {
         log.trace("createHandlers()");
 
-        ServerProxyHandler proxyHandler = new ServerProxyHandler(globalConfProvider, keyConfProvider, serverConfProvider, certChainFactory, client, opMonitorClient);
+        ServerProxyHandler proxyHandler = new ServerProxyHandler(globalConfProvider, keyConfProvider, serverConfProvider,
+                certChainFactory, client, opMonitorClient);
 
         var handler = new Handler.Sequence();
         handler.addHandler(proxyHandler);
@@ -228,12 +220,12 @@ public class ServerProxy implements StartStop {
         connMonitor.closeNow();
     }
 
-    private ServerConnector createClientProxyConnector(Server server) {
+    private ServerConnector createClientProxyConnector() {
         return SystemProperties.isAntiDosEnabled()
                 ? new AntiDosConnector(globalConfProvider, server, ACCEPTOR_COUNT) : new ServerConnector(server, ACCEPTOR_COUNT, -1);
     }
 
-    private ServerConnector createClientProxySslConnector(Server server) throws Exception {
+    private ServerConnector createClientProxySslConnector() throws Exception {
         var cf = new SslContextFactory.Server();
         cf.setNeedClientAuth(true);
         cf.setIncludeProtocols(CryptoUtils.SSL_PROTOCOL);

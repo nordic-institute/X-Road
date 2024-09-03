@@ -43,8 +43,8 @@ import java.util.Set;
 /**
  * GlobalConf wrapper to allow old-style TestGlobalConf usage withing spring based tests.
  */
+@Setter
 public class TestGlobalConfWrapper implements GlobalConfProvider {
-    @Setter
     private GlobalConfProvider globalConfProvider;
 
     public TestGlobalConfWrapper(GlobalConfProvider globalConfProvider) {
@@ -72,7 +72,7 @@ public class TestGlobalConfWrapper implements GlobalConfProvider {
     }
 
     @Override
-    public List<String> getInstanceIdentifiers() {
+    public Set<String> getInstanceIdentifiers() {
         return globalConfProvider.getInstanceIdentifiers();
     }
 

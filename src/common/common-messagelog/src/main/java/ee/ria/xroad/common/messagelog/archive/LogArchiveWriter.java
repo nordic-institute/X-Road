@@ -118,7 +118,7 @@ public class LogArchiveWriter implements Closeable {
     }
 
     private void prepareGrouping(MessageRecord logRecord) throws IOException {
-        grouping = forRecord(groupingStrategy, logRecord);
+        grouping = forRecord(logRecord);
         linkingInfoBuilder.reset(archiveBase.loadLastArchive(grouping.name()));
         logArchiveCache = new LogArchiveCache(
                 linkingInfoBuilder,
@@ -126,7 +126,7 @@ public class LogArchiveWriter implements Closeable {
                 outputPath);
     }
 
-    private Grouping forRecord(GroupingStrategy groupingStrategy, MessageRecord record) {
+    private Grouping forRecord(MessageRecord record) {
         return groupingStrategy.forClient(ClientId.Conf.create(globalConfProvider.getInstanceIdentifier(),
                 record.getMemberClass(), record.getMemberCode(), record.getSubsystemCode()));
     }

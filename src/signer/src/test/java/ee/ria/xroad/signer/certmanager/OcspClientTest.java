@@ -27,7 +27,6 @@ package ee.ria.xroad.signer.certmanager;
 
 import ee.ria.xroad.common.OcspTestUtils;
 import ee.ria.xroad.common.TestCertUtil;
-import ee.ria.xroad.common.conf.globalconf.GlobalConf;
 import ee.ria.xroad.common.conf.globalconf.GlobalConfProvider;
 import ee.ria.xroad.common.ocsp.OcspVerifier;
 import ee.ria.xroad.common.ocsp.OcspVerifierOptions;
@@ -118,7 +117,6 @@ class OcspClientTest {
             when(testConf.isOcspResponderCert(Mockito.any(X509Certificate.class),
                     Mockito.any(X509Certificate.class))).thenReturn(true);
 
-            GlobalConf.reload(testConf);
             return testConf;
         }
 
@@ -134,8 +132,14 @@ class OcspClientTest {
         }
 
         @Bean
-        OcspResponseManager ocspResponseManager(GlobalConfProvider globalConfProvider, OcspClient ocspClient) {
-            return new OcspResponseManager(globalConfProvider, ocspClient);
+        FileBasedOcspCache ocspCache(GlobalConfProvider globalConfProvider) {
+            return new FileBasedOcspCache(globalConfProvider);
+        }
+
+        @Bean
+        OcspResponseManager ocspResponseManager(GlobalConfProvider globalConfProvider, FileBasedOcspCache fileBasedOcspCache,
+                                                OcspClient ocspClient) {
+            return new OcspResponseManager(globalConfProvider, ocspClient, fileBasedOcspCache);
         }
     }
 

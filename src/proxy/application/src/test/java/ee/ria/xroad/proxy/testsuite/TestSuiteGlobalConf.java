@@ -28,6 +28,7 @@ package ee.ria.xroad.proxy.testsuite;
 import ee.ria.xroad.common.SystemProperties;
 import ee.ria.xroad.common.TestCertUtil;
 import ee.ria.xroad.common.cert.CertChain;
+import ee.ria.xroad.common.cert.CertChainFactory;
 import ee.ria.xroad.common.certificateprofile.AuthCertificateProfileInfo;
 import ee.ria.xroad.common.certificateprofile.SignCertificateProfileInfo;
 import ee.ria.xroad.common.certificateprofile.impl.EjbcaSignCertificateProfileInfo;
@@ -98,7 +99,7 @@ public class TestSuiteGlobalConf extends EmptyGlobalConf {
     @Override
     public CertChain getCertChain(String instanceIdentifier,
                                   X509Certificate subject) throws Exception {
-        return CertChain.create(instanceIdentifier, subject, null);
+        return new CertChainFactory(this).create(instanceIdentifier, subject, null);
     }
 
     @Override

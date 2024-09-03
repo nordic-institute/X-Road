@@ -26,11 +26,15 @@
 package ee.ria.xroad.proxy.util;
 
 import ee.ria.xroad.common.CodedException;
+import ee.ria.xroad.common.SystemProperties;
 import ee.ria.xroad.common.cert.CertChainFactory;
 import ee.ria.xroad.common.cert.CertHelper;
 import ee.ria.xroad.common.conf.globalconf.GlobalConfProvider;
+import ee.ria.xroad.common.conf.serverconf.IsAuthentication;
+import ee.ria.xroad.common.conf.serverconf.IsAuthenticationData;
 import ee.ria.xroad.common.conf.serverconf.ServerConfProvider;
 import ee.ria.xroad.common.conf.serverconf.model.DescriptionType;
+import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.identifier.XRoadId;
 import ee.ria.xroad.common.message.RestRequest;
 import ee.ria.xroad.common.message.SoapMessageImpl;
@@ -46,9 +50,15 @@ import org.apache.http.client.HttpClient;
 
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.security.cert.CertificateExpiredException;
+import java.security.cert.CertificateNotYetValidException;
+import java.security.cert.X509Certificate;
+import java.util.List;
 import java.util.Optional;
 
+import static ee.ria.xroad.common.ErrorCodes.X_INTERNAL_ERROR;
 import static ee.ria.xroad.common.ErrorCodes.X_INVALID_SOAPACTION;
+import static ee.ria.xroad.common.ErrorCodes.X_SSL_AUTH_FAILED;
 
 /**
  * Base class for message processors.
@@ -224,6 +234,81 @@ public abstract class MessageProcessorBase {
             }
         }
         return true;
+    }
+
+    /**
+     * Verifies the authentication for the client certificate.
+     *
+     * @param client the client identifier
+     * @param auth   the authentication data of the information system
+     * @throws Exception if verification fails
+     */
+    protected void verifyClientAuthentication(ClientId client,
+                                              IsAuthenticationData auth) throws Exception {
+
+        IsAuthentication isAuthentication = serverConfProvider.getIsAuthentication(client);
+        if (isAuthentication == null) {
+            // Means the client was not found in the server conf.
+            // The getIsAuthentication method implemented in ServerConfCommonImpl
+            // checks if the client exists; if it does, returns the
+            // isAuthentication value or NOSSL if no value is specified.
+            throw new CodedException(X_INTERNAL_ERROR,
+                    "Client '%s' not found", client);
+        }
+
+        log.trace("IS authentication for client '{}' is: {}", client,
+                isAuthentication);
+
+        if (isAuthentication == IsAuthentication.SSLNOAUTH
+                && auth.isPlaintextConnection()) {
+            throw new CodedException(X_SSL_AUTH_FAILED,
+                    "Client (%s) specifies HTTPS NO AUTH but client made plaintext connection", client);
+        } else if (isAuthentication == IsAuthentication.SSLAUTH) {
+            if (auth.cert() == null) {
+                throw new CodedException(X_SSL_AUTH_FAILED,
+                        "Client (%s) specifies HTTPS but did not supply"
+                                + " TLS certificate", client);
+            }
+
+            if (auth.cert().equals(serverConfProvider.getSSLKey().getCertChain()[0])) {
+                // do not check certificates for local TLS connections
+                return;
+            }
+
+            List<X509Certificate> isCerts = serverConfProvider.getIsCerts(client);
+            if (isCerts.isEmpty()) {
+                throw new CodedException(X_SSL_AUTH_FAILED,
+                        "Client (%s) has no IS certificates", client);
+            }
+
+            if (!isCerts.contains(auth.cert())) {
+                throw new CodedException(X_SSL_AUTH_FAILED,
+                        "Client (%s) TLS certificate does not match any"
+                                + " IS certificates", client);
+            }
+
+            clientIsCertPeriodValidatation(client, auth.cert());
+        }
+    }
+
+    private void clientIsCertPeriodValidatation(ClientId client, X509Certificate cert) throws CodedException {
+        try {
+            cert.checkValidity();
+        } catch (CertificateExpiredException e) {
+            if (SystemProperties.isClientIsCertValidityPeriodCheckEnforced()) {
+                throw new CodedException(X_SSL_AUTH_FAILED,
+                        "Client (%s) TLS certificate is expired", client);
+            } else {
+                log.warn("Client {} TLS certificate is expired", client);
+            }
+        } catch (CertificateNotYetValidException e) {
+            if (SystemProperties.isClientIsCertValidityPeriodCheckEnforced()) {
+                throw new CodedException(X_SSL_AUTH_FAILED,
+                        "Client (%s) TLS certificate is not yet valid", client);
+            } else {
+                log.warn("Client {} TLS certificate is not yet valid", client);
+            }
+        }
     }
 
     private static boolean validateIdentifierField(final CharSequence field) {

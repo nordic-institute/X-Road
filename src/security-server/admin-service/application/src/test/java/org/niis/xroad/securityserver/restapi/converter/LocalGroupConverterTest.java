@@ -25,6 +25,8 @@
  */
 package org.niis.xroad.securityserver.restapi.converter;
 
+import ee.ria.xroad.common.conf.globalconf.GlobalConfImpl;
+import ee.ria.xroad.common.conf.globalconf.GlobalConfProvider;
 import ee.ria.xroad.common.conf.serverconf.model.GroupMemberType;
 import ee.ria.xroad.common.conf.serverconf.model.LocalGroupType;
 import ee.ria.xroad.common.identifier.ClientId;
@@ -32,7 +34,6 @@ import ee.ria.xroad.common.identifier.ClientId;
 import org.junit.Before;
 import org.junit.Test;
 import org.niis.xroad.restapi.converter.ClientIdConverter;
-import org.niis.xroad.securityserver.restapi.facade.GlobalConfFacade;
 import org.niis.xroad.securityserver.restapi.openapi.model.LocalGroup;
 
 import java.util.Date;
@@ -47,11 +48,11 @@ public class LocalGroupConverterTest extends AbstractConverterTestContext {
     public static final String MEMBER_NAME_PREFIX = "member-name-for-";
 
     private LocalGroupConverter localGroupConverter;
-    private ClientIdConverter clientIdConverter =  new ClientIdConverter();
+    private ClientIdConverter clientIdConverter = new ClientIdConverter();
 
     @Before
     public void setup() {
-        GlobalConfFacade globalConfFacade = new GlobalConfFacade(null) {
+        GlobalConfProvider globalConfFacade = new GlobalConfImpl(null) {
             @Override
             public String getMemberName(ClientId identifier) {
                 return MEMBER_NAME_PREFIX + identifier.getMemberCode();

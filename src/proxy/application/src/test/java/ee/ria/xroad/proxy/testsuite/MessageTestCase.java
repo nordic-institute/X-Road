@@ -26,8 +26,7 @@
 package ee.ria.xroad.proxy.testsuite;
 
 import ee.ria.xroad.common.SystemProperties;
-import ee.ria.xroad.common.conf.globalconf.GlobalConf;
-import ee.ria.xroad.common.conf.serverconf.ServerConf;
+import ee.ria.xroad.common.conf.globalconf.TestGlobalConfWrapper;
 import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.identifier.ServiceId;
 import ee.ria.xroad.common.message.SoapFault;
@@ -35,8 +34,9 @@ import ee.ria.xroad.common.message.SoapMessageImpl;
 import ee.ria.xroad.common.util.AbstractHttpSender;
 import ee.ria.xroad.common.util.CryptoUtils;
 import ee.ria.xroad.common.util.MimeTypes;
-import ee.ria.xroad.proxy.conf.KeyConf;
+import ee.ria.xroad.proxy.conf.KeyConfProvider;
 import ee.ria.xroad.proxy.conf.SigningCtx;
+import ee.ria.xroad.proxy.testutil.TestServerConfWrapper;
 
 import lombok.Getter;
 import lombok.Setter;
@@ -106,6 +106,10 @@ public class MessageTestCase {
             + SystemProperties.getClientProxyHttpPort();
     protected final Map<String, String> requestHeaders = new HashMap<>();
 
+    protected TestGlobalConfWrapper globalConfProvider;
+    protected KeyConfProvider keyConfProvider;
+    protected TestServerConfWrapper serverConfProvider;
+
     @Getter
     @Setter
     private String id;
@@ -119,7 +123,8 @@ public class MessageTestCase {
 
     /**
      * Adds a new HTTP header to the request.
-     * @param name the name of the header
+     *
+     * @param name  the name of the header
      * @param value the value of the header
      */
     public void addRequestHeader(String name, String value) {
@@ -169,7 +174,7 @@ public class MessageTestCase {
     }
 
     /**
-     * @param sender the sender client ID
+     * @param sender  the sender client ID
      * @param service the service ID
      * @return true if the query from sender to service is allowed
      */
@@ -213,6 +218,7 @@ public class MessageTestCase {
 
     /**
      * Performs the request and validates the response.
+     *
      * @throws Exception in case of any unexpected errors
      */
     public void execute() throws Exception {
@@ -298,9 +304,9 @@ public class MessageTestCase {
     }
 
     protected void startUp() throws Exception {
-        KeyConf.reload(new TestSuiteKeyConf());
-        ServerConf.reload(new TestSuiteServerConf());
-        GlobalConf.reload(new TestSuiteGlobalConf());
+        globalConfProvider = new TestGlobalConfWrapper(new TestSuiteGlobalConf());
+        keyConfProvider = new TestSuiteKeyConf(globalConfProvider);
+        serverConfProvider = new TestServerConfWrapper(new TestSuiteServerConf());
     }
 
     protected void closeDown() throws Exception {

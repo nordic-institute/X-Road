@@ -48,7 +48,7 @@ public class SecurityServerConverterTest extends AbstractConverterTestContext {
 
     @Before
     public void setup() {
-        when(globalConfFacade.getSecurityServerAddress(any())).thenReturn(SERVER_ADDRESS);
+        when(globalConfProvider.getSecurityServerAddress(any())).thenReturn(SERVER_ADDRESS);
     }
 
     @Test

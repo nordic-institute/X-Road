@@ -26,7 +26,6 @@
 package ee.ria.xroad.monitor;
 
 import ee.ria.xroad.common.TestCertUtil;
-import ee.ria.xroad.common.conf.serverconf.ServerConf;
 import ee.ria.xroad.common.util.CryptoUtils;
 import ee.ria.xroad.monitor.CertificateInfoSensor.CertificateInfoCollector;
 import ee.ria.xroad.monitor.CertificateInfoSensor.TokenExtractor;
@@ -102,12 +101,12 @@ class CertificateInfoSensorTest {
         caTokenInfo = createTestTokenInfo(caKeyInfo);
         tspTokenInfo = createTestTokenInfo(tspKeyInfo);
 
-        ServerConf.reload(new EmptyServerConf());
+        var serverConfProvider = new EmptyServerConf();
 
         var taskScheduler = spy(TaskScheduler.class);
         when(taskScheduler.getClock()).thenReturn(Clock.systemDefaultZone());
 
-        certificateInfoSensor = new CertificateInfoSensor(taskScheduler);
+        certificateInfoSensor = new CertificateInfoSensor(taskScheduler, serverConfProvider);
     }
 
     private TokenInfo createTestTokenInfo(KeyInfo... keyInfoParams) {

@@ -26,8 +26,10 @@
 package ee.ria.xroad.proxy.util;
 
 import ee.ria.xroad.common.TestCertUtil;
+import ee.ria.xroad.common.conf.globalconf.GlobalConfProvider;
 import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.signature.TestSigningKey;
+import ee.ria.xroad.proxy.conf.KeyConfProvider;
 import ee.ria.xroad.proxy.conf.SigningCtx;
 import ee.ria.xroad.proxy.conf.SigningCtxImpl;
 
@@ -48,6 +50,7 @@ public final class TestUtil {
 
     /**
      * Load a certificate and private key from the PKC12 keystore with the given name.
+     *
      * @param orgName the keystore name
      * @return the certificate and private key container
      */
@@ -63,26 +66,21 @@ public final class TestUtil {
     }
 
     /**
+     * @param orgName the keystore name
      * @return signing context for given organization, assuming that
      * keystore is named orgName.p12 and key in store is named
      * after the organization.
-     * @param orgName the keystore name
      */
-    public static SigningCtx getSigningCtx(String orgName) {
+    public static SigningCtx getSigningCtx(GlobalConfProvider globalConfProvider, KeyConfProvider keyConfProvider, String orgName) {
         TestCertUtil.PKCS12 pkcs12 = loadPKCS12(orgName);
-        return getSigningCtx(pkcs12);
+        return getSigningCtx(globalConfProvider, keyConfProvider, pkcs12);
     }
 
-    /**
-     * @return default signing context
-     */
-    public static SigningCtx getSigningCtx() {
-        return getSigningCtx(TestCertUtil.getConsumer());
-    }
 
-    private static SigningCtx getSigningCtx(TestCertUtil.PKCS12 pkcs12) {
+    private static SigningCtx getSigningCtx(GlobalConfProvider globalConfProvider, KeyConfProvider keyConfProvider,
+                                            TestCertUtil.PKCS12 pkcs12) {
         ClientId subject = ClientId.Conf.create("EE", "BUSINESS", "foo");
-        return new SigningCtxImpl(subject, new TestSigningKey(pkcs12.key),
+        return new SigningCtxImpl(globalConfProvider, keyConfProvider, subject, new TestSigningKey(pkcs12.key),
                 pkcs12.certChain[0]);
     }
 }

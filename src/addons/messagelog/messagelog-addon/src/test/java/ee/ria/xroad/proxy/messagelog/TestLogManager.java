@@ -92,7 +92,7 @@ class TestLogManager extends LogManager {
 
     @Override
     protected TestTimestamper getTimestamperImpl() {
-        return new TestTimestamper(globalConfProvider);
+        return new TestTimestamper(globalConfProvider, serverConfProvider);
     }
 
     @Override

@@ -92,8 +92,8 @@ class ClientRestMessageHandler extends AbstractClientProxyHandler {
         final var target = getTarget(request);
         if (target != null && target.startsWith("/r" + RestMessage.PROTOCOL_VERSION + "/")) {
             verifyCanProcess();
-            return new ClientRestMessageProcessor(globalConfProvider, keyConfProvider, serverConfProvider, certChainFactory, request, response, client,
-                    getIsAuthenticationData(request), opMonitoringData);
+            return new ClientRestMessageProcessor(globalConfProvider, keyConfProvider, serverConfProvider, certChainFactory,
+                    request, response, client, getIsAuthenticationData(request), opMonitoringData);
         }
         return null;
     }

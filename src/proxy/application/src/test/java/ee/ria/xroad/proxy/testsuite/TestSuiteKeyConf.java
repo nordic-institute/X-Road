@@ -73,7 +73,7 @@ public class TestSuiteKeyConf extends EmptyKeyConf {
         }
 
         if (!signingCtx.containsKey(orgName)) {
-            signingCtx.put(orgName, TestUtil.getSigningCtx(orgName));
+            signingCtx.put(orgName, TestUtil.getSigningCtx(globalConfProvider, this, orgName));
         }
 
         return signingCtx.get(orgName);

@@ -116,10 +116,10 @@ public class GlobalConfImpl implements GlobalConfProvider {
     }
 
     @Override
-    public List<String> getInstanceIdentifiers() {
+    public Set<String> getInstanceIdentifiers() {
         return getSharedParameters().stream()
                 .map(SharedParameters::getInstanceIdentifier)
-                .toList();
+                .collect(toSet());
     }
 
     @Override

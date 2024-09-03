@@ -59,15 +59,16 @@ public class GlobalConfVer4Test {
     @Rule
     public ExpectedCodedException thrown = ExpectedCodedException.none();
 
+    private static GlobalConfProvider globalConfProvider;
+
     @BeforeClass
     public static void setUpBeforeClass() throws Exception {
-        GlobalConf.reset();
         System.setProperty(SystemProperties.CONFIGURATION_PATH, GOOD_CONF_DIR);
 
         createConfigurationFiles();
 
-        var globalConf = new GlobalConfImpl(new FileSystemGlobalConfSource(getConfigurationPath()));
-        GlobalConf.initialize(globalConf);
+        globalConfProvider = new GlobalConfImpl(new FileSystemGlobalConfSource(getConfigurationPath()));
+
     }
 
     private static void createConfigurationFiles() throws IOException {
@@ -104,19 +105,19 @@ public class GlobalConfVer4Test {
 
     @Test
     public void isSubjectInGlobalGroup() {
-        assertTrue(GlobalConf.isSubjectInGlobalGroup(
+        assertTrue(globalConfProvider.isSubjectInGlobalGroup(
                 ClientId.Conf.create("EE", "BUSINESS", "member1", "subsys"),
                 GlobalGroupId.Conf.create("EE", "Test group"))
         );
-        assertTrue(GlobalConf.isSubjectInGlobalGroup(
+        assertTrue(globalConfProvider.isSubjectInGlobalGroup(
                 ClientId.Conf.create("EE", "BUSINESS", "member2"),
                 GlobalGroupId.Conf.create("EE", "Test group"))
         );
-        assertFalse(GlobalConf.isSubjectInGlobalGroup(
+        assertFalse(globalConfProvider.isSubjectInGlobalGroup(
                 ClientId.Conf.create("EE", "BUSINESS", "member2", "subsys"),
                 GlobalGroupId.Conf.create("EE", "Test group"))
         );
-        assertFalse(GlobalConf.isSubjectInGlobalGroup(
+        assertFalse(globalConfProvider.isSubjectInGlobalGroup(
                 ClientId.Conf.create("EE", "BUSINESS", "member2"),
                 GlobalGroupId.Conf.create("non-existent-instance", "non-existent-group"))
         );
@@ -124,13 +125,13 @@ public class GlobalConfVer4Test {
 
     @Test
     public void getApprovedCAs() {
-        Collection<ApprovedCAInfo> eeCAs = GlobalConf.getApprovedCAs("EE");
+        Collection<ApprovedCAInfo> eeCAs = globalConfProvider.getApprovedCAs("EE");
         ApprovedCAInfo pki1 = eeCAs.stream().filter(ca -> ca.getName().equals("pki1")).findFirst().get();
         assertEquals("http://ca:8887/acme/directory", pki1.getAcmeServerDirectoryUrl());
         assertEquals("5", pki1.getAuthenticationCertificateProfileId());
         assertEquals("6", pki1.getSigningCertificateProfileId());
 
-        Collection<ApprovedCAInfo> v3CAs = GlobalConf.getApprovedCAs("baz_v3");
+        Collection<ApprovedCAInfo> v3CAs = globalConfProvider.getApprovedCAs("baz_v3");
         ApprovedCAInfo v3pki1 = v3CAs.stream().filter(ca -> ca.getName().equals("pki1")).findFirst().get();
         assertEquals("http://ca:8887/acme/directory", v3pki1.getAcmeServerDirectoryUrl());
         assertNull(v3pki1.getAuthenticationCertificateProfileId());

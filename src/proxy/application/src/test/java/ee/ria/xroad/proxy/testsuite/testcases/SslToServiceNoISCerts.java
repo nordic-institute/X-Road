@@ -25,7 +25,6 @@
  */
 package ee.ria.xroad.proxy.testsuite.testcases;
 
-import ee.ria.xroad.common.conf.serverconf.ServerConf;
 import ee.ria.xroad.common.identifier.ServiceId;
 import ee.ria.xroad.proxy.testsuite.Message;
 import ee.ria.xroad.proxy.testsuite.ProxyTestSuite;
@@ -38,9 +37,9 @@ import static ee.ria.xroad.common.ErrorCodes.X_SSL_AUTH_FAILED;
 
 /**
  * ServerProxy connects to Service using SSL, serverconf contains no IS certs.
- *
+ * <p>
  * Response contains error code:
- *      Server.ServerProxy.ServiceFailed.SslAuthenticationFailed
+ * Server.ServerProxy.ServiceFailed.SslAuthenticationFailed
  */
 public class SslToServiceNoISCerts extends SslMessageTestCase {
 
@@ -56,7 +55,7 @@ public class SslToServiceNoISCerts extends SslMessageTestCase {
     protected void startUp() throws Exception {
         super.startUp();
 
-        ServerConf.reload(new TestSuiteServerConf() {
+        serverConfProvider.setServerConfProvider(new TestSuiteServerConf() {
             @Override
             public boolean isSslAuthentication(ServiceId service) {
                 return true;

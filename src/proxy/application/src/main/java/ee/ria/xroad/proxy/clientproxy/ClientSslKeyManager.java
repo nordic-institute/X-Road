@@ -26,8 +26,9 @@
 package ee.ria.xroad.proxy.clientproxy;
 
 import ee.ria.xroad.common.conf.InternalSSLKey;
-import ee.ria.xroad.common.conf.serverconf.ServerConf;
+import ee.ria.xroad.common.conf.serverconf.ServerConfProvider;
 
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
 import javax.net.ssl.SSLEngine;
@@ -39,9 +40,12 @@ import java.security.PrivateKey;
 import java.security.cert.X509Certificate;
 
 @Slf4j
+@RequiredArgsConstructor
 class ClientSslKeyManager extends X509ExtendedKeyManager {
 
     private static final String ALIAS = "ClientSslKeyManager";
+
+    private final ServerConfProvider serverConfProvider;
 
     @Override
     public String chooseClientAlias(String[] keyType, Principal[] issuers,
@@ -94,9 +98,9 @@ class ClientSslKeyManager extends X509ExtendedKeyManager {
         return ALIAS;
     }
 
-    private static InternalSSLKey getSslKey() {
+    private InternalSSLKey getSslKey() {
         try {
-            return ServerConf.getSSLKey();
+            return serverConfProvider.getSSLKey();
         } catch (Exception e) {
             log.error("Failed to load TLS key", e);
             throw new RuntimeException(e);

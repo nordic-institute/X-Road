@@ -44,7 +44,6 @@ import ee.ria.xroad.proxy.util.OpenapiDescriptionFiletype;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.PropertyNamingStrategy;
-import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.http.Header;
 import org.apache.http.HttpResponse;
@@ -77,7 +76,6 @@ import static ee.ria.xroad.proxy.util.MetadataRequests.LIST_METHODS;
  * Handler for REST metadata services
  */
 @Slf4j
-@RequiredArgsConstructor
 public class RestMetadataServiceHandlerImpl implements RestServiceHandler {
 
     private static final String QUERY_PARAM_SERVICECODE = "serviceCode";
@@ -93,10 +91,15 @@ public class RestMetadataServiceHandlerImpl implements RestServiceHandler {
     }
 
     private final ServerConfProvider serverConfProvider;
-    private final HttpClientCreator httpClientCreator = new HttpClientCreator();
+    private final HttpClientCreator httpClientCreator;
 
     private RestResponse restResponse;
     private CachingStream restResponseBody;
+
+    public RestMetadataServiceHandlerImpl(ServerConfProvider serverConfProvider) {
+        this.serverConfProvider = serverConfProvider;
+        this.httpClientCreator = new HttpClientCreator(serverConfProvider);
+    }
 
     @Override
     public boolean shouldVerifyAccess() {

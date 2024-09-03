@@ -113,12 +113,13 @@ class MetadataServiceHandlerImpl extends AbstractServiceHandler {
     private SoapMessageImpl requestMessage;
     private SoapMessageEncoder responseEncoder;
 
-    private HttpClientCreator wsdlHttpClientCreator = new HttpClientCreator();
+    private final HttpClientCreator wsdlHttpClientCreator;
 
     private static final SAXTransformerFactory TRANSFORMER_FACTORY = createSaxTransformerFactory();
 
     protected MetadataServiceHandlerImpl(ServerConfProvider serverConfProvider) {
         super(serverConfProvider);
+        wsdlHttpClientCreator = new HttpClientCreator(serverConfProvider);
     }
 
     private static SAXTransformerFactory createSaxTransformerFactory() {

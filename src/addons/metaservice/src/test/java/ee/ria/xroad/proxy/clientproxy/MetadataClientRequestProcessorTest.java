@@ -25,14 +25,16 @@
  */
 package ee.ria.xroad.proxy.clientproxy;
 
-import ee.ria.xroad.common.conf.globalconf.GlobalConf;
+import ee.ria.xroad.common.cert.CertChainFactory;
+import ee.ria.xroad.common.conf.globalconf.GlobalConfProvider;
 import ee.ria.xroad.common.conf.globalconf.MemberInfo;
+import ee.ria.xroad.common.conf.serverconf.ServerConfProvider;
 import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.metadata.ClientListType;
 import ee.ria.xroad.common.metadata.ObjectFactory;
 import ee.ria.xroad.common.util.RequestWrapper;
 import ee.ria.xroad.common.util.ResponseWrapper;
-import ee.ria.xroad.proxy.conf.KeyConf;
+import ee.ria.xroad.proxy.conf.KeyConfProvider;
 import ee.ria.xroad.proxy.testsuite.TestSuiteGlobalConf;
 import ee.ria.xroad.proxy.testsuite.TestSuiteKeyConf;
 import ee.ria.xroad.proxy.util.MetaserviceTestUtil;
@@ -88,6 +90,10 @@ public class MetadataClientRequestProcessorTest {
     private ResponseWrapper mockResponse;
     private MetaserviceTestUtil.StubServletOutputStream mockServletOutputStream;
 
+    private GlobalConfProvider globalConfProvider;
+    private KeyConfProvider keyConfProvider;
+    private ServerConfProvider serverConfProvider;
+    private CertChainFactory certChainFactory;
 
     /**
      * Init class-wide test instances
@@ -103,8 +109,10 @@ public class MetadataClientRequestProcessorTest {
     @Before
     public void init() {
 
-        GlobalConf.reload(new TestSuiteGlobalConf());
-        KeyConf.reload(new TestSuiteKeyConf());
+        globalConfProvider = new TestSuiteGlobalConf();
+        keyConfProvider = new TestSuiteKeyConf(globalConfProvider);
+        serverConfProvider = mock(ServerConfProvider.class);
+        certChainFactory = mock(CertChainFactory.class);
 
         mockRequest = mock(RequestWrapper.class);
         mockJsonRequest = mock(RequestWrapper.class);
@@ -123,7 +131,8 @@ public class MetadataClientRequestProcessorTest {
     public void shouldBeAbleToProcessListClients() {
 
         MetadataClientRequestProcessor processorToTest =
-                new MetadataClientRequestProcessor(LIST_CLIENTS, mockRequest, mockResponse);
+                new MetadataClientRequestProcessor(globalConfProvider, keyConfProvider, serverConfProvider, certChainFactory,
+                        LIST_CLIENTS, mockRequest, mockResponse);
 
         assertTrue("Wasn't able to process list clients", processorToTest.canProcess());
     }
@@ -132,7 +141,8 @@ public class MetadataClientRequestProcessorTest {
     public void shouldNotBeAbleToProcessRandomRequest() {
 
         MetadataClientRequestProcessor processorToTest =
-                new MetadataClientRequestProcessor("getRandom", mockRequest, mockResponse);
+                new MetadataClientRequestProcessor(globalConfProvider, keyConfProvider, serverConfProvider, certChainFactory,
+                        "getRandom", mockRequest, mockResponse);
 
         assertFalse("Was able to process a random target", processorToTest.canProcess());
     }
@@ -147,7 +157,7 @@ public class MetadataClientRequestProcessorTest {
                 createMember("anothermemeber", "somesub"),
                 createMember("thirdmember", null));
 
-        GlobalConf.reload(new TestSuiteGlobalConf() {
+        globalConfProvider = new TestSuiteGlobalConf() {
 
             @Override
             public List<MemberInfo> getMembers(String... instanceIdentifier) {
@@ -155,7 +165,7 @@ public class MetadataClientRequestProcessorTest {
                 return expectedMembers;
             }
 
-        });
+        };
 
         var mockHeaders = mock(HttpFields.class);
         var mockHttpUri = mock(HttpURI.class);
@@ -163,7 +173,8 @@ public class MetadataClientRequestProcessorTest {
         when(mockRequest.getHttpURI()).thenReturn(mockHttpUri);
 
         MetadataClientRequestProcessor processorToTest =
-                new MetadataClientRequestProcessor(LIST_CLIENTS, mockRequest, mockResponse);
+                new MetadataClientRequestProcessor(globalConfProvider, keyConfProvider, serverConfProvider, certChainFactory,
+                        LIST_CLIENTS, mockRequest, mockResponse);
 
         when(mockRequest.getParametersMap()).thenReturn(Map.of());
         when(mockResponse.getOutputStream()).thenReturn(mockServletOutputStream);
@@ -194,16 +205,17 @@ public class MetadataClientRequestProcessorTest {
                 createMember("producer", null),
                 createMember("producer", "subsystem"));
 
-        GlobalConf.reload(new TestSuiteGlobalConf() {
+        globalConfProvider = new TestSuiteGlobalConf() {
             @Override
             public List<MemberInfo> getMembers(String... instanceIdentifier) {
                 assertThat("Wrong Xroad instance in query", instanceIdentifier, arrayContaining(EXPECTED_XR_INSTANCE));
                 return expectedMembers;
             }
-        });
+        };
 
         MetadataClientRequestProcessor processorToTest =
-                new MetadataClientRequestProcessor(LIST_CLIENTS, mockJsonRequest, mockResponse);
+                new MetadataClientRequestProcessor(globalConfProvider, keyConfProvider, serverConfProvider, certChainFactory,
+                        LIST_CLIENTS, mockJsonRequest, mockResponse);
 
         when(mockJsonRequest.getParametersMap()).thenReturn(Map.of());
         when(mockResponse.getOutputStream()).thenReturn(mockServletOutputStream);

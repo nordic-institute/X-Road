@@ -55,6 +55,7 @@ public class SslClientCipherSuiteSetupError extends SslMessageTestCase {
 
     /**
      * Sets up non accepted cipher suite in use, runs getstate.query request and restores cipher suite setup
+     *
      * @throws Exception
      */
     @Override
@@ -72,6 +73,7 @@ public class SslClientCipherSuiteSetupError extends SslMessageTestCase {
 
     /**
      * Underlying "javax.net.ssl.SSLHandshakeException: no cipher suites in common" cannot be validated
+     *
      * @param receivedResponse
      * @throws Exception
      */
@@ -83,7 +85,8 @@ public class SslClientCipherSuiteSetupError extends SslMessageTestCase {
 
     private String getNotAcceptedCipher(String[] acceptedCiphers) throws NoSuchAlgorithmException,
             KeyManagementException {
-        for (String cipher : SSLContextUtil.createXroadSSLContext().createSSLEngine().getSupportedCipherSuites()) {
+        var sslCtx = SSLContextUtil.createXroadSSLContext(globalConfProvider, keyConfProvider);
+        for (String cipher : sslCtx.createSSLEngine().getSupportedCipherSuites()) {
             if (cipher.contains("_RSA_") && !ArrayUtils.contains(acceptedCiphers, cipher)) {
                 return cipher;
             }

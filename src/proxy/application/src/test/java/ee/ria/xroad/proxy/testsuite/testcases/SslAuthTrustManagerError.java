@@ -25,8 +25,6 @@
  */
 package ee.ria.xroad.proxy.testsuite.testcases;
 
-import ee.ria.xroad.common.conf.globalconf.GlobalConf;
-import ee.ria.xroad.common.conf.serverconf.ServerConf;
 import ee.ria.xroad.common.identifier.SecurityServerId;
 import ee.ria.xroad.proxy.testsuite.IsolatedSslMessageTestCase;
 import ee.ria.xroad.proxy.testsuite.Message;
@@ -54,8 +52,8 @@ public class SslAuthTrustManagerError extends IsolatedSslMessageTestCase {
 
     @Override
     protected void startUp() throws Exception {
-        ServerConf.reload(new TestSuiteServerConf());
-        GlobalConf.reload(new TestSuiteGlobalConf() {
+        serverConfProvider.setServerConfProvider(new TestSuiteServerConf());
+        globalConfProvider.setGlobalConfProvider(new TestSuiteGlobalConf() {
             @Override
             public SecurityServerId.Conf getServerId(X509Certificate cert) {
                 return null;

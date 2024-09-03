@@ -194,8 +194,8 @@ public class EmptyGlobalConf implements GlobalConfProvider {
     }
 
     @Override
-    public List<String> getInstanceIdentifiers() {
-        return Collections.emptyList();
+    public Set<String> getInstanceIdentifiers() {
+        return Collections.emptySet();
     }
 
     @Override

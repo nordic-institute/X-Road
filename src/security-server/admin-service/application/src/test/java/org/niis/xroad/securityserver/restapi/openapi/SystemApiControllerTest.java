@@ -103,7 +103,7 @@ public class SystemApiControllerTest extends AbstractApiControllerTestContext {
 
     @Before
     public void setup() throws Exception {
-        when(globalConfFacade.getInstanceIdentifier()).thenReturn("TEST");
+        when(globalConfProvider.getInstanceIdentifier()).thenReturn("TEST");
         AnchorFile anchorFile = new AnchorFile(ANCHOR_HASH);
         anchorFile.setCreatedAt(new Date(ANCHOR_CREATED_AT_MILLIS).toInstant().atOffset(ZoneOffset.UTC));
         when(systemService.getAnchorFileFromBytes(any(), anyBoolean())).thenReturn(anchorFile);

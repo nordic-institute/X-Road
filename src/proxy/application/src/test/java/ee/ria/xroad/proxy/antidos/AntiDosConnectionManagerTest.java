@@ -26,10 +26,8 @@
 package ee.ria.xroad.proxy.antidos;
 
 import ee.ria.xroad.common.conf.globalconf.EmptyGlobalConf;
-import ee.ria.xroad.common.conf.globalconf.GlobalConf;
 import ee.ria.xroad.common.conf.globalconf.GlobalConfProvider;
 
-import org.junit.BeforeClass;
 import org.junit.Test;
 
 import java.util.HashSet;
@@ -56,14 +54,6 @@ public class AntiDosConnectionManagerTest {
         KNOWN_ADDRESSES.add("test1");
         KNOWN_ADDRESSES.add("test2");
         KNOWN_ADDRESSES.add("test3");
-    }
-
-    /**
-     * Set up configuration.
-     */
-    @BeforeClass
-    public static void reloadGlobalConf() {
-        GlobalConf.reload(GLOBAL_CONF_PROVIDER);
     }
 
     // ------------------------------------------------------------------------

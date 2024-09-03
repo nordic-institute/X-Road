@@ -29,13 +29,13 @@ import ee.ria.xroad.common.SystemProperties;
 import ee.ria.xroad.common.conf.globalconf.GlobalConfProvider;
 import ee.ria.xroad.common.conf.globalconf.GlobalConfSource;
 import ee.ria.xroad.common.conf.globalconf.TestGlobalConfWrapper;
-import ee.ria.xroad.common.conf.serverconf.ServerConf;
 import ee.ria.xroad.common.conf.serverconf.ServerConfProvider;
 import ee.ria.xroad.proxy.conf.KeyConfProvider;
 import ee.ria.xroad.proxy.testutil.IntegrationTest;
 import ee.ria.xroad.proxy.testutil.TestGlobalConf;
 import ee.ria.xroad.proxy.testutil.TestKeyConf;
 import ee.ria.xroad.proxy.testutil.TestServerConf;
+import ee.ria.xroad.proxy.testutil.TestServerConfWrapper;
 import ee.ria.xroad.proxy.testutil.TestService;
 
 import org.junit.After;
@@ -73,7 +73,7 @@ public abstract class AbstractProxyIntegrationTest {
     protected static int servicePort = getFreePort();
     protected static TestService service;
 
-    private static final TestServerConf TEST_SERVER_CONF = new TestServerConf(servicePort);
+    protected static final TestServerConfWrapper TEST_SERVER_CONF = new TestServerConfWrapper(new TestServerConf(servicePort));
     protected static final TestGlobalConfWrapper TEST_GLOBAL_CONF = new TestGlobalConfWrapper(new TestGlobalConf());
 
     @Rule
@@ -154,7 +154,7 @@ public abstract class AbstractProxyIntegrationTest {
 
         @Bean
         KeyConfProvider keyConfProvider() {
-            return new TestKeyConf();
+            return new TestKeyConf(TEST_GLOBAL_CONF);
         }
 
         @Bean
@@ -178,7 +178,7 @@ public abstract class AbstractProxyIntegrationTest {
 
     @After
     public void after() {
-        ServerConf.reload(TEST_SERVER_CONF);
+        TEST_SERVER_CONF.setServerConfProvider(new TestServerConf(servicePort));
         TEST_GLOBAL_CONF.setGlobalConfProvider(new TestGlobalConf());
     }
 

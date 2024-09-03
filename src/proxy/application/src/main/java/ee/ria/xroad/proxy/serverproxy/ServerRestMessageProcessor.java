@@ -220,7 +220,7 @@ class ServerRestMessageProcessor extends MessageProcessorBase {
         String serviceHandlerNames = System.getProperty(SERVERPROXY_REST_SERVICE_HANDLERS);
         if (!StringUtils.isBlank(serviceHandlerNames)) {
             for (String serviceHandlerName : serviceHandlerNames.split(",")) {
-                handlers.add(RestServiceHandlerLoader.load(serviceHandlerName));
+                handlers.add(RestServiceHandlerLoader.load(serverConfProvider, serviceHandlerName));
                 log.trace("Loaded rest service handler: " + serviceHandlerName);
             }
         }

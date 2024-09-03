@@ -127,7 +127,7 @@ public class ClientsApiControllerIntegrationTest extends AbstractApiControllerTe
 
     @Before
     public void setup() throws Exception {
-        when(globalConfFacade.getMemberName(any())).thenAnswer((Answer<String>) invocation -> {
+        when(globalConfProvider.getMemberName(any())).thenAnswer((Answer<String>) invocation -> {
             Object[] args = invocation.getArguments();
             ClientId identifier = (ClientId) args[0];
             return identifier.getSubsystemCode() != null ? TestUtils.NAME_FOR + identifier.getSubsystemCode()
@@ -142,14 +142,14 @@ public class ClientsApiControllerIntegrationTest extends AbstractApiControllerTe
                 TestUtils.getMemberInfo(TestUtils.INSTANCE_EE, TestUtils.MEMBER_CLASS_PRO, TestUtils.MEMBER_CODE_M1, TestUtils.SUBSYSTEM1),
                 TestUtils.getMemberInfo(TestUtils.INSTANCE_EE, TestUtils.MEMBER_CLASS_PRO, TestUtils.MEMBER_CODE_M2, null)
         );
-        when(globalConfFacade.getMembers()).thenReturn(new ArrayList<>(members));
+        when(globalConfProvider.getMembers()).thenReturn(new ArrayList<>(members));
         List<TokenInfo> mockTokens = createMockTokenInfos();
         doReturn(mockTokens).when(tokenService).getAllTokens();
         when(wsdlValidator.getWsdlValidatorCommand()).thenReturn("src/test/resources/validator/mock-wsdlvalidator.sh");
-        when(globalConfFacade.getGlobalGroups()).thenReturn(globalGroupInfos);
-        when(globalConfFacade.getGlobalGroups(any(String[].class))).thenReturn(globalGroupInfos);
-        when(globalConfFacade.getInstanceIdentifier()).thenReturn(TestUtils.INSTANCE_FI);
-        when(globalConfFacade.getInstanceIdentifiers()).thenReturn(instanceIdentifiers);
+        when(globalConfProvider.getGlobalGroups()).thenReturn(globalGroupInfos);
+        when(globalConfProvider.getGlobalGroups(any(String[].class))).thenReturn(globalGroupInfos);
+        when(globalConfProvider.getInstanceIdentifier()).thenReturn(TestUtils.INSTANCE_FI);
+        when(globalConfProvider.getInstanceIdentifiers()).thenReturn(instanceIdentifiers);
         // mock for URL validator - FormatUtils is tested independently
         when(urlValidator.isValidUrl(any())).thenReturn(true);
         when(managementRequestSenderService.sendClientRegisterRequest(any())).thenReturn(0);
@@ -722,7 +722,7 @@ public class ClientsApiControllerIntegrationTest extends AbstractApiControllerTe
     @WithMockUser(authorities = {"ADD_CLIENT"})
     public void addClientBadRequestFromWarnings() {
         // warning about unregistered client
-        doReturn(null).when(globalConfFacade).getMemberName(any());
+        doReturn(null).when(globalConfProvider).getMemberName(any());
         Client clientToAdd = createTestClient(TestUtils.MEMBER_CLASS_GOV, "B", "C");
         try {
             clientsApiController.addClient(
@@ -741,7 +741,7 @@ public class ClientsApiControllerIntegrationTest extends AbstractApiControllerTe
     @WithMockUser(authorities = {"ADD_CLIENT"})
     public void addClientBadRequestFromInvalidMemberClass() {
         // warning about unregistered client
-        doReturn(null).when(globalConfFacade).getMemberName(any());
+        doReturn(null).when(globalConfProvider).getMemberName(any());
         Client clientToAdd = createTestClient("INVALID", "B", "C");
         try {
             clientsApiController.addClient(

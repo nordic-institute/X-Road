@@ -29,7 +29,6 @@ package org.niis.xroad.cs.registrationservice.controller;
 import ee.ria.xroad.common.OcspTestUtils;
 import ee.ria.xroad.common.SystemProperties;
 import ee.ria.xroad.common.TestCertUtil;
-import ee.ria.xroad.common.conf.globalconf.GlobalConf;
 import ee.ria.xroad.common.conf.globalconf.GlobalConfProvider;
 import ee.ria.xroad.common.identifier.SecurityServerId;
 
@@ -95,9 +94,7 @@ class RegistrationRequestApiTest {
         @Bean
         @Primary
         GlobalConfProvider testGlobalConfProvider() {
-            var testGlobalConf = new TestGlobalConf();
-            GlobalConf.reload(testGlobalConf);
-            return testGlobalConf;
+            return new TestGlobalConf();
         }
     }
 

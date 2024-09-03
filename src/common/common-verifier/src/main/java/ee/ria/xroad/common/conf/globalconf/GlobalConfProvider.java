@@ -67,7 +67,7 @@ public interface  GlobalConfProvider {
     /**
      * @return the instance identifiers for all configuration sources
      */
-    List<String> getInstanceIdentifiers();
+    Set<String> getInstanceIdentifiers();
 
     /**
      * @param instanceIdentifiers the instance identifiers

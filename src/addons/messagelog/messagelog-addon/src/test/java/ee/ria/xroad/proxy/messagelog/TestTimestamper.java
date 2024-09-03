@@ -32,7 +32,7 @@ class TestTimestamper extends Timestamper {
     private final GlobalConfProvider globalConfProvider;
     private final ServerConfProvider serverConfProvider;
 
-    public TestTimestamper(GlobalConfProvider globalConfProvider, ServerConfProvider serverConfProvider) {
+    TestTimestamper(GlobalConfProvider globalConfProvider, ServerConfProvider serverConfProvider) {
         super(globalConfProvider, serverConfProvider);
         this.globalConfProvider = globalConfProvider;
         this.serverConfProvider = serverConfProvider;
