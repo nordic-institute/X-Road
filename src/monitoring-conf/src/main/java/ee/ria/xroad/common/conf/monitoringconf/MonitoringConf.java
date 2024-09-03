@@ -107,7 +107,7 @@ public final class MonitoringConf {
     }
 
     private Path getMonitoringConfigurationPath() {
-        return glo.getInstanceFile(MonitoringParameters.FILE_NAME_MONITORING_PARAMETERS);
+        return GlobalConf.getInstanceFile(MonitoringParameters.FILE_NAME_MONITORING_PARAMETERS);
     }
 
 }

@@ -63,7 +63,8 @@ public class OpMonitoringBuffer extends AbstractOpMonitoringBuffer {
      *
      * @throws Exception if an error occurs
      */
-    public OpMonitoringBuffer() throws Exception {
+    public OpMonitoringBuffer(ServerConfProvider serverConfProvider) throws Exception {
+        super(serverConfProvider);
         if (ignoreOpMonitoringData()) {
             log.info("Operational monitoring buffer is switched off, no operational monitoring data is stored");
 
@@ -72,7 +73,7 @@ public class OpMonitoringBuffer extends AbstractOpMonitoringBuffer {
             taskScheduler = null;
             opMonitoringDataProcessor = null;
         } else {
-            sender = createSender();
+            sender = createSender(serverConfProvider);
             executorService = Executors.newSingleThreadExecutor();
             taskScheduler = Executors.newSingleThreadScheduledExecutor();
             opMonitoringDataProcessor = createDataProcessor();

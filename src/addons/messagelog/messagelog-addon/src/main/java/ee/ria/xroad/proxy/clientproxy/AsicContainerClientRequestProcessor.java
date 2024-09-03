@@ -32,6 +32,7 @@ import ee.ria.xroad.common.SystemProperties;
 import ee.ria.xroad.common.asic.AsicContainer;
 import ee.ria.xroad.common.asic.AsicContainerNameGenerator;
 import ee.ria.xroad.common.asic.AsicUtils;
+import ee.ria.xroad.common.cert.CertChainFactory;
 import ee.ria.xroad.common.conf.globalconf.ConfigurationConstants;
 import ee.ria.xroad.common.conf.globalconf.ConfigurationDirectory;
 import ee.ria.xroad.common.conf.globalconf.ConfigurationPartMetadata;
@@ -39,6 +40,7 @@ import ee.ria.xroad.common.conf.globalconf.FileConsumer;
 import ee.ria.xroad.common.conf.globalconf.GlobalConfProvider;
 import ee.ria.xroad.common.conf.globalconf.VersionedConfigurationDirectory;
 import ee.ria.xroad.common.conf.serverconf.IsAuthentication;
+import ee.ria.xroad.common.conf.serverconf.ServerConfProvider;
 import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.messagelog.MessageLogProperties;
 import ee.ria.xroad.common.messagelog.MessageRecord;
@@ -51,6 +53,7 @@ import ee.ria.xroad.common.util.MimeTypes;
 import ee.ria.xroad.common.util.RequestWrapper;
 import ee.ria.xroad.common.util.ResponseWrapper;
 import ee.ria.xroad.messagelog.database.MessageRecordEncryption;
+import ee.ria.xroad.proxy.conf.KeyConfProvider;
 import ee.ria.xroad.proxy.messagelog.LogRecordManager;
 import ee.ria.xroad.proxy.messagelog.MessageLog;
 import ee.ria.xroad.proxy.util.MessageProcessorBase;
@@ -118,9 +121,13 @@ public class AsicContainerClientRequestProcessor extends MessageProcessorBase {
     private final GroupingStrategy groupingStrategy = MessageLogProperties.getArchiveGrouping();
     private final EncryptionConfigProvider encryptionConfigProvider;
 
-    public AsicContainerClientRequestProcessor(GlobalConfProvider globalConfProvider, String target, RequestWrapper request, ResponseWrapper response)
+    public AsicContainerClientRequestProcessor(GlobalConfProvider globalConfProvider,
+                                               KeyConfProvider keyConfProvider,
+                                               ServerConfProvider serverConfProvider,
+                                               CertChainFactory certChainFactory,
+                                               String target, RequestWrapper request, ResponseWrapper response)
             throws IOException {
-        super(globalConfProvider, request, response, null);
+        super(globalConfProvider, keyConfProvider, serverConfProvider, certChainFactory, request, response, null);
         this.target = target;
         this.encryptionConfigProvider = EncryptionConfigProvider.getInstance(groupingStrategy);
     }

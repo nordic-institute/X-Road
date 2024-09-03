@@ -25,6 +25,7 @@
  */
 package ee.ria.xroad.common.opmonitoring;
 
+import ee.ria.xroad.common.conf.serverconf.ServerConfProvider;
 import ee.ria.xroad.common.util.StartStop;
 
 import lombok.extern.slf4j.Slf4j;
@@ -34,6 +35,10 @@ import lombok.extern.slf4j.Slf4j;
  */
 @Slf4j
 public abstract class AbstractOpMonitoringBuffer implements StartStop {
+
+    protected AbstractOpMonitoringBuffer(ServerConfProvider serverConfProvider) {
+        //No-OP
+    }
 
     public abstract void store(OpMonitoringData data) throws Exception;
 
