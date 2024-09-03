@@ -1,5 +1,16 @@
 # Change Log
 
+## 7.5.1 - 2024-09-02
+- XRDDEV-2669: As an Administrator I would like to be able to override the database host in the environments file as well so that it can be used in scripts
+- XRDDEV-2688: Adding WSDL gives a library error as a warning
+- XRDDEV-2689: ACME support in sidecar not working
+- XRDDEV-2690: Errors regarding global conf in the sidecar log
+- XRDDEV-2699: Home directory not created for secondary node users in the primary sidecar image, causing sync to fail
+- XRDDEV-2700: During the backup process, the database users password is printed out
+- XRDDEV-2701: Upgrading to 7.5.0 causes JDBC connection parameters to be stripped
+- XRDDEV-2702: Extra spaces added to PGOPTIONS_EXTRA
+- XRDDEV-2703: Message exchange sometimes results in hashchain verification errors
+
 ## 7.5.0 - 2024-07-04
 - XRDDEV-2496: As a Central Server Administrator I want to be able to configure a trusted CA with ACME enabled so that we can speed up onboarding
 - XRDDEV-2532: As a Central Server user I would like to be able to use the Escape and Enter keys in dialogs so that navigating the interface would be more ergonomic

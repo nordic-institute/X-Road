@@ -20,7 +20,7 @@ api_token_configured() {
     fi
 
     local apikeys=$(
-      PGDATABASE="$db_database" PGUSER="$db_user" PGPASSWORD="$db_password" psql -h "$db_host" -p "$db_port" -qtA -c \
+      PGOPTIONS="${PGOPTIONS_EXTRA-}" PGDATABASE="$db_database" PGUSER="$db_user" PGPASSWORD="$db_password" psql -h "${PGHOST:-$db_host}" -p "${PGPORT:-$db_port}" -qtA -c \
       "SELECT encodedkey FROM apikey a INNER JOIN apikey_roles r ON a.id = r.apikey_id WHERE r.role = 'XROAD_MANAGEMENT_SERVICE';"
     )
     local encoded_token=$(encode_token $token)
@@ -53,7 +53,7 @@ else
     source /etc/xroad/db_libpq.env
   fi
 
-  PGOPTIONS="${PGOPTIONS_EXTRA-}" PGDATABASE="$db_database" PGUSER="$db_user" PGPASSWORD="$db_password" psql -h "$db_host" -p "$db_port" -qtA -c \
+  PGOPTIONS="${PGOPTIONS_EXTRA-}" PGDATABASE="$db_database" PGUSER="$db_user" PGPASSWORD="$db_password" psql -h "${PGHOST:-$db_host}" -p "${PGPORT:-$db_port}" -qtA -c \
   "INSERT INTO apikey(id, encodedkey) VALUES ((SELECT NEXTVAL('hibernate_sequence')), '$encoded_token');
   INSERT INTO apikey_roles(apikey_id,role) VALUES ((SELECT id FROM apikey WHERE encodedkey = '$encoded_token'), 'XROAD_MANAGEMENT_SERVICE');"
   if [ $? -ne 0 ] ; then

@@ -1,6 +1,6 @@
 # Security Server Sidecar User Guide <!-- omit in toc -->
 
-Version: 1.12  
+Version: 1.13  
 Doc. ID: UG-SS-SIDECAR
 
 ## Version history <!-- omit in toc -->
@@ -20,6 +20,7 @@ Doc. ID: UG-SS-SIDECAR
 | 06.07.2023 | 1.10    | Sidecar repo migration                                  | Eneli Reimets             |
 | 22.02.2024 | 1.11    | Local database files mapping with docker volume         | Eneli Reimets             |
 | 13.05.2024 | 1.12    | Add additional upgrade details for Sidecar 7.5          | Ovidijus Narkevicius      |
+| 22.08.2024 | 1.13    | Add a section about enabling ACME support               | Eneli Reimets             |
 
 ## License
 
@@ -46,8 +47,10 @@ To view a copy of this license, visit <https://creativecommons.org/licenses/by-s
   * [2.8 Automatic backups](#28-automatic-backups)
   * [2.9 Message log archives](#29-message-log-archives)
 * [3 Initial configuration](#3-initial-configuration)
+  * [3.1 Enabling ACME Support](#31-enabling-acme-support)
 * [4 Upgrading](#4-upgrading)
   * [4.1 Upgrading from version 6.26.0 to 7.0.0](#41-upgrading-from-version-6260-to-700)
+  * [4.2 Upgrading from version 7.4.2 to 7.5.x with local database](#42-Upgrading-from-version-742-to-75x-with-local-database)
 * [5 High Availability Setup](#5-high-availability-setup)
 
 <!-- vim-markdown-toc -->
@@ -126,11 +129,13 @@ The table below lists the required connections between different components.
 | Inbound    | Other Security Servers      | Sidecar                      | 5500, 5577       | tcp          |                         |
 | Inbound    | Consumer Information System | Sidecar                      | 8080, 8443       | tcp          | From "internal" network |
 | Inbound    | Admin                       | Sidecar                      | 4000             | https        | From "internal" network |
+| Inbound    | ACME Server                 | Sidecar                      | 80               | http         |                         |
 | Outbound   | Sidecar                     | Central Server               | 80, 4001         | http(s)      |                         |
 | Outbound   | Sidecar                     | OCSP Service                 | 80 / 443 / other | http(s)      |                         |
 | Outbound   | Sidecar                     | Timestamping Service         | 80 / 443 / other | http(s)      | Not used by *slim*      |
 | Outbound   | Sidecar                     | Other Security Server(s)     | 5500, 5577       | tcp          |                         |
 | Outbound   | Sidecar                     | Producer Information System  | 80, 443, other   | http(s)      | To "internal" network   |
+| Outbound   | Sidecar                     | ACME Server                  | 80 / 443         | http(s)      |                         |
 
 Notes:
 * Using a firewall to protect the Security Server is recommended. The firewall can be applied to both incoming and outgoing connections, depending on the security requirements of the environment where the Security Server will be deployed.
@@ -331,6 +336,11 @@ It is recommended to store the archives to a volume by adding a volume mapping f
 
 To configure the X-Road Security Server Sidecar, open a browser to `https://127.0.0.1:<admin port>` (assuming the container admin port 4000 is published to localhost) and log in using the admin credentials.
 See [IG-SS](#Ref_IG-SS) for configuration details.
+
+### 3.1 Enabling ACME Support
+
+Automated Certificate Management Environment (ACME) protocol enables partly automated certificate management of the authentication and sign
+certificates on the Security Server. More information about the required configuration is available in the [Security Server User Guide](../Manuals/ug-ss_x-road_6_security_server_user_guide.md#24-configuring-acme).
 
 ## 4 Upgrading
 

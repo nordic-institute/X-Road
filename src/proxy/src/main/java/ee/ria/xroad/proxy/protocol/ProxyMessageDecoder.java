@@ -546,5 +546,4 @@ public class ProxyMessageDecoder {
 
         return hashAlgoId;
     }
-
 }
