@@ -76,8 +76,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
-import static ee.ria.xroad.proxy.clientproxy.HandlerLoader.loadHandler;
-
 /**
  * Client proxy that handles requests of service clients.
  */
@@ -289,11 +287,12 @@ public class ClientProxy implements StartStop {
         handlers.add(new ClientRestMessageHandler(globalConfProvider, keyConfProvider, serverConfProvider, certChainFactory, client));
 
         if (!StringUtils.isBlank(handlerClassNames)) {
+            var handlerLoader = new HandlerLoader(globalConfProvider, keyConfProvider, serverConfProvider, certChainFactory);
             for (String handlerClassName : handlerClassNames.split(",")) {
                 try {
                     log.trace("Loading client handler {}", handlerClassName);
 
-                    handlers.add(loadHandler(handlerClassName, client));
+                    handlers.add(handlerLoader.loadHandler(handlerClassName, client));
                 } catch (Exception e) {
                     throw new RuntimeException("Failed to load client handler: " + handlerClassName, e);
                 }

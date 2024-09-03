@@ -26,6 +26,7 @@
 package ee.ria.xroad.monitor.configuration;
 
 import ee.ria.xroad.common.SystemProperties;
+import ee.ria.xroad.common.conf.serverconf.ServerConfProvider;
 import ee.ria.xroad.monitor.CertificateInfoSensor;
 import ee.ria.xroad.monitor.DiskSpaceSensor;
 import ee.ria.xroad.monitor.ExecListingSensor;
@@ -88,7 +89,7 @@ public class MonitorConfig {
     }
 
     @Bean
-    CertificateInfoSensor certificateInfoSensor(TaskScheduler taskScheduler) {
-        return new CertificateInfoSensor(taskScheduler);
+    CertificateInfoSensor certificateInfoSensor(TaskScheduler taskScheduler, ServerConfProvider serverConfProvider) {
+        return new CertificateInfoSensor(taskScheduler, serverConfProvider);
     }
 }
