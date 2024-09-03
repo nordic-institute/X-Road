@@ -15,15 +15,15 @@
     "@mdi/font": "^7.4.47",
     "@vee-validate/i18n": "~4.13.2",
     "@vee-validate/rules": "~4.13.2",
-    "axios": "~1.7.5",
+    "axios": "~1.7.7",
     "deepmerge": "^4.3.1",
-    "vuetify": "3.7.0",
+    "vuetify": "3.7.1",
     "vue": "^3.4.38",
     "vue-i18n": "^9.14.0",
     "vue-router": "^4.4.3",
     "vee-validate": "^4.13.2",
     "pinia": "^2.2.2",
-    "pinia-plugin-persistedstate": "^3.2.1"
+    "pinia-plugin-persistedstate": "^3.2.3"
   },
   "engines": {
     "npm": "use-pnpm",
