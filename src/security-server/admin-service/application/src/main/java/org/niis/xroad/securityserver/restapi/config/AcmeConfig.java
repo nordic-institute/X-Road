@@ -69,12 +69,16 @@ public class AcmeConfig {
     @Bean
     public AcmeProperties acmeProperties() {
         Resource path = new FileSystemResource(SystemProperties.getConfPath() + "conf.d/acme.yml");
+        if (!SystemProperties.isAcmeChallengePortEnabled() && !path.exists()) {
+            log.warn("Configuration {} not exists", path);
+            return new AcmeProperties();
+        }
         Constructor constructor = createAcmeYamlConstructor();
         Yaml yaml = new Yaml(constructor);
         try (InputStream input = Files.newInputStream(path.getFile().toPath())) {
             return yaml.loadAs(input, AcmeProperties.class);
         } catch (Exception e) {
-            log.warn("Failed to load yaml configuration from " + path, e);
+            log.warn("Failed to load yaml configuration from {}", path, e);
             return new AcmeProperties();
         }
     }

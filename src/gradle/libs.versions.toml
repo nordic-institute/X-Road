@@ -11,7 +11,7 @@ jaxb = "4.0.5"
 hibernate = "6.5.2.Final"
 mapstruct = "1.6.0"
 jackson = "2.17.2"
-mockito = "5.12.0"
+mockito = "5.13.0"
 springBoot = "3.3.3"
 junitJupiter = "5.11.0"
 xmlUnit = "2.10.0"
@@ -23,6 +23,7 @@ grpc = "1.66.0"
 swaggerParser = "2.1.22"
 logback = "1.5.7"
 logbackAccess = "2.0.3"
+apacheCxf = "4.0.5"
 
 [libraries]
 metrics-core = { module = "io.dropwizard.metrics:metrics-core", version.ref = "metrics" }
@@ -93,18 +94,19 @@ mockito-core = { module = "org.mockito:mockito-core", version.ref = "mockito" }
 mockito-jupiter = { module = "org.mockito:mockito-junit-jupiter", version.ref = "mockito" }
 
 apache-commonsCompress = { module = "org.apache.commons:commons-compress", version = "1.27.1" }
-apache-commonsLang3 = { module = "org.apache.commons:commons-lang3", version = "3.16.0" }
+apache-commonsLang3 = { module = "org.apache.commons:commons-lang3", version = "3.17.0" }
 apache-commonsText = { module = "org.apache.commons:commons-text", version = "1.12.0" }
 apache-commonsConfiguration2 = { module = "org.apache.commons:commons-configuration2", version = "2.11.0" }
 apache-httpmime = { module = "org.apache.httpcomponents:httpmime", version = "4.5.14" }
-apache-cxfToolsValidator = { module = "org.apache.cxf:cxf-tools-validator", version = "4.0.5" }
+apache-cxfToolsValidator = { module = "org.apache.cxf:cxf-tools-validator", version.ref = "apacheCxf" }
+apache-cxfRtTransportsHttp = { module = "org.apache.cxf:cxf-rt-transports-http", version.ref = "apacheCxf" }
 apache-tikaCore = { module = "org.apache.tika:tika-core", version = "2.9.2" }
 apache-xmlsec = { module = "org.apache.santuario:xmlsec", version = "4.0.2" }
 apache-httpclient = { module = "org.apache.httpcomponents:httpclient", version = "4.5.14" }
 apache-httpasyncclient = { module = "org.apache.httpcomponents:httpasyncclient", version = "4.1.5" }
 apache-httpclient5 = { module = "org.apache.httpcomponents.client5:httpclient5", version = "5.3.1" }
-apache-mime4jCore = { module = "org.apache.james:apache-mime4j-core", version = "0.8.11" }
-apache-ant = { module = "org.apache.ant:ant", version = "1.10.14" }
+apache-mime4jCore = { module = "org.apache.james:apache-mime4j-core", version = "0.8.7" }
+apache-ant = { module = "org.apache.ant:ant", version = "1.10.15" }
 
 commons-cli = { module = "commons-cli:commons-cli", version = "1.9.0" }
 commons-codec = { module = "commons-codec:commons-codec", version = "1.17.1" }
@@ -132,7 +134,7 @@ liquibase-core = { module = "org.liquibase:liquibase-core", version = "4.29.1" }
 xerces-impl = { module = "xerces:xercesImpl", version = "2.12.2" }
 feign-hc5 = { module = "io.github.openfeign:feign-hc5", version = "13.3" }
 guava = { module = "com.google.guava:guava", version = "33.0.0-jre" }
-swagger-annotations = { module = "io.swagger.core.v3:swagger-annotations", version = "2.2.22" }
+swagger-annotations = { module = "io.swagger.core.v3:swagger-annotations", version = "2.2.23" }
 awaitility = { module = "org.awaitility:awaitility", version = "4.2.2" }
 bucket4j-core = { module = "com.bucket4j:bucket4j-core", version = "8.10.1" }
 libpam4j = { module = "org.kohsuke:libpam4j", version = "1.11" }
