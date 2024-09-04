@@ -44,7 +44,7 @@
 
         <CertificateRow
           v-for="cert in key.certificates"
-          :key="cert.certificate_details.issuer_distinguished_name"
+          :key="cert.certificate_details.hash"
           :cert="cert"
           @certificate-click="certificateClick(cert, key)"
         >
@@ -75,7 +75,7 @@
 
         <CertificateRow
           v-for="cert in key.certificates"
-          :key="cert.certificate_details.issuer_distinguished_name"
+          :key="cert.certificate_details.hash"
           :cert="cert"
           @certificate-click="certificateClick(cert, key)"
         >
