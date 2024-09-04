@@ -27,6 +27,7 @@ package ee.ria.xroad.monitor.configuration;
 
 import ee.ria.xroad.common.SystemProperties;
 import ee.ria.xroad.common.conf.globalconf.GlobalConfBeanConfig;
+import ee.ria.xroad.common.conf.globalconf.GlobalConfRefreshJobConfig;
 import ee.ria.xroad.common.conf.serverconf.ServerConfBeanConfig;
 import ee.ria.xroad.common.conf.serverconf.ServerConfProvider;
 import ee.ria.xroad.monitor.CertificateInfoSensor;
@@ -49,7 +50,8 @@ import java.util.List;
 
 @Slf4j
 @Import({GlobalConfBeanConfig.class,
-        ServerConfBeanConfig.class})
+        ServerConfBeanConfig.class,
+        GlobalConfRefreshJobConfig.class})
 @EnableScheduling
 @Configuration
 public class MonitorConfig {

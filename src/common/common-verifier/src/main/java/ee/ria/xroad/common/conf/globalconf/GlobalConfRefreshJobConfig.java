@@ -31,22 +31,24 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.scheduling.annotation.EnableScheduling;
 
-import static ee.ria.xroad.common.SystemProperties.getConfigurationPath;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
 
 @Slf4j
 @Configuration
 @EnableScheduling
 @RequiredArgsConstructor
-public class GlobalConfBeanConfig {
+public class GlobalConfRefreshJobConfig {
+    public static final String BEAN_GLOBAL_CONF_SCHEDULER = "globalConfRefreshScheduler";
 
     @Bean
-    GlobalConfSource globalConfSource() {
-        log.info("GlobalConf source is set to: VersionedConfigurationDirectory(FS)");
-        return new FileSystemGlobalConfSource(getConfigurationPath());
+    GlobalConfRefreshJob globalConfRefreshJob(GlobalConfProvider globalConfProvider) {
+        return new GlobalConfRefreshJob(globalConfProvider);
     }
 
     @Bean
-    GlobalConfProvider globalConfProvider(GlobalConfSource source) {
-        return new GlobalConfImpl(source);
+    ScheduledExecutorService globalConfRefreshScheduler() {
+        return Executors.newSingleThreadScheduledExecutor();
     }
+
 }

@@ -27,6 +27,7 @@ package ee.ria.xroad.opmonitordaemon.config;
 
 import ee.ria.xroad.common.conf.globalconf.GlobalConfBeanConfig;
 import ee.ria.xroad.common.conf.globalconf.GlobalConfProvider;
+import ee.ria.xroad.common.conf.globalconf.GlobalConfRefreshJobConfig;
 import ee.ria.xroad.opmonitordaemon.OpMonitorDaemon;
 
 import org.springframework.context.annotation.Bean;
@@ -34,7 +35,8 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
 
 @Import({OpMonitorDaemonJobConfig.class,
-        GlobalConfBeanConfig.class
+        GlobalConfBeanConfig.class,
+        GlobalConfRefreshJobConfig.class
 })
 @Configuration
 public class OpMonitorDaemonRootConfig {

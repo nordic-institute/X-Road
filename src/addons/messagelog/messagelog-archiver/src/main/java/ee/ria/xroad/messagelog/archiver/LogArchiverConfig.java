@@ -26,6 +26,7 @@
 package ee.ria.xroad.messagelog.archiver;
 
 import ee.ria.xroad.common.conf.globalconf.GlobalConfBeanConfig;
+import ee.ria.xroad.common.conf.globalconf.GlobalConfRefreshJobConfig;
 import ee.ria.xroad.common.messagelog.MessageLogProperties;
 import ee.ria.xroad.common.util.JobManager;
 import ee.ria.xroad.common.util.SpringAwareJobManager;
@@ -37,7 +38,8 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
 import org.springframework.scheduling.quartz.SpringBeanJobFactory;
 
-@Import(GlobalConfBeanConfig.class)
+@Import({GlobalConfBeanConfig.class,
+        GlobalConfRefreshJobConfig.class})
 @Configuration
 public class LogArchiverConfig {
 

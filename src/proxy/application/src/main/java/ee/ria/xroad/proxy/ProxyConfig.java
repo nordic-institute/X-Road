@@ -29,6 +29,7 @@ import ee.ria.xroad.common.cert.CertChainFactory;
 import ee.ria.xroad.common.cert.CertHelper;
 import ee.ria.xroad.common.conf.globalconf.GlobalConfBeanConfig;
 import ee.ria.xroad.common.conf.globalconf.GlobalConfProvider;
+import ee.ria.xroad.common.conf.globalconf.GlobalConfRefreshJobConfig;
 import ee.ria.xroad.common.conf.serverconf.ServerConfBeanConfig;
 import ee.ria.xroad.common.conf.serverconf.ServerConfProvider;
 import ee.ria.xroad.common.opmonitoring.AbstractOpMonitoringBuffer;
@@ -53,6 +54,7 @@ import org.springframework.context.annotation.Import;
         ProxyJobConfig.class,
         ProxyMessageLogConfig.class,
         GlobalConfBeanConfig.class,
+        GlobalConfRefreshJobConfig.class,
         ServerConfBeanConfig.class
 })
 @Configuration

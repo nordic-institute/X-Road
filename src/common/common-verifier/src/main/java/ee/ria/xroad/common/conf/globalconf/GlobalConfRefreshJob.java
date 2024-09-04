@@ -32,9 +32,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.scheduling.annotation.Scheduled;
 
-import java.util.List;
-
-import static ee.ria.xroad.common.conf.globalconf.GlobalConfBeanConfig.BEAN_GLOBAL_CONF_SCHEDULER;
+import static ee.ria.xroad.common.conf.globalconf.GlobalConfRefreshJobConfig.BEAN_GLOBAL_CONF_SCHEDULER;
 import static java.util.concurrent.TimeUnit.SECONDS;
 
 /**
@@ -44,7 +42,6 @@ import static java.util.concurrent.TimeUnit.SECONDS;
 @RequiredArgsConstructor
 public class GlobalConfRefreshJob implements InitializingBean {
     private final GlobalConfProvider globalConfProvider;
-    private final List<GlobalConfBeanConfig.GlobalConfReloadedListener> reloadedListeners;
 
     @Override
     public void afterPropertiesSet() {
@@ -61,10 +58,7 @@ public class GlobalConfRefreshJob implements InitializingBean {
         try {
             log.trace("Updating globalconf");
             globalConfProvider.reload();
-
-            reloadedListeners.forEach(GlobalConfBeanConfig.GlobalConfReloadedListener::onReloaded);
         } catch (Exception e) {
-            reloadedListeners.forEach(GlobalConfBeanConfig.GlobalConfReloadedListener::onReloadFailed);
             log.error("Error while refreshing GlobalConf", e);
         }
     }

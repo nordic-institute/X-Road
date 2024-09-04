@@ -709,11 +709,6 @@ public final class SystemProperties {
             propertyNameToEnvVariable(GRPC_INTERNAL_TRUSTSTORE_PASSWORD);
 
     /**
-     * Property name for enabling global configuration refresh.
-     */
-    public static final String GLOBAL_CONF_REFRESH_ENABLED = PREFIX + "common.global-conf-refresh-enabled";
-
-    /**
      * Property name for global configuration refresh rate in seconds.
      */
     public static final String GLOBAL_CONF_REFRESH_RATE_SECONDS = PREFIX + "common.global-conf-refresh-rate-seconds";
@@ -1837,13 +1832,6 @@ public final class SystemProperties {
      */
     public static String getGrpcInternalTruststorePassword() {
         return System.getProperty(GRPC_INTERNAL_TRUSTSTORE_PASSWORD, System.getenv().get(GRPC_INTERNAL_TRUSTSTORE_PASSWORD_ENV));
-    }
-
-    /**
-     * @return if GlobalConf scheduled refresh is enabled
-     */
-    public static boolean isGlobalConfRefreshEnabled() {
-        return Boolean.parseBoolean(System.getProperty(GLOBAL_CONF_REFRESH_ENABLED, TRUE));
     }
 
     /**
