@@ -28,6 +28,7 @@ package ee.ria.xroad.proxy.serverproxy;
 import ee.ria.xroad.common.CodedException;
 import ee.ria.xroad.common.ErrorCodes;
 import ee.ria.xroad.common.SystemProperties;
+import ee.ria.xroad.common.conf.globalconf.GlobalConf;
 import ee.ria.xroad.common.conf.serverconf.ServerConfProvider;
 import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.identifier.SecurityServerId;
@@ -37,6 +38,7 @@ import ee.ria.xroad.common.message.SoapMessageImpl;
 import ee.ria.xroad.common.metadata.ObjectFactory;
 import ee.ria.xroad.common.util.MimeTypes;
 import ee.ria.xroad.proxy.protocol.ProxyMessage;
+import ee.ria.xroad.proxy.testsuite.TestSuiteGlobalConf;
 import ee.ria.xroad.proxy.testsuite.TestSuiteServerConf;
 import ee.ria.xroad.proxymonitor.message.GetSecurityServerMetricsResponse;
 
@@ -114,6 +116,12 @@ public class ProxyMonitorServiceHandlerTest {
      */
     @Before
     public void init() throws IOException {
+        GlobalConf.initialize(new TestSuiteGlobalConf() {
+            @Override
+            public String getInstanceIdentifier() {
+                return EXPECTED_XR_INSTANCE;
+            }
+        });
         serverConfProvider = new TestSuiteServerConf() {
             @Override
             public SecurityServerId.Conf getIdentifier() {

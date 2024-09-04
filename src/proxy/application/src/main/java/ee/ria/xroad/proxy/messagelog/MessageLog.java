@@ -28,6 +28,7 @@ package ee.ria.xroad.proxy.messagelog;
 import ee.ria.xroad.common.DiagnosticsStatus;
 import ee.ria.xroad.common.SystemProperties;
 import ee.ria.xroad.common.conf.globalconf.GlobalConfProvider;
+import ee.ria.xroad.common.conf.serverconf.ServerConfProvider;
 import ee.ria.xroad.common.message.RestRequest;
 import ee.ria.xroad.common.message.RestResponse;
 import ee.ria.xroad.common.message.SoapMessageImpl;
@@ -66,14 +67,14 @@ public final class MessageLog {
      * @param globalConfProvider global conf source provider
      * @return false if NullLogManager was initialized, true otherwise
      */
-    public static AbstractLogManager init(JobManager jobManager, GlobalConfProvider globalConfProvider) {
+    public static AbstractLogManager init(JobManager jobManager, GlobalConfProvider globalConfProvider, ServerConfProvider serverConfProvider) {
         Class<? extends AbstractLogManager> clazz = getLogManagerImpl();
 
         log.trace("Using implementation class: {}", clazz);
 
         try {
-            logManager = clazz.getDeclaredConstructor(JobManager.class, GlobalConfProvider.class)
-                    .newInstance(jobManager, globalConfProvider);
+            logManager = clazz.getDeclaredConstructor(JobManager.class, GlobalConfProvider.class, ServerConfProvider.class)
+                    .newInstance(jobManager, globalConfProvider, serverConfProvider);
         } catch (Exception e) {
             throw new RuntimeException("Failed to initialize LogManager", e);
         }

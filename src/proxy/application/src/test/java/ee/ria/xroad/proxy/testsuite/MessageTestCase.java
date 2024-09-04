@@ -55,6 +55,7 @@ import org.apache.http.nio.reactor.ConnectingIOReactor;
 import org.bouncycastle.operator.DigestCalculator;
 import org.eclipse.jetty.server.Handler;
 import org.eclipse.jetty.server.Request;
+import org.springframework.context.ApplicationContext;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
@@ -221,7 +222,8 @@ public class MessageTestCase {
      *
      * @throws Exception in case of any unexpected errors
      */
-    public void execute() throws Exception {
+    public void execute(ApplicationContext applicationContext) throws Exception {
+        init(applicationContext);
         startUp();
         generateQueryId();
 
@@ -303,10 +305,16 @@ public class MessageTestCase {
         validateNormalResponse(receivedResponse);
     }
 
+    protected void init(ApplicationContext applicationContext) throws Exception {
+        globalConfProvider = applicationContext.getBean(TestGlobalConfWrapper.class);
+        keyConfProvider = applicationContext.getBean(KeyConfProvider.class);
+        serverConfProvider = applicationContext.getBean(TestServerConfWrapper.class);
+    }
+
     protected void startUp() throws Exception {
-        globalConfProvider = new TestGlobalConfWrapper(new TestSuiteGlobalConf());
+        globalConfProvider.setGlobalConfProvider(new TestSuiteGlobalConf());
         keyConfProvider = new TestSuiteKeyConf(globalConfProvider);
-        serverConfProvider = new TestServerConfWrapper(new TestSuiteServerConf());
+        serverConfProvider.setServerConfProvider(new TestSuiteServerConf());
     }
 
     protected void closeDown() throws Exception {

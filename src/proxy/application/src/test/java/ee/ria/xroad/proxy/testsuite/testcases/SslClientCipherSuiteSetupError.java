@@ -31,6 +31,7 @@ import ee.ria.xroad.proxy.testsuite.SslMessageTestCase;
 import ee.ria.xroad.proxy.util.SSLContextUtil;
 
 import org.apache.commons.lang3.ArrayUtils;
+import org.springframework.context.ApplicationContext;
 
 import java.security.KeyManagementException;
 import java.security.NoSuchAlgorithmException;
@@ -59,12 +60,12 @@ public class SslClientCipherSuiteSetupError extends SslMessageTestCase {
      * @throws Exception
      */
     @Override
-    public void execute() throws Exception {
+    public void execute(ApplicationContext applicationContext) throws Exception {
         try {
             // Set not accepted cipher in use
             System.setProperty(propertyName, getNotAcceptedCipher(origCipherSuites));
             // execute test
-            super.execute();
+            super.execute(applicationContext);
         } finally {
             // Restore cipher suite setup for rest of the tests
             System.setProperty(propertyName, String.join(",", origCipherSuites));

@@ -101,8 +101,8 @@ public class ProxyConfig {
     }
 
     @Bean(initMethod = "start", destroyMethod = "stop")
-    AbstractOpMonitoringBuffer opMonitoringBuffer() throws Exception {
-        return OpMonitoring.init();
+    AbstractOpMonitoringBuffer opMonitoringBuffer(ServerConfProvider serverConfProvider) throws Exception {
+        return OpMonitoring.init(serverConfProvider);
     }
 
     @Bean

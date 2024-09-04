@@ -27,12 +27,15 @@ package ee.ria.xroad.proxy.testsuite;
 
 import ee.ria.xroad.common.SystemProperties;
 import ee.ria.xroad.common.TestPortUtils;
+import ee.ria.xroad.common.conf.globalconf.GlobalConf;
 import ee.ria.xroad.common.conf.globalconf.GlobalConfProvider;
 import ee.ria.xroad.common.conf.globalconf.GlobalConfSource;
+import ee.ria.xroad.common.conf.globalconf.TestGlobalConfWrapper;
 import ee.ria.xroad.common.conf.serverconf.ServerConfProvider;
 import ee.ria.xroad.proxy.ProxyMain;
 import ee.ria.xroad.proxy.conf.KeyConfProvider;
 import ee.ria.xroad.proxy.serverproxy.ServerProxy;
+import ee.ria.xroad.proxy.testutil.TestServerConfWrapper;
 
 import lombok.AccessLevel;
 import lombok.NoArgsConstructor;
@@ -228,7 +231,7 @@ public final class ProxyTestSuite {
             log.info("TESTCASE START: {}", t.getId());
 
             try {
-                t.execute();
+                t.execute(applicationContext);
 
                 log.info("TESTCASE PASSED: {}", t.getId());
             } catch (Exception | AssertionError e) {
@@ -288,7 +291,9 @@ public final class ProxyTestSuite {
         @Bean
         @Primary
         GlobalConfProvider globalConfProvider() {
-            return new TestSuiteGlobalConf();
+            var globalConf = new TestGlobalConfWrapper(new TestSuiteGlobalConf());
+            GlobalConf.initialize(globalConf);
+            return globalConf;
         }
 
         @Bean
@@ -299,7 +304,7 @@ public final class ProxyTestSuite {
 
         @Bean
         ServerConfProvider serverConfProvider() {
-            return new TestSuiteServerConf();
+            return new TestServerConfWrapper(new TestSuiteServerConf());
         }
     }
 
