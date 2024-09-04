@@ -32,21 +32,17 @@ import java.util.Optional;
 
 import static ee.ria.xroad.common.ErrorCodes.X_MALFORMED_GLOBALCONF;
 import static ee.ria.xroad.common.ErrorCodes.translateWithPrefix;
-import static ee.ria.xroad.common.SystemProperties.getConfigurationPath;
 
 /**
  * Wrapper source for file system based global configuration.
  */
 @Slf4j
 public class FileSystemGlobalConfSource implements GlobalConfSource {
+    private final String globalConfigurationDir;
+    private volatile VersionedConfigurationDirectory configurationDirectory;
 
-    private VersionedConfigurationDirectory configurationDirectory;
-
-    public FileSystemGlobalConfSource() {
-        this(getConfigurationPath());
-    }
-
-    public FileSystemGlobalConfSource(String globalConfigurationDir) {
+    public FileSystemGlobalConfSource(String confDir) {
+        this.globalConfigurationDir = confDir;
         try {
             configurationDirectory = new VersionedConfigurationDirectory(globalConfigurationDir);
         } catch (Exception e) {
@@ -95,24 +91,39 @@ public class FileSystemGlobalConfSource implements GlobalConfSource {
     }
 
     @Override
-    public synchronized void reload() {
+    public void reload() {
+        synchronized (FileSystemGlobalConfSource.class) {
+            load();
+        }
+    }
+
+    /**
+     * Returns loaded configuration source, with a fallback to loading it if it's not loaded yet.
+     * Usually it is not loaded only during initialization phase.
+     */
+    private VersionedConfigurationDirectory getConfigurationDirectory() {
+        if (configurationDirectory == null) {
+            synchronized (FileSystemGlobalConfSource.class) {
+                if (configurationDirectory == null) {
+                    log.warn("Configuration source was not loaded. Trying to recover..");
+                    load();
+                }
+            }
+        }
+
+        return configurationDirectory;
+    }
+
+    private void load() {
         VersionedConfigurationDirectory original = configurationDirectory;
         try {
             if (original != null) {
-                configurationDirectory = new VersionedConfigurationDirectory(getConfigurationPath(), original);
+                configurationDirectory = new VersionedConfigurationDirectory(globalConfigurationDir, original);
             } else {
-                configurationDirectory = new VersionedConfigurationDirectory(getConfigurationPath());
+                configurationDirectory = new VersionedConfigurationDirectory(globalConfigurationDir);
             }
         } catch (Exception e) {
             throw translateWithPrefix(X_MALFORMED_GLOBALCONF, e);
         }
-    }
-
-    private VersionedConfigurationDirectory getConfigurationDirectory() {
-        if (configurationDirectory == null) {
-            throw new IllegalStateException("GlobalConf is not initialized");
-        }
-
-        return configurationDirectory;
     }
 }
