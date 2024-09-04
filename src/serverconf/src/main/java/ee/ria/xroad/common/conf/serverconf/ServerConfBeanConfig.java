@@ -37,7 +37,6 @@ public class ServerConfBeanConfig {
 
     @Bean
     ServerConfProvider serverConfProvider(GlobalConfProvider globalConfProvider) {
-        //TODO should this succeed if init fails?
         if (SystemProperties.getServerConfCachePeriod() > 0) {
             return new CachingServerConfImpl(globalConfProvider);
         }
