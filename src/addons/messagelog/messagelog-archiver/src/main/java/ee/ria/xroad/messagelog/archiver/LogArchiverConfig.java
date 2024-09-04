@@ -45,9 +45,7 @@ public class LogArchiverConfig {
     JobManager jobManager(SpringBeanJobFactory springBeanJobFactory) throws SchedulerException {
         final var jobManager = new SpringAwareJobManager(springBeanJobFactory);
 
-        //quartz cron every 30 sec
-        //jobManager.registerJob(LogArchiver.class, "ArchiverJob", "0/30 * * * * ?", new JobDataMap());
-        jobManager.registerJob(LogArchiver.class, "ArchiverJob", "0/30 * * * * ?",
+        jobManager.registerJob(LogArchiver.class, "ArchiverJob", MessageLogProperties.getArchiveInterval(),
                 new JobDataMap());
 
         jobManager.registerJob(LogCleaner.class, "CleanerJob", MessageLogProperties.getCleanInterval(),
