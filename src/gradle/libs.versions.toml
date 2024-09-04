@@ -23,6 +23,7 @@ grpc = "1.66.0"
 swaggerParser = "2.1.22"
 logback = "1.5.7"
 logbackAccess = "2.0.3"
+apacheCxf = "4.0.5"
 
 [libraries]
 metrics-core = { module = "io.dropwizard.metrics:metrics-core", version.ref = "metrics" }
@@ -97,13 +98,14 @@ apache-commonsLang3 = { module = "org.apache.commons:commons-lang3", version = "
 apache-commonsText = { module = "org.apache.commons:commons-text", version = "1.12.0" }
 apache-commonsConfiguration2 = { module = "org.apache.commons:commons-configuration2", version = "2.11.0" }
 apache-httpmime = { module = "org.apache.httpcomponents:httpmime", version = "4.5.14" }
-apache-cxfToolsValidator = { module = "org.apache.cxf:cxf-tools-validator", version = "4.0.5" }
+apache-cxfToolsValidator = { module = "org.apache.cxf:cxf-tools-validator", version.ref = "apacheCxf" }
+apache-cxfRtTransportsHttp = { module = "org.apache.cxf:cxf-rt-transports-http", version.ref = "apacheCxf" }
 apache-tikaCore = { module = "org.apache.tika:tika-core", version = "2.9.2" }
 apache-xmlsec = { module = "org.apache.santuario:xmlsec", version = "4.0.2" }
 apache-httpclient = { module = "org.apache.httpcomponents:httpclient", version = "4.5.14" }
 apache-httpasyncclient = { module = "org.apache.httpcomponents:httpasyncclient", version = "4.1.5" }
 apache-httpclient5 = { module = "org.apache.httpcomponents.client5:httpclient5", version = "5.3.1" }
-apache-mime4jCore = { module = "org.apache.james:apache-mime4j-core", version = "0.8.11" }
+apache-mime4jCore = { module = "org.apache.james:apache-mime4j-core", version = "0.8.7" }
 apache-ant = { module = "org.apache.ant:ant", version = "1.10.15" }
 
 commons-cli = { module = "commons-cli:commons-cli", version = "1.9.0" }

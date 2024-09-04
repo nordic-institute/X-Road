@@ -324,6 +324,7 @@ public final class SystemProperties {
     private static final String FALSE = Boolean.FALSE.toString();
     private static final String TRUE = Boolean.TRUE.toString();
     private static final String DEFAULT_HSM_HEALTH_CHECK_ENABLED = FALSE;
+    private static final String DEFAULT_PROXY_UI_API_ACME_CHALLENGE_PORT_ENABLED = FALSE;
     private static final String DEFAULT_PROXY_BACKUP_ENCRYPTED = FALSE;
     private static final String DEFAULT_CENTER_TRUSTED_ANCHORS_ALLOWED = FALSE;
 
@@ -869,6 +870,11 @@ public final class SystemProperties {
 
     public static long getAcmeAccountKeyPairExpirationInDays() {
         return Long.parseLong(System.getProperty(PROXY_UI_API_ACME_ACCOUNT_KEY_PAIR_EXPIRATION_IN_DAYS, "365"));
+    }
+
+    public static boolean isAcmeChallengePortEnabled() {
+        return "true".equalsIgnoreCase(System.getProperty(PROXY_UI_API_ACME_CHALLENGE_PORT_ENABLED,
+                DEFAULT_PROXY_UI_API_ACME_CHALLENGE_PORT_ENABLED));
     }
 
     /**
