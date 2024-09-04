@@ -121,9 +121,6 @@ public class RestMetadataServiceHandlerTest {
      */
     @Before
     public void init() {
-
-//        GlobalConfProvider globalConfProvider = new TestSuiteGlobalConf();
-
         serverConfProvider = new TestSuiteServerConf() {
             @Override
             public DescriptionType getDescriptionType(ServiceId service) {
