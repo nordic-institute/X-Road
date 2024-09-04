@@ -184,10 +184,8 @@ public class MetadataServiceHandlerTest {
      * Init data for tests
      */
     @Before
-    public void init() throws IOException {
+    public void init() {
 
-//        GlobalConf.reload(new TestSuiteGlobalConf());
-//        KeyConf.reload(new TestSuiteKeyConf());
         serverConfProvider = new TestServerConfWrapper(new TestSuiteServerConf());
         globalConfProvider = new TestSuiteGlobalConf();
 

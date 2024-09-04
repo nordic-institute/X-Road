@@ -60,10 +60,11 @@ public class OcspClientExecuteScheduler {
 
     private Duration getNextDelay() {
         final int retryDelay = SystemProperties.getOcspResponseRetryDelay();
-        if (retryMode && retryDelay < getNextOcspFetchIntervalSeconds()) {
+        int nextOcspFetchIntervalSeconds = getNextOcspFetchIntervalSeconds();
+        if (retryMode && retryDelay < nextOcspFetchIntervalSeconds) {
             return Duration.of(retryDelay, SECONDS);
         }
-        return Duration.of(getNextOcspFetchIntervalSeconds(), SECONDS);
+        return Duration.of(nextOcspFetchIntervalSeconds, SECONDS);
     }
 
     public void success() {
@@ -122,7 +123,7 @@ public class OcspClientExecuteScheduler {
     /**
      * @return the next ocsp freshness time in seconds
      */
-    public int getNextOcspFetchIntervalSeconds() {
+    private int getNextOcspFetchIntervalSeconds() {
         int interval = GlobalConfExtensions.getInstance(globalConfProvider).getOcspFetchInterval();
 
         if (interval < OcspFetchInterval.OCSP_FETCH_INTERVAL_MIN) {
