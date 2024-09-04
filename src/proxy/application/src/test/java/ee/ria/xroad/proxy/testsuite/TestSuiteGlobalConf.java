@@ -36,6 +36,8 @@ import ee.ria.xroad.common.conf.globalconf.EmptyGlobalConf;
 import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.identifier.SecurityServerId;
 
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.security.cert.CertificateException;
 import java.security.cert.X509Certificate;
 import java.util.Arrays;
@@ -152,5 +154,11 @@ public class TestSuiteGlobalConf extends EmptyGlobalConf {
     public ClientId.Conf getSubjectName(SignCertificateProfileInfo.Parameters parameters, X509Certificate cert) throws Exception {
         return getSignCertificateProfileInfo(parameters, cert)
                 .getSubjectIdentifier(cert);
+    }
+
+    @Override
+    public Path getInstanceFile(String fileName) {
+        return Paths.get(SystemProperties.getConfigurationPath(),
+                getInstanceIdentifier(), fileName);
     }
 }

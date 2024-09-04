@@ -35,6 +35,7 @@ import ee.ria.xroad.common.identifier.SecurityServerId;
 
 import lombok.Setter;
 
+import java.nio.file.Path;
 import java.security.cert.X509Certificate;
 import java.util.Collection;
 import java.util.List;
@@ -266,5 +267,10 @@ public class TestGlobalConfWrapper implements GlobalConfProvider {
     @Override
     public ApprovedCAInfo getApprovedCA(String instanceIdentifier, X509Certificate cert) throws CodedException {
         return globalConfProvider.getApprovedCA(instanceIdentifier, cert);
+    }
+
+    @Override
+    public Path getInstanceFile(String fileName) {
+        return globalConfProvider.getInstanceFile(fileName);
     }
 }

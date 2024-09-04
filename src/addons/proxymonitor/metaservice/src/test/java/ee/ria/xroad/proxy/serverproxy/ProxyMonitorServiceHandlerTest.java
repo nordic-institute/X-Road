@@ -28,7 +28,7 @@ package ee.ria.xroad.proxy.serverproxy;
 import ee.ria.xroad.common.CodedException;
 import ee.ria.xroad.common.ErrorCodes;
 import ee.ria.xroad.common.SystemProperties;
-import ee.ria.xroad.common.conf.globalconf.GlobalConf;
+import ee.ria.xroad.common.conf.globalconf.GlobalConfProvider;
 import ee.ria.xroad.common.conf.serverconf.ServerConfProvider;
 import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.identifier.SecurityServerId;
@@ -97,6 +97,7 @@ public class ProxyMonitorServiceHandlerTest {
             "src/test/resources/");
 
     private ServerConfProvider serverConfProvider;
+    private GlobalConfProvider globalConfProvider;
     private Request mockRequest;
     private ProxyMessage mockProxyMessage;
 
@@ -116,18 +117,13 @@ public class ProxyMonitorServiceHandlerTest {
      */
     @Before
     public void init() throws IOException {
-        GlobalConf.initialize(new TestSuiteGlobalConf() {
-            @Override
-            public String getInstanceIdentifier() {
-                return EXPECTED_XR_INSTANCE;
-            }
-        });
         serverConfProvider = new TestSuiteServerConf() {
             @Override
             public SecurityServerId.Conf getIdentifier() {
                 return DEFAULT_OWNER_SERVER;
             }
         };
+        globalConfProvider = new TestSuiteGlobalConf();
 
         mockRequest = mock(Request.class);
         mockProxyMessage = mock(ProxyMessage.class);
@@ -136,10 +132,10 @@ public class ProxyMonitorServiceHandlerTest {
     }
 
     @Test
-    public void shouldNotBeAbleToHandleWithIncorrectServiceCode() throws Exception {
+    public void shouldNotBeAbleToHandleWithIncorrectServiceCode() {
 
         // setup
-        ProxyMonitorServiceHandlerImpl handlerToTest = new ProxyMonitorServiceHandlerImpl(serverConfProvider);
+        ProxyMonitorServiceHandlerImpl handlerToTest = new ProxyMonitorServiceHandlerImpl(serverConfProvider, globalConfProvider);
 
         final ServiceId.Conf requestedService = ServiceId.Conf.create(DEFAULT_OWNER_CLIENT, "theWrongService");
 
@@ -149,10 +145,10 @@ public class ProxyMonitorServiceHandlerTest {
     }
 
     @Test
-    public void shouldBeAbleToHandleWithCorrectServiceCode() throws Exception {
+    public void shouldBeAbleToHandleWithCorrectServiceCode() {
 
         // setup
-        ProxyMonitorServiceHandlerImpl handlerToTest = new ProxyMonitorServiceHandlerImpl(serverConfProvider);
+        ProxyMonitorServiceHandlerImpl handlerToTest = new ProxyMonitorServiceHandlerImpl(serverConfProvider, globalConfProvider);
 
         // execution & verification
         assertThat("Should be able to handle the right service",
@@ -160,11 +156,11 @@ public class ProxyMonitorServiceHandlerTest {
     }
 
     @Test
-    public void shouldNotNeedToVerifyWhenOwnerCalling() throws Exception {
+    public void shouldNotNeedToVerifyWhenOwnerCalling() {
 
         // setup
 
-        ProxyMonitorServiceHandlerImpl handlerToTest = new ProxyMonitorServiceHandlerImpl(serverConfProvider);
+        ProxyMonitorServiceHandlerImpl handlerToTest = new ProxyMonitorServiceHandlerImpl(serverConfProvider, globalConfProvider);
 
         final SoapMessageImpl mockSoap = mock(SoapMessageImpl.class);
         when(mockSoap.getClient()).thenReturn(DEFAULT_OWNER_CLIENT);
@@ -178,11 +174,11 @@ public class ProxyMonitorServiceHandlerTest {
     }
 
     @Test
-    public void shouldNotNeedToVerifyWhenAllowedMonitoringClientCalling() throws Exception {
+    public void shouldNotNeedToVerifyWhenAllowedMonitoringClientCalling() {
 
         // setup
 
-        ProxyMonitorServiceHandlerImpl handlerToTest = new ProxyMonitorServiceHandlerImpl(serverConfProvider);
+        ProxyMonitorServiceHandlerImpl handlerToTest = new ProxyMonitorServiceHandlerImpl(serverConfProvider, globalConfProvider);
 
         // the allowed monitoring client from test resources monitoring metricNames
         final ClientId.Conf allowedClient = ClientId.Conf.create(EXPECTED_XR_INSTANCE, "BUSINESS",
@@ -200,11 +196,11 @@ public class ProxyMonitorServiceHandlerTest {
     }
 
     @Test
-    public void shouldThrowWhenAccessNotAllowed() throws Exception {
+    public void shouldThrowWhenAccessNotAllowed() {
 
         // setup
 
-        ProxyMonitorServiceHandlerImpl handlerToTest = new ProxyMonitorServiceHandlerImpl(serverConfProvider);
+        ProxyMonitorServiceHandlerImpl handlerToTest = new ProxyMonitorServiceHandlerImpl(serverConfProvider, globalConfProvider);
 
         // the allowed monitoring client from test resources monitoring metricNames
         final ClientId.Conf nonAllowedClient = ClientId.Conf.create(EXPECTED_XR_INSTANCE, "COM",

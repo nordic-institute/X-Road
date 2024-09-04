@@ -33,6 +33,7 @@ import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.identifier.GlobalGroupId;
 import ee.ria.xroad.common.identifier.SecurityServerId;
 
+import java.nio.file.Path;
 import java.security.cert.X509Certificate;
 import java.util.Collection;
 import java.util.Collections;
@@ -42,7 +43,7 @@ import java.util.Set;
 /**
  * Global configuration provider.
  */
-public interface  GlobalConfProvider {
+public interface GlobalConfProvider {
 
     /**
      * Reloads configuration from disk
@@ -351,4 +352,12 @@ public interface  GlobalConfProvider {
      * {@code cert} was not an approved CA cert
      */
     ApprovedCAInfo getApprovedCA(String instanceIdentifier, X509Certificate cert) throws CodedException;
+
+    /**
+     * Returns an absolute file name for the current instance.
+     *
+     * @param fileName the file name
+     * @return the absolute path to the file of the current instance
+     */
+    Path getInstanceFile(String fileName);
 }

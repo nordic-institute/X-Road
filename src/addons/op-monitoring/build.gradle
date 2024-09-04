@@ -5,6 +5,7 @@ dependencies {
     implementation project(':common:common-domain')
     implementation project(':common:common-message')
     implementation project(':common:common-jetty')
+    implementation project(':common:common-verifier')
     implementation project(':serverconf')
 
     testImplementation project(':common:common-test')

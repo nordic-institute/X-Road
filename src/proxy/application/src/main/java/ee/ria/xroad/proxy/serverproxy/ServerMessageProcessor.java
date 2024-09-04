@@ -219,13 +219,13 @@ class ServerMessageProcessor extends MessageProcessorBase {
 
         if (!StringUtils.isBlank(serviceHandlerNames)) {
             for (String serviceHandlerName : serviceHandlerNames.split(",")) {
-                handlers.add(ServiceHandlerLoader.load(serverConfProvider, serviceHandlerName));
+                handlers.add(ServiceHandlerLoader.load(serviceHandlerName, serverConfProvider, globalConfProvider));
 
                 log.debug("Loaded service handler: {}", serviceHandlerName);
             }
         }
 
-        handlers.add(new DefaultServiceHandlerImpl(serverConfProvider)); // default handler
+        handlers.add(new DefaultServiceHandlerImpl(serverConfProvider, globalConfProvider)); // default handler
     }
 
     private ServiceHandler getServiceHandler(ProxyMessage request) {
@@ -242,7 +242,7 @@ class ServerMessageProcessor extends MessageProcessorBase {
         ServiceHandler handler = getServiceHandler(requestMessage);
 
         if (handler == null) {
-            handler = new DefaultServiceHandlerImpl(serverConfProvider);
+            handler = new DefaultServiceHandlerImpl(serverConfProvider, globalConfProvider);
         }
 
         if (handler.shouldVerifyAccess()) {
@@ -541,8 +541,8 @@ class ServerMessageProcessor extends MessageProcessorBase {
 
         private HttpSender sender;
 
-        DefaultServiceHandlerImpl(ServerConfProvider serverConfProvider) {
-            super(serverConfProvider);
+        DefaultServiceHandlerImpl(ServerConfProvider serverConfProvider, GlobalConfProvider globalConfProvider) {
+            super(serverConfProvider, globalConfProvider);
         }
 
         @Override

@@ -25,13 +25,15 @@
  */
 package ee.ria.xroad.common.conf.monitoringconf;
 
-import ee.ria.xroad.common.conf.globalconf.GlobalConf;
+import ee.ria.xroad.common.conf.globalconf.GlobalConfProvider;
+import ee.ria.xroad.common.conf.globalconf.monitoringparameters.MonitoringClientType;
 import ee.ria.xroad.common.identifier.ClientId;
 
 import lombok.extern.slf4j.Slf4j;
 
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.Optional;
 
 /**
  * Global configuration for monitoring addon.
@@ -39,22 +41,28 @@ import java.nio.file.Path;
 @Slf4j
 public final class MonitoringConf {
 
-    // Instance per thread, same way as in GlobalGonf/GlobalConfImpl.
+    // Instance per thread, same way as in GlobalConf/GlobalConfImpl.
     // This way thread safety handling is same as in GlobalConf.
     // Instance methods (getMonitoringClient, getMonitoringParameters) however are not synchronized
-    // (in comparison to GlobalGonf/GlobalConfImpl/ConfigurationDirectoryV2)
+    // (in comparison to GlobalConf/GlobalConfImpl/ConfigurationDirectoryV2)
     // since there is no need to (INSTANCE per thread).
-    private static final ThreadLocal<MonitoringConf> INSTANCE = new ThreadLocal<MonitoringConf>() {
-        @Override
-        protected MonitoringConf initialValue() {
-            return new MonitoringConf();
-        }
-    };
+    private static final ThreadLocal<MonitoringConf> INSTANCE = new ThreadLocal<>();
 
+    private final GlobalConfProvider globalConfProvider;
     private MonitoringParameters monitoringParameters;
 
-    public static MonitoringConf getInstance() {
-        return INSTANCE.get();
+    public static MonitoringConf getInstance(GlobalConfProvider globalConfProvider) {
+        MonitoringConf instance = INSTANCE.get();
+        if (instance == null) {
+            synchronized (MonitoringConf.class) {
+                instance = INSTANCE.get();
+                if (instance == null) {
+                    instance = new MonitoringConf(globalConfProvider);
+                    INSTANCE.set(instance);
+                }
+            }
+        }
+        return instance;
     }
 
     /**
@@ -62,37 +70,35 @@ public final class MonitoringConf {
      * to request monitoring data from other security servers
      */
     public ClientId getMonitoringClient() {
-        return getMonitoringParameters() == null ? null
-                : (getMonitoringParameters().getMonitoringClient() == null
-                ? null : getMonitoringParameters().getMonitoringClient()
-                .getMonitoringClientId());
+        return Optional.ofNullable(getMonitoringParameters())
+                .map(MonitoringParameters::getMonitoringClient)
+                .map(MonitoringClientType::getMonitoringClientId)
+                .orElse(null);
     }
 
     /**
      * Use getInstance
      */
-    private MonitoringConf() throws RuntimeException {
-        MonitoringParameters p = getMonitoringParameters(); // load MonitoringParameters for the first time
+    private MonitoringConf(GlobalConfProvider globalConfProvider) {
+        this.globalConfProvider = globalConfProvider;
+        getMonitoringParameters(); // load MonitoringParameters for the first time
     }
 
     /**
      * Returns MonitoringParameters. Reads parameter file as needed. Refreshes previously loaded
      * configuration if it has changed. Returns null if parameter file does not exist.
-     *
      */
     private MonitoringParameters getMonitoringParameters() {
-
         try {
             if (monitoringParameters != null && monitoringParameters.hasChanged()) {
                 monitoringParameters.reload();
             } else if (monitoringParameters == null) {
                 Path monitoringParametersPath = getMonitoringConfigurationPath();
 
-                if (Files.exists(monitoringParametersPath)) {
-                    log.trace("Loading private parameters from {}",
-                            monitoringParametersPath);
+                if (monitoringParametersPath != null && Files.exists(monitoringParametersPath)) {
+                    log.trace("Loading private parameters from {}", monitoringParametersPath);
                     monitoringParameters = new MonitoringParameters();
-                    monitoringParameters.load(getMonitoringConfigurationPath().toString());
+                    monitoringParameters.load(monitoringParametersPath.toString());
                 } else {
                     log.trace("Not loading monitoring parameters from {}, "
                             + "file does not exist", monitoringParametersPath);
@@ -107,7 +113,7 @@ public final class MonitoringConf {
     }
 
     private Path getMonitoringConfigurationPath() {
-        return GlobalConf.getInstanceFile(MonitoringParameters.FILE_NAME_MONITORING_PARAMETERS);
+        return globalConfProvider.getInstanceFile(MonitoringParameters.FILE_NAME_MONITORING_PARAMETERS);
     }
 
 }

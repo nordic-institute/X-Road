@@ -232,7 +232,7 @@ class OperationalDataRequestHandler extends QueryRequestHandler {
 
     private boolean isMonitoringClient(ClientId clientId) {
         return clientId != null && clientId.equals(
-                MonitoringConf.getInstance().getMonitoringClient());
+                MonitoringConf.getInstance(globalConfProvider).getMonitoringClient());
     }
 
     private boolean isServerOwner(ClientId clientId, SecurityServerId serverId)

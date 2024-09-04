@@ -32,6 +32,7 @@ import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.identifier.GlobalGroupId;
 import ee.ria.xroad.common.identifier.SecurityServerId;
 
+import java.nio.file.Path;
 import java.security.cert.CertificateException;
 import java.security.cert.X509Certificate;
 import java.util.Collection;
@@ -281,6 +282,11 @@ public class EmptyGlobalConf implements GlobalConfProvider {
 
     @Override
     public ApprovedCAInfo getApprovedCA(String instanceIdentifier, X509Certificate cert) {
+        return null;
+    }
+
+    @Override
+    public Path getInstanceFile(String fileName) {
         return null;
     }
 

@@ -26,6 +26,7 @@
 package ee.ria.xroad.proxy.serverproxy;
 
 import ee.ria.xroad.common.CodedException;
+import ee.ria.xroad.common.conf.globalconf.GlobalConfProvider;
 import ee.ria.xroad.common.conf.serverconf.ServerConfProvider;
 import ee.ria.xroad.common.identifier.ServiceId;
 import ee.ria.xroad.common.opmonitoring.OpMonitoringDaemonEndpoints;
@@ -68,8 +69,8 @@ public class OpMonitoringServiceHandlerImpl extends AbstractServiceHandler {
 
     private HttpSender sender;
 
-    protected OpMonitoringServiceHandlerImpl(ServerConfProvider serverConfProvider) {
-        super(serverConfProvider);
+    protected OpMonitoringServiceHandlerImpl(ServerConfProvider serverConfProvider, GlobalConfProvider globalConfProvider) {
+        super(serverConfProvider, globalConfProvider);
     }
 
     @Override

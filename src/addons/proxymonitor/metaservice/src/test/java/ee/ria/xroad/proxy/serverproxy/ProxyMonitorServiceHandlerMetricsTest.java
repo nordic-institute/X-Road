@@ -26,6 +26,7 @@
 package ee.ria.xroad.proxy.serverproxy;
 
 import ee.ria.xroad.common.SystemProperties;
+import ee.ria.xroad.common.conf.globalconf.GlobalConfProvider;
 import ee.ria.xroad.common.conf.serverconf.ServerConfProvider;
 import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.identifier.SecurityServerId;
@@ -37,6 +38,7 @@ import ee.ria.xroad.common.opmonitoring.OpMonitoringData;
 import ee.ria.xroad.common.util.MimeTypes;
 import ee.ria.xroad.common.util.RequestWrapper;
 import ee.ria.xroad.proxy.protocol.ProxyMessage;
+import ee.ria.xroad.proxy.testsuite.TestSuiteGlobalConf;
 import ee.ria.xroad.proxy.testsuite.TestSuiteServerConf;
 import ee.ria.xroad.proxymonitor.RestoreMonitorClientAfterTest;
 import ee.ria.xroad.proxymonitor.message.GetSecurityServerMetricsResponse;
@@ -114,6 +116,7 @@ public class ProxyMonitorServiceHandlerMetricsTest {
     public final RestoreMonitorClientAfterTest monitorClientRestoreRule = new RestoreMonitorClientAfterTest();
 
     private ServerConfProvider serverConfProvider;
+    private GlobalConfProvider globalConfProvider;
     private RequestWrapper mockRequest;
     private ProxyMessage mockProxyMessage;
 
@@ -139,7 +142,7 @@ public class ProxyMonitorServiceHandlerMetricsTest {
                 return DEFAULT_OWNER_SERVER;
             }
         };
-
+        globalConfProvider = new TestSuiteGlobalConf();
         mockRequest = mock(RequestWrapper.class);
         mockProxyMessage = mock(ProxyMessage.class);
 
@@ -150,7 +153,7 @@ public class ProxyMonitorServiceHandlerMetricsTest {
     public void startHandingShouldProduceAllMetrics() throws Exception {
 
         // setup
-        ProxyMonitorServiceHandlerImpl handlerToTest = new ProxyMonitorServiceHandlerImpl(serverConfProvider);
+        ProxyMonitorServiceHandlerImpl handlerToTest = new ProxyMonitorServiceHandlerImpl(serverConfProvider, globalConfProvider);
 
         final SoapMessageImpl soapMessage = build(DEFAULT_OWNER_CLIENT, MONITOR_SERVICE_ID,
                 "testUser", randomUUID().toString());
@@ -228,7 +231,7 @@ public class ProxyMonitorServiceHandlerMetricsTest {
     public void startHandingShouldProduceRequestedMetrics() throws Exception {
 
         // setup
-        ProxyMonitorServiceHandlerImpl handlerToTest = new ProxyMonitorServiceHandlerImpl(serverConfProvider);
+        ProxyMonitorServiceHandlerImpl handlerToTest = new ProxyMonitorServiceHandlerImpl(serverConfProvider, globalConfProvider);
 
 
         final SoapMessageImpl soapMessage = build(

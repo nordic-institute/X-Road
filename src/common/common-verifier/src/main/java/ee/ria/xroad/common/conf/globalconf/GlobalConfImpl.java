@@ -26,6 +26,7 @@
 package ee.ria.xroad.common.conf.globalconf;
 
 import ee.ria.xroad.common.CodedException;
+import ee.ria.xroad.common.SystemProperties;
 import ee.ria.xroad.common.cert.CertChain;
 import ee.ria.xroad.common.cert.CertChainFactory;
 import ee.ria.xroad.common.certificateprofile.AuthCertificateProfileInfo;
@@ -45,6 +46,8 @@ import org.bouncycastle.cert.X509CertificateHolder;
 import org.bouncycastle.operator.OperatorCreationException;
 
 import java.io.IOException;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.security.cert.CertificateEncodingException;
 import java.security.cert.X509Certificate;
 import java.util.ArrayList;
@@ -710,6 +713,12 @@ public class GlobalConfImpl implements GlobalConfProvider {
         }
 
         return createApprovedCAInfo(approvedCA);
+    }
+
+    @Override
+    public Path getInstanceFile(String fileName) {
+        return Paths.get(SystemProperties.getConfigurationPath(),
+                getInstanceIdentifier(), fileName);
     }
 
 }

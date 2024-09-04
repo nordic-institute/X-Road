@@ -27,6 +27,7 @@ package ee.ria.xroad.proxy.serverproxy;
 
 import ee.ria.xroad.common.CodedException;
 import ee.ria.xroad.common.ErrorCodes;
+import ee.ria.xroad.common.conf.globalconf.GlobalConfProvider;
 import ee.ria.xroad.common.conf.monitoringconf.MonitoringConf;
 import ee.ria.xroad.common.conf.serverconf.ServerConfProvider;
 import ee.ria.xroad.common.identifier.ClientId;
@@ -81,8 +82,8 @@ public class ProxyMonitorServiceHandlerImpl extends AbstractServiceHandler {
 
     private SoapMessageEncoder responseEncoder;
 
-    protected ProxyMonitorServiceHandlerImpl(ServerConfProvider serverConfProvider) {
-        super(serverConfProvider);
+    protected ProxyMonitorServiceHandlerImpl(ServerConfProvider serverConfProvider, GlobalConfProvider globalConfProvider) {
+        super(serverConfProvider, globalConfProvider);
     }
 
     @Override
@@ -208,7 +209,7 @@ public class ProxyMonitorServiceHandlerImpl extends AbstractServiceHandler {
         }
 
         // Grant access for configured monitoring client (if any)
-        ClientId monitoringClient = MonitoringConf.getInstance()
+        ClientId monitoringClient = MonitoringConf.getInstance(globalConfProvider)
                 .getMonitoringClient();
 
         if (monitoringClient != null && monitoringClient.equals(client)) {

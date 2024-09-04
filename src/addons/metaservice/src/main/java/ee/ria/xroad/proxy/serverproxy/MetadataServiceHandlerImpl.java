@@ -26,6 +26,7 @@
 package ee.ria.xroad.proxy.serverproxy;
 
 import ee.ria.xroad.common.CodedException;
+import ee.ria.xroad.common.conf.globalconf.GlobalConfProvider;
 import ee.ria.xroad.common.conf.serverconf.ServerConfDatabaseCtx;
 import ee.ria.xroad.common.conf.serverconf.ServerConfProvider;
 import ee.ria.xroad.common.conf.serverconf.dao.ServiceDescriptionDAOImpl;
@@ -117,8 +118,8 @@ class MetadataServiceHandlerImpl extends AbstractServiceHandler {
 
     private static final SAXTransformerFactory TRANSFORMER_FACTORY = createSaxTransformerFactory();
 
-    protected MetadataServiceHandlerImpl(ServerConfProvider serverConfProvider) {
-        super(serverConfProvider);
+    protected MetadataServiceHandlerImpl(ServerConfProvider serverConfProvider, GlobalConfProvider globalConfProvider) {
+        super(serverConfProvider, globalConfProvider);
         wsdlHttpClientCreator = new HttpClientCreator(serverConfProvider);
     }
 

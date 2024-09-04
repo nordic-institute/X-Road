@@ -28,6 +28,7 @@ package ee.ria.xroad.proxy.serverproxy;
 import ee.ria.xroad.common.CodedException;
 import ee.ria.xroad.common.ErrorCodes;
 import ee.ria.xroad.common.SystemProperties;
+import ee.ria.xroad.common.conf.globalconf.GlobalConfProvider;
 import ee.ria.xroad.common.conf.serverconf.ServerConfProvider;
 import ee.ria.xroad.common.conf.serverconf.model.ClientType;
 import ee.ria.xroad.common.conf.serverconf.model.DescriptionType;
@@ -45,6 +46,7 @@ import ee.ria.xroad.common.util.RequestWrapper;
 import ee.ria.xroad.common.util.ResponseWrapper;
 import ee.ria.xroad.proxy.common.WsdlRequestData;
 import ee.ria.xroad.proxy.protocol.ProxyMessage;
+import ee.ria.xroad.proxy.testsuite.TestSuiteGlobalConf;
 import ee.ria.xroad.proxy.testsuite.TestSuiteServerConf;
 import ee.ria.xroad.proxy.testutil.TestServerConfWrapper;
 import ee.ria.xroad.proxy.util.MetaserviceTestUtil;
@@ -164,6 +166,7 @@ public class MetadataServiceHandlerTest {
     private ProxyMessage mockProxyMessage;
     private WireMockServer mockServer;
     private TestServerConfWrapper serverConfProvider;
+    private GlobalConfProvider globalConfProvider;
 
     /**
      * Init class-wide test instances
@@ -186,6 +189,7 @@ public class MetadataServiceHandlerTest {
 //        GlobalConf.reload(new TestSuiteGlobalConf());
 //        KeyConf.reload(new TestSuiteKeyConf());
         serverConfProvider = new TestServerConfWrapper(new TestSuiteServerConf());
+        globalConfProvider = new TestSuiteGlobalConf();
 
         httpClientMock = mock(HttpClient.class);
         mockRequest = mock(RequestWrapper.class);
@@ -212,7 +216,7 @@ public class MetadataServiceHandlerTest {
 
         // setup
 
-        MetadataServiceHandlerImpl handlerToTest = new MetadataServiceHandlerImpl(serverConfProvider);
+        MetadataServiceHandlerImpl handlerToTest = new MetadataServiceHandlerImpl(serverConfProvider, globalConfProvider);
 
         ServiceId.Conf serviceId = ServiceId.Conf.create(DEFAULT_CLIENT, LIST_METHODS);
 
@@ -235,7 +239,7 @@ public class MetadataServiceHandlerTest {
 
         // setup
 
-        MetadataServiceHandlerImpl handlerToTest = new MetadataServiceHandlerImpl(serverConfProvider);
+        MetadataServiceHandlerImpl handlerToTest = new MetadataServiceHandlerImpl(serverConfProvider, globalConfProvider);
 
         ServiceId.Conf serviceId = ServiceId.Conf.create(DEFAULT_CLIENT, ALLOWED_METHODS);
 
@@ -260,7 +264,7 @@ public class MetadataServiceHandlerTest {
 
         // setup
 
-        MetadataServiceHandlerImpl handlerToTest = new MetadataServiceHandlerImpl(serverConfProvider);
+        MetadataServiceHandlerImpl handlerToTest = new MetadataServiceHandlerImpl(serverConfProvider, globalConfProvider);
 
         ServiceId.Conf serviceId = ServiceId.Conf.create(DEFAULT_CLIENT, GET_WSDL);
 
@@ -299,7 +303,7 @@ public class MetadataServiceHandlerTest {
             }
         });
 
-        MetadataServiceHandlerImpl handlerToTest = new MetadataServiceHandlerImpl(serverConfProvider);
+        MetadataServiceHandlerImpl handlerToTest = new MetadataServiceHandlerImpl(serverConfProvider, globalConfProvider);
 
         InputStream soapContentInputStream = new TestSoapBuilder()
                 .withClient(DEFAULT_CLIENT)
@@ -363,7 +367,7 @@ public class MetadataServiceHandlerTest {
             }
         });
 
-        MetadataServiceHandlerImpl handlerToTest = new MetadataServiceHandlerImpl(serverConfProvider);
+        MetadataServiceHandlerImpl handlerToTest = new MetadataServiceHandlerImpl(serverConfProvider, globalConfProvider);
 
         InputStream soapContentInputStream = new TestSoapBuilder()
                 .withClient(DEFAULT_CLIENT)
@@ -406,7 +410,7 @@ public class MetadataServiceHandlerTest {
 
         final ServiceId.Conf serviceId = ServiceId.Conf.create(DEFAULT_CLIENT, GET_WSDL);
 
-        MetadataServiceHandlerImpl handlerToTest = new MetadataServiceHandlerImpl(serverConfProvider);
+        MetadataServiceHandlerImpl handlerToTest = new MetadataServiceHandlerImpl(serverConfProvider, globalConfProvider);
 
         InputStream soapContentInputStream = new TestSoapBuilder()
                 .withClient(DEFAULT_CLIENT)
@@ -435,7 +439,7 @@ public class MetadataServiceHandlerTest {
         final ServiceId.Conf serviceId = ServiceId.Conf.create(DEFAULT_CLIENT, GET_WSDL);
         final ServiceId.Conf requestingWsdlForService = ServiceId.Conf.create(DEFAULT_CLIENT, "someServiceWithoutWsdl");
 
-        MetadataServiceHandlerImpl handlerToTest = new MetadataServiceHandlerImpl(serverConfProvider);
+        MetadataServiceHandlerImpl handlerToTest = new MetadataServiceHandlerImpl(serverConfProvider, globalConfProvider);
 
         WsdlRequestData wsdlRequestData = new WsdlRequestData();
         wsdlRequestData.setServiceCode(requestingWsdlForService.getServiceCode());
@@ -467,7 +471,7 @@ public class MetadataServiceHandlerTest {
         final ServiceId.Conf serviceId = ServiceId.Conf.create(DEFAULT_CLIENT, GET_WSDL);
         final ServiceId.Conf requestingWsdlForService = ServiceId.Conf.create(DEFAULT_CLIENT, "someServiceWithWsdl122");
 
-        MetadataServiceHandlerImpl handlerToTest = new MetadataServiceHandlerImpl(serverConfProvider);
+        MetadataServiceHandlerImpl handlerToTest = new MetadataServiceHandlerImpl(serverConfProvider, globalConfProvider);
 
         WsdlRequestData wsdlRequestData = new WsdlRequestData();
         wsdlRequestData.setServiceCode(requestingWsdlForService.getServiceCode());
@@ -503,8 +507,8 @@ public class MetadataServiceHandlerTest {
     private static final class TestMetadataServiceHandlerImpl extends MetadataServiceHandlerImpl {
         private OverwriteAttributeFilter filter;
 
-        TestMetadataServiceHandlerImpl(ServerConfProvider serverConfProvider) {
-            super(serverConfProvider);
+        TestMetadataServiceHandlerImpl(ServerConfProvider serverConfProvider, GlobalConfProvider globalConfProvider) {
+            super(serverConfProvider, globalConfProvider);
         }
 
         @Override
@@ -626,7 +630,7 @@ public class MetadataServiceHandlerTest {
             Exception {
         final ServiceId.Conf requestingWsdlForService = ServiceId.Conf.create(DEFAULT_CLIENT, "someServiceWithWsdl122");
 
-        TestMetadataServiceHandlerImpl handlerToTest = new TestMetadataServiceHandlerImpl(serverConfProvider);
+        TestMetadataServiceHandlerImpl handlerToTest = new TestMetadataServiceHandlerImpl(serverConfProvider, globalConfProvider);
 
         WsdlRequestData wsdlRequestData = new WsdlRequestData();
         wsdlRequestData.setServiceCode(requestingWsdlForService.getServiceCode());
