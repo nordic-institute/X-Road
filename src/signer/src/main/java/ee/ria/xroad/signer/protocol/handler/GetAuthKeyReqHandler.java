@@ -160,7 +160,7 @@ public class GetAuthKeyReqHandler
             if (securityServer.equals(serverIdFromConf)) {
                 verifyOcspResponse(securityServer.getXRoadInstance(), cert,
                         certInfo.getOcspBytes(), new OcspVerifierOptions(
-                                GlobalConfExtensions.getInstance()
+                                GlobalConfExtensions.getInstance(globalConfProvider)
                                         .shouldVerifyOcspNextUpdate()));
 
                 return true;

@@ -33,7 +33,6 @@ import ee.ria.xroad.common.OcspResponderStatus;
 import ee.ria.xroad.common.cert.CertChain;
 import ee.ria.xroad.common.conf.globalconf.GlobalConfProvider;
 import ee.ria.xroad.common.conf.globalconfextension.GlobalConfExtensions;
-import ee.ria.xroad.common.conf.globalconfextension.OcspFetchInterval;
 import ee.ria.xroad.common.ocsp.OcspVerifier;
 import ee.ria.xroad.common.ocsp.OcspVerifierOptions;
 import ee.ria.xroad.common.util.CertUtils;
@@ -114,8 +113,8 @@ public class OcspClientWorker {
 
         changeChecker.addChange(OCSP_FRESHNESS_SECONDS, globalConfProvider.getOcspFreshnessSeconds());
         changeChecker.addChange(VERIFY_OCSP_NEXTUPDATE,
-                GlobalConfExtensions.getInstance().shouldVerifyOcspNextUpdate());
-        changeChecker.addChange(OCSP_FETCH_INTERVAL, GlobalConfExtensions.getInstance().getOcspFetchInterval());
+                GlobalConfExtensions.getInstance(globalConfProvider).shouldVerifyOcspNextUpdate());
+        changeChecker.addChange(OCSP_FETCH_INTERVAL, GlobalConfExtensions.getInstance(globalConfProvider).getOcspFetchInterval());
 
         if (changeChecker.hasChanged(OCSP_FRESHNESS_SECONDS)) {
             log.debug("Detected change in global configuration ocspFreshnessSeconds parameter");
@@ -175,7 +174,7 @@ public class OcspClientWorker {
         for (X509Certificate subject : certs) {
             try {
                 OCSPResp status = queryCertStatus(subject, new OcspVerifierOptions(
-                        GlobalConfExtensions.getInstance().shouldVerifyOcspNextUpdate()));
+                        GlobalConfExtensions.getInstance(globalConfProvider).shouldVerifyOcspNextUpdate()));
                 if (status != null) {
                     String subjectHash = calculateCertSha1HexHash(subject);
                     statuses.put(subjectHash, status);
@@ -264,7 +263,7 @@ public class OcspClientWorker {
         for (String responderURI : responderURIs) {
             final OffsetDateTime prevUpdate = TimeUtils.offsetDateTimeNow();
             final OffsetDateTime nextUpdate = prevUpdate
-                    .plusSeconds(GlobalConfExtensions.getInstance().getOcspFetchInterval());
+                    .plusSeconds(GlobalConfExtensions.getInstance(globalConfProvider).getOcspFetchInterval());
             int errorCode = DiagnosticsErrorCodes.ERROR_CODE_OCSP_RESPONSE_INVALID;
 
             try {
@@ -387,7 +386,7 @@ public class OcspClientWorker {
 
     private void initializeDiagnostics() {
 
-        final int fetchInterval = GlobalConfExtensions.getInstance().getOcspFetchInterval();
+        final int fetchInterval = GlobalConfExtensions.getInstance(globalConfProvider).getOcspFetchInterval();
         final Map<String, CertificationServiceStatus> serviceStatusMap = certServDiagnostics
                 .getCertificationServiceStatusMap();
 
@@ -416,16 +415,4 @@ public class OcspClientWorker {
         }
     }
 
-    /**
-     * @return the next ocsp freshness time in seconds
-     */
-    public static int getNextOcspFetchIntervalSeconds() {
-        int interval = GlobalConfExtensions.getInstance().getOcspFetchInterval();
-
-        if (interval < OcspFetchInterval.OCSP_FETCH_INTERVAL_MIN) {
-            interval = OcspFetchInterval.OCSP_FETCH_INTERVAL_MIN;
-        }
-
-        return interval;
-    }
 }

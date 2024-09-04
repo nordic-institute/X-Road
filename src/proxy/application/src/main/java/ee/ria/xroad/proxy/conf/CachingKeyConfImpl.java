@@ -182,12 +182,12 @@ public class CachingKeyConfImpl extends KeyConfImpl {
 
     /*
      * Upper bound for validity is the minimum of certificates "notAfter" and OCSP responses validity time
-     * An OCSP reponse validity time is min(thisUpdate + ocspFresnessSeconds, nextUpdate) or just
-     * (thisUpdate + ocspFresnessSeconds) if nextUpdate is not enforced or missing
+     * An OCSP response validity time is min(thisUpdate + ocspFreshnessSeconds, nextUpdate) or just
+     * (thisUpdate + ocspFreshnessSeconds) if nextUpdate is not enforced or missing
      */
     Date calculateNotAfter(List<OCSPResp> ocspResponses, Date notAfter) throws OCSPException {
         final long freshnessMillis = 1000L * globalConfProvider.getOcspFreshnessSeconds();
-        final boolean verifyNextUpdate = GlobalConfExtensions.getInstance().shouldVerifyOcspNextUpdate();
+        final boolean verifyNextUpdate = GlobalConfExtensions.getInstance(globalConfProvider).shouldVerifyOcspNextUpdate();
 
         for (OCSPResp resp : ocspResponses) {
             //ok to expect only one response since we request ocsp responses for one certificate at a time

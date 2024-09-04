@@ -111,8 +111,9 @@ public class SignerConfig {
     @Order(OCSP_SCHEDULER_BEAN_ORDER)
     @Bean(name = "ocspClientExecuteScheduler")
     @Conditional(IsOcspClientJobsActive.class)
-    OcspClientExecuteScheduler ocspClientExecuteScheduler(OcspClientWorker ocspClientWorker, TaskScheduler taskScheduler) {
-        OcspClientExecuteScheduler scheduler = new OcspClientExecuteScheduler(ocspClientWorker, taskScheduler);
+    OcspClientExecuteScheduler ocspClientExecuteScheduler(OcspClientWorker ocspClientWorker, TaskScheduler taskScheduler,
+                                                          GlobalConfProvider globalConfProvider) {
+        OcspClientExecuteScheduler scheduler = new OcspClientExecuteScheduler(ocspClientWorker, taskScheduler, globalConfProvider);
         scheduler.init();
         return scheduler;
     }

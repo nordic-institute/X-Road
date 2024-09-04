@@ -62,7 +62,7 @@ public class ManagementRequestCertVerifier {
         }
 
         new OcspVerifier(globalConfProvider,
-                new OcspVerifierOptions(GlobalConfExtensions.getInstance().shouldVerifyOcspNextUpdate()))
+                new OcspVerifierOptions(GlobalConfExtensions.getInstance(globalConfProvider).shouldVerifyOcspNextUpdate()))
                 .verifyValidityAndStatus(memberCertOcsp, memberCert, issuer);
     }
 

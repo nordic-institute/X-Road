@@ -195,7 +195,7 @@ public class CertChainVerifier {
             }
 
             OcspVerifier verifier = new OcspVerifier(globalConfProvider,
-                    new OcspVerifierOptions(GlobalConfExtensions.getInstance().shouldVerifyOcspNextUpdate()));
+                    new OcspVerifierOptions(GlobalConfExtensions.getInstance(globalConfProvider).shouldVerifyOcspNextUpdate()));
             verifier.verifyValidityAndStatus(response, subject, issuer,
                     atDate);
         }

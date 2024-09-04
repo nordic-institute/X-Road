@@ -125,7 +125,7 @@ public final class GetMemberSigningInfoReqHandler extends AbstractRpcHandler<Get
         X509Certificate subject = readCertificate(certBytes);
         subject.checkValidity();
         verifyOcspResponse(instanceIdentifier, ocspBytes, subject, new OcspVerifierOptions(
-                GlobalConfExtensions.getInstance().shouldVerifyOcspNextUpdate()));
+                GlobalConfExtensions.getInstance(globalConfProvider).shouldVerifyOcspNextUpdate()));
     }
 
     private void verifyOcspResponse(String instanceIdentifier, byte[] ocspBytes, X509Certificate subject,
