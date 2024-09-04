@@ -27,7 +27,6 @@ package ee.ria.xroad.proxy.testsuite;
 
 import ee.ria.xroad.common.SystemProperties;
 import ee.ria.xroad.common.TestPortUtils;
-import ee.ria.xroad.common.conf.globalconf.GlobalConf;
 import ee.ria.xroad.common.conf.globalconf.GlobalConfProvider;
 import ee.ria.xroad.common.conf.globalconf.GlobalConfSource;
 import ee.ria.xroad.common.conf.globalconf.TestGlobalConfWrapper;
@@ -291,9 +290,7 @@ public final class ProxyTestSuite {
         @Bean
         @Primary
         GlobalConfProvider globalConfProvider() {
-            var globalConf = new TestGlobalConfWrapper(new TestSuiteGlobalConf());
-            GlobalConf.initialize(globalConf);
-            return globalConf;
+            return new TestGlobalConfWrapper(new TestSuiteGlobalConf());
         }
 
         @Bean

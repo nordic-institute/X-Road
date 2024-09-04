@@ -58,9 +58,7 @@ public class GlobalConfBeanConfig {
 
     @Bean
     GlobalConfProvider globalConfProvider(GlobalConfSource source) {
-        var globalConf = new GlobalConfImpl(source);
-        GlobalConf.initialize(globalConf);
-        return globalConf;
+        return new GlobalConfImpl(source);
     }
 
     @Bean

@@ -27,7 +27,6 @@
 
 package org.niis.xroad.proxy.test.glue;
 
-import ee.ria.xroad.common.conf.globalconf.GlobalConf;
 import ee.ria.xroad.common.conf.globalconf.TestGlobalConfImpl;
 import ee.ria.xroad.common.conf.serverconf.ServerConfImpl;
 import ee.ria.xroad.common.hashchain.HashChainReferenceResolver;
@@ -204,7 +203,6 @@ public class ProxyStepDefs extends BaseStepDefs {
     @SneakyThrows
     private KeyConfProvider createKeyConf() {
         var globalConf = new TestGlobalConfImpl();
-        GlobalConf.initialize(globalConf);
         var serverConf = new ServerConfImpl(globalConf);
         return CachingKeyConfImpl.newInstance(globalConf, serverConf);
     }
