@@ -53,7 +53,8 @@ public class ProxyMessageLogConfig {
     private static final GroupingStrategy ARCHIVE_GROUPING = MessageLogProperties.getArchiveGrouping();
 
     @Bean(destroyMethod = "shutdown")
-    AbstractLogManager messageLogManager(JobManager jobManager, GlobalConfProvider globalConfProvider, ServerConfProvider serverConfProvider) {
+    AbstractLogManager messageLogManager(JobManager jobManager, GlobalConfProvider globalConfProvider,
+                                         ServerConfProvider serverConfProvider) {
         return MessageLog.init(jobManager, globalConfProvider, serverConfProvider);
     }
 

@@ -67,7 +67,8 @@ public final class MessageLog {
      * @param globalConfProvider global conf source provider
      * @return false if NullLogManager was initialized, true otherwise
      */
-    public static AbstractLogManager init(JobManager jobManager, GlobalConfProvider globalConfProvider, ServerConfProvider serverConfProvider) {
+    public static AbstractLogManager init(JobManager jobManager, GlobalConfProvider globalConfProvider,
+                                          ServerConfProvider serverConfProvider) {
         Class<? extends AbstractLogManager> clazz = getLogManagerImpl();
 
         log.trace("Using implementation class: {}", clazz);

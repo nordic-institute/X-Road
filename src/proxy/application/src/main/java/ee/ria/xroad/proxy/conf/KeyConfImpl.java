@@ -48,7 +48,6 @@ import java.util.List;
 
 import static ee.ria.xroad.common.ErrorCodes.X_CANNOT_CREATE_SIGNATURE;
 import static ee.ria.xroad.common.util.CertUtils.getSha1Hashes;
-import static ee.ria.xroad.common.util.CryptoUtils.calculateCertHexHash;
 import static ee.ria.xroad.common.util.CryptoUtils.calculateCertSha1HexHash;
 import static ee.ria.xroad.common.util.CryptoUtils.decodeBase64;
 import static ee.ria.xroad.common.util.CryptoUtils.encodeBase64;
@@ -143,25 +142,6 @@ class KeyConfImpl implements KeyConfProvider {
         }
 
         return ocspResponses;
-    }
-
-    @Override
-    public List<OCSPResp> getAllOcspResponses(List<X509Certificate> certs) throws Exception {
-        List<String> missingResponses = new ArrayList<>();
-        List<OCSPResp> responses = getOcspResponses(certs);
-        for (int i = 0; i < certs.size(); i++) {
-            if (responses.get(i) == null) {
-                missingResponses.add(calculateCertHexHash(certs.get(i)));
-            }
-        }
-
-        if (!missingResponses.isEmpty()) {
-            throw new CodedException(X_CANNOT_CREATE_SIGNATURE,
-                    "Could not get OCSP responses for certificates (%s)",
-                    missingResponses);
-        }
-
-        return responses;
     }
 
     @Override

@@ -25,13 +25,18 @@
  */
 package ee.ria.xroad.proxy.conf;
 
+import ee.ria.xroad.common.CodedException;
 import ee.ria.xroad.common.conf.globalconf.AuthKey;
 import ee.ria.xroad.common.identifier.ClientId;
 
 import org.bouncycastle.cert.ocsp.OCSPResp;
 
 import java.security.cert.X509Certificate;
+import java.util.ArrayList;
 import java.util.List;
+
+import static ee.ria.xroad.common.ErrorCodes.X_CANNOT_CREATE_SIGNATURE;
+import static ee.ria.xroad.common.util.CryptoUtils.calculateCertHexHash;
 
 /**
  * Declares methods for accessing key configuration.
@@ -73,7 +78,23 @@ public interface KeyConfProvider {
     List<OCSPResp> getOcspResponses(List<X509Certificate> certs)
             throws Exception;
 
-    List<OCSPResp> getAllOcspResponses(List<X509Certificate> certs) throws Exception;
+    default List<OCSPResp> getAllOcspResponses(List<X509Certificate> certs) throws Exception {
+        List<String> missingResponses = new ArrayList<>();
+        List<OCSPResp> responses = getOcspResponses(certs);
+        for (int i = 0; i < certs.size(); i++) {
+            if (responses.get(i) == null) {
+                missingResponses.add(calculateCertHexHash(certs.get(i)));
+            }
+        }
+
+        if (!missingResponses.isEmpty()) {
+            throw new CodedException(X_CANNOT_CREATE_SIGNATURE,
+                    "Could not get OCSP responses for certificates (%s)",
+                    missingResponses);
+        }
+
+        return responses;
+    }
 
     /**
      * Updates the existing OCSP response or stores the OCSP response,

@@ -45,11 +45,12 @@ public final class GlobalConf {
     }
 
     public static synchronized void initialize(GlobalConfProvider globalConfProvider) {
-        if (instance == null) {
+        //TODO this will be removed.
+//        if (instance == null) {
             instance = globalConfProvider;
-        } else {
-            log.warn("GlobalConf is already initialized");
-        }
+//        } else {
+//            log.warn("GlobalConf is already initialized");
+//        }
     }
 
     /**
