@@ -257,7 +257,7 @@ public class EmptyGlobalConf implements GlobalConfProvider {
 
     @Override
     public void verifyValidity() {
-
+        // nothing to verify here
     }
 
     @Override
