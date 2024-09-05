@@ -1,39 +1,58 @@
-# frontend
+# Security Server Admin Service UI
 
-## Project setup
+UI application for Security Server Admin Service. 
+
+Tools and libraries used in this project:
+- [Vue.js](https://vuejs.org/)
+- [Vuetify](https://vuetifyjs.com/)
+- [Vue i18n](https://kazupon.github.io/vue-i18n/)
+- [VeeValidate](https://vee-validate.logaretm.com/v4/)
+- [Axios](https://axios-http.com/)
+- [Pinia](https://pinia.esm.dev/)
+- [Vite](https://vitejs.dev/)
+- [pnpm](https://pnpm.io/)
+
+## Building
+
+
+
+
+## Development
+
+Individual `pnpm` scripts can be used for development.
+
+### Install dependencies
 ```
-npm install
+pnpm install
 ```
 
 ### Compiles and hot-reloads for development
+
+Starts development server on port `8080`
 ```
-npm run serve
+pnpm run dev
 ```
 
 ### Compiles and minifies for production
 ```
-npm run build
+pnpm run build
 ```
 
-### Run your tests
+### Run tests
 ```
-npm run test
+pnpm run test
 ```
 
 ### Lints and fixes files
 ```
-npm run lint
+pnpm run lint
 ```
 
-### Run your end-to-end tests
-```
-npm run test:e2e
-```
+## Customize configuration
 
-### Run your unit tests
-```
-npm run test:unit
-```
+[Vite's Env variables](https://vitejs.dev/guide/env-and-mode#env-files) can be used to customize build environment.
+To use custom Env variables, create `.env.local` file in the root of the project. 
+Apart from variables in [.env](.env) file, `PROXY_ADDRESS` can be used to set target running admin service API. 
+`PROXY_ADDRESS` default value is `https://localhost:4200`, which corresponds to `ss0` Admin Service API running in 
+[docker compose environment](../../../../Docker/xrd-dev-stack/README.md).
 
-### Customize configuration
-See [Configuration Reference](https://cli.vuejs.org/config/).
