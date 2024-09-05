@@ -27,12 +27,14 @@ package ee.ria.xroad.proxy.clientproxy;
 
 import ee.ria.xroad.common.CodedException;
 import ee.ria.xroad.common.SystemProperties;
+import ee.ria.xroad.common.cert.CertChainFactory;
 import ee.ria.xroad.common.conf.globalconf.AuthKey;
-import ee.ria.xroad.common.conf.globalconf.GlobalConf;
+import ee.ria.xroad.common.conf.globalconf.GlobalConfProvider;
+import ee.ria.xroad.common.conf.serverconf.ServerConfProvider;
 import ee.ria.xroad.common.opmonitoring.OpMonitoringData;
 import ee.ria.xroad.common.util.RequestWrapper;
 import ee.ria.xroad.common.util.ResponseWrapper;
-import ee.ria.xroad.proxy.conf.KeyConf;
+import ee.ria.xroad.proxy.conf.KeyConfProvider;
 import ee.ria.xroad.proxy.util.MessageProcessorBase;
 
 import org.apache.http.client.HttpClient;
@@ -48,8 +50,11 @@ import static ee.ria.xroad.common.ErrorCodes.X_SSL_AUTH_FAILED;
  */
 class ClientMessageHandler extends AbstractClientProxyHandler {
 
-    ClientMessageHandler(HttpClient client) {
-        super(client, true);
+    ClientMessageHandler(GlobalConfProvider globalConfProvider,
+                         KeyConfProvider keyConfProvider,
+                         ServerConfProvider serverConfProvider,
+                         CertChainFactory certChainFactory, HttpClient client) {
+        super(globalConfProvider, keyConfProvider, serverConfProvider, certChainFactory, client, true);
     }
 
     @Override
@@ -58,8 +63,8 @@ class ClientMessageHandler extends AbstractClientProxyHandler {
             OpMonitoringData opMonitoringData) throws Exception {
         verifyCanProcess(request);
 
-        return new ClientMessageProcessor(request, response, client,
-                getIsAuthenticationData(request), opMonitoringData);
+        return new ClientMessageProcessor(globalConfProvider, keyConfProvider, serverConfProvider, certChainFactory,
+                request, response, client, getIsAuthenticationData(request), opMonitoringData);
     }
 
     private void verifyCanProcess(RequestWrapper request) {
@@ -69,13 +74,13 @@ class ClientMessageHandler extends AbstractClientProxyHandler {
                     request.getMethod());
         }
 
-        GlobalConf.verifyValidity();
+        globalConfProvider.verifyValidity();
 
         if (!SystemProperties.isSslEnabled()) {
             return;
         }
 
-        AuthKey authKey = KeyConf.getAuthKey();
+        AuthKey authKey = keyConfProvider.getAuthKey();
         if (authKey.getCertChain() == null) {
             throw new CodedException(X_SSL_AUTH_FAILED,
                     "Security server has no valid authentication certificate");

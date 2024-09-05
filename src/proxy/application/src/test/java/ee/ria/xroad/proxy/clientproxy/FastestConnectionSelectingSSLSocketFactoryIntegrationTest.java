@@ -26,12 +26,14 @@
 package ee.ria.xroad.proxy.clientproxy;
 
 import ee.ria.xroad.common.TestCertUtil;
-import ee.ria.xroad.common.conf.globalconf.GlobalConf;
+import ee.ria.xroad.common.cert.CertChainFactory;
+import ee.ria.xroad.common.cert.CertHelper;
+import ee.ria.xroad.common.conf.globalconf.GlobalConfProvider;
 import ee.ria.xroad.common.identifier.ServiceId;
 import ee.ria.xroad.common.util.CryptoUtils;
 import ee.ria.xroad.common.util.HttpSender;
 import ee.ria.xroad.proxy.conf.AuthKeyManager;
-import ee.ria.xroad.proxy.conf.KeyConf;
+import ee.ria.xroad.proxy.conf.KeyConfProvider;
 import ee.ria.xroad.proxy.testsuite.DummySslServerProxy;
 import ee.ria.xroad.proxy.testutil.IntegrationTest;
 import ee.ria.xroad.proxy.testutil.TestGlobalConf;
@@ -91,12 +93,17 @@ public class FastestConnectionSelectingSSLSocketFactoryIntegrationTest {
         }
     };
 
+    private GlobalConfProvider globalConfProvider;
+    private KeyConfProvider keyConfProvider;
+    private AuthTrustVerifier authTrustVerifier;
     private CloseableHttpClient client;
 
     @Before
     public void setup() {
-        KeyConf.reload(new TestKeyConf());
-        GlobalConf.reload(new TestGlobalConf());
+        globalConfProvider = new TestGlobalConf();
+        keyConfProvider = new TestKeyConf(globalConfProvider);
+        authTrustVerifier = new AuthTrustVerifier(keyConfProvider, new CertHelper(globalConfProvider),
+                new CertChainFactory(globalConfProvider));
     }
 
     @Test
@@ -173,11 +180,11 @@ public class FastestConnectionSelectingSSLSocketFactoryIntegrationTest {
 
     private SSLConnectionSocketFactory createSSLSocketFactory() throws Exception {
         SSLContext ctx = SSLContext.getInstance(CryptoUtils.SSL_PROTOCOL);
-        ctx.init(new KeyManager[]{AuthKeyManager.getInstance()},
+        ctx.init(new KeyManager[]{new AuthKeyManager(keyConfProvider)},
                 new TrustManager[]{new NoopTrustManager()},
                 new SecureRandom());
 
-        return new FastestConnectionSelectingSSLSocketFactory(ctx);
+        return new FastestConnectionSelectingSSLSocketFactory(authTrustVerifier, ctx);
     }
 
     private void logFH() {

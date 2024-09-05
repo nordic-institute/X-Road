@@ -32,7 +32,7 @@ import ee.ria.xroad.common.DiagnosticsStatus;
 import ee.ria.xroad.common.DiagnosticsUtils;
 import ee.ria.xroad.common.MessageLogEncryptionStatusDiagnostics;
 import ee.ria.xroad.common.PortNumbers;
-import ee.ria.xroad.common.conf.serverconf.ServerConf;
+import ee.ria.xroad.common.conf.serverconf.ServerConfProvider;
 import ee.ria.xroad.common.util.AdminPort;
 import ee.ria.xroad.common.util.JsonUtils;
 import ee.ria.xroad.common.util.RequestWrapper;
@@ -68,14 +68,14 @@ public class ProxyAdminPortConfig {
     private final Optional<HealthCheckPort> healthCheckPort;
 
     @Bean(initMethod = "start", destroyMethod = "stop")
-    AdminPort createAdminPort() {
+    AdminPort createAdminPort(ServerConfProvider serverConfProvider) {
         AdminPort adminPort = new AdminPort(PortNumbers.ADMIN_PORT);
 
-        addTimestampStatusHandler(adminPort);
+        addTimestampStatusHandler(adminPort, serverConfProvider);
 
         addMaintenanceHandler(adminPort);
 
-        addClearCacheHandler(adminPort);
+        addClearCacheHandler(adminPort, serverConfProvider);
 
         addAddOnStatusHandler(adminPort);
 
@@ -113,11 +113,11 @@ public class ProxyAdminPortConfig {
         });
     }
 
-    private void addClearCacheHandler(AdminPort adminPort) {
+    private void addClearCacheHandler(AdminPort adminPort, ServerConfProvider serverConfProvider) {
         adminPort.addHandler("/clearconfcache", new AdminPort.SynchronousCallback() {
             @Override
             public void handle(RequestWrapper request, ResponseWrapper response) {
-                ServerConf.clearCache();
+                serverConfProvider.clearCache();
                 try (var pw = new PrintWriter(response.getOutputStream())) {
                     response.setContentType(MimeTypes.Type.APPLICATION_JSON_UTF_8);
                     pw.println("Configuration cache cleared");
@@ -150,13 +150,13 @@ public class ProxyAdminPortConfig {
      * First check the simple connection to timestamp server. If OK, check the status of the previous timestamp request.
      * If the previous request has failed or the simple connection cannot be made, DiagnosticsStatus tells the reason.
      */
-    private void addTimestampStatusHandler(AdminPort adminPort) {
+    private void addTimestampStatusHandler(AdminPort adminPort, ServerConfProvider serverConfProvider) {
         adminPort.addHandler("/timestampstatus", new AdminPort.SynchronousCallback() {
             @Override
             public void handle(RequestWrapper request, ResponseWrapper response) {
                 log.info("/timestampstatus");
 
-                Map<String, DiagnosticsStatus> statusesFromSimpleConnectionCheck = checkConnectionToTimestampUrl();
+                Map<String, DiagnosticsStatus> statusesFromSimpleConnectionCheck = checkConnectionToTimestampUrl(serverConfProvider);
                 Map<String, DiagnosticsStatus> result = new HashMap<>();
 
                 log.info("simple connection check result {}", statusesFromSimpleConnectionCheck);
@@ -209,10 +209,10 @@ public class ProxyAdminPortConfig {
         });
     }
 
-    private Map<String, DiagnosticsStatus> checkConnectionToTimestampUrl() {
+    private Map<String, DiagnosticsStatus> checkConnectionToTimestampUrl(ServerConfProvider serverConfProvider) {
         Map<String, DiagnosticsStatus> statuses = new HashMap<>();
 
-        for (String tspUrl : ServerConf.getTspUrl()) {
+        for (String tspUrl : serverConfProvider.getTspUrl()) {
             try {
                 URL url = new URL(tspUrl);
 

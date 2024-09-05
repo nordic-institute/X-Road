@@ -707,6 +707,12 @@ public final class SystemProperties {
             PREFIX + "common.grpc-internal-truststore-password";
     public static final String GRPC_INTERNAL_TRUSTSTORE_PASSWORD_ENV =
             propertyNameToEnvVariable(GRPC_INTERNAL_TRUSTSTORE_PASSWORD);
+
+    /**
+     * Property name for global configuration refresh rate in seconds.
+     */
+    public static final String GLOBAL_CONF_REFRESH_RATE_SECONDS = PREFIX + "common.global-conf-refresh-rate-seconds";
+
     // Cluster node configuration ------------------------------------------ //
 
     /**
@@ -1131,7 +1137,7 @@ public final class SystemProperties {
     }
 
     /**
-     * @return the HTTP port on which the configuration client is listening, '5665' by default.
+     * @return the gRPC port on which the configuration client is listening, '5665' by default.
      */
     public static int getConfigurationClientPort() {
         return Integer.parseInt(System.getProperty(CONFIGURATION_CLIENT_PORT,
@@ -1826,6 +1832,13 @@ public final class SystemProperties {
      */
     public static String getGrpcInternalTruststorePassword() {
         return System.getProperty(GRPC_INTERNAL_TRUSTSTORE_PASSWORD, System.getenv().get(GRPC_INTERNAL_TRUSTSTORE_PASSWORD_ENV));
+    }
+
+    /**
+     * @return GlobalConf scheduled refresh rate in seconds
+     */
+    public static String getGlobalConfRefreshRateSeconds() {
+        return System.getProperty(GLOBAL_CONF_REFRESH_RATE_SECONDS, "60");
     }
 
     private static String propertyNameToEnvVariable(String propName) {

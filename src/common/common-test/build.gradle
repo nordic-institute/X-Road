@@ -10,6 +10,7 @@ dependencies {
     // JUnit is needed for ExpectedCodedException
     implementation libs.junit.vintageEngine
 
+    api('org.springframework:spring-test')
     api(libs.apache.httpasyncclient)
     api(libs.mockito.jupiter)
     api(libs.awaitility)

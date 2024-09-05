@@ -27,8 +27,10 @@ package ee.ria.xroad.proxy.clientproxy;
 
 import ee.ria.xroad.common.CodedException;
 import ee.ria.xroad.common.cert.CertChain;
-import ee.ria.xroad.common.conf.globalconf.GlobalConf;
+import ee.ria.xroad.common.cert.CertChainFactory;
+import ee.ria.xroad.common.conf.globalconf.GlobalConfProvider;
 import ee.ria.xroad.common.conf.serverconf.IsAuthenticationData;
+import ee.ria.xroad.common.conf.serverconf.ServerConfProvider;
 import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.identifier.ServiceId;
 import ee.ria.xroad.common.message.RestRequest;
@@ -40,7 +42,7 @@ import ee.ria.xroad.common.util.HttpSender;
 import ee.ria.xroad.common.util.MimeUtils;
 import ee.ria.xroad.common.util.RequestWrapper;
 import ee.ria.xroad.common.util.ResponseWrapper;
-import ee.ria.xroad.proxy.conf.KeyConf;
+import ee.ria.xroad.proxy.conf.KeyConfProvider;
 import ee.ria.xroad.proxy.messagelog.MessageLog;
 import ee.ria.xroad.proxy.protocol.ProxyMessage;
 import ee.ria.xroad.proxy.protocol.ProxyMessageDecoder;
@@ -95,10 +97,15 @@ class ClientRestMessageProcessor extends AbstractClientMessageProcessor {
     private String xRequestId;
     private byte[] restBodyDigest;
 
-    ClientRestMessageProcessor(RequestWrapper request, ResponseWrapper response,
+    ClientRestMessageProcessor(GlobalConfProvider globalConfProvider,
+                               KeyConfProvider keyConfProvider,
+                               ServerConfProvider serverConfProvider,
+                               CertChainFactory certChainFactory,
+                               RequestWrapper request, ResponseWrapper response,
                                HttpClient httpClient, IsAuthenticationData clientCert,
                                OpMonitoringData opMonitoringData) throws Exception {
-        super(request, response, httpClient, clientCert, opMonitoringData);
+        super(globalConfProvider, keyConfProvider, serverConfProvider, certChainFactory, request, response, httpClient,
+                clientCert, opMonitoringData);
         this.xRequestId = UUID.randomUUID().toString();
     }
 
@@ -164,7 +171,7 @@ class ClientRestMessageProcessor extends AbstractClientMessageProcessor {
 
     private void processRequest() throws Exception {
         if (restRequest.getQueryId() == null) {
-            restRequest.setQueryId(GlobalConf.getInstanceIdentifier() + "-" + UUID.randomUUID());
+            restRequest.setQueryId(globalConfProvider.getInstanceIdentifier() + "-" + UUID.randomUUID());
         }
         updateOpMonitoringDataByRestRequest(opMonitoringData, restRequest);
         try (HttpSender httpSender = createHttpSender()) {
@@ -192,7 +199,7 @@ class ClientRestMessageProcessor extends AbstractClientMessageProcessor {
 
     private void parseResponse(HttpSender httpSender) throws Exception {
         response = new ProxyMessage(httpSender.getResponseHeaders().get(HEADER_ORIGINAL_CONTENT_TYPE));
-        ProxyMessageDecoder decoder = new ProxyMessageDecoder(response, httpSender.getResponseContentType(),
+        ProxyMessageDecoder decoder = new ProxyMessageDecoder(globalConfProvider, response, httpSender.getResponseContentType(),
                 getHashAlgoId(httpSender));
         try {
             decoder.parse(httpSender.getResponseContent());
@@ -311,8 +318,8 @@ class ClientRestMessageProcessor extends AbstractClientMessageProcessor {
                 final ProxyMessageEncoder enc = new ProxyMessageEncoder(outstream,
                         CryptoUtils.DEFAULT_DIGEST_ALGORITHM_ID, getBoundary(contentType.getValue()));
 
-                final CertChain chain = KeyConf.getAuthKey().getCertChain();
-                KeyConf.getAllOcspResponses(chain.getAllCertsWithoutTrustedRoot())
+                final CertChain chain = keyConfProvider.getAuthKey().getCertChain();
+                keyConfProvider.getAllOcspResponses(chain.getAllCertsWithoutTrustedRoot())
                         .forEach(enc::ocspResponse);
 
                 enc.restRequest(restRequest);
@@ -328,14 +335,14 @@ class ClientRestMessageProcessor extends AbstractClientMessageProcessor {
                         try (TeeInputStream tee = new TeeInputStream(in, cache)) {
                             cache.write(buf, 0, count);
                             enc.restBody(buf, count, tee);
-                            enc.sign(KeyConf.getSigningCtx(senderId));
+                            enc.sign(keyConfProvider.getSigningCtx(senderId));
                             MessageLog.log(restRequest, enc.getSignature(), cache.getCachedContents(), true,
                                     xRequestId);
                         } finally {
                             cache.consume();
                         }
                     } else {
-                        enc.sign(KeyConf.getSigningCtx(senderId));
+                        enc.sign(keyConfProvider.getSigningCtx(senderId));
                         MessageLog.log(restRequest, enc.getSignature(), null, true, xRequestId);
                     }
                 }

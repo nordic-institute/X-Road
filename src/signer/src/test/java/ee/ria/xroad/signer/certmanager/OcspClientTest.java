@@ -27,7 +27,6 @@ package ee.ria.xroad.signer.certmanager;
 
 import ee.ria.xroad.common.OcspTestUtils;
 import ee.ria.xroad.common.TestCertUtil;
-import ee.ria.xroad.common.conf.globalconf.GlobalConf;
 import ee.ria.xroad.common.conf.globalconf.GlobalConfProvider;
 import ee.ria.xroad.common.ocsp.OcspVerifier;
 import ee.ria.xroad.common.ocsp.OcspVerifierOptions;
@@ -42,13 +41,17 @@ import org.eclipse.jetty.server.Request;
 import org.eclipse.jetty.server.Response;
 import org.eclipse.jetty.server.Server;
 import org.eclipse.jetty.util.Callback;
-import org.junit.AfterClass;
-import org.junit.Before;
-import org.junit.BeforeClass;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.ExpectedException;
+import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mockito;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.test.context.junit.jupiter.SpringExtension;
+import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
 
 import java.io.IOException;
 import java.net.ConnectException;
@@ -65,18 +68,17 @@ import java.util.Map;
 import static ee.ria.xroad.common.util.CryptoUtils.calculateCertHexHash;
 import static ee.ria.xroad.common.util.JettyUtils.setContentType;
 import static org.eclipse.jetty.io.Content.Sink.asOutputStream;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.fail;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 /**
  * Tests the OCSP client.
  */
-public class OcspClientTest {
-    @Rule
-    public ExpectedException thrown = ExpectedException.none();
-
+@ExtendWith(SpringExtension.class)
+@SpringJUnitConfig(classes = {OcspClientTest.TestConfiguration.class})
+class OcspClientTest {
     private static final int RESPONDER_PORT = 8091;
 
     private static final String RESPONDER_URI = "http://127.0.0.1:" + RESPONDER_PORT;
@@ -87,7 +89,59 @@ public class OcspClientTest {
     private static final Map<String, OCSPResp> OCSP_RESPONSES = new HashMap<>();
     private static X509Certificate ocspResponderCert;
 
-    private OcspClientWorker ocspClient;
+    @Autowired
+    private OcspClientWorker ocspClientWorker;
+    @Autowired
+    private OcspClient ocspClient;
+    @Autowired
+    private GlobalConfProvider globalConfProvider;
+
+    @Configuration
+    static class TestConfiguration {
+
+        @Bean
+        GlobalConfProvider globalConfProvider() throws Exception {
+            GlobalConfProvider testConf = mock(GlobalConfProvider.class);
+
+            when(testConf.getInstanceIdentifier()).thenReturn("TEST");
+
+            when(testConf.getOcspResponderAddresses(Mockito.any(X509Certificate.class))).thenReturn(
+                    List.of(RESPONDER_URI));
+
+            ocspResponderCert = TestCertUtil.getOcspSigner().certChain[0];
+            when(testConf.getOcspResponderCertificates()).thenReturn(List.of(ocspResponderCert));
+
+            when(testConf.getCaCert(Mockito.any(String.class), Mockito.any(X509Certificate.class))).thenReturn(
+                    TestCertUtil.getCaCert());
+
+            when(testConf.isOcspResponderCert(Mockito.any(X509Certificate.class),
+                    Mockito.any(X509Certificate.class))).thenReturn(true);
+
+            return testConf;
+        }
+
+        @Bean
+        TestOcspClient testOcspClient(GlobalConfProvider globalConfProvider, OcspResponseManager ocspResponseManager,
+                                      OcspClient ocspClient) {
+            return new TestOcspClient(globalConfProvider, ocspResponseManager, ocspClient);
+        }
+
+        @Bean
+        OcspClient ocspClient(GlobalConfProvider globalConfProvider) {
+            return new OcspClient(globalConfProvider);
+        }
+
+        @Bean
+        FileBasedOcspCache ocspCache(GlobalConfProvider globalConfProvider) {
+            return new FileBasedOcspCache(globalConfProvider);
+        }
+
+        @Bean
+        OcspResponseManager ocspResponseManager(GlobalConfProvider globalConfProvider, FileBasedOcspCache fileBasedOcspCache,
+                                                OcspClient ocspClient) {
+            return new OcspResponseManager(globalConfProvider, ocspClient, fileBasedOcspCache);
+        }
+    }
 
     // --- test cases
 
@@ -97,24 +151,22 @@ public class OcspClientTest {
      * @throws Exception if an error occurs
      */
     @Test
-    public void goodCertificateStatus() throws Exception {
+    void goodCertificateStatus() throws Exception {
         X509Certificate subject = getDefaultClientCert();
-
-        GlobalConf.reload(getTestGlobalConf());
 
         Date thisUpdate = Date.from(TimeUtils.now().plus(1, ChronoUnit.DAYS));
 
-        responseData = OcspTestUtils.createOCSPResponse(subject, GlobalConf.getCaCert("EE", subject), ocspResponderCert,
-                getOcspSignerKey(), CertificateStatus.GOOD, thisUpdate, null).getEncoded();
+        responseData = OcspTestUtils.createOCSPResponse(subject, globalConfProvider.getCaCert("EE", subject),
+                ocspResponderCert, getOcspSignerKey(), CertificateStatus.GOOD, thisUpdate, null).getEncoded();
 
-        queryAndUpdateCertStatus(ocspClient, subject);
+        queryAndUpdateCertStatus(ocspClientWorker, subject);
 
         OCSPResp ocsp = getOcspResponse(subject);
         assertNotNull(ocsp);
 
-        OcspVerifier verifier = new OcspVerifier(GlobalConf.getOcspFreshnessSeconds(),
+        OcspVerifier verifier = new OcspVerifier(globalConfProvider,
                 new OcspVerifierOptions(true));
-        verifier.verifyValidityAndStatus(ocsp, subject, GlobalConf.getCaCert("EE", subject));
+        verifier.verifyValidityAndStatus(ocsp, subject, globalConfProvider.getCaCert("EE", subject));
     }
 
     /**
@@ -123,27 +175,25 @@ public class OcspClientTest {
      * @throws Exception if an error occurs
      */
     @Test
-    public void goodCertificateStatusFromSecondResponder() throws Exception {
+    void goodCertificateStatusFromSecondResponder() throws Exception {
         X509Certificate subject = getDefaultClientCert();
 
-        GlobalConfProvider conf = getTestGlobalConf();
-        when(conf.getOcspResponderAddresses(Mockito.any(X509Certificate.class))).thenReturn(
+        when(globalConfProvider.getOcspResponderAddresses(Mockito.any(X509Certificate.class))).thenReturn(
                 Arrays.asList("http://127.0.0.1:1234", RESPONDER_URI));
-        GlobalConf.reload(conf);
 
         Date thisUpdate = Date.from(TimeUtils.now().plus(1, ChronoUnit.DAYS));
 
-        responseData = OcspTestUtils.createOCSPResponse(subject, GlobalConf.getCaCert("EE", subject), ocspResponderCert,
-                getOcspSignerKey(), CertificateStatus.GOOD, thisUpdate, null).getEncoded();
+        responseData = OcspTestUtils.createOCSPResponse(subject, globalConfProvider.getCaCert("EE", subject),
+                ocspResponderCert, getOcspSignerKey(), CertificateStatus.GOOD, thisUpdate, null).getEncoded();
 
-        queryAndUpdateCertStatus(ocspClient, subject);
+        queryAndUpdateCertStatus(ocspClientWorker, subject);
 
         OCSPResp ocsp = getOcspResponse(subject);
         assertNotNull(ocsp);
 
-        OcspVerifier verifier = new OcspVerifier(GlobalConf.getOcspFreshnessSeconds(),
+        OcspVerifier verifier = new OcspVerifier(globalConfProvider,
                 new OcspVerifierOptions(true));
-        verifier.verifyValidityAndStatus(ocsp, subject, GlobalConf.getCaCert("EE", subject));
+        verifier.verifyValidityAndStatus(ocsp, subject, globalConfProvider.getCaCert("EE", subject));
     }
 
     /**
@@ -152,18 +202,15 @@ public class OcspClientTest {
      * @throws Exception if an error occurs
      */
     @Test
-    public void noResponseFromOCSPServer() throws Exception {
+    void noResponseFromOCSPServer() throws Exception {
         X509Certificate subject = getDefaultClientCert();
-
-        GlobalConf.reload(getTestGlobalConf());
 
         responseData = null;
 
-        X509Certificate issuer = GlobalConf.getCaCert("EE", subject);
+        X509Certificate issuer = globalConfProvider.getCaCert("EE", subject);
 
-        thrown.expect(IOException.class);
-
-        OcspClient.fetchResponse(RESPONDER_URI, subject, issuer, null, null, null);
+        assertThrows(IOException.class, () ->
+                ocspClient.fetchResponse(RESPONDER_URI, subject, issuer, null, null, null));
     }
 
     /**
@@ -172,18 +219,15 @@ public class OcspClientTest {
      * @throws Exception if an error occurs
      */
     @Test
-    public void faultyResponseFromOCSPServer() throws Exception {
+    void faultyResponseFromOCSPServer() throws Exception {
         X509Certificate subject = getDefaultClientCert();
-
-        GlobalConf.reload(getTestGlobalConf());
 
         responseData = "abcdefgh".getBytes();
 
-        X509Certificate issuer = GlobalConf.getCaCert("EE", subject);
+        X509Certificate issuer = globalConfProvider.getCaCert("EE", subject);
 
-        thrown.expect(OCSPException.class);
-
-        OcspClient.fetchResponse(RESPONDER_URI, subject, issuer, null, null, null);
+        assertThrows(OCSPException.class, () ->
+                ocspClient.fetchResponse(RESPONDER_URI, subject, issuer, null, null, null));
     }
 
     /**
@@ -192,18 +236,13 @@ public class OcspClientTest {
      * @throws Exception if an error occurs
      */
     @Test
-    public void cannotConnectNoResponders() throws Exception {
+    void cannotConnectNoResponders() throws Exception {
         // this certificate does not contain responder URI in AIA extension.
         X509Certificate subject = TestCertUtil.getCertChainCert("user_0.p12");
 
-        GlobalConfProvider conf = getTestGlobalConf();
-        when(conf.getOcspResponderAddresses(Mockito.any(X509Certificate.class))).thenReturn(new ArrayList<>());
-        GlobalConf.reload(conf);
+        when(globalConfProvider.getOcspResponderAddresses(Mockito.any(X509Certificate.class))).thenReturn(new ArrayList<>());
 
-        thrown.expect(ConnectException.class);
-
-        queryAndUpdateCertStatus(ocspClient, subject);
-        fail("Should fail to query certificate status");
+        assertThrows(ConnectException.class, () -> queryAndUpdateCertStatus(ocspClientWorker, subject));
     }
 
     /**
@@ -212,17 +251,13 @@ public class OcspClientTest {
      * @throws Exception if an error occurs
      */
     @Test
-    public void cannotConnect() throws Exception {
+    void cannotConnect() throws Exception {
         X509Certificate subject = getDefaultClientCert();
 
-        GlobalConf.reload(getTestGlobalConf());
+        X509Certificate issuer = globalConfProvider.getCaCert("EE", subject);
 
-        X509Certificate issuer = GlobalConf.getCaCert("EE", subject);
-
-        thrown.expect(IOException.class);
-
-        OcspClient.fetchResponse("foobar", subject, issuer, null, null, null);
-        fail("Should fail to query certificate status");
+        assertThrows(IOException.class, () ->
+                ocspClient.fetchResponse("foobar", subject, issuer, null, null, null));
     }
 
     /**
@@ -231,18 +266,15 @@ public class OcspClientTest {
      * @throws Exception if an error occurs
      */
     @Test
-    public void signatureRequired() throws Exception {
+    void signatureRequired() throws Exception {
         X509Certificate subject = getDefaultClientCert();
-
-        GlobalConf.reload(getTestGlobalConf());
 
         responseData = OcspTestUtils.createSigRequiredOCSPResponse().getEncoded();
 
-        X509Certificate issuer = GlobalConf.getCaCert("EE", subject);
+        X509Certificate issuer = globalConfProvider.getCaCert("EE", subject);
 
-        thrown.expect(OCSPException.class);
-
-        OcspClient.fetchResponse(RESPONDER_URI, subject, issuer, null, null, null);
+        assertThrows(OCSPException.class, () ->
+                ocspClient.fetchResponse(RESPONDER_URI, subject, issuer, null, null, null));
     }
 
     // ------------------------------------------------------------------------
@@ -252,7 +284,7 @@ public class OcspClientTest {
      *
      * @throws Exception if an error occurs
      */
-    @BeforeClass
+    @BeforeAll
     public static void doBeforeClass() throws Exception {
         ocspResponder = new Server(RESPONDER_PORT);
         ocspResponder.setHandler(new TestOCSPResponder());
@@ -264,16 +296,13 @@ public class OcspClientTest {
      *
      * @throws Exception if an error occurs
      */
-    @Before
+    @BeforeEach
     public void startup() {
         OCSP_RESPONSES.clear();
 
-        if (ocspResponderCert == null) {
-            ocspResponderCert = TestCertUtil.getOcspSigner().certChain[0];
-        }
-
-        OcspResponseManager ocspResponseManager = new OcspResponseManager();
-        ocspClient = new TestOcspClient(ocspResponseManager);
+//        if (ocspResponderCert == null) {
+//            ocspResponderCert = TestCertUtil.getOcspSigner().certChain[0];
+//        }
     }
 
     /**
@@ -281,7 +310,7 @@ public class OcspClientTest {
      *
      * @throws Exception if an error occurs
      */
-    @AfterClass
+    @AfterAll
     public static void shutdown() throws Exception {
         if (ocspResponder != null) {
             try {
@@ -304,25 +333,6 @@ public class OcspClientTest {
         return TestCertUtil.getOcspSigner().key;
     }
 
-    private GlobalConfProvider getTestGlobalConf() throws Exception {
-        GlobalConfProvider testConf = mock(GlobalConfProvider.class);
-
-        when(testConf.getInstanceIdentifier()).thenReturn("TEST");
-
-        when(testConf.getOcspResponderAddresses(Mockito.any(X509Certificate.class))).thenReturn(
-                List.of(RESPONDER_URI));
-
-        when(testConf.getOcspResponderCertificates()).thenReturn(List.of(ocspResponderCert));
-
-        when(testConf.getCaCert(Mockito.any(String.class), Mockito.any(X509Certificate.class))).thenReturn(
-                TestCertUtil.getCaCert());
-
-        when(testConf.isOcspResponderCert(Mockito.any(X509Certificate.class),
-                Mockito.any(X509Certificate.class))).thenReturn(true);
-
-        return testConf;
-    }
-
     private void queryAndUpdateCertStatus(OcspClientWorker client, X509Certificate subject) throws Exception {
         OCSPResp response = client.queryCertStatus(subject, new OcspVerifierOptions(true));
         String subjectHash = calculateCertHexHash(subject);
@@ -334,8 +344,8 @@ public class OcspClientTest {
     }
 
     private static class TestOcspClient extends OcspClientWorker {
-        TestOcspClient(OcspResponseManager ocspResponseManager) {
-            super(ocspResponseManager);
+        TestOcspClient(GlobalConfProvider globalConfProvider, OcspResponseManager ocspResponseManager, OcspClient ocspClient) {
+            super(globalConfProvider, ocspResponseManager, ocspClient);
         }
 
         @Override

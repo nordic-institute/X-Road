@@ -74,7 +74,7 @@ public class ServiceDescriptionsApiControllerIntegrationTest extends AbstractApi
 
     @Before
     public void setup() {
-        when(globalConfFacade.getMemberName(any())).thenAnswer((Answer<String>) invocation -> {
+        when(globalConfProvider.getMemberName(any())).thenAnswer((Answer<String>) invocation -> {
             Object[] args = invocation.getArguments();
             ClientId identifier = (ClientId) args[0];
             return identifier.getSubsystemCode() != null ? identifier.getSubsystemCode() + "NAME"

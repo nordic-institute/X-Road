@@ -103,9 +103,9 @@ public class TokenCertificatesApiControllerIntegrationTest extends AbstractApiCo
     @Before
     public void setup() throws Exception {
         doAnswer(answer -> "key-id").when(signerProxyFacade).importCert(any(), any(), any());
-        doAnswer(answer -> null).when(globalConfFacade).verifyValidity();
-        doAnswer(answer -> TestUtils.INSTANCE_FI).when(globalConfFacade).getInstanceIdentifier();
-        doAnswer(answer -> TestUtils.getM1Ss1ClientId()).when(globalConfFacade).getSubjectName(any(), any());
+        doAnswer(answer -> null).when(globalConfProvider).verifyValidity();
+        doAnswer(answer -> TestUtils.INSTANCE_FI).when(globalConfProvider).getInstanceIdentifier();
+        doAnswer(answer -> TestUtils.getM1Ss1ClientId()).when(globalConfProvider).getSubjectName(any(), any());
         CertificateInfo signCertificateInfo = new CertificateInfoBuilder().certificate(getMockCertificate())
                 .certificateStatus("SAVED").build();
         CertificateInfo authCertificateInfo = new CertificateInfoBuilder().certificate(getMockAuthCertificate())
@@ -188,7 +188,7 @@ public class TokenCertificatesApiControllerIntegrationTest extends AbstractApiCo
     public void importSignCertificateMissingClient() throws Exception {
         ClientId notFoundId = TestUtils.getClientId(TestUtils.INSTANCE_EE, TestUtils.MEMBER_CLASS_PRO,
                 TestUtils.MEMBER_CODE_M2, TestUtils.SUBSYSTEM3);
-        doAnswer(answer -> notFoundId).when(globalConfFacade).getSubjectName(any(), any());
+        doAnswer(answer -> notFoundId).when(globalConfProvider).getSubjectName(any(), any());
         X509Certificate mockCert = getMockCertificate();
         Resource body = CertificateTestUtils.getResource(mockCert.getEncoded());
         try {

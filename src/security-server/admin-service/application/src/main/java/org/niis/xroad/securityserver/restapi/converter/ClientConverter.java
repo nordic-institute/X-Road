@@ -25,6 +25,7 @@
  */
 package org.niis.xroad.securityserver.restapi.converter;
 
+import ee.ria.xroad.common.conf.globalconf.GlobalConfProvider;
 import ee.ria.xroad.common.conf.globalconf.MemberInfo;
 import ee.ria.xroad.common.conf.serverconf.model.ClientType;
 import ee.ria.xroad.common.identifier.ClientId;
@@ -35,7 +36,6 @@ import org.niis.xroad.restapi.converter.ClientIdConverter;
 import org.niis.xroad.securityserver.restapi.cache.CurrentSecurityServerId;
 import org.niis.xroad.securityserver.restapi.cache.CurrentSecurityServerSignCertificates;
 import org.niis.xroad.securityserver.restapi.converter.comparator.ClientSortingComparator;
-import org.niis.xroad.securityserver.restapi.facade.GlobalConfFacade;
 import org.niis.xroad.securityserver.restapi.openapi.model.Client;
 import org.niis.xroad.securityserver.restapi.openapi.model.ClientStatus;
 import org.niis.xroad.securityserver.restapi.openapi.model.ConnectionType;
@@ -55,7 +55,7 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 public class ClientConverter {
 
-    private final GlobalConfFacade globalConfFacade;
+    private final GlobalConfProvider globalConfProvider;
     private final CurrentSecurityServerId securityServerOwner; // request scoped
     // request scoped contains all certificates of type sign
     private final CurrentSecurityServerSignCertificates currentSecurityServerSignCertificates;
@@ -75,7 +75,7 @@ public class ClientConverter {
         client.setMemberClass(clientType.getIdentifier().getMemberClass());
         client.setMemberCode(clientType.getIdentifier().getMemberCode());
         client.setSubsystemCode(clientType.getIdentifier().getSubsystemCode());
-        client.setMemberName(globalConfFacade.getMemberName(clientType.getIdentifier()));
+        client.setMemberName(globalConfProvider.getMemberName(clientType.getIdentifier()));
         client.setOwner(clientType.getIdentifier().equals(securityServerOwner.getServerId().getOwner()));
         client.setHasValidLocalSignCert(ClientUtils.hasValidLocalSignCert(clientType.getIdentifier(),
                 currentSecurityServerSignCertificates.getSignCertificateInfos()));

@@ -65,7 +65,7 @@ import org.springframework.web.context.request.RequestContextHolder;
  * Base for all api controller tests that need mocked beans in the application context. All api controller
  * test classes inheriting this will share the same mock bean configuration, and have a common
  * Spring Application Context therefore drastically reducing the execution time of the tests.
- *
+ * <p>
  * Service layer mocking strategy varies
  * - real implementations are used for services not defined as @MockBean or @SpyBean here
  * (example: {@link ClientService}
@@ -74,12 +74,11 @@ import org.springframework.web.context.request.RequestContextHolder;
  * - mocking depends on a case by case basis when @SpyBean is used. Some tests use 100% real implementation, others
  * mock some parts
  * (example: {@link KeyService}
- *
+ * <p>
  * Mocks the usual untestable facades (such as SignerProxyFacade) via {@link AbstractFacadeMockingTestContext}
  */
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 public abstract class AbstractApiControllerTestContext extends AbstractFacadeMockingTestContext {
-
     @MockBean
     CertificateAuthorityService certificateAuthorityService;
     @MockBean

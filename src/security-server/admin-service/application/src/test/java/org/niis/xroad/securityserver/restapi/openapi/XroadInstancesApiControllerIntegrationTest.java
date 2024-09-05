@@ -54,7 +54,7 @@ public class XroadInstancesApiControllerIntegrationTest extends AbstractApiContr
 
     @Before
     public void setup() {
-        when(globalConfFacade.getInstanceIdentifiers()).thenReturn(INSTANCE_IDS);
+        when(globalConfProvider.getInstanceIdentifiers()).thenReturn(INSTANCE_IDS);
     }
 
     @Test

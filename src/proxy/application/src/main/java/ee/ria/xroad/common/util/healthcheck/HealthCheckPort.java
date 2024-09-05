@@ -64,14 +64,14 @@ public class HealthCheckPort implements StartStop {
     private final Server server;
     private final StoppableHealthCheckProvider stoppableHealthCheckProvider;
     private final int portNumber;
-    private AtomicBoolean maintenanceMode = new AtomicBoolean(false);
+    private final AtomicBoolean maintenanceMode = new AtomicBoolean(false);
 
     /**
      * Create a new {@link HealthCheckPort} use the implemented {@link StartStop} interface to start/stop it.
      */
-    public HealthCheckPort() {
+    public HealthCheckPort(HealthChecks healthChecks) {
         server = new Server(new QueuedThreadPool(THREAD_POOL_SIZE));
-        stoppableHealthCheckProvider = new StoppableCombinationHealthCheckProvider();
+        stoppableHealthCheckProvider = new StoppableCombinationHealthCheckProvider(healthChecks);
         portNumber = SystemProperties.getHealthCheckPort();
         createHealthCheckConnector();
     }

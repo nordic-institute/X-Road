@@ -26,7 +26,7 @@
 package ee.ria.xroad.proxy.messagelog;
 
 import ee.ria.xroad.common.CodedException;
-import ee.ria.xroad.common.conf.globalconf.GlobalConf;
+import ee.ria.xroad.common.conf.globalconf.GlobalConfProvider;
 import ee.ria.xroad.common.messagelog.MessageLogProperties;
 import ee.ria.xroad.common.signature.TimestampVerifier;
 
@@ -51,8 +51,8 @@ import static ee.ria.xroad.proxy.messagelog.TimestamperUtil.getTimestampResponse
 
 @Slf4j
 @RequiredArgsConstructor
-abstract class AbstractTimestampRequest {
-
+public abstract class AbstractTimestampRequest {
+    protected final GlobalConfProvider globalConfProvider;
     protected final Long[] logRecords;
 
     abstract byte[] getRequestData() throws Exception;
@@ -123,7 +123,7 @@ abstract class AbstractTimestampRequest {
         X509Certificate signerCertificate =
                 TimestampVerifier.getSignerCertificate(
                         tsResponse.getTimeStampToken(),
-                        GlobalConf.getTspCertificates());
+                        globalConfProvider.getTspCertificates());
         if (signerCertificate == null) {
             throw new CodedException(X_INTERNAL_ERROR,
                     "Could not find signer certificate");
@@ -139,6 +139,6 @@ abstract class AbstractTimestampRequest {
         response.validate(request);
 
         TimeStampToken token = response.getTimeStampToken();
-        TimestampVerifier.verify(token, GlobalConf.getTspCertificates());
+        TimestampVerifier.verify(token, globalConfProvider.getTspCertificates());
     }
 }

@@ -25,6 +25,7 @@
  */
 package ee.ria.xroad.proxy.messagelog;
 
+import ee.ria.xroad.common.conf.globalconf.GlobalConfProvider;
 import ee.ria.xroad.common.hashchain.HashChainBuilder;
 import ee.ria.xroad.common.messagelog.MessageLogProperties;
 
@@ -44,8 +45,8 @@ class BatchTimestampRequest extends AbstractTimestampRequest {
     private String[] hashChains = null;
 
 
-    BatchTimestampRequest(Long[] logRecords, String[] signatureHashes) {
-        super(logRecords);
+    BatchTimestampRequest(GlobalConfProvider globalConfProvider, Long[] logRecords, String[] signatureHashes) {
+        super(globalConfProvider, logRecords);
 
         this.signatureHashes = signatureHashes;
     }

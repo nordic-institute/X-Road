@@ -26,6 +26,7 @@
 package org.niis.xroad.securityserver.restapi.scheduling;
 
 import ee.ria.xroad.common.SystemProperties;
+import ee.ria.xroad.common.conf.globalconf.GlobalConfProvider;
 import ee.ria.xroad.common.conf.globalconf.SharedParameters;
 import ee.ria.xroad.common.conf.serverconf.model.ClientType;
 import ee.ria.xroad.common.conf.serverconf.model.ServerConfType;
@@ -41,7 +42,6 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.niis.xroad.restapi.common.backup.service.BackupRestoreEvent;
 import org.niis.xroad.securityserver.restapi.cache.SecurityServerAddressChangeStatus;
-import org.niis.xroad.securityserver.restapi.facade.GlobalConfFacade;
 import org.niis.xroad.securityserver.restapi.facade.SignerProxyFacade;
 import org.springframework.context.event.EventListener;
 import org.springframework.scheduling.annotation.Scheduled;
@@ -67,7 +67,7 @@ public class GlobalConfChecker {
     public static final int INITIAL_DELAY_MS = 30000;
     private volatile boolean restoreInProgress = false;
     private final GlobalConfCheckerHelper globalConfCheckerHelper;
-    private final GlobalConfFacade globalConfFacade;
+    private final GlobalConfProvider globalConfProvider;
     private final SignerProxyFacade signerProxyFacade;
     private final SecurityServerAddressChangeStatus addressChangeStatus;
 
@@ -107,8 +107,8 @@ public class GlobalConfChecker {
     private void reloadGlobalConf() {
         // conf MUST be reloaded before checking validity otherwise expired or invalid conf is never reloaded
         log.debug("Reloading globalconf");
-        globalConfFacade.reload();
-        globalConfFacade.verifyValidity();
+        globalConfProvider.reload();
+        globalConfProvider.verifyValidity();
     }
 
     private void updateServerConf() {
@@ -122,14 +122,14 @@ public class GlobalConfChecker {
 
         addressChangeStatus.getAddressChangeRequest()
                 .ifPresent(requestedAddress -> {
-                    var currentAddress = globalConfFacade.getSecurityServerAddress(buildSecurityServerId(serverConf));
+                    var currentAddress = globalConfProvider.getSecurityServerAddress(buildSecurityServerId(serverConf));
                     if (requestedAddress.equals(currentAddress)) {
                         addressChangeStatus.clear();
                     }
                 });
 
         try {
-            if (globalConfFacade.getServerOwner(buildSecurityServerId(serverConf)) == null) {
+            if (globalConfProvider.getServerOwner(buildSecurityServerId(serverConf)) == null) {
                 log.debug("Server owner not found in globalconf - owner may have changed");
                 updateOwner(serverConf);
             }
@@ -138,8 +138,8 @@ public class GlobalConfChecker {
             updateClientStatuses(serverConf, securityServerId);
             updateAuthCertStatuses(securityServerId);
             if (SystemProperties.geUpdateTimestampServiceUrlsAutomatically()) {
-                updateTimestampServiceUrls(globalConfFacade.getApprovedTsps(
-                                globalConfFacade.getInstanceIdentifier()),
+                updateTimestampServiceUrls(globalConfProvider.getApprovedTsps(
+                                globalConfProvider.getInstanceIdentifier()),
                         serverConf.getTsp()
                 );
             }
@@ -209,9 +209,9 @@ public class GlobalConfChecker {
                 // Does the alternative server id exist in global conf?
                 // And does the local auth cert match with the auth cert of
                 // the alternative server from global conf?
-                if (globalConfFacade.getServerOwner(altSecurityServerId) != null
+                if (globalConfProvider.getServerOwner(altSecurityServerId) != null
                         && cert != null
-                        && altSecurityServerId.equals(globalConfFacade.getServerId(cert))
+                        && altSecurityServerId.equals(globalConfProvider.getServerId(cert))
                 ) {
                     log.debug("Set \"{}\" as new owner", client.getIdentifier());
                     serverConf.setOwner(client);
@@ -235,7 +235,7 @@ public class GlobalConfChecker {
         log.debug("Updating client statuses");
 
         for (ClientType client : serverConf.getClient()) {
-            boolean registered = globalConfFacade.isSecurityServerClient(
+            boolean registered = globalConfProvider.isSecurityServerClient(
                     client.getIdentifier(), securityServerId);
 
             log.debug("Client '{}' registered = '{}'", client.getIdentifier(),
@@ -295,7 +295,7 @@ public class GlobalConfChecker {
                 readCertificate(certInfo.getCertificateBytes());
 
         boolean registered =
-                securityServerId.equals(globalConfFacade.getServerId(cert));
+                securityServerId.equals(globalConfProvider.getServerId(cert));
 
         if (registered && certInfo.getStatus() != null) {
             switch (certInfo.getStatus()) {

@@ -29,6 +29,7 @@ dependencies {
 
     // Using HSQLDB for an in-memory database in tests.
     testImplementation libs.hsqldb
+    testImplementation libs.mockito.core
     testImplementation libs.commons.cli
 
     xjc libs.bundles.jaxb

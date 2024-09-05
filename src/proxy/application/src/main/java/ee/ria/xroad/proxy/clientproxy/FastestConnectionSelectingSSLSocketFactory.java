@@ -54,15 +54,14 @@ import java.util.concurrent.TimeUnit;
 import static ee.ria.xroad.common.ErrorCodes.X_INTERNAL_ERROR;
 import static ee.ria.xroad.common.ErrorCodes.X_NETWORK_ERROR;
 import static ee.ria.xroad.common.ErrorCodes.X_SSL_AUTH_FAILED;
-import static ee.ria.xroad.proxy.clientproxy.AuthTrustVerifier.verify;
 
 /**
  * This is a custom SSL socket factory that connects to the fastest target
  * address given a list of target addresses.
- *
+ * <p>
  * The fastest target address is selected by initializing socket connection
  * to all provided addresses and choosing the first one to respond.
- *
+ * <p>
  * If an SSL session already exists to one of the provided addresses, then
  * that address is selected immediately without previous selection algorithm.
  */
@@ -83,13 +82,15 @@ class FastestConnectionSelectingSSLSocketFactory
 
     public static final int CACHE_MAXIMUM_SIZE = 10000;
 
+    private final AuthTrustVerifier authTrustVerifier;
     private final javax.net.ssl.SSLSocketFactory socketfactory;
 
     private final Cache<CacheKey, URI> selectedHosts;
     private final boolean cachingEnabled;
 
-    FastestConnectionSelectingSSLSocketFactory(SSLContext sslContext) {
+    FastestConnectionSelectingSSLSocketFactory(AuthTrustVerifier authTrustVerifier, SSLContext sslContext) {
         super(sslContext, null, SystemProperties.getXroadTLSCipherSuites(), (HostnameVerifier) null);
+        this.authTrustVerifier = authTrustVerifier;
         this.socketfactory = sslContext.getSocketFactory();
         this.selectedHosts = CacheBuilder.newBuilder()
                 .expireAfterWrite(SystemProperties.getClientProxyFastestConnectingSslUriCachePeriod(), TimeUnit.SECONDS)
@@ -227,6 +228,7 @@ class FastestConnectionSelectingSSLSocketFactory
      * However, that socket is thrown away in {@link #connectSocket(int, Socket, HttpHost, InetSocketAddress,
      * InetSocketAddress, HttpContext)})
      * So apply here any configurations you actually want enabled.
+     *
      * @param socket The socket to be configured
      * @throws SocketException
      */
@@ -251,7 +253,7 @@ class FastestConnectionSelectingSSLSocketFactory
             throw new CodedException(X_SSL_AUTH_FAILED, e, "TLS handshake failed");
         }
 
-        verify(context, sslSocket.getSession(), selectedAddress);
+        authTrustVerifier.verify(context, sslSocket.getSession(), selectedAddress);
     }
 
     private SSLSocket wrapToSSLSocket(Socket socket, int connectTimeout) throws IOException {

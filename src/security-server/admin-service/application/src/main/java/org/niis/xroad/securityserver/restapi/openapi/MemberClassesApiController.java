@@ -25,11 +25,12 @@
  */
 package org.niis.xroad.securityserver.restapi.openapi;
 
+import ee.ria.xroad.common.conf.globalconf.GlobalConfProvider;
+
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.niis.xroad.restapi.openapi.ControllerUtil;
 import org.niis.xroad.restapi.openapi.ResourceNotFoundException;
-import org.niis.xroad.securityserver.restapi.facade.GlobalConfFacade;
 import org.niis.xroad.securityserver.restapi.service.GlobalConfService;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -50,7 +51,7 @@ import java.util.Set;
 @RequiredArgsConstructor
 public class MemberClassesApiController implements MemberClassesApi {
 
-    private final GlobalConfFacade globalConfFacade;
+    private final GlobalConfProvider globalConfProvider;
     private final GlobalConfService globalConfService;
 
     @Override
@@ -60,7 +61,7 @@ public class MemberClassesApiController implements MemberClassesApi {
         if (currentInstance) {
             memberClasses = new HashSet<>(globalConfService.getMemberClassesForThisInstance());
         } else {
-            memberClasses = new HashSet<>(globalConfFacade.getMemberClasses());
+            memberClasses = new HashSet<>(globalConfProvider.getMemberClasses());
         }
         return new ResponseEntity<>(memberClasses, HttpStatus.OK);
     }
@@ -68,10 +69,10 @@ public class MemberClassesApiController implements MemberClassesApi {
     @Override
     @PreAuthorize("hasAuthority('VIEW_MEMBER_CLASSES')")
     public ResponseEntity<Set<String>> getMemberClassesForInstance(String instanceId) {
-        if (!globalConfFacade.getInstanceIdentifiers().contains(instanceId)) {
+        if (!globalConfProvider.getInstanceIdentifiers().contains(instanceId)) {
             throw new ResourceNotFoundException("instance identifier not found: " + instanceId);
         }
-        Set<String> memberClasses = new HashSet(globalConfFacade.getMemberClasses(instanceId));
+        Set<String> memberClasses = new HashSet(globalConfProvider.getMemberClasses(instanceId));
         return new ResponseEntity<>(memberClasses, HttpStatus.OK);
     }
 }

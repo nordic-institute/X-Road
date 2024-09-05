@@ -32,6 +32,7 @@ import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.identifier.GlobalGroupId;
 import ee.ria.xroad.common.identifier.SecurityServerId;
 
+import java.nio.file.Path;
 import java.security.cert.CertificateException;
 import java.security.cert.X509Certificate;
 import java.util.Collection;
@@ -126,6 +127,11 @@ public class EmptyGlobalConf implements GlobalConfProvider {
     }
 
     @Override
+    public ClientId.Conf getSubjectName(SignCertificateProfileInfo.Parameters parameters, X509Certificate cert) throws Exception {
+        return null;
+    }
+
+    @Override
     public boolean authCertMatchesMember(X509Certificate cert,
                                          ClientId memberId) throws Exception {
         return false;
@@ -189,8 +195,8 @@ public class EmptyGlobalConf implements GlobalConfProvider {
     }
 
     @Override
-    public List<String> getInstanceIdentifiers() {
-        return Collections.emptyList();
+    public Set<String> getInstanceIdentifiers() {
+        return Collections.emptySet();
     }
 
     @Override
@@ -250,6 +256,11 @@ public class EmptyGlobalConf implements GlobalConfProvider {
     }
 
     @Override
+    public void verifyValidity() {
+        // nothing to verify here
+    }
+
+    @Override
     public List<SecurityServerId.Conf> getSecurityServers(
             String... instanceIdentifiers) {
         return Collections.emptyList();
@@ -271,6 +282,11 @@ public class EmptyGlobalConf implements GlobalConfProvider {
 
     @Override
     public ApprovedCAInfo getApprovedCA(String instanceIdentifier, X509Certificate cert) {
+        return null;
+    }
+
+    @Override
+    public Path getInstanceFile(String fileName) {
         return null;
     }
 

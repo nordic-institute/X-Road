@@ -31,6 +31,7 @@ import ee.ria.xroad.common.certificateprofile.GetCertificateProfile;
 import ee.ria.xroad.common.certificateprofile.impl.AuthCertificateProfileInfoParameters;
 import ee.ria.xroad.common.certificateprofile.impl.SignCertificateProfileInfoParameters;
 import ee.ria.xroad.common.conf.globalconf.ApprovedCAInfo;
+import ee.ria.xroad.common.conf.globalconf.GlobalConfProvider;
 import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.identifier.SecurityServerId;
 import ee.ria.xroad.common.util.CertUtils;
@@ -44,7 +45,6 @@ import org.niis.xroad.restapi.util.FormatUtils;
 import org.niis.xroad.securityserver.restapi.cache.CurrentSecurityServerId;
 import org.niis.xroad.securityserver.restapi.config.AcmeProperties;
 import org.niis.xroad.securityserver.restapi.dto.ApprovedCaDto;
-import org.niis.xroad.securityserver.restapi.facade.GlobalConfFacade;
 import org.niis.xroad.securityserver.restapi.facade.SignerProxyFacade;
 import org.niis.xroad.securityserver.restapi.util.OcspUtils;
 import org.springframework.cache.annotation.Cacheable;
@@ -78,7 +78,7 @@ public class CertificateAuthorityService {
     public static final String GET_CERTIFICATE_AUTHORITIES_CACHE = "certificate-authorities";
 
     private final GlobalConfService globalConfService;
-    private final GlobalConfFacade globalConfFacade;
+    private final GlobalConfProvider globalConfProvider;
     private final ClientService clientService;
     private final SignerProxyFacade signerProxyFacade;
     private final CurrentSecurityServerId currentSecurityServerId;
@@ -275,12 +275,12 @@ public class CertificateAuthorityService {
         SecurityServerId serverId = currentSecurityServerId.getServerId();
 
         if (KeyUsageInfo.AUTHENTICATION == keyUsageInfo) {
-            String ownerName = globalConfFacade.getMemberName(serverId.getOwner());
+            String ownerName = globalConfProvider.getMemberName(serverId.getOwner());
             AuthCertificateProfileInfoParameters params = new AuthCertificateProfileInfoParameters(
                     serverId, ownerName);
             return provider.getAuthCertProfile(params);
         } else if (KeyUsageInfo.SIGNING == keyUsageInfo) {
-            String memberName = globalConfFacade.getMemberName(memberId);
+            String memberName = globalConfProvider.getMemberName(memberId);
             SignCertificateProfileInfoParameters params = new SignCertificateProfileInfoParameters(
                     serverId, memberId, memberName);
             return provider.getSignCertProfile(params);

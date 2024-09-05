@@ -25,22 +25,15 @@
  */
 package ee.ria.xroad.opmonitordaemon;
 
-import ee.ria.xroad.common.SystemProperties;
 import ee.ria.xroad.common.SystemPropertiesLoader;
 import ee.ria.xroad.common.Version;
-import ee.ria.xroad.common.conf.globalconf.GlobalConf;
-import ee.ria.xroad.common.conf.globalconf.GlobalConfUpdater;
-import ee.ria.xroad.common.opmonitoring.OpMonitoringSystemProperties;
-import ee.ria.xroad.common.util.AdminPort;
-import ee.ria.xroad.common.util.JobManager;
-import ee.ria.xroad.common.util.StartStop;
+import ee.ria.xroad.opmonitordaemon.config.OpMonitorDaemonRootConfig;
 
 import lombok.AccessLevel;
 import lombok.NoArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-
-import java.util.ArrayList;
-import java.util.List;
+import org.springframework.context.annotation.AnnotationConfigApplicationContext;
+import org.springframework.context.support.GenericApplicationContext;
 
 import static ee.ria.xroad.common.SystemProperties.CONF_FILE_OP_MONITOR;
 
@@ -54,116 +47,39 @@ import static ee.ria.xroad.common.SystemProperties.CONF_FILE_OP_MONITOR;
 public final class OpMonitorDaemonMain {
     private static final String APP_NAME = "xroad-opmonitor";
 
-    static {
-        SystemPropertiesLoader.create().withCommonAndLocal()
-                .with(CONF_FILE_OP_MONITOR, "op-monitor")
-                .load();
-    }
-
-    private static final List<StartStop> SERVICES = new ArrayList<>();
-
     /**
      * Main entry point of the daemon.
      *
      * @param args command-line arguments
      * @throws Exception in case of any errors
      */
-    public static void main(String[] args) throws Exception {
+    public static void main(String[] args) {
         try {
-            startup();
-            loadConfigurations();
-            startServices();
+            new OpMonitorDaemonMain().createApplicationContext();
         } catch (Exception e) {
             log.error("Operational monitoring daemon failed to start", e);
-
             throw e;
-        } finally {
-            shutdown();
         }
     }
 
-    private static void startup() {
+    private GenericApplicationContext createApplicationContext() {
+        var startTime = System.currentTimeMillis();
         log.info("Starting the operational monitoring daemon");
         Version.outputVersionInfo(APP_NAME);
+
+        SystemPropertiesLoader.create().withCommonAndLocal()
+                .with(CONF_FILE_OP_MONITOR, "op-monitor")
+                .load();
+        log.info("Loaded system properties...");
+
+        var springCtx = new AnnotationConfigApplicationContext();
+        springCtx.register(OpMonitorDaemonRootConfig.class);
+        springCtx.refresh();
+        springCtx.registerShutdownHook();
+
+        log.info("{} started in {} ms", APP_NAME, System.currentTimeMillis() - startTime);
+        return springCtx;
     }
 
-    private static void loadConfigurations() {
-        log.trace("loadConfigurations()");
-
-        try {
-            GlobalConf.reload();
-        } catch (Exception e) {
-            log.error("Failed to load GlobalConf", e);
-        }
-    }
-
-    private static void startServices() throws Exception {
-        log.trace("startServices()");
-
-        createServices();
-
-        for (StartStop service : SERVICES) {
-            String name = service.getClass().getSimpleName();
-
-            try {
-                service.start();
-
-                log.info("{} started", name);
-            } catch (Throwable e) { // We want to catch serious errors as well
-                log.error(name + " failed to start", e);
-
-                stopServices();
-                System.exit(1);
-            }
-        }
-
-        for (StartStop service : SERVICES) {
-            service.join();
-        }
-    }
-
-    private static void createServices() throws Exception {
-        JobManager jobManager = new JobManager();
-
-        OperationalDataRecordCleaner.init(jobManager);
-
-        SERVICES.add(jobManager);
-        SERVICES.add(new OpMonitorDaemon());
-        SERVICES.add(createAdminPort());
-
-        jobManager.registerRepeatingJob(GlobalConfUpdater.class,
-                SystemProperties.getConfigurationClientUpdateIntervalSeconds());
-    }
-
-    private static AdminPort createAdminPort() throws Exception {
-        AdminPort adminPort = new AdminPort(
-                OpMonitoringSystemProperties.getOpMonitorPort() + 1);
-
-        adminPort.addShutdownHook(() -> {
-            log.info("Operational monitoring daemon shutting down...");
-
-            try {
-                shutdown();
-            } catch (Exception e) {
-                log.error("Error during shutdown", e);
-            }
-        });
-
-        return adminPort;
-    }
-
-    private static void stopServices() throws Exception {
-        for (StartStop service : SERVICES) {
-            log.debug("Stopping " + service.getClass().getSimpleName());
-
-            service.stop();
-            service.join();
-        }
-    }
-
-    private static void shutdown() throws Exception {
-        log.info("Shutting down the operational monitoring daemon");
-        stopServices();
-    }
 }
 

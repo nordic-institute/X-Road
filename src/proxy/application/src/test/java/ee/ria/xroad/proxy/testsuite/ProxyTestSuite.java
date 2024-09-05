@@ -27,11 +27,14 @@ package ee.ria.xroad.proxy.testsuite;
 
 import ee.ria.xroad.common.SystemProperties;
 import ee.ria.xroad.common.TestPortUtils;
-import ee.ria.xroad.common.conf.globalconf.GlobalConf;
-import ee.ria.xroad.common.conf.serverconf.ServerConf;
+import ee.ria.xroad.common.conf.globalconf.GlobalConfProvider;
+import ee.ria.xroad.common.conf.globalconf.GlobalConfSource;
+import ee.ria.xroad.common.conf.globalconf.TestGlobalConfWrapper;
+import ee.ria.xroad.common.conf.serverconf.ServerConfProvider;
 import ee.ria.xroad.proxy.ProxyMain;
-import ee.ria.xroad.proxy.conf.KeyConf;
+import ee.ria.xroad.proxy.conf.KeyConfProvider;
 import ee.ria.xroad.proxy.serverproxy.ServerProxy;
+import ee.ria.xroad.proxy.testutil.TestServerConfWrapper;
 
 import lombok.AccessLevel;
 import lombok.NoArgsConstructor;
@@ -40,6 +43,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.BeanCreationException;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Primary;
 import org.springframework.context.support.GenericApplicationContext;
 
 import java.util.ArrayList;
@@ -52,6 +56,7 @@ import java.util.TimerTask;
 import static ee.ria.xroad.common.SystemProperties.OCSP_RESPONDER_LISTEN_ADDRESS;
 import static ee.ria.xroad.common.SystemProperties.PROXY_SERVER_LISTEN_ADDRESS;
 import static java.lang.String.valueOf;
+import static org.mockito.Mockito.mock;
 
 /**
  * Proxy test suite program.
@@ -132,13 +137,6 @@ public final class ProxyTestSuite {
 
             System.setProperty(SystemProperties.PROXY_CLIENT_TIMEOUT, "15000");
             System.setProperty(SystemProperties.DATABASE_PROPERTIES, "src/test/resources/hibernate.properties");
-        }
-
-        @Override
-        protected void loadGlobalConf() {
-            KeyConf.reload(new TestSuiteKeyConf());
-            ServerConf.reload(new TestSuiteServerConf());
-            GlobalConf.reload(new TestSuiteGlobalConf());
         }
     }
 
@@ -232,7 +230,7 @@ public final class ProxyTestSuite {
             log.info("TESTCASE START: {}", t.getId());
 
             try {
-                t.execute();
+                t.execute(applicationContext);
 
                 log.info("TESTCASE PASSED: {}", t.getId());
             } catch (Exception | AssertionError e) {
@@ -281,6 +279,29 @@ public final class ProxyTestSuite {
         @Bean(initMethod = "start", destroyMethod = "stop")
         DummySslServerProxy dummySslServerProxy() throws Exception {
             return new DummySslServerProxy();
+        }
+
+        @Bean
+        @Primary
+        GlobalConfSource globalConfSource() {
+            return mock(GlobalConfSource.class);
+        }
+
+        @Bean
+        @Primary
+        GlobalConfProvider globalConfProvider() {
+            return new TestGlobalConfWrapper(new TestSuiteGlobalConf());
+        }
+
+        @Bean
+        @Primary
+        KeyConfProvider keyConfProvider(GlobalConfProvider globalConfProvider) {
+            return new TestSuiteKeyConf(globalConfProvider);
+        }
+
+        @Bean
+        ServerConfProvider serverConfProvider() {
+            return new TestServerConfWrapper(new TestSuiteServerConf());
         }
     }
 

@@ -9,6 +9,7 @@ plugins {
  */
 dependencies {
     api(platform(libs.jackson.bom))
+    api(platform(libs.springBoot.bom))
 
     api("com.fasterxml.jackson.core:jackson-databind")
     api("com.fasterxml.jackson.datatype:jackson-datatype-jsr310")
@@ -33,6 +34,9 @@ dependencies {
     api(libs.opentelemetry.instrumentation.annotations)
 
     implementation(libs.logback.classic)
+
+    api('org.springframework:spring-context')
+    api('org.springframework:spring-context-support')
 
     testImplementation project(':common:common-test')
 }

@@ -27,13 +27,13 @@ package org.niis.xroad.securityserver.restapi.service;
 
 import ee.ria.xroad.common.CodedException;
 import ee.ria.xroad.common.SystemProperties;
+import ee.ria.xroad.common.conf.globalconf.GlobalConfProvider;
 import ee.ria.xroad.common.identifier.ClientId;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.niis.xroad.common.managementrequest.ManagementRequestSender;
 import org.niis.xroad.securityserver.restapi.cache.CurrentSecurityServerId;
-import org.niis.xroad.securityserver.restapi.facade.GlobalConfFacade;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
 
@@ -46,7 +46,7 @@ import org.springframework.stereotype.Service;
 @RequiredArgsConstructor
 public class ManagementRequestSenderService {
 
-    private final GlobalConfFacade globalConfFacade;
+    private final GlobalConfProvider globalConfProvider;
     private final GlobalConfService globalConfService;
     private final CurrentSecurityServerId currentSecurityServerId;
 
@@ -215,8 +215,8 @@ public class ManagementRequestSenderService {
             throws GlobalConfOutdatedException {
         globalConfService.verifyGlobalConfValidity();
         ClientId sender = currentSecurityServerId.getServerId().getOwner();
-        ClientId receiver = globalConfFacade.getManagementRequestService();
-        return new ManagementRequestSender(sender, receiver, SystemProperties.getProxyUiSecurityServerUrl());
+        ClientId receiver = globalConfProvider.getManagementRequestService();
+        return new ManagementRequestSender(globalConfProvider, sender, receiver, SystemProperties.getProxyUiSecurityServerUrl());
     }
 
 }

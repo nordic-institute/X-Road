@@ -28,7 +28,6 @@ package ee.ria.xroad.proxy.messagelog;
 import ee.ria.xroad.common.CodedException;
 import ee.ria.xroad.common.ExpectedCodedException;
 import ee.ria.xroad.common.asic.AsicContainer;
-import ee.ria.xroad.common.conf.serverconf.ServerConf;
 import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.message.RestRequest;
 import ee.ria.xroad.common.message.SoapMessageImpl;
@@ -448,8 +447,7 @@ public class MessageLogTest extends AbstractMessageLogTest {
     public void timestampNoTspUrls() throws Exception {
         log.trace("timestampNoTspUrls()");
 
-        ServerConf.reload(new EmptyServerConf());
-
+        serverConfProvider.setServerConfProvider(new EmptyServerConf());
         thrown.expectError(X_MLOG_TIMESTAMPER_FAILED);
 
         log(createMessage(), createSignature());

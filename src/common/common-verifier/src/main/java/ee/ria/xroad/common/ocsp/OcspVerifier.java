@@ -27,7 +27,7 @@ package ee.ria.xroad.common.ocsp;
 
 import ee.ria.xroad.common.CodedException;
 import ee.ria.xroad.common.SystemProperties;
-import ee.ria.xroad.common.conf.globalconf.GlobalConf;
+import ee.ria.xroad.common.conf.globalconf.GlobalConfProvider;
 
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
@@ -74,6 +74,8 @@ public final class OcspVerifier {
 
     private static final String ID_KP_OCSPSIGNING = "1.3.6.1.5.5.7.3.9";
 
+    private final GlobalConfProvider globalConfProvider;
+
     private final int ocspFreshnessSeconds;
 
     private final OcspVerifierOptions options;
@@ -90,11 +92,16 @@ public final class OcspVerifier {
                 .build();
     }
 
+    public OcspVerifier(GlobalConfProvider globalConfProvider) {
+        this(globalConfProvider, null);
+    }
+
     /**
      * Constructor
      */
-    public OcspVerifier(int ocspFreshnessSeconds, OcspVerifierOptions options) {
-        this.ocspFreshnessSeconds = ocspFreshnessSeconds;
+    public OcspVerifier(GlobalConfProvider globalConfProvider, OcspVerifierOptions options) {
+        this.globalConfProvider = globalConfProvider;
+        this.ocspFreshnessSeconds = globalConfProvider.getOcspFreshnessSeconds();
 
         if (options == null) {
             this.options = new OcspVerifierOptions(true);
@@ -330,8 +337,7 @@ public final class OcspVerifier {
      * @return certificate that was used to sign the given OCSP response.
      * @throws Exception if an error occurs
      */
-    public static X509Certificate getOcspCert(BasicOCSPResp response)
-            throws Exception {
+    public X509Certificate getOcspCert(BasicOCSPResp response) throws Exception {
         List<X509Certificate> knownCerts = getOcspCerts(response);
         ResponderID respId = response.getResponderId().toASN1Primitive();
 
@@ -360,12 +366,11 @@ public final class OcspVerifier {
         return null;
     }
 
-    private static List<X509Certificate> getOcspCerts(BasicOCSPResp response)
-            throws Exception {
+    private List<X509Certificate> getOcspCerts(BasicOCSPResp response) throws Exception {
         List<X509Certificate> certs = new ArrayList<>();
 
-        certs.addAll(GlobalConf.getOcspResponderCertificates());
-        certs.addAll(GlobalConf.getAllCaCerts());
+        certs.addAll(globalConfProvider.getOcspResponderCertificates());
+        certs.addAll(globalConfProvider.getAllCaCerts());
 
         for (X509CertificateHolder cert : response.getCerts()) {
             certs.add(readCertificate(cert.getEncoded()));
@@ -377,8 +382,7 @@ public final class OcspVerifier {
     private static String getStatusString(CertificateStatus status) {
         if (status instanceof UnknownStatus) {
             return "UNKNOWN";
-        } else if (status instanceof RevokedStatus) {
-            RevokedStatus rs = (RevokedStatus) status;
+        } else if (status instanceof RevokedStatus rs) {
             return String.format("REVOKED (date: %tF %tT)",
                     rs.getRevocationTime(), rs.getRevocationTime());
         } else {
@@ -387,11 +391,11 @@ public final class OcspVerifier {
 
     }
 
-    private static boolean isAuthorizedOcspSigner(X509Certificate ocspCert,
-                                                  X509Certificate issuer) throws Exception {
+    private boolean isAuthorizedOcspSigner(X509Certificate ocspCert,
+                                           X509Certificate issuer) throws Exception {
         // 1. Matches a local configuration of OCSP signing authority for the
         // certificate in question; or
-        if (GlobalConf.isOcspResponderCert(issuer, ocspCert)) {
+        if (globalConfProvider.isOcspResponderCert(issuer, ocspCert)) {
             return true;
         }
 

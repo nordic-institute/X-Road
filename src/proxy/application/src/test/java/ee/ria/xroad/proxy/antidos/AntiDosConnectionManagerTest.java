@@ -26,9 +26,8 @@
 package ee.ria.xroad.proxy.antidos;
 
 import ee.ria.xroad.common.conf.globalconf.EmptyGlobalConf;
-import ee.ria.xroad.common.conf.globalconf.GlobalConf;
+import ee.ria.xroad.common.conf.globalconf.GlobalConfProvider;
 
-import org.junit.BeforeClass;
 import org.junit.Test;
 
 import java.util.HashSet;
@@ -44,29 +43,24 @@ public class AntiDosConnectionManagerTest {
 
     private static final Set<String> KNOWN_ADDRESSES = new HashSet<>();
 
+    private static final GlobalConfProvider GLOBAL_CONF_PROVIDER = new EmptyGlobalConf() {
+        @Override
+        public Set<String> getKnownAddresses() {
+            return KNOWN_ADDRESSES;
+        }
+    };
+
     static {
         KNOWN_ADDRESSES.add("test1");
         KNOWN_ADDRESSES.add("test2");
         KNOWN_ADDRESSES.add("test3");
     }
 
-    /**
-     * Set up configuration.
-     */
-    @BeforeClass
-    public static void reloadGlobalConf() {
-        GlobalConf.reload(new EmptyGlobalConf() {
-            @Override
-            public Set<String> getKnownAddresses() {
-                return KNOWN_ADDRESSES;
-            }
-        });
-    }
-
     // ------------------------------------------------------------------------
 
     /**
      * Test to ensure the system behaves correctly under normal load.
+     *
      * @throws Exception in case of any unexpected errors
      */
     @Test
@@ -92,6 +86,7 @@ public class AntiDosConnectionManagerTest {
 
     /**
      * Test to ensure the system behaves correctly when it's out of file handles.
+     *
      * @throws Exception in case of any unexpected errors
      */
     @Test
@@ -119,6 +114,7 @@ public class AntiDosConnectionManagerTest {
 
     /**
      * Test to ensure the system allows known members to connect under DOS attack.
+     *
      * @throws Exception in case of any unexpected errors
      */
     @Test
@@ -164,7 +160,7 @@ public class AntiDosConnectionManagerTest {
             TestConfiguration configuration, TestSystemMetrics systemMetrics)
             throws Exception {
         TestConnectionManager connectionManager =
-                new TestConnectionManager(configuration, systemMetrics);
+                new TestConnectionManager(GLOBAL_CONF_PROVIDER, configuration, systemMetrics);
         connectionManager.init();
         return connectionManager;
     }

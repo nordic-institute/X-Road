@@ -27,11 +27,13 @@ package ee.ria.xroad.proxy.clientproxy;
 
 import ee.ria.xroad.common.CodedException;
 import ee.ria.xroad.common.cert.CertChain;
+import ee.ria.xroad.common.cert.CertChainFactory;
 import ee.ria.xroad.common.cert.CertHelper;
 import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.identifier.ServiceId;
-import ee.ria.xroad.proxy.conf.KeyConf;
+import ee.ria.xroad.proxy.conf.KeyConfProvider;
 
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.http.protocol.HttpContext;
@@ -57,7 +59,7 @@ import static ee.ria.xroad.proxy.util.CertHashBasedOcspResponderClient.getOcspRe
  * server proxy, we cannot verify the server certificate directly in the
  * AuthTrustManager, because it is impossible to relate the provider name
  * to the current SSL session in the AuthTrustManager.
- *
+ * <p>
  * Instead, in the AuthTrustManager, we declare that the server is trusted
  * but then use a RequestInterceptor that will be called after the
  * SSL handshake takes place. We can then retrieve the provider name from
@@ -65,15 +67,17 @@ import static ee.ria.xroad.proxy.util.CertHashBasedOcspResponderClient.getOcspRe
  * the peer certificates and do the validation of the certificate.
  */
 @Slf4j
-public final class AuthTrustVerifier {
+@RequiredArgsConstructor
+public class AuthTrustVerifier {
 
     public static final String ID_PROVIDERNAME = "request.providerName";
 
-    private AuthTrustVerifier() {
-    }
+    private final KeyConfProvider keyConfProvider;
+    private final CertHelper certHelper;
+    private final CertChainFactory certChainFactory;
 
-    static void verify(HttpContext context, SSLSession sslSession,
-                       URI selectedAddress) {
+    void verify(HttpContext context, SSLSession sslSession,
+                URI selectedAddress) {
         log.debug("verify()");
 
         ServiceId service = (ServiceId) context.getAttribute(ID_PROVIDERNAME);
@@ -95,20 +99,20 @@ public final class AuthTrustVerifier {
         }
     }
 
-    private static void verifyAuthCert(ClientId serviceProvider,
-                                       X509Certificate[] certs, URI address) throws Exception {
+    private void verifyAuthCert(ClientId serviceProvider,
+                                X509Certificate[] certs, URI address) throws Exception {
         CertChain chain;
         List<OCSPResp> ocspResponses;
         try {
             List<X509Certificate> additionalCerts = Arrays.asList(ArrayUtils.subarray(certs, 1, certs.length));
-            chain = CertChain.create(serviceProvider.getXRoadInstance(), certs[0], additionalCerts);
+            chain = certChainFactory.create(serviceProvider.getXRoadInstance(), certs[0], additionalCerts);
             ocspResponses = getOcspResponses(
                     chain.getAllCertsWithoutTrustedRoot(), address.getHost());
         } catch (CodedException e) {
             throw e.withPrefix(X_SSL_AUTH_FAILED);
         }
 
-        CertHelper.verifyAuthCert(chain, ocspResponses, serviceProvider);
+        certHelper.verifyAuthCert(chain, ocspResponses, serviceProvider);
     }
 
     /**
@@ -116,7 +120,7 @@ public final class AuthTrustVerifier {
      * response is not locally available (cached), it will be retrieved
      * from the internal OCSP responder that is located at the given address.
      */
-    private static List<OCSPResp> getOcspResponses(
+    private List<OCSPResp> getOcspResponses(
             List<X509Certificate> chain, String address) throws Exception {
         List<X509Certificate> certs = new ArrayList<>();
         List<OCSPResp> responses = new ArrayList<>();
@@ -127,7 +131,7 @@ public final class AuthTrustVerifier {
             try {
                 // Do we have a cached OCSP response for that cert?
                 log.trace("get ocsp response from key conf");
-                response = KeyConf.getOcspResponse(cert);
+                response = keyConfProvider.getOcspResponse(cert);
                 log.trace("ocsp response from key conf: {}", response);
             } catch (CodedException e) {
                 // Log it and continue; only thrown if the response could
@@ -159,7 +163,7 @@ public final class AuthTrustVerifier {
     /**
      * Sends the GET request with all cert hashes which need OCSP responses.
      */
-    private static List<OCSPResp> getAndCacheOcspResponses(List<X509Certificate> certs, String address) throws Exception {
+    private List<OCSPResp> getAndCacheOcspResponses(List<X509Certificate> certs, String address) throws Exception {
         List<OCSPResp> receivedResponses;
         try {
             log.trace("get ocsp responses from server {}", address);
@@ -178,7 +182,7 @@ public final class AuthTrustVerifier {
 
         // Cache the responses locally
         log.trace("got ocsp responses, setting them to key conf");
-        KeyConf.setOcspResponses(certs, receivedResponses);
+        keyConfProvider.setOcspResponses(certs, receivedResponses);
 
         return receivedResponses;
     }

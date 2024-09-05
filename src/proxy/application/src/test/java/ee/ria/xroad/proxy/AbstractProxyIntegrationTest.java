@@ -26,13 +26,16 @@
 package ee.ria.xroad.proxy;
 
 import ee.ria.xroad.common.SystemProperties;
-import ee.ria.xroad.common.conf.globalconf.GlobalConf;
-import ee.ria.xroad.common.conf.serverconf.ServerConf;
-import ee.ria.xroad.proxy.conf.KeyConf;
+import ee.ria.xroad.common.conf.globalconf.GlobalConfProvider;
+import ee.ria.xroad.common.conf.globalconf.GlobalConfSource;
+import ee.ria.xroad.common.conf.globalconf.TestGlobalConfWrapper;
+import ee.ria.xroad.common.conf.serverconf.ServerConfProvider;
+import ee.ria.xroad.proxy.conf.KeyConfProvider;
 import ee.ria.xroad.proxy.testutil.IntegrationTest;
 import ee.ria.xroad.proxy.testutil.TestGlobalConf;
 import ee.ria.xroad.proxy.testutil.TestKeyConf;
 import ee.ria.xroad.proxy.testutil.TestServerConf;
+import ee.ria.xroad.proxy.testutil.TestServerConfWrapper;
 import ee.ria.xroad.proxy.testutil.TestService;
 
 import org.junit.After;
@@ -45,6 +48,7 @@ import org.junit.runner.Description;
 import org.junit.runners.model.Statement;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Primary;
 import org.springframework.context.support.GenericApplicationContext;
 
 import java.net.ServerSocket;
@@ -53,6 +57,7 @@ import java.util.Set;
 
 import static ee.ria.xroad.common.SystemProperties.OCSP_RESPONDER_LISTEN_ADDRESS;
 import static ee.ria.xroad.common.SystemProperties.PROXY_SERVER_LISTEN_ADDRESS;
+import static org.mockito.Mockito.mock;
 
 /**
  * Base class for proxy integration tests
@@ -68,8 +73,8 @@ public abstract class AbstractProxyIntegrationTest {
     protected static int servicePort = getFreePort();
     protected static TestService service;
 
-    private static final TestServerConf TEST_SERVER_CONF = new TestServerConf(servicePort);
-    private static final TestGlobalConf TEST_GLOBAL_CONF = new TestGlobalConf();
+    protected static final TestServerConfWrapper TEST_SERVER_CONF = new TestServerConfWrapper(new TestServerConf(servicePort));
+    protected static final TestGlobalConfWrapper TEST_GLOBAL_CONF = new TestGlobalConfWrapper(new TestGlobalConf());
 
     @Rule
     public final ExternalResource serviceResource = new ExternalResource() {
@@ -124,13 +129,6 @@ public abstract class AbstractProxyIntegrationTest {
             System.setProperty(SystemProperties.GRPC_INTERNAL_TLS_ENABLED, Boolean.FALSE.toString());
             super.loadSystemProperties();
         }
-
-        @Override
-        protected void loadGlobalConf() {
-            KeyConf.reload(new TestKeyConf());
-            ServerConf.reload(TEST_SERVER_CONF);
-            GlobalConf.reload(TEST_GLOBAL_CONF);
-        }
     }
 
     @Configuration
@@ -140,6 +138,28 @@ public abstract class AbstractProxyIntegrationTest {
         TestService testService() {
             service = new TestService(servicePort);
             return service;
+        }
+
+        @Bean
+        @Primary
+        GlobalConfSource globalConfSource() {
+            return mock(GlobalConfSource.class);
+        }
+
+        @Bean
+        @Primary
+        GlobalConfProvider globalConfProvider() {
+            return TEST_GLOBAL_CONF;
+        }
+
+        @Bean
+        KeyConfProvider keyConfProvider() {
+            return new TestKeyConf(TEST_GLOBAL_CONF);
+        }
+
+        @Bean
+        ServerConfProvider serverConfProvider() {
+            return TEST_SERVER_CONF;
         }
     }
 
@@ -158,8 +178,8 @@ public abstract class AbstractProxyIntegrationTest {
 
     @After
     public void after() {
-        ServerConf.reload(TEST_SERVER_CONF);
-        GlobalConf.reload(TEST_GLOBAL_CONF);
+        TEST_SERVER_CONF.setServerConfProvider(new TestServerConf(servicePort));
+        TEST_GLOBAL_CONF.setGlobalConfProvider(new TestGlobalConf());
     }
 
     static int getFreePort() {

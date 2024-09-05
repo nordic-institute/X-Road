@@ -26,6 +26,7 @@
 package org.niis.xroad.securityserver.restapi.service;
 
 import ee.ria.xroad.common.CodedException;
+import ee.ria.xroad.common.conf.globalconf.GlobalConfProvider;
 import ee.ria.xroad.common.util.TimeUtils;
 import ee.ria.xroad.signer.SignerProxy;
 import ee.ria.xroad.signer.protocol.dto.TokenInfo;
@@ -34,7 +35,6 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.niis.xroad.restapi.common.backup.service.BackupRestoreEvent;
 import org.niis.xroad.securityserver.restapi.dto.AlertStatus;
-import org.niis.xroad.securityserver.restapi.facade.GlobalConfFacade;
 import org.springframework.context.event.EventListener;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
@@ -52,7 +52,7 @@ import java.util.Optional;
 @RequiredArgsConstructor
 public class NotificationService {
     private OffsetDateTime backupRestoreRunningSince;
-    private final GlobalConfFacade globalConfFacade;
+    private final GlobalConfProvider globalConfProvider;
     private final TokenService tokenService;
 
     /**
@@ -99,7 +99,7 @@ public class NotificationService {
      */
     private boolean isGlobalConfValid() {
         try {
-            globalConfFacade.verifyValidity();
+            globalConfProvider.verifyValidity();
             return true;
         } catch (CodedException e) {
             return false;

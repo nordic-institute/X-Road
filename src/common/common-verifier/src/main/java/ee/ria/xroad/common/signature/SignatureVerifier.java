@@ -27,10 +27,11 @@ package ee.ria.xroad.common.signature;
 
 import ee.ria.xroad.common.CodedException;
 import ee.ria.xroad.common.cert.CertChain;
+import ee.ria.xroad.common.cert.CertChainFactory;
 import ee.ria.xroad.common.cert.CertChainVerifier;
 import ee.ria.xroad.common.cert.CertHelper;
 import ee.ria.xroad.common.certificateprofile.impl.SignCertificateProfileInfoParameters;
-import ee.ria.xroad.common.conf.globalconf.GlobalConf;
+import ee.ria.xroad.common.conf.globalconf.GlobalConfProvider;
 import ee.ria.xroad.common.hashchain.DigestValue;
 import ee.ria.xroad.common.hashchain.HashChainReferenceResolver;
 import ee.ria.xroad.common.hashchain.HashChainVerifier;
@@ -77,6 +78,9 @@ import static ee.ria.xroad.common.util.MessageFileNames.SIG_HASH_CHAIN_RESULT;
 @Slf4j
 public class SignatureVerifier {
 
+    private final GlobalConfProvider globalConfProvider;
+    private final CertChainFactory certChainFactory;
+
     /**
      * The signature object.
      */
@@ -117,10 +121,11 @@ public class SignatureVerifier {
      * Constructs a new signature verifier using the specified string
      * containing the signature xml.
      *
-     * @param signatureData the signature data
+     * @param globalConfProvider global conf provider
+     * @param signatureData      the signature data
      */
-    public SignatureVerifier(SignatureData signatureData) {
-        this(new Signature(signatureData.getSignatureXml()),
+    public SignatureVerifier(GlobalConfProvider globalConfProvider, SignatureData signatureData) {
+        this(globalConfProvider, new Signature(signatureData.getSignatureXml()),
                 signatureData.getHashChainResult(),
                 signatureData.getHashChain());
     }
@@ -128,24 +133,28 @@ public class SignatureVerifier {
     /**
      * Constructs a new signature verifier for the specified signature.
      *
-     * @param signature the signature
+     * @param globalConfProvider global conf provider
+     * @param signature          the signature
      */
-    public SignatureVerifier(Signature signature) {
-        this(signature, null, null);
+    public SignatureVerifier(GlobalConfProvider globalConfProvider, Signature signature) {
+        this(globalConfProvider, signature, null, null);
     }
 
     /**
      * Constructs a new signature verifier for the specified signature.
      *
-     * @param signature       the signature
-     * @param hashChainResult the hash chain result
-     * @param hashChain       the hash chain
+     * @param globalConfProvider global conf provider
+     * @param signature          the signature
+     * @param hashChainResult    the hash chain result
+     * @param hashChain          the hash chain
      */
-    public SignatureVerifier(Signature signature, String hashChainResult,
+    public SignatureVerifier(GlobalConfProvider globalConfProvider, Signature signature, String hashChainResult,
                              String hashChain) {
+        this.globalConfProvider = globalConfProvider;
         this.signature = signature;
         this.hashChainResult = hashChainResult;
         this.hashChain = hashChain;
+        this.certChainFactory = new CertChainFactory(globalConfProvider);
     }
 
     /**
@@ -234,7 +243,7 @@ public class SignatureVerifier {
             throws Exception {
         X509Certificate cert = signature.getSigningCertificate();
         List<OCSPResp> responses = signature.getOcspResponses();
-        X509Certificate issuer = GlobalConf.getCaCert(instanceIdentifier, cert);
+        X509Certificate issuer = globalConfProvider.getCaCert(instanceIdentifier, cert);
 
         return CertHelper.getOcspResponseForCert(cert, issuer, responses);
     }
@@ -303,9 +312,9 @@ public class SignatureVerifier {
         }
     }
 
-    private static void verifySignerName(ClientId signer,
-                                         X509Certificate signingCert) throws Exception {
-        ClientId cn = GlobalConf.getSubjectName(
+    private void verifySignerName(ClientId signer,
+                                  X509Certificate signingCert) throws Exception {
+        ClientId cn = globalConfProvider.getSubjectName(
                 new SignCertificateProfileInfoParameters(
                         signer, signer.getMemberCode()
                 ),
@@ -357,9 +366,9 @@ public class SignatureVerifier {
 
     private void verifyCertificateChain(Date atDate, ClientId signer, X509Certificate signingCert) {
         CertChain certChain =
-                CertChain.create(signer.getXRoadInstance(), signingCert,
+                certChainFactory.create(signer.getXRoadInstance(), signingCert,
                         signature.getExtraCertificates());
-        new CertChainVerifier(certChain).verify(signature.getOcspResponses(),
+        new CertChainVerifier(globalConfProvider, certChain).verify(signature.getOcspResponses(),
                 atDate);
     }
 

@@ -25,8 +25,9 @@
  */
 package ee.ria.xroad.proxy.util;
 
-import ee.ria.xroad.common.conf.serverconf.ServerConf;
+import ee.ria.xroad.common.conf.serverconf.ServerConfProvider;
 
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.quartz.DisallowConcurrentExecution;
 import org.quartz.Job;
@@ -36,10 +37,13 @@ import org.quartz.JobExecutionContext;
  * Periodic reload of global configuration
  */
 @Slf4j
+@RequiredArgsConstructor
 @DisallowConcurrentExecution
 public class ServerConfStatsLogger implements Job {
+    private final ServerConfProvider serverConfProvider;
+
     @Override
     public void execute(JobExecutionContext context) {
-        ServerConf.logStatistics();
+        serverConfProvider.logStatistics();
     }
 }

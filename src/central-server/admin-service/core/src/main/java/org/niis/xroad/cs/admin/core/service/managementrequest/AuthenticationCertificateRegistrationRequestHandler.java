@@ -27,7 +27,7 @@
 package org.niis.xroad.cs.admin.core.service.managementrequest;
 
 import ee.ria.xroad.common.SystemProperties;
-import ee.ria.xroad.common.conf.globalconf.GlobalConf;
+import ee.ria.xroad.common.conf.globalconf.GlobalConfProvider;
 
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
@@ -81,6 +81,7 @@ import static org.niis.xroad.cs.admin.core.service.SystemParameterServiceImpl.DE
 public class AuthenticationCertificateRegistrationRequestHandler implements
         RequestHandler<AuthenticationCertificateRegistrationRequest> {
 
+    private final GlobalConfProvider globalConfProvider;
     private final IdentifierRepository<SecurityServerIdEntity> serverIds;
     private final SecurityServerClientRepository<XRoadMemberEntity> members;
     private final AuthenticationCertificateRegistrationRequestRepository authCertReqRequests;
@@ -117,8 +118,8 @@ public class AuthenticationCertificateRegistrationRequestHandler implements
             }
 
             //verify that certificate is issued by a known CA
-            var instanceId = GlobalConf.getInstanceIdentifier();
-            var caCert = GlobalConf.getCaCert(instanceId, authCert);
+            var instanceId = globalConfProvider.getInstanceIdentifier();
+            var caCert = globalConfProvider.getCaCert(instanceId, authCert);
             authCert.verify(caCert.getPublicKey());
 
             authCert.checkValidity();

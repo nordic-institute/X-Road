@@ -25,6 +25,8 @@
  */
 package ee.ria.xroad.proxy.antidos;
 
+import ee.ria.xroad.common.conf.globalconf.GlobalConfProvider;
+
 import static org.junit.Assert.assertEquals;
 
 class TestConnectionManager
@@ -32,9 +34,9 @@ class TestConnectionManager
 
     private final TestSystemMetrics systemMetrics;
 
-    TestConnectionManager(TestConfiguration configuration,
+    TestConnectionManager(GlobalConfProvider globalConfProvider, TestConfiguration configuration,
                           TestSystemMetrics systemMetrics) {
-        super(configuration);
+        super(globalConfProvider, configuration);
         this.systemMetrics = systemMetrics;
     }
 

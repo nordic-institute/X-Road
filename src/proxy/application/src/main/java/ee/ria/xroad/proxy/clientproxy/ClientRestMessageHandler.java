@@ -27,8 +27,10 @@ package ee.ria.xroad.proxy.clientproxy;
 
 import ee.ria.xroad.common.CodedException;
 import ee.ria.xroad.common.SystemProperties;
+import ee.ria.xroad.common.cert.CertChainFactory;
 import ee.ria.xroad.common.conf.globalconf.AuthKey;
-import ee.ria.xroad.common.conf.globalconf.GlobalConf;
+import ee.ria.xroad.common.conf.globalconf.GlobalConfProvider;
+import ee.ria.xroad.common.conf.serverconf.ServerConfProvider;
 import ee.ria.xroad.common.message.RestMessage;
 import ee.ria.xroad.common.opmonitoring.OpMonitoringData;
 import ee.ria.xroad.common.util.JsonUtils;
@@ -36,7 +38,7 @@ import ee.ria.xroad.common.util.MimeUtils;
 import ee.ria.xroad.common.util.RequestWrapper;
 import ee.ria.xroad.common.util.ResponseWrapper;
 import ee.ria.xroad.common.util.XmlUtils;
-import ee.ria.xroad.proxy.conf.KeyConf;
+import ee.ria.xroad.proxy.conf.KeyConfProvider;
 import ee.ria.xroad.proxy.util.MessageProcessorBase;
 
 import com.fasterxml.jackson.core.JsonGenerator;
@@ -76,8 +78,12 @@ class ClientRestMessageHandler extends AbstractClientProxyHandler {
     private static final String APPLICATION_JSON = "application/json";
     private static final List<String> XML_TYPES = Arrays.asList(TEXT_XML, APPLICATION_XML, TEXT_ANY);
 
-    ClientRestMessageHandler(HttpClient client) {
-        super(client, true);
+    ClientRestMessageHandler(GlobalConfProvider globalConfProvider,
+                             KeyConfProvider keyConfProvider,
+                             ServerConfProvider serverConfProvider,
+                             CertChainFactory certChainFactory,
+                             HttpClient client) {
+        super(globalConfProvider, keyConfProvider, serverConfProvider, certChainFactory, client, true);
     }
 
     @Override
@@ -86,20 +92,20 @@ class ClientRestMessageHandler extends AbstractClientProxyHandler {
         final var target = getTarget(request);
         if (target != null && target.startsWith("/r" + RestMessage.PROTOCOL_VERSION + "/")) {
             verifyCanProcess();
-            return new ClientRestMessageProcessor(request, response, client,
-                    getIsAuthenticationData(request), opMonitoringData);
+            return new ClientRestMessageProcessor(globalConfProvider, keyConfProvider, serverConfProvider, certChainFactory,
+                    request, response, client, getIsAuthenticationData(request), opMonitoringData);
         }
         return null;
     }
 
     private void verifyCanProcess() {
-        GlobalConf.verifyValidity();
+        globalConfProvider.verifyValidity();
 
         if (!SystemProperties.isSslEnabled()) {
             return;
         }
 
-        AuthKey authKey = KeyConf.getAuthKey();
+        AuthKey authKey = keyConfProvider.getAuthKey();
         if (authKey.getCertChain() == null) {
             throw new CodedException(X_SSL_AUTH_FAILED,
                     "Security server has no valid authentication certificate");

@@ -23,31 +23,25 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package ee.ria.xroad.proxy.util;
+package ee.ria.xroad.opmonitordaemon.config;
 
-import ee.ria.xroad.common.SystemProperties;
+import ee.ria.xroad.common.util.JobManager;
+import ee.ria.xroad.opmonitordaemon.OperationalDataRecordCleaner;
 
-import org.junit.Test;
+import org.quartz.SchedulerException;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
 
-import java.security.KeyManagementException;
-import java.security.NoSuchAlgorithmException;
-import java.util.Arrays;
+@Configuration
+public class OpMonitorDaemonJobConfig {
 
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.hasItems;
+    @Bean(initMethod = "start", destroyMethod = "stop")
+    JobManager jobManager() throws SchedulerException {
+        final var jobManager = new JobManager();
 
-/**
- * Test for SSLContextUtil
- */
-public class SSLContextUtilTest {
+        OperationalDataRecordCleaner.init(jobManager);
 
-    /**
-     * Test that created SSLContext supports X-Road accepted cipher suites
-     */
-    @Test
-    public void xroadAcceptedCipherSuites() throws NoSuchAlgorithmException, KeyManagementException {
-        String[] supported = SSLContextUtil.createXroadSSLContext().createSSLEngine().getSupportedCipherSuites();
-        String[] accepted = SystemProperties.getXroadTLSCipherSuites();
-        assertThat(Arrays.asList(supported), hasItems(accepted));
+        return jobManager;
     }
+
 }

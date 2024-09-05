@@ -25,6 +25,7 @@
  */
 package ee.ria.xroad.proxy.opmonitoring;
 
+import ee.ria.xroad.common.conf.serverconf.ServerConfProvider;
 import ee.ria.xroad.common.opmonitoring.AbstractOpMonitoringBuffer;
 import ee.ria.xroad.common.opmonitoring.OpMonitoringData;
 import ee.ria.xroad.common.opmonitoring.OpMonitoringSystemProperties;
@@ -62,7 +63,8 @@ public class OpMonitoringBuffer extends AbstractOpMonitoringBuffer {
      *
      * @throws Exception if an error occurs
      */
-    public OpMonitoringBuffer() throws Exception {
+    public OpMonitoringBuffer(ServerConfProvider serverConfProvider) throws Exception {
+        super(serverConfProvider);
         if (ignoreOpMonitoringData()) {
             log.info("Operational monitoring buffer is switched off, no operational monitoring data is stored");
 
@@ -71,7 +73,7 @@ public class OpMonitoringBuffer extends AbstractOpMonitoringBuffer {
             taskScheduler = null;
             opMonitoringDataProcessor = null;
         } else {
-            sender = createSender();
+            sender = createSender(serverConfProvider);
             executorService = Executors.newSingleThreadExecutor();
             taskScheduler = Executors.newSingleThreadScheduledExecutor();
             opMonitoringDataProcessor = createDataProcessor();
@@ -82,8 +84,8 @@ public class OpMonitoringBuffer extends AbstractOpMonitoringBuffer {
         return new OpMonitoringDataProcessor();
     }
 
-    OpMonitoringDaemonSender createSender() throws Exception {
-        return new OpMonitoringDaemonSender(this);
+    OpMonitoringDaemonSender createSender(ServerConfProvider serverConfProvider) throws Exception {
+        return new OpMonitoringDaemonSender(serverConfProvider, this);
     }
 
     @Override

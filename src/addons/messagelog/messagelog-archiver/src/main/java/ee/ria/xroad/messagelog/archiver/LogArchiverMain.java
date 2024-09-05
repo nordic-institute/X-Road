@@ -28,59 +28,57 @@ package ee.ria.xroad.messagelog.archiver;
 
 import ee.ria.xroad.common.SystemPropertiesLoader;
 import ee.ria.xroad.common.Version;
-import ee.ria.xroad.common.messagelog.MessageLogProperties;
-import ee.ria.xroad.common.util.JobManager;
 
 import lombok.extern.slf4j.Slf4j;
-import org.quartz.JobDataMap;
+import org.springframework.context.annotation.AnnotationConfigApplicationContext;
+import org.springframework.context.support.GenericApplicationContext;
 
 import static ee.ria.xroad.common.SystemProperties.CONF_FILE_MESSAGE_LOG;
 import static ee.ria.xroad.common.SystemProperties.CONF_FILE_NODE;
 
 @Slf4j
 public final class LogArchiverMain {
+    private static final String APP_NAME = "MessageLogArchiver";
 
-    private static JobManager jobManager;
 
     private LogArchiverMain() {
     }
 
     public static void main(String[] args) {
-        Version.outputVersionInfo("MessageLogArchiver");
-
         try {
-            SystemPropertiesLoader.create()
-                    .withCommonAndLocal()
-                    .with(CONF_FILE_MESSAGE_LOG)
-                    .withLocalOptional(CONF_FILE_NODE)
-                    .load();
-
-            jobManager = new JobManager();
-
-            Runtime.getRuntime().addShutdownHook(new Thread(() -> {
-                log.info("MessageLogArchiver shutting down...");
-                try {
-                    if (jobManager != null) {
-                        jobManager.stop();
-                        jobManager = null;
-                    }
-                } catch (Exception e) {
-                    log.warn("JobManager failed to stop", e);
-                }
-            }));
-
-            jobManager.registerJob(LogArchiver.class, "ArchiverJob", MessageLogProperties.getArchiveInterval(),
-                    new JobDataMap());
-
-            jobManager.registerJob(LogCleaner.class, "CleanerJob", MessageLogProperties.getCleanInterval(),
-                    new JobDataMap());
-
-            jobManager.start();
-
+            new LogArchiverMain().createApplicationContext();
         } catch (Exception e) {
             log.error("LogArchiver failed to start", e);
             System.exit(1);
         }
     }
+
+    public GenericApplicationContext createApplicationContext(Class<?>... ctxExtension) {
+        var startTime = System.currentTimeMillis();
+        Version.outputVersionInfo(APP_NAME);
+        log.info("Starting {} ({})...", APP_NAME, Version.XROAD_VERSION);
+
+        log.trace("Loading global bean dependencies");
+        loadSystemProperties();
+
+        var springCtx = new AnnotationConfigApplicationContext();
+        springCtx.register(LogArchiverConfig.class);
+        if (ctxExtension.length > 0) {
+            springCtx.register(ctxExtension);
+        }
+        springCtx.refresh();
+        springCtx.registerShutdownHook();
+        log.info("{} started in {} ms", APP_NAME, System.currentTimeMillis() - startTime);
+        return springCtx;
+    }
+
+    private void loadSystemProperties() {
+        SystemPropertiesLoader.create()
+                .withCommonAndLocal()
+                .with(CONF_FILE_MESSAGE_LOG)
+                .withLocalOptional(CONF_FILE_NODE)
+                .load();
+    }
+
 
 }

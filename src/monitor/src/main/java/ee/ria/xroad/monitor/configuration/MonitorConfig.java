@@ -26,6 +26,10 @@
 package ee.ria.xroad.monitor.configuration;
 
 import ee.ria.xroad.common.SystemProperties;
+import ee.ria.xroad.common.conf.globalconf.GlobalConfBeanConfig;
+import ee.ria.xroad.common.conf.globalconf.GlobalConfRefreshJobConfig;
+import ee.ria.xroad.common.conf.serverconf.ServerConfBeanConfig;
+import ee.ria.xroad.common.conf.serverconf.ServerConfProvider;
 import ee.ria.xroad.monitor.CertificateInfoSensor;
 import ee.ria.xroad.monitor.DiskSpaceSensor;
 import ee.ria.xroad.monitor.ExecListingSensor;
@@ -37,6 +41,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.niis.xroad.common.rpc.server.RpcServer;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Import;
 import org.springframework.scheduling.TaskScheduler;
 import org.springframework.scheduling.annotation.EnableScheduling;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler;
@@ -44,6 +49,9 @@ import org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler;
 import java.util.List;
 
 @Slf4j
+@Import({GlobalConfBeanConfig.class,
+        ServerConfBeanConfig.class,
+        GlobalConfRefreshJobConfig.class})
 @EnableScheduling
 @Configuration
 public class MonitorConfig {
@@ -88,7 +96,7 @@ public class MonitorConfig {
     }
 
     @Bean
-    CertificateInfoSensor certificateInfoSensor(TaskScheduler taskScheduler) {
-        return new CertificateInfoSensor(taskScheduler);
+    CertificateInfoSensor certificateInfoSensor(TaskScheduler taskScheduler, ServerConfProvider serverConfProvider) {
+        return new CertificateInfoSensor(taskScheduler, serverConfProvider);
     }
 }

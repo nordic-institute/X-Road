@@ -25,6 +25,7 @@
  */
 package ee.ria.xroad.signer.certmanager;
 
+import ee.ria.xroad.common.conf.globalconf.GlobalConfProvider;
 import ee.ria.xroad.common.ocsp.OcspCache;
 
 import lombok.extern.slf4j.Slf4j;
@@ -54,6 +55,10 @@ public class FileBasedOcspCache extends OcspCache {
 
     /** The OCSP response file extension. */
     private static final String OCSP_FILE_EXTENSION = ".ocsp";
+
+    public FileBasedOcspCache(GlobalConfProvider globalConfProvider) {
+        super(globalConfProvider);
+    }
 
     /**
      * Returns the OCSP response for the given certificate or null, if the

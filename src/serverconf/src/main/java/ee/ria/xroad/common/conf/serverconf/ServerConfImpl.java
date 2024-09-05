@@ -27,7 +27,7 @@ package ee.ria.xroad.common.conf.serverconf;
 
 import ee.ria.xroad.common.CodedException;
 import ee.ria.xroad.common.conf.InternalSSLKey;
-import ee.ria.xroad.common.conf.globalconf.GlobalConf;
+import ee.ria.xroad.common.conf.globalconf.GlobalConfProvider;
 import ee.ria.xroad.common.conf.serverconf.dao.CertificateDAOImpl;
 import ee.ria.xroad.common.conf.serverconf.dao.ClientDAOImpl;
 import ee.ria.xroad.common.conf.serverconf.dao.IdentifierDAOImpl;
@@ -61,6 +61,7 @@ import jakarta.persistence.criteria.CriteriaQuery;
 import jakarta.persistence.criteria.Join;
 import jakarta.persistence.criteria.Predicate;
 import jakarta.persistence.criteria.Root;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.ObjectUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -84,10 +85,13 @@ import static ee.ria.xroad.common.util.CryptoUtils.readCertificate;
  * Server conf implementation.
  */
 @Slf4j
+@RequiredArgsConstructor
 public class ServerConfImpl implements ServerConfProvider {
 
     // default service connection timeout in seconds
     protected static final int DEFAULT_SERVICE_TIMEOUT = 30;
+
+    protected final GlobalConfProvider globalConfProvider;
 
     private final ServiceDAOImpl serviceDao = new ServiceDAOImpl();
     private final IdentifierDAOImpl identifierDao = new IdentifierDAOImpl();
@@ -315,6 +319,11 @@ public class ServerConfImpl implements ServerConfProvider {
     }
 
     @Override
+    public boolean isQueryAllowed(ClientId sender, ServiceId service) {
+        return isQueryAllowed(sender, service, null, null);
+    }
+
+    @Override
     public boolean isQueryAllowed(ClientId client, ServiceId service, String method, String path) {
         return tx(session -> internalIsQueryAllowed(session, client, service, method, path));
     }
@@ -462,10 +471,10 @@ public class ServerConfImpl implements ServerConfProvider {
     }
 
     private boolean subjectMatches(ClientType serviceOwner, XRoadId aclSubject, ClientId client) {
-        if (aclSubject instanceof GlobalGroupId) {
-            return GlobalConf.isSubjectInGlobalGroup(client, (GlobalGroupId) aclSubject);
-        } else if (aclSubject instanceof LocalGroupId) {
-            return isMemberInLocalGroup(client, (LocalGroupId) aclSubject, serviceOwner);
+        if (aclSubject instanceof GlobalGroupId globalGroupId) {
+            return globalConfProvider.isSubjectInGlobalGroup(client, globalGroupId);
+        } else if (aclSubject instanceof LocalGroupId localGroupId) {
+            return isMemberInLocalGroup(client, localGroupId, serviceOwner);
         } else {
             return client.equals(aclSubject);
         }

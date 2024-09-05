@@ -27,6 +27,7 @@
 package org.niis.xroad.securityserver.restapi.service;
 
 import ee.ria.xroad.common.CodedException;
+import ee.ria.xroad.common.conf.globalconf.GlobalConfProvider;
 import ee.ria.xroad.common.conf.globalconf.GlobalGroupInfo;
 import ee.ria.xroad.common.conf.serverconf.model.AccessRightType;
 import ee.ria.xroad.common.conf.serverconf.model.ClientType;
@@ -49,7 +50,6 @@ import org.niis.xroad.restapi.service.ServiceException;
 import org.niis.xroad.restapi.util.FormatUtils;
 import org.niis.xroad.securityserver.restapi.dto.ServiceClientAccessRightDto;
 import org.niis.xroad.securityserver.restapi.dto.ServiceClientDto;
-import org.niis.xroad.securityserver.restapi.facade.GlobalConfFacade;
 import org.niis.xroad.securityserver.restapi.repository.ClientRepository;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
@@ -82,7 +82,7 @@ import static org.niis.xroad.restapi.exceptions.DeviationCodes.ERROR_DUPLICATE_A
 @RequiredArgsConstructor
 public class AccessRightService {
 
-    private final GlobalConfFacade globalConfFacade;
+    private final GlobalConfProvider globalConfProvider;
     private final ClientRepository clientRepository;
     private final IdentifierService identifierService;
     private final EndpointService endpointService;
@@ -463,7 +463,7 @@ public class AccessRightService {
             serviceClientDto.setLocalGroupDescription(localGroupType.getDescription());
         } else if (subjectId.getObjectType() == XRoadObjectType.GLOBALGROUP) {
             GlobalGroupId globalGroupId = (GlobalGroupId) subjectId;
-            serviceClientDto.setGlobalGroupDescription(globalConfFacade.getGlobalGroupDescription(globalGroupId));
+            serviceClientDto.setGlobalGroupDescription(globalConfProvider.getGlobalGroupDescription(globalGroupId));
         }
         return serviceClientDto;
     }
@@ -668,7 +668,7 @@ public class AccessRightService {
     }
 
     private List<ServiceClientDto> getGlobalMembersAsDtos() {
-        return globalConfFacade.getMembers().stream()
+        return globalConfProvider.getMembers().stream()
                 .map(memberInfo -> {
                     ServiceClientDto serviceClientDto = new ServiceClientDto();
                     serviceClientDto.setSubjectId(memberInfo.getId());
@@ -680,7 +680,7 @@ public class AccessRightService {
 
     private List<ServiceClientDto> getGlobalGroupsAsDtos(String instance) {
         List<ServiceClientDto> globalGroups = new ArrayList<>();
-        Set<String> globalGroupInstances = globalConfFacade.getInstanceIdentifiers();
+        Set<String> globalGroupInstances = globalConfProvider.getInstanceIdentifiers();
         List<GlobalGroupInfo> globalGroupInfos = null;
         // core throws CodedException if nothing is found for the provided instance/instances
         try {
@@ -689,11 +689,11 @@ public class AccessRightService {
                         .filter(s -> s.contains(instance))
                         .toList();
                 if (!globalGroupInstancesMatchingSearch.isEmpty()) {
-                    globalGroupInfos = globalConfFacade
+                    globalGroupInfos = globalConfProvider
                             .getGlobalGroups(globalGroupInstancesMatchingSearch.toArray(new String[]{}));
                 }
             } else {
-                globalGroupInfos = globalConfFacade.getGlobalGroups();
+                globalGroupInfos = globalConfProvider.getGlobalGroups();
             }
         } catch (CodedException e) {
             // no GlobalGroups found for the provided instance -> GlobalGroups are just ignored in the results

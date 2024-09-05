@@ -27,6 +27,7 @@ package ee.ria.xroad.messagelog.archiver;
 
 import ee.ria.xroad.common.CodedException;
 import ee.ria.xroad.common.ErrorCodes;
+import ee.ria.xroad.common.conf.globalconf.GlobalConfProvider;
 import ee.ria.xroad.common.messagelog.LogRecord;
 import ee.ria.xroad.common.messagelog.MessageLogProperties;
 import ee.ria.xroad.common.messagelog.MessageRecord;
@@ -74,7 +75,12 @@ public class LogArchiver implements Job {
 
     public static final int FETCH_SIZE = 10;
 
+    private final GlobalConfProvider globalConfProvider;
     private final Path archivePath = Paths.get(MessageLogProperties.getArchivePath());
+
+    public LogArchiver(GlobalConfProvider globalConfProvider) {
+        this.globalConfProvider = globalConfProvider;
+    }
 
     @Override
     public void execute(JobExecutionContext context) {
@@ -149,7 +155,7 @@ public class LogArchiver implements Job {
     }
 
     private LogArchiveWriter createLogArchiveWriter(Session session) throws IOException {
-        return new LogArchiveWriter(
+        return new LogArchiveWriter(globalConfProvider,
                 getArchivePath(),
                 new HibernateLogArchiveBase(session)
         );

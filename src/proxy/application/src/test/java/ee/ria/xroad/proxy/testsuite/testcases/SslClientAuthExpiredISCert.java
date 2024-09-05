@@ -29,7 +29,6 @@ import ee.ria.xroad.common.ErrorCodes;
 import ee.ria.xroad.common.SystemProperties;
 import ee.ria.xroad.common.TestCertUtil;
 import ee.ria.xroad.common.conf.serverconf.IsAuthentication;
-import ee.ria.xroad.common.conf.serverconf.ServerConf;
 import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.proxy.testsuite.Message;
 import ee.ria.xroad.proxy.testsuite.SslMessageTestCase;
@@ -58,7 +57,7 @@ public class SslClientAuthExpiredISCert extends SslMessageTestCase {
     protected void startUp() throws Exception {
         super.startUp();
 
-        ServerConf.reload(new TestSuiteServerConf() {
+        serverConfProvider.setServerConfProvider(new TestSuiteServerConf() {
             @Override
             public IsAuthentication getIsAuthentication(
                     ClientId client) {

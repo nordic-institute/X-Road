@@ -31,7 +31,9 @@ import ee.ria.xroad.common.Version;
 import ee.ria.xroad.common.asic.AsicContainerEntries;
 import ee.ria.xroad.common.asic.AsicContainerVerifier;
 import ee.ria.xroad.common.asic.AsicUtils;
-import ee.ria.xroad.common.conf.globalconf.GlobalConf;
+import ee.ria.xroad.common.conf.globalconf.FileSystemGlobalConfSource;
+import ee.ria.xroad.common.conf.globalconf.GlobalConfImpl;
+import ee.ria.xroad.common.conf.globalconf.GlobalConfProvider;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -63,20 +65,22 @@ public final class AsicVerifierMain {
         } else if (args.length != 2) {
             showUsage();
         } else {
-            loadConf(args[0]);
-            verifyAsic(args[1]);
+            var globalConfProvider = loadConf(args[0]);
+            verifyAsic(globalConfProvider, args[1]);
         }
     }
 
-    private static void loadConf(String confPath) {
+    private static GlobalConfProvider loadConf(String confPath) {
         System.setProperty(SystemProperties.CONFIGURATION_PATH, confPath);
 
         System.out.println("Loading configuration from " + confPath + "...");
         try {
-            verifyConfPathCorrectness();
+            var globalConfProvider = new GlobalConfImpl(new FileSystemGlobalConfSource(confPath));
+            verifyConfPathCorrectness(globalConfProvider);
+            return globalConfProvider;
         } catch (CodedException e) {
-            System.err.println("Unable to load configuration: "
-                    + e);
+            System.err.println("Unable to load configuration: " + e);
+            throw e;
         }
     }
 
@@ -84,16 +88,16 @@ public final class AsicVerifierMain {
      * If we can read instance identifier of this security server, we can
      * consider conf path correct.
      */
-    private static void verifyConfPathCorrectness() {
-        GlobalConf.getInstanceIdentifier();
+    private static void verifyConfPathCorrectness(GlobalConfProvider globalConfProvider) {
+        globalConfProvider.getInstanceIdentifier();
     }
 
-    private static void verifyAsic(String fileName) {
+    private static void verifyAsic(GlobalConfProvider globalConfProvider, String fileName) {
         System.out.println("Verifying ASiC container \"" + fileName + "\" ...");
 
         AsicContainerVerifier verifier = null;
         try {
-            verifier = new AsicContainerVerifier(fileName);
+            verifier = new AsicContainerVerifier(globalConfProvider, fileName);
             verifier.verify();
 
             onVerificationSucceeded(verifier);

@@ -25,11 +25,8 @@
  */
 package ee.ria.xroad.proxy;
 
-import ee.ria.xroad.common.SystemProperties;
 import ee.ria.xroad.common.SystemPropertiesLoader;
 import ee.ria.xroad.common.Version;
-import ee.ria.xroad.common.conf.serverconf.CachingServerConfImpl;
-import ee.ria.xroad.common.conf.serverconf.ServerConf;
 
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.annotation.AnnotationConfigApplicationContext;
@@ -64,13 +61,11 @@ public class ProxyMain {
 
     public GenericApplicationContext createApplicationContext(Class<?>... ctxExtension) {
         var startTime = System.currentTimeMillis();
-        log.trace("startup()");
         Version.outputVersionInfo(APP_NAME);
         log.info("Starting proxy ({})...", readProxyVersion());
 
         log.trace("Loading global bean dependencies");
         loadSystemProperties();
-        loadGlobalConf();
 
         var springCtx = new AnnotationConfigApplicationContext();
         springCtx.register(ProxyConfig.class);
@@ -93,17 +88,6 @@ public class ProxyMain {
                 .load();
 
         org.apache.xml.security.Init.init();
-    }
-
-    protected void loadGlobalConf() {
-        try {
-            log.trace("loadConfigurations()");
-            if (SystemProperties.getServerConfCachePeriod() > 0) {
-                ServerConf.reload(new CachingServerConfImpl());
-            }
-        } catch (Exception e) {
-            log.error("Failed to initialize configurations", e);
-        }
     }
 
     /**

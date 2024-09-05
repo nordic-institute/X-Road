@@ -27,7 +27,8 @@ package ee.ria.xroad.proxy;
 
 import ee.ria.xroad.common.MessageLogArchiveEncryptionMember;
 import ee.ria.xroad.common.MessageLogEncryptionStatusDiagnostics;
-import ee.ria.xroad.common.conf.serverconf.ServerConf;
+import ee.ria.xroad.common.conf.globalconf.GlobalConfProvider;
+import ee.ria.xroad.common.conf.serverconf.ServerConfProvider;
 import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.messagelog.AbstractLogManager;
 import ee.ria.xroad.common.messagelog.MessageLogProperties;
@@ -52,8 +53,9 @@ public class ProxyMessageLogConfig {
     private static final GroupingStrategy ARCHIVE_GROUPING = MessageLogProperties.getArchiveGrouping();
 
     @Bean(destroyMethod = "shutdown")
-    AbstractLogManager messageLogManager(JobManager jobManager) {
-        return MessageLog.init(jobManager);
+    AbstractLogManager messageLogManager(JobManager jobManager, GlobalConfProvider globalConfProvider,
+                                         ServerConfProvider serverConfProvider) {
+        return MessageLog.init(jobManager, globalConfProvider, serverConfProvider);
     }
 
     @Bean("messageLogEnabledStatus")
@@ -62,17 +64,17 @@ public class ProxyMessageLogConfig {
     }
 
     @Bean
-    MessageLogEncryptionStatusDiagnostics messageLogEncryptionStatusDiagnostics() throws IOException {
+    MessageLogEncryptionStatusDiagnostics messageLogEncryptionStatusDiagnostics(ServerConfProvider serverConfProvider) throws IOException {
         return new MessageLogEncryptionStatusDiagnostics(
                 MessageLogProperties.isArchiveEncryptionEnabled(),
                 MessageLogProperties.isMessageLogEncryptionEnabled(),
                 ARCHIVE_GROUPING.name(),
-                getMessageLogArchiveEncryptionMembers(getMembers()));
+                getMessageLogArchiveEncryptionMembers(getMembers(serverConfProvider)));
     }
 
-    private static List<ClientId> getMembers() {
+    private List<ClientId> getMembers(ServerConfProvider serverConfProvider) {
         try {
-            return new ArrayList<>(ServerConf.getMembers());
+            return new ArrayList<>(serverConfProvider.getMembers());
         } catch (Exception e) {
             log.warn("Failed to get members from server configuration", e);
             return Collections.emptyList();

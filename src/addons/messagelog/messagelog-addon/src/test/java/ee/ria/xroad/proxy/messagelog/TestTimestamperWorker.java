@@ -25,7 +25,7 @@
  */
 package ee.ria.xroad.proxy.messagelog;
 
-import ee.ria.xroad.common.conf.globalconf.GlobalConf;
+import ee.ria.xroad.common.conf.globalconf.GlobalConfProvider;
 import ee.ria.xroad.common.signature.TimestampVerifier;
 
 import org.bouncycastle.tsp.TimeStampRequest;
@@ -37,11 +37,12 @@ import java.util.List;
 import static ee.ria.xroad.proxy.messagelog.TimestamperUtil.getTimestampResponse;
 
 class TestTimestamperWorker extends TimestamperWorker {
-
+    private final GlobalConfProvider globalConfProvider;
     private static volatile Boolean shouldFail;
 
-    TestTimestamperWorker(List<String> tspUrls) {
-        super(tspUrls);
+    TestTimestamperWorker(GlobalConfProvider globalConfProvider, List<String> tspUrls) {
+        super(globalConfProvider, tspUrls);
+        this.globalConfProvider = globalConfProvider;
     }
 
     public static void failNextTimestamping(boolean failureExpected) {
@@ -50,7 +51,7 @@ class TestTimestamperWorker extends TimestamperWorker {
 
     @Override
     protected AbstractTimestampRequest createSingleTimestampRequest(Long logRecord) {
-        return new SingleTimestampRequest(logRecord) {
+        return new SingleTimestampRequest(globalConfProvider, logRecord) {
             @Override
             protected Timestamper.TimestampResult makeTsRequest(TimeStampRequest tsRequest, List<String> tspUrls)
                     throws Exception {
@@ -74,14 +75,14 @@ class TestTimestamperWorker extends TimestamperWorker {
                 // do not validate against request
 
                 TimeStampToken token = response.getTimeStampToken();
-                TimestampVerifier.verify(token, GlobalConf.getTspCertificates());
+                TimestampVerifier.verify(token, globalConfProvider.getTspCertificates());
             }
         };
     }
 
     @Override
     protected AbstractTimestampRequest createBatchTimestampRequest(Long[] logRecords, String[] signatureHashes) {
-        return new BatchTimestampRequest(logRecords, signatureHashes) {
+        return new BatchTimestampRequest(globalConfProvider, logRecords, signatureHashes) {
             @Override
             protected Timestamper.TimestampResult makeTsRequest(TimeStampRequest tsRequest, List<String> tspUrls)
                     throws Exception {
@@ -105,7 +106,7 @@ class TestTimestamperWorker extends TimestamperWorker {
                 // do not validate against request
 
                 TimeStampToken token = response.getTimeStampToken();
-                TimestampVerifier.verify(token, GlobalConf.getTspCertificates());
+                TimestampVerifier.verify(token, globalConfProvider.getTspCertificates());
             }
         };
     }

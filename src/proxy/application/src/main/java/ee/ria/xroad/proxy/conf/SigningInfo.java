@@ -25,6 +25,7 @@
  */
 package ee.ria.xroad.proxy.conf;
 
+import ee.ria.xroad.common.conf.globalconf.GlobalConfProvider;
 import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.proxy.signedmessage.SignerSigningKey;
 
@@ -54,7 +55,7 @@ class SigningInfo extends AbstractDateValidatableInfo {
         return !(notAfter.before(atDate) || notBefore.after(atDate));
     }
 
-    SigningCtx getSigningCtx() {
-        return new SigningCtxImpl(clientId, new SignerSigningKey(keyId, signMechanismName), cert);
+    SigningCtx getSigningCtx(GlobalConfProvider globalConfProvider, KeyConfProvider keyConfProvider) {
+        return new SigningCtxImpl(globalConfProvider, keyConfProvider, clientId, new SignerSigningKey(keyId, signMechanismName), cert);
     }
 }

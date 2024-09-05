@@ -31,7 +31,7 @@ import ee.ria.xroad.common.OcspTestUtils;
 import ee.ria.xroad.common.TestCertUtil;
 import ee.ria.xroad.common.TestSecurityUtil;
 import ee.ria.xroad.common.conf.globalconf.EmptyGlobalConf;
-import ee.ria.xroad.common.conf.globalconf.GlobalConf;
+import ee.ria.xroad.common.conf.globalconf.GlobalConfProvider;
 
 import org.bouncycastle.cert.ocsp.CertificateStatus;
 import org.bouncycastle.cert.ocsp.OCSPResp;
@@ -58,9 +58,10 @@ import static org.junit.Assert.fail;
  */
 public class CertChainTest {
 
+    private static final GlobalConfProvider GLOBAL_CONF_PROVIDER = new CertChainTestGlobalConf();
+
     static {
         TestSecurityUtil.initSecurity();
-        GlobalConf.reload(new CertChainTestGlobalConf());
     }
 
     /**
@@ -245,11 +246,11 @@ public class CertChainTest {
 
     private static void verify(CertChain chain, List<OCSPResp> ocspResponses,
                                Date atDate) {
-        new CertChainVerifier(chain).verify(ocspResponses, atDate);
+        new CertChainVerifier(GLOBAL_CONF_PROVIDER, chain).verify(ocspResponses, atDate);
     }
 
     private static void verifyChainOnly(CertChain chain, Date atDate) {
-        new CertChainVerifier(chain).verifyChainOnly(atDate);
+        new CertChainVerifier(GLOBAL_CONF_PROVIDER, chain).verifyChainOnly(atDate);
     }
 
     private static Date makeDate(Date someDate, int plusDays) {

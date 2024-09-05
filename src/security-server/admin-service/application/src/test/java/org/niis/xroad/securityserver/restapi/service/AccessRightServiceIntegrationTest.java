@@ -93,11 +93,11 @@ public class AccessRightServiceIntegrationTest extends AbstractServiceIntegratio
 
     @Before
     public void setup() {
-        when(globalConfFacade.getMembers()).thenReturn(memberInfos);
-        when(globalConfFacade.getInstanceIdentifier()).thenReturn(TestUtils.INSTANCE_FI);
-        when(globalConfFacade.getInstanceIdentifiers()).thenReturn(instanceIdentifiers);
-        when(globalConfFacade.getGlobalGroups()).thenReturn(globalGroupInfos);
-        when(globalConfFacade.getGlobalGroups(any(String[].class))).thenAnswer(invocation -> {
+        when(globalConfProvider.getMembers()).thenReturn(memberInfos);
+        when(globalConfProvider.getInstanceIdentifier()).thenReturn(TestUtils.INSTANCE_FI);
+        when(globalConfProvider.getInstanceIdentifiers()).thenReturn(instanceIdentifiers);
+        when(globalConfProvider.getGlobalGroups()).thenReturn(globalGroupInfos);
+        when(globalConfProvider.getGlobalGroups(any(String[].class))).thenAnswer(invocation -> {
             Object[] args = invocation.getArguments();
             if (args.length == 0) {
                 return globalGroupInfos;

@@ -28,6 +28,7 @@ package ee.ria.xroad.proxy.testsuite;
 import ee.ria.xroad.common.SystemProperties;
 import ee.ria.xroad.common.TestCertUtil;
 import ee.ria.xroad.common.cert.CertChain;
+import ee.ria.xroad.common.cert.CertChainFactory;
 import ee.ria.xroad.common.certificateprofile.AuthCertificateProfileInfo;
 import ee.ria.xroad.common.certificateprofile.SignCertificateProfileInfo;
 import ee.ria.xroad.common.certificateprofile.impl.EjbcaSignCertificateProfileInfo;
@@ -35,6 +36,8 @@ import ee.ria.xroad.common.conf.globalconf.EmptyGlobalConf;
 import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.identifier.SecurityServerId;
 
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.security.cert.CertificateException;
 import java.security.cert.X509Certificate;
 import java.util.Arrays;
@@ -98,7 +101,7 @@ public class TestSuiteGlobalConf extends EmptyGlobalConf {
     @Override
     public CertChain getCertChain(String instanceIdentifier,
                                   X509Certificate subject) throws Exception {
-        return CertChain.create(instanceIdentifier, subject, null);
+        return new CertChainFactory(this).create(instanceIdentifier, subject, null);
     }
 
     @Override
@@ -145,5 +148,17 @@ public class TestSuiteGlobalConf extends EmptyGlobalConf {
         // For SSL connections AuthTrustManager checks that client certificate
         // belongs to some X-Road member
         return SecurityServerId.Conf.create("FI", "COM", "1111", "SS1");
+    }
+
+    @Override
+    public ClientId.Conf getSubjectName(SignCertificateProfileInfo.Parameters parameters, X509Certificate cert) throws Exception {
+        return getSignCertificateProfileInfo(parameters, cert)
+                .getSubjectIdentifier(cert);
+    }
+
+    @Override
+    public Path getInstanceFile(String fileName) {
+        return Paths.get(SystemProperties.getConfigurationPath(),
+                getInstanceIdentifier(), fileName);
     }
 }

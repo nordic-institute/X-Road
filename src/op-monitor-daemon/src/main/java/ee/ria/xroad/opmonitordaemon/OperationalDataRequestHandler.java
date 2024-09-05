@@ -26,7 +26,7 @@
 package ee.ria.xroad.opmonitordaemon;
 
 import ee.ria.xroad.common.CodedException;
-import ee.ria.xroad.common.conf.globalconf.GlobalConf;
+import ee.ria.xroad.common.conf.globalconf.GlobalConfProvider;
 import ee.ria.xroad.common.conf.monitoringconf.MonitoringConf;
 import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.identifier.SecurityServerId;
@@ -63,6 +63,7 @@ import static ee.ria.xroad.opmonitordaemon.OperationalDataOutputSpecFields.OUTPU
 @Slf4j
 @RequiredArgsConstructor
 class OperationalDataRequestHandler extends QueryRequestHandler {
+    private final GlobalConfProvider globalConfProvider;
 
     private static final int OFFSET_SECONDS =
             OpMonitoringSystemProperties.
@@ -231,13 +232,13 @@ class OperationalDataRequestHandler extends QueryRequestHandler {
 
     private boolean isMonitoringClient(ClientId clientId) {
         return clientId != null && clientId.equals(
-                MonitoringConf.getInstance().getMonitoringClient());
+                MonitoringConf.getInstance(globalConfProvider).getMonitoringClient());
     }
 
     private boolean isServerOwner(ClientId clientId, SecurityServerId serverId)
             throws Exception {
         return serverId != null
-                && clientId.equals(GlobalConf.getServerOwner(serverId));
+                && clientId.equals(globalConfProvider.getServerOwner(serverId));
     }
 
     private static long getRecordsAvailableBeforeTimestamp() {
