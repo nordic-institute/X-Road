@@ -522,8 +522,8 @@ For further details on the certificate authentication, see the
 
 #### 4.2.1 on RHEL
 
-On RHEL, we assume that default configuration files are located in the `PGDATA` directory `/var/lib/pgsql/serverconf` and `postgresql.service` is locate in `/lib/systemd/system`.
->**Note:** If the locations are different then directory `/var/lib/pgsql/serverconf` and `/lib/systemd/system` need to be replaced with your data directories in following scripts.
+On RHEL, we assume that the PostgreSQL default configuration files are located in the `PGDATA` directory `/var/lib/pgsql/serverconf`.
+>**Note:** If the location is different in your system (for example `/var/lib/pgsql/13/serverconf`), then directory `/var/lib/pgsql/serverconf` need to be replaced with your data directory (for example `/var/lib/pgsql/13/serverconf`) in following scripts.
  
 ##### 4.2.1.1 on RHEL 7
 
@@ -548,6 +548,7 @@ systemctl enable postgresql-serverconf
 ##### 4.2.1.2 on RHEL 8 and 9
 
 Create a new `systemctl` service unit for the new database. As root, make a copy for the new service
+>**Note:** We assume that the default PostgreSQL database service file is `/lib/systemd/system/postgresql.service`, but depending on the PostgreSQL installation, the service file name can be a little bit different, for example `/lib/systemd/system/postgresql-13.service`.
 
 ```bash
 cp /lib/systemd/system/postgresql.service /etc/systemd/system/postgresql-serverconf.service 
@@ -574,6 +575,14 @@ exit
 semanage port -a -t postgresql_port_t -p tcp 5433
 systemctl enable postgresql-serverconf
 ```
+* If the above `initdb` command is failing, for example:
+    ```bash
+    bash: initdb: command not found
+    ```
+    Then probably the same `initdb` command can be run with correct path, for example:
+    ```bash
+    /usr/pgsql-13/bin/initdb --auth-local=peer --auth-host=scram-sha-256 --locale=en_US.UTF-8 --encoding=UTF8 -D /var/lib/pgsql/13/serverconf/
+    ```
 
 #### 4.2.2 on Ubuntu
 
@@ -586,6 +595,7 @@ In the above command, `16` is the *postgresql major version*. Use `pg_lsclusters
 
 Edit `postgresql.conf` and set the following options:
 >* On RHEL, we assume that default configuration files are located in the `PGDATA` directory `/var/lib/pgsql/serverconf`.
+>  * **Note:** depending on the PostgreSQL installation, the configuration files can be located in different directory, for example `/var/lib/pgsql/13/serverconf`.
 >* Ubuntu keeps the config in `/etc/postgresql/<postgresql major version>/<cluster name>`, e.g. `/etc/postgresql/10/serverconf`.
 
 ```properties
@@ -672,6 +682,7 @@ Prerequisites:
 
 Go to the postgresql data directory:
  * RHEL: `/var/lib/pgsql/serverconf`
+    >**Note:** depending on the PostgreSQL installation, the configuration files can be located in different directory, for example `/var/lib/pgsql/13/serverconf`.
  * Ubuntu: `/var/lib/postgresql/<postgresql major version>/serverconf`
 
 Clear the data directory:
@@ -702,7 +713,8 @@ Where, as above, `<primary>` is the DNS or IP address of the primary node and `<
 On *Ubuntu, RHEL (PostgreSQL >=12)*, create an empty `standby.signal` file in the data directory. Set the owner of the file to `postgres:postgres`, mode `0600`.
 
 Next, modify `postgresql.conf`:
->* On RHEL, we assume that default configuration files are located in the `PGDATA` directory `/var/lib/pgql/serverconf`. 
+>* On RHEL, we assume that default configuration files are located in the `PGDATA` directory `/var/lib/pgql/serverconf`.
+>  * **Note:** depending on the PostgreSQL installation, the configuration files can be located in different directory, for example `/var/lib/pgsql/13/serverconf`.
 >* Ubuntu keeps the config in `/etc/postgresql/<postgresql major version>/<cluster name>`, e.g. `/etc/postgresql/12/serverconf`.
 ```properties
 ssl = on
