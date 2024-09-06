@@ -4,17 +4,17 @@
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
  * Copyright (c) 2015-2017 Estonian Information System Authority (RIA), Population Register Centre (VRK)
- * <p>
+ *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
  * in the Software without restriction, including without limitation the rights
  * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
  * copies of the Software, and to permit persons to whom the Software is
  * furnished to do so, subject to the following conditions:
- * <p>
+ *
  * The above copyright notice and this permission notice shall be included in
  * all copies or substantial portions of the Software.
- * <p>
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -23,9 +23,10 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
+
 package ee.ria.xroad.common.conf.globalconfextension;
 
-import ee.ria.xroad.common.conf.globalconf.GlobalConf;
+import ee.ria.xroad.common.conf.globalconf.GlobalConfProvider;
 
 import lombok.extern.slf4j.Slf4j;
 
@@ -40,12 +41,9 @@ public final class GlobalConfExtensions {
 
     // Instance per thread, same way as in GlobalGonf/GlobalConfImpl.
     // This way thread safety handling is same as in GlobalConf.
-    private static final ThreadLocal<GlobalConfExtensions> INSTANCE = new ThreadLocal<GlobalConfExtensions>() {
-        @Override
-        protected GlobalConfExtensions initialValue() {
-            return new GlobalConfExtensions();
-        }
-    };
+    private static final ThreadLocal<GlobalConfExtensions> INSTANCE = new ThreadLocal<>();
+
+    private final GlobalConfProvider globalConfProvider;
 
     private OcspNextUpdate ocspNextUpdate;
     private OcspFetchInterval ocspFetchInterval;
@@ -53,14 +51,25 @@ public final class GlobalConfExtensions {
     /**
      * @return instance
      */
-    public static GlobalConfExtensions getInstance() {
-        return INSTANCE.get();
+    public static GlobalConfExtensions getInstance(GlobalConfProvider globalConfProvider) {
+        GlobalConfExtensions instance = INSTANCE.get();
+        if (instance == null) {
+            synchronized (GlobalConfExtensions.class) {
+                instance = INSTANCE.get();
+                if (instance == null) {
+                    instance = new GlobalConfExtensions(globalConfProvider);
+                    INSTANCE.set(instance);
+                }
+            }
+        }
+        return instance;
     }
 
     /**
      * Use getInstance
      */
-    private GlobalConfExtensions() throws RuntimeException {
+    private GlobalConfExtensions(GlobalConfProvider globalConfProvider) {
+        this.globalConfProvider = globalConfProvider;
     }
 
     /**
@@ -99,11 +108,10 @@ public final class GlobalConfExtensions {
             } else if (ocspNextUpdate == null) {
                 Path ocspNextUpdatePath = getOcspNextUpdateConfigurationPath();
 
-                if (Files.exists(ocspNextUpdatePath)) {
-                    log.trace("Loading private parameters from {}",
-                            ocspNextUpdatePath);
+                if (ocspNextUpdatePath != null && Files.exists(ocspNextUpdatePath)) {
+                    log.trace("Loading private parameters from {}", ocspNextUpdatePath);
                     ocspNextUpdate = new OcspNextUpdate();
-                    ocspNextUpdate.load(getOcspNextUpdateConfigurationPath().toString());
+                    ocspNextUpdate.load(ocspNextUpdatePath.toString());
                     log.trace("Parameters were loaded, value: {}", ocspNextUpdate.shouldVerifyOcspNextUpdate());
                 } else {
                     log.trace("Not loading ocsp next update from {}, "
@@ -117,7 +125,7 @@ public final class GlobalConfExtensions {
     }
 
     private Path getOcspNextUpdateConfigurationPath() {
-        return GlobalConf.getInstanceFile(OcspNextUpdate.FILE_NAME_OCSP_NEXT_UPDATE_PARAMETERS);
+        return globalConfProvider.getInstanceFile(OcspNextUpdate.FILE_NAME_OCSP_NEXT_UPDATE_PARAMETERS);
     }
 
     private OcspFetchInterval getFetchInterval() {
@@ -128,11 +136,10 @@ public final class GlobalConfExtensions {
             } else if (ocspFetchInterval == null) {
                 Path ocspFetchIntervalPath = getOcspFetchIntervalConfigurationPath();
 
-                if (Files.exists(ocspFetchIntervalPath)) {
-                    log.trace("Loading private parameters from {}",
-                            ocspFetchIntervalPath);
+                if (ocspFetchIntervalPath != null && Files.exists(ocspFetchIntervalPath)) {
+                    log.trace("Loading private parameters from {}", ocspFetchIntervalPath);
                     ocspFetchInterval = new OcspFetchInterval();
-                    ocspFetchInterval.load(getOcspFetchIntervalConfigurationPath().toString());
+                    ocspFetchInterval.load(ocspFetchIntervalPath.toString());
                     log.trace("Parameters were loaded, value: {}", ocspFetchInterval.getOcspFetchInterval());
                 } else {
                     log.trace("Not loading ocsp fetch interval from {}, "
@@ -146,6 +153,6 @@ public final class GlobalConfExtensions {
     }
 
     private Path getOcspFetchIntervalConfigurationPath() {
-        return GlobalConf.getInstanceFile(OcspFetchInterval.FILE_NAME_OCSP_FETCH_INTERVAL_PARAMETERS);
+        return globalConfProvider.getInstanceFile(OcspFetchInterval.FILE_NAME_OCSP_FETCH_INTERVAL_PARAMETERS);
     }
 }

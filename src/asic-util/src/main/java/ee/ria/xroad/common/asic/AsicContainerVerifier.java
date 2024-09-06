@@ -26,7 +26,7 @@
 package ee.ria.xroad.common.asic;
 
 import ee.ria.xroad.common.CodedException;
-import ee.ria.xroad.common.conf.globalconf.GlobalConf;
+import ee.ria.xroad.common.conf.globalconf.GlobalConfProvider;
 import ee.ria.xroad.common.hashchain.DigestValue;
 import ee.ria.xroad.common.hashchain.HashChainReferenceResolver;
 import ee.ria.xroad.common.hashchain.HashChainVerifier;
@@ -94,6 +94,8 @@ public class AsicContainerVerifier {
         org.apache.xml.security.Init.init();
     }
 
+    private final GlobalConfProvider globalConfProvider;
+    private final OcspVerifier ocspVerifier;
     private final List<String> attachmentHashes = new ArrayList<>();
     private final AsicContainer asic;
 
@@ -112,10 +114,15 @@ public class AsicContainerVerifier {
      * Constructs a new ASiC container verifier for the ZIP file with the
      * given filename. Attempts to verify it's contents.
      *
-     * @param filename name of the ASiC container ZIP file
+     * @param globalConfProvider global conf provider
+     * @param filename           name of the ASiC container ZIP file
      * @throws Exception if the file could not be read
      */
-    public AsicContainerVerifier(String filename) throws Exception {
+    public AsicContainerVerifier(GlobalConfProvider globalConfProvider,
+                                 String filename) throws Exception {
+        this.globalConfProvider = globalConfProvider;
+        this.ocspVerifier = new OcspVerifier(globalConfProvider);
+
         try (FileInputStream in = new FileInputStream(filename)) {
             asic = AsicContainer.read(in);
         }
@@ -133,7 +140,8 @@ public class AsicContainerVerifier {
         signerName = getSigner(message);
 
         SignatureVerifier signatureVerifier =
-                new SignatureVerifier(signature,
+                new SignatureVerifier(globalConfProvider,
+                        signature,
                         signatureData.getHashChainResult(),
                         signatureData.getHashChain());
         verifyRequiredReferencesExist();
@@ -155,7 +163,7 @@ public class AsicContainerVerifier {
         OCSPResp ocsp = signatureVerifier.getSigningOcspResponse(
                 signerName.getXRoadInstance());
         ocspDate = ((BasicOCSPResp) ocsp.getResponseObject()).getProducedAt();
-        ocspCert = OcspVerifier.getOcspCert(
+        ocspCert = ocspVerifier.getOcspCert(
                 (BasicOCSPResp) ocsp.getResponseObject());
     }
 
@@ -196,12 +204,10 @@ public class AsicContainerVerifier {
     private Date verifyTimestamp() throws Exception {
         TimeStampToken tsToken = getTimeStampToken();
 
-        TimestampVerifier.verify(tsToken, getTimestampedData(),
-                GlobalConf.getTspCertificates());
+        TimestampVerifier.verify(tsToken, getTimestampedData(), globalConfProvider.getTspCertificates());
 
         timestampDate = tsToken.getTimeStampInfo().getGenTime();
-        timestampCert = TimestampVerifier.getSignerCertificate(
-                tsToken, GlobalConf.getTspCertificates());
+        timestampCert = TimestampVerifier.getSignerCertificate(tsToken, globalConfProvider.getTspCertificates());
 
         return tsToken.getTimeStampInfo().getGenTime();
     }

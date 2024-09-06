@@ -26,9 +26,15 @@
 package ee.ria.xroad.proxy.util;
 
 import ee.ria.xroad.common.CodedException;
-import ee.ria.xroad.common.conf.globalconf.GlobalConf;
-import ee.ria.xroad.common.conf.serverconf.ServerConf;
+import ee.ria.xroad.common.SystemProperties;
+import ee.ria.xroad.common.cert.CertChainFactory;
+import ee.ria.xroad.common.cert.CertHelper;
+import ee.ria.xroad.common.conf.globalconf.GlobalConfProvider;
+import ee.ria.xroad.common.conf.serverconf.IsAuthentication;
+import ee.ria.xroad.common.conf.serverconf.IsAuthenticationData;
+import ee.ria.xroad.common.conf.serverconf.ServerConfProvider;
 import ee.ria.xroad.common.conf.serverconf.model.DescriptionType;
+import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.identifier.XRoadId;
 import ee.ria.xroad.common.message.RestRequest;
 import ee.ria.xroad.common.message.SoapMessageImpl;
@@ -37,6 +43,7 @@ import ee.ria.xroad.common.util.HttpSender;
 import ee.ria.xroad.common.util.MimeUtils;
 import ee.ria.xroad.common.util.RequestWrapper;
 import ee.ria.xroad.common.util.ResponseWrapper;
+import ee.ria.xroad.proxy.conf.KeyConfProvider;
 
 import lombok.extern.slf4j.Slf4j;
 import org.apache.http.client.HttpClient;
@@ -44,15 +51,31 @@ import org.niis.xroad.proxy.ProxyMessageProcessor;
 
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.security.cert.CertificateExpiredException;
+import java.security.cert.CertificateNotYetValidException;
+import java.security.cert.X509Certificate;
+import java.util.List;
 import java.util.Optional;
 
+import static ee.ria.xroad.common.ErrorCodes.X_INTERNAL_ERROR;
 import static ee.ria.xroad.common.ErrorCodes.X_INVALID_SOAPACTION;
+import static ee.ria.xroad.common.ErrorCodes.X_SSL_AUTH_FAILED;
 
 /**
  * Base class for message processors.
  */
 @Slf4j
 public abstract class MessageProcessorBase implements ProxyMessageProcessor {
+
+    /**
+     * The servlet request.
+     */
+    protected final GlobalConfProvider globalConfProvider;
+    protected final KeyConfProvider keyConfProvider;
+    protected final ServerConfProvider serverConfProvider;
+
+    protected final CertChainFactory certChainFactory;
+    protected final CertHelper certHelper;
 
     /**
      * The servlet request.
@@ -69,14 +92,23 @@ public abstract class MessageProcessorBase implements ProxyMessageProcessor {
      */
     protected final HttpClient httpClient;
 
-    protected MessageProcessorBase(RequestWrapper request,
+    protected MessageProcessorBase(GlobalConfProvider globalConfProvider,
+                                   KeyConfProvider keyConfProvider,
+                                   ServerConfProvider serverConfProvider,
+                                   CertChainFactory certChainFactory,
+                                   RequestWrapper request,
                                    ResponseWrapper response,
                                    HttpClient httpClient) {
+        this.globalConfProvider = globalConfProvider;
+        this.certHelper = new CertHelper(globalConfProvider);
+        this.keyConfProvider = keyConfProvider;
+        this.serverConfProvider = serverConfProvider;
+        this.certChainFactory = certChainFactory;
         this.jRequest = request;
         this.jResponse = response;
         this.httpClient = httpClient;
 
-        GlobalConf.verifyValidity();
+        globalConfProvider.verifyValidity();
     }
 
     /**
@@ -135,7 +167,7 @@ public abstract class MessageProcessorBase implements ProxyMessageProcessor {
             opMonitoringData.setRepresentedParty(request.getRepresentedParty());
             opMonitoringData.setMessageProtocolVersion(String.valueOf(request.getVersion()));
             opMonitoringData.setServiceType(Optional.ofNullable(
-                    ServerConf.getDescriptionType(request.getServiceId())).orElse(DescriptionType.REST).name());
+                    serverConfProvider.getDescriptionType(request.getServiceId())).orElse(DescriptionType.REST).name());
         }
     }
 
@@ -146,8 +178,8 @@ public abstract class MessageProcessorBase implements ProxyMessageProcessor {
         return true;
     }
 
-    protected static String getSecurityServerAddress() {
-        return GlobalConf.getSecurityServerAddress(ServerConf.getIdentifier());
+    protected String getSecurityServerAddress() {
+        return globalConfProvider.getSecurityServerAddress(serverConfProvider.getIdentifier());
     }
 
     /**
@@ -199,6 +231,81 @@ public abstract class MessageProcessorBase implements ProxyMessageProcessor {
             }
         }
         return true;
+    }
+
+    /**
+     * Verifies the authentication for the client certificate.
+     *
+     * @param client the client identifier
+     * @param auth   the authentication data of the information system
+     * @throws Exception if verification fails
+     */
+    protected void verifyClientAuthentication(ClientId client,
+                                              IsAuthenticationData auth) throws Exception {
+
+        IsAuthentication isAuthentication = serverConfProvider.getIsAuthentication(client);
+        if (isAuthentication == null) {
+            // Means the client was not found in the server conf.
+            // The getIsAuthentication method implemented in ServerConfCommonImpl
+            // checks if the client exists; if it does, returns the
+            // isAuthentication value or NOSSL if no value is specified.
+            throw new CodedException(X_INTERNAL_ERROR,
+                    "Client '%s' not found", client);
+        }
+
+        log.trace("IS authentication for client '{}' is: {}", client,
+                isAuthentication);
+
+        if (isAuthentication == IsAuthentication.SSLNOAUTH
+                && auth.isPlaintextConnection()) {
+            throw new CodedException(X_SSL_AUTH_FAILED,
+                    "Client (%s) specifies HTTPS NO AUTH but client made plaintext connection", client);
+        } else if (isAuthentication == IsAuthentication.SSLAUTH) {
+            if (auth.cert() == null) {
+                throw new CodedException(X_SSL_AUTH_FAILED,
+                        "Client (%s) specifies HTTPS but did not supply"
+                                + " TLS certificate", client);
+            }
+
+            if (auth.cert().equals(serverConfProvider.getSSLKey().getCertChain()[0])) {
+                // do not check certificates for local TLS connections
+                return;
+            }
+
+            List<X509Certificate> isCerts = serverConfProvider.getIsCerts(client);
+            if (isCerts.isEmpty()) {
+                throw new CodedException(X_SSL_AUTH_FAILED,
+                        "Client (%s) has no IS certificates", client);
+            }
+
+            if (!isCerts.contains(auth.cert())) {
+                throw new CodedException(X_SSL_AUTH_FAILED,
+                        "Client (%s) TLS certificate does not match any"
+                                + " IS certificates", client);
+            }
+
+            clientIsCertPeriodValidatation(client, auth.cert());
+        }
+    }
+
+    private void clientIsCertPeriodValidatation(ClientId client, X509Certificate cert) throws CodedException {
+        try {
+            cert.checkValidity();
+        } catch (CertificateExpiredException e) {
+            if (SystemProperties.isClientIsCertValidityPeriodCheckEnforced()) {
+                throw new CodedException(X_SSL_AUTH_FAILED,
+                        "Client (%s) TLS certificate is expired", client);
+            } else {
+                log.warn("Client {} TLS certificate is expired", client);
+            }
+        } catch (CertificateNotYetValidException e) {
+            if (SystemProperties.isClientIsCertValidityPeriodCheckEnforced()) {
+                throw new CodedException(X_SSL_AUTH_FAILED,
+                        "Client (%s) TLS certificate is not yet valid", client);
+            } else {
+                log.warn("Client {} TLS certificate is not yet valid", client);
+            }
+        }
     }
 
     private static boolean validateIdentifierField(final CharSequence field) {

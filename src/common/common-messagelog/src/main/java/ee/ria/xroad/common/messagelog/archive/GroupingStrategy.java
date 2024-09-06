@@ -26,9 +26,7 @@
  */
 package ee.ria.xroad.common.messagelog.archive;
 
-import ee.ria.xroad.common.conf.globalconf.GlobalConf;
 import ee.ria.xroad.common.identifier.ClientId;
-import ee.ria.xroad.common.messagelog.MessageRecord;
 
 public enum GroupingStrategy {
     NONE {
@@ -49,11 +47,6 @@ public enum GroupingStrategy {
             return new SubsystemGrouping(clientId);
         }
     };
-
-    public Grouping forRecord(MessageRecord record) {
-        return forClient(ClientId.Conf.create(GlobalConf.getInstanceIdentifier(),
-                record.getMemberClass(), record.getMemberCode(), record.getSubsystemCode()));
-    }
 
     public abstract Grouping forClient(ClientId clientId);
 

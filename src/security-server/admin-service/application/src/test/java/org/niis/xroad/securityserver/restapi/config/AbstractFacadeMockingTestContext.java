@@ -25,10 +25,11 @@
  */
 package org.niis.xroad.securityserver.restapi.config;
 
+import ee.ria.xroad.common.conf.globalconf.GlobalConfProvider;
+
 import org.junit.runner.RunWith;
 import org.niis.xroad.confclient.proto.ConfClientRpcClient;
 import org.niis.xroad.proxy.proto.ProxyRpcClient;
-import org.niis.xroad.securityserver.restapi.facade.GlobalConfFacade;
 import org.niis.xroad.securityserver.restapi.facade.SignerProxyFacade;
 import org.niis.xroad.securityserver.restapi.service.ManagementRequestSenderService;
 import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
@@ -53,7 +54,7 @@ import org.springframework.transaction.annotation.Transactional;
 @WithMockUser
 public abstract class AbstractFacadeMockingTestContext {
     @MockBean
-    protected GlobalConfFacade globalConfFacade;
+    protected GlobalConfProvider globalConfProvider;
     @MockBean
     protected ManagementRequestSenderService managementRequestSenderService;
     @MockBean

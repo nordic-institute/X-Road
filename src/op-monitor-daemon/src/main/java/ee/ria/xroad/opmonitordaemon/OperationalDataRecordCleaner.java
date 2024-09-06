@@ -49,7 +49,7 @@ import static ee.ria.xroad.opmonitordaemon.OpMonitorDaemonDatabaseCtx.doInTransa
  */
 @Slf4j
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
-final class OperationalDataRecordCleaner {
+public final class OperationalDataRecordCleaner {
 
     /**
      * Initializes the operational data recorder cleaner creating an operational

@@ -25,6 +25,7 @@
  */
 package ee.ria.xroad.proxy.antidos;
 
+import ee.ria.xroad.common.conf.globalconf.GlobalConfProvider;
 import ee.ria.xroad.proxy.util.SystemMetrics;
 
 import lombok.extern.slf4j.Slf4j;
@@ -43,12 +44,12 @@ import java.util.concurrent.Semaphore;
 
 /**
  * This class implements a connector that prevents DoS attacks.
- *
+ * <p>
  * Since it is important to accept all incoming requests thus giving a chance
  * for non-attackers requests to be processed, we must handle the potential
  * situation of running out of free file handles (or running low on some other
  * system resources).
- *
+ * <p>
  * When the algorithm detects low resource situation, it closes a number of
  * oldest connections not yet processed. This means that an attacker who is
  * making lots of connections only gets a small amount of connections
@@ -57,42 +58,52 @@ import java.util.concurrent.Semaphore;
  */
 @Slf4j
 public class AntiDosConnector extends ServerConnector {
-
     private final AntiDosConfiguration configuration = new AntiDosConfiguration();
 
     private final Semaphore semaphore = new Semaphore(configuration.getMaxParallelConnections());
 
-    private final AntiDosConnectionManager<SocketChannelWrapperImpl> manager =
-            new AntiDosConnectionManager<>(configuration) {
-                @Override
-                void closeConnection(SocketChannelWrapperImpl sock) throws IOException {
-                    try {
-                        super.closeConnection(sock);
-                    } finally {
-                        onConnectionClosed();
-                    }
-                }
-            };
+    private final GlobalConfProvider globalConfProvider;
+    private final AntiDosConnectionManager<SocketChannelWrapperImpl> manager;
 
     /**
      * Construct a new AntiDos connector.
      *
-     * @param server the server
-     * @param acceptorCount acceptor count
+     * @param globalConfProvider global cobnf provider
+     * @param server             the server
+     * @param acceptorCount      acceptor count
      */
-    public AntiDosConnector(Server server, int acceptorCount) {
+    public AntiDosConnector(GlobalConfProvider globalConfProvider, Server server, int acceptorCount) {
         super(server, acceptorCount, -1);
+        this.globalConfProvider = globalConfProvider;
+        this.manager = createConnectionManager();
     }
 
     /**
      * Constructs a new SSL-enabled AntiDos connector.
      *
-     * @param server the server
-     * @param acceptorCount acceptor count
-     * @param sslContextFactory SSL context factory to use for configuration
+     * @param globalConfProvider global cobnf provider
+     * @param server             the server
+     * @param acceptorCount      acceptor count
+     * @param sslContextFactory  SSL context factory to use for configuration
      */
-    public AntiDosConnector(Server server, int acceptorCount, SslContextFactory.Server sslContextFactory) {
+    public AntiDosConnector(GlobalConfProvider globalConfProvider, Server server, int acceptorCount,
+                            SslContextFactory.Server sslContextFactory) {
         super(server, acceptorCount, -1, sslContextFactory);
+        this.globalConfProvider = globalConfProvider;
+        this.manager = createConnectionManager();
+    }
+
+    private AntiDosConnectionManager<SocketChannelWrapperImpl> createConnectionManager() {
+        return new AntiDosConnectionManager<>(globalConfProvider, configuration) {
+            @Override
+            void closeConnection(SocketChannelWrapperImpl sock) throws IOException {
+                try {
+                    super.closeConnection(sock);
+                } finally {
+                    onConnectionClosed();
+                }
+            }
+        };
     }
 
     @Override

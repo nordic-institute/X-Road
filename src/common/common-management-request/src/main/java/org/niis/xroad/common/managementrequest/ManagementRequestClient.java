@@ -27,7 +27,7 @@ package org.niis.xroad.common.managementrequest;
 
 import ee.ria.xroad.common.SystemProperties;
 import ee.ria.xroad.common.conf.InternalSSLKey;
-import ee.ria.xroad.common.conf.globalconf.GlobalConf;
+import ee.ria.xroad.common.conf.globalconf.GlobalConfProvider;
 import ee.ria.xroad.common.util.CryptoUtils;
 import ee.ria.xroad.common.util.HttpSender;
 import ee.ria.xroad.common.util.StartStop;
@@ -75,24 +75,18 @@ public final class ManagementRequestClient implements StartStop {
     private static final int CLIENT_MAX_TOTAL_CONNECTIONS = 100;
     private static final int CLIENT_MAX_CONNECTIONS_PER_ROUTE = 25;
 
+    private final GlobalConfProvider globalConfProvider;
+
     private CloseableHttpClient centralHttpClient;
     private CloseableHttpClient proxyHttpClient;
 
-    private static final ManagementRequestClient INSTANCE = new ManagementRequestClient();
 
-    /**
-     * @return the singleton ManagementRequestClient
-     */
-    public static ManagementRequestClient getInstance() {
-        return INSTANCE;
+    HttpSender createCentralHttpSender() {
+        return createSender(centralHttpClient);
     }
 
-    static HttpSender createCentralHttpSender() {
-        return createSender(getInstance().centralHttpClient);
-    }
-
-    static HttpSender createProxyHttpSender() {
-        return createSender(getInstance().proxyHttpClient);
+    HttpSender createProxyHttpSender() {
+        return createSender(proxyHttpClient);
     }
 
     private static HttpSender createSender(CloseableHttpClient client) {
@@ -107,7 +101,8 @@ public final class ManagementRequestClient implements StartStop {
         return httpSender;
     }
 
-    private ManagementRequestClient() {
+    ManagementRequestClient(GlobalConfProvider globalConfProvider) {
+        this.globalConfProvider = globalConfProvider;
         try {
             createCentralHttpClient();
             createProxyHttpClient();
@@ -155,7 +150,7 @@ public final class ManagementRequestClient implements StartStop {
                 X509Certificate centralServerSslCert = null;
 
                 try {
-                    centralServerSslCert = GlobalConf.getCentralServerSslCertificate();
+                    centralServerSslCert = globalConfProvider.getCentralServerSslCertificate();
                 } catch (Exception e) {
                     throw new CertificateException("Could not get central server TLS certificate from global conf", e);
                 }

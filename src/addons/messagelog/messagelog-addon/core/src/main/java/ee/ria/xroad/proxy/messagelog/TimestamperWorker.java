@@ -25,6 +25,7 @@
  */
 package ee.ria.xroad.proxy.messagelog;
 
+import ee.ria.xroad.common.conf.globalconf.GlobalConfProvider;
 import ee.ria.xroad.proxy.messagelog.Timestamper.TimestampTask;
 
 import lombok.RequiredArgsConstructor;
@@ -39,7 +40,7 @@ import java.util.List;
 @Slf4j
 @RequiredArgsConstructor
 public class TimestamperWorker {
-
+    private final GlobalConfProvider globalConfProvider;
     private final List<String> tspUrls;
 
     public Timestamper.TimestampResult timestamp(TimestampTask message) {
@@ -65,15 +66,13 @@ public class TimestamperWorker {
 
         Long[] logRecords = message.getMessageRecords();
         if (logRecords == null || logRecords.length == 0) {
-            throw new RuntimeException(
-                    "Cannot time-stamp, no log records specified");
+            throw new RuntimeException("Cannot time-stamp, no log records specified");
         }
 
         String[] signatureHashes = message.getSignatureHashes();
         if (signatureHashes == null
                 || logRecords.length != signatureHashes.length) {
-            throw new RuntimeException(
-                    "Cannot time-stamp, no signature hashes specified");
+            throw new RuntimeException("Cannot time-stamp, no signature hashes specified");
         }
 
         long start = System.currentTimeMillis();
@@ -104,14 +103,12 @@ public class TimestamperWorker {
         }
     }
 
-    protected AbstractTimestampRequest createSingleTimestampRequest(
-            Long logRecord) {
-        return new SingleTimestampRequest(logRecord);
+    protected AbstractTimestampRequest createSingleTimestampRequest(Long logRecord) {
+        return new SingleTimestampRequest(globalConfProvider, logRecord);
     }
 
-    protected AbstractTimestampRequest createBatchTimestampRequest(
-            Long[] logRecords, String[] signatureHashes) {
-        return new BatchTimestampRequest(logRecords, signatureHashes);
+    protected AbstractTimestampRequest createBatchTimestampRequest(Long[] logRecords, String[] signatureHashes) {
+        return new BatchTimestampRequest(globalConfProvider, logRecords, signatureHashes);
     }
 
 }

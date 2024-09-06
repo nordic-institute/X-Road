@@ -27,12 +27,9 @@ package ee.ria.xroad.common.util.healthcheck;
 
 import ee.ria.xroad.common.cert.CertChain;
 import ee.ria.xroad.common.conf.globalconf.AuthKey;
-import ee.ria.xroad.common.conf.globalconf.GlobalConf;
 import ee.ria.xroad.common.conf.globalconf.GlobalConfProvider;
-import ee.ria.xroad.common.conf.serverconf.ServerConf;
 import ee.ria.xroad.common.conf.serverconf.ServerConfProvider;
 import ee.ria.xroad.common.identifier.SecurityServerId;
-import ee.ria.xroad.proxy.conf.KeyConf;
 import ee.ria.xroad.proxy.conf.KeyConfProvider;
 import ee.ria.xroad.signer.SignerProxy;
 
@@ -49,13 +46,13 @@ import java.util.concurrent.TimeUnit;
 
 import static ee.ria.xroad.common.util.healthcheck.HealthCheckResult.OK;
 import static ee.ria.xroad.common.util.healthcheck.HealthCheckResult.failure;
-import static ee.ria.xroad.common.util.healthcheck.HealthChecks.cacheResultFor;
 import static org.hamcrest.CoreMatchers.containsString;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 import static org.mockito.ArgumentMatchers.notNull;
+import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.mockStatic;
 import static org.mockito.Mockito.when;
@@ -67,6 +64,12 @@ import static org.mockito.Mockito.when;
  */
 public class HealthChecksTest {
 
+    private final GlobalConfProvider globalConfProvider = mock(GlobalConfProvider.class);
+    private final KeyConfProvider keyConfProvider = mock(KeyConfProvider.class);
+    private final ServerConfProvider serverConfProvider = mock(ServerConfProvider.class);
+    private final HealthChecks healthChecks = new HealthChecks(globalConfProvider, keyConfProvider, serverConfProvider);
+
+
     @Test
     public void cacheResultOnceShouldCacheOnce() {
 
@@ -77,7 +80,7 @@ public class HealthChecksTest {
         final HealthCheckProvider mockProvider = mock(HealthCheckProvider.class);
         when(mockProvider.get()).thenReturn(expectedSecondResult);
 
-        final HealthCheckProvider testedProvider = HealthChecks.cacheResultOnce(mockProvider, expectedFirstResult);
+        final HealthCheckProvider testedProvider = healthChecks.cacheResultOnce(mockProvider, expectedFirstResult);
 
         // execute & verify
         assertEquals("first result does not match", expectedFirstResult, testedProvider.get());
@@ -105,7 +108,7 @@ public class HealthChecksTest {
         final HealthCheckProvider mockProvider = mockToReturn(expectedFirstResult, expectedThirdResult);
 
         final HealthCheckProvider testedProvider = mockProvider.map(
-                cacheResultFor(okCache, errorCache, TimeUnit.SECONDS));
+                healthChecks.cacheResultFor(okCache, errorCache, TimeUnit.SECONDS));
 
         // execute & verify
         assertEquals("first result does not match", expectedFirstResult, testedProvider.get());
@@ -128,7 +131,7 @@ public class HealthChecksTest {
         final HealthCheckProvider mockProvider = mockToReturn(expectedFirstResult, expectedThirdResult);
 
         final HealthCheckProvider testedProvider = mockProvider.map(
-                cacheResultFor(okCache, errorCache, TimeUnit.SECONDS));
+                healthChecks.cacheResultFor(okCache, errorCache, TimeUnit.SECONDS));
 
         // execute & verify
         assertEquals("first result does not match", expectedFirstResult, testedProvider.get());
@@ -161,7 +164,7 @@ public class HealthChecksTest {
             client.when(SignerProxy::isHSMOperational).thenReturn(true);
 
             // execute
-            HealthCheckProvider testedProvider = HealthChecks.checkHSMOperationStatus();
+            HealthCheckProvider testedProvider = healthChecks.checkHSMOperationStatus();
 
             // verify
             assertTrue("result should be OK", testedProvider.get().isOk());
@@ -176,7 +179,7 @@ public class HealthChecksTest {
             client.when(SignerProxy::isHSMOperational).thenReturn(false);
 
             // execute
-            HealthCheckProvider testedProvider = HealthChecks.checkHSMOperationStatus();
+            HealthCheckProvider testedProvider = healthChecks.checkHSMOperationStatus();
             HealthCheckResult checkedResult = testedProvider.get();
 
             // verify
@@ -190,13 +193,10 @@ public class HealthChecksTest {
     public void checkGlobalConfShouldReturnOkStatusWhenValid() {
 
         // prepare
-        GlobalConfProvider mockProvider = mock(GlobalConfProvider.class);
-        when(mockProvider.isValid()).thenReturn(true);
-
-        GlobalConf.reload(mockProvider);
+        when(globalConfProvider.isValid()).thenReturn(true);
 
         // execute
-        HealthCheckProvider testedProvider = HealthChecks.checkGlobalConfStatus();
+        HealthCheckProvider testedProvider = healthChecks.checkGlobalConfStatus();
 
         // verify
         assertTrue("result should be OK", testedProvider.get().isOk());
@@ -206,13 +206,10 @@ public class HealthChecksTest {
     public void checkGlobalConfShouldFailWhenNotValid() {
 
         // prepare
-        GlobalConfProvider mockProvider = mock(GlobalConfProvider.class);
-        when(mockProvider.isValid()).thenReturn(false);
-
-        GlobalConf.reload(mockProvider);
+        doThrow(new RuntimeException("Global configuration is expired")).when(globalConfProvider).verifyValidity();
 
         // execute
-        HealthCheckProvider testedProvider = HealthChecks.checkGlobalConfStatus();
+        HealthCheckProvider testedProvider = healthChecks.checkGlobalConfStatus();
         HealthCheckResult checkedResult = testedProvider.get();
 
         // verify
@@ -225,15 +222,12 @@ public class HealthChecksTest {
     public void checkServerConfShouldReturnOkStatusWhenServerConfReturnsInfo() {
 
         // prepare
-        ServerConfProvider mockProvider = mock(ServerConfProvider.class);
-        when(mockProvider.isAvailable()).thenReturn(true);
-        when(mockProvider.getIdentifier()).thenReturn(
+        when(serverConfProvider.isAvailable()).thenReturn(true);
+        when(serverConfProvider.getIdentifier()).thenReturn(
                 SecurityServerId.Conf.create("XE", "member", "code", "servercode"));
 
-        ServerConf.reload(mockProvider);
-
         // execute
-        HealthCheckProvider testedProvider = HealthChecks.checkServerConfDatabaseStatus();
+        HealthCheckProvider testedProvider = healthChecks.checkServerConfDatabaseStatus();
 
         // verify
         assertTrue("result should be OK", testedProvider.get().isOk());
@@ -243,13 +237,10 @@ public class HealthChecksTest {
     public void checkServerConfShouldReturnNotOkWhenServerConfThrows() {
 
         // prepare
-        ServerConfProvider mockProvider = mock(ServerConfProvider.class);
-        when(mockProvider.getIdentifier()).thenThrow(new RuntimeException("broken conf!"));
-
-        ServerConf.reload(mockProvider);
+        when(serverConfProvider.getIdentifier()).thenThrow(new RuntimeException("broken conf!"));
 
         // execute
-        HealthCheckProvider testedProvider = HealthChecks.checkServerConfDatabaseStatus();
+        HealthCheckProvider testedProvider = healthChecks.checkServerConfDatabaseStatus();
         HealthCheckResult checkedResult = testedProvider.get();
 
         // verify
@@ -261,13 +252,10 @@ public class HealthChecksTest {
     public void checkAuthKeyOcspStatusShouldFailWhenAuthKeyNotAvailable() {
 
         // prepare
-        KeyConfProvider mockKeyConfProvider = mock(KeyConfProvider.class);
-        when(mockKeyConfProvider.getAuthKey()).thenReturn(null);
-
-        KeyConf.reload(mockKeyConfProvider);
+        when(keyConfProvider.getAuthKey()).thenReturn(null);
 
         // execute
-        HealthCheckProvider testedProvider = HealthChecks.checkAuthKeyOcspStatus();
+        HealthCheckProvider testedProvider = healthChecks.checkAuthKeyOcspStatus();
         HealthCheckResult checkedResult = testedProvider.get();
 
         // verify
@@ -281,13 +269,10 @@ public class HealthChecksTest {
         // prepare
         AuthKey authKey = new AuthKey(null, null);
 
-        KeyConfProvider mockKeyConfProvider = mock(KeyConfProvider.class);
-        when(mockKeyConfProvider.getAuthKey()).thenReturn(authKey);
-
-        KeyConf.reload(mockKeyConfProvider);
+        when(keyConfProvider.getAuthKey()).thenReturn(authKey);
 
         // execute
-        HealthCheckProvider testedProvider = HealthChecks.checkAuthKeyOcspStatus();
+        HealthCheckProvider testedProvider = healthChecks.checkAuthKeyOcspStatus();
         HealthCheckResult checkedResult = testedProvider.get();
 
         // verify
@@ -304,13 +289,10 @@ public class HealthChecksTest {
 
         AuthKey authKey = new AuthKey(mockCertChain, null);
 
-        KeyConfProvider mockKeyConfProvider = mock(KeyConfProvider.class);
-        when(mockKeyConfProvider.getAuthKey()).thenReturn(authKey);
-
-        KeyConf.reload(mockKeyConfProvider);
+        when(keyConfProvider.getAuthKey()).thenReturn(authKey);
 
         // execute
-        HealthCheckProvider testedProvider = HealthChecks.checkAuthKeyOcspStatus();
+        HealthCheckProvider testedProvider = healthChecks.checkAuthKeyOcspStatus();
         HealthCheckResult checkedResult = testedProvider.get();
 
         // verify
@@ -322,12 +304,10 @@ public class HealthChecksTest {
     public void checkAuthKeyOcspStatusShouldFailWhenOcspStatusNotGood() throws Exception {
 
         // prepare
-        KeyConfProvider mockKeyConfProvider = createMockProviderWithOcspStatus(OCSPResp.INTERNAL_ERROR);
-
-        KeyConf.reload(mockKeyConfProvider);
+        createMockProviderWithOcspStatus(OCSPResp.INTERNAL_ERROR);
 
         // execute
-        HealthCheckProvider testedProvider = HealthChecks.checkAuthKeyOcspStatus();
+        HealthCheckProvider testedProvider = healthChecks.checkAuthKeyOcspStatus();
         HealthCheckResult checkedResult = testedProvider.get();
 
         // verify
@@ -340,18 +320,17 @@ public class HealthChecksTest {
     public void checkAuthKeyOcspStatusShouldBeOkWhenOcspStatusIsGood() throws Exception {
 
         // prepare
-        KeyConfProvider mockKeyConfProvider = createMockProviderWithOcspStatus(OCSPResp.SUCCESSFUL);
-        KeyConf.reload(mockKeyConfProvider);
+        createMockProviderWithOcspStatus(OCSPResp.SUCCESSFUL);
 
         // execute
-        HealthCheckProvider testedProvider = HealthChecks.checkAuthKeyOcspStatus();
+        HealthCheckProvider testedProvider = healthChecks.checkAuthKeyOcspStatus();
         HealthCheckResult checkedResult = testedProvider.get();
 
         // verify
         assertTrue("health check should pass", checkedResult.isOk());
     }
 
-    private static KeyConfProvider createMockProviderWithOcspStatus(int status) throws Exception {
+    private void createMockProviderWithOcspStatus(int status) throws Exception {
         X509Certificate mockCertificate = mock(X509Certificate.class);
         when(mockCertificate.getSubjectX500Principal()).thenReturn(
                 new X500Principal("CN=Duke, OU=JavaSoft, O=Sun Microsystems, C=US"));
@@ -361,14 +340,11 @@ public class HealthChecksTest {
 
         AuthKey authKey = new AuthKey(mockCertChain, null);
 
-        KeyConfProvider mockKeyConfProvider = mock(KeyConfProvider.class);
-        when(mockKeyConfProvider.getAuthKey()).thenReturn(authKey);
+        when(keyConfProvider.getAuthKey()).thenReturn(authKey);
 
         OCSPResp mockResponse = mock(OCSPResp.class);
         when(mockResponse.getStatus()).thenReturn(status);
 
-        when(mockKeyConfProvider.getOcspResponse((X509Certificate) notNull())).thenReturn(mockResponse);
-
-        return mockKeyConfProvider;
+        when(keyConfProvider.getOcspResponse((X509Certificate) notNull())).thenReturn(mockResponse);
     }
 }

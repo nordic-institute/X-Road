@@ -28,7 +28,11 @@ package ee.ria.xroad.proxy;
 import ee.ria.xroad.common.AddOnStatusDiagnostics;
 import ee.ria.xroad.common.BackupEncryptionStatusDiagnostics;
 import ee.ria.xroad.common.SystemProperties;
+import ee.ria.xroad.common.conf.globalconf.GlobalConfProvider;
+import ee.ria.xroad.common.conf.serverconf.ServerConfProvider;
 import ee.ria.xroad.common.util.healthcheck.HealthCheckPort;
+import ee.ria.xroad.common.util.healthcheck.HealthChecks;
+import ee.ria.xroad.proxy.conf.KeyConfProvider;
 
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -57,10 +61,17 @@ public class ProxyDiagnosticsConfig {
         return new AddOnStatusDiagnostics(messageLogEnabledStatus);
     }
 
+    @Bean
+    @Conditional(HealthCheckEnabledCondition.class)
+    HealthChecks healthChecks(GlobalConfProvider globalConfProvider, KeyConfProvider keyConfProvider,
+                              ServerConfProvider serverConfProvider) {
+        return new HealthChecks(globalConfProvider, keyConfProvider, serverConfProvider);
+    }
+
     @Bean(initMethod = "start", destroyMethod = "stop")
     @Conditional(HealthCheckEnabledCondition.class)
-    HealthCheckPort healthCheckPort() {
-        return new HealthCheckPort();
+    HealthCheckPort healthCheckPort(HealthChecks healthChecks) {
+        return new HealthCheckPort(healthChecks);
     }
 
     static class HealthCheckEnabledCondition implements Condition {

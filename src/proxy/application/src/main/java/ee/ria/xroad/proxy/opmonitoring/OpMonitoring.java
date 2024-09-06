@@ -26,6 +26,7 @@
 package ee.ria.xroad.proxy.opmonitoring;
 
 import ee.ria.xroad.common.SystemProperties;
+import ee.ria.xroad.common.conf.serverconf.ServerConfProvider;
 import ee.ria.xroad.common.opmonitoring.AbstractOpMonitoringBuffer;
 import ee.ria.xroad.common.opmonitoring.OpMonitoringData;
 
@@ -50,11 +51,11 @@ public final class OpMonitoring {
      *
      * @throws Exception if initialization fails
      */
-    public static AbstractOpMonitoringBuffer init() throws Exception {
+    public static AbstractOpMonitoringBuffer init(ServerConfProvider serverConfProvider) throws Exception {
         Class<? extends AbstractOpMonitoringBuffer> clazz = getOpMonitoringManagerImpl();
 
         log.trace("Using implementation class: {}", clazz);
-        opMonitoringBuffer = clazz.getDeclaredConstructor().newInstance();
+        opMonitoringBuffer = clazz.getDeclaredConstructor(ServerConfProvider.class).newInstance(serverConfProvider);
         return opMonitoringBuffer;
     }
 

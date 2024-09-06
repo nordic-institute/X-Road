@@ -26,8 +26,8 @@
 package ee.ria.xroad.proxy.conf;
 
 import ee.ria.xroad.common.cert.CertChain;
-import ee.ria.xroad.common.conf.globalconf.AuthKey;
 
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
 import javax.net.ssl.SSLEngine;
@@ -38,25 +38,17 @@ import java.security.Principal;
 import java.security.PrivateKey;
 import java.security.cert.X509Certificate;
 import java.util.List;
-import java.util.function.Supplier;
 
 /**
  * Authentication key manager used by the proxy.
  */
 @Slf4j
+@RequiredArgsConstructor
 public final class AuthKeyManager extends X509ExtendedKeyManager {
 
     private static final String ALIAS = "AuthKeyManager";
 
-    private final Supplier<AuthKey> authKeySupplier;
-
-    public AuthKeyManager() {
-        this(KeyConf::getAuthKey);
-    }
-
-    public AuthKeyManager(Supplier<AuthKey> authKeySupplier) {
-        this.authKeySupplier = authKeySupplier;
-    }
+    private final KeyConfProvider keyConfProvider;
 
     @Override
     public String chooseClientAlias(String[] keyType, Principal[] issuers,
@@ -76,10 +68,9 @@ public final class AuthKeyManager extends X509ExtendedKeyManager {
     public X509Certificate[] getCertificateChain(String alias) {
         log.trace("getCertificateChain {}", alias);
 
-        CertChain certChain = authKeySupplier.get().getCertChain();
-        List<X509Certificate> allCerts =
-                certChain.getAllCertsWithoutTrustedRoot();
-        return allCerts.toArray(new X509Certificate[allCerts.size()]);
+        CertChain certChain = keyConfProvider.getAuthKey().getCertChain();
+        List<X509Certificate> allCerts = certChain.getAllCertsWithoutTrustedRoot();
+        return allCerts.toArray(new X509Certificate[0]);
     }
 
     @Override
@@ -90,7 +81,7 @@ public final class AuthKeyManager extends X509ExtendedKeyManager {
 
     @Override
     public PrivateKey getPrivateKey(String alias) {
-        PrivateKey key = authKeySupplier.get().getKey();
+        PrivateKey key = keyConfProvider.getAuthKey().getKey();
         log.debug("getPrivateKey {} exist? {} ", alias, key != null);
         return key;
     }

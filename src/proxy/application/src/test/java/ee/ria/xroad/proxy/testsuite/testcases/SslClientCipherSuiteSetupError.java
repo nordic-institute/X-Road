@@ -31,6 +31,7 @@ import ee.ria.xroad.proxy.testsuite.SslMessageTestCase;
 import ee.ria.xroad.proxy.util.SSLContextUtil;
 
 import org.apache.commons.lang3.ArrayUtils;
+import org.springframework.context.ApplicationContext;
 
 import java.security.KeyManagementException;
 import java.security.NoSuchAlgorithmException;
@@ -55,15 +56,16 @@ public class SslClientCipherSuiteSetupError extends SslMessageTestCase {
 
     /**
      * Sets up non accepted cipher suite in use, runs getstate.query request and restores cipher suite setup
+     *
      * @throws Exception
      */
     @Override
-    public void execute() throws Exception {
+    public void execute(ApplicationContext applicationContext) throws Exception {
         try {
             // Set not accepted cipher in use
             System.setProperty(propertyName, getNotAcceptedCipher(origCipherSuites));
             // execute test
-            super.execute();
+            super.execute(applicationContext);
         } finally {
             // Restore cipher suite setup for rest of the tests
             System.setProperty(propertyName, String.join(",", origCipherSuites));
@@ -72,6 +74,7 @@ public class SslClientCipherSuiteSetupError extends SslMessageTestCase {
 
     /**
      * Underlying "javax.net.ssl.SSLHandshakeException: no cipher suites in common" cannot be validated
+     *
      * @param receivedResponse
      * @throws Exception
      */
@@ -83,7 +86,8 @@ public class SslClientCipherSuiteSetupError extends SslMessageTestCase {
 
     private String getNotAcceptedCipher(String[] acceptedCiphers) throws NoSuchAlgorithmException,
             KeyManagementException {
-        for (String cipher : SSLContextUtil.createXroadSSLContext().createSSLEngine().getSupportedCipherSuites()) {
+        var sslCtx = SSLContextUtil.createXroadSSLContext(globalConfProvider, keyConfProvider);
+        for (String cipher : sslCtx.createSSLEngine().getSupportedCipherSuites()) {
             if (cipher.contains("_RSA_") && !ArrayUtils.contains(acceptedCiphers, cipher)) {
                 return cipher;
             }

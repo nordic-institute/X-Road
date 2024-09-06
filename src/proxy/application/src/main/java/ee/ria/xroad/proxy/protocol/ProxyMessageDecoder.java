@@ -26,6 +26,7 @@
 package ee.ria.xroad.proxy.protocol;
 
 import ee.ria.xroad.common.CodedException;
+import ee.ria.xroad.common.conf.globalconf.GlobalConfProvider;
 import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.message.RestRequest;
 import ee.ria.xroad.common.message.RestResponse;
@@ -90,7 +91,7 @@ public class ProxyMessageDecoder {
     /**
      * The verifier that verifies the signature.
      */
-    private final Verifier verifier = new Verifier();
+    private final Verifier verifier;
 
     /**
      * Holds the content type.
@@ -128,25 +129,27 @@ public class ProxyMessageDecoder {
     /**
      * Construct a message decoder.
      *
-     * @param callback    the callback executed on the decoded message
-     * @param contentType expected content type of the input stream
-     * @param hashAlgoId  hash algorithm id used when hashing parts
+     * @param globalConfProvider the global configuration provider
+     * @param callback           the callback executed on the decoded message
+     * @param contentType        expected content type of the input stream
+     * @param hashAlgoId         hash algorithm id used when hashing parts
      */
-    public ProxyMessageDecoder(ProxyMessageConsumer callback,
+    public ProxyMessageDecoder(GlobalConfProvider globalConfProvider, ProxyMessageConsumer callback,
                                String contentType, String hashAlgoId) {
-        this(callback, contentType, true, hashAlgoId);
+        this(globalConfProvider, callback, contentType, true, hashAlgoId);
     }
 
     /**
      * Construct a message decoder.
      *
-     * @param callback     the callback executed on the decoded message
-     * @param contentType  expected content type of the input stream
-     * @param faultAllowed whether a SOAP fault should be parsed or an exception
-     *                     should be thrown
-     * @param hashAlgoId   hash algorithm id used when hashing parts
+     * @param globalConfProvider the global configuration provider
+     * @param callback           the callback executed on the decoded message
+     * @param contentType        expected content type of the input stream
+     * @param faultAllowed       whether a SOAP fault should be parsed or an exception
+     *                           should be thrown
+     * @param hashAlgoId         hash algorithm id used when hashing parts
      */
-    public ProxyMessageDecoder(ProxyMessageConsumer callback,
+    public ProxyMessageDecoder(GlobalConfProvider globalConfProvider, ProxyMessageConsumer callback,
                                String contentType, boolean faultAllowed, String hashAlgoId) {
         LOG.trace("new ProxyMessageDecoder({}, {})", contentType, hashAlgoId);
 
@@ -154,6 +157,7 @@ public class ProxyMessageDecoder {
         this.contentType = contentType;
         this.faultAllowed = faultAllowed;
         this.hashAlgoId = hashAlgoId;
+        this.verifier = new Verifier(globalConfProvider);
     }
 
     /**
@@ -549,5 +553,4 @@ public class ProxyMessageDecoder {
 
         return hashAlgoId;
     }
-
 }

@@ -25,14 +25,14 @@
  */
 package ee.ria.xroad.proxy;
 
-import ee.ria.xroad.common.SystemProperties;
-import ee.ria.xroad.common.conf.globalconf.GlobalConfUpdater;
 import ee.ria.xroad.common.util.JobManager;
+import ee.ria.xroad.common.util.SpringAwareJobManager;
 import ee.ria.xroad.proxy.util.ServerConfStatsLogger;
 
 import org.quartz.SchedulerException;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.scheduling.quartz.SpringBeanJobFactory;
 
 @Configuration
 public class ProxyJobConfig {
@@ -40,14 +40,16 @@ public class ProxyJobConfig {
 
 
     @Bean(initMethod = "start", destroyMethod = "stop")
-    JobManager jobManager() throws SchedulerException {
-        final var jobManager = new JobManager();
+    JobManager jobManager(SpringBeanJobFactory springBeanJobFactory) throws SchedulerException {
+        final var jobManager = new SpringAwareJobManager(springBeanJobFactory);
 
         jobManager.registerRepeatingJob(ServerConfStatsLogger.class, STATS_LOG_REPEAT_INTERVAL);
-        jobManager.registerRepeatingJob(GlobalConfUpdater.class, SystemProperties.getConfigurationClientUpdateIntervalSeconds());
 
         return jobManager;
     }
 
-
+    @Bean
+    SpringBeanJobFactory springBeanJobFactory() {
+        return new SpringBeanJobFactory();
+    }
 }

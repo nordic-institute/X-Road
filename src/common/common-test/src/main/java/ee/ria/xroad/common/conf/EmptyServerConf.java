@@ -216,6 +216,11 @@ public class EmptyServerConf implements ServerConfProvider {
         return ClientType.STATUS_REGISTERED;
     }
 
+    @Override
+    public boolean isQueryAllowed(ClientId sender, ServiceId service) {
+        return isQueryAllowed(sender, service, null, null);
+    }
+
     private XRoadRestServiceDetailsType createRestServiceDetails(ServiceId serviceId) {
         XRoadRestServiceDetailsType serviceDetails = new XRoadRestServiceDetailsType();
         serviceDetails.setXRoadInstance(serviceId.getXRoadInstance());

@@ -26,7 +26,7 @@
 package ee.ria.xroad.proxy.serverproxy;
 
 import ee.ria.xroad.common.CodedException;
-import ee.ria.xroad.common.conf.serverconf.ServerConf;
+import ee.ria.xroad.common.conf.serverconf.ServerConfProvider;
 import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.identifier.ServiceId;
 
@@ -51,18 +51,21 @@ import static ee.ria.xroad.common.ErrorCodes.X_SSL_AUTH_FAILED;
 
 @Slf4j
 class CustomSSLSocketFactory extends SSLConnectionSocketFactory {
+    private final ServerConfProvider serverConfProvider;
 
     CustomSSLSocketFactory(SSLContext sslContext,
                            String[] supportedCipherSuites,
-                           HostnameVerifier hostNameVerifier) {
+                           HostnameVerifier hostNameVerifier, ServerConfProvider serverConfProvider) {
         super(sslContext, null, supportedCipherSuites, hostNameVerifier);
+        this.serverConfProvider = serverConfProvider;
     }
 
     CustomSSLSocketFactory(SSLContext sslContext,
                            String[] supportedProtocols,
                            String[] supportedCipherSuites,
-                           HostnameVerifier hostNameVerifier) {
+                           HostnameVerifier hostNameVerifier, ServerConfProvider serverConfProvider) {
         super(sslContext, supportedProtocols, supportedCipherSuites, hostNameVerifier);
+        this.serverConfProvider = serverConfProvider;
     }
 
     @Override
@@ -88,16 +91,16 @@ class CustomSSLSocketFactory extends SSLConnectionSocketFactory {
         return connected;
     }
 
-    private static void checkServerTrusted(ServiceId service,
-                                           X509Certificate cert) throws Exception {
-        if (!ServerConf.isSslAuthentication(service)) {
+    private void checkServerTrusted(ServiceId service,
+                                    X509Certificate cert) throws Exception {
+        if (!serverConfProvider.isSslAuthentication(service)) {
             return;
         }
 
         log.trace("Verifying service TLS certificate...");
 
         ClientId client = service.getClientId();
-        List<X509Certificate> isCerts = ServerConf.getIsCerts(client);
+        List<X509Certificate> isCerts = serverConfProvider.getIsCerts(client);
         if (isCerts.isEmpty()) {
             throw new Exception(String.format(
                     "Client '%s' has no IS certificates", client));

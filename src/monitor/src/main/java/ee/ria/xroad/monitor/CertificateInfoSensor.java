@@ -26,13 +26,14 @@
 package ee.ria.xroad.monitor;
 
 import ee.ria.xroad.common.SystemProperties;
-import ee.ria.xroad.common.conf.serverconf.ServerConf;
+import ee.ria.xroad.common.conf.serverconf.ServerConfProvider;
 import ee.ria.xroad.common.util.CryptoUtils;
 import ee.ria.xroad.monitor.CertificateMonitoringInfo.CertificateType;
 import ee.ria.xroad.monitor.common.SystemMetricNames;
 import ee.ria.xroad.signer.SignerProxy;
 import ee.ria.xroad.signer.protocol.dto.TokenInfo;
 
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.scheduling.TaskScheduler;
 
@@ -68,13 +69,13 @@ public class CertificateInfoSensor extends AbstractSensor {
     /**
      * Create new CertificateInfoSensor
      */
-    public CertificateInfoSensor(TaskScheduler taskScheduler) {
+    public CertificateInfoSensor(TaskScheduler taskScheduler, ServerConfProvider serverConfProvider) {
         super(taskScheduler);
         log.info("Creating sensor, measurement interval: {}", getInterval());
 
         certificateInfoCollector = new CertificateInfoCollector()
-                .addExtractor(new InternalServerCertificateExtractor())
-                .addExtractor(new InternalTlsExtractor())
+                .addExtractor(new InternalServerCertificateExtractor(serverConfProvider))
+                .addExtractor(new InternalTlsExtractor(serverConfProvider))
                 .addExtractor(new TokenExtractor());
 
         scheduleSingleMeasurement(INITIAL_DELAY);
@@ -143,13 +144,15 @@ public class CertificateInfoSensor extends AbstractSensor {
 
     }
 
+    @RequiredArgsConstructor
     static class InternalTlsExtractor extends CertificateInfoExtractor {
+        private final ServerConfProvider serverConfProvider;
 
         @Override
         public Stream<CertificateMonitoringInfo> getCertificates() {
             try {
                 return convertToMonitoringInfo(
-                        ServerConf.getSSLKey().getCertChain()[0],
+                        serverConfProvider.getSSLKey().getCertChain()[0],
                         CertificateType.SECURITY_SERVER_TLS,
                         true);
             } catch (Exception e) {
@@ -159,11 +162,13 @@ public class CertificateInfoSensor extends AbstractSensor {
 
     }
 
+    @RequiredArgsConstructor
     static class InternalServerCertificateExtractor extends CertificateInfoExtractor {
+        private final ServerConfProvider serverConfProvider;
 
         @Override
         public Stream<CertificateMonitoringInfo> getCertificates() {
-            return ServerConf.getAllIsCerts().stream()
+            return serverConfProvider.getAllIsCerts().stream()
                     .flatMap(c -> convertToMonitoringInfo(c, CertificateType.INTERNAL_IS_CLIENT_TLS, true));
         }
 

@@ -149,7 +149,6 @@ public final class HashChainVerifier {
             throw new CodedException(X_INVALID_HASH_CHAIN_RESULT,
                     "Hash chain result does not match hash chain calculation");
         }
-
         checkReferencedInputs();
     }
 

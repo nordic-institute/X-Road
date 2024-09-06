@@ -27,7 +27,7 @@ package ee.ria.xroad.opmonitordaemon;
 
 import ee.ria.xroad.common.CodedException;
 import ee.ria.xroad.common.ErrorCodes;
-import ee.ria.xroad.common.conf.globalconf.GlobalConf;
+import ee.ria.xroad.common.conf.globalconf.GlobalConfProvider;
 import ee.ria.xroad.common.message.SoapFault;
 import ee.ria.xroad.common.message.SoapMessage;
 import ee.ria.xroad.common.message.SoapMessageDecoder;
@@ -53,7 +53,6 @@ import static ee.ria.xroad.common.opmonitoring.OpMonitoringRequests.GET_SECURITY
  */
 @Slf4j
 class QueryRequestProcessor {
-
     /**
      * The servlet request.
      */
@@ -67,17 +66,18 @@ class QueryRequestProcessor {
     private final OperationalDataRequestHandler operationalDataHandler;
     private final HealthDataRequestHandler healthDataHandler;
 
-    QueryRequestProcessor(RequestWrapper request,
+    QueryRequestProcessor(GlobalConfProvider globalConfProvider,
+                          RequestWrapper request,
                           ResponseWrapper response,
                           MetricRegistry healthMetricRegistry) {
         this.request = request;
         this.response = response;
 
-        this.operationalDataHandler = new OperationalDataRequestHandler();
+        this.operationalDataHandler = new OperationalDataRequestHandler(globalConfProvider);
         this.healthDataHandler = new HealthDataRequestHandler(
                 healthMetricRegistry);
 
-        GlobalConf.verifyValidity();
+        globalConfProvider.verifyValidity();
     }
 
     /**

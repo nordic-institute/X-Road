@@ -26,6 +26,8 @@
  */
 package ee.ria.xroad.proxy.messagelog;
 
+import ee.ria.xroad.common.conf.globalconf.GlobalConfProvider;
+import ee.ria.xroad.common.conf.serverconf.ServerConfProvider;
 import ee.ria.xroad.common.messagelog.MessageRecord;
 
 import lombok.extern.slf4j.Slf4j;
@@ -40,8 +42,8 @@ class TestLogManager extends LogManager {
     // Countdownlatch for waiting for next timestamp record save.
     private static CountDownLatch setTimestampingStatusLatch = new CountDownLatch(1);
 
-    TestLogManager(String origin) {
-        super(origin);
+    TestLogManager(String origin, GlobalConfProvider globalConfProvider, ServerConfProvider serverConfProvider) {
+        super(origin, globalConfProvider, serverConfProvider);
     }
 
     static void initSetTimestampingStatusLatch() {
@@ -52,21 +54,22 @@ class TestLogManager extends LogManager {
 
     /**
      * Tests expect that they can control when timestamping starts, as in:
+     *
      * @return
      * @Test public void timestampingFailed() throws Exception {
-     *         TestTimestamperWorker.failNextTimestamping(true);
-     *         log(createMessage(), createSignature);
-     *         log(createMessage(), createSignature());
-     *         log(createMessage(), createSignature());
-     *         assertTaskQueueSize(3);
-     *         startTimestamping();
-     *
-     *
-     *         Now if TimestamperJob starts somewhere before startTimestamping (which
-     *         is a likely outcome with the default initial delay of 1 sec) the results
-     *         will not be what the test expects.
-     *
-     *         To avoid this problem, tests have "long enough" initial delay for TimestamperJob.
+     * TestTimestamperWorker.failNextTimestamping(true);
+     * log(createMessage(), createSignature);
+     * log(createMessage(), createSignature());
+     * log(createMessage(), createSignature());
+     * assertTaskQueueSize(3);
+     * startTimestamping();
+     * <p>
+     * <p>
+     * Now if TimestamperJob starts somewhere before startTimestamping (which
+     * is a likely outcome with the default initial delay of 1 sec) the results
+     * will not be what the test expects.
+     * <p>
+     * To avoid this problem, tests have "long enough" initial delay for TimestamperJob.
      */
     @Override
     protected Duration getTimestamperJobInitialDelay() {
@@ -88,7 +91,7 @@ class TestLogManager extends LogManager {
 
     @Override
     protected TestTimestamper getTimestamperImpl() {
-        return new TestTimestamper();
+        return new TestTimestamper(globalConfProvider, serverConfProvider);
     }
 
     @Override

@@ -16,6 +16,7 @@ dependencies {
     implementation(platform(libs.springBoot.bom))
 
     implementation project(':common:common-domain')
+    implementation project(':common:common-verifier')
     implementation project(':monitor-common')
     implementation project(':signer-protocol')
     implementation project(':serverconf')

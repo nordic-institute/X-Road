@@ -25,6 +25,7 @@
  */
 package ee.ria.xroad.proxy.opmonitoring;
 
+import ee.ria.xroad.common.conf.serverconf.ServerConfProvider;
 import ee.ria.xroad.common.opmonitoring.OpMonitoringData;
 import ee.ria.xroad.common.opmonitoring.StoreOpMonitoringDataResponse;
 
@@ -74,12 +75,12 @@ class OpMonitoringBufferTest {
     @SuppressWarnings("checkstyle:FinalClass")
     private class TestOpMonitoringBuffer extends OpMonitoringBuffer {
         TestOpMonitoringBuffer() throws Exception {
-            super();
+            super(mock(ServerConfProvider.class));
         }
 
         @Override
-        OpMonitoringDaemonSender createSender() throws Exception {
-            return new OpMonitoringDaemonSender(this) {
+        OpMonitoringDaemonSender createSender(ServerConfProvider serverConfProvider) throws Exception {
+            return new OpMonitoringDaemonSender(serverConfProvider, this) {
                 @Override
                 CloseableHttpClient createHttpClient() {
                     return httpClient;
@@ -165,7 +166,7 @@ class OpMonitoringBufferTest {
 
         final TestOpMonitoringBuffer opMonitoringBuffer = new TestOpMonitoringBuffer() {
             @Override
-            OpMonitoringDaemonSender createSender() throws Exception {
+            OpMonitoringDaemonSender createSender(ServerConfProvider serverConfProvider) throws Exception {
                 var mockedSender = mock(OpMonitoringDaemonSender.class);
                 when(mockedSender.isReady()).thenReturn(false);
                 return mockedSender;

@@ -25,7 +25,10 @@
  */
 package ee.ria.xroad.proxy.serverproxy;
 
-import ee.ria.xroad.common.conf.globalconf.GlobalConf;
+import ee.ria.xroad.common.cert.CertChainFactory;
+import ee.ria.xroad.common.conf.globalconf.GlobalConfProvider;
+import ee.ria.xroad.common.conf.serverconf.ServerConfProvider;
+import ee.ria.xroad.proxy.conf.KeyConfProvider;
 
 import org.apache.http.client.HttpClient;
 import org.eclipse.jetty.http.HttpFields;
@@ -46,15 +49,16 @@ public class ServerProxyHandlerTest {
     public void shouldExecuteClientProxyVersionCheck() throws Exception {
         final var request = getMockedRequest();
         final var callback = mock(Callback.class);
-
-
-        ServerProxyHandler serverProxyHandler = new ServerProxyHandler(mock(HttpClient.class), mock(HttpClient.class));
+        var globalConfProvider = mock(GlobalConfProvider.class);
+        var keyConfProvider = mock(KeyConfProvider.class);
+        var serverConfProvider = mock(ServerConfProvider.class);
+        var certChainFactory = mock(CertChainFactory.class);
+        ServerProxyHandler serverProxyHandler = new ServerProxyHandler(globalConfProvider, keyConfProvider, serverConfProvider,
+                certChainFactory, mock(HttpClient.class), mock(HttpClient.class));
 
         try (
-                var globalConfMock = mockStatic(GlobalConf.class);
                 var checkMock = mockStatic(ClientProxyVersionVerifier.class)
         ) {
-            globalConfMock.when(GlobalConf::verifyValidity).then(invocationOnMock -> null);
             checkMock.when(() -> ClientProxyVersionVerifier.check(any()))
                     .thenAnswer(invocation -> null);
 

@@ -26,13 +26,34 @@
  */
 package org.niis.xroad.cs.registrationservice.config;
 
+import ee.ria.xroad.common.conf.globalconf.GlobalConfBeanConfig;
+import ee.ria.xroad.common.conf.globalconf.GlobalConfProvider;
+import ee.ria.xroad.common.conf.globalconf.GlobalConfRefreshJobConfig;
+
+import org.niis.xroad.common.managementrequest.ManagementRequestSoapExecutor;
+import org.niis.xroad.common.managementrequest.verify.ManagementRequestVerifier;
 import org.niis.xroad.cs.admin.client.configuration.AdminServiceClientConfiguration;
+import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
 import org.springframework.scheduling.annotation.EnableScheduling;
 
-@Import({AdminServiceClientConfiguration.class})
+@Import({
+        AdminServiceClientConfiguration.class,
+        GlobalConfBeanConfig.class,
+        GlobalConfRefreshJobConfig.class
+})
 @Configuration
 @EnableScheduling
 public class RegistrationServiceConfiguration {
+
+    @Bean
+    ManagementRequestVerifier managementRequestVerifier(GlobalConfProvider globalConfProvider) {
+        return new ManagementRequestVerifier(globalConfProvider);
+    }
+
+    @Bean
+    ManagementRequestSoapExecutor managementRequestSoapExecutor(ManagementRequestVerifier managementRequestVerifier) {
+        return new ManagementRequestSoapExecutor(managementRequestVerifier);
+    }
 }

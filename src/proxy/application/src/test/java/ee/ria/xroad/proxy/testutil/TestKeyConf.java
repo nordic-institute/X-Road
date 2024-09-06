@@ -29,10 +29,10 @@ import ee.ria.xroad.common.ErrorCodes;
 import ee.ria.xroad.common.OcspTestUtils;
 import ee.ria.xroad.common.TestCertUtil;
 import ee.ria.xroad.common.TestCertUtil.PKCS12;
-import ee.ria.xroad.common.cert.CertChain;
 import ee.ria.xroad.common.conf.EmptyKeyConf;
+import ee.ria.xroad.common.cert.CertChainFactory;
 import ee.ria.xroad.common.conf.globalconf.AuthKey;
-import ee.ria.xroad.common.conf.globalconf.GlobalConf;
+import ee.ria.xroad.common.conf.globalconf.GlobalConfProvider;
 import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.ocsp.OcspVerifier;
 import ee.ria.xroad.common.ocsp.OcspVerifierOptions;
@@ -41,6 +41,7 @@ import ee.ria.xroad.proxy.conf.SigningCtx;
 import ee.ria.xroad.proxy.conf.SigningCtxProvider;
 import ee.ria.xroad.proxy.util.TestUtil;
 
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.bouncycastle.cert.ocsp.CertificateStatus;
 import org.bouncycastle.cert.ocsp.OCSPResp;
@@ -58,8 +59,9 @@ import static ee.ria.xroad.common.util.CryptoUtils.calculateCertHexHash;
  * Test keyconf implementation.
  */
 @Slf4j
+@RequiredArgsConstructor
 public class TestKeyConf extends EmptyKeyConf {
-
+    private final GlobalConfProvider globalConfProvider;
     Map<String, SigningCtx> signingCtx = new HashMap<>();
     Map<String, OCSPResp> ocspResponses = new HashMap<>();
 
@@ -79,7 +81,8 @@ public class TestKeyConf extends EmptyKeyConf {
     @Override
     public AuthKey getAuthKey() {
         PKCS12 consumer = TestCertUtil.getConsumer();
-        return new AuthKey(CertChain.create("EE", consumer.certChain[0], null), consumer.key);
+        return new AuthKey(new CertChainFactory(globalConfProvider)
+                .create("EE", consumer.certChain[0], null), consumer.key);
     }
 
     @Override
@@ -100,13 +103,13 @@ public class TestKeyConf extends EmptyKeyConf {
             try {
                 Date thisUpdate = Date.from(TimeUtils.now().plus(1, ChronoUnit.DAYS));
                 OCSPResp resp = OcspTestUtils.createOCSPResponse(cert,
-                        GlobalConf.getCaCert("EE", cert), getOcspSignerCert(),
+                        globalConfProvider.getCaCert("EE", cert), getOcspSignerCert(),
                         getOcspRequestKey(), CertificateStatus.GOOD,
                         thisUpdate, null);
-                OcspVerifier verifier = new OcspVerifier(GlobalConf.getOcspFreshnessSeconds(),
+                OcspVerifier verifier = new OcspVerifier(globalConfProvider,
                         new OcspVerifierOptions(true));
                 verifier.verifyValidityAndStatus(resp, cert,
-                        GlobalConf.getCaCert("EE", cert));
+                        globalConfProvider.getCaCert("EE", cert));
                 ocspResponses.put(certHash, resp);
             } catch (Exception e) {
                 log.error("Error when creating OCSP response", e);

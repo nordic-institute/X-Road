@@ -176,4 +176,9 @@ public class EmptyServerConf implements ServerConfProvider {
         return null;
     }
 
+    @Override
+    public boolean isQueryAllowed(ClientId sender, ServiceId service) {
+        return isQueryAllowed(sender, service, null, null);
+    }
+
 }

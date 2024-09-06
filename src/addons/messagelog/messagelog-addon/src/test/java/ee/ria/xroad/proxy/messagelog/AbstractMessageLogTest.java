@@ -26,6 +26,9 @@
 package ee.ria.xroad.proxy.messagelog;
 
 import ee.ria.xroad.common.SystemProperties;
+import ee.ria.xroad.common.cert.CertChainFactory;
+import ee.ria.xroad.common.conf.globalconf.GlobalConfProvider;
+import ee.ria.xroad.common.conf.serverconf.ServerConfProvider;
 import ee.ria.xroad.common.message.RestRequest;
 import ee.ria.xroad.common.message.SoapMessageImpl;
 import ee.ria.xroad.common.messagelog.AbstractLogManager;
@@ -38,6 +41,7 @@ import ee.ria.xroad.common.signature.SignatureData;
 import ee.ria.xroad.common.util.CacheInputStream;
 import ee.ria.xroad.messagelog.archiver.LogArchiver;
 import ee.ria.xroad.messagelog.archiver.LogCleaner;
+import ee.ria.xroad.proxy.conf.KeyConfProvider;
 
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.FileUtils;
@@ -48,6 +52,8 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 
+import static ee.ria.xroad.proxy.messagelog.TestUtil.getGlobalConf;
+import static ee.ria.xroad.proxy.messagelog.TestUtil.getServerConf;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
@@ -55,6 +61,11 @@ import static org.mockito.Mockito.mock;
 
 @Slf4j
 abstract class AbstractMessageLogTest {
+
+    GlobalConfProvider globalConfProvider;
+    KeyConfProvider keyConfProvider;
+    TestServerConfWrapper serverConfProvider;
+    CertChainFactory certChainFactory;
 
     LogManager logManager;
 
@@ -72,16 +83,22 @@ abstract class AbstractMessageLogTest {
         System.setProperty(SystemProperties.TEMP_FILES_PATH, "build/tmp");
         System.setProperty(MessageLogProperties.ARCHIVE_PATH, archivesDir);
 
+        globalConfProvider = getGlobalConf();
+        keyConfProvider = mock(KeyConfProvider.class);
+        serverConfProvider = new TestServerConfWrapper(getServerConf());
+
         System.setProperty(MessageLogProperties.TIMESTAMP_IMMEDIATELY, timestampImmediately ? "true" : "false");
 
         System.setProperty(MessageLogProperties.MESSAGE_BODY_LOGGING_ENABLED, "true");
 
-        logManager = (LogManager) getLogManagerImpl().getDeclaredConstructor(String.class).newInstance("test");
+        logManager = (LogManager) getLogManagerImpl()
+                .getDeclaredConstructor(String.class, GlobalConfProvider.class, ServerConfProvider.class)
+                .newInstance("test", globalConfProvider, serverConfProvider);
 
         if (!Files.exists(archivesPath)) {
             Files.createDirectory(archivesPath);
         }
-        logArchiverRef = new TestLogArchiver();
+        logArchiverRef = new TestLogArchiver(globalConfProvider);
         logCleanerRef = new TestLogCleaner();
     }
 

@@ -27,7 +27,7 @@ package ee.ria.xroad.common.messagelog.archive;
 
 import ee.ria.xroad.common.SystemProperties;
 import ee.ria.xroad.common.conf.globalconf.EmptyGlobalConf;
-import ee.ria.xroad.common.conf.globalconf.GlobalConf;
+import ee.ria.xroad.common.conf.globalconf.GlobalConfProvider;
 import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.messagelog.LogRecord;
 import ee.ria.xroad.common.messagelog.MessageLogProperties;
@@ -63,6 +63,8 @@ public class LogArchiveTest {
     private static boolean rotated;
     private long recordNo;
 
+    private GlobalConfProvider globalConfProvider;
+
     @Parameterized.Parameter(0)
     public boolean encrypted;
 
@@ -88,12 +90,12 @@ public class LogArchiveTest {
      */
     @Before
     public void beforeTest() throws Exception {
-        GlobalConf.reload(new EmptyGlobalConf() {
+        globalConfProvider = new EmptyGlobalConf() {
             @Override
             public String getInstanceIdentifier() {
                 return "INSTANCE";
             }
-        });
+        };
 
         if (encrypted) {
             Assume.assumeTrue(Files.isExecutable(Paths.get("/usr/bin/gpg")));
@@ -164,7 +166,7 @@ public class LogArchiveTest {
     }
 
     private LogArchiveWriter getWriter() throws IOException {
-        return new LogArchiveWriter(
+        return new LogArchiveWriter(globalConfProvider,
                 Paths.get("build/slog"),
                 dummyLogArchiveBase()) {
 
@@ -201,7 +203,7 @@ public class LogArchiveTest {
         MessageRecord record = new MessageRecord("qid" + recordNo, "msg" + recordNo,
                 "<asic:XAdESSignatures xmlns:asic=\"http://uri.etsi.org/02918/v1.1.1#\" xmlns:ds=\"http://www.w3.org/2000/09/xmldsig#\">"
                         + "<ds:Signature/></asic:XAdESSignatures>",
-                false, ClientId.Conf.create(GlobalConf.getInstanceIdentifier(), "memberClass", "memberCode", "subsystemCode"),
+                false, ClientId.Conf.create(globalConfProvider.getInstanceIdentifier(), "memberClass", "memberCode", "subsystemCode"),
                 "92060130-3ba8-4e35-89e2-41b90aac074b", "test");
         record.setId(recordNo);
         record.setTime((long) (Math.random() * 100000L));

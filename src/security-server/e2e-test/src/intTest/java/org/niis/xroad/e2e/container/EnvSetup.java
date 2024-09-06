@@ -115,7 +115,7 @@ public class EnvSetup implements TestableContainerInitializer {
                             .orElse(false);
                 });
 
-        var gracePeriod = Duration.ofSeconds(30);
+        var gracePeriod = Duration.ofSeconds(60); //match globalconf refresh
         log.info("Waiting grace period of {} before continuing..", gracePeriod);
         await().pollDelay(gracePeriod).timeout(gracePeriod.plusMinutes(1)).until(() -> true);
     }

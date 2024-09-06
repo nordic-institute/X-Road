@@ -65,8 +65,8 @@ public class SecurityServersApiControllerTest extends AbstractApiControllerTestC
         // securityServerExists = true when parameter = EXISTING_SERVER_ID
         doAnswer(invocation -> invocation.getArguments()[0].equals(EXISTING_SERVER_ID))
                 .when(globalConfService).securityServerExists(any());
-        when(globalConfFacade.getSecurityServerAddress(any())).thenReturn(SERVER_ADDRESS);
-        when(globalConfFacade.getSecurityServers())
+        when(globalConfProvider.getSecurityServerAddress(any())).thenReturn(SERVER_ADDRESS);
+        when(globalConfProvider.getSecurityServers())
                 .thenReturn(Arrays.asList(EXISTING_SERVER_ID, OWNER_SERVER_ID));
         when(serverConfService.getSecurityServerId()).thenReturn(OWNER_SERVER_ID);
         when(currentSecurityServerId.getServerId()).thenReturn(OWNER_SERVER_ID);

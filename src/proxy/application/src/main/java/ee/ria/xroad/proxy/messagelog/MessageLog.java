@@ -27,6 +27,8 @@ package ee.ria.xroad.proxy.messagelog;
 
 import ee.ria.xroad.common.DiagnosticsStatus;
 import ee.ria.xroad.common.SystemProperties;
+import ee.ria.xroad.common.conf.globalconf.GlobalConfProvider;
+import ee.ria.xroad.common.conf.serverconf.ServerConfProvider;
 import ee.ria.xroad.common.message.RestRequest;
 import ee.ria.xroad.common.message.RestResponse;
 import ee.ria.xroad.common.message.SoapMessageImpl;
@@ -60,16 +62,18 @@ public final class MessageLog {
     /**
      * Initializes the message log using the provided actor system. Use control aware mailbox.
      *
-     * @param origin the origin of the log messages
+     * @param globalConfProvider global conf source provider
      * @return LogManager instance
      */
-    public static AbstractLogManager init(String origin) {
+    public static AbstractLogManager init(GlobalConfProvider globalConfProvider,
+                                          ServerConfProvider serverConfProvider) {
         Class<? extends AbstractLogManager> clazz = getLogManagerImpl();
 
         log.trace("Using implementation class: {}", clazz);
 
         try {
-            logManager = clazz.getDeclaredConstructor(String.class).newInstance(origin);
+            logManager = clazz.getDeclaredConstructor(GlobalConfProvider.class, ServerConfProvider.class)
+                    .newInstance(globalConfProvider, serverConfProvider);
         } catch (Exception e) {
             throw new RuntimeException("Failed to initialize LogManager", e);
         }

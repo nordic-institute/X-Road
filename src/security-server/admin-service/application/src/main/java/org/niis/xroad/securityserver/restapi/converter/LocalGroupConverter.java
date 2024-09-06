@@ -25,6 +25,7 @@
  */
 package org.niis.xroad.securityserver.restapi.converter;
 
+import ee.ria.xroad.common.conf.globalconf.GlobalConfProvider;
 import ee.ria.xroad.common.conf.serverconf.model.GroupMemberType;
 import ee.ria.xroad.common.conf.serverconf.model.LocalGroupType;
 import ee.ria.xroad.common.identifier.LocalGroupId;
@@ -33,7 +34,6 @@ import com.google.common.collect.Streams;
 import lombok.RequiredArgsConstructor;
 import org.niis.xroad.restapi.converter.ClientIdConverter;
 import org.niis.xroad.restapi.util.FormatUtils;
-import org.niis.xroad.securityserver.restapi.facade.GlobalConfFacade;
 import org.niis.xroad.securityserver.restapi.openapi.model.GroupMember;
 import org.niis.xroad.securityserver.restapi.openapi.model.LocalGroup;
 import org.niis.xroad.securityserver.restapi.openapi.model.LocalGroupAdd;
@@ -52,7 +52,7 @@ import static ee.ria.xroad.common.identifier.XRoadId.ENCODED_ID_SEPARATOR;
 @RequiredArgsConstructor
 public class LocalGroupConverter {
 
-    private final GlobalConfFacade globalConfFacade;
+    private final GlobalConfProvider globalConfProvider;
 
     private ClientIdConverter clientIdConverter = new ClientIdConverter();
 
@@ -141,7 +141,7 @@ public class LocalGroupConverter {
         GroupMember groupMember = new GroupMember();
         groupMember.setId(clientIdConverter.convertId(groupMemberType.getGroupMemberId()));
         groupMember.setCreatedAt(FormatUtils.fromDateToOffsetDateTime(groupMemberType.getAdded()));
-        groupMember.setName(globalConfFacade.getMemberName(groupMemberType.getGroupMemberId()));
+        groupMember.setName(globalConfProvider.getMemberName(groupMemberType.getGroupMemberId()));
         return groupMember;
     }
 

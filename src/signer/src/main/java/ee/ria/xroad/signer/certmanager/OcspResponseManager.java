@@ -25,15 +25,19 @@
  */
 package ee.ria.xroad.signer.certmanager;
 
+import ee.ria.xroad.common.conf.globalconf.GlobalConfProvider;
 import ee.ria.xroad.signer.protocol.message.GetOcspResponses;
 import ee.ria.xroad.signer.protocol.message.GetOcspResponsesResponse;
 import ee.ria.xroad.signer.tokenmanager.TokenManager;
-import ee.ria.xroad.signer.util.SignerUtil;
 
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.bouncycastle.cert.ocsp.OCSPResp;
+import org.bouncycastle.operator.OperatorCreationException;
 import org.niis.xroad.signer.proto.SetOcspResponsesReq;
 
+import java.io.IOException;
+import java.security.cert.CertificateEncodingException;
 import java.security.cert.X509Certificate;
 import java.util.Map.Entry;
 
@@ -58,15 +62,21 @@ import static ee.ria.xroad.common.util.CryptoUtils.encodeBase64;
  * loaded from disk, if it exists and is cached in memory as well.
  */
 @Slf4j
+@RequiredArgsConstructor
 public class OcspResponseManager {
+    private final GlobalConfProvider globalConfProvider;
+    private final OcspClient ocspClient;
 
-    /** Maps a certificate hash to an OCSP response. */
-    private final FileBasedOcspCache responseCache = new FileBasedOcspCache();
+    /**
+     * Maps a certificate hash to an OCSP response.
+     */
+    private final FileBasedOcspCache responseCache;
 
     // ------------------------------------------------------------------------
 
     /**
      * Utility method for getting OCSP response for a certificate.
+     *
      * @param cert the certificate
      * @return OCSP response as byte array
      * @throws Exception if an error occurs
@@ -77,6 +87,7 @@ public class OcspResponseManager {
 
     /**
      * Utility method for getting OCSP response for a certificate hash.
+     *
      * @param certHash the certificate hash
      * @return OCSP response as byte array
      * @throws Exception if an error occurs
@@ -139,7 +150,7 @@ public class OcspResponseManager {
     private OCSPResp downloadOcspResponse(String certHash) throws Exception {
         log.trace("downloadOcspResponse({})", certHash);
 
-        X509Certificate cert = SignerUtil.getCertForCertHash(certHash);
+        X509Certificate cert = getCertForCertHash(certHash);
         if (cert == null) {
             log.warn("Could not find certificate for hash {}", certHash);
             // unknown certificate
@@ -148,7 +159,7 @@ public class OcspResponseManager {
 
         try {
             log.debug("Downloading a new OCSP response for certificate {}", cert.getIssuerX500Principal());
-            return OcspClient.queryCertStatus(cert);
+            return ocspClient.queryCertStatus(cert);
         } catch (Exception e) {
             log.error("Error downloading OCSP response for certificate "
                     + cert.getSubjectX500Principal().getName()
@@ -184,4 +195,26 @@ public class OcspResponseManager {
         }
     }
 
+    /**
+     * @param certSha1Hash the certificate SHA-1 hash in HEX
+     * @return certificate matching certHash
+     * @throws CertificateEncodingException if a certificate encoding error occurs
+     * @throws OperatorCreationException    if digest calculator cannot be created
+     * @throws IOException                  if an I/O error occurred
+     */
+    private X509Certificate getCertForCertHash(String certSha1Hash)
+            throws CertificateEncodingException, IOException, OperatorCreationException {
+        X509Certificate cert = TokenManager.getCertificateForCerHash(certSha1Hash);
+        if (cert != null) {
+            return cert;
+        }
+
+        // not in key conf, look elsewhere
+        for (X509Certificate caCert : globalConfProvider.getAllCaCerts()) {
+            if (certSha1Hash.equals(calculateCertSha1HexHash(caCert))) {
+                return caCert;
+            }
+        }
+        return null;
+    }
 }

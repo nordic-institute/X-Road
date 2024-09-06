@@ -26,9 +26,13 @@
 package ee.ria.xroad.proxy.clientproxy;
 
 import ee.ria.xroad.common.SystemProperties;
+import ee.ria.xroad.common.cert.CertChainFactory;
+import ee.ria.xroad.common.conf.globalconf.GlobalConfProvider;
+import ee.ria.xroad.common.conf.serverconf.ServerConfProvider;
 import ee.ria.xroad.common.db.HibernateUtil;
 import ee.ria.xroad.common.util.CryptoUtils;
 import ee.ria.xroad.common.util.StartStop;
+import ee.ria.xroad.proxy.conf.KeyConfProvider;
 
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
@@ -59,8 +63,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
-import static ee.ria.xroad.proxy.clientproxy.HandlerLoader.loadHandler;
-
 /**
  * Client proxy that handles requests of service clients.
  */
@@ -78,11 +80,19 @@ public class ClientProxy implements StartStop {
     private static final String CLIENT_HTTP_CONNECTOR_NAME = "ClientConnector";
     private static final String CLIENT_HTTPS_CONNECTOR_NAME = "ClientSSLConnector";
 
+    private final GlobalConfProvider globalConfProvider;
+    private final KeyConfProvider keyConfProvider;
+    private final ServerConfProvider serverConfProvider;
+    private final CertChainFactory certChainFactory;
+
+    private final AuthTrustVerifier authTrustVerifier;
+
     private final Server server = new Server();
 
     private final HttpClient client;
     private final ClientRestMessageHandler clientRestMessageHandler;
     private final ClientSoapMessageHandler clientSoapMessageHandler;
+
 
     /**
      * Constructs and configures a new client proxy.
@@ -91,10 +101,21 @@ public class ClientProxy implements StartStop {
      */
     public ClientProxy(HttpClient httpClient,
                        ClientRestMessageHandler clientRestMessageHandler,
-                       ClientSoapMessageHandler clientSoapMessageHandler) throws Exception {
+                       ClientSoapMessageHandler clientSoapMessageHandler,
+                       GlobalConfProvider globalConfProvider,
+                       KeyConfProvider keyConfProvider,
+                       ServerConfProvider serverConfProvider,
+                       CertChainFactory certChainFactory,
+                       AuthTrustVerifier authTrustVerifier) throws Exception {
         this.client = httpClient;
         this.clientRestMessageHandler = clientRestMessageHandler;
         this.clientSoapMessageHandler = clientSoapMessageHandler;
+
+        this.globalConfProvider = globalConfProvider;
+        this.keyConfProvider = keyConfProvider;
+        this.serverConfProvider = serverConfProvider;
+        this.certChainFactory = certChainFactory;
+        this.authTrustVerifier = authTrustVerifier;
 
         configureServer();
         createConnectors();
@@ -115,7 +136,6 @@ public class ClientProxy implements StartStop {
                 + " \"%{X-Forwarded-For}i\"");
         server.setRequestLog(reqLog);
     }
-
 
     private void createConnectors() throws Exception {
         log.trace("createConnectors()");
@@ -154,7 +174,7 @@ public class ClientProxy implements StartStop {
         cf.setIncludeCipherSuites(SystemProperties.getProxyClientTLSCipherSuites());
 
         SSLContext ctx = SSLContext.getInstance(CryptoUtils.SSL_PROTOCOL);
-        ctx.init(new KeyManager[]{new ClientSslKeyManager()}, new TrustManager[]{new ClientSslTrustManager()},
+        ctx.init(new KeyManager[]{new ClientSslKeyManager(serverConfProvider)}, new TrustManager[]{new ClientSslTrustManager()},
                 new SecureRandom());
 
         cf.setSslContext(ctx);
@@ -201,14 +221,15 @@ public class ClientProxy implements StartStop {
         List<Handler> handlers = new ArrayList<>();
         String handlerClassNames = System.getProperty(CLIENTPROXY_HANDLERS);
 
-        handlers.add(clientRestMessageHandler);
+        handlers.add(new ClientRestMessageHandler(globalConfProvider, keyConfProvider, serverConfProvider, certChainFactory, client));
 
         if (!StringUtils.isBlank(handlerClassNames)) {
+            var handlerLoader = new HandlerLoader(globalConfProvider, keyConfProvider, serverConfProvider, certChainFactory);
             for (String handlerClassName : handlerClassNames.split(",")) {
                 try {
                     log.trace("Loading client handler {}", handlerClassName);
 
-                    handlers.add(loadHandler(handlerClassName, client));
+                    handlers.add(handlerLoader.loadHandler(handlerClassName, client));
                 } catch (Exception e) {
                     throw new RuntimeException("Failed to load client handler: " + handlerClassName, e);
                 }
@@ -216,7 +237,8 @@ public class ClientProxy implements StartStop {
         }
 
         log.trace("Loading default client handler");
-        handlers.add(clientSoapMessageHandler); // default handler
+        handlers.add(new ClientMessageHandler(globalConfProvider, keyConfProvider, serverConfProvider,
+                certChainFactory, client)); // default handler
 
         return handlers;
     }

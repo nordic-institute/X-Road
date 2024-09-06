@@ -28,8 +28,8 @@ package ee.ria.xroad.proxy.conf;
 import ee.ria.xroad.common.CodedException;
 import ee.ria.xroad.common.cert.CertChain;
 import ee.ria.xroad.common.conf.globalconf.AuthKey;
-import ee.ria.xroad.common.conf.globalconf.GlobalConf;
-import ee.ria.xroad.common.conf.serverconf.ServerConf;
+import ee.ria.xroad.common.conf.globalconf.GlobalConfProvider;
+import ee.ria.xroad.common.conf.serverconf.ServerConfProvider;
 import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.identifier.SecurityServerId;
 import ee.ria.xroad.signer.SignerProxy;
@@ -64,6 +64,13 @@ import static ee.ria.xroad.proxy.conf.CachingKeyConfImpl.calculateNotAfter;
 @Slf4j
 @NoArgsConstructor(access = AccessLevel.PACKAGE)
 class KeyConfImpl implements KeyConfProvider {
+    protected final GlobalConfProvider globalConfProvider;
+    protected final ServerConfProvider serverConfProvider;
+
+    KeyConfImpl(GlobalConfProvider globalConfProvider, ServerConfProvider serverConfProvider) {
+        this.globalConfProvider = globalConfProvider;
+        this.serverConfProvider = serverConfProvider;
+    }
 
     @Override
     public SigningInfo getSigningInfo(ClientId clientId) {
@@ -93,7 +100,7 @@ class KeyConfImpl implements KeyConfProvider {
         PrivateKey pkey = null;
         CertChain certChain = null;
         try {
-            SecurityServerId serverId = ServerConf.getIdentifier();
+            SecurityServerId serverId = serverConfProvider.getIdentifier();
             log.debug("Retrieving authentication info for security "
                     + "server '{}'", serverId);
 
@@ -167,10 +174,9 @@ class KeyConfImpl implements KeyConfProvider {
                                       byte[] authCertBytes) {
         X509Certificate authCert = readCertificate(authCertBytes);
         try {
-            return GlobalConf.getCertChain(instanceIdentifier, authCert);
+            return globalConfProvider.getCertChain(instanceIdentifier, authCert);
         } catch (Exception e) {
-            log.error("Failed to get cert chain for certificate "
-                    + authCert.getSubjectDN(), e);
+            log.error("Failed to get cert chain for certificate {}", authCert.getSubjectX500Principal(), e);
         }
 
         return null;

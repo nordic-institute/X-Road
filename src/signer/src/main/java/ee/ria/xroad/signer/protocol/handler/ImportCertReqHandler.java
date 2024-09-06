@@ -27,8 +27,9 @@ package ee.ria.xroad.signer.protocol.handler;
 
 import ee.ria.xroad.common.CodedException;
 import ee.ria.xroad.common.cert.CertChain;
+import ee.ria.xroad.common.cert.CertChainFactory;
 import ee.ria.xroad.common.cert.CertChainVerifier;
-import ee.ria.xroad.common.conf.globalconf.GlobalConf;
+import ee.ria.xroad.common.conf.globalconf.GlobalConfProvider;
 import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.util.CertUtils;
 import ee.ria.xroad.signer.certmanager.OcspResponseManager;
@@ -69,7 +70,9 @@ import static ee.ria.xroad.common.util.CryptoUtils.readCertificate;
 @RequiredArgsConstructor
 public class ImportCertReqHandler extends AbstractRpcHandler<ImportCertReq, ImportCertResp> {
     private final DeleteCertRequestReqHandler deleteCertRequestReqHandler;
+    private final GlobalConfProvider globalConfProvider;
     private final OcspResponseManager ocspResponseManager;
+    private final CertChainFactory certChainFactory;
 
     @Override
     protected ImportCertResp handle(ImportCertReq request) throws Exception {
@@ -220,11 +223,11 @@ public class ImportCertReqHandler extends AbstractRpcHandler<ImportCertReq, Impo
             return;
         }
 
-        GlobalConf.verifyValidity();
+        globalConfProvider.verifyValidity();
         try {
-            CertChain chain = CertChain.create(
-                    GlobalConf.getInstanceIdentifier(), cert, null);
-            new CertChainVerifier(chain).verifyChainOnly(new Date());
+            CertChain chain = certChainFactory.create(
+                    globalConfProvider.getInstanceIdentifier(), cert, null);
+            new CertChainVerifier(globalConfProvider, chain).verifyChainOnly(new Date());
         } catch (Exception e) {
             log.error("Failed to import certificate", e);
             throw CodedException.tr(X_CERT_IMPORT_FAILED,

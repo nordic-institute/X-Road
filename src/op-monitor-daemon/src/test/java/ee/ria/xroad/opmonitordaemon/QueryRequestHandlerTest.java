@@ -25,6 +25,7 @@
  */
 package ee.ria.xroad.opmonitordaemon;
 
+import ee.ria.xroad.common.conf.globalconf.GlobalConfProvider;
 import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.identifier.SecurityServerId;
 import ee.ria.xroad.common.identifier.ServiceId;
@@ -61,6 +62,7 @@ import java.util.Set;
 import static ee.ria.xroad.opmonitordaemon.OperationalDataTestUtil.OBJECT_READER;
 import static ee.ria.xroad.opmonitordaemon.OperationalDataTestUtil.formatFullOperationalDataAsJson;
 import static org.junit.Assert.assertEquals;
+import static org.mockito.Mockito.mock;
 
 /**
  * Tests for verifying query request handler behavior.
@@ -96,7 +98,7 @@ public class QueryRequestHandlerTest {
         SoapMessageImpl request = (SoapMessageImpl) parser.parse(
                 MimeTypes.TEXT_XML_UTF8, is);
 
-        QueryRequestHandler handler = new OperationalDataRequestHandler() {
+        QueryRequestHandler handler = new OperationalDataRequestHandler(mock(GlobalConfProvider.class)) {
             @Override
             protected OperationalDataRecords getOperationalDataRecords(
                     ClientId filterByClient, long recordsFrom, long recordsTo,

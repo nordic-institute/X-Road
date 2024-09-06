@@ -25,17 +25,26 @@
  */
 package ee.ria.xroad.proxy.clientproxy;
 
+import ee.ria.xroad.common.cert.CertChainFactory;
+import ee.ria.xroad.common.conf.globalconf.GlobalConfProvider;
+import ee.ria.xroad.common.conf.serverconf.ServerConfProvider;
+import ee.ria.xroad.proxy.conf.KeyConfProvider;
+
+import lombok.RequiredArgsConstructor;
 import org.apache.http.client.HttpClient;
 import org.eclipse.jetty.server.Handler;
 
 import java.lang.reflect.Constructor;
 
+@RequiredArgsConstructor
 final class HandlerLoader {
+    private final GlobalConfProvider globalConfProvider;
+    private final KeyConfProvider keyConfProvider;
+    private final ServerConfProvider serverConfProvider;
+    private final CertChainFactory certChainFactory;
 
-    private HandlerLoader() {
-    }
 
-    static Handler loadHandler(String className, HttpClient client)
+    Handler loadHandler(String className, HttpClient client)
             throws Exception {
         try {
             Class<? extends Handler> handlerClass = getHandlerClass(className);
@@ -46,12 +55,17 @@ final class HandlerLoader {
         }
     }
 
-    private static Handler instantiate(Class<? extends Handler> handlerClass,
-                                       HttpClient client) throws Exception {
+    private Handler instantiate(Class<? extends Handler> handlerClass,
+                                HttpClient client) throws Exception {
         try {
             Constructor<? extends Handler> constructor =
-                    handlerClass.getConstructor(HttpClient.class);
-            return constructor.newInstance(client);
+                    handlerClass.getConstructor(
+                            GlobalConfProvider.class,
+                            KeyConfProvider.class,
+                            ServerConfProvider.class,
+                            CertChainFactory.class,
+                            HttpClient.class);
+            return constructor.newInstance(globalConfProvider, keyConfProvider, serverConfProvider, certChainFactory, client);
         } catch (NoSuchMethodException e) {
             throw new Exception("Handler must have constructor taking "
                     + "1 parameter (" + HttpClient.class + ")", e);

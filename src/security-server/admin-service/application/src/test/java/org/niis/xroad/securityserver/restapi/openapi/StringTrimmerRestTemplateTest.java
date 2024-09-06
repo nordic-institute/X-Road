@@ -81,8 +81,8 @@ public class StringTrimmerRestTemplateTest extends AbstractApiControllerTestCont
     @Before
     public void setup() {
         TestUtils.addApiKeyAuthorizationHeader(restTemplate);
-        when(globalConfFacade.getInstanceIdentifier()).thenReturn(TestUtils.INSTANCE_FI);
-        when(globalConfFacade.getMemberName(any())).thenAnswer((Answer<String>) invocation -> {
+        when(globalConfProvider.getInstanceIdentifier()).thenReturn(TestUtils.INSTANCE_FI);
+        when(globalConfProvider.getMemberName(any())).thenAnswer((Answer<String>) invocation -> {
             Object[] args = invocation.getArguments();
             ClientId identifier = (ClientId) args[0];
             return identifier.getSubsystemCode() != null ? TestUtils.NAME_FOR + identifier.getSubsystemCode()

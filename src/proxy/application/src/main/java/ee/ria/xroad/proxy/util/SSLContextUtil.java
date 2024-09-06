@@ -26,8 +26,10 @@
 package ee.ria.xroad.proxy.util;
 
 import ee.ria.xroad.common.conf.globalconf.AuthTrustManager;
+import ee.ria.xroad.common.conf.globalconf.GlobalConfProvider;
 import ee.ria.xroad.common.util.CryptoUtils;
 import ee.ria.xroad.proxy.conf.AuthKeyManager;
+import ee.ria.xroad.proxy.conf.KeyConfProvider;
 
 import javax.net.ssl.KeyManager;
 import javax.net.ssl.SSLContext;
@@ -47,11 +49,14 @@ public final class SSLContextUtil {
 
     /**
      * Creates SSLContext used in between security servers
+     *
      * @return
      */
-    public static SSLContext createXroadSSLContext() throws KeyManagementException, NoSuchAlgorithmException {
+    public static SSLContext createXroadSSLContext(GlobalConfProvider globalConfProvider, KeyConfProvider keyConfProvider)
+            throws KeyManagementException, NoSuchAlgorithmException {
         SSLContext ctx = SSLContext.getInstance(CryptoUtils.SSL_PROTOCOL);
-        ctx.init(new KeyManager[]{new AuthKeyManager()}, new TrustManager[]{new AuthTrustManager()},
+        ctx.init(new KeyManager[]{new AuthKeyManager(keyConfProvider)},
+                new TrustManager[]{new AuthTrustManager(globalConfProvider)},
                 new SecureRandom());
         return ctx;
     }

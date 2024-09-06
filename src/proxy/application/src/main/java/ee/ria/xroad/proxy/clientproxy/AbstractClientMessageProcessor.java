@@ -27,8 +27,10 @@ package ee.ria.xroad.proxy.clientproxy;
 
 import ee.ria.xroad.common.CodedException;
 import ee.ria.xroad.common.SystemProperties;
-import ee.ria.xroad.common.conf.globalconf.GlobalConf;
+import ee.ria.xroad.common.cert.CertChainFactory;
+import ee.ria.xroad.common.conf.globalconf.GlobalConfProvider;
 import ee.ria.xroad.common.conf.serverconf.IsAuthenticationData;
+import ee.ria.xroad.common.conf.serverconf.ServerConfProvider;
 import ee.ria.xroad.common.identifier.SecurityServerId;
 import ee.ria.xroad.common.identifier.ServiceId;
 import ee.ria.xroad.common.message.RequestHash;
@@ -39,6 +41,7 @@ import ee.ria.xroad.common.util.HttpSender;
 import ee.ria.xroad.common.util.RequestWrapper;
 import ee.ria.xroad.common.util.ResponseWrapper;
 import ee.ria.xroad.proxy.ProxyMain;
+import ee.ria.xroad.proxy.conf.KeyConfProvider;
 import ee.ria.xroad.proxy.util.MessageProcessorBase;
 
 import lombok.EqualsAndHashCode;
@@ -85,18 +88,26 @@ abstract class AbstractClientMessageProcessor extends MessageProcessorBase {
         }
     }
 
-    protected AbstractClientMessageProcessor(RequestWrapper request, ResponseWrapper response,
+    protected AbstractClientMessageProcessor(GlobalConfProvider globalConfProvider,
+                                             KeyConfProvider keyConfProvider,
+                                             ServerConfProvider serverConfProvider,
+                                             CertChainFactory certChainFactory,
+                                             RequestWrapper request, ResponseWrapper response,
                                              HttpClient httpClient, IsAuthenticationData clientCert,
                                              OpMonitoringData opMonitoringData) throws Exception {
-        super(request, response, httpClient);
+        super(globalConfProvider, keyConfProvider, serverConfProvider, certChainFactory, request, response, httpClient);
 
         this.clientCert = clientCert;
         this.opMonitoringData = opMonitoringData;
     }
 
-    protected AbstractClientMessageProcessor(final AbstractClientProxyHandler.ProxyRequestCtx proxyRequestCtx,
+    protected AbstractClientMessageProcessor(GlobalConfProvider globalConfProvider,
+                                             KeyConfProvider keyConfProvider,
+                                             ServerConfProvider serverConfProvider,
+                                             CertChainFactory certChainFactory,
+                                             final AbstractClientProxyHandler.ProxyRequestCtx proxyRequestCtx,
                                              HttpClient httpClient, IsAuthenticationData clientCert) {
-        super(proxyRequestCtx.clientRequest(), proxyRequestCtx.clientResponse(), httpClient);
+        super(globalConfProvider, keyConfProvider, serverConfProvider, certChainFactory, proxyRequestCtx.clientRequest(), proxyRequestCtx.clientResponse(), httpClient);
 
         this.clientCert = clientCert;
         this.opMonitoringData = proxyRequestCtx.opMonitoringData();
@@ -166,7 +177,7 @@ abstract class AbstractClientMessageProcessor extends MessageProcessorBase {
             throws Exception {
         log.trace("getServiceAddresses({}, {})", serviceProvider, serverId);
 
-        Collection<String> hostNames = GlobalConf.getProviderAddress(serviceProvider.getClientId());
+        Collection<String> hostNames = globalConfProvider.getProviderAddress(serviceProvider.getClientId());
 
         if (hostNames == null || hostNames.isEmpty()) {
             throw new CodedException(X_UNKNOWN_MEMBER, "Could not find addresses for service provider \"%s\"",
@@ -174,7 +185,7 @@ abstract class AbstractClientMessageProcessor extends MessageProcessorBase {
         }
 
         if (serverId != null) {
-            final String securityServerAddress = GlobalConf.getSecurityServerAddress(serverId);
+            final String securityServerAddress = globalConfProvider.getSecurityServerAddress(serverId);
 
             if (securityServerAddress == null) {
                 throw new CodedException(X_INVALID_SECURITY_SERVER, "Could not find security server \"%s\"", serverId);

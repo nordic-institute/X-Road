@@ -26,8 +26,6 @@
 package ee.ria.xroad.proxy;
 
 
-import ee.ria.xroad.common.conf.globalconf.GlobalConf;
-import ee.ria.xroad.common.conf.serverconf.ServerConf;
 import ee.ria.xroad.common.conf.serverconf.model.DescriptionType;
 import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.identifier.ServiceId;
@@ -259,7 +257,7 @@ public class RestProxyTest extends AbstractProxyIntegrationTest {
 
     @Test
     public void shouldNotAllowCallingWSDLServices() {
-        ServerConf.reload(new TestServerConf(servicePort) {
+        TEST_SERVER_CONF.setServerConfProvider(new TestServerConf(servicePort) {
             @Override
             public DescriptionType getDescriptionType(ServiceId service) {
                 if ("wsdl".equals(service.getServiceCode())) {
@@ -281,7 +279,7 @@ public class RestProxyTest extends AbstractProxyIntegrationTest {
 
     @Test
     public void shouldNotAllowPATCH() {
-        ServerConf.reload(new TestServerConf(servicePort) {
+        TEST_SERVER_CONF.setServerConfProvider(new TestServerConf(servicePort) {
             @Override
             public boolean isQueryAllowed(ClientId sender, ServiceId service, String method, String path) {
                 if ("PATCH".equalsIgnoreCase(method)) return false;
@@ -310,7 +308,7 @@ public class RestProxyTest extends AbstractProxyIntegrationTest {
     @Test
     public void shouldSelectResolvableAddress() {
 
-        GlobalConf.reload(new TestGlobalConf() {
+        TEST_GLOBAL_CONF.setGlobalConfProvider(new TestGlobalConf() {
             @Override
             public Collection<String> getProviderAddress(ClientId provider) {
                 return Arrays.asList("127.0.0.1", "server.invalid.", "127.0.0,78", "\ufeffzero\u200B.width", "::1");
@@ -332,7 +330,7 @@ public class RestProxyTest extends AbstractProxyIntegrationTest {
     @Test
     public void shouldRespectAcceptHeaderInErrorResponse() {
 
-        ServerConf.reload(new TestServerConf(servicePort) {
+        TEST_SERVER_CONF.setServerConfProvider(new TestServerConf(servicePort) {
             @Override
             public DescriptionType getDescriptionType(ServiceId service) {
                 if ("wsdl".equals(service.getServiceCode())) {

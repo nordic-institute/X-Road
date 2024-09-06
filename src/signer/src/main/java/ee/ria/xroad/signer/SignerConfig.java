@@ -26,6 +26,11 @@
 package ee.ria.xroad.signer;
 
 import ee.ria.xroad.common.SystemProperties;
+import ee.ria.xroad.common.cert.CertChainFactory;
+import ee.ria.xroad.common.conf.globalconf.GlobalConfBeanConfig;
+import ee.ria.xroad.common.conf.globalconf.GlobalConfProvider;
+import ee.ria.xroad.signer.certmanager.FileBasedOcspCache;
+import ee.ria.xroad.signer.certmanager.OcspClient;
 import ee.ria.xroad.signer.certmanager.OcspClientWorker;
 import ee.ria.xroad.signer.certmanager.OcspResponseManager;
 import ee.ria.xroad.signer.job.OcspClientExecuteScheduler;
@@ -49,8 +54,14 @@ import org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler;
 
 @Slf4j
 @EnableScheduling
-@Import(SignerRpcConfig.class)
-@ComponentScan({"ee.ria.xroad.signer.protocol", "ee.ria.xroad.signer.job"})
+@Import({SignerAdminPortConfig.class,
+        SignerRpcConfig.class,
+        GlobalConfBeanConfig.class
+})
+@ComponentScan({
+        "ee.ria.xroad.signer.protocol",
+        "ee.ria.xroad.signer.job",
+        "ee.ria.xroad.signer.certmanager"})
 @Configuration
 public class SignerConfig {
     private static final String MODULE_MANAGER_IMPL_CLASS = SystemProperties.PREFIX + "signer.moduleManagerImpl";
@@ -70,15 +81,26 @@ public class SignerConfig {
     }
 
     @Bean
-    OcspResponseManager ocspResponseManager() {
-        OcspResponseManager ocspResponseManager = new OcspResponseManager();
+    FileBasedOcspCache ocspCache(GlobalConfProvider globalConfProvider) {
+        return new FileBasedOcspCache(globalConfProvider);
+    }
+
+    @Bean
+    OcspResponseManager ocspResponseManager(GlobalConfProvider globalConfProvider, OcspClient ocspClient, FileBasedOcspCache ocspCache) {
+        OcspResponseManager ocspResponseManager = new OcspResponseManager(globalConfProvider, ocspClient, ocspCache);
         ocspResponseManager.init();
         return ocspResponseManager;
     }
 
     @Bean
-    OcspClientWorker ocspClientWorker(OcspResponseManager ocspResponseManager) {
-        return new OcspClientWorker(ocspResponseManager);
+    OcspClientWorker ocspClientWorker(GlobalConfProvider globalConfProvider, OcspResponseManager ocspResponseManager,
+                                      OcspClient ocspClient) {
+        return new OcspClientWorker(globalConfProvider, ocspResponseManager, ocspClient);
+    }
+
+    @Bean
+    CertChainFactory certChainFactory(GlobalConfProvider globalConfProvider) {
+        return new CertChainFactory(globalConfProvider);
     }
 
     @Bean
@@ -89,8 +111,9 @@ public class SignerConfig {
     @Order(OCSP_SCHEDULER_BEAN_ORDER)
     @Bean(name = "ocspClientExecuteScheduler")
     @Conditional(IsOcspClientJobsActive.class)
-    OcspClientExecuteScheduler ocspClientExecuteScheduler(OcspClientWorker ocspClientWorker, TaskScheduler taskScheduler) {
-        OcspClientExecuteScheduler scheduler = new OcspClientExecuteScheduler(ocspClientWorker, taskScheduler);
+    OcspClientExecuteScheduler ocspClientExecuteScheduler(OcspClientWorker ocspClientWorker, TaskScheduler taskScheduler,
+                                                          GlobalConfProvider globalConfProvider) {
+        OcspClientExecuteScheduler scheduler = new OcspClientExecuteScheduler(ocspClientWorker, taskScheduler, globalConfProvider);
         scheduler.init();
         return scheduler;
     }

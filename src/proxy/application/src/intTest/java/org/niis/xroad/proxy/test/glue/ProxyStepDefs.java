@@ -27,6 +27,8 @@
 
 package org.niis.xroad.proxy.test.glue;
 
+import ee.ria.xroad.common.conf.globalconf.TestGlobalConfImpl;
+import ee.ria.xroad.common.conf.serverconf.ServerConfImpl;
 import ee.ria.xroad.common.hashchain.HashChainReferenceResolver;
 import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.signature.MessagePart;
@@ -34,13 +36,15 @@ import ee.ria.xroad.common.signature.SignatureBuilder;
 import ee.ria.xroad.common.signature.SignatureData;
 import ee.ria.xroad.common.signature.SignatureVerifier;
 import ee.ria.xroad.common.util.MessageFileNames;
-import ee.ria.xroad.proxy.conf.SigningCtxProvider;
+import ee.ria.xroad.proxy.conf.CachingKeyConfImpl;
+import ee.ria.xroad.proxy.conf.KeyConfProvider;
 import ee.ria.xroad.signer.SignerProxy;
 import ee.ria.xroad.signer.protocol.dto.KeyInfo;
 import ee.ria.xroad.signer.protocol.dto.KeyUsageInfo;
 import ee.ria.xroad.signer.protocol.dto.TokenInfo;
 
 import io.cucumber.java.en.Step;
+import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.RandomStringUtils;
@@ -138,7 +142,7 @@ public class ProxyStepDefs extends BaseStepDefs {
 
     private void exec(String client, int count, int threads) throws InterruptedException {
         final var clientId = getClientId(client);
-        final var signingCtx = SigningCtxProvider.getSigningCtx(clientId);
+        final var signingCtx = createKeyConf().getSigningCtx(clientId);
 
         List<String> messages = new ArrayList<>();
         for (int i = 0; i < count; i++) {
@@ -196,6 +200,13 @@ public class ProxyStepDefs extends BaseStepDefs {
         }
     }
 
+    @SneakyThrows
+    private KeyConfProvider createKeyConf() {
+        var globalConf = new TestGlobalConfImpl();
+        var serverConf = new ServerConfImpl(globalConf);
+        return CachingKeyConfImpl.newInstance(globalConf, serverConf);
+    }
+
     private List<Future<BatchSignResult>> invokeCallables(List<Callable<BatchSignResult>> callables, int threads)
             throws InterruptedException {
         ExecutorService executorService = Executors.newFixedThreadPool(threads);
@@ -213,7 +224,8 @@ public class ProxyStepDefs extends BaseStepDefs {
 
     private static void verify(final BatchSignResult batchSignResult)
             throws Exception {
-        SignatureVerifier verifier = new SignatureVerifier(batchSignResult.signatureData());
+        var globalConfProvider = new TestGlobalConfImpl();
+        SignatureVerifier verifier = new SignatureVerifier(globalConfProvider, batchSignResult.signatureData());
         verifier.addParts(batchSignResult.messageParts());
 
         HashChainReferenceResolver resolver = new HashChainReferenceResolver() {

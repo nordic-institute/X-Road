@@ -26,6 +26,8 @@
 package ee.ria.xroad.common.messagelog;
 
 import ee.ria.xroad.common.DiagnosticsStatus;
+import ee.ria.xroad.common.conf.globalconf.GlobalConfProvider;
+import ee.ria.xroad.common.conf.serverconf.ServerConfProvider;
 
 import lombok.extern.slf4j.Slf4j;
 
@@ -37,10 +39,15 @@ import java.util.concurrent.ConcurrentHashMap;
  */
 @Slf4j
 public abstract class AbstractLogManager {
-
     protected static Map<String, DiagnosticsStatus> statusMap = new ConcurrentHashMap<>();
 
-    protected AbstractLogManager(String origin) {
+    protected AbstractLogManager(String origin, GlobalConfProvider globalConfProvider, ServerConfProvider serverConfProvider) {
+        if (globalConfProvider == null) {
+            throw new IllegalArgumentException("globalConfProvider cannot be null");
+        }
+        if (serverConfProvider == null) {
+            throw new IllegalArgumentException("serverConfProvider cannot be null");
+        }
     }
 
     public abstract void log(LogMessage message) throws Exception;

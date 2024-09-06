@@ -26,9 +26,13 @@
 package ee.ria.xroad.proxy.clientproxy;
 
 import ee.ria.xroad.common.CodedException;
+import ee.ria.xroad.common.cert.CertChainFactory;
+import ee.ria.xroad.common.conf.globalconf.GlobalConfProvider;
+import ee.ria.xroad.common.conf.serverconf.ServerConfProvider;
 import ee.ria.xroad.common.opmonitoring.OpMonitoringData;
 import ee.ria.xroad.common.util.RequestWrapper;
 import ee.ria.xroad.common.util.ResponseWrapper;
+import ee.ria.xroad.proxy.conf.KeyConfProvider;
 import ee.ria.xroad.proxy.util.MessageProcessorBase;
 
 import lombok.extern.slf4j.Slf4j;
@@ -48,8 +52,9 @@ public class MetadataHandler extends AbstractClientProxyHandler {
     /**
      * Constructor
      */
-    public MetadataHandler(HttpClient client) {
-        super(client, false);
+    public MetadataHandler(GlobalConfProvider globalConfProvider, KeyConfProvider keyConfProvider,
+                           ServerConfProvider serverConfProvider, CertChainFactory certChainFactory, HttpClient client) {
+        super(globalConfProvider, keyConfProvider, serverConfProvider, certChainFactory, client, false);
     }
 
     @Override
@@ -69,7 +74,8 @@ public class MetadataHandler extends AbstractClientProxyHandler {
                     "Target must not be null");
         }
 
-        MetadataClientRequestProcessor processor = new MetadataClientRequestProcessor(target, request, response);
+        MetadataClientRequestProcessor processor = new MetadataClientRequestProcessor(globalConfProvider,
+                keyConfProvider, serverConfProvider, certChainFactory, target, request, response);
         if (processor.canProcess()) {
             log.trace("Processing with MetadataClientRequestProcessor");
             return Optional.of(processor);

@@ -1,6 +1,5 @@
 /*
  * The MIT License
- *
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
@@ -24,22 +23,32 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.cs.registrationservice.service;
+package ee.ria.xroad.common.conf.globalconf;
 
-import ee.ria.xroad.common.conf.globalconf.GlobalConf;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.scheduling.annotation.EnableScheduling;
 
-import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
-import org.springframework.scheduling.annotation.Scheduled;
-import org.springframework.stereotype.Service;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
 
-import java.util.concurrent.TimeUnit;
+@Slf4j
+@Configuration
+@EnableScheduling
+@RequiredArgsConstructor
+public class GlobalConfRefreshJobConfig {
+    public static final String BEAN_GLOBAL_CONF_SCHEDULER = "globalConfRefreshScheduler";
 
-@Service
-@ConditionalOnProperty(value = "test", havingValue = "false", matchIfMissing = true)
-class GlobalConfUpdater {
-
-    @Scheduled(fixedRate = 1, timeUnit = TimeUnit.MINUTES)
-    public void update() {
-        GlobalConf.reload();
+    @Bean
+    GlobalConfRefreshJob globalConfRefreshJob(GlobalConfProvider globalConfProvider) {
+        return new GlobalConfRefreshJob(globalConfProvider);
     }
+
+    @Bean
+    ScheduledExecutorService globalConfRefreshScheduler() {
+        return Executors.newSingleThreadScheduledExecutor();
+    }
+
 }

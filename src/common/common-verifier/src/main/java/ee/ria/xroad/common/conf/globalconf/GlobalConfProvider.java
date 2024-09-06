@@ -33,6 +33,7 @@ import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.identifier.GlobalGroupId;
 import ee.ria.xroad.common.identifier.SecurityServerId;
 
+import java.nio.file.Path;
 import java.security.cert.X509Certificate;
 import java.util.Collection;
 import java.util.Collections;
@@ -40,7 +41,7 @@ import java.util.List;
 import java.util.Set;
 
 /**
- * API for implementing global configuration providers.
+ * Global configuration provider.
  */
 public interface GlobalConfProvider {
 
@@ -57,6 +58,8 @@ public interface GlobalConfProvider {
      */
     boolean isValid();
 
+    void verifyValidity();
+
     /**
      * @return the instance identifier for this configuration source
      */
@@ -65,7 +68,7 @@ public interface GlobalConfProvider {
     /**
      * @return the instance identifiers for all configuration sources
      */
-    List<String> getInstanceIdentifiers();
+    Set<String> getInstanceIdentifiers();
 
     /**
      * @param instanceIdentifiers the instance identifiers
@@ -115,6 +118,16 @@ public interface GlobalConfProvider {
     String getSecurityServerAddress(SecurityServerId serverId);
 
     Collection<SharedParameters.SecurityServer> getProviderSecurityServers(ClientId clientId);
+
+    /**
+     * @param parameters the parameters
+     * @param cert       the signing certificate
+     * @return subject client identifier
+     * @throws Exception if an error occurs
+     */
+    ClientId.Conf getSubjectName(
+            SignCertificateProfileInfo.Parameters parameters,
+            X509Certificate cert) throws Exception;
 
     /**
      * Returns a list of OCSP responder addresses for the given member
@@ -341,4 +354,12 @@ public interface GlobalConfProvider {
      * {@code cert} was not an approved CA cert
      */
     ApprovedCAInfo getApprovedCA(String instanceIdentifier, X509Certificate cert) throws CodedException;
+
+    /**
+     * Returns an absolute file name for the current instance.
+     *
+     * @param fileName the file name
+     * @return the absolute path to the file of the current instance
+     */
+    Path getInstanceFile(String fileName);
 }

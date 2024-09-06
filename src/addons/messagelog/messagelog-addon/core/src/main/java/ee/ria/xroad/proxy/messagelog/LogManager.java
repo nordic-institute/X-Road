@@ -29,8 +29,8 @@ import ee.ria.xroad.common.CodedException;
 import ee.ria.xroad.common.DiagnosticsErrorCodes;
 import ee.ria.xroad.common.DiagnosticsStatus;
 import ee.ria.xroad.common.DiagnosticsUtils;
-import ee.ria.xroad.common.conf.globalconf.GlobalConf;
-import ee.ria.xroad.common.conf.serverconf.ServerConf;
+import ee.ria.xroad.common.conf.globalconf.GlobalConfProvider;
+import ee.ria.xroad.common.conf.serverconf.ServerConfProvider;
 import ee.ria.xroad.common.messagelog.AbstractLogManager;
 import ee.ria.xroad.common.messagelog.LogMessage;
 import ee.ria.xroad.common.messagelog.MessageLogProperties;
@@ -78,6 +78,9 @@ public class LogManager extends AbstractLogManager {
     // Date at which a time-stamping first failed.
     private Instant timestampFailed;
 
+    protected final GlobalConfProvider globalConfProvider;
+    protected final ServerConfProvider serverConfProvider;
+
     private final Timestamper timestamper;
     private final TimestamperJob timestamperJob;
 
@@ -86,11 +89,14 @@ public class LogManager extends AbstractLogManager {
     // package private for testing
     final TaskQueue taskQueue;
 
-    public LogManager(String origin) {
-        super(origin);
+    LogManager(String origin, GlobalConfProvider globalConfProvider, ServerConfProvider serverConfProvider) {
+        super(origin, globalConfProvider, serverConfProvider);
+
         this.origin = origin;
+        this.globalConfProvider = globalConfProvider;
+        this.serverConfProvider = serverConfProvider;
         this.timestamper = getTimestamperImpl();
-        this.taskQueue = getTaskQueueImpl(timestamper, origin);
+        this.taskQueue = getTaskQueueImpl(timestamper);
         this.timestamperJob = createTimestamperJob(taskQueue);
     }
 
@@ -101,7 +107,7 @@ public class LogManager extends AbstractLogManager {
     }
 
     private TimestamperJob createTimestamperJob(TaskQueue taskQueueParam) {
-        return new TimestamperJob(getTimestamperJobInitialDelay(), taskQueueParam);
+        return new TimestamperJob(globalConfProvider, getTimestamperJobInitialDelay(), taskQueueParam);
     }
 
     /**
@@ -168,7 +174,7 @@ public class LogManager extends AbstractLogManager {
     }
 
     protected Timestamper getTimestamperImpl() {
-        return new Timestamper();
+        return new Timestamper(globalConfProvider, serverConfProvider);
     }
 
     private TimestampRecord timestampImmediately(MessageRecord logRecord) throws Exception {
@@ -282,10 +288,11 @@ public class LogManager extends AbstractLogManager {
      *
      * @param e exception which is used to determine diagnostics error code
      */
-    static void putStatusMapFailures(Exception e) {
+    void putStatusMapFailures(Exception e) {
         int errorCode = DiagnosticsUtils.getErrorCode(e);
-        for (String tspUrl : ServerConf.getTspUrl()) {
-            statusMap.put(tspUrl, new DiagnosticsStatus(errorCode, TimeUtils.offsetDateTimeNow(), tspUrl));
+        for (String tspUrl : serverConfProvider.getTspUrl()) {
+            statusMap.put(tspUrl,
+                    new DiagnosticsStatus(errorCode, TimeUtils.offsetDateTimeNow(), tspUrl));
         }
     }
 
@@ -330,8 +337,9 @@ public class LogManager extends AbstractLogManager {
     }
 
     private void verifyCanLogMessage(boolean shouldTimestampImmediately) {
-        if (ServerConf.getTspUrl().isEmpty()) {
-            throw new CodedException(X_MLOG_TIMESTAMPER_FAILED, "Cannot time-stamp messages: no timestamping services configured");
+        if (serverConfProvider.getTspUrl().isEmpty()) {
+            throw new CodedException(X_MLOG_TIMESTAMPER_FAILED,
+                    "Cannot time-stamp messages: no timestamping services configured");
         }
 
         if (!shouldTimestampImmediately) {
@@ -369,11 +377,13 @@ public class LogManager extends AbstractLogManager {
         // Flag for indicating backoff retry state
         private boolean retryMode = false;
 
+        private final GlobalConfProvider globalConfProvider;
         private final ScheduledExecutorService taskScheduler;
         private final TaskQueue taskQueue;
         private ScheduledFuture<?> scheduledTask;
 
-        public TimestamperJob(Duration initialDelay, TaskQueue taskQueue) {
+        public TimestamperJob(GlobalConfProvider globalConfProvider, Duration initialDelay, TaskQueue taskQueue) {
+            this.globalConfProvider = globalConfProvider;
             log.trace("Initializing TimestamperJob");
             this.taskQueue = taskQueue;
             this.taskScheduler = Executors.newSingleThreadScheduledExecutor();
@@ -438,7 +448,7 @@ public class LogManager extends AbstractLogManager {
             log.debug("Use batch time-stamping retry backoff schedule: {}", retryMode);
 
             try {
-                actualInterval = GlobalConf.getTimestampingIntervalSeconds();
+                actualInterval = globalConfProvider.getTimestampingIntervalSeconds();
             } catch (Exception e) {
                 log.error("Failed to get timestamping interval", e);
             }

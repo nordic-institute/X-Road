@@ -27,11 +27,14 @@ package ee.ria.xroad.proxy.serverproxy;
 
 import ee.ria.xroad.common.CodedException;
 import ee.ria.xroad.common.SystemProperties;
-import ee.ria.xroad.common.conf.globalconf.GlobalConf;
+import ee.ria.xroad.common.cert.CertChainFactory;
+import ee.ria.xroad.common.conf.globalconf.GlobalConfProvider;
+import ee.ria.xroad.common.conf.serverconf.ServerConfProvider;
 import ee.ria.xroad.common.opmonitoring.OpMonitoringData;
 import ee.ria.xroad.common.util.HandlerBase;
 import ee.ria.xroad.common.util.RequestWrapper;
 import ee.ria.xroad.common.util.ResponseWrapper;
+import ee.ria.xroad.proxy.conf.KeyConfProvider;
 import ee.ria.xroad.proxy.opmonitoring.OpMonitoring;
 import ee.ria.xroad.proxy.util.MessageProcessorBase;
 import ee.ria.xroad.proxy.util.PerformanceLogger;
@@ -56,12 +59,23 @@ import static org.eclipse.jetty.server.Request.getRemoteAddr;
 
 @Slf4j
 class ServerProxyHandler extends HandlerBase {
+    private final GlobalConfProvider globalConfProvider;
+    private final KeyConfProvider keyConfProvider;
+    private final ServerConfProvider serverConfProvider;
+    private final CertChainFactory certChainFactory;
 
     private final HttpClient client;
     private final HttpClient opMonitorClient;
     private final long idleTimeout = SystemProperties.getServerProxyConnectorMaxIdleTime();
 
-    ServerProxyHandler(HttpClient client, HttpClient opMonitorClient) {
+    ServerProxyHandler(GlobalConfProvider globalConfProvider,
+                       KeyConfProvider keyConfProvider,
+                       ServerConfProvider serverConfProvider,
+                       CertChainFactory certChainFactory, HttpClient client, HttpClient opMonitorClient) {
+        this.globalConfProvider = globalConfProvider;
+        this.keyConfProvider = keyConfProvider;
+        this.serverConfProvider = serverConfProvider;
+        this.certChainFactory = certChainFactory;
         this.client = client;
         this.opMonitorClient = opMonitorClient;
     }
@@ -84,7 +98,7 @@ class ServerProxyHandler extends HandlerBase {
                         request.getMethod());
             }
 
-            GlobalConf.verifyValidity();
+            globalConfProvider.verifyValidity();
 
             ClientProxyVersionVerifier.check(request);
             final MessageProcessorBase processor = createRequestProcessor(RequestWrapper.of(request),
@@ -114,10 +128,14 @@ class ServerProxyHandler extends HandlerBase {
                                                         OpMonitoringData opMonitoringData) {
 
         if (VALUE_MESSAGE_TYPE_REST.equals(request.getHeaders().get(HEADER_MESSAGE_TYPE))) {
-            return new ServerRestMessageProcessor(request, response, client, request.getPeerCertificates().orElse(null),
+            return new ServerRestMessageProcessor(globalConfProvider, keyConfProvider, serverConfProvider, certChainFactory,
+                    request, response, client, request.getPeerCertificates()
+                    .orElse(null),
                     opMonitoringData);
         } else {
-            return new ServerMessageProcessor(request, response, client, request.getPeerCertificates().orElse(null),
+            return new ServerMessageProcessor(globalConfProvider, keyConfProvider, serverConfProvider, certChainFactory,
+                    request, response, client, request.getPeerCertificates()
+                    .orElse(null),
                     opMonitorClient, opMonitoringData);
         }
     }

@@ -28,7 +28,7 @@ package ee.ria.xroad.common.ocsp;
 import ee.ria.xroad.common.OcspTestUtils;
 import ee.ria.xroad.common.TestCertUtil;
 import ee.ria.xroad.common.conf.globalconf.EmptyGlobalConf;
-import ee.ria.xroad.common.conf.globalconf.GlobalConf;
+import ee.ria.xroad.common.conf.globalconf.GlobalConfProvider;
 import ee.ria.xroad.common.util.TimeUtils;
 
 import org.bouncycastle.cert.ocsp.CertificateStatus;
@@ -49,7 +49,7 @@ import static org.junit.Assert.assertNull;
  * Tests the OCSP cache.
  */
 public class OcspCacheTest {
-
+    static GlobalConfProvider globalConfProvider;
     static X509Certificate subject;
     static X509Certificate issuer;
     static X509Certificate signer;
@@ -57,11 +57,12 @@ public class OcspCacheTest {
 
     /**
      * Sets up an empty global configuration and loads test certificates.
+     *
      * @throws Exception if an error occurs
      */
     @BeforeClass
     public static void loadCerts() throws Exception {
-        GlobalConf.reload(new EmptyGlobalConf());
+        globalConfProvider = new EmptyGlobalConf();
 
         issuer = TestCertUtil.getCertChainCert("root_ca.p12");
         assertNotNull(issuer);
@@ -76,6 +77,7 @@ public class OcspCacheTest {
 
     /**
      * Tests putting and getting the OCSP response from the cache.
+     *
      * @throws Exception if an error occurs
      */
     @Test
@@ -84,13 +86,14 @@ public class OcspCacheTest {
         OCSPResp ocsp = OcspTestUtils.createOCSPResponse(subject, issuer,
                 signer, signerKey, CertificateStatus.GOOD, thisUpdate, null);
 
-        OcspCache cache = new OcspCache();
+        OcspCache cache = new OcspCache(globalConfProvider);
         assertNull(cache.put("foo", ocsp));
         assertEquals(ocsp, cache.get("foo"));
     }
 
     /**
      * Tests that getting an expired OCSP response from the cache returns null.
+     *
      * @throws Exception if an error occurs
      */
     @Test
@@ -99,7 +102,7 @@ public class OcspCacheTest {
         OCSPResp ocsp = OcspTestUtils.createOCSPResponse(subject, issuer,
                 signer, signerKey, CertificateStatus.GOOD, thisUpdate, null);
 
-        OcspCache cache = new OcspCache();
+        OcspCache cache = new OcspCache(globalConfProvider);
         assertNull(cache.put("foo", ocsp));
         assertNull(cache.get("foo"));
     }

@@ -25,26 +25,28 @@
  */
 package ee.ria.xroad.common.conf.globalconf;
 
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.quartz.DisallowConcurrentExecution;
-import org.quartz.Job;
-import org.quartz.JobExecutionContext;
-import org.quartz.JobExecutionException;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.scheduling.annotation.EnableScheduling;
 
-/**
- * Periodic reload of global configuration
- */
+import static ee.ria.xroad.common.SystemProperties.getConfigurationPath;
+
 @Slf4j
-@DisallowConcurrentExecution
-public class GlobalConfUpdater implements Job {
-    @Override
-    public void execute(JobExecutionContext context) throws JobExecutionException {
-        try {
-            log.trace("Updating globalconf");
-            GlobalConf.reload();
-        } catch (Exception e) {
-            log.error("Error updating globalconf", e);
-            throw new JobExecutionException(e);
-        }
+@Configuration
+@EnableScheduling
+@RequiredArgsConstructor
+public class GlobalConfBeanConfig {
+
+    @Bean
+    GlobalConfSource globalConfSource() {
+        log.info("GlobalConf source is set to: VersionedConfigurationDirectory(FS)");
+        return new FileSystemGlobalConfSource(getConfigurationPath());
+    }
+
+    @Bean
+    GlobalConfProvider globalConfProvider(GlobalConfSource source) {
+        return new GlobalConfImpl(source);
     }
 }

@@ -29,6 +29,7 @@ import ee.ria.xroad.common.CodedException;
 import ee.ria.xroad.common.certificateprofile.DnFieldDescription;
 import ee.ria.xroad.common.certificateprofile.impl.DnFieldDescriptionImpl;
 import ee.ria.xroad.common.conf.globalconf.ApprovedCAInfo;
+import ee.ria.xroad.common.conf.globalconf.GlobalConfProvider;
 import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.signer.SignerProxy;
 import ee.ria.xroad.signer.protocol.dto.CertRequestInfo;
@@ -49,7 +50,6 @@ import org.mockito.Mockito;
 import org.niis.xroad.common.rpc.mapper.ClientIdMapper;
 import org.niis.xroad.restapi.exceptions.DeviationCodes;
 import org.niis.xroad.restapi.exceptions.ErrorDeviation;
-import org.niis.xroad.securityserver.restapi.facade.GlobalConfFacade;
 import org.niis.xroad.securityserver.restapi.facade.SignerProxyFacade;
 import org.niis.xroad.securityserver.restapi.repository.ClientRepository;
 import org.niis.xroad.securityserver.restapi.util.CertificateTestUtils;
@@ -158,7 +158,7 @@ public class TokenCertificateServiceTest {
     private GlobalConfService globalConfService;
 
     @MockBean
-    private GlobalConfFacade globalConfFacade;
+    private GlobalConfProvider globalConfProvider;
 
     @MockBean
     private ClientRepository clientRepository;
@@ -272,8 +272,8 @@ public class TokenCertificateServiceTest {
 
         //doAnswer(answer -> signCert).when(signerProxyFacade).getCertForHash(any());
 
-        when(globalConfFacade.getInstanceIdentifier()).thenReturn(TestUtils.INSTANCE_FI);
-        when(globalConfFacade.getSubjectName(any(), any())).thenReturn(client);
+        when(globalConfProvider.getInstanceIdentifier()).thenReturn(TestUtils.INSTANCE_FI);
+        when(globalConfProvider.getSubjectName(any(), any())).thenReturn(client);
 
         when(clientRepository.clientExists(any(), anyBoolean())).thenReturn(true);
 

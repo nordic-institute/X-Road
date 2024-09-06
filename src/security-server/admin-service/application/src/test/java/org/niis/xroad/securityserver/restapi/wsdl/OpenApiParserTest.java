@@ -25,6 +25,8 @@
  */
 package org.niis.xroad.securityserver.restapi.wsdl;
 
+import ee.ria.xroad.common.conf.serverconf.ServerConfProvider;
+
 import org.junit.Assert;
 import org.junit.Test;
 
@@ -32,11 +34,13 @@ import java.net.URL;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
+import static org.mockito.Mockito.mock;
 
 /**
  * Unit tests for OpenAPIParser
  */
 public class OpenApiParserTest {
+    private final HttpUrlConnectionConfig httpUrlConnectionConfig = new HttpUrlConnectionConfig(mock(ServerConfProvider.class));
 
     @Test
     public void shouldParseOpenApiYaml() throws OpenApiParser.ParsingException, UnsupportedOpenApiVersionException {
@@ -84,14 +88,14 @@ public class OpenApiParserTest {
     public void shouldFailIfInvalidProtocol() throws OpenApiParser.ParsingException,
             UnsupportedOpenApiVersionException {
         URL url = getClass().getResource("/openapiparser/valid.json");
-        final OpenApiParser.Result result = new OpenApiParser().parse(url.toString());
+        final OpenApiParser.Result result = new OpenApiParser(httpUrlConnectionConfig).parse(url.toString());
     }
 
     @Test(expected = OpenApiParser.ParsingException.class)
     public void shouldFailIfDuplicateEndpoint() throws OpenApiParser.ParsingException,
             UnsupportedOpenApiVersionException {
         URL url = getClass().getResource("/openapiparser/duplicateendpoint.yaml");
-        final OpenApiParser.Result result = new OpenApiParser().parse(url.toString());
+        final OpenApiParser.Result result = new OpenApiParser(httpUrlConnectionConfig).parse(url.toString());
     }
 
     @Test(expected = UnsupportedOpenApiVersionException.class)
@@ -108,10 +112,10 @@ public class OpenApiParserTest {
         new TestOpenApiParser().parse(url.toString());
     }
 
-    static class TestOpenApiParser extends OpenApiParser {
+    class TestOpenApiParser extends OpenApiParser {
 
         TestOpenApiParser() throws ParsingException {
-            super();
+            super(httpUrlConnectionConfig);
         }
 
         @Override

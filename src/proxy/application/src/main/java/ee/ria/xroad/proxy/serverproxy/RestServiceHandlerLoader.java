@@ -25,6 +25,8 @@
  */
 package ee.ria.xroad.proxy.serverproxy;
 
+import ee.ria.xroad.common.conf.serverconf.ServerConfProvider;
+
 /**
  * Dynamic loader for rest service handlers
  */
@@ -33,10 +35,10 @@ public final class RestServiceHandlerLoader {
     private RestServiceHandlerLoader() {
     }
 
-    static RestServiceHandler load(String className) {
+    static RestServiceHandler load(ServerConfProvider serverConfProvider, String className) {
         try {
             Class<?> clazz = Class.forName(className);
-            return (RestServiceHandler) clazz.newInstance();
+            return (RestServiceHandler) clazz.getDeclaredConstructor(ServerConfProvider.class).newInstance(serverConfProvider);
         } catch (Exception e) {
             throw new RuntimeException("Failed to load rest service handler: "
                     + className, e);

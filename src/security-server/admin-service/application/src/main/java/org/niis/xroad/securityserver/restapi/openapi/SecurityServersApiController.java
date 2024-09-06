@@ -25,6 +25,7 @@
  */
 package org.niis.xroad.securityserver.restapi.openapi;
 
+import ee.ria.xroad.common.conf.globalconf.GlobalConfProvider;
 import ee.ria.xroad.common.identifier.SecurityServerId;
 
 import lombok.RequiredArgsConstructor;
@@ -33,7 +34,6 @@ import org.niis.xroad.restapi.converter.SecurityServerIdConverter;
 import org.niis.xroad.restapi.openapi.ControllerUtil;
 import org.niis.xroad.restapi.openapi.ResourceNotFoundException;
 import org.niis.xroad.securityserver.restapi.converter.SecurityServerConverter;
-import org.niis.xroad.securityserver.restapi.facade.GlobalConfFacade;
 import org.niis.xroad.securityserver.restapi.openapi.model.SecurityServer;
 import org.niis.xroad.securityserver.restapi.service.GlobalConfService;
 import org.niis.xroad.securityserver.restapi.service.ServerConfService;
@@ -58,7 +58,7 @@ import java.util.Set;
 public class SecurityServersApiController implements SecurityServersApi {
 
     private final GlobalConfService globalConfService;
-    private final GlobalConfFacade globalConfFacade;
+    private final GlobalConfProvider globalConfProvider;
     private final SecurityServerConverter securityServerConverter;
     private final ServerConfService serverConfService;
     private final SecurityServerIdConverter securityServerIdConverter;
@@ -84,7 +84,7 @@ public class SecurityServersApiController implements SecurityServersApi {
             SecurityServer currentSecurityServer = securityServerConverter.convert(currentSecurityServerId);
             securityServers = Collections.singleton(currentSecurityServer);
         } else {
-            List<SecurityServerId.Conf> securityServerIds = globalConfFacade.getSecurityServers();
+            List<SecurityServerId.Conf> securityServerIds = globalConfProvider.getSecurityServers();
             securityServers = securityServerConverter.convert(securityServerIds);
         }
         return new ResponseEntity<>(securityServers, HttpStatus.OK);

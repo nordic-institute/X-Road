@@ -27,6 +27,9 @@
 package ee.ria.xroad.signer.job;
 
 import ee.ria.xroad.common.SystemProperties;
+import ee.ria.xroad.common.conf.globalconf.GlobalConfProvider;
+import ee.ria.xroad.common.conf.globalconfextension.GlobalConfExtensions;
+import ee.ria.xroad.common.conf.globalconfextension.OcspFetchInterval;
 import ee.ria.xroad.signer.certmanager.OcspClientWorker;
 
 import lombok.RequiredArgsConstructor;
@@ -46,6 +49,7 @@ public class OcspClientExecuteScheduler {
 
     private final OcspClientWorker ocspClientWorker;
     private final TaskScheduler taskScheduler;
+    private final GlobalConfProvider globalConfProvider;
 
     private ScheduledFuture<?> scheduledFuture;
     private boolean retryMode;
@@ -56,10 +60,11 @@ public class OcspClientExecuteScheduler {
 
     private Duration getNextDelay() {
         final int retryDelay = SystemProperties.getOcspResponseRetryDelay();
-        if (retryMode && retryDelay < OcspClientWorker.getNextOcspFetchIntervalSeconds()) {
+        int nextOcspFetchIntervalSeconds = getNextOcspFetchIntervalSeconds();
+        if (retryMode && retryDelay < nextOcspFetchIntervalSeconds) {
             return Duration.of(retryDelay, SECONDS);
         }
-        return Duration.of(OcspClientWorker.getNextOcspFetchIntervalSeconds(), SECONDS);
+        return Duration.of(nextOcspFetchIntervalSeconds, SECONDS);
     }
 
     public void success() {
@@ -113,6 +118,19 @@ public class OcspClientExecuteScheduler {
         cancelNext();
         log.trace("Rescheduling job after {}", delay);
         this.scheduledFuture = taskScheduler.schedule(this::runJob, taskScheduler.getClock().instant().plus(delay));
+    }
+
+    /**
+     * @return the next ocsp freshness time in seconds
+     */
+    private int getNextOcspFetchIntervalSeconds() {
+        int interval = GlobalConfExtensions.getInstance(globalConfProvider).getOcspFetchInterval();
+
+        if (interval < OcspFetchInterval.OCSP_FETCH_INTERVAL_MIN) {
+            interval = OcspFetchInterval.OCSP_FETCH_INTERVAL_MIN;
+        }
+
+        return interval;
     }
 
 }

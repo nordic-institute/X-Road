@@ -27,8 +27,8 @@ import ee.ria.xroad.common.SystemProperties;
 import ee.ria.xroad.common.TestCertUtil;
 import ee.ria.xroad.common.conf.EmptyServerConf;
 import ee.ria.xroad.common.conf.globalconf.EmptyGlobalConf;
-import ee.ria.xroad.common.conf.globalconf.GlobalConf;
-import ee.ria.xroad.common.conf.serverconf.ServerConf;
+import ee.ria.xroad.common.conf.globalconf.GlobalConfProvider;
+import ee.ria.xroad.common.conf.serverconf.ServerConfProvider;
 import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.identifier.SecurityServerId;
 import ee.ria.xroad.common.util.FileContentChangeChecker;
@@ -88,21 +88,24 @@ class CachingKeyConfImplTest {
     public static final int NO_DELAY = 0;
     private static final Path KEY_CONF = Paths.get("build", "tmp", "keyConf.xml");
 
+    private GlobalConfProvider globalConfProvider;
+    private ServerConfProvider serverConfProvider;
+
     @BeforeEach
     public void before() throws IOException {
         System.setProperty(SystemProperties.CONF_PATH, "build/tmp/");
-        GlobalConf.reload(new EmptyGlobalConf() {
+        globalConfProvider = new EmptyGlobalConf() {
             @Override
             public String getInstanceIdentifier() {
                 return "TEST";
             }
-        });
-        ServerConf.reload(new EmptyServerConf() {
+        };
+        serverConfProvider = new EmptyServerConf() {
             @Override
             public SecurityServerId.Conf getIdentifier() {
                 return SecurityServerId.Conf.create("TEST", "CLASS", "CODE", "SERVER");
             }
-        });
+        };
         Files.deleteIfExists(KEY_CONF);
         Files.createFile(KEY_CONF);
     }
@@ -265,12 +268,12 @@ class CachingKeyConfImplTest {
         assertEquals(expectedCacheHits, callsToGetAuthKeyInfo.get());
 
         // next read key twice, but this time serverId has changed -> one more hit
-        ServerConf.reload(new EmptyServerConf() {
+        serverConfProvider = new EmptyServerConf() {
             @Override
             public SecurityServerId.Conf getIdentifier() {
                 return SecurityServerId.Conf.create("TEST", "CLASS", "CODE2", "SERVER");
             }
-        });
+        };
         doConcurrentAuthKeyReads(callsToGetAuthKeyInfo,
                 UNCHANGED_KEY_CONF, VALID_AUTH_KEY, VALID_SIGNING_INFO, 1, 2, NO_DELAY);
         expectedCacheHits++;
@@ -294,8 +297,18 @@ class CachingKeyConfImplTest {
                 Date.from(now.minusSeconds(1000)),
                 expected);
 
+        AtomicInteger callsToGetAuthKeyInfo = new AtomicInteger(0);
+        ToggleableBooleanSupplier keyConfHasChanged = new ToggleableBooleanSupplier(false);
+
+        final TestCachingKeyConfImpl testCachingKeyConf = new TestCachingKeyConfImpl(
+                callsToGetAuthKeyInfo,
+                keyConfHasChanged,
+                VALID_AUTH_KEY,
+                VALID_SIGNING_INFO,
+                NO_DELAY);
+
         assertEquals(expected,
-                CachingKeyConfImpl.calculateNotAfter(Collections.singletonList(response), ca.getNotAfter()));
+                testCachingKeyConf.calculateNotAfter(Collections.singletonList(response), ca.getNotAfter()));
     }
 
     /**
@@ -443,7 +456,7 @@ class CachingKeyConfImplTest {
      * Test cache implementation that allows for controlling key conf validity,
      * auth key validity, and cache refresh delay
      */
-    private static class TestCachingKeyConfImpl extends CachingKeyConfImpl {
+    private class TestCachingKeyConfImpl extends CachingKeyConfImpl {
         final AtomicInteger dataRefreshes;
         final BooleanSupplier keyConfHasChanged;
         final BooleanSupplier authKeyIsValid;
@@ -457,6 +470,8 @@ class CachingKeyConfImplTest {
                                BooleanSupplier authKeyIsValid,
                                BooleanSupplier signingInfoIsValid,
                                int cacheReadDelayMs) {
+            super(CachingKeyConfImplTest.this.globalConfProvider,
+                    CachingKeyConfImplTest.this.serverConfProvider);
             this.dataRefreshes = dataRefreshes;
             this.keyConfHasChanged = keyConfHasChanged;
             this.authKeyIsValid = authKeyIsValid;

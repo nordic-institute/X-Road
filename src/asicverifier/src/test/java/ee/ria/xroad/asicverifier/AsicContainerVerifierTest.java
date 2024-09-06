@@ -27,7 +27,9 @@ package ee.ria.xroad.asicverifier;
 
 import ee.ria.xroad.common.ExpectedCodedException;
 import ee.ria.xroad.common.SystemProperties;
-import ee.ria.xroad.common.conf.globalconf.GlobalConf;
+import ee.ria.xroad.common.TestCertUtil;
+import ee.ria.xroad.common.conf.globalconf.GlobalConfProvider;
+import ee.ria.xroad.common.conf.globalconf.TestGlobalConfImpl;
 
 import lombok.RequiredArgsConstructor;
 import org.junit.BeforeClass;
@@ -40,6 +42,7 @@ import org.mockito.MockedStatic;
 import org.mockito.Mockito;
 
 import java.io.ByteArrayInputStream;
+import java.security.cert.X509Certificate;
 import java.util.Arrays;
 import java.util.Collection;
 
@@ -53,6 +56,8 @@ import static org.mockito.ArgumentMatchers.anyString;
 public class AsicContainerVerifierTest {
 
     private static MockedStatic<AsicVerifierMain> asicVerifierMainSpy;
+
+    private static GlobalConfProvider globalConfProvider;
 
     private final String containerFile;
     private final String errorCode;
@@ -71,7 +76,14 @@ public class AsicContainerVerifierTest {
         System.setProperty(SystemProperties.CONFIGURATION_PATH, "src/test/resources/globalconf_2024");
         System.setProperty(SystemProperties.CONFIGURATION_ANCHOR_FILE,
                 "../common/common-globalconf/src/test/resources/configuration-anchor1.xml");
-        GlobalConf.reload();
+
+        // TODO:
+        globalConfProvider = new TestGlobalConfImpl() {
+            @Override
+            public X509Certificate getCaCert(String instanceIdentifier, X509Certificate memberCert) throws Exception {
+                return TestCertUtil.getCaCert();
+            }
+        };
     }
 
     /**
@@ -103,6 +115,7 @@ public class AsicContainerVerifierTest {
 
     /**
      * Test to ensure container file verification result is as expected.
+     *
      * @throws Exception in case of any unexpected errors
      */
     @Test

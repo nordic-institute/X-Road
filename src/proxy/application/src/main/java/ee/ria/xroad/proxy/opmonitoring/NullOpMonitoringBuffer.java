@@ -25,6 +25,7 @@
  */
 package ee.ria.xroad.proxy.opmonitoring;
 
+import ee.ria.xroad.common.conf.serverconf.ServerConfProvider;
 import ee.ria.xroad.common.opmonitoring.AbstractOpMonitoringBuffer;
 import ee.ria.xroad.common.opmonitoring.OpMonitoringData;
 
@@ -33,6 +34,10 @@ import ee.ria.xroad.common.opmonitoring.OpMonitoringData;
  * Actual implementation can be provided by addon.
  */
 class NullOpMonitoringBuffer extends AbstractOpMonitoringBuffer {
+
+    protected NullOpMonitoringBuffer(ServerConfProvider serverConfProvider) {
+        super(serverConfProvider);
+    }
 
     @Override
     public void store(OpMonitoringData data) throws Exception {

@@ -38,7 +38,6 @@ import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestHeader;
-import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.io.InputStream;
@@ -49,14 +48,14 @@ import static ee.ria.xroad.common.ErrorCodes.X_INVALID_REQUEST;
 @Slf4j
 @RequiredArgsConstructor
 public class ManagementRequestController {
+    private final ManagementRequestSoapExecutor managementRequestSoapExecutor;
     private final ManagementRequestService managementRequestService;
 
-    @ResponseBody
     @PostMapping(path = "/managementservice/manage",
             produces = {MediaType.TEXT_XML_VALUE},
             consumes = {MediaType.MULTIPART_RELATED_VALUE, MediaType.TEXT_XML_VALUE + ";charset=UTF-8"})
     public ResponseEntity<String> addManagementRequest(@RequestHeader(HttpHeaders.CONTENT_TYPE) String contentType, InputStream body) {
-        return ManagementRequestSoapExecutor.process(contentType, body,
+        return managementRequestSoapExecutor.process(contentType, body,
                 result -> {
                     Integer requestId;
                     if (ManagementRequestType.AUTH_CERT_DELETION_REQUEST == result.getRequestType()) {

@@ -27,12 +27,14 @@ package ee.ria.xroad.proxy.clientproxy;
 
 import ee.ria.xroad.common.CodedException;
 import ee.ria.xroad.common.SystemProperties;
+import ee.ria.xroad.common.cert.CertChainFactory;
 import ee.ria.xroad.common.conf.globalconf.AuthKey;
-import ee.ria.xroad.common.conf.globalconf.GlobalConf;
+import ee.ria.xroad.common.conf.globalconf.GlobalConfProvider;
+import ee.ria.xroad.common.conf.serverconf.ServerConfProvider;
 import ee.ria.xroad.common.opmonitoring.OpMonitoringData;
 import ee.ria.xroad.common.util.RequestWrapper;
 import ee.ria.xroad.common.util.ResponseWrapper;
-import ee.ria.xroad.proxy.conf.KeyConf;
+import ee.ria.xroad.proxy.conf.KeyConfProvider;
 import ee.ria.xroad.proxy.util.MessageProcessorBase;
 
 import org.apache.http.client.HttpClient;
@@ -53,8 +55,12 @@ import static java.lang.Boolean.TRUE;
 public class ClientSoapMessageHandler extends AbstractClientProxyHandler {
     private final AssetAuthorizationManager assetAuthorizationManager;
 
-    public ClientSoapMessageHandler(HttpClient client, AssetAuthorizationManager assetAuthorizationManager) {
-        super(client, true);
+    ClientSoapMessageHandler(GlobalConfProvider globalConfProvider,
+                         KeyConfProvider keyConfProvider,
+                         ServerConfProvider serverConfProvider,
+                         CertChainFactory certChainFactory, HttpClient client,
+                         AssetAuthorizationManager assetAuthorizationManager) {
+        super(globalConfProvider, keyConfProvider, serverConfProvider, certChainFactory, client, true);
         this.assetAuthorizationManager = assetAuthorizationManager;
     }
 
@@ -71,8 +77,9 @@ public class ClientSoapMessageHandler extends AbstractClientProxyHandler {
             return Optional.of(new ClientSoapMessageDsProcessorV2(request, response, client,
                     getIsAuthenticationData(request), opMonitoringData, assetAuthorizationManager));
         } else {
-            return Optional.of(new ClientSoapMessageProcessor(request, response, client,
-                    getIsAuthenticationData(request), opMonitoringData));
+
+            return Optional.of(new ClientSoapMessageProcessor(globalConfProvider, keyConfProvider, serverConfProvider, certChainFactory,
+                    request, response, client, getIsAuthenticationData(request), opMonitoringData));
         }
 
     }
@@ -84,13 +91,13 @@ public class ClientSoapMessageHandler extends AbstractClientProxyHandler {
                     request.getMethod());
         }
 
-        GlobalConf.verifyValidity();
+        globalConfProvider.verifyValidity();
 
         if (!SystemProperties.isSslEnabled()) {
             return;
         }
 
-        AuthKey authKey = KeyConf.getAuthKey();
+        AuthKey authKey = keyConfProvider.getAuthKey();
         if (authKey.getCertChain() == null) {
             throw new CodedException(X_SSL_AUTH_FAILED,
                     "Security server has no valid authentication certificate");

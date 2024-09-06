@@ -26,6 +26,7 @@
 package ee.ria.xroad.opmonitordaemon;
 
 import ee.ria.xroad.common.SystemProperties;
+import ee.ria.xroad.common.conf.globalconf.GlobalConfProvider;
 import ee.ria.xroad.common.opmonitoring.OpMonitoringSystemProperties;
 import ee.ria.xroad.common.util.CryptoUtils;
 import ee.ria.xroad.common.util.StartStop;
@@ -55,7 +56,7 @@ import static ee.ria.xroad.common.util.TimeUtils.getEpochMillisecond;
  * SOAP requests for monitoring data are further processed by the QueryRequestProcessor class.
  */
 @Slf4j
-final class OpMonitorDaemon implements StartStop {
+public final class OpMonitorDaemon implements StartStop {
 
     private static final String CLIENT_CONNECTOR_NAME = "OpMonitorDaemonClientConnector";
 
@@ -68,14 +69,18 @@ final class OpMonitorDaemon implements StartStop {
 
     private Server server = new Server();
 
+    private final GlobalConfProvider globalConfProvider;
     private final MetricRegistry healthMetricRegistry = new MetricRegistry();
     private final JmxReporter reporter = JmxReporter.forRegistry(healthMetricRegistry).build();
 
     /**
      * Constructor. Creates the connector and request handlers.
+     *
      * @throws Exception in case of any errors
      */
-    OpMonitorDaemon() throws Exception {
+    public OpMonitorDaemon(GlobalConfProvider globalConfProvider) throws Exception {
+        this.globalConfProvider = globalConfProvider;
+
         createConnector();
         createHandler();
         registerHealthMetrics();
@@ -144,7 +149,7 @@ final class OpMonitorDaemon implements StartStop {
     }
 
     private void createHandler() {
-        server.setHandler(new OpMonitorDaemonRequestHandler(healthMetricRegistry));
+        server.setHandler(new OpMonitorDaemonRequestHandler(globalConfProvider, healthMetricRegistry));
     }
 
     private void registerHealthMetrics() {
