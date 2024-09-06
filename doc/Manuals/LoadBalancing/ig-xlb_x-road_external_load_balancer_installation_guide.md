@@ -30,7 +30,7 @@ Doc. ID: IG-XLB
 | 19.04.2024 | 1.21    | Simplified creation of PostgreSQL serverconf service for RHEL 8, 9 and added warning about SELinux policy                | Eneli Reimets               |
 | 26.04.2024 | 1.22    | Added Ubuntu 24.04 support                                                                                               | Madis Loitmaa               |
 | 16.08.2024 | 1.23    | Added assumption that the load balancer supports TLS passthrough                                                         | Petteri Kivimäki            |
-| 04.09.2024 | 1.24    | Updated RHEL default configuration files location                                                                        | Eneli Reimets               |
+| 06.09.2024 | 1.24    | Updated RHEL default configuration files location                                                                        | Eneli Reimets               |
 ## Table of Contents
 
 <!-- toc -->
@@ -563,7 +563,7 @@ Environment=PGPORT=5433
 Environment=PGDATA=/var/lib/pgsql/serverconf
 ```
 
-Create the database and configure SELinux:
+Create the database:
 
 ```bash
 # Init db
@@ -571,18 +571,22 @@ sudo su postgres
 cd /tmp
 initdb --auth-local=peer --auth-host=scram-sha-256 --locale=en_US.UTF-8 --encoding=UTF8 -D /var/lib/pgsql/serverconf/
 exit
+```
+* >**Note:** if PostgreSQL is not installed with the default configuration, the database creation command may be different, for example:
+    ```bash
+    # Init db
+    sudo su postgres
+    cd /tmp
+    /usr/pgsql-13/bin/initdb --auth-local=peer --auth-host=scram-sha-256 --locale=en_US.UTF-8 --encoding=UTF8 -D /var/lib/pgsql/13/serverconf/
+    exit
+    ```
 
+Configure SELinux:
+
+```bash
 semanage port -a -t postgresql_port_t -p tcp 5433
 systemctl enable postgresql-serverconf
 ```
-* If the above `initdb` command is failing, for example:
-    ```bash
-    bash: initdb: command not found
-    ```
-    Then probably the same `initdb` command can be run with correct path, for example:
-    ```bash
-    /usr/pgsql-13/bin/initdb --auth-local=peer --auth-host=scram-sha-256 --locale=en_US.UTF-8 --encoding=UTF8 -D /var/lib/pgsql/13/serverconf/
-    ```
 
 #### 4.2.2 on Ubuntu
 
