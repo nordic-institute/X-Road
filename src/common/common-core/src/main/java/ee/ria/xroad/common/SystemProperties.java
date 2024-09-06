@@ -125,14 +125,14 @@ public final class SystemProperties {
     public static final String PROXY_UI_API_ACME_CHALLENGE_PORT_ENABLED =
             PREFIX + "proxy-ui-api.acme-challenge-port-enabled";
 
-    public static final String PROXY_UI_API_ACME_CERTIFICATE_RENEWAL_ACTIVE =
-            PREFIX + "proxy-ui-api.acme-certificate-renewal-active";
+    public static final String PROXY_UI_API_ACME_RENEWAL_ACTIVE =
+            PREFIX + "proxy-ui-api.acme-renewal-active";
 
-    public static final String PROXY_UI_API_ACME_CERTIFICATE_RENEWAL_RETRY_DELAY =
-            PREFIX + "proxy-ui-api.acme-certificate-renewal-retry-delay";
+    public static final String PROXY_UI_API_ACME_RENEWAL_RETRY_DELAY =
+            PREFIX + "proxy-ui-api.acme-renewal-retry-delay";
 
-    public static final String PROXY_UI_API_ACME_CERTIFICATE_RENEWAL_INTERVAL =
-            PREFIX + "proxy-ui-api.acme-certificate-renewal-interval";
+    public static final String PROXY_UI_API_ACME_RENEWAL_INTERVAL =
+            PREFIX + "proxy-ui-api.acme-renewal-interval";
 
     public static final String PROXY_UI_API_ACME_RENEWAL_TIME_BEFORE_EXPIRATION_DATE =
             PREFIX + "proxy-ui-api.acme-renewal-time-before-expiration-date";
@@ -1152,21 +1152,21 @@ public final class SystemProperties {
      * @return the ACME certificate renewal toggle
      */
     public static boolean isAcmeCertificateRenewalActive() {
-        return Boolean.parseBoolean(System.getProperty(PROXY_UI_API_ACME_CERTIFICATE_RENEWAL_ACTIVE, "true"));
+        return Boolean.parseBoolean(System.getProperty(PROXY_UI_API_ACME_RENEWAL_ACTIVE, "true"));
     }
 
     /**
      * @return the ACME certificate renewal retry delay in seconds
      */
     public static int getAcmeCertificateRenewalRetryDelay() {
-        return Integer.parseInt(System.getProperty(PROXY_UI_API_ACME_CERTIFICATE_RENEWAL_RETRY_DELAY, "60"));
+        return Integer.parseInt(System.getProperty(PROXY_UI_API_ACME_RENEWAL_RETRY_DELAY, "60"));
     }
 
     /**
      * @return the ACME certificate renewal job interval in seconds
      */
     public static int getAcmeCertificateRenewalInterval() {
-        return Integer.parseInt(System.getProperty(PROXY_UI_API_ACME_CERTIFICATE_RENEWAL_INTERVAL, "1200"));
+        return Integer.parseInt(System.getProperty(PROXY_UI_API_ACME_RENEWAL_INTERVAL, "1200"));
     }
 
     /**

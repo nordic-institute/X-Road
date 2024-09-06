@@ -17,6 +17,7 @@ Feature: 0505 - SS: ACME
     And Generate "<$usage>" CSR is set to DNS "<$dns>" and Organization "ui-test"
     And ACME order is made
     Then Token: <$token> - has key "<$label>" with status "<$certStatus>"
+    And Token: <$token> - has "<$usage>" key "<$label>" with correct ARI automatic renewal status
     And Token: <$token>, key "<$label>" generate CSR button is disabled
     Examples:
       | $token      | $usage         | $label                  | $client           | $dns | $certService | $certStatus |
@@ -41,4 +42,5 @@ Feature: 0505 - SS: ACME
     And Token: softToken-0 is present and expanded
     When Token: softToken-0 - CSR of key "key for multiple csr" is used to order certificate
     Then Token: softToken-0 - has key "key for multiple csr" with status "Saved"
+    Then Token: softToken-0 - has "AUTHENTICATION" key "key for multiple csr" with correct ARI automatic renewal status
 

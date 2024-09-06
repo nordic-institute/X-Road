@@ -104,9 +104,6 @@ importers:
       '@niis/shared-ui':
         specifier: workspace:*
         version: link:../../../shared-ui
-      dayjs:
-        specifier: ^1.11.13
-        version: 1.11.13
       is-ip:
         specifier: ^5.0.1
         version: 5.0.1
@@ -152,7 +149,7 @@ importers:
         specifier: ~1.7.7
         version: 1.7.7
       dayjs:
-        specifier: ^1.11.13
+        specifier: ^1.11.12
         version: 1.11.13
       deepmerge:
         specifier: ^4.3.1

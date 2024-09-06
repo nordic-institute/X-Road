@@ -458,7 +458,7 @@ public class TokenCertificateServiceTest {
         X509Certificate mockSignCertificate = CertificateTestUtils.getMockSignCertificate();
         when(acmeService.orderCertificateFromACMEServer(any(), any(), any(), any(), any(), any()))
                 .thenReturn(List.of(mockSignCertificate));
-        when(globalConfFacade.getApprovedCA(any(), any()))
+        when(globalConfProvider.getApprovedCA(any(), any()))
                 .thenReturn(new ApprovedCAInfo("testca", false, "ee.test.Profile", null, null, null, null));
         tokenCertificateService.generateCertRequest(SIGN_KEY_ID, client,
                 KeyUsageInfo.SIGNING, CA_NAME,
@@ -619,9 +619,9 @@ public class TokenCertificateServiceTest {
                 .thenReturn(List.of(mockSignCertificate));
         when(signerProxyFacade.regenerateCertRequest(any(), any()))
                 .thenReturn(new SignerProxy.GeneratedCertRequestInfo(null, csrBytes, null, null, null));
-        when(globalConfFacade.getCaCert(any(), any()))
+        when(globalConfProvider.getCaCert(any(), any()))
                 .thenReturn(CertificateTestUtils.getMockIntermediateCaCertificate());
-        when(globalConfFacade.getApprovedCA(any(), any()))
+        when(globalConfProvider.getApprovedCA(any(), any()))
                 .thenReturn(new ApprovedCAInfo("testca", false, "ee.test.Profile", "http://test-ca/acme", "123.4.5.6", "5", "6"));
         tokenCertificateService.orderAcmeCertificate(CA_NAME, GOOD_CSR_ID, KeyUsageInfo.SIGNING);
         verify(acmeService).orderCertificateFromACMEServer("common name",

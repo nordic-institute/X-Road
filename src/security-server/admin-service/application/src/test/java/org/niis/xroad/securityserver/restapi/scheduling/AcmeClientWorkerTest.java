@@ -100,8 +100,8 @@ public class AcmeClientWorkerTest extends AbstractFacadeMockingTestContext {
 
     @Before
     public void setUp() throws Exception {
-        when(globalConfFacade.isValid()).thenReturn(true);
-        when(globalConfFacade.getApprovedCA(any(), any()))
+        when(globalConfProvider.isValid()).thenReturn(true);
+        when(globalConfProvider.getApprovedCA(any(), any()))
                 .thenReturn(new ApprovedCAInfo("testca", false, "ee.test.Profile", "http://test-ca/acme", "123.4.5.6", "5", "6"));
 
         CertificateInfo signCertInfo = createCertificateInfo("sign_cert_id", "M1", new KeyUsage(KeyUsage.nonRepudiation),

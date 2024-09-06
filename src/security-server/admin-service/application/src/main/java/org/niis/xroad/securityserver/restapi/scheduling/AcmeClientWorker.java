@@ -28,6 +28,7 @@ package org.niis.xroad.securityserver.restapi.scheduling;
 import ee.ria.xroad.common.CodedException;
 import ee.ria.xroad.common.SystemProperties;
 import ee.ria.xroad.common.conf.globalconf.ApprovedCAInfo;
+import ee.ria.xroad.common.conf.globalconf.GlobalConfProvider;
 import ee.ria.xroad.common.conf.serverconf.model.ServerConfType;
 import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.identifier.SecurityServerId;
@@ -43,7 +44,6 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.niis.xroad.common.acme.AcmeService;
 import org.niis.xroad.common.managementrequest.ManagementRequestSender;
-import org.niis.xroad.securityserver.restapi.facade.GlobalConfFacade;
 import org.niis.xroad.securityserver.restapi.facade.SignerProxyFacade;
 import org.niis.xroad.securityserver.restapi.repository.ServerConfRepository;
 import org.niis.xroad.signer.proto.CertificateRequestFormat;
@@ -77,13 +77,13 @@ public class AcmeClientWorker {
 
     private final AcmeService acmeService;
     private final SignerProxyFacade signerProxyFacade;
-    private final GlobalConfFacade globalConfFacade;
+    private final GlobalConfProvider globalConfProvider;
     private final ServerConfRepository serverConfRepository;
 
     public void execute(CertificateRenewalScheduler acmeRenewalScheduler) {
         log.info("ACME certificate renewal cycle started");
 
-        if (!globalConfFacade.isValid()) {
+        if (!globalConfProvider.isValid()) {
             log.debug("invalid global conf, returning");
             if (acmeRenewalScheduler != null) {
                 acmeRenewalScheduler.globalConfInvalidated();
@@ -247,14 +247,14 @@ public class AcmeClientWorker {
     }
 
     private ApprovedCAInfo getApprovedCA(ClientId clientId, X509Certificate x509Certificate) throws Exception {
-        X509Certificate caX509Certificate = globalConfFacade.getCaCert(clientId.getXRoadInstance(), x509Certificate);
-        return globalConfFacade.getApprovedCA(clientId.getXRoadInstance(), caX509Certificate);
+        X509Certificate caX509Certificate = globalConfProvider.getCaCert(clientId.getXRoadInstance(), x509Certificate);
+        return globalConfProvider.getApprovedCA(clientId.getXRoadInstance(), caX509Certificate);
     }
 
     private ClientId getClientId(CertificateInfo certificateInfo, X509Certificate x509Certificate) throws Exception {
         ClientId clientId = certificateInfo.getMemberId();
         if (clientId == null) {
-            SecurityServerId securityServerId = globalConfFacade.getServerId(x509Certificate);
+            SecurityServerId securityServerId = globalConfProvider.getServerId(x509Certificate);
             clientId = securityServerId.getOwner();
         }
         return clientId;
@@ -338,7 +338,8 @@ public class AcmeClientWorker {
 
         if (keyUsage == KeyUsageInfo.AUTHENTICATION) {
             try {
-                String securityServerAddress = globalConfFacade.getSecurityServerAddress(globalConfFacade.getServerId(oldX509Certificate));
+                String securityServerAddress =
+                        globalConfProvider.getSecurityServerAddress(globalConfProvider.getServerId(oldX509Certificate));
                 ManagementRequestSender managementRequestSender = createManagementRequestSender();
                 managementRequestSender.sendAuthCertRegRequest(getSecurityServerId(),
                         securityServerAddress,
@@ -359,8 +360,8 @@ public class AcmeClientWorker {
 
     ManagementRequestSender createManagementRequestSender() {
         ClientId sender = serverConfRepository.getServerConf().getOwner().getIdentifier();
-        ClientId receiver = globalConfFacade.getManagementRequestService();
-        return new ManagementRequestSender(sender, receiver, SystemProperties.getProxyUiSecurityServerUrl());
+        ClientId receiver = globalConfProvider.getManagementRequestService();
+        return new ManagementRequestSender(globalConfProvider, sender, receiver, SystemProperties.getProxyUiSecurityServerUrl());
     }
 
     private String getSubjectAltName(X509Certificate oldX509Certificate, KeyUsageInfo keyUsage) throws Exception {
@@ -371,7 +372,7 @@ public class AcmeClientWorker {
             if (keyUsage == KeyUsageInfo.AUTHENTICATION) {
                 subjectAltName = getCommonName(oldX509Certificate.getSubjectX500Principal().getName());
             } else {
-                subjectAltName = globalConfFacade.getSecurityServerAddress(getSecurityServerId());
+                subjectAltName = globalConfProvider.getSecurityServerAddress(getSecurityServerId());
             }
         }
         return subjectAltName;

@@ -435,9 +435,9 @@ public class TokenCertificateService {
                                                         X509Certificate x509Certificate,
                                                         KeyUsageInfo keyUsageInfo,
                                                         CertificateInfo certificateInfo) throws Exception {
-        ClientId memberId = clientId != null ? clientId : ServerConf.getIdentifier().getOwner();
-        X509Certificate caX509Certificate = globalConfFacade.getCaCert(memberId.getXRoadInstance(), x509Certificate);
-        ApprovedCAInfo approvedCA = globalConfFacade.getApprovedCA(memberId.getXRoadInstance(), caX509Certificate);
+        ClientId memberId = clientId != null ? clientId : serverConfProvider.getIdentifier().getOwner();
+        X509Certificate caX509Certificate = globalConfProvider.getCaCert(memberId.getXRoadInstance(), x509Certificate);
+        ApprovedCAInfo approvedCA = globalConfProvider.getApprovedCA(memberId.getXRoadInstance(), caX509Certificate);
         if (approvedCA.getAcmeServerDirectoryUrl() != null) {
             Instant nextRenewalTime = acmeService.getNextRenewalTime(memberId.asEncodedId(), approvedCA, x509Certificate, keyUsageInfo);
             signerProxyFacade.setNextPlannedRenewal(certificateInfo.getId(), nextRenewalTime);
