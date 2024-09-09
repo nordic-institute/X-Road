@@ -51,7 +51,8 @@ public class FSGlobalConfValidator {
                 return GlobalConfInitState.FAILURE_CONFIGURATION_ERROR;
             }
             if (isDirEmpty(globalConfPathOpt.get())) {
-                log.warn("GlobalConf at [{}] is empty. Either GlobalConf is not being downloaded, the download is in progress, or the data is corrupted. "
+                log.warn("GlobalConf at [{}] is empty. Either GlobalConf is not being downloaded, "
+                                + "the download is in progress, or the data is corrupted. "
                                 + "Initialization will not continue.",
                         globalConfPath);
                 return GlobalConfInitState.FAILURE_MALFORMED;
@@ -72,7 +73,6 @@ public class FSGlobalConfValidator {
         try {
             return Optional.of(Paths.get(globalConfigurationDir));
         } catch (InvalidPathException e) {
-
             return Optional.empty();
         }
     }
