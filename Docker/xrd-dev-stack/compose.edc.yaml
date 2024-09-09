@@ -10,42 +10,48 @@ services:
       - EDC_DID_KEY_ID=DE9DH3UqFQpV64LraOgqmMFSgTIlk6K1BnfU2k5vBfs
       - EDC_TLS_CERT_PATH=/etc/xroad/ssl/management-service.p12
     ports:
-      - "4196:9956" #EDC connector debug
-      - "4197:9957" #EDC ih debug
+      - "4195:9956" #EDC connector debug
+      - "4196:9957" #EDC identity-hub debug
       - "4151:9191" #EDC api port
       - "4152:9192" #EDC control port
       - "4153:9193" #EDC management port
       - "4154:9194" #EDC protocol port
-      - "4155:9291" #EDC public port
-      - "4156:9293" #EDC XRD public port
+      - "4155:9293" #EDC public port
+      - "4156:9294" #EDC XRD public port
   ss0:
     environment:
       - EDC_HOSTNAME=ss0
       - EDC_DID=did:web:ss0%3A9396
       - EDC_DID_KEY_ID=JWK2020-RSA
     ports:
-      - "4296:9953" #EDC connector debug
-      - "4297:9954" #EDC ih debug
-      - "4251:9191" #EDC api port
-      - "4252:9192" #EDC control port
-      - "4253:9193" #EDC management port
-      - "4254:9194" #EDC protocol port
-      - "4255:9291" #EDC public port
-      - "4256:9293" #EDC XRD public port
+      - "4295:9953" #control-plane debug
+      - "4296:9954" #data-plane debug
+      - "4297:9955" #identity-hub debug
+      - "4251:9191" #control-plane api port
+      - "4252:9192" #control-plane control port
+      - "4253:9193" #control-plane management port
+      - "4254:9194" #control-plane protocol port
+      - "4255:9291" #data-plane api port
+      - "4256:9292" #data-plane control port
+      - "4257:9293" #data-plane public port
+      - "4258:9294" #data-plane XRD public port
   ss1:
     environment:
       - EDC_HOSTNAME=ss1
       - EDC_DID=did:web:ss1%3A9396
       - EDC_DID_KEY_ID=JWK2020-RSA
     ports:
-      - "4396:9953" #EDC connector debug
-      - "4397:9954" #EDC ih debug
-      - "4351:9191" #EDC api port
-      - "4352:9192" #EDC control port
-      - "4353:9193" #EDC management port
-      - "4354:9194" #EDC protocol port
-      - "4355:9291" #EDC public port
-      - "4356:9293" #EDC XRD public port
+      - "4395:9953" #control-plane debug
+      - "4396:9954" #data-plane debug
+      - "4397:9955" #identity-hub debug
+      - "4351:9191" #control-plane api port
+      - "4352:9192" #control-plane control port
+      - "4353:9193" #control-plane management port
+      - "4354:9194" #control-plane protocol port
+      - "4355:9291" #data-plane api port
+      - "4356:9292" #data-plane control port
+      - "4357:9293" #data-plane public port
+      - "4358:9294" #data-plane XRD public port
   prometheus:
     image: prom/prometheus:v2.52.0
     deploy:

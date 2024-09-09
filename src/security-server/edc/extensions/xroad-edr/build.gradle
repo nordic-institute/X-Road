@@ -5,17 +5,16 @@ plugins {
 dependencies {
     implementation project(":security-server:edc:spi:xroad-core-spi")
 
-    implementation libs.edc.core.spi
+    implementation libs.edc.spi.core
     implementation libs.edc.core.edrstore
-    implementation(libs.edc.edr.store.receiver)
+    implementation(libs.edc.edr.storereceiver)
 
-    implementation libs.edc.callback.event.dispatcher
-    implementation libs.edc.management.api
-    implementation libs.edc.web.spi
-    implementation libs.edc.jsonLd
-    implementation libs.edc.jsonLd.lib
-    implementation libs.edc.transform.lib
-    implementation libs.edc.control.plane.transform
+    implementation libs.edc.controlplane.callback.dispatcher.event
+    implementation libs.edc.api.management
+    implementation libs.edc.ext.jsonld
+    implementation libs.edc.lib.jsonld
+    implementation libs.edc.lib.transform
+    implementation libs.edc.controlplane.transform
     implementation libs.opentelemetry.instrumentation.annotations
 
     implementation libs.caffeine

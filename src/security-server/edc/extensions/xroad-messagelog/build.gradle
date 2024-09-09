@@ -3,7 +3,7 @@ plugins {
 }
 
 dependencies {
-    implementation libs.edc.connector.core
+    implementation libs.edc.core.connector
 
     implementation(project(":security-server:edc:spi:xroad-messagelog-spi"))
 

@@ -28,8 +28,11 @@ case $1 in
   gradleModule="central-server/management-service"
   gradleArgs+="-xintTest"
   ;;
-"edc-connector")
-  gradleModule="security-server/edc/runtime/connector"
+"edc-control-plane")
+  gradleModule="security-server/edc/runtime/control-plane"
+  ;;
+"edc-data-plane")
+  gradleModule="security-server/edc/runtime/data-plane"
   ;;
 "edc-ih")
   gradleModule="security-server/edc/runtime/identity-hub"

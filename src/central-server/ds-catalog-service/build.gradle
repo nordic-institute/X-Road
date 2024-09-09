@@ -15,27 +15,24 @@ configurations {
 }
 
 dependencies {
-    implementation libs.websocket.jakarta.server
+    runtimeOnly libs.bundles.connector
+    runtimeOnly(libs.edc.config.filesystem)
+    runtimeOnly libs.edc.api.management
+    runtimeOnly libs.edc.api.management.config
+    runtimeOnly libs.edc.controlplane.core //default store impls, etc.
+    runtimeOnly libs.edc.controlplane.services // aggregate services
+    runtimeOnly libs.edc.dsp // protocol webhook
+    runtimeOnly libs.bundles.dcp // DCP protocol impl
+    runtimeOnly libs.edc.api.dsp.config // json-ld expansion
 
-    implementation libs.edc.util.lib
-    implementation libs.edc.configuration.filesystem
-    implementation libs.edc.vault.hashicorp
-    implementation libs.edc.dsp
+    runtimeOnly(libs.edc.vault.hashicorp)
+    runtimeOnly(libs.bundles.sql.edc)
 
-    implementation libs.edc.jsonLd.spi
-    implementation libs.edc.control.plane.api.client
-    implementation libs.edc.control.plane.core
-    implementation libs.edc.data.plane.core
-
-    implementation libs.edc.api.observability
-    implementation libs.edc.control.plane.api.client
-
-    // federated catalog
-    implementation libs.edc.federated.catalog.api
-    implementation libs.edc.federated.catalog.core
-
-    implementation libs.edc.identity.did.core
-    implementation libs.edc.identity.did.web
+    implementation(libs.edc.spi.identity.did)
+    implementation(libs.edc.fc.spi.crawler)
+    implementation(libs.edc.fc.spi)
+    runtimeOnly(libs.edc.fc.core)
+    runtimeOnly(libs.edc.fc.api)
 
     implementation(project(":security-server:edc:extensions:xroad-identity-and-trust"))
     implementation(project(":security-server:edc:extensions:xroad-webserver"))

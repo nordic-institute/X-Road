@@ -49,15 +49,15 @@ import org.springframework.scheduling.annotation.EnableScheduling;
 
 @Configuration
 @EnableScheduling
-@Conditional(ProxyEdcConfig.DataspacesEnabledCondition.class)
-public class ProxyEdcConfig {
+@Conditional(ProxyEdcControlPlaneConfig.DataspacesEnabledCondition.class)
+public class ProxyEdcControlPlaneConfig {
 
     @Bean
     EdcManagementApiFactory edcManagementApiFactory() {
         return new EdcManagementApiFactory(String.format("%s://%s:%s",
                 SystemProperties.isSslEnabled() ? "https" : "http",
                 SystemProperties.dataspacesListenAddress(),
-                SystemProperties.dataspacesManagementListenPort()));
+                SystemProperties.dataspacesControlPlaneManagementListenPort()));
     }
 
     @Bean
@@ -65,7 +65,7 @@ public class ProxyEdcConfig {
         return new EdcControlApiFactory(String.format("%s://%s:%s",
                 SystemProperties.isSslEnabled() ? "https" : "http",
                 SystemProperties.dataspacesListenAddress(),
-                SystemProperties.dataspacesControlListenPort()));
+                SystemProperties.dataspacesControlPlaneControlListenPort()));
     }
 
     @Bean

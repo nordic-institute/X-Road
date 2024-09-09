@@ -3,7 +3,7 @@ plugins {
 }
 
 dependencies {
-    api libs.edc.core.spi
+    api libs.edc.spi.core
 
     implementation(project(":common:common-messagelog"))
 }

@@ -57,7 +57,7 @@ import java.util.concurrent.Executors;
 public class XrdPayloadSignerExtension implements ServiceExtension {
 
     public static final String NAME = "X-Road Data Plane Public API";
-    private static final int DEFAULT_PUBLIC_PORT = 9293;
+    private static final int DEFAULT_PUBLIC_PORT = 9294;
     private static final String PUBLIC_API_CONFIG = "web.http.xroad.public";
     private static final String PUBLIC_CONTEXT_ALIAS = "xroad";
     private static final String PUBLIC_CONTEXT_PATH = "/xroad/public";

@@ -3,5 +3,5 @@ plugins {
 }
 
 dependencies {
-    implementation libs.edc.web.spi
+    implementation libs.edc.spi.web
 }

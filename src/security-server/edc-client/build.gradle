@@ -16,23 +16,20 @@ dependencies {
     api variantOf(libs.jakarta.json.module) { classifier("module")}
 
 //   EDC api interfaces
-    api libs.edc.asset.api
-    api libs.edc.catalog.api
-    api libs.edc.contract.negotiation.api
-    api libs.edc.policy.definition.api
-    api libs.edc.contract.definition.api
-    api libs.edc.data.plane.selector.api
-    api libs.edc.data.plane.selector.control.api
-    api libs.edc.transfer.process.api
+    api libs.edc.api.management.asset
+    api libs.edc.api.management.policy
+    api libs.edc.api.management.catalog
+    api libs.edc.api.management.contractdef
+    api libs.edc.api.management.contractneg
+    api libs.edc.api.management.transfer.process
+    api libs.edc.api.management.dataplaneselector
+    api libs.edc.dpf.selector.control.api
 
-    api libs.edc.data.plane.http.spi
-
-    api libs.edc.jsonLd.spi
-    api libs.edc.jsonLd.lib
-    api libs.edc.transform.lib
-    api libs.edc.connector.core
-    api libs.edc.control.plane.transform
-    api libs.edc.management.api.configuration
+    api libs.edc.lib.jsonld
+    api libs.edc.lib.transform
+    api libs.edc.core.connector
+    api libs.edc.controlplane.transform
+    api libs.edc.api.management.config
 
     api(project(":security-server:edc:extensions:xroad-jsonld"))
 

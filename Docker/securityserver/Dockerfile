@@ -95,7 +95,8 @@ COPY build/libs/ /usr/share/xroad/jlib/
 COPY build/liquibase/ /usr/share/xroad/db
 
 COPY files/edc/etc /etc/xroad-edc/
-COPY files/edc/setup_edc_db.sh /usr/share/xroad/scripts/setup_edc_db.sh
+COPY files/edc/setup_edc_controlplane_db.sh /usr/share/xroad/scripts/setup_edc_controlplane_db.sh
+COPY files/edc/setup_edc_dataplane_db.sh /usr/share/xroad/scripts/setup_edc_dataplane_db.sh
 COPY files/edc/bin/ /usr/share/xroad/bin/
 
 ENV EDC_HOSTNAME=localhost

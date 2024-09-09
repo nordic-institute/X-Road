@@ -3,10 +3,10 @@ plugins {
 }
 
 dependencies {
-    implementation libs.edc.core.spi
-    implementation libs.edc.policy.engine.spi
-    implementation libs.edc.contract.spi
-    implementation libs.edc.data.plane.spi
+    implementation libs.edc.spi.core
+    implementation libs.edc.spi.policy.engine
+    implementation libs.edc.spi.contract
+    implementation libs.edc.spi.dataplane
     implementation(project(':common:common-domain')) {
         exclude group: 'org.eclipse.jetty'
     }

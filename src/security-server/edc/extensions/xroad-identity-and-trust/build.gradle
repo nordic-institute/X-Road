@@ -4,11 +4,10 @@ plugins {
 
 dependencies {
     implementation libs.edc.boot
-    implementation libs.edc.policy.engine.spi
 
     implementation(project(":security-server:edc:extensions:xroad-jsonld"))
 
-    implementation(libs.edc.identity.trust.core) {
+    implementation(libs.edc.dcp.core) {
         // we use our own fork of it in order to verify Gaia-X signatures
         exclude group: 'org.eclipse.edc', module: 'ldp-verifiable-credentials'
     }
@@ -16,17 +15,15 @@ dependencies {
 
 //    implementation libs.edc.identity.trust.transform  // we use our own fork to allow "evidence" property in the Gaia-x compliance VC
 
-    implementation libs.edc.identity.trust.service
-    implementation libs.edc.jersey.providers.lib
-    implementation libs.edc.transform.lib
-    implementation libs.edc.crypto.common.lib
-    implementation libs.edc.verifiable.credentials
-    implementation libs.edc.jwt.verifiable.credentials
-    implementation libs.edc.jsonLd.spi
-    implementation libs.edc.jsonLd.lib
-    implementation libs.edc.jws2020.lib
-    implementation libs.edc.token.core
-    implementation libs.edc.util.lib
+    implementation libs.edc.dcp
+    implementation libs.edc.lib.transform
+    implementation libs.edc.lib.crypto
+    implementation libs.edc.identity.vc
+    implementation libs.edc.identity.vc.ldp
+    implementation libs.edc.identity.vc.jwt
+    implementation libs.edc.lib.jsonld
+    implementation libs.edc.lib.jws2020
+    implementation libs.edc.lib.util
     implementation libs.apache.commonsLang3
 }
 
