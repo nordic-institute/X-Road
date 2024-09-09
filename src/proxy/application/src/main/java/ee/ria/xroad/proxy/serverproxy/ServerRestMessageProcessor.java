@@ -271,7 +271,7 @@ class ServerRestMessageProcessor extends MessageProcessorBase {
                 super.rest(message);
                 requestServiceId = message.getServiceId();
                 verifyClientStatus();
-                responseSigningCtx = keyConfProvider.getSigningCtx(requestServiceId.getClientId());
+                responseSigningCtx = SigningCtxProvider.getSigningCtx(requestServiceId.getClientId(), globalConfProvider, keyConfProvider);
                 if (SystemProperties.isSslEnabled()) {
                     verifySslClientCert();
                 }

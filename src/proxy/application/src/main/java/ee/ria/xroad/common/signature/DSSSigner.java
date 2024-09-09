@@ -26,7 +26,7 @@
 package ee.ria.xroad.common.signature;
 
 import ee.ria.xroad.common.CodedException;
-import ee.ria.xroad.common.conf.globalconf.GlobalConf;
+import ee.ria.xroad.common.conf.globalconf.GlobalConfProvider;
 import ee.ria.xroad.common.util.CryptoUtils;
 import ee.ria.xroad.signer.SignerProxy;
 
@@ -48,6 +48,7 @@ import eu.europa.esig.dss.xml.common.XmlDefinerUtils;
 import eu.europa.esig.dss.xml.common.definition.DSSNamespace;
 import eu.europa.esig.xades.definition.XAdESNamespace;
 import io.opentelemetry.instrumentation.annotations.WithSpan;
+import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.niis.xroad.edc.sig.XrdSignatureService;
@@ -66,8 +67,11 @@ import static ee.ria.xroad.common.util.CryptoUtils.getDigestAlgorithmId;
 import static eu.europa.esig.dss.enumerations.SignaturePackaging.DETACHED;
 
 @Slf4j
+@RequiredArgsConstructor
 public class DSSSigner implements MessageSigner {
     private static final DSSNamespace XADES_NAMESPACE = new DSSNamespace(XAdESNamespace.XADES_132.getUri(), "xades");
+
+    private final GlobalConfProvider globalConfProvider;
 
     static {
         XmlDefinerUtils.getInstance().setTransformerFactoryBuilder(
@@ -119,7 +123,7 @@ public class DSSSigner implements MessageSigner {
         CommonTrustedCertificateSource trustedCertificateSource = new CommonTrustedCertificateSource();
 
 
-        GlobalConf.getTspCertificates().forEach(cert -> {
+        globalConfProvider.getTspCertificates().forEach(cert -> {
             try {
                 var certToken = DSSUtils.loadCertificate(cert.getEncoded());
                 trustedCertificateSource.addCertificate(certToken);
@@ -129,7 +133,7 @@ public class DSSSigner implements MessageSigner {
             }
 
         });
-        GlobalConf.getAllCaCerts().forEach(cert -> {
+        globalConfProvider.getAllCaCerts().forEach(cert -> {
             try {
                 var certToken = DSSUtils.loadCertificate(cert.getEncoded());
                 trustedCertificateSource.addCertificate(certToken);
@@ -140,7 +144,7 @@ public class DSSSigner implements MessageSigner {
 
         });
 
-        GlobalConf.getOcspResponderCertificates().forEach(cert -> {
+        globalConfProvider.getOcspResponderCertificates().forEach(cert -> {
             try {
                 var certToken = DSSUtils.loadCertificate(cert.getEncoded());
                 trustedCertificateSource.addCertificate(certToken);

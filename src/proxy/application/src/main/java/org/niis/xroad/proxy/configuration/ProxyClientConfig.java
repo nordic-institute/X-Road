@@ -26,10 +26,15 @@
 package org.niis.xroad.proxy.configuration;
 
 import ee.ria.xroad.common.SystemProperties;
+import ee.ria.xroad.common.cert.CertChainFactory;
+import ee.ria.xroad.common.conf.globalconf.GlobalConfProvider;
+import ee.ria.xroad.common.conf.serverconf.ServerConfProvider;
+import ee.ria.xroad.proxy.clientproxy.AuthTrustVerifier;
 import ee.ria.xroad.proxy.clientproxy.ClientProxy;
 import ee.ria.xroad.proxy.clientproxy.ClientRestMessageHandler;
 import ee.ria.xroad.proxy.clientproxy.ClientSoapMessageHandler;
 import ee.ria.xroad.proxy.clientproxy.FastestConnectionSelectingSSLSocketFactory;
+import ee.ria.xroad.proxy.conf.KeyConfProvider;
 import ee.ria.xroad.proxy.serverproxy.IdleConnectionMonitorThread;
 import ee.ria.xroad.proxy.util.SSLContextUtil;
 
@@ -65,20 +70,36 @@ public class ProxyClientConfig {
     @Bean(initMethod = "start", destroyMethod = "stop")
     ClientProxy clientProxy(@Qualifier("proxyHttpClient") HttpClient httpClient,
                             ClientRestMessageHandler clientRestMessageHandler,
-                            ClientSoapMessageHandler clientSoapMessageHandler) throws Exception {
-        return new ClientProxy(httpClient, clientRestMessageHandler, clientSoapMessageHandler);
+                            ClientSoapMessageHandler clientSoapMessageHandler,
+                            GlobalConfProvider globalConfProvider,
+                            KeyConfProvider keyConfProvider,
+                            ServerConfProvider serverConfProvider,
+                            CertChainFactory certChainFactory,
+                            AuthTrustVerifier authTrustVerifier) throws Exception {
+        return new ClientProxy(httpClient, clientRestMessageHandler, clientSoapMessageHandler,
+                globalConfProvider, keyConfProvider, serverConfProvider, certChainFactory, authTrustVerifier);
     }
 
     @Bean
-    ClientRestMessageHandler clientRestMessageHandler(@Qualifier("proxyHttpClient") HttpClient httpClient,
+    ClientRestMessageHandler clientRestMessageHandler(GlobalConfProvider globalConfProvider,
+                                                      KeyConfProvider keyConfProvider,
+                                                      ServerConfProvider serverConfProvider,
+                                                      CertChainFactory certChainFactory,
+                                                      @Qualifier("proxyHttpClient") HttpClient httpClient,
                                                       @Autowired(required = false) AssetAuthorizationManager assetAuthorizationManager) {
-        return new ClientRestMessageHandler(httpClient, assetAuthorizationManager);
+        return new ClientRestMessageHandler(globalConfProvider, keyConfProvider, serverConfProvider, certChainFactory,
+                httpClient, assetAuthorizationManager);
     }
 
     @Bean
-    ClientSoapMessageHandler clientSoapMessageHandler(@Qualifier("proxyHttpClient") HttpClient httpClient,
+    ClientSoapMessageHandler clientSoapMessageHandler(GlobalConfProvider globalConfProvider,
+                                                      KeyConfProvider keyConfProvider,
+                                                      ServerConfProvider serverConfProvider,
+                                                      CertChainFactory certChainFactory,
+                                                      @Qualifier("proxyHttpClient") HttpClient httpClient,
                                                       @Autowired(required = false) AssetAuthorizationManager assetAuthorizationManager) {
-        return new ClientSoapMessageHandler(httpClient, assetAuthorizationManager);
+        return new ClientSoapMessageHandler(globalConfProvider, keyConfProvider, serverConfProvider, certChainFactory,
+                httpClient, assetAuthorizationManager);
     }
 
     @Conditional(ClientUseIdleConnectionMonitorEnabledCondition.class)
@@ -115,13 +136,15 @@ public class ProxyClientConfig {
     }
 
     @Bean("proxyHttpClientManager")
-    HttpClientConnectionManager getClientConnectionManager() throws Exception {
+    HttpClientConnectionManager getClientConnectionManager(GlobalConfProvider globalConfProvider, KeyConfProvider keyConfProvider,
+                                                           AuthTrustVerifier authTrustVerifier)
+            throws Exception {
         RegistryBuilder<ConnectionSocketFactory> sfr = RegistryBuilder.create();
 
         sfr.register("http", PlainConnectionSocketFactory.INSTANCE);
 
         if (SystemProperties.isSslEnabled()) {
-            sfr.register("https", createSSLSocketFactory());
+            sfr.register("https", createSSLSocketFactory(globalConfProvider, keyConfProvider, authTrustVerifier));
         }
 
         SocketConfig.Builder sockBuilder = SocketConfig.custom().setTcpNoDelay(true);
@@ -139,8 +162,10 @@ public class ProxyClientConfig {
         return poolingManager;
     }
 
-    private static SSLConnectionSocketFactory createSSLSocketFactory() throws Exception {
-        return new FastestConnectionSelectingSSLSocketFactory(SSLContextUtil.createXroadSSLContext()
+    private SSLConnectionSocketFactory createSSLSocketFactory(GlobalConfProvider globalConfProvider, KeyConfProvider keyConfProvider,
+                                                              AuthTrustVerifier authTrustVerifier)
+            throws Exception {
+        return new FastestConnectionSelectingSSLSocketFactory(authTrustVerifier, SSLContextUtil.createXroadSSLContext(globalConfProvider, keyConfProvider)
         );
     }
 

@@ -140,7 +140,7 @@ public class GlobalConfVer4Test {
 
     @Test
     public void testMemberDid() {
-        List<MemberInfo> members = GlobalConf.getMembers("EE");
+        List<MemberInfo> members = globalConfProvider.getMembers("EE");
 
         MemberInfo memberInfo = findMemberInfo(members, "consumer");
         assertEquals("did:web:consumer", memberInfo.getDid());

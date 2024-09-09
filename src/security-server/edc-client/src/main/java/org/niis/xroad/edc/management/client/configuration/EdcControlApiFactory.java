@@ -26,6 +26,9 @@
  */
 package org.niis.xroad.edc.management.client.configuration;
 
+import ee.ria.xroad.common.conf.globalconf.GlobalConfProvider;
+import ee.ria.xroad.proxy.conf.KeyConfProvider;
+
 import com.fasterxml.jackson.databind.ObjectMapper;
 import feign.Client;
 import feign.Feign;
@@ -52,13 +55,20 @@ import org.niis.xroad.ssl.SSLContextBuilder;
 @Slf4j
 public class EdcControlApiFactory {
 
-    private final ObjectMapper objectMapper = JacksonJsonLd.createObjectMapper();
-    private final Client client = apacheHttpClient(feignClient());
+    private final ObjectMapper objectMapper;
+    private final Client client;
+
     private final String baseUrl;
+    private final GlobalConfProvider globalConfProvider;
+    private final KeyConfProvider keyConfProvider;
 
-    public EdcControlApiFactory(String baseUrl) {
+    public EdcControlApiFactory(String baseUrl, GlobalConfProvider globalConfProvider, KeyConfProvider keyConfProvider) {
         this.baseUrl = baseUrl;
+        this.globalConfProvider = globalConfProvider;
+        this.keyConfProvider = keyConfProvider;
 
+        objectMapper = JacksonJsonLd.createObjectMapper();
+        client = apacheHttpClient(feignClient());
     }
 
     public DataplaneSelectorControlApi dataplaneSelectorControlApi() {
@@ -99,7 +109,7 @@ public class EdcControlApiFactory {
     private HttpClientConnectionManager buildConnectionManager() {
         final var sslSocketFactory = SSLConnectionSocketFactoryBuilder.create()
                 .setHostnameVerifier(new NoopHostnameVerifier())
-                .setSslContext(SSLContextBuilder.create().sslContext())
+                .setSslContext(SSLContextBuilder.create(keyConfProvider::getAuthKey, globalConfProvider).sslContext())
                 .build();
 
         return PoolingHttpClientConnectionManagerBuilder.create()

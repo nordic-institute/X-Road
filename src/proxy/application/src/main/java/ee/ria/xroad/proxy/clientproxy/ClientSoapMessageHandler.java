@@ -55,7 +55,7 @@ import static java.lang.Boolean.TRUE;
 public class ClientSoapMessageHandler extends AbstractClientProxyHandler {
     private final AssetAuthorizationManager assetAuthorizationManager;
 
-    ClientSoapMessageHandler(GlobalConfProvider globalConfProvider,
+    public ClientSoapMessageHandler(GlobalConfProvider globalConfProvider,
                          KeyConfProvider keyConfProvider,
                          ServerConfProvider serverConfProvider,
                          CertChainFactory certChainFactory, HttpClient client,
@@ -74,7 +74,8 @@ public class ClientSoapMessageHandler extends AbstractClientProxyHandler {
         boolean useDs = TRUE.toString().equalsIgnoreCase(request.getHeaders().get("X-Road-Use-DS-Transport"));
         if (useDs) {
             //TODO xroad8 this bean setup is far from usable, refactor once design stabilizes.
-            return Optional.of(new ClientSoapMessageDsProcessorV2(request, response, client,
+            return Optional.of(new ClientSoapMessageDsProcessorV2(globalConfProvider, keyConfProvider,
+                    serverConfProvider, certChainFactory, request, response, client,
                     getIsAuthenticationData(request), opMonitoringData, assetAuthorizationManager));
         } else {
 

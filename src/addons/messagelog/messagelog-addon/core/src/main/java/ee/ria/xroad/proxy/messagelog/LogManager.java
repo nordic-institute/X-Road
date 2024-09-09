@@ -89,14 +89,14 @@ public class LogManager extends AbstractLogManager {
     // package private for testing
     final TaskQueue taskQueue;
 
-    LogManager(String origin, GlobalConfProvider globalConfProvider, ServerConfProvider serverConfProvider) {
+    public LogManager(String origin, GlobalConfProvider globalConfProvider, ServerConfProvider serverConfProvider) {
         super(origin, globalConfProvider, serverConfProvider);
 
         this.origin = origin;
         this.globalConfProvider = globalConfProvider;
         this.serverConfProvider = serverConfProvider;
         this.timestamper = getTimestamperImpl();
-        this.taskQueue = getTaskQueueImpl(timestamper);
+        this.taskQueue = getTaskQueueImpl(timestamper, origin);
         this.timestamperJob = createTimestamperJob(taskQueue);
     }
 

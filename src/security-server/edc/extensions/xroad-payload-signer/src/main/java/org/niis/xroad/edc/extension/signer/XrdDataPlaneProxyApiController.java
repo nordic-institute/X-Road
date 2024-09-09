@@ -26,7 +26,11 @@
  */
 package org.niis.xroad.edc.extension.signer;
 
+import ee.ria.xroad.common.cert.CertChainFactory;
+import ee.ria.xroad.common.conf.globalconf.GlobalConfProvider;
+import ee.ria.xroad.common.conf.serverconf.ServerConfProvider;
 import ee.ria.xroad.common.signature.BatchSigner;
+import ee.ria.xroad.proxy.conf.KeyConfProvider;
 import ee.ria.xroad.proxy.serverproxy.HttpClientCreator;
 
 import jakarta.ws.rs.POST;
@@ -72,18 +76,30 @@ public class XrdDataPlaneProxyApiController {
 
     private final HttpClient httpClient;
     private final boolean needClientAuth;
+    private final GlobalConfProvider globalConfProvider;
+    private final ServerConfProvider serverConfProvider;
+    private final KeyConfProvider keyConfProvider;
+    private final CertChainFactory certChainFactory;
 
     public XrdDataPlaneProxyApiController(Monitor monitor,
                                           XRoadMessageLog xRoadMessageLog,
                                           DataPlaneAuthorizationService authorizationService,
-                                          boolean needClientAuth) {
+                                          boolean needClientAuth,
+                                          GlobalConfProvider globalConfProvider,
+                                          KeyConfProvider keyConfProvider,
+                                          ServerConfProvider serverConfProvider,
+                                          CertChainFactory certChainFactory) {
         this.monitor = monitor;
         this.xRoadMessageLog = xRoadMessageLog;
         this.authorizationService = authorizationService;
         this.needClientAuth = needClientAuth;
+        this.globalConfProvider = globalConfProvider;
+        this.keyConfProvider = keyConfProvider;
+        this.serverConfProvider = serverConfProvider;
+        this.certChainFactory = certChainFactory;
 
         try {
-            HttpClientCreator creator = new HttpClientCreator();
+            HttpClientCreator creator = new HttpClientCreator(serverConfProvider);
             this.httpClient = creator.getHttpClient();
             BatchSigner.init();
         } catch (Exception e) {
@@ -117,10 +133,10 @@ public class XrdDataPlaneProxyApiController {
     private MessageProcessorBase getMessageProcessor(ContainerRequestContext requestContext) {
         if (VALUE_MESSAGE_TYPE_REST.equals(requestContext.getHeaderString(HEADER_MESSAGE_TYPE))) {
             return new RestMessageProcessor(requestContext, httpClient, getClientSslCerts(requestContext),
-                    needClientAuth, xRoadMessageLog, monitor);
+                    needClientAuth, xRoadMessageLog, globalConfProvider, serverConfProvider, keyConfProvider, certChainFactory, monitor);
         } else {
             return new SoapMessageProcessor(requestContext, httpClient, getClientSslCerts(requestContext),
-                    needClientAuth, xRoadMessageLog, monitor);
+                    needClientAuth, xRoadMessageLog, globalConfProvider, keyConfProvider, serverConfProvider, certChainFactory, monitor);
         }
     }
 

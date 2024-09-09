@@ -29,16 +29,18 @@ import ee.ria.xroad.common.CodedException;
 import ee.ria.xroad.common.cert.CertChain;
 import ee.ria.xroad.common.conf.globalconf.AuthKey;
 import ee.ria.xroad.common.conf.globalconf.GlobalConfProvider;
+import ee.ria.xroad.common.conf.globalconfextension.GlobalConfExtensions;
 import ee.ria.xroad.common.conf.serverconf.ServerConfProvider;
 import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.identifier.SecurityServerId;
 import ee.ria.xroad.signer.SignerProxy;
 import ee.ria.xroad.signer.protocol.dto.AuthKeyInfo;
 
-import lombok.AccessLevel;
-import lombok.NoArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.bouncycastle.cert.ocsp.BasicOCSPResp;
+import org.bouncycastle.cert.ocsp.OCSPException;
 import org.bouncycastle.cert.ocsp.OCSPResp;
+import org.bouncycastle.cert.ocsp.SingleResp;
 
 import java.io.File;
 import java.security.KeyStore;
@@ -56,13 +58,11 @@ import static ee.ria.xroad.common.util.CryptoUtils.decodeBase64;
 import static ee.ria.xroad.common.util.CryptoUtils.encodeBase64;
 import static ee.ria.xroad.common.util.CryptoUtils.loadPkcs12KeyStore;
 import static ee.ria.xroad.common.util.CryptoUtils.readCertificate;
-import static ee.ria.xroad.proxy.conf.CachingKeyConfImpl.calculateNotAfter;
 
 /**
  * Encapsulates KeyConf related functionality.
  */
 @Slf4j
-@NoArgsConstructor(access = AccessLevel.PACKAGE)
 class KeyConfImpl implements KeyConfProvider {
     protected final GlobalConfProvider globalConfProvider;
     protected final ServerConfProvider serverConfProvider;
@@ -170,7 +170,7 @@ class KeyConfImpl implements KeyConfProvider {
         SignerProxy.setOcspResponses(getSha1Hashes(certs), base64EncodedResponses);
     }
 
-    static CertChain getAuthCertChain(String instanceIdentifier,
+    CertChain getAuthCertChain(String instanceIdentifier,
                                       byte[] authCertBytes) {
         X509Certificate authCert = readCertificate(authCertBytes);
         try {
@@ -196,5 +196,29 @@ class KeyConfImpl implements KeyConfProvider {
         }
 
         return privateKey;
+    }
+
+    /*
+     * Upper bound for validity is the minimum of certificates "notAfter" and OCSP responses validity time
+     * An OCSP response validity time is min(thisUpdate + ocspFreshnessSeconds, nextUpdate) or just
+     * (thisUpdate + ocspFreshnessSeconds) if nextUpdate is not enforced or missing
+     */
+    Date calculateNotAfter(List<OCSPResp> ocspResponses, Date notAfter) throws OCSPException {
+        final long freshnessMillis = 1000L * globalConfProvider.getOcspFreshnessSeconds();
+        final boolean verifyNextUpdate = GlobalConfExtensions.getInstance(globalConfProvider).shouldVerifyOcspNextUpdate();
+
+        for (OCSPResp resp : ocspResponses) {
+            //ok to expect only one response since we request ocsp responses for one certificate at a time
+            final SingleResp singleResp = ((BasicOCSPResp) resp.getResponseObject()).getResponses()[0];
+            final Date freshUntil = new Date(singleResp.getThisUpdate().getTime() + freshnessMillis);
+            if (freshUntil.before(notAfter)) notAfter = freshUntil;
+            if (verifyNextUpdate) {
+                final Date nextUpdate = singleResp.getNextUpdate();
+                if (nextUpdate != null && nextUpdate.before(notAfter)) {
+                    notAfter = nextUpdate;
+                }
+            }
+        }
+        return notAfter;
     }
 }

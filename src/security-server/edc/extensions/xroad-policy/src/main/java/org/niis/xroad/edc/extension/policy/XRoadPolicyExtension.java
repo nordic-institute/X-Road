@@ -27,6 +27,8 @@
 
 package org.niis.xroad.edc.extension.policy;
 
+import ee.ria.xroad.common.conf.globalconf.GlobalConfProvider;
+
 import org.eclipse.edc.connector.controlplane.contract.spi.negotiation.store.ContractNegotiationStore;
 import org.eclipse.edc.connector.dataplane.spi.iam.DataPlaneAccessControlService;
 import org.eclipse.edc.policy.engine.spi.AtomicConstraintFunction;
@@ -66,6 +68,9 @@ public class XRoadPolicyExtension implements ServiceExtension {
     @Inject
     private TypeManager typeManager;
 
+    @Inject
+    private GlobalConfProvider globalConfProvider;
+
     @Override
     public String name() {
         return NAME;
@@ -89,11 +94,11 @@ public class XRoadPolicyExtension implements ServiceExtension {
                 new XRoadClientIdConstraintFunction(monitor));
 
         registerFunction(XRoadGlobalGroupMemberConstraintFunction.KEY, "catalog",
-                new XRoadGlobalGroupMemberConstraintFunction(monitor));
+                new XRoadGlobalGroupMemberConstraintFunction(globalConfProvider, monitor));
         registerFunction(XRoadGlobalGroupMemberConstraintFunction.KEY, "request.catalog",
-                new XRoadGlobalGroupMemberConstraintFunction(monitor));
+                new XRoadGlobalGroupMemberConstraintFunction(globalConfProvider, monitor));
         registerFunction(XRoadGlobalGroupMemberConstraintFunction.KEY, "contract.negotiation",
-                new XRoadGlobalGroupMemberConstraintFunction(monitor));
+                new XRoadGlobalGroupMemberConstraintFunction(globalConfProvider, monitor));
         registerFunction(XRoadDataPathConstraintFunction.KEY, XROAD_DATAPLANE_TRANSFER_SCOPE,
                 new XRoadDataPathConstraintFunction(monitor, typeManager));
 

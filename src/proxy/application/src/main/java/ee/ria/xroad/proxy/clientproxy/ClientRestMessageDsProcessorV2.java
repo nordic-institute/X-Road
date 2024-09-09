@@ -25,11 +25,16 @@
  */
 package ee.ria.xroad.proxy.clientproxy;
 
+import ee.ria.xroad.common.cert.CertChainFactory;
+import ee.ria.xroad.common.conf.globalconf.GlobalConfProvider;
 import ee.ria.xroad.common.conf.serverconf.IsAuthenticationData;
+import ee.ria.xroad.common.conf.serverconf.ServerConfProvider;
 import ee.ria.xroad.common.identifier.SecurityServerId;
 import ee.ria.xroad.common.identifier.ServiceId;
 import ee.ria.xroad.common.message.RestRequest;
 import ee.ria.xroad.common.util.HttpSender;
+
+import ee.ria.xroad.proxy.conf.KeyConfProvider;
 
 import lombok.extern.slf4j.Slf4j;
 import org.apache.http.client.HttpClient;
@@ -47,10 +52,12 @@ class ClientRestMessageDsProcessorV2 extends ClientRestMessageProcessor {
     private final AbstractClientProxyHandler.ProxyRequestCtx proxyRequestCtx;
 
     ClientRestMessageDsProcessorV2(AbstractClientProxyHandler.ProxyRequestCtx proxyRequestCtx, RestRequest restRequest,
+                                   GlobalConfProvider globalConfProvider, KeyConfProvider keyConfProvider,
+                                   ServerConfProvider serverConfProvider, CertChainFactory certChainFactory,
                                    HttpClient httpClient, IsAuthenticationData clientCert,
                                    AssetAuthorizationManager assetAuthorizationManager)
             throws Exception {
-        super(proxyRequestCtx, restRequest, httpClient, clientCert);
+        super(proxyRequestCtx, restRequest, globalConfProvider, keyConfProvider, serverConfProvider, certChainFactory, httpClient, clientCert);
         this.assetAuthorizationManager = assetAuthorizationManager;
         this.proxyRequestCtx = proxyRequestCtx;
     }

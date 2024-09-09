@@ -113,6 +113,11 @@ public class TestGlobalConfWrapper implements GlobalConfProvider {
     }
 
     @Override
+    public Collection<SharedParameters.SecurityServer> getProviderSecurityServers(ClientId clientId) {
+        return globalConfProvider.getProviderSecurityServers(clientId);
+    }
+
+    @Override
     public ClientId.Conf getSubjectName(SignCertificateProfileInfo.Parameters parameters, X509Certificate cert) throws Exception {
         return globalConfProvider.getSubjectName(parameters, cert);
     }
@@ -175,6 +180,11 @@ public class TestGlobalConfWrapper implements GlobalConfProvider {
     @Override
     public boolean authCertMatchesMember(X509Certificate cert, ClientId memberId) throws Exception {
         return globalConfProvider.authCertMatchesMember(cert, memberId);
+    }
+
+    @Override
+    public Collection<ApprovedCAInfo> getApprovedCAs(String instanceIdentifier) {
+        return globalConfProvider.getApprovedCAs(instanceIdentifier);
     }
 
     @Override

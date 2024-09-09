@@ -45,6 +45,7 @@ import java.util.Map;
 import java.util.Set;
 
 import static java.util.Collections.emptyList;
+import static java.util.Collections.emptyMap;
 
 /**
  * Implementation of ServerConfProvider that does nothing but return nulls. You
@@ -152,6 +153,11 @@ public class EmptyServerConf implements ServerConfProvider {
     @Override
     public List<ServiceId.Conf> getAllServices(ClientId serviceProvider) {
         return emptyList();
+    }
+
+    @Override
+    public Map<XRoadId, Set<AccessRightPath>> getAllowedClients(ClientId serviceProvider, String serviceCode) {
+        return emptyMap();
     }
 
     @Override

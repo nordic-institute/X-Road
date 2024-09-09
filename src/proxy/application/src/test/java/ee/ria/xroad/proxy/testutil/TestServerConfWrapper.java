@@ -26,12 +26,14 @@
 package ee.ria.xroad.proxy.testutil;
 
 import ee.ria.xroad.common.conf.InternalSSLKey;
+import ee.ria.xroad.common.conf.serverconf.AccessRightPath;
 import ee.ria.xroad.common.conf.serverconf.IsAuthentication;
 import ee.ria.xroad.common.conf.serverconf.ServerConfProvider;
 import ee.ria.xroad.common.conf.serverconf.model.DescriptionType;
 import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.identifier.SecurityServerId;
 import ee.ria.xroad.common.identifier.ServiceId;
+import ee.ria.xroad.common.identifier.XRoadId;
 import ee.ria.xroad.common.metadata.Endpoint;
 import ee.ria.xroad.common.metadata.RestServiceDetailsListType;
 
@@ -39,6 +41,8 @@ import lombok.Setter;
 
 import java.security.cert.X509Certificate;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 @Setter
 public class TestServerConfWrapper implements ServerConfProvider {
@@ -79,6 +83,11 @@ public class TestServerConfWrapper implements ServerConfProvider {
     }
 
     @Override
+    public Map<XRoadId, Set<AccessRightPath>> getEndpointClients(ClientId serviceProvider, String serviceCode) {
+        return serverConfProvider.getEndpointClients(serviceProvider, serviceCode);
+    }
+
+    @Override
     public RestServiceDetailsListType getAllowedRestServices(ClientId serviceProvider, ClientId client) {
         return serverConfProvider.getAllowedRestServices(serviceProvider, client);
     }
@@ -86,6 +95,11 @@ public class TestServerConfWrapper implements ServerConfProvider {
     @Override
     public List<ServiceId.Conf> getAllServices(ClientId serviceProvider) {
         return serverConfProvider.getAllServices(serviceProvider);
+    }
+
+    @Override
+    public Map<XRoadId, Set<AccessRightPath>> getAllowedClients(ClientId serviceProvider, String serviceCode) {
+        return serverConfProvider.getAllowedClients(serviceProvider, serviceCode);
     }
 
     @Override

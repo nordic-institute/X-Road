@@ -82,13 +82,15 @@ public class FastestConnectionSelectingSSLSocketFactory
 
     public static final int CACHE_MAXIMUM_SIZE = 10000;
 
+    private final AuthTrustVerifier authTrustVerifier;
     private final javax.net.ssl.SSLSocketFactory socketfactory;
 
     private final Cache<CacheKey, URI> selectedHosts;
     private final boolean cachingEnabled;
 
-    public FastestConnectionSelectingSSLSocketFactory(SSLContext sslContext) {
+    public FastestConnectionSelectingSSLSocketFactory(AuthTrustVerifier authTrustVerifier, SSLContext sslContext) {
         super(sslContext, null, SystemProperties.getXroadTLSCipherSuites(), (HostnameVerifier) null);
+        this.authTrustVerifier = authTrustVerifier;
         this.socketfactory = sslContext.getSocketFactory();
         this.selectedHosts = CacheBuilder.newBuilder()
                 .expireAfterWrite(SystemProperties.getClientProxyFastestConnectingSslUriCachePeriod(), TimeUnit.SECONDS)
@@ -251,7 +253,7 @@ public class FastestConnectionSelectingSSLSocketFactory
             throw new CodedException(X_SSL_AUTH_FAILED, e, "TLS handshake failed");
         }
 
-        verify(context, sslSocket.getSession(), selectedAddress);
+        authTrustVerifier.verify(context, sslSocket.getSession(), selectedAddress);
     }
 
     private SSLSocket wrapToSSLSocket(Socket socket, int connectTimeout) throws IOException {

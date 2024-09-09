@@ -65,15 +65,15 @@ public final class MessageLog {
      * @param globalConfProvider global conf source provider
      * @return LogManager instance
      */
-    public static AbstractLogManager init(GlobalConfProvider globalConfProvider,
+    public static AbstractLogManager init(String origin, GlobalConfProvider globalConfProvider,
                                           ServerConfProvider serverConfProvider) {
         Class<? extends AbstractLogManager> clazz = getLogManagerImpl();
 
         log.trace("Using implementation class: {}", clazz);
 
         try {
-            logManager = clazz.getDeclaredConstructor(GlobalConfProvider.class, ServerConfProvider.class)
-                    .newInstance(globalConfProvider, serverConfProvider);
+            logManager = clazz.getDeclaredConstructor(String.class, GlobalConfProvider.class, ServerConfProvider.class)
+                    .newInstance(origin, globalConfProvider, serverConfProvider);
         } catch (Exception e) {
             throw new RuntimeException("Failed to initialize LogManager", e);
         }

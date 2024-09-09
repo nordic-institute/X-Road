@@ -89,8 +89,7 @@ public class ClientRestMessageHandler extends AbstractClientProxyHandler {
 
     private final AssetAuthorizationManager assetAuthorizationManager;
 
-
-    ClientRestMessageHandler(GlobalConfProvider globalConfProvider,
+    public ClientRestMessageHandler(GlobalConfProvider globalConfProvider,
                              KeyConfProvider keyConfProvider,
                              ServerConfProvider serverConfProvider,
                              CertChainFactory certChainFactory,
@@ -113,15 +112,16 @@ public class ClientRestMessageHandler extends AbstractClientProxyHandler {
 
             var restRequest = createRestRequest(request);
             var proxyCtx = new ProxyRequestCtx(target, request, response, opMonitoringData,
-                    resolveTargetSecurityServers(restRequest.getServiceId().getClientId()), forcePolicyReevaluation);
+                    resolveTargetSecurityServers(restRequest.getServiceId().getClientId(), globalConfProvider), forcePolicyReevaluation);
 
             if (proxyCtx.targetSecurityServers().useDataSpaces() && !forceLegacyTransport) {
                 //TODO xroad8 this bean setup is far from usable, refactor once design stabilizes.
-                return Optional.of(new ClientRestMessageDsProcessorV2(proxyCtx, restRequest, client,
-                        getIsAuthenticationData(request), assetAuthorizationManager));
+                return Optional.of(new ClientRestMessageDsProcessorV2(proxyCtx, restRequest,
+                        globalConfProvider, keyConfProvider, serverConfProvider, certChainFactory,
+                        client, getIsAuthenticationData(request), assetAuthorizationManager));
             } else {
-                return Optional.of(new ClientRestMessageProcessor(globalConfProvider, keyConfProvider, serverConfProvider, certChainFactory,
-                        request, response, client, getIsAuthenticationData(request), opMonitoringData));
+                return Optional.of(new ClientRestMessageProcessor(proxyCtx, restRequest, globalConfProvider, keyConfProvider, serverConfProvider, certChainFactory,
+                         client, getIsAuthenticationData(request)));
             }
         }
         return Optional.empty();

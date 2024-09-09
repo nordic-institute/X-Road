@@ -37,11 +37,11 @@ import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.ocsp.OcspVerifier;
 import ee.ria.xroad.common.ocsp.OcspVerifierOptions;
 import ee.ria.xroad.common.util.TimeUtils;
+import ee.ria.xroad.proxy.conf.KeyConfProvider;
 import ee.ria.xroad.proxy.conf.SigningCtx;
 import ee.ria.xroad.proxy.conf.SigningCtxProvider;
 import ee.ria.xroad.proxy.util.TestUtil;
 
-import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.bouncycastle.cert.ocsp.CertificateStatus;
 import org.bouncycastle.cert.ocsp.OCSPResp;
@@ -59,19 +59,19 @@ import static ee.ria.xroad.common.util.CryptoUtils.calculateCertHexHash;
  * Test keyconf implementation.
  */
 @Slf4j
-@RequiredArgsConstructor
 public class TestKeyConf extends EmptyKeyConf {
     private final GlobalConfProvider globalConfProvider;
     Map<String, SigningCtx> signingCtx = new HashMap<>();
     Map<String, OCSPResp> ocspResponses = new HashMap<>();
 
-    public TestKeyConf() {
+    public TestKeyConf(GlobalConfProvider globalConfProvider) {
+        this.globalConfProvider = globalConfProvider;
         SigningCtxProvider.setSigningCtxProvider(new SigningCtxProvider.DefaultSigningCtxProvider() {
             @Override
-            public SigningCtx getSigningCtx(ClientId clientId) {
+            public SigningCtx getSigningCtx(ClientId clientId, GlobalConfProvider globalConfProvider, KeyConfProvider keyConfProvider) {
                 String orgName = clientId.getMemberCode();
                 if (!signingCtx.containsKey(orgName)) {
-                    signingCtx.put(orgName, TestUtil.getSigningCtx(orgName));
+                    signingCtx.put(orgName, TestUtil.getSigningCtx(globalConfProvider, keyConfProvider, orgName));
                 }
                 return signingCtx.get(orgName);
             }

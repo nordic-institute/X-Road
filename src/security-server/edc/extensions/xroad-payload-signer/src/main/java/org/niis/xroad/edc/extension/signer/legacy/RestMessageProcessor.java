@@ -28,7 +28,9 @@
 package org.niis.xroad.edc.extension.signer.legacy;
 
 import ee.ria.xroad.common.CodedException;
-import ee.ria.xroad.common.conf.serverconf.ServerConf;
+import ee.ria.xroad.common.cert.CertChainFactory;
+import ee.ria.xroad.common.conf.globalconf.GlobalConfProvider;
+import ee.ria.xroad.common.conf.serverconf.ServerConfProvider;
 import ee.ria.xroad.common.conf.serverconf.model.ClientType;
 import ee.ria.xroad.common.conf.serverconf.model.DescriptionType;
 import ee.ria.xroad.common.identifier.ClientId;
@@ -42,6 +44,7 @@ import ee.ria.xroad.common.util.CachingStream;
 import ee.ria.xroad.common.util.CryptoUtils;
 import ee.ria.xroad.common.util.MimeUtils;
 import ee.ria.xroad.common.util.TimeUtils;
+import ee.ria.xroad.proxy.conf.KeyConfProvider;
 import ee.ria.xroad.proxy.conf.SigningCtx;
 import ee.ria.xroad.proxy.conf.SigningCtxProvider;
 import ee.ria.xroad.proxy.protocol.ProxyMessage;
@@ -52,6 +55,7 @@ import jakarta.ws.rs.container.ContainerRequestContext;
 import jakarta.ws.rs.core.Response;
 import jakarta.ws.rs.core.StreamingOutput;
 import lombok.Getter;
+import lombok.RequiredArgsConstructor;
 import org.apache.commons.io.input.TeeInputStream;
 import org.apache.http.Header;
 import org.apache.http.HttpEntityEnclosingRequest;
@@ -115,8 +119,12 @@ public class RestMessageProcessor extends MessageProcessorBase {
 
     public RestMessageProcessor(ContainerRequestContext request,
                                 HttpClient httpClient, X509Certificate[] clientSslCerts,
-                                boolean needClientAuth, XRoadMessageLog messageLog, Monitor monitor) {
-        super(request, clientSslCerts, needClientAuth, httpClient, monitor);
+                                boolean needClientAuth, XRoadMessageLog messageLog,
+                                GlobalConfProvider globalConfProvider, ServerConfProvider serverConfProvider,
+                                KeyConfProvider keyConfProvider, CertChainFactory certChainFactory,
+                                Monitor monitor) {
+        super(request, clientSslCerts, needClientAuth, httpClient, globalConfProvider, keyConfProvider,
+                serverConfProvider, certChainFactory, monitor);
         this.xRoadMessageLog = messageLog;
     }
 
@@ -161,7 +169,7 @@ public class RestMessageProcessor extends MessageProcessorBase {
         verifySignature();
         logRequestMessage();
 
-        DefaultRestServiceHandlerImpl handler = new DefaultRestServiceHandlerImpl();
+        DefaultRestServiceHandlerImpl handler = new DefaultRestServiceHandlerImpl(serverConfProvider);
 
         try {
             handler.startHandling(requestContext, requestMessage, decoder, encoder,
@@ -181,7 +189,7 @@ public class RestMessageProcessor extends MessageProcessorBase {
                 super.rest(message);
                 requestServiceId = message.getServiceId();
                 verifyClientStatus();
-                responseSigningCtx = SigningCtxProvider.getSigningCtx(requestServiceId.getClientId());
+                responseSigningCtx = SigningCtxProvider.getSigningCtx(requestServiceId.getClientId(), globalConfProvider, keyConfProvider);
 
                 if (needClientAuth) {
                     verifySslClientCert(requestMessage.getOcspResponses(), requestMessage.getRest().getClientId());
@@ -189,7 +197,7 @@ public class RestMessageProcessor extends MessageProcessorBase {
             }
         };
 
-        decoder = new ProxyMessageDecoder(requestMessage, requestContext.getMediaType().toString(), false,
+        decoder = new ProxyMessageDecoder(globalConfProvider, requestMessage, requestContext.getMediaType().toString(), false,
                 getHashAlgoId(requestContext));
         try {
             decoder.parse(requestContext.getEntityStream());
@@ -218,7 +226,7 @@ public class RestMessageProcessor extends MessageProcessorBase {
     private void verifyClientStatus() {
         ClientId client = requestServiceId.getClientId();
 
-        String status = ServerConf.getMemberStatus(client);
+        String status = serverConfProvider.getMemberStatus(client);
 
         if (!ClientType.STATUS_REGISTERED.equals(status)) {
             throw new CodedException(X_UNKNOWN_MEMBER, "Client '%s' not found", client);
@@ -228,18 +236,18 @@ public class RestMessageProcessor extends MessageProcessorBase {
     private void verifyAccess() {
         monitor.debug("verifyAccess()");
 
-        if (!ServerConf.serviceExists(requestServiceId)) {
+        if (!serverConfProvider.serviceExists(requestServiceId)) {
             throw new CodedException(X_UNKNOWN_SERVICE, "Unknown service: %s", requestServiceId);
         }
 
-        DescriptionType descriptionType = ServerConf.getDescriptionType(requestServiceId);
+        DescriptionType descriptionType = serverConfProvider.getDescriptionType(requestServiceId);
         if (descriptionType != null && descriptionType != DescriptionType.REST
                 && descriptionType != DescriptionType.OPENAPI3) {
             throw new CodedException(X_INVALID_SERVICE_TYPE,
                     "Service is a SOAP service and cannot be called using REST interface");
         }
 
-        if (!ServerConf.isQueryAllowed(
+        if (!serverConfProvider.isQueryAllowed(
                 requestMessage.getRest().getClientId(),
                 requestServiceId,
                 requestMessage.getRest().getVerb().name(),
@@ -247,7 +255,7 @@ public class RestMessageProcessor extends MessageProcessorBase {
             throw new CodedException(X_ACCESS_DENIED, "Request is not allowed: %s", requestServiceId);
         }
 
-        String disabledNotice = ServerConf.getDisabledNotice(requestServiceId);
+        String disabledNotice = serverConfProvider.getDisabledNotice(requestServiceId);
 
         if (disabledNotice != null) {
             throw new CodedException(X_SERVICE_DISABLED, "Service %s is disabled: %s", requestServiceId,
@@ -322,7 +330,10 @@ public class RestMessageProcessor extends MessageProcessorBase {
     }
 
     @Getter
+    @RequiredArgsConstructor
     private static final class DefaultRestServiceHandlerImpl {
+
+        private final ServerConfProvider serverConfProvider;
 
         private RestResponse restResponse;
         private CachingStream restResponseBody;
@@ -338,7 +349,7 @@ public class RestMessageProcessor extends MessageProcessorBase {
         public void startHandling(ContainerRequestContext request, ProxyMessage requestProxyMessage,
                                   ProxyMessageDecoder messageDecoder, ProxyMessageEncoder messageEncoder,
                                   HttpClient restClient) throws Exception {
-            String address = ServerConf.getServiceAddress(requestProxyMessage.getRest().getServiceId());
+            String address = serverConfProvider.getServiceAddress(requestProxyMessage.getRest().getServiceId());
             if (address == null || address.isEmpty()) {
                 throw new CodedException(X_SERVICE_MISSING_URL, "Service address not specified for '%s'",
                         requestProxyMessage.getRest().getServiceId());
@@ -362,7 +373,7 @@ public class RestMessageProcessor extends MessageProcessorBase {
                 default -> throw new CodedException(X_INVALID_REQUEST, "Unsupported REST verb");
             };
 
-            int timeout = TimeUtils.secondsToMillis(ServerConf
+            int timeout = TimeUtils.secondsToMillis(serverConfProvider
                     .getServiceTimeout(requestProxyMessage.getRest().getServiceId()));
             req.setConfig(RequestConfig
                     .custom()

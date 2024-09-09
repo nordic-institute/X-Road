@@ -26,6 +26,8 @@
  */
 package org.niis.xroad.edc.sig;
 
+import ee.ria.xroad.common.cert.CertChainFactory;
+import ee.ria.xroad.common.conf.globalconf.GlobalConfProvider;
 import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.util.CryptoUtils;
 import ee.ria.xroad.signer.SignerProxy;
@@ -45,12 +47,16 @@ public class XrdSignatureService {
 
     private static final DigestAlgorithm DIGEST_ALGORITHM = DigestAlgorithm.forJavaName(CryptoUtils.DEFAULT_DIGEST_ALGORITHM_ID);
 
-    private final XrdSignatureVerifier signatureVerifier = new XrdXAdESVerifier(DIGEST_ALGORITHM);
+    private final XrdSignatureVerifier signatureVerifier;
 
     static {
         // force usage of internal xerces implementation in DSS. Otherwise, not compatible Apache Xerces will be used in proxy
         // can be removed once Apache Xerces is removed from classpath
         XmlDefinerUtils.getInstance().setSchemaFactoryBuilder(new JaxpSchemaFactoryBuilder());
+    }
+
+    public XrdSignatureService(GlobalConfProvider globalConfProvider, CertChainFactory certChainFactory) {
+        this.signatureVerifier = new XrdXAdESVerifier(globalConfProvider, certChainFactory, DIGEST_ALGORITHM);
     }
 
     public SignatureResponse sign(ClientId signingClientId, byte[] message)

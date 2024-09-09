@@ -31,10 +31,10 @@ import ee.ria.xroad.common.Version;
 import ee.ria.xroad.common.asic.AsicContainerEntries;
 import ee.ria.xroad.common.asic.AsicContainerVerifier;
 import ee.ria.xroad.common.asic.AsicUtils;
+import ee.ria.xroad.common.asic.dss.DSSAsicVerifier;
 import ee.ria.xroad.common.conf.globalconf.FileSystemGlobalConfSource;
 import ee.ria.xroad.common.conf.globalconf.GlobalConfImpl;
 import ee.ria.xroad.common.conf.globalconf.GlobalConfProvider;
-import ee.ria.xroad.common.asic.dss.DSSAsicVerifier;
 
 import eu.europa.esig.dss.validation.reports.Reports;
 
@@ -104,9 +104,9 @@ public final class AsicVerifierMain {
 
         try {
             if (isLegacyContainer(fileName)) {
-                verifyLegacyContainer(fileName);
+                verifyLegacyContainer(fileName, globalConfProvider);
             } else {
-                verifyContainer(fileName);
+                verifyContainer(fileName, globalConfProvider);
             }
         } catch (Exception e) {
             onVerificationFailed(e);
@@ -114,15 +114,15 @@ public final class AsicVerifierMain {
         extractMessage(fileName);
     }
 
-    static void verifyContainer(String fileName) throws IOException {
-        var reports = new DSSAsicVerifier().validate(fileName);
+    static void verifyContainer(String fileName, GlobalConfProvider globalConfProvider) throws IOException {
+        var reports = new DSSAsicVerifier().validate(fileName, globalConfProvider);
         validateResult(reports);
         var message = getMessageFromContainer(fileName);
         onVerificationSucceeded(reports, message);
     }
 
-    static void verifyLegacyContainer(String fileName) throws Exception {
-        AsicContainerVerifier verifier = new AsicContainerVerifier(fileName);
+    static void verifyLegacyContainer(String fileName, GlobalConfProvider globalConfProvider) throws Exception {
+        AsicContainerVerifier verifier = new AsicContainerVerifier(globalConfProvider, fileName);
         verifier.verify();
         onVerificationSucceeded(verifier);
     }

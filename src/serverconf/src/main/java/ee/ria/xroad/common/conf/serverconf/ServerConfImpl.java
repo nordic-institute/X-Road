@@ -229,6 +229,11 @@ public class ServerConfImpl implements ServerConfProvider {
     }
 
     @Override
+    public Map<XRoadId, Set<AccessRightPath>> getAllowedClients(ClientId serviceProvider, String serviceCode) {
+        return getEndpointClients(serviceProvider, serviceCode);
+    }
+
+    @Override
     public List<ServiceId.Conf> getServicesByDescriptionType(ClientId serviceProvider,
                                                              DescriptionType descriptionType) {
         return tx(session -> serviceDao.getServicesByDescriptionType(session, serviceProvider, descriptionType));

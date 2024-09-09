@@ -28,8 +28,8 @@ package org.niis.xroad.ssl;
 
 import ee.ria.xroad.common.conf.globalconf.AuthKey;
 import ee.ria.xroad.common.conf.globalconf.AuthTrustManager;
+import ee.ria.xroad.common.conf.globalconf.GlobalConfProvider;
 import ee.ria.xroad.proxy.conf.AuthKeyManager;
-import ee.ria.xroad.proxy.conf.KeyConf;
 
 import lombok.experimental.UtilityClass;
 
@@ -48,12 +48,13 @@ import static org.niis.xroad.ssl.EdcSSLConstants.SSL_PROTOCOL;
 @UtilityClass
 public class SSLContextBuilder {
 
-    public static Result create() throws KeyManagementException, NoSuchAlgorithmException {
-        return create(KeyConf::getAuthKey);
-    }
+//    public static Result create() throws KeyManagementException, NoSuchAlgorithmException {
+//        return create(KeyConf::getAuthKey);
+//    }
 
-    public static Result create(Supplier<AuthKey> authKeySupplier) throws KeyManagementException, NoSuchAlgorithmException {
-        var trustManager = new AuthTrustManager();
+    public static Result create(Supplier<AuthKey> authKeySupplier, GlobalConfProvider globalConfProvider)
+            throws KeyManagementException, NoSuchAlgorithmException {
+        var trustManager = new AuthTrustManager(globalConfProvider);
         SSLContext ctx = SSLContext.getInstance(SSL_PROTOCOL);
         ctx.init(new KeyManager[]{new AuthKeyManager(authKeySupplier)}, new TrustManager[]{trustManager},
                 new SecureRandom());

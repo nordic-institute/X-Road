@@ -55,7 +55,7 @@ public final class SSLContextUtil {
     public static SSLContext createXroadSSLContext(GlobalConfProvider globalConfProvider, KeyConfProvider keyConfProvider)
             throws KeyManagementException, NoSuchAlgorithmException {
         SSLContext ctx = SSLContext.getInstance(CryptoUtils.SSL_PROTOCOL);
-        ctx.init(new KeyManager[]{new AuthKeyManager(keyConfProvider)},
+        ctx.init(new KeyManager[]{new AuthKeyManager(keyConfProvider::getAuthKey)},
                 new TrustManager[]{new AuthTrustManager(globalConfProvider)},
                 new SecureRandom());
         return ctx;

@@ -27,7 +27,7 @@
 
 package org.niis.xroad.edc.extension.messagelog;
 
-import ee.ria.xroad.common.conf.globalconf.GlobalConf;
+import ee.ria.xroad.common.conf.globalconf.GlobalConfProvider;
 
 import lombok.RequiredArgsConstructor;
 import org.eclipse.edc.spi.monitor.Monitor;
@@ -35,11 +35,12 @@ import org.eclipse.edc.spi.monitor.Monitor;
 @RequiredArgsConstructor
 public class GlobalConfUpdater {
 
+    private final GlobalConfProvider globalConfProvider;
     private final Monitor monitor;
 
     public void update() {
         monitor.debug("Reloading GlobalConf");
-        GlobalConf.reload();
+        globalConfProvider.reload();
     }
-    
+
 }

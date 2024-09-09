@@ -54,8 +54,7 @@ import org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler;
 
 @Slf4j
 @EnableScheduling
-@Import({SignerAdminPortConfig.class,
-        SignerRpcConfig.class,
+@Import({SignerRpcConfig.class,
         GlobalConfBeanConfig.class
 })
 @ComponentScan({

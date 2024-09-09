@@ -37,6 +37,7 @@ import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.ocsp.OcspVerifier;
 import ee.ria.xroad.common.ocsp.OcspVerifierOptions;
 import ee.ria.xroad.common.util.TimeUtils;
+import ee.ria.xroad.proxy.conf.KeyConfProvider;
 import ee.ria.xroad.proxy.conf.SigningCtx;
 import ee.ria.xroad.proxy.conf.SigningCtxProvider;
 import ee.ria.xroad.proxy.conf.SigningInfo;
@@ -60,7 +61,6 @@ import static ee.ria.xroad.common.util.CryptoUtils.calculateCertHexHash;
  * Test keyconf implementation.
  */
 @Slf4j
-@RequiredArgsConstructor
 public class TestSuiteKeyConf extends EmptyKeyConf {
     private final GlobalConfProvider globalConfProvider;
 
@@ -71,7 +71,7 @@ public class TestSuiteKeyConf extends EmptyKeyConf {
         this.globalConfProvider = globalConfProvider;
         SigningCtxProvider.setSigningCtxProvider(new SigningCtxProvider.DefaultSigningCtxProvider() {
             @Override
-            public SigningCtx getSigningCtx(ClientId clientId) {
+            public SigningCtx getSigningCtx(ClientId clientId, GlobalConfProvider globalConfProvider, KeyConfProvider keyConfProvider) {
                 String orgName = clientId.getMemberCode();
                 SigningCtx ctx = currentTestCase().getSigningCtx(orgName);
                 if (ctx != null) {
@@ -79,7 +79,7 @@ public class TestSuiteKeyConf extends EmptyKeyConf {
                 }
 
                 if (!signingCtx.containsKey(orgName)) {
-                    signingCtx.put(orgName, TestUtil.getSigningCtx(globalConfProvider, this, orgName));
+                    signingCtx.put(orgName, TestUtil.getSigningCtx(globalConfProvider, keyConfProvider, orgName));
                 }
 
                 return signingCtx.get(orgName);

@@ -25,7 +25,7 @@
  */
 package ee.ria.xroad.common.asic.dss;
 
-import ee.ria.xroad.common.conf.globalconf.GlobalConf;
+import ee.ria.xroad.common.conf.globalconf.GlobalConfProvider;
 import ee.ria.xroad.common.util.CryptoUtils;
 
 import eu.europa.esig.dss.enumerations.DigestAlgorithm;
@@ -46,15 +46,15 @@ import java.security.cert.CertificateEncodingException;
 @Slf4j
 public class DSSAsicVerifier {
 
-    public Reports validate(String filePath) {
+    public Reports validate(String filePath, GlobalConfProvider globalConfProvider) {
         var document = new FileDocument(filePath);
-        SignedDocumentValidator validator = getValidator(document);
+        SignedDocumentValidator validator = getValidator(document, globalConfProvider);
         var reports = validator.validateDocument();
         reports.setValidateXml(true);
         return reports;
     }
 
-    private SignedDocumentValidator getValidator(DSSDocument signedDocument) {
+    private SignedDocumentValidator getValidator(DSSDocument signedDocument, GlobalConfProvider globalConfProvider) {
         SignedDocumentValidator validator = SignedDocumentValidator.fromDocument(signedDocument);
         validator.setTokenExtractionStrategy(TokenExtractionStrategy.EXTRACT_ALL);
         validator.setEnableEtsiValidationReport(false);
@@ -64,18 +64,18 @@ public class DSSAsicVerifier {
         validator.setCertificateVerifier(certVerifier);
         validator.setValidationLevel(ValidationLevel.ARCHIVAL_DATA);
 
-        certVerifier.setTrustedCertSources(loadGlobalConfData());
+        certVerifier.setTrustedCertSources(loadGlobalConfData(globalConfProvider));
         certVerifier.setAIASource(null);
 
         return validator;
     }
 
     @SneakyThrows //TODO handle exception
-    private CommonTrustedCertificateSource loadGlobalConfData() {
+    private CommonTrustedCertificateSource loadGlobalConfData(GlobalConfProvider globalConfProvider) {
         CommonTrustedCertificateSource trustedCertificateSource = new CommonTrustedCertificateSource();
 
 
-        GlobalConf.getTspCertificates().forEach(cert -> {
+        globalConfProvider.getTspCertificates().forEach(cert -> {
             try {
                 var certToken = DSSUtils.loadCertificate(cert.getEncoded());
                 trustedCertificateSource.addCertificate(certToken);
@@ -85,7 +85,7 @@ public class DSSAsicVerifier {
             }
 
         });
-        GlobalConf.getAllCaCerts().forEach(cert -> {
+        globalConfProvider.getAllCaCerts().forEach(cert -> {
             try {
                 var certToken = DSSUtils.loadCertificate(cert.getEncoded());
                 trustedCertificateSource.addCertificate(certToken);
@@ -96,7 +96,7 @@ public class DSSAsicVerifier {
 
         });
 
-        GlobalConf.getOcspResponderCertificates().forEach(cert -> {
+        globalConfProvider.getOcspResponderCertificates().forEach(cert -> {
             try {
                 var certToken = DSSUtils.loadCertificate(cert.getEncoded());
                 trustedCertificateSource.addCertificate(certToken);

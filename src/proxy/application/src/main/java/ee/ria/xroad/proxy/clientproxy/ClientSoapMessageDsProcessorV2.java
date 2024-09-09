@@ -25,13 +25,18 @@
  */
 package ee.ria.xroad.proxy.clientproxy;
 
+import ee.ria.xroad.common.cert.CertChainFactory;
+import ee.ria.xroad.common.conf.globalconf.GlobalConfProvider;
 import ee.ria.xroad.common.conf.serverconf.IsAuthenticationData;
+import ee.ria.xroad.common.conf.serverconf.ServerConfProvider;
 import ee.ria.xroad.common.identifier.SecurityServerId;
 import ee.ria.xroad.common.identifier.ServiceId;
 import ee.ria.xroad.common.opmonitoring.OpMonitoringData;
 import ee.ria.xroad.common.util.HttpSender;
 import ee.ria.xroad.common.util.RequestWrapper;
 import ee.ria.xroad.common.util.ResponseWrapper;
+
+import ee.ria.xroad.proxy.conf.KeyConfProvider;
 
 import lombok.extern.slf4j.Slf4j;
 import org.apache.http.client.HttpClient;
@@ -48,16 +53,21 @@ class ClientSoapMessageDsProcessorV2 extends ClientSoapMessageProcessor {
     private final AssetAuthorizationManager assetAuthorizationManager;
     private AuthorizedAssetRegistry.GrantedAssetInfo assetInfo;
 
-    ClientSoapMessageDsProcessorV2(RequestWrapper request, ResponseWrapper response, HttpClient httpClient,
-                                   IsAuthenticationData clientCert, OpMonitoringData opMonitoringData,
+    ClientSoapMessageDsProcessorV2(GlobalConfProvider globalConfProvider,
+                                   KeyConfProvider keyConfProvider,
+                                   ServerConfProvider serverConfProvider,
+                                   CertChainFactory certChainFactory,
+                                   RequestWrapper request, ResponseWrapper response,
+                                   HttpClient httpClient, IsAuthenticationData clientCert, OpMonitoringData opMonitoringData,
                                    AssetAuthorizationManager assetAuthorizationManager) throws Exception {
-        super(request, response, httpClient, clientCert, opMonitoringData);
+        super(globalConfProvider, keyConfProvider, serverConfProvider, certChainFactory, request, response, httpClient,
+                clientCert, opMonitoringData);
         this.assetAuthorizationManager = assetAuthorizationManager;
     }
 
     @Override
     List<URI> getServiceAddresses(ServiceId serviceProvider, SecurityServerId serverId) throws Exception {
-        var targetServers = TargetSecurityServerLookup.resolveTargetSecurityServers(serviceProvider.getClientId());
+        var targetServers = TargetSecurityServerLookup.resolveTargetSecurityServers(serviceProvider.getClientId(), globalConfProvider);
 
         //TODO xroad8 in POC we're not selecting fastest server, neither handle failure with fallbacks
         var targetServerInfo = targetServers.servers().stream().findFirst().orElseThrow();

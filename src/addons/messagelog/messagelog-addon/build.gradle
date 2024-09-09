@@ -16,6 +16,7 @@ dependencies {
     testImplementation project(':asic-util')
     testImplementation project(':proxy:application')
 
+    testImplementation project(':common:common-keyconf')
     testImplementation project(':common:common-test')
     testImplementation project(':addons:messagelog:messagelog-archiver')
     testImplementation libs.hsqldb

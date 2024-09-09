@@ -28,9 +28,9 @@
 package org.niis.xroad.proxy.edc;
 
 import ee.ria.xroad.common.SystemProperties;
-import ee.ria.xroad.common.conf.globalconf.GlobalConf;
+import ee.ria.xroad.common.conf.globalconf.GlobalConfProvider;
 import ee.ria.xroad.common.conf.serverconf.AccessRightPath;
-import ee.ria.xroad.common.conf.serverconf.ServerConf;
+import ee.ria.xroad.common.conf.serverconf.ServerConfProvider;
 import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.identifier.ServiceId;
 import ee.ria.xroad.common.identifier.XRoadId;
@@ -101,6 +101,8 @@ public class AssetsRegistrationJob {
     private static final String XROAD_NAMESPACE = "https://x-road.eu/v0.1/ns/";
     static final String XROAD_JOB_MANAGED_PROPERTY = XROAD_NAMESPACE + "xroadJobManaged";
 
+    private final GlobalConfProvider globalConfProvider;
+    private final ServerConfProvider serverConfProvider;
 
     private final DataplaneSelectorControlApi dataplaneSelectorControlApi;
     private final AssetApi assetApi;
@@ -112,8 +114,11 @@ public class AssetsRegistrationJob {
     private final ParticipantIdMapper participantIdMapper = new NoOpParticipantIdMapper();
     private final String providerDataplaneId = "http-provider-dataplane";
 
-    public AssetsRegistrationJob(DataplaneSelectorControlApi dataplaneSelectorControlApi, AssetApi assetApi,
+    public AssetsRegistrationJob(GlobalConfProvider globalConfProvider, ServerConfProvider serverConfProvider,
+                                 DataplaneSelectorControlApi dataplaneSelectorControlApi, AssetApi assetApi,
                                  PolicyDefinitionApiV3 policyDefinitionApi, ContractDefinitionApiV3 contractDefinitionApi) {
+        this.globalConfProvider = globalConfProvider;
+        this.serverConfProvider = serverConfProvider;
         this.dataplaneSelectorControlApi = dataplaneSelectorControlApi;
         this.assetApi = assetApi;
         this.policyDefinitionApi = policyDefinitionApi;
@@ -161,7 +166,7 @@ public class AssetsRegistrationJob {
 
                     .add(DataPlaneInstance.URL, "%s://%s:%s/control/transfer"
                             .formatted(SystemProperties.isSslEnabled() ? "https" : "http",
-                                    GlobalConf.getSecurityServerAddress(ServerConf.getIdentifier()),
+                                    globalConfProvider.getSecurityServerAddress(serverConfProvider.getIdentifier()),
                                     SystemProperties.dataspacesControlListenPort()))
                     .add(DataPlaneInstance.ALLOWED_SOURCE_TYPES, createArrayBuilder()
                             .add("HttpData")
@@ -260,9 +265,9 @@ public class AssetsRegistrationJob {
 
     private void process(JobContext jobContext) throws Exception {
         log.info("Processing services");
-        for (ClientId.Conf member : ServerConf.getMembers()) {
-            for (ServiceId.Conf service : ServerConf.getAllServices(member)) {
-                if (ServerConf.getDisabledNotice(service) == null) {
+        for (ClientId.Conf member : serverConfProvider.getMembers()) {
+            for (ServiceId.Conf service : serverConfProvider.getAllServices(member)) {
+                if (serverConfProvider.getDisabledNotice(service) == null) {
                     // service not disabled
                     String assetId = service.asEncodedId();
                     log.info("Processing service {}", assetId);
@@ -274,7 +279,7 @@ public class AssetsRegistrationJob {
     }
 
     private void createPolicyAndContractDefinition(ServiceId.Conf service, String assetId, ClientId.Conf member, JobContext jobContext) {
-        Map<XRoadId, Set<AccessRightPath>> allowedClients = ServerConf.getAllowedClients(member, service.getServiceCode());
+        Map<XRoadId, Set<AccessRightPath>> allowedClients = serverConfProvider.getAllowedClients(member, service.getServiceCode());
 
         for (XRoadId subjectId : allowedClients.keySet()) {
             var endpointPatterns = allowedClients.get(subjectId);
@@ -313,7 +318,7 @@ public class AssetsRegistrationJob {
 
     private void createOrUpdateAsset(ServiceId.Conf service, String assetId, JobContext jobContext) {
         jobContext.assetIds.remove(assetId);
-        String serviceBaseUrl = ServerConf.getServiceAddress(service);
+        String serviceBaseUrl = serverConfProvider.getServiceAddress(service);
 
         Optional<JsonObject> assetOptional = fetchAsset(assetId);
         if (assetOptional.isEmpty()) {

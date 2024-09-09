@@ -27,7 +27,10 @@
 
 package org.niis.xroad.edc.extension.messagelog;
 
+import ee.ria.xroad.common.conf.globalconf.GlobalConfProvider;
+
 import org.eclipse.edc.runtime.metamodel.annotation.Extension;
+import org.eclipse.edc.runtime.metamodel.annotation.Inject;
 import org.eclipse.edc.runtime.metamodel.annotation.Setting;
 import org.eclipse.edc.spi.system.ServiceExtension;
 import org.eclipse.edc.spi.system.ServiceExtensionContext;
@@ -50,10 +53,13 @@ public class GlobalConfUpdaterExtension implements ServiceExtension {
 
     private static final int DEFAULT_RELOAD_INTERVAL_SECONDS = 60;
 
+    @Inject
+    private GlobalConfProvider globalConfProvider;
+
     @Override
     public void initialize(ServiceExtensionContext context) {
         var monitor = context.getMonitor();
-        GlobalConfUpdater globalConfUpdater = new GlobalConfUpdater(monitor);
+        GlobalConfUpdater globalConfUpdater = new GlobalConfUpdater(globalConfProvider, monitor);
 
         int reloadIntervalSeconds = context.getSetting(XROAD_GLOBAL_CONF_RELOAD_INTERVAL, DEFAULT_RELOAD_INTERVAL_SECONDS);
 

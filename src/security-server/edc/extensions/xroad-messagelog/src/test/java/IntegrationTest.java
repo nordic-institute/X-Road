@@ -25,22 +25,32 @@
  * THE SOFTWARE.
  */
 
-import org.eclipse.edc.junit.extensions.EdcExtension;
-import org.junit.jupiter.api.BeforeEach;
+import ee.ria.xroad.common.conf.globalconf.GlobalConfProvider;
+import ee.ria.xroad.common.conf.serverconf.ServerConfProvider;
+
+import org.eclipse.edc.junit.annotations.ComponentTest;
+import org.eclipse.edc.junit.extensions.RuntimeExtension;
+import org.eclipse.edc.junit.extensions.RuntimePerClassExtension;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.api.extension.RegisterExtension;
 import org.niis.xroad.edc.spi.messagelog.XRoadMessageLog;
 
+import java.util.Map;
+
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.mock;
 
-
-@ExtendWith(EdcExtension.class)
+@ComponentTest
 class IntegrationTest {
 
-    @BeforeEach
-    void before() {
-        System.setProperty("xroad.common.grpc-internal-tls-enabled", "false");
-    }
+    @RegisterExtension
+    private static final RuntimeExtension RUNTIME = new RuntimePerClassExtension()
+            .setConfiguration(Map.of(
+//                    "xroad.common.grpc-internal-tls-enabled", "false"
+            ))
+            .registerServiceMock(GlobalConfProvider.class, mock())
+            .registerServiceMock(ServerConfProvider.class, mock());
+
 
     @Test
     void verifyServiceRegistered(XRoadMessageLog messageLog) {

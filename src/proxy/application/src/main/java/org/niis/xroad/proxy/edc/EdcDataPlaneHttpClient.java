@@ -26,6 +26,7 @@
 package org.niis.xroad.proxy.edc;
 
 import ee.ria.xroad.common.CodedException;
+import ee.ria.xroad.common.conf.globalconf.GlobalConfProvider;
 import ee.ria.xroad.common.message.RestMessage;
 import ee.ria.xroad.common.message.RestRequest;
 import ee.ria.xroad.common.message.RestResponse;
@@ -33,6 +34,8 @@ import ee.ria.xroad.common.message.Soap;
 import ee.ria.xroad.common.message.SoapParserImpl;
 import ee.ria.xroad.common.util.CachingStream;
 import ee.ria.xroad.common.util.CryptoUtils;
+
+import ee.ria.xroad.proxy.conf.KeyConfProvider;
 
 import lombok.AccessLevel;
 import lombok.Getter;
@@ -79,9 +82,10 @@ import static org.niis.xroad.edc.sig.PocConstants.HEADER_XRD_SIG;
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
 public class EdcDataPlaneHttpClient {
 
-    public static RestResponse sendRestRequest(ClassicHttpRequest request, RestRequest req) {
+    public static RestResponse sendRestRequest(ClassicHttpRequest request, RestRequest req, GlobalConfProvider globalConfProvider,
+                                               KeyConfProvider keyConfProvider) {
         log.info("Will send REST [{}] request to {}", request.getMethod(), request.getRequestUri());
-        try (CloseableHttpClient httpClient = createHttpClient()) {
+        try (CloseableHttpClient httpClient = createHttpClient(globalConfProvider, keyConfProvider)) {
             return httpClient.execute(request, response -> {
                 log.info("EDC responded with code {}", response.getCode());
 
@@ -118,9 +122,10 @@ public class EdcDataPlaneHttpClient {
         }
     }
 
-    public static EdcSoapWrapper sendSoapRequest(ClassicHttpRequest request) {
+    public static EdcSoapWrapper sendSoapRequest(ClassicHttpRequest request, GlobalConfProvider globalConfProvider,
+                                                 KeyConfProvider keyConfProvider) {
         log.info("Will send [{}] request to {}", request.getMethod(), request.getRequestUri());
-        try (CloseableHttpClient httpClient = createHttpClient()) {
+        try (CloseableHttpClient httpClient = createHttpClient(globalConfProvider, keyConfProvider)) {
             return httpClient.execute(request, response -> {
                 log.info("EDC responded with code {}", response.getCode());
 
@@ -136,11 +141,13 @@ public class EdcDataPlaneHttpClient {
         }
     }
 
-    private static CloseableHttpClient createHttpClient() throws NoSuchAlgorithmException, KeyManagementException {
+    private static CloseableHttpClient createHttpClient(GlobalConfProvider globalConfProvider, KeyConfProvider keyConfProvider)
+            throws NoSuchAlgorithmException, KeyManagementException {
         var httpClientProperties = new HttpClientProperties();
 
         final SSLConnectionSocketFactory sslsf =
-                new SSLConnectionSocketFactory(SSLContextBuilder.create().sslContext(), NoopHostnameVerifier.INSTANCE);
+                new SSLConnectionSocketFactory(SSLContextBuilder
+                        .create(keyConfProvider::getAuthKey, globalConfProvider).sslContext(), NoopHostnameVerifier.INSTANCE);
         final Registry<ConnectionSocketFactory> socketFactoryRegistry =
                 RegistryBuilder.<ConnectionSocketFactory>create()
                         .register("https", sslsf)

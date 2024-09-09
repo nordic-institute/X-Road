@@ -46,6 +46,7 @@ import java.security.cert.X509Certificate;
 import java.util.Arrays;
 import java.util.Collection;
 
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 
 /**
@@ -77,7 +78,6 @@ public class AsicContainerVerifierTest {
         System.setProperty(SystemProperties.CONFIGURATION_ANCHOR_FILE,
                 "../common/common-globalconf/src/test/resources/configuration-anchor1.xml");
 
-        // TODO:
         globalConfProvider = new TestGlobalConfImpl() {
             @Override
             public X509Certificate getCaCert(String instanceIdentifier, X509Certificate memberCert) throws Exception {
@@ -93,14 +93,14 @@ public class AsicContainerVerifierTest {
     public static Collection<Object[]> data() {
         Runnable legacyContainerVerifierCall = () -> {
             try {
-                AsicVerifierMain.verifyLegacyContainer(anyString());
+                AsicVerifierMain.verifyLegacyContainer(anyString(), any(GlobalConfProvider.class));
             } catch (Exception e) {
                 throw new RuntimeException(e);
             }
         };
         Runnable containerVerifierCall = () -> {
             try {
-                AsicVerifierMain.verifyContainer(anyString());
+                AsicVerifierMain.verifyContainer(anyString(), any(GlobalConfProvider.class));
             } catch (Exception e) {
                 throw new RuntimeException(e);
             }
@@ -131,7 +131,7 @@ public class AsicContainerVerifierTest {
     }
 
     private static void verify(String fileName) {
-        AsicVerifierMain.main(new String[] {
+        AsicVerifierMain.main(new String[]{
                 "src/test/resources/globalconf_2024",
                 "src/test/resources/" + fileName
         });

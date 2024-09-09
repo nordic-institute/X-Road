@@ -30,7 +30,7 @@ package ee.ria.xroad.proxy.admin;
 import ee.ria.xroad.common.AddOnStatusDiagnostics;
 import ee.ria.xroad.common.BackupEncryptionStatusDiagnostics;
 import ee.ria.xroad.common.MessageLogEncryptionStatusDiagnostics;
-import ee.ria.xroad.common.conf.serverconf.ServerConf;
+import ee.ria.xroad.common.conf.serverconf.ServerConfProvider;
 import ee.ria.xroad.proxy.admin.handler.TimestampStatusHandler;
 
 import io.grpc.stub.StreamObserver;
@@ -53,12 +53,26 @@ import static java.util.Collections.unmodifiableList;
 @RequiredArgsConstructor
 public class AdminService extends AdminServiceGrpc.AdminServiceImplBase {
 
+    private final ServerConfProvider serverConfProvider;
     private final BackupEncryptionStatusDiagnostics backupEncryptionStatusDiagnostics;
     private final AddOnStatusDiagnostics addOnStatusDiagnostics;
     private final MessageLogEncryptionStatusDiagnostics messageLogEncryptionStatusDiagnostics;
     private final Optional<AssetsRegistrationJob> assetsRegistrationJobProvider;
 
-    private final TimestampStatusHandler timestampStatusHandler = new TimestampStatusHandler();
+    private final TimestampStatusHandler timestampStatusHandler;
+
+    public AdminService(ServerConfProvider serverConfProvider, BackupEncryptionStatusDiagnostics backupEncryptionStatusDiagnostics,
+                        AddOnStatusDiagnostics addOnStatusDiagnostics,
+                        MessageLogEncryptionStatusDiagnostics messageLogEncryptionStatusDiagnostics,
+                        Optional<AssetsRegistrationJob> assetsRegistrationJobProvider) {
+        this.serverConfProvider = serverConfProvider;
+        this.backupEncryptionStatusDiagnostics = backupEncryptionStatusDiagnostics;
+        this.addOnStatusDiagnostics = addOnStatusDiagnostics;
+        this.messageLogEncryptionStatusDiagnostics = messageLogEncryptionStatusDiagnostics;
+        this.assetsRegistrationJobProvider = assetsRegistrationJobProvider;
+
+        timestampStatusHandler = new TimestampStatusHandler(serverConfProvider);
+    }
 
     @Override
     public void getBackupEncryptionStatus(Empty request, StreamObserver<BackupEncryptionStatusResp> responseObserver) {
@@ -143,7 +157,7 @@ public class AdminService extends AdminServiceGrpc.AdminServiceImplBase {
     }
 
     private Empty handleClearConfCache() {
-        ServerConf.clearCache();
+        serverConfProvider.clearCache();
         return Empty.getDefaultInstance();
     }
 

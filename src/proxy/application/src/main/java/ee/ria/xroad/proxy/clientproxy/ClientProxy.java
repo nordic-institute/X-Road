@@ -221,7 +221,7 @@ public class ClientProxy implements StartStop {
         List<Handler> handlers = new ArrayList<>();
         String handlerClassNames = System.getProperty(CLIENTPROXY_HANDLERS);
 
-        handlers.add(new ClientRestMessageHandler(globalConfProvider, keyConfProvider, serverConfProvider, certChainFactory, client));
+        handlers.add(clientRestMessageHandler);
 
         if (!StringUtils.isBlank(handlerClassNames)) {
             var handlerLoader = new HandlerLoader(globalConfProvider, keyConfProvider, serverConfProvider, certChainFactory);
@@ -237,8 +237,7 @@ public class ClientProxy implements StartStop {
         }
 
         log.trace("Loading default client handler");
-        handlers.add(new ClientMessageHandler(globalConfProvider, keyConfProvider, serverConfProvider,
-                certChainFactory, client)); // default handler
+        handlers.add(clientSoapMessageHandler); // default handler
 
         return handlers;
     }

@@ -38,7 +38,6 @@ import ee.ria.xroad.proxy.testutil.TestService;
 import lombok.extern.slf4j.Slf4j;
 import org.eclipse.jetty.server.Request;
 import org.hamcrest.Matchers;
-import org.junit.After;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
@@ -62,18 +61,10 @@ import static org.junit.Assert.assertNotNull;
 public class RestProxyTest extends AbstractProxyIntegrationTest {
 
     static final String PREFIX = "/r" + RestMessage.PROTOCOL_VERSION;
-    private static final TestGlobalConf TEST_GLOBAL_CONF = new TestGlobalConf();
 
     @BeforeClass
     public static void setup() throws Exception {
-        applicationContext = new TestProxyMain(Map.of(), TEST_GLOBAL_CONF, () -> {
-        }).createApplicationContext(TestProxySpringConfig.class);
-    }
-
-    @After
-    public void after() {
-        ServerConf.reload(TEST_SERVER_CONF);
-        GlobalConf.reload(TEST_GLOBAL_CONF);
+        applicationContext = new TestProxyMain(Map.of()).createApplicationContext(TestProxySpringConfig.class);
     }
 
     @Test

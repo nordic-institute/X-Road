@@ -27,24 +27,23 @@ package ee.ria.xroad.proxy;
 
 import ee.ria.xroad.common.SystemProperties;
 import ee.ria.xroad.common.conf.globalconf.GlobalConfProvider;
-import ee.ria.xroad.common.conf.globalconf.GlobalConfProvider;
 import ee.ria.xroad.common.conf.globalconf.GlobalConfSource;
 import ee.ria.xroad.common.conf.globalconf.TestGlobalConfWrapper;
 import ee.ria.xroad.common.conf.serverconf.ServerConfProvider;
 import ee.ria.xroad.proxy.conf.KeyConfProvider;
 import ee.ria.xroad.proxy.testutil.IntegrationTest;
+import ee.ria.xroad.proxy.testutil.TestGlobalConf;
 import ee.ria.xroad.proxy.testutil.TestKeyConf;
 import ee.ria.xroad.proxy.testutil.TestServerConf;
 import ee.ria.xroad.proxy.testutil.TestServerConfWrapper;
 import ee.ria.xroad.proxy.testutil.TestService;
 
 import lombok.RequiredArgsConstructor;
-import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
+import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.Rule;
 import org.junit.experimental.categories.Category;
-import org.junit.jupiter.api.function.Executable;
 import org.junit.rules.ExternalResource;
 import org.junit.runner.Description;
 import org.junit.runners.model.Statement;
@@ -107,8 +106,6 @@ public abstract class AbstractProxyIntegrationTest {
     static class TestProxyMain extends ProxyMain {
 
         private final Map<String, String> systemParams;
-        private final GlobalConfProvider globalConfProvider;
-        private final Executable afterGlobalConfLoaded;
 
         @Override
         protected void loadSystemProperties() {
@@ -143,17 +140,6 @@ public abstract class AbstractProxyIntegrationTest {
 
             super.loadSystemProperties();
         }
-
-        @Override
-        @SneakyThrows
-        protected void loadGlobalConf() {
-//            TODO:
-//            KeyConf.reload(new TestKeyConf());
-//            ServerConf.reload(TEST_SERVER_CONF);
-//            GlobalConf.reload(globalConfProvider);
-
-            afterGlobalConfLoaded.execute();
-        }
     }
 
     @Configuration
@@ -187,12 +173,6 @@ public abstract class AbstractProxyIntegrationTest {
             return TEST_SERVER_CONF;
         }
     }
-
-//    TODO:
-//    @BeforeClass
-//    public static void setup() throws Exception {
-//        applicationContext = new TestProxyMain().createApplicationContext(TestProxySpringConfig.class);
-//    }
 
     @AfterClass
     public static void teardown() {

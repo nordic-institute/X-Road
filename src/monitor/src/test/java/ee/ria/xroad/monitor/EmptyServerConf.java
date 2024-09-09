@@ -153,6 +153,11 @@ public class EmptyServerConf implements ServerConfProvider {
     }
 
     @Override
+    public Map<XRoadId, Set<AccessRightPath>> getAllowedClients(ClientId serviceProvider, String serviceCode) {
+        return Map.of();
+    }
+
+    @Override
     public List<ServiceId.Conf> getServicesByDescriptionType(ClientId serviceProvider, DescriptionType descriptionType) {
         return emptyList();
     }

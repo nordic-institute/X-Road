@@ -25,10 +25,13 @@
  */
 package org.niis.xroad.proxy.edc;
 
+import ee.ria.xroad.common.cert.CertChainFactory;
+import ee.ria.xroad.common.conf.globalconf.GlobalConfProvider;
 import ee.ria.xroad.common.message.RestRequest;
 import ee.ria.xroad.common.message.RestResponse;
 import ee.ria.xroad.common.message.SoapMessageImpl;
 import ee.ria.xroad.common.signature.SignatureData;
+import ee.ria.xroad.proxy.conf.KeyConfProvider;
 import ee.ria.xroad.proxy.messagelog.MessageLog;
 
 import lombok.extern.slf4j.Slf4j;
@@ -52,7 +55,15 @@ import static org.niis.xroad.edc.sig.PocConstants.HEADER_XRD_SIG;
 
 @Slf4j
 public class XrdDataSpaceClient {
-    private final XrdSignatureService xrdSignatureService = new XrdSignatureService();
+    private final XrdSignatureService xrdSignatureService;
+    private final GlobalConfProvider globalConfProvider;
+    private final KeyConfProvider keyConfProvider;
+
+    public XrdDataSpaceClient(GlobalConfProvider globalConfProvider, KeyConfProvider keyConfProvider, CertChainFactory certChainFactory) {
+        this.globalConfProvider = globalConfProvider;
+        this.keyConfProvider = keyConfProvider;
+        this.xrdSignatureService = new XrdSignatureService(globalConfProvider, certChainFactory);
+    }
 
     public RestResponse processRestRequest(RestRequest restRequest,
                                            AuthorizedAssetRegistry.GrantedAssetInfo assetInfo, byte[] requestDigest) throws Exception {
@@ -94,7 +105,7 @@ public class XrdDataSpaceClient {
             }
         }
 
-        var response = EdcDataPlaneHttpClient.sendRestRequest(dsRequest.build(), restRequest);
+        var response = EdcDataPlaneHttpClient.sendRestRequest(dsRequest.build(), restRequest, globalConfProvider, keyConfProvider);
 
         MessageLog.log(restRequest, response, toSignatureData(response.getSignature()),
                 response.getBody().getCachedContents(), true,
@@ -117,7 +128,7 @@ public class XrdDataSpaceClient {
                 .setEntity(soapRequest.getBytes(), ContentType.parse(soapRequest.getContentType()));
 
         MessageLog.log(soapRequest, toSignatureData(signatureResponse.getSignature()), true, xRequestId);
-        var response = EdcDataPlaneHttpClient.sendSoapRequest(dsRequest.build());
+        var response = EdcDataPlaneHttpClient.sendSoapRequest(dsRequest.build(), globalConfProvider, keyConfProvider);
         MessageLog.log((SoapMessageImpl) response.soapMessage(), toSignatureData(response.headers().get(HEADER_XRD_SIG)), true, xRequestId);
         return response;
     }

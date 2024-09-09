@@ -25,6 +25,7 @@
  */
 package ee.ria.xroad.proxy.conf;
 
+import ee.ria.xroad.common.conf.globalconf.GlobalConfProvider;
 import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.signature.MessageSigner;
 import ee.ria.xroad.common.signature.SimpleSigner;
@@ -40,8 +41,8 @@ public class SigningCtxProvider {
 
     private static final MessageSigner signer = new SimpleSigner();
 
-    public static SigningCtx getSigningCtx(ClientId clientId) {
-        return ctxProvider.getSigningCtx(clientId);
+    public static SigningCtx getSigningCtx(ClientId clientId, GlobalConfProvider globalConfProvider, KeyConfProvider keyConfProvider) {
+        return ctxProvider.getSigningCtx(clientId, globalConfProvider, keyConfProvider);
     }
 
 
@@ -51,16 +52,16 @@ public class SigningCtxProvider {
     }
 
     public static class DefaultSigningCtxProvider {
-        public SigningCtx getSigningCtx(ClientId clientId) {
+        public SigningCtx getSigningCtx(ClientId clientId, GlobalConfProvider globalConfProvider, KeyConfProvider keyConfProvider) {
             log.debug("Retrieving signing info for member '{}'", clientId);
 
-            var signingInfo = KeyConf.getSigningInfo(clientId);
+            var signingInfo = keyConfProvider.getSigningInfo(clientId);
 
-            return getSigningCtx(signingInfo);
+            return createSigningCtx(signingInfo, globalConfProvider, keyConfProvider);
         }
 
-        private SigningCtx getSigningCtx(SigningInfo signingInfo) {
-            return new SigningCtxImpl(signingInfo.getClientId(),
+        private SigningCtx createSigningCtx(SigningInfo signingInfo, GlobalConfProvider globalConfProvider, KeyConfProvider keyConfProvider) {
+            return new SigningCtxImpl(globalConfProvider, keyConfProvider, signingInfo.getClientId(),
                     new SignerSigningKey(signingInfo.getKeyId(), signingInfo.getSignMechanismName(), signer), signingInfo.getCert());
         }
     }

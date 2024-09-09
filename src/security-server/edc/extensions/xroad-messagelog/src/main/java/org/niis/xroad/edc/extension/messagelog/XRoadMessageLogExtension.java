@@ -27,10 +27,13 @@
 
 package org.niis.xroad.edc.extension.messagelog;
 
+import ee.ria.xroad.common.conf.globalconf.GlobalConfProvider;
+import ee.ria.xroad.common.conf.serverconf.ServerConfProvider;
 import ee.ria.xroad.common.messagelog.AbstractLogManager;
 import ee.ria.xroad.proxy.messagelog.LogManager;
 
 import org.eclipse.edc.runtime.metamodel.annotation.Extension;
+import org.eclipse.edc.runtime.metamodel.annotation.Inject;
 import org.eclipse.edc.runtime.metamodel.annotation.Provides;
 import org.eclipse.edc.runtime.metamodel.annotation.Setting;
 import org.eclipse.edc.spi.system.ServiceExtension;
@@ -53,6 +56,11 @@ public class XRoadMessageLogExtension implements ServiceExtension {
         return NAME;
     }
 
+    @Inject
+    private GlobalConfProvider globalConfProvider;
+    @Inject
+    private ServerConfProvider serverConfProvider;
+
     @Override
     @SuppressWarnings("checkstyle:magicnumber")
     public void initialize(ServiceExtensionContext context) {
@@ -61,7 +69,9 @@ public class XRoadMessageLogExtension implements ServiceExtension {
         boolean isMessageLogEnabled = context.getSetting(XROAD_MESSAGELOG_ENABLED, false);
         String origin = context.getSetting(XROAD_MESSAGELOG_ORIGIN, "edc");
 
-        AbstractLogManager logManager = isMessageLogEnabled ? new LogManager(origin) : new NoopLogManager(origin);
+        AbstractLogManager logManager = isMessageLogEnabled
+                ? new LogManager(origin, globalConfProvider, serverConfProvider)
+                : new NoopLogManager(origin, globalConfProvider, serverConfProvider);
         context.registerService(XRoadMessageLog.class, new XRoadMessageLogImpl(monitor, logManager));
     }
 

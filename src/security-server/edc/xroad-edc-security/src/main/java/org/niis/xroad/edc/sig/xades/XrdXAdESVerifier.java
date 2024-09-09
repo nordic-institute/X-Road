@@ -27,6 +27,8 @@
 
 package org.niis.xroad.edc.sig.xades;
 
+import ee.ria.xroad.common.cert.CertChainFactory;
+import ee.ria.xroad.common.conf.globalconf.GlobalConfProvider;
 import ee.ria.xroad.common.identifier.ClientId;
 
 import eu.europa.esig.dss.diagnostic.DiagnosticData;
@@ -38,7 +40,6 @@ import eu.europa.esig.dss.model.DigestDocument;
 import eu.europa.esig.dss.model.InMemoryDocument;
 import eu.europa.esig.dss.validation.SignedDocumentValidator;
 import eu.europa.esig.dss.validation.reports.Reports;
-import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.bouncycastle.cert.ocsp.OCSPResp;
 import org.niis.xroad.edc.sig.XrdSignatureVerificationException;
@@ -51,11 +52,15 @@ import java.util.List;
 import java.util.Optional;
 
 
-@RequiredArgsConstructor
 @Slf4j
 public class XrdXAdESVerifier extends XrdSignatureVerifierBase implements XrdSignatureVerifier {
 
     private final DigestAlgorithm digestAlgorithm;
+
+    public XrdXAdESVerifier(GlobalConfProvider globalConfProvider, CertChainFactory certChainFactory, DigestAlgorithm digestAlgorithm) {
+        super(globalConfProvider, certChainFactory);
+        this.digestAlgorithm = digestAlgorithm;
+    }
 
     @Override
     public void verifySignature(String signatureBase64, byte[] message,

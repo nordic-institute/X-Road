@@ -26,7 +26,7 @@
 package org.niis.xroad.proxy.edc;
 
 import ee.ria.xroad.common.SystemProperties;
-import ee.ria.xroad.common.conf.globalconf.GlobalConf;
+import ee.ria.xroad.common.conf.globalconf.GlobalConfProvider;
 import ee.ria.xroad.common.conf.globalconf.SharedParameters;
 import ee.ria.xroad.common.identifier.ClientId;
 
@@ -40,9 +40,9 @@ import java.util.Collection;
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
 public class TargetSecurityServerLookup {
 
-    public static TargetSecurityServers resolveTargetSecurityServers(ClientId clientId) {
+    public static TargetSecurityServers resolveTargetSecurityServers(ClientId clientId, GlobalConfProvider globalConfProvider) {
         // Resolve available security servers
-        var allServers = GlobalConf.getProviderSecurityServers(clientId);
+        var allServers = globalConfProvider.getProviderSecurityServers(clientId);
         if (SystemProperties.isDataspacesEnabled()) {
             var dsEnabledServers = allServers.stream().filter(ss -> ss.getServerAddress().isDsSupported()).toList();
             if (dsEnabledServers.isEmpty()) {

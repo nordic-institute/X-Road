@@ -44,6 +44,7 @@ dependencies {
     testImplementation(project(':common:common-test')) {
         exclude group: 'org.eclipse.jetty'
     }
+    testImplementation('org.springframework:spring-test:6.1.12')
 }
 
 application {

@@ -30,15 +30,17 @@ package org.niis.xroad.edc.sig;
 import ee.ria.xroad.common.CodedException;
 import ee.ria.xroad.common.ErrorCodes;
 import ee.ria.xroad.common.cert.CertChain;
+import ee.ria.xroad.common.cert.CertChainFactory;
 import ee.ria.xroad.common.cert.CertChainVerifier;
 import ee.ria.xroad.common.certificateprofile.impl.SignCertificateProfileInfoParameters;
-import ee.ria.xroad.common.conf.globalconf.GlobalConf;
+import ee.ria.xroad.common.conf.globalconf.GlobalConfProvider;
 import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.util.CertUtils;
 
 import eu.europa.esig.dss.model.DSSDocument;
 import eu.europa.esig.dss.validation.CommonCertificateVerifier;
 import eu.europa.esig.dss.validation.SignedDocumentValidator;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.bouncycastle.cert.ocsp.OCSPResp;
 
@@ -47,7 +49,11 @@ import java.util.Date;
 import java.util.List;
 
 @Slf4j
+@RequiredArgsConstructor
 public abstract class XrdSignatureVerifierBase {
+
+    protected final GlobalConfProvider globalConfProvider;
+    protected final CertChainFactory certChainFactory;
 
     protected SignedDocumentValidator getValidator(DSSDocument signedDocument) {
         SignedDocumentValidator validator = SignedDocumentValidator.fromDocument(signedDocument);
@@ -65,8 +71,8 @@ public abstract class XrdSignatureVerifierBase {
         log.info("XRD checks: Signature is valid.");
     }
 
-    private static void verifySignerName(ClientId signer, X509Certificate signingCert) throws Exception {
-        ClientId cn = GlobalConf.getSubjectName(
+    private void verifySignerName(ClientId signer, X509Certificate signingCert) throws Exception {
+        ClientId cn = globalConfProvider.getSubjectName(
                 new SignCertificateProfileInfoParameters(
                         signer, signer.getMemberCode()
                 ),
@@ -80,9 +86,9 @@ public abstract class XrdSignatureVerifierBase {
 
     private void verifyCertificateChain(Date atDate, ClientId signer, X509Certificate signingCert,
                                         List<OCSPResp> ocspResps) {
-        CertChain certChain = CertChain.create(signer.getXRoadInstance(), signingCert, null);
+        CertChain certChain = certChainFactory.create(signer.getXRoadInstance(), signingCert, null);
 
-        new CertChainVerifier(certChain).verify(ocspResps, atDate);
+        new CertChainVerifier(globalConfProvider, certChain).verify(ocspResps, atDate);
     }
 
     protected void assertTrue(boolean val) {

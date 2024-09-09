@@ -28,7 +28,9 @@
 package org.niis.xroad.edc.extension.signer.legacy;
 
 import ee.ria.xroad.common.CodedException;
-import ee.ria.xroad.common.conf.serverconf.ServerConf;
+import ee.ria.xroad.common.cert.CertChainFactory;
+import ee.ria.xroad.common.conf.globalconf.GlobalConfProvider;
+import ee.ria.xroad.common.conf.serverconf.ServerConfProvider;
 import ee.ria.xroad.common.conf.serverconf.model.ClientType;
 import ee.ria.xroad.common.conf.serverconf.model.DescriptionType;
 import ee.ria.xroad.common.identifier.ClientId;
@@ -45,6 +47,7 @@ import ee.ria.xroad.common.util.AbstractHttpSender;
 import ee.ria.xroad.common.util.HttpSender;
 import ee.ria.xroad.common.util.MimeUtils;
 import ee.ria.xroad.common.util.TimeUtils;
+import ee.ria.xroad.proxy.conf.KeyConfProvider;
 import ee.ria.xroad.proxy.conf.SigningCtx;
 import ee.ria.xroad.proxy.conf.SigningCtxProvider;
 import ee.ria.xroad.proxy.protocol.ProxyMessage;
@@ -104,8 +107,14 @@ public class SoapMessageProcessor extends MessageProcessorBase {
 
     public SoapMessageProcessor(ContainerRequestContext request,
                                 HttpClient httpClient, X509Certificate[] clientSslCerts,
-                                boolean needClientAuth, XRoadMessageLog messageLog, Monitor monitor) {
-        super(request, clientSslCerts, needClientAuth, httpClient, monitor);
+                                boolean needClientAuth, XRoadMessageLog messageLog,
+                                GlobalConfProvider globalConfProvider,
+                                KeyConfProvider keyConfProvider,
+                                ServerConfProvider serverConfProvider,
+                                CertChainFactory certChainFactory,
+                                Monitor monitor) {
+        super(request, clientSslCerts, needClientAuth, httpClient, globalConfProvider, keyConfProvider, serverConfProvider,
+                certChainFactory, monitor);
 
         this.xRoadMessageLog = messageLog;
     }
@@ -175,7 +184,7 @@ public class SoapMessageProcessor extends MessageProcessorBase {
                 verifySecurityServer();
                 verifyClientStatus();
 
-                responseSigningCtx = SigningCtxProvider.getSigningCtx(requestServiceId.getClientId());
+                responseSigningCtx = SigningCtxProvider.getSigningCtx(requestServiceId.getClientId(), globalConfProvider, keyConfProvider);
 
                 if (needClientAuth) {
                     verifySslClientCert(requestMessage.getOcspResponses(), requestMessage.getSoap().getClient());
@@ -183,7 +192,7 @@ public class SoapMessageProcessor extends MessageProcessorBase {
             }
         };
 
-        decoder = new ProxyMessageDecoder(requestMessage, requestContext.getMediaType().toString(), false,
+        decoder = new ProxyMessageDecoder(globalConfProvider, requestMessage, requestContext.getMediaType().toString(), false,
                 getHashAlgoId(requestContext));
         try {
             decoder.parse(requestContext.getEntityStream());
@@ -211,7 +220,7 @@ public class SoapMessageProcessor extends MessageProcessorBase {
     private void verifyClientStatus() {
         ClientId client = requestServiceId.getClientId();
 
-        String status = ServerConf.getMemberStatus(client);
+        String status = serverConfProvider.getMemberStatus(client);
 
         if (!ClientType.STATUS_REGISTERED.equals(status)) {
             throw new CodedException(X_UNKNOWN_MEMBER, "Client '%s' not found", client);
@@ -222,7 +231,7 @@ public class SoapMessageProcessor extends MessageProcessorBase {
         final SecurityServerId requestServerId = requestMessage.getSoap().getSecurityServer();
 
         if (requestServerId != null) {
-            final SecurityServerId serverId = ServerConf.getIdentifier();
+            final SecurityServerId serverId = serverConfProvider.getIdentifier();
 
             if (!requestServerId.equals(serverId)) {
                 throw new CodedException(X_INVALID_SECURITY_SERVER,
@@ -234,21 +243,21 @@ public class SoapMessageProcessor extends MessageProcessorBase {
     private void verifyAccess() {
         monitor.debug("verifyAccess()");
 
-        if (!ServerConf.serviceExists(requestServiceId)) {
+        if (!serverConfProvider.serviceExists(requestServiceId)) {
             throw new CodedException(X_UNKNOWN_SERVICE, "Unknown service: %s", requestServiceId);
         }
 
-        DescriptionType descriptionType = ServerConf.getDescriptionType(requestServiceId);
+        DescriptionType descriptionType = serverConfProvider.getDescriptionType(requestServiceId);
         if (descriptionType != null && descriptionType != DescriptionType.WSDL) {
             throw new CodedException(X_INVALID_SERVICE_TYPE,
                     "Service is a REST service and cannot be called using SOAP interface");
         }
 
-        if (!ServerConf.isQueryAllowed(requestMessage.getSoap().getClient(), requestServiceId)) {
+        if (!serverConfProvider.isQueryAllowed(requestMessage.getSoap().getClient(), requestServiceId)) {
             throw new CodedException(X_ACCESS_DENIED, "Request is not allowed: %s", requestServiceId);
         }
 
-        String disabledNotice = ServerConf.getDisabledNotice(requestServiceId);
+        String disabledNotice = serverConfProvider.getDisabledNotice(requestServiceId);
 
         if (disabledNotice != null) {
             throw new CodedException(X_SERVICE_DISABLED, "Service %s is disabled: %s", requestServiceId,
@@ -361,14 +370,14 @@ public class SoapMessageProcessor extends MessageProcessorBase {
 
             monitor.debug("processRequest(%s)".formatted(requestServiceId));
 
-            String address = ServerConf.getServiceAddress(requestServiceId);
+            String address = serverConfProvider.getServiceAddress(requestServiceId);
 
             if (address == null || address.isEmpty()) {
                 throw new CodedException(X_SERVICE_MISSING_URL, "Service address not specified for '%s'",
                         requestServiceId);
             }
 
-            int timeout = TimeUtils.secondsToMillis(ServerConf.getServiceTimeout(requestServiceId));
+            int timeout = TimeUtils.secondsToMillis(serverConfProvider.getServiceTimeout(requestServiceId));
 
             sender.setConnectionTimeout(timeout);
             sender.setSocketTimeout(timeout);

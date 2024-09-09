@@ -26,14 +26,13 @@
 package org.niis.xroad.proxy.clientproxy.validate;
 
 import ee.ria.xroad.common.CodedException;
-import ee.ria.xroad.common.SystemProperties;
-import ee.ria.xroad.common.conf.serverconf.IsAuthentication;
 import ee.ria.xroad.common.conf.serverconf.IsAuthenticationData;
-import ee.ria.xroad.common.conf.serverconf.ServerConf;
+import ee.ria.xroad.common.conf.serverconf.ServerConfProvider;
 import ee.ria.xroad.common.conf.serverconf.model.ClientType;
 import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.message.SoapMessageImpl;
 
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
 import static ee.ria.xroad.common.ErrorCodes.X_INVALID_CLIENT_IDENTIFIER;
@@ -41,7 +40,10 @@ import static ee.ria.xroad.common.ErrorCodes.X_UNKNOWN_MEMBER;
 import static ee.ria.xroad.proxy.util.MessageProcessorBase.checkIdentifier;
 
 @Slf4j
+@RequiredArgsConstructor
 public class RequestValidator {
+
+    private final ServerConfProvider serverConfProvider;
 
     public void validateSoap(final SoapMessageImpl requestSoap, IsAuthenticationData clientCert) throws Exception {
         // Check that incoming identifiers do not contain illegal characters
@@ -50,9 +52,6 @@ public class RequestValidator {
         // Verify that the client is registered.
         ClientId client = requestSoap.getClient();
         verifyClientStatus(client);
-
-        // Check client authentication mode.
-        verifyClientAuthentication(client, clientCert);
     }
 
     private void checkRequestIdentifiers(final SoapMessageImpl requestSoap) {
@@ -66,17 +65,10 @@ public class RequestValidator {
             throw new CodedException(X_INVALID_CLIENT_IDENTIFIER, "The client identifier is missing");
         }
 
-        String status = ServerConf.getMemberStatus(client);
+        String status = serverConfProvider.getMemberStatus(client);
         if (!ClientType.STATUS_REGISTERED.equals(status)) {
             throw new CodedException(X_UNKNOWN_MEMBER, "Client '%s' not found", client);
         }
     }
 
-    public void verifyClientAuthentication(ClientId sender, IsAuthenticationData clientCert) throws Exception {
-        if (!SystemProperties.shouldVerifyClientCert()) {
-            return;
-        }
-        log.trace("verifyClientAuthentication()");
-        IsAuthentication.verifyClientAuthentication(sender, clientCert);
-    }
 }

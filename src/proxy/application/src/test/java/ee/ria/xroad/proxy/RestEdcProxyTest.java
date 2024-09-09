@@ -28,13 +28,13 @@ package ee.ria.xroad.proxy;
 
 
 import ee.ria.xroad.common.SystemProperties;
-import ee.ria.xroad.common.conf.globalconf.GlobalConf;
-import ee.ria.xroad.common.conf.serverconf.ServerConf;
+import ee.ria.xroad.common.conf.globalconf.TestGlobalConfWrapper;
 import ee.ria.xroad.common.conf.serverconf.model.DescriptionType;
 import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.identifier.ServiceId;
 import ee.ria.xroad.common.message.RestMessage;
 import ee.ria.xroad.common.util.MimeUtils;
+import ee.ria.xroad.proxy.conf.KeyConfProvider;
 import ee.ria.xroad.proxy.testutil.TestGlobalConf;
 import ee.ria.xroad.proxy.testutil.TestGlobalConfWithDs;
 import ee.ria.xroad.proxy.testutil.TestServerConf;
@@ -44,7 +44,6 @@ import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.eclipse.jetty.server.Request;
 import org.hamcrest.Matchers;
-import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Ignore;
@@ -72,6 +71,7 @@ import static java.util.concurrent.TimeUnit.MILLISECONDS;
 import static org.eclipse.jetty.io.Content.Sink.asOutputStream;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
+import static org.mockito.Mockito.mock;
 
 /**
  * RestEdcProxyTest
@@ -83,7 +83,7 @@ public class RestEdcProxyTest extends AbstractProxyIntegrationTest {
 
     static final String PREFIX = "/r" + RestMessage.PROTOCOL_VERSION;
 
-    private static final TestGlobalConfWithDs TEST_GLOBAL_CONF = new TestGlobalConfWithDs();
+    private static final TestGlobalConfWrapper TEST_GLOBAL_CONF = new TestGlobalConfWrapper(new TestGlobalConfWithDs());
 
     private static Process consumerProcess;
     private static Process providerProcess;
@@ -103,8 +103,7 @@ public class RestEdcProxyTest extends AbstractProxyIntegrationTest {
         startEdcProvider();
         startEdcConsumer();
 
-        applicationContext = new TestProxyMain(getAdditionalSystemParameters(), TEST_GLOBAL_CONF, RestEdcProxyTest::prepareServerEdc)
-                .createApplicationContext(TestProxySpringConfig.class);
+        applicationContext = new TestProxyMain(getAdditionalSystemParameters()).createApplicationContext(TestProxySpringConfig.class);
     }
 
     @AfterClass
@@ -118,12 +117,6 @@ public class RestEdcProxyTest extends AbstractProxyIntegrationTest {
         consumerProcess.descendants().forEach(ProcessHandle::destroy);
         providerProcess.destroy();
         consumerProcess.destroy();
-    }
-
-    @After
-    public void after() {
-        ServerConf.reload(TEST_SERVER_CONF);
-        GlobalConf.reload(TEST_GLOBAL_CONF);
     }
 
     @Test
@@ -316,7 +309,7 @@ public class RestEdcProxyTest extends AbstractProxyIntegrationTest {
     @Ignore
     //todo: xroad8
     public void shouldNotAllowCallingWSDLServices() {
-        ServerConf.reload(new TestServerConf(servicePort) {
+        TEST_SERVER_CONF.setServerConfProvider(new TestServerConf(servicePort) {
             @Override
             public DescriptionType getDescriptionType(ServiceId service) {
                 if ("wsdl".equals(service.getServiceCode())) {
@@ -340,7 +333,7 @@ public class RestEdcProxyTest extends AbstractProxyIntegrationTest {
     @Ignore
     //todo: xroad8
     public void shouldNotAllowPATCH() {
-        ServerConf.reload(new TestServerConf(servicePort) {
+        TEST_SERVER_CONF.setServerConfProvider(new TestServerConf(servicePort) {
             @Override
             public boolean isQueryAllowed(ClientId sender, ServiceId service, String method, String path) {
                 if ("PATCH".equalsIgnoreCase(method)) return false;
@@ -368,8 +361,7 @@ public class RestEdcProxyTest extends AbstractProxyIntegrationTest {
 
     @Test
     public void shouldSelectResolvableAddress() {
-
-        GlobalConf.reload(new TestGlobalConf() {
+        TEST_GLOBAL_CONF.setGlobalConfProvider(new TestGlobalConf() {
             @Override
             public Collection<String> getProviderAddress(ClientId provider) {
                 return Arrays.asList("127.0.0.1", "server.invalid.", "127.0.0,78", "\ufeffzero\u200B.width", "::1");
@@ -390,8 +382,7 @@ public class RestEdcProxyTest extends AbstractProxyIntegrationTest {
 
     @Test
     public void shouldRespectAcceptHeaderInErrorResponse() {
-
-        ServerConf.reload(new TestServerConf(servicePort) {
+        TEST_SERVER_CONF.setServerConfProvider(new TestServerConf(servicePort) {
             @Override
             public DescriptionType getDescriptionType(ServiceId service) {
                 if ("wsdl".equals(service.getServiceCode())) {
@@ -551,11 +542,14 @@ public class RestEdcProxyTest extends AbstractProxyIntegrationTest {
     @SneakyThrows
     private static void prepareServerEdc() {
         EdcManagementApiFactory managementApiFactory = new EdcManagementApiFactory(
-                "http://localhost:%s".formatted("19193"));
+                "http://localhost:%s".formatted("19193"),
+                TEST_GLOBAL_CONF, mock(KeyConfProvider.class));
         EdcControlApiFactory controlApiFactory = new EdcControlApiFactory(
-                "http://localhost:%s".formatted("19192"));
+                "http://localhost:%s".formatted("19192"),
+                TEST_GLOBAL_CONF, mock(KeyConfProvider.class));
 
         var assetRegistrationJob = new AssetsRegistrationJob(
+                TEST_GLOBAL_CONF, TEST_SERVER_CONF,
                 controlApiFactory.dataplaneSelectorControlApi(), managementApiFactory.assetsApi(),
                 managementApiFactory.policyDefinitionApi(), managementApiFactory.contractDefinitionApi());
         assetRegistrationJob.registerDataPlane();

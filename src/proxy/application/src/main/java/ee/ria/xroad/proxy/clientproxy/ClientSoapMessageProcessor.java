@@ -26,6 +26,7 @@
 package ee.ria.xroad.proxy.clientproxy;
 
 import ee.ria.xroad.common.CodedException;
+import ee.ria.xroad.common.SystemProperties;
 import ee.ria.xroad.common.cert.CertChain;
 import ee.ria.xroad.common.cert.CertChainFactory;
 import ee.ria.xroad.common.conf.globalconf.GlobalConfProvider;
@@ -143,7 +144,7 @@ class ClientSoapMessageProcessor extends AbstractClientMessageProcessor {
      */
     private ProxyMessage response;
 
-    private final RequestValidator requestValidator = new RequestValidator();
+    private final RequestValidator requestValidator = new RequestValidator(serverConfProvider);
     private final SoapResponseValidator responseValidator = new SoapResponseValidator();
 
     private static final ExecutorService SOAP_HANDLER_EXECUTOR = createSoapHandlerExecutor();
@@ -192,6 +193,10 @@ class ClientSoapMessageProcessor extends AbstractClientMessageProcessor {
             checkError();
 
             requestValidator.validateSoap(requestSoap, clientCert);
+            // Check client authentication mode.
+            if (SystemProperties.shouldVerifyClientCert()) {
+                verifyClientAuthentication(requestSoap.getClient(), clientCert);;
+            }
 
             processRequest();
 
@@ -467,7 +472,7 @@ class ClientSoapMessageProcessor extends AbstractClientMessageProcessor {
             updateOpMonitoringData();
 
             try {
-                request.sign(SigningCtxProvider.getSigningCtx(requestSoap.getClient()));
+                request.sign(SigningCtxProvider.getSigningCtx(requestSoap.getClient(), globalConfProvider, keyConfProvider));
                 logRequestMessage();
                 request.writeSignature();
             } catch (Exception ex) {

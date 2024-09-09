@@ -101,11 +101,11 @@ abstract class AbstractClientMessageProcessor extends MessageProcessorBase {
         this.opMonitoringData = opMonitoringData;
     }
 
-    protected AbstractClientMessageProcessor(GlobalConfProvider globalConfProvider,
+    protected AbstractClientMessageProcessor(final AbstractClientProxyHandler.ProxyRequestCtx proxyRequestCtx,
+                                             GlobalConfProvider globalConfProvider,
                                              KeyConfProvider keyConfProvider,
                                              ServerConfProvider serverConfProvider,
                                              CertChainFactory certChainFactory,
-                                             final AbstractClientProxyHandler.ProxyRequestCtx proxyRequestCtx,
                                              HttpClient httpClient, IsAuthenticationData clientCert) {
         super(globalConfProvider, keyConfProvider, serverConfProvider, certChainFactory, proxyRequestCtx.clientRequest(), proxyRequestCtx.clientResponse(), httpClient);
 

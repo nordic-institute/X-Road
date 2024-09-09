@@ -30,10 +30,11 @@ package ee.ria.xroad.proxy.admin.handler;
 import ee.ria.xroad.common.DiagnosticsErrorCodes;
 import ee.ria.xroad.common.DiagnosticsStatus;
 import ee.ria.xroad.common.DiagnosticsUtils;
-import ee.ria.xroad.common.conf.serverconf.ServerConf;
+import ee.ria.xroad.common.conf.serverconf.ServerConfProvider;
 import ee.ria.xroad.common.util.TimeUtils;
 import ee.ria.xroad.proxy.messagelog.MessageLog;
 
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.niis.xroad.proxy.proto.TimestampStatusResp;
@@ -52,10 +53,13 @@ import static java.util.Optional.ofNullable;
  * If the previous request has failed or the simple connection cannot be made, DiagnosticsStatus tells the reason.
  */
 @Slf4j
+@RequiredArgsConstructor
 public class TimestampStatusHandler {
 
     private static final int DIAGNOSTICS_CONNECTION_TIMEOUT_MS = 1200;
     private static final int DIAGNOSTICS_READ_TIMEOUT_MS = 15000; // 15 seconds
+
+    private final ServerConfProvider serverConfProvider;
 
     public TimestampStatusResp handle() {
         Map<String, DiagnosticsStatus> statuses = collectStatus();
@@ -111,7 +115,7 @@ public class TimestampStatusHandler {
     private Map<String, DiagnosticsStatus> checkConnectionToTimestampUrl() {
         Map<String, DiagnosticsStatus> statuses = new HashMap<>();
 
-        for (String tspUrl : ServerConf.getTspUrl()) {
+        for (String tspUrl : serverConfProvider.getTspUrl()) {
             try {
                 URL url = new URL(tspUrl);
 

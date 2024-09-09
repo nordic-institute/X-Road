@@ -26,10 +26,11 @@
  */
 package org.eclipse.edc.web.jetty;
 
-import ee.ria.xroad.common.cert.CertChain;
+import ee.ria.xroad.common.cert.CertChainFactory;
 import ee.ria.xroad.common.conf.globalconf.AuthKey;
-import ee.ria.xroad.common.conf.globalconf.GlobalConf;
+import ee.ria.xroad.common.conf.globalconf.GlobalConfProvider;
 import ee.ria.xroad.common.util.CryptoUtils;
+import ee.ria.xroad.proxy.conf.KeyConfProvider;
 
 import jakarta.servlet.Servlet;
 import lombok.SneakyThrows;
@@ -77,13 +78,21 @@ public class JettyService implements XrdWebServer {
     private static final int SSL_SESSION_TIMEOUT = 600;
     private static final String LOG_ANNOUNCE = "org.eclipse.jetty.util.log.announce";
     private final JettyConfiguration configuration;
+    private final GlobalConfProvider globalConfProvider;
+    private final KeyConfProvider keyConfProvider;
+    private final CertChainFactory certChainFactory;
     private final Monitor monitor;
     private final Map<String, ServletContextHandler> handlers = new HashMap<>();
     private final List<Consumer<ServerConnector>> connectorConfigurationCallbacks = new ArrayList<>();
     private Server server;
 
-    public JettyService(JettyConfiguration configuration, Monitor monitor) {
+    public JettyService(JettyConfiguration configuration, GlobalConfProvider globalConfProvider,
+                        KeyConfProvider keyConfProvider, CertChainFactory certChainFactory,
+                        Monitor monitor) {
         this.configuration = configuration;
+        this.globalConfProvider = globalConfProvider;
+        this.keyConfProvider = keyConfProvider;
+        this.certChainFactory = certChainFactory;
         this.monitor = monitor;
         System.setProperty(LOG_ANNOUNCE, "false");
         // for websocket endpoints
@@ -209,9 +218,9 @@ public class JettyService implements XrdWebServer {
 
         var tlsCertPath = System.getenv("EDC_TLS_CERT_PATH");
         if (tlsCertPath != null) {
-            cf.setSslContext(SSLContextBuilder.create(() -> getTlsCertificateChain(tlsCertPath)).sslContext());
+            cf.setSslContext(SSLContextBuilder.create(() -> getTlsCertificateChain(tlsCertPath), globalConfProvider).sslContext());
         } else {
-            cf.setSslContext(SSLContextBuilder.create().sslContext());
+            cf.setSslContext(SSLContextBuilder.create(keyConfProvider::getAuthKey, globalConfProvider).sslContext());
         }
 
         cf.setSniRequired(sniEnabled);
@@ -233,9 +242,9 @@ public class JettyService implements XrdWebServer {
         keyStore.getKey("management-service", "management-service".toCharArray());
 
         var cert = keyStore.getCertificate("management-service");
-        var certChain = CertChain.create("cs", new X509Certificate[]{
+        var certChain = certChainFactory.create("cs", new X509Certificate[]{
                 (X509Certificate) cert,
-                GlobalConf.getAllCaCerts().stream().findFirst().orElseThrow() //TODO for poc, use proper cert chain.
+                globalConfProvider.getAllCaCerts().stream().findFirst().orElseThrow() //TODO for poc, use proper cert chain.
         });
         var pkey = (PrivateKey) keyStore.getKey("management-service", "management-service".toCharArray());
         return new AuthKey(certChain, pkey);

@@ -26,6 +26,7 @@
 package ee.ria.xroad.proxy.clientproxy;
 
 import ee.ria.xroad.common.CodedException;
+import ee.ria.xroad.common.SystemProperties;
 import ee.ria.xroad.common.cert.CertChain;
 import ee.ria.xroad.common.cert.CertChainFactory;
 import ee.ria.xroad.common.conf.globalconf.GlobalConfProvider;
@@ -40,9 +41,8 @@ import ee.ria.xroad.common.util.CachingStream;
 import ee.ria.xroad.common.util.CryptoUtils;
 import ee.ria.xroad.common.util.HttpSender;
 import ee.ria.xroad.common.util.MimeUtils;
-import ee.ria.xroad.common.util.RequestWrapper;
-import ee.ria.xroad.common.util.ResponseWrapper;
 import ee.ria.xroad.proxy.conf.KeyConfProvider;
+import ee.ria.xroad.proxy.conf.SigningCtxProvider;
 import ee.ria.xroad.proxy.messagelog.MessageLog;
 import ee.ria.xroad.proxy.protocol.ProxyMessage;
 import ee.ria.xroad.proxy.protocol.ProxyMessageDecoder;
@@ -82,7 +82,7 @@ import static ee.ria.xroad.common.util.TimeUtils.getEpochMillisecond;
 
 @Slf4j
 class ClientRestMessageProcessor extends AbstractClientMessageProcessor {
-    private final RequestValidator requestValidator = new RequestValidator();
+    private final RequestValidator requestValidator;
 
     private ServiceId requestServiceId;
     /**
@@ -101,12 +101,12 @@ class ClientRestMessageProcessor extends AbstractClientMessageProcessor {
                                KeyConfProvider keyConfProvider,
                                ServerConfProvider serverConfProvider,
                                CertChainFactory certChainFactory,
-                               RequestWrapper request, ResponseWrapper response,
-                               HttpClient httpClient, IsAuthenticationData clientCert,
-                               OpMonitoringData opMonitoringData) throws Exception {
-        super(proxyRequestCtx, globalConfProvider, keyConfProvider, serverConfProvider, certChainFactory, request, response, httpClient,
-                clientCert, opMonitoringData);
+                               HttpClient httpClient, IsAuthenticationData clientCert) throws Exception {
+        super(proxyRequestCtx, globalConfProvider, keyConfProvider, serverConfProvider, certChainFactory, httpClient,
+                clientCert);
+        this.requestValidator = new RequestValidator(serverConfProvider);
         this.restRequest = restRequest;
+
     }
 
     //TODO rethink what should happen in constructor and what in process..
@@ -124,7 +124,9 @@ class ClientRestMessageProcessor extends AbstractClientMessageProcessor {
             requestServiceId = restRequest.getServiceId();
 
             requestValidator.verifyClientStatus(senderId);
-            requestValidator.verifyClientAuthentication(senderId, clientCert);
+            if (SystemProperties.shouldVerifyClientCert()) {
+                verifyClientAuthentication(senderId, clientCert);;
+            }
 
             processRequest();
             if (response != null) {
@@ -327,15 +329,15 @@ class ClientRestMessageProcessor extends AbstractClientMessageProcessor {
                         try (TeeInputStream tee = new TeeInputStream(in, cache)) {
                             cache.write(buf, 0, count);
                             enc.restBody(buf, count, tee);
-                            enc.sign(keyConfProvider.getSigningCtx(senderId));
+                            enc.sign(SigningCtxProvider.getSigningCtx(senderId, globalConfProvider, keyConfProvider));
                             MessageLog.log(restRequest, enc.getSignature(), cache.getCachedContents(), true,
                                     restRequest.getXRequestId());
                         } finally {
                             cache.consume();
                         }
                     } else {
-                        enc.sign(keyConfProvider.getSigningCtx(senderId));
-                        MessageLog.log(restRequest, enc.getSignature(), null, true, xRequestId);
+                        enc.sign(SigningCtxProvider.getSigningCtx(senderId, globalConfProvider, keyConfProvider));
+                        MessageLog.log(restRequest, enc.getSignature(), null, true, restRequest.getXRequestId());
                     }
                 }
 

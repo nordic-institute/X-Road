@@ -1,13 +1,15 @@
 
 
 dependencies {
-    implementation(project(':proxy:application'))
+    implementation(project(':addons:messagelog:messagelog-addon:core'))
+    implementation(project(':asic-util'))
     implementation(project(':common:common-jetty'))
     implementation(project(':common:common-globalconf'))
-    implementation(project(':serverconf'))
+    implementation(project(':common:common-keyconf'))
     implementation(project(':common:common-messagelog'))
     implementation(project(':common:common-op-monitoring'))
-    implementation(project(':asic-util'))
-    implementation(project(':addons:messagelog:messagelog-addon:core'))
+    implementation(project(':common:common-verifier'))
+    implementation(project(':proxy:application'))
+    implementation(project(':serverconf'))
 
 }

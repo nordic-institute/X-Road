@@ -28,8 +28,13 @@
 package org.niis.xroad.edc.extension.signer;
 
 import ee.ria.xroad.common.SystemPropertiesLoader;
+import ee.ria.xroad.common.cert.CertChainFactory;
+import ee.ria.xroad.common.conf.globalconf.GlobalConfProvider;
+import ee.ria.xroad.common.conf.serverconf.ServerConfProvider;
+import ee.ria.xroad.proxy.conf.KeyConfProvider;
 import ee.ria.xroad.signer.protocol.RpcSignerClient;
 
+import lombok.SneakyThrows;
 import org.eclipse.edc.connector.dataplane.spi.Endpoint;
 import org.eclipse.edc.connector.dataplane.spi.iam.DataPlaneAuthorizationService;
 import org.eclipse.edc.connector.dataplane.spi.iam.PublicEndpointGeneratorService;
@@ -104,6 +109,14 @@ public class XrdPayloadSignerExtension implements ServiceExtension {
     @Inject
     private PublicEndpointGeneratorService generatorService;
 
+    @Inject
+    private GlobalConfProvider globalConfProvider;
+    @Inject
+    private ServerConfProvider serverConfProvider;
+    @Inject
+    private KeyConfProvider keyConfProvider;
+    @Inject
+    private CertChainFactory certChainFactory;
 
     @Override
     public String name() {
@@ -111,6 +124,7 @@ public class XrdPayloadSignerExtension implements ServiceExtension {
     }
 
     @Override
+    @SneakyThrows
     public void initialize(ServiceExtensionContext context) {
         var monitor = context.getMonitor();
 
@@ -136,9 +150,10 @@ public class XrdPayloadSignerExtension implements ServiceExtension {
         var endpoint = Endpoint.url(publicEndpoint);
         generatorService.addGeneratorFunction("XrdHttpData", dataAddress -> endpoint);
 
-        var signService = new XrdSignatureService();
+        var signService = new XrdSignatureService(globalConfProvider, null);
         var proxyApiController = new XrdDataPlaneProxyApiController(monitor,
-                xRoadMessageLog, authorizationService, needClientAuth);
+                xRoadMessageLog, authorizationService, needClientAuth, globalConfProvider, keyConfProvider,
+                serverConfProvider, certChainFactory);
         var lcController = new XrdDataPlanePublicApiController(pipelineService,
                 new XrdEdcSignService(signService, monitor), monitor, executorService,
                 xRoadMessageLog, authorizationService);

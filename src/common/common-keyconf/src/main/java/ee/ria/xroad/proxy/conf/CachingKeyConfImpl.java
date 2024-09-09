@@ -31,7 +31,6 @@ import ee.ria.xroad.common.cert.CertChain;
 import ee.ria.xroad.common.cert.CertChainVerifier;
 import ee.ria.xroad.common.conf.globalconf.AuthKey;
 import ee.ria.xroad.common.conf.globalconf.GlobalConfProvider;
-import ee.ria.xroad.common.conf.globalconfextension.GlobalConfExtensions;
 import ee.ria.xroad.common.conf.serverconf.ServerConfProvider;
 import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.identifier.SecurityServerId;
@@ -42,10 +41,7 @@ import ee.ria.xroad.signer.SignerProxy;
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
 import lombok.extern.slf4j.Slf4j;
-import org.bouncycastle.cert.ocsp.BasicOCSPResp;
-import org.bouncycastle.cert.ocsp.OCSPException;
 import org.bouncycastle.cert.ocsp.OCSPResp;
-import org.bouncycastle.cert.ocsp.SingleResp;
 
 import java.lang.ref.WeakReference;
 import java.nio.file.Paths;
@@ -160,30 +156,6 @@ public class CachingKeyConfImpl extends KeyConfImpl {
 
     protected void watcherStarted() {
         //for testability
-    }
-
-    /*
-     * Upper bound for validity is the minimum of certificates "notAfter" and OCSP responses validity time
-     * An OCSP response validity time is min(thisUpdate + ocspFreshnessSeconds, nextUpdate) or just
-     * (thisUpdate + ocspFreshnessSeconds) if nextUpdate is not enforced or missing
-     */
-    Date calculateNotAfter(List<OCSPResp> ocspResponses, Date notAfter) throws OCSPException {
-        final long freshnessMillis = 1000L * globalConfProvider.getOcspFreshnessSeconds();
-        final boolean verifyNextUpdate = GlobalConfExtensions.getInstance(globalConfProvider).shouldVerifyOcspNextUpdate();
-
-        for (OCSPResp resp : ocspResponses) {
-            //ok to expect only one response since we request ocsp responses for one certificate at a time
-            final SingleResp singleResp = ((BasicOCSPResp) resp.getResponseObject()).getResponses()[0];
-            final Date freshUntil = new Date(singleResp.getThisUpdate().getTime() + freshnessMillis);
-            if (freshUntil.before(notAfter)) notAfter = freshUntil;
-            if (verifyNextUpdate) {
-                final Date nextUpdate = singleResp.getNextUpdate();
-                if (nextUpdate != null && nextUpdate.before(notAfter)) {
-                    notAfter = nextUpdate;
-                }
-            }
-        }
-        return notAfter;
     }
 
     /**

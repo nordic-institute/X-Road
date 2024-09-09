@@ -15,8 +15,14 @@
 package org.niis.xroad.edc.extension.webservice;
 
 import ee.ria.xroad.common.SystemPropertiesLoader;
+import ee.ria.xroad.common.cert.CertChainFactory;
+import ee.ria.xroad.common.conf.globalconf.GlobalConfProvider;
+import ee.ria.xroad.common.conf.serverconf.ServerConfProvider;
+import ee.ria.xroad.proxy.conf.KeyConfProvider;
 import ee.ria.xroad.signer.protocol.RpcSignerClient;
 
+import lombok.SneakyThrows;
+import org.eclipse.edc.runtime.metamodel.annotation.Inject;
 import org.eclipse.edc.runtime.metamodel.annotation.Provider;
 import org.eclipse.edc.runtime.metamodel.annotation.Provides;
 import org.eclipse.edc.runtime.metamodel.annotation.Setting;
@@ -31,7 +37,7 @@ import org.eclipse.edc.web.spi.configuration.WebServiceConfigurer;
 import org.niis.xroad.edc.spi.XrdWebServer;
 
 @SuppressWarnings("checkstyle:MagicNumber")
-@Provides({ XrdWebServer.class, WebServer.class, JettyService.class })
+@Provides({XrdWebServer.class, WebServer.class, JettyService.class})
 public class XrdJettyExtension implements ServiceExtension {
 
     @Setting
@@ -46,7 +52,17 @@ public class XrdJettyExtension implements ServiceExtension {
         return "X-Road customized Jetty Service";
     }
 
+    @Inject
+    private GlobalConfProvider globalConfProvider;
+    @Inject
+    private ServerConfProvider serverConfProvider;
+    @Inject
+    private KeyConfProvider keyConfProvider;
+    @Inject
+    private CertChainFactory certChainFactory;
+
     @Override
+    @SneakyThrows
     public void initialize(ServiceExtensionContext context) {
         var monitor = context.getMonitor();
 
@@ -57,7 +73,7 @@ public class XrdJettyExtension implements ServiceExtension {
         loadSystemProperties(monitor);
         safelyInitSignerClient(monitor);
 
-        jettyService = new JettyService(configuration, monitor);
+        jettyService = new JettyService(configuration, globalConfProvider, keyConfProvider, certChainFactory, monitor);
         context.registerService(JettyService.class, jettyService);
         context.registerService(WebServer.class, jettyService);
         context.registerService(XrdWebServer.class, jettyService);

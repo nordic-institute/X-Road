@@ -29,11 +29,14 @@ package org.niis.xroad.edc.extension.signer.legacy;
 
 import ee.ria.xroad.common.CodedException;
 import ee.ria.xroad.common.cert.CertChain;
+import ee.ria.xroad.common.cert.CertChainFactory;
 import ee.ria.xroad.common.cert.CertHelper;
-import ee.ria.xroad.common.conf.globalconf.GlobalConf;
+import ee.ria.xroad.common.conf.globalconf.GlobalConfProvider;
+import ee.ria.xroad.common.conf.serverconf.ServerConfProvider;
 import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.identifier.XRoadId;
 import ee.ria.xroad.common.util.HttpSender;
+import ee.ria.xroad.proxy.conf.KeyConfProvider;
 
 import jakarta.ws.rs.container.ContainerRequestContext;
 import jakarta.ws.rs.core.Response;
@@ -60,17 +63,31 @@ public abstract class MessageProcessorBase {
     protected final boolean needClientAuth;
     protected final HttpClient httpClient;
     protected final Monitor monitor;
+    protected final GlobalConfProvider globalConfProvider;
+    protected final KeyConfProvider keyConfProvider;
+    protected final ServerConfProvider serverConfProvider;
+    protected final CertChainFactory certChainFactory;
+
+    protected final CertHelper certHelper;
 
     protected MessageProcessorBase(ContainerRequestContext request,
                                    X509Certificate[] clientSslCerts, boolean needClientAuth,
-                                   HttpClient httpClient, Monitor monitor) {
+                                   HttpClient httpClient, GlobalConfProvider globalConfProvider,
+                                   KeyConfProvider keyConfProvider,
+                                   ServerConfProvider serverConfProvider, CertChainFactory certChainFactory,
+                                   Monitor monitor) {
         this.requestContext = request;
         this.clientSslCerts = clientSslCerts;
         this.needClientAuth = needClientAuth;
         this.httpClient = httpClient;
+        this.globalConfProvider = globalConfProvider;
+        this.keyConfProvider = keyConfProvider;
+        this.serverConfProvider = serverConfProvider;
+        this.certChainFactory = certChainFactory;
         this.monitor = monitor;
 
-        GlobalConf.verifyValidity();
+        globalConfProvider.verifyValidity(); // todo xroad8 is it really needed here?
+        this.certHelper = new CertHelper(globalConfProvider);
     }
 
     protected void verifySslClientCert(List<OCSPResp> ocspResponses, ClientId clientId) throws Exception {
@@ -84,7 +101,7 @@ public abstract class MessageProcessorBase {
         }
 
         String instanceIdentifier = clientId.getXRoadInstance();
-        X509Certificate trustAnchor = GlobalConf.getCaCert(instanceIdentifier,
+        X509Certificate trustAnchor = globalConfProvider.getCaCert(instanceIdentifier,
                 clientSslCerts[clientSslCerts.length - 1]);
 
         if (trustAnchor == null) {
@@ -92,9 +109,9 @@ public abstract class MessageProcessorBase {
         }
 
         try {
-            CertChain chain = CertChain.create(instanceIdentifier, ArrayUtils.add(clientSslCerts,
+            CertChain chain = certChainFactory.create(instanceIdentifier, ArrayUtils.add(clientSslCerts,
                     trustAnchor));
-            CertHelper.verifyAuthCert(chain, ocspResponses, clientId);
+            certHelper.verifyAuthCert(chain, ocspResponses, clientId);
         } catch (Exception e) {
             throw new CodedException(X_SSL_AUTH_FAILED, e);
         }

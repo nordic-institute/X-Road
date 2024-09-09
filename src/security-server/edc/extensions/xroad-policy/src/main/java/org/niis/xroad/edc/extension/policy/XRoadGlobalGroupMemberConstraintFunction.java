@@ -27,7 +27,7 @@
 
 package org.niis.xroad.edc.extension.policy;
 
-import ee.ria.xroad.common.conf.globalconf.GlobalConf;
+import ee.ria.xroad.common.conf.globalconf.GlobalConfProvider;
 import ee.ria.xroad.common.identifier.GlobalGroupId;
 
 import lombok.RequiredArgsConstructor;
@@ -41,12 +41,15 @@ import org.niis.xroad.edc.extension.policy.util.PolicyContextHelper;
 
 import java.util.Optional;
 
+import static java.util.concurrent.TimeUnit.MILLISECONDS;
+
 
 @RequiredArgsConstructor
 public class XRoadGlobalGroupMemberConstraintFunction implements AtomicConstraintFunction<Permission> {
 
     static final String KEY = "xroad:globalGroupMember";
 
+    private final GlobalConfProvider globalConfProvider;
     private final Monitor monitor;
 
     @Override
@@ -63,7 +66,7 @@ public class XRoadGlobalGroupMemberConstraintFunction implements AtomicConstrain
                 GlobalGroupId globalGroupId = parseGlobalGroup(globalGroupCode);
                 var clientId = PolicyContextHelper.parseClientId(subject.get());
                 return switch (operator) {
-                    case EQ, IN -> GlobalConf.isSubjectInGlobalGroup(clientId, globalGroupId);
+                    case EQ, IN -> globalConfProvider.isSubjectInGlobalGroup(clientId, globalGroupId);
                     default -> {
                         context.reportProblem("Unsupported operator: " + operator);
                         yield false;
@@ -72,7 +75,7 @@ public class XRoadGlobalGroupMemberConstraintFunction implements AtomicConstrain
             }
             return false;
         } finally {
-            monitor.debug("XRoadGlobalGroupMemberConstraintFunction took " + stopWatch.getTime() + " ms");
+            monitor.debug("XRoadGlobalGroupMemberConstraintFunction took " + stopWatch.getTime(MILLISECONDS) + " ms");
         }
     }
 

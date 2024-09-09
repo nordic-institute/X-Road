@@ -29,6 +29,10 @@ package org.niis.xroad.proxy.configuration;
 
 import ee.ria.xroad.common.SystemProperties;
 
+import ee.ria.xroad.common.conf.globalconf.GlobalConfProvider;
+
+import ee.ria.xroad.proxy.conf.KeyConfProvider;
+
 import org.eclipse.edc.connector.controlplane.api.management.asset.v3.AssetApi;
 import org.eclipse.edc.connector.controlplane.api.management.catalog.v3.CatalogApiV3;
 import org.eclipse.edc.connector.controlplane.api.management.contractdefinition.v3.ContractDefinitionApiV3;
@@ -53,19 +57,21 @@ import org.springframework.scheduling.annotation.EnableScheduling;
 public class ProxyEdcConfig {
 
     @Bean
-    EdcManagementApiFactory edcManagementApiFactory() {
+    EdcManagementApiFactory edcManagementApiFactory(GlobalConfProvider globalConfProvider, KeyConfProvider keyConfProvider) {
         return new EdcManagementApiFactory(String.format("%s://%s:%s",
                 SystemProperties.isSslEnabled() ? "https" : "http",
                 SystemProperties.dataspacesListenAddress(),
-                SystemProperties.dataspacesManagementListenPort()));
+                SystemProperties.dataspacesManagementListenPort()),
+                globalConfProvider, keyConfProvider);
     }
 
     @Bean
-    EdcControlApiFactory edcControlApiFactory() {
+    EdcControlApiFactory edcControlApiFactory(GlobalConfProvider globalConfProvider, KeyConfProvider keyConfProvider) {
         return new EdcControlApiFactory(String.format("%s://%s:%s",
                 SystemProperties.isSslEnabled() ? "https" : "http",
                 SystemProperties.dataspacesListenAddress(),
-                SystemProperties.dataspacesControlListenPort()));
+                SystemProperties.dataspacesControlListenPort()),
+                globalConfProvider, keyConfProvider);
     }
 
     @Bean

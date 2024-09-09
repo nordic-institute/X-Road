@@ -103,6 +103,14 @@ public interface ServerConfProvider {
 
     /**
      * @param serviceProvider the service provider identifier
+     * @param serviceCode service code
+     * @return Returns clients list with path globs for the given service.
+     */
+    Map<XRoadId, Set<AccessRightPath>> getAllowedClients(ClientId serviceProvider, String serviceCode);
+
+
+    /**
+     * @param serviceProvider the service provider identifier
      * @return all the services offered by a service provider.
      */
     List<ServiceId.Conf> getServicesByDescriptionType(ClientId serviceProvider, DescriptionType descriptionType);
@@ -231,4 +239,5 @@ public interface ServerConfProvider {
     default boolean isAvailable() {
         return true;
     }
+
 }

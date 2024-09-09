@@ -26,6 +26,10 @@
  */
 package org.niis.xroad.edc.extension.webservice;
 
+import ee.ria.xroad.common.conf.globalconf.GlobalConfProvider;
+import ee.ria.xroad.common.conf.serverconf.ServerConfProvider;
+import ee.ria.xroad.proxy.conf.KeyConfProvider;
+
 import dev.failsafe.RetryPolicy;
 import lombok.SneakyThrows;
 import okhttp3.EventListener;
@@ -80,6 +84,13 @@ public class XrdEdcHttpClientExtension implements ServiceExtension {
     @Inject(required = false)
     private EventListener okHttpEventListener;
 
+    @Inject
+    private GlobalConfProvider globalConfProvider;
+    @Inject
+    private ServerConfProvider serverConfProvider;
+    @Inject
+    private KeyConfProvider keyConfProvider;
+
     @Override
     public String name() {
         return NAME;
@@ -97,7 +108,7 @@ public class XrdEdcHttpClientExtension implements ServiceExtension {
     @Provider
     @SneakyThrows
     public OkHttpClient okHttpClient(ServiceExtensionContext context) {
-        SSLContextBuilder.Result ctxResult = SSLContextBuilder.create();
+        SSLContextBuilder.Result ctxResult = SSLContextBuilder.create(keyConfProvider::getAuthKey, globalConfProvider);
         var builder = new OkHttpClient.Builder()
                 .connectTimeout(TIMEOUT, SECONDS)
                 .readTimeout(TIMEOUT, SECONDS)
@@ -124,6 +135,5 @@ public class XrdEdcHttpClientExtension implements ServiceExtension {
 
         return RetryPolicyFactory.create(configuration, context.getMonitor());
     }
-
 
 }

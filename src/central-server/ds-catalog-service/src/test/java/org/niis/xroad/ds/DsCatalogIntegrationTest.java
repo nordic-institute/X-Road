@@ -43,7 +43,6 @@ class DsCatalogIntegrationTest {
     @BeforeEach
     void setUp(EdcExtension extension) throws IOException {
         System.setProperty("xroad.common.grpc-internal-tls-enabled", "false");
-
         extension.setConfiguration(Map.ofEntries(
                 Map.entry("edc.vault.hashicorp.url", "http://url"),
                 Map.entry("edc.vault.hashicorp.token", "token"),
