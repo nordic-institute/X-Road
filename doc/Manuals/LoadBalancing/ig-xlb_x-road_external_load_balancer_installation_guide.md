@@ -1,6 +1,6 @@
 # X-Road: External Load Balancer Installation Guide
 
-Version: 1.23 
+Version: 1.24 
 Doc. ID: IG-XLB
 
 
@@ -30,6 +30,7 @@ Doc. ID: IG-XLB
 | 19.04.2024 | 1.21    | Simplified creation of PostgreSQL serverconf service for RHEL 8, 9 and added warning about SELinux policy                | Eneli Reimets               |
 | 26.04.2024 | 1.22    | Added Ubuntu 24.04 support                                                                                               | Madis Loitmaa               |
 | 16.08.2024 | 1.23    | Added assumption that the load balancer supports TLS passthrough                                                         | Petteri Kivimäki            |
+| 06.09.2024 | 1.24    | Updated RHEL default configuration files location                                                                        | Eneli Reimets               |
 ## Table of Contents
 
 <!-- toc -->
@@ -521,6 +522,9 @@ For further details on the certificate authentication, see the
 
 #### 4.2.1 on RHEL
 
+On RHEL, we assume that the PostgreSQL default configuration files are located in the `PGDATA` directory `/var/lib/pgsql/serverconf`.
+>**Note:** If the location is different in your system (for example `/var/lib/pgsql/13/serverconf`), then directory `/var/lib/pgsql/serverconf` need to be replaced with your data directory (for example `/var/lib/pgsql/13/serverconf`) in the following scripts.
+ 
 ##### 4.2.1.1 on RHEL 7
 
 Create a new `systemctl` service unit for the new database. As root, execute the following command:
@@ -544,9 +548,10 @@ systemctl enable postgresql-serverconf
 ##### 4.2.1.2 on RHEL 8 and 9
 
 Create a new `systemctl` service unit for the new database. As root, make a copy for the new service
+>**Note:** We assume that the default PostgreSQL database service file is `/lib/systemd/system/postgresql.service`, but depending on the PostgreSQL installation, the service file name can be a little bit different, for example `/lib/systemd/system/postgresql-13.service`.
 
 ```bash
-cp /lib/systemd/system/postgresql-<postgresql major version>.service /etc/systemd/system/postgresql-serverconf.service 
+cp /lib/systemd/system/postgresql.service /etc/systemd/system/postgresql-serverconf.service 
 ```
 
 Edit `/etc/systemd/system/postgresql-serverconf.service` and override the following properties:
@@ -555,18 +560,30 @@ Edit `/etc/systemd/system/postgresql-serverconf.service` and override the follow
 [Service]
 ...
 Environment=PGPORT=5433
-Environment=PGDATA=/var/lib/pgsql/<postgresql major version>/serverconf
+Environment=PGDATA=/var/lib/pgsql/serverconf
 ```
 
-Create the database and configure SELinux:
+Create the database:
 
 ```bash
 # Init db
 sudo su postgres
 cd /tmp
-/usr/pgsql-<postgresql major version>/bin/initdb --auth-local=peer --auth-host=scram-sha-256 --locale=en_US.UTF-8 --encoding=UTF8 -D /var/lib/pgsql/<postgresql major version>/serverconf/
+initdb --auth-local=peer --auth-host=scram-sha-256 --locale=en_US.UTF-8 --encoding=UTF8 -D /var/lib/pgsql/serverconf/
 exit
+```
+* >**Note:** if PostgreSQL is not installed with the default configuration, the database creation command may be different, for example:
+    ```bash
+    # Init db
+    sudo su postgres
+    cd /tmp
+    /usr/pgsql-13/bin/initdb --auth-local=peer --auth-host=scram-sha-256 --locale=en_US.UTF-8 --encoding=UTF8 -D /var/lib/pgsql/13/serverconf/
+    exit
+    ```
 
+Configure SELinux:
+
+```bash
 semanage port -a -t postgresql_port_t -p tcp 5433
 systemctl enable postgresql-serverconf
 ```
@@ -581,9 +598,9 @@ In the above command, `16` is the *postgresql major version*. Use `pg_lsclusters
 ### 4.3 Configuring the primary instance for replication
 
 Edit `postgresql.conf` and set the following options:
->On RHEL, PostgreSQL < 12 config files are located in the `PGDATA` directory `/var/lib/pgsql/serverconf`.
->On RHEL, PostgreSQL >= 12 config files are located in the `PGDATA` directory `/var/lib/pgsql/<postgresql major version>/serverconf`, e.g. `/var/lib/pgsql/12/serverconf`.
->Ubuntu keeps the config in `/etc/postgresql/<postgresql major version>/<cluster name>`, e.g. `/etc/postgresql/10/serverconf`.
+>* On RHEL, we assume that default configuration files are located in the `PGDATA` directory `/var/lib/pgsql/serverconf`.
+>  * **Note:** depending on the PostgreSQL installation, the configuration files can be located in different directory, for example `/var/lib/pgsql/13/serverconf`.
+>* Ubuntu keeps the config in `/etc/postgresql/<postgresql major version>/<cluster name>`, e.g. `/etc/postgresql/10/serverconf`.
 
 ```properties
 ssl = on
@@ -668,8 +685,8 @@ Prerequisites:
 [4.1 Setting up TLS certificates for database authentication](#41-setting-up-tls-certificates-for-database-authentication)
 
 Go to the postgresql data directory:
- * RHEL PostgreSQL < 12: `/var/lib/pgsql/serverconf`
- * RHEL PostgreSQL >= 12: `/var/lib/pgsql/<postgresql major version>/serverconf`
+ * RHEL: `/var/lib/pgsql/serverconf`
+    >**Note:** depending on the PostgreSQL installation, the configuration files can be located in different directory, for example `/var/lib/pgsql/13/serverconf`.
  * Ubuntu: `/var/lib/postgresql/<postgresql major version>/serverconf`
 
 Clear the data directory:
@@ -700,9 +717,9 @@ Where, as above, `<primary>` is the DNS or IP address of the primary node and `<
 On *Ubuntu, RHEL (PostgreSQL >=12)*, create an empty `standby.signal` file in the data directory. Set the owner of the file to `postgres:postgres`, mode `0600`.
 
 Next, modify `postgresql.conf`:
->On RHEL, PostgreSQL < 12 config files are located in the `PGDATA` directory `/var/lib/pgql/serverconf`. 
->On RHEL, PostgreSQL >= 12 config files are located in the `PGDATA` directory `/var/lib/pgql/<postgresql major version>/serverconf`, e.g. `/var/lib/pgql/12/serverconf`.
->Ubuntu keeps the config in `/etc/postgresql/<postgresql major version>/<cluster name>`, e.g. `/etc/postgresql/12/serverconf`.
+>* On RHEL, we assume that default configuration files are located in the `PGDATA` directory `/var/lib/pgql/serverconf`.
+>  * **Note:** depending on the PostgreSQL installation, the configuration files can be located in different directory, for example `/var/lib/pgsql/13/serverconf`.
+>* Ubuntu keeps the config in `/etc/postgresql/<postgresql major version>/<cluster name>`, e.g. `/etc/postgresql/12/serverconf`.
 ```properties
 ssl = on
 ssl_ca_file   = '/etc/xroad/postgresql/ca.crt'
