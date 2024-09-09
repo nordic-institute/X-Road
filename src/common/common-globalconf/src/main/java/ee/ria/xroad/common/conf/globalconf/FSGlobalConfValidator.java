@@ -25,8 +25,7 @@
  */
 package ee.ria.xroad.common.conf.globalconf;
 
-import ee.ria.xroad.common.SystemProperties;
-
+import lombok.ToString;
 import lombok.extern.slf4j.Slf4j;
 
 import java.nio.file.Files;
@@ -36,8 +35,8 @@ import java.nio.file.Paths;
 import java.util.Optional;
 
 @Slf4j
+@ToString
 public class FSGlobalConfValidator {
-
     public GlobalConfInitState getReadinessState(String globalConfigurationDir) {
         var globalConfPathOpt = resolveGlobalConfDir(globalConfigurationDir);
         if (globalConfPathOpt.isEmpty()) {
@@ -51,12 +50,9 @@ public class FSGlobalConfValidator {
                 log.warn("GlobalConf at [{}] is not a directory. Initialization will not continue.", globalConfPath);
                 return GlobalConfInitState.FAILURE_CONFIGURATION_ERROR;
             }
-            if (!isAnchorPresent()) {
-                log.warn("GlobalConf Anchor file is missing. Initialization will not continue.");
-                return GlobalConfInitState.FAILURE_MISSING_ANCHOR;
-            }
             if (isDirEmpty(globalConfPathOpt.get())) {
-                log.warn("GlobalConf at [{}] is empty. Either GlobalConf is being downloaded or data is corrupted. Initialization will not continue.",
+                log.warn("GlobalConf at [{}] is empty. Either GlobalConf is being downloaded or data is corrupted. "
+                                + "Initialization will not continue.",
                         globalConfPath);
                 return GlobalConfInitState.FAILURE_MALFORMED;
             }
@@ -89,10 +85,6 @@ public class FSGlobalConfValidator {
         try (var fileStream = Files.list(globalConfPath)) {
             return fileStream.filter(file -> file.toFile().isDirectory()).findAny().isEmpty();
         }
-    }
-
-    private boolean isAnchorPresent() {
-        return Files.exists(Paths.get(SystemProperties.getConfigurationAnchorFile()));
     }
 
     private static boolean isInstanceIdentifierPresent(Path globalConfPath) {

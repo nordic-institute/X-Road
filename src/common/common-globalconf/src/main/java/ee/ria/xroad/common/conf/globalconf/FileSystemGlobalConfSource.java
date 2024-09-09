@@ -36,13 +36,14 @@ import java.util.Optional;
  */
 @Slf4j
 public class FileSystemGlobalConfSource implements GlobalConfSource, InitializingBean {
-    private final FSGlobalConfValidator fsGlobalConfValidator = new FSGlobalConfValidator();
+    private final FSGlobalConfValidator fsGlobalConfValidator;
     private final String globalConfigurationDir;
     private volatile VersionedConfigurationDirectory configurationDirectory;
     private GlobalConfInitState lastState = GlobalConfInitState.UNKNOWN;
 
     public FileSystemGlobalConfSource(String confDir) {
         this.globalConfigurationDir = confDir;
+        this.fsGlobalConfValidator = new FSGlobalConfValidator();
     }
 
     @Override
@@ -132,9 +133,12 @@ public class FileSystemGlobalConfSource implements GlobalConfSource, Initializin
             try {
                 if (original != null) {
                     configurationDirectory = new VersionedConfigurationDirectory(globalConfigurationDir, original);
+                    log.info("Configuration source was successfully reloaded");
                 } else {
                     configurationDirectory = new VersionedConfigurationDirectory(globalConfigurationDir);
+                    log.info("Configuration source was successfully loaded");
                 }
+
                 lastState = GlobalConfInitState.INITIALIZED;
                 return true;
             } catch (Exception e) {
