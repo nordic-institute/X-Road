@@ -60,6 +60,12 @@ properties:
         serviceCode:
           description: Code of the service
           type: string
+        restMethod:
+          description: Method of the rest
+          type: string
+        restPath:
+          description: Path of the rest
+          type: string
         serviceVersion:
           description: Version of the service
           type: string

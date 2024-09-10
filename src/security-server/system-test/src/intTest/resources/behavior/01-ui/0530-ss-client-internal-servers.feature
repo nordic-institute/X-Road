@@ -12,7 +12,7 @@ Feature: 0530 - SS: Client internal servers
     When Client "TestService" is opened
     And Internal servers sub-tab is selected
     And Internal server connection type is "HTTPS"
-    Then Internal server connection type is set to "HTTPS NO AUTH"
+    Then Internal server connection type is set to "HTTP"
     And Internal server certificate is exported
     When Information System TLS certificate is uploaded
     Then Information System TLS certificate is deleted
