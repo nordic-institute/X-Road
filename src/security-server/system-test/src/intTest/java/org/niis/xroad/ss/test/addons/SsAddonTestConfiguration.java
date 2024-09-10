@@ -80,15 +80,14 @@ public class SsAddonTestConfiguration {
     public FeignXRoadRestRequestsApi feignXRoadRestRequestsApi(Decoder decoder, TestableApplicationInfoProvider appInfoProvider,
                                                                Contract contract) {
         return Feign.builder()
-                .logLevel(Logger.Level.FULL) // Adjust log level as needed
+                .logLevel(Logger.Level.FULL)
                 .client(new ApacheHttp5Client(HttpClients.createDefault()))
-                .encoder(new JacksonEncoder()) // Use JacksonEncoder or another appropriate encoder for JSON
-                .decoder(decoder) // Use the decoder you've configured
+                .encoder(new JacksonEncoder())
+                .decoder(decoder)
                 .requestInterceptor(requestTemplate -> {
                     requestTemplate.target(String.format("http://%s:%s", appInfoProvider.getHost(),
                             appInfoProvider.getMappedPort(Port.SERVICE)));
-                    requestTemplate.header("Content-Type", MimeTypes.JSON); // Use JSON as content type for REST
-                    // Add any other headers or interceptors as necessary
+                    requestTemplate.header("Content-Type", MimeTypes.JSON);
                 })
                 .contract(contract)
                 .target(FeignXRoadRestRequestsApi.class, "http://localhost");

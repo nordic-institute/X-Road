@@ -125,7 +125,7 @@ public class OpMonitorStepDefs extends BaseStepDefs {
     @Step("Valid Security Server Operational data response is returned")
     public void validOperationalDataIsReturned() throws Exception {
         @SuppressWarnings("unchecked")
-        ResponseEntity<byte[]>  response = (ResponseEntity<byte[]>)  getStepData(XROAD_SOAP_RESPONSE).orElseThrow();
+        ResponseEntity<byte[]> response = (ResponseEntity<byte[]>) getStepData(XROAD_SOAP_RESPONSE).orElseThrow();
         validate(response).assertion(equalsStatusCodeAssertion(HttpStatus.OK)).execute();
 
         SoapMessageDecoder decoder = new SoapMessageDecoder(Objects.requireNonNull(response.getHeaders().getContentType()).toString(),
