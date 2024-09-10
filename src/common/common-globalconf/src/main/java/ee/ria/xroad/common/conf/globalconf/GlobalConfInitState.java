@@ -25,31 +25,40 @@
  */
 package ee.ria.xroad.common.conf.globalconf;
 
-import java.util.List;
-import java.util.Optional;
-
-public interface GlobalConfSource {
-
+/**
+ * Enum representing the state of GlobalConf initialization.
+ */
+public enum GlobalConfInitState {
     /**
-     * Returns globalConf version.
+     * Default state if state is not known.
      */
-    Integer getVersion();
-
-    String getInstanceIdentifier();
-
-    Optional<SharedParameters> findShared(String xRoadInstance);
-
-    Optional<PrivateParameters> findPrivate(String instanceIdentifier);
-
-    List<SharedParameters> getShared();
-
-    Optional<SharedParametersCache> findSharedParametersCache(String instanceIdentifier);
-
-    List<SharedParametersCache> getSharedParametersCaches();
-
-    boolean isExpired();
-
-    void reload();
-
-    GlobalConfInitState getReadinessState();
+    UNKNOWN,
+    /**
+     * Unexpected exception has occurred during initialization.
+     */
+    FAILURE_UNEXPECTED,
+    /**
+     * GlobalConf source is misconfigured.
+     */
+    FAILURE_CONFIGURATION_ERROR,
+    /**
+     * GlobalConf anchor file is missing.
+     */
+    FAILURE_MISSING_ANCHOR,
+    /**
+     * Instance-identifier is missing.
+     */
+    FAILURE_MISSING_INSTANCE_IDENTIFIER,
+    /**
+     * GlobalConf is malformed. (Missing required files, etc.)
+     */
+    FAILURE_MALFORMED,
+    /**
+     * GlobalConf is ready to be initialized.
+     */
+    READY_TO_INIT,
+    /**
+     * GlobalConf has been initialized.
+     */
+    INITIALIZED
 }
