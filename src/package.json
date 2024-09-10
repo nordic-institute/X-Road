@@ -8,7 +8,7 @@
     "test-ss": "pnpm run --filter xroad-securityserver-admin-ui test",
     "build-workspace": "pnpm -r run build",
     "prepReportDirs": "mkdirp ./build && mkdirp ./build/reports",
-    "npx-check-audit": "pnpm run prepReportDirs && pnpm dlx audit-ci@^6 --config shared-ui/audit-ci-shared.json >build/reports/audit-ci.txt"
+    "npx-check-audit": "pnpm run prepReportDirs && pnpm dlx audit-ci@^7 --config shared-ui/audit-ci-shared.json >build/reports/audit-ci.txt"
   },
   "devDependencies": {
     "@intlify/eslint-plugin-vue-i18n": "^3.0.0",
