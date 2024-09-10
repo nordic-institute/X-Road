@@ -713,10 +713,6 @@ public final class SystemProperties {
     public static final String DATASPACES_DATA_PLANE_CONTROL_PORT = PREFIX + "dataspaces.dataplane.control.port";
 
     public static final String DATASPACES_DATA_PLANE_PUBLIC_PORT = PREFIX + "dataspaces.dataplane.public.port";
-    public static final String DATASPACES_CONTROL_PORT = PREFIX + "dataspaces.control.port";
-    public static final String DATASPACES_PUBLIC_PORT = PREFIX + "dataspaces.public.port";
-    public static final String DATASPACES_PROTOCOL_PORT = PREFIX + "dataspaces.protocol.port";
-    public static final String DATASPACES_MANAGEMENT_PORT = PREFIX + "dataspaces.management.port";
 
     /**
      * Property name for global configuration refresh rate in seconds.

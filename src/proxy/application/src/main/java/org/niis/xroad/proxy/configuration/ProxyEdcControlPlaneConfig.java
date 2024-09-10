@@ -61,7 +61,7 @@ public class ProxyEdcControlPlaneConfig {
         return new EdcManagementApiFactory(String.format("%s://%s:%s",
                 SystemProperties.isSslEnabled() ? "https" : "http",
                 SystemProperties.dataspacesListenAddress(),
-                SystemProperties.dataspacesControlPlaneManagementListenPort())
+                SystemProperties.dataspacesControlPlaneManagementListenPort()),
                 globalConfProvider, keyConfProvider);
     }
 
@@ -70,7 +70,7 @@ public class ProxyEdcControlPlaneConfig {
         return new EdcControlApiFactory(String.format("%s://%s:%s",
                 SystemProperties.isSslEnabled() ? "https" : "http",
                 SystemProperties.dataspacesListenAddress(),
-                SystemProperties.dataspacesControlPlaneControlListenPort())
+                SystemProperties.dataspacesControlPlaneControlListenPort()),
                 globalConfProvider, keyConfProvider);
     }
 
