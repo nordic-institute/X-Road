@@ -12,37 +12,26 @@ configurations {
 }
 
 dependencies {
-    implementation libs.edc.configuration.filesystem
-    implementation libs.edc.vault.hashicorp
+    runtimeOnly(libs.bundles.identityhub)
+    runtimeOnly(libs.edc.config.filesystem)
+    runtimeOnly(libs.edc.api.observability)
+    runtimeOnly(libs.edc.vault.hashicorp)
+    //runtimeOnly(libs.bundles.sql.ih)
 
-    implementation libs.edc.identity.trust.spi
-    implementation libs.bundles.edc.connector
-    implementation libs.bundles.edc.did
+    runtimeOnly(libs.bundles.identity.api)
 
-    // embedded Identity Hub
-    implementation libs.bundles.edc.identity.hub.management.api
-    implementation libs.edc.identity.hub.api
-    implementation libs.edc.identity.hub.core
-    implementation libs.edc.identity.hub.participants
-    implementation libs.edc.identity.hub.keypairs
-    implementation libs.edc.keypair.spi
-    implementation libs.edc.identity.hub.store.spi
-
-    implementation libs.edc.identity.hub.did
-
-    implementation libs.edc.ldp.verifiable.credentials
-    implementation libs.edc.verifiablecredential.spi
-    implementation libs.edc.verifiable.presentation.lib
-    implementation libs.edc.jsonLd.spi
-    implementation libs.edc.jsonLd.lib
-
-    implementation libs.bundles.edc.monitoring
+    implementation(libs.bundles.did)
+    implementation(libs.bundles.connector)
+    implementation(libs.edc.ih.spi.store)
+    implementation(libs.edc.identity.vc.ldp)
+    implementation(libs.edc.ih.lib.credentialquery)
+    implementation(libs.edc.lib.vp)
+    implementation (libs.edc.lib.jsonld)
 
     implementation(project(":security-server:edc:extensions:xroad-jsonld"))
     implementation(project(":security-server:edc:extensions:xroad-ldp-verifiable-credentials"))
     implementation(project(":security-server:edc:extensions:xroad-webserver"))
 
-    testImplementation libs.edc.jws2020.lib
     testImplementation libs.edc.junit
     testImplementation libs.mockito.jupiter
 }

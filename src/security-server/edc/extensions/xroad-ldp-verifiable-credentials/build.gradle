@@ -4,12 +4,12 @@ plugins {
 
 dependencies {
     implementation libs.edc.boot
-    implementation libs.edc.jsonLd
+    implementation libs.edc.ext.jsonld
 
-    implementation libs.edc.jws2020.lib
-    implementation libs.edc.token.core
-    implementation libs.edc.crypto.common.lib
-    implementation libs.edc.util.lib
+    implementation libs.edc.core.token
+    implementation libs.edc.lib.jws2020
+    implementation libs.edc.lib.crypto
+    implementation libs.edc.lib.util
     implementation libs.apache.commonsLang3
 }
 

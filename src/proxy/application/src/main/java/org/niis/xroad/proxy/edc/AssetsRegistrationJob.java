@@ -67,7 +67,7 @@ import org.eclipse.edc.transform.transformer.edc.from.JsonObjectFromCriterionTra
 import org.eclipse.edc.transform.transformer.edc.from.JsonObjectFromQuerySpecTransformer;
 import org.eclipse.edc.transform.transformer.edc.to.JsonObjectToQuerySpecTransformer;
 import org.eclipse.edc.transform.transformer.edc.to.JsonValueToGenericTypeTransformer;
-import org.niis.xroad.proxy.configuration.ProxyEdcConfig;
+import org.niis.xroad.proxy.configuration.ProxyEdcControlPlaneConfig;
 import org.springframework.context.annotation.Conditional;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
@@ -92,7 +92,7 @@ import static org.eclipse.edc.spi.constants.CoreConstants.EDC_NAMESPACE;
 import static org.eclipse.edc.spi.query.Criterion.criterion;
 
 @Component
-@Conditional(ProxyEdcConfig.DataspacesEnabledCondition.class)
+@Conditional(ProxyEdcControlPlaneConfig.DataspacesEnabledCondition.class)
 @Slf4j
 @SuppressWarnings("checkstyle:MagicNumber")
 public class AssetsRegistrationJob {
@@ -164,10 +164,10 @@ public class AssetsRegistrationJob {
                     .add(TYPE, DATAPLANE_INSTANCE_TYPE)
                     .add(ID, providerDataplaneId)
 
-                    .add(DataPlaneInstance.URL, "%s://%s:%s/control/transfer"
+                    .add(DataPlaneInstance.URL, "%s://%s:%s/control/v1/dataflows"
                             .formatted(SystemProperties.isSslEnabled() ? "https" : "http",
                                     globalConfProvider.getSecurityServerAddress(serverConfProvider.getIdentifier()),
-                                    SystemProperties.dataspacesControlListenPort()))
+                                    SystemProperties.dataspacesDataPlaneControlListenPort()))
                     .add(DataPlaneInstance.ALLOWED_SOURCE_TYPES, createArrayBuilder()
                             .add("HttpData")
                             .build())

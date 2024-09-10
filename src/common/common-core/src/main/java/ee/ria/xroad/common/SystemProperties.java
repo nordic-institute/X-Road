@@ -707,6 +707,12 @@ public final class SystemProperties {
             propertyNameToEnvVariable(GRPC_INTERNAL_TRUSTSTORE_PASSWORD);
 
     public static final String DATASPACES_ENABLED = PREFIX + "dataspaces.enabled";
+    public static final String DATASPACES_CONTROL_PLANE_CONTROL_PORT = PREFIX + "dataspaces.controlplane.control.port";
+    public static final String DATASPACES_CONTROL_PLANE_PROTOCOL_PORT = PREFIX + "dataspaces.controlplane.protocol.port";
+    public static final String DATASPACES_CONTROL_PLANE_MANAGEMENT_PORT = PREFIX + "dataspaces.controlplane.management.port";
+    public static final String DATASPACES_DATA_PLANE_CONTROL_PORT = PREFIX + "dataspaces.dataplane.control.port";
+
+    public static final String DATASPACES_DATA_PLANE_PUBLIC_PORT = PREFIX + "dataspaces.dataplane.public.port";
     public static final String DATASPACES_CONTROL_PORT = PREFIX + "dataspaces.control.port";
     public static final String DATASPACES_PUBLIC_PORT = PREFIX + "dataspaces.public.port";
     public static final String DATASPACES_PROTOCOL_PORT = PREFIX + "dataspaces.protocol.port";
@@ -1847,20 +1853,24 @@ public final class SystemProperties {
         return "localhost";
     }
 
-    public static String dataspacesManagementListenPort() {
-        return System.getProperty(DATASPACES_MANAGEMENT_PORT, "9193");
+    public static String dataspacesControlPlaneManagementListenPort() {
+        return System.getProperty(DATASPACES_CONTROL_PLANE_MANAGEMENT_PORT, "9193");
     }
 
-    public static String dataspacesControlListenPort() {
-        return System.getProperty(DATASPACES_CONTROL_PORT, "9192");
+    public static String dataspacesControlPlaneControlListenPort() {
+        return System.getProperty(DATASPACES_CONTROL_PLANE_CONTROL_PORT, "9192");
     }
 
-    public static String dataspacesPublicListenPort() {
-        return System.getProperty(DATASPACES_PUBLIC_PORT, "9293");
+    public static String dataspacesDataPlaneControlListenPort() {
+        return System.getProperty(DATASPACES_DATA_PLANE_CONTROL_PORT, "9292");
+    }
+
+    public static String dataspacesDataPlanePublicListenPort() {
+        return System.getProperty(DATASPACES_DATA_PLANE_PUBLIC_PORT, "9294");
     }
 
     public static String dataspacesProtocolPort() {
-        return System.getProperty(DATASPACES_PROTOCOL_PORT, "9194");
+        return System.getProperty(DATASPACES_CONTROL_PLANE_PROTOCOL_PORT, "9194");
     }
 
     public static boolean isBatchMessageSigningEnabled() {

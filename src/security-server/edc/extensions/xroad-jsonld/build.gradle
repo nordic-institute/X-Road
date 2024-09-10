@@ -4,8 +4,7 @@ plugins {
 
 dependencies {
     implementation libs.edc.boot
-    implementation libs.edc.jsonLd
-    implementation libs.edc.jsonLd.spi
+    implementation libs.edc.ext.jsonld
     implementation libs.jackson.jsonP
     implementation libs.jackson.datatypeJsr310
 

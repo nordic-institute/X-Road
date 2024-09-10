@@ -54,10 +54,14 @@ deploy_module() {
     jar_path="$XROAD_HOME/src/central-server/registration-service/build/libs/centralserver-registration-service-1.0.jar"
     service_name="xroad-center-registration-service"
     ;;
-  "edc-connector")
-    jar_path="$XROAD_HOME/src/security-server/edc/runtime/connector/build/libs/edc-connector.jar"
-    service_name="xroad-edc-connector"
+  "edc-control-plane")
+    jar_path="$XROAD_HOME/src/security-server/edc/runtime/control-plane/build/libs/edc-control-plane.jar"
+    service_name="xroad-edc-control-plane"
     ;;
+  "edc-data-plane")
+      jar_path="$XROAD_HOME/src/security-server/edc/runtime/data-plane/build/libs/edc-data-plane.jar"
+      service_name="xroad-edc-data-plane"
+      ;;
   "edc-ih")
     jar_path="$XROAD_HOME/src/security-server/edc/runtime/identity-hub/build/libs/edc-identity-hub.jar"
     service_name="xroad-edc-ih"
@@ -83,7 +87,7 @@ deploy_module() {
 set -o xtrace
 
 case $1 in
-"proxy" | "messagelog-addon" | "metaservice-addon" | "proxy-ui-api" | "signer" | "configuration-client" | "asicverifier" | "op-monitor-daemon" | "edc-connector" | "edc-ih")
+"proxy" | "messagelog-addon" | "metaservice-addon" | "proxy-ui-api" | "signer" | "configuration-client" | "asicverifier" | "op-monitor-daemon" | "edc-control-plane" | "edc-data-plane" | "edc-ih")
   deploy_module "$1" "ss0" "ss1"
   ;;
 "cs-admin-service" | "cs-management-service" | "cs-registration-service" | "cs-edc")

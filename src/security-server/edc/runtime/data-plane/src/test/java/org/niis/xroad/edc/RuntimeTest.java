@@ -29,24 +29,21 @@ class RuntimeTest {
     void setUp(EdcExtension extension) {
         System.setProperty("xroad.common.grpc-internal-tls-enabled", "false");
 
+        int controlPort = Ports.getFreePort();
+
         extension.setConfiguration(Map.ofEntries(
-                Map.entry("edc.vault.hashicorp.url", "http://url"),
-                Map.entry("edc.vault.hashicorp.token", "token"),
-                Map.entry("edc.iam.issuer.id", "did:web:localhost"),
-                Map.entry("edc.participant.id", "did:web:localhost"),
-                Map.entry("edc.iam.trusted-issuer.localhost.id", "did:web:localhost"),
-                Map.entry("web.http.resolution.path", "/resolution"),
-                Map.entry("web.http.resolution.port", String.valueOf(Ports.getFreePort())),
                 Map.entry("web.http.port", String.valueOf(Ports.getFreePort())),
                 Map.entry("web.http.path", "/api"),
-                Map.entry("web.http.management.port", String.valueOf(Ports.getFreePort())),
-                Map.entry("web.http.management.path", "/management"),
-                Map.entry("web.http.control.port", String.valueOf(Ports.getFreePort())),
-                Map.entry("web.http.control.path", "/control"),
                 Map.entry("web.http.xroad.public.port", String.valueOf(Ports.getFreePort())),
+                Map.entry("web.http.xroad.public.path", "/xroad/public"),
+                Map.entry("web.http.control.port", String.valueOf(controlPort)),
+                Map.entry("web.http.control.path", "/control"),
                 Map.entry("edc.dataplane.token.validation.endpoint", "http://localhost:9192/control/token"),
                 Map.entry("edc.transfer.proxy.token.verifier.publickey.alias", "public-key"),
-                Map.entry("edc.transfer.proxy.token.signer.privatekey.alias", "private-key")
+                Map.entry("edc.transfer.proxy.token.signer.privatekey.alias", "private-key"),
+                Map.entry("edc.dpf.selector.url", "http://localhost:" + controlPort + "/control/v1/dataplanes"),
+                Map.entry("edc.vault.hashicorp.url", "http://url"),
+                Map.entry("edc.vault.hashicorp.token", "token")
         ));
     }
 

@@ -8,14 +8,14 @@ if [ -f /var/run/xroad/xroad-grpc-internal-env.properties ]; then
 fi
 
 echo "DS: Running liquibase.."
-source /usr/share/xroad/scripts/setup_edc_db.sh
+source /usr/share/xroad/scripts/setup_edc_controlplane_db.sh
 
-exec java -Dedc.fs.config="/etc/xroad-edc/edc-connector.properties" \
+exec java -Dedc.fs.config="/etc/xroad-edc/edc-control-plane.properties" \
     -Xdebug -agentlib:jdwp=transport=dt_socket,address=*:9953,server=y,suspend=n \
     -javaagent:/usr/share/xroad/jlib/opentelemetry-javaagent.jar \
     -Dotel.exporter.otlp.protocol=http/protobuf \
-    -Dotel.service.name="$EDC_HOSTNAME-edc-connector" \
+    -Dotel.service.name="$EDC_HOSTNAME-edc-control-plane" \
     -Dotel.exporter.prometheus.port=9464 \
     -Dotel.metrics.exporter=prometheus \
     -Dotel.exporter.otlp.endpoint=http://jaeger:4318 \
-    -Xmx256m -jar /usr/share/xroad/jlib/edc-connector.jar
+    -Xmx256m -jar /usr/share/xroad/jlib/edc-control-plane.jar

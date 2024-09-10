@@ -16,33 +16,21 @@ configurations {
 }
 
 dependencies {
-    implementation libs.websocket.jakarta.server
-
-    implementation libs.edc.control.plane.api.client
-    implementation libs.edc.control.plane.api
-    implementation libs.edc.control.plane.core
-    implementation libs.edc.dsp
-    implementation libs.edc.configuration.filesystem
-    implementation libs.edc.vault.hashicorp
-    implementation libs.edc.management.api
-    implementation libs.edc.control.api.configuration
-    implementation libs.edc.transfer.data.plane.signaling
-
-    implementation libs.edc.data.plane.selector.api
-    implementation libs.edc.data.plane.selector.control.api
-    implementation libs.edc.data.plane.selector.core
-
-    implementation libs.edc.data.plane.control.api
-    implementation libs.edc.data.plane.core
-    implementation libs.edc.data.plane.http
-
-    implementation libs.edc.identity.did.core
-    implementation libs.edc.identity.did.web
-
-    implementation libs.edc.jsonLd.lib
-
-    // sql store
-    implementation libs.bundles.edc.sql.store
+    runtimeOnly(libs.bundles.connector)
+    runtimeOnly(libs.edc.config.filesystem)
+    runtimeOnly(libs.edc.ext.observability)
+    runtimeOnly(libs.edc.dataplane.core)
+    runtimeOnly(libs.edc.dataplane.api.control.config)
+    runtimeOnly(libs.edc.dataplane.api.control.client)
+    //runtimeOnly(libs.edc.dataplane.selfregistration) // currently we register dataplane instance manually
+    runtimeOnly(libs.edc.dataplane.http)
+    runtimeOnly(libs.edc.dataplane.api.control)
+    //runtimeOnly(libs.edc.dataplane.api.public)
+    runtimeOnly(libs.edc.dataplane.api.signaling)
+    runtimeOnly(libs.edc.ext.jsonld) // needed by the DataPlaneSignalingApi
+    runtimeOnly(libs.edc.dpf.selector.client) // for the selector service -> self registration
+    runtimeOnly(libs.edc.vault.hashicorp)
+    runtimeOnly(libs.bundles.sql.edc.dataplane)
 
     implementation libs.bundles.edc.monitoring
     implementation 'io.opentelemetry:opentelemetry-exporter-otlp:1.38.0'
@@ -55,9 +43,6 @@ dependencies {
     implementation(project(":security-server:edc:extensions:xroad-payload-signer")) {
         exclude group: 'org.eclipse.jetty'
     }
-    implementation(project(":security-server:edc:extensions:xroad-edr"))
-    implementation(project(":security-server:edc:extensions:xroad-policy"))
-    implementation(project(":security-server:edc:extensions:xroad-identity-and-trust"))
     implementation(project(":security-server:edc:extensions:xroad-webserver"))
 
     implementation libs.apache.commonsLang3
@@ -84,7 +69,7 @@ sourceSets {
 
 shadowJar {
     mergeServiceFiles()
-    archiveFileName.set("edc-connector-inmemory.jar")
+    archiveFileName.set("edc-data-plane-inmemory.jar")
     dependsOn(distTar, distZip)
 }
 
@@ -92,7 +77,7 @@ tasks.register('shadowJarWithSql', ShadowJar) {
     from sourceSets.main.output
     configurations = [project.configurations.runtimeClasspath, project.configurations.sqlDependencies]
     exclude('META-INF/*.RSA', 'META-INF/*.SF', 'META-INF/*.DSA')
-    archiveFileName.set("edc-connector.jar")
+    archiveFileName.set("edc-data-plane.jar")
     manifest {
         attributes 'Main-Class': 'org.eclipse.edc.boot.system.runtime.BaseRuntime'
     }

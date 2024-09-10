@@ -91,10 +91,10 @@ public class RestEdcProxyTest extends AbstractProxyIntegrationTest {
     public static Map<String, String> getAdditionalSystemParameters() {
         return Map.of(
                 SystemProperties.DATASPACES_ENABLED, Boolean.TRUE.toString(),
-                SystemProperties.DATASPACES_CONTROL_PORT, "19192",
-                SystemProperties.DATASPACES_MANAGEMENT_PORT, "29193",
-                SystemProperties.DATASPACES_PUBLIC_PORT, "19291",
-                SystemProperties.DATASPACES_PROTOCOL_PORT, "19194"
+                SystemProperties.DATASPACES_CONTROL_PLANE_CONTROL_PORT, "19192",
+                SystemProperties.DATASPACES_CONTROL_PLANE_MANAGEMENT_PORT, "29193",
+                SystemProperties.DATASPACES_DATA_PLANE_PUBLIC_PORT, "19291",
+                SystemProperties.DATASPACES_CONTROL_PLANE_PROTOCOL_PORT, "19194"
         );
     }
 
