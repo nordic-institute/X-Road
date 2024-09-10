@@ -52,6 +52,8 @@ public class HealthDataMetricsUtilTest {
         rec.setServiceCode("testservice");
         rec.setServiceVersion("v1");
         rec.setServiceType("OPENAPI3");
+        rec.setRestMethod("GET");
+        rec.setRestPath("/path");
 
         // This simple service ID is not escaped in any way in the parameter
         // keys.

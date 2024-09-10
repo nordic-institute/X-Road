@@ -145,10 +145,7 @@ public class OpMonitorStepDefs extends BaseStepDefs {
                         String expectedCid = "<" + OPERATIONAL_DATA_JSON + ">";
                         assertEquals(expectedCid, additionalHeaders.get("content-id"));
 
-                        var jsonMonitoringData = readGzipContent(content);
-
-                        ObjectMapper objectMapper = new ObjectMapper();
-                        MonitoringData monitoringData = objectMapper.readValue(jsonMonitoringData, MonitoringData.class);
+                        MonitoringData monitoringData = new ObjectMapper().readValue(readGzipContent(content), MonitoringData.class);
 
                         verifyRestRecord(getRecord(monitoringData, "REST", "listMethods"));
                         verifyWsdlRecord(getRecord(monitoringData, "WSDL", "clientDisable"));
@@ -210,7 +207,7 @@ public class OpMonitorStepDefs extends BaseStepDefs {
     }
 
 
-    public static String readGzipContent(InputStream inputStream) throws IOException {
+    private static String readGzipContent(InputStream inputStream) throws IOException {
         try (GZIPInputStream gzipInputStream = new GZIPInputStream(new ByteArrayInputStream(inputStream.readAllBytes()));
                 InputStreamReader inputStreamReader = new InputStreamReader(gzipInputStream);
                 BufferedReader bufferedReader = new BufferedReader(inputStreamReader)) {
@@ -345,5 +342,4 @@ public class OpMonitorStepDefs extends BaseStepDefs {
         @JsonProperty("records")
         private List<Record> records;
     }
-
 }
