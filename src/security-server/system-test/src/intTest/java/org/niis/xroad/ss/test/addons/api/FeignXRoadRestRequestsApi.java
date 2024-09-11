@@ -28,14 +28,12 @@ package org.niis.xroad.ss.test.addons.api;
 
 import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RequestHeader;
 
-@FeignClient(name = "xRoadSoapRequestsApi")
-public interface FeignXRoadSoapRequestsApi {
+@FeignClient(name = "xRoadRestRequestsApi", url = "http://localhost:8080")
+public interface FeignXRoadRestRequestsApi {
 
-    @PostMapping
-    ResponseEntity<String> getXRoadSoapResponse(byte[] requestBody);
-
-    @PostMapping
-    ResponseEntity<byte[]> getXRoadSoapResponseAsBytes(byte[] requestBody);
+    @GetMapping(value = "/r1/DEV/COM/1234/TestService/listMethods", produces = "application/json")
+    ResponseEntity<String> listMethods(@RequestHeader("X-Road-Client") String xRoadClient);
 }

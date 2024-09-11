@@ -68,6 +68,8 @@ public class OpMonitoringData {
     public static final String SERVICE_SUBSYSTEM_CODE = "serviceSubsystemCode";
 
     private static final String SERVICE_CODE = "serviceCode";
+    private static final String REST_METHOD = "restMethod";
+    private static final String REST_PATH = "restPath";
     private static final String SERVICE_VERSION = "serviceVersion";
 
     private static final String SECURITY_SERVER_TYPE = "securityServerType";
@@ -104,8 +106,8 @@ public class OpMonitoringData {
     private static final String SUCCEEDED = "succeeded";
     private static final String REST_RESPONSE_STATUS_CODE = "statusCode";
 
-    private static final String SOAP_FAULT_CODE = "faultCode";
-    private static final String SOAP_FAULT_STRING = "faultString";
+    private static final String FAULT_CODE = "faultCode";
+    private static final String FAULT_STRING = "faultString";
     private static final String SERVICE_TYPE = "serviceType";
 
     /**
@@ -390,8 +392,8 @@ public class OpMonitoringData {
      */
     public void setFaultCodeAndString(CodedException e) {
         if (e != null) {
-            data.put(SOAP_FAULT_CODE, e.getFaultCode());
-            data.put(SOAP_FAULT_STRING, e.getFaultString());
+            data.put(FAULT_CODE, e.getFaultCode());
+            data.put(FAULT_STRING, e.getFaultString());
         }
     }
 
@@ -411,4 +413,19 @@ public class OpMonitoringData {
         data.put(SERVICE_TYPE, serviceType);
     }
 
+    /**
+     * Sets REST method.
+     * @param restMethod REST method
+     */
+    public void setRestMethod(String restMethod) {
+        data.put(REST_METHOD, restMethod);
+    }
+
+    /**
+     * Sets REST path.
+     * @param restPath REST path
+     */
+    public void setRestPath(String restPath) {
+        data.put(REST_PATH, restPath);
+    }
 }

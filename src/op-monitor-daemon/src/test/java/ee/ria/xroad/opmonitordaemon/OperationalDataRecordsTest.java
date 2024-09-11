@@ -52,6 +52,8 @@ public class OperationalDataRecordsTest {
             + "\"serviceType\":\"REST\","
             + "\"clientSubsystemCode\":\"Client\","
             + "\"serviceCode\":\"trains\","
+            + "\"restMethod\":\"GET\","
+            + "\"restPath\":\"/r1/CS/ORG/1111/Server/trains\","
             + "\"serviceSecurityServerAddress\":\"ss1\","
             + "\"xRequestId\":\"8a2f2e10-8ffb-40c3-b446-aebd23fd9248\","
             + "\"requestAttachmentCount\":0,"
@@ -97,7 +99,6 @@ public class OperationalDataRecordsTest {
     @Test
     public void deserializeErrorResponse() throws IOException {
         String errorJson = "{\"errorMessage\": \"Error Message\"}";
-        //String json = "{\"status\":\"Error\", \"errorMessage\": \"Error Message\"}";
         StoreOpMonitoringDataResponse response = OBJECT_READER
                 .readValue(errorJson, StoreOpMonitoringDataResponse.class);
         assertEquals("Error", response.getStatus());
@@ -126,6 +127,8 @@ public class OperationalDataRecordsTest {
         assertEquals("REST", record.getServiceType());
         assertEquals("Client", record.getClientSubsystemCode());
         assertEquals("trains", record.getServiceCode());
+        assertEquals("GET", record.getRestMethod());
+        assertEquals("/r1/CS/ORG/1111/Server/trains", record.getRestPath());
         assertEquals("ss1", record.getServiceSecurityServerAddress());
         assertEquals("8a2f2e10-8ffb-40c3-b446-aebd23fd9248", record.getXRequestId());
         assertEquals(0, record.getRequestAttachmentCount().intValue());

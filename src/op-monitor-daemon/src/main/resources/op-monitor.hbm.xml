@@ -63,6 +63,10 @@
 
         <property name="serviceCode" column="service_code" type="string" />
 
+        <property name="restMethod" column="rest_method" type="string" />
+
+        <property name="restPath" column="rest_path" type="string" />
+
         <property name="serviceVersion" column="service_version"
                   type="string" />
 
