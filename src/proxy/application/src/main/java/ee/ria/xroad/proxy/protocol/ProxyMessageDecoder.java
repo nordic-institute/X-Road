@@ -508,6 +508,7 @@ public class ProxyMessageDecoder {
         }
     }
 
+    @SuppressWarnings("fallthrough")
     private void handleSignature(BodyDescriptor bd, InputStream is)
             throws CodedException {
         try {
