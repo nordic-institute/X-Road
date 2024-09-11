@@ -36,6 +36,7 @@ dependencies {
     implementation 'io.opentelemetry:opentelemetry-exporter-otlp:1.38.0'
 
     // x-road extensions
+    implementation(project(":security-server:edc:extensions:xroad-conf"))
     implementation(project(":security-server:edc:extensions:xroad-jsonld"))
     implementation(project(":security-server:edc:extensions:xroad-messagelog")) {
         exclude group: 'org.eclipse.jetty'

@@ -1,0 +1,20 @@
+plugins {
+    id 'java-library'
+}
+
+dependencies {
+    implementation(project(':common:common-keyconf')) {
+        exclude group: 'org.eclipse.jetty'
+    }
+    implementation(project(':common:common-globalconf')) {
+        exclude group: 'org.eclipse.jetty'
+    }
+    implementation(project(':common:common-verifier')) {
+        exclude group: 'org.eclipse.jetty'
+    }
+
+    implementation libs.edc.spi.core
+    implementation libs.edc.core.connector
+    implementation libs.edc.lib.http
+}
+

@@ -28,6 +28,7 @@ dependencies {
     implementation(libs.edc.lib.vp)
     implementation (libs.edc.lib.jsonld)
 
+    implementation(project(":security-server:edc:extensions:xroad-conf"))
     implementation(project(":security-server:edc:extensions:xroad-jsonld"))
     implementation(project(":security-server:edc:extensions:xroad-ldp-verifiable-credentials"))
     implementation(project(":security-server:edc:extensions:xroad-webserver"))

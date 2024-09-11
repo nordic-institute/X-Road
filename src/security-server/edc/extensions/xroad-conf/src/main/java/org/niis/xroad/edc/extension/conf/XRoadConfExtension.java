@@ -25,26 +25,35 @@
  * THE SOFTWARE.
  */
 
-package org.niis.xroad.edc.extension.messagelog;
+package org.niis.xroad.edc.extension.conf;
 
+import ee.ria.xroad.common.SystemProperties;
+import ee.ria.xroad.common.cert.CertChainFactory;
+import ee.ria.xroad.common.conf.globalconf.FileSystemGlobalConfSource;
+import ee.ria.xroad.common.conf.globalconf.GlobalConfImpl;
 import ee.ria.xroad.common.conf.globalconf.GlobalConfProvider;
-
+import ee.ria.xroad.common.conf.serverconf.CachingServerConfImpl;
+import ee.ria.xroad.common.conf.serverconf.ServerConfImpl;
+import ee.ria.xroad.common.conf.serverconf.ServerConfProvider;
+import ee.ria.xroad.proxy.conf.CachingKeyConfImpl;
+import ee.ria.xroad.proxy.conf.KeyConfProvider;
 import org.eclipse.edc.runtime.metamodel.annotation.Extension;
-import org.eclipse.edc.runtime.metamodel.annotation.Inject;
+import org.eclipse.edc.runtime.metamodel.annotation.Provides;
 import org.eclipse.edc.runtime.metamodel.annotation.Setting;
+import org.eclipse.edc.spi.EdcException;
 import org.eclipse.edc.spi.system.ServiceExtension;
 import org.eclipse.edc.spi.system.ServiceExtensionContext;
 
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 
+import static ee.ria.xroad.common.SystemProperties.getConfigurationPath;
 import static java.util.concurrent.TimeUnit.SECONDS;
 
-@Extension(value = GlobalConfUpdaterExtension.NAME)
-// todo: move to separate extension?
-public class GlobalConfUpdaterExtension implements ServiceExtension {
-
-    static final String NAME = "GlobalConf updater extension";
+@Extension(value = XRoadConfExtension.NAME)
+@Provides({GlobalConfProvider.class, KeyConfProvider.class, ServerConfProvider.class, CertChainFactory.class})
+public class XRoadConfExtension implements ServiceExtension {
+    public static final String NAME = "XRD Conf extension";
 
     private final ScheduledExecutorService executor = Executors.newScheduledThreadPool(1);
 
@@ -53,21 +62,45 @@ public class GlobalConfUpdaterExtension implements ServiceExtension {
 
     private static final int DEFAULT_RELOAD_INTERVAL_SECONDS = 60;
 
-    @Inject
-    private GlobalConfProvider globalConfProvider;
-
     @Override
     public void initialize(ServiceExtensionContext context) {
-        var monitor = context.getMonitor();
-        GlobalConfUpdater globalConfUpdater = new GlobalConfUpdater(globalConfProvider, monitor);
+        try {
+            GlobalConfProvider globalConfProvider = new GlobalConfImpl(
+                    new FileSystemGlobalConfSource(getConfigurationPath()));
 
+            ServerConfProvider serverConfProvider = (SystemProperties.getServerConfCachePeriod() > 0)
+                    ? new CachingServerConfImpl(globalConfProvider)
+                    : new ServerConfImpl(globalConfProvider);
+
+            CertChainFactory certChainFactory = new CertChainFactory(globalConfProvider);
+
+            KeyConfProvider keyConfProvider = CachingKeyConfImpl.newInstance(globalConfProvider, serverConfProvider);
+
+            context.registerService(GlobalConfProvider.class, globalConfProvider);
+            context.registerService(ServerConfProvider.class, serverConfProvider);
+            context.registerService(CertChainFactory.class, certChainFactory);
+            context.registerService(KeyConfProvider.class, keyConfProvider);
+
+            registerGlobalConfReloadJob(globalConfProvider, context);
+        } catch (Exception e) {
+            throw new EdcException("Initialization failed", e);
+        }
+    }
+
+    private void registerGlobalConfReloadJob(GlobalConfProvider globalConfProvider, ServiceExtensionContext context) {
+        GlobalConfUpdater globalConfUpdater = new GlobalConfUpdater(globalConfProvider, context.getMonitor());
         int reloadIntervalSeconds = context.getSetting(XROAD_GLOBAL_CONF_RELOAD_INTERVAL, DEFAULT_RELOAD_INTERVAL_SECONDS);
-
         executor.scheduleWithFixedDelay(globalConfUpdater::update, reloadIntervalSeconds, reloadIntervalSeconds, SECONDS);
+    }
+
+    @Override
+    public String name() {
+        return NAME;
     }
 
     @Override
     public void shutdown() {
         executor.shutdown();
     }
+
 }

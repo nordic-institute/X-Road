@@ -21,7 +21,6 @@ import ee.ria.xroad.common.conf.serverconf.ServerConfProvider;
 import ee.ria.xroad.proxy.conf.KeyConfProvider;
 import ee.ria.xroad.signer.protocol.RpcSignerClient;
 
-import lombok.SneakyThrows;
 import org.eclipse.edc.runtime.metamodel.annotation.Inject;
 import org.eclipse.edc.runtime.metamodel.annotation.Provider;
 import org.eclipse.edc.runtime.metamodel.annotation.Provides;
@@ -62,7 +61,6 @@ public class XrdJettyExtension implements ServiceExtension {
     private CertChainFactory certChainFactory;
 
     @Override
-    @SneakyThrows
     public void initialize(ServiceExtensionContext context) {
         var monitor = context.getMonitor();
 

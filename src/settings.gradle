@@ -79,6 +79,7 @@ include "security-server:admin-service:ui"
 include "security-server:admin-service:int-test"
 include 'security-server:edc:spi:xroad-core-spi'
 include 'security-server:edc:spi:xroad-messagelog-spi'
+include 'security-server:edc:extensions:xroad-conf'
 include 'security-server:edc:extensions:xroad-edr'
 include 'security-server:edc:extensions:xroad-messagelog'
 include 'security-server:edc:extensions:xroad-payload-signer'

@@ -48,10 +48,6 @@ import static org.niis.xroad.ssl.EdcSSLConstants.SSL_PROTOCOL;
 @UtilityClass
 public class SSLContextBuilder {
 
-//    public static Result create() throws KeyManagementException, NoSuchAlgorithmException {
-//        return create(KeyConf::getAuthKey);
-//    }
-
     public static Result create(Supplier<AuthKey> authKeySupplier, GlobalConfProvider globalConfProvider)
             throws KeyManagementException, NoSuchAlgorithmException {
         var trustManager = new AuthTrustManager(globalConfProvider);

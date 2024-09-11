@@ -25,7 +25,7 @@
  * THE SOFTWARE.
  */
 
-package org.niis.xroad.edc.extension.messagelog;
+package org.niis.xroad.edc.extension.conf;
 
 import ee.ria.xroad.common.conf.globalconf.GlobalConfProvider;
 
