@@ -63,10 +63,10 @@ public class PossibleActionConverterTest {
 
     @Test
     public void convertAll() {
-        Set<PossibleAction> allItemsConverted = new HashSet(
+        Set<PossibleAction> allItemsConverted = new HashSet<>(
                 new PossibleActionConverter()
                         .convert(Arrays.asList(PossibleActionEnum.values())));
-        Set<PossibleAction> allOpenApiValues = new HashSet(
+        Set<PossibleAction> allOpenApiValues = new HashSet<>(
                 Arrays.asList(PossibleAction.values()));
         assertTrue(allOpenApiValues.containsAll(allItemsConverted));
         assertTrue(allItemsConverted.containsAll(allOpenApiValues));

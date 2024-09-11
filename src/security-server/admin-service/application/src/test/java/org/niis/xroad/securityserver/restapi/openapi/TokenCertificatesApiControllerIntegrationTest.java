@@ -500,7 +500,7 @@ public class TokenCertificatesApiControllerIntegrationTest extends AbstractApiCo
         ResponseEntity<List<PossibleAction>> response = tokenCertificatesApiController
                 .getPossibleActionsForCertificate(MOCK_CERTIFICATE_HASH);
         assertEquals(HttpStatus.OK, response.getStatusCode());
-        Set<PossibleAction> allActions = new HashSet(Arrays.asList(PossibleAction.values()));
+        Set<PossibleAction> allActions = new HashSet<>(Arrays.asList(PossibleAction.values()));
         assertEquals(allActions, new HashSet<>(response.getBody()));
     }
 

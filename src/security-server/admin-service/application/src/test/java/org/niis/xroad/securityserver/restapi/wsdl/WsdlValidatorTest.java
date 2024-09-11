@@ -89,6 +89,6 @@ public class WsdlValidatorTest {
     @Test
     public void shouldPassValidation() throws Exception {
         List<String> warnings = wsdlValidator.executeValidator("src/test/resources/wsdl/testservice.wsdl");
-        assertEquals(new ArrayList(), warnings);
+        assertEquals(new ArrayList<String>(), warnings);
     }
 }

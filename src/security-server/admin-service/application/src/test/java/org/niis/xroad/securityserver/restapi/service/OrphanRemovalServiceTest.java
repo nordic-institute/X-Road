@@ -219,7 +219,7 @@ public class OrphanRemovalServiceTest extends AbstractServiceTestContext {
             clientType.setIdentifier(id);
             localClients.put(id, clientType);
         });
-        doReturn(new ArrayList(localClients.values())).when(clientRepository).getAllLocalClients();
+        doReturn(new ArrayList<>(localClients.values())).when(clientRepository).getAllLocalClients();
         doAnswer(invocation -> {
             ClientId clientId = (ClientId) invocation.getArguments()[0];
             return localClients.get(clientId);

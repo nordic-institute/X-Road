@@ -326,7 +326,7 @@ public class AccessRightService {
         validateServiceClientObjectType(subjectId);
 
         // verify that given service client objects exist, otherwise access cannot be added
-        identifierService.verifyServiceClientObjectsExist(clientType, new HashSet(Arrays.asList(subjectId)));
+        identifierService.verifyServiceClientObjectsExist(clientType, new HashSet<>(Arrays.asList(subjectId)));
 
         // prepare params for addAccessRightsInternal
         List<EndpointType> baseEndpoints = null;
