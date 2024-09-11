@@ -168,6 +168,8 @@ public abstract class MessageProcessorBase implements ProxyMessageProcessor {
             opMonitoringData.setMessageProtocolVersion(String.valueOf(request.getVersion()));
             opMonitoringData.setServiceType(Optional.ofNullable(
                     serverConfProvider.getDescriptionType(request.getServiceId())).orElse(DescriptionType.REST).name());
+            opMonitoringData.setRestMethod(request.getVerb().name());
+            opMonitoringData.setRestPath(request.getRequestPath());
         }
     }
 

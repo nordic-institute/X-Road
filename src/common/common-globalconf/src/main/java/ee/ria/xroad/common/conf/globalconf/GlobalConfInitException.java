@@ -25,31 +25,16 @@
  */
 package ee.ria.xroad.common.conf.globalconf;
 
-import java.util.List;
-import java.util.Optional;
+import lombok.Getter;
 
-public interface GlobalConfSource {
+@Getter
+public class GlobalConfInitException extends RuntimeException {
 
-    /**
-     * Returns globalConf version.
-     */
-    Integer getVersion();
+    private final GlobalConfInitState state;
 
-    String getInstanceIdentifier();
+    public GlobalConfInitException(GlobalConfInitState state) {
+        super("GlobalConf initialization failed with state: " + state);
+        this.state = state;
+    }
 
-    Optional<SharedParameters> findShared(String xRoadInstance);
-
-    Optional<PrivateParameters> findPrivate(String instanceIdentifier);
-
-    List<SharedParameters> getShared();
-
-    Optional<SharedParametersCache> findSharedParametersCache(String instanceIdentifier);
-
-    List<SharedParametersCache> getSharedParametersCaches();
-
-    boolean isExpired();
-
-    void reload();
-
-    GlobalConfInitState getReadinessState();
 }

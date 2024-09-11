@@ -1,6 +1,6 @@
-# Security Server Admin Service UI
+# Central Server Admin Service UI
 
-UI application for Security Server Admin Service. 
+UI application for Central Server Admin Service.
 
 Tools and libraries used in this project:
 - [Vue.js](https://vuejs.org/)
@@ -56,7 +56,7 @@ pnpm run lint
 ## Customize configuration
 
 [Vite's Env variables](https://vitejs.dev/guide/env-and-mode#env-files) can be used to customize build environment.
-To use custom Env variables, create `.env.local` file in the root of the project. 
-Apart from variables in [.env](.env) file, `PROXY_ADDRESS` can be used to set target running admin service API. 
-`PROXY_ADDRESS` default value is `https://localhost:4200`, which corresponds to `ss0` Admin Service API running in 
+To use custom Env variables, create `.env.local` file in the root of the project.
+Apart from variables in [.env](.env) file, `PROXY_ADDRESS` can be used to set target running admin service API.
+`PROXY_ADDRESS` default value is `https://localhost:4100`, which corresponds to `cs` Admin Service API running in
 [docker compose environment](../../../../Docker/xrd-dev-stack/README.md).

@@ -26,27 +26,32 @@
 package ee.ria.xroad.common.conf.globalconf;
 
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.InitializingBean;
 
 import java.util.List;
 import java.util.Optional;
-
-import static ee.ria.xroad.common.ErrorCodes.X_MALFORMED_GLOBALCONF;
-import static ee.ria.xroad.common.ErrorCodes.translateWithPrefix;
 
 /**
  * Wrapper source for file system based global configuration.
  */
 @Slf4j
-public class FileSystemGlobalConfSource implements GlobalConfSource {
+public class FileSystemGlobalConfSource implements GlobalConfSource, InitializingBean {
+    private final FSGlobalConfValidator fsGlobalConfValidator;
     private final String globalConfigurationDir;
     private volatile VersionedConfigurationDirectory configurationDirectory;
+    private GlobalConfInitState lastState = GlobalConfInitState.UNKNOWN;
 
     public FileSystemGlobalConfSource(String confDir) {
         this.globalConfigurationDir = confDir;
+        this.fsGlobalConfValidator = new FSGlobalConfValidator();
+    }
+
+    @Override
+    public void afterPropertiesSet() {
         try {
-            configurationDirectory = new VersionedConfigurationDirectory(globalConfigurationDir);
+            load();
         } catch (Exception e) {
-            log.warn("Failed to initialize FileSystemGlobalConfSource", e);
+            log.warn("Failed to initialize FileSystemGlobalConfSource");
         }
     }
 
@@ -105,8 +110,10 @@ public class FileSystemGlobalConfSource implements GlobalConfSource {
         if (configurationDirectory == null) {
             synchronized (FileSystemGlobalConfSource.class) {
                 if (configurationDirectory == null) {
-                    log.warn("Configuration source was not loaded. Trying to recover..");
-                    load();
+                    log.warn("Configuration source was not loaded. Trying to reload..");
+                    if (!load()) {
+                        throw new GlobalConfInitException(lastState);
+                    }
                 }
             }
         }
@@ -114,16 +121,40 @@ public class FileSystemGlobalConfSource implements GlobalConfSource {
         return configurationDirectory;
     }
 
-    private void load() {
-        VersionedConfigurationDirectory original = configurationDirectory;
-        try {
-            if (original != null) {
-                configurationDirectory = new VersionedConfigurationDirectory(globalConfigurationDir, original);
-            } else {
-                configurationDirectory = new VersionedConfigurationDirectory(globalConfigurationDir);
+    /**
+     * Load configuration source from file system.
+     *
+     * @return true if configuration source was loaded successfully
+     */
+    private boolean load() {
+        var state = fsGlobalConfValidator.getReadinessState(globalConfigurationDir);
+        if (state == GlobalConfInitState.READY_TO_INIT) {
+            VersionedConfigurationDirectory original = configurationDirectory;
+            try {
+                if (original != null) {
+                    configurationDirectory = new VersionedConfigurationDirectory(globalConfigurationDir, original);
+                    log.info("Configuration source was successfully reloaded");
+                } else {
+                    configurationDirectory = new VersionedConfigurationDirectory(globalConfigurationDir);
+                    log.info("Configuration source was successfully loaded");
+                }
+
+                lastState = GlobalConfInitState.INITIALIZED;
+                return true;
+            } catch (Exception e) {
+                log.error("Failed to load configuration source", e);
+                lastState = GlobalConfInitState.FAILURE_MALFORMED;
             }
-        } catch (Exception e) {
-            throw translateWithPrefix(X_MALFORMED_GLOBALCONF, e);
+        } else {
+            lastState = state;
         }
+        return false;
     }
+
+
+    @Override
+    public GlobalConfInitState getReadinessState() {
+        return lastState;
+    }
+
 }

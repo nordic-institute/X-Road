@@ -1,5 +1,6 @@
 /*
  * The MIT License
+ *
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
@@ -23,33 +24,16 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package ee.ria.xroad.common.conf.globalconf;
+package org.niis.xroad.ss.test.addons.api;
 
-import java.util.List;
-import java.util.Optional;
+import org.springframework.cloud.openfeign.FeignClient;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RequestHeader;
 
-public interface GlobalConfSource {
+@FeignClient(name = "xRoadRestRequestsApi", url = "http://localhost:8080")
+public interface FeignXRoadRestRequestsApi {
 
-    /**
-     * Returns globalConf version.
-     */
-    Integer getVersion();
-
-    String getInstanceIdentifier();
-
-    Optional<SharedParameters> findShared(String xRoadInstance);
-
-    Optional<PrivateParameters> findPrivate(String instanceIdentifier);
-
-    List<SharedParameters> getShared();
-
-    Optional<SharedParametersCache> findSharedParametersCache(String instanceIdentifier);
-
-    List<SharedParametersCache> getSharedParametersCaches();
-
-    boolean isExpired();
-
-    void reload();
-
-    GlobalConfInitState getReadinessState();
+    @GetMapping(value = "/r1/DEV/COM/1234/TestService/listMethods", produces = "application/json")
+    ResponseEntity<String> listMethods(@RequestHeader("X-Road-Client") String xRoadClient);
 }

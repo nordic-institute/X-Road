@@ -142,3 +142,6 @@ Feature: 0550 - SS: Client REST with base path services
     And Services sub-tab is selected
     When Service "REST (http://example.com/v3)" is deleted
     Then Service "REST (http://example.com/v3)" is missing in the list
+
+  Scenario: Call REST listMethod
+    Given Security Server REST listMethod was sent for client "DEV/COM/1234/TestService"

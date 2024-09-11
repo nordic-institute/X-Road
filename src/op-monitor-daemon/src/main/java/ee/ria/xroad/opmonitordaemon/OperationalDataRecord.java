@@ -147,6 +147,14 @@ public class OperationalDataRecord {
 
     @Getter
     @Setter
+    private String restMethod;
+
+    @Getter
+    @Setter
+    private String restPath;
+
+    @Getter
+    @Setter
     private String serviceVersion;
 
     @Getter
