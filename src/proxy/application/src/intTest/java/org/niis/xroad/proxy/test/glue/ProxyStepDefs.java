@@ -146,7 +146,7 @@ public class ProxyStepDefs extends BaseStepDefs {
 
         List<String> messages = new ArrayList<>();
         for (int i = 0; i < count; i++) {
-            messages.add("random-msg:" + RandomStringUtils.randomAlphabetic(100, 1000));
+            messages.add("random-msg:" + RandomStringUtils.secure().nextAlphabetic(100, 1000));
         }
 
         List<Callable<BatchSignResult>> callables = new ArrayList<>();

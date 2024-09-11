@@ -191,7 +191,7 @@ class ClientRestMessageProcessor extends AbstractClientMessageProcessor {
         // Add unique id to distinguish request/response pairs
         httpSender.addHeader(HEADER_REQUEST_ID, xRequestId);
 
-        final String contentType = MimeUtils.mpMixedContentType("xtop" + RandomStringUtils.randomAlphabetic(30));
+        final String contentType = MimeUtils.mpMixedContentType("xtop" + RandomStringUtils.secure().nextAlphabetic(30));
         opMonitoringData.setRequestOutTs(getEpochMillisecond());
         httpSender.doPost(getServiceAddress(addresses), new ProxyMessageEntity(contentType));
         opMonitoringData.setResponseInTs(getEpochMillisecond());
