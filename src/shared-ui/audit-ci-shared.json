@@ -18,7 +18,9 @@
     "GHSA-9c47-m6qq-7p4h|find-babel-config>json5",
     "GHSA-3965-hpx2-q597|pug",
     "GHSA-grv7-fg5c-xmjg|*>braces*",
-    "GHSA-3h5v-q93c-6h6q|ws"
+    "GHSA-3h5v-q93c-6h6q|ws",
+    "GHSA-qwcr-r2fm-qrc7|*",
+    "GHSA-9wv6-86v2-598j|*"
   ],
   "registry": "https://registry.npmjs.org"
 }
