@@ -218,7 +218,22 @@ tasks.withType(Jar).configureEach {
 tasks.register("installGitHooks", Copy) {
     from file("$rootDir/../.githooks")
     into file("$rootDir/../.git/hooks")
-    fileMode 0775
+    filePermissions {
+        user {
+            read = true
+            write = true
+            execute = true
+        }
+        group {
+            read = true
+            write = true
+            execute = true
+        }
+        other {
+            read = true
+            execute = false
+        }
+    }
 }
 assemble.dependsOn installGitHooks
 tasks.sonar.dependsOn testCodeCoverageReport
