@@ -168,7 +168,7 @@ public final class MimeUtils {
      * @return random boundary for use with MIME multiparts.
      */
     public static String randomBoundary() {
-        return RandomStringUtils.randomAlphabetic(RANDOM_BOUNDARY_LENGTH);
+        return RandomStringUtils.secure().nextAlphabetic(RANDOM_BOUNDARY_LENGTH);
     }
 
 }

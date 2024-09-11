@@ -256,6 +256,7 @@ public class ProxyMessageDecoder {
         }
 
         @Override
+        @SuppressWarnings("fallthrough")
         public void body(BodyDescriptor bd, InputStream is)
                 throws MimeException, IOException {
             LOG.trace("body({}), next = {}", bd.getMimeType(), nextPart);
@@ -507,6 +508,7 @@ public class ProxyMessageDecoder {
         }
     }
 
+    @SuppressWarnings("fallthrough")
     private void handleSignature(BodyDescriptor bd, InputStream is)
             throws CodedException {
         try {

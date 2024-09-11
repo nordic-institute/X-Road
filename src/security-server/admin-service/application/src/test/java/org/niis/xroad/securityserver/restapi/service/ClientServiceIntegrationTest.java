@@ -1255,7 +1255,7 @@ public class ClientServiceIntegrationTest extends AbstractServiceIntegrationTest
 
     @Test
     public void getLocalClientMemberIds() {
-        Set<ClientId> expected = new HashSet();
+        Set<ClientId> expected = new HashSet<>();
         expected.add(ClientId.Conf.create(INSTANCE_FI,
                 MEMBER_CLASS_GOV, TestUtils.MEMBER_CODE_M1));
         expected.add(ClientId.Conf.create(INSTANCE_FI,

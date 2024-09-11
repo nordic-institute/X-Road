@@ -121,7 +121,7 @@ class FastestConnectionSelectingSSLSocketFactory
 
         if (log.isTraceEnabled()) {
             log.trace("addresses from context {} current thread id {}", addressesFromContext,
-                    Thread.currentThread().getId());
+                    Thread.currentThread().threadId());
         }
 
         // If URI cache is enabled, check for a previously selected host, avoiding the selection process.
