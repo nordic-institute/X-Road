@@ -34,6 +34,7 @@ dependencies {
     runtimeOnly(libs.edc.fc.core)
     runtimeOnly(libs.edc.fc.api)
 
+    implementation(project(":security-server:edc:extensions:xroad-conf"))
     implementation(project(":security-server:edc:extensions:xroad-identity-and-trust"))
     implementation(project(":security-server:edc:extensions:xroad-webserver"))
 

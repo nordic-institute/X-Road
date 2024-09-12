@@ -26,43 +26,49 @@
  */
 package org.niis.xroad.ds;
 
-import ee.ria.xroad.common.TestPortUtils;
-
-import org.eclipse.edc.junit.extensions.EdcExtension;
+import org.eclipse.edc.junit.annotations.ComponentTest;
+import org.eclipse.edc.junit.extensions.RuntimeExtension;
+import org.eclipse.edc.junit.extensions.RuntimePerClassExtension;
 import org.eclipse.edc.util.io.Ports;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.api.extension.RegisterExtension;
 
-import java.io.IOException;
+import java.nio.file.Paths;
 import java.util.Map;
 
-@ExtendWith(EdcExtension.class)
+@ComponentTest
 class DsCatalogIntegrationTest {
 
-    @BeforeEach
-    void setUp(EdcExtension extension) throws IOException {
+    static {
         System.setProperty("xroad.common.grpc-internal-tls-enabled", "false");
-        extension.setConfiguration(Map.ofEntries(
-                Map.entry("edc.vault.hashicorp.url", "http://url"),
-                Map.entry("edc.vault.hashicorp.token", "token"),
-                Map.entry("edc.receiver.http.endpoint", "http://localhost:4000/asset-authorization-callback"),
-                Map.entry("edc.dataplane.token.validation.endpoint", "http://localhost:9192/control/token"),
-                Map.entry("edc.iam.issuer.id", "did:web:localhost"),
-                Map.entry("edc.participant.id", "did:web:localhost"),
-                Map.entry("edc.iam.trusted-issuer.localhost.id", "did:web:localhost"),
-                Map.entry("web.http.resolution.path", "/resolution"),
-                Map.entry("web.http.resolution.port", TestPortUtils.findRandomPort().toString()),
-                Map.entry("web.http.port", TestPortUtils.findRandomPort().toString()),
-                Map.entry("web.http.path", "/api"),
-                Map.entry("web.http.catalog.port", String.valueOf(Ports.getFreePort())),
-                Map.entry("web.http.catalog.path", "/catalog"),
-                // edc somehow fails if no property is found
-                Map.entry("web.http.xroad.public.port", TestPortUtils.findRandomPort().toString()),
-                Map.entry("edc.transfer.proxy.token.verifier.publickey.alias", "public-key"),
-                Map.entry("edc.transfer.proxy.token.signer.privatekey.alias", "private-key")
-        ));
+
+        String xrdSrcDir = Paths.get("./src/test/resources/files/").toAbsolutePath().normalize().toString(); // /src
+        System.setProperty("xroad.signer.key-configuration-file", xrdSrcDir + "/signer/keyconf.xml");
     }
+
+    @RegisterExtension
+    private static final RuntimeExtension RUNTIME = new RuntimePerClassExtension()
+            .setConfiguration(Map.ofEntries(
+                    Map.entry("edc.vault.hashicorp.url", "http://url"),
+                    Map.entry("edc.vault.hashicorp.token", "token"),
+                    Map.entry("edc.receiver.http.endpoint", "http://localhost:4000/asset-authorization-callback"),
+                    Map.entry("edc.dataplane.token.validation.endpoint", "http://localhost:9192/control/token"),
+                    Map.entry("edc.iam.issuer.id", "did:web:localhost"),
+                    Map.entry("edc.participant.id", "did:web:localhost"),
+                    Map.entry("edc.iam.trusted-issuer.localhost.id", "did:web:localhost"),
+                    Map.entry("web.http.resolution.path", "/resolution"),
+                    Map.entry("web.http.resolution.port", String.valueOf(Ports.getFreePort())),
+                    Map.entry("web.http.port", String.valueOf(Ports.getFreePort())),
+                    Map.entry("web.http.path", "/api"),
+                    Map.entry("web.http.catalog.port", String.valueOf(Ports.getFreePort())),
+                    Map.entry("web.http.catalog.path", "/catalog"),
+                    Map.entry("web.http.management.port", String.valueOf(Ports.getFreePort())),
+                    Map.entry("web.http.management.path", "/management"),
+                    // edc somehow fails if no property is found
+                    Map.entry("web.http.xroad.public.port", String.valueOf(Ports.getFreePort())),
+                    Map.entry("edc.transfer.proxy.token.verifier.publickey.alias", "public-key"),
+                    Map.entry("edc.transfer.proxy.token.signer.privatekey.alias", "private-key")
+            ));
 
     @Test
     void shouldStartup() {

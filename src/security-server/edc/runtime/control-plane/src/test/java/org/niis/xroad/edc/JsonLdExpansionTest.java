@@ -32,21 +32,22 @@ import lombok.SneakyThrows;
 import org.apache.commons.lang3.time.StopWatch;
 import org.eclipse.edc.jsonld.spi.JsonLd;
 import org.eclipse.edc.jsonld.util.JacksonJsonLd;
-import org.eclipse.edc.junit.extensions.EdcExtension;
+import org.eclipse.edc.junit.annotations.EndToEndTest;
+import org.eclipse.edc.junit.extensions.RuntimeExtension;
+import org.eclipse.edc.junit.extensions.RuntimePerClassExtension;
 import org.eclipse.edc.util.io.Ports;
 import org.junit.jupiter.api.Assertions;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.api.extension.RegisterExtension;
 
+import java.nio.file.Paths;
 import java.util.Map;
 
 @SuppressWarnings("checkstyle:linelength")
-@ExtendWith(EdcExtension.class)
+@EndToEndTest
 class JsonLdExpansionTest {
 
     private final ObjectMapper jsonLdMapper = JacksonJsonLd.createObjectMapper();
-
 
     private static final String LRN_VC = """
             {
@@ -87,33 +88,33 @@ class JsonLdExpansionTest {
               }
             }
             """;
-    EdcExtension edcExtension;
 
-    @BeforeEach
-    void setUp(EdcExtension extension) {
+    static {
         System.setProperty("xroad.common.grpc-internal-tls-enabled", "false");
 
-        extension.setConfiguration(Map.ofEntries(
-                Map.entry("edc.vault.hashicorp.url", "http://url"),
-                Map.entry("edc.vault.hashicorp.token", "token"),
-                Map.entry("edc.iam.issuer.id", "did:web:localhost"),
-                Map.entry("edc.participant.id", "did:web:localhost"),
-                Map.entry("edc.iam.trusted-issuer.localhost.id", "did:web:localhost"),
-                Map.entry("web.http.port", String.valueOf(Ports.getFreePort())),
-                Map.entry("web.http.path", "/api"),
-                Map.entry("web.http.resolution.path", "/resolution"),
-                Map.entry("web.http.resolution.port", String.valueOf(Ports.getFreePort())),
-                Map.entry("web.http.management.port", String.valueOf(Ports.getFreePort())),
-                Map.entry("web.http.management.path", "/management"),
-                Map.entry("web.http.control.port", String.valueOf(Ports.getFreePort())),
-                Map.entry("web.http.control.path", "/control"),
-                Map.entry("edc.jsonld.https.enabled", "true"),
-                Map.entry("edc.jsonld.http.enabled", "true")
-        ));
-
-        edcExtension = extension;
+        String xrdSrcDir = Paths.get("./src/test/resources/files/").toAbsolutePath().normalize().toString(); // /src
+        System.setProperty("xroad.signer.key-configuration-file", xrdSrcDir + "/signer/keyconf.xml");
     }
 
+    @RegisterExtension
+    private static final RuntimeExtension RUNTIME = new RuntimePerClassExtension()
+            .setConfiguration(Map.ofEntries(
+                    Map.entry("edc.vault.hashicorp.url", "http://url"),
+                    Map.entry("edc.vault.hashicorp.token", "token"),
+                    Map.entry("edc.iam.issuer.id", "did:web:localhost"),
+                    Map.entry("edc.participant.id", "did:web:localhost"),
+                    Map.entry("edc.iam.trusted-issuer.localhost.id", "did:web:localhost"),
+                    Map.entry("web.http.port", String.valueOf(Ports.getFreePort())),
+                    Map.entry("web.http.path", "/api"),
+                    Map.entry("web.http.resolution.path", "/resolution"),
+                    Map.entry("web.http.resolution.port", String.valueOf(Ports.getFreePort())),
+                    Map.entry("web.http.management.port", String.valueOf(Ports.getFreePort())),
+                    Map.entry("web.http.management.path", "/management"),
+                    Map.entry("web.http.control.port", String.valueOf(Ports.getFreePort())),
+                    Map.entry("web.http.control.path", "/control"),
+                    Map.entry("edc.jsonld.https.enabled", "true"),
+                    Map.entry("edc.jsonld.http.enabled", "true")
+            ));
 
     @Test
     void shouldExpandJsonLd() {
@@ -125,7 +126,7 @@ class JsonLdExpansionTest {
         System.out.println("====================================");
         for (int i = 0; i < 10; i++) {
             timer = StopWatch.createStarted();
-            var result = edcExtension.getService(JsonLd.class).expand(jsonObj);
+            var result = RUNTIME.getService(JsonLd.class).expand(jsonObj);
             Assertions.assertNotNull(result.getContent());
             System.out.println("Expanding took: " + timer.getTime() + "ms");
             System.out.println("====================================");
