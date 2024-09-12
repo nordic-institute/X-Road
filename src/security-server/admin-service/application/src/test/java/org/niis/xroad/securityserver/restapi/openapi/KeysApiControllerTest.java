@@ -144,7 +144,7 @@ public class KeysApiControllerTest extends AbstractApiControllerTestContext {
         ResponseEntity<List<PossibleAction>> response = keysApiController
                 .getPossibleActionsForCsr(GOOD_SIGN_KEY_ID, GOOD_CSR_ID);
         assertEquals(HttpStatus.OK, response.getStatusCode());
-        Set<PossibleAction> allActions = new HashSet(Arrays.asList(PossibleAction.values()));
+        Set<PossibleAction> allActions = new HashSet<>(Arrays.asList(PossibleAction.values()));
         assertEquals(allActions, new HashSet<>(response.getBody()));
     }
 
@@ -154,7 +154,7 @@ public class KeysApiControllerTest extends AbstractApiControllerTestContext {
         ResponseEntity<List<PossibleAction>> response = keysApiController
                 .getPossibleActionsForKey(GOOD_SIGN_KEY_ID);
         assertEquals(HttpStatus.OK, response.getStatusCode());
-        Set<PossibleAction> allActions = new HashSet(Arrays.asList(PossibleAction.values()));
+        Set<PossibleAction> allActions = new HashSet<>(Arrays.asList(PossibleAction.values()));
         assertEquals(allActions, new HashSet<>(response.getBody()));
     }
 

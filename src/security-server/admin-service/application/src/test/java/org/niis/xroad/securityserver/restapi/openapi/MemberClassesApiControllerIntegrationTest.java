@@ -83,7 +83,7 @@ public class MemberClassesApiControllerIntegrationTest extends AbstractApiContro
                     if (classes == null) {
                         return new HashSet<>();
                     }
-                    return new HashSet(classes);
+                    return new HashSet<>(classes);
                 });
 
         when(globalConfProvider.getMemberClasses())

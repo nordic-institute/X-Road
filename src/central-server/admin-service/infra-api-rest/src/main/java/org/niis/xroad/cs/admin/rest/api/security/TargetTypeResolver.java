@@ -28,7 +28,7 @@ package org.niis.xroad.cs.admin.rest.api.security;
 
 import java.io.Serializable;
 
-public interface TargetTypeResolver<E extends Enum> {
+public interface TargetTypeResolver<E extends Enum<E>> {
 
     boolean canResolve(String targetType, Serializable id);
 

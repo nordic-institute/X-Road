@@ -511,7 +511,7 @@ public class TokenCertificateServiceTest {
     @Test(expected = ActionNotPossibleException.class)
     @WithMockUser(authorities = {"DELETE_SIGN_CERT", "DELETE_AUTH_CERT"})
     public void deleteCertificateActionNotPossible() throws Exception {
-        EnumSet empty = EnumSet.noneOf(PossibleActionEnum.class);
+        EnumSet<PossibleActionEnum> empty = EnumSet.noneOf(PossibleActionEnum.class);
         doReturn(empty).when(possibleActionsRuleEngine).getPossibleCertificateActions(any(), any(), any());
         tokenCertificateService.deleteCertificate(EXISTING_CERT_HASH);
     }
@@ -724,7 +724,7 @@ public class TokenCertificateServiceTest {
 
     @Test(expected = ActionNotPossibleException.class)
     public void registerAuthCertificateNotPossible() throws Exception {
-        EnumSet empty = EnumSet.noneOf(PossibleActionEnum.class);
+        EnumSet<PossibleActionEnum> empty = EnumSet.noneOf(PossibleActionEnum.class);
         doReturn(empty).when(possibleActionsRuleEngine).getPossibleCertificateActions(any(), any(), any());
         doAnswer(answer -> authCert).when(signerProxyFacade).getCertForHash(any());
         tokenCertificateService.registerAuthCert(CertificateTestUtils.MOCK_AUTH_CERTIFICATE_HASH, GOOD_ADDRESS);

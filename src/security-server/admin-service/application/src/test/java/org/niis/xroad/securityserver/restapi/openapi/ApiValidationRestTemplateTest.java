@@ -66,7 +66,7 @@ public class ApiValidationRestTemplateTest extends AbstractApiControllerTestCont
     @WithMockUser(authorities = {"ADD_LOCAL_GROUP"})
     public void validationWorksForAddLocalGroup() throws Exception {
         LocalGroupAdd groupWithTooLongCode = new LocalGroupAdd()
-                .code(RandomStringUtils.randomAlphabetic(256))
+                .code(RandomStringUtils.secure().nextAlphabetic(256))
                 .description("foo");
         ResponseEntity<Object> response = restTemplate.postForEntity(
                 "/api/v1/clients/FOO:BAR:BAZ:NONEXISTENT-CLIENT/local-groups",

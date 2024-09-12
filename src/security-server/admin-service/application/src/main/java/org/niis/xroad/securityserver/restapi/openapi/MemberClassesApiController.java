@@ -72,7 +72,7 @@ public class MemberClassesApiController implements MemberClassesApi {
         if (!globalConfProvider.getInstanceIdentifiers().contains(instanceId)) {
             throw new ResourceNotFoundException("instance identifier not found: " + instanceId);
         }
-        Set<String> memberClasses = new HashSet(globalConfProvider.getMemberClasses(instanceId));
+        Set<String> memberClasses = new HashSet<>(globalConfProvider.getMemberClasses(instanceId));
         return new ResponseEntity<>(memberClasses, HttpStatus.OK);
     }
 }

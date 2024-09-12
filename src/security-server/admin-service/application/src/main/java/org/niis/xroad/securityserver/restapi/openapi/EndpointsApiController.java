@@ -91,7 +91,7 @@ public class EndpointsApiController implements EndpointsApi {
         } catch (EndpointNotFoundException e) {
             throw new ResourceNotFoundException(NOT_FOUND_ERROR_MSG + " " + id);
         }
-        return new ResponseEntity(endpoint, HttpStatus.OK);
+        return new ResponseEntity<>(endpoint, HttpStatus.OK);
     }
 
     @Override
