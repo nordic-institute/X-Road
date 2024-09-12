@@ -11,6 +11,7 @@ echo "DS: Running liquibase.."
 source /usr/share/xroad/scripts/setup_edc_dataplane_db.sh
 
 exec java -Dedc.fs.config="/etc/xroad-edc/edc-data-plane.properties" \
+    -Dserverconf.hibernate.hikari.maximumPoolSize=1 \
     -Xdebug -agentlib:jdwp=transport=dt_socket,address=*:9954,server=y,suspend=n \
     -javaagent:/usr/share/xroad/jlib/opentelemetry-javaagent.jar \
     -Dotel.exporter.otlp.protocol=http/protobuf \

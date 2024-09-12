@@ -7,6 +7,10 @@ if [ -f /var/run/xroad/xroad-grpc-internal-env.properties ]; then
   set +a
 fi
 
+echo "DS: Running liquibase.."
+source /usr/share/xroad/scripts/setup_edc_identityhub_db.sh
+
 exec java -Dedc.fs.config="/etc/xroad-edc/edc-identity-hub.properties" \
+    -Dserverconf.hibernate.hikari.maximumPoolSize=1 \
     -Xdebug -agentlib:jdwp=transport=dt_socket,address=*:9955,server=y,suspend=n \
     -Xmx256m -jar /usr/share/xroad/jlib/edc-identity-hub.jar

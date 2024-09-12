@@ -254,7 +254,6 @@ edc-lib-vp = { module = "org.eclipse.edc:verifiable-presentation-lib", version.r
 
 
 # EDC dataplane client modules (used in controlplane)
-edc-dpf-transfer = { module = "org.eclipse.edc:transfer-data-plane", version.ref = "edc" }
 edc-dpf-transfer-signaling = { module = "org.eclipse.edc:transfer-data-plane-signaling", version.ref = "edc" }
 edc-dpf-selector-client = { module = "org.eclipse.edc:data-plane-selector-client", version.ref = "edc" }
 edc-spi-dataplane-selector = { module = "org.eclipse.edc:data-plane-selector-spi", version.ref = "edc" }

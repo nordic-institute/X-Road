@@ -10,6 +10,7 @@ cp ../../src/security-server/edc/runtime/identity-hub/build/libs/edc-identity-hu
 
 cp -r ../../src/security-server/edc/runtime/control-plane/src/main/resources/liquibase ./build
 cp -r ../../src/security-server/edc/runtime/data-plane/src/main/resources/liquibase ./build
+cp -r ../../src/security-server/edc/runtime/identity-hub/src/main/resources/liquibase ./build
 
 # Should match opentelemetry annotations version.
 wget -O ./build/libs/opentelemetry-javaagent.jar \

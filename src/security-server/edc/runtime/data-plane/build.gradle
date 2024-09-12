@@ -30,7 +30,8 @@ dependencies {
     runtimeOnly(libs.edc.ext.jsonld) // needed by the DataPlaneSignalingApi
     runtimeOnly(libs.edc.dpf.selector.client) // for the selector service -> self registration
     runtimeOnly(libs.edc.vault.hashicorp)
-    runtimeOnly(libs.bundles.sql.edc.dataplane)
+
+    sqlDependencies(libs.bundles.sql.edc.dataplane)
 
     implementation libs.bundles.edc.monitoring
     implementation 'io.opentelemetry:opentelemetry-exporter-otlp:1.38.0'

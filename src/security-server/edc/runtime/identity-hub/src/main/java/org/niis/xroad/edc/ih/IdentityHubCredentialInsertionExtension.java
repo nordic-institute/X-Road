@@ -46,8 +46,10 @@ import org.eclipse.edc.identityhub.spi.verifiablecredentials.model.VcStatus;
 import org.eclipse.edc.identityhub.spi.verifiablecredentials.model.VerifiableCredentialResource;
 import org.eclipse.edc.runtime.metamodel.annotation.Extension;
 import org.eclipse.edc.runtime.metamodel.annotation.Inject;
+import org.eclipse.edc.spi.monitor.Monitor;
 import org.eclipse.edc.spi.system.ServiceExtension;
 import org.eclipse.edc.spi.system.ServiceExtensionContext;
+import org.eclipse.edc.spi.system.configuration.Config;
 
 import java.io.File;
 import java.io.IOException;
@@ -86,20 +88,29 @@ public class IdentityHubCredentialInsertionExtension implements ServiceExtension
     @Inject
     private DidDocumentObservable didDocumentObservable;
 
+    private Config config;
+    private Monitor monitor;
+
+    @Override
+    public void initialize(ServiceExtensionContext context) {
+        config = context.getConfig();
+        monitor = context.getMonitor();
+    }
+
     @Override
     @SneakyThrows
-    public void initialize(ServiceExtensionContext context) {
-        String participantId = context.getConfig().getString(BootServicesExtension.PARTICIPANT_ID);
-        String publicKey = getPublicKey(context);
+    public void start() {
+        String participantId = config.getString(BootServicesExtension.PARTICIPANT_ID);
+        String publicKey = getPublicKey(config);
 
-        context.getMonitor().info("Inserting credentials for participant %s".formatted(participantId));
-        createParticipantContext(context, participantId, publicKey);
-        createCredentials(context, participantId);
-        createKeyPairs(context, participantId, publicKey);
+        monitor.info("Inserting credentials for participant %s".formatted(participantId));
+        createParticipantContext(config, participantId, publicKey);
+        createCredentials(config, participantId);
+        createKeyPairs(config, participantId, publicKey);
     }
 
 
-    private void createParticipantContext(ServiceExtensionContext context, String participantId, String publicKey) {
+    private void createParticipantContext(Config config, String participantId, String publicKey) {
         //Manifest is used for did generation. Same principle as /api/management/v1/participants/
         var manifest = ParticipantManifest.Builder.newInstance()
                 .active(true)
@@ -107,20 +118,20 @@ public class IdentityHubCredentialInsertionExtension implements ServiceExtension
                 .did(participantId)
                 .key(KeyDescriptor.Builder.newInstance()
                         .keyId(participantId + "#" + System.getenv("EDC_DID_KEY_ID"))
-                        .privateKeyAlias(context.getConfig().getString("edc.iam.sts.privatekey.alias"))
+                        .privateKeyAlias(config.getString("edc.iam.sts.privatekey.alias"))
                         .publicKeyPem(publicKey)
                         .build())
                 .serviceEndpoint(new Service("credentialService-1", "CredentialService", "https://%s:%d%s/v1/participants/%s".formatted(
                         System.getenv("EDC_HOSTNAME"),
-                        context.getConfig().getInteger("web.http.resolution.port", 20001),
-                        context.getConfig().getString("web.http.resolution.path", "/resolution"),
+                        config.getInteger("web.http.resolution.port", 20001),
+                        config.getString("web.http.resolution.path", "/resolution"),
                         Base64.getUrlEncoder().encodeToString(participantId.getBytes(StandardCharsets.UTF_8)))))
                 .build();
         participantContextService.createParticipantContext(manifest);
     }
 
-    private void createCredentials(ServiceExtensionContext context, String participantId) throws IOException {
-        File credentialDir = new File(context.getConfig().getString(CREDENTIALS_DIR_PATH));
+    private void createCredentials(Config config, String participantId) throws IOException {
+        File credentialDir = new File(config.getString(CREDENTIALS_DIR_PATH));
         for (File credentialFile : credentialDir.listFiles((dir, name) -> name.endsWith(".json"))) {
             storeCredential(credentialFile.toPath(), participantId);
         }
@@ -149,11 +160,11 @@ public class IdentityHubCredentialInsertionExtension implements ServiceExtension
         credentialStore.create(verifiableCredentialResource);
     }
 
-    private void createKeyPairs(ServiceExtensionContext context, String participantId, String publicKey) {
+    private void createKeyPairs(Config config, String participantId, String publicKey) {
         var keyPairResource = KeyPairResource.Builder.newInstance()
                 .id(UUID.randomUUID().toString())
                 .keyId(participantId + "#" + System.getenv("EDC_DID_KEY_ID"))
-                .privateKeyAlias(context.getConfig().getString("edc.iam.sts.privatekey.alias"))
+                .privateKeyAlias(config.getString("edc.iam.sts.privatekey.alias"))
                 .isDefaultPair(true)
                 .participantId(participantId)
                 .serializedPublicKey(publicKey)
@@ -162,8 +173,8 @@ public class IdentityHubCredentialInsertionExtension implements ServiceExtension
         keyPairResourceStore.create(keyPairResource);
     }
 
-    private String getPublicKey(ServiceExtensionContext context) throws IOException {
-        var basePath = context.getConfig().getString(CREDENTIALS_DIR_PATH);
+    private String getPublicKey(Config config) throws IOException {
+        var basePath = config.getString(CREDENTIALS_DIR_PATH);
         var publicKeyFile = Path.of(basePath, "public.pem");
         return Files.readString(publicKeyFile);
 

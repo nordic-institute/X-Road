@@ -22,10 +22,11 @@ dependencies {
     implementation(libs.edc.core.connector)
     runtimeOnly(libs.edc.config.filesystem)
     runtimeOnly(libs.edc.vault.hashicorp)
-    runtimeOnly(libs.bundles.sql.edc)
-    runtimeOnly(libs.bundles.sql.fc)
     runtimeOnly(libs.bundles.dpf)
     runtimeOnly(libs.edc.api.version)
+
+    sqlDependencies(libs.bundles.sql.edc)
+    sqlDependencies(libs.bundles.sql.fc)
 
     implementation 'io.opentelemetry:opentelemetry-exporter-otlp:1.38.0'
 
