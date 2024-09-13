@@ -177,17 +177,6 @@ public class IdentityHubCredentialInsertionExtension implements ServiceExtension
         var basePath = config.getString(CREDENTIALS_DIR_PATH);
         var publicKeyFile = Path.of(basePath, "public.pem");
         return Files.readString(publicKeyFile);
-
-    }
-
-    private String getProp(ServiceExtensionContext context, String key) {
-        //TODO should be refactored to not depend on env vars
-        var envValue = System.getenv(key);
-        if (envValue == null) {
-            return context.getConfig().getString(key);
-        } else {
-            return envValue;
-        }
     }
 
 }
