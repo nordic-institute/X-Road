@@ -1,4 +1,5 @@
 --
+--  Copyright (c) 2022 - 2023 Daimler TSS GmbH
 --
 --  This program and the accompanying materials are made available under the
 --  terms of the Apache License, Version 2.0 which is available at
@@ -16,12 +17,12 @@
 -- table: edc_asset
 CREATE TABLE IF NOT EXISTS edc_asset
 (
-    asset_id           VARCHAR NOT NULL,
-    created_at         BIGINT  NOT NULL,
-    properties         JSON    DEFAULT '{}',
-    private_properties JSON    DEFAULT '{}',
-    data_address       JSON    DEFAULT '{}',
-    PRIMARY KEY (asset_id)
+  asset_id           VARCHAR NOT NULL,
+  created_at         BIGINT  NOT NULL,
+  properties         JSON    DEFAULT '{}',
+  private_properties JSON    DEFAULT '{}',
+  data_address       JSON    DEFAULT '{}',
+  PRIMARY KEY (asset_id)
 );
 
 COMMENT ON COLUMN edc_asset.properties IS 'Asset properties serialized as JSON';

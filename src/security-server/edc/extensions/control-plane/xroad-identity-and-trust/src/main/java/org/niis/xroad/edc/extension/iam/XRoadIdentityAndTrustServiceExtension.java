@@ -35,7 +35,7 @@ import org.eclipse.edc.iam.identitytrust.spi.ClaimTokenCreatorFunction;
 import org.eclipse.edc.iam.identitytrust.spi.CredentialServiceClient;
 import org.eclipse.edc.iam.identitytrust.spi.SecureTokenService;
 import org.eclipse.edc.iam.identitytrust.spi.validation.TokenValidationAction;
-import org.eclipse.edc.iam.verifiablecredentials.spi.RevocationListService;
+import org.eclipse.edc.iam.verifiablecredentials.spi.model.RevocationServiceRegistry;
 import org.eclipse.edc.iam.verifiablecredentials.spi.validation.PresentationVerifier;
 import org.eclipse.edc.iam.verifiablecredentials.spi.validation.TrustedIssuerRegistry;
 import org.eclipse.edc.runtime.metamodel.annotation.Extension;
@@ -67,7 +67,7 @@ public class XRoadIdentityAndTrustServiceExtension implements ServiceExtension {
     private SecureTokenService secureTokenService;
 
     @Inject
-    private RevocationListService revocationListService;
+    private RevocationServiceRegistry revocationServiceRegistry;
 
     @Inject
     private TrustedIssuerRegistry trustedIssuerRegistry;
@@ -109,7 +109,7 @@ public class XRoadIdentityAndTrustServiceExtension implements ServiceExtension {
         var validationAction = tokenValidationAction();
 
         var credentialValidationService = new VerifiableCredentialValidationServiceImpl(presentationVerifier,
-                trustedIssuerRegistry, revocationListService, clock, typeManager.getMapper(JSON_LD), monitor);
+                trustedIssuerRegistry, revocationServiceRegistry, clock, typeManager.getMapper(JSON_LD), monitor);
 
         return new IdentityAndTrustService(secureTokenService, getOwnDid(context),
                 credentialServiceClient, validationAction, credentialServiceUrlResolver, claimTokenFunction,

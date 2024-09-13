@@ -21,10 +21,10 @@ import jakarta.json.JsonObject;
 import org.eclipse.edc.iam.verifiablecredentials.rules.HasValidIssuer;
 import org.eclipse.edc.iam.verifiablecredentials.rules.IsInValidityPeriod;
 import org.eclipse.edc.iam.verifiablecredentials.rules.IsNotRevoked;
-import org.eclipse.edc.iam.verifiablecredentials.spi.RevocationListService;
 import org.eclipse.edc.iam.verifiablecredentials.spi.VerifiableCredentialValidationService;
 import org.eclipse.edc.iam.verifiablecredentials.spi.model.CredentialSubject;
 import org.eclipse.edc.iam.verifiablecredentials.spi.model.Issuer;
+import org.eclipse.edc.iam.verifiablecredentials.spi.model.RevocationServiceRegistry;
 import org.eclipse.edc.iam.verifiablecredentials.spi.model.VerifiableCredential;
 import org.eclipse.edc.iam.verifiablecredentials.spi.model.VerifiablePresentationContainer;
 import org.eclipse.edc.iam.verifiablecredentials.spi.validation.CredentialValidationRule;
@@ -53,18 +53,19 @@ public class VerifiableCredentialValidationServiceImpl implements VerifiableCred
 
     private final PresentationVerifier presentationVerifier;
     private final TrustedIssuerRegistry trustedIssuerRegistry;
-    private final RevocationListService revocationListService;
+    private final RevocationServiceRegistry revocationServiceRegistry;
     private final Clock clock;
 
     private final ObjectMapper objectMapper;
 
     private final Monitor monitor;
 
-    public VerifiableCredentialValidationServiceImpl(PresentationVerifier presentationVerifier, TrustedIssuerRegistry trustedIssuerRegistry, RevocationListService revocationListService, Clock clock,
+    public VerifiableCredentialValidationServiceImpl(PresentationVerifier presentationVerifier, TrustedIssuerRegistry trustedIssuerRegistry,
+                                                     RevocationServiceRegistry revocationServiceRegistry, Clock clock,
                                                      ObjectMapper objectMapper, Monitor monitor) {
         this.presentationVerifier = presentationVerifier;
         this.trustedIssuerRegistry = trustedIssuerRegistry;
-        this.revocationListService = revocationListService;
+        this.revocationServiceRegistry = revocationServiceRegistry;
         this.clock = clock;
         this.objectMapper = objectMapper;
         this.monitor = monitor;
@@ -90,7 +91,7 @@ public class VerifiableCredentialValidationServiceImpl implements VerifiableCred
                 new IsInValidityPeriod(clock),
                 // credentialSubject.id in Gaia-X VCs doesn't seem to follow this rule
                 //new HasValidSubjectIds(presentationHolder),
-                new IsNotRevoked(revocationListService),
+                new IsNotRevoked(revocationServiceRegistry),
                 new HasValidIssuer(getTrustedIssuerIds())));
 
         filters.addAll(additionalRules);
@@ -140,7 +141,7 @@ public class VerifiableCredentialValidationServiceImpl implements VerifiableCred
         List<JsonObject> credentials;
         try {
             credentials = getVcs(verifiablePresentation);
-        } catch (ParseException |JsonProcessingException e) {
+        } catch (ParseException | JsonProcessingException e) {
             String message = "Unable to read credentials from VP";
             monitor.severe(message, e);
             return failure(message);
@@ -155,7 +156,7 @@ public class VerifiableCredentialValidationServiceImpl implements VerifiableCred
 
     private List<JsonObject> getVcs(VerifiablePresentationContainer verifiablePresentation) throws ParseException, JsonProcessingException {
         var signedJwt = SignedJWT.parse(verifiablePresentation.rawVp());
-        var vpObject = (Map<?,?>) signedJwt.getJWTClaimsSet().getClaim(VP_CLAIM);
+        var vpObject = (Map<?, ?>) signedJwt.getJWTClaimsSet().getClaim(VP_CLAIM);
         var verifiableCredentials = (List<?>) vpObject.get(VERIFIABLE_CREDENTIAL_JSON_KEY);
 
         List<JsonObject> credentials = new ArrayList<>();
