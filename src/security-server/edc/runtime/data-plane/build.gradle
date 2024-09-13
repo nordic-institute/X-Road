@@ -37,15 +37,15 @@ dependencies {
     implementation 'io.opentelemetry:opentelemetry-exporter-otlp:1.38.0'
 
     // x-road extensions
-    implementation(project(":security-server:edc:extensions:xroad-conf"))
-    implementation(project(":security-server:edc:extensions:xroad-jsonld"))
-    implementation(project(":security-server:edc:extensions:xroad-messagelog")) {
+    implementation(project(":security-server:edc:extensions:common:xroad-conf"))
+    implementation(project(":security-server:edc:extensions:common:xroad-jsonld"))
+    implementation(project(":security-server:edc:extensions:data-plane:xroad-messagelog")) {
         exclude group: 'org.eclipse.jetty'
     }
-    implementation(project(":security-server:edc:extensions:xroad-payload-signer")) {
+    implementation(project(":security-server:edc:extensions:data-plane:xroad-data-plane-public-api")) {
         exclude group: 'org.eclipse.jetty'
     }
-    implementation(project(":security-server:edc:extensions:xroad-webserver"))
+    implementation(project(":security-server:edc:extensions:common:xroad-webserver"))
 
     implementation libs.apache.commonsLang3
 
