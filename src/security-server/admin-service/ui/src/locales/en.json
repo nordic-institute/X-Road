@@ -601,7 +601,8 @@
     "tokenPin": "Token PIN",
     "url": "URL",
     "username": "Username",
-    "certificationService": "Certification Service"
+    "certificationService": "Certification Service",
+    "certificateService": "Certification Service"
   },
   "footer": {
     "copyright": {
