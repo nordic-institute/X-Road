@@ -15,16 +15,16 @@ skinparam BoxPadding 10
 autonumber
 
 box "Participant A" #ConsumerColor
-    participant A_C as "Connector"
+    participant A_C as "Control Plane"
     participant A_IH as "Identity Hub"
 end box
 
 box "Participant B" #ProviderColor
-    participant B_C as "Connector"
+    participant B_C as "Control Plane"
 end box
 
 title
- **Identity and Trust Protocol**
+ **Decentralized Claims Protocol**
 end title
 autonumber 1
 
