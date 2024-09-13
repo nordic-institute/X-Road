@@ -58,8 +58,8 @@ import org.niis.xroad.edc.spi.messagelog.XRoadMessageLog;
 import java.util.concurrent.Executors;
 
 @SuppressWarnings("checkstyle:MagicNumber") //TODO xroad8
-@Extension(value = XrdPayloadSignerExtension.NAME)
-public class XrdPayloadSignerExtension implements ServiceExtension {
+@Extension(value = XrdDataPlanePublicApiExtension.NAME)
+public class XrdDataPlanePublicApiExtension implements ServiceExtension {
 
     public static final String NAME = "X-Road Data Plane Public API";
     private static final int DEFAULT_PUBLIC_PORT = 9294;
