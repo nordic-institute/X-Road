@@ -38,6 +38,7 @@ import java.util.List;
 import static ee.ria.xroad.common.opmonitoring.OpMonitoringData.SecurityServerType.CLIENT;
 import static ee.ria.xroad.common.opmonitoring.OpMonitoringData.SecurityServerType.PRODUCER;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNull;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -67,6 +68,18 @@ public class SavedServiceEndpointTest {
         assertEquals("/pets", savedServiceEndpoint.getPathIfExists(getOpMonitoringData(PRODUCER, "/pets")));
         assertEquals("/pets/cat/1", savedServiceEndpoint.getPathIfExists(getOpMonitoringData(PRODUCER, "/pets/cat/1")));
         assertEquals("/docs/1", savedServiceEndpoint.getPathIfExists(getOpMonitoringData(PRODUCER, "/docs/1")));
+    }
+
+    @Test
+    public void whenQueriedPathIsNullThenReturnedPathIsAlsoNull() {
+        assertNull(savedServiceEndpoint.getPathIfExists(new OpMonitoringData(PRODUCER, 100)));
+    }
+
+    @Test
+    public void whenQueriedPathIsNotNullButExceptionIsCatchedThenQueriedPathIsReturned() {
+        var opMonitoringData = new OpMonitoringData(PRODUCER, 100);
+        opMonitoringData.setRestPath("/path");
+        assertEquals("/path", savedServiceEndpoint.getPathIfExists(opMonitoringData));
     }
 
     private OpMonitoringData getOpMonitoringData(OpMonitoringData.SecurityServerType type, String restPath) {

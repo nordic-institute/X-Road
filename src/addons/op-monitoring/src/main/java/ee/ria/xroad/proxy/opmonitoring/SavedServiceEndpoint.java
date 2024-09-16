@@ -31,6 +31,7 @@ import ee.ria.xroad.common.opmonitoring.OpMonitoringData;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.eclipse.jetty.util.StringUtil;
 
 @Slf4j
 @RequiredArgsConstructor
@@ -39,7 +40,7 @@ class SavedServiceEndpoint {
     private final ServerConfProvider serverConfProvider;
 
     String getPathIfExists(OpMonitoringData data) {
-        if (data.isProducer()) {
+        if (data.isProducer() && !StringUtil.isEmpty(data.getRestPath())) {
             try {
                 var endpointTypes = serverConfProvider.getServiceEndpoints(data.getServiceId()).stream()
                         .map(v -> new EndpointType(data.getServiceId().getServiceCode(), v.getMethod(), v.getPath(), false))
@@ -48,7 +49,7 @@ class SavedServiceEndpoint {
 
                 return endpointTypes.map(EndpointType::getPath).orElse(data.getRestPath());
             } catch (Exception e) {
-                log.error("Cannot get path from saved service {} endpoints", data.getServiceId().toShortString(), e);
+                log.error("Cannot query saved endpoint for: {}", data.getRestPath(), e);
             }
         }
         return data.getRestPath();

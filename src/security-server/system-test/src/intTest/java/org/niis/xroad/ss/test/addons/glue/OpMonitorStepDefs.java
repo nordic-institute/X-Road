@@ -133,6 +133,7 @@ public class OpMonitorStepDefs extends BaseStepDefs {
                 new SoapMessageDecoder.Callback() {
 
                     @Override
+                    @SuppressWarnings("checkstyle:MagicNumber")
                     public void soap(SoapMessage message, Map<String, String> headers) {
                         assertEquals("cid:" + OPERATIONAL_DATA_JSON, findOperationalDataRecordsContentId(message, "records"));
                         assertTrue(Integer.parseInt(findOperationalDataRecordsContentId(message, "recordsCount")) >= 9);
@@ -192,7 +193,7 @@ public class OpMonitorStepDefs extends BaseStepDefs {
     private void verifyRestRecord(Record record) {
         assertEquals("1", record.getMessageProtocolVersion());
         assertEquals("GET", record.getRestMethod());
-        assertEquals("pets", record.getRestPath());
+        assertEquals("/pets", record.getRestPath());
         assertEquals("TestService", record.getClientSubsystemCode());
         assertEquals("TestService", record.getServiceSubsystemCode());
         verifyRecord(record);
