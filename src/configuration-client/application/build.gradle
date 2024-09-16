@@ -42,6 +42,13 @@ publishing {
     repositories {
         maven {
             url = xroadPublishUrl
+            credentials {
+                username = xroadPublishUser
+                password = xroadPublishApiKey
+            }
+            authentication {
+                basic(BasicAuthentication)
+            }
         }
     }
 }
