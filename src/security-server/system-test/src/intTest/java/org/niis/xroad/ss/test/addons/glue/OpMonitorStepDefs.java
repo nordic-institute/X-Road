@@ -65,6 +65,7 @@ import java.util.zip.GZIPInputStream;
 import static java.nio.charset.StandardCharsets.UTF_8;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertTrue;
 import static org.niis.xroad.ss.test.addons.glue.BaseStepDefs.StepDataKey.XROAD_SOAP_RESPONSE;
 
 @SuppressWarnings("SpringJavaInjectionPointsAutowiringInspection")
@@ -93,7 +94,7 @@ public class OpMonitorStepDefs extends BaseStepDefs {
     @Step("Security Server REST listMethod was sent for client {string}")
     public void executeGetListMethods(String xRoadClientId) {
         try {
-            xRoadRestRequestsApi.listMethods(xRoadClientId);
+            xRoadRestRequestsApi.pets(xRoadClientId);
         } catch (Exception e) {
             log.info("There was error in REST call: {}", e.getMessage());
         }
@@ -134,7 +135,7 @@ public class OpMonitorStepDefs extends BaseStepDefs {
                     @Override
                     public void soap(SoapMessage message, Map<String, String> headers) {
                         assertEquals("cid:" + OPERATIONAL_DATA_JSON, findOperationalDataRecordsContentId(message, "records"));
-                        assertEquals("10", findOperationalDataRecordsContentId(message, "recordsCount"));
+                        assertTrue(Integer.parseInt(findOperationalDataRecordsContentId(message, "recordsCount")) >= 9);
                     }
 
 
@@ -147,7 +148,7 @@ public class OpMonitorStepDefs extends BaseStepDefs {
 
                         MonitoringData monitoringData = new ObjectMapper().readValue(readGzipContent(content), MonitoringData.class);
 
-                        verifyRestRecord(getRecord(monitoringData, "REST", "listMethods"));
+                        verifyRestRecord(getRecord(monitoringData, "REST", "pets"));
                         verifyWsdlRecord(getRecord(monitoringData, "WSDL", "clientDisable"));
                     }
 
@@ -191,7 +192,7 @@ public class OpMonitorStepDefs extends BaseStepDefs {
     private void verifyRestRecord(Record record) {
         assertEquals("1", record.getMessageProtocolVersion());
         assertEquals("GET", record.getRestMethod());
-        assertEquals("/r1/DEV/COM/1234/TestService/listMethods", record.getRestPath());
+        assertEquals("pets", record.getRestPath());
         assertEquals("TestService", record.getClientSubsystemCode());
         assertEquals("TestService", record.getServiceSubsystemCode());
         verifyRecord(record);

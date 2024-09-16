@@ -59,6 +59,8 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.RETURNS_DEEP_STUBS;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
 /**
@@ -194,6 +196,14 @@ class OpMonitoringBufferTest {
                 });
 
 //
+    }
+
+    @Test
+    void noOpMonitoringDataIsStored() throws Exception {
+        System.setProperty("xroad.op-monitor-buffer.size", "0");
+        var serverConfProvider = mock(ServerConfProvider.class);
+        new OpMonitoringBuffer(serverConfProvider);
+        verifyNoInteractions(serverConfProvider);
     }
 
     @SneakyThrows
