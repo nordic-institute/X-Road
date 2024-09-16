@@ -88,7 +88,7 @@ export default defineComponent({
   computed: {
     ...mapState(useNotifications, ['successNotifications']),
     // Check global window value to see if e2e testing mode should be enabled
-    transitionName: () => (window.e2eTestingMode === true ? null : 'fade-transition'),
+    transitionName: () => (window.e2eTestingMode === true ? 'no-transition' : 'fade-transition'),
   },
   methods: {
     ...mapActions(useNotifications, ['deleteSuccessNotification']),
