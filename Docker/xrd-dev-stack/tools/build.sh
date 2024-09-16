@@ -46,6 +46,9 @@ case $1 in
 "asicverifier")
   gradleModule="asicverifier"
   ;;
+"op-monitor-daemon")
+  gradleModule="op-monitor-daemon"
+  ;;
 esac
 
 cd "$XROAD_HOME"/src/
