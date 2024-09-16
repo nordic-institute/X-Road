@@ -91,6 +91,12 @@ public final class ConfigurationClientCLI {
     public static int validate(String configurationAnchorFile, final CommandLine cmd) {
         log.trace("Downloading configuration using anchor {}", configurationAnchorFile);
         var paramsValidator = getParamsValidator(cmd);
+        ConfigurationAnchor configurationAnchor = new ConfigurationAnchor(configurationAnchorFile);
+
+        return validate(configurationAnchor, paramsValidator);
+    }
+
+    public static int validate(ConfigurationAnchor configurationAnchor, ParamsValidator paramsValidator) {
         // Create configuration that does not persist files to disk.
         final String configurationPath = SystemProperties.getConfigurationPath();
 
@@ -115,7 +121,6 @@ public final class ConfigurationClientCLI {
 
         };
 
-        ConfigurationAnchor configurationAnchor = new ConfigurationAnchor(configurationAnchorFile);
         var client = new ConfigurationClient(configurationPath, configurationDownloader, configurationAnchor) {
             @Override
             protected void deleteExtraConfigurationDirectories(List<? extends ConfigurationSource> configurationSources,
@@ -160,13 +165,13 @@ public final class ConfigurationClientCLI {
         }
     }
 
-    private static class ParamsValidator {
+    public static class ParamsValidator {
         protected final AtomicBoolean valid = new AtomicBoolean();
 
         private final String expectedContentId;
         private final int exitCodeWhenInvalid;
 
-        ParamsValidator(String expectedContentId, int exitCodeWhenInvalid) {
+        public ParamsValidator(String expectedContentId, int exitCodeWhenInvalid) {
             this.expectedContentId = expectedContentId;
             this.exitCodeWhenInvalid = exitCodeWhenInvalid;
         }

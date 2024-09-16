@@ -32,14 +32,13 @@ import ee.ria.xroad.common.conf.globalconf.ConfigurationAnchor;
 import ee.ria.xroad.common.conf.serverconf.model.TspType;
 import ee.ria.xroad.common.util.CertUtils;
 import ee.ria.xroad.common.util.CryptoUtils;
-import ee.ria.xroad.common.util.process.ProcessFailedException;
-import ee.ria.xroad.common.util.process.ProcessNotExecutableException;
 
 import lombok.RequiredArgsConstructor;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.FileUtils;
 import org.bouncycastle.operator.OperatorCreationException;
+import org.niis.xroad.confclient.proto.ConfClientRpcClient;
 import org.niis.xroad.restapi.config.audit.AuditDataHelper;
 import org.niis.xroad.restapi.config.audit.RestApiAuditProperty;
 import org.niis.xroad.restapi.exceptions.DeviationAwareRuntimeException;
@@ -52,7 +51,6 @@ import org.niis.xroad.securityserver.restapi.cache.CurrentSecurityServerId;
 import org.niis.xroad.securityserver.restapi.cache.SecurityServerAddressChangeStatus;
 import org.niis.xroad.securityserver.restapi.dto.AnchorFile;
 import org.niis.xroad.securityserver.restapi.repository.AnchorRepository;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -90,19 +88,16 @@ public class SystemService {
     private final GlobalConfService globalConfService;
     private final ServerConfService serverConfService;
     private final AnchorRepository anchorRepository;
-    private final ConfigurationVerifier configurationVerifier;
     private final CurrentSecurityServerId currentSecurityServerId;
     private final ManagementRequestSenderService managementRequestSenderService;
     private final AuditDataHelper auditDataHelper;
     private final SecurityServerAddressChangeStatus addressChangeStatus;
+    private final ConfClientRpcClient confClientRpcClient;
 
     @Setter
     private String internalKeyPath = SystemProperties.getConfPath() + InternalSSLKey.PK_FILE_NAME;
     @Setter
     private String tempFilesPath = SystemProperties.getTempFilesPath();
-    @Setter
-    @Value("${script.internal-configuration-verifier.path}")
-    private String internalConfVerificationScriptPath;
 
     private static final String ANCHOR_DOWNLOAD_FILENAME_PREFIX = "configuration_anchor_UTC_";
     private static final String ANCHOR_DOWNLOAD_DATE_TIME_FORMAT = "yyyy-MM-dd_HH_mm_ss";
@@ -110,6 +105,7 @@ public class SystemService {
 
     /**
      * Return a list of configured timestamping services
+     *
      * @return
      */
     public List<TspType> getConfiguredTimestampingServices() {
@@ -118,6 +114,7 @@ public class SystemService {
 
     /**
      * Audit log tsp name and url
+     *
      * @param tspType
      */
     private void auditLog(TspType tspType) {
@@ -157,6 +154,7 @@ public class SystemService {
 
     /**
      * Deletes a configured timestamping service from serverconf
+     *
      * @param tspTypeToDelete
      * @throws TimestampingServiceNotFoundException
      */
@@ -189,11 +187,12 @@ public class SystemService {
 
     /**
      * Generate internal auth cert CSR
+     *
      * @param distinguishedName
      * @return
      * @throws InvalidDistinguishedNameException if {@code distinguishedName} does not conform to
-     * <a href="http://www.ietf.org/rfc/rfc1779.txt">RFC 1779</a> or
-     * <a href="http://www.ietf.org/rfc/rfc2253.txt">RFC 2253</a>
+     *                                           <a href="http://www.ietf.org/rfc/rfc1779.txt">RFC 1779</a> or
+     *                                           <a href="http://www.ietf.org/rfc/rfc2253.txt">RFC 2253</a>
      */
     public byte[] generateInternalCsr(String distinguishedName) throws InvalidDistinguishedNameException {
         auditDataHelper.put(RestApiAuditProperty.SUBJECT_NAME, distinguishedName);
@@ -211,6 +210,7 @@ public class SystemService {
 
     /**
      * Get configuration anchor file
+     *
      * @return
      * @throws AnchorNotFoundException if anchor file is not found
      */
@@ -224,11 +224,12 @@ public class SystemService {
     /**
      * Calculate the hex hash of the given anchor file. Used to verify/preview an anchor file before
      * uploading it
+     *
      * @param anchorBytes
      * @param shouldVerifyAnchorInstance if the anchor instance should be verified
      * @return
      * @throws InvalidAnchorInstanceException anchor is not generated in the current instance
-     * @throws MalformedAnchorException if the Anchor content is wrong
+     * @throws MalformedAnchorException       if the Anchor content is wrong
      */
     public AnchorFile getAnchorFileFromBytes(byte[] anchorBytes, boolean shouldVerifyAnchorInstance)
             throws InvalidAnchorInstanceException, MalformedAnchorException {
@@ -245,16 +246,17 @@ public class SystemService {
      * Upload a new configuration anchor. This method should be used when initializing a new Security Server.
      * This method will throw {@link AnchorAlreadyExistsException} if an anchor already exists. When updating an
      * existing anchor one should use {@link #replaceAnchor(byte[])} instead.
+     *
      * @param anchorBytes
-     * @throws InvalidAnchorInstanceException anchor is not generated in the current instance
-     * @throws AnchorUploadException in case of external process exceptions
-     * @throws MalformedAnchorException if the Anchor content is wrong
-     * @throws ConfigurationDownloadException if the configuration download request succeeds but configuration-client
-     * returns an error
+     * @throws InvalidAnchorInstanceException                           anchor is not generated in the current instance
+     * @throws AnchorUploadException                                    in case of external process exceptions
+     * @throws MalformedAnchorException                                 if the Anchor content is wrong
+     * @throws ConfigurationDownloadException                           if the configuration download request succeeds but
+     *                                                                  configuration-client returns an error
      * @throws ConfigurationVerifier.ConfigurationVerificationException when a known exception happens during
-     * @throws AnchorAlreadyExistsException if there already is an anchor -> a new one cannot be uploaded. Instead the
-     * old anchor should be updated by using {@link #uploadAnchor(byte[], boolean)}
-     * verification
+     * @throws AnchorAlreadyExistsException                             if there already is an anchor -> a new one cannot be uploaded.
+     *                                                                  Instead the old anchor should be updated by using
+     *                                                                  {@link #uploadAnchor(byte[], boolean)} verification
      */
     public void uploadInitialAnchor(byte[] anchorBytes) throws InvalidAnchorInstanceException, AnchorUploadException,
             MalformedAnchorException, ConfigurationDownloadException,
@@ -268,14 +270,15 @@ public class SystemService {
     /**
      * Replace the current configuration anchor with a new one. When uploading the first anchor (in Security Server
      * init phase) one should use {@link #uploadInitialAnchor(byte[])};
+     *
      * @param anchorBytes
-     * @throws InvalidAnchorInstanceException anchor is not generated in the current instance
-     * @throws AnchorUploadException in case of external process exceptions
-     * @throws MalformedAnchorException if the Anchor content is wrong
-     * @throws ConfigurationDownloadException if the configuration download request succeeds but configuration-client
-     * returns an error
+     * @throws InvalidAnchorInstanceException                           anchor is not generated in the current instance
+     * @throws AnchorUploadException                                    in case of external process exceptions
+     * @throws MalformedAnchorException                                 if the Anchor content is wrong
+     * @throws ConfigurationDownloadException                           if the configuration download request succeeds but
+     *                                                                  configuration-client returns an error
      * @throws ConfigurationVerifier.ConfigurationVerificationException when a known exception happens during
-     * verification
+     *                                                                  verification
      */
     public void replaceAnchor(byte[] anchorBytes) throws InvalidAnchorInstanceException, AnchorUploadException,
             MalformedAnchorException, ConfigurationDownloadException,
@@ -286,23 +289,22 @@ public class SystemService {
     /**
      * Upload a new configuration anchor. A temporary anchor file is created on the filesystem in order to run
      * the verification process with configuration-client module (via external script).
+     *
      * @param anchorBytes
      * @param shouldVerifyAnchorInstance whether the anchor instance should be verified or not. Usually it should
-     * always be verified (and this parameter should be true) but e.g. when initializing a new Security Server it
-     * cannot be verified (and this parameter should be set to false)
-     * @throws InvalidAnchorInstanceException anchor is not generated in the current instance
-     * @throws AnchorUploadException in case of external process exceptions
-     * @throws MalformedAnchorException if the Anchor content is wrong
-     * @throws ConfigurationDownloadException if the configuration download request succeeds but configuration-client
-     * returns an error
+     *                                   always be verified (and this parameter should be true) but e.g. when initializing a new Security
+     *                                   Server it cannot be verified (and this parameter should be set to false)
+     * @throws InvalidAnchorInstanceException                           anchor is not generated in the current instance
+     * @throws AnchorUploadException                                    in case of external process exceptions
+     * @throws MalformedAnchorException                                 if the Anchor content is wrong
+     * @throws ConfigurationDownloadException                           if the configuration download request succeeds but
+     *                                                                  configuration-client returns an error
      * @throws ConfigurationVerifier.ConfigurationVerificationException when a known exception happens during
-     * verification
+     *                                                                  verification
      */
-    // SonarQube: "InterruptedException" should not be ignored -> it has already been handled at this point
-    @SuppressWarnings("squid:S2142")
     private void uploadAnchor(byte[] anchorBytes, boolean shouldVerifyAnchorInstance)
-            throws InvalidAnchorInstanceException, AnchorUploadException, MalformedAnchorException,
-            ConfigurationDownloadException, ConfigurationVerifier.ConfigurationVerificationException {
+            throws InvalidAnchorInstanceException, MalformedAnchorException,
+            ConfigurationVerifier.ConfigurationVerificationException {
         auditDataHelper.calculateAndPutAnchorHash(anchorBytes);
         ConfigurationAnchor anchor = createAnchorFromBytes(anchorBytes);
         auditDataHelper.putDate(RestApiAuditProperty.GENERATED_AT, anchor.getGeneratedAt());
@@ -312,18 +314,17 @@ public class SystemService {
         File tempAnchor = null;
         try {
             tempAnchor = createTemporaryAnchorFile(anchorBytes);
-            configurationVerifier.verifyConfiguration(internalConfVerificationScriptPath, tempAnchor.getAbsolutePath());
+            int returnCode = confClientRpcClient.verifyInternalConfiguration(anchorBytes);
+            ConfigurationVerifier.throwIfErrorCodeReturned(returnCode);
             anchorRepository.saveAndReplace(tempAnchor);
             globalConfService.executeDownloadConfigurationFromAnchor();
-        } catch (InterruptedException | ProcessNotExecutableException | ProcessFailedException e) {
-            throw new AnchorUploadException(e);
         } catch (IOException e) {
             throw new RuntimeException("Cannot upload a new anchor", e);
         } finally {
             if (tempAnchor != null) {
                 boolean deleted = tempAnchor.delete();
                 if (!deleted) {
-                    log.error("Temporary anchor could not be deleted: " + tempAnchor.getAbsolutePath());
+                    log.error("Temporary anchor could not be deleted: {}", tempAnchor.getAbsolutePath());
                 }
             }
         }
@@ -331,6 +332,7 @@ public class SystemService {
 
     /**
      * Is global conf initialized -> it is if whe can find a Configuration anchor
+     *
      * @return
      */
     public boolean isAnchorImported() {
@@ -348,6 +350,7 @@ public class SystemService {
 
     /**
      * Sends a management request to change Security Server address
+     *
      * @param newAddress new address
      * @return request ID in the central server database
      * @throws GlobalConfOutdatedException
@@ -370,6 +373,7 @@ public class SystemService {
 
     /**
      * Simple helper to create a ConfigurationAnchorV2 instance from bytes
+     *
      * @param anchorBytes
      * @return
      * @throws MalformedAnchorException if the anchor is malformed or somehow invalid
@@ -392,6 +396,7 @@ public class SystemService {
      * Create a temporary anchor file on the filesystem. This is needed for verifying the anchor with
      * configuration-client module (this might be changed in the future). This method does not delete the created
      * temporary file. Remember to delete the file after it is no longer needed.
+     *
      * @param anchorBytes
      * @return temporary anchor file
      * @throws IOException if temp file creation fails
@@ -412,6 +417,7 @@ public class SystemService {
 
     /**
      * Verify that the anchor has been generated in the current instance
+     *
      * @param anchor
      * @throws InvalidAnchorInstanceException anchor is not generated in the current instance
      */
@@ -427,6 +433,7 @@ public class SystemService {
 
     /**
      * Read anchor file's content
+     *
      * @return
      * @throws AnchorNotFoundException if anchor file is not found
      */
@@ -441,6 +448,7 @@ public class SystemService {
     /**
      * Generate anchor file download name with the anchor file created at date/time. The name format is:
      * "configuration_anchor_UTC_yyyy-MM-dd_HH_mm_ss.xml".
+     *
      * @return
      */
     public String getAnchorFilenameForDownload() {
@@ -451,6 +459,7 @@ public class SystemService {
 
     /**
      * Return anchor file's hash as a hex string
+     *
      * @return
      */
     private String calculateAnchorHexHash(byte[] anchor) {
@@ -468,6 +477,7 @@ public class SystemService {
 
     /**
      * Return the node type of the server
+     *
      * @return server node type
      */
     public SystemProperties.NodeType getServerNodeType() {

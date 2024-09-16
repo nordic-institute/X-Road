@@ -30,6 +30,7 @@ package org.niis.xroad.confclient.proto;
 import ee.ria.xroad.common.DiagnosticsStatus;
 import ee.ria.xroad.common.SystemProperties;
 
+import com.google.protobuf.ByteString;
 import io.grpc.Channel;
 import lombok.Getter;
 import org.niis.xroad.common.rpc.client.RpcClient;
@@ -65,12 +66,26 @@ public class ConfClientRpcClient {
                 status.getDescription());
     }
 
+    public int verifyInternalConfiguration(byte[] configurationAnchor) {
+        try {
+            var response = confClientRpcClient.execute(ctx -> ctx.getVerifierServiceBlockingStub()
+                    .verifyInternalConf(VerifyInternalConfRequest.newBuilder()
+                            .setConfigurationAnchor(ByteString.copyFrom(configurationAnchor))
+                            .build()));
+            return response.getReturnCode();
+        } catch (Exception e) {
+            throw new RuntimeException("Configuration anchor validation failed", e);
+        }
+    }
+
     @Getter
     private static class ConfClientRpcExecutionContext implements RpcClient.ExecutionContext {
         private final AdminServiceGrpc.AdminServiceBlockingStub adminServiceBlockingStub;
+        private final VerifierServiceGrpc.VerifierServiceBlockingStub verifierServiceBlockingStub;
 
         ConfClientRpcExecutionContext(Channel channel) {
             this.adminServiceBlockingStub = AdminServiceGrpc.newBlockingStub(channel).withWaitForReady();
+            this.verifierServiceBlockingStub = VerifierServiceGrpc.newBlockingStub(channel).withWaitForReady();
         }
     }
 
