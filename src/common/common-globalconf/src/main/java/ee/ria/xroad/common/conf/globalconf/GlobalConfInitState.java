@@ -50,6 +50,10 @@ public enum GlobalConfInitState {
      */
     FAILURE_MISSING_INSTANCE_IDENTIFIER,
     /**
+     * GlobalConf for provided instance-identifier is missing.
+     */
+    FAILURE_INSTANCE_IDENTIFIER_DATA_MISSING,
+    /**
      * GlobalConf is malformed. (Missing required files, etc.)
      */
     FAILURE_MALFORMED,

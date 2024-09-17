@@ -148,7 +148,7 @@ public class DiagnosticsApiControllerTest extends AbstractApiControllerTestConte
         final OffsetDateTime prevUpdate = TimeUtils.offsetDateTimeNow();
         final OffsetDateTime nextUpdate = prevUpdate.plusHours(1);
         when(confClientRpcClient.getStatus()).thenReturn(
-                new DiagnosticsStatus(DiagnosticsErrorCodes.RETURN_SUCCESS, prevUpdate, nextUpdate));
+                createDiagnosticsStatus(DiagnosticsErrorCodes.RETURN_SUCCESS, prevUpdate, nextUpdate));
 
         ResponseEntity<GlobalConfDiagnostics> response = diagnosticsApiController.getGlobalConfDiagnostics();
 
@@ -166,7 +166,7 @@ public class DiagnosticsApiControllerTest extends AbstractApiControllerTestConte
         final OffsetDateTime nextUpdate = prevUpdate.plusHours(1);
 
         when(confClientRpcClient.getStatus()).thenReturn(
-                new DiagnosticsStatus(DiagnosticsErrorCodes.ERROR_CODE_UNINITIALIZED, prevUpdate, nextUpdate));
+                createDiagnosticsStatus(DiagnosticsErrorCodes.ERROR_CODE_UNINITIALIZED, prevUpdate, nextUpdate));
 
         ResponseEntity<GlobalConfDiagnostics> response = diagnosticsApiController.getGlobalConfDiagnostics();
 
@@ -184,7 +184,7 @@ public class DiagnosticsApiControllerTest extends AbstractApiControllerTestConte
         final OffsetDateTime nextUpdate = prevUpdate.plusDays(1);
 
         when(confClientRpcClient.getStatus()).thenReturn(
-                new DiagnosticsStatus(DiagnosticsErrorCodes.ERROR_CODE_INTERNAL, prevUpdate, nextUpdate));
+                createDiagnosticsStatus(DiagnosticsErrorCodes.ERROR_CODE_INTERNAL, prevUpdate, nextUpdate));
 
         ResponseEntity<GlobalConfDiagnostics> response = diagnosticsApiController.getGlobalConfDiagnostics();
 
@@ -202,7 +202,7 @@ public class DiagnosticsApiControllerTest extends AbstractApiControllerTestConte
         final OffsetDateTime nextUpdate = prevUpdate.plusDays(1);
 
         when(confClientRpcClient.getStatus()).thenReturn(
-                new DiagnosticsStatus(ERROR_CODE_UNKNOWN, prevUpdate, nextUpdate));
+                createDiagnosticsStatus(ERROR_CODE_UNKNOWN, prevUpdate, nextUpdate));
 
         ResponseEntity<GlobalConfDiagnostics> response = diagnosticsApiController.getGlobalConfDiagnostics();
 
@@ -414,4 +414,14 @@ public class DiagnosticsApiControllerTest extends AbstractApiControllerTestConte
         assertEquals(DeviationCodes.ERROR_DIAGNOSTIC_REQUEST_FAILED, exception.getErrorDeviation().getCode());
     }
 
+
+    private org.niis.xroad.confclient.proto.DiagnosticsStatus createDiagnosticsStatus(int statusCode,
+                                                                                      OffsetDateTime prevUpdate,
+                                                                                      OffsetDateTime nextUpdate) {
+        return org.niis.xroad.confclient.proto.DiagnosticsStatus.newBuilder()
+                .setReturnCode(statusCode)
+                .setPrevUpdate(prevUpdate.toInstant().toEpochMilli())
+                .setNextUpdate(nextUpdate.toInstant().toEpochMilli())
+                .build();
+    }
 }

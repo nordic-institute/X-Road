@@ -25,15 +25,11 @@
  */
 package ee.ria.xroad.common.conf.globalconf;
 
-import java.io.IOException;
-import java.security.cert.CertificateEncodingException;
 import java.time.OffsetDateTime;
 
-public interface SharedParametersProvider extends ParameterProvider {
+public interface ParameterProvider {
 
-    SharedParametersProvider refresh(OffsetDateTime fileExpiresOn) throws CertificateEncodingException, IOException;
+    OffsetDateTime getExpiresOn();
 
-    SharedParameters getSharedParameters();
-
-    SharedParametersMarshaller getMarshaller();
+    boolean hasChanged();
 }

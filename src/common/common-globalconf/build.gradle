@@ -10,6 +10,7 @@ dependencies {
     implementation(libs.mapstruct)
 
     api project(":common:common-message")
+    api(project(":configuration-client:confclient-rpc-client")) //TODO consider separating rpc impl at a module level?
     api libs.jetty.http
 
     testImplementation project(':common:common-test')

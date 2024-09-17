@@ -24,53 +24,54 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-
 package org.niis.xroad.confclient.proto;
 
-import ee.ria.xroad.common.DiagnosticsStatus;
 import ee.ria.xroad.common.SystemProperties;
 
 import io.grpc.Channel;
 import lombok.Getter;
 import org.niis.xroad.common.rpc.client.RpcClient;
+import org.springframework.beans.factory.DisposableBean;
+import org.springframework.beans.factory.InitializingBean;
 
-import static java.time.Instant.ofEpochMilli;
-import static org.niis.xroad.restapi.util.FormatUtils.fromInstantToOffsetDateTime;
+public class ConfClientRpcClient implements DisposableBean, InitializingBean {
 
-public class ConfClientRpcClient {
+    private RpcClient<ConfClientRpcExecutionContext> rpcClient;
 
-    private final RpcClient<ConfClientRpcExecutionContext> confClientRpcClient;
-
-    public ConfClientRpcClient() throws Exception {
-        this.confClientRpcClient = RpcClient.newClient(SystemProperties.getGrpcInternalHost(),
+    @Override
+    public void afterPropertiesSet() throws Exception {
+        this.rpcClient = RpcClient.newClient(SystemProperties.getGrpcInternalHost(),
                 SystemProperties.getConfigurationClientPort(), ConfClientRpcExecutionContext::new);
     }
 
-    public void shutdown() {
-        confClientRpcClient.shutdown();
-    }
-
     public void execute() throws Exception {
-        confClientRpcClient.execute(ctx -> ctx.getAdminServiceBlockingStub()
+        rpcClient.execute(ctx -> ctx.getAdminServiceBlockingStub()
                 .execute(Empty.getDefaultInstance()));
     }
 
-    public ee.ria.xroad.common.DiagnosticsStatus getStatus() throws Exception {
-        var status = confClientRpcClient.execute(ctx -> ctx.getAdminServiceBlockingStub()
+    public DiagnosticsStatus getStatus() throws Exception {
+        return rpcClient.execute(ctx -> ctx.getAdminServiceBlockingStub()
                 .getStatus(Empty.getDefaultInstance()));
+    }
 
-        return new DiagnosticsStatus(status.getReturnCode(),
-                status.hasPrevUpdate() ? fromInstantToOffsetDateTime(ofEpochMilli(status.getPrevUpdate())) : null,
-                status.hasNextUpdate() ? fromInstantToOffsetDateTime(ofEpochMilli(status.getNextUpdate())) : null,
-                status.getDescription());
+    public GetGlobalConfResp getGlobalConf() throws Exception {
+        return rpcClient.execute(ctx -> ctx.getGlobalConfServiceBlockingStub()
+                .getGlobalConf(GetGlobalConfReq.newBuilder().build()));
+    }
+
+    @Override
+    public void destroy() {
+        rpcClient.shutdown();
     }
 
     @Getter
     private static class ConfClientRpcExecutionContext implements RpcClient.ExecutionContext {
         private final AdminServiceGrpc.AdminServiceBlockingStub adminServiceBlockingStub;
+        private final GlobalConfServiceGrpc.GlobalConfServiceBlockingStub globalConfServiceBlockingStub;
 
         ConfClientRpcExecutionContext(Channel channel) {
             this.adminServiceBlockingStub = AdminServiceGrpc.newBlockingStub(channel).withWaitForReady();
+            this.globalConfServiceBlockingStub = GlobalConfServiceGrpc.newBlockingStub(channel).withWaitForReady();
         }
     }
 

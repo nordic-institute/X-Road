@@ -51,7 +51,9 @@ import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+import static java.time.Instant.ofEpochMilli;
 import static org.niis.xroad.restapi.exceptions.DeviationCodes.ERROR_DIAGNOSTIC_REQUEST_FAILED;
+import static org.niis.xroad.restapi.util.FormatUtils.fromInstantToOffsetDateTime;
 
 /**
  * diagnostic service
@@ -73,7 +75,12 @@ public class DiagnosticService {
      */
     public DiagnosticsStatus queryGlobalConfStatus() {
         try {
-            return confClientRpcClient.getStatus();
+            var status = confClientRpcClient.getStatus();
+            return new DiagnosticsStatus(status.getReturnCode(),
+                    status.hasPrevUpdate() ? fromInstantToOffsetDateTime(ofEpochMilli(status.getPrevUpdate())) : null,
+                    status.hasNextUpdate() ? fromInstantToOffsetDateTime(ofEpochMilli(status.getNextUpdate())) : null,
+                    status.getDescription());
+
         } catch (Exception e) {
             throw new DeviationAwareRuntimeException(e, new ErrorDeviation(ERROR_DIAGNOSTIC_REQUEST_FAILED));
         }

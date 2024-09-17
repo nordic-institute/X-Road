@@ -23,17 +23,36 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package ee.ria.xroad.common.conf.globalconf;
+package org.niis.xroad.confclient.globalconf;
 
-import java.io.IOException;
-import java.security.cert.CertificateEncodingException;
-import java.time.OffsetDateTime;
+import ee.ria.xroad.common.CodedException;
 
-public interface SharedParametersProvider extends ParameterProvider {
+import io.grpc.stub.StreamObserver;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.niis.xroad.confclient.proto.GetGlobalConfReq;
+import org.niis.xroad.confclient.proto.GetGlobalConfResp;
+import org.niis.xroad.confclient.proto.GlobalConfServiceGrpc;
+import org.springframework.stereotype.Service;
 
-    SharedParametersProvider refresh(OffsetDateTime fileExpiresOn) throws CertificateEncodingException, IOException;
+import static ee.ria.xroad.common.ErrorCodes.X_MALFORMED_GLOBALCONF;
 
-    SharedParameters getSharedParameters();
+@Slf4j
+@Service
+@RequiredArgsConstructor
+public class GlobalConfRpcService extends GlobalConfServiceGrpc.GlobalConfServiceImplBase {
+    private final GlobalConfRpcCache globalConfRpcCache;
 
-    SharedParametersMarshaller getMarshaller();
+    @Override
+    public void getGlobalConf(GetGlobalConfReq request, StreamObserver<GetGlobalConfResp> responseObserver) {
+        globalConfRpcCache.getGlobalConf().ifPresentOrElse(globalConf -> {
+            responseObserver.onNext(globalConf);
+            responseObserver.onCompleted();
+        }, () -> {
+            log.error("GlobalConf not found");
+            responseObserver.onError(new CodedException(X_MALFORMED_GLOBALCONF, "Global configuration is malformed or missing"));
+        });
+
+    }
+
 }
