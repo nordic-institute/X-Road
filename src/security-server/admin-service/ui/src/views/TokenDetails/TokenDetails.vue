@@ -151,7 +151,7 @@
  * Component for showing the details of a token.
  */
 import { computed, defineComponent, ref } from 'vue';
-import { Permissions } from '@/global';
+import { Permissions, RouteName } from '@/global';
 import { PossibleAction, Token, TokenType } from '@/openapi-types';
 import { mapActions, mapState } from 'pinia';
 import { useUser } from '@/store/modules/user';
@@ -291,7 +291,9 @@ export default defineComponent({
           });
         }
         this.showSuccess(successMsg);
-        this.$router.back();
+        this.$router.push({
+          name: RouteName.SignAndAuthKeys
+        });
       } catch (error) {
         // Error comes from axios, so it most probably is AxiosError
         this.showError(error as AxiosError);
