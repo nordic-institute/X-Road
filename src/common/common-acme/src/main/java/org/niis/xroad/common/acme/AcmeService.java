@@ -23,7 +23,7 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.securityserver.restapi.service;
+package org.niis.xroad.common.acme;
 
 import ee.ria.xroad.common.SystemProperties;
 import ee.ria.xroad.common.conf.globalconf.ApprovedCAInfo;
@@ -37,18 +37,20 @@ import lombok.extern.slf4j.Slf4j;
 import org.bouncycastle.operator.OperatorCreationException;
 import org.jose4j.jws.AlgorithmIdentifiers;
 import org.niis.xroad.common.exception.ValidationFailureException;
-import org.niis.xroad.securityserver.restapi.config.AcmeProperties;
 import org.shredzone.acme4j.Account;
 import org.shredzone.acme4j.AccountBuilder;
 import org.shredzone.acme4j.AcmeJsonResource;
 import org.shredzone.acme4j.Authorization;
 import org.shredzone.acme4j.Certificate;
+import org.shredzone.acme4j.Login;
 import org.shredzone.acme4j.Metadata;
 import org.shredzone.acme4j.Order;
+import org.shredzone.acme4j.RenewalInfo;
 import org.shredzone.acme4j.Session;
 import org.shredzone.acme4j.Status;
 import org.shredzone.acme4j.challenge.Challenge;
 import org.shredzone.acme4j.challenge.Http01Challenge;
+import org.shredzone.acme4j.connector.Resource;
 import org.shredzone.acme4j.exception.AcmeException;
 import org.springframework.stereotype.Service;
 
@@ -69,36 +71,38 @@ import java.security.PrivateKey;
 import java.security.PublicKey;
 import java.security.SecureRandom;
 import java.security.cert.X509Certificate;
-import java.time.Duration;
 import java.time.Instant;
+import java.time.Period;
 import java.time.temporal.ChronoUnit;
 import java.util.List;
 import java.util.Optional;
 import java.util.function.Supplier;
 
 import static ee.ria.xroad.common.util.CertUtils.createSelfSignedCertificate;
-import static org.niis.xroad.securityserver.restapi.service.AcmeCustomSchema.XRD_ACME;
-import static org.niis.xroad.securityserver.restapi.service.AcmeCustomSchema.XRD_ACME_PROFILE_ID;
-import static org.niis.xroad.securityserver.restapi.service.AcmeDeviationMessage.ACCOUNT_CREATION_FAILURE;
-import static org.niis.xroad.securityserver.restapi.service.AcmeDeviationMessage.ACCOUNT_KEY_PAIR_ERROR;
-import static org.niis.xroad.securityserver.restapi.service.AcmeDeviationMessage.AUTHORIZATION_FAILURE;
-import static org.niis.xroad.securityserver.restapi.service.AcmeDeviationMessage.AUTHORIZATION_WAIT_FAILURE;
-import static org.niis.xroad.securityserver.restapi.service.AcmeDeviationMessage.CERTIFICATE_FAILURE;
-import static org.niis.xroad.securityserver.restapi.service.AcmeDeviationMessage.CERTIFICATE_WAIT_FAILURE;
-import static org.niis.xroad.securityserver.restapi.service.AcmeDeviationMessage.CHALLENGE_TRIGGER_FAILURE;
-import static org.niis.xroad.securityserver.restapi.service.AcmeDeviationMessage.EAB_SECRET_LENGTH;
-import static org.niis.xroad.securityserver.restapi.service.AcmeDeviationMessage.FETCHING_METADATA_ERROR;
-import static org.niis.xroad.securityserver.restapi.service.AcmeDeviationMessage.HTTP_CHALLENGE_FILE_CREATION;
-import static org.niis.xroad.securityserver.restapi.service.AcmeDeviationMessage.HTTP_CHALLENGE_FILE_DELETION;
-import static org.niis.xroad.securityserver.restapi.service.AcmeDeviationMessage.HTTP_CHALLENGE_MISSING;
-import static org.niis.xroad.securityserver.restapi.service.AcmeDeviationMessage.ORDER_CREATION_FAILURE;
-import static org.niis.xroad.securityserver.restapi.service.AcmeDeviationMessage.ORDER_FINALIZATION_FAILURE;
+import static org.niis.xroad.common.acme.AcmeCustomSchema.XRD_ACME;
+import static org.niis.xroad.common.acme.AcmeCustomSchema.XRD_ACME_PROFILE_ID;
+import static org.niis.xroad.common.acme.AcmeDeviationMessage.ACCOUNT_CREATION_FAILURE;
+import static org.niis.xroad.common.acme.AcmeDeviationMessage.ACCOUNT_KEY_PAIR_ERROR;
+import static org.niis.xroad.common.acme.AcmeDeviationMessage.AUTHORIZATION_FAILURE;
+import static org.niis.xroad.common.acme.AcmeDeviationMessage.AUTHORIZATION_WAIT_FAILURE;
+import static org.niis.xroad.common.acme.AcmeDeviationMessage.CERTIFICATE_FAILURE;
+import static org.niis.xroad.common.acme.AcmeDeviationMessage.CERTIFICATE_WAIT_FAILURE;
+import static org.niis.xroad.common.acme.AcmeDeviationMessage.CHALLENGE_TRIGGER_FAILURE;
+import static org.niis.xroad.common.acme.AcmeDeviationMessage.EAB_SECRET_LENGTH;
+import static org.niis.xroad.common.acme.AcmeDeviationMessage.FETCHING_METADATA_ERROR;
+import static org.niis.xroad.common.acme.AcmeDeviationMessage.FETCHING_RENEWAL_INFO_FAILURE;
+import static org.niis.xroad.common.acme.AcmeDeviationMessage.HTTP_CHALLENGE_FILE_CREATION;
+import static org.niis.xroad.common.acme.AcmeDeviationMessage.HTTP_CHALLENGE_FILE_DELETION;
+import static org.niis.xroad.common.acme.AcmeDeviationMessage.HTTP_CHALLENGE_MISSING;
+import static org.niis.xroad.common.acme.AcmeDeviationMessage.ORDER_CREATION_FAILURE;
+import static org.niis.xroad.common.acme.AcmeDeviationMessage.ORDER_FINALIZATION_FAILURE;
 
 @Slf4j
 @Service
 @RequiredArgsConstructor
 public final class AcmeService {
 
+    public static final int ORDER_NOT_AFTER_DAYS = 365;
     @Setter
     private String acmeAccountKeystorePath = SystemProperties.getConfPath() + "ssl/acme.p12";
     private final String acmeChallengePath = SystemProperties.getConfPath() + "acme-challenge/";
@@ -171,7 +175,8 @@ public final class AcmeService {
             keyPairGenerator.initialize(SystemProperties.getSignerKeyLength(), new SecureRandom());
             keyPair = keyPairGenerator.generateKeyPair();
 
-            X509Certificate[] certificateChain = createSelfSignedCertificate(memberId, keyPair);
+            long expirationInDays = SystemProperties.getAcmeAccountKeyPairExpirationInDays();
+            X509Certificate[] certificateChain = createSelfSignedCertificate(memberId, keyPair, expirationInDays);
 
             keyStore.setKeyEntry(
                     memberId,
@@ -257,7 +262,7 @@ public final class AcmeService {
         log.debug("Creating new order");
         return account.newOrder()
                 .domains(subjectAltName != null ? subjectAltName : commonName)
-                .notAfter(Instant.now().plus(Duration.ofDays(1L)))
+                .notAfter(Instant.now().plus(Period.ofDays(ORDER_NOT_AFTER_DAYS)))
                 .create();
     }
 
@@ -338,5 +343,98 @@ public final class AcmeService {
         long interval = SystemProperties.getAcmeCertificateWaitInterval();
         waitForTheAcmeResourceToBeCompleted(order, order::getStatus, attempts, interval, CERTIFICATE_FAILURE, CERTIFICATE_WAIT_FAILURE);
         return order.getCertificate();
+    }
+
+    private Login getLogin(String memberId, ApprovedCAInfo approvedCA, KeyUsageInfo keyUsage) {
+        KeyPair accountKeyPair;
+        try {
+            accountKeyPair = getAccountKeyPair(memberId);
+        } catch (GeneralSecurityException | IOException | OperatorCreationException e) {
+            throw new AcmeServiceException(ACCOUNT_KEY_PAIR_ERROR, e);
+        }
+
+        Session session = new Session(approvedCA.getAcmeServerDirectoryUrl());
+        try {
+            AccountBuilder accountBuilder = new AccountBuilder()
+                    .useKeyPair(accountKeyPair);
+            Optional.ofNullable(acmeProperties.getContacts())
+                    .map(contacts -> contacts.get(memberId))
+                    .ifPresent(accountBuilder::addContact);
+            accountWithEabCredentials(accountBuilder, keyUsage, approvedCA, memberId);
+            return accountBuilder.createLogin(session);
+        } catch (AcmeException e) {
+            throw new AcmeServiceException(ACCOUNT_CREATION_FAILURE, e);
+        }
+    }
+
+    public RenewalInfo getRenewalInfo(String memberId, ApprovedCAInfo approvedCA, X509Certificate certificate, KeyUsageInfo keyUsage) {
+        Login login = getLogin(memberId, approvedCA, keyUsage);
+        RenewalInfo renewalInfo;
+        try {
+            renewalInfo = login.bindRenewalInfo(certificate);
+            renewalInfo.fetch();
+        } catch (AcmeException e) {
+            throw new AcmeServiceException(FETCHING_RENEWAL_INFO_FAILURE, e);
+        }
+        return renewalInfo;
+    }
+
+    public boolean isRenewalRequired(String memberId, ApprovedCAInfo approvedCA, X509Certificate certificate, KeyUsageInfo keyUsage) {
+        return !getRenewalInfo(memberId, approvedCA, certificate, keyUsage).renewalIsNotRequired(Instant.now());
+    }
+
+    public Instant getSuggestedRenewalStartTime(String memberId,
+                                                ApprovedCAInfo approvedCA,
+                                                X509Certificate certificate,
+                                                KeyUsageInfo keyUsage) {
+        return getRenewalInfo(memberId, approvedCA, certificate, keyUsage).getSuggestedWindowStart();
+    }
+
+    public Instant getNextRenewalTime(String memberId, ApprovedCAInfo approvedCA, X509Certificate x509Certificate, KeyUsageInfo keyUsage) {
+        try {
+            if (hasRenewalInfo(memberId, approvedCA, keyUsage)) {
+                return getSuggestedRenewalStartTime(memberId, approvedCA, x509Certificate, keyUsage);
+            }
+        } catch (Exception ex) {
+            log.error(
+                    "Retrieving renewal information from ACME Server failed. "
+                    + "Falling back to fixed renewal time based on certificate expiration date: {}", ex.getMessage());
+        }
+        int renewalTimeBeforeExpirationDate = SystemProperties.getAcmeRenewalTimeBeforeExpirationDate();
+        return x509Certificate.getNotAfter().toInstant().minus(renewalTimeBeforeExpirationDate, ChronoUnit.DAYS);
+    }
+
+    public boolean hasRenewalInfo(String memberId, ApprovedCAInfo approvedCA, KeyUsageInfo keyUsage) {
+        try {
+            return getLogin(memberId, approvedCA, keyUsage).getSession().resourceUrlOptional(Resource.RENEWAL_INFO).isPresent();
+        } catch (AcmeException e) {
+            throw new AcmeServiceException(FETCHING_RENEWAL_INFO_FAILURE, e);
+        }
+    }
+
+    public List<X509Certificate> renew(String memberId, String subjectAltName, ApprovedCAInfo approvedCA,
+                                       KeyUsageInfo keyUsage,
+                                       X509Certificate oldCertificate, byte[] newCsr) {
+        Login login = getLogin(memberId, approvedCA, keyUsage);
+        Order order;
+        try {
+            order = login.newOrder()
+                    .domains(subjectAltName)
+                    .notAfter(Instant.now().plus(Period.ofDays(ORDER_NOT_AFTER_DAYS)))
+                    .replaces(oldCertificate)
+                    .create();
+        } catch (AcmeException e) {
+            throw new AcmeServiceException(ORDER_CREATION_FAILURE, e);
+        }
+
+        try {
+            doAuthorizationAndFinalizeOrder(newCsr, order);
+        } catch (AcmeException e) {
+            throw new AcmeServiceException(ORDER_FINALIZATION_FAILURE, e);
+        }
+
+        Certificate cert = getCertificate(order);
+
+        return cert != null ? cert.getCertificateChain() : null;
     }
 }

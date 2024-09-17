@@ -23,39 +23,18 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.securityserver.restapi.service;
 
-import lombok.extern.slf4j.Slf4j;
-import org.shredzone.acme4j.connector.Connection;
-import org.shredzone.acme4j.connector.NetworkSettings;
+package org.niis.xroad.common.acme;
 
-import java.net.MalformedURLException;
-import java.net.URI;
-import java.net.URL;
+import lombok.Getter;
+import lombok.RequiredArgsConstructor;
 
-import static org.niis.xroad.securityserver.restapi.service.AcmeCustomSchema.XRD_ACME_PROFILE_ID;
-@Slf4j
-public class AcmeProfileIdProvider extends AcmeXroadProvider {
+@Getter
+@RequiredArgsConstructor
+public enum AcmeCustomSchema {
 
-    @Override
-    public boolean accepts(URI serverUri) {
-        return XRD_ACME_PROFILE_ID.getSchema().equals(serverUri.getScheme())
-                || (XRD_ACME_PROFILE_ID.getSchema() + "s").equals(serverUri.getScheme());
-    }
+    XRD_ACME("xrd-acme"),
+    XRD_ACME_PROFILE_ID("xrd-acme-profile-id");
 
-    @Override
-    public URL resolve(URI serverUri) {
-        String protocol = XRD_ACME_PROFILE_ID.getSchema().equals(serverUri.getScheme()) ? "http" : "https";
-        try {
-            return new URL(protocol, serverUri.getHost(), serverUri.getPort(), serverUri.getPath());
-        } catch (MalformedURLException ex) {
-            throw new IllegalArgumentException("Bad server URI", ex);
-        }
-    }
-
-    @Override
-    public Connection connect(URI serverUri, NetworkSettings networkSettings) {
-        return new AcmeProfileIdConnection(createHttpConnector(networkSettings));
-    }
-
+    private final String schema;
 }

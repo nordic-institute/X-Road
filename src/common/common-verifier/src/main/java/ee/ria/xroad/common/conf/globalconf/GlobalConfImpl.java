@@ -348,8 +348,7 @@ public class GlobalConfImpl implements GlobalConfProvider {
                 .findFirst()
                 .orElseThrow(
                         () -> new CodedException(X_INTERNAL_ERROR,
-                                "Certificate is not issued by approved "
-                                        + "certification service provider."));
+                                "Certificate is not issued by approved certification service provider."));
     }
 
     @Override

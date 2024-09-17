@@ -23,7 +23,8 @@
     "vue-router": "^4.4.5",
     "vee-validate": "^4.13.2",
     "pinia": "^2.2.2",
-    "pinia-plugin-persistedstate": "^3.2.3"
+    "pinia-plugin-persistedstate": "^3.2.3",
+    "dayjs": "^1.11.12"
   },
   "engines": {
     "npm": "use-pnpm",

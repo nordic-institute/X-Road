@@ -35,6 +35,9 @@ import ee.ria.xroad.signer.protocol.handler.GetMemberCertsReqHandler;
 import ee.ria.xroad.signer.protocol.handler.ImportCertReqHandler;
 import ee.ria.xroad.signer.protocol.handler.RegenerateCertReqReqHandler;
 import ee.ria.xroad.signer.protocol.handler.SetCertStatusReqHandler;
+import ee.ria.xroad.signer.protocol.handler.SetNextPlannedRenewalReqHandler;
+import ee.ria.xroad.signer.protocol.handler.SetRenewalErrorReqHandler;
+import ee.ria.xroad.signer.protocol.handler.SetRenewedCertHashReqHandler;
 
 import io.grpc.stub.StreamObserver;
 import lombok.RequiredArgsConstructor;
@@ -56,6 +59,9 @@ import org.niis.xroad.signer.proto.ImportCertResp;
 import org.niis.xroad.signer.proto.RegenerateCertRequestReq;
 import org.niis.xroad.signer.proto.RegenerateCertRequestResp;
 import org.niis.xroad.signer.proto.SetCertStatusReq;
+import org.niis.xroad.signer.proto.SetNextPlannedRenewalReq;
+import org.niis.xroad.signer.proto.SetRenewalErrorReq;
+import org.niis.xroad.signer.proto.SetRenewedCertHashReq;
 import org.niis.xroad.signer.protocol.dto.Empty;
 import org.springframework.stereotype.Service;
 
@@ -70,6 +76,9 @@ public class CertificateService extends CertificateServiceGrpc.CertificateServic
     private final GetCertificateInfoForHashReqHandler getCertificateInfoForHashReqHandler;
     private final GetMemberCertsReqHandler getMemberCertsReqHandler;
     private final SetCertStatusReqHandler setCertStatusReqHandler;
+    private final SetNextPlannedRenewalReqHandler setNextPlannedRenewalReqHandler;
+    private final SetRenewedCertHashReqHandler setRenewedCertHashReqHandler;
+    private final SetRenewalErrorReqHandler setRenewalErrorReqHandler;
     private final DeleteCertReqHandler deleteCertReqHandler;
     private final DeleteCertRequestReqHandler deleteCertRequestReqHandler;
     private final ImportCertReqHandler importCertReqHandler;
@@ -91,6 +100,21 @@ public class CertificateService extends CertificateServiceGrpc.CertificateServic
     @Override
     public void setCertStatus(SetCertStatusReq request, StreamObserver<Empty> responseObserver) {
         setCertStatusReqHandler.processSingle(request, responseObserver);
+    }
+
+    @Override
+    public void setRenewedCertHash(SetRenewedCertHashReq request, StreamObserver<Empty> responseObserver) {
+        setRenewedCertHashReqHandler.processSingle(request, responseObserver);
+    }
+
+    @Override
+    public void setRenewalError(SetRenewalErrorReq request, StreamObserver<Empty> responseObserver) {
+        setRenewalErrorReqHandler.processSingle(request, responseObserver);
+    }
+
+    @Override
+    public void setNextPlannedRenewal(SetNextPlannedRenewalReq request, StreamObserver<Empty> responseObserver) {
+        setNextPlannedRenewalReqHandler.processSingle(request, responseObserver);
     }
 
     @Override

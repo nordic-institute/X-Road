@@ -48,6 +48,7 @@ import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mockito;
+import org.niis.xroad.common.acme.AcmeService;
 import org.niis.xroad.restapi.exceptions.DeviationCodes;
 import org.niis.xroad.restapi.exceptions.ErrorDeviation;
 import org.niis.xroad.securityserver.restapi.facade.SignerProxyFacade;
@@ -190,6 +191,7 @@ public class TokenCertificateServiceTest {
                 .setId(id)
                 .setMemberId(ClientIdMapper.toDto(client))
                 .setSubjectName("CN=common name")
+                .setSubjectAltName("ss0")
                 .build());
     }
 
@@ -343,7 +345,7 @@ public class TokenCertificateServiceTest {
                     // cert will have same id as hash
                         new CertificateTestUtils.CertificateInfoBuilder().id(certHash).build();
                 case MISSING_CERTIFICATE_HASH -> createCertificateInfo(null, false, false, "status", "certID",
-                        CertificateTestUtils.getMockAuthCertificateBytes(), null);
+                        CertificateTestUtils.getMockAuthCertificateBytes(), null, null);
                 default -> throw new RuntimeException("bad switch option: " + certHash);
             };
         }).when(signerProxyFacade).getCertForHash(any());
@@ -456,6 +458,8 @@ public class TokenCertificateServiceTest {
         X509Certificate mockSignCertificate = CertificateTestUtils.getMockSignCertificate();
         when(acmeService.orderCertificateFromACMEServer(any(), any(), any(), any(), any(), any()))
                 .thenReturn(List.of(mockSignCertificate));
+        when(globalConfProvider.getApprovedCA(any(), any()))
+                .thenReturn(new ApprovedCAInfo("testca", false, "ee.test.Profile", null, null, null, null));
         tokenCertificateService.generateCertRequest(SIGN_KEY_ID, client,
                 KeyUsageInfo.SIGNING, CA_NAME,
                 ImmutableMap.of("CN", "test-common-name", "O", "test-org", "subjectAltName", "test-alt-name"),
@@ -615,6 +619,10 @@ public class TokenCertificateServiceTest {
                 .thenReturn(List.of(mockSignCertificate));
         when(signerProxyFacade.regenerateCertRequest(any(), any()))
                 .thenReturn(new SignerProxy.GeneratedCertRequestInfo(null, csrBytes, null, null, null));
+        when(globalConfProvider.getCaCert(any(), any()))
+                .thenReturn(CertificateTestUtils.getMockIntermediateCaCertificate());
+        when(globalConfProvider.getApprovedCA(any(), any()))
+                .thenReturn(new ApprovedCAInfo("testca", false, "ee.test.Profile", "http://test-ca/acme", "123.4.5.6", "5", "6"));
         tokenCertificateService.orderAcmeCertificate(CA_NAME, GOOD_CSR_ID, KeyUsageInfo.SIGNING);
         verify(acmeService).orderCertificateFromACMEServer("common name",
                 "ss0",
@@ -625,6 +633,7 @@ public class TokenCertificateServiceTest {
         verify(signerProxyFacade).importCert(mockSignCertificate.getEncoded(),
                 CertificateInfo.STATUS_REGISTERED,
                 client.getMemberId());
+        verify(signerProxyFacade).setNextPlannedRenewal(any(), any());
     }
 
     @Test
@@ -642,7 +651,7 @@ public class TokenCertificateServiceTest {
                 default -> throw new RuntimeException("bad switch option: " + certHash);
             };
             return createCertificateInfo(null, active, true, "status", "certID",
-                    CertificateTestUtils.getMockAuthCertificateBytes(), null);
+                    CertificateTestUtils.getMockAuthCertificateBytes(), null, null);
         }).when(signerProxyFacade).getCertForHash(any());
 
         // can activate inactive
@@ -673,7 +682,7 @@ public class TokenCertificateServiceTest {
         // we want to use the real rules for this test
         Mockito.reset(possibleActionsRuleEngine);
         doReturn(createCertificateInfo(null, true, true, "status",
-                "certID", CertificateTestUtils.getMockCertificateWithoutExtensionsBytes(), null))
+                "certID", CertificateTestUtils.getMockCertificateWithoutExtensionsBytes(), null, null))
                 .when(signerProxyFacade).getCertForHash(any());
 
         try {

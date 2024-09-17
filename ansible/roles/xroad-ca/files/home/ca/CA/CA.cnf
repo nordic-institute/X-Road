@@ -180,6 +180,8 @@ keyUsage = critical, digitalSignature, keyEncipherment, dataEncipherment, keyAgr
 extendedKeyUsage = clientAuth, serverAuth
 
 [extensions]
+subjectKeyIdentifier = hash, issuer:always
+authorityKeyIdentifier = keyid:always, issuer:always
 basicConstraints = CA:FALSE
 keyUsage = critical,nonRepudiation
 #keyUsage = critical, digitalSignature, keyEncipherment, dataEncipherment, keyAgreement

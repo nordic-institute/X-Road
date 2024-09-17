@@ -51,6 +51,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.bouncycastle.cert.ocsp.OCSPResp;
 
 import java.security.cert.X509Certificate;
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -759,6 +760,45 @@ public final class TokenManager {
         log.trace("setCertStatus({}, {})", certId, status);
 
         findCert(certId).setStatus(status);
+    }
+
+    /**
+     * Sets the certificate hash for the newer certificate.
+     *
+     * @param certId the certificate id
+     * @param hash the hash of the newer certificate
+     */
+    public static synchronized void setRenewedCertHash(String certId,
+                                                       String hash) {
+        log.trace("setRenewedCertHash({}, {})", certId, hash);
+
+        findCert(certId).setRenewedCertHash(hash);
+    }
+
+    /**
+     * Sets the error message that was thrown during the automatic certificate renewal process.
+     *
+     * @param certId the certificate id
+     * @param errorMessage error message of the thrown error
+     */
+    public static synchronized void setRenewalError(String certId,
+                                                    String errorMessage) {
+        log.trace("setRenewalError({}, {})", certId, errorMessage);
+
+        findCert(certId).setRenewalError(errorMessage);
+    }
+
+    /**
+     * Sets the next planned renewal time for the certificate.
+     *
+     * @param certId the certificate id
+     * @param nextRenewalTime next planned renewal time
+     */
+    public static synchronized void setNextPlannedRenewal(String certId,
+                                                          Instant nextRenewalTime) {
+        log.trace("setNextPlannedRenewal({}, {})", certId, nextRenewalTime);
+
+        findCert(certId).setNextAutomaticRenewalTime(nextRenewalTime);
     }
 
     /**

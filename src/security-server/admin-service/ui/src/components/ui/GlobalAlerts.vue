@@ -52,9 +52,9 @@
       type="error"
     >
       <span
-        v-if="showLoginLink"
+        v-if="showKeysPageLink"
         class="alert-text clickable-link"
-        @click="tokenLogin()"
+        @click="navigateToKeysPage()"
       >
         {{ $t('globalAlert.softTokenPinNotEntered') }}
       </span>
@@ -88,6 +88,31 @@
     >
       <span class="alert-text">{{ $t('globalAlert.secondaryNode') }}</span>
     </v-alert>
+    <v-alert
+      v-if="showCertificateRenewalJobFailureAlert"
+      data-test="global-alert-certificate-renewal-failure"
+      variant="outlined"
+      border="start"
+      class="alert"
+      icon="icon-Error-notification"
+      type="error"
+    >
+      <span class="alert-text">
+        {{ $t('globalAlert.certificateRenewalJobFailure') }}
+      </span>
+      <span
+        v-if="showKeysPageLink"
+        class="alert-text clickable-link"
+        @click="navigateToKeysPage()"
+        >{{ $t('globalAlert.navigateToKeysPage') }}</span
+      >
+      <span v-if="authCertificateIdsWithErrors.length > 0" class="alert-text">{{
+        `${$t('globalAlert.certificateRenewalJobFailureAuth')} ${failedAuthCertIds}`
+      }}</span>
+      <span v-if="signCertificateIdsWithErrors.length > 0" class="alert-text">{{
+        `${$t('globalAlert.certificateRenewalJobFailureSign')} ${failedSignCertIds}`
+      }}</span>
+    </v-alert>
   </v-container>
 </template>
 
@@ -105,7 +130,10 @@ export default defineComponent({
       'showGlobalConfAlert',
       'showSoftTokenPinEnteredAlert',
       'showRestoreInProgress',
+      'showCertificateRenewalJobFailureAlert',
       'restoreStartTime',
+      'authCertificateIdsWithErrors',
+      'signCertificateIdsWithErrors',
     ]),
     ...mapState(useSystem, ['isSecondaryNode']),
     ...mapState(useUser, [
@@ -118,19 +146,26 @@ export default defineComponent({
         this.showGlobalConfAlert ||
         this.showSoftTokenPinEnteredAlert ||
         this.showRestoreInProgress ||
+        this.showCertificateRenewalJobFailureAlert ||
         this.isSecondaryNode
       );
     },
 
-    showLoginLink(): boolean {
+    showKeysPageLink(): boolean {
       return this.$route.name !== RouteName.SignAndAuthKeys;
     },
     isAllowedToLoginToken(): boolean {
       return this.hasPermission(Permissions.ACTIVATE_DEACTIVATE_TOKEN);
     },
+    failedAuthCertIds(): string {
+      return this.authCertificateIdsWithErrors.join(', ');
+    },
+    failedSignCertIds(): string {
+      return this.signCertificateIdsWithErrors.join(', ');
+    },
   },
   methods: {
-    tokenLogin(): void {
+    navigateToKeysPage(): void {
       this.$router.replace({ name: RouteName.SignAndAuthKeys });
     },
   },

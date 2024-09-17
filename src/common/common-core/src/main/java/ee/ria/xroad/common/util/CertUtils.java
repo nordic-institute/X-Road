@@ -27,7 +27,6 @@ package ee.ria.xroad.common.util;
 
 import ee.ria.xroad.common.CodedException;
 import ee.ria.xroad.common.ErrorCodes;
-import ee.ria.xroad.common.SystemProperties;
 import ee.ria.xroad.common.conf.InternalSSLKey;
 
 import lombok.extern.slf4j.Slf4j;
@@ -263,9 +262,8 @@ public final class CertUtils {
      *
      * @param cert certificate to check
      * @return boolean
-     * @throws Exception if the cert has no keyUsage extension
      */
-    public static boolean isSigningCert(X509Certificate cert) throws Exception {
+    public static boolean isSigningCert(X509Certificate cert) {
         boolean[] keyUsage = cert.getKeyUsage();
 
         if (keyUsage == null) {
@@ -303,7 +301,7 @@ public final class CertUtils {
         return cert.getIssuerX500Principal().equals(cert.getSubjectX500Principal());
     }
 
-    public static X509Certificate[] createSelfSignedCertificate(String commonName, KeyPair keyPair)
+    public static X509Certificate[] createSelfSignedCertificate(String commonName, KeyPair keyPair, long expirationInDays)
             throws CertIOException, OperatorCreationException, CertificateException {
         X500Name subject = new X500Name("CN=" + commonName);
         JcaX509v3CertificateBuilder certificateBuilder =
@@ -311,7 +309,7 @@ public final class CertUtils {
                         subject,
                         BigInteger.ONE,
                         Date.from(TimeUtils.now()),
-                        Date.from(TimeUtils.now().plus(SystemProperties.getAcmeAccountKeyPairExpirationInDays(), ChronoUnit.DAYS)),
+                        Date.from(TimeUtils.now().plus(expirationInDays, ChronoUnit.DAYS)),
                         subject,
                         keyPair.getPublic());
         KeyUsage keyUsage = new KeyUsage(KeyUsage.digitalSignature);

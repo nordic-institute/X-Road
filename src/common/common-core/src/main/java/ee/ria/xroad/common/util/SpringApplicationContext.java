@@ -23,18 +23,23 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
+package ee.ria.xroad.common.util;
 
-package org.niis.xroad.securityserver.restapi.service;
+import org.springframework.context.ApplicationContext;
+import org.springframework.context.ApplicationContextAware;
+import org.springframework.stereotype.Component;
 
-import lombok.Getter;
-import lombok.RequiredArgsConstructor;
+@Component
+public class SpringApplicationContext implements ApplicationContextAware {
 
-@Getter
-@RequiredArgsConstructor
-public enum AcmeCustomSchema {
+    private static ApplicationContext applicationContext;
 
-    XRD_ACME("xrd-acme"),
-    XRD_ACME_PROFILE_ID("xrd-acme-profile-id");
+    @SuppressWarnings("java:S2696")
+    public void setApplicationContext(ApplicationContext applicationContext) {
+        SpringApplicationContext.applicationContext = applicationContext;
+    }
 
-    private final String schema;
+    public static <T> T getBean(Class<T> beanClass) {
+        return applicationContext.getBean(beanClass);
+    }
 }
