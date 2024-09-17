@@ -140,7 +140,7 @@
         :disabled="isSaveDisabled"
         data-test="token-details-save"
         @click="save()"
-        >{{ $t('action.save') }}
+      >{{ $t('action.save') }}
       </xrd-button>
     </div>
   </div>
@@ -151,7 +151,7 @@
  * Component for showing the details of a token.
  */
 import { computed, defineComponent, ref } from 'vue';
-import { Permissions, RouteName } from '@/global';
+import { Permissions } from '@/global';
 import { PossibleAction, Token, TokenType } from '@/openapi-types';
 import { mapActions, mapState } from 'pinia';
 import { useUser } from '@/store/modules/user';
@@ -290,10 +290,8 @@ export default defineComponent({
             name: this.values.token.friendlyName,
           });
         }
-        this.showSuccess(successMsg);
-        this.$router.push({
-          name: RouteName.SignAndAuthKeys
-        });
+        this.showSuccess(successMsg, true);
+        this.$router.back();
       } catch (error) {
         // Error comes from axios, so it most probably is AxiosError
         this.showError(error as AxiosError);

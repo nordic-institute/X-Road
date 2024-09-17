@@ -28,12 +28,13 @@
     <!-- Success -->
     <v-snackbar
       v-model="notification.show"
-      v-for="notification in successNotifications"
+      v-for="notification in currentSuccessNotifications"
       :key="notification.timeAdded"
       :transition="transitionName"
       :timeout="snackbarTimeout(notification.timeout)"
       :color="colors.Success10"
       :min-width="760"
+      :close-on-back="false"
       data-test="success-snackbar"
       class="success-snackbar"
       multi-line
@@ -86,7 +87,7 @@ export default defineComponent({
     };
   },
   computed: {
-    ...mapState(useNotifications, ['successNotifications']),
+    ...mapState(useNotifications, ['currentSuccessNotifications']),
     // Check global window value to see if e2e testing mode should be enabled
     transitionName: () => (window.e2eTestingMode === true ? 'no-transition' : 'fade-transition'),
   },
