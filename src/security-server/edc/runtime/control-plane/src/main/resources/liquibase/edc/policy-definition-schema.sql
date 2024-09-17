@@ -1,4 +1,5 @@
 --
+--  Copyright (c) 2022 ZF Friedrichshafen AG
 --
 --  This program and the accompanying materials are made available under the
 --  terms of the Apache License, Version 2.0 which is available at
@@ -19,8 +20,8 @@ CREATE TABLE IF NOT EXISTS edc_policydefinitions
   created_at            BIGINT  NOT NULL,
   permissions           JSON,
   prohibitions          JSON,
-  profiles              JSON,
   duties                JSON,
+  profiles              JSON,
   extensible_properties JSON,
   inherits_from         VARCHAR,
   assigner              VARCHAR,
@@ -29,7 +30,7 @@ CREATE TABLE IF NOT EXISTS edc_policydefinitions
   policy_type           VARCHAR NOT NULL,
   private_properties    JSON,
   PRIMARY KEY (policy_id)
-  );
+);
 
 COMMENT ON COLUMN edc_policydefinitions.permissions IS 'Java List<Permission> serialized as JSON';
 COMMENT ON COLUMN edc_policydefinitions.prohibitions IS 'Java List<Prohibition> serialized as JSON';

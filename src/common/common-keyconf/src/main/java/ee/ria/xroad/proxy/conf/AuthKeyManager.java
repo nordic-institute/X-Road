@@ -26,7 +26,6 @@
 package ee.ria.xroad.proxy.conf;
 
 import ee.ria.xroad.common.cert.CertChain;
-
 import ee.ria.xroad.common.conf.globalconf.AuthKey;
 
 import lombok.RequiredArgsConstructor;

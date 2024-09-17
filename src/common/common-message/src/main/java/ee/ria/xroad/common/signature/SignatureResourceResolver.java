@@ -55,6 +55,7 @@ public class SignatureResourceResolver extends ResourceResolverSpi {
             default -> isAttachment(context.attr.getValue());
         };
     }
+
     @Override
     public XMLSignatureInput engineResolveURI(ResourceResolverContext context) {
         switch (context.attr.getValue()) {
@@ -74,7 +75,7 @@ public class SignatureResourceResolver extends ResourceResolverSpi {
         if (isAttachment(context.attr.getValue())) {
             MessagePart part = getPart(context.attr.getValue());
 
-            if (part != null && part.getData() != null){
+            if (part != null && part.getData() != null) {
                 return new XMLSignatureInput(Base64.getEncoder().encodeToString(part.getData()));
             }
         }

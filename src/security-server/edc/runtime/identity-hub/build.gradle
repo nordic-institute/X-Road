@@ -33,10 +33,10 @@ dependencies {
 
     sqlDependencies(libs.bundles.sql.ih)
 
-    implementation(project(":security-server:edc:extensions:xroad-conf"))
-    implementation(project(":security-server:edc:extensions:xroad-jsonld"))
-    implementation(project(":security-server:edc:extensions:xroad-ldp-verifiable-credentials"))
-    implementation(project(":security-server:edc:extensions:xroad-webserver"))
+    implementation(project(":security-server:edc:extensions:common:xroad-conf"))
+    implementation(project(":security-server:edc:extensions:common:xroad-jsonld"))
+    implementation(project(":security-server:edc:extensions:common:xroad-ldp-verifiable-credentials"))
+    implementation(project(":security-server:edc:extensions:common:xroad-webserver"))
 
     testImplementation libs.edc.junit
     testImplementation libs.mockito.jupiter

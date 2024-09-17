@@ -29,6 +29,5 @@ lxc file push $PROXYSCRIPTDIR/read_db_properties.sh $TARGET
 lxc file push $PROXYSCRIPTDIR/restore_db.sh $TARGET
 lxc file push $PROXYSCRIPTDIR/restore_xroad_proxy_configuration.sh $TARGET
 lxc file push $PROXYSCRIPTDIR/setup_serverconf_db.sh $TARGET
-lxc file push $PROXYSCRIPTDIR/verify_internal_configuration.sh $TARGET
 
 

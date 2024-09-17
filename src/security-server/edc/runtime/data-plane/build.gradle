@@ -24,7 +24,7 @@ dependencies {
     runtimeOnly(libs.edc.dataplane.api.control.client)
     //runtimeOnly(libs.edc.dataplane.selfregistration) // currently we register dataplane instance manually
     runtimeOnly(libs.edc.dataplane.http)
-    runtimeOnly(libs.edc.dataplane.api.control)
+    runtimeOnly(libs.edc.dataplane.iam)
     //runtimeOnly(libs.edc.dataplane.api.public)
     runtimeOnly(libs.edc.dataplane.api.signaling)
     runtimeOnly(libs.edc.ext.jsonld) // needed by the DataPlaneSignalingApi
@@ -37,15 +37,15 @@ dependencies {
     implementation 'io.opentelemetry:opentelemetry-exporter-otlp:1.38.0'
 
     // x-road extensions
-    implementation(project(":security-server:edc:extensions:xroad-conf"))
-    implementation(project(":security-server:edc:extensions:xroad-jsonld"))
-    implementation(project(":security-server:edc:extensions:xroad-messagelog")) {
+    implementation(project(":security-server:edc:extensions:common:xroad-conf"))
+    implementation(project(":security-server:edc:extensions:common:xroad-jsonld"))
+    implementation(project(":security-server:edc:extensions:data-plane:xroad-messagelog")) {
         exclude group: 'org.eclipse.jetty'
     }
-    implementation(project(":security-server:edc:extensions:xroad-payload-signer")) {
+    implementation(project(":security-server:edc:extensions:data-plane:xroad-data-plane-public-api")) {
         exclude group: 'org.eclipse.jetty'
     }
-    implementation(project(":security-server:edc:extensions:xroad-webserver"))
+    implementation(project(":security-server:edc:extensions:common:xroad-webserver"))
 
     implementation libs.apache.commonsLang3
 

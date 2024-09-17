@@ -1,0 +1,15 @@
+plugins {
+    id 'java-library'
+}
+
+dependencies {
+    implementation libs.edc.boot
+    implementation libs.edc.ext.jsonld
+    implementation libs.jackson.jsonP
+    implementation libs.jackson.datatypeJsr310
+}
+
+checkstyle {
+    checkstyleMain.enabled = false
+    checkstyleTest.enabled = false
+}

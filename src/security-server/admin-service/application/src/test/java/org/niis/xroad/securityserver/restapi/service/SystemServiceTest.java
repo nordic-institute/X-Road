@@ -39,9 +39,8 @@ import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
-import org.mockito.Mockito;
 import org.mockito.junit.MockitoJUnitRunner;
-import org.niis.xroad.common.exception.util.CommonDeviationMessage;
+import org.niis.xroad.confclient.proto.ConfClientRpcClient;
 import org.niis.xroad.restapi.config.audit.AuditDataHelper;
 import org.niis.xroad.restapi.config.audit.RestApiAuditProperty;
 import org.niis.xroad.restapi.exceptions.DeviationCodes;
@@ -64,6 +63,7 @@ import static org.junit.Assert.fail;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
+import static org.niis.xroad.restapi.service.ConfigurationVerifier.EXIT_STATUS_MISSING_PRIVATE_PARAMS;
 
 @RunWith(MockitoJUnitRunner.class)
 public class SystemServiceTest {
@@ -80,11 +80,11 @@ public class SystemServiceTest {
     @Mock
     private AnchorRepository anchorRepository;
     @Mock
-    private ConfigurationVerifier configurationVerifier;
-    @Mock
     private CurrentSecurityServerId currentSecurityServerId;
     @Mock
     private ManagementRequestSenderService managementRequestSenderService;
+    @Mock
+    private ConfClientRpcClient confClientRpcClient;
     @Mock
     private AuditDataHelper auditDataHelper;
     private final SecurityServerAddressChangeStatus addressChangeStatus = new SecurityServerAddressChangeStatus();
@@ -106,8 +106,8 @@ public class SystemServiceTest {
         when(currentSecurityServerId.getServerId()).thenReturn(ownerSsId);
 
         systemService = new SystemService(globalConfService, serverConfService, anchorRepository,
-                configurationVerifier, currentSecurityServerId, managementRequestSenderService, auditDataHelper,
-                addressChangeStatus);
+                currentSecurityServerId, managementRequestSenderService, auditDataHelper,
+                addressChangeStatus, confClientRpcClient);
         systemService.setInternalKeyPath("src/test/resources/internal.key");
         systemService.setTempFilesPath(tempFolder.newFolder().getAbsolutePath());
     }
@@ -217,9 +217,7 @@ public class SystemServiceTest {
 
     @Test
     public void replaceAnchorFailVerification() throws Exception {
-        Mockito.doThrow(new ConfigurationVerifier.ConfigurationVerificationException(
-                        CommonDeviationMessage.MISSING_PRIVATE_PARAMS))
-                .when(configurationVerifier).verifyConfiguration(any(), any());
+        when(confClientRpcClient.verifyInternalConfiguration(any())).thenReturn(EXIT_STATUS_MISSING_PRIVATE_PARAMS);
         byte[] anchorBytes = FileUtils.readFileToByteArray(TestUtils.ANCHOR_FILE);
         try {
             systemService.replaceAnchor(anchorBytes);
