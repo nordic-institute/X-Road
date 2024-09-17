@@ -1,6 +1,5 @@
 /*
  * The MIT License
- *
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
@@ -24,16 +23,35 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.ss.test.addons.api;
+package ee.ria.xroad.proxy.opmonitoring;
 
-import org.springframework.cloud.openfeign.FeignClient;
-import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestHeader;
+import ee.ria.xroad.common.conf.serverconf.ServerConfProvider;
+import ee.ria.xroad.common.conf.serverconf.model.EndpointType;
+import ee.ria.xroad.common.opmonitoring.OpMonitoringData;
 
-@FeignClient(name = "xRoadRestRequestsApi", url = "http://localhost:8080")
-public interface FeignXRoadRestRequestsApi {
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.eclipse.jetty.util.StringUtil;
 
-    @GetMapping(value = "/r1/DEV/COM/1234/TestService/pets/pets", produces = "application/json")
-    ResponseEntity<String> pets(@RequestHeader("X-Road-Client") String xRoadClient);
+@Slf4j
+@RequiredArgsConstructor
+class SavedServiceEndpoint {
+
+    private final ServerConfProvider serverConfProvider;
+
+    String getPathIfExists(OpMonitoringData data) {
+        if (data.isProducer() && !StringUtil.isEmpty(data.getRestPath())) {
+            try {
+                var endpointTypes = serverConfProvider.getServiceEndpoints(data.getServiceId()).stream()
+                        .map(v -> new EndpointType(data.getServiceId().getServiceCode(), v.getMethod(), v.getPath(), false))
+                        .filter(ep -> ep.matches(data.getRestMethod(), data.getRestPath()))
+                        .findFirst();
+
+                return endpointTypes.map(EndpointType::getPath).orElse(data.getRestPath());
+            } catch (Exception e) {
+                log.error("Cannot query saved endpoint for: {}", data.getRestPath(), e);
+            }
+        }
+        return data.getRestPath();
+    }
 }
