@@ -39,6 +39,7 @@ import ee.ria.xroad.monitor.SystemMetricsSensor;
 import io.grpc.BindableService;
 import lombok.extern.slf4j.Slf4j;
 import org.niis.xroad.common.rpc.server.RpcServer;
+import org.niis.xroad.confclient.proto.ConfClientRpcClient;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
@@ -98,5 +99,10 @@ public class MonitorConfig {
     @Bean
     CertificateInfoSensor certificateInfoSensor(TaskScheduler taskScheduler, ServerConfProvider serverConfProvider) {
         return new CertificateInfoSensor(taskScheduler, serverConfProvider);
+    }
+
+    @Bean
+    ConfClientRpcClient confClientRpcClient() {
+        return new ConfClientRpcClient();
     }
 }

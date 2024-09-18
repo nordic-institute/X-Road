@@ -706,6 +706,17 @@ public final class SystemProperties {
     public static final String GRPC_INTERNAL_TRUSTSTORE_PASSWORD_ENV =
             propertyNameToEnvVariable(GRPC_INTERNAL_TRUSTSTORE_PASSWORD);
 
+    /**
+     * Property name for enabling global configuration remoting via gRPC versus filesystem.
+     */
+    public static final String GLOBAL_CONF_REMOTING_ENABLED = PREFIX + "common.global-conf-remoting-enabled";
+
+    /**
+     * Property name for global configuration refresh rate in seconds.
+     */
+    public static final String GLOBAL_CONF_REFRESH_RATE_SECONDS = PREFIX + "common.global-conf-refresh-rate-seconds";
+
+
     public static final String DATASPACES_ENABLED = PREFIX + "dataspaces.enabled";
     public static final String DATASPACES_CONTROL_PLANE_CONTROL_PORT = PREFIX + "dataspaces.controlplane.control.port";
     public static final String DATASPACES_CONTROL_PLANE_PROTOCOL_PORT = PREFIX + "dataspaces.controlplane.protocol.port";
@@ -713,12 +724,6 @@ public final class SystemProperties {
     public static final String DATASPACES_DATA_PLANE_CONTROL_PORT = PREFIX + "dataspaces.dataplane.control.port";
 
     public static final String DATASPACES_DATA_PLANE_PUBLIC_PORT = PREFIX + "dataspaces.dataplane.public.port";
-
-    /**
-     * Property name for global configuration refresh rate in seconds.
-     */
-    public static final String GLOBAL_CONF_REFRESH_RATE_SECONDS = PREFIX + "common.global-conf-refresh-rate-seconds";
-
     // Cluster node configuration ------------------------------------------ //
 
     /**
@@ -1836,6 +1841,10 @@ public final class SystemProperties {
      */
     public static String getGlobalConfRefreshRateSeconds() {
         return System.getProperty(GLOBAL_CONF_REFRESH_RATE_SECONDS, "60");
+    }
+
+    public  static boolean isGlobalConfRemotingEnabled() {
+        return Boolean.parseBoolean(System.getProperty(GLOBAL_CONF_REMOTING_ENABLED, FALSE));
     }
 
     /**

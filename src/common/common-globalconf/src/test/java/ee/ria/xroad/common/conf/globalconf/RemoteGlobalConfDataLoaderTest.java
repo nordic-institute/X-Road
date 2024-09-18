@@ -25,15 +25,26 @@
  */
 package ee.ria.xroad.common.conf.globalconf;
 
-import java.io.IOException;
-import java.security.cert.CertificateEncodingException;
-import java.time.OffsetDateTime;
+import org.junit.jupiter.api.Test;
 
-public interface SharedParametersProvider extends ParameterProvider {
+import java.util.HashMap;
 
-    SharedParametersProvider refresh(OffsetDateTime fileExpiresOn) throws CertificateEncodingException, IOException;
+import static org.assertj.core.api.AssertionsForInterfaceTypes.assertThat;
 
-    SharedParameters getSharedParameters();
+class RemoteGlobalConfDataLoaderTest extends BaseRemoteGlobalConfTest {
+    RemoteGlobalConfDataLoader dataLoader = new RemoteGlobalConfDataLoader();
 
-    SharedParametersMarshaller getMarshaller();
+    @Test
+    void shouldLoadConfData() {
+        var globalConfResp = loadGlobalConf(INSTANCE_IDENTIFIER, PATH_GOOD_GLOBALCONF,
+                1000L);
+
+        var result = dataLoader.load(globalConfResp, new HashMap<>(), new HashMap<>());
+
+        assertThat(result.dateRefreshed()).isEqualTo(1000L);
+        assertThat(result.defaultGlobalConfVersion()).isEqualTo(4);
+        assertThat(result.sharedParameters().size()).isEqualTo(4);
+        assertThat(result.privateParameters().size()).isEqualTo(3);
+        assertThat(result.sharedParametersCacheMap().size()).isEqualTo(0);
+    }
 }

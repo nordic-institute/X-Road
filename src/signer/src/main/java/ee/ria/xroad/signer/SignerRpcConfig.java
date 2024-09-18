@@ -30,6 +30,7 @@ import ee.ria.xroad.common.SystemProperties;
 import io.grpc.BindableService;
 import lombok.extern.slf4j.Slf4j;
 import org.niis.xroad.common.rpc.server.RpcServer;
+import org.niis.xroad.confclient.proto.ConfClientRpcClient;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
@@ -48,5 +49,10 @@ public class SignerRpcConfig {
                     log.info("Registering {} RPC service.", bindableService.getClass().getSimpleName());
                     builder.addService(bindableService);
                 }));
+    }
+
+    @Bean
+    ConfClientRpcClient confClientRpcClient() {
+        return new ConfClientRpcClient();
     }
 }

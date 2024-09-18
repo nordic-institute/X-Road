@@ -15,13 +15,7 @@ sourceSets {
 
 dependencies {
     implementation (project(':common:common-core'))
-    implementation (project(':common:common-globalconf')) //for the ee.ria.xroad.common.DiagnosticsStatus
-    implementation (project(':common:common-rpc'))
-
-    api(libs.grpc.protobuf)
-    api(libs.grpc.stub)
-    api(libs.grpc.nettyShaded)
-    api(libs.protobuf.javaUtil)
+    api (project(':common:common-rpc'))
 }
 
 protobuf {

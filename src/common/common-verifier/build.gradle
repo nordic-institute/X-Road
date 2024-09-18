@@ -1,3 +1,7 @@
+plugins {
+    id 'java-library'
+}
+
 project.ext.schemaTargetDir = layout.buildDirectory.dir("generated-sources").get().asFile
 testJar.enabled = true
 
@@ -13,9 +17,10 @@ configurations {
 }
 
 dependencies {
-    implementation project(':common:common-message')
-    implementation project(':common:common-globalconf')
-    implementation project(':common:common-scheduler')
+    api project(':common:common-message')
+    api project(':common:common-globalconf')
+    api project(':common:common-scheduler')
+
     testImplementation project(':common:common-test')
     xjc libs.bundles.jaxb
 }

@@ -23,51 +23,60 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package ee.ria.xroad.common.conf.globalconf;
+package org.niis.xroad.confclient.globalconf;
 
 import ee.ria.xroad.common.SystemProperties;
+import ee.ria.xroad.common.conf.globalconf.FSGlobalConfValidator;
+import ee.ria.xroad.common.conf.globalconf.GlobalConfInitState;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.niis.xroad.confclient.proto.ConfClientRpcClient;
-import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Configuration;
-import org.springframework.scheduling.annotation.EnableScheduling;
+import org.apache.commons.lang3.time.StopWatch;
+import org.niis.xroad.confclient.proto.GetGlobalConfResp;
+import org.springframework.beans.factory.InitializingBean;
 
 import java.util.Optional;
-
-import static ee.ria.xroad.common.SystemProperties.getConfigurationPath;
+import java.util.concurrent.TimeUnit;
 
 @Slf4j
-@Configuration
-@EnableScheduling
 @RequiredArgsConstructor
-public class GlobalConfBeanConfig {
+public class GlobalConfRpcCache implements InitializingBean {
+    private final FSGlobalConfValidator fsGlobalConfValidator;
+    private final GetGlobalConfRespFactory getGlobalConfRespFactory;
 
-    @Bean
-    GlobalConfSource globalConfSource(Optional<ConfClientRpcClient> globalConfClient,
-                                      RemoteGlobalConfDataLoader remoteGlobalConfDataLoader) {
-        if (SystemProperties.isGlobalConfRemotingEnabled()) {
-            if (globalConfClient.isEmpty()) {
-                throw new IllegalStateException("GlobalConf remoting is enabled, but globalConfClient is not available");
-            } else {
-                log.info("GlobalConf source is set to: RemoteGlobalConfSource(gRPC)");
-                return new RemoteGlobalConfSource(
-                        globalConfClient.get(),
-                        remoteGlobalConfDataLoader);
-            }
+    private GetGlobalConfResp cachedGlobalConf = null;
+
+    @Override
+    public void afterPropertiesSet() {
+        refreshCache();
+    }
+
+    public Optional<GetGlobalConfResp> getGlobalConf() {
+        return Optional.ofNullable(cachedGlobalConf);
+    }
+
+    public void refreshCache() {
+        try {
+            loadGlobalConf();
+        } catch (Exception e) {
+            log.error("Failed to initialize cache.", e);
         }
-        log.info("GlobalConf source is set to: VersionedConfigurationDirectory(FS)");
-        return new FileSystemGlobalConfSource(getConfigurationPath());
     }
 
-    @Bean
-    RemoteGlobalConfDataLoader remoteGlobalConfDataLoader() {
-        return new RemoteGlobalConfDataLoader();
+    private synchronized void loadGlobalConf() {
+        if (fsGlobalConfValidator.getReadinessState(SystemProperties.getConfigurationPath()) != GlobalConfInitState.READY_TO_INIT) {
+            log.warn("GlobalConf is not ready to be initialized. Skipping cache refresh.");
+            return;
+        }
+
+        var stopWatch = StopWatch.createStarted();
+        try {
+            log.trace("Refreshing cache");
+            cachedGlobalConf = getGlobalConfRespFactory.createGlobalConfResp();
+        } finally {
+            log.trace("Cache refreshed in {} ms", stopWatch.getTime(TimeUnit.MILLISECONDS));
+        }
     }
 
-    @Bean
-    GlobalConfProvider globalConfProvider(GlobalConfSource source) {
-        return new GlobalConfImpl(source);
-    }
+
 }

@@ -32,6 +32,7 @@ import ee.ria.xroad.common.util.JobManager;
 import ee.ria.xroad.common.util.TimeUtils;
 
 import lombok.extern.slf4j.Slf4j;
+import org.niis.xroad.confclient.globalconf.GlobalConfRpcCache;
 import org.niis.xroad.schedule.RetryingQuartzJob;
 import org.niis.xroad.schedule.backup.ProxyConfigurationBackupJob;
 import org.quartz.DisallowConcurrentExecution;
@@ -48,10 +49,12 @@ public class ConfigurationClientJob extends RetryingQuartzJob {
     private static final int RETRY_DELAY_SEC = 3;
 
     private final ConfigurationClient configClient;
+    private final GlobalConfRpcCache globalConfRpcCache;
 
-    public ConfigurationClientJob(ConfigurationClient configClient) {
+    public ConfigurationClientJob(ConfigurationClient configClient, GlobalConfRpcCache globalConfRpcCache) {
         super(RETRY_DELAY_SEC);
         this.configClient = configClient;
+        this.globalConfRpcCache = globalConfRpcCache;
     }
 
     @Override
@@ -63,6 +66,8 @@ public class ConfigurationClientJob extends RetryingQuartzJob {
                     new DiagnosticsStatus(DiagnosticsErrorCodes.RETURN_SUCCESS, TimeUtils.offsetDateTimeNow(),
                             TimeUtils.offsetDateTimeNow()
                                     .plusSeconds(SystemProperties.getConfigurationClientUpdateIntervalSeconds()));
+
+            globalConfRpcCache.refreshCache();
 
             context.setResult(status);
         } catch (Exception e) {

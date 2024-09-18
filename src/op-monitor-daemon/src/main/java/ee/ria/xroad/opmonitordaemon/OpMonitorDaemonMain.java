@@ -68,7 +68,7 @@ public final class OpMonitorDaemonMain {
         Version.outputVersionInfo(APP_NAME);
 
         SystemPropertiesLoader.create().withCommonAndLocal()
-                .with(CONF_FILE_OP_MONITOR, "op-monitor")
+                .with(CONF_FILE_OP_MONITOR, "op-monitor", "common")
                 .load();
         log.info("Loaded system properties...");
 

@@ -1,0 +1,36 @@
+/*
+ * The MIT License
+ *
+ * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
+ * Copyright (c) 2018 Estonian Information System Authority (RIA),
+ * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
+
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+ * THE SOFTWARE.
+ */
+syntax = "proto3";
+
+import "common_messages.proto";
+
+package org.niis.xroad.confclient.proto;
+
+option java_multiple_files = true;
+
+service GlobalConfService {
+  rpc GetGlobalConf(GetGlobalConfReq) returns (GetGlobalConfResp) {}
+}
+
+message GetGlobalConfReq {
+}
+
+message GetGlobalConfResp {
+  int64 date_refreshed = 1;
+  string instanceIdentifier = 2;
+  repeated GlobalConfInstance instances = 3;
+}
+
+message GlobalConfInstance {
+  int32 version = 1;
+  string instanceIdentifier = 2;
+  map<string, string> files = 3;
+}

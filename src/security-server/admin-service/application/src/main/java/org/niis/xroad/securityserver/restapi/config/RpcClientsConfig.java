@@ -42,7 +42,7 @@ public class RpcClientsConfig {
         return new ProxyRpcClient();
     }
 
-    @Bean(destroyMethod = "shutdown")
+    @Bean
     ConfClientRpcClient confClientRpcClient() throws Exception {
         return new ConfClientRpcClient();
     }

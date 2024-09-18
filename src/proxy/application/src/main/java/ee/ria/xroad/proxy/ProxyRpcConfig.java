@@ -38,6 +38,7 @@ import io.grpc.BindableService;
 import io.grpc.ServerBuilder;
 import lombok.extern.slf4j.Slf4j;
 import org.niis.xroad.common.rpc.server.RpcServer;
+import org.niis.xroad.confclient.proto.ConfClientRpcClient;
 import org.niis.xroad.proxy.edc.AssetsRegistrationJob;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -71,6 +72,11 @@ public class ProxyRpcConfig {
     @Bean(destroyMethod = "stop")
     RpcSignerClient rpcSignerClient() throws Exception {
         return RpcSignerClient.init();
+    }
+
+    @Bean
+    ConfClientRpcClient confClientRpcClient() {
+        return new ConfClientRpcClient();
     }
 
     @Bean
