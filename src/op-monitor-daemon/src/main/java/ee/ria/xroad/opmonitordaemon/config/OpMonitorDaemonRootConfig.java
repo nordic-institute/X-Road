@@ -41,7 +41,7 @@ import org.springframework.context.annotation.Import;
 @Configuration
 public class OpMonitorDaemonRootConfig {
 
-    @Bean(initMethod = "start", destroyMethod = "stop")
+    @Bean
     OpMonitorDaemon opMonitorDaemon(GlobalConfProvider globalConfProvider) throws Exception {
         return new OpMonitorDaemon(globalConfProvider);
     }

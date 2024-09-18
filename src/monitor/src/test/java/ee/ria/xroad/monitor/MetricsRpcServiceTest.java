@@ -80,7 +80,7 @@ class MetricsRpcServiceTest {
 
         int port = TestPortUtils.findRandomPort();
         rpcServer = RpcServer.newServer("localhost", port, serverBuilder -> serverBuilder.addService(new MetricsRpcService()));
-        rpcServer.start();
+        rpcServer.afterPropertiesSet();
         rpcClient = RpcClient.newClient("localhost", port, TestMetricsExecutionContext::new);
 
         MetricRegistry metricsRegistry = new MetricRegistry();
@@ -100,7 +100,7 @@ class MetricsRpcServiceTest {
     @AfterEach
     public void tearDown() throws Exception {
         rpcClient.shutdown();
-        rpcServer.stop();
+        rpcServer.destroy();
     }
 
     @Test

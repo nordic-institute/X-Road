@@ -68,7 +68,7 @@ public class ProxyDiagnosticsConfig {
         return new HealthChecks(globalConfProvider, keyConfProvider, serverConfProvider);
     }
 
-    @Bean(initMethod = "start", destroyMethod = "stop")
+    @Bean
     @Conditional(HealthCheckEnabledCondition.class)
     HealthCheckPort healthCheckPort(HealthChecks healthChecks) {
         return new HealthCheckPort(healthChecks);

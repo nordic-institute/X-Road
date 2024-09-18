@@ -31,6 +31,7 @@ import ee.ria.xroad.common.conf.serverconf.ServerConfProvider;
 import ee.ria.xroad.common.util.JobManager;
 
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.DisposableBean;
 
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
@@ -39,7 +40,7 @@ import java.util.concurrent.ConcurrentHashMap;
  * Base class for log manager actors.
  */
 @Slf4j
-public abstract class AbstractLogManager {
+public abstract class AbstractLogManager implements DisposableBean {
     protected static Map<String, DiagnosticsStatus> statusMap = new ConcurrentHashMap<>();
 
     protected AbstractLogManager(JobManager jobManager, GlobalConfProvider globalConfProvider, ServerConfProvider serverConfProvider) {
@@ -60,7 +61,8 @@ public abstract class AbstractLogManager {
 
     public abstract Map<String, DiagnosticsStatus> getDiagnosticStatus();
 
-    public void shutdown() {
+    @Override
+    public void destroy() {
         // NO-OP
     }
 

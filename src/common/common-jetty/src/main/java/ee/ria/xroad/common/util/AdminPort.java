@@ -36,6 +36,8 @@ import org.eclipse.jetty.server.ServerConnector;
 import org.eclipse.jetty.util.Callback;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.DisposableBean;
+import org.springframework.beans.factory.InitializingBean;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -43,7 +45,7 @@ import java.util.Map;
 /**
  * Service that listens for administrative commands on a specific port.
  */
-public class AdminPort implements StartStop {
+public class AdminPort implements InitializingBean, DisposableBean {
 
     /**
      * Base class for AdminPort callbacks
@@ -80,31 +82,15 @@ public class AdminPort implements StartStop {
     }
 
     @Override
-    public void start() throws Exception {
+    public void afterPropertiesSet() throws Exception {
         LOG.info("Started AdminPort on port {}", portNumber);
 
         server.start();
     }
 
     @Override
-    public void join() throws InterruptedException {
-        if (server.getThreadPool() != null) {
-            server.join();
-        }
-    }
-
-    @Override
-    public void stop() throws Exception {
+    public void destroy() throws Exception {
         server.stop();
-    }
-
-    /**
-     * Registers a shutdown hook to be executed when the application shuts down.
-     *
-     * @param hook the runnable that should be run when the application shuts down
-     */
-    public void addShutdownHook(Runnable hook) {
-        Runtime.getRuntime().addShutdownHook(new Thread(hook));
     }
 
     /**

@@ -134,7 +134,7 @@ public abstract class AbstractProxyIntegrationTest {
     @Configuration
     static class TestProxySpringConfig {
 
-        @Bean(initMethod = "start", destroyMethod = "stop")
+        @Bean
         TestService testService() {
             service = new TestService(servicePort);
             return service;

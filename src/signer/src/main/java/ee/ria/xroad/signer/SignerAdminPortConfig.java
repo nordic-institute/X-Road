@@ -34,8 +34,6 @@ import ee.ria.xroad.common.util.ResponseWrapper;
 import ee.ria.xroad.signer.certmanager.OcspClientWorker;
 import ee.ria.xroad.signer.job.OcspClientExecuteScheduler;
 
-import jakarta.annotation.PostConstruct;
-import jakarta.annotation.PreDestroy;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -58,7 +56,7 @@ public class SignerAdminPortConfig {
     AdminPort createAdminPort(final CertificationServiceDiagnostics diagnosticsDefault,
                               final OcspClientWorker ocspClientWorker,
                               final Optional<OcspClientExecuteScheduler> ocspClientExecuteScheduler) {
-        AdminPort port = new SpringManagerAdminPort(SystemProperties.getSignerAdminPort());
+        var port = new AdminPort(SystemProperties.getSignerAdminPort());
 
         port.addHandler("/execute", new AdminPort.SynchronousCallback() {
             @Override
@@ -102,39 +100,6 @@ public class SignerAdminPortConfig {
         });
 
         return port;
-    }
-
-    public static class SpringManagerAdminPort extends AdminPort {
-
-        /**
-         * Constructs an AdminPort instance that listens for commands on the given port number.
-         *
-         * @param portNumber the port number AdminPort will listen on
-         */
-        public SpringManagerAdminPort(int portNumber) {
-            super(portNumber);
-        }
-
-        @PostConstruct
-        public void init() throws Exception {
-            start();
-        }
-
-        @PreDestroy
-        public void destroy() {
-            log.info("Signer shutting down...");
-
-            try {
-                stop();
-                join();
-
-            } catch (Exception e) {
-                log.error("Error stopping admin port", e);
-                if (e instanceof InterruptedException) {
-                    Thread.currentThread().interrupt();
-                }
-            }
-        }
     }
 
 }

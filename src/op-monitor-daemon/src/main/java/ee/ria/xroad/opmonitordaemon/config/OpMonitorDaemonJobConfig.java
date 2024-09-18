@@ -35,7 +35,7 @@ import org.springframework.context.annotation.Configuration;
 @Configuration
 public class OpMonitorDaemonJobConfig {
 
-    @Bean(initMethod = "start", destroyMethod = "stop")
+    @Bean
     JobManager jobManager() throws SchedulerException {
         final var jobManager = new JobManager();
 

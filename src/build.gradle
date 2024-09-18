@@ -1,6 +1,6 @@
 buildscript {
     dependencies {
-        classpath (libs.licenseGradlePlugin) {
+        classpath(libs.licenseGradlePlugin) {
             exclude group: 'org.springframework', module: 'spring-core'
         }
     }
@@ -12,6 +12,7 @@ plugins {
     id 'java'
     id 'idea'
     alias(libs.plugins.springBoot) apply false
+    alias(libs.plugins.archUnit) apply false
 }
 
 sonarqube {
@@ -52,6 +53,7 @@ configure(subprojects.findAll { !["shared-ui", "ui"].contains(it.name) }) {
     apply plugin: 'idea'
     apply plugin: 'checkstyle'
     apply plugin: 'jacoco'
+    apply plugin: 'com.societegenerale.commons.plugin.gradle.ArchUnitGradlePlugin'
     version = '1.0'
 
     java {
@@ -86,6 +88,8 @@ configure(subprojects.findAll { !["shared-ui", "ui"].contains(it.name) }) {
 
         intTestCompileOnly libs.lombok
         intTestAnnotationProcessor libs.lombok
+
+        archUnitExtraLib project(":arch-rules")
     }
 
     test {
@@ -179,6 +183,18 @@ configure(subprojects.findAll { !["shared-ui", "ui"].contains(it.name) }) {
     licenseTest.source = fileTree('src/test')
     licenseFormatMain.source = fileTree('src/main')
     licenseFormatTest.source = fileTree('src/test')
+
+    archUnit {
+        testScopePath = "/classes/java/main" // disabling default test scanning
+
+        preConfiguredRules = [
+            "org.niis.xroad.arch.rule.NoBeanAnnotationWithInitDestroy",
+            "org.niis.xroad.arch.rule.NoPostConstructAnnotation",
+            "org.niis.xroad.arch.rule.NoPreDestroyAnnotation",
+        ]
+    }
+
+    checkRules.dependsOn assemble
 
     jar {
         from rootProject.file('LICENSE.txt')

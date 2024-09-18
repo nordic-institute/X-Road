@@ -87,7 +87,7 @@ public class MaintenanceModeTest {
 
         testProvider = mock(StoppableCombinationHealthCheckProvider.class);
         testPort = new HealthCheckPort(testProvider, TEST_PORT_NUMBER);
-        testPort.start();
+        testPort.afterPropertiesSet();
     }
 
     /**
@@ -105,7 +105,7 @@ public class MaintenanceModeTest {
 
         if (testPort != null) {
             try {
-                testPort.stop();
+                testPort.destroy();
             } catch (Exception e) {
                 e.printStackTrace();
             }

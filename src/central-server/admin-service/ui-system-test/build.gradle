@@ -41,3 +41,7 @@ task systemTest(type: Test) {
         showStandardStreams(true)
     }
 }
+
+archUnit {
+    skip = true
+}

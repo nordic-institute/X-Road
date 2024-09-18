@@ -30,7 +30,6 @@ import ee.ria.xroad.common.conf.InternalSSLKey;
 import ee.ria.xroad.common.conf.globalconf.GlobalConfProvider;
 import ee.ria.xroad.common.util.CryptoUtils;
 import ee.ria.xroad.common.util.HttpSender;
-import ee.ria.xroad.common.util.StartStop;
 
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.IOUtils;
@@ -45,6 +44,8 @@ import org.apache.http.impl.client.DefaultHttpRequestRetryHandler;
 import org.apache.http.impl.client.HttpClientBuilder;
 import org.apache.http.impl.client.HttpClients;
 import org.apache.http.impl.conn.PoolingHttpClientConnectionManager;
+import org.springframework.beans.factory.DisposableBean;
+import org.springframework.beans.factory.InitializingBean;
 
 import javax.net.ssl.KeyManager;
 import javax.net.ssl.KeyManagerFactory;
@@ -69,7 +70,7 @@ import java.util.Objects;
  * Client that sends managements requests to the Central Server.
  */
 @Slf4j
-public final class ManagementRequestClient implements StartStop {
+public final class ManagementRequestClient implements InitializingBean, DisposableBean {
 
     // HttpClient configuration parameters.
     private static final int CLIENT_MAX_TOTAL_CONNECTIONS = 100;
@@ -112,21 +113,16 @@ public final class ManagementRequestClient implements StartStop {
     }
 
     @Override
-    public void start() throws Exception {
+    public void afterPropertiesSet() throws Exception {
         log.info("Starting ManagementRequestClient...");
     }
 
     @Override
-    public void stop() throws Exception {
+    public void destroy() throws Exception {
         log.info("Stopping ManagementRequestClient...");
 
         IOUtils.closeQuietly(proxyHttpClient);
         IOUtils.closeQuietly(centralHttpClient);
-    }
-
-    @Override
-    public void join() throws InterruptedException {
-        // Not applicable
     }
 
     // -- Helper methods ------------------------------------------------------

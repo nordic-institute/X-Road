@@ -26,7 +26,6 @@
 package ee.ria.xroad.common.util.healthcheck;
 
 import ee.ria.xroad.common.SystemProperties;
-import ee.ria.xroad.common.util.StartStop;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -40,6 +39,8 @@ import org.eclipse.jetty.server.Server;
 import org.eclipse.jetty.server.ServerConnector;
 import org.eclipse.jetty.util.Callback;
 import org.eclipse.jetty.util.thread.QueuedThreadPool;
+import org.springframework.beans.factory.DisposableBean;
+import org.springframework.beans.factory.InitializingBean;
 
 import java.util.concurrent.atomic.AtomicBoolean;
 
@@ -52,7 +53,7 @@ import static org.eclipse.jetty.http.HttpStatus.SERVICE_UNAVAILABLE_503;
  * Service that listens for health check requests on a specific port and interface
  */
 @Slf4j
-public class HealthCheckPort implements StartStop {
+public class HealthCheckPort implements InitializingBean, DisposableBean {
 
     static final String MAINTENANCE_MESSAGE = "Health check interface is in maintenance mode.";
 
@@ -67,7 +68,7 @@ public class HealthCheckPort implements StartStop {
     private final AtomicBoolean maintenanceMode = new AtomicBoolean(false);
 
     /**
-     * Create a new {@link HealthCheckPort} use the implemented {@link StartStop} interface to start/stop it.
+     * Create a new {@link HealthCheckPort}.
      */
     public HealthCheckPort(HealthChecks healthChecks) {
         server = new Server(new QueuedThreadPool(THREAD_POOL_SIZE));
@@ -120,22 +121,14 @@ public class HealthCheckPort implements StartStop {
     }
 
     @Override
-    public void start() throws Exception {
+    public void afterPropertiesSet() throws Exception {
         log.info("Started HealthCheckPort on port {}", portNumber);
         server.start();
     }
 
-    @Override
-    public void join() throws InterruptedException {
-        if (server.getThreadPool() != null) {
-            log.info("Waiting for the HealthCheckPort thread pool to stop.");
-            server.join();
-            log.info("HealthCheckPort thread pool was stopped.");
-        }
-    }
 
     @Override
-    public void stop() throws Exception {
+    public void destroy() throws Exception {
         log.info("Stopping HealthCheckPort on port {}", portNumber);
         server.stop();
         stoppableHealthCheckProvider.stop();

@@ -41,7 +41,7 @@ class BackupValidatorTest {
 
     @BeforeEach
     void setUp() {
-        validator.initialize();
+        validator.afterPropertiesSet();
     }
 
     @Test
