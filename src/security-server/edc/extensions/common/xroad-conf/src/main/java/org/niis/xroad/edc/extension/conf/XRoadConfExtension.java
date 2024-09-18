@@ -29,9 +29,10 @@ package org.niis.xroad.edc.extension.conf;
 
 import ee.ria.xroad.common.SystemProperties;
 import ee.ria.xroad.common.cert.CertChainFactory;
-import ee.ria.xroad.common.conf.globalconf.FileSystemGlobalConfSource;
 import ee.ria.xroad.common.conf.globalconf.GlobalConfImpl;
 import ee.ria.xroad.common.conf.globalconf.GlobalConfProvider;
+import ee.ria.xroad.common.conf.globalconf.RemoteGlobalConfDataLoader;
+import ee.ria.xroad.common.conf.globalconf.RemoteGlobalConfSource;
 import ee.ria.xroad.common.conf.serverconf.CachingServerConfImpl;
 import ee.ria.xroad.common.conf.serverconf.ServerConfImpl;
 import ee.ria.xroad.common.conf.serverconf.ServerConfProvider;
@@ -44,11 +45,11 @@ import org.eclipse.edc.runtime.metamodel.annotation.Setting;
 import org.eclipse.edc.spi.EdcException;
 import org.eclipse.edc.spi.system.ServiceExtension;
 import org.eclipse.edc.spi.system.ServiceExtensionContext;
+import org.niis.xroad.confclient.proto.ConfClientRpcClient;
 
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 
-import static ee.ria.xroad.common.SystemProperties.getConfigurationPath;
 import static java.util.concurrent.TimeUnit.SECONDS;
 
 @Extension(value = XRoadConfExtension.NAME)
@@ -66,8 +67,12 @@ public class XRoadConfExtension implements ServiceExtension {
     @Override
     public void initialize(ServiceExtensionContext context) {
         try {
-            GlobalConfProvider globalConfProvider = new GlobalConfImpl(
-                    new FileSystemGlobalConfSource(getConfigurationPath()));
+            var confClientRpcClient = new ConfClientRpcClient();
+            confClientRpcClient.afterPropertiesSet();
+
+            var globalConfDataLoader = new RemoteGlobalConfDataLoader();
+            var globalConfSource = new RemoteGlobalConfSource(confClientRpcClient, globalConfDataLoader);
+            GlobalConfProvider globalConfProvider = new GlobalConfImpl(globalConfSource);
 
             ServerConfProvider serverConfProvider = (SystemProperties.getServerConfCachePeriod() > 0)
                     ? new CachingServerConfImpl(globalConfProvider)
