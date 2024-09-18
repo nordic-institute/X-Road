@@ -18,5 +18,5 @@ XROAD_LOG_LEVEL="INFO"
 XROAD_CONFCLIENT_PARAMS=" -Xmx50m -XX:MaxMetaspaceSize=70m -Dxroad.appLog.xroad.level=$XROAD_LOG_LEVEL "
 
 
-java ${XROAD_PARAMS} ${XROAD_CONFCLIENT_PARAMS} -Dlogback.configurationFile=/etc/xroad/conf.d/confclient-logback.xml -cp /usr/share/xroad/jlib/configuration-client.jar  org.niis.xroad.confclient.ConfClientCLIMain -verifyPrivateParamsExists "$@"
+java ${XROAD_PARAMS} ${XROAD_CONFCLIENT_PARAMS} -Dlogback.configurationFile=/etc/xroad/conf.d/confclient-logback.xml -cp /usr/share/xroad/jlib/configuration-client.jar  org.niis.xroad.confclient.ConfClientCLIMain --verifyPrivateParamsExists "$@"
 
