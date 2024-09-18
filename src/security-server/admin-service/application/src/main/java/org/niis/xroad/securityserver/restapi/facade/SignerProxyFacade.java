@@ -157,7 +157,8 @@ public class SignerProxyFacade implements InitializingBean, DisposableBean {
      * {@link SignerProxy#generateCertRequest(String, ClientId.Conf, KeyUsageInfo, String, String, CertificateRequestFormat, String)}
      */
     public GeneratedCertRequestInfo generateCertRequest(String keyId, ClientId.Conf memberId, KeyUsageInfo keyUsage,
-                                                        String subjectName, String altName, CertificateRequestFormat format, String certificateProfile)
+                                                        String subjectName, String altName, CertificateRequestFormat format,
+                                                        String certificateProfile)
             throws Exception {
         return SignerProxy.generateCertRequest(keyId, memberId, keyUsage, subjectName, altName, format, certificateProfile);
     }
