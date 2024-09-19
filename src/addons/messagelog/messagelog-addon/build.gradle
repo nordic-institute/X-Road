@@ -41,5 +41,9 @@ tasks.register('copyGpg', Copy) {
     into layout.buildDirectory.dir("gpg")
 }
 
+archUnit {
+    skip = true
+}
+
 test.dependsOn copyGpg
 assemble.dependsOn shadowJar

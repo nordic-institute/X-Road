@@ -39,7 +39,7 @@ import lombok.extern.slf4j.Slf4j;
 public class SigningCtxProvider {
     private static DefaultSigningCtxProvider ctxProvider = new DefaultSigningCtxProvider();
 
-    private static final MessageSigner signer = new SimpleSigner();
+    private static final MessageSigner SIGNER = new SimpleSigner();
 
     public static SigningCtx getSigningCtx(ClientId clientId, GlobalConfProvider globalConfProvider, KeyConfProvider keyConfProvider) {
         return ctxProvider.getSigningCtx(clientId, globalConfProvider, keyConfProvider);
@@ -60,9 +60,11 @@ public class SigningCtxProvider {
             return createSigningCtx(signingInfo, globalConfProvider, keyConfProvider);
         }
 
-        private SigningCtx createSigningCtx(SigningInfo signingInfo, GlobalConfProvider globalConfProvider, KeyConfProvider keyConfProvider) {
+        private SigningCtx createSigningCtx(SigningInfo signingInfo,
+                                            GlobalConfProvider globalConfProvider,
+                                            KeyConfProvider keyConfProvider) {
             return new SigningCtxImpl(globalConfProvider, keyConfProvider, signingInfo.getClientId(),
-                    new SignerSigningKey(signingInfo.getKeyId(), signingInfo.getSignMechanismName(), signer), signingInfo.getCert());
+                    new SignerSigningKey(signingInfo.getKeyId(), signingInfo.getSignMechanismName(), SIGNER), signingInfo.getCert());
         }
     }
 }

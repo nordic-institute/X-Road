@@ -33,7 +33,6 @@ import ee.ria.xroad.common.identifier.SecurityServerId;
 import ee.ria.xroad.common.identifier.ServiceId;
 import ee.ria.xroad.common.message.RestRequest;
 import ee.ria.xroad.common.util.HttpSender;
-
 import ee.ria.xroad.proxy.conf.KeyConfProvider;
 
 import lombok.extern.slf4j.Slf4j;
@@ -57,7 +56,8 @@ class ClientRestMessageDsProcessorV2 extends ClientRestMessageProcessor {
                                    HttpClient httpClient, IsAuthenticationData clientCert,
                                    AssetAuthorizationManager assetAuthorizationManager)
             throws Exception {
-        super(proxyRequestCtx, restRequest, globalConfProvider, keyConfProvider, serverConfProvider, certChainFactory, httpClient, clientCert);
+        super(proxyRequestCtx, restRequest, globalConfProvider, keyConfProvider, serverConfProvider, certChainFactory, httpClient,
+                clientCert);
         this.assetAuthorizationManager = assetAuthorizationManager;
         this.proxyRequestCtx = proxyRequestCtx;
     }

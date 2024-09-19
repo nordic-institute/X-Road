@@ -67,7 +67,7 @@ import org.springframework.core.type.AnnotatedTypeMetadata;
 public class ProxyClientConfig {
     private static final int CONNECTOR_SO_LINGER_MILLIS = SystemProperties.getClientProxyConnectorSoLinger() * 1000;
 
-    @Bean(initMethod = "start", destroyMethod = "stop")
+    @Bean
     ClientProxy clientProxy(@Qualifier("proxyHttpClient") HttpClient httpClient,
                             ClientRestMessageHandler clientRestMessageHandler,
                             ClientSoapMessageHandler clientSoapMessageHandler,
@@ -103,7 +103,7 @@ public class ProxyClientConfig {
     }
 
     @Conditional(ClientUseIdleConnectionMonitorEnabledCondition.class)
-    @Bean(initMethod = "start", destroyMethod = "shutdown")
+    @Bean
     IdleConnectionMonitorThread idleConnectionMonitorThread(
             @Qualifier("proxyHttpClientManager") HttpClientConnectionManager connectionManager) {
         var connectionMonitor = new IdleConnectionMonitorThread(connectionManager);
@@ -113,7 +113,7 @@ public class ProxyClientConfig {
         return connectionMonitor;
     }
 
-    @Bean(value = "proxyHttpClient", destroyMethod = "close")
+    @Bean("proxyHttpClient")
     CloseableHttpClient proxyHttpClient(@Qualifier("proxyHttpClientManager") HttpClientConnectionManager connectionManager) {
         log.trace("createClient()");
 
@@ -165,7 +165,8 @@ public class ProxyClientConfig {
     private SSLConnectionSocketFactory createSSLSocketFactory(GlobalConfProvider globalConfProvider, KeyConfProvider keyConfProvider,
                                                               AuthTrustVerifier authTrustVerifier)
             throws Exception {
-        return new FastestConnectionSelectingSSLSocketFactory(authTrustVerifier, SSLContextUtil.createXroadSSLContext(globalConfProvider, keyConfProvider)
+        return new FastestConnectionSelectingSSLSocketFactory(authTrustVerifier, SSLContextUtil.createXroadSSLContext(globalConfProvider,
+                keyConfProvider)
         );
     }
 

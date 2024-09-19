@@ -28,9 +28,7 @@
 package org.niis.xroad.proxy.configuration;
 
 import ee.ria.xroad.common.SystemProperties;
-
 import ee.ria.xroad.common.conf.globalconf.GlobalConfProvider;
-
 import ee.ria.xroad.proxy.conf.KeyConfProvider;
 
 import org.eclipse.edc.connector.controlplane.api.management.asset.v3.AssetApi;

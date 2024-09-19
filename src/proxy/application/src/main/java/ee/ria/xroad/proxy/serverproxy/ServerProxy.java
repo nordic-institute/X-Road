@@ -197,7 +197,7 @@ public class ServerProxy implements InitializingBean, DisposableBean {
     public void destroy() throws Exception {
         log.trace("stop()");
 
-        connMonitor.shutdown();
+        connMonitor.destroy();
         client.close();
         opMonitorClient.close();
         server.stop();

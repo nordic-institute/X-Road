@@ -172,7 +172,7 @@ public final class AsicUtils {
         appendCert(builder, timestampCert);
         builder.append("    Date: " + timestamp.getProductionTime() + "\n");
 
-        //TODO: attachmenthashes - are they even needed?
+        //TODO attachmenthashes - are they even needed?
 
         return builder.toString();
     }

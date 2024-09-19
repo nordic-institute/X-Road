@@ -30,6 +30,8 @@ import lombok.RequiredArgsConstructor;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.http.conn.HttpClientConnectionManager;
+import org.springframework.beans.factory.DisposableBean;
+import org.springframework.beans.factory.InitializingBean;
 
 import java.util.concurrent.TimeUnit;
 
@@ -38,7 +40,7 @@ import java.util.concurrent.TimeUnit;
  */
 @Slf4j
 @RequiredArgsConstructor(access = AccessLevel.PUBLIC)
-public class IdleConnectionMonitorThread extends Thread {
+public class IdleConnectionMonitorThread extends Thread implements InitializingBean, DisposableBean {
 
     private static final int DEFAULT_IDLE_TIMEOUT = 1000;
     private static final int DEFAULT_MONITORING_INTERVAL = 5000;
@@ -68,7 +70,13 @@ public class IdleConnectionMonitorThread extends Thread {
         }
     }
 
-    public void shutdown() {
+    @Override
+    public void afterPropertiesSet() throws Exception {
+        start();
+    }
+
+    @Override
+    public void destroy() {
         shutdown = true;
         interrupt();
     }

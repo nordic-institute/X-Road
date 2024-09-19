@@ -37,7 +37,7 @@ import org.springframework.context.annotation.Profile;
 @Profile("!test")
 public class RpcClientsConfig {
 
-    @Bean(destroyMethod = "shutdown")
+    @Bean
     ProxyRpcClient proxyRpcClient() throws Exception {
         return new ProxyRpcClient();
     }

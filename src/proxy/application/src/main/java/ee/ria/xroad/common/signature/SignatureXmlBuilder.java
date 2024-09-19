@@ -304,8 +304,8 @@ final class SignatureXmlBuilder {
         signedDataObjectProperties = createXadesElement(signedProperties, SIGNED_DATAOBJ_TAG);
     }
 
-    private void createDataObjectFormat(Element signedDataObjectProperties, String documentName) {
-        Element dataObjectFormat = createXadesElement(signedDataObjectProperties, DATAOBJECTFORMAT_TAG);
+    private void createDataObjectFormat(Element dataObject, String documentName) {
+        Element dataObjectFormat = createXadesElement(dataObject, DATAOBJECTFORMAT_TAG);
         dataObjectFormat.setAttribute(OBJECTREFERENCE_ATTR, "#" + getSignatureRefereceIdForMessage(dataToBeSignedCount));
 
         Element mimeType = createXadesElement(dataObjectFormat, MIMETYPE_TAG);

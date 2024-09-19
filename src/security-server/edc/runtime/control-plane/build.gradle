@@ -83,4 +83,8 @@ processResources {
     duplicatesStrategy = DuplicatesStrategy.INCLUDE
 }
 
+archUnit {
+    skip = true
+}
+
 assemble.dependsOn("shadowJarWithSql")

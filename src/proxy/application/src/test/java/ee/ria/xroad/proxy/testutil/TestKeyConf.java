@@ -29,8 +29,8 @@ import ee.ria.xroad.common.ErrorCodes;
 import ee.ria.xroad.common.OcspTestUtils;
 import ee.ria.xroad.common.TestCertUtil;
 import ee.ria.xroad.common.TestCertUtil.PKCS12;
-import ee.ria.xroad.common.conf.EmptyKeyConf;
 import ee.ria.xroad.common.cert.CertChainFactory;
+import ee.ria.xroad.common.conf.EmptyKeyConf;
 import ee.ria.xroad.common.conf.globalconf.AuthKey;
 import ee.ria.xroad.common.conf.globalconf.GlobalConfProvider;
 import ee.ria.xroad.common.identifier.ClientId;
@@ -68,10 +68,10 @@ public class TestKeyConf extends EmptyKeyConf {
         this.globalConfProvider = globalConfProvider;
         SigningCtxProvider.setSigningCtxProvider(new SigningCtxProvider.DefaultSigningCtxProvider() {
             @Override
-            public SigningCtx getSigningCtx(ClientId clientId, GlobalConfProvider globalConfProvider, KeyConfProvider keyConfProvider) {
+            public SigningCtx getSigningCtx(ClientId clientId, GlobalConfProvider confProvider, KeyConfProvider keyConfProvider) {
                 String orgName = clientId.getMemberCode();
                 if (!signingCtx.containsKey(orgName)) {
-                    signingCtx.put(orgName, TestUtil.getSigningCtx(globalConfProvider, keyConfProvider, orgName));
+                    signingCtx.put(orgName, TestUtil.getSigningCtx(confProvider, keyConfProvider, orgName));
                 }
                 return signingCtx.get(orgName);
             }
