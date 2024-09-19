@@ -42,13 +42,12 @@ public class ConfClientRpcConfig {
     @Bean(initMethod = "start", destroyMethod = "stop")
     RpcServer proxyRpcServer(Collection<BindableService> services) throws Exception {
         return RpcServer.newServer(
-                SystemProperties.getGrpcInternalHost(),
-                SystemProperties.getConfigurationClientPort(),
+                SystemProperties.getConfigurationClientGrpcListenAddress(),
+                SystemProperties.getConfigurationClientGrpcPort(),
                 builder -> services.forEach(service -> {
                     log.info("Registering {} RPC service.", service.getClass().getSimpleName());
                     builder.addService(service);
                 })
-
         );
     }
 

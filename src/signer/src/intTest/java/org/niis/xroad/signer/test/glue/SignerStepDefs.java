@@ -68,8 +68,8 @@ import java.util.Optional;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
-import static ee.ria.xroad.common.SystemProperties.getGrpcInternalHost;
-import static ee.ria.xroad.common.SystemProperties.getGrpcSignerPort;
+import static ee.ria.xroad.common.SystemProperties.getSignerGrpcHost;
+import static ee.ria.xroad.common.SystemProperties.getSignerGrpcPort;
 import static ee.ria.xroad.common.util.CryptoUtils.SHA256WITHRSA_ID;
 import static ee.ria.xroad.common.util.CryptoUtils.SHA256_ID;
 import static ee.ria.xroad.common.util.CryptoUtils.SHA512WITHRSA_ID;
@@ -627,7 +627,7 @@ public class SignerStepDefs extends BaseSignerStepDefs {
     @Step("signer client initialized with timeout {int} milliseconds")
     public void signerClientReinitializedWithTimeoutMilliseconds(int timeoutMillis) throws Exception {
         RpcSignerClient.shutdown();
-        RpcSignerClient.init(getGrpcInternalHost(), getGrpcSignerPort(), timeoutMillis);
+        RpcSignerClient.init(getSignerGrpcHost(), getSignerGrpcPort(), timeoutMillis);
     }
 
     @Step("getTokens fails with timeout exception")

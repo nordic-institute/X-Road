@@ -57,7 +57,7 @@ public class SystemMetricsSensor extends AbstractSensor {
         super(taskScheduler);
         log.info("Creating sensor, measurement interval: {}", getInterval());
 
-        this.proxyRpcClient = RpcClient.newClient(SystemProperties.getGrpcInternalHost(),
+        this.proxyRpcClient = RpcClient.newClient(SystemProperties.getProxyGrpcHost(),
                 SystemProperties.getProxyGrpcPort(), ProxyRpcExecutionContext::new);
 
         scheduleSingleMeasurement(getInterval());

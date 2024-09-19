@@ -36,9 +36,9 @@ import org.niis.xroad.signer.proto.KeyServiceGrpc;
 import org.niis.xroad.signer.proto.OcspServiceGrpc;
 import org.niis.xroad.signer.proto.TokenServiceGrpc;
 
-import static ee.ria.xroad.common.SystemProperties.getGrpcInternalHost;
-import static ee.ria.xroad.common.SystemProperties.getGrpcSignerPort;
 import static ee.ria.xroad.common.SystemProperties.getSignerClientTimeout;
+import static ee.ria.xroad.common.SystemProperties.getSignerGrpcHost;
+import static ee.ria.xroad.common.SystemProperties.getSignerGrpcPort;
 
 @Slf4j
 public final class RpcSignerClient {
@@ -59,7 +59,7 @@ public final class RpcSignerClient {
      * @throws Exception
      */
     public static RpcSignerClient init() throws Exception {
-        return init(getGrpcInternalHost(), getGrpcSignerPort(), getSignerClientTimeout());
+        return init(getSignerGrpcHost(), getSignerGrpcPort(), getSignerClientTimeout());
     }
 
     public static RpcSignerClient init(String host, int port, int clientTimeoutMillis) throws Exception {

@@ -136,8 +136,8 @@ public class SecurityServerMetricsMessage extends MessageTestCase {
         super.startUp();
 
         monitorRpcServer = RpcServer.newServer(
-                SystemProperties.getGrpcInternalHost(),
-                SystemProperties.getEnvMonitorPort(),
+                SystemProperties.getEnvMonitorGrpcListenAddress(),
+                SystemProperties.getEnvMonitorGrpcPort(),
                 builder -> builder.addService(new MockMetricsProvider()));
         monitorRpcServer.start();
 

@@ -59,7 +59,7 @@ public class SignerProxyInitHook implements BeforeSuiteHook {
         log.info("Will use {}:{} (original port {})  for signer RPC connection..", host, port, SIGNER_GRPC_PORT);
 
         System.setProperty(SystemProperties.GRPC_INTERNAL_HOST, host);
-        System.setProperty(SystemProperties.GRPC_SIGNER_PORT, String.valueOf(port));
+        System.setProperty(SystemProperties.SIGNER_GRPC_PORT, String.valueOf(port));
 
         System.setProperty(SystemProperties.GRPC_INTERNAL_KEYSTORE,
                 "build/resources/intTest/signer-container-files/etc/xroad/transport-keystore/grpc-internal-keystore.p12");

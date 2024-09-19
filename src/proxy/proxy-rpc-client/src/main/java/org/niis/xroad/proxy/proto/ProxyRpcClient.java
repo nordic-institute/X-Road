@@ -50,7 +50,7 @@ public class ProxyRpcClient {
     private final RpcClient<ProxyRpcExecutionContext> proxyRpcClient;
 
     public ProxyRpcClient() throws Exception {
-        this.proxyRpcClient = RpcClient.newClient(SystemProperties.getGrpcInternalHost(),
+        this.proxyRpcClient = RpcClient.newClient(SystemProperties.getProxyGrpcHost(),
                 SystemProperties.getProxyGrpcPort(), ProxyRpcExecutionContext::new);
     }
 

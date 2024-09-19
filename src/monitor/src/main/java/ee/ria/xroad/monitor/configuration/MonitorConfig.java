@@ -61,8 +61,8 @@ public class MonitorConfig {
     @Bean(initMethod = "start", destroyMethod = "stop")
     RpcServer rpcServer(final List<BindableService> bindableServices) throws Exception {
         return RpcServer.newServer(
-                SystemProperties.getGrpcInternalHost(),
-                SystemProperties.getEnvMonitorPort(),
+                SystemProperties.getEnvMonitorGrpcListenAddress(),
+                SystemProperties.getEnvMonitorGrpcPort(),
                 builder -> bindableServices.forEach(bindableService -> {
                     log.info("Registering {} RPC service.", bindableService.getClass().getSimpleName());
                     builder.addService(bindableService);

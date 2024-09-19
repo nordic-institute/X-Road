@@ -28,11 +28,13 @@ package ee.ria.xroad.common;
 import ee.ria.xroad.common.util.CryptoUtils;
 
 import java.util.Arrays;
-import java.util.Optional;
+
+import static java.util.Optional.ofNullable;
 
 /**
  * Contains system-wide constants for system properties.
  */
+// todo xroad8 FileLength checkstyle suppression is added to config/checkstyle/suppressions.xml. remove after refactor
 public final class SystemProperties {
 
     private SystemProperties() {
@@ -574,8 +576,6 @@ public final class SystemProperties {
      */
     private static final String MANAGEMENT_REQUEST_SENDER_CLIENT_KEYSTORE_PASSWORD =
             PREFIX + "proxy-ui-api.management-request-sender-client-keystore-password";
-    private static final String MANAGEMENT_REQUEST_SENDER_CLIENT_KEYSTORE_PASSWORD_ENV =
-            propertyNameToEnvVariable(MANAGEMENT_REQUEST_SENDER_CLIENT_KEYSTORE_PASSWORD);
 
     /**
      * Property name of the management request sender client truststore path, used to send management requests from Proxy UI.
@@ -588,8 +588,6 @@ public final class SystemProperties {
      */
     private static final String MANAGEMENT_REQUEST_SENDER_CLIENT_TRUSTSTORE_PASSWORD =
             PREFIX + "proxy-ui-api.management-request-sender-client-truststore-password";
-    private static final String MANAGEMENT_REQUEST_SENDER_CLIENT_TRUSTSTORE_PASSWORD_ENV =
-            propertyNameToEnvVariable(MANAGEMENT_REQUEST_SENDER_CLIENT_TRUSTSTORE_PASSWORD);
 
     // Proxy & Central monitor agent ------------------------------------------
 
@@ -669,16 +667,6 @@ public final class SystemProperties {
             PREFIX + "common.grpc-internal-tls-enabled";
 
     /**
-     * Property name for gRPC signer port.
-     */
-    public static final String GRPC_SIGNER_PORT = PREFIX + "signer.grpc-port";
-
-    /**
-     * Property name for gRPC proxy port.
-     */
-    public static final String PROXY_GRPC_PORT = PROXY_PREFIX + "grpc-port";
-
-    /**
      * Property name for gRPC internal keystore location.
      */
     public static final String GRPC_INTERNAL_KEYSTORE =
@@ -689,8 +677,6 @@ public final class SystemProperties {
      */
     public static final String GRPC_INTERNAL_KEYSTORE_PASSWORD =
             PREFIX + "common.grpc-internal-keystore-password";
-    public static final String GRPC_INTERNAL_KEYSTORE_PASSWORD_ENV =
-            propertyNameToEnvVariable(GRPC_INTERNAL_KEYSTORE_PASSWORD);
 
     /**
      * Property name for gRPC internal truststore location.
@@ -703,8 +689,167 @@ public final class SystemProperties {
      */
     public static final String GRPC_INTERNAL_TRUSTSTORE_PASSWORD =
             PREFIX + "common.grpc-internal-truststore-password";
-    public static final String GRPC_INTERNAL_TRUSTSTORE_PASSWORD_ENV =
-            propertyNameToEnvVariable(GRPC_INTERNAL_TRUSTSTORE_PASSWORD);
+
+    /**
+     * Property name for Signer gRPC listen address.
+     */
+    public static final String SIGNER_GRPC_LISTEN_ADDRESS = PREFIX + "signer.grpc-listen-address";
+
+    /**
+     * Property name for Signer gRPC host.
+     */
+    public static final String SIGNER_GRPC_HOST = PREFIX + "signer.grpc-host";
+
+    /**
+     * Property name for Signer gRPC port.
+     */
+    public static final String SIGNER_GRPC_PORT = PREFIX + "signer.grpc-port";
+
+    /**
+     * Property name for Signer gRPC TLS enabled on/off switch.
+     */
+    public static final String SIGNER_GRPC_TLS_ENABLED = PREFIX + "signer.grpc-tls-enabled";
+
+    /**
+     * Property name for Signer gRPC TLS truststore location.
+     */
+    public static final String SIGNER_GRPC_TLS_TRUSTSTORE = PREFIX + "signer.grpc-tls-truststore";
+
+    /**
+     * Property name for Signer gRPC TLS truststore password.
+     */
+    public static final String SIGNER_GRPC_TLS_TRUSTSTORE_PASSWORD = PREFIX + "signer.grpc-tls-truststore-password";
+
+    /**
+     * Property name for Signer gRPC TLS keystore location.
+     */
+    public static final String SIGNER_GRPC_TLS_KEYSTORE = PREFIX + "signer.grpc-tls-keystore";
+
+    /**
+     * Property name for Signer gRPC TLS keystore password.
+     */
+    public static final String SIGNER_GRPC_TLS_KEYSTORE_PASSWORD = PREFIX + "signer.grpc-tls-keystore-password";
+
+    /**
+     * Property name for Configuration Client gRPC listen address.
+     */
+    public static final String CONFIGURATION_CLIENT_GRPC_LISTEN_ADDRESS = PREFIX + "configuration-client.grpc-listen-address";
+
+    /**
+     * Property name for Configuration Client gRPC host.
+     */
+    public static final String CONFIGURATION_CLIENT_GRPC_HOST = PREFIX + "configuration-client.grpc-host";
+
+    /**
+     * Property name for Configuration Client gRPC port.
+     */
+    public static final String CONFIGURATION_CLIENT_GRPC_PORT = PREFIX + "configuration-client.grpc-port";
+
+    /**
+     * Property name for Configuration Client gRPC TLS enabled on/off switch.
+     */
+    public static final String CONFIGURATION_CLIENT_GRPC_TLS_ENABLED = PREFIX + "configuration-client.grpc-tls-enabled";
+
+    /**
+     * Property name for Configuration Client gRPC TLS truststore location.
+     */
+    public static final String CONFIGURATION_CLIENT_GRPC_TLS_TRUSTSTORE = PREFIX + "configuration-client.grpc-tls-truststore";
+
+    /**
+     * Property name for Configuration Client gRPC TLS truststore password.
+     */
+    public static final String CONFIGURATION_CLIENT_GRPC_TLS_TRUSTSTORE_PASSWORD =
+            PREFIX + "configuration-client.grpc-tls-truststore-password";
+
+    /**
+     * Property name for Configuration Client gRPC TLS keystore location.
+     */
+    public static final String CONFIGURATION_CLIENT_GRPC_TLS_KEYSTORE = PREFIX + "configuration-client.grpc-tls-keystore";
+
+    /**
+     * Property name for Configuration Client gRPC TLS keystore password.
+     */
+    public static final String CONFIGURATION_CLIENT_GRPC_TLS_KEYSTORE_PASSWORD = PREFIX + "configuration-client.grpc-tls-keystore-password";
+
+    /**
+     * Property name for Proxy gRPC listen address.
+     */
+    public static final String PROXY_GRPC_LISTEN_ADDRESS = PROXY_PREFIX + "grpc-listen-address";
+
+    /**
+     * Property name for Proxy gRPC host.
+     */
+    public static final String PROXY_GRPC_HOST = PROXY_PREFIX + "grpc-host";
+
+    /**
+     * Property name for Proxy gRPC port.
+     */
+    public static final String PROXY_GRPC_PORT = PROXY_PREFIX + "grpc-port";
+
+    /**
+     * Property name for Proxy gRPC TLS enabled on/off switch.
+     */
+    public static final String PROXY_GRPC_TLS_ENABLED = PROXY_PREFIX + "grpc-tls-enabled";
+
+    /**
+     * Property name for Proxy gRPC TLS truststore location.
+     */
+    public static final String PROXY_GRPC_TLS_TRUSTSTORE = PROXY_PREFIX + "grpc-tls-truststore";
+
+    /**
+     * Property name for Proxy gRPC TLS truststore password.
+     */
+    public static final String PROXY_GRPC_TLS_TRUSTSTORE_PASSWORD = PROXY_PREFIX + "grpc-tls-truststore-password";
+
+    /**
+     * Property name for Proxy gRPC TLS keystore location.
+     */
+    public static final String PROXY_GRPC_TLS_KEYSTORE = PROXY_PREFIX + "grpc-tls-keystore";
+
+    /**
+     * Property name for Proxy gRPC TLS keystore password.
+     */
+    public static final String PROXY_GRPC_TLS_KEYSTORE_PASSWORD = PROXY_PREFIX + "grpc-tls-keystore-password";
+
+    /**
+     * Property name for Environmental Monitoring gRPC listen address.
+     */
+    public static final String ENV_MONITOR_GRPC_LISTEN_ADDRESS = PREFIX + "env-monitor.grpc-listen-address";
+
+    /**
+     * Property name for Environmental Monitoring gRPC host.
+     */
+    public static final String ENV_MONITOR_GRPC_HOST = PREFIX + "env-monitor.grpc-host";
+
+    /**
+     * Property name for Environmental Monitoring gRPC port.
+     */
+    public static final String ENV_MONITOR_GRPC_PORT = PREFIX + "env-monitor.grpc-port";
+
+    /**
+     * Property name for Environmental Monitoring gRPC TLS enabled on/off switch.
+     */
+    public static final String ENV_MONITOR_GRPC_TLS_ENABLED = PREFIX + "env-monitor.grpc-tls-enabled";
+
+    /**
+     * Property name for Environmental Monitoring gRPC TLS truststore location.
+     */
+    public static final String ENV_MONITOR_GRPC_TLS_TRUSTSTORE = PREFIX + "env-monitor.grpc-tls-truststore";
+
+    /**
+     * Property name for Environmental Monitoring gRPC TLS truststore password.
+     */
+    public static final String ENV_MONITOR_GRPC_TLS_TRUSTSTORE_PASSWORD = PREFIX + "env-monitor.grpc-tls-truststore-password";
+
+    /**
+     * Property name for Environmental Monitoring gRPC TLS keystore location.
+     */
+    public static final String ENV_MONITOR_GRPC_TLS_KEYSTORE = PREFIX + "env-monitor.grpc-tls-keystore";
+
+    /**
+     * Property name for Environmental Monitoring gRPC TLS keystore password.
+     */
+    public static final String ENV_MONITOR_GRPC_TLS_KEYSTORE_PASSWORD = PREFIX + "env-monitor.grpc-tls-keystore-password";
 
     /**
      * Property name for enabling global configuration remoting via gRPC versus filesystem.
@@ -983,12 +1128,8 @@ public final class SystemProperties {
      * @return management request sender client keystore password.
      */
     public static char[] getManagementRequestSenderClientKeystorePassword() {
-        return Optional.ofNullable(System.getProperty(MANAGEMENT_REQUEST_SENDER_CLIENT_KEYSTORE_PASSWORD,
-                        System.getenv().get(MANAGEMENT_REQUEST_SENDER_CLIENT_KEYSTORE_PASSWORD_ENV)))
-                .map(String::toCharArray)
-                .orElse(null);
+        return getPasswordFromPropertyOrEnvironmentVariable(MANAGEMENT_REQUEST_SENDER_CLIENT_KEYSTORE_PASSWORD,null);
     }
-
     /**
      * @return path to the management request sender client truststore. Uses PKCS#12 format.
      */
@@ -1000,10 +1141,7 @@ public final class SystemProperties {
      * @return management request sender client truststore password.
      */
     public static char[] getManagementRequestSenderClientTruststorePassword() {
-        return Optional.ofNullable(System.getProperty(MANAGEMENT_REQUEST_SENDER_CLIENT_TRUSTSTORE_PASSWORD,
-                        System.getenv().get(MANAGEMENT_REQUEST_SENDER_CLIENT_TRUSTSTORE_PASSWORD_ENV)))
-                .map(String::toCharArray)
-                .orElse(null);
+        return getPasswordFromPropertyOrEnvironmentVariable(MANAGEMENT_REQUEST_SENDER_CLIENT_TRUSTSTORE_PASSWORD, null);
     }
 
     /**
@@ -1340,21 +1478,14 @@ public final class SystemProperties {
     }
 
     /**
-     * @return proxy grpc port, {@link PortNumbers#PROXY_GRPC_PORT} by default.
-     */
-    public static int getProxyGrpcPort() {
-        return Integer.getInteger(PROXY_GRPC_PORT, PortNumbers.PROXY_GRPC_PORT);
-    }
-
-    /**
      * @return environmental monitoring port, '2552' by default.
      */
     public static int getEnvMonitorPort() {
-        return Integer.parseInt(System.getProperty(ENV_MONITOR_PORT, "2552"));
+        return Integer.getInteger(ENV_MONITOR_PORT, PortNumbers.ENV_MONITOR_PORT);
     }
 
     /**
-     * @return enviroonmental monitoring limiting remote return data set, 'false' by default.
+     * @return environmental monitoring limiting remote return data set, 'false' by default.
      */
     public static boolean getEnvMonitorLimitRemoteDataSet() {
         return Boolean.parseBoolean(System.getProperty(ENV_MONITOR_LIMIT_REMOTE_DATA_SET,
@@ -1790,6 +1921,7 @@ public final class SystemProperties {
     /**
      * @return gRPC signer host.
      */
+    @Deprecated
     public static String getGrpcInternalHost() {
         return System.getProperty(GRPC_INTERNAL_HOST, "127.0.0.1");
     }
@@ -1797,20 +1929,15 @@ public final class SystemProperties {
     /**
      * @return whether gRPC Tls is enabled.
      */
+    @Deprecated
     public static boolean isGrpcInternalTlsEnabled() {
         return Boolean.parseBoolean(System.getProperty(GRPC_INTERNAL_TLS_ENABLED, Boolean.TRUE.toString()));
     }
 
     /**
-     * @return gRPC signer port.
-     */
-    public static int getGrpcSignerPort() {
-        return Integer.parseInt(System.getProperty(GRPC_SIGNER_PORT, String.valueOf(PortNumbers.SIGNER_GRPC_PORT)));
-    }
-
-    /**
      * @return gRPC internal key store path. Uses JKS format.
      */
+    @Deprecated
     public static String getGrpcInternalKeyStore() {
         return System.getProperty(GRPC_INTERNAL_KEYSTORE, "/var/run/xroad/xroad-grpc-internal-keystore.p12");
     }
@@ -1818,13 +1945,15 @@ public final class SystemProperties {
     /**
      * @return gRPC internal key store password.
      */
-    public static String getGrpcInternalKeyStorePassword() {
-        return System.getProperty(GRPC_INTERNAL_KEYSTORE_PASSWORD, System.getenv().get(GRPC_INTERNAL_KEYSTORE_PASSWORD_ENV));
+    @Deprecated
+    public static char[] getGrpcInternalKeyStorePassword() {
+        return getPasswordFromPropertyOrEnvironmentVariable(GRPC_INTERNAL_KEYSTORE_PASSWORD, null);
     }
 
     /**
      * @return gRPC internal trust store path. Uses JKS format.
      */
+    @Deprecated
     public static String getGrpcInternalTrustStore() {
         return System.getProperty(GRPC_INTERNAL_TRUSTSTORE, "/var/run/xroad/xroad-grpc-internal-keystore.p12");
     }
@@ -1832,8 +1961,289 @@ public final class SystemProperties {
     /**
      * @return gRPC internal trust store path password.
      */
-    public static String getGrpcInternalTruststorePassword() {
-        return System.getProperty(GRPC_INTERNAL_TRUSTSTORE_PASSWORD, System.getenv().get(GRPC_INTERNAL_TRUSTSTORE_PASSWORD_ENV));
+    @Deprecated
+    public static char[] getGrpcInternalTruststorePassword() {
+        return getPasswordFromPropertyOrEnvironmentVariable(GRPC_INTERNAL_TRUSTSTORE_PASSWORD, null);
+    }
+
+    /**
+     * @return the gRPC signer listen address.
+     */
+    public static String getSignerGrpcListenAddress() {
+        return System.getProperty(SIGNER_GRPC_LISTEN_ADDRESS,
+                // todo xroad8 fallback to old property. to be removed
+                getGrpcInternalHost());
+    }
+
+    /**
+     * @return the Signer gRPC host.
+     */
+    public static String getSignerGrpcHost() {
+        return System.getProperty(SIGNER_GRPC_HOST,
+                // todo xroad8 fallback to old property. to be removed
+                getGrpcInternalHost());
+    }
+
+    /**
+     * @return the Signer gRPC port.
+     */
+    public static int getSignerGrpcPort() {
+        return Integer.getInteger(SIGNER_GRPC_PORT, PortNumbers.SIGNER_GRPC_PORT);
+    }
+
+    /**
+     * @return whether Signer gRPC Tls is enabled.
+     */
+    public static boolean isSignerGrpcTlsEnabled() {
+        return Boolean.parseBoolean(System.getProperty(SIGNER_GRPC_TLS_ENABLED,
+                // todo xroad8 fallback to old property. to be removed
+                Boolean.toString(isGrpcInternalTlsEnabled())));
+    }
+
+    /**
+     * @return the Signer gRPC trust store path.
+     */
+    public static String getSignerGrpcTrustStore() {
+        return System.getProperty(SIGNER_GRPC_TLS_TRUSTSTORE,
+                // todo xroad8 fallback to old property. to be removed
+                getGrpcInternalTrustStore());
+    }
+
+    /**
+     * @return the Signer gRPC trust store password.
+     */
+    public static char[] getSignerGrpcTrustStorePassword() {
+        return getPasswordFromPropertyOrEnvironmentVariable(SIGNER_GRPC_TLS_TRUSTSTORE_PASSWORD,
+                // todo xroad8 fallback to old property. to be removed
+                getGrpcInternalTruststorePassword());
+    }
+
+    /**
+     * @return the Signer gRPC key store path.
+     */
+    public static String getSignerGrpcKeyStore() {
+        return System.getProperty(SIGNER_GRPC_TLS_KEYSTORE,
+                // todo xroad8 fallback to old property. to be removed
+                getGrpcInternalKeyStore());
+    }
+
+    /**
+     * @return the Signer gRPC key store password.
+     */
+    public static char[] getSignerGrpcKeyStorePassword() {
+        return getPasswordFromPropertyOrEnvironmentVariable(SIGNER_GRPC_TLS_KEYSTORE_PASSWORD,
+                // todo xroad8 fallback to old property. to be removed
+                getGrpcInternalKeyStorePassword());
+    }
+
+    /**
+     * @return the Configuration Client gRPC listen address.
+     */
+    public static String getConfigurationClientGrpcListenAddress() {
+        return System.getProperty(CONFIGURATION_CLIENT_GRPC_LISTEN_ADDRESS,
+                // todo xroad8 fallback to old property. to be removed
+                getGrpcInternalHost());
+    }
+
+    /**
+     * @return the Configuration Client gRPC host.
+     */
+    public static String getConfigurationClientGrpcHost() {
+        return System.getProperty(CONFIGURATION_CLIENT_GRPC_HOST,
+                // todo xroad8 fallback to old property. to be removed
+                getGrpcInternalHost());
+    }
+
+    /**
+     * @return the Configuration Client gRPC port.
+     */
+    public static int getConfigurationClientGrpcPort() {
+        return Integer.getInteger(CONFIGURATION_CLIENT_GRPC_PORT, PortNumbers.CONFIGURATION_CLIENT_PORT);
+    }
+
+    /**
+     * @return whether Configuration Client gRPC Tls is enabled.
+     */
+    public static boolean isConfigurationClientGrpcTlsEnabled() {
+        return Boolean.parseBoolean(System.getProperty(CONFIGURATION_CLIENT_GRPC_TLS_ENABLED,
+                // todo xroad8 fallback to old property. to be removed
+                Boolean.toString(isGrpcInternalTlsEnabled())));
+    }
+
+    /**
+     * @return the Configuration Client gRPC trust store path.
+     */
+    public static String getConfigurationClientGrpcTrustStore() {
+        return System.getProperty(CONFIGURATION_CLIENT_GRPC_TLS_TRUSTSTORE,
+                // todo xroad8 fallback to old property. to be removed
+                getGrpcInternalTrustStore());
+    }
+
+    /**
+     * @return the Configuration Client gRPC trust store password.
+     */
+    public static char[] getConfigurationClientGrpcTrustStorePassword() {
+        return getPasswordFromPropertyOrEnvironmentVariable(CONFIGURATION_CLIENT_GRPC_TLS_TRUSTSTORE_PASSWORD,
+                // todo xroad8 fallback to old property. to be removed
+                getGrpcInternalTruststorePassword());
+    }
+
+    /**
+     * @return the Configuration Client gRPC key store path.
+     */
+    public static String getConfigurationClientGrpcKeyStore() {
+        return System.getProperty(CONFIGURATION_CLIENT_GRPC_TLS_KEYSTORE,
+                // todo xroad8 fallback to old property. to be removed
+                getGrpcInternalKeyStore());
+    }
+
+    /**
+     * @return the Configuration Client gRPC key store password.
+     */
+    public static char[] getConfigurationClientGrpcKeyStorePassword() {
+        return getPasswordFromPropertyOrEnvironmentVariable(CONFIGURATION_CLIENT_GRPC_TLS_KEYSTORE_PASSWORD,
+                // todo xroad8 fallback to old property. to be removed
+                getGrpcInternalKeyStorePassword());
+    }
+
+    /**
+     * @return the Proxy gRPC listen address.
+     */
+    public static String getProxyGrpcListenAddress() {
+        return System.getProperty(PROXY_GRPC_LISTEN_ADDRESS,
+                // todo xroad8 fallback to old property. to be removed
+                getGrpcInternalHost());
+    }
+
+    /**
+     * @return the Proxy gRPC host.
+     */
+    public static String getProxyGrpcHost() {
+        return System.getProperty(PROXY_GRPC_HOST,
+                // todo xroad8 fallback to old property. to be removed
+                getGrpcInternalHost());
+    }
+
+    /**
+     * @return the Proxy gRPC port.
+     */
+    public static int getProxyGrpcPort() {
+        return Integer.getInteger(PROXY_GRPC_PORT, PortNumbers.PROXY_GRPC_PORT);
+    }
+
+    /**
+     * @return whether Proxy gRPC Tls is enabled.
+     */
+    public static boolean isProxyGrpcTlsEnabled() {
+        return Boolean.parseBoolean(System.getProperty(PROXY_GRPC_TLS_ENABLED,
+                // todo xroad8 fallback to old property. to be removed
+                Boolean.toString(isGrpcInternalTlsEnabled())));
+    }
+
+    /**
+     * @return the Proxy gRPC trust store path.
+     */
+    public static String getProxyGrpcTrustStore() {
+        return System.getProperty(PROXY_GRPC_TLS_TRUSTSTORE,
+                // todo xroad8 fallback to old property. to be removed
+                getGrpcInternalTrustStore());
+    }
+
+    /**
+     * @return the Proxy gRPC trust store password.
+     */
+    public static char[] getProxyGrpcTrustStorePassword() {
+        return getPasswordFromPropertyOrEnvironmentVariable(PROXY_GRPC_TLS_TRUSTSTORE_PASSWORD,
+                // todo xroad8 fallback to old property. to be removed
+                getGrpcInternalTruststorePassword());
+    }
+
+    /**
+     * @return the Proxy gRPC key store path.
+     */
+    public static String getProxyGrpcKeyStore() {
+        return System.getProperty(PROXY_GRPC_TLS_KEYSTORE,
+                // todo xroad8 fallback to old property. to be removed
+                getGrpcInternalKeyStore());
+    }
+
+    /**
+     * @return the Proxy gRPC key store password.
+     */
+    public static char[] getProxyGrpcKeyStorePassword() {
+        return getPasswordFromPropertyOrEnvironmentVariable(PROXY_GRPC_TLS_KEYSTORE_PASSWORD,
+                // todo xroad8 fallback to old property. to be removed
+                getGrpcInternalKeyStorePassword());
+    }
+
+    /**
+     * @return the Environmental Monitoring gRPC listen address.
+     */
+    public static String getEnvMonitorGrpcListenAddress() {
+        return System.getProperty(ENV_MONITOR_GRPC_LISTEN_ADDRESS,
+                // todo xroad8 fallback to old property. to be removed
+                getGrpcInternalHost());
+    }
+
+    /**
+     * @return the Environmental Monitoring gRPC host.
+     */
+    public static String getEnvMonitorGrpcHost() {
+        return System.getProperty(ENV_MONITOR_GRPC_HOST,
+                // todo xroad8 fallback to old property. to be removed
+                getGrpcInternalHost());
+    }
+
+    /**
+     * @return the Environmental Monitoring gRPC port.
+     */
+    public static int getEnvMonitorGrpcPort() {
+        return Integer.getInteger(ENV_MONITOR_GRPC_PORT, PortNumbers.ENV_MONITOR_PORT);
+    }
+
+    /**
+     * @return whether Environmental Monitoring gRPC Tls is enabled.
+     */
+    public static boolean isEnvMonitorGrpcTlsEnabled() {
+        return Boolean.parseBoolean(System.getProperty(ENV_MONITOR_GRPC_TLS_ENABLED,
+                // todo xroad8 fallback to old property. to be removed
+                Boolean.toString(isGrpcInternalTlsEnabled())));
+    }
+
+    /**
+     * @return the Environmental Monitoring gRPC trust store path.
+     */
+    public static String getEnvMonitorGrpcTrustStore() {
+        return System.getProperty(ENV_MONITOR_GRPC_TLS_TRUSTSTORE,
+                // todo xroad8 fallback to old property. to be removed
+                getGrpcInternalTrustStore());
+    }
+
+    /**
+     * @return the Environmental Monitoring gRPC trust store password.
+     */
+    public static char[] getEnvMonitorGrpcTrustStorePassword() {
+        return getPasswordFromPropertyOrEnvironmentVariable(ENV_MONITOR_GRPC_TLS_TRUSTSTORE_PASSWORD,
+                // todo xroad8 fallback to old property. to be removed
+                getGrpcInternalTruststorePassword());
+    }
+
+    /**
+     * @return the Environmental Monitoring gRPC key store path.
+     */
+    public static String getEnvMonitorGrpcKeyStore() {
+        return System.getProperty(ENV_MONITOR_GRPC_TLS_KEYSTORE,
+                // todo xroad8 fallback to old property. to be removed
+                getGrpcInternalKeyStore());
+    }
+
+    /**
+     * @return the Environmental Monitoring gRPC key store password.
+     */
+    public static char[] getEnvMonitorGrpcKeyStorePassword() {
+        return getPasswordFromPropertyOrEnvironmentVariable(ENV_MONITOR_GRPC_TLS_KEYSTORE_PASSWORD,
+                // todo xroad8 fallback to old property. to be removed
+                getGrpcInternalKeyStorePassword());
     }
 
     /**
@@ -1843,7 +2253,7 @@ public final class SystemProperties {
         return System.getProperty(GLOBAL_CONF_REFRESH_RATE_SECONDS, "60");
     }
 
-    public  static boolean isGlobalConfRemotingEnabled() {
+    public static boolean isGlobalConfRemotingEnabled() {
         return Boolean.parseBoolean(System.getProperty(GLOBAL_CONF_REMOTING_ENABLED, FALSE));
     }
 
@@ -1885,4 +2295,17 @@ public final class SystemProperties {
     private static String propertyNameToEnvVariable(String propName) {
         return propName.toUpperCase().replaceAll("[.-]", "_");
     }
+
+    /**
+     * @param propertyName Property name for password
+     * @param defaultValue Default value.
+     * @return Returns password defined by propertyName or environment variable or defaultValue if not found.
+     */
+    private static char[] getPasswordFromPropertyOrEnvironmentVariable(String propertyName, char[] defaultValue) {
+        return ofNullable(System.getProperty(propertyName,
+                System.getenv().get(propertyNameToEnvVariable(propertyName))))
+                .map(String::toCharArray)
+                .orElse(defaultValue);
+    }
+
 }

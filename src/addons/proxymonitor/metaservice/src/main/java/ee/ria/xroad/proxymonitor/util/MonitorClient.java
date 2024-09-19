@@ -49,8 +49,8 @@ public class MonitorClient {
     private final RpcClient<MetricsRpcExecutionContext> metricsRpcClient;
 
     public MonitorClient() throws Exception {
-        this.metricsRpcClient = RpcClient.newClient(SystemProperties.getGrpcInternalHost(),
-                SystemProperties.getEnvMonitorPort(), TIMEOUT_AWAIT, MetricsRpcExecutionContext::new);
+        this.metricsRpcClient = RpcClient.newClient(SystemProperties.getEnvMonitorGrpcHost(),
+                SystemProperties.getEnvMonitorGrpcPort(), TIMEOUT_AWAIT, MetricsRpcExecutionContext::new);
     }
 
     /**

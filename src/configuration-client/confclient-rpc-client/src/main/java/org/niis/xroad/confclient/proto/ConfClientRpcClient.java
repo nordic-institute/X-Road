@@ -41,8 +41,8 @@ public class ConfClientRpcClient implements DisposableBean, InitializingBean {
 
     @Override
     public void afterPropertiesSet() throws Exception {
-        this.rpcClient = RpcClient.newClient(SystemProperties.getGrpcInternalHost(),
-                SystemProperties.getConfigurationClientPort(), ConfClientRpcExecutionContext::new);
+        this.rpcClient = RpcClient.newClient(SystemProperties.getConfigurationClientGrpcHost(),
+                SystemProperties.getConfigurationClientGrpcPort(), ConfClientRpcExecutionContext::new);
     }
 
     public void execute() throws Exception {

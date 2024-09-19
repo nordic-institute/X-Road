@@ -86,7 +86,7 @@ class SystemMetricsSensorTest {
 
     @BeforeAll
     public static void init() throws Exception {
-        rpcServer = RpcServer.newServer(SystemProperties.getGrpcInternalHost(), PORT, serverBuilder ->
+        rpcServer = RpcServer.newServer(SystemProperties.getProxyGrpcListenAddress(), PORT, serverBuilder ->
                 serverBuilder.addService(new MonitorServiceGrpc.MonitorServiceImplBase() {
                     @Override
                     public void getStats(StatsReq request, StreamObserver<StatsResp> responseObserver) {

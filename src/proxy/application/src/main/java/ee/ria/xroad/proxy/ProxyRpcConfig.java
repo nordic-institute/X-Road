@@ -54,7 +54,7 @@ public class ProxyRpcConfig {
     RpcServer proxyRpcServer(final AddOn.BindableServiceRegistry bindableServiceRegistry,
                              List<BindableService> rpcServices) throws Exception {
         return RpcServer.newServer(
-                SystemProperties.getGrpcInternalHost(),
+                SystemProperties.getProxyGrpcListenAddress(),
                 SystemProperties.getProxyGrpcPort(),
                 builder -> {
                     registerServices(bindableServiceRegistry.getRegisteredServices(), builder);

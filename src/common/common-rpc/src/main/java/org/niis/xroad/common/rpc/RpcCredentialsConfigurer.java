@@ -83,7 +83,7 @@ public class RpcCredentialsConfigurer {
         KeyStore keystore = getKeystore(path, password);
         KeyManagerFactory keyManagerFactory =
                 KeyManagerFactory.getInstance(KeyManagerFactory.getDefaultAlgorithm());
-        keyManagerFactory.init(keystore, password.toCharArray());
+        keyManagerFactory.init(keystore, password);
         return keyManagerFactory.getKeyManagers();
     }
 
@@ -99,13 +99,13 @@ public class RpcCredentialsConfigurer {
         return trustManagerFactory.getTrustManagers();
     }
 
-    private static KeyStore getKeystore(String filePath, String password) {
+    private static KeyStore getKeystore(String filePath, char[] password) {
         log.trace("Loading keystore for RPC operation from path {}", filePath);
         Path path = Paths.get(filePath);
         KeyStore keystore = null;
         try (InputStream in = Files.newInputStream(path)) {
             keystore = KeyStore.getInstance("JKS");
-            keystore.load(in, password.toCharArray());
+            keystore.load(in, password);
         } catch (IOException | CertificateException | NoSuchAlgorithmException | KeyStoreException e) {
             log.error("Failed to read gRPC keystore.", e);
         }
