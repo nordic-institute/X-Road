@@ -50,7 +50,7 @@ import java.util.Optional;
 @Configuration
 public class ProxyRpcConfig {
 
-    @Bean(initMethod = "start", destroyMethod = "stop")
+    @Bean
     RpcServer proxyRpcServer(final AddOn.BindableServiceRegistry bindableServiceRegistry,
                              List<BindableService> rpcServices) throws Exception {
         return RpcServer.newServer(
@@ -69,7 +69,7 @@ public class ProxyRpcConfig {
         });
     }
 
-    @Bean(destroyMethod = "stop")
+    @Bean
     RpcSignerClient rpcSignerClient() throws Exception {
         return RpcSignerClient.init();
     }

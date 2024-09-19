@@ -23,7 +23,7 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.securityserver.restapi.service;
+package org.niis.xroad.common.acme;
 
 import lombok.Getter;
 import org.niis.xroad.restapi.exceptions.DeviationProvider;
@@ -49,7 +49,9 @@ public enum AcmeDeviationMessage implements DeviationProvider {
                     + "ownership of the domain"),
     AUTHORIZATION_WAIT_FAILURE("acme.authorization_wait_failure", "Waiting for the Authorization to complete failed"),
     CERTIFICATE_FAILURE("acme.certificate_failure", "Getting the Certificate from the ACME server failed"),
-    CERTIFICATE_WAIT_FAILURE("acme.certificate_wait_failure", "Waiting for the creation of the new Certificate failed");
+    CERTIFICATE_WAIT_FAILURE("acme.certificate_wait_failure", "Waiting for the creation of the new Certificate failed"),
+    FETCHING_RENEWAL_INFO_FAILURE("acme.fetching_renewal_info_failure",
+            "Fetching certificate renewal recommendations from ACME server failed");
 
     @Getter
     private final String code;

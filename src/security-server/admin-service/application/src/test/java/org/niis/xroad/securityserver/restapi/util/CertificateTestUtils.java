@@ -481,6 +481,7 @@ public final class CertificateTestUtils {
         private String id = "1";
         private ClientId.Conf clientId = ClientId.Conf.create("a", "b", "c");
         private boolean addOcspBytes = true;
+        private String renewedCertHash;
 
 
         public CertificateInfoBuilder() {
@@ -508,6 +509,11 @@ public final class CertificateTestUtils {
 
         public CertificateInfoBuilder certificateStatus(String certificateStatusParam) {
             this.certificateStatus = certificateStatusParam;
+            return this;
+        }
+
+        public CertificateInfoBuilder renewedCertHash(String renewedCertHashParam) {
+            this.renewedCertHash = renewedCertHashParam;
             return this;
         }
 
@@ -542,7 +548,8 @@ public final class CertificateTestUtils {
                         certificateStatus,
                         id,
                         certificate.getEncoded(),
-                        ocspBytes);
+                        ocspBytes,
+                        renewedCertHash);
             } catch (Exception e) {
                 throw new RuntimeException("failed to create CertificateInfo", e);
             }
@@ -550,13 +557,18 @@ public final class CertificateTestUtils {
     }
 
     public static CertificateInfo createCertificateInfo(ClientId.Conf clientId, boolean active, boolean savedToConfiguration,
-                                                        String status, String id, byte[] certBytes, byte[] ocspBytes) {
+                                                        String status, String id, byte[] certBytes, byte[] ocspBytes,
+                                                        String renewedCertHash) {
 
         final CertificateInfoProto.Builder builder = CertificateInfoProto.newBuilder()
                 .setActive(active)
                 .setSavedToConfiguration(savedToConfiguration)
                 .setStatus(status)
                 .setId(id);
+
+        if (renewedCertHash != null) {
+            builder.setRenewedCertHash(renewedCertHash);
+        }
 
         ofNullable(clientId).map(ClientIdMapper::toDto).ifPresent(builder::setMemberId);
         ofNullable(certBytes).map(ByteString::copyFrom).ifPresent(builder::setCertificateBytes);

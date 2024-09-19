@@ -43,6 +43,7 @@ import ee.ria.xroad.common.util.HttpSender;
 import ee.ria.xroad.common.util.MimeUtils;
 import ee.ria.xroad.common.util.RequestWrapper;
 import ee.ria.xroad.common.util.ResponseWrapper;
+import ee.ria.xroad.common.util.UriUtils;
 import ee.ria.xroad.proxy.conf.KeyConfProvider;
 
 import lombok.extern.slf4j.Slf4j;
@@ -169,8 +170,13 @@ public abstract class MessageProcessorBase implements ProxyMessageProcessor {
             opMonitoringData.setServiceType(Optional.ofNullable(
                     serverConfProvider.getDescriptionType(request.getServiceId())).orElse(DescriptionType.REST).name());
             opMonitoringData.setRestMethod(request.getVerb().name());
-            opMonitoringData.setRestPath(request.getRequestPath());
+            opMonitoringData.setRestPath(getNormalizedServicePath(request.getServicePath()));
         }
+    }
+
+    private String getNormalizedServicePath(String servicePath) {
+        return Optional.of(UriUtils.uriPathPercentDecode(URI.create(servicePath).normalize().getRawPath(), true))
+                .orElse(servicePath);
     }
 
     /**

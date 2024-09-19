@@ -27,7 +27,6 @@
 package org.niis.xroad.common.rpc.server;
 
 import ee.ria.xroad.common.SystemProperties;
-import ee.ria.xroad.common.util.StartStop;
 
 import io.grpc.Server;
 import io.grpc.ServerBuilder;
@@ -39,6 +38,8 @@ import io.grpc.netty.shaded.io.netty.util.concurrent.DefaultThreadFactory;
 import lombok.extern.slf4j.Slf4j;
 import org.niis.xroad.common.rpc.InsecureRpcCredentialsConfigurer;
 import org.niis.xroad.common.rpc.RpcCredentialsConfigurer;
+import org.springframework.beans.factory.DisposableBean;
+import org.springframework.beans.factory.InitializingBean;
 
 import java.io.IOException;
 import java.net.InetSocketAddress;
@@ -52,7 +53,7 @@ import java.util.function.Consumer;
  * Server that manages startup/shutdown of RPC server.
  */
 @Slf4j
-public class RpcServer implements StartStop {
+public class RpcServer implements InitializingBean, DisposableBean {
     private final Server server;
 
     public RpcServer(final String host, final int port, final ServerCredentials creds, final Consumer<ServerBuilder<?>> configFunc) {
@@ -72,26 +73,20 @@ public class RpcServer implements StartStop {
     }
 
     @Override
-    public void start() throws IOException {
+    public void afterPropertiesSet() throws IOException {
         server.start();
 
         log.info("RPC server has started, listening on {}", server.getListenSockets());
     }
 
     @Override
-    public void stop() throws Exception {
+    public void destroy() throws Exception {
         if (server != null) {
             log.info("Shutting down RPC server..");
             server.shutdown();
             log.info("Shutting down RPC server.. Success!");
         }
     }
-
-    @Override
-    public void join() throws InterruptedException {
-        //NO-OP
-    }
-
 
     public static RpcServer newServer(String host, int port, Consumer<ServerBuilder<?>> configFunc)
             throws UnrecoverableKeyException, NoSuchAlgorithmException, KeyStoreException {

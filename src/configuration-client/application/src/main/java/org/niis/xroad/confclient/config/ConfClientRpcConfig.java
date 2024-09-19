@@ -39,7 +39,7 @@ import java.util.Collection;
 @Configuration
 public class ConfClientRpcConfig {
 
-    @Bean(initMethod = "start", destroyMethod = "stop")
+    @Bean
     RpcServer proxyRpcServer(Collection<BindableService> services) throws Exception {
         return RpcServer.newServer(
                 SystemProperties.getGrpcInternalHost(),

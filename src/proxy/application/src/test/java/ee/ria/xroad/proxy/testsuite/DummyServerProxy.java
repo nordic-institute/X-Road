@@ -27,7 +27,6 @@ package ee.ria.xroad.proxy.testsuite;
 
 import ee.ria.xroad.common.PortNumbers;
 import ee.ria.xroad.common.SystemProperties;
-import ee.ria.xroad.common.util.StartStop;
 
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.IOUtils;
@@ -39,6 +38,8 @@ import org.eclipse.jetty.server.Response;
 import org.eclipse.jetty.server.Server;
 import org.eclipse.jetty.server.ServerConnector;
 import org.eclipse.jetty.util.Callback;
+import org.springframework.beans.factory.DisposableBean;
+import org.springframework.beans.factory.InitializingBean;
 
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
@@ -53,7 +54,7 @@ import static org.eclipse.jetty.io.Content.Sink.asOutputStream;
 import static org.eclipse.jetty.io.Content.Source.asInputStream;
 
 @Slf4j
-class DummyServerProxy extends Server implements StartStop {
+class DummyServerProxy extends Server implements InitializingBean, DisposableBean {
 
     DummyServerProxy() {
         ServerConnector connector = new ServerConnector(this);
@@ -66,6 +67,20 @@ class DummyServerProxy extends Server implements StartStop {
 
         addConnector(connector);
         setHandler(new ServiceHandler());
+    }
+
+    @Override
+    public void afterPropertiesSet() throws Exception {
+        start();
+    }
+
+    @Override
+    public void destroy() {
+        try {
+            stop();
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
     }
 
     private static final class ServiceHandler extends Handler.Abstract {

@@ -90,7 +90,7 @@ public abstract class AbstractModuleWorker implements WorkerWithLifecycle {
     }
 
     @Override
-    public void stop() {
+    public void destroy() {
         stopLostTokenWorkers(tokenWorkers, List.of());
         tokenWorkers = Collections.emptyMap();
     }
@@ -133,7 +133,7 @@ public abstract class AbstractModuleWorker implements WorkerWithLifecycle {
             if (!moduleTypes.contains(entry.getKey())) {
                 try {
                     log.trace("Stopping token worker for module '{}'", entry.getKey());
-                    entry.getValue().stop();
+                    entry.getValue().destroy();
                 } catch (Exception e) {
                     log.error("Failed to deinitialize ");
                 }

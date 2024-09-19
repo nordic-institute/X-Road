@@ -55,10 +55,10 @@ public class ConfClientCLIMain {
     }
 
     /**
-     * Main entry point of configuration client. Based on the arguments, the client will either:
-     * 1) <anchor file> <configuration path> -- download and exit,
-     * 2) <anchor file> -- download and verify,
-     * 3) [no args] -- start as daemon.
+     * Main entry point of configuration client. Based on the arguments, the configuration client run:
+     * 1) <anchor file> <configuration path> <conf version> -- in one-shot mode downloading the specified global configuration version;
+     * 2) <anchor file> <configuration path> -- in one-shot mode downloading the current global configuration version;
+     * 3) <anchor file> -- in validate mode.
      *
      * @param args the arguments
      * @throws Exception if an error occurs
@@ -87,9 +87,9 @@ public class ConfClientCLIMain {
         CommandLineParser parser = new DefaultParser();
         Options options = new Options();
 
-        options.addOption(OPTION_VERIFY_PRIVATE_PARAMS_EXISTS, false,
+        options.addOption("p", OPTION_VERIFY_PRIVATE_PARAMS_EXISTS, false,
                 "Verifies that configuration contains private parameters.");
-        options.addOption(OPTION_VERIFY_ANCHOR_FOR_EXTERNAL_SOURCE, false,
+        options.addOption("s", OPTION_VERIFY_ANCHOR_FOR_EXTERNAL_SOURCE, false,
                 "Verifies that configuration contains shared parameters.");
 
         return parser.parse(options, args);

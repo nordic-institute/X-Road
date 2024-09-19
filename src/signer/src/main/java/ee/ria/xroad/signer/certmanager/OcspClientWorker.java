@@ -79,7 +79,7 @@ import static java.util.Collections.emptyList;
 @RequiredArgsConstructor
 public class OcspClientWorker {
     private static final String OCSP_FRESHNESS_SECONDS = "ocspFreshnessSeconds";
-    private static final String VERIFY_OCSP_NEXTUPDATE = "verifyOcspNextUpdate";
+    private static final String VERIFY_OCSP_NEXT_UPDATE = "verifyOcspNextUpdate";
     private static final String OCSP_FETCH_INTERVAL = "ocspFetchInterval";
 
     private final GlobalConfProvider globalConfProvider;
@@ -112,7 +112,7 @@ public class OcspClientWorker {
         boolean sendExecute = false;
 
         changeChecker.addChange(OCSP_FRESHNESS_SECONDS, globalConfProvider.getOcspFreshnessSeconds());
-        changeChecker.addChange(VERIFY_OCSP_NEXTUPDATE,
+        changeChecker.addChange(VERIFY_OCSP_NEXT_UPDATE,
                 GlobalConfExtensions.getInstance(globalConfProvider).shouldVerifyOcspNextUpdate());
         changeChecker.addChange(OCSP_FETCH_INTERVAL, GlobalConfExtensions.getInstance(globalConfProvider).getOcspFetchInterval());
 
@@ -121,7 +121,7 @@ public class OcspClientWorker {
 
             sendReschedule = true;
         }
-        if (changeChecker.hasChanged(VERIFY_OCSP_NEXTUPDATE)) {
+        if (changeChecker.hasChanged(VERIFY_OCSP_NEXT_UPDATE)) {
             log.debug("Detected change in global configuration extension shouldVerifyOcspNextUpdate parameter");
 
             sendReschedule = true;

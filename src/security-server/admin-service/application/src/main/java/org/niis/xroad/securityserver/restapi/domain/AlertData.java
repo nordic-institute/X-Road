@@ -29,6 +29,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Data;
 
 import java.time.OffsetDateTime;
+import java.util.List;
 
 /**
  * Model for alert data
@@ -47,4 +48,10 @@ public class AlertData {
     private Boolean softTokenPinEntered;
     @JsonProperty("soft_token_pin_entered_check_success")
     private Boolean softTokenPinEnteredCheckSuccess;
+    @JsonProperty("certificate_renewal_job_success")
+    private Boolean certificateRenewalJobSuccess;
+    @JsonProperty("auth_certificate_ids_with_errors")
+    private List<String> authCertificateIdsWithErrors;
+    @JsonProperty("sign_certificate_ids_with_errors")
+    private List<String> signCertificateIdsWithErrors;
 }

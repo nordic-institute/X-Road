@@ -31,6 +31,8 @@ import "common_messages.proto";
 import "tokens.proto";
 import "token_status_info.proto";
 
+import "google/protobuf/timestamp.proto";
+
 option java_multiple_files = true;
 
 service CertificateService {
@@ -41,6 +43,12 @@ service CertificateService {
   rpc GetMemberCerts(GetMemberCertsReq) returns (GetMemberCertsResp) {}
 
   rpc SetCertStatus(SetCertStatusReq) returns (Empty) {}
+
+  rpc SetRenewedCertHash(SetRenewedCertHashReq) returns (Empty) {}
+
+  rpc SetRenewalError(SetRenewalErrorReq) returns (Empty) {}
+
+  rpc SetNextPlannedRenewal(SetNextPlannedRenewalReq) returns (Empty) {}
 
   rpc GenerateCertRequest(GenerateCertRequestReq) returns (GenerateCertRequestResp) {}
 
@@ -71,6 +79,21 @@ message ActivateCertReq {
 message SetCertStatusReq{
   string cert_id = 1;
   string status = 2;
+}
+
+message SetRenewedCertHashReq{
+  string cert_id = 1;
+  string hash = 2;
+}
+
+message SetRenewalErrorReq{
+  string cert_id = 1;
+  string error_message = 2;
+}
+
+message SetNextPlannedRenewalReq{
+  string cert_id = 1;
+  google.protobuf.Timestamp next_renewal_time = 2;
 }
 
 message GetMemberCertsReq{

@@ -44,7 +44,7 @@ import org.springframework.scheduling.quartz.SpringBeanJobFactory;
 @Configuration
 public class LogArchiverConfig {
 
-    @Bean(initMethod = "start", destroyMethod = "stop")
+    @Bean
     JobManager jobManager(SpringBeanJobFactory springBeanJobFactory) throws SchedulerException {
         final var jobManager = new SpringAwareJobManager(springBeanJobFactory);
 

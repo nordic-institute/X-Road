@@ -94,6 +94,21 @@ The content of the element is base64-encoded PKCS#12 file.</documentation>
                     <documentation>Holds the current status of the certificate. Will be displayed and managed in UI.</documentation>
                 </annotation>
             </element>
+            <element name="nextRenewalTime" type="dateTime" minOccurs="0">
+                <annotation>
+                    <documentation>Recommended time by the CA for renewing the certificate.</documentation>
+                </annotation>
+            </element>
+            <element name="renewedCertHash" type="string" minOccurs="0">
+                <annotation>
+                    <documentation>Newer version of the certificate that is in the process of registration</documentation>
+                </annotation>
+            </element>
+            <element name="renewalError" type="string" minOccurs="0">
+                <annotation>
+                    <documentation>Message of the error that is thrown during the automatic renewal process</documentation>
+                </annotation>
+            </element>
         </sequence>
         <attribute default="true" name="active" type="boolean">
             <annotation>

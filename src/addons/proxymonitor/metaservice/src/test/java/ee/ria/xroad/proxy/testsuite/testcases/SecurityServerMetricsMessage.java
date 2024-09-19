@@ -139,7 +139,7 @@ public class SecurityServerMetricsMessage extends MessageTestCase {
                 SystemProperties.getGrpcInternalHost(),
                 SystemProperties.getEnvMonitorPort(),
                 builder -> builder.addService(new MockMetricsProvider()));
-        monitorRpcServer.start();
+        monitorRpcServer.afterPropertiesSet();
 
         globalConfProvider.setGlobalConfProvider(new TestSuiteGlobalConf() {
             @Override
@@ -159,7 +159,7 @@ public class SecurityServerMetricsMessage extends MessageTestCase {
 
     @Override
     protected void closeDown() throws Exception {
-        monitorRpcServer.stop();
+        monitorRpcServer.destroy();
     }
 
     private static SystemMetricsResp createMetricsResponse() {

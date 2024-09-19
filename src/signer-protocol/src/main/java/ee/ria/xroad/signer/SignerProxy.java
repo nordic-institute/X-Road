@@ -76,7 +76,10 @@ import org.niis.xroad.signer.proto.ListTokensResp;
 import org.niis.xroad.signer.proto.RegenerateCertRequestReq;
 import org.niis.xroad.signer.proto.SetCertStatusReq;
 import org.niis.xroad.signer.proto.SetKeyFriendlyNameReq;
+import org.niis.xroad.signer.proto.SetNextPlannedRenewalReq;
 import org.niis.xroad.signer.proto.SetOcspResponsesReq;
+import org.niis.xroad.signer.proto.SetRenewalErrorReq;
+import org.niis.xroad.signer.proto.SetRenewedCertHashReq;
 import org.niis.xroad.signer.proto.SetTokenFriendlyNameReq;
 import org.niis.xroad.signer.proto.SignCertificateReq;
 import org.niis.xroad.signer.proto.SignReq;
@@ -84,6 +87,7 @@ import org.niis.xroad.signer.proto.UpdateSoftwareTokenPinReq;
 import org.niis.xroad.signer.protocol.dto.Empty;
 
 import java.security.PublicKey;
+import java.time.Instant;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
@@ -527,6 +531,63 @@ public final class SignerProxy {
                         .setStatus(status)
                         .build()));
     }
+
+
+    /**
+     * Sets the hash of the renewed certificate with the given old cert ID.
+     *
+     * @param certId ID of the old certificate
+     * @param hash new hash of the renewed certificate
+     * @throws Exception if any errors occur
+     */
+    public static void setRenewedCertHash(String certId, String hash) throws Exception {
+        log.trace("Setting cert ('{}') renewed cert hash to '{}'", certId, hash);
+
+        RpcSignerClient.execute(ctx -> ctx.getBlockingCertificateService()
+                .setRenewedCertHash(SetRenewedCertHashReq.newBuilder()
+                        .setCertId(certId)
+                        .setHash(hash)
+                        .build()));
+    }
+
+    /**
+     * Sets the error of the certificate renewal process.
+     *
+     * @param certId ID of the certificate to be renewed
+     * @param errorMessage message of the error that was thrown when trying to renew the given certificate
+     * @throws Exception if any errors occur
+     */
+    public static void setRenewalError(String certId, String errorMessage) throws Exception {
+        log.trace("Setting cert ('{}') renewal error to '{}'", certId, errorMessage);
+
+        RpcSignerClient.execute(ctx -> ctx.getBlockingCertificateService()
+                .setRenewalError(SetRenewalErrorReq.newBuilder()
+                        .setCertId(certId)
+                        .setErrorMessage(errorMessage)
+                        .build()));
+    }
+
+    /**
+     * Sets the error of the certificate renewal process.
+     *
+     * @param certId ID of the certificate to be renewed
+     * @param nextRenewalTime message of the error that was thrown when trying to renew the given certificate
+     * @throws Exception if any errors occur
+     */
+    public static void setNextPlannedRenewal(String certId, Instant nextRenewalTime) throws Exception {
+        log.trace("Setting cert ('{}') next planned renewal time to '{}'", certId, nextRenewalTime);
+
+        com.google.protobuf.Timestamp nextRenewalTimestamp = com.google.protobuf.Timestamp.newBuilder()
+                .setSeconds(nextRenewalTime.getEpochSecond())
+                .setNanos(nextRenewalTime.getNano())
+                .build();
+        RpcSignerClient.execute(ctx -> ctx.getBlockingCertificateService()
+                .setNextPlannedRenewal(SetNextPlannedRenewalReq.newBuilder()
+                        .setCertId(certId)
+                        .setNextRenewalTime(nextRenewalTimestamp)
+                        .build()));
+    }
+
 
     /**
      * Get a cert by it's hash

@@ -30,6 +30,7 @@ import ee.ria.xroad.common.conf.globalconf.GlobalConfProvider;
 import ee.ria.xroad.common.conf.serverconf.ServerConfProvider;
 
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.DisposableBean;
 
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
@@ -38,7 +39,7 @@ import java.util.concurrent.ConcurrentHashMap;
  * Base class for log manager actors.
  */
 @Slf4j
-public abstract class AbstractLogManager {
+public abstract class AbstractLogManager implements DisposableBean {
     protected static Map<String, DiagnosticsStatus> statusMap = new ConcurrentHashMap<>();
 
     protected AbstractLogManager(String origin, GlobalConfProvider globalConfProvider, ServerConfProvider serverConfProvider) {
@@ -58,7 +59,8 @@ public abstract class AbstractLogManager {
         throw new RuntimeException("Must be implemented by subclass");
     }
 
-    public void shutdown() {
+    @Override
+    public void destroy() {
         // NO-OP
     }
 

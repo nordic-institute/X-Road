@@ -40,7 +40,7 @@ import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.transaction.annotation.Transactional;
 
 /**
- * Base for all tests that mock GlobalConfFacade, ManagementRequestSenderService, and SignerProxyFacade.
+ * Base for all tests that mock GlobalConfProvider, ManagementRequestSenderService, and SignerProxyFacade.
  * Tests usually always want to do this, since they want to make sure they do not (accidentally) attempt to
  * read global configuration from filesystem, send actual management requests, or send rpc requests to signer.
  * <p>

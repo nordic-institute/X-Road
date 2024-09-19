@@ -94,12 +94,12 @@ class SystemMetricsSensorTest {
                         responseObserver.onCompleted();
                     }
                 }));
-        rpcServer.start();
+        rpcServer.afterPropertiesSet();
     }
 
     @AfterAll
     public static void tearDown() throws Exception {
-        rpcServer.stop();
+        rpcServer.destroy();
     }
 
     @Test

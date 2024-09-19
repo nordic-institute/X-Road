@@ -200,6 +200,11 @@ public class KeyAndCertPageObj {
                     + "//div[@class='status-text']", label));
         }
 
+        public SelenideElement keyAutomaticRenewalStatusByLabel(String label) {
+            return $x(format("//tbody[ tr/td/div[@class ='name-wrap-top']//div[contains(@class,'identifier-wrap')]//span[text() = '%s']]"
+                    + "//div[@data-test='renewal-status']", label));
+        }
+
     }
 
     public static class AddKeyWizardDetails {

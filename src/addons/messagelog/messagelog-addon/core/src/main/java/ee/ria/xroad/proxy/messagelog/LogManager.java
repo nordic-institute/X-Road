@@ -101,9 +101,9 @@ public class LogManager extends AbstractLogManager {
     }
 
     @Override
-    public void shutdown() {
+    public void destroy() {
         timestamperJob.shutdown();
-        super.shutdown();
+        super.destroy();
     }
 
     private TimestamperJob createTimestamperJob(TaskQueue taskQueueParam) {

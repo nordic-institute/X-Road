@@ -23,18 +23,24 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
+package org.niis.xroad.arch.rule;
 
-package org.niis.xroad.securityserver.restapi.service;
+import com.societegenerale.commons.plugin.rules.ArchRuleTest;
+import com.societegenerale.commons.plugin.service.ScopePathProvider;
+import com.societegenerale.commons.plugin.utils.ArchUtils;
+import jakarta.annotation.PostConstruct;
 
-import lombok.Getter;
-import lombok.RequiredArgsConstructor;
+import java.util.Collection;
 
-@Getter
-@RequiredArgsConstructor
-public enum AcmeCustomSchema {
+import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.noMethods;
 
-    XRD_ACME("xrd-acme"),
-    XRD_ACME_PROFILE_ID("xrd-acme-profile-id");
+public class NoPostConstructAnnotation implements ArchRuleTest {
 
-    private final String schema;
+    @Override
+    public void execute(String packagePath, ScopePathProvider scopePathProvider, Collection<String> excludedPaths) {
+        noMethods().should().beAnnotatedWith(PostConstruct.class)
+                .because("InitializingBean interface should be used instead of @PostConstruct annotation")
+                .allowEmptyShould(false)
+                .check(ArchUtils.importAllClassesInPackage(scopePathProvider.getMainClassesPath(), packagePath, excludedPaths));
+    }
 }

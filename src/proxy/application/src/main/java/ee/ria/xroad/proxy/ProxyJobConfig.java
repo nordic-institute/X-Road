@@ -38,8 +38,7 @@ import org.springframework.scheduling.quartz.SpringBeanJobFactory;
 public class ProxyJobConfig {
     private static final int STATS_LOG_REPEAT_INTERVAL = 60;
 
-
-    @Bean(initMethod = "start", destroyMethod = "stop")
+    @Bean
     JobManager jobManager(SpringBeanJobFactory springBeanJobFactory) throws SchedulerException {
         final var jobManager = new SpringAwareJobManager(springBeanJobFactory);
 

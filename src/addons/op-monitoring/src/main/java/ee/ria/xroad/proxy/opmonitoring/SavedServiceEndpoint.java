@@ -23,23 +23,35 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.securityserver.restapi.util;
+package ee.ria.xroad.proxy.opmonitoring;
 
-import org.springframework.context.ApplicationContext;
-import org.springframework.context.ApplicationContextAware;
-import org.springframework.stereotype.Component;
+import ee.ria.xroad.common.conf.serverconf.ServerConfProvider;
+import ee.ria.xroad.common.conf.serverconf.model.EndpointType;
+import ee.ria.xroad.common.opmonitoring.OpMonitoringData;
 
-@Component
-public class SpringApplicationContext implements ApplicationContextAware {
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.eclipse.jetty.util.StringUtil;
 
-    private static ApplicationContext applicationContext;
+@Slf4j
+@RequiredArgsConstructor
+class SavedServiceEndpoint {
 
-    @SuppressWarnings("java:S2696")
-    public void setApplicationContext(ApplicationContext applicationContext) {
-        SpringApplicationContext.applicationContext = applicationContext;
-    }
+    private final ServerConfProvider serverConfProvider;
 
-    public static <T> T getBean(Class<T> beanClass) {
-        return applicationContext.getBean(beanClass);
+    String getPathIfExists(OpMonitoringData data) {
+        if (data.isProducer() && !StringUtil.isEmpty(data.getRestPath())) {
+            try {
+                var endpointTypes = serverConfProvider.getServiceEndpoints(data.getServiceId()).stream()
+                        .map(v -> new EndpointType(data.getServiceId().getServiceCode(), v.getMethod(), v.getPath(), false))
+                        .filter(ep -> ep.matches(data.getRestMethod(), data.getRestPath()))
+                        .findFirst();
+
+                return endpointTypes.map(EndpointType::getPath).orElse(data.getRestPath());
+            } catch (Exception e) {
+                log.error("Cannot query saved endpoint for: {}", data.getRestPath(), e);
+            }
+        }
+        return data.getRestPath();
     }
 }

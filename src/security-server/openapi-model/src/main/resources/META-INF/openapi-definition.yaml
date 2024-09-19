@@ -5728,6 +5728,21 @@ components:
           type: boolean
           description: if the certificate is saved to configuration
           example: true
+        renewed_cert_hash:
+          type: string
+          format: text
+          description: hash of the newer version of the certificate that is in the process of registration
+          readOnly: true
+        renewal_error:
+          type: string
+          format: text
+          description: error message thrown during the certificate automatic renewal process
+          readOnly: true
+        next_automatic_renewal_time:
+          type: string
+          format: date-time
+          description: next planned automatic renewal time
+          readOnly: true
         certificate_details:
           $ref: '#/components/schemas/CertificateDetails'
         status:
