@@ -36,6 +36,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.niis.xroad.common.rpc.RpcCredentialsProvider;
 import org.niis.xroad.common.rpc.client.RpcClient;
 import org.niis.xroad.common.rpc.server.RpcServer;
 import org.niis.xroad.monitor.common.Metrics;
@@ -76,12 +77,15 @@ class MetricsRpcServiceTest {
     @BeforeEach
     public void init() throws Exception {
         System.setProperty(SystemProperties.ENV_MONITOR_LIMIT_REMOTE_DATA_SET, Boolean.TRUE.toString());
-        System.setProperty(SystemProperties.GRPC_INTERNAL_TLS_ENABLED, Boolean.FALSE.toString());
 
         int port = TestPortUtils.findRandomPort();
-        rpcServer = RpcServer.newServer("localhost", port, serverBuilder -> serverBuilder.addService(new MetricsRpcService()));
+        rpcServer = RpcServer.newServer("localhost", port,
+                new RpcCredentialsProvider.Builder().tlsEnabled(false).build(),
+                serverBuilder -> serverBuilder.addService(new MetricsRpcService()));
         rpcServer.start();
-        rpcClient = RpcClient.newClient("localhost", port, TestMetricsExecutionContext::new);
+        rpcClient = RpcClient.newClient("localhost", port,
+                new RpcCredentialsProvider.Builder().tlsEnabled(false).build(),
+                TestMetricsExecutionContext::new);
 
         MetricRegistry metricsRegistry = new MetricRegistry();
         Histogram testHistogram = metricsRegistry.histogram(HISTOGRAM_NAME);

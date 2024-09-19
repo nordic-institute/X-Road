@@ -29,6 +29,7 @@ import ee.ria.xroad.common.SystemProperties;
 
 import io.grpc.BindableService;
 import lombok.extern.slf4j.Slf4j;
+import org.niis.xroad.common.rpc.RpcCredentialsProvider;
 import org.niis.xroad.common.rpc.server.RpcServer;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -41,9 +42,19 @@ public class ConfClientRpcConfig {
 
     @Bean(initMethod = "start", destroyMethod = "stop")
     RpcServer proxyRpcServer(Collection<BindableService> services) throws Exception {
+
+        var credentialsProvider = new RpcCredentialsProvider.Builder()
+                .tlsEnabled(SystemProperties.isConfigurationClientGrpcTlsEnabled())
+                .keystore(SystemProperties::getConfigurationClientGrpcKeyStore)
+                .keystorePassword(SystemProperties::getConfigurationClientGrpcKeyStorePassword)
+                .truststore(SystemProperties::getConfigurationClientGrpcTrustStore)
+                .truststorePassword(SystemProperties::getConfigurationClientGrpcTrustStorePassword)
+                .build();
+
         return RpcServer.newServer(
                 SystemProperties.getConfigurationClientGrpcListenAddress(),
                 SystemProperties.getConfigurationClientGrpcPort(),
+                credentialsProvider,
                 builder -> services.forEach(service -> {
                     log.info("Registering {} RPC service.", service.getClass().getSimpleName());
                     builder.addService(service);

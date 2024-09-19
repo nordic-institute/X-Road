@@ -38,6 +38,7 @@ import ee.ria.xroad.monitor.SystemMetricsSensor;
 
 import io.grpc.BindableService;
 import lombok.extern.slf4j.Slf4j;
+import org.niis.xroad.common.rpc.RpcCredentialsProvider;
 import org.niis.xroad.common.rpc.server.RpcServer;
 import org.niis.xroad.confclient.proto.ConfClientRpcClient;
 import org.springframework.context.annotation.Bean;
@@ -60,9 +61,17 @@ public class MonitorConfig {
 
     @Bean(initMethod = "start", destroyMethod = "stop")
     RpcServer rpcServer(final List<BindableService> bindableServices) throws Exception {
+        var credentialsProvider = new RpcCredentialsProvider.Builder()
+                .tlsEnabled(SystemProperties.isEnvMonitorGrpcTlsEnabled())
+                .keystore(SystemProperties::getEnvMonitorGrpcKeyStore)
+                .keystorePassword(SystemProperties::getEnvMonitorGrpcKeyStorePassword)
+                .truststore(SystemProperties::getEnvMonitorGrpcTrustStore)
+                .truststorePassword(SystemProperties::getEnvMonitorGrpcTrustStorePassword)
+                .build();
         return RpcServer.newServer(
                 SystemProperties.getEnvMonitorGrpcListenAddress(),
                 SystemProperties.getEnvMonitorGrpcPort(),
+                credentialsProvider,
                 builder -> bindableServices.forEach(bindableService -> {
                     log.info("Registering {} RPC service.", bindableService.getClass().getSimpleName());
                     builder.addService(bindableService);

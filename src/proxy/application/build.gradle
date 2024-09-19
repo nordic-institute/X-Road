@@ -119,7 +119,7 @@ tasks.register('runProxyTest', JavaExec) {
         '-Dxroad.proxy.client-httpclient-so-linger=-1',
         '-Dxroad.proxy.server-connector-so-linger=-1',
         '-Dlogback.configurationFile=src/test/logback-proxytest.xml',
-        '-Dxroad.common.grpc-internal-tls-enabled=false'
+        '-Dxroad.proxy.grpc-tls-enabled=false'
 //      '-Djava.security.properties==src/main/resources/java.security'
 
     mainClass = 'ee.ria.xroad.proxy.testsuite.ProxyTestSuite'

@@ -32,6 +32,7 @@ import io.grpc.Channel;
 import io.grpc.stub.StreamObserver;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
+import org.niis.xroad.common.rpc.RpcCredentialsProvider;
 import org.niis.xroad.common.rpc.client.RpcClient;
 import org.niis.xroad.monitor.common.MonitorServiceGrpc;
 import org.niis.xroad.monitor.common.StatsReq;
@@ -57,8 +58,15 @@ public class SystemMetricsSensor extends AbstractSensor {
         super(taskScheduler);
         log.info("Creating sensor, measurement interval: {}", getInterval());
 
+        var credentialsProvider = new RpcCredentialsProvider.Builder()
+                .tlsEnabled(SystemProperties.isProxyGrpcTlsEnabled())
+                .keystore(SystemProperties::getProxyGrpcKeyStore)
+                .keystorePassword(SystemProperties::getProxyGrpcKeyStorePassword)
+                .truststore(SystemProperties::getProxyGrpcTrustStore)
+                .truststorePassword(SystemProperties::getProxyGrpcTrustStorePassword)
+                .build();
         this.proxyRpcClient = RpcClient.newClient(SystemProperties.getProxyGrpcHost(),
-                SystemProperties.getProxyGrpcPort(), ProxyRpcExecutionContext::new);
+                SystemProperties.getProxyGrpcPort(), credentialsProvider, ProxyRpcExecutionContext::new);
 
         scheduleSingleMeasurement(getInterval());
     }

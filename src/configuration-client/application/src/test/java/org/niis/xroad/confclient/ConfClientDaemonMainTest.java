@@ -36,7 +36,7 @@ class ConfClientDaemonMainTest {
 
     @Test
     void shouldStart() {
-        System.setProperty(SystemProperties.GRPC_INTERNAL_TLS_ENABLED, Boolean.FALSE.toString());
+        System.setProperty(SystemProperties.CONFIGURATION_CLIENT_GRPC_TLS_ENABLED, Boolean.FALSE.toString());
         System.setProperty(SystemProperties.CONFIGURATION_ANCHOR_FILE, "build/resources/test/configuration-anchor1.xml");
 
 

@@ -25,10 +25,13 @@
  */
 package ee.ria.xroad.signer.protocol;
 
+import ee.ria.xroad.common.SystemProperties;
+
 import io.grpc.Channel;
 import io.opentelemetry.instrumentation.annotations.WithSpan;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
+import org.niis.xroad.common.rpc.RpcCredentialsProvider;
 import org.niis.xroad.common.rpc.client.RpcClient;
 import org.niis.xroad.signer.proto.AdminServiceGrpc;
 import org.niis.xroad.signer.proto.CertificateServiceGrpc;
@@ -63,7 +66,18 @@ public final class RpcSignerClient {
     }
 
     public static RpcSignerClient init(String host, int port, int clientTimeoutMillis) throws Exception {
-        var client = RpcClient.newClient(host, port, clientTimeoutMillis, SignerRpcExecutionContext::new);
+        var credentialsProvider = new RpcCredentialsProvider.Builder()
+                .tlsEnabled(SystemProperties.isSignerGrpcTlsEnabled())
+                .keystore(SystemProperties::getSignerGrpcKeyStore)
+                .keystorePassword(SystemProperties::getSignerGrpcKeyStorePassword)
+                .truststore(SystemProperties::getSignerGrpcTrustStore)
+                .truststorePassword(SystemProperties::getSignerGrpcTrustStorePassword)
+                .build();
+        return init(host, port, credentialsProvider, clientTimeoutMillis);
+    }
+
+    public static RpcSignerClient init(String host, int port, RpcCredentialsProvider credentialsProvider, int clientTimeoutMillis) throws Exception {
+        var client = RpcClient.newClient(host, port, credentialsProvider, clientTimeoutMillis, SignerRpcExecutionContext::new);
         instance = new RpcSignerClient(client);
         return instance;
     }

@@ -29,6 +29,7 @@ import ee.ria.xroad.common.SystemProperties;
 
 import io.grpc.BindableService;
 import lombok.extern.slf4j.Slf4j;
+import org.niis.xroad.common.rpc.RpcCredentialsProvider;
 import org.niis.xroad.common.rpc.server.RpcServer;
 import org.niis.xroad.confclient.proto.ConfClientRpcClient;
 import org.springframework.context.annotation.Bean;
@@ -42,9 +43,19 @@ public class SignerRpcConfig {
 
     @Bean(initMethod = "start", destroyMethod = "stop")
     RpcServer rpcServer(final List<BindableService> bindableServices) throws Exception {
+
+        var credentialsProvider = new RpcCredentialsProvider.Builder()
+                .tlsEnabled(SystemProperties.isSignerGrpcTlsEnabled())
+                .keystore(SystemProperties::getSignerGrpcKeyStore)
+                .keystorePassword(SystemProperties::getSignerGrpcKeyStorePassword)
+                .truststore(SystemProperties::getSignerGrpcTrustStore)
+                .truststorePassword(SystemProperties::getSignerGrpcTrustStorePassword)
+                .build();
+
         return RpcServer.newServer(
                 SystemProperties.getSignerGrpcListenAddress(),
                 SystemProperties.getSignerGrpcPort(),
+                credentialsProvider,
                 builder -> bindableServices.forEach(bindableService -> {
                     log.info("Registering {} RPC service.", bindableService.getClass().getSimpleName());
                     builder.addService(bindableService);

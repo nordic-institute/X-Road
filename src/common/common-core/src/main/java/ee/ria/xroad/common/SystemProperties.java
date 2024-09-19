@@ -1922,7 +1922,7 @@ public final class SystemProperties {
      * @return gRPC signer host.
      */
     @Deprecated
-    public static String getGrpcInternalHost() {
+    private static String getGrpcInternalHost() {
         return System.getProperty(GRPC_INTERNAL_HOST, "127.0.0.1");
     }
 
@@ -1930,7 +1930,7 @@ public final class SystemProperties {
      * @return whether gRPC Tls is enabled.
      */
     @Deprecated
-    public static boolean isGrpcInternalTlsEnabled() {
+    private static boolean isGrpcInternalTlsEnabled() {
         return Boolean.parseBoolean(System.getProperty(GRPC_INTERNAL_TLS_ENABLED, Boolean.TRUE.toString()));
     }
 
@@ -1938,7 +1938,7 @@ public final class SystemProperties {
      * @return gRPC internal key store path. Uses JKS format.
      */
     @Deprecated
-    public static String getGrpcInternalKeyStore() {
+    private static String getGrpcInternalKeyStore() {
         return System.getProperty(GRPC_INTERNAL_KEYSTORE, "/var/run/xroad/xroad-grpc-internal-keystore.p12");
     }
 
@@ -1946,7 +1946,7 @@ public final class SystemProperties {
      * @return gRPC internal key store password.
      */
     @Deprecated
-    public static char[] getGrpcInternalKeyStorePassword() {
+    private static char[] getGrpcInternalKeyStorePassword() {
         return getPasswordFromPropertyOrEnvironmentVariable(GRPC_INTERNAL_KEYSTORE_PASSWORD, null);
     }
 
@@ -1954,7 +1954,7 @@ public final class SystemProperties {
      * @return gRPC internal trust store path. Uses JKS format.
      */
     @Deprecated
-    public static String getGrpcInternalTrustStore() {
+    private static String getGrpcInternalTrustStore() {
         return System.getProperty(GRPC_INTERNAL_TRUSTSTORE, "/var/run/xroad/xroad-grpc-internal-keystore.p12");
     }
 
@@ -1962,7 +1962,7 @@ public final class SystemProperties {
      * @return gRPC internal trust store path password.
      */
     @Deprecated
-    public static char[] getGrpcInternalTruststorePassword() {
+    private static char[] getGrpcInternalTruststorePassword() {
         return getPasswordFromPropertyOrEnvironmentVariable(GRPC_INTERNAL_TRUSTSTORE_PASSWORD, null);
     }
 

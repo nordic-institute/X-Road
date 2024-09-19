@@ -31,6 +31,7 @@ import ee.ria.xroad.common.SystemProperties;
 import com.google.protobuf.ByteString;
 import io.grpc.Channel;
 import lombok.Getter;
+import org.niis.xroad.common.rpc.RpcCredentialsProvider;
 import org.niis.xroad.common.rpc.client.RpcClient;
 import org.springframework.beans.factory.DisposableBean;
 import org.springframework.beans.factory.InitializingBean;
@@ -41,8 +42,15 @@ public class ConfClientRpcClient implements DisposableBean, InitializingBean {
 
     @Override
     public void afterPropertiesSet() throws Exception {
+        var credentialsProvider = new RpcCredentialsProvider.Builder()
+                .tlsEnabled(SystemProperties.isConfigurationClientGrpcTlsEnabled())
+                .keystore(SystemProperties::getConfigurationClientGrpcKeyStore)
+                .keystorePassword(SystemProperties::getConfigurationClientGrpcKeyStorePassword)
+                .truststore(SystemProperties::getConfigurationClientGrpcTrustStore)
+                .truststorePassword(SystemProperties::getConfigurationClientGrpcTrustStorePassword)
+                .build();
         this.rpcClient = RpcClient.newClient(SystemProperties.getConfigurationClientGrpcHost(),
-                SystemProperties.getConfigurationClientGrpcPort(), ConfClientRpcExecutionContext::new);
+                SystemProperties.getConfigurationClientGrpcPort(), credentialsProvider, ConfClientRpcExecutionContext::new);
     }
 
     public void execute() throws Exception {

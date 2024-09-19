@@ -33,6 +33,7 @@ import ee.ria.xroad.proxymonitor.message.MetricSetType;
 import io.grpc.Channel;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
+import org.niis.xroad.common.rpc.RpcCredentialsProvider;
 import org.niis.xroad.common.rpc.client.RpcClient;
 import org.niis.xroad.monitor.common.MetricsServiceGrpc;
 import org.niis.xroad.monitor.common.SystemMetricsReq;
@@ -49,8 +50,16 @@ public class MonitorClient {
     private final RpcClient<MetricsRpcExecutionContext> metricsRpcClient;
 
     public MonitorClient() throws Exception {
+        var credentialsProvider = new RpcCredentialsProvider.Builder()
+                .tlsEnabled(SystemProperties.isEnvMonitorGrpcTlsEnabled())
+                .keystore(SystemProperties::getEnvMonitorGrpcKeyStore)
+                .keystorePassword(SystemProperties::getEnvMonitorGrpcKeyStorePassword)
+                .truststore(SystemProperties::getEnvMonitorGrpcTrustStore)
+                .truststorePassword(SystemProperties::getEnvMonitorGrpcTrustStorePassword)
+                .build();
+
         this.metricsRpcClient = RpcClient.newClient(SystemProperties.getEnvMonitorGrpcHost(),
-                SystemProperties.getEnvMonitorGrpcPort(), TIMEOUT_AWAIT, MetricsRpcExecutionContext::new);
+                SystemProperties.getEnvMonitorGrpcPort(), credentialsProvider, TIMEOUT_AWAIT, MetricsRpcExecutionContext::new);
     }
 
     /**

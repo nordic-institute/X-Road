@@ -38,6 +38,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.niis.xroad.common.rpc.RpcCredentialsProvider;
 import org.niis.xroad.common.rpc.server.RpcServer;
 import org.niis.xroad.monitor.common.MonitorServiceGrpc;
 import org.niis.xroad.monitor.common.StatsReq;
@@ -81,19 +82,20 @@ class SystemMetricsSensorTest {
 
         System.setProperty(SystemProperties.ENV_MONITOR_SYSTEM_METRICS_SENSOR_INTERVAL, "1");
         System.setProperty(SystemProperties.PROXY_GRPC_PORT, String.valueOf(PORT));
-        System.setProperty(SystemProperties.GRPC_INTERNAL_TLS_ENABLED, Boolean.FALSE.toString());
     }
 
     @BeforeAll
     public static void init() throws Exception {
-        rpcServer = RpcServer.newServer(SystemProperties.getProxyGrpcListenAddress(), PORT, serverBuilder ->
-                serverBuilder.addService(new MonitorServiceGrpc.MonitorServiceImplBase() {
-                    @Override
-                    public void getStats(StatsReq request, StreamObserver<StatsResp> responseObserver) {
-                        responseObserver.onNext(response);
-                        responseObserver.onCompleted();
-                    }
-                }));
+        rpcServer = RpcServer.newServer(SystemProperties.getProxyGrpcListenAddress(), PORT,
+                new RpcCredentialsProvider.Builder().tlsEnabled(false).build(),
+                serverBuilder ->
+                        serverBuilder.addService(new MonitorServiceGrpc.MonitorServiceImplBase() {
+                            @Override
+                            public void getStats(StatsReq request, StreamObserver<StatsResp> responseObserver) {
+                                responseObserver.onNext(response);
+                                responseObserver.onCompleted();
+                            }
+                        }));
         rpcServer.start();
     }
 

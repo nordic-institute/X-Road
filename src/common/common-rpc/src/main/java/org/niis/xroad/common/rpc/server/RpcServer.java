@@ -26,7 +26,6 @@
  */
 package org.niis.xroad.common.rpc.server;
 
-import ee.ria.xroad.common.SystemProperties;
 import ee.ria.xroad.common.util.StartStop;
 
 import io.grpc.Server;
@@ -39,6 +38,7 @@ import io.grpc.netty.shaded.io.netty.util.concurrent.DefaultThreadFactory;
 import lombok.extern.slf4j.Slf4j;
 import org.niis.xroad.common.rpc.InsecureRpcCredentialsConfigurer;
 import org.niis.xroad.common.rpc.RpcCredentialsConfigurer;
+import org.niis.xroad.common.rpc.RpcCredentialsProvider;
 
 import java.io.IOException;
 import java.net.InetSocketAddress;
@@ -93,10 +93,12 @@ public class RpcServer implements StartStop {
     }
 
 
-    public static RpcServer newServer(String host, int port, Consumer<ServerBuilder<?>> configFunc)
+    public static RpcServer newServer(String host, int port, RpcCredentialsProvider credentialsProvider,
+                                      Consumer<ServerBuilder<?>> configFunc)
             throws UnrecoverableKeyException, NoSuchAlgorithmException, KeyStoreException {
-        var serverCredentials = SystemProperties.isGrpcInternalTlsEnabled()
-                ? RpcCredentialsConfigurer.createServerCredentials() : InsecureRpcCredentialsConfigurer.createServerCredentials();
+        var serverCredentials = credentialsProvider.isTlsEnabled()
+                ? RpcCredentialsConfigurer.createServerCredentials(credentialsProvider)
+                : InsecureRpcCredentialsConfigurer.createServerCredentials();
         log.info("Initializing RPC server with {} credentials..", serverCredentials.getClass().getSimpleName());
 
         return new RpcServer(host, port, serverCredentials, configFunc);

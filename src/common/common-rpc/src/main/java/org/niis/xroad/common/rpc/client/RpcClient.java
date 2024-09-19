@@ -26,7 +26,6 @@
 package org.niis.xroad.common.rpc.client;
 
 import ee.ria.xroad.common.CodedException;
-import ee.ria.xroad.common.SystemProperties;
 
 import com.google.protobuf.Any;
 import com.google.protobuf.InvalidProtocolBufferException;
@@ -45,6 +44,7 @@ import io.grpc.netty.shaded.io.netty.util.concurrent.DefaultThreadFactory;
 import lombok.extern.slf4j.Slf4j;
 import org.niis.xroad.common.rpc.InsecureRpcCredentialsConfigurer;
 import org.niis.xroad.common.rpc.RpcCredentialsConfigurer;
+import org.niis.xroad.common.rpc.RpcCredentialsProvider;
 import org.niis.xroad.rpc.error.CodedExceptionProto;
 
 import java.util.concurrent.ForkJoinPool;
@@ -71,14 +71,15 @@ public final class RpcClient<C extends RpcClient.ExecutionContext> {
     }
 
     public static <C extends RpcClient.ExecutionContext> RpcClient<C> newClient(
-            String host, int port, ExecutionContextFactory<C> contextFactory) throws Exception {
-        return newClient(host, port, DEFAULT_DEADLINE_MILLIS, contextFactory);
+            String host, int port, RpcCredentialsProvider credentialsProvider, ExecutionContextFactory<C> contextFactory) throws Exception {
+        return newClient(host, port, credentialsProvider, DEFAULT_DEADLINE_MILLIS, contextFactory);
     }
 
     public static <C extends RpcClient.ExecutionContext> RpcClient<C> newClient(
-            String host, int port, int clientTimeoutMillis, ExecutionContextFactory<C> contextFactory) throws Exception {
-        var credentials = SystemProperties.isGrpcInternalTlsEnabled()
-                ? RpcCredentialsConfigurer.createClientCredentials() : InsecureRpcCredentialsConfigurer.createClientCredentials();
+            String host, int port, RpcCredentialsProvider credentialsProvider, int clientTimeoutMillis,
+            ExecutionContextFactory<C> contextFactory) throws Exception {
+        var credentials = credentialsProvider.isTlsEnabled()
+                ? RpcCredentialsConfigurer.createClientCredentials(credentialsProvider) : InsecureRpcCredentialsConfigurer.createClientCredentials();
 
         log.info("Starting grpc client to {}:{} with {} credentials..", host, port, credentials.getClass().getSimpleName());
 

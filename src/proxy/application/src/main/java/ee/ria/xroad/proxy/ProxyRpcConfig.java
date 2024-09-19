@@ -37,6 +37,7 @@ import ee.ria.xroad.signer.protocol.RpcSignerClient;
 import io.grpc.BindableService;
 import io.grpc.ServerBuilder;
 import lombok.extern.slf4j.Slf4j;
+import org.niis.xroad.common.rpc.RpcCredentialsProvider;
 import org.niis.xroad.common.rpc.server.RpcServer;
 import org.niis.xroad.confclient.proto.ConfClientRpcClient;
 import org.niis.xroad.proxy.edc.AssetsRegistrationJob;
@@ -53,9 +54,18 @@ public class ProxyRpcConfig {
     @Bean(initMethod = "start", destroyMethod = "stop")
     RpcServer proxyRpcServer(final AddOn.BindableServiceRegistry bindableServiceRegistry,
                              List<BindableService> rpcServices) throws Exception {
+
+        var credentialsProvider = new RpcCredentialsProvider.Builder()
+                .tlsEnabled(SystemProperties.isProxyGrpcTlsEnabled())
+                .keystore(SystemProperties::getProxyGrpcKeyStore)
+                .keystorePassword(SystemProperties::getProxyGrpcKeyStorePassword)
+                .truststore(SystemProperties::getProxyGrpcTrustStore)
+                .truststorePassword(SystemProperties::getProxyGrpcTrustStorePassword).build();
+
         return RpcServer.newServer(
                 SystemProperties.getProxyGrpcListenAddress(),
                 SystemProperties.getProxyGrpcPort(),
+                credentialsProvider,
                 builder -> {
                     registerServices(bindableServiceRegistry.getRegisteredServices(), builder);
                     registerServices(rpcServices, builder);
