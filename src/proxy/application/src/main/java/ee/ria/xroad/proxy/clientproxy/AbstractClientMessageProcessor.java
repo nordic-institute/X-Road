@@ -107,7 +107,8 @@ abstract class AbstractClientMessageProcessor extends MessageProcessorBase {
                                              ServerConfProvider serverConfProvider,
                                              CertChainFactory certChainFactory,
                                              HttpClient httpClient, IsAuthenticationData clientCert) {
-        super(globalConfProvider, keyConfProvider, serverConfProvider, certChainFactory, proxyRequestCtx.clientRequest(), proxyRequestCtx.clientResponse(), httpClient);
+        super(globalConfProvider, keyConfProvider, serverConfProvider, certChainFactory, proxyRequestCtx.clientRequest(),
+                proxyRequestCtx.clientResponse(), httpClient);
 
         this.clientCert = clientCert;
         this.opMonitoringData = proxyRequestCtx.opMonitoringData();

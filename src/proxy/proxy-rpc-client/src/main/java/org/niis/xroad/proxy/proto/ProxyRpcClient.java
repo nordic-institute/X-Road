@@ -38,6 +38,7 @@ import io.grpc.Channel;
 import lombok.Getter;
 import org.niis.xroad.common.rpc.RpcCredentialsProvider;
 import org.niis.xroad.common.rpc.client.RpcClient;
+import org.springframework.beans.factory.DisposableBean;
 
 import java.util.HashSet;
 import java.util.List;
@@ -47,7 +48,7 @@ import java.util.stream.Collectors;
 import static java.time.Instant.ofEpochMilli;
 import static org.niis.xroad.restapi.util.FormatUtils.fromInstantToOffsetDateTime;
 
-public class ProxyRpcClient {
+public class ProxyRpcClient implements DisposableBean {
     private final RpcClient<ProxyRpcExecutionContext> proxyRpcClient;
 
     public ProxyRpcClient() throws Exception {
@@ -62,7 +63,8 @@ public class ProxyRpcClient {
                 SystemProperties.getProxyGrpcPort(), credentialsProvider, ProxyRpcExecutionContext::new);
     }
 
-    public void shutdown() {
+    @Override
+    public void destroy() {
         proxyRpcClient.shutdown();
     }
 

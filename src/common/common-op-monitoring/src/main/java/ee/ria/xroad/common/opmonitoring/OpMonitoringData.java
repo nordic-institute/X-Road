@@ -36,6 +36,9 @@ import lombok.ToString;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Objects;
+
+import static ee.ria.xroad.common.opmonitoring.OpMonitoringData.SecurityServerType.PRODUCER;
 
 /**
  * The constants and operations used for representing and processing
@@ -264,6 +267,20 @@ public class OpMonitoringData {
     }
 
     /**
+     * Gets service ID from related fields.
+     */
+    public ServiceId getServiceId() {
+        String xRoadInstance = (String) data.get(SERVICE_XROAD_INSTANCE);
+        String memberClass = (String) data.get(SERVICE_MEMBER_CLASS);
+        String memberCode = (String) data.get(SERVICE_MEMBER_CODE);
+        String subsystemCode = (String) data.get(SERVICE_SUBSYSTEM_CODE);
+        String serviceCode = (String) data.get(SERVICE_CODE);
+        String serviceVersion = (String) data.get(SERVICE_VERSION);
+
+        return ServiceId.Conf.create(xRoadInstance, memberClass, memberCode, subsystemCode, serviceCode, serviceVersion);
+    }
+
+    /**
      * Sets the message ID.
      * @param messageId message ID
      */
@@ -422,10 +439,30 @@ public class OpMonitoringData {
     }
 
     /**
+     * Gets REST method.
+     */
+    public String getRestMethod() {
+        return (String) data.get(REST_METHOD);
+    }
+
+    /**
      * Sets REST path.
      * @param restPath REST path
      */
     public void setRestPath(String restPath) {
         data.put(REST_PATH, restPath);
+    }
+
+    /**
+     * Gets REST path.
+     */
+    public String getRestPath() {
+        return (String) data.get(REST_PATH);
+    }
+
+    public boolean isProducer() {
+        var type = (String) data.get(SECURITY_SERVER_TYPE);
+        return Objects.equals(PRODUCER, SecurityServerType.fromString(type));
+
     }
 }

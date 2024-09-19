@@ -23,28 +23,23 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package ee.ria.xroad.common.util;
+package org.niis.xroad.common.acme;
 
-/**
- * Interface for classes that require internal threads.
- */
-public interface StartStop {
+import lombok.NonNull;
+import org.niis.xroad.common.exception.ServiceException;
+import org.niis.xroad.restapi.exceptions.DeviationProvider;
 
-    /**
-     * Start internal threads.
-     * @throws Exception in case of any errors
-     */
-    void start() throws Exception;
+public class AcmeServiceException extends ServiceException {
 
-    /**
-     * Stop internal threads.
-     * @throws Exception in case of any errors
-     */
-    void stop() throws Exception;
+    public AcmeServiceException(@NonNull DeviationProvider deviationProvider,
+                                Object... metadata) {
+        super(deviationProvider, metadata);
+    }
 
-    /**
-     * Join internal threads.
-     * @throws InterruptedException if any internal thread gets interrupted
-     */
-    void join() throws InterruptedException;
+    public AcmeServiceException(@NonNull final DeviationProvider deviationProvider,
+                                final Throwable cause,
+                                final Object... metadata) {
+        super(deviationProvider, cause, metadata);
+    }
 }
+

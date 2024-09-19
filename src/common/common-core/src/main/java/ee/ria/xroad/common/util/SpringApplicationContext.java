@@ -23,23 +23,23 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.securityserver.restapi.service;
+package ee.ria.xroad.common.util;
 
-import lombok.NonNull;
-import org.niis.xroad.common.exception.ServiceException;
-import org.niis.xroad.restapi.exceptions.DeviationProvider;
+import org.springframework.context.ApplicationContext;
+import org.springframework.context.ApplicationContextAware;
+import org.springframework.stereotype.Component;
 
-public class AcmeServiceException extends ServiceException {
+@Component
+public class SpringApplicationContext implements ApplicationContextAware {
 
-    public AcmeServiceException(@NonNull DeviationProvider deviationProvider,
-                                Object... metadata) {
-        super(deviationProvider, metadata);
+    private static ApplicationContext applicationContext;
+
+    @SuppressWarnings("java:S2696")
+    public void setApplicationContext(ApplicationContext applicationContext) {
+        SpringApplicationContext.applicationContext = applicationContext;
     }
 
-    public AcmeServiceException(@NonNull final DeviationProvider deviationProvider,
-                                final Throwable cause,
-                                final Object... metadata) {
-        super(deviationProvider, cause, metadata);
+    public static <T> T getBean(Class<T> beanClass) {
+        return applicationContext.getBean(beanClass);
     }
 }
-

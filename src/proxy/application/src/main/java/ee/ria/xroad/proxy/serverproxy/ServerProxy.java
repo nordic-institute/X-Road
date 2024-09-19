@@ -33,7 +33,6 @@ import ee.ria.xroad.common.db.HibernateUtil;
 import ee.ria.xroad.common.opmonitoring.OpMonitoringDaemonHttpClient;
 import ee.ria.xroad.common.opmonitoring.OpMonitoringSystemProperties;
 import ee.ria.xroad.common.util.CryptoUtils;
-import ee.ria.xroad.common.util.StartStop;
 import ee.ria.xroad.common.util.TimeUtils;
 import ee.ria.xroad.proxy.antidos.AntiDosConnector;
 import ee.ria.xroad.proxy.conf.KeyConfProvider;
@@ -51,6 +50,8 @@ import org.eclipse.jetty.server.Slf4jRequestLogWriter;
 import org.eclipse.jetty.util.resource.ResourceFactory;
 import org.eclipse.jetty.util.ssl.SslContextFactory;
 import org.eclipse.jetty.xml.XmlConfiguration;
+import org.springframework.beans.factory.DisposableBean;
+import org.springframework.beans.factory.InitializingBean;
 
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -60,7 +61,7 @@ import java.util.Optional;
  * Server proxy that handles requests of client proxies.
  */
 @Slf4j
-public class ServerProxy implements StartStop {
+public class ServerProxy implements InitializingBean, DisposableBean {
 
     private static final int ACCEPTOR_COUNT = Math.max(2, Runtime.getRuntime().availableProcessors());
 
@@ -185,7 +186,7 @@ public class ServerProxy implements StartStop {
     }
 
     @Override
-    public void start() throws Exception {
+    public void afterPropertiesSet() throws Exception {
         log.trace("start()");
 
         server.start();
@@ -193,19 +194,10 @@ public class ServerProxy implements StartStop {
     }
 
     @Override
-    public void join() throws InterruptedException {
-        log.trace("join()");
-
-        if (server.getThreadPool() != null) {
-            server.join();
-        }
-    }
-
-    @Override
-    public void stop() throws Exception {
+    public void destroy() throws Exception {
         log.trace("stop()");
 
-        connMonitor.shutdown();
+        connMonitor.destroy();
         client.close();
         opMonitorClient.close();
         server.stop();

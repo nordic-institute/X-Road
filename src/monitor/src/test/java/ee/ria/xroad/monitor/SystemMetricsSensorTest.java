@@ -89,19 +89,19 @@ class SystemMetricsSensorTest {
         rpcServer = RpcServer.newServer(SystemProperties.getProxyGrpcListenAddress(), PORT,
                 new RpcCredentialsProvider.Builder().tlsEnabled(false).build(),
                 serverBuilder ->
-                        serverBuilder.addService(new MonitorServiceGrpc.MonitorServiceImplBase() {
-                            @Override
-                            public void getStats(StatsReq request, StreamObserver<StatsResp> responseObserver) {
-                                responseObserver.onNext(response);
-                                responseObserver.onCompleted();
-                            }
-                        }));
-        rpcServer.start();
+                serverBuilder.addService(new MonitorServiceGrpc.MonitorServiceImplBase() {
+                    @Override
+                    public void getStats(StatsReq request, StreamObserver<StatsResp> responseObserver) {
+                        responseObserver.onNext(response);
+                        responseObserver.onCompleted();
+                    }
+                }));
+        rpcServer.afterPropertiesSet();
     }
 
     @AfterAll
     public static void tearDown() throws Exception {
-        rpcServer.stop();
+        rpcServer.destroy();
     }
 
     @Test

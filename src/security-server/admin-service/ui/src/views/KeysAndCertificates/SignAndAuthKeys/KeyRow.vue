@@ -36,7 +36,7 @@
         </div>
       </div>
     </td>
-    <td colspan="4"></td>
+    <td colspan="5"></td>
     <td class="td-align-right">
       <xrd-button
         v-if="showGenerateCsr"

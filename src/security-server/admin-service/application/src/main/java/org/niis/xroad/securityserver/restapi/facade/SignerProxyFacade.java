@@ -39,13 +39,14 @@ import ee.ria.xroad.signer.protocol.dto.KeyUsageInfo;
 import ee.ria.xroad.signer.protocol.dto.TokenInfo;
 import ee.ria.xroad.signer.protocol.dto.TokenInfoAndKeyId;
 
-import jakarta.annotation.PostConstruct;
-import jakarta.annotation.PreDestroy;
 import lombok.extern.slf4j.Slf4j;
 import org.niis.xroad.signer.proto.CertificateRequestFormat;
+import org.springframework.beans.factory.DisposableBean;
+import org.springframework.beans.factory.InitializingBean;
 import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Component;
 
+import java.time.Instant;
 import java.util.List;
 
 /**
@@ -56,15 +57,15 @@ import java.util.List;
 @Slf4j
 @Profile("!test")
 @Component
-public class SignerProxyFacade {
+public class SignerProxyFacade implements InitializingBean, DisposableBean {
 
-    @PostConstruct
-    public void init() throws Exception {
+    @Override
+    public void afterPropertiesSet() throws Exception {
         RpcSignerClient.init();
     }
 
-    @PreDestroy
-    public void shutdown() {
+    @Override
+    public void destroy() {
         RpcSignerClient.shutdown();
     }
 
@@ -157,7 +158,8 @@ public class SignerProxyFacade {
      * {@link SignerProxy#generateCertRequest(String, ClientId.Conf, KeyUsageInfo, String, String, CertificateRequestFormat, String)}
      */
     public GeneratedCertRequestInfo generateCertRequest(String keyId, ClientId.Conf memberId, KeyUsageInfo keyUsage,
-            String subjectName, String altName, CertificateRequestFormat format, String certificateProfile)
+                                                        String subjectName, String altName, CertificateRequestFormat format,
+                                                        String certificateProfile)
             throws Exception {
         return SignerProxy.generateCertRequest(keyId, memberId, keyUsage, subjectName, altName, format, certificateProfile);
     }
@@ -196,6 +198,27 @@ public class SignerProxyFacade {
      */
     public void setCertStatus(String certId, String status) throws Exception {
         SignerProxy.setCertStatus(certId, status);
+    }
+
+    /**
+     * {@link SignerProxy#setCertStatus(String, String)}
+     */
+    public void setRenewedCertHash(String certId, String hash) throws Exception {
+        SignerProxy.setRenewedCertHash(certId, hash);
+    }
+
+    /**
+     * {@link SignerProxy#setRenewalError(String, String)}
+     */
+    public void setRenewalError(String certId, String errorMessage) throws Exception {
+        SignerProxy.setRenewalError(certId, errorMessage);
+    }
+
+    /**
+     * {@link SignerProxy#setNextPlannedRenewal(String, Instant)}
+     */
+    public void setNextPlannedRenewal(String certId, Instant nextRenewalTime) throws Exception {
+        SignerProxy.setNextPlannedRenewal(certId, nextRenewalTime);
     }
 
     /**

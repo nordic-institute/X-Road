@@ -28,6 +28,7 @@ package org.niis.xroad.securityserver.restapi.dto;
 import lombok.Data;
 
 import java.time.OffsetDateTime;
+import java.util.List;
 
 /**
  * Model for alert status
@@ -40,4 +41,7 @@ public class AlertStatus {
     private Boolean globalConfValidCheckSuccess;
     private Boolean softTokenPinEntered;
     private Boolean softTokenPinEnteredCheckSuccess;
+    private Boolean certificateRenewalJobSuccess;
+    private List<String> authCertificateIdsWithErrors;
+    private List<String> signCertificateIdsWithErrors;
 }

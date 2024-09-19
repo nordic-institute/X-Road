@@ -67,7 +67,6 @@ import org.springframework.context.annotation.Import;
 @Configuration
 public class ProxyConfig {
 
-
     @Bean
     CertHelper certHelper(GlobalConfProvider globalConfProvider) {
         return new CertHelper(globalConfProvider);
@@ -83,7 +82,7 @@ public class ProxyConfig {
         return new AuthTrustVerifier(keyConfProvider, certHelper, certChainFactory);
     }
 
-    @Bean(initMethod = "start", destroyMethod = "stop")
+    @Bean
     ServerProxy serverProxy(GlobalConfProvider globalConfProvider,
                             KeyConfProvider keyConfProvider,
                             ServerConfProvider serverConfProvider,
@@ -91,12 +90,12 @@ public class ProxyConfig {
         return new ServerProxy(globalConfProvider, keyConfProvider, serverConfProvider, certChainFactory);
     }
 
-    @Bean(initMethod = "start", destroyMethod = "stop")
+    @Bean
     CertHashBasedOcspResponder certHashBasedOcspResponder(KeyConfProvider keyConfProvider) throws Exception {
         return new CertHashBasedOcspResponder(keyConfProvider);
     }
 
-    @Bean(initMethod = "start", destroyMethod = "stop")
+    @Bean
     AbstractOpMonitoringBuffer opMonitoringBuffer(ServerConfProvider serverConfProvider) throws Exception {
         return OpMonitoring.init(serverConfProvider);
     }

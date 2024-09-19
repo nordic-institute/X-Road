@@ -47,7 +47,7 @@ public class ProxyAdminPortConfig {
 
     private final Optional<HealthCheckPort> healthCheckPort;
 
-    @Bean(initMethod = "start", destroyMethod = "stop")
+    @Bean
     AdminPort createAdminPort() {
         AdminPort adminPort = new AdminPort(PortNumbers.ADMIN_PORT);
 

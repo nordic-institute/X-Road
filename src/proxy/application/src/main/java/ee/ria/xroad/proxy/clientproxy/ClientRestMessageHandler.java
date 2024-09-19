@@ -90,11 +90,11 @@ public class ClientRestMessageHandler extends AbstractClientProxyHandler {
     private final AssetAuthorizationManager assetAuthorizationManager;
 
     public ClientRestMessageHandler(GlobalConfProvider globalConfProvider,
-                             KeyConfProvider keyConfProvider,
-                             ServerConfProvider serverConfProvider,
-                             CertChainFactory certChainFactory,
-                             HttpClient client,
-                             AssetAuthorizationManager assetAuthorizationManager) {
+                                    KeyConfProvider keyConfProvider,
+                                    ServerConfProvider serverConfProvider,
+                                    CertChainFactory certChainFactory,
+                                    HttpClient client,
+                                    AssetAuthorizationManager assetAuthorizationManager) {
         super(globalConfProvider, keyConfProvider, serverConfProvider, certChainFactory, client, true);
         this.assetAuthorizationManager = assetAuthorizationManager;
     }
@@ -120,8 +120,9 @@ public class ClientRestMessageHandler extends AbstractClientProxyHandler {
                         globalConfProvider, keyConfProvider, serverConfProvider, certChainFactory,
                         client, getIsAuthenticationData(request), assetAuthorizationManager));
             } else {
-                return Optional.of(new ClientRestMessageProcessor(proxyCtx, restRequest, globalConfProvider, keyConfProvider, serverConfProvider, certChainFactory,
-                         client, getIsAuthenticationData(request)));
+                return Optional.of(new ClientRestMessageProcessor(proxyCtx, restRequest, globalConfProvider, keyConfProvider,
+                        serverConfProvider, certChainFactory,
+                        client, getIsAuthenticationData(request)));
             }
         }
         return Optional.empty();

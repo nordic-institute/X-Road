@@ -61,5 +61,4 @@ public class SecurityServerConfiguration {
     public CaffeineCacheBuilder.ConfiguredCache cacheGetCertAuthorities(ApiCachingConfiguration.Config cachingProperties) {
         return CaffeineCacheBuilder.newExpireAfterWriteCache(GET_CERTIFICATE_AUTHORITIES_CACHE, cachingProperties.getCacheDefaultTtl());
     }
-
 }

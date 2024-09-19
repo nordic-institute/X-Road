@@ -125,7 +125,7 @@ class ClientRestMessageProcessor extends AbstractClientMessageProcessor {
 
             requestValidator.verifyClientStatus(senderId);
             if (SystemProperties.shouldVerifyClientCert()) {
-                verifyClientAuthentication(senderId, clientCert);;
+                verifyClientAuthentication(senderId, clientCert);
             }
 
             processRequest();

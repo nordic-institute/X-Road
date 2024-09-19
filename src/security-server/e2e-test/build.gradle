@@ -46,3 +46,7 @@ tasks.register('e2eTest', Test) {
         showStandardStreams(true)
     }
 }
+
+archUnit {
+    skip = true
+}

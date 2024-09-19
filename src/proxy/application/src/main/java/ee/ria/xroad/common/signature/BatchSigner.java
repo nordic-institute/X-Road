@@ -32,6 +32,7 @@ import ee.ria.xroad.signer.SignerProxy;
 import lombok.Data;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.DisposableBean;
 
 import java.security.cert.X509Certificate;
 import java.util.ArrayList;
@@ -60,7 +61,7 @@ import static ee.ria.xroad.common.util.CryptoUtils.getDigestAlgorithmId;
  * chain is produced for each request.
  */
 @Slf4j
-public class BatchSigner implements MessageSigner {
+public class BatchSigner implements DisposableBean, MessageSigner {
 
     private static final int TIMEOUT_MILLIS = SystemProperties.getSignerClientTimeout();
 
@@ -74,7 +75,7 @@ public class BatchSigner implements MessageSigner {
     }
 
     @Override
-    public void shutdown() {
+    public void destroy() {
         if (instance != null) {
             instance.workers.values().forEach(WorkerImpl::stop);
         }

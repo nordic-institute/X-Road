@@ -82,7 +82,7 @@ class MetricsRpcServiceTest {
         rpcServer = RpcServer.newServer("localhost", port,
                 new RpcCredentialsProvider.Builder().tlsEnabled(false).build(),
                 serverBuilder -> serverBuilder.addService(new MetricsRpcService()));
-        rpcServer.start();
+        rpcServer.afterPropertiesSet();
         rpcClient = RpcClient.newClient("localhost", port,
                 new RpcCredentialsProvider.Builder().tlsEnabled(false).build(),
                 TestMetricsExecutionContext::new);
@@ -104,7 +104,7 @@ class MetricsRpcServiceTest {
     @AfterEach
     public void tearDown() throws Exception {
         rpcClient.shutdown();
-        rpcServer.stop();
+        rpcServer.destroy();
     }
 
     @Test

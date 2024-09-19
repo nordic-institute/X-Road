@@ -41,7 +41,7 @@ import java.util.List;
 @Configuration
 public class SignerRpcConfig {
 
-    @Bean(initMethod = "start", destroyMethod = "stop")
+    @Bean
     RpcServer rpcServer(final List<BindableService> bindableServices) throws Exception {
 
         var credentialsProvider = new RpcCredentialsProvider.Builder()

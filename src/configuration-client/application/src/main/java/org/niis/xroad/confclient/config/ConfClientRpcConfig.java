@@ -40,7 +40,7 @@ import java.util.Collection;
 @Configuration
 public class ConfClientRpcConfig {
 
-    @Bean(initMethod = "start", destroyMethod = "stop")
+    @Bean
     RpcServer proxyRpcServer(Collection<BindableService> services) throws Exception {
 
         var credentialsProvider = new RpcCredentialsProvider.Builder()

@@ -32,7 +32,6 @@ import ee.ria.xroad.common.cert.CertChainFactory;
 import ee.ria.xroad.common.conf.globalconf.GlobalConfProvider;
 import ee.ria.xroad.common.conf.serverconf.IsAuthenticationData;
 import ee.ria.xroad.common.conf.serverconf.ServerConfProvider;
-import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.identifier.ServiceId;
 import ee.ria.xroad.common.message.SaxSoapParserImpl;
 import ee.ria.xroad.common.message.SoapFault;
@@ -45,8 +44,8 @@ import ee.ria.xroad.common.util.HttpSender;
 import ee.ria.xroad.common.util.MimeUtils;
 import ee.ria.xroad.common.util.RequestWrapper;
 import ee.ria.xroad.common.util.ResponseWrapper;
-import ee.ria.xroad.proxy.conf.SigningCtxProvider;
 import ee.ria.xroad.proxy.conf.KeyConfProvider;
+import ee.ria.xroad.proxy.conf.SigningCtxProvider;
 import ee.ria.xroad.proxy.messagelog.MessageLog;
 import ee.ria.xroad.proxy.protocol.ProxyMessage;
 import ee.ria.xroad.proxy.protocol.ProxyMessageDecoder;
@@ -162,11 +161,11 @@ class ClientSoapMessageProcessor extends AbstractClientMessageProcessor {
     }
 
     ClientSoapMessageProcessor(GlobalConfProvider globalConfProvider,
-                           KeyConfProvider keyConfProvider,
-                           ServerConfProvider serverConfProvider,
-                           CertChainFactory certChainFactory,
-                           RequestWrapper request, ResponseWrapper response,
-                           HttpClient httpClient, IsAuthenticationData clientCert, OpMonitoringData opMonitoringData)
+                               KeyConfProvider keyConfProvider,
+                               ServerConfProvider serverConfProvider,
+                               CertChainFactory certChainFactory,
+                               RequestWrapper request, ResponseWrapper response,
+                               HttpClient httpClient, IsAuthenticationData clientCert, OpMonitoringData opMonitoringData)
             throws Exception {
         super(globalConfProvider, keyConfProvider, serverConfProvider, certChainFactory, request, response, httpClient, clientCert,
                 opMonitoringData);
@@ -195,7 +194,7 @@ class ClientSoapMessageProcessor extends AbstractClientMessageProcessor {
             requestValidator.validateSoap(requestSoap, clientCert);
             // Check client authentication mode.
             if (SystemProperties.shouldVerifyClientCert()) {
-                verifyClientAuthentication(requestSoap.getClient(), clientCert);;
+                verifyClientAuthentication(requestSoap.getClient(), clientCert);
             }
 
             processRequest();

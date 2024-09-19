@@ -59,7 +59,7 @@ import java.util.List;
 public class MonitorConfig {
     private static final int TASK_EXECUTOR_POOL_SIZE = 5;
 
-    @Bean(initMethod = "start", destroyMethod = "stop")
+    @Bean
     RpcServer rpcServer(final List<BindableService> bindableServices) throws Exception {
         var credentialsProvider = new RpcCredentialsProvider.Builder()
                 .tlsEnabled(SystemProperties.isEnvMonitorGrpcTlsEnabled())

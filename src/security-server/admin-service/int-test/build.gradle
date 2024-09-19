@@ -55,3 +55,7 @@ tasks.register('intTest', Test) {
 tasks.named('check') {
     dependsOn tasks.named('intTest')
 }
+
+archUnit {
+    skip = true
+}

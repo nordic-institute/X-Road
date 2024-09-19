@@ -107,7 +107,7 @@ public final class SystemProperties {
     public static final String PROXY_UI_API_ACME_AUTHORIZATION_WAIT_ATTEMPTS =
             PREFIX + "proxy-ui-api.acme-authorization-wait-attempts";
 
-    /** property name of the amount of time to wait between acme authorization completion check attempts */
+    /** property name of the amount of seconds to wait between acme authorization completion check attempts */
     public static final String PROXY_UI_API_ACME_AUTHORIZATION_WAIT_INTERVAL =
             PREFIX + "proxy-ui-api.acme-authorization-wait-interval";
 
@@ -115,7 +115,7 @@ public final class SystemProperties {
     public static final String PROXY_UI_API_ACME_CERTIFICATE_WAIT_ATTEMPTS =
             PREFIX + "proxy-ui-api.acme-certificate-wait-attempts";
 
-    /** property name of the amount of time to wait between acme certificate completion check attempts */
+    /** property name of the amount of seconds to wait between acme certificate completion check attempts */
     public static final String PROXY_UI_API_ACME_CERTIFICATE_WAIT_INTERVAL =
             PREFIX + "proxy-ui-api.acme-certificate-wait-interval";
 
@@ -126,6 +126,18 @@ public final class SystemProperties {
     /** property name of whether the service should listen on port 80 for incoming acme challenge requests */
     public static final String PROXY_UI_API_ACME_CHALLENGE_PORT_ENABLED =
             PREFIX + "proxy-ui-api.acme-challenge-port-enabled";
+
+    public static final String PROXY_UI_API_ACME_RENEWAL_ACTIVE =
+            PREFIX + "proxy-ui-api.acme-renewal-active";
+
+    public static final String PROXY_UI_API_ACME_RENEWAL_RETRY_DELAY =
+            PREFIX + "proxy-ui-api.acme-renewal-retry-delay";
+
+    public static final String PROXY_UI_API_ACME_RENEWAL_INTERVAL =
+            PREFIX + "proxy-ui-api.acme-renewal-interval";
+
+    public static final String PROXY_UI_API_ACME_RENEWAL_TIME_BEFORE_EXPIRATION_DATE =
+            PREFIX + "proxy-ui-api.acme-renewal-time-before-expiration-date";
 
     // Proxy ------------------------------------------------------------------
 
@@ -1019,7 +1031,7 @@ public final class SystemProperties {
     }
 
     public static long getAcmeAuthorizationWaitInterval() {
-        return Long.parseLong(System.getProperty(PROXY_UI_API_ACME_AUTHORIZATION_WAIT_INTERVAL, "5000"));
+        return Long.parseLong(System.getProperty(PROXY_UI_API_ACME_AUTHORIZATION_WAIT_INTERVAL, "5"));
     }
 
     public static int getAcmeCertificateWaitAttempts() {
@@ -1027,7 +1039,7 @@ public final class SystemProperties {
     }
 
     public static long getAcmeCertificateWaitInterval() {
-        return Long.parseLong(System.getProperty(PROXY_UI_API_ACME_CERTIFICATE_WAIT_INTERVAL, "5000"));
+        return Long.parseLong(System.getProperty(PROXY_UI_API_ACME_CERTIFICATE_WAIT_INTERVAL, "5"));
     }
 
     public static long getAcmeAccountKeyPairExpirationInDays() {
@@ -1281,6 +1293,35 @@ public final class SystemProperties {
     public static int getModuleManagerUpdateInterval() {
         return Integer.parseInt(System.getProperty(SIGNER_MODULE_MANAGER_UPDATE_INTERVAL,
                 DEFAULT_SIGNER_MODULE_MANAGER_UPDATE_INTERVAL));
+    }
+
+    /**
+     * @return the ACME certificate renewal toggle
+     */
+    public static boolean isAcmeCertificateRenewalActive() {
+        return Boolean.parseBoolean(System.getProperty(PROXY_UI_API_ACME_RENEWAL_ACTIVE, "true"));
+    }
+
+    /**
+     * @return the ACME certificate renewal retry delay in seconds
+     */
+    public static int getAcmeCertificateRenewalRetryDelay() {
+        return Integer.parseInt(System.getProperty(PROXY_UI_API_ACME_RENEWAL_RETRY_DELAY, "60"));
+    }
+
+    /**
+     * @return the ACME certificate renewal job interval in seconds
+     */
+    public static int getAcmeCertificateRenewalInterval() {
+        return Integer.parseInt(System.getProperty(PROXY_UI_API_ACME_RENEWAL_INTERVAL, "1200"));
+    }
+
+    /**
+     * @return when to trigger automatic renewal subtracted as days from the expiration date of the certificate.
+     * Used when it's not possible to receive the ACME renewal information from the ACME server.
+     */
+    public static int getAcmeRenewalTimeBeforeExpirationDate() {
+        return Integer.parseInt(System.getProperty(PROXY_UI_API_ACME_RENEWAL_TIME_BEFORE_EXPIRATION_DATE, "14"));
     }
 
     /**

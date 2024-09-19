@@ -25,8 +25,6 @@
  */
 package ee.ria.xroad.proxy.testutil;
 
-import ee.ria.xroad.common.util.StartStop;
-
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.IOUtils;
 import org.eclipse.jetty.io.Content;
@@ -37,6 +35,8 @@ import org.eclipse.jetty.server.SecureRequestCustomizer;
 import org.eclipse.jetty.server.Server;
 import org.eclipse.jetty.server.ServerConnector;
 import org.eclipse.jetty.util.Callback;
+import org.springframework.beans.factory.DisposableBean;
+import org.springframework.beans.factory.InitializingBean;
 
 import java.util.Optional;
 
@@ -52,7 +52,7 @@ import static org.eclipse.jetty.io.Content.Source.asInputStream;
  * Test service
  */
 @Slf4j
-public class TestService implements StartStop {
+public class TestService implements InitializingBean, DisposableBean {
 
     private final Server server = new Server();
 
@@ -100,18 +100,13 @@ public class TestService implements StartStop {
     }
 
     @Override
-    public synchronized void start() throws Exception {
+    public synchronized void afterPropertiesSet() throws Exception {
         server.start();
     }
 
     @Override
-    public synchronized void stop() throws Exception {
+    public synchronized void destroy() throws Exception {
         server.stop();
-    }
-
-    @Override
-    public synchronized void join() throws InterruptedException {
-        server.join();
     }
 
     /**

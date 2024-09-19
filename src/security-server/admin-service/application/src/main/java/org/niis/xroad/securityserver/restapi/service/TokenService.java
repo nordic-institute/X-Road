@@ -92,7 +92,7 @@ public class TokenService {
     /**
      * get all sign certificates for a given client.
      *
-     * @param clientType client who's member certificates need to be
+     * @param clientType client whose member certificates need to be
      * linked to
      * @return
      */
@@ -103,7 +103,7 @@ public class TokenService {
     /**
      * get all certificates for a given client.
      *
-     * @param clientType client who's member certificates need to be
+     * @param clientType client whose member certificates need to be
      * linked to
      * @return
      */

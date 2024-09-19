@@ -33,6 +33,7 @@ import lombok.Value;
 import org.niis.xroad.common.rpc.mapper.ClientIdMapper;
 
 import java.io.Serializable;
+import java.time.Instant;
 
 /**
  * Certificate info DTO.
@@ -91,6 +92,25 @@ public class CertificateInfo implements Serializable {
     @JsonIgnore
     public byte[] getOcspBytes() {
         return message.getOcspBytes().toByteArray();
+    }
+
+    @ToString.Include
+    public String getRenewedCertHash() {
+        return message.getRenewedCertHash();
+    }
+
+    @ToString.Include
+    public String getRenewalError() {
+        return message.getRenewalError();
+    }
+
+    @ToString.Include
+    public Instant getNextAutomaticRenewalTime() {
+        if (message.hasNextAutomaticRenewalTime()) {
+            return Instant.ofEpochSecond(message.getNextAutomaticRenewalTime().getSeconds(),
+                    message.getNextAutomaticRenewalTime().getNanos());
+        }
+        return null;
     }
 
     public CertificateInfoProto asMessage() {

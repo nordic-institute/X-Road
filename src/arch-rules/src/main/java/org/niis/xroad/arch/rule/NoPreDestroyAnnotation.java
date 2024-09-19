@@ -23,38 +23,23 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.securityserver.restapi.service;
+package org.niis.xroad.arch.rule;
 
-import lombok.extern.slf4j.Slf4j;
-import org.shredzone.acme4j.connector.HttpConnector;
-import org.shredzone.acme4j.connector.NetworkSettings;
+import com.societegenerale.commons.plugin.rules.ArchRuleTest;
+import com.societegenerale.commons.plugin.service.ScopePathProvider;
+import com.societegenerale.commons.plugin.utils.ArchUtils;
+import com.tngtech.archunit.lang.syntax.ArchRuleDefinition;
+import jakarta.annotation.PreDestroy;
 
-import java.net.URISyntaxException;
-import java.net.URL;
-import java.net.http.HttpRequest;
+import java.util.Collection;
 
-import static ee.ria.xroad.common.Version.XROAD_VERSION;
-
-@Slf4j
-public class AcmeXroadHttpConnector extends HttpConnector {
-
-    static final String XROAD_ACME_USER_AGENT = "X-Road/" + XROAD_VERSION + " " + HttpConnector.defaultUserAgent();
-    private final NetworkSettings networkSettings;
-
-    public AcmeXroadHttpConnector(NetworkSettings networkSettings) {
-        super(networkSettings);
-        this.networkSettings = networkSettings;
-    }
+public class NoPreDestroyAnnotation implements ArchRuleTest {
 
     @Override
-    public HttpRequest.Builder createRequestBuilder(URL url) {
-        try {
-            return HttpRequest.newBuilder(url.toURI())
-                    .header("User-Agent", XROAD_ACME_USER_AGENT)
-                    .timeout(networkSettings.getTimeout());
-        } catch (URISyntaxException ex) {
-            throw new IllegalArgumentException("Invalid URL", ex);
-        }
+    public void execute(String packagePath, ScopePathProvider scopePathProvider, Collection<String> excludedPaths) {
+        ArchRuleDefinition.noMethods().should().beAnnotatedWith(PreDestroy.class)
+                .because("InitializingBean interface should be used instead of @PreDestroy annotation")
+                .allowEmptyShould(false)
+                .check(ArchUtils.importAllClassesInPackage(scopePathProvider.getMainClassesPath(), packagePath, excludedPaths));
     }
-
 }

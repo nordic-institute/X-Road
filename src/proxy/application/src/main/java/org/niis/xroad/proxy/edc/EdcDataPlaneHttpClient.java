@@ -34,7 +34,6 @@ import ee.ria.xroad.common.message.Soap;
 import ee.ria.xroad.common.message.SoapParserImpl;
 import ee.ria.xroad.common.util.CachingStream;
 import ee.ria.xroad.common.util.CryptoUtils;
-
 import ee.ria.xroad.proxy.conf.KeyConfProvider;
 
 import lombok.AccessLevel;

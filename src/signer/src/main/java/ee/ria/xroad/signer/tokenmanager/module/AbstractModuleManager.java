@@ -36,9 +36,9 @@ import ee.ria.xroad.signer.tokenmanager.token.TokenWorker;
 import ee.ria.xroad.signer.tokenmanager.token.TokenWorkerProvider;
 import ee.ria.xroad.signer.tokenmanager.token.WorkerWithLifecycle;
 
-import jakarta.annotation.PostConstruct;
-import jakarta.annotation.PreDestroy;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.DisposableBean;
+import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import java.nio.file.Paths;
@@ -59,7 +59,7 @@ import static java.util.Objects.requireNonNull;
  * Module manager base class.
  */
 @Slf4j
-public abstract class AbstractModuleManager implements WorkerWithLifecycle, TokenWorkerProvider {
+public abstract class AbstractModuleManager implements WorkerWithLifecycle, TokenWorkerProvider, InitializingBean, DisposableBean {
     private final SystemProperties.NodeType serverNodeType = SystemProperties.getServerNodeType();
 
     @Autowired
@@ -71,7 +71,11 @@ public abstract class AbstractModuleManager implements WorkerWithLifecycle, Toke
     private FileWatcherRunner keyConfFileWatcherRunner;
 
     @Override
-    @PostConstruct
+    public void afterPropertiesSet() throws Exception {
+        start();
+    }
+
+    @Override
     public void start() {
         log.info("Initializing module worker of instance {}", getClass().getSimpleName());
         try {
@@ -92,9 +96,8 @@ public abstract class AbstractModuleManager implements WorkerWithLifecycle, Toke
         }
     }
 
-    @PreDestroy
     @Override
-    public void stop() {
+    public void destroy() {
         log.info("Destroying module worker");
 
         if (!SLAVE.equals(SystemProperties.getServerNodeType())) {
@@ -181,7 +184,7 @@ public abstract class AbstractModuleManager implements WorkerWithLifecycle, Toke
             if (!moduleTypes.contains(entry.getKey())) {
                 try {
                     log.trace("Stopping module worker for module '{}'", entry.getKey());
-                    entry.getValue().stop();
+                    entry.getValue().destroy();
                 } catch (Exception e) {
                     log.error("Failed to stop module {}", entry.getKey(), e);
                 }

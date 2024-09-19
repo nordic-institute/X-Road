@@ -103,9 +103,9 @@ public class ClientRestMessageProcessorTest {
     private void verifyOpMonitoringData(Map<String, Object> data) {
         assertEquals("Client", data.get("securityServerType"));
         assertEquals("REST", data.get("serviceType"));
-        assertEquals("listMethods", data.get("serviceCode"));
+        assertEquals("pets", data.get("serviceCode"));
         assertEquals("GET", data.get("restMethod"));
-        assertEquals("/r1/DEV/COM/1234/TestService/listMethods", data.get("restPath"));
+        assertEquals("/pets/1", data.get("restPath"));
         assertNotNull("DEV", data.get("clientXRoadInstance"));
         assertEquals("1234", data.get("clientMemberCode"));
         assertEquals("TestService", data.get("clientSubsystemCode"));
@@ -120,7 +120,7 @@ public class ClientRestMessageProcessorTest {
     private Request getMockedRequest() {
         final var request = mock(Request.class);
         when(request.getMethod()).thenReturn("GET");
-        when(request.getHttpURI()).thenReturn(HttpURI.build(URI.create("http://localhost:4210/r1/DEV/COM/1234/TestService/listMethods")));
+        when(request.getHttpURI()).thenReturn(HttpURI.build(URI.create("http://localhost:4210/r1/DEV/COM/1234/TestService/pets/pets/1")));
         var clientId = new PreEncodedHttpField(HEADER_CLIENT_ID, "DEV/COM/1234/TestService");
         when(request.getHeaders()).thenReturn(HttpFields.from(clientId));
         return request;

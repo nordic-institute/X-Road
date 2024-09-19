@@ -36,7 +36,6 @@ import ee.ria.xroad.common.identifier.ServiceId;
 import ee.ria.xroad.common.identifier.XRoadId;
 
 import feign.FeignException;
-import jakarta.annotation.PostConstruct;
 import jakarta.json.Json;
 import jakarta.json.JsonObject;
 import jakarta.ws.rs.core.MediaType;
@@ -68,6 +67,7 @@ import org.eclipse.edc.transform.transformer.edc.from.JsonObjectFromQuerySpecTra
 import org.eclipse.edc.transform.transformer.edc.to.JsonObjectToQuerySpecTransformer;
 import org.eclipse.edc.transform.transformer.edc.to.JsonValueToGenericTypeTransformer;
 import org.niis.xroad.proxy.configuration.ProxyEdcControlPlaneConfig;
+import org.springframework.beans.factory.InitializingBean;
 import org.springframework.context.annotation.Conditional;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
@@ -76,8 +76,6 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
-import java.util.concurrent.Executors;
-import java.util.concurrent.ScheduledExecutorService;
 import java.util.function.Predicate;
 
 import static jakarta.json.Json.createArrayBuilder;
@@ -95,7 +93,7 @@ import static org.eclipse.edc.spi.query.Criterion.criterion;
 @Conditional(ProxyEdcControlPlaneConfig.DataspacesEnabledCondition.class)
 @Slf4j
 @SuppressWarnings("checkstyle:MagicNumber")
-public class AssetsRegistrationJob {
+public class AssetsRegistrationJob implements InitializingBean {
     private static final int FIVE_MINUTES = 5 * 60;
 
     private static final String XROAD_NAMESPACE = "https://x-road.eu/v0.1/ns/";
@@ -108,7 +106,6 @@ public class AssetsRegistrationJob {
     private final AssetApi assetApi;
     private final PolicyDefinitionApiV3 policyDefinitionApi;
     private final ContractDefinitionApiV3 contractDefinitionApi;
-    private final ScheduledExecutorService scheduler = Executors.newSingleThreadScheduledExecutor();
     private final TransformerContext context;
 
     private final ParticipantIdMapper participantIdMapper = new NoOpParticipantIdMapper();
@@ -148,9 +145,9 @@ public class AssetsRegistrationJob {
         return registry;
     }
 
-    @PostConstruct
+    @Override
     @SuppressWarnings("checkstyle:MagicNumber")
-    public void onInit() {
+    public void afterPropertiesSet() {
         //TODO disabled for now. Initialized by hurl
         //scheduler.schedule(this::registerDataPlane, 5, SECONDS);
     }
