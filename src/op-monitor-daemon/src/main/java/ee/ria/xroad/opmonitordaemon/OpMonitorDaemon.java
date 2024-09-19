@@ -29,7 +29,6 @@ import ee.ria.xroad.common.SystemProperties;
 import ee.ria.xroad.common.conf.globalconf.GlobalConfProvider;
 import ee.ria.xroad.common.opmonitoring.OpMonitoringSystemProperties;
 import ee.ria.xroad.common.util.CryptoUtils;
-import ee.ria.xroad.common.util.StartStop;
 
 import com.codahale.metrics.MetricRegistry;
 import com.codahale.metrics.jmx.JmxReporter;
@@ -41,6 +40,8 @@ import org.eclipse.jetty.server.HttpConnectionFactory;
 import org.eclipse.jetty.server.Server;
 import org.eclipse.jetty.server.ServerConnector;
 import org.eclipse.jetty.util.ssl.SslContextFactory;
+import org.springframework.beans.factory.DisposableBean;
+import org.springframework.beans.factory.InitializingBean;
 
 import javax.net.ssl.KeyManager;
 import javax.net.ssl.SSLContext;
@@ -56,7 +57,7 @@ import static ee.ria.xroad.common.util.TimeUtils.getEpochMillisecond;
  * SOAP requests for monitoring data are further processed by the QueryRequestProcessor class.
  */
 @Slf4j
-public final class OpMonitorDaemon implements StartStop {
+public final class OpMonitorDaemon implements InitializingBean, DisposableBean {
 
     private static final String CLIENT_CONNECTOR_NAME = "OpMonitorDaemonClientConnector";
 
@@ -87,7 +88,7 @@ public final class OpMonitorDaemon implements StartStop {
     }
 
     @Override
-    public void start() throws Exception {
+    public void afterPropertiesSet() throws Exception {
         startTimestamp = getEpochMillisecond();
 
         reporter.start();
@@ -95,16 +96,9 @@ public final class OpMonitorDaemon implements StartStop {
     }
 
     @Override
-    public void stop() throws Exception {
+    public void destroy() throws Exception {
         server.stop();
         reporter.stop();
-    }
-
-    @Override
-    public void join() throws InterruptedException {
-        if (server.getThreadPool() != null) {
-            server.join();
-        }
     }
 
     private void createConnector() {

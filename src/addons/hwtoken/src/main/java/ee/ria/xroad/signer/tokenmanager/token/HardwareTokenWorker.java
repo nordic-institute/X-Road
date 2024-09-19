@@ -205,8 +205,8 @@ public class HardwareTokenWorker extends AbstractTokenWorker {
     }
 
     @Override
-    public void stop() {
-        super.stop();
+    public void destroy() {
+        super.destroy();
 
         try {
             closeActiveSession();

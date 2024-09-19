@@ -7,6 +7,7 @@ dependencyResolutionManagement {
 }
 
 // Common projects
+include 'arch-rules'
 include "signer-protocol"
 include "serverconf"
 include "monitoring-conf"

@@ -33,13 +33,14 @@ import org.niis.xroad.signer.proto.CertificateServiceGrpc;
 import org.niis.xroad.signer.proto.KeyServiceGrpc;
 import org.niis.xroad.signer.proto.OcspServiceGrpc;
 import org.niis.xroad.signer.proto.TokenServiceGrpc;
+import org.springframework.beans.factory.DisposableBean;
 
 import static ee.ria.xroad.common.SystemProperties.getGrpcInternalHost;
 import static ee.ria.xroad.common.SystemProperties.getGrpcSignerPort;
 import static ee.ria.xroad.common.SystemProperties.getSignerClientTimeout;
 
 @Slf4j
-public final class RpcSignerClient {
+public final class RpcSignerClient implements DisposableBean {
     private static RpcSignerClient instance;
 
     private final RpcClient<SignerRpcExecutionContext> client;
@@ -68,11 +69,12 @@ public final class RpcSignerClient {
 
     public static void shutdown() {
         if (instance != null) {
-            instance.stop();
+            instance.destroy();
         }
     }
 
-    public void stop() {
+    @Override
+    public void destroy() {
         client.shutdown();
     }
 

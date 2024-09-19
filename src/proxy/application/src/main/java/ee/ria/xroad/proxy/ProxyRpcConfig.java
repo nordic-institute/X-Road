@@ -38,7 +38,7 @@ import org.springframework.context.annotation.Configuration;
 @Configuration
 public class ProxyRpcConfig {
 
-    @Bean(initMethod = "start", destroyMethod = "stop")
+    @Bean
     RpcServer proxyRpcServer(final AddOn.BindableServiceRegistry bindableServiceRegistry) throws Exception {
         return RpcServer.newServer(
                 SystemProperties.getGrpcInternalHost(),
@@ -49,7 +49,7 @@ public class ProxyRpcConfig {
                 }));
     }
 
-    @Bean(destroyMethod = "stop")
+    @Bean
     RpcSignerClient rpcSignerClient() throws Exception {
         return RpcSignerClient.init();
     }

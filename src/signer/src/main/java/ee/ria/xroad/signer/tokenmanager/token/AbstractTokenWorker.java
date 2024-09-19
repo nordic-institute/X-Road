@@ -160,7 +160,7 @@ public abstract class AbstractTokenWorker implements TokenWorker, WorkerWithLife
     }
 
     @Override
-    public void stop() {
+    public void destroy() {
         setTokenAvailable(tokenId, false);
     }
 

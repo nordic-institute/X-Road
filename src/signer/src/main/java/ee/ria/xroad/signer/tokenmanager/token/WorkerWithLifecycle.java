@@ -30,7 +30,7 @@ public interface WorkerWithLifecycle {
     /**
      * Stops the worker and underlying connections, context, etc.
      */
-    default void stop() {
+    default void destroy() {
         //NO-OP
     }
 

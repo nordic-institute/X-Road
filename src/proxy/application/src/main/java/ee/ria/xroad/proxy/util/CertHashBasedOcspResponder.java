@@ -29,7 +29,6 @@ import ee.ria.xroad.common.SystemProperties;
 import ee.ria.xroad.common.util.JettyUtils;
 import ee.ria.xroad.common.util.MimeTypes;
 import ee.ria.xroad.common.util.MimeUtils;
-import ee.ria.xroad.common.util.StartStop;
 import ee.ria.xroad.proxy.conf.KeyConfProvider;
 
 import lombok.extern.slf4j.Slf4j;
@@ -46,6 +45,8 @@ import org.eclipse.jetty.util.Callback;
 import org.eclipse.jetty.util.MultiPartOutputStream;
 import org.eclipse.jetty.util.resource.ResourceFactory;
 import org.eclipse.jetty.xml.XmlConfiguration;
+import org.springframework.beans.factory.DisposableBean;
+import org.springframework.beans.factory.InitializingBean;
 
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -66,7 +67,7 @@ import static org.eclipse.jetty.server.Request.getRemoteAddr;
  * http://<host>:<port>/?cert=hash1&cert=hash2&cert=hash3 ...
  */
 @Slf4j
-public class CertHashBasedOcspResponder implements StartStop {
+public class CertHashBasedOcspResponder implements InitializingBean, DisposableBean {
 
     private static final String METHOD_HEAD = "HEAD";
     private static final String METHOD_GET = "GET";
@@ -136,20 +137,13 @@ public class CertHashBasedOcspResponder implements StartStop {
     }
 
     @Override
-    public void start() throws Exception {
+    public void afterPropertiesSet() throws Exception {
         server.start();
     }
 
     @Override
-    public void stop() throws Exception {
+    public void destroy() throws Exception {
         server.stop();
-    }
-
-    @Override
-    public void join() throws InterruptedException {
-        if (server.getThreadPool() != null) {
-            server.join();
-        }
     }
 
     private void doHandleRequest(Request request, Response response) throws Exception {

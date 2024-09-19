@@ -29,7 +29,6 @@ import ee.ria.xroad.common.SystemProperties;
 import ee.ria.xroad.common.TestCertUtil;
 import ee.ria.xroad.common.TestCertUtil.PKCS12;
 import ee.ria.xroad.common.util.CryptoUtils;
-import ee.ria.xroad.common.util.StartStop;
 
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.ByteOrderMark;
@@ -44,6 +43,8 @@ import org.eclipse.jetty.server.Server;
 import org.eclipse.jetty.server.ServerConnector;
 import org.eclipse.jetty.util.Callback;
 import org.eclipse.jetty.util.ssl.SslContextFactory;
+import org.springframework.beans.factory.DisposableBean;
+import org.springframework.beans.factory.InitializingBean;
 
 import javax.net.ssl.KeyManager;
 import javax.net.ssl.SSLContext;
@@ -72,7 +73,7 @@ import static org.eclipse.jetty.io.Content.Sink.asOutputStream;
 import static org.eclipse.jetty.io.Content.Source.asInputStream;
 
 @Slf4j
-class DummyService extends Server implements StartStop {
+class DummyService extends Server implements InitializingBean, DisposableBean {
 
     private static X509Certificate[] serverCertChain;
     private static PrivateKey serverKey;
@@ -84,6 +85,20 @@ class DummyService extends Server implements StartStop {
             setHandler(new ServiceHandler());
         } catch (Exception e) {
             throw translateException(e);
+        }
+    }
+
+    @Override
+    public void afterPropertiesSet() throws Exception {
+        start();
+    }
+
+    @Override
+    public void destroy() {
+        try {
+            stop();
+        } catch (Exception e) {
+            throw new RuntimeException(e);
         }
     }
 

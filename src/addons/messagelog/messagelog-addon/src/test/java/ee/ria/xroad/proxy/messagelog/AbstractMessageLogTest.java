@@ -106,8 +106,8 @@ abstract class AbstractMessageLogTest {
     }
 
     void testTearDown() throws Exception {
-        logManager.shutdown();
-        jobManager.stop();
+        logManager.destroy();
+        jobManager.destroy();
         FileUtils.deleteDirectory(archivesPath.toFile());
     }
 

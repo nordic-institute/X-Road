@@ -45,7 +45,7 @@ import static ee.ria.xroad.common.ErrorCodes.translateException;
 @Configuration
 public class ConfClientAdminPortConfig {
 
-    @Bean(initMethod = "start", destroyMethod = "stop")
+    @Bean
     AdminPort createAdminPort(ConfigurationClient client, ConfClientJobConfig.ConfigurationClientJobListener listener) {
         var adminPort = new AdminPort(SystemProperties.getConfigurationClientAdminPort());
 

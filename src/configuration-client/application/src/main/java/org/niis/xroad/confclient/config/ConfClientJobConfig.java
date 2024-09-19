@@ -46,7 +46,7 @@ import org.springframework.scheduling.quartz.SpringBeanJobFactory;
 @Configuration
 public class ConfClientJobConfig {
 
-    @Bean(initMethod = "start", destroyMethod = "stop")
+    @Bean
     JobManager jobManager(ConfigurationClientJobListener listener,
                           SpringBeanJobFactory springBeanJobFactory) throws SchedulerException {
         final var jobManager = new JobManager(springBeanJobFactory);

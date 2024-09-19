@@ -23,28 +23,24 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package ee.ria.xroad.common.util;
+package org.niis.xroad.arch.rule;
 
-/**
- * Interface for classes that require internal threads.
- */
-public interface StartStop {
+import com.societegenerale.commons.plugin.rules.ArchRuleTest;
+import com.societegenerale.commons.plugin.service.ScopePathProvider;
+import com.societegenerale.commons.plugin.utils.ArchUtils;
+import jakarta.annotation.PostConstruct;
 
-    /**
-     * Start internal threads.
-     * @throws Exception in case of any errors
-     */
-    void start() throws Exception;
+import java.util.Collection;
 
-    /**
-     * Stop internal threads.
-     * @throws Exception in case of any errors
-     */
-    void stop() throws Exception;
+import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.noMethods;
 
-    /**
-     * Join internal threads.
-     * @throws InterruptedException if any internal thread gets interrupted
-     */
-    void join() throws InterruptedException;
+public class NoPostConstructAnnotation implements ArchRuleTest {
+
+    @Override
+    public void execute(String packagePath, ScopePathProvider scopePathProvider, Collection<String> excludedPaths) {
+        noMethods().should().beAnnotatedWith(PostConstruct.class)
+                .because("InitializingBean interface should be used instead of @PostConstruct annotation")
+                .allowEmptyShould(false)
+                .check(ArchUtils.importAllClassesInPackage(scopePathProvider.getMainClassesPath(), packagePath, excludedPaths));
+    }
 }

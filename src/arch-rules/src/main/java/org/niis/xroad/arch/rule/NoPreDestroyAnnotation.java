@@ -23,24 +23,23 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package ee.ria.xroad.common.opmonitoring;
+package org.niis.xroad.arch.rule;
 
-import ee.ria.xroad.common.conf.serverconf.ServerConfProvider;
+import com.societegenerale.commons.plugin.rules.ArchRuleTest;
+import com.societegenerale.commons.plugin.service.ScopePathProvider;
+import com.societegenerale.commons.plugin.utils.ArchUtils;
+import com.tngtech.archunit.lang.syntax.ArchRuleDefinition;
+import jakarta.annotation.PreDestroy;
 
-import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.DisposableBean;
-import org.springframework.beans.factory.InitializingBean;
+import java.util.Collection;
 
-/**
- * Abstract operational monitoring buffer.
- */
-@Slf4j
-public abstract class AbstractOpMonitoringBuffer implements InitializingBean, DisposableBean {
+public class NoPreDestroyAnnotation implements ArchRuleTest {
 
-    protected AbstractOpMonitoringBuffer(ServerConfProvider serverConfProvider) {
-        //No-OP
+    @Override
+    public void execute(String packagePath, ScopePathProvider scopePathProvider, Collection<String> excludedPaths) {
+        ArchRuleDefinition.noMethods().should().beAnnotatedWith(PreDestroy.class)
+                .because("InitializingBean interface should be used instead of @PreDestroy annotation")
+                .allowEmptyShould(false)
+                .check(ArchUtils.importAllClassesInPackage(scopePathProvider.getMainClassesPath(), packagePath, excludedPaths));
     }
-
-    public abstract void store(OpMonitoringData data) throws Exception;
-
 }

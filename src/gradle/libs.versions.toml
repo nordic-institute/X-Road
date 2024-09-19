@@ -24,6 +24,7 @@ swaggerParser = "2.1.22"
 logback = "1.5.7"
 logbackAccess = "2.0.3"
 apacheCxf = "4.0.5"
+archUnitPlugin = "4.0.0"
 
 [libraries]
 metrics-core = { module = "io.dropwizard.metrics:metrics-core", version.ref = "metrics" }
@@ -153,6 +154,7 @@ cliche = { module = "com.googlecode.clichemaven:cliche", version = "110413" }
 acme4j = { module = "org.shredzone.acme4j:acme4j-client", version = "3.4.0" }
 jsonUnit-assertj = { module = "net.javacrumbs.json-unit:json-unit-assertj", version = "3.4.1" }
 opentelemetry-instrumentation-annotations = { module = "io.opentelemetry.instrumentation:opentelemetry-instrumentation-annotations", version = "2.7.0" }
+archUnit-plugin-core = { module = "com.societegenerale.commons:arch-unit-build-plugin-core", version.ref = "archUnitPlugin" }
 
 [bundles]
 metrics = ["metrics-core", "metrics-jmx"]
@@ -166,3 +168,4 @@ sonarqube = { id = "org.sonarqube", version = "5.1.0.4882" }
 protobuf = { id = "com.google.protobuf", version = "0.9.4" }
 frontendJDK21 = { id = "org.siouan.frontend-jdk21", version = "8.1.0" }
 shadow = { id = "com.gradleup.shadow", version = "8.3.0" }
+archUnit = { id = "com.societegenerale.commons.arch-unit-gradle-plugin", version.ref = "archUnitPlugin" }

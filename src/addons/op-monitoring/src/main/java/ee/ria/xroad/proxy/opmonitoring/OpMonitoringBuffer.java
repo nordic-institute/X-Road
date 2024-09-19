@@ -161,7 +161,7 @@ public class OpMonitoringBuffer extends AbstractOpMonitoringBuffer {
     }
 
     @Override
-    public void start() {
+    public void afterPropertiesSet() {
         if (ignoreOpMonitoringData()) {
             return;
         }
@@ -172,7 +172,7 @@ public class OpMonitoringBuffer extends AbstractOpMonitoringBuffer {
     }
 
     @Override
-    public void stop() {
+    public void destroy() {
         if (executorService != null) {
             executorService.shutdown();
         }
@@ -181,7 +181,7 @@ public class OpMonitoringBuffer extends AbstractOpMonitoringBuffer {
         }
 
         if (sender != null) {
-            sender.stop();
+            sender.destroy();
         }
     }
 

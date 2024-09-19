@@ -95,8 +95,8 @@ public class BlockingTokenWorker implements TokenWorker, WorkerWithLifecycle {
     }
 
     @Override
-    public void stop() {
-        synchronizedAction(tokenWorker::stop);
+    public void destroy() {
+        synchronizedAction(tokenWorker::destroy);
     }
 
     @Override

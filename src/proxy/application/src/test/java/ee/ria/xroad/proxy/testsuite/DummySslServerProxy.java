@@ -29,7 +29,6 @@ import ee.ria.xroad.common.PortNumbers;
 import ee.ria.xroad.common.SystemProperties;
 import ee.ria.xroad.common.TestCertUtil;
 import ee.ria.xroad.common.util.CryptoUtils;
-import ee.ria.xroad.common.util.StartStop;
 
 import org.eclipse.jetty.server.Handler;
 import org.eclipse.jetty.server.HttpConnectionFactory;
@@ -40,6 +39,8 @@ import org.eclipse.jetty.server.Server;
 import org.eclipse.jetty.server.ServerConnector;
 import org.eclipse.jetty.util.Callback;
 import org.eclipse.jetty.util.ssl.SslContextFactory;
+import org.springframework.beans.factory.DisposableBean;
+import org.springframework.beans.factory.InitializingBean;
 
 import javax.net.ssl.KeyManager;
 import javax.net.ssl.SSLContext;
@@ -62,7 +63,7 @@ import java.util.Optional;
  * but it uses a different SSL certificate to cause the TrustVerifier to fail
  * when establishing the SSL connection.
  */
-public class DummySslServerProxy extends Server implements StartStop {
+public class DummySslServerProxy extends Server implements InitializingBean, DisposableBean {
 
     public DummySslServerProxy() throws Exception {
         this(PortNumbers.PROXY_PORT, new DummyAuthKeyManager());
@@ -99,6 +100,20 @@ public class DummySslServerProxy extends Server implements StartStop {
 
         addConnector(connector);
         setHandler(new DummyHandler());
+    }
+
+    @Override
+    public void afterPropertiesSet() throws Exception {
+        start();
+    }
+
+    @Override
+    public void destroy() {
+        try {
+            stop();
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
     }
 
     public static class DummyHandler extends Handler.Abstract {

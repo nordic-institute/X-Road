@@ -67,7 +67,7 @@ public class ProxyAdminPortConfig {
     private final MessageLogEncryptionStatusDiagnostics messageLogEncryptionStatusDiagnostics;
     private final Optional<HealthCheckPort> healthCheckPort;
 
-    @Bean(initMethod = "start", destroyMethod = "stop")
+    @Bean
     AdminPort createAdminPort(ServerConfProvider serverConfProvider) {
         AdminPort adminPort = new AdminPort(PortNumbers.ADMIN_PORT);
 

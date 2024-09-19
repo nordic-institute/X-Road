@@ -29,8 +29,8 @@ package org.niis.xroad.securityserver.restapi.wsdl;
 import ee.ria.xroad.common.conf.serverconf.ServerConfProvider;
 import ee.ria.xroad.common.util.CryptoUtils;
 
-import jakarta.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.InitializingBean;
 import org.springframework.stereotype.Component;
 
 import javax.net.ssl.HttpsURLConnection;
@@ -48,7 +48,7 @@ import java.security.cert.X509Certificate;
 
 @Component
 @RequiredArgsConstructor
-final class HttpUrlConnectionConfig {
+final class HttpUrlConnectionConfig implements InitializingBean {
     private final ServerConfProvider serverConfProvider;
 
     void apply(HttpURLConnection conn) {
@@ -65,8 +65,8 @@ final class HttpUrlConnectionConfig {
 
     private SSLSocketFactory sslSocketFactory;
 
-    @PostConstruct
-    public void init() {
+    @Override
+    public void afterPropertiesSet() {
         try {
             final SSLContext ctx = SSLContext.getInstance(CryptoUtils.SSL_PROTOCOL);
             ctx.init(new KeyManager[]{new ClientSslKeyManager(serverConfProvider)},
