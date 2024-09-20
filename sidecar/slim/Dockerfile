@@ -19,8 +19,8 @@ RUN apt-get -qq update \
 
 ARG VERSION
 ARG DIST=noble
-ARG REPO=https://s3-eu-west-1.amazonaws.com/niis-xroad-development/7.5.1/debian
-ARG REPO_KEY=https://s3-eu-west-1.amazonaws.com/niis-xroad-development/7.5.1/jenkins@niis.org.gpg
+ARG REPO=https://s3-eu-west-1.amazonaws.com/niis-xroad-development/develop/debian
+ARG REPO_KEY=https://s3-eu-west-1.amazonaws.com/niis-xroad-development/develop/jenkins@niis.org.gpg
 ARG COMPONENT=main
 ARG CERTS_PATH=/etc/xroad/ssl
 
