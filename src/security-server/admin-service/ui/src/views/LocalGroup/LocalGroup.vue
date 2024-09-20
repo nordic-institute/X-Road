@@ -343,7 +343,7 @@ export default defineComponent({
       api
         .remove(`/local-groups/${encodePathParameter(this.groupId)}`)
         .then(() => {
-          this.showSuccess(this.$t('localGroup.groupDeleted'));
+          this.showSuccess(this.$t('localGroup.groupDeleted'), true);
           this.$router.back();
         })
         .catch((error) => {

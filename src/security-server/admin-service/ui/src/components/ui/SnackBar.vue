@@ -24,54 +24,53 @@
    THE SOFTWARE.
  -->
 <template>
-  <!-- Success -->
-  <v-snackbar
-    v-for="notification in successNotifications"
-    :key="notification.timeAdded"
-    v-model="notification.show"
-    data-test="success-snackbar"
-    :timeout="snackbarTimeout(notification)"
-    :color="colors.Success10"
-    :transition="transitionName"
-    multi-line
-    class="success-snackbar"
-    :min-width="760"
-    :close-on-back="false"
-    @update:model-value="closeSuccess(notification.timeAdded)"
-  >
-    <div class="row-wrapper-top scrollable identifier-wrap">
-      <xrd-icon-base :color="colors.Success100">
-        <xrd-icon-checker />
-      </xrd-icon-base>
-      <div class="row-wrapper">
-        <div v-if="notification.successMessage">
+  <div>
+    <!-- Success -->
+    <v-snackbar
+      v-model="notification.show"
+      v-for="notification in currentSuccessNotifications"
+      :key="notification.timeAdded"
+      :transition="transitionName"
+      :timeout="snackbarTimeout(notification.timeout)"
+      :color="colors.Success10"
+      :min-width="760"
+      :close-on-back="false"
+      data-test="success-snackbar"
+      class="success-snackbar"
+      multi-line
+      @update:model-value="closeSuccess(notification.timeAdded)"
+    >
+      <div class="row-wrapper-top scrollable identifier-wrap">
+        <xrd-icon-base :color="colors.Success100">
+          <xrd-icon-checker />
+        </xrd-icon-base>
+
+        <div v-if="notification.successMessage" class="row-wrapper">
           {{ notification.successMessage }}
         </div>
       </div>
-    </div>
-    <template #actions>
-      <v-btn
-        icon
-        variant="text"
-        rounded
-        :color="colors.Black100"
-        data-test="close-snackbar"
-        @click="closeSuccess(notification.timeAdded)"
-      >
-        <xrd-icon-base>
-          <xrd-icon-close />
-        </xrd-icon-base>
-      </v-btn>
-    </template>
-  </v-snackbar>
+      <template #actions>
+        <v-btn
+          icon
+          variant="text"
+          rounded
+          :color="colors.Black100"
+          data-test="close-snackbar"
+          @click="closeSuccess(notification.timeAdded)"
+        >
+          <xrd-icon-base>
+            <xrd-icon-close />
+          </xrd-icon-base>
+        </v-btn>
+      </template>
+    </v-snackbar>
+  </div>
 </template>
 
 <script lang="ts">
 import { defineComponent } from 'vue';
 import { Colors } from '@/global';
-import { Notification } from '@/ui-types';
-
-import { mapActions, mapWritableState } from 'pinia';
+import { mapActions, mapState } from 'pinia';
 import { useNotifications } from '@/store/modules/notifications';
 
 declare global {
@@ -88,26 +87,18 @@ export default defineComponent({
     };
   },
   computed: {
-    ...mapWritableState(useNotifications, ['successNotifications']),
-    transitionName(): string {
-      // Check global window value to see if e2e testing mode should be enabled
-      if (window.e2eTestingMode === true) {
-        return 'no-transition'; // Transition class name that doesn't exist
-      }
-      return 'fade-transition'; // Proper transition class name
-    },
+    ...mapState(useNotifications, ['currentSuccessNotifications']),
+    // Check global window value to see if e2e testing mode should be enabled
+    transitionName: () => (window.e2eTestingMode === true ? 'no-transition' : 'fade-transition'),
   },
   methods: {
     ...mapActions(useNotifications, ['deleteSuccessNotification']),
     closeSuccess(timeAdded: number): void {
       this.deleteSuccessNotification(timeAdded);
     },
-    snackbarTimeout(notification: Notification): number {
-      // Check global window value to see if e2e testing mode should be enabled
-      if (window.e2eTestingMode === true) {
-        return -1;
-      }
-      return notification.timeout;
+    // Check global window value to see if e2e testing mode should be enabled
+    snackbarTimeout(timeout: number) {
+      return window.e2eTestingMode === true ? -1 : timeout;
     },
   },
 });
@@ -128,22 +119,21 @@ export default defineComponent({
   justify-content: space-between;
   align-items: center;
   padding-left: 14px;
-}
 
-.row-wrapper {
-  display: flex;
-  flex-direction: column;
-  overflow: auto;
-  width: 100%;
-  overflow-wrap: break-word;
-  justify-content: flex-start;
-  margin-right: 30px;
-  margin-left: 26px;
-  color: #211e1e;
-  font-style: normal;
-  font-weight: bold;
-  font-size: 18px;
-  line-height: 24px;
+  .row-wrapper {
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+    overflow-wrap: break-word;
+    justify-content: flex-start;
+    margin-right: 30px;
+    margin-left: 26px;
+    color: #211e1e;
+    font-style: normal;
+    font-weight: bold;
+    font-size: 18px;
+    line-height: 24px;
+  }
 }
 
 .scrollable {

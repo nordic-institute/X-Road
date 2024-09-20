@@ -76,7 +76,7 @@ export interface Notification {
   responseData?: string;
   url?: string;
   status?: string;
-  preserve?: boolean;
+  delayed?: boolean;
 }
 
 export type SessionStatus = {
