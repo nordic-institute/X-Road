@@ -74,7 +74,7 @@ export default defineComponent({
   emits: ['cancel', 'save'],
   setup() {
     const { meta, errors, setErrors, value, resetField } = useField(
-      'certificateService',
+      'certificationService',
       'required',
       { initialValue: '' },
     );
