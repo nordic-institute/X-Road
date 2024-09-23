@@ -27,8 +27,8 @@ package ee.ria.xroad.signer.protocol.handler;
 
 import ee.ria.xroad.signer.protocol.AbstractRpcHandler;
 
+import org.niis.xroad.rpc.common.Empty;
 import org.niis.xroad.signer.proto.ActivateTokenReq;
-import org.niis.xroad.signer.protocol.dto.Empty;
 import org.springframework.stereotype.Component;
 
 /**

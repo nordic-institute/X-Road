@@ -30,8 +30,8 @@ import ee.ria.xroad.common.identifier.ClientId;
 
 import lombok.AccessLevel;
 import lombok.NoArgsConstructor;
-import org.niis.xroad.signer.protocol.dto.ClientIdProto;
-import org.niis.xroad.signer.protocol.dto.XRoadObjectType;
+import org.niis.xroad.rpc.common.ClientIdProto;
+import org.niis.xroad.rpc.common.XRoadObjectType;
 
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
 public final class ClientIdMapper {

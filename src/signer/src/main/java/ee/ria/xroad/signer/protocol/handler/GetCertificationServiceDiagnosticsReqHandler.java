@@ -34,10 +34,10 @@ import ee.ria.xroad.signer.protocol.AbstractRpcHandler;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.niis.xroad.rpc.common.Empty;
 import org.niis.xroad.signer.proto.CertificationServiceDiagnosticsResp;
 import org.niis.xroad.signer.proto.CertificationServiceStatus;
 import org.niis.xroad.signer.proto.OcspResponderStatus;
-import org.niis.xroad.signer.protocol.dto.Empty;
 import org.springframework.stereotype.Component;
 
 import java.util.Map;

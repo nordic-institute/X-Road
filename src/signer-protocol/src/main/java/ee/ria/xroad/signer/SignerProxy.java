@@ -47,6 +47,7 @@ import lombok.Value;
 import lombok.extern.slf4j.Slf4j;
 import org.niis.xroad.common.rpc.mapper.ClientIdMapper;
 import org.niis.xroad.common.rpc.mapper.SecurityServerIdMapper;
+import org.niis.xroad.rpc.common.Empty;
 import org.niis.xroad.signer.proto.ActivateCertReq;
 import org.niis.xroad.signer.proto.ActivateTokenReq;
 import org.niis.xroad.signer.proto.CertificateRequestFormat;
@@ -84,7 +85,6 @@ import org.niis.xroad.signer.proto.SetTokenFriendlyNameReq;
 import org.niis.xroad.signer.proto.SignCertificateReq;
 import org.niis.xroad.signer.proto.SignReq;
 import org.niis.xroad.signer.proto.UpdateSoftwareTokenPinReq;
-import org.niis.xroad.signer.protocol.dto.Empty;
 
 import java.security.PublicKey;
 import java.time.Instant;
