@@ -25,12 +25,13 @@
  */
 syntax = "proto3";
 
+import "common_messages.proto";
+
 package org.niis.xroad.confclient.proto;
 
 option java_multiple_files = true;
 
 service AdminService {
-  rpc Execute(Empty) returns (Empty) {}
   rpc GetStatus(Empty) returns (DiagnosticsStatus) {}
 }
 
@@ -39,7 +40,4 @@ message DiagnosticsStatus {
   optional int64 prev_update = 2;
   optional int64 next_update = 3;
   optional string description = 4;
-}
-
-message Empty {
 }

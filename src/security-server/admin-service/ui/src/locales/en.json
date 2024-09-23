@@ -466,7 +466,6 @@
     "endpoint_already_exists": "Endpoint already exists",
     "endpoint_not_found": "Endpoint not found",
     "generate_backup_interrupted": "Backup generation interrupted",
-    "global_conf_download_request_failed": "Global configuration download request failed",
     "global_conf_outdated": "Global configuration is outdated",
     "gpg_key_generation_failed": "GPG keypair generation failed",
     "gpg_key_generation_interrupted": "GPG keypair generation interrupted",

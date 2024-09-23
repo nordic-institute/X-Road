@@ -36,7 +36,6 @@ import ee.ria.xroad.common.util.CryptoUtils;
 import lombok.RequiredArgsConstructor;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.io.FileUtils;
 import org.bouncycastle.operator.OperatorCreationException;
 import org.niis.xroad.confclient.proto.ConfClientRpcClient;
 import org.niis.xroad.restapi.config.audit.AuditDataHelper;
@@ -50,14 +49,11 @@ import org.niis.xroad.restapi.util.FormatUtils;
 import org.niis.xroad.securityserver.restapi.cache.CurrentSecurityServerId;
 import org.niis.xroad.securityserver.restapi.cache.SecurityServerAddressChangeStatus;
 import org.niis.xroad.securityserver.restapi.dto.AnchorFile;
-import org.niis.xroad.securityserver.restapi.repository.AnchorRepository;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.io.File;
 import java.io.IOException;
-import java.nio.file.NoSuchFileException;
 import java.security.KeyPair;
 import java.security.NoSuchAlgorithmException;
 import java.security.spec.InvalidKeySpecException;
@@ -87,7 +83,6 @@ public class SystemService {
 
     private final GlobalConfService globalConfService;
     private final ServerConfService serverConfService;
-    private final AnchorRepository anchorRepository;
     private final CurrentSecurityServerId currentSecurityServerId;
     private final ManagementRequestSenderService managementRequestSenderService;
     private final AuditDataHelper auditDataHelper;
@@ -96,8 +91,6 @@ public class SystemService {
 
     @Setter
     private String internalKeyPath = SystemProperties.getConfPath() + InternalSSLKey.PK_FILE_NAME;
-    @Setter
-    private String tempFilesPath = SystemProperties.getTempFilesPath();
 
     private static final String ANCHOR_DOWNLOAD_FILENAME_PREFIX = "configuration_anchor_UTC_";
     private static final String ANCHOR_DOWNLOAD_DATE_TIME_FORMAT = "yyyy-MM-dd_HH_mm_ss";
@@ -215,8 +208,9 @@ public class SystemService {
      * @throws AnchorNotFoundException if anchor file is not found
      */
     public AnchorFile getAnchorFile() throws AnchorNotFoundException {
-        AnchorFile anchorFile = new AnchorFile(calculateAnchorHexHash(readAnchorFile()));
-        ConfigurationAnchor anchor = anchorRepository.loadAnchorFromFile();
+        byte[] anchorBytes = readAnchorFile();
+        AnchorFile anchorFile = new AnchorFile(calculateAnchorHexHash(anchorBytes));
+        ConfigurationAnchor anchor = new ConfigurationAnchor(anchorBytes);
         anchorFile.setCreatedAt(FormatUtils.fromDateToOffsetDateTime(anchor.getGeneratedAt()));
         return anchorFile;
     }
@@ -311,23 +305,8 @@ public class SystemService {
         if (shouldVerifyAnchorInstance) {
             verifyAnchorInstance(anchor);
         }
-        File tempAnchor = null;
-        try {
-            tempAnchor = createTemporaryAnchorFile(anchorBytes);
-            int returnCode = confClientRpcClient.verifyInternalConfiguration(anchorBytes);
-            ConfigurationVerifier.throwIfErrorCodeReturned(returnCode);
-            anchorRepository.saveAndReplace(tempAnchor);
-            globalConfService.executeDownloadConfigurationFromAnchor();
-        } catch (IOException e) {
-            throw new RuntimeException("Cannot upload a new anchor", e);
-        } finally {
-            if (tempAnchor != null) {
-                boolean deleted = tempAnchor.delete();
-                if (!deleted) {
-                    log.error("Temporary anchor could not be deleted: {}", tempAnchor.getAbsolutePath());
-                }
-            }
-        }
+        int returnCode = confClientRpcClient.verifyAndSaveConfigurationAnchor(anchorBytes);
+        ConfigurationVerifier.throwIfErrorCodeReturned(returnCode);
     }
 
     /**
@@ -336,16 +315,12 @@ public class SystemService {
      * @return
      */
     public boolean isAnchorImported() {
-        boolean isGlobalConfInitialized = false;
         try {
-            AnchorFile anchorFile = getAnchorFile();
-            if (anchorFile != null) {
-                isGlobalConfInitialized = true;
-            }
+            return getAnchorFile() != null;
         } catch (AnchorNotFoundException e) {
             // global conf does not exist
         }
-        return isGlobalConfInitialized;
+        return false;
     }
 
     /**
@@ -379,39 +354,14 @@ public class SystemService {
      * @throws MalformedAnchorException if the anchor is malformed or somehow invalid
      */
     private ConfigurationAnchor createAnchorFromBytes(byte[] anchorBytes) throws MalformedAnchorException {
-        ConfigurationAnchor anchor = null;
         try {
-            anchor = new ConfigurationAnchor(anchorBytes);
+            return new ConfigurationAnchor(anchorBytes);
         } catch (CodedException ce) {
             if (isCausedByMalformedAnchorContent(ce)) {
                 throw new MalformedAnchorException("Anchor is invalid");
             } else {
                 throw ce;
             }
-        }
-        return anchor;
-    }
-
-    /**
-     * Create a temporary anchor file on the filesystem. This is needed for verifying the anchor with
-     * configuration-client module (this might be changed in the future). This method does not delete the created
-     * temporary file. Remember to delete the file after it is no longer needed.
-     *
-     * @param anchorBytes
-     * @return temporary anchor file
-     * @throws IOException if temp file creation fails
-     */
-    private File createTemporaryAnchorFile(byte[] anchorBytes) throws IOException {
-        try {
-            String tempAnchorPrefix = "temp-internal-anchor-";
-            String tempAnchorSuffix = ".xml";
-            File tempDirectory = tempFilesPath != null ? new File(tempFilesPath) : null;
-            File tempAnchor = File.createTempFile(tempAnchorPrefix, tempAnchorSuffix, tempDirectory);
-            FileUtils.writeByteArrayToFile(tempAnchor, anchorBytes);
-            return tempAnchor;
-        } catch (Exception e) {
-            log.error("Creating temporary anchor file failed", e);
-            throw e;
         }
     }
 
@@ -439,8 +389,8 @@ public class SystemService {
      */
     public byte[] readAnchorFile() throws AnchorNotFoundException {
         try {
-            return anchorRepository.readAnchorFile();
-        } catch (NoSuchFileException e) {
+            return confClientRpcClient.getConfigurationAnchor();
+        } catch (Exception e) {
             throw new AnchorNotFoundException("Anchor file not found");
         }
     }
@@ -449,11 +399,11 @@ public class SystemService {
      * Generate anchor file download name with the anchor file created at date/time. The name format is:
      * "configuration_anchor_UTC_yyyy-MM-dd_HH_mm_ss.xml".
      *
-     * @return
+     * @return anchor file name
      */
-    public String getAnchorFilenameForDownload() {
+    public String getAnchorFilenameForDownload() throws AnchorNotFoundException {
         DateFormat df = new SimpleDateFormat(ANCHOR_DOWNLOAD_DATE_TIME_FORMAT);
-        ConfigurationAnchor anchor = anchorRepository.loadAnchorFromFile();
+        ConfigurationAnchor anchor = new ConfigurationAnchor(readAnchorFile());
         return ANCHOR_DOWNLOAD_FILENAME_PREFIX + df.format(anchor.getGeneratedAt()) + ANCHOR_DOWNLOAD_FILE_EXTENSION;
     }
 

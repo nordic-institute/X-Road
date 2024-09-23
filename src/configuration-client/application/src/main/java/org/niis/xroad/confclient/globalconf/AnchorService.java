@@ -25,53 +25,92 @@
  * THE SOFTWARE.
  */
 
-package org.niis.xroad.confclient.admin;
+package org.niis.xroad.confclient.globalconf;
 
 import ee.ria.xroad.common.SystemProperties;
 import ee.ria.xroad.common.conf.globalconf.ConfigurationAnchor;
 import ee.ria.xroad.common.conf.globalconf.ConfigurationClient;
 import ee.ria.xroad.common.conf.globalconf.ConfigurationClientCLI;
+import ee.ria.xroad.common.util.AtomicSave;
 
+import com.google.protobuf.ByteString;
 import io.grpc.stub.StreamObserver;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.FileUtils;
+import org.niis.xroad.confclient.proto.AnchorServiceGrpc;
+import org.niis.xroad.confclient.proto.ConfigurationAnchorMessage;
 import org.niis.xroad.confclient.proto.VerificationResult;
-import org.niis.xroad.confclient.proto.VerifierServiceGrpc;
-import org.niis.xroad.confclient.proto.VerifyInternalConfRequest;
+import org.niis.xroad.rpc.common.Empty;
 import org.springframework.stereotype.Service;
 
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 
 import static ee.ria.xroad.common.DiagnosticsErrorCodes.ERROR_CODE_MISSING_PRIVATE_PARAMS;
+import static ee.ria.xroad.common.DiagnosticsErrorCodes.RETURN_SUCCESS;
 import static ee.ria.xroad.common.conf.globalconf.ConfigurationConstants.CONTENT_ID_PRIVATE_PARAMETERS;
 
+@RequiredArgsConstructor
 @Service
 @Slf4j
-public class VerifierService extends VerifierServiceGrpc.VerifierServiceImplBase {
+public class AnchorService extends AnchorServiceGrpc.AnchorServiceImplBase {
 
-    public VerifierService(ConfigurationClient configurationClient) {
-        super();
-    }
+    private final ConfigurationClient configurationClient;
 
     @Override
-    public void verifyInternalConf(VerifyInternalConfRequest request, StreamObserver<VerificationResult> responseObserver) {
+    public void verifyAndSaveConfigurationAnchor(ConfigurationAnchorMessage request, StreamObserver<VerificationResult> responseObserver) {
         try {
-            responseObserver.onNext(verifyConfigurationAnchor(request.getConfigurationAnchor().toByteArray()));
+            responseObserver.onNext(verifyAndSaveConfigurationAnchor(request.getConfigurationAnchor().toByteArray()));
             responseObserver.onCompleted();
         } catch (Exception e) {
             responseObserver.onError(e);
         }
     }
 
-    private VerificationResult verifyConfigurationAnchor(byte[] anchor) throws Exception {
-        var anchorFile = createTemporaryAnchorFile(anchor);
-        var configurationAnchor = new ConfigurationAnchor(anchorFile.getAbsolutePath());
-        var paramsValidator = new ConfigurationClientCLI.ParamsValidator(CONTENT_ID_PRIVATE_PARAMETERS, ERROR_CODE_MISSING_PRIVATE_PARAMS);
+    private VerificationResult verifyAndSaveConfigurationAnchor(byte[] anchorBytes) throws Exception {
+        File anchorTempFile = null;
+        try {
+            anchorTempFile = createTemporaryAnchorFile(anchorBytes);
+            var configurationAnchor = new ConfigurationAnchor(anchorTempFile.getAbsolutePath());
+            var paramsValidator = new ConfigurationClientCLI
+                    .ParamsValidator(CONTENT_ID_PRIVATE_PARAMETERS, ERROR_CODE_MISSING_PRIVATE_PARAMS);
+            var result = ConfigurationClientCLI.validate(configurationAnchor, paramsValidator);
+            if (result == RETURN_SUCCESS) {
+                AtomicSave.moveBetweenFilesystems(anchorTempFile.getAbsolutePath(), SystemProperties.getConfigurationAnchorFile());
+                configurationClient.execute();
+            }
+            return VerificationResult.newBuilder()
+                    .setReturnCode(result)
+                    .build();
+        } finally {
+            FileUtils.deleteQuietly(anchorTempFile);
+        }
+    }
 
-        var result = ConfigurationClientCLI.validate(configurationAnchor, paramsValidator);
-        return VerificationResult.newBuilder()
-                .setReturnCode(result)
+    @Override
+    public void getConfigurationAnchor(Empty request, StreamObserver<ConfigurationAnchorMessage> responseObserver) {
+        try {
+            responseObserver.onNext(getConfigurationAnchorFromFile());
+            responseObserver.onCompleted();
+        } catch (Exception e) {
+            responseObserver.onError(e);
+        }
+    }
+
+    private ConfigurationAnchorMessage getConfigurationAnchorFromFile() throws Exception {
+        Path anchorPath = Paths.get(SystemProperties.getConfigurationAnchorFile());
+        if (!Files.exists(anchorPath)) {
+            log.error("Configuration anchor file {} does not exist.", anchorPath);
+            throw new FileNotFoundException(anchorPath.toAbsolutePath().toString());
+        }
+        byte[] anchorBytes = Files.readAllBytes(anchorPath);
+        return ConfigurationAnchorMessage.newBuilder()
+                .setConfigurationAnchor(ByteString.copyFrom(anchorBytes))
                 .build();
     }
 

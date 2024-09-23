@@ -49,7 +49,6 @@ import org.niis.xroad.restapi.service.ConfigurationVerifier;
 import org.niis.xroad.securityserver.restapi.cache.CurrentSecurityServerId;
 import org.niis.xroad.securityserver.restapi.cache.SecurityServerAddressChangeStatus;
 import org.niis.xroad.securityserver.restapi.dto.AnchorFile;
-import org.niis.xroad.securityserver.restapi.repository.AnchorRepository;
 import org.niis.xroad.securityserver.restapi.util.DeviationTestUtils;
 import org.niis.xroad.securityserver.restapi.util.TestUtils;
 
@@ -78,8 +77,6 @@ public class SystemServiceTest {
     @Mock
     private GlobalConfService globalConfService;
     @Mock
-    private AnchorRepository anchorRepository;
-    @Mock
     private CurrentSecurityServerId currentSecurityServerId;
     @Mock
     private ManagementRequestSenderService managementRequestSenderService;
@@ -105,11 +102,10 @@ public class SystemServiceTest {
         SecurityServerId.Conf ownerSsId = SecurityServerId.Conf.create(ownerId, "TEST-INMEM-SS");
         when(currentSecurityServerId.getServerId()).thenReturn(ownerSsId);
 
-        systemService = new SystemService(globalConfService, serverConfService, anchorRepository,
+        systemService = new SystemService(globalConfService, serverConfService,
                 currentSecurityServerId, managementRequestSenderService, auditDataHelper,
                 addressChangeStatus, confClientRpcClient);
         systemService.setInternalKeyPath("src/test/resources/internal.key");
-        systemService.setTempFilesPath(tempFolder.newFolder().getAbsolutePath());
     }
 
     @Test
@@ -217,7 +213,7 @@ public class SystemServiceTest {
 
     @Test
     public void replaceAnchorFailVerification() throws Exception {
-        when(confClientRpcClient.verifyInternalConfiguration(any())).thenReturn(EXIT_STATUS_MISSING_PRIVATE_PARAMS);
+        when(confClientRpcClient.verifyAndSaveConfigurationAnchor(any())).thenReturn(EXIT_STATUS_MISSING_PRIVATE_PARAMS);
         byte[] anchorBytes = FileUtils.readFileToByteArray(TestUtils.ANCHOR_FILE);
         try {
             systemService.replaceAnchor(anchorBytes);
@@ -238,16 +234,14 @@ public class SystemServiceTest {
     @SuppressWarnings("java:S2699") // Add at least one assertion to this test case
     public void uploadInitialAnchor() throws Exception {
         byte[] anchorBytes = FileUtils.readFileToByteArray(TestUtils.ANCHOR_FILE);
-        when(anchorRepository.readAnchorFile()).thenThrow(new NoSuchFileException(""));
+        when(confClientRpcClient.getConfigurationAnchor()).thenThrow(new NoSuchFileException(""));
         systemService.uploadInitialAnchor(anchorBytes);
     }
 
     @Test(expected = SystemService.AnchorAlreadyExistsException.class)
     public void uploadInitialAnchorAgain() throws Exception {
         byte[] anchorBytes = FileUtils.readFileToByteArray(TestUtils.ANCHOR_FILE);
-        when(anchorRepository.readAnchorFile()).thenReturn(anchorBytes);
-        when(anchorRepository.loadAnchorFromFile())
-                .thenReturn(new ConfigurationAnchor("src/test/resources/internal-configuration-anchor.xml"));
+        when(confClientRpcClient.getConfigurationAnchor()).thenReturn(anchorBytes);
         systemService.uploadInitialAnchor(anchorBytes);
     }
 

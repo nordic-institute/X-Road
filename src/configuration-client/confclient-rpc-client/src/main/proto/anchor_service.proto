@@ -25,18 +25,21 @@
  */
 syntax = "proto3";
 
+import "common_messages.proto";
+
 package org.niis.xroad.confclient.proto;
 
 option java_multiple_files = true;
 
-service VerifierService {
-  rpc VerifyInternalConf(VerifyInternalConfRequest) returns (VerificationResult) {}
+service AnchorService {
+  rpc GetConfigurationAnchor(Empty) returns (ConfigurationAnchorMessage) {}
+  rpc VerifyAndSaveConfigurationAnchor(ConfigurationAnchorMessage) returns (VerificationResult) {}
 }
 
 message VerificationResult {
   int32 return_code = 1;
 }
 
-message VerifyInternalConfRequest {
+message ConfigurationAnchorMessage {
   bytes configuration_anchor = 1;
 }
