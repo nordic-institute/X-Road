@@ -33,6 +33,7 @@ import io.grpc.Channel;
 import lombok.Getter;
 import org.niis.xroad.common.rpc.RpcCredentialsProvider;
 import org.niis.xroad.common.rpc.client.RpcClient;
+import org.niis.xroad.rpc.common.Empty;
 import org.springframework.beans.factory.DisposableBean;
 import org.springframework.beans.factory.InitializingBean;
 
@@ -53,11 +54,6 @@ public class ConfClientRpcClient implements DisposableBean, InitializingBean {
                 SystemProperties.getConfigurationClientGrpcPort(), credentialsProvider, ConfClientRpcExecutionContext::new);
     }
 
-    public void execute() throws Exception {
-        rpcClient.execute(ctx -> ctx.getAdminServiceBlockingStub()
-                .execute(Empty.getDefaultInstance()));
-    }
-
     public DiagnosticsStatus getStatus() throws Exception {
         return rpcClient.execute(ctx -> ctx.getAdminServiceBlockingStub()
                 .getStatus(Empty.getDefaultInstance()));
@@ -68,16 +64,17 @@ public class ConfClientRpcClient implements DisposableBean, InitializingBean {
                 .getGlobalConf(GetGlobalConfReq.newBuilder().build()));
     }
 
-    @Override
-    public void destroy() {
-        rpcClient.shutdown();
+    public byte[] getConfigurationAnchor() throws Exception {
+        return rpcClient.execute(ctx -> ctx.getAnchorServiceBlockingStub()
+                        .getConfigurationAnchor(Empty.getDefaultInstance()))
+                .getConfigurationAnchor().toByteArray();
     }
 
-    public int verifyInternalConfiguration(byte[] configurationAnchor) {
+    public int verifyAndSaveConfigurationAnchor(byte[] anchorBytes) {
         try {
-            var response = rpcClient.execute(ctx -> ctx.getVerifierServiceBlockingStub()
-                    .verifyInternalConf(VerifyInternalConfRequest.newBuilder()
-                            .setConfigurationAnchor(ByteString.copyFrom(configurationAnchor))
+            var response = rpcClient.execute(ctx -> ctx.getAnchorServiceBlockingStub()
+                    .verifyAndSaveConfigurationAnchor(ConfigurationAnchorMessage.newBuilder()
+                            .setConfigurationAnchor(ByteString.copyFrom(anchorBytes))
                             .build()));
             return response.getReturnCode();
         } catch (Exception e) {
@@ -85,15 +82,20 @@ public class ConfClientRpcClient implements DisposableBean, InitializingBean {
         }
     }
 
+    @Override
+    public void destroy() {
+        rpcClient.shutdown();
+    }
+
     @Getter
     private static class ConfClientRpcExecutionContext implements RpcClient.ExecutionContext {
         private final AdminServiceGrpc.AdminServiceBlockingStub adminServiceBlockingStub;
-        private final VerifierServiceGrpc.VerifierServiceBlockingStub verifierServiceBlockingStub;
+        private final AnchorServiceGrpc.AnchorServiceBlockingStub anchorServiceBlockingStub;
         private final GlobalConfServiceGrpc.GlobalConfServiceBlockingStub globalConfServiceBlockingStub;
 
         ConfClientRpcExecutionContext(Channel channel) {
             this.adminServiceBlockingStub = AdminServiceGrpc.newBlockingStub(channel).withWaitForReady();
-            this.verifierServiceBlockingStub = VerifierServiceGrpc.newBlockingStub(channel).withWaitForReady();
+            this.anchorServiceBlockingStub = AnchorServiceGrpc.newBlockingStub(channel).withWaitForReady();
             this.globalConfServiceBlockingStub = GlobalConfServiceGrpc.newBlockingStub(channel).withWaitForReady();
         }
     }

@@ -38,9 +38,6 @@ import ee.ria.xroad.common.identifier.XRoadId;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.niis.xroad.confclient.proto.ConfClientRpcClient;
-import org.niis.xroad.restapi.exceptions.DeviationAwareRuntimeException;
-import org.niis.xroad.restapi.exceptions.ErrorDeviation;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
 
@@ -51,7 +48,6 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 import static ee.ria.xroad.common.ErrorCodes.X_OUTDATED_GLOBALCONF;
-import static org.niis.xroad.restapi.exceptions.DeviationCodes.ERROR_GLOBAL_CONF_DOWNLOAD_REQUEST;
 
 /**
  * Global configuration service.
@@ -65,7 +61,6 @@ import static org.niis.xroad.restapi.exceptions.DeviationCodes.ERROR_GLOBAL_CONF
 public class GlobalConfService {
     private final GlobalConfProvider globalConfProvider;
     private final ServerConfService serverConfService;
-    private final ConfClientRpcClient confClientRpcClient;
 
     /**
      * @param securityServerId
@@ -188,20 +183,6 @@ public class GlobalConfService {
     public boolean isSecurityServerClientForThisInstance(ClientId client) {
         return globalConfProvider.isSecurityServerClient(client,
                 serverConfService.getSecurityServerId());
-    }
-
-    /**
-     * Sends the rpc request to configuration-client in order to trigger the downloading of the global conf
-     *
-     * @throws DeviationAwareRuntimeException if the request fails
-     */
-    public void executeDownloadConfigurationFromAnchor() {
-        log.info("Starting to download GlobalConf");
-        try {
-            confClientRpcClient.execute();
-        } catch (Exception e) {
-            throw new DeviationAwareRuntimeException(e, new ErrorDeviation(ERROR_GLOBAL_CONF_DOWNLOAD_REQUEST));
-        }
     }
 
     /**

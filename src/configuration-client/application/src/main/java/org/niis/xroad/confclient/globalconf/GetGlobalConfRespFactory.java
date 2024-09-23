@@ -50,7 +50,7 @@ import static java.nio.charset.StandardCharsets.UTF_8;
 @Slf4j
 public class GetGlobalConfRespFactory {
 
-     GetGlobalConfResp createGlobalConfResp() {
+    GetGlobalConfResp createGlobalConfResp() {
         var confDir = Paths.get(SystemProperties.getConfigurationPath());
 
         var builder = GetGlobalConfResp.newBuilder();

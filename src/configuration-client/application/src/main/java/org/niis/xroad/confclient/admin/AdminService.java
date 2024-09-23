@@ -27,8 +27,6 @@
 
 package org.niis.xroad.confclient.admin;
 
-import ee.ria.xroad.common.conf.globalconf.ConfigurationClient;
-
 import io.grpc.stub.StreamObserver;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -36,12 +34,11 @@ import org.apache.commons.lang3.StringUtils;
 import org.niis.xroad.confclient.config.ConfClientJobConfig;
 import org.niis.xroad.confclient.proto.AdminServiceGrpc;
 import org.niis.xroad.confclient.proto.DiagnosticsStatus;
-import org.niis.xroad.confclient.proto.Empty;
+import org.niis.xroad.rpc.common.Empty;
 import org.springframework.stereotype.Service;
 
 import java.util.function.Supplier;
 
-import static ee.ria.xroad.common.ErrorCodes.translateException;
 import static ee.ria.xroad.common.util.TimeUtils.offsetDateTimeToEpochMillis;
 import static java.util.Optional.ofNullable;
 
@@ -50,27 +47,11 @@ import static java.util.Optional.ofNullable;
 @Slf4j
 public class AdminService extends AdminServiceGrpc.AdminServiceImplBase {
 
-    private final ConfigurationClient client;
     private final ConfClientJobConfig.ConfigurationClientJobListener listener;
-
-    @Override
-    public void execute(Empty request, StreamObserver<Empty> responseObserver) {
-        handleRequest(responseObserver, this::handleExecute);
-    }
 
     @Override
     public void getStatus(Empty request, StreamObserver<DiagnosticsStatus> responseObserver) {
         handleRequest(responseObserver, this::handleGetStatus);
-    }
-
-    private Empty handleExecute() {
-        log.info("handler /execute");
-        try {
-            client.execute();
-            return Empty.getDefaultInstance();
-        } catch (Exception e) {
-            throw translateException(e);
-        }
     }
 
     private DiagnosticsStatus handleGetStatus() {
