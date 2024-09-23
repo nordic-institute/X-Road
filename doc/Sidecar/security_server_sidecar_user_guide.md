@@ -21,6 +21,7 @@ Doc. ID: UG-SS-SIDECAR
 | 22.02.2024 | 1.11    | Local database files mapping with docker volume         | Eneli Reimets             |
 | 13.05.2024 | 1.12    | Add additional upgrade details for Sidecar 7.5          | Ovidijus Narkevicius      |
 | 22.08.2024 | 1.13    | Add a section about enabling ACME support               | Eneli Reimets             |
+| 23.09.2024 | 1.14    | Changing System Parameter Values in Configuration Files | Eneli Reimets             |
 
 ## License
 
@@ -48,6 +49,7 @@ To view a copy of this license, visit <https://creativecommons.org/licenses/by-s
   * [2.9 Message log archives](#29-message-log-archives)
 * [3 Initial configuration](#3-initial-configuration)
   * [3.1 Enabling ACME Support](#31-enabling-acme-support)
+  * [3.2 Changing the System Parameter Values in Configuration Files](#32-changing-the-system-parameter-values-in-configuration-files)
 * [4 Upgrading](#4-upgrading)
   * [4.1 Upgrading from version 6.26.0 to 7.0.0](#41-upgrading-from-version-6260-to-700)
   * [4.2 Upgrading from version 7.4.2 to 7.5.x with local database](#42-Upgrading-from-version-742-to-75x-with-local-database)
@@ -85,6 +87,7 @@ Operational monitoring           | Yes         | No               |
 1. <a id="Ref_IG-SS">[IG-SS]</a> [X-Road: Security Server Installation Guide](../Manuals/ig-ss_x-road_v6_security_server_installation_guide.md)
 2. <a id="Ref_IG-SS-Annex-D">[IG-SS-Annex-D]</a> [X-Road: Security Server Installation Guide](../Manuals/ig-ss_x-road_v6_security_server_installation_guide.md#annex-d-create-database-structure-manually)
 3. <a id="Ref_UG-SS">[UG-SS]</a> [X-Road: Security Server User Guide](../Manuals/ug-ss_x-road_6_security_server_user_guide.md)
+4. <a id="Ref_UG-SYSPAR">[UG-SYSPAR]</a> [X-Road: System Parameters User Guide](../Manuals/ug-syspar_x-road_v6_system_parameters.md)
 
 ## 2 Installation
 
@@ -341,6 +344,16 @@ See [IG-SS](#Ref_IG-SS) for configuration details.
 
 Automated Certificate Management Environment (ACME) protocol enables partly automated certificate management of the authentication and sign
 certificates on the Security Server. More information about the required configuration is available in the [Security Server User Guide](../Manuals/ug-ss_x-road_6_security_server_user_guide.md#24-configuring-acme).
+
+### 3.2 Changing the System Parameter Values in Configuration Files
+
+The configuration files are INI files [INI], where each section contains parameters for a particular server component.
+
+In order to override the default values of system parameters, create or edit the file
+
+	/etc/xroad/conf.d/local.ini
+
+See [UG-SYSPAR](#Ref_UG-SYSPAR) for configuration details.
 
 ## 4 Upgrading
 
