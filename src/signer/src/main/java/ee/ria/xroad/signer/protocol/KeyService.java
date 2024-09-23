@@ -37,6 +37,7 @@ import ee.ria.xroad.signer.protocol.handler.SignReqHandler;
 
 import io.grpc.stub.StreamObserver;
 import lombok.RequiredArgsConstructor;
+import org.niis.xroad.rpc.common.Empty;
 import org.niis.xroad.signer.proto.AuthKeyInfoProto;
 import org.niis.xroad.signer.proto.DeleteKeyReq;
 import org.niis.xroad.signer.proto.GenerateKeyReq;
@@ -51,7 +52,6 @@ import org.niis.xroad.signer.proto.SignCertificateReq;
 import org.niis.xroad.signer.proto.SignCertificateResp;
 import org.niis.xroad.signer.proto.SignReq;
 import org.niis.xroad.signer.proto.SignResp;
-import org.niis.xroad.signer.protocol.dto.Empty;
 import org.springframework.stereotype.Service;
 
 /**

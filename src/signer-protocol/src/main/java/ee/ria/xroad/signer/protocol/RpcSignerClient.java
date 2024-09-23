@@ -25,6 +25,7 @@
  */
 package ee.ria.xroad.signer.protocol;
 
+import ee.ria.xroad.common.CodedException;
 import ee.ria.xroad.common.SystemProperties;
 
 import io.grpc.Channel;
@@ -40,6 +41,9 @@ import org.niis.xroad.signer.proto.OcspServiceGrpc;
 import org.niis.xroad.signer.proto.TokenServiceGrpc;
 import org.springframework.beans.factory.DisposableBean;
 
+import java.util.Optional;
+
+import static ee.ria.xroad.common.ErrorCodes.SIGNER_X;
 import static ee.ria.xroad.common.SystemProperties.getSignerClientTimeout;
 import static ee.ria.xroad.common.SystemProperties.getSignerGrpcHost;
 import static ee.ria.xroad.common.SystemProperties.getSignerGrpcPort;
@@ -114,6 +118,18 @@ public final class RpcSignerClient implements DisposableBean {
 
             blockingOcspService = OcspServiceGrpc.newBlockingStub(channel).withWaitForReady();
             adminServiceBlockingStub = AdminServiceGrpc.newBlockingStub(channel).withWaitForReady();
+        }
+
+        @Override
+        public Optional<String> getErrorPrefix() {
+            return Optional.of(SIGNER_X);
+        }
+
+        @Override
+        public void handleTimeout(long rpcDeadlineMillis) {
+            throw CodedException.tr(SIGNER_X, "signer_client_timeout",
+                            "Signer client timed out. Deadline: " + rpcDeadlineMillis + " ms")
+                    .withPrefix(SIGNER_X);
         }
     }
 

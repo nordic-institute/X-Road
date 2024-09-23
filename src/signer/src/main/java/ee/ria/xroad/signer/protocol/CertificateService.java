@@ -42,6 +42,7 @@ import ee.ria.xroad.signer.protocol.handler.SetRenewedCertHashReqHandler;
 import io.grpc.stub.StreamObserver;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.niis.xroad.rpc.common.Empty;
 import org.niis.xroad.signer.proto.ActivateCertReq;
 import org.niis.xroad.signer.proto.CertificateServiceGrpc;
 import org.niis.xroad.signer.proto.DeleteCertReq;
@@ -62,7 +63,6 @@ import org.niis.xroad.signer.proto.SetCertStatusReq;
 import org.niis.xroad.signer.proto.SetNextPlannedRenewalReq;
 import org.niis.xroad.signer.proto.SetRenewalErrorReq;
 import org.niis.xroad.signer.proto.SetRenewedCertHashReq;
-import org.niis.xroad.signer.protocol.dto.Empty;
 import org.springframework.stereotype.Service;
 
 /**
