@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<configuration>
+<configuration scan="true" scanPeriod="60 seconds">
     <property name="logOutputPath" value="/var/log/xroad" />
 
     <appender name="ACCESS_FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
