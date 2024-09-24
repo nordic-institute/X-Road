@@ -27,7 +27,7 @@
 package org.niis.xroad.cs.admin.core.service;
 
 import ee.ria.xroad.common.SystemProperties;
-import ee.ria.xroad.common.util.CryptoUtils;
+import ee.ria.xroad.common.crypto.Digests;
 import ee.ria.xroad.common.util.TimeUtils;
 
 import jakarta.transaction.Transactional;
@@ -68,7 +68,7 @@ import static ee.ria.xroad.common.conf.globalconf.ConfigurationConstants.CONTENT
 import static ee.ria.xroad.common.conf.globalconf.ConfigurationConstants.CONTENT_ID_SHARED_PARAMETERS;
 import static ee.ria.xroad.common.conf.globalconf.ConfigurationConstants.FILE_NAME_PRIVATE_PARAMETERS;
 import static ee.ria.xroad.common.conf.globalconf.ConfigurationConstants.FILE_NAME_SHARED_PARAMETERS;
-import static ee.ria.xroad.common.util.CryptoUtils.DEFAULT_UPLOAD_FILE_HASH_ALGORITHM;
+import static ee.ria.xroad.common.crypto.Digests.DEFAULT_UPLOAD_FILE_HASH_ALGORITHM;
 import static java.util.Comparator.comparing;
 import static java.util.stream.Collectors.toList;
 import static java.util.stream.Collectors.toMap;
@@ -262,7 +262,7 @@ public class ConfigurationServiceImpl implements ConfigurationService {
 
     @SneakyThrows
     private String getFileHash(byte[] data) {
-        return CryptoUtils.hexDigest(DEFAULT_UPLOAD_FILE_HASH_ALGORITHM, data);
+        return Digests.hexDigest(DEFAULT_UPLOAD_FILE_HASH_ALGORITHM, data);
     }
 
     private boolean isForCurrentNode(DistributedFileEntity distributedFile) {

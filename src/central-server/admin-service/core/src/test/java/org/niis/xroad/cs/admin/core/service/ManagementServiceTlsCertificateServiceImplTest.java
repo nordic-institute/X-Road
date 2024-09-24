@@ -101,7 +101,9 @@ class ManagementServiceTlsCertificateServiceImplTest {
 
     @Test
     void importTlsCertificateShouldThrownValidationFailureException3() throws IOException, CertificateEncodingException {
-        var certificate = CryptoUtils.readCertificate(Files.readAllBytes(Path.of("src/test/resources/ssl/invalid-chain.crt")));
+        var certificate = CryptoUtils.readCertificate(
+                Files.readAllBytes(Path.of("src/test/resources/ssl/invalid-chain.crt"))
+        );
         var certificateBytes = certificate.getEncoded();
         assertThatThrownBy(() -> service.importTlsCertificate(certificateBytes))
                 .isInstanceOf(ValidationFailureException.class)

@@ -35,6 +35,7 @@ import ee.ria.xroad.common.conf.serverconf.dao.ServerConfDAOImpl;
 import ee.ria.xroad.common.conf.serverconf.dao.ServiceDAOImpl;
 import ee.ria.xroad.common.conf.serverconf.dao.ServiceDescriptionDAOImpl;
 import ee.ria.xroad.common.conf.serverconf.model.AccessRightType;
+import ee.ria.xroad.common.conf.serverconf.model.CertificateType;
 import ee.ria.xroad.common.conf.serverconf.model.ClientType;
 import ee.ria.xroad.common.conf.serverconf.model.DescriptionType;
 import ee.ria.xroad.common.conf.serverconf.model.EndpointType;
@@ -54,6 +55,7 @@ import ee.ria.xroad.common.metadata.Endpoint;
 import ee.ria.xroad.common.metadata.RestServiceDetailsListType;
 import ee.ria.xroad.common.metadata.RestServiceType;
 import ee.ria.xroad.common.metadata.XRoadRestServiceDetailsType;
+import ee.ria.xroad.common.util.CryptoUtils;
 import ee.ria.xroad.common.util.UriUtils;
 
 import jakarta.persistence.criteria.CriteriaBuilder;
@@ -79,7 +81,6 @@ import static ee.ria.xroad.common.ErrorCodes.X_MALFORMED_SERVERCONF;
 import static ee.ria.xroad.common.ErrorCodes.X_UNKNOWN_SERVICE;
 import static ee.ria.xroad.common.ErrorCodes.translateException;
 import static ee.ria.xroad.common.conf.serverconf.ServerConfDatabaseCtx.doInTransaction;
-import static ee.ria.xroad.common.util.CryptoUtils.readCertificate;
 
 /**
  * Server conf implementation.
@@ -286,15 +287,17 @@ public class ServerConfImpl implements ServerConfProvider {
     @Override
     public List<X509Certificate> getIsCerts(ClientId client) throws Exception {
         return tx(session -> clientDao.getIsCerts(session, client).stream()
-                .map(c -> readCertificate(c.getData()))
-                .collect(Collectors.toList()));
+                .map(CertificateType::getData)
+                .map(CryptoUtils::readCertificate)
+                .toList());
     }
 
     @Override
     public List<X509Certificate> getAllIsCerts() {
         return tx(session -> certificateDao.findAll(session).stream()
-                .map(c -> readCertificate(c.getData()))
-                .collect(Collectors.toList()));
+                .map(CertificateType::getData)
+                .map(CryptoUtils::readCertificate)
+                .toList());
     }
 
     @Override

@@ -25,14 +25,13 @@
  */
 package ee.ria.xroad.common.hashchain;
 
-import lombok.Data;
+import ee.ria.xroad.common.crypto.identifier.DigestAlgorithm;
 
 /**
  * Represents a digest value together with digest method used to
  * compute this value.
+ * @param digestMethod the digest method
+ * @param digestValue the digest value
  */
-@Data
-public class DigestValue {
-    private final String digestMethod;
-    private final byte[] digestValue;
+public record DigestValue(DigestAlgorithm digestMethod, byte[] digestValue) {
 }

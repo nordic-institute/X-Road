@@ -28,6 +28,7 @@ package ee.ria.xroad.common.conf.globalconf;
 
 import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.identifier.SecurityServerId;
+import ee.ria.xroad.common.util.CryptoUtils;
 
 import lombok.Getter;
 import lombok.NonNull;
@@ -45,10 +46,8 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.stream.Collectors;
 
-import static ee.ria.xroad.common.util.CryptoUtils.encodeBase64;
-import static ee.ria.xroad.common.util.CryptoUtils.readCertificate;
+import static ee.ria.xroad.common.util.EncoderUtils.encodeBase64;
 import static org.apache.commons.lang3.StringUtils.isNotBlank;
 
 @Getter
@@ -118,7 +117,7 @@ public class SharedParametersCache {
 
     private void cacheOcspData(List<SharedParameters.CaInfo> typesUnderCA) {
         for (SharedParameters.CaInfo caInfo : typesUnderCA) {
-            X509Certificate cert = readCertificate(caInfo.getCert());
+            X509Certificate cert = CryptoUtils.readCertificate(caInfo.getCert());
             List<SharedParameters.OcspInfo> caOcspTypes = caInfo.getOcsp();
             caCertsAndOcspData.put(cert, caOcspTypes);
         }
@@ -126,8 +125,8 @@ public class SharedParametersCache {
 
     private static List<X509Certificate> getTopOrIntermediateCaCerts(List<SharedParameters.CaInfo> typesUnderCA) {
         return typesUnderCA.stream()
-                .map(c -> readCertificate(c.getCert()))
-                .collect(Collectors.toList());
+                .map(c -> CryptoUtils.readCertificate(c.getCert()))
+                .toList();
     }
 
     private void cacheKnownAddresses() {

@@ -26,8 +26,8 @@
 package ee.ria.xroad.common.asic;
 
 import ee.ria.xroad.common.CodedException;
+import ee.ria.xroad.common.crypto.Digests;
 import ee.ria.xroad.common.signature.Signature;
-import ee.ria.xroad.common.util.CryptoUtils;
 
 import org.apache.commons.io.IOUtils;
 import org.bouncycastle.operator.DigestCalculator;
@@ -64,8 +64,8 @@ import static ee.ria.xroad.common.asic.AsicContainerEntries.ENTRY_TIMESTAMP;
 import static ee.ria.xroad.common.asic.AsicContainerEntries.ENTRY_TS_HASH_CHAIN;
 import static ee.ria.xroad.common.asic.AsicContainerEntries.ENTRY_TS_HASH_CHAIN_RESULT;
 import static ee.ria.xroad.common.asic.AsicContainerEntries.MIMETYPE;
-import static ee.ria.xroad.common.util.CryptoUtils.decodeBase64;
-import static ee.ria.xroad.common.util.CryptoUtils.encodeBase64;
+import static ee.ria.xroad.common.util.EncoderUtils.decodeBase64;
+import static ee.ria.xroad.common.util.EncoderUtils.encodeBase64;
 import static org.apache.commons.lang3.StringUtils.isBlank;
 
 /**
@@ -98,7 +98,7 @@ final class AsicHelper {
                     break;
                 } else if (matches(ENTRY_ATTACHMENT + "1", zipEntry.getName())) {
                     final DigestCalculator digest =
-                            CryptoUtils.createDigestCalculator(CryptoUtils.DEFAULT_DIGEST_ALGORITHM_ID);
+                            Digests.createDigestCalculator(Digests.DEFAULT_DIGEST_ALGORITHM);
                     IOUtils.copy(zip, digest.getOutputStream());
                     attachmentDigest = digest.getDigest();
                     break;

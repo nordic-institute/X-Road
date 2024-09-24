@@ -27,6 +27,8 @@ package ee.ria.xroad.proxy.protocol;
 
 import ee.ria.xroad.common.CodedException;
 import ee.ria.xroad.common.conf.globalconf.GlobalConfProvider;
+import ee.ria.xroad.common.crypto.Digests;
+import ee.ria.xroad.common.crypto.identifier.DigestAlgorithm;
 import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.message.RestRequest;
 import ee.ria.xroad.common.message.RestResponse;
@@ -35,7 +37,6 @@ import ee.ria.xroad.common.message.Soap;
 import ee.ria.xroad.common.message.SoapFault;
 import ee.ria.xroad.common.message.SoapMessageImpl;
 import ee.ria.xroad.common.signature.SignatureData;
-import ee.ria.xroad.common.util.CryptoUtils;
 import ee.ria.xroad.common.util.HeaderValueUtils;
 import ee.ria.xroad.common.util.MessageFileNames;
 import ee.ria.xroad.common.util.MimeTypes;
@@ -106,7 +107,7 @@ public class ProxyMessageDecoder {
     /**
      * The hash algorithm id used when hashing parts.
      */
-    private final String hashAlgoId;
+    private final DigestAlgorithm hashAlgoId;
 
     /**
      * Parser does the main work.
@@ -135,7 +136,7 @@ public class ProxyMessageDecoder {
      * @param hashAlgoId         hash algorithm id used when hashing parts
      */
     public ProxyMessageDecoder(GlobalConfProvider globalConfProvider, ProxyMessageConsumer callback,
-                               String contentType, String hashAlgoId) {
+                               String contentType, DigestAlgorithm hashAlgoId) {
         this(globalConfProvider, callback, contentType, true, hashAlgoId);
     }
 
@@ -150,7 +151,7 @@ public class ProxyMessageDecoder {
      * @param hashAlgoId         hash algorithm id used when hashing parts
      */
     public ProxyMessageDecoder(GlobalConfProvider globalConfProvider, ProxyMessageConsumer callback,
-                               String contentType, boolean faultAllowed, String hashAlgoId) {
+                               String contentType, boolean faultAllowed, DigestAlgorithm hashAlgoId) {
         LOG.trace("new ProxyMessageDecoder({}, {})", contentType, hashAlgoId);
 
         this.callback = callback;
@@ -379,7 +380,7 @@ public class ProxyMessageDecoder {
         try {
             //The request size is unbounded; should have a limit?
             final byte[] request = IOUtils.toByteArray(is);
-            final byte[] digest = CryptoUtils.calculateDigest(getHashAlgoId(), request);
+            final byte[] digest = Digests.calculateDigest(getHashAlgoId(), request);
             callback.rest(new RestRequest(request));
             verifier.addPart(MessageFileNames.MESSAGE, getHashAlgoId(), digest, request);
         } catch (Exception ex) {
@@ -394,7 +395,7 @@ public class ProxyMessageDecoder {
             callback.rest(RestResponse.of(request));
             verifier.addPart(MessageFileNames.MESSAGE,
                     getHashAlgoId(),
-                    CryptoUtils.calculateDigest(getHashAlgoId(), request),
+                    Digests.calculateDigest(getHashAlgoId(), request),
                     request);
         } catch (Exception ex) {
             throw translateException(ex);
@@ -403,7 +404,7 @@ public class ProxyMessageDecoder {
 
     private void handleRestBody(BodyDescriptor bd, InputStream is) {
         try {
-            final DigestCalculator dc = CryptoUtils.createDigestCalculator(getHashAlgoId());
+            final DigestCalculator dc = Digests.createDigestCalculator(getHashAlgoId());
             final CountingOutputStream cos = new CountingOutputStream(dc.getOutputStream());
             final TeeInputStream proxyIs = new TeeInputStream(is, cos, true);
 
@@ -460,7 +461,7 @@ public class ProxyMessageDecoder {
                 LOG.trace("attachment body: {}", bd.getMimeType());
                 try {
                     DigestCalculator dc =
-                            CryptoUtils.createDigestCalculator(getHashAlgoId());
+                            Digests.createDigestCalculator(getHashAlgoId());
                     CountingOutputStream cos = new CountingOutputStream(
                             dc.getOutputStream());
                     TeeInputStream proxyIs = new TeeInputStream(is, cos, true);
@@ -547,7 +548,7 @@ public class ProxyMessageDecoder {
         }
     }
 
-    private String getHashAlgoId() {
+    private DigestAlgorithm getHashAlgoId() {
         if (hashAlgoId == null) {
             throw new CodedException(X_INTERNAL_ERROR,
                     "Could not get hash algorithm identifier from message");

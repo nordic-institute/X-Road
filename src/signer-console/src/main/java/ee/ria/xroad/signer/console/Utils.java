@@ -43,7 +43,7 @@ import java.io.FileInputStream;
 import java.io.FileOutputStream;
 
 import static ee.ria.xroad.common.util.CryptoUtils.calculateCertHexHash;
-import static ee.ria.xroad.common.util.CryptoUtils.encodeBase64;
+import static ee.ria.xroad.common.util.EncoderUtils.encodeBase64;
 
 final class Utils {
 

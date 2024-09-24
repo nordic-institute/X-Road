@@ -25,6 +25,7 @@
  */
 package ee.ria.xroad.signer.tokenmanager.module;
 
+import ee.ria.xroad.common.crypto.identifier.SignMechanism;
 import ee.ria.xroad.common.util.FileContentChangeChecker;
 
 import iaik.pkcs.pkcs11.wrapper.PKCS11Constants;
@@ -46,6 +47,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -53,7 +55,7 @@ import static ee.ria.xroad.common.SystemProperties.getDeviceConfFile;
 
 /**
  * Encapsulates module data read form the external configuration file.
- *
+ * <p>
  * Each module specifies an UID, the pkcs#11 library path and other options specific to that module.
  */
 @Slf4j
@@ -68,12 +70,12 @@ public final class ModuleConf {
     private static final String DEFAULT_TOKEN_ID_FORMAT = "{moduleType}{slotIndex}{serialNumber}{label}";
 
     // Maps mechanism name to mechanism code of supported sign mechanisms.
-    private static final Map<String, Long> SUPPORTED_SIGN_MECHANISMS = createSupportedSignMechanismsMap();
+    private static final Map<SignMechanism, Long> SUPPORTED_SIGN_MECHANISMS = createSupportedSignMechanismsMap();
 
     // Maps mechanism name to mechanism code of supported key allowed mechanisms.
     private static final Map<String, Long> SUPPORTED_KEY_ALLOWED_MECHANISMS = createSupportedKeyAllowedMechanismMap();
 
-    private static final String DEFAULT_SIGN_MECHANISM_NAME = PKCS11Constants.NAME_CKM_RSA_PKCS;
+    private static final SignMechanism DEFAULT_SIGN_MECHANISM_NAME = SignMechanism.CKM_RSA_PKCS;
 
     // Module configuration fields.
     private static final String ENABLED_PARAM = "enabled";
@@ -105,10 +107,10 @@ public final class ModuleConf {
 
     private static FileContentChangeChecker changeChecker = null;
 
-    private static Map<String, Long> createSupportedSignMechanismsMap() {
-        Map<String, Long> mechanisms = new HashMap<>();
-        mechanisms.put(PKCS11Constants.NAME_CKM_RSA_PKCS, PKCS11Constants.CKM_RSA_PKCS);
-        mechanisms.put(PKCS11Constants.NAME_CKM_RSA_PKCS_PSS, PKCS11Constants.CKM_RSA_PKCS_PSS);
+    private static Map<SignMechanism, Long> createSupportedSignMechanismsMap() {
+        Map<SignMechanism, Long> mechanisms = new HashMap<>();
+        mechanisms.put(SignMechanism.CKM_RSA_PKCS, PKCS11Constants.CKM_RSA_PKCS);
+        mechanisms.put(SignMechanism.CKM_RSA_PKCS_PSS, PKCS11Constants.CKM_RSA_PKCS_PSS);
 
         return mechanisms;
     }
@@ -133,7 +135,7 @@ public final class ModuleConf {
     /**
      * @return sign mechanism code, null in case not supported sign mechanism
      */
-    public static Long getSupportedSignMechanismCode(String signMechanismName) {
+    public static Long getSupportedSignMechanismCode(SignMechanism signMechanismName) {
         return SUPPORTED_SIGN_MECHANISMS.get(signMechanismName);
     }
 
@@ -236,11 +238,10 @@ public final class ModuleConf {
             tokenIdFormat = DEFAULT_TOKEN_ID_FORMAT;
         }
 
-        String signMechanismName = section.getString(SIGN_MECHANISM_PARAM);
-
-        if (StringUtils.isBlank(signMechanismName)) {
-            signMechanismName = DEFAULT_SIGN_MECHANISM_NAME;
-        }
+        SignMechanism signMechanismName = Optional.ofNullable(section.getString(SIGN_MECHANISM_PARAM))
+                .filter(StringUtils::isNotBlank)
+                .map(SignMechanism::valueOf)
+                .orElse(DEFAULT_SIGN_MECHANISM_NAME);
 
         Long signMechanism = getSupportedSignMechanismCode(signMechanismName);
 

@@ -25,6 +25,8 @@
  */
 package ee.ria.xroad.signer.tokenmanager.module;
 
+import ee.ria.xroad.common.crypto.identifier.SignMechanism;
+
 import lombok.Data;
 
 import java.util.Set;
@@ -51,7 +53,7 @@ public class HardwareModuleType implements ModuleType {
 
     private final boolean forceReadOnly;
 
-    private final String signMechanismName;
+    private final SignMechanism signMechanismName;
 
     private final PrivKeyAttributes privKeyAttributes;
 

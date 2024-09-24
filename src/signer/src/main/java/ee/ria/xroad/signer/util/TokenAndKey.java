@@ -25,19 +25,15 @@
  */
 package ee.ria.xroad.signer.util;
 
+import ee.ria.xroad.common.crypto.identifier.SignMechanism;
 import ee.ria.xroad.signer.protocol.dto.KeyInfo;
-
-import lombok.Value;
 
 /**
  * DTO for holding a token id and key info.
+ * @param tokenId the token id
+ * @param key the key info
  */
-@Value
-public final class TokenAndKey {
-
-    private final String tokenId;
-
-    private final KeyInfo key;
+public record TokenAndKey(String tokenId, KeyInfo key) {
 
     /**
      * @return the key id
@@ -49,8 +45,8 @@ public final class TokenAndKey {
     /**
      * @return the signing mechanism name
      */
-    public String getSignMechanism() {
-        return key.getSignMechanismName();
+    public SignMechanism getSignMechanism() {
+        return SignMechanism.valueOf(key.getSignMechanismName());
     }
 
 }

@@ -35,6 +35,7 @@ import ee.ria.xroad.common.conf.globalconfextension.GlobalConfExtensions;
 import ee.ria.xroad.common.conf.serverconf.ServerConfProvider;
 import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.identifier.SecurityServerId;
+import ee.ria.xroad.common.util.CryptoUtils;
 import ee.ria.xroad.common.util.FileContentChangeChecker;
 import ee.ria.xroad.common.util.filewatcher.FileWatcherRunner;
 import ee.ria.xroad.signer.SignerProxy;
@@ -59,7 +60,6 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 
 import static ee.ria.xroad.common.ErrorCodes.X_CANNOT_CREATE_SIGNATURE;
-import static ee.ria.xroad.common.util.CryptoUtils.readCertificate;
 
 /**
  * Encapsulates KeyConf related functionality.
@@ -166,13 +166,13 @@ public class CachingKeyConfImpl extends KeyConfImpl {
         log.debug("Retrieving signing info for member '{}'", clientId);
 
         MemberSigningInfoDto signingInfo = SignerProxy.getMemberSigningInfo(clientId);
-        X509Certificate cert = readCertificate(signingInfo.getCert().getCertificateBytes());
-        OCSPResp ocsp = new OCSPResp(signingInfo.getCert().getOcspBytes());
+        X509Certificate cert = CryptoUtils.readCertificate(signingInfo.cert().getCertificateBytes());
+        OCSPResp ocsp = new OCSPResp(signingInfo.cert().getOcspBytes());
 
         //Signer already checks the validity of the signing certificate. Just record the bounds
         //the certificate and ocsp response is valid for.
         Date notAfter = calculateNotAfter(Collections.singletonList(ocsp), cert.getNotAfter());
-        return new SigningInfo(signingInfo.getKeyId(), signingInfo.getSignMechanismName(), clientId, cert, new Date(),
+        return new SigningInfo(signingInfo.keyId(), signingInfo.signMechanismName(), clientId, cert, new Date(),
                 notAfter);
     }
 

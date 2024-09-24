@@ -26,7 +26,9 @@
 package ee.ria.xroad.signer.protocol.handler;
 
 import ee.ria.xroad.common.CodedException;
-import ee.ria.xroad.common.util.CryptoUtils;
+import ee.ria.xroad.common.crypto.KeyManagers;
+import ee.ria.xroad.common.crypto.identifier.DigestAlgorithm;
+import ee.ria.xroad.common.crypto.identifier.SignAlgorithm;
 import ee.ria.xroad.signer.protocol.AbstractRpcHandler;
 import ee.ria.xroad.signer.protocol.dto.CertificateInfo;
 import ee.ria.xroad.signer.protocol.dto.KeyUsageInfo;
@@ -63,11 +65,7 @@ import java.util.Date;
 
 import static ee.ria.xroad.common.ErrorCodes.X_INTERNAL_ERROR;
 import static ee.ria.xroad.common.ErrorCodes.translateException;
-import static ee.ria.xroad.common.util.CryptoUtils.SHA512_ID;
-import static ee.ria.xroad.common.util.CryptoUtils.calculateDigest;
-import static ee.ria.xroad.common.util.CryptoUtils.decodeBase64;
-import static ee.ria.xroad.common.util.CryptoUtils.getDigestAlgorithmId;
-import static ee.ria.xroad.common.util.CryptoUtils.readX509PublicKey;
+import static ee.ria.xroad.common.crypto.Digests.calculateDigest;
 import static ee.ria.xroad.signer.util.ExceptionHelper.keyNotAvailable;
 
 /**
@@ -82,7 +80,7 @@ public class GenerateSelfSignedCertReqHandler extends AbstractRpcHandler<Generat
     private final ImportCertReqHandler importCertReqHandler;
 
     // TODO make configurable
-    private static final String SIGNATURE_DIGEST_ALGORITHM = SHA512_ID;
+    private static final DigestAlgorithm SIGNATURE_DIGEST_ALGORITHM = DigestAlgorithm.SHA512;
 
     @Override
     protected GenerateSelfSignedCertResp handle(GenerateSelfSignedCertReq request) throws Exception {
@@ -92,13 +90,13 @@ public class GenerateSelfSignedCertReqHandler extends AbstractRpcHandler<Generat
             throw keyNotAvailable(tokenAndKey.getKeyId());
         }
 
-        if (tokenAndKey.getKey().getPublicKey() == null) {
+        if (tokenAndKey.key().getPublicKey() == null) {
             throw new CodedException(X_INTERNAL_ERROR, "Key '%s' has no public key", request.getKeyId());
         }
 
-        PublicKey pk = readX509PublicKey(decodeBase64(tokenAndKey.getKey().getPublicKey()));
+        PublicKey pk = KeyManagers.getFor(tokenAndKey.getSignMechanism()).readX509PublicKey(tokenAndKey.key().getPublicKey());
 
-        String signAlgoId = CryptoUtils.getSignatureAlgorithmId(SIGNATURE_DIGEST_ALGORITHM,
+        SignAlgorithm signAlgoId = SignAlgorithm.ofDigestAndMechanism(SIGNATURE_DIGEST_ALGORITHM,
                 tokenAndKey.getSignMechanism());
 
         X509Certificate cert = new DummyCertBuilder().build(tokenAndKey, request, pk, signAlgoId);
@@ -116,7 +114,7 @@ public class GenerateSelfSignedCertReqHandler extends AbstractRpcHandler<Generat
     class DummyCertBuilder {
 
         X509Certificate build(TokenAndKey tokenAndKey, GenerateSelfSignedCertReq message, PublicKey publicKey,
-                              String signAlgoId) throws Exception {
+                              SignAlgorithm signAlgoId) throws Exception {
             X500Name subject = new X500Name("CN=" + message.getCommonName());
 
             JcaX509v3CertificateBuilder builder = new JcaX509v3CertificateBuilder(subject, BigInteger.ONE,
@@ -151,11 +149,11 @@ public class GenerateSelfSignedCertReqHandler extends AbstractRpcHandler<Generat
 
             private final TokenAndKey tokenAndKey;
 
-            private final String signAlgoId;
+            private final SignAlgorithm signAlgoId;
 
             @Override
             public AlgorithmIdentifier getAlgorithmIdentifier() {
-                return new DefaultSignatureAlgorithmIdentifierFinder().find(signAlgoId);
+                return new DefaultSignatureAlgorithmIdentifierFinder().find(signAlgoId.name());
             }
 
             @Override
@@ -169,12 +167,11 @@ public class GenerateSelfSignedCertReqHandler extends AbstractRpcHandler<Generat
                 byte[] digest;
 
                 try {
-                    String digAlgoId = getDigestAlgorithmId(signAlgoId);
-                    digest = calculateDigest(digAlgoId, dataToSign);
+                    digest = calculateDigest(signAlgoId.digest(), dataToSign);
 
                     var message = SignReq.newBuilder()
                             .setKeyId(tokenAndKey.getKeyId())
-                            .setSignatureAlgorithmId(signAlgoId)
+                            .setSignatureAlgorithmId(signAlgoId.name())
                             .setDigest(ByteString.copyFrom(digest))
                             .build();
                     return signReqHandler.signData(message);

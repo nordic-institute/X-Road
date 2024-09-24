@@ -27,6 +27,8 @@ package ee.ria.xroad.signer.tokenmanager.token;
 
 import ee.ria.xroad.common.CodedException;
 import ee.ria.xroad.common.SystemProperties;
+import ee.ria.xroad.common.crypto.KeyManagers;
+import ee.ria.xroad.common.crypto.identifier.SignAlgorithm;
 import ee.ria.xroad.common.util.CryptoUtils;
 import ee.ria.xroad.common.util.PasswordStore;
 import ee.ria.xroad.common.util.TokenPinPolicy;
@@ -68,14 +70,14 @@ import java.security.cert.X509Certificate;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Set;
 
 import static ee.ria.xroad.common.ErrorCodes.X_INTERNAL_ERROR;
 import static ee.ria.xroad.common.ErrorCodes.X_TOKEN_PIN_POLICY_FAILURE;
 import static ee.ria.xroad.common.ErrorCodes.X_UNSUPPORTED_SIGN_ALGORITHM;
 import static ee.ria.xroad.common.ErrorCodes.translateException;
-import static ee.ria.xroad.common.util.CryptoUtils.encodeBase64;
 import static ee.ria.xroad.common.util.CryptoUtils.loadPkcs12KeyStore;
-import static ee.ria.xroad.common.util.CryptoUtils.readCertificate;
+import static ee.ria.xroad.common.util.EncoderUtils.encodeBase64;
 import static ee.ria.xroad.signer.tokenmanager.TokenManager.addKey;
 import static ee.ria.xroad.signer.tokenmanager.TokenManager.getKeyInfo;
 import static ee.ria.xroad.signer.tokenmanager.TokenManager.isTokenActive;
@@ -89,7 +91,6 @@ import static ee.ria.xroad.signer.tokenmanager.token.SoftwareTokenUtil.PIN_ALIAS
 import static ee.ria.xroad.signer.tokenmanager.token.SoftwareTokenUtil.PIN_FILE;
 import static ee.ria.xroad.signer.tokenmanager.token.SoftwareTokenUtil.createKeyStore;
 import static ee.ria.xroad.signer.tokenmanager.token.SoftwareTokenUtil.createTempKeyDir;
-import static ee.ria.xroad.signer.tokenmanager.token.SoftwareTokenUtil.generateKeyPair;
 import static ee.ria.xroad.signer.tokenmanager.token.SoftwareTokenUtil.getBackupKeyDir;
 import static ee.ria.xroad.signer.tokenmanager.token.SoftwareTokenUtil.getBackupKeyDirForDateNow;
 import static ee.ria.xroad.signer.tokenmanager.token.SoftwareTokenUtil.getKeyDir;
@@ -111,10 +112,15 @@ import static java.nio.file.StandardCopyOption.ATOMIC_MOVE;
 @Slf4j
 public class SoftwareTokenWorker extends AbstractTokenWorker {
 
-    // Use no digesting algorithm, since the input data is already a digest
-    private static final String SIGNATURE_ALGORITHM = "NONEwithRSA";
+    private static final Set<SignAlgorithm> SUPPORTED_ALGORITHMS = Set.of(
+            SignAlgorithm.SHA1_WITH_RSA,
+            SignAlgorithm.SHA256_WITH_RSA,
+            SignAlgorithm.SHA384_WITH_RSA,
+            SignAlgorithm.SHA512_WITH_RSA
+    );
 
     private final Map<String, PrivateKey> privateKeys = new HashMap<>();
+    private final TokenType tokenType;
 
     private boolean isTokenLoginAllowed = true;
 
@@ -123,8 +129,9 @@ public class SoftwareTokenWorker extends AbstractTokenWorker {
      *
      * @param tokenInfo the token info
      */
-    public SoftwareTokenWorker(TokenInfo tokenInfo) {
+    public SoftwareTokenWorker(TokenInfo tokenInfo, TokenType tokenType) {
         super(tokenInfo);
+        this.tokenType = tokenType;
     }
 
     @Override
@@ -170,7 +177,7 @@ public class SoftwareTokenWorker extends AbstractTokenWorker {
 
         assertTokenAvailable();
 
-        java.security.KeyPair keyPair = generateKeyPair(SystemProperties.getSignerKeyLength());
+        java.security.KeyPair keyPair = KeyManagers.getFor(tokenType.getSignMechanismName()).generateKeyPair();
 
         String keyId = SignerUtil.randomId();
         savePkcs12Keystore(keyPair, keyId, getKeyStoreFileName(keyId), getPin());
@@ -199,7 +206,7 @@ public class SoftwareTokenWorker extends AbstractTokenWorker {
     }
 
     @Override
-    protected byte[] sign(String keyId, String signatureAlgorithmId, byte[] data) throws Exception {
+    protected byte[] sign(String keyId, SignAlgorithm signatureAlgorithmId, byte[] data) throws Exception {
         log.trace("sign({}, {})", keyId, signatureAlgorithmId);
 
         checkSignatureAlgorithm(signatureAlgorithmId);
@@ -216,40 +223,36 @@ public class SoftwareTokenWorker extends AbstractTokenWorker {
 
         log.debug("Signing with key '{}' and signature algorithm '{}'", keyId, signatureAlgorithmId);
 
-        Signature signature = Signature.getInstance(SIGNATURE_ALGORITHM);
+        SignAlgorithm signAlgorithm = KeyManagers.getFor(tokenType.getSignMechanismName()).getSoftwareTokenSignAlgorithm();
+        Signature signature = Signature.getInstance(signAlgorithm.name());
         signature.initSign(key);
         signature.update(data);
 
         return signature.sign();
     }
 
-    private static void checkSignatureAlgorithm(String signatureAlgorithmId) throws CodedException {
-        switch (signatureAlgorithmId) {
-            case CryptoUtils.SHA1WITHRSA_ID:
-            case CryptoUtils.SHA256WITHRSA_ID:
-            case CryptoUtils.SHA384WITHRSA_ID:
-            case CryptoUtils.SHA512WITHRSA_ID:
-                break;
-            default:
-                throw CodedException.tr(X_UNSUPPORTED_SIGN_ALGORITHM, "unsupported_sign_algorithm",
-                        "Unsupported signature algorithm '%s'", signatureAlgorithmId);
+    private static void checkSignatureAlgorithm(SignAlgorithm signatureAlgorithmId) throws CodedException {
+        if (!SUPPORTED_ALGORITHMS.contains(signatureAlgorithmId)) {
+            throw CodedException.tr(X_UNSUPPORTED_SIGN_ALGORITHM, "unsupported_sign_algorithm",
+                    "Unsupported signature algorithm '%s'", signatureAlgorithmId.name());
         }
     }
 
-    protected byte[] signCertificate(String keyId, String signatureAlgorithmId, String subjectName, PublicKey publicKey) throws Exception {
+    protected byte[] signCertificate(String keyId, SignAlgorithm signatureAlgorithmId, String subjectName, PublicKey publicKey)
+            throws Exception {
         log.trace("signCertificate({}, {}, {})", keyId, signatureAlgorithmId, subjectName);
         checkSignatureAlgorithm(signatureAlgorithmId);
         assertTokenAvailable();
         assertKeyAvailable(keyId);
         KeyInfo keyInfo = getKeyInfo(keyId);
         CertificateInfo certificateInfo = keyInfo.getCerts().getFirst();
-        X509Certificate issuerX509Certificate = readCertificate(certificateInfo.getCertificateBytes());
+        X509Certificate issuerX509Certificate = CryptoUtils.readCertificate(certificateInfo.getCertificateBytes());
         PrivateKey privateKey = getPrivateKey(keyId);
         JcaX509v3CertificateBuilder certificateBuilder = getCertificateBuilder(subjectName, publicKey,
                 issuerX509Certificate);
 
         log.debug("Signing certificate with key '{}' and signature algorithm '{}'", keyId, signatureAlgorithmId);
-        ContentSigner signer = new JcaContentSignerBuilder(signatureAlgorithmId).build(privateKey);
+        ContentSigner signer = new JcaContentSignerBuilder(signatureAlgorithmId.name()).build(privateKey);
         X509CertificateHolder certHolder = certificateBuilder.build(signer);
         X509Certificate signedCert = new JcaX509CertificateConverter().getCertificate(certHolder);
         CertificateFactory certificateFactory = CertificateFactory.getInstance("X.509", "BC");
@@ -347,7 +350,7 @@ public class SoftwareTokenWorker extends AbstractTokenWorker {
         }
 
         try {
-            java.security.KeyPair kp = generateKeyPair(SystemProperties.getSignerKeyLength());
+            java.security.KeyPair kp = KeyManagers.getFor(tokenType.getSignMechanismName()).generateKeyPair();
 
             String keyStoreFile = getKeyStoreFileName(PIN_FILE);
             savePkcs12Keystore(kp, PIN_ALIAS, keyStoreFile, pin);

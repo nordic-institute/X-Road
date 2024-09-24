@@ -26,8 +26,8 @@
 package ee.ria.xroad.common.signature;
 
 import ee.ria.xroad.common.CodedException;
+import ee.ria.xroad.common.crypto.identifier.SignAlgorithm;
 import ee.ria.xroad.common.hashchain.HashChainBuilder;
-import ee.ria.xroad.common.util.CryptoUtils;
 import ee.ria.xroad.common.util.MessageFileNames;
 
 import lombok.AccessLevel;
@@ -45,7 +45,6 @@ import java.util.ArrayList;
 import java.util.List;
 
 import static ee.ria.xroad.common.ErrorCodes.X_INTERNAL_ERROR;
-import static ee.ria.xroad.common.util.CryptoUtils.getDigestAlgorithmId;
 import static ee.ria.xroad.common.util.MessageFileNames.MESSAGE;
 import static ee.ria.xroad.common.util.MessageFileNames.SIG_HASH_CHAIN;
 import static ee.ria.xroad.common.util.MessageFileNames.SIG_HASH_CHAIN_RESULT;
@@ -65,9 +64,7 @@ class SignatureCtx {
     private final List<SigningRequest> requests = new ArrayList<>();
 
     @Getter(AccessLevel.PACKAGE)
-    private final String signatureAlgorithmId;
-    private final String signatureAlgorithmUri;
-    private final String digestAlgorithmId;
+    private final SignAlgorithm signatureAlgorithmId;
 
     private String hashChainResult;
     private String[] hashChains;
@@ -75,11 +72,8 @@ class SignatureCtx {
     private SignatureXmlBuilder builder;
 
     @SneakyThrows
-    SignatureCtx(String signatureAlgorithmId) {
+    SignatureCtx(SignAlgorithm signatureAlgorithmId) {
         this.signatureAlgorithmId = signatureAlgorithmId;
-
-        signatureAlgorithmUri = CryptoUtils.getSignatureAlgorithmURI(signatureAlgorithmId);
-        digestAlgorithmId = getDigestAlgorithmId(signatureAlgorithmId);
     }
 
     /**
@@ -117,12 +111,12 @@ class SignatureCtx {
 
         SigningRequest firstRequest = requests.getFirst();
 
-        builder = new SignatureXmlBuilder(firstRequest, digestAlgorithmId);
+        builder = new SignatureXmlBuilder(firstRequest, signatureAlgorithmId.digest());
 
         // If only one single hash (message), then no hash chain
         if (requests.size() == 1 && firstRequest.isSingleMessage()) {
             return builder.createDataToBeSigned(MESSAGE, createResourceResolver(
-                    firstRequest.getParts().getFirst().getMessage()), signatureAlgorithmUri);
+                    firstRequest.getParts().getFirst().getMessage()), signatureAlgorithmId);
         }
 
         buildHashChain();
@@ -130,13 +124,13 @@ class SignatureCtx {
         byte[] hashChainResultBytes = hashChainResult.getBytes(StandardCharsets.UTF_8);
 
         return builder.createDataToBeSigned(SIG_HASH_CHAIN_RESULT, createResourceResolver(hashChainResultBytes),
-                signatureAlgorithmUri);
+                signatureAlgorithmId);
     }
 
     private void buildHashChain() throws Exception {
         log.trace("buildHashChain()");
 
-        HashChainBuilder hashChainBuilder = new HashChainBuilder(digestAlgorithmId);
+        HashChainBuilder hashChainBuilder = new HashChainBuilder(signatureAlgorithmId.digest());
 
         for (SigningRequest request : requests) {
             hashChainBuilder.addInputHash(getHashChainInputs(request));

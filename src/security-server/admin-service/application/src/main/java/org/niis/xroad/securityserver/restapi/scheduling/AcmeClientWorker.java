@@ -221,7 +221,7 @@ public class AcmeClientWorker {
                 if (renewedCert.getStatus().equals(CertificateInfo.STATUS_REGISTERED)) {
                     SignerProxy.KeyIdInfo oldKeyId =
                             signerProxyFacade.getKeyIdForCertHash(calculateCertHexHash(certInProcessOfRenewal.getCertificateBytes()));
-                    removeOldAuthKey(certInProcessOfRenewal, oldKeyId.getKeyId());
+                    removeOldAuthKey(certInProcessOfRenewal, oldKeyId.keyId());
                 }
             } catch (Exception ex) {
                 log.error("Error when trying to clean up old certificate '{}' that has been renewed", certInProcessOfRenewal.getId(), ex);

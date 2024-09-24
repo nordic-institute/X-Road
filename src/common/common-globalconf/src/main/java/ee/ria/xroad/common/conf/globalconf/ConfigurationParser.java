@@ -26,6 +26,7 @@
 package ee.ria.xroad.common.conf.globalconf;
 
 import ee.ria.xroad.common.CodedException;
+import ee.ria.xroad.common.crypto.identifier.SignAlgorithm;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -55,8 +56,7 @@ import static ee.ria.xroad.common.ErrorCodes.X_INVALID_SIGNATURE_VALUE;
 import static ee.ria.xroad.common.ErrorCodes.X_MALFORMED_GLOBALCONF;
 import static ee.ria.xroad.common.ErrorCodes.X_OUTDATED_GLOBALCONF;
 import static ee.ria.xroad.common.ErrorCodes.translateException;
-import static ee.ria.xroad.common.util.CryptoUtils.decodeBase64;
-import static ee.ria.xroad.common.util.CryptoUtils.getAlgorithmId;
+import static ee.ria.xroad.common.util.EncoderUtils.decodeBase64;
 import static ee.ria.xroad.common.util.MimeUtils.HEADER_CONTENT_TYPE;
 import static ee.ria.xroad.common.util.MimeUtils.HEADER_EXPIRE_DATE;
 import static ee.ria.xroad.common.util.MimeUtils.HEADER_VERSION;
@@ -192,11 +192,11 @@ public class ConfigurationParser {
             try {
                 ConfigurationSignature parameters = ConfigurationSignature.of(headers);
 
-                String algoId = parameters.getSignatureAlgorithmId();
+                SignAlgorithm algoUri = parameters.getSignatureAlgorithmId();
 
-                log.trace("Verifying signed content using signature algorithm id {}", algoId);
+                log.trace("Verifying signed content using signature algorithm id {}", algoUri);
 
-                Signature verifier = Signature.getInstance(getAlgorithmId(algoId), "BC");
+                Signature verifier = Signature.getInstance(algoUri.name(), "BC");
 
                 X509Certificate verificationCert = getVerificationCert(configuration.getLocation(), parameters);
 
@@ -256,7 +256,7 @@ public class ConfigurationParser {
             }
 
             X509Certificate cert = location.getVerificationCert(parameters.getVerificationCertHash(),
-                    parameters.getVerificationCertHashAlgoId());
+                    parameters.getVerificationCertHashAlgoUri());
 
             log.trace("cert={}", cert);
 

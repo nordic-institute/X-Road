@@ -29,11 +29,12 @@ import ee.ria.xroad.common.ErrorCodes;
 import ee.ria.xroad.common.ExpectedCodedException;
 import ee.ria.xroad.common.conf.globalconf.GlobalConfProvider;
 import ee.ria.xroad.common.conf.globalconf.TestGlobalConfImpl;
+import ee.ria.xroad.common.crypto.Digests;
+import ee.ria.xroad.common.crypto.identifier.DigestAlgorithm;
 import ee.ria.xroad.common.message.RestRequest;
 import ee.ria.xroad.common.message.SoapFault;
 import ee.ria.xroad.common.message.SoapMessageImpl;
 import ee.ria.xroad.common.signature.SignatureData;
-import ee.ria.xroad.common.util.CryptoUtils;
 import ee.ria.xroad.common.util.MimeTypes;
 import ee.ria.xroad.common.util.MimeUtils;
 
@@ -309,8 +310,8 @@ public class ProxyMessageDecoderTest {
         return Files.newInputStream(Paths.get("src/test/proxymessages/" + fileName));
     }
 
-    private String getHashAlgoId() {
-        return CryptoUtils.DEFAULT_DIGEST_ALGORITHM_ID;
+    private DigestAlgorithm getHashAlgoId() {
+        return Digests.DEFAULT_DIGEST_ALGORITHM;
     }
 
     private static final class DummyMessageConsumer implements ProxyMessageConsumer {

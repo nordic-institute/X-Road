@@ -26,10 +26,12 @@
 package ee.ria.xroad.proxy.signedmessage;
 
 import ee.ria.xroad.common.SystemProperties;
+import ee.ria.xroad.common.crypto.identifier.DigestAlgorithm;
+import ee.ria.xroad.common.crypto.identifier.SignAlgorithm;
+import ee.ria.xroad.common.crypto.identifier.SignMechanism;
 import ee.ria.xroad.common.signature.BatchSigner;
 import ee.ria.xroad.common.signature.SignatureData;
 import ee.ria.xroad.common.signature.SigningRequest;
-import ee.ria.xroad.common.util.CryptoUtils;
 
 import lombok.extern.slf4j.Slf4j;
 
@@ -46,19 +48,19 @@ public class SignerSigningKey implements SigningKey {
     private final String keyId;
 
     /** The sign mechanism name (PKCS#11) */
-    private final String signMechanismName;
+    private final SignMechanism signMechanismName;
 
     /**
      * Creates a new SignerSigningKey with provided keyId.
      * @param keyId the private key ID.
      */
-    public SignerSigningKey(String keyId, String signMechanismName) {
+    public SignerSigningKey(String keyId, SignMechanism signMechanismName) {
         if (keyId == null) {
             throw new IllegalArgumentException("KeyId must not be null");
         }
 
         if (signMechanismName == null) {
-            throw new IllegalArgumentException("SignMechanismName must not be null");
+            throw new IllegalArgumentException("SignMechanism must not be null");
         }
 
         this.keyId = keyId;
@@ -66,13 +68,13 @@ public class SignerSigningKey implements SigningKey {
     }
 
     @Override
-    public SignatureData calculateSignature(SigningRequest request, String digestAlgoId) throws Exception {
-        String signAlgoId = CryptoUtils.getSignatureAlgorithmId(digestAlgoId, signMechanismName);
+    public SignatureData calculateSignature(SigningRequest request, DigestAlgorithm digestAlgoId) throws Exception {
+        SignAlgorithm signAlgoId = SignAlgorithm.ofDigestAndMechanism(digestAlgoId, signMechanismName);
 
         log.trace("Calculating signature using algorithm {}", signAlgoId);
 
         if (SystemProperties.USE_DUMMY_SIGNATURE) {
-            return new SignatureData("dymmySignatureXML", "dummyHashChainResult", "dummyHashChain");
+            return new SignatureData("dummySignatureXML", "dummyHashChainResult", "dummyHashChain");
         }
 
         try {

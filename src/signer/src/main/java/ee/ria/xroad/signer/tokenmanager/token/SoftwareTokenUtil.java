@@ -43,10 +43,8 @@ import java.nio.file.attribute.FileAttribute;
 import java.nio.file.attribute.PosixFilePermission;
 import java.nio.file.attribute.PosixFilePermissions;
 import java.security.KeyPair;
-import java.security.KeyPairGenerator;
 import java.security.KeyStore;
 import java.security.PrivateKey;
-import java.security.SecureRandom;
 import java.security.cert.Certificate;
 import java.security.cert.X509Certificate;
 import java.sql.Timestamp;
@@ -82,15 +80,7 @@ public final class SoftwareTokenUtil {
     static final String SOFT_TOKEN_KEY_DIR_NAME = "softtoken";
     static final String SOFT_TOKEN_KEY_BAK_DIR_NAME = ".softtoken.bak";
 
-    // TODO make it configurable.
-    private static final String SIGNATURE_ALGORITHM = CryptoUtils.SHA512WITHRSA_ID;
-
-    private static final FilenameFilter P12_FILTER = new FilenameFilter() {
-        @Override
-        public boolean accept(File dir, String name) {
-            return name != null && !name.startsWith(PIN_FILE) && name.endsWith(P12);
-        }
-    };
+    private static final FilenameFilter P12_FILTER = (dir, name) -> name != null && !name.startsWith(PIN_FILE) && name.endsWith(P12);
 
     private static final SimpleDateFormat TIMESTAMP_FORMAT = new SimpleDateFormat("yyyyMMddHHmmss");
 
@@ -155,7 +145,7 @@ public final class SoftwareTokenUtil {
     }
 
     static KeyStore createKeyStore(KeyPair kp, String alias, char[] password) throws Exception {
-        ContentSigner signer = CryptoUtils.createContentSigner(SIGNATURE_ALGORITHM, kp.getPrivate());
+        ContentSigner signer = CryptoUtils.createContentSigner(SystemProperties.getSignerKeySignatureAlgorithm(), kp.getPrivate());
 
         X509Certificate[] certChain = new X509Certificate[1];
         certChain[0] = SignerUtil.createCertificate("KeyHolder", kp, signer);
@@ -213,12 +203,5 @@ public final class SoftwareTokenUtil {
         }
 
         return cert;
-    }
-
-    static KeyPair generateKeyPair(int keySize) throws Exception {
-        KeyPairGenerator keyPairGen = KeyPairGenerator.getInstance("RSA");
-        keyPairGen.initialize(keySize, new SecureRandom());
-
-        return keyPairGen.generateKeyPair();
     }
 }

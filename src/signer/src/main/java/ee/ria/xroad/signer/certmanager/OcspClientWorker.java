@@ -33,9 +33,11 @@ import ee.ria.xroad.common.OcspResponderStatus;
 import ee.ria.xroad.common.cert.CertChain;
 import ee.ria.xroad.common.conf.globalconf.GlobalConfProvider;
 import ee.ria.xroad.common.conf.globalconfextension.GlobalConfExtensions;
+import ee.ria.xroad.common.crypto.identifier.SignAlgorithm;
 import ee.ria.xroad.common.ocsp.OcspVerifier;
 import ee.ria.xroad.common.ocsp.OcspVerifierOptions;
 import ee.ria.xroad.common.util.CertUtils;
+import ee.ria.xroad.common.util.CryptoUtils;
 import ee.ria.xroad.common.util.TimeUtils;
 import ee.ria.xroad.signer.job.OcspClientExecuteScheduler;
 import ee.ria.xroad.signer.protocol.dto.CertificateInfo;
@@ -65,8 +67,7 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 import static ee.ria.xroad.common.util.CryptoUtils.calculateCertSha1HexHash;
-import static ee.ria.xroad.common.util.CryptoUtils.encodeBase64;
-import static ee.ria.xroad.common.util.CryptoUtils.readCertificate;
+import static ee.ria.xroad.common.util.EncoderUtils.encodeBase64;
 import static java.util.Collections.emptyList;
 
 /**
@@ -224,7 +225,7 @@ public class OcspClientWorker {
             X509Certificate cert;
 
             try {
-                cert = readCertificate(certInfo.getCertificateBytes());
+                cert = CryptoUtils.readCertificate(certInfo.getCertificateBytes());
             } catch (Exception e) {
                 log.error("Failed to parse certificate " + certInfo.getId(), e);
 
@@ -248,7 +249,7 @@ public class OcspClientWorker {
 
         PrivateKey signerKey = ocspClient.getOcspRequestKey(subject);
         X509Certificate signer = ocspClient.getOcspSignerCert();
-        String signAlgoId = ocspClient.getSignAlgorithmId();
+        SignAlgorithm signAlgoId = ocspClient.getSignAlgorithmId();
 
         List<String> responderURIs = globalConfProvider.getOcspResponderAddresses(subject);
 

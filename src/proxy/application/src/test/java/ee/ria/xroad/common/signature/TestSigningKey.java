@@ -25,7 +25,9 @@
  */
 package ee.ria.xroad.common.signature;
 
-import ee.ria.xroad.common.util.CryptoUtils;
+import ee.ria.xroad.common.crypto.identifier.DigestAlgorithm;
+import ee.ria.xroad.common.crypto.identifier.SignAlgorithm;
+import ee.ria.xroad.common.crypto.identifier.SignMechanism;
 import ee.ria.xroad.proxy.signedmessage.SigningKey;
 
 import lombok.extern.slf4j.Slf4j;
@@ -39,7 +41,7 @@ import java.security.Signature;
  */
 @Slf4j
 public class TestSigningKey implements SigningKey {
-    private static final String SIGNING_MECHANISM_NAME = CryptoUtils.CKM_RSA_PKCS_NAME;
+    private static final SignMechanism SIGNING_MECHANISM_NAME = SignMechanism.CKM_RSA_PKCS;
 
     /** The private key. */
     private final PrivateKey key;
@@ -57,7 +59,7 @@ public class TestSigningKey implements SigningKey {
     }
 
     @Override
-    public SignatureData calculateSignature(SigningRequest request, String digestAlgoId) throws Exception {
+    public SignatureData calculateSignature(SigningRequest request, DigestAlgorithm digestAlgoId) throws Exception {
         log.debug("calculateSignature({}, {})", request, digestAlgoId);
 
         SignatureCtx ctx = new SignatureCtx(getSignatureAlgorithmId(digestAlgoId));
@@ -71,8 +73,8 @@ public class TestSigningKey implements SigningKey {
         return ctx.createSignatureData(signatureXML, 0);
     }
 
-    private byte[] sign(String signatureAlgorithmId, byte[] data) throws Exception {
-        Signature signature = Signature.getInstance(signatureAlgorithmId);
+    private byte[] sign(SignAlgorithm signatureAlgorithmId, byte[] data) throws Exception {
+        Signature signature = Signature.getInstance(signatureAlgorithmId.name());
 
         signature.initSign(key);
         signature.update(data);
@@ -80,7 +82,7 @@ public class TestSigningKey implements SigningKey {
         return signature.sign();
     }
 
-    private static String getSignatureAlgorithmId(String digestAlgorithmId) throws NoSuchAlgorithmException {
-        return CryptoUtils.getSignatureAlgorithmId(digestAlgorithmId, SIGNING_MECHANISM_NAME);
+    private static SignAlgorithm getSignatureAlgorithmId(DigestAlgorithm digestAlgorithmId) throws NoSuchAlgorithmException {
+        return SignAlgorithm.ofDigestAndMechanism(digestAlgorithmId, SIGNING_MECHANISM_NAME);
     }
 }

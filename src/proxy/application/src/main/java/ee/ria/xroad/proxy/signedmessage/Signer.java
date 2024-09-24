@@ -25,6 +25,7 @@
  */
 package ee.ria.xroad.proxy.signedmessage;
 
+import ee.ria.xroad.common.crypto.identifier.DigestAlgorithm;
 import ee.ria.xroad.common.message.SoapMessageImpl;
 import ee.ria.xroad.common.signature.MessagePart;
 import ee.ria.xroad.common.signature.SignatureBuilder;
@@ -39,7 +40,7 @@ import ee.ria.xroad.proxy.conf.SigningCtx;
  */
 public class Signer {
 
-    private SignatureBuilder builder = new SignatureBuilder();
+    private final SignatureBuilder builder = new SignatureBuilder();
 
     private SignatureData signature;
 
@@ -48,7 +49,7 @@ public class Signer {
      * @param hashMethod identifier of the algorithm used to calculate the hash
      * @param data the data.
      */
-    public void addPart(String name, String hashMethod, byte[] data) {
+    public void addPart(String name, DigestAlgorithm hashMethod, byte[] data) {
         builder.addPart(new MessagePart(name, hashMethod, data, null));
 
     }
@@ -59,7 +60,7 @@ public class Signer {
      * @param data the data.
      * @param message the message
      */
-    public void addPart(String name, String hashMethod, byte[] data, byte[] message) {
+    public void addPart(String name, DigestAlgorithm hashMethod, byte[] data, byte[] message) {
         builder.addPart(new MessagePart(name, hashMethod, data, message));
 
     }
@@ -69,7 +70,7 @@ public class Signer {
      * @param hashMethod identifier of the algorithm used to calculate the hash
      * @param soap the message to be signed
      */
-    public void addMessagePart(String hashMethod, SoapMessageImpl soap) {
+    public void addMessagePart(DigestAlgorithm hashMethod, SoapMessageImpl soap) {
         builder.addPart(new MessagePart(MessageFileNames.MESSAGE, hashMethod,
                 soap.getHash(), soap.getBytes()));
     }

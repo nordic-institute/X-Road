@@ -48,7 +48,7 @@ import org.hibernate.query.Query;
 import java.util.Date;
 
 import static ee.ria.xroad.common.conf.serverconf.ServerConfDatabaseCtx.doInTransaction;
-import static ee.ria.xroad.common.util.CryptoUtils.decodeBase64;
+import static ee.ria.xroad.common.util.EncoderUtils.decodeBase64;
 
 /**
  * Contains server conf test utility methods.

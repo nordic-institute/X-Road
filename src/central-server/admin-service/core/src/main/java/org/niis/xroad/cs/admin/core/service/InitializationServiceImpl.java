@@ -177,15 +177,15 @@ public class InitializationServiceImpl implements InitializationService {
         );
         systemParameterService.updateOrCreateParameter(
                 SystemParameterServiceImpl.CONF_SIGN_DIGEST_ALGO_ID,
-                SystemParameterServiceImpl.DEFAULT_CONF_SIGN_DIGEST_ALGO_ID
+                SystemParameterServiceImpl.DEFAULT_CONF_SIGN_DIGEST_ALGO_ID.name()
         );
         systemParameterService.updateOrCreateParameter(
                 SystemParameterServiceImpl.CONF_HASH_ALGO_URI,
-                SystemParameterServiceImpl.DEFAULT_CONF_HASH_ALGO_URI
+                SystemParameterServiceImpl.DEFAULT_CONF_HASH_ALGO_URI.uri()
         );
         systemParameterService.updateOrCreateParameter(
                 SystemParameterServiceImpl.CONF_SIGN_CERT_HASH_ALGO_URI,
-                SystemParameterServiceImpl.DEFAULT_CONF_HASH_ALGO_URI
+                SystemParameterServiceImpl.DEFAULT_CONF_HASH_ALGO_URI.uri()
         );
         systemParameterService.updateOrCreateParameter(
                 SystemParameterServiceImpl.SECURITY_SERVER_OWNERS_GROUP,

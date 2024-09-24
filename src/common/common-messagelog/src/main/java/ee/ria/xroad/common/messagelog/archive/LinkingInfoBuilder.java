@@ -25,7 +25,9 @@
  */
 package ee.ria.xroad.common.messagelog.archive;
 
-import ee.ria.xroad.common.util.CryptoUtils;
+import ee.ria.xroad.common.crypto.Digests;
+import ee.ria.xroad.common.crypto.identifier.DigestAlgorithm;
+import ee.ria.xroad.common.util.EncoderUtils;
 
 import lombok.Getter;
 import lombok.SneakyThrows;
@@ -40,7 +42,7 @@ import static org.apache.commons.lang3.StringUtils.isBlank;
  * Creates linking info for the log archive file.
  */
 class LinkingInfoBuilder {
-    private final String hashAlgoId;
+    private final DigestAlgorithm hashAlgoId;
     private DigestEntry lastArchive;
 
     @Getter
@@ -48,18 +50,18 @@ class LinkingInfoBuilder {
 
     private List<DigestEntry> digestsForFiles = new ArrayList<>();
 
-    LinkingInfoBuilder(String hashAlgoId) {
+    LinkingInfoBuilder(DigestAlgorithm hashAlgoId) {
         this(hashAlgoId, DigestEntry.empty());
     }
 
-    LinkingInfoBuilder(String hashAlgoId, DigestEntry lastArchive) {
+    LinkingInfoBuilder(DigestAlgorithm hashAlgoId, DigestEntry lastArchive) {
         this.hashAlgoId = hashAlgoId;
         this.lastArchive = lastArchive;
         this.lastDigest = lastArchive.getDigest();
     }
 
     void addNextFile(String fileName, byte[] digest) {
-        String combinedDigests = lastDigest + CryptoUtils.encodeHex(digest);
+        String combinedDigests = lastDigest + EncoderUtils.encodeHex(digest);
         String currentDigest =
                 hexDigest(combinedDigests.getBytes(StandardCharsets.UTF_8));
 
@@ -79,7 +81,7 @@ class LinkingInfoBuilder {
 
         builder.append(getWritable(lastArchive.getDigest())).append(" ")
                 .append(getWritable(lastArchive.getFileName())).append(" ")
-                .append(hashAlgoId).append('\n');
+                .append(hashAlgoId.name()).append('\n');
 
         digestsForFiles.forEach(each ->
                 builder.append(each.toLinkingInfoEntry()).append('\n')
@@ -91,7 +93,7 @@ class LinkingInfoBuilder {
 
     @SneakyThrows
     private String hexDigest(byte[] fileBytes) {
-        return CryptoUtils.hexDigest(hashAlgoId, fileBytes);
+        return Digests.hexDigest(hashAlgoId, fileBytes);
     }
 
     private static String getWritable(String input) {

@@ -26,7 +26,7 @@
 package ee.ria.xroad.signer.tokenmanager.token;
 
 import ee.ria.xroad.common.SystemProperties;
-import ee.ria.xroad.common.util.CryptoUtils;
+import ee.ria.xroad.common.crypto.KeyManagers;
 import ee.ria.xroad.signer.protocol.dto.TokenStatusInfo;
 import ee.ria.xroad.signer.tokenmanager.module.ModuleInstanceProvider;
 import ee.ria.xroad.signer.tokenmanager.module.PrivKeyAttributes;
@@ -149,7 +149,7 @@ public final class HardwareTokenUtil {
         BigInteger modulus = new BigInteger(1, rsaPublicKey.getModulus().getByteArrayValue());
         BigInteger publicExponent = new BigInteger(1, rsaPublicKey.getPublicExponent().getByteArrayValue());
 
-        return CryptoUtils.generateX509PublicKey(modulus, publicExponent);
+        return KeyManagers.getForRSA().generateX509PublicKey(modulus, publicExponent);
     }
 
     static void setPrivateKeyAttributes(RSAPrivateKey keyTemplate, PrivKeyAttributes attributes) {

@@ -25,6 +25,7 @@
  */
 package ee.ria.xroad.signer.tokenmanager.token;
 
+import ee.ria.xroad.common.crypto.identifier.SignMechanism;
 import ee.ria.xroad.signer.tokenmanager.module.PrivKeyAttributes;
 import ee.ria.xroad.signer.tokenmanager.module.PubKeyAttributes;
 
@@ -76,7 +77,7 @@ public interface TokenType {
     /**
      * @return the sign mechanism name
      */
-    String getSignMechanismName();
+    SignMechanism getSignMechanismName();
 
     /**
      * @return the private key attributes

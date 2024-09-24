@@ -25,6 +25,8 @@
  */
 package ee.ria.xroad.common.signature;
 
+import ee.ria.xroad.common.crypto.identifier.DigestAlgorithm;
+import ee.ria.xroad.common.crypto.identifier.SignAlgorithm;
 import ee.ria.xroad.common.util.MessageFileNames;
 import ee.ria.xroad.common.util.MimeTypes;
 import ee.ria.xroad.common.util.XmlUtils;
@@ -42,8 +44,6 @@ import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.Text;
 
-import javax.xml.crypto.dsig.DigestMethod;
-
 import java.io.IOException;
 import java.security.cert.X509Certificate;
 import java.util.ArrayList;
@@ -51,6 +51,7 @@ import java.util.Calendar;
 import java.util.List;
 import java.util.TimeZone;
 
+import static ee.ria.xroad.common.crypto.Digests.calculateDigest;
 import static ee.ria.xroad.common.signature.Helper.ALGORITHM_ATTRIBUTE;
 import static ee.ria.xroad.common.signature.Helper.CERTIFFICATE_VALUES_TAG;
 import static ee.ria.xroad.common.signature.Helper.CERT_DIGEST_TAG;
@@ -104,9 +105,7 @@ import static ee.ria.xroad.common.signature.Helper.createSignatureElement;
 import static ee.ria.xroad.common.signature.Helper.elementNotFound;
 import static ee.ria.xroad.common.signature.Helper.getSignatureRefereceIdForMessage;
 import static ee.ria.xroad.common.signature.Helper.getSignatureReferenceIdForSignedProperties;
-import static ee.ria.xroad.common.util.CryptoUtils.calculateDigest;
-import static ee.ria.xroad.common.util.CryptoUtils.encodeBase64;
-import static ee.ria.xroad.common.util.CryptoUtils.getDigestAlgorithmURI;
+import static ee.ria.xroad.common.util.EncoderUtils.encodeBase64;
 
 /**
  * Encapsulates the AsiC XAdES signature profile. This class creates the signature used in signing the messages.
@@ -116,7 +115,7 @@ final class SignatureXmlBuilder {
     private static final String SIGNATURE_POLICY_IDENTIFIER = "urn:oid:1.3.6.1.4.1.3516.16.2";
     private static final String SIGNATURE_POLICY_DESCRIPTION =
             "Profile for High Performance Digital Signatures (version 1.2)";
-    private static final String SIGNATURE_POLICY_DIGEST_METHOD = DigestMethod.SHA512;
+    private static final DigestAlgorithm SIGNATURE_POLICY_DIGEST_METHOD = DigestAlgorithm.SHA512;
     private static final String SIGNATURE_POLICY_SHA512_DIGEST =
             "BuO0EDNfkxSVlUbxCzmQPzX1AUF1/xx9ytWHk3/6SAOePxQiniEfDYk+90QeYb3lWpV3Izhuz9fKaYyE+lTcXw==";
     private static final String SIGNATURE_POLICY_QUALIFIER_SPURI = "https://repo.cyber.ee/dsig-profile-1.2.pdf";
@@ -130,23 +129,21 @@ final class SignatureXmlBuilder {
     private final List<OCSPResp> ocspResponses = new ArrayList<>();
 
     private final X509Certificate signingCert;
-    private final String hashAlgorithmId;
-    private final String hashAlgorithmURI;
+    private final DigestAlgorithm hashAlgorithmId;
 
     private Document document;
     private XMLSignature signature;
     private ObjectContainer objectContainer;
     private String documentName;
 
-    SignatureXmlBuilder(SigningRequest request, String hashAlgorithmId) throws Exception {
+    SignatureXmlBuilder(SigningRequest request, DigestAlgorithm hashAlgorithmId) throws Exception {
         this.signingCert = request.getSigningCert();
         this.extraCertificates.addAll(request.getExtraCertificates());
         this.ocspResponses.addAll(request.getOcspResponses());
         this.hashAlgorithmId = hashAlgorithmId;
-        this.hashAlgorithmURI = getDigestAlgorithmURI(hashAlgorithmId);
     }
 
-    byte[] createDataToBeSigned(String docName, ResourceResolverSpi resourceResolver, String signatureAlgorithmUri)
+    byte[] createDataToBeSigned(String docName, ResourceResolverSpi resourceResolver, SignAlgorithm signatureAlgorithmUri)
             throws Exception {
         this.documentName = docName;
 
@@ -158,7 +155,7 @@ final class SignatureXmlBuilder {
         signature.addResourceResolver(new IdResolver(document));
         signature.addResourceResolver(resourceResolver);
 
-        signature.addDocument(docName, null, getHashAlgorithmURI(), getSignatureRefereceIdForMessage(), null);
+        signature.addDocument(docName, null, getHashAlgorithmId().uri(), getSignatureRefereceIdForMessage(), null);
 
         createObjectContainer();
         createQualifyingProperties();
@@ -188,12 +185,8 @@ final class SignatureXmlBuilder {
         return XmlUtils.toXml(document);
     }
 
-    private String getHashAlgorithmId() {
+    private DigestAlgorithm getHashAlgorithmId() {
         return hashAlgorithmId;
-    }
-
-    private String getHashAlgorithmURI() {
-        return hashAlgorithmURI;
     }
 
     private byte[] createDataToBeSigned() throws Exception {
@@ -232,7 +225,7 @@ final class SignatureXmlBuilder {
         createSignedSignatureProperties(signedProperties);
         createSignedDataObjectProperties(signedProperties);
 
-        signature.addDocument("#" + id, null, getHashAlgorithmURI(), getSignatureReferenceIdForSignedProperties(),
+        signature.addDocument("#" + id, null, getHashAlgorithmId().uri(), getSignatureReferenceIdForSignedProperties(),
                 NS_SIG_PROP);
 
         return signedProperties;
@@ -319,12 +312,12 @@ final class SignatureXmlBuilder {
     }
 
     private void createCertDigestAlgAndValue(X509Certificate cert, Element element) throws Exception {
-        createDigestAlgAndValue(getHashAlgorithmURI(), digest(cert, getHashAlgorithmId()), element);
+        createDigestAlgAndValue(getHashAlgorithmId(), digest(cert, getHashAlgorithmId()), element);
     }
 
-    private void createDigestAlgAndValue(String algorithmUri, String digest, Element element) throws Exception {
+    private void createDigestAlgAndValue(DigestAlgorithm algorithmUri, String digest, Element element) throws Exception {
         Element digestMethod = createDsElement(element, DIGEST_METHOD_TAG);
-        digestMethod.setAttribute(ALGORITHM_ATTRIBUTE, algorithmUri);
+        digestMethod.setAttribute(ALGORITHM_ATTRIBUTE, algorithmUri.uri());
 
         Element digestValue = createDsElement(element, DIGEST_VALUE_TAG);
         digestValue.setTextContent(digest);
@@ -424,11 +417,11 @@ final class SignatureXmlBuilder {
         return document.createElement(PREFIX_DS + name);
     }
 
-    private static String digest(X509Certificate cert, String method) throws Exception {
+    private static String digest(X509Certificate cert, DigestAlgorithm method) throws Exception {
         return digest(cert.getEncoded(), method);
     }
 
-    private static String digest(byte[] encoded, String method) throws Exception {
+    private static String digest(byte[] encoded, DigestAlgorithm method) throws Exception {
         return encodeBase64(calculateDigest(method, encoded));
     }
 }

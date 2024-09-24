@@ -394,7 +394,7 @@ public class SignatureVerifier {
     private static DigestValue getDigestValue(MessagePart part)
             throws Exception {
         if (part.getData() != null) {
-            return new DigestValue(part.getHashAlgorithmURI(), part.getData());
+            return new DigestValue(part.getHashAlgoId(), part.getData());
         }
 
         return null;

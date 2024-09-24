@@ -25,6 +25,7 @@
  */
 package ee.ria.xroad.common.signature;
 
+import ee.ria.xroad.common.crypto.identifier.DigestAlgorithm;
 import ee.ria.xroad.proxy.signedmessage.SigningKey;
 
 import lombok.extern.slf4j.Slf4j;
@@ -86,7 +87,7 @@ public class SignatureBuilder {
      * @return the signature data
      * @throws Exception in case of any errors
      */
-    public SignatureData build(SigningKey signingKey, String signatureDigestAlgorithmId) throws Exception {
+    public SignatureData build(SigningKey signingKey, DigestAlgorithm signatureDigestAlgorithmId) throws Exception {
         log.trace("Sign, {} part(s)", parts.size());
 
         SigningRequest request = new SigningRequest(signingCert, parts);

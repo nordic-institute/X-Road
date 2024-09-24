@@ -42,9 +42,9 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 
-import static ee.ria.xroad.common.util.CryptoUtils.SHA256WITHRSA_ID;
-import static ee.ria.xroad.common.util.CryptoUtils.SHA256_ID;
-import static ee.ria.xroad.common.util.CryptoUtils.calculateDigest;
+import static ee.ria.xroad.common.crypto.Digests.calculateDigest;
+import static ee.ria.xroad.common.crypto.identifier.DigestAlgorithm.SHA256;
+import static ee.ria.xroad.common.crypto.identifier.SignAlgorithm.SHA256_WITH_RSA;
 import static java.nio.charset.StandardCharsets.UTF_8;
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -58,7 +58,7 @@ public class SignerParallelStepDefs extends BaseSignerStepDefs {
             var digest = String.format("%s-%d", UUID.randomUUID(), System.currentTimeMillis());
 
             var stopWatch = StopWatch.createStarted();
-            byte[] result = SignerProxy.sign(key.getId(), SHA256WITHRSA_ID, calculateDigest(SHA256_ID, digest.getBytes(UTF_8)));
+            byte[] result = SignerProxy.sign(key.getId(), SHA256_WITH_RSA, calculateDigest(SHA256, digest.getBytes(UTF_8)));
             stopWatch.stop();
             log.trace("Executed sign in {} ms.", stopWatch.getTime());
             return result;

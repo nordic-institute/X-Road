@@ -25,6 +25,7 @@
  */
 package ee.ria.xroad.proxy.signedmessage;
 
+import ee.ria.xroad.common.crypto.identifier.DigestAlgorithm;
 import ee.ria.xroad.common.signature.SignatureData;
 import ee.ria.xroad.common.signature.SigningRequest;
 
@@ -40,5 +41,5 @@ public interface SigningKey {
      * @throws Exception in case of any errors
      * @return the signature data
      */
-    SignatureData calculateSignature(SigningRequest request, String digestAlgoId) throws Exception;
+    SignatureData calculateSignature(SigningRequest request, DigestAlgorithm digestAlgoId) throws Exception;
 }
