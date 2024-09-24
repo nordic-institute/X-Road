@@ -1,9 +1,19 @@
 #!/bin/bash
 
+configure_edc_signing_keys() {
+  KEY_ID=$(docker compose $COMPOSE_FILE_ARGS --env-file "$ENV_FILE" \
+      exec --user xroad ${1} sh -c "signer-console get-member-signing-info ${2} | grep -oP 'Key id:\s+\K\w+'")
+  docker compose $COMPOSE_FILE_ARGS --env-file "$ENV_FILE" \
+      exec ${1} sh -c "cd /etc/xroad-edc && sed -i 's|key-id|${KEY_ID}|g' edc-control-plane.properties edc-data-plane.properties edc-identity-hub.properties"
+  docker compose $COMPOSE_FILE_ARGS --env-file "$ENV_FILE" \
+      exec ${1} sh -c "supervisorctl restart xroad-edc-control-plane xroad-edc-data-plane xroad-edc-ih"
+}
+
 set -e # Exit immediately if a command exits with a non-zero status.
 
 ENV_FILE=".env"
 COMPOSE_FILE_ARGS="-f compose.yaml -f compose.dev.yaml -f compose.edc.yaml"
+
 
 for i in "$@"; do
   case "$i" in
@@ -48,6 +58,9 @@ if [[ -n "$INITIALIZE" ]]; then
     --very-verbose \
     --retry 12 \
     --retry-interval 8000
+
+  configure_edc_signing_keys ss0 '\"DEV COM 1234\"'
+  configure_edc_signing_keys ss1 '\"DEV COM 4321\"'
 fi
 
 if [[ -n "$INIT_SS2" ]]; then

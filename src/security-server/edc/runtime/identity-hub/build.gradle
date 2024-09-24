@@ -29,14 +29,18 @@ dependencies {
     implementation(libs.edc.identity.vc.ldp)
     implementation(libs.edc.ih.lib.credentialquery)
     implementation(libs.edc.lib.vp)
-    implementation (libs.edc.lib.jsonld)
+    implementation(libs.edc.lib.jsonld)
 
     sqlDependencies(libs.bundles.sql.ih)
 
     implementation(project(":security-server:edc:extensions:common:xroad-conf"))
     implementation(project(":security-server:edc:extensions:common:xroad-jsonld"))
     implementation(project(":security-server:edc:extensions:common:xroad-ldp-verifiable-credentials"))
+    implementation(project(":security-server:edc:extensions:common:xroad-jws-signer")) {
+        exclude group: 'org.eclipse.jetty'
+    }
     implementation(project(":security-server:edc:extensions:common:xroad-webserver"))
+    implementation(libs.bouncyCastle.bcprov)
 
     testImplementation libs.edc.junit
     testImplementation libs.mockito.jupiter

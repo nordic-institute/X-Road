@@ -24,7 +24,6 @@ dependencies {
     runtimeOnly(libs.edc.dataplane.api.control.client)
     //runtimeOnly(libs.edc.dataplane.selfregistration) // currently we register dataplane instance manually
     runtimeOnly(libs.edc.dataplane.http)
-    runtimeOnly(libs.edc.dataplane.iam)
     //runtimeOnly(libs.edc.dataplane.api.public)
     runtimeOnly(libs.edc.dataplane.api.signaling)
     runtimeOnly(libs.edc.ext.jsonld) // needed by the DataPlaneSignalingApi
@@ -43,6 +42,12 @@ dependencies {
         exclude group: 'org.eclipse.jetty'
     }
     implementation(project(":security-server:edc:extensions:data-plane:xroad-data-plane-public-api")) {
+        exclude group: 'org.eclipse.jetty'
+    }
+    implementation(project(":security-server:edc:extensions:data-plane:xroad-data-plane-iam")) {
+        exclude group: 'org.eclipse.jetty'
+    }
+    implementation(project(":security-server:edc:extensions:common:xroad-jws-signer")) {
         exclude group: 'org.eclipse.jetty'
     }
     implementation(project(":security-server:edc:extensions:common:xroad-webserver"))

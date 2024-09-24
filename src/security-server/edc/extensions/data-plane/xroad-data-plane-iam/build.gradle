@@ -1,0 +1,11 @@
+plugins {
+    id 'java-library'
+}
+
+
+dependencies {
+    implementation libs.edc.dataplane.iam
+    implementation libs.edc.core.token
+
+    implementation(project(':signer-protocol'))
+}

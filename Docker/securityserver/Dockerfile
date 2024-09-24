@@ -102,7 +102,6 @@ COPY files/edc/bin/ /usr/share/xroad/bin/
 
 ENV EDC_HOSTNAME=localhost
 ENV EDC_DID=did:web:localhost
-ENV EDC_DID_KEY_ID=key-id
 # end of dataspaces
 
 CMD ["/root/entrypoint.sh"]
