@@ -1,0 +1,9 @@
+mail:
+  # host name and port number used to connect to the mail server
+  host: mail.example.org
+  port: 587
+  # credentials used for authentication to the mail server
+  username: testuser
+  password: secret
+  # if "true", then full `SSL/TLS` protocol is used for connection. If "false" or missing, then `STARTTLS` protocol is used instead.
+  use-ssl-tls: true

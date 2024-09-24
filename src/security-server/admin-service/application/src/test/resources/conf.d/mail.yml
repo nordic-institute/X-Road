@@ -1,0 +1,5 @@
+mail:
+  host: mailpit
+  port: 587
+  username: testusername
+  password: testpassword

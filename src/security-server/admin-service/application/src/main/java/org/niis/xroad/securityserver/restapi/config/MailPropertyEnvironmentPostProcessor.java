@@ -23,51 +23,38 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
+package org.niis.xroad.securityserver.restapi.config;
 
-import {
-  NodeType,
-  NodeTypeResponse,
-  VersionInfo
-} from "@/openapi-types";
-import * as api from '@/util/api';
-import { defineStore } from 'pinia';
+import ee.ria.xroad.common.SystemProperties;
 
-export interface SystemState {
-  securityServerVersion: VersionInfo,
-  securityServerNodeType: undefined | NodeType,
+import org.springframework.boot.SpringApplication;
+import org.springframework.boot.env.EnvironmentPostProcessor;
+import org.springframework.boot.env.YamlPropertySourceLoader;
+import org.springframework.core.env.ConfigurableEnvironment;
+import org.springframework.core.env.PropertySource;
+import org.springframework.core.io.FileSystemResource;
+import org.springframework.core.io.Resource;
+
+import java.io.IOException;
+
+public class MailPropertyEnvironmentPostProcessor implements EnvironmentPostProcessor {
+
+    private final YamlPropertySourceLoader loader = new YamlPropertySourceLoader();
+
+    @Override
+    public void postProcessEnvironment(ConfigurableEnvironment environment, SpringApplication application) {
+        Resource path = new FileSystemResource(SystemProperties.getConfPath() + "conf.d/mail.yml");
+        if (path.exists()) {
+            PropertySource<?> propertySource = loadYaml(path);
+            environment.getPropertySources().addLast(propertySource);
+        }
+    }
+
+    private PropertySource<?> loadYaml(Resource path) {
+        try {
+            return this.loader.load("mail-resources", path).get(0);
+        } catch (IOException ex) {
+            throw new IllegalStateException("Failed to load yaml configuration from " + path, ex);
+        }
+    }
 }
-
-export const useSystem = defineStore('system', {
-  state: (): SystemState => {
-    return {
-      securityServerVersion: {} as VersionInfo,
-      securityServerNodeType: undefined as undefined | NodeType,
-    };
-  },
-  persist: {
-    storage: localStorage,
-  },
-  getters: {
-    isSecondaryNode(state) {
-      return state.securityServerNodeType === NodeType.SECONDARY;
-    },
-  },
-
-  actions: {
-    // Reset store
-    clearSystemStore() {
-      this.$reset();
-    },
-    async fetchSecurityServerNodeType() {
-      return api.get<VersionInfo>('/system/version').then((res) => {
-        this.securityServerVersion = res.data;
-      });
-    },
-    async fetchSecurityServerVersion() {
-      // Fetch tokens from backend
-      return api.get<NodeTypeResponse>('/system/node-type').then((res) => {
-        this.securityServerNodeType = res.data.node_type;
-      });
-    },
-  },
-});

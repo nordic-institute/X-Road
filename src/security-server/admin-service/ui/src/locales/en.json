@@ -319,6 +319,21 @@
       "title": "Java version",
       "vendor": "Vendor name"
     },
+    "mailNotificationConfiguration": {
+      "title": "Mail notification status",
+      "failureEnabled": "Failure notifications",
+      "successEnabled": "Success notifications",
+      "configuration": "Mail server configuration",
+      "recipientsEmails": "Recipients' emails",
+      "enabled": {
+        "true": "Enabled",
+        "false": "Disabled"
+      },
+      "confStatus": {
+        "true": "Configured",
+        "false": "Configuration incomplete"
+      }
+    },
     "message": "Message",
     "nextUpdate": "Next Update",
     "ocspResponders": {
@@ -822,7 +837,7 @@
     "noMatches": "No items matching criteria",
     "noServices": "No services",
     "noServiceClients": "No service clients",
-    "noTimestampingServices": "No timestaping services",
+    "noTimestampingServices": "No timestamping services",
     "noTokens": "No tokens"
   },
   "serviceClientType": {

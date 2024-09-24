@@ -25,49 +25,39 @@
  */
 
 import {
-  NodeType,
-  NodeTypeResponse,
-  VersionInfo
+  MailNotificationStatus,
+  TestMailResponse,
 } from "@/openapi-types";
 import * as api from '@/util/api';
 import { defineStore } from 'pinia';
 
-export interface SystemState {
-  securityServerVersion: VersionInfo,
-  securityServerNodeType: undefined | NodeType,
+export interface MailState {
+  mailNotificationStatus: MailNotificationStatus,
 }
 
-export const useSystem = defineStore('system', {
-  state: (): SystemState => {
+export const useMail = defineStore('mail', {
+  state: (): MailState => {
     return {
-      securityServerVersion: {} as VersionInfo,
-      securityServerNodeType: undefined as undefined | NodeType,
+      mailNotificationStatus: {},
     };
-  },
-  persist: {
-    storage: localStorage,
-  },
-  getters: {
-    isSecondaryNode(state) {
-      return state.securityServerNodeType === NodeType.SECONDARY;
-    },
   },
 
   actions: {
-    // Reset store
-    clearSystemStore() {
-      this.$reset();
+    async fetchMailNotificationStatus() {
+      return api
+        .get<MailNotificationStatus>('/mail/mail-notification-status')
+        .then((res) => {
+          this.mailNotificationStatus = res.data;
+        })
+        .catch((error) => {
+          throw error;
+        });
     },
-    async fetchSecurityServerNodeType() {
-      return api.get<VersionInfo>('/system/version').then((res) => {
-        this.securityServerVersion = res.data;
-      });
-    },
-    async fetchSecurityServerVersion() {
-      // Fetch tokens from backend
-      return api.get<NodeTypeResponse>('/system/node-type').then((res) => {
-        this.securityServerNodeType = res.data.node_type;
-      });
+    async sendTestMail(mailAddress: string) {
+      return api
+        .put<TestMailResponse>('/mail/send-test-mail', {
+          mail_address: mailAddress,
+        });
     },
   },
 });

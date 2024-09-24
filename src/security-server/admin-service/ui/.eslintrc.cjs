@@ -6,11 +6,11 @@ module.exports = {
   extends: [
     'eslint:recommended',
     '@vue/eslint-config-typescript',
+    '@vue/prettier',
     'plugin:vue/vue3-recommended',
     'plugin:vuetify/base',
     'plugin:@intlify/vue-i18n/recommended',
     'plugin:vue-scoped-css/vue3-recommended', // Linter for vue scoped styles (eslint-plugin-vue-scoped-css)
-    'plugin:prettier-vue/recommended',
     'prettier',
   ],
   ignorePatterns: ['node_modules/'],

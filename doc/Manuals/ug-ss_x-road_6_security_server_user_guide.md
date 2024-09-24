@@ -114,7 +114,7 @@ Doc. ID: UG-SS
 | 26.03.2024 | 2.83    | Passing additional parameters to psql                                                                                                                                                                                                                                                                                                                                                                       | Ovidijus Narkevicius |
 | 09.06.2024 | 2.84    | Acme related updates                                                                                                                                                                                                                                                                                                                                                                                        | Mikk-Erik Bachmann   |
 | 12.06.2024 | 2.85    | Acme related updates                                                                                                                                                                                                                                                                                                                                                                                        | Petteri Kivimäki     |
-| 16.09.2024 | 2.86    | Acme automatic renewal releated updates                                                                                                                                                                                                                                                                                                                                                                     | Mikk-Erik Bachmann   |
+| 16.09.2024 | 2.86    | Acme automatic renewal related updates                                                                                                                                                                                                                                                                                                                                                                      | Mikk-Erik Bachmann   |
 | 28.10.2024 | 2.87    | Minor updates to remote database migration                                                                                                                                                                                                                                                                                                                                                                  | Eneli Reimets        |
 
 ## Table of Contents <!-- omit in toc -->
@@ -3253,6 +3253,20 @@ The renewal status of ACME supported certificates can be seen on the Keys and ce
 * **"Renewal in progress"** - Renewal has started, but is not yet finished. This can be shown on Authentication certificates that have new certificate ordered, but not yet manually registered on the Central Server.
 * **"Renewal error:"** followed by an error message - indicates that the last renewal attempt has failed, also showing the reason for the failure.
 * **"Next planned renewal on"** followed by a date - indicates when the next renewal should happen. Note that this date might change in the future when the information is received from the ACME Server.
+
+**E-mail notifications**
+
+Automatic certificate renewal process also has the option to notify members with an e-mail in case of a successful renewal as well as of failure. Successful and failure notifications can be turned on and off separately with a [system paramater](ug-syspar_x-road_v6_system_parameters.md#39-management-rest-api-parameters-proxy-ui-api). The member's e-mail defined in the contact information in the `acme.yml` file is used as the recipient. 
+
+For the e-mail notifications to work a mail server needs to be configured beforehand in the `/etc/xroad/conf.d/mail-notification.yml` file. These include:
+
+* **host** - host name used to connect to the mail server.
+* **port** - port number used to connect to the mail server.
+* **username** - used for authentication to the mail server.
+* **password** - used for authentication to the mail server.
+* **use-ssl-tls** - if "true", then full `ssl/tls` protocol is used for connection. If "false" or missing, then `starttls` protocol is used instead.
+
+**host**, **port**, **username** and **password** are mandatory. If Diagnostics page shows that the configuration is incomplete, it means that at least one of them is missing.
 
 **Enable connections from the ACME server**
 

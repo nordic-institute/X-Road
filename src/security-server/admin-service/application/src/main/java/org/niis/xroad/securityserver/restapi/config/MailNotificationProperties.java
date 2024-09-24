@@ -23,51 +23,27 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
+package org.niis.xroad.securityserver.restapi.config;
 
-import {
-  NodeType,
-  NodeTypeResponse,
-  VersionInfo
-} from "@/openapi-types";
-import * as api from '@/util/api';
-import { defineStore } from 'pinia';
+import lombok.Getter;
+import lombok.Setter;
+import org.springframework.boot.context.properties.ConfigurationProperties;
+import org.springframework.context.annotation.Configuration;
 
-export interface SystemState {
-  securityServerVersion: VersionInfo,
-  securityServerNodeType: undefined | NodeType,
+@Getter
+@Setter
+@Configuration
+@ConfigurationProperties(prefix = "mail")
+public class MailNotificationProperties {
+
+    private String host;
+    private Integer port;
+    private String username;
+    private String password;
+    private boolean useSslTls;
+
+    public boolean isMailNotificationConfigurationPresent() {
+        return getHost() != null && getPort() != null && getUsername() != null && getPassword() != null;
+    }
+
 }
-
-export const useSystem = defineStore('system', {
-  state: (): SystemState => {
-    return {
-      securityServerVersion: {} as VersionInfo,
-      securityServerNodeType: undefined as undefined | NodeType,
-    };
-  },
-  persist: {
-    storage: localStorage,
-  },
-  getters: {
-    isSecondaryNode(state) {
-      return state.securityServerNodeType === NodeType.SECONDARY;
-    },
-  },
-
-  actions: {
-    // Reset store
-    clearSystemStore() {
-      this.$reset();
-    },
-    async fetchSecurityServerNodeType() {
-      return api.get<VersionInfo>('/system/version').then((res) => {
-        this.securityServerVersion = res.data;
-      });
-    },
-    async fetchSecurityServerVersion() {
-      // Fetch tokens from backend
-      return api.get<NodeTypeResponse>('/system/node-type').then((res) => {
-        this.securityServerNodeType = res.data.node_type;
-      });
-    },
-  },
-});
