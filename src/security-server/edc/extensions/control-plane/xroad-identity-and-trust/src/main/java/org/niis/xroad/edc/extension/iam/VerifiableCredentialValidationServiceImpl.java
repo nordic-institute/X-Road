@@ -19,7 +19,6 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.nimbusds.jwt.SignedJWT;
 import jakarta.json.JsonObject;
 import org.eclipse.edc.iam.verifiablecredentials.rules.HasValidIssuer;
-import org.eclipse.edc.iam.verifiablecredentials.rules.IsInValidityPeriod;
 import org.eclipse.edc.iam.verifiablecredentials.rules.IsNotRevoked;
 import org.eclipse.edc.iam.verifiablecredentials.spi.VerifiableCredentialValidationService;
 import org.eclipse.edc.iam.verifiablecredentials.spi.model.CredentialSubject;
@@ -88,7 +87,8 @@ public class VerifiableCredentialValidationServiceImpl implements VerifiableCred
 
         // in addition, verify that all VCs are valid
         var filters = new ArrayList<>(List.of(
-                new IsInValidityPeriod(clock),
+                // TODO: uncomment when credential provisioning is automated during dev env setup
+                //new IsInValidityPeriod(clock),
                 // credentialSubject.id in Gaia-X VCs doesn't seem to follow this rule
                 //new HasValidSubjectIds(presentationHolder),
                 new IsNotRevoked(revocationServiceRegistry),
