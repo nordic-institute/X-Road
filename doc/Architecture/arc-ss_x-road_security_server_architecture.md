@@ -2,7 +2,7 @@
 
 **Technical Specification** <!-- omit in toc -->
 
-Version: 1.17
+Version: 1.18
 12.06.2024
 <!-- 15 pages -->
 Doc. ID: ARC-SS
@@ -37,6 +37,7 @@ Doc. ID: ARC-SS
 | 20.06.2023 | 1.15    | Fixed Security Server Admin API OpenAPI specification link                                           | Madis Loitmaa      |
 | 03.10.2023 | 1.16    | Remove Akka references                                                                               | Ričardas Bučiūnas  |
 | 12.06.2024 | 1.17    | Add information about ACME support                                                                   | Petteri Kivimäki   |
+| 23.09.2024 | 1.18    | Added mail server connection                                                                         | Mikk-Erik Bachmann |
 
 ## Table of Contents <!-- omit in toc -->
 
@@ -307,6 +308,8 @@ For more information on OpenAPI 3, see \[[OPENAPI](#Ref_OPENAPI)\].
 
 Certain API operations attempt to modify the X-Road global configuration and require management requests to be sent to the X-Road central server. These requests need to be approved by the central server administrator before they are reflected in the global configuration.
 
+Some operations might also trigger sending an e-mail notification to the mail server which must be configured beforehand in /etc/xroad/conf.d/mail.yml (e.g. host, port, username etc.).
+
 User action events that change the system state or configuration are logged into the audit log. The actions are logged regardless of whether the outcome was a success or a failure. The complete list of the audit log events is described in \[[SPEC-AL](#Ref_SPEC-AL)\].
 
 <a id="Ref_2" class="anchor"></a>
@@ -383,6 +386,8 @@ Interface E is directly exposed to outside world.
 
 Xroad-proxy-ui-api communicates with certificate authority's ACME interface R (see \[[ACME](#Ref_ACME)\]).
 
+Xroad-proxy-ui-api communicates with a mail server interface Q when sending notifications about ACME automatic certificate renewal process. The connection can use either STARTTLS or SSL/TLS protocol for added security.
+
 Xroad-proxy-ui-api communicates with Central Server's management services interface M (see \[[PR-MSERV](#Ref_PR-MSERV)\]).
 
 Global configuration is downloaded from Central Server (or Configuration Proxy in some cases) utilizing xroad-confclient and stored on disk.
@@ -408,6 +413,8 @@ Xroad-proxy-ui-api accesses xroad-signer's admin and signer protocol ports. Both
 Xroad-proxy-ui-api accesses postgresql using the port specified in /etc/xroad/db.properties.
 
 Xroad-proxy-ui-api accesses certificate authority's ACME interface R (see \[[ACME](#Ref_ACME)\]) to manage authentication and sign certificates. The output port is defined on the Central Server and distributed to the Security Servers using global configuration.
+
+Xroad-proxy-ui-api accesses mail server interface Q when sending notifications about ACME automatic certificate renewal process. The output port is specified in the /etc/xroad/conf.d/mail.yml configuration file.
 
 #### 3.1.5 Persistent data
 
