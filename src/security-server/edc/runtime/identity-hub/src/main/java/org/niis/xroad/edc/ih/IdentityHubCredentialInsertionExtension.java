@@ -26,7 +26,12 @@
  */
 package org.niis.xroad.edc.ih;
 
+import ee.ria.xroad.signer.SignerProxy;
+import ee.ria.xroad.signer.protocol.dto.KeyInfo;
+
 import lombok.SneakyThrows;
+import org.bouncycastle.util.io.pem.PemObject;
+import org.bouncycastle.util.io.pem.PemWriter;
 import org.eclipse.edc.boot.BootServicesExtension;
 import org.eclipse.edc.iam.did.spi.document.Service;
 import org.eclipse.edc.iam.verifiablecredentials.spi.model.CredentialFormat;
@@ -53,9 +58,13 @@ import org.eclipse.edc.spi.system.configuration.Config;
 
 import java.io.File;
 import java.io.IOException;
+import java.io.StringWriter;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.security.KeyFactory;
+import java.security.PublicKey;
+import java.security.spec.X509EncodedKeySpec;
 import java.time.Instant;
 import java.util.Base64;
 import java.util.Map;
@@ -101,25 +110,26 @@ public class IdentityHubCredentialInsertionExtension implements ServiceExtension
     @SneakyThrows
     public void start() {
         String participantId = config.getString(BootServicesExtension.PARTICIPANT_ID);
-        String publicKey = getPublicKey(config);
+        PublicKey publicKey = getPublicKey(config.getString("edc.did.key.id"));
+        String publicKeyPem = convertPublicKeyToPem(publicKey);
 
         monitor.info("Inserting credentials for participant %s".formatted(participantId));
-        createParticipantContext(config, participantId, publicKey);
-        createCredentials(config, participantId);
-        createKeyPairs(config, participantId, publicKey);
+        createParticipantContext(participantId, publicKeyPem);
+        createCredentials(participantId);
+        createKeyPairs(participantId, publicKeyPem);
     }
 
 
-    private void createParticipantContext(Config config, String participantId, String publicKey) {
+    private void createParticipantContext(String participantId, String publicKeyPem) {
         //Manifest is used for did generation. Same principle as /api/management/v1/participants/
         var manifest = ParticipantManifest.Builder.newInstance()
                 .active(true)
                 .participantId(participantId)
                 .did(participantId)
                 .key(KeyDescriptor.Builder.newInstance()
-                        .keyId(participantId + "#" + System.getenv("EDC_DID_KEY_ID"))
-                        .privateKeyAlias(config.getString("edc.iam.sts.privatekey.alias"))
-                        .publicKeyPem(publicKey)
+                        .keyId(participantId + "#" + config.getString("edc.did.key.id"))
+                        .privateKeyAlias(config.getString("edc.did.key.id"))
+                        .publicKeyPem(publicKeyPem)
                         .build())
                 .serviceEndpoint(new Service("credentialService-1", "CredentialService", "https://%s:%d%s/v1/participants/%s".formatted(
                         System.getenv("EDC_HOSTNAME"),
@@ -130,7 +140,7 @@ public class IdentityHubCredentialInsertionExtension implements ServiceExtension
         participantContextService.createParticipantContext(manifest);
     }
 
-    private void createCredentials(Config config, String participantId) throws IOException {
+    private void createCredentials(String participantId) throws IOException {
         File credentialDir = new File(config.getString(CREDENTIALS_DIR_PATH));
         for (File credentialFile : credentialDir.listFiles((dir, name) -> name.endsWith(".json"))) {
             storeCredential(credentialFile.toPath(), participantId);
@@ -160,23 +170,39 @@ public class IdentityHubCredentialInsertionExtension implements ServiceExtension
         credentialStore.create(verifiableCredentialResource);
     }
 
-    private void createKeyPairs(Config config, String participantId, String publicKey) {
+    private void createKeyPairs(String participantId, String publicKeyPem) {
         var keyPairResource = KeyPairResource.Builder.newInstance()
                 .id(UUID.randomUUID().toString())
-                .keyId(participantId + "#" + System.getenv("EDC_DID_KEY_ID"))
-                .privateKeyAlias(config.getString("edc.iam.sts.privatekey.alias"))
+                .keyId(participantId + "#" + config.getString("edc.did.key.id"))
+                .privateKeyAlias(config.getString("edc.did.key.id"))
                 .isDefaultPair(true)
                 .participantId(participantId)
-                .serializedPublicKey(publicKey)
+                .serializedPublicKey(publicKeyPem)
                 .state(KeyPairState.ACTIVE)
                 .build();
         keyPairResourceStore.create(keyPairResource);
     }
 
-    private String getPublicKey(Config config) throws IOException {
-        var basePath = config.getString(CREDENTIALS_DIR_PATH);
-        var publicKeyFile = Path.of(basePath, "public.pem");
-        return Files.readString(publicKeyFile);
+    private PublicKey getPublicKey(String keyId) throws Exception {
+        var token = SignerProxy.getTokenForKeyId(keyId);
+        String base64PublicKey = token.getKeyInfo().stream()
+                .filter(keyInfo -> keyInfo.getId().equals(keyId))
+                .findFirst()
+                .map(KeyInfo::getPublicKey)
+                .orElseThrow();
+        byte[] keyBytes = Base64.getDecoder().decode(base64PublicKey);
+        X509EncodedKeySpec spec = new X509EncodedKeySpec(keyBytes);
+        KeyFactory keyFactory = KeyFactory.getInstance("RSA");
+        return keyFactory.generatePublic(spec);
+    }
+
+    private String convertPublicKeyToPem(PublicKey publicKey) throws IOException {
+        StringWriter stringWriter = new StringWriter();
+        try (PemWriter pemWriter = new PemWriter(stringWriter)) {
+            PemObject pemObject = new PemObject("PUBLIC KEY", publicKey.getEncoded());
+            pemWriter.writeObject(pemObject);
+        }
+        return stringWriter.toString();
     }
 
 }

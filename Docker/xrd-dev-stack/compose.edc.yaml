@@ -22,7 +22,6 @@ services:
     environment:
       - EDC_HOSTNAME=ss0
       - EDC_DID=did:web:ss0%3A9396
-      - EDC_DID_KEY_ID=JWK2020-RSA
     ports:
       - "4295:9953" #control-plane debug
       - "4296:9954" #data-plane debug
@@ -39,7 +38,6 @@ services:
     environment:
       - EDC_HOSTNAME=ss1
       - EDC_DID=did:web:ss1%3A9396
-      - EDC_DID_KEY_ID=JWK2020-RSA
     ports:
       - "4395:9953" #control-plane debug
       - "4396:9954" #data-plane debug

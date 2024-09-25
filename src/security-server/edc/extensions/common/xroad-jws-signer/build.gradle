@@ -1,0 +1,13 @@
+plugins {
+    id 'java-library'
+}
+
+dependencies {
+    api project(':signer-protocol')
+    implementation project(':common:common-core')
+
+    implementation libs.edc.spi.core
+    implementation libs.edc.spi.jwt.signer
+    implementation libs.nimbus.jose.jwt
+}
+

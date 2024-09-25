@@ -36,6 +36,9 @@ dependencies {
     implementation(project(":security-server:edc:extensions:control-plane:xroad-edr"))
     implementation(project(":security-server:edc:extensions:control-plane:xroad-policy"))
     implementation(project(":security-server:edc:extensions:control-plane:xroad-identity-and-trust"))
+    implementation(project(":security-server:edc:extensions:common:xroad-jws-signer")) {
+        exclude group: 'org.eclipse.jetty'
+    }
     implementation(project(":security-server:edc:extensions:common:xroad-webserver"))
 
     implementation libs.apache.commonsLang3
