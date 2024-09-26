@@ -1,5 +1,6 @@
 /*
  * The MIT License
+ *
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
@@ -23,25 +24,34 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
+
 package ee.ria.xroad.signer.util.passwordstore;
 
-/**
- * Manages passwords stored in the shared memory segment.
- */
-public class MemoryPasswordStoreProvider implements PasswordStore.PasswordStoreProvider {
+import java.util.Arrays;
+import java.util.Map;
+import java.util.Optional;
+import java.util.concurrent.ConcurrentHashMap;
 
-    static {
-        System.loadLibrary("passwordstore");
+public class LocalPasswordStoreProvider implements PasswordStore.PasswordStoreProvider {
+
+    private final Map<String, byte[]> passwords = new ConcurrentHashMap<>();
+
+    public byte[] read(String id) throws Exception {
+        return passwords.get(id);
     }
 
     @Override
-    public native byte[] read(String pathnameForFtok, String id) throws Exception;
+    public void write(String id, byte[] password) throws Exception {
+        Optional.ofNullable(password)
+                .map(p -> Arrays.copyOf(p, p.length))
+                .ifPresentOrElse(
+                        p -> passwords.put(id, p),
+                        () -> passwords.remove(id));
+    }
 
     @Override
-    public native void write(String pathnameForFtok, String id, byte[] password, int permissions) throws Exception;
-
-    @Override
-    public native void clear(String pathnameForFtok, int permissions) throws Exception;
-
+    public void clear() throws Exception {
+        this.passwords.clear();
+    }
 
 }

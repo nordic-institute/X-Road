@@ -97,7 +97,7 @@ tasks.register('runSignerMain', JavaExec) {
         "-Dxroad.common.temp-files-path=${layout.buildDirectory.get().asFile}/tmp/",
         '-Dxroad.proxy.configuration-anchor-file=../common/common-globalconf/src/test/resources/configuration-anchor1.xml',
         '-Dlogback.configurationFile=src/test/resources/logback-signer.xml',
-        '-Djava.library.path=../passwordstore:../libs',
+        '-Djava.library.path=../libs',
         '-Dxroad.signer.moduleManagerImpl=ee.ria.xroad.signer.tokenmanager.module.HardwareModuleManagerImpl'
     mainClass = 'ee.ria.xroad.signer.SignerMain'
     classpath = sourceSets.main.runtimeClasspath

@@ -48,7 +48,6 @@ import static java.nio.charset.StandardCharsets.UTF_8;
 public final class PasswordStore {
     private static final String CFG_PASSWORD_STORE_PROVIDER = SystemProperties.PREFIX + "internal.passwordstore-provider";
     private static final String CFG_PASSWORD_STORE_FILE = "file";
-    private static final int PERMISSIONS = 0600;
 
     private static final PasswordStoreProvider PASSWORD_STORE_PROVIDER;
 
@@ -57,7 +56,7 @@ public final class PasswordStore {
             log.warn("WARNING: FilePasswordStoreProvider is enabled. This provider is not production ready.");
             PASSWORD_STORE_PROVIDER = new FilePasswordStoreProvider();
         } else {
-            PASSWORD_STORE_PROVIDER = new MemoryPasswordStoreProvider();
+            PASSWORD_STORE_PROVIDER = new LocalPasswordStoreProvider();
         }
     }
 
@@ -73,7 +72,7 @@ public final class PasswordStore {
      * @throws Exception in case of any errors
      */
     public static char[] getPassword(String id) throws Exception {
-        byte[] raw = PASSWORD_STORE_PROVIDER.read(getPathnameForFtok(), id);
+        byte[] raw = PASSWORD_STORE_PROVIDER.read(id);
         return raw == null ? null : byteToChar(raw);
     }
 
@@ -88,7 +87,7 @@ public final class PasswordStore {
     public static void storePassword(String id, char[] password)
             throws Exception {
         byte[] raw = charToByte(password);
-        PASSWORD_STORE_PROVIDER.write(getPathnameForFtok(), id, raw, PERMISSIONS);
+        PASSWORD_STORE_PROVIDER.write(id, raw);
     }
 
     /**
@@ -97,7 +96,7 @@ public final class PasswordStore {
      * @throws Exception in case of any errors
      */
     public static void clearStore() throws Exception {
-        PASSWORD_STORE_PROVIDER.clear(getPathnameForFtok(), PERMISSIONS);
+        PASSWORD_STORE_PROVIDER.clear();
     }
 
     private static byte[] charToByte(char[] buffer) throws IOException {
@@ -125,15 +124,11 @@ public final class PasswordStore {
         return writer.toCharArray();
     }
 
-    private static String getPathnameForFtok() {
-        return SystemProperties.getSignerPasswordStoreIPCKeyPathname();
-    }
-
     public interface PasswordStoreProvider {
-        byte[] read(String pathnameForFtok, String id) throws Exception;
+        byte[] read(String id) throws Exception;
 
-        void write(String pathnameForFtok, String id, byte[] password, int permissions) throws Exception;
+        void write(String id, byte[] password) throws Exception;
 
-        void clear(String pathnameForFtok, int permissions) throws Exception;
+        void clear() throws Exception;
     }
 }
