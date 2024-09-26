@@ -81,7 +81,8 @@ public final class RpcSignerClient implements DisposableBean {
         return init(host, port, credentialsProvider, clientTimeoutMillis);
     }
 
-    public static RpcSignerClient init(String host, int port, RpcCredentialsProvider credentialsProvider, int clientTimeoutMillis) throws Exception {
+    public static RpcSignerClient init(String host, int port, RpcCredentialsProvider credentialsProvider,
+                                       int clientTimeoutMillis) throws Exception {
         var client = RpcClient.newClient(host, port, credentialsProvider, clientTimeoutMillis, SignerRpcExecutionContext::new);
         instance = new RpcSignerClient(client);
         return instance;
