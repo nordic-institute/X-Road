@@ -23,19 +23,25 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package ee.ria.xroad.signer.util;
-
-import ee.ria.xroad.signer.protocol.dto.TokenInfo;
-
-import lombok.Value;
+package ee.ria.xroad.signer.util.passwordstore;
 
 /**
- * DTO for holding a TokenInfo and key id.
+ * Manages passwords stored in the shared memory segment.
  */
-@Value
-public final class TokenAndKeyId {
+public class MemoryPasswordStoreProvider implements PasswordStore.PasswordStoreProvider {
 
-    private final TokenInfo tokenInfo;
+    static {
+        System.loadLibrary("passwordstore");
+    }
 
-    private final String keyId;
+    @Override
+    public native byte[] read(String pathnameForFtok, String id) throws Exception;
+
+    @Override
+    public native void write(String pathnameForFtok, String id, byte[] password, int permissions) throws Exception;
+
+    @Override
+    public native void clear(String pathnameForFtok, int permissions) throws Exception;
+
+
 }

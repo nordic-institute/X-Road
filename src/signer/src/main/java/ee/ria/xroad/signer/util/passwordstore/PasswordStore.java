@@ -23,7 +23,7 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package ee.ria.xroad.common.util;
+package ee.ria.xroad.signer.util.passwordstore;
 
 import ee.ria.xroad.common.SystemProperties;
 
@@ -112,7 +112,7 @@ public final class PasswordStore {
         return os.toByteArray();
     }
 
-    private static char[] byteToChar(byte[] bytes) throws IOException {
+    public static char[] byteToChar(byte[] bytes) throws IOException {
         if (bytes == null) {
             return null;
         }

@@ -63,9 +63,10 @@ message ListTokensResp {
   repeated TokenInfoProto tokens = 1;
 }
 
-message ActivateTokenReq{
+message ActivateTokenReq {
   string token_id = 1;
   bool activate = 2;
+  optional string pin = 3;
 }
 
 message GetTokenByIdReq {

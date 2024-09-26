@@ -23,7 +23,7 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package ee.ria.xroad.common.util;
+package ee.ria.xroad.signer.util.passwordstore;
 
 import ee.ria.xroad.common.SystemProperties;
 

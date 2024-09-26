@@ -30,7 +30,6 @@ import ee.ria.xroad.common.CertificationServiceStatus;
 import ee.ria.xroad.common.OcspResponderStatus;
 import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.identifier.SecurityServerId;
-import ee.ria.xroad.common.util.PasswordStore;
 import ee.ria.xroad.signer.protocol.RpcSignerClient;
 import ee.ria.xroad.signer.protocol.dto.AuthKeyInfo;
 import ee.ria.xroad.signer.protocol.dto.CertificateInfo;
@@ -159,15 +158,15 @@ public final class SignerProxy {
      * @throws Exception if any errors occur
      */
     public static void activateToken(String tokenId, char[] password) throws Exception {
-        PasswordStore.storePassword(tokenId, password);
-
         log.trace("Activating token '{}'", tokenId);
 
+        var activateTokenReq = ActivateTokenReq.newBuilder()
+                .setTokenId(tokenId)
+                .setActivate(true);
+        ofNullable(password).ifPresent(p -> activateTokenReq.setPin(new String(p)));
+
         RpcSignerClient.execute(ctx -> ctx.getBlockingTokenService()
-                .activateToken(ActivateTokenReq.newBuilder()
-                        .setTokenId(tokenId)
-                        .setActivate(true)
-                        .build()));
+                .activateToken(activateTokenReq.build()));
     }
 
     /**
@@ -196,8 +195,6 @@ public final class SignerProxy {
      * @throws Exception if any errors occur
      */
     public static void deactivateToken(String tokenId) throws Exception {
-        PasswordStore.storePassword(tokenId, null);
-
         log.trace("Deactivating token '{}'", tokenId);
 
         RpcSignerClient.execute(ctx -> ctx.getBlockingTokenService()
@@ -537,7 +534,7 @@ public final class SignerProxy {
      * Sets the hash of the renewed certificate with the given old cert ID.
      *
      * @param certId ID of the old certificate
-     * @param hash new hash of the renewed certificate
+     * @param hash   new hash of the renewed certificate
      * @throws Exception if any errors occur
      */
     public static void setRenewedCertHash(String certId, String hash) throws Exception {
@@ -553,7 +550,7 @@ public final class SignerProxy {
     /**
      * Sets the error of the certificate renewal process.
      *
-     * @param certId ID of the certificate to be renewed
+     * @param certId       ID of the certificate to be renewed
      * @param errorMessage message of the error that was thrown when trying to renew the given certificate
      * @throws Exception if any errors occur
      */
@@ -570,7 +567,7 @@ public final class SignerProxy {
     /**
      * Sets the error of the certificate renewal process.
      *
-     * @param certId ID of the certificate to be renewed
+     * @param certId          ID of the certificate to be renewed
      * @param nextRenewalTime message of the error that was thrown when trying to renew the given certificate
      * @throws Exception if any errors occur
      */
