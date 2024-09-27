@@ -28,33 +28,19 @@ import ee.ria.xroad.common.SystemProperties;
 import ee.ria.xroad.common.crypto.identifier.KeyAlgorithm;
 import ee.ria.xroad.common.crypto.identifier.SignAlgorithm;
 
-import java.math.BigInteger;
 import java.security.KeyPair;
 import java.security.KeyPairGenerator;
 import java.security.SecureRandom;
-import java.security.spec.RSAPublicKeySpec;
+import java.security.spec.ECGenParameterSpec;
 
-public final class RsaKeyManager extends AbstractKeyManager {
+public final class EcKeyManager extends AbstractKeyManager {
 
     // Use no digesting algorithm, since the input data is already a digest
-    private static final SignAlgorithm SIGNATURE_ALGORITHM = SignAlgorithm.ofName("NONEwithRSA");
-    private static final KeyAlgorithm CRYPTO_ALGORITHM = KeyAlgorithm.RSA;
+    private static final SignAlgorithm SIGNATURE_ALGORITHM = SignAlgorithm.ofName("NONEwithECDSA");
+    private static final KeyAlgorithm CRYPTO_ALGORITHM = KeyAlgorithm.EC;
 
-    RsaKeyManager() {
+    EcKeyManager() {
         super(CRYPTO_ALGORITHM);
-    }
-
-    /**
-     * Generates X509 encoded public key bytes from a given modulus and
-     * public exponent.
-     * @param modulus the modulus
-     * @param publicExponent the public exponent
-     * @return generated public key bytes
-     * @throws Exception if any errors occur
-     */
-    public byte[] generateX509PublicKey(BigInteger modulus, BigInteger publicExponent) throws Exception {
-        RSAPublicKeySpec rsaPublicKeySpec = new RSAPublicKeySpec(modulus, publicExponent);
-        return generateX509PublicKey(rsaPublicKeySpec);
     }
 
     @Override
@@ -64,14 +50,18 @@ public final class RsaKeyManager extends AbstractKeyManager {
 
     @Override
     public SignAlgorithm getSoftwareTokenKeySignAlgorithm() {
-        return SignAlgorithm.SHA512_WITH_RSA;
+        return SignAlgorithm.SHA512_WITH_ECDSA;
     }
 
     @Override
     public KeyPair generateKeyPair() throws Exception {
         KeyPairGenerator keyPairGen = KeyPairGenerator.getInstance(cryptoAlgorithm().name());
-        keyPairGen.initialize(SystemProperties.getSignerKeyLength(), new SecureRandom());
+
+        ECGenParameterSpec ecSpec = new ECGenParameterSpec(SystemProperties.getSignerKeyNamedCurve());
+        keyPairGen.initialize(ecSpec, new SecureRandom());
 
         return keyPairGen.generateKeyPair();
     }
+
+
 }

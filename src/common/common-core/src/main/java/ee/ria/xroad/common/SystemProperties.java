@@ -426,6 +426,8 @@ public final class SystemProperties {
     public static final String SIGNER_MODULE_INSTANCE_PROVIDER = SIGNER_PREFIX + "module-instance-provider";
 
     public static final String SIGNER_KEY_LENGTH = SIGNER_PREFIX + "key-length";
+    public static final String SIGNER_KEY_NAMED_CURVE = SIGNER_PREFIX + "key-named-curve";
+    public static final String DEFAULT_KEY_SIGNER_NAMED_CURVE = "secp256r1";
 
     public static final String SIGNER_KEY_SIGN_ALGORITHM_NAME = SIGNER_PREFIX + "key-sign-algorithm-name";
 
@@ -1098,15 +1100,23 @@ public final class SystemProperties {
     }
 
     /**
-     * @return authentication and signing key length.
+     * @return authentication and signing key length when RSA is used.
      */
     public static int getSignerKeyLength() {
         return Math.max(MIN_SIGNER_KEY_LENGTH, Integer.getInteger(SIGNER_KEY_LENGTH, DEFAULT_SIGNER_KEY_LENGTH));
     }
 
     /**
+     * @return authentication and signing key named curve when EC is used.
+     */
+    public static String getSignerKeyNamedCurve() {
+        return System.getProperty(SIGNER_KEY_NAMED_CURVE, DEFAULT_KEY_SIGNER_NAMED_CURVE);
+    }
+
+    /**
      * @return authentication and signing key sign algorithm name, by default SHA512WITHRSA.
      */
+    //TODO #EC maybe can be removed
     public static SignAlgorithm getSignerKeySignatureAlgorithm() {
         return Optional.ofNullable(System.getProperty(SIGNER_KEY_SIGN_ALGORITHM_NAME))
                 .map(SignAlgorithm::ofName)

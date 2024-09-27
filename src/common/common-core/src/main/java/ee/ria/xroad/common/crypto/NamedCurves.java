@@ -22,8 +22,43 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package ee.ria.xroad.common.crypto.identifier;
+package ee.ria.xroad.common.crypto;
 
-public enum KeyType {
-    RSA,
+import lombok.experimental.UtilityClass;
+import org.bouncycastle.asn1.x9.ECNamedCurveTable;
+
+import java.io.IOException;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.Map;
+
+@UtilityClass
+public class NamedCurves {
+    private static final Map<String, byte[]> EC_CURVE_OID_CACHE = new HashMap<>();
+
+    public static String getOID(String namedCurve) {
+        var ident = ECNamedCurveTable.getOID(namedCurve);
+        if (ident == null) {
+            throw new UnknownAlgorithmException("Unknown named curve: " + namedCurve);
+        }
+        return ident.getId();
+
+    }
+
+    public static byte[] getOIDAsBytes(String namedCurve) {
+        var ident = ECNamedCurveTable.getOID(namedCurve);
+        if (ident == null) {
+            throw new UnknownAlgorithmException("Unknown named curve: " + namedCurve);
+        }
+        try {
+            return ident.getEncoded();
+        } catch (IOException e) {
+            throw new CryptoException("Failed to get OID bytes for " + namedCurve, e);
+        }
+    }
+
+    public static void main(String[] args) {
+        System.out.println(Arrays.toString(NamedCurves.getOIDAsBytes("secp256r1")));
+        System.out.println(NamedCurves.getOID("secp256r1"));
+    }
 }

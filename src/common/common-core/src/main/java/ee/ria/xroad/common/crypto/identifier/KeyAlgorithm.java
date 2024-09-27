@@ -24,18 +24,6 @@
  */
 package ee.ria.xroad.common.crypto.identifier;
 
-public enum SignMechanism {
-    CKM_RSA_PKCS(KeyAlgorithm.RSA),
-    CKM_RSA_PKCS_PSS(KeyAlgorithm.RSA),
-    CKM_ECDSA(KeyAlgorithm.EC);
-
-    private final KeyAlgorithm keyAlgorithm;
-
-    SignMechanism(KeyAlgorithm keyAlgorithm) {
-        this.keyAlgorithm = keyAlgorithm;
-    }
-
-    public KeyAlgorithm keyType() {
-        return keyAlgorithm;
-    }
+public enum KeyAlgorithm {
+    RSA, EC
 }

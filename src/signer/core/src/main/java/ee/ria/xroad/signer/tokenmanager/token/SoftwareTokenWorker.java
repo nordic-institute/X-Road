@@ -28,7 +28,9 @@ package ee.ria.xroad.signer.tokenmanager.token;
 import ee.ria.xroad.common.CodedException;
 import ee.ria.xroad.common.SystemProperties;
 import ee.ria.xroad.common.crypto.KeyManagers;
+import ee.ria.xroad.common.crypto.identifier.KeyAlgorithm;
 import ee.ria.xroad.common.crypto.identifier.SignAlgorithm;
+import ee.ria.xroad.common.crypto.identifier.SignMechanism;
 import ee.ria.xroad.common.util.CryptoUtils;
 import ee.ria.xroad.common.util.PasswordStore;
 import ee.ria.xroad.common.util.TokenPinPolicy;
@@ -116,7 +118,12 @@ public class SoftwareTokenWorker extends AbstractTokenWorker {
             SignAlgorithm.SHA1_WITH_RSA,
             SignAlgorithm.SHA256_WITH_RSA,
             SignAlgorithm.SHA384_WITH_RSA,
-            SignAlgorithm.SHA512_WITH_RSA
+            SignAlgorithm.SHA512_WITH_RSA,
+
+            SignAlgorithm.SHA1_WITH_ECDSA,
+            SignAlgorithm.SHA256_WITH_ECDSA,
+            SignAlgorithm.SHA384_WITH_ECDSA,
+            SignAlgorithm.SHA512_WITH_ECDSA
     );
 
     private final Map<String, PrivateKey> privateKeys = new HashMap<>();
@@ -177,7 +184,7 @@ public class SoftwareTokenWorker extends AbstractTokenWorker {
 
         assertTokenAvailable();
 
-        java.security.KeyPair keyPair = KeyManagers.getFor(tokenType.getSignMechanismName()).generateKeyPair();
+        var keyPair = KeyManagers.getFor(tokenType.getSignMechanismName()).generateKeyPair();
 
         String keyId = SignerUtil.randomId();
         savePkcs12Keystore(keyPair, keyId, getKeyStoreFileName(keyId), getPin());
@@ -223,7 +230,7 @@ public class SoftwareTokenWorker extends AbstractTokenWorker {
 
         log.debug("Signing with key '{}' and signature algorithm '{}'", keyId, signatureAlgorithmId);
 
-        SignAlgorithm signAlgorithm = KeyManagers.getFor(tokenType.getSignMechanismName()).getSoftwareTokenSignAlgorithm();
+        SignAlgorithm signAlgorithm = KeyManagers.getFor(KeyAlgorithm.valueOf(key.getAlgorithm())).getSoftwareTokenSignAlgorithm();
         Signature signature = Signature.getInstance(signAlgorithm.name());
         signature.initSign(key);
         signature.update(data);
@@ -258,6 +265,11 @@ public class SoftwareTokenWorker extends AbstractTokenWorker {
         CertificateFactory certificateFactory = CertificateFactory.getInstance("X.509", "BC");
         CertPath certPath = certificateFactory.generateCertPath(Arrays.asList(signedCert, issuerX509Certificate));
         return certPath.getEncoded("PEM");
+    }
+
+    @Override
+    protected SignMechanism getSignMechanism() {
+        return tokenType.getSignMechanismName();
     }
 
     // ------------------------------------------------------------------------
@@ -313,7 +325,7 @@ public class SoftwareTokenWorker extends AbstractTokenWorker {
 
                     log.debug("Found new key with id '{}'", keyId);
 
-                    addKey(tokenId, keyId, publicKeyBase64);
+                    addKey(tokenId, keyId, publicKeyBase64, getSignMechanism());
                 } catch (Exception e) {
                     log.error("Failed to read pkcs#12 key '{}'", keyId, e);
                 }
