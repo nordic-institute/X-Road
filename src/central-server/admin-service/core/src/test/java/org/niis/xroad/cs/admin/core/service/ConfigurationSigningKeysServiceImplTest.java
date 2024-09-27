@@ -26,6 +26,7 @@
  */
 package org.niis.xroad.cs.admin.core.service;
 
+import ee.ria.xroad.common.crypto.identifier.SignMechanism;
 import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.util.TimeUtils;
 import ee.ria.xroad.signer.protocol.dto.KeyInfo;
@@ -349,7 +350,7 @@ class ConfigurationSigningKeysServiceImplTest {
                 .setId(keyIdentifier)
                 .setLabel("keyLabel")
                 .setPublicKey("keyPublicKey")
-                .setSignMechanismName("keySignMechanismName")
+                .setSignMechanismName(SignMechanism.CKM_RSA_PKCS.name())
                 .build());
     }
 
