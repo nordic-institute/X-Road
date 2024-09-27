@@ -26,6 +26,7 @@
  */
 package org.niis.xroad.cs.admin.core.service;
 
+import ee.ria.xroad.common.crypto.identifier.SignMechanism;
 import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.util.TimeUtils;
 import ee.ria.xroad.signer.protocol.dto.KeyInfo;
@@ -141,7 +142,8 @@ public class ConfigurationSigningKeysServiceImpl extends AbstractTokenConsumer i
                 signingKey,
                 possibleActions,
                 keyInfo.getLabel(),
-                keyInfo.isAvailable());
+                keyInfo.isAvailable(),
+                SignMechanism.valueOf(keyInfo.getSignMechanismName()).keyAlgorithm());
     }
 
     @Override

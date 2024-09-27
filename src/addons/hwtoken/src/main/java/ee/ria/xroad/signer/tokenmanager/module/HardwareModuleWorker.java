@@ -25,6 +25,7 @@
  */
 package ee.ria.xroad.signer.tokenmanager.module;
 
+import ee.ria.xroad.common.crypto.identifier.KeyAlgorithm;
 import ee.ria.xroad.signer.tokenmanager.token.AbstractTokenWorker;
 import ee.ria.xroad.signer.tokenmanager.token.HardwareTokenType;
 import ee.ria.xroad.signer.tokenmanager.token.HardwareTokenWorker;
@@ -184,7 +185,10 @@ public class HardwareModuleWorker extends AbstractModuleWorker {
                 tokenInfo.getLabel().trim(), // PKCS11 gives us only 32 bytes.
                 module.isPinVerificationPerSigning(),
                 module.isBatchSigningEnabled(),
-                module.getSignMechanismName(),
+                Map.of(
+                        KeyAlgorithm.RSA, module.getRsaSignMechanismName(),
+                        KeyAlgorithm.EC, module.getEcSignMechanismName()
+                ),
                 module.getPrivKeyAttributes(),
                 module.getPubKeyAttributes()
         );

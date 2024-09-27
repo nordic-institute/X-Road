@@ -460,6 +460,7 @@
     "logIn": "Log in",
     "logOut": "Log out",
     "signKey": "Sign key",
+    "algorithm": "Key algorithm",
     "token": "Token:",
     "dialog": {
       "delete": {

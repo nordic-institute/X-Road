@@ -3611,6 +3611,14 @@ components:
       example: INTERNAL
       format: enum
       type: string
+    KeyAlgorithm:
+      description: Key type
+      enum:
+        - RSA
+        - EC
+      example: RSA
+      format: enum
+      type: string
     ErrorInfo:
       $ref: '../../../../../common/common-admin-api/src/main/resources/common-openapi-definition.yaml#/components/schemas/ErrorInfo'
     GlobalConfDownloadUrl:
@@ -3853,6 +3861,8 @@ components:
           type: array
         source_type:
             $ref: '#/components/schemas/ConfigurationType'
+        key_algorithm:
+            $ref: '#/components/schemas/KeyAlgorithm'
       required:
         - id
         - label

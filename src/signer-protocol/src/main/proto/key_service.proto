@@ -51,6 +51,12 @@ service KeyService {
   rpc GetAuthKey(GetAuthKeyReq) returns (AuthKeyInfoProto) {}
 }
 
+enum Algorithm {
+  UNKNOWN = 0;
+  RSA = 1;
+  EC = 2;
+}
+
 message GetKeyIdForCertHashReq {
   string cert_hash = 1;
 }
@@ -103,6 +109,7 @@ message DeleteKeyReq {
 message GenerateKeyReq {
   string token_id = 1;
   string key_label = 2;
+  optional Algorithm algorithm = 3;
 }
 
 message GetAuthKeyReq {

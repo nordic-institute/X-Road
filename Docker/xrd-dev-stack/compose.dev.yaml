@@ -14,6 +14,7 @@ services:
       - "4191:9951" # Management debug
       - "4192:9952" # Registration debug
       - "4193:9953" # Conf Client debug
+      - "4194:9994" # Signer debug port
     networks:
       - xroad-network
   ss0:
