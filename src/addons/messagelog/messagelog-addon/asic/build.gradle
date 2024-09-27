@@ -2,6 +2,7 @@
 
 dependencies {
     implementation(project(':addons:messagelog:messagelog-addon:core'))
+    implementation(project(':addons:messagelog:messagelog-db'))
     implementation(project(':asic-util'))
     implementation(project(':common:common-jetty'))
     implementation(project(':common:common-globalconf'))

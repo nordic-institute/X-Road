@@ -1,5 +1,5 @@
 plugins {
-    alias(libs.plugins.shadow)
+    alias(libs.plugins.springBoot)
 }
 
 project.ext.schemaTargetDir = layout.buildDirectory.dir("generated-sources").get().asFile
@@ -20,7 +20,7 @@ sourceSets {
 }
 
 dependencies {
-    implementation(platform(libs.springBoot.bom))
+    implementation(platform(libs.springCloud.bom))
 
     implementation project(':common:common-core')
     implementation project(':common:common-jetty')
@@ -28,7 +28,8 @@ dependencies {
     implementation project(':common:common-rpc')
     implementation project(':signer-protocol')
 
-    implementation('org.springframework:spring-context')
+    implementation("org.springframework.boot:spring-boot-starter")
+    implementation("org.springframework.cloud:spring-cloud-config-client")
     // Necessary since there are jars with no adequate Maven dependencies
     implementation fileTree(dir: '../libs', include: '*.jar')
 
@@ -54,14 +55,25 @@ jar {
 
 }
 
-shadowJar {
-    archiveClassifier = ''
-    exclude('**/module-info.class')
-    from rootProject.file("LICENSE.txt")
-    mergeServiceFiles()
+//shadowJar {
+//    archiveClassifier = ''
+//    exclude('**/module-info.class')
+//    from rootProject.file("LICENSE.txt")
+//    mergeServiceFiles()
+//}
+bootJar {
+    enabled = true
+
+    manifest {
+        attributes(
+            'Implementation-Title': 'X-Road Signer',
+            'Implementation-Version': "$xroadVersion-$xroadBuildType",
+            'Main-Class': 'org.springframework.boot.loader.launch.PropertiesLauncher'
+        )
+    }
 }
 
-jar.finalizedBy shadowJar
+//jar.finalizedBy shadowJar
 
 tasks.register('createDirs') {
     doLast {

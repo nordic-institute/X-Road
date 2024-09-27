@@ -1,6 +1,3 @@
-plugins {
-    alias(libs.plugins.shadow)
-}
 
 dependencies {
     implementation(project(':common:common-globalconf'))
@@ -11,21 +8,3 @@ dependencies {
 
     implementation libs.dss.xml.utils
 }
-
-jar {
-    from project(':addons:messagelog:messagelog-db').sourceSets.main.output
-}
-
-shadowJar {
-    archiveVersion = ''
-    archiveClassifier = ''
-    from project(':addons:messagelog:messagelog-db').sourceSets.main.output
-}
-
-tasks.register('copyGpg', Copy) {
-    from 'src/test/gpg'
-    into layout.buildDirectory.dir("gpg")
-}
-
-test.dependsOn copyGpg
-assemble.dependsOn shadowJar

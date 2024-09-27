@@ -16,6 +16,7 @@ services:
     environment:
       - PROXY_JMX_PORT=4299
       - SIGNER_JMX_PORT=4298
+      - XRD_CONFIG_SERVER_URI=http://localhost:5580
     deploy:
       resources:
         reservations:
@@ -32,6 +33,7 @@ services:
       - XROAD_TOKEN_PIN=Secret1234
       - PROXY_JMX_PORT=4399
       - SIGNER_JMX_PORT=4398
+      - XRD_CONFIG_SERVER_URI=http://localhost:5580
     deploy:
       resources:
         reservations:

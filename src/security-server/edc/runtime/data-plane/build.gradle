@@ -75,12 +75,14 @@ sourceSets {
 }
 
 shadowJar {
+    setProperty("zip64", true)
     mergeServiceFiles()
     archiveFileName.set("edc-data-plane-inmemory.jar")
     dependsOn(distTar, distZip)
 }
 
 tasks.register('shadowJarWithSql', ShadowJar) {
+    setProperty("zip64", true)
     from sourceSets.main.output
     configurations = [project.configurations.runtimeClasspath, project.configurations.sqlDependencies]
     exclude('META-INF/*.RSA', 'META-INF/*.SF', 'META-INF/*.DSA')

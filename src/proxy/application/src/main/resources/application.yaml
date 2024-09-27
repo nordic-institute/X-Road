@@ -1,0 +1,57 @@
+spring:
+  application:
+    name: proxy
+  config:
+    import: configserver:${XRD_CONFIG_SERVER_URI}
+  profiles:
+    active: override
+  output:
+    ansi:
+      enabled: detect #TODO implementin logging changes to support ansi colors
+  main:
+    banner-mode: log
+xroad:
+  proxy:
+    jetty-serverproxy-configuration-file: /etc/xroad/jetty/serverproxy.xml
+    client-use-idle-connection-monitor: true
+    connector-host: 0.0.0.0
+    ocsp-responder-port: 5577
+    ocsp-responder-client-connect-timeout: 20000
+    verify-client-cert: true
+    configuration-anchor-file: /etc/xroad/configuration-anchor.xml
+    database-properties: /etc/xroad/db.properties
+    ocsp-responder-client-read-timeout: 30000
+    server-port: 5500
+    jetty-ocsp-responder-configuration-file: /etc/xroad/jetty/ocsp-responder.xml
+    server-connector-so-linger: -1
+    pool-enable-connection-reuse: false
+    client-http-port: 8080
+    client-httpclient-timeout: 0
+    configuration-path: /etc/xroad/globalconf/
+    client-https-port: 8443
+    client-fastest-connecting-ssl-uri-cache-period: 3600
+    ocsp-responder-listen-address: 0.0.0.0
+    hsm-health-check-enabled: false
+    enforce-client-is-cert-validity-period-check: false
+    client-timeout: 30000
+    client-use-fastest-connecting-ssl-socket-autoclose: true
+    server-listen-port: 5500
+    backup-encryption-enabled: false
+    client-connector-so-linger: -1
+    jetty-clientproxy-configuration-file: /etc/xroad/jetty/clientproxy.xml
+    server-listen-address: 0.0.0.0
+    client-httpclient-so-linger: -1
+  anti-dos:
+    max-cpu-load: 1.1
+    max-heap-usage: 1.1
+    max-parallel-connections: 5000
+    min-free-file-handles: 100
+    enabled: true
+  common:
+    global-conf-remoting-enabled: true
+  configuration-client:
+    port: 5665
+    update-interval: 60
+  signer:
+    enforce-token-pin-policy: false
+    ocsp-cache-path: /var/cache/xroad

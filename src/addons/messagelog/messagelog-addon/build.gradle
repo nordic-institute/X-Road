@@ -3,9 +3,9 @@ plugins {
 }
 
 dependencies {
-    implementation(project(':addons:messagelog:messagelog-addon:core'))
-    implementation(project(':addons:messagelog:messagelog-addon:asic'))
-
+    testImplementation(project(':addons:messagelog:messagelog-addon:core'))
+    testImplementation(project(':addons:messagelog:messagelog-addon:asic'))
+    testImplementation(project(':addons:messagelog:messagelog-db'))
     testImplementation project(':common:common-jetty')
     testImplementation project(':common:common-globalconf')
     testImplementation project(':common:common-scheduler')

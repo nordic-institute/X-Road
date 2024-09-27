@@ -1,5 +1,9 @@
 plugins {
-    alias(libs.plugins.shadow)
+    alias(libs.plugins.springBoot)
+}
+
+base {
+    archivesName = 'proxy'
 }
 
 sourceSets {
@@ -12,6 +16,7 @@ sourceSets {
 
 dependencies {
     implementation(platform(libs.springBoot.bom))
+    implementation(platform(libs.springCloud.bom))
 
     implementation(project(':proxy:proxy-rpc-client'))
     implementation(project(':common:common-jetty'))
@@ -27,7 +32,9 @@ dependencies {
     implementation project(':security-server:edc-client')
     implementation project(':security-server:edc:xroad-edc-security')
 
-    implementation('org.springframework:spring-context')
+    implementation("org.springframework.boot:spring-boot-starter")
+    implementation("org.springframework.cloud:spring-cloud-config-client")
+
     implementation("com.fasterxml.jackson.dataformat:jackson-dataformat-yaml")
     implementation(libs.jetty.xml)
     implementation(libs.xerces.impl)
@@ -46,24 +53,45 @@ dependencies {
     intTestImplementation(project(":common:common-int-test"))
 }
 
-jar {
-    manifest {
-        attributes('Main-Class': 'ee.ria.xroad.proxy.ProxyMain')
-    }
-    archiveClassifier = 'plain'
-    archiveBaseName = 'proxy'
-}
-
-shadowJar {
-    archiveClassifier = ''
-    archiveBaseName = 'proxy'
-    exclude('**/module-info.class')
-    from rootProject.file("LICENSE.txt")
-    mergeServiceFiles()
-}
-
+//jar {
+//    manifest {
+//        attributes('Main-Class': 'ee.ria.xroad.proxy.ProxyMain')
+//    }
+//    archiveClassifier = 'plain'
+//    archiveBaseName = 'proxy'
+//}
+//
+//shadowJar {
+//    archiveClassifier = ''
+//    archiveBaseName = 'proxy'
+//    exclude('**/module-info.class')
+//    from rootProject.file("LICENSE.txt")
+//    mergeServiceFiles()
+//}
+//
 testJar.enabled = true
-assemble.finalizedBy shadowJar
+//assemble.finalizedBy shadowJar
+
+//bootRun {
+//    jvmArgs = ["-Dspring.output.ansi.enabled=ALWAYS"]
+//}
+//
+//jar {
+//    enabled = false
+//}
+
+bootJar {
+    enabled = true
+
+    manifest {
+        attributes(
+            'Implementation-Title': 'X-Road Proxy',
+            'Implementation-Version': "$xroadVersion-$xroadBuildType",
+            'Main-Class': 'org.springframework.boot.loader.launch.PropertiesLauncher'
+        )
+    }
+}
+
 
 tasks.register('runProxyMain', JavaExec) {
     jvmArgs '-Dxroad.proxy.sslEnabled=false',
