@@ -27,6 +27,7 @@ package ee.ria.xroad.signer.tokenmanager.token;
 
 import ee.ria.xroad.common.crypto.KeyManagers;
 import ee.ria.xroad.common.crypto.identifier.SignAlgorithm;
+import ee.ria.xroad.common.crypto.identifier.SignMechanism;
 import ee.ria.xroad.common.util.PasswordStore;
 import ee.ria.xroad.signer.protocol.dto.KeyInfo;
 import ee.ria.xroad.signer.protocol.dto.TokenInfo;
@@ -103,7 +104,7 @@ public abstract class AbstractTokenWorker implements TokenWorker, WorkerWithLife
         log.debug("Generated new key with id '{}'", keyId);
 
         if (!hasKey(keyId)) {
-            TokenManager.addKey(tokenId, keyId, result.getPublicKeyBase64());
+            TokenManager.addKey(tokenId, keyId, result.getPublicKeyBase64(), getSignMechanism());
             TokenManager.setKeyAvailable(keyId, true);
             TokenManager.setKeyLabel(keyId, message.getKeyLabel());
             TokenManager.setKeyFriendlyName(keyId, message.getKeyLabel());
@@ -203,6 +204,8 @@ public abstract class AbstractTokenWorker implements TokenWorker, WorkerWithLife
 
     protected abstract byte[] signCertificate(String keyId, SignAlgorithm signatureAlgorithmId, String subjectName,
                                               PublicKey publicKey) throws Exception;
+
+    protected abstract SignMechanism getSignMechanism();
 
     protected void assertKeyAvailable(String keyId) {
         if (!isKeyAvailable(keyId)) {

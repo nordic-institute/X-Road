@@ -24,7 +24,7 @@
  */
 package ee.ria.xroad.common.crypto;
 
-import ee.ria.xroad.common.crypto.identifier.KeyType;
+import ee.ria.xroad.common.crypto.identifier.KeyAlgorithm;
 import ee.ria.xroad.common.crypto.identifier.SignAlgorithm;
 import ee.ria.xroad.common.crypto.identifier.SignMechanism;
 
@@ -32,12 +32,13 @@ import java.security.NoSuchAlgorithmException;
 import java.util.Map;
 
 public final class KeyManagers {
-    private static final Map<KeyType, KeyManager> BY_TYPE = Map.of(
-            KeyType.RSA, new RsaKeyManager()
+    private static final Map<KeyAlgorithm, KeyManager> BY_TYPE = Map.of(
+            KeyAlgorithm.RSA, new RsaKeyManager(),
+            KeyAlgorithm.EC, new EcKeyManager()
     );
 
-    public static KeyManager getFor(KeyType keyType) {
-        return BY_TYPE.get(keyType);
+    public static KeyManager getFor(KeyAlgorithm keyAlgorithm) {
+        return BY_TYPE.get(keyAlgorithm);
     }
 
     public static KeyManager getFor(SignMechanism mechanism) throws NoSuchAlgorithmException {
@@ -49,7 +50,11 @@ public final class KeyManagers {
     }
 
     public static RsaKeyManager getForRSA() {
-        return (RsaKeyManager) getFor(KeyType.RSA);
+        return (RsaKeyManager) getFor(KeyAlgorithm.RSA);
+    }
+
+    public static EcKeyManager getForEC() {
+        return (EcKeyManager) getFor(KeyAlgorithm.EC);
     }
 
     private KeyManagers() {

@@ -22,20 +22,14 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package ee.ria.xroad.common.crypto.identifier;
+package ee.ria.xroad.common.crypto;
 
-public enum SignMechanism {
-    CKM_RSA_PKCS(KeyAlgorithm.RSA),
-    CKM_RSA_PKCS_PSS(KeyAlgorithm.RSA),
-    CKM_ECDSA(KeyAlgorithm.EC);
-
-    private final KeyAlgorithm keyAlgorithm;
-
-    SignMechanism(KeyAlgorithm keyAlgorithm) {
-        this.keyAlgorithm = keyAlgorithm;
+public class CryptoException extends RuntimeException {
+    public CryptoException(String message) {
+        super(message);
     }
 
-    public KeyAlgorithm keyType() {
-        return keyAlgorithm;
+    public CryptoException(String message, Exception cause) {
+        super(message, cause);
     }
 }

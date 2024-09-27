@@ -24,7 +24,7 @@
  */
 package ee.ria.xroad.common.crypto;
 
-import ee.ria.xroad.common.crypto.identifier.KeyType;
+import ee.ria.xroad.common.crypto.identifier.KeyAlgorithm;
 
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
@@ -50,20 +50,20 @@ public abstract class AbstractKeyManager implements KeyManager {
     /** Holds the RSA key factory instance. */
     @Getter(PROTECTED)
     public final KeyFactory keyFactory;
-    public final KeyType keyType;
+    public final KeyAlgorithm keyAlgorithm;
 
-    protected AbstractKeyManager(KeyType keyType) {
-        this.keyType = keyType;
+    protected AbstractKeyManager(KeyAlgorithm keyAlgorithm) {
+        this.keyAlgorithm = keyAlgorithm;
         try {
-            this.keyFactory = KeyFactory.getInstance(keyType.name());
+            this.keyFactory = KeyFactory.getInstance(keyAlgorithm.name());
         } catch (Exception e) {
-            throw new RuntimeException("Failed to get key factory instance for : " + keyType, e);
+            throw new RuntimeException("Failed to get key factory instance for : " + keyAlgorithm, e);
         }
     }
 
     @Override
-    public KeyType cryptoAlgorithm() {
-        return keyType;
+    public KeyAlgorithm cryptoAlgorithm() {
+        return keyAlgorithm;
     }
 
 

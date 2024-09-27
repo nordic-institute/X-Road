@@ -22,10 +22,14 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package ee.ria.xroad.common.crypto.identifier;
+package ee.ria.xroad.common.crypto;
 
-public class UnknownAlgorithmException extends RuntimeException {
+public class UnknownAlgorithmException extends CryptoException {
     public UnknownAlgorithmException(String message) {
         super(message);
+    }
+
+    public UnknownAlgorithmException(String message, Exception cause) {
+        super(message, cause);
     }
 }

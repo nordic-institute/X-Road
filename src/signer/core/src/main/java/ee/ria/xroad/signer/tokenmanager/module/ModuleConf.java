@@ -111,6 +111,7 @@ public final class ModuleConf {
         Map<SignMechanism, Long> mechanisms = new HashMap<>();
         mechanisms.put(SignMechanism.CKM_RSA_PKCS, PKCS11Constants.CKM_RSA_PKCS);
         mechanisms.put(SignMechanism.CKM_RSA_PKCS_PSS, PKCS11Constants.CKM_RSA_PKCS_PSS);
+        mechanisms.put(SignMechanism.CKM_ECDSA, PKCS11Constants.CKM_ECDSA);
 
         return mechanisms;
     }
@@ -125,6 +126,10 @@ public final class ModuleConf {
         mechanisms.put(PKCS11Constants.NAME_CKM_SHA256_RSA_PKCS_PSS, PKCS11Constants.CKM_SHA256_RSA_PKCS_PSS);
         mechanisms.put(PKCS11Constants.NAME_CKM_SHA384_RSA_PKCS_PSS, PKCS11Constants.CKM_SHA384_RSA_PKCS_PSS);
         mechanisms.put(PKCS11Constants.NAME_CKM_SHA512_RSA_PKCS_PSS, PKCS11Constants.CKM_SHA512_RSA_PKCS_PSS);
+        mechanisms.put(PKCS11Constants.NAME_CKM_ECDSA, PKCS11Constants.CKM_ECDSA);
+        mechanisms.put(PKCS11Constants.NAME_CKM_ECDSA_SHA256, PKCS11Constants.CKM_ECDSA_SHA256);
+        mechanisms.put(PKCS11Constants.NAME_CKM_ECDSA_SHA384, PKCS11Constants.CKM_ECDSA_SHA384);
+        mechanisms.put(PKCS11Constants.NAME_CKM_ECDSA_SHA512, PKCS11Constants.CKM_ECDSA_SHA512);
 
         return mechanisms;
     }

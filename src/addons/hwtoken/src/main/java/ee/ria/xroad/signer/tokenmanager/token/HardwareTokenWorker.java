@@ -446,6 +446,11 @@ public class HardwareTokenWorker extends AbstractTokenWorker {
         return certPath.getEncoded("PEM");
     }
 
+    @Override
+    protected SignMechanism getSignMechanism() {
+        return tokenType.getSignMechanismName();
+    }
+
 
     // ------------------------------------------------------------------------
 
@@ -468,7 +473,7 @@ public class HardwareTokenWorker extends AbstractTokenWorker {
                 KeyInfo key = getKeyInfo(keyId);
 
                 if (key == null) {
-                    key = addKey(tokenId, keyId, null);
+                    key = addKey(tokenId, keyId, null, getSignMechanism());
                     setKeyAvailable(keyId, true);
 
                     log.debug("Found new key with id '{}' on token '{}'", keyId, getWorkerId());
@@ -686,7 +691,7 @@ public class HardwareTokenWorker extends AbstractTokenWorker {
             log.trace("Private key '{}' added to token '{}'", keyId, getWorkerId());
 
             if (!hasKey(keyId)) {
-                addKey(tokenId, keyId, null);
+                addKey(tokenId, keyId, null, getSignMechanism());
             } else {
                 log.debug("Private key ({}) found in token '{}'", keyId, getWorkerId());
             }

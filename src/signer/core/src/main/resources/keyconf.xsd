@@ -66,6 +66,11 @@ The content of the element is base64-encoded PKCS#12 file.</documentation>
                     </simpleContent>
                 </complexType>
             </element>
+            <element name="signMechanismName" type="string" minOccurs="0">
+                <annotation>
+                    <documentation>Signing (PKCS#11) mechanism name.</documentation>
+                </annotation>
+            </element>
         </sequence>
         <attribute name="usage" type="tns:KeyUsage"/>
     </complexType>
@@ -155,7 +160,7 @@ The content of the element is base64-encoded PKCS#12 file.</documentation>
                 </annotation>
             </element>
             <element maxOccurs="unbounded" minOccurs="0" name="key" type="tns:KeyType"/>
-            <element name="signMechanismName" type="string" minOccurs="0" default="CKM_RSA_PKCS">
+            <element name="signMechanismName" type="string" minOccurs="0">
                 <annotation>
                     <documentation>Signing (PKCS#11) mechanism name.</documentation>
                 </annotation>

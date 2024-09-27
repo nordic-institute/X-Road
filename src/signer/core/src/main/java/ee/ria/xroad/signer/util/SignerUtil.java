@@ -81,7 +81,7 @@ public final class SignerUtil {
     public static byte[] createDataToSign(byte[] digest, SignAlgorithm signAlgoId) throws NoSuchAlgorithmException {
         return switch (signAlgoId.signMechanism()) {
             case CKM_RSA_PKCS -> createDataToSign(digest);
-            case CKM_RSA_PKCS_PSS -> digest;
+            case CKM_RSA_PKCS_PSS, CKM_ECDSA -> digest;
         };
     }
 
