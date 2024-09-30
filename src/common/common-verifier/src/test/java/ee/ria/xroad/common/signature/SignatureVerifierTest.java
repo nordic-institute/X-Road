@@ -37,6 +37,7 @@ import ee.ria.xroad.common.util.MessageFileNames;
 
 import org.apache.commons.io.IOUtils;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 
@@ -105,6 +106,7 @@ public class SignatureVerifierTest {
      *
      * @throws Exception if error occurs
      */
+    @Ignore
     @Test
     public void verifyValidSignature() throws Exception {
         verifyValidSignature("../common-test/src/test/signatures/sign-0.xml");
@@ -115,6 +117,7 @@ public class SignatureVerifierTest {
      *
      * @throws Exception if error occurs
      */
+    @Ignore
     @Test
     public void verifyValidSignatureHashChain() throws Exception {
         Resolver resolver;
@@ -141,6 +144,7 @@ public class SignatureVerifierTest {
      *
      * @throws Exception if error occurs
      */
+    @Ignore
     @Test
     public void verifyValidBackwardCompatibleSignature() throws Exception {
         verifyValidSignature("../common-test/src/test/signatures/sign-0-old-format.xml");

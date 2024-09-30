@@ -74,8 +74,8 @@ class CertificateInfoSensorTest {
 
     private static String caCertId;
     private static String tspCertId;
-    private static final String CA_NOT_BEFORE = "2014-09-29T09:41:37Z";
-    private static final String CA_NOT_AFTER = "2024-09-26T09:41:37Z";
+    private static final String CA_NOT_BEFORE = "2024-09-30T23:45:59Z";
+    private static final String CA_NOT_AFTER = "2034-09-28T23:45:59Z";
     private static final String TSP_NOT_BEFORE = "2012-11-29T11:53:06Z";
     private static final String TSP_NOT_AFTER = "2014-11-29T11:53:06Z";
 

@@ -206,7 +206,7 @@ class CertificationServicesServiceImplTest {
         verify(auditDataHelper).put(OCSP_ID, mockOcspInfo.getId());
         verify(auditDataHelper).put(OCSP_URL, mockOcspInfo.getUrl());
         verify(auditDataHelper).put(OCSP_CERT_HASH,
-                "B9:CF:6E:A1:BC:98:24:6B:16:68:24:E3:9A:9F:CD:8E:51:B7:05:37:44:68:D4:96:50:D2:22:85:A7:FA:54:2B");
+                "81:7B:1F:4C:9B:B0:7A:C4:7F:7D:FF:A4:3C:A9:5B:85:3F:B4:84:62:9C:FF:28:C9:56:5C:EA:8D:13:2E:A4:65");
         verify(auditDataHelper).put(OCSP_CERT_HASH_ALGORITHM, DEFAULT_CERT_HASH_ALGORITHM_ID);
     }
 
@@ -221,7 +221,7 @@ class CertificationServicesServiceImplTest {
 
         final CertificateAuthority certificateAuthority = service.addIntermediateCa(ID, certificateBytes);
 
-        assertEquals("D8FD191D4155864DE4DB7F8A5E099DAF70E57AF1B62A2A9B3B3B0C2B51788994", certificateAuthority.getCaCertificate().getHash());
+        assertEquals("447E3209991FB48589E65120F24C192C90CE7D76ABC61E488EA9BFA8E6A45BA8", certificateAuthority.getCaCertificate().getHash());
 
         ArgumentCaptor<CaInfoEntity> captor = ArgumentCaptor.forClass(CaInfoEntity.class);
         verify(caInfoRepository).save(captor.capture());
@@ -232,7 +232,7 @@ class CertificationServicesServiceImplTest {
         verify(auditDataHelper).put(CA_ID, ID);
         verify(auditDataHelper).put(INTERMEDIATE_CA_ID, 0);
         verify(auditDataHelper).put(INTERMEDIATE_CA_CERT_HASH,
-                "D8:FD:19:1D:41:55:86:4D:E4:DB:7F:8A:5E:09:9D:AF:70:E5:7A:F1:B6:2A:2A:9B:3B:3B:0C:2B:51:78:89:94");
+                "44:7E:32:09:99:1F:B4:85:89:E6:51:20:F2:4C:19:2C:90:CE:7D:76:AB:C6:1E:48:8E:A9:BF:A8:E6:A4:5B:A8");
         verify(auditDataHelper).put(INTERMEDIATE_CA_CERT_HASH_ALGORITHM, DEFAULT_CERT_HASH_ALGORITHM_ID);
     }
 

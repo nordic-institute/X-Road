@@ -10,48 +10,50 @@
         <name>pki1</name>
         <topCA>
             <!-- Extracted from: common-test/src/test/certs/root-ca.pem -->
-            <cert>MIIDjTCCAnWgAwIBAgIJAKL3zm5uAgNAMA0GCSqGSIb3DQEBBQUAMF0xCzAJBgNV
-                BAYTAkVFMRQwEgYDVQQKEwtDeWJlcm5ldGljYTEMMAoGA1UECxMDSVRPMQ4wDAYD
-                VQQDEwVDeWJlcjEaMBgGCSqGSIb3DQEJARYLYWFhQGJiYi5jY2MwHhcNMTQwOTI5
-                MDk0MTM3WhcNMjQwOTI2MDk0MTM3WjBdMQswCQYDVQQGEwJFRTEUMBIGA1UEChML
-                Q3liZXJuZXRpY2ExDDAKBgNVBAsTA0lUTzEOMAwGA1UEAxMFQ3liZXIxGjAYBgkq
-                hkiG9w0BCQEWC2FhYUBiYmIuY2NjMIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIB
-                CgKCAQEA0ntJBTdBj7KT+j37yQ3r9pzO/VgVRQptQO6pDGSYonBRDbziYyBAuo8O
-                wta2GshTqiqbD9OMqi8EK2fxrnCfo5HhG4BwY4DPGCozwI/9ETCNp/ElxrICbb68
-                zCQy6ecOrPbirG3baKUKPxBwnN/S1w57rR66Eb02hlA0/AAqN7GJnNqonpeDnIQ5
-                vq4bdrrjGEwke44hfR+wI81fVP2oc28AWk3p1TVA0TPLjKfQOlXMfVYIA+Pf+9N4
-                uiOXAcv4ZfUAJbiZQujBdHR7wF4SiV0u3Xfwfk6uj1Ddpv5ehh8HKhiNoDySCXgR
-                I8I5X1gbQ3MIFR7CSwcZuZkolsQnHQIDAQABo1AwTjAMBgNVHRMEBTADAQH/MB0G
-                A1UdDgQWBBR+egbuTBG1XAUq40xvTvPKht3y3jAfBgNVHSMEGDAWgBR+egbuTBG1
-                XAUq40xvTvPKht3y3jANBgkqhkiG9w0BAQUFAAOCAQEAu6QBabq8zQXnxGRCeKpB
-                vp4iMY4VOWm2QYiwDljaQpMvQWjoBhMEZsaaux/ouSiQvAzbO/NdHHJsXAfwxM2E
-                o8kFtZNIlTvBs3Os7CvLle1z7pwU/m9LOeakys9xDQRzlPqQwN0Q2oELu0tOHtkd
-                2RBLXjy5ZXHHw+KnDwfQlLUzvNRLLmZIfZxMf57z53eP59T0UYBj2bHYV2hxfzYH
-                mJG6nz8FW/mImr53meFTrM6muw6fKbeKTNvr4n+7AK6Hn6Whie730DB4A9xyWvjd
-                QWYo7FtYJ/WvbC45E8ppGZH0OWBI028yDvfVgeB8eIpzeMyI1fSHGb66hKc3ruWd
-                SA==</cert>
+            <cert>MIID/jCCAuagAwIBAgIUagn8P1KifLC1BLViI0d5s/7VuuYwDQYJKoZIhvcNAQEL
+                BQAwXTELMAkGA1UEBhMCRUUxFDASBgNVBAoMC0N5YmVybmV0aWNhMQwwCgYDVQQL
+                DANJVE8xDjAMBgNVBAMMBUN5YmVyMRowGAYJKoZIhvcNAQkBFgthYWFAYmJiLmNj
+                YzAeFw0yNDA5MzAyMzQ1NTlaFw0zNDA5MjgyMzQ1NTlaMF0xCzAJBgNVBAYTAkVF
+                MRQwEgYDVQQKDAtDeWJlcm5ldGljYTEMMAoGA1UECwwDSVRPMQ4wDAYDVQQDDAVD
+                eWJlcjEaMBgGCSqGSIb3DQEJARYLYWFhQGJiYi5jY2MwggEiMA0GCSqGSIb3DQEB
+                AQUAA4IBDwAwggEKAoIBAQDT3kLAtGslXfSxBFrA7QP7MfvF3r2IIe01bJX7/YFO
+                QRP3Y4W5b5klong+BA/yEuDBh5ZnKN9m3DygqNfPi7ldJKdUm/QoiJPjsYxW2Y4N
+                q2pHx9/EoY2T5d7nLieJ1mTKNfhU/oqHsMayOlOhNgHRQC9/No+7bSWCsAOiiPhh
+                Uisk18qRB5xOaZCPpmYcTdXiYaRJHY5+8QlcVEvAkRpV4noO3yN8HcKBX3r4b+Nr
+                kOjsHBcJVyraFFatLe0AerwpQoSwwPdd83b7Nkh3FpNDzcMVz2gYK/oXrgTa3EL8
+                SFuDu3qhwggf7JocZPPWY/XzkEBz36Q3/9txYO/oP6WrAgMBAAGjgbUwgbIwDAYD
+                VR0TBAUwAwEB/zAdBgNVHQ4EFgQUI8Y3NlQAKLPlECkGe/Q3t8u2lbcwgYIGA1Ud
+                IwR7MHmhYaRfMF0xCzAJBgNVBAYTAkVFMRQwEgYDVQQKDAtDeWJlcm5ldGljYTEM
+                MAoGA1UECwwDSVRPMQ4wDAYDVQQDDAVDeWJlcjEaMBgGCSqGSIb3DQEJARYLYWFh
+                QGJiYi5jY2OCFGoJ/D9SonywtQS1YiNHebP+1brmMA0GCSqGSIb3DQEBCwUAA4IB
+                AQC4gkHmIBXWQO2nQzjoNB5f0NSXGKBDAD2QdCt5PN/kIwdVISjgjkjLhjd6CKWp
+                4T1U6amS0695eldogxdLL1kPMxrHjwIb8drWfJ5PsxAvTSF8uv0arcCLrXOmgEOp
+                bliMlmPfepmKoDUeJhJD48VpiD/JL+/T+ISuM3vQ140HiIXE1nCpE058qodYdfP6
+                J1EVyfK6AJmC+ObB9umKwJrRIy+xvDg8P43lmgGFAFnfGXs8QphdZz9E2upNOt7h
+                v3RSAwk2k+MLWEqgIywX/Ou9sspSLNtx1vCrbA2sWwSsd80lwijsJNx7SAWOWeIk
+                E01FzCzLKxpkPgCl2f4i+u53</cert>
             <ocsp>
                 <url>http://127.0.0.1:8082/ocsp</url>
                 <!-- Extracted from: common-test/src/test/certs/ocspsigner.p12 -->
-                <cert>MIIDejCCAmKgAwIBAgIBBDANBgkqhkiG9w0BAQUFADBdMQswCQYDVQQGEwJFRTEU
-                    MBIGA1UEChMLQ3liZXJuZXRpY2ExDDAKBgNVBAsTA0lUTzEOMAwGA1UEAxMFQ3li
-                    ZXIxGjAYBgkqhkiG9w0BCQEWC2FhYUBiYmIuY2NjMB4XDTE0MDkyOTA5NTYxMloX
-                    DTI0MDkyNjA5NTYxMlowYDELMAkGA1UEBhMCRUUxFDASBgNVBAoTC0N5YmVybmV0
-                    aWNhMQwwCgYDVQQLEwNJVE8xETAPBgNVBAMTCGNvbnN1bWVyMRowGAYJKoZIhvcN
-                    AQkBFgthYWFAYmJiLmNjYzCCASIwDQYJKoZIhvcNAQEBBQADggEPADCCAQoCggEB
-                    AM0nxh0cNjmjmqYIyBpOCnQb4/eIgPcJF7gTMmhlg5HAkczGraGyrywUumZTUU0j
-                    3CzsXpXjsCWKtgkwzfmDQggfA95x50fu8HxIlHyd75FnA0EnXS9c9aw5v8SOEKYB
-                    5UADIhqoGUkqZd21O3o8RJyO8pI4hfe0EiVbQumH3VtNwkgoiK0XlZVRvJeYBYe8
-                    OODIU+xj8db+BV7QHcRVHBzuynJoy15kByNMzx+kjAPZH+AbB7r6c11i/qd0weno
-                    55QMlilG/Ez/TZiW7oDBgj7lH8c7AQy8bwhEJSLXAD0H3uytOVaWB9O5PkDDdUD+
-                    O0yRvSf+hCtaQ828sfQxYz8CAwEAAaNCMEAwHQYDVR0OBBYEFGe3oWflVEr3ammj
-                    rELcGPOdqmwSMB8GA1UdIwQYMBaAFH56Bu5MEbVcBSrjTG9O88qG3fLeMA0GCSqG
-                    SIb3DQEBBQUAA4IBAQC968pzwVBu+nJgpLnQDF4oEyoJHg+fteCBo/IU0DHvWgYv
-                    vliTOelxwIOhjerGBFGxWQVYJiB1VRBTa/e8q4NTFjeN0LGkyO8KdYIA4yhZTwIe
-                    0ctA62R46II4S7cvoCl993b9wxujMjz9v4Zz7oOx+sFOV8fOI828YQjQCRSOCbcJ
-                    okpGIjJQrdDq3nBVf5f7bCUH6SRWnng3y9ntzgjx8SiQgX+CYTcdWew/9c0Ko6je
-                    neKQsBCiYuP03CJX5gg5yC37MxlcC2NpwdM60Q+7sp+Riz+eGw4tpVnAEmD8ZwHl
-                    vuN63j9maswGt/KrgylIF99T/5WpbFVRWQHibbEH
+                <cert>MIIDgzCCAmugAwIBAgIBBDANBgkqhkiG9w0BAQsFADBdMQswCQYDVQQGEwJFRTEU
+                    MBIGA1UECgwLQ3liZXJuZXRpY2ExDDAKBgNVBAsMA0lUTzEOMAwGA1UEAwwFQ3li
+                    ZXIxGjAYBgkqhkiG9w0BCQEWC2FhYUBiYmIuY2NjMB4XDTI0MTAwMTAwMzYyM1oX
+                    DTM0MDkyOTAwMzYyM1owXDELMAkGA1UEBhMCRUUxFDASBgNVBAoMC0N5YmVybmV0
+                    aWNhMQwwCgYDVQQLDANJVE8xDTALBgNVBAMMBG9jc3AxGjAYBgkqhkiG9w0BCQEW
+                    C2FhYUBiYmIuY2NjMIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAlkQU
+                    F9+6MqfknaMzXGvFDvWjNlRrNiVmco5tFF/80xAr/vwqNOjZcA8To0ck51OCc+OA
+                    tYoHFVJX68NMiAp53rrI5ASlvvpc1/Oq2KEprOMnUQ796Fjhil14CJSjHf4/gOba
+                    ygTQ1Tryc6+okZ3HK3wsNYXnscMrti/5kXIW0N5rUsemyO+zXkUj8aDP1IcPyPF5
+                    qTYDXKIxq4wqeMfn8hdu9Q5VeDh5XbCYn8Pf07bokRiliWzvwB3YU5sMKNHmbvz3
+                    4b2brAaQwTlQezi1QcwedDYJoe7Il0h1Nd0qYQ92+zKVRdDPKe2jTAjZE7/xkf4H
+                    AAnX1QefB5Lc6x0d0wIDAQABo08wTTAdBgNVHQ4EFgQUzpA+MRnTHcssTV1pXU7k
+                    5Cvgj2IwHwYDVR0jBBgwFoAUI8Y3NlQAKLPlECkGe/Q3t8u2lbcwCwYDVR0PBAQD
+                    AgbAMA0GCSqGSIb3DQEBCwUAA4IBAQC9BjwdyDbib7cVm5a2arXP+aSucbjRktT2
+                    l5xxPkOcz+FpWH61T+fmhWlmqsb6v6T+H6TRs39G+wf1iV4mGgU2la6Q4H5RuDc9
+                    1GtTGCEHrDlqX2jJgLNeRn6K29uLLYd5+hNx/Y8s2ok3JX8RMZqjJgmrtM0Hstpq
+                    L/w2x0tN/TM3mer143cxXSqSO6+IoviObxiz8OnKhmaNwJKEYiin3uXXXSDaASB5
+                    Jq8itXSuy9POBb50r8oaF1EzSEaCcqqOMXbFm/CoctnbGPoiiVy+WOtnXocdQmgf
+                    KCRG3cEotd9xkvY5jpLMUkI872GSAE2YfwJG2tdlFSeSanINFNi6
                 </cert>
             </ocsp>
             <ocsp>
@@ -417,13 +419,13 @@
         <owner>consumerId</owner>
         <serverCode>consumerServerCode</serverCode>
         <address>https://www.foo.com/bar</address>
-        <authCertHash>mxwUY66bn81Nkvbmbgif0agWZgM=</authCertHash>
+        <authCertHash>g/FxWuJjdgHXXV3z7ptNSWvfxRM=</authCertHash>
     </securityServer>
 
     <securityServer>
         <owner>fooId</owner>
         <serverCode>fooServerCode</serverCode>
-        <authCertHash>GLx/0DiFv3V1I1Nbd04r3z0oUno=</authCertHash>
+        <authCertHash>Jyl2/erV4FUlHLwrPIrPp19n+rQ=</authCertHash>
         <client>producerId</client>
     </securityServer>
 
