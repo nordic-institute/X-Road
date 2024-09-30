@@ -66,7 +66,7 @@ message ListTokensResp {
 message ActivateTokenReq {
   string token_id = 1;
   bool activate = 2;
-  optional string pin = 3;
+  optional bytes pin = 3;
 }
 
 message GetTokenByIdReq {
@@ -99,13 +99,13 @@ message GetTokenBatchSigningEnabledResp {
 }
 
 message InitSoftwareTokenReq {
-  string pin = 1;
+  bytes pin = 1;
 }
 
 message UpdateSoftwareTokenPinReq {
   string token_id = 1;
-  string old_pin = 2;
-  string new_pin = 3;
+  bytes old_pin = 2;
+  bytes new_pin = 3;
 }
 
 message GetHSMOperationalInfoResp {

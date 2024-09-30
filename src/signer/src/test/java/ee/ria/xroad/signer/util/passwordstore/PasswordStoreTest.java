@@ -25,12 +25,11 @@
  */
 package ee.ria.xroad.signer.util.passwordstore;
 
-import org.apache.commons.lang3.SystemUtils;
-import org.junit.Assume;
 import org.junit.Test;
 
 import static ee.ria.xroad.signer.util.passwordstore.PasswordStore.getPassword;
 import static ee.ria.xroad.signer.util.passwordstore.PasswordStore.storePassword;
+import static java.nio.charset.StandardCharsets.UTF_8;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNull;
 
@@ -41,12 +40,11 @@ public class PasswordStoreTest {
 
     /**
      * Run tests.
+     *
      * @throws Exception in case of unexpected errors
      */
     @Test
     public void runTest() throws Exception {
-        Assume.assumeTrue(SystemUtils.IS_OS_LINUX);
-
         getPassword("foo"); // Just check if get on empty DB works.
 
         storePassword("foo", null);
@@ -54,8 +52,8 @@ public class PasswordStoreTest {
 
         assertNull(getPassword("foo"));
 
-        storePassword("foo", "fooPwd".toCharArray());
-        storePassword("bar", "barPwd".toCharArray());
+        storePassword("foo", "fooPwd".getBytes(UTF_8));
+        storePassword("bar", "barPwd".getBytes(UTF_8));
 
         assertEquals("fooPwd", new String(getPassword("foo")));
         assertEquals("barPwd", new String(getPassword("bar")));

@@ -76,7 +76,7 @@ public abstract class AbstractTokenWorker implements TokenWorker, WorkerWithLife
             if (!message.getActivate()) {
                 PasswordStore.storePassword(message.getTokenId(), null);
             } else if (message.hasPin()) {
-                PasswordStore.storePassword(message.getTokenId(), message.getPin().toCharArray());
+                PasswordStore.storePassword(message.getTokenId(), message.getPin().toByteArray());
             }
 
             activateToken(message);

@@ -31,6 +31,7 @@ import ee.ria.xroad.common.OcspResponderStatus;
 import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.identifier.SecurityServerId;
 import ee.ria.xroad.signer.protocol.RpcSignerClient;
+import ee.ria.xroad.signer.protocol.Utils;
 import ee.ria.xroad.signer.protocol.dto.AuthKeyInfo;
 import ee.ria.xroad.signer.protocol.dto.CertificateInfo;
 import ee.ria.xroad.signer.protocol.dto.KeyInfo;
@@ -117,7 +118,7 @@ public final class SignerProxy {
 
         RpcSignerClient.execute(ctx -> ctx.getBlockingTokenService()
                 .initSoftwareToken(InitSoftwareTokenReq.newBuilder()
-                        .setPin(new String(password))
+                        .setPin(ByteString.copyFrom(Utils.charToByte(password)))
                         .build()));
     }
 
@@ -163,7 +164,7 @@ public final class SignerProxy {
         var activateTokenReq = ActivateTokenReq.newBuilder()
                 .setTokenId(tokenId)
                 .setActivate(true);
-        ofNullable(password).ifPresent(p -> activateTokenReq.setPin(new String(p)));
+        ofNullable(password).ifPresent(p -> activateTokenReq.setPin(ByteString.copyFrom(Utils.charToByte(p))));
 
         RpcSignerClient.execute(ctx -> ctx.getBlockingTokenService()
                 .activateToken(activateTokenReq.build()));
@@ -183,8 +184,8 @@ public final class SignerProxy {
         RpcSignerClient.execute(ctx -> ctx.getBlockingTokenService()
                 .updateSoftwareTokenPin(UpdateSoftwareTokenPinReq.newBuilder()
                         .setTokenId(tokenId)
-                        .setOldPin(new String(oldPin))
-                        .setNewPin(new String(newPin))
+                        .setOldPin(ByteString.copyFrom(Utils.charToByte(oldPin)))
+                        .setNewPin(ByteString.copyFrom(Utils.charToByte(newPin)))
                         .build()));
     }
 

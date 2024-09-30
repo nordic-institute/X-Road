@@ -1,5 +1,6 @@
 /*
  * The MIT License
+ *
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
@@ -23,36 +24,48 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package ee.ria.xroad.signer.protocol.handler;
 
-import ee.ria.xroad.common.CodedException;
-import ee.ria.xroad.signer.protocol.AbstractRpcHandler;
-import ee.ria.xroad.signer.tokenmanager.token.TokenWorker;
+package ee.ria.xroad.signer.protocol;
 
-import lombok.extern.slf4j.Slf4j;
-import org.niis.xroad.rpc.common.Empty;
-import org.niis.xroad.signer.proto.UpdateSoftwareTokenPinReq;
-import org.springframework.stereotype.Component;
+import lombok.experimental.UtilityClass;
+import org.apache.commons.io.output.WriterOutputStream;
 
-import static ee.ria.xroad.common.ErrorCodes.X_INTERNAL_ERROR;
-import static ee.ria.xroad.signer.protocol.Utils.byteToChar;
+import java.io.ByteArrayOutputStream;
+import java.io.CharArrayWriter;
+import java.io.IOException;
+import java.io.OutputStreamWriter;
 
-/**
- * Handles token pin update
- */
-@Slf4j
-@Component
-public class UpdateSoftwareTokenPinReqHandler extends AbstractRpcHandler<UpdateSoftwareTokenPinReq, Empty> {
+import static java.nio.charset.StandardCharsets.UTF_8;
 
-    @Override
-    protected Empty handle(UpdateSoftwareTokenPinReq request) throws Exception {
-        final TokenWorker tokenWorker = getTokenWorker(request.getTokenId());
-        if (tokenWorker.isSoftwareToken()) {
-            tokenWorker.handleUpdateTokenPin(byteToChar(request.getOldPin().toByteArray()),
-                    byteToChar(request.getNewPin().toByteArray()));
-            return Empty.getDefaultInstance();
-        } else {
-            throw new CodedException(X_INTERNAL_ERROR, "Software token not found");
+@UtilityClass
+public class Utils {
+
+    public static byte[] charToByte(char[] buffer) {
+        if (buffer == null) {
+            return null;
+        }
+        try {
+            ByteArrayOutputStream os = new ByteArrayOutputStream(buffer.length * 2);
+            OutputStreamWriter writer = new OutputStreamWriter(os, UTF_8);
+            writer.write(buffer);
+            writer.close();
+            return os.toByteArray();
+        } catch (IOException e) {
+            throw new RuntimeException(e);
         }
     }
+
+    public static char[] byteToChar(byte[] bytes) throws IOException {
+        if (bytes == null) {
+            return null;
+        }
+
+        CharArrayWriter writer = new CharArrayWriter(bytes.length);
+        WriterOutputStream os = new WriterOutputStream(writer, UTF_8);
+        os.write(bytes);
+        os.close();
+
+        return writer.toCharArray();
+    }
+
 }
