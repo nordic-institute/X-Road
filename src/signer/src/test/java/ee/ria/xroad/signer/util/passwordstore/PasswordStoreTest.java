@@ -30,7 +30,7 @@ import org.junit.Test;
 import static ee.ria.xroad.signer.util.passwordstore.PasswordStore.getPassword;
 import static ee.ria.xroad.signer.util.passwordstore.PasswordStore.storePassword;
 import static java.nio.charset.StandardCharsets.UTF_8;
-import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertNull;
 
 /**
@@ -55,11 +55,11 @@ public class PasswordStoreTest {
         storePassword("foo", "fooPwd".getBytes(UTF_8));
         storePassword("bar", "barPwd".getBytes(UTF_8));
 
-        assertEquals("fooPwd", new String(getPassword("foo")));
-        assertEquals("barPwd", new String(getPassword("bar")));
+        assertArrayEquals("fooPwd".toCharArray(), getPassword("foo"));
+        assertArrayEquals("barPwd".toCharArray(), getPassword("bar"));
 
         storePassword("foo", null);
         assertNull(getPassword("foo"));
-        assertEquals("barPwd", new String(getPassword("bar")));
+        assertArrayEquals("barPwd".toCharArray(), getPassword("bar"));
     }
 }

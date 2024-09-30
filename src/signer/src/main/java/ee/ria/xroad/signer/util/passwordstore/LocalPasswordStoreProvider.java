@@ -27,31 +27,60 @@
 
 package ee.ria.xroad.signer.util.passwordstore;
 
-import java.util.Arrays;
+import javax.crypto.Cipher;
+import javax.crypto.KeyGenerator;
+import javax.crypto.SecretKey;
+
 import java.util.Map;
-import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
 
 public class LocalPasswordStoreProvider implements PasswordStore.PasswordStoreProvider {
 
+    private static final String ALGORITHM = "AES";
+    private static final int KEY_SIZE = 256;
+
+    private final SecretKey secretKey;
     private final Map<String, byte[]> passwords = new ConcurrentHashMap<>();
 
+    public LocalPasswordStoreProvider() {
+        try {
+            KeyGenerator keyGen = KeyGenerator.getInstance(ALGORITHM);
+            keyGen.init(KEY_SIZE);
+            this.secretKey = keyGen.generateKey();
+        } catch (Exception e) {
+            throw new RuntimeException("Failed initialize LocalPasswordStoreProvider", e);
+        }
+    }
+
     public byte[] read(String id) throws Exception {
-        return passwords.get(id);
+        byte[] encrypted = passwords.get(id);
+        return encrypted != null ? decrypt(encrypted) : null;
     }
 
     @Override
     public void write(String id, byte[] password) throws Exception {
-        Optional.ofNullable(password)
-                .map(p -> Arrays.copyOf(p, p.length))
-                .ifPresentOrElse(
-                        p -> passwords.put(id, p),
-                        () -> passwords.remove(id));
+        if (password != null) {
+            passwords.put(id, encrypt(password));
+        } else {
+            passwords.remove(id);
+        }
     }
 
     @Override
     public void clear() throws Exception {
         this.passwords.clear();
+    }
+
+    private byte[] encrypt(byte[] data) throws Exception {
+        Cipher cipher = Cipher.getInstance(ALGORITHM);
+        cipher.init(Cipher.ENCRYPT_MODE, secretKey);
+        return cipher.doFinal(data);
+    }
+
+    private byte[] decrypt(byte[] data) throws Exception {
+        Cipher cipher = Cipher.getInstance(ALGORITHM);
+        cipher.init(Cipher.DECRYPT_MODE, secretKey);
+        return cipher.doFinal(data);
     }
 
 }
