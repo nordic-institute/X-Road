@@ -89,7 +89,7 @@ tasks.register('xjc') {
 // XXX For running several instances side-by-side, do not use the gradle task --
 // gradle cannot handle parallel runs if each task invokes a long-running server process.
 // Instead, use the .jar in the build/libs directory:
-// java -Djava.library.path=/home/iks2/core/passwordstore -jar signer-1.0.jar
+// java -jar signer-1.0.jar
 tasks.register('runSignerMain', JavaExec) {
     jvmArgs '-Dxroad.signer.key-configuration-file=src/test/resources/keyconf.xml',
         '-Dxroad.signer.device-configuration-file=src/test/resources/devices.ini',

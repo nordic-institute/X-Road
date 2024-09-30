@@ -84,30 +84,10 @@ buildInDocker() {
   docker run --rm -v $XROAD/..:/workspace -w /workspace/src -u builder ${OPT} xroad-build bash -c "./compile_code.sh -nodaemon" || errorExit "Error running build of binaries."
 }
 
-buildPasswordStoreInDocker() {
-  test -n "$HAS_DOCKER" || errorExit "Error, docker is not installed/running."
-  echo "Building passwordstore in docker..."
-  # check if running attached to terminal
-  # makes it possible to stop build with Ctrl+C
-  if [ -t 1 ]; then OPT="-it"; fi
-
-  docker build -q -t xroad-build --build-arg uid=$(id -u) --build-arg gid=$(id -g) $XROAD/packages/docker-compile || errorExit "Error building build image."
-  docker run --rm -v $XROAD/..:/workspace -w /workspace/src -u builder ${OPT} xroad-build bash -c "./gradlew make -p signer-protocol" || errorExit "Error running build of binaries."
-}
-
 buildLocally() {
   echo "Building locally..."
   cd $XROAD || errorExit "Error 'cd $XROAD'."
   ./compile_code.sh "$@" || errorExit "Error running build of binaries."
-
-  if [ "$(uname)" == "Darwin" ]; then
-    if [ ! -f "$XROAD/lib/libpasswordstore.so" ]; then
-      echo "MacOS does not support passwordstore compilation. Compiling in docker..."
-      buildPasswordStoreInDocker
-    else
-      echo "Passwordstore already compiled. Skipping"
-    fi
-  fi
 }
 
 buildBuilderImage() {

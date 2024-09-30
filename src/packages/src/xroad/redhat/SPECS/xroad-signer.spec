@@ -57,7 +57,6 @@ cp -p %{srcdir}/default-configuration/signer-console-logback.xml %{buildroot}/et
 cp -p %{srcdir}/../../../signer/build/libs/signer-1.0.jar %{buildroot}/usr/share/xroad/jlib/
 cp -p %{srcdir}/../../../signer-console/build/libs/signer-console-1.0.jar %{buildroot}/usr/share/xroad/jlib/
 cp -p %{srcdir}/../../../libs/libpkcs11wrapper.so %{buildroot}/usr/share/xroad/lib/
-cp -p %{srcdir}/../../../lib/libpasswordstore.so %{buildroot}/usr/share/xroad/lib/
 
 %clean
 rm -rf %{buildroot}
@@ -85,7 +84,6 @@ rm -rf %{buildroot}
 /usr/share/xroad/jlib/signer.jar
 /usr/share/xroad/bin/signer-console
 /usr/share/xroad/jlib/signer-*.jar
-/usr/share/xroad/lib/libpasswordstore.so
 /usr/share/xroad/lib/libpkcs11wrapper.so
 %attr(754,root,xroad) /usr/share/xroad/bin/xroad-signer
 %attr(644,root,root) %{_unitdir}/xroad-signer.service
