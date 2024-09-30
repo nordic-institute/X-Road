@@ -1,0 +1,53 @@
+--MIMEBoundaryurn_uuid_0FE43E4D025F0BF3DC11582467646812
+content-type: application/xop+xml; charset=UTF-8; type="text/xml";
+content-transfer-encoding: binary
+content-id:
+   <0.urn:uuid:0FE43E4D025F0BF3DC11582467646813@apache.org>
+
+<?xml version="1.0" encoding="utf-8"?>
+<SOAP-ENV:Envelope
+        xmlns:SOAP-ENV="http://schemas.xmlsoap.org/soap/envelope/"
+        xmlns:xroad="http://x-road.eu/xsd/xroad.xsd"
+        xmlns:id="http://x-road.eu/xsd/identifiers">
+    <SOAP-ENV:Header>
+        <xroad:client id:objectType="MEMBER">
+            <id:xRoadInstance>EE</id:xRoadInstance>
+            <id:memberClass>BUSINESS</id:memberClass>
+            <id:memberCode>consumer</id:memberCode>
+        </xroad:client>
+        <xroad:service id:objectType="SERVICE">
+            <id:xRoadInstance>EE</id:xRoadInstance>
+            <id:memberClass>BUSINESS</id:memberClass>
+            <id:memberCode>producer</id:memberCode>
+            <id:serviceCode>testResponse</id:serviceCode>
+        </xroad:service>
+        <xroad:userId>EE37702211234</xroad:userId>
+        <xroad:id>1234567890</xroad:id>
+        <xroad:protocolVersion>4.0</xroad:protocolVersion>
+    </SOAP-ENV:Header>
+    <SOAP-ENV:Body>
+        <ns1:testResponse xmlns:ns1="http://cosumer.ee.xroad.net" />
+    </SOAP-ENV:Body>
+</SOAP-ENV:Envelope>
+
+--MIMEBoundaryurn_uuid_0FE43E4D025F0BF3DC11582467646812
+content-type: text/plain
+content-transfer-encoding: binary
+content-id:
+         <1.urn:uuid:0FE43E4D025F0BF3DC11582467646811@apache.org>
+
+77+9UE5HDQoaCgAAAA1JSERSAAAAIAAAACAIAgAAAO+/vRjvv70AAAAJcEhZcwAACxMAAAsTAQDv
+v73vv70YAAAAB3RJTUUH77+9Bg0KCxAn77+9F++/vQAAAB1pVFh0Q29tbWVudAAAAAAAQ3JlYXRl
+ZCB3aXRoIEdJTVBkLmUHAAABOUlEQVRI77+977+91qHvv73vv71QFO+/ve+/ve+/ve+/vRgD77+9
+77+9Ye+/vU9g77+977+9IksLKu+/ve+/ve+/ve+/ve+/vd2q77+977+977+9FH0G77+9Y0YF77+9
+ahvvv73vv73vv71277+977+9du+/ve+/vR5+77+9cw7vv73vv71E77+9X++/vR8/77+9Eijvv70S
+77+9Ae+/ve+/vVJqMBjvv70nfe+/vVdK77+9Ru+/vXxB77+9Iu+/vWPvv70077+977+9fu+/vWVW
+77+9FWDvv73vv73vv71y77+9Le+/vQdEZDrvv70C77+9ZjNJ77+977+977+9WO+/vVbvv73vv71m
+77+9U++/vQXvv73vv73vv71G77+9Ae+/ve+/ve+/vW7vv73vv73vv71N77+9Au+/vXPvv73vv70W
+MAwD77+977+9au+/vdOpYEBEOu+/vU4277+9IAjvv73vv70+WNOs77+9QO+/ve+/ve+/vWBPNS/v
+v71e77+9XyXvv73vv71pWmTvv73vv73vv71t77+977+9bDbvv70sCwjDsEhgOBwC77+977+9ae+/
+vVwuAe+/vXFu77+9WzHvv71u77+9Ayrvv73vv73vv71wEO+/ve+/ve+/ve+/vWAy77+9FABc77+9
+77+9eu+/vQ4sFu+/vVcy77+9Iu+/vTTvv70477+977+9Be+/vdem77+9bj/vv73vv73vv73vv714
+PAZ677+9Xi7vv73vv71vSwnvv73vv73vv71/dXjvv71ofQBaeQAAAABJRU5E77+9QmDvv70=
+
+--MIMEBoundaryurn_uuid_0FE43E4D025F0BF3DC11582467646812--

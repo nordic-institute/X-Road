@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="utf-8"?>
+<SOAP-ENV:Envelope
+        xmlns:SOAP-ENV="http://schemas.xmlsoap.org/soap/envelope/"
+        xmlns:xroad="http://x-road.eu/xsd/xroad.xsd"
+        xmlns:id="http://x-road.eu/xsd/identifiers">
+    <SOAP-ENV:Header>
+        <xroad:client id:objectType="MEMBER">
+            <id:xRoadInstance>EE</id:xRoadInstance>
+            <id:memberClass>BUSINESS</id:memberClass>
+            <id:memberCode>consumer</id:memberCode>
+        </xroad:client>
+        <xroad:service id:objectType="SERVICE">
+            <id:xRoadInstance>EE</id:xRoadInstance>
+            <id:memberClass>BUSINESS</id:memberClass>
+            <id:memberCode>producer</id:memberCode>
+            <id:serviceCode>testQuery</id:serviceCode>
+        </xroad:service>
+        <xroad:userId>EE37702211234</xroad:userId>
+        <xroad:id>1234567890</xroad:id>
+        <xroad:protocolVersion>4.0</xroad:protocolVersion>
+    </SOAP-ENV:Header>
+    <SOAP-ENV:Body>
+        <SOAP-ENV:Fault><faultcode>SOAP-ENV:Clientrwerete</faultcode>
+            <faultstring>Message does not have necessary info</faultstring>
+            <faultactor>http://gizmos.com/order</faultactor>
+            <detail>
+            <PO:order xmlns:PO="http://gizmos.com/orders/">
+            Quantity element does not have a value</PO:order>
+            <PO:confirmation xmlns:PO="http://gizmos.com/confirm">
+            Incomplete address: no zip code</PO:confirmation>
+            </detail>adfsaasdadasd</SOAP-ENV:Fault>
+    </SOAP-ENV:Body>
+</SOAP-ENV:Envelope>

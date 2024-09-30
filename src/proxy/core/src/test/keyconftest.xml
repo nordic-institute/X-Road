@@ -1,0 +1,105 @@
+<tns:keyConf xmlns:tns="http://x-road.eu/xsd/xroad.xsd"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://x-road.eu/xsd/xroad.xsd ../main/resources/keyconf.xsd ">
+    <device>
+        <deviceType>softToken</deviceType>
+        <id>1</id>
+        <key usage="SIGNING">
+            <friendlyName>Producer active signing key friendly name</friendlyName>
+            <keyId>70726f6475636572</keyId>
+            <!-- Extracted from ../sandbox/src/main/resources/producer.p12 -->
+            <cert memberId="producer" active="true">MIIDiDCCAnCgAwIBAgIIPl9RxHk9tEQwDQYJKoZIhvcNAQEFBQAwNzERMA8GA1UE
+                AwwIQWRtaW5DQTExFTATBgNVBAoMDEVKQkNBIFNhbXBsZTELMAkGA1UEBhMCU0Uw
+                HhcNMTIwOTI4MTgxODIxWhcNMTQwOTI4MTgxODIxWjATMREwDwYDVQQDDAhwcm9k
+                dWNlcjCCASIwDQYJKoZIhvcNAQEBBQADggEPADCCAQoCggEBAL6kZcfiqsmviMOo
+                PlZ70wiy8/W05Ks+OlbPE72LWFMjsxbV/LAnsR4NZhJSaWfKLTkmjeAz+ZPE57gB
+                fKDeLZePvI5UgXx8ICv335u5xZdGPQQdKI0jymU518KVYzQEvStJarkul/tPBpJU
+                AWLH8OWcHlWes107tb9pA0e8IAM3TzlPQTfqCYhEBBEuk3KelWB4OyN4vz2g/X8a
+                wEfDrdpnD04M4V6dnFmqNJkzqH/NrG+8gs6KNpei0oyo6Oxzh34jD8dIxHGsyQlY
+                cX+ojtAUSP8al87RJYo5R9lTZTo3VzzOZU8k7+9l87x09DjCBpsV+NrgFdMfN0yq
+                8+fRHekCAwEAAaOBuzCBuDBYBggrBgEFBQcBAQRMMEowSAYIKwYBBQUHMAGGPGh0
+                dHA6Ly9pa3MyLXVidW50dS5jeWJlci5lZTo4MDgwL2VqYmNhL3B1YmxpY3dlYi9z
+                dGF0dXMvb2NzcDAdBgNVHQ4EFgQUOSov6/KI/czxIZu50J/za2u8vPMwDAYDVR0T
+                AQH/BAIwADAfBgNVHSMEGDAWgBR3LYkuA7b9+NJlOTE1ItBGGujSCTAOBgNVHQ8B
+                Af8EBAMCBeAwDQYJKoZIhvcNAQEFBQADggEBAAah21Rhpo+MwvkJZI+sUu3CgejK
+                GvLWNT4LEZQqFNl2QuKsFRlmV9nIo9SZND0jclp2GFj4i9uD+kuMZ2++5bq0tWqo
+                F5GsBeILwxuNxwapaB8ZUGoyn2OZu17LzZhevlBP40NjuOW19L0meFsh7gxgbWhz
+                nR+lrzpZheprvEgRkaVoBcCLcMVh4DLGO935xQHUStbyrKaCl+UDu+vBzCwes8oO
+                rIPNU/TOoRzws9/NiIHeJxVBN2Jf0C3C7H58O3gmbqcBclfoBo5N5nQaeAs8ASXA
+                SxcscVUoREaKExjoSIC+KMXhSESWdc7Prswii7i1i/l/ITMpNLr29O/0FPY=
+            </cert>
+        </key>
+        <key usage="SIGNING">
+            <friendlyName>Consumer active signing key friendly name</friendlyName>
+            <keyId>636f6e73756d6572</keyId>
+            <!-- Extracted from ../sandbox/src/main/resources/consumer.p12 -->
+            <cert memberId="consumer" active="true">MIIDiDCCAnCgAwIBAgIIW99Q5VUloqswDQYJKoZIhvcNAQEFBQAwNzERMA8GA1UE
+                AwwIQWRtaW5DQTExFTATBgNVBAoMDEVKQkNBIFNhbXBsZTELMAkGA1UEBhMCU0Uw
+                HhcNMTIwOTI4MTgxNzM5WhcNMTQwOTI4MTgxNzM5WjATMREwDwYDVQQDDAhjb25z
+                dW1lcjCCASIwDQYJKoZIhvcNAQEBBQADggEPADCCAQoCggEBAILY5AcoHHeoHIYq
+                rrjaadQJwJlwMFN8mT/txE4/oKUWecvikwk1RNJNH0s+D9iUoCsCYqlU7PXbIXIe
+                lkH08ehgsdi5OmNAiG0fxEIouPDDOg5L5c4wxOm1/vVf0H+yBrv1OWUfEnCwsiRm
+                qRN1JU9LH1GkVulPdqCMbicqlbidTTfYcFwf4R7RfOFeHrrNJSBvRev+TUt+Jnwb
+                O4vHFxhGDBXMLwiNZdedhE9NO3zUorWPEiVNapp/u0agMXAv3RmJsIGeVJerGFay
+                7Eb9RbhTcHOePGl1IetV7J3A9L14OqauMShaFJQUnTXSqS8ldcge/JfgSiWTqE0T
+                jVc0pYMCAwEAAaOBuzCBuDBYBggrBgEFBQcBAQRMMEowSAYIKwYBBQUHMAGGPGh0
+                dHA6Ly9pa3MyLXVidW50dS5jeWJlci5lZTo4MDgwL2VqYmNhL3B1YmxpY3dlYi9z
+                dGF0dXMvb2NzcDAdBgNVHQ4EFgQU25SlUgQRwFCiraz2euhPUBqpvj0wDAYDVR0T
+                AQH/BAIwADAfBgNVHSMEGDAWgBR3LYkuA7b9+NJlOTE1ItBGGujSCTAOBgNVHQ8B
+                Af8EBAMCBeAwDQYJKoZIhvcNAQEFBQADggEBAFFWRyInsq/jKrW20BKzRr2KAAnE
+                2nDVmZLFfcv7ZwrLOOJYkHxdPEfkcXcwJy4B1KJdvm0+1FlgfoKgDiUjTRbXraXm
+                yUwAL5s5yMr9wFwu9N9JL6IwchMNT6S5zwA+iioLMQbHAMfwXXSS/Vp7aUxmejK4
+                XbNtehsukalD7S3ILAK7dtamPr0YvRqUBbj4k9zD60gVU13jmACr/JuSXI4Jxyoi
+                FdUNDdtQbiiGOsrOuLmc/WbzXNo7iN/zhwEMJNJThtyGYthhiYeZKT+0B5Yy/sAR
+                kinWqLpUwddf+plfH+4HP2akrt8uoHSZXKKOmN8IlXgN89LPVBC+oSltnhY=</cert>
+        </key>
+        <key usage="SIGNING">
+            <friendlyName>For testing faulty cases</friendlyName>
+            <!-- Extracted from ../sandbox/src/main/resources/consumer.p12 -->
+            <cert memberId="consumer" active="true">MIIDiDCCAnCgAwIBAgIIW99Q5VUloqswDQYJKoZIhvcNAQEFBQAwNzERMA8GA1UE
+                AwwIQWRtaW5DQTExFTATBgNVBAoMDEVKQkNBIFNhbXBsZTELMAkGA1UEBhMCU0Uw
+                HhcNMTIwOTI4MTgxNzM5WhcNMTQwOTI4MTgxNzM5WjATMREwDwYDVQQDDAhjb25z
+                dW1lcjCCASIwDQYJKoZIhvcNAQEBBQADggEPADCCAQoCggEBAILY5AcoHHeoHIYq
+                rrjaadQJwJlwMFN8mT/txE4/oKUWecvikwk1RNJNH0s+D9iUoCsCYqlU7PXbIXIe
+                lkH08ehgsdi5OmNAiG0fxEIouPDDOg5L5c4wxOm1/vVf0H+yBrv1OWUfEnCwsiRm
+                qRN1JU9LH1GkVulPdqCMbicqlbidTTfYcFwf4R7RfOFeHrrNJSBvRev+TUt+Jnwb
+                O4vHFxhGDBXMLwiNZdedhE9NO3zUorWPEiVNapp/u0agMXAv3RmJsIGeVJerGFay
+                7Eb9RbhTcHOePGl1IetV7J3A9L14OqauMShaFJQUnTXSqS8ldcge/JfgSiWTqE0T
+                jVc0pYMCAwEAAaOBuzCBuDBYBggrBgEFBQcBAQRMMEowSAYIKwYBBQUHMAGGPGh0
+                dHA6Ly9pa3MyLXVidW50dS5jeWJlci5lZTo4MDgwL2VqYmNhL3B1YmxpY3dlYi9z
+                dGF0dXMvb2NzcDAdBgNVHQ4EFgQU25SlUgQRwFCiraz2euhPUBqpvj0wDAYDVR0T
+                AQH/BAIwADAfBgNVHSMEGDAWgBR3LYkuA7b9+NJlOTE1ItBGGujSCTAOBgNVHQ8B
+                Af8EBAMCBeAwDQYJKoZIhvcNAQEFBQADggEBAFFWRyInsq/jKrW20BKzRr2KAAnE
+                2nDVmZLFfcv7ZwrLOOJYkHxdPEfkcXcwJy4B1KJdvm0+1FlgfoKgDiUjTRbXraXm
+                yUwAL5s5yMr9wFwu9N9JL6IwchMNT6S5zwA+iioLMQbHAMfwXXSS/Vp7aUxmejK4
+                XbNtehsukalD7S3ILAK7dtamPr0YvRqUBbj4k9zD60gVU13jmACr/JuSXI4Jxyoi
+                FdUNDdtQbiiGOsrOuLmc/WbzXNo7iN/zhwEMJNJThtyGYthhiYeZKT+0B5Yy/sAR
+                kinWqLpUwddf+plfH+4HP2akrt8uoHSZXKKOmN8IlXgN89LPVBC+oSltnhY=</cert>
+        </key>
+        <key usage="AUTHENTICATION">
+            <friendlyName>Seda me autentimiseks kasutame</friendlyName>
+            <keyId>70726f6475636572</keyId>
+            <!-- Extracted from ../sandbox/src/main/resources/producer.p12 -->
+            <cert memberId="producer" active="true">MIIDiDCCAnCgAwIBAgIIPl9RxHk9tEQwDQYJKoZIhvcNAQEFBQAwNzERMA8GA1UE
+                AwwIQWRtaW5DQTExFTATBgNVBAoMDEVKQkNBIFNhbXBsZTELMAkGA1UEBhMCU0Uw
+                HhcNMTIwOTI4MTgxODIxWhcNMTQwOTI4MTgxODIxWjATMREwDwYDVQQDDAhwcm9k
+                dWNlcjCCASIwDQYJKoZIhvcNAQEBBQADggEPADCCAQoCggEBAL6kZcfiqsmviMOo
+                PlZ70wiy8/W05Ks+OlbPE72LWFMjsxbV/LAnsR4NZhJSaWfKLTkmjeAz+ZPE57gB
+                fKDeLZePvI5UgXx8ICv335u5xZdGPQQdKI0jymU518KVYzQEvStJarkul/tPBpJU
+                AWLH8OWcHlWes107tb9pA0e8IAM3TzlPQTfqCYhEBBEuk3KelWB4OyN4vz2g/X8a
+                wEfDrdpnD04M4V6dnFmqNJkzqH/NrG+8gs6KNpei0oyo6Oxzh34jD8dIxHGsyQlY
+                cX+ojtAUSP8al87RJYo5R9lTZTo3VzzOZU8k7+9l87x09DjCBpsV+NrgFdMfN0yq
+                8+fRHekCAwEAAaOBuzCBuDBYBggrBgEFBQcBAQRMMEowSAYIKwYBBQUHMAGGPGh0
+                dHA6Ly9pa3MyLXVidW50dS5jeWJlci5lZTo4MDgwL2VqYmNhL3B1YmxpY3dlYi9z
+                dGF0dXMvb2NzcDAdBgNVHQ4EFgQUOSov6/KI/czxIZu50J/za2u8vPMwDAYDVR0T
+                AQH/BAIwADAfBgNVHSMEGDAWgBR3LYkuA7b9+NJlOTE1ItBGGujSCTAOBgNVHQ8B
+                Af8EBAMCBeAwDQYJKoZIhvcNAQEFBQADggEBAAah21Rhpo+MwvkJZI+sUu3CgejK
+                GvLWNT4LEZQqFNl2QuKsFRlmV9nIo9SZND0jclp2GFj4i9uD+kuMZ2++5bq0tWqo
+                F5GsBeILwxuNxwapaB8ZUGoyn2OZu17LzZhevlBP40NjuOW19L0meFsh7gxgbWhz
+                nR+lrzpZheprvEgRkaVoBcCLcMVh4DLGO935xQHUStbyrKaCl+UDu+vBzCwes8oO
+                rIPNU/TOoRzws9/NiIHeJxVBN2Jf0C3C7H58O3gmbqcBclfoBo5N5nQaeAs8ASXA
+                SxcscVUoREaKExjoSIC+KMXhSESWdc7Prswii7i1i/l/ITMpNLr29O/0FPY=
+            </cert>
+        </key>
+    </device>
+</tns:keyConf>

@@ -1,0 +1,69 @@
+--xtop1143483536hcn1yj5i
+Content-Type: text/xml
+
+<?xml version="1.0" encoding="utf-8"?><SOAP-ENV:Envelope xmlns:SOAP-ENV="http://schemas.xmlsoap.org/soap/envelope/" xmlns:xroad="http://x-road.eu/xsd/xroad.xsd">
+    <SOAP-ENV:Header>
+        <xroad:consumer>consumer</xroad:consumer>
+        <xroad:producer>producer</xroad:producer>
+        <xroad:userId>EE:PIN:abc4567</xroad:userId>
+        <xroad:id>598b0bcc8302a9a6ae86d41af6e5ebd3</xroad:id>
+        <xroad:service>producer.getState</xroad:service>
+        <xroad:issue/>
+    </SOAP-ENV:Header>
+    <SOAP-ENV:Body>
+        <xroad:getStateResponse>
+            <response>1</response>
+        </xroad:getStateResponse>
+    </SOAP-ENV:Body>
+</SOAP-ENV:Envelope>
+--xtop1143483536hcn1yj5i
+Content-Type: signature/bdoc-1.0/ts
+
+<?xml version="1.0" encoding="UTF-8"?><asic:XAdESSignatures xmlns:asic="http://uri.etsi.org/02918/v1.1.1#" xmlns:ds="http://www.w3.org/2000/09/xmldsig#" xmlns:xades="http://uri.etsi.org/01903/v1.3.2#" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"><ds:Signature Id="signature" xmlns:ds="http://www.w3.org/2000/09/xmldsig#">
+<ds:SignedInfo>
+<ds:CanonicalizationMethod Algorithm="http://www.w3.org/TR/2001/REC-xml-c14n-20010315"/>
+<ds:SignatureMethod Algorithm="http://www.w3.org/2001/04/xmldsig-more#rsa-sha512"/>
+<ds:Reference Type="http://www.w3.org/2000/09/xmldsig#Manifest" URI="#sig-manifest-1">
+<ds:DigestMethod Algorithm="http://www.w3.org/2001/04/xmlenc#sha512"/>
+<ds:DigestValue>c6NxwxYQiB3letzFinC9uLWcG+wB0aKsgr32paXy7jHN6q6sKbunZ1fRvxFD9cBfvGVUqlTF6y2v
+LAzwwoqi2g==</ds:DigestValue>
+</ds:Reference>
+<ds:Reference Type="http://uri.etsi.org/01903#SignedProperties" URI="#signed-properties">
+<ds:DigestMethod Algorithm="http://www.w3.org/2001/04/xmlenc#sha512"/>
+<ds:DigestValue>YnqSLDwurLIgZyUPKX+NkX/ytQSGn7Q7VufboH2VVUKIeetC8SwSAZVfNFo7JzVkubwLVewp/18g
++aKEUrHB/g==</ds:DigestValue>
+</ds:Reference>
+</ds:SignedInfo>
+<ds:SignatureValue Id="signature-value">
+gubED1SqnyIhlmx1Hy2V4i/T94cAL+ZToH+W8NTRgreEgWb0xSeqssaZQMQfOZVppMxxQp2iqDrG
+iqCSTzKPoQKIPR4SJOe7pePTJeHrXtezCAt+VVBKZvo1eVElw1+6FAA1pTMDD8NurvomcZPP+u5h
+WueXb/js1q3Lml9YbF7X8GxtQVGNlDwxzrTMhN/aR7KkRNno2SHEW0l8VuFKvLEJ9i6fvliaFteu
+p60afRAF5JdHg8hvy4bLljv4NfI25fcknreW8DYJGtRLxrzvpx4QoWEW8tRAfkUYTQuyu76Qd0k8
+n8OV3h1wsoJNomQzq2SuyGPnMI3vYBnpO8jW+w==
+</ds:SignatureValue>
+<ds:KeyInfo>
+<ds:X509Data>
+<ds:X509Certificate>
+MIIDiDCCAnCgAwIBAgIIPl9RxHk9tEQwDQYJKoZIhvcNAQEFBQAwNzERMA8GA1UEAwwIQWRtaW5D
+QTExFTATBgNVBAoMDEVKQkNBIFNhbXBsZTELMAkGA1UEBhMCU0UwHhcNMTIwOTI4MTgxODIxWhcN
+MTQwOTI4MTgxODIxWjATMREwDwYDVQQDDAhwcm9kdWNlcjCCASIwDQYJKoZIhvcNAQEBBQADggEP
+ADCCAQoCggEBAL6kZcfiqsmviMOoPlZ70wiy8/W05Ks+OlbPE72LWFMjsxbV/LAnsR4NZhJSaWfK
+LTkmjeAz+ZPE57gBfKDeLZePvI5UgXx8ICv335u5xZdGPQQdKI0jymU518KVYzQEvStJarkul/tP
+BpJUAWLH8OWcHlWes107tb9pA0e8IAM3TzlPQTfqCYhEBBEuk3KelWB4OyN4vz2g/X8awEfDrdpn
+D04M4V6dnFmqNJkzqH/NrG+8gs6KNpei0oyo6Oxzh34jD8dIxHGsyQlYcX+ojtAUSP8al87RJYo5
+R9lTZTo3VzzOZU8k7+9l87x09DjCBpsV+NrgFdMfN0yq8+fRHekCAwEAAaOBuzCBuDBYBggrBgEF
+BQcBAQRMMEowSAYIKwYBBQUHMAGGPGh0dHA6Ly9pa3MyLXVidW50dS5jeWJlci5lZTo4MDgwL2Vq
+YmNhL3B1YmxpY3dlYi9zdGF0dXMvb2NzcDAdBgNVHQ4EFgQUOSov6/KI/czxIZu50J/za2u8vPMw
+DAYDVR0TAQH/BAIwADAfBgNVHSMEGDAWgBR3LYkuA7b9+NJlOTE1ItBGGujSCTAOBgNVHQ8BAf8E
+BAMCBeAwDQYJKoZIhvcNAQEFBQADggEBAAah21Rhpo+MwvkJZI+sUu3CgejKGvLWNT4LEZQqFNl2
+QuKsFRlmV9nIo9SZND0jclp2GFj4i9uD+kuMZ2++5bq0tWqoF5GsBeILwxuNxwapaB8ZUGoyn2OZ
+u17LzZhevlBP40NjuOW19L0meFsh7gxgbWhznR+lrzpZheprvEgRkaVoBcCLcMVh4DLGO935xQHU
+StbyrKaCl+UDu+vBzCwes8oOrIPNU/TOoRzws9/NiIHeJxVBN2Jf0C3C7H58O3gmbqcBclfoBo5N
+5nQaeAs8ASXASxcscVUoREaKExjoSIC+KMXhSESWdc7Prswii7i1i/l/ITMpNLr29O/0FPY=
+</ds:X509Certificate>
+</ds:X509Data>
+</ds:KeyInfo>
+<ds:Object><ds:Manifest Id="sig-manifest-1"><ds:Reference URI="d7a6598f1c1bcfb7fddddf1a7934d37d-message.xml"><ds:DigestMethod Algorithm="http://www.w3.org/2001/04/xmlenc#sha512"/><ds:DigestValue>8BPfOhG6cqDnIaR42bHXckZXkUhUzKMbrot5cKzQ7AfsDDSF8KKJMsuQnCk3ZNM+CDuTdTvsVLZLloww7c0T/A==</ds:DigestValue></ds:Reference></ds:Manifest><xades:QualifyingProperties Target="#signature"><xades:SignedProperties Id="signed-properties"><xades:SignedSignatureProperties><xades:SigningTime>2013-02-01T10:09:51.407+02:00</xades:SigningTime><xades:SigningCertificate><xades:Cert><xades:CertDigest><ds:DigestMethod Algorithm="http://www.w3.org/2001/04/xmlenc#sha512"/><ds:DigestValue>AWocSK9lCjklGP96VcWGDMY92B7MCFF44/bIZmhGR51wWG8jZU3F3nO9y2Eth0PWo7iqds7X0PO7gDnQExd/gw==</ds:DigestValue></xades:CertDigest><xades:IssuerSerial><ds:X509IssuerName>C=SE,O=EJBCA Sample,CN=AdminCA1</ds:X509IssuerName><ds:X509SerialNumber>4494400857428571204</ds:X509SerialNumber></xades:IssuerSerial></xades:Cert></xades:SigningCertificate></xades:SignedSignatureProperties><xades:SignedDataObjectProperties/></xades:SignedProperties><xades:UnsignedProperties><xades:UnsignedSignatureProperties><xades:CompleteRevocationRefs Id="complete-revocation-refs"><xades:OCSPRefs><xades:OCSPRef><xades:OCSPIdentifier URI="#ocsp-response-1"><xades:ResponderID><xades:ByName>oRgwFjEUMBIGA1UEAwwLT2NzcCBTaWduZXI=</xades:ByName></xades:ResponderID><xades:ProducedAt>2013-02-01T10:09:51+02:00</xades:ProducedAt></xades:OCSPIdentifier><xades:DigestAlgAndValue><ds:DigestMethod Algorithm="http://www.w3.org/2001/04/xmlenc#sha512"/><ds:DigestValue>stK0rmZQP4E5+6SeouOJxlOC3unkGSAjSU5N0X/X/XvsLGrwxWKNYvM5Kiy+bIH4yjPRQjXmofKf6DLwpF5whw==</ds:DigestValue></xades:DigestAlgAndValue></xades:OCSPRef></xades:OCSPRefs></xades:CompleteRevocationRefs><xades:RevocationValues><xades:OCSPValues><xades:EncapsulatedOCSPValue Id="ocsp-response-1">MIIBugoBAKCCAbMwggGvBgkrBgEFBQcwAQEEggGgMIIBnDCBhaEYMBYxFDASBgNVBAMMC09jc3AgU2lnbmVyGA8yMDEzMDIwMTA4MDk1MVowWDBWMEEwCQYFKw4DAhoFAAQUQUX4pczwfgHr8dItQKHik5Kx4C4EFHctiS4Dtv340mU5MTUi0EYa6NIJAgg+X1HEeT20RIAAGA8yMDEzMDIwMjA4MDk1MVowDQYJKoZIhvcNAQEFBQADggEBALiU7L0G/EO3gKpWGS542Z9Lud+/vjREzcbZJk3KXEbq5HnsDXvtWUR78wIX7LSWzC+coza9z7B1Whi5YBpW57EwegfZKeb8wd5EsvbZXi/zpWdnzRjbvNqb8v9f7p5/Hq6Opv6sswKBxz4+l6i+2aWOngsde42C3vXHSz0Yqgq7TvNqUHsveyZMwSsaXL6KStIiSQBkmYDqcL2U8+s7DuvRs0s7Fk4xN3Dwy9RUr+8jvVM6xrxGOU35RfKSlPKusg/MbgDXkiaNepPKrb5wvswwtX6e/efjDig71Bnw1TDJgB7ePif/Y4DFWVmcqpaXOqdi4Dp2ZRSZVkZ2mIlhPNQ=</xades:EncapsulatedOCSPValue></xades:OCSPValues></xades:RevocationValues></xades:UnsignedSignatureProperties></xades:UnsignedProperties></xades:QualifyingProperties></ds:Object>
+</ds:Signature></asic:XAdESSignatures>
+
+--xtop1143483536hcn1yj5i--

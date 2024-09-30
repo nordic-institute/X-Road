@@ -1,0 +1,41 @@
+--jetty771207119h3h10dty
+Content-Type: application/xop+xml; type="application/soap+xml"; charset=utf-8
+Content-ID: <foo>
+
+<?xml version="1.0" encoding="utf-8"?>
+<SOAP-ENV:Envelope
+        xmlns:SOAP-ENV="http://schemas.xmlsoap.org/soap/envelope/"
+        xmlns:xroad="http://x-road.eu/xsd/xroad.xsd"
+        xmlns:id="http://x-road.eu/xsd/identifiers">
+    <SOAP-ENV:Header>
+        <xroad:client id:objectType="MEMBER">
+            <id:xRoadInstance>EE</id:xRoadInstance>
+            <id:memberClass>BUSINESS</id:memberClass>
+            <id:memberCode>consumer</id:memberCode>
+        </xroad:client>
+        <xroad:service id:objectType="SERVICE">
+            <id:xRoadInstance>EE</id:xRoadInstance>
+            <id:memberClass>BUSINESS</id:memberClass>
+            <id:memberCode>producer</id:memberCode>
+            <id:serviceCode>test</id:serviceCode>
+        </xroad:service>
+        <xroad:userId>EE37702211234</xroad:userId>
+        <xroad:id>9876543210</xroad:id>
+        <xroad:issue>issue</xroad:issue>
+        <xroad:protocolVersion>4.0</xroad:protocolVersion>
+    </SOAP-ENV:Header>
+    <SOAP-ENV:Body>
+        <ns1:testResponse xmlns:ns1="http://cosumer.ee.xroad.net">
+            <xop:Include xmlns:xop="http://www.w3.org/2004/08/xop/include" 
+                href="cid:42a7ee0a-20ee-426b-a135-094d72bc138f@example.org">
+            </xop:Include>
+        </ns1:testResponse>
+    </SOAP-ENV:Body>
+</SOAP-ENV:Envelope>
+
+--jetty771207119h3h10dty
+Content-Type: text/plain; charset=UTF-8; name=attachment.txt
+Content-ID: <42a7ee0a-20ee-426b-a135-094d72bc138f@example.org>
+
+foobarbaz
+--jetty771207119h3h10dty--

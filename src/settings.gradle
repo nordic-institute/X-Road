@@ -34,6 +34,7 @@ include 'common:common-scheduler'
 // Main projects
 include "proxy"
 include "proxy:application"
+include "proxy:core"
 include "signer"
 include "configuration-proxy"
 include "configuration-client:application"

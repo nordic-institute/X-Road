@@ -1,0 +1,106 @@
+Content-Type: multipart/related; charset=UTF-8; boundary=pF4ewfmHAhXklp7HqSyOIfNidwI=
+
+--pF4ewfmHAhXklp7HqSyOIfNidwI=
+Content-Type: multipart/mixed; charset=UTF-8; boundary=BsNw/Zv2hxSuyWLdt24Q7z6JvnI=
+
+--BsNw/Zv2hxSuyWLdt24Q7z6JvnI=
+Content-Type: text/xml
+Content-Date: 2013-05-29T13:59:41+0000
+
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<ns3:conf xmlns:ns2="http://x-road.eu/xsd/identifiers" xmlns:ns3="http://x-road.eu/xsd/xroad.xsd">
+    <instanceIdentifier>EE</instanceIdentifier>
+    <member id="consumerId">
+        <memberClass>BUSINESS</memberClass>
+        <memberCode>consumer</memberCode>
+        <name>Test Consumer</name>
+    </member>
+    <member id="producerId">
+        <memberClass>BUSINESS</memberClass>
+        <memberCode>producer</memberCode>
+        <name>Test Producer</name>
+    </member>
+    <memberClass>
+        <code>BUSINESS</code>
+        <description>Business clients</description>
+    </memberClass>
+    <securityServer>
+        <owner>consumerId</owner>
+        <serverCode>firstServerCode</serverCode>
+        <address>first.com</address>
+    </securityServer>
+    <securityServer>
+        <owner>producerId</owner>
+        <serverCode>secondServerCode</serverCode>
+        <address>second.com</address>
+    </securityServer>
+    <globalGroup>
+        <groupCode>linnuvabrik</groupCode>
+        <description>Eriti ohtlik grupeering</description>
+        <member ns2:objectType="MEMBER">
+            <ns2:xRoadInstance>EE</ns2:xRoadInstance>
+            <ns2:memberClass>BUSINESS</ns2:memberClass>
+            <ns2:memberCode>kallekurg</ns2:memberCode>
+        </member>
+        <member ns2:objectType="MEMBER">
+            <ns2:xRoadInstance>EE</ns2:xRoadInstance>
+            <ns2:memberClass>BUSINESS</ns2:memberClass>
+            <ns2:memberCode>martinlind</ns2:memberCode>
+        </member>
+        <member ns2:objectType="MEMBER">
+            <ns2:xRoadInstance>EE</ns2:xRoadInstance>
+            <ns2:memberClass>BUSINESS</ns2:memberClass>
+            <ns2:memberCode>olgerdharakas</ns2:memberCode>
+        </member>
+    </globalGroup>
+    <globalGroup>
+        <groupCode>nahatehas</groupCode>
+        <description>Siin tehakse nahka</description>
+        <member ns2:objectType="MEMBER">
+            <ns2:xRoadInstance>EE</ns2:xRoadInstance>
+            <ns2:memberClass>BUSINESS</ns2:memberClass>
+            <ns2:memberCode>kauponahk</ns2:memberCode>
+        </member>
+    </globalGroup>
+    <centralService>
+        <serviceCode>serviceCode</serviceCode>
+        <implementingService ns2:objectType="SERVICE">
+            <ns2:xRoadInstance>EE</ns2:xRoadInstance>
+            <ns2:memberClass>BUSINESS</ns2:memberClass>
+            <ns2:memberCode>10</ns2:memberCode>
+            <ns2:serviceCode>teenus</ns2:serviceCode>
+        </implementingService>
+    </centralService>
+    <pki>
+        <name>pki1</name>
+        <authenticationOnly>true</authenticationOnly>
+        <topCA>
+            <cert>dG9wQ2E=</cert>
+        </topCA>
+        <intermediateCA>
+            <cert>aW50ZXJtZWRpYXRlQ2E=</cert>
+            <ocsp>
+                <url>http://127.0.0.1</url>
+                <cert>b2NzcA==</cert>
+            </ocsp>
+        </intermediateCA>
+        <nameExtractor>
+            <memberClass>BUSINESS</memberClass>
+            <methodName>foo.bar.baz.NameExtractor.getCommonName</methodName>
+        </nameExtractor>
+    </pki>
+    <approvedTsp>
+        <name>Test TSP</name>
+        <url>http://foo.bar.baz</url>
+        <cert>Zm9v</cert>
+    </approvedTsp>
+</ns3:conf>
+
+--BsNw/Zv2hxSuyWLdt24Q7z6JvnI=--
+--pF4ewfmHAhXklp7HqSyOIfNidwI=
+Content-Type: text/plain
+Content-Transfer-Encoding: base64
+Signature-Algorithm-Id: SHA-256
+
+CSJBGYNPJRusz7DohRoFhw2CVl5kgDQrxPSjVDS0htWDbAhsYvM9wdc501FqHE6smXHI5CefOhuekeV8JeXdUAON44/BU4DFP3OdzyCH8g6sRXkm8g46xod/BSzarwAM8CxQfuYVQnzZ6NfqU45+xUSbFRMhl5ekZC+drd4b2GttlcvUShMyVtOc5ScCuK0v7jPBd6Opw+aE+PNT7D6XJBDxqd8M16vrOb6d6mPdAFMHxuGN6Lsb0jUHjZY3X7owckI9WLPpf9Pf5jmWJ8T1xs4KKeJqkfFHRRBuKFafpbsfbC28JXyu82XthdpUk+jhtJ2SLMz2nUiDsY0YYzS5LA==
+--pF4ewfmHAhXklp7HqSyOIfNidwI=--
