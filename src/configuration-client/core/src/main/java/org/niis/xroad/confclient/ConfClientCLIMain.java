@@ -39,11 +39,11 @@ import org.apache.commons.cli.Options;
 import static ee.ria.xroad.common.SystemProperties.CONF_FILE_PROXY;
 import static ee.ria.xroad.common.conf.globalconf.ConfigurationClientCLI.OPTION_VERIFY_ANCHOR_FOR_EXTERNAL_SOURCE;
 import static ee.ria.xroad.common.conf.globalconf.ConfigurationClientCLI.OPTION_VERIFY_PRIVATE_PARAMS_EXISTS;
-import static org.niis.xroad.confclient.ConfClientDaemonMain.APP_NAME;
 
 @Slf4j
 @UtilityClass
 public class ConfClientCLIMain {
+    private static final String APP_NAME = "xroad-confclient";
     private static final int NUM_ARGS_FROM_CONF_PROXY_FULL = 3;
     private static final int NUM_ARGS_FROM_CONF_PROXY = 2;
 
