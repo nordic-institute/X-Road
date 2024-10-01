@@ -42,7 +42,7 @@ import static java.time.temporal.ChronoUnit.MICROS;
  * This class contains various time related utility methods.
  */
 public final class TimeUtils {
-    private static Clock clock = Clock.systemUTC();
+    private static Clock clock = Clock.systemDefaultZone();
 
 
     private TimeUtils() {
