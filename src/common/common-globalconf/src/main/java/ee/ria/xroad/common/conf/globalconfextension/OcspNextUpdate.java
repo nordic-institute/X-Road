@@ -31,10 +31,12 @@ import ee.ria.xroad.common.conf.globalconf.ocspnextupdateparameters.OcspNextUpda
 
 import jakarta.xml.bind.JAXBContext;
 import jakarta.xml.bind.JAXBException;
+import lombok.ToString;
 
 /**
  * Ocsp next update parameters
  */
+@ToString(onlyExplicitlyIncluded = true)
 public class OcspNextUpdate extends AbstractXmlConf<OcspNextUpdateType> {
     private static final JAXBContext JAXB_CONTEXT = createJAXBContext();
     /**
@@ -52,6 +54,7 @@ public class OcspNextUpdate extends AbstractXmlConf<OcspNextUpdateType> {
         super(OcspNextUpdateSchemaValidator.class);
     }
 
+    @ToString.Include
     boolean shouldVerifyOcspNextUpdate() {
         return confType.isVerifyNextUpdate();
     }

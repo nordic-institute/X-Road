@@ -28,7 +28,6 @@ package org.niis.xroad.common.managementrequest.verify.decode.util;
 
 import ee.ria.xroad.common.CodedException;
 import ee.ria.xroad.common.conf.globalconf.GlobalConfProvider;
-import ee.ria.xroad.common.conf.globalconfextension.GlobalConfExtensions;
 import ee.ria.xroad.common.ocsp.OcspVerifier;
 import ee.ria.xroad.common.ocsp.OcspVerifierOptions;
 import ee.ria.xroad.common.util.CertUtils;
@@ -62,7 +61,7 @@ public class ManagementRequestCertVerifier {
         }
 
         new OcspVerifier(globalConfProvider,
-                new OcspVerifierOptions(GlobalConfExtensions.getInstance(globalConfProvider).shouldVerifyOcspNextUpdate()))
+                new OcspVerifierOptions(globalConfProvider.getGlobalConfExtensions().shouldVerifyOcspNextUpdate()))
                 .verifyValidityAndStatus(memberCertOcsp, memberCert, issuer);
     }
 

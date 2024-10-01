@@ -44,11 +44,11 @@ public class MonitoringParameters extends AbstractXmlConf<MonitoringParametersTy
     public static final String FILE_NAME_MONITORING_PARAMETERS =
             "monitoring-params.xml";
 
-    MonitoringParameters() {
+    public MonitoringParameters() {
         super(MonitoringParametersSchemaValidator.class);
     }
 
-    MonitoringClientType getMonitoringClient() {
+    public MonitoringClientType getMonitoringClient() {
         return confType.getMonitoringClient();
     }
 

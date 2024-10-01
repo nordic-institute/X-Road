@@ -27,7 +27,6 @@ package ee.ria.xroad.signer.protocol.handler;
 
 import ee.ria.xroad.common.CodedException;
 import ee.ria.xroad.common.conf.globalconf.GlobalConfProvider;
-import ee.ria.xroad.common.conf.globalconfextension.GlobalConfExtensions;
 import ee.ria.xroad.common.identifier.SecurityServerId;
 import ee.ria.xroad.common.ocsp.OcspVerifier;
 import ee.ria.xroad.common.ocsp.OcspVerifierOptions;
@@ -137,7 +136,7 @@ public class GetAuthKeyReqHandler
 
     private boolean authCertValid(CertificateInfo certInfo,
                                   SecurityServerId securityServer) throws Exception {
-        X509Certificate cert =  CryptoUtils.readCertificate(certInfo.getCertificateBytes());
+        X509Certificate cert = CryptoUtils.readCertificate(certInfo.getCertificateBytes());
 
         if (!certInfo.isActive()) {
             log.trace("Ignoring inactive authentication certificate {}",
@@ -160,7 +159,7 @@ public class GetAuthKeyReqHandler
             if (securityServer.equals(serverIdFromConf)) {
                 verifyOcspResponse(securityServer.getXRoadInstance(), cert,
                         certInfo.getOcspBytes(), new OcspVerifierOptions(
-                                GlobalConfExtensions.getInstance(globalConfProvider)
+                                globalConfProvider.getGlobalConfExtensions()
                                         .shouldVerifyOcspNextUpdate()));
 
                 return true;

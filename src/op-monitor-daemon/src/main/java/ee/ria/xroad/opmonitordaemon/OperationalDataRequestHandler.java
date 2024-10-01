@@ -27,7 +27,6 @@ package ee.ria.xroad.opmonitordaemon;
 
 import ee.ria.xroad.common.CodedException;
 import ee.ria.xroad.common.conf.globalconf.GlobalConfProvider;
-import ee.ria.xroad.common.conf.monitoringconf.MonitoringConf;
 import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.identifier.SecurityServerId;
 import ee.ria.xroad.common.message.MultipartSoapMessageEncoder;
@@ -231,8 +230,7 @@ class OperationalDataRequestHandler extends QueryRequestHandler {
     }
 
     private boolean isMonitoringClient(ClientId clientId) {
-        return clientId != null && clientId.equals(
-                MonitoringConf.getInstance(globalConfProvider).getMonitoringClient());
+        return clientId != null && clientId.equals(globalConfProvider.getGlobalConfExtensions().getMonitoringClient());
     }
 
     private boolean isServerOwner(ClientId clientId, SecurityServerId serverId)

@@ -29,11 +29,11 @@ import ee.ria.xroad.common.CodedException;
 import ee.ria.xroad.common.cert.CertChain;
 import ee.ria.xroad.common.certificateprofile.AuthCertificateProfileInfo;
 import ee.ria.xroad.common.certificateprofile.SignCertificateProfileInfo;
+import ee.ria.xroad.common.conf.globalconfextension.GlobalConfExtensions;
 import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.identifier.GlobalGroupId;
 import ee.ria.xroad.common.identifier.SecurityServerId;
 
-import java.nio.file.Path;
 import java.security.cert.X509Certificate;
 import java.util.Collection;
 import java.util.Collections;
@@ -54,6 +54,7 @@ public interface GlobalConfProvider {
      * Returns true, if the global configuration is valid and can be used
      * for security-critical tasks.
      * Configuration is considered valid if main/home instance parameteres are valid
+     *
      * @return true if the global configuration is valid
      */
     boolean isValid();
@@ -105,6 +106,7 @@ public interface GlobalConfProvider {
 
     /**
      * Returns address of the given service provider's proxy.
+     *
      * @param serviceProvider the service provider identifier
      * @return IP address converted to string, such as "192.168.2.2".
      */
@@ -112,6 +114,7 @@ public interface GlobalConfProvider {
 
     /**
      * Returns address of the given security server
+     *
      * @param serverId the security server identifier
      * @return IP address converted to string, such as "192.168.2.2".
      */
@@ -130,6 +133,7 @@ public interface GlobalConfProvider {
     /**
      * Returns a list of OCSP responder addresses for the given member
      * certificate.
+     *
      * @param member the member certificate
      * @return list of OCSP responder addresses
      * @throws Exception if an error occurs
@@ -138,7 +142,9 @@ public interface GlobalConfProvider {
             throws Exception;
 
 
-    /** Returns a list of OCSP responder addresses for the given CA certificate
+    /**
+     * Returns a list of OCSP responder addresses for the given CA certificate
+     *
      * @param caCert the CA certificate
      * @return list of OCSP responder addresses
      * @throws Exception if an error occurs
@@ -153,7 +159,7 @@ public interface GlobalConfProvider {
 
     /**
      * @param instanceIdentifier the instance identifier
-     * @param memberCert the member certificate
+     * @param memberCert         the member certificate
      * @return the issuer certificate for the member certificate
      * @throws Exception if an error occurs
      */
@@ -172,7 +178,7 @@ public interface GlobalConfProvider {
 
     /**
      * @param instanceIdentifier the instance identifier
-     * @param subject the subject certificate
+     * @param subject            the subject certificate
      * @return the top CA and any intermediate CA certificates for a
      * given end entity
      * @throws Exception if an error occurs
@@ -181,7 +187,7 @@ public interface GlobalConfProvider {
             throws Exception;
 
     /**
-     * @param ca the CA certificate
+     * @param ca       the CA certificate
      * @param ocspCert the OCSP certificate
      * @return true, if the CA has the specified OCSP responder certificate,
      * false otherwise
@@ -211,7 +217,7 @@ public interface GlobalConfProvider {
     ClientId getServerOwner(SecurityServerId serverId);
 
     /**
-     * @param cert the certificate
+     * @param cert     the certificate
      * @param memberId the member identifier
      * @return true, if cert can be used to authenticate as
      * member member
@@ -231,7 +237,7 @@ public interface GlobalConfProvider {
 
     /**
      * @param parameters the authentication certificate profile info parameters
-     * @param cert the certificate
+     * @param cert       the certificate
      * @return auth certificate profile info for this certificate
      * @throws Exception if an error occurs
      */
@@ -241,7 +247,7 @@ public interface GlobalConfProvider {
 
     /**
      * @param parameters the signing certificate profile info parameters
-     * @param cert the certificate
+     * @param cert       the certificate
      * @return signing certificate profile info for this certificate
      * @throws Exception if an error occurs
      */
@@ -263,7 +269,7 @@ public interface GlobalConfProvider {
 
     /**
      * @param instanceIdentifier the instance identifier
-     * @param approvedTspUrl the TSP url
+     * @param approvedTspUrl     the TSP url
      * @return approved TSP name for the given instance identifier and TSP
      * url
      */
@@ -282,13 +288,13 @@ public interface GlobalConfProvider {
 
     /**
      * @param subject the client identifier
-     * @param group the global group
+     * @param group   the global group
      * @return true, if given subject belongs to given global group
      */
     boolean isSubjectInGlobalGroup(ClientId subject, GlobalGroupId group);
 
     /**
-     * @param client the client identifier
+     * @param client         the client identifier
      * @param securityServer the security server identifier
      * @return true, if client belongs to the security server
      */
@@ -345,19 +351,19 @@ public interface GlobalConfProvider {
 
     /**
      * Get ApprovedCAInfo matching given CA certificate
+     *
      * @param instanceIdentifier instance id
-     * @param cert intermediate or top CA cert
+     * @param cert               intermediate or top CA cert
      * @return ApprovedCAInfo (for the top CA)
      * @throws CodedException if something went wrong, for example
-     * {@code cert} was not an approved CA cert
+     *                        {@code cert} was not an approved CA cert
      */
     ApprovedCAInfo getApprovedCA(String instanceIdentifier, X509Certificate cert) throws CodedException;
 
     /**
-     * Returns an absolute file name for the current instance.
+     * Returns access to various GlobalConf extensions.
      *
-     * @param fileName the file name
-     * @return the absolute path to the file of the current instance
+     * @return the global configuration extensions
      */
-    Path getInstanceFile(String fileName);
+    GlobalConfExtensions getGlobalConfExtensions();
 }
