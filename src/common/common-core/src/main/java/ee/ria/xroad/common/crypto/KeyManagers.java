@@ -37,6 +37,10 @@ public final class KeyManagers {
             KeyAlgorithm.EC, new EcKeyManager()
     );
 
+    public static KeyManager getFor(String keyAlgorithm) {
+        return getFor(KeyAlgorithm.valueOf(keyAlgorithm));
+    }
+
     public static KeyManager getFor(KeyAlgorithm keyAlgorithm) {
         return BY_TYPE.get(keyAlgorithm);
     }

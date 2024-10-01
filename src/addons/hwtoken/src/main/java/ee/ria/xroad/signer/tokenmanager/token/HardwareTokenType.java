@@ -25,6 +25,7 @@
  */
 package ee.ria.xroad.signer.tokenmanager.token;
 
+import ee.ria.xroad.common.crypto.identifier.KeyAlgorithm;
 import ee.ria.xroad.common.crypto.identifier.SignMechanism;
 import ee.ria.xroad.common.util.EncoderUtils;
 import ee.ria.xroad.signer.tokenmanager.module.PrivKeyAttributes;
@@ -33,6 +34,9 @@ import ee.ria.xroad.signer.util.SignerUtil;
 
 import lombok.EqualsAndHashCode;
 import lombok.Value;
+
+import java.util.Map;
+import java.util.Optional;
 
 /**
  * Hardware token type, holding the actual pkcs11 token.
@@ -59,7 +63,7 @@ public class HardwareTokenType implements TokenType {
 
     boolean batchSigningEnabled;
 
-    SignMechanism signMechanismName;
+    Map<KeyAlgorithm, SignMechanism> signMechanisms;
 
     PrivKeyAttributes privKeyAttributes;
 
@@ -68,6 +72,11 @@ public class HardwareTokenType implements TokenType {
     @Override
     public String getId() {
         return EncoderUtils.encodeHex(SignerUtil.getFormattedTokenId(tokenIdFormat, moduleType, token).getBytes());
+    }
+
+    @Override
+    public Optional<SignMechanism> resolveSignMechanismName(KeyAlgorithm algorithm) {
+        return Optional.ofNullable(signMechanisms.get(algorithm));
     }
 
 }

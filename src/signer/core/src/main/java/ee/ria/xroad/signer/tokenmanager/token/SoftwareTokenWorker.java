@@ -28,6 +28,7 @@ package ee.ria.xroad.signer.tokenmanager.token;
 import ee.ria.xroad.common.CodedException;
 import ee.ria.xroad.common.SystemProperties;
 import ee.ria.xroad.common.crypto.KeyManagers;
+import ee.ria.xroad.common.crypto.UnknownAlgorithmException;
 import ee.ria.xroad.common.crypto.identifier.KeyAlgorithm;
 import ee.ria.xroad.common.crypto.identifier.SignAlgorithm;
 import ee.ria.xroad.common.crypto.identifier.SignMechanism;
@@ -72,12 +73,14 @@ import java.security.cert.X509Certificate;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 
 import static ee.ria.xroad.common.ErrorCodes.X_INTERNAL_ERROR;
 import static ee.ria.xroad.common.ErrorCodes.X_TOKEN_PIN_POLICY_FAILURE;
 import static ee.ria.xroad.common.ErrorCodes.X_UNSUPPORTED_SIGN_ALGORITHM;
 import static ee.ria.xroad.common.ErrorCodes.translateException;
+import static ee.ria.xroad.common.crypto.identifier.KeyAlgorithm.RSA;
 import static ee.ria.xroad.common.util.CryptoUtils.loadPkcs12KeyStore;
 import static ee.ria.xroad.common.util.EncoderUtils.encodeBase64;
 import static ee.ria.xroad.signer.tokenmanager.TokenManager.addKey;
@@ -184,7 +187,7 @@ public class SoftwareTokenWorker extends AbstractTokenWorker {
 
         assertTokenAvailable();
 
-        var keyPair = KeyManagers.getFor(tokenType.getSignMechanismName()).generateKeyPair();
+        var keyPair = KeyManagers.getFor(message.getAlgorithm()).generateKeyPair();
 
         String keyId = SignerUtil.randomId();
         savePkcs12Keystore(keyPair, keyId, getKeyStoreFileName(keyId), getPin());
@@ -267,11 +270,6 @@ public class SoftwareTokenWorker extends AbstractTokenWorker {
         return certPath.getEncoded("PEM");
     }
 
-    @Override
-    protected SignMechanism getSignMechanism() {
-        return tokenType.getSignMechanismName();
-    }
-
     // ------------------------------------------------------------------------
 
     private void updateStatus() {
@@ -321,16 +319,22 @@ public class SoftwareTokenWorker extends AbstractTokenWorker {
         for (String keyId : listKeysOnDisk()) {
             if (!hasKey(keyId)) {
                 try {
-                    String publicKeyBase64 = isPinStored() ? loadPublicKeyBase64(keyId) : null;
+                    Optional<KeyData> publicKey = isPinStored() ? loadPublicKeyBase64(keyId) : Optional.empty();
 
                     log.debug("Found new key with id '{}'", keyId);
 
-                    addKey(tokenId, keyId, publicKeyBase64, getSignMechanism());
+                    var signMechanism = resolveSignMechanism(publicKey.map(KeyData::algorithm).orElse(null));
+                    addKey(tokenId, keyId, publicKey.map(KeyData::data).orElse(null), signMechanism);
                 } catch (Exception e) {
                     log.error("Failed to read pkcs#12 key '{}'", keyId, e);
                 }
             }
         }
+    }
+
+    protected SignMechanism resolveSignMechanism(KeyAlgorithm algorithm) {
+        return tokenType.resolveSignMechanismName(algorithm)
+                .orElseThrow(() -> new UnknownAlgorithmException("Unsupported key algorithm: " + algorithm));
     }
 
     private PrivateKey getPrivateKey(String keyId) throws Exception {
@@ -362,7 +366,7 @@ public class SoftwareTokenWorker extends AbstractTokenWorker {
         }
 
         try {
-            java.security.KeyPair kp = KeyManagers.getFor(tokenType.getSignMechanismName()).generateKeyPair();
+            java.security.KeyPair kp = KeyManagers.getFor(SystemProperties.getSofTokenPinKeystoreAlgorithm()).generateKeyPair();
 
             String keyStoreFile = getKeyStoreFileName(PIN_FILE);
             savePkcs12Keystore(kp, PIN_ALIAS, keyStoreFile, pin);
@@ -503,7 +507,7 @@ public class SoftwareTokenWorker extends AbstractTokenWorker {
         return SoftwareTokenUtil.loadPrivateKey(keyStoreFile, keyId, getPin());
     }
 
-    private String loadPublicKeyBase64(String keyId) throws Exception {
+    private Optional<KeyData> loadPublicKeyBase64(String keyId) throws Exception {
         String keyStoreFile = getKeyStoreFileName(keyId);
 
         log.trace("Loading pkcs#12 public key '{}' from file '{}'", keyId, keyStoreFile);
@@ -513,14 +517,15 @@ public class SoftwareTokenWorker extends AbstractTokenWorker {
         if (cert == null) {
             log.error("No certificate found in '{}' using alias '{}'", keyStoreFile, keyId);
 
-            return null;
+            return Optional.empty();
         }
 
         if (cert.getPublicKey() != null) {
-            return encodeBase64(cert.getPublicKey().getEncoded());
+            var algorithm = cert.getPublicKey().getAlgorithm() == null ? RSA : KeyAlgorithm.valueOf(cert.getPublicKey().getAlgorithm());
+            return Optional.of(new KeyData(encodeBase64(cert.getPublicKey().getEncoded()), algorithm));
         }
 
-        return null;
+        return Optional.empty();
     }
 
     private static void verifyPin(char[] pin) throws Exception {
@@ -563,5 +568,8 @@ public class SoftwareTokenWorker extends AbstractTokenWorker {
     @Override
     public boolean isSoftwareToken() {
         return true;
+    }
+
+    private record KeyData(String data, KeyAlgorithm algorithm) {
     }
 }

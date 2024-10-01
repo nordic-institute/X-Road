@@ -25,6 +25,7 @@
  */
 package ee.ria.xroad.signer;
 
+import ee.ria.xroad.common.crypto.identifier.KeyAlgorithm;
 import ee.ria.xroad.common.crypto.identifier.SignAlgorithm;
 import ee.ria.xroad.common.crypto.identifier.SignMechanism;
 import ee.ria.xroad.common.identifier.ClientId;
@@ -241,16 +242,18 @@ public final class SignerProxy {
      *
      * @param tokenId  ID of the token
      * @param keyLabel label of the key
+     * @param algorithm algorithm to use, RSA or EC
      * @return generated key KeyInfo object
      * @throws Exception if any errors occur
      */
-    public static KeyInfo generateKey(String tokenId, String keyLabel) throws Exception {
+    public static KeyInfo generateKey(String tokenId, String keyLabel, KeyAlgorithm algorithm) throws Exception {
         log.trace("Generating key for token '{}'", tokenId);
 
         var response = RpcSignerClient.execute(ctx -> ctx.getBlockingKeyService()
                 .generateKey(GenerateKeyReq.newBuilder()
                         .setTokenId(tokenId)
                         .setKeyLabel(keyLabel)
+                        .setAlgorithm(algorithm.name())
                         .build()));
 
         KeyInfo keyInfo = new KeyInfo(response);
@@ -258,6 +261,18 @@ public final class SignerProxy {
         log.trace("Received key with keyId '{}' and public key '{}'", keyInfo.getId(), keyInfo.getPublicKey());
 
         return keyInfo;
+    }
+
+    /**
+     * Generate a new RSA key for the token with the given ID.
+     *
+     * @param tokenId  ID of the token
+     * @param keyLabel label of the key
+     * @return generated key KeyInfo object
+     * @throws Exception if any errors occur
+     */
+    public static KeyInfo generateKey(String tokenId, String keyLabel) throws Exception {
+        return generateKey(tokenId, keyLabel, KeyAlgorithm.RSA);
     }
 
     /**

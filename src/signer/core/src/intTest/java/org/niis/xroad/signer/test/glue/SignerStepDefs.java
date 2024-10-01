@@ -30,7 +30,9 @@ package org.niis.xroad.signer.test.glue;
 import ee.ria.xroad.common.CodedException;
 import ee.ria.xroad.common.OcspTestUtils;
 import ee.ria.xroad.common.TestCertUtil;
+import ee.ria.xroad.common.crypto.identifier.KeyAlgorithm;
 import ee.ria.xroad.common.crypto.identifier.SignAlgorithm;
+import ee.ria.xroad.common.crypto.identifier.SignMechanism;
 import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.identifier.SecurityServerId;
 import ee.ria.xroad.signer.SignerProxy;
@@ -42,6 +44,7 @@ import ee.ria.xroad.signer.protocol.dto.TokenInfo;
 import ee.ria.xroad.signer.protocol.dto.TokenInfoAndKeyId;
 import ee.ria.xroad.signer.protocol.dto.TokenStatusInfo;
 
+import io.cucumber.java.ParameterType;
 import io.cucumber.java.en.Step;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.FileUtils;
@@ -72,6 +75,7 @@ import static ee.ria.xroad.common.SystemProperties.getGrpcInternalHost;
 import static ee.ria.xroad.common.SystemProperties.getGrpcSignerPort;
 import static ee.ria.xroad.common.crypto.Digests.calculateDigest;
 import static ee.ria.xroad.common.crypto.identifier.DigestAlgorithm.SHA256;
+import static ee.ria.xroad.common.crypto.identifier.SignAlgorithm.SHA256_WITH_ECDSA;
 import static ee.ria.xroad.common.crypto.identifier.SignAlgorithm.SHA256_WITH_RSA;
 import static ee.ria.xroad.common.crypto.identifier.SignAlgorithm.SHA512_WITH_RSA;
 import static ee.ria.xroad.common.util.CryptoUtils.calculateCertHexHash;
@@ -212,10 +216,10 @@ public class SignerStepDefs extends BaseSignerStepDefs {
         assertThat(SignerProxy.getToken(tokenId).getFriendlyName()).isEqualTo(name);
     }
 
-    @Step("new key {string} generated for token {string}")
-    public void newKeyGeneratedForToken(String keyLabel, String friendlyName) throws Exception {
+    @Step("new {algorithm} key {string} generated for token {string}")
+    public void newKeyGeneratedForToken(KeyAlgorithm algorithm, String keyLabel, String friendlyName) throws Exception {
         var tokenId = getTokenFriendlyNameToIdMapping().get(friendlyName);
-        final KeyInfo keyInfo = SignerProxy.generateKey(tokenId, keyLabel);
+        final KeyInfo keyInfo = SignerProxy.generateKey(tokenId, keyLabel, algorithm);
         testReportService.attachJson("keyInfo", keyInfo);
         this.scenarioKeyId = keyInfo.getId();
     }
@@ -230,6 +234,7 @@ public class SignerStepDefs extends BaseSignerStepDefs {
         final List<String> keys = Arrays.asList(keyNames.split(","));
         final TokenInfo token = getTokenInfoByFriendlyName(friendlyName);
 
+        System.out.println(token.getKeyInfo().stream().map(KeyInfo::getFriendlyName).collect(Collectors.joining(", ")));
         assertThat(token.getKeyInfo().size()).isEqualTo(keys.size());
 
         final List<String> tokenKeyNames = token.getKeyInfo().stream()
@@ -426,10 +431,16 @@ public class SignerStepDefs extends BaseSignerStepDefs {
         final KeyInfo key = findKeyInToken(friendlyName, keyName);
         byte[] keyBytes = Base64.decode(key.getPublicKey().getBytes());
         X509EncodedKeySpec x509publicKey = new X509EncodedKeySpec(keyBytes);
-        KeyFactory kf = KeyFactory.getInstance("RSA");
+        var algorithm = SignMechanism.valueOf(key.getSignMechanismName()).keyType();
+        KeyFactory kf = KeyFactory.getInstance(algorithm.name());
         PublicKey publicKey = kf.generatePublic(x509publicKey);
 
-        final byte[] bytes = SignerProxy.signCertificate(key.getId(), SHA256_WITH_RSA, "CN=CS", publicKey);
+        var signAlgorithm = switch (algorithm) {
+            case RSA -> SHA256_WITH_RSA;
+            case EC -> SHA256_WITH_ECDSA;
+        };
+
+        final byte[] bytes = SignerProxy.signCertificate(key.getId(), signAlgorithm, "CN=CS", publicKey);
         assertThat(bytes).isNotEmpty();
     }
 
@@ -641,5 +652,8 @@ public class SignerStepDefs extends BaseSignerStepDefs {
                 .hasMessageContaining("Signer: Signer client timed out.");
     }
 
-
+    @ParameterType("RSA|EC")
+    public KeyAlgorithm algorithm(String value) {
+        return KeyAlgorithm.valueOf(value);
+    }
 }

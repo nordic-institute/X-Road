@@ -27,6 +27,8 @@ package ee.ria.xroad.signer.tokenmanager.token;
 
 import ee.ria.xroad.common.CodedException;
 import ee.ria.xroad.common.crypto.Digests;
+import ee.ria.xroad.common.crypto.UnknownAlgorithmException;
+import ee.ria.xroad.common.crypto.identifier.KeyAlgorithm;
 import ee.ria.xroad.common.crypto.identifier.SignAlgorithm;
 import ee.ria.xroad.common.crypto.identifier.SignMechanism;
 import ee.ria.xroad.common.util.CryptoUtils;
@@ -71,6 +73,7 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
 import static ee.ria.xroad.common.ErrorCodes.X_INTERNAL_ERROR;
 import static ee.ria.xroad.common.ErrorCodes.X_KEY_NOT_FOUND;
@@ -132,7 +135,17 @@ public class HardwareTokenWorker extends AbstractTokenWorker {
         super(tokenInfo);
 
         this.tokenType = tokenType;
-        this.signMechanisms = createSignMechanisms(tokenType.getSignMechanismName());
+        //TODO #EC add EC support to hardware tokens
+        var tempSignMechanisms = new HashMap<SignAlgorithm, Mechanism>();
+
+        Arrays.stream(KeyAlgorithm.values())
+                .map(tokenType::resolveSignMechanismName)
+                .filter(Optional::isPresent)
+                .map(Optional::get)
+                .map(HardwareTokenWorker::createSignMechanisms)
+                .forEach(tempSignMechanisms::putAll);
+
+        this.signMechanisms = Map.copyOf(tempSignMechanisms);
     }
 
     private static Map<SignAlgorithm, Mechanism> createSignMechanisms(SignMechanism signMechanismName) {
@@ -431,7 +444,7 @@ public class HardwareTokenWorker extends AbstractTokenWorker {
 
         assertKeyAvailable(keyId);
         KeyInfo keyInfo = getKeyInfo(keyId);
-        CertificateInfo certificateInfo = keyInfo.getCerts().get(0);
+        CertificateInfo certificateInfo = keyInfo.getCerts().getFirst();
         X509Certificate issuerX509Certificate = CryptoUtils.readCertificate(certificateInfo.getCertificateBytes());
 
         ContentSigner contentSigner = new HardwareTokenContentSigner(keyId, signatureAlgorithmId);
@@ -447,8 +460,9 @@ public class HardwareTokenWorker extends AbstractTokenWorker {
     }
 
     @Override
-    protected SignMechanism getSignMechanism() {
-        return tokenType.getSignMechanismName();
+    protected SignMechanism resolveSignMechanism(KeyAlgorithm algorithm) {
+        return tokenType.resolveSignMechanismName(algorithm)
+                .orElseThrow(() -> new UnknownAlgorithmException("Unsupported key algorithm: " + algorithm));
     }
 
 
@@ -473,7 +487,7 @@ public class HardwareTokenWorker extends AbstractTokenWorker {
                 KeyInfo key = getKeyInfo(keyId);
 
                 if (key == null) {
-                    key = addKey(tokenId, keyId, null, getSignMechanism());
+                    key = addKey(tokenId, keyId, null, resolveSignMechanism(KeyAlgorithm.RSA));
                     setKeyAvailable(keyId, true);
 
                     log.debug("Found new key with id '{}' on token '{}'", keyId, getWorkerId());
@@ -556,7 +570,7 @@ public class HardwareTokenWorker extends AbstractTokenWorker {
                 publicKeyBase64 = encodeBase64(generateX509PublicKey(publicKey));
                 setPublicKey(keyId, publicKeyBase64);
             } else if (certs.containsKey(keyId) && !certs.get(keyId).isEmpty()) {
-                X509PublicKeyCertificate first = certs.get(keyId).get(0);
+                X509PublicKeyCertificate first = certs.get(keyId).getFirst();
                 X509Certificate cert = CryptoUtils.readCertificate(first.getValue().getByteArrayValue());
                 publicKeyBase64 = encodeBase64(cert.getPublicKey().getEncoded());
             }
@@ -691,7 +705,7 @@ public class HardwareTokenWorker extends AbstractTokenWorker {
             log.trace("Private key '{}' added to token '{}'", keyId, getWorkerId());
 
             if (!hasKey(keyId)) {
-                addKey(tokenId, keyId, null, getSignMechanism());
+                addKey(tokenId, keyId, null, resolveSignMechanism(KeyAlgorithm.RSA));
             } else {
                 log.debug("Private key ({}) found in token '{}'", keyId, getWorkerId());
             }
