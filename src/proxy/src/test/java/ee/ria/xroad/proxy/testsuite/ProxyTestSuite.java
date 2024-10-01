@@ -29,6 +29,7 @@ import ee.ria.xroad.common.SystemProperties;
 import ee.ria.xroad.common.TestPortUtils;
 import ee.ria.xroad.common.conf.globalconf.GlobalConf;
 import ee.ria.xroad.common.conf.serverconf.ServerConf;
+import ee.ria.xroad.common.util.TimeUtils;
 import ee.ria.xroad.proxy.ProxyMain;
 import ee.ria.xroad.proxy.conf.KeyConf;
 import ee.ria.xroad.proxy.serverproxy.ServerProxy;
@@ -42,6 +43,9 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.support.GenericApplicationContext;
 
+import java.time.Clock;
+import java.time.Instant;
+import java.time.ZoneOffset;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -71,6 +75,8 @@ public final class ProxyTestSuite {
      * @throws Exception in case of any errors
      */
     public static void main(String[] args) throws Exception {
+        TimeUtils.setClock(Clock.fixed(Instant.parse("2020-01-01T00:00:00Z"), ZoneOffset.UTC));
+
         setPropsIfNotSet();
 
         List<MessageTestCase> testCasesToRun = TestcaseLoader.getTestCasesToRun(args);

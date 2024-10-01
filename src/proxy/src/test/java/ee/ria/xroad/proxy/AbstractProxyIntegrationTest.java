@@ -28,6 +28,7 @@ package ee.ria.xroad.proxy;
 import ee.ria.xroad.common.SystemProperties;
 import ee.ria.xroad.common.conf.globalconf.GlobalConf;
 import ee.ria.xroad.common.conf.serverconf.ServerConf;
+import ee.ria.xroad.common.util.TimeUtils;
 import ee.ria.xroad.proxy.conf.KeyConf;
 import ee.ria.xroad.proxy.testutil.IntegrationTest;
 import ee.ria.xroad.proxy.testutil.TestGlobalConf;
@@ -48,6 +49,9 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.context.support.GenericApplicationContext;
 
 import java.net.ServerSocket;
+import java.time.Clock;
+import java.time.Instant;
+import java.time.ZoneOffset;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -61,6 +65,7 @@ import static ee.ria.xroad.common.SystemProperties.PROXY_SERVER_LISTEN_ADDRESS;
 @Category(IntegrationTest.class)
 public abstract class AbstractProxyIntegrationTest {
     private static final Set<Integer> RESERVED_PORTS = new HashSet<>();
+    private static final Instant CLOCK_FIXED_INSTANT = Instant.parse("2020-01-01T00:00:00Z");
 
     private static GenericApplicationContext applicationContext;
 
@@ -145,6 +150,7 @@ public abstract class AbstractProxyIntegrationTest {
 
     @BeforeClass
     public static void setup() throws Exception {
+        TimeUtils.setClock(Clock.fixed(CLOCK_FIXED_INSTANT, ZoneOffset.UTC));
         applicationContext = new TestProxyMain().createApplicationContext(TestProxySpringConfig.class);
     }
 
