@@ -32,6 +32,8 @@ import java.math.BigInteger;
 import java.security.KeyPair;
 import java.security.KeyPairGenerator;
 import java.security.SecureRandom;
+import java.security.spec.ECParameterSpec;
+import java.security.spec.RSAKeyGenParameterSpec;
 import java.security.spec.RSAPublicKeySpec;
 
 public final class RsaKeyManager extends AbstractKeyManager {

@@ -25,9 +25,13 @@
  */
 package ee.ria.xroad.signer.tokenmanager.token;
 
+import ee.ria.xroad.common.crypto.identifier.KeyAlgorithm;
 import ee.ria.xroad.common.crypto.identifier.SignMechanism;
 import ee.ria.xroad.signer.tokenmanager.module.PrivKeyAttributes;
 import ee.ria.xroad.signer.tokenmanager.module.PubKeyAttributes;
+
+import java.util.Map;
+import java.util.Optional;
 
 /**
  * Describes a token type, usually a software or hardware based token.
@@ -75,9 +79,16 @@ public interface TokenType {
     String getId();
 
     /**
-     * @return the sign mechanism name
+     * @return the sign mechanism name for algorithm
      */
-    SignMechanism getSignMechanismName();
+    Map<KeyAlgorithm, SignMechanism> getSignMechanisms();
+
+    /**
+     * @return the sign mechanism name for algorithm
+     */
+    default Optional<SignMechanism> resolveSignMechanismName(KeyAlgorithm algorithm) {
+        return Optional.ofNullable(getSignMechanisms().get(algorithm));
+    }
 
     /**
      * @return the private key attributes

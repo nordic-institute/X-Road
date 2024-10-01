@@ -29,13 +29,13 @@ public enum SignMechanism {
     CKM_RSA_PKCS_PSS(KeyAlgorithm.RSA),
     CKM_ECDSA(KeyAlgorithm.EC);
 
-    private final KeyAlgorithm keyAlgorithm;
+    private final KeyAlgorithm algorithm;
 
-    SignMechanism(KeyAlgorithm keyAlgorithm) {
-        this.keyAlgorithm = keyAlgorithm;
+    SignMechanism(KeyAlgorithm algorithm) {
+        this.algorithm = algorithm;
     }
 
     public KeyAlgorithm keyType() {
-        return keyAlgorithm;
+        return algorithm;
     }
 }
