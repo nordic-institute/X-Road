@@ -30,6 +30,8 @@ import ee.ria.xroad.common.conf.globalconf.GlobalConf;
 import ee.ria.xroad.common.conf.serverconf.ServerConf;
 import ee.ria.xroad.common.util.JobManager;
 import ee.ria.xroad.common.util.StartStop;
+import ee.ria.xroad.common.util.TimeUtils;
+import ee.ria.xroad.proxy.ProxyMain;
 import ee.ria.xroad.proxy.addon.AddOn;
 import ee.ria.xroad.proxy.clientproxy.ClientProxy;
 import ee.ria.xroad.proxy.conf.KeyConf;
@@ -44,6 +46,9 @@ import lombok.extern.slf4j.Slf4j;
 import scala.concurrent.Await;
 import scala.concurrent.duration.Duration;
 
+import java.time.Clock;
+import java.time.Instant;
+import java.time.ZoneOffset;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -78,6 +83,7 @@ public final class ProxyTestSuite {
      * @throws Exception in case of any errors
      */
     public static void main(String[] args) throws Exception {
+        TimeUtils.setClock(Clock.fixed(Instant.parse("2020-01-01T00:00:00Z"), ZoneOffset.UTC));
 
         setPropsIfNotSet();
 

@@ -30,6 +30,7 @@ import ee.ria.xroad.common.conf.globalconf.GlobalConf;
 import ee.ria.xroad.common.conf.serverconf.ServerConf;
 import ee.ria.xroad.common.util.JobManager;
 import ee.ria.xroad.common.util.StartStop;
+import ee.ria.xroad.common.util.TimeUtils;
 import ee.ria.xroad.proxy.addon.AddOn;
 import ee.ria.xroad.proxy.clientproxy.ClientProxy;
 import ee.ria.xroad.proxy.conf.KeyConf;
@@ -56,6 +57,9 @@ import org.junit.runner.Description;
 import org.junit.runners.model.Statement;
 
 import java.net.ServerSocket;
+import java.time.Clock;
+import java.time.Instant;
+import java.time.ZoneOffset;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
@@ -70,6 +74,7 @@ import java.util.Set;
 public abstract class AbstractProxyIntegrationTest {
 
     private static final Set<Integer> RESERVED_PORTS = new HashSet<>();
+    private static final Instant CLOCK_FIXED_INSTANT = Instant.parse("2020-01-01T00:00:00Z");
 
     private static ActorSystem actorSystem;
     private static JobManager jobManager;
@@ -108,6 +113,8 @@ public abstract class AbstractProxyIntegrationTest {
 
     @BeforeClass
     public static void setup() throws Exception {
+        TimeUtils.setClock(Clock.fixed(CLOCK_FIXED_INSTANT, ZoneOffset.UTC));
+
         System.setProperty(SystemProperties.CONF_PATH, "build/resources/test/etc/");
         System.setProperty(SystemProperties.PROXY_CONNECTOR_HOST, "127.0.0.1");
         System.setProperty(SystemProperties.PROXY_CLIENT_HTTP_PORT, String.valueOf(proxyClientPort));

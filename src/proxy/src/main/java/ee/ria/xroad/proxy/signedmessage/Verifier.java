@@ -32,6 +32,7 @@ import ee.ria.xroad.common.signature.MessagePart;
 import ee.ria.xroad.common.signature.SignatureData;
 import ee.ria.xroad.common.signature.SignatureVerifier;
 import ee.ria.xroad.common.util.MessageFileNames;
+import ee.ria.xroad.common.util.TimeUtils;
 
 import lombok.extern.slf4j.Slf4j;
 
@@ -102,7 +103,7 @@ public class Verifier {
 
             signatureVerifier.addParts(parts);
 
-            signatureVerifier.verify(sender, new Date());
+            signatureVerifier.verify(sender, Date.from(TimeUtils.now()));
         } catch (Exception ex) {
             throw translateWithPrefix(X_SIGNATURE_VERIFICATION_X, ex);
         }

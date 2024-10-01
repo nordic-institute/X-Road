@@ -25,16 +25,25 @@
  */
 package ee.ria.xroad.common.util;
 
+import com.google.common.annotations.VisibleForTesting;
+
+import java.time.Clock;
 import java.time.Instant;
+import java.time.LocalDateTime;
 import java.time.OffsetDateTime;
 import java.time.ZoneId;
+import java.time.ZonedDateTime;
 import java.util.Date;
 import java.util.concurrent.TimeUnit;
+
+import static java.time.temporal.ChronoUnit.MICROS;
 
 /**
  * This class contains various time related utility methods.
  */
 public final class TimeUtils {
+    private static Clock clock = Clock.systemDefaultZone();
+
 
     private TimeUtils() {
     }
@@ -44,7 +53,7 @@ public final class TimeUtils {
      * @return the seconds from the epoch of 1970-01-01T00:00:00Z
      */
     public static long getEpochSecond() {
-        return Instant.now().getEpochSecond();
+        return Instant.now(clock).getEpochSecond();
     }
 
     /**
@@ -53,7 +62,7 @@ public final class TimeUtils {
      * @return the milliseconds from the epoch of 1970-01-01T00:00:00Z
      */
     public static long getEpochMillisecond() {
-        return Instant.now().toEpochMilli();
+        return Instant.now(clock).toEpochMilli();
     }
 
     /**
@@ -71,4 +80,59 @@ public final class TimeUtils {
     public static OffsetDateTime toOffsetDateTime(Date date) {
         return date == null ? null : date.toInstant().atZone(ZoneId.systemDefault()).toOffsetDateTime();
     }
+
+    /**
+     * Current time truncated to microseconds. Some OS/JDK might use nanoseconds precision.
+     *
+     * @return Instant wil microseconds precision.
+     */
+    public static Instant now() {
+        return Instant.now(clock).truncatedTo(MICROS);
+    }
+
+    /**
+     * Current time truncated to microseconds. Some OS/JDK might use nanoseconds precision.
+     *
+     * @return OffsetDateTime wil microseconds precision.
+     */
+    public static OffsetDateTime offsetDateTimeNow() {
+        return OffsetDateTime.now(clock).truncatedTo(MICROS);
+    }
+
+    /**
+     * Current time truncated to microseconds. Some OS/JDK might use nanoseconds precision.
+     *
+     * @return OffsetDateTime wil microseconds precision.
+     */
+    public static OffsetDateTime offsetDateTimeNow(ZoneId zoneId) {
+        return OffsetDateTime.now(clock.withZone(zoneId)).truncatedTo(MICROS);
+    }
+
+    /**
+     * Current time truncated to microseconds. Some OS/JDK might use nanoseconds precision.
+     *
+     * @return LocalDateTime wil microseconds precision.
+     */
+    public static LocalDateTime localDateTimeNow() {
+        return LocalDateTime.now(clock).truncatedTo(MICROS);
+    }
+
+    /**
+     * Current time truncated to microseconds. Some OS/JDK might use nanoseconds precision.
+     *
+     * @return ZonedDateTime wil microseconds precision.
+     */
+    public static ZonedDateTime zonedDateTimeNow(ZoneId zoneId) {
+        return ZonedDateTime.now(clock.withZone(zoneId)).truncatedTo(MICROS);
+    }
+
+    /**
+     * Sets the clock to be used by TimeUtils. This method is intended for testing purposes only.
+     * @param clock the clock to be used
+     */
+    @VisibleForTesting
+    public static void setClock(Clock clock) {
+        TimeUtils.clock = clock;
+    }
+
 }
