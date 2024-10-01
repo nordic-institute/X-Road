@@ -31,6 +31,7 @@ import ee.ria.xroad.common.cert.CertChainFactory;
 import ee.ria.xroad.common.conf.globalconf.GlobalConfProvider;
 import ee.ria.xroad.common.conf.serverconf.IsAuthenticationData;
 import ee.ria.xroad.common.conf.serverconf.ServerConfProvider;
+import ee.ria.xroad.common.crypto.identifier.DigestAlgorithm;
 import ee.ria.xroad.common.identifier.SecurityServerId;
 import ee.ria.xroad.common.identifier.ServiceId;
 import ee.ria.xroad.common.message.RequestHash;
@@ -151,7 +152,7 @@ abstract class AbstractClientMessageProcessor extends MessageProcessorBase {
         httpSender.setConnectionTimeout(SystemProperties.getClientProxyTimeout());
         httpSender.setSocketTimeout(SystemProperties.getClientProxyHttpClientTimeout());
 
-        httpSender.addHeader(HEADER_HASH_ALGO_ID, SoapUtils.getHashAlgoId());
+        httpSender.addHeader(HEADER_HASH_ALGO_ID, SoapUtils.getHashAlgoId().name());
         httpSender.addHeader(HEADER_PROXY_VERSION, ProxyMain.readProxyVersion());
 
         // Preserve the original content type in the "x-original-content-type"
@@ -220,8 +221,8 @@ abstract class AbstractClientMessageProcessor extends MessageProcessorBase {
         return addresses;
     }
 
-    static String getHashAlgoId(HttpSender httpSender) {
-        return httpSender.getResponseHeaders().get(HEADER_HASH_ALGO_ID);
+    static DigestAlgorithm getHashAlgoId(HttpSender httpSender) {
+        return DigestAlgorithm.ofName(httpSender.getResponseHeaders().get(HEADER_HASH_ALGO_ID));
     }
 
     protected void checkRequestHash(SoapMessageImpl request, SoapMessageImpl response) {

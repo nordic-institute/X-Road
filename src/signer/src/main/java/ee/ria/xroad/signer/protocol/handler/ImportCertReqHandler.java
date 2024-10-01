@@ -32,6 +32,7 @@ import ee.ria.xroad.common.cert.CertChainVerifier;
 import ee.ria.xroad.common.conf.globalconf.GlobalConfProvider;
 import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.util.CertUtils;
+import ee.ria.xroad.common.util.CryptoUtils;
 import ee.ria.xroad.signer.certmanager.OcspResponseManager;
 import ee.ria.xroad.signer.protocol.AbstractRpcHandler;
 import ee.ria.xroad.signer.protocol.dto.CertRequestInfo;
@@ -59,8 +60,7 @@ import static ee.ria.xroad.common.ErrorCodes.X_INCORRECT_CERTIFICATE;
 import static ee.ria.xroad.common.ErrorCodes.X_KEY_NOT_FOUND;
 import static ee.ria.xroad.common.ErrorCodes.X_WRONG_CERT_USAGE;
 import static ee.ria.xroad.common.util.CryptoUtils.calculateCertHexHash;
-import static ee.ria.xroad.common.util.CryptoUtils.encodeBase64;
-import static ee.ria.xroad.common.util.CryptoUtils.readCertificate;
+import static ee.ria.xroad.common.util.EncoderUtils.encodeBase64;
 
 /**
  * Handles certificate import requests.
@@ -78,7 +78,7 @@ public class ImportCertReqHandler extends AbstractRpcHandler<ImportCertReq, Impo
     protected ImportCertResp handle(ImportCertReq request) throws Exception {
         X509Certificate cert = null;
         try {
-            cert = readCertificate(request.getCertData().toByteArray());
+            cert = CryptoUtils.readCertificate(request.getCertData().toByteArray());
         } catch (Exception e) {
             throw CodedException.tr(X_INCORRECT_CERTIFICATE,
                     "failed_to_parse_cert",

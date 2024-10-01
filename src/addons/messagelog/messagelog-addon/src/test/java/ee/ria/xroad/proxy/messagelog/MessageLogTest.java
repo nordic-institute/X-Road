@@ -27,6 +27,7 @@ package ee.ria.xroad.proxy.messagelog;
 
 import ee.ria.xroad.common.CodedException;
 import ee.ria.xroad.common.ExpectedCodedException;
+import ee.ria.xroad.common.crypto.identifier.DigestAlgorithm;
 import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.message.RestRequest;
 import ee.ria.xroad.common.message.SoapMessageImpl;
@@ -42,7 +43,7 @@ import ee.ria.xroad.common.messagelog.archive.DigestEntry;
 import ee.ria.xroad.common.messagelog.archive.GroupingStrategy;
 import ee.ria.xroad.common.signature.SignatureData;
 import ee.ria.xroad.common.util.CacheInputStream;
-import ee.ria.xroad.common.util.CryptoUtils;
+import ee.ria.xroad.common.util.EncoderUtils;
 import ee.ria.xroad.common.util.TimeUtils;
 import ee.ria.xroad.messagelog.database.MessageRecordEncryption;
 import ee.ria.xroad.proxy.messagelog.Timestamper.TimestampFailed;
@@ -91,7 +92,6 @@ import static ee.ria.xroad.proxy.messagelog.TestUtil.createRestRequest;
 import static ee.ria.xroad.proxy.messagelog.TestUtil.createSignature;
 import static ee.ria.xroad.proxy.messagelog.TestUtil.initForTest;
 import static java.util.stream.Collectors.toMap;
-import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
@@ -600,7 +600,7 @@ public class MessageLogTest extends AbstractMessageLogTest {
     private void assertArchiveHashChain() throws Exception {
         String archiveFilePath = getArchiveFilePath();
 
-        final MessageDigest digest = MessageDigest.getInstance(MessageLogProperties.getHashAlg());
+        final MessageDigest digest = MessageDigest.getInstance(MessageLogProperties.getHashAlg().name());
         final Map<String, byte[]> digests = new HashMap<>();
         String linkinginfo = null;
 
@@ -631,14 +631,14 @@ public class MessageLogTest extends AbstractMessageLogTest {
             if (prevHash == null) {
                 prevHash = parts[0];
                 assertEquals(LAST_DIGEST, prevHash);
-                assertEquals(MessageLogProperties.getHashAlg(), parts[2]);
+                assertEquals(MessageLogProperties.getHashAlg(), DigestAlgorithm.ofName(parts[2]));
             } else {
                 digest.reset();
                 digest.update(prevHash.getBytes());
                 final byte[] d = digests.get(parts[1]);
                 assertNotNull("Archive did not contain file " + parts[1], d);
-                digest.update(CryptoUtils.encodeHex(d).getBytes());
-                prevHash = CryptoUtils.encodeHex(digest.digest());
+                digest.update(EncoderUtils.encodeHex(d).getBytes());
+                prevHash = EncoderUtils.encodeHex(digest.digest());
                 assertEquals("Digest does not match", parts[0], prevHash);
             }
         }

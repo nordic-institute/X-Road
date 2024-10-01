@@ -26,10 +26,12 @@
 package ee.ria.xroad.proxy.signedmessage;
 
 import ee.ria.xroad.common.SystemProperties;
+import ee.ria.xroad.common.crypto.identifier.DigestAlgorithm;
+import ee.ria.xroad.common.crypto.identifier.SignAlgorithm;
+import ee.ria.xroad.common.crypto.identifier.SignMechanism;
 import ee.ria.xroad.common.signature.MessageSigner;
 import ee.ria.xroad.common.signature.SignatureData;
 import ee.ria.xroad.common.signature.SigningRequest;
-import ee.ria.xroad.common.util.CryptoUtils;
 
 import lombok.extern.slf4j.Slf4j;
 
@@ -50,7 +52,7 @@ public class SignerSigningKey implements SigningKey {
     /**
      * The sign mechanism name (PKCS#11)
      */
-    private final String signMechanismName;
+    private final SignMechanism signMechanismName;
 
     private final MessageSigner signer;
 
@@ -59,15 +61,14 @@ public class SignerSigningKey implements SigningKey {
      *
      * @param keyId the private key ID.
      */
-    public SignerSigningKey(String keyId, String signMechanismName, MessageSigner signer) {
+    public SignerSigningKey(String keyId, SignMechanism signMechanismName, MessageSigner signer) {
         this.signer = signer;
-
         if (keyId == null) {
             throw new IllegalArgumentException("KeyId must not be null");
         }
 
         if (signMechanismName == null) {
-            throw new IllegalArgumentException("SignMechanismName must not be null");
+            throw new IllegalArgumentException("SignMechanism must not be null");
         }
 
         this.keyId = keyId;
@@ -75,8 +76,8 @@ public class SignerSigningKey implements SigningKey {
     }
 
     @Override
-    public SignatureData calculateSignature(SigningRequest request, String digestAlgoId) throws Exception {
-        String signAlgoId = CryptoUtils.getSignatureAlgorithmId(digestAlgoId, signMechanismName);
+    public SignatureData calculateSignature(SigningRequest request, DigestAlgorithm digestAlgoId) throws Exception {
+        SignAlgorithm signAlgoId = SignAlgorithm.ofDigestAndMechanism(digestAlgoId, signMechanismName);
 
         log.trace("Calculating signature using algorithm {}", signAlgoId);
 

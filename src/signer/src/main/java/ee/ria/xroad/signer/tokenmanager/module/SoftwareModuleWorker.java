@@ -25,7 +25,7 @@
  */
 package ee.ria.xroad.signer.tokenmanager.module;
 
-import ee.ria.xroad.common.util.CryptoUtils;
+import ee.ria.xroad.common.SystemProperties;
 import ee.ria.xroad.signer.protocol.dto.TokenInfo;
 import ee.ria.xroad.signer.tokenmanager.TokenManager;
 import ee.ria.xroad.signer.tokenmanager.token.AbstractTokenWorker;
@@ -33,7 +33,6 @@ import ee.ria.xroad.signer.tokenmanager.token.SoftwareTokenType;
 import ee.ria.xroad.signer.tokenmanager.token.SoftwareTokenWorker;
 import ee.ria.xroad.signer.tokenmanager.token.TokenType;
 
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -43,8 +42,7 @@ import java.util.Map;
  */
 public class SoftwareModuleWorker extends AbstractModuleWorker {
 
-    private static final List<TokenType> TOKENS =
-            Collections.singletonList(new SoftwareTokenType(CryptoUtils.CKM_RSA_PKCS_NAME));
+    private static final List<TokenType> TOKENS = List.of(new SoftwareTokenType(SystemProperties.getSoftwareTokenSignMechanism()));
 
     public SoftwareModuleWorker(ModuleType moduleType) {
         super(moduleType);
@@ -59,7 +57,7 @@ public class SoftwareModuleWorker extends AbstractModuleWorker {
     protected AbstractTokenWorker createWorker(TokenInfo tokenInfo, TokenType tokenType) {
         initTokenInfo(tokenInfo);
 
-        return new SoftwareTokenWorker(tokenInfo);
+        return new SoftwareTokenWorker(tokenInfo, tokenType);
     }
 
     private void initTokenInfo(TokenInfo tokenInfo) {

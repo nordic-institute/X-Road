@@ -25,9 +25,14 @@
  */
 package ee.ria.xroad.common.conf.globalconf;
 
+import lombok.RequiredArgsConstructor;
+import lombok.ToString;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.InitializingBean;
 
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.List;
 import java.util.Optional;
 
@@ -157,4 +162,22 @@ public class FileSystemGlobalConfSource implements GlobalConfSource, Initializin
         return lastState;
     }
 
+    @Override
+    public FileSource getFile(String fileName) {
+        var path = Paths.get(globalConfigurationDir, getInstanceIdentifier(), fileName);
+        return new FileSystemFileSource(path);
+    }
+
+    @ToString
+    @RequiredArgsConstructor
+    public static class FileSystemFileSource implements FileSource {
+        private final Path path;
+
+        public Optional<Path> getExistingPath() {
+            if (path != null && Files.exists(path)) {
+                return Optional.of(path);
+            }
+            return Optional.empty();
+        }
+    }
 }

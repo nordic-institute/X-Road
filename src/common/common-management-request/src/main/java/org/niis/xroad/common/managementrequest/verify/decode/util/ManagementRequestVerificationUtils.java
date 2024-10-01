@@ -27,6 +27,7 @@
 package org.niis.xroad.common.managementrequest.verify.decode.util;
 
 import ee.ria.xroad.common.CodedException;
+import ee.ria.xroad.common.crypto.identifier.SignAlgorithm;
 import ee.ria.xroad.common.identifier.SecurityServerId;
 
 import com.google.common.base.CharMatcher;
@@ -49,9 +50,9 @@ public final class ManagementRequestVerificationUtils {
             .or(CharMatcher.anyOf(":;%/\\\ufeff\u200b"));
 
     public static boolean verifySignature(X509Certificate cert, byte[] signatureData,
-                                          String signatureAlgorithmId, byte[] dataToVerify) {
+                                          SignAlgorithm signatureAlgorithmId, byte[] dataToVerify) {
         try {
-            Signature signature = Signature.getInstance(signatureAlgorithmId, "BC");
+            Signature signature = Signature.getInstance(signatureAlgorithmId.name(), "BC");
             signature.initVerify(cert.getPublicKey());
             signature.update(dataToVerify);
 

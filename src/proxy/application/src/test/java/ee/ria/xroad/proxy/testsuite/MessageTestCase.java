@@ -27,12 +27,14 @@ package ee.ria.xroad.proxy.testsuite;
 
 import ee.ria.xroad.common.SystemProperties;
 import ee.ria.xroad.common.conf.globalconf.TestGlobalConfWrapper;
+import ee.ria.xroad.common.crypto.Digests;
+import ee.ria.xroad.common.crypto.identifier.DigestAlgorithm;
 import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.identifier.ServiceId;
 import ee.ria.xroad.common.message.SoapFault;
 import ee.ria.xroad.common.message.SoapMessageImpl;
 import ee.ria.xroad.common.util.AbstractHttpSender;
-import ee.ria.xroad.common.util.CryptoUtils;
+import ee.ria.xroad.common.util.EncoderUtils;
 import ee.ria.xroad.common.util.MimeTypes;
 import ee.ria.xroad.proxy.conf.KeyConfProvider;
 import ee.ria.xroad.proxy.conf.SigningCtx;
@@ -69,8 +71,8 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Map.Entry;
 
+import static ee.ria.xroad.common.crypto.Digests.DEFAULT_DIGEST_ALGORITHM;
 import static ee.ria.xroad.common.util.AbstractHttpSender.CHUNKED_LENGTH;
-import static ee.ria.xroad.common.util.CryptoUtils.DEFAULT_DIGEST_ALGORITHM_ID;
 import static ee.ria.xroad.common.util.MimeUtils.HEADER_HASH_ALGO_ID;
 
 /**
@@ -240,7 +242,7 @@ public class MessageTestCase {
 
         AsyncHttpSender sender = new AsyncHttpSender(client);
         // Needed by some test cases
-        sender.addHeader(HEADER_HASH_ALGO_ID, DEFAULT_DIGEST_ALGORITHM_ID);
+        sender.addHeader(HEADER_HASH_ALGO_ID, DEFAULT_DIGEST_ALGORITHM.name());
 
         // Get the input again.
         requestInput = getRequestInput(addUtf8BomToRequestFile);
@@ -395,12 +397,12 @@ public class MessageTestCase {
 
     protected void generateQueryId() throws Exception {
         long seed = System.currentTimeMillis();
-        DigestCalculator dc = CryptoUtils.createDigestCalculator(
-                CryptoUtils.MD5_ID);
+        DigestCalculator dc = Digests.createDigestCalculator(
+                DigestAlgorithm.ofName("MD5"));
         dc.getOutputStream().write(
                 ByteBuffer.allocate(8).putLong(seed).array());
         dc.getOutputStream().close();
-        this.queryId = CryptoUtils.encodeHex(dc.getDigest());
+        this.queryId = EncoderUtils.encodeHex(dc.getDigest());
     }
 
     protected void onServiceReceivedHttpRequest(Request request) throws Exception {

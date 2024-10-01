@@ -27,12 +27,13 @@ package ee.ria.xroad.proxy.protocol;
 
 import ee.ria.xroad.common.conf.globalconf.GlobalConfProvider;
 import ee.ria.xroad.common.conf.globalconf.TestGlobalConfImpl;
+import ee.ria.xroad.common.crypto.Digests;
+import ee.ria.xroad.common.crypto.identifier.DigestAlgorithm;
 import ee.ria.xroad.common.message.SaxSoapParserImpl;
 import ee.ria.xroad.common.message.Soap;
 import ee.ria.xroad.common.message.SoapFault;
 import ee.ria.xroad.common.message.SoapMessageImpl;
 import ee.ria.xroad.common.signature.SignatureData;
-import ee.ria.xroad.common.util.CryptoUtils;
 import ee.ria.xroad.common.util.MimeTypes;
 
 import org.apache.commons.io.IOUtils;
@@ -221,7 +222,7 @@ public class ProxyMessageEncoderTest {
         }
     }
 
-    private String getHashAlgoId() {
-        return CryptoUtils.DEFAULT_DIGEST_ALGORITHM_ID;
+    private DigestAlgorithm getHashAlgoId() {
+        return Digests.DEFAULT_DIGEST_ALGORITHM;
     }
 }

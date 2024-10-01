@@ -28,7 +28,6 @@ package ee.ria.xroad.signer.job;
 
 import ee.ria.xroad.common.SystemProperties;
 import ee.ria.xroad.common.conf.globalconf.GlobalConfProvider;
-import ee.ria.xroad.common.conf.globalconfextension.GlobalConfExtensions;
 import ee.ria.xroad.common.conf.globalconfextension.OcspFetchInterval;
 import ee.ria.xroad.signer.certmanager.OcspClientWorker;
 
@@ -124,7 +123,7 @@ public class OcspClientExecuteScheduler {
      * @return the next ocsp freshness time in seconds
      */
     private int getNextOcspFetchIntervalSeconds() {
-        int interval = GlobalConfExtensions.getInstance(globalConfProvider).getOcspFetchInterval();
+        int interval = globalConfProvider.getGlobalConfExtensions().getOcspFetchInterval();
 
         if (interval < OcspFetchInterval.OCSP_FETCH_INTERVAL_MIN) {
             interval = OcspFetchInterval.OCSP_FETCH_INTERVAL_MIN;

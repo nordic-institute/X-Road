@@ -26,6 +26,7 @@
 package ee.ria.xroad.common.conf.globalconf;
 
 import ee.ria.xroad.common.CodedException;
+import ee.ria.xroad.common.crypto.identifier.DigestAlgorithm;
 
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
@@ -55,10 +56,9 @@ import java.util.stream.Stream;
 import static ee.ria.xroad.common.ErrorCodes.X_IO_ERROR;
 import static ee.ria.xroad.common.SystemProperties.CURRENT_GLOBAL_CONFIGURATION_VERSION;
 import static ee.ria.xroad.common.SystemProperties.MINIMUM_SUPPORTED_GLOBAL_CONFIGURATION_VERSION;
-import static ee.ria.xroad.common.util.CryptoUtils.createDigestCalculator;
-import static ee.ria.xroad.common.util.CryptoUtils.decodeBase64;
-import static ee.ria.xroad.common.util.CryptoUtils.encodeBase64;
-import static ee.ria.xroad.common.util.CryptoUtils.getAlgorithmId;
+import static ee.ria.xroad.common.crypto.Digests.createDigestCalculator;
+import static ee.ria.xroad.common.util.EncoderUtils.decodeBase64;
+import static ee.ria.xroad.common.util.EncoderUtils.encodeBase64;
 
 /**
  * Downloads configuration directory from a configuration location defined
@@ -318,10 +318,9 @@ public class ConfigurationDownloader {
     }
 
     void verifyContent(byte[] content, ConfigurationFile file) throws Exception {
-        String algoId = getAlgorithmId(file.getHashAlgorithmId());
-        log.trace("verifyContent({}, {})", file.getHash(), algoId);
+        log.trace("verifyContent({}, {})", file.getHash(), file.getHashAlgorithmId());
 
-        DigestCalculator dc = createDigestCalculator(algoId);
+        DigestCalculator dc = createDigestCalculator(file.getHashAlgorithmId());
         dc.getOutputStream().write(content);
 
         byte[] hash = dc.getDigest();
@@ -360,8 +359,8 @@ public class ConfigurationDownloader {
 
     // ------------------------------------------------------------------------
 
-    static byte[] hash(Path file, String algoId) throws Exception {
-        DigestCalculator dc = createDigestCalculator(getAlgorithmId(algoId));
+    static byte[] hash(Path file, DigestAlgorithm algoUri) throws Exception {
+        DigestCalculator dc = createDigestCalculator(algoUri);
 
         try (InputStream in = Files.newInputStream(file)) {
             IOUtils.copy(in, dc.getOutputStream());

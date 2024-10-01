@@ -27,6 +27,7 @@ package ee.ria.xroad.common.signature;
 
 import ee.ria.xroad.common.CodedException;
 import ee.ria.xroad.common.SystemProperties;
+import ee.ria.xroad.common.crypto.identifier.SignAlgorithm;
 import ee.ria.xroad.signer.SignerProxy;
 
 import lombok.Data;
@@ -47,9 +48,8 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 
 import static ee.ria.xroad.common.ErrorCodes.X_INTERNAL_ERROR;
+import static ee.ria.xroad.common.crypto.Digests.calculateDigest;
 import static ee.ria.xroad.common.util.CryptoUtils.calculateCertHexHash;
-import static ee.ria.xroad.common.util.CryptoUtils.calculateDigest;
-import static ee.ria.xroad.common.util.CryptoUtils.getDigestAlgorithmId;
 
 /**
  * This class handles batch signing. Batch signatures are created always, if
@@ -91,7 +91,7 @@ public class BatchSigner implements DisposableBean, MessageSigner {
      * @throws Exception in case of any errors
      */
     @Override
-    public SignatureData sign(String keyId, String signatureAlgorithmId, SigningRequest request)
+    public SignatureData sign(String keyId, SignAlgorithm signatureAlgorithmId, SigningRequest request)
             throws Exception {
         if (instance == null) {
             throw new IllegalStateException("BatchSigner is not initialized");
@@ -205,7 +205,8 @@ public class BatchSigner implements DisposableBean, MessageSigner {
                             .forEach(req -> ctx.add(req.getClientFuture(), req.getRequest()));
 
                     try {
-                        byte[] digest = calculateDigest(getDigestAlgorithmId(ctx.getSignatureAlgorithmId()), ctx.getDataToBeSigned());
+                        byte[] digest = calculateDigest(ctx.getSignatureAlgorithmId().digest(),
+                                ctx.getDataToBeSigned());
                         final byte[] response = SignerProxy.sign(ctx.getKeyId(), ctx.getSignatureAlgorithmId(), digest);
                         sendSignatureResponse(ctx, response);
                     } catch (Exception exception) {
@@ -236,7 +237,7 @@ public class BatchSigner implements DisposableBean, MessageSigner {
         private final long createdOn = System.currentTimeMillis();
         private final CompletableFuture<SignatureData> clientFuture;
         private final String keyId;
-        private final String signatureAlgorithmId;
+        private final SignAlgorithm signatureAlgorithmId;
         private final SigningRequest request;
 
         X509Certificate getSigningCert() {
@@ -256,7 +257,7 @@ public class BatchSigner implements DisposableBean, MessageSigner {
         @Getter
         private final String keyId;
 
-        BatchSignatureCtx(String keyId, String signatureAlgorithmId) {
+        BatchSignatureCtx(String keyId, SignAlgorithm signatureAlgorithmId) {
             super(signatureAlgorithmId);
 
             this.keyId = keyId;

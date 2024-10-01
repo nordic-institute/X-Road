@@ -30,6 +30,8 @@ import ee.ria.xroad.common.conf.globalconf.ConfigurationPartMetadata;
 import ee.ria.xroad.common.conf.globalconf.ParametersProviderFactory;
 import ee.ria.xroad.common.conf.globalconf.SharedParameters;
 import ee.ria.xroad.common.conf.globalconf.VersionedConfigurationDirectory;
+import ee.ria.xroad.common.crypto.identifier.DigestAlgorithm;
+import ee.ria.xroad.common.crypto.identifier.SignAlgorithm;
 import ee.ria.xroad.common.util.CryptoUtils;
 import ee.ria.xroad.common.util.HashCalculator;
 import ee.ria.xroad.common.util.MimeTypes;
@@ -61,8 +63,8 @@ import java.util.Date;
 import java.util.List;
 
 import static ee.ria.xroad.common.conf.globalconf.ConfigurationConstants.CONTENT_ID_SHARED_PARAMETERS;
-import static ee.ria.xroad.common.util.CryptoUtils.calculateDigest;
-import static ee.ria.xroad.common.util.CryptoUtils.encodeBase64;
+import static ee.ria.xroad.common.crypto.Digests.calculateDigest;
+import static ee.ria.xroad.common.util.EncoderUtils.encodeBase64;
 import static ee.ria.xroad.common.util.MimeUtils.HEADER_CONTENT_IDENTIFIER;
 import static ee.ria.xroad.common.util.MimeUtils.HEADER_CONTENT_LOCATION;
 import static ee.ria.xroad.common.util.MimeUtils.HEADER_CONTENT_TRANSFER_ENCODING;
@@ -177,7 +179,7 @@ public class OutputBuilder implements AutoCloseable {
      */
     private void setup() throws IOException {
         String tempDir = conf.getTemporaryDirectoryPath();
-        String hashAlgURI = conf.getHashAlgorithmURI();
+        DigestAlgorithm hashAlgURI = conf.getHashAlgorithmURI();
 
         hashCalculator = new HashCalculator(hashAlgURI);
         timestamp = Long.toString(new Date().getTime());
@@ -271,8 +273,8 @@ public class OutputBuilder implements AutoCloseable {
      */
     private void sign(final byte[] contentBytes, final ByteArrayOutputStream mimeContent) throws Exception {
         String keyId = conf.getActiveSigningKey();
-        String digestAlgorithmId = conf.getSignatureDigestAlgorithmId();
-        String signAlgoId = getSignatureAlgorithmId(keyId, digestAlgorithmId);
+        DigestAlgorithm digestAlgorithmId = conf.getSignatureDigestAlgorithmId();
+        SignAlgorithm signAlgoId = getSignatureAlgorithmId(keyId, digestAlgorithmId);
         byte[] digest = calculateDigest(digestAlgorithmId, contentBytes);
 
         log.debug("Signing directory with signing key '{}' and signing algorithm '{}'", keyId, signAlgoId);
@@ -284,15 +286,14 @@ public class OutputBuilder implements AutoCloseable {
         try (MultipartEncoder encoder = new MultipartEncoder(mimeContent, envelopeBoundary)) {
             encoder.startPart(mpMixedContentType(dataBoundary));
             encoder.write(contentBytes);
-            String algURI = CryptoUtils.getSignatureAlgorithmURI(signAlgoId);
-            String hashURI = hashCalculator.getAlgoURI();
+            DigestAlgorithm hashURI = hashCalculator.getAlgoURI();
             Path verificationCertPath = conf.getCertPath(keyId);
 
             encoder.startPart(MimeTypes.BINARY, new String[]{
                     HEADER_CONTENT_TRANSFER_ENCODING + ": base64",
-                    HEADER_SIG_ALGO_ID + ": " + algURI,
+                    HEADER_SIG_ALGO_ID + ": " + signAlgoId.uri(),
                     HEADER_VERIFICATION_CERT_HASH + ": " + getVerificationCertHash(verificationCertPath) + "; "
-                            + HEADER_HASH_ALGORITHM_ID + "=" + hashURI});
+                            + HEADER_HASH_ALGORITHM_ID + "=" + hashURI.uri()});
             encoder.write(signature.getBytes());
         }
 
@@ -360,7 +361,7 @@ public class OutputBuilder implements AutoCloseable {
                                     + "; instance=\""
                                     + metadata.getInstanceIdentifier() + "\"",
                             HEADER_CONTENT_LOCATION + ": /" + contentLocation,
-                            HEADER_HASH_ALGORITHM_ID + ": " + hashCalculator.getAlgoURI()
+                            HEADER_HASH_ALGORITHM_ID + ": " + hashCalculator.getAlgoURI().uri()
                     });
 
             encoder.write(hashCalculator.calculateFromStream(inputStream).getBytes());
@@ -371,10 +372,10 @@ public class OutputBuilder implements AutoCloseable {
         }
     }
 
-    private static String getSignatureAlgorithmId(String keyId, String digestAlgoId) throws Exception {
-        String signMechanismName = SignerProxy.getSignMechanism(keyId);
+    private static SignAlgorithm getSignatureAlgorithmId(String keyId, DigestAlgorithm digestAlgoId) throws Exception {
+        var signMechanismName = SignerProxy.getSignMechanism(keyId);
 
-        return CryptoUtils.getSignatureAlgorithmId(digestAlgoId, signMechanismName);
+        return SignAlgorithm.ofDigestAndMechanism(digestAlgoId, signMechanismName);
     }
 
     /**
@@ -386,7 +387,7 @@ public class OutputBuilder implements AutoCloseable {
      * @return the configuration directory signature string (base64)
      * @throws Exception if cryptographic operations fail
      */
-    private String getSignature(final String keyId, final String signatureAlgorithmId, final byte[] digest)
+    private String getSignature(final String keyId, final SignAlgorithm signatureAlgorithmId, final byte[] digest)
             throws Exception {
         byte[] signature = SignerProxy.sign(keyId, signatureAlgorithmId, digest);
 

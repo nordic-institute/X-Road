@@ -25,7 +25,8 @@
  */
 package ee.ria.xroad.signer.tokenmanager.token;
 
-import ee.ria.xroad.common.util.CryptoUtils;
+import ee.ria.xroad.common.crypto.KeyManagers;
+import ee.ria.xroad.common.crypto.identifier.SignAlgorithm;
 import ee.ria.xroad.common.util.PasswordStore;
 import ee.ria.xroad.signer.protocol.dto.KeyInfo;
 import ee.ria.xroad.signer.protocol.dto.TokenInfo;
@@ -137,9 +138,10 @@ public abstract class AbstractTokenWorker implements TokenWorker, WorkerWithLife
     @Override
     public byte[] handleSign(SignReq request) {
         try {
-            byte[] data = SignerUtil.createDataToSign(request.getDigest().toByteArray(), request.getSignatureAlgorithmId());
+            var signatureAlgId = SignAlgorithm.ofName(request.getSignatureAlgorithmId());
+            byte[] data = SignerUtil.createDataToSign(request.getDigest().toByteArray(), signatureAlgId);
 
-            return sign(request.getKeyId(), request.getSignatureAlgorithmId(), data);
+            return sign(request.getKeyId(), signatureAlgId, data);
         } catch (Exception e) {
             log.error("Error while signing with key '{}'", request.getKeyId(), e);
 
@@ -150,9 +152,9 @@ public abstract class AbstractTokenWorker implements TokenWorker, WorkerWithLife
     @Override
     public byte[] handleSignCertificate(SignCertificateReq request) {
         try {
-            PublicKey publicKey = CryptoUtils.readX509PublicKey(request.getPublicKey().toByteArray());
-            return signCertificate(request.getKeyId(), request.getSignatureAlgorithmId(),
-                    request.getSubjectName(), publicKey);
+            var signatureAlgorithmId = SignAlgorithm.ofName(request.getSignatureAlgorithmId());
+            var publicKey = KeyManagers.getFor(signatureAlgorithmId).readX509PublicKey(request.getPublicKey().toByteArray());
+            return signCertificate(request.getKeyId(), signatureAlgorithmId, request.getSubjectName(), publicKey);
         } catch (Exception e) {
             log.error("Error while signing certificate with key '{}'", request.getKeyId(), e);
             throw translateException(e).withPrefix(X_CANNOT_SIGN);
@@ -197,9 +199,9 @@ public abstract class AbstractTokenWorker implements TokenWorker, WorkerWithLife
 
     protected abstract void deleteCert(String certId) throws Exception;
 
-    protected abstract byte[] sign(String keyId, String signatureAlgorithmId, byte[] data) throws Exception;
+    protected abstract byte[] sign(String keyId, SignAlgorithm signatureAlgorithmId, byte[] data) throws Exception;
 
-    protected abstract byte[] signCertificate(String keyId, String signatureAlgorithmId, String subjectName,
+    protected abstract byte[] signCertificate(String keyId, SignAlgorithm signatureAlgorithmId, String subjectName,
                                               PublicKey publicKey) throws Exception;
 
     protected void assertKeyAvailable(String keyId) {

@@ -53,7 +53,7 @@ import java.util.Date;
 import java.util.Optional;
 import java.util.Set;
 
-import static ee.ria.xroad.common.util.CryptoUtils.DEFAULT_ANCHOR_HASH_ALGORITHM_ID;
+import static ee.ria.xroad.common.crypto.Digests.DEFAULT_ANCHOR_HASH_ALGORITHM_ID;
 import static java.lang.ClassLoader.getSystemResource;
 import static java.nio.file.Files.readAllBytes;
 import static java.util.Optional.empty;

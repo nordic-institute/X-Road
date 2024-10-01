@@ -27,11 +27,11 @@ package ee.ria.xroad.signer.protocol.handler;
 
 import ee.ria.xroad.common.CodedException;
 import ee.ria.xroad.common.conf.globalconf.GlobalConfProvider;
-import ee.ria.xroad.common.conf.globalconfextension.GlobalConfExtensions;
 import ee.ria.xroad.common.identifier.SecurityServerId;
 import ee.ria.xroad.common.ocsp.OcspVerifier;
 import ee.ria.xroad.common.ocsp.OcspVerifierOptions;
 import ee.ria.xroad.common.util.CertUtils;
+import ee.ria.xroad.common.util.CryptoUtils;
 import ee.ria.xroad.common.util.PasswordStore;
 import ee.ria.xroad.signer.protocol.AbstractRpcHandler;
 import ee.ria.xroad.signer.protocol.dto.CertificateInfo;
@@ -54,7 +54,6 @@ import java.security.cert.CertificateException;
 import java.security.cert.X509Certificate;
 
 import static ee.ria.xroad.common.ErrorCodes.X_KEY_NOT_FOUND;
-import static ee.ria.xroad.common.util.CryptoUtils.readCertificate;
 import static ee.ria.xroad.signer.util.ExceptionHelper.tokenNotActive;
 import static ee.ria.xroad.signer.util.ExceptionHelper.tokenNotInitialized;
 import static java.util.Optional.ofNullable;
@@ -137,7 +136,7 @@ public class GetAuthKeyReqHandler
 
     private boolean authCertValid(CertificateInfo certInfo,
                                   SecurityServerId securityServer) throws Exception {
-        X509Certificate cert = readCertificate(certInfo.getCertificateBytes());
+        X509Certificate cert = CryptoUtils.readCertificate(certInfo.getCertificateBytes());
 
         if (!certInfo.isActive()) {
             log.trace("Ignoring inactive authentication certificate {}",
@@ -160,7 +159,7 @@ public class GetAuthKeyReqHandler
             if (securityServer.equals(serverIdFromConf)) {
                 verifyOcspResponse(securityServer.getXRoadInstance(), cert,
                         certInfo.getOcspBytes(), new OcspVerifierOptions(
-                                GlobalConfExtensions.getInstance(globalConfProvider)
+                                globalConfProvider.getGlobalConfExtensions()
                                         .shouldVerifyOcspNextUpdate()));
 
                 return true;

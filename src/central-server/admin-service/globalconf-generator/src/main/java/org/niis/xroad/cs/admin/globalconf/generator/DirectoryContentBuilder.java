@@ -26,7 +26,7 @@
  */
 package org.niis.xroad.cs.admin.globalconf.generator;
 
-import ee.ria.xroad.common.util.CryptoUtils;
+import ee.ria.xroad.common.crypto.identifier.DigestAlgorithm;
 import ee.ria.xroad.common.util.HashCalculator;
 
 import lombok.NonNull;
@@ -57,7 +57,7 @@ public class DirectoryContentBuilder {
 
     @SneakyThrows
     public DirectoryContentBuilder(
-            @NonNull String hashAlgorithmId,
+            @NonNull DigestAlgorithm hashAlgorithmId,
             @NonNull Instant expireDate,
             @NonNull String pathPrefix,
             @NonNull String instanceIdentifier,
@@ -67,7 +67,7 @@ public class DirectoryContentBuilder {
         this.instanceIdentifier = instanceIdentifier;
         this.configurationVersion = configurationVersion;
 
-        hashCalculator = new HashCalculator(CryptoUtils.getDigestAlgorithmURI(hashAlgorithmId));
+        hashCalculator = new HashCalculator(hashAlgorithmId);
     }
 
     DirectoryContentBuilder contentPart(ConfigurationPart configurationPart) {
@@ -101,7 +101,7 @@ public class DirectoryContentBuilder {
                 .header(header("Content-identifier",
                         String.format("%s; instance='%s'", confPart.getContentIdentifier(), instanceIdentifier)))
                 .header(header("Content-location", String.format("%s/%s", pathPrefix, confPart.getFilename())))
-                .header(header("Hash-algorithm-id", hashCalculator.getAlgoURI()))
+                .header(header("Hash-algorithm-id", hashCalculator.getAlgoURI().uri()))
                 .content(calculateHash(confPart.getData()))
                 .build();
     }

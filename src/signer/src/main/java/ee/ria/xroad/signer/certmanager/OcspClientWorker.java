@@ -32,10 +32,11 @@ import ee.ria.xroad.common.DiagnosticsErrorCodes;
 import ee.ria.xroad.common.OcspResponderStatus;
 import ee.ria.xroad.common.cert.CertChain;
 import ee.ria.xroad.common.conf.globalconf.GlobalConfProvider;
-import ee.ria.xroad.common.conf.globalconfextension.GlobalConfExtensions;
+import ee.ria.xroad.common.crypto.identifier.SignAlgorithm;
 import ee.ria.xroad.common.ocsp.OcspVerifier;
 import ee.ria.xroad.common.ocsp.OcspVerifierOptions;
 import ee.ria.xroad.common.util.CertUtils;
+import ee.ria.xroad.common.util.CryptoUtils;
 import ee.ria.xroad.common.util.TimeUtils;
 import ee.ria.xroad.signer.job.OcspClientExecuteScheduler;
 import ee.ria.xroad.signer.protocol.dto.CertificateInfo;
@@ -65,8 +66,7 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 import static ee.ria.xroad.common.util.CryptoUtils.calculateCertSha1HexHash;
-import static ee.ria.xroad.common.util.CryptoUtils.encodeBase64;
-import static ee.ria.xroad.common.util.CryptoUtils.readCertificate;
+import static ee.ria.xroad.common.util.EncoderUtils.encodeBase64;
 import static java.util.Collections.emptyList;
 
 /**
@@ -112,9 +112,8 @@ public class OcspClientWorker {
         boolean sendExecute = false;
 
         changeChecker.addChange(OCSP_FRESHNESS_SECONDS, globalConfProvider.getOcspFreshnessSeconds());
-        changeChecker.addChange(VERIFY_OCSP_NEXT_UPDATE,
-                GlobalConfExtensions.getInstance(globalConfProvider).shouldVerifyOcspNextUpdate());
-        changeChecker.addChange(OCSP_FETCH_INTERVAL, GlobalConfExtensions.getInstance(globalConfProvider).getOcspFetchInterval());
+        changeChecker.addChange(VERIFY_OCSP_NEXT_UPDATE, globalConfProvider.getGlobalConfExtensions().shouldVerifyOcspNextUpdate());
+        changeChecker.addChange(OCSP_FETCH_INTERVAL, globalConfProvider.getGlobalConfExtensions().getOcspFetchInterval());
 
         if (changeChecker.hasChanged(OCSP_FRESHNESS_SECONDS)) {
             log.debug("Detected change in global configuration ocspFreshnessSeconds parameter");
@@ -174,7 +173,7 @@ public class OcspClientWorker {
         for (X509Certificate subject : certs) {
             try {
                 OCSPResp status = queryCertStatus(subject, new OcspVerifierOptions(
-                        GlobalConfExtensions.getInstance(globalConfProvider).shouldVerifyOcspNextUpdate()));
+                        globalConfProvider.getGlobalConfExtensions().shouldVerifyOcspNextUpdate()));
                 if (status != null) {
                     String subjectHash = calculateCertSha1HexHash(subject);
                     statuses.put(subjectHash, status);
@@ -224,7 +223,7 @@ public class OcspClientWorker {
             X509Certificate cert;
 
             try {
-                cert = readCertificate(certInfo.getCertificateBytes());
+                cert = CryptoUtils.readCertificate(certInfo.getCertificateBytes());
             } catch (Exception e) {
                 log.error("Failed to parse certificate " + certInfo.getId(), e);
 
@@ -248,7 +247,7 @@ public class OcspClientWorker {
 
         PrivateKey signerKey = ocspClient.getOcspRequestKey(subject);
         X509Certificate signer = ocspClient.getOcspSignerCert();
-        String signAlgoId = ocspClient.getSignAlgorithmId();
+        SignAlgorithm signAlgoId = ocspClient.getSignAlgorithmId();
 
         List<String> responderURIs = globalConfProvider.getOcspResponderAddresses(subject);
 
@@ -263,7 +262,7 @@ public class OcspClientWorker {
         for (String responderURI : responderURIs) {
             final OffsetDateTime prevUpdate = TimeUtils.offsetDateTimeNow();
             final OffsetDateTime nextUpdate = prevUpdate
-                    .plusSeconds(GlobalConfExtensions.getInstance(globalConfProvider).getOcspFetchInterval());
+                    .plusSeconds(globalConfProvider.getGlobalConfExtensions().getOcspFetchInterval());
             int errorCode = DiagnosticsErrorCodes.ERROR_CODE_OCSP_RESPONSE_INVALID;
 
             try {
@@ -386,7 +385,7 @@ public class OcspClientWorker {
 
     private void initializeDiagnostics() {
 
-        final int fetchInterval = GlobalConfExtensions.getInstance(globalConfProvider).getOcspFetchInterval();
+        final int fetchInterval = globalConfProvider.getGlobalConfExtensions().getOcspFetchInterval();
         final Map<String, CertificationServiceStatus> serviceStatusMap = certServDiagnostics
                 .getCertificationServiceStatusMap();
 

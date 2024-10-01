@@ -28,6 +28,7 @@ package ee.ria.xroad.common.conf.globalconf;
 
 import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.identifier.SecurityServerId;
+import ee.ria.xroad.common.util.CryptoUtils;
 
 import lombok.Getter;
 import lombok.NonNull;
@@ -48,7 +49,6 @@ import java.util.Objects;
 import java.util.Set;
 
 import static ee.ria.xroad.common.util.CryptoUtils.encodeBase64;
-import static ee.ria.xroad.common.util.CryptoUtils.readCertificate;
 
 @Getter
 public class SharedParametersCache {
@@ -117,7 +117,7 @@ public class SharedParametersCache {
 
     private void cacheOcspData(List<SharedParameters.CaInfo> typesUnderCA) {
         for (SharedParameters.CaInfo caInfo : typesUnderCA) {
-            X509Certificate cert = readCertificate(caInfo.getCert());
+            X509Certificate cert = CryptoUtils.readCertificate(caInfo.getCert());
             List<SharedParameters.OcspInfo> caOcspTypes = caInfo.getOcsp();
             caCertsAndOcspData.put(cert, caOcspTypes);
         }
@@ -125,7 +125,7 @@ public class SharedParametersCache {
 
     private static List<X509Certificate> getTopOrIntermediateCaCerts(List<SharedParameters.CaInfo> typesUnderCA) {
         return typesUnderCA.stream()
-                .map(c -> readCertificate(c.getCert()))
+                .map(c -> CryptoUtils.readCertificate(c.getCert()))
                 .toList();
     }
 

@@ -142,11 +142,11 @@ public class TokenCertificateService {
                                                         String caName, Map<String, String> subjectFieldValues,
                                                         CertificateRequestFormat format, Boolean isAcmeOrder)
             throws CertificateAuthorityNotFoundException, ClientNotFoundException,
-            WrongKeyUsageException,
-            KeyNotFoundException,
-            DnFieldHelper.InvalidDnParameterException, ActionNotPossibleException,
-            CertificateAlreadyExistsException, GlobalConfOutdatedException, CsrNotFoundException,
-            WrongCertificateUsageException, InvalidCertificateException, AuthCertificateNotSupportedException {
+                   WrongKeyUsageException,
+                   KeyNotFoundException,
+                   DnFieldHelper.InvalidDnParameterException, ActionNotPossibleException,
+                   CertificateAlreadyExistsException, GlobalConfOutdatedException, CsrNotFoundException,
+                   WrongCertificateUsageException, InvalidCertificateException, AuthCertificateNotSupportedException {
 
         // validate key and memberId existence
         TokenInfo tokenInfo = tokenService.getTokenForKeyId(keyId);
@@ -227,7 +227,7 @@ public class TokenCertificateService {
                                         ApprovedCAInfo caInfo,
                                         GeneratedCertRequestInfo generatedCertRequestInfo)
             throws GlobalConfOutdatedException, KeyNotFoundException, InvalidCertificateException, CertificateAlreadyExistsException,
-            WrongCertificateUsageException, CsrNotFoundException, AuthCertificateNotSupportedException, ClientNotFoundException {
+                   WrongCertificateUsageException, CsrNotFoundException, AuthCertificateNotSupportedException, ClientNotFoundException {
         String memberEncodedId = keyUsage == KeyUsageInfo.SIGNING
                 ? memberId.asEncodedId()
                 : serverConfProvider.getIdentifier().getOwner().asEncodedId();
@@ -344,10 +344,12 @@ public class TokenCertificateService {
      * @throws AuthCertificateNotSupportedException if trying to import an auth cert from a token
      * @throws ActionNotPossibleException           if import was not possible due to cert/key/token states
      */
-    public CertificateInfo importCertificateFromToken(String hash) throws CertificateNotFoundException,
-            InvalidCertificateException, GlobalConfOutdatedException, KeyNotFoundException,
-            CertificateAlreadyExistsException, WrongCertificateUsageException, ClientNotFoundException,
-            CsrNotFoundException, AuthCertificateNotSupportedException, ActionNotPossibleException {
+    public CertificateInfo importCertificateFromToken(String hash)
+            throws CertificateNotFoundException, InvalidCertificateException,
+                   GlobalConfOutdatedException, KeyNotFoundException,
+                   CertificateAlreadyExistsException, WrongCertificateUsageException,
+                   ClientNotFoundException, CsrNotFoundException,
+                   AuthCertificateNotSupportedException, ActionNotPossibleException {
         CertificateInfo certificateInfo = getCertificateInfo(hash);
 
         TokenInfoAndKeyId tokenInfoAndKeyId = tokenService.getTokenAndKeyIdForCertificateHash(hash);
@@ -383,8 +385,8 @@ public class TokenCertificateService {
      */
     private CertificateInfo importCertificate(byte[] certificateBytes, boolean isFromToken)
             throws GlobalConfOutdatedException, KeyNotFoundException, InvalidCertificateException,
-            CertificateAlreadyExistsException, WrongCertificateUsageException, CsrNotFoundException,
-            AuthCertificateNotSupportedException, ClientNotFoundException {
+                   CertificateAlreadyExistsException, WrongCertificateUsageException, CsrNotFoundException,
+                   AuthCertificateNotSupportedException, ClientNotFoundException {
         globalConfService.verifyGlobalConfValidity();
         X509Certificate x509Certificate = convertToX509Certificate(certificateBytes);
         CertificateInfo certificateInfo = null;
@@ -468,7 +470,7 @@ public class TokenCertificateService {
      * @throws ActionNotPossibleException   if cannot (de)activate
      */
     public void activateCertificate(String hash) throws CertificateNotFoundException,
-            AccessDeniedException, ActionNotPossibleException {
+                                                        AccessDeniedException, ActionNotPossibleException {
         changeCertificateActivation(hash, true);
     }
 
@@ -481,7 +483,7 @@ public class TokenCertificateService {
      * @throws ActionNotPossibleException   if cannot (de)activate
      */
     public void deactivateCertificate(String hash) throws CertificateNotFoundException, AccessDeniedException,
-            ActionNotPossibleException {
+                                                          ActionNotPossibleException {
         changeCertificateActivation(hash, false);
     }
 
@@ -489,8 +491,8 @@ public class TokenCertificateService {
      * Deactivates or activates certificate
      */
     private void changeCertificateActivation(String hash, boolean activate) throws CertificateNotFoundException,
-            AccessDeniedException,
-            ActionNotPossibleException {
+                                                                                   AccessDeniedException,
+                                                                                   ActionNotPossibleException {
 
         // verify correct authority
         CertificateInfo certificateInfo = getCertificateInfo(hash);
@@ -577,10 +579,11 @@ public class TokenCertificateService {
      * @throws WrongCertificateUsageException
      * @throws AuthCertificateNotSupportedException if trying to import an auth cert from a token
      */
-    public CertificateInfo importCertificate(byte[] certificateBytes) throws InvalidCertificateException,
-            GlobalConfOutdatedException, KeyNotFoundException, CertificateAlreadyExistsException,
-            WrongCertificateUsageException, ClientNotFoundException, CsrNotFoundException,
-            AuthCertificateNotSupportedException {
+    public CertificateInfo importCertificate(byte[] certificateBytes)
+            throws InvalidCertificateException, GlobalConfOutdatedException,
+                   KeyNotFoundException, CertificateAlreadyExistsException,
+                   WrongCertificateUsageException, ClientNotFoundException, CsrNotFoundException,
+                   AuthCertificateNotSupportedException {
         return importCertificate(certificateBytes, false);
     }
 
@@ -591,8 +594,8 @@ public class TokenCertificateService {
      * @throws InvalidCertificateException if bytes were not valid cert
      * @throws AccessDeniedException       if no authority to activate or disable cert
      */
-    private void verifyActivateDisableAuthority(byte[] certificateBytes) throws InvalidCertificateException,
-            AccessDeniedException {
+    private void verifyActivateDisableAuthority(byte[] certificateBytes)
+            throws InvalidCertificateException, AccessDeniedException {
 
         X509Certificate x509Certificate = null;
         try {
@@ -673,8 +676,8 @@ public class TokenCertificateService {
      * @throws KeyNotFoundException
      * @throws ActionNotPossibleException
      */
-    private void verifyCertAction(PossibleActionEnum action, CertificateInfo certificateInfo, String hash) throws
-            CertificateNotFoundException, KeyNotFoundException, ActionNotPossibleException {
+    private void verifyCertAction(PossibleActionEnum action, CertificateInfo certificateInfo, String hash)
+            throws CertificateNotFoundException, KeyNotFoundException, ActionNotPossibleException {
         TokenInfoAndKeyId tokenInfoAndKeyId = tokenService.getTokenAndKeyIdForCertificateHash(hash);
         TokenInfo tokenInfo = tokenInfoAndKeyId.getTokenInfo();
         KeyInfo keyInfo = tokenInfoAndKeyId.getKeyInfo();
@@ -693,9 +696,10 @@ public class TokenCertificateService {
      * @throws KeyNotFoundException
      * @throws ActionNotPossibleException
      */
-    public void registerAuthCert(String hash, String securityServerAddress) throws CertificateNotFoundException,
-            GlobalConfOutdatedException, InvalidCertificateException,
-            SignCertificateNotSupportedException, KeyNotFoundException, ActionNotPossibleException {
+    public void registerAuthCert(String hash, String securityServerAddress)
+            throws CertificateNotFoundException, GlobalConfOutdatedException,
+                   InvalidCertificateException, SignCertificateNotSupportedException,
+                   KeyNotFoundException, ActionNotPossibleException {
         CertificateInfo certificateInfo = getCertificateInfo(hash);
         auditLogTokenKeyAndCert(hash, certificateInfo, false);
         verifyAuthCert(certificateInfo);
@@ -730,8 +734,8 @@ public class TokenCertificateService {
      */
     private void unregisterAuthCertAndMarkForDeletion(String hash, boolean skipUnregister)
             throws CertificateNotFoundException, GlobalConfOutdatedException,
-            InvalidCertificateException, SignCertificateNotSupportedException, KeyNotFoundException,
-            ActionNotPossibleException, ManagementRequestSendingFailedException {
+                   InvalidCertificateException, SignCertificateNotSupportedException, KeyNotFoundException,
+                   ActionNotPossibleException, ManagementRequestSendingFailedException {
         CertificateInfo certificateInfo = getCertificateInfo(hash);
         auditLogTokenKeyAndCert(hash, certificateInfo, false);
         verifyAuthCert(certificateInfo);
@@ -763,10 +767,11 @@ public class TokenCertificateService {
      * @throws CertificateNotFoundException
      * @throws ManagementRequestSendingFailedException
      */
-    public void unregisterAuthCert(String hash) throws SignCertificateNotSupportedException,
-            ActionNotPossibleException, GlobalConfOutdatedException, InvalidCertificateException,
-            KeyNotFoundException, CertificateNotFoundException,
-            ManagementRequestSendingFailedException {
+    public void unregisterAuthCert(String hash)
+            throws SignCertificateNotSupportedException, ActionNotPossibleException,
+                   GlobalConfOutdatedException, InvalidCertificateException,
+                   KeyNotFoundException, CertificateNotFoundException,
+                   ManagementRequestSendingFailedException {
         unregisterAuthCertAndMarkForDeletion(hash, false);
     }
 
@@ -781,9 +786,10 @@ public class TokenCertificateService {
      * @throws KeyNotFoundException
      * @throws CertificateNotFoundException
      */
-    public void markAuthCertForDeletion(String hash) throws SignCertificateNotSupportedException,
-            ActionNotPossibleException, GlobalConfOutdatedException, InvalidCertificateException,
-            KeyNotFoundException, CertificateNotFoundException {
+    public void markAuthCertForDeletion(String hash)
+            throws SignCertificateNotSupportedException, ActionNotPossibleException,
+                   GlobalConfOutdatedException, InvalidCertificateException,
+                   KeyNotFoundException, CertificateNotFoundException {
         try {
             unregisterAuthCertAndMarkForDeletion(hash, true);
         } catch (ManagementRequestSendingFailedException e) {
@@ -795,7 +801,7 @@ public class TokenCertificateService {
     private void verifyAuthCert(CertificateInfo certificateInfo)
             throws SignCertificateNotSupportedException, InvalidCertificateException {
         boolean isAuthCert;
-        X509Certificate certificate = null;
+        X509Certificate certificate;
         try {
             certificate = CryptoUtils.readCertificate(certificateInfo.getCertificateBytes());
             isAuthCert = CertUtils.isAuthCert(certificate);
@@ -819,8 +825,10 @@ public class TokenCertificateService {
      * @throws CsrNotFoundException
      * @throws KeyNotFoundException
      */
-    private void translateCodedExceptions(CodedException e) throws CertificateAlreadyExistsException,
-            InvalidCertificateException, WrongCertificateUsageException, CsrNotFoundException, KeyNotFoundException {
+    private void translateCodedExceptions(CodedException e)
+            throws CertificateAlreadyExistsException, InvalidCertificateException,
+                   WrongCertificateUsageException, CsrNotFoundException,
+                   KeyNotFoundException {
         if (isCausedByDuplicateCertificate(e)) {
             throw new CertificateAlreadyExistsException(e);
         } else if (isCausedByIncorrectCertificate(e)) {
@@ -952,8 +960,8 @@ public class TokenCertificateService {
         }
     }
 
-    private void deleteCertificate(String certificateId, List<TokenInfo> allTokens) throws
-            CertificateNotFoundException, ActionNotPossibleException {
+    private void deleteCertificate(String certificateId, List<TokenInfo> allTokens)
+            throws CertificateNotFoundException, ActionNotPossibleException {
         // find token, key, and certificate info
         for (TokenInfo tokenInfo : allTokens) {
             for (KeyInfo keyInfo : tokenInfo.getKeyInfo()) {
@@ -979,7 +987,7 @@ public class TokenCertificateService {
      * @throws ActionNotPossibleException   if delete was not possible due to cert/key/token states
      */
     public void deleteCertificate(String hash) throws CertificateNotFoundException, KeyNotFoundException,
-            ActionNotPossibleException {
+                                                      ActionNotPossibleException {
         hash = hash.toLowerCase();
         CertificateInfo certificateInfo = getCertificateInfo(hash);
         if (certificateInfo.isSavedToConfiguration()) {
@@ -1038,7 +1046,7 @@ public class TokenCertificateService {
      */
     public String getKeyIdForCertificateHash(String hash) throws CertificateNotFoundException {
         try {
-            return signerProxyFacade.getKeyIdForCertHash(hash).getKeyId();
+            return signerProxyFacade.getKeyIdForCertHash(hash).keyId();
         } catch (CodedException e) {
             if (isCausedByCertNotFound(e)) {
                 throw new CertificateNotFoundException("Certificate with hash " + hash + " not found");
@@ -1060,7 +1068,7 @@ public class TokenCertificateService {
      * @throws ActionNotPossibleException if delete was not possible due to csr/key/token states
      */
     public void deleteCsr(String csrId) throws KeyNotFoundException, CsrNotFoundException,
-            ActionNotPossibleException {
+                                               ActionNotPossibleException {
 
         // different audit fields for these events
         if (auditDataHelper.dataIsForEvent(RestApiAuditEvent.DELETE_ORPHANS)) {
@@ -1106,9 +1114,9 @@ public class TokenCertificateService {
      */
     public void orderAcmeCertificate(String caName, String csrId, KeyUsageInfo keyUsage)
             throws CertificateAuthorityNotFoundException, CsrNotFoundException, KeyNotFoundException,
-            ActionNotPossibleException, CertificateAlreadyExistsException, ClientNotFoundException,
-            GlobalConfOutdatedException, WrongCertificateUsageException, InvalidCertificateException,
-            AuthCertificateNotSupportedException {
+                   ActionNotPossibleException, CertificateAlreadyExistsException, ClientNotFoundException,
+                   GlobalConfOutdatedException, WrongCertificateUsageException, InvalidCertificateException,
+                   AuthCertificateNotSupportedException {
         auditDataHelper.put(RestApiAuditProperty.KEY_USAGE, keyUsage);
         auditDataHelper.put(RestApiAuditProperty.CERTIFICATION_SERVICE_NAME, caName);
 

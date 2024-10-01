@@ -26,6 +26,8 @@
 package ee.ria.xroad.common.conf.globalconf;
 
 import ee.ria.xroad.common.CodedException;
+import ee.ria.xroad.common.crypto.identifier.DigestAlgorithm;
+import ee.ria.xroad.common.crypto.identifier.SignAlgorithm;
 
 import org.apache.commons.lang3.StringUtils;
 import org.eclipse.jetty.http.HttpField;
@@ -58,16 +60,16 @@ final class ConfigurationSignature extends AbstractConfigurationPart {
         return parameters.get(HEADER_CONTENT_TRANSFER_ENCODING);
     }
 
-    String getSignatureAlgorithmId() {
-        return parameters.get(HEADER_SIG_ALGO_ID);
+    SignAlgorithm getSignatureAlgorithmId() {
+        return SignAlgorithm.ofUri(parameters.get(HEADER_SIG_ALGO_ID));
     }
 
     String getVerificationCertHash() {
         return verificationCertHash.hash();
     }
 
-    String getVerificationCertHashAlgoId() {
-        return verificationCertHash.algoId();
+    DigestAlgorithm getVerificationCertHashAlgoUri() {
+        return verificationCertHash.algoUri();
     }
 
     static ConfigurationSignature of(Map<String, String> headers) {
@@ -90,18 +92,18 @@ final class ConfigurationSignature extends AbstractConfigurationPart {
         Map<String, String> p = new HashMap<>();
 
         String hash = HttpField.getValueParameters(value, p);
-        String algoId = p.get(HEADER_HASH_ALGORITHM_ID);
+        String algoUri = p.get(HEADER_HASH_ALGORITHM_ID);
 
-        if (StringUtils.isBlank(algoId)) {
+        if (StringUtils.isBlank(algoUri)) {
             throw new CodedException(X_INTERNAL_ERROR,
                     "Field " + HEADER_VERIFICATION_CERT_HASH
                             + " is missing parameter " + HEADER_HASH_ALGORITHM_ID);
         }
 
-        return new VerificationCertHash(hash, algoId);
+        return new VerificationCertHash(hash, DigestAlgorithm.ofUri(algoUri));
     }
 
 
-    private record VerificationCertHash(String hash, String algoId) {
+    private record VerificationCertHash(String hash, DigestAlgorithm algoUri) {
     }
 }

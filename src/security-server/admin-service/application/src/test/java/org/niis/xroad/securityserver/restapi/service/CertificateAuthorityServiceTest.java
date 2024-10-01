@@ -31,7 +31,7 @@ import ee.ria.xroad.common.certificateprofile.impl.FiVRKAuthCertificateProfileIn
 import ee.ria.xroad.common.certificateprofile.impl.FiVRKSignCertificateProfileInfo;
 import ee.ria.xroad.common.conf.globalconf.ApprovedCAInfo;
 import ee.ria.xroad.common.conf.serverconf.model.ClientType;
-import ee.ria.xroad.common.util.CryptoUtils;
+import ee.ria.xroad.common.util.EncoderUtils;
 import ee.ria.xroad.signer.protocol.dto.KeyUsageInfo;
 
 import org.bouncycastle.cert.ocsp.CertificateStatus;
@@ -130,7 +130,7 @@ public class CertificateAuthorityServiceTest extends AbstractServiceTestContext 
                 .map(cert -> {
                     try {
                         byte[] bytes = CertificateTestUtils.generateOcspBytes(cert, CertificateStatus.GOOD);
-                        return CryptoUtils.encodeBase64(bytes);
+                        return EncoderUtils.encodeBase64(bytes);
                     } catch (Exception e) {
                         throw new RuntimeException(e);
                     }

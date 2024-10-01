@@ -36,6 +36,7 @@ import ee.ria.xroad.common.conf.serverconf.dao.ServiceDAOImpl;
 import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.identifier.SecurityServerId;
 import ee.ria.xroad.common.identifier.ServiceId;
+import ee.ria.xroad.common.util.CryptoUtils;
 
 import org.junit.After;
 import org.junit.Before;
@@ -49,7 +50,6 @@ import java.util.Arrays;
 import java.util.List;
 
 import static ee.ria.xroad.common.ErrorCodes.X_UNKNOWN_SERVICE;
-import static ee.ria.xroad.common.util.CryptoUtils.readCertificate;
 import static ee.ria.xroad.proxy.conf.TestUtil.BASE64_CERT;
 import static ee.ria.xroad.proxy.conf.TestUtil.CLIENT_CODE;
 import static ee.ria.xroad.proxy.conf.TestUtil.MEMBER_CLASS;
@@ -279,7 +279,7 @@ public class CachingServerConfTest {
         List<X509Certificate> isCerts =
                 serverConfProvider.getIsCerts(createTestClientId(client(1)));
         assertEquals(1, isCerts.size());
-        assertEquals(readCertificate(BASE64_CERT), isCerts.get(0));
+        assertEquals(CryptoUtils.readCertificate(BASE64_CERT), isCerts.get(0));
     }
 
     /**

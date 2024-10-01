@@ -34,6 +34,7 @@ import ee.ria.xroad.common.conf.globalconf.GlobalConfProvider;
 import ee.ria.xroad.common.conf.serverconf.ServerConfProvider;
 import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.identifier.SecurityServerId;
+import ee.ria.xroad.common.util.CryptoUtils;
 import ee.ria.xroad.common.util.FileContentChangeChecker;
 import ee.ria.xroad.common.util.filewatcher.FileWatcherRunner;
 import ee.ria.xroad.signer.SignerProxy;

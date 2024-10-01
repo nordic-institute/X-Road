@@ -189,13 +189,13 @@ class LogArchiveCache implements Closeable {
         String archiveFilename = nameGenerator.getArchiveFilename(record.getQueryId(), record.isResponse(),
                 record.getId());
 
-        final MessageDigest digest = MessageDigest.getInstance(MessageLogProperties.getHashAlg());
+        final MessageDigest digest = MessageDigest.getInstance(MessageLogProperties.getHashAlg().name());
         final ZipEntry entry = new ZipEntry(archiveFilename);
         entry.setLastModifiedTime(FileTime.from(record.getTime(), TimeUnit.MILLISECONDS));
         archiveTmp.putNextEntry(entry);
         try (CountingOutputStream cos =
                      new CountingOutputStream(new DigestOutputStream(new EntryStream(archiveTmp), digest));
-                OutputStream bos = new BufferedOutputStream(cos)) {
+             OutputStream bos = new BufferedOutputStream(cos)) {
             // ZipOutputStream writing directly to a DigestOutputStream is extremely inefficient, hence the additional
             // buffering. Digesting a stream instead of an in-memory buffer because the archive can be
             // large (over 1GiB)

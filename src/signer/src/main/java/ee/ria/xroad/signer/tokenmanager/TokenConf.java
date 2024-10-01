@@ -33,7 +33,7 @@ import ee.ria.xroad.common.conf.keyconf.DeviceType;
 import ee.ria.xroad.common.conf.keyconf.KeyConfType;
 import ee.ria.xroad.common.conf.keyconf.KeyType;
 import ee.ria.xroad.common.conf.keyconf.ObjectFactory;
-import ee.ria.xroad.common.util.CryptoUtils;
+import ee.ria.xroad.common.crypto.identifier.SignMechanism;
 import ee.ria.xroad.signer.model.Cert;
 import ee.ria.xroad.signer.model.CertRequest;
 import ee.ria.xroad.signer.model.Key;
@@ -57,8 +57,8 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 import static ee.ria.xroad.common.util.CryptoUtils.calculateCertHexHash;
-import static ee.ria.xroad.common.util.CryptoUtils.decodeBase64;
-import static ee.ria.xroad.common.util.CryptoUtils.encodeBase64;
+import static ee.ria.xroad.common.util.EncoderUtils.decodeBase64;
+import static ee.ria.xroad.common.util.EncoderUtils.encodeBase64;
 import static java.util.Objects.requireNonNull;
 
 /**
@@ -137,8 +137,7 @@ public final class TokenConf extends AbstractXmlConf<KeyConfType> {
      * @return true if configuration contains token with given token id
      */
     public boolean hasToken(String id) {
-        return confType.getDevice().stream().filter(t -> t.getId().equals(id))
-                .findFirst().isPresent();
+        return confType.getDevice().stream().anyMatch(t -> t.getId().equals(id));
     }
 
     /**
@@ -186,12 +185,11 @@ public final class TokenConf extends AbstractXmlConf<KeyConfType> {
 
     private static boolean hasKeysWithCertsOfCertRequests(Token token) {
         return token.getKeys().stream()
-                .filter(TokenConf::hasCertsOrCertRequests)
-                .findFirst().isPresent();
+                .anyMatch(TokenConf::hasCertsOrCertRequests);
     }
 
     private static boolean hasCertsOrCertRequests(Key key) {
-        return key.getCerts().stream().map(c -> c.isSavedToConfiguration())
+        return key.getCerts().stream().map(Cert::isSavedToConfiguration)
                 .findFirst().orElse(!key.getCertRequests().isEmpty());
     }
 
@@ -211,7 +209,7 @@ public final class TokenConf extends AbstractXmlConf<KeyConfType> {
                     deviceType.getKey().add(from(key));
                 });
 
-        deviceType.setSignMechanismName(token.getSignMechanismName());
+        deviceType.setSignMechanismName(token.getSignMechanismName().name());
 
         return deviceType;
     }
@@ -239,8 +237,8 @@ public final class TokenConf extends AbstractXmlConf<KeyConfType> {
     }
 
     private static Token from(DeviceType type) {
-        String signMechanismName = StringUtil.isBlank(type.getSignMechanismName())
-                ? CryptoUtils.CKM_RSA_PKCS_NAME : type.getSignMechanismName();
+        SignMechanism signMechanismName = StringUtil.isBlank(type.getSignMechanismName())
+                ? SignMechanism.CKM_RSA_PKCS : SignMechanism.valueOf(type.getSignMechanismName());
 
         Token token = new Token(type.getDeviceType(), type.getId(), signMechanismName);
         token.setFriendlyName(type.getFriendlyName());

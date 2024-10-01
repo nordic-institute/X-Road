@@ -34,6 +34,7 @@ import ee.ria.xroad.common.conf.serverconf.model.TspType;
 import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.identifier.SecurityServerId;
 import ee.ria.xroad.common.util.CertUtils;
+import ee.ria.xroad.common.util.CryptoUtils;
 import ee.ria.xroad.signer.protocol.dto.AuthKeyInfo;
 import ee.ria.xroad.signer.protocol.dto.CertificateInfo;
 import ee.ria.xroad.signer.protocol.dto.KeyUsageInfo;
@@ -54,7 +55,6 @@ import java.util.Optional;
 
 import static ee.ria.xroad.common.ErrorCodes.translateException;
 import static ee.ria.xroad.common.SystemProperties.NodeType.SLAVE;
-import static ee.ria.xroad.common.util.CryptoUtils.readCertificate;
 
 /**
  * Job that checks whether globalconf has changed.
@@ -225,7 +225,7 @@ public class GlobalConfChecker {
 
         AuthKeyInfo keyInfo = signerProxyFacade.getAuthKey(serverId);
         if (keyInfo != null && keyInfo.getCert() != null) {
-            return readCertificate(keyInfo.getCert().getCertificateBytes());
+            return CryptoUtils.readCertificate(keyInfo.getCert().getCertificateBytes());
         }
         log.warn("Failed to read authentication key");
         return null;
@@ -247,9 +247,9 @@ public class GlobalConfChecker {
                         // do nothing
                         break;
                     case ClientType.STATUS_SAVED,
-                            ClientType.STATUS_REGINPROG,
-                            ClientType.STATUS_GLOBALERR,
-                            ClientType.STATUS_ENABLING_INPROG:
+                         ClientType.STATUS_REGINPROG,
+                         ClientType.STATUS_GLOBALERR,
+                         ClientType.STATUS_ENABLING_INPROG:
                         updateClientStatus(client, ClientType.STATUS_REGISTERED);
                         break;
                     default:
@@ -292,7 +292,7 @@ public class GlobalConfChecker {
     private void updateCertStatus(SecurityServerId securityServerId,
                                   CertificateInfo certInfo) throws Exception {
         X509Certificate cert =
-                readCertificate(certInfo.getCertificateBytes());
+                CryptoUtils.readCertificate(certInfo.getCertificateBytes());
 
         boolean registered =
                 securityServerId.equals(globalConfProvider.getServerId(cert));

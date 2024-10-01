@@ -27,7 +27,8 @@ package ee.ria.xroad.common.conf.globalconf;
 
 import ee.ria.xroad.common.TestCertUtil;
 import ee.ria.xroad.common.TestCertUtil.PKCS12;
-import ee.ria.xroad.common.util.CryptoUtils;
+import ee.ria.xroad.common.crypto.identifier.DigestAlgorithm;
+import ee.ria.xroad.common.crypto.identifier.SignAlgorithm;
 
 import lombok.Data;
 import lombok.RequiredArgsConstructor;
@@ -48,8 +49,8 @@ import static ee.ria.xroad.common.conf.globalconf.ConfigurationConstants.CONTENT
 import static ee.ria.xroad.common.conf.globalconf.ConfigurationConstants.CONTENT_ID_SHARED_PARAMETERS;
 import static ee.ria.xroad.common.conf.globalconf.ConfigurationConstants.FILE_NAME_PRIVATE_PARAMETERS;
 import static ee.ria.xroad.common.conf.globalconf.ConfigurationConstants.FILE_NAME_SHARED_PARAMETERS;
-import static ee.ria.xroad.common.util.CryptoUtils.createDigestCalculator;
-import static ee.ria.xroad.common.util.CryptoUtils.encodeBase64;
+import static ee.ria.xroad.common.crypto.Digests.createDigestCalculator;
+import static ee.ria.xroad.common.util.EncoderUtils.encodeBase64;
 
 /**
  * Generates test configuration directory.
@@ -96,17 +97,17 @@ public final class GenerateTestData {
         }
 
         void save() throws Exception {
-            StringBuffer parts = new StringBuffer("");
+            StringBuilder parts = new StringBuilder();
 
             if (writeExpireDate) {
                 parts.append("--innerboundary\nExpire-date: 2026-05-20T17:42:55Z\n\n");
             }
 
             for (ConfDirEntry entry : entries) {
-                parts.append("\n" + getContentMultipart(entry));
+                parts.append("\n").append(getContentMultipart(entry));
             }
 
-            Signature sig = Signature.getInstance(CryptoUtils.SHA512WITHRSA_ID);
+            Signature sig = Signature.getInstance(SignAlgorithm.SHA512_WITH_RSA.name());
             sig.initSign(getSignCert().key);
             sig.update(parts.toString().getBytes());
 
@@ -164,14 +165,14 @@ public final class GenerateTestData {
     }
 
     static String hash(String content) throws Exception {
-        DigestCalculator dc = createDigestCalculator("SHA-512");
+        DigestCalculator dc = createDigestCalculator(DigestAlgorithm.SHA512);
         IOUtils.write(content, dc.getOutputStream(), StandardCharsets.UTF_8);
 
         return encodeBase64(dc.getDigest());
     }
 
     static String hash(byte[] content) throws Exception {
-        DigestCalculator dc = createDigestCalculator("SHA-512");
+        DigestCalculator dc = createDigestCalculator(DigestAlgorithm.SHA512);
         IOUtils.write(content, dc.getOutputStream());
 
         return encodeBase64(dc.getDigest());

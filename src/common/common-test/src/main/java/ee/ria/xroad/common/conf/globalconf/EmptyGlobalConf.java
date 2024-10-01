@@ -25,14 +25,15 @@
  */
 package ee.ria.xroad.common.conf.globalconf;
 
+import ee.ria.xroad.common.SystemProperties;
 import ee.ria.xroad.common.cert.CertChain;
 import ee.ria.xroad.common.certificateprofile.AuthCertificateProfileInfo;
 import ee.ria.xroad.common.certificateprofile.SignCertificateProfileInfo;
+import ee.ria.xroad.common.conf.globalconfextension.GlobalConfExtensions;
 import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.identifier.GlobalGroupId;
 import ee.ria.xroad.common.identifier.SecurityServerId;
 
-import java.nio.file.Path;
 import java.security.cert.CertificateException;
 import java.security.cert.X509Certificate;
 import java.util.Collection;
@@ -49,6 +50,15 @@ public class EmptyGlobalConf implements GlobalConfProvider {
 
     private static final int DEFAULT_TIMESTAMPING_INTERVAL = 60;
     private static final int DEFAULT_OCSP_FRESHNESS = 3600;
+
+    //Dummy source, not initialized.
+    private final FileSystemGlobalConfSource source = new FileSystemGlobalConfSource(SystemProperties.getConfigurationPath()) {
+        @Override
+        public String getInstanceIdentifier() {
+            return "EE";
+        }
+    };
+    private final GlobalConfExtensions globalConfExtensions = new GlobalConfExtensions(source);
 
     @Override
     public List<String> getOcspResponderAddresses(X509Certificate org)
@@ -290,9 +300,9 @@ public class EmptyGlobalConf implements GlobalConfProvider {
         return null;
     }
 
-    @Override
-    public Path getInstanceFile(String fileName) {
-        return null;
-    }
 
+    @Override
+    public GlobalConfExtensions getGlobalConfExtensions() {
+        return globalConfExtensions;
+    }
 }

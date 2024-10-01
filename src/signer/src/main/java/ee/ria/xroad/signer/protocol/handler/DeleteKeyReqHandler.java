@@ -52,11 +52,11 @@ public class DeleteKeyReqHandler extends AbstractRpcHandler<DeleteKeyReq, Empty>
         if (request.getDeleteFromDevice()) {
             log.trace("Deleting key '{}' from device", request.getKeyId());
 
-            deleteKeyFile(tokenAndKey.getTokenId(), request);
+            deleteKeyFile(tokenAndKey.tokenId(), request);
         } else {
             log.trace("Deleting key '{}' from configuration", request.getKeyId());
 
-            removeCertsFromKey(tokenAndKey.getKey());
+            removeCertsFromKey(tokenAndKey.key());
         }
         return Empty.getDefaultInstance();
     }

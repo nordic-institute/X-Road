@@ -33,6 +33,8 @@ import ee.ria.xroad.common.conf.globalconf.GlobalConfProvider;
 import ee.ria.xroad.common.conf.serverconf.ServerConfProvider;
 import ee.ria.xroad.common.conf.serverconf.model.ClientType;
 import ee.ria.xroad.common.conf.serverconf.model.DescriptionType;
+import ee.ria.xroad.common.crypto.Digests;
+import ee.ria.xroad.common.crypto.identifier.DigestAlgorithm;
 import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.identifier.ServiceId;
 import ee.ria.xroad.common.message.RestRequest;
@@ -41,7 +43,6 @@ import ee.ria.xroad.common.message.SoapFault;
 import ee.ria.xroad.common.message.SoapUtils;
 import ee.ria.xroad.common.opmonitoring.OpMonitoringData;
 import ee.ria.xroad.common.util.CachingStream;
-import ee.ria.xroad.common.util.CryptoUtils;
 import ee.ria.xroad.common.util.RequestWrapper;
 import ee.ria.xroad.common.util.ResponseWrapper;
 import ee.ria.xroad.common.util.TimeUtils;
@@ -206,9 +207,9 @@ class ServerRestMessageProcessor extends MessageProcessorBase {
 
     @Override
     protected void preprocess() throws Exception {
-        encoder = new ProxyMessageEncoder(jResponse.getOutputStream(), CryptoUtils.DEFAULT_DIGEST_ALGORITHM_ID);
+        encoder = new ProxyMessageEncoder(jResponse.getOutputStream(), Digests.DEFAULT_DIGEST_ALGORITHM);
         jResponse.setContentType(encoder.getContentType());
-        jResponse.putHeader(HEADER_HASH_ALGO_ID, SoapUtils.getHashAlgoId());
+        jResponse.putHeader(HEADER_HASH_ALGO_ID, SoapUtils.getHashAlgoId().name());
     }
 
     @Override
@@ -432,14 +433,14 @@ class ServerRestMessageProcessor extends MessageProcessorBase {
         return clientSslCerts != null ? clientSslCerts[0] : null;
     }
 
-    private static String getHashAlgoId(RequestWrapper request) {
+    private static DigestAlgorithm getHashAlgoId(RequestWrapper request) {
         String hashAlgoId = request.getHeaders().get(HEADER_HASH_ALGO_ID);
 
         if (hashAlgoId == null) {
             throw new CodedException(X_INTERNAL_ERROR, "Could not get hash algorithm identifier from message");
         }
 
-        return hashAlgoId;
+        return DigestAlgorithm.ofName(hashAlgoId);
     }
 
     @RequiredArgsConstructor
@@ -531,7 +532,7 @@ class ServerRestMessageProcessor extends MessageProcessorBase {
             //calculate request hash
             byte[] requestDigest;
             if (messageDecoder.getRestBodyDigest() != null) {
-                final DigestCalculator dc = CryptoUtils.createDigestCalculator(CryptoUtils.DEFAULT_DIGEST_ALGORITHM_ID);
+                final DigestCalculator dc = Digests.createDigestCalculator(Digests.DEFAULT_DIGEST_ALGORITHM);
                 try (OutputStream out = dc.getOutputStream()) {
                     out.write(requestProxyMessage.getRest().getHash());
                     out.write(messageDecoder.getRestBodyDigest());

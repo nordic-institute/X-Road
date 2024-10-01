@@ -62,8 +62,8 @@ public class RegenerateCertReqReqHandler extends AbstractGenerateCertReq<Regener
             throw keyNotAvailable(tokenAndKey.getKeyId());
         }
 
-        if (tokenAndKey.getKey().getUsage() == KeyUsageInfo.AUTHENTICATION
-                && !SoftwareTokenType.ID.equals(tokenAndKey.getTokenId())) {
+        if (tokenAndKey.key().getUsage() == KeyUsageInfo.AUTHENTICATION
+                && !SoftwareTokenType.ID.equals(tokenAndKey.tokenId())) {
             throw new CodedException(X_INTERNAL_ERROR,
                     "Authentication keys are only supported for software tokens");
         }
@@ -80,13 +80,13 @@ public class RegenerateCertReqReqHandler extends AbstractGenerateCertReq<Regener
         String subjectAltName = certRequestInfo.getSubjectAltName();
 
         PKCS10CertificationRequest generatedRequest = buildSignedCertRequest(tokenAndKey, subjectName, subjectAltName,
-                tokenAndKey.getKey().getUsage());
+                tokenAndKey.key().getUsage());
 
         final RegenerateCertRequestResp.Builder builder = RegenerateCertRequestResp.newBuilder()
                 .setCertReqId(message.getCertRequestId())
                 .setCertRequest(ByteString.copyFrom(convert(generatedRequest, message.getFormat())))
                 .setFormat(message.getFormat())
-                .setKeyUsage(tokenAndKey.getKey().getUsage());
+                .setKeyUsage(tokenAndKey.key().getUsage());
         ofNullable(certRequestInfo.getMemberId()).map(ClientIdMapper::toDto).ifPresent(builder::setMemberId);
         return builder.build();
     }

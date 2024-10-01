@@ -42,8 +42,8 @@ import java.security.cert.X509Certificate;
 import java.util.Map.Entry;
 
 import static ee.ria.xroad.common.util.CryptoUtils.calculateCertSha1HexHash;
-import static ee.ria.xroad.common.util.CryptoUtils.decodeBase64;
-import static ee.ria.xroad.common.util.CryptoUtils.encodeBase64;
+import static ee.ria.xroad.common.util.EncoderUtils.decodeBase64;
+import static ee.ria.xroad.common.util.EncoderUtils.encodeBase64;
 
 
 /**

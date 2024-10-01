@@ -39,6 +39,7 @@ import ee.ria.xroad.common.conf.globalconf.sharedparameters.v4.OcspInfoType;
 import ee.ria.xroad.common.conf.globalconf.sharedparameters.v4.SecurityServerType;
 import ee.ria.xroad.common.conf.globalconf.sharedparameters.v4.SharedParametersTypeV4;
 import ee.ria.xroad.common.conf.globalconf.sharedparameters.v4.SubsystemType;
+import ee.ria.xroad.common.crypto.identifier.DigestAlgorithm;
 import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.identifier.SecurityServerId;
 
@@ -51,7 +52,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import static ee.ria.xroad.common.util.CryptoUtils.SHA256_ID;
 import static java.util.Optional.ofNullable;
 import static java.util.function.Function.identity;
 import static java.util.stream.Collectors.toMap;
@@ -254,7 +254,7 @@ public class SharedParametersV4Converter {
         target.setOwnerDid(ofNullable(members.get(ownerClientId)).map(SharedParameters.Member::getDid).orElse(null));
         target.setServerCode(source.getServerCode());
 
-        target.setAuthCertHashes(source.getAuthCertHash().stream().map(hash -> new CertHash(SHA256_ID, hash)).toList());
+        target.setAuthCertHashes(source.getAuthCertHash().stream().map(hash -> new CertHash(DigestAlgorithm.SHA256, hash)).toList());
         if (source.getClient() != null) {
             List<ClientId> clients = new ArrayList<>();
             for (JAXBElement<?> client : source.getClient()) {

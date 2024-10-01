@@ -55,13 +55,13 @@ import java.util.concurrent.ScheduledFuture;
 
 import static ee.ria.xroad.common.ErrorCodes.X_LOGGING_FAILED_X;
 import static ee.ria.xroad.common.ErrorCodes.X_MLOG_TIMESTAMPER_FAILED;
+import static ee.ria.xroad.common.crypto.Digests.calculateDigest;
 import static ee.ria.xroad.common.hashchain.HashChainConstants.CANONICALIZATION_METHOD;
 import static ee.ria.xroad.common.messagelog.MessageLogProperties.getAcceptableTimestampFailurePeriodSeconds;
 import static ee.ria.xroad.common.messagelog.MessageLogProperties.getHashAlg;
 import static ee.ria.xroad.common.messagelog.MessageLogProperties.getTimestampRetryDelay;
 import static ee.ria.xroad.common.messagelog.MessageLogProperties.shouldTimestampImmediately;
-import static ee.ria.xroad.common.util.CryptoUtils.calculateDigest;
-import static ee.ria.xroad.common.util.CryptoUtils.encodeBase64;
+import static ee.ria.xroad.common.util.EncoderUtils.encodeBase64;
 import static java.nio.charset.StandardCharsets.UTF_8;
 import static java.util.concurrent.TimeUnit.SECONDS;
 

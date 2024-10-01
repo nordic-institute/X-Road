@@ -27,12 +27,14 @@ package ee.ria.xroad.proxy.signedmessage;
 
 import ee.ria.xroad.common.SystemProperties;
 import ee.ria.xroad.common.conf.globalconf.GlobalConfProvider;
+import ee.ria.xroad.common.crypto.identifier.DigestAlgorithm;
 import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.message.SoapMessageImpl;
 import ee.ria.xroad.common.signature.MessagePart;
 import ee.ria.xroad.common.signature.SignatureData;
 import ee.ria.xroad.common.signature.SignatureVerifier;
 import ee.ria.xroad.common.util.MessageFileNames;
+import ee.ria.xroad.common.util.TimeUtils;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -62,7 +64,7 @@ public class Verifier {
      * @param hashMethod identifier of the algorithm used to calculate the hash.
      * @param data       hash value.
      */
-    public void addPart(String name, String hashMethod, byte[] data) {
+    public void addPart(String name, DigestAlgorithm hashMethod, byte[] data) {
         parts.add(new MessagePart(name, hashMethod, data, null));
 
     }
@@ -74,7 +76,7 @@ public class Verifier {
      * @param hashMethod identifier of the algorithm used to calculate the hash.
      * @param data       hash value.
      */
-    public void addPart(String name, String hashMethod, byte[] data, byte[] message) {
+    public void addPart(String name, DigestAlgorithm hashMethod, byte[] data, byte[] message) {
         parts.add(new MessagePart(name, hashMethod, data, message));
 
     }
@@ -85,7 +87,7 @@ public class Verifier {
      * @param hashMethod identifier of the algorithm used to calculate the hash
      * @param soap       the signed message
      */
-    public void addMessagePart(String hashMethod, SoapMessageImpl soap) {
+    public void addMessagePart(DigestAlgorithm hashMethod, SoapMessageImpl soap) {
         parts.add(new MessagePart(MessageFileNames.MESSAGE, hashMethod,
                 soap.getHash(), soap.getBytes()));
     }
@@ -110,7 +112,7 @@ public class Verifier {
 
             signatureVerifier.addParts(parts);
 
-            signatureVerifier.verify(sender, new Date());
+            signatureVerifier.verify(sender, Date.from(TimeUtils.now()));
         } catch (Exception ex) {
             throw translateWithPrefix(X_SIGNATURE_VERIFICATION_X, ex);
         }

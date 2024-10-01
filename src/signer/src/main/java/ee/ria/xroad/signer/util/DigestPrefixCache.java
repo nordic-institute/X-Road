@@ -25,7 +25,7 @@
  */
 package ee.ria.xroad.signer.util;
 
-import ee.ria.xroad.common.util.CryptoUtils;
+import ee.ria.xroad.common.crypto.Digests;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -64,11 +64,11 @@ final class DigestPrefixCache {
     private static final Map<Integer, byte[]> CACHE =
             new HashMap<Integer, byte[]>() {
                 {
-                    put(CryptoUtils.SHA1_DIGEST_LENGTH, SHA1_DIGEST_PREFIX);
-                    put(CryptoUtils.SHA224_DIGEST_LENGTH, SHA224_DIGEST_PREFIX);
-                    put(CryptoUtils.SHA256_DIGEST_LENGTH, SHA256_DIGEST_PREFIX);
-                    put(CryptoUtils.SHA384_DIGEST_LENGTH, SHA384_DIGEST_PREFIX);
-                    put(CryptoUtils.SHA512_DIGEST_LENGTH, SHA512_DIGEST_PREFIX);
+                    put(Digests.SHA1_DIGEST_LENGTH, SHA1_DIGEST_PREFIX);
+                    put(Digests.SHA224_DIGEST_LENGTH, SHA224_DIGEST_PREFIX);
+                    put(Digests.SHA256_DIGEST_LENGTH, SHA256_DIGEST_PREFIX);
+                    put(Digests.SHA384_DIGEST_LENGTH, SHA384_DIGEST_PREFIX);
+                    put(Digests.SHA512_DIGEST_LENGTH, SHA512_DIGEST_PREFIX);
                 }
             };
 

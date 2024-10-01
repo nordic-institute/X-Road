@@ -25,6 +25,7 @@
  */
 package ee.ria.xroad.signer.model;
 
+import ee.ria.xroad.common.crypto.identifier.SignMechanism;
 import ee.ria.xroad.signer.protocol.dto.KeyInfoProto;
 import ee.ria.xroad.signer.protocol.dto.TokenInfo;
 import ee.ria.xroad.signer.protocol.dto.TokenInfoProto;
@@ -123,7 +124,7 @@ public final class Token {
     /**
      * Signing (PKCS#11) mechanism name.
      */
-    private final String signMechanismName;
+    private final SignMechanism signMechanismName;
 
     /**
      * Adds a key to this token.

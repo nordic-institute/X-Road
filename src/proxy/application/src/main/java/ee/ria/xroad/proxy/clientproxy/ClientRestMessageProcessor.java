@@ -32,13 +32,14 @@ import ee.ria.xroad.common.cert.CertChainFactory;
 import ee.ria.xroad.common.conf.globalconf.GlobalConfProvider;
 import ee.ria.xroad.common.conf.serverconf.IsAuthenticationData;
 import ee.ria.xroad.common.conf.serverconf.ServerConfProvider;
+import ee.ria.xroad.common.crypto.Digests;
+import ee.ria.xroad.common.crypto.identifier.DigestAlgorithm;
 import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.identifier.ServiceId;
 import ee.ria.xroad.common.message.RestRequest;
 import ee.ria.xroad.common.message.RestResponse;
 import ee.ria.xroad.common.opmonitoring.OpMonitoringData;
 import ee.ria.xroad.common.util.CachingStream;
-import ee.ria.xroad.common.util.CryptoUtils;
 import ee.ria.xroad.common.util.HttpSender;
 import ee.ria.xroad.common.util.MimeUtils;
 import ee.ria.xroad.proxy.conf.KeyConfProvider;
@@ -226,7 +227,7 @@ class ClientRestMessageProcessor extends AbstractClientMessageProcessor {
         }
     }
 
-    private void checkConsistency(String hashAlgoId) throws IOException, OperatorCreationException {
+    private void checkConsistency(DigestAlgorithm hashAlgoId) throws IOException, OperatorCreationException {
         if (!Objects.equals(restRequest.getClientId(), response.getRestResponse().getClientId())) {
             throw new CodedException(X_INCONSISTENT_RESPONSE, "Response client id does not match request message");
         }
@@ -244,7 +245,7 @@ class ClientRestMessageProcessor extends AbstractClientMessageProcessor {
         //calculate request hash
         byte[] requestDigest;
         if (restBodyDigest != null) {
-            final DigestCalculator dc = CryptoUtils.createDigestCalculator(hashAlgoId);
+            final DigestCalculator dc = Digests.createDigestCalculator(hashAlgoId);
             try (OutputStream out = dc.getOutputStream()) {
                 out.write(restRequest.getHash());
                 out.write(restBodyDigest);
@@ -310,7 +311,7 @@ class ClientRestMessageProcessor extends AbstractClientMessageProcessor {
         public void writeTo(OutputStream outstream) {
             try {
                 final ProxyMessageEncoder enc = new ProxyMessageEncoder(outstream,
-                        CryptoUtils.DEFAULT_DIGEST_ALGORITHM_ID, getBoundary(contentType.getValue()));
+                        Digests.DEFAULT_DIGEST_ALGORITHM, getBoundary(contentType.getValue()));
 
                 final CertChain chain = keyConfProvider.getAuthKey().getCertChain();
                 keyConfProvider.getAllOcspResponses(chain.getAllCertsWithoutTrustedRoot())

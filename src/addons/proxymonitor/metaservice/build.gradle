@@ -22,7 +22,6 @@ dependencies {
     implementation project(":common:common-verifier")
 
     implementation project(':monitor-common')
-    implementation project(':monitoring-conf')
     implementation project(':addons:proxymonitor-common')
 
     implementation libs.guava
@@ -49,7 +48,6 @@ shadowJar {
     dependencies {
         include(project(':addons:proxymonitor-common'))
         include(project(':monitor-common'))
-        include(project(':monitoring-conf'))
     }
     mergeServiceFiles()
 }

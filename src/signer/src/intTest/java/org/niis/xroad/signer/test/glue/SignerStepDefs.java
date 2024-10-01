@@ -31,6 +31,7 @@ import ee.ria.xroad.common.CertificationServiceDiagnostics;
 import ee.ria.xroad.common.CodedException;
 import ee.ria.xroad.common.OcspTestUtils;
 import ee.ria.xroad.common.TestCertUtil;
+import ee.ria.xroad.common.crypto.identifier.SignAlgorithm;
 import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.identifier.SecurityServerId;
 import ee.ria.xroad.signer.SignerProxy;
@@ -70,12 +71,12 @@ import java.util.stream.Collectors;
 
 import static ee.ria.xroad.common.SystemProperties.getSignerGrpcHost;
 import static ee.ria.xroad.common.SystemProperties.getSignerGrpcPort;
-import static ee.ria.xroad.common.util.CryptoUtils.SHA256WITHRSA_ID;
-import static ee.ria.xroad.common.util.CryptoUtils.SHA256_ID;
-import static ee.ria.xroad.common.util.CryptoUtils.SHA512WITHRSA_ID;
+import static ee.ria.xroad.common.crypto.Digests.calculateDigest;
+import static ee.ria.xroad.common.crypto.identifier.DigestAlgorithm.SHA256;
+import static ee.ria.xroad.common.crypto.identifier.SignAlgorithm.SHA256_WITH_RSA;
+import static ee.ria.xroad.common.crypto.identifier.SignAlgorithm.SHA512_WITH_RSA;
 import static ee.ria.xroad.common.util.CryptoUtils.calculateCertHexHash;
 import static ee.ria.xroad.common.util.CryptoUtils.calculateCertSha1HexHash;
-import static ee.ria.xroad.common.util.CryptoUtils.calculateDigest;
 import static java.lang.String.format;
 import static java.nio.charset.StandardCharsets.UTF_8;
 import static java.time.Instant.now;
@@ -339,9 +340,9 @@ public class SignerStepDefs extends BaseSignerStepDefs {
     @Step("sign mechanism for token {string} key {string} is not null")
     public void signMechanismForTokenKeyIsNotNull(String friendlyName, String keyName) throws Exception {
         final KeyInfo keyInToken = findKeyInToken(friendlyName, keyName);
-        final String signMechanism = SignerProxy.getSignMechanism(keyInToken.getId());
+        final var signMechanism = SignerProxy.getSignMechanism(keyInToken.getId());
 
-        assertThat(signMechanism).isNotBlank();
+        assertThat(signMechanism.name()).isNotBlank();
     }
 
     @Step("member {string} has {int} certificate")
@@ -399,7 +400,7 @@ public class SignerStepDefs extends BaseSignerStepDefs {
         final KeyInfo key = findKeyInToken(friendlyName, keyName);
 
         var digest = String.format("%s-%d", UUID.randomUUID(), System.currentTimeMillis());
-        SignerProxy.sign(key.getId(), SHA256WITHRSA_ID, calculateDigest(SHA256_ID, digest.getBytes(UTF_8)));
+        SignerProxy.sign(key.getId(), SHA256_WITH_RSA, calculateDigest(SHA256, digest.getBytes(UTF_8)));
     }
 
     @Step("certificate can be deactivated")
@@ -430,7 +431,7 @@ public class SignerStepDefs extends BaseSignerStepDefs {
         KeyFactory kf = KeyFactory.getInstance("RSA");
         PublicKey publicKey = kf.generatePublic(x509publicKey);
 
-        final byte[] bytes = SignerProxy.signCertificate(key.getId(), SHA256WITHRSA_ID, "CN=CS", publicKey);
+        final byte[] bytes = SignerProxy.signCertificate(key.getId(), SHA256_WITH_RSA, "CN=CS", publicKey);
         assertThat(bytes).isNotEmpty();
     }
 
@@ -441,7 +442,7 @@ public class SignerStepDefs extends BaseSignerStepDefs {
         final KeyInfo key = findKeyInToken(friendlyName, keyName);
 
         var digest = String.format("%s-%d", UUID.randomUUID(), System.currentTimeMillis());
-        byte[] bytes = SignerProxy.sign(key.getId(), SHA512WITHRSA_ID, calculateDigest(SHA256_ID, digest.getBytes(UTF_8)));
+        byte[] bytes = SignerProxy.sign(key.getId(), SHA512_WITH_RSA, calculateDigest(SHA256, digest.getBytes(UTF_8)));
         assertThat(bytes).isNotEmpty();
     }
 
@@ -517,7 +518,7 @@ public class SignerStepDefs extends BaseSignerStepDefs {
     public void signKeyFail() throws Exception {
         String keyId = randomUUID().toString();
         try {
-            SignerProxy.sign(keyId, randomUUID().toString(), new byte[0]);
+            SignerProxy.sign(keyId, SignAlgorithm.ofName(randomUUID().toString()), new byte[0]);
             Assertions.fail("Exception expected");
         } catch (CodedException codedException) {
             assertException("Signer.KeyNotFound", "key_not_found",
@@ -529,12 +530,16 @@ public class SignerStepDefs extends BaseSignerStepDefs {
     public void signAlgorithmFail(String keyName, String friendlyName) throws Exception {
         try {
             final KeyInfo key = findKeyInToken(friendlyName, keyName);
-            SignerProxy.sign(key.getId(), "NOT-ALGORITHM-ID", calculateDigest(SHA256_ID, "digest".getBytes(UTF_8)));
+            SignerProxy.sign(key.getId(),
+                    SignAlgorithm.ofName("NOT-ALGORITHM-ID"),
+                    calculateDigest(SHA256, "digest".getBytes(UTF_8)));
 
             Assertions.fail("Exception expected");
         } catch (CodedException codedException) {
-            assertException("Signer.CannotSign.InternalError", "",
-                    "Signer.CannotSign.InternalError: Unknown sign algorithm id: NOT-ALGORITHM-ID", codedException);
+            assertException("Signer.CannotSign.InternalError",
+                    "",
+                    "Signer.CannotSign.InternalError: Unknown sign mechanism of signature algorithm: uSA[name=NOT-ALGORITHM-ID, uri=null]",
+                    codedException);
         }
     }
 

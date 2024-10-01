@@ -25,6 +25,7 @@
  */
 package ee.ria.xroad.signer.tokenmanager.token;
 
+import ee.ria.xroad.common.crypto.identifier.SignMechanism;
 import ee.ria.xroad.signer.tokenmanager.module.PrivKeyAttributes;
 import ee.ria.xroad.signer.tokenmanager.module.PubKeyAttributes;
 import ee.ria.xroad.signer.tokenmanager.module.SoftwareModuleType;
@@ -39,7 +40,7 @@ public class SoftwareTokenType implements TokenType {
 
     public static final String ID = "0";
 
-    String signMechanismName;
+    SignMechanism signMechanismName;
 
     @Override
     public String getModuleType() {

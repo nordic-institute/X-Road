@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<configuration scan="true" scanPeriod="60 seconds">
+    <property file="/etc/xroad/conf.d/variables-logback.properties" />
+    <appender name="STDOUT" class="ch.qos.logback.core.ConsoleAppender">
+        <encoder>
+            <pattern>%t{yyyy-MM-dd'T'HH:mm:ss.SSSXXX} INFO [xroad-proxy-ui-api] [%I] o.niis.xroad.securityserver.RequestLog - %h %l %u "%r" %s %b</pattern>
+        </encoder>
+    </appender>
+
+    <appender-ref ref="STDOUT"/>
+
+</configuration>

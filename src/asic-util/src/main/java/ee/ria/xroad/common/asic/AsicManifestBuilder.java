@@ -25,6 +25,8 @@
  */
 package ee.ria.xroad.common.asic;
 
+import ee.ria.xroad.common.crypto.identifier.DigestAlgorithm;
+
 import java.util.ArrayList;
 import java.util.List;
 
@@ -41,7 +43,7 @@ class AsicManifestBuilder {
         sigReference = new UriWithMimeType(uri, mimeType);
     }
 
-    void addDataObjectReference(String uri, String mimeType, String digestMethod, String digestValue) {
+    void addDataObjectReference(String uri, String mimeType, DigestAlgorithm digestMethod, String digestValue) {
         dataObjectReferences.add(new UriWithMimeTypeAndDigestInfo(uri, mimeType, digestMethod, digestValue));
     }
 
@@ -63,10 +65,10 @@ class AsicManifestBuilder {
                 + "/>";
     }
 
-    private static String getDataObjectReference(String uri, String mimeType, String digestMethod, String digestValue) {
+    private static String getDataObjectReference(String uri, String mimeType, DigestAlgorithm digestMethod, String digestValue) {
         return "<asic:DataObjectReference URI=\"" + uri + "\""
                 + (mimeType != null ? " MimeType=\"" + mimeType + "\"" : "") + ">\n"
-                + "<ds:DigestMethod Algorithm=\"" + digestMethod + "\" />\n"
+                + "<ds:DigestMethod Algorithm=\"" + digestMethod.uri() + "\" />\n"
                 + "<ds:DigestValue>" + digestValue + "</ds:DigestValue>\n"
                 + "</asic:DataObjectReference>";
     }
@@ -84,6 +86,6 @@ class AsicManifestBuilder {
     }
 
 
-    private record UriWithMimeTypeAndDigestInfo(String uri, String mimeType, String digestMethod, String digestValue) {
+    private record UriWithMimeTypeAndDigestInfo(String uri, String mimeType, DigestAlgorithm digestMethod, String digestValue) {
     }
 }

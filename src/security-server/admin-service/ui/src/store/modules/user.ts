@@ -140,6 +140,7 @@ export const useUser = defineStore('user', {
         data,
       })
         .then(() => {
+          sessionStorage.clear();
           this.authenticated = true;
           this.sessionAlive = true;
         })

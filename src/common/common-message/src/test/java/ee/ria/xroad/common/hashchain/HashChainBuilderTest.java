@@ -32,10 +32,10 @@ import org.slf4j.LoggerFactory;
 import java.nio.charset.StandardCharsets;
 import java.util.Base64;
 
-import static ee.ria.xroad.common.util.CryptoUtils.SHA256_ID;
-import static ee.ria.xroad.common.util.CryptoUtils.calculateDigest;
-import static ee.ria.xroad.common.util.CryptoUtils.encodeBase64;
-import static ee.ria.xroad.common.util.CryptoUtils.encodeHex;
+import static ee.ria.xroad.common.crypto.Digests.calculateDigest;
+import static ee.ria.xroad.common.crypto.identifier.DigestAlgorithm.SHA256;
+import static ee.ria.xroad.common.util.EncoderUtils.encodeBase64;
+import static ee.ria.xroad.common.util.EncoderUtils.encodeHex;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotEquals;
 import static org.junit.Assert.assertNull;
@@ -44,8 +44,7 @@ import static org.junit.Assert.assertNull;
  * Tests to verify hash chain builder functionality.
  */
 public class HashChainBuilderTest {
-    private static final Logger LOG = LoggerFactory.getLogger(
-            HashChainBuilderTest.class);
+    private static final Logger LOG = LoggerFactory.getLogger(HashChainBuilderTest.class);
 
     /**
      * Test to ensure hash chain builder works with varying input sizes.
@@ -70,7 +69,7 @@ public class HashChainBuilderTest {
     private static void runBuilder(int count) throws Exception {
         LOG.debug("Running build test for N={}", count);
 
-        HashChainBuilder builder = new HashChainBuilder(SHA256_ID);
+        HashChainBuilder builder = new HashChainBuilder(SHA256);
         for (int i = 0; i < count; ++i) {
             var hash = new byte[]{(byte) i};
             LOG.info("Adding hash: {}", Base64.getEncoder().encodeToString(hash));
@@ -92,7 +91,7 @@ public class HashChainBuilderTest {
         for (int treeSize = 2; treeSize < 353; ++treeSize) {
             LOG.debug("Running largeTreeBuilding test, n = {}", treeSize);
 
-            HashChainBuilder builder = new HashChainBuilder(SHA256_ID);
+            HashChainBuilder builder = new HashChainBuilder(SHA256);
             for (int i = 0; i < treeSize; ++i) {
                 builder.addInputHash(String.valueOf(i).getBytes());
             }
@@ -119,7 +118,7 @@ public class HashChainBuilderTest {
     public void hashValues() throws Exception {
         LOG.info("hashValues()");
 
-        HashChainBuilder builder = new HashChainBuilder(SHA256_ID);
+        HashChainBuilder builder = new HashChainBuilder(SHA256);
         add(builder, "one");
         add(builder, "two");
         add(builder, "three");
@@ -149,7 +148,7 @@ public class HashChainBuilderTest {
     private static void add(HashChainBuilder builder, String data)
             throws Exception {
         builder.addInputHash(
-                calculateDigest(SHA256_ID,
+                calculateDigest(SHA256,
                         data.getBytes(StandardCharsets.UTF_8)));
     }
 
@@ -163,7 +162,7 @@ public class HashChainBuilderTest {
     public void attachments() throws Exception {
         LOG.info("attachments()");
 
-        HashChainBuilder builder = new HashChainBuilder(SHA256_ID);
+        HashChainBuilder builder = new HashChainBuilder(SHA256);
         builder.addInputHash(new byte[][]{new byte[]{(byte) 0}});
         builder.addInputHash(new byte[][]{
                 new byte[]{(byte) 11},
@@ -192,7 +191,7 @@ public class HashChainBuilderTest {
     public void noInputs() throws Exception {
         LOG.info("noInputs()");
 
-        HashChainBuilder builder = new HashChainBuilder(SHA256_ID);
+        HashChainBuilder builder = new HashChainBuilder(SHA256);
         builder.finishBuilding();
 
         assertNull(builder.getHashChainResult("foo"));
@@ -208,7 +207,7 @@ public class HashChainBuilderTest {
     public void singleInputAttachment() throws Exception {
         LOG.info("singleInputAttachment()");
 
-        HashChainBuilder builder = new HashChainBuilder(SHA256_ID);
+        HashChainBuilder builder = new HashChainBuilder(SHA256);
         builder.addInputHash(new byte[][]{
                 new byte[]{(byte) 11},
                 new byte[]{(byte) 12},
