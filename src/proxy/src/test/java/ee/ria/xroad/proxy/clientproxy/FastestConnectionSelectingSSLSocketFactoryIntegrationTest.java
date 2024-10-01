@@ -31,6 +31,7 @@ import ee.ria.xroad.common.identifier.ServiceId;
 import ee.ria.xroad.common.util.CryptoUtils;
 import ee.ria.xroad.common.util.HttpSender;
 import ee.ria.xroad.common.util.SystemMetrics;
+import ee.ria.xroad.common.util.TimeUtils;
 import ee.ria.xroad.proxy.conf.AuthKeyManager;
 import ee.ria.xroad.proxy.conf.KeyConf;
 import ee.ria.xroad.proxy.testsuite.DummySslServerProxy;
@@ -65,6 +66,9 @@ import java.net.URI;
 import java.security.PrivateKey;
 import java.security.SecureRandom;
 import java.security.cert.X509Certificate;
+import java.time.Clock;
+import java.time.Instant;
+import java.time.ZoneOffset;
 
 import static ee.ria.xroad.proxy.clientproxy.AuthTrustVerifier.ID_PROVIDERNAME;
 import static ee.ria.xroad.proxy.clientproxy.FastestConnectionSelectingSSLSocketFactory.ID_TARGETS;
@@ -97,6 +101,8 @@ public class FastestConnectionSelectingSSLSocketFactoryIntegrationTest {
     public void setup() {
         KeyConf.reload(new TestKeyConf());
         GlobalConf.reload(new TestGlobalConf());
+
+        TimeUtils.setClock(Clock.fixed(Instant.parse("2020-01-01T00:00:00Z"), ZoneOffset.UTC));
     }
 
     @Test
