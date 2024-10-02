@@ -31,7 +31,6 @@ import ee.ria.xroad.common.cert.CertChain;
 import ee.ria.xroad.common.cert.CertChainVerifier;
 import ee.ria.xroad.common.conf.globalconf.AuthKey;
 import ee.ria.xroad.common.conf.globalconf.GlobalConfProvider;
-import ee.ria.xroad.common.conf.globalconfextension.GlobalConfExtensions;
 import ee.ria.xroad.common.conf.serverconf.ServerConfProvider;
 import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.identifier.SecurityServerId;
@@ -187,7 +186,7 @@ public class CachingKeyConfImpl extends KeyConfImpl {
      */
     Date calculateNotAfter(List<OCSPResp> ocspResponses, Date notAfter) throws OCSPException {
         final long freshnessMillis = 1000L * globalConfProvider.getOcspFreshnessSeconds();
-        final boolean verifyNextUpdate = GlobalConfExtensions.getInstance(globalConfProvider).shouldVerifyOcspNextUpdate();
+        final boolean verifyNextUpdate = globalConfProvider.getGlobalConfExtensions().shouldVerifyOcspNextUpdate();
 
         for (OCSPResp resp : ocspResponses) {
             //ok to expect only one response since we request ocsp responses for one certificate at a time

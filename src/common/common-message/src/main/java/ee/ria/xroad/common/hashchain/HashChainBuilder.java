@@ -87,9 +87,6 @@ public final class HashChainBuilder {
     /** Hash algorithm used to hash tree nodes and inputs. */
     private final DigestAlgorithm hashAlgorithm;
 
-    /** Hash algorithm URI used in XML. */
-    private final DigestAlgorithm hashAlgorithmUri;
-
     /** Array of input hashes. */
     private final List<byte[]> inputs = new ArrayList<>();
 
@@ -124,7 +121,6 @@ public final class HashChainBuilder {
      */
     public HashChainBuilder(DigestAlgorithm hashAlgorithm) throws Exception {
         this.hashAlgorithm = hashAlgorithm;
-        hashAlgorithmUri = hashAlgorithm;
 
         marshaller = jaxbCtx.createMarshaller();
         // Format the XML, good for debugging.
@@ -563,7 +559,7 @@ public final class HashChainBuilder {
      */
     private DigestMethodType digestMethod() {
         DigestMethodType digestMethod = new DigestMethodType();
-        digestMethod.setAlgorithm(hashAlgorithmUri.uri());
+        digestMethod.setAlgorithm(hashAlgorithm.uri());
         return digestMethod;
     }
 

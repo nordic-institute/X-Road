@@ -30,6 +30,7 @@ import ee.ria.xroad.common.SystemProperties;
 import ee.ria.xroad.common.conf.globalconf.GlobalConfProvider;
 import ee.ria.xroad.common.crypto.identifier.DigestAlgorithm;
 import ee.ria.xroad.common.util.CryptoUtils;
+import ee.ria.xroad.common.util.TimeUtils;
 
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
@@ -121,7 +122,7 @@ public final class OcspVerifier {
      */
     public void verifyValidityAndStatus(OCSPResp response,
                                         X509Certificate subject, X509Certificate issuer) throws Exception {
-        verifyValidityAndStatus(response, subject, issuer, new Date());
+        verifyValidityAndStatus(response, subject, issuer, Date.from(TimeUtils.now()));
     }
 
     /**

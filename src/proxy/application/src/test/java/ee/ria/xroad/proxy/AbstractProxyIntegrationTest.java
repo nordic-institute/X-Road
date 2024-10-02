@@ -30,6 +30,7 @@ import ee.ria.xroad.common.conf.globalconf.GlobalConfProvider;
 import ee.ria.xroad.common.conf.globalconf.GlobalConfSource;
 import ee.ria.xroad.common.conf.globalconf.TestGlobalConfWrapper;
 import ee.ria.xroad.common.conf.serverconf.ServerConfProvider;
+import ee.ria.xroad.common.util.TimeUtils;
 import ee.ria.xroad.proxy.conf.KeyConfProvider;
 import ee.ria.xroad.proxy.testutil.IntegrationTest;
 import ee.ria.xroad.proxy.testutil.TestGlobalConf;
@@ -52,6 +53,9 @@ import org.springframework.context.annotation.Primary;
 import org.springframework.context.support.GenericApplicationContext;
 
 import java.net.ServerSocket;
+import java.time.Clock;
+import java.time.Instant;
+import java.time.ZoneOffset;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -66,6 +70,7 @@ import static org.mockito.Mockito.mock;
 @Category(IntegrationTest.class)
 public abstract class AbstractProxyIntegrationTest {
     private static final Set<Integer> RESERVED_PORTS = new HashSet<>();
+    private static final Instant CLOCK_FIXED_INSTANT = Instant.parse("2020-01-01T00:00:00Z");
 
     private static GenericApplicationContext applicationContext;
 
@@ -165,6 +170,7 @@ public abstract class AbstractProxyIntegrationTest {
 
     @BeforeClass
     public static void setup() throws Exception {
+        TimeUtils.setClock(Clock.fixed(CLOCK_FIXED_INSTANT, ZoneOffset.UTC));
         applicationContext = new TestProxyMain().createApplicationContext(TestProxySpringConfig.class);
     }
 
