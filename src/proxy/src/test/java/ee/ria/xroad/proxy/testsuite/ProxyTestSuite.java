@@ -31,7 +31,6 @@ import ee.ria.xroad.common.conf.serverconf.ServerConf;
 import ee.ria.xroad.common.util.JobManager;
 import ee.ria.xroad.common.util.StartStop;
 import ee.ria.xroad.common.util.TimeUtils;
-import ee.ria.xroad.proxy.ProxyMain;
 import ee.ria.xroad.proxy.addon.AddOn;
 import ee.ria.xroad.proxy.clientproxy.ClientProxy;
 import ee.ria.xroad.proxy.conf.KeyConf;
