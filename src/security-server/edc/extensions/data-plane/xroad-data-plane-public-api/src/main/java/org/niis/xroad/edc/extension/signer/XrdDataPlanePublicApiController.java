@@ -26,6 +26,7 @@
  */
 package org.niis.xroad.edc.extension.signer;
 
+import ee.ria.xroad.common.crypto.Digests;
 import ee.ria.xroad.common.identifier.ServiceId;
 import ee.ria.xroad.common.message.ResponseSoapParserImpl;
 import ee.ria.xroad.common.message.RestMessage;
@@ -39,7 +40,6 @@ import ee.ria.xroad.common.messagelog.SoapLogMessage;
 import ee.ria.xroad.common.signature.SignatureData;
 import ee.ria.xroad.common.util.CacheInputStream;
 import ee.ria.xroad.common.util.CachingStream;
-import ee.ria.xroad.common.util.CryptoUtils;
 import ee.ria.xroad.common.util.MimeTypes;
 import ee.ria.xroad.common.util.MimeUtils;
 
@@ -84,7 +84,7 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.ExecutorService;
 
-import static ee.ria.xroad.common.util.CryptoUtils.encodeBase64;
+import static ee.ria.xroad.common.util.EncoderUtils.encodeBase64;
 import static jakarta.ws.rs.core.MediaType.APPLICATION_JSON;
 import static jakarta.ws.rs.core.MediaType.WILDCARD;
 import static jakarta.ws.rs.core.Response.Status.BAD_REQUEST;
@@ -221,7 +221,7 @@ public class XrdDataPlanePublicApiController {
                     return response.resume(handleSuccessSoap(cachingStream, headers, serviceId, contextApi, requestDigest));
                 } else {
                     // calculate the body digest while caching stream, it will be required for signing response later
-                    DigestCalculator dc = CryptoUtils.createDigestCalculator(CryptoUtils.DEFAULT_DIGEST_ALGORITHM_ID);
+                    DigestCalculator dc = Digests.createDigestCalculator(Digests.DEFAULT_DIGEST_ALGORITHM);
                     TeeOutputStream teeOutputStream = new TeeOutputStream(dc.getOutputStream(), cachingStream);
                     output.write(teeOutputStream);
                     byte[] responseBodyDigest = dc.getDigest();
@@ -311,11 +311,11 @@ public class XrdDataPlanePublicApiController {
 
     private byte[] calculateRestRequestDigest(RestRequest request, byte[] body) throws Exception {
         if (body != null) {
-            var dc = CryptoUtils.createDigestCalculator(CryptoUtils.DEFAULT_DIGEST_ALGORITHM_ID);
+            var dc = Digests.createDigestCalculator(Digests.DEFAULT_DIGEST_ALGORITHM);
             dc.getOutputStream().write(body);
             var bodyDigest = dc.getDigest();
 
-            dc = CryptoUtils.createDigestCalculator(CryptoUtils.DEFAULT_DIGEST_ALGORITHM_ID);
+            dc = Digests.createDigestCalculator(Digests.DEFAULT_DIGEST_ALGORITHM);
             try (var out = dc.getOutputStream()) {
                 out.write(request.getHash());
                 out.write(bodyDigest);

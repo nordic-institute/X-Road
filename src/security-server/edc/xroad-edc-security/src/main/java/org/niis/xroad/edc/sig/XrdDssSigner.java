@@ -27,7 +27,7 @@
 
 package org.niis.xroad.edc.sig;
 
-import ee.ria.xroad.common.util.CryptoUtils;
+import ee.ria.xroad.common.crypto.identifier.SignAlgorithm;
 import ee.ria.xroad.signer.SignerProxy;
 
 import com.nimbusds.jose.JOSEException;
@@ -36,24 +36,21 @@ import eu.europa.esig.dss.enumerations.SignatureAlgorithm;
 import eu.europa.esig.dss.model.SignatureValue;
 import eu.europa.esig.dss.model.ToBeSigned;
 
-import static ee.ria.xroad.common.util.CryptoUtils.calculateDigest;
-import static ee.ria.xroad.common.util.CryptoUtils.getDigestAlgorithmId;
+import static ee.ria.xroad.common.crypto.Digests.calculateDigest;
 
 public class XrdDssSigner {
     public SignatureValue sign(String keyId, DigestAlgorithm digestAlgorithm, final ToBeSigned toBeSigned)
             throws XrdSignatureCreationException {
         try {
-            String signAlgoId = switch (digestAlgorithm.getName()) {
-                case "SHA256" -> CryptoUtils.SHA256WITHRSA_ID;
-                case "SHA384" -> CryptoUtils.SHA384WITHRSA_ID;
-                case "SHA512" -> CryptoUtils.SHA512WITHRSA_ID;
+            var signAlgo = switch (digestAlgorithm) {
+                case SHA256 -> SignAlgorithm.SHA256_WITH_RSA;
+                case SHA384 -> SignAlgorithm.SHA384_WITH_RSA;
+                case SHA512 -> SignAlgorithm.SHA512_WITH_RSA;
                 default -> throw new JOSEException("Unsupported signing algorithm");
             };
 
-            String digAlgoId = getDigestAlgorithmId(signAlgoId);
-            byte[] digest = calculateDigest(digAlgoId, toBeSigned.getBytes());
-
-            byte[] sig = SignerProxy.sign(keyId, signAlgoId, digest);
+            byte[] digest = calculateDigest(signAlgo.digest(), toBeSigned.getBytes());
+            byte[] sig = SignerProxy.sign(keyId, signAlgo, digest);
 
             return new SignatureValue(SignatureAlgorithm.RSA_SHA256, sig);
         } catch (Exception e) {

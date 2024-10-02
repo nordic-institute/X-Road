@@ -25,8 +25,10 @@
  */
 package ee.ria.xroad.common.signature;
 
+import ee.ria.xroad.common.crypto.identifier.SignAlgorithm;
+
 public interface MessageSigner {
-    SignatureData sign(String keyId, String signatureAlgorithmId, SigningRequest request)
+    SignatureData sign(String keyId, SignAlgorithm signatureAlgorithm, SigningRequest request)
             throws Exception;
 
     default void shutdown() {

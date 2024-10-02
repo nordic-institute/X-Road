@@ -29,6 +29,7 @@ import ee.ria.xroad.common.util.TimeUtils;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.NotImplementedException;
 import org.apache.commons.lang3.time.StopWatch;
 import org.niis.xroad.confclient.proto.ConfClientRpcClient;
 import org.springframework.beans.factory.InitializingBean;
@@ -195,6 +196,11 @@ public class RemoteGlobalConfSource implements GlobalConfSource, InitializingBea
             return true;
         }
         return false;
+    }
+
+    @Override
+    public FileSource getFile(String fileName) {
+        throw new NotImplementedException("getFile not implemented for RemoteGlobalConfSource");
     }
 
     record GlobalConfData(Long dateRefreshed,

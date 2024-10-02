@@ -50,7 +50,7 @@ import static ee.ria.xroad.common.message.RestRequest.Verb.OPTIONS;
 import static ee.ria.xroad.common.message.RestRequest.Verb.PATCH;
 import static ee.ria.xroad.common.message.RestRequest.Verb.POST;
 import static ee.ria.xroad.common.message.RestRequest.Verb.PUT;
-import static ee.ria.xroad.common.util.CryptoUtils.encodeBase64;
+import static ee.ria.xroad.common.util.EncoderUtils.encodeBase64;
 import static org.niis.xroad.edc.sig.PocConstants.HEADER_XRD_SIG;
 
 @Slf4j

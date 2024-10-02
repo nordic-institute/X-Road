@@ -27,7 +27,8 @@ package ee.ria.xroad.common.signature;
 
 import ee.ria.xroad.common.CodedException;
 import ee.ria.xroad.common.conf.globalconf.GlobalConfProvider;
-import ee.ria.xroad.common.util.CryptoUtils;
+import ee.ria.xroad.common.crypto.Digests;
+import ee.ria.xroad.common.crypto.identifier.SignAlgorithm;
 import ee.ria.xroad.signer.SignerProxy;
 
 import eu.europa.esig.dss.enumerations.DigestAlgorithm;
@@ -62,8 +63,7 @@ import java.util.Base64;
 import java.util.List;
 
 import static ee.ria.xroad.common.ErrorCodes.X_CANNOT_CREATE_SIGNATURE;
-import static ee.ria.xroad.common.util.CryptoUtils.calculateDigest;
-import static ee.ria.xroad.common.util.CryptoUtils.getDigestAlgorithmId;
+import static ee.ria.xroad.common.crypto.Digests.calculateDigest;
 import static eu.europa.esig.dss.enumerations.SignaturePackaging.DETACHED;
 
 @Slf4j
@@ -85,17 +85,17 @@ public class DSSSigner implements MessageSigner {
     }
 
     @Override
-    public SignatureData sign(String keyId, String signatureAlgorithmId, SigningRequest request) throws Exception {
+    public SignatureData sign(String keyId, SignAlgorithm signatureAlgorithm, SigningRequest request) throws Exception {
         var params = createParams(request);
         List<DSSDocument> documentsToSign = new ArrayList<>();
         request.getParts()
                 .forEach(part -> documentsToSign.add(new DigestDocument(
-                        DigestAlgorithm.forJavaName(part.getHashAlgoId()),
+                        DigestAlgorithm.forJavaName(part.getHashAlgoId().name()),
                         Base64.getEncoder().encodeToString(part.getData()),
                         part.getName())));
 
-        var signatureValue = signRequest(keyId, signatureAlgorithmId, getDataToSign(params, documentsToSign));
-        var sig = new SignatureValue(SignatureAlgorithm.forJAVA(signatureAlgorithmId), signatureValue);
+        var signatureValue = signRequest(keyId, signatureAlgorithm, getDataToSign(params, documentsToSign));
+        var sig = new SignatureValue(SignatureAlgorithm.forJAVA(signatureAlgorithm.name()), signatureValue);
 
         var verifier = new CommonCertificateVerifier();
         verifier.setAIASource(null);
@@ -158,10 +158,10 @@ public class DSSSigner implements MessageSigner {
         return trustedCertificateSource;
     }
 
-    private byte[] signRequest(String keyId, String signatureAlgorithmId, byte[] dataToSign) {
+    private byte[] signRequest(String keyId, SignAlgorithm signatureAlgorithm, byte[] dataToSign) {
         try {
-            byte[] digest = calculateDigest(getDigestAlgorithmId(signatureAlgorithmId), dataToSign);
-            return SignerProxy.sign(keyId, signatureAlgorithmId, digest);
+            byte[] digest = calculateDigest(signatureAlgorithm.digest(), dataToSign);
+            return SignerProxy.sign(keyId, signatureAlgorithm, digest);
 
         } catch (Exception exception) {
             throw new CodedException(X_CANNOT_CREATE_SIGNATURE, exception);
@@ -172,7 +172,7 @@ public class DSSSigner implements MessageSigner {
         var parameters = new XAdESSignatureParameters();
         parameters.setSignatureLevel(SignatureLevel.XAdES_BASELINE_B);
         parameters.setSignaturePackaging(DETACHED);
-        parameters.setDigestAlgorithm(DigestAlgorithm.forJavaName(CryptoUtils.DEFAULT_DIGEST_ALGORITHM_ID));
+        parameters.setDigestAlgorithm(DigestAlgorithm.forJavaName(Digests.DEFAULT_DIGEST_ALGORITHM.name()));
         parameters.setXadesNamespace(XADES_NAMESPACE);
         parameters.setSigningCertificate(new CertificateToken(request.getSigningCert()));
 

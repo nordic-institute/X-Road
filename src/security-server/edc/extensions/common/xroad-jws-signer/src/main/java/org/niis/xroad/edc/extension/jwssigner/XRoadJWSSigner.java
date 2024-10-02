@@ -26,7 +26,10 @@
  */
 package org.niis.xroad.edc.extension.jwssigner;
 
-import ee.ria.xroad.common.util.CryptoUtils;
+import ee.ria.xroad.common.crypto.Digests;
+import ee.ria.xroad.common.crypto.identifier.DigestAlgorithm;
+import ee.ria.xroad.common.crypto.identifier.SignAlgorithm;
+import ee.ria.xroad.common.crypto.identifier.SignMechanism;
 import ee.ria.xroad.signer.SignerProxy;
 
 import com.nimbusds.jose.JOSEException;
@@ -46,7 +49,7 @@ import java.util.Set;
 public class XRoadJWSSigner extends BaseJWSProvider implements JWSSigner {
 
     private static final Set<JWSAlgorithm> SUPPORTED_ALGORITHMS;
-    private static final Map<JWSAlgorithm, String> JWS_TO_HASH_ALGORITHM_MAP;
+    private static final Map<JWSAlgorithm, DigestAlgorithm> JWS_TO_HASH_ALGORITHM_MAP;
 
     static {
         Set<JWSAlgorithm> supportedAlgorithms = new LinkedHashSet<>();
@@ -61,16 +64,16 @@ public class XRoadJWSSigner extends BaseJWSProvider implements JWSSigner {
         supportedAlgorithms.add(JWSAlgorithm.ES512);
         SUPPORTED_ALGORITHMS = Collections.unmodifiableSet(supportedAlgorithms);
 
-        Map<JWSAlgorithm, String> jwsToHashAlgorithmMap = new HashMap<>();
-        jwsToHashAlgorithmMap.put(JWSAlgorithm.RS256, "SHA-256");
-        jwsToHashAlgorithmMap.put(JWSAlgorithm.RS384, "SHA-384");
-        jwsToHashAlgorithmMap.put(JWSAlgorithm.RS512, "SHA-512");
-        jwsToHashAlgorithmMap.put(JWSAlgorithm.PS256, "SHA-256");
-        jwsToHashAlgorithmMap.put(JWSAlgorithm.PS384, "SHA-384");
-        jwsToHashAlgorithmMap.put(JWSAlgorithm.PS512, "SHA-512");
-        jwsToHashAlgorithmMap.put(JWSAlgorithm.ES256, "SHA-256");
-        jwsToHashAlgorithmMap.put(JWSAlgorithm.ES384, "SHA-384");
-        jwsToHashAlgorithmMap.put(JWSAlgorithm.ES512, "SHA-512");
+        Map<JWSAlgorithm, DigestAlgorithm> jwsToHashAlgorithmMap = new HashMap<>();
+        jwsToHashAlgorithmMap.put(JWSAlgorithm.RS256, DigestAlgorithm.SHA256);
+        jwsToHashAlgorithmMap.put(JWSAlgorithm.RS384, DigestAlgorithm.SHA384);
+        jwsToHashAlgorithmMap.put(JWSAlgorithm.RS512, DigestAlgorithm.SHA512);
+        jwsToHashAlgorithmMap.put(JWSAlgorithm.PS256, DigestAlgorithm.SHA256);
+        jwsToHashAlgorithmMap.put(JWSAlgorithm.PS384, DigestAlgorithm.SHA384);
+        jwsToHashAlgorithmMap.put(JWSAlgorithm.PS512, DigestAlgorithm.SHA512);
+        jwsToHashAlgorithmMap.put(JWSAlgorithm.ES256, DigestAlgorithm.SHA256);
+        jwsToHashAlgorithmMap.put(JWSAlgorithm.ES384, DigestAlgorithm.SHA384);
+        jwsToHashAlgorithmMap.put(JWSAlgorithm.ES512, DigestAlgorithm.SHA512);
         JWS_TO_HASH_ALGORITHM_MAP = Collections.unmodifiableMap(jwsToHashAlgorithmMap);
     }
 
@@ -84,10 +87,11 @@ public class XRoadJWSSigner extends BaseJWSProvider implements JWSSigner {
     @Override
     public Base64URL sign(JWSHeader jwsHeader, byte[] bytes) throws JOSEException {
         try {
-            String signMechanismName = SignerProxy.getSignMechanism(keyId);
-            String digestAlgorithm = getHashAlgorithm(jwsHeader.getAlgorithm());
-            String signatureAlgorithm = CryptoUtils.getSignatureAlgorithmId(digestAlgorithm, signMechanismName);
-            byte[] digest = CryptoUtils.calculateDigest(digestAlgorithm, bytes);
+            SignMechanism signMechanismName = SignerProxy.getSignMechanism(keyId);
+            DigestAlgorithm digestAlgorithm = getHashAlgorithm(jwsHeader.getAlgorithm());
+            SignAlgorithm signatureAlgorithm = SignAlgorithm.ofDigestAndMechanism(digestAlgorithm, signMechanismName);
+
+            byte[] digest = Digests.calculateDigest(digestAlgorithm, bytes);
             byte[] signature = SignerProxy.sign(keyId, signatureAlgorithm, digest);
             return Base64URL.encode(signature);
         } catch (Exception e) {
@@ -95,8 +99,8 @@ public class XRoadJWSSigner extends BaseJWSProvider implements JWSSigner {
         }
     }
 
-    private String getHashAlgorithm(JWSAlgorithm jwsAlgorithm) throws NoSuchAlgorithmException {
-        String hashAlgorithm = JWS_TO_HASH_ALGORITHM_MAP.get(jwsAlgorithm);
+    private DigestAlgorithm getHashAlgorithm(JWSAlgorithm jwsAlgorithm) throws NoSuchAlgorithmException {
+        var hashAlgorithm = JWS_TO_HASH_ALGORITHM_MAP.get(jwsAlgorithm);
         if (hashAlgorithm == null) {
             throw new NoSuchAlgorithmException("Unsupported JWS algorithm: " + jwsAlgorithm);
         }

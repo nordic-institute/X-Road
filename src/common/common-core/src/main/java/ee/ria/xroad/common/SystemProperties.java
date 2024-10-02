@@ -30,6 +30,7 @@ import ee.ria.xroad.common.crypto.identifier.SignAlgorithm;
 import ee.ria.xroad.common.crypto.identifier.SignMechanism;
 
 import java.util.Arrays;
+import java.util.Optional;
 
 import static java.util.Optional.ofNullable;
 
@@ -1138,8 +1139,9 @@ public final class SystemProperties {
      * @return management request sender client keystore password.
      */
     public static char[] getManagementRequestSenderClientKeystorePassword() {
-        return getPasswordFromPropertyOrEnvironmentVariable(MANAGEMENT_REQUEST_SENDER_CLIENT_KEYSTORE_PASSWORD,null);
+        return getPasswordFromPropertyOrEnvironmentVariable(MANAGEMENT_REQUEST_SENDER_CLIENT_KEYSTORE_PASSWORD, null);
     }
+
     /**
      * @return path to the management request sender client truststore. Uses PKCS#12 format.
      */

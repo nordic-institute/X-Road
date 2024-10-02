@@ -26,6 +26,7 @@
 package ee.ria.xroad.common.signature;
 
 import ee.ria.xroad.common.crypto.identifier.DigestAlgorithm;
+import ee.ria.xroad.common.crypto.identifier.SignAlgorithm;
 import ee.ria.xroad.common.util.MessageFileNames;
 import ee.ria.xroad.common.util.MimeTypes;
 import ee.ria.xroad.common.util.XmlUtils;
@@ -127,8 +128,7 @@ final class SignatureXmlBuilder {
     private final List<OCSPResp> ocspResponses = new ArrayList<>();
 
     private final X509Certificate signingCert;
-    private final DigestAlgorithm hashAlgorithmId;
-    private final String signatureAlgorithmUri;
+    private final SignAlgorithm signatureAlgorithm;
 
     private Document document;
     private XMLSignature signature;
@@ -136,15 +136,14 @@ final class SignatureXmlBuilder {
     private Element signedDataObjectProperties;
     private int dataToBeSignedCount = 0;
 
-    SignatureXmlBuilder(SigningRequest request, DigestAlgorithm hashAlgorithmId, String signatureAlgorithmUri) throws Exception {
+    SignatureXmlBuilder(SigningRequest request, SignAlgorithm signatureAlgorithm) throws Exception {
         this.signingCert = request.getSigningCert();
         this.extraCertificates.addAll(request.getExtraCertificates());
         this.ocspResponses.addAll(request.getOcspResponses());
-        this.hashAlgorithmId = hashAlgorithmId;
-        this.signatureAlgorithmUri = signatureAlgorithmUri;
+        this.signatureAlgorithm = signatureAlgorithm;
 
         document = createDocument();
-        signature = createSignatureElement(document, signatureAlgorithmUri);
+        signature = createSignatureElement(document, signatureAlgorithm);
         signature.addKeyInfo(signingCert);
         signature.addResourceResolver(new IdResolver(document));
         createObjectContainer();
@@ -160,7 +159,7 @@ final class SignatureXmlBuilder {
     void addDataToBeSigned(SignatureResourceResolver resourceResolver) throws Exception {
         signature.addResourceResolver(resourceResolver);
         for (MessagePart part : resourceResolver.getMessageParts()) {
-            signature.addDocument(part.getName(), null, getHashAlgorithmURI(),
+            signature.addDocument(part.getName(), null, signatureAlgorithm.digest().uri(),
                     getSignatureRefereceIdForMessage(++dataToBeSignedCount), null);
             createDataObjectFormat(signedDataObjectProperties, part.getName());
         }
@@ -187,10 +186,6 @@ final class SignatureXmlBuilder {
         signatureValueElement.setAttribute(ID_ATTRIBUTE, SIGNATURE_VALUE_ID);
 
         return XmlUtils.toXml(document);
-    }
-
-    private DigestAlgorithm getHashAlgorithmId() {
-        return hashAlgorithmId;
     }
 
     byte[] calculateDataToBeSigned() throws Exception {
@@ -229,7 +224,7 @@ final class SignatureXmlBuilder {
         createSignedSignatureProperties(signedProperties);
         createSignedDataObjectProperties(signedProperties);
 
-        signature.addDocument("#" + id, null, getHashAlgorithmId().uri(), getSignatureReferenceIdForSignedProperties(),
+        signature.addDocument("#" + id, null, signatureAlgorithm.digest().uri(), getSignatureReferenceIdForSignedProperties(),
                 NS_SIG_PROP);
 
         return signedProperties;
@@ -318,7 +313,7 @@ final class SignatureXmlBuilder {
     }
 
     private void createCertDigestAlgAndValue(X509Certificate cert, Element element) throws Exception {
-        createDigestAlgAndValue(getHashAlgorithmId(), digest(cert, getHashAlgorithmId()), element);
+        createDigestAlgAndValue(signatureAlgorithm.digest(), digest(cert, signatureAlgorithm.digest()), element);
     }
 
     private void createDigestAlgAndValue(DigestAlgorithm algorithmUri, String digest, Element element) {

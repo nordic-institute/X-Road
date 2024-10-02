@@ -27,13 +27,13 @@ package org.niis.xroad.proxy.edc;
 
 import ee.ria.xroad.common.CodedException;
 import ee.ria.xroad.common.conf.globalconf.GlobalConfProvider;
+import ee.ria.xroad.common.crypto.Digests;
 import ee.ria.xroad.common.message.RestMessage;
 import ee.ria.xroad.common.message.RestRequest;
 import ee.ria.xroad.common.message.RestResponse;
 import ee.ria.xroad.common.message.Soap;
 import ee.ria.xroad.common.message.SoapParserImpl;
 import ee.ria.xroad.common.util.CachingStream;
-import ee.ria.xroad.common.util.CryptoUtils;
 import ee.ria.xroad.proxy.conf.KeyConfProvider;
 
 import lombok.AccessLevel;
@@ -69,7 +69,7 @@ import java.util.Map;
 import java.util.stream.Collectors;
 
 import static ee.ria.xroad.common.ErrorCodes.X_INTERNAL_ERROR;
-import static ee.ria.xroad.common.util.CryptoUtils.encodeBase64;
+import static ee.ria.xroad.common.util.EncoderUtils.encodeBase64;
 import static ee.ria.xroad.common.util.MimeUtils.HEADER_REQUEST_HASH;
 import static org.apache.hc.core5.util.Timeout.ofSeconds;
 import static org.niis.xroad.edc.sig.PocConstants.HEADER_XRD_SIG;
@@ -103,7 +103,7 @@ public class EdcDataPlaneHttpClient {
 
                 try {
                     CachingStream responseBodyStream = new CachingStream();
-                    DigestCalculator dc = CryptoUtils.createDigestCalculator(CryptoUtils.DEFAULT_DIGEST_ALGORITHM_ID);
+                    DigestCalculator dc = Digests.createDigestCalculator(Digests.DEFAULT_DIGEST_ALGORITHM);
                     TeeOutputStream tos = new TeeOutputStream(responseBodyStream, dc.getOutputStream());
                     IOUtils.copyLarge(response.getEntity().getContent(), tos);
 

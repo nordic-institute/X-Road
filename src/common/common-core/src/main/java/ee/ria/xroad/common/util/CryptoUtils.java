@@ -90,9 +90,6 @@ public final class CryptoUtils {
     /** Default digest algorithm id used for calculating certificate hashes. */
     public static final DigestAlgorithm DEFAULT_CERT_HASH_ALGORITHM_ID = DigestAlgorithm.SHA256;
 
-    /** Default digest algorithm id used for calculating certificate hashes. */
-    public static final DigestAlgorithm DEFAULT_CERT_HASH_ALGORITHM_ID = DigestAlgorithm.SHA256;
-
     /** Verification builder instance. */
     public static final JcaContentVerifierProviderBuilder BC_VERIFICATION_BUILDER =
             new JcaContentVerifierProviderBuilder().setProvider("BC");

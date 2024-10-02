@@ -33,6 +33,7 @@ import ee.ria.xroad.common.cert.CertChainFactory;
 import ee.ria.xroad.common.cert.CertHelper;
 import ee.ria.xroad.common.conf.globalconf.GlobalConfProvider;
 import ee.ria.xroad.common.conf.serverconf.ServerConfProvider;
+import ee.ria.xroad.common.crypto.identifier.DigestAlgorithm;
 import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.identifier.XRoadId;
 import ee.ria.xroad.common.util.HttpSender;
@@ -199,8 +200,8 @@ public abstract class MessageProcessorBase {
         return true;
     }
 
-    protected String getHashAlgoId(ContainerRequestContext request) {
-        String hashAlgoId = request.getHeaderString(HEADER_HASH_ALGO_ID);
+    protected DigestAlgorithm getHashAlgoId(ContainerRequestContext request) {
+        var hashAlgoId = DigestAlgorithm.ofName(request.getHeaderString(HEADER_HASH_ALGO_ID));
 
         if (hashAlgoId == null) {
             throw new CodedException(X_INTERNAL_ERROR, "Could not get hash algorithm identifier from message");

@@ -43,6 +43,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.After;
 import org.junit.AfterClass;
+import org.junit.BeforeClass;
 import org.junit.Rule;
 import org.junit.experimental.categories.Category;
 import org.junit.rules.ExternalResource;
@@ -182,7 +183,6 @@ public abstract class AbstractProxyIntegrationTest {
     @BeforeClass
     public static void setup() throws Exception {
         TimeUtils.setClock(Clock.fixed(CLOCK_FIXED_INSTANT, ZoneOffset.UTC));
-        applicationContext = new TestProxyMain().createApplicationContext(TestProxySpringConfig.class);
     }
 
     @AfterClass

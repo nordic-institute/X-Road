@@ -33,6 +33,7 @@ import ee.ria.xroad.common.conf.globalconf.GlobalConfProvider;
 import ee.ria.xroad.common.conf.serverconf.ServerConfProvider;
 import ee.ria.xroad.common.conf.serverconf.model.ClientType;
 import ee.ria.xroad.common.conf.serverconf.model.DescriptionType;
+import ee.ria.xroad.common.crypto.Digests;
 import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.identifier.ServiceId;
 import ee.ria.xroad.common.message.RestRequest;
@@ -41,7 +42,6 @@ import ee.ria.xroad.common.message.SoapFault;
 import ee.ria.xroad.common.message.SoapUtils;
 import ee.ria.xroad.common.messagelog.RestLogMessage;
 import ee.ria.xroad.common.util.CachingStream;
-import ee.ria.xroad.common.util.CryptoUtils;
 import ee.ria.xroad.common.util.MimeUtils;
 import ee.ria.xroad.common.util.TimeUtils;
 import ee.ria.xroad.proxy.conf.KeyConfProvider;
@@ -137,7 +137,7 @@ public class RestMessageProcessor extends MessageProcessorBase {
         String multipartBoundary = randomBoundary();
 
         StreamingOutput streamingOut = output -> {
-            ProxyMessageEncoder encoder = new ProxyMessageEncoder(output, CryptoUtils.DEFAULT_DIGEST_ALGORITHM_ID, multipartBoundary);
+            ProxyMessageEncoder encoder = new ProxyMessageEncoder(output, Digests.DEFAULT_DIGEST_ALGORITHM, multipartBoundary);
             try {
                 readMessage();
                 handleRequest(encoder);
@@ -397,7 +397,7 @@ public class RestMessageProcessor extends MessageProcessorBase {
             //calculate request hash
             byte[] requestDigest;
             if (messageDecoder.getRestBodyDigest() != null) {
-                final DigestCalculator dc = CryptoUtils.createDigestCalculator(CryptoUtils.DEFAULT_DIGEST_ALGORITHM_ID);
+                final DigestCalculator dc = Digests.createDigestCalculator(Digests.DEFAULT_DIGEST_ALGORITHM);
                 try (OutputStream out = dc.getOutputStream()) {
                     out.write(requestProxyMessage.getRest().getHash());
                     out.write(messageDecoder.getRestBodyDigest());

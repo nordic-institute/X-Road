@@ -25,7 +25,8 @@
  */
 package ee.ria.xroad.common.hashchain;
 
-import eu.europa.esig.dss.enumerations.DigestAlgorithm;
+import ee.ria.xroad.common.crypto.identifier.DigestAlgorithm;
+
 import eu.europa.esig.dss.evidencerecord.common.validation.ByteArrayComparator;
 import eu.europa.esig.dss.model.DSSMessageDigest;
 import eu.europa.esig.dss.spi.DSSMessageDigestCalculator;
@@ -35,8 +36,6 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
-import static ee.ria.xroad.common.util.CryptoUtils.getDigestAlgorithmURI;
-
 @NoArgsConstructor
 final class EvidenceRecordDigestList {
 
@@ -44,21 +43,21 @@ final class EvidenceRecordDigestList {
      * Takes as input a sequence of hashes, combines them using DigestList
      * data structure and computes hash of the data structure.
      */
-    static byte[] digestHashStep(String digestMethod, byte[]... items)
+    static byte[] digestHashStep(DigestAlgorithm digestMethod, byte[]... items)
             throws Exception {
-        return concatDigests(getDigestAlgorithmURI(digestMethod), items);
+        return concatDigests(digestMethod, items);
     }
 
     /**
      * Takes as input a sequence of hashes and combines them using DigestList
      * data structure.
      */
-    private static byte[] concatDigests(String digestMethodUri, byte[]... items) {
+    private static byte[] concatDigests(DigestAlgorithm digestMethod, byte[]... items) {
         //TODO xroad8 taken from EvidenceRecordTimeStampSequenceVerifier
         // 1. Create list of hash values
         List<byte[]> hashValueList = new ArrayList<>(Arrays.asList(items));
         // 2a. Exception
-        var digestAlgorithm = DigestAlgorithm.forXML(digestMethodUri);
+        var digestAlgorithm = eu.europa.esig.dss.enumerations.DigestAlgorithm.forXML(digestMethod.uri());
         if (hashValueList.size() == 1) {
             return new DSSMessageDigest(digestAlgorithm, hashValueList.get(0)).getValue();
         }

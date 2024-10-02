@@ -29,13 +29,9 @@ import ee.ria.xroad.common.CodedException;
 import ee.ria.xroad.common.cert.CertChain;
 import ee.ria.xroad.common.conf.globalconf.AuthKey;
 import ee.ria.xroad.common.conf.globalconf.GlobalConfProvider;
-import ee.ria.xroad.common.conf.globalconfextension.GlobalConfExtensions;
 import ee.ria.xroad.common.conf.serverconf.ServerConfProvider;
-import ee.ria.xroad.common.crypto.identifier.SignMechanism;
 import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.identifier.SecurityServerId;
-import ee.ria.xroad.common.util.CryptoUtils;
-import ee.ria.xroad.proxy.signedmessage.SignerSigningKey;
 import ee.ria.xroad.signer.SignerProxy;
 import ee.ria.xroad.signer.protocol.dto.AuthKeyInfo;
 
@@ -58,6 +54,7 @@ import static ee.ria.xroad.common.ErrorCodes.X_CANNOT_CREATE_SIGNATURE;
 import static ee.ria.xroad.common.util.CertUtils.getSha1Hashes;
 import static ee.ria.xroad.common.util.CryptoUtils.calculateCertSha1HexHash;
 import static ee.ria.xroad.common.util.CryptoUtils.loadPkcs12KeyStore;
+import static ee.ria.xroad.common.util.CryptoUtils.readCertificate;
 import static ee.ria.xroad.common.util.EncoderUtils.decodeBase64;
 import static ee.ria.xroad.common.util.EncoderUtils.encodeBase64;
 
@@ -83,13 +80,13 @@ class KeyConfImpl implements KeyConfProvider {
         log.debug("Retrieving signing info for member '{}'", clientId);
         try {
             SignerProxy.MemberSigningInfoDto signingInfo = SignerProxy.getMemberSigningInfo(clientId);
-            X509Certificate cert = readCertificate(signingInfo.getCert().getCertificateBytes());
-            OCSPResp ocsp = new OCSPResp(signingInfo.getCert().getOcspBytes());
+            X509Certificate cert = readCertificate(signingInfo.cert().getCertificateBytes());
+            OCSPResp ocsp = new OCSPResp(signingInfo.cert().getOcspBytes());
 
             //Signer already checks the validity of the signing certificate. Just record the bounds
             //the certificate and ocsp response is valid for.
             Date notAfter = calculateNotAfter(Collections.singletonList(ocsp), cert.getNotAfter());
-            return new SigningInfo(signingInfo.getKeyId(), signingInfo.getSignMechanismName(), clientId, cert, new Date(),
+            return new SigningInfo(signingInfo.keyId(), signingInfo.signMechanismName(), clientId, cert, new Date(),
                     notAfter);
         } catch (Exception e) {
             throw new CodedException(X_CANNOT_CREATE_SIGNATURE, "Failed to get signing info for member '%s': %s",
@@ -173,8 +170,8 @@ class KeyConfImpl implements KeyConfProvider {
     }
 
     CertChain getAuthCertChain(String instanceIdentifier,
-                                      byte[] authCertBytes) {
-        X509Certificate authCert = CryptoUtils.readCertificate(authCertBytes);
+                               byte[] authCertBytes) {
+        X509Certificate authCert = readCertificate(authCertBytes);
         try {
             return globalConfProvider.getCertChain(instanceIdentifier, authCert);
         } catch (Exception e) {
@@ -207,7 +204,7 @@ class KeyConfImpl implements KeyConfProvider {
      */
     Date calculateNotAfter(List<OCSPResp> ocspResponses, Date notAfter) throws OCSPException {
         final long freshnessMillis = 1000L * globalConfProvider.getOcspFreshnessSeconds();
-        final boolean verifyNextUpdate = GlobalConfExtensions.getInstance(globalConfProvider).shouldVerifyOcspNextUpdate();
+        final boolean verifyNextUpdate = globalConfProvider.getGlobalConfExtensions().shouldVerifyOcspNextUpdate();
 
         for (OCSPResp resp : ocspResponses) {
             //ok to expect only one response since we request ocsp responses for one certificate at a time

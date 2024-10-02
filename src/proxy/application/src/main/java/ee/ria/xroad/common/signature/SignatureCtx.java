@@ -104,7 +104,7 @@ class SignatureCtx {
 
         SigningRequest firstRequest = requests.getFirst();
 
-        builder = new SignatureXmlBuilder(firstRequest, signatureAlgorithmId.digest());
+        builder = new SignatureXmlBuilder(firstRequest, signatureAlgorithmId);
 
         // If only one single hash (message), then no hash chain
         if (requests.size() == 1) {

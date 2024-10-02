@@ -48,7 +48,7 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 
-import static ee.ria.xroad.common.util.CryptoUtils.encodeBase64;
+import static ee.ria.xroad.common.util.EncoderUtils.encodeBase64;
 
 @Getter
 public class SharedParametersCache {

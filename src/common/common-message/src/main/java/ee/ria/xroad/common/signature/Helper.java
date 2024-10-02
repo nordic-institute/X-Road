@@ -168,8 +168,8 @@ final class Helper {
                 namespaceAware);
     }
 
-    static XMLSignature createSignatureElement(Document document, SignAlgorithm signatureAlgorithmUri) throws Exception {
-        XMLSignature signature = new XMLSignature(document, BASE_URI, signatureAlgorithmUri.uri());
+    static XMLSignature createSignatureElement(Document document, SignAlgorithm signatureAlgorithm) throws Exception {
+        XMLSignature signature = new XMLSignature(document, BASE_URI, signatureAlgorithm.uri());
         signature.setId(ID_SIGNATURE);
         document.getDocumentElement().appendChild(signature.getElement());
 

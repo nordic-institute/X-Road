@@ -36,8 +36,7 @@ import javax.xml.namespace.QName;
 import java.io.Writer;
 
 import static ee.ria.xroad.common.ErrorCodes.translateException;
-import static ee.ria.xroad.common.util.CryptoUtils.encodeBase64;
-import static ee.ria.xroad.common.util.CryptoUtils.getDigestAlgorithmURI;
+import static ee.ria.xroad.common.util.EncoderUtils.encodeBase64;
 
 /**
  * Soap parser that adds the request message hash to the response message header.
@@ -98,7 +97,7 @@ public final class ResponseSoapParserImpl extends SaxSoapParserImpl {
                 String hash = encodeBase64(requestHash);
 
                 AttributesImpl hashAttrs = new AttributesImpl(attributes);
-                String algoId = getDigestAlgorithmURI(SoapUtils.getHashAlgoId());
+                String algoId = SoapUtils.getHashAlgoId().name();
                 hashAttrs.addAttribute("", "", ATTR_ALGORITHM_ID, "xs:string", algoId);
 
                 char[] tabs = headerElementTabs != null ? headerElementTabs : new char[0];

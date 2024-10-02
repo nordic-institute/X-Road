@@ -823,7 +823,7 @@ public final class SignerProxy {
         var signerResponse = RpcSignerClient.execute(ctx -> ctx.getAdminServiceBlockingStub()
                 .getCertificationServiceDiagnostics(Empty.newBuilder().build()));
 
-        return MemberSigningInfoDto.CertificationServiceDiagnosticsMapper.fromDto(signerResponse);
+        return CertificationServiceDiagnosticsMapper.fromDto(signerResponse);
     }
 
     private static final class CertificationServiceDiagnosticsMapper {

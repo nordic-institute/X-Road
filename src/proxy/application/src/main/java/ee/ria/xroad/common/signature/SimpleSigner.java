@@ -25,25 +25,25 @@
  */
 package ee.ria.xroad.common.signature;
 
+import ee.ria.xroad.common.crypto.identifier.SignAlgorithm;
 import ee.ria.xroad.signer.SignerProxy;
 
 import lombok.extern.slf4j.Slf4j;
 
-import static ee.ria.xroad.common.util.CryptoUtils.calculateDigest;
-import static ee.ria.xroad.common.util.CryptoUtils.getDigestAlgorithmId;
+import static ee.ria.xroad.common.crypto.Digests.calculateDigest;
 
 @Slf4j
 public class SimpleSigner implements MessageSigner {
 
     @Override
-    public SignatureData sign(String keyId, String signatureAlgorithmId, SigningRequest request) throws Exception {
+    public SignatureData sign(String keyId, SignAlgorithm signatureAlgorithm, SigningRequest request) throws Exception {
         log.trace("processing sign request");
 
-        final var ctx = new SignatureCtx(signatureAlgorithmId);
+        final var ctx = new SignatureCtx(signatureAlgorithm);
         ctx.add(request);
 
-        final byte[] digest = calculateDigest(getDigestAlgorithmId(ctx.getSignatureAlgorithmId()), ctx.getDataToBeSigned());
-        final byte[] response = SignerProxy.sign(keyId, signatureAlgorithmId, digest);
+        final byte[] digest = calculateDigest(signatureAlgorithm.digest(), ctx.getDataToBeSigned());
+        final byte[] response = SignerProxy.sign(keyId, signatureAlgorithm, digest);
 
         String signature = ctx.createSignatureXml(response);
         return ctx.createSignatureData(signature, 0);
