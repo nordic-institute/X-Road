@@ -25,7 +25,6 @@ dependencies {
     implementation project(':common:common-jetty')
     implementation project(':common:common-db')
     implementation project(':common:common-op-monitoring')
-    implementation project(':monitoring-conf')
 
     // Using HSQLDB for an in-memory database in tests.
     testImplementation libs.hsqldb
