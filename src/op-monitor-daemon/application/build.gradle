@@ -1,0 +1,21 @@
+plugins {
+    alias(libs.plugins.shadow)
+}
+
+dependencies {
+    implementation project(':common:common-core')
+    implementation project(':op-monitor-daemon:core')
+}
+
+shadowJar {
+    archiveClassifier = ''
+    archiveBaseName = 'op-monitor-daemon'
+    exclude('**/module-info.class')
+    manifest {
+        attributes 'Main-Class': 'ee.ria.xroad.opmonitordaemon.OpMonitorDaemonMain'
+    }
+    mergeServiceFiles()
+}
+
+jar.enabled = false
+assemble.dependsOn shadowJar

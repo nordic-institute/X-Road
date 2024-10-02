@@ -2,20 +2,21 @@
 
 **Technical Specification**
 
-Version: 1.2  
+Version: 1.3  
 Doc. ID: PR-OPMON
 
-| Date       | Version | Description                                                          | Author            |
-|------------|---------|----------------------------------------------------------------------|-------------------|
-|            | 0.2     | Initial version                                                      |                   |
-| 23.01.2017 | 0.3     | Added license text, table of contents and version history            | Sami Kallio       |
-| 05.03.2018 | 0.4     | Added terms and abbreviations reference                              | Tatu Repo         |
-| 04.12.2018 | 0.5     | More detailed descriptions for *[request/response][In/Out]Ts* fields | Cybernetica AS    |
-| 18.02.2019 | 0.6     | Example response updated: added xRequestId                           | Caro Hautamäki    |
-| 23.05.2019 | 0.7     | Add info about status_code, request_rest_size, response_rest_size    | Tapio Jaakkola    |
-| 12.12.2019 | 1.0     | Update the protocol to the next major version                        | Ilkka Seppälä     |
-| 10.05.2023 | 1.1     | Security Categories removed.                                         | Justas Samuolis   |
-| 01.06.2023 | 1.2     | Update references                                                    | Petteri Kivimäki  |
+| Date       | Version | Description                                                          | Author           |
+|------------|---------|----------------------------------------------------------------------|------------------|
+|            | 0.2     | Initial version                                                      |                  |
+| 23.01.2017 | 0.3     | Added license text, table of contents and version history            | Sami Kallio      |
+| 05.03.2018 | 0.4     | Added terms and abbreviations reference                              | Tatu Repo        |
+| 04.12.2018 | 0.5     | More detailed descriptions for *[request/response][In/Out]Ts* fields | Cybernetica AS   |
+| 18.02.2019 | 0.6     | Example response updated: added xRequestId                           | Caro Hautamäki   |
+| 23.05.2019 | 0.7     | Add info about status_code, request_rest_size, response_rest_size    | Tapio Jaakkola   |
+| 12.12.2019 | 1.0     | Update the protocol to the next major version                        | Ilkka Seppälä    |
+| 10.05.2023 | 1.1     | Security Categories removed.                                         | Justas Samuolis  |
+| 01.06.2023 | 1.2     | Update references                                                    | Petteri Kivimäki |
+| 02.10.2024 | 1.3     | Update schema file locations                                         | Justas Samuolis  | 
 
 ## Table of Contents <!-- omit in toc -->
 
@@ -283,9 +284,9 @@ The example response message is presented in \[[Annex C.4](#AnnexC.4)\].
 <a name="AnnexA"/></a>
 # Annex A WSDL for Operational Monitoring Messages
 
-The XML-schema for operational monitoring messages is located in the file *src/op-monitor-daemon/src/main/resources/op-monitoring.xsd* of the X-Road source code.
+The XML-schema for operational monitoring messages is located in the file *src/op-monitor-daemon/core/src/main/resources/op-monitoring.xsd* of the X-Road source code.
 
-The WSDL is located in the file *src/op-monitor-daemon/src/main/resources/op-monitoring.wsdl* of the X-Road source code.
+The WSDL is located in the file *src/op-monitor-daemon/core/src/main/resources/op-monitoring.wsdl* of the X-Road source code.
 
 ```xml
 <?xml version="1.0" encoding="UTF-8"?>
@@ -948,7 +949,7 @@ The WSDL is located in the file *src/op-monitor-daemon/src/main/resources/op-mon
 <a name="AnnexB"/></a>
 # Annex B JSON-Schema for Payload of getSecurityServerOperationalData Response
 
-The schema is located in the file *src/op-monitor-daemon/src/main/resources/query_operational_data_response_payload_schema.yaml* of the X-Road source code.
+The schema is located in the file *src/op-monitor-daemon/core/src/main/resources/query_operational_data_response_payload_schema.yaml* of the X-Road source code.
 
 ```yaml
 title: Query Operational Data Response Payload Schema

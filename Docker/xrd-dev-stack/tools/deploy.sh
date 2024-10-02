@@ -33,7 +33,7 @@ deploy_module() {
     service_name="xroad-confclient"
     ;;
   "op-monitor-daemon")
-    jar_path="$XROAD_HOME/src/op-monitor-daemon/build/libs/op-monitor-daemon-1.0.jar"
+    jar_path="$XROAD_HOME/src/op-monitor-daemon/application/build/libs/op-monitor-daemon-1.0.jar"
     service_name="all"
     ;;
   "cs-admin-service")
