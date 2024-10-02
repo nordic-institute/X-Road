@@ -1,5 +1,29 @@
 plugins {
     alias(libs.plugins.shadow)
+    id 'maven-publish'
+}
+
+publishing {
+    publications {
+        shadow(MavenPublication) { publication ->
+            project.shadow.component(publication)
+            groupId = 'org.niis.xroad'
+            artifactId = "configuration-client"
+            version = xroadVersion + ("RELEASE".equals(xroadBuildType) ? "": "-SNAPSHOT")
+        }
+    }
+    repositories {
+        maven {
+            url = xroadPublishUrl
+            credentials {
+                username = xroadPublishUser
+                password = xroadPublishApiKey
+            }
+            authentication {
+                basic(BasicAuthentication)
+            }
+        }
+    }
 }
 
 dependencies {
