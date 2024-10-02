@@ -1,6 +1,6 @@
 # Kubernetes Security Server Sidecar User Guide <!-- omit in toc -->
 
-Version: 1.11  
+Version: 1.12  
 Doc. ID: UG-K-SS-SIDECAR
 
 ## Version history <!-- omit in toc -->
@@ -19,6 +19,7 @@ Doc. ID: UG-K-SS-SIDECAR
 | 02.04.2024 | 1.9     | Add Azure Kubernetes Service (AKS) references         | Madis Loitmaa             |
 | 13.05.2024 | 1.10    | Add additional upgrade details for Sidecar 7.5        | Ovidijus Narkevicius      |
 | 10.07.2024 | 1.11    | Fix incorrect section numbering                       | Petteri Kivimäki          |
+| 02.10.2024 | 1.12    | Add example of set up the volume for backups          | Eneli Reimets             |
 ## License
 
 This document is licensed under the Creative Commons Attribution-ShareAlike 4.0 International License.
@@ -639,6 +640,24 @@ In the described scenario [2.3 Multiple Pods using a Load Balancer](#23-multiple
 ## 5 Backup and Restore
 
 The backup system of the Security Servers described in the [User Guide](../Manuals/ug-ss_x-road_6_security_server_user_guide.md#13-back-up-and-restore) is also valid for the installation using Kubernetes. If your Kubernetes deployment uses volumes to store the configuration, you can additionally back up each volume using e.g. volume snapshots.
+
+An example of how to set up the volume for backups in the manifest:
+
+```yaml
+[...]
+  volumes:
+    - name: <backup volume name>
+      persistentVolumeClaim:
+        claimName: <pvc name>
+  containers:
+    - name: <container name>
+      image: niis/xroad-security-server-sidecar:<image tag>
+      imagePullPolicy: "Always"
+      volumeMounts:
+        - name: <backup volume name>
+          mountPath: "/var/lib/xroad"
+[...]
+```
 
 ## 6 Monitoring
 
