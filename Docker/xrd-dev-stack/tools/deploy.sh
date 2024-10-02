@@ -25,7 +25,7 @@ deploy_module() {
     service_name="xroad-proxy-ui-api"
     ;;
   "signer")
-    jar_path="$XROAD_HOME/src/signer/build/libs/signer-1.0.jar"
+    jar_path="$XROAD_HOME/src/signer/application/build/libs/signer-1.0.jar"
     service_name="all"
     ;;
   "configuration-client")
@@ -33,7 +33,7 @@ deploy_module() {
     service_name="xroad-confclient"
     ;;
   "op-monitor-daemon")
-    jar_path="$XROAD_HOME/src/op-monitor-daemon/build/libs/op-monitor-daemon-1.0.jar"
+    jar_path="$XROAD_HOME/src/op-monitor-daemon/application/build/libs/op-monitor-daemon-1.0.jar"
     service_name="all"
     ;;
   "cs-admin-service")

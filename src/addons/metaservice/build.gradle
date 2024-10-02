@@ -1,5 +1,5 @@
 dependencies {
-    implementation project(':proxy:application')
+    implementation project(':proxy:core')
     implementation project(':common:common-jetty')
     implementation project(':serverconf')
     implementation project(":common:common-op-monitoring")
@@ -7,6 +7,7 @@ dependencies {
     implementation "com.fasterxml.jackson.dataformat:jackson-dataformat-yaml"
 
     testImplementation project(':common:common-test')
+    testImplementation project(path: ":proxy:core", configuration: 'testArtifacts')
     testImplementation project(path: ":proxy:application", configuration: 'testArtifacts')
 
     testImplementation(libs.wiremock.standalone)
@@ -21,7 +22,7 @@ dependencies {
 }
 
 tasks.register('runMetaserviceTest', JavaExec) {
-
+    group = "verification"
     if (System.getProperty('DEBUG', 'false') == 'true') {
         jvmArgs '-Xdebug',
             '-Xrunjdwp:transport=dt_socket,server=y,suspend=y,address=5005'
