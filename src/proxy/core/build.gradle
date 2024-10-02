@@ -32,7 +32,7 @@ dependencies {
 
     testImplementation(libs.wsdl4j)
 
-    intTestRuntimeOnly(project(':signer:core'))
+    intTestRuntimeOnly(project(':signer:application'))
     intTestImplementation(project(":common:common-test"))
     intTestImplementation(project(":common:common-int-test"))
 }
@@ -80,6 +80,7 @@ check.dependsOn integrationTest
 
 tasks.register('intTest', Test) {
     useJUnitPlatform()
+    dependsOn(':signer:application:shadowJar')
 
     setDescription("Runs integration tests.")
     group = 'verification'
