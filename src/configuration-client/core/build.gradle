@@ -27,6 +27,8 @@ publishing {
 }
 
 dependencies {
+    implementation(platform(libs.springBoot.bom))
+
     implementation project(':common:common-globalconf')
     implementation project(':common:common-scheduler')
     implementation project(':common:common-jetty')

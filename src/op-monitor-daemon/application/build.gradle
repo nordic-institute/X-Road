@@ -3,6 +3,8 @@ plugins {
 }
 
 dependencies {
+    implementation(platform(libs.springBoot.bom))
+
     implementation project(':common:common-core')
     implementation project(':op-monitor-daemon:core')
 }

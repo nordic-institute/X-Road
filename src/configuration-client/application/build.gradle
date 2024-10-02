@@ -21,7 +21,6 @@ jar {
     manifest {
         attributes 'Main-Class': mainClassName
     }
-    //archiveBaseName = 'configuration-client'
 }
 
 shadowJar {

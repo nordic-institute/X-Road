@@ -11,6 +11,8 @@ sourceSets {
 }
 
 dependencies {
+    implementation(platform(libs.springBoot.bom))
+
     implementation(project(':common:common-jetty'))
     implementation(project(':common:common-message'))
     implementation(project(':common:common-globalconf'))
@@ -39,7 +41,10 @@ jar {
     archiveBaseName = 'proxy-core'
 }
 
-testJar.enabled = true
+testJar {
+    enabled = true
+    archiveBaseName = 'proxy-core'
+}
 
 apply plugin: "jacoco"
 
