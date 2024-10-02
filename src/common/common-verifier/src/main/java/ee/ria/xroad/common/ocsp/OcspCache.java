@@ -26,7 +26,6 @@
 package ee.ria.xroad.common.ocsp;
 
 import ee.ria.xroad.common.conf.globalconf.GlobalConfProvider;
-import ee.ria.xroad.common.conf.globalconfextension.GlobalConfExtensions;
 
 import lombok.extern.slf4j.Slf4j;
 import org.bouncycastle.cert.ocsp.OCSPResp;
@@ -111,7 +110,7 @@ public class OcspCache {
     protected boolean isExpired(OCSPResp response, Date atDate)
             throws Exception {
         OcspVerifier verifier = new OcspVerifier(globalConfProvider,
-                new OcspVerifierOptions(GlobalConfExtensions.getInstance(globalConfProvider).shouldVerifyOcspNextUpdate()));
+                new OcspVerifierOptions(globalConfProvider.getGlobalConfExtensions().shouldVerifyOcspNextUpdate()));
         return verifier.isExpired(response, atDate);
     }
 }

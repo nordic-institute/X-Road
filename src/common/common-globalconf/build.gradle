@@ -2,6 +2,20 @@ plugins {
     id 'java-library'
 }
 
+project.ext.schemaTargetDir = layout.buildDirectory.dir("generated-sources").get().asFile
+
+sourceSets {
+    main {
+        java.srcDirs = ["src/main/java", schemaTargetDir]
+        resources.srcDirs = ['src/main/resources', '../common-domain/src/main/resources']
+        resources.exclude 'version.properties'
+    }
+}
+
+configurations {
+    xjc
+}
+
 dependencies {
     annotationProcessor(libs.mapstructProcessor)
     annotationProcessor(libs.lombokMapstructBinding)
@@ -15,5 +29,49 @@ dependencies {
 
     testImplementation project(':common:common-test')
     testImplementation(libs.junit.jupiter.params)
+
+    xjc libs.bundles.jaxb
 }
 
+
+tasks.register('createDirs') {
+    doLast {
+        project.ext.schemaTargetDir.mkdirs()
+    }
+}
+
+tasks.register('xjc') {
+    inputs.files(
+        fileTree(dir: 'src/main/resources', include: '*.xsd'),
+    )
+    outputs.dir project.ext.schemaTargetDir
+
+    doLast {
+        ant.taskdef(name: 'xjc',
+            classname: 'com.sun.tools.xjc.XJCTask',
+            classpath: configurations.xjc.asPath)
+        ant.xjc(
+            destdir: project.ext.schemaTargetDir,
+            package: 'ee.ria.xroad.common.conf.globalconf.ocspnextupdateparameters',
+            schema: 'src/main/resources/ocsp-nextupdate-conf.xsd'
+        )
+        ant.xjc(
+            destdir: project.ext.schemaTargetDir,
+            package: 'ee.ria.xroad.common.conf.globalconf.ocspfetchintervalparameters',
+            schema: 'src/main/resources/ocsp-fetchinterval-conf.xsd'
+        )
+        ant.xjc(
+            destdir: project.ext.schemaTargetDir,
+            package: 'ee.ria.xroad.common.conf.globalconf.monitoringparameters',
+            schema: "${layout.buildDirectory.get().asFile}/resources/main/monitoring-conf.xsd",
+            binding: "${layout.buildDirectory.get().asFile}/resources/main/identifiers-bindings.xml"
+        )
+    }
+}
+
+xjc.dependsOn createDirs
+xjc.dependsOn processResources
+xjc.mustRunAfter processResources
+
+compileJava.dependsOn xjc
+compileJava.dependsOn processResources

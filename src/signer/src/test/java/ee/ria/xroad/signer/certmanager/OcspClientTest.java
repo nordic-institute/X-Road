@@ -27,7 +27,9 @@ package ee.ria.xroad.signer.certmanager;
 
 import ee.ria.xroad.common.OcspTestUtils;
 import ee.ria.xroad.common.TestCertUtil;
+import ee.ria.xroad.common.conf.globalconf.FileSystemGlobalConfSource;
 import ee.ria.xroad.common.conf.globalconf.GlobalConfProvider;
+import ee.ria.xroad.common.conf.globalconfextension.GlobalConfExtensions;
 import ee.ria.xroad.common.ocsp.OcspVerifier;
 import ee.ria.xroad.common.ocsp.OcspVerifierOptions;
 import ee.ria.xroad.common.util.TimeUtils;
@@ -65,6 +67,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import static ee.ria.xroad.common.SystemProperties.getConfigurationPath;
 import static ee.ria.xroad.common.util.CryptoUtils.calculateCertHexHash;
 import static ee.ria.xroad.common.util.JettyUtils.setContentType;
 import static org.eclipse.jetty.io.Content.Sink.asOutputStream;
@@ -117,6 +120,8 @@ class OcspClientTest {
             when(testConf.isOcspResponderCert(Mockito.any(X509Certificate.class),
                     Mockito.any(X509Certificate.class))).thenReturn(true);
 
+            FileSystemGlobalConfSource source = new FileSystemGlobalConfSource(getConfigurationPath());
+            when(testConf.getGlobalConfExtensions()).thenReturn(new GlobalConfExtensions(source));
             return testConf;
         }
 

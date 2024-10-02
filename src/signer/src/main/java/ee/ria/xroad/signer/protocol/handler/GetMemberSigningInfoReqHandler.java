@@ -27,7 +27,6 @@ package ee.ria.xroad.signer.protocol.handler;
 
 import ee.ria.xroad.common.CodedException;
 import ee.ria.xroad.common.conf.globalconf.GlobalConfProvider;
-import ee.ria.xroad.common.conf.globalconfextension.GlobalConfExtensions;
 import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.ocsp.OcspVerifier;
 import ee.ria.xroad.common.ocsp.OcspVerifierOptions;
@@ -125,7 +124,7 @@ public final class GetMemberSigningInfoReqHandler extends AbstractRpcHandler<Get
         X509Certificate subject = CryptoUtils.readCertificate(certBytes);
         subject.checkValidity();
         verifyOcspResponse(instanceIdentifier, ocspBytes, subject, new OcspVerifierOptions(
-                GlobalConfExtensions.getInstance(globalConfProvider).shouldVerifyOcspNextUpdate()));
+                globalConfProvider.getGlobalConfExtensions().shouldVerifyOcspNextUpdate()));
     }
 
     private void verifyOcspResponse(String instanceIdentifier, byte[] ocspBytes, X509Certificate subject,

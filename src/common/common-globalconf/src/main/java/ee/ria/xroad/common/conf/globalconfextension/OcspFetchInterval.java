@@ -31,10 +31,12 @@ import ee.ria.xroad.common.conf.globalconf.ocspfetchintervalparameters.OcspFetch
 
 import jakarta.xml.bind.JAXBContext;
 import jakarta.xml.bind.JAXBException;
+import lombok.ToString;
 
 /**
  * Ocsp fetch interval parameters
  */
+@ToString(onlyExplicitlyIncluded = true)
 public class OcspFetchInterval extends AbstractXmlConf<OcspFetchIntervalType> {
     private static final JAXBContext JAXB_CONTEXT = createJAXBContext();
 
@@ -58,6 +60,7 @@ public class OcspFetchInterval extends AbstractXmlConf<OcspFetchIntervalType> {
         super(OcspFetchIntervalSchemaValidator.class);
     }
 
+    @ToString.Include
     int getOcspFetchInterval() {
         return confType.getOcspFetchInterval();
     }

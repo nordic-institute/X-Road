@@ -10,8 +10,6 @@ dependencyResolutionManagement {
 include 'arch-rules'
 include "signer-protocol"
 include "serverconf"
-include "monitoring-conf"
-
 
 include "common"
 include "common:common-acme"

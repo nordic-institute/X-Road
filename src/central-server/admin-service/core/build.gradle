@@ -13,7 +13,6 @@ dependencies {
     annotationProcessor(libs.hibernate.jpamodelgen)
 
     api project(':central-server:admin-service:core-api')
-    api project(':monitoring-conf')
     api(project(":common:common-api-throttling"))
 
     api('org.springframework.boot:spring-boot-starter-web')
