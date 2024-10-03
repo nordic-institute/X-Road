@@ -29,6 +29,7 @@ import ee.ria.xroad.common.OcspTestUtils;
 import ee.ria.xroad.common.TestCertUtil;
 import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.util.CryptoUtils;
+import ee.ria.xroad.common.util.EncoderUtils;
 import ee.ria.xroad.signer.protocol.dto.CertRequestInfo;
 import ee.ria.xroad.signer.protocol.dto.CertRequestInfoProto;
 import ee.ria.xroad.signer.protocol.dto.CertificateInfo;
@@ -72,7 +73,7 @@ public final class CertificateTestUtils {
      * SerialNumber: [    01]
      */
     private static final byte[] MOCK_CERTIFICATE_BYTES =
-            CryptoUtils.decodeBase64(
+            EncoderUtils.decodeBase64(
                     "MIICqTCCAZGgAwIBAgIBATANBgkqhkiG9w0BAQ0FADAOMQwwCgYDVQQDDANOL0EwHhcNN"
                             + "zAwMTAxMDAwMDAwWhcNMzgwMTAxMDAwMDAwWjAOMQwwCgYDVQQDDANOL0EwggEiMA0GC"
                             + "SqGSIb3DQEBAQUAA4IBDwAwggEKAoIBAQCdiI++CJsyo19Y0810Q80lOJmJ264CvGGqQ"
@@ -103,7 +104,7 @@ public final class CertificateTestUtils {
      * SerialNumber: [    cfa421d2 f88c8eb5]
      */
     private static final byte[] WIDGITS_CERTIFICATE_BYTES =
-            CryptoUtils.decodeBase64(
+            EncoderUtils.decodeBase64(
                     "LS0tLS1CRUdJTiBDRVJUSUZJQ0FURS0tLS0tCk1JSUIwekNDQVgyZ0F3SUJBZ0lKQU0ra0lkTDRqSTYx"
                             + "TUEwR0NTcUdTSWIzRFFFQkN3VUFNRVV4Q3pBSkJnTlYKQkFZVEFrRlZNUk13RVFZRFZRUUlE"
                             + "QXBUYjIxbExWTjBZWFJsTVNFd0h3WURWUVFLREJoSmJuUmxjbTVsZENCWAphV1JuYVhSeklG"
@@ -120,7 +121,7 @@ public final class CertificateTestUtils {
 
     // base64 encoded junk
     private static final byte[] INVALID_CERT_BYTES =
-            CryptoUtils.decodeBase64(
+            EncoderUtils.decodeBase64(
                     "dG90YWwgMzYKZHJ3eHJ3eHIteCAzIGphbm5lIGphbm5lIDQwOTYgaHVodGkgMjQgMTY6MjEgLgpkcnd4cn"
                             + "d4ci14IDkgamFubmUgamFubmUgNDA5NiBodWh0aSAyNCAxMToxNSAuLgotcnctcnctci0tIDEg"
                             + "amFubmUgamFubmUgMzEwNSBodWh0aSAyNCAxNjowOSBkZWNvZGVkCi1ydy1ydy1yLS0gMSBqYW"
@@ -155,7 +156,7 @@ public final class CertificateTestUtils {
      * Certificate is to be certified until Nov 23 09:20:27 2039 GMT (7300 days)
      */
     private static final byte[] MOCK_AUTH_CERT_BYTES =
-            CryptoUtils.decodeBase64(
+            EncoderUtils.decodeBase64(
                     "MIIEXDCCAkSgAwIBAgIBCDANBgkqhkiG9w0BAQsFADBnMQswCQYDVQQGEwJGSTEY"
                             + "MBYGA1UECgwPQ3VzdG9taXplZCBUZXN0MR4wHAYDVQQLDBVDdXN0b21pemVkIFRl"
                             + "c3QgQ0EgT1UxHjAcBgNVBAMMFUN1c3RvbWl6ZWQgVGVzdCBDQSBDTjAeFw0xOTEx"
@@ -182,7 +183,7 @@ public final class CertificateTestUtils {
                             + "TeEqXuL/b9PoaiQWFcPZcg==");
 
     private static final byte[] MOCK_TOP_CA_CERT_BYTES =
-            CryptoUtils.decodeBase64("MIIFpzCCA4+gAwIBAgIUOKHQEPC1bBLtBShmTvoJ180394kwDQYJKoZIhvcNAQELBQ"
+            EncoderUtils.decodeBase64("MIIFpzCCA4+gAwIBAgIUOKHQEPC1bBLtBShmTvoJ180394kwDQYJKoZIhvcNAQELBQ"
                     + "AwWzELMAkGA1UEBhMCRkkxFDASBgNVBAoMC1gtUm9hZCBUZXN0MRowGAYDVQQLDBFYLVJvYWQgVGVzdCBDQSBPVTEaMBg"
                     + "GA1UEAwwRWC1Sb2FkIFRlc3QgQ0EgQ04wHhcNMTkwNjE0MDYxMTMxWhcNMzkwNjA5MDYxMTMxWjBbMQswCQYDVQQGEwJG"
                     + "STEUMBIGA1UECgwLWC1Sb2FkIFRlc3QxGjAYBgNVBAsMEVgtUm9hZCBUZXN0IENBIE9VMRowGAYDVQQDDBFYLVJvYWQgV"
@@ -206,7 +207,7 @@ public final class CertificateTestUtils {
                     + "GniSmwSrk=");
 
     private static final byte[] MOCK_INTERMEDIATE_CA_CERT_BYTES =
-            CryptoUtils.decodeBase64("MIIFZzCCA0+gAwIBAgIBEjANBgkqhkiG9w0BAQsFADBbMQswCQYDVQQGEwJGSTEUM"
+            EncoderUtils.decodeBase64("MIIFZzCCA0+gAwIBAgIBEjANBgkqhkiG9w0BAQsFADBbMQswCQYDVQQGEwJGSTEUM"
                     + "BIGA1UECgwLWC1Sb2FkIFRlc3QxGjAYBgNVBAsMEVgtUm9hZCBUZXN0IENBIE9VMRowGAYDVQQDDBFYLVJvYWQgVGVzd"
                     + "CBDQSBDTjAeFw0yMDAzMDQwNzUzNDlaFw00MDAyMjgwNzUzNDlaMCsxGDAWBgNVBAoMD1gtUm9hZCBUZXN0IGludDEPM"
                     + "A0GA1UEAwwGaW50LWNuMIICIjANBgkqhkiG9w0BAQEFAAOCAg8AMIICCgKCAgEAq1uxlwbJWnn/Ey0K3CIoAY+X4mDum"
@@ -231,7 +232,7 @@ public final class CertificateTestUtils {
     // certificate which does not have X509v3 Key Usage extension (and hence is not sign or auth cert,
     // and CertUtils.isSigningCert & CertUtils.isAuthCert throw exceptions)
     private static final byte[] MOCK_CERT_WITHOUT_EXTENSIONS =
-            CryptoUtils.decodeBase64("MIIC1DCCAbygAwIBAgIUYWRAIpLT0ke2PEhqKTzxDRzC2c0wDQYJKoZIhvcNAQEL"
+            EncoderUtils.decodeBase64("MIIC1DCCAbygAwIBAgIUYWRAIpLT0ke2PEhqKTzxDRzC2c0wDQYJKoZIhvcNAQEL"
                     + "BQAwFDESMBAGA1UEAwwJbG9jYWxob3N0MB4XDTIwMTAyNjEyMzY1NloXDTMwMTAy"
                     + "NDEyMzY1NlowFDESMBAGA1UEAwwJbG9jYWxob3N0MIIBIjANBgkqhkiG9w0BAQEF"
                     + "AAOCAQ8AMIIBCgKCAQEA8j01lvwWQYHZM7uc2wpSPtDSgzDiEB14CtgFb9kft4u7"
@@ -251,7 +252,7 @@ public final class CertificateTestUtils {
     // an actual sign certificate with correct key usage extensions
     // Subject: C = FI, O = Member4, CN = M4, serialNumber = LXD/ss4/GOV
     private static final byte[] MOCK_SIGN_CERT =
-            CryptoUtils.decodeBase64("MIIENTCCAh2gAwIBAgIBFDANBgkqhkiG9w0BAQsFADBbMQswCQYDVQQGEwJGSTEU"
+            EncoderUtils.decodeBase64("MIIENTCCAh2gAwIBAgIBFDANBgkqhkiG9w0BAQsFADBbMQswCQYDVQQGEwJGSTEU"
                     + "MBIGA1UECgwLWC1Sb2FkIFRlc3QxGjAYBgNVBAsMEVgtUm9hZCBUZXN0IENBIE9V"
                     + "MRowGAYDVQQDDBFYLVJvYWQgVGVzdCBDQSBDTjAeFw0yMDA0MjcxMDIwMDBaFw00"
                     + "MDA0MjIxMDIwMDBaMEIxCzAJBgNVBAYTAkZJMRAwDgYDVQQKDAdNZW1iZXI0MQsw"
@@ -276,7 +277,7 @@ public final class CertificateTestUtils {
                     + "sUTKacwQnP/ti/60ufPvsR+OVxONBLGwVw==");
 
     private static final byte[] MOCK_SIGN_CSR =
-            CryptoUtils.decodeBase64("MIICqjCCAZICAQAwRDELMAkGA1UEBhMCRkkxDDAK"
+            EncoderUtils.decodeBase64("MIICqjCCAZICAQAwRDELMAkGA1UEBhMCRkkxDDAK"
                     + "BgNVBAoMA09yZzETMBEGA1UEBRMKQ1MvU1MwL0dPVjESMBAGA1UEAwwJMDI0NTQzNy"
                     + "0yMIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEArwj8NdvYIqILt7rtCp7C"
                     + "Rxndkg2M390FZ0m+Qk3kcAcnCxYb2aZRG51QlKR200UaYBzmEuAl5eNsgbNk23PrfB"

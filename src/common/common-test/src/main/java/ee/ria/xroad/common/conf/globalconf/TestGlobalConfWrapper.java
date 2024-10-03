@@ -29,13 +29,13 @@ import ee.ria.xroad.common.CodedException;
 import ee.ria.xroad.common.cert.CertChain;
 import ee.ria.xroad.common.certificateprofile.AuthCertificateProfileInfo;
 import ee.ria.xroad.common.certificateprofile.SignCertificateProfileInfo;
+import ee.ria.xroad.common.conf.globalconfextension.GlobalConfExtensions;
 import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.identifier.GlobalGroupId;
 import ee.ria.xroad.common.identifier.SecurityServerId;
 
 import lombok.Setter;
 
-import java.nio.file.Path;
 import java.security.cert.X509Certificate;
 import java.util.Collection;
 import java.util.List;
@@ -280,7 +280,7 @@ public class TestGlobalConfWrapper implements GlobalConfProvider {
     }
 
     @Override
-    public Path getInstanceFile(String fileName) {
-        return globalConfProvider.getInstanceFile(fileName);
+    public GlobalConfExtensions getGlobalConfExtensions() {
+        return globalConfProvider.getGlobalConfExtensions();
     }
 }

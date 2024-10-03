@@ -28,7 +28,6 @@ package ee.ria.xroad.common.message;
 import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.identifier.ServiceId;
 import ee.ria.xroad.common.identifier.XRoadId;
-import ee.ria.xroad.common.util.CryptoUtils;
 import ee.ria.xroad.common.util.MimeUtils;
 
 import com.google.common.escape.Escaper;
@@ -47,6 +46,9 @@ import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
+
+import static ee.ria.xroad.common.util.EncoderUtils.decodeBase64;
+import static ee.ria.xroad.common.util.EncoderUtils.encodeBase64;
 
 /**
  * Rest message
@@ -112,7 +114,7 @@ public class RestResponse extends RestMessage {
         tmp.add(new BasicHeader(MimeUtils.HEADER_CLIENT_ID, encodeXRoadId(clientId)));
         tmp.add(new BasicHeader(MimeUtils.HEADER_SERVICE_ID, encodeXRoadId(serviceId)));
         tmp.add(new BasicHeader(MimeUtils.HEADER_REQUEST_ID, xRequestId));
-        tmp.add(new BasicHeader(MimeUtils.HEADER_REQUEST_HASH, CryptoUtils.encodeBase64(requestHash)));
+        tmp.add(new BasicHeader(MimeUtils.HEADER_REQUEST_HASH, encodeBase64(requestHash)));
         this.headers = tmp;
     }
 
@@ -187,7 +189,7 @@ public class RestResponse extends RestMessage {
                 queryId = h.getValue();
             }
             if (h.getName().equalsIgnoreCase(MimeUtils.HEADER_REQUEST_HASH)) {
-                requestHash = CryptoUtils.decodeBase64(h.getValue());
+                requestHash = decodeBase64(h.getValue());
             }
 
             if (h.getName().equalsIgnoreCase(MimeUtils.HEADER_SERVICE_ID)) {

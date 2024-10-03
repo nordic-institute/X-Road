@@ -31,6 +31,7 @@ import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.identifier.SecurityServerId;
 import ee.ria.xroad.common.util.CertUtils;
 import ee.ria.xroad.common.util.CryptoUtils;
+import ee.ria.xroad.common.util.TimeUtils;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -77,7 +78,7 @@ public final class CertHelper {
 
         // Verify certificate against CAs.
         try {
-            new CertChainVerifier(globalConfProvider, chain).verify(ocspResponses, new Date());
+            new CertChainVerifier(globalConfProvider, chain).verify(ocspResponses, Date.from(TimeUtils.now()));
         } catch (CodedException e) {
             // meaningful errors get SSL auth verification prefix
             throw e.withPrefix(X_SSL_AUTH_FAILED);

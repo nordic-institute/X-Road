@@ -1,5 +1,6 @@
 /*
  * The MIT License
+ *
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
@@ -45,7 +46,7 @@ import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.InputStream;
 
-import static ee.ria.xroad.common.util.CryptoUtils.DEFAULT_DIGEST_ALGORITHM_ID;
+import static ee.ria.xroad.common.crypto.Digests.DEFAULT_DIGEST_ALGORITHM;
 import static ee.ria.xroad.common.util.JettyUtils.getContentType;
 import static ee.ria.xroad.common.util.JettyUtils.getTarget;
 import static ee.ria.xroad.common.util.JettyUtils.setContentType;
@@ -90,7 +91,7 @@ class DummyServerProxy extends Server implements InitializingBean, DisposableBea
             log.debug("Proxy simulator received request {}, contentType={}", target, getContentType(request));
 
             response.getHeaders().add("Connection", "close");
-            response.getHeaders().add(HEADER_HASH_ALGO_ID, DEFAULT_DIGEST_ALGORITHM_ID);
+            response.getHeaders().add(HEADER_HASH_ALGO_ID, DEFAULT_DIGEST_ALGORITHM.name());
 
             // check if the test case implements custom service response
             var handler = currentTestCase().getServerProxyHandler();

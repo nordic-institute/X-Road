@@ -108,6 +108,7 @@ export const useUser = defineStore('user', {
         },
         data,
       }).then(() => {
+        sessionStorage.clear();
         this.authenticated = true;
         this.isSessionAlive = true;
       });
@@ -145,6 +146,7 @@ export const useUser = defineStore('user', {
     logout(reload = true) {
       // Clear auth data
       this.clearAuth();
+      sessionStorage.clear();
 
       // Call backend for logout
       axiosAuth

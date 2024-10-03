@@ -25,6 +25,7 @@
  */
 package ee.ria.xroad.common.asic;
 
+import ee.ria.xroad.common.crypto.identifier.DigestAlgorithm;
 import ee.ria.xroad.common.signature.SignatureData;
 import ee.ria.xroad.common.util.MimeTypes;
 
@@ -52,11 +53,9 @@ import static ee.ria.xroad.common.asic.AsicContainerEntries.ENTRY_TIMESTAMP;
 import static ee.ria.xroad.common.asic.AsicContainerEntries.ENTRY_TS_HASH_CHAIN;
 import static ee.ria.xroad.common.asic.AsicContainerEntries.ENTRY_TS_HASH_CHAIN_RESULT;
 import static ee.ria.xroad.common.asic.AsicContainerEntries.MIMETYPE;
-import static ee.ria.xroad.common.util.CryptoUtils.SHA512_ID;
-import static ee.ria.xroad.common.util.CryptoUtils.calculateDigest;
-import static ee.ria.xroad.common.util.CryptoUtils.encodeBase64;
-import static ee.ria.xroad.common.util.CryptoUtils.getAlgorithmIdentifier;
-import static ee.ria.xroad.common.util.CryptoUtils.getDigestAlgorithmURI;
+import static ee.ria.xroad.common.crypto.Digests.calculateDigest;
+import static ee.ria.xroad.common.crypto.Digests.getAlgorithmIdentifier;
+import static ee.ria.xroad.common.util.EncoderUtils.encodeBase64;
 import static org.apache.commons.lang3.StringUtils.isNotBlank;
 
 /**
@@ -257,11 +256,11 @@ public class AsicContainer {
         AsicManifestBuilder b = new AsicManifestBuilder();
         b.setSigReference(ENTRY_TIMESTAMP, "vnd.etsi.timestamp-token");
 
-        String algoId = SHA512_ID;
+        DigestAlgorithm algoId = DigestAlgorithm.SHA512;
         byte[] digest = calculateDigest(getAlgorithmIdentifier(algoId),
                 tsHashChainResult.getBytes(StandardCharsets.UTF_8));
         b.addDataObjectReference(ENTRY_TS_HASH_CHAIN_RESULT,
-                MimeTypes.TEXT_XML, getDigestAlgorithmURI(algoId),
+                MimeTypes.TEXT_XML, algoId,
                 encodeBase64(digest));
 
         put(ENTRY_ASIC_MANIFEST, b.build());

@@ -27,6 +27,7 @@ package org.niis.xroad.cs.admin.core.converter;
 
 import ee.ria.xroad.common.util.CertUtils;
 import ee.ria.xroad.common.util.CryptoUtils;
+import ee.ria.xroad.common.util.EncoderUtils;
 
 import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
@@ -101,7 +102,7 @@ public class CertificateConverter {
                 .setPublicKeyAlgorithm(certificate.getPublicKey().getAlgorithm())
                 .setKeyUsages(keyUsageConverter.convert(certificate.getKeyUsage()))
                 .setSubjectAlternativeNames(getSubjectAlternativeNames(certificate))
-                .setSignature(CryptoUtils.encodeHex(certificate.getSignature()))
+                .setSignature(EncoderUtils.encodeHex(certificate.getSignature()))
                 .setIssuerCommonName(getIssuerCommonName(certificate))
                 .setSubjectCommonName(getSubjectCommonName(certificate))
                 .setEncoded(cert);

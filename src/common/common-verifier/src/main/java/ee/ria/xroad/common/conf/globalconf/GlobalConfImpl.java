@@ -26,13 +26,13 @@
 package ee.ria.xroad.common.conf.globalconf;
 
 import ee.ria.xroad.common.CodedException;
-import ee.ria.xroad.common.SystemProperties;
 import ee.ria.xroad.common.cert.CertChain;
 import ee.ria.xroad.common.cert.CertChainFactory;
 import ee.ria.xroad.common.certificateprofile.AuthCertificateProfileInfo;
 import ee.ria.xroad.common.certificateprofile.CertificateProfileInfoProvider;
 import ee.ria.xroad.common.certificateprofile.GetCertificateProfile;
 import ee.ria.xroad.common.certificateprofile.SignCertificateProfileInfo;
+import ee.ria.xroad.common.conf.globalconfextension.GlobalConfExtensions;
 import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.identifier.GlobalGroupId;
 import ee.ria.xroad.common.identifier.SecurityServerId;
@@ -46,8 +46,6 @@ import org.bouncycastle.cert.X509CertificateHolder;
 import org.bouncycastle.operator.OperatorCreationException;
 
 import java.io.IOException;
-import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.security.cert.CertificateEncodingException;
 import java.security.cert.X509Certificate;
 import java.util.ArrayList;
@@ -65,8 +63,7 @@ import static ee.ria.xroad.common.ErrorCodes.X_OUTDATED_GLOBALCONF;
 import static ee.ria.xroad.common.ErrorCodes.translateException;
 import static ee.ria.xroad.common.util.CryptoUtils.certHash;
 import static ee.ria.xroad.common.util.CryptoUtils.certSha1Hash;
-import static ee.ria.xroad.common.util.CryptoUtils.encodeBase64;
-import static ee.ria.xroad.common.util.CryptoUtils.readCertificate;
+import static ee.ria.xroad.common.util.EncoderUtils.encodeBase64;
 import static java.util.Collections.emptySet;
 import static java.util.Optional.ofNullable;
 import static java.util.stream.Collectors.toSet;
@@ -79,10 +76,12 @@ public class GlobalConfImpl implements GlobalConfProvider {
 
     private final GlobalConfSource globalConfSource;
     private final CertChainFactory certChainFactory;
+    private final GlobalConfExtensions globalConfExtensions;
 
     public GlobalConfImpl(GlobalConfSource globalConfSource) {
         this.globalConfSource = globalConfSource;
         this.certChainFactory = new CertChainFactory(this);
+        this.globalConfExtensions = new GlobalConfExtensions(globalConfSource);
     }
 
     @Override
@@ -94,9 +93,8 @@ public class GlobalConfImpl implements GlobalConfProvider {
     @Override
     public boolean isValid() {
         // it is important to get handle of confDir as this variable is volatile
-        GlobalConfSource checkDir = globalConfSource;
         try {
-            return !checkDir.isExpired();
+            return !globalConfSource.isExpired();
         } catch (Exception e) {
             log.warn("Error checking global configuration validity", e);
             return false;
@@ -296,7 +294,7 @@ public class GlobalConfImpl implements GlobalConfProvider {
                 }
                 caOcspData = p.getCaCertsAndOcspData().get(caCert);
             } catch (CodedException e) {
-                log.error("Unable to determine OCSP responders: {}", e);
+                log.error("Unable to determine OCSP responders", e);
             }
             if (caOcspData == null) {
                 continue;
@@ -400,7 +398,7 @@ public class GlobalConfImpl implements GlobalConfProvider {
             return null;
         }
 
-        return certChainFactory.create(instanceIdentifier, chain.toArray(new X509Certificate[chain.size()]));
+        return certChainFactory.create(instanceIdentifier, chain.toArray(new X509Certificate[0]));
     }
 
     X509Certificate getCaCertForSubject(X509Certificate subject, SharedParametersCache sharedParameters)
@@ -429,7 +427,7 @@ public class GlobalConfImpl implements GlobalConfProvider {
     public X509Certificate[] getAuthTrustChain() {
         try {
             List<X509Certificate> certs = getAllCaCerts();
-            return certs.toArray(new X509Certificate[certs.size()]);
+            return certs.toArray(new X509Certificate[0]);
         } catch (Exception e) {
             throw translateException(e);
         }
@@ -627,7 +625,7 @@ public class GlobalConfImpl implements GlobalConfProvider {
     public X509Certificate getCentralServerSslCertificate() throws Exception {
         byte[] certBytes = getPrivateParameters().getManagementService()
                 .getAuthCertRegServiceCert();
-        return certBytes != null ? readCertificate(certBytes) : null;
+        return certBytes != null ? CryptoUtils.readCertificate(certBytes) : null;
     }
 
     @Override
@@ -730,9 +728,7 @@ public class GlobalConfImpl implements GlobalConfProvider {
     }
 
     @Override
-    public Path getInstanceFile(String fileName) {
-        return Paths.get(SystemProperties.getConfigurationPath(),
-                getInstanceIdentifier(), fileName);
+    public GlobalConfExtensions getGlobalConfExtensions() {
+        return globalConfExtensions;
     }
-
 }

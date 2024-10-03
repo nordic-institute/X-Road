@@ -25,6 +25,7 @@
  */
 package ee.ria.xroad.proxy.conf;
 
+import ee.ria.xroad.common.crypto.identifier.SignMechanism;
 import ee.ria.xroad.common.identifier.ClientId;
 
 import lombok.Getter;
@@ -40,7 +41,7 @@ import java.util.Date;
 public class SigningInfo extends AbstractDateValidatableInfo {
 
     private final String keyId;
-    private final String signMechanismName;
+    private final SignMechanism signMechanismName;
     private final ClientId clientId;
     private final X509Certificate cert;
     private final Date notBefore;

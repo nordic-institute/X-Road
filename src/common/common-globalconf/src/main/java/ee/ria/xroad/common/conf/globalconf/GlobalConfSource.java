@@ -52,4 +52,10 @@ public interface GlobalConfSource {
     void reload();
 
     GlobalConfInitState getReadinessState();
+
+    FileSource getFile(String fileName);
+
+    interface FileSource {
+
+    }
 }

@@ -32,8 +32,8 @@ import ee.ria.xroad.common.identifier.ServiceId;
 import jakarta.xml.soap.SOAPMessage;
 import lombok.SneakyThrows;
 
+import static ee.ria.xroad.common.crypto.Digests.calculateDigest;
 import static ee.ria.xroad.common.message.SoapUtils.isResponseMessage;
-import static ee.ria.xroad.common.util.CryptoUtils.calculateDigest;
 
 /**
  * This class represents the X-Road SOAP message.
@@ -44,7 +44,7 @@ public class SoapMessageImpl extends AbstractSoapMessage<SoapHeader> {
 
     SoapMessageImpl(byte[] rawXml, String charset, SoapHeader header,
                     SOAPMessage soap, String serviceName, boolean isRpcEncoded,
-                    String originalContentType) throws Exception {
+                    String originalContentType) {
         super(rawXml, charset, header, soap, isResponseMessage(serviceName),
                 isRpcEncoded, originalContentType);
     }

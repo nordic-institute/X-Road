@@ -28,9 +28,9 @@ package ee.ria.xroad.common.conf.globalconf;
 
 import org.junit.jupiter.api.Test;
 
-import static ee.ria.xroad.common.util.CryptoUtils.SHA1_ID;
-import static ee.ria.xroad.common.util.CryptoUtils.SHA256_ID;
-import static ee.ria.xroad.common.util.CryptoUtils.decodeBase64;
+import static ee.ria.xroad.common.crypto.identifier.DigestAlgorithm.SHA1;
+import static ee.ria.xroad.common.crypto.identifier.DigestAlgorithm.SHA256;
+import static ee.ria.xroad.common.util.EncoderUtils.decodeBase64;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
@@ -43,26 +43,26 @@ class CertHashTest {
     void calculateHash() {
         CertHash certHash = new CertHash(CERT_BYTES);
 
-        assertThat(certHash.getHash(SHA256_ID)).isEqualTo(SHA256_HASH);
-        assertThat(certHash.getHash(SHA1_ID)).isEqualTo(SHA1_HASH);
+        assertThat(certHash.getHash(SHA256)).isEqualTo(SHA256_HASH);
+        assertThat(certHash.getHash(SHA1)).isEqualTo(SHA1_HASH);
     }
 
     @Test
     void getHash() {
-        CertHash certHash = new CertHash(SHA256_ID, SHA256_HASH);
+        CertHash certHash = new CertHash(SHA256, SHA256_HASH);
 
-        var hash = certHash.getHash(SHA256_ID);
+        var hash = certHash.getHash(SHA256);
 
         assertThat(hash).isEqualTo(SHA256_HASH);
     }
 
     @Test
     void getHashInvalidAlgorithm() {
-        CertHash certHash = new CertHash(SHA256_ID, SHA256_HASH);
+        CertHash certHash = new CertHash(SHA256, SHA256_HASH);
 
-        assertThatThrownBy(() -> certHash.getHash(SHA1_ID))
+        assertThatThrownBy(() -> certHash.getHash(SHA1))
                 .isInstanceOf(IllegalStateException.class)
-                .hasMessage("Hash for algorithm " + SHA1_ID + " is not available");
+                .hasMessage("Hash for algorithm " + SHA1 + " is not available");
     }
 
 }

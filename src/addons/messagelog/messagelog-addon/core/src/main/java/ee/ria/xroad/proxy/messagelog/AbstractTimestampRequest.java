@@ -44,7 +44,7 @@ import java.security.cert.X509Certificate;
 import java.util.List;
 
 import static ee.ria.xroad.common.ErrorCodes.X_INTERNAL_ERROR;
-import static ee.ria.xroad.common.util.CryptoUtils.getAlgorithmIdentifier;
+import static ee.ria.xroad.common.crypto.Digests.getAlgorithmIdentifier;
 import static ee.ria.xroad.proxy.messagelog.TimestamperUtil.addSignerCertificate;
 import static ee.ria.xroad.proxy.messagelog.TimestamperUtil.getTimestampResponse;
 
@@ -105,7 +105,7 @@ public abstract class AbstractTimestampRequest {
             throws Exception {
         TimeStampRequestGenerator reqgen = new TimeStampRequestGenerator();
 
-        String tsaHashAlg = MessageLogProperties.getHashAlg();
+        var tsaHashAlg = MessageLogProperties.getHashAlg();
 
         log.trace("Creating time-stamp request (algorithm: {})", tsaHashAlg);
 //TODO xroad8 we pass data directly, no need to hash it again.

@@ -29,6 +29,7 @@ import ee.ria.xroad.common.conf.serverconf.model.CertificateType;
 import ee.ria.xroad.common.conf.serverconf.model.ClientType;
 import ee.ria.xroad.common.conf.serverconf.model.DescriptionType;
 import ee.ria.xroad.common.conf.serverconf.model.ServiceDescriptionType;
+import ee.ria.xroad.common.crypto.Digests;
 import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.util.CryptoUtils;
 import ee.ria.xroad.signer.protocol.dto.CertificateInfo;
@@ -209,7 +210,7 @@ public class AuditDataHelper {
     public String calculateAndPutAnchorHash(byte[] bytes) {
         String formattedHash = null;
         try {
-            formattedHash = CryptoUtils.calculateAnchorHashDelimited(bytes);
+            formattedHash = Digests.calculateAnchorHashDelimited(bytes);
         } catch (Exception e) {
             log.error("audit logging certificate hash forming failed", e);
         }
@@ -223,7 +224,7 @@ public class AuditDataHelper {
      */
     public void putAnchorHash(String formattedHash) {
         put(RestApiAuditProperty.ANCHOR_FILE_HASH, formattedHash);
-        put(RestApiAuditProperty.ANCHOR_FILE_HASH_ALGORITHM, CryptoUtils.DEFAULT_ANCHOR_HASH_ALGORITHM_ID);
+        put(RestApiAuditProperty.ANCHOR_FILE_HASH_ALGORITHM, Digests.DEFAULT_ANCHOR_HASH_ALGORITHM_ID);
     }
 
     /**

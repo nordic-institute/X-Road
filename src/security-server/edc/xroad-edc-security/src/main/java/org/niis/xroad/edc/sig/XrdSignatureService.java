@@ -28,8 +28,8 @@ package org.niis.xroad.edc.sig;
 
 import ee.ria.xroad.common.cert.CertChainFactory;
 import ee.ria.xroad.common.conf.globalconf.GlobalConfProvider;
+import ee.ria.xroad.common.crypto.Digests;
 import ee.ria.xroad.common.identifier.ClientId;
-import ee.ria.xroad.common.util.CryptoUtils;
 import ee.ria.xroad.signer.SignerProxy;
 
 import eu.europa.esig.dss.enumerations.DigestAlgorithm;
@@ -45,7 +45,7 @@ import javax.xml.validation.SchemaFactory;
 @Slf4j
 public class XrdSignatureService {
 
-    private static final DigestAlgorithm DIGEST_ALGORITHM = DigestAlgorithm.forJavaName(CryptoUtils.DEFAULT_DIGEST_ALGORITHM_ID);
+    private static final DigestAlgorithm DIGEST_ALGORITHM = DigestAlgorithm.forJavaName(Digests.DEFAULT_DIGEST_ALGORITHM.name());
 
     private final XrdSignatureVerifier signatureVerifier;
 

@@ -25,7 +25,7 @@
  */
 package ee.ria.xroad.common.hashchain;
 
-import ee.ria.xroad.common.util.CryptoUtils;
+import ee.ria.xroad.common.crypto.identifier.DigestAlgorithm;
 
 import jakarta.xml.bind.JAXBContext;
 import jakarta.xml.bind.JAXBElement;
@@ -40,8 +40,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import static ee.ria.xroad.common.util.CryptoUtils.encodeBase64;
-import static ee.ria.xroad.common.util.CryptoUtils.getDigestAlgorithmURI;
+import static ee.ria.xroad.common.util.EncoderUtils.encodeBase64;
 import static ee.ria.xroad.common.util.MessageFileNames.attachment;
 import static java.lang.Integer.numberOfLeadingZeros;
 
@@ -92,12 +91,7 @@ public final class EvidenceRecordHashChainBuilder {
     /**
      * Hash algorithm used to hash tree nodes and inputs.
      */
-    private final String hashAlgorithm;
-
-    /**
-     * Hash algorithm URI used in XML.
-     */
-    private final String hashAlgorithmUri;
+    private final DigestAlgorithm hashAlgorithm;
 
     /**
      * Array of input hashes.
@@ -144,9 +138,8 @@ public final class EvidenceRecordHashChainBuilder {
      *                      algorithm. Example: SHA-256.
      * @throws Exception in case of errors
      */
-    public EvidenceRecordHashChainBuilder(String hashAlgorithm) throws Exception {
+    public EvidenceRecordHashChainBuilder(DigestAlgorithm hashAlgorithm) throws Exception {
         this.hashAlgorithm = hashAlgorithm;
-        hashAlgorithmUri = getDigestAlgorithmURI(hashAlgorithm);
 
         marshaller = jaxbCtx.createMarshaller();
         // Format the XML, good for debugging.
@@ -312,7 +305,7 @@ public final class EvidenceRecordHashChainBuilder {
                         nodes[i], nodes[i + 1]);
 
                 // Store the digest as parent of two inputs.
-                LOG.trace("Storing at {} value {}", parentIdx(i), CryptoUtils.encodeBase64(stepDigest));
+                LOG.trace("Storing at {} value {}", parentIdx(i), encodeBase64(stepDigest));
                 nodes[parentIdx(i)] = stepDigest;
             }
         }
@@ -592,7 +585,7 @@ public final class EvidenceRecordHashChainBuilder {
      */
     private DigestMethodType digestMethod() {
         DigestMethodType digestMethod = new DigestMethodType();
-        digestMethod.setAlgorithm(hashAlgorithmUri);
+        digestMethod.setAlgorithm(hashAlgorithm.uri());
         return digestMethod;
     }
 

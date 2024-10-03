@@ -29,6 +29,7 @@ import ee.ria.xroad.common.CodedException;
 import ee.ria.xroad.common.conf.serverconf.model.CertificateType;
 import ee.ria.xroad.common.util.CertUtils;
 import ee.ria.xroad.common.util.CryptoUtils;
+import ee.ria.xroad.common.util.EncoderUtils;
 import ee.ria.xroad.signer.protocol.dto.CertificateInfo;
 
 import lombok.RequiredArgsConstructor;
@@ -115,7 +116,7 @@ public class CertificateDetailsConverter {
             certificate.setRsaPublicKeyModulus(rsaPublicKey.getModulus().toString(RADIX_FOR_HEX));
         }
 
-        certificate.setSignature(CryptoUtils.encodeHex(x509Certificate.getSignature()));
+        certificate.setSignature(EncoderUtils.encodeHex(x509Certificate.getSignature()));
         certificate.setNotBefore(FormatUtils.fromDateToOffsetDateTime(x509Certificate.getNotBefore()));
         certificate.setNotAfter(FormatUtils.fromDateToOffsetDateTime(x509Certificate.getNotAfter()));
         try {

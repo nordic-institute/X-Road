@@ -49,7 +49,7 @@ import static ee.ria.xroad.common.opmonitoring.OpMonitoringData.SecurityServerTy
 public class OpMonitoringData {
 
     // The following fields correspond to the schema defined in
-    // src/op-monitor-daemon/src/main/resources/store_operational_data_request_schema.yaml .
+    // src/op-monitor-daemon/core/src/main/resources/store_operational_data_request_schema.yaml .
     // Refer to the schema for detailed documentation.
 
     public static final String SECURITY_SERVER_INTERNAL_IP =

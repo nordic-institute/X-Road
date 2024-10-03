@@ -138,7 +138,7 @@ class ManagementServiceTlsCertificateServiceImpl implements ManagementServiceTls
 
     public byte[] generateCsr(String distinguishedName) {
         auditDataHelper.put(SUBJECT_NAME, distinguishedName);
-        byte[] csrBytes = null;
+        byte[] csrBytes;
         try {
             KeyPair keyPair = CertUtils.readKeyPairFromPemFile(getManagementServiceTlsKeyPath());
             csrBytes = CertUtils.generateCertRequest(keyPair.getPrivate(), keyPair.getPublic(), distinguishedName);

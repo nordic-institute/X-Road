@@ -53,6 +53,7 @@ import org.springframework.context.annotation.Primary;
 import org.springframework.context.support.GenericApplicationContext;
 
 import java.net.ServerSocket;
+import java.time.Instant;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
@@ -69,6 +70,7 @@ import static org.mockito.Mockito.mock;
 @Category(IntegrationTest.class)
 public abstract class AbstractProxyIntegrationTest {
     static final Set<Integer> RESERVED_PORTS = new HashSet<>();
+    static final Instant CLOCK_FIXED_INSTANT = Instant.parse("2020-01-01T00:00:00Z");
 
     static GenericApplicationContext applicationContext;
 

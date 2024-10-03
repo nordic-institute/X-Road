@@ -42,6 +42,7 @@ public interface RpcCredentialsProvider {
     char[] getTruststorePassword();
 
 
+    @SuppressWarnings("checkstyle:HiddenField")
     class Builder {
         private boolean tlsEnabled = true;
         private Supplier<String> keystore = () -> null;

@@ -25,6 +25,7 @@
  */
 package org.niis.xroad.common.managemenetrequest.test;
 
+import ee.ria.xroad.common.crypto.identifier.SignAlgorithm;
 import ee.ria.xroad.common.util.MimeTypes;
 import ee.ria.xroad.common.util.MultiPartOutputStream;
 
@@ -64,8 +65,8 @@ public abstract class TestBaseManagementRequest {
         multipart.write(message);
     }
 
-    protected byte[] createSignature(PrivateKey key, String signAlgoId) throws Exception {
-        var sig = Signature.getInstance(signAlgoId);
+    protected byte[] createSignature(PrivateKey key, SignAlgorithm signAlgoId) throws Exception {
+        var sig = Signature.getInstance(signAlgoId.name());
         sig.initSign(key);
         sig.update(message);
         return sig.sign();

@@ -186,8 +186,8 @@ public class InternalTlsCertificateService {
      * @return X509Certificate
      * @throws InvalidCertificateException
      */
-    public X509Certificate importInternalTlsCertificate(byte[] certificateBytes) throws InvalidCertificateException,
-            KeyNotFoundException, CertificateAlreadyExistsException {
+    public X509Certificate importInternalTlsCertificate(byte[] certificateBytes)
+            throws InvalidCertificateException, KeyNotFoundException, CertificateAlreadyExistsException {
         Collection<X509Certificate> x509Certificates = null;
         try {
             // the imported file can be a single certificate or a chain

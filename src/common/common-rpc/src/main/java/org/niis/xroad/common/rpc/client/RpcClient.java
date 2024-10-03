@@ -80,7 +80,8 @@ public final class RpcClient<C extends RpcClient.ExecutionContext> {
             String host, int port, RpcCredentialsProvider credentialsProvider, int clientTimeoutMillis,
             ExecutionContextFactory<C> contextFactory) throws Exception {
         var credentials = credentialsProvider.isTlsEnabled()
-                ? RpcCredentialsConfigurer.createClientCredentials(credentialsProvider) : InsecureRpcCredentialsConfigurer.createClientCredentials();
+                ? RpcCredentialsConfigurer.createClientCredentials(credentialsProvider)
+                : InsecureRpcCredentialsConfigurer.createClientCredentials();
 
         log.info("Starting grpc client to {}:{} with {} credentials..", host, port, credentials.getClass().getSimpleName());
 
@@ -132,13 +133,13 @@ public final class RpcClient<C extends RpcClient.ExecutionContext> {
         }
     }
 
-    private void handleGenericStatusRuntimeException(com.google.rpc.Status status, ExecutionContext executionContext) {
+    private void handleGenericStatusRuntimeException(com.google.rpc.Status status, ExecutionContext context) {
         for (Any any : status.getDetailsList()) {
             if (any.is(CodedExceptionProto.class)) {
                 try {
                     final CodedExceptionProto ce = any.unpack(CodedExceptionProto.class);
                     var codedException = CodedException.tr(ce.getFaultCode(), ce.getTranslationCode(), ce.getFaultString());
-                    executionContext.getErrorPrefix()
+                    context.getErrorPrefix()
                             .ifPresent(codedException::withPrefix);
 
                     throw codedException;

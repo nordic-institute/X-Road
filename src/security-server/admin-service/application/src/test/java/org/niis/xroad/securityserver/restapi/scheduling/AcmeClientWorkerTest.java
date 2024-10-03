@@ -28,6 +28,7 @@ package org.niis.xroad.securityserver.restapi.scheduling;
 
 import ee.ria.xroad.common.TestCertUtil;
 import ee.ria.xroad.common.conf.globalconf.ApprovedCAInfo;
+import ee.ria.xroad.common.crypto.identifier.SignMechanism;
 import ee.ria.xroad.common.util.TimeUtils;
 import ee.ria.xroad.signer.SignerProxy;
 import ee.ria.xroad.signer.protocol.dto.CertificateInfo;
@@ -136,7 +137,7 @@ public class AcmeClientWorkerTest extends AbstractFacadeMockingTestContext {
                 .build();
 
         when(signerProxyFacade.generateKey(any(), any())).thenReturn(newKey);
-        when(signerProxyFacade.generateCertRequest(any(), any(), any(), any(), any(), any(),  any()))
+        when(signerProxyFacade.generateCertRequest(any(), any(), any(), any(), any(), any(), any()))
                 .thenReturn(new SignerProxy.GeneratedCertRequestInfo(null, getMockSignCsrBytes(), null, null, null));
 
         when(acmeService.hasRenewalInfo(any(), any(), any())).thenReturn(true);
@@ -237,7 +238,7 @@ public class AcmeClientWorkerTest extends AbstractFacadeMockingTestContext {
         when(signerProxyFacade.getTokens()).thenReturn(new ArrayList<>(List.of(tokenInfo)));
         when(signerProxyFacade.getCertForHash(renewedCertHash)).thenReturn(newAuthCertInfo);
         when(signerProxyFacade.getKeyIdForCertHash(renewedCertHash)).thenReturn(new SignerProxy.KeyIdInfo(newAuthKey.getId(),
-                newAuthKey.getSignMechanismName()));
+                SignMechanism.valueOf(newAuthKey.getSignMechanismName())));
 
         CertificateRenewalScheduler scheduler = new CertificateRenewalScheduler(acmeClientWorker, new NoOpTaskScheduler());
         acmeClientWorker.execute(scheduler);

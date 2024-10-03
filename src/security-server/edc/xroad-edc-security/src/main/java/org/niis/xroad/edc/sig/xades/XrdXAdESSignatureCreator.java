@@ -28,7 +28,7 @@
 package org.niis.xroad.edc.sig.xades;
 
 
-import ee.ria.xroad.common.util.CryptoUtils;
+import ee.ria.xroad.common.crypto.Digests;
 import ee.ria.xroad.signer.SignerProxy;
 
 import eu.europa.esig.dss.enumerations.DigestAlgorithm;
@@ -67,10 +67,10 @@ import static eu.europa.esig.dss.enumerations.SignaturePackaging.DETACHED;
 @RequiredArgsConstructor
 public class XrdXAdESSignatureCreator implements XrdSignatureCreator {
 
-    private static final DigestAlgorithm DIGEST_ALGORITHM = DigestAlgorithm.forJavaName(CryptoUtils.DEFAULT_DIGEST_ALGORITHM_ID);
+    private static final DigestAlgorithm DIGEST_ALGORITHM = DigestAlgorithm.forJavaName(Digests.DEFAULT_DIGEST_ALGORITHM.name());
+    private static final SignatureLevel SIGNATURE_LEVEL = SignatureLevel.XAdES_BASELINE_B;
 
     private final XrdDssSigner signer = new XrdDssSigner();
-    private final SignatureLevel signatureLevel = SignatureLevel.XAdES_BASELINE_B;
 
     @Override
     public String sign(SignerProxy.MemberSigningInfoDto signingInfo, byte[] message)
@@ -98,21 +98,21 @@ public class XrdXAdESSignatureCreator implements XrdSignatureCreator {
     public String signDocuments(SignerProxy.MemberSigningInfoDto signingInfo, List<DSSDocument> documentsToSign)
             throws XrdSignatureCreationException {
         XAdESSignatureParameters parameters = new XAdESSignatureParameters();
-        parameters.setSignatureLevel(signatureLevel);
+        parameters.setSignatureLevel(SIGNATURE_LEVEL);
         parameters.setSignaturePackaging(DETACHED);
         parameters.setDigestAlgorithm(DIGEST_ALGORITHM);
         parameters.setXadesNamespace(new DSSNamespace(XAdESNamespace.XADES_132.getUri(), "xades"));
 
-        X509Certificate cert = readCertificate(signingInfo.getCert().getCertificateBytes());
+        X509Certificate cert = readCertificate(signingInfo.cert().getCertificateBytes());
         parameters.setSigningCertificate(new CertificateToken(cert));
 
         XAdESService service = new XAdESService(new CommonCertificateVerifier());
         ToBeSigned toBeSigned = service.getDataToSign(documentsToSign, parameters);
-        SignatureValue signatureValue = signer.sign(signingInfo.getKeyId(), parameters.getDigestAlgorithm(), toBeSigned);
+        SignatureValue signatureValue = signer.sign(signingInfo.keyId(), parameters.getDigestAlgorithm(), toBeSigned);
 
         DSSDocument signedDocument = service.signDocument(documentsToSign, parameters, signatureValue);
 
-        var extendedDoc = new OcspExtensionBuilder().addOcspToken(signedDocument, signingInfo.getCert().getOcspBytes());
+        var extendedDoc = new OcspExtensionBuilder().addOcspToken(signedDocument, signingInfo.cert().getOcspBytes());
 
         //zipping might save up to 50% of the size
         return Base64.getEncoder().encodeToString(DSSUtils.toByteArray(extendedDoc));

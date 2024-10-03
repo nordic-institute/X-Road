@@ -28,6 +28,9 @@ package ee.ria.xroad.common.ocsp;
 import ee.ria.xroad.common.CodedException;
 import ee.ria.xroad.common.SystemProperties;
 import ee.ria.xroad.common.conf.globalconf.GlobalConfProvider;
+import ee.ria.xroad.common.crypto.identifier.DigestAlgorithm;
+import ee.ria.xroad.common.util.CryptoUtils;
+import ee.ria.xroad.common.util.TimeUtils;
 
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
@@ -58,12 +61,10 @@ import java.util.concurrent.TimeUnit;
 
 import static ee.ria.xroad.common.ErrorCodes.X_CERT_VALIDATION;
 import static ee.ria.xroad.common.ErrorCodes.X_INCORRECT_VALIDATION_INFO;
-import static ee.ria.xroad.common.util.CryptoUtils.SHA1_ID;
-import static ee.ria.xroad.common.util.CryptoUtils.calculateDigest;
+import static ee.ria.xroad.common.crypto.Digests.calculateDigest;
+import static ee.ria.xroad.common.crypto.Digests.createDigestCalculator;
 import static ee.ria.xroad.common.util.CryptoUtils.createCertId;
 import static ee.ria.xroad.common.util.CryptoUtils.createDefaultContentVerifier;
-import static ee.ria.xroad.common.util.CryptoUtils.createDigestCalculator;
-import static ee.ria.xroad.common.util.CryptoUtils.readCertificate;
 import static ee.ria.xroad.common.util.TimeUtils.toOffsetDateTime;
 
 /**
@@ -121,7 +122,7 @@ public final class OcspVerifier {
      */
     public void verifyValidityAndStatus(OCSPResp response,
                                         X509Certificate subject, X509Certificate issuer) throws Exception {
-        verifyValidityAndStatus(response, subject, issuer, new Date());
+        verifyValidityAndStatus(response, subject, issuer, Date.from(TimeUtils.now()));
     }
 
     /**
@@ -261,7 +262,7 @@ public final class OcspVerifier {
     }
 
     private boolean verifySignature(BasicOCSPResp basicResp, X509Certificate ocspCert) throws OperatorCreationException,
-            OCSPException {
+                                                                                              OCSPException {
         ContentVerifierProvider verifier =
                 createDefaultContentVerifier(ocspCert.getPublicKey());
 
@@ -352,7 +353,7 @@ public final class OcspVerifier {
                 }
             }
         } else if (respId.getKeyHash() != null) {
-            DigestCalculator dc = createDigestCalculator(SHA1_ID);
+            DigestCalculator dc = createDigestCalculator(DigestAlgorithm.SHA1);
             for (X509Certificate cert : knownCerts) {
                 X509CertificateHolder certHolder = new X509CertificateHolder(cert.getEncoded());
                 var keyData = certHolder.getSubjectPublicKeyInfo().getPublicKeyData();
@@ -373,7 +374,7 @@ public final class OcspVerifier {
         certs.addAll(globalConfProvider.getAllCaCerts());
 
         for (X509CertificateHolder cert : response.getCerts()) {
-            certs.add(readCertificate(cert.getEncoded()));
+            certs.add(CryptoUtils.readCertificate(cert.getEncoded()));
         }
 
         return certs;

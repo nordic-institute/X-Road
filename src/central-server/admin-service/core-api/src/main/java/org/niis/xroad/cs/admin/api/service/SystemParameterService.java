@@ -26,6 +26,7 @@
  */
 package org.niis.xroad.cs.admin.api.service;
 
+import ee.ria.xroad.common.crypto.identifier.DigestAlgorithm;
 import ee.ria.xroad.common.identifier.ClientId;
 
 import org.niis.xroad.cs.admin.api.domain.SystemParameter;
@@ -45,11 +46,11 @@ public interface SystemParameterService {
 
     String getSecurityServerOwnersGroup();
 
-    String getConfSignCertHashAlgoUri();
+    DigestAlgorithm getConfSignCertHashAlgoUri();
 
-    String getConfSignDigestAlgoId();
+    DigestAlgorithm getConfSignDigestAlgoId();
 
-    String getConfHashAlgoUri();
+    DigestAlgorithm getConfHashAlgoUri();
 
     String getAuthCertRegUrl();
 

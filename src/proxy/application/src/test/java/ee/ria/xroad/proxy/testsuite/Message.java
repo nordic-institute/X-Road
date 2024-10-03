@@ -72,7 +72,7 @@ public class Message {
      * Constructs a new message from the given input stream with the specified
      * content type. Remember to call {@link #parse()}
      * @param inputStream the input stream
-     * @param contentType the contect type
+     * @param contentType the content type
      * @throws Exception in case of any unexpected errors
      */
     public Message(InputStream inputStream, String contentType)

@@ -27,13 +27,13 @@
 
 package ee.ria.xroad.common.asic.dss;
 
+import ee.ria.xroad.common.crypto.identifier.DigestAlgorithm;
 import ee.ria.xroad.common.hashchain.AbstractValueType;
 import ee.ria.xroad.common.hashchain.DataRefType;
 import ee.ria.xroad.common.hashchain.HashChainType;
 import ee.ria.xroad.common.hashchain.HashChainVerifier;
 import ee.ria.xroad.common.hashchain.HashStepType;
 import ee.ria.xroad.common.hashchain.HashValueType;
-import ee.ria.xroad.common.util.CryptoUtils;
 
 import com.google.common.collect.Lists;
 import eu.europa.esig.asic.manifest.ASiCManifestUtils;
@@ -63,8 +63,8 @@ import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.util.List;
 
+import static ee.ria.xroad.common.crypto.Digests.calculateDigest;
 import static ee.ria.xroad.common.hashchain.HashChainConstants.CANONICALIZATION_METHOD;
-import static ee.ria.xroad.common.util.CryptoUtils.calculateDigest;
 import static java.nio.charset.StandardCharsets.UTF_8;
 
 @Slf4j
@@ -105,7 +105,7 @@ public class HashChainToEvidenceRecordTransformer {
 
 
         var evidenceRecordType = evidenceRecordFactory.createEvidenceRecord(hashTreeResult.hashTree(), digestAlgorithm, timestampToken);
-        var signatureDigest = calculateDigest(CryptoUtils.SHA512_ID, inputSignature.getBytes(UTF_8));
+        var signatureDigest = calculateDigest(DigestAlgorithm.SHA512, inputSignature.getBytes(UTF_8));
         var aSiCManifestType = manifestFactory.createAsicManifest(SIGN_REF_URI,
                 SIGNATURE_URI, signatureDigest, digestAlgorithm);
 
@@ -196,6 +196,6 @@ public class HashChainToEvidenceRecordTransformer {
 
     static byte[] signatureHash(String signatureXml) throws Exception {
         byte[] canonicalizedDocument = XMLCanonicalizer.createInstance(CANONICALIZATION_METHOD).canonicalize(signatureXml.getBytes(UTF_8));
-        return calculateDigest(CryptoUtils.SHA512_ID, canonicalizedDocument);
+        return calculateDigest(DigestAlgorithm.SHA512, canonicalizedDocument);
     }
 }
