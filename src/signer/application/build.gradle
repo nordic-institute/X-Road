@@ -1,0 +1,53 @@
+plugins {
+    alias(libs.plugins.shadow)
+}
+
+dependencies {
+    implementation(platform(libs.springBoot.bom))
+
+    implementation project(':common:common-core')
+    implementation project(':signer:core')
+
+    implementation('org.springframework:spring-context')
+}
+
+jar.enabled = false
+
+shadowJar {
+    archiveClassifier = ''
+    archiveBaseName = 'signer'
+    manifest {
+        attributes 'Main-Class': 'ee.ria.xroad.signer.SignerMain'
+    }
+    exclude('**/module-info.class')
+    from rootProject.file("LICENSE.txt")
+    mergeServiceFiles()
+}
+
+build {
+    dependsOn shadowJar
+}
+
+// XXX For running several instances side-by-side, do not use the gradle task --
+// gradle cannot handle parallel runs if each task invokes a long-running server process.
+// Instead, use the .jar in the build/libs directory:
+// java -Djava.library.path=/home/iks2/core/passwordstore -jar signer-1.0.jar
+tasks.register('runSignerMain', JavaExec) {
+    jvmArgs '-Dxroad.signer.key-configuration-file=src/test/resources/keyconf.xml',
+        '-Dxroad.signer.device-configuration-file=src/test/resources/devices.ini',
+        '-Dxroad.common.configuration-path=../../common/common-globalconf/src/test/resources/globalconf_good_v2',
+        "-Dxroad.common.temp-files-path=${layout.buildDirectory.get().asFile}/tmp/",
+        '-Dxroad.proxy.configuration-anchor-file=../../common/common-globalconf/src/test/resources/configuration-anchor1.xml',
+        '-Dlogback.configurationFile=src/test/resources/logback-signer.xml',
+        '-Djava.library.path=../../passwordstore:../../libs',
+        '-Dxroad.signer.moduleManagerImpl=ee.ria.xroad.signer.tokenmanager.module.HardwareModuleManagerImpl'
+    mainClass = 'ee.ria.xroad.signer.SignerMain'
+    classpath = sourceSets.main.runtimeClasspath
+    classpath += files("../../addons/hwtoken/${layout.buildDirectory.get().asFile}/libs/hwtoken-1.0.jar")
+
+    description = "Starts signer main program.\nNote: " +
+        "Be sure that appropriate libpkcs11wrapper.so is installed to the " +
+        "directory\n{JAVA_HOME}/jre/lib/i386 (analogous directory for 64-bit " +
+        "OS). Otherwise use\nnext property to detemine your library path:\n" +
+        "jvmArgs '-Djava.library.path=/foo/bar/iaik/bin/unix/linux-x86/release'";
+}

@@ -159,7 +159,7 @@ public class SoapMessageProcessor extends MessageProcessorBase {
 
             return Response.ok()
                     .type(MimeUtils.mpMixedContentType(multipartBoundary))
-                    .header(HEADER_HASH_ALGO_ID, SoapUtils.getHashAlgoId())
+                    .header(HEADER_HASH_ALGO_ID, SoapUtils.getHashAlgoId().name())
                     // Preserve the original content type of the service response
                     .header(HEADER_ORIGINAL_CONTENT_TYPE, handler.getResponseContentType())
                     .entity(streamingOutput)

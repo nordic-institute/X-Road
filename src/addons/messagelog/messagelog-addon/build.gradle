@@ -14,7 +14,7 @@ dependencies {
     testImplementation project(':common:common-verifier')
     testImplementation project(':serverconf')
     testImplementation project(':asic-util')
-    testImplementation project(':proxy:application')
+    testImplementation project(':proxy:core')
 
     testImplementation project(':common:common-keyconf')
     testImplementation project(':common:common-test')

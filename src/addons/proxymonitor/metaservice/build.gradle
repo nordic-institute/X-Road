@@ -13,7 +13,7 @@ sourceSets {
 }
 
 dependencies {
-    implementation project(':proxy:application')
+    implementation project(':proxy:core')
     implementation project(':common:common-message')
     implementation project(':common:common-domain')
     implementation project(':common:common-jetty')
@@ -27,6 +27,7 @@ dependencies {
     implementation libs.guava
 
     testImplementation project(path: ":proxy:application", configuration: 'testArtifacts')
+    testImplementation project(path: ":proxy:core", configuration: 'testArtifacts')
     testImplementation project(':common:common-keyconf')
     testImplementation project(':common:common-test')
     testImplementation libs.hamcrest
@@ -57,6 +58,7 @@ build.dependsOn shadowJar
 compileJava.dependsOn processResources
 
 tasks.register('runProxymonitorMetaserviceTest', JavaExec) {
+    group = "verification"
     if (System.getProperty('DEBUG', 'false') == 'true') {
         jvmArgs '-Xdebug',
             '-Xrunjdwp:transport=dt_socket,server=y,suspend=y,address=5005'

@@ -1,0 +1,23 @@
+plugins {
+    id 'java-library'
+}
+
+dependencies {
+    implementation(platform(libs.springBoot.bom))
+
+    implementation project(':configuration-client:confclient-rpc-client')
+    implementation project(':common:common-globalconf')
+    implementation project(':common:common-scheduler')
+    implementation project(':common:common-jetty')
+    implementation project(':common:common-verifier')
+    implementation project(':common:common-rpc')
+
+    implementation libs.commons.cli
+
+    testImplementation project(':common:common-test')
+    testImplementation libs.wiremock.standalone
+}
+
+jar {
+    archiveBaseName = 'configuration-client-core'
+}
