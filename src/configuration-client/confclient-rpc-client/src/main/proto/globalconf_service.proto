@@ -47,5 +47,11 @@ message GetGlobalConfResp {
 message GlobalConfInstance {
   int32 version = 1;
   string instanceIdentifier = 2;
-  map<string, string> files = 3;
+  repeated GlobalConfFile files = 3;
+}
+
+message GlobalConfFile {
+  string name = 1;
+  string content = 2;
+  string checksum = 3;
 }

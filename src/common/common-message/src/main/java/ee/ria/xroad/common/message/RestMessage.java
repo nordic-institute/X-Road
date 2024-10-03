@@ -25,10 +25,10 @@
  */
 package ee.ria.xroad.common.message;
 
+import ee.ria.xroad.common.crypto.Digests;
 import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.identifier.ServiceId;
 import ee.ria.xroad.common.util.CachingStream;
-import ee.ria.xroad.common.util.CryptoUtils;
 import ee.ria.xroad.common.util.MimeUtils;
 
 import lombok.Getter;
@@ -76,7 +76,7 @@ public abstract class RestMessage {
     public byte[] getHash() {
         if (hash == null) {
             try {
-                hash = CryptoUtils.calculateDigest(CryptoUtils.DEFAULT_DIGEST_ALGORITHM_ID, getMessageBytes());
+                hash = Digests.calculateDigest(Digests.DEFAULT_DIGEST_ALGORITHM, getMessageBytes());
             } catch (Exception e) {
                 throw new IllegalStateException("Unable to calculate hash", e);
             }

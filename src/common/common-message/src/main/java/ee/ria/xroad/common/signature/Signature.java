@@ -72,8 +72,8 @@ import static ee.ria.xroad.common.signature.Helper.getFirstElementByTagName;
 import static ee.ria.xroad.common.signature.Helper.parseDocument;
 import static ee.ria.xroad.common.signature.Helper.verifyDigest;
 import static ee.ria.xroad.common.signature.Helper.xadesElement;
-import static ee.ria.xroad.common.util.CryptoUtils.decodeBase64;
-import static ee.ria.xroad.common.util.CryptoUtils.encodeBase64;
+import static ee.ria.xroad.common.util.EncoderUtils.decodeBase64;
+import static ee.ria.xroad.common.util.EncoderUtils.encodeBase64;
 
 /**
  * Container class for the XML signature specific objects.

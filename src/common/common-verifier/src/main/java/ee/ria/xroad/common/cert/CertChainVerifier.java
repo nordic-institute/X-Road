@@ -27,7 +27,6 @@ package ee.ria.xroad.common.cert;
 
 import ee.ria.xroad.common.CodedException;
 import ee.ria.xroad.common.conf.globalconf.GlobalConfProvider;
-import ee.ria.xroad.common.conf.globalconfextension.GlobalConfExtensions;
 import ee.ria.xroad.common.ocsp.OcspVerifier;
 import ee.ria.xroad.common.ocsp.OcspVerifierOptions;
 
@@ -195,7 +194,7 @@ public class CertChainVerifier {
             }
 
             OcspVerifier verifier = new OcspVerifier(globalConfProvider,
-                    new OcspVerifierOptions(GlobalConfExtensions.getInstance(globalConfProvider).shouldVerifyOcspNextUpdate()));
+                    new OcspVerifierOptions(globalConfProvider.getGlobalConfExtensions().shouldVerifyOcspNextUpdate()));
             verifier.verifyValidityAndStatus(response, subject, issuer,
                     atDate);
         }

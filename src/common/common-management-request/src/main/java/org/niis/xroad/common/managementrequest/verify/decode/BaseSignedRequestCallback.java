@@ -29,7 +29,9 @@ package org.niis.xroad.common.managementrequest.verify.decode;
 
 import ee.ria.xroad.common.CodedException;
 import ee.ria.xroad.common.conf.globalconf.GlobalConfProvider;
+import ee.ria.xroad.common.crypto.identifier.SignAlgorithm;
 import ee.ria.xroad.common.message.SoapMessageImpl;
+import ee.ria.xroad.common.util.CryptoUtils;
 import ee.ria.xroad.common.util.MimeUtils;
 
 import lombok.extern.slf4j.Slf4j;
@@ -49,7 +51,6 @@ import java.util.Map;
 import static ee.ria.xroad.common.ErrorCodes.X_INTERNAL_ERROR;
 import static ee.ria.xroad.common.ErrorCodes.X_INVALID_SIGNATURE_VALUE;
 import static ee.ria.xroad.common.ErrorCodes.translateException;
-import static ee.ria.xroad.common.util.CryptoUtils.readCertificate;
 
 @Slf4j
 public abstract class BaseSignedRequestCallback<T> implements ManagementRequestDecoderCallback {
@@ -60,7 +61,7 @@ public abstract class BaseSignedRequestCallback<T> implements ManagementRequestD
     private final ManagementRequestType requestType;
 
     private byte[] clientSignatureBytes;
-    private String clientSignatureAlgoId;
+    private SignAlgorithm clientSignatureAlgoId;
 
     protected byte[] clientCertBytes;
     private byte[] clientCertOcspBytes;
@@ -80,7 +81,7 @@ public abstract class BaseSignedRequestCallback<T> implements ManagementRequestD
         if (clientSignatureBytes == null) {
             log.info("Reading client signature");
 
-            clientSignatureAlgoId = additionalHeaders.get(MimeUtils.HEADER_SIG_ALGO_ID);
+            clientSignatureAlgoId = SignAlgorithm.ofName(additionalHeaders.get(MimeUtils.HEADER_SIG_ALGO_ID));
             clientSignatureBytes = IOUtils.toByteArray(content);
         } else if (clientCertBytes == null) {
             log.info("Reading client cert");
@@ -117,7 +118,7 @@ public abstract class BaseSignedRequestCallback<T> implements ManagementRequestD
 
         log.info("Verifying client signature");
 
-        X509Certificate x509ClientCert = readCertificate(this.clientCertBytes);
+        X509Certificate x509ClientCert = CryptoUtils.readCertificate(this.clientCertBytes);
 
         if (!ManagementRequestVerificationUtils.verifySignature(x509ClientCert, clientSignatureBytes,
                 clientSignatureAlgoId, dataToVerify)) {

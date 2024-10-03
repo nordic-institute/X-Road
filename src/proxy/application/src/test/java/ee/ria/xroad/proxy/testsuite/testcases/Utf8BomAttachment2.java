@@ -25,9 +25,11 @@
  */
 package ee.ria.xroad.proxy.testsuite.testcases;
 
+import ee.ria.xroad.common.crypto.Digests;
+import ee.ria.xroad.common.crypto.identifier.DigestAlgorithm;
 import ee.ria.xroad.common.message.RequestHash;
 import ee.ria.xroad.common.message.SoapMessageImpl;
-import ee.ria.xroad.common.util.CryptoUtils;
+import ee.ria.xroad.common.util.EncoderUtils;
 import ee.ria.xroad.proxy.testsuite.Message;
 import ee.ria.xroad.proxy.testsuite.MessageTestCase;
 
@@ -70,11 +72,10 @@ public class Utf8BomAttachment2 extends MessageTestCase {
                 requestFileBytes, 64, 1156
                         + getQueryId().getBytes(UTF_8).length);
 
-        byte[] requestHash = CryptoUtils.calculateDigest(
-                CryptoUtils.getAlgorithmId(requestHashFromResponse
-                        .getAlgorithmId()), requestSoapBytes);
+        byte[] requestHash = Digests.calculateDigest(DigestAlgorithm.ofUri(requestHashFromResponse.getAlgorithmId()),
+                requestSoapBytes);
 
-        if (!Arrays.areEqual(requestHash, CryptoUtils.decodeBase64(
+        if (!Arrays.areEqual(requestHash, EncoderUtils.decodeBase64(
                 requestHashFromResponse.getHash()))) {
             throw new RuntimeException(
                     "Request message hash does not match request message");

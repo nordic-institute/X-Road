@@ -398,11 +398,7 @@
                   $t('diagnostics.encryption.messageLog.archive.groupingTitle')
                 }}
               </span>
-              {{
-                $t(
-                  `${messageLogEncryptionDiagnostics.message_log_grouping_rule}`,
-                )
-              }}
+              {{ messageLogEncryptionDiagnostics.message_log_grouping_rule }}
             </div>
             <table
               v-if="

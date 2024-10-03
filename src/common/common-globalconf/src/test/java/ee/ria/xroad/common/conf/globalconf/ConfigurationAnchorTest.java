@@ -25,6 +25,8 @@
  */
 package ee.ria.xroad.common.conf.globalconf;
 
+import ee.ria.xroad.common.crypto.identifier.DigestAlgorithm;
+
 import org.junit.Test;
 
 import static org.junit.Assert.assertEquals;
@@ -51,7 +53,7 @@ public class ConfigurationAnchorTest {
         assertEquals("http://www.bar.com/conf", l.getDownloadURL());
 
         String hash = "t7+jfR1wnsN1EBtBpCt/q8JIasg=";
-        String hashAlgoId = "http://www.w3.org/2000/09/xmldsig#sha1";
+        var hashAlgoId = DigestAlgorithm.ofUri("http://www.w3.org/2000/09/xmldsig#sha1");
         assertNotNull(l.getVerificationCert(hash, hashAlgoId));
 
         hash = "4HCV0OGOaz4mJauIZvrt7A3RdfM=";

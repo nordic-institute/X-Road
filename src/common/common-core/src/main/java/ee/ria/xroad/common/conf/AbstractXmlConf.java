@@ -26,8 +26,11 @@
 package ee.ria.xroad.common.conf;
 
 import ee.ria.xroad.common.util.AtomicSave;
+import ee.ria.xroad.common.util.ChangeChecker;
 import ee.ria.xroad.common.util.FileContentChangeChecker;
-import ee.ria.xroad.common.util.ResourceUtils;
+import ee.ria.xroad.common.util.FileSource;
+import ee.ria.xroad.common.util.InMemoryFile;
+import ee.ria.xroad.common.util.InMemoryFileSourceChangeChecker;
 import ee.ria.xroad.common.util.SchemaValidator;
 
 import jakarta.xml.bind.JAXBContext;
@@ -48,6 +51,7 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.StandardCopyOption;
 
 import static ee.ria.xroad.common.ErrorCodes.translateException;
@@ -56,7 +60,7 @@ import static java.util.Objects.requireNonNull;
 /**
  * Base class for XML-based configurations, where underlying classes are
  * generated from the XSD that describes the XML.
- *
+ * <p>
  * This class also contains a file content change checker that check if a
  * file contents has been changed since the last time it was accessed. The
  * check is based on the checksum of the file's contents.
@@ -68,13 +72,14 @@ public abstract class AbstractXmlConf<T> implements ConfProvider {
     protected final Class<? extends SchemaValidator> schemaValidator;
 
     protected String confFileName;
+    private FileSource<InMemoryFile> confFileSource;
 
     protected JAXBElement<T> root;
 
     @Getter
     protected T confType;
 
-    private FileContentChangeChecker confFileChecker;
+    private ChangeChecker confFileChecker;
 
     // For subclasses to use only default parameters if no valid serverconf present.
     protected AbstractXmlConf() {
@@ -104,6 +109,7 @@ public abstract class AbstractXmlConf<T> implements ConfProvider {
 
     /**
      * A method for subclasses to return (preferably static) JAXBContext
+     *
      * @return class specific JAXBContext
      */
     protected abstract JAXBContext getJAXBContext();
@@ -111,6 +117,7 @@ public abstract class AbstractXmlConf<T> implements ConfProvider {
     /**
      * A special constructor for creating an AbstractXmlConf from bytes instead of a file on the filesystem.
      * <b>Does not set <code>confFileChecker</code>.</b>
+     *
      * @param fileBytes
      * @param schemaValidator
      */
@@ -144,27 +151,12 @@ public abstract class AbstractXmlConf<T> implements ConfProvider {
         }
     }
 
-    @Override
-    public void load(String fileName) throws Exception {
-        if (fileName == null) {
-            return;
-        }
-
-        confFileName = fileName;
-        confFileChecker = new FileContentChangeChecker(confFileName);
-
-        doValidateConfFile();
-
-        LoadResult<T> result = doLoadConfFile();
-        root = result.getRoot();
-        confType = result.getConfType();
-    }
-
     /**
      * Load the xml configuration to a {@link LoadResult} that can be manipulated further.
+     *
      * @return
-     * @throws IOException if opening {@link #confFileName} fails.
-     * @throws JAXBException if an unmarshalling error occurs
+     * @throws IOException          if opening {@link #confFileName} fails.
+     * @throws JAXBException        if an unmarshalling error occurs
      * @throws NullPointerException if {@link #confFileName} or {@link #getJAXBContext()} is null
      */
     @SuppressWarnings("unchecked")
@@ -225,8 +217,42 @@ public abstract class AbstractXmlConf<T> implements ConfProvider {
         marshaller.marshal(root, out);
     }
 
+    @Override
+    public void load(String fileName) throws Exception {
+        if (fileName == null) {
+            return;
+        }
+
+        confFileName = fileName;
+        confFileChecker = new FileContentChangeChecker(confFileName);
+
+        doValidateConfFile();
+
+        LoadResult<T> result = doLoadConfFile();
+        root = result.getRoot();
+        confType = result.getConfType();
+    }
+
+    public void load(FileSource<InMemoryFile> fileSource) throws Exception {
+        if (fileSource == null) {
+            return;
+        }
+
+        this.confFileSource = fileSource;
+        fileSource.getFile()
+                .ifPresentOrElse(file -> {
+                    try {
+                        load(file.content().getBytes(StandardCharsets.UTF_8));
+                        confFileChecker = new InMemoryFileSourceChangeChecker(fileSource, file.checksum());
+                    } catch (Exception e) {
+                        throw translateException(e);
+                    }
+                }, () -> log.warn("File not found: {}", fileSource));
+    }
+
     /**
      * Loads the configuration from a byte array.
+     *
      * @param data the data
      * @throws Exception if an error occurs
      */
@@ -251,14 +277,15 @@ public abstract class AbstractXmlConf<T> implements ConfProvider {
 
     /**
      * Reloads the configuration from the file.
+     *
      * @throws Exception the file cannot be loaded
      */
     public void reload() throws Exception {
-        load(confFileName);
-    }
-
-    protected String getConfFileDir() {
-        return ResourceUtils.getFullPathFromFileName(confFileName);
+        if (confFileSource != null) {
+            load(confFileSource);
+        } else {
+            load(confFileName);
+        }
     }
 
     private void validateSchemaWithValidator(InputStream in) throws IllegalAccessException {

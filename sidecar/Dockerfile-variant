@@ -8,5 +8,9 @@ ARG VARIANT
 # override-securityserver-$VARIANT.ini needs to be copied to 'build' dir before executing 'docker build'. See 'docker-build.sh' for details
 ADD --chown=xroad:xroad /build/etc/xroad/conf.d/override-securityserver-$VARIANT.ini /etc/xroad/conf.d/override-securityserver-$VARIANT.ini
 
+
+# property setting connector-host=127.0.0.1 doesn't make sense inside docker, because Client Proxy is not automatically visible to the outside internet
+RUN sed -i '/; Listen address of Client Proxy - localhost only/d' /etc/xroad/conf.d/override-securityserver-$VARIANT.ini \
+    && sed -i '/connector-host=127.0.0.1/d' /etc/xroad/conf.d/override-securityserver-$VARIANT.ini
 RUN chmod 660 /etc/xroad/conf.d/override-securityserver-$VARIANT.ini \
-  && cp -a /etc/xroad/conf.d/override-securityserver-$VARIANT.ini /usr/share/xroad/config/etc/xroad/conf.d/
+    && cp -a /etc/xroad/conf.d/override-securityserver-$VARIANT.ini /usr/share/xroad/config/etc/xroad/conf.d/

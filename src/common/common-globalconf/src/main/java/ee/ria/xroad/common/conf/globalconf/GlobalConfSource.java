@@ -25,6 +25,8 @@
  */
 package ee.ria.xroad.common.conf.globalconf;
 
+import ee.ria.xroad.common.util.FileSource;
+
 import java.util.List;
 import java.util.Optional;
 
@@ -52,4 +54,7 @@ public interface GlobalConfSource {
     void reload();
 
     GlobalConfInitState getReadinessState();
+
+    FileSource<?> getFile(String fileName);
+
 }

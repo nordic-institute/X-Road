@@ -29,19 +29,12 @@ publishing {
 dependencies {
     implementation(platform(libs.springCloud.bom))
 
-    implementation project(':configuration-client:confclient-rpc-client')
-    implementation project(':common:common-globalconf')
-    implementation project(':common:common-scheduler')
-    implementation project(':common:common-jetty')
-    implementation project(':common:common-verifier')
-    implementation project(':common:common-rpc')
+    implementation project(':common:common-core')
+    implementation project(':configuration-client:core')
 
     implementation('org.springframework:spring-context')
-    implementation('org.springframework:spring-context-support')
-    implementation libs.commons.cli
 
     testImplementation project(':common:common-test')
-    testImplementation libs.wiremock.standalone
 }
 
 ext {
@@ -52,7 +45,6 @@ jar {
     manifest {
         attributes 'Main-Class': mainClassName
     }
-    archiveBaseName = 'configuration-client'
 }
 
 bootJar {

@@ -85,6 +85,11 @@ export const useNotifications = defineStore('notifications', {
       successNotifications: [] as Notification[],
     };
   },
+  getters: {
+    currentSuccessNotifications(state): string {
+      return state.successNotifications.filter((not) => !not.delayed);
+    },
+  },
 
   actions: {
     clearErrorNotifications(): void {
@@ -106,6 +111,14 @@ export const useNotifications = defineStore('notifications', {
     resetNotifications(): void {
       // Clear the store state
       this.$reset();
+    },
+
+    readyUpDelayed() {
+      this.successNotifications
+        .filter((not) => not.delayed)
+        .forEach((not) => {
+          not.delayed = false;
+        });
     },
 
     // Show error notification with axios error object
@@ -168,10 +181,11 @@ export const useNotifications = defineStore('notifications', {
       );
     },
 
-    showSuccess(messageText: string | TranslateResult): void {
+    showSuccess(messageText: string | TranslateResult, delayed = false): void {
       // Show success snackbar with text string
       const notification = createEmptyNotification(3000);
       notification.successMessage = messageText as string;
+      notification.delayed = delayed;
       this.successNotifications.push(notification);
     },
 

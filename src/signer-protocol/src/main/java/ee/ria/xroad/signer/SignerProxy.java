@@ -28,6 +28,8 @@ package ee.ria.xroad.signer;
 import ee.ria.xroad.common.CertificationServiceDiagnostics;
 import ee.ria.xroad.common.CertificationServiceStatus;
 import ee.ria.xroad.common.OcspResponderStatus;
+import ee.ria.xroad.common.crypto.identifier.SignAlgorithm;
+import ee.ria.xroad.common.crypto.identifier.SignMechanism;
 import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.identifier.SecurityServerId;
 import ee.ria.xroad.common.util.PasswordStore;
@@ -537,7 +539,7 @@ public final class SignerProxy {
      * Sets the hash of the renewed certificate with the given old cert ID.
      *
      * @param certId ID of the old certificate
-     * @param hash new hash of the renewed certificate
+     * @param hash   new hash of the renewed certificate
      * @throws Exception if any errors occur
      */
     public static void setRenewedCertHash(String certId, String hash) throws Exception {
@@ -553,7 +555,7 @@ public final class SignerProxy {
     /**
      * Sets the error of the certificate renewal process.
      *
-     * @param certId ID of the certificate to be renewed
+     * @param certId       ID of the certificate to be renewed
      * @param errorMessage message of the error that was thrown when trying to renew the given certificate
      * @throws Exception if any errors occur
      */
@@ -570,7 +572,7 @@ public final class SignerProxy {
     /**
      * Sets the error of the certificate renewal process.
      *
-     * @param certId ID of the certificate to be renewed
+     * @param certId          ID of the certificate to be renewed
      * @param nextRenewalTime message of the error that was thrown when trying to renew the given certificate
      * @throws Exception if any errors occur
      */
@@ -628,7 +630,7 @@ public final class SignerProxy {
 
         log.trace("Cert with hash '{}' found", finalHash);
 
-        return new KeyIdInfo(response.getKeyId(), response.getSignMechanismName());
+        return new KeyIdInfo(response.getKeyId(), SignMechanism.valueOf(response.getSignMechanismName()));
     }
 
     /**
@@ -745,21 +747,21 @@ public final class SignerProxy {
         return new TokenInfo(response);
     }
 
-    public static String getSignMechanism(String keyId) throws Exception {
+    public static SignMechanism getSignMechanism(String keyId) throws Exception {
         GetSignMechanismResp response = RpcSignerClient.execute(ctx -> ctx.getBlockingKeyService()
                 .getSignMechanism(GetSignMechanismReq.newBuilder()
                         .setKeyId(keyId)
                         .build()));
 
-        return response.getSignMechanismName();
+        return SignMechanism.valueOf(response.getSignMechanismName());
     }
 
     @WithSpan("SignerProxy#sign")
-    public static byte[] sign(String keyId, String signatureAlgorithmId, byte[] digest) throws Exception {
+    public static byte[] sign(String keyId, SignAlgorithm signatureAlgorithmId, byte[] digest) throws Exception {
         var response = RpcSignerClient.execute(ctx -> ctx.getBlockingKeyService()
                 .sign(SignReq.newBuilder()
                         .setKeyId(keyId)
-                        .setSignatureAlgorithmId(signatureAlgorithmId)
+                        .setSignatureAlgorithmId(signatureAlgorithmId.name())
                         .setDigest(ByteString.copyFrom(digest))
                         .build()));
 
@@ -781,7 +783,9 @@ public final class SignerProxy {
                         .setMemberId(ClientIdMapper.toDto(clientId))
                         .build()));
 
-        return new MemberSigningInfoDto(response.getKeyId(), new CertificateInfo(response.getCert()), response.getSignMechanismName());
+        return new MemberSigningInfoDto(response.getKeyId(),
+                new CertificateInfo(response.getCert()),
+                SignMechanism.valueOf(response.getSignMechanismName()));
     }
 
     public static List<CertificateInfo> getMemberCerts(ClientId memberId) throws Exception {
@@ -802,12 +806,12 @@ public final class SignerProxy {
         return response.getOperational();
     }
 
-    public static byte[] signCertificate(String keyId, String signatureAlgorithmId, String subjectName, PublicKey publicKey)
+    public static byte[] signCertificate(String keyId, SignAlgorithm signatureAlgorithmId, String subjectName, PublicKey publicKey)
             throws Exception {
         var response = RpcSignerClient.execute(ctx -> ctx.getBlockingKeyService()
                 .signCertificate(SignCertificateReq.newBuilder()
                         .setKeyId(keyId)
-                        .setSignatureAlgorithmId(signatureAlgorithmId)
+                        .setSignatureAlgorithmId(signatureAlgorithmId.name())
                         .setSubjectName(subjectName)
                         .setPublicKey(ByteString.copyFrom(publicKey.getEncoded()))
                         .build()));
@@ -820,19 +824,6 @@ public final class SignerProxy {
                 .getCertificationServiceDiagnostics(Empty.newBuilder().build()));
 
         return CertificationServiceDiagnosticsMapper.fromDto(signerResponse);
-    }
-
-    @Value
-    public static class MemberSigningInfoDto {
-        String keyId;
-        CertificateInfo cert;
-        String signMechanismName;
-    }
-
-    @Value
-    public static class KeyIdInfo {
-        String keyId;
-        String signMechanismName;
     }
 
     private static final class CertificationServiceDiagnosticsMapper {
@@ -860,6 +851,13 @@ public final class SignerProxy {
             return response;
         }
 
+    }
+
+    public record MemberSigningInfoDto(String keyId, CertificateInfo cert, SignMechanism signMechanismName) {
+
+    }
+
+    public record KeyIdInfo(String keyId, SignMechanism signMechanismName) {
     }
 
 }

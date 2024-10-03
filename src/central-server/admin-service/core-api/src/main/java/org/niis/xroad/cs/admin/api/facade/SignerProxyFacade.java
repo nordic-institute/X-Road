@@ -25,6 +25,8 @@
  */
 package org.niis.xroad.cs.admin.api.facade;
 
+import ee.ria.xroad.common.crypto.identifier.SignAlgorithm;
+import ee.ria.xroad.common.crypto.identifier.SignMechanism;
 import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.signer.SignerProxy;
 import ee.ria.xroad.signer.protocol.dto.KeyInfo;
@@ -84,11 +86,11 @@ public interface SignerProxyFacade {
     /**
      * {ling {@link SignerProxy#getSignMechanism(String)}}
      */
-    String getSignMechanism(String keyId) throws Exception;
+    SignMechanism getSignMechanism(String keyId) throws Exception;
 
     /**
      * {@link SignerProxy#sign(String, String, byte[])}
      */
-    byte[] sign(String keyId, String signatureAlgorithmId, byte[] digest) throws Exception;
+    byte[] sign(String keyId, SignAlgorithm signatureAlgorithmId, byte[] digest) throws Exception;
 
 }

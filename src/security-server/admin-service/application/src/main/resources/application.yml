@@ -37,3 +37,4 @@ server:
 
 logging:
   config: file:/etc/xroad/conf.d/proxy-ui-api-logback.xml
+  config-access: file:/etc/xroad/conf.d/proxy-ui-api-logback-access.xml

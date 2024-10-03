@@ -36,6 +36,7 @@ import ee.ria.xroad.common.conf.globalconf.sharedparameters.v2.OcspInfoType;
 import ee.ria.xroad.common.conf.globalconf.sharedparameters.v2.SecurityServerType;
 import ee.ria.xroad.common.conf.globalconf.sharedparameters.v2.SharedParametersTypeV2;
 import ee.ria.xroad.common.conf.globalconf.sharedparameters.v2.SubsystemType;
+import ee.ria.xroad.common.crypto.identifier.DigestAlgorithm;
 import ee.ria.xroad.common.identifier.ClientId;
 
 import jakarta.xml.bind.JAXBElement;
@@ -46,8 +47,6 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-
-import static ee.ria.xroad.common.util.CryptoUtils.SHA1_ID;
 
 public class SharedParametersV2Converter {
 
@@ -191,7 +190,7 @@ public class SharedParametersV2Converter {
         target.setOwner(toClientId(instanceIdentifier, (MemberType) source.getOwner()));
         target.setServerCode(source.getServerCode());
 
-        target.setAuthCertHashes(source.getAuthCertHash().stream().map(hash -> new CertHash(SHA1_ID, hash)).toList());
+        target.setAuthCertHashes(source.getAuthCertHash().stream().map(hash -> new CertHash(DigestAlgorithm.SHA1, hash)).toList());
         if (source.getClient() != null) {
             List<ClientId> clients = new ArrayList<>();
             for (JAXBElement<?> client : source.getClient()) {

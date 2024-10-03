@@ -29,11 +29,13 @@ package org.niis.xroad.common.managementrequest.verify.decode;
 import ee.ria.xroad.common.CodedException;
 import ee.ria.xroad.common.certificateprofile.impl.SignCertificateProfileInfoParameters;
 import ee.ria.xroad.common.conf.globalconf.GlobalConfProvider;
+import ee.ria.xroad.common.crypto.identifier.SignAlgorithm;
 import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.identifier.SecurityServerId;
 import ee.ria.xroad.common.message.SoapMessageImpl;
 import ee.ria.xroad.common.request.AuthCertRegRequestType;
 import ee.ria.xroad.common.util.CertUtils;
+import ee.ria.xroad.common.util.CryptoUtils;
 import ee.ria.xroad.common.util.MimeUtils;
 
 import lombok.Getter;
@@ -55,7 +57,6 @@ import static ee.ria.xroad.common.ErrorCodes.X_INTERNAL_ERROR;
 import static ee.ria.xroad.common.ErrorCodes.X_INVALID_REQUEST;
 import static ee.ria.xroad.common.ErrorCodes.X_INVALID_SIGNATURE_VALUE;
 import static ee.ria.xroad.common.ErrorCodes.translateException;
-import static ee.ria.xroad.common.util.CryptoUtils.readCertificate;
 import static org.niis.xroad.common.managementrequest.verify.decode.util.ManagementRequestVerificationUtils.assertAddress;
 import static org.niis.xroad.common.managementrequest.verify.decode.util.ManagementRequestVerificationUtils.validateServerId;
 import static org.niis.xroad.common.managementrequest.verify.decode.util.ManagementRequestVerificationUtils.verifySignature;
@@ -67,10 +68,10 @@ public class AuthCertRegRequestDecoderCallback implements ManagementRequestDecod
     private final ManagementRequestVerifier.DecoderCallback rootCallback;
 
     private byte[] authSignatureBytes;
-    private String authSignatureAlgoId;
+    private SignAlgorithm authSignatureAlgoId;
 
     private byte[] ownerSignatureBytes;
-    private String ownerSignatureAlgoId;
+    private SignAlgorithm ownerSignatureAlgoId;
 
     private byte[] authCertBytes;
     private byte[] ownerCertBytes;
@@ -88,10 +89,10 @@ public class AuthCertRegRequestDecoderCallback implements ManagementRequestDecod
     @Override
     public void attachment(InputStream content, Map<String, String> additionalHeaders) throws IOException {
         if (authSignatureBytes == null) {
-            authSignatureAlgoId = additionalHeaders.get(MimeUtils.HEADER_SIG_ALGO_ID);
+            authSignatureAlgoId = SignAlgorithm.ofName(additionalHeaders.get(MimeUtils.HEADER_SIG_ALGO_ID));
             authSignatureBytes = IOUtils.toByteArray(content);
         } else if (ownerSignatureBytes == null) {
-            ownerSignatureAlgoId = additionalHeaders.get(MimeUtils.HEADER_SIG_ALGO_ID);
+            ownerSignatureAlgoId = SignAlgorithm.ofName(additionalHeaders.get(MimeUtils.HEADER_SIG_ALGO_ID));
             ownerSignatureBytes = IOUtils.toByteArray(content);
         } else if (authCertBytes == null) {
             authCertBytes = IOUtils.toByteArray(content);
@@ -131,7 +132,7 @@ public class AuthCertRegRequestDecoderCallback implements ManagementRequestDecod
     public void verifyMessage() throws Exception {
         final SoapMessageImpl soap = rootCallback.getSoapMessage();
 
-        final X509Certificate authCert = readCertificate(this.authCertBytes);
+        final X509Certificate authCert = CryptoUtils.readCertificate(this.authCertBytes);
         if (!verifyAuthCert(authCert)) {
             throw new CodedException(X_CERT_VALIDATION, "Authentication certificate is not valid");
         }
@@ -141,7 +142,7 @@ public class AuthCertRegRequestDecoderCallback implements ManagementRequestDecod
             throw new CodedException(X_INVALID_SIGNATURE_VALUE, "Auth signature verification failed");
         }
 
-        final X509Certificate ownerCert = readCertificate(this.ownerCertBytes);
+        final X509Certificate ownerCert = CryptoUtils.readCertificate(this.ownerCertBytes);
         final OCSPResp ownerCertOcsp = new OCSPResp(this.ownerCertOcspBytes);
         managementRequestCertVerifier.verifyCertificate(ownerCert, ownerCertOcsp);
 

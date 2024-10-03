@@ -54,7 +54,8 @@ import java.security.cert.CertificateException;
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
 public class RpcCredentialsConfigurer {
 
-    public static ServerCredentials createServerCredentials(RpcCredentialsProvider credentialsProvider) throws UnrecoverableKeyException, NoSuchAlgorithmException,
+    public static ServerCredentials createServerCredentials(RpcCredentialsProvider credentialsProvider)
+            throws UnrecoverableKeyException, NoSuchAlgorithmException,
             KeyStoreException {
         TlsServerCredentials.Builder tlsBuilder = TlsServerCredentials.newBuilder()
                 .keyManager(getKeyManagers(credentialsProvider))
@@ -64,7 +65,8 @@ public class RpcCredentialsConfigurer {
         return tlsBuilder.build();
     }
 
-    public static ChannelCredentials createClientCredentials(RpcCredentialsProvider credentialsProvider) throws NoSuchAlgorithmException, KeyStoreException,
+    public static ChannelCredentials createClientCredentials(RpcCredentialsProvider credentialsProvider)
+            throws NoSuchAlgorithmException, KeyStoreException,
             UnrecoverableKeyException {
         TlsChannelCredentials.Builder tlsBuilder = TlsChannelCredentials.newBuilder()
                 .keyManager(getKeyManagers(credentialsProvider))

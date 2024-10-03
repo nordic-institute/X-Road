@@ -60,7 +60,7 @@ public class DSSAsicVerifier {
         validator.setEnableEtsiValidationReport(false);
 
         var certVerifier = new CommonCertificateVerifier();
-        certVerifier.setDefaultDigestAlgorithm(DigestAlgorithm.forJavaName(CryptoUtils.DEFAULT_DIGEST_ALGORITHM_ID));
+        certVerifier.setDefaultDigestAlgorithm(DigestAlgorithm.forJavaName(CryptoUtils.DEFAULT_CERT_HASH_ALGORITHM_ID.name()));
         validator.setCertificateVerifier(certVerifier);
         validator.setValidationLevel(ValidationLevel.ARCHIVAL_DATA);
 

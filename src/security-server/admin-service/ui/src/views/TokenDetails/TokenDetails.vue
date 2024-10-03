@@ -140,7 +140,7 @@
         :disabled="isSaveDisabled"
         data-test="token-details-save"
         @click="save()"
-        >{{ $t('action.save') }}
+      >{{ $t('action.save') }}
       </xrd-button>
     </div>
   </div>
@@ -290,7 +290,7 @@ export default defineComponent({
             name: this.values.token.friendlyName,
           });
         }
-        this.showSuccess(successMsg);
+        this.showSuccess(successMsg, true);
         this.$router.back();
       } catch (error) {
         // Error comes from axios, so it most probably is AxiosError

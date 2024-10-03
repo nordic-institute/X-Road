@@ -30,7 +30,7 @@ import ee.ria.xroad.common.messagelog.MessageLogProperties;
 
 import lombok.extern.slf4j.Slf4j;
 
-import static ee.ria.xroad.common.util.CryptoUtils.SHA256_ID;
+import static ee.ria.xroad.common.crypto.identifier.DigestAlgorithm.SHA256;
 import static ee.ria.xroad.proxy.messagelog.TestUtil.createMessage;
 import static ee.ria.xroad.proxy.messagelog.TestUtil.createSignature;
 
@@ -123,10 +123,10 @@ public class MessageLogPerformanceTest extends AbstractMessageLogTest {
     }
 
     private void initHashChainBuilder() throws Exception {
-        new HashChainBuilder(SHA256_ID); // just to init JAXBContext...
+        new HashChainBuilder(SHA256); // just to init JAXBContext...
 
         for (int iter = 0; iter < 100; iter++) {
-            HashChainBuilder builder = new HashChainBuilder(SHA256_ID);
+            HashChainBuilder builder = new HashChainBuilder(SHA256);
 
             for (int i = 0; i < 10; ++i) {
                 builder.addInputHash(new byte[]{(byte) i});

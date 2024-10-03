@@ -25,12 +25,14 @@
  */
 package ee.ria.xroad.common.conf.globalconf;
 
+import ee.ria.xroad.common.util.InMemoryFile;
+
 import com.google.common.collect.ImmutableMap;
 import lombok.extern.slf4j.Slf4j;
 import org.niis.xroad.confclient.proto.GetGlobalConfResp;
+import org.niis.xroad.confclient.proto.GlobalConfFile;
 import org.niis.xroad.confclient.proto.GlobalConfInstance;
 
-import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
@@ -39,24 +41,33 @@ import java.util.concurrent.ConcurrentHashMap;
 import static ee.ria.xroad.common.conf.globalconf.ConfigurationConstants.FILE_NAME_PRIVATE_PARAMETERS;
 import static ee.ria.xroad.common.conf.globalconf.ConfigurationConstants.FILE_NAME_SHARED_PARAMETERS;
 import static ee.ria.xroad.common.conf.globalconf.GlobalConfInitState.FAILURE_INSTANCE_IDENTIFIER_DATA_MISSING;
+import static java.util.stream.Collectors.toMap;
 
 @Slf4j
 public class RemoteGlobalConfDataLoader {
 
-     RemoteGlobalConfSource.GlobalConfData load(GetGlobalConfResp getGlobalConfResp,
-                                                       Map<String, PrivateParametersProvider> basePrivateParams,
-                                                       Map<String, SharedParametersProvider> baseSharedParams) {
+    RemoteGlobalConfSource.GlobalConfData load(GetGlobalConfResp getGlobalConfResp,
+                                               Map<String, PrivateParametersProvider> basePrivateParams,
+                                               Map<String, SharedParametersProvider> baseSharedParams) {
 
         var defaultGlobalConfVersion = getGlobalConfResp.getInstancesList().stream()
                 .filter(i -> i.getInstanceIdentifier().equals(getGlobalConfResp.getInstanceIdentifier()))
                 .findFirst().map(GlobalConfInstance::getVersion)
                 .orElseThrow(() -> new GlobalConfInitException(FAILURE_INSTANCE_IDENTIFIER_DATA_MISSING));
 
+        var defaultInstance = getGlobalConfResp.getInstancesList().stream()
+                .filter(i -> i.getInstanceIdentifier().equals(getGlobalConfResp.getInstanceIdentifier()))
+                .findFirst().orElseThrow(() -> new GlobalConfInitException(FAILURE_INSTANCE_IDENTIFIER_DATA_MISSING));
+
+        Map<String, InMemoryFile> defaultInstanceFiles = defaultInstance.getFilesList().stream()
+                .collect(toMap(GlobalConfFile::getName, f -> new InMemoryFile(f.getContent(), f.getChecksum())));
+
         return new RemoteGlobalConfSource.GlobalConfData(getGlobalConfResp.getDateRefreshed(),
                 getGlobalConfResp.getInstanceIdentifier(),
                 defaultGlobalConfVersion,
                 loadPrivateParameters(getGlobalConfResp, basePrivateParams),
                 loadSharedParameters(getGlobalConfResp, baseSharedParams),
+                defaultInstanceFiles,
                 new ConcurrentHashMap<>());
 
     }
@@ -90,8 +101,11 @@ public class RemoteGlobalConfDataLoader {
 
     @SuppressWarnings("unchecked")
     private <T extends ParameterProvider> Optional<T> loadParameters(GlobalConfInstance globalConfInstance, String fileName) {
-        if (globalConfInstance.containsFiles(fileName)) {
-            var paramsXmlBytes = globalConfInstance.getFilesOrThrow(fileName).getBytes(StandardCharsets.UTF_8);
+        var foundFile = globalConfInstance.getFilesList().stream()
+                .filter(f -> f.getName().equals(fileName))
+                .findFirst();
+        if (foundFile.isPresent()) {
+            var paramsXmlBytes = foundFile.get().getContentBytes().toByteArray();
 
             try {
                 var paramFactory = ParametersProviderFactory

@@ -10,7 +10,7 @@ dependencies {
     implementation(project(':common:common-messagelog'))
     implementation(project(':common:common-op-monitoring'))
     implementation(project(':common:common-verifier'))
-    implementation(project(':proxy:application'))
+    implementation(project(':proxy:core'))
     implementation(project(':serverconf'))
 
 }
