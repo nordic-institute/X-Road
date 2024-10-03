@@ -39,7 +39,7 @@ import static org.apache.commons.io.IOUtils.toByteArray;
 /**
  * A checksum based file modification checker.
  */
-public class FileContentChangeChecker {
+public class FileContentChangeChecker implements ChangeChecker {
 
     @Getter
     private final String fileName;
@@ -63,6 +63,7 @@ public class FileContentChangeChecker {
      * @return true, if the file has changed
      * @throws Exception if an error occurs
      */
+    @Override
     public boolean hasChanged() throws Exception {
         File file = getFile();
 

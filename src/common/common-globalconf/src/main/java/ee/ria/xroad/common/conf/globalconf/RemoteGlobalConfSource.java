@@ -25,11 +25,12 @@
  */
 package ee.ria.xroad.common.conf.globalconf;
 
+import ee.ria.xroad.common.util.FileSource;
+import ee.ria.xroad.common.util.InMemoryFile;
 import ee.ria.xroad.common.util.TimeUtils;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.lang3.NotImplementedException;
 import org.apache.commons.lang3.time.StopWatch;
 import org.niis.xroad.confclient.proto.ConfClientRpcClient;
 import org.springframework.beans.factory.InitializingBean;
@@ -199,8 +200,23 @@ public class RemoteGlobalConfSource implements GlobalConfSource, InitializingBea
     }
 
     @Override
-    public FileSource getFile(String fileName) {
-        throw new NotImplementedException("getFile not implemented for RemoteGlobalConfSource");
+    public FileSource<?> getFile(String fileName) {
+        return new GlobalConfFileSource(this, fileName);
+    }
+
+    @RequiredArgsConstructor
+    public static class GlobalConfFileSource implements FileSource<InMemoryFile> {
+        private final RemoteGlobalConfSource source;
+        private final String fileName;
+
+        @Override
+        public Optional<InMemoryFile> getFile() {
+            var defaultInstanceFiles = source.getData().defaultInstanceFiles();
+            if (defaultInstanceFiles.containsKey(fileName)) {
+                return Optional.of(defaultInstanceFiles.get(fileName));
+            }
+            return Optional.empty();
+        }
     }
 
     record GlobalConfData(Long dateRefreshed,
@@ -208,6 +224,7 @@ public class RemoteGlobalConfSource implements GlobalConfSource, InitializingBea
                           int defaultGlobalConfVersion,
                           Map<String, PrivateParametersProvider> privateParameters,
                           Map<String, SharedParametersProvider> sharedParameters,
+                          Map<String, InMemoryFile> defaultInstanceFiles,
                           ConcurrentHashMap<String, SharedParametersCache> sharedParametersCacheMap) {
 
         /**

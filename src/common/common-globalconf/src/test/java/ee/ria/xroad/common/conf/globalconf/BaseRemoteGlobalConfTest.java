@@ -28,6 +28,7 @@ package ee.ria.xroad.common.conf.globalconf;
 import lombok.SneakyThrows;
 import org.apache.commons.io.FileUtils;
 import org.niis.xroad.confclient.proto.GetGlobalConfResp;
+import org.niis.xroad.confclient.proto.GlobalConfFile;
 import org.niis.xroad.confclient.proto.GlobalConfInstance;
 
 import java.nio.file.DirectoryStream;
@@ -75,7 +76,10 @@ abstract class BaseRemoteGlobalConfTest {
     private void processFile(GlobalConfInstance.Builder builder, Path instanceDir, String fileName) {
         Path paramPath = Paths.get(instanceDir.toString(), fileName);
         if (Files.exists(paramPath)) {
-            builder.putFiles(fileName, FileUtils.readFileToString(paramPath.toFile(), UTF_8));
+            builder.addFiles(GlobalConfFile.newBuilder()
+                    .setName(fileName)
+                    .setContent(FileUtils.readFileToString(paramPath.toFile(), UTF_8))
+                    .setChecksum("checksum"));
         }
     }
 

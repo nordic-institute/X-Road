@@ -23,38 +23,11 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package ee.ria.xroad.common.conf.globalconf;
+package ee.ria.xroad.common.util;
 
-import ee.ria.xroad.common.util.FileSource;
-
-import java.util.List;
 import java.util.Optional;
 
-public interface GlobalConfSource {
+public interface FileSource<T> {
 
-    /**
-     * Returns globalConf version.
-     */
-    Integer getVersion();
-
-    String getInstanceIdentifier();
-
-    Optional<SharedParameters> findShared(String xRoadInstance);
-
-    Optional<PrivateParameters> findPrivate(String instanceIdentifier);
-
-    List<SharedParameters> getShared();
-
-    Optional<SharedParametersCache> findSharedParametersCache(String instanceIdentifier);
-
-    List<SharedParametersCache> getSharedParametersCaches();
-
-    boolean isExpired();
-
-    void reload();
-
-    GlobalConfInitState getReadinessState();
-
-    FileSource<?> getFile(String fileName);
-
+    Optional<T> getFile();
 }

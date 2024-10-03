@@ -28,10 +28,16 @@ package org.niis.xroad.confclient.globalconf;
 import ee.ria.xroad.common.CodedException;
 import ee.ria.xroad.common.SystemProperties;
 import ee.ria.xroad.common.conf.globalconf.ConfigurationConstants;
+import ee.ria.xroad.common.conf.globalconfextension.OcspFetchInterval;
+import ee.ria.xroad.common.conf.globalconfextension.OcspNextUpdate;
+import ee.ria.xroad.common.conf.monitoringconf.MonitoringParameters;
+import ee.ria.xroad.common.crypto.identifier.DigestAlgorithm;
+import ee.ria.xroad.common.util.InMemoryFile;
 
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.FileUtils;
 import org.niis.xroad.confclient.proto.GetGlobalConfResp;
+import org.niis.xroad.confclient.proto.GlobalConfFile;
 import org.niis.xroad.confclient.proto.GlobalConfInstance;
 
 import java.io.IOException;
@@ -40,15 +46,23 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Optional;
+import java.util.Set;
 
 import static ee.ria.xroad.common.ErrorCodes.X_INTERNAL_ERROR;
 import static ee.ria.xroad.common.ErrorCodes.X_MALFORMED_GLOBALCONF;
 import static ee.ria.xroad.common.conf.globalconf.ConfigurationDirectory.INSTANCE_IDENTIFIER_FILE;
 import static ee.ria.xroad.common.conf.globalconf.VersionedConfigurationDirectory.getVersion;
+import static ee.ria.xroad.common.crypto.Digests.hexDigest;
 import static java.nio.charset.StandardCharsets.UTF_8;
 
 @Slf4j
 public class GetGlobalConfRespFactory {
+    private static final Set<String> GLOBAL_CONF_FILES = Set.of(
+            ConfigurationConstants.FILE_NAME_PRIVATE_PARAMETERS,
+            ConfigurationConstants.FILE_NAME_SHARED_PARAMETERS,
+            OcspNextUpdate.FILE_NAME_OCSP_NEXT_UPDATE_PARAMETERS,
+            OcspFetchInterval.FILE_NAME_OCSP_FETCH_INTERVAL_PARAMETERS,
+            MonitoringParameters.FILE_NAME_MONITORING_PARAMETERS);
 
     GetGlobalConfResp createGlobalConfResp() {
         var confDir = Paths.get(SystemProperties.getConfigurationPath());
@@ -71,8 +85,7 @@ public class GetGlobalConfRespFactory {
     private GlobalConfInstance loadParameters(Path instanceDir) {
         var builder = GlobalConfInstance.newBuilder();
 
-        processFile(builder, instanceDir, ConfigurationConstants.FILE_NAME_PRIVATE_PARAMETERS);
-        processFile(builder, instanceDir, ConfigurationConstants.FILE_NAME_SHARED_PARAMETERS);
+        GLOBAL_CONF_FILES.forEach(fileName -> processFile(builder, instanceDir, fileName));
 
         Integer version = getVersion(Paths.get(instanceDir.toString(), ConfigurationConstants.FILE_NAME_SHARED_PARAMETERS));
         return builder
@@ -85,9 +98,14 @@ public class GetGlobalConfRespFactory {
         var paramPath = Paths.get(instanceDir.toString(), fileName);
         if (Files.exists(paramPath)) {
             readFileSafely(paramPath)
-                    .ifPresentOrElse(
-                            content -> builder.putFiles(fileName, content),
-                            () -> log.error("Failed to read private parameters from {}", paramPath));
+                    .ifPresent(content ->
+                            builder.addFiles(GlobalConfFile.newBuilder()
+                                    .setName(fileName)
+                                    .setContent(content.content())
+                                    .setChecksum(content.checksum())
+                                    .build()));
+        } else {
+            log.trace("File {} does not exist.", paramPath);
         }
     }
 
@@ -106,12 +124,16 @@ public class GetGlobalConfRespFactory {
         }
     }
 
-    private Optional<String> readFileSafely(Path filePath) {
+    private Optional<InMemoryFile> readFileSafely(Path filePath) {
         try {
-            return Optional.of(FileUtils.readFileToString(filePath.toFile(), UTF_8));
+            var content = FileUtils.readFileToString(filePath.toFile(), UTF_8);
+            var hash = hexDigest(DigestAlgorithm.MD5, content);
+            return Optional.of(new InMemoryFile(content, hash));
         } catch (Exception e) {
             log.error("Failed to read file {}", filePath, e);
             return Optional.empty();
         }
     }
+
+
 }

@@ -23,38 +23,27 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package ee.ria.xroad.common.conf.globalconf;
+package ee.ria.xroad.common.util;
 
-import ee.ria.xroad.common.util.FileSource;
+import java.util.Objects;
 
-import java.util.List;
-import java.util.Optional;
+public class InMemoryFileSourceChangeChecker implements ChangeChecker {
+    private final FileSource<InMemoryFile> source;
+    private final String previousChecksum;
 
-public interface GlobalConfSource {
+    public InMemoryFileSourceChangeChecker(FileSource<InMemoryFile> source, String initialChecksum) {
+        this.source = source;
+        this.previousChecksum = initialChecksum;
+    }
 
-    /**
-     * Returns globalConf version.
-     */
-    Integer getVersion();
-
-    String getInstanceIdentifier();
-
-    Optional<SharedParameters> findShared(String xRoadInstance);
-
-    Optional<PrivateParameters> findPrivate(String instanceIdentifier);
-
-    List<SharedParameters> getShared();
-
-    Optional<SharedParametersCache> findSharedParametersCache(String instanceIdentifier);
-
-    List<SharedParametersCache> getSharedParametersCaches();
-
-    boolean isExpired();
-
-    void reload();
-
-    GlobalConfInitState getReadinessState();
-
-    FileSource<?> getFile(String fileName);
+    @Override
+    public boolean hasChanged() throws Exception {
+        var currentFile = source.getFile();
+        if (currentFile.isPresent()) {
+            var currentChecksum = currentFile.get().checksum();
+            return !Objects.equals(previousChecksum, currentChecksum);
+        }
+        return true;
+    }
 
 }
