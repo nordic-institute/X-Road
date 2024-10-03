@@ -1,5 +1,6 @@
 /*
  * The MIT License
+ *
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
@@ -92,33 +93,28 @@ public class TestSuiteGlobalConf extends EmptyGlobalConf {
     }
 
     @Override
-    public X509Certificate getCaCert(String instanceIdentifier,
-                                     X509Certificate org) throws Exception {
+    public X509Certificate getCaCert(String instanceIdentifier, X509Certificate org) throws Exception {
         return TestCertUtil.getCaCert();
     }
 
     @Override
-    public CertChain getCertChain(String instanceIdentifier,
-                                  X509Certificate subject) throws Exception {
+    public CertChain getCertChain(String instanceIdentifier, X509Certificate subject) throws Exception {
         return new CertChainFactory(this).create(instanceIdentifier, subject, null);
     }
 
     @Override
-    public List<X509Certificate> getTspCertificates()
-            throws CertificateException {
+    public List<X509Certificate> getTspCertificates() throws CertificateException {
         return Arrays.asList(TestCertUtil.getTspCert());
     }
 
     @Override
-    public boolean authCertMatchesMember(X509Certificate cert, ClientId memberId)
-            throws Exception {
+    public boolean authCertMatchesMember(X509Certificate cert, ClientId memberId) throws Exception {
         return true;
     }
 
     @Override
-    public SignCertificateProfileInfo getSignCertificateProfileInfo(
-            SignCertificateProfileInfo.Parameters parameters,
-            X509Certificate cert) throws Exception {
+    public SignCertificateProfileInfo getSignCertificateProfileInfo(SignCertificateProfileInfo.Parameters parameters,
+                                                                    X509Certificate cert) throws Exception {
         return new EjbcaSignCertificateProfileInfo(parameters) {
             @Override
             public ClientId.Conf getSubjectIdentifier(X509Certificate certificate) {
@@ -136,9 +132,8 @@ public class TestSuiteGlobalConf extends EmptyGlobalConf {
     }
 
     @Override
-    public AuthCertificateProfileInfo getAuthCertificateProfileInfo(
-            AuthCertificateProfileInfo.Parameters parameters,
-            X509Certificate cert) throws Exception {
+    public AuthCertificateProfileInfo getAuthCertificateProfileInfo(AuthCertificateProfileInfo.Parameters parameters,
+                                                                    X509Certificate cert) throws Exception {
         return null;
     }
 
