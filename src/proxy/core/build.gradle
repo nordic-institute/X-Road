@@ -13,20 +13,27 @@ sourceSets {
 dependencies {
     implementation(platform(libs.springBoot.bom))
 
+    implementation(project(':proxy:proxy-rpc-client'))
+
     implementation(project(':common:common-jetty'))
     implementation(project(':common:common-message'))
     implementation(project(':common:common-globalconf'))
+    implementation(project(':common:common-keyconf'))
     implementation(project(':common:common-scheduler'))
     implementation(project(':common:common-verifier'))
     implementation(project(':serverconf'))
     implementation(project(':signer-protocol'))
     implementation(project(':common:common-messagelog'))
     implementation(project(':common:common-op-monitoring'))
+    implementation project(':security-server:edc-client')
+    implementation project(':security-server:edc:xroad-edc-security')
 
     implementation("com.fasterxml.jackson.dataformat:jackson-dataformat-yaml")
+    implementation(libs.caffeine)
     implementation(libs.jetty.xml)
-    implementation(libs.xerces.impl)
+    implementation(libs.opentelemetry.instrumentation.annotations)
     implementation(libs.semver4j)
+    implementation(libs.xerces.impl)
 
     testImplementation(project(':common:common-test'))
 

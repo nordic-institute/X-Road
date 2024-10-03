@@ -5,6 +5,7 @@ plugins {
 dependencies {
     implementation(platform(libs.springBoot.bom))
 
+    implementation project(':configuration-client:confclient-rpc-client')
     implementation project(':common:common-globalconf')
     implementation project(':common:common-scheduler')
     implementation project(':common:common-jetty')

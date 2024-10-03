@@ -31,6 +31,7 @@ import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.identifier.ServiceId;
 import ee.ria.xroad.common.message.RestMessage;
 import ee.ria.xroad.common.util.MimeUtils;
+import ee.ria.xroad.common.util.TimeUtils;
 import ee.ria.xroad.proxy.testutil.TestGlobalConf;
 import ee.ria.xroad.proxy.testutil.TestServerConf;
 import ee.ria.xroad.proxy.testutil.TestService;
@@ -42,6 +43,8 @@ import org.junit.BeforeClass;
 import org.junit.Test;
 
 import java.io.InputStream;
+import java.time.Clock;
+import java.time.ZoneOffset;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Map;
@@ -64,6 +67,7 @@ public class RestProxyTest extends AbstractProxyIntegrationTest {
 
     @BeforeClass
     public static void setup() throws Exception {
+        TimeUtils.setClock(Clock.fixed(CLOCK_FIXED_INSTANT, ZoneOffset.UTC));
         applicationContext = new TestProxyMain(Map.of()).createApplicationContext(TestProxySpringConfig.class);
     }
 

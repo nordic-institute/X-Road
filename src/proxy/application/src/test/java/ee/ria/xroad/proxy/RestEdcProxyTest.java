@@ -34,6 +34,7 @@ import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.identifier.ServiceId;
 import ee.ria.xroad.common.message.RestMessage;
 import ee.ria.xroad.common.util.MimeUtils;
+import ee.ria.xroad.common.util.TimeUtils;
 import ee.ria.xroad.proxy.conf.KeyConfProvider;
 import ee.ria.xroad.proxy.testutil.TestGlobalConf;
 import ee.ria.xroad.proxy.testutil.TestGlobalConfWithDs;
@@ -58,6 +59,8 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.time.Clock;
+import java.time.ZoneOffset;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Map;
@@ -103,6 +106,7 @@ public class RestEdcProxyTest extends AbstractProxyIntegrationTest {
         startEdcProvider();
         startEdcConsumer();
 
+        TimeUtils.setClock(Clock.fixed(CLOCK_FIXED_INSTANT, ZoneOffset.UTC));
         applicationContext = new TestProxyMain(getAdditionalSystemParameters()).createApplicationContext(TestProxySpringConfig.class);
     }
 

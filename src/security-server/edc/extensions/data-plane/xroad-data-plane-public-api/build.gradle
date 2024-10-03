@@ -5,7 +5,7 @@ plugins {
 
 dependencies {
     implementation project(":serverconf")
-    implementation(project(":proxy:application")) {
+    implementation(project(":proxy:core")) {
         exclude module: "edc-client"
     }
     implementation project(':signer-protocol')

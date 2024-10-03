@@ -2,14 +2,6 @@ plugins {
     alias(libs.plugins.shadow)
 }
 
-sourceSets {
-    intTest {
-        resources {
-            srcDir '../../common/common-int-test/src/main/resources/'
-        }
-    }
-}
-
 dependencies {
     implementation(platform(libs.springBoot.bom))
 
@@ -24,11 +16,13 @@ dependencies {
     testImplementation(project(':common:common-domain'))
     testImplementation(project(':common:common-globalconf'))
     testImplementation(project(':common:common-jetty'))
+    testImplementation(project(':common:common-keyconf'))
     testImplementation(project(':common:common-message'))
     testImplementation(project(':common:common-test'))
     testImplementation(project(':common:common-verifier'))
     testImplementation(project(':serverconf'))
-    testImplementation project(path: ":proxy:core", configuration: 'testArtifacts')
+    testImplementation(project(':security-server:edc-client'))
+    testImplementation(project(path: ":proxy:core", configuration: 'testArtifacts'))
 }
 
 jar {
