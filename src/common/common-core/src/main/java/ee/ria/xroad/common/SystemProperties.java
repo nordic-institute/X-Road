@@ -434,8 +434,6 @@ public final class SystemProperties {
 
     public static final String SIGNER_KEY_SIGN_ALGORITHM_NAME = SIGNER_PREFIX + "key-sign-algorithm-name";
 
-    public static final String PASSWORD_STORE_IPC_KEY_PATHNAME = SIGNER_PREFIX + "password-store-ipc-key-pathname";
-
     public static final int MIN_SIGNER_KEY_LENGTH = 2048;
     public static final int DEFAULT_SIGNER_KEY_LENGTH = MIN_SIGNER_KEY_LENGTH;
     public static final SignAlgorithm DEFAULT_SIGNER_KEY_SIGN_ALGORITHM = SignAlgorithm.SHA512_WITH_RSA;
@@ -1261,15 +1259,6 @@ public final class SystemProperties {
         return Optional.ofNullable(System.getProperty(SIGNER_KEY_SIGN_ALGORITHM_NAME))
                 .map(SignAlgorithm::ofName)
                 .orElse(DEFAULT_SIGNER_KEY_SIGN_ALGORITHM);
-    }
-
-    /**
-     * Get the pathname for password store IPC key generation (used as an input for ftok kernel function).
-     *
-     * @return path
-     */
-    public static String getSignerPasswordStoreIPCKeyPathname() {
-        return System.getProperty(PASSWORD_STORE_IPC_KEY_PATHNAME, "/");
     }
 
     /**
