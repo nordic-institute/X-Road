@@ -46,6 +46,7 @@ import java.security.KeyStoreException;
 import java.security.NoSuchAlgorithmException;
 import java.security.UnrecoverableKeyException;
 import java.util.concurrent.ForkJoinPool;
+import java.util.concurrent.ForkJoinWorkerThread;
 import java.util.function.Consumer;
 
 /**
@@ -64,7 +65,8 @@ public class RpcServer implements InitializingBean, DisposableBean {
                 .channelFactory(NioServerSocketChannel::new)
                 .bossEventLoopGroup(new NioEventLoopGroup(1, bossGroupThreadFactory))
                 .workerEventLoopGroup(new NioEventLoopGroup(0, workerGroupThreadFactory))
-                .executor(ForkJoinPool.commonPool());
+                .executor(new ForkJoinPool(Runtime.getRuntime().availableProcessors(),
+                        new SpringAwareThreadFactory(), null, true));
 
         configFunc.accept(builder);
 
@@ -98,4 +100,22 @@ public class RpcServer implements InitializingBean, DisposableBean {
         return new RpcServer(host, port, serverCredentials, configFunc);
     }
 
+    /**
+     * TODO Workaround for spring boot classloader issue.
+     * Remove this when fixed in spring boot.
+     * https://github.com/spring-projects/spring-boot/issues/39843
+     */
+    private static class SpringAwareThreadFactory implements ForkJoinPool.ForkJoinWorkerThreadFactory {
+        @Override
+        public final ForkJoinWorkerThread newThread(ForkJoinPool pool) {
+            return new MyForkJoinWorkerThread(pool);
+        }
+
+        private static class MyForkJoinWorkerThread extends ForkJoinWorkerThread {
+            private MyForkJoinWorkerThread(final ForkJoinPool pool) {
+                super(pool);
+                setContextClassLoader(Thread.currentThread().getContextClassLoader());
+            }
+        }
+    }
 }
