@@ -63,13 +63,6 @@ bootJar {
     }
 }
 
-//shadowJar {
-//    exclude('**/module-info.class')
-//    archiveClassifier = ''
-//    archiveBaseName = 'configuration-client'
-//    mergeServiceFiles()
-//}
-
 jar.enabled = false
 
 tasks.register('runConfigurationClient', JavaExec) {
