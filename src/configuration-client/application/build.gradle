@@ -3,28 +3,29 @@ plugins {
     id 'maven-publish'
 }
 
-publishing {
-    publications {
-        shadow(MavenPublication) { publication ->
-            project.shadow.component(publication)
-            groupId = 'org.niis.xroad'
-            artifactId = "configuration-client"
-            version = xroadVersion + ("RELEASE".equals(xroadBuildType) ? "": "-SNAPSHOT")
-        }
-    }
-    repositories {
-        maven {
-            url = xroadPublishUrl
-            credentials {
-                username = xroadPublishUser
-                password = xroadPublishApiKey
-            }
-            authentication {
-                basic(BasicAuthentication)
-            }
-        }
-    }
-}
+// TODO xroad8 refactor to work without shadowjar
+//publishing {
+//    publications {
+//        shadow(MavenPublication) { publication ->
+//            project.shadow.component(publication)
+//            groupId = 'org.niis.xroad'
+//            artifactId = "configuration-client"
+//            version = xroadVersion + ("RELEASE".equals(xroadBuildType) ? "": "-SNAPSHOT")
+//        }
+//    }
+//    repositories {
+//        maven {
+//            url = xroadPublishUrl
+//            credentials {
+//                username = xroadPublishUser
+//                password = xroadPublishApiKey
+//            }
+//            authentication {
+//                basic(BasicAuthentication)
+//            }
+//        }
+//    }
+//}
 
 dependencies {
     implementation(platform(libs.springCloud.bom))
@@ -32,7 +33,8 @@ dependencies {
     implementation project(':common:common-core')
     implementation project(':configuration-client:core')
 
-    implementation('org.springframework:spring-context')
+    implementation("org.springframework.boot:spring-boot-starter")
+    implementation("org.springframework.cloud:spring-cloud-config-client")
 
     testImplementation project(':common:common-test')
 }
@@ -49,6 +51,7 @@ jar {
 
 bootJar {
     enabled = true
+    archiveBaseName = 'configuration-client'
 
     manifest {
         attributes(
@@ -59,18 +62,7 @@ bootJar {
     }
 }
 
-//shadowJar {
-//    exclude('**/module-info.class')
-//    archiveClassifier = ''
-//    archiveBaseName = 'configuration-client'
-//    mergeServiceFiles()
-//}
-
 jar.enabled = false
-
-//build {
-//    dependsOn shadowJar
-//}
 
 tasks.register('runConfigurationClient', JavaExec) {
     jvmArgs '-Dxroad.conf.path=build/',

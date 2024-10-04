@@ -34,6 +34,9 @@ import org.springframework.boot.WebApplicationType;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.builder.SpringApplicationBuilder;
 
+import java.util.ArrayList;
+import java.util.List;
+
 /**
  * Signer main program.
  */
@@ -43,11 +46,12 @@ public class SignerMain {
 
     private static final String APP_NAME = "xroad-signer";
 
-    public static void main(String[] args) throws Exception {
+    public static void main(String[] args) {
         Version.outputVersionInfo(APP_NAME);
 
+
         new SpringApplicationBuilder(SignerMain.class, SignerConfig.class)
-                .profiles("group-ee")//TODO load dynamically
+                .profiles(resolveProfiles())
                 .initializers(applicationContext -> {
                     log.info("Setting property source to Spring environment..");
                     SystemPropertySource.setEnvironment(applicationContext.getEnvironment());
@@ -57,4 +61,21 @@ public class SignerMain {
                 .run(args);
     }
 
+    private static String[] resolveProfiles() {
+        var xroadEnv = System.getenv("XROAD_ENV");
+
+        List<String> profiles = new ArrayList<>();
+
+        //TODO constants
+        if ("security-server".equals(xroadEnv)) {
+            profiles.add("env-ss");
+        } else if ("central-server".equals(xroadEnv)) {
+            profiles.add("env-cs");
+        }
+
+        profiles.add("group-ee"); //TODO add conditions
+
+        profiles.add("override");
+        return profiles.toArray(new String[0]);
+    }
 }

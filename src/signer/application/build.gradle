@@ -1,31 +1,31 @@
 plugins {
-    alias(libs.plugins.shadow)
+    alias(libs.plugins.springBoot)
 }
 
 dependencies {
-    implementation(platform(libs.springBoot.bom))
+    implementation(platform(libs.springCloud.bom))
 
     implementation project(':common:common-core')
     implementation project(':signer:core')
 
-    implementation('org.springframework:spring-context')
+    implementation("org.springframework.boot:spring-boot-starter")
+    implementation("org.springframework.cloud:spring-cloud-config-client")
 }
 
-jar.enabled = false
+jar {
+    enabled = false
+}
 
-shadowJar {
-    archiveClassifier = ''
+bootJar {
+    enabled = true
     archiveBaseName = 'signer'
     manifest {
-        attributes 'Main-Class': 'ee.ria.xroad.signer.SignerMain'
+        attributes(
+            'Implementation-Title': 'X-Road Signer',
+            'Implementation-Version': "$xroadVersion-$xroadBuildType",
+            'Main-Class': 'org.springframework.boot.loader.launch.PropertiesLauncher'
+        )
     }
-    exclude('**/module-info.class')
-    from rootProject.file("LICENSE.txt")
-    mergeServiceFiles()
-}
-
-build {
-    dependsOn shadowJar
 }
 
 // XXX For running several instances side-by-side, do not use the gradle task --

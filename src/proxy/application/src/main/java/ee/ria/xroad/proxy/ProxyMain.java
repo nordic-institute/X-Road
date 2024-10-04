@@ -58,13 +58,4 @@ public class ProxyMain {
                 .build()
                 .run(args);
     }
-
-    /**
-     * Return X-Road software version
-     *
-     * @return version string e.g. 6.19.0
-     */
-    public static String readProxyVersion() {
-        return Version.XROAD_VERSION;
-    }
 }

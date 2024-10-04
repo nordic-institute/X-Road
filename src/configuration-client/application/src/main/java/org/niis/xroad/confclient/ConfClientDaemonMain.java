@@ -25,50 +25,32 @@
  */
 package org.niis.xroad.confclient;
 
-import ee.ria.xroad.common.SystemPropertiesLoader;
+import ee.ria.xroad.common.SystemPropertySource;
 import ee.ria.xroad.common.Version;
 
 import lombok.extern.slf4j.Slf4j;
 import org.niis.xroad.confclient.config.ConfClientRootConfig;
-import org.springframework.context.annotation.AnnotationConfigApplicationContext;
-import org.springframework.context.support.GenericApplicationContext;
-
-import static ee.ria.xroad.common.SystemProperties.CONF_FILE_PROXY;
+import org.springframework.boot.WebApplicationType;
+import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.boot.builder.SpringApplicationBuilder;
 
 @Slf4j
+@SpringBootApplication
 public class ConfClientDaemonMain {
     static final String APP_NAME = "xroad-confclient";
 
     public static void main(String[] args) {
-        try {
-            new ConfClientDaemonMain().createApplicationContext();
-        } catch (Exception ex) {
-            log.error("Proxy failed to start", ex);
-            throw ex;
-        }
-    }
-
-    public GenericApplicationContext createApplicationContext(Class<?>... ctxExtension) {
-        var startTime = System.currentTimeMillis();
         Version.outputVersionInfo(APP_NAME);
-        log.info("Starting {} ({})...", APP_NAME, Version.XROAD_VERSION);
 
-        SystemPropertiesLoader.create()
-                .withCommonAndLocal()
-                .with(CONF_FILE_PROXY, "configuration-client")
-                .load();
-        log.info("Loaded system properties...");
-
-        var springCtx = new AnnotationConfigApplicationContext();
-        springCtx.register(ConfClientRootConfig.class);
-        if (ctxExtension.length > 0) {
-            springCtx.register(ctxExtension);
-        }
-
-        springCtx.refresh();
-        springCtx.registerShutdownHook();
-
-        log.info("{} started in {} ms", APP_NAME, System.currentTimeMillis() - startTime);
-        return springCtx;
+        new SpringApplicationBuilder(ConfClientDaemonMain.class, ConfClientRootConfig.class)
+                .profiles("group-ee")//TODO load dynamically
+                .initializers(applicationContext -> {
+                    log.info("Setting property source to Spring environment..");
+                    SystemPropertySource.setEnvironment(applicationContext.getEnvironment());
+                })
+                .web(WebApplicationType.NONE)
+                .build()
+                .run(args);
     }
+
 }

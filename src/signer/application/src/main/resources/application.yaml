@@ -1,10 +1,10 @@
 spring:
   application:
     name: signer
-  config:
-    import: configserver:${XRD_CONFIG_SERVER_URI}
-  profiles:
-    active: override
+  cloud:
+    config:
+      enabled: false
+
   output:
     ansi:
       enabled: detect #TODO implementing logging changes to support ansi colors

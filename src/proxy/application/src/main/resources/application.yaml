@@ -10,6 +10,7 @@ spring:
       enabled: detect #TODO implementin logging changes to support ansi colors
   main:
     banner-mode: log
+
 xroad:
   proxy:
     jetty-serverproxy-configuration-file: /etc/xroad/jetty/serverproxy.xml
