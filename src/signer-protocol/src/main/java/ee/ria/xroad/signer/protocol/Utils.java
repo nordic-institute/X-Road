@@ -1,5 +1,6 @@
-/**
+/*
  * The MIT License
+ *
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
@@ -23,22 +24,48 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-#include <stdio.h>
-#include <string.h>
 
-#include "passwordstore.h"
+package ee.ria.xroad.signer.protocol;
 
-int main(int argc, char **argv)
-{
-    int err;
-    (void) argc;
-    (void) argv;
+import lombok.experimental.UtilityClass;
+import org.apache.commons.io.output.WriterOutputStream;
 
-    err = LEGACY_passwordClear("/", 0600);
-    if (err != 0) {
-        fprintf(stderr, "ERROR: %s\n", LEGACY_strError(err));
-        return 1;
+import java.io.ByteArrayOutputStream;
+import java.io.CharArrayWriter;
+import java.io.IOException;
+import java.io.OutputStreamWriter;
+
+import static java.nio.charset.StandardCharsets.UTF_8;
+
+@UtilityClass
+public class Utils {
+
+    public static byte[] charToByte(char[] buffer) {
+        if (buffer == null) {
+            return null;
+        }
+        try {
+            ByteArrayOutputStream os = new ByteArrayOutputStream(buffer.length * 2);
+            OutputStreamWriter writer = new OutputStreamWriter(os, UTF_8);
+            writer.write(buffer);
+            writer.close();
+            return os.toByteArray();
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
     }
 
-    return 0;
+    public static char[] byteToChar(byte[] bytes) throws IOException {
+        if (bytes == null) {
+            return null;
+        }
+
+        CharArrayWriter writer = new CharArrayWriter(bytes.length);
+        WriterOutputStream os = new WriterOutputStream(writer, UTF_8);
+        os.write(bytes);
+        os.close();
+
+        return writer.toCharArray();
+    }
+
 }

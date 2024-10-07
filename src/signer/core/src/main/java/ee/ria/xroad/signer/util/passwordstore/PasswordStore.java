@@ -23,21 +23,15 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package ee.ria.xroad.common.util;
+package ee.ria.xroad.signer.util.passwordstore;
 
 import ee.ria.xroad.common.SystemProperties;
 
 import lombok.AccessLevel;
 import lombok.NoArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.io.output.WriterOutputStream;
 
-import java.io.ByteArrayOutputStream;
-import java.io.CharArrayWriter;
-import java.io.IOException;
-import java.io.OutputStreamWriter;
-
-import static java.nio.charset.StandardCharsets.UTF_8;
+import static ee.ria.xroad.signer.protocol.Utils.byteToChar;
 
 /**
  * Manages passwords that are shared across different JVMs.
@@ -48,7 +42,6 @@ import static java.nio.charset.StandardCharsets.UTF_8;
 public final class PasswordStore {
     private static final String CFG_PASSWORD_STORE_PROVIDER = SystemProperties.PREFIX + "internal.passwordstore-provider";
     private static final String CFG_PASSWORD_STORE_FILE = "file";
-    private static final int PERMISSIONS = 0600;
 
     private static final PasswordStoreProvider PASSWORD_STORE_PROVIDER;
 
@@ -57,7 +50,7 @@ public final class PasswordStore {
             log.warn("WARNING: FilePasswordStoreProvider is enabled. This provider is not production ready.");
             PASSWORD_STORE_PROVIDER = new FilePasswordStoreProvider();
         } else {
-            PASSWORD_STORE_PROVIDER = new MemoryPasswordStoreProvider();
+            PASSWORD_STORE_PROVIDER = new LocalPasswordStoreProvider();
         }
     }
 
@@ -73,7 +66,7 @@ public final class PasswordStore {
      * @throws Exception in case of any errors
      */
     public static char[] getPassword(String id) throws Exception {
-        byte[] raw = PASSWORD_STORE_PROVIDER.read(getPathnameForFtok(), id);
+        byte[] raw = PASSWORD_STORE_PROVIDER.read(id);
         return raw == null ? null : byteToChar(raw);
     }
 
@@ -85,10 +78,9 @@ public final class PasswordStore {
      * @param password password to be stored
      * @throws Exception in case of any errors
      */
-    public static void storePassword(String id, char[] password)
+    public static void storePassword(String id, byte[] password)
             throws Exception {
-        byte[] raw = charToByte(password);
-        PASSWORD_STORE_PROVIDER.write(getPathnameForFtok(), id, raw, PERMISSIONS);
+        PASSWORD_STORE_PROVIDER.write(id, password);
     }
 
     /**
@@ -97,43 +89,14 @@ public final class PasswordStore {
      * @throws Exception in case of any errors
      */
     public static void clearStore() throws Exception {
-        PASSWORD_STORE_PROVIDER.clear(getPathnameForFtok(), PERMISSIONS);
-    }
-
-    private static byte[] charToByte(char[] buffer) throws IOException {
-        if (buffer == null) {
-            return null;
-        }
-
-        ByteArrayOutputStream os = new ByteArrayOutputStream(buffer.length * 2);
-        OutputStreamWriter writer = new OutputStreamWriter(os, UTF_8);
-        writer.write(buffer);
-        writer.close();
-        return os.toByteArray();
-    }
-
-    private static char[] byteToChar(byte[] bytes) throws IOException {
-        if (bytes == null) {
-            return null;
-        }
-
-        CharArrayWriter writer = new CharArrayWriter(bytes.length);
-        WriterOutputStream os = new WriterOutputStream(writer, UTF_8);
-        os.write(bytes);
-        os.close();
-
-        return writer.toCharArray();
-    }
-
-    private static String getPathnameForFtok() {
-        return SystemProperties.getSignerPasswordStoreIPCKeyPathname();
+        PASSWORD_STORE_PROVIDER.clear();
     }
 
     public interface PasswordStoreProvider {
-        byte[] read(String pathnameForFtok, String id) throws Exception;
+        byte[] read(String id) throws Exception;
 
-        void write(String pathnameForFtok, String id, byte[] password, int permissions) throws Exception;
+        void write(String id, byte[] password) throws Exception;
 
-        void clear(String pathnameForFtok, int permissions) throws Exception;
+        void clear() throws Exception;
     }
 }

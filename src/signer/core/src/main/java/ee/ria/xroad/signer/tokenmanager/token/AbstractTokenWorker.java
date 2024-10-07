@@ -27,11 +27,11 @@ package ee.ria.xroad.signer.tokenmanager.token;
 
 import ee.ria.xroad.common.crypto.KeyManagers;
 import ee.ria.xroad.common.crypto.identifier.SignAlgorithm;
-import ee.ria.xroad.common.util.PasswordStore;
 import ee.ria.xroad.signer.protocol.dto.KeyInfo;
 import ee.ria.xroad.signer.protocol.dto.TokenInfo;
 import ee.ria.xroad.signer.tokenmanager.TokenManager;
 import ee.ria.xroad.signer.util.SignerUtil;
+import ee.ria.xroad.signer.util.passwordstore.PasswordStore;
 
 import lombok.Value;
 import lombok.extern.slf4j.Slf4j;
@@ -74,6 +74,12 @@ public abstract class AbstractTokenWorker implements TokenWorker, WorkerWithLife
     @Override
     public void handleActivateToken(ActivateTokenReq message) {
         try {
+            if (!message.getActivate()) {
+                PasswordStore.storePassword(message.getTokenId(), null);
+            } else if (message.hasPin()) {
+                PasswordStore.storePassword(message.getTokenId(), message.getPin().toByteArray());
+            }
+
             activateToken(message);
 
             refresh();
