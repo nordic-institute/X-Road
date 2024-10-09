@@ -42,6 +42,10 @@ deploy_module() {
     jar_path="$XROAD_HOME/src/op-monitor-daemon/application/build/libs/op-monitor-daemon-1.0.jar"
     service_name="all"
     ;;
+  "monitor")
+    jar_path="$XROAD_HOME/src/monitor/build/libs/monitor-1.0.jar"
+    service_name="xroad-monitor"
+    ;;
   "cs-admin-service")
     jar_path="$XROAD_HOME/src/central-server/admin-service/application/build/libs/centralserver-admin-service-1.0.jar"
     service_name="xroad-center"
@@ -87,10 +91,14 @@ deploy_module() {
 set -o xtrace
 
 case $1 in
-"proxy" | "messagelog-addon" | "metaservice-addon" | "proxy-ui-api" | "signer" | "configuration-client" | "asicverifier" | "op-monitor-daemon" | "edc-control-plane" | "edc-data-plane" | "edc-ih")
+"proxy" | "messagelog-addon" | "metaservice-addon" | "proxy-ui-api" | "configuration-client" | "asicverifier" | "op-monitor-daemon" | "monitor" | "edc-control-plane" | "edc-data-plane" | "edc-ih")
   deploy_module "$1" "ss0" "ss1"
   ;;
 "cs-admin-service" | "cs-management-service" | "cs-registration-service" | "cs-edc")
+  deploy_module "$1" "cs"
+  ;;
+"signer")
+  deploy_module "$1" "ss0" "ss1"
   deploy_module "$1" "cs"
   ;;
 *)

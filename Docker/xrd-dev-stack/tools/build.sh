@@ -49,6 +49,9 @@ case $1 in
 "op-monitor-daemon")
   gradleModule="op-monitor-daemon"
   ;;
+"monitor")
+  gradleModule="monitor"
+  ;;
 esac
 
 cd "$XROAD_HOME"/src/
