@@ -1,5 +1,6 @@
 /*
  * The MIT License
+ *
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
@@ -23,34 +24,19 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package ee.ria.xroad.opmonitordaemon.config;
 
-import ee.ria.xroad.common.conf.globalconf.GlobalConfBeanConfig;
-import ee.ria.xroad.common.conf.globalconf.GlobalConfProvider;
-import ee.ria.xroad.common.conf.globalconf.GlobalConfRefreshJobConfig;
-import ee.ria.xroad.opmonitordaemon.OpMonitorDaemon;
+package org.niis.xroad.common.rpc;
 
-import org.niis.xroad.common.rpc.RpcClientProperties;
-import org.niis.xroad.confclient.proto.ConfClientRpcClient;
-import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Configuration;
-import org.springframework.context.annotation.Import;
+import lombok.Getter;
 
-@Import({OpMonitorDaemonJobConfig.class,
-        GlobalConfBeanConfig.class,
-        GlobalConfRefreshJobConfig.class
-})
-@Configuration
-public class OpMonitorDaemonRootConfig {
+@Getter
+public class RpcServerProperties extends RpcProperties {
+    private final String grpcListenAddress;
 
-    @Bean
-    OpMonitorDaemon opMonitorDaemon(GlobalConfProvider globalConfProvider) throws Exception {
-        return new OpMonitorDaemon(globalConfProvider);
+    public RpcServerProperties(String grpcListenAddress, int grpcPort, boolean grpcTlsEnabled,
+                               String grpcTlsTrustStore, char[] grpcTlsTrustStorePassword,
+                               String grpcTlsKeyStore, char[] grpcTlsKeyStorePassword) {
+        super(grpcPort, grpcTlsEnabled, grpcTlsTrustStore, grpcTlsTrustStorePassword, grpcTlsKeyStore, grpcTlsKeyStorePassword);
+        this.grpcListenAddress = grpcListenAddress;
     }
-
-    @Bean
-    ConfClientRpcClient confClientRpcClient(RpcClientProperties confClientRpcClientProperties) {
-        return new ConfClientRpcClient(confClientRpcClientProperties);
-    }
-
 }

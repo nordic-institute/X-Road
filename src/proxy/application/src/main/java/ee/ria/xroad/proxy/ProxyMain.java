@@ -29,21 +29,29 @@ import ee.ria.xroad.common.SystemPropertySource;
 import ee.ria.xroad.common.Version;
 
 import lombok.extern.slf4j.Slf4j;
+import org.niis.xroad.common.rpc.RpcClientProperties;
+import org.niis.xroad.common.rpc.RpcServerProperties;
 import org.niis.xroad.proxy.configuration.ProxyConfig;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.WebApplicationType;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.builder.SpringApplicationBuilder;
+import org.springframework.boot.context.properties.ConfigurationProperties;
+import org.springframework.boot.context.properties.EnableConfigurationProperties;
 
 /**
  * Main program for the proxy server.
  */
 @Slf4j
 @SpringBootApplication
+@EnableConfigurationProperties({ProxyMain.ConfClientRpcClientProperties.class,
+        ProxyMain.SignerRpcClientProperties.class,
+        ProxyMain.ProxyRpcServerProperties.class})
 public class ProxyMain {
 
     private static final String APP_NAME = "xroad-proxy";
 
-    public static void main(String[] args) throws Exception {
+    public static void main(String[] args) {
         Version.outputVersionInfo(APP_NAME);
 
         new SpringApplicationBuilder(ProxyMain.class, ProxyConfig.class)
@@ -57,5 +65,36 @@ public class ProxyMain {
                 .web(WebApplicationType.NONE)
                 .build()
                 .run(args);
+    }
+
+    @ConfigurationProperties(prefix = "xroad.configuration-client")
+    @Qualifier("confClientRpcClientProperties")
+    static class ConfClientRpcClientProperties extends RpcClientProperties {
+        ConfClientRpcClientProperties(String grpcHost, int grpcPort, boolean grpcTlsEnabled,
+                                             String grpcTlsTrustStore, char[] grpcTlsTrustStorePassword,
+                                             String grpcTlsKeyStore, char[] grpcTlsKeyStorePassword) {
+            super(grpcHost, grpcPort, grpcTlsEnabled, grpcTlsTrustStore, grpcTlsTrustStorePassword, grpcTlsKeyStore, grpcTlsKeyStorePassword);
+        }
+    }
+
+    @ConfigurationProperties(prefix = "xroad.signer")
+    @Qualifier("signerRpcClientProperties")
+    static class SignerRpcClientProperties extends RpcClientProperties {
+        SignerRpcClientProperties(String grpcHost, int grpcPort, boolean grpcTlsEnabled,
+                                         String grpcTlsTrustStore, char[] grpcTlsTrustStorePassword,
+                                         String grpcTlsKeyStore, char[] grpcTlsKeyStorePassword) {
+            super(grpcHost, grpcPort, grpcTlsEnabled, grpcTlsTrustStore, grpcTlsTrustStorePassword,
+                    grpcTlsKeyStore, grpcTlsKeyStorePassword);
+        }
+    }
+
+    @ConfigurationProperties(prefix = "xroad.proxy")
+    static class ProxyRpcServerProperties extends RpcServerProperties {
+        ProxyRpcServerProperties(String grpcListenAddress, int grpcPort, boolean grpcTlsEnabled,
+                                        String grpcTlsTrustStore, char[] grpcTlsTrustStorePassword,
+                                        String grpcTlsKeyStore, char[] grpcTlsKeyStorePassword) {
+            super(grpcListenAddress, grpcPort, grpcTlsEnabled, grpcTlsTrustStore, grpcTlsTrustStorePassword,
+                    grpcTlsKeyStore, grpcTlsKeyStorePassword);
+        }
     }
 }

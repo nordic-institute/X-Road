@@ -25,7 +25,6 @@
  */
 package ee.ria.xroad.monitor.configuration;
 
-import ee.ria.xroad.common.SystemProperties;
 import ee.ria.xroad.common.conf.globalconf.GlobalConfBeanConfig;
 import ee.ria.xroad.common.conf.globalconf.GlobalConfRefreshJobConfig;
 import ee.ria.xroad.common.conf.serverconf.ServerConfBeanConfig;
@@ -39,9 +38,12 @@ import ee.ria.xroad.signer.protocol.RpcSignerClient;
 
 import io.grpc.BindableService;
 import lombok.extern.slf4j.Slf4j;
+import org.niis.xroad.common.rpc.RpcClientProperties;
 import org.niis.xroad.common.rpc.RpcCredentialsProvider;
+import org.niis.xroad.common.rpc.RpcServerProperties;
 import org.niis.xroad.common.rpc.server.RpcServer;
 import org.niis.xroad.confclient.proto.ConfClientRpcClient;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
@@ -61,17 +63,17 @@ public class MonitorConfig {
     private static final int TASK_EXECUTOR_POOL_SIZE = 5;
 
     @Bean
-    RpcServer rpcServer(final List<BindableService> bindableServices) throws Exception {
+    RpcServer rpcServer(final List<BindableService> bindableServices, RpcServerProperties envMonitorRpcServerProperties) throws Exception {
         var credentialsProvider = new RpcCredentialsProvider.Builder()
-                .tlsEnabled(SystemProperties.isEnvMonitorGrpcTlsEnabled())
-                .keystore(SystemProperties::getEnvMonitorGrpcKeyStore)
-                .keystorePassword(SystemProperties::getEnvMonitorGrpcKeyStorePassword)
-                .truststore(SystemProperties::getEnvMonitorGrpcTrustStore)
-                .truststorePassword(SystemProperties::getEnvMonitorGrpcTrustStorePassword)
+                .tlsEnabled(envMonitorRpcServerProperties.isGrpcTlsEnabled())
+                .keystore(envMonitorRpcServerProperties::getGrpcTlsKeyStore)
+                .keystorePassword(envMonitorRpcServerProperties::getGrpcTlsKeyStorePassword)
+                .truststore(envMonitorRpcServerProperties::getGrpcTlsTrustStore)
+                .truststorePassword(envMonitorRpcServerProperties::getGrpcTlsTrustStorePassword)
                 .build();
         return RpcServer.newServer(
-                SystemProperties.getEnvMonitorGrpcListenAddress(),
-                SystemProperties.getEnvMonitorGrpcPort(),
+                envMonitorRpcServerProperties.getGrpcListenAddress(),
+                envMonitorRpcServerProperties.getGrpcPort(),
                 credentialsProvider,
                 builder -> bindableServices.forEach(bindableService -> {
                     log.info("Registering {} RPC service.", bindableService.getClass().getSimpleName());
@@ -112,13 +114,14 @@ public class MonitorConfig {
     }
 
     @Bean
-    ConfClientRpcClient confClientRpcClient() {
-        return new ConfClientRpcClient();
+    ConfClientRpcClient confClientRpcClient(@Qualifier("confClientRpcClientProperties") RpcClientProperties confClientRpcClientProperties) {
+        return new ConfClientRpcClient(confClientRpcClientProperties);
     }
 
     @Bean
-    RpcSignerClient rpcSignerClient() throws Exception {
-        return RpcSignerClient.init();
+    RpcSignerClient rpcSignerClient(@Qualifier("signerRpcClientProperties") RpcClientProperties signerRpcClientProperties)
+            throws Exception {
+        return RpcSignerClient.init(signerRpcClientProperties);
     }
 
 }

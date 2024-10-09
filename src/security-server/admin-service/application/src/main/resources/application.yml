@@ -38,3 +38,17 @@ server:
 logging:
   config: file:/etc/xroad/conf.d/proxy-ui-api-logback.xml
   config-access: file:/etc/xroad/conf.d/proxy-ui-api-logback-access.xml
+
+xroad:
+  configuration-client:
+    grpc-host: localhost
+    grpc-port: 5665
+    grpc-tls-enabled: false
+  signer:
+    grpc-host: localhost
+    grpc-port: 5560
+    grpc-tls-enabled: false
+  proxy:
+    grpc-host: localhost
+    grpc-port: 5567
+    grpc-tls-enabled: false

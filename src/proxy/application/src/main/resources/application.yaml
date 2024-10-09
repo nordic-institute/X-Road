@@ -42,6 +42,9 @@ xroad:
     jetty-clientproxy-configuration-file: /etc/xroad/jetty/clientproxy.xml
     server-listen-address: 0.0.0.0
     client-httpclient-so-linger: -1
+    grpc-listen-address: 0.0.0.0
+    grpc-port: 5567
+    grpc-tls-enabled: false
   anti-dos:
     max-cpu-load: 1.1
     max-heap-usage: 1.1
@@ -53,6 +56,12 @@ xroad:
   configuration-client:
     port: 5665
     update-interval: 60
+    grpc-host: localhost
+    grpc-port: 5665
+    grpc-tls-enabled: false
   signer:
     enforce-token-pin-policy: false
     ocsp-cache-path: /var/cache/xroad
+    grpc-host: localhost
+    grpc-port: 5560
+    grpc-tls-enabled: false

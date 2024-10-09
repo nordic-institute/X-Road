@@ -26,12 +26,12 @@
 package ee.ria.xroad.signer.protocol;
 
 import ee.ria.xroad.common.CodedException;
-import ee.ria.xroad.common.SystemProperties;
 
 import io.grpc.Channel;
 import io.opentelemetry.instrumentation.annotations.WithSpan;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
+import org.niis.xroad.common.rpc.RpcClientProperties;
 import org.niis.xroad.common.rpc.RpcCredentialsProvider;
 import org.niis.xroad.common.rpc.client.RpcClient;
 import org.niis.xroad.signer.proto.AdminServiceGrpc;
@@ -45,8 +45,6 @@ import java.util.Optional;
 
 import static ee.ria.xroad.common.ErrorCodes.SIGNER_X;
 import static ee.ria.xroad.common.SystemProperties.getSignerClientTimeout;
-import static ee.ria.xroad.common.SystemProperties.getSignerGrpcHost;
-import static ee.ria.xroad.common.SystemProperties.getSignerGrpcPort;
 
 @Slf4j
 public final class RpcSignerClient implements DisposableBean {
@@ -66,19 +64,19 @@ public final class RpcSignerClient implements DisposableBean {
      *
      * @throws Exception
      */
-    public static RpcSignerClient init() throws Exception {
-        return init(getSignerGrpcHost(), getSignerGrpcPort(), getSignerClientTimeout());
+    public static RpcSignerClient init(RpcClientProperties rpcClientProperties) throws Exception {
+        return init(rpcClientProperties, getSignerClientTimeout());
     }
 
-    public static RpcSignerClient init(String host, int port, int clientTimeoutMillis) throws Exception {
+    public static RpcSignerClient init(RpcClientProperties rpcClientProperties, int clientTimeoutMillis) throws Exception {
         var credentialsProvider = new RpcCredentialsProvider.Builder()
-                .tlsEnabled(SystemProperties.isSignerGrpcTlsEnabled())
-                .keystore(SystemProperties::getSignerGrpcKeyStore)
-                .keystorePassword(SystemProperties::getSignerGrpcKeyStorePassword)
-                .truststore(SystemProperties::getSignerGrpcTrustStore)
-                .truststorePassword(SystemProperties::getSignerGrpcTrustStorePassword)
+                .tlsEnabled(rpcClientProperties.isGrpcTlsEnabled())
+                .keystore(rpcClientProperties::getGrpcTlsKeyStore)
+                .keystorePassword(rpcClientProperties::getGrpcTlsKeyStorePassword)
+                .truststore(rpcClientProperties::getGrpcTlsTrustStore)
+                .truststorePassword(rpcClientProperties::getGrpcTlsTrustStorePassword)
                 .build();
-        return init(host, port, credentialsProvider, clientTimeoutMillis);
+        return init(rpcClientProperties.getGrpcHost(), rpcClientProperties.getGrpcPort(), credentialsProvider, clientTimeoutMillis);
     }
 
     public static RpcSignerClient init(String host, int port, RpcCredentialsProvider credentialsProvider,

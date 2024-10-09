@@ -27,6 +27,7 @@
 
 package org.niis.xroad.edc.extension.signer;
 
+import ee.ria.xroad.common.SystemProperties;
 import ee.ria.xroad.common.SystemPropertiesLoader;
 import ee.ria.xroad.common.cert.CertChainFactory;
 import ee.ria.xroad.common.conf.globalconf.GlobalConfProvider;
@@ -51,6 +52,7 @@ import org.eclipse.edc.spi.types.TypeManager;
 import org.eclipse.edc.web.spi.WebService;
 import org.eclipse.edc.web.spi.configuration.WebServiceConfigurer;
 import org.eclipse.edc.web.spi.configuration.WebServiceSettings;
+import org.niis.xroad.common.rpc.RpcClientProperties;
 import org.niis.xroad.edc.sig.XrdSignatureService;
 import org.niis.xroad.edc.spi.XrdWebServer;
 import org.niis.xroad.edc.spi.messagelog.XRoadMessageLog;
@@ -181,9 +183,20 @@ public class XrdDataPlanePublicApiExtension implements ServiceExtension {
     private void initSignerClient(Monitor monitor) {
         monitor.info("Initializing Signer client");
         try {
-            RpcSignerClient.init("localhost", 5560, 10000);
+            // todo: fixme:
+            RpcClientProperties signerClientProperties = new RpcClientProperties(
+                    SystemProperties.getSignerGrpcHost(),
+                    SystemProperties.getSignerGrpcPort(),
+                    SystemProperties.isSignerGrpcTlsEnabled(),
+                    SystemProperties.getSignerGrpcTrustStore(),
+                    SystemProperties.getSignerGrpcTrustStorePassword(),
+                    SystemProperties.getSignerGrpcKeyStore(),
+                    SystemProperties.getSignerGrpcKeyStorePassword()
+            );
+            RpcSignerClient.init(signerClientProperties, 10000);
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
     }
 }
+

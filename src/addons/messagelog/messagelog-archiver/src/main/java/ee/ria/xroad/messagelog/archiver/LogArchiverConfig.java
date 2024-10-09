@@ -25,12 +25,14 @@
  */
 package ee.ria.xroad.messagelog.archiver;
 
+import ee.ria.xroad.common.SystemProperties;
 import ee.ria.xroad.common.conf.globalconf.GlobalConfBeanConfig;
 import ee.ria.xroad.common.conf.globalconf.GlobalConfRefreshJobConfig;
 import ee.ria.xroad.common.messagelog.MessageLogProperties;
 import ee.ria.xroad.common.util.JobManager;
 import ee.ria.xroad.common.util.SpringAwareJobManager;
 
+import org.niis.xroad.common.rpc.RpcClientProperties;
 import org.niis.xroad.confclient.proto.ConfClientRpcClient;
 import org.quartz.JobDataMap;
 import org.quartz.SchedulerException;
@@ -63,7 +65,19 @@ public class LogArchiverConfig {
     }
 
     @Bean
-    ConfClientRpcClient confClientRpcClient() {
-        return new ConfClientRpcClient();
+    ConfClientRpcClient confClientRpcClient(RpcClientProperties confClientRpcClientProperties) {
+        return new ConfClientRpcClient(confClientRpcClientProperties);
+    }
+
+    @Bean
+    RpcClientProperties confClientRpcClientProperties() {
+        // todo: fixme:
+        return new RpcClientProperties(SystemProperties.getConfigurationClientGrpcHost(),
+                SystemProperties.getConfigurationClientGrpcPort(),
+                SystemProperties.isConfigurationClientGrpcTlsEnabled(),
+                SystemProperties.getConfigurationClientGrpcTrustStore(),
+                SystemProperties.getConfigurationClientGrpcTrustStorePassword(),
+                SystemProperties.getConfigurationClientGrpcKeyStore(),
+                SystemProperties.getConfigurationClientGrpcKeyStorePassword());
     }
 }

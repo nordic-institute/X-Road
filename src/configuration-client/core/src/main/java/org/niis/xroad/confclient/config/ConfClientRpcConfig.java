@@ -25,11 +25,10 @@
  */
 package org.niis.xroad.confclient.config;
 
-import ee.ria.xroad.common.SystemProperties;
-
 import io.grpc.BindableService;
 import lombok.extern.slf4j.Slf4j;
 import org.niis.xroad.common.rpc.RpcCredentialsProvider;
+import org.niis.xroad.common.rpc.RpcServerProperties;
 import org.niis.xroad.common.rpc.server.RpcServer;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -41,19 +40,19 @@ import java.util.Collection;
 public class ConfClientRpcConfig {
 
     @Bean
-    RpcServer proxyRpcServer(Collection<BindableService> services) throws Exception {
+    RpcServer proxyRpcServer(Collection<BindableService> services, RpcServerProperties confClientRpcServerProperties) throws Exception {
 
         var credentialsProvider = new RpcCredentialsProvider.Builder()
-                .tlsEnabled(SystemProperties.isConfigurationClientGrpcTlsEnabled())
-                .keystore(SystemProperties::getConfigurationClientGrpcKeyStore)
-                .keystorePassword(SystemProperties::getConfigurationClientGrpcKeyStorePassword)
-                .truststore(SystemProperties::getConfigurationClientGrpcTrustStore)
-                .truststorePassword(SystemProperties::getConfigurationClientGrpcTrustStorePassword)
+                .tlsEnabled(confClientRpcServerProperties.isGrpcTlsEnabled())
+                .keystore(confClientRpcServerProperties::getGrpcTlsKeyStore)
+                .keystorePassword(confClientRpcServerProperties::getGrpcTlsKeyStorePassword)
+                .truststore(confClientRpcServerProperties::getGrpcTlsTrustStore)
+                .truststorePassword(confClientRpcServerProperties::getGrpcTlsTrustStorePassword)
                 .build();
 
         return RpcServer.newServer(
-                SystemProperties.getConfigurationClientGrpcListenAddress(),
-                SystemProperties.getConfigurationClientGrpcPort(),
+                confClientRpcServerProperties.getGrpcListenAddress(),
+                confClientRpcServerProperties.getGrpcPort(),
                 credentialsProvider,
                 builder -> services.forEach(service -> {
                     log.info("Registering {} RPC service.", service.getClass().getSimpleName());

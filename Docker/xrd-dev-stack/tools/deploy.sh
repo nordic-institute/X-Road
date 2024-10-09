@@ -43,7 +43,7 @@ deploy_module() {
     service_name="all"
     ;;
   "monitor")
-    jar_path="$XROAD_HOME/src/monitor/build/libs/monitor-1.0.jar"
+    jar_path="$XROAD_HOME/src/monitor/application/build/libs/monitor-1.0.jar"
     service_name="xroad-monitor"
     ;;
   "cs-admin-service")

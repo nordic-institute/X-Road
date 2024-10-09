@@ -10,3 +10,9 @@ spring:
       enabled: detect #TODO implementing logging changes to support ansi colors
   main:
     banner-mode: log
+
+xroad:
+  configuration-client:
+    grpc-listen-address: 0.0.0.0
+    grpc-port: 5665
+    grpc-tls-enabled: false

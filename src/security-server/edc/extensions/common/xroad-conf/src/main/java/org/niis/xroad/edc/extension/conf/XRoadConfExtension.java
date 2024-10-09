@@ -45,6 +45,7 @@ import org.eclipse.edc.runtime.metamodel.annotation.Setting;
 import org.eclipse.edc.spi.EdcException;
 import org.eclipse.edc.spi.system.ServiceExtension;
 import org.eclipse.edc.spi.system.ServiceExtensionContext;
+import org.niis.xroad.common.rpc.RpcClientProperties;
 import org.niis.xroad.confclient.proto.ConfClientRpcClient;
 
 import java.util.concurrent.Executors;
@@ -67,7 +68,15 @@ public class XRoadConfExtension implements ServiceExtension {
     @Override
     public void initialize(ServiceExtensionContext context) {
         try {
-            var confClientRpcClient = new ConfClientRpcClient();
+            // todo: fixme: implement me !!!
+            RpcClientProperties confClientProperties =  new RpcClientProperties(SystemProperties.getConfigurationClientGrpcHost(),
+                    SystemProperties.getConfigurationClientGrpcPort(),
+                    SystemProperties.isConfigurationClientGrpcTlsEnabled(),
+                    SystemProperties.getSignerGrpcTrustStore(),
+                    SystemProperties.getConfigurationClientGrpcTrustStorePassword(),
+                    SystemProperties.getConfigurationClientGrpcKeyStore(),
+                    SystemProperties.getConfigurationClientGrpcKeyStorePassword());
+            var confClientRpcClient = new ConfClientRpcClient(confClientProperties);
             confClientRpcClient.afterPropertiesSet();
 
             var globalConfDataLoader = new RemoteGlobalConfDataLoader();

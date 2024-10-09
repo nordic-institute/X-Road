@@ -15,5 +15,16 @@ xroad:
   env-monitor:
     port: 2552
     limit-remote-data-set: false
+    grpc-listen-address: 0.0.0.0
+    grpc-port: 2552
+    grpc-tls-enabled: false
   common:
     global-conf-remoting-enabled: true
+  signer:
+    grpc-host: localhost
+    grpc-port: 5560
+    grpc-tls-enabled: false
+  configuration-client:
+    grpc-host: localhost
+    grpc-port: 5665
+    grpc-tls-enabled: false
