@@ -48,8 +48,6 @@ class IdentityHubRuntimeTest {
                     Map.entry("web.http.identity.port", String.valueOf(Ports.getFreePort())),
                     Map.entry("web.http.identity.path", "/identity"),
                     Map.entry("edc.iam.sts.privatekey.alias", "alias_ss0"),
-                    Map.entry("edc.ih.credentials.path", "%s/credentials/"
-                            .formatted(new File("src/test/resources").getAbsolutePath())),
                     Map.entry("EDC_HOSTNAME", "ss0")
             ));
 

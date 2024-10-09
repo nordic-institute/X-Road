@@ -51,8 +51,8 @@ public class ExtJws2020ProofDraft extends ProofDraft {
     private final URI proofPurpose;
     private ObjectMapper mapper;
 
-    private ExtJws2020ProofDraft(CryptoSuite crypto, VerificationMethod method, Instant created, URI proofPurpose) {
-        super(crypto, method);
+    private ExtJws2020ProofDraft(CryptoSuite crypto, URI verificationUrl, Instant created, URI proofPurpose) {
+        super(crypto, verificationUrl);
         this.created = created;
         this.proofPurpose = proofPurpose;
     }
@@ -83,6 +83,8 @@ public class ExtJws2020ProofDraft extends ProofDraft {
         private Instant created;
         private URI proofPurpose;
         private VerificationMethod method;
+
+        private URI verificatonUrl;
         private URI id;
         private ObjectMapper mapper;
 
@@ -108,8 +110,8 @@ public class ExtJws2020ProofDraft extends ProofDraft {
             return this;
         }
 
-        public Builder method(VerificationMethod method) {
-            this.method = method;
+        public Builder verificationUrl(URI verificatonUrl) {
+            this.verificatonUrl = verificatonUrl;
             return this;
         }
 
@@ -125,7 +127,7 @@ public class ExtJws2020ProofDraft extends ProofDraft {
 
         public ExtJws2020ProofDraft build() {
             Objects.requireNonNull(mapper, "mapper is required");
-            var draft = new ExtJws2020ProofDraft(new ExtJws2020CryptoSuite(), method, created, proofPurpose);
+            var draft = new ExtJws2020ProofDraft(new ExtJws2020CryptoSuite(), verificatonUrl, created, proofPurpose);
             draft.id = this.id;
             draft.mapper = mapper;
             return draft;

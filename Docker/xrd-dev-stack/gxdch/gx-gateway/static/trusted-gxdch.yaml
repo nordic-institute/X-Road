@@ -1,0 +1,6 @@
+registry:
+  - gxdch/registry
+compliance:
+  - gxdch/compliance
+registration-notary:
+  - gxdch/notary
