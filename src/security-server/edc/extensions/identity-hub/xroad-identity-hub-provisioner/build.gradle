@@ -1,0 +1,34 @@
+plugins {
+    id 'java-library'
+}
+
+dependencies {
+    //implementation libs.edc.ih.did
+    // BEGIN dependencies required for forking the above a.k.a. "identity-hub-did" module
+    implementation libs.edc.ih.spi.did
+    implementation libs.edc.spi.transaction
+    implementation libs.edc.lib.store
+    // END
+
+    implementation libs.edc.boot
+    implementation libs.edc.ext.jsonld
+
+    implementation libs.edc.ih.spi.store
+    implementation libs.edc.lib.jws2020
+    implementation libs.edc.lib.jsonld
+    implementation libs.edc.spi.jwt.signer
+    implementation libs.nimbus.jose.jwt
+    implementation libs.edc.lib.crypto
+    implementation libs.bouncyCastle.bcprov
+
+    implementation(project(":security-server:edc:extensions:common:xroad-ldp-verifiable-credentials"))
+    implementation(project(':signer-protocol'))
+    implementation(project(':common:common-globalconf'))
+
+    testImplementation libs.edc.junit
+    testImplementation libs.mockito.jupiter
+}
+
+checkstyle {
+    checkstyleMain.enabled = false
+}

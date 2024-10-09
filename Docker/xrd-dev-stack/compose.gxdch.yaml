@@ -1,0 +1,89 @@
+services:
+  gx-registry-mongo:
+    image: mongo
+    container_name: registry-mongo
+#    ports:
+#      - 27017:27017
+    volumes:
+      - data:/data/db
+      - ./gxdch/gx-registry-mongo/mongo_init.js:/docker-entrypoint-initdb.d/mongo_init.js
+    env_file:
+      - gxdch/gx-registry-mongo/.env
+    networks:
+      - xroad-network
+  gx-registry:
+    image: registry.gitlab.com/gaia-x/lab/compliance/gx-registry:v2.1.0
+    container_name: gx-registry
+#    ports:
+#      - 3000:3000
+    volumes:
+      - ipfs-data:/data/ipfs
+      - ./gxdch/gx-registry/ipfs-data/registry:/data/ipfs/registry
+    env_file:
+      - gxdch/gx-registry/.env
+    networks:
+      - xroad-network
+    depends_on:
+      - gx-registry-mongo
+  gx-kubo-node:
+    image: ipfs/kubo
+    container_name: gx-kubo-node
+#    ports:
+#      - 4001:4001 # IPFS Swarm
+#      - 5001:5001 # IPFS API
+#      - 8080:8080 # IPFS Gateway
+    volumes:
+      - ipfs-data:/data/ipfs
+    networks:
+      - xroad-network
+
+  gx-notary:
+    image: registry.gitlab.com/gaia-x/lab/compliance/gaia-x-notary-registrationnumber:v2.2.0
+    container_name: gx-notary
+#    ports:
+#      - 3001:3000
+    env_file:
+      - gxdch/gx-notary/.env
+    networks:
+      - xroad-network
+
+  gx-compliance:
+    image: registry.gitlab.com/gaia-x/lab/compliance/gx-compliance:v2.1.0
+    container_name: gx-compliance
+#    ports:
+#      - 3002:3000
+    env_file:
+      - gxdch/gx-compliance/.env
+    networks:
+      - xroad-network
+  gx-compliance-db:
+    image: memgraph/memgraph:latest
+    container_name: gx-compliance-db
+#    ports:
+#      - 7687:7687
+    networks:
+      - xroad-network
+
+  gx-gateway:
+    image: nginx:latest
+    container_name: gxdch
+    volumes:
+      - ./gxdch/gx-gateway/nginx.conf:/etc/nginx/nginx.conf
+      - ./gxdch/gx-gateway/ssl/nginx.crt:/etc/ssl/certs/nginx.crt
+      - ./gxdch/gx-gateway/ssl/nginx.key:/etc/ssl/certs/nginx.key
+      - ./gxdch/gx-gateway/static:/var/www/gx
+#    ports:
+#      - 3443:443
+    networks:
+      - xroad-network
+    depends_on:
+      - gx-registry
+      - gx-notary
+      - gx-compliance
+
+
+volumes:
+  data:
+    driver: local
+  ipfs-data:
+    driver: local

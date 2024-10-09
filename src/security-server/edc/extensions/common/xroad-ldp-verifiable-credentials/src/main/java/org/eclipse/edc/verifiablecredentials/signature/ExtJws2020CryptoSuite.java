@@ -18,8 +18,8 @@ import com.apicatalog.ld.signature.CryptoSuite;
 import com.apicatalog.ld.signature.primitive.MessageDigest;
 import com.apicatalog.ld.signature.primitive.Urdna2015;
 
-class ExtJws2020CryptoSuite extends CryptoSuite {
-    ExtJws2020CryptoSuite() {
+public class ExtJws2020CryptoSuite extends CryptoSuite {
+    public ExtJws2020CryptoSuite() {
         super(new Urdna2015(), new MessageDigest("SHA-256"), new ExtJws2020Signature());
     }
 }

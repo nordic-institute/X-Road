@@ -1,0 +1,210 @@
+[ {
+  "@id" : "http://creativecommons.org/ns#license",
+  "@type" : [ "http://www.w3.org/2002/07/owl#AnnotationProperty" ]
+}, {
+  "@id" : "http://purl.org/dc/terms/abstract",
+  "@type" : [ "http://www.w3.org/2002/07/owl#AnnotationProperty" ]
+}, {
+  "@id" : "http://purl.org/dc/terms/contributor",
+  "@type" : [ "http://www.w3.org/2002/07/owl#AnnotationProperty" ]
+}, {
+  "@id" : "http://purl.org/dc/terms/created",
+  "@type" : [ "http://www.w3.org/2002/07/owl#AnnotationProperty" ]
+}, {
+  "@id" : "http://purl.org/dc/terms/creator",
+  "@type" : [ "http://www.w3.org/2002/07/owl#AnnotationProperty" ]
+}, {
+  "@id" : "http://purl.org/dc/terms/modified",
+  "@type" : [ "http://www.w3.org/2002/07/owl#AnnotationProperty" ]
+}, {
+  "@id" : "http://purl.org/dc/terms/title",
+  "@type" : [ "http://www.w3.org/2002/07/owl#AnnotationProperty" ]
+}, {
+  "@id" : "http://purl.org/vocab/vann/preferredNamespacePrefix",
+  "@type" : [ "http://www.w3.org/2002/07/owl#AnnotationProperty" ]
+}, {
+  "@id" : "http://purl.org/vocab/vann/preferredNamespaceUri",
+  "@type" : [ "http://www.w3.org/2002/07/owl#AnnotationProperty" ]
+}, {
+  "@id" : "http://purl.org/vocommons/voaf#Vocabulary",
+  "@type" : [ "http://www.w3.org/2002/07/owl#Class" ]
+}, {
+  "@id" : "http://rdfs.org/ns/void#vocabulary",
+  "@type" : [ "http://www.w3.org/2002/07/owl#AnnotationProperty" ]
+}, {
+  "@id" : "http://w3id.org/gaia-x/core#",
+  "@type" : [ "http://www.w3.org/2002/07/owl#Ontology", "http://www.w3.org/2002/07/owl#NamedIndividual", "http://purl.org/vocommons/voaf#Vocabulary" ],
+  "http://creativecommons.org/ns#license" : [ {
+    "@id" : "http://www.apache.org/licenses/LICENSE-2.0"
+  } ],
+  "http://purl.org/dc/terms/abstract" : [ {
+    "@value" : "The Gaia-X core ontology contains the components needed to model an efficient, competitive, secure and trustworthy federation of data infrastructure and service providers.\n\nThe different ontology modules can be found here: \n\nCore: <a href=\"https://www.w3id.org/gaia-x/core\">https://www.w3id.org/gaia-x/core</a> \n\nResource: <a href=\"https://www.w3id.org/gaia-x/resource\">https://www.w3id.org/gaia-x/resource</a> \n\nParticipant: <a href=\"https://www.w3id.org/gaia-x/participant\">https://www.w3id.org/gaia-x/participant</a> \n\nService Offering: <a href=\"https://www.w3id.org/gaia-x/service\">https://www.w3id.org/gaia-x/service</a> \n\nCompliance: <a href=\"https://www.w3id.org/gaia-x/compliance\">https://www.w3id.org/gaia-x/compliance</a> \n\nAll underlying information for this documentation page can be found on the landing page of the Gaia-X Service Characteristics repository: <a href=\"https://gaia-x.gitlab.io/technical-committee/service-characteristics\">https://gaia-x.gitlab.io/technical-committee/service-characteristics</a>.\n\nAdditional information on the constraints that have to be fulfilled be the self descriptions can be found here: <a href=\"https://gaia-x.gitlab.io/technical-committee/service-characteristics/yaml2shacl\">https://gaia-x.gitlab.io/technical-committee/service-characteristics/yaml2shacl</a>."
+  } ],
+  "http://purl.org/dc/terms/contributor" : [ {
+    "@value" : "Akyürek, Haydar"
+  }, {
+    "@value" : "Bader, Sebastian"
+  }, {
+    "@value" : "Baum, Hannes"
+  }, {
+    "@value" : "Blanch, Josep"
+  }, {
+    "@value" : "Frömberg, Jan"
+  }, {
+    "@value" : "Gronlier, Pierre"
+  }, {
+    "@value" : "Hermsen, Felix"
+  }, {
+    "@value" : "Lange, Christoph"
+  }, {
+    "@value" : "Langkau, Jörg"
+  }, {
+    "@value" : "Leberecht, Markus"
+  }, {
+    "@value" : "Meinke, Kai"
+  }, {
+    "@value" : "Moosmann, Paul"
+  }, {
+    "@value" : "Niessen, Thomas"
+  }, {
+    "@value" : "Ogel, Frederic"
+  }, {
+    "@value" : "Ottradovetz, Klaus"
+  }, {
+    "@value" : "Qin, Chang"
+  }, {
+    "@value" : "Rubina, Alina"
+  }, {
+    "@value" : "Staginus, Judith"
+  }, {
+    "@value" : "Strunk, Anja"
+  }, {
+    "@value" : "Theissen-Lipp, Johannes"
+  } ],
+  "http://purl.org/dc/terms/created" : [ {
+    "@type" : "http://www.w3.org/2001/XMLSchema#dateTimeStamp",
+    "@value" : "2021-10-18T12:00:00+01:00"
+  } ],
+  "http://purl.org/dc/terms/creator" : [ {
+    "@value" : "Working Group Service Characteristics"
+  } ],
+  "http://purl.org/dc/terms/modified" : [ {
+    "@type" : "http://www.w3.org/2001/XMLSchema#dateTimeStamp",
+    "@value" : "2022-11-24T18:57:22+01:00"
+  } ],
+  "http://purl.org/dc/terms/title" : [ {
+    "@language" : "en",
+    "@value" : "Gaia-X Core Ontology"
+  } ],
+  "http://purl.org/vocab/vann/preferredNamespacePrefix" : [ {
+    "@value" : "gax-core"
+  } ],
+  "http://purl.org/vocab/vann/preferredNamespaceUri" : [ {
+    "@value" : "http://w3id.org/gaia-x/core#"
+  } ],
+  "http://rdfs.org/ns/void#vocabulary" : [ {
+    "@id" : "http://purl.org/dc/terms/"
+  }, {
+    "@id" : "http://purl.org/vocab/vann/"
+  }, {
+    "@id" : "http://purl.org/vocommons/voaf#"
+  }, {
+    "@id" : "http://rdfs.org/ns/void#"
+  } ],
+  "http://www.w3.org/2000/01/rdf-schema#label" : [ {
+    "@language" : "en",
+    "@value" : "Gaia-X Core Ontology"
+  } ],
+  "http://www.w3.org/2002/07/owl#versionInfo" : [ {
+    "@value" : "22.04"
+  } ]
+}, {
+  "@id" : "http://w3id.org/gaia-x/core#Participant",
+  "@type" : [ "http://www.w3.org/2002/07/owl#Class" ],
+  "http://www.w3.org/2000/01/rdf-schema#label" : [ {
+    "@language" : "en",
+    "@value" : "Participant"
+  } ]
+}, {
+  "@id" : "http://w3id.org/gaia-x/core#Resource",
+  "@type" : [ "http://www.w3.org/2002/07/owl#Class" ],
+  "http://www.w3.org/2000/01/rdf-schema#label" : [ {
+    "@language" : "en",
+    "@value" : "Resource"
+  } ]
+}, {
+  "@id" : "http://w3id.org/gaia-x/core#ServiceOffering",
+  "@type" : [ "http://www.w3.org/2002/07/owl#Class" ],
+  "http://www.w3.org/2000/01/rdf-schema#label" : [ {
+    "@language" : "en",
+    "@value" : "Service Offering"
+  } ]
+}, {
+  "@id" : "http://w3id.org/gaia-x/core#aggregationOf",
+  "@type" : [ "http://www.w3.org/2002/07/owl#ObjectProperty" ],
+  "http://www.w3.org/2000/01/rdf-schema#comment" : [ {
+    "@value" : "DID of resource self-escription related to the service and that can exist independently of it."
+  }, {
+    "@value" : "DID of resources self-description related to the resource and that can exist independently of it."
+  } ],
+  "http://www.w3.org/2000/01/rdf-schema#domain" : [ {
+    "@id" : "http://w3id.org/gaia-x/core#Resource"
+  }, {
+    "@id" : "http://w3id.org/gaia-x/core#ServiceOffering"
+  } ],
+  "http://www.w3.org/2000/01/rdf-schema#label" : [ {
+    "@language" : "en",
+    "@value" : "aggregation of"
+  } ],
+  "http://www.w3.org/2000/01/rdf-schema#range" : [ {
+    "@id" : "http://w3id.org/gaia-x/core#Resource"
+  } ]
+}, {
+  "@id" : "http://w3id.org/gaia-x/core#dependsOn",
+  "@type" : [ "http://www.w3.org/2002/07/owl#ObjectProperty" ],
+  "http://www.w3.org/2000/01/rdf-schema#comment" : [ {
+    "@value" : "DID of the service offering self-description related to the service and that can exist independently of it."
+  } ],
+  "http://www.w3.org/2000/01/rdf-schema#domain" : [ {
+    "@id" : "http://w3id.org/gaia-x/core#ServiceOffering"
+  } ],
+  "http://www.w3.org/2000/01/rdf-schema#label" : [ {
+    "@language" : "en",
+    "@value" : "depends on"
+  } ],
+  "http://www.w3.org/2000/01/rdf-schema#range" : [ {
+    "@id" : "http://w3id.org/gaia-x/core#ServiceOffering"
+  } ]
+}, {
+  "@id" : "http://w3id.org/gaia-x/core#offeredBy",
+  "@type" : [ "http://www.w3.org/2002/07/owl#ObjectProperty" ],
+  "http://www.w3.org/2000/01/rdf-schema#comment" : [ {
+    "@value" : "DID of participant self-descrription, who is offering this service offering."
+  } ],
+  "http://www.w3.org/2000/01/rdf-schema#domain" : [ {
+    "@id" : "http://w3id.org/gaia-x/core#ServiceOffering"
+  } ],
+  "http://www.w3.org/2000/01/rdf-schema#label" : [ {
+    "@language" : "en",
+    "@value" : "offered by"
+  } ],
+  "http://www.w3.org/2000/01/rdf-schema#range" : [ {
+    "@id" : "http://w3id.org/gaia-x/core#Participant"
+  } ]
+}, {
+  "@id" : "http://w3id.org/gaia-x/core#operatedBy",
+  "@type" : [ "http://www.w3.org/2002/07/owl#ObjectProperty" ],
+  "http://www.w3.org/2000/01/rdf-schema#comment" : [ {
+    "@value" : "DID of participant self-description related to the participant, who operates this resource."
+  } ],
+  "http://www.w3.org/2000/01/rdf-schema#domain" : [ {
+    "@id" : "http://w3id.org/gaia-x/core#Resource"
+  } ],
+  "http://www.w3.org/2000/01/rdf-schema#label" : [ {
+    "@language" : "en",
+    "@value" : "operated by"
+  } ],
+  "http://www.w3.org/2000/01/rdf-schema#range" : [ {
+    "@id" : "http://w3id.org/gaia-x/core#Participant"
+  } ]
+} ]
