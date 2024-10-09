@@ -18,12 +18,12 @@
     "axios": "~1.7.7",
     "deepmerge": "^4.3.1",
     "vuetify": "3.7.2",
-    "vue": "^3.5.8",
+    "vue": "^3.5.11",
     "vue-i18n": "^9.14.0",
     "vue-router": "^4.4.5",
     "vee-validate": "^4.13.2",
-    "pinia": "^2.2.2",
-    "pinia-plugin-persistedstate": "^4.0.2",
+    "pinia": "^2.2.4",
+    "pinia-plugin-persistedstate": "^4.1.1",
     "dayjs": "^1.11.12"
   },
   "engines": {
