@@ -434,8 +434,6 @@ public final class SystemProperties {
 
     public static final String SIGNER_KEY_SIGN_ALGORITHM_NAME = SIGNER_PREFIX + "key-sign-algorithm-name";
 
-    public static final String PASSWORD_STORE_IPC_KEY_PATHNAME = SIGNER_PREFIX + "password-store-ipc-key-pathname";
-
     public static final int MIN_SIGNER_KEY_LENGTH = 2048;
     public static final int DEFAULT_SIGNER_KEY_LENGTH = MIN_SIGNER_KEY_LENGTH;
     public static final SignAlgorithm DEFAULT_SIGNER_KEY_SIGN_ALGORITHM = SignAlgorithm.SHA512_WITH_RSA;

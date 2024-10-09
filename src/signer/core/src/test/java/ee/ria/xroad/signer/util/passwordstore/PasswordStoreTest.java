@@ -23,36 +23,43 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package ee.ria.xroad.signer.protocol.handler;
+package ee.ria.xroad.signer.util.passwordstore;
 
-import ee.ria.xroad.common.CodedException;
-import ee.ria.xroad.signer.protocol.AbstractRpcHandler;
-import ee.ria.xroad.signer.tokenmanager.token.TokenWorker;
+import org.junit.Test;
 
-import lombok.extern.slf4j.Slf4j;
-import org.niis.xroad.rpc.common.Empty;
-import org.niis.xroad.signer.proto.UpdateSoftwareTokenPinReq;
-import org.springframework.stereotype.Component;
-
-import static ee.ria.xroad.common.ErrorCodes.X_INTERNAL_ERROR;
-import static ee.ria.xroad.signer.protocol.Utils.byteToChar;
+import static ee.ria.xroad.signer.util.passwordstore.PasswordStore.getPassword;
+import static ee.ria.xroad.signer.util.passwordstore.PasswordStore.storePassword;
+import static java.nio.charset.StandardCharsets.UTF_8;
+import static org.junit.Assert.assertArrayEquals;
+import static org.junit.Assert.assertNull;
 
 /**
- * Handles token pin update
+ * Tests to verify
  */
-@Slf4j
-@Component
-public class UpdateSoftwareTokenPinReqHandler extends AbstractRpcHandler<UpdateSoftwareTokenPinReq, Empty> {
+public class PasswordStoreTest {
 
-    @Override
-    protected Empty handle(UpdateSoftwareTokenPinReq request) throws Exception {
-        final TokenWorker tokenWorker = getTokenWorker(request.getTokenId());
-        if (tokenWorker.isSoftwareToken()) {
-            tokenWorker.handleUpdateTokenPin(byteToChar(request.getOldPin().toByteArray()),
-                    byteToChar(request.getNewPin().toByteArray()));
-            return Empty.getDefaultInstance();
-        } else {
-            throw new CodedException(X_INTERNAL_ERROR, "Software token not found");
-        }
+    /**
+     * Run tests.
+     *
+     * @throws Exception in case of unexpected errors
+     */
+    @Test
+    public void runTest() throws Exception {
+        getPassword("foo"); // Just check if get on empty DB works.
+
+        storePassword("foo", null);
+        storePassword("bar", null);
+
+        assertNull(getPassword("foo"));
+
+        storePassword("foo", "fooPwd".getBytes(UTF_8));
+        storePassword("bar", "barPwd".getBytes(UTF_8));
+
+        assertArrayEquals("fooPwd".toCharArray(), getPassword("foo"));
+        assertArrayEquals("barPwd".toCharArray(), getPassword("bar"));
+
+        storePassword("foo", null);
+        assertNull(getPassword("foo"));
+        assertArrayEquals("barPwd".toCharArray(), getPassword("bar"));
     }
 }

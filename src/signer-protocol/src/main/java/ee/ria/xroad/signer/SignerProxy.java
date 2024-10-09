@@ -32,8 +32,8 @@ import ee.ria.xroad.common.crypto.identifier.SignAlgorithm;
 import ee.ria.xroad.common.crypto.identifier.SignMechanism;
 import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.identifier.SecurityServerId;
-import ee.ria.xroad.common.util.PasswordStore;
 import ee.ria.xroad.signer.protocol.RpcSignerClient;
+import ee.ria.xroad.signer.protocol.Utils;
 import ee.ria.xroad.signer.protocol.dto.AuthKeyInfo;
 import ee.ria.xroad.signer.protocol.dto.CertificateInfo;
 import ee.ria.xroad.signer.protocol.dto.KeyInfo;
@@ -120,7 +120,7 @@ public final class SignerProxy {
 
         RpcSignerClient.execute(ctx -> ctx.getBlockingTokenService()
                 .initSoftwareToken(InitSoftwareTokenReq.newBuilder()
-                        .setPin(new String(password))
+                        .setPin(ByteString.copyFrom(Utils.charToByte(password)))
                         .build()));
     }
 
@@ -161,15 +161,15 @@ public final class SignerProxy {
      * @throws Exception if any errors occur
      */
     public static void activateToken(String tokenId, char[] password) throws Exception {
-        PasswordStore.storePassword(tokenId, password);
-
         log.trace("Activating token '{}'", tokenId);
 
+        var activateTokenReq = ActivateTokenReq.newBuilder()
+                .setTokenId(tokenId)
+                .setActivate(true);
+        ofNullable(password).ifPresent(p -> activateTokenReq.setPin(ByteString.copyFrom(Utils.charToByte(p))));
+
         RpcSignerClient.execute(ctx -> ctx.getBlockingTokenService()
-                .activateToken(ActivateTokenReq.newBuilder()
-                        .setTokenId(tokenId)
-                        .setActivate(true)
-                        .build()));
+                .activateToken(activateTokenReq.build()));
     }
 
     /**
@@ -186,8 +186,8 @@ public final class SignerProxy {
         RpcSignerClient.execute(ctx -> ctx.getBlockingTokenService()
                 .updateSoftwareTokenPin(UpdateSoftwareTokenPinReq.newBuilder()
                         .setTokenId(tokenId)
-                        .setOldPin(new String(oldPin))
-                        .setNewPin(new String(newPin))
+                        .setOldPin(ByteString.copyFrom(Utils.charToByte(oldPin)))
+                        .setNewPin(ByteString.copyFrom(Utils.charToByte(newPin)))
                         .build()));
     }
 
@@ -198,8 +198,6 @@ public final class SignerProxy {
      * @throws Exception if any errors occur
      */
     public static void deactivateToken(String tokenId) throws Exception {
-        PasswordStore.storePassword(tokenId, null);
-
         log.trace("Deactivating token '{}'", tokenId);
 
         RpcSignerClient.execute(ctx -> ctx.getBlockingTokenService()
