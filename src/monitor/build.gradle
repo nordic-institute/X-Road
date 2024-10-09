@@ -1,44 +1,7 @@
-plugins {
-    alias(libs.plugins.shadow)
+tasks.withType(Jar).configureEach {
+    enabled = false
 }
 
-ext {
-    mainClassName = "ee.ria.xroad.monitor.MonitorMain"
-}
-
-jar {
-    manifest {
-        attributes 'Main-Class': mainClassName
-    }
-}
-
-dependencies {
-    implementation(platform(libs.springBoot.bom))
-
-    implementation project(':common:common-domain')
-    implementation project(':common:common-verifier')
-    implementation project(':monitor-common')
-    implementation project(':signer-protocol')
-    implementation project(':serverconf')
-
-    implementation('org.springframework:spring-context')
-    implementation libs.slf4j.api
-    implementation libs.bundles.metrics
-
-    testImplementation project(':common:common-test')
-    testImplementation("org.springframework.boot:spring-boot-starter-test")
-    testImplementation libs.mockito.core
-}
-
-shadowJar {
-    exclude('**/module-info.class')
-    archiveBaseName = "monitor"
-    archiveClassifier = ''
-    mergeServiceFiles()
-}
-
-jar.finalizedBy shadowJar
-
-test {
-    useJUnitPlatform()
+archUnit {
+    skip = true
 }
