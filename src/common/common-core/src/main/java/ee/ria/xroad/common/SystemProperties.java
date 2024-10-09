@@ -1262,15 +1262,6 @@ public final class SystemProperties {
     }
 
     /**
-     * Get the pathname for password store IPC key generation (used as an input for ftok kernel function).
-     *
-     * @return path
-     */
-    public static String getSignerPasswordStoreIPCKeyPathname() {
-        return SystemPropertySource.getPropertyResolver().getProperty(PASSWORD_STORE_IPC_KEY_PATHNAME, "/");
-    }
-
-    /**
      * Get CSR signature digest algorithm, SHA-256 by default.
      *
      * @return algorithm

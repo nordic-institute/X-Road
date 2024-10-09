@@ -82,6 +82,7 @@ class SystemMetricsSensorTest {
 
         System.setProperty(SystemProperties.ENV_MONITOR_SYSTEM_METRICS_SENSOR_INTERVAL, "1");
         System.setProperty(SystemProperties.PROXY_GRPC_PORT, String.valueOf(PORT));
+        System.setProperty(SystemProperties.PROXY_GRPC_TLS_ENABLED, Boolean.FALSE.toString());
     }
 
     @BeforeAll

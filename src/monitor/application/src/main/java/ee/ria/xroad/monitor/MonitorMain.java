@@ -26,77 +26,38 @@
  */
 package ee.ria.xroad.monitor;
 
-import ee.ria.xroad.common.SystemPropertiesLoader;
+import ee.ria.xroad.common.SystemPropertySource;
 import ee.ria.xroad.common.Version;
-import ee.ria.xroad.monitor.common.SystemMetricNames;
+import ee.ria.xroad.monitor.configuration.JmxReporterConfig;
 import ee.ria.xroad.monitor.configuration.MonitorConfig;
-import ee.ria.xroad.signer.protocol.RpcSignerClient;
 
-import com.codahale.metrics.jmx.JmxReporter;
-import com.google.common.collect.Lists;
-import lombok.AccessLevel;
-import lombok.NoArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.context.annotation.AnnotationConfigApplicationContext;
-import org.springframework.context.support.GenericApplicationContext;
-
-import java.util.concurrent.TimeUnit;
-
-import static ee.ria.xroad.common.SystemProperties.CONF_FILE_ENV_MONITOR;
+import org.springframework.boot.WebApplicationType;
+import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.boot.builder.SpringApplicationBuilder;
 
 /**
  * Main class for monitor application
  */
 @Slf4j
-@NoArgsConstructor(access = AccessLevel.PRIVATE)
-public final class MonitorMain {
+@SpringBootApplication
+public class MonitorMain {
 
     private static final String APP_NAME = "xroad-monitor";
 
-    static {
-        SystemPropertiesLoader.create()
-                .withCommonAndLocal()
-                .with(CONF_FILE_ENV_MONITOR)
-                .load();
-    }
-
-    private static GenericApplicationContext springCtx;
-    private static JmxReporter jmxReporter;
-
-    /**
-     * Main entry point
-     *
-     * @param args
-     */
-    public static void main(String[] args) throws Exception {
+    public static void main(String[] args) {
         log.info("Starting X-Road Environmental Monitoring");
         Version.outputVersionInfo(APP_NAME);
 
-        RpcSignerClient.init();
-
-        springCtx = new AnnotationConfigApplicationContext(MonitorConfig.class);
-        springCtx.registerShutdownHook();
-
-        Runtime.getRuntime().addShutdownHook(new Thread(MonitorMain::stopReporter));
-        startReporters();
+        new SpringApplicationBuilder(MonitorMain.class, MonitorConfig.class, JmxReporterConfig.class)
+                .profiles("group-ee")//TODO load dynamically
+                .initializers(applicationContext -> {
+                    log.info("Setting property source to Spring environment..");
+                    SystemPropertySource.setEnvironment(applicationContext.getEnvironment());
+                })
+                .web(WebApplicationType.NONE)
+                .build()
+                .run(args);
     }
 
-    private static void stopReporter() {
-        log.trace("stopReporter()");
-
-        if (jmxReporter != null) {
-            jmxReporter.stop();
-        }
-    }
-
-    private static void startReporters() {
-        jmxReporter = JmxReporter.forRegistry(MetricRegistryHolder.getInstance().getMetrics())
-                .convertRatesTo(TimeUnit.SECONDS)
-                .convertDurationsTo(TimeUnit.MILLISECONDS)
-                .filter((name, metric) -> !Lists.newArrayList(SystemMetricNames.PROCESSES,
-                        SystemMetricNames.PACKAGES, SystemMetricNames.CERTIFICATES).contains(name))
-                .build();
-
-        jmxReporter.start();
-    }
 }

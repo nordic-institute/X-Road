@@ -1,0 +1,19 @@
+spring:
+  application:
+    name: monitor
+  cloud:
+    config:
+      enabled: false
+
+  output:
+    ansi:
+      enabled: detect #TODO implementing logging changes to support ansi colors
+  main:
+    banner-mode: log
+
+xroad:
+  env-monitor:
+    port: 2552
+    limit-remote-data-set: false
+  common:
+    global-conf-remoting-enabled: true

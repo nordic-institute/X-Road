@@ -35,6 +35,7 @@ import ee.ria.xroad.monitor.DiskSpaceSensor;
 import ee.ria.xroad.monitor.ExecListingSensor;
 import ee.ria.xroad.monitor.MetricsRpcService;
 import ee.ria.xroad.monitor.SystemMetricsSensor;
+import ee.ria.xroad.signer.protocol.RpcSignerClient;
 
 import io.grpc.BindableService;
 import lombok.extern.slf4j.Slf4j;
@@ -114,4 +115,10 @@ public class MonitorConfig {
     ConfClientRpcClient confClientRpcClient() {
         return new ConfClientRpcClient();
     }
+
+    @Bean
+    RpcSignerClient rpcSignerClient() throws Exception {
+        return RpcSignerClient.init();
+    }
+
 }
