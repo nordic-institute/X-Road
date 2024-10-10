@@ -37,7 +37,7 @@ RUN echo "deb $REPO $DIST $COMPONENT" >/etc/apt/sources.list.d/xroad.list \
     # Install
     && pg_ctlcluster 16 main start \
     && apt-get update \
-    && apt-get -y -qq install xroad-securityserver xroad-autologin xroad-addon-opmonitoring xroad-addon-hwtokens softhsm2 \
+    && apt-get -y -qq install xroad-securityserver xroad-autologin xroad-addon-opmonitoring xroad-addon-hwtokens \
     && pg_ctlcluster 16 main stop \
     # Clean up
     && rm -rf /tmp/repo \
