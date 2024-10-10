@@ -38,6 +38,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.niis.xroad.common.rpc.RpcClientProperties;
 import org.niis.xroad.common.rpc.RpcCredentialsProvider;
 import org.niis.xroad.common.rpc.server.RpcServer;
 import org.niis.xroad.monitor.common.MonitorServiceGrpc;
@@ -81,13 +82,11 @@ class SystemMetricsSensorTest {
         }
 
         System.setProperty(SystemProperties.ENV_MONITOR_SYSTEM_METRICS_SENSOR_INTERVAL, "1");
-        System.setProperty(SystemProperties.PROXY_GRPC_PORT, String.valueOf(PORT));
-        System.setProperty(SystemProperties.PROXY_GRPC_TLS_ENABLED, Boolean.FALSE.toString());
     }
 
     @BeforeAll
     public static void init() throws Exception {
-        rpcServer = RpcServer.newServer(SystemProperties.getProxyGrpcListenAddress(), PORT,
+        rpcServer = RpcServer.newServer("127.0.0.1", PORT,
                 new RpcCredentialsProvider.Builder().tlsEnabled(false).build(),
                 serverBuilder ->
                 serverBuilder.addService(new MonitorServiceGrpc.MonitorServiceImplBase() {
@@ -112,7 +111,10 @@ class SystemMetricsSensorTest {
         var taskScheduler = spy(TaskScheduler.class);
         when(taskScheduler.getClock()).thenReturn(Clock.systemDefaultZone());
 
-        SystemMetricsSensor systemMetricsSensor = new SystemMetricsSensor(taskScheduler);
+        RpcClientProperties proxyRpcClientProperties = new RpcClientProperties("localhost", PORT, false,
+                null, null, null, null);
+
+        SystemMetricsSensor systemMetricsSensor = new SystemMetricsSensor(taskScheduler, proxyRpcClientProperties);
 
         response = StatsResp.newBuilder()
                 .setOpenFileDescriptorCount(0)

@@ -94,8 +94,10 @@ public class MonitorConfig {
     }
 
     @Bean
-    SystemMetricsSensor systemMetricsSensor(TaskScheduler taskScheduler) throws Exception {
-        return new SystemMetricsSensor(taskScheduler);
+    SystemMetricsSensor systemMetricsSensor(TaskScheduler taskScheduler,
+                                            @Qualifier("proxyRpcClientProperties") RpcClientProperties proxyRpcClientProperties)
+            throws Exception {
+        return new SystemMetricsSensor(taskScheduler, proxyRpcClientProperties);
     }
 
     @Bean

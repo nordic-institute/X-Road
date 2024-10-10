@@ -48,6 +48,7 @@ import org.springframework.boot.context.properties.EnableConfigurationProperties
 @SpringBootApplication
 @EnableConfigurationProperties({MonitorMain.EnvMonitorRpcServerProperties.class,
         MonitorMain.ConfClientRpcClientProperties.class,
+        MonitorMain.ProxyRpcClientProperties.class,
         MonitorMain.SignerRpcClientProperties.class})
 public class MonitorMain {
 
@@ -96,6 +97,17 @@ public class MonitorMain {
         SignerRpcClientProperties(String grpcHost, int grpcPort, boolean grpcTlsEnabled,
                                   String grpcTlsTrustStore, char[] grpcTlsTrustStorePassword,
                                   String grpcTlsKeyStore, char[] grpcTlsKeyStorePassword) {
+            super(grpcHost, grpcPort, grpcTlsEnabled, grpcTlsTrustStore, grpcTlsTrustStorePassword,
+                    grpcTlsKeyStore, grpcTlsKeyStorePassword);
+        }
+    }
+
+    @ConfigurationProperties(prefix = "xroad.proxy")
+    @Qualifier("proxyRpcClientProperties")
+    static class ProxyRpcClientProperties extends RpcClientProperties {
+        ProxyRpcClientProperties(String grpcHost, int grpcPort, boolean grpcTlsEnabled,
+                                 String grpcTlsTrustStore, char[] grpcTlsTrustStorePassword,
+                                 String grpcTlsKeyStore, char[] grpcTlsKeyStorePassword) {
             super(grpcHost, grpcPort, grpcTlsEnabled, grpcTlsTrustStore, grpcTlsTrustStorePassword,
                     grpcTlsKeyStore, grpcTlsKeyStorePassword);
         }

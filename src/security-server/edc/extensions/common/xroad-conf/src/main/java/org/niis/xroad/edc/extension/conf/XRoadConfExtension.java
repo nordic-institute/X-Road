@@ -72,7 +72,7 @@ public class XRoadConfExtension implements ServiceExtension {
             RpcClientProperties confClientProperties =  new RpcClientProperties(SystemProperties.getConfigurationClientGrpcHost(),
                     SystemProperties.getConfigurationClientGrpcPort(),
                     SystemProperties.isConfigurationClientGrpcTlsEnabled(),
-                    SystemProperties.getSignerGrpcTrustStore(),
+                    SystemProperties.getConfigurationClientGrpcTrustStore(),
                     SystemProperties.getConfigurationClientGrpcTrustStorePassword(),
                     SystemProperties.getConfigurationClientGrpcKeyStore(),
                     SystemProperties.getConfigurationClientGrpcKeyStorePassword());

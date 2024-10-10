@@ -779,44 +779,9 @@ public final class SystemProperties {
     public static final String CONFIGURATION_CLIENT_GRPC_TLS_KEYSTORE_PASSWORD = PREFIX + "configuration-client.grpc-tls-keystore-password";
 
     /**
-     * Property name for Proxy gRPC listen address.
-     */
-    public static final String PROXY_GRPC_LISTEN_ADDRESS = PROXY_PREFIX + "grpc-listen-address";
-
-    /**
-     * Property name for Proxy gRPC host.
-     */
-    public static final String PROXY_GRPC_HOST = PROXY_PREFIX + "grpc-host";
-
-    /**
-     * Property name for Proxy gRPC port.
-     */
-    public static final String PROXY_GRPC_PORT = PROXY_PREFIX + "grpc-port";
-
-    /**
      * Property name for Proxy gRPC TLS enabled on/off switch.
      */
     public static final String PROXY_GRPC_TLS_ENABLED = PROXY_PREFIX + "grpc-tls-enabled";
-
-    /**
-     * Property name for Proxy gRPC TLS truststore location.
-     */
-    public static final String PROXY_GRPC_TLS_TRUSTSTORE = PROXY_PREFIX + "grpc-tls-truststore";
-
-    /**
-     * Property name for Proxy gRPC TLS truststore password.
-     */
-    public static final String PROXY_GRPC_TLS_TRUSTSTORE_PASSWORD = PROXY_PREFIX + "grpc-tls-truststore-password";
-
-    /**
-     * Property name for Proxy gRPC TLS keystore location.
-     */
-    public static final String PROXY_GRPC_TLS_KEYSTORE = PROXY_PREFIX + "grpc-tls-keystore";
-
-    /**
-     * Property name for Proxy gRPC TLS keystore password.
-     */
-    public static final String PROXY_GRPC_TLS_KEYSTORE_PASSWORD = PROXY_PREFIX + "grpc-tls-keystore-password";
 
     /**
      * Property name for Environmental Monitoring gRPC listen address.
@@ -1995,7 +1960,8 @@ public final class SystemProperties {
      */
     @Deprecated
     private static boolean isGrpcInternalTlsEnabled() {
-        return Boolean.parseBoolean(SystemPropertySource.getPropertyResolver().getProperty(GRPC_INTERNAL_TLS_ENABLED, Boolean.TRUE.toString()));
+        // todo: fixme: default false while migrating
+        return Boolean.parseBoolean(SystemPropertySource.getPropertyResolver().getProperty(GRPC_INTERNAL_TLS_ENABLED, Boolean.FALSE.toString()));
     }
 
     /**
@@ -2171,73 +2137,12 @@ public final class SystemProperties {
     }
 
     /**
-     * @return the Proxy gRPC listen address.
-     */
-    public static String getProxyGrpcListenAddress() {
-        return SystemPropertySource.getPropertyResolver().getProperty(PROXY_GRPC_LISTEN_ADDRESS,
-                // todo xroad8 fallback to old property. to be removed
-                getGrpcInternalHost());
-    }
-
-    /**
-     * @return the Proxy gRPC host.
-     */
-    public static String getProxyGrpcHost() {
-        return SystemPropertySource.getPropertyResolver().getProperty(PROXY_GRPC_HOST,
-                // todo xroad8 fallback to old property. to be removed
-                getGrpcInternalHost());
-    }
-
-    /**
-     * @return the Proxy gRPC port.
-     */
-    public static int getProxyGrpcPort() {
-        return Integer.getInteger(PROXY_GRPC_PORT, PortNumbers.PROXY_GRPC_PORT);
-    }
-
-    /**
      * @return whether Proxy gRPC Tls is enabled.
      */
     public static boolean isProxyGrpcTlsEnabled() {
         return Boolean.parseBoolean(SystemPropertySource.getPropertyResolver().getProperty(PROXY_GRPC_TLS_ENABLED,
                 // todo xroad8 fallback to old property. to be removed
                 Boolean.toString(isGrpcInternalTlsEnabled())));
-    }
-
-    /**
-     * @return the Proxy gRPC trust store path.
-     */
-    public static String getProxyGrpcTrustStore() {
-        return SystemPropertySource.getPropertyResolver().getProperty(PROXY_GRPC_TLS_TRUSTSTORE,
-                // todo xroad8 fallback to old property. to be removed
-                getGrpcInternalTrustStore());
-    }
-
-    /**
-     * @return the Proxy gRPC trust store password.
-     */
-    public static char[] getProxyGrpcTrustStorePassword() {
-        return getPasswordFromPropertyOrEnvironmentVariable(PROXY_GRPC_TLS_TRUSTSTORE_PASSWORD,
-                // todo xroad8 fallback to old property. to be removed
-                getGrpcInternalTruststorePassword());
-    }
-
-    /**
-     * @return the Proxy gRPC key store path.
-     */
-    public static String getProxyGrpcKeyStore() {
-        return SystemPropertySource.getPropertyResolver().getProperty(PROXY_GRPC_TLS_KEYSTORE,
-                // todo xroad8 fallback to old property. to be removed
-                getGrpcInternalKeyStore());
-    }
-
-    /**
-     * @return the Proxy gRPC key store password.
-     */
-    public static char[] getProxyGrpcKeyStorePassword() {
-        return getPasswordFromPropertyOrEnvironmentVariable(PROXY_GRPC_TLS_KEYSTORE_PASSWORD,
-                // todo xroad8 fallback to old property. to be removed
-                getGrpcInternalKeyStorePassword());
     }
 
     /**

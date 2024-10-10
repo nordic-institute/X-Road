@@ -25,7 +25,6 @@
  */
 package ee.ria.xroad.messagelog.archiver;
 
-import ee.ria.xroad.common.SystemProperties;
 import ee.ria.xroad.common.conf.globalconf.GlobalConfBeanConfig;
 import ee.ria.xroad.common.conf.globalconf.GlobalConfRefreshJobConfig;
 import ee.ria.xroad.common.messagelog.MessageLogProperties;
@@ -69,15 +68,4 @@ public class LogArchiverConfig {
         return new ConfClientRpcClient(confClientRpcClientProperties);
     }
 
-    @Bean
-    RpcClientProperties confClientRpcClientProperties() {
-        // todo: fixme:
-        return new RpcClientProperties(SystemProperties.getConfigurationClientGrpcHost(),
-                SystemProperties.getConfigurationClientGrpcPort(),
-                SystemProperties.isConfigurationClientGrpcTlsEnabled(),
-                SystemProperties.getConfigurationClientGrpcTrustStore(),
-                SystemProperties.getConfigurationClientGrpcTrustStorePassword(),
-                SystemProperties.getConfigurationClientGrpcKeyStore(),
-                SystemProperties.getConfigurationClientGrpcKeyStorePassword());
-    }
 }

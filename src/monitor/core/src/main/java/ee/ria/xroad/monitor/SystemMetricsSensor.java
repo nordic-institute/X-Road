@@ -32,6 +32,7 @@ import io.grpc.Channel;
 import io.grpc.stub.StreamObserver;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
+import org.niis.xroad.common.rpc.RpcClientProperties;
 import org.niis.xroad.common.rpc.RpcCredentialsProvider;
 import org.niis.xroad.common.rpc.client.RpcClient;
 import org.niis.xroad.monitor.common.MonitorServiceGrpc;
@@ -53,20 +54,19 @@ public class SystemMetricsSensor extends AbstractSensor {
 
     private final Duration interval = Duration.ofSeconds(SystemProperties.getEnvMonitorSystemMetricsSensorInterval());
 
-
-    public SystemMetricsSensor(TaskScheduler taskScheduler) throws Exception {
+    public SystemMetricsSensor(TaskScheduler taskScheduler, RpcClientProperties proxyRpcClientProperties) throws Exception {
         super(taskScheduler);
         log.info("Creating sensor, measurement interval: {}", getInterval());
 
         var credentialsProvider = new RpcCredentialsProvider.Builder()
-                .tlsEnabled(SystemProperties.isProxyGrpcTlsEnabled())
-                .keystore(SystemProperties::getProxyGrpcKeyStore)
-                .keystorePassword(SystemProperties::getProxyGrpcKeyStorePassword)
-                .truststore(SystemProperties::getProxyGrpcTrustStore)
-                .truststorePassword(SystemProperties::getProxyGrpcTrustStorePassword)
+                .tlsEnabled(proxyRpcClientProperties.isGrpcTlsEnabled())
+                .keystore(proxyRpcClientProperties::getGrpcTlsKeyStore)
+                .keystorePassword(proxyRpcClientProperties::getGrpcTlsKeyStorePassword)
+                .truststore(proxyRpcClientProperties::getGrpcTlsTrustStore)
+                .truststorePassword(proxyRpcClientProperties::getGrpcTlsTrustStorePassword)
                 .build();
-        this.proxyRpcClient = RpcClient.newClient(SystemProperties.getProxyGrpcHost(),
-                SystemProperties.getProxyGrpcPort(), credentialsProvider, ProxyRpcExecutionContext::new);
+        this.proxyRpcClient = RpcClient.newClient(proxyRpcClientProperties.getGrpcHost(),
+                proxyRpcClientProperties.getGrpcPort(), credentialsProvider, ProxyRpcExecutionContext::new);
 
         scheduleSingleMeasurement(getInterval());
     }

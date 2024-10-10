@@ -16,3 +16,4 @@ xroad:
     grpc-listen-address: 0.0.0.0
     grpc-port: 5665
     grpc-tls-enabled: false
+    update-interval: 60

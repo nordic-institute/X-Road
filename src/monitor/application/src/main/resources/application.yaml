@@ -28,3 +28,7 @@ xroad:
     grpc-host: localhost
     grpc-port: 5665
     grpc-tls-enabled: false
+  proxy:
+    grpc-host: localhost
+    grpc-port: 5567
+    grpc-tls-enabled: false
