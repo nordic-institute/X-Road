@@ -54,6 +54,5 @@ if (Os.isName("linux")) {
         commandLine 'make', 'clean'
     }
 
-    classes.dependsOn make
     clean.dependsOn makeClean
 }

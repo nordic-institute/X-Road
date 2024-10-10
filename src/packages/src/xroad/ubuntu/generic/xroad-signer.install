@@ -6,4 +6,4 @@
 ../../../../src/xroad/default-configuration/devices.ini usr/share/xroad/doc/
 ../../../../../signer/application/build/libs/signer-1.0.jar usr/share/xroad/jlib/
  ../../../../../signer-console/build/libs/signer-console-1.0.jar usr/share/xroad/jlib/
-../../../../../lib/libpasswordstore.so usr/share/xroad/lib/
+../../../../../libs/passwordstore/${DEB_HOST_MULTIARCH}/libpasswordstore.so usr/share/xroad/lib/
