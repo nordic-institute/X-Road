@@ -54,7 +54,7 @@ RUN --mount=type=bind,source=build/packages,target=/tmp/packages \
     # Install
     && pg_ctlcluster 16 main start \
     && apt-get update \
-    && apt-get -y -qq install xroad-securityserver xroad-autologin xroad-addon-opmonitoring xroad-addon-hwtokens \
+    && apt-get -y -qq install xroad-securityserver xroad-autologin xroad-addon-opmonitoring \
     && apt-get -qq clean \
     && pg_ctlcluster 16 main stop \
     # Clean up
