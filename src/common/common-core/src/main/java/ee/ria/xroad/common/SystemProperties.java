@@ -475,15 +475,6 @@ public final class SystemProperties {
 
     // Configuration client ---------------------------------------------------
 
-    public static final String CONFIGURATION_CLIENT_PORT =
-            PREFIX + "configuration-client.port";
-
-    public static final String CONFIGURATION_CLIENT_UPDATE_INTERVAL_SECONDS =
-            PREFIX + "configuration-client.update-interval";
-
-    public static final String CONFIGURATION_CLIENT_PROXY_CONFIGURATION_BACKUP_CRON =
-            PREFIX + "configuration-client.proxy-configuration-backup-cron";
-
     public static final String CONFIGURATION_CLIENT_GLOBAL_CONF_TLS_CERT_VERIFICATION =
             PREFIX + "configuration-client.global_conf_tls_cert_verification";
 
@@ -1261,30 +1252,6 @@ public final class SystemProperties {
      */
     public static int getAcmeRenewalTimeBeforeExpirationDate() {
         return Integer.parseInt(SystemPropertySource.getPropertyResolver().getProperty(PROXY_UI_API_ACME_RENEWAL_TIME_BEFORE_EXPIRATION_DATE, "14"));
-    }
-
-    /**
-     * @return the gRPC port on which the configuration client is listening, '5665' by default.
-     */
-    public static int getConfigurationClientPort() {
-        return Integer.parseInt(SystemPropertySource.getPropertyResolver().getProperty(CONFIGURATION_CLIENT_PORT,
-                Integer.toString(PortNumbers.CONFIGURATION_CLIENT_PORT)));
-    }
-
-    /**
-     * @return the update interval in seconds at which configuration client
-     * downloads the global configuration, '60' by default.
-     */
-    public static int getConfigurationClientUpdateIntervalSeconds() {
-        return Integer.parseInt(SystemPropertySource.getPropertyResolver().getProperty(CONFIGURATION_CLIENT_UPDATE_INTERVAL_SECONDS, "60"));
-    }
-
-    /**
-     * @return the proxy configuration auto backup cron expression.
-     * defaults to '0 15 3 * * ?'
-     */
-    public static String getConfigurationClientProxyConfigurationBackupCron() {
-        return SystemPropertySource.getPropertyResolver().getProperty(CONFIGURATION_CLIENT_PROXY_CONFIGURATION_BACKUP_CRON, "0 15 3 * * ?");
     }
 
     public static boolean isConfigurationClientGlobalConfTlsCertVerificationEnabled() {

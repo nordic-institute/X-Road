@@ -39,7 +39,8 @@ import org.springframework.boot.context.properties.EnableConfigurationProperties
 
 @Slf4j
 @SpringBootApplication
-@EnableConfigurationProperties(ConfClientDaemonMain.ConfClientRpcServerProperties.class)
+@EnableConfigurationProperties({ConfClientDaemonMain.SpringConfigurationClientProperties.class,
+        ConfClientDaemonMain.ConfClientRpcServerProperties.class})
 public class ConfClientDaemonMain {
     static final String APP_NAME = "xroad-confclient";
 
@@ -57,14 +58,21 @@ public class ConfClientDaemonMain {
                 .run(args);
     }
 
-   @ConfigurationProperties(prefix = "xroad.configuration-client")
-   static class ConfClientRpcServerProperties extends RpcServerProperties {
-       public ConfClientRpcServerProperties(String grpcListenAddress, int grpcPort, boolean grpcTlsEnabled,
-                                            String grpcTlsTrustStore, char[] grpcTlsTrustStorePassword,
-                                            String grpcTlsKeyStore, char[] grpcTlsKeyStorePassword) {
-           super(grpcListenAddress, grpcPort, grpcTlsEnabled, grpcTlsTrustStore, grpcTlsTrustStorePassword,
-                   grpcTlsKeyStore, grpcTlsKeyStorePassword);
-       }
-   }
+    @ConfigurationProperties(prefix = "xroad.configuration-client.grpc")
+    static class ConfClientRpcServerProperties extends RpcServerProperties {
+        ConfClientRpcServerProperties(String grpcListenAddress, int grpcPort, boolean grpcTlsEnabled,
+                                             String grpcTlsTrustStore, char[] grpcTlsTrustStorePassword,
+                                             String grpcTlsKeyStore, char[] grpcTlsKeyStorePassword) {
+            super(grpcListenAddress, grpcPort, grpcTlsEnabled, grpcTlsTrustStore, grpcTlsTrustStorePassword,
+                    grpcTlsKeyStore, grpcTlsKeyStorePassword);
+        }
+    }
+
+    @ConfigurationProperties(prefix = "xroad.configuration-client")
+    static class SpringConfigurationClientProperties extends ConfigurationClientProperties {
+        SpringConfigurationClientProperties(int updateInterval, String proxyConfigurationBackupCron) {
+            super(updateInterval, proxyConfigurationBackupCron);
+        }
+    }
 
 }
