@@ -47,6 +47,7 @@ import static ee.ria.xroad.common.ErrorCodes.SIGNER_X;
 import static ee.ria.xroad.common.SystemProperties.getSignerClientTimeout;
 
 @Slf4j
+@Deprecated
 public final class RpcSignerClient implements DisposableBean {
     private static RpcSignerClient instance;
 

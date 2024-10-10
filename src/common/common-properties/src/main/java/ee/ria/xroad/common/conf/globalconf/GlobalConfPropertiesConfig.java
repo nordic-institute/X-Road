@@ -1,5 +1,6 @@
 /*
  * The MIT License
+ *
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
@@ -23,27 +24,21 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package ee.ria.xroad.monitor;
 
-import lombok.RequiredArgsConstructor;
-import org.springframework.scheduling.TaskScheduler;
+package ee.ria.xroad.common.conf.globalconf;
 
-import java.time.Duration;
+import org.springframework.boot.context.properties.ConfigurationProperties;
+import org.springframework.boot.context.properties.EnableConfigurationProperties;
+import org.springframework.context.annotation.Configuration;
 
-/**
- * Base class for sensors
- */
-@RequiredArgsConstructor
-public abstract class AbstractSensor {
-    private final TaskScheduler taskScheduler;
-    protected final EnvMonitorProperties envMonitorProperties;
+@Configuration
+@EnableConfigurationProperties(GlobalConfPropertiesConfig.SpringGlobalConfProperties.class)
+public class GlobalConfPropertiesConfig {
 
-    protected void scheduleSingleMeasurement(Duration delay) {
-        taskScheduler.schedule(this::measure, taskScheduler.getClock().instant().plus(delay));
+    @ConfigurationProperties(prefix = "xroad.common")
+    static class SpringGlobalConfProperties extends GlobalConfProperties {
+        SpringGlobalConfProperties(boolean globalConfRemotingEnabled) {
+            super(globalConfRemotingEnabled);
+        }
     }
-
-    protected abstract Duration getInterval();
-
-    protected abstract void measure();
-
 }

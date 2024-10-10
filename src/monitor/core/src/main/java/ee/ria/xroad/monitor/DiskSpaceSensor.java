@@ -25,7 +25,6 @@
  */
 package ee.ria.xroad.monitor;
 
-import ee.ria.xroad.common.SystemProperties;
 import ee.ria.xroad.monitor.common.SystemMetricNames;
 
 import lombok.extern.slf4j.Slf4j;
@@ -43,8 +42,8 @@ public class DiskSpaceSensor extends AbstractSensor {
     /**
      * Constructor
      */
-    public DiskSpaceSensor(TaskScheduler taskScheduler) {
-        super(taskScheduler);
+    public DiskSpaceSensor(TaskScheduler taskScheduler, EnvMonitorProperties envMonitorProperties) {
+        super(taskScheduler, envMonitorProperties);
         log.info("Creating sensor, measurement interval: {}", getInterval());
         updateMetrics();
         scheduleSingleMeasurement(getInterval());
@@ -76,7 +75,7 @@ public class DiskSpaceSensor extends AbstractSensor {
 
     @Override
     protected Duration getInterval() {
-        return Duration.ofSeconds(SystemProperties.getEnvMonitorDiskSpaceSensorInterval());
+        return envMonitorProperties.getDiskSpaceSensorInterval();
     }
 
 }

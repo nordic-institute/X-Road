@@ -1,0 +1,11 @@
+plugins {
+    id 'java-library'
+}
+
+dependencies {
+    implementation(platform(libs.springCloud.bom))
+
+    implementation(project(":common:common-globalconf"))
+
+    implementation("org.springframework.boot:spring-boot-starter")
+}

@@ -25,7 +25,6 @@
  */
 package ee.ria.xroad.monitor;
 
-import ee.ria.xroad.common.SystemProperties;
 import ee.ria.xroad.common.conf.serverconf.ServerConfProvider;
 import ee.ria.xroad.common.util.CryptoUtils;
 import ee.ria.xroad.monitor.CertificateMonitoringInfo.CertificateType;
@@ -69,8 +68,9 @@ public class CertificateInfoSensor extends AbstractSensor {
     /**
      * Create new CertificateInfoSensor
      */
-    public CertificateInfoSensor(TaskScheduler taskScheduler, ServerConfProvider serverConfProvider) {
-        super(taskScheduler);
+    public CertificateInfoSensor(TaskScheduler taskScheduler, EnvMonitorProperties envMonitorProperties,
+                                 ServerConfProvider serverConfProvider) {
+        super(taskScheduler, envMonitorProperties);
         log.info("Creating sensor, measurement interval: {}", getInterval());
 
         certificateInfoCollector = new CertificateInfoCollector()
@@ -266,7 +266,7 @@ public class CertificateInfoSensor extends AbstractSensor {
 
     @Override
     protected Duration getInterval() {
-        return Duration.ofSeconds(SystemProperties.getEnvMonitorCertificateInfoSensorInterval());
+        return envMonitorProperties.getCertificateInfoSensorInterval();
     }
 
 }

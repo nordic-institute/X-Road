@@ -394,8 +394,6 @@ public final class SystemProperties {
 
     private static final String DEFAULT_CLIENTPROXY_FASTEST_CONNECTING_SSL_URI_CACHE_PERIOD = "3600";
 
-    private static final String DEFAULT_ENV_MONITOR_LIMIT_REMOTE_DATA_SET = FALSE;
-
     private static final String DEFAULT_CLIENTPROXY_POOL_VALIDATE_CONNECTIONS_AFTER_INACTIVITY_OF_MS = "2000";
 
     private static final String DEFAULT_ENFORCE_CLIENT_IS_CERT_VALIDITY_PERIOD_CHECK = FALSE;
@@ -631,34 +629,6 @@ public final class SystemProperties {
     public static final String CONFIGURATION_PROXY_ADDRESS =
             PREFIX + "configuration-proxy.address";
 
-    // Environmental Monitoring  -------------------------- //
-
-    /** Property name of environmental monitor port. */
-    public static final String ENV_MONITOR_PORT =
-            PREFIX + "env-monitor.port";
-
-    /** Property name of environmental monitor limiting remote data set. */
-    public static final String ENV_MONITOR_LIMIT_REMOTE_DATA_SET =
-            PREFIX + "env-monitor.limit-remote-data-set";
-
-    /** Property name of system metrics sensor interval. */
-    public static final String ENV_MONITOR_SYSTEM_METRICS_SENSOR_INTERVAL =
-            PREFIX + "env-monitor.system-metrics-sensor-interval";
-
-    /** Property name of disk space sensor interval. */
-    public static final String ENV_MONITOR_DISK_SPACE_SENSOR_INTERVAL =
-            PREFIX + "env-monitor.disk-space-sensor-interval";
-
-    /** Property name of system metrics sensor interval. */
-    public static final String ENV_MONITOR_EXEC_LISTING_SENSOR_INTERVAL =
-            PREFIX + "env-monitor.exec-listing-sensor-interval";
-
-    /** Property name of certificate info sensor refresh interval. */
-    public static final String ENV_MONITOR_CERTIFICATE_INFO_SENSOR_INTERVAL =
-            PREFIX + "env-monitor.certificate-info-sensor-interval";
-
-    public static final String ONE_DAY_AS_SECONDS = String.valueOf(24 * 60 * 60);
-
     // gRPC internal cross-component transport configuration  -------------------------- //
 
     /**
@@ -822,11 +792,6 @@ public final class SystemProperties {
      * Property name for Environmental Monitoring gRPC TLS keystore password.
      */
     public static final String ENV_MONITOR_GRPC_TLS_KEYSTORE_PASSWORD = PREFIX + "env-monitor.grpc-tls-keystore-password";
-
-    /**
-     * Property name for enabling global configuration remoting via gRPC versus filesystem.
-     */
-    public static final String GLOBAL_CONF_REMOTING_ENABLED = PREFIX + "common.global-conf-remoting-enabled";
 
     /**
      * Property name for global configuration refresh rate in seconds.
@@ -1494,49 +1459,6 @@ public final class SystemProperties {
      */
     public static int getProxyParamsCollectingInterval() {
         return Integer.parseInt(SystemPropertySource.getPropertyResolver().getProperty(PROXY_PARAMS_COLLECTING_INTERVAL, "60"));
-    }
-
-    /**
-     * @return environmental monitoring port, '2552' by default.
-     */
-    public static int getEnvMonitorPort() {
-        return Integer.getInteger(ENV_MONITOR_PORT, PortNumbers.ENV_MONITOR_PORT);
-    }
-
-    /**
-     * @return environmental monitoring limiting remote return data set, 'false' by default.
-     */
-    public static boolean getEnvMonitorLimitRemoteDataSet() {
-        return Boolean.parseBoolean(SystemPropertySource.getPropertyResolver().getProperty(ENV_MONITOR_LIMIT_REMOTE_DATA_SET,
-                DEFAULT_ENV_MONITOR_LIMIT_REMOTE_DATA_SET));
-    }
-
-    /**
-     * @return system metrics sensor interval in seconds,'5' by default.
-     */
-    public static int getEnvMonitorSystemMetricsSensorInterval() {
-        return Integer.parseInt(SystemPropertySource.getPropertyResolver().getProperty(ENV_MONITOR_SYSTEM_METRICS_SENSOR_INTERVAL, "5"));
-    }
-
-    /**
-     * @return disk space sensor interval in seconds, '60' by default.
-     */
-    public static int getEnvMonitorDiskSpaceSensorInterval() {
-        return Integer.parseInt(SystemPropertySource.getPropertyResolver().getProperty(ENV_MONITOR_DISK_SPACE_SENSOR_INTERVAL, "60"));
-    }
-
-    /**
-     * @return exec listing sensor interval in seconds, '60' by default.
-     */
-    public static int getEnvMonitorExecListingSensorInterval() {
-        return Integer.parseInt(SystemPropertySource.getPropertyResolver().getProperty(ENV_MONITOR_EXEC_LISTING_SENSOR_INTERVAL, "60"));
-    }
-
-    /**
-     * @return exec listing sensor interval in seconds, 1 day by default.
-     */
-    public static int getEnvMonitorCertificateInfoSensorInterval() {
-        return Integer.parseInt(SystemPropertySource.getPropertyResolver().getProperty(ENV_MONITOR_CERTIFICATE_INFO_SENSOR_INTERVAL, ONE_DAY_AS_SECONDS));
     }
 
     /**
@@ -2220,10 +2142,6 @@ public final class SystemProperties {
      */
     public static String getGlobalConfRefreshRateSeconds() {
         return SystemPropertySource.getPropertyResolver().getProperty(GLOBAL_CONF_REFRESH_RATE_SECONDS, "60");
-    }
-
-    public static boolean isGlobalConfRemotingEnabled() {
-        return Boolean.parseBoolean(SystemPropertySource.getPropertyResolver().getProperty(GLOBAL_CONF_REMOTING_ENABLED, FALSE));
     }
 
     /**

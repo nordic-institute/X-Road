@@ -25,7 +25,6 @@
  */
 package ee.ria.xroad.monitor;
 
-import ee.ria.xroad.common.SystemProperties;
 import ee.ria.xroad.monitor.common.SystemMetricNames;
 import ee.ria.xroad.monitor.executablelister.OsInfoLister;
 import ee.ria.xroad.monitor.executablelister.PackageLister;
@@ -51,8 +50,8 @@ public class ExecListingSensor extends AbstractSensor {
     /**
      * Constructor
      */
-    public <T extends Metric> ExecListingSensor(TaskScheduler taskScheduler) {
-        super(taskScheduler);
+    public <T extends Metric> ExecListingSensor(TaskScheduler taskScheduler, EnvMonitorProperties envMonitorProperties) {
+        super(taskScheduler, envMonitorProperties);
         log.info("Creating sensor, measurement interval: {}", getInterval());
         updateMetrics();
         scheduleSingleMeasurement(getInterval());
@@ -75,8 +74,7 @@ public class ExecListingSensor extends AbstractSensor {
 
     private void createOsStringMetric(String metricName, JmxStringifiedData<String> data) {
         SimpleSensor<String> sensor = registryHolder.getOrCreateSimpleSensor(metricName);
-        sensor.update(data.getJmxStringData().get(0));
-
+        sensor.update(data.getJmxStringData().getFirst());
     }
 
     private void updateMetrics() {
@@ -113,7 +111,7 @@ public class ExecListingSensor extends AbstractSensor {
 
     @Override
     protected Duration getInterval() {
-        return Duration.ofSeconds(SystemProperties.getEnvMonitorExecListingSensorInterval());
+        return envMonitorProperties.getExecListingSensorInterval();
     }
 
 }

@@ -25,7 +25,6 @@
  */
 package ee.ria.xroad.monitor;
 
-import ee.ria.xroad.common.SystemProperties;
 import ee.ria.xroad.monitor.common.SystemMetricNames;
 
 import io.grpc.Channel;
@@ -52,10 +51,9 @@ public class SystemMetricsSensor extends AbstractSensor {
 
     private final RpcClient<ProxyRpcExecutionContext> proxyRpcClient;
 
-    private final Duration interval = Duration.ofSeconds(SystemProperties.getEnvMonitorSystemMetricsSensorInterval());
-
-    public SystemMetricsSensor(TaskScheduler taskScheduler, RpcClientProperties proxyRpcClientProperties) throws Exception {
-        super(taskScheduler);
+    public SystemMetricsSensor(TaskScheduler taskScheduler, EnvMonitorProperties envMonitorProperties,
+                               RpcClientProperties proxyRpcClientProperties) throws Exception {
+        super(taskScheduler, envMonitorProperties);
         log.info("Creating sensor, measurement interval: {}", getInterval());
 
         var credentialsProvider = new RpcCredentialsProvider.Builder()
@@ -124,10 +122,9 @@ public class SystemMetricsSensor extends AbstractSensor {
         }));
     }
 
-
     @Override
     protected Duration getInterval() {
-        return interval;
+        return envMonitorProperties.getSystemMetricsSensorInterval();
     }
 
     @Getter

@@ -25,7 +25,6 @@
  */
 package ee.ria.xroad.monitor;
 
-import ee.ria.xroad.common.SystemProperties;
 import ee.ria.xroad.common.TestPortUtils;
 import ee.ria.xroad.monitor.common.SystemMetricNames;
 
@@ -71,6 +70,13 @@ class SystemMetricsSensorTest {
     private static RpcServer rpcServer;
     private static StatsResp response;
 
+    private final EnvMonitorProperties envMonitorProperties = new EnvMonitorProperties(
+            Duration.ofDays(1),
+            Duration.ofSeconds(60),
+            Duration.ofSeconds(60),
+            Duration.ofSeconds(1),
+            true);
+
     @Spy
     private MetricRegistry metricRegistry = new MetricRegistry();
 
@@ -80,8 +86,6 @@ class SystemMetricsSensorTest {
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
-
-        System.setProperty(SystemProperties.ENV_MONITOR_SYSTEM_METRICS_SENSOR_INTERVAL, "1");
     }
 
     @BeforeAll
@@ -114,7 +118,7 @@ class SystemMetricsSensorTest {
         RpcClientProperties proxyRpcClientProperties = new RpcClientProperties("localhost", PORT, false,
                 null, null, null, null);
 
-        SystemMetricsSensor systemMetricsSensor = new SystemMetricsSensor(taskScheduler, proxyRpcClientProperties);
+        SystemMetricsSensor systemMetricsSensor = new SystemMetricsSensor(taskScheduler, envMonitorProperties, proxyRpcClientProperties);
 
         response = StatsResp.newBuilder()
                 .setOpenFileDescriptorCount(0)

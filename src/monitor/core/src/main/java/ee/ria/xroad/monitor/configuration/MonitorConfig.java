@@ -31,6 +31,7 @@ import ee.ria.xroad.common.conf.serverconf.ServerConfBeanConfig;
 import ee.ria.xroad.common.conf.serverconf.ServerConfProvider;
 import ee.ria.xroad.monitor.CertificateInfoSensor;
 import ee.ria.xroad.monitor.DiskSpaceSensor;
+import ee.ria.xroad.monitor.EnvMonitorProperties;
 import ee.ria.xroad.monitor.ExecListingSensor;
 import ee.ria.xroad.monitor.MetricsRpcService;
 import ee.ria.xroad.monitor.SystemMetricsSensor;
@@ -89,30 +90,32 @@ public class MonitorConfig {
     }
 
     @Bean
-    MetricsRpcService metricsRpcService() {
-        return new MetricsRpcService();
+    MetricsRpcService metricsRpcService(EnvMonitorProperties envMonitorProperties) {
+        return new MetricsRpcService(envMonitorProperties);
     }
 
     @Bean
     SystemMetricsSensor systemMetricsSensor(TaskScheduler taskScheduler,
+                                            EnvMonitorProperties envMonitorProperties,
                                             @Qualifier("proxyRpcClientProperties") RpcClientProperties proxyRpcClientProperties)
             throws Exception {
-        return new SystemMetricsSensor(taskScheduler, proxyRpcClientProperties);
+        return new SystemMetricsSensor(taskScheduler, envMonitorProperties, proxyRpcClientProperties);
     }
 
     @Bean
-    DiskSpaceSensor diskSpaceSensor(TaskScheduler taskScheduler) {
-        return new DiskSpaceSensor(taskScheduler);
+    DiskSpaceSensor diskSpaceSensor(TaskScheduler taskScheduler, EnvMonitorProperties envMonitorProperties) {
+        return new DiskSpaceSensor(taskScheduler, envMonitorProperties);
     }
 
     @Bean
-    ExecListingSensor execListingSensor(TaskScheduler taskScheduler) {
-        return new ExecListingSensor(taskScheduler);
+    ExecListingSensor execListingSensor(TaskScheduler taskScheduler, EnvMonitorProperties envMonitorProperties) {
+        return new ExecListingSensor(taskScheduler, envMonitorProperties);
     }
 
     @Bean
-    CertificateInfoSensor certificateInfoSensor(TaskScheduler taskScheduler, ServerConfProvider serverConfProvider) {
-        return new CertificateInfoSensor(taskScheduler, serverConfProvider);
+    CertificateInfoSensor certificateInfoSensor(TaskScheduler taskScheduler, EnvMonitorProperties envMonitorProperties,
+                                                ServerConfProvider serverConfProvider) {
+        return new CertificateInfoSensor(taskScheduler, envMonitorProperties, serverConfProvider);
     }
 
     @Bean
