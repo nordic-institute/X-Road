@@ -99,11 +99,6 @@ buildLocally() {
   echo "Building locally..."
   cd $XROAD || errorExit "Error 'cd $XROAD'."
   ./compile_code.sh "$@" || errorExit "Error running build of binaries."
-
-  if [ "$(uname)" == "Darwin" ]; then
-    echo "MacOS does not support passwordstore compilation. Compiling in docker..."
-    buildPasswordStoreInDocker
-  fi
 }
 
 buildBuilderImage() {
