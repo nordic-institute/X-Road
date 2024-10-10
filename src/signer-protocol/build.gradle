@@ -33,7 +33,12 @@ protobuf {
 compileJava.dependsOn generateProto
 
 test {
-    jvmArgs '-Djava.library.path=../lib'
+    if (Os.isArch("x86_64") || Os.isArch("amd64")) {
+        jvmArgs '-Djava.library.path=../libs/passwordstore/x86_64-linux-gnu'
+    }
+    if (Os.isArch("aarch64") || Os.isArch("arm64")) {
+        jvmArgs '-Djava.library.path=../libs/passwordstore/aarch64-linux-gnu'
+    }
 }
 
 if (Os.isName("linux")) {
