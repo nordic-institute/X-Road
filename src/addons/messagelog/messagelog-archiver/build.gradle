@@ -1,8 +1,9 @@
 plugins {
-    alias(libs.plugins.shadow)
+    alias(libs.plugins.springBoot)
 }
 
 dependencies {
+    implementation(platform(libs.springCloud.bom))
 
     implementation(project(':common:common-scheduler'))
     implementation(project(':common:common-db'))
@@ -10,20 +11,23 @@ dependencies {
     implementation(project(':common:common-verifier'))
     implementation(project(':addons:messagelog:messagelog-db'))
     implementation(project(':asic-util'))
+
+    implementation("org.springframework.boot:spring-boot-starter")
+    implementation("org.springframework.cloud:spring-cloud-config-client")
 }
 
-jar {
+bootJar {
+    enabled = true
+    archiveBaseName = 'messagelog-archiver'
+    archiveVersion = ''
+
     manifest {
-        attributes 'Main-Class': 'ee.ria.xroad.messagelog.archiver.LogArchiverMain'
+        attributes(
+            'Implementation-Title': 'X-Road Message Log Archiver',
+            'Implementation-Version': "$xroadVersion-$xroadBuildType",
+            'Main-Class': 'org.springframework.boot.loader.launch.PropertiesLauncher'
+        )
     }
 }
 
-shadowJar {
-    archiveVersion = ''
-    archiveClassifier = ''
-    exclude('**/module-info.class')
-    from rootProject.file("LICENSE.txt")
-    mergeServiceFiles()
-}
-
-assemble.dependsOn shadowJar
+jar.enabled = false

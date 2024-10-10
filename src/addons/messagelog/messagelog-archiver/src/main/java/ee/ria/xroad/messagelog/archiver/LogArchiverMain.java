@@ -26,59 +26,34 @@
  */
 package ee.ria.xroad.messagelog.archiver;
 
-import ee.ria.xroad.common.SystemPropertiesLoader;
+import ee.ria.xroad.common.SystemPropertySource;
 import ee.ria.xroad.common.Version;
 
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.context.annotation.AnnotationConfigApplicationContext;
-import org.springframework.context.support.GenericApplicationContext;
-
-import static ee.ria.xroad.common.SystemProperties.CONF_FILE_MESSAGE_LOG;
-import static ee.ria.xroad.common.SystemProperties.CONF_FILE_NODE;
+import org.springframework.boot.WebApplicationType;
+import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.boot.builder.SpringApplicationBuilder;
 
 @Slf4j
-public final class LogArchiverMain {
+@SpringBootApplication
+public class LogArchiverMain {
     private static final String APP_NAME = "MessageLogArchiver";
 
-
-    private LogArchiverMain() {
-    }
-
     public static void main(String[] args) {
-        try {
-            new LogArchiverMain().createApplicationContext();
-        } catch (Exception e) {
-            log.error("LogArchiver failed to start", e);
-            System.exit(1);
-        }
-    }
-
-    public GenericApplicationContext createApplicationContext(Class<?>... ctxExtension) {
         var startTime = System.currentTimeMillis();
         Version.outputVersionInfo(APP_NAME);
         log.info("Starting {} ({})...", APP_NAME, Version.XROAD_VERSION);
 
-        log.trace("Loading global bean dependencies");
-        loadSystemProperties();
-
-        var springCtx = new AnnotationConfigApplicationContext();
-        springCtx.register(LogArchiverConfig.class);
-        if (ctxExtension.length > 0) {
-            springCtx.register(ctxExtension);
-        }
-        springCtx.refresh();
-        springCtx.registerShutdownHook();
+        new SpringApplicationBuilder(LogArchiverMain.class, LogArchiverConfig.class)
+                .profiles("group-ee")//TODO load dynamically
+                .initializers(applicationContext -> {
+                    log.info("Setting property source to Spring environment..");
+                    SystemPropertySource.setEnvironment(applicationContext.getEnvironment());
+                })
+                .web(WebApplicationType.NONE)
+                .build()
+                .run(args);
         log.info("{} started in {} ms", APP_NAME, System.currentTimeMillis() - startTime);
-        return springCtx;
     }
-
-    private void loadSystemProperties() {
-        SystemPropertiesLoader.create()
-                .withCommonAndLocal()
-                .with(CONF_FILE_MESSAGE_LOG)
-                .withLocalOptional(CONF_FILE_NODE)
-                .load();
-    }
-
 
 }
