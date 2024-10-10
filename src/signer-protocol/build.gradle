@@ -34,10 +34,10 @@ compileJava.dependsOn generateProto
 
 test {
     if (Os.isArch("x86_64") || Os.isArch("amd64")) {
-        jvmArgs '-Djava.library.path=../libs/passwordstore/x86_64-linux-gnu'
+        jvmArgs '-Djava.library.path=../libs/passwordstore/amd64'
     }
     if (Os.isArch("aarch64") || Os.isArch("arm64")) {
-        jvmArgs '-Djava.library.path=../libs/passwordstore/aarch64-linux-gnu'
+        jvmArgs '-Djava.library.path=../libs/passwordstore/arm64'
     }
 }
 

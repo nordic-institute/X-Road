@@ -59,13 +59,13 @@ cp -p %{srcdir}/../../../signer-console/build/libs/signer-console-1.0.jar %{buil
 
 #Copy arch specific libs
 %ifarch x86_64
-cp -p %{srcdir}/../../../libs/pkcs11wrapper/x86_64-linux-gnu/libpkcs11wrapper.so %{buildroot}/usr/share/xroad/lib/
-cp -p %{srcdir}/../../../libs/passwordstore/x86_64-linux-gnu/libpasswordstore.so %{buildroot}/usr/share/xroad/lib/
+cp -p %{srcdir}/../../../libs/pkcs11wrapper/amd64/libpkcs11wrapper.so %{buildroot}/usr/share/xroad/lib/
+cp -p %{srcdir}/../../../libs/passwordstore/amd64/libpasswordstore.so %{buildroot}/usr/share/xroad/lib/
 %endif
 
 %ifarch aarch64
-cp -p %{srcdir}/../../../libs/pkcs11wrapper/aarch64-linux-gnu/libpkcs11wrapper.so %{buildroot}/usr/share/xroad/lib/
-cp -p %{srcdir}/../../../libs/passwordstore/aarch64-linux-gnu/libpasswordstore.so %{buildroot}/usr/share/xroad/lib/
+cp -p %{srcdir}/../../../libs/pkcs11wrapper/arm64/libpkcs11wrapper.so %{buildroot}/usr/share/xroad/lib/
+cp -p %{srcdir}/../../../libs/passwordstore/arm64/libpasswordstore.so %{buildroot}/usr/share/xroad/lib/
 %endif
 
 %clean
