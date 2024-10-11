@@ -1,0 +1,5 @@
+org.niis.xroad.edc.ih.XRoadIdentityHubProvisionerExtension
+
+# required by forking the "identity-hub-did" module
+org.eclipse.edc.identityhub.did.defaults.DidDefaultServicesExtension
+org.eclipse.edc.identityhub.did.DidServicesExtension

@@ -1,0 +1,176 @@
+@prefix : <https://$BASE_URL$/api/trusted-shape-registry/v1/shapes/service-offering?v=development#> .
+@prefix dct: <http://purl.org/dc/terms/> .
+@prefix gx-p: <https://$BASE_URL$/api/trusted-shape-registry/v1/shapes/participant?v=development#> .
+@prefix gx-s: <https://$BASE_URL$/api/trusted-shape-registry/v1/shapes/service-offering?v=development#> .
+@prefix owl: <http://www.w3.org/2002/07/owl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix xml: <http://www.w3.org/XML/1998/namespace> .
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+
+gx-s:ServiceOffering rdf:type rdfs:Class, sh:NodeShape ;
+    sh:property
+        [
+            sh:path gx-s:termsAndConditions ;
+            sh:node gx-s:TermsAndConditions ;
+            sh:minCount 1
+        ],
+        [
+            sh:path gx-s:policy ;
+            sh:datatype xsd:string ;
+            sh:minCount 1
+        ],
+        [
+            sh:path gx-s:aggregationOf ;
+            sh:class gx-s:Resource
+        ],
+        [
+            sh:path gx-s:name ;
+            sh:datatype xsd:string ;
+            sh:maxCount 1
+        ],
+        [
+            sh:path gx-s:dataAccountExport ;
+            sh:node gx-s:DataAccountExport ;
+            sh:minCount 1
+        ],
+        [
+            sh:path gx-s:providedBy ;
+            sh:node gx-p:Participant ;
+            sh:minCount 1 ;
+            sh:maxCount 1
+        ],
+        [
+            sh:path gx-s:dataProtectionRegime ;
+            sh:class gx-s:PersonalDataProtectionRegime
+        ],
+        [
+            sh:path gx-s:dependsOn ;
+            sh:class gx-s:ServiceOffering
+        ] .
+
+gx-s:Resource rdf:type sh:NodeShape, rdfs:Class ;
+    sh:property
+        [
+            sh:path gx-s:aggregationOf ;
+            sh:class gx-s:Resource
+        ] .
+
+gx-s:VirtualResource rdf:type sh:NodeShape, rdfs:Class ;
+    sh:property
+        [
+            sh:path gx-s:copyrightOwnedBy ;
+            sh:node gx-p:Participant ;
+            sh:minCount 0
+        ] .
+
+gx-s:InstantiatedVirtualResource rdf:type rdfs:Class, sh:NodeShape ;
+    sh:property
+        [
+            sh:path gx-s:instanceOf ;
+            sh:node gx-s:VirtualResource ;
+            sh:minCount 1 ;
+            sh:maxCount 1
+        ],
+        [
+            sh:path gx-s:maintainedBy ;
+            sh:minCount 1
+        ],
+        [
+            sh:path gx-s:hostedOn ;
+            sh:node gx-s:Resource ;
+            sh:minCount 1 ;
+            sh:maxCount 1
+        ],
+        [
+            sh:path gx-s:tenantOwnedBy ;
+            sh:minCount 1
+        ],
+        [
+            sh:path gx-s:serviceAccessPoint ;
+            sh:node gx-s:ServiceAccessPoint ;
+            sh:minCount 1
+        ] .
+
+gx-s:PhysicalResource rdf:type sh:NodeShape, rdfs:Class ;
+    sh:property
+        [
+            sh:path gx-s:maintainedBy ;
+            sh:class gx-p:Participant
+        ],
+        [
+            sh:path gx-s:ownedBy ;
+            sh:class gx-p:Participant ;
+            sh:minCount 1
+        ],
+        [
+            sh:path gx-s:manufacturedBy ;
+            sh:class gx-p:Participant
+        ] .
+
+gx-s:TermsAndConditions rdf:type rdfs:Class, sh:NodeShape ;
+    sh:property
+        [
+            sh:path gx-s:url ;
+            sh:datatype xsd:string ;
+            sh:minCount 1 ;
+            sh:maxCount 1
+        ],
+        [
+            sh:path gx-s:hash ;
+            sh:datatype xsd:string ;
+            sh:minCount 1 ;
+            sh:maxCount 1
+        ] .
+
+gx-s:DataAccountExport rdf:type rdfs:Class, sh:NodeShape ;
+    sh:property
+        [
+            sh:path gx-s:requestType ;
+            sh:datatype xsd:string ;
+            sh:minCount 1 ;
+            sh:maxCount 1
+        ],
+        [
+            sh:path gx-s:accessType ;
+            sh:datatype xsd:string ;
+            sh:minCount 1 ;
+            sh:maxCount 1
+        ],
+        [
+            sh:path gx-s:formatType ;
+            sh:datatype xsd:string ;
+            sh:minCount 1 ;
+            sh:maxCount 1
+        ] .
+
+gx-s:ServiceAccessPoint rdf:type rdfs:Class, sh:NodeShape ;
+    sh:property
+        [
+            sh:path gx-s:name ;
+            sh:datatype xsd:string ;
+            sh:maxCount 1
+        ],
+        [
+            sh:path gx-s:port ;
+            sh:datatype xsd:string
+        ],
+        [
+            sh:path gx-s:openAPI ;
+            sh:datatype xsd:string
+        ],
+        [
+            sh:path gx-s:version ;
+            sh:datatype xsd:string ;
+            sh:maxCount 1
+        ],
+        [
+            sh:path gx-s:protocol ;
+            sh:datatype xsd:string
+        ],
+        [
+            sh:path gx-s:host ;
+            sh:datatype xsd:string ;
+            sh:maxCount 1
+        ] .

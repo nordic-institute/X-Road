@@ -1,0 +1,40 @@
+@prefix gx-p: <https://$BASE_URL$/api/trusted-shape-registry/v1/shapes/participant?v=development#> .
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+
+gx-p:LegalPerson a rdfs:Class, sh:NodeShape ;
+    sh:property
+        [
+            sh:path [ sh:alternativePath ( gx-p:local gx-p:euid gx-p:eori gx-p:leiCode gx-p:vatID ) ] ;
+            sh:minCount 1
+        ],
+        [
+            sh:path gx-p:headquartersAddress ;
+            sh:minCount 1 ;
+            sh:node gx-p:PostalAddress
+        ],
+        [
+            sh:path gx-p:legalAddress ;
+            sh:minCount 1 ;
+            sh:node gx-p:PostalAddress
+        ],
+        [
+            sh:path gx-p:parentOrganization ;
+            sh:class gx-p:LegalPerson
+        ],
+        [
+            sh:path gx-p:subOrganization ;
+            sh:class gx-p:LegalPerson
+        ] .
+
+gx-p:PostalAddress a rdfs:Class, sh:NodeShape ;
+    sh:property
+        [
+            sh:path gx-p:countryCode ;
+            sh:minCount 1 ;
+            sh:maxCount 1 ;
+            sh:datatype xsd:string ;
+            sh:pattern "^[a-zA-Z]{2}$"
+        ] .

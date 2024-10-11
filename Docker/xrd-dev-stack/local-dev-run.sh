@@ -1,6 +1,7 @@
 #!/bin/bash
 
-configure_edc_signing_keys() {
+configure_edc_signing_key() {
+  # Retrieve the member signing key id from signer and apply it to EDC configuration
   KEY_ID=$(docker compose $COMPOSE_FILE_ARGS --env-file "$ENV_FILE" \
       exec --user xroad ${1} sh -c "signer-console get-member-signing-info ${2} | grep -oP 'Key id:\s+\K\w+'")
   docker compose $COMPOSE_FILE_ARGS --env-file "$ENV_FILE" \
@@ -12,7 +13,7 @@ configure_edc_signing_keys() {
 set -e # Exit immediately if a command exits with a non-zero status.
 
 ENV_FILE=".env"
-COMPOSE_FILE_ARGS="-f compose.yaml -f compose.dev.yaml -f compose.edc.yaml"
+COMPOSE_FILE_ARGS="-f compose.yaml -f compose.dev.yaml -f compose.edc.yaml -f compose.gxdch.yaml"
 
 
 for i in "$@"; do
@@ -59,8 +60,17 @@ if [[ -n "$INITIALIZE" ]]; then
     --retry 12 \
     --retry-interval 8000
 
-  configure_edc_signing_keys ss0 '\"DEV COM 1234\"'
-  configure_edc_signing_keys ss1 '\"DEV COM 4321\"'
+  configure_edc_signing_key ss0 '\"DEV COM 1234\"'
+  configure_edc_signing_key ss1 '\"DEV COM 4321\"'
+
+  # Provision Gaia-X compliance
+  docker compose $COMPOSE_FILE_ARGS \
+      --env-file "$ENV_FILE" \
+      run hurl \
+      --insecure \
+      --variables-file /hurl-src/vars.env \
+      --file-root /hurl-files /hurl-src/provision-gx-compliance.hurl \
+      --very-verbose
 fi
 
 if [[ -n "$INIT_SS2" ]]; then

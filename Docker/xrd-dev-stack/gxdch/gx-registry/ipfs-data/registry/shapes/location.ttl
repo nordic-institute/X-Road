@@ -1,0 +1,46 @@
+# TODO: to be refactored
+
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+
+@prefix gx-participant: <https://$BASE_URL$/api/trusted-shape-registry/v1/shapes/participant#> .
+@prefix gx-service-offering: <https://$BASE_URL$/api/trusted-shape-registry/v1/shapes/serviceoffering#> .
+@prefix gx-location:  <https://$BASE_URL$/api/trusted-shape-registry/v1/shapes/location#> .
+
+gx-location:LocationShape
+    a sh:NodeShape ;
+    sh:targetClass gx-participant:Location ;
+    sh:property [ sh:path gx-participant:hasProvider ;
+        sh:name "Has provider" ;
+        sh:minCount 1 ;
+        sh:class gx-participant:Provider ] ;
+    sh:property [ sh:path gx-service-offering:canHostServiceOffering ;
+        sh:name "Can host service offering" ;
+        sh:minCount 1 ;
+        sh:class gx-service-offering:ServiceOffering ] ;
+    sh:property [ sh:path gx-participant:hasAdministrativeLocation ;
+        sh:name "Has administrative location" ;
+        sh:minCount 1 ;
+        sh:maxCount 1 ;
+        sh:datatype xsd:string ] ;
+    sh:property [ sh:path gx-participant:country ;
+        sh:name "Country" ;
+        sh:minCount 0 ;
+        sh:maxCount 1 ;
+        sh:datatype xsd:string ] ;
+    sh:property [ sh:path gx-participant:state ;
+        sh:name "State" ;
+        sh:minCount 0 ;
+        sh:maxCount 1 ;
+        sh:datatype xsd:string ] ;
+    sh:property [ sh:path gx-participant:urbanArea ;
+        sh:name "Urban area" ;
+        sh:minCount 0 ;
+        sh:maxCount 1 ;
+        sh:datatype xsd:string ] ;
+    sh:property [ sh:path gx-participant:providerDesignation ;
+        sh:name "Provider designation" ;
+        sh:minCount 0 ;
+        sh:maxCount 1 ;
+        sh:datatype xsd:string ] ;
+.

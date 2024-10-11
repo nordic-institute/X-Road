@@ -26,8 +26,8 @@ logback = "1.5.7"
 logbackAccess = "2.0.3"
 apacheCxf = "4.0.5"
 archUnitPlugin = "4.0.0"
-edc = "0.9.0"
-edcJetty = "11.0.23"
+edc = "0.9.1"
+edcJetty = "11.0.24"
 nimbusJoseJwt = "9.39.1"
 dss = "6.0"
 caffeine = "3.1.8"
@@ -237,6 +237,7 @@ edc-vault-hashicorp = { module = "org.eclipse.edc:vault-hashicorp", version.ref 
 edc-spi-core = { module = "org.eclipse.edc:core-spi", version.ref = "edc" }
 edc-spi-identity-trust = { module = "org.eclipse.edc:identity-trust-spi", version.ref = "edc" }
 edc-spi-transform = { module = "org.eclipse.edc:transform-spi", version.ref = "edc" }
+edc-spi-transaction = { module = "org.eclipse.edc:transaction-spi", version.ref = "edc" }
 edc-spi-jwt = { module = "org.eclipse.edc:jwt-spi", version.ref = "edc" }
 edc-spi-jwt-signer = { module = "org.eclipse.edc:jwt-signer-spi", version.ref = "edc" }
 edc-spi-identity-did = { module = "org.eclipse.edc:identity-did-spi", version.ref = "edc" }
@@ -255,7 +256,7 @@ edc-lib-jsonld = { module = "org.eclipse.edc:json-ld-lib", version.ref = "edc" }
 edc-lib-util = { module = "org.eclipse.edc:util-lib", version.ref = "edc" }
 edc-lib-http = { module = "org.eclipse.edc:http-lib", version.ref = "edc" }
 edc-lib-vp = { module = "org.eclipse.edc:verifiable-presentation-lib", version.ref = "edc" }
-
+edc-lib-store = { "module" = "org.eclipse.edc:store-lib", version.ref = "edc" }
 
 # EDC dataplane client modules (used in controlplane)
 edc-dpf-transfer-signaling = { module = "org.eclipse.edc:transfer-data-plane-signaling", version.ref = "edc" }
@@ -348,10 +349,10 @@ connector = ["edc-boot", "edc-core-connector", "edc-ext-http", "edc-ext-observab
 controlplane = ["edc-controlplane-core", "edc-auth-configuration", "edc-api-management", "edc-api-management-config","edc-api-management-edr","edc-api-management-dataplaneselector",
   "edc-api-observability", "edc-dsp", "edc-spi-jwt", "edc-ext-http", "edc-controlplane-callback-dispatcher-event", "edc-controlplane-callback-dispatcher-http",
   "edc-identity-core-did", "edc-dcp-core", "edc-identity-trust-transform", "edc-api-control-configuration", "edc-lib-transform",
-  "edc-identity-vc-ldp", "edc-did-web", "edc-lib-jws2020", "edc-core-edrstore", "edc-edr-storereceiver"]
-did = ["edc-did-web", "edc-did-core", "edc-ih-did", "edc-ih-did-localpub"]
+  "edc-identity-vc-ldp", "edc-did-web", "edc-lib-jws2020", "edc-core-edrstore", "edc-edr-storereceiver"] # "edc-auth-tokenbased"
+did = ["edc-did-web", "edc-did-core", "edc-ih-did-localpub"] # "edc-ih-did" - replaced by fork contained in xroad-identity-hub-provisioner module
 identity-api = ["edc-ih-mgmt-config", "edc-ih-mgmt-did", "edc-ih-mgmt-participantcontext", "edc-ih-mgmt-verifiablecredential",
-  "edc-ih-mgmt-keypairs", "edc-ih-mgmt-authentication", "edc-ih-mgmt-authorization"]
+  "edc-ih-mgmt-keypairs"] # "edc-ih-mgmt-authentication", "edc-ih-mgmt-authorization"
 identityhub = ["edc-ih-core", "edc-ih-api-presentation", "edc-ih-participants", "edc-ih-keypairs"]
 dcp = ["edc-dcp", "edc-did-core", "edc-did-web", "edc-dcp-core"]
 sql-edc = ["edc-sql-assetindex", "edc-sql-contractdef", "edc-sql-contractneg", "edc-sql-policydef", "edc-sql-edrcache", "edc-sql-transferprocess", "edc-sql-dataplane-instancestore","edc-sql-core", "edc-sql-lease", "edc-sql-pool", "edc-sql-transactionlocal", "postgresql"]

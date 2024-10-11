@@ -1,0 +1,79 @@
+# TODO: to be refactored
+
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix schema: <http://schema.org/> .
+@prefix gx-participant: <https://$BASE_URL$/api/trusted-shape-registry/v1/shapes/participant#> .
+@prefix gx-resource: <https://$BASE_URL$/api/trusted-shape-registry/v1/shapes/resource#> .
+
+gx-resource:ResourceShape
+	a sh:NodeShape ;
+	sh:targetClass gx-resource:Resource ;
+	sh:property [
+		sh:path gx-resource:aggregationOf ;
+		sh:description "resources related to the resource and that can exist independently of it." ;
+		sh:class gx-resource:Resource ;
+	] .
+
+gx-resource:PhysicalResourceShape
+	a sh:NodeShape ;
+	rdfs:subClassOf gx-resource:Resource ;
+	sh:targetClass gx-resource:PhysicalResource ;
+	sh:property [
+		sh:path gx-resource:maintainedBy ;
+		sh:description "a list of participant maintaining the resource in operational condition and thus having physical access to it." ;
+		sh:class gx-participant:LegalPerson ;
+		sh:minCount: 1 ;
+	], [
+		sh:path gx-resource:ownedBy ;
+		sh:description "a list of participant owning the resource." ;
+		sh:class gx-participant:LegalPerson ;
+	], [
+		sh:path gx-resource:manufacturedBy ;
+		sh:description "a list of participant manufacturing the resource." ;
+		sh:class gx-participant:LegalPerson ;
+	], [
+		sh:path gx-resource:locationAddress ;
+		sh:description "a list of physical location in ISO 3166-1 alpha2, alpha-3 or numeric format." ;
+		sh:class gx-participant:Address ;
+		sh:minCount 1 ;
+	] .
+
+gx-resource:VirtualResourceShape
+	a sh:NodeShape ;
+	rdfs:subClassOf gx-resource:Resource ;
+	sh:targetClass gx-resource:VirtualResource ;
+	sh:property [
+		sh:path gx-resource:copyrightOwnedBy ;
+		sh:description "A list of copyright owners either as a free form string or participant URIs from which Self-Descriptions can be retrieved. A copyright owner is a person or organization that has the right to exploit the resource. Copyright owner does not necessarily refer to the author of the resource, who is a natural person and may differ from copyright owner." ;
+		sh:class gx-participant:LegalPerson ;
+		sh:minCount: 1 ;
+	], [
+		sh:path gx-resource:license ;
+		sh:description "A list of SPDX license identifiers or URL to license document" ;
+		sh:datatype xsd:string ;
+		sh:minCount: 1 ;
+	] .
+
+gx-resource:InstantiatedVirtualResourceShape
+	a sh:NodeShape ;
+	rdfs:subClassOf gx-resource:VirtualResource ;
+	sh:targetClass gx-resource:InstantiatedVirtualResource ;
+	sh:property [
+		sh:path gx-resource:maintainedBy ;
+		sh:description "a list of participant maintaining the resource in operational condition." ;
+		sh:class gx-participant:LegalPerson ;
+		sh:minCount: 1 ;
+	], [
+		sh:path gx-resource:hostedOn ;
+		sh:description "A list of SPDX license identifiers or URL to license document" ;
+		sh:datatype xsd:string ;
+		sh:minCount: 1 ;
+	], [
+		sh:path gx-resource:tenantOwnedBy ;
+		sh:description "a list of participant with contractual relation with the resource." ;
+		sh:class gx-participant:LegalPerson ;
+		sh:minCount: 1 ;
+	] .
