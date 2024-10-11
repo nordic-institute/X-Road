@@ -43,7 +43,7 @@ public class ProxyMain {
 
     private static final String APP_NAME = "xroad-proxy";
 
-    public static void main(String[] args) throws Exception {
+    public static void main(String[] args) {
         Version.outputVersionInfo(APP_NAME);
 
         new SpringApplicationBuilder(ProxyMain.class, ProxyConfig.class)

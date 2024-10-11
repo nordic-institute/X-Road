@@ -107,14 +107,12 @@ public class RestEdcProxyTest extends AbstractProxyIntegrationTest {
         startEdcConsumer();
 
         TimeUtils.setClock(Clock.fixed(CLOCK_FIXED_INSTANT, ZoneOffset.UTC));
-        applicationContext = new TestProxyMain(getAdditionalSystemParameters()).createApplicationContext(TestProxySpringConfig.class);
+        org.apache.xml.security.Init.init();
+        AbstractProxyIntegrationTest.setSystemProperties(getAdditionalSystemParameters());
     }
 
     @AfterClass
     public static void teardown() {
-        if (applicationContext != null) {
-            applicationContext.close();
-        }
         RESERVED_PORTS.clear();
 
         providerProcess.descendants().forEach(ProcessHandle::destroy);
