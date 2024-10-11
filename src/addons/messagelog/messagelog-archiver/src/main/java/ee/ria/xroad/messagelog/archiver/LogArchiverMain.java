@@ -29,6 +29,8 @@ package ee.ria.xroad.messagelog.archiver;
 import ee.ria.xroad.common.SystemPropertySource;
 import ee.ria.xroad.common.Version;
 
+import ee.ria.xroad.common.conf.globalconf.GlobalConfPropertiesConfig;
+
 import lombok.extern.slf4j.Slf4j;
 import org.niis.xroad.common.rpc.RpcClientProperties;
 import org.springframework.boot.WebApplicationType;
@@ -48,7 +50,7 @@ public class LogArchiverMain {
         Version.outputVersionInfo(APP_NAME);
         log.info("Starting {} ({})...", APP_NAME, Version.XROAD_VERSION);
 
-        new SpringApplicationBuilder(LogArchiverMain.class, LogArchiverConfig.class)
+        new SpringApplicationBuilder(LogArchiverMain.class, LogArchiverConfig.class, GlobalConfPropertiesConfig.class)
                 .profiles("group-ee")//TODO load dynamically
                 .initializers(applicationContext -> {
                     log.info("Setting property source to Spring environment..");

@@ -29,6 +29,8 @@ package ee.ria.xroad.signer;
 import ee.ria.xroad.common.SystemPropertySource;
 import ee.ria.xroad.common.Version;
 
+import ee.ria.xroad.common.conf.globalconf.GlobalConfPropertiesConfig;
+
 import lombok.extern.slf4j.Slf4j;
 import org.niis.xroad.common.rpc.RpcClientProperties;
 import org.niis.xroad.common.rpc.RpcServerProperties;
@@ -55,7 +57,7 @@ public class SignerMain {
         Version.outputVersionInfo(APP_NAME);
 
 
-        new SpringApplicationBuilder(SignerMain.class, SignerConfig.class)
+        new SpringApplicationBuilder(SignerMain.class, SignerConfig.class, GlobalConfPropertiesConfig.class)
                 .profiles(resolveProfiles())
                 .initializers(applicationContext -> {
                     log.info("Setting property source to Spring environment..");

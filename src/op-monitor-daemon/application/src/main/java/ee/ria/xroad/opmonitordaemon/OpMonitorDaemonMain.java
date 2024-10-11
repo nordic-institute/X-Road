@@ -28,6 +28,7 @@ package ee.ria.xroad.opmonitordaemon;
 
 import ee.ria.xroad.common.SystemPropertySource;
 import ee.ria.xroad.common.Version;
+import ee.ria.xroad.common.conf.globalconf.GlobalConfPropertiesConfig;
 import ee.ria.xroad.opmonitordaemon.config.OpMonitorDaemonRootConfig;
 
 import lombok.extern.slf4j.Slf4j;
@@ -50,7 +51,7 @@ public class OpMonitorDaemonMain {
     public static void main(String[] args) {
         Version.outputVersionInfo(APP_NAME);
 
-        new SpringApplicationBuilder(OpMonitorDaemonMain.class, OpMonitorDaemonRootConfig.class)
+        new SpringApplicationBuilder(OpMonitorDaemonMain.class, OpMonitorDaemonRootConfig.class, GlobalConfPropertiesConfig.class)
                 .profiles("group-ee")//TODO load dynamically
                 .initializers(applicationContext -> {
                     log.info("Setting property source to Spring environment..");

@@ -28,6 +28,8 @@ package ee.ria.xroad.proxy;
 import ee.ria.xroad.common.SystemPropertySource;
 import ee.ria.xroad.common.Version;
 
+import ee.ria.xroad.common.conf.globalconf.GlobalConfPropertiesConfig;
+
 import lombok.extern.slf4j.Slf4j;
 import org.niis.xroad.common.rpc.RpcClientProperties;
 import org.niis.xroad.common.rpc.RpcServerProperties;
@@ -54,7 +56,7 @@ public class ProxyMain {
     public static void main(String[] args) {
         Version.outputVersionInfo(APP_NAME);
 
-        new SpringApplicationBuilder(ProxyMain.class, ProxyConfig.class)
+        new SpringApplicationBuilder(ProxyMain.class, ProxyConfig.class, GlobalConfPropertiesConfig.class)
                 .profiles("group-ee")//TODO load dynamically
                 .initializers(applicationContext -> {
                     log.info("Initializing Apache Santuario XML Security library..");

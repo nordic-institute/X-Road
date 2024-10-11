@@ -9,6 +9,7 @@ dependencies {
     implementation("org.springframework.cloud:spring-cloud-config-client")
 
     implementation project(':common:common-core')
+    implementation project(':common:common-properties')
     implementation project(':common:common-rpc')
     implementation project(':op-monitor-daemon:core')
 }

@@ -57,8 +57,7 @@ public class BootstrapConfiguration {
     @Bean
     GlobalConfProperties globalConfProperties() {
         return new GlobalConfProperties(
-                false,
-                Integer.parseInt(SystemProperties.getGlobalConfRefreshRateSeconds())
+                false
         );
     }
 

@@ -27,6 +27,7 @@
 package org.niis.xroad.cs.management.core.configuration;
 
 import ee.ria.xroad.common.conf.globalconf.GlobalConfBeanConfig;
+import ee.ria.xroad.common.conf.globalconf.GlobalConfPropertiesConfig;
 import ee.ria.xroad.common.conf.globalconf.GlobalConfProvider;
 import ee.ria.xroad.common.conf.globalconf.GlobalConfRefreshJobConfig;
 
@@ -40,6 +41,7 @@ import org.springframework.scheduling.annotation.EnableScheduling;
 
 @Import({
         AdminServiceClientConfiguration.class,
+        GlobalConfPropertiesConfig.class,
         GlobalConfBeanConfig.class,
         GlobalConfRefreshJobConfig.class
 })

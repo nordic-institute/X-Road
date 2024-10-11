@@ -41,4 +41,5 @@ public class GlobalConfPropertiesConfig {
             super(globalConfRemotingEnabled);
         }
     }
+
 }
