@@ -1,33 +1,7 @@
-plugins {
-    alias(libs.plugins.springBoot)
+tasks.withType(Jar).configureEach {
+    enabled = false
 }
 
-dependencies {
-    implementation(platform(libs.springCloud.bom))
-
-    implementation(project(':common:common-scheduler'))
-    implementation(project(':common:common-db'))
-    implementation(project(':common:common-messagelog'))
-    implementation(project(':common:common-verifier'))
-    implementation(project(':addons:messagelog:messagelog-db'))
-    implementation(project(':asic-util'))
-
-    implementation("org.springframework.boot:spring-boot-starter")
-    implementation("org.springframework.cloud:spring-cloud-config-client")
+archUnit {
+    skip = true
 }
-
-bootJar {
-    enabled = true
-    archiveBaseName = 'messagelog-archiver'
-    archiveVersion = ''
-
-    manifest {
-        attributes(
-            'Implementation-Title': 'X-Road Message Log Archiver',
-            'Implementation-Version': "$xroadVersion-$xroadBuildType",
-            'Main-Class': 'org.springframework.boot.loader.launch.PropertiesLauncher'
-        )
-    }
-}
-
-jar.enabled = false

@@ -45,7 +45,7 @@ cp -p %{srcdir}/common/addon/proxy/setup_messagelog_db.sh %{buildroot}/usr/share
 cp -p %{srcdir}/common/addon/proxy/xroad-messagelog-archiver %{buildroot}/usr/share/xroad/bin/
 cp -p %{srcdir}/common/addon/proxy/messagelog-archiver.conf %{buildroot}/etc/xroad/services/
 
-cp -p %{srcdir}/../../../addons/messagelog/messagelog-archiver/build/libs/messagelog-archiver.jar %{buildroot}/usr/share/xroad/jlib/addon/proxy/
+cp -p %{srcdir}/../../../addons/messagelog/messagelog-archiver/application/build/libs/messagelog-archiver.jar %{buildroot}/usr/share/xroad/jlib/addon/proxy/
 cp -p %{srcdir}/../../../addons/messagelog/messagelog-archiver/scripts/archive-http-transporter.sh %{buildroot}/usr/share/xroad/scripts
 cp -p %{srcdir}/../../../addons/messagelog/messagelog-archiver/scripts/demo-upload.pl %{buildroot}/usr/share/doc/xroad-addon-messagelog/archive-server/
 cp -p %{srcdir}/../../../addons/messagelog/messagelog-archive-verifier/build/libs/messagelog-archive-verifier.jar %{buildroot}/usr/share/doc/xroad-addon-messagelog/archive-hashchain-verifier/
