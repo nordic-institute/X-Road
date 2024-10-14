@@ -1,0 +1,106 @@
+{
+  "@context": "",
+  "$schema": "http://json-schema.org/draft-06/schema#",
+  "$id": "https://registry.gaia-x.eu/v1/trusted-schemas-registry/v2/schemas/Participant/",
+  "$ref": "#/definitions/Participant",
+  "definitions": {
+    "Participant": {
+      "properties": {
+        "gx-p:termsAndConditions": {
+          "$ref": "#/definitions/GxPTermsAndConditions"
+        }
+      },
+      "title": "Participant",
+      "type": "object"
+    },
+    "NaturalPerson": {
+      "allOf": [
+        {
+          "$ref": "#/definitions/Participant"
+        }
+      ],
+      "title": "NaturalPerson",
+      "type": "object"
+    },
+    "LegalPerson": {
+      "allOf": [
+        {
+          "$ref": "#/definitions/Participant"
+        }
+      ],
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "gx-p:registrationNumber": {
+          "$ref": "#/definitions/GxPRegistrationNumber"
+        },
+        "gx-p:headquartersAddress": {
+          "$ref": "#/definitions/GxPAddress"
+        },
+        "gx-p:legalAddress": {
+          "$ref": "#/definitions/GxPAddress"
+        },
+        "gx-p:parentOrganization": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/Participant"
+          }
+        },
+        "gx-p:subOrganization": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/Participant"
+          }
+        }
+      },
+      "required": [
+        "gx-p:headquartersAddress",
+        "gx-p:legalAddress",
+        "gx-p:registrationNumber"
+      ],
+      "title": "LegalPerson"
+    },
+    "GxPAddress": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "gx-p:countryCode": {
+          "type": "string"
+        }
+      },
+      "required": [],
+      "title": "GxPAddress"
+    },
+    "GxPRegistrationNumber": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "gx:vatID": {
+          "type": "string"
+        },
+        "gx:taxID": {
+          "type": "string"
+        },
+        "gx:EORI": {
+          "type": "string"
+        },
+        "gx:leiCode": {
+          "type": "string"
+        }
+      },
+      "required": [],
+      "title": "GxPLegalRegistrationNumber"
+    },
+    "GxPTermsAndConditions": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "gx-p:value": {
+          "type": "string"
+        }
+      },
+      "required": [],
+      "title": "GxPTermsAndConditions"
+    }
+  }
+}

@@ -39,8 +39,10 @@ dependencies {
     implementation(project(":security-server:edc:extensions:common:xroad-jws-signer")) {
         exclude group: 'org.eclipse.jetty'
     }
+    implementation(project(":security-server:edc:extensions:identity-hub:xroad-identity-hub-provisioner")) {
+        exclude group: 'org.eclipse.jetty'
+    }
     implementation(project(":security-server:edc:extensions:common:xroad-webserver"))
-    implementation(libs.bouncyCastle.bcprov)
 
     testImplementation libs.edc.junit
     testImplementation libs.mockito.jupiter
@@ -86,6 +88,7 @@ processResources {
 
 assemble.dependsOn("shadowJarWithSql")
 
-checkstyle {
-    checkstyleMain.enabled = false
+archUnit {
+    skip = true
 }
+

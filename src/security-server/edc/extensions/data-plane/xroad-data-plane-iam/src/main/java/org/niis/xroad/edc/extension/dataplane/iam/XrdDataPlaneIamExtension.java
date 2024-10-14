@@ -65,7 +65,7 @@ public class XrdDataPlaneIamExtension implements ServiceExtension {
     private TokenValidationService tokenValidationService;
 
     @Provider
-    public DataPlaneAccessTokenService defaultAccessTokenService(ServiceExtensionContext context) {
+    public DataPlaneAccessTokenService dataplaneAccessTokenService(ServiceExtensionContext context) {
         var tokenVerifierPublicKeyAlias = context.getConfig().getString(TOKEN_VERIFIER_PUBLIC_KEY_ALIAS);
         var tokenSignerPrivateKeyAlias = context.getConfig().getString(TOKEN_SIGNER_PRIVATE_KEY_ALIAS);
         var monitor = context.getMonitor().withPrefix("DataPlane IAM");

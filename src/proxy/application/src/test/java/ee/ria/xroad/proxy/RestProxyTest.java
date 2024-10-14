@@ -41,6 +41,10 @@ import org.eclipse.jetty.server.Request;
 import org.hamcrest.Matchers;
 import org.junit.BeforeClass;
 import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.niis.xroad.proxy.configuration.ProxyConfig;
+import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.test.context.junit4.SpringRunner;
 
 import java.io.InputStream;
 import java.time.Clock;
@@ -61,6 +65,10 @@ import static org.junit.Assert.assertNotNull;
  * RestProxyTest
  */
 @Slf4j
+@SpringBootTest(
+        classes = {ProxyConfig.class, AbstractProxyIntegrationTest.TestProxySpringConfig.class}
+)
+@RunWith(SpringRunner.class)
 public class RestProxyTest extends AbstractProxyIntegrationTest {
 
     static final String PREFIX = "/r" + RestMessage.PROTOCOL_VERSION;
@@ -68,7 +76,8 @@ public class RestProxyTest extends AbstractProxyIntegrationTest {
     @BeforeClass
     public static void setup() throws Exception {
         TimeUtils.setClock(Clock.fixed(CLOCK_FIXED_INSTANT, ZoneOffset.UTC));
-        applicationContext = new TestProxyMain(Map.of()).createApplicationContext(TestProxySpringConfig.class);
+        org.apache.xml.security.Init.init();
+        AbstractProxyIntegrationTest.setSystemProperties(Map.of());
     }
 
     @Test

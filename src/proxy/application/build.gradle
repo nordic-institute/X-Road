@@ -26,6 +26,8 @@ dependencies {
     testImplementation(project(':serverconf'))
     testImplementation(project(':security-server:edc-client'))
     testImplementation(project(path: ":proxy:core", configuration: 'testArtifacts'))
+
+    testImplementation("org.springframework.boot:spring-boot-starter-test")
 }
 
 jar {

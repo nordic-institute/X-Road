@@ -87,7 +87,7 @@ check.dependsOn integrationTest
 
 tasks.register('intTest', Test) {
     useJUnitPlatform()
-    dependsOn(':signer:application:shadowJar')
+    dependsOn(':signer:application:bootJar')
 
     setDescription("Runs integration tests.")
     group = 'verification'

@@ -23,21 +23,5 @@ bao server -dev \
 # Wait for OpenBao to be initialized
 wait_for_server
 
-#echo "Storing initial secrets"
-
-#NB! Keys are urlencoded as values are fetched by EDC vault client through HTTP GET
-
-#public keys
-#bao kv put --mount secret public-key content=@/certs/ss/public-key
-#bao kv put --mount secret did%3Aweb%3Ass0%253A9396%23JWK2020-RSA content=@/certs/ss/ss0.crt
-#bao kv put --mount secret did%3Aweb%3Ass1%253A9396%23JWK2020-RSA content=@/certs/ss/ss1.crt
-
-#private keys
-#bao kv put --mount secret did%3Aweb%3Ass0%253A9396-private-key content=@/certs/ss/ss0.pkcs8
-#bao kv put --mount secret did%3Aweb%3Ass1%253A9396-private-key content=@/certs/ss/ss1.pkcs8
-
-#bao kv put --mount secret alias_cs content=@/certs/cs/cs.pkcs8
-
-
 # keep the container running
 wait
