@@ -18,6 +18,8 @@ services:
       - "4154:9194" #EDC protocol port
       - "4155:9293" #EDC public port
       - "4156:9294" #EDC XRD public port
+    networks:
+      - xroad-network
   ss0:
     environment:
       - EDC_HOSTNAME=ss0
@@ -34,6 +36,8 @@ services:
       - "4256:9292" #data-plane control port
       - "4257:9293" #data-plane public port
       - "4258:9294" #data-plane XRD public port
+    networks:
+      - xroad-network
   ss1:
     environment:
       - EDC_HOSTNAME=ss1
@@ -50,6 +54,8 @@ services:
       - "4356:9292" #data-plane control port
       - "4357:9293" #data-plane public port
       - "4358:9294" #data-plane XRD public port
+    networks:
+      - xroad-network
   prometheus:
     image: prom/prometheus:v2.52.0
     deploy:
@@ -62,6 +68,8 @@ services:
       - ./prometheus/:/etc/prometheus/
     ports:
       - 9090:9090
+    networks:
+      - xroad-network
   jaeger:
     image: jaegertracing/all-in-one:1.59
 
@@ -79,6 +87,8 @@ services:
     ports:
       - 16686:16686
       - 4318:4318
+    networks:
+      - xroad-network
   openbao:
     build:
       context: ../
@@ -93,3 +103,7 @@ services:
     networks:
       - xroad-network
 
+networks:
+  xroad-network:
+    name: xroad-network
+    driver: bridge

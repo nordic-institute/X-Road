@@ -27,23 +27,22 @@ package org.niis.xroad.confclient;
 
 import ee.ria.xroad.common.SystemProperties;
 
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
+import org.springframework.boot.test.context.SpringBootTest;
 
-import static org.assertj.core.api.AssertionsForClassTypes.fail;
 
-
+@SpringBootTest
 class ConfClientDaemonMainTest {
 
-    @Test
-    void shouldStart() {
+    @BeforeAll
+    static void setUp() {
         System.setProperty(SystemProperties.CONFIGURATION_CLIENT_GRPC_TLS_ENABLED, Boolean.FALSE.toString());
         System.setProperty(SystemProperties.CONFIGURATION_ANCHOR_FILE, "build/resources/test/configuration-anchor1.xml");
+    }
 
-
-        try {
-            ConfClientDaemonMain.main(new String[]{});
-        } catch (Exception e) {
-            fail("Should not throw exception");
-        }
+    @Test
+    void contextLoads() {
+        // This test will pass if the application context is loaded successfully
     }
 }

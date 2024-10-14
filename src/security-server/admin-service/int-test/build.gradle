@@ -25,7 +25,7 @@ test {
 
 tasks.register('intTest', Test) {
     useJUnitPlatform()
-
+    dependsOn(':security-server:admin-service:application:bootJar')
     setDescription("Runs integration tests.")
     group = 'verification'
 

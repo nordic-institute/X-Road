@@ -9,7 +9,9 @@ spring:
     defer-datasource-initialization: true
   profiles:
     active: test
-
+  cloud:
+    config:
+      enabled: false
 
 logging:
   level:
