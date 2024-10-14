@@ -1,3 +1,6 @@
+plugins {
+    id 'java-library'
+}
 
 dependencies {
     implementation(project(':common:common-globalconf'))
@@ -7,4 +10,36 @@ dependencies {
     implementation(project(':addons:messagelog:messagelog-db'))
 
     implementation libs.dss.xml.utils
+
+//    testImplementation project(':addons:messagelog:messagelog-addon:asic')
+    testImplementation project(':addons:messagelog:messagelog-archiver')
+//    testImplementation project(':addons:messagelog:messagelog-db')
+    testImplementation project(':common:common-jetty')
+
+//    testImplementation project(':common:common-globalconf')
+//    testImplementation project(':common:common-scheduler')
+//    testImplementation project(':common:common-message')
+
+//    testImplementation project(':common:common-messagelog')
+//    testImplementation project(':common:common-verifier')
+//    testImplementation project(':serverconf')
+//    testImplementation project(':asic-util')
+    testImplementation project(':proxy:core')
+
+    testImplementation project(':common:common-keyconf')
+    testImplementation project(':common:common-test')
+    testImplementation libs.hsqldb
+    testImplementation libs.bouncyCastle.bcpg
+    testImplementation libs.dss.asic.xades
 }
+
+jar {
+    archiveBaseName = 'messagelog-addon-core'
+}
+
+tasks.register('copyGpg', Copy) {
+    from 'src/test/gpg'
+    into layout.buildDirectory.dir("gpg")
+}
+
+test.dependsOn copyGpg
