@@ -28,7 +28,6 @@ package ee.ria.xroad.messagelog.archiver;
 
 import ee.ria.xroad.common.SystemPropertySource;
 import ee.ria.xroad.common.Version;
-
 import ee.ria.xroad.common.conf.globalconf.GlobalConfPropertiesConfig;
 
 import lombok.extern.slf4j.Slf4j;
