@@ -5,7 +5,6 @@ dependencies {
     implementation(project(':addons:messagelog:messagelog-db'))
     implementation(project(':asic-util'))
     implementation(project(':common:common-jetty'))
-//    implementation(project(':common:common-globalconf'))
     implementation(project(':common:common-keyconf'))
     implementation(project(':common:common-messagelog'))
     implementation(project(':common:common-op-monitoring'))
