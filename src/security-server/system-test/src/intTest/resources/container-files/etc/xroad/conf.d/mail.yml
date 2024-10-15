@@ -1,0 +1,6 @@
+mail:
+  host: testmailserver
+  port: 587
+  username: testuser
+  password: passw0rd
+  use-ssl-tls: true
