@@ -19,7 +19,7 @@ ss0_tsandcs_credential: jsonpath "$.verifiableCredential.rawVc"
 
 
 # Request a Legal Registration Number from the Gaia-X Notary
-POST https://gxdch/notary/registrationNumberVC?vcid=https%3A%2F%2Fss0%3A9396%2Flrn.json
+POST {{gx_notary_baseurl}}/registrationNumberVC?vcid=https%3A%2F%2Fss0%3A9396%2Flrn.json
 {
   "@context": [
     "https://registry.lab.gaia-x.eu/development/api/trusted-shape-registry/v1/shapes/jsonld/participant"
@@ -36,7 +36,7 @@ ss0_lrn_credential: body
 
 
 # Submit to Gaia-X compliance
-POST https://gxdch/compliance/api/credential-offers?vcid=https%3A%2F%2Fss0%3A9396%2Fcompliance.json
+POST {{gx_compliance_baseurl}}/api/credential-offers?vcid=https%3A%2F%2Fss0%3A9396%2Fcompliance.json
 ```json
 {
   "@context": "https://www.w3.org/2018/credentials/v1",
@@ -135,7 +135,7 @@ ss1_tsandcs_credential: jsonpath "$.verifiableCredential.rawVc"
 
 
 # Request a Legal Registration Number from the Gaia-X Notary
-POST https://gxdch/notary/registrationNumberVC?vcid=https%3A%2F%2Fss1%3A9396%2Flrn.json
+POST {{gx_notary_baseurl}}/registrationNumberVC?vcid=https%3A%2F%2Fss1%3A9396%2Flrn.json
 {
   "@context": [
     "https://registry.lab.gaia-x.eu/development/api/trusted-shape-registry/v1/shapes/jsonld/participant"
@@ -152,7 +152,7 @@ ss1_lrn_credential: body
 
 
 # Submit to Gaia-X compliance
-POST https://gxdch/compliance/api/credential-offers?vcid=https%3A%2F%2Fss1%3A9396%2Fcompliance.json
+POST {{gx_compliance_baseurl}}/api/credential-offers?vcid=https%3A%2F%2Fss1%3A9396%2Fcompliance.json
 ```json
 {
   "@context": "https://www.w3.org/2018/credentials/v1",
