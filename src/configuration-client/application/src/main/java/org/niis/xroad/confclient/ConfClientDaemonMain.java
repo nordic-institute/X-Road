@@ -30,7 +30,6 @@ import ee.ria.xroad.common.Version;
 
 import lombok.extern.slf4j.Slf4j;
 import org.niis.xroad.confclient.config.ConfClientRootConfig;
-import org.springframework.boot.WebApplicationType;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.builder.SpringApplicationBuilder;
 
@@ -43,12 +42,11 @@ public class ConfClientDaemonMain {
         Version.outputVersionInfo(APP_NAME);
 
         new SpringApplicationBuilder(ConfClientDaemonMain.class, ConfClientRootConfig.class)
-                .profiles("group-ee")//TODO load dynamically
+                .profiles("containerized", "group-ee","overrride")//TODO load dynamically
                 .initializers(applicationContext -> {
                     log.info("Setting property source to Spring environment..");
                     SystemPropertySource.setEnvironment(applicationContext.getEnvironment());
                 })
-                .web(WebApplicationType.NONE)
                 .build()
                 .run(args);
     }

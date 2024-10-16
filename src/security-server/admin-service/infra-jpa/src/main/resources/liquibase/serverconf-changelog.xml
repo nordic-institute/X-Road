@@ -5,13 +5,20 @@
     xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
                       http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.19.xsd">
 
+    <changeSet id="create-mandatory-extensions" author="ričardas bučiūnas">
+        <sql>
+            CREATE EXTENSION IF NOT EXISTS hstore;
+        </sql>
+    </changeSet>
+
     <include file="serverconf/000-baseline.xml" relativeToChangelogFile="true"/>
     <include file="serverconf/001-apikeys.xml" relativeToChangelogFile="true"/>
     <include file="serverconf/002-drop-securitycategories.xml"  relativeToChangelogFile="true"/>
     <include file="serverconf/003-xroad8.xml"  relativeToChangelogFile="true"/>
 
     <!-- must be the last one -->
-    <changeSet id="separate-admin-user" author="niis" context="admin" runAlways="true" runOnChange="true" runOrder="last">
+<!--   TODO disabled for now -->
+    <!--<changeSet id="separate-admin-user" author="niis" context="admin" runAlways="true" runOnChange="true" runOrder="last">
         <sql splitStatements="false"><![CDATA[
         grant usage on schema "${db_schema}" to "${db_user}";
         grant select,update,insert,delete on all tables in schema "${db_schema}" to "${db_user}";
@@ -21,6 +28,6 @@
         revoke update,delete on history from "${db_user}";
         ]]>
         </sql>
-    </changeSet>
+    </changeSet>-->
 
 </databaseChangeLog>

@@ -1,0 +1,136 @@
+services:
+  db:
+    image: postgres:16
+    environment:
+      - POSTGRES_PASSWORD=secret #TODO use separate users
+      - POSTGRES_USER=xroad
+      - POSTGRES_DB=xroad
+    networks:
+      - xrd-ss-network
+  db-init:
+    image: liquibase:4.29 #TODO probably release standalone image with embedded changelog
+    volumes:
+      - /Users/ricardasb/work/xroad/repo/x-road/src/security-server/admin-service/infra-jpa/src/main/resources/liquibase/:/liquibase/changelog
+    command:
+      - --changeLogFile=changelog/serverconf-changelog.xml
+      - --driver=org.postgresql.Driver
+      - --url=jdbc:postgresql://db:5432/xroad
+      - --username=xroad
+      - --password=secret
+      - --log-level=debug
+      - update
+    depends_on:
+      - db
+    networks:
+      - xrd-ss-network
+  config:
+    image: xroad-ss-config:latest
+    networks:
+      - xrd-ss-network
+    volumes:
+      - ./config:/etc/xroad/conf.d
+    healthcheck: # TODO add actuator health check
+      interval: 5s
+      retries: 40
+      test: [ "CMD", "curl", "-f", "-k", "http://localhost:5580/dummy/dummy" ]
+  confclient:
+    image: xroad-ss-confclient:latest
+    environment:
+      - XROAD_TOKEN_PIN=Secret1234
+      - SIGNER_JMX_PORT=4398
+      - XROAD_ENV=security-server
+      - XRD_CONFIG_SERVER_URI=http://config:5580
+    healthcheck:
+      interval: 5s
+      retries: 40
+      test: [ "CMD", "curl", "-f", "-k", "http://localhost:8080/actuator/health" ]
+    volumes:
+      - ./temp-mount:/opt/app/mount
+    networks:
+      - xrd-ss-network
+      - xroad-network
+    depends_on:
+      config:
+        condition: service_healthy
+  signer:
+    image: xroad-ss-signer:latest
+    environment:
+      - XROAD_TOKEN_PIN=Secret1234
+      - SIGNER_JMX_PORT=4398
+      - XROAD_ENV=security-server
+      - XRD_CONFIG_SERVER_URI=http://config:5580
+    volumes:
+      - ./temp-mount:/opt/app/mount
+      - ./temp-mount-xroad:/etc/xroad
+    healthcheck:
+      interval: 5s
+      retries: 40
+      test: [ "CMD", "curl", "-f", "-k",  "http://localhost:8080/actuator/health" ]
+    networks:
+      - xrd-ss-network
+    depends_on:
+      db-init:
+        condition: service_completed_successfully
+      config:
+        condition: service_healthy
+      confclient:
+        condition: service_healthy
+  proxy:
+    image: xroad-ss-proxy:latest
+    environment:
+      - XROAD_TOKEN_PIN=Secret1234
+      - SIGNER_JMX_PORT=4398
+      - XROAD_ENV=security-server
+      - XRD_CONFIG_SERVER_URI=http://config:5580
+    volumes:
+      - ./temp-mount:/opt/app/mount
+      - ./temp-mount-xroad:/etc/xroad
+    healthcheck:
+      interval: 5s
+      retries: 40
+      test: [ "CMD", "curl", "-f", "-k",  "http://localhost:8888/actuator/health" ]
+    networks:
+      - xrd-ss-network
+      - xroad-network
+    depends_on:
+      db-init:
+        condition: service_completed_successfully
+      signer:
+        condition: service_healthy
+  ui:
+    image: xroad-ss-ui:latest
+    environment:
+      - XROAD_TOKEN_PIN=Secret1234
+      - SIGNER_JMX_PORT=4398
+      - XROAD_ENV=security-server
+      - XRD_CONFIG_SERVER_URI=http://config:5580
+    volumes:
+      - ./temp-mount:/opt/app/mount
+      - ./temp-mount-xroad:/etc/xroad
+      - ./temp-scripts:/usr/share/xroad/scripts
+    ports:
+      - "4700:4000" # Frontend
+      - "4790:9999" # debug port
+    healthcheck:
+      interval: 5s
+      retries: 40
+      test: [ "CMD", "curl", "-f", "-k",  "https://localhost:4000/actuator/health" ]
+    networks:
+      - xrd-ss-network
+      - xroad-network
+    depends_on:
+      db-init:
+        condition: service_completed_successfully
+      signer:
+        condition: service_healthy
+
+
+volumes:
+  ca-volume:
+  db-volume:
+networks:
+  xroad-network:
+    name: xroad-network
+    external: true
+  xrd-ss-network:
+    driver: bridge

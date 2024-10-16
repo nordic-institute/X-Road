@@ -1,3 +1,7 @@
 spring:
   config:
     import: configserver:${XRD_CONFIG_SERVER_URI}
+
+logging:
+  config: classpath:logback-native.xml
+  config-access: classpath:logback-access-native.xml

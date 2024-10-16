@@ -56,7 +56,7 @@ public class SignerMain {
                     log.info("Setting property source to Spring environment..");
                     SystemPropertySource.setEnvironment(applicationContext.getEnvironment());
                 })
-                .web(WebApplicationType.NONE)
+//                .web(WebApplicationType.NONE)
                 .build()
                 .run(args);
     }
@@ -73,6 +73,7 @@ public class SignerMain {
             profiles.add("env-cs");
         }
 
+        profiles.add("containerized");
         profiles.add("group-ee"); //TODO add conditions
 
         profiles.add("override");

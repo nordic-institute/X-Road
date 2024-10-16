@@ -1,0 +1,30 @@
+xroad:
+  common:
+    global-conf-remoting-enabled: true
+    grpc-internal-host: 0.0.0.0
+  configuration-client:
+    grpc-tls-enabled: true
+    grpc-host: confclient
+    grpc-tls-truststore: /opt/app/mount/xroad-grpc-internal-keystore.p12
+    grpc-tls-truststore-password: Buk620vd9W_feyfjBEhau48Lwn98n_Fr
+    grpc-tls-keystore: /opt/app/mount/xroad-grpc-internal-keystore.p12
+    grpc-tls-keystore-password: Buk620vd9W_feyfjBEhau48Lwn98n_Fr
+  proxy:
+    grpc-tls-enabled: true
+    grpc-host: confclient
+    grpc-tls-truststore: /opt/app/mount/xroad-grpc-internal-keystore.p12
+    grpc-tls-truststore-password: Buk620vd9W_feyfjBEhau48Lwn98n_Fr
+    grpc-tls-keystore: /opt/app/mount/xroad-grpc-internal-keystore.p12
+    grpc-tls-keystore-password: Buk620vd9W_feyfjBEhau48Lwn98n_Fr
+  signer:
+    grpc-tls-enabled: true
+    grpc-host: signer
+    grpc-tls-truststore: /opt/app/mount/xroad-grpc-internal-keystore.p12
+    grpc-tls-truststore-password: Buk620vd9W_feyfjBEhau48Lwn98n_Fr
+    grpc-tls-keystore: /opt/app/mount/xroad-grpc-internal-keystore.p12
+    grpc-tls-keystore-password: Buk620vd9W_feyfjBEhau48Lwn98n_Fr
+
+logging:
+  level:
+    org.xroad: DEBUG
+    ee.ria.xroad: DEBUG

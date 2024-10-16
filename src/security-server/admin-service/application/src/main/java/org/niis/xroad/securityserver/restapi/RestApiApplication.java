@@ -25,21 +25,21 @@
  */
 package org.niis.xroad.securityserver.restapi;
 
+import ee.ria.xroad.common.SystemPropertySource;
 import ee.ria.xroad.common.Version;
 import ee.ria.xroad.common.conf.globalconf.GlobalConfBeanConfig;
 import ee.ria.xroad.common.conf.serverconf.ServerConfBeanConfig;
 
-import org.springframework.boot.SpringApplication;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.boot.builder.SpringApplicationBuilder;
 import org.springframework.boot.web.servlet.ServletComponentScan;
 import org.springframework.cache.annotation.EnableCaching;
-import org.springframework.context.annotation.Import;
 
 /**
  * main spring boot application.
  */
-@Import({GlobalConfBeanConfig.class,
-        ServerConfBeanConfig.class})
+@Slf4j
 @ServletComponentScan
 @SpringBootApplication(scanBasePackages = {"org.niis.xroad.securityserver.restapi", "org.niis.xroad.restapi", "org.niis.xroad.common.acme"})
 @EnableCaching
@@ -54,7 +54,15 @@ public class RestApiApplication {
     public static void main(String[] args) {
         Version.outputVersionInfo(APP_NAME);
 
-        SpringApplication.run(RestApiApplication.class, args
-        );
+        new SpringApplicationBuilder(RestApiApplication.class,
+                GlobalConfBeanConfig.class,
+                ServerConfBeanConfig.class)
+                .profiles("containerized", "override", "group-ee")//TODO load dynamically
+                .initializers(applicationContext -> {
+                    log.info("Setting property source to Spring environment..");
+                    SystemPropertySource.setEnvironment(applicationContext.getEnvironment());
+                })
+                .build()
+                .run(args);
     }
 }

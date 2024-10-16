@@ -37,7 +37,9 @@
     <logger name="ee.ria.xroad.signer.tokenmanager.TokenManager" level="OFF"/>
 
     <root level="INFO">
+        <appender-ref ref="CONSOLE"/>
         <appender-ref ref="FILE"/>
-        <appender-ref ref="SYSLOG"/>
+<!--        <appender-ref ref="SYSLOG"/>-->
+
     </root>
 </configuration>
