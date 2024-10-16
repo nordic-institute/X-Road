@@ -3,8 +3,13 @@ if [ -r /etc/xroad/db.properties ]; then
   source /usr/share/xroad/scripts/read_db_properties.sh
   read_serverconf_database_properties /etc/xroad/db.properties
 
+  # Reading custom libpq ENV variables
+  if [ -f /etc/xroad/db_libpq.env ]; then
+    source /etc/xroad/db_libpq.env
+  fi
+
   PGPASSWORD="$db_password" \
-  psql -q -t -A -F / -h "${db_addr}" -p "${db_port}" -d "${db_database}" -U "${db_user}" 2>/dev/null <<EOF
+  psql -q -t -A -F / -h "${PGHOST:-$db_addr}" -p "${PGPORT:-$db_port}" -d "${db_database}" -U "${db_user}" 2>/dev/null <<EOF
 select id.xroadinstance, id.memberclass, id.membercode, s.servercode
 from "${db_schema}".serverconf s
 join "${db_schema}".client c on s.owner=c.id
