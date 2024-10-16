@@ -181,6 +181,15 @@ jobs:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           publish_branch: allure-gh-pages
           publish_dir: allure-history
+      - name: Post the link to the report
+        if: always()
+        uses: Sibz/github-status-action@v1
+        with: 
+            authToken: ${{secrets.GITHUB_TOKEN}}
+            context: 'Central Server system test report'
+            state: 'success'
+            sha: ${{ github.event.pull_request.head.sha }}
+            target_url: nordic-institute.github.io/X-Road/src/central-server/admin-service/ui-system-test/${{ github.run_number }}
   RunSSSystemTests:
     name: Run Security Server system tests
     needs: BuildAndPackageWithUnitTests
