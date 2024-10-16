@@ -183,7 +183,7 @@ jobs:
           publish_dir: allure-history
       - name: Post the link to the report
         if: always()
-        uses: guibranco/github-status-action-v2@latest
+        uses: guibranco/github-status-action-v2@1
         with: 
             authToken: ${{secrets.GITHUB_TOKEN}}
             context: 'Central Server system test report'
