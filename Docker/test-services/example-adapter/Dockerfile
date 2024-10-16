@@ -8,20 +8,18 @@
 
 
 ################################################################################
-FROM maven:3.8.4-openjdk-11-slim AS build
+FROM openjdk:17-jdk-slim AS build
 RUN apt-get update && apt-get install -y git
 WORKDIR /app
 RUN git clone https://github.com/nordic-institute/xrd4j.git
-WORKDIR /app/xrd4j/src
-RUN mvn install -DskipTests -Ddependency-check.skip=true
 WORKDIR /app/xrd4j/example-adapter
-RUN mvn clean package -DskipTests
+RUN ./gradlew assemble
 
-RUN cp /app/xrd4j/example-adapter/target/example-adapter-*.war /app/example-adapter.war
+RUN cp /app/xrd4j/example-adapter/build/libs/example-adapter-*-boot.war /app/example-adapter.war
 
 ################################################################################
 # copy/paste from xrd4j repo
-FROM eclipse-temurin:11-jre AS final
+FROM eclipse-temurin:17-jre AS final
 
 # Add Rest Gateway jar to container
 COPY --from=build /app/example-adapter.war example-adapter.war
