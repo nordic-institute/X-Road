@@ -30,7 +30,6 @@ import ee.ria.xroad.common.Version;
 
 import lombok.extern.slf4j.Slf4j;
 import org.niis.xroad.proxy.configuration.ProxyConfig;
-import org.springframework.boot.WebApplicationType;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.builder.SpringApplicationBuilder;
 
@@ -43,18 +42,17 @@ public class ProxyMain {
 
     private static final String APP_NAME = "xroad-proxy";
 
-    public static void main(String[] args) throws Exception {
+    public static void main(String[] args) {
         Version.outputVersionInfo(APP_NAME);
 
         new SpringApplicationBuilder(ProxyMain.class, ProxyConfig.class)
-                .profiles("group-ee")//TODO load dynamically
+                .profiles("containerized", "override", "group-ee")//TODO load dynamically
                 .initializers(applicationContext -> {
                     log.info("Initializing Apache Santuario XML Security library..");
                     org.apache.xml.security.Init.init();
                     log.info("Setting property source to Spring environment..");
                     SystemPropertySource.setEnvironment(applicationContext.getEnvironment());
                 })
-                .web(WebApplicationType.NONE)
                 .build()
                 .run(args);
     }

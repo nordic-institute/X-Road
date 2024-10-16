@@ -10,3 +10,7 @@ spring:
       enabled: detect #TODO implementing logging changes to support ansi colors
   main:
     banner-mode: log
+
+logging.level:
+  ee.ria.xroad.common.SystemPropertiesLoader: OFF
+

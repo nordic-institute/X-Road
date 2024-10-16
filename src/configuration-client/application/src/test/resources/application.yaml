@@ -1,0 +1,3 @@
+spring:
+  config:
+    import: optional:configserver:${XRD_CONFIG_SERVER_URI}

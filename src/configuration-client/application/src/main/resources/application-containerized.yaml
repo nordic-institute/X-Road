@@ -1,0 +1,4 @@
+logging:
+  level:
+    io.grpc: TRACE
+  config: classpath:logback-containerized.xml
