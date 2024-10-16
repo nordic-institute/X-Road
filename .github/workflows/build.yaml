@@ -157,6 +157,30 @@ jobs:
         with:
           name: CS System Test screenshots
           path: src/central-server/admin-service/ui-system-test/build/reports/test-automation/selenide-failures/*.png
+      - name: Load test report history
+        uses: actions/checkout@v4
+        if: always()
+        continue-on-error: true
+        with:
+          ref: allure-gh-pages
+          path: allure-reports
+
+      - name: Build test report
+        uses: simple-elf/allure-report-action@v1.9
+        if: always()
+        with:
+          gh_pages: allure-reports
+          subfolder: src/central-server/admin-service/ui-system-test
+          allure_history: allure-history
+          allure_results: build/allure-results
+
+      - name: Publish test report
+        uses: peaceiris/actions-gh-pages@v4
+        if: always()
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_branch: allure-gh-pages
+          publish_dir: allure-history
   RunSSSystemTests:
     name: Run Security Server system tests
     needs: BuildAndPackageWithUnitTests
