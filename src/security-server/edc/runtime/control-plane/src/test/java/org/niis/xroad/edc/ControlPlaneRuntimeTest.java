@@ -29,6 +29,7 @@ class ControlPlaneRuntimeTest {
 
     static {
         System.setProperty("xroad.signer.grpc-tls-enabled", "false");
+        System.setProperty("xroad.configuration-client.grpc-tls-enabled", "false");
 
         String xrdSrcDir = Paths.get("./src/test/resources/files/").toAbsolutePath().normalize().toString();
         System.setProperty("xroad.signer.key-configuration-file", xrdSrcDir + "/signer/keyconf.xml");

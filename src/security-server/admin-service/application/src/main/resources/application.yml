@@ -3,8 +3,6 @@
 spring:
   application:
     name: proxy-ui-api
-  config:
-    import: configserver:${XRD_CONFIG_SERVER_URI}
   main:
     banner-mode: log
   jpa:
@@ -20,6 +18,7 @@ spring:
           db_structure_naming_strategy: legacy #TODO Migrate to newer strategies
   profiles:
     include: nontest
+    active: native
 
 # TLS
 # (can be overridden with external ssl.properties)

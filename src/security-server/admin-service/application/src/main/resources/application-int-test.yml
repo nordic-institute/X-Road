@@ -6,6 +6,9 @@ spring:
     type: none
   jpa:
     show-sql: false
+  cloud:
+    config:
+      enabled: false
 
 xroad:
   proxy-ui-api:

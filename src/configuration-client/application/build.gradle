@@ -38,6 +38,7 @@ dependencies {
     implementation("org.springframework.cloud:spring-cloud-config-client")
 
     testImplementation project(':common:common-test')
+    testImplementation('org.springframework.boot:spring-boot-starter-test')
 }
 
 ext {
