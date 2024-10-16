@@ -208,3 +208,9 @@ Depends: ${misc:Depends}, xroad-confclient (=${binary:Version})
 Pre-depends: xroad-base (=${binary:Version}), xroad-center (=${binary:Version})
 Description: X-Road Central Server Management Service
  X-Road Central Server management service component
+
+Package: xroad-configuration-service
+Architecture: all
+Depends: ${misc:Depends}, systemd,  openjdk-21-jre-headless | java21-runtime-headless | java21-runtime
+Pre-depends: xroad-base (=${binary:Version})
+Description: X-Road Configuration Service

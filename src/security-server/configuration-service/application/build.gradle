@@ -1,0 +1,34 @@
+plugins {
+    alias(libs.plugins.springBoot)
+}
+
+base {
+    archivesName = 'configuration-service'
+}
+
+dependencies {
+    implementation(platform(libs.springBoot.bom))
+    implementation(platform(libs.springCloud.bom))
+
+    implementation("org.springframework.cloud:spring-cloud-config-server")
+}
+
+bootRun {
+    jvmArgs = ["-Dspring.output.ansi.enabled=ALWAYS"]
+}
+
+jar {
+    enabled = false
+}
+
+bootJar {
+    enabled = true
+
+    manifest {
+        attributes(
+            'Implementation-Title': 'X-Road Security Server Configuration Service',
+            'Implementation-Version': "$xroadVersion-$xroadBuildType"
+        )
+    }
+    launchScript() //TODO for consistency sake should be matched to other services
+}

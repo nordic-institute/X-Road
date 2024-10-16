@@ -25,78 +25,37 @@
  */
 package ee.ria.xroad.proxy;
 
-import ee.ria.xroad.common.SystemPropertiesLoader;
+import ee.ria.xroad.common.SystemPropertySource;
 import ee.ria.xroad.common.Version;
 
 import lombok.extern.slf4j.Slf4j;
 import org.niis.xroad.proxy.configuration.ProxyConfig;
-import org.springframework.context.annotation.AnnotationConfigApplicationContext;
-import org.springframework.context.support.GenericApplicationContext;
-
-import static ee.ria.xroad.common.SystemProperties.CONF_FILE_NODE;
-import static ee.ria.xroad.common.SystemProperties.CONF_FILE_PROXY;
-import static ee.ria.xroad.common.SystemProperties.CONF_FILE_SIGNER;
+import org.springframework.boot.WebApplicationType;
+import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.boot.builder.SpringApplicationBuilder;
 
 /**
  * Main program for the proxy server.
  */
 @Slf4j
+@SpringBootApplication
 public class ProxyMain {
 
     private static final String APP_NAME = "xroad-proxy";
 
-    /**
-     * Main program entry point.
-     *
-     * @param args command-line arguments
-     * @throws Exception in case of any errors
-     */
-    public static void main(String[] args) throws Exception {
-        try {
-            new ProxyMain().createApplicationContext();
-        } catch (Exception ex) {
-            log.error("Proxy failed to start", ex);
-            throw ex;
-        }
-    }
-
-    public GenericApplicationContext createApplicationContext(Class<?>... ctxExtension) {
-        var startTime = System.currentTimeMillis();
+    public static void main(String[] args) {
         Version.outputVersionInfo(APP_NAME);
-        log.info("Starting proxy ({})...", readProxyVersion());
 
-        log.trace("Loading global bean dependencies");
-        loadSystemProperties();
-
-        var springCtx = new AnnotationConfigApplicationContext();
-        springCtx.register(ProxyConfig.class);
-        if (ctxExtension.length > 0) {
-            springCtx.register(ctxExtension);
-        }
-        springCtx.refresh();
-        springCtx.registerShutdownHook();
-        log.info("Proxy started in {} ms", System.currentTimeMillis() - startTime);
-        return springCtx;
-    }
-
-    protected void loadSystemProperties() {
-        SystemPropertiesLoader.create()
-                .withCommonAndLocal()
-                .withAddOn()
-                .with(CONF_FILE_PROXY)
-                .with(CONF_FILE_SIGNER)
-                .withLocalOptional(CONF_FILE_NODE)
-                .load();
-
-        org.apache.xml.security.Init.init();
-    }
-
-    /**
-     * Return X-Road software version
-     *
-     * @return version string e.g. 6.19.0
-     */
-    public static String readProxyVersion() {
-        return Version.XROAD_VERSION;
+        new SpringApplicationBuilder(ProxyMain.class, ProxyConfig.class)
+                .profiles("group-ee")//TODO load dynamically
+                .initializers(applicationContext -> {
+                    log.info("Initializing Apache Santuario XML Security library..");
+                    org.apache.xml.security.Init.init();
+                    log.info("Setting property source to Spring environment..");
+                    SystemPropertySource.setEnvironment(applicationContext.getEnvironment());
+                })
+                .web(WebApplicationType.NONE)
+                .build()
+                .run(args);
     }
 }

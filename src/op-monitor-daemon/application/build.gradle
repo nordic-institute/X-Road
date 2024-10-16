@@ -1,23 +1,27 @@
 plugins {
-    alias(libs.plugins.shadow)
+    alias(libs.plugins.springBoot)
 }
 
 dependencies {
-    implementation(platform(libs.springBoot.bom))
+    implementation(platform(libs.springCloud.bom))
+
+    implementation("org.springframework.boot:spring-boot-starter")
+    implementation("org.springframework.cloud:spring-cloud-config-client")
 
     implementation project(':common:common-core')
     implementation project(':op-monitor-daemon:core')
 }
 
-shadowJar {
-    archiveClassifier = ''
+bootJar {
+    enabled = true
     archiveBaseName = 'op-monitor-daemon'
-    exclude('**/module-info.class')
     manifest {
-        attributes 'Main-Class': 'ee.ria.xroad.opmonitordaemon.OpMonitorDaemonMain'
+        attributes(
+            'Implementation-Title': 'X-Road Operational Monitoring',
+            'Implementation-Version': "$xroadVersion-$xroadBuildType",
+            'Main-Class': 'org.springframework.boot.loader.launch.PropertiesLauncher'
+        )
     }
-    mergeServiceFiles()
 }
 
 jar.enabled = false
-assemble.dependsOn shadowJar

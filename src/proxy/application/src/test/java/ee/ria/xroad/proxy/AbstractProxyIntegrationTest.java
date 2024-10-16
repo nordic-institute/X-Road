@@ -38,7 +38,6 @@ import ee.ria.xroad.proxy.testutil.TestServerConf;
 import ee.ria.xroad.proxy.testutil.TestServerConfWrapper;
 import ee.ria.xroad.proxy.testutil.TestService;
 
-import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.After;
 import org.junit.AfterClass;
@@ -50,7 +49,6 @@ import org.junit.runners.model.Statement;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Primary;
-import org.springframework.context.support.GenericApplicationContext;
 
 import java.net.ServerSocket;
 import java.time.Instant;
@@ -71,8 +69,6 @@ import static org.mockito.Mockito.mock;
 public abstract class AbstractProxyIntegrationTest {
     static final Set<Integer> RESERVED_PORTS = new HashSet<>();
     static final Instant CLOCK_FIXED_INSTANT = Instant.parse("2020-01-01T00:00:00Z");
-
-    static GenericApplicationContext applicationContext;
 
     protected static int proxyClientPort = getFreePort();
     protected static int servicePort = getFreePort();
@@ -104,44 +100,36 @@ public abstract class AbstractProxyIntegrationTest {
         }
     };
 
-    @RequiredArgsConstructor
-    static class TestProxyMain extends ProxyMain {
 
-        private final Map<String, String> systemParams;
+    public static void setSystemProperties(Map<String, String> params) {
+        System.setProperty(SystemProperties.CONF_PATH, "build/resources/test/etc/");
+        System.setProperty(SystemProperties.PROXY_CONNECTOR_HOST, "127.0.0.1");
+        System.setProperty(SystemProperties.PROXY_CLIENT_HTTP_PORT, String.valueOf(proxyClientPort));
+        System.setProperty(SystemProperties.PROXY_CLIENT_HTTPS_PORT, String.valueOf(getFreePort()));
 
-        @Override
-        protected void loadSystemProperties() {
-            System.setProperty(SystemProperties.CONF_PATH, "build/resources/test/etc/");
-            System.setProperty(SystemProperties.PROXY_CONNECTOR_HOST, "127.0.0.1");
-            System.setProperty(SystemProperties.PROXY_CLIENT_HTTP_PORT, String.valueOf(proxyClientPort));
-            System.setProperty(SystemProperties.PROXY_CLIENT_HTTPS_PORT, String.valueOf(getFreePort()));
+        final String serverPort = String.valueOf(getFreePort());
+        System.setProperty(SystemProperties.PROXY_SERVER_LISTEN_PORT, serverPort);
+        System.setProperty(SystemProperties.PROXY_SERVER_PORT, serverPort);
 
-            final String serverPort = String.valueOf(getFreePort());
-            System.setProperty(SystemProperties.PROXY_SERVER_LISTEN_PORT, serverPort);
-            System.setProperty(SystemProperties.PROXY_SERVER_PORT, serverPort);
+        System.setProperty(SystemProperties.OCSP_RESPONDER_PORT, String.valueOf(getFreePort()));
+        System.setProperty(SystemProperties.JETTY_CLIENTPROXY_CONFIGURATION_FILE, "src/test/clientproxy.xml");
+        System.setProperty(SystemProperties.JETTY_SERVERPROXY_CONFIGURATION_FILE, "src/test/serverproxy.xml");
 
-            System.setProperty(SystemProperties.OCSP_RESPONDER_PORT, String.valueOf(getFreePort()));
-            System.setProperty(SystemProperties.JETTY_CLIENTPROXY_CONFIGURATION_FILE, "src/test/clientproxy.xml");
-            System.setProperty(SystemProperties.JETTY_SERVERPROXY_CONFIGURATION_FILE, "src/test/serverproxy.xml");
+        System.setProperty(SystemProperties.JETTY_OCSP_RESPONDER_CONFIGURATION_FILE, "src/test/ocsp-responder.xml");
+        System.setProperty(SystemProperties.TEMP_FILES_PATH, "build/");
 
-            System.setProperty(SystemProperties.JETTY_OCSP_RESPONDER_CONFIGURATION_FILE, "src/test/ocsp-responder.xml");
-            System.setProperty(SystemProperties.TEMP_FILES_PATH, "build/");
+        System.setProperty(PROXY_SERVER_LISTEN_ADDRESS, "127.0.0.1");
+        System.setProperty(OCSP_RESPONDER_LISTEN_ADDRESS, "127.0.0.1");
 
-            System.setProperty(PROXY_SERVER_LISTEN_ADDRESS, "127.0.0.1");
-            System.setProperty(OCSP_RESPONDER_LISTEN_ADDRESS, "127.0.0.1");
+        System.setProperty(SystemProperties.PROXY_CLIENT_TIMEOUT, "15000");
+        System.setProperty(SystemProperties.DATABASE_PROPERTIES, "src/test/resources/hibernate.properties");
 
-            System.setProperty(SystemProperties.PROXY_CLIENT_TIMEOUT, "15000");
-            System.setProperty(SystemProperties.DATABASE_PROPERTIES, "src/test/resources/hibernate.properties");
+        System.setProperty(SystemProperties.PROXY_HEALTH_CHECK_PORT, "5558");
+        System.setProperty(SystemProperties.SERVER_CONF_CACHE_PERIOD, "0");
 
-            System.setProperty(SystemProperties.PROXY_HEALTH_CHECK_PORT, "5558");
-            System.setProperty(SystemProperties.SERVER_CONF_CACHE_PERIOD, "0");
+        System.setProperty(SystemProperties.GRPC_INTERNAL_TLS_ENABLED, Boolean.FALSE.toString());
 
-            System.setProperty(SystemProperties.GRPC_INTERNAL_TLS_ENABLED, Boolean.FALSE.toString());
-
-            systemParams.forEach(System::setProperty);
-
-            super.loadSystemProperties();
-        }
+        params.forEach(System::setProperty);
     }
 
     @Configuration
@@ -178,9 +166,6 @@ public abstract class AbstractProxyIntegrationTest {
 
     @AfterClass
     public static void teardown() {
-        if (applicationContext != null) {
-            applicationContext.close();
-        }
         RESERVED_PORTS.clear();
     }
 

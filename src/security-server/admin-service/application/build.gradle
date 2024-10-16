@@ -18,6 +18,7 @@ configurations.configureEach {
 }
 
 dependencies {
+    implementation(platform(libs.springCloud.bom))
     dist(project(path: ":security-server:admin-service:ui", configuration: "dist"))
 
     implementation(platform(libs.springBoot.bom))
@@ -40,6 +41,7 @@ dependencies {
     implementation("org.springframework.boot:spring-boot-starter-data-jpa")
     implementation("org.springframework.boot:spring-boot-starter-cache")
     implementation("org.springframework.boot:spring-boot-starter-validation")
+    implementation("org.springframework.cloud:spring-cloud-config-client")
     implementation("io.micrometer:micrometer-tracing-bridge-brave")
     implementation("com.fasterxml.jackson.datatype:jackson-datatype-jsr310")
     implementation(libs.libpam4j)

@@ -1,5 +1,5 @@
 plugins {
-    alias(libs.plugins.shadow)
+    id 'java-library'
 }
 
 dependencies {
@@ -10,16 +10,22 @@ dependencies {
     implementation(project(':addons:messagelog:messagelog-db'))
 
     implementation libs.dss.xml.utils
+
+    testImplementation project(':addons:messagelog:messagelog-addon:asic')
+    testImplementation project(':addons:messagelog:messagelog-archiver:core')
+    testImplementation project(':common:common-jetty')
+
+    testImplementation project(':proxy:core')
+
+    testImplementation project(':common:common-keyconf')
+    testImplementation project(':common:common-test')
+    testImplementation libs.hsqldb
+    testImplementation libs.bouncyCastle.bcpg
+    testImplementation libs.dss.asic.xades
 }
 
 jar {
-    from project(':addons:messagelog:messagelog-db').sourceSets.main.output
-}
-
-shadowJar {
-    archiveVersion = ''
-    archiveClassifier = ''
-    from project(':addons:messagelog:messagelog-db').sourceSets.main.output
+    archiveBaseName = 'messagelog-addon-core'
 }
 
 tasks.register('copyGpg', Copy) {
@@ -28,4 +34,3 @@ tasks.register('copyGpg', Copy) {
 }
 
 test.dependsOn copyGpg
-assemble.dependsOn shadowJar

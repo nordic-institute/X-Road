@@ -37,7 +37,7 @@ RUN echo "deb $REPO $DIST $COMPONENT" >/etc/apt/sources.list.d/xroad.list \
     # Install
     && pg_ctlcluster 16 main start \
     && apt-get update \
-    && apt-get -y -qq install xroad-securityserver xroad-autologin xroad-addon-opmonitoring \
+    && apt-get -y -qq install xroad-securityserver xroad-autologin xroad-addon-opmonitoring xroad-configuration-service \
     && pg_ctlcluster 16 main stop \
     # Clean up
     && rm -rf /tmp/repo \
@@ -54,7 +54,7 @@ RUN --mount=type=bind,source=build/packages,target=/tmp/packages \
     # Install
     && pg_ctlcluster 16 main start \
     && apt-get update \
-    && apt-get -y -qq install xroad-securityserver xroad-autologin xroad-addon-opmonitoring \
+    && apt-get -y -qq install xroad-securityserver xroad-autologin xroad-addon-opmonitoring xroad-configuration-service \
     && apt-get -qq clean \
     && pg_ctlcluster 16 main stop \
     # Clean up
@@ -87,7 +87,6 @@ COPY --chown=xroad:xroad files/etc /etc/
 COPY --chown=xroad:xroad build/libs /usr/share/xroad/jlib/
 
 COPY files/ss-entrypoint.sh /root/entrypoint.sh
-COPY --chown=xroad:xroad files/override-docker.ini /etc/xroad/conf.d/
 COPY --chown=root:root files/ss-xroad.conf /etc/supervisor/conf.d/xroad.conf
 
 # dataspaces

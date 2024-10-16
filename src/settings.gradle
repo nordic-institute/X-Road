@@ -103,6 +103,9 @@ include 'security-server:edc:runtime:data-plane'
 include 'security-server:edc:runtime:identity-hub'
 include "security-server:system-test"
 include 'security-server:e2e-test'
+include 'security-server:configuration-service'
+include 'security-server:configuration-service:migration-cli'
+include 'security-server:configuration-service:application'
 
 // Utils
 include "signer-console"
@@ -115,6 +118,8 @@ include "addons:messagelog:messagelog-addon"
 include "addons:messagelog:messagelog-addon:asic"
 include "addons:messagelog:messagelog-addon:core"
 include "addons:messagelog:messagelog-archiver"
+include "addons:messagelog:messagelog-archiver:core"
+include "addons:messagelog:messagelog-archiver:application"
 include 'addons:messagelog:messagelog-archive-verifier'
 include "addons:messagelog:messagelog-db"
 include "addons:metaservice"

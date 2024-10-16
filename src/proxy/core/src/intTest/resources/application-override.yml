@@ -1,4 +1,9 @@
 ---
+spring:
+  cloud:
+    config:
+      enabled: false
+
 #Logging configuration
 logging:
   level:

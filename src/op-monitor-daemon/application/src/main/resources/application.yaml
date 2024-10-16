@@ -1,0 +1,26 @@
+spring:
+  application:
+    name: op-monitor-daemon
+  cloud:
+    config:
+      enabled: false
+
+  output:
+    ansi:
+      enabled: detect #TODO implementing logging changes to support ansi colors
+  main:
+    banner-mode: log
+
+xroad:
+  op-monitor:
+    host: localhost
+    port: 2080
+    scheme: http
+    keep-records-for-days: 7
+    clean-interval: 0 0 0/12 1/1 * ? *
+    max-records-in-payload: 10000
+    records-available-timestamp-offset-seconds: 60
+    health-statistics-period-seconds: 600
+
+  common:
+    global-conf-remoting-enabled: true

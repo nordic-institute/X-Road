@@ -1,14 +1,15 @@
 plugins {
-    alias(libs.plugins.shadow)
+    alias(libs.plugins.springBoot)
 }
 
 dependencies {
-    implementation(platform(libs.springBoot.bom))
+    implementation(platform(libs.springCloud.bom))
 
     implementation(project(':proxy:core'))
     implementation(project(':common:common-core'))
 
-    implementation('org.springframework:spring-context')
+    implementation("org.springframework.boot:spring-boot-starter")
+    implementation("org.springframework.cloud:spring-cloud-config-client")
 
     testImplementation(libs.hsqldb)
     testImplementation(libs.restAssured)
@@ -23,26 +24,27 @@ dependencies {
     testImplementation(project(':serverconf'))
     testImplementation(project(':security-server:edc-client'))
     testImplementation(project(path: ":proxy:core", configuration: 'testArtifacts'))
+
+    testImplementation("org.springframework.boot:spring-boot-starter-test")
 }
 
 jar {
-    manifest {
-        attributes('Main-Class': 'ee.ria.xroad.proxy.ProxyMain')
-    }
-    archiveClassifier = 'plain'
-    archiveBaseName = 'proxy'
+    enabled = false
 }
 
-shadowJar {
-    archiveClassifier = ''
+bootJar {
+    enabled = true
     archiveBaseName = 'proxy'
-    exclude('**/module-info.class')
-    from rootProject.file("LICENSE.txt")
-    mergeServiceFiles()
+    manifest {
+        attributes(
+            'Implementation-Title': 'X-Road Proxy',
+            'Implementation-Version': "$xroadVersion-$xroadBuildType",
+            'Main-Class': 'org.springframework.boot.loader.launch.PropertiesLauncher'
+        )
+    }
 }
 
 testJar.enabled = true
-assemble.finalizedBy shadowJar
 
 tasks.register('runProxyMain', JavaExec) {
     jvmArgs '-Dxroad.proxy.sslEnabled=false',

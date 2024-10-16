@@ -1,0 +1,12 @@
+spring:
+  application:
+    name: configuration-service
+  cloud:
+    config:
+      server:
+        native:
+          searchLocations: file:///etc/xroad/conf.d/
+  profiles:
+    active: native
+server:
+  port: 5580

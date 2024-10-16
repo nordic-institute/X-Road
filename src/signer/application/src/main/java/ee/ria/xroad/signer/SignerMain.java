@@ -26,66 +26,56 @@
  */
 package ee.ria.xroad.signer;
 
-import ee.ria.xroad.common.SystemProperties;
-import ee.ria.xroad.common.SystemPropertiesLoader;
+import ee.ria.xroad.common.SystemPropertySource;
 import ee.ria.xroad.common.Version;
 
-import lombok.AccessLevel;
-import lombok.NoArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.context.annotation.AnnotationConfigApplicationContext;
-import org.springframework.context.support.GenericApplicationContext;
+import org.springframework.boot.WebApplicationType;
+import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.boot.builder.SpringApplicationBuilder;
 
-import static ee.ria.xroad.common.SystemProperties.CONF_FILE_CENTER;
-import static ee.ria.xroad.common.SystemProperties.CONF_FILE_CONFPROXY;
-import static ee.ria.xroad.common.SystemProperties.CONF_FILE_NODE;
-import static ee.ria.xroad.common.SystemProperties.CONF_FILE_PROXY;
-import static ee.ria.xroad.common.SystemProperties.CONF_FILE_SIGNER;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * Signer main program.
  */
 @Slf4j
-@NoArgsConstructor(access = AccessLevel.PRIVATE)
-public final class SignerMain {
+@SpringBootApplication
+public class SignerMain {
 
     private static final String APP_NAME = "xroad-signer";
 
-    static {
-        SystemPropertiesLoader.create()
-                .withCommonAndLocal()
-                .withLocalOptional(CONF_FILE_NODE)
-                .withAtLeastOneOf(CONF_FILE_CENTER, CONF_FILE_PROXY, CONF_FILE_CONFPROXY)
-                .with(CONF_FILE_SIGNER)
-                .load();
-    }
-
-    private static GenericApplicationContext springCtx;
-
-    /**
-     * Entry point to Signer.
-     *
-     * @param args the arguments
-     */
     public static void main(String[] args) {
-        try {
-            startup();
-        } catch (Exception fatal) {
-            log.error("FATAL", fatal);
-            System.exit(1);
-        }
-    }
-
-    private static void startup() {
-        long start = System.currentTimeMillis();
         Version.outputVersionInfo(APP_NAME);
-        int grpcSignerPort = SystemProperties.getSignerGrpcPort();
-        log.info("Starting Signer on port {}...", grpcSignerPort);
 
-        springCtx = new AnnotationConfigApplicationContext(SignerConfig.class);
-        springCtx.registerShutdownHook();
 
-        log.info("Signer has been initialized in {} ms.", System.currentTimeMillis() - start);
+        new SpringApplicationBuilder(SignerMain.class, SignerConfig.class)
+                .profiles(resolveProfiles())
+                .initializers(applicationContext -> {
+                    log.info("Setting property source to Spring environment..");
+                    SystemPropertySource.setEnvironment(applicationContext.getEnvironment());
+                })
+                .web(WebApplicationType.NONE)
+                .build()
+                .run(args);
     }
 
+    private static String[] resolveProfiles() {
+        var xroadEnv = System.getenv("XROAD_ENV");
+
+        List<String> profiles = new ArrayList<>();
+
+        //TODO constants
+        if ("security-server".equals(xroadEnv)) {
+            profiles.add("env-ss");
+        } else if ("central-server".equals(xroadEnv)) {
+            profiles.add("env-cs");
+        }
+
+        profiles.add("group-ee"); //TODO add conditions
+
+        profiles.add("override");
+        return profiles.toArray(new String[0]);
+    }
 }

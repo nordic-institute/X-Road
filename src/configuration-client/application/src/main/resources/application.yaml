@@ -1,0 +1,12 @@
+spring:
+  application:
+    name: configuration-client
+  config:
+    import: configserver:${XRD_CONFIG_SERVER_URI}
+  profiles:
+    active: override
+  output:
+    ansi:
+      enabled: detect #TODO implementing logging changes to support ansi colors
+  main:
+    banner-mode: log

@@ -8,5 +8,4 @@ fi
 
 . /etc/xroad/services/signer.conf
 
-exec java ${XROAD_PARAMS} ${XROAD_SIGNER_PARAMS} -cp "${CP}${ADDON_CP}" ${XROAD_ADDON_PARAMS} ee.ria.xroad.signer.SignerMain
-
+exec java ${XROAD_PARAMS} ${XROAD_SIGNER_PARAMS} -Dloader.path="${ADDON_CP}" ${XROAD_ADDON_PARAMS} -jar /usr/share/xroad/jlib/signer.jar

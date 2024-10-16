@@ -1,0 +1,22 @@
+spring:
+  application:
+    name: signer
+  cloud:
+    config:
+      enabled: false
+
+  output:
+    ansi:
+      enabled: detect #TODO implementing logging changes to support ansi colors
+  main:
+    banner-mode: log
+
+xroad:
+  signer:
+    key-length: 2048
+    device-configuration-file: /etc/xroad/devices.ini
+    key-configuration-file: /etc/xroad/signer/keyconf.xml
+    client-timeout: 50000
+    csr-signature-digest-algorithm: SHA-256
+    enforce-token-pin-policy: false
+    ocsp-cache-path: /var/cache/xroad

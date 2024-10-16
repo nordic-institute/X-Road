@@ -1,6 +1,8 @@
 services:
   cs:
     image: ${CS_IMG}
+    environment:
+      - XROAD_ENV=central-server
     deploy:
       resources:
         reservations:
@@ -11,11 +13,15 @@ services:
       interval: 5s
       retries: 40
       test: [ "CMD", "curl", "-f", "-k", "https://localhost:4000" ]
+    networks:
+      - xroad-network
   ss0:
     image: ${SS_IMG}
     environment:
       - PROXY_JMX_PORT=4299
       - SIGNER_JMX_PORT=4298
+      - XROAD_ENV=security-server
+      - XRD_CONFIG_SERVER_URI=http://localhost:5580
     deploy:
       resources:
         reservations:
@@ -26,12 +32,16 @@ services:
       interval: 5s
       retries: 40
       test: [ "CMD", "curl", "-f", "-k", "https://localhost:4000" ]
+    networks:
+      - xroad-network
   ss1:
     image: ${SS_IMG}
     environment:
       - XROAD_TOKEN_PIN=Secret1234
       - PROXY_JMX_PORT=4399
       - SIGNER_JMX_PORT=4398
+      - XROAD_ENV=security-server
+      - XRD_CONFIG_SERVER_URI=http://localhost:5580
     deploy:
       resources:
         reservations:
@@ -42,6 +52,8 @@ services:
       interval: 5s
       retries: 40
       test: [ "CMD", "curl", "-f", "-k", "https://localhost:4000" ]
+    networks:
+      - xroad-network
   ss2:
     image: ${SS_XRD7_IMG}
     profiles:
@@ -56,6 +68,8 @@ services:
       interval: 5s
       retries: 40
       test: [ "CMD", "curl", "-f", "-k", "https://localhost:4000" ]
+    networks:
+      - xroad-network
   testca:
     image: ${CA_IMG}
     deploy:
@@ -70,6 +84,8 @@ services:
       test: [ "CMD", "curl", "-f", "-k", "http://localhost:8888/testca/certs" ]
     volumes:
       - ca-volume:/home/ca/certs
+    networks:
+      - xroad-network
   issoap:
     image: ${IS_SOAP_IMG}
     deploy:
@@ -82,6 +98,8 @@ services:
       interval: 5s
       retries: 40
       test: [ "CMD", "curl", "-f", "-k", "http://localhost:8080/example-adapter/Endpoint?wsdl" ]
+    networks:
+      - xroad-network
     entrypoint: [ "java", "-Xms64m", "-Xmx256m", "-jar", "/example-adapter.war" ]
   isrest:
     image: wiremock/wiremock:latest
@@ -97,6 +115,8 @@ services:
       test: [ "CMD", "curl", "-f", "-k", "http://localhost:8080/__admin/health" ]
     volumes:
       - ./wiremock_mappings:/home/wiremock/mappings
+    networks:
+      - xroad-network
   hurl:
     build:
         context: .
@@ -124,3 +144,7 @@ services:
         condition: service_healthy
 volumes:
   ca-volume:
+networks:
+  xroad-network:
+    name: xroad-network
+    driver: bridge

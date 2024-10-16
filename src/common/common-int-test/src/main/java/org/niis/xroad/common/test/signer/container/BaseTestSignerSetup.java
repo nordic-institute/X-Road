@@ -98,12 +98,13 @@ public abstract class BaseTestSignerSetup {
                         : "";
 
                 genericContainer
-                        .waitingFor(Wait.forLogMessage(".*Signer has been initialized in.*", 1));
+                        .waitingFor(Wait.forLogMessage(".*Started SignerMain in.*", 1));
                 genericContainer
                         .withCommand("java",
                                 "-Xmx50m",
                                 "-XX:MaxMetaspaceSize=70m",
-                                "-Dlogback.configurationFile=/etc/xroad/signer/signer-logback.xml",
+                                "-Dlogging.config=/etc/xroad/signer/signer-logback.xml",
+                                "-Dxroad.signer.device-configuration-file=/etc/xroad/signer/devices.ini",
                                 "-Dxroad.internal.passwordstore-provider=file",
                                 "-Dxroad.signer.grpc-listen-address=0.0.0.0",
                                 "-Dxroad.signer.grpc-tls-keystore=/etc/xroad/transport-keystore/grpc-internal-keystore.p12",
@@ -111,10 +112,8 @@ public abstract class BaseTestSignerSetup {
                                 "-Dxroad.signer.grpc-tls-truststore=/etc/xroad/transport-keystore/grpc-internal-keystore.p12",
                                 "-Dxroad.signer.grpc-tls-truststore-password=111111",
                                 modulemanager,
-                                "-cp",
-                                "/root/lib/hwtoken.jar:/root/app.jar",
-                                "ee.ria.xroad.signer.SignerMain");
-
+                                "-Dloader.path=/root/lib/hwtoken.jar",
+                                "-jar", "/root/app.jar");
                 prepareSignerDirs();
             }
 
