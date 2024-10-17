@@ -63,11 +63,7 @@ deploy_module() {
 set -o xtrace
 
 case $1 in
-"proxy" | "messagelog-addon" | "metaservice-addon" | "proxy-ui-api" | "configuration-client" | "op-monitor-daemon")
-  deploy_module "$1" "cs"
-  ;;
-"signer")
-  deploy_module "$1" "cs"
+  deploy_module "$1" "ss0" "ss1"
   ;;
 "cs-admin-service" | "cs-management-service" | "cs-registration-service")
   deploy_module "$1" "cs"
