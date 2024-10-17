@@ -58,7 +58,7 @@ public abstract class AbstractKeyManager implements KeyManager {
         try {
             this.keyFactory = KeyFactory.getInstance(keyAlgorithm.name(), "BC");
         } catch (Exception e) {
-            throw new RuntimeException("Failed to get key factory instance for : " + keyAlgorithm, e);
+            throw new CryptoException("Failed to get key factory instance for : " + keyAlgorithm, e);
         }
     }
 
@@ -70,15 +70,13 @@ public abstract class AbstractKeyManager implements KeyManager {
 
     @Override
     public byte[] generateX509PublicKey(KeySpec keySpec) throws InvalidKeySpecException {
-        PublicKey publicKey = getKeyFactory().generatePublic(keySpec);
-        System.out.println("#EC created pub key: " + publicKey);
+        var publicKey = getKeyFactory().generatePublic(keySpec);
         return generateX509PublicKey(publicKey);
     }
 
     @Override
     public byte[] generateX509PublicKey(PublicKey publicKey) throws InvalidKeySpecException {
-        X509EncodedKeySpec x509EncodedPublicKey = getKeyFactory().getKeySpec(publicKey, X509EncodedKeySpec.class);
-        System.out.println("#EC created pub key X509: " + publicKey);
+        var x509EncodedPublicKey = getKeyFactory().getKeySpec(publicKey, X509EncodedKeySpec.class);
         return x509EncodedPublicKey.getEncoded();
     }
 

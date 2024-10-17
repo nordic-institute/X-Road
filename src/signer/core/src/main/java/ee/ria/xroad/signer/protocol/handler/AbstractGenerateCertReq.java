@@ -82,13 +82,8 @@ public abstract class AbstractGenerateCertReq<ReqT extends AbstractMessage,
             throw new CodedException(X_INTERNAL_ERROR, "Key '%s' has no public key", tokenAndKey.getKeyId());
         }
 
-        System.out.println("#EC tk " + tokenAndKey);
-        System.out.println("#EC sm " + tokenAndKey.getSignMechanism());
-
         PublicKey publicKey = KeyManagers.getFor(tokenAndKey.getSignMechanism())
                 .readX509PublicKey(tokenAndKey.key().getPublicKey());
-
-        System.out.println("#EC puK " + publicKey);
 
         JcaPKCS10CertificationRequestBuilder certRequestBuilder = new JcaPKCS10CertificationRequestBuilder(
                 new X500Name(subjectName), publicKey);
@@ -150,9 +145,6 @@ public abstract class AbstractGenerateCertReq<ReqT extends AbstractMessage,
             this.tokenWorkerProvider = tokenWorkerProvider;
             digestAlgoId = SystemProperties.getSignerCsrSignatureDigestAlgorithm();
             signAlgoId = SignAlgorithm.ofDigestAndMechanism(digestAlgoId, tokenAndKey.getSignMechanism());
-
-            System.out.println("#EC da " + digestAlgoId);
-            System.out.println("#EC sa " + signAlgoId);
         }
 
         @Override
@@ -175,8 +167,6 @@ public abstract class AbstractGenerateCertReq<ReqT extends AbstractMessage,
                         .setSignatureAlgorithmId(signAlgoId.name())
                         .setDigest(ByteString.copyFrom(calculateDigest(digestAlgoId, out.toByteArray())))
                         .build();
-
-                System.out.println("#EC sign request " + request);
 
                 return tokenWorkerProvider.getTokenWorker(tokenAndKey.tokenId())
                         .orElseThrow(() -> tokenNotFound(tokenAndKey.tokenId()))

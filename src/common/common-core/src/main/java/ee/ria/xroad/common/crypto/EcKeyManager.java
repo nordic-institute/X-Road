@@ -36,15 +36,11 @@ import org.bouncycastle.jce.spec.ECNamedCurveParameterSpec;
 import org.bouncycastle.jce.spec.ECPublicKeySpec;
 
 import java.io.IOException;
-import java.math.BigInteger;
 import java.security.KeyPair;
 import java.security.KeyPairGenerator;
-import java.security.NoSuchAlgorithmException;
 import java.security.SecureRandom;
 import java.security.spec.ECGenParameterSpec;
 import java.security.spec.InvalidKeySpecException;
-import java.security.spec.InvalidParameterSpecException;
-import java.util.Arrays;
 
 public final class EcKeyManager extends AbstractKeyManager {
 
@@ -77,29 +73,15 @@ public final class EcKeyManager extends AbstractKeyManager {
     }
 
     public byte[] generateX509PublicKey(byte[] ecCurveData, byte[] ecPointData)
-            throws
-            InvalidKeySpecException, IOException {
+            throws InvalidKeySpecException, IOException {
 
-
-        System.out.println("#EC curve data: " + Arrays.toString(ecCurveData));
-        System.out.println("#EC point data: " + Arrays.toString(ecPointData));
-        System.out.println("#EC point data: " + ecPointData.length);
-
-
-        var primitive = ASN1Primitive.fromByteArray(ecCurveData);
-
-        if (!(primitive instanceof ASN1ObjectIdentifier oid)) {
+        if (!(ASN1Primitive.fromByteArray(ecCurveData) instanceof ASN1ObjectIdentifier oid)) {
             throw new CryptoException("Cannot read OID from provided bytes");
         }
 
         if (!(ASN1Primitive.fromByteArray(ecPointData) instanceof DEROctetString pointAsOctets)) {
             throw new CryptoException("Cannot read point data from provided bytes");
         }
-
-
-        System.out.println("#EC curve oid: " + oid);
-        System.out.println("#EC point data as octets: " + Arrays.toString(pointAsOctets.getOctets()));
-        System.out.println("#EC point data as octets<size>: " + pointAsOctets.getOctets().length);
 
         var params = ECNamedCurveTable.getByOID(oid);
 
@@ -114,16 +96,7 @@ public final class EcKeyManager extends AbstractKeyManager {
 
         var ecPoint = params.getCurve().decodePoint(pointAsOctets.getOctets());
 
-        System.out.println("#EC point: " + ecPoint);
-        System.out.println("#EC point en false: " + Arrays.toString(ecPoint.getEncoded(false)));
-        System.out.println("#EC point en true: " + Arrays.toString(ecPoint.getEncoded(true)));
-
-
-        var pubKeySpec = new ECPublicKeySpec(ecPoint, spec);
-
-
-        return generateX509PublicKey(pubKeySpec);
+        return generateX509PublicKey(new ECPublicKeySpec(ecPoint, spec));
     }
-
 
 }
