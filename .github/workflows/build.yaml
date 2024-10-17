@@ -190,7 +190,7 @@ jobs:
               issue_number: context.issue.number,
               owner: context.repo.owner,
               repo: context.repo.repo,
-              body: `Central Server Allure report: https://nordic-institute.github.io/X-Road/src/central-server/admin-service/ui-system-test/${github.run_number}`
+              body: 'Central Server Allure report: https://nordic-institute.github.io/X-Road/src/central-server/admin-service/ui-system-test/${{ github.run_number }}'
             })
   RunSSSystemTests:
     name: Run Security Server system tests
