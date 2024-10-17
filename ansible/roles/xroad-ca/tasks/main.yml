@@ -13,7 +13,7 @@
     items:
       - "python3"
       - "acl"
-      - "nginx-light"
+      - "nginx-core"
       - "openssl"
       - "python3-pip"
       - "uwsgi"
@@ -23,6 +23,7 @@
   get_url:
     url: "https://github.com/grindsa/acme2certifier/releases/download/{{ a2c_ver }}/acme2certifier_{{ a2c_ver }}-1_all.deb"
     dest: /tmp/
+  when: (ansible_distribution_release == "jammy" or ansible_distribution_release == "noble")
 
 - name: group ca
   group:
@@ -155,7 +156,9 @@
     chdir: "/home/ca/CA"
   become: true
   become_user: root
-  when: stat_result.stat.exists == False
+  when:
+    - stat_result.stat.exists == False
+    - (ansible_distribution_release == "jammy" or ansible_distribution_release == "noble")
 
 
 - name: copy acme2certifier conf
@@ -166,6 +169,7 @@
     owner: "www-data"
   with_items:
     - "acme2certifier/acme_srv.cfg"
+  when: (ansible_distribution_release == "jammy" or ansible_distribution_release == "noble")
 
 - name: remove obsolete files
   file:

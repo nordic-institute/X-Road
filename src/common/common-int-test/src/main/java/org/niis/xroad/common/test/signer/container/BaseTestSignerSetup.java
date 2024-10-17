@@ -32,11 +32,13 @@ import com.nortal.test.testcontainers.images.builder.ReusableImageFromDockerfile
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.FileUtils;
+import org.apache.commons.lang3.SystemUtils;
 import org.jetbrains.annotations.NotNull;
 import org.testcontainers.containers.GenericContainer;
 import org.testcontainers.containers.wait.strategy.Wait;
 
 import java.io.File;
+import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.HashMap;
 import java.util.List;
@@ -45,6 +47,7 @@ import java.util.Map;
 @Slf4j
 @SuppressWarnings("checkstyle:MagicNumber")
 public abstract class BaseTestSignerSetup {
+    private static final String PKCS11_WRAPPER_FILENAME = "libpkcs11wrapper.so";
 
     static {
         //This is to set docker api version in testcontainers. By default it uses 1.32, which does not support platform setting.
@@ -69,8 +72,9 @@ public abstract class BaseTestSignerSetup {
                         !testableContainerProperties.getReuseBetweenRuns(),
                         testableContainerProperties.getReuseBetweenRuns())
                         .withFileFromFile(".", filesToAdd)
-                        .withFileFromPath("files/app.jar", appJarPath)
-                        .withFileFromPath("files/hwtoken.jar", hwTokenJarPath);
+                        .withFileFromPath("files/lib/%s".formatted(PKCS11_WRAPPER_FILENAME), getPkcsWrapperPath())
+                        .withFileFromPath("files/lib/hwtoken.jar", hwTokenJarPath)
+                        .withFileFromPath("files/app.jar", appJarPath);
             }
 
             @NotNull
@@ -83,6 +87,16 @@ public abstract class BaseTestSignerSetup {
             @Override
             public List<Integer> exposedPorts() {
                 return List.of(5558, 5560);
+            }
+
+            private Path getPkcsWrapperPath() {
+                String archDir = switch (SystemUtils.OS_ARCH) {
+                    case "x86_64", "amd64" -> "amd64";
+                    case "aarch64", "arm64" -> "arm64";
+                    default -> throw new IllegalStateException("Unsupported arch: " + SystemUtils.OS_ARCH);
+                };
+                return Paths.get("../../libs/pkcs11wrapper/%s/%s".formatted(archDir, PKCS11_WRAPPER_FILENAME));
+
             }
         };
     }
@@ -111,6 +125,7 @@ public abstract class BaseTestSignerSetup {
                                 "-Dxroad.signer.grpc-tls-keystore-password=111111",
                                 "-Dxroad.signer.grpc-tls-truststore=/etc/xroad/transport-keystore/grpc-internal-keystore.p12",
                                 "-Dxroad.signer.grpc-tls-truststore-password=111111",
+                                "-Djava.library.path=/root/lib/",
                                 modulemanager,
                                 "-Dloader.path=/root/lib/hwtoken.jar",
                                 "-jar", "/root/app.jar");
