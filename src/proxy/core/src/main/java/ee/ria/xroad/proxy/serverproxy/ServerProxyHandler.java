@@ -26,7 +26,6 @@
 package ee.ria.xroad.proxy.serverproxy;
 
 import ee.ria.xroad.common.CodedException;
-import ee.ria.xroad.common.SystemProperties;
 import ee.ria.xroad.common.cert.CertChainFactory;
 import ee.ria.xroad.common.conf.globalconf.GlobalConfProvider;
 import ee.ria.xroad.common.conf.serverconf.ServerConfProvider;
@@ -45,6 +44,7 @@ import org.apache.http.client.HttpClient;
 import org.eclipse.jetty.server.Request;
 import org.eclipse.jetty.server.Response;
 import org.eclipse.jetty.util.Callback;
+import org.niis.xroad.proxy.ProxyProperties;
 
 import java.io.IOException;
 
@@ -59,6 +59,7 @@ import static org.eclipse.jetty.server.Request.getRemoteAddr;
 
 @Slf4j
 class ServerProxyHandler extends HandlerBase {
+    private final ProxyProperties.ServerProperties serverProperties;
     private final GlobalConfProvider globalConfProvider;
     private final KeyConfProvider keyConfProvider;
     private final ServerConfProvider serverConfProvider;
@@ -66,12 +67,13 @@ class ServerProxyHandler extends HandlerBase {
 
     private final HttpClient client;
     private final HttpClient opMonitorClient;
-    private final long idleTimeout = SystemProperties.getServerProxyConnectorMaxIdleTime();
 
-    ServerProxyHandler(GlobalConfProvider globalConfProvider,
+    ServerProxyHandler(ProxyProperties.ServerProperties serverProperties,
+                       GlobalConfProvider globalConfProvider,
                        KeyConfProvider keyConfProvider,
                        ServerConfProvider serverConfProvider,
                        CertChainFactory certChainFactory, HttpClient client, HttpClient opMonitorClient) {
+        this.serverProperties = serverProperties;
         this.globalConfProvider = globalConfProvider;
         this.keyConfProvider = keyConfProvider;
         this.serverConfProvider = serverConfProvider;
@@ -87,7 +89,7 @@ class ServerProxyHandler extends HandlerBase {
 
         long start = PerformanceLogger.log(log, "Received request from " + getRemoteAddr(request));
 
-        if (!SystemProperties.isServerProxySupportClientsPooledConnections()) {
+        if (!serverProperties.serverSupportClientsPooledConnections()) {
             // if the header is added, the connections are closed and cannot be reused on the client side
             response.getHeaders().add("Connection", "close");
         }

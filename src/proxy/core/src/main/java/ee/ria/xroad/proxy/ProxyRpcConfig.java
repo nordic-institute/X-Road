@@ -38,9 +38,9 @@ import io.grpc.ServerBuilder;
 import lombok.extern.slf4j.Slf4j;
 import org.niis.xroad.common.rpc.RpcClientProperties;
 import org.niis.xroad.common.rpc.RpcCredentialsProvider;
-import org.niis.xroad.common.rpc.RpcServerProperties;
 import org.niis.xroad.common.rpc.server.RpcServer;
 import org.niis.xroad.confclient.proto.ConfClientRpcClient;
+import org.niis.xroad.proxy.ProxyProperties;
 import org.niis.xroad.proxy.edc.AssetsRegistrationJob;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Bean;
@@ -55,7 +55,8 @@ public class ProxyRpcConfig {
 
     @Bean
     RpcServer proxyRpcServer(final AddOn.BindableServiceRegistry bindableServiceRegistry,
-                             List<BindableService> rpcServices, RpcServerProperties proxyRpcServerProperties) throws Exception {
+                             List<BindableService> rpcServices, ProxyProperties proxyProperties) throws Exception {
+        var proxyRpcServerProperties = proxyProperties.getGrpcServer();
 
         var credentialsProvider = new RpcCredentialsProvider.Builder()
                 .tlsEnabled(proxyRpcServerProperties.isGrpcTlsEnabled())

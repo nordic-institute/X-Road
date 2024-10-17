@@ -159,17 +159,17 @@ public final class SystemProperties {
     public static final String DATABASE_PROPERTIES =
             PROXY_PREFIX + "database-properties";
 
-    /** Property name of the Proxy's connector host name. */
-    public static final String PROXY_CONNECTOR_HOST =
-            PROXY_PREFIX + "connector-host";
-
     /** Property name of the Client Proxy's port number. */
     public static final String PROXY_CLIENT_HTTP_PORT =
-            PROXY_PREFIX + "client-http-port";
+//            PROXY_PREFIX + "client-http-port";
+            // will be removed, used in tests
+            PROXY_PREFIX + "client-proxy.client-http-port";
 
     /** Property name of the Client Proxy's port number. */
     public static final String PROXY_CLIENT_HTTPS_PORT =
-            PROXY_PREFIX + "client-https-port";
+//            PROXY_PREFIX + "client-https-port";
+            // will be removed, used in tests
+            PROXY_PREFIX + "client-proxy.client-https-port";
 
     /** Property name of the Client Proxy's timeout (milliseconds). */
     public static final String PROXY_CLIENT_TIMEOUT =
@@ -179,32 +179,8 @@ public final class SystemProperties {
     public static final String PROXY_SERVER_PORT =
             PROXY_PREFIX + "server-port";
 
-    /** Property name of the Server Proxy's listen address. */
-    public static final String PROXY_SERVER_LISTEN_ADDRESS =
-            PROXY_PREFIX + "server-listen-address";
-
-    /** Property name of the Server Proxy's listen port number. */
-    public static final String PROXY_SERVER_LISTEN_PORT =
-            PROXY_PREFIX + "server-listen-port";
-
     /** Property name of the cached OCSP response path for signer operation. */
     public static final String OCSP_CACHE_PATH = SIGNER_PREFIX + "ocsp-cache-path";
-
-    /** Property name of the Ocsp Responder port. */
-    public static final String OCSP_RESPONDER_PORT =
-            PROXY_PREFIX + "ocsp-responder-port";
-
-    /** Property name of the Ocsp Responder listen address. */
-    public static final String OCSP_RESPONDER_LISTEN_ADDRESS =
-            PROXY_PREFIX + "ocsp-responder-listen-address";
-
-    /** Property name of the Ocsp Responder Client connect timeout. */
-    public static final String OCSP_RESPONDER_CLIENT_CONNECT_TIMEOUT =
-            PROXY_PREFIX + "ocsp-responder-client-connect-timeout";
-
-    /** Property name of the Ocsp Responder Client read timeout. */
-    public static final String OCSP_RESPONDER_CLIENT_READ_TIMEOUT =
-            PROXY_PREFIX + "ocsp-responder-client-read-timeout";
 
     /** Property name of the flag to turn off proxy client SSL verification. */
     public static final String PROXY_VERIFY_CLIENT_CERT =
@@ -213,17 +189,6 @@ public final class SystemProperties {
     /** Property name of the flag to turn on proxy client SSL logging. */
     public static final String PROXY_LOG_CLIENT_CERT =
             PROXY_PREFIX + "log-client-cert";
-
-    /** Property name of the ClientProxy Jetty server configuration file. */
-    public static final String JETTY_CLIENTPROXY_CONFIGURATION_FILE =
-            PROXY_PREFIX + "jetty-clientproxy-configuration-file";
-
-    public static final String JETTY_CLIENTPROXY_MAX_HEADER_SIZE =
-            PREFIX + "proxy.jetty-max-header-size";
-
-    /** Property name of the ServerProxy Jetty server configuration file. */
-    public static final String JETTY_SERVERPROXY_CONFIGURATION_FILE =
-            PROXY_PREFIX + "jetty-serverproxy-configuration-file";
 
     /** Property name of the CertHashBasedOcspResponder Jetty server configuration file. */
     public static final String JETTY_OCSP_RESPONDER_CONFIGURATION_FILE =
@@ -251,43 +216,9 @@ public final class SystemProperties {
 
     public static final String SERVER_CONF_ACL_CACHE_SIZE = PROXY_PREFIX + "server-conf-acl-cache-size";
 
-
-    /** Property name of the idle time that connections to the ServerProxy Connector are allowed, in milliseconds */
-    private static final String SERVERPROXY_CONNECTOR_MAX_IDLE_TIME =
-            PROXY_PREFIX + "server-connector-max-idle-time";
-
-    /**
-     * Property name of the idle time that connections to the serverproxy connector are initially allowed,
-     * in milliseconds
-     */
-    private static final String SERVERPROXY_CONNECTOR_INITIAL_IDLE_TIME =
-            PROXY_PREFIX + "server-connector-initial-idle-time";
-
-    /** Property name of the server Connector socket SO_LINGER timer, in seconds, value of -1 means off */
-    private static final String SERVERPROXY_CONNECTOR_SO_LINGER =
-            PROXY_PREFIX + "server-connector-so-linger";
-
     /** Property name of the server's minimum supported client version */
     private static final String SERVERPROXY_MIN_SUPPORTED_CLIENT_VERSION =
             PROXY_PREFIX + "server-min-supported-client-version";
-
-    private static final String SERVERPROXY_SUPPORT_CLIENTS_POOLED_CONNECTIONS =
-            PROXY_PREFIX + "server-support-clients-pooled-connections";
-
-    /**
-     * Property name of the idle time that connections to the clientproxy connector are initially allowed,
-     * in milliseconds
-     */
-    private static final String CLIENTPROXY_CONNECTOR_INITIAL_IDLE_TIME =
-            PROXY_PREFIX + "client-connector-initial-idle-time";
-
-    /** Property name of the idle time that ClientProxy connections are allowed, in milliseconds */
-    private static final String CLIENTPROXY_CONNECTOR_MAX_IDLE_TIME =
-            PROXY_PREFIX + "client-connector-max-idle-time";
-
-    /** Property name of the client connector socket SO_LINGER timer, in seconds, value of -1 means off */
-    private static final String CLIENTPROXY_CONNECTOR_SO_LINGER =
-            PROXY_PREFIX + "client-connector-so-linger";
 
     /**
      * Property name for he connection maximum idle time that should be set for client proxy apache HttpClient,
@@ -300,29 +231,11 @@ public final class SystemProperties {
     private static final String CLIENTPROXY_HTTPCLIENT_SO_LINGER =
             PROXY_PREFIX + "client-httpclient-so-linger";
 
-    private static final String CLIENTPROXY_POOL_IDLE_MONITOR_INTERVAL =
-            PROXY_PREFIX + "client-idle-connection-monitor-interval";
-
-    private static final String CLIENTPROXY_POOL_IDLE_MONITOR_IDLE_TIME =
-            PROXY_PREFIX + "client-idle-connection-monitor-timeout";
-
-    private static final String CLIENTPROXY_POOL_USE_IDLE_CONNECTION_MONITOR =
-            PROXY_PREFIX + "client-use-idle-connection-monitor";
-
-    private static final String CLIENTPROXY_POOL_TOTAL_MAX_CONNECTIONS =
-            PROXY_PREFIX + "pool-total-max-connections";
-
-    private static final String CLIENTPROXY_POOL_DEFAULT_MAX_CONN_PER_ROUTE =
-            PROXY_PREFIX + "pool-total-default-max-connections-per-route";
-
     private static final String CLIENTPROXY_USE_FASTEST_CONNECTING_SSL_SOCKET_AUTOCLOSE =
             PROXY_PREFIX + "client-use-fastest-connecting-ssl-socket-autoclose";
 
     public static final String CLIENTPROXY_FASTEST_CONNECTING_SSL_URI_CACHE_PERIOD =
             PROXY_PREFIX + "client-fastest-connecting-ssl-uri-cache-period";
-
-    private static final String CLIENTPROXY_POOL_VALIDATE_CONNECTIONS_AFTER_INACTIVITY_OF_MS =
-            PROXY_PREFIX + "pool-validate-connections-after-inactivity-of-millis";
 
     private static final String CLIENTPROXY_POOL_REUSE_CONNECTIONS =
             PROXY_PREFIX + "pool-enable-connection-reuse";
@@ -334,10 +247,6 @@ public final class SystemProperties {
     private static final String ENFORCE_CLIENT_IS_CERT_VALIDITY_PERIOD_CHECK =
             PROXY_PREFIX + "enforce-client-is-cert-validity-period-check";
 
-    private static final String PROXY_BACKUP_ENCRYPTION_ENABLED = PROXY_PREFIX + "backup-encryption-enabled";
-
-    private static final String PROXY_BACKUP_ENCRYPTION_KEY_IDS = PROXY_PREFIX + "backup-encryption-keyids";
-
     private static final String HSM_HEALTH_CHECK_ENABLED = PROXY_PREFIX + "hsm-health-check-enabled";
     private static final String PROXY_MESSAGE_SIGN_DIGEST_NAME = PROXY_PREFIX + "message-sign-digest-name";
 
@@ -345,7 +254,6 @@ public final class SystemProperties {
     private static final String TRUE = Boolean.TRUE.toString();
     private static final String DEFAULT_HSM_HEALTH_CHECK_ENABLED = FALSE;
     private static final String DEFAULT_PROXY_UI_API_ACME_CHALLENGE_PORT_ENABLED = FALSE;
-    private static final String DEFAULT_PROXY_BACKUP_ENCRYPTED = FALSE;
     private static final String DEFAULT_CENTER_TRUSTED_ANCHORS_ALLOWED = FALSE;
 
     private static final String DEFAULT_CENTER_AUTO_APPROVE_AUTH_CERT_REG_REQUESTS = FALSE;
@@ -358,43 +266,15 @@ public final class SystemProperties {
 
     private static final String DEFAULT_ALLOW_CSR_FOR_KEY_WITH_CERTIFICATE = FALSE;
 
-    private static final String DEFAULT_SERVERPROXY_CONNECTOR_MAX_IDLE_TIME = "0";
-
-    private static final String DEFAULT_PROXY_CONNECTOR_INITIAL_IDLE_TIME = "30000";
-
-    private static final String DEFAULT_SERVERPROXY_CONNECTOR_SO_LINGER = "-1";
-
-    private static final String DEFAULT_SERVERPROXY_SUPPORT_CLIENTS_POOLED_CONNECTIONS = FALSE;
-
-    private static final String DEFAULT_CLIENTPROXY_CONNECTOR_MAX_IDLE_TIME = "0";
-
-    private static final String DEFAULT_CLIENTPROXY_CONNECTOR_SO_LINGER = "-1";
-
     private static final String DEFAULT_CLIENTPROXY_HTTPCLIENT_TIMEOUT = "0";
 
     private static final String DEFAULT_CLIENTPROXY_HTTPCLIENT_SO_LINGER = "-1";
 
-    public static final String DEFAULT_OCSP_RESPONDER_CLIENT_READ_TIMEOUT = "30000";
-
-    private static final String DEFAULT_CLIENTPROXY_POOL_IDLE_MONITOR_INTERVAL = "30000";
-
-    private static final String DEFAULT_CLIENTPROXY_POOL_IDLE_MONITOR_IDLE_TIME = "60000";
-
-    private static final String DEFAULT_CLIENTPROXY_POOL_USE_IDLE_CONNECTION_MONITOR = TRUE;
-
-    private static final String DEFAULT_CLIENTPROXY_POOL_TOTAL_MAX_CONNECTIONS = "10000";
-
-    private static final String DEFAULT_CLIENTPROXY_POOL_DEFAULT_MAX_CONN_PER_ROUTE = "2500";
-
     private static final String DEFAULT_CLIENTPROXY_TIMEOUT = "30000";
-
-    private static final int DEFAULT_CLIENT_PROXY_JETTY_HEADER_SIZE = 16384;
 
     private static final String DEFAULT_CLIENTPROXY_USE_FASTEST_CONNECTING_SSL_SOCKET_AUTOCLOSE = TRUE;
 
     private static final String DEFAULT_CLIENTPROXY_FASTEST_CONNECTING_SSL_URI_CACHE_PERIOD = "3600";
-
-    private static final String DEFAULT_CLIENTPROXY_POOL_VALIDATE_CONNECTIONS_AFTER_INACTIVITY_OF_MS = "2000";
 
     private static final String DEFAULT_ENFORCE_CLIENT_IS_CERT_VALIDITY_PERIOD_CHECK = FALSE;
 
@@ -450,28 +330,6 @@ public final class SystemProperties {
     public static final String SOFTWARE_TOKEN_SIGN_MECHANISM = SIGNER_PREFIX + "software-token-sign-mechanism";
 
     public static final String DEFAULT_SIGNER_MODULE_MANAGER_UPDATE_INTERVAL = "60";
-
-    // AntiDos ----------------------------------------------------------------
-
-    /** Property name of the AntiDos on/off switch */
-    public static final String ANTIDOS_ENABLED =
-            PREFIX + "anti-dos.enabled";
-
-    /** Property name of the maximum number of allowed parallel connections */
-    public static final String ANTIDOS_MAX_PARALLEL_CONNECTIONS =
-            PREFIX + "anti-dos.max-parallel-connections";
-
-    /** Property name of the maximum allowed cpu load value */
-    public static final String ANTIDOS_MAX_CPU_LOAD =
-            PREFIX + "anti-dos.max-cpu-load";
-
-    /** Property name of the minimum number of free file handles */
-    public static final String ANTIDOS_MIN_FREE_FILEHANDLES =
-            PREFIX + "anti-dos.min-free-file-handles";
-
-    /** Property name of the maximum allowed JVM heap usage value */
-    public static final String ANTIDOS_MAX_HEAP_USAGE =
-            PREFIX + "anti-dos.max-heap-usage";
 
     // Configuration client ---------------------------------------------------
 
@@ -657,11 +515,6 @@ public final class SystemProperties {
      */
     public static final String GRPC_INTERNAL_TRUSTSTORE_PASSWORD =
             PREFIX + "common.grpc-internal-truststore-password";
-
-    /**
-     * Property name for Signer gRPC listen address.
-     */
-    public static final String SIGNER_GRPC_LISTEN_ADDRESS = PREFIX + "signer.grpc-listen-address";
 
     /**
      * Property name for Signer gRPC host.
@@ -999,31 +852,6 @@ public final class SystemProperties {
     }
 
     /**
-     * @return path to the client proxy jetty server configuration file, '/etc/xroad/jetty/clientproxy.xml' by default.
-     */
-    public static String getJettyClientProxyConfFile() {
-        return SystemPropertySource.getPropertyResolver().getProperty(JETTY_CLIENTPROXY_CONFIGURATION_FILE,
-                getConfPath() + DefaultFilepaths.JETTY_CLIENTPROXY_CONFIGURATION_FILE);
-    }
-
-    /**
-     * @return path to the server proxy jetty server configuration file, '/etc/xroad/jetty/serverproxy.xml' by default.
-     */
-    public static String getJettyServerProxyConfFile() {
-        return SystemPropertySource.getPropertyResolver().getProperty(JETTY_SERVERPROXY_CONFIGURATION_FILE,
-                getConfPath() + DefaultFilepaths.JETTY_SERVERPROXY_CONFIGURATION_FILE);
-    }
-
-    /**
-     * @return path to the cert hash based OCSP responder jetty server configuration file,
-     * '/etc/xroad/jetty/ocsp-responder.xml' by default.
-     */
-    public static String getJettyOcspResponderConfFile() {
-        return SystemPropertySource.getPropertyResolver().getProperty(JETTY_OCSP_RESPONDER_CONFIGURATION_FILE,
-                getConfPath() + DefaultFilepaths.JETTY_OCSP_RESPONDER_CONFIGURATION_FILE);
-    }
-
-    /**
      * @return WSDL validator command string. Defaults to null.
      */
     public static String getWsdlValidatorCommand() {
@@ -1104,23 +932,11 @@ public final class SystemProperties {
     }
 
     /**
-     * @return the host address on which the client proxy is listening, '0.0.0.0' by default.
-     */
-    public static String getConnectorHost() {
-        return SystemPropertySource.getPropertyResolver().getProperty(PROXY_CONNECTOR_HOST, DEFAULT_CONNECTOR_HOST);
-    }
-
-    /**
      * @return the HTTP port on which the client proxy is listening, '8080' by default.
      */
     public static int getClientProxyHttpPort() {
         return Integer.parseInt(SystemPropertySource.getPropertyResolver().getProperty(PROXY_CLIENT_HTTP_PORT,
                 Integer.toString(PortNumbers.CLIENT_HTTP_PORT)));
-    }
-
-    public static int getClientProxyJettyMaxHeaderSize() {
-        return Integer.parseInt(SystemPropertySource.getPropertyResolver().getProperty(JETTY_CLIENTPROXY_MAX_HEADER_SIZE,
-                Integer.toString(DEFAULT_CLIENT_PROXY_JETTY_HEADER_SIZE)));
     }
 
     /**
@@ -1143,20 +959,6 @@ public final class SystemProperties {
      */
     public static int getServerProxyPort() {
         return Integer.parseInt(SystemPropertySource.getPropertyResolver().getProperty(PROXY_SERVER_PORT, Integer.toString(PortNumbers.PROXY_PORT)));
-    }
-
-    /**
-     * @return the HTTP port on which the server proxy listens for messages, '5500' by default.
-     */
-    public static int getServerProxyListenPort() {
-        return Integer.parseInt(SystemPropertySource.getPropertyResolver().getProperty(PROXY_SERVER_LISTEN_PORT, Integer.toString(PortNumbers.PROXY_PORT)));
-    }
-
-    /**
-     * @return the host address on which the server proxy listens for messages, '0.0.0.0' by default.
-     */
-    public static String getServerProxyListenAddress() {
-        return SystemPropertySource.getPropertyResolver().getProperty(PROXY_SERVER_LISTEN_ADDRESS, DEFAULT_CONNECTOR_HOST);
     }
 
     /**
@@ -1264,35 +1066,6 @@ public final class SystemProperties {
 
     public static String getConfigurationClientAllowedFederations() {
         return SystemPropertySource.getPropertyResolver().getProperty(CONFIGURATION_CLIENT_ALLOWED_FEDERATIONS, AllowedFederationMode.NONE.name());
-    }
-
-    /**
-     * @return the HTTP port on which the server proxy OCSP responder is listening, '5577' by default.
-     */
-    public static int getOcspResponderPort() {
-        return Integer.parseInt(SystemPropertySource.getPropertyResolver().getProperty(OCSP_RESPONDER_PORT, Integer.toString(PortNumbers.PROXY_OCSP_PORT)));
-    }
-
-    /**
-     * @return the host address on which the server proxy OCSP responder is listening, '0.0.0.0' by default.
-     */
-    public static String getOcspResponderListenAddress() {
-        return SystemPropertySource.getPropertyResolver().getProperty(OCSP_RESPONDER_LISTEN_ADDRESS, DEFAULT_CONNECTOR_HOST);
-    }
-
-    /**
-     * @return the OCSP Responder Client connect timeout in milliseconds, '20000' by default.
-     */
-    public static int getOcspResponderClientConnectTimeout() {
-        return Integer.parseInt(SystemPropertySource.getPropertyResolver().getProperty(OCSP_RESPONDER_CLIENT_CONNECT_TIMEOUT, "20000"));
-    }
-
-    /**
-     * @return the OCSP Responder Client read timeout in milliseconds, '30000' by default.
-     */
-    public static int getOcspResponderClientReadTimeout() {
-        return Integer.parseInt(SystemPropertySource.getPropertyResolver().getProperty(OCSP_RESPONDER_CLIENT_READ_TIMEOUT,
-                DEFAULT_OCSP_RESPONDER_CLIENT_READ_TIMEOUT));
     }
 
     /**
@@ -1459,47 +1232,6 @@ public final class SystemProperties {
     }
 
     /**
-     * @return the maximum number of allowed parallel connections that
-     * Anti-Dos will let through to be processed, '5000' by default.
-     */
-    public static int getAntiDosMaxParallelConnections() {
-        return Integer.parseInt(SystemPropertySource.getPropertyResolver().getProperty(ANTIDOS_MAX_PARALLEL_CONNECTIONS, "5000"));
-    }
-
-    /**
-     * @return the maximum allowed CPU load value after which Anti-Dos will
-     * start rejecting incoming connections (ignored if > 1.0),
-     * '1.1' by default.
-     */
-    public static double getAntiDosMaxCpuLoad() {
-        return Double.parseDouble(SystemPropertySource.getPropertyResolver().getProperty(ANTIDOS_MAX_CPU_LOAD, "1.1"));
-    }
-
-    /**
-     * @return the minimum number of free file handles after which Anti-Dos will
-     * start rejecting incoming connections, '100' by default.
-     */
-    public static int getAntiDosMinFreeFileHandles() {
-        return Integer.parseInt(SystemPropertySource.getPropertyResolver().getProperty(ANTIDOS_MIN_FREE_FILEHANDLES, "100"));
-    }
-
-    /**
-     * @return the maximum allowed JVM heap usage value after which Anti-Dos
-     * will start rejecting incoming connections (ignored if > 1.0),
-     * '1.1' by default.
-     */
-    public static double getAntiDosMaxHeapUsage() {
-        return Double.parseDouble(SystemPropertySource.getPropertyResolver().getProperty(ANTIDOS_MAX_HEAP_USAGE, "1.1"));
-    }
-
-    /**
-     * @return whether Anti-Dos should be used, 'true' by default.
-     */
-    public static boolean isAntiDosEnabled() {
-        return Boolean.parseBoolean(SystemPropertySource.getPropertyResolver().getProperty(ANTIDOS_ENABLED, TRUE));
-    }
-
-    /**
      * Get proxy client's TLS protocols.
      *
      * @return protocols.
@@ -1566,34 +1298,6 @@ public final class SystemProperties {
         return period < OCSP_VERIFIER_CACHE_PERIOD_MAX ? period : OCSP_VERIFIER_CACHE_PERIOD_MAX;
     }
 
-    /**
-     * @return serverproxy initial idle time (used until the request processing starts)
-     */
-    public static long getServerProxyConnectorInitialIdleTime() {
-        return Integer.parseInt(SystemPropertySource.getPropertyResolver().getProperty(SERVERPROXY_CONNECTOR_INITIAL_IDLE_TIME,
-                DEFAULT_PROXY_CONNECTOR_INITIAL_IDLE_TIME));
-    }
-
-    /**
-     * @return the connection maximum idle time that should be set for server proxy connector
-     */
-    public static int getServerProxyConnectorMaxIdleTime() {
-        return Integer.parseInt(SystemPropertySource.getPropertyResolver().getProperty(SERVERPROXY_CONNECTOR_MAX_IDLE_TIME,
-                DEFAULT_SERVERPROXY_CONNECTOR_MAX_IDLE_TIME));
-    }
-
-    /**
-     * @return the so_linger value in milliseconds that should be set for server proxy connector, -1 (disabled) by
-     * default
-     */
-    @SuppressWarnings("checkstyle:magicnumber")
-    public static int getServerProxyConnectorSoLinger() {
-        final int linger = Integer.parseInt(SystemPropertySource.getPropertyResolver().getProperty(SERVERPROXY_CONNECTOR_SO_LINGER,
-                DEFAULT_SERVERPROXY_CONNECTOR_SO_LINGER));
-        if (linger >= 0) return linger * 1000;
-        return -1;
-    }
-
     public static String getServerProxyMinSupportedClientVersion() {
         return SystemPropertySource.getPropertyResolver().getProperty(SERVERPROXY_MIN_SUPPORTED_CLIENT_VERSION);
     }
@@ -1615,73 +1319,9 @@ public final class SystemProperties {
                 DEFAULT_CLIENTPROXY_HTTPCLIENT_SO_LINGER));
     }
 
-    /**
-     * @return the so_linger value in seconds that should be set for client proxy connector, 0 by default
-     */
-    public static int getClientProxyConnectorSoLinger() {
-        return Integer.parseInt(SystemPropertySource.getPropertyResolver().getProperty(CLIENTPROXY_CONNECTOR_SO_LINGER,
-                DEFAULT_CLIENTPROXY_CONNECTOR_SO_LINGER));
-    }
-
-    /**
-     * @return clientproxy initial idle time (used until the request processing starts)
-     */
-    public static long getClientProxyConnectorInitialIdleTime() {
-        return Integer.parseInt(SystemPropertySource.getPropertyResolver().getProperty(CLIENTPROXY_CONNECTOR_INITIAL_IDLE_TIME,
-                DEFAULT_PROXY_CONNECTOR_INITIAL_IDLE_TIME));
-    }
-
-    /**
-     * @return the connection maximum idle time that should be set for client proxy connector
-     */
-    public static int getClientProxyConnectorMaxIdleTime() {
-        return Integer.parseInt(SystemPropertySource.getPropertyResolver().getProperty(CLIENTPROXY_CONNECTOR_MAX_IDLE_TIME,
-                DEFAULT_CLIENTPROXY_CONNECTOR_MAX_IDLE_TIME));
-
-    }
-
-    /**
-     * @return true if the idle connection monitor thread should be used for client proxy
-     */
-    public static boolean isClientUseIdleConnectionMonitor() {
-        return Boolean.parseBoolean(SystemPropertySource.getPropertyResolver().getProperty(CLIENTPROXY_POOL_USE_IDLE_CONNECTION_MONITOR,
-                DEFAULT_CLIENTPROXY_POOL_USE_IDLE_CONNECTION_MONITOR));
-    }
-
-    /**
-     * @return the interval at which pooled idle connections should be cleaned up by the connection monitor
-     */
-    public static int getClientProxyIdleConnectionMonitorInterval() {
-        return Integer.parseInt(SystemPropertySource.getPropertyResolver().getProperty(CLIENTPROXY_POOL_IDLE_MONITOR_INTERVAL,
-                DEFAULT_CLIENTPROXY_POOL_IDLE_MONITOR_INTERVAL));
-    }
-
-    /**
-     * @return the idle time after which pooled connections should be discarded
-     */
-    public static int getClientProxyIdleConnectionMonitorIdleTime() {
-        return Integer.parseInt(SystemPropertySource.getPropertyResolver().getProperty(CLIENTPROXY_POOL_IDLE_MONITOR_IDLE_TIME,
-                DEFAULT_CLIENTPROXY_POOL_IDLE_MONITOR_IDLE_TIME));
-    }
-
     public static boolean isEnableClientProxyPooledConnectionReuse() {
         return Boolean.parseBoolean(SystemPropertySource.getPropertyResolver().getProperty(CLIENTPROXY_POOL_REUSE_CONNECTIONS,
                 DEFAULT_CLIENTPROXY_POOL_REUSE_CONNECTIONS));
-    }
-
-    public static boolean isServerProxySupportClientsPooledConnections() {
-        return Boolean.parseBoolean(SystemPropertySource.getPropertyResolver().getProperty(SERVERPROXY_SUPPORT_CLIENTS_POOLED_CONNECTIONS,
-                DEFAULT_SERVERPROXY_SUPPORT_CLIENTS_POOLED_CONNECTIONS));
-    }
-
-    public static int getClientProxyPoolTotalMaxConnections() {
-        return Integer.parseInt(SystemPropertySource.getPropertyResolver().getProperty(CLIENTPROXY_POOL_TOTAL_MAX_CONNECTIONS,
-                DEFAULT_CLIENTPROXY_POOL_TOTAL_MAX_CONNECTIONS));
-    }
-
-    public static int getClientProxyPoolDefaultMaxConnectionsPerRoute() {
-        return Integer.parseInt(SystemPropertySource.getPropertyResolver().getProperty(CLIENTPROXY_POOL_DEFAULT_MAX_CONN_PER_ROUTE,
-                DEFAULT_CLIENTPROXY_POOL_DEFAULT_MAX_CONN_PER_ROUTE));
     }
 
     /**
@@ -1698,16 +1338,6 @@ public final class SystemProperties {
     public static int getClientProxyFastestConnectingSslUriCachePeriod() {
         return Integer.parseInt(SystemPropertySource.getPropertyResolver().getProperty(CLIENTPROXY_FASTEST_CONNECTING_SSL_URI_CACHE_PERIOD,
                 DEFAULT_CLIENTPROXY_FASTEST_CONNECTING_SSL_URI_CACHE_PERIOD));
-    }
-
-    /**
-     * @return the time in milliseconds, after which connections in a pool should be check for validity, ie.
-     * after this time, check if pooled connections are still alive, don't just assume they are.
-     * Non-positive value disables connection validation. '2000' by default.
-     */
-    public static int getClientProxyValidatePoolConnectionsAfterInactivityMs() {
-        return Integer.parseInt(SystemPropertySource.getPropertyResolver().getProperty(CLIENTPROXY_POOL_VALIDATE_CONNECTIONS_AFTER_INACTIVITY_OF_MS,
-                DEFAULT_CLIENTPROXY_POOL_VALIDATE_CONNECTIONS_AFTER_INACTIVITY_OF_MS));
     }
 
     /**
@@ -1803,22 +1433,6 @@ public final class SystemProperties {
     }
 
     /**
-     * @return Whether encryption to security server backup files using server's OpenPGP key is enabled,
-     * 'false' by default.
-     */
-    public static boolean isBackupEncryptionEnabled() {
-        return Boolean.parseBoolean(SystemPropertySource.getPropertyResolver().getProperty(PROXY_BACKUP_ENCRYPTION_ENABLED,
-                DEFAULT_PROXY_BACKUP_ENCRYPTED));
-    }
-
-    /**
-     * @return Comma-separated list of additional recipient OpenPGP key identifiers
-     */
-    public static String getBackupEncryptionKeyIds() {
-        return SystemPropertySource.getPropertyResolver().getProperty(PROXY_BACKUP_ENCRYPTION_KEY_IDS, "");
-    }
-
-    /**
      * @return Whether Hardware Security Modules Healthcheck is enabled
      * 'false' by default
      */
@@ -1883,15 +1497,6 @@ public final class SystemProperties {
     @Deprecated
     private static char[] getGrpcInternalTruststorePassword() {
         return getPasswordFromPropertyOrEnvironmentVariable(GRPC_INTERNAL_TRUSTSTORE_PASSWORD, null);
-    }
-
-    /**
-     * @return the gRPC signer listen address.
-     */
-    public static String getSignerGrpcListenAddress() {
-        return SystemPropertySource.getPropertyResolver().getProperty(SIGNER_GRPC_LISTEN_ADDRESS,
-                // todo xroad8 fallback to old property. to be removed
-                getGrpcInternalHost());
     }
 
     /**
@@ -2023,15 +1628,6 @@ public final class SystemProperties {
         return getPasswordFromPropertyOrEnvironmentVariable(CONFIGURATION_CLIENT_GRPC_TLS_KEYSTORE_PASSWORD,
                 // todo xroad8 fallback to old property. to be removed
                 getGrpcInternalKeyStorePassword());
-    }
-
-    /**
-     * @return whether Proxy gRPC Tls is enabled.
-     */
-    public static boolean isProxyGrpcTlsEnabled() {
-        return Boolean.parseBoolean(SystemPropertySource.getPropertyResolver().getProperty(PROXY_GRPC_TLS_ENABLED,
-                // todo xroad8 fallback to old property. to be removed
-                Boolean.toString(isGrpcInternalTlsEnabled())));
     }
 
     /**

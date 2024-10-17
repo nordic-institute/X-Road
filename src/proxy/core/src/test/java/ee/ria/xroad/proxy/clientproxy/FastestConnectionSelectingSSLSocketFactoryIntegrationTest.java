@@ -39,6 +39,7 @@ import ee.ria.xroad.proxy.testsuite.DummySslServerProxy;
 import ee.ria.xroad.proxy.testutil.IntegrationTest;
 import ee.ria.xroad.proxy.testutil.TestGlobalConf;
 import ee.ria.xroad.proxy.testutil.TestKeyConf;
+import ee.ria.xroad.proxy.util.CertHashBasedOcspResponderClient;
 import ee.ria.xroad.proxy.util.SystemMetrics;
 
 import lombok.extern.slf4j.Slf4j;
@@ -57,6 +58,7 @@ import org.junit.Assume;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.experimental.categories.Category;
+import org.niis.xroad.proxy.ProxyProperties;
 
 import javax.net.ssl.KeyManager;
 import javax.net.ssl.SSLContext;
@@ -106,7 +108,10 @@ public class FastestConnectionSelectingSSLSocketFactoryIntegrationTest {
     public void setup() {
         globalConfProvider = new TestGlobalConf();
         keyConfProvider = new TestKeyConf(globalConfProvider);
-        authTrustVerifier = new AuthTrustVerifier(keyConfProvider, new CertHelper(globalConfProvider),
+        CertHashBasedOcspResponderClient ocspResponderClient = new CertHashBasedOcspResponderClient(
+                new ProxyProperties.OcspResponderProperties("0.0.0.0", 5577, 20000, 30000,
+                        "/etc/xroad/jetty/ocsp-responder.xml"));
+        authTrustVerifier = new AuthTrustVerifier(ocspResponderClient, keyConfProvider, new CertHelper(globalConfProvider),
                 new CertChainFactory(globalConfProvider));
 
         TimeUtils.setClock(Clock.fixed(Instant.parse("2020-01-01T00:00:00Z"), ZoneOffset.UTC));

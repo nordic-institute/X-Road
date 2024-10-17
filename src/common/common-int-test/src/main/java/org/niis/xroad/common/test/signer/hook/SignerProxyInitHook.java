@@ -71,12 +71,14 @@ public class SignerProxyInitHook implements BeforeSuiteHook {
 //        System.setProperty("xroad.internal.passwordstore-provider", "file");
 //        System.setProperty("xroad.internal.passwordstore-file-path", "build/container-passwordstore/");
 
-        RpcClientProperties signerClientProperties = new RpcClientProperties(host, port, true,
-                "build/resources/intTest/signer-container-files/etc/xroad/transport-keystore/grpc-internal-keystore.p12",
-                "111111".toCharArray(),
-                "build/resources/intTest/signer-container-files/etc/xroad/transport-keystore/grpc-internal-keystore.p12",
-                "111111".toCharArray()
-        );
+//        RpcClientProperties signerClientProperties = new RpcClientProperties(host, port, true,
+//                "build/resources/intTest/signer-container-files/etc/xroad/transport-keystore/grpc-internal-keystore.p12",
+//                "111111".toCharArray(),
+//                "build/resources/intTest/signer-container-files/etc/xroad/transport-keystore/grpc-internal-keystore.p12",
+//                "111111".toCharArray()
+//        );
+        RpcClientProperties signerClientProperties = new RpcClientProperties(host, port, false,
+                null, null, null, null);
         RpcSignerClient.init(signerClientProperties);
     }
 
