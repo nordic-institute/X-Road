@@ -128,6 +128,7 @@ public class SoftwareTokenWorker extends AbstractTokenWorker {
             SignAlgorithm.SHA384_WITH_ECDSA,
             SignAlgorithm.SHA512_WITH_ECDSA
     );
+    private static final String UNSUPPORTED_SIGN_ALGORITHM = "unsupported_sign_algorithm";
 
     private final Map<String, PrivateKey> privateKeys = new HashMap<>();
     private final TokenType tokenType;
@@ -232,7 +233,7 @@ public class SoftwareTokenWorker extends AbstractTokenWorker {
         checkSignatureAlgorithm(signatureAlgorithmId, keyAlgorithm);
 
         if (!keyAlgorithm.equals(signatureAlgorithmId.algorithm())) {
-            throw CodedException.tr(X_UNSUPPORTED_SIGN_ALGORITHM, "unsupported_sign_algorithm",
+            throw CodedException.tr(X_UNSUPPORTED_SIGN_ALGORITHM, UNSUPPORTED_SIGN_ALGORITHM,
                     "Unsupported signature algorithm '%s' for key algorithm '%s'", signatureAlgorithmId.name(), keyAlgorithm);
         }
 
@@ -249,12 +250,12 @@ public class SoftwareTokenWorker extends AbstractTokenWorker {
 
     private static void checkSignatureAlgorithm(SignAlgorithm signatureAlgorithmId, KeyAlgorithm algorithm) throws CodedException {
         if (!SUPPORTED_ALGORITHMS.contains(signatureAlgorithmId)) {
-            throw CodedException.tr(X_UNSUPPORTED_SIGN_ALGORITHM, "unsupported_sign_algorithm",
+            throw CodedException.tr(X_UNSUPPORTED_SIGN_ALGORITHM, UNSUPPORTED_SIGN_ALGORITHM,
                     "Unsupported signature algorithm '%s'", signatureAlgorithmId.name());
         }
 
         if (!algorithm.equals(signatureAlgorithmId.algorithm())) {
-            throw CodedException.tr(X_UNSUPPORTED_SIGN_ALGORITHM, "unsupported_sign_algorithm",
+            throw CodedException.tr(X_UNSUPPORTED_SIGN_ALGORITHM, UNSUPPORTED_SIGN_ALGORITHM,
                     "Unsupported signature algorithm '%s' for key algorithm '%s'", signatureAlgorithmId.name(), algorithm);
         }
     }
