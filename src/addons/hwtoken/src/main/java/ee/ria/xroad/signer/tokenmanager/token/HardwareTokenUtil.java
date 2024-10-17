@@ -42,6 +42,7 @@ import iaik.pkcs.pkcs11.objects.Key;
 import iaik.pkcs.pkcs11.objects.PrivateKey;
 import iaik.pkcs.pkcs11.objects.PublicKey;
 import iaik.pkcs.pkcs11.objects.X509PublicKeyCertificate;
+import iaik.pkcs.pkcs11.parameters.RSAPkcsParameters.MessageGenerationFunctionType;
 import iaik.pkcs.pkcs11.parameters.RSAPkcsPssParameters;
 import iaik.pkcs.pkcs11.wrapper.PKCS11Constants;
 import iaik.pkcs.pkcs11.wrapper.PKCS11Exception;
@@ -271,13 +272,13 @@ public final class HardwareTokenUtil {
         long saltLength;
 
         if (hashMechanism == PKCS11Constants.CKM_SHA512) {
-            maskGenerationFunction = RSAPkcsPssParameters.MessageGenerationFunctionType.SHA512;
+            maskGenerationFunction = MessageGenerationFunctionType.SHA512;
             saltLength = Digests.SHA512_DIGEST_LENGTH;
         } else if (hashMechanism == PKCS11Constants.CKM_SHA384) {
-            maskGenerationFunction = RSAPkcsPssParameters.MessageGenerationFunctionType.SHA384;
+            maskGenerationFunction = MessageGenerationFunctionType.SHA384;
             saltLength = Digests.SHA384_DIGEST_LENGTH;
         } else if (hashMechanism == PKCS11Constants.CKM_SHA256) {
-            maskGenerationFunction = RSAPkcsPssParameters.MessageGenerationFunctionType.SHA256;
+            maskGenerationFunction = MessageGenerationFunctionType.SHA256;
             saltLength = Digests.SHA256_DIGEST_LENGTH;
         } else {
             throw new IllegalArgumentException("Not supported hash mechanism");
