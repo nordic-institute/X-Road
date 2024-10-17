@@ -27,6 +27,7 @@
 
 package org.niis.xroad.signer.test.glue;
 
+import ee.ria.xroad.common.crypto.identifier.SignMechanism;
 import ee.ria.xroad.signer.SignerProxy;
 import ee.ria.xroad.signer.protocol.dto.KeyInfo;
 
@@ -44,6 +45,7 @@ import java.util.concurrent.Future;
 
 import static ee.ria.xroad.common.crypto.Digests.calculateDigest;
 import static ee.ria.xroad.common.crypto.identifier.DigestAlgorithm.SHA256;
+import static ee.ria.xroad.common.crypto.identifier.SignAlgorithm.SHA256_WITH_ECDSA;
 import static ee.ria.xroad.common.crypto.identifier.SignAlgorithm.SHA256_WITH_RSA;
 import static java.nio.charset.StandardCharsets.UTF_8;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -54,13 +56,18 @@ public class SignerParallelStepDefs extends BaseSignerStepDefs {
     public void digestCanBeSignedUsingKeyFromToken(String keyName, String friendlyName, int loops, int threads) throws Exception {
         final KeyInfo key = findKeyInToken(friendlyName, keyName);
 
+        var signAlgorithm = switch (SignMechanism.valueOf(key.getSignMechanismName()).keyAlgorithm()) {
+            case RSA -> SHA256_WITH_RSA;
+            case EC -> SHA256_WITH_ECDSA;
+        };
+
         doConcurrentSign(() -> {
             var digest = String.format("%s-%d", UUID.randomUUID(), System.currentTimeMillis());
 
             var stopWatch = StopWatch.createStarted();
-            byte[] result = SignerProxy.sign(key.getId(), SHA256_WITH_RSA, calculateDigest(SHA256, digest.getBytes(UTF_8)));
+            byte[] result = SignerProxy.sign(key.getId(), signAlgorithm, calculateDigest(SHA256, digest.getBytes(UTF_8)));
             stopWatch.stop();
-            log.trace("Executed sign in {} ms.", stopWatch.getTime());
+            log.trace("Executed sign in {} ms.", stopWatch.getDuration().toMillis());
             return result;
         }, threads, loops);
 
@@ -69,19 +76,19 @@ public class SignerParallelStepDefs extends BaseSignerStepDefs {
     private void doConcurrentSign(Callable<byte[]> callable,
                                   int threads,
                                   int loops) throws Exception {
-        ExecutorService executorService = Executors.newFixedThreadPool(threads);
+        try (ExecutorService executorService = Executors.newFixedThreadPool(threads)) {
 
-        List<Callable<byte[]>> callables = new ArrayList<>();
-        for (int i = 0; i < threads; i++) {
-            for (int j = 0; j < loops; j++) {
-                callables.add(callable);
+            List<Callable<byte[]>> callables = new ArrayList<>();
+            for (int i = 0; i < threads; i++) {
+                for (int j = 0; j < loops; j++) {
+                    callables.add(callable);
+                }
+            }
+
+            List<Future<byte[]>> results = executorService.invokeAll(callables);
+            for (Future<byte[]> result : results) {
+                assertThat(result.get()).isNotEmpty();
             }
         }
-
-        List<Future<byte[]>> results = executorService.invokeAll(callables);
-        for (Future<byte[]> result : results) {
-            assertThat(result.get()).isNotEmpty();
-        }
-        executorService.shutdown();
     }
 }

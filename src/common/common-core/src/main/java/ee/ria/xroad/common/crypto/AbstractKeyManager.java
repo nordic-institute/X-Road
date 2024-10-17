@@ -24,7 +24,7 @@
  */
 package ee.ria.xroad.common.crypto;
 
-import ee.ria.xroad.common.crypto.identifier.KeyType;
+import ee.ria.xroad.common.crypto.identifier.KeyAlgorithm;
 
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
@@ -33,6 +33,7 @@ import org.bouncycastle.jce.provider.BouncyCastleProvider;
 import java.security.KeyFactory;
 import java.security.PublicKey;
 import java.security.Security;
+import java.security.spec.InvalidKeySpecException;
 import java.security.spec.KeySpec;
 import java.security.spec.X509EncodedKeySpec;
 
@@ -50,38 +51,37 @@ public abstract class AbstractKeyManager implements KeyManager {
     /** Holds the RSA key factory instance. */
     @Getter(PROTECTED)
     public final KeyFactory keyFactory;
-    public final KeyType keyType;
+    public final KeyAlgorithm keyAlgorithm;
 
-    protected AbstractKeyManager(KeyType keyType) {
-        this.keyType = keyType;
+    protected AbstractKeyManager(KeyAlgorithm keyAlgorithm) {
+        this.keyAlgorithm = keyAlgorithm;
         try {
-            this.keyFactory = KeyFactory.getInstance(keyType.name());
+            this.keyFactory = KeyFactory.getInstance(keyAlgorithm.name(), "BC");
         } catch (Exception e) {
-            throw new RuntimeException("Failed to get key factory instance for : " + keyType, e);
+            throw new CryptoException("Failed to get key factory instance for : " + keyAlgorithm, e);
         }
     }
 
     @Override
-    public KeyType cryptoAlgorithm() {
-        return keyType;
+    public KeyAlgorithm cryptoAlgorithm() {
+        return keyAlgorithm;
     }
 
 
     @Override
-    public byte[] generateX509PublicKey(KeySpec keySpec) throws Exception {
-        PublicKey publicKey = getKeyFactory().generatePublic(keySpec);
+    public byte[] generateX509PublicKey(KeySpec keySpec) throws InvalidKeySpecException {
+        var publicKey = getKeyFactory().generatePublic(keySpec);
         return generateX509PublicKey(publicKey);
     }
 
     @Override
-    public byte[] generateX509PublicKey(PublicKey publicKey) throws Exception {
-        X509EncodedKeySpec x509EncodedPublicKey = getKeyFactory().getKeySpec(publicKey, X509EncodedKeySpec.class);
+    public byte[] generateX509PublicKey(PublicKey publicKey) throws InvalidKeySpecException {
+        var x509EncodedPublicKey = getKeyFactory().getKeySpec(publicKey, X509EncodedKeySpec.class);
         return x509EncodedPublicKey.getEncoded();
     }
 
     public PublicKey readX509PublicKey(byte[] encoded) throws Exception {
-        X509EncodedKeySpec x509EncodedPublicKey =
-                new X509EncodedKeySpec(encoded);
+        var x509EncodedPublicKey = new X509EncodedKeySpec(encoded);
         return getKeyFactory().generatePublic(x509EncodedPublicKey);
     }
 

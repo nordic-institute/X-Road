@@ -26,6 +26,7 @@
 package ee.ria.xroad.signer.tokenmanager;
 
 import ee.ria.xroad.common.CodedException;
+import ee.ria.xroad.common.crypto.identifier.SignMechanism;
 import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.signer.model.Cert;
 import ee.ria.xroad.signer.model.CertRequest;
@@ -176,7 +177,7 @@ public final class TokenManager {
      * @return the new token
      */
     public static synchronized TokenInfo createToken(TokenType tokenType) {
-        Token token = new Token(tokenType.getModuleType(), tokenType.getId(), tokenType.getSignMechanismName());
+        Token token = new Token(tokenType.getModuleType(), tokenType.getId());
         token.setModuleId(tokenType.getModuleType());
         token.setReadOnly(tokenType.isReadOnly());
         token.setSerialNumber(tokenType.getSerialNumber());
@@ -660,12 +661,12 @@ public final class TokenManager {
      * @param publicKeyBase64 the public key base64
      * @return the key info or throws exception if the token cannot be found
      */
-    public static synchronized KeyInfo addKey(String tokenId, String keyId, String publicKeyBase64) {
+    public static synchronized KeyInfo addKey(String tokenId, String keyId, String publicKeyBase64, SignMechanism signMechanism) {
         log.trace("addKey({}, {})", tokenId, keyId);
 
         Token token = findToken(tokenId);
 
-        Key key = new Key(token, keyId);
+        Key key = new Key(token, keyId, signMechanism);
         key.setPublicKey(publicKeyBase64);
 
         token.addKey(key);
