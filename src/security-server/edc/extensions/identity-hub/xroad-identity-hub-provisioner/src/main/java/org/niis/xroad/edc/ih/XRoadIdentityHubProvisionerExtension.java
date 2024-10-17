@@ -30,14 +30,15 @@ import ee.ria.xroad.common.conf.globalconf.GlobalConfProvider;
 import ee.ria.xroad.signer.SignerProxy;
 import ee.ria.xroad.signer.protocol.dto.KeyInfo;
 
-import com.apicatalog.ld.DocumentError;
-import com.apicatalog.ld.signature.LinkedDataSuiteError;
 import com.nimbusds.jose.JOSEException;
+import com.nimbusds.jose.JWSHeader;
+import com.nimbusds.jose.JWSObject;
+import com.nimbusds.jose.JWSSigner;
+import com.nimbusds.jose.Payload;
 import com.nimbusds.jose.jwk.Curve;
 import com.nimbusds.jose.jwk.ECKey;
 import com.nimbusds.jose.jwk.JWK;
 import com.nimbusds.jose.jwk.RSAKey;
-import jakarta.json.JsonObject;
 import lombok.SneakyThrows;
 import org.bouncycastle.util.io.pem.PemObject;
 import org.bouncycastle.util.io.pem.PemWriter;
@@ -61,13 +62,12 @@ import org.eclipse.edc.identityhub.spi.store.CredentialStore;
 import org.eclipse.edc.identityhub.spi.store.KeyPairResourceStore;
 import org.eclipse.edc.identityhub.spi.verifiablecredentials.model.VcStatus;
 import org.eclipse.edc.identityhub.spi.verifiablecredentials.model.VerifiableCredentialResource;
-import org.eclipse.edc.jsonld.spi.JsonLd;
 import org.eclipse.edc.jwt.signer.spi.JwsSignerProvider;
 import org.eclipse.edc.runtime.metamodel.annotation.Extension;
 import org.eclipse.edc.runtime.metamodel.annotation.Inject;
+import org.eclipse.edc.security.token.jwt.CryptoConverter;
 import org.eclipse.edc.spi.EdcException;
 import org.eclipse.edc.spi.monitor.Monitor;
-import org.eclipse.edc.spi.result.StoreFailure;
 import org.eclipse.edc.spi.system.ServiceExtension;
 import org.eclipse.edc.spi.system.ServiceExtensionContext;
 import org.eclipse.edc.spi.system.configuration.Config;
@@ -87,10 +87,11 @@ import java.util.Base64;
 import java.util.Map;
 import java.util.UUID;
 
+import static java.time.temporal.ChronoUnit.DAYS;
 import static org.niis.xroad.edc.ih.DidWebCertificateChainController.CERTIFICATE_CHAIN_PATH;
-import static org.niis.xroad.edc.ih.GaiaXSelfDescriptionGenerator.composeGaiaXParticipantDocument;
-import static org.niis.xroad.edc.ih.GaiaXSelfDescriptionGenerator.composeGaiaXTermsAndConditionsDocument;
-import static org.niis.xroad.edc.ih.GaiaXSelfDescriptionGenerator.composeXRoadCredentialDocument;
+import static org.niis.xroad.edc.ih.GaiaXCredentialPayloadGenerator.composeGaiaXParticipantDocument;
+import static org.niis.xroad.edc.ih.GaiaXCredentialPayloadGenerator.composeGaiaXTermsAndConditionsDocument;
+import static org.niis.xroad.edc.ih.GaiaXCredentialPayloadGenerator.composeXRoadCredentialDocument;
 
 /**
  * Identity Hub's management API is missing an endpoint for inserting credentials.
@@ -102,7 +103,9 @@ public class XRoadIdentityHubProvisionerExtension implements ServiceExtension {
 
     static final String NAME = "X-Road Credential insertion extension for Identity Hub";
 
-    private static final String CREDENTIAL_TYPE = "XRoadCredential";
+    private static final String XROAD_CREDENTIAL_TYPE = "XRoadCredential";
+
+    private static final String GAIAX_CREDENTIAL_TYPE = "GaiaXCredential";
 
     private static final String DID_KEY_ID = "edc.did.key.id";
 
@@ -128,9 +131,6 @@ public class XRoadIdentityHubProvisionerExtension implements ServiceExtension {
     private JwsSignerProvider jwsSignerProvider;
 
     @Inject
-    private JsonLd jsonLdService;
-
-    @Inject
     private WebService webService;
 
     @Inject
@@ -150,26 +150,24 @@ public class XRoadIdentityHubProvisionerExtension implements ServiceExtension {
         webService.registerResource(
                 IdentityHubApiContext.IH_DID,
                 new DidWebCertificateChainController(new DidWebParser(), keyPairService, globalConfProvider));
+
+        webService.registerResource(
+                IdentityHubApiContext.RESOLUTION,
+                new EnvelopedVerifiableCredentialsController(credentialStore, jwsSignerProvider, config.getString(DID_KEY_ID)));
     }
 
     @Override
     @SneakyThrows
     public void start() {
         String participantId = config.getString(BootServicesExtension.PARTICIPANT_ID);
-        if (!participantContextExists(participantId)) {
-            String hostname = System.getenv("EDC_HOSTNAME");
-            String keyId = config.getString(DID_KEY_ID);
-            PublicKey publicKey = getPublicKey(keyId);
+        String hostname = System.getenv("EDC_HOSTNAME");
+        String keyId = config.getString(DID_KEY_ID);
+        PublicKey publicKey = getPublicKey(keyId);
 
-            monitor.info("Inserting credentials for participant %s".formatted(participantId));
-            createParticipantContext(hostname, participantId, keyId, convertToJWK(publicKey, hostname));
-            createKeyPairs(participantId, keyId, convertPublicKeyToPem(publicKey));
-            createCredentials(hostname, participantId, keyId);
-        }
-    }
-
-    private boolean participantContextExists(String participantId) {
-        return participantContextService.getParticipantContext(participantId).reason().equals(StoreFailure.Reason.NOT_FOUND);
+        monitor.info("Inserting credentials for participant %s".formatted(participantId));
+        createParticipantContext(hostname, participantId, keyId, convertToJWK(publicKey, hostname));
+        createKeyPairs(participantId, keyId, convertPublicKeyToPem(publicKey));
+        createCredentials(hostname, participantId, keyId);
     }
 
 
@@ -193,39 +191,50 @@ public class XRoadIdentityHubProvisionerExtension implements ServiceExtension {
         participantContextService.createParticipantContext(manifest);
     }
 
-    private void createCredentials(String hostname, String participantId, String keyId)
-            throws IOException, JOSEException, LinkedDataSuiteError, DocumentError {
-        var vcGenerator = new GaiaXSelfDescriptionGenerator(jsonLdService);
-        var signerResult = jwsSignerProvider.createJwsSigner(keyId);
-        if (signerResult.failed()) {
-            throw new EdcException("JWSSigner cannot be generated for private key '%s': %s".formatted(keyId, signerResult.getFailureDetail()));
-        }
-        var signer = signerResult.getContent();
-        var verificationUrl = URI.create(participantId + "#" + keyId);
+    private void createCredentials(String hostname, String participantId, String keyId) throws JOSEException {
+        var signer = jwsSignerProvider.createJwsSigner(keyId)
+                .orElseThrow(f -> new EdcException("JWSSigner cannot be generated for private key '%s': %s".formatted(keyId, f.getFailureDetail())));
 
         var participantDoc = composeGaiaXParticipantDocument(hostname);
-        var participantVc = vcGenerator.signDocument(participantDoc, signer, verificationUrl);
-        storeCredential("https://" + hostname + ":9396/participant.json", participantVc.compacted(), participantId);
+        var participantVc = toVcJwt(participantDoc, signer, participantId, keyId);
+        storeCredential("https://" + hostname + ":9396/participant.json", participantVc, participantId, GAIAX_CREDENTIAL_TYPE);
 
         var tsaandcsDoc = composeGaiaXTermsAndConditionsDocument(hostname);
-        var tsaandcsVc = vcGenerator.signDocument(tsaandcsDoc, signer, verificationUrl);
-        storeCredential("https://" + hostname + ":9396/tsandcs.json", tsaandcsVc.compacted(), participantId);
+        var tsaandcsVc = toVcJwt(tsaandcsDoc, signer, participantId, keyId);
+        storeCredential("https://" + hostname + ":9396/tsandcs.json", tsaandcsVc, participantId, GAIAX_CREDENTIAL_TYPE);
 
         var xrdCredentialDoc = composeXRoadCredentialDocument(hostname, HOSTNAME_XRDIDENTIFIER_MAP.get(hostname));
-        var xrdCredentialVc = vcGenerator.signDocument(xrdCredentialDoc, signer, verificationUrl);
-        storeCredential("https://" + hostname + ":9396/xrd-cred.json", xrdCredentialVc.compacted(), participantId);
+        var xrdCredentialVc = toVcJwt(xrdCredentialDoc, signer, participantId, keyId);
+        storeCredential("https://" + hostname + ":9396/xrd-cred.json", xrdCredentialVc, participantId, XROAD_CREDENTIAL_TYPE);
     }
 
-    private void storeCredential(String id, JsonObject credential, String participantId) {
+    private String toVcJwt(String payload, JWSSigner signer, String did, String keyId) throws JOSEException {
+        // Create and sign JWS
+        var header = new JWSHeader.Builder(CryptoConverter.getRecommendedAlgorithm(signer))
+                .base64URLEncodePayload(true)
+                .customParam("iss", did)
+                .keyID(did + "#" + keyId)
+                .customParam("iat", Instant.now().toString())
+                .customParam("exp", Instant.now().plus(90, DAYS).toString())
+                .contentType("vc+ld")
+                //.type(JOSEObjectType.JWT)
+                .build();
+        var detachedPayload = new Payload(payload);
+        var jwsObject = new JWSObject(header, detachedPayload);
+        jwsObject.sign(signer);
+        return jwsObject.serialize();
+    }
+
+    private void storeCredential(String id, String credential, String participantId, String credentialType) {
         var verifiableCredential = VerifiableCredential.Builder.newInstance()
                 .credentialSubject(CredentialSubject.Builder.newInstance().id("test-subject").claim("test-key", "test-val").build())
                 .issuanceDate(Instant.now())
-                .type(CREDENTIAL_TYPE)
+                .type(credentialType)
                 .issuer(new Issuer(participantId, Map.of()))
                 .id(participantId)
                 .build();
 
-        var verifiableCredentialContainer = new VerifiableCredentialContainer(credential.toString(), CredentialFormat.JSON_LD, verifiableCredential);
+        var verifiableCredentialContainer = new VerifiableCredentialContainer(credential, CredentialFormat.JWT, verifiableCredential);
         var verifiableCredentialResource = VerifiableCredentialResource.Builder.newInstance()
                 .issuerId("test-issuer")
                 .holderId("test-holder")

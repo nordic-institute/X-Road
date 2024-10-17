@@ -72,7 +72,7 @@ shadowJar {
 
 tasks.register('shadowJarWithSql', ShadowJar) {
     from sourceSets.main.output
-    configurations = [project.configurations.runtimeClasspath, project.configurations.sqlDependencies]
+    configurations = [project.configurations.runtimeClasspath]
     exclude('META-INF/*.RSA', 'META-INF/*.SF', 'META-INF/*.DSA')
     archiveFileName.set("edc-identity-hub.jar")
     manifest {

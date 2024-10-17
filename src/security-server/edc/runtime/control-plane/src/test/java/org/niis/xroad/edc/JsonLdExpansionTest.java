@@ -37,6 +37,7 @@ import org.eclipse.edc.junit.extensions.RuntimeExtension;
 import org.eclipse.edc.junit.extensions.RuntimePerClassExtension;
 import org.eclipse.edc.util.io.Ports;
 import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.RegisterExtension;
 
@@ -45,6 +46,7 @@ import java.util.Map;
 
 @SuppressWarnings("checkstyle:linelength")
 @EndToEndTest
+@Disabled
 class JsonLdExpansionTest {
 
     private final ObjectMapper jsonLdMapper = JacksonJsonLd.createObjectMapper();

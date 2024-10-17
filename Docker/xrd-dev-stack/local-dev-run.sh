@@ -64,13 +64,13 @@ if [[ -n "$INITIALIZE" ]]; then
   configure_edc_signing_key ss1 '\"DEV COM 4321\"'
 
   # Provision Gaia-X compliance
-  docker compose $COMPOSE_FILE_ARGS \
-      --env-file "$ENV_FILE" \
-      run hurl \
-      --insecure \
-      --variables-file /hurl-src/vars.env \
-      --file-root /hurl-files /hurl-src/provision-gx-compliance.hurl \
-      --very-verbose
+#  docker compose $COMPOSE_FILE_ARGS \
+#      --env-file "$ENV_FILE" \
+#      run hurl \
+#      --insecure \
+#      --variables-file /hurl-src/vars.env \
+#      --file-root /hurl-files /hurl-src/provision-gx-compliance.hurl \
+#      --very-verbose
 fi
 
 if [[ -n "$INIT_SS2" ]]; then

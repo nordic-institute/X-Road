@@ -1,30 +1,15 @@
 services:
-  gx-registry-mongo:
-    image: mongo
-    container_name: registry-mongo
-#    ports:
-#      - 27017:27017
-    volumes:
-      - data:/data/db
-      - ./gxdch/gx-registry-mongo/mongo_init.js:/docker-entrypoint-initdb.d/mongo_init.js
-    env_file:
-      - gxdch/gx-registry-mongo/.env
-    networks:
-      - xroad-network
   gx-registry:
-    image: registry.gitlab.com/gaia-x/lab/compliance/gx-registry:v2.1.0
+    image: registry.gitlab.com/gaia-x/lab/compliance/gx-registry:v2.5.1
     container_name: gx-registry
 #    ports:
 #      - 3000:3000
     volumes:
       - ipfs-data:/data/ipfs
-      - ./gxdch/gx-registry/ipfs-data/registry:/data/ipfs/registry
     env_file:
       - gxdch/gx-registry/.env
     networks:
       - xroad-network
-    depends_on:
-      - gx-registry-mongo
   gx-kubo-node:
     image: ipfs/kubo
     container_name: gx-kubo-node
@@ -38,7 +23,7 @@ services:
       - xroad-network
 
   gx-notary:
-    image: registry.gitlab.com/gaia-x/lab/compliance/gaia-x-notary-registrationnumber:v2.2.0
+    image: registry.gitlab.com/gaia-x/lab/compliance/gaia-x-notary-registrationnumber:feat-vc-jwt-support # v2.6.0 is not published
     container_name: gx-notary
 #    ports:
 #      - 3001:3000
@@ -48,10 +33,12 @@ services:
       - xroad-network
 
   gx-compliance:
-    image: registry.gitlab.com/gaia-x/lab/compliance/gx-compliance:v2.1.0
+    image: registry.gitlab.com/gaia-x/lab/compliance/gx-compliance:v2.3.0
     container_name: gx-compliance
-#    ports:
+    ports:
 #      - 3002:3000
+      - 9229:9229
+    command: node --inspect=0.0.0.0:9229 dist/src/main
     env_file:
       - gxdch/gx-compliance/.env
     networks:
@@ -72,8 +59,8 @@ services:
       - ./gxdch/gx-gateway/ssl/nginx.crt:/etc/ssl/certs/nginx.crt
       - ./gxdch/gx-gateway/ssl/nginx.key:/etc/ssl/certs/nginx.key
       - ./gxdch/gx-gateway/static:/var/www/gx
-#    ports:
-#      - 3443:443
+    ports:
+      - 3443:443
     networks:
       - xroad-network
     depends_on:
@@ -83,7 +70,11 @@ services:
 
 
 volumes:
-  data:
-    driver: local
   ipfs-data:
     driver: local
+
+networks:
+  # Use implicitly named network so that is easier to add container outside the compose
+  xroad-network:
+    name: xroad-network
+    driver: bridge
