@@ -29,6 +29,7 @@ import ee.ria.xroad.common.crypto.identifier.SignAlgorithm;
 
 import java.security.KeyPair;
 import java.security.PublicKey;
+import java.security.spec.InvalidKeySpecException;
 import java.security.spec.KeySpec;
 
 public interface KeyManager {
@@ -41,7 +42,7 @@ public interface KeyManager {
      * @return generated public key bytes
      * @throws Exception if any errors occur
      */
-    byte[] generateX509PublicKey(KeySpec keySPec) throws Exception;
+    byte[] generateX509PublicKey(KeySpec keySPec) throws InvalidKeySpecException;
 
     /**
      * Generates X509 encoded public key bytes from a given public key.
@@ -49,7 +50,7 @@ public interface KeyManager {
      * @return generated public key bytes
      * @throws Exception if any errors occur
      */
-    byte[] generateX509PublicKey(PublicKey publicKey) throws Exception;
+    byte[] generateX509PublicKey(PublicKey publicKey) throws InvalidKeySpecException;
 
     /**
      * Reads a public key from X509 encoded bytes.

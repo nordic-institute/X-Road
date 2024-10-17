@@ -57,7 +57,6 @@ import org.niis.xroad.signer.proto.SignReq;
 import java.io.ByteArrayOutputStream;
 import java.io.OutputStream;
 import java.io.OutputStreamWriter;
-import java.security.NoSuchAlgorithmException;
 import java.security.PublicKey;
 
 import static ee.ria.xroad.common.ErrorCodes.X_INTERNAL_ERROR;
@@ -83,8 +82,13 @@ public abstract class AbstractGenerateCertReq<ReqT extends AbstractMessage,
             throw new CodedException(X_INTERNAL_ERROR, "Key '%s' has no public key", tokenAndKey.getKeyId());
         }
 
+        System.out.println("#EC tk " + tokenAndKey);
+        System.out.println("#EC sm " + tokenAndKey.getSignMechanism());
+
         PublicKey publicKey = KeyManagers.getFor(tokenAndKey.getSignMechanism())
                 .readX509PublicKey(tokenAndKey.key().getPublicKey());
+
+        System.out.println("#EC puK " + publicKey);
 
         JcaPKCS10CertificationRequestBuilder certRequestBuilder = new JcaPKCS10CertificationRequestBuilder(
                 new X500Name(subjectName), publicKey);
@@ -141,11 +145,14 @@ public abstract class AbstractGenerateCertReq<ReqT extends AbstractMessage,
         private final DigestAlgorithm digestAlgoId;
         private final SignAlgorithm signAlgoId;
 
-        TokenContentSigner(final TokenWorkerProvider tokenWorkerProvider, final TokenAndKey tokenAndKey) throws NoSuchAlgorithmException {
+        TokenContentSigner(final TokenWorkerProvider tokenWorkerProvider, final TokenAndKey tokenAndKey) {
             this.tokenAndKey = tokenAndKey;
             this.tokenWorkerProvider = tokenWorkerProvider;
             digestAlgoId = SystemProperties.getSignerCsrSignatureDigestAlgorithm();
             signAlgoId = SignAlgorithm.ofDigestAndMechanism(digestAlgoId, tokenAndKey.getSignMechanism());
+
+            System.out.println("#EC da " + digestAlgoId);
+            System.out.println("#EC sa " + signAlgoId);
         }
 
         @Override
@@ -169,6 +176,7 @@ public abstract class AbstractGenerateCertReq<ReqT extends AbstractMessage,
                         .setDigest(ByteString.copyFrom(calculateDigest(digestAlgoId, out.toByteArray())))
                         .build();
 
+                System.out.println("#EC sign request " + request);
 
                 return tokenWorkerProvider.getTokenWorker(tokenAndKey.tokenId())
                         .orElseThrow(() -> tokenNotFound(tokenAndKey.tokenId()))

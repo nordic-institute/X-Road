@@ -28,7 +28,6 @@ import lombok.experimental.UtilityClass;
 import org.bouncycastle.asn1.x9.ECNamedCurveTable;
 
 import java.io.IOException;
-import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -55,10 +54,5 @@ public class NamedCurves {
         } catch (IOException e) {
             throw new CryptoException("Failed to get OID bytes for " + namedCurve, e);
         }
-    }
-
-    public static void main(String[] args) {
-        System.out.println(Arrays.toString(NamedCurves.getOIDAsBytes("secp256r1")));
-        System.out.println(NamedCurves.getOID("secp256r1"));
     }
 }

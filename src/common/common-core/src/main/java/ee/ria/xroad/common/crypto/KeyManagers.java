@@ -46,11 +46,11 @@ public final class KeyManagers {
     }
 
     public static KeyManager getFor(SignMechanism mechanism) throws NoSuchAlgorithmException {
-        return getFor(mechanism.keyType());
+        return getFor(mechanism.keyAlgorithm());
     }
 
     public static KeyManager getFor(SignAlgorithm algorithmName) throws NoSuchAlgorithmException {
-        return getFor(algorithmName.keyType());
+        return getFor(algorithmName.algorithm());
     }
 
     public static RsaKeyManager getForRSA() {

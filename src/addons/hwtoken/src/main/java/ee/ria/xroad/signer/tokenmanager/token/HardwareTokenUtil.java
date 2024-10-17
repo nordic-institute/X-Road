@@ -26,28 +26,47 @@
 package ee.ria.xroad.signer.tokenmanager.token;
 
 import ee.ria.xroad.common.SystemProperties;
+import ee.ria.xroad.common.crypto.CryptoException;
+import ee.ria.xroad.common.crypto.Digests;
 import ee.ria.xroad.common.crypto.KeyManagers;
+import ee.ria.xroad.common.crypto.identifier.SignAlgorithm;
+import ee.ria.xroad.common.crypto.identifier.SignMechanism;
 import ee.ria.xroad.signer.protocol.dto.TokenStatusInfo;
+import ee.ria.xroad.signer.tokenmanager.module.ModuleConf;
 import ee.ria.xroad.signer.tokenmanager.module.ModuleInstanceProvider;
 import ee.ria.xroad.signer.tokenmanager.module.PrivKeyAttributes;
 import ee.ria.xroad.signer.tokenmanager.module.PubKeyAttributes;
+import ee.ria.xroad.signer.util.SignerUtil;
 
 import iaik.pkcs.pkcs11.Mechanism;
 import iaik.pkcs.pkcs11.Module;
 import iaik.pkcs.pkcs11.Session;
 import iaik.pkcs.pkcs11.TokenException;
 import iaik.pkcs.pkcs11.TokenInfo;
+import iaik.pkcs.pkcs11.objects.ECDSAPrivateKey;
+import iaik.pkcs.pkcs11.objects.ECDSAPublicKey;
 import iaik.pkcs.pkcs11.objects.Key;
+import iaik.pkcs.pkcs11.objects.KeyPair;
+import iaik.pkcs.pkcs11.objects.PrivateKey;
+import iaik.pkcs.pkcs11.objects.PublicKey;
 import iaik.pkcs.pkcs11.objects.RSAPrivateKey;
 import iaik.pkcs.pkcs11.objects.RSAPublicKey;
 import iaik.pkcs.pkcs11.objects.X509PublicKeyCertificate;
+import iaik.pkcs.pkcs11.parameters.RSAPkcsPssParameters;
 import iaik.pkcs.pkcs11.wrapper.PKCS11Constants;
 import iaik.pkcs.pkcs11.wrapper.PKCS11Exception;
 import jakarta.xml.bind.DatatypeConverter;
+import org.bouncycastle.asn1.x9.ECNamedCurveTable;
 
+import java.io.IOException;
 import java.math.BigInteger;
+import java.security.NoSuchAlgorithmException;
+import java.security.spec.InvalidKeySpecException;
+import java.security.spec.InvalidParameterSpecException;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 /**
@@ -56,6 +75,9 @@ import java.util.Set;
 public final class HardwareTokenUtil {
 
     private static final int MAX_OBJECTS = 64;
+
+    private static final Mechanism RSA_KEYGEN_MECHANISM = Mechanism.get(PKCS11Constants.CKM_RSA_PKCS_KEY_PAIR_GEN);
+    private static final Mechanism EC_KEYGEN_MECHANISM = Mechanism.get(PKCS11Constants.CKM_ECDSA_KEY_PAIR_GEN);
 
     private HardwareTokenUtil() {
     }
@@ -132,8 +154,8 @@ public final class HardwareTokenUtil {
         return find(template, session, MAX_OBJECTS);
     }
 
-    static RSAPublicKey findPublicKey(Session session, String keyId, Set<Long> allowedMechanisms) throws Exception {
-        RSAPublicKey template = new RSAPublicKey();
+    static PublicKey findPublicKey(Session session, String keyId, Set<Long> allowedMechanisms) throws Exception {
+        PublicKey template = new PublicKey();
         template.getId().setByteArrayValue(toBinaryKeyId(keyId));
 
         setAllowedMechanisms(template, allowedMechanisms);
@@ -152,7 +174,16 @@ public final class HardwareTokenUtil {
         return KeyManagers.getForRSA().generateX509PublicKey(modulus, publicExponent);
     }
 
-    static void setPrivateKeyAttributes(RSAPrivateKey keyTemplate, PrivKeyAttributes attributes) {
+    static byte[] generateX509PublicKey(ECDSAPublicKey ecPublicKey)
+            throws InvalidKeySpecException, IOException, NoSuchAlgorithmException, InvalidParameterSpecException {
+        System.out.println("#EC curve data: " + ecPublicKey);
+        return KeyManagers.getForEC().generateX509PublicKey(
+                ecPublicKey.getEcdsaParams().getByteArrayValue(),
+                ecPublicKey.getEcPoint().getByteArrayValue()
+        );
+    }
+
+    static void setPrivateKeyAttributes(PrivateKey keyTemplate, PrivKeyAttributes attributes) {
         // Private key is a token object (not a session object).
         keyTemplate.getToken().setBooleanValue(Boolean.TRUE);
         // This is a private object.
@@ -199,11 +230,35 @@ public final class HardwareTokenUtil {
         }
     }
 
-    static void setPublicKeyAttributes(RSAPublicKey keyTemplate, PubKeyAttributes attributes) {
+    static void setRsaPublicKeyAttributes(RSAPublicKey keyTemplate, PubKeyAttributes attributes) {
         keyTemplate.getModulusBits().setLongValue((long) SystemProperties.getSignerKeyLength());
 
         byte[] publicExponentBytes = {0x01, 0x00, 0x01}; // 2^16 + 1
         keyTemplate.getPublicExponent().setByteArrayValue(publicExponentBytes);
+
+        setCommonPublicKeyAttributes(keyTemplate, attributes);
+    }
+
+    static void setEcPublicKeyAttributes(ECDSAPublicKey keyTemplate, PubKeyAttributes attributes) {
+        var curveName = SystemProperties.getSignerKeyNamedCurve();
+        var curveOid = ECNamedCurveTable.getOID(curveName);
+
+        if (curveOid == null) {
+            throw new CryptoException("Curve OID not found for given name: " + curveName);
+        }
+        System.out.println("#EC curve OID: " + curveOid);
+
+        try {
+            keyTemplate.getEcdsaParams().setByteArrayValue(curveOid.getEncoded());
+        } catch (Exception e) {
+            throw new CryptoException("Failed to set ECDSA params", e);
+        }
+
+        setCommonPublicKeyAttributes(keyTemplate, attributes);
+    }
+
+    static void setCommonPublicKeyAttributes(PublicKey keyTemplate, PubKeyAttributes attributes) {
+
 
         // Public key is a token object (not a session object).
         keyTemplate.getToken().setBooleanValue(Boolean.TRUE);
@@ -311,6 +366,98 @@ public final class HardwareTokenUtil {
 
         session.findObjectsFinal();
         return foundObject;
+    }
+
+    static KeyPair createRsaKeypair(Session activeSession, String keyLabel, PubKeyAttributes pubKeyAttributes,
+                                    PrivKeyAttributes privKeyAttributes) throws TokenException {
+        byte[] id = SignerUtil.generateId();
+        // XXX maybe use: byte[] id = activeSession.generateRandom(RANDOM_ID_LENGTH);
+
+        var rsaPublicKeyTemplate = new RSAPublicKey();
+        rsaPublicKeyTemplate.getId().setByteArrayValue(id);
+        rsaPublicKeyTemplate.getLabel().setCharArrayValue(keyLabel.toCharArray());
+        setRsaPublicKeyAttributes(rsaPublicKeyTemplate, pubKeyAttributes);
+
+        var rsaPrivateKeyTemplate = new RSAPrivateKey();
+        rsaPrivateKeyTemplate.getId().setByteArrayValue(id);
+        rsaPrivateKeyTemplate.getLabel().setCharArrayValue(keyLabel.toCharArray());
+        setPrivateKeyAttributes(rsaPrivateKeyTemplate, privKeyAttributes);
+        return activeSession.generateKeyPair(RSA_KEYGEN_MECHANISM, rsaPublicKeyTemplate, rsaPrivateKeyTemplate);
+    }
+
+    static KeyPair createEcKeypair(Session activeSession, String keyLabel, PubKeyAttributes pubKeyAttributes,
+                                   PrivKeyAttributes privKeyAttributes) throws TokenException {
+        byte[] id = SignerUtil.generateId();
+        // XXX maybe use: byte[] id = activeSession.generateRandom(RANDOM_ID_LENGTH);
+
+        var ecPublicKeyTemplate = new ECDSAPublicKey();
+        ecPublicKeyTemplate.getId().setByteArrayValue(id);
+        ecPublicKeyTemplate.getLabel().setCharArrayValue(keyLabel.toCharArray());
+        setEcPublicKeyAttributes(ecPublicKeyTemplate, pubKeyAttributes);
+
+        var ecPrivateKeyTemplate = new ECDSAPrivateKey();
+        ecPrivateKeyTemplate.getId().setByteArrayValue(id);
+        ecPrivateKeyTemplate.getLabel().setCharArrayValue(keyLabel.toCharArray());
+        setPrivateKeyAttributes(ecPrivateKeyTemplate, privKeyAttributes);
+        return activeSession.generateKeyPair(EC_KEYGEN_MECHANISM, ecPublicKeyTemplate, ecPrivateKeyTemplate);
+    }
+
+    static Map<SignAlgorithm, Mechanism> createSignMechanisms(SignMechanism signMechanismName) {
+        Map<SignAlgorithm, Mechanism> mechanismsByHashAlgorithmId = new HashMap<>();
+
+        switch (signMechanismName.name()) {
+            case PKCS11Constants.NAME_CKM_RSA_PKCS -> {
+                Mechanism mechanism = Mechanism.get(ModuleConf.getSupportedSignMechanismCode(signMechanismName));
+
+                mechanismsByHashAlgorithmId.put(SignAlgorithm.SHA1_WITH_RSA, mechanism);
+                mechanismsByHashAlgorithmId.put(SignAlgorithm.SHA256_WITH_RSA, mechanism);
+                mechanismsByHashAlgorithmId.put(SignAlgorithm.SHA384_WITH_RSA, mechanism);
+                mechanismsByHashAlgorithmId.put(SignAlgorithm.SHA512_WITH_RSA, mechanism);
+            }
+            case PKCS11Constants.NAME_CKM_RSA_PKCS_PSS -> {
+                mechanismsByHashAlgorithmId.put(SignAlgorithm.SHA256_WITH_RSA_AND_MGF1,
+                        createRsaPkcsPssMechanism(PKCS11Constants.CKM_SHA256));
+                mechanismsByHashAlgorithmId.put(SignAlgorithm.SHA384_WITH_RSA_AND_MGF1,
+                        createRsaPkcsPssMechanism(PKCS11Constants.CKM_SHA384));
+                mechanismsByHashAlgorithmId.put(SignAlgorithm.SHA512_WITH_RSA_AND_MGF1,
+                        createRsaPkcsPssMechanism(PKCS11Constants.CKM_SHA512));
+            }
+            case PKCS11Constants.NAME_CKM_ECDSA -> {
+                Mechanism mechanism = Mechanism.get(ModuleConf.getSupportedSignMechanismCode(signMechanismName));
+                mechanismsByHashAlgorithmId.put(SignAlgorithm.SHA1_WITH_ECDSA, mechanism);
+                mechanismsByHashAlgorithmId.put(SignAlgorithm.SHA256_WITH_ECDSA, mechanism);
+                mechanismsByHashAlgorithmId.put(SignAlgorithm.SHA384_WITH_ECDSA, mechanism);
+                mechanismsByHashAlgorithmId.put(SignAlgorithm.SHA512_WITH_ECDSA, mechanism);
+            }
+            default -> throw new IllegalArgumentException("Not supported sign mechanism: " + signMechanismName.name());
+        }
+
+        return Map.copyOf(mechanismsByHashAlgorithmId);
+    }
+
+    private static Mechanism createRsaPkcsPssMechanism(long hashMechanism) {
+        Mechanism mechanism = Mechanism.get(PKCS11Constants.CKM_RSA_PKCS_PSS);
+
+        Mechanism hashAlgorithm = Mechanism.get(hashMechanism);
+        long maskGenerationFunction;
+        long saltLength;
+
+        if (hashMechanism == PKCS11Constants.CKM_SHA512) {
+            maskGenerationFunction = RSAPkcsPssParameters.MessageGenerationFunctionType.SHA512;
+            saltLength = Digests.SHA512_DIGEST_LENGTH;
+        } else if (hashMechanism == PKCS11Constants.CKM_SHA384) {
+            maskGenerationFunction = RSAPkcsPssParameters.MessageGenerationFunctionType.SHA384;
+            saltLength = Digests.SHA384_DIGEST_LENGTH;
+        } else if (hashMechanism == PKCS11Constants.CKM_SHA256) {
+            maskGenerationFunction = RSAPkcsPssParameters.MessageGenerationFunctionType.SHA256;
+            saltLength = Digests.SHA256_DIGEST_LENGTH;
+        } else {
+            throw new IllegalArgumentException("Not supported hash mechanism");
+        }
+
+        mechanism.setParameters(new RSAPkcsPssParameters(hashAlgorithm, maskGenerationFunction, saltLength));
+
+        return mechanism;
     }
 
     private static byte[] toBinaryKeyId(String keyId) {

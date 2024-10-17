@@ -185,7 +185,10 @@ public class HardwareModuleWorker extends AbstractModuleWorker {
                 tokenInfo.getLabel().trim(), // PKCS11 gives us only 32 bytes.
                 module.isPinVerificationPerSigning(),
                 module.isBatchSigningEnabled(),
-                Map.of(KeyAlgorithm.RSA, module.getSignMechanismName()),//TODO #EC add EC support to hardware tokens
+                Map.of(
+                        KeyAlgorithm.RSA, module.getRsaSignMechanismName(),
+                        KeyAlgorithm.EC, module.getEcSignMechanismName()
+                ),
                 module.getPrivKeyAttributes(),
                 module.getPubKeyAttributes()
         );

@@ -155,8 +155,10 @@ public abstract class AbstractTokenWorker implements TokenWorker, WorkerWithLife
     @Override
     public byte[] handleSignCertificate(SignCertificateReq request) {
         try {
+            System.out.println("#EC sc request " + request);
             var signatureAlgorithmId = SignAlgorithm.ofName(request.getSignatureAlgorithmId());
             var publicKey = KeyManagers.getFor(signatureAlgorithmId).readX509PublicKey(request.getPublicKey().toByteArray());
+            System.out.println("#EC sc pub " + publicKey);
             return signCertificate(request.getKeyId(), signatureAlgorithmId, request.getSubjectName(), publicKey);
         } catch (Exception e) {
             log.error("Error while signing certificate with key '{}'", request.getKeyId(), e);

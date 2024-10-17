@@ -219,8 +219,6 @@ public class SoftwareTokenWorker extends AbstractTokenWorker {
     protected byte[] sign(String keyId, SignAlgorithm signatureAlgorithmId, byte[] data) throws Exception {
         log.trace("sign({}, {})", keyId, signatureAlgorithmId);
 
-        checkSignatureAlgorithm(signatureAlgorithmId);
-
         assertTokenAvailable();
 
         assertKeyAvailable(keyId);
@@ -230,10 +228,18 @@ public class SoftwareTokenWorker extends AbstractTokenWorker {
         if (key == null) {
             throw keyNotFound(keyId);
         }
+        var keyAlgorithm = KeyAlgorithm.valueOf(key.getAlgorithm());
+        checkSignatureAlgorithm(signatureAlgorithmId, keyAlgorithm);
+
+        if (!keyAlgorithm.equals(signatureAlgorithmId.algorithm())) {
+            throw CodedException.tr(X_UNSUPPORTED_SIGN_ALGORITHM, "unsupported_sign_algorithm",
+                    "Unsupported signature algorithm '%s' for key algorithm '%s'", signatureAlgorithmId.name(), keyAlgorithm);
+        }
 
         log.debug("Signing with key '{}' and signature algorithm '{}'", keyId, signatureAlgorithmId);
 
-        SignAlgorithm signAlgorithm = KeyManagers.getFor(KeyAlgorithm.valueOf(key.getAlgorithm())).getSoftwareTokenSignAlgorithm();
+
+        SignAlgorithm signAlgorithm = KeyManagers.getFor(keyAlgorithm).getSoftwareTokenSignAlgorithm();
         Signature signature = Signature.getInstance(signAlgorithm.name());
         signature.initSign(key);
         signature.update(data);
@@ -241,23 +247,32 @@ public class SoftwareTokenWorker extends AbstractTokenWorker {
         return signature.sign();
     }
 
-    private static void checkSignatureAlgorithm(SignAlgorithm signatureAlgorithmId) throws CodedException {
+    private static void checkSignatureAlgorithm(SignAlgorithm signatureAlgorithmId, KeyAlgorithm algorithm) throws CodedException {
         if (!SUPPORTED_ALGORITHMS.contains(signatureAlgorithmId)) {
             throw CodedException.tr(X_UNSUPPORTED_SIGN_ALGORITHM, "unsupported_sign_algorithm",
                     "Unsupported signature algorithm '%s'", signatureAlgorithmId.name());
         }
+
+        if (!algorithm.equals(signatureAlgorithmId.algorithm())) {
+            throw CodedException.tr(X_UNSUPPORTED_SIGN_ALGORITHM, "unsupported_sign_algorithm",
+                    "Unsupported signature algorithm '%s' for key algorithm '%s'", signatureAlgorithmId.name(), algorithm);
+        }
     }
+
 
     protected byte[] signCertificate(String keyId, SignAlgorithm signatureAlgorithmId, String subjectName, PublicKey publicKey)
             throws Exception {
         log.trace("signCertificate({}, {}, {})", keyId, signatureAlgorithmId, subjectName);
-        checkSignatureAlgorithm(signatureAlgorithmId);
         assertTokenAvailable();
         assertKeyAvailable(keyId);
         KeyInfo keyInfo = getKeyInfo(keyId);
+        PrivateKey privateKey = getPrivateKey(keyId);
+
+        var keyAlgorithm = KeyAlgorithm.valueOf(privateKey.getAlgorithm());
+        checkSignatureAlgorithm(signatureAlgorithmId, keyAlgorithm);
+
         CertificateInfo certificateInfo = keyInfo.getCerts().getFirst();
         X509Certificate issuerX509Certificate = CryptoUtils.readCertificate(certificateInfo.getCertificateBytes());
-        PrivateKey privateKey = getPrivateKey(keyId);
         JcaX509v3CertificateBuilder certificateBuilder = getCertificateBuilder(subjectName, publicKey,
                 issuerX509Certificate);
 

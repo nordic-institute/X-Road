@@ -81,8 +81,8 @@ public sealed interface SignAlgorithm {
 
     String uri();
 
-    default KeyAlgorithm keyType() {
-        return signMechanism().keyType();
+    default KeyAlgorithm algorithm() {
+        return signMechanism().keyAlgorithm();
     }
 
     DigestAlgorithm digest();
@@ -130,7 +130,7 @@ public sealed interface SignAlgorithm {
         }
 
         @Override
-        public KeyAlgorithm keyType() {
+        public KeyAlgorithm algorithm() {
             throw new UnknownAlgorithmException("Unknown key type of signature algorithm: %s"
                     .formatted(this));
         }
