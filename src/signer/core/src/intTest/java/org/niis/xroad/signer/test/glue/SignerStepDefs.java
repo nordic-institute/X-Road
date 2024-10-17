@@ -68,7 +68,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
-import java.util.UUID;
 import java.util.stream.Collectors;
 
 import static ee.ria.xroad.common.SystemProperties.getGrpcInternalHost;
@@ -77,7 +76,6 @@ import static ee.ria.xroad.common.crypto.Digests.calculateDigest;
 import static ee.ria.xroad.common.crypto.identifier.DigestAlgorithm.SHA256;
 import static ee.ria.xroad.common.crypto.identifier.SignAlgorithm.SHA256_WITH_ECDSA;
 import static ee.ria.xroad.common.crypto.identifier.SignAlgorithm.SHA256_WITH_RSA;
-import static ee.ria.xroad.common.crypto.identifier.SignAlgorithm.SHA512_WITH_RSA;
 import static ee.ria.xroad.common.util.CryptoUtils.calculateCertHexHash;
 import static ee.ria.xroad.common.util.CryptoUtils.calculateCertSha1HexHash;
 import static java.lang.String.format;
@@ -402,8 +400,14 @@ public class SignerStepDefs extends BaseSignerStepDefs {
     public void digestCanBeSignedUsingKeyFromToken(String keyName, String friendlyName) throws Exception {
         final KeyInfo key = findKeyInToken(friendlyName, keyName);
 
-        var digest = String.format("%s-%d", UUID.randomUUID(), System.currentTimeMillis());
-        SignerProxy.sign(key.getId(), SHA256_WITH_RSA, calculateDigest(SHA256, digest.getBytes(UTF_8)));
+        var digest = format("%s-%d", randomUUID(), System.currentTimeMillis());
+
+        var signAlgorithm = switch (SignMechanism.valueOf(key.getSignMechanismName()).keyAlgorithm()) {
+            case RSA -> SHA256_WITH_RSA;
+            case EC -> SHA256_WITH_ECDSA;
+        };
+
+        SignerProxy.sign(key.getId(), signAlgorithm, calculateDigest(SHA256, digest.getBytes(UTF_8)));
     }
 
     @Step("certificate can be deactivated")
@@ -431,7 +435,7 @@ public class SignerStepDefs extends BaseSignerStepDefs {
         final KeyInfo key = findKeyInToken(friendlyName, keyName);
         byte[] keyBytes = Base64.decode(key.getPublicKey().getBytes());
         X509EncodedKeySpec x509publicKey = new X509EncodedKeySpec(keyBytes);
-        var algorithm = SignMechanism.valueOf(key.getSignMechanismName()).keyType();
+        var algorithm = SignMechanism.valueOf(key.getSignMechanismName()).keyAlgorithm();
         KeyFactory kf = KeyFactory.getInstance(algorithm.name());
         PublicKey publicKey = kf.generatePublic(x509publicKey);
 
@@ -450,8 +454,14 @@ public class SignerStepDefs extends BaseSignerStepDefs {
 
         final KeyInfo key = findKeyInToken(friendlyName, keyName);
 
-        var digest = String.format("%s-%d", UUID.randomUUID(), System.currentTimeMillis());
-        byte[] bytes = SignerProxy.sign(key.getId(), SHA512_WITH_RSA, calculateDigest(SHA256, digest.getBytes(UTF_8)));
+        var digest = format("%s-%d", randomUUID(), System.currentTimeMillis());
+
+        var signAlgorithm = switch (SignMechanism.valueOf(key.getSignMechanismName()).keyAlgorithm()) {
+            case RSA -> SHA256_WITH_RSA;
+            case EC -> SHA256_WITH_ECDSA;
+        };
+
+        byte[] bytes = SignerProxy.sign(key.getId(), signAlgorithm, calculateDigest(SHA256, digest.getBytes(UTF_8)));
         assertThat(bytes).isNotEmpty();
     }
 

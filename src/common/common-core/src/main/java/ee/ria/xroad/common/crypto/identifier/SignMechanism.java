@@ -35,7 +35,7 @@ public enum SignMechanism {
         this.algorithm = algorithm;
     }
 
-    public KeyAlgorithm keyType() {
+    public KeyAlgorithm keyAlgorithm() {
         return algorithm;
     }
 }

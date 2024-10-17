@@ -33,6 +33,7 @@ import org.bouncycastle.jce.provider.BouncyCastleProvider;
 import java.security.KeyFactory;
 import java.security.PublicKey;
 import java.security.Security;
+import java.security.spec.InvalidKeySpecException;
 import java.security.spec.KeySpec;
 import java.security.spec.X509EncodedKeySpec;
 
@@ -55,7 +56,7 @@ public abstract class AbstractKeyManager implements KeyManager {
     protected AbstractKeyManager(KeyAlgorithm keyAlgorithm) {
         this.keyAlgorithm = keyAlgorithm;
         try {
-            this.keyFactory = KeyFactory.getInstance(keyAlgorithm.name());
+            this.keyFactory = KeyFactory.getInstance(keyAlgorithm.name(), "BC");
         } catch (Exception e) {
             throw new RuntimeException("Failed to get key factory instance for : " + keyAlgorithm, e);
         }
@@ -68,20 +69,21 @@ public abstract class AbstractKeyManager implements KeyManager {
 
 
     @Override
-    public byte[] generateX509PublicKey(KeySpec keySpec) throws Exception {
+    public byte[] generateX509PublicKey(KeySpec keySpec) throws InvalidKeySpecException {
         PublicKey publicKey = getKeyFactory().generatePublic(keySpec);
+        System.out.println("#EC created pub key: " + publicKey);
         return generateX509PublicKey(publicKey);
     }
 
     @Override
-    public byte[] generateX509PublicKey(PublicKey publicKey) throws Exception {
+    public byte[] generateX509PublicKey(PublicKey publicKey) throws InvalidKeySpecException {
         X509EncodedKeySpec x509EncodedPublicKey = getKeyFactory().getKeySpec(publicKey, X509EncodedKeySpec.class);
+        System.out.println("#EC created pub key X509: " + publicKey);
         return x509EncodedPublicKey.getEncoded();
     }
 
     public PublicKey readX509PublicKey(byte[] encoded) throws Exception {
-        X509EncodedKeySpec x509EncodedPublicKey =
-                new X509EncodedKeySpec(encoded);
+        var x509EncodedPublicKey = new X509EncodedKeySpec(encoded);
         return getKeyFactory().generatePublic(x509EncodedPublicKey);
     }
 
