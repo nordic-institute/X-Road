@@ -232,7 +232,6 @@ public class SignerStepDefs extends BaseSignerStepDefs {
         final List<String> keys = Arrays.asList(keyNames.split(","));
         final TokenInfo token = getTokenInfoByFriendlyName(friendlyName);
 
-        System.out.println(token.getKeyInfo().stream().map(KeyInfo::getFriendlyName).collect(Collectors.joining(", ")));
         assertThat(token.getKeyInfo().size()).isEqualTo(keys.size());
 
         final List<String> tokenKeyNames = token.getKeyInfo().stream()

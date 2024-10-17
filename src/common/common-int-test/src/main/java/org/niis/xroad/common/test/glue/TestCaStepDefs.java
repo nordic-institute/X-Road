@@ -69,8 +69,6 @@ public class TestCaStepDefs extends BaseStepDefs {
         ResponseEntity<byte[]> certResponse = testCaFeignApi.signCert(convert(csrFile), csrType);
 
         File cert = File.createTempFile("tmp", "cert" + System.currentTimeMillis());
-        System.out.println(certResponse);
-        System.out.println(certResponse.getBody());
         FileUtils.writeByteArrayToFile(cert, certResponse.getBody());
         putStepData(StepDataKey.CERT_FILE, cert);
     }
