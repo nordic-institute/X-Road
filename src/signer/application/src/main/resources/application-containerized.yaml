@@ -1,2 +1,5 @@
+xroad:
+  signer:
+    ocsp-cache-path=/opt/app/cache
 logging:
   config: classpath:logback-containerized.xml

@@ -6,7 +6,7 @@ Requires=xroad-base.service
 [Service]
 User=xroad
 Group=xroad
-ExecStart=/usr/share/xroad/jlib/configuration-service.jar
+ExecStart=/usr/share/xroad/bin/xroad-configuration-service
 Restart=on-failure
 SuccessExitStatus=143
 

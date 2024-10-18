@@ -23,7 +23,8 @@ xroad:
     grpc-tls-truststore-password: Buk620vd9W_feyfjBEhau48Lwn98n_Fr
     grpc-tls-keystore: /opt/app/mount/xroad-grpc-internal-keystore.p12
     grpc-tls-keystore-password: Buk620vd9W_feyfjBEhau48Lwn98n_Fr
-
+  proxy-ui-api:
+    security-server-url: https://proxy:8443
 logging:
   level:
     org.xroad: DEBUG
