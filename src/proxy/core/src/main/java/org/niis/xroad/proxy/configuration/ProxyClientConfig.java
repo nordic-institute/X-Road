@@ -56,14 +56,9 @@ import org.niis.xroad.proxy.ProxyProperties;
 import org.niis.xroad.proxy.edc.AssetAuthorizationManager;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Condition;
-import org.springframework.context.annotation.ConditionContext;
-import org.springframework.context.annotation.Conditional;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.core.type.AnnotatedTypeMetadata;
-
-import java.util.Objects;
 
 @Slf4j
 @Configuration
@@ -105,7 +100,7 @@ public class ProxyClientConfig {
                 httpClient, assetAuthorizationManager);
     }
 
-    @Conditional(ClientUseIdleConnectionMonitorEnabledCondition.class)
+    @ConditionalOnProperty(name = "xroad.proxy.client-proxy.client-use-idle-connection-monitor",havingValue = "true")
     @Bean
     IdleConnectionMonitorThread idleConnectionMonitorThread(ProxyProperties proxyProperties,
             @Qualifier("proxyHttpClientManager") HttpClientConnectionManager connectionManager) {
@@ -174,11 +169,4 @@ public class ProxyClientConfig {
         );
     }
 
-    public static class ClientUseIdleConnectionMonitorEnabledCondition implements Condition {
-        @Override
-        public boolean matches(ConditionContext context, AnnotatedTypeMetadata metadata) {
-            ProxyProperties proxyProperties = Objects.requireNonNull(context.getBeanFactory()).getBean(ProxyProperties.class);
-            return proxyProperties.getClientProxy().clientUseIdleConnectionMonitor();
-        }
-    }
 }
