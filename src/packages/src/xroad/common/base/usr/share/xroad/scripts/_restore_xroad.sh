@@ -208,9 +208,8 @@ extract_to_tmp_restore_dir () {
       cp /etc/xroad/xroad.properties ${RESTORE_DIR}/etc/xroad/xroad.properties
   fi
   chown -R xroad:xroad ${RESTORE_DIR}/*
-  # reset permissions of all files to fixed, "safe" values, except in /etc/xroad/ssl we not change group read privilege
-  find "$RESTORE_DIR" -path "$RESTORE_DIR"/etc/xroad/ssl -prune -o -exec chmod a-x,o=,u=rwX,g=rX {} +
-  chmod -R a-x,o=,u=rwX,g-w,g+X "$RESTORE_DIR"/etc/xroad/ssl
+  # reset permissions of all files to fixed, "safe" values
+  chmod -R a-x,o=,u=rwX,g-w,g+X "$RESTORE_DIR"
 }
 
 restore_configuration_files () {
