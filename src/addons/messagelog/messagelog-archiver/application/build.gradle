@@ -5,6 +5,7 @@ plugins {
 dependencies {
     implementation(platform(libs.springCloud.bom))
 
+    implementation project(':common:common-service-bootstrap')
     implementation(project(':addons:messagelog:messagelog-archiver:core'))
 
     implementation(project(':common:common-core'))

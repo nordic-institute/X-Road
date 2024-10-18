@@ -26,8 +26,8 @@
 package org.niis.xroad.confclient;
 
 import lombok.extern.slf4j.Slf4j;
-import org.niis.xroad.common.rpc.RpcServerProperties;
 import org.niis.xroad.bootstrap.XrdSpringServiceBuilder;
+import org.niis.xroad.common.rpc.RpcServerProperties;
 import org.niis.xroad.confclient.config.ConfClientRootConfig;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.context.properties.ConfigurationProperties;

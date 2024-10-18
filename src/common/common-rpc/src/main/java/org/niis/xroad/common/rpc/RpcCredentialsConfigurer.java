@@ -70,7 +70,8 @@ public class RpcCredentialsConfigurer {
             UnrecoverableKeyException {
         TlsChannelCredentials.Builder tlsBuilder = TlsChannelCredentials.newBuilder()
                 .keyManager(getKeyManagers(rpcClientProperties.getGrpcTlsKeyStore(), rpcClientProperties.getGrpcTlsKeyStorePassword()))
-                .trustManager(getTrustManagers(rpcClientProperties.getGrpcTlsTrustStore(), rpcClientProperties.getGrpcTlsTrustStorePassword()));
+                .trustManager(getTrustManagers(rpcClientProperties.getGrpcTlsTrustStore(),
+                        rpcClientProperties.getGrpcTlsTrustStorePassword()));
 
         return tlsBuilder.build();
     }

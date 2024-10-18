@@ -32,13 +32,9 @@ import lombok.extern.slf4j.Slf4j;
 import org.niis.xroad.bootstrap.XrdSpringServiceBuilder;
 import org.niis.xroad.common.rpc.RpcClientProperties;
 import org.niis.xroad.common.rpc.RpcServerProperties;
-import org.springframework.boot.WebApplicationType;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
-
-import java.util.ArrayList;
-import java.util.List;
 
 /**
  * Signer main program.
@@ -59,8 +55,8 @@ public class SignerMain {
     @ConfigurationProperties(prefix = "xroad.signer")
     static class SignerRpcServerProperties extends RpcServerProperties {
         SignerRpcServerProperties(String grpcListenAddress, int grpcPort, boolean grpcTlsEnabled,
-                                         String grpcTlsTrustStore, char[] grpcTlsTrustStorePassword,
-                                         String grpcTlsKeyStore, char[] grpcTlsKeyStorePassword) {
+                                  String grpcTlsTrustStore, char[] grpcTlsTrustStorePassword,
+                                  String grpcTlsKeyStore, char[] grpcTlsKeyStorePassword) {
             super(grpcListenAddress, grpcPort, grpcTlsEnabled, grpcTlsTrustStore, grpcTlsTrustStorePassword,
                     grpcTlsKeyStore, grpcTlsKeyStorePassword);
         }
@@ -69,8 +65,8 @@ public class SignerMain {
     @ConfigurationProperties(prefix = "xroad.configuration-client")
     static class ConfClientRpcClientProperties extends RpcClientProperties {
         ConfClientRpcClientProperties(String grpcHost, int grpcPort, boolean grpcTlsEnabled,
-                                             String grpcTlsTrustStore, char[] grpcTlsTrustStorePassword,
-                                             String grpcTlsKeyStore, char[] grpcTlsKeyStorePassword) {
+                                      String grpcTlsTrustStore, char[] grpcTlsTrustStorePassword,
+                                      String grpcTlsKeyStore, char[] grpcTlsKeyStorePassword) {
             super(grpcHost, grpcPort, grpcTlsEnabled, grpcTlsTrustStore, grpcTlsTrustStorePassword,
                     grpcTlsKeyStore, grpcTlsKeyStorePassword);
         }

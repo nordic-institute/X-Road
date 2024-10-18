@@ -26,7 +26,6 @@
  */
 package org.niis.xroad.cs.admin.core.config;
 
-import ee.ria.xroad.common.SystemProperties;
 import ee.ria.xroad.common.conf.globalconf.GlobalConfBeanConfig;
 import ee.ria.xroad.common.conf.globalconf.GlobalConfProperties;
 import ee.ria.xroad.common.conf.globalconf.GlobalConfRefreshJobConfig;

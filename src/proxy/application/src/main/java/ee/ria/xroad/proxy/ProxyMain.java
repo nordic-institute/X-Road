@@ -29,12 +29,11 @@ import ee.ria.xroad.common.conf.globalconf.GlobalConfPropertiesConfig;
 import ee.ria.xroad.proxy.antidos.AntiDosConfiguration;
 
 import lombok.extern.slf4j.Slf4j;
+import org.niis.xroad.bootstrap.XrdSpringServiceBuilder;
 import org.niis.xroad.common.rpc.RpcClientProperties;
 import org.niis.xroad.common.rpc.RpcServerProperties;
 import org.niis.xroad.proxy.ProxyProperties;
-import org.niis.xroad.proxy.configuration.ProxyConfig;
 import org.springframework.beans.factory.annotation.Qualifier;
-import org.niis.xroad.bootstrap.XrdSpringServiceBuilder;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
@@ -56,7 +55,7 @@ public class ProxyMain {
     private static final String APP_NAME = "xroad-proxy";
 
     public static void main(String[] args) {
-        XrdSpringServiceBuilder.newApplicationBuilder(APP_NAME, ProxyMain.class)
+        XrdSpringServiceBuilder.newApplicationBuilder(APP_NAME, ProxyMain.class, GlobalConfPropertiesConfig.class)
                 .initializers(applicationContext -> {
                     log.info("Initializing Apache Santuario XML Security library..");
                     org.apache.xml.security.Init.init();
