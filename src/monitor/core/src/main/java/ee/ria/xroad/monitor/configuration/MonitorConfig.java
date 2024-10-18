@@ -40,7 +40,6 @@ import ee.ria.xroad.signer.protocol.RpcSignerClient;
 import io.grpc.BindableService;
 import lombok.extern.slf4j.Slf4j;
 import org.niis.xroad.common.rpc.RpcClientProperties;
-import org.niis.xroad.common.rpc.RpcCredentialsProvider;
 import org.niis.xroad.common.rpc.RpcServerProperties;
 import org.niis.xroad.common.rpc.server.RpcServer;
 import org.niis.xroad.confclient.proto.ConfClientRpcClient;
@@ -65,17 +64,8 @@ public class MonitorConfig {
 
     @Bean
     RpcServer rpcServer(final List<BindableService> bindableServices, RpcServerProperties envMonitorRpcServerProperties) throws Exception {
-        var credentialsProvider = new RpcCredentialsProvider.Builder()
-                .tlsEnabled(envMonitorRpcServerProperties.isGrpcTlsEnabled())
-                .keystore(envMonitorRpcServerProperties::getGrpcTlsKeyStore)
-                .keystorePassword(envMonitorRpcServerProperties::getGrpcTlsKeyStorePassword)
-                .truststore(envMonitorRpcServerProperties::getGrpcTlsTrustStore)
-                .truststorePassword(envMonitorRpcServerProperties::getGrpcTlsTrustStorePassword)
-                .build();
         return RpcServer.newServer(
-                envMonitorRpcServerProperties.getGrpcListenAddress(),
-                envMonitorRpcServerProperties.getGrpcPort(),
-                credentialsProvider,
+                envMonitorRpcServerProperties,
                 builder -> bindableServices.forEach(bindableService -> {
                     log.info("Registering {} RPC service.", bindableService.getClass().getSimpleName());
                     builder.addService(bindableService);

@@ -39,4 +39,5 @@ public class RpcServerProperties extends RpcProperties {
         super(grpcPort, grpcTlsEnabled, grpcTlsTrustStore, grpcTlsTrustStorePassword, grpcTlsKeyStore, grpcTlsKeyStorePassword);
         this.grpcListenAddress = grpcListenAddress;
     }
+
 }

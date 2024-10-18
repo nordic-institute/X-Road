@@ -35,7 +35,8 @@ import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.niis.xroad.common.rpc.RpcCredentialsProvider;
+import org.niis.xroad.common.rpc.RpcClientProperties;
+import org.niis.xroad.common.rpc.RpcServerProperties;
 import org.niis.xroad.common.rpc.client.RpcClient;
 import org.niis.xroad.common.rpc.server.RpcServer;
 import org.niis.xroad.monitor.common.Metrics;
@@ -84,12 +85,12 @@ class MetricsRpcServiceTest {
                 true);
 
         int port = TestPortUtils.findRandomPort();
-        rpcServer = RpcServer.newServer("localhost", port,
-                new RpcCredentialsProvider.Builder().tlsEnabled(false).build(),
+        rpcServer = RpcServer.newServer(new RpcServerProperties("localhost", port, false, null, null, null, null),
                 serverBuilder -> serverBuilder.addService(new MetricsRpcService(envMonitorProperties)));
         rpcServer.afterPropertiesSet();
-        rpcClient = RpcClient.newClient("localhost", port,
-                new RpcCredentialsProvider.Builder().tlsEnabled(false).build(),
+        rpcClient = RpcClient.newClient(
+                new RpcClientProperties("localhost", port, false, null,
+                        null, null, null),
                 TestMetricsExecutionContext::new);
 
         MetricRegistry metricsRegistry = new MetricRegistry();

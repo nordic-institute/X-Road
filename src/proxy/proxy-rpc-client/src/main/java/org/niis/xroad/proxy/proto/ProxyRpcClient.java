@@ -36,7 +36,6 @@ import ee.ria.xroad.common.MessageLogEncryptionStatusDiagnostics;
 import io.grpc.Channel;
 import lombok.Getter;
 import org.niis.xroad.common.rpc.RpcClientProperties;
-import org.niis.xroad.common.rpc.RpcCredentialsProvider;
 import org.niis.xroad.common.rpc.client.RpcClient;
 import org.springframework.beans.factory.DisposableBean;
 
@@ -52,15 +51,7 @@ public class ProxyRpcClient implements DisposableBean {
     private final RpcClient<ProxyRpcExecutionContext> proxyRpcClient;
 
     public ProxyRpcClient(RpcClientProperties rpcClientProperties) throws Exception {
-        var credentialsProvider = new RpcCredentialsProvider.Builder()
-                .tlsEnabled(rpcClientProperties.isGrpcTlsEnabled())
-                .keystore(rpcClientProperties::getGrpcTlsKeyStore)
-                .keystorePassword(rpcClientProperties::getGrpcTlsKeyStorePassword)
-                .truststore(rpcClientProperties::getGrpcTlsTrustStore)
-                .truststorePassword(rpcClientProperties::getGrpcTlsTrustStorePassword)
-                .build();
-        this.proxyRpcClient = RpcClient.newClient(rpcClientProperties.getGrpcHost(),
-                rpcClientProperties.getGrpcPort(), credentialsProvider, ProxyRpcExecutionContext::new);
+        this.proxyRpcClient = RpcClient.newClient(rpcClientProperties, ProxyRpcExecutionContext::new);
     }
 
     @Override

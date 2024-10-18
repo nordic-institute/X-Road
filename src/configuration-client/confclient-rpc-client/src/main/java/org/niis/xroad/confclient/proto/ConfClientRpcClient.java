@@ -30,7 +30,6 @@ import com.google.protobuf.ByteString;
 import io.grpc.Channel;
 import lombok.Getter;
 import org.niis.xroad.common.rpc.RpcClientProperties;
-import org.niis.xroad.common.rpc.RpcCredentialsProvider;
 import org.niis.xroad.common.rpc.client.RpcClient;
 import org.niis.xroad.rpc.common.Empty;
 import org.springframework.beans.factory.DisposableBean;
@@ -47,15 +46,7 @@ public class ConfClientRpcClient implements DisposableBean, InitializingBean {
 
     @Override
     public void afterPropertiesSet() throws Exception {
-        var credentialsProvider = new RpcCredentialsProvider.Builder()
-                .tlsEnabled(rpcClientProperties.isGrpcTlsEnabled())
-                .keystore(rpcClientProperties::getGrpcTlsKeyStore)
-                .keystorePassword(rpcClientProperties::getGrpcTlsKeyStorePassword)
-                .truststore(rpcClientProperties::getGrpcTlsTrustStore)
-                .truststorePassword(rpcClientProperties::getGrpcTlsTrustStorePassword)
-                .build();
-        this.rpcClient = RpcClient.newClient(rpcClientProperties.getGrpcHost(),
-                rpcClientProperties.getGrpcPort(), credentialsProvider, ConfClientRpcExecutionContext::new);
+        this.rpcClient = RpcClient.newClient(rpcClientProperties, ConfClientRpcExecutionContext::new);
     }
 
     public DiagnosticsStatus getStatus() throws Exception {

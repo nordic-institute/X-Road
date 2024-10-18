@@ -38,7 +38,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.niis.xroad.common.rpc.RpcClientProperties;
-import org.niis.xroad.common.rpc.RpcCredentialsProvider;
+import org.niis.xroad.common.rpc.RpcServerProperties;
 import org.niis.xroad.common.rpc.server.RpcServer;
 import org.niis.xroad.monitor.common.MonitorServiceGrpc;
 import org.niis.xroad.monitor.common.StatsReq;
@@ -90,8 +90,8 @@ class SystemMetricsSensorTest {
 
     @BeforeAll
     public static void init() throws Exception {
-        rpcServer = RpcServer.newServer("127.0.0.1", PORT,
-                new RpcCredentialsProvider.Builder().tlsEnabled(false).build(),
+        rpcServer = RpcServer.newServer(
+                new RpcServerProperties("127.0.0.1", PORT, false, null, null, null, null),
                 serverBuilder ->
                 serverBuilder.addService(new MonitorServiceGrpc.MonitorServiceImplBase() {
                     @Override

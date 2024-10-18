@@ -32,7 +32,6 @@ import io.opentelemetry.instrumentation.annotations.WithSpan;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import org.niis.xroad.common.rpc.RpcClientProperties;
-import org.niis.xroad.common.rpc.RpcCredentialsProvider;
 import org.niis.xroad.common.rpc.client.RpcClient;
 import org.niis.xroad.signer.proto.AdminServiceGrpc;
 import org.niis.xroad.signer.proto.CertificateServiceGrpc;
@@ -70,19 +69,7 @@ public final class RpcSignerClient implements DisposableBean {
     }
 
     public static RpcSignerClient init(RpcClientProperties rpcClientProperties, int clientTimeoutMillis) throws Exception {
-        var credentialsProvider = new RpcCredentialsProvider.Builder()
-                .tlsEnabled(rpcClientProperties.isGrpcTlsEnabled())
-                .keystore(rpcClientProperties::getGrpcTlsKeyStore)
-                .keystorePassword(rpcClientProperties::getGrpcTlsKeyStorePassword)
-                .truststore(rpcClientProperties::getGrpcTlsTrustStore)
-                .truststorePassword(rpcClientProperties::getGrpcTlsTrustStorePassword)
-                .build();
-        return init(rpcClientProperties.getGrpcHost(), rpcClientProperties.getGrpcPort(), credentialsProvider, clientTimeoutMillis);
-    }
-
-    public static RpcSignerClient init(String host, int port, RpcCredentialsProvider credentialsProvider,
-                                       int clientTimeoutMillis) throws Exception {
-        var client = RpcClient.newClient(host, port, credentialsProvider, clientTimeoutMillis, SignerRpcExecutionContext::new);
+        var client = RpcClient.newClient(rpcClientProperties, clientTimeoutMillis, SignerRpcExecutionContext::new);
         instance = new RpcSignerClient(client);
         return instance;
     }

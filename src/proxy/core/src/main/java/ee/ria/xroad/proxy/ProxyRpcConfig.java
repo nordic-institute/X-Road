@@ -37,7 +37,6 @@ import io.grpc.BindableService;
 import io.grpc.ServerBuilder;
 import lombok.extern.slf4j.Slf4j;
 import org.niis.xroad.common.rpc.RpcClientProperties;
-import org.niis.xroad.common.rpc.RpcCredentialsProvider;
 import org.niis.xroad.common.rpc.server.RpcServer;
 import org.niis.xroad.confclient.proto.ConfClientRpcClient;
 import org.niis.xroad.proxy.ProxyProperties;
@@ -58,17 +57,8 @@ public class ProxyRpcConfig {
                              List<BindableService> rpcServices, ProxyProperties proxyProperties) throws Exception {
         var proxyRpcServerProperties = proxyProperties.getGrpcServer();
 
-        var credentialsProvider = new RpcCredentialsProvider.Builder()
-                .tlsEnabled(proxyRpcServerProperties.isGrpcTlsEnabled())
-                .keystore(proxyRpcServerProperties::getGrpcTlsKeyStore)
-                .keystorePassword(proxyRpcServerProperties::getGrpcTlsKeyStorePassword)
-                .truststore(proxyRpcServerProperties::getGrpcTlsTrustStore)
-                .truststorePassword(proxyRpcServerProperties::getGrpcTlsTrustStorePassword).build();
-
         return RpcServer.newServer(
-                proxyRpcServerProperties.getGrpcListenAddress(),
-                proxyRpcServerProperties.getGrpcPort(),
-                credentialsProvider,
+                proxyRpcServerProperties,
                 builder -> {
                     registerServices(bindableServiceRegistry.getRegisteredServices(), builder);
                     registerServices(rpcServices, builder);
