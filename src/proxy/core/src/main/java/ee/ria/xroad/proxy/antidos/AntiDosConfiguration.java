@@ -27,9 +27,11 @@ package ee.ria.xroad.proxy.antidos;
 
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
+import org.springframework.boot.context.properties.ConfigurationProperties;
 
 @Getter
 @RequiredArgsConstructor
+@ConfigurationProperties(prefix = "xroad.anti-dos")
 public class AntiDosConfiguration {
 
     private final double maxCpuLoad; // max-cpu-load: 1.1
