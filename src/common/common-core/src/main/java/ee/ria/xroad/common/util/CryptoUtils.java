@@ -96,7 +96,6 @@ public final class CryptoUtils {
     public static final CertificateFactory CERT_FACTORY;
 
 
-
     private CryptoUtils() {
     }
 

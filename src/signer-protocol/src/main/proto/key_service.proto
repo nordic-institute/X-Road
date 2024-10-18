@@ -103,6 +103,7 @@ message DeleteKeyReq {
 message GenerateKeyReq {
   string token_id = 1;
   string key_label = 2;
+  string algorithm = 3;
 }
 
 message GetAuthKeyReq {

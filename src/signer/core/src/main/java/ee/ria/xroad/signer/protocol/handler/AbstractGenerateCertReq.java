@@ -57,7 +57,6 @@ import org.niis.xroad.signer.proto.SignReq;
 import java.io.ByteArrayOutputStream;
 import java.io.OutputStream;
 import java.io.OutputStreamWriter;
-import java.security.NoSuchAlgorithmException;
 import java.security.PublicKey;
 
 import static ee.ria.xroad.common.ErrorCodes.X_INTERNAL_ERROR;
@@ -141,7 +140,7 @@ public abstract class AbstractGenerateCertReq<ReqT extends AbstractMessage,
         private final DigestAlgorithm digestAlgoId;
         private final SignAlgorithm signAlgoId;
 
-        TokenContentSigner(final TokenWorkerProvider tokenWorkerProvider, final TokenAndKey tokenAndKey) throws NoSuchAlgorithmException {
+        TokenContentSigner(final TokenWorkerProvider tokenWorkerProvider, final TokenAndKey tokenAndKey) {
             this.tokenAndKey = tokenAndKey;
             this.tokenWorkerProvider = tokenWorkerProvider;
             digestAlgoId = SystemProperties.getSignerCsrSignatureDigestAlgorithm();
@@ -168,7 +167,6 @@ public abstract class AbstractGenerateCertReq<ReqT extends AbstractMessage,
                         .setSignatureAlgorithmId(signAlgoId.name())
                         .setDigest(ByteString.copyFrom(calculateDigest(digestAlgoId, out.toByteArray())))
                         .build();
-
 
                 return tokenWorkerProvider.getTokenWorker(tokenAndKey.tokenId())
                         .orElseThrow(() -> tokenNotFound(tokenAndKey.tokenId()))

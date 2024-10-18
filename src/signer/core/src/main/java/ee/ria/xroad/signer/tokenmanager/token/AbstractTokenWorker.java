@@ -26,14 +26,16 @@
 package ee.ria.xroad.signer.tokenmanager.token;
 
 import ee.ria.xroad.common.crypto.KeyManagers;
+import ee.ria.xroad.common.crypto.SignDataPreparer;
+import ee.ria.xroad.common.crypto.identifier.KeyAlgorithm;
 import ee.ria.xroad.common.crypto.identifier.SignAlgorithm;
+import ee.ria.xroad.common.crypto.identifier.SignMechanism;
 import ee.ria.xroad.common.util.PasswordStore;
 import ee.ria.xroad.signer.protocol.dto.KeyInfo;
 import ee.ria.xroad.signer.protocol.dto.TokenInfo;
 import ee.ria.xroad.signer.tokenmanager.TokenManager;
 import ee.ria.xroad.signer.util.SignerUtil;
 
-import lombok.Value;
 import lombok.extern.slf4j.Slf4j;
 import org.bouncycastle.asn1.x500.X500Name;
 import org.bouncycastle.asn1.x509.BasicConstraints;
@@ -46,6 +48,7 @@ import org.niis.xroad.signer.proto.GenerateKeyReq;
 import org.niis.xroad.signer.proto.SignCertificateReq;
 import org.niis.xroad.signer.proto.SignReq;
 
+import java.io.IOException;
 import java.math.BigInteger;
 import java.security.PublicKey;
 import java.security.cert.X509Certificate;
@@ -98,12 +101,13 @@ public abstract class AbstractTokenWorker implements TokenWorker, WorkerWithLife
             throw translateException(e).withPrefix(X_FAILED_TO_GENERATE_R_KEY);
         }
 
-        String keyId = result.getKeyId();
+        String keyId = result.keyId();
 
         log.debug("Generated new key with id '{}'", keyId);
 
         if (!hasKey(keyId)) {
-            TokenManager.addKey(tokenId, keyId, result.getPublicKeyBase64());
+            var signMechanism = resolveSignMechanism(KeyAlgorithm.valueOf(message.getAlgorithm()));
+            TokenManager.addKey(tokenId, keyId, result.publicKeyBase64(), signMechanism);
             TokenManager.setKeyAvailable(keyId, true);
             TokenManager.setKeyLabel(keyId, message.getKeyLabel());
             TokenManager.setKeyFriendlyName(keyId, message.getKeyLabel());
@@ -139,9 +143,9 @@ public abstract class AbstractTokenWorker implements TokenWorker, WorkerWithLife
     public byte[] handleSign(SignReq request) {
         try {
             var signatureAlgId = SignAlgorithm.ofName(request.getSignatureAlgorithmId());
-            byte[] data = SignerUtil.createDataToSign(request.getDigest().toByteArray(), signatureAlgId);
+            byte[] data = SignDataPreparer.of(signatureAlgId).prepare(request.getDigest().toByteArray());
 
-            return sign(request.getKeyId(), signatureAlgId, data);
+            return postProcessSignature(signatureAlgId, sign(request.getKeyId(), signatureAlgId, data));
         } catch (Exception e) {
             log.error("Error while signing with key '{}'", request.getKeyId(), e);
 
@@ -189,6 +193,10 @@ public abstract class AbstractTokenWorker implements TokenWorker, WorkerWithLife
      */
     public abstract void onActionHandled();
 
+    protected byte[] postProcessSignature(SignAlgorithm signAlgorithm, byte[] signature) throws IOException {
+        return signature; //NO-OP
+    }
+
     // ------------------------------------------------------------------------
 
     protected abstract void activateToken(ActivateTokenReq message) throws Exception;
@@ -203,6 +211,8 @@ public abstract class AbstractTokenWorker implements TokenWorker, WorkerWithLife
 
     protected abstract byte[] signCertificate(String keyId, SignAlgorithm signatureAlgorithmId, String subjectName,
                                               PublicKey publicKey) throws Exception;
+
+    protected abstract SignMechanism resolveSignMechanism(KeyAlgorithm algorithm);
 
     protected void assertKeyAvailable(String keyId) {
         if (!isKeyAvailable(keyId)) {
@@ -230,9 +240,6 @@ public abstract class AbstractTokenWorker implements TokenWorker, WorkerWithLife
 
     // ------------------------------------------------------------------------
 
-    @Value
-    protected static class GenerateKeyResult {
-        String keyId;
-        String publicKeyBase64;
+    protected record GenerateKeyResult(String keyId, String publicKeyBase64) {
     }
 }

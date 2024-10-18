@@ -25,6 +25,7 @@
  */
 package ee.ria.xroad.signer.model;
 
+import ee.ria.xroad.common.crypto.identifier.SignMechanism;
 import ee.ria.xroad.signer.protocol.dto.CertRequestInfoProto;
 import ee.ria.xroad.signer.protocol.dto.CertificateInfoProto;
 import ee.ria.xroad.signer.protocol.dto.KeyInfo;
@@ -94,6 +95,11 @@ public final class Key {
     private final List<CertRequest> certRequests = new ArrayList<>();
 
     /**
+     * Signing (PKCS#11) mechanism name.
+     */
+    private final SignMechanism signMechanismName;
+
+    /**
      * Adds a certificate to this key.
      *
      * @param cert the certificate to add
@@ -117,7 +123,7 @@ public final class Key {
                 .setAvailable(available)
                 .addAllCerts(unmodifiableList(getCertsAsDTOs()))
                 .addAllCertRequests(unmodifiableList(getCertRequestsAsDTOs()))
-                .setSignMechanismName(token.getSignMechanismName().name());
+                .setSignMechanismName(signMechanismName.name());
 
         if (usage != null) {
             builder.setUsage(usage);

@@ -25,12 +25,15 @@
  */
 package ee.ria.xroad.signer.tokenmanager.token;
 
+import ee.ria.xroad.common.crypto.identifier.KeyAlgorithm;
 import ee.ria.xroad.common.crypto.identifier.SignMechanism;
 import ee.ria.xroad.signer.tokenmanager.module.PrivKeyAttributes;
 import ee.ria.xroad.signer.tokenmanager.module.PubKeyAttributes;
 import ee.ria.xroad.signer.tokenmanager.module.SoftwareModuleType;
 
 import lombok.Value;
+
+import java.util.Map;
 
 /**
  * The software token type TDO.
@@ -39,8 +42,7 @@ import lombok.Value;
 public class SoftwareTokenType implements TokenType {
 
     public static final String ID = "0";
-
-    SignMechanism signMechanismName;
+    Map<KeyAlgorithm, SignMechanism> signMechanisms;
 
     @Override
     public String getModuleType() {

@@ -26,6 +26,7 @@
 package ee.ria.xroad.common;
 
 import ee.ria.xroad.common.crypto.identifier.DigestAlgorithm;
+import ee.ria.xroad.common.crypto.identifier.KeyAlgorithm;
 import ee.ria.xroad.common.crypto.identifier.SignAlgorithm;
 import ee.ria.xroad.common.crypto.identifier.SignMechanism;
 
@@ -426,6 +427,8 @@ public final class SystemProperties {
     public static final String SIGNER_MODULE_INSTANCE_PROVIDER = SIGNER_PREFIX + "module-instance-provider";
 
     public static final String SIGNER_KEY_LENGTH = SIGNER_PREFIX + "key-length";
+    public static final String SIGNER_KEY_NAMED_CURVE = SIGNER_PREFIX + "key-named-curve";
+    public static final String DEFAULT_KEY_SIGNER_NAMED_CURVE = "secp256r1";
 
     public static final String SIGNER_KEY_SIGN_ALGORITHM_NAME = SIGNER_PREFIX + "key-sign-algorithm-name";
 
@@ -446,7 +449,9 @@ public final class SystemProperties {
     private static final String DEFAULT_SIGNER_OCSP_RETRY_DELAY = "60";
 
     public static final String SIGNER_MODULE_MANAGER_UPDATE_INTERVAL = SIGNER_PREFIX + "module-manager-update-interval";
-    public static final String SOFTWARE_TOKEN_SIGN_MECHANISM = SIGNER_PREFIX + "software-token-sign-mechanism";
+    public static final String SOFT_TOKEN_RSA_SIGN_MECHANISM = SIGNER_PREFIX + "soft-token-rsa-sign-mechanism";
+    public static final String SOFT_TOKEN_EC_SIGN_MECHANISM = SIGNER_PREFIX + "soft-token-ec-sign-mechanism";
+    public static final String SOFT_TOKEN_PIN_KEYSTORE_ALGORITHM = SIGNER_PREFIX + "soft-token-pin-keystore-algorithm";
 
     public static final String DEFAULT_SIGNER_MODULE_MANAGER_UPDATE_INTERVAL = "60";
 
@@ -1098,15 +1103,23 @@ public final class SystemProperties {
     }
 
     /**
-     * @return authentication and signing key length.
+     * @return authentication and signing key length when RSA is used.
      */
     public static int getSignerKeyLength() {
         return Math.max(MIN_SIGNER_KEY_LENGTH, Integer.getInteger(SIGNER_KEY_LENGTH, DEFAULT_SIGNER_KEY_LENGTH));
     }
 
     /**
+     * @return authentication and signing key named curve when EC is used.
+     */
+    public static String getSignerKeyNamedCurve() {
+        return System.getProperty(SIGNER_KEY_NAMED_CURVE, DEFAULT_KEY_SIGNER_NAMED_CURVE);
+    }
+
+    /**
      * @return authentication and signing key sign algorithm name, by default SHA512WITHRSA.
      */
+    //TODO #EC maybe can be removed
     public static SignAlgorithm getSignerKeySignatureAlgorithm() {
         return Optional.ofNullable(System.getProperty(SIGNER_KEY_SIGN_ALGORITHM_NAME))
                 .map(SignAlgorithm::ofName)
@@ -1159,10 +1172,28 @@ public final class SystemProperties {
     /**
      * @return software token signing mechanism type, CKM_RSA_PKCS by default
      */
-    public static SignMechanism getSoftwareTokenSignMechanism() {
-        return Optional.ofNullable(System.getProperty(SOFTWARE_TOKEN_SIGN_MECHANISM))
+    public static SignMechanism getSoftTokenRsaSignMechanism() {
+        return Optional.ofNullable(System.getProperty(SOFT_TOKEN_RSA_SIGN_MECHANISM))
                 .map(SignMechanism::valueOf)
                 .orElse(SignMechanism.CKM_RSA_PKCS);
+    }
+
+    /**
+     * @return software token signing mechanism type for EC keys, CKM_ECDSA by default
+     */
+    public static SignMechanism getSofTokenEcSignMechanism() {
+        return Optional.ofNullable(System.getProperty(SOFT_TOKEN_EC_SIGN_MECHANISM))
+                .map(SignMechanism::valueOf)
+                .orElse(SignMechanism.CKM_ECDSA);
+    }
+
+    /**
+     * @return software token keystore PIN file algorithm, RSA by default
+     */
+    public static KeyAlgorithm getSofTokenPinKeystoreAlgorithm() {
+        return Optional.ofNullable(System.getProperty(SOFT_TOKEN_PIN_KEYSTORE_ALGORITHM))
+                .map(KeyAlgorithm::valueOf)
+                .orElse(KeyAlgorithm.RSA);
     }
 
     /**
