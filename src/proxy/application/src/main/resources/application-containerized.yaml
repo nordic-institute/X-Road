@@ -1,4 +1,2 @@
 logging:
   config: classpath:logback-containerized.xml
-server:
-  port: 8888

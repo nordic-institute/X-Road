@@ -7,6 +7,9 @@ spring:
   main:
     banner-mode: log
 
+server:
+  port: 5699
+
 xroad:
   signer:
     key-length: 2048

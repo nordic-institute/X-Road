@@ -42,7 +42,7 @@ services:
     healthcheck:
       interval: 5s
       retries: 40
-      test: [ "CMD", "curl", "-f", "-k", "http://localhost:8080/actuator/health" ]
+      test: [ "CMD", "curl", "-f", "-k", "http://localhost:5799/actuator/health" ]
     volumes:
       - ./temp-mount:/opt/app/mount
     networks:
@@ -61,7 +61,7 @@ services:
     healthcheck:
       interval: 5s
       retries: 40
-      test: [ "CMD", "curl", "-f", "-k",  "http://localhost:8080/actuator/health" ]
+      test: [ "CMD", "curl", "-f", "-k",  "http://localhost:5699/actuator/health" ]
     networks:
       - xroad-network
       - xrd-ss-network
@@ -82,7 +82,7 @@ services:
     healthcheck:
       interval: 5s
       retries: 40
-      test: [ "CMD", "curl", "-f", "-k",  "http://localhost:8888/actuator/health" ]
+      test: [ "CMD", "curl", "-f", "-k",  "http://localhost:5599/actuator/health" ]
     networks:
       - xrd-ss-network
       - xroad-network

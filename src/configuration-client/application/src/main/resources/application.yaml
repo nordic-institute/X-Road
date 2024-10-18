@@ -7,5 +7,8 @@ spring:
   main:
     banner-mode: log
 
+server:
+  port: 5799
+
 logging.level:
   ee.ria.xroad.common.SystemPropertiesLoader: OFF

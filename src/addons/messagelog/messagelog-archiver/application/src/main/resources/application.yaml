@@ -7,6 +7,9 @@ spring:
   main:
     banner-mode: log
 
+server:
+  port: 5598
+
 xroad:
   message-log:
     timestamper-client-connect-timeout: 20000
