@@ -28,19 +28,33 @@ package ee.ria.xroad.monitor;
 
 import ee.ria.xroad.common.SystemPropertySource;
 import ee.ria.xroad.common.Version;
+import ee.ria.xroad.common.conf.globalconf.GlobalConfPropertiesConfig;
 import ee.ria.xroad.monitor.configuration.JmxReporterConfig;
 import ee.ria.xroad.monitor.configuration.MonitorConfig;
 
 import lombok.extern.slf4j.Slf4j;
+import org.niis.xroad.common.rpc.RpcClientProperties;
+import org.niis.xroad.common.rpc.RpcServerProperties;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.WebApplicationType;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.builder.SpringApplicationBuilder;
+import org.springframework.boot.context.properties.ConfigurationProperties;
+import org.springframework.boot.context.properties.EnableConfigurationProperties;
+
+import java.time.Duration;
 
 /**
  * Main class for monitor application
  */
 @Slf4j
 @SpringBootApplication
+@EnableConfigurationProperties({
+        MonitorMain.SpringEnvMonitorProperties.class,
+        MonitorMain.EnvMonitorRpcServerProperties.class,
+        MonitorMain.ConfClientRpcClientProperties.class,
+        MonitorMain.ProxyRpcClientProperties.class,
+        MonitorMain.SignerRpcClientProperties.class})
 public class MonitorMain {
 
     private static final String APP_NAME = "xroad-monitor";
@@ -49,7 +63,8 @@ public class MonitorMain {
         log.info("Starting X-Road Environmental Monitoring");
         Version.outputVersionInfo(APP_NAME);
 
-        new SpringApplicationBuilder(MonitorMain.class, MonitorConfig.class, JmxReporterConfig.class)
+        new SpringApplicationBuilder(MonitorMain.class, MonitorConfig.class, JmxReporterConfig.class,
+                GlobalConfPropertiesConfig.class)
                 .profiles("group-ee")//TODO load dynamically
                 .initializers(applicationContext -> {
                     log.info("Setting property source to Spring environment..");
@@ -58,6 +73,59 @@ public class MonitorMain {
                 .web(WebApplicationType.NONE)
                 .build()
                 .run(args);
+    }
+
+    @ConfigurationProperties(prefix = "xroad.env-monitor")
+    static class SpringEnvMonitorProperties extends EnvMonitorProperties {
+        SpringEnvMonitorProperties(Duration certificateInfoSensorInterval, Duration diskSpaceSensorInterval,
+                                   Duration execListingSensorInterval, Duration systemMetricsSensorInterval,
+                                   boolean limitRemoteDataSet) {
+            super(certificateInfoSensorInterval, diskSpaceSensorInterval, execListingSensorInterval, systemMetricsSensorInterval,
+                    limitRemoteDataSet);
+        }
+    }
+
+    @ConfigurationProperties(prefix = "xroad.env-monitor.grpc")
+    static class EnvMonitorRpcServerProperties extends RpcServerProperties {
+        EnvMonitorRpcServerProperties(String grpcListenAddress, int grpcPort, boolean grpcTlsEnabled,
+                                      String grpcTlsTrustStore, char[] grpcTlsTrustStorePassword,
+                                      String grpcTlsKeyStore, char[] grpcTlsKeyStorePassword) {
+            super(grpcListenAddress, grpcPort, grpcTlsEnabled, grpcTlsTrustStore, grpcTlsTrustStorePassword,
+                    grpcTlsKeyStore, grpcTlsKeyStorePassword);
+        }
+    }
+
+    @ConfigurationProperties(prefix = "xroad.configuration-client")
+    @Qualifier("confClientRpcClientProperties")
+    static class ConfClientRpcClientProperties extends RpcClientProperties {
+        ConfClientRpcClientProperties(String grpcHost, int grpcPort, boolean grpcTlsEnabled,
+                                      String grpcTlsTrustStore, char[] grpcTlsTrustStorePassword,
+                                      String grpcTlsKeyStore, char[] grpcTlsKeyStorePassword) {
+            super(grpcHost, grpcPort, grpcTlsEnabled, grpcTlsTrustStore, grpcTlsTrustStorePassword,
+                    grpcTlsKeyStore, grpcTlsKeyStorePassword);
+        }
+    }
+
+    @ConfigurationProperties(prefix = "xroad.signer")
+    @Qualifier("signerRpcClientProperties")
+    static class SignerRpcClientProperties extends RpcClientProperties {
+        SignerRpcClientProperties(String grpcHost, int grpcPort, boolean grpcTlsEnabled,
+                                  String grpcTlsTrustStore, char[] grpcTlsTrustStorePassword,
+                                  String grpcTlsKeyStore, char[] grpcTlsKeyStorePassword) {
+            super(grpcHost, grpcPort, grpcTlsEnabled, grpcTlsTrustStore, grpcTlsTrustStorePassword,
+                    grpcTlsKeyStore, grpcTlsKeyStorePassword);
+        }
+    }
+
+    @ConfigurationProperties(prefix = "xroad.proxy")
+    @Qualifier("proxyRpcClientProperties")
+    static class ProxyRpcClientProperties extends RpcClientProperties {
+        ProxyRpcClientProperties(String grpcHost, int grpcPort, boolean grpcTlsEnabled,
+                                 String grpcTlsTrustStore, char[] grpcTlsTrustStorePassword,
+                                 String grpcTlsKeyStore, char[] grpcTlsKeyStorePassword) {
+            super(grpcHost, grpcPort, grpcTlsEnabled, grpcTlsTrustStore, grpcTlsTrustStorePassword,
+                    grpcTlsKeyStore, grpcTlsKeyStorePassword);
+        }
     }
 
 }

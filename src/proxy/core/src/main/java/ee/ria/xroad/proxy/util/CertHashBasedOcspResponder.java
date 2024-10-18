@@ -25,7 +25,6 @@
  */
 package ee.ria.xroad.proxy.util;
 
-import ee.ria.xroad.common.SystemProperties;
 import ee.ria.xroad.common.util.JettyUtils;
 import ee.ria.xroad.common.util.MimeTypes;
 import ee.ria.xroad.common.util.MimeUtils;
@@ -45,6 +44,7 @@ import org.eclipse.jetty.util.Callback;
 import org.eclipse.jetty.util.MultiPartOutputStream;
 import org.eclipse.jetty.util.resource.ResourceFactory;
 import org.eclipse.jetty.xml.XmlConfiguration;
+import org.niis.xroad.proxy.ProxyProperties;
 import org.springframework.beans.factory.DisposableBean;
 import org.springframework.beans.factory.InitializingBean;
 
@@ -74,6 +74,7 @@ public class CertHashBasedOcspResponder implements InitializingBean, DisposableB
 
     private static final String CERT_PARAM = "cert";
 
+    private final ProxyProperties.OcspResponderProperties ocspResponderProperties;
     private final KeyConfProvider keyConfProvider;
     private final Server server = new Server();
 
@@ -82,39 +83,32 @@ public class CertHashBasedOcspResponder implements InitializingBean, DisposableB
      *
      * @throws Exception in case of any errors
      */
-    public CertHashBasedOcspResponder(KeyConfProvider keyConfProvider) throws Exception {
-        this(keyConfProvider, SystemProperties.getOcspResponderListenAddress());
-    }
-
-    /**
-     * Constructs a cert hash responder that listens on the specified address.
-     *
-     * @param host the address this responder should listen at
-     * @throws Exception in case of any errors
-     */
-    public CertHashBasedOcspResponder(KeyConfProvider keyConfProvider, String host) throws Exception {
+    public CertHashBasedOcspResponder(ProxyProperties.OcspResponderProperties ocspResponderProperties, KeyConfProvider keyConfProvider)
+            throws Exception {
+        this.ocspResponderProperties = ocspResponderProperties;
         this.keyConfProvider = keyConfProvider;
         configureServer();
-        createConnector(host);
+        createConnector();
         createHandler();
     }
 
     private void configureServer() throws Exception {
         log.trace("configureServer()");
 
-        Path file = Paths.get(SystemProperties.getJettyOcspResponderConfFile());
+        Path file = Paths.get(ocspResponderProperties.jettyConfigurationFile());
 
         log.debug("Configuring server from {}", file);
         new XmlConfiguration(ResourceFactory.root().newResource(file)).configure(server);
     }
 
-    private void createConnector(String host) {
+    private void createConnector() {
+        String host = ocspResponderProperties.listenAddress();
         log.trace("createConnector({})", host);
 
         ServerConnector ocspConnector = new ServerConnector(server);
 
         ocspConnector.setName("OcspResponseConnector");
-        ocspConnector.setPort(SystemProperties.getOcspResponderPort());
+        ocspConnector.setPort(ocspResponderProperties.port());
         ocspConnector.setHost(host);
         ocspConnector.getConnectionFactories().stream()
                 .filter(HttpConnectionFactory.class::isInstance)

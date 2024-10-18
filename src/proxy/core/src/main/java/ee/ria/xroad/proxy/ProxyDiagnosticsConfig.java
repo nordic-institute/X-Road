@@ -34,7 +34,7 @@ import ee.ria.xroad.common.util.healthcheck.HealthCheckPort;
 import ee.ria.xroad.common.util.healthcheck.HealthChecks;
 import ee.ria.xroad.proxy.conf.KeyConfProvider;
 
-import org.apache.commons.lang3.StringUtils;
+import org.niis.xroad.proxy.ProxyProperties;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Condition;
@@ -43,17 +43,15 @@ import org.springframework.context.annotation.Conditional;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.type.AnnotatedTypeMetadata;
 
-import java.util.Arrays;
-import java.util.List;
 
 @Configuration
 public class ProxyDiagnosticsConfig {
 
     @Bean
-    BackupEncryptionStatusDiagnostics backupEncryptionStatusDiagnostics() {
+    BackupEncryptionStatusDiagnostics backupEncryptionStatusDiagnostics(ProxyProperties proxyProperties) {
         return new BackupEncryptionStatusDiagnostics(
-                SystemProperties.isBackupEncryptionEnabled(),
-                getBackupEncryptionKeyIds());
+                proxyProperties.isBackupEncryptionEnabled(),
+                proxyProperties.getBackupEncryptionKeyids());
     }
 
     @Bean
@@ -81,10 +79,4 @@ public class ProxyDiagnosticsConfig {
         }
     }
 
-    private static List<String> getBackupEncryptionKeyIds() {
-        return Arrays.stream(StringUtils.split(
-                        SystemProperties.getBackupEncryptionKeyIds(), ','))
-                .map(String::trim)
-                .toList();
-    }
 }

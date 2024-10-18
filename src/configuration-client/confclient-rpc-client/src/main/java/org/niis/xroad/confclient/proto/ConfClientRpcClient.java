@@ -26,12 +26,10 @@
  */
 package org.niis.xroad.confclient.proto;
 
-import ee.ria.xroad.common.SystemProperties;
-
 import com.google.protobuf.ByteString;
 import io.grpc.Channel;
 import lombok.Getter;
-import org.niis.xroad.common.rpc.RpcCredentialsProvider;
+import org.niis.xroad.common.rpc.RpcClientProperties;
 import org.niis.xroad.common.rpc.client.RpcClient;
 import org.niis.xroad.rpc.common.Empty;
 import org.springframework.beans.factory.DisposableBean;
@@ -40,18 +38,15 @@ import org.springframework.beans.factory.InitializingBean;
 public class ConfClientRpcClient implements DisposableBean, InitializingBean {
 
     private RpcClient<ConfClientRpcExecutionContext> rpcClient;
+    private final RpcClientProperties rpcClientProperties;
+
+    public ConfClientRpcClient(RpcClientProperties rpcClientProperties) {
+        this.rpcClientProperties = rpcClientProperties;
+    }
 
     @Override
     public void afterPropertiesSet() throws Exception {
-        var credentialsProvider = new RpcCredentialsProvider.Builder()
-                .tlsEnabled(SystemProperties.isConfigurationClientGrpcTlsEnabled())
-                .keystore(SystemProperties::getConfigurationClientGrpcKeyStore)
-                .keystorePassword(SystemProperties::getConfigurationClientGrpcKeyStorePassword)
-                .truststore(SystemProperties::getConfigurationClientGrpcTrustStore)
-                .truststorePassword(SystemProperties::getConfigurationClientGrpcTrustStorePassword)
-                .build();
-        this.rpcClient = RpcClient.newClient(SystemProperties.getConfigurationClientGrpcHost(),
-                SystemProperties.getConfigurationClientGrpcPort(), credentialsProvider, ConfClientRpcExecutionContext::new);
+        this.rpcClient = RpcClient.newClient(rpcClientProperties, ConfClientRpcExecutionContext::new);
     }
 
     public DiagnosticsStatus getStatus() throws Exception {

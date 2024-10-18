@@ -29,13 +29,18 @@ import ee.ria.xroad.common.SystemPropertySource;
 import ee.ria.xroad.common.Version;
 
 import lombok.extern.slf4j.Slf4j;
+import org.niis.xroad.common.rpc.RpcServerProperties;
 import org.niis.xroad.confclient.config.ConfClientRootConfig;
 import org.springframework.boot.WebApplicationType;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.builder.SpringApplicationBuilder;
+import org.springframework.boot.context.properties.ConfigurationProperties;
+import org.springframework.boot.context.properties.EnableConfigurationProperties;
 
 @Slf4j
 @SpringBootApplication
+@EnableConfigurationProperties({ConfClientDaemonMain.SpringConfigurationClientProperties.class,
+        ConfClientDaemonMain.ConfClientRpcServerProperties.class})
 public class ConfClientDaemonMain {
     static final String APP_NAME = "xroad-confclient";
 
@@ -51,6 +56,23 @@ public class ConfClientDaemonMain {
                 .web(WebApplicationType.NONE)
                 .build()
                 .run(args);
+    }
+
+    @ConfigurationProperties(prefix = "xroad.configuration-client.grpc")
+    static class ConfClientRpcServerProperties extends RpcServerProperties {
+        ConfClientRpcServerProperties(String grpcListenAddress, int grpcPort, boolean grpcTlsEnabled,
+                                             String grpcTlsTrustStore, char[] grpcTlsTrustStorePassword,
+                                             String grpcTlsKeyStore, char[] grpcTlsKeyStorePassword) {
+            super(grpcListenAddress, grpcPort, grpcTlsEnabled, grpcTlsTrustStore, grpcTlsTrustStorePassword,
+                    grpcTlsKeyStore, grpcTlsKeyStorePassword);
+        }
+    }
+
+    @ConfigurationProperties(prefix = "xroad.configuration-client")
+    static class SpringConfigurationClientProperties extends ConfigurationClientProperties {
+        SpringConfigurationClientProperties(int updateInterval, String proxyConfigurationBackupCron) {
+            super(updateInterval, proxyConfigurationBackupCron);
+        }
     }
 
 }

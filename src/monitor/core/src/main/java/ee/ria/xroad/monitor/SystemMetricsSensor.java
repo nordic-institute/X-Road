@@ -25,14 +25,13 @@
  */
 package ee.ria.xroad.monitor;
 
-import ee.ria.xroad.common.SystemProperties;
 import ee.ria.xroad.monitor.common.SystemMetricNames;
 
 import io.grpc.Channel;
 import io.grpc.stub.StreamObserver;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
-import org.niis.xroad.common.rpc.RpcCredentialsProvider;
+import org.niis.xroad.common.rpc.RpcClientProperties;
 import org.niis.xroad.common.rpc.client.RpcClient;
 import org.niis.xroad.monitor.common.MonitorServiceGrpc;
 import org.niis.xroad.monitor.common.StatsReq;
@@ -51,22 +50,12 @@ public class SystemMetricsSensor extends AbstractSensor {
 
     private final RpcClient<ProxyRpcExecutionContext> proxyRpcClient;
 
-    private final Duration interval = Duration.ofSeconds(SystemProperties.getEnvMonitorSystemMetricsSensorInterval());
-
-
-    public SystemMetricsSensor(TaskScheduler taskScheduler) throws Exception {
-        super(taskScheduler);
+    public SystemMetricsSensor(TaskScheduler taskScheduler, EnvMonitorProperties envMonitorProperties,
+                               RpcClientProperties proxyRpcClientProperties) throws Exception {
+        super(taskScheduler, envMonitorProperties);
         log.info("Creating sensor, measurement interval: {}", getInterval());
 
-        var credentialsProvider = new RpcCredentialsProvider.Builder()
-                .tlsEnabled(SystemProperties.isProxyGrpcTlsEnabled())
-                .keystore(SystemProperties::getProxyGrpcKeyStore)
-                .keystorePassword(SystemProperties::getProxyGrpcKeyStorePassword)
-                .truststore(SystemProperties::getProxyGrpcTrustStore)
-                .truststorePassword(SystemProperties::getProxyGrpcTrustStorePassword)
-                .build();
-        this.proxyRpcClient = RpcClient.newClient(SystemProperties.getProxyGrpcHost(),
-                SystemProperties.getProxyGrpcPort(), credentialsProvider, ProxyRpcExecutionContext::new);
+        this.proxyRpcClient = RpcClient.newClient(proxyRpcClientProperties, ProxyRpcExecutionContext::new);
 
         scheduleSingleMeasurement(getInterval());
     }
@@ -124,10 +113,9 @@ public class SystemMetricsSensor extends AbstractSensor {
         }));
     }
 
-
     @Override
     protected Duration getInterval() {
-        return interval;
+        return envMonitorProperties.getSystemMetricsSensorInterval();
     }
 
     @Getter

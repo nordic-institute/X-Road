@@ -29,10 +29,16 @@ package ee.ria.xroad.signer;
 import ee.ria.xroad.common.SystemPropertySource;
 import ee.ria.xroad.common.Version;
 
+import ee.ria.xroad.common.conf.globalconf.GlobalConfPropertiesConfig;
+
 import lombok.extern.slf4j.Slf4j;
+import org.niis.xroad.common.rpc.RpcClientProperties;
+import org.niis.xroad.common.rpc.RpcServerProperties;
 import org.springframework.boot.WebApplicationType;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.builder.SpringApplicationBuilder;
+import org.springframework.boot.context.properties.ConfigurationProperties;
+import org.springframework.boot.context.properties.EnableConfigurationProperties;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -42,6 +48,7 @@ import java.util.List;
  */
 @Slf4j
 @SpringBootApplication
+@EnableConfigurationProperties({SignerMain.SignerRpcServerProperties.class, SignerMain.ConfClientRpcClientProperties.class})
 public class SignerMain {
 
     private static final String APP_NAME = "xroad-signer";
@@ -50,7 +57,7 @@ public class SignerMain {
         Version.outputVersionInfo(APP_NAME);
 
 
-        new SpringApplicationBuilder(SignerMain.class, SignerConfig.class)
+        new SpringApplicationBuilder(SignerMain.class, SignerConfig.class, GlobalConfPropertiesConfig.class)
                 .profiles(resolveProfiles())
                 .initializers(applicationContext -> {
                     log.info("Setting property source to Spring environment..");
@@ -77,5 +84,25 @@ public class SignerMain {
 
         profiles.add("override");
         return profiles.toArray(new String[0]);
+    }
+
+    @ConfigurationProperties(prefix = "xroad.signer")
+    static class SignerRpcServerProperties extends RpcServerProperties {
+        SignerRpcServerProperties(String grpcListenAddress, int grpcPort, boolean grpcTlsEnabled,
+                                         String grpcTlsTrustStore, char[] grpcTlsTrustStorePassword,
+                                         String grpcTlsKeyStore, char[] grpcTlsKeyStorePassword) {
+            super(grpcListenAddress, grpcPort, grpcTlsEnabled, grpcTlsTrustStore, grpcTlsTrustStorePassword,
+                    grpcTlsKeyStore, grpcTlsKeyStorePassword);
+        }
+    }
+
+    @ConfigurationProperties(prefix = "xroad.configuration-client")
+    static class ConfClientRpcClientProperties extends RpcClientProperties {
+        ConfClientRpcClientProperties(String grpcHost, int grpcPort, boolean grpcTlsEnabled,
+                                             String grpcTlsTrustStore, char[] grpcTlsTrustStorePassword,
+                                             String grpcTlsKeyStore, char[] grpcTlsKeyStorePassword) {
+            super(grpcHost, grpcPort, grpcTlsEnabled, grpcTlsTrustStore, grpcTlsTrustStorePassword,
+                    grpcTlsKeyStore, grpcTlsKeyStorePassword);
+        }
     }
 }

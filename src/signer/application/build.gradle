@@ -6,6 +6,8 @@ dependencies {
     implementation(platform(libs.springCloud.bom))
 
     implementation project(':common:common-core')
+    implementation project(':common:common-properties')
+    implementation project(':common:common-rpc')
     implementation project(':signer:core')
 
     implementation("org.springframework.boot:spring-boot-starter")

@@ -50,6 +50,7 @@ import org.springframework.scheduling.TaskScheduler;
 
 import java.security.cert.X509Certificate;
 import java.time.Clock;
+import java.time.Duration;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -81,6 +82,13 @@ class CertificateInfoSensorTest {
 
     private CertificateInfoSensor certificateInfoSensor;
 
+    private final EnvMonitorProperties envMonitorProperties = new EnvMonitorProperties(
+            Duration.ofDays(1),
+            Duration.ofSeconds(60),
+            Duration.ofSeconds(60),
+            Duration.ofSeconds(5),
+            true);
+
     @BeforeEach
     void init() throws Exception {
         metrics = new MetricRegistry();
@@ -106,7 +114,7 @@ class CertificateInfoSensorTest {
         var taskScheduler = spy(TaskScheduler.class);
         when(taskScheduler.getClock()).thenReturn(Clock.systemDefaultZone());
 
-        certificateInfoSensor = new CertificateInfoSensor(taskScheduler, serverConfProvider);
+        certificateInfoSensor = new CertificateInfoSensor(taskScheduler, envMonitorProperties, serverConfProvider);
     }
 
     private TokenInfo createTestTokenInfo(KeyInfo... keyInfoParams) {

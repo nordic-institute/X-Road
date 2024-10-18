@@ -4,3 +4,69 @@ spring:
       enabled: false
   main:
     allow-bean-definition-overriding: true
+# todo: fixme: should be laoded from default config
+xroad:
+  proxy:
+    ocsp-responder:
+      listen-address: 127.0.0.1
+      port: 5577
+      client-connect-timeout: 20000
+      client-read-timeout: 30000
+      jetty-configuration-file: src/test/ocsp-responder.xml
+    verify-client-cert: true
+    database-properties: /etc/xroad/db.properties
+    server-port: 5500
+    pool-enable-connection-reuse: false
+    client-fastest-connecting-ssl-uri-cache-period: 3600
+    hsm-health-check-enabled: false
+    enforce-client-is-cert-validity-period-check: false
+    client-timeout: 30000
+    client-use-fastest-connecting-ssl-socket-autoclose: true
+    backup-encryption-enabled: false
+    server:
+      listen-address: 127.0.0.1
+      listen-port: 5500
+      connector-initial-idle-time: 30000
+      support-clients-pooled-connections: false
+      jetty-configuration-file: src/test/serverproxy.xml
+    client-proxy:
+      connector-host: 127.0.0.1
+      client-http-port: 8080
+      client-https-port: 8443
+      jetty-configuration-file: src/test/clientproxy.xml
+      client-connector-initial-idle-time: 30000
+      client-tls-protocols: "TLSv1.2"
+      client-tls-ciphers:
+        - TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256
+        - TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA256
+        - TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384
+        - TLS_ECDHE_RSA_WITH_AES_256_CBC_SHA384
+        - TLS_DHE_RSA_WITH_AES_128_GCM_SHA256
+        - TLS_DHE_RSA_WITH_AES_128_CBC_SHA256
+        - TLS_DHE_RSA_WITH_AES_256_CBC_SHA256
+        - TLS_DHE_RSA_WITH_AES_256_GCM_SHA384
+      jetty-max-header-size: 16384
+      client-httpclient-so-linger: -1
+      client-httpclient-timeout: 0
+      pool-total-max-connections: 10000
+      pool-total-default-max-connections-per-route: 2500
+      pool-validate-connections-after-inactivity-of-millis: 2000
+      client-idle-connection-monitor-interval: 30000
+      client-idle-connection-monitor-timeout: 60000
+      client-use-idle-connection-monitor: true
+    backup-encryption-keyids: [ ]
+    grpc-server:
+      grpc-listen-address: 0.0.0.0
+      grpc-port: 5567
+      grpc-tls-enabled: false
+  configuration-client:
+    update-interval: 60
+    grpc-host: localhost
+    grpc-port: 5665
+    grpc-tls-enabled: false
+  signer:
+    enforce-token-pin-policy: false
+    ocsp-cache-path: /var/cache/xroad
+    grpc-host: localhost
+    grpc-port: 5560
+    grpc-tls-enabled: false

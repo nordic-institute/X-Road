@@ -14,6 +14,7 @@
 
 package org.niis.xroad.edc.extension.webservice;
 
+import ee.ria.xroad.common.SystemProperties;
 import ee.ria.xroad.common.SystemPropertiesLoader;
 import ee.ria.xroad.common.cert.CertChainFactory;
 import ee.ria.xroad.common.conf.globalconf.GlobalConfProvider;
@@ -33,6 +34,7 @@ import org.eclipse.edc.web.jetty.JettyService;
 import org.eclipse.edc.web.jetty.WebServiceConfigurerImpl;
 import org.eclipse.edc.web.spi.WebServer;
 import org.eclipse.edc.web.spi.configuration.WebServiceConfigurer;
+import org.niis.xroad.common.rpc.RpcClientProperties;
 import org.niis.xroad.edc.spi.XrdWebServer;
 
 @SuppressWarnings("checkstyle:MagicNumber")
@@ -114,7 +116,17 @@ public class XrdJettyExtension implements ServiceExtension {
     private void initSignerClient(Monitor monitor) {
         monitor.info("Initializing Signer client");
         try {
-            RpcSignerClient.init("localhost", 5560, 10000);
+            // todo: fixme:
+            RpcClientProperties signerClientProperties = new RpcClientProperties(
+                    SystemProperties.getSignerGrpcHost(),
+                    SystemProperties.getSignerGrpcPort(),
+                    SystemProperties.isSignerGrpcTlsEnabled(),
+                    SystemProperties.getSignerGrpcTrustStore(),
+                    SystemProperties.getSignerGrpcTrustStorePassword(),
+                    SystemProperties.getSignerGrpcKeyStore(),
+                    SystemProperties.getSignerGrpcKeyStorePassword()
+            );
+            RpcSignerClient.init(signerClientProperties, 10000);
         } catch (Exception e) {
             throw new RuntimeException(e);
         }

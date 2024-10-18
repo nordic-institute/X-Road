@@ -52,6 +52,7 @@ import org.apache.http.impl.client.DefaultHttpRequestRetryHandler;
 import org.apache.http.impl.client.HttpClientBuilder;
 import org.apache.http.impl.client.HttpClients;
 import org.apache.http.impl.conn.PoolingHttpClientConnectionManager;
+import org.niis.xroad.proxy.ProxyProperties;
 import org.niis.xroad.proxy.edc.AssetAuthorizationManager;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -62,13 +63,15 @@ import org.springframework.context.annotation.Conditional;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.type.AnnotatedTypeMetadata;
 
+import java.util.Objects;
+
 @Slf4j
 @Configuration
 public class ProxyClientConfig {
-    private static final int CONNECTOR_SO_LINGER_MILLIS = SystemProperties.getClientProxyConnectorSoLinger() * 1000;
 
     @Bean
-    ClientProxy clientProxy(@Qualifier("proxyHttpClient") HttpClient httpClient,
+    ClientProxy clientProxy(ProxyProperties proxyProperties,
+                            @Qualifier("proxyHttpClient") HttpClient httpClient,
                             ClientRestMessageHandler clientRestMessageHandler,
                             ClientSoapMessageHandler clientSoapMessageHandler,
                             GlobalConfProvider globalConfProvider,
@@ -76,7 +79,7 @@ public class ProxyClientConfig {
                             ServerConfProvider serverConfProvider,
                             CertChainFactory certChainFactory,
                             AuthTrustVerifier authTrustVerifier) throws Exception {
-        return new ClientProxy(httpClient, clientRestMessageHandler, clientSoapMessageHandler,
+        return new ClientProxy(proxyProperties.getClientProxy(), httpClient, clientRestMessageHandler, clientSoapMessageHandler,
                 globalConfProvider, keyConfProvider, serverConfProvider, certChainFactory, authTrustVerifier);
     }
 
@@ -104,21 +107,22 @@ public class ProxyClientConfig {
 
     @Conditional(ClientUseIdleConnectionMonitorEnabledCondition.class)
     @Bean
-    IdleConnectionMonitorThread idleConnectionMonitorThread(
+    IdleConnectionMonitorThread idleConnectionMonitorThread(ProxyProperties proxyProperties,
             @Qualifier("proxyHttpClientManager") HttpClientConnectionManager connectionManager) {
         var connectionMonitor = new IdleConnectionMonitorThread(connectionManager);
-        connectionMonitor.setIntervalMilliseconds(SystemProperties.getClientProxyIdleConnectionMonitorInterval());
+        connectionMonitor.setIntervalMilliseconds(proxyProperties.getClientProxy().clientIdleConnectionMonitorInterval());
         connectionMonitor.setConnectionIdleTimeMilliseconds(
-                SystemProperties.getClientProxyIdleConnectionMonitorIdleTime());
+                proxyProperties.getClientProxy().clientIdleConnectionMonitorTimeout());
         return connectionMonitor;
     }
 
     @Bean("proxyHttpClient")
-    CloseableHttpClient proxyHttpClient(@Qualifier("proxyHttpClientManager") HttpClientConnectionManager connectionManager) {
+    CloseableHttpClient proxyHttpClient(ProxyProperties proxyProperties,
+            @Qualifier("proxyHttpClientManager") HttpClientConnectionManager connectionManager) {
         log.trace("createClient()");
 
-        int timeout = SystemProperties.getClientProxyTimeout();
-        int socketTimeout = SystemProperties.getClientProxyHttpClientTimeout();
+        int timeout = proxyProperties.getClientTimeout();
+        int socketTimeout = proxyProperties.getClientProxy().clientHttpclientTimeout();
         RequestConfig.Builder rb = RequestConfig.custom();
         rb.setConnectTimeout(timeout);
         rb.setConnectionRequestTimeout(timeout);
@@ -136,8 +140,8 @@ public class ProxyClientConfig {
     }
 
     @Bean("proxyHttpClientManager")
-    HttpClientConnectionManager getClientConnectionManager(GlobalConfProvider globalConfProvider, KeyConfProvider keyConfProvider,
-                                                           AuthTrustVerifier authTrustVerifier)
+    HttpClientConnectionManager getClientConnectionManager(ProxyProperties proxyProperties, GlobalConfProvider globalConfProvider,
+                                                           KeyConfProvider keyConfProvider, AuthTrustVerifier authTrustVerifier)
             throws Exception {
         RegistryBuilder<ConnectionSocketFactory> sfr = RegistryBuilder.create();
 
@@ -146,18 +150,18 @@ public class ProxyClientConfig {
         if (SystemProperties.isSslEnabled()) {
             sfr.register("https", createSSLSocketFactory(globalConfProvider, keyConfProvider, authTrustVerifier));
         }
-
+        ProxyProperties.ClientProxyProperties clientProxyProperties = proxyProperties.getClientProxy();
         SocketConfig.Builder sockBuilder = SocketConfig.custom().setTcpNoDelay(true);
-        sockBuilder.setSoLinger(SystemProperties.getClientProxyHttpClientSoLinger());
-        sockBuilder.setSoTimeout(SystemProperties.getClientProxyHttpClientTimeout());
+        sockBuilder.setSoLinger(clientProxyProperties.clientHttpclientSoLinger());
+        sockBuilder.setSoTimeout(clientProxyProperties.clientHttpclientTimeout());
         SocketConfig socketConfig = sockBuilder.build();
 
         PoolingHttpClientConnectionManager poolingManager = new PoolingHttpClientConnectionManager(sfr.build());
-        poolingManager.setMaxTotal(SystemProperties.getClientProxyPoolTotalMaxConnections());
-        poolingManager.setDefaultMaxPerRoute(SystemProperties.getClientProxyPoolDefaultMaxConnectionsPerRoute());
+        poolingManager.setMaxTotal(clientProxyProperties.poolTotalMaxConnections());
+        poolingManager.setDefaultMaxPerRoute(clientProxyProperties.poolTotalDefaultMaxConnectionsPerRoute());
         poolingManager.setDefaultSocketConfig(socketConfig);
         poolingManager.setValidateAfterInactivity(
-                SystemProperties.getClientProxyValidatePoolConnectionsAfterInactivityMs());
+                clientProxyProperties.poolValidateConnectionsAfterInactivityOfMillis());
 
         return poolingManager;
     }
@@ -173,7 +177,8 @@ public class ProxyClientConfig {
     public static class ClientUseIdleConnectionMonitorEnabledCondition implements Condition {
         @Override
         public boolean matches(ConditionContext context, AnnotatedTypeMetadata metadata) {
-            return SystemProperties.isClientUseIdleConnectionMonitor();
+            ProxyProperties proxyProperties = Objects.requireNonNull(context.getBeanFactory()).getBean(ProxyProperties.class);
+            return proxyProperties.getClientProxy().clientUseIdleConnectionMonitor();
         }
     }
 }

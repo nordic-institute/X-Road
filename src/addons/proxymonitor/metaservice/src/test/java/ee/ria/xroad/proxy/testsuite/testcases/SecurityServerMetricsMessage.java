@@ -45,7 +45,7 @@ import jakarta.xml.bind.JAXBContext;
 import jakarta.xml.bind.Unmarshaller;
 import jakarta.xml.soap.SOAPBody;
 import lombok.extern.slf4j.Slf4j;
-import org.niis.xroad.common.rpc.RpcCredentialsProvider;
+import org.niis.xroad.common.rpc.RpcServerProperties;
 import org.niis.xroad.common.rpc.server.RpcServer;
 import org.niis.xroad.monitor.common.HistogramMetrics;
 import org.niis.xroad.monitor.common.Metrics;
@@ -137,9 +137,9 @@ public class SecurityServerMetricsMessage extends MessageTestCase {
         super.startUp();
 
         monitorRpcServer = RpcServer.newServer(
-                SystemProperties.getEnvMonitorGrpcListenAddress(),
-                SystemProperties.getEnvMonitorGrpcPort(),
-                new RpcCredentialsProvider.Builder().tlsEnabled(false).build(),
+                new RpcServerProperties(
+                        SystemProperties.getEnvMonitorGrpcListenAddress(),
+                        SystemProperties.getEnvMonitorGrpcPort(), false, null, null, null, null),
                 builder -> builder.addService(new MockMetricsProvider()));
         monitorRpcServer.afterPropertiesSet();
 

@@ -52,6 +52,7 @@ import org.bouncycastle.cert.ocsp.CertificateStatus;
 import org.bouncycastle.cert.ocsp.OCSPResp;
 import org.bouncycastle.util.encoders.Base64;
 import org.junit.jupiter.api.Assertions;
+import org.niis.xroad.common.rpc.RpcClientProperties;
 import org.niis.xroad.signer.proto.CertificateRequestFormat;
 
 import java.io.File;
@@ -69,8 +70,6 @@ import java.util.Optional;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
-import static ee.ria.xroad.common.SystemProperties.getSignerGrpcHost;
-import static ee.ria.xroad.common.SystemProperties.getSignerGrpcPort;
 import static ee.ria.xroad.common.crypto.Digests.calculateDigest;
 import static ee.ria.xroad.common.crypto.identifier.DigestAlgorithm.SHA256;
 import static ee.ria.xroad.common.crypto.identifier.SignAlgorithm.SHA256_WITH_RSA;
@@ -97,6 +96,10 @@ public class SignerStepDefs extends BaseSignerStepDefs {
     private CertificationServiceDiagnostics diagnosticsResponse;
 
     private final Map<String, String> tokenLabelToIdMapping = new HashMap<>();
+
+    // todo: fixme:
+    private RpcClientProperties signerRpcClientProperties = new RpcClientProperties("localhost",
+            5560, false, null, null, null, null);
 
     @Step("tokens are listed")
     public void listTokens() throws Exception {
@@ -626,13 +629,13 @@ public class SignerStepDefs extends BaseSignerStepDefs {
     @Step("signer client initialized with default settings")
     public void signerClientInitializedWithDefaultSettings() throws Exception {
         RpcSignerClient.shutdown();
-        RpcSignerClient.init();
+        RpcSignerClient.init(signerRpcClientProperties);
     }
 
     @Step("signer client initialized with timeout {int} milliseconds")
     public void signerClientReinitializedWithTimeoutMilliseconds(int timeoutMillis) throws Exception {
         RpcSignerClient.shutdown();
-        RpcSignerClient.init(getSignerGrpcHost(), getSignerGrpcPort(), timeoutMillis);
+        RpcSignerClient.init(signerRpcClientProperties, timeoutMillis);
     }
 
     @Step("getTokens fails with timeout exception")

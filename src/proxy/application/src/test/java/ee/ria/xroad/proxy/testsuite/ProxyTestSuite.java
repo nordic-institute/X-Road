@@ -26,12 +26,14 @@
 package ee.ria.xroad.proxy.testsuite;
 
 import ee.ria.xroad.common.SystemProperties;
+import ee.ria.xroad.common.SystemPropertySource;
 import ee.ria.xroad.common.TestPortUtils;
 import ee.ria.xroad.common.conf.globalconf.GlobalConfProvider;
 import ee.ria.xroad.common.conf.globalconf.GlobalConfSource;
 import ee.ria.xroad.common.conf.globalconf.TestGlobalConfWrapper;
 import ee.ria.xroad.common.conf.serverconf.ServerConfProvider;
 import ee.ria.xroad.common.util.TimeUtils;
+import ee.ria.xroad.proxy.ProxyMain;
 import ee.ria.xroad.proxy.conf.KeyConfProvider;
 import ee.ria.xroad.proxy.serverproxy.ServerProxy;
 import ee.ria.xroad.proxy.testutil.TestServerConfWrapper;
@@ -42,11 +44,12 @@ import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.niis.xroad.proxy.configuration.ProxyConfig;
 import org.springframework.beans.factory.BeanCreationException;
-import org.springframework.context.annotation.AnnotationConfigApplicationContext;
+import org.springframework.boot.WebApplicationType;
+import org.springframework.boot.builder.SpringApplicationBuilder;
+import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Primary;
-import org.springframework.context.support.GenericApplicationContext;
 
 import java.time.Clock;
 import java.time.Instant;
@@ -58,8 +61,6 @@ import java.util.Set;
 import java.util.Timer;
 import java.util.TimerTask;
 
-import static ee.ria.xroad.common.SystemProperties.OCSP_RESPONDER_LISTEN_ADDRESS;
-import static ee.ria.xroad.common.SystemProperties.PROXY_SERVER_LISTEN_ADDRESS;
 import static java.lang.String.valueOf;
 import static org.mockito.Mockito.mock;
 
@@ -134,22 +135,16 @@ public final class ProxyTestSuite {
     @SneakyThrows
     private static void setPropsIfNotSet() {
 
-        System.setProperty(PROXY_SERVER_LISTEN_ADDRESS, "127.0.0.1");
-        System.setProperty(OCSP_RESPONDER_LISTEN_ADDRESS, "127.0.0.1");
-
         System.setProperty(SystemProperties.PROXY_CLIENT_TIMEOUT, "15000");
         System.setProperty(SystemProperties.DATABASE_PROPERTIES, "src/test/resources/hibernate.properties");
 
         PropsSolver solver = new PropsSolver();
 
-        solver.setIfNotSet(SystemProperties.PROXY_CLIENT_HTTP_PORT, valueOf(TestPortUtils.findRandomPort()));
-        solver.setIfNotSet(SystemProperties.PROXY_CLIENT_HTTPS_PORT, valueOf(TestPortUtils.findRandomPort()));
+        System.setProperty("xroad.proxy.client-proxy.client-http-port", valueOf(TestPortUtils.findRandomPort()));
+        System.setProperty("xroad.proxy.client-proxy.client-https-port", valueOf(TestPortUtils.findRandomPort()));
         final var proxyPort = valueOf(TestPortUtils.findRandomPort());
-        solver.setIfNotSet(SystemProperties.PROXY_SERVER_LISTEN_PORT, proxyPort);
+        System.setProperty("xroad.proxy.server.listen-port", proxyPort);
         solver.setIfNotSet(SystemProperties.PROXY_SERVER_PORT, proxyPort);
-        solver.setIfNotSet(SystemProperties.JETTY_CLIENTPROXY_CONFIGURATION_FILE, "src/test/clientproxy.xml");
-        solver.setIfNotSet(SystemProperties.JETTY_SERVERPROXY_CONFIGURATION_FILE, "src/test/serverproxy.xml");
-        solver.setIfNotSet(SystemProperties.JETTY_OCSP_RESPONDER_CONFIGURATION_FILE, "src/test/ocsp-responder.xml");
         solver.setIfNotSet(SystemProperties.TEMP_FILES_PATH, "build/");
         solver.setIfNotSet(SystemProperties.PROXY_GRPC_TLS_ENABLED, Boolean.FALSE.toString());
         solver.setIfNotSet(SystemProperties.SIGNER_GRPC_TLS_ENABLED, Boolean.FALSE.toString());
@@ -214,7 +209,18 @@ public final class ProxyTestSuite {
     }
 
     private static void runTestSuite(List<MessageTestCase> tc) {
-        try (var applicationContext = new AnnotationConfigApplicationContext(ProxyConfig.class, TestProxySpringConfig.class)) {
+        // todo: should be better way to start application context
+        try (var applicationContext = new SpringApplicationBuilder(ProxyMain.class, ProxyConfig.class, TestProxySpringConfig.class)
+                .profiles("group-ee")//TODO load dynamically
+                .initializers(ctx -> {
+                    log.info("Initializing Apache Santuario XML Security library..");
+                    org.apache.xml.security.Init.init();
+                    log.info("Setting property source to Spring environment..");
+                    SystemPropertySource.setEnvironment(ctx.getEnvironment());
+                })
+                .web(WebApplicationType.NONE)
+                .build()
+                .run()) {
             runTestCases(applicationContext, tc);
         } catch (BeanCreationException beanCreationException) {
             log.error("Failed to initialize Proxy context", beanCreationException);
@@ -222,7 +228,7 @@ public final class ProxyTestSuite {
         }
     }
 
-    private static void runTestCases(GenericApplicationContext applicationContext, List<MessageTestCase> tc) {
+    private static void runTestCases(ApplicationContext applicationContext, List<MessageTestCase> tc) {
         for (MessageTestCase t : tc) {
             currentTestCase = t;
 

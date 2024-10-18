@@ -6,6 +6,7 @@ dependencies {
     implementation(platform(libs.springCloud.bom))
 
     implementation project(':common:common-core')
+    implementation project(':common:common-properties')
     implementation project(':monitor:core')
     implementation project(':monitor-common')
 

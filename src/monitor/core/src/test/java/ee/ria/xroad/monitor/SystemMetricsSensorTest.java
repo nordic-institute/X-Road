@@ -25,7 +25,6 @@
  */
 package ee.ria.xroad.monitor;
 
-import ee.ria.xroad.common.SystemProperties;
 import ee.ria.xroad.common.TestPortUtils;
 import ee.ria.xroad.monitor.common.SystemMetricNames;
 
@@ -38,7 +37,8 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.niis.xroad.common.rpc.RpcCredentialsProvider;
+import org.niis.xroad.common.rpc.RpcClientProperties;
+import org.niis.xroad.common.rpc.RpcServerProperties;
 import org.niis.xroad.common.rpc.server.RpcServer;
 import org.niis.xroad.monitor.common.MonitorServiceGrpc;
 import org.niis.xroad.monitor.common.StatsReq;
@@ -70,6 +70,13 @@ class SystemMetricsSensorTest {
     private static RpcServer rpcServer;
     private static StatsResp response;
 
+    private final EnvMonitorProperties envMonitorProperties = new EnvMonitorProperties(
+            Duration.ofDays(1),
+            Duration.ofSeconds(60),
+            Duration.ofSeconds(60),
+            Duration.ofSeconds(1),
+            true);
+
     @Spy
     private MetricRegistry metricRegistry = new MetricRegistry();
 
@@ -79,16 +86,12 @@ class SystemMetricsSensorTest {
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
-
-        System.setProperty(SystemProperties.ENV_MONITOR_SYSTEM_METRICS_SENSOR_INTERVAL, "1");
-        System.setProperty(SystemProperties.PROXY_GRPC_PORT, String.valueOf(PORT));
-        System.setProperty(SystemProperties.PROXY_GRPC_TLS_ENABLED, Boolean.FALSE.toString());
     }
 
     @BeforeAll
     public static void init() throws Exception {
-        rpcServer = RpcServer.newServer(SystemProperties.getProxyGrpcListenAddress(), PORT,
-                new RpcCredentialsProvider.Builder().tlsEnabled(false).build(),
+        rpcServer = RpcServer.newServer(
+                new RpcServerProperties("127.0.0.1", PORT, false, null, null, null, null),
                 serverBuilder ->
                 serverBuilder.addService(new MonitorServiceGrpc.MonitorServiceImplBase() {
                     @Override
@@ -112,7 +115,10 @@ class SystemMetricsSensorTest {
         var taskScheduler = spy(TaskScheduler.class);
         when(taskScheduler.getClock()).thenReturn(Clock.systemDefaultZone());
 
-        SystemMetricsSensor systemMetricsSensor = new SystemMetricsSensor(taskScheduler);
+        RpcClientProperties proxyRpcClientProperties = new RpcClientProperties("localhost", PORT, false,
+                null, null, null, null);
+
+        SystemMetricsSensor systemMetricsSensor = new SystemMetricsSensor(taskScheduler, envMonitorProperties, proxyRpcClientProperties);
 
         response = StatsResp.newBuilder()
                 .setOpenFileDescriptorCount(0)

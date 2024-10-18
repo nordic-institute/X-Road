@@ -28,25 +28,30 @@ package ee.ria.xroad.opmonitordaemon;
 
 import ee.ria.xroad.common.SystemPropertySource;
 import ee.ria.xroad.common.Version;
+import ee.ria.xroad.common.conf.globalconf.GlobalConfPropertiesConfig;
 import ee.ria.xroad.opmonitordaemon.config.OpMonitorDaemonRootConfig;
 
 import lombok.extern.slf4j.Slf4j;
+import org.niis.xroad.common.rpc.RpcClientProperties;
 import org.springframework.boot.WebApplicationType;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.builder.SpringApplicationBuilder;
+import org.springframework.boot.context.properties.ConfigurationProperties;
+import org.springframework.boot.context.properties.EnableConfigurationProperties;
 
 /**
  * The main class of the operational monitoring daemon.
  */
 @Slf4j
 @SpringBootApplication
+@EnableConfigurationProperties(OpMonitorDaemonMain.ConfClientRpcClientProperties.class)
 public class OpMonitorDaemonMain {
     private static final String APP_NAME = "xroad-opmonitor";
 
     public static void main(String[] args) {
         Version.outputVersionInfo(APP_NAME);
 
-        new SpringApplicationBuilder(OpMonitorDaemonMain.class, OpMonitorDaemonRootConfig.class)
+        new SpringApplicationBuilder(OpMonitorDaemonMain.class, OpMonitorDaemonRootConfig.class, GlobalConfPropertiesConfig.class)
                 .profiles("group-ee")//TODO load dynamically
                 .initializers(applicationContext -> {
                     log.info("Setting property source to Spring environment..");
@@ -55,6 +60,16 @@ public class OpMonitorDaemonMain {
                 .web(WebApplicationType.NONE)
                 .build()
                 .run(args);
+    }
+
+    @ConfigurationProperties(prefix = "xroad.configuration-client")
+    static class ConfClientRpcClientProperties extends RpcClientProperties {
+        ConfClientRpcClientProperties(String grpcHost, int grpcPort, boolean grpcTlsEnabled,
+                                      String grpcTlsTrustStore, char[] grpcTlsTrustStorePassword,
+                                      String grpcTlsKeyStore, char[] grpcTlsKeyStorePassword) {
+            super(grpcHost, grpcPort, grpcTlsEnabled, grpcTlsTrustStore, grpcTlsTrustStorePassword,
+                    grpcTlsKeyStore, grpcTlsKeyStorePassword);
+        }
     }
 
 }
