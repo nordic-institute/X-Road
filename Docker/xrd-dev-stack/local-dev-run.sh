@@ -13,7 +13,7 @@ configure_edc_signing_key() {
 set -e # Exit immediately if a command exits with a non-zero status.
 
 ENV_FILE=".env"
-COMPOSE_FILE_ARGS="-f compose.yaml -f compose.dev.yaml -f compose.edc.yaml -f compose.gxdch.yaml"
+COMPOSE_FILE_ARGS="-f compose.yaml -f compose.dev.yaml -f compose.edc.yaml"
 
 
 for i in "$@"; do
@@ -48,6 +48,8 @@ if [[ -n "$INIT_SS2" ]]; then
 fi
 
 docker compose $COMPOSE_EXTRA_ARGS $COMPOSE_FILE_ARGS --env-file "$ENV_FILE" up -d
+
+docker compose -f gxdch/compose.yaml -p gxdch up -d
 
 if [[ -n "$INITIALIZE" ]]; then
   docker compose $COMPOSE_FILE_ARGS \

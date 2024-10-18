@@ -25,11 +25,10 @@
  */
 package ee.ria.xroad.signer;
 
-import ee.ria.xroad.common.SystemProperties;
-
 import io.grpc.BindableService;
 import lombok.extern.slf4j.Slf4j;
-import org.niis.xroad.common.rpc.RpcCredentialsProvider;
+import org.niis.xroad.common.rpc.RpcClientProperties;
+import org.niis.xroad.common.rpc.RpcServerProperties;
 import org.niis.xroad.common.rpc.server.RpcServer;
 import org.niis.xroad.confclient.proto.ConfClientRpcClient;
 import org.springframework.context.annotation.Bean;
@@ -42,20 +41,9 @@ import java.util.List;
 public class SignerRpcConfig {
 
     @Bean
-    RpcServer rpcServer(final List<BindableService> bindableServices) throws Exception {
-
-        var credentialsProvider = new RpcCredentialsProvider.Builder()
-                .tlsEnabled(SystemProperties.isSignerGrpcTlsEnabled())
-                .keystore(SystemProperties::getSignerGrpcKeyStore)
-                .keystorePassword(SystemProperties::getSignerGrpcKeyStorePassword)
-                .truststore(SystemProperties::getSignerGrpcTrustStore)
-                .truststorePassword(SystemProperties::getSignerGrpcTrustStorePassword)
-                .build();
-
+    RpcServer rpcServer(final List<BindableService> bindableServices, RpcServerProperties signerRpcServerProperties) throws Exception {
         return RpcServer.newServer(
-                SystemProperties.getSignerGrpcListenAddress(),
-                SystemProperties.getSignerGrpcPort(),
-                credentialsProvider,
+                signerRpcServerProperties,
                 builder -> bindableServices.forEach(bindableService -> {
                     log.info("Registering {} RPC service.", bindableService.getClass().getSimpleName());
                     builder.addService(bindableService);
@@ -63,7 +51,7 @@ public class SignerRpcConfig {
     }
 
     @Bean
-    ConfClientRpcClient confClientRpcClient() {
-        return new ConfClientRpcClient();
+    ConfClientRpcClient confClientRpcClient(RpcClientProperties confClientRpcClientProperties) {
+        return new ConfClientRpcClient(confClientRpcClientProperties);
     }
 }

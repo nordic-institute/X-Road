@@ -25,6 +25,7 @@
  */
 package ee.ria.xroad.confproxy.commandline;
 
+import ee.ria.xroad.common.SystemProperties;
 import ee.ria.xroad.common.SystemPropertiesLoader;
 import ee.ria.xroad.signer.protocol.RpcSignerClient;
 
@@ -35,6 +36,7 @@ import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.CommandLineParser;
 import org.apache.commons.cli.DefaultParser;
 import org.apache.commons.cli.Options;
+import org.niis.xroad.common.rpc.RpcClientProperties;
 
 import static ee.ria.xroad.common.SystemProperties.CONF_FILE_CONFPROXY;
 
@@ -74,7 +76,17 @@ public final class ConfProxyUtilMain {
      * Initialize configuration proxy utility program components.
      */
     static void setup() throws Exception {
-        RpcSignerClient.init();
+        // todo: fixme:
+        RpcClientProperties signerClientProperties = new RpcClientProperties(
+                SystemProperties.getSignerGrpcHost(),
+                SystemProperties.getSignerGrpcPort(),
+                SystemProperties.isSignerGrpcTlsEnabled(),
+                SystemProperties.getSignerGrpcTrustStore(),
+                SystemProperties.getSignerGrpcTrustStorePassword(),
+                SystemProperties.getSignerGrpcKeyStore(),
+                SystemProperties.getSignerGrpcKeyStorePassword()
+        );
+        RpcSignerClient.init(signerClientProperties);
 
         cmdLineParser = new DefaultParser();
     }

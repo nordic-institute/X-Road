@@ -5,6 +5,7 @@ plugins {
 dependencies {
     implementation project(':common:common-service-bootstrap')
     implementation project(':common:common-core')
+    implementation project(':common:common-properties')
     implementation project(':monitor:core')
     implementation project(':monitor-common')
 

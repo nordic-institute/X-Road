@@ -54,43 +54,40 @@ import java.security.cert.CertificateException;
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
 public class RpcCredentialsConfigurer {
 
-    public static ServerCredentials createServerCredentials(RpcCredentialsProvider credentialsProvider)
+    public static ServerCredentials createServerCredentials(RpcServerProperties serverProperties)
             throws UnrecoverableKeyException, NoSuchAlgorithmException,
             KeyStoreException {
         TlsServerCredentials.Builder tlsBuilder = TlsServerCredentials.newBuilder()
-                .keyManager(getKeyManagers(credentialsProvider))
-                .trustManager(getTrustManagers(credentialsProvider))
+                .keyManager(getKeyManagers(serverProperties.getGrpcTlsKeyStore(), serverProperties.getGrpcTlsKeyStorePassword()))
+                .trustManager(getTrustManagers(serverProperties.getGrpcTlsTrustStore(), serverProperties.getGrpcTlsTrustStorePassword()))
                 .clientAuth(TlsServerCredentials.ClientAuth.REQUIRE);
 
         return tlsBuilder.build();
     }
 
-    public static ChannelCredentials createClientCredentials(RpcCredentialsProvider credentialsProvider)
+    public static ChannelCredentials createClientCredentials(RpcClientProperties rpcClientProperties)
             throws NoSuchAlgorithmException, KeyStoreException,
             UnrecoverableKeyException {
         TlsChannelCredentials.Builder tlsBuilder = TlsChannelCredentials.newBuilder()
-                .keyManager(getKeyManagers(credentialsProvider))
-                .trustManager(getTrustManagers(credentialsProvider));
+                .keyManager(getKeyManagers(rpcClientProperties.getGrpcTlsKeyStore(), rpcClientProperties.getGrpcTlsKeyStorePassword()))
+                .trustManager(getTrustManagers(rpcClientProperties.getGrpcTlsTrustStore(),
+                        rpcClientProperties.getGrpcTlsTrustStorePassword()));
 
         return tlsBuilder.build();
     }
 
-    private static KeyManager[] getKeyManagers(RpcCredentialsProvider credentialsProvider)
+    private static KeyManager[] getKeyManagers(String keystorePath, char[] keystorePassword)
             throws NoSuchAlgorithmException, UnrecoverableKeyException, KeyStoreException {
-        final var path = credentialsProvider.getKeystore();
-        final var password = credentialsProvider.getKeystorePassword();
 
-        KeyStore keystore = getKeystore(path, password);
+        KeyStore keystore = getKeystore(keystorePath, keystorePassword);
         KeyManagerFactory keyManagerFactory =
                 KeyManagerFactory.getInstance(KeyManagerFactory.getDefaultAlgorithm());
-        keyManagerFactory.init(keystore, password);
+        keyManagerFactory.init(keystore, keystorePassword);
         return keyManagerFactory.getKeyManagers();
     }
 
-    private static TrustManager[] getTrustManagers(RpcCredentialsProvider credentialsProvider)
+    private static TrustManager[] getTrustManagers(String path, char[] password)
             throws NoSuchAlgorithmException, KeyStoreException {
-        final var path = credentialsProvider.getTruststore();
-        final var password = credentialsProvider.getTruststorePassword();
 
         KeyStore truststore = getKeystore(path, password);
         TrustManagerFactory trustManagerFactory =

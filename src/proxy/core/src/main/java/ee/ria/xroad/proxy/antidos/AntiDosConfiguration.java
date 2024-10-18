@@ -25,38 +25,17 @@
  */
 package ee.ria.xroad.proxy.antidos;
 
-import ee.ria.xroad.common.SystemProperties;
+import lombok.Getter;
+import lombok.RequiredArgsConstructor;
 
-class AntiDosConfiguration {
+@Getter
+@RequiredArgsConstructor
+public class AntiDosConfiguration {
 
-    /**
-     * @return the number of allowed parallel connections
-     */
-    int getMaxParallelConnections() {
-        return SystemProperties.getAntiDosMaxParallelConnections();
-    }
+    private final double maxCpuLoad; // max-cpu-load: 1.1
+    private final double maxHeapUsage; // max-heap-usage: 1.1
+    private final int maxParallelConnections; // max-parallel-connections: 5000
+    private final int minFreeFileHandles; // min-free-file-handles: 100
+    private final boolean enabled; // enabled: true
 
-    /**
-     * @return the minimum number of free file handles required to process
-     * an incoming connection after it has been accepted
-     */
-    int getMinFreeFileHandles() {
-        return SystemProperties.getAntiDosMinFreeFileHandles();
-    }
-
-    /**
-     * @return the maximum allowed CPU load. If the CPU load is more than this
-     * value, incoming connection is not processed.
-     */
-    double getMaxCpuLoad() {
-        return SystemProperties.getAntiDosMaxCpuLoad();
-    }
-
-    /**
-     * @return the maximum allowed heap usage. If the heap usage is more than
-     * this value, incoming connection is not processed.
-     */
-    double getMaxHeapUsage() {
-        return SystemProperties.getAntiDosMaxHeapUsage();
-    }
 }

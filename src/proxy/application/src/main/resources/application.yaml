@@ -14,35 +14,58 @@ server:
 
 xroad:
   proxy:
-    jetty-serverproxy-configuration-file: /etc/xroad/jetty/serverproxy.xml
-    client-use-idle-connection-monitor: true
-    connector-host: 0.0.0.0
-    ocsp-responder-port: 5577
-    ocsp-responder-client-connect-timeout: 20000
+    ocsp-responder:
+      listen-address: 0.0.0.0
+      port: 5577
+      client-connect-timeout: 20000
+      client-read-timeout: 30000
+      jetty-configuration-file: /etc/xroad/jetty/ocsp-responder.xml
     verify-client-cert: true
-    configuration-anchor-file: /etc/xroad/configuration-anchor.xml
     database-properties: /etc/xroad/db.properties
-    ocsp-responder-client-read-timeout: 30000
     server-port: 5500
-    jetty-ocsp-responder-configuration-file: /etc/xroad/jetty/ocsp-responder.xml
-    server-connector-so-linger: -1
     pool-enable-connection-reuse: false
-    client-http-port: 8080
-    client-httpclient-timeout: 0
-    configuration-path: /etc/xroad/globalconf/
-    client-https-port: 8443
     client-fastest-connecting-ssl-uri-cache-period: 3600
-    ocsp-responder-listen-address: 0.0.0.0
     hsm-health-check-enabled: false
     enforce-client-is-cert-validity-period-check: false
     client-timeout: 30000
     client-use-fastest-connecting-ssl-socket-autoclose: true
-    server-listen-port: 5500
     backup-encryption-enabled: false
-    client-connector-so-linger: -1
-    jetty-clientproxy-configuration-file: /etc/xroad/jetty/clientproxy.xml
-    server-listen-address: 0.0.0.0
-    client-httpclient-so-linger: -1
+    server:
+      listen-address: 0.0.0.0
+      listen-port: 5500
+      connector-initial-idle-time: 30000
+      support-clients-pooled-connections: false
+      jetty-configuration-file: /etc/xroad/jetty/serverproxy.xml
+    client-proxy:
+      connector-host: 0.0.0.0
+      client-http-port: 8080
+      client-https-port: 8443
+      jetty-configuration-file: /etc/xroad/jetty/clientproxy.xml
+      client-connector-initial-idle-time: 30000
+      client-tls-protocols: "TLSv1.2"
+      client-tls-ciphers:
+          - TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256
+          - TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA256
+          - TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384
+          - TLS_ECDHE_RSA_WITH_AES_256_CBC_SHA384
+          - TLS_DHE_RSA_WITH_AES_128_GCM_SHA256
+          - TLS_DHE_RSA_WITH_AES_128_CBC_SHA256
+          - TLS_DHE_RSA_WITH_AES_256_CBC_SHA256
+          - TLS_DHE_RSA_WITH_AES_256_GCM_SHA384
+      jetty-max-header-size: 16384
+      client-httpclient-so-linger: -1
+      client-httpclient-timeout: 0
+      pool-total-max-connections: 10000
+      pool-total-default-max-connections-per-route: 2500
+      pool-validate-connections-after-inactivity-of-millis: 2000
+      client-idle-connection-monitor-interval: 30000
+      client-idle-connection-monitor-timeout: 60000
+      client-use-idle-connection-monitor: true
+    backup-encryption-keyids: [ ]
+    grpc-server:
+      grpc-listen-address: 0.0.0.0
+      grpc-port: 5567
+      grpc-tls-enabled: false
   anti-dos:
     max-cpu-load: 1.1
     max-heap-usage: 1.1
@@ -52,9 +75,14 @@ xroad:
   common:
     global-conf-remoting-enabled: true
   configuration-client:
-    port: 5665
     update-interval: 60
+    grpc-host: localhost
+    grpc-port: 5665
+    grpc-tls-enabled: false
   signer:
     enforce-token-pin-policy: false
     ocsp-cache-path: /var/cache/xroad
+    grpc-host: localhost
+    grpc-port: 5560
+    grpc-tls-enabled: false
 

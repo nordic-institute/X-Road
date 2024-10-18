@@ -36,6 +36,7 @@ import java.time.Duration;
 @RequiredArgsConstructor
 public abstract class AbstractSensor {
     private final TaskScheduler taskScheduler;
+    protected final EnvMonitorProperties envMonitorProperties;
 
     protected void scheduleSingleMeasurement(Duration delay) {
         taskScheduler.schedule(this::measure, taskScheduler.getClock().instant().plus(delay));

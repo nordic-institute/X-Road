@@ -27,6 +27,7 @@
 package org.niis.xroad.cs.admin.core.config;
 
 import ee.ria.xroad.common.conf.globalconf.GlobalConfBeanConfig;
+import ee.ria.xroad.common.conf.globalconf.GlobalConfProperties;
 import ee.ria.xroad.common.conf.globalconf.GlobalConfRefreshJobConfig;
 import ee.ria.xroad.common.util.process.ExternalProcessRunner;
 
@@ -49,6 +50,14 @@ public class BootstrapConfiguration {
     @Bean
     public ExternalProcessRunner externalProcessRunner() {
         return new ExternalProcessRunner();
+    }
+
+    // todo: fixme:
+    @Bean
+    GlobalConfProperties globalConfProperties() {
+        return new GlobalConfProperties(
+                false
+        );
     }
 
     @Bean

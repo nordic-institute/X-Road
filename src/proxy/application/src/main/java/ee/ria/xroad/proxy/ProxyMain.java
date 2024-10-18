@@ -25,21 +25,37 @@
  */
 package ee.ria.xroad.proxy;
 
+import ee.ria.xroad.common.conf.globalconf.GlobalConfPropertiesConfig;
+import ee.ria.xroad.proxy.antidos.AntiDosConfiguration;
+
 import lombok.extern.slf4j.Slf4j;
 import org.niis.xroad.bootstrap.XrdSpringServiceBuilder;
+import org.niis.xroad.common.rpc.RpcClientProperties;
+import org.niis.xroad.common.rpc.RpcServerProperties;
+import org.niis.xroad.proxy.ProxyProperties;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.boot.context.properties.ConfigurationProperties;
+import org.springframework.boot.context.properties.EnableConfigurationProperties;
+
+import java.util.List;
 
 /**
  * Main program for the proxy server.
  */
 @Slf4j
 @SpringBootApplication(scanBasePackages = "org.niis.xroad.proxy")
+@EnableConfigurationProperties({ProxyMain.ConfClientRpcClientProperties.class,
+        ProxyMain.SignerRpcClientProperties.class,
+        ProxyMain.SpringProxyProperties.class,
+        ProxyMain.SpringAntiDosProperties.class,
+})
 public class ProxyMain {
 
     private static final String APP_NAME = "xroad-proxy";
 
     public static void main(String[] args) {
-        XrdSpringServiceBuilder.newApplicationBuilder(APP_NAME, ProxyMain.class)
+        XrdSpringServiceBuilder.newApplicationBuilder(APP_NAME, ProxyMain.class, GlobalConfPropertiesConfig.class)
                 .initializers(applicationContext -> {
                     log.info("Initializing Apache Santuario XML Security library..");
                     org.apache.xml.security.Init.init();
@@ -47,4 +63,53 @@ public class ProxyMain {
                 .build()
                 .run(args);
     }
+
+    @ConfigurationProperties(prefix = "xroad.configuration-client")
+    @Qualifier("confClientRpcClientProperties")
+    static class ConfClientRpcClientProperties extends RpcClientProperties {
+        ConfClientRpcClientProperties(String grpcHost, int grpcPort, boolean grpcTlsEnabled,
+                                      String grpcTlsTrustStore, char[] grpcTlsTrustStorePassword,
+                                      String grpcTlsKeyStore, char[] grpcTlsKeyStorePassword) {
+            super(grpcHost, grpcPort, grpcTlsEnabled, grpcTlsTrustStore, grpcTlsTrustStorePassword,
+                    grpcTlsKeyStore, grpcTlsKeyStorePassword);
+        }
+    }
+
+    @ConfigurationProperties(prefix = "xroad.signer")
+    @Qualifier("signerRpcClientProperties")
+    static class SignerRpcClientProperties extends RpcClientProperties {
+        SignerRpcClientProperties(String grpcHost, int grpcPort, boolean grpcTlsEnabled,
+                                  String grpcTlsTrustStore, char[] grpcTlsTrustStorePassword,
+                                  String grpcTlsKeyStore, char[] grpcTlsKeyStorePassword) {
+            super(grpcHost, grpcPort, grpcTlsEnabled, grpcTlsTrustStore, grpcTlsTrustStorePassword,
+                    grpcTlsKeyStore, grpcTlsKeyStorePassword);
+        }
+    }
+
+    @ConfigurationProperties(prefix = "xroad.proxy")
+    @SuppressWarnings("checkstyle:ParameterNumber")
+    // todo: should be split into smaller parts
+    static class SpringProxyProperties extends ProxyProperties {
+        SpringProxyProperties(ServerProperties server, RpcServerProperties grpcServer, ClientProxyProperties clientProxy,
+                              OcspResponderProperties ocspResponder, boolean verifyClientCert, String databaseProperties,
+                              int serverPort, boolean poolEnableConnectionReuse,
+                              int clientFastestConnectingSslUriCachePeriod, boolean hsmHealthCheckEnabled,
+                              boolean enforceClientIsCertValidityPeriodCheck, int clientTimeout,
+                              boolean clientUseFastestConnectingSslSocketAutoclose, boolean backupEncryptionEnabled,
+                              List<String> backupEncryptionKeyids) {
+            super(server, grpcServer, clientProxy, ocspResponder, verifyClientCert, databaseProperties, serverPort,
+                    poolEnableConnectionReuse, clientFastestConnectingSslUriCachePeriod, hsmHealthCheckEnabled,
+                    enforceClientIsCertValidityPeriodCheck, clientTimeout, clientUseFastestConnectingSslSocketAutoclose,
+                    backupEncryptionEnabled, backupEncryptionKeyids);
+        }
+    }
+
+    @ConfigurationProperties(prefix = "xroad.anti-dos")
+    static class SpringAntiDosProperties extends AntiDosConfiguration {
+        SpringAntiDosProperties(double maxCpuLoad, double maxHeapUsage, int maxParallelConnections, int minFreeFileHandles,
+                                boolean enabled) {
+            super(maxCpuLoad, maxHeapUsage, maxParallelConnections, minFreeFileHandles, enabled);
+        }
+    }
+
 }

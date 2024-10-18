@@ -47,6 +47,7 @@ import org.eclipse.jetty.server.Slf4jRequestLogWriter;
 import org.eclipse.jetty.util.resource.ResourceFactory;
 import org.eclipse.jetty.util.ssl.SslContextFactory;
 import org.eclipse.jetty.xml.XmlConfiguration;
+import org.niis.xroad.proxy.ProxyProperties;
 import org.springframework.beans.factory.DisposableBean;
 import org.springframework.beans.factory.InitializingBean;
 
@@ -74,13 +75,12 @@ public class ClientProxy implements InitializingBean, DisposableBean {
     // SSL session timeout
     private static final int SSL_SESSION_TIMEOUT = 600;
 
-    private static final int MAX_HEADER_SIZE = SystemProperties.getClientProxyJettyMaxHeaderSize();
-
     private static final String CLIENTPROXY_HANDLERS = SystemProperties.PREFIX + "proxy.clientHandlers";
 
     private static final String CLIENT_HTTP_CONNECTOR_NAME = "ClientConnector";
     private static final String CLIENT_HTTPS_CONNECTOR_NAME = "ClientSSLConnector";
 
+    private final ProxyProperties.ClientProxyProperties clientProxyProperties;
     private final GlobalConfProvider globalConfProvider;
     private final KeyConfProvider keyConfProvider;
     private final ServerConfProvider serverConfProvider;
@@ -100,7 +100,7 @@ public class ClientProxy implements InitializingBean, DisposableBean {
      *
      * @throws Exception in case of any errors
      */
-    public ClientProxy(HttpClient httpClient,
+    public ClientProxy(ProxyProperties.ClientProxyProperties clientProxyProperties, HttpClient httpClient,
                        ClientRestMessageHandler clientRestMessageHandler,
                        ClientSoapMessageHandler clientSoapMessageHandler,
                        GlobalConfProvider globalConfProvider,
@@ -108,6 +108,7 @@ public class ClientProxy implements InitializingBean, DisposableBean {
                        ServerConfProvider serverConfProvider,
                        CertChainFactory certChainFactory,
                        AuthTrustVerifier authTrustVerifier) throws Exception {
+        this.clientProxyProperties = clientProxyProperties;
         this.client = httpClient;
         this.clientRestMessageHandler = clientRestMessageHandler;
         this.clientSoapMessageHandler = clientSoapMessageHandler;
@@ -126,7 +127,7 @@ public class ClientProxy implements InitializingBean, DisposableBean {
     private void configureServer() throws Exception {
         log.trace("configureServer()");
 
-        Path file = Paths.get(SystemProperties.getJettyClientProxyConfFile());
+        Path file = Paths.get(clientProxyProperties.jettyConfigurationFile());
 
         log.debug("Configuring server from {}", file);
         new XmlConfiguration(ResourceFactory.root().newResource(file)).configure(server);
@@ -141,8 +142,8 @@ public class ClientProxy implements InitializingBean, DisposableBean {
     private void createConnectors() throws Exception {
         log.trace("createConnectors()");
 
-        createClientHttpConnector(SystemProperties.getConnectorHost(), SystemProperties.getClientProxyHttpPort());
-        createClientHttpsConnector(SystemProperties.getConnectorHost(), SystemProperties.getClientProxyHttpsPort());
+        createClientHttpConnector(clientProxyProperties.connectorHost(), clientProxyProperties.clientHttpPort());
+        createClientHttpsConnector(clientProxyProperties.connectorHost(), clientProxyProperties.clientHttpsPort());
     }
 
     private void createClientHttpConnector(String hostname, int port) {
@@ -153,7 +154,7 @@ public class ClientProxy implements InitializingBean, DisposableBean {
         connector.setName(CLIENT_HTTP_CONNECTOR_NAME);
         connector.setHost(hostname);
         connector.setPort(port);
-        connector.setIdleTimeout(SystemProperties.getClientProxyConnectorInitialIdleTime());
+        connector.setIdleTimeout(clientProxyProperties.clientConnectorInitialIdleTime());
 
         applyConnectionFactoryConfig(connector);
         server.addConnector(connector);
@@ -171,8 +172,8 @@ public class ClientProxy implements InitializingBean, DisposableBean {
         cf.setWantClientAuth(true);
         cf.setSessionCachingEnabled(true);
         cf.setSslSessionTimeout(SSL_SESSION_TIMEOUT);
-        cf.setIncludeProtocols(SystemProperties.getProxyClientTLSProtocols());
-        cf.setIncludeCipherSuites(SystemProperties.getProxyClientTLSCipherSuites());
+        cf.setIncludeProtocols(clientProxyProperties.clientTlsProtocols());
+        cf.setIncludeCipherSuites(clientProxyProperties.clientTlsCiphers());
 
         SSLContext ctx = SSLContext.getInstance(CryptoUtils.SSL_PROTOCOL);
         ctx.init(new KeyManager[]{new ClientSslKeyManager(serverConfProvider)}, new TrustManager[]{new ClientSslTrustManager()},
@@ -185,7 +186,7 @@ public class ClientProxy implements InitializingBean, DisposableBean {
         connector.setName(CLIENT_HTTPS_CONNECTOR_NAME);
         connector.setHost(hostname);
         connector.setPort(port);
-        connector.setIdleTimeout(SystemProperties.getClientProxyConnectorInitialIdleTime());
+        connector.setIdleTimeout(clientProxyProperties.clientConnectorInitialIdleTime());
 
         applyConnectionFactoryConfig(connector);
         server.addConnector(connector);
@@ -199,8 +200,8 @@ public class ClientProxy implements InitializingBean, DisposableBean {
                 .map(HttpConnectionFactory.class::cast)
                 .forEach(httpCf -> {
                     httpCf.getHttpConfiguration().setSendServerVersion(false);
-                    httpCf.getHttpConfiguration().setResponseHeaderSize(MAX_HEADER_SIZE);
-                    httpCf.getHttpConfiguration().setRequestHeaderSize(MAX_HEADER_SIZE);
+                    httpCf.getHttpConfiguration().setResponseHeaderSize(clientProxyProperties.jettyMaxHeaderSize());
+                    httpCf.getHttpConfiguration().setRequestHeaderSize(clientProxyProperties.jettyMaxHeaderSize());
                     httpCf.getHttpConfiguration().setUriCompliance(UriCompliance.DEFAULT
                             .with("x-road", UriCompliance.Violation.AMBIGUOUS_PATH_SEPARATOR));
                     Optional.ofNullable(httpCf.getHttpConfiguration().getCustomizer(SecureRequestCustomizer.class))

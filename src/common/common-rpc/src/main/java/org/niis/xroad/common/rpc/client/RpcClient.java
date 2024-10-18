@@ -43,8 +43,8 @@ import io.grpc.netty.shaded.io.netty.channel.socket.nio.NioSocketChannel;
 import io.grpc.netty.shaded.io.netty.util.concurrent.DefaultThreadFactory;
 import lombok.extern.slf4j.Slf4j;
 import org.niis.xroad.common.rpc.InsecureRpcCredentialsConfigurer;
+import org.niis.xroad.common.rpc.RpcClientProperties;
 import org.niis.xroad.common.rpc.RpcCredentialsConfigurer;
-import org.niis.xroad.common.rpc.RpcCredentialsProvider;
 import org.niis.xroad.rpc.error.CodedExceptionProto;
 
 import java.util.Optional;
@@ -72,16 +72,18 @@ public final class RpcClient<C extends RpcClient.ExecutionContext> {
     }
 
     public static <C extends RpcClient.ExecutionContext> RpcClient<C> newClient(
-            String host, int port, RpcCredentialsProvider credentialsProvider, ExecutionContextFactory<C> contextFactory) throws Exception {
-        return newClient(host, port, credentialsProvider, DEFAULT_DEADLINE_MILLIS, contextFactory);
+            RpcClientProperties rpcClientProperties, ExecutionContextFactory<C> contextFactory) throws Exception {
+        return newClient(rpcClientProperties, DEFAULT_DEADLINE_MILLIS, contextFactory);
     }
 
     public static <C extends RpcClient.ExecutionContext> RpcClient<C> newClient(
-            String host, int port, RpcCredentialsProvider credentialsProvider, int clientTimeoutMillis,
+            RpcClientProperties rpcClientProperties, int clientTimeoutMillis,
             ExecutionContextFactory<C> contextFactory) throws Exception {
-        var credentials = credentialsProvider.isTlsEnabled()
-                ? RpcCredentialsConfigurer.createClientCredentials(credentialsProvider)
+        var credentials = rpcClientProperties.isGrpcTlsEnabled()
+                ? RpcCredentialsConfigurer.createClientCredentials(rpcClientProperties)
                 : InsecureRpcCredentialsConfigurer.createClientCredentials();
+        var host = rpcClientProperties.getGrpcHost();
+        var port = rpcClientProperties.getGrpcPort();
 
         log.info("Starting grpc client to {}:{} with {} credentials..", host, port, credentials.getClass().getSimpleName());
 

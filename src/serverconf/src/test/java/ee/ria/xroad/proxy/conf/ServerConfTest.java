@@ -26,7 +26,6 @@
 package ee.ria.xroad.proxy.conf;
 
 import ee.ria.xroad.common.ExpectedCodedException;
-import ee.ria.xroad.common.SystemProperties;
 import ee.ria.xroad.common.conf.globalconf.GlobalConfProvider;
 import ee.ria.xroad.common.conf.globalconf.TestGlobalConfImpl;
 import ee.ria.xroad.common.conf.serverconf.IsAuthentication;
@@ -250,20 +249,6 @@ public class ServerConfTest {
         assertFalse(serverConfProvider.isQueryAllowed(client1, serviceRest, "POST", "/api/test/foo/bar"));
         assertFalse(serverConfProvider.isQueryAllowed(client1, serviceRest, "DELETE", "/api/test"));
         assertFalse(serverConfProvider.isQueryAllowed(client1, serviceRest));
-    }
-
-    /**
-     * Tests getting conntector host.
-     */
-    @Test
-    public void getConnectorHost() {
-        String defaultHost = SystemProperties.getConnectorHost();
-        assertEquals("0.0.0.0", defaultHost);
-
-        String alteredHost = "127.0.0.1";
-        System.setProperty(SystemProperties.PROXY_CONNECTOR_HOST, alteredHost);
-        String newHost = SystemProperties.getConnectorHost();
-        assertEquals(alteredHost, newHost);
     }
 
     /**

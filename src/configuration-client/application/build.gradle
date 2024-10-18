@@ -31,6 +31,7 @@ dependencies {
     implementation project(':common:common-service-bootstrap')
 
     implementation project(':common:common-core')
+    implementation project(':common:common-rpc')
     implementation project(':configuration-client:core')
 
     testImplementation project(':common:common-test')

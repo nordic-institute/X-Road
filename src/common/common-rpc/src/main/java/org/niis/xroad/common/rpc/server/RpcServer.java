@@ -36,7 +36,7 @@ import io.grpc.netty.shaded.io.netty.util.concurrent.DefaultThreadFactory;
 import lombok.extern.slf4j.Slf4j;
 import org.niis.xroad.common.rpc.InsecureRpcCredentialsConfigurer;
 import org.niis.xroad.common.rpc.RpcCredentialsConfigurer;
-import org.niis.xroad.common.rpc.RpcCredentialsProvider;
+import org.niis.xroad.common.rpc.RpcServerProperties;
 import org.springframework.beans.factory.DisposableBean;
 import org.springframework.beans.factory.InitializingBean;
 
@@ -89,15 +89,13 @@ public class RpcServer implements InitializingBean, DisposableBean {
         }
     }
 
-    public static RpcServer newServer(String host, int port, RpcCredentialsProvider credentialsProvider,
-                                      Consumer<ServerBuilder<?>> configFunc)
+    public static RpcServer newServer(RpcServerProperties serverProperties, Consumer<ServerBuilder<?>> configFunc)
             throws UnrecoverableKeyException, NoSuchAlgorithmException, KeyStoreException {
-        var serverCredentials = credentialsProvider.isTlsEnabled()
-                ? RpcCredentialsConfigurer.createServerCredentials(credentialsProvider)
-                : InsecureRpcCredentialsConfigurer.createServerCredentials();
-        log.info("Initializing RPC server with {} credentials..", serverCredentials.getClass().getSimpleName());
 
-        return new RpcServer(host, port, serverCredentials, configFunc);
+        var serverCredentials = serverProperties.isGrpcTlsEnabled()
+                ? RpcCredentialsConfigurer.createServerCredentials(serverProperties)
+                : InsecureRpcCredentialsConfigurer.createServerCredentials();
+        return new RpcServer(serverProperties.getGrpcListenAddress(), serverProperties.getGrpcPort(), serverCredentials, configFunc);
     }
 
     /**

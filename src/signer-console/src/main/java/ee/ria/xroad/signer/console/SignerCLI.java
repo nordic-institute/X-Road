@@ -53,6 +53,7 @@ import org.apache.commons.cli.CommandLineParser;
 import org.apache.commons.cli.DefaultParser;
 import org.apache.commons.cli.Options;
 import org.apache.commons.lang3.StringUtils;
+import org.niis.xroad.common.rpc.RpcClientProperties;
 import org.niis.xroad.signer.proto.CertificateRequestFormat;
 
 import java.io.IOException;
@@ -799,7 +800,17 @@ public class SignerCLI {
         }
 
         try {
-            RpcSignerClient.init();
+            // todo: fixme:
+            RpcClientProperties signerClientProperties = new RpcClientProperties(
+                    SystemProperties.getSignerGrpcHost(),
+                    SystemProperties.getSignerGrpcPort(),
+                    SystemProperties.isSignerGrpcTlsEnabled(),
+                    SystemProperties.getSignerGrpcTrustStore(),
+                    SystemProperties.getSignerGrpcTrustStorePassword(),
+                    SystemProperties.getSignerGrpcKeyStore(),
+                    SystemProperties.getSignerGrpcKeyStorePassword()
+            );
+            RpcSignerClient.init(signerClientProperties);
 
             String[] arguments = cmd.getArgs();
 

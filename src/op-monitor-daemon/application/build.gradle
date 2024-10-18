@@ -6,6 +6,8 @@ dependencies {
     implementation project(':common:common-service-bootstrap')
 
     implementation project(':common:common-core')
+    implementation project(':common:common-properties')
+    implementation project(':common:common-rpc')
     implementation project(':op-monitor-daemon:core')
 }
 

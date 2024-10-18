@@ -66,7 +66,7 @@ import static org.junit.Assert.assertNotNull;
  */
 @Slf4j
 @SpringBootTest(
-        classes = {ProxyConfig.class, AbstractProxyIntegrationTest.TestProxySpringConfig.class}
+        classes = {ProxyMain.class, ProxyConfig.class, AbstractProxyIntegrationTest.TestProxySpringConfig.class}
 )
 @RunWith(SpringRunner.class)
 public class RestProxyTest extends AbstractProxyIntegrationTest {

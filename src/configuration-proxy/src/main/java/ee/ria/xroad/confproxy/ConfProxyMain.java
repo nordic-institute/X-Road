@@ -25,12 +25,14 @@
  */
 package ee.ria.xroad.confproxy;
 
+import ee.ria.xroad.common.SystemProperties;
 import ee.ria.xroad.common.SystemPropertiesLoader;
 import ee.ria.xroad.common.Version;
 import ee.ria.xroad.confproxy.util.ConfProxyHelper;
 import ee.ria.xroad.signer.protocol.RpcSignerClient;
 
 import lombok.extern.slf4j.Slf4j;
+import org.niis.xroad.common.rpc.RpcClientProperties;
 
 import java.util.Arrays;
 import java.util.List;
@@ -85,7 +87,17 @@ public final class ConfProxyMain {
 
         Version.outputVersionInfo(APP_NAME);
 
-        RpcSignerClient.init();
+        // todo: fixme:
+        RpcClientProperties signerClientProperties = new RpcClientProperties(
+                SystemProperties.getSignerGrpcHost(),
+                SystemProperties.getSignerGrpcPort(),
+                SystemProperties.isSignerGrpcTlsEnabled(),
+                SystemProperties.getSignerGrpcTrustStore(),
+                SystemProperties.getSignerGrpcTrustStorePassword(),
+                SystemProperties.getSignerGrpcKeyStore(),
+                SystemProperties.getSignerGrpcKeyStorePassword()
+        );
+        RpcSignerClient.init(signerClientProperties);
     }
 
     /**
