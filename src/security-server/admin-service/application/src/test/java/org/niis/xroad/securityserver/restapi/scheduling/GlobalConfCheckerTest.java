@@ -49,6 +49,7 @@ import org.niis.xroad.securityserver.restapi.util.CertificateTestUtils;
 import org.niis.xroad.securityserver.restapi.util.TestUtils;
 import org.niis.xroad.securityserver.restapi.util.TokenTestUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.test.annotation.DirtiesContext;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -74,6 +75,7 @@ import static org.mockito.Mockito.when;
  * Test GlobalConfChecker
  */
 @Slf4j
+@DirtiesContext(classMode = DirtiesContext.ClassMode.BEFORE_CLASS)
 public class GlobalConfCheckerTest extends AbstractFacadeMockingTestContext {
 
     @Autowired
@@ -107,11 +109,11 @@ public class GlobalConfCheckerTest extends AbstractFacadeMockingTestContext {
         doAnswer(answer -> null).when(globalConfProvider).verifyValidity();
         doAnswer(answer -> null).when(globalConfProvider).reload();
 
-        List<MemberInfo> globalMemberInfos = new ArrayList<>(Arrays.asList(
+        List<MemberInfo> globalMemberInfos = Arrays.asList(
                 TestUtils.getMemberInfo(TestUtils.INSTANCE_FI, TestUtils.MEMBER_CLASS_GOV, TestUtils.MEMBER_CODE_M1,
                         null),
                 TestUtils.getMemberInfo(TestUtils.INSTANCE_FI, TestUtils.MEMBER_CLASS_GOV, TestUtils.MEMBER_CODE_M2,
-                        null)));
+                        null));
         when(globalConfProvider.getMembers(any())).thenReturn(globalMemberInfos);
         when(globalConfProvider.getMemberName(any())).thenAnswer(invocation -> {
             ClientId clientId = (ClientId) invocation.getArguments()[0];

@@ -45,6 +45,7 @@ import org.niis.xroad.securityserver.restapi.service.GlobalConfService;
 import org.niis.xroad.securityserver.restapi.service.InitializationService;
 import org.niis.xroad.securityserver.restapi.service.InternalServerTestService;
 import org.niis.xroad.securityserver.restapi.service.KeyService;
+import org.niis.xroad.securityserver.restapi.service.MailService;
 import org.niis.xroad.securityserver.restapi.service.NotificationService;
 import org.niis.xroad.securityserver.restapi.service.PossibleActionsRuleEngine;
 import org.niis.xroad.securityserver.restapi.service.SecurityServerConfigurationBackupGenerator;
@@ -59,6 +60,7 @@ import org.niis.xroad.securityserver.restapi.wsdl.WsdlValidator;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.boot.test.mock.mockito.SpyBean;
+import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.web.context.request.RequestContextHolder;
 
 /**
@@ -110,6 +112,8 @@ public abstract class AbstractApiControllerTestContext extends AbstractFacadeMoc
     public ApiKeyService apiKeyService;
     @MockBean
     public PublicApiKeyDataConverter publicApiKeyDataConverter;
+    @MockBean
+    JavaMailSender mailSender;
 
     @SpyBean
     DiagnosticService diagnosticService;
@@ -123,6 +127,8 @@ public abstract class AbstractApiControllerTestContext extends AbstractFacadeMoc
     TokenCertificateService tokenCertificateService;
     @SpyBean
     ServerConfService serverConfService;
+    @SpyBean
+    MailService mailService;
     @SpyBean
     WsdlValidator wsdlValidator;
     @SpyBean
