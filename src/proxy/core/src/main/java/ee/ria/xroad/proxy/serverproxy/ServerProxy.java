@@ -33,6 +33,7 @@ import ee.ria.xroad.common.db.HibernateUtil;
 import ee.ria.xroad.common.opmonitoring.OpMonitoringDaemonHttpClient;
 import ee.ria.xroad.common.opmonitoring.OpMonitoringSystemProperties;
 import ee.ria.xroad.common.util.CryptoUtils;
+import ee.ria.xroad.common.util.JettyUtils;
 import ee.ria.xroad.common.util.TimeUtils;
 import ee.ria.xroad.proxy.antidos.AntiDosConfiguration;
 import ee.ria.xroad.proxy.antidos.AntiDosConnector;
@@ -48,15 +49,12 @@ import org.eclipse.jetty.server.SecureRequestCustomizer;
 import org.eclipse.jetty.server.Server;
 import org.eclipse.jetty.server.ServerConnector;
 import org.eclipse.jetty.server.Slf4jRequestLogWriter;
-import org.eclipse.jetty.util.resource.ResourceFactory;
 import org.eclipse.jetty.util.ssl.SslContextFactory;
 import org.eclipse.jetty.xml.XmlConfiguration;
 import org.niis.xroad.proxy.ProxyProperties;
 import org.springframework.beans.factory.DisposableBean;
 import org.springframework.beans.factory.InitializingBean;
 
-import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.Optional;
 
 /**
@@ -113,11 +111,9 @@ public class ServerProxy implements InitializingBean, DisposableBean {
     private void configureServer() throws Exception {
         log.trace("configureServer()");
 
-        Path file = Paths.get(serverProperties.jettyConfigurationFile());
-
-        log.debug("Configuring server from {}", file);
-
-        new XmlConfiguration(ResourceFactory.root().newResource(file)).configure(server);
+        var config = serverProperties.jettyConfigurationFile();
+        log.debug("Configuring server from {}", config);
+        new XmlConfiguration(JettyUtils.toResource(config)).configure(server);
 
         final var writer = new Slf4jRequestLogWriter();
         writer.setLoggerName(getClass().getPackage().getName() + ".RequestLog");

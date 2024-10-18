@@ -42,14 +42,11 @@ import org.eclipse.jetty.server.Server;
 import org.eclipse.jetty.server.ServerConnector;
 import org.eclipse.jetty.util.Callback;
 import org.eclipse.jetty.util.MultiPartOutputStream;
-import org.eclipse.jetty.util.resource.ResourceFactory;
 import org.eclipse.jetty.xml.XmlConfiguration;
 import org.niis.xroad.proxy.ProxyProperties;
 import org.springframework.beans.factory.DisposableBean;
 import org.springframework.beans.factory.InitializingBean;
 
-import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -94,11 +91,10 @@ public class CertHashBasedOcspResponder implements InitializingBean, DisposableB
 
     private void configureServer() throws Exception {
         log.trace("configureServer()");
-
-        Path file = Paths.get(ocspResponderProperties.jettyConfigurationFile());
+        var file = ocspResponderProperties.jettyConfigurationFile();
 
         log.debug("Configuring server from {}", file);
-        new XmlConfiguration(ResourceFactory.root().newResource(file)).configure(server);
+        new XmlConfiguration(JettyUtils.toResource(file)).configure(server);
     }
 
     private void createConnector() {

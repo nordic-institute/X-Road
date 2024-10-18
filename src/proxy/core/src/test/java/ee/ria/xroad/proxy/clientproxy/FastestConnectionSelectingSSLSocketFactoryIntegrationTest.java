@@ -110,7 +110,7 @@ public class FastestConnectionSelectingSSLSocketFactoryIntegrationTest {
         keyConfProvider = new TestKeyConf(globalConfProvider);
         CertHashBasedOcspResponderClient ocspResponderClient = new CertHashBasedOcspResponderClient(
                 new ProxyProperties.OcspResponderProperties("0.0.0.0", 5577, 20000, 30000,
-                        "/etc/xroad/jetty/ocsp-responder.xml"));
+                        "src/test/ocsp-responder.xml"));
         authTrustVerifier = new AuthTrustVerifier(ocspResponderClient, keyConfProvider, new CertHelper(globalConfProvider),
                 new CertChainFactory(globalConfProvider));
 

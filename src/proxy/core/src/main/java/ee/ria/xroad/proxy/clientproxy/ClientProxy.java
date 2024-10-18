@@ -31,6 +31,7 @@ import ee.ria.xroad.common.conf.globalconf.GlobalConfProvider;
 import ee.ria.xroad.common.conf.serverconf.ServerConfProvider;
 import ee.ria.xroad.common.db.HibernateUtil;
 import ee.ria.xroad.common.util.CryptoUtils;
+import ee.ria.xroad.common.util.JettyUtils;
 import ee.ria.xroad.proxy.conf.KeyConfProvider;
 
 import lombok.extern.slf4j.Slf4j;
@@ -44,7 +45,6 @@ import org.eclipse.jetty.server.SecureRequestCustomizer;
 import org.eclipse.jetty.server.Server;
 import org.eclipse.jetty.server.ServerConnector;
 import org.eclipse.jetty.server.Slf4jRequestLogWriter;
-import org.eclipse.jetty.util.resource.ResourceFactory;
 import org.eclipse.jetty.util.ssl.SslContextFactory;
 import org.eclipse.jetty.xml.XmlConfiguration;
 import org.niis.xroad.proxy.ProxyProperties;
@@ -56,8 +56,6 @@ import javax.net.ssl.SSLContext;
 import javax.net.ssl.TrustManager;
 import javax.net.ssl.X509TrustManager;
 
-import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.security.SecureRandom;
 import java.security.cert.CertificateException;
 import java.security.cert.X509Certificate;
@@ -127,10 +125,10 @@ public class ClientProxy implements InitializingBean, DisposableBean {
     private void configureServer() throws Exception {
         log.trace("configureServer()");
 
-        Path file = Paths.get(clientProxyProperties.jettyConfigurationFile());
+        var file = clientProxyProperties.jettyConfigurationFile();
 
         log.debug("Configuring server from {}", file);
-        new XmlConfiguration(ResourceFactory.root().newResource(file)).configure(server);
+        new XmlConfiguration(JettyUtils.toResource(file)).configure(server);
 
         final var writer = new Slf4jRequestLogWriter();
         writer.setLoggerName(getClass().getPackage().getName() + ".RequestLog");

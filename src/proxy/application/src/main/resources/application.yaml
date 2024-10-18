@@ -19,7 +19,7 @@ xroad:
       port: 5577
       client-connect-timeout: 20000
       client-read-timeout: 30000
-      jetty-configuration-file: /etc/xroad/jetty/ocsp-responder.xml
+      jetty-configuration-file: classpath:jetty/ocsp-responder.xml
     verify-client-cert: true
     database-properties: /etc/xroad/db.properties
     server-port: 5500
@@ -35,12 +35,12 @@ xroad:
       listen-port: 5500
       connector-initial-idle-time: 30000
       support-clients-pooled-connections: false
-      jetty-configuration-file: /etc/xroad/jetty/serverproxy.xml
+      jetty-configuration-file: classpath:jetty/serverproxy.xml
     client-proxy:
       connector-host: 0.0.0.0
       client-http-port: 8080
       client-https-port: 8443
-      jetty-configuration-file: /etc/xroad/jetty/clientproxy.xml
+      jetty-configuration-file: classpath:jetty/clientproxy.xml
       client-connector-initial-idle-time: 30000
       client-tls-protocols: "TLSv1.2"
       client-tls-ciphers:
