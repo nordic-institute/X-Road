@@ -27,6 +27,7 @@
 
 package org.niis.xroad.edc.extension.jwssigner;
 
+import ee.ria.xroad.common.SystemProperties;
 import ee.ria.xroad.common.SystemPropertiesLoader;
 import ee.ria.xroad.signer.protocol.RpcSignerClient;
 
@@ -37,6 +38,7 @@ import org.eclipse.edc.spi.monitor.Monitor;
 import org.eclipse.edc.spi.result.Result;
 import org.eclipse.edc.spi.system.ServiceExtension;
 import org.eclipse.edc.spi.system.ServiceExtensionContext;
+import org.niis.xroad.common.rpc.RpcClientProperties;
 
 import static org.niis.xroad.edc.extension.jwssigner.XRoadJWSSignerExtension.NAME;
 
@@ -75,7 +77,17 @@ public class XRoadJWSSignerExtension implements ServiceExtension {
     private void initSignerClient(Monitor monitor) {
         monitor.info("Initializing Signer client");
         try {
-            RpcSignerClient.init("localhost", 5560, 10000);
+            // todo: fixme:
+            RpcClientProperties signerClientProperties = new RpcClientProperties(
+                    SystemProperties.getSignerGrpcHost(),
+                    SystemProperties.getSignerGrpcPort(),
+                    SystemProperties.isSignerGrpcTlsEnabled(),
+                    SystemProperties.getSignerGrpcTrustStore(),
+                    SystemProperties.getSignerGrpcTrustStorePassword(),
+                    SystemProperties.getSignerGrpcKeyStore(),
+                    SystemProperties.getSignerGrpcKeyStorePassword()
+            );
+            RpcSignerClient.init(signerClientProperties, 10000);
         } catch (Exception e) {
             throw new RuntimeException(e);
         }

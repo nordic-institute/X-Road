@@ -26,24 +26,40 @@
  */
 package ee.ria.xroad.opmonitordaemon;
 
+import ee.ria.xroad.common.conf.globalconf.GlobalConfPropertiesConfig;
 import ee.ria.xroad.opmonitordaemon.config.OpMonitorDaemonRootConfig;
 
 import lombok.extern.slf4j.Slf4j;
 import org.niis.xroad.bootstrap.XrdSpringServiceBuilder;
+import org.niis.xroad.common.rpc.RpcClientProperties;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.boot.context.properties.ConfigurationProperties;
+import org.springframework.boot.context.properties.EnableConfigurationProperties;
 
 /**
  * The main class of the operational monitoring daemon.
  */
 @Slf4j
 @SpringBootApplication
+@EnableConfigurationProperties(OpMonitorDaemonMain.ConfClientRpcClientProperties.class)
 public class OpMonitorDaemonMain {
     private static final String APP_NAME = "xroad-opmonitor";
 
     public static void main(String[] args) {
-        XrdSpringServiceBuilder.newApplicationBuilder(APP_NAME, OpMonitorDaemonMain.class, OpMonitorDaemonRootConfig.class)
+        XrdSpringServiceBuilder.newApplicationBuilder(APP_NAME, OpMonitorDaemonMain.class, OpMonitorDaemonRootConfig.class,
+                        GlobalConfPropertiesConfig.class)
                 .build()
                 .run(args);
+    }
+
+    @ConfigurationProperties(prefix = "xroad.configuration-client")
+    static class ConfClientRpcClientProperties extends RpcClientProperties {
+        ConfClientRpcClientProperties(String grpcHost, int grpcPort, boolean grpcTlsEnabled,
+                                      String grpcTlsTrustStore, char[] grpcTlsTrustStorePassword,
+                                      String grpcTlsKeyStore, char[] grpcTlsKeyStorePassword) {
+            super(grpcHost, grpcPort, grpcTlsEnabled, grpcTlsTrustStore, grpcTlsTrustStorePassword,
+                    grpcTlsKeyStore, grpcTlsKeyStorePassword);
+        }
     }
 
 }

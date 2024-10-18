@@ -40,9 +40,11 @@ import ee.ria.xroad.signer.protocol.dto.TokenInfo;
 import ee.ria.xroad.signer.protocol.dto.TokenInfoAndKeyId;
 
 import lombok.extern.slf4j.Slf4j;
+import org.niis.xroad.common.rpc.RpcClientProperties;
 import org.niis.xroad.signer.proto.CertificateRequestFormat;
 import org.springframework.beans.factory.DisposableBean;
 import org.springframework.beans.factory.InitializingBean;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Component;
 
@@ -59,9 +61,15 @@ import java.util.List;
 @Component
 public class SignerProxyFacade implements InitializingBean, DisposableBean {
 
+    private final RpcClientProperties signerRpcClientProperties;
+
+    public SignerProxyFacade(@Qualifier("signerRpcClientProperties") RpcClientProperties signerRpcClientProperties) {
+        this.signerRpcClientProperties = signerRpcClientProperties;
+    }
+
     @Override
     public void afterPropertiesSet() throws Exception {
-        RpcSignerClient.init();
+        RpcSignerClient.init(signerRpcClientProperties);
     }
 
     @Override

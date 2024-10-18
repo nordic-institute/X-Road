@@ -56,8 +56,6 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
-import static ee.ria.xroad.common.SystemProperties.OCSP_RESPONDER_LISTEN_ADDRESS;
-import static ee.ria.xroad.common.SystemProperties.PROXY_SERVER_LISTEN_ADDRESS;
 import static org.mockito.Mockito.mock;
 
 /**
@@ -103,23 +101,16 @@ public abstract class AbstractProxyIntegrationTest {
 
     public static void setSystemProperties(Map<String, String> params) {
         System.setProperty(SystemProperties.CONF_PATH, "build/resources/test/etc/");
-        System.setProperty(SystemProperties.PROXY_CONNECTOR_HOST, "127.0.0.1");
-        System.setProperty(SystemProperties.PROXY_CLIENT_HTTP_PORT, String.valueOf(proxyClientPort));
-        System.setProperty(SystemProperties.PROXY_CLIENT_HTTPS_PORT, String.valueOf(getFreePort()));
+        System.setProperty("xroad.proxy.client-proxy.client-http-port", String.valueOf(proxyClientPort));
+        System.setProperty("xroad.proxy.client-proxy.client-https-port", String.valueOf(getFreePort()));
 
         final String serverPort = String.valueOf(getFreePort());
-        System.setProperty(SystemProperties.PROXY_SERVER_LISTEN_PORT, serverPort);
+        System.setProperty("xroad.proxy.server.listen-port", serverPort);
         System.setProperty(SystemProperties.PROXY_SERVER_PORT, serverPort);
 
-        System.setProperty(SystemProperties.OCSP_RESPONDER_PORT, String.valueOf(getFreePort()));
-        System.setProperty(SystemProperties.JETTY_CLIENTPROXY_CONFIGURATION_FILE, "src/test/clientproxy.xml");
-        System.setProperty(SystemProperties.JETTY_SERVERPROXY_CONFIGURATION_FILE, "src/test/serverproxy.xml");
+        System.setProperty("xroad.proxy.ocsp-responder.port", String.valueOf(getFreePort()));
 
-        System.setProperty(SystemProperties.JETTY_OCSP_RESPONDER_CONFIGURATION_FILE, "src/test/ocsp-responder.xml");
         System.setProperty(SystemProperties.TEMP_FILES_PATH, "build/");
-
-        System.setProperty(PROXY_SERVER_LISTEN_ADDRESS, "127.0.0.1");
-        System.setProperty(OCSP_RESPONDER_LISTEN_ADDRESS, "127.0.0.1");
 
         System.setProperty(SystemProperties.PROXY_CLIENT_TIMEOUT, "15000");
         System.setProperty(SystemProperties.DATABASE_PROPERTIES, "src/test/resources/hibernate.properties");

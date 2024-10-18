@@ -25,8 +25,6 @@
  */
 package ee.ria.xroad.common.conf.globalconf;
 
-import ee.ria.xroad.common.SystemProperties;
-
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.niis.xroad.confclient.proto.ConfClientRpcClient;
@@ -46,8 +44,9 @@ public class GlobalConfBeanConfig {
 
     @Bean
     GlobalConfSource globalConfSource(Optional<ConfClientRpcClient> globalConfClient,
-                                      RemoteGlobalConfDataLoader remoteGlobalConfDataLoader) {
-        if (SystemProperties.isGlobalConfRemotingEnabled()) {
+                                      RemoteGlobalConfDataLoader remoteGlobalConfDataLoader,
+                                      GlobalConfProperties globalConfProperties) {
+        if (globalConfProperties.isGlobalConfRemotingEnabled()) {
             if (globalConfClient.isEmpty()) {
                 throw new IllegalStateException("GlobalConf remoting is enabled, but globalConfClient is not available");
             } else {

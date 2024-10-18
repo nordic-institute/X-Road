@@ -30,6 +30,7 @@ import ee.ria.xroad.common.conf.globalconf.GlobalConfProvider;
 import ee.ria.xroad.common.conf.globalconf.GlobalConfRefreshJobConfig;
 import ee.ria.xroad.opmonitordaemon.OpMonitorDaemon;
 
+import org.niis.xroad.common.rpc.RpcClientProperties;
 import org.niis.xroad.confclient.proto.ConfClientRpcClient;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -48,7 +49,8 @@ public class OpMonitorDaemonRootConfig {
     }
 
     @Bean
-    ConfClientRpcClient confClientRpcClient() {
-        return new ConfClientRpcClient();
+    ConfClientRpcClient confClientRpcClient(RpcClientProperties confClientRpcClientProperties) {
+        return new ConfClientRpcClient(confClientRpcClientProperties);
     }
+
 }

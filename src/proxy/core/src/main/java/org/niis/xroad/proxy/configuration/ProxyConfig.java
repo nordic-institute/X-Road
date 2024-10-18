@@ -39,13 +39,16 @@ import ee.ria.xroad.proxy.ProxyDiagnosticsConfig;
 import ee.ria.xroad.proxy.ProxyJobConfig;
 import ee.ria.xroad.proxy.ProxyMessageLogConfig;
 import ee.ria.xroad.proxy.ProxyRpcConfig;
+import ee.ria.xroad.proxy.antidos.AntiDosConfiguration;
 import ee.ria.xroad.proxy.clientproxy.AuthTrustVerifier;
 import ee.ria.xroad.proxy.conf.CachingKeyConfImpl;
 import ee.ria.xroad.proxy.conf.KeyConfProvider;
 import ee.ria.xroad.proxy.opmonitoring.OpMonitoring;
 import ee.ria.xroad.proxy.serverproxy.ServerProxy;
 import ee.ria.xroad.proxy.util.CertHashBasedOcspResponder;
+import ee.ria.xroad.proxy.util.CertHashBasedOcspResponderClient;
 
+import org.niis.xroad.proxy.ProxyProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
@@ -76,21 +79,31 @@ public class ProxyConfig {
     }
 
     @Bean
-    AuthTrustVerifier authTrustVerifier(KeyConfProvider keyConfProvider, CertHelper certHelper, CertChainFactory certChainFactory) {
-        return new AuthTrustVerifier(keyConfProvider, certHelper, certChainFactory);
+    AuthTrustVerifier authTrustVerifier(CertHashBasedOcspResponderClient certHashBasedOcspResponderClient,
+                                        KeyConfProvider keyConfProvider, CertHelper certHelper, CertChainFactory certChainFactory) {
+        return new AuthTrustVerifier(certHashBasedOcspResponderClient, keyConfProvider, certHelper, certChainFactory);
     }
 
     @Bean
-    ServerProxy serverProxy(GlobalConfProvider globalConfProvider,
+    ServerProxy serverProxy(ProxyProperties proxyProperties,
+                            AntiDosConfiguration antiDosConfiguration,
+                            GlobalConfProvider globalConfProvider,
                             KeyConfProvider keyConfProvider,
                             ServerConfProvider serverConfProvider,
                             CertChainFactory certChainFactory) throws Exception {
-        return new ServerProxy(globalConfProvider, keyConfProvider, serverConfProvider, certChainFactory);
+        return new ServerProxy(proxyProperties.getServer(), antiDosConfiguration,
+                globalConfProvider, keyConfProvider, serverConfProvider, certChainFactory);
     }
 
     @Bean
-    CertHashBasedOcspResponder certHashBasedOcspResponder(KeyConfProvider keyConfProvider) throws Exception {
-        return new CertHashBasedOcspResponder(keyConfProvider);
+    CertHashBasedOcspResponder certHashBasedOcspResponder(ProxyProperties proxyProperties, KeyConfProvider keyConfProvider)
+            throws Exception {
+        return new CertHashBasedOcspResponder(proxyProperties.getOcspResponder(), keyConfProvider);
+    }
+
+    @Bean
+    CertHashBasedOcspResponderClient certHashBasedOcspResponderClient(ProxyProperties proxyProperties) {
+        return new CertHashBasedOcspResponderClient(proxyProperties.getOcspResponder());
     }
 
     @Bean

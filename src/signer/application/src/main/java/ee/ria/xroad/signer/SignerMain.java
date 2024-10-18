@@ -26,23 +26,53 @@
  */
 package ee.ria.xroad.signer;
 
+import ee.ria.xroad.common.conf.globalconf.GlobalConfPropertiesConfig;
+
 import lombok.extern.slf4j.Slf4j;
 import org.niis.xroad.bootstrap.XrdSpringServiceBuilder;
+import org.niis.xroad.common.rpc.RpcClientProperties;
+import org.niis.xroad.common.rpc.RpcServerProperties;
+import org.springframework.boot.WebApplicationType;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.boot.context.properties.ConfigurationProperties;
+import org.springframework.boot.context.properties.EnableConfigurationProperties;
+
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * Signer main program.
  */
 @Slf4j
 @SpringBootApplication
+@EnableConfigurationProperties({SignerMain.SignerRpcServerProperties.class, SignerMain.ConfClientRpcClientProperties.class})
 public class SignerMain {
 
     private static final String APP_NAME = "xroad-signer";
 
     public static void main(String[] args) {
-        XrdSpringServiceBuilder.newApplicationBuilder(APP_NAME, SignerMain.class, SignerConfig.class)
+        XrdSpringServiceBuilder.newApplicationBuilder(APP_NAME, SignerMain.class, SignerConfig.class, GlobalConfPropertiesConfig.class)
                 .build()
                 .run(args);
     }
 
+    @ConfigurationProperties(prefix = "xroad.signer")
+    static class SignerRpcServerProperties extends RpcServerProperties {
+        SignerRpcServerProperties(String grpcListenAddress, int grpcPort, boolean grpcTlsEnabled,
+                                         String grpcTlsTrustStore, char[] grpcTlsTrustStorePassword,
+                                         String grpcTlsKeyStore, char[] grpcTlsKeyStorePassword) {
+            super(grpcListenAddress, grpcPort, grpcTlsEnabled, grpcTlsTrustStore, grpcTlsTrustStorePassword,
+                    grpcTlsKeyStore, grpcTlsKeyStorePassword);
+        }
+    }
+
+    @ConfigurationProperties(prefix = "xroad.configuration-client")
+    static class ConfClientRpcClientProperties extends RpcClientProperties {
+        ConfClientRpcClientProperties(String grpcHost, int grpcPort, boolean grpcTlsEnabled,
+                                             String grpcTlsTrustStore, char[] grpcTlsTrustStorePassword,
+                                             String grpcTlsKeyStore, char[] grpcTlsKeyStorePassword) {
+            super(grpcHost, grpcPort, grpcTlsEnabled, grpcTlsTrustStore, grpcTlsTrustStorePassword,
+                    grpcTlsKeyStore, grpcTlsKeyStorePassword);
+        }
+    }
 }

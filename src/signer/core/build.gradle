@@ -42,6 +42,7 @@ dependencies {
     intTestRuntimeOnly project(':common:common-globalconf')
     intTestImplementation project(":common:common-test")
     intTestImplementation project(":common:common-int-test")
+    intTestImplementation (libs.springBoot.starterTest)
 
     xjc libs.bundles.jaxb
 }

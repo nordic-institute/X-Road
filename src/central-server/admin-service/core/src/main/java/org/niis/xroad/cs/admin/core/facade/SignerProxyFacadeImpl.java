@@ -25,6 +25,7 @@
  */
 package org.niis.xroad.cs.admin.core.facade;
 
+import ee.ria.xroad.common.SystemProperties;
 import ee.ria.xroad.common.crypto.identifier.SignAlgorithm;
 import ee.ria.xroad.common.crypto.identifier.SignMechanism;
 import ee.ria.xroad.common.identifier.ClientId;
@@ -35,6 +36,7 @@ import ee.ria.xroad.signer.protocol.dto.KeyUsageInfo;
 import ee.ria.xroad.signer.protocol.dto.TokenInfo;
 
 import lombok.extern.slf4j.Slf4j;
+import org.niis.xroad.common.rpc.RpcClientProperties;
 import org.niis.xroad.cs.admin.api.facade.SignerProxyFacade;
 import org.springframework.beans.factory.DisposableBean;
 import org.springframework.beans.factory.InitializingBean;
@@ -56,7 +58,17 @@ public class SignerProxyFacadeImpl implements SignerProxyFacade, InitializingBea
 
     @Override
     public void afterPropertiesSet() throws Exception {
-        RpcSignerClient.init();
+        // todo: fixme:
+        RpcClientProperties signerClientProperties = new RpcClientProperties(
+                SystemProperties.getSignerGrpcHost(),
+                SystemProperties.getSignerGrpcPort(),
+                SystemProperties.isSignerGrpcTlsEnabled(),
+                SystemProperties.getSignerGrpcTrustStore(),
+                SystemProperties.getSignerGrpcTrustStorePassword(),
+                SystemProperties.getSignerGrpcKeyStore(),
+                SystemProperties.getSignerGrpcKeyStorePassword()
+        );
+        RpcSignerClient.init(signerClientProperties);
         log.info("SignerService rpcClient initialized with admin-service config");
     }
 

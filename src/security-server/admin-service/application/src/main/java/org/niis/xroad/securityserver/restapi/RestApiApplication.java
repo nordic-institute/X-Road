@@ -26,6 +26,7 @@
 package org.niis.xroad.securityserver.restapi;
 
 import ee.ria.xroad.common.conf.globalconf.GlobalConfBeanConfig;
+import ee.ria.xroad.common.conf.globalconf.GlobalConfPropertiesConfig;
 import ee.ria.xroad.common.conf.serverconf.ServerConfBeanConfig;
 
 import lombok.NoArgsConstructor;
@@ -42,7 +43,7 @@ import org.springframework.context.annotation.Import;
 @Slf4j
 @ServletComponentScan
 @EnableCaching
-@Import({GlobalConfBeanConfig.class, ServerConfBeanConfig.class})
+@Import({GlobalConfBeanConfig.class, ServerConfBeanConfig.class,GlobalConfPropertiesConfig.class})
 @SpringBootApplication(scanBasePackages = {"org.niis.xroad.securityserver.restapi", "org.niis.xroad.restapi", "org.niis.xroad.common.acme"})
 @NoArgsConstructor
 public class RestApiApplication {

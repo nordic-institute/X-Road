@@ -16,6 +16,13 @@ xroad:
     csr-signature-digest-algorithm: SHA-256
     enforce-token-pin-policy: false
     ocsp-cache-path: /var/cache/xroad
+    grpc-listen-address: 0.0.0.0
+    grpc-port: 5560
+    grpc-tls-enabled: false
+  configuration-client:
+    grpc-host: localhost
+    grpc-port: 5665
+    grpc-tls-enabled: false
 
 logging:
   level:

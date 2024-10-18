@@ -20,3 +20,8 @@ xroad:
 
   common:
     global-conf-remoting-enabled: true
+
+  configuration-client:
+    grpc-host: localhost
+    grpc-port: 5665
+    grpc-tls-enabled: false

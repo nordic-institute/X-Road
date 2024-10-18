@@ -31,6 +31,7 @@ import ee.ria.xroad.common.messagelog.MessageLogProperties;
 import ee.ria.xroad.common.util.JobManager;
 import ee.ria.xroad.common.util.SpringAwareJobManager;
 
+import org.niis.xroad.common.rpc.RpcClientProperties;
 import org.niis.xroad.confclient.proto.ConfClientRpcClient;
 import org.quartz.JobDataMap;
 import org.quartz.SchedulerException;
@@ -63,7 +64,8 @@ public class LogArchiverConfig {
     }
 
     @Bean
-    ConfClientRpcClient confClientRpcClient() {
-        return new ConfClientRpcClient();
+    ConfClientRpcClient confClientRpcClient(RpcClientProperties confClientRpcClientProperties) {
+        return new ConfClientRpcClient(confClientRpcClientProperties);
     }
+
 }

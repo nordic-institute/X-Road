@@ -28,7 +28,6 @@ package ee.ria.xroad.proxy;
 import ee.ria.xroad.common.AddOnStatusDiagnostics;
 import ee.ria.xroad.common.BackupEncryptionStatusDiagnostics;
 import ee.ria.xroad.common.MessageLogEncryptionStatusDiagnostics;
-import ee.ria.xroad.common.SystemProperties;
 import ee.ria.xroad.common.conf.serverconf.ServerConfProvider;
 import ee.ria.xroad.proxy.addon.AddOn;
 import ee.ria.xroad.proxy.admin.AdminService;
@@ -37,10 +36,12 @@ import ee.ria.xroad.signer.protocol.RpcSignerClient;
 import io.grpc.BindableService;
 import io.grpc.ServerBuilder;
 import lombok.extern.slf4j.Slf4j;
-import org.niis.xroad.common.rpc.RpcCredentialsProvider;
+import org.niis.xroad.common.rpc.RpcClientProperties;
 import org.niis.xroad.common.rpc.server.RpcServer;
 import org.niis.xroad.confclient.proto.ConfClientRpcClient;
+import org.niis.xroad.proxy.ProxyProperties;
 import org.niis.xroad.proxy.edc.AssetsRegistrationJob;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
@@ -53,19 +54,11 @@ public class ProxyRpcConfig {
 
     @Bean
     RpcServer proxyRpcServer(final AddOn.BindableServiceRegistry bindableServiceRegistry,
-                             List<BindableService> rpcServices) throws Exception {
-
-        var credentialsProvider = new RpcCredentialsProvider.Builder()
-                .tlsEnabled(SystemProperties.isProxyGrpcTlsEnabled())
-                .keystore(SystemProperties::getProxyGrpcKeyStore)
-                .keystorePassword(SystemProperties::getProxyGrpcKeyStorePassword)
-                .truststore(SystemProperties::getProxyGrpcTrustStore)
-                .truststorePassword(SystemProperties::getProxyGrpcTrustStorePassword).build();
+                             List<BindableService> rpcServices, ProxyProperties proxyProperties) throws Exception {
+        var proxyRpcServerProperties = proxyProperties.getGrpcServer();
 
         return RpcServer.newServer(
-                SystemProperties.getProxyGrpcListenAddress(),
-                SystemProperties.getProxyGrpcPort(),
-                credentialsProvider,
+                proxyRpcServerProperties,
                 builder -> {
                     registerServices(bindableServiceRegistry.getRegisteredServices(), builder);
                     registerServices(rpcServices, builder);
@@ -80,13 +73,14 @@ public class ProxyRpcConfig {
     }
 
     @Bean
-    RpcSignerClient rpcSignerClient() throws Exception {
-        return RpcSignerClient.init();
+    RpcSignerClient rpcSignerClient(@Qualifier("signerRpcClientProperties") RpcClientProperties signerRpcClientProperties)
+            throws Exception {
+        return RpcSignerClient.init(signerRpcClientProperties);
     }
 
     @Bean
-    ConfClientRpcClient confClientRpcClient() {
-        return new ConfClientRpcClient();
+    ConfClientRpcClient confClientRpcClient(@Qualifier("confClientRpcClientProperties") RpcClientProperties confClientRpcClientProperties) {
+        return new ConfClientRpcClient(confClientRpcClientProperties);
     }
 
     @Bean

@@ -3,10 +3,16 @@ plugins {
 }
 
 dependencies {
-    implementation project(':common:common-service-bootstrap')
+    implementation(platform(libs.springCloud.bom))
+
     implementation(project(':addons:messagelog:messagelog-archiver:core'))
 
     implementation(project(':common:common-core'))
+    implementation project(':common:common-properties')
+    implementation project(':common:common-rpc')
+
+    implementation("org.springframework.boot:spring-boot-starter")
+    implementation("org.springframework.cloud:spring-cloud-config-client")
 }
 
 bootJar {
