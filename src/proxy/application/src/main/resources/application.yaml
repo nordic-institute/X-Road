@@ -1,8 +1,6 @@
 spring:
   application:
     name: proxy
-  config:
-    import: configserver:${XRD_CONFIG_SERVER_URI}
   profiles:
     active: override
   output:

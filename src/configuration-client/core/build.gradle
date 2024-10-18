@@ -3,8 +3,6 @@ plugins {
 }
 
 dependencies {
-    implementation(platform(libs.springBoot.bom))
-
     implementation project(':configuration-client:confclient-rpc-client')
     implementation project(':common:common-globalconf')
     implementation project(':common:common-scheduler')
@@ -12,6 +10,7 @@ dependencies {
     implementation project(':common:common-verifier')
     implementation project(':common:common-rpc')
 
+    implementation("org.springframework.boot:spring-boot-starter")
     implementation libs.commons.cli
 
     testImplementation project(':common:common-test')

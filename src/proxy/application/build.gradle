@@ -6,10 +6,8 @@ dependencies {
     implementation(platform(libs.springCloud.bom))
 
     implementation(project(':proxy:core'))
+    implementation(project(':common:common-service-bootstrap'))
     implementation(project(':common:common-core'))
-
-    implementation("org.springframework.boot:spring-boot-starter")
-    implementation("org.springframework.cloud:spring-cloud-config-client")
 
     testImplementation(libs.hsqldb)
     testImplementation(libs.restAssured)

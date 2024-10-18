@@ -1,18 +1,15 @@
-<?xml version="1.0" encoding="UTF-8" ?>
-<configuration>
-    <include resource="org/springframework/boot/logging/logback/defaults.xml"/>
-    <include resource="org/springframework/boot/logging/logback/console-appender.xml"/>
-
-    <property name="logOutputPath" value="/var/log/xroad"/>
+<included>
+    <property name="XRD_FILE_LOG_PATTERN" value="%d{yyyy-MM-dd'T'HH:mm:ss.SSSXXX} [%thread] %-5level %logger{36} - %msg%n"/>
+    <property name="LOG_OUTPUT_PATH" value="/var/log/xroad"/>
 
     <appender name="FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
-        <file>${logOutputPath}/signer.log</file>
+        <file>${LOG_OUTPUT_PATH}/${LOG_FILENAME}.log</file>
         <rollingPolicy class="ch.qos.logback.core.rolling.SizeAndTimeBasedRollingPolicy">
-            <fileNamePattern>${logOutputPath}/signer.%d{yyyy-MM-dd}.%i.log.zip</fileNamePattern>
+            <fileNamePattern>${LOG_OUTPUT_PATH}/${LOG_FILENAME}.%d{yyyy-MM-dd}.%i.log.zip</fileNamePattern>
             <maxFileSize>100MB</maxFileSize>
         </rollingPolicy>
         <encoder>
-            <pattern>%d{"yyyy-MM-dd'T'HH:mm:ss.SSSXXX"} %-5level [%thread] %logger{36} - %msg%n</pattern>
+            <pattern>${XRD_FILE_LOG_PATTERN}</pattern>
             <charset>UTF-8</charset>
         </encoder>
     </appender>
@@ -31,15 +28,4 @@
         <suffixPattern>%-5level [%logger{36}] %d{"yyyy-MM-dd'T'HH:mm:ss.SSSXXX"} - %msg</suffixPattern>
     </appender>
 
-    <logger name="ee.ria.xroad" level="INFO"/>
-
-    <!--TokenManager is very verbose /-->
-    <logger name="ee.ria.xroad.signer.tokenmanager.TokenManager" level="OFF"/>
-
-    <root level="INFO">
-        <appender-ref ref="CONSOLE"/>
-        <appender-ref ref="FILE"/>
-<!--        <appender-ref ref="SYSLOG"/>-->
-
-    </root>
-</configuration>
+</included>

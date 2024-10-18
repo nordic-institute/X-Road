@@ -10,6 +10,7 @@ dependencies {
     implementation(platform(libs.springBoot.bom))
     implementation(platform(libs.springCloud.bom))
 
+    implementation("org.springframework.boot:spring-boot-starter-actuator")
     implementation("org.springframework.cloud:spring-cloud-config-server")
 }
 
@@ -30,5 +31,4 @@ bootJar {
             'Implementation-Version': "$xroadVersion-$xroadBuildType"
         )
     }
-    launchScript() //TODO for consistency sake should be matched to other services
 }

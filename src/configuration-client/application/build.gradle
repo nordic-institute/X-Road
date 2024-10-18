@@ -28,13 +28,10 @@ plugins {
 //}
 
 dependencies {
-    implementation(platform(libs.springCloud.bom))
+    implementation project(':common:common-service-bootstrap')
 
     implementation project(':common:common-core')
     implementation project(':configuration-client:core')
-
-    implementation("org.springframework.boot:spring-boot-starter")
-    implementation("org.springframework.cloud:spring-cloud-config-client")
 
     testImplementation project(':common:common-test')
     testImplementation('org.springframework.boot:spring-boot-starter-test')

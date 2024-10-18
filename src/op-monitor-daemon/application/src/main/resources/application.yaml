@@ -1,10 +1,6 @@
 spring:
   application:
     name: op-monitor-daemon
-  cloud:
-    config:
-      enabled: false
-
   output:
     ansi:
       enabled: detect #TODO implementing logging changes to support ansi colors

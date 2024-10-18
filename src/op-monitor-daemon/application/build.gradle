@@ -3,10 +3,7 @@ plugins {
 }
 
 dependencies {
-    implementation(platform(libs.springCloud.bom))
-
-    implementation("org.springframework.boot:spring-boot-starter")
-    implementation("org.springframework.cloud:spring-cloud-config-client")
+    implementation project(':common:common-service-bootstrap')
 
     implementation project(':common:common-core')
     implementation project(':op-monitor-daemon:core')

@@ -26,15 +26,12 @@
  */
 package ee.ria.xroad.monitor;
 
-import ee.ria.xroad.common.SystemPropertySource;
-import ee.ria.xroad.common.Version;
 import ee.ria.xroad.monitor.configuration.JmxReporterConfig;
 import ee.ria.xroad.monitor.configuration.MonitorConfig;
 
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.boot.WebApplicationType;
+import org.niis.xroad.bootstrap.XrdSpringServiceBuilder;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
-import org.springframework.boot.builder.SpringApplicationBuilder;
 
 /**
  * Main class for monitor application
@@ -46,16 +43,7 @@ public class MonitorMain {
     private static final String APP_NAME = "xroad-monitor";
 
     public static void main(String[] args) {
-        log.info("Starting X-Road Environmental Monitoring");
-        Version.outputVersionInfo(APP_NAME);
-
-        new SpringApplicationBuilder(MonitorMain.class, MonitorConfig.class, JmxReporterConfig.class)
-                .profiles("group-ee")//TODO load dynamically
-                .initializers(applicationContext -> {
-                    log.info("Setting property source to Spring environment..");
-                    SystemPropertySource.setEnvironment(applicationContext.getEnvironment());
-                })
-                .web(WebApplicationType.NONE)
+        XrdSpringServiceBuilder.newApplicationBuilder(APP_NAME, MonitorMain.class, MonitorConfig.class, JmxReporterConfig.class)
                 .build()
                 .run(args);
     }

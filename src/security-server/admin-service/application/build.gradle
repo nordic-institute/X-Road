@@ -18,11 +18,9 @@ configurations.configureEach {
 }
 
 dependencies {
-    implementation(platform(libs.springCloud.bom))
-    dist(project(path: ":security-server:admin-service:ui", configuration: "dist"))
+    implementation project(':common:common-service-bootstrap')
 
-    implementation(platform(libs.springBoot.bom))
-    implementation(platform(libs.springCloud.bom))
+    dist(project(path: ":security-server:admin-service:ui", configuration: "dist"))
 
     implementation(project(":common:common-globalconf"))
     implementation(project(":signer-protocol"))
@@ -51,7 +49,7 @@ dependencies {
     implementation(libs.swagger.parserV3)
     implementation(libs.jakarta.validationApi)
     implementation(libs.logback.access){
-        exclude group: 'org.apache.tomcat', module: 'tomcat-catalina'
+        exclude group: 'org.apache.tomcat'
     }
 
     testImplementation(platform(libs.springBoot.bom))

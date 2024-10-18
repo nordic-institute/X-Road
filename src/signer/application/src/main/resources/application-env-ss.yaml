@@ -1,6 +1,0 @@
-spring:
-  cloud:
-    config:
-      enabled: true
-  config:
-    import: configserver:${XRD_CONFIG_SERVER_URI}

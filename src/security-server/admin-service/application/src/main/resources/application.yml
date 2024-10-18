@@ -18,7 +18,6 @@ spring:
           db_structure_naming_strategy: legacy #TODO Migrate to newer strategies
   profiles:
     include: nontest
-    active: native
 
 # TLS
 # (can be overridden with external ssl.properties)
@@ -33,3 +32,6 @@ server:
   compression:
     enabled: true
     mime-types: application/json,application/xml,text/html,text/xml,text/plain,application/javascript,text/css,image/jpeg
+
+logging.level:
+  ee.ria.xroad.common.SystemPropertiesLoader: OFF

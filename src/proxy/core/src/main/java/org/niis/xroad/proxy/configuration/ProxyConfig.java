@@ -47,7 +47,6 @@ import ee.ria.xroad.proxy.serverproxy.ServerProxy;
 import ee.ria.xroad.proxy.util.CertHashBasedOcspResponder;
 
 import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
 
@@ -63,7 +62,6 @@ import org.springframework.context.annotation.Import;
         GlobalConfRefreshJobConfig.class,
         ServerConfBeanConfig.class
 })
-@ComponentScan(basePackages = {"org.niis.xroad.proxy"})
 @Configuration
 public class ProxyConfig {
 

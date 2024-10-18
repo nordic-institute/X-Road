@@ -1,10 +1,6 @@
 spring:
   application:
     name: monitor
-  cloud:
-    config:
-      enabled: false
-
   output:
     ansi:
       enabled: detect #TODO implementing logging changes to support ansi colors

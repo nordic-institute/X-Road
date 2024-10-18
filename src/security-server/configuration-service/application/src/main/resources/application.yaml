@@ -10,3 +10,8 @@ spring:
     active: native
 server:
   port: 5580
+
+logging:
+  level:
+    ROOT: INFO
+    org.springframework: INFO

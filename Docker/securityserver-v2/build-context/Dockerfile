@@ -60,6 +60,10 @@ RUN mkdir /var/log/xroad && \
     chown -R xroad:xroad /var/tmp/xroad/ && \
     chown -R xroad:xroad /etc/xroad
 
+#Set default environment variables
+ENV XROAD_DEPLOYMENT_TYPE=containerized
+ENV XROAD_CONFIG_SERVER_ENABLED=true
+
 USER xroad
 
 CMD ["/opt/app/entrypoint.sh"]

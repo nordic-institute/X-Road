@@ -1,0 +1,14 @@
+plugins {
+    id 'java-library'
+}
+
+dependencies {
+    api(platform(libs.springCloud.bom))
+    api(platform(libs.springBoot.bom))
+
+    api(project(':common:common-core'))
+
+    api("org.springframework.boot:spring-boot-starter-web")
+    api("org.springframework.cloud:spring-cloud-config-client")
+    api("org.springframework.boot:spring-boot-starter-actuator")
+}

@@ -2,18 +2,6 @@
     <property name="XRD_FILE_LOG_PATTERN" value="%d{yyyy-MM-dd'T'HH:mm:ss.SSSXXX} [%thread] %-5level %logger{36} - %msg%n"/>
     <property name="logOutputPath" value="/var/log/xroad"/>
 
-    <appender name="FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
-        <file>${logOutputPath}/proxy.log</file>
-        <rollingPolicy class="ch.qos.logback.core.rolling.SizeAndTimeBasedRollingPolicy">
-            <fileNamePattern>${logOutputPath}/proxy.%d{yyyy-MM-dd}.%i.log.zip</fileNamePattern>
-            <maxFileSize>100MB</maxFileSize>
-        </rollingPolicy>
-        <encoder>
-            <pattern>${XRD_FILE_LOG_PATTERN}</pattern>
-            <charset>UTF-8</charset>
-        </encoder>
-    </appender>
-
     <appender name="clientproxy-access-log" class="ch.qos.logback.core.rolling.RollingFileAppender">
         <file>${logOutputPath}/clientproxy_access.log</file>
         <rollingPolicy class="ch.qos.logback.core.rolling.SizeAndTimeBasedRollingPolicy">
@@ -46,5 +34,4 @@
         <appender-ref ref="serverproxy-access-log"/>
     </logger>
 
-    <logger name="ee.ria.xroad" level="INFO"/>
 </included>

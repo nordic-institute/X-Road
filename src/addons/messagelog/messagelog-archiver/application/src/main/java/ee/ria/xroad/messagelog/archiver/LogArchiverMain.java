@@ -26,13 +26,9 @@
  */
 package ee.ria.xroad.messagelog.archiver;
 
-import ee.ria.xroad.common.SystemPropertySource;
-import ee.ria.xroad.common.Version;
-
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.boot.WebApplicationType;
+import org.niis.xroad.bootstrap.XrdSpringServiceBuilder;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
-import org.springframework.boot.builder.SpringApplicationBuilder;
 
 @Slf4j
 @SpringBootApplication
@@ -40,20 +36,9 @@ public class LogArchiverMain {
     private static final String APP_NAME = "MessageLogArchiver";
 
     public static void main(String[] args) {
-        var startTime = System.currentTimeMillis();
-        Version.outputVersionInfo(APP_NAME);
-        log.info("Starting {} ({})...", APP_NAME, Version.XROAD_VERSION);
-
-        new SpringApplicationBuilder(LogArchiverMain.class, LogArchiverConfig.class)
-                .profiles("group-ee")//TODO load dynamically
-                .initializers(applicationContext -> {
-                    log.info("Setting property source to Spring environment..");
-                    SystemPropertySource.setEnvironment(applicationContext.getEnvironment());
-                })
-                .web(WebApplicationType.NONE)
+        XrdSpringServiceBuilder.newApplicationBuilder(APP_NAME, LogArchiverMain.class, LogArchiverConfig.class)
                 .build()
                 .run(args);
-        log.info("{} started in {} ms", APP_NAME, System.currentTimeMillis() - startTime);
     }
 
 }

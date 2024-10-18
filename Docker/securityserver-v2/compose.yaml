@@ -7,6 +7,8 @@ services:
       - POSTGRES_DB=xroad
     networks:
       - xrd-ss-network
+#    volumes: TODO not required for now
+#        - db-volume:/var/lib/postgresql/data
   db-init:
     image: liquibase:4.29 #TODO probably release standalone image with embedded changelog
     volumes:
@@ -29,17 +31,14 @@ services:
       - xrd-ss-network
     volumes:
       - ./config:/etc/xroad/conf.d
-    healthcheck: # TODO add actuator health check
-      interval: 5s
+    healthcheck:
+      interval: 3s
       retries: 40
-      test: [ "CMD", "curl", "-f", "-k", "http://localhost:5580/dummy/dummy" ]
+      test: [ "CMD", "curl", "-f", "-k", "http://localhost:5580/actuator/health" ]
   confclient:
     image: xroad-ss-confclient:latest
     environment:
-      - XROAD_TOKEN_PIN=Secret1234
-      - SIGNER_JMX_PORT=4398
-      - XROAD_ENV=security-server
-      - XRD_CONFIG_SERVER_URI=http://config:5580
+      - XROAD_CONFIG_SERVER_URI=http://config:5580
     healthcheck:
       interval: 5s
       retries: 40
@@ -55,10 +54,7 @@ services:
   signer:
     image: xroad-ss-signer:latest
     environment:
-      - XROAD_TOKEN_PIN=Secret1234
-      - SIGNER_JMX_PORT=4398
-      - XROAD_ENV=security-server
-      - XRD_CONFIG_SERVER_URI=http://config:5580
+      - XROAD_CONFIG_SERVER_URI=http://config:5580
     volumes:
       - ./temp-mount:/opt/app/mount
       - ./temp-mount-xroad:/etc/xroad
@@ -67,6 +63,7 @@ services:
       retries: 40
       test: [ "CMD", "curl", "-f", "-k",  "http://localhost:8080/actuator/health" ]
     networks:
+      - xroad-network
       - xrd-ss-network
     depends_on:
       db-init:
@@ -78,10 +75,7 @@ services:
   proxy:
     image: xroad-ss-proxy:latest
     environment:
-      - XROAD_TOKEN_PIN=Secret1234
-      - SIGNER_JMX_PORT=4398
-      - XROAD_ENV=security-server
-      - XRD_CONFIG_SERVER_URI=http://config:5580
+      - XROAD_CONFIG_SERVER_URI=http://config:5580
     volumes:
       - ./temp-mount:/opt/app/mount
       - ./temp-mount-xroad:/etc/xroad
@@ -100,10 +94,7 @@ services:
   ui:
     image: xroad-ss-ui:latest
     environment:
-      - XROAD_TOKEN_PIN=Secret1234
-      - SIGNER_JMX_PORT=4398
-      - XROAD_ENV=security-server
-      - XRD_CONFIG_SERVER_URI=http://config:5580
+      - XROAD_CONFIG_SERVER_URI=http://config:5580
     volumes:
       - ./temp-mount:/opt/app/mount
       - ./temp-mount-xroad:/etc/xroad
@@ -126,7 +117,6 @@ services:
 
 
 volumes:
-  ca-volume:
   db-volume:
 networks:
   xroad-network:

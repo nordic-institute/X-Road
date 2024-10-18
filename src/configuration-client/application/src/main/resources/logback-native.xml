@@ -1,20 +1,9 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 <configuration>
+    <property name="LOG_FILENAME" value="configuration_client"/>
+
     <include resource="org/springframework/boot/logging/logback/defaults.xml"/>
-
-    <property name="logOutputPath" value="/var/log/xroad"/>
-
-    <appender name="FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
-        <file>${logOutputPath}/configuration_client.log</file>
-        <rollingPolicy class="ch.qos.logback.core.rolling.SizeAndTimeBasedRollingPolicy">
-            <fileNamePattern>${logOutputPath}/configuration_client.%d{yyyy-MM-dd}.%i.log.zip</fileNamePattern>
-            <maxFileSize>100MB</maxFileSize>
-        </rollingPolicy>
-        <encoder>
-            <pattern>%d{"yyyy-MM-dd'T'HH:mm:ss.SSSXXX"} [%thread] %-5level %logger{36} - %msg%n</pattern>
-            <charset>UTF-8</charset>
-        </encoder>
-    </appender>
+    <include resource="logback-xrd-base.xml"/>
 
     <root level="INFO">
         <appender-ref ref="FILE"/>

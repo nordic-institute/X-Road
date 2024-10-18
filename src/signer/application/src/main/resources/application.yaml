@@ -1,10 +1,6 @@
 spring:
   application:
     name: signer
-  cloud:
-    config:
-      enabled: false
-
   output:
     ansi:
       enabled: detect #TODO implementing logging changes to support ansi colors
@@ -20,3 +16,8 @@ xroad:
     csr-signature-digest-algorithm: SHA-256
     enforce-token-pin-policy: false
     ocsp-cache-path: /var/cache/xroad
+
+logging:
+  level:
+    ee.ria.xroad.signer.tokenmanager.TokenManager: OFF # TokenManager is very verbose
+

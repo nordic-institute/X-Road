@@ -25,25 +25,26 @@
  */
 package org.niis.xroad.securityserver.restapi;
 
-import ee.ria.xroad.common.SystemPropertySource;
-import ee.ria.xroad.common.Version;
 import ee.ria.xroad.common.conf.globalconf.GlobalConfBeanConfig;
 import ee.ria.xroad.common.conf.serverconf.ServerConfBeanConfig;
 
+import lombok.NoArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.niis.xroad.bootstrap.XrdSpringServiceBuilder;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
-import org.springframework.boot.builder.SpringApplicationBuilder;
 import org.springframework.boot.web.servlet.ServletComponentScan;
 import org.springframework.cache.annotation.EnableCaching;
+import org.springframework.context.annotation.Import;
 
 /**
  * main spring boot application.
  */
 @Slf4j
 @ServletComponentScan
-@SpringBootApplication(scanBasePackages = {"org.niis.xroad.securityserver.restapi", "org.niis.xroad.restapi", "org.niis.xroad.common.acme"})
 @EnableCaching
-@SuppressWarnings("checkstyle:HideUtilityClassConstructor")
+@Import({GlobalConfBeanConfig.class, ServerConfBeanConfig.class})
+@SpringBootApplication(scanBasePackages = {"org.niis.xroad.securityserver.restapi", "org.niis.xroad.restapi", "org.niis.xroad.common.acme"})
+@NoArgsConstructor
 public class RestApiApplication {
 
     private static final String APP_NAME = "xroad-proxy-ui-api";
@@ -52,16 +53,7 @@ public class RestApiApplication {
      * start application
      */
     public static void main(String[] args) {
-        Version.outputVersionInfo(APP_NAME);
-
-        new SpringApplicationBuilder(RestApiApplication.class,
-                GlobalConfBeanConfig.class,
-                ServerConfBeanConfig.class)
-                .profiles("containerized", "override", "group-ee")//TODO load dynamically
-                .initializers(applicationContext -> {
-                    log.info("Setting property source to Spring environment..");
-                    SystemPropertySource.setEnvironment(applicationContext.getEnvironment());
-                })
+        XrdSpringServiceBuilder.newApplicationBuilder(APP_NAME, RestApiApplication.class)
                 .build()
                 .run(args);
     }

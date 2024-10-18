@@ -1,5 +1,6 @@
 /*
  * The MIT License
+ *
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
@@ -23,22 +24,13 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.confclient;
+package org.niis.xroad.bootstrap;
 
-import lombok.extern.slf4j.Slf4j;
-import org.niis.xroad.bootstrap.XrdSpringServiceBuilder;
-import org.niis.xroad.confclient.config.ConfClientRootConfig;
-import org.springframework.boot.autoconfigure.SpringBootApplication;
+import lombok.experimental.UtilityClass;
 
-@Slf4j
-@SpringBootApplication
-public class ConfClientDaemonMain {
-    static final String APP_NAME = "xroad-confclient";
-
-    public static void main(String[] args) {
-        XrdSpringServiceBuilder.newApplicationBuilder(APP_NAME, ConfClientDaemonMain.class, ConfClientRootConfig.class)
-                .build()
-                .run(args);
-    }
-
+@UtilityClass
+public class XrdSpringProfiles {
+    static final String OVERRIDE = "override";
+    static final String NATIVE = "native";
+    static final String CONTAINERIZED = "containerized";
 }

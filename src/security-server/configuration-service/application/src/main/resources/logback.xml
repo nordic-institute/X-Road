@@ -22,5 +22,4 @@
         <appender-ref ref="FILE"/>
     </root>
 
-    <logger name="org.springframework" level="INFO"/>
 </configuration>

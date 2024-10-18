@@ -1,7 +1,10 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 <configuration>
+    <property name="LOG_FILENAME" value="proxy"/>
+
     <include resource="org/springframework/boot/logging/logback/defaults.xml"/>
-    <include resource="logback-base.xml"/>
+    <include resource="logback-xrd-base.xml"/>
+    <include resource="logback-access-logs.xml"/>
 
     <root level="INFO">
         <appender-ref ref="FILE"/>

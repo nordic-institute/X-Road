@@ -11,8 +11,6 @@ sourceSets {
 }
 
 dependencies {
-    implementation(platform(libs.springBoot.bom))
-
     implementation(project(':proxy:proxy-rpc-client'))
 
     implementation(project(':common:common-jetty'))
@@ -28,6 +26,7 @@ dependencies {
     implementation project(':security-server:edc-client')
     implementation project(':security-server:edc:xroad-edc-security')
 
+    implementation("org.springframework.boot:spring-boot-starter")
     implementation("com.fasterxml.jackson.dataformat:jackson-dataformat-yaml")
     implementation(libs.caffeine)
     implementation(libs.jetty.xml)

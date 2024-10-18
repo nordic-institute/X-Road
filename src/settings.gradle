@@ -29,6 +29,7 @@ include 'common:common-core'
 include 'common:common-jetty'
 include 'common:common-message'
 include 'common:common-scheduler'
+include 'common:common-service-bootstrap'
 
 // Main projects
 include "proxy"

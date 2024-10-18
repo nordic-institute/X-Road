@@ -26,14 +26,11 @@
  */
 package ee.ria.xroad.opmonitordaemon;
 
-import ee.ria.xroad.common.SystemPropertySource;
-import ee.ria.xroad.common.Version;
 import ee.ria.xroad.opmonitordaemon.config.OpMonitorDaemonRootConfig;
 
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.boot.WebApplicationType;
+import org.niis.xroad.bootstrap.XrdSpringServiceBuilder;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
-import org.springframework.boot.builder.SpringApplicationBuilder;
 
 /**
  * The main class of the operational monitoring daemon.
@@ -44,15 +41,7 @@ public class OpMonitorDaemonMain {
     private static final String APP_NAME = "xroad-opmonitor";
 
     public static void main(String[] args) {
-        Version.outputVersionInfo(APP_NAME);
-
-        new SpringApplicationBuilder(OpMonitorDaemonMain.class, OpMonitorDaemonRootConfig.class)
-                .profiles("group-ee")//TODO load dynamically
-                .initializers(applicationContext -> {
-                    log.info("Setting property source to Spring environment..");
-                    SystemPropertySource.setEnvironment(applicationContext.getEnvironment());
-                })
-                .web(WebApplicationType.NONE)
+        XrdSpringServiceBuilder.newApplicationBuilder(APP_NAME, OpMonitorDaemonMain.class, OpMonitorDaemonRootConfig.class)
                 .build()
                 .run(args);
     }
