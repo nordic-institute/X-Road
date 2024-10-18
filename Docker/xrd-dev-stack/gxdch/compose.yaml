@@ -6,9 +6,9 @@ services:
 #      - 27017:27017
     volumes:
       - data:/data/db
-      - ./gxdch/gx-registry-mongo/mongo_init.js:/docker-entrypoint-initdb.d/mongo_init.js
+      - ./gx-registry-mongo/mongo_init.js:/docker-entrypoint-initdb.d/mongo_init.js
     env_file:
-      - gxdch/gx-registry-mongo/.env
+      - gx-registry-mongo/.env
     networks:
       - xroad-network
   gx-registry:
@@ -18,9 +18,9 @@ services:
 #      - 3000:3000
     volumes:
       - ipfs-data:/data/ipfs
-      - ./gxdch/gx-registry/ipfs-data/registry:/data/ipfs/registry
+      - ./gx-registry/ipfs-data/registry:/data/ipfs/registry
     env_file:
-      - gxdch/gx-registry/.env
+      - gx-registry/.env
     networks:
       - xroad-network
     depends_on:
@@ -43,7 +43,7 @@ services:
 #    ports:
 #      - 3001:3000
     env_file:
-      - gxdch/gx-notary/.env
+      - gx-notary/.env
     networks:
       - xroad-network
 
@@ -53,7 +53,7 @@ services:
 #    ports:
 #      - 3002:3000
     env_file:
-      - gxdch/gx-compliance/.env
+      - gx-compliance/.env
     networks:
       - xroad-network
   gx-compliance-db:
@@ -68,10 +68,10 @@ services:
     image: nginx:latest
     container_name: gxdch
     volumes:
-      - ./gxdch/gx-gateway/nginx.conf:/etc/nginx/nginx.conf
-      - ./gxdch/gx-gateway/ssl/nginx.crt:/etc/ssl/certs/nginx.crt
-      - ./gxdch/gx-gateway/ssl/nginx.key:/etc/ssl/certs/nginx.key
-      - ./gxdch/gx-gateway/static:/var/www/gx
+      - ./gx-gateway/nginx.conf:/etc/nginx/nginx.conf
+      - ./gx-gateway/ssl/nginx.crt:/etc/ssl/certs/nginx.crt
+      - ./gx-gateway/ssl/nginx.key:/etc/ssl/certs/nginx.key
+      - ./gx-gateway/static:/var/www/gx
 #    ports:
 #      - 3443:443
     networks:
@@ -81,6 +81,10 @@ services:
       - gx-notary
       - gx-compliance
 
+networks:
+  xroad-network:
+    name: xroad-network
+    external: true
 
 volumes:
   data:
