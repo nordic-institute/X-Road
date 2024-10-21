@@ -6,22 +6,22 @@
 # protoc { artifact = libs.protobuf.protoc.get().toString() } where just using 'artifact = libs.protobuf.protoc' causes error
 
 metrics = "4.2.27"
-jetty = "12.0.7"
+jetty = "12.0.14"
 jaxb = "4.0.5"
-hibernate = "6.5.2.Final"
-mapstruct = "1.6.0"
+hibernate = "6.5.3.Final"
+mapstruct = "1.6.2"
 jackson = "2.17.2"
-mockito = "5.13.0"
-springBoot = "3.3.3"
-junitJupiter = "5.11.0"
+mockito = "5.14.2"
+springBoot = "3.3.4"
+junitJupiter = "5.11.2"
 xmlUnit = "2.10.0"
 bouncyCastle = "1.78.1"
 slf4j = "2.0.16"
 testAutomationFramework = "0.2.18"
-protoc = "3.25.4"
-grpc = "1.66.0"
+protoc = "4.28.2"
+grpc = "1.67.1"
 swaggerParser = "2.1.22"
-logback = "1.5.7"
+logback = "1.5.11"
 logbackAccess = "2.0.3"
 apacheCxf = "4.0.5"
 archUnitPlugin = "4.0.0"
@@ -131,7 +131,7 @@ assertj-core = { module = "org.assertj:assertj-core", version = "3.26.3" }
 wiremock-standalone = { module = "org.wiremock:wiremock-standalone", version = "3.9.1" }
 postgresql = { module = "org.postgresql:postgresql", version = "42.7.4" }
 hsqldb = { module = "org.hsqldb:hsqldb", version = "2.7.3" }
-liquibase-core = { module = "org.liquibase:liquibase-core", version = "4.29.1" }
+liquibase-core = { module = "org.liquibase:liquibase-core", version = "4.29.2" }
 xerces-impl = { module = "xerces:xercesImpl", version = "2.12.2" }
 feign-hc5 = { module = "io.github.openfeign:feign-hc5", version = "13.3" }
 guava = { module = "com.google.guava:guava", version = "33.0.0-jre" }
@@ -153,7 +153,7 @@ restAssured = { module = "io.rest-assured:rest-assured", version = "5.5.0" }
 cliche = { module = "com.googlecode.clichemaven:cliche", version = "110413" }
 acme4j = { module = "org.shredzone.acme4j:acme4j-client", version = "3.4.0" }
 jsonUnit-assertj = { module = "net.javacrumbs.json-unit:json-unit-assertj", version = "3.4.1" }
-opentelemetry-instrumentation-annotations = { module = "io.opentelemetry.instrumentation:opentelemetry-instrumentation-annotations", version = "2.7.0" }
+opentelemetry-instrumentation-annotations = { module = "io.opentelemetry.instrumentation:opentelemetry-instrumentation-annotations", version = "2.9.0" }
 archUnit-plugin-core = { module = "com.societegenerale.commons:arch-unit-build-plugin-core", version.ref = "archUnitPlugin" }
 
 [bundles]
