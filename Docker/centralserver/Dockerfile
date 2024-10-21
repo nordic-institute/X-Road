@@ -7,7 +7,6 @@ FROM ubuntu:24.04 AS base
 ENV DEBIAN_FRONTEND=noninteractive
 
 RUN apt-get -qq update \
-  && apt-get -qq upgrade \
   && apt-get -qq install --no-install-recommends sudo ca-certificates gnupg supervisor net-tools locales openjdk-21-jre-headless  \
     rlwrap ca-certificates-java crudini adduser expect curl rsyslog dpkg-dev nano \
   && echo "LC_ALL=en_US.UTF-8" >>/etc/environment \
