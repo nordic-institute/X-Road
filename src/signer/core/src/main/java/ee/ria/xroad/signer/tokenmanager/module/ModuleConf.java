@@ -96,8 +96,6 @@ public final class ModuleConf {
     private static final String PUB_KEY_ATTRIBUTE_WRAP_PARAM = "pub_key_attribute_wrap";
     private static final String PUB_KEY_ATTRIBUTE_TRUSTED_PARAM = "pub_key_attribute_trusted";
     private static final String PUB_KEY_ATTRIBUTE_ALLOWED_MECHANISMS_PARAM = "pub_key_attribute_allowed_mechanisms";
-    private static final String RSA_PUB_KEY_ATTRIBUTE_ALLOWED_MECHANISMS_PARAM = "rsa_pub_key_attribute_allowed_mechanisms";
-    private static final String EC_PUB_KEY_ATTRIBUTE_ALLOWED_MECHANISMS_PARAM = "ec_pub_key_attribute_allowed_mechanisms";
     private static final String PRIV_KEY_ATTRIBUTE_SENSITIVE_PARAM = "priv_key_attribute_sensitive";
     private static final String PRIV_KEY_ATTRIBUTE_DECRYPT_PARAM = "priv_key_attribute_decrypt";
     private static final String PRIV_KEY_ATTRIBUTE_SIGN_PARAM = "priv_key_attribute_sign";
@@ -108,8 +106,6 @@ public final class ModuleConf {
     private static final String PRIV_KEY_ATTRIBUTE_NEVER_EXTRACTABLE_PARAM = "priv_key_attribute_never_extractable";
     private static final String PRIV_KEY_ATTRIBUTE_WRAP_WITH_TRUSTED_PARAM = "priv_key_attribute_wrap_with_trusted";
     private static final String PRIV_KEY_ATTRIBUTE_ALLOWED_MECHANISMS_PARAM = "priv_key_attribute_allowed_mechanisms";
-    private static final String RSA_PRIV_KEY_ATTRIBUTE_ALLOWED_MECHANISMS_PARAM = "rsa_priv_key_attribute_allowed_mechanisms";
-    private static final String EC_PRIV_KEY_ATTRIBUTE_ALLOWED_MECHANISMS_PARAM = "ec_priv_key_attribute_allowed_mechanisms";
     private static final String SLOT_IDS_PARAM = "slot_ids";
 
     private static FileContentChangeChecker changeChecker = null;
@@ -332,8 +328,7 @@ public final class ModuleConf {
         attributes.setAlwaysSensitive(getBoolean(section, PRIV_KEY_ATTRIBUTE_ALWAYS_SENSITIVE_PARAM, null));
         attributes.setNeverExtractable(getBoolean(section, PRIV_KEY_ATTRIBUTE_NEVER_EXTRACTABLE_PARAM, null));
         attributes.setWrapWithTrusted(getBoolean(section, PRIV_KEY_ATTRIBUTE_WRAP_WITH_TRUSTED_PARAM, null));
-        attributes.setAllowedMechanisms(loadAllowedKeyUsageMechanisms(
-                section, PRIV_KEY_ATTRIBUTE_ALLOWED_MECHANISMS_PARAM));
+        attributes.setAllowedMechanisms(loadAllowedKeyUsageMechanisms(section, PRIV_KEY_ATTRIBUTE_ALLOWED_MECHANISMS_PARAM));
 
         return attributes;
     }
