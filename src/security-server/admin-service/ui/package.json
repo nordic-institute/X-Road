@@ -27,6 +27,6 @@
     "npm": "use-pnpm",
     "yarn": "use-pnpm",
     "node": ">=18 <=20",
-    "pnpm": ">=8"
+    "pnpm": ">=9"
   }
 }
