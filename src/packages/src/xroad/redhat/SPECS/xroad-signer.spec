@@ -56,7 +56,17 @@ cp -p %{srcdir}/default-configuration/signer-logback.xml %{buildroot}/etc/xroad/
 cp -p %{srcdir}/default-configuration/signer-console-logback.xml %{buildroot}/etc/xroad/conf.d/
 cp -p %{srcdir}/../../../signer/application/build/libs/signer-1.0.jar %{buildroot}/usr/share/xroad/jlib/
 cp -p %{srcdir}/../../../signer-console/build/libs/signer-console-1.0.jar %{buildroot}/usr/share/xroad/jlib/
-cp -p %{srcdir}/../../../libs/libpkcs11wrapper.so %{buildroot}/usr/share/xroad/lib/
+
+#Copy arch specific libs
+%ifarch x86_64
+cp -p %{srcdir}/../../../libs/pkcs11wrapper/amd64/libpkcs11wrapper.so %{buildroot}/usr/share/xroad/lib/
+cp -p %{srcdir}/../../../libs/passwordstore/amd64/libpasswordstore.so %{buildroot}/usr/share/xroad/lib/
+%endif
+
+%ifarch aarch64
+cp -p %{srcdir}/../../../libs/pkcs11wrapper/arm64/libpkcs11wrapper.so %{buildroot}/usr/share/xroad/lib/
+cp -p %{srcdir}/../../../libs/passwordstore/arm64/libpasswordstore.so %{buildroot}/usr/share/xroad/lib/
+%endif
 
 %clean
 rm -rf %{buildroot}
