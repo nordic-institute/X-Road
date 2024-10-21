@@ -54,8 +54,7 @@ public final class CriteriaBuilderUtil {
     }
 
     public static <T> Expression<String> castToString(Expression<T> expression) {
-        //TODO starting hibernate 6.6 use this: return ((JpaExpression<T>) expression).cast(String.class);
-        return ((JpaExpression<T>) expression).as(String.class);
+        return ((JpaExpression<T>) expression).cast(String.class);
     }
 
     private static String escapeSpecialChars(String s) {

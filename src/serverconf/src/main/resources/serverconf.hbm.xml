@@ -62,7 +62,7 @@
             <one-to-many class="AccessRightType"/>
         </bag>
 
-        <bag name="endpoint" access="field" cascade="all-delete-orphan">
+        <bag name="endpoint" access="field" cascade="all">
             <key column="client_id"/>
             <one-to-many class="EndpointType"/>
         </bag>
