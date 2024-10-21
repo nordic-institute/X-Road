@@ -1,9 +1,19 @@
-FROM ubuntu:22.04
+FROM ubuntu:24.04
 
-RUN apt-get update \
-  && apt-get -qq install --no-install-recommends python3 nginx supervisor bash openssl curl python3-pip uwsgi uwsgi-plugin-python3 \
-  # Setup TEST-CA with TSA and OCSP
-  && adduser --disabled-password ca && adduser --disabled-password --no-create-home --ingroup ca ocsp
+# ACME
+ARG A2C_VER=0.35
+ADD https://github.com/grindsa/acme2certifier/releases/download/$A2C_VER/acme2certifier_$A2C_VER-1_all.deb /tmp/
+
+ENV DEBIAN_FRONTEND=noninteractive
+
+RUN apt-get -qq update \
+  && apt-get -qq install --no-install-recommends  \
+    python3 nginx supervisor bash openssl curl python3-pip uwsgi uwsgi-plugin-python3 \
+  && apt -y install --no-install-recommends /tmp/acme2certifier_$A2C_VER-1_all.deb \
+  && apt-get -qq clean \
+  #Setup TEST-CA with TSA and OCSP
+  && useradd -m ca -U \
+  && useradd -G ca ocsp
 
 COPY build/home /home
 COPY build/etc /etc
@@ -26,11 +36,6 @@ RUN chown -R ca:ca /home/ca/CA \
 COPY files/ca-entrypoint.sh /root/entrypoint.sh
 COPY --chown=root:root files/testca.conf /etc/supervisor/conf.d/testca.conf
 
-# ACME
-ARG A2C_VER=0.34
-ADD https://github.com/grindsa/acme2certifier/releases/download/$A2C_VER/acme2certifier_$A2C_VER-1_all.deb /tmp/
-RUN apt update
-RUN apt -y install /tmp/acme2certifier_$A2C_VER-1_all.deb
 RUN sed -i "s/run\/uwsgi\/acme.sock/var\/www\/acme2certifier\/acme.sock/g" /var/www/acme2certifier/examples/nginx/nginx_acme_srv.conf \
     && sed -i "s/80/8887/g" /var/www/acme2certifier/examples/nginx/nginx_acme_srv.conf \
     && cp /var/www/acme2certifier/examples/nginx/nginx_acme_srv.conf /etc/nginx/sites-available/acme_srv.conf \
