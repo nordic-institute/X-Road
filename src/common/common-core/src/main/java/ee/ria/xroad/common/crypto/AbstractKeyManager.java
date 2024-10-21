@@ -25,18 +25,18 @@
 package ee.ria.xroad.common.crypto;
 
 import ee.ria.xroad.common.crypto.identifier.KeyAlgorithm;
+import ee.ria.xroad.common.crypto.identifier.Providers;
 
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
-import org.bouncycastle.jce.provider.BouncyCastleProvider;
 
 import java.security.KeyFactory;
 import java.security.PublicKey;
-import java.security.Security;
 import java.security.spec.InvalidKeySpecException;
 import java.security.spec.KeySpec;
 import java.security.spec.X509EncodedKeySpec;
 
+import static ee.ria.xroad.common.crypto.identifier.Providers.BOUNCY_CASTLE;
 import static ee.ria.xroad.common.util.EncoderUtils.decodeBase64;
 import static lombok.AccessLevel.PRIVATE;
 import static lombok.AccessLevel.PROTECTED;
@@ -45,7 +45,7 @@ import static lombok.AccessLevel.PROTECTED;
 public abstract class AbstractKeyManager implements KeyManager {
 
     static {
-        Security.addProvider(new BouncyCastleProvider());
+        Providers.init();
     }
 
     /** Holds the RSA key factory instance. */
@@ -56,7 +56,7 @@ public abstract class AbstractKeyManager implements KeyManager {
     protected AbstractKeyManager(KeyAlgorithm keyAlgorithm) {
         this.keyAlgorithm = keyAlgorithm;
         try {
-            this.keyFactory = KeyFactory.getInstance(keyAlgorithm.name(), "BC");
+            this.keyFactory = KeyFactory.getInstance(keyAlgorithm.name(), BOUNCY_CASTLE);
         } catch (Exception e) {
             throw new CryptoException("Failed to get key factory instance for : " + keyAlgorithm, e);
         }

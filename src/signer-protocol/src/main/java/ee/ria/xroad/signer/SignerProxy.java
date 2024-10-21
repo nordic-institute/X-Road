@@ -25,6 +25,7 @@
  */
 package ee.ria.xroad.signer;
 
+import ee.ria.xroad.common.SystemProperties;
 import ee.ria.xroad.common.crypto.identifier.KeyAlgorithm;
 import ee.ria.xroad.common.crypto.identifier.SignAlgorithm;
 import ee.ria.xroad.common.crypto.identifier.SignMechanism;
@@ -272,7 +273,7 @@ public final class SignerProxy {
      * @throws Exception if any errors occur
      */
     public static KeyInfo generateKey(String tokenId, String keyLabel) throws Exception {
-        return generateKey(tokenId, keyLabel, KeyAlgorithm.RSA);
+        return generateKey(tokenId, keyLabel, SystemProperties.getSignerDefaultKeyAlgorithm());
     }
 
     /**

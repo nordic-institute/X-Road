@@ -28,6 +28,7 @@ import ee.ria.xroad.common.SystemProperties;
 import ee.ria.xroad.common.crypto.identifier.KeyAlgorithm;
 import ee.ria.xroad.common.crypto.identifier.SignAlgorithm;
 
+import org.apache.commons.lang3.StringUtils;
 import org.bouncycastle.asn1.ASN1ObjectIdentifier;
 import org.bouncycastle.asn1.ASN1Primitive;
 import org.bouncycastle.asn1.DEROctetString;
@@ -39,8 +40,9 @@ import java.io.IOException;
 import java.security.KeyPair;
 import java.security.KeyPairGenerator;
 import java.security.SecureRandom;
-import java.security.spec.ECGenParameterSpec;
 import java.security.spec.InvalidKeySpecException;
+
+import static ee.ria.xroad.common.crypto.identifier.Providers.BOUNCY_CASTLE;
 
 public final class EcKeyManager extends AbstractKeyManager {
 
@@ -64,10 +66,18 @@ public final class EcKeyManager extends AbstractKeyManager {
 
     @Override
     public KeyPair generateKeyPair() throws Exception {
-        KeyPairGenerator keyPairGen = KeyPairGenerator.getInstance(cryptoAlgorithm().name());
+        KeyPairGenerator keyPairGen = KeyPairGenerator.getInstance(cryptoAlgorithm().name(), BOUNCY_CASTLE);
 
-        ECGenParameterSpec ecSpec = new ECGenParameterSpec(SystemProperties.getSignerKeyNamedCurve());
-        keyPairGen.initialize(ecSpec, new SecureRandom());
+        var spec = org.bouncycastle.jce.ECNamedCurveTable.getParameterSpec(SystemProperties.getSignerKeyNamedCurve());
+        if (spec == null) {
+            var supported = StringUtils.join(org.bouncycastle.jce.ECNamedCurveTable.getNames().asIterator(), ", ");
+            throw new CryptoException(
+                    "Named curve not found: %s, please on of supported: %s"
+                            .formatted(SystemProperties.getSignerKeyNamedCurve(), supported)
+            );
+        }
+
+        keyPairGen.initialize(spec, new SecureRandom());
 
         return keyPairGen.generateKeyPair();
     }

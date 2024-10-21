@@ -84,6 +84,7 @@ import static ee.ria.xroad.common.ErrorCodes.X_TOKEN_READONLY;
 import static ee.ria.xroad.common.ErrorCodes.X_UNSUPPORTED_SIGN_ALGORITHM;
 import static ee.ria.xroad.common.ErrorCodes.translateException;
 import static ee.ria.xroad.common.crypto.Digests.calculateDigest;
+import static ee.ria.xroad.common.crypto.identifier.Providers.BOUNCY_CASTLE;
 import static ee.ria.xroad.common.util.EncoderUtils.encodeBase64;
 import static ee.ria.xroad.signer.tokenmanager.TokenManager.addCert;
 import static ee.ria.xroad.signer.tokenmanager.TokenManager.addKey;
@@ -407,7 +408,7 @@ public class HardwareTokenWorker extends AbstractTokenWorker {
         X509CertificateHolder certHolder = certificateBuilder.build(contentSigner);
         X509Certificate signedCert = new JcaX509CertificateConverter().getCertificate(certHolder);
 
-        CertificateFactory certificateFactory = CertificateFactory.getInstance("X.509", "BC");
+        CertificateFactory certificateFactory = CertificateFactory.getInstance("X.509", BOUNCY_CASTLE);
         CertPath certPath = certificateFactory.generateCertPath(Arrays.asList(signedCert, issuerX509Certificate));
         return certPath.getEncoded("PEM");
     }
@@ -661,7 +662,7 @@ public class HardwareTokenWorker extends AbstractTokenWorker {
 
             log.trace("Private key '{}' added to token '{}'", keyId, getWorkerId());
 
-            if (!hasKey(keyId)) {
+            if (isKeyMissing(keyId)) {
                 addKey(tokenId, keyId, null, resolveSignMechanism(KeyAlgorithm.RSA));
             } else {
                 log.debug("Private key ({}) found in token '{}'", keyId, getWorkerId());

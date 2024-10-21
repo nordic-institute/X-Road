@@ -105,7 +105,7 @@ public abstract class AbstractTokenWorker implements TokenWorker, WorkerWithLife
 
         log.debug("Generated new key with id '{}'", keyId);
 
-        if (!hasKey(keyId)) {
+        if (isKeyMissing(keyId)) {
             var signMechanism = resolveSignMechanism(KeyAlgorithm.valueOf(message.getAlgorithm()));
             TokenManager.addKey(tokenId, keyId, result.publicKeyBase64(), signMechanism);
             TokenManager.setKeyAvailable(keyId, true);
@@ -170,8 +170,8 @@ public abstract class AbstractTokenWorker implements TokenWorker, WorkerWithLife
         setTokenAvailable(tokenId, false);
     }
 
-    protected boolean hasKey(String keyId) {
-        return TokenManager.getKeyInfo(keyId) != null;
+    protected boolean isKeyMissing(String keyId) {
+        return TokenManager.getKeyInfo(keyId) == null;
     }
 
     protected boolean isPinStored() {

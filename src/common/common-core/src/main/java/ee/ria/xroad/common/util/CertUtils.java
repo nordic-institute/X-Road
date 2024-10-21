@@ -28,6 +28,7 @@ package ee.ria.xroad.common.util;
 import ee.ria.xroad.common.CodedException;
 import ee.ria.xroad.common.ErrorCodes;
 import ee.ria.xroad.common.conf.InternalSSLKey;
+import ee.ria.xroad.common.crypto.identifier.Providers;
 import ee.ria.xroad.common.crypto.identifier.SignAlgorithm;
 
 import lombok.extern.slf4j.Slf4j;
@@ -52,7 +53,6 @@ import org.bouncycastle.cert.CertIOException;
 import org.bouncycastle.cert.X509CertificateHolder;
 import org.bouncycastle.cert.jcajce.JcaX509CertificateConverter;
 import org.bouncycastle.cert.jcajce.JcaX509v3CertificateBuilder;
-import org.bouncycastle.jce.provider.BouncyCastleProvider;
 import org.bouncycastle.openssl.PEMParser;
 import org.bouncycastle.openssl.jcajce.JcaPEMWriter;
 import org.bouncycastle.operator.ContentSigner;
@@ -81,7 +81,6 @@ import java.security.KeyStore;
 import java.security.NoSuchAlgorithmException;
 import java.security.PrivateKey;
 import java.security.PublicKey;
-import java.security.Security;
 import java.security.cert.Certificate;
 import java.security.cert.CertificateEncodingException;
 import java.security.cert.CertificateException;
@@ -110,6 +109,10 @@ import static ee.ria.xroad.common.util.CryptoUtils.toDERObject;
  */
 @Slf4j
 public final class CertUtils {
+
+    static {
+        Providers.init();
+    }
 
     private static final int DIGITAL_SIGNATURE_IDX = 0;
     private static final int KEY_ENCIPHERMENT_IDX = 2;
@@ -497,8 +500,6 @@ public final class CertUtils {
      * @throws Exception when error occurs
      */
     public static void createPkcs12(String filenameKey, byte[] certBytes, String filenameP12) throws Exception {
-        Security.addProvider(new BouncyCastleProvider());
-
         KeyPair keyPair = readKeyPairFromPemFile(filenameKey);
         PrivateKey privateKey = keyPair.getPrivate();
 

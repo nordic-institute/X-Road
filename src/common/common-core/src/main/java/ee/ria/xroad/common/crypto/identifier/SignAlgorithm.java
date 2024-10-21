@@ -27,9 +27,7 @@ package ee.ria.xroad.common.crypto.identifier;
 import ee.ria.xroad.common.crypto.UnknownAlgorithmException;
 
 import org.apache.commons.lang3.StringUtils;
-import org.bouncycastle.jce.provider.BouncyCastleProvider;
 
-import java.security.Security;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
@@ -159,7 +157,7 @@ public sealed interface SignAlgorithm {
         private final Map<Key, KnownSignAlgorithm> byDigestAndMechanism = new HashMap<>();
 
         private Index() {
-            Security.addProvider(new BouncyCastleProvider());
+            Providers.init();
         }
 
         private KnownSignAlgorithm create(String name, String uri, SignMechanism mechanism, DigestAlgorithm digest) {

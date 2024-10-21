@@ -81,6 +81,7 @@ import static ee.ria.xroad.common.ErrorCodes.X_TOKEN_PIN_POLICY_FAILURE;
 import static ee.ria.xroad.common.ErrorCodes.X_UNSUPPORTED_SIGN_ALGORITHM;
 import static ee.ria.xroad.common.ErrorCodes.translateException;
 import static ee.ria.xroad.common.crypto.identifier.KeyAlgorithm.RSA;
+import static ee.ria.xroad.common.crypto.identifier.Providers.BOUNCY_CASTLE;
 import static ee.ria.xroad.common.util.CryptoUtils.loadPkcs12KeyStore;
 import static ee.ria.xroad.common.util.EncoderUtils.encodeBase64;
 import static ee.ria.xroad.signer.tokenmanager.TokenManager.addKey;
@@ -241,7 +242,7 @@ public class SoftwareTokenWorker extends AbstractTokenWorker {
 
 
         SignAlgorithm signAlgorithm = KeyManagers.getFor(keyAlgorithm).getSoftwareTokenSignAlgorithm();
-        Signature signature = Signature.getInstance(signAlgorithm.name());
+        Signature signature = Signature.getInstance(signAlgorithm.name(), BOUNCY_CASTLE);
         signature.initSign(key);
         signature.update(data);
 
@@ -281,7 +282,7 @@ public class SoftwareTokenWorker extends AbstractTokenWorker {
         ContentSigner signer = new JcaContentSignerBuilder(signatureAlgorithmId.name()).build(privateKey);
         X509CertificateHolder certHolder = certificateBuilder.build(signer);
         X509Certificate signedCert = new JcaX509CertificateConverter().getCertificate(certHolder);
-        CertificateFactory certificateFactory = CertificateFactory.getInstance("X.509", "BC");
+        CertificateFactory certificateFactory = CertificateFactory.getInstance("X.509", BOUNCY_CASTLE);
         CertPath certPath = certificateFactory.generateCertPath(Arrays.asList(signedCert, issuerX509Certificate));
         return certPath.getEncoded("PEM");
     }
@@ -333,7 +334,7 @@ public class SoftwareTokenWorker extends AbstractTokenWorker {
         log.debug("Searching for new software keys from '{}'", getKeyDir());
 
         for (String keyId : listKeysOnDisk()) {
-            if (!hasKey(keyId)) {
+            if (isKeyMissing(keyId)) {
                 try {
                     Optional<KeyData> publicKey = isPinStored() ? loadPublicKeyBase64(keyId) : Optional.empty();
 

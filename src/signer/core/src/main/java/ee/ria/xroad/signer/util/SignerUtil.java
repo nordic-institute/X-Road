@@ -108,10 +108,9 @@ public final class SignerUtil {
 
         X500Name subject = new X500Name("CN=" + commonName);
 
-        JcaX509v3CertificateBuilder builder =
-                new JcaX509v3CertificateBuilder(
-                        subject, BigInteger.ONE, notBefore, notAfter,
-                        subject, keyPair.getPublic());
+        var builder = new JcaX509v3CertificateBuilder(
+                subject, BigInteger.ONE, notBefore, notAfter,
+                subject, keyPair.getPublic());
 
         X509CertificateHolder holder = builder.build(signer);
         return new JcaX509CertificateConverter().getCertificate(holder);
