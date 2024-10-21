@@ -49,6 +49,7 @@ import org.niis.xroad.securityserver.restapi.util.CertificateTestUtils;
 import org.niis.xroad.securityserver.restapi.util.TestUtils;
 import org.niis.xroad.securityserver.restapi.util.TokenTestUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.test.annotation.DirtiesContext;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -74,6 +75,7 @@ import static org.mockito.Mockito.when;
  * Test GlobalConfChecker
  */
 @Slf4j
+@DirtiesContext(classMode = DirtiesContext.ClassMode.BEFORE_CLASS)
 public class GlobalConfCheckerTest extends AbstractFacadeMockingTestContext {
 
     @Autowired
