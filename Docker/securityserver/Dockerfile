@@ -7,7 +7,6 @@ FROM ubuntu:24.04 AS base
 ENV DEBIAN_FRONTEND=noninteractive
 
 RUN apt-get -qq update \
-    && apt-get -qq -y upgrade \
     && apt-get -qq -y install --no-install-recommends \
         ca-certificates gnupg supervisor net-tools iproute2 locales \
         openjdk-21-jre-headless rlwrap ca-certificates-java \
