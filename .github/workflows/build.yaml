@@ -170,9 +170,9 @@ jobs:
         if: always()
         with:
           gh_pages: allure-reports
-          subfolder: src/central-server/admin-service/ui-system-test
+          subfolder: central-server-ui-tests
           allure_history: allure-history
-          allure_results: build/allure-results
+          allure_results: src/central-server/admin-service/ui-system-test/build/allure-results
 
       - name: Publish test report
         uses: peaceiris/actions-gh-pages@v4
@@ -190,7 +190,7 @@ jobs:
               issue_number: context.issue.number,
               owner: context.repo.owner,
               repo: context.repo.repo,
-              body: 'Central Server Allure report: https://nordic-institute.github.io/X-Road/src/central-server/admin-service/ui-system-test/${{ github.run_number }}'
+              body: 'Central Server Allure report: https://nordic-institute.github.io/X-Road/central-server-ui-tests/${{ github.run_number }}'
             })
   RunSSSystemTests:
     name: Run Security Server system tests
