@@ -41,7 +41,8 @@ import org.springframework.context.annotation.Import;
 @Import({GlobalConfBeanConfig.class,
         ServerConfBeanConfig.class})
 @ServletComponentScan
-@SpringBootApplication(scanBasePackages = {"org.niis.xroad.securityserver.restapi", "org.niis.xroad.restapi", "org.niis.xroad.common.acme"})
+@SpringBootApplication(scanBasePackages = {"org.niis.xroad.securityserver.restapi", "org.niis.xroad.restapi", "org.niis.xroad.common.acme",
+        "org.niis.xroad.common.mail"})
 @EnableCaching
 @SuppressWarnings("checkstyle:HideUtilityClassConstructor")
 public class RestApiApplication {

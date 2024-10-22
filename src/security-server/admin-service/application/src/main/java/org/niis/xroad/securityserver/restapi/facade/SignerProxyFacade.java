@@ -127,8 +127,8 @@ public class SignerProxyFacade implements InitializingBean, DisposableBean {
     /**
      * {@link SignerProxy#importCert(byte[], String, ClientId.Conf)}
      */
-    public String importCert(byte[] certBytes, String initialStatus, ClientId.Conf clientId) throws Exception {
-        return SignerProxy.importCert(certBytes, initialStatus, clientId);
+    public String importCert(byte[] certBytes, String initialStatus, ClientId.Conf clientId, boolean activate) throws Exception {
+        return SignerProxy.importCert(certBytes, initialStatus, clientId, activate);
     }
 
     /**

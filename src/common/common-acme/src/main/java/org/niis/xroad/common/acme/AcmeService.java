@@ -79,9 +79,11 @@ import java.util.Optional;
 import java.util.function.Supplier;
 
 import static ee.ria.xroad.common.util.CertUtils.createSelfSignedCertificate;
+import static org.apache.commons.lang3.StringUtils.isBlank;
 import static org.niis.xroad.common.acme.AcmeCustomSchema.XRD_ACME;
 import static org.niis.xroad.common.acme.AcmeCustomSchema.XRD_ACME_PROFILE_ID;
 import static org.niis.xroad.common.acme.AcmeDeviationMessage.ACCOUNT_CREATION_FAILURE;
+import static org.niis.xroad.common.acme.AcmeDeviationMessage.ACCOUNT_KEYSTORE_PASSWORD_MISSING;
 import static org.niis.xroad.common.acme.AcmeDeviationMessage.ACCOUNT_KEY_PAIR_ERROR;
 import static org.niis.xroad.common.acme.AcmeDeviationMessage.AUTHORIZATION_FAILURE;
 import static org.niis.xroad.common.acme.AcmeDeviationMessage.AUTHORIZATION_WAIT_FAILURE;
@@ -156,11 +158,15 @@ public final class AcmeService {
     private KeyPair getAccountKeyPair(String memberId) throws GeneralSecurityException, IOException, OperatorCreationException {
         File acmeKeystoreFile = new File(acmeAccountKeystorePath);
         KeyStore keyStore;
+        String storePassword = acmeProperties.getAccountKeystorePassword();
+        if (isBlank(storePassword)) {
+            throw new AcmeServiceException(ACCOUNT_KEYSTORE_PASSWORD_MISSING);
+        }
         if (acmeKeystoreFile.exists()) {
-            keyStore = CryptoUtils.loadPkcs12KeyStore(acmeKeystoreFile, null);
+            keyStore = CryptoUtils.loadPkcs12KeyStore(acmeKeystoreFile, storePassword.toCharArray());
         } else {
             keyStore = KeyStore.getInstance("PKCS12");
-            keyStore.load(null, null);
+            keyStore.load(null, storePassword.toCharArray());
         }
         X509Certificate certificate = (X509Certificate) keyStore.getCertificate(memberId);
         KeyPair keyPair;
@@ -184,7 +190,7 @@ public final class AcmeService {
                     memberId.toCharArray(),
                     certificateChain);
             try (OutputStream outputStream = new FileOutputStream(acmeKeystoreFile)) {
-                keyStore.store(outputStream, null);
+                keyStore.store(outputStream, storePassword.toCharArray());
                 outputStream.flush();
             }
         }

@@ -474,7 +474,8 @@ public class TokenCertificateServiceTest {
                         PROFILE_CLASS);
         verify(signerProxyFacade).importCert(mockSignCertificate.getEncoded(),
                 CertificateInfo.STATUS_REGISTERED,
-                client.getMemberId());
+                client.getMemberId(),
+                true);
     }
 
     @Test
@@ -632,7 +633,8 @@ public class TokenCertificateServiceTest {
                 csrBytes);
         verify(signerProxyFacade).importCert(mockSignCertificate.getEncoded(),
                 CertificateInfo.STATUS_REGISTERED,
-                client.getMemberId());
+                client.getMemberId(),
+                true);
         verify(signerProxyFacade).setNextPlannedRenewal(any(), any());
     }
 

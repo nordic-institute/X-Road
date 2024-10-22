@@ -40,6 +40,7 @@ public class AcmeProperties {
 
     private EabCredentials eabCredentials;
     private Map<String, String> contacts;
+    private String accountKeystorePassword;
 
     @Getter
     @Setter
