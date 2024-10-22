@@ -47,6 +47,14 @@ if [[ -n "$INIT_SS2" ]]; then
   COMPOSE_EXTRA_ARGS="--profile xrd7"
 fi
 
+
+if ! docker network ls | grep -q "xroad-network"; then
+  docker network create xroad-network
+  echo "Docker network 'xroad-network' created."
+else
+  echo "Docker network 'xroad-network' already exists."
+fi
+
 docker compose $COMPOSE_EXTRA_ARGS $COMPOSE_FILE_ARGS --env-file "$ENV_FILE" up -d
 
 docker compose -f gxdch/compose.yaml -p gxdch up -d
