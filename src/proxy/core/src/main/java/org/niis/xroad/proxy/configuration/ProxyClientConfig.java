@@ -100,7 +100,7 @@ public class ProxyClientConfig {
                 httpClient, assetAuthorizationManager);
     }
 
-    @ConditionalOnProperty(name = "xroad.proxy.client-proxy.client-use-idle-connection-monitor",havingValue = "true")
+    @ConditionalOnProperty(name = "xroad.proxy.client-proxy.client-use-idle-connection-monitor", havingValue = "true")
     @Bean
     IdleConnectionMonitorThread idleConnectionMonitorThread(ProxyProperties proxyProperties,
             @Qualifier("proxyHttpClientManager") HttpClientConnectionManager connectionManager) {

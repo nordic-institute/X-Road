@@ -27,6 +27,7 @@ package ee.ria.xroad.proxy;
 
 import ee.ria.xroad.common.conf.globalconf.GlobalConfPropertiesConfig;
 import ee.ria.xroad.proxy.antidos.AntiDosConfiguration;
+
 import lombok.extern.slf4j.Slf4j;
 import org.niis.xroad.bootstrap.XrdSpringServiceBuilder;
 import org.niis.xroad.common.rpc.RpcClientProperties;
