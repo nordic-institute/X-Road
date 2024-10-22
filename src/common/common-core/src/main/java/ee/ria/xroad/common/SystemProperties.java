@@ -451,7 +451,7 @@ public final class SystemProperties {
 
     public static final String DEFAULT_SIGNER_MODULE_MANAGER_UPDATE_INTERVAL = "60";
     public static final KeyAlgorithm DEFAULT_SIGNER_DEFAULT_KEY_ALGORITHM = KeyAlgorithm.RSA;
-    public static final String DEFAULT_SIGNER_KEY_NAMED_CURVE = "secp521r1";
+    public static final String DEFAULT_SIGNER_KEY_NAMED_CURVE = "secp256r1";
     public static final KeyAlgorithm DEFAULT_SOFT_TOKEN_PIN_KEYSTORE_ALGORITHM = KeyAlgorithm.RSA;
 
     // AntiDos ----------------------------------------------------------------
