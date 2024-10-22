@@ -155,6 +155,41 @@ jobs:
         with:
           name: CS System Test screenshots
           path: src/central-server/admin-service/ui-system-test/build/reports/test-automation/selenide-failures/*.png
+      - name: Load test report history
+        uses: actions/checkout@v4
+        if: always()
+        continue-on-error: true
+        with:
+          ref: allure-gh-pages
+          path: allure-reports
+
+      - name: Build test report
+        uses: simple-elf/allure-report-action@v1.9
+        if: always()
+        with:
+          gh_pages: allure-reports
+          subfolder: central-server/ui-system-test
+          allure_history: allure-history
+          allure_results: src/central-server/admin-service/ui-system-test/build/allure-results
+
+      - name: Publish test report
+        uses: peaceiris/actions-gh-pages@v4
+        if: always()
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_branch: allure-gh-pages
+          publish_dir: allure-history
+      - name: Add link to the report as a comment 
+        uses: actions/github-script@v7
+        if: always()
+        with:
+          script: |
+            github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: 'Central Server Allure report: https://nordic-institute.github.io/X-Road/central-server/ui-system-test/${{ github.run_number }}'
+            })
   RunSSSystemTests:
     name: Run Security Server system tests
     needs: BuildAndPackageWithUnitTests
