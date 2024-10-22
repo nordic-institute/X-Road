@@ -27,7 +27,6 @@ package org.niis.xroad.securityserver.restapi.openapi;
 
 import ee.ria.xroad.common.CodedException;
 import ee.ria.xroad.common.conf.globalconf.ApprovedCAInfo;
-import ee.ria.xroad.common.conf.serverconf.ServerConfProvider;
 import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.identifier.SecurityServerId;
 import ee.ria.xroad.signer.SignerProxy;
@@ -54,7 +53,6 @@ import org.niis.xroad.securityserver.restapi.util.CertificateTestUtils.Certifica
 import org.niis.xroad.securityserver.restapi.util.TestUtils;
 import org.niis.xroad.securityserver.restapi.util.TokenTestUtils;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.core.io.Resource;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -100,9 +98,6 @@ public class TokenCertificatesApiControllerIntegrationTest extends AbstractApiCo
 
     @Autowired
     TokenCertificatesApiController tokenCertificatesApiController;
-
-    @MockBean
-    private ServerConfProvider serverConfProvider;
 
     private static final String AUTH_CERT_HASH = "auth-cert-hash";
     private static final String SIGN_CERT_HASH = "sign-cert-hash";
