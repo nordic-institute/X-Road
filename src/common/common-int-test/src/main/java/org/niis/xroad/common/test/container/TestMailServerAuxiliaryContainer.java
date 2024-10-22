@@ -43,6 +43,7 @@ import org.testcontainers.containers.GenericContainer;
 import org.testcontainers.containers.output.Slf4jLogConsumer;
 import org.testcontainers.utility.MountableFile;
 
+import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
@@ -82,7 +83,11 @@ public class TestMailServerAuxiliaryContainer extends AbstractAuxiliaryContainer
         }
         Logger logger = LoggerFactory.getLogger(getConfigurationKey());
         Slf4jLogConsumer logConsumer = new Slf4jLogConsumer(logger).withSeparateOutputStreams();
-        return new TestMailServerContainer("axllent/mailpit")
+        return getTestMailServerContainer(dataDir, logConsumer);
+    }
+
+    private TestMailServerContainer getTestMailServerContainer(File dataDir, Slf4jLogConsumer logConsumer) {
+        try (TestMailServerContainer testMailServerContainer = new TestMailServerContainer("axllent/mailpit")
                 .withExposedPorts(587, 8025)
                 .withFileSystemBind(dataDir.getAbsolutePath(), "/data", BindMode.READ_WRITE)
                 .withCopyToContainer(MountableFile.forClasspathResource("META-INF/mail-server-container/"), "/tls")
@@ -96,7 +101,9 @@ public class TestMailServerAuxiliaryContainer extends AbstractAuxiliaryContainer
                 .withNetworkAliases(NETWORK_ALIAS)
                 .withReuse(testableContainerProperties.getContextContainers().get(getConfigurationKey()).getReuseBetweenRuns())
                 .withLogConsumer(logConsumer)
-                .withCreateContainerCmdModifier(cmd -> Objects.requireNonNull(cmd.getHostConfig()).withMemory(192 * 1024 * 1024L));
+                .withCreateContainerCmdModifier(cmd -> Objects.requireNonNull(cmd.getHostConfig()).withMemory(192 * 1024 * 1024L))) {
+            return testMailServerContainer;
+        }
     }
 
     @NotNull

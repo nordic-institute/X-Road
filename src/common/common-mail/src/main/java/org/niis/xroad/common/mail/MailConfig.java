@@ -23,19 +23,57 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.securityserver.restapi.config;
+package org.niis.xroad.common.mail;
+
+import ee.ria.xroad.common.SystemProperties;
 
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.core.io.FileSystemResource;
+import org.springframework.core.io.Resource;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mail.javamail.JavaMailSenderImpl;
+import org.yaml.snakeyaml.LoaderOptions;
+import org.yaml.snakeyaml.TypeDescription;
+import org.yaml.snakeyaml.Yaml;
+import org.yaml.snakeyaml.constructor.Constructor;
 
+import java.io.InputStream;
+import java.nio.file.Files;
 import java.util.Properties;
 
 @Slf4j
 @Configuration
 public class MailConfig {
+
+    @Bean
+    public MailNotificationProperties mailNotificationProperties() {
+        Resource resource = new FileSystemResource(SystemProperties.getConfPath() + "conf.d/mail.yml");
+        if (!resource.exists()) {
+            log.warn("Configuration {} not exists", resource);
+            return new MailNotificationProperties();
+        }
+        Constructor constructor = createMailYamlConstructor();
+        Yaml yaml = new Yaml(constructor);
+        try (InputStream input = Files.newInputStream(resource.getFile().toPath())) {
+            return yaml.loadAs(input, MailNotificationProperties.class);
+        } catch (Exception e) {
+            log.warn("Failed to load yaml configuration from {}", resource, e);
+            return new MailNotificationProperties();
+        }
+    }
+
+    private static Constructor createMailYamlConstructor() {
+        Constructor constructor = new Constructor(MailNotificationProperties.class, new LoaderOptions());
+        TypeDescription mailPropertiesDescriptor = new TypeDescription(MailNotificationProperties.class);
+        mailPropertiesDescriptor.substituteProperty("use-ssl-tls",
+                String.class,
+                "isUseSslTls",
+                "setUseSslTls");
+        constructor.addTypeDescription(mailPropertiesDescriptor);
+        return constructor;
+    }
 
     @Bean
     public JavaMailSender mailSender(MailNotificationProperties mailNotificationProperties) {

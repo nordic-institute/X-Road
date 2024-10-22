@@ -39,7 +39,7 @@ import static org.niis.xroad.common.acme.AcmeDeviationMessage.EAB_CREDENTIALS_MI
 public class AcmeProperties {
 
     private EabCredentials eabCredentials;
-    private Map<String, String> contacts;
+    private String accountKeystorePassword;
 
     @Getter
     @Setter

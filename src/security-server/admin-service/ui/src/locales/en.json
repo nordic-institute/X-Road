@@ -409,6 +409,7 @@
       "eab_credentials_missing": "External Account binding credentials missing, but required",
       "eab_secret_length": "Invalid external account binding base64 secret length",
       "account_key_pair_error": "Getting key pair for ACME server account failed",
+      "account_keystore_password_missing": "ACME account keystore password missing from the acme.yml configuration file",
       "fetching_metadata_error": "Fetching ACME server metadata failed. ACME Server might be unreachable",
       "account_creation_failure": "Creating Account on ACME server failed. If external account binding is required, check that the correct credentials are configured in acme.yml",
       "order_creation_failure": "Creating new Order on ACME server failed",

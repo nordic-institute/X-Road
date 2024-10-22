@@ -23,40 +23,38 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.securityserver.restapi.service;
+package org.niis.xroad.common.mail;
 
 import ee.ria.xroad.common.SystemProperties;
 
 import lombok.RequiredArgsConstructor;
 import org.apache.commons.lang3.StringUtils;
-import org.niis.xroad.common.acme.AcmeProperties;
-import org.niis.xroad.securityserver.restapi.config.MailNotificationProperties;
-import org.niis.xroad.securityserver.restapi.openapi.model.MailNotificationStatus;
 import org.springframework.mail.SimpleMailMessage;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.stereotype.Service;
+
+import java.util.List;
 
 @Service
 @RequiredArgsConstructor
 public class MailService {
 
-    private final AcmeProperties acmeProperties;
     private final MailNotificationProperties mailNotificationProperties;
     private final JavaMailSender mailSender;
 
     public MailNotificationStatus getMailNotificationStatus() {
-        MailNotificationStatus mailNotificationStatus = new MailNotificationStatus();
-        mailNotificationStatus.setSuccessStatus(SystemProperties.getAcmeRenewalSuccessNotificationEnabled());
-        mailNotificationStatus.setFailureStatus(SystemProperties.getAcmeRenewalFailureNotificationEnabled());
-        mailNotificationStatus.setConfigurationPresent(mailNotificationProperties.isMailNotificationConfigurationPresent());
-        if (acmeProperties.getContacts() != null) {
-            mailNotificationStatus.setRecipientsEmails(acmeProperties.getContacts()
+        boolean successStatus = SystemProperties.getAcmeRenewalSuccessNotificationEnabled();
+        boolean failureStatus = SystemProperties.getAcmeRenewalFailureNotificationEnabled();
+        boolean configurationPresent = mailNotificationProperties.isMailNotificationConfigurationPresent();
+        List<String> recipientsEmails = null;
+        if (mailNotificationProperties.getContacts() != null) {
+            recipientsEmails = mailNotificationProperties.getContacts()
                     .entrySet()
                     .stream()
                     .map(contact -> StringUtils.joinWith(": ", contact.getKey(), contact.getValue()))
-                    .toList());
+                    .toList();
         }
-        return mailNotificationStatus;
+        return new MailNotificationStatus(successStatus, failureStatus, configurationPresent, recipientsEmails);
     }
 
     public void sendMail(String to, String subject, String text) {
@@ -65,5 +63,11 @@ public class MailService {
         message.setSubject(subject);
         message.setText(text);
         mailSender.send(message);
+    }
+
+    public record MailNotificationStatus(boolean successStatus,
+                                         boolean failureStatus,
+                                         boolean configurationPresent,
+                                         List<String> recipientsEmails) {
     }
 }

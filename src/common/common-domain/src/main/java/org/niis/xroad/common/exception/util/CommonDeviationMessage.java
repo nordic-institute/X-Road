@@ -70,7 +70,8 @@ public enum CommonDeviationMessage implements DeviationProvider {
             "Error reading locations from shared parameters: not supported format of download url"),
 
     ERROR_READING_OPENAPI_FILE("openapi_file_error", "Error reading open api definition file"),
-    INITIALIZATION_INTERRUPTED("initialization_interrupted", "Initialization has been interrupted");
+    INITIALIZATION_INTERRUPTED("initialization_interrupted", "Initialization has been interrupted"),
+    EMAIL_SENDING_FAILED("email_sending_error", "Failed to send email"),;
 
     @Getter
     private final String code;

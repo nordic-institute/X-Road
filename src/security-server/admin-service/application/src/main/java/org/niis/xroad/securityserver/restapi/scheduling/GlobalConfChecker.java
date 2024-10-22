@@ -41,6 +41,8 @@ import ee.ria.xroad.signer.protocol.dto.KeyUsageInfo;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.niis.xroad.common.mail.MailNotificationProperties;
+import org.niis.xroad.common.mail.MailService;
 import org.niis.xroad.restapi.common.backup.service.BackupRestoreEvent;
 import org.niis.xroad.securityserver.restapi.cache.SecurityServerAddressChangeStatus;
 import org.niis.xroad.securityserver.restapi.facade.SignerProxyFacade;
@@ -70,6 +72,8 @@ public class GlobalConfChecker {
     private final GlobalConfProvider globalConfProvider;
     private final SignerProxyFacade signerProxyFacade;
     private final SecurityServerAddressChangeStatus addressChangeStatus;
+    private final MailService mailService;
+    private final MailNotificationProperties mailNotificationProperties;
 
     /**
      * Reloads global configuration, and updates client statuses, authentication certificate statuses
@@ -289,44 +293,46 @@ public class GlobalConfChecker {
                 });
     }
 
-    private void updateCertStatus(SecurityServerId securityServerId,
-                                  CertificateInfo certInfo) throws Exception {
-        X509Certificate cert =
-                CryptoUtils.readCertificate(certInfo.getCertificateBytes());
+    private void updateCertStatus(SecurityServerId securityServerId, CertificateInfo certInfo) throws Exception {
+        X509Certificate cert = CryptoUtils.readCertificate(certInfo.getCertificateBytes());
 
-        boolean registered =
-                securityServerId.equals(globalConfProvider.getServerId(cert));
+        boolean registered = securityServerId.equals(globalConfProvider.getServerId(cert));
 
         if (registered && certInfo.getStatus() != null) {
             switch (certInfo.getStatus()) {
-                case CertificateInfo.STATUS_REGISTERED:
+                case CertificateInfo.STATUS_REGISTERED -> {
                     // do nothing
-                    break;
-                case CertificateInfo.STATUS_SAVED:
-                case CertificateInfo.STATUS_REGINPROG:
-                case CertificateInfo.STATUS_GLOBALERR:
-                    log.debug("Setting certificate '{}' status to '{}'",
-                            CertUtils.identify(cert),
-                            CertificateInfo.STATUS_REGISTERED);
-
-                    signerProxyFacade.setCertStatus(certInfo.getId(),
-                            CertificateInfo.STATUS_REGISTERED);
-                    break;
-                default:
-                    log.warn("Unexpected status '{}' for certificate '{}'",
-                            certInfo.getStatus(), CertUtils.identify(cert));
+                }
+                case CertificateInfo.STATUS_REGINPROG -> {
+                    sendCertRegisteredNotification(securityServerId, certInfo);
+                    setCertStatus(cert, CertificateInfo.STATUS_REGISTERED, certInfo);
+                }
+                case CertificateInfo.STATUS_SAVED, CertificateInfo.STATUS_GLOBALERR ->
+                        setCertStatus(cert, CertificateInfo.STATUS_REGISTERED, certInfo);
+                default -> log.warn("Unexpected status '{}' for certificate '{}'",
+                        certInfo.getStatus(), CertUtils.identify(cert));
             }
 
         }
 
-        if (!registered && CertificateInfo.STATUS_REGISTERED.equals(
-                certInfo.getStatus())) {
-            log.debug("Setting certificate '{}' status to '{}'",
-                    CertUtils.identify(cert),
-                    CertificateInfo.STATUS_GLOBALERR);
-
-            signerProxyFacade.setCertStatus(certInfo.getId(),
-                    CertificateInfo.STATUS_GLOBALERR);
+        if (!registered && CertificateInfo.STATUS_REGISTERED.equals(certInfo.getStatus())) {
+            setCertStatus(cert, CertificateInfo.STATUS_GLOBALERR, certInfo);
         }
+    }
+
+    private void sendCertRegisteredNotification(SecurityServerId securityServerId, CertificateInfo certInfo) {
+        if (SystemProperties.getAuthCertRegisteredNotificationEnabled()) {
+            Optional.ofNullable(mailNotificationProperties.getContacts())
+                .map(contacts -> contacts.get(securityServerId.getOwner().asEncodedId()))
+                .ifPresent(address -> mailService.sendMail(address,
+                        "Security Server %s authentication certificate %s has been registered!".formatted(securityServerId.getServerCode(),
+                                certInfo.getCertificateDisplayName()),
+                    "-"));
+        }
+    }
+
+    private void setCertStatus(X509Certificate cert, String status, CertificateInfo certInfo) throws Exception {
+        log.debug("Setting certificate '{}' status to '{}'", CertUtils.identify(cert), status);
+        signerProxyFacade.setCertStatus(certInfo.getId(), status);
     }
 }

@@ -156,11 +156,11 @@ export default defineComponent({
 });
 </script>
 <style lang="scss" scoped>
-@import '@/assets/colors';
-@import '@/assets/tables';
+@use '@/assets/colors';
+@use '@/assets/tables';
 
 h3 {
-  color: $XRoad-Black100;
+  color: colors.$Black100;
   font-size: 24px;
   font-weight: 400;
   letter-spacing: normal;
@@ -169,8 +169,8 @@ h3 {
 
 .disabled {
   cursor: not-allowed;
-  background: $XRoad-Black10;
-  color: $XRoad-WarmGrey100;
+  background: colors.$Black10;
+  color: colors.$WarmGrey100;
 }
 
 .xrd-card-text {

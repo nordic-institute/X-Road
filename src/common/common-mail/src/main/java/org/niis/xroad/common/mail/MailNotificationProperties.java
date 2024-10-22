@@ -23,38 +23,26 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.securityserver.restapi.config;
+package org.niis.xroad.common.mail;
 
-import ee.ria.xroad.common.SystemProperties;
+import lombok.Getter;
+import lombok.Setter;
 
-import org.springframework.boot.SpringApplication;
-import org.springframework.boot.env.EnvironmentPostProcessor;
-import org.springframework.boot.env.YamlPropertySourceLoader;
-import org.springframework.core.env.ConfigurableEnvironment;
-import org.springframework.core.env.PropertySource;
-import org.springframework.core.io.FileSystemResource;
-import org.springframework.core.io.Resource;
+import java.util.Map;
 
-import java.io.IOException;
+@Getter
+@Setter
+public class MailNotificationProperties {
 
-public class MailPropertyEnvironmentPostProcessor implements EnvironmentPostProcessor {
+    private String host;
+    private Integer port;
+    private String username;
+    private String password;
+    private boolean useSslTls;
+    private Map<String, String> contacts;
 
-    private final YamlPropertySourceLoader loader = new YamlPropertySourceLoader();
-
-    @Override
-    public void postProcessEnvironment(ConfigurableEnvironment environment, SpringApplication application) {
-        Resource path = new FileSystemResource(SystemProperties.getConfPath() + "conf.d/mail.yml");
-        if (path.exists()) {
-            PropertySource<?> propertySource = loadYaml(path);
-            environment.getPropertySources().addLast(propertySource);
-        }
+    public boolean isMailNotificationConfigurationPresent() {
+        return getHost() != null && getPort() != null && getUsername() != null && getPassword() != null;
     }
 
-    private PropertySource<?> loadYaml(Resource path) {
-        try {
-            return this.loader.load("mail-resources", path).get(0);
-        } catch (IOException ex) {
-            throw new IllegalStateException("Failed to load yaml configuration from " + path, ex);
-        }
-    }
 }

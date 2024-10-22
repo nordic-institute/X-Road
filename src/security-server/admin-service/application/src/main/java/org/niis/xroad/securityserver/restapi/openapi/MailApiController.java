@@ -27,13 +27,13 @@ package org.niis.xroad.securityserver.restapi.openapi;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.niis.xroad.common.mail.MailService;
 import org.niis.xroad.restapi.openapi.ControllerUtil;
 import org.niis.xroad.securityserver.restapi.cache.CurrentSecurityServerId;
 import org.niis.xroad.securityserver.restapi.openapi.model.MailNotificationStatus;
 import org.niis.xroad.securityserver.restapi.openapi.model.MailRecipient;
 import org.niis.xroad.securityserver.restapi.openapi.model.MailStatus;
 import org.niis.xroad.securityserver.restapi.openapi.model.TestMailResponse;
-import org.niis.xroad.securityserver.restapi.service.MailService;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.mail.MailException;
@@ -57,8 +57,15 @@ public class MailApiController implements MailApi {
     @Override
     @PreAuthorize("hasAuthority('DIAGNOSTICS')")
     public ResponseEntity<MailNotificationStatus> getMailNotificationStatus() {
-        MailNotificationStatus mailNotificationStatus = mailService.getMailNotificationStatus();
-        return new ResponseEntity<>(mailNotificationStatus, HttpStatus.OK);
+        MailService.MailNotificationStatus mailNotificationStatus = mailService.getMailNotificationStatus();
+        MailNotificationStatus mailNotificationStatusDto = new MailNotificationStatus();
+        mailNotificationStatusDto.successStatus(mailNotificationStatus.successStatus());
+        mailNotificationStatusDto.failureStatus(mailNotificationStatus.failureStatus());
+        mailNotificationStatusDto.configurationPresent(mailNotificationStatus.configurationPresent());
+        if (mailNotificationStatus.recipientsEmails() != null) {
+            mailNotificationStatusDto.recipientsEmails(mailNotificationStatus.recipientsEmails());
+        }
+        return new ResponseEntity<>(mailNotificationStatusDto, HttpStatus.OK);
     }
 
     @Override

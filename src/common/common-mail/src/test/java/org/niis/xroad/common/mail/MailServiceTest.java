@@ -23,22 +23,20 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.securityserver.restapi.service;
+package org.niis.xroad.common.mail;
 
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
-import org.niis.xroad.common.acme.AcmeProperties;
-import org.niis.xroad.securityserver.restapi.config.MailNotificationProperties;
-import org.niis.xroad.securityserver.restapi.openapi.model.MailNotificationStatus;
 import org.springframework.mail.javamail.JavaMailSender;
 
 import java.util.List;
 import java.util.Map;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 
 @RunWith(MockitoJUnitRunner.class)
 public class MailServiceTest {
@@ -55,18 +53,17 @@ public class MailServiceTest {
         mailNotificationConfiguration.setPort(587);
         mailNotificationConfiguration.setUsername("admin");
         mailNotificationConfiguration.setPassword("secret");
-        AcmeProperties acmeProperties = new AcmeProperties();
-        acmeProperties.setContacts(Map.of("TestMember", "myMail@example.org"));
-        mailService = new MailService(acmeProperties, mailNotificationConfiguration, mailSender);
+        mailNotificationConfiguration.setContacts(Map.of("TestMember", "myMail@example.org"));
+        mailService = new MailService(mailNotificationConfiguration, mailSender);
     }
 
     @Test
     public void getMailNotificationStatus() {
-        MailNotificationStatus mailNotificationStatus = mailService.getMailNotificationStatus();
-        assertEquals(true, mailNotificationStatus.getConfigurationPresent());
-        assertEquals(true, mailNotificationStatus.getSuccessStatus());
-        assertEquals(true, mailNotificationStatus.getFailureStatus());
-        assertEquals(List.of("TestMember: myMail@example.org"), mailNotificationStatus.getRecipientsEmails());
+        MailService.MailNotificationStatus mailNotificationStatus = mailService.getMailNotificationStatus();
+        assertTrue(mailNotificationStatus.configurationPresent());
+        assertTrue(mailNotificationStatus.successStatus());
+        assertTrue(mailNotificationStatus.failureStatus());
+        assertEquals(List.of("TestMember: myMail@example.org"), mailNotificationStatus.recipientsEmails());
     }
 
 

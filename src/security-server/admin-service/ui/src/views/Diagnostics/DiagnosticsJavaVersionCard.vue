@@ -98,11 +98,11 @@ export default defineComponent({
 });
 </script>
 <style lang="scss" scoped>
-@import '@/assets/colors';
-@import '@/assets/tables';
+@use '@/assets/colors';
+@use '@/assets/tables';
 
 h3 {
-  color: $XRoad-Black100;
+  color: colors.$Black100;
   font-size: 24px;
   font-weight: 400;
   letter-spacing: normal;
