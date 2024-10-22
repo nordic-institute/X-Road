@@ -1,30 +1,84 @@
 services:
-  db:
-    image: postgres:16
+  db-serverconf:
+    image: postgres:17
     environment:
-      - POSTGRES_PASSWORD=secret #TODO use separate users
-      - POSTGRES_USER=xroad
-      - POSTGRES_DB=xroad
+      - POSTGRES_PASSWORD=secret #TODO use separate users for runtime and admin see: https://hub.docker.com/_/postgres
+      - POSTGRES_USER=serverconf
     networks:
       - xrd-ss-network
+    deploy:
+      resources:
+        reservations:
+          memory: 64M
+        limits:
+          memory: 256M
 #    volumes: TODO not required for now
 #        - db-volume:/var/lib/postgresql/data
-  db-init:
+  db-messagelog:
+    image: postgres:17
+    environment:
+      - POSTGRES_PASSWORD=secret #TODO use separate users
+      - POSTGRES_USER=messagelog
+    networks:
+      - xrd-ss-network
+    deploy:
+      resources:
+        reservations:
+          memory: 64M
+        limits:
+          memory: 256M
+  #    volumes: TODO not required for now
+  #        - db-volume:/var/lib/postgresql/data
+  db-serverconf-init:
     image: liquibase:4.29 #TODO probably release standalone image with embedded changelog
     volumes:
-      - /Users/ricardasb/work/xroad/repo/x-road/src/security-server/admin-service/infra-jpa/src/main/resources/liquibase/:/liquibase/changelog
+      - ./../../src/security-server/admin-service/infra-jpa/src/main/resources/liquibase/:/liquibase/changelog
+    environment:
+      - db_user=serverconf
+      - db_schema=public
     command:
       - --changeLogFile=changelog/serverconf-changelog.xml
       - --driver=org.postgresql.Driver
-      - --url=jdbc:postgresql://db:5432/xroad
-      - --username=xroad
+      - --url=jdbc:postgresql://db-serverconf:5432/serverconf
+      - --username=serverconf
       - --password=secret
       - --log-level=debug
       - update
     depends_on:
-      - db
+      - db-serverconf
     networks:
       - xrd-ss-network
+    deploy:
+      resources:
+        reservations:
+          memory: 64M
+        limits:
+          memory: 512M
+  db-messagelog-init:
+    image: liquibase:4.29 #TODO probably release standalone image with embedded changelog
+    volumes:
+      - ./../../src/packages/src/xroad/common/addon/proxy/:/liquibase/changelog
+    environment:
+      - db_user=messagelog
+      - db_schema=public
+    command:
+      - --changeLogFile=changelog/messagelog-changelog.xml
+      - --driver=org.postgresql.Driver
+      - --url=jdbc:postgresql://db-messagelog:5432/messagelog
+      - --username=messagelog
+      - --password=secret
+      - --log-level=debug
+      - update
+    depends_on:
+      - db-messagelog
+    networks:
+      - xrd-ss-network
+    deploy:
+      resources:
+        reservations:
+          memory: 64M
+        limits:
+          memory: 512M
   config:
     image: xroad-ss-config:latest
     networks:
@@ -35,6 +89,12 @@ services:
       interval: 3s
       retries: 40
       test: [ "CMD", "curl", "-f", "-k", "http://localhost:5580/actuator/health" ]
+    deploy:
+      resources:
+        reservations:
+          memory: 32M
+        limits:
+          memory: 128M
   confclient:
     image: xroad-ss-confclient:latest
     environment:
@@ -51,6 +111,12 @@ services:
     depends_on:
       config:
         condition: service_healthy
+    deploy:
+      resources:
+        reservations:
+          memory: 64M
+        limits:
+          memory: 256M
   signer:
     image: xroad-ss-signer:latest
     environment:
@@ -66,12 +132,18 @@ services:
       - xroad-network
       - xrd-ss-network
     depends_on:
-      db-init:
+      db-serverconf-init:
         condition: service_completed_successfully
       config:
         condition: service_healthy
       confclient:
         condition: service_healthy
+    deploy:
+      resources:
+        reservations:
+          memory: 64M
+        limits:
+          memory: 256M
   proxy:
     image: xroad-ss-proxy:latest
     environment:
@@ -87,10 +159,16 @@ services:
       - xrd-ss-network
       - xroad-network
     depends_on:
-      db-init:
+      db-serverconf-init:
         condition: service_completed_successfully
       signer:
         condition: service_healthy
+    deploy:
+      resources:
+        reservations:
+          memory: 64M
+        limits:
+          memory: 512M
   ui:
     image: xroad-ss-ui:latest
     environment:
@@ -110,11 +188,16 @@ services:
       - xrd-ss-network
       - xroad-network
     depends_on:
-      db-init:
+      db-serverconf-init:
         condition: service_completed_successfully
       signer:
         condition: service_healthy
-
+    deploy:
+      resources:
+        reservations:
+          memory: 64M
+        limits:
+          memory: 512M
 
 volumes:
   db-volume:

@@ -11,6 +11,12 @@ services:
       - gx-registry-mongo/.env
     networks:
       - xroad-network
+    deploy:
+      resources:
+        reservations:
+          memory: 128M
+        limits:
+          memory: 256M
   gx-registry:
     image: registry.gitlab.com/gaia-x/lab/compliance/gx-registry:v2.1.0
     container_name: gx-registry
@@ -25,6 +31,12 @@ services:
       - xroad-network
     depends_on:
       - gx-registry-mongo
+    deploy:
+      resources:
+        reservations:
+          memory: 256M
+        limits:
+          memory: 512M
   gx-kubo-node:
     image: ipfs/kubo
     container_name: gx-kubo-node
@@ -36,7 +48,12 @@ services:
       - ipfs-data:/data/ipfs
     networks:
       - xroad-network
-
+    deploy:
+      resources:
+        reservations:
+          memory: 64M
+        limits:
+          memory: 128M
   gx-notary:
     image: registry.gitlab.com/gaia-x/lab/compliance/gaia-x-notary-registrationnumber:v2.2.0
     container_name: gx-notary
@@ -46,7 +63,12 @@ services:
       - gx-notary/.env
     networks:
       - xroad-network
-
+    deploy:
+      resources:
+        reservations:
+          memory: 64M
+        limits:
+          memory: 256M
   gx-compliance:
     image: registry.gitlab.com/gaia-x/lab/compliance/gx-compliance:v2.1.0
     container_name: gx-compliance
@@ -56,6 +78,12 @@ services:
       - gx-compliance/.env
     networks:
       - xroad-network
+    deploy:
+      resources:
+        reservations:
+          memory: 64M
+        limits:
+          memory: 256M
   gx-compliance-db:
     image: memgraph/memgraph:latest
     container_name: gx-compliance-db
@@ -63,7 +91,12 @@ services:
 #      - 7687:7687
     networks:
       - xroad-network
-
+    deploy:
+      resources:
+        reservations:
+          memory: 64M
+        limits:
+          memory: 128M
   gx-gateway:
     image: nginx:latest
     container_name: gxdch
@@ -80,12 +113,16 @@ services:
       - gx-registry
       - gx-notary
       - gx-compliance
-
+    deploy:
+      resources:
+        reservations:
+          memory: 8M
+        limits:
+          memory: 64M
 networks:
   xroad-network:
     name: xroad-network
     external: true
-
 volumes:
   data:
     driver: local

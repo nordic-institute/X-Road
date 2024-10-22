@@ -61,9 +61,9 @@ services:
     deploy:
       resources:
         reservations:
-          memory: 128M
+          memory: 64M
         limits:
-          memory: 256M
+          memory: 96M
     volumes:
       - ./prometheus/:/etc/prometheus/
     ports:
