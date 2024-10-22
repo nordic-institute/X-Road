@@ -23,12 +23,14 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.securityserver.restapi.config;
+package org.niis.xroad.common.mail;
 
 import lombok.Getter;
 import lombok.Setter;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.annotation.Configuration;
+
+import java.util.Map;
 
 @Getter
 @Setter
@@ -41,6 +43,7 @@ public class MailNotificationProperties {
     private String username;
     private String password;
     private boolean useSslTls;
+    private Map<String, String> contacts;
 
     public boolean isMailNotificationConfigurationPresent() {
         return getHost() != null && getPort() != null && getUsername() != null && getPassword() != null;

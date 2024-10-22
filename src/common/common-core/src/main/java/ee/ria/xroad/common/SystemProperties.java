@@ -148,6 +148,10 @@ public final class SystemProperties {
     public static final String PROXY_UI_API_ACME_RENEWAL_FAILURE_NOTIFICATION_ENABLED =
             PREFIX + "proxy-ui-api.acme-renewal-failure-notification-enabled";
 
+    /** property name of whether notification e-mail is sent when authentication certificate has been registered in global conf */
+    public static final String PROXY_UI_API_AUTH_CERT_REGISTERED_NOTIFICATION_ENABLED =
+            PREFIX + "proxy-ui-api.auth-cert-registered-notification-enabled";
+
     // Proxy ------------------------------------------------------------------
 
     private static final String PROXY_PREFIX = PREFIX + "proxy.";
@@ -1214,6 +1218,13 @@ public final class SystemProperties {
      */
     public static boolean getAcmeRenewalFailureNotificationEnabled() {
         return Boolean.parseBoolean(System.getProperty(PROXY_UI_API_ACME_RENEWAL_FAILURE_NOTIFICATION_ENABLED, TRUE));
+    }
+
+    /**
+     * @return true if ACME automatic renewal job failure notifications are enabled
+     */
+    public static boolean getAuthCertRegisteredNotificationEnabled() {
+        return Boolean.parseBoolean(System.getProperty(PROXY_UI_API_AUTH_CERT_REGISTERED_NOTIFICATION_ENABLED, TRUE));
     }
 
     /**

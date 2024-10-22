@@ -84,6 +84,7 @@ import org.niis.xroad.signer.proto.UpdateSoftwareTokenPinReq;
 import org.niis.xroad.signer.protocol.dto.Empty;
 
 import java.security.PublicKey;
+import java.security.cert.X509Certificate;
 import java.time.Instant;
 import java.util.Arrays;
 import java.util.Date;
@@ -91,6 +92,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
+import static ee.ria.xroad.common.util.CertUtils.isAuthCert;
+import static ee.ria.xroad.common.util.CryptoUtils.readCertificate;
 import static java.util.Arrays.asList;
 import static java.util.Optional.ofNullable;
 
@@ -306,12 +309,13 @@ public final class SignerProxy {
      * @return key ID of the new certificate as a String
      * @throws Exception if any errors occur
      */
-    public static String importCert(byte[] certBytes, String initialStatus, ClientId.Conf clientId) throws Exception {
+    public static String importCert(byte[] certBytes, String initialStatus, ClientId.Conf clientId, boolean activate) throws Exception {
         log.trace("Importing cert from file with length of '{}' bytes", certBytes.length);
 
         final ImportCertReq.Builder builder = ImportCertReq.newBuilder()
                 .setCertData(ByteString.copyFrom(certBytes))
-                .setInitialStatus(initialStatus);
+                .setInitialStatus(initialStatus)
+                .setActivate(activate);
         ofNullable(clientId).map(ClientIdMapper::toDto).ifPresent(builder::setMemberId);
 
         var response = RpcSignerClient.execute(ctx -> ctx.getBlockingCertificateService()
@@ -320,6 +324,11 @@ public final class SignerProxy {
         log.trace("Cert imported successfully, keyId received: {}", response.getKeyId());
 
         return response.getKeyId();
+    }
+
+    public static String importCert(byte[] certBytes, String initialStatus, ClientId.Conf clientId) throws Exception {
+        X509Certificate x509Certificate = readCertificate(certBytes);
+        return importCert(certBytes, initialStatus, clientId, !isAuthCert(x509Certificate));
     }
 
     /**
