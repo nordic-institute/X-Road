@@ -5,18 +5,18 @@
     xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
                       http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.5.xsd">
 
-    <include file="messagelog/0-initial.xml"/>
-    <include file="messagelog/1-indices.xml"/>
-    <include file="messagelog/2-lastarchive.xml"/>
-    <include file="messagelog/3-clientids.xml"/>
-    <include file="messagelog/4-archive-index.xml"/>
-    <include file="messagelog/5-timestamping-index.xml"/>
-    <include file="messagelog/6-rest-message.xml"/>
-    <include file="messagelog/7-x-request-id.xml"/>
-    <include file="messagelog/8-grouping-index.xml"/>
-    <include file="messagelog/9-encryption.xml"/>
-    <include file="messagelog/10-timestamping-fix.xml"/>
-    <include file="messagelog/11-origin-column.xml"/>
+    <include file="messagelog/0-initial.xml" relativeToChangelogFile="true"/>
+    <include file="messagelog/1-indices.xml" relativeToChangelogFile="true"/>
+    <include file="messagelog/2-lastarchive.xml" relativeToChangelogFile="true"/>
+    <include file="messagelog/3-clientids.xml" relativeToChangelogFile="true"/>
+    <include file="messagelog/4-archive-index.xml" relativeToChangelogFile="true"/>
+    <include file="messagelog/5-timestamping-index.xml" relativeToChangelogFile="true"/>
+    <include file="messagelog/6-rest-message.xml" relativeToChangelogFile="true"/>
+    <include file="messagelog/7-x-request-id.xml" relativeToChangelogFile="true"/>
+    <include file="messagelog/8-grouping-index.xml" relativeToChangelogFile="true"/>
+    <include file="messagelog/9-encryption.xml" relativeToChangelogFile="true"/>
+    <include file="messagelog/10-timestamping-fix.xml" relativeToChangelogFile="true"/>
+    <include file="messagelog/11-origin-column.xml" relativeToChangelogFile="true"/>
 
     <!-- must be the last one -->
     <changeSet id="separate-admin-user" author="niis" context="admin" runAlways="true" runOnChange="true" runOrder="last">

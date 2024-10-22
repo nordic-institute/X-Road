@@ -17,8 +17,7 @@
     <include file="serverconf/003-xroad8.xml"  relativeToChangelogFile="true"/>
 
     <!-- must be the last one -->
-<!--   TODO disabled for now -->
-    <!--<changeSet id="separate-admin-user" author="niis" context="admin" runAlways="true" runOnChange="true" runOrder="last">
+    <changeSet id="separate-admin-user" author="niis" context="admin" runAlways="true" runOnChange="true" runOrder="last">
         <sql splitStatements="false"><![CDATA[
         grant usage on schema "${db_schema}" to "${db_user}";
         grant select,update,insert,delete on all tables in schema "${db_schema}" to "${db_user}";
@@ -28,6 +27,6 @@
         revoke update,delete on history from "${db_user}";
         ]]>
         </sql>
-    </changeSet>-->
+    </changeSet>
 
 </databaseChangeLog>
