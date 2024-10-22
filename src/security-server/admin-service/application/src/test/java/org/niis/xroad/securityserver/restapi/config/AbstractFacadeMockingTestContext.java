@@ -26,8 +26,10 @@
 package org.niis.xroad.securityserver.restapi.config;
 
 import ee.ria.xroad.common.conf.globalconf.GlobalConfProvider;
+import ee.ria.xroad.common.conf.serverconf.ServerConfProvider;
 
 import org.junit.runner.RunWith;
+import org.niis.xroad.common.acme.AcmeService;
 import org.niis.xroad.confclient.proto.ConfClientRpcClient;
 import org.niis.xroad.proxy.proto.ProxyRpcClient;
 import org.niis.xroad.securityserver.restapi.facade.SignerProxyFacade;
@@ -56,9 +58,13 @@ public abstract class AbstractFacadeMockingTestContext {
     @MockBean
     protected GlobalConfProvider globalConfProvider;
     @MockBean
+    protected ServerConfProvider serverConfProvider;
+    @MockBean
     protected ManagementRequestSenderService managementRequestSenderService;
     @MockBean
     protected SignerProxyFacade signerProxyFacade;
+    @MockBean
+    protected AcmeService acmeService;
     @MockBean
     protected ProxyRpcClient proxyRpcClient;
     @MockBean

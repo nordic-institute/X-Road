@@ -49,13 +49,11 @@ import org.bouncycastle.operator.jcajce.JcaContentSignerBuilder;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mock;
-import org.niis.xroad.common.acme.AcmeService;
 import org.niis.xroad.common.acme.AcmeServiceException;
 import org.niis.xroad.common.managementrequest.ManagementRequestSender;
 import org.niis.xroad.securityserver.restapi.config.AbstractFacadeMockingTestContext;
 import org.niis.xroad.securityserver.restapi.util.CertificateTestUtils;
 import org.niis.xroad.securityserver.restapi.util.TokenTestUtils;
-import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.boot.test.mock.mockito.SpyBean;
 import org.springframework.scheduling.support.NoOpTaskScheduler;
 
@@ -91,8 +89,6 @@ public class AcmeClientWorkerTest extends AbstractFacadeMockingTestContext {
     private static final String DNS = "ss9";
     @SpyBean
     private AcmeClientWorker acmeClientWorker;
-    @MockBean
-    private AcmeService acmeService;
     @Mock
     ManagementRequestSender managementRequestSenderMock;
 
