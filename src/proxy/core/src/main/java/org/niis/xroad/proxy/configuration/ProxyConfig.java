@@ -113,6 +113,6 @@ public class ProxyConfig {
 
     @Bean
     KeyConfProvider keyConfProvider(GlobalConfProvider globalConfProvider, ServerConfProvider serverConfProvider) throws Exception {
-        return CachingKeyConfImpl.newInstance(globalConfProvider, serverConfProvider);
+        return new CachingKeyConfImpl(globalConfProvider, serverConfProvider);
     }
 }

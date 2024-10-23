@@ -1,5 +1,6 @@
 /*
  * The MIT License
+ *
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
@@ -23,35 +24,28 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-syntax = "proto3";
 
-package org.niis.xroad.signer.proto;
+package ee.ria.xroad.common;
 
-import "common_messages.proto";
+import java.util.concurrent.ForkJoinPool;
+import java.util.concurrent.ForkJoinWorkerThread;
 
-option java_multiple_files = true;
+/**
+ * TODO Workaround for spring boot classloader issue.
+ * Remove this when fixed in spring boot.
+ * https://github.com/spring-projects/spring-boot/issues/39843
+ */
+@Deprecated(forRemoval = true)
+public class CustomForkJoinWorkerThreadFactory implements ForkJoinPool.ForkJoinWorkerThreadFactory {
+    @Override
+    public final ForkJoinWorkerThread newThread(ForkJoinPool pool) {
+        return new MyForkJoinWorkerThread(pool);
+    }
 
-service AdminService {
-  rpc GetCertificationServiceDiagnostics(Empty) returns (CertificationServiceDiagnosticsResp) {}
-  rpc GetKeyConfChecksum(Empty) returns (KeyConfChecksum) {}
-}
-
-message CertificationServiceDiagnosticsResp {
-  map<string, CertificationServiceStatus> certification_service_status_map = 1;
-}
-
-message CertificationServiceStatus {
-  string name = 1;
-  map<string, OcspResponderStatus> ocsp_responder_status_map = 2;
-}
-
-message OcspResponderStatus {
-  int32 status = 1 ;
-  string url = 2;
-  optional int64 prev_update = 3;
-  int64 next_update = 4;
-}
-
-message KeyConfChecksum {
-  optional string checksum = 1;
+    private static class MyForkJoinWorkerThread extends ForkJoinWorkerThread {
+        private MyForkJoinWorkerThread(final ForkJoinPool pool) {
+            super(pool);
+            setContextClassLoader(Thread.currentThread().getContextClassLoader());
+        }
+    }
 }

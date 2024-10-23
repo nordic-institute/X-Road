@@ -29,11 +29,14 @@ package ee.ria.xroad.signer.protocol;
 
 import ee.ria.xroad.signer.protocol.handler.GetCertificationServiceDiagnosticsReqHandler;
 
+import ee.ria.xroad.signer.protocol.handler.GetKeyConfChecksumHandler;
+
 import io.grpc.stub.StreamObserver;
 import lombok.RequiredArgsConstructor;
 import org.niis.xroad.rpc.common.Empty;
 import org.niis.xroad.signer.proto.AdminServiceGrpc;
 import org.niis.xroad.signer.proto.CertificationServiceDiagnosticsResp;
+import org.niis.xroad.signer.proto.KeyConfChecksum;
 import org.springframework.stereotype.Service;
 
 @Service
@@ -41,10 +44,16 @@ import org.springframework.stereotype.Service;
 public class AdminService extends AdminServiceGrpc.AdminServiceImplBase {
 
     private final GetCertificationServiceDiagnosticsReqHandler getCertificationServiceDiagnosticsReqHandler;
+    private final GetKeyConfChecksumHandler getKeyConfChecksumHandler;
 
     @Override
     public void getCertificationServiceDiagnostics(Empty request, StreamObserver<CertificationServiceDiagnosticsResp> responseObserver) {
         getCertificationServiceDiagnosticsReqHandler.processSingle(request, responseObserver);
+    }
+
+    @Override
+    public void getKeyConfChecksum(Empty request, StreamObserver<KeyConfChecksum> responseObserver) {
+        getKeyConfChecksumHandler.processSingle(request, responseObserver);
     }
 
 }

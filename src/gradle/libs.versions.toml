@@ -13,7 +13,7 @@ mapstruct = "1.6.2"
 jackson = "2.18.0"
 mockito = "5.14.2"
 springBoot = "3.3.4"
-junitJupiter = "5.11.2"
+junitJupiter = "5.11.3"
 junit5SystemExit = "2.0.0"
 xmlUnit = "2.10.0"
 bouncyCastle = "1.78.1"
@@ -369,6 +369,6 @@ springBoot = { id = "org.springframework.boot", version.ref = "springBoot" }
 openapi-generator = { id = "org.openapi.generator", version = "7.9.0" }
 sonarqube = { id = "org.sonarqube", version = "5.1.0.4882" }
 protobuf = { id = "com.google.protobuf", version = "0.9.4" }
-frontendJDK21 = { id = "org.siouan.frontend-jdk21", version = "8.1.0" }
+frontendJDK21 = { id = "org.siouan.frontend-jdk21", version = "9.0.0" }
 shadow = { id = "com.gradleup.shadow", version = "8.3.3" }
 archUnit = { id = "com.societegenerale.commons.arch-unit-gradle-plugin", version.ref = "archUnitPlugin" }
