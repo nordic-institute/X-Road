@@ -25,6 +25,7 @@
  */
 package ee.ria.xroad.common.conf.globalconf;
 
+import ee.ria.xroad.common.CustomForkJoinWorkerThreadFactory;
 import ee.ria.xroad.common.util.FileSource;
 import ee.ria.xroad.common.util.InMemoryFile;
 import ee.ria.xroad.common.util.TimeUtils;
@@ -42,6 +43,8 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ForkJoinPool;
+import java.util.concurrent.ForkJoinWorkerThread;
 import java.util.function.Predicate;
 
 import static java.util.concurrent.TimeUnit.MILLISECONDS;
@@ -62,7 +65,9 @@ public class RemoteGlobalConfSource implements GlobalConfSource, InitializingBea
 
     @Override
     public void afterPropertiesSet() {
-        CompletableFuture.runAsync(this::load);
+        var pool = new ForkJoinPool(Runtime.getRuntime().availableProcessors(),
+                new CustomForkJoinWorkerThreadFactory(), null, true);
+        CompletableFuture.runAsync(this::load, pool);
     }
 
     @Override
