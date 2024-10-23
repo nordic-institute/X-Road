@@ -89,7 +89,7 @@ public class XRoadConfExtension implements ServiceExtension {
 
             CertChainFactory certChainFactory = new CertChainFactory(globalConfProvider);
 
-            KeyConfProvider keyConfProvider = CachingKeyConfImpl.newInstance(globalConfProvider, serverConfProvider);
+            KeyConfProvider keyConfProvider = new CachingKeyConfImpl(globalConfProvider, serverConfProvider);
 
             context.registerService(GlobalConfProvider.class, globalConfProvider);
             context.registerService(ServerConfProvider.class, serverConfProvider);

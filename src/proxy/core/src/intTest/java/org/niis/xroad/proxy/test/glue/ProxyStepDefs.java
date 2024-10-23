@@ -81,7 +81,7 @@ public class ProxyStepDefs extends BaseStepDefs {
 
     private final GlobalConfProvider globalConf = new TestGlobalConfImpl();
     private final ServerConfProvider serverConf = new ServerConfImpl(globalConf);
-    private final KeyConfProvider keyConfProvider = CachingKeyConfImpl.newInstance(globalConf, serverConf);
+    private final KeyConfProvider keyConfProvider = new CachingKeyConfImpl(globalConf, serverConf);
 
     public ProxyStepDefs() throws Exception {
     }
