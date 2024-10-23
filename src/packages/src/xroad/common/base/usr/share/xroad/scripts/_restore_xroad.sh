@@ -209,7 +209,7 @@ extract_to_tmp_restore_dir () {
   fi
   chown -R xroad:xroad ${RESTORE_DIR}/*
   # reset permissions of all files to fixed, "safe" values
-  chmod -R a-x,o=,u=rwX,g=rX "$RESTORE_DIR"
+  chmod -R a-x,o=,u=rwX,g-w,g+X "$RESTORE_DIR"
 }
 
 restore_configuration_files () {
