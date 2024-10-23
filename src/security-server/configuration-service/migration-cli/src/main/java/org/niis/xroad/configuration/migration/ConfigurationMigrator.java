@@ -48,6 +48,8 @@ import java.util.Map;
 class ConfigurationMigrator {
     private static final String PREFIX = "xroad";
 
+    private final LegacyConfigPathMapping legacyConfigPathMapping = new LegacyConfigPathMapping();
+
     boolean migrate(String inputFilePath, String outputFilePath) throws IOException, ConfigurationException {
         var ini = load(inputFilePath);
 
@@ -56,9 +58,10 @@ class ConfigurationMigrator {
             for (Iterator<String> it = ini.parsedContent().getSection(section).getKeys(); it.hasNext(); ) {
                 var sectionKey = it.next();
                 var key = section + "." + sectionKey;
+                var mappedKey = legacyConfigPathMapping.map(key);
                 var valueStr = ini.parsedContent().getSection(section).getString(sectionKey);
 
-                insertNestedProperty(properties, key.split("\\."), valueStr);
+                insertNestedProperty(properties, mappedKey.split("\\."), valueStr);
             }
         }
 

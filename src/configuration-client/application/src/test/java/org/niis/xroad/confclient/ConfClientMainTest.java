@@ -23,34 +23,26 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.confclient.globalconf;
+package org.niis.xroad.confclient;
 
-import ee.ria.xroad.common.CodedException;
+import ee.ria.xroad.common.util.JobManager;
 
-import io.grpc.stub.StreamObserver;
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
-import org.niis.xroad.confclient.proto.GetGlobalConfReq;
-import org.niis.xroad.confclient.proto.GetGlobalConfResp;
-import org.niis.xroad.confclient.proto.GlobalConfServiceGrpc;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.context.ApplicationContext;
+import org.springframework.test.context.ActiveProfiles;
 
-import static ee.ria.xroad.common.ErrorCodes.X_MALFORMED_GLOBALCONF;
+@ActiveProfiles("test")
+@SpringBootTest
+class ConfClientMainTest {
+    @Autowired
+    ApplicationContext context;
 
-@Slf4j
-@RequiredArgsConstructor
-public class GlobalConfRpcService extends GlobalConfServiceGrpc.GlobalConfServiceImplBase {
-    private final GlobalConfRpcCache globalConfRpcCache;
-
-    @Override
-    public void getGlobalConf(GetGlobalConfReq request, StreamObserver<GetGlobalConfResp> responseObserver) {
-        globalConfRpcCache.getGlobalConf().ifPresentOrElse(globalConf -> {
-            responseObserver.onNext(globalConf);
-            responseObserver.onCompleted();
-        }, () -> {
-            log.error("GlobalConf not found");
-            responseObserver.onError(new CodedException(X_MALFORMED_GLOBALCONF, "Global configuration is malformed or missing"));
-        });
-
+    @Test
+    void contextLoads() {
+        Assertions.assertFalse(context.getBeansOfType(JobManager.class).isEmpty());
+        Assertions.assertTrue(context.getBeansOfType(ConfClientCLIRunner.class).isEmpty());
     }
-
 }

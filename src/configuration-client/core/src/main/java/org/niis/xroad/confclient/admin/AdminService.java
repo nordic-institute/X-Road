@@ -35,16 +35,14 @@ import org.niis.xroad.confclient.config.ConfClientJobConfig;
 import org.niis.xroad.confclient.proto.AdminServiceGrpc;
 import org.niis.xroad.confclient.proto.DiagnosticsStatus;
 import org.niis.xroad.rpc.common.Empty;
-import org.springframework.stereotype.Service;
 
 import java.util.function.Supplier;
 
 import static ee.ria.xroad.common.util.TimeUtils.offsetDateTimeToEpochMillis;
 import static java.util.Optional.ofNullable;
 
-@Service
-@RequiredArgsConstructor
 @Slf4j
+@RequiredArgsConstructor
 public class AdminService extends AdminServiceGrpc.AdminServiceImplBase {
 
     private final ConfClientJobConfig.ConfigurationClientJobListener listener;

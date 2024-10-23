@@ -94,7 +94,7 @@ services:
         reservations:
           memory: 32M
         limits:
-          memory: 128M
+          memory: 256M
   confclient:
     image: xroad-ss-confclient:latest
     environment:

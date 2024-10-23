@@ -1,4 +1,6 @@
 spring:
+  config:
+    import:
   cloud:
     config:
       enabled: false

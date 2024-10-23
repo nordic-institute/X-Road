@@ -32,18 +32,19 @@ import ee.ria.xroad.common.util.JobManager;
 import ee.ria.xroad.common.util.TimeUtils;
 
 import lombok.extern.slf4j.Slf4j;
-import org.niis.xroad.confclient.ConfigurationClientProperties;
 import org.niis.xroad.schedule.backup.ProxyConfigurationBackupJob;
 import org.quartz.JobDataMap;
 import org.quartz.JobExecutionContext;
 import org.quartz.JobExecutionException;
 import org.quartz.JobListener;
 import org.quartz.SchedulerException;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.scheduling.quartz.SpringBeanJobFactory;
 
 @Configuration
+@ConditionalOnProperty(name = "xroad.configuration-client.cli-mode", havingValue = "false")
 public class ConfClientJobConfig {
 
     @Bean
@@ -55,10 +56,10 @@ public class ConfClientJobConfig {
         jobManager.getJobScheduler().getListenerManager().addJobListener(listener);
 
         jobManager.registerRepeatingJob(ConfigurationClientJob.class,
-                configurationClientProperties.getUpdateInterval(), new JobDataMap());
+                configurationClientProperties.updateInterval(), new JobDataMap());
 
         jobManager.registerJob(ProxyConfigurationBackupJob.class,
-                configurationClientProperties.getProxyConfigurationBackupCron(), new JobDataMap());
+                configurationClientProperties.proxyConfigurationBackupCron(), new JobDataMap());
 
         return jobManager;
     }
@@ -92,7 +93,7 @@ public class ConfClientJobConfig {
 
         ConfigurationClientJobListener(ConfigurationClientProperties configurationClientProperties) {
             status = new DiagnosticsStatus(DiagnosticsErrorCodes.ERROR_CODE_UNINITIALIZED, TimeUtils.offsetDateTimeNow(),
-                    TimeUtils.offsetDateTimeNow().plusSeconds(configurationClientProperties.getUpdateInterval()));
+                    TimeUtils.offsetDateTimeNow().plusSeconds(configurationClientProperties.updateInterval()));
         }
 
         @Override

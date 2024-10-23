@@ -3,15 +3,15 @@ plugins {
 }
 
 dependencies {
-    implementation project(':configuration-client:confclient-rpc-client')
-    implementation project(':common:common-globalconf')
-    implementation project(':common:common-scheduler')
-    implementation project(':common:common-jetty')
-    implementation project(':common:common-verifier')
-    implementation project(':common:common-rpc')
+    api project(':configuration-client:confclient-rpc-client')
+    api project(':common:common-globalconf')
+    api project(':common:common-scheduler')
+    api project(':common:common-jetty')
+    api project(':common:common-verifier')
+    api project(':common:common-rpc')
 
+    api libs.commons.cli
     implementation("org.springframework.boot:spring-boot-starter")
-    implementation libs.commons.cli
 
     testImplementation project(':common:common-test')
     testImplementation libs.wiremock.standalone

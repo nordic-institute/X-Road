@@ -30,7 +30,7 @@ package org.niis.xroad.confclient.globalconf;
 import ee.ria.xroad.common.SystemProperties;
 import ee.ria.xroad.common.conf.globalconf.ConfigurationAnchor;
 import ee.ria.xroad.common.conf.globalconf.ConfigurationClient;
-import ee.ria.xroad.common.conf.globalconf.ConfigurationClientCLI;
+import ee.ria.xroad.common.conf.globalconf.ConfigurationClientActionExecutor;
 import ee.ria.xroad.common.util.AtomicSave;
 
 import com.google.protobuf.ByteString;
@@ -38,6 +38,7 @@ import io.grpc.stub.StreamObserver;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.FileUtils;
+import org.niis.xroad.confclient.config.ConfigurationClientProperties;
 import org.niis.xroad.confclient.proto.AnchorServiceGrpc;
 import org.niis.xroad.confclient.proto.ConfigurationAnchorMessage;
 import org.niis.xroad.confclient.proto.VerificationResult;
@@ -59,8 +60,9 @@ import static ee.ria.xroad.common.conf.globalconf.ConfigurationConstants.CONTENT
 @Service
 @Slf4j
 public class AnchorService extends AnchorServiceGrpc.AnchorServiceImplBase {
-
+    private final ConfigurationClientProperties confClientProperties;
     private final ConfigurationClient configurationClient;
+    private final ConfigurationClientActionExecutor configurationClientActionExecutor;
 
     @Override
     public void verifyAndSaveConfigurationAnchor(ConfigurationAnchorMessage request, StreamObserver<VerificationResult> responseObserver) {
@@ -77,11 +79,11 @@ public class AnchorService extends AnchorServiceGrpc.AnchorServiceImplBase {
         try {
             anchorTempFile = createTemporaryAnchorFile(anchorBytes);
             var configurationAnchor = new ConfigurationAnchor(anchorTempFile.getAbsolutePath());
-            var paramsValidator = new ConfigurationClientCLI
+            var paramsValidator = new ConfigurationClientActionExecutor
                     .ParamsValidator(CONTENT_ID_PRIVATE_PARAMETERS, ERROR_CODE_MISSING_PRIVATE_PARAMS);
-            var result = ConfigurationClientCLI.validate(configurationAnchor, paramsValidator);
+            var result = configurationClientActionExecutor.validate(configurationAnchor, paramsValidator);
             if (result == RETURN_SUCCESS) {
-                AtomicSave.moveBetweenFilesystems(anchorTempFile.getAbsolutePath(), SystemProperties.getConfigurationAnchorFile());
+                AtomicSave.moveBetweenFilesystems(anchorTempFile.getAbsolutePath(), confClientProperties.configurationAnchorFile());
                 configurationClient.execute();
             }
             return VerificationResult.newBuilder()
@@ -103,7 +105,7 @@ public class AnchorService extends AnchorServiceGrpc.AnchorServiceImplBase {
     }
 
     private ConfigurationAnchorMessage getConfigurationAnchorFromFile() throws Exception {
-        Path anchorPath = Paths.get(SystemProperties.getConfigurationAnchorFile());
+        Path anchorPath = Paths.get(confClientProperties.configurationAnchorFile());
         if (!Files.exists(anchorPath)) {
             log.error("Configuration anchor file {} does not exist.", anchorPath);
             throw new FileNotFoundException(anchorPath.toAbsolutePath().toString());

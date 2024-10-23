@@ -36,6 +36,7 @@ dependencies {
 
     testImplementation project(':common:common-test')
     testImplementation('org.springframework.boot:spring-boot-starter-test')
+    testImplementation(libs.junit.system.exit)
 }
 
 ext {
@@ -70,3 +71,10 @@ tasks.register('runConfigurationClient', JavaExec) {
     classpath = sourceSets.main.runtimeClasspath
 }
 
+test {
+    useJUnitPlatform()
+
+    def junit5SystemExit = configurations.testRuntimeClasspath.files
+        .find { it.name.contains('junit5-system-exit') }
+    jvmArgumentProviders.add({["-javaagent:$junit5SystemExit"]} as CommandLineArgumentProvider)
+}

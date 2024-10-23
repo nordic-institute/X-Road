@@ -38,6 +38,7 @@ import static java.util.Optional.ofNullable;
  * Contains system-wide constants for system properties.
  */
 // todo xroad8 FileLength checkstyle suppression is added to config/checkstyle/suppressions.xml. remove after refactor
+@Deprecated(forRemoval = true)
 public final class SystemProperties {
 
     private SystemProperties() {
@@ -150,10 +151,6 @@ public final class SystemProperties {
     /** Property name of controlling SSL support between Proxies. */
     public static final String PROXY_SSL_SUPPORT =
             PROXY_PREFIX + "ssl-enabled";
-
-    /** Property name of the configuration anchor file. */
-    public static final String CONFIGURATION_ANCHOR_FILE =
-            PROXY_PREFIX + "configuration-anchor-file";
 
     /** Property name of the Proxy's local configuration file. */
     public static final String DATABASE_PROPERTIES =
@@ -818,14 +815,6 @@ public final class SystemProperties {
     public static boolean isAcmeChallengePortEnabled() {
         return "true".equalsIgnoreCase(SystemPropertySource.getPropertyResolver().getProperty(PROXY_UI_API_ACME_CHALLENGE_PORT_ENABLED,
                 DEFAULT_PROXY_UI_API_ACME_CHALLENGE_PORT_ENABLED));
-    }
-
-    /**
-     * @return path to the configuration anchor file, '/etc/xroad/configuration-anchor.xml' by default.
-     */
-    public static String getConfigurationAnchorFile() {
-        return SystemPropertySource.getPropertyResolver().getProperty(CONFIGURATION_ANCHOR_FILE,
-                getConfPath() + DefaultFilepaths.CONFIGURATION_ANCHOR_FILE);
     }
 
     /**

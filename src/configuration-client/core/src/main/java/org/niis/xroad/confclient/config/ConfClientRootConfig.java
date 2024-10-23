@@ -27,12 +27,10 @@ package org.niis.xroad.confclient.config;
 
 import ee.ria.xroad.common.SystemProperties;
 import ee.ria.xroad.common.conf.globalconf.ConfigurationClient;
-import ee.ria.xroad.common.conf.globalconf.FSGlobalConfValidator;
+import ee.ria.xroad.common.conf.globalconf.ConfigurationClientActionExecutor;
 
-import org.niis.xroad.confclient.globalconf.GetGlobalConfRespFactory;
-import org.niis.xroad.confclient.globalconf.GlobalConfRpcCache;
+import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
 
@@ -40,28 +38,17 @@ import org.springframework.context.annotation.Import;
         ConfClientJobConfig.class,
         ConfClientRpcConfig.class
 })
-@ComponentScan("org.niis.xroad.confclient")
+@EnableConfigurationProperties(ConfigurationClientProperties.class)
 @Configuration
 public class ConfClientRootConfig {
 
     @Bean
-    GlobalConfRpcCache globalConfRpcCache(FSGlobalConfValidator fsGlobalConfValidator,
-                                          GetGlobalConfRespFactory getGlobalConfRespFactory) {
-        return new GlobalConfRpcCache(fsGlobalConfValidator, getGlobalConfRespFactory);
+    ConfigurationClient configurationClient(ConfigurationClientProperties configurationClientProperties) {
+        return new ConfigurationClient(configurationClientProperties.configurationAnchorFile(), SystemProperties.getConfigurationPath());
     }
 
     @Bean
-    ConfigurationClient configurationClient() {
-        return new ConfigurationClient(SystemProperties.getConfigurationPath());
-    }
-
-    @Bean
-    FSGlobalConfValidator fsGlobalConfValidator() {
-        return new FSGlobalConfValidator();
-    }
-
-    @Bean
-    GetGlobalConfRespFactory getGlobalConfRespFactory() {
-        return new GetGlobalConfRespFactory();
+    ConfigurationClientActionExecutor configurationClientActionExecutor(ConfigurationClientProperties configurationClientProperties) {
+        return new ConfigurationClientActionExecutor(configurationClientProperties);
     }
 }

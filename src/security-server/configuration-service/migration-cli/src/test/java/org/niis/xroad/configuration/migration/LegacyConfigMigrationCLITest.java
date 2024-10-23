@@ -53,6 +53,8 @@ class LegacyConfigMigrationCLITest {
         assertEquals(5665, result.getProperty("xroad.configuration-client.port"));
         assertEquals("/var/cache/xroad", result.getProperty("xroad.signer.ocsp-cache-path"));
         assertEquals("", result.getProperty("xroad.proxy.empty-prop"));
+        assertEquals("/etc/xroad/configuration-anchor.xml",
+                result.getProperty("xroad.configuration-client.configuration-anchor-file"));
     }
 
     @Test

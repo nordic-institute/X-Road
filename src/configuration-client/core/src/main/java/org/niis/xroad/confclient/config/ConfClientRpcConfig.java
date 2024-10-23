@@ -25,10 +25,17 @@
  */
 package org.niis.xroad.confclient.config;
 
+import ee.ria.xroad.common.conf.globalconf.FSGlobalConfValidator;
+
 import io.grpc.BindableService;
 import lombok.extern.slf4j.Slf4j;
 import org.niis.xroad.common.rpc.RpcServerProperties;
 import org.niis.xroad.common.rpc.server.RpcServer;
+import org.niis.xroad.confclient.admin.AdminService;
+import org.niis.xroad.confclient.globalconf.GetGlobalConfRespFactory;
+import org.niis.xroad.confclient.globalconf.GlobalConfRpcCache;
+import org.niis.xroad.confclient.globalconf.GlobalConfRpcService;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
@@ -36,6 +43,7 @@ import java.util.Collection;
 
 @Slf4j
 @Configuration
+@ConditionalOnProperty(name = "xroad.configuration-client.cli-mode", havingValue = "false")
 public class ConfClientRpcConfig {
 
     @Bean
@@ -49,4 +57,29 @@ public class ConfClientRpcConfig {
         );
     }
 
+    @Bean
+    AdminService adminService(ConfClientJobConfig.ConfigurationClientJobListener listener) {
+        return new AdminService(listener);
+    }
+
+    @Bean
+    GlobalConfRpcService globalConfRpcService(GlobalConfRpcCache globalConfRpcCache) {
+        return new GlobalConfRpcService(globalConfRpcCache);
+    }
+
+    @Bean
+    FSGlobalConfValidator fsGlobalConfValidator() {
+        return new FSGlobalConfValidator();
+    }
+
+    @Bean
+    GetGlobalConfRespFactory getGlobalConfRespFactory() {
+        return new GetGlobalConfRespFactory();
+    }
+
+    @Bean
+    GlobalConfRpcCache globalConfRpcCache(FSGlobalConfValidator fsGlobalConfValidator,
+                                          GetGlobalConfRespFactory getGlobalConfRespFactory) {
+        return new GlobalConfRpcCache(fsGlobalConfValidator, getGlobalConfRespFactory);
+    }
 }

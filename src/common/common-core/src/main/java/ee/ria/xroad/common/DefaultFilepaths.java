@@ -55,8 +55,6 @@ public final class DefaultFilepaths {
 
     static final String DEVICE_CONFIGURATION_FILE = "signer/devices.ini";
 
-    static final String CONFIGURATION_ANCHOR_FILE = "configuration-anchor.xml";
-
     static final String CONFIGURATION_PATH = "globalconf";
 
     static final String LOG_PATH = "/var/log/xroad/";

@@ -1,5 +1,6 @@
 /*
  * The MIT License
+ *
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
@@ -23,26 +24,15 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.confclient;
 
-import ee.ria.xroad.common.SystemProperties;
+package org.niis.xroad.confclient.config;
 
-import org.junit.jupiter.api.BeforeAll;
-import org.junit.jupiter.api.Test;
-import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.context.properties.ConfigurationProperties;
 
-
-@SpringBootTest
-class ConfClientDaemonMainTest {
-
-    @BeforeAll
-    static void setUp() {
-        System.setProperty(SystemProperties.CONFIGURATION_CLIENT_GRPC_TLS_ENABLED, Boolean.FALSE.toString());
-        System.setProperty(SystemProperties.CONFIGURATION_ANCHOR_FILE, "build/resources/test/configuration-anchor1.xml");
-    }
-
-    @Test
-    void contextLoads() {
-        // This test will pass if the application context is loaded successfully
-    }
+@ConfigurationProperties(prefix = "xroad.configuration-client")
+public record ConfigurationClientProperties(
+        boolean cliMode,
+        int updateInterval,
+        String proxyConfigurationBackupCron,
+        String configurationAnchorFile) {
 }

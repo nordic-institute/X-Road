@@ -1,6 +1,5 @@
 /*
  * The MIT License
- *
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
@@ -24,16 +23,20 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-
 package org.niis.xroad.confclient;
 
-import lombok.Getter;
-import lombok.RequiredArgsConstructor;
+import org.junit.jupiter.api.Test;
 
-@Getter
-@RequiredArgsConstructor
-public class ConfigurationClientProperties {
-    private final int updateInterval;
-    private final String proxyConfigurationBackupCron;
+import static com.ginsberg.junit.exit.assertions.SystemExitAssertion.assertThatCallsSystemExit;
+import static ee.ria.xroad.common.conf.globalconf.ConfigurationClientActionExecutor.OPTION_VERIFY_ANCHOR_FOR_EXTERNAL_SOURCE;
 
+class ConfClientMainCLITVerifyTest {
+
+    @Test
+    void cliExecutesAndsExitsWithError122() {
+        assertThatCallsSystemExit(() -> ConfClientMain.main(new String[]{
+                "--" + OPTION_VERIFY_ANCHOR_FOR_EXTERNAL_SOURCE,
+                "build/resources/test/configuration-anchor1.xml"})
+        ).withExitCodeInRange(100, 150);
+    }
 }

@@ -35,31 +35,28 @@ import org.springframework.boot.context.properties.EnableConfigurationProperties
 
 @Slf4j
 @SpringBootApplication
-@EnableConfigurationProperties({ConfClientDaemonMain.SpringConfigurationClientProperties.class,
-        ConfClientDaemonMain.ConfClientRpcServerProperties.class})
-public class ConfClientDaemonMain {
+@EnableConfigurationProperties({ConfClientMain.ConfClientRpcServerProperties.class})
+public class ConfClientMain {
     static final String APP_NAME = "xroad-confclient";
 
     public static void main(String[] args) {
-        XrdSpringServiceBuilder.newApplicationBuilder(APP_NAME, ConfClientDaemonMain.class, ConfClientRootConfig.class)
-                .build()
+        var appBuilder = XrdSpringServiceBuilder.newApplicationBuilder(APP_NAME, ConfClientMain.class, ConfClientRootConfig.class);
+
+        if (args.length > 0) {
+            appBuilder.profiles("cli");
+        }
+
+        appBuilder.build()
                 .run(args);
     }
 
     @ConfigurationProperties(prefix = "xroad.configuration-client.grpc")
     static class ConfClientRpcServerProperties extends RpcServerProperties {
         ConfClientRpcServerProperties(String grpcListenAddress, int grpcPort, boolean grpcTlsEnabled,
-                                             String grpcTlsTrustStore, char[] grpcTlsTrustStorePassword,
-                                             String grpcTlsKeyStore, char[] grpcTlsKeyStorePassword) {
+                                      String grpcTlsTrustStore, char[] grpcTlsTrustStorePassword,
+                                      String grpcTlsKeyStore, char[] grpcTlsKeyStorePassword) {
             super(grpcListenAddress, grpcPort, grpcTlsEnabled, grpcTlsTrustStore, grpcTlsTrustStorePassword,
                     grpcTlsKeyStore, grpcTlsKeyStorePassword);
-        }
-    }
-
-    @ConfigurationProperties(prefix = "xroad.configuration-client")
-    static class SpringConfigurationClientProperties extends ConfigurationClientProperties {
-        SpringConfigurationClientProperties(int updateInterval, String proxyConfigurationBackupCron) {
-            super(updateInterval, proxyConfigurationBackupCron);
         }
     }
 
