@@ -26,7 +26,6 @@
 package ee.ria.xroad.signer.tokenmanager.token;
 
 import ee.ria.xroad.common.CodedException;
-import ee.ria.xroad.common.crypto.CryptoException;
 import ee.ria.xroad.common.crypto.SignDataPreparer;
 import ee.ria.xroad.common.crypto.UnknownAlgorithmException;
 import ee.ria.xroad.common.crypto.identifier.KeyAlgorithm;
@@ -51,16 +50,13 @@ import iaik.pkcs.pkcs11.objects.X509PublicKeyCertificate;
 import iaik.pkcs.pkcs11.wrapper.PKCS11Exception;
 import jakarta.xml.bind.DatatypeConverter;
 import lombok.extern.slf4j.Slf4j;
-import org.bouncycastle.asn1.ASN1Encodable;
-import org.bouncycastle.asn1.ASN1Integer;
-import org.bouncycastle.asn1.DERSequence;
+import org.apache.xml.security.algorithms.implementations.ECDSAUtils;
 import org.bouncycastle.asn1.x509.AlgorithmIdentifier;
 import org.bouncycastle.cert.X509CertificateHolder;
 import org.bouncycastle.cert.jcajce.JcaX509CertificateConverter;
 import org.bouncycastle.cert.jcajce.JcaX509v3CertificateBuilder;
 import org.bouncycastle.operator.ContentSigner;
 import org.bouncycastle.operator.DefaultSignatureAlgorithmIdentifierFinder;
-import org.bouncycastle.util.BigIntegers;
 import org.niis.xroad.signer.proto.ActivateTokenReq;
 import org.niis.xroad.signer.proto.GenerateKeyReq;
 
@@ -783,39 +779,9 @@ public class HardwareTokenWorker extends AbstractTokenWorker {
     protected byte[] postProcessSignature(SignAlgorithm signAlgorithm, byte[] signature) throws IOException {
         return switch (signAlgorithm.algorithm()) {
             case RSA -> signature; //NO-OP
-            case EC -> translateEcDsaSignature(signature);
+            //HSM(at least softHSM) returns signature in raw format r || s when ASN1 expected
+            case EC -> ECDSAUtils.convertXMLDSIGtoASN1(signature);
         };
-    }
-
-    /**
-     *  Translate ECDSA signature from raw format to DER encoded format.
-     *  @see <a href="https://github.com/Pkcs11Interop/PKCS11-SPECS/tree/master/v3.1">PKCS11-SPECS 6.3.1 EC Signatures</a>
-     * <p>
-     *  ECDSA-Sig-Value ::= SEQUENCE {
-     *      r INTEGER,
-     *      s INTEGER
-     *    }
-     *
-     * @param ecSignature raw ECDSA signature
-     * @return DER encoded ECDSA signature
-     */
-    private byte[] translateEcDsaSignature(byte[] ecSignature) throws IOException {
-        var signLength = ecSignature.length;
-        if (signLength < 2 || signLength % 2 != 0) {
-            throw new CryptoException("EC signature length must be even");
-        }
-
-        var partLength = ecSignature.length / 2;
-        var partR = Arrays.copyOfRange(ecSignature, 0, partLength);
-        var partS = Arrays.copyOfRange(ecSignature, partLength, ecSignature.length);
-
-        var sequence = new DERSequence(
-                new ASN1Encodable[]{
-                        new ASN1Integer(BigIntegers.fromUnsignedByteArray(partR)),
-                        new ASN1Integer(BigIntegers.fromUnsignedByteArray(partS))
-                });
-
-        return sequence.getEncoded();
     }
 
     private class HardwareTokenContentSigner implements ContentSigner {
