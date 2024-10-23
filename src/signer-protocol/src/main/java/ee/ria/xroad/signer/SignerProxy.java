@@ -824,6 +824,12 @@ public final class SignerProxy {
         return CertificationServiceDiagnosticsMapper.fromDto(signerResponse);
     }
 
+    public static String getKeyConfChecksum() throws Exception {
+        var response = RpcSignerClient.execute(ctx -> ctx.getAdminServiceBlockingStub()
+                .getKeyConfChecksum(Empty.getDefaultInstance()));
+        return response.hasChecksum() ? response.getChecksum() : null;
+    }
+
     private static final class CertificationServiceDiagnosticsMapper {
 
         public static CertificationServiceDiagnostics fromDto(CertificationServiceDiagnosticsResp dto) {

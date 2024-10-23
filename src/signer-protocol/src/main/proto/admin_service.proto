@@ -33,6 +33,7 @@ option java_multiple_files = true;
 
 service AdminService {
   rpc GetCertificationServiceDiagnostics(Empty) returns (CertificationServiceDiagnosticsResp) {}
+  rpc GetKeyConfChecksum(Empty) returns (KeyConfChecksum) {}
 }
 
 message CertificationServiceDiagnosticsResp {
@@ -49,4 +50,8 @@ message OcspResponderStatus {
   string url = 2;
   optional int64 prev_update = 3;
   int64 next_update = 4;
+}
+
+message KeyConfChecksum {
+  optional string checksum = 1;
 }
