@@ -116,7 +116,6 @@ public abstract class AbstractProxyIntegrationTest {
         System.setProperty(SystemProperties.DATABASE_PROPERTIES, "src/test/resources/hibernate.properties");
 
         System.setProperty(SystemProperties.PROXY_HEALTH_CHECK_PORT, "5558");
-        System.setProperty(SystemProperties.SERVER_CONF_CACHE_PERIOD, "0");
 
         System.setProperty(SystemProperties.GRPC_INTERNAL_TLS_ENABLED, Boolean.FALSE.toString());
 

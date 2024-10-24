@@ -26,7 +26,6 @@
 package ee.ria.xroad.common.conf.serverconf;
 
 import ee.ria.xroad.common.CodedException;
-import ee.ria.xroad.common.SystemProperties;
 import ee.ria.xroad.common.conf.InternalSSLKey;
 import ee.ria.xroad.common.conf.globalconf.GlobalConfProvider;
 import ee.ria.xroad.common.conf.serverconf.model.ClientType;
@@ -73,9 +72,9 @@ public class CachingServerConfImpl extends ServerConfImpl {
      * with internal key cache)
      */
     @SuppressWarnings("checkstyle:MagicNumber")
-    public CachingServerConfImpl(GlobalConfProvider globalConfProvider) {
+    public CachingServerConfImpl(ServerConfProperties serverConfProperties, GlobalConfProvider globalConfProvider) {
         super(globalConfProvider);
-        expireSeconds = SystemProperties.getServerConfCachePeriod();
+        expireSeconds = serverConfProperties.cachePeriod();
 
         internalKeyCache = CacheBuilder.newBuilder()
                 .maximumSize(1)
@@ -88,24 +87,23 @@ public class CachingServerConfImpl extends ServerConfImpl {
                 .build();
 
         clientCache = CacheBuilder.newBuilder()
-                .maximumSize(SystemProperties.getServerConfClientCacheSize())
+                .maximumSize(serverConfProperties.clientCacheSize())
                 .expireAfterWrite(expireSeconds, TimeUnit.SECONDS)
                 .recordStats()
                 .build();
 
         serviceCache = CacheBuilder.newBuilder()
-                .maximumSize(SystemProperties.getServerConfServiceCacheSize())
+                .maximumSize(serverConfProperties.serviceCacheSize())
                 .expireAfterWrite(expireSeconds, TimeUnit.SECONDS)
                 .recordStats()
                 .build();
 
         aclCache = CacheBuilder.newBuilder()
                 .weigher((AclCacheKey k, List<EndpointType> v) -> v.size() + 1)
-                .maximumWeight(SystemProperties.getServerConfAclCacheSize())
+                .maximumWeight(serverConfProperties.aclCacheSize())
                 .expireAfterWrite(expireSeconds, TimeUnit.SECONDS)
                 .recordStats()
                 .build();
-
     }
 
     @Override

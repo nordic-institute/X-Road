@@ -35,6 +35,7 @@ import ee.ria.xroad.common.conf.globalconf.RemoteGlobalConfDataLoader;
 import ee.ria.xroad.common.conf.globalconf.RemoteGlobalConfSource;
 import ee.ria.xroad.common.conf.serverconf.CachingServerConfImpl;
 import ee.ria.xroad.common.conf.serverconf.ServerConfImpl;
+import ee.ria.xroad.common.conf.serverconf.ServerConfProperties;
 import ee.ria.xroad.common.conf.serverconf.ServerConfProvider;
 import ee.ria.xroad.proxy.conf.CachingKeyConfImpl;
 import ee.ria.xroad.proxy.conf.KeyConfProvider;
@@ -83,8 +84,12 @@ public class XRoadConfExtension implements ServiceExtension {
             var globalConfSource = new RemoteGlobalConfSource(confClientRpcClient, globalConfDataLoader);
             GlobalConfProvider globalConfProvider = new GlobalConfImpl(globalConfSource);
 
-            ServerConfProvider serverConfProvider = (SystemProperties.getServerConfCachePeriod() > 0)
-                    ? new CachingServerConfImpl(globalConfProvider)
+            // todo: move to properties
+            ServerConfProperties serverConfProperties = new ServerConfProperties(
+                  60, 100, 1000, 100_000
+            );
+            ServerConfProvider serverConfProvider = (serverConfProperties.cachePeriod() > 0)
+                    ? new CachingServerConfImpl(serverConfProperties, globalConfProvider)
                     : new ServerConfImpl(globalConfProvider);
 
             CertChainFactory certChainFactory = new CertChainFactory(globalConfProvider);

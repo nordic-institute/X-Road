@@ -31,6 +31,7 @@ import ee.ria.xroad.common.conf.globalconf.GlobalConfProvider;
 import ee.ria.xroad.common.conf.serverconf.CachingServerConfImpl;
 import ee.ria.xroad.common.conf.serverconf.IsAuthentication;
 import ee.ria.xroad.common.conf.serverconf.ServerConfDatabaseCtx;
+import ee.ria.xroad.common.conf.serverconf.ServerConfProperties;
 import ee.ria.xroad.common.conf.serverconf.ServerConfProvider;
 import ee.ria.xroad.common.conf.serverconf.dao.ServiceDAOImpl;
 import ee.ria.xroad.common.identifier.ClientId;
@@ -103,7 +104,9 @@ public class CachingServerConfTest {
                 return true;
             }
         };
-        serverConfProvider = new CachingServerConfImpl(globalConfProvider);
+        ServerConfProperties serverConfProperties = new ServerConfProperties(60, 100,
+                1000, 100_000);
+        serverConfProvider = new CachingServerConfImpl(serverConfProperties, globalConfProvider);
     }
 
     /**

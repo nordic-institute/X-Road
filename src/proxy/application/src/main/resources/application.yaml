@@ -74,6 +74,11 @@ xroad:
     enabled: true
   common:
     global-conf-remoting-enabled: true
+    server-conf:
+      cache-period: 60
+      client-cache-size: 100
+      service-cache-size: 1000
+      acl-cache-size: 100_000
   configuration-client:
     update-interval: 60
     grpc-host: localhost

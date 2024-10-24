@@ -59,6 +59,9 @@ xroad:
       grpc-listen-address: 0.0.0.0
       grpc-port: 5567
       grpc-tls-enabled: false
+  common:
+    server-conf:
+      cache-period: 0
   configuration-client:
     update-interval: 60
     grpc-host: localhost

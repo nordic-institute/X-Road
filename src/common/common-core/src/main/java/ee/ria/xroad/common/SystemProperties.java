@@ -204,15 +204,6 @@ public final class SystemProperties {
 
     private static final String SIGNER_ENFORCE_TOKEN_PIN_POLICY = SIGNER_PREFIX + "enforce-token-pin-policy";
 
-    public static final String SERVER_CONF_CACHE_PERIOD =
-            PROXY_PREFIX + "server-conf-cache-period";
-
-    public static final String SERVER_CONF_CLIENT_CACHE_SIZE = PROXY_PREFIX + "server-conf-client-cache-size";
-
-    public static final String SERVER_CONF_SERVICE_CACHE_SIZE = PROXY_PREFIX + "server-conf-service-cache-size";
-
-    public static final String SERVER_CONF_ACL_CACHE_SIZE = PROXY_PREFIX + "server-conf-acl-cache-size";
-
     /** Property name of the server's minimum supported client version */
     private static final String SERVERPROXY_MIN_SUPPORTED_CLIENT_VERSION =
             PROXY_PREFIX + "server-min-supported-client-version";
@@ -1271,13 +1262,6 @@ public final class SystemProperties {
     }
 
     /**
-     * @return the update interval in seconds at which server conf in cached, '60' by default
-     */
-    public static int getServerConfCachePeriod() {
-        return Integer.parseInt(SystemPropertySource.getPropertyResolver().getProperty(SERVER_CONF_CACHE_PERIOD, "60"));
-    }
-
-    /**
      * @return the interval in seconds at which verifier caches results.
      * Max value is 180 seconds and cannot be exceeded in configuration.
      * Default is 60 s.
@@ -1382,29 +1366,6 @@ public final class SystemProperties {
             minVersion = MINIMUM_SUPPORTED_GLOBAL_CONFIGURATION_VERSION;
         }
         return minVersion;
-    }
-
-    /**
-     * @return Serverconf client cache size
-     */
-    public static long getServerConfClientCacheSize() {
-        return Long.getLong(SERVER_CONF_CLIENT_CACHE_SIZE, 100);
-    }
-
-    /**
-     * @return Serverconf service cache size
-     */
-    @SuppressWarnings("checkstyle:MagicNumber")
-    public static long getServerConfServiceCacheSize() {
-        return Long.getLong(SERVER_CONF_SERVICE_CACHE_SIZE, 1000);
-    }
-
-    /**
-     * @return Serverconf access right cache size
-     */
-    @SuppressWarnings("checkstyle:MagicNumber")
-    public static long getServerConfAclCacheSize() {
-        return Long.getLong(SERVER_CONF_ACL_CACHE_SIZE, 100_000);
     }
 
     private static void checkVersionValidity(int min, int current, String defaultVersion) {

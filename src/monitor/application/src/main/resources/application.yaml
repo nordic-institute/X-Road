@@ -23,6 +23,11 @@ xroad:
       grpc-tls-enabled: false
   common:
     global-conf-remoting-enabled: true
+    server-conf:
+      cache-period: 60
+      client-cache-size: 100
+      service-cache-size: 1000
+      acl-cache-size: 100_000
   signer:
     grpc-host: localhost
     grpc-port: 5560

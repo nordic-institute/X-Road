@@ -24,24 +24,16 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
+
 package ee.ria.xroad.common.conf.serverconf;
 
-import ee.ria.xroad.common.conf.globalconf.GlobalConfProvider;
+import org.springframework.boot.context.properties.ConfigurationProperties;
 
-import org.springframework.boot.context.properties.EnableConfigurationProperties;
-import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Configuration;
-
-@Configuration
-@EnableConfigurationProperties(ServerConfProperties.class)
-public class ServerConfBeanConfig {
-
-    @Bean
-    ServerConfProvider serverConfProvider(ServerConfProperties serverConfProperties, GlobalConfProvider globalConfProvider) {
-        if (serverConfProperties.cachePeriod() > 0) {
-            return new CachingServerConfImpl(serverConfProperties, globalConfProvider);
-        }
-        return new ServerConfImpl(globalConfProvider);
-    }
-
+@ConfigurationProperties(prefix = "xroad.common.server-conf")
+public record ServerConfProperties(
+        int cachePeriod,       //xroad.proxy.server-conf-cache-period: 60
+        long clientCacheSize,  //xroad.proxy.server-conf-client-cache-size: 100
+        long serviceCacheSize, //xroad.proxy.server-conf-service-cache-size: 1000
+        long aclCacheSize      //xroad.proxy.server-conf-acl-cache-size: 100_000
+) {
 }
