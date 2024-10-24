@@ -92,7 +92,7 @@ export default defineComponent({
 </script>
 
 <style lang="scss" scoped>
-@import '@/assets/colors';
+@use '@/assets/colors';
 
 .xrd-view-common {
   width: 100%;
@@ -109,7 +109,7 @@ export default defineComponent({
   font-weight: bold;
   font-size: 40px;
   line-height: 56px;
-  color: $XRoad-Black100;
+  color: colors.$Black100;
   margin-top: 50px;
   margin-bottom: 60px;
 }

@@ -97,5 +97,5 @@ export default defineComponent({
 </script>
 
 <style lang="scss" scoped>
-@import '../../assets/wizards';
+@use '@/assets/wizards';
 </style>

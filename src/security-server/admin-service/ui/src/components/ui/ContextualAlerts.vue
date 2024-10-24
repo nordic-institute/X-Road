@@ -194,7 +194,7 @@ export default defineComponent({
 </script>
 
 <style lang="scss" scoped>
-@import '@/assets/colors';
+@use '@/assets/colors';
 
 .alerts-container {
   padding: 0;
@@ -206,10 +206,10 @@ export default defineComponent({
 
 .alert {
   margin-top: 16px;
-  border: 2px solid $XRoad-WarmGrey30;
+  border: 2px solid colors.$WarmGrey30;
   box-sizing: border-box;
   border-radius: 4px;
-  background-color: $XRoad-White100;
+  background-color: colors.$White100;
 }
 
 .row-wrapper-top {
@@ -227,11 +227,11 @@ export default defineComponent({
 
   .error-icon {
     margin-right: 12px;
-    color: $XRoad-Error;
+    color: colors.$Error;
   }
   .warning-icon {
     margin-right: 12px;
-    color: $XRoad-Warning;
+    color: colors.$Warning;
   }
 }
 
@@ -242,7 +242,7 @@ export default defineComponent({
   overflow-wrap: break-word;
   justify-content: center;
   margin-right: 30px;
-  color: $XRoad-Black100;
+  color: colors.$Black100;
 }
 
 .id-button {

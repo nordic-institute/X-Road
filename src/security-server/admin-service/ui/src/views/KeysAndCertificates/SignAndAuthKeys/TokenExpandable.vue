@@ -420,8 +420,8 @@ export default defineComponent({
 </script>
 
 <style lang="scss" scoped>
-@import '@/assets/tables';
-@import '@/assets/colors';
+@use '@/assets/tables';
+@use '@/assets/colors';
 
 .token-logging-button {
   display: inline-flex;
@@ -438,23 +438,23 @@ export default defineComponent({
   }
 
   &.inactive {
-    color: $XRoad-Black50;
-    text-decoration-color: $XRoad-Black50;
+    color: colors.$Black50;
+    text-decoration-color: colors.$Black50;
   }
 
   &.unavailable {
-    color: $XRoad-Error;
-    text-decoration-color: $XRoad-Error;
+    color: colors.$Error;
+    text-decoration-color: colors.$Error;
   }
 
   &.unsaved {
-    color: $XRoad-Error;
-    text-decoration-color: $XRoad-Error;
+    color: colors.$Error;
+    text-decoration-color: colors.$Error;
   }
 }
 
 .clickable-link {
-  color: $XRoad-Purple100;
+  color: colors.$Purple100;
   cursor: pointer;
 }
 
