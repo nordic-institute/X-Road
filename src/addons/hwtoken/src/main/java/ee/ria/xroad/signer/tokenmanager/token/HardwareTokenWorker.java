@@ -50,7 +50,6 @@ import iaik.pkcs.pkcs11.objects.X509PublicKeyCertificate;
 import iaik.pkcs.pkcs11.wrapper.PKCS11Exception;
 import jakarta.xml.bind.DatatypeConverter;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.xml.security.algorithms.implementations.ECDSAUtils;
 import org.bouncycastle.asn1.x509.AlgorithmIdentifier;
 import org.bouncycastle.cert.X509CertificateHolder;
 import org.bouncycastle.cert.jcajce.JcaX509CertificateConverter;
@@ -61,7 +60,6 @@ import org.niis.xroad.signer.proto.ActivateTokenReq;
 import org.niis.xroad.signer.proto.GenerateKeyReq;
 
 import java.io.ByteArrayOutputStream;
-import java.io.IOException;
 import java.io.OutputStream;
 import java.security.PublicKey;
 import java.security.cert.CertPath;
@@ -234,7 +232,7 @@ public class HardwareTokenWorker extends AbstractTokenWorker {
         assertTokenWritable();
         assertActiveSession();
 
-        var keyPairHelper = KeyPairHelper.of(KeyAlgorithm.valueOf(message.getAlgorithm()));
+        var keyPairHelper = KeyPairHelper.of(mapAlgorithm(message.getAlgorithm()));
         var generatedKP = keyPairHelper.createKeypair(
                 activeSession,
                 message.getKeyLabel(),
@@ -775,15 +773,6 @@ public class HardwareTokenWorker extends AbstractTokenWorker {
         //NO-OP
     }
 
-    @Override
-    protected byte[] postProcessSignature(SignAlgorithm signAlgorithm, byte[] signature) throws IOException {
-        return switch (signAlgorithm.algorithm()) {
-            case RSA -> signature; //NO-OP
-            //HSM(at least softHSM) returns signature in raw format r || s when ASN1 expected
-            case EC -> ECDSAUtils.convertXMLDSIGtoASN1(signature);
-        };
-    }
-
     private class HardwareTokenContentSigner implements ContentSigner {
 
         private final ByteArrayOutputStream out;
@@ -813,7 +802,7 @@ public class HardwareTokenWorker extends AbstractTokenWorker {
                 activeSession.signInit(signatureMechanism, privateKey);
                 byte[] digest = calculateDigest(signatureAlgorithmId.digest(), dataToSign);
                 byte[] dataDigestToSign = SignDataPreparer.of(signatureAlgorithmId).prepare(digest);
-                return postProcessSignature(signatureAlgorithmId, activeSession.sign(dataDigestToSign));
+                return activeSession.sign(dataDigestToSign);
             } catch (Exception e) {
                 log.error(e.getMessage());
                 throw translateException(e);

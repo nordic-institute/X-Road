@@ -25,6 +25,7 @@
  */
 package ee.ria.xroad.signer.tokenmanager.token;
 
+import ee.ria.xroad.common.SystemProperties;
 import ee.ria.xroad.common.crypto.KeyManagers;
 import ee.ria.xroad.common.crypto.SignDataPreparer;
 import ee.ria.xroad.common.crypto.identifier.KeyAlgorithm;
@@ -44,11 +45,11 @@ import org.bouncycastle.asn1.x509.KeyUsage;
 import org.bouncycastle.cert.CertIOException;
 import org.bouncycastle.cert.jcajce.JcaX509v3CertificateBuilder;
 import org.niis.xroad.signer.proto.ActivateTokenReq;
+import org.niis.xroad.signer.proto.Algorithm;
 import org.niis.xroad.signer.proto.GenerateKeyReq;
 import org.niis.xroad.signer.proto.SignCertificateReq;
 import org.niis.xroad.signer.proto.SignReq;
 
-import java.io.IOException;
 import java.math.BigInteger;
 import java.security.PublicKey;
 import java.security.cert.X509Certificate;
@@ -106,7 +107,7 @@ public abstract class AbstractTokenWorker implements TokenWorker, WorkerWithLife
         log.debug("Generated new key with id '{}'", keyId);
 
         if (isKeyMissing(keyId)) {
-            var signMechanism = resolveSignMechanism(KeyAlgorithm.valueOf(message.getAlgorithm()));
+            var signMechanism = resolveSignMechanism(mapAlgorithm(message.getAlgorithm()));
             TokenManager.addKey(tokenId, keyId, result.publicKeyBase64(), signMechanism);
             TokenManager.setKeyAvailable(keyId, true);
             TokenManager.setKeyLabel(keyId, message.getKeyLabel());
@@ -145,7 +146,7 @@ public abstract class AbstractTokenWorker implements TokenWorker, WorkerWithLife
             var signatureAlgId = SignAlgorithm.ofName(request.getSignatureAlgorithmId());
             byte[] data = SignDataPreparer.of(signatureAlgId).prepare(request.getDigest().toByteArray());
 
-            return postProcessSignature(signatureAlgId, sign(request.getKeyId(), signatureAlgId, data));
+            return sign(request.getKeyId(), signatureAlgId, data);
         } catch (Exception e) {
             log.error("Error while signing with key '{}'", request.getKeyId(), e);
 
@@ -193,10 +194,6 @@ public abstract class AbstractTokenWorker implements TokenWorker, WorkerWithLife
      */
     public abstract void onActionHandled();
 
-    protected byte[] postProcessSignature(SignAlgorithm signAlgorithm, byte[] signature) throws IOException {
-        return signature; //NO-OP
-    }
-
     // ------------------------------------------------------------------------
 
     protected abstract void activateToken(ActivateTokenReq message) throws Exception;
@@ -218,6 +215,14 @@ public abstract class AbstractTokenWorker implements TokenWorker, WorkerWithLife
         if (!isKeyAvailable(keyId)) {
             throw keyNotAvailable(keyId);
         }
+    }
+
+    protected KeyAlgorithm mapAlgorithm(Algorithm algorithm) {
+        return switch (algorithm) {
+            case RSA -> KeyAlgorithm.RSA;
+            case EC -> KeyAlgorithm.EC;
+            case UNKNOWN, UNRECOGNIZED -> SystemProperties.getSignerDefaultKeyAlgorithm();
+        };
     }
 
     protected static JcaX509v3CertificateBuilder getCertificateBuilder(String subjectName,

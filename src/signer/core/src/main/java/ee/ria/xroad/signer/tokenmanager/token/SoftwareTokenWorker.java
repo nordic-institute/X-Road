@@ -189,7 +189,7 @@ public class SoftwareTokenWorker extends AbstractTokenWorker {
 
         assertTokenAvailable();
 
-        var keyPair = KeyManagers.getFor(message.getAlgorithm()).generateKeyPair();
+        var keyPair = KeyManagers.getFor(mapAlgorithm(message.getAlgorithm())).generateKeyPair();
 
         String keyId = SignerUtil.randomId();
         savePkcs12Keystore(keyPair, keyId, getKeyStoreFileName(keyId), getPin());

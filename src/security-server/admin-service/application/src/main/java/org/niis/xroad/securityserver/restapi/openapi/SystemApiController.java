@@ -276,7 +276,7 @@ public class SystemApiController implements SystemApi {
             throw new BadRequestException(e);
         } catch (SystemService.AnchorUploadException | ConfigurationDownloadException
                  | ConfigurationVerifier.ConfigurationVerificationException e) {
-            throw new InternalServerErrorException(e);
+            throw new InternalServerErrorException(e, e.getErrorDeviation(), e.getWarningDeviations());
         }
         return ControllerUtil.createCreatedResponse("/api/system/anchor", null);
     }

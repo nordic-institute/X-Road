@@ -61,7 +61,7 @@ deploy_module() {
   esac
 
   for container in "${containers[@]}"; do
-    docker cp "$jar_path" "$container:${target_path:- /usr/share/xroad/jlib/}"
+    docker cp "$jar_path" "$container:${target_path:-/usr/share/xroad/jlib/}"
     docker exec -it "$container" supervisorctl restart "$service_name"
   done
 }

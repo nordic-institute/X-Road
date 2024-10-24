@@ -25,7 +25,6 @@
  */
 package ee.ria.xroad.signer;
 
-import ee.ria.xroad.common.SystemProperties;
 import ee.ria.xroad.common.crypto.identifier.KeyAlgorithm;
 import ee.ria.xroad.common.crypto.identifier.SignAlgorithm;
 import ee.ria.xroad.common.crypto.identifier.SignMechanism;
@@ -49,6 +48,7 @@ import lombok.Value;
 import lombok.extern.slf4j.Slf4j;
 import org.niis.xroad.signer.proto.ActivateCertReq;
 import org.niis.xroad.signer.proto.ActivateTokenReq;
+import org.niis.xroad.signer.proto.Algorithm;
 import org.niis.xroad.signer.proto.CertificateRequestFormat;
 import org.niis.xroad.signer.proto.DeleteCertReq;
 import org.niis.xroad.signer.proto.DeleteCertRequestReq;
@@ -250,12 +250,14 @@ public final class SignerProxy {
     public static KeyInfo generateKey(String tokenId, String keyLabel, KeyAlgorithm algorithm) throws Exception {
         log.trace("Generating key for token '{}'", tokenId);
 
-        var response = RpcSignerClient.execute(ctx -> ctx.getBlockingKeyService()
-                .generateKey(GenerateKeyReq.newBuilder()
-                        .setTokenId(tokenId)
-                        .setKeyLabel(keyLabel)
-                        .setAlgorithm(algorithm.name())
-                        .build()));
+        var builder = GenerateKeyReq.newBuilder()
+                .setTokenId(tokenId)
+                .setKeyLabel(keyLabel);
+        if (algorithm != null) {
+            builder.setAlgorithm(Algorithm.valueOf(algorithm.name()));
+        }
+
+        var response = RpcSignerClient.execute(ctx -> ctx.getBlockingKeyService().generateKey(builder.build()));
 
         KeyInfo keyInfo = new KeyInfo(response);
 
@@ -273,7 +275,7 @@ public final class SignerProxy {
      * @throws Exception if any errors occur
      */
     public static KeyInfo generateKey(String tokenId, String keyLabel) throws Exception {
-        return generateKey(tokenId, keyLabel, SystemProperties.getSignerDefaultKeyAlgorithm());
+        return generateKey(tokenId, keyLabel, null);
     }
 
     /**

@@ -28,6 +28,7 @@ package ee.ria.xroad.signer.protocol.handler;
 import ee.ria.xroad.common.CodedException;
 import ee.ria.xroad.common.SystemProperties;
 import ee.ria.xroad.common.crypto.KeyManagers;
+import ee.ria.xroad.common.crypto.Signatures;
 import ee.ria.xroad.common.crypto.identifier.DigestAlgorithm;
 import ee.ria.xroad.common.crypto.identifier.SignAlgorithm;
 import ee.ria.xroad.signer.protocol.AbstractRpcHandler;
@@ -168,9 +169,10 @@ public abstract class AbstractGenerateCertReq<ReqT extends AbstractMessage,
                         .setDigest(ByteString.copyFrom(calculateDigest(digestAlgoId, out.toByteArray())))
                         .build();
 
-                return tokenWorkerProvider.getTokenWorker(tokenAndKey.tokenId())
-                        .orElseThrow(() -> tokenNotFound(tokenAndKey.tokenId()))
-                        .handleSign(request);
+                return Signatures.useAsn1DerFormat(signAlgoId,
+                        tokenWorkerProvider.getTokenWorker(tokenAndKey.tokenId())
+                                .orElseThrow(() -> tokenNotFound(tokenAndKey.tokenId()))
+                                .handleSign(request));
             } catch (Exception e) {
                 throw translateException(e);
             }
