@@ -54,7 +54,7 @@ export default defineComponent({
 </script>
 
 <style lang="scss" scoped>
-@import '@/assets/tables.scss';
+@use '@/assets/tables' as *;
 
 .title-cell {
   max-width: 40%;

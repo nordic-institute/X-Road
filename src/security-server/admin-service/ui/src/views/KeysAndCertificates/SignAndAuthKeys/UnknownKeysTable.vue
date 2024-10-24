@@ -197,7 +197,7 @@ export default defineComponent({
 </script>
 
 <style lang="scss" scoped>
-@import '@/assets/tables';
+@use '@/assets/tables';
 
 .keys-table {
   margin-top: 20px;

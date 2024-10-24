@@ -128,7 +128,7 @@ export default defineComponent({
 </script>
 
 <style lang="scss" scoped>
-@import '@/assets/shared';
+@use '@/assets/shared' as *;
 
 .logout-text {
   font-size: 14px !important;

@@ -117,12 +117,12 @@ export default defineComponent({
 </script>
 
 <style lang="scss" scoped>
-@import '@/assets/colors';
-@import '@/assets/tables';
+@use '@/assets/colors';
+@use '@/assets/tables' as *;
 
 .internal-conf-icon {
   margin-right: 15px;
-  color: $XRoad-Purple100;
+  color: colors.$Purple100;
 }
 
 .xrd-clickable {

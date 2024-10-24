@@ -534,10 +534,10 @@ export default defineComponent({
 </script>
 
 <style lang="scss">
-@import '@/assets/colors';
+@use '@/assets/colors';
 
 .xrd-table-header {
-  border-bottom: 1px solid $XRoad-WarmGrey30 !important;
+  border-bottom: 1px solid colors.$WarmGrey30 !important;
 }
 
 // Override Vuetify default table cell height
@@ -545,28 +545,28 @@ export default defineComponent({
 .v-data-table > .v-table__wrapper > table > thead > tr > td,
 .v-data-table > .v-table__wrapper > table > tfoot > tr > td {
   height: 56px;
-  color: $XRoad-Black100;
+  color: colors.$Black100;
 }
 
 // Override Vuetify table row hover color
 .v-data-table > .v-table__wrapper > table > tbody > tr:hover {
-  background: $XRoad-Purple10 !important;
+  background: colors.$Purple10 !important;
 }
 </style>
 
 <style lang="scss" scoped>
-@import '@/assets/colors';
-@import '@/assets/tables';
+@use '@/assets/colors';
+@use '@/assets/tables';
 
 .icon-member {
   padding-left: 0;
-  color: $XRoad-Link;
+  color: colors.$Link;
   cursor: pointer;
 }
 
 .icon-virtual-member {
   padding-left: 0;
-  color: $XRoad-Black100;
+  color: colors.$Black100;
 }
 
 .icon-size {
@@ -597,7 +597,7 @@ export default defineComponent({
   &.clickable {
     cursor: pointer;
     text-decoration: none;
-    color: $XRoad-Link;
+    color: colors.$Link;
   }
 }
 

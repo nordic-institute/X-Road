@@ -126,11 +126,11 @@ export default defineComponent({
 </script>
 
 <style lang="scss">
-@import './assets/global-style.scss';
+@use './assets/global-style.scss';
 </style>
 
 <style lang="scss" scoped>
-@import './assets/colors';
+@use 'assets/colors';
 
 .fade-enter-active,
 .fade-leave-active {
@@ -146,6 +146,6 @@ export default defineComponent({
 
 /* Set the app background color */
 .v-theme--light.v-application.xrd-app {
-  background: $XRoad-WarmGrey30;
+  background: colors.$WarmGrey30;
 }
 </style>

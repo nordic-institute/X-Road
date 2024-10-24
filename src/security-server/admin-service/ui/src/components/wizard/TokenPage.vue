@@ -192,7 +192,8 @@ export default defineComponent({
 </script>
 
 <style lang="scss" scoped>
-@import '@/assets/wizards';
+@use '@/assets/wizards';
+@use '@/assets/colors';
 
 .wizard-token-step-form-content {
   padding: 30px;
@@ -209,7 +210,7 @@ export default defineComponent({
   padding-right: 10px;
   flex-direction: row;
   flex-wrap: wrap;
-  border-bottom: 1px solid $XRoad-WarmGrey30;
+  border-bottom: 1px solid colors.$WarmGrey30;
   padding-left: 12px;
   padding-bottom: 5px;
   padding-top: 5px;

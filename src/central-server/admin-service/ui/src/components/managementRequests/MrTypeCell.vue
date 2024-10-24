@@ -107,7 +107,7 @@ export default defineComponent({
 </script>
 
 <style lang="scss" scoped>
-@import '@/assets/colors';
+@use '@/assets/colors';
 
 .status-wrapper {
   display: flex;

@@ -95,7 +95,7 @@ const save = handleSubmit((values) => {
 });
 </script>
 <style lang="scss" scoped>
-@import '@/assets/tables';
+@use '@/assets/tables' as *;
 
 div.v-input {
   padding-bottom: 8px;

@@ -381,14 +381,14 @@ export default defineComponent({
 </script>
 
 <style lang="scss" scoped>
-@import '@/assets/colors';
-@import '@/assets/detail-views';
+@use '@/assets/colors';
+@use '@/assets/detail-views';
 
 .main-wrap {
   background-color: white;
   margin-top: 20px;
   border-radius: 4px;
-  box-shadow: $XRoad-DefaultShadow;
+  box-shadow: colors.$DefaultShadow;
 }
 
 .edit-row {

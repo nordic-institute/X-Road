@@ -25,7 +25,8 @@
  * THE SOFTWARE.
  */
 
-@import './colors';
+@use 'colors';
+
 th {
   height: 48px;
   background: red;
@@ -41,21 +42,21 @@ th {
 
   td {
     height: 56px;
-    border-bottom: $XRoad-WarmGrey30 solid 1px;
+    border-bottom: colors.$WarmGrey30 solid 1px;
     padding-left: 16px;
   }
   th {
-    border-bottom: $XRoad-WarmGrey30 solid 1px;
+    border-bottom: colors.$WarmGrey30 solid 1px;
     padding-left: 16px;
     text-align: left;
     text-transform: uppercase;
     font-size: 12px;
-    color: $XRoad-WarmGrey100;
+    color: colors.$WarmGrey100;
   }
 
   &.xrd-table-highlightable tbody tr:hover {
     cursor: pointer;
-    background-color: $XRoad-Purple10;
+    background-color: colors.$Purple10;
   }
 }
 
@@ -74,8 +75,8 @@ th {
   background-color: white;
   margin-top: 20px;
   border-radius: 4px;
-  box-shadow: $XRoad-DefaultShadow;
-  font-size: $XRoad-DefaultFontSize;
+  box-shadow: colors.$DefaultShadow;
+  font-size: colors.$DefaultFontSize;
 }
 
 // v7 Footer buttons / actions wrap for non-wizard subviews for "dialog" look
@@ -85,7 +86,7 @@ th {
   justify-content: flex-end;
   border-radius: 0 0 4px 4px;
   padding: 16px;
-  background-color: $XRoad-WarmGrey10;
+  background-color: colors.$WarmGrey10;
   height: 72px;
 }
 

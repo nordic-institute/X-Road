@@ -496,7 +496,8 @@ export default defineComponent({
 </script>
 
 <style lang="scss" scoped>
-@import '@/assets/tables';
+@use '@/assets/tables';
+@use '@/assets/colors';
 
 .apply-to-all {
   display: flex;
@@ -549,7 +550,7 @@ export default defineComponent({
 .row-title {
   width: 100%;
   justify-content: space-between;
-  color: $XRoad-Black100;
+  color: colors.$Black100;
   font-size: 20px;
   font-weight: 500;
   letter-spacing: 0.5px;

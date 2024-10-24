@@ -295,8 +295,8 @@ export default defineComponent({
 </script>
 
 <style lang="scss" scoped>
-@import '@/assets/tables';
-@import '@/assets/colors';
+@use '@/assets/tables';
+@use '@/assets/colors';
 
 .select-connection {
   max-width: 240px;
@@ -313,19 +313,19 @@ export default defineComponent({
 }
 
 .conn-info {
-  color: $XRoad-Black70;
+  color: colors.$Black70;
 }
 
 .cert-table-title {
-  color: $XRoad-Black70;
-  font-size: $XRoad-DefaultFontSize;
+  color: colors.$Black70;
+  font-size: colors.$DefaultFontSize;
   font-weight: bold;
   margin: 5px;
 }
 
 .server-certificates {
   width: 100%;
-  border-top: $XRoad-WarmGrey30 solid 1px;
+  border-top: colors.$WarmGrey30 solid 1px;
 }
 
 .icon {

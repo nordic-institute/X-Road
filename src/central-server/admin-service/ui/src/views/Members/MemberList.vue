@@ -201,11 +201,11 @@ export default defineComponent({
 </script>
 
 <style lang="scss" scoped>
-@import '@/assets/colors';
-@import '@/assets/tables';
+@use '@/assets/colors';
+@use '@/assets/tables' as *;
 
 .members-table-cell-name-action {
-  color: $XRoad-Purple100;
+  color: colors.$Purple100;
   font-weight: 600;
   font-size: 14px;
   cursor: pointer;

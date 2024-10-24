@@ -171,10 +171,11 @@ export default defineComponent({
 </script>
 
 <style lang="scss" scoped>
-@import '@/assets/tables';
+@use '@/assets/tables' as *;
+@use '@/assets/colors';
 
 .server-code {
-  color: $XRoad-Purple100;
+  color: colors.$Purple100;
   font-weight: 600;
   font-size: 14px;
 }
@@ -208,7 +209,7 @@ export default defineComponent({
 }
 
 .card-main-title {
-  color: $XRoad-Black100;
+  color: colors.$Black100;
   font-style: normal;
   font-weight: bold;
   font-size: 18px;

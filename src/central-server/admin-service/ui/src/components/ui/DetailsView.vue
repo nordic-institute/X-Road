@@ -67,10 +67,10 @@ export default defineComponent({
 </script>
 
 <style lang="scss" scoped>
-@import '@/assets/colors';
+@use '@/assets/colors';
 
 .navigation-back {
-  color: $XRoad-Link;
+  color: colors.$Link;
   cursor: pointer;
   margin-bottom: 20px;
 

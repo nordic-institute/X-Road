@@ -122,7 +122,7 @@ export default defineComponent({
 </script>
 
 <style lang="scss" scoped>
-@import '@/assets/wizards';
+@use '@/assets/wizards';
 
 /* Expand imported wizard class */
 .wizard-label {

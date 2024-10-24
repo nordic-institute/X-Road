@@ -228,7 +228,8 @@ export default defineComponent({
 </script>
 
 <style lang="scss" scoped>
-@import '../../../assets/detail-views';
+@use '@/assets/detail-views';
+@use '@/assets/colors';
 
 .title-row {
   display: flex;
@@ -237,8 +238,8 @@ export default defineComponent({
 }
 
 .content-title {
-  color: $XRoad-Black100;
-  font-size: $XRoad-DefaultFontSize;
+  color: colors.$Black100;
+  font-size: colors.$DefaultFontSize;
   font-weight: 500;
   margin-top: 40px;
   padding-top: 16px;
@@ -251,7 +252,7 @@ export default defineComponent({
 }
 
 .content-card {
-  background-color: $XRoad-White100;
+  background-color: colors.$White100;
   border-radius: 4px;
 }
 
@@ -260,7 +261,7 @@ export default defineComponent({
   justify-content: space-between;
   align-items: center;
   height: 56px;
-  border-bottom: 1px solid $XRoad-WarmGrey30;
+  border-bottom: 1px solid colors.$WarmGrey30;
 }
 
 .key-wrap {
@@ -281,13 +282,13 @@ export default defineComponent({
 .horizontal-line-dark {
   width: 100%;
   height: 1px;
-  border-top: 1px solid $XRoad-WarmGrey30;
+  border-top: 1px solid colors.$WarmGrey30;
 }
 
 .footer-pad {
   width: 100%;
   height: 16px;
-  border-top: 1px solid $XRoad-WarmGrey30;
+  border-top: 1px solid colors.$WarmGrey30;
 }
 
 .icon {
@@ -300,6 +301,6 @@ export default defineComponent({
   display: flex;
   align-items: center;
   height: 100%;
-  color: $XRoad-Link;
+  color: colors.$Link;
 }
 </style>

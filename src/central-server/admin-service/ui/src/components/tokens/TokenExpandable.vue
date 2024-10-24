@@ -197,8 +197,8 @@ export default defineComponent({
 </script>
 
 <style lang="scss" scoped>
-@import '@/assets/tables';
-@import '@/assets/colors';
+@use '@/assets/tables' as *;
+@use '@/assets/colors';
 
 .token-logging-button {
   display: inline-flex;
@@ -214,16 +214,16 @@ export default defineComponent({
   }
 
   &.logged-in {
-    color: $XRoad-Black100;
+    color: colors.$Black100;
   }
 
   &.logged-out {
-    color: $XRoad-Purple100;
+    color: colors.$Purple100;
   }
 }
 
 .clickable-link {
-  color: $XRoad-Purple100;
+  color: colors.$Purple100;
   cursor: pointer;
 }
 

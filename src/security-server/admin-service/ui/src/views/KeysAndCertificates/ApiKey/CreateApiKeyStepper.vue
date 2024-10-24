@@ -264,13 +264,13 @@ export default defineComponent({
 </script>
 
 <style lang="scss" scoped>
-@import '@/assets/detail-views';
-@import '@/assets/wizards';
-@import '@/assets/colors';
+@use '@/assets/detail-views';
+@use '@/assets/wizards';
+@use '@/assets/colors';
 
 .stepper {
   box-shadow: unset;
-  box-shadow: $XRoad-DefaultShadow;
+  box-shadow: colors.$DefaultShadow;
 }
 
 .stepper-header {
@@ -280,7 +280,7 @@ export default defineComponent({
 }
 
 .underline {
-  border-bottom: solid 1px $XRoad-WarmGrey30;
+  border-bottom: solid 1px colors.$WarmGrey30;
 }
 
 .api-key-label {
@@ -296,13 +296,13 @@ export default defineComponent({
 }
 
 h3 {
-  color: $XRoad-Black100;
+  color: colors.$Black100;
   font-size: 18px;
   font-weight: 700;
 }
 
 h4 {
-  color: $XRoad-Black100;
+  color: colors.$Black100;
   font-size: 14px;
   font-weight: 700;
 }

@@ -139,7 +139,8 @@ export default defineComponent({
 </script>
 
 <style lang="scss" scoped>
-@import '../../../assets/tables';
+@use '@/assets/tables';
+@use '@/assets/colors';
 
 .detail-table {
   tr td:first-child {
@@ -148,7 +149,7 @@ export default defineComponent({
 }
 
 .cert-name {
-  color: $XRoad-Link;
+  color: colors.$Link;
   cursor: pointer;
 }
 </style>

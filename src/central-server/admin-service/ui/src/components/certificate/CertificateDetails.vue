@@ -66,17 +66,17 @@ function close() {
 </script>
 
 <style lang="scss" scoped>
-@import '@/assets/colors';
+@use '@/assets/colors';
 
 .certificate-details-wrapper {
   display: flex;
   justify-content: center;
   flex-direction: column;
-  font-size: $XRoad-DefaultFontSize;
+  font-size: colors.$DefaultFontSize;
   max-width: 850px;
   height: 100%;
   width: 100%;
-  background-color: $XRoad-White100;
+  background-color: colors.$White100;
   padding: 16px;
   margin: auto;
   border-radius: 4px;

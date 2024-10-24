@@ -83,5 +83,5 @@ export default defineComponent({
 </script>
 
 <style lang="scss" scoped>
-@import '../../../assets/dialogs';
+@use '@/assets/dialogs';
 </style>

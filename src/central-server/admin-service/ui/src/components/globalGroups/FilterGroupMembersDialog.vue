@@ -213,11 +213,11 @@ export default defineComponent({
 </style>
 
 <style lang="scss" scoped>
-@import '@/assets/colors';
+@use '@/assets/colors';
 
 .xrd-card {
   .xrd-card-actions {
-    background-color: $XRoad-WarmGrey10;
+    background-color: colors.$WarmGrey10;
     height: 72px;
     padding-right: 24px;
   }
@@ -251,13 +251,13 @@ export default defineComponent({
 }
 
 .field-title {
-  color: $XRoad-WarmGrey100;
+  color: colors.$WarmGrey100;
   font-weight: 600;
   font-size: 14px;
 }
 
 .dialog-title-text {
-  color: $XRoad-WarmGrey100;
+  color: colors.$WarmGrey100;
   font-weight: bold;
   font-size: 24px;
   line-height: 32px;

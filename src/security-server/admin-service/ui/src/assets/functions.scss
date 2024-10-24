@@ -31,6 +31,8 @@
  * the real Unicode value which might be displayed wrongly in some browsers depending on the character
  * encoding of the system.
  */
+@use 'sass:string';
+
 @function unicode($str) {
-  @return unquote('"') + unquote(str-insert($str, '\\', 1)) + unquote('"');
+  @return string.unquote('"') + string.unquote(string.insert($str, '\\', 1)) + string.unquote('"');
 }

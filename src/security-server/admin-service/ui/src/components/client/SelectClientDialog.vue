@@ -176,8 +176,8 @@ export default defineComponent({
 </script>
 
 <style lang="scss" scoped>
-@import '../../assets/tables';
-@import '../../assets/add-dialogs';
+@use '@/assets/tables';
+@use '@/assets/add-dialogs';
 
 .checkbox-column {
   width: 50px;

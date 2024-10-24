@@ -95,7 +95,7 @@ export default defineComponent({
 </script>
 
 <style lang="scss" scoped>
-@import '@/assets/colors';
+@use '@/assets/colors';
 
 .cert-row-wrap {
   display: flex;
@@ -108,7 +108,7 @@ export default defineComponent({
   font-weight: bold;
   font-size: 12px;
   line-height: 16px;
-  color: $XRoad-WarmGrey100;
+  color: colors.$WarmGrey100;
   margin-left: 2px;
   text-transform: uppercase;
   white-space: nowrap;

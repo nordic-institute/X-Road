@@ -305,8 +305,8 @@ export default defineComponent({
 </script>
 
 <style lang="scss" scoped>
-@import '@/assets/detail-views';
-@import '@/assets/wizards';
+@use '@/assets/detail-views';
+@use '@/assets/wizards';
 
 .info-title {
   margin-top: 30px;

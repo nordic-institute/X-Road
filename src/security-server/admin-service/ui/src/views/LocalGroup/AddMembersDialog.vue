@@ -300,8 +300,8 @@ export default defineComponent({
 </script>
 
 <style lang="scss" scoped>
-@import '../../assets/tables';
-@import '../../assets/add-dialogs';
+@use '@/assets/tables';
+@use '@/assets/add-dialogs';
 
 .cursor-pointer {
   cursor: pointer;

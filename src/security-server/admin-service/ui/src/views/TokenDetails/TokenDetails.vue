@@ -334,7 +334,7 @@ export default defineComponent({
 </script>
 
 <style lang="scss" scoped>
-@import '../../assets/detail-views';
+@use '@/assets/detail-views';
 
 .code-input {
   width: 450px;

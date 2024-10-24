@@ -234,7 +234,7 @@ export default defineComponent({
 </script>
 
 <style lang="scss" scoped>
-@import '@/assets/colors';
+@use '@/assets/colors';
 
 .v-text-field {
   margin-bottom: 6px;
@@ -283,7 +283,7 @@ export default defineComponent({
       .sub-title {
         font-style: normal;
         font-weight: normal;
-        font-size: $XRoad-DefaultFontSize;
+        font-size: colors.$DefaultFontSize;
         line-height: 19px;
       }
     }

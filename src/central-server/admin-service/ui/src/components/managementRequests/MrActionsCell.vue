@@ -148,7 +148,7 @@ export default defineComponent({
 </script>
 
 <style lang="scss" scoped>
-@import '@/assets/tables';
+@use '@/assets/tables' as *;
 
 .management-requests-table {
   min-width: 182px;

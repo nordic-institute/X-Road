@@ -682,7 +682,8 @@ export default defineComponent({
 </script>
 
 <style lang="scss" scoped>
-@import '../../../assets/tables';
+@use '@/assets/tables';
+@use '@/assets/colors';
 
 .wrapper {
   margin-top: 20px;
@@ -708,7 +709,7 @@ export default defineComponent({
 }
 
 .clickable-link {
-  color: $XRoad-Link;
+  color: colors.$Link;
   cursor: pointer;
 }
 

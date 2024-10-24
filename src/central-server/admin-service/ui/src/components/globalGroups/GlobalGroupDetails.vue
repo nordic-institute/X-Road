@@ -146,6 +146,6 @@ export default defineComponent({
 </script>
 
 <style lang="scss" scoped>
-@import '@/assets/colors';
-@import '@/assets/tables';
+@use '@/assets/colors';
+@use '@/assets/tables' as *;
 </style>

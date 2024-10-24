@@ -98,21 +98,22 @@ export default defineComponent({
 </script>
 
 <style lang="scss" scoped>
-@import '@/assets/tables';
+@use '@/assets/tables';
+@use '@/assets/colors';
 
 .td-align-right {
   text-align: right;
 }
 
 .clickable-link {
-  color: $XRoad-Purple100;
+  color: colors.$Purple100;
   cursor: pointer;
   height: 100%;
 }
 
 .cert-icon {
   margin-right: 18px;
-  color: $XRoad-Purple100;
+  color: colors.$Purple100;
 }
 
 .name-wrap {
@@ -134,7 +135,7 @@ export default defineComponent({
   text-transform: uppercase;
   font-size: 12px;
   line-height: 16px;
-  color: $XRoad-WarmGrey100;
+  color: colors.$WarmGrey100;
   margin-left: 2px;
   white-space: nowrap;
 }

@@ -176,15 +176,15 @@ export default defineComponent({
 </script>
 
 <style lang="scss" scoped>
-@import '@/assets/tables';
-@import '@/assets/colors';
+@use '@/assets/tables';
+@use '@/assets/colors';
 
 .search-input {
   max-width: 300px;
 }
 
 .clickable-link {
-  color: $XRoad-Link;
+  color: colors.$Link;
   cursor: pointer;
 }
 </style>
