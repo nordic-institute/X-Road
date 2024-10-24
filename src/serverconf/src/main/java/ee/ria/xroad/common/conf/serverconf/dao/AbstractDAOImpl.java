@@ -33,10 +33,6 @@ import java.util.List;
 
 class AbstractDAOImpl<T> {
 
-    public List<T> findMany(Query<T> query) {
-        return query.list();
-    }
-
     public T findOne(Query<T> query) {
         return query.uniqueResult();
     }
