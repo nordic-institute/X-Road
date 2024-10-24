@@ -28,6 +28,7 @@ package ee.ria.xroad.signer.protocol.handler;
 import ee.ria.xroad.common.CodedException;
 import ee.ria.xroad.common.SystemProperties;
 import ee.ria.xroad.common.crypto.KeyManagers;
+import ee.ria.xroad.common.crypto.Signatures;
 import ee.ria.xroad.common.crypto.identifier.DigestAlgorithm;
 import ee.ria.xroad.common.crypto.identifier.SignAlgorithm;
 import ee.ria.xroad.signer.protocol.AbstractRpcHandler;
@@ -57,7 +58,6 @@ import org.niis.xroad.signer.proto.SignReq;
 import java.io.ByteArrayOutputStream;
 import java.io.OutputStream;
 import java.io.OutputStreamWriter;
-import java.security.NoSuchAlgorithmException;
 import java.security.PublicKey;
 
 import static ee.ria.xroad.common.ErrorCodes.X_INTERNAL_ERROR;
@@ -141,7 +141,7 @@ public abstract class AbstractGenerateCertReq<ReqT extends AbstractMessage,
         private final DigestAlgorithm digestAlgoId;
         private final SignAlgorithm signAlgoId;
 
-        TokenContentSigner(final TokenWorkerProvider tokenWorkerProvider, final TokenAndKey tokenAndKey) throws NoSuchAlgorithmException {
+        TokenContentSigner(final TokenWorkerProvider tokenWorkerProvider, final TokenAndKey tokenAndKey) {
             this.tokenAndKey = tokenAndKey;
             this.tokenWorkerProvider = tokenWorkerProvider;
             digestAlgoId = SystemProperties.getSignerCsrSignatureDigestAlgorithm();
@@ -169,10 +169,10 @@ public abstract class AbstractGenerateCertReq<ReqT extends AbstractMessage,
                         .setDigest(ByteString.copyFrom(calculateDigest(digestAlgoId, out.toByteArray())))
                         .build();
 
-
-                return tokenWorkerProvider.getTokenWorker(tokenAndKey.tokenId())
-                        .orElseThrow(() -> tokenNotFound(tokenAndKey.tokenId()))
-                        .handleSign(request);
+                return Signatures.useAsn1DerFormat(signAlgoId,
+                        tokenWorkerProvider.getTokenWorker(tokenAndKey.tokenId())
+                                .orElseThrow(() -> tokenNotFound(tokenAndKey.tokenId()))
+                                .handleSign(request));
             } catch (Exception e) {
                 throw translateException(e);
             }

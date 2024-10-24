@@ -6,6 +6,7 @@ deploy_module() {
   local -a containers=("$@")
   local jar_path
   local service_name
+  local target_path
 
   case $module_name in
   "proxy")
@@ -15,6 +16,11 @@ deploy_module() {
   "messagelog-addon")
     jar_path="$XROAD_HOME/src/addons/messagelog/messagelog-addon/build/libs/messagelog-addon.jar"
     service_name="xroad-proxy"
+    ;;
+  "hwtoken-addon")
+    jar_path="$XROAD_HOME/src/addons/hwtoken/build/libs/hwtoken-1.0.jar"
+    service_name="xroad-signer"
+    target_path="usr/share/xroad/jlib/addon/signer"
     ;;
   "metaservice-addon")
     jar_path="$XROAD_HOME/src/addons/metaservice/build/libs/metaservice-1.0.jar"
@@ -26,7 +32,7 @@ deploy_module() {
     ;;
   "signer")
     jar_path="$XROAD_HOME/src/signer/application/build/libs/signer-1.0.jar"
-    service_name="all"
+    service_name="xroad-signer"
     ;;
   "configuration-client")
     jar_path="$XROAD_HOME/src/configuration-client/application/build/libs/configuration-client-1.0.jar"
@@ -55,7 +61,7 @@ deploy_module() {
   esac
 
   for container in "${containers[@]}"; do
-    docker cp "$jar_path" "$container:/usr/share/xroad/jlib/"
+    docker cp "$jar_path" "$container:${target_path:-/usr/share/xroad/jlib/}"
     docker exec -it "$container" supervisorctl restart "$service_name"
   done
 }
@@ -63,8 +69,11 @@ deploy_module() {
 set -o xtrace
 
 case $1 in
-"proxy" | "messagelog-addon" | "metaservice-addon" | "proxy-ui-api" | "signer" | "configuration-client" | "op-monitor-daemon")
+"proxy" | "messagelog-addon" | "metaservice-addon" | "proxy-ui-api" | "configuration-client" | "op-monitor-daemon")
   deploy_module "$1" "ss0" "ss1"
+  ;;
+"signer" | "hwtoken-addon")
+  deploy_module "$1" "ss0" "ss1" "cs"
   ;;
 "cs-admin-service" | "cs-management-service" | "cs-registration-service")
   deploy_module "$1" "cs"

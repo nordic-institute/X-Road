@@ -24,6 +24,8 @@
  */
 package ee.ria.xroad.common.crypto.identifier;
 
+import ee.ria.xroad.common.crypto.UnknownAlgorithmException;
+
 import org.apache.commons.codec.digest.MessageDigestAlgorithms;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.xml.security.algorithms.MessageDigestAlgorithm;

@@ -25,7 +25,7 @@
 package ee.ria.xroad.common.crypto;
 
 import ee.ria.xroad.common.SystemProperties;
-import ee.ria.xroad.common.crypto.identifier.KeyType;
+import ee.ria.xroad.common.crypto.identifier.KeyAlgorithm;
 import ee.ria.xroad.common.crypto.identifier.SignAlgorithm;
 
 import java.math.BigInteger;
@@ -38,7 +38,7 @@ public final class RsaKeyManager extends AbstractKeyManager {
 
     // Use no digesting algorithm, since the input data is already a digest
     private static final SignAlgorithm SIGNATURE_ALGORITHM = SignAlgorithm.ofName("NONEwithRSA");
-    private static final KeyType CRYPTO_ALGORITHM = KeyType.RSA;
+    private static final KeyAlgorithm CRYPTO_ALGORITHM = KeyAlgorithm.RSA;
 
     RsaKeyManager() {
         super(CRYPTO_ALGORITHM);
@@ -60,6 +60,11 @@ public final class RsaKeyManager extends AbstractKeyManager {
     @Override
     public SignAlgorithm getSoftwareTokenSignAlgorithm() {
         return SIGNATURE_ALGORITHM;
+    }
+
+    @Override
+    public SignAlgorithm getSoftwareTokenKeySignAlgorithm() {
+        return SignAlgorithm.SHA512_WITH_RSA;
     }
 
     @Override

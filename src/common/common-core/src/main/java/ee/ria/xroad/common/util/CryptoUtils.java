@@ -27,6 +27,7 @@ package ee.ria.xroad.common.util;
 
 import ee.ria.xroad.common.crypto.Digests;
 import ee.ria.xroad.common.crypto.identifier.DigestAlgorithm;
+import ee.ria.xroad.common.crypto.identifier.Providers;
 import ee.ria.xroad.common.crypto.identifier.SignAlgorithm;
 
 import com.google.common.base.Splitter;
@@ -35,7 +36,6 @@ import org.bouncycastle.asn1.ASN1InputStream;
 import org.bouncycastle.asn1.ASN1Primitive;
 import org.bouncycastle.cert.X509CertificateHolder;
 import org.bouncycastle.cert.ocsp.CertificateID;
-import org.bouncycastle.jce.provider.BouncyCastleProvider;
 import org.bouncycastle.openssl.jcajce.JcaPEMWriter;
 import org.bouncycastle.operator.ContentSigner;
 import org.bouncycastle.operator.ContentVerifierProvider;
@@ -56,13 +56,14 @@ import java.security.KeyStoreException;
 import java.security.NoSuchAlgorithmException;
 import java.security.PrivateKey;
 import java.security.PublicKey;
-import java.security.Security;
 import java.security.cert.CertificateEncodingException;
 import java.security.cert.CertificateException;
 import java.security.cert.CertificateFactory;
 import java.security.cert.X509Certificate;
 import java.util.Collection;
 
+import static ee.ria.xroad.common.crypto.identifier.Providers.BOUNCY_CASTLE;
+import static ee.ria.xroad.common.crypto.identifier.Providers.SUN_RSA_SIGN;
 import static ee.ria.xroad.common.util.EncoderUtils.decodeBase64;
 
 /**
@@ -72,8 +73,7 @@ public final class CryptoUtils {
 
     static {
         try {
-            Security.addProvider(new BouncyCastleProvider());
-
+            Providers.init();
             CERT_FACTORY = CertificateFactory.getInstance("X.509");
         } catch (Exception e) {
             throw new RuntimeException(e);
@@ -88,13 +88,12 @@ public final class CryptoUtils {
 
     /** Verification builder instance. */
     public static final JcaContentVerifierProviderBuilder BC_VERIFICATION_BUILDER =
-            new JcaContentVerifierProviderBuilder().setProvider("BC");
+            new JcaContentVerifierProviderBuilder().setProvider(BOUNCY_CASTLE);
     public static final JcaContentVerifierProviderBuilder SUN_VERIFICATION_BUILDER =
-            new JcaContentVerifierProviderBuilder().setProvider("SunRsaSign");
+            new JcaContentVerifierProviderBuilder().setProvider(SUN_RSA_SIGN);
 
     /** Holds the certificate factory instance. */
     public static final CertificateFactory CERT_FACTORY;
-
 
 
     private CryptoUtils() {
@@ -108,7 +107,9 @@ public final class CryptoUtils {
      * @throws OperatorCreationException if the content signer cannot be created
      */
     public static ContentSigner createContentSigner(SignAlgorithm algorithm, PrivateKey key) throws OperatorCreationException {
-        return new JcaContentSignerBuilder(algorithm.name()).build(key);
+        return new JcaContentSignerBuilder(algorithm.name())
+                .setProvider(BOUNCY_CASTLE)
+                .build(key);
     }
 
     /**

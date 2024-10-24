@@ -27,50 +27,48 @@ package ee.ria.xroad.common.crypto;
 import ee.ria.xroad.common.crypto.identifier.KeyAlgorithm;
 import ee.ria.xroad.common.crypto.identifier.SignAlgorithm;
 
-import java.security.KeyPair;
-import java.security.PublicKey;
-import java.security.spec.InvalidKeySpecException;
-import java.security.spec.KeySpec;
+import lombok.experimental.UtilityClass;
+import lombok.extern.slf4j.Slf4j;
+import org.apache.xml.security.algorithms.implementations.ECDSAUtils;
 
-public interface KeyManager {
+import java.io.IOException;
 
-    KeyAlgorithm cryptoAlgorithm();
+@UtilityClass
+@Slf4j
+public class Signatures {
+    private static final byte ASN1_DER_SEQUENCE_TAG = 0x30;
 
-    /**
-     * Generates X509 encoded public key bytes from a given key spec.
-     * @param keySPec the key spec
-     * @return generated public key bytes
-     * @throws Exception if any errors occur
-     */
-    byte[] generateX509PublicKey(KeySpec keySPec) throws InvalidKeySpecException;
+    public static boolean isAsn1DerSignature(byte[] signature) {
+        return signature.length > 1 && signature[0] == ASN1_DER_SEQUENCE_TAG && signature[1] + 2 == signature.length;
+    }
 
     /**
-     * Generates X509 encoded public key bytes from a given public key.
-     * @param publicKey the public key
-     * @return generated public key bytes
-     * @throws Exception if any errors occur
+     * In case of ECDSA signatures, strip the ASN.1 DER encoding.
+     * In case of RSA signatures, do nothing.
+     * @param algorithm algorithm used to sign
+     * @param signature to reformat
+     * @return reformatted signature
      */
-    byte[] generateX509PublicKey(PublicKey publicKey) throws InvalidKeySpecException;
+    public static byte[] useRawFormat(SignAlgorithm algorithm, byte[] signature) throws IOException {
+        if (!KeyAlgorithm.EC.equals(algorithm.algorithm()) || !isAsn1DerSignature(signature)) {
+            return signature;
+        }
+
+        return ECDSAUtils.convertASN1toXMLDSIG(signature, -1);
+    }
 
     /**
-     * Reads a public key from X509 encoded bytes.
-     * @param encoded the data
-     * @return public key read from the bytes
-     * @throws Exception if any errors occur
+     * In case of ECDSA signatures, add the ASN.1 DER encoding.
+     * In case of RSA signatures, do nothing.
+     * @param algorithm algorithm used to sign
+     * @param signature to reformat
+     * @return reformatted signature
      */
-    PublicKey readX509PublicKey(byte[] encoded) throws Exception;
+    public static byte[] useAsn1DerFormat(SignAlgorithm algorithm, byte[] signature) throws IOException {
+        if (!KeyAlgorithm.EC.equals(algorithm.algorithm()) || isAsn1DerSignature(signature)) {
+            return signature;
+        }
 
-    /**
-     * Reads a public key from X509 encoded bytes.
-     * @param encodedBase64 the data as base64 encoded string
-     * @return public key read from the bytes
-     * @throws Exception if any errors occur
-     */
-    PublicKey readX509PublicKey(String encodedBase64) throws Exception;
-
-    SignAlgorithm getSoftwareTokenSignAlgorithm();
-
-    SignAlgorithm getSoftwareTokenKeySignAlgorithm();
-
-    KeyPair generateKeyPair() throws Exception;
+        return ECDSAUtils.convertXMLDSIGtoASN1(signature);
+    }
 }

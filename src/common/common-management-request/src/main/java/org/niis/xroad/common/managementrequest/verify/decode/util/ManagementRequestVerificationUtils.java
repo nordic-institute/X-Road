@@ -43,6 +43,7 @@ import java.security.cert.X509Certificate;
 import static ee.ria.xroad.common.ErrorCodes.X_INVALID_CLIENT_IDENTIFIER;
 import static ee.ria.xroad.common.ErrorCodes.X_INVALID_REQUEST;
 import static ee.ria.xroad.common.ErrorCodes.translateException;
+import static ee.ria.xroad.common.crypto.identifier.Providers.BOUNCY_CASTLE;
 
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
 public final class ManagementRequestVerificationUtils {
@@ -52,7 +53,7 @@ public final class ManagementRequestVerificationUtils {
     public static boolean verifySignature(X509Certificate cert, byte[] signatureData,
                                           SignAlgorithm signatureAlgorithmId, byte[] dataToVerify) {
         try {
-            Signature signature = Signature.getInstance(signatureAlgorithmId.name(), "BC");
+            Signature signature = Signature.getInstance(signatureAlgorithmId.name(), BOUNCY_CASTLE);
             signature.initVerify(cert.getPublicKey());
             signature.update(dataToVerify);
 

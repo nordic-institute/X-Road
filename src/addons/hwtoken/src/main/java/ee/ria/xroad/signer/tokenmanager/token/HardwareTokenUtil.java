@@ -26,11 +26,12 @@
 package ee.ria.xroad.signer.tokenmanager.token;
 
 import ee.ria.xroad.common.SystemProperties;
-import ee.ria.xroad.common.crypto.KeyManagers;
+import ee.ria.xroad.common.crypto.Digests;
+import ee.ria.xroad.common.crypto.identifier.SignAlgorithm;
+import ee.ria.xroad.common.crypto.identifier.SignMechanism;
 import ee.ria.xroad.signer.protocol.dto.TokenStatusInfo;
+import ee.ria.xroad.signer.tokenmanager.module.ModuleConf;
 import ee.ria.xroad.signer.tokenmanager.module.ModuleInstanceProvider;
-import ee.ria.xroad.signer.tokenmanager.module.PrivKeyAttributes;
-import ee.ria.xroad.signer.tokenmanager.module.PubKeyAttributes;
 
 import iaik.pkcs.pkcs11.Mechanism;
 import iaik.pkcs.pkcs11.Module;
@@ -38,16 +39,19 @@ import iaik.pkcs.pkcs11.Session;
 import iaik.pkcs.pkcs11.TokenException;
 import iaik.pkcs.pkcs11.TokenInfo;
 import iaik.pkcs.pkcs11.objects.Key;
-import iaik.pkcs.pkcs11.objects.RSAPrivateKey;
-import iaik.pkcs.pkcs11.objects.RSAPublicKey;
+import iaik.pkcs.pkcs11.objects.PrivateKey;
+import iaik.pkcs.pkcs11.objects.PublicKey;
 import iaik.pkcs.pkcs11.objects.X509PublicKeyCertificate;
+import iaik.pkcs.pkcs11.parameters.RSAPkcsParameters.MessageGenerationFunctionType;
+import iaik.pkcs.pkcs11.parameters.RSAPkcsPssParameters;
 import iaik.pkcs.pkcs11.wrapper.PKCS11Constants;
 import iaik.pkcs.pkcs11.wrapper.PKCS11Exception;
 import jakarta.xml.bind.DatatypeConverter;
 
-import java.math.BigInteger;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 /**
@@ -56,6 +60,8 @@ import java.util.Set;
 public final class HardwareTokenUtil {
 
     private static final int MAX_OBJECTS = 64;
+
+    private static final Mechanism EC_KEYGEN_MECHANISM = Mechanism.get(PKCS11Constants.CKM_ECDSA_KEY_PAIR_GEN);
 
     private HardwareTokenUtil() {
     }
@@ -105,8 +111,8 @@ public final class HardwareTokenUtil {
         }
     }
 
-    static RSAPrivateKey findPrivateKey(Session session, String keyId, Set<Long> allowedMechanisms) throws Exception {
-        RSAPrivateKey template = new RSAPrivateKey();
+    static PrivateKey findPrivateKey(Session session, String keyId, Set<Long> allowedMechanisms) throws Exception {
+        var template = new PrivateKey();
         template.getId().setByteArrayValue(toBinaryKeyId(keyId));
 
         setAllowedMechanisms(template, allowedMechanisms);
@@ -114,8 +120,8 @@ public final class HardwareTokenUtil {
         return find(template, session);
     }
 
-    static List<RSAPrivateKey> findPrivateKeys(Session session, Set<Long> allowedMechanisms) throws Exception {
-        RSAPrivateKey template = new RSAPrivateKey();
+    static List<PrivateKey> findPrivateKeys(Session session, Set<Long> allowedMechanisms) throws Exception {
+        var template = new PrivateKey();
         template.getSign().setBooleanValue(true);
 
         setAllowedMechanisms(template, allowedMechanisms);
@@ -123,8 +129,8 @@ public final class HardwareTokenUtil {
         return find(template, session, MAX_OBJECTS);
     }
 
-    static List<RSAPublicKey> findPublicKeys(Session session, Set<Long> allowedMechanisms) throws Exception {
-        RSAPublicKey template = new RSAPublicKey();
+    static List<PublicKey> findPublicKeys(Session session, Set<Long> allowedMechanisms) throws Exception {
+        var template = new PublicKey();
         template.getVerify().setBooleanValue(true);
 
         setAllowedMechanisms(template, allowedMechanisms);
@@ -132,8 +138,8 @@ public final class HardwareTokenUtil {
         return find(template, session, MAX_OBJECTS);
     }
 
-    static RSAPublicKey findPublicKey(Session session, String keyId, Set<Long> allowedMechanisms) throws Exception {
-        RSAPublicKey template = new RSAPublicKey();
+    static PublicKey findPublicKey(Session session, String keyId, Set<Long> allowedMechanisms) throws Exception {
+        var template = new PublicKey();
         template.getId().setByteArrayValue(toBinaryKeyId(keyId));
 
         setAllowedMechanisms(template, allowedMechanisms);
@@ -145,95 +151,7 @@ public final class HardwareTokenUtil {
         return find(new X509PublicKeyCertificate(), session, MAX_OBJECTS);
     }
 
-    static byte[] generateX509PublicKey(RSAPublicKey rsaPublicKey) throws Exception {
-        BigInteger modulus = new BigInteger(1, rsaPublicKey.getModulus().getByteArrayValue());
-        BigInteger publicExponent = new BigInteger(1, rsaPublicKey.getPublicExponent().getByteArrayValue());
-
-        return KeyManagers.getForRSA().generateX509PublicKey(modulus, publicExponent);
-    }
-
-    static void setPrivateKeyAttributes(RSAPrivateKey keyTemplate, PrivKeyAttributes attributes) {
-        // Private key is a token object (not a session object).
-        keyTemplate.getToken().setBooleanValue(Boolean.TRUE);
-        // This is a private object.
-        keyTemplate.getPrivate().setBooleanValue(Boolean.TRUE);
-
-        if (attributes.getSensitive() != null) {
-            keyTemplate.getSensitive().setBooleanValue(attributes.getSensitive());
-        }
-
-        if (attributes.getDecrypt() != null) {
-            keyTemplate.getDecrypt().setBooleanValue(attributes.getDecrypt());
-        }
-
-        if (attributes.getSign() != null) {
-            keyTemplate.getSign().setBooleanValue(attributes.getSign());
-        }
-
-        if (attributes.getSignRecover() != null) {
-            keyTemplate.getSignRecover().setBooleanValue(attributes.getSignRecover());
-        }
-
-        if (attributes.getUnwrap() != null) {
-            keyTemplate.getUnwrap().setBooleanValue(attributes.getUnwrap());
-        }
-
-        if (attributes.getExtractable() != null) {
-            keyTemplate.getExtractable().setBooleanValue(attributes.getExtractable());
-        }
-
-        if (attributes.getAlwaysSensitive() != null) {
-            keyTemplate.getAlwaysSensitive().setBooleanValue(attributes.getAlwaysSensitive());
-        }
-
-        if (attributes.getNeverExtractable() != null) {
-            keyTemplate.getNeverExtractable().setBooleanValue(attributes.getNeverExtractable());
-        }
-
-        if (attributes.getWrapWithTrusted() != null) {
-            keyTemplate.getWrapWithTrusted().setBooleanValue(attributes.getWrapWithTrusted());
-        }
-
-        if (attributes.getAllowedMechanisms() != null) {
-            setAllowedMechanisms(keyTemplate, attributes.getAllowedMechanisms());
-        }
-    }
-
-    static void setPublicKeyAttributes(RSAPublicKey keyTemplate, PubKeyAttributes attributes) {
-        keyTemplate.getModulusBits().setLongValue((long) SystemProperties.getSignerKeyLength());
-
-        byte[] publicExponentBytes = {0x01, 0x00, 0x01}; // 2^16 + 1
-        keyTemplate.getPublicExponent().setByteArrayValue(publicExponentBytes);
-
-        // Public key is a token object (not a session object).
-        keyTemplate.getToken().setBooleanValue(Boolean.TRUE);
-
-        if (attributes.getEncrypt() != null) {
-            keyTemplate.getEncrypt().setBooleanValue(attributes.getEncrypt());
-        }
-
-        if (attributes.getVerify() != null) {
-            keyTemplate.getVerify().setBooleanValue(attributes.getVerify());
-        }
-
-        if (attributes.getWrap() != null) {
-            keyTemplate.getWrap().setBooleanValue(attributes.getWrap());
-        }
-
-        if (attributes.getVerifyRecover() != null) {
-            keyTemplate.getVerifyRecover().setBooleanValue(attributes.getVerifyRecover());
-        }
-
-        if (attributes.getTrusted() != null) {
-            keyTemplate.getTrusted().setBooleanValue(attributes.getTrusted());
-        }
-
-        if (attributes.getAllowedMechanisms() != null) {
-            setAllowedMechanisms(keyTemplate, attributes.getAllowedMechanisms());
-        }
-    }
-
-    private static void setAllowedMechanisms(Key key, Set<Long> mechanisms) {
+    public static void setAllowedMechanisms(Key key, Set<Long> mechanisms) {
         if (mechanisms.isEmpty()) {
             return;
         }
@@ -311,6 +229,64 @@ public final class HardwareTokenUtil {
 
         session.findObjectsFinal();
         return foundObject;
+    }
+
+    static Map<SignAlgorithm, Mechanism> createSignMechanisms(SignMechanism signMechanismName) {
+        Map<SignAlgorithm, Mechanism> mechanismsByHashAlgorithmId = new HashMap<>();
+
+        switch (signMechanismName.name()) {
+            case PKCS11Constants.NAME_CKM_RSA_PKCS -> {
+                Mechanism mechanism = Mechanism.get(ModuleConf.getSupportedSignMechanismCode(signMechanismName));
+
+                mechanismsByHashAlgorithmId.put(SignAlgorithm.SHA1_WITH_RSA, mechanism);
+                mechanismsByHashAlgorithmId.put(SignAlgorithm.SHA256_WITH_RSA, mechanism);
+                mechanismsByHashAlgorithmId.put(SignAlgorithm.SHA384_WITH_RSA, mechanism);
+                mechanismsByHashAlgorithmId.put(SignAlgorithm.SHA512_WITH_RSA, mechanism);
+            }
+            case PKCS11Constants.NAME_CKM_RSA_PKCS_PSS -> {
+                mechanismsByHashAlgorithmId.put(SignAlgorithm.SHA256_WITH_RSA_AND_MGF1,
+                        createRsaPkcsPssMechanism(PKCS11Constants.CKM_SHA256));
+                mechanismsByHashAlgorithmId.put(SignAlgorithm.SHA384_WITH_RSA_AND_MGF1,
+                        createRsaPkcsPssMechanism(PKCS11Constants.CKM_SHA384));
+                mechanismsByHashAlgorithmId.put(SignAlgorithm.SHA512_WITH_RSA_AND_MGF1,
+                        createRsaPkcsPssMechanism(PKCS11Constants.CKM_SHA512));
+            }
+            case PKCS11Constants.NAME_CKM_ECDSA -> {
+                Mechanism mechanism = Mechanism.get(ModuleConf.getSupportedSignMechanismCode(signMechanismName));
+                mechanismsByHashAlgorithmId.put(SignAlgorithm.SHA1_WITH_ECDSA, mechanism);
+                mechanismsByHashAlgorithmId.put(SignAlgorithm.SHA256_WITH_ECDSA, mechanism);
+                mechanismsByHashAlgorithmId.put(SignAlgorithm.SHA384_WITH_ECDSA, mechanism);
+                mechanismsByHashAlgorithmId.put(SignAlgorithm.SHA512_WITH_ECDSA, mechanism);
+            }
+            default -> throw new IllegalArgumentException("Not supported sign mechanism: " + signMechanismName.name());
+        }
+
+        return Map.copyOf(mechanismsByHashAlgorithmId);
+    }
+
+    private static Mechanism createRsaPkcsPssMechanism(long hashMechanism) {
+        Mechanism mechanism = Mechanism.get(PKCS11Constants.CKM_RSA_PKCS_PSS);
+
+        Mechanism hashAlgorithm = Mechanism.get(hashMechanism);
+        long maskGenerationFunction;
+        long saltLength;
+
+        if (hashMechanism == PKCS11Constants.CKM_SHA512) {
+            maskGenerationFunction = MessageGenerationFunctionType.SHA512;
+            saltLength = Digests.SHA512_DIGEST_LENGTH;
+        } else if (hashMechanism == PKCS11Constants.CKM_SHA384) {
+            maskGenerationFunction = MessageGenerationFunctionType.SHA384;
+            saltLength = Digests.SHA384_DIGEST_LENGTH;
+        } else if (hashMechanism == PKCS11Constants.CKM_SHA256) {
+            maskGenerationFunction = MessageGenerationFunctionType.SHA256;
+            saltLength = Digests.SHA256_DIGEST_LENGTH;
+        } else {
+            throw new IllegalArgumentException("Not supported hash mechanism");
+        }
+
+        mechanism.setParameters(new RSAPkcsPssParameters(hashAlgorithm, maskGenerationFunction, saltLength));
+
+        return mechanism;
     }
 
     private static byte[] toBinaryKeyId(String keyId) {
