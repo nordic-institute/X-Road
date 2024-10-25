@@ -66,7 +66,7 @@ jobs:
         run: ./gradlew -Dorg.gradle.jvmargs=-Xmx6g -PsonarqubeHost=https://sonarcloud.io -PsonarqubeProjectKey=nordic-institute_X-Road -PsonarqubeOrganization=nordic-institute -PxroadBuildType=RELEASE --stacktrace build sonar test intTest runProxyTest runMetaserviceTest runProxymonitorMetaserviceTest jacocoTestReport -Pfrontend-npm-audit
       - name: Test report
         env:
-          NODE_OPTIONS: '--max-old-space-size=6656'
+          NODE_OPTIONS: '--max-old-space-size=8192'
         uses: dorny/test-reporter@v1
         if: success() || failure()
         with:
