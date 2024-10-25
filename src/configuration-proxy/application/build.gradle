@@ -1,0 +1,27 @@
+plugins {
+    alias(libs.plugins.springBoot)
+}
+
+dependencies {
+    implementation project(':common:common-service-bootstrap')
+    implementation project(':configuration-proxy:core')
+
+    testImplementation("org.springframework.boot:spring-boot-starter-test")
+    testImplementation project(':common:common-test')
+    testImplementation libs.assertj.core
+}
+
+bootJar {
+    enabled = true
+    archiveBaseName = 'monitor'
+
+    manifest {
+        attributes(
+            'Implementation-Title': 'X-Road Configuration Proxy',
+            'Implementation-Version': "$xroadVersion-$xroadBuildType",
+            'Main-Class': 'org.springframework.boot.loader.launch.PropertiesLauncher'
+        )
+    }
+}
+
+jar.enabled = false
