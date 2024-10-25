@@ -70,10 +70,10 @@ export default defineComponent({
 </script>
 
 <style lang="scss" scoped>
-@import '@/assets/colors';
+@use '@/assets/colors';
 
 .notification-icon {
-  color: $XRoad-Success100;
+  color: colors.$Success100;
   margin-right: 25px;
 }
 
@@ -82,12 +82,12 @@ export default defineComponent({
   padding: 0;
 
   .alert-text {
-    color: $XRoad-Black100;
+    color: colors.$Black100;
     display: block;
   }
 
   .init-notification {
-    background-color: $XRoad-Success10;
+    background-color: colors.$Success10;
     height: 80px;
     display: flex;
     flex-direction: row;

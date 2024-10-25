@@ -24,8 +24,8 @@
  * THE SOFTWARE.
  */
 
-@import "./colors";
-@import "./functions";
+@use 'colors';
+@use "functions" ;
 
 .exp-title {
   text-align: right;
@@ -59,13 +59,13 @@
 }
 
 .button-margin {
-  margin-right: $XRoad-DefaultFontSize;
+  margin-right: colors.$DefaultFontSize;
 }
 
 .empty-row {
   padding: 10px;
   width: 100%;
-  border-bottom: $XRoad-WarmGrey30 solid 1px;
+  border-bottom: colors.$WarmGrey30 solid 1px;
   height: 48px;
   text-align: center;
 }
@@ -88,11 +88,11 @@
   cursor: pointer;
   font-style: normal;
   font-size: 36px;
-  color: $XRoad-Purple100;
+  color: colors.$Purple100;
 }
 
 #close-x:before {
-  content: unicode("00d7");
+  content: functions.unicode("00d7");
 }
 
 // Override vuetify default box-shadow

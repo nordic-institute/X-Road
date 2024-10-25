@@ -475,11 +475,11 @@ export default defineComponent({
 </script>
 
 <style lang="scss" scoped>
-@import '@/assets/colors';
-@import '@/assets/tables';
+@use '@/assets/colors';
+@use '@/assets/tables';
 
 h3 {
-  color: $XRoad-Black100;
+  color: colors.$Black100;
   font-size: 18px;
   font-weight: bold;
   letter-spacing: 0;
@@ -493,12 +493,12 @@ h3 {
 
 .disabled {
   cursor: not-allowed;
-  background: $XRoad-Black10;
-  color: $XRoad-WarmGrey100;
+  background: colors.$Black10;
+  color: colors.$WarmGrey100;
 }
 
 tr td {
-  color: $XRoad-Black100;
+  color: colors.$Black100;
   font-weight: normal !important;
 }
 
@@ -534,7 +534,7 @@ tr td:last-child {
   font-weight: bold;
   font-size: 12px;
   line-height: 16px;
-  color: $XRoad-WarmGrey100;
+  color: colors.$WarmGrey100;
   margin-left: 2px;
 }
 </style>

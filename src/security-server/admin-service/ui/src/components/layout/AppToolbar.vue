@@ -82,7 +82,7 @@ export default defineComponent({
 </style>
 
 <style lang="scss" scoped>
-@import '@/assets/colors';
+@use '@/assets/colors';
 
 .server-name {
   margin: 20px;
@@ -104,7 +104,7 @@ export default defineComponent({
   font-size: 12px;
   font-style: normal;
   font-weight: bold;
-  color: $XRoad-WarmGrey30;
+  color: colors.$WarmGrey30;
   margin-right: 64px;
   user-select: none;
 
@@ -117,7 +117,7 @@ export default defineComponent({
   font-size: 12px;
   line-height: 16px;
   text-align: center;
-  color: $XRoad-WarmGrey30;
+  color: colors.$WarmGrey30;
   display: flex;
   height: 100%;
   align-items: center;
