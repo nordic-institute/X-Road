@@ -134,7 +134,7 @@ export default defineComponent({
 </script>
 
 <style lang="scss" scoped>
-@import '../../../assets/dialogs';
+@use '@/assets/dialogs';
 
 .dlg-edit-row {
   width: 400px;

@@ -71,10 +71,10 @@ export default defineComponent({
 </script>
 
 <style lang="scss" scoped>
-@import '@/assets/colors';
+@use '@/assets/colors';
 
 .request-id {
-  color: $XRoad-Purple100;
+  color: colors.$Purple100;
   font-weight: 600;
   font-size: 14px;
 }

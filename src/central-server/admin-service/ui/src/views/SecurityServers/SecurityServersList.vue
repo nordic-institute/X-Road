@@ -167,10 +167,11 @@ export default defineComponent({
 });
 </script>
 <style lang="scss" scoped>
-@import '@/assets/tables';
+@use '@/assets/tables' as *;
+@use '@/assets/colors';
 
 .server-code {
-  color: $XRoad-Purple100;
+  color: colors.$Purple100;
   font-weight: 600;
   font-size: 14px;
   display: flex;

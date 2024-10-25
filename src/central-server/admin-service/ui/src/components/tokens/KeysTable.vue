@@ -185,11 +185,12 @@ export default defineComponent({
 </script>
 
 <style lang="scss" scoped>
-@import '@/assets/tables';
+@use '@/assets/tables' as *;
+@use '@/assets/colors';
 
 .key-icon {
   margin-right: 18px;
-  color: $XRoad-Purple100;
+  color: colors.$Purple100;
 }
 
 .keys-table {

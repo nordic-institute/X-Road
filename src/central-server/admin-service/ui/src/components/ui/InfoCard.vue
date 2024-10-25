@@ -83,12 +83,12 @@ export default defineComponent({
 </script>
 
 <style lang="scss" scoped>
-@import '@/assets/colors';
+@use '@/assets/colors';
 
 .card-title {
   font-size: 12px;
   text-transform: uppercase;
-  color: $XRoad-Black70;
+  color: colors.$Black70;
   font-weight: bold;
   padding-top: 5px;
   padding-bottom: 5px;
