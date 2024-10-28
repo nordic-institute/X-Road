@@ -75,7 +75,6 @@ export default defineComponent({
 
 <style lang="scss" scoped>
 .drop-menu {
-  margin-left: auto;
   margin-right: 70px;
   display: flex;
   align-items: center;

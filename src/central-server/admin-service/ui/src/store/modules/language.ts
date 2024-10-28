@@ -24,14 +24,29 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-import { createI18n } from 'vue-i18n';
-import enAppMessages from '@/locales/en.json';
 
-export default createI18n({
-  legacy: false,
-  locale: import.meta.env.VITE_VUE_APP_I18N_LOCALE || 'en',
-  fallbackLocale: import.meta.env.VITE_VUE_APP_I18N_FALLBACK_LOCALE || 'en',
-  silentFallbackWarn: true,
-  allowComposition: true,
-  messages: { en: enAppMessages },
+import { defineStore } from 'pinia';
+import { setLanguage } from '@/plugins/i18n';
+
+export const useLanguage = defineStore('language', {
+  state: () => ({
+    language: import.meta.env.VITE_I18N_LOCALE || ('en' as string),
+  }),
+
+  persist: {
+    storage: localStorage,
+  },
+
+  getters: {
+    getLanguage(state): string {
+      return state.language;
+    },
+  },
+
+  actions: {
+    async changeLanguage(language: string) {
+      this.language = language;
+      await setLanguage(language);
+    },
+  },
 });

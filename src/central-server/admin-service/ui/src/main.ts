@@ -43,7 +43,7 @@ import { createPinia } from 'pinia';
 import { createPersistedState } from 'pinia-plugin-persistedstate';
 import validation from '@/plugins/vee-validate';
 import vuetify from '@/plugins/vuetify';
-import { i18n } from '@/plugins/i18n';
+import { i18n, setLanguage } from '@/plugins/i18n';
 import {
   XrdButton,
   XrdCloseButton,
@@ -61,6 +61,7 @@ import {
   XrdSubViewContainer,
   XrdSubViewTitle,
 } from '@niis/shared-ui';
+import { useLanguage } from '@/store/modules/language';
 
 const pinia = createPinia();
 pinia.use(
@@ -96,5 +97,8 @@ app.component('XrdSimpleDialog', XrdSimpleDialog);
 app.component('XrdConfirmDialog', XrdConfirmDialog);
 app.component('XrdEmptyPlaceholder', XrdEmptyPlaceholder);
 app.component('XrdSubViewTitle', XrdSubViewTitle);
+//translations
+const languageStorage = useLanguage();
+await setLanguage(languageStorage.getLanguage);
 
 app.mount('#app');

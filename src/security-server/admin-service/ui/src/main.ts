@@ -66,11 +66,12 @@ import router from './router';
 import '@fontsource/open-sans/800.css';
 import '@fontsource/open-sans/700.css';
 import '@fontsource/open-sans';
-import { i18n } from './plugins/i18n';
+import { i18n, setLanguage } from './plugins/i18n';
 import { createPinia } from 'pinia';
 import { createPersistedState } from 'pinia-plugin-persistedstate';
 import { createFilters } from '@/filters';
 import { createValidators } from '@/plugins/vee-validate';
+import { useLanguage } from '@/store/modules/language';
 
 const pinia = createPinia();
 pinia.use(
@@ -115,4 +116,8 @@ app.component('XrdCloseButton', XrdCloseButton);
 app.component('XrdFileUpload', XrdFileUpload);
 app.component('XrdFormLabel', XrdFormLabel);
 app.component('XrdExpandable', XrdExpandable);
+//translations
+const languageStorage = useLanguage();
+await setLanguage(languageStorage.getLanguage);
+
 app.mount('#app');
