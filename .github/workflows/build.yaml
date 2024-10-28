@@ -65,18 +65,16 @@ jobs:
         working-directory: ./src
         run: ./gradlew -Dorg.gradle.jvmargs=-Xmx6g -PsonarqubeHost=https://sonarcloud.io -PsonarqubeProjectKey=nordic-institute_X-Road -PsonarqubeOrganization=nordic-institute -PxroadBuildType=RELEASE --stacktrace build sonar test intTest runProxyTest runMetaserviceTest runProxymonitorMetaserviceTest jacocoTestReport -Pfrontend-npm-audit
       - name: Test report
-        env:
-          NODE_OPTIONS: '--max-old-space-size=10240'
-        uses: mikepenz/action-junit-report@v4
+#        env:
+#          NODE_OPTIONS: '--max-old-space-size=10240'
+        uses: dorny/test-reporter@v1
         if: success() || failure()
         with:
-          check_name: 'Unit and integration tests'
-          report_paths: 'src/**/build/test-results/**/TEST-*.xml'
-#          name: Unit and integration tests
-#          path: "src/**/build/test-results/**/TEST-*.xml"
-#          reporter: java-junit
-#          list-suites: 'failed'
-#          list-tests: 'failed'
+          name: Unit and integration tests
+          path: 'src/**/build/test-results/**/TEST-*.xml'
+          reporter: java-junit
+          list-suites: 'failed'
+          list-tests: 'failed'
       - name: Build RHEL8 packages
         run: docker build -t rhel8 ${{ github.workspace }}/src/packages/docker/rpm-el8/ && docker run --rm -u $(id -u ${USER}):$(id -g ${USER}) -v /etc/passwd:/etc/passwd:ro -v /etc/group:/etc/group:ro -v ${{ github.workspace }}:/workspace rhel8 ./src/packages/build-rpm.sh
       - name: Build RHEL9 packages
