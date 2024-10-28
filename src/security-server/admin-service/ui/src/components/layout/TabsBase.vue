@@ -43,6 +43,7 @@
         >{{ $t(tab.name) }}</v-tab
       >
     </v-tabs>
+    <language-dropdown />
     <app-drop-menu />
   </v-layout>
 </template>
@@ -55,11 +56,13 @@ import AppIcon from './AppIcon.vue';
 import AppDropMenu from './AppDropMenu.vue';
 import { mapState } from 'pinia';
 import { useUser } from '@/store/modules/user';
+import LanguageDropdown from '@/components/layout/LanguageDropdown.vue';
 
 export default defineComponent({
   components: {
     AppIcon,
     AppDropMenu,
+    LanguageDropdown,
   },
   data() {
     return {

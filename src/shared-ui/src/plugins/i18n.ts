@@ -25,19 +25,19 @@
  * THE SOFTWARE.
  */
 import { createI18n } from 'vue-i18n';
+import enAppMessages from '@/locales/en.json';
+import ruAppMessages from '@/locales/ru.json';
+import tkAppMessages from '@/locales/tk.json';
 
-import en from '../locales/en.json';
+export type LocaleMessageSchema = typeof enAppMessages &
+  typeof ruAppMessages &
+  typeof tkAppMessages;
 
-type MessageSchema = typeof en;
-
-
-export default createI18n<[MessageSchema], 'en'>({
-    legacy: false,
-    locale: import.meta.env.VITE_VUE_APP_I18N_LOCALE || 'en',
-    fallbackLocale: import.meta.env.VITE_VUE_APP_I18N_FALLBACK_LOCALE || 'en',
-    silentFallbackWarn: true,
-    allowComposition: true,
-    messages: { en },
+export default createI18n<[LocaleMessageSchema]>({
+  legacy: false,
+  locale: import.meta.env.VITE_VUE_APP_I18N_LOCALE || 'en',
+  fallbackLocale: import.meta.env.VITE_VUE_APP_I18N_FALLBACK_LOCALE || 'en',
+  silentFallbackWarn: true,
+  allowComposition: true,
+  messages: { en: enAppMessages, ru: ruAppMessages, tk: tkAppMessages },
 });
-
-

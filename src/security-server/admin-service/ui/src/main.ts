@@ -71,6 +71,7 @@ import { createPinia } from 'pinia';
 import { createPersistedState } from 'pinia-plugin-persistedstate';
 import { createFilters } from '@/filters';
 import { createValidators } from '@/plugins/vee-validate';
+import { useLocale } from '@/store/modules/locale';
 
 const pinia = createPinia();
 pinia.use(
@@ -115,4 +116,8 @@ app.component('XrdCloseButton', XrdCloseButton);
 app.component('XrdFileUpload', XrdFileUpload);
 app.component('XrdFormLabel', XrdFormLabel);
 app.component('XrdExpandable', XrdExpandable);
+//translations
+const localeStorage = useLocale();
+i18n.global.locale.value = localeStorage.getLocale;
+
 app.mount('#app');

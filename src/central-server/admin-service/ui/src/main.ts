@@ -61,6 +61,7 @@ import {
   XrdSubViewContainer,
   XrdSubViewTitle,
 } from '@niis/shared-ui';
+import { useLocale } from '@/store/modules/locale';
 
 const pinia = createPinia();
 pinia.use(
@@ -96,5 +97,8 @@ app.component('XrdSimpleDialog', XrdSimpleDialog);
 app.component('XrdConfirmDialog', XrdConfirmDialog);
 app.component('XrdEmptyPlaceholder', XrdEmptyPlaceholder);
 app.component('XrdSubViewTitle', XrdSubViewTitle);
+//translations
+const localeStorage = useLocale();
+i18n.global.locale.value = localeStorage.getLocale;
 
 app.mount('#app');

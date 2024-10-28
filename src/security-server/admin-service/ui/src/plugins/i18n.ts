@@ -24,26 +24,39 @@
  * THE SOFTWARE.
  */
 import { createI18n } from 'vue-i18n';
-import veeEn from '@vee-validate/i18n/dist/locale/en.json';
-import en from '@/locales/en.json';
+import enValidationMessages from '@vee-validate/i18n/dist/locale/en.json';
+import ruValidationMessages from '@vee-validate/i18n/dist/locale/ru.json';
+import enAppMessages from '@/locales/en.json';
+import ruAppMessages from '@/locales/ru.json';
+import tkAppMessages from '@/locales/tk.json';
 import merge from 'deepmerge';
 
-import { messages } from '@niis/shared-ui';
+import { sharedMessages } from '@niis/shared-ui';
 
-const validation = { validation: veeEn };
+const enValidationPack = { validation: enValidationMessages };
+const ruValidationPack = { validation: ruValidationMessages };
 
-type Shared = typeof messages.en;
-type Vee = typeof validation;
-type En = typeof en;
-export type MessageSchema = Vee & Shared & En;
+const enSharedPack = merge(enValidationPack, sharedMessages.en);
+const ruSharedPack = merge(ruValidationPack, sharedMessages.ru);
+const tkSharedPack = merge(enValidationPack, sharedMessages.tk);
 
-let common = merge(validation, messages.en);
-common = merge(common, en);
-export const i18n = createI18n<[MessageSchema], 'en'>({
+const enLanguagePack = merge(enSharedPack, enAppMessages);
+const ruLanguagePack = merge(ruSharedPack, ruAppMessages);
+const tkLanguagePack = merge(tkSharedPack, tkAppMessages);
+
+export type LocaleMessageSchema = typeof enLanguagePack &
+  typeof ruLanguagePack &
+  typeof tkLanguagePack;
+
+export const i18n = createI18n<[LocaleMessageSchema]>({
   legacy: false,
   locale: import.meta.env.VITE_VUE_APP_I18N_LOCALE || 'en',
-  fallbackLocale: import.meta.env.VITE_VUE_APP_I18N_FALLBACK_LOCALE || 'en',
+  fallbackLocale: import.meta.env.VITE_FALLBACK_LOCALE || 'en',
   silentFallbackWarn: true,
   allowComposition: true,
-  messages: { en: common as MessageSchema },
+  messages: {
+    en: enLanguagePack,
+    ru: ruLanguagePack,
+    tk: tkLanguagePack,
+  },
 });

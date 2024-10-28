@@ -1,5 +1,6 @@
 <!--
    The MIT License
+
    Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
    Copyright (c) 2018 Estonian Information System Authority (RIA),
    Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
@@ -24,29 +25,30 @@
    THE SOFTWARE.
  -->
 <template>
-  <div class="drop-menu">
-    <v-menu location="bottom right">
+  <div class="locale-changer">
+    <v-menu location="bottom">
       <template #activator="{ props }">
         <v-btn
-          variant="text"
           class="no-uppercase"
-          data-test="username-button"
+          data-test="language-button"
           v-bind="props"
+          variant="text"
         >
-          {{ username }}
+          <strong>{{ $i18n.locale }}</strong>
           <v-icon icon="mdi-chevron-down" />
         </v-btn>
       </template>
 
       <v-list>
         <v-list-item
-          id="logout-list-tile"
-          data-test="logout-list-tile"
-          @click="logout"
+          v-for="locale in $i18n.availableLocales"
+          id="language-list-tile"
+          :key="locale"
+          :active="locale === selected"
+          data-test="language-list-tile"
+          @click="this.changeLanguage(locale)"
         >
-          <v-list-item-title id="logout-title">{{
-            $t('login.logOut')
-          }}</v-list-item-title>
+          {{ locale }}
         </v-list-item>
       </v-list>
     </v-menu>
@@ -55,33 +57,27 @@
 
 <script lang="ts">
 import { defineComponent } from 'vue';
-import { mapActions, mapState } from 'pinia';
-import { useUser } from '@/store/modules/user';
-import { RouteName } from '@/global';
+import { mapActions } from 'pinia';
+import { useLocale } from '@/store/modules/locale';
 
 export default defineComponent({
-  computed: {
-    ...mapState(useUser, ['username']),
-  },
   methods: {
-    ...mapActions(useUser, ['logoutUser']),
-    logout(): void {
-      this.logoutUser();
-      this.$router.replace({ name: RouteName.Login });
+    ...mapActions(useLocale, ['switchLocale']),
+    changeLanguage(locale): void {
+      this.switchLocale(locale);
     },
   },
 });
 </script>
-
 <style lang="scss" scoped>
-.drop-menu {
-  margin-right: 70px;
+.locale-changer {
+  margin-left: auto;
   display: flex;
   align-items: center;
-}
 
-.no-uppercase {
-  text-transform: none;
-  font-weight: 600;
+  .no-uppercase {
+    text-transform: none;
+    font-weight: 600;
+  }
 }
 </style>
