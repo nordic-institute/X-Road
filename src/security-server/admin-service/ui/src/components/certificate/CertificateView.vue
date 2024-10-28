@@ -62,6 +62,6 @@ function close() {
 }
 </script>
 <style lang="scss" scoped>
-@import '@/assets/detail-views';
-@import '@/assets/wizards';
+@use '@/assets/detail-views';
+@use '@/assets/wizards';
 </style>

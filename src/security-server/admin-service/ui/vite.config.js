@@ -36,6 +36,13 @@ export default defineConfig(({mode}) => {
   const env = loadEnv(mode, process.cwd(), '');
   return {
     plugins: [vue(), vuetify({autoImport: false}), basicSsl()],
+    css: {
+      preprocessorOptions: {
+        scss: {
+          api: 'modern',
+        },
+      },
+    },
     build: {
       cssCodeSplit: false,
     },

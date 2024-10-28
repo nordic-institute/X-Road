@@ -41,6 +41,13 @@ export default defineConfig({
       '@': resolve(__dirname, 'src'),
     }
   },
+  css: {
+    preprocessorOptions: {
+      scss: {
+        api: 'modern',
+      },
+    },
+  },
   build: {
     lib: {
       entry: path.resolve(__dirname, 'src/index.ts'),
