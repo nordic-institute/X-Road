@@ -38,8 +38,11 @@ import org.springframework.stereotype.Component;
 
 import java.security.PublicKey;
 import java.security.cert.X509Certificate;
+import java.security.interfaces.ECPublicKey;
 import java.security.interfaces.RSAPublicKey;
 
+import static ee.ria.xroad.common.crypto.NamedCurves.getCurveName;
+import static ee.ria.xroad.common.crypto.NamedCurves.getEncodedPoint;
 import static ee.ria.xroad.common.util.CertUtils.getIssuerCommonName;
 import static ee.ria.xroad.common.util.CertUtils.getSubjectAlternativeNames;
 import static ee.ria.xroad.common.util.CertUtils.getSubjectCommonName;
@@ -108,9 +111,16 @@ public class CertificateConverter {
                 .setEncoded(cert);
 
         final PublicKey publicKey = certificate.getPublicKey();
-        if (publicKey instanceof RSAPublicKey rsaPublicKey) {
-            certificateDetails.setRsaPublicKeyExponent(rsaPublicKey.getPublicExponent());
-            certificateDetails.setRsaPublicKeyModulus(rsaPublicKey.getModulus().toString(RADIX_FOR_HEX));
+        switch (publicKey) {
+            case RSAPublicKey rsaPublicKey -> {
+                certificateDetails.setRsaPublicKeyExponent(rsaPublicKey.getPublicExponent());
+                certificateDetails.setRsaPublicKeyModulus(rsaPublicKey.getModulus().toString(RADIX_FOR_HEX));
+            }
+            case ECPublicKey ecPublicKey -> {
+                certificateDetails.setEcPublicParameters(getCurveName(ecPublicKey));
+                certificateDetails.setEcPublicKeyPoint(getEncodedPoint(ecPublicKey));
+            }
+            default -> { /* do nothing */ }
         }
     }
 }

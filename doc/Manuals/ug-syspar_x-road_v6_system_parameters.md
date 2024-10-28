@@ -636,7 +636,8 @@ This chapter describes the system parameters used by the X-Road configuration pr
 
 <a id="Ref_note2"></a>[2] Default value for proxy.xroad-tls-ciphers.
 > TLS_ECDHE_RSA_WITH_AES_256_CBC_SHA384,
-> TLS_DHE_RSA_WITH_AES_256_CBC_SHA256
+> TLS_DHE_RSA_WITH_AES_256_CBC_SHA256,
+> TLS_ECDHE_ECDSA_WITH_AES_256_CBC_SHA384
 
 > (see [*https://docs.oracle.com/javase/8/docs/technotes/guides/security/SunProviders.html#SunJSSEProvider*](https://docs.oracle.com/javase/8/docs/technotes/guides/security/SunProviders.html#SunJSSEProvider) for possible values)
 >

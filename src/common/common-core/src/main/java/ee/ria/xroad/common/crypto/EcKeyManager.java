@@ -28,7 +28,6 @@ import ee.ria.xroad.common.SystemProperties;
 import ee.ria.xroad.common.crypto.identifier.KeyAlgorithm;
 import ee.ria.xroad.common.crypto.identifier.SignAlgorithm;
 
-import org.apache.commons.lang3.StringUtils;
 import org.bouncycastle.asn1.ASN1ObjectIdentifier;
 import org.bouncycastle.asn1.ASN1Primitive;
 import org.bouncycastle.asn1.DEROctetString;
@@ -37,12 +36,13 @@ import org.bouncycastle.jce.spec.ECNamedCurveParameterSpec;
 import org.bouncycastle.jce.spec.ECPublicKeySpec;
 
 import java.io.IOException;
+import java.security.InvalidAlgorithmParameterException;
 import java.security.KeyPair;
 import java.security.KeyPairGenerator;
+import java.security.NoSuchAlgorithmException;
 import java.security.SecureRandom;
+import java.security.spec.ECGenParameterSpec;
 import java.security.spec.InvalidKeySpecException;
-
-import static ee.ria.xroad.common.crypto.identifier.Providers.BOUNCY_CASTLE;
 
 public final class EcKeyManager extends AbstractKeyManager {
 
@@ -65,21 +65,18 @@ public final class EcKeyManager extends AbstractKeyManager {
     }
 
     @Override
-    public KeyPair generateKeyPair() throws Exception {
-        KeyPairGenerator keyPairGen = KeyPairGenerator.getInstance(cryptoAlgorithm().name(), BOUNCY_CASTLE);
+    public KeyPair generateKeyPair() {
+        final var namedCurve = SystemProperties.getSignerKeyNamedCurve();
+        try {
+            KeyPairGenerator keyPairGen = KeyPairGenerator.getInstance(cryptoAlgorithm().name());
 
-        var spec = org.bouncycastle.jce.ECNamedCurveTable.getParameterSpec(SystemProperties.getSignerKeyNamedCurve());
-        if (spec == null) {
-            var supported = StringUtils.join(org.bouncycastle.jce.ECNamedCurveTable.getNames().asIterator(), ", ");
-            throw new CryptoException(
-                    "Named curve not found: %s, please on of supported: %s"
-                            .formatted(SystemProperties.getSignerKeyNamedCurve(), supported)
-            );
+            var spec = new ECGenParameterSpec(namedCurve);
+            keyPairGen.initialize(spec, new SecureRandom());
+
+            return keyPairGen.generateKeyPair();
+        } catch (NoSuchAlgorithmException | InvalidAlgorithmParameterException e) {
+            throw new CryptoException("Named curve: %s isn't supported in current environment", e);
         }
-
-        keyPairGen.initialize(spec, new SecureRandom());
-
-        return keyPairGen.generateKeyPair();
     }
 
     public byte[] generateX509PublicKey(byte[] ecCurveData, byte[] ecPointData)

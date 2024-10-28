@@ -463,6 +463,7 @@ public final class SystemProperties {
     public static final String SOFT_TOKEN_RSA_SIGN_MECHANISM = SIGNER_PREFIX + "soft-token-rsa-sign-mechanism";
     public static final String SOFT_TOKEN_EC_SIGN_MECHANISM = SIGNER_PREFIX + "soft-token-ec-sign-mechanism";
     public static final String SOFT_TOKEN_PIN_KEYSTORE_ALGORITHM = SIGNER_PREFIX + "soft-token-pin-keystore-algorithm";
+    public static final String SIGNER_SELF_SIGNED_CERT_DIGEST_ALGORITHM = SIGNER_PREFIX + "selfsigned-cert-digest-algorithm";
 
     public static final String DEFAULT_SIGNER_MODULE_MANAGER_UPDATE_INTERVAL = "60";
     public static final KeyAlgorithm DEFAULT_SIGNER_DEFAULT_KEY_ALGORITHM = KeyAlgorithm.RSA;
@@ -1188,6 +1189,15 @@ public final class SystemProperties {
     }
 
     /**
+     * @return software token keystore PIN file algorithm, RSA by default
+     */
+    public static DigestAlgorithm getSelfSignedCertDigestAlgorithm() {
+        return Optional.ofNullable(System.getProperty(SIGNER_SELF_SIGNED_CERT_DIGEST_ALGORITHM))
+                .map(DigestAlgorithm::ofName)
+                .orElse(DigestAlgorithm.SHA512);
+    }
+
+    /**
      * @return the ACME certificate renewal toggle
      */
     public static boolean isAcmeCertificateRenewalActive() {
@@ -1607,7 +1617,8 @@ public final class SystemProperties {
     }
 
     private static final String DEFAULT_XROAD_SSL_CIPHER_SUITES = "TLS_ECDHE_RSA_WITH_AES_256_CBC_SHA384,"
-            + "TLS_DHE_RSA_WITH_AES_256_CBC_SHA256";
+            + "TLS_DHE_RSA_WITH_AES_256_CBC_SHA256,"
+            + "TLS_ECDHE_ECDSA_WITH_AES_256_CBC_SHA384";
 
     /**
      * Get X-Road accepted TLS cipher suites (between ss and ss).
