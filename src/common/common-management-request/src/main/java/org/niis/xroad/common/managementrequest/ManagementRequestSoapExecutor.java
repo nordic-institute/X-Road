@@ -52,7 +52,7 @@ public class ManagementRequestSoapExecutor {
 
     public ResponseEntity<String> process(String contentType, InputStream body,
                                           ToIntFunction<ManagementRequestVerifier.Result> onSuccess) {
-        try (var bos = new BoundedInputStream(body, MAX_REQUEST_SIZE)) {
+        try (var bos = BoundedInputStream.builder().setInputStream(body).setMaxCount(MAX_REQUEST_SIZE).get()) {
             var verificationResult = managementRequestVerifier.readRequest(contentType, bos);
 
             var createdRequestId = onSuccess.applyAsInt(verificationResult);

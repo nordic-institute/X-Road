@@ -39,8 +39,12 @@ import org.springframework.stereotype.Component;
 
 import java.security.PublicKey;
 import java.security.cert.X509Certificate;
+import java.security.interfaces.ECPublicKey;
 import java.security.interfaces.RSAPublicKey;
 import java.util.HashSet;
+
+import static ee.ria.xroad.common.crypto.NamedCurves.getCurveName;
+import static ee.ria.xroad.common.crypto.NamedCurves.getEncodedPoint;
 
 /**
  * Converter for CertificateDetails related data between openapi and service domain classes
@@ -111,10 +115,18 @@ public class CertificateDetailsConverter {
         certificate.setKeyUsages(new HashSet<>(keyUsageConverter.convert(x509Certificate.getKeyUsage())));
 
         PublicKey publicKey = x509Certificate.getPublicKey();
-        if (publicKey instanceof RSAPublicKey rsaPublicKey) {
-            certificate.setRsaPublicKeyExponent(rsaPublicKey.getPublicExponent().intValue());
-            certificate.setRsaPublicKeyModulus(rsaPublicKey.getModulus().toString(RADIX_FOR_HEX));
+        switch (publicKey) {
+            case RSAPublicKey rsaPublicKey -> {
+                certificate.setRsaPublicKeyExponent(rsaPublicKey.getPublicExponent().intValue());
+                certificate.setRsaPublicKeyModulus(rsaPublicKey.getModulus().toString(RADIX_FOR_HEX));
+            }
+            case ECPublicKey ecPublicKey -> {
+                certificate.setEcPublicParameters(getCurveName(ecPublicKey));
+                certificate.setEcPublicKeyPoint(getEncodedPoint(ecPublicKey));
+            }
+            default -> { /* do nothing */ }
         }
+
 
         certificate.setSignature(EncoderUtils.encodeHex(x509Certificate.getSignature()));
         certificate.setNotBefore(FormatUtils.fromDateToOffsetDateTime(x509Certificate.getNotBefore()));

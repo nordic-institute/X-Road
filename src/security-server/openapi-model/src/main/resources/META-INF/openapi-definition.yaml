@@ -5970,6 +5970,20 @@ components:
           format: int32
           description: RSA public key exponent (if RSA key) as an integer
           example: 65537
+        ec_public_parameters:
+          description: EC public key curve (if EC key)
+          example: 'secp256r1(1.2.840.10045.3.1.7)'
+          format: text
+          maxLength: 255
+          minLength: 1
+          type: string
+        ec_public_key_point:
+          description: hex encoded EC public key point (if EC key)
+          example: c44421d601...
+          format: hex
+          maxLength: 1000
+          minLength: 1
+          type: string
         hash:
           type: string
           format: text
