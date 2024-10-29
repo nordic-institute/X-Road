@@ -75,8 +75,8 @@ public class AsicContainerVerifierTest {
         asicVerifierMainSpy = Mockito.mockStatic(AsicVerifierMain.class, Mockito.CALLS_REAL_METHODS);
 
         System.setProperty(SystemProperties.CONFIGURATION_PATH, "src/test/resources/globalconf_2024");
-        System.setProperty(SystemProperties.CONFIGURATION_ANCHOR_FILE,
-                "../common/common-globalconf/src/test/resources/configuration-anchor1.xml");
+//        System.setProperty(SystemProperties.CONFIGURATION_ANCHOR_FILE,
+//                "../common/common-globalconf/src/test/resources/configuration-anchor1.xml");
 
         globalConfProvider = new TestGlobalConfImpl() {
             @Override
