@@ -184,12 +184,12 @@ export default defineComponent({
 </script>
 
 <style scoped lang="scss">
-@import '@/assets/colors';
+@use '@/assets/colors';
 .option-row {
-  border-bottom: solid 1px $XRoad-WarmGrey30;
+  border-bottom: solid 1px colors.$WarmGrey30;
 }
 
 .content-wrapper {
-  color: $XRoad-Black100 !important;
+  color: colors.$Black100 !important;
 }
 </style>

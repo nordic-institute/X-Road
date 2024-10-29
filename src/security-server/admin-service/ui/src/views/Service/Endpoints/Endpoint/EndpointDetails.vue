@@ -209,8 +209,9 @@ export default defineComponent({
 </script>
 
 <style lang="scss" scoped>
-@import '@/assets/dialogs';
-@import '@/assets/tables';
+@use '@/assets/dialogs';
+@use '@/assets/tables';
+@use '@/assets/colors';
 
 .delete-wrap {
   margin-top: 50px;
@@ -227,6 +228,6 @@ export default defineComponent({
 }
 
 .helper-text {
-  color: $XRoad-Black70;
+  color: colors.$Black70;
 }
 </style>

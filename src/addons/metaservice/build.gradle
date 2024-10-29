@@ -35,7 +35,7 @@ tasks.register('runMetaserviceTest', JavaExec) {
         '-Dxroad.proxy.server.jetty-configuration-file=src/test/resources/serverproxy.xml',
         '-Dxroad.proxy.client-proxy.jetty-configuration-file=src/test/resources/clientproxy.xml',
         '-Dlogback.configurationFile=src/test/resources/logback-metaservicetest.xml',
-        '-Dxroad.proxy.ocspResponder.jetty-configuration-file=src/test/resources/ocsp-responder.xml',
+        '-Dxroad.proxy.ocsp-responder.jetty-configuration-file=src/test/resources/ocsp-responder.xml',
         '-Dxroad.proxy.client-connector-so-linger=-1',
         '-Dxroad.proxy.client-httpclient-so-linger=-1',
         '-Dxroad.proxy.server-connector-so-linger=-1',
