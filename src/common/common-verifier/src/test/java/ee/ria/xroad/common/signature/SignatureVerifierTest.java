@@ -89,8 +89,6 @@ public class SignatureVerifierTest {
     @Before
     public void setUp() {
         System.setProperty(SystemProperties.CONFIGURATION_PATH, "../common-globalconf/src/test/resources/globalconf_good_v2");
-        System.setProperty(SystemProperties.CONFIGURATION_ANCHOR_FILE,
-                "../common-globalconf/src/test/resources/configuration-anchor1.xml");
 
         globalConfProvider = new TestGlobalConfImpl() {
             @Override

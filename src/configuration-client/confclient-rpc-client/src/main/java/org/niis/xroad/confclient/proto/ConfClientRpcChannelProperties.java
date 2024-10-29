@@ -1,6 +1,5 @@
 /*
  * The MIT License
- *
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
@@ -24,30 +23,15 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package ee.ria.xroad.monitor;
+package org.niis.xroad.confclient.proto;
 
-import ee.ria.xroad.common.conf.globalconf.GlobalConfPropertiesConfig;
-import ee.ria.xroad.monitor.configuration.JmxReporterConfig;
-import ee.ria.xroad.monitor.configuration.MonitorConfig;
+import org.niis.xroad.common.rpc.client.RpcChannelProperties;
+import org.springframework.boot.context.properties.ConfigurationProperties;
 
-import lombok.extern.slf4j.Slf4j;
-import org.niis.xroad.bootstrap.XrdSpringServiceBuilder;
-import org.springframework.boot.autoconfigure.SpringBootApplication;
+@ConfigurationProperties(prefix = "xroad.common.grpc.channel.configuration-client")
+public class ConfClientRpcChannelProperties extends RpcChannelProperties {
 
-/**
- * Main class for monitor application
- */
-@Slf4j
-@SpringBootApplication
-public class MonitorMain {
-
-    private static final String APP_NAME = "xroad-monitor";
-
-    public static void main(String[] args) {
-        XrdSpringServiceBuilder.newApplicationBuilder(APP_NAME, MonitorMain.class, MonitorConfig.class,
-                        JmxReporterConfig.class, GlobalConfPropertiesConfig.class)
-                .build()
-                .run(args);
+    public ConfClientRpcChannelProperties(String host, int port, int deadlineAfter) {
+        super(host, port, deadlineAfter);
     }
-
 }

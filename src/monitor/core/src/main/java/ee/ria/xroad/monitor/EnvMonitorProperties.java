@@ -29,11 +29,13 @@ package ee.ria.xroad.monitor;
 
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
+import org.springframework.boot.context.properties.ConfigurationProperties;
 
 import java.time.Duration;
 
 @Getter
 @RequiredArgsConstructor
+@ConfigurationProperties(prefix = "xroad.env-monitor")
 public class EnvMonitorProperties {
     private final Duration certificateInfoSensorInterval;
     private final Duration diskSpaceSensorInterval;

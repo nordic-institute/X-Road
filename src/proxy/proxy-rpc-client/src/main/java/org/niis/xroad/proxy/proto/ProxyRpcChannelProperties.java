@@ -23,32 +23,15 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package ee.ria.xroad.proxy.addon.module;
+package org.niis.xroad.proxy.proto;
 
-import ee.ria.xroad.common.CodedException;
-import ee.ria.xroad.signer.SignerProxy;
+import org.niis.xroad.common.rpc.client.RpcChannelProperties;
+import org.springframework.boot.context.properties.ConfigurationProperties;
 
-import static ee.ria.xroad.common.ErrorCodes.X_HW_MODULE_NON_OPERATIONAL;
+@ConfigurationProperties(prefix = "xroad.common.grpc.channel.proxy")
+public class ProxyRpcChannelProperties extends RpcChannelProperties {
 
-/**
- * Static class for accessing hardware security modules info.
- */
-public final class HardwareSecurityModuleUtils {
-
-    private HardwareSecurityModuleUtils() {
-    }
-
-    /**
-     * Verify that all configured HSMs are operational at the moment
-     */
-    public static void verifyAllHSMOperational() throws Exception {
-        if (!isOperational()) {
-            throw new CodedException(X_HW_MODULE_NON_OPERATIONAL,
-                    "At least one HSM are non operational");
-        }
-    }
-
-    private static boolean isOperational() throws Exception {
-        return SignerProxy.isHSMOperational();
+    public ProxyRpcChannelProperties(String host, int port, int deadlineAfter) {
+        super(host, port, deadlineAfter);
     }
 }

@@ -27,31 +27,41 @@ package ee.ria.xroad.signer;
 
 import io.grpc.BindableService;
 import lombok.extern.slf4j.Slf4j;
-import org.niis.xroad.common.rpc.RpcClientProperties;
-import org.niis.xroad.common.rpc.RpcServerProperties;
+import org.niis.xroad.common.rpc.RpcServiceProperties;
 import org.niis.xroad.common.rpc.server.RpcServer;
-import org.niis.xroad.confclient.proto.ConfClientRpcClient;
+import org.niis.xroad.confclient.proto.ConfClientRpcClientConfiguration;
+import org.springframework.boot.context.properties.ConfigurationProperties;
+import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Import;
 
 import java.util.List;
 
 @Slf4j
+@Import(ConfClientRpcClientConfiguration.class)
+@EnableConfigurationProperties({SignerRpcConfig.SignerRpcServiceProperties.class})
 @Configuration
 public class SignerRpcConfig {
 
     @Bean
-    RpcServer rpcServer(final List<BindableService> bindableServices, RpcServerProperties signerRpcServerProperties) throws Exception {
+    RpcServer rpcServer(final List<BindableService> bindableServices, SignerRpcServiceProperties serviceProperties) throws Exception {
         return RpcServer.newServer(
-                signerRpcServerProperties,
+                serviceProperties,
                 builder -> bindableServices.forEach(bindableService -> {
                     log.info("Registering {} RPC service.", bindableService.getClass().getSimpleName());
                     builder.addService(bindableService);
                 }));
     }
 
-    @Bean
-    ConfClientRpcClient confClientRpcClient(RpcClientProperties confClientRpcClientProperties) {
-        return new ConfClientRpcClient(confClientRpcClientProperties);
+
+    @ConfigurationProperties(prefix = "xroad.signer.grpc")
+    static class SignerRpcServiceProperties extends RpcServiceProperties {
+
+        public SignerRpcServiceProperties(String listenAddress, int port,
+                                          String tlsTrustStore, char[] tlsTrustStorePassword,
+                                          String tlsKeyStore, char[] tlsKeyStorePassword) {
+            super(listenAddress, port, tlsTrustStore, tlsTrustStorePassword, tlsKeyStore, tlsKeyStorePassword);
+        }
     }
 }

@@ -4,8 +4,11 @@ plugins {
 
 
 dependencies {
+    implementation(platform(libs.springBoot.bom))
     implementation libs.edc.dataplane.iam
     implementation libs.edc.core.token
 
     implementation(project(':signer-protocol'))
+
+    implementation("org.springframework.boot:spring-boot-starter")
 }

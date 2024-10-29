@@ -3,13 +3,15 @@ plugins {
 }
 
 dependencies {
-    implementation(platform(libs.springBoot.bom))
 
     implementation project(':common:common-domain')
     implementation project(':common:common-verifier')
+    implementation(project(':proxy:proxy-rpc-client'))
     implementation project(':monitor-common')
     implementation project(':signer-protocol')
     implementation project(':serverconf')
+
+    implementation("org.springframework.boot:spring-boot-starter")
 
     implementation libs.slf4j.api
     implementation libs.bundles.metrics

@@ -27,15 +27,14 @@ package org.niis.xroad.confclient;
 
 import lombok.extern.slf4j.Slf4j;
 import org.niis.xroad.bootstrap.XrdSpringServiceBuilder;
-import org.niis.xroad.common.rpc.RpcServerProperties;
 import org.niis.xroad.confclient.config.ConfClientRootConfig;
-import org.springframework.boot.autoconfigure.SpringBootApplication;
-import org.springframework.boot.context.properties.ConfigurationProperties;
-import org.springframework.boot.context.properties.EnableConfigurationProperties;
+import org.springframework.boot.SpringBootConfiguration;
+import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 
 @Slf4j
-@SpringBootApplication
-@EnableConfigurationProperties({ConfClientMain.ConfClientRpcServerProperties.class})
+@EnableAutoConfiguration
+@SpringBootConfiguration
+@SuppressWarnings("checkstyle:HideUtilityClassConstructor")
 public class ConfClientMain {
     static final String APP_NAME = "xroad-confclient";
 
@@ -48,16 +47,6 @@ public class ConfClientMain {
 
         appBuilder.build()
                 .run(args);
-    }
-
-    @ConfigurationProperties(prefix = "xroad.configuration-client.grpc")
-    static class ConfClientRpcServerProperties extends RpcServerProperties {
-        ConfClientRpcServerProperties(String grpcListenAddress, int grpcPort, boolean grpcTlsEnabled,
-                                      String grpcTlsTrustStore, char[] grpcTlsTrustStorePassword,
-                                      String grpcTlsKeyStore, char[] grpcTlsKeyStorePassword) {
-            super(grpcListenAddress, grpcPort, grpcTlsEnabled, grpcTlsTrustStore, grpcTlsTrustStorePassword,
-                    grpcTlsKeyStore, grpcTlsKeyStorePassword);
-        }
     }
 
 }

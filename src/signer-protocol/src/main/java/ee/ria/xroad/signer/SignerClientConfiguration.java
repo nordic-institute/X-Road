@@ -1,5 +1,6 @@
 /*
  * The MIT License
+ *
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
@@ -23,47 +24,29 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.confclient.config;
-
-import ee.ria.xroad.common.SystemProperties;
-import ee.ria.xroad.common.conf.globalconf.ConfigurationClient;
-import ee.ria.xroad.common.conf.globalconf.ConfigurationClientActionExecutor;
+package ee.ria.xroad.signer;
 
 import org.niis.xroad.common.rpc.RpcServiceProperties;
-import org.springframework.boot.context.properties.ConfigurationProperties;
+import org.niis.xroad.common.rpc.client.RpcChannelFactory;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.context.annotation.Import;
 
-@Import({
-        ConfClientJobConfig.class,
-        ConfClientRpcConfig.class,
-        ConfClientCLIConfig.class
-})
-@EnableConfigurationProperties({
-        ConfigurationClientProperties.class,
-        ConfClientRootConfig.ConfClientRpcServiceProperties.class})
 @Configuration
-public class ConfClientRootConfig {
+@EnableConfigurationProperties(SignerRpcChannelProperties.class)
+public class SignerClientConfiguration {
 
     @Bean
-    ConfigurationClient configurationClient(ConfigurationClientProperties configurationClientProperties) {
-        return new ConfigurationClient(configurationClientProperties.configurationAnchorFile(), SystemProperties.getConfigurationPath());
+    @ConditionalOnMissingBean(RpcChannelFactory.class)
+    RpcChannelFactory rpcChannelFactory() {
+        return new RpcChannelFactory();
     }
 
     @Bean
-    ConfigurationClientActionExecutor configurationClientActionExecutor(ConfigurationClientProperties configurationClientProperties) {
-        return new ConfigurationClientActionExecutor(configurationClientProperties);
-    }
-
-    @ConfigurationProperties(prefix = "xroad.configuration-client.grpc")
-    static class ConfClientRpcServiceProperties extends RpcServiceProperties {
-        ConfClientRpcServiceProperties(String listenAddress, int port,
-                                       String tlsTrustStore, char[] tlsTrustStorePassword,
-                                       String tlsKeyStore, char[] tlsKeyStorePassword) {
-            super(listenAddress, port, tlsTrustStore, tlsTrustStorePassword,
-                    tlsKeyStore, tlsKeyStorePassword);
-        }
+    SignerRpcClient signerRpcClient(RpcChannelFactory channelFactory,
+                                    SignerRpcChannelProperties channelProperties,
+                                    RpcServiceProperties serviceProperties) {
+        return new SignerRpcClient(channelFactory, channelProperties, serviceProperties);
     }
 }

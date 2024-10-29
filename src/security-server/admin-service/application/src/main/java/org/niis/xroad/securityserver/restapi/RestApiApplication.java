@@ -43,7 +43,7 @@ import org.springframework.context.annotation.Import;
 @Slf4j
 @ServletComponentScan
 @EnableCaching
-@Import({GlobalConfBeanConfig.class, ServerConfBeanConfig.class,GlobalConfPropertiesConfig.class})
+@Import({GlobalConfBeanConfig.class, ServerConfBeanConfig.class, GlobalConfPropertiesConfig.class})
 @SpringBootApplication(scanBasePackages = {"org.niis.xroad.securityserver.restapi", "org.niis.xroad.restapi", "org.niis.xroad.common.acme"})
 @NoArgsConstructor
 public class RestApiApplication {

@@ -36,13 +36,13 @@ import java.util.concurrent.ForkJoinWorkerThread;
  * https://github.com/spring-projects/spring-boot/issues/39843
  */
 @Deprecated(forRemoval = true)
-public class CustomForkJoinWorkerThreadFactory implements ForkJoinPool.ForkJoinWorkerThreadFactory {
+public final class CustomForkJoinWorkerThreadFactory implements ForkJoinPool.ForkJoinWorkerThreadFactory {
     @Override
-    public final ForkJoinWorkerThread newThread(ForkJoinPool pool) {
+    public ForkJoinWorkerThread newThread(ForkJoinPool pool) {
         return new MyForkJoinWorkerThread(pool);
     }
 
-    private static class MyForkJoinWorkerThread extends ForkJoinWorkerThread {
+    private static final class MyForkJoinWorkerThread extends ForkJoinWorkerThread {
         private MyForkJoinWorkerThread(final ForkJoinPool pool) {
             super(pool);
             setContextClassLoader(Thread.currentThread().getContextClassLoader());

@@ -310,7 +310,7 @@ public class DiagnosticsApiControllerTest extends AbstractApiControllerTestConte
                 new OcspResponderStatus(DiagnosticsErrorCodes.RETURN_SUCCESS, OCSP_URL_1, PREVIOUS_UPDATE, NEXT_UPDATE));
         var diagnosticsResponse = new CertificationServiceDiagnostics();
         diagnosticsResponse.update(Map.of(CA_NAME_1, certServiceStatus));
-        when(signerProxyFacade.getCertificationServiceDiagnostics()).thenReturn(diagnosticsResponse);
+        when(signerRpcClient.getCertificationServiceDiagnostics()).thenReturn(diagnosticsResponse);
 
         ResponseEntity<Set<OcspResponderDiagnostics>> response =
                 diagnosticsApiController.getOcspRespondersDiagnostics();
@@ -335,7 +335,7 @@ public class DiagnosticsApiControllerTest extends AbstractApiControllerTestConte
                 new OcspResponderStatus(DiagnosticsErrorCodes.ERROR_CODE_OCSP_UNINITIALIZED, OCSP_URL_2, null, NEXT_UPDATE));
         var diagnosticsResponse = new CertificationServiceDiagnostics();
         diagnosticsResponse.update(Map.of(CA_NAME_2, certServiceStatus));
-        when(signerProxyFacade.getCertificationServiceDiagnostics()).thenReturn(diagnosticsResponse);
+        when(signerRpcClient.getCertificationServiceDiagnostics()).thenReturn(diagnosticsResponse);
 
         ResponseEntity<Set<OcspResponderDiagnostics>> response =
                 diagnosticsApiController.getOcspRespondersDiagnostics();
@@ -361,7 +361,7 @@ public class DiagnosticsApiControllerTest extends AbstractApiControllerTestConte
                 new OcspResponderStatus(DiagnosticsErrorCodes.ERROR_CODE_OCSP_RESPONSE_INVALID, OCSP_URL_1, null, NEXT_UPDATE_MIDNIGHT));
         var diagnosticsResponse = new CertificationServiceDiagnostics();
         diagnosticsResponse.update(Map.of(CA_NAME_1, certServiceStatus));
-        when(signerProxyFacade.getCertificationServiceDiagnostics()).thenReturn(diagnosticsResponse);
+        when(signerRpcClient.getCertificationServiceDiagnostics()).thenReturn(diagnosticsResponse);
 
         ResponseEntity<Set<OcspResponderDiagnostics>> response = diagnosticsApiController
                 .getOcspRespondersDiagnostics();
@@ -387,7 +387,7 @@ public class DiagnosticsApiControllerTest extends AbstractApiControllerTestConte
                 new OcspResponderStatus(ERROR_CODE_UNKNOWN, OCSP_URL_2, PREVIOUS_UPDATE_MIDNIGHT, NEXT_UPDATE_MIDNIGHT));
         var diagnosticsResponse = new CertificationServiceDiagnostics();
         diagnosticsResponse.update(Map.of(CA_NAME_2, certServiceStatus));
-        when(signerProxyFacade.getCertificationServiceDiagnostics()).thenReturn(diagnosticsResponse);
+        when(signerRpcClient.getCertificationServiceDiagnostics()).thenReturn(diagnosticsResponse);
 
         ResponseEntity<Set<OcspResponderDiagnostics>> response = diagnosticsApiController
                 .getOcspRespondersDiagnostics();
@@ -410,7 +410,7 @@ public class DiagnosticsApiControllerTest extends AbstractApiControllerTestConte
 
     @Test
     public void getOcspResponderDiagnosticsException() throws Exception {
-        when(signerProxyFacade.getCertificationServiceDiagnostics()).thenThrow(new RuntimeException());
+        when(signerRpcClient.getCertificationServiceDiagnostics()).thenThrow(new RuntimeException());
         DeviationAwareRuntimeException exception = assertThrows(DeviationAwareRuntimeException.class,
                 diagnosticsApiController::getOcspRespondersDiagnostics);
         assertEquals(DeviationCodes.ERROR_DIAGNOSTIC_REQUEST_FAILED, exception.getErrorDeviation().getCode());

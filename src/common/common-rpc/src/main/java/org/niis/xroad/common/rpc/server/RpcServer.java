@@ -36,9 +36,8 @@ import io.grpc.netty.shaded.io.netty.channel.nio.NioEventLoopGroup;
 import io.grpc.netty.shaded.io.netty.channel.socket.nio.NioServerSocketChannel;
 import io.grpc.netty.shaded.io.netty.util.concurrent.DefaultThreadFactory;
 import lombok.extern.slf4j.Slf4j;
-import org.niis.xroad.common.rpc.InsecureRpcCredentialsConfigurer;
 import org.niis.xroad.common.rpc.RpcCredentialsConfigurer;
-import org.niis.xroad.common.rpc.RpcServerProperties;
+import org.niis.xroad.common.rpc.RpcServiceProperties;
 import org.springframework.beans.factory.DisposableBean;
 import org.springframework.beans.factory.InitializingBean;
 
@@ -90,13 +89,11 @@ public class RpcServer implements InitializingBean, DisposableBean {
         }
     }
 
-    public static RpcServer newServer(RpcServerProperties serverProperties, Consumer<ServerBuilder<?>> configFunc)
+    public static RpcServer newServer(RpcServiceProperties serverProperties, Consumer<ServerBuilder<?>> configFunc)
             throws UnrecoverableKeyException, NoSuchAlgorithmException, KeyStoreException {
 
-        var serverCredentials = serverProperties.isGrpcTlsEnabled()
-                ? RpcCredentialsConfigurer.createServerCredentials(serverProperties)
-                : InsecureRpcCredentialsConfigurer.createServerCredentials();
-        return new RpcServer(serverProperties.getGrpcListenAddress(), serverProperties.getGrpcPort(), serverCredentials, configFunc);
+        var serverCredentials = RpcCredentialsConfigurer.createServerCredentials(serverProperties);
+        return new RpcServer(serverProperties.getListenAddress(), serverProperties.getPort(), serverCredentials, configFunc);
     }
 
 }

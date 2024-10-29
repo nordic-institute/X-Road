@@ -54,24 +54,24 @@ import java.security.cert.CertificateException;
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
 public class RpcCredentialsConfigurer {
 
-    public static ServerCredentials createServerCredentials(RpcServerProperties serverProperties)
+    public static ServerCredentials createServerCredentials(RpcServiceProperties rpcServiceProperties)
             throws UnrecoverableKeyException, NoSuchAlgorithmException,
             KeyStoreException {
         TlsServerCredentials.Builder tlsBuilder = TlsServerCredentials.newBuilder()
-                .keyManager(getKeyManagers(serverProperties.getGrpcTlsKeyStore(), serverProperties.getGrpcTlsKeyStorePassword()))
-                .trustManager(getTrustManagers(serverProperties.getGrpcTlsTrustStore(), serverProperties.getGrpcTlsTrustStorePassword()))
+                .keyManager(getKeyManagers(rpcServiceProperties.getTlsKeyStore(), rpcServiceProperties.getTlsKeyStorePassword()))
+                .trustManager(getTrustManagers(rpcServiceProperties.getTlsTrustStore(), rpcServiceProperties.getTlsTrustStorePassword()))
                 .clientAuth(TlsServerCredentials.ClientAuth.REQUIRE);
 
         return tlsBuilder.build();
     }
 
-    public static ChannelCredentials createClientCredentials(RpcClientProperties rpcClientProperties)
+    public static ChannelCredentials createClientCredentials(RpcServiceProperties rpcServiceProperties)
             throws NoSuchAlgorithmException, KeyStoreException,
             UnrecoverableKeyException {
         TlsChannelCredentials.Builder tlsBuilder = TlsChannelCredentials.newBuilder()
-                .keyManager(getKeyManagers(rpcClientProperties.getGrpcTlsKeyStore(), rpcClientProperties.getGrpcTlsKeyStorePassword()))
-                .trustManager(getTrustManagers(rpcClientProperties.getGrpcTlsTrustStore(),
-                        rpcClientProperties.getGrpcTlsTrustStorePassword()));
+                .keyManager(getKeyManagers(rpcServiceProperties.getTlsKeyStore(), rpcServiceProperties.getTlsKeyStorePassword()))
+                .trustManager(getTrustManagers(rpcServiceProperties.getTlsTrustStore(),
+                        rpcServiceProperties.getTlsTrustStorePassword()));
 
         return tlsBuilder.build();
     }

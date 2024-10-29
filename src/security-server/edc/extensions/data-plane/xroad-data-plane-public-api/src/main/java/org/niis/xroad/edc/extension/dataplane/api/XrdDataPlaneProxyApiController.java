@@ -29,7 +29,6 @@ package org.niis.xroad.edc.extension.dataplane.api;
 import ee.ria.xroad.common.cert.CertChainFactory;
 import ee.ria.xroad.common.conf.globalconf.GlobalConfProvider;
 import ee.ria.xroad.common.conf.serverconf.ServerConfProvider;
-import ee.ria.xroad.common.signature.BatchSigner;
 import ee.ria.xroad.proxy.conf.KeyConfProvider;
 import ee.ria.xroad.proxy.serverproxy.HttpClientCreator;
 
@@ -101,7 +100,8 @@ public class XrdDataPlaneProxyApiController {
         try {
             HttpClientCreator creator = new HttpClientCreator(serverConfProvider);
             this.httpClient = creator.getHttpClient();
-            BatchSigner.init();
+            //TODO xroad8
+//            BatchSigner.init();
         } catch (Exception e) {
             throw new EdcException("Failed to create http client");
         }

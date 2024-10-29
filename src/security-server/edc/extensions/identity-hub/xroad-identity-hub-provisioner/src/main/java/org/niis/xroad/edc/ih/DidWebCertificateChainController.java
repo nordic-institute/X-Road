@@ -28,7 +28,7 @@ package org.niis.xroad.edc.ih;
 
 
 import ee.ria.xroad.common.conf.globalconf.GlobalConfProvider;
-import ee.ria.xroad.signer.SignerProxy;
+import ee.ria.xroad.signer.SignerRpcClient;
 import ee.ria.xroad.signer.protocol.dto.CertificateInfo;
 import ee.ria.xroad.signer.protocol.dto.KeyInfo;
 
@@ -62,6 +62,7 @@ public class DidWebCertificateChainController {
     private final DidWebParser didWebParser;
     private final KeyPairService keyPairService;
     private final GlobalConfProvider globalConfProvider;
+    private final SignerRpcClient signerRpcClient;
 
     @GET
     public String getCertificateChain(@Context ContainerRequestContext context) throws Exception {
@@ -92,7 +93,7 @@ public class DidWebCertificateChainController {
     }
 
     private CertificateInfo getActiveCertificate(String keyId) throws Exception {
-        var token = SignerProxy.getTokenForKeyId(keyId);
+        var token = signerRpcClient.getTokenForKeyId(keyId);
         var certificates = token.getKeyInfo().stream()
                 .filter(keyInfo -> keyInfo.getId().equals(keyId))
                 .findFirst()

@@ -24,19 +24,15 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
+package ee.ria.xroad.signer;
 
-package org.niis.xroad.common.rpc;
+import org.niis.xroad.common.rpc.client.RpcChannelProperties;
+import org.springframework.boot.context.properties.ConfigurationProperties;
 
-import lombok.Getter;
-import lombok.RequiredArgsConstructor;
+@ConfigurationProperties(prefix = "xroad.common.grpc.channel.signer")
+public class SignerRpcChannelProperties extends RpcChannelProperties {
 
-@Getter
-@RequiredArgsConstructor
-public class RpcProperties {
-    private final int grpcPort;
-    private final boolean grpcTlsEnabled;
-    private final String grpcTlsTrustStore;
-    private final char[] grpcTlsTrustStorePassword;
-    private final String grpcTlsKeyStore;
-    private final char[] grpcTlsKeyStorePassword;
+    public SignerRpcChannelProperties(String host, int port, int deadlineAfter) {
+        super(host, port, deadlineAfter);
+    }
 }

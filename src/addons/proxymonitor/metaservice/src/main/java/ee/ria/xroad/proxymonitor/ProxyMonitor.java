@@ -33,6 +33,7 @@ import lombok.extern.slf4j.Slf4j;
 
 /**
  * ProxyMonitor initialization
+ * TODO xroad8 rework addons
  */
 @Slf4j
 public class ProxyMonitor implements AddOn {
@@ -44,7 +45,7 @@ public class ProxyMonitor implements AddOn {
         try {
             bindableServiceRegistry.register(new ProxyMonitorService());
 
-            setMonitorClient(new MonitorClient());
+            setMonitorClient(new MonitorClient(null, null, null));
         } catch (Exception e) {
             log.error("ProxyMonitor addon has failed to start. Monitor data will not be available!", e);
         }
@@ -52,9 +53,10 @@ public class ProxyMonitor implements AddOn {
 
     @Override
     public void shutdown() {
-        if (monitorClient != null) {
-            monitorClient.shutdown();
-        }
+        //do nothing for now
+//        if (monitorClient != null) {
+////            monitorClient.shutdown();
+//        }
     }
 
     public static MonitorClient getClient() {

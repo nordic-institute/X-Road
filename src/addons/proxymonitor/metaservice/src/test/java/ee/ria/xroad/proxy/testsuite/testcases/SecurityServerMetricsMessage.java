@@ -25,7 +25,6 @@
  */
 package ee.ria.xroad.proxy.testsuite.testcases;
 
-import ee.ria.xroad.common.SystemProperties;
 import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.identifier.SecurityServerId;
 import ee.ria.xroad.common.message.SoapMessageImpl;
@@ -45,7 +44,7 @@ import jakarta.xml.bind.JAXBContext;
 import jakarta.xml.bind.Unmarshaller;
 import jakarta.xml.soap.SOAPBody;
 import lombok.extern.slf4j.Slf4j;
-import org.niis.xroad.common.rpc.RpcServerProperties;
+import org.niis.xroad.common.rpc.RpcServiceProperties;
 import org.niis.xroad.common.rpc.server.RpcServer;
 import org.niis.xroad.monitor.common.HistogramMetrics;
 import org.niis.xroad.monitor.common.Metrics;
@@ -137,9 +136,9 @@ public class SecurityServerMetricsMessage extends MessageTestCase {
         super.startUp();
 
         monitorRpcServer = RpcServer.newServer(
-                new RpcServerProperties(
-                        SystemProperties.getEnvMonitorGrpcListenAddress(),
-                        SystemProperties.getEnvMonitorGrpcPort(), false, null, null, null, null),
+                new RpcServiceProperties(
+                        "127.0.0.1", //TODO xroad8 fix config.
+                        4000, null, null, null, null),
                 builder -> builder.addService(new MockMetricsProvider()));
         monitorRpcServer.afterPropertiesSet();
 

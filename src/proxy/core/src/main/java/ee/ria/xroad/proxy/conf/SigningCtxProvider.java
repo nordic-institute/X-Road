@@ -28,7 +28,6 @@ package ee.ria.xroad.proxy.conf;
 import ee.ria.xroad.common.conf.globalconf.GlobalConfProvider;
 import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.signature.MessageSigner;
-import ee.ria.xroad.common.signature.SimpleSigner;
 import ee.ria.xroad.proxy.signedmessage.SignerSigningKey;
 
 import lombok.experimental.UtilityClass;
@@ -39,7 +38,14 @@ import lombok.extern.slf4j.Slf4j;
 public class SigningCtxProvider {
     private static DefaultSigningCtxProvider ctxProvider = new DefaultSigningCtxProvider();
 
-    private static final MessageSigner SIGNER = new SimpleSigner();
+    private static MessageSigner signer;
+
+    //TODO quick workaround to avoid changing the whole codebase
+    @Deprecated(forRemoval = true)
+    public static void setSigner(MessageSigner signer) {
+        log.warn("Setting signer to '{}'", signer.getClass().getName());
+        SigningCtxProvider.signer = signer;
+    }
 
     public static SigningCtx getSigningCtx(ClientId clientId, GlobalConfProvider globalConfProvider, KeyConfProvider keyConfProvider) {
         return ctxProvider.getSigningCtx(clientId, globalConfProvider, keyConfProvider);
@@ -64,7 +70,7 @@ public class SigningCtxProvider {
                                             GlobalConfProvider globalConfProvider,
                                             KeyConfProvider keyConfProvider) {
             return new SigningCtxImpl(globalConfProvider, keyConfProvider, signingInfo.getClientId(),
-                    new SignerSigningKey(signingInfo.getKeyId(), signingInfo.getSignMechanismName(), SIGNER), signingInfo.getCert());
+                    new SignerSigningKey(signingInfo.getKeyId(), signingInfo.getSignMechanismName(), signer), signingInfo.getCert());
         }
     }
 }

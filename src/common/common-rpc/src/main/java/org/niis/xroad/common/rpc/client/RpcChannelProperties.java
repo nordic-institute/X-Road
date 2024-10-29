@@ -25,18 +25,24 @@
  * THE SOFTWARE.
  */
 
-package org.niis.xroad.common.rpc;
+package org.niis.xroad.common.rpc.client;
 
 import lombok.Getter;
+import lombok.RequiredArgsConstructor;
 
 @Getter
-public class RpcClientProperties extends RpcProperties {
-    private final String grpcHost;
-
-    public RpcClientProperties(String grpcHost, int grpcPort, boolean grpcTlsEnabled,
-                               String grpcTlsTrustStore, char[] grpcTlsTrustStorePassword,
-                               String grpcTlsKeyStore, char[] grpcTlsKeyStorePassword) {
-        super(grpcPort, grpcTlsEnabled, grpcTlsTrustStore, grpcTlsTrustStorePassword, grpcTlsKeyStore, grpcTlsKeyStorePassword);
-        this.grpcHost = grpcHost;
-    }
+@RequiredArgsConstructor
+public class RpcChannelProperties {
+    /**
+     * Hostname or IP address of the server
+     */
+    private final String host;
+    /**
+     * Port of the server
+     */
+    private final int port;
+    /**
+     * Deadline in ms for the RPC call
+     */
+    private final int deadlineAfter;
 }

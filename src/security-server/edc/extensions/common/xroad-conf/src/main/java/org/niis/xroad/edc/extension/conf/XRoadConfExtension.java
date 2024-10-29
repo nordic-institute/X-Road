@@ -45,7 +45,6 @@ import org.eclipse.edc.runtime.metamodel.annotation.Setting;
 import org.eclipse.edc.spi.EdcException;
 import org.eclipse.edc.spi.system.ServiceExtension;
 import org.eclipse.edc.spi.system.ServiceExtensionContext;
-import org.niis.xroad.common.rpc.RpcClientProperties;
 import org.niis.xroad.confclient.proto.ConfClientRpcClient;
 
 import java.util.concurrent.Executors;
@@ -69,14 +68,14 @@ public class XRoadConfExtension implements ServiceExtension {
     public void initialize(ServiceExtensionContext context) {
         try {
             // todo: fixme: implement me !!!
-            RpcClientProperties confClientProperties =  new RpcClientProperties(SystemProperties.getConfigurationClientGrpcHost(),
-                    SystemProperties.getConfigurationClientGrpcPort(),
-                    SystemProperties.isConfigurationClientGrpcTlsEnabled(),
-                    SystemProperties.getConfigurationClientGrpcTrustStore(),
-                    SystemProperties.getConfigurationClientGrpcTrustStorePassword(),
-                    SystemProperties.getConfigurationClientGrpcKeyStore(),
-                    SystemProperties.getConfigurationClientGrpcKeyStorePassword());
-            var confClientRpcClient = new ConfClientRpcClient(confClientProperties);
+//            RpcChannelProperties confClientProperties =  new RpcChannelProperties(SystemProperties.getConfigurationClientGrpcHost(),
+//                    SystemProperties.getConfigurationClientGrpcPort(),
+//                    SystemProperties.isConfigurationClientGrpcTlsEnabled(),
+//                    SystemProperties.getConfigurationClientGrpcTrustStore(),
+//                    SystemProperties.getConfigurationClientGrpcTrustStorePassword(),
+//                    SystemProperties.getConfigurationClientGrpcKeyStore(),
+//                    SystemProperties.getConfigurationClientGrpcKeyStorePassword());
+            var confClientRpcClient = new ConfClientRpcClient(null, null, null);
             confClientRpcClient.afterPropertiesSet();
 
             var globalConfDataLoader = new RemoteGlobalConfDataLoader();
@@ -88,8 +87,8 @@ public class XRoadConfExtension implements ServiceExtension {
                     : new ServerConfImpl(globalConfProvider);
 
             CertChainFactory certChainFactory = new CertChainFactory(globalConfProvider);
-
-            KeyConfProvider keyConfProvider = new CachingKeyConfImpl(globalConfProvider, serverConfProvider);
+//TODO xroad8
+            KeyConfProvider keyConfProvider = new CachingKeyConfImpl(globalConfProvider, serverConfProvider, null);
 
             context.registerService(GlobalConfProvider.class, globalConfProvider);
             context.registerService(ServerConfProvider.class, serverConfProvider);

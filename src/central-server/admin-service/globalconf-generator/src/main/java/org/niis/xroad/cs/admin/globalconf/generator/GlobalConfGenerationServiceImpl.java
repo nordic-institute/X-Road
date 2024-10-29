@@ -29,6 +29,7 @@ package org.niis.xroad.cs.admin.globalconf.generator;
 import ee.ria.xroad.common.SystemProperties;
 import ee.ria.xroad.common.crypto.identifier.DigestAlgorithm;
 import ee.ria.xroad.common.util.TimeUtils;
+import ee.ria.xroad.signer.SignerRpcClient;
 
 import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
@@ -36,7 +37,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.niis.xroad.cs.admin.api.domain.ConfigurationSigningKey;
 import org.niis.xroad.cs.admin.api.domain.DistributedFile;
 import org.niis.xroad.cs.admin.api.dto.OptionalConfPart;
-import org.niis.xroad.cs.admin.api.facade.SignerProxyFacade;
 import org.niis.xroad.cs.admin.api.globalconf.OptionalPartsConf;
 import org.niis.xroad.cs.admin.api.service.ConfigurationService;
 import org.niis.xroad.cs.admin.api.service.ConfigurationSigningKeysService;
@@ -77,7 +77,7 @@ public class GlobalConfGenerationServiceImpl implements GlobalConfGenerationServ
             CONTENT_ID_PRIVATE_PARAMETERS,
             CONTENT_ID_SHARED_PARAMETERS);
 
-    private final SignerProxyFacade signerProxyFacade;
+    private final SignerRpcClient signerRpcClient;
     private final SystemParameterService systemParameterService;
     private final ConfigurationService configurationService;
     private final ConfigurationSigningKeysService configurationSigningKeysService;
@@ -187,7 +187,7 @@ public class GlobalConfGenerationServiceImpl implements GlobalConfGenerationServ
         var directoryContent = directoryContentBuilder.build();
 
         var directoryContentSigner = new DirectoryContentSigner(
-                signerProxyFacade,
+                signerRpcClient,
                 systemParameterService
                         .getConfSignDigestAlgoId(),
                 getConfSignCertHashAlgoId());

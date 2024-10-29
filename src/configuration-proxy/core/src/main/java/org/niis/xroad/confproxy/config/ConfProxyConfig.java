@@ -25,22 +25,22 @@
  */
 package org.niis.xroad.confproxy.config;
 
+import ee.ria.xroad.signer.SignerClientConfiguration;
 import ee.ria.xroad.signer.SignerRpcClient;
 
 import org.niis.xroad.common.rpc.RpcServiceProperties;
-import org.niis.xroad.common.rpc.client.RpcChannelFactory;
-import org.niis.xroad.common.rpc.client.RpcChannelProperties;
 import org.niis.xroad.confproxy.commandline.ConfProxyRunner;
 import org.niis.xroad.confproxy.commandline.ConfProxyUtilRunner;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Import;
 
 @EnableConfigurationProperties({
         ConfProxyProperties.class,
-        ConfProxyConfig.ConfProxyRpcServiceProperties.class,
-        ConfProxyConfig.SignerRpcChannelProperties.class})
+        ConfProxyConfig.ConfProxyRpcServiceProperties.class})
+@Import(SignerClientConfiguration.class)
 @Configuration
 public class ConfProxyConfig {
 
@@ -52,26 +52,6 @@ public class ConfProxyConfig {
     @Bean
     ConfProxyUtilRunner confProxyUtilRunner(ConfProxyProperties confProxyProperties, SignerRpcClient signerRpcClient) {
         return new ConfProxyUtilRunner(confProxyProperties, signerRpcClient);
-    }
-
-    @Bean
-    RpcChannelFactory rpcChannelFactory() {
-        return new RpcChannelFactory();
-    }
-
-    @Bean
-    SignerRpcClient signerRpcClient(RpcChannelFactory channelFactory,
-                                    SignerRpcChannelProperties channelProperties,
-                                    ConfProxyRpcServiceProperties serviceProperties) {
-        return new SignerRpcClient(channelFactory, channelProperties, serviceProperties);
-    }
-
-    @ConfigurationProperties(prefix = "xroad.common.grpc.channel.signer")
-    static class SignerRpcChannelProperties extends RpcChannelProperties {
-
-        SignerRpcChannelProperties(String host, int port, int deadlineAfter) {
-            super(host, port, deadlineAfter);
-        }
     }
 
     @ConfigurationProperties(prefix = "xroad.configuration-proxy.grpc")

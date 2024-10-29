@@ -30,14 +30,12 @@ import ee.ria.xroad.common.conf.globalconf.GlobalConfPropertiesConfig;
 
 import lombok.extern.slf4j.Slf4j;
 import org.niis.xroad.bootstrap.XrdSpringServiceBuilder;
-import org.niis.xroad.common.rpc.RpcClientProperties;
-import org.springframework.boot.autoconfigure.SpringBootApplication;
-import org.springframework.boot.context.properties.ConfigurationProperties;
-import org.springframework.boot.context.properties.EnableConfigurationProperties;
+import org.springframework.boot.SpringBootConfiguration;
+import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 
 @Slf4j
-@SpringBootApplication
-@EnableConfigurationProperties(LogArchiverMain.ConfClientRpcClientProperties.class)
+@EnableAutoConfiguration
+@SpringBootConfiguration
 public class LogArchiverMain {
     private static final String APP_NAME = "MessageLogArchiver";
 
@@ -46,16 +44,6 @@ public class LogArchiverMain {
                         GlobalConfPropertiesConfig.class)
                 .build()
                 .run(args);
-    }
-
-    @ConfigurationProperties(prefix = "xroad.configuration-client")
-    static class ConfClientRpcClientProperties extends RpcClientProperties {
-        ConfClientRpcClientProperties(String grpcHost, int grpcPort, boolean grpcTlsEnabled,
-                                      String grpcTlsTrustStore, char[] grpcTlsTrustStorePassword,
-                                      String grpcTlsKeyStore, char[] grpcTlsKeyStorePassword) {
-            super(grpcHost, grpcPort, grpcTlsEnabled, grpcTlsTrustStore, grpcTlsTrustStorePassword,
-                    grpcTlsKeyStore, grpcTlsKeyStorePassword);
-        }
     }
 
 }

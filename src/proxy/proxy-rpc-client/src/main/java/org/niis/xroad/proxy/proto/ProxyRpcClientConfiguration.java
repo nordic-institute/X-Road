@@ -1,6 +1,5 @@
 /*
  * The MIT License
- *
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
@@ -24,20 +23,29 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
+package org.niis.xroad.proxy.proto;
 
-package org.niis.xroad.common.rpc;
+import org.niis.xroad.common.rpc.RpcServiceProperties;
+import org.niis.xroad.common.rpc.client.RpcChannelFactory;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
+import org.springframework.boot.context.properties.EnableConfigurationProperties;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
 
-import lombok.Getter;
+@Configuration
+@EnableConfigurationProperties(ProxyRpcChannelProperties.class)
+public class ProxyRpcClientConfiguration {
 
-@Getter
-public class RpcServerProperties extends RpcProperties {
-    private final String grpcListenAddress;
-
-    public RpcServerProperties(String grpcListenAddress, int grpcPort, boolean grpcTlsEnabled,
-                               String grpcTlsTrustStore, char[] grpcTlsTrustStorePassword,
-                               String grpcTlsKeyStore, char[] grpcTlsKeyStorePassword) {
-        super(grpcPort, grpcTlsEnabled, grpcTlsTrustStore, grpcTlsTrustStorePassword, grpcTlsKeyStore, grpcTlsKeyStorePassword);
-        this.grpcListenAddress = grpcListenAddress;
+    @Bean
+    @ConditionalOnMissingBean(RpcChannelFactory.class)
+    RpcChannelFactory rpcChannelFactory() {
+        return new RpcChannelFactory();
     }
 
+    @Bean
+    ProxyRpcClient proxyRpcClient(RpcChannelFactory channelFactory,
+                                  ProxyRpcChannelProperties channelProperties,
+                                  RpcServiceProperties serviceProperties) {
+        return new ProxyRpcClient(channelFactory, channelProperties, serviceProperties);
+    }
 }

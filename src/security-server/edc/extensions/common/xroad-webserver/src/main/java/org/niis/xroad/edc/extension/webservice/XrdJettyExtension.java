@@ -14,13 +14,12 @@
 
 package org.niis.xroad.edc.extension.webservice;
 
-import ee.ria.xroad.common.SystemProperties;
 import ee.ria.xroad.common.SystemPropertiesLoader;
 import ee.ria.xroad.common.cert.CertChainFactory;
 import ee.ria.xroad.common.conf.globalconf.GlobalConfProvider;
 import ee.ria.xroad.common.conf.serverconf.ServerConfProvider;
 import ee.ria.xroad.proxy.conf.KeyConfProvider;
-import ee.ria.xroad.signer.protocol.RpcSignerClient;
+import ee.ria.xroad.signer.SignerRpcClient;
 
 import org.eclipse.edc.runtime.metamodel.annotation.Inject;
 import org.eclipse.edc.runtime.metamodel.annotation.Provider;
@@ -34,7 +33,6 @@ import org.eclipse.edc.web.jetty.JettyService;
 import org.eclipse.edc.web.jetty.WebServiceConfigurerImpl;
 import org.eclipse.edc.web.spi.WebServer;
 import org.eclipse.edc.web.spi.configuration.WebServiceConfigurer;
-import org.niis.xroad.common.rpc.RpcClientProperties;
 import org.niis.xroad.edc.spi.XrdWebServer;
 
 @SuppressWarnings("checkstyle:MagicNumber")
@@ -98,7 +96,8 @@ public class XrdJettyExtension implements ServiceExtension {
 
     private void safelyInitSignerClient(Monitor monitor) {
         try {
-            var client = RpcSignerClient.getInstance();
+            //TODO xroad8
+            var client = new SignerRpcClient(null, null, null);
             monitor.debug("RPC signer client already initialized. Hash: %s".formatted(client.hashCode()));
         } catch (Exception e) {
             initSignerClient(monitor);
@@ -117,16 +116,16 @@ public class XrdJettyExtension implements ServiceExtension {
         monitor.info("Initializing Signer client");
         try {
             // todo: fixme:
-            RpcClientProperties signerClientProperties = new RpcClientProperties(
-                    SystemProperties.getSignerGrpcHost(),
-                    SystemProperties.getSignerGrpcPort(),
-                    SystemProperties.isSignerGrpcTlsEnabled(),
-                    SystemProperties.getSignerGrpcTrustStore(),
-                    SystemProperties.getSignerGrpcTrustStorePassword(),
-                    SystemProperties.getSignerGrpcKeyStore(),
-                    SystemProperties.getSignerGrpcKeyStorePassword()
-            );
-            RpcSignerClient.init(signerClientProperties, 10000);
+//            RpcChannelProperties signerClientProperties = new RpcChannelProperties(
+//                    SystemProperties.getSignerGrpcHost(),
+//                    SystemProperties.getSignerGrpcPort(),
+//                    SystemProperties.isSignerGrpcTlsEnabled(),
+//                    SystemProperties.getSignerGrpcTrustStore(),
+//                    SystemProperties.getSignerGrpcTrustStorePassword(),
+//                    SystemProperties.getSignerGrpcKeyStore(),
+//                    SystemProperties.getSignerGrpcKeyStorePassword()
+//            );
+//            SignerRpcClient.init(signerClientProperties, 10000);
         } catch (Exception e) {
             throw new RuntimeException(e);
         }

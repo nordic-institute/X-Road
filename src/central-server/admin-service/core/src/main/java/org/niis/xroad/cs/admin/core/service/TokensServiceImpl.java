@@ -28,6 +28,7 @@
 package org.niis.xroad.cs.admin.core.service;
 
 import ee.ria.xroad.common.CodedException;
+import ee.ria.xroad.signer.SignerRpcClient;
 
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
@@ -35,7 +36,6 @@ import org.niis.xroad.common.exception.ServiceException;
 import org.niis.xroad.common.exception.ValidationFailureException;
 import org.niis.xroad.cs.admin.api.dto.TokenInfo;
 import org.niis.xroad.cs.admin.api.dto.TokenLoginRequest;
-import org.niis.xroad.cs.admin.api.facade.SignerProxyFacade;
 import org.niis.xroad.cs.admin.api.service.ConfigurationSigningKeysService;
 import org.niis.xroad.cs.admin.api.service.TokensService;
 import org.niis.xroad.cs.admin.core.converter.TokenInfoMapper;
@@ -74,14 +74,14 @@ public class TokensServiceImpl extends AbstractTokenConsumer implements TokensSe
 
     private final ConfigurationSigningKeysService configurationSigningKeysService;
     private final AuditDataHelper auditDataHelper;
-    private final SignerProxyFacade signerProxyFacade;
+    private final SignerRpcClient signerRpcClient;
     private final TokenActionsResolverImpl tokenActionsResolver;
     private final TokenInfoMapper tokenInfoMapper;
 
     @Override
     public Set<TokenInfo> getTokens() {
         try {
-            return signerProxyFacade.getTokens().stream()
+            return signerRpcClient.getTokens().stream()
                     .map(tokenInfoMapper::toTarget)
                     .collect(toSet());
         } catch (Exception e) {
@@ -92,7 +92,7 @@ public class TokensServiceImpl extends AbstractTokenConsumer implements TokensSe
     @Override
     public boolean hasHardwareTokens() {
         try {
-            return signerProxyFacade.getTokens().stream().anyMatch(tokenInfo -> !SOFTWARE_TOKEN_ID.equals(tokenInfo.getId()));
+            return signerRpcClient.getTokens().stream().anyMatch(tokenInfo -> !SOFTWARE_TOKEN_ID.equals(tokenInfo.getId()));
         } catch (Exception e) {
             throw new ServiceException(TOKEN_FETCH_FAILED, e);
         }
@@ -111,7 +111,7 @@ public class TokensServiceImpl extends AbstractTokenConsumer implements TokensSe
         validatePinMeetsTheTokenRequirements(token, tokenLoginRequest.getPassword());
 
         try {
-            signerProxyFacade.activateToken(tokenLoginRequest.getTokenId(), tokenLoginRequest.getPassword().toCharArray());
+            signerRpcClient.activateToken(tokenLoginRequest.getTokenId(), tokenLoginRequest.getPassword().toCharArray());
         } catch (CodedException codedException) {
             final ee.ria.xroad.signer.protocol.dto.TokenInfo token1 = getToken(tokenLoginRequest.getTokenId());
             if (USER_PIN_FINAL_TRY == token1.getStatus()) {
@@ -133,7 +133,7 @@ public class TokensServiceImpl extends AbstractTokenConsumer implements TokensSe
         addAuditData(token);
         tokenActionsResolver.requireAction(LOGOUT, token, configurationSigningKeysService.findByTokenIdentifier(token));
         try {
-            signerProxyFacade.deactivateToken(tokenId);
+            signerRpcClient.deactivateToken(tokenId);
         } catch (CodedException codedException) {
             throw new SignerProxyException(TOKEN_DEACTIVATION_FAILED, codedException, codedException.getFaultCode());
         } catch (Exception exception) {
@@ -162,8 +162,8 @@ public class TokensServiceImpl extends AbstractTokenConsumer implements TokensSe
     }
 
     @Override
-    protected SignerProxyFacade getSignerProxyFacade() {
-        return signerProxyFacade;
+    protected SignerRpcClient getSignerRpcClient() {
+        return signerRpcClient;
     }
 
     private boolean isInt(String value) {

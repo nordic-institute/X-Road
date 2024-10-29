@@ -29,7 +29,7 @@ import ee.ria.xroad.common.conf.globalconf.FSGlobalConfValidator;
 
 import io.grpc.BindableService;
 import lombok.extern.slf4j.Slf4j;
-import org.niis.xroad.common.rpc.RpcServerProperties;
+import org.niis.xroad.common.rpc.RpcServiceProperties;
 import org.niis.xroad.common.rpc.server.RpcServer;
 import org.niis.xroad.confclient.admin.AdminService;
 import org.niis.xroad.confclient.globalconf.GetGlobalConfRespFactory;
@@ -47,9 +47,10 @@ import java.util.Collection;
 public class ConfClientRpcConfig {
 
     @Bean
-    RpcServer proxyRpcServer(Collection<BindableService> services, RpcServerProperties confClientRpcServerProperties) throws Exception {
+    RpcServer confClientRpcServer(Collection<BindableService> services,
+                                  RpcServiceProperties confClientRpcServiceProperties) throws Exception {
 
-        return RpcServer.newServer(confClientRpcServerProperties,
+        return RpcServer.newServer(confClientRpcServiceProperties,
                 builder -> services.forEach(service -> {
                     log.info("Registering {} RPC service.", service.getClass().getSimpleName());
                     builder.addService(service);

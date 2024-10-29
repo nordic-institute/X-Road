@@ -33,6 +33,7 @@ import ee.ria.xroad.common.conf.globalconf.GlobalConfRefreshJobConfig;
 import ee.ria.xroad.common.conf.serverconf.ServerConfBeanConfig;
 import ee.ria.xroad.common.conf.serverconf.ServerConfProvider;
 import ee.ria.xroad.common.opmonitoring.AbstractOpMonitoringBuffer;
+import ee.ria.xroad.common.signature.SimpleSigner;
 import ee.ria.xroad.proxy.ProxyAddonConfig;
 import ee.ria.xroad.proxy.ProxyAdminPortConfig;
 import ee.ria.xroad.proxy.ProxyDiagnosticsConfig;
@@ -43,16 +44,21 @@ import ee.ria.xroad.proxy.antidos.AntiDosConfiguration;
 import ee.ria.xroad.proxy.clientproxy.AuthTrustVerifier;
 import ee.ria.xroad.proxy.conf.CachingKeyConfImpl;
 import ee.ria.xroad.proxy.conf.KeyConfProvider;
+import ee.ria.xroad.proxy.conf.SigningCtxProvider;
 import ee.ria.xroad.proxy.opmonitoring.OpMonitoring;
 import ee.ria.xroad.proxy.serverproxy.ServerProxy;
 import ee.ria.xroad.proxy.util.CertHashBasedOcspResponder;
 import ee.ria.xroad.proxy.util.CertHashBasedOcspResponderClient;
+import ee.ria.xroad.signer.SignerClientConfiguration;
+import ee.ria.xroad.signer.SignerRpcClient;
 
 import org.niis.xroad.proxy.ProxyProperties;
+import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
 
+//TODO  This is getting out of hand, refactor to be more readable.
 @Import({
         ProxyRpcConfig.class,
         ProxyAdminPortConfig.class,
@@ -63,7 +69,12 @@ import org.springframework.context.annotation.Import;
         ProxyClientConfig.class,
         GlobalConfBeanConfig.class,
         GlobalConfRefreshJobConfig.class,
-        ServerConfBeanConfig.class
+        ServerConfBeanConfig.class,
+        SignerClientConfiguration.class
+})
+@EnableConfigurationProperties({
+        ProxyProperties.class,
+        AntiDosConfiguration.class,
 })
 @Configuration
 public class ProxyConfig {
@@ -112,7 +123,15 @@ public class ProxyConfig {
     }
 
     @Bean
-    KeyConfProvider keyConfProvider(GlobalConfProvider globalConfProvider, ServerConfProvider serverConfProvider) throws Exception {
-        return new CachingKeyConfImpl(globalConfProvider, serverConfProvider);
+    KeyConfProvider keyConfProvider(GlobalConfProvider globalConfProvider, ServerConfProvider serverConfProvider,
+                                    SignerRpcClient signerRpcClient) throws Exception {
+        return new CachingKeyConfImpl(globalConfProvider, serverConfProvider, signerRpcClient);
+    }
+
+    @Bean
+    SimpleSigner simpleSigner(SignerRpcClient signerRpcClient) {
+        var signer = new SimpleSigner(signerRpcClient);
+        SigningCtxProvider.setSigner(signer);
+        return signer;
     }
 }

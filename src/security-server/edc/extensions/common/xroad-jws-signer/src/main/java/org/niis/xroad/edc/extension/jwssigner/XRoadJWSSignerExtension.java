@@ -27,9 +27,7 @@
 
 package org.niis.xroad.edc.extension.jwssigner;
 
-import ee.ria.xroad.common.SystemProperties;
 import ee.ria.xroad.common.SystemPropertiesLoader;
-import ee.ria.xroad.signer.protocol.RpcSignerClient;
 
 import org.eclipse.edc.jwt.signer.spi.JwsSignerProvider;
 import org.eclipse.edc.runtime.metamodel.annotation.Extension;
@@ -38,7 +36,6 @@ import org.eclipse.edc.spi.monitor.Monitor;
 import org.eclipse.edc.spi.result.Result;
 import org.eclipse.edc.spi.system.ServiceExtension;
 import org.eclipse.edc.spi.system.ServiceExtensionContext;
-import org.niis.xroad.common.rpc.RpcClientProperties;
 
 import static org.niis.xroad.edc.extension.jwssigner.XRoadJWSSignerExtension.NAME;
 
@@ -55,7 +52,8 @@ public class XRoadJWSSignerExtension implements ServiceExtension {
 
     @Provider
     public JwsSignerProvider jwsSignerProvider() {
-        return privateKeyAlias -> Result.ofThrowable(() -> new XRoadJWSSigner(privateKeyAlias));
+        //TODO xroad8 impl signer
+        return privateKeyAlias -> Result.ofThrowable(() -> new XRoadJWSSigner(null, privateKeyAlias));
     }
 
     private void loadSystemProperties(Monitor monitor) {
@@ -67,8 +65,8 @@ public class XRoadJWSSignerExtension implements ServiceExtension {
 
     private void safelyInitSignerClient(Monitor monitor) {
         try {
-            var client = RpcSignerClient.getInstance();
-            monitor.debug("RPC signer client already initialized. Hash: %s".formatted(client.hashCode()));
+//            var client = SignerRpcClient.getInstance();
+//            monitor.debug("RPC signer client already initialized. Hash: %s".formatted(client.hashCode()));
         } catch (Exception e) {
             initSignerClient(monitor);
         }
@@ -78,16 +76,16 @@ public class XRoadJWSSignerExtension implements ServiceExtension {
         monitor.info("Initializing Signer client");
         try {
             // todo: fixme:
-            RpcClientProperties signerClientProperties = new RpcClientProperties(
-                    SystemProperties.getSignerGrpcHost(),
-                    SystemProperties.getSignerGrpcPort(),
-                    SystemProperties.isSignerGrpcTlsEnabled(),
-                    SystemProperties.getSignerGrpcTrustStore(),
-                    SystemProperties.getSignerGrpcTrustStorePassword(),
-                    SystemProperties.getSignerGrpcKeyStore(),
-                    SystemProperties.getSignerGrpcKeyStorePassword()
-            );
-            RpcSignerClient.init(signerClientProperties, 10000);
+//            RpcChannelProperties signerClientProperties = new RpcChannelProperties(
+//                    SystemProperties.getSignerGrpcHost(),
+//                    SystemProperties.getSignerGrpcPort(),
+//                    SystemProperties.isSignerGrpcTlsEnabled(),
+//                    SystemProperties.getSignerGrpcTrustStore(),
+//                    SystemProperties.getSignerGrpcTrustStorePassword(),
+//                    SystemProperties.getSignerGrpcKeyStore(),
+//                    SystemProperties.getSignerGrpcKeyStorePassword()
+//            );
+//            SignerRpcClient.init(signerClientProperties, 10000);
         } catch (Exception e) {
             throw new RuntimeException(e);
         }

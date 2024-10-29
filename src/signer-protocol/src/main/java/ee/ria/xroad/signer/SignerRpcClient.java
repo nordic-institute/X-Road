@@ -1,5 +1,6 @@
 /*
  * The MIT License
+ *
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
@@ -32,7 +33,6 @@ import ee.ria.xroad.common.crypto.identifier.SignAlgorithm;
 import ee.ria.xroad.common.crypto.identifier.SignMechanism;
 import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.identifier.SecurityServerId;
-import ee.ria.xroad.signer.protocol.RpcSignerClient;
 import ee.ria.xroad.signer.protocol.Utils;
 import ee.ria.xroad.signer.protocol.dto.AuthKeyInfo;
 import ee.ria.xroad.signer.protocol.dto.CertificateInfo;
@@ -43,16 +43,20 @@ import ee.ria.xroad.signer.protocol.dto.TokenInfoAndKeyId;
 
 import com.google.protobuf.ByteString;
 import io.opentelemetry.instrumentation.annotations.WithSpan;
-import lombok.AccessLevel;
-import lombok.NoArgsConstructor;
+import lombok.RequiredArgsConstructor;
 import lombok.Value;
 import lombok.extern.slf4j.Slf4j;
+import org.niis.xroad.common.rpc.RpcServiceProperties;
+import org.niis.xroad.common.rpc.client.AbstractRpcClient;
+import org.niis.xroad.common.rpc.client.RpcChannelFactory;
 import org.niis.xroad.common.rpc.mapper.ClientIdMapper;
 import org.niis.xroad.common.rpc.mapper.SecurityServerIdMapper;
 import org.niis.xroad.rpc.common.Empty;
 import org.niis.xroad.signer.proto.ActivateCertReq;
 import org.niis.xroad.signer.proto.ActivateTokenReq;
+import org.niis.xroad.signer.proto.AdminServiceGrpc;
 import org.niis.xroad.signer.proto.CertificateRequestFormat;
+import org.niis.xroad.signer.proto.CertificateServiceGrpc;
 import org.niis.xroad.signer.proto.CertificationServiceDiagnosticsResp;
 import org.niis.xroad.signer.proto.DeleteCertReq;
 import org.niis.xroad.signer.proto.DeleteCertRequestReq;
@@ -75,7 +79,9 @@ import org.niis.xroad.signer.proto.GetTokenByIdReq;
 import org.niis.xroad.signer.proto.GetTokenByKeyIdReq;
 import org.niis.xroad.signer.proto.ImportCertReq;
 import org.niis.xroad.signer.proto.InitSoftwareTokenReq;
+import org.niis.xroad.signer.proto.KeyServiceGrpc;
 import org.niis.xroad.signer.proto.ListTokensResp;
+import org.niis.xroad.signer.proto.OcspServiceGrpc;
 import org.niis.xroad.signer.proto.RegenerateCertRequestReq;
 import org.niis.xroad.signer.proto.SetCertStatusReq;
 import org.niis.xroad.signer.proto.SetKeyFriendlyNameReq;
@@ -86,7 +92,9 @@ import org.niis.xroad.signer.proto.SetRenewedCertHashReq;
 import org.niis.xroad.signer.proto.SetTokenFriendlyNameReq;
 import org.niis.xroad.signer.proto.SignCertificateReq;
 import org.niis.xroad.signer.proto.SignReq;
+import org.niis.xroad.signer.proto.TokenServiceGrpc;
 import org.niis.xroad.signer.proto.UpdateSoftwareTokenPinReq;
+import org.springframework.beans.factory.InitializingBean;
 
 import java.security.PublicKey;
 import java.time.Instant;
@@ -105,9 +113,33 @@ import static org.niis.xroad.restapi.util.FormatUtils.fromInstantToOffsetDateTim
  * Responsible for managing cryptographic tokens (smartcards, HSMs, etc.) through the signer.
  */
 @Slf4j
-@NoArgsConstructor(access = AccessLevel.PRIVATE)
-public final class SignerProxy {
+@RequiredArgsConstructor
+public final class SignerRpcClient extends AbstractRpcClient implements InitializingBean {
     public static final String SSL_TOKEN_ID = "0";
+
+    private final RpcChannelFactory proxyRpcChannelFactory;
+    private final SignerRpcChannelProperties rpcChannelProperties;
+    private final RpcServiceProperties rpcServiceProperties;
+
+    private TokenServiceGrpc.TokenServiceBlockingStub blockingTokenService;
+    private CertificateServiceGrpc.CertificateServiceBlockingStub blockingCertificateService;
+    private KeyServiceGrpc.KeyServiceBlockingStub blockingKeyService;
+
+    private OcspServiceGrpc.OcspServiceBlockingStub blockingOcspService;
+    private AdminServiceGrpc.AdminServiceBlockingStub adminServiceBlockingStub;
+
+    @Override
+    public void afterPropertiesSet() throws Exception {
+        log.info("Initializing {} rpc client to {}:{}", getClass().getSimpleName(), rpcChannelProperties.getHost(),
+                rpcChannelProperties.getPort());
+        var channel = proxyRpcChannelFactory.createChannel(rpcChannelProperties, rpcServiceProperties);
+
+        blockingTokenService = TokenServiceGrpc.newBlockingStub(channel).withWaitForReady();
+        blockingCertificateService = CertificateServiceGrpc.newBlockingStub(channel).withWaitForReady();
+        blockingKeyService = KeyServiceGrpc.newBlockingStub(channel).withWaitForReady();
+        blockingOcspService = OcspServiceGrpc.newBlockingStub(channel).withWaitForReady();
+        adminServiceBlockingStub = AdminServiceGrpc.newBlockingStub(channel).withWaitForReady();
+    }
 
     /**
      * Initialize the software token with the given password.
@@ -115,13 +147,12 @@ public final class SignerProxy {
      * @param password software token password
      * @throws Exception if any errors occur
      */
-    public static void initSoftwareToken(char[] password) throws Exception {
+    public void initSoftwareToken(char[] password) throws Exception {
         log.trace("Initializing software token");
 
-        RpcSignerClient.execute(ctx -> ctx.getBlockingTokenService()
-                .initSoftwareToken(InitSoftwareTokenReq.newBuilder()
-                        .setPin(ByteString.copyFrom(Utils.charToByte(password)))
-                        .build()));
+        blockingTokenService.initSoftwareToken(InitSoftwareTokenReq.newBuilder()
+                .setPin(ByteString.copyFrom(Utils.charToByte(password)))
+                .build());
     }
 
     /**
@@ -130,9 +161,8 @@ public final class SignerProxy {
      * @return a List of TokenInfo objects
      * @throws Exception if any errors occur
      */
-    public static List<TokenInfo> getTokens() throws Exception {
-        ListTokensResp response = RpcSignerClient.execute(ctx ->
-                ctx.getBlockingTokenService().listTokens(Empty.newBuilder().build()));
+    public List<TokenInfo> getTokens() throws Exception {
+        ListTokensResp response = blockingTokenService.listTokens(Empty.newBuilder().build());
 
         return response.getTokensList().stream()
                 .map(TokenInfo::new)
@@ -146,11 +176,10 @@ public final class SignerProxy {
      * @return TokenInfo
      * @throws Exception if any errors occur
      */
-    public static TokenInfo getToken(String tokenId) throws Exception {
-        return RpcSignerClient.execute(ctx -> new TokenInfo(ctx.getBlockingTokenService()
-                .getTokenById(GetTokenByIdReq.newBuilder()
-                        .setTokenId(tokenId)
-                        .build())));
+    public TokenInfo getToken(String tokenId) throws Exception {
+        var response = blockingTokenService.getTokenById(GetTokenByIdReq.newBuilder()
+                .setTokenId(tokenId).build());
+        return new TokenInfo(response);
     }
 
     /**
@@ -160,7 +189,7 @@ public final class SignerProxy {
      * @param password token password
      * @throws Exception if any errors occur
      */
-    public static void activateToken(String tokenId, char[] password) throws Exception {
+    public void activateToken(String tokenId, char[] password) throws Exception {
         log.trace("Activating token '{}'", tokenId);
 
         var activateTokenReq = ActivateTokenReq.newBuilder()
@@ -168,8 +197,7 @@ public final class SignerProxy {
                 .setActivate(true);
         ofNullable(password).ifPresent(p -> activateTokenReq.setPin(ByteString.copyFrom(Utils.charToByte(p))));
 
-        RpcSignerClient.execute(ctx -> ctx.getBlockingTokenService()
-                .activateToken(activateTokenReq.build()));
+        blockingTokenService.activateToken(activateTokenReq.build());
     }
 
     /**
@@ -180,15 +208,14 @@ public final class SignerProxy {
      * @param newPin  the new pin
      * @throws Exception if any errors occur
      */
-    public static void updateTokenPin(String tokenId, char[] oldPin, char[] newPin) throws Exception {
+    public void updateTokenPin(String tokenId, char[] oldPin, char[] newPin) throws Exception {
         log.trace("Updating token pin '{}'", tokenId);
 
-        RpcSignerClient.execute(ctx -> ctx.getBlockingTokenService()
-                .updateSoftwareTokenPin(UpdateSoftwareTokenPinReq.newBuilder()
-                        .setTokenId(tokenId)
-                        .setOldPin(ByteString.copyFrom(Utils.charToByte(oldPin)))
-                        .setNewPin(ByteString.copyFrom(Utils.charToByte(newPin)))
-                        .build()));
+        blockingTokenService.updateSoftwareTokenPin(UpdateSoftwareTokenPinReq.newBuilder()
+                .setTokenId(tokenId)
+                .setOldPin(ByteString.copyFrom(Utils.charToByte(oldPin)))
+                .setNewPin(ByteString.copyFrom(Utils.charToByte(newPin)))
+                .build());
     }
 
     /**
@@ -197,14 +224,13 @@ public final class SignerProxy {
      * @param tokenId ID of the token
      * @throws Exception if any errors occur
      */
-    public static void deactivateToken(String tokenId) throws Exception {
+    public void deactivateToken(String tokenId) throws Exception {
         log.trace("Deactivating token '{}'", tokenId);
 
-        RpcSignerClient.execute(ctx -> ctx.getBlockingTokenService()
-                .activateToken(ActivateTokenReq.newBuilder()
-                        .setTokenId(tokenId)
-                        .setActivate(false)
-                        .build()));
+        blockingTokenService.activateToken(ActivateTokenReq.newBuilder()
+                .setTokenId(tokenId)
+                .setActivate(false)
+                .build());
     }
 
     /**
@@ -214,14 +240,13 @@ public final class SignerProxy {
      * @param friendlyName new friendly name of the token
      * @throws Exception if any errors occur
      */
-    public static void setTokenFriendlyName(String tokenId, String friendlyName) throws Exception {
+    public void setTokenFriendlyName(String tokenId, String friendlyName) throws Exception {
         log.trace("Setting friendly name '{}' for token '{}'", friendlyName, tokenId);
 
-        RpcSignerClient.execute(ctx -> ctx.getBlockingTokenService()
-                .setTokenFriendlyName(SetTokenFriendlyNameReq.newBuilder()
-                        .setTokenId(tokenId)
-                        .setFriendlyName(friendlyName)
-                        .build()));
+        blockingTokenService.setTokenFriendlyName(SetTokenFriendlyNameReq.newBuilder()
+                .setTokenId(tokenId)
+                .setFriendlyName(friendlyName)
+                .build());
     }
 
     /**
@@ -231,14 +256,13 @@ public final class SignerProxy {
      * @param friendlyName new friendly name of the key
      * @throws Exception if any errors occur
      */
-    public static void setKeyFriendlyName(String keyId, String friendlyName) throws Exception {
+    public void setKeyFriendlyName(String keyId, String friendlyName) throws Exception {
         log.trace("Setting friendly name '{}' for key '{}'", friendlyName, keyId);
 
-        RpcSignerClient.execute(ctx -> ctx.getBlockingKeyService()
-                .setKeyFriendlyName(SetKeyFriendlyNameReq.newBuilder()
-                        .setKeyId(keyId)
-                        .setFriendlyName(friendlyName)
-                        .build()));
+        blockingKeyService.setKeyFriendlyName(SetKeyFriendlyNameReq.newBuilder()
+                .setKeyId(keyId)
+                .setFriendlyName(friendlyName)
+                .build());
     }
 
     /**
@@ -249,14 +273,13 @@ public final class SignerProxy {
      * @return generated key KeyInfo object
      * @throws Exception if any errors occur
      */
-    public static KeyInfo generateKey(String tokenId, String keyLabel) throws Exception {
+    public KeyInfo generateKey(String tokenId, String keyLabel) throws Exception {
         log.trace("Generating key for token '{}'", tokenId);
 
-        var response = RpcSignerClient.execute(ctx -> ctx.getBlockingKeyService()
-                .generateKey(GenerateKeyReq.newBuilder()
-                        .setTokenId(tokenId)
-                        .setKeyLabel(keyLabel)
-                        .build()));
+        var response = blockingKeyService.generateKey(GenerateKeyReq.newBuilder()
+                .setTokenId(tokenId)
+                .setKeyLabel(keyLabel)
+                .build());
 
         KeyInfo keyInfo = new KeyInfo(response);
 
@@ -277,8 +300,8 @@ public final class SignerProxy {
      * @return byte content of the generated certificate
      * @throws Exception if any errors occur
      */
-    public static byte[] generateSelfSignedCert(String keyId, ClientId.Conf memberId, KeyUsageInfo keyUsage,
-                                                String commonName, Date notBefore, Date notAfter) throws Exception {
+    public byte[] generateSelfSignedCert(String keyId, ClientId.Conf memberId, KeyUsageInfo keyUsage,
+                                         String commonName, Date notBefore, Date notAfter) throws Exception {
         log.trace("Generate self-signed cert for key '{}'", keyId);
 
         var builder = GenerateSelfSignedCertReq.newBuilder()
@@ -292,8 +315,7 @@ public final class SignerProxy {
             builder.setMemberId(ClientIdMapper.toDto(memberId));
         }
 
-        var response = RpcSignerClient.execute(ctx -> ctx.getBlockingCertificateService()
-                .generateSelfSignedCert(builder.build()));
+        var response = blockingCertificateService.generateSelfSignedCert(builder.build());
 
         byte[] certificateBytes = response.getCertificateBytes().toByteArray();
 
@@ -311,7 +333,7 @@ public final class SignerProxy {
      * @return key ID of the new certificate as a String
      * @throws Exception if any errors occur
      */
-    public static String importCert(byte[] certBytes, String initialStatus, ClientId.Conf clientId) throws Exception {
+    public String importCert(byte[] certBytes, String initialStatus, ClientId.Conf clientId) throws Exception {
         log.trace("Importing cert from file with length of '{}' bytes", certBytes.length);
 
         final ImportCertReq.Builder builder = ImportCertReq.newBuilder()
@@ -319,8 +341,7 @@ public final class SignerProxy {
                 .setInitialStatus(initialStatus);
         ofNullable(clientId).map(ClientIdMapper::toDto).ifPresent(builder::setMemberId);
 
-        var response = RpcSignerClient.execute(ctx -> ctx.getBlockingCertificateService()
-                .importCert(builder.build()));
+        var response = blockingCertificateService.importCert(builder.build());
 
         log.trace("Cert imported successfully, keyId received: {}", response.getKeyId());
 
@@ -333,14 +354,13 @@ public final class SignerProxy {
      * @param certId ID of the certificate
      * @throws Exception if any errors occur
      */
-    public static void activateCert(String certId) throws Exception {
+    public void activateCert(String certId) throws Exception {
         log.trace("Activating cert '{}'", certId);
 
-        RpcSignerClient.execute(ctx -> ctx.getBlockingCertificateService()
-                .activateCert(ActivateCertReq.newBuilder()
-                        .setCertIdOrHash(certId)
-                        .setActive(true)
-                        .build()));
+        blockingCertificateService.activateCert(ActivateCertReq.newBuilder()
+                .setCertIdOrHash(certId)
+                .setActive(true)
+                .build());
     }
 
     /**
@@ -349,14 +369,13 @@ public final class SignerProxy {
      * @param certId ID of the certificate
      * @throws Exception if any errors occur
      */
-    public static void deactivateCert(String certId) throws Exception {
+    public void deactivateCert(String certId) throws Exception {
         log.trace("Deactivating cert '{}'", certId);
 
-        RpcSignerClient.execute(ctx -> ctx.getBlockingCertificateService()
-                .activateCert(ActivateCertReq.newBuilder()
-                        .setCertIdOrHash(certId)
-                        .setActive(false)
-                        .build()));
+        blockingCertificateService.activateCert(ActivateCertReq.newBuilder()
+                .setCertIdOrHash(certId)
+                .setActive(false)
+                .build());
     }
 
     /**
@@ -370,11 +389,9 @@ public final class SignerProxy {
      * @return GeneratedCertRequestInfo containing details and content of the certificate request
      * @throws Exception if any errors occur
      */
-    public static GeneratedCertRequestInfo generateCertRequest(String keyId,
-                                                               ClientId.Conf memberId,
-                                                               KeyUsageInfo keyUsage,
-                                                               String subjectName,
-                                                               CertificateRequestFormat format) throws Exception {
+    public GeneratedCertRequestInfo generateCertRequest(String keyId, ClientId.Conf memberId,
+                                                        KeyUsageInfo keyUsage, String subjectName,
+                                                        CertificateRequestFormat format) throws Exception {
         return generateCertRequest(keyId, memberId, keyUsage, subjectName, null, format, null);
     }
 
@@ -390,11 +407,9 @@ public final class SignerProxy {
      * @return GeneratedCertRequestInfo containing details and content of the certificate request
      * @throws Exception if any errors occur
      */
-    public static GeneratedCertRequestInfo generateCertRequest(String keyId, ClientId.Conf memberId,
-                                                               KeyUsageInfo keyUsage, String subjectName, String subjectAltName,
-                                                               CertificateRequestFormat format, String certificateProfile)
-            throws Exception {
-
+    public GeneratedCertRequestInfo generateCertRequest(String keyId, ClientId.Conf memberId,
+                                                        KeyUsageInfo keyUsage, String subjectName, String subjectAltName,
+                                                        CertificateRequestFormat format, String certificateProfile) throws Exception {
         var reqBuilder = GenerateCertRequestReq.newBuilder()
                 .setKeyId(keyId)
                 .setKeyUsage(keyUsage)
@@ -412,10 +427,7 @@ public final class SignerProxy {
         ofNullable(memberId)
                 .map(ClientIdMapper::toDto)
                 .ifPresent(reqBuilder::setMemberId);
-
-        var response = RpcSignerClient.execute(ctx -> ctx.getBlockingCertificateService()
-                .generateCertRequest(reqBuilder.build()));
-
+        var response = blockingCertificateService.generateCertRequest(reqBuilder.build());
         byte[] certRequestBytes = response.getCertRequest().toByteArray();
 
         log.trace("Cert request with length of {} bytes generated", certRequestBytes.length);
@@ -436,10 +448,10 @@ public final class SignerProxy {
      * @return GeneratedCertRequestInfo containing details and content of the certificate request
      * @throws Exception if any errors occur
      */
-    public static GeneratedCertRequestInfo regenerateCertRequest(String certRequestId,
-                                                                 CertificateRequestFormat format) throws Exception {
+    public GeneratedCertRequestInfo regenerateCertRequest(String certRequestId,
+                                                          CertificateRequestFormat format) throws Exception {
 
-        var response = RpcSignerClient.execute(ctx -> ctx.getBlockingCertificateService()
+        var response = exec(() -> blockingCertificateService
                 .regenerateCertRequest(RegenerateCertRequestReq.newBuilder()
                         .setCertRequestId(certRequestId)
                         .setFormat(format)
@@ -473,13 +485,11 @@ public final class SignerProxy {
      * @param certRequestId ID of the certificate request
      * @throws Exception if any errors occur
      */
-    public static void deleteCertRequest(String certRequestId) throws Exception {
+    public void deleteCertRequest(String certRequestId) throws Exception {
         log.trace("Deleting cert request '{}'", certRequestId);
-
-        RpcSignerClient.execute(ctx -> ctx.getBlockingCertificateService()
-                .deleteCertRequest(DeleteCertRequestReq.newBuilder()
-                        .setCertRequestId(certRequestId)
-                        .build()));
+        blockingCertificateService.deleteCertRequest(DeleteCertRequestReq.newBuilder()
+                .setCertRequestId(certRequestId)
+                .build());
     }
 
     /**
@@ -488,13 +498,11 @@ public final class SignerProxy {
      * @param certId ID of the certificate
      * @throws Exception if any errors occur
      */
-    public static void deleteCert(String certId) throws Exception {
+    public void deleteCert(String certId) throws Exception {
         log.trace("Deleting cert '{}'", certId);
-
-        RpcSignerClient.execute(ctx -> ctx.getBlockingCertificateService()
-                .deleteCert(DeleteCertReq.newBuilder()
-                        .setCertId(certId)
-                        .build()));
+        blockingCertificateService.deleteCert(DeleteCertReq.newBuilder()
+                .setCertId(certId)
+                .build());
     }
 
     /**
@@ -505,14 +513,12 @@ public final class SignerProxy {
      * @param deleteFromToken whether the key should be deleted from the token
      * @throws Exception if any errors occur
      */
-    public static void deleteKey(String keyId, boolean deleteFromToken) throws Exception {
+    public void deleteKey(String keyId, boolean deleteFromToken) throws Exception {
         log.trace("Deleting key '{}', from token = {}", keyId, deleteFromToken);
-
-        RpcSignerClient.execute(ctx -> ctx.getBlockingKeyService()
-                .deleteKey(DeleteKeyReq.newBuilder()
-                        .setKeyId(keyId)
-                        .setDeleteFromDevice(deleteFromToken)
-                        .build()));
+        blockingKeyService.deleteKey(DeleteKeyReq.newBuilder()
+                .setKeyId(keyId)
+                .setDeleteFromDevice(deleteFromToken)
+                .build());
     }
 
     /**
@@ -522,16 +528,13 @@ public final class SignerProxy {
      * @param status new status of the certificate
      * @throws Exception if any errors occur
      */
-    public static void setCertStatus(String certId, String status) throws Exception {
+    public void setCertStatus(String certId, String status) throws Exception {
         log.trace("Setting cert ('{}') status to '{}'", certId, status);
-
-        RpcSignerClient.execute(ctx -> ctx.getBlockingCertificateService()
-                .setCertStatus(SetCertStatusReq.newBuilder()
-                        .setCertId(certId)
-                        .setStatus(status)
-                        .build()));
+        blockingCertificateService.setCertStatus(SetCertStatusReq.newBuilder()
+                .setCertId(certId)
+                .setStatus(status)
+                .build());
     }
-
 
     /**
      * Sets the hash of the renewed certificate with the given old cert ID.
@@ -540,14 +543,12 @@ public final class SignerProxy {
      * @param hash   new hash of the renewed certificate
      * @throws Exception if any errors occur
      */
-    public static void setRenewedCertHash(String certId, String hash) throws Exception {
+    public void setRenewedCertHash(String certId, String hash) throws Exception {
         log.trace("Setting cert ('{}') renewed cert hash to '{}'", certId, hash);
-
-        RpcSignerClient.execute(ctx -> ctx.getBlockingCertificateService()
-                .setRenewedCertHash(SetRenewedCertHashReq.newBuilder()
-                        .setCertId(certId)
-                        .setHash(hash)
-                        .build()));
+        blockingCertificateService.setRenewedCertHash(SetRenewedCertHashReq.newBuilder()
+                .setCertId(certId)
+                .setHash(hash)
+                .build());
     }
 
     /**
@@ -557,14 +558,12 @@ public final class SignerProxy {
      * @param errorMessage message of the error that was thrown when trying to renew the given certificate
      * @throws Exception if any errors occur
      */
-    public static void setRenewalError(String certId, String errorMessage) throws Exception {
+    public void setRenewalError(String certId, String errorMessage) throws Exception {
         log.trace("Setting cert ('{}') renewal error to '{}'", certId, errorMessage);
-
-        RpcSignerClient.execute(ctx -> ctx.getBlockingCertificateService()
-                .setRenewalError(SetRenewalErrorReq.newBuilder()
-                        .setCertId(certId)
-                        .setErrorMessage(errorMessage)
-                        .build()));
+        blockingCertificateService.setRenewalError(SetRenewalErrorReq.newBuilder()
+                .setCertId(certId)
+                .setErrorMessage(errorMessage)
+                .build());
     }
 
     /**
@@ -574,20 +573,18 @@ public final class SignerProxy {
      * @param nextRenewalTime message of the error that was thrown when trying to renew the given certificate
      * @throws Exception if any errors occur
      */
-    public static void setNextPlannedRenewal(String certId, Instant nextRenewalTime) throws Exception {
+    public void setNextPlannedRenewal(String certId, Instant nextRenewalTime) throws Exception {
         log.trace("Setting cert ('{}') next planned renewal time to '{}'", certId, nextRenewalTime);
 
         com.google.protobuf.Timestamp nextRenewalTimestamp = com.google.protobuf.Timestamp.newBuilder()
                 .setSeconds(nextRenewalTime.getEpochSecond())
                 .setNanos(nextRenewalTime.getNano())
                 .build();
-        RpcSignerClient.execute(ctx -> ctx.getBlockingCertificateService()
-                .setNextPlannedRenewal(SetNextPlannedRenewalReq.newBuilder()
-                        .setCertId(certId)
-                        .setNextRenewalTime(nextRenewalTimestamp)
-                        .build()));
+        blockingCertificateService.setNextPlannedRenewal(SetNextPlannedRenewalReq.newBuilder()
+                .setCertId(certId)
+                .setNextRenewalTime(nextRenewalTimestamp)
+                .build());
     }
-
 
     /**
      * Get a cert by it's hash
@@ -596,14 +593,13 @@ public final class SignerProxy {
      * @return CertificateInfo
      * @throws Exception if any error occur
      */
-    public static CertificateInfo getCertForHash(String hash) throws Exception {
+    public CertificateInfo getCertForHash(String hash) throws Exception {
         final String finalHash = hash.toLowerCase();
         log.trace("Getting cert by hash '{}'", hash);
 
-        var response = RpcSignerClient.execute(ctx -> ctx.getBlockingCertificateService()
-                .getCertificateInfoForHash(GetCertificateInfoForHashReq.newBuilder()
-                        .setCertHash(finalHash)
-                        .build()));
+        var response = blockingCertificateService.getCertificateInfoForHash(GetCertificateInfoForHashReq.newBuilder()
+                .setCertHash(finalHash)
+                .build());
 
         log.trace("Cert with hash '{}' found", finalHash);
 
@@ -617,15 +613,13 @@ public final class SignerProxy {
      * @return Key id and sign mechanism
      * @throws Exception
      */
-    public static KeyIdInfo getKeyIdForCertHash(String hash) throws Exception {
+    public KeyIdInfo getKeyIdForCertHash(String hash) throws Exception {
         final String finalHash = hash.toLowerCase();
         log.trace("Getting cert by hash '{}'", finalHash);
 
-        var response = RpcSignerClient.execute(ctx -> ctx.getBlockingKeyService()
-                .getKeyIdForCertHash(GetKeyIdForCertHashReq.newBuilder()
-                        .setCertHash(finalHash)
-                        .build()));
-
+        var response = blockingKeyService.getKeyIdForCertHash(GetKeyIdForCertHashReq.newBuilder()
+                .setCertHash(finalHash)
+                .build());
         log.trace("Cert with hash '{}' found", finalHash);
 
         return new KeyIdInfo(response.getKeyId(), SignMechanism.valueOf(response.getSignMechanismName()));
@@ -638,14 +632,13 @@ public final class SignerProxy {
      * @return TokenInfoAndKeyId
      * @throws Exception
      */
-    public static TokenInfoAndKeyId getTokenAndKeyIdForCertHash(String hash) throws Exception {
+    public TokenInfoAndKeyId getTokenAndKeyIdForCertHash(String hash) throws Exception {
         String hashLowercase = hash.toLowerCase();
         log.trace("Getting token and key id by cert hash '{}'", hashLowercase);
 
-        var response = RpcSignerClient.execute(ctx -> ctx.getBlockingTokenService()
-                .getTokenAndKeyIdByCertHash(GetTokenByCertHashReq.newBuilder()
-                        .setCertHash(hashLowercase)
-                        .build()));
+        var response = blockingTokenService.getTokenAndKeyIdByCertHash(GetTokenByCertHashReq.newBuilder()
+                .setCertHash(hashLowercase)
+                .build());
         log.trace("Token and key id with hash '{}' found", hashLowercase);
 
         return new TokenInfoAndKeyId(new TokenInfo(response.getTokenInfo()), response.getKeyId());
@@ -660,12 +653,10 @@ public final class SignerProxy {
      * @throws Exception if something failed
      */
     @WithSpan("SignerProxy#getOcspResponses")
-    public static String[] getOcspResponses(String[] certHashes) throws Exception {
-
-        var response = RpcSignerClient.execute(ctx -> ctx.getBlockingOcspService()
-                .getOcspResponses(GetOcspResponsesReq.newBuilder()
-                        .addAllCertHash(toLowerCase(certHashes))
-                        .build()));
+    public String[] getOcspResponses(String[] certHashes) throws Exception {
+        var response = blockingOcspService.getOcspResponses(GetOcspResponsesReq.newBuilder()
+                .addAllCertHash(toLowerCase(certHashes))
+                .build());
 
         final Map<String, String> responsesMap = response.getBase64EncodedResponsesMap();
         String[] result = new String[certHashes.length];
@@ -674,19 +665,17 @@ public final class SignerProxy {
                 result[i] = responsesMap.get(certHashes[i]);
             }
         }
-
         return result;
     }
 
-    public static void setOcspResponses(String[] certHashes, String[] base64EncodedResponses) throws Exception {
-        RpcSignerClient.execute(ctx -> ctx.getBlockingOcspService()
-                .setOcspResponses(SetOcspResponsesReq.newBuilder()
-                        .addAllCertHashes(asList(certHashes))
-                        .addAllBase64EncodedResponses(asList(base64EncodedResponses))
-                        .build()));
+    public void setOcspResponses(String[] certHashes, String[] base64EncodedResponses) throws Exception {
+        blockingOcspService.setOcspResponses(SetOcspResponsesReq.newBuilder()
+                .addAllCertHashes(asList(certHashes))
+                .addAllBase64EncodedResponses(asList(base64EncodedResponses))
+                .build());
     }
 
-    private static List<String> toLowerCase(String[] certHashes) {
+    private List<String> toLowerCase(String[] certHashes) {
         return Arrays.stream(certHashes)
                 .map(String::toLowerCase)
                 .collect(Collectors.toList());
@@ -699,11 +688,10 @@ public final class SignerProxy {
      * @return authKeyInfo
      * @throws Exception
      */
-    public static AuthKeyInfo getAuthKey(SecurityServerId serverId) throws Exception {
-        var response = RpcSignerClient.execute(ctx -> ctx.getBlockingKeyService()
-                .getAuthKey(GetAuthKeyReq.newBuilder()
-                        .setSecurityServer(SecurityServerIdMapper.toDto(serverId))
-                        .build()));
+    public AuthKeyInfo getAuthKey(SecurityServerId serverId) throws Exception {
+        var response = blockingKeyService.getAuthKey(GetAuthKeyReq.newBuilder()
+                .setSecurityServer(SecurityServerIdMapper.toDto(serverId))
+                .build());
 
         return new AuthKeyInfo(response.getAlias(),
                 response.getKeyStoreFileName(),
@@ -718,13 +706,12 @@ public final class SignerProxy {
      * @return TokenInfoAndKeyId
      * @throws Exception
      */
-    public static TokenInfoAndKeyId getTokenAndKeyIdForCertRequestId(String certRequestId) throws Exception {
+    public TokenInfoAndKeyId getTokenAndKeyIdForCertRequestId(String certRequestId) throws Exception {
         log.trace("Getting token and key id by cert request id '{}'", certRequestId);
 
-        var response = RpcSignerClient.execute(ctx -> ctx.getBlockingTokenService()
-                .getTokenAndKeyIdByCertRequestId(GetTokenByCertRequestIdReq.newBuilder()
-                        .setCertRequestId(certRequestId)
-                        .build()));
+        var response = blockingTokenService.getTokenAndKeyIdByCertRequestId(GetTokenByCertRequestIdReq.newBuilder()
+                .setCertRequestId(certRequestId)
+                .build());
 
         log.trace("Token and key id with cert request id '{}' found", certRequestId);
 
@@ -738,95 +725,83 @@ public final class SignerProxy {
      * @return TokenInfo
      * @throws Exception if any errors occur
      */
-    public static TokenInfo getTokenForKeyId(String keyId) throws Exception {
-        var response = RpcSignerClient.execute(ctx -> ctx.getBlockingTokenService()
-                .getTokenByKey(GetTokenByKeyIdReq.newBuilder().setKeyId(keyId).build()));
+    public TokenInfo getTokenForKeyId(String keyId) throws Exception {
+        var response = blockingTokenService.getTokenByKey(GetTokenByKeyIdReq.newBuilder().setKeyId(keyId).build());
 
         return new TokenInfo(response);
     }
 
-    public static SignMechanism getSignMechanism(String keyId) throws Exception {
-        GetSignMechanismResp response = RpcSignerClient.execute(ctx -> ctx.getBlockingKeyService()
-                .getSignMechanism(GetSignMechanismReq.newBuilder()
-                        .setKeyId(keyId)
-                        .build()));
+    public SignMechanism getSignMechanism(String keyId) throws Exception {
+        GetSignMechanismResp response = blockingKeyService.getSignMechanism(GetSignMechanismReq.newBuilder()
+                .setKeyId(keyId)
+                .build());
 
         return SignMechanism.valueOf(response.getSignMechanismName());
     }
 
     @WithSpan("SignerProxy#sign")
-    public static byte[] sign(String keyId, SignAlgorithm signatureAlgorithmId, byte[] digest) throws Exception {
-        var response = RpcSignerClient.execute(ctx -> ctx.getBlockingKeyService()
-                .sign(SignReq.newBuilder()
-                        .setKeyId(keyId)
-                        .setSignatureAlgorithmId(signatureAlgorithmId.name())
-                        .setDigest(ByteString.copyFrom(digest))
-                        .build()));
+    public byte[] sign(String keyId, SignAlgorithm signatureAlgorithmId, byte[] digest) throws Exception {
+        var response = blockingKeyService.sign(SignReq.newBuilder()
+                .setKeyId(keyId)
+                .setSignatureAlgorithmId(signatureAlgorithmId.name())
+                .setDigest(ByteString.copyFrom(digest))
+                .build());
 
         return response.getSignature().toByteArray();
     }
 
-    public static Boolean isTokenBatchSigningEnabled(String keyId) throws Exception {
-        var response = RpcSignerClient.execute(ctx -> ctx.getBlockingTokenService()
-                .getTokenBatchSigningEnabled(GetTokenBatchSigningEnabledReq.newBuilder()
-                        .setKeyId(keyId)
-                        .build()));
+    public Boolean isTokenBatchSigningEnabled(String keyId) throws Exception {
+        var response = blockingTokenService.getTokenBatchSigningEnabled(GetTokenBatchSigningEnabledReq.newBuilder()
+                .setKeyId(keyId)
+                .build());
 
         return response.getBatchingSigningEnabled();
     }
 
-    public static MemberSigningInfoDto getMemberSigningInfo(ClientId clientId) throws Exception {
-        var response = RpcSignerClient.execute(ctx -> ctx.getBlockingTokenService()
-                .getMemberSigningInfo(GetMemberSigningInfoReq.newBuilder()
-                        .setMemberId(ClientIdMapper.toDto(clientId))
-                        .build()));
+    public MemberSigningInfoDto getMemberSigningInfo(ClientId clientId) throws Exception {
+        var response = blockingTokenService.getMemberSigningInfo(GetMemberSigningInfoReq.newBuilder()
+                .setMemberId(ClientIdMapper.toDto(clientId))
+                .build());
 
         return new MemberSigningInfoDto(response.getKeyId(),
                 new CertificateInfo(response.getCert()),
                 SignMechanism.valueOf(response.getSignMechanismName()));
     }
 
-    public static List<CertificateInfo> getMemberCerts(ClientId memberId) throws Exception {
-        var response = RpcSignerClient.execute(ctx -> ctx.getBlockingCertificateService()
-                .getMemberCerts(GetMemberCertsReq.newBuilder()
-                        .setMemberId(ClientIdMapper.toDto(memberId))
-                        .build()));
+    public List<CertificateInfo> getMemberCerts(ClientId memberId) throws Exception {
+        var response = blockingCertificateService.getMemberCerts(GetMemberCertsReq.newBuilder()
+                .setMemberId(ClientIdMapper.toDto(memberId))
+                .build());
 
         return response.getCertsList().stream()
                 .map(CertificateInfo::new)
                 .collect(Collectors.toList());
     }
 
-    public static boolean isHSMOperational() throws Exception {
-        var response = RpcSignerClient.execute(ctx -> ctx.getBlockingTokenService()
-                .getHSMOperationalInfo(Empty.getDefaultInstance()));
-
+    public boolean isHSMOperational() throws Exception {
+        var response = blockingTokenService.getHSMOperationalInfo(Empty.getDefaultInstance());
         return response.getOperational();
     }
 
-    public static byte[] signCertificate(String keyId, SignAlgorithm signatureAlgorithmId, String subjectName, PublicKey publicKey)
+    public byte[] signCertificate(String keyId, SignAlgorithm signatureAlgorithmId, String subjectName, PublicKey publicKey)
             throws Exception {
-        var response = RpcSignerClient.execute(ctx -> ctx.getBlockingKeyService()
-                .signCertificate(SignCertificateReq.newBuilder()
-                        .setKeyId(keyId)
-                        .setSignatureAlgorithmId(signatureAlgorithmId.name())
-                        .setSubjectName(subjectName)
-                        .setPublicKey(ByteString.copyFrom(publicKey.getEncoded()))
-                        .build()));
+        var response = blockingKeyService.signCertificate(SignCertificateReq.newBuilder()
+                .setKeyId(keyId)
+                .setSignatureAlgorithmId(signatureAlgorithmId.name())
+                .setSubjectName(subjectName)
+                .setPublicKey(ByteString.copyFrom(publicKey.getEncoded()))
+                .build());
 
         return response.getCertificateChain().toByteArray();
     }
 
-    public static CertificationServiceDiagnostics getCertificationServiceDiagnostics() throws Exception {
-        var signerResponse = RpcSignerClient.execute(ctx -> ctx.getAdminServiceBlockingStub()
-                .getCertificationServiceDiagnostics(Empty.newBuilder().build()));
-
+    public CertificationServiceDiagnostics getCertificationServiceDiagnostics() throws Exception {
+        var signerResponse = adminServiceBlockingStub.getCertificationServiceDiagnostics(Empty.newBuilder().build());
         return CertificationServiceDiagnosticsMapper.fromDto(signerResponse);
     }
 
-    public static String getKeyConfChecksum() throws Exception {
-        var response = RpcSignerClient.execute(ctx -> ctx.getAdminServiceBlockingStub()
-                .getKeyConfChecksum(Empty.getDefaultInstance()));
+    public String getKeyConfChecksum() throws Exception {
+        var response = adminServiceBlockingStub.getKeyConfChecksum(Empty.getDefaultInstance());
         return response.hasChecksum() ? response.getChecksum() : null;
     }
 

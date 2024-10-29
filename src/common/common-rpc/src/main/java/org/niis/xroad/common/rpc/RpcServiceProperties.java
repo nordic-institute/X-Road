@@ -24,30 +24,21 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package ee.ria.xroad.monitor;
 
-import ee.ria.xroad.common.conf.globalconf.GlobalConfPropertiesConfig;
-import ee.ria.xroad.monitor.configuration.JmxReporterConfig;
-import ee.ria.xroad.monitor.configuration.MonitorConfig;
+package org.niis.xroad.common.rpc;
 
-import lombok.extern.slf4j.Slf4j;
-import org.niis.xroad.bootstrap.XrdSpringServiceBuilder;
-import org.springframework.boot.autoconfigure.SpringBootApplication;
+import lombok.Getter;
+import lombok.RequiredArgsConstructor;
 
-/**
- * Main class for monitor application
- */
-@Slf4j
-@SpringBootApplication
-public class MonitorMain {
+@Getter
+@RequiredArgsConstructor
+public class RpcServiceProperties {
+    private final String listenAddress;
+    private final int port;
 
-    private static final String APP_NAME = "xroad-monitor";
+    private final String tlsTrustStore;
+    private final char[] tlsTrustStorePassword;
 
-    public static void main(String[] args) {
-        XrdSpringServiceBuilder.newApplicationBuilder(APP_NAME, MonitorMain.class, MonitorConfig.class,
-                        JmxReporterConfig.class, GlobalConfPropertiesConfig.class)
-                .build()
-                .run(args);
-    }
-
+    private final String tlsKeyStore;
+    private final char[] tlsKeyStorePassword;
 }

@@ -57,7 +57,7 @@ import static org.mockito.Mockito.when;
  * but this should not be a common solution, and all inheriting tests that use the same dependency need to be updated
  * when such change is made.
  *
- * Mocks the usual untestable facades (such as SignerProxyFacade) via {@link AbstractFacadeMockingTestContext}
+ * Mocks the usual untestable facades (such as SignerRpcClient) via {@link AbstractFacadeMockingTestContext}
  *
  */
 public abstract class AbstractServiceIntegrationTestContext extends AbstractFacadeMockingTestContext {

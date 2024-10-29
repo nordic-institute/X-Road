@@ -27,7 +27,7 @@
 package org.niis.xroad.edc.ih;
 
 import ee.ria.xroad.common.conf.globalconf.GlobalConfProvider;
-import ee.ria.xroad.signer.SignerProxy;
+import ee.ria.xroad.signer.SignerRpcClient;
 import ee.ria.xroad.signer.protocol.dto.KeyInfo;
 
 import com.apicatalog.ld.DocumentError;
@@ -138,6 +138,8 @@ public class XRoadIdentityHubProvisionerExtension implements ServiceExtension {
 
     @Inject
     GlobalConfProvider globalConfProvider;
+    @Inject
+    SignerRpcClient signerRpcClient;
 
     private Config config;
     private Monitor monitor;
@@ -149,7 +151,7 @@ public class XRoadIdentityHubProvisionerExtension implements ServiceExtension {
 
         webService.registerResource(
                 IdentityHubApiContext.IH_DID,
-                new DidWebCertificateChainController(new DidWebParser(), keyPairService, globalConfProvider));
+                new DidWebCertificateChainController(new DidWebParser(), keyPairService, globalConfProvider, signerRpcClient));
     }
 
     @Override
@@ -251,7 +253,7 @@ public class XRoadIdentityHubProvisionerExtension implements ServiceExtension {
     }
 
     private PublicKey getPublicKey(String keyId) throws Exception {
-        var token = SignerProxy.getTokenForKeyId(keyId);
+        var token = signerRpcClient.getTokenForKeyId(keyId);
         String base64PublicKey = token.getKeyInfo().stream()
                 .filter(keyInfo -> keyInfo.getId().equals(keyId))
                 .findFirst()

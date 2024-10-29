@@ -28,11 +28,11 @@ package org.niis.xroad.cs.admin.globalconf.generator;
 
 import ee.ria.xroad.common.crypto.Digests;
 import ee.ria.xroad.common.util.EncoderUtils;
+import ee.ria.xroad.signer.SignerRpcClient;
 
 import lombok.SneakyThrows;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
-import org.niis.xroad.cs.admin.api.facade.SignerProxyFacade;
 
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -78,12 +78,12 @@ class DirectoryContentSignerTest {
     @SneakyThrows
     @Test
     void createSignedDirectory() {
-        var signerProxyFacade = Mockito.mock(SignerProxyFacade.class);
-        when(signerProxyFacade.getSignMechanism(KEY_ID)).thenReturn(CKM_RSA_PKCS);
+        var signerRpcClient = Mockito.mock(SignerRpcClient.class);
+        when(signerRpcClient.getSignMechanism(KEY_ID)).thenReturn(CKM_RSA_PKCS);
         var digest = Digests.calculateDigest(SHA512, SIGNABLE_DIRECTORY_CONTENT.getBytes());
-        when(signerProxyFacade.sign(KEY_ID, SHA512_WITH_RSA, digest)).thenReturn(SIGNATURE);
+        when(signerRpcClient.sign(KEY_ID, SHA512_WITH_RSA, digest)).thenReturn(SIGNATURE);
 
-        var signedDirectory = new DirectoryContentSigner(signerProxyFacade, SHA512, SHA512)
+        var signedDirectory = new DirectoryContentSigner(signerRpcClient, SHA512, SHA512)
                 .createSignedDirectory(directoryContentHolder, KEY_ID, SIGNING_CERT);
 
         var headerMatcher = HEADER_PATTERN.matcher(signedDirectory);

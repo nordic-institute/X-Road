@@ -32,6 +32,7 @@ import ee.ria.xroad.common.CertificationServiceStatus;
 import ee.ria.xroad.common.DiagnosticsStatus;
 import ee.ria.xroad.common.MessageLogEncryptionStatusDiagnostics;
 import ee.ria.xroad.common.OcspResponderStatus;
+import ee.ria.xroad.signer.SignerRpcClient;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -40,7 +41,6 @@ import org.niis.xroad.proxy.proto.ProxyRpcClient;
 import org.niis.xroad.restapi.exceptions.DeviationAwareRuntimeException;
 import org.niis.xroad.restapi.exceptions.ErrorDeviation;
 import org.niis.xroad.securityserver.restapi.dto.OcspResponderDiagnosticsStatus;
-import org.niis.xroad.securityserver.restapi.facade.SignerProxyFacade;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -64,7 +64,7 @@ import static org.niis.xroad.restapi.util.FormatUtils.fromInstantToOffsetDateTim
 @Transactional
 @PreAuthorize("isAuthenticated()")
 public class DiagnosticService {
-    private final SignerProxyFacade signerProxyFacade;
+    private final SignerRpcClient signerRpcClient;
     private final ProxyRpcClient proxyRpcClient;
     private final ConfClientRpcClient confClientRpcClient;
 
@@ -116,7 +116,7 @@ public class DiagnosticService {
     public List<OcspResponderDiagnosticsStatus> queryOcspResponderStatus() {
         log.info("Query OCSP status");
         try {
-            CertificationServiceDiagnostics response = signerProxyFacade.getCertificationServiceDiagnostics();
+            CertificationServiceDiagnostics response = signerRpcClient.getCertificationServiceDiagnostics();
 
             return Objects.requireNonNull(response)
                     .getCertificationServiceStatusMap()
