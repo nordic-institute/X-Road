@@ -103,12 +103,12 @@ public final class TestUtil {
 
 
     static Map<String, String> serverConfHibernateProperties = Map.of(
-            "dialect","org.hibernate.dialect.HSQLDialect",
-            "connection.driver_class","org.hsqldb.jdbcDriver",
-            "connection.url","jdbc:hsqldb:mem:serverconf",
-            "connection.username","serverconf",
-            "connection.password","serverconf",
-            "hbm2ddl.auto","create-drop"
+            "dialect", "org.hibernate.dialect.HSQLDialect",
+            "connection.driver_class", "org.hsqldb.jdbcDriver",
+            "connection.url", "jdbc:hsqldb:mem:serverconf",
+            "connection.username", "serverconf",
+            "connection.password", "serverconf",
+            "hbm2ddl.auto", "create-drop"
     );
     static ServerConfProperties serverConfProperties = new ServerConfProperties(60, 100,
             1000, 100_000, serverConfHibernateProperties);
@@ -121,31 +121,33 @@ public final class TestUtil {
 
     /**
      * Creates in-memory test database and fills it with test data.
+     *
      * @throws Exception if an error occurs
      */
-    public static void prepareDB(DatabaseCtxV2 databaseCtx) throws Exception {
-        prepareDB(databaseCtx, true);
+    public static void prepareDB(DatabaseCtxV2 ctx) throws Exception {
+        prepareDB(ctx, true);
     }
 
     /**
      * Creates in-memory test database and fills it with test data.
+     *
      * @param clean if true, database is cleaned
      * @throws Exception if an error occurs
      */
-    public static void prepareDB(DatabaseCtxV2 databaseCtx, boolean clean) throws Exception {
+    public static void prepareDB(DatabaseCtxV2 ctx, boolean clean) throws Exception {
         if (clean) {
-            cleanDB(databaseCtx);
+            cleanDB(ctx);
         }
 
-        databaseCtx.doInTransaction(session -> {
+        ctx.doInTransaction(session -> {
             ServerConfType conf = createTestData(session);
             session.save(conf);
             return null;
         });
     }
 
-    static void cleanDB(DatabaseCtxV2 databaseCtx) throws Exception {
-        databaseCtx.doInTransaction(session -> {
+    static void cleanDB(DatabaseCtxV2 ctx) throws Exception {
+        ctx.doInTransaction(session -> {
             Query q = session.createNativeQuery(
                     // Since we are using HSQLDB for tests, we can use
                     // special commands to completely wipe out the database

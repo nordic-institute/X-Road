@@ -50,7 +50,7 @@ public class IdentifierDAOImplTest {
 
     private final IdentifierDAOImpl identifierDAO = new IdentifierDAOImpl();
     private Session session;
-    private static final DatabaseCtxV2 databaseCtx = new DatabaseCtxV2("serverconf",
+    private static final DatabaseCtxV2 DATABASE_CTX = new DatabaseCtxV2("serverconf",
             HibernateUtil.createSessionFactory("serverconf", TestUtil.serverConfHibernateProperties));
 
     /**
@@ -59,7 +59,7 @@ public class IdentifierDAOImplTest {
      */
     @BeforeClass
     public static void setUpBeforeClass() throws Exception {
-        TestUtil.prepareDB(databaseCtx);
+        TestUtil.prepareDB(DATABASE_CTX);
     }
 
     /**
@@ -67,7 +67,7 @@ public class IdentifierDAOImplTest {
      */
     @Before
     public void beginTransaction() {
-        session = databaseCtx.beginTransaction();
+        session = DATABASE_CTX.beginTransaction();
     }
 
     /**
@@ -75,7 +75,7 @@ public class IdentifierDAOImplTest {
      */
     @After
     public void commitTransaction() {
-        databaseCtx.commitTransaction();
+        DATABASE_CTX.commitTransaction();
     }
 
     /**
