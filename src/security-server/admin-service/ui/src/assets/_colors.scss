@@ -1,6 +1,5 @@
 /*
  * The MIT License
- *
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
@@ -25,23 +24,6 @@
  * THE SOFTWARE.
  */
 
-<<<<<<<< HEAD:src/serverconf/src/main/java/ee/ria/xroad/common/conf/serverconf/ServerConfProperties.java
-package ee.ria.xroad.common.conf.serverconf;
-
-import org.springframework.boot.context.properties.ConfigurationProperties;
-
-import java.util.Map;
-
-@ConfigurationProperties(prefix = "xroad.common.server-conf")
-public record ServerConfProperties(
-        int cachePeriod,       //xroad.proxy.server-conf-cache-period: 60
-        long clientCacheSize,  //xroad.proxy.server-conf-client-cache-size: 100
-        long serviceCacheSize, //xroad.proxy.server-conf-service-cache-size: 1000
-        long aclCacheSize,      //xroad.proxy.server-conf-acl-cache-size: 100_000
-        Map<String, String> hibernateProperties // serverconf.hibernate.* properties from db-properties file
-) {
-}
-========
 // New UI colors
 $Purple10: #efebfb;
 $Purple20: #e0d8f8;
@@ -74,4 +56,3 @@ $Link: $Purple100;
 $DefaultShadow: 20px 20px 30px rgba(148, 141, 168, 0.3);
 $DefaultFontSize: 14px;
 
->>>>>>>> edc-poc:src/security-server/admin-service/ui/src/assets/_colors.scss
