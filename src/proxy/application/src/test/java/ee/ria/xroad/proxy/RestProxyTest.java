@@ -42,7 +42,6 @@ import org.hamcrest.Matchers;
 import org.junit.BeforeClass;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.niis.xroad.proxy.configuration.ProxyConfig;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.junit4.SpringRunner;
 
@@ -66,7 +65,7 @@ import static org.junit.Assert.assertNotNull;
  */
 @Slf4j
 @SpringBootTest(
-        classes = {ProxyMain.class, ProxyConfig.class, AbstractProxyIntegrationTest.TestProxySpringConfig.class}
+        classes = {ProxyMain.class, AbstractProxyIntegrationTest.TestProxySpringConfig.class}
 )
 @RunWith(SpringRunner.class)
 public class RestProxyTest extends AbstractProxyIntegrationTest {

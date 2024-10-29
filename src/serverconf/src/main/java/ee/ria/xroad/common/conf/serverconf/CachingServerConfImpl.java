@@ -32,6 +32,7 @@ import ee.ria.xroad.common.conf.serverconf.model.ClientType;
 import ee.ria.xroad.common.conf.serverconf.model.DescriptionType;
 import ee.ria.xroad.common.conf.serverconf.model.EndpointType;
 import ee.ria.xroad.common.conf.serverconf.model.ServiceType;
+import ee.ria.xroad.common.db.DatabaseCtxV2;
 import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.identifier.SecurityServerId;
 import ee.ria.xroad.common.identifier.ServiceId;
@@ -72,8 +73,8 @@ public class CachingServerConfImpl extends ServerConfImpl {
      * with internal key cache)
      */
     @SuppressWarnings("checkstyle:MagicNumber")
-    public CachingServerConfImpl(ServerConfProperties serverConfProperties, GlobalConfProvider globalConfProvider) {
-        super(globalConfProvider);
+    public CachingServerConfImpl(DatabaseCtxV2 databaseCtx, ServerConfProperties serverConfProperties, GlobalConfProvider globalConfProvider) {
+        super(databaseCtx, globalConfProvider);
         expireSeconds = serverConfProperties.cachePeriod();
 
         internalKeyCache = CacheBuilder.newBuilder()

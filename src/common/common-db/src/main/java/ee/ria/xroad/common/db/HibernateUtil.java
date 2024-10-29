@@ -141,6 +141,7 @@ public final class HibernateUtil {
 
     }
 
+    @Deprecated(forRemoval = true)
     private static SessionFactoryCtx createSessionFactoryCtx(String name, Interceptor interceptor) throws Exception {
         log.trace("Creating session factory for '{}'...", name);
 
@@ -160,6 +161,25 @@ public final class HibernateUtil {
         return new SessionFactoryCtx(sessionFactory);
     }
 
+    public static SessionFactory createSessionFactory(String name, Map<String, String> hibernateProperties) {
+        log.trace("Creating session factory for '{}'...", name);
+
+        Configuration configuration = createEmptyConfiguration();
+
+        configuration
+                .configure()
+                .configure(name + ".hibernate.cfg.xml");
+
+        if (hibernateProperties != null) {
+            hibernateProperties.forEach(configuration::setProperty);
+        } else {
+            throw new CodedException(X_DATABASE_ERROR, "Database (%s) properties not found.", name);
+        }
+        applySystemProperties(configuration, name);
+
+        return configuration.buildSessionFactory();
+    }
+
     static Configuration createEmptyConfiguration() {
         return new Configuration();
     }
@@ -173,6 +193,7 @@ public final class HibernateUtil {
         }
     }
 
+    @Deprecated(forRemoval = true)
     private static void applyDatabasePropertyFile(Configuration configuration, String name) throws IOException {
         try (InputStream in = new FileInputStream(SystemProperties.getDatabasePropertiesFile())) {
             final Properties extraProperties = new PrefixedProperties(name + ".");

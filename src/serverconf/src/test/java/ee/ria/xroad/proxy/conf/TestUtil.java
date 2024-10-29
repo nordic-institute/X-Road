@@ -25,7 +25,7 @@
  */
 package ee.ria.xroad.proxy.conf;
 
-import ee.ria.xroad.common.SystemProperties;
+import ee.ria.xroad.common.conf.serverconf.ServerConfProperties;
 import ee.ria.xroad.common.conf.serverconf.model.AccessRightType;
 import ee.ria.xroad.common.conf.serverconf.model.CertificateType;
 import ee.ria.xroad.common.conf.serverconf.model.ClientType;
@@ -37,6 +37,8 @@ import ee.ria.xroad.common.conf.serverconf.model.ServerConfType;
 import ee.ria.xroad.common.conf.serverconf.model.ServiceDescriptionType;
 import ee.ria.xroad.common.conf.serverconf.model.ServiceType;
 import ee.ria.xroad.common.conf.serverconf.model.TspType;
+import ee.ria.xroad.common.db.DatabaseCtxV2;
+import ee.ria.xroad.common.db.HibernateUtil;
 import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.identifier.LocalGroupId;
 import ee.ria.xroad.common.identifier.ServiceId;
@@ -46,8 +48,8 @@ import org.hibernate.Session;
 import org.hibernate.query.Query;
 
 import java.util.Date;
+import java.util.Map;
 
-import static ee.ria.xroad.common.conf.serverconf.ServerConfDatabaseCtx.doInTransaction;
 import static ee.ria.xroad.common.util.EncoderUtils.decodeBase64;
 
 /**
@@ -99,6 +101,21 @@ public final class TestUtil {
                     + "ffohEC/LKdGrHSe6hnTRedQUN3hcMQqCTc5cHsaB8bh5EaHrib3RR0YsOhjAd6IC"
                     + "ms33BZnfNWQuGVTXw74Eu/P1JkwR0ReO+XuxxMp3DW2epMfL44OHWTb6JGY=";
 
+
+    static Map<String, String> serverConfHibernateProperties = Map.of(
+            "hibernate.dialect","org.hibernate.dialect.HSQLDialect",
+            "hibernate.connection.driver_class","org.hsqldb.jdbcDriver",
+            "hibernate.connection.url","jdbc:hsqldb:mem:serverconf",
+            "hibernate.connection.username","serverconf",
+            "hibernate.connection.password","serverconf",
+            "hibernate.hbm2ddl.auto","create-drop"
+    );
+    static ServerConfProperties serverConfProperties = new ServerConfProperties(60, 100,
+            1000, 100_000, serverConfHibernateProperties);
+    static DatabaseCtxV2 databaseCtx = new DatabaseCtxV2("serverconf",
+            HibernateUtil.createSessionFactory("serverconf",
+                    serverConfProperties.hibernateProperties()));
+
     private TestUtil() {
     }
 
@@ -106,12 +123,8 @@ public final class TestUtil {
      * Creates in-memory test database and fills it with test data.
      * @throws Exception if an error occurs
      */
-    public static void prepareDB() throws Exception {
-        System.setProperty(
-                SystemProperties.DATABASE_PROPERTIES,
-                "src/test/resources/hibernate.properties");
-
-        prepareDB(true);
+    public static void prepareDB(DatabaseCtxV2 databaseCtx) throws Exception {
+        prepareDB(databaseCtx, true);
     }
 
     /**
@@ -119,20 +132,20 @@ public final class TestUtil {
      * @param clean if true, database is cleaned
      * @throws Exception if an error occurs
      */
-    public static void prepareDB(boolean clean) throws Exception {
+    public static void prepareDB(DatabaseCtxV2 databaseCtx, boolean clean) throws Exception {
         if (clean) {
-            cleanDB();
+            cleanDB(databaseCtx);
         }
 
-        doInTransaction(session -> {
+        databaseCtx.doInTransaction(session -> {
             ServerConfType conf = createTestData(session);
             session.save(conf);
             return null;
         });
     }
 
-    static void cleanDB() throws Exception {
-        doInTransaction(session -> {
+    static void cleanDB(DatabaseCtxV2 databaseCtx) throws Exception {
+        databaseCtx.doInTransaction(session -> {
             Query q = session.createNativeQuery(
                     // Since we are using HSQLDB for tests, we can use
                     // special commands to completely wipe out the database

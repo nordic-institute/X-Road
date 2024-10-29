@@ -62,6 +62,13 @@ xroad:
   common:
     server-conf:
       cache-period: 0
+      hibernate:
+        dialect: org.hibernate.dialect.HSQLDialect
+        connection.driver_class: org.hsqldb.jdbcDriver
+        connection.url: jdbc:hsqldb:mem:serverconf
+        connection.username: serverconf
+        connection.password: serverconf
+        hbm2ddl.auto: create
   configuration-client:
     update-interval: 60
     grpc-host: localhost
