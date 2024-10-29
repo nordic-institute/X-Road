@@ -352,7 +352,7 @@ export default defineComponent({
 </script>
 
 <style lang="scss" scoped>
-@import '@/assets/colors';
+@use '@/assets/colors';
 
 .subsystems-table {
   th {
@@ -364,7 +364,7 @@ export default defineComponent({
   tbody > tr:hover td,
   tbody:hover td[rowspan] {
     cursor: pointer;
-    background-color: $XRoad-Purple10;
+    background-color: colors.$Purple10;
   }
 }
 
@@ -382,13 +382,13 @@ export default defineComponent({
   text-align: right;
 
   .xrd-clickable {
-    color: $XRoad-Link;
+    color: colors.$Link;
     margin-left: 10px;
   }
 }
 
 .unregistered-subsystem {
-  background-color: $XRoad-WarmGrey30;
+  background-color: colors.$WarmGrey30;
 }
 
 .custom-footer {

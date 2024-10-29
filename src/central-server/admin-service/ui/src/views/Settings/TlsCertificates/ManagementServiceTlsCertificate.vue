@@ -265,7 +265,8 @@ export default defineComponent({
 </script>
 
 <style lang="scss" scoped>
-@import '@/assets/tables';
+@use '@/assets/tables' as *;
+@use '@/assets/colors';
 
 .button-wrap {
   width: 100%;
@@ -283,6 +284,6 @@ export default defineComponent({
 
 .internal-conf-icon {
   margin-right: 15px;
-  color: $XRoad-Purple100;
+  color: colors.$Purple100;
 }
 </style>

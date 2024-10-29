@@ -83,7 +83,7 @@ import static ee.ria.xroad.common.util.MimeUtils.HEADER_HASH_ALGO_ID;
 public class MessageTestCase {
 
     private static final int DEFAULT_CLIENT_TIMEOUT = 45000;
-    public static final String QUERIES_DIR = "../core/src/test/queries";
+    public static final String QUERIES_DIR = System.getProperty("test.queries.dir", "../core/src/test/queries");
 
     protected Message sentRequest;
     protected Message sentResponse;

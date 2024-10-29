@@ -296,11 +296,11 @@ export default defineComponent({
 </script>
 
 <style lang="scss" scoped>
-@import '@/assets/colors';
-@import '@/assets/forms';
+@use '@/assets/colors';
+@use '@/assets/forms' as *;
 
 .form-main-title {
-  color: $XRoad-WarmGrey100;
+  color: colors.$WarmGrey100;
   width: 100%;
   padding: 24px;
   font-style: normal;
@@ -310,7 +310,7 @@ export default defineComponent({
 }
 
 .form-sub-title {
-  color: $XRoad-WarmGrey100;
+  color: colors.$WarmGrey100;
   width: 100%;
   padding: 24px;
   margin-left: 12%;

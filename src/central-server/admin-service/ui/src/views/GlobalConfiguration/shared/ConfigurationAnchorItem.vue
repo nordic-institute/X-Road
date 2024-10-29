@@ -122,20 +122,20 @@ export default defineComponent({
 </script>
 
 <style lang="scss" scoped>
-@import '@/assets/tables';
-@import '@/assets/colors';
+@use '@/assets/tables' as *;
+@use '@/assets/colors';
 
 .card-title {
   font-size: 12px;
   text-transform: uppercase;
-  color: $XRoad-Black70;
+  color: colors.$Black70;
   font-weight: bold;
   padding-top: 5px;
   padding-bottom: 5px;
 }
 
 .card-main-title {
-  color: $XRoad-Black100;
+  color: colors.$Black100;
   font-style: normal;
   font-weight: bold;
   font-size: 18px;
@@ -155,6 +155,6 @@ export default defineComponent({
 
 .internal-conf-icon {
   margin-right: 15px;
-  color: $XRoad-Purple100;
+  color: colors.$Purple100;
 }
 </style>
