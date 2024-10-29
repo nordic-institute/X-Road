@@ -35,9 +35,11 @@ import feign.Logger;
 import feign.codec.Decoder;
 import feign.codec.Encoder;
 import feign.hc5.ApacheHttp5Client;
+import feign.jackson.JacksonEncoder;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.hc.client5.http.impl.classic.HttpClients;
 import org.niis.xroad.ss.test.addons.api.FeignHealthcheckApi;
+import org.niis.xroad.ss.test.addons.api.FeignXRoadRestRequestsApi;
 import org.niis.xroad.ss.test.addons.api.FeignXRoadSoapRequestsApi;
 import org.niis.xroad.ss.test.addons.jmx.JmxClient;
 import org.niis.xroad.ss.test.addons.jmx.JmxClientImpl;
@@ -72,6 +74,23 @@ public class SsAddonTestConfiguration {
                 )
                 .contract(contract)
                 .target(FeignXRoadSoapRequestsApi.class, "http://localhost");
+    }
+
+    @Bean
+    public FeignXRoadRestRequestsApi feignXRoadRestRequestsApi(Decoder decoder, TestableApplicationInfoProvider appInfoProvider,
+                                                               Contract contract) {
+        return Feign.builder()
+                .logLevel(Logger.Level.FULL)
+                .client(new ApacheHttp5Client(HttpClients.createDefault()))
+                .encoder(new JacksonEncoder())
+                .decoder(decoder)
+                .requestInterceptor(requestTemplate -> {
+                    requestTemplate.target(String.format("http://%s:%s", appInfoProvider.getHost(),
+                            appInfoProvider.getMappedPort(Port.SERVICE)));
+                    requestTemplate.header("Content-Type", MimeTypes.JSON);
+                })
+                .contract(contract)
+                .target(FeignXRoadRestRequestsApi.class, "http://localhost");
     }
 
     @Bean

@@ -343,7 +343,7 @@ export default defineComponent({
       api
         .remove(`/local-groups/${encodePathParameter(this.groupId)}`)
         .then(() => {
-          this.showSuccess(this.$t('localGroup.groupDeleted'));
+          this.showSuccess(this.$t('localGroup.groupDeleted'), true);
           this.$router.back();
         })
         .catch((error) => {
@@ -355,7 +355,8 @@ export default defineComponent({
 </script>
 
 <style lang="scss" scoped>
-@import '@/assets/tables';
+@use '@/assets/tables';
+@use '@/assets/colors';
 
 .group-members-row {
   width: 100%;
@@ -366,7 +367,7 @@ export default defineComponent({
 .row-title {
   width: 100%;
   justify-content: space-between;
-  color: $XRoad-Black100;
+  color: colors.$Black100;
   font-size: 20px;
   font-weight: 500;
   letter-spacing: 0.5px;
@@ -379,7 +380,7 @@ export default defineComponent({
   margin-top: 50px;
   display: flex;
   justify-content: space-between;
-  color: $XRoad-Black100;
+  color: colors.$Black100;
   font-size: 20px;
   font-weight: 500;
   letter-spacing: 0.5px;
@@ -405,7 +406,7 @@ export default defineComponent({
   display: flex;
   justify-content: flex-end;
   padding: 20px;
-  background-color: $XRoad-WarmGrey10;
+  background-color: colors.$WarmGrey10;
   height: 72px;
 }
 

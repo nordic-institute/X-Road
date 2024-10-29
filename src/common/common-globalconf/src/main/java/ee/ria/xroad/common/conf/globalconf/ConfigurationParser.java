@@ -26,6 +26,7 @@
 package ee.ria.xroad.common.conf.globalconf;
 
 import ee.ria.xroad.common.CodedException;
+import ee.ria.xroad.common.crypto.identifier.SignAlgorithm;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -55,8 +56,7 @@ import static ee.ria.xroad.common.ErrorCodes.X_INVALID_SIGNATURE_VALUE;
 import static ee.ria.xroad.common.ErrorCodes.X_MALFORMED_GLOBALCONF;
 import static ee.ria.xroad.common.ErrorCodes.X_OUTDATED_GLOBALCONF;
 import static ee.ria.xroad.common.ErrorCodes.translateException;
-import static ee.ria.xroad.common.util.CryptoUtils.decodeBase64;
-import static ee.ria.xroad.common.util.CryptoUtils.getAlgorithmId;
+import static ee.ria.xroad.common.util.EncoderUtils.decodeBase64;
 import static ee.ria.xroad.common.util.MimeUtils.HEADER_CONTENT_TYPE;
 import static ee.ria.xroad.common.util.MimeUtils.HEADER_EXPIRE_DATE;
 import static ee.ria.xroad.common.util.MimeUtils.HEADER_VERSION;
@@ -192,11 +192,11 @@ public class ConfigurationParser {
             try {
                 ConfigurationSignature parameters = ConfigurationSignature.of(headers);
 
-                String algoId = parameters.getSignatureAlgorithmId();
+                SignAlgorithm algoUri = parameters.getSignatureAlgorithmId();
 
-                log.trace("Verifying signed content using signature algorithm id {}", algoId);
+                log.trace("Verifying signed content using signature algorithm id {}", algoUri);
 
-                Signature verifier = Signature.getInstance(getAlgorithmId(algoId), "BC");
+                Signature verifier = Signature.getInstance(algoUri.name(), "BC");
 
                 X509Certificate verificationCert = getVerificationCert(configuration.getLocation(), parameters);
 
@@ -248,8 +248,7 @@ public class ConfigurationParser {
             }
         }
 
-        X509Certificate getVerificationCert(ConfigurationLocation location, ConfigurationSignature parameters)
-                throws Exception {
+        X509Certificate getVerificationCert(ConfigurationLocation location, ConfigurationSignature parameters) {
             if (HASH_TO_CERT.containsKey(parameters.getVerificationCertHash())) {
                 log.trace("Return certificate from HASH_TO_CERT map");
 
@@ -257,7 +256,7 @@ public class ConfigurationParser {
             }
 
             X509Certificate cert = location.getVerificationCert(parameters.getVerificationCertHash(),
-                    parameters.getVerificationCertHashAlgoId());
+                    parameters.getVerificationCertHashAlgoUri());
 
             log.trace("cert={}", cert);
 
@@ -295,17 +294,17 @@ public class ConfigurationParser {
         }
 
         @Override
-        public void startHeader() throws MimeException {
+        public void startHeader() {
             headers = new HashMap<>();
         }
 
         @Override
-        public void field(Field field) throws MimeException {
+        public void field(Field field) {
             headers.put(field.getName().toLowerCase(), field.getBody());
         }
 
         @Override
-        public void body(BodyDescriptor bd, InputStream is) throws MimeException, IOException {
+        public void body(BodyDescriptor bd, InputStream is) {
             if (nextPart == ContentPart.HEADER) {
                 parseExpirationDate();
                 verifyConfUpToDate();

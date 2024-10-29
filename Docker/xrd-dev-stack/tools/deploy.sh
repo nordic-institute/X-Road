@@ -9,7 +9,7 @@ deploy_module() {
 
   case $module_name in
   "proxy")
-    jar_path="$XROAD_HOME/src/proxy/build/libs/proxy-1.0.jar"
+    jar_path="$XROAD_HOME/src/proxy/application/build/libs/proxy-1.0.jar"
     service_name="xroad-proxy"
     ;;
   "messagelog-addon")
@@ -25,15 +25,15 @@ deploy_module() {
     service_name="xroad-proxy-ui-api"
     ;;
   "signer")
-    jar_path="$XROAD_HOME/src/signer/build/libs/signer-1.0.jar"
+    jar_path="$XROAD_HOME/src/signer/application/build/libs/signer-1.0.jar"
     service_name="all"
     ;;
   "configuration-client")
-    jar_path="$XROAD_HOME/src/configuration-client/build/libs/configuration-client-1.0.jar"
+    jar_path="$XROAD_HOME/src/configuration-client/application/build/libs/configuration-client-1.0.jar"
     service_name="xroad-confclient"
     ;;
   "op-monitor-daemon")
-    jar_path="$XROAD_HOME/src/op-monitor-daemon/build/libs/op-monitor-daemon-1.0.jar"
+    jar_path="$XROAD_HOME/src/op-monitor-daemon/application/build/libs/op-monitor-daemon-1.0.jar"
     service_name="all"
     ;;
   "cs-admin-service")
@@ -64,10 +64,10 @@ set -o xtrace
 
 case $1 in
 "proxy" | "messagelog-addon" | "metaservice-addon" | "proxy-ui-api" | "signer" | "configuration-client" | "op-monitor-daemon")
-  deploy_module "$1" "xrd-dev-stack-ss0-1" "xrd-dev-stack-ss1-1"
+  deploy_module "$1" "ss0" "ss1"
   ;;
 "cs-admin-service" | "cs-management-service" | "cs-registration-service")
-  deploy_module "$1" "xrd-dev-stack-cs-1"
+  deploy_module "$1" "cs"
   ;;
 *)
   echo "Usage: $0 [modulename] [host]"

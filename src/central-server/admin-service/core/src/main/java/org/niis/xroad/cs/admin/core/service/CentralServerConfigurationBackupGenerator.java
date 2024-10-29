@@ -27,7 +27,7 @@
 
 package org.niis.xroad.cs.admin.core.service;
 
-import ee.ria.xroad.common.util.CryptoUtils;
+import ee.ria.xroad.common.util.EncoderUtils;
 import ee.ria.xroad.common.util.TimeUtils;
 import ee.ria.xroad.common.util.process.ExternalProcessRunner;
 
@@ -74,15 +74,15 @@ public class CentralServerConfigurationBackupGenerator extends BaseConfiguration
         args.add(ARG_VALUES_AS_ENC_BASE64);
 
         args.add(ARG_INSTANCE_ID);
-        args.add(CryptoUtils.encodeBase64(instanceIdentifier));
+        args.add(EncoderUtils.encodeBase64(instanceIdentifier));
 
         if (haConfigStatus.isHaConfigured()) {
             args.add(ARG_NODE_NAME);
-            args.add(CryptoUtils.encodeBase64(haConfigStatus.getCurrentHaNodeName()));
+            args.add(EncoderUtils.encodeBase64(haConfigStatus.getCurrentHaNodeName()));
         }
 
         args.add(ARG_BACKUP_FILE_PATH);
-        args.add(CryptoUtils.encodeBase64(backupRepository.getConfigurationBackupPath() + backupFilename));
+        args.add(EncoderUtils.encodeBase64(backupRepository.getConfigurationBackupPath() + backupFilename));
         return args.toArray(new String[0]);
     }
 

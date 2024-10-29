@@ -42,4 +42,4 @@ Feature: 0100 - SS: Proxy
     """json
     {"data": 1.0, "service": "random"}
     """
-    Then response is sent of http status code 200 and body path "message" is equal to "Hello, world!"
+    Then response is sent of http status code 200 and body path "message" is equal to "Hello, world from POST service!"

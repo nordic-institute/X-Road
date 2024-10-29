@@ -70,6 +70,12 @@ public class TestGlobalConf extends EmptyGlobalConf {
     }
 
     @Override
+    public ClientId.Conf getSubjectName(SignCertificateProfileInfo.Parameters parameters, X509Certificate cert) throws Exception {
+        return getSignCertificateProfileInfo(parameters, cert)
+                .getSubjectIdentifier(cert);
+    }
+
+    @Override
     public ClientId getManagementRequestService() {
         return managementService;
     }

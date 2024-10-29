@@ -26,12 +26,14 @@
 package ee.ria.xroad.common.cert;
 
 import ee.ria.xroad.common.CodedException;
-import ee.ria.xroad.common.conf.globalconf.GlobalConf;
+import ee.ria.xroad.common.conf.globalconf.GlobalConfProvider;
 import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.identifier.SecurityServerId;
 import ee.ria.xroad.common.util.CertUtils;
 import ee.ria.xroad.common.util.CryptoUtils;
+import ee.ria.xroad.common.util.TimeUtils;
 
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.bouncycastle.cert.ocsp.BasicOCSPResp;
 import org.bouncycastle.cert.ocsp.CertificateID;
@@ -48,39 +50,22 @@ import static ee.ria.xroad.common.ErrorCodes.X_SSL_AUTH_FAILED;
  * Certificate-related helper functions.
  */
 @Slf4j
+@RequiredArgsConstructor
 public final class CertHelper {
-
-    private CertHelper() {
-    }
-
-    /**
-     * @param cert the certificate
-     * @return short name of the certificate subject.
-     * Short name is used in messages and access checking.
-     */
-    public static String getSubjectCommonName(X509Certificate cert) {
-        return CertUtils.getSubjectCommonName(cert);
-    }
-
-    /**
-     * @param cert the certificate
-     * @return the SerialNumber component from the Subject field.
-     */
-    public static String getSubjectSerialNumber(X509Certificate cert) {
-        return CertUtils.getSubjectSerialNumber(cert);
-    }
+    private final GlobalConfProvider globalConfProvider;
 
     /**
      * Verifies that the certificate <code>cert</code> can be used for
      * authenticating as member <code>member</code>.
      * The <code>ocspResponsec</code> is used to verify validity of the
      * certificate.
-     * @param chain the certificate chain
+     *
+     * @param chain         the certificate chain
      * @param ocspResponses OCSP responses used in the cert chain
-     * @param member the member
+     * @param member        the member
      * @throws Exception if verification fails.
      */
-    public static void verifyAuthCert(CertChain chain, List<OCSPResp> ocspResponses, ClientId member) throws Exception {
+    public void verifyAuthCert(CertChain chain, List<OCSPResp> ocspResponses, ClientId member) throws Exception {
         X509Certificate cert = chain.getEndEntityCert();
         if (!CertUtils.isAuthCert(cert)) {
             throw new CodedException(X_SSL_AUTH_FAILED,
@@ -88,12 +73,12 @@ public final class CertHelper {
         }
 
         log.debug("verifyAuthCert({}: {}, {})",
-                new Object[]{cert.getSerialNumber(),
-                        cert.getSubjectX500Principal().getName(), member});
+                cert.getSerialNumber(),
+                cert.getSubjectX500Principal().getName(), member);
 
         // Verify certificate against CAs.
         try {
-            new CertChainVerifier(chain).verify(ocspResponses, new Date());
+            new CertChainVerifier(globalConfProvider, chain).verify(ocspResponses, Date.from(TimeUtils.now()));
         } catch (CodedException e) {
             // meaningful errors get SSL auth verification prefix
             throw e.withPrefix(X_SSL_AUTH_FAILED);
@@ -101,8 +86,8 @@ public final class CertHelper {
 
         // Verify (using GlobalConf) that given certificate can be used
         // to authenticate given member.
-        if (!GlobalConf.authCertMatchesMember(cert, member)) {
-            SecurityServerId serverId = GlobalConf.getServerId(cert);
+        if (!globalConfProvider.authCertMatchesMember(cert, member)) {
+            SecurityServerId serverId = globalConfProvider.getServerId(cert);
             if (serverId != null) {
                 throw new CodedException(X_SSL_AUTH_FAILED,
                         "Client '%s' is not registered at security server %s",
@@ -120,8 +105,9 @@ public final class CertHelper {
     /**
      * Finds the OCSP response from a list of OCSP responses
      * for a given certificate.
-     * @param cert the certificate
-     * @param issuer the issuer of the certificate
+     *
+     * @param cert          the certificate
+     * @param issuer        the issuer of the certificate
      * @param ocspResponses list of OCSP responses
      * @return the OCSP response or null if not found
      * @throws Exception if an error occurs

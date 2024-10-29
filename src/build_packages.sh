@@ -38,7 +38,7 @@ usage() {
   echo " -d, --docker-compile  Compile in docker container instead of native gradle build"
   echo " -h, --help            This help text."
   echo " -r release-name       Builds packages of given release only. Supported values are:"
-  echo "                          noble, jammy, or focal for debian packages"
+  echo "                          noble, jammy for debian packages"
   echo "                          rpm-el9, rpm-el8, or rpm for redhat packages"
   echo "                       For example, -r jammy"
   echo "The option for $0, if present, must come fist, before other options."
@@ -99,11 +99,6 @@ buildLocally() {
   echo "Building locally..."
   cd $XROAD || errorExit "Error 'cd $XROAD'."
   ./compile_code.sh "$@" || errorExit "Error running build of binaries."
-
-  if [ "$(uname)" == "Darwin" ]; then
-    echo "MacOS does not support passwordstore compilation. Compiling in docker..."
-    buildPasswordStoreInDocker
-  fi
 }
 
 buildBuilderImage() {
@@ -134,9 +129,6 @@ prepareDebianPackagesBuilderImages() {
   if $BUILD_ALL_PACKAGES || [ "$BUILD_PACKAGES_FOR_RELEASE" == "jammy" ]; then
     buildBuilderImage deb-jammy
   fi
-  if [ "$(uname)" != "Darwin" ] && { $BUILD_ALL_PACKAGES || [ "$BUILD_PACKAGES_FOR_RELEASE" == "focal" ]; }; then
-    buildBuilderImage deb-focal
-  fi
 }
 
 prepareRedhatPackagesBuilderImages() {
@@ -160,13 +152,6 @@ buildDebianPackages() {
   if $BUILD_ALL_PACKAGES || [ "$BUILD_PACKAGES_FOR_RELEASE" == "jammy" ]; then
     runInBuilderImage deb-jammy /workspace/src/packages/build-deb.sh jammy "$PACKAGE_VERSION" || errorExit "Error building deb-jammy packages."
   fi
-  if [ "$(uname)" != "Darwin" ] ; then
-    if $BUILD_ALL_PACKAGES || [ "$BUILD_PACKAGES_FOR_RELEASE" == "focal" ]; then
-      runInBuilderImage deb-focal /workspace/src/packages/build-deb.sh focal "$PACKAGE_VERSION" || errorExit "Error building deb-focal packages."
-    fi
-  else
-    warn "deb-focal packages cannot be built under MacOS. Skipping.."
-  fi
 }
 
 buildRedhatPackages() {
@@ -177,11 +162,8 @@ buildRedhatPackages() {
     if $BUILD_ALL_PACKAGES || [ "$BUILD_PACKAGES_FOR_RELEASE" == "rpm-el8" ]; then
       runInBuilderImage rpm-el8 /workspace/src/packages/build-rpm.sh "$PACKAGE_VERSION" || errorExit "Error building rpm-el8 packages."
     fi
-    if $BUILD_ALL_PACKAGES || [ "$BUILD_PACKAGES_FOR_RELEASE" == "rpm" ]; then
-      runInBuilderImage rpm /workspace/src/packages/build-rpm.sh "$PACKAGE_VERSION" || errorExit "Error building rpm packages."
-    fi
   else
-    warn "rhel7, rhel8, and rhel9 packages cannot be built under MacOS. Skipping.."
+    warn "rhel8, and rhel9 packages cannot be built under MacOS. Skipping.."
   fi
 }
 
@@ -195,7 +177,7 @@ for i in "$@"; do
       --docker-compile|-d) shift; PACKAGE_ONLY=false; BUILD_LOCALLY=false; BUILD_IN_DOCKER=true;;
       --help|-h) usage 0;;
       -r) case "$2" in
-        noble|jammy|focal) BUILD_ALL_PACKAGES=false; BUILD_PACKAGES_FOR_RELEASE="$2";;
+        noble|jammy) BUILD_ALL_PACKAGES=false; BUILD_PACKAGES_FOR_RELEASE="$2";;
         rpm-el9|rpm-el8|rpm) BUILD_ALL_PACKAGES=false; BUILD_PACKAGES_FOR_RELEASE="$2";;
         *) errorExit "Unknown/unsupported release $2. Exiting..."
         esac;

@@ -25,6 +25,7 @@
  */
 package ee.ria.xroad.proxy.opmonitoring;
 
+import ee.ria.xroad.common.conf.serverconf.ServerConfProvider;
 import ee.ria.xroad.common.opmonitoring.AbstractOpMonitoringBuffer;
 import ee.ria.xroad.common.opmonitoring.OpMonitoringData;
 import ee.ria.xroad.common.opmonitoring.OpMonitoringSystemProperties;
@@ -54,6 +55,7 @@ public class OpMonitoringBuffer extends AbstractOpMonitoringBuffer {
     private final ScheduledExecutorService taskScheduler;
     private final OpMonitoringDataProcessor opMonitoringDataProcessor;
     private final OpMonitoringDaemonSender sender;
+    private final SavedServiceEndpoint savedServiceEndpoint;
 
     final BlockingDeque<OpMonitoringData> buffer = new LinkedBlockingDeque<>();
 
@@ -62,7 +64,8 @@ public class OpMonitoringBuffer extends AbstractOpMonitoringBuffer {
      *
      * @throws Exception if an error occurs
      */
-    public OpMonitoringBuffer() throws Exception {
+    public OpMonitoringBuffer(ServerConfProvider serverConfProvider) throws Exception {
+        super(serverConfProvider);
         if (ignoreOpMonitoringData()) {
             log.info("Operational monitoring buffer is switched off, no operational monitoring data is stored");
 
@@ -70,11 +73,13 @@ public class OpMonitoringBuffer extends AbstractOpMonitoringBuffer {
             executorService = null;
             taskScheduler = null;
             opMonitoringDataProcessor = null;
+            savedServiceEndpoint = null;
         } else {
-            sender = createSender();
+            sender = createSender(serverConfProvider);
             executorService = Executors.newSingleThreadExecutor();
             taskScheduler = Executors.newSingleThreadScheduledExecutor();
             opMonitoringDataProcessor = createDataProcessor();
+            savedServiceEndpoint = new SavedServiceEndpoint(serverConfProvider);
         }
     }
 
@@ -82,8 +87,8 @@ public class OpMonitoringBuffer extends AbstractOpMonitoringBuffer {
         return new OpMonitoringDataProcessor();
     }
 
-    OpMonitoringDaemonSender createSender() throws Exception {
-        return new OpMonitoringDaemonSender(this);
+    OpMonitoringDaemonSender createSender(ServerConfProvider serverConfProvider) throws Exception {
+        return new OpMonitoringDaemonSender(serverConfProvider, this);
     }
 
     @Override
@@ -94,6 +99,7 @@ public class OpMonitoringBuffer extends AbstractOpMonitoringBuffer {
         executorService.execute(() -> {
             try {
                 data.setSecurityServerInternalIp(opMonitoringDataProcessor.getIpAddress());
+                data.setRestPath(savedServiceEndpoint.getPathIfExists(data));
 
                 buffer.addLast(data);
                 if (buffer.size() > maxBufferSize) {
@@ -155,7 +161,7 @@ public class OpMonitoringBuffer extends AbstractOpMonitoringBuffer {
     }
 
     @Override
-    public void start() {
+    public void afterPropertiesSet() {
         if (ignoreOpMonitoringData()) {
             return;
         }
@@ -166,7 +172,7 @@ public class OpMonitoringBuffer extends AbstractOpMonitoringBuffer {
     }
 
     @Override
-    public void stop() {
+    public void destroy() {
         if (executorService != null) {
             executorService.shutdown();
         }
@@ -175,7 +181,7 @@ public class OpMonitoringBuffer extends AbstractOpMonitoringBuffer {
         }
 
         if (sender != null) {
-            sender.stop();
+            sender.destroy();
         }
     }
 

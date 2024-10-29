@@ -498,6 +498,15 @@ X-XSRF-TOKEN: {{ss0_xsrf_token}}
     },
     {
       "service_code": "ownerChange"
+    },
+    {
+      "service_code": "clientEnable"
+    },
+    {
+      "service_code": "clientDisable"
+    },
+    {
+      "service_code": "addressChange"
     }
   ] 
 }
@@ -711,7 +720,7 @@ HTTP 200
 [Captures]
 ss1_sign_key_cert: body
 
-# Import auth certificate
+# Import sign certificate
 POST https://{{ss1_host}}:4000/api/v1/token-certificates
 X-XSRF-TOKEN: {{ss1_xsrf_token}}
 Content-Type: application/octet-stream
@@ -954,7 +963,7 @@ HTTP 200
 [Captures]
 test-consumer_sign_key_cert: body
 
-# Import auth certificate
+# Import sign certificate
 POST https://{{ss1_host}}:4000/api/v1/token-certificates
 X-XSRF-TOKEN: {{ss1_xsrf_token}}
 Content-Type: application/octet-stream

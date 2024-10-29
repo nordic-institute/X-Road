@@ -52,8 +52,8 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.List;
 
-import static ee.ria.xroad.common.util.CryptoUtils.DEFAULT_ANCHOR_HASH_ALGORITHM_ID;
-import static ee.ria.xroad.common.util.CryptoUtils.calculateAnchorHashDelimited;
+import static ee.ria.xroad.common.crypto.Digests.DEFAULT_ANCHOR_HASH_ALGORITHM_ID;
+import static ee.ria.xroad.common.crypto.Digests.calculateAnchorHashDelimited;
 import static java.util.stream.Collectors.toList;
 import static java.util.stream.Collectors.toSet;
 import static org.niis.xroad.cs.admin.api.exception.ErrorMessage.MALFORMED_ANCHOR;

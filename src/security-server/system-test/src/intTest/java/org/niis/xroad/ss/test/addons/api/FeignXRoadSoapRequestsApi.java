@@ -35,4 +35,7 @@ public interface FeignXRoadSoapRequestsApi {
 
     @PostMapping
     ResponseEntity<String> getXRoadSoapResponse(byte[] requestBody);
+
+    @PostMapping
+    ResponseEntity<byte[]> getXRoadSoapResponseAsBytes(byte[] requestBody);
 }

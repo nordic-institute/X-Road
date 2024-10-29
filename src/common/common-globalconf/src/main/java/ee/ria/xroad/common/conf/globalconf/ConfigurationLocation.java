@@ -26,6 +26,8 @@
 package ee.ria.xroad.common.conf.globalconf;
 
 import ee.ria.xroad.common.CodedException;
+import ee.ria.xroad.common.crypto.identifier.DigestAlgorithm;
+import ee.ria.xroad.common.util.CryptoUtils;
 
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
@@ -42,10 +44,8 @@ import java.util.Arrays;
 import java.util.List;
 
 import static ee.ria.xroad.common.ErrorCodes.X_HTTP_ERROR;
-import static ee.ria.xroad.common.util.CryptoUtils.calculateDigest;
-import static ee.ria.xroad.common.util.CryptoUtils.decodeBase64;
-import static ee.ria.xroad.common.util.CryptoUtils.getAlgorithmId;
-import static ee.ria.xroad.common.util.CryptoUtils.readCertificate;
+import static ee.ria.xroad.common.crypto.Digests.calculateDigest;
+import static ee.ria.xroad.common.util.EncoderUtils.decodeBase64;
 
 /**
  * Describes a configuration location where configuration can be downloaded.
@@ -90,24 +90,24 @@ public class ConfigurationLocation {
 
     /**
      * @param certHashBase64 the base64 encoded certificate hash
-     * @param hashAlgoId the hash algorithm id
+     * @param hashAlgoUri the hash algorithm id
      * @return verification certificate for a given certificate hash or null
      * if not found
      */
     public X509Certificate getVerificationCert(String certHashBase64,
-                                               String hashAlgoId) {
+                                               DigestAlgorithm hashAlgoUri) {
         byte[] certHash = decodeBase64(certHashBase64);
         for (byte[] certBytes : verificationCerts) {
             try {
                 log.trace("Calculating certificate hash using algorithm {}",
-                        hashAlgoId);
+                        hashAlgoUri);
 
-                if (Arrays.equals(certHash, hash(hashAlgoId, certBytes))) {
-                    return readCertificate(certBytes);
+                if (Arrays.equals(certHash, hash(hashAlgoUri, certBytes))) {
+                    return CryptoUtils.readCertificate(certBytes);
                 }
             } catch (Exception e) {
                 log.error("Failed to calculate certificate hash using "
-                        + "algorithm identifier " + hashAlgoId, e);
+                        + "algorithm identifier " + hashAlgoUri, e);
             }
         }
 
@@ -145,9 +145,9 @@ public class ConfigurationLocation {
         return HashCodeBuilder.reflectionHashCode(this);
     }
 
-    private static byte[] hash(String hashAlgoId, byte[] data)
+    private static byte[] hash(DigestAlgorithm hashAlgoUri, byte[] data)
             throws Exception {
-        return calculateDigest(getAlgorithmId(hashAlgoId), data);
+        return calculateDigest(hashAlgoUri, data);
     }
 
     @Override

@@ -103,7 +103,7 @@ public class SystemApiControllerTest extends AbstractApiControllerTestContext {
 
     @Before
     public void setup() throws Exception {
-        when(globalConfFacade.getInstanceIdentifier()).thenReturn("TEST");
+        when(globalConfProvider.getInstanceIdentifier()).thenReturn("TEST");
         AnchorFile anchorFile = new AnchorFile(ANCHOR_HASH);
         anchorFile.setCreatedAt(new Date(ANCHOR_CREATED_AT_MILLIS).toInstant().atOffset(ZoneOffset.UTC));
         when(systemService.getAnchorFileFromBytes(any(), anyBoolean())).thenReturn(anchorFile);
@@ -207,8 +207,8 @@ public class SystemApiControllerTest extends AbstractApiControllerTestContext {
 
     @Test
     @WithMockUser(authorities = {"ADD_TSP"})
-    public void addDuplicateConfiguredTimestampingService() throws
-            SystemService.DuplicateConfiguredTimestampingServiceException, TimestampingServiceNotFoundException {
+    public void addDuplicateConfiguredTimestampingService()
+            throws SystemService.DuplicateConfiguredTimestampingServiceException, TimestampingServiceNotFoundException {
         TimestampingService timestampingService = TestUtils.createTimestampingService(TSA_1_URL, TSA_1_NAME);
 
         Mockito.doThrow(new SystemService.DuplicateConfiguredTimestampingServiceException("")).when(systemService)
@@ -226,8 +226,8 @@ public class SystemApiControllerTest extends AbstractApiControllerTestContext {
     @Test
     @WithMockUser(authorities = {"ADD_TSP"})
     public void addNonExistingConfiguredTimestampingService() throws
-            SystemService.DuplicateConfiguredTimestampingServiceException,
-            TimestampingServiceNotFoundException {
+                                                              SystemService.DuplicateConfiguredTimestampingServiceException,
+                                                              TimestampingServiceNotFoundException {
         TimestampingService timestampingService = TestUtils
                 .createTimestampingService("http://dummy.com", "Dummy");
 

@@ -25,14 +25,14 @@
  */
 package org.niis.xroad.restapi.common.backup.service;
 
-import jakarta.annotation.PostConstruct;
+import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 import java.util.regex.Pattern;
 
 @Component
-public class BackupValidator {
+public class BackupValidator implements InitializingBean {
     /**
      * Default criteria for a valid backup file name:
      * 1) cannot start with "."
@@ -47,8 +47,7 @@ public class BackupValidator {
         this.backupFileNamePatternStr = backupFileNamePatternStr;
     }
 
-    @PostConstruct
-    public void initialize() {
+    public void afterPropertiesSet() {
         backupFileNamePattern = Pattern.compile(backupFileNamePatternStr);
     }
 

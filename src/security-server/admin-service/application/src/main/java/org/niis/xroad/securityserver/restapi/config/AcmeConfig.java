@@ -30,14 +30,24 @@ import ee.ria.xroad.common.SystemProperties;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.catalina.connector.Connector;
 import org.apache.coyote.http11.Http11NioProtocol;
+import org.niis.xroad.common.acme.AcmeProperties;
+import org.niis.xroad.securityserver.restapi.scheduling.AcmeClientWorker;
+import org.niis.xroad.securityserver.restapi.scheduling.CertificateRenewalScheduler;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.web.embedded.tomcat.TomcatServletWebServerFactory;
 import org.springframework.boot.web.server.WebServerFactoryCustomizer;
 import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Condition;
+import org.springframework.context.annotation.ConditionContext;
+import org.springframework.context.annotation.Conditional;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Profile;
+import org.springframework.core.Ordered;
+import org.springframework.core.annotation.Order;
 import org.springframework.core.io.FileSystemResource;
 import org.springframework.core.io.Resource;
+import org.springframework.core.type.AnnotatedTypeMetadata;
+import org.springframework.scheduling.TaskScheduler;
 import org.yaml.snakeyaml.LoaderOptions;
 import org.yaml.snakeyaml.TypeDescription;
 import org.yaml.snakeyaml.Yaml;
@@ -69,12 +79,16 @@ public class AcmeConfig {
     @Bean
     public AcmeProperties acmeProperties() {
         Resource path = new FileSystemResource(SystemProperties.getConfPath() + "conf.d/acme.yml");
+        if (!SystemProperties.isAcmeChallengePortEnabled() && !path.exists()) {
+            log.warn("Configuration {} not exists", path);
+            return new AcmeProperties();
+        }
         Constructor constructor = createAcmeYamlConstructor();
         Yaml yaml = new Yaml(constructor);
         try (InputStream input = Files.newInputStream(path.getFile().toPath())) {
             return yaml.loadAs(input, AcmeProperties.class);
         } catch (Exception e) {
-            log.warn("Failed to load yaml configuration from " + path, e);
+            log.warn("Failed to load yaml configuration from {}", path, e);
             return new AcmeProperties();
         }
     }
@@ -114,6 +128,28 @@ public class AcmeConfig {
         constructor.addTypeDescription(credentialsDescription);
 
         return constructor;
+    }
+
+    @Order(Ordered.LOWEST_PRECEDENCE - 99)
+    @Bean
+    @Conditional(IsAcmeCertRenewalJobsActive.class)
+    @Profile("!test")
+    CertificateRenewalScheduler certificateRenewalScheduler(AcmeClientWorker acmeClientWorker, TaskScheduler taskScheduler) {
+        CertificateRenewalScheduler scheduler = new CertificateRenewalScheduler(acmeClientWorker, taskScheduler);
+        scheduler.init();
+        return scheduler;
+    }
+
+    @Slf4j
+    public static class IsAcmeCertRenewalJobsActive implements Condition {
+        @Override
+        public boolean matches(ConditionContext context, AnnotatedTypeMetadata metadata) {
+            boolean isActive = SystemProperties.isAcmeCertificateRenewalActive();
+            if (!isActive) {
+                log.info("ACME certificate renewal configured to be inactive, job auto-scheduling disabled");
+            }
+            return isActive;
+        }
     }
 
 }

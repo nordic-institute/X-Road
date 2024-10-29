@@ -21,6 +21,7 @@ Feature: 0300 - SS: Keys and certificates
     Then CSR is processed by test CA
     And Token: <$token> - Generated certificate is imported
     And Token: <$token> - has key "<$label>" with status "<$certStatus>"
+    And Token: <$token> - has "<$usage>" key "<$label>" with correct fixed automatic renewal status
     And Token: <$token>, key "<$label>" generate CSR button is disabled
     Examples:
       | $token      | $usage         | $label             | $client      | $dns  | $certService | $certStatus |

@@ -52,7 +52,7 @@ jobs:
           key: ${{ runner.os }}-sonar
           restore-keys: ${{ runner.os }}-sonar
       - name: Set up Gradle
-        uses: gradle/actions/setup-gradle@v3
+        uses: gradle/actions/setup-gradle@v4
         with:
           cache-read-only: ${{ github.ref != 'refs/heads/develop' }}
           gradle-home-cache-cleanup: true
@@ -75,22 +75,20 @@ jobs:
           reporter: java-junit
           list-suites: 'failed'
           list-tests: 'failed'
-      - name: Build RHEL7 packages
-        run: docker build -t rhel7 ${{ github.workspace }}/src/packages/docker/rpm/ && docker run --rm -u $(id -u ${USER}):$(id -g ${USER}) -v /etc/passwd:/etc/passwd:ro -v /etc/group:/etc/group:ro -v ${{ github.workspace }}:/workspace rhel7 ./src/packages/build-rpm.sh
       - name: Build RHEL8 packages
         run: docker build -t rhel8 ${{ github.workspace }}/src/packages/docker/rpm-el8/ && docker run --rm -u $(id -u ${USER}):$(id -g ${USER}) -v /etc/passwd:/etc/passwd:ro -v /etc/group:/etc/group:ro -v ${{ github.workspace }}:/workspace rhel8 ./src/packages/build-rpm.sh
       - name: Build RHEL9 packages
         run: docker build -t rhel9 ${{ github.workspace }}/src/packages/docker/rpm-el9/ && docker run --rm -u $(id -u ${USER}):$(id -g ${USER}) -v /etc/passwd:/etc/passwd:ro -v /etc/group:/etc/group:ro -v ${{ github.workspace }}:/workspace rhel9 ./src/packages/build-rpm.sh
-      - name: Build Focal packages
-        env:
-          DEBEMAIL: 'info@niis.org'
-          DEBFULLNAME: 'NIIS'
-        run: ./src/packages/build-deb.sh focal
-      - name: Build Jammy packages
+      - name: Build 22.04 (Jammy) packages
         env:
           DEBEMAIL: 'info@niis.org'
           DEBFULLNAME: 'NIIS'
         run: ./src/packages/build-deb.sh jammy -release
+      - name: Build 24.04 (Noble) packages
+        env:
+          DEBEMAIL: 'info@niis.org'
+          DEBFULLNAME: 'NIIS'
+        run: ./src/packages/build-deb.sh noble -release
       - name: Store deb files for system tests
         uses: actions/upload-artifact@v4
         with:
@@ -114,7 +112,7 @@ jobs:
           java-version: '21'
           distribution: 'temurin'
       - name: Set up Gradle
-        uses: gradle/actions/setup-gradle@v3
+        uses: gradle/actions/setup-gradle@v4
         with:
           cache-read-only: true
       - name: Initialize docker setup
@@ -174,7 +172,7 @@ jobs:
           java-version: '21'
           distribution: 'temurin'
       - name: Set up Gradle
-        uses: gradle/actions/setup-gradle@v3
+        uses: gradle/actions/setup-gradle@v4
         with:
           cache-read-only: true
       - name: Set up Docker Buildx
@@ -240,7 +238,7 @@ jobs:
           java-version: '21'
           distribution: 'temurin'
       - name: Set up Gradle
-        uses: gradle/actions/setup-gradle@v3
+        uses: gradle/actions/setup-gradle@v4
         with:
           cache-read-only: true
       - name: Set up Docker Buildx

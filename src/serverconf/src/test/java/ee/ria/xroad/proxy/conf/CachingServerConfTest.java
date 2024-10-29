@@ -27,15 +27,16 @@ package ee.ria.xroad.proxy.conf;
 
 import ee.ria.xroad.common.ExpectedCodedException;
 import ee.ria.xroad.common.conf.globalconf.EmptyGlobalConf;
-import ee.ria.xroad.common.conf.globalconf.GlobalConf;
+import ee.ria.xroad.common.conf.globalconf.GlobalConfProvider;
 import ee.ria.xroad.common.conf.serverconf.CachingServerConfImpl;
 import ee.ria.xroad.common.conf.serverconf.IsAuthentication;
-import ee.ria.xroad.common.conf.serverconf.ServerConf;
 import ee.ria.xroad.common.conf.serverconf.ServerConfDatabaseCtx;
+import ee.ria.xroad.common.conf.serverconf.ServerConfProvider;
 import ee.ria.xroad.common.conf.serverconf.dao.ServiceDAOImpl;
 import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.identifier.SecurityServerId;
 import ee.ria.xroad.common.identifier.ServiceId;
+import ee.ria.xroad.common.util.CryptoUtils;
 
 import org.junit.After;
 import org.junit.Before;
@@ -49,7 +50,6 @@ import java.util.Arrays;
 import java.util.List;
 
 import static ee.ria.xroad.common.ErrorCodes.X_UNKNOWN_SERVICE;
-import static ee.ria.xroad.common.util.CryptoUtils.readCertificate;
 import static ee.ria.xroad.proxy.conf.TestUtil.BASE64_CERT;
 import static ee.ria.xroad.proxy.conf.TestUtil.CLIENT_CODE;
 import static ee.ria.xroad.proxy.conf.TestUtil.MEMBER_CLASS;
@@ -85,21 +85,25 @@ public class CachingServerConfTest {
     @Rule
     public ExpectedCodedException thrown = ExpectedCodedException.none();
 
+    private static GlobalConfProvider globalConfProvider;
+    private static ServerConfProvider serverConfProvider;
+
     /**
      * Creates test database.
+     *
      * @throws Exception if an error occurs
      */
     @BeforeClass
     public static void setUpBeforeClass() throws Exception {
         prepareDB();
 
-        GlobalConf.reload(new EmptyGlobalConf() {
+        globalConfProvider = new EmptyGlobalConf() {
             @Override
             public boolean isSecurityServerClient(ClientId client, SecurityServerId securityServer) {
                 return true;
             }
-        });
-        ServerConf.reload(new CachingServerConfImpl());
+        };
+        serverConfProvider = new CachingServerConfImpl(globalConfProvider);
     }
 
     /**
@@ -124,7 +128,7 @@ public class CachingServerConfTest {
     @Test
     public void getOwner() {
         assertEquals(createTestClientId(),
-                ServerConf.getIdentifier().getOwner());
+                serverConfProvider.getIdentifier().getOwner());
     }
 
     /**
@@ -135,7 +139,7 @@ public class CachingServerConfTest {
         SecurityServerId.Conf expectedIdentifier =
                 SecurityServerId.Conf.create(
                         XROAD_INSTANCE, MEMBER_CLASS, MEMBER_CODE, SERVER_CODE);
-        assertEquals(expectedIdentifier, ServerConf.getIdentifier());
+        assertEquals(expectedIdentifier, serverConfProvider.getIdentifier());
     }
 
     /**
@@ -145,13 +149,13 @@ public class CachingServerConfTest {
     public void getExistingServiceAddress() {
         ServiceId.Conf service = ServiceId.Conf.create(XROAD_INSTANCE, MEMBER_CLASS,
                 client(1), null, service(1, 1), SERVICE_VERSION);
-        assertTrue(ServerConf.serviceExists(service));
-        assertEquals(SERVICE_URL + 1, ServerConf.getServiceAddress(service));
-        assertEquals(SERVICE_TIMEOUT, ServerConf.getServiceTimeout(service));
+        assertTrue(serverConfProvider.serviceExists(service));
+        assertEquals(SERVICE_URL + 1, serverConfProvider.getServiceAddress(service));
+        assertEquals(SERVICE_TIMEOUT, serverConfProvider.getServiceTimeout(service));
 
         service = ServiceId.Conf.create(XROAD_INSTANCE, MEMBER_CLASS,
                 client(1), null, service(1, NUM_SERVICES - 2), null);
-        assertTrue(ServerConf.serviceExists(service));
+        assertTrue(serverConfProvider.serviceExists(service));
     }
 
     /**
@@ -171,7 +175,7 @@ public class CachingServerConfTest {
         }
 
         assertEquals(expectedServices,
-                ServerConf.getAllServices(serviceProvider));
+                serverConfProvider.getAllServices(serviceProvider));
     }
 
     /**
@@ -188,8 +192,8 @@ public class CachingServerConfTest {
                         service(1, 1), SERVICE_VERSION));
 
         assertEquals(expectedServices,
-                ServerConf.getAllowedServices(serviceProvider, client1));
-        assertTrue(ServerConf.getAllowedServices(serviceProvider,
+                serverConfProvider.getAllowedServices(serviceProvider, client1));
+        assertTrue(serverConfProvider.getAllowedServices(serviceProvider,
                 client2).isEmpty());
     }
 
@@ -199,10 +203,10 @@ public class CachingServerConfTest {
     @Test
     public void getNonExistingServiceAddress() {
         ServiceId service = createTestServiceId("foo", "bar");
-        assertFalse(ServerConf.serviceExists(service));
-        assertNull(ServerConf.getServiceAddress(service));
+        assertFalse(serverConfProvider.serviceExists(service));
+        assertNull(serverConfProvider.getServiceAddress(service));
         assertNotEquals(SERVICE_TIMEOUT,
-                ServerConf.getServiceTimeout(service));
+                serverConfProvider.getServiceTimeout(service));
     }
 
     /**
@@ -214,8 +218,8 @@ public class CachingServerConfTest {
                 service(NUM_SERVICEDESCRIPTIONS - 1, NUM_SERVICES - 1), SERVICE_VERSION);
         ServiceId nonExistingService = createTestServiceId("foo", "bar");
 
-        assertNotNull(ServerConf.getDisabledNotice(existingService));
-        assertNull(ServerConf.getDisabledNotice(nonExistingService));
+        assertNotNull(serverConfProvider.getDisabledNotice(existingService));
+        assertNull(serverConfProvider.getDisabledNotice(nonExistingService));
     }
 
     /**
@@ -231,25 +235,25 @@ public class CachingServerConfTest {
                 SERVICE_CODE + "X", SERVICE_VERSION + "X");
         ServiceId serviceRest = createTestServiceId(client1.getMemberCode(), "rest", null);
 
-        assertTrue(ServerConf.isQueryAllowed(client1, service1));
-        assertTrue(ServerConf.isQueryAllowed(client1, service1, "POST", "/"));
-        assertFalse(ServerConf.isQueryAllowed(clientX, service1));
-        assertFalse(ServerConf.isQueryAllowed(clientX, serviceX));
-        assertFalse(ServerConf.isQueryAllowed(client1, serviceX));
+        assertTrue(serverConfProvider.isQueryAllowed(client1, service1));
+        assertTrue(serverConfProvider.isQueryAllowed(client1, service1, "POST", "/"));
+        assertFalse(serverConfProvider.isQueryAllowed(clientX, service1));
+        assertFalse(serverConfProvider.isQueryAllowed(clientX, serviceX));
+        assertFalse(serverConfProvider.isQueryAllowed(client1, serviceX));
 
-        assertTrue(ServerConf.isQueryAllowed(client1, serviceRest, "GET", "/api/foo"));
+        assertTrue(serverConfProvider.isQueryAllowed(client1, serviceRest, "GET", "/api/foo"));
 
-        assertTrue(ServerConf.isQueryAllowed(client1, serviceRest, "POST", "/api/test/foo"));
-        assertTrue(ServerConf.isQueryAllowed(client1, serviceRest, "POST", "/api/t%65st/foo"));
-        assertTrue(ServerConf.isQueryAllowed(client1, serviceRest, "POST", "/api/t%65st/foo%2dbar"));
-        assertTrue(ServerConf.isQueryAllowed(client1, serviceRest, "POST", "/api/test/foo/../bar"));
+        assertTrue(serverConfProvider.isQueryAllowed(client1, serviceRest, "POST", "/api/test/foo"));
+        assertTrue(serverConfProvider.isQueryAllowed(client1, serviceRest, "POST", "/api/t%65st/foo"));
+        assertTrue(serverConfProvider.isQueryAllowed(client1, serviceRest, "POST", "/api/t%65st/foo%2dbar"));
+        assertTrue(serverConfProvider.isQueryAllowed(client1, serviceRest, "POST", "/api/test/foo/../bar"));
 
-        assertFalse(ServerConf.isQueryAllowed(client1, serviceRest, "POST", "/api/test%2Dbar"));
-        assertFalse(ServerConf.isQueryAllowed(client1, serviceRest, "POST", "/api/test/../bar"));
-        assertFalse(ServerConf.isQueryAllowed(client1, serviceRest, "GET", "/api/test/../../../api/test"));
-        assertFalse(ServerConf.isQueryAllowed(client1, serviceRest, "POST", "/api/test/foo/bar"));
-        assertFalse(ServerConf.isQueryAllowed(client1, serviceRest, "DELETE", "/api/test"));
-        assertFalse(ServerConf.isQueryAllowed(client1, serviceRest));
+        assertFalse(serverConfProvider.isQueryAllowed(client1, serviceRest, "POST", "/api/test%2Dbar"));
+        assertFalse(serverConfProvider.isQueryAllowed(client1, serviceRest, "POST", "/api/test/../bar"));
+        assertFalse(serverConfProvider.isQueryAllowed(client1, serviceRest, "GET", "/api/test/../../../api/test"));
+        assertFalse(serverConfProvider.isQueryAllowed(client1, serviceRest, "POST", "/api/test/foo/bar"));
+        assertFalse(serverConfProvider.isQueryAllowed(client1, serviceRest, "DELETE", "/api/test"));
+        assertFalse(serverConfProvider.isQueryAllowed(client1, serviceRest));
     }
 
     /**
@@ -258,23 +262,24 @@ public class CachingServerConfTest {
     @Test
     public void getIsAuthentication() {
         assertEquals(IsAuthentication.SSLAUTH,
-                ServerConf.getIsAuthentication(createTestClientId(client(1))));
+                serverConfProvider.getIsAuthentication(createTestClientId(client(1))));
         assertEquals(IsAuthentication.SSLNOAUTH,
-                ServerConf.getIsAuthentication(createTestClientId(client(2))));
+                serverConfProvider.getIsAuthentication(createTestClientId(client(2))));
         assertEquals(IsAuthentication.NOSSL,
-                ServerConf.getIsAuthentication(createTestClientId(client(3))));
+                serverConfProvider.getIsAuthentication(createTestClientId(client(3))));
     }
 
     /**
      * Tests getting IS certificates,
+     *
      * @throws Exception if an error coccurs
      */
     @Test
     public void getIsCerts() throws Exception {
         List<X509Certificate> isCerts =
-                ServerConf.getIsCerts(createTestClientId(client(1)));
+                serverConfProvider.getIsCerts(createTestClientId(client(1)));
         assertEquals(1, isCerts.size());
-        assertEquals(readCertificate(BASE64_CERT), isCerts.get(0));
+        assertEquals(CryptoUtils.readCertificate(BASE64_CERT), isCerts.get(0));
     }
 
     /**
@@ -282,42 +287,45 @@ public class CachingServerConfTest {
      */
     @Test
     public void isSslAuthentication() {
-        assertTrue(ServerConf.isSslAuthentication(
+        assertTrue(serverConfProvider.isSslAuthentication(
                 createTestServiceId(client(1), service(1, 0),
                         SERVICE_VERSION)));
-        assertFalse(ServerConf.isSslAuthentication(
+        assertFalse(serverConfProvider.isSslAuthentication(
                 createTestServiceId(client(1), service(1, 1),
                         SERVICE_VERSION)));
 
         thrown.expectError(X_UNKNOWN_SERVICE);
-        assertFalse(ServerConf.isSslAuthentication(
+        assertFalse(serverConfProvider.isSslAuthentication(
                 createTestServiceId(client(1), service(1, NUM_SERVICES),
                         SERVICE_VERSION)));
     }
 
     /**
      * Tests getting members.
+     *
      * @throws Exception if an error coccurs
      */
     @Test
     public void getMembers() throws Exception {
-        List<ClientId.Conf> members = ServerConf.getMembers();
+        List<ClientId.Conf> members = serverConfProvider.getMembers();
         assertNotNull(members);
         assertEquals(NUM_CLIENTS, members.size());
     }
 
     /**
      * Tests getting TSPs.
+     *
      * @throws Exception if an error occurs
      */
     @Test
     public void getTsps() throws Exception {
-        List<String> tspUrls = ServerConf.getTspUrl();
+        List<String> tspUrls = serverConfProvider.getTspUrl();
         assertEquals(NUM_TSPS, tspUrls.size());
     }
 
     /**
      * Tests getting services.
+     *
      * @throws Exception if an error occurs
      */
     @Test

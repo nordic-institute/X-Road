@@ -91,19 +91,15 @@ public class EndpointsApiControllerTest extends AbstractApiControllerTestContext
                 // exists in serverconf
                 TestUtils.getMemberInfo(TestUtils.INSTANCE_FI, TestUtils.MEMBER_CLASS_GOV, TestUtils.MEMBER_CODE_M2,
                         TestUtils.SUBSYSTEM6)));
-        when(globalConfFacade.getMembers(any())).thenReturn(globalMemberInfos);
-        when(globalConfFacade.getMemberName(any())).thenAnswer(invocation -> {
+        when(globalConfProvider.getMembers(any())).thenReturn(globalMemberInfos);
+        when(globalConfProvider.getMemberName(any())).thenAnswer(invocation -> {
             ClientId clientId = (ClientId) invocation.getArguments()[0];
             Optional<MemberInfo> m = globalMemberInfos.stream()
                     .filter(g -> g.getId().equals(clientId))
                     .findFirst();
-            if (m.isPresent()) {
-                return m.get().getName();
-            } else {
-                return null;
-            }
+            return m.map(MemberInfo::getName).orElse(null);
         });
-        when(globalConfFacade.getGlobalGroupDescription(any())).thenReturn("");
+        when(globalConfProvider.getGlobalGroupDescription(any())).thenReturn("");
     }
 
     @Test

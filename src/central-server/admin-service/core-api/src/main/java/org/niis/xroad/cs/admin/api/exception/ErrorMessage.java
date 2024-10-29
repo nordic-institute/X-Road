@@ -36,6 +36,8 @@ public enum ErrorMessage implements DeviationProvider {
     MEMBER_CLASS_EXISTS("member_class_exists", "Member class with the same code already exists."),
     MEMBER_NOT_FOUND("member_not_found", "No member with the specified code/id found."),
     MEMBER_EXISTS("member_exists", "Member with the same code already exists."),
+    MEMBER_NOT_REGISTERED_TO_SECURITY_SERVER("member_not_registered_to_security_server",
+            "Member is not registered to the given security server."),
 
     SUBSYSTEM_EXISTS("subsystem_exists", "Subsystem with the same code already exists."),
     SUBSYSTEM_NOT_FOUND("subsystem_not_found", "Subsystem with specified code not found."),

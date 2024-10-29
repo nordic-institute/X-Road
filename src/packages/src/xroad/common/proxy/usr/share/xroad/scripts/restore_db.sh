@@ -37,12 +37,12 @@ if [ -f /etc/xroad/db_libpq.env ]; then
   source /etc/xroad/db_libpq.env
 fi
 
-if [ ! -z $PGOPTIONS_EXTRA ]; then
+if [[ ! -z $PGOPTIONS_EXTRA ]]; then
   PGOPTIONS_EXTRA=" ${PGOPTIONS_EXTRA}"
 fi
 
 remote_psql() {
-  psql -v ON_ERROR_STOP=1 -h "$db_addr" -p "$db_port" -qtA
+  psql -v ON_ERROR_STOP=1 -h "${PGHOST:-$db_addr}" -p "${PGPORT:-$db_port}" -qtA
 }
 
 psql_adminuser() {
@@ -56,10 +56,10 @@ psql_dbuser() {
 pgrestore() {
   # no --clean for force restore
   if [[ $FORCE_RESTORE == true ]] ; then
-    PGHOST="$db_addr" PGPORT="$db_port" PGUSER="$db_admin_user" PGPASSWORD="$db_admin_password" \
+    PGHOST="${PGHOST:-$db_addr}" PGPORT="${PGPORT:-$db_port}" PGUSER="$db_admin_user" PGPASSWORD="$db_admin_password" \
       pg_restore --no-owner --single-transaction -d "$db_database" --schema="$db_schema" "$dump_file"
   else
-    PGHOST="$db_addr" PGPORT="$db_port" PGUSER="$db_admin_user" PGPASSWORD="$db_admin_password" \
+    PGHOST="${PGHOST:-$db_addr}" PGPORT="${PGPORT:-$db_port}" PGUSER="$db_admin_user" PGPASSWORD="$db_admin_password" \
       pg_restore --no-owner --single-transaction --clean -d "$db_database" --schema="$db_schema" "$dump_file"
   fi
 }
@@ -108,7 +108,7 @@ fi
 
 JAVA_OPTS="-Ddb_user=$db_user -Ddb_schema=$db_schema" /usr/share/xroad/db/liquibase.sh \
   --classpath=/usr/share/xroad/jlib/postgresql.jar \
-  --url="jdbc:postgresql://$db_addr:$db_port/$db_database?currentSchema=${db_schema},public" \
+  --url="jdbc:postgresql://${PGHOST:-$db_addr}:${PGPORT:-$db_port}/$db_database?targetServerType=primary&currentSchema=${db_schema},public" \
   --changeLogFile=serverconf-changelog.xml \
   --password="${db_admin_password}" \
   --username="${db_admin_user}" \

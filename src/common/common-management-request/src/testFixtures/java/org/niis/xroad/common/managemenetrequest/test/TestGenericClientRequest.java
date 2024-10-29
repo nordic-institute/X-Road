@@ -26,11 +26,10 @@
  */
 package org.niis.xroad.common.managemenetrequest.test;
 
+import ee.ria.xroad.common.crypto.identifier.SignAlgorithm;
 import ee.ria.xroad.common.message.SoapMessageImpl;
-import ee.ria.xroad.common.util.CryptoUtils;
 import ee.ria.xroad.common.util.MimeTypes;
 import ee.ria.xroad.common.util.MultiPartOutputStream;
-
 
 import java.security.PrivateKey;
 
@@ -66,8 +65,8 @@ public class TestGenericClientRequest extends TestBaseManagementRequest {
     }
 
     private void writeSignatures(MultiPartOutputStream multipart) throws Exception {
-        String signAlgoId = CryptoUtils.SHA512WITHRSA_ID;
-        String[] clientSignaturePartHeaders = {HEADER_SIG_ALGO_ID + ": " + signAlgoId};
+        var signAlgoId = SignAlgorithm.SHA512_WITH_RSA;
+        String[] clientSignaturePartHeaders = {HEADER_SIG_ALGO_ID + ": " + signAlgoId.name()};
 
         multipart.startPart(MimeTypes.BINARY, clientSignaturePartHeaders);
         multipart.write(createSignature(clientKey, signAlgoId));

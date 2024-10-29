@@ -26,8 +26,7 @@
 package ee.ria.xroad.proxy.serverproxy;
 
 import ee.ria.xroad.common.CodedException;
-import ee.ria.xroad.common.conf.globalconf.GlobalConf;
-import ee.ria.xroad.common.conf.serverconf.ServerConf;
+import ee.ria.xroad.common.conf.serverconf.ServerConfProvider;
 import ee.ria.xroad.common.conf.serverconf.model.DescriptionType;
 import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.identifier.ServiceId;
@@ -38,12 +37,9 @@ import ee.ria.xroad.common.opmonitoring.OpMonitoringData;
 import ee.ria.xroad.common.util.CachingStream;
 import ee.ria.xroad.common.util.RequestWrapper;
 import ee.ria.xroad.common.util.ResponseWrapper;
-import ee.ria.xroad.proxy.conf.KeyConf;
 import ee.ria.xroad.proxy.protocol.ProxyMessage;
 import ee.ria.xroad.proxy.protocol.ProxyMessageDecoder;
 import ee.ria.xroad.proxy.protocol.ProxyMessageEncoder;
-import ee.ria.xroad.proxy.testsuite.TestSuiteGlobalConf;
-import ee.ria.xroad.proxy.testsuite.TestSuiteKeyConf;
 import ee.ria.xroad.proxy.testsuite.TestSuiteServerConf;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
@@ -59,7 +55,6 @@ import org.apache.http.client.HttpClient;
 import org.eclipse.jetty.http.HttpFields;
 import org.junit.After;
 import org.junit.Before;
-import org.junit.BeforeClass;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
@@ -119,23 +114,14 @@ public class RestMetadataServiceHandlerTest {
     private ProxyMessage mockProxyMessage;
     private WireMockServer mockServer;
 
-
-    /**
-     * Init class-wide test instances
-     */
-    @BeforeClass
-    public static void initCommon() {
-    }
+    private ServerConfProvider serverConfProvider;
 
     /**
      * Init data for tests
      */
     @Before
     public void init() {
-
-        GlobalConf.reload(new TestSuiteGlobalConf());
-        KeyConf.reload(new TestSuiteKeyConf());
-        ServerConf.reload(new TestSuiteServerConf() {
+        serverConfProvider = new TestSuiteServerConf() {
             @Override
             public DescriptionType getDescriptionType(ServiceId service) {
                 return DescriptionType.OPENAPI3;
@@ -151,7 +137,7 @@ public class RestMetadataServiceHandlerTest {
                     return "http://localhost:9858/petstore.yaml";
                 }
             }
-        });
+        };
         var mockHeaders = mock(HttpFields.class);
         httpClientMock = mock(HttpClient.class);
         mockRequest = mock(RequestWrapper.class);
@@ -178,7 +164,7 @@ public class RestMetadataServiceHandlerTest {
 
     @Test
     public void shouldBeAbleToHandleListMethods() {
-        RestMetadataServiceHandlerImpl handlerToTest = new RestMetadataServiceHandlerImpl();
+        RestMetadataServiceHandlerImpl handlerToTest = new RestMetadataServiceHandlerImpl(serverConfProvider);
         ServiceId.Conf serviceId = ServiceId.Conf.create(DEFAULT_CLIENT, LIST_METHODS);
         RestRequest mockRestRequest = mock(RestRequest.class);
         when(mockRestRequest.getVerb()).thenReturn(RestRequest.Verb.GET);
@@ -188,7 +174,7 @@ public class RestMetadataServiceHandlerTest {
 
     @Test
     public void shouldBeAbleToHandleAllowedMethods() {
-        RestMetadataServiceHandlerImpl handlerToTest = new RestMetadataServiceHandlerImpl();
+        RestMetadataServiceHandlerImpl handlerToTest = new RestMetadataServiceHandlerImpl(serverConfProvider);
         ServiceId.Conf serviceId = ServiceId.Conf.create(DEFAULT_CLIENT, ALLOWED_METHODS);
         RestRequest mockRestRequest = mock(RestRequest.class);
         when(mockRestRequest.getVerb()).thenReturn(RestRequest.Verb.GET);
@@ -200,7 +186,7 @@ public class RestMetadataServiceHandlerTest {
     @Test
     public void shouldHandleListMethods() throws Exception {
 
-        RestMetadataServiceHandlerImpl handlerToTest = new RestMetadataServiceHandlerImpl();
+        RestMetadataServiceHandlerImpl handlerToTest = new RestMetadataServiceHandlerImpl(serverConfProvider);
         ServiceId.Conf serviceId = ServiceId.Conf.create(DEFAULT_CLIENT, LIST_METHODS);
 
         RestRequest mockRestRequest = mock(RestRequest.class);
@@ -229,7 +215,7 @@ public class RestMetadataServiceHandlerTest {
     @Test
     public void shouldHandleAllowedMethods() throws Exception {
 
-        RestMetadataServiceHandlerImpl handlerToTest = new RestMetadataServiceHandlerImpl();
+        RestMetadataServiceHandlerImpl handlerToTest = new RestMetadataServiceHandlerImpl(serverConfProvider);
         ServiceId.Conf serviceId = ServiceId.Conf.create(DEFAULT_CLIENT, ALLOWED_METHODS);
 
         RestRequest mockRestRequest = mock(RestRequest.class);
@@ -258,7 +244,7 @@ public class RestMetadataServiceHandlerTest {
     @Test
     public void shouldHandleGetOpenApi() throws Exception {
 
-        RestMetadataServiceHandlerImpl handlerToTest = new RestMetadataServiceHandlerImpl();
+        RestMetadataServiceHandlerImpl handlerToTest = new RestMetadataServiceHandlerImpl(serverConfProvider);
         ServiceId.Conf serviceId = ServiceId.Conf.create(DEFAULT_CLIENT, GET_OPENAPI);
 
         RestRequest mockRestRequest = mock(RestRequest.class);
@@ -283,7 +269,7 @@ public class RestMetadataServiceHandlerTest {
 
     @Test
     public void shouldOverrideServerUrlsForYaml() throws Exception {
-        RestMetadataServiceHandlerImpl handlerToTest = new RestMetadataServiceHandlerImpl();
+        RestMetadataServiceHandlerImpl handlerToTest = new RestMetadataServiceHandlerImpl(serverConfProvider);
         ProxyMessageDecoder mockDecoder = mock(ProxyMessageDecoder.class);
         ProxyMessageEncoder mockEncoder = mock(ProxyMessageEncoder.class);
 
@@ -322,7 +308,7 @@ public class RestMetadataServiceHandlerTest {
 
     @Test
     public void shouldOverrideServerUrlsForJson() throws Exception {
-        RestMetadataServiceHandlerImpl handlerToTest = new RestMetadataServiceHandlerImpl();
+        RestMetadataServiceHandlerImpl handlerToTest = new RestMetadataServiceHandlerImpl(serverConfProvider);
         ProxyMessageDecoder mockDecoder = mock(ProxyMessageDecoder.class);
         ProxyMessageEncoder mockEncoder = mock(ProxyMessageEncoder.class);
 
@@ -353,7 +339,7 @@ public class RestMetadataServiceHandlerTest {
 
     @Test(expected = CodedException.class)
     public void shouldDetectUnsupportedOpenapiVersion() throws Exception {
-        RestMetadataServiceHandlerImpl handlerToTest = new RestMetadataServiceHandlerImpl();
+        RestMetadataServiceHandlerImpl handlerToTest = new RestMetadataServiceHandlerImpl(serverConfProvider);
         ProxyMessageDecoder mockDecoder = mock(ProxyMessageDecoder.class);
         ProxyMessageEncoder mockEncoder = mock(ProxyMessageEncoder.class);
 

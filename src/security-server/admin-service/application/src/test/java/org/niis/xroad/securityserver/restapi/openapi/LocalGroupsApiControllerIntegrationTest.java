@@ -63,13 +63,13 @@ public class LocalGroupsApiControllerIntegrationTest extends AbstractApiControll
 
     @Before
     public void setup() {
-        when(globalConfFacade.getMemberName(any())).thenAnswer((Answer<String>) invocation -> {
+        when(globalConfProvider.getMemberName(any())).thenAnswer((Answer<String>) invocation -> {
             Object[] args = invocation.getArguments();
             ClientId identifier = (ClientId) args[0];
             return identifier.getSubsystemCode() != null ? TestUtils.NAME_FOR + identifier.getSubsystemCode()
                     : TestUtils.NAME_FOR + "test-member";
         });
-        when(globalConfFacade.getMembers(any())).thenReturn(new ArrayList<>(Arrays.asList(
+        when(globalConfProvider.getMembers(any())).thenReturn(new ArrayList<>(Arrays.asList(
                 TestUtils.getMemberInfo(TestUtils.INSTANCE_FI, TestUtils.MEMBER_CLASS_GOV, TestUtils.MEMBER_CODE_M1,
                         null),
                 TestUtils.getMemberInfo(TestUtils.INSTANCE_FI, TestUtils.MEMBER_CLASS_GOV, TestUtils.MEMBER_CODE_M1,

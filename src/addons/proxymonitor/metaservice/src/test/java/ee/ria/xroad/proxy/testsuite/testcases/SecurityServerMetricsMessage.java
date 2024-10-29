@@ -26,16 +26,12 @@
 package ee.ria.xroad.proxy.testsuite.testcases;
 
 import ee.ria.xroad.common.SystemProperties;
-import ee.ria.xroad.common.conf.globalconf.GlobalConf;
-import ee.ria.xroad.common.conf.serverconf.ServerConf;
 import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.identifier.SecurityServerId;
 import ee.ria.xroad.common.message.SoapMessageImpl;
-import ee.ria.xroad.proxy.conf.KeyConf;
 import ee.ria.xroad.proxy.testsuite.Message;
 import ee.ria.xroad.proxy.testsuite.MessageTestCase;
 import ee.ria.xroad.proxy.testsuite.TestSuiteGlobalConf;
-import ee.ria.xroad.proxy.testsuite.TestSuiteKeyConf;
 import ee.ria.xroad.proxy.testsuite.TestSuiteServerConf;
 import ee.ria.xroad.proxy.util.MetaserviceTestUtil;
 import ee.ria.xroad.proxymonitor.message.GetSecurityServerMetricsResponse;
@@ -143,16 +139,15 @@ public class SecurityServerMetricsMessage extends MessageTestCase {
                 SystemProperties.getGrpcInternalHost(),
                 SystemProperties.getEnvMonitorPort(),
                 builder -> builder.addService(new MockMetricsProvider()));
-        monitorRpcServer.start();
+        monitorRpcServer.afterPropertiesSet();
 
-        GlobalConf.reload(new TestSuiteGlobalConf() {
+        globalConfProvider.setGlobalConfProvider(new TestSuiteGlobalConf() {
             @Override
             public String getInstanceIdentifier() {
                 return EXPECTED_XR_INSTANCE;
             }
         });
-        KeyConf.reload(new TestSuiteKeyConf());
-        ServerConf.reload(new TestSuiteServerConf() {
+        serverConfProvider.setServerConfProvider(new TestSuiteServerConf() {
             @Override
             public SecurityServerId.Conf getIdentifier() {
                 return DEFAULT_OWNER_SERVER;
@@ -164,7 +159,7 @@ public class SecurityServerMetricsMessage extends MessageTestCase {
 
     @Override
     protected void closeDown() throws Exception {
-        monitorRpcServer.stop();
+        monitorRpcServer.destroy();
     }
 
     private static SystemMetricsResp createMetricsResponse() {

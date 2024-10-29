@@ -2,7 +2,7 @@
 
 **X-ROAD 7**
 
-Version: 2.85  
+Version: 2.87  
 Doc. ID: UG-SS
 
 ---
@@ -114,6 +114,8 @@ Doc. ID: UG-SS
 | 26.03.2024 | 2.83    | Passing additional parameters to psql                                                                                                                                                                                                                                                                                                                                                                       | Ovidijus Narkevicius |
 | 09.06.2024 | 2.84    | Acme related updates                                                                                                                                                                                                                                                                                                                                                                                        | Mikk-Erik Bachmann   |
 | 12.06.2024 | 2.85    | Acme related updates                                                                                                                                                                                                                                                                                                                                                                                        | Petteri Kivimäki     |
+| 16.09.2024 | 2.86    | Acme automatic renewal releated updates                                                                                                                                                                                                                                                                                                                                                                     | Mikk-Erik Bachmann   |
+| 28.10.2024 | 2.87    | Minor updates to remote database migration                                                                                                                                                                                                                                                                                                                                                                  | Eneli Reimets        |
 
 ## Table of Contents <!-- omit in toc -->
 
@@ -361,6 +363,8 @@ See X-Road terms and abbreviations documentation \[[TA-TERMS](#Ref_TERMS)\].
 25. <a id="Ref_UG-SIGDOC" class="anchor"></a>\[UG-SIGDOC\] X-Road: Signed Document Download and Verification Manual. Document ID: [UG-SIGDOC](../Manuals/ug-sigdoc_x-road_signed_document_download_and_verification_manual.md).
 
 26. <a id="Ref_ACME" class="anchor"></a>\[ACME\] RFC8555: Automatic Certificate Management Environment (ACME), <https://datatracker.ietf.org/doc/html/rfc8555>
+
+27. <a id="Ref_ACME-ARI" class="anchor"></a>\[ACME-ARI\] draft-ietf-acme-ari-05:  Automated Certificate Management Environment (ACME) Renewal Information (ARI) Extension , <https://datatracker.ietf.org/doc/draft-ietf-acme-ari/>
 
 ## 2 User Management
 
@@ -1006,7 +1010,7 @@ If a client is deleted from the Security Server, all the information related to 
 
 When one of the clients is deleted, it is not advisable to delete the signing certificate if the certificate is used by other clients registered to the Security Server, e.g., other subsystems belonging the same X-Road member as the deleted subsystem.
 
-A client registered or submitted for registration in the X-Road governing authority (indicated by the "Registered" or "Registration in progress" state) must be unregistered before it can be deleted. The unregistering event sends a Security Server client deletion request from the Security Server to the Central Server.
+A client registered or submitted for registration in the X-Road governing authority (indicated by the "Registered", "Registration in progress" or "Disabled" state) must be unregistered before it can be deleted. The unregistering event sends a Security Server client deletion request from the Security Server to the Central Server.
 
 
 #### 4.6.1 Unregistering a Client
@@ -3044,7 +3048,7 @@ Since version `6.22.0` Security Server supports using remote databases. In case 
     systemctl stop "xroad*"
     ```
 
-2. Dump the local databases to be migrated. You can find the passwords of users `serverconf_admin`, `messagelog_admin` and `opmonitor_admin` in `/etc/xroad.properties`.Notice that the versions of the local PostgreSQL client and remote PostgreSQL server must match. Also take into account that on a busy system the messagelog database can be quite large and therefore dump and restore can take considerable amount of time and disk space. Notice that the versions of the local PostgreSQL client and remote PostgreSQL server must match. Also take into account that on a busy system the messagelog database can be quite large and therefore dump and restore can take considerable amount of time and disk space.
+2. Dump the local databases to be migrated. You can find the passwords of users `serverconf_admin`, `messagelog_admin` and `opmonitor_admin` in `/etc/xroad.properties`.Notice that the versions of the local PostgreSQL client and remote PostgreSQL server must match. Also take into account that on a busy system the messagelog database can be quite large and therefore dump and restore can take considerable amount of time and disk space. Notice that the versions of the local PostgreSQL client and remote PostgreSQL server must match.
 
     ```bash
     pg_dump -F t -h 127.0.0.1 -p 5432 -U serverconf_admin -f serverconf.dat serverconf
@@ -3236,9 +3240,19 @@ In case it is needed to pass additional flags to internally initialized `PGOPTIO
 
 ## 24 Configuring ACME
 
-Automated Certificate Management Environment \[[ACME](#Ref_ACME)\] protocol enables partly automated certificate management of the authentication and sign certificates on the Security Server. The Security Server supports automating most of the certificate request process, but the process has to be initiated manually. Also, activating and/or registering the received certificates is a manual task.
+Automated Certificate Management Environment \[[ACME](#Ref_ACME)\] protocol enables automated certificate management of the authentication and sign certificates on the Security Server. The Security Server supports automating most of the certificate request process, but the process has to be initiated manually. Also, activating and/or registering the received certificates is a manual task.
 
 The ACME protocol can be used only if the Certificate Authority (CA) issuing the certificates supports it and the X-Road operator has enabled the use of the protocol on the Central Server. Therefore, also the communication between the CA's ACME server and the Security Server is disabled by default. In addition, some member-specific configuration is required on the Security Server.
+
+**Automatic certificate renewal**
+
+Besides requesting new certificates from the ACME server, Security Server also runs automatic job periodically, that checks whether any of the existing certificates should be renewed and if so, new certificate is ordered and the old certificate removed. In case of authentication certificates, the old one is not removed until the new ordered certificate is manually registered on the Central Server. Whether the job runs and how often it runs is controlled by corresponding `[proxy-ui-api]` system parameters starting with [acme-renewal-*](ug-syspar_x-road_v6_system_parameters.md#39-management-rest-api-parameters-proxy-ui-api). The time when a certificate is ready for renewal is determined by the ACME server, if it supports it (ACME ARI extension \[[ACME-ARI](#Ref_ACME-ARI)\]). Otherwise, by a `acme-renewal-time-before-expiration-date` system parameter. 
+
+The renewal status of ACME supported certificates can be seen on the Keys and certificates page:
+* **"N/A"** - certificate is not `REGISTERED` or not issued by ACME supported CA.
+* **"Renewal in progress"** - Renewal has started, but is not yet finished. This can be shown on Authentication certificates that have new certificate ordered, but not yet manually registered on the Central Server.
+* **"Renewal error:"** followed by an error message - indicates that the last renewal attempt has failed, also showing the reason for the failure.
+* **"Next planned renewal on"** followed by a date - indicates when the next renewal should happen. Note that this date might change in the future when the information is received from the ACME Server.
 
 **Enable connections from the ACME server**
 

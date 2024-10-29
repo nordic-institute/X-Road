@@ -130,7 +130,7 @@ public class KeyAndCertificateRequestServiceIntegrationTest extends AbstractServ
 
                     return new SignerProxy.GeneratedCertRequestInfo(null, null, null, null, null);
                 });
-        when(globalConfFacade.getApprovedCAs(any())).thenReturn(Arrays.asList(
+        when(globalConfProvider.getApprovedCAs(any())).thenReturn(Arrays.asList(
                 new ApprovedCAInfo(MOCK_CA,
                         false,
                         "ee.ria.xroad.common.certificateprofile.impl.FiVRKCertificateProfileInfoProvider",

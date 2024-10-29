@@ -25,7 +25,7 @@
  * THE SOFTWARE.
  */
 
-@import './colors';
+@use 'colors';
 body,
 .v-application {
   font-family: 'Open Sans', sans-serif;
@@ -34,14 +34,14 @@ body,
 
 // Use this to set up font etc. common things for normal views
 .xrd-view-common {
-  font-size: $XRoad-DefaultFontSize;
+  font-size: colors.$DefaultFontSize;
 }
 
 .xrd-tabs {
   margin-left: auto;
   margin-right: auto;
   padding-left: 80px;
-  background-color: $XRoad-WarmGrey10;
+  background-color: colors.$WarmGrey10;
   width: 100%;
 }
 
@@ -74,13 +74,13 @@ body,
 .xrd-view-title {
   font-style: normal;
   font-size: 24px;
-  color: $XRoad-WarmGrey100;
+  color: colors.$WarmGrey100;
   font-weight: 700;
 }
 
 .xrd-card {
   .xrd-card-actions {
-    background-color: $XRoad-WarmGrey10;
+    background-color: colors.$WarmGrey10;
     height: 72px;
     padding-right: 24px;
   }
@@ -97,13 +97,13 @@ body,
 
 // Helper for elements that need the "clickable" look
 .xrd-clickable {
-  color: $XRoad-Link;
+  color: colors.$Link;
   cursor: pointer;
 }
 
 // Default shadow for "modals" and "card" components
 .xrd-default-shadow {
-  box-shadow: $XRoad-DefaultShadow;
+  box-shadow: colors.$DefaultShadow;
 }
 
 // For adjusting the position of an icon when used inside a button component
@@ -129,7 +129,7 @@ body,
 
 // Styling used for Vuetify data table header
 .xrd-table-header {
-  border-bottom: 1px solid $XRoad-WarmGrey30 !important;
+  border-bottom: 1px solid colors.$WarmGrey30 !important;
 }
 
 // Vuetify overrides
@@ -139,20 +139,20 @@ body,
 .v-data-table > .v-table__wrapper > table > thead > tr > td,
 .v-data-table > .v-table__wrapper > table > tfoot > tr > td {
   height: 56px;
-  color: $XRoad-Black100;
+  color: colors.$Black100;
 }
 
 // Override Vuetify table row hover color
 .v-data-table > .v-table__wrapper > table > tbody:hover td[rowspan],
 .v-data-table > .v-table__wrapper > table > tbody > tr:hover td {
-  background: $XRoad-Purple10 !important;
+  background: colors.$Purple10 !important;
 }
 
 .v-data-table > .v-table__wrapper > table > thead .v-data-table__th {
   font-weight: 700;
   font-size: 12px;
   &.v-data-table__th--sorted {
-    color: $XRoad-Black100;
+    color: colors.$Black100;
   }
 }
 

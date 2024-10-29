@@ -47,7 +47,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 
-import static ee.ria.xroad.common.util.CryptoUtils.SHA256_ID;
+import static ee.ria.xroad.common.crypto.identifier.DigestAlgorithm.SHA256;
 import static java.nio.charset.StandardCharsets.UTF_8;
 import static java.util.Map.entry;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -104,7 +104,7 @@ class SharedParametersV4ToXmlConverterTest {
 
         assertIdReferences(xmlType);
         assertThat(xmlType.getSecurityServer().get(0).getAuthCertHash().get(0))
-                .isEqualTo(sharedParameters.getSecurityServers().get(0).getAuthCertHashes().get(0).getHash(SHA256_ID));
+                .isEqualTo(sharedParameters.getSecurityServers().get(0).getAuthCertHashes().get(0).getHash(SHA256));
     }
 
     @Test
@@ -156,7 +156,7 @@ class SharedParametersV4ToXmlConverterTest {
         return new SharedParameters("INSTANCE", getConfigurationSources(), List.of(getApprovedCA()),
                 List.of(new SharedParameters.ApprovedTSA("tsa-name", "tsa-url", "tsa cert".getBytes(UTF_8))),
                 getMembers(), List.of(getSecurityServer()), List.of(new SharedParameters.GlobalGroup("group-code",
-                        "group-description", List.of(subsystemId(memberId(), "SUB1")))),
+                "group-description", List.of(subsystemId(memberId(), "SUB1")))),
                 new SharedParameters.GlobalSettings(List.of(getMemberClass()), 333));
     }
 

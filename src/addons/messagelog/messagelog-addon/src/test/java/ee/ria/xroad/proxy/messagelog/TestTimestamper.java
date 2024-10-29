@@ -25,13 +25,22 @@
  */
 package ee.ria.xroad.proxy.messagelog;
 
-import ee.ria.xroad.common.conf.serverconf.ServerConf;
+import ee.ria.xroad.common.conf.globalconf.GlobalConfProvider;
+import ee.ria.xroad.common.conf.serverconf.ServerConfProvider;
 
 class TestTimestamper extends Timestamper {
+    private final GlobalConfProvider globalConfProvider;
+    private final ServerConfProvider serverConfProvider;
+
+    TestTimestamper(GlobalConfProvider globalConfProvider, ServerConfProvider serverConfProvider) {
+        super(globalConfProvider, serverConfProvider);
+        this.globalConfProvider = globalConfProvider;
+        this.serverConfProvider = serverConfProvider;
+    }
 
     @Override
     protected TimestamperWorker getWorkerImpl() {
-        return new TestTimestamperWorker(ServerConf.getTspUrl());
+        return new TestTimestamperWorker(globalConfProvider, serverConfProvider.getTspUrl());
     }
 
 }

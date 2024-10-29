@@ -44,8 +44,9 @@
 
         <CertificateRow
           v-for="cert in key.certificates"
-          :key="cert.certificate_details.issuer_distinguished_name"
+          :key="cert.certificate_details.hash"
           :cert="cert"
+          :is-acme-certificate="isAcmeCertificate(cert)"
           @certificate-click="certificateClick(cert, key)"
         >
           <template #certificateAction>
@@ -75,8 +76,9 @@
 
         <CertificateRow
           v-for="cert in key.certificates"
-          :key="cert.certificate_details.issuer_distinguished_name"
+          :key="cert.certificate_details.hash"
           :cert="cert"
+          :is-acme-certificate="isAcmeCertificate(cert)"
           @certificate-click="certificateClick(cert, key)"
         >
           <template #certificateAction>
@@ -117,7 +119,7 @@
               <div>{{ $t('keys.request') }}</div>
             </div>
           </td>
-          <td colspan="4">{{ req.id }}</td>
+          <td colspan="5">{{ req.id }}</td>
           <td class="td-align-right">
             <xrd-button
               v-if="isAcmeCapable(req, key)"
@@ -156,7 +158,7 @@
     />
 
     <AcmeOrderCertificateDialog
-      :dialog="showAcmeOrderCertificateDialog"
+      v-if="selectedCsr && showAcmeOrderCertificateDialog"
       :csr="selectedCsr as TokenCertificateSigningRequest"
       :keyUsage="selectedKey?.usage"
       @cancel="showAcmeOrderCertificateDialog = false"
@@ -183,12 +185,13 @@ import KeyRow from './KeyRow.vue';
 import CertificateRow from './CertificateRow.vue';
 import KeysTableThead from './KeysTableThead.vue';
 import {
+  CertificateAuthority,
   Key,
   KeyUsageType,
   PossibleAction,
   TokenCertificate,
   TokenCertificateSigningRequest,
-  TokenType,
+  TokenType
 } from "@/openapi-types";
 import { Permissions } from '@/global';
 import * as Sorting from './keyColumnSorting';
@@ -295,6 +298,12 @@ export default defineComponent({
           && (key.usage == KeyUsageType.AUTHENTICATION || !certificationService.authentication_only),
       );
     },
+    isAcmeCertificate(cert: TokenCertificate): boolean {
+      const certIssuer = this.certificationServiceList.find(
+        (certificationService) => certificationService.name == cert.certificate_details.issuer_common_name,
+      );
+      return certIssuer?.acme_capable ?? false;
+    },
     canImportCertificate(key: Key): boolean {
       return (
         key.usage == KeyUsageType.AUTHENTICATION && this.hasPermission(Permissions.IMPORT_AUTH_CERT) ||
@@ -388,10 +397,11 @@ export default defineComponent({
 </script>
 
 <style lang="scss" scoped>
-@import '@/assets/tables';
+@use '@/assets/tables';
+@use '@/assets/colors';
 
 .cert-icon {
-  color: $XRoad-WarmGrey100;
+  color: colors.$WarmGrey100;
   margin-right: 20px;
 }
 

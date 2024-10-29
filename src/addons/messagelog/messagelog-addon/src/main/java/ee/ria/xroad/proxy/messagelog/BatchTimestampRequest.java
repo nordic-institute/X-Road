@@ -25,12 +25,13 @@
  */
 package ee.ria.xroad.proxy.messagelog;
 
+import ee.ria.xroad.common.conf.globalconf.GlobalConfProvider;
 import ee.ria.xroad.common.hashchain.HashChainBuilder;
 import ee.ria.xroad.common.messagelog.MessageLogProperties;
 
 import org.bouncycastle.tsp.TimeStampResponse;
 
-import static ee.ria.xroad.common.util.CryptoUtils.decodeBase64;
+import static ee.ria.xroad.common.util.EncoderUtils.decodeBase64;
 import static ee.ria.xroad.common.util.MessageFileNames.SIGNATURE;
 import static ee.ria.xroad.common.util.MessageFileNames.TS_HASH_CHAIN;
 import static java.nio.charset.StandardCharsets.UTF_8;
@@ -44,8 +45,8 @@ class BatchTimestampRequest extends AbstractTimestampRequest {
     private String[] hashChains = null;
 
 
-    BatchTimestampRequest(Long[] logRecords, String[] signatureHashes) {
-        super(logRecords);
+    BatchTimestampRequest(GlobalConfProvider globalConfProvider, Long[] logRecords, String[] signatureHashes) {
+        super(globalConfProvider, logRecords);
 
         this.signatureHashes = signatureHashes;
     }
@@ -55,7 +56,7 @@ class BatchTimestampRequest extends AbstractTimestampRequest {
         HashChainBuilder hcBuilder = buildHashChain(signatureHashes);
         hashChainResult = hcBuilder.getHashChainResult(TS_HASH_CHAIN);
         hashChains = hcBuilder.getHashChains(SIGNATURE);
-        return hashChainResult.getBytes(UTF_8.name());
+        return hashChainResult.getBytes(UTF_8);
     }
 
     @Override

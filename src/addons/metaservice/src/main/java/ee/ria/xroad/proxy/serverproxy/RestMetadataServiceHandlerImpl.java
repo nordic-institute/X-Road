@@ -26,12 +26,11 @@
 package ee.ria.xroad.proxy.serverproxy;
 
 import ee.ria.xroad.common.CodedException;
-import ee.ria.xroad.common.conf.serverconf.ServerConf;
+import ee.ria.xroad.common.conf.serverconf.ServerConfProvider;
 import ee.ria.xroad.common.conf.serverconf.model.DescriptionType;
 import ee.ria.xroad.common.identifier.ServiceId;
 import ee.ria.xroad.common.message.RestRequest;
 import ee.ria.xroad.common.message.RestResponse;
-import ee.ria.xroad.common.metadata.ObjectFactory;
 import ee.ria.xroad.common.opmonitoring.OpMonitoringData;
 import ee.ria.xroad.common.util.CachingStream;
 import ee.ria.xroad.common.util.MimeTypes;
@@ -81,9 +80,6 @@ public class RestMetadataServiceHandlerImpl implements RestServiceHandler {
 
     private static final String QUERY_PARAM_SERVICECODE = "serviceCode";
     private static final String DEFAULT_GETOPENAPI_CONTENT_TYPE = "text/plain";
-    private static final int BUFFER_SIZE_BYTES = 65536;
-
-    static final ObjectFactory OBJECT_FACTORY = new ObjectFactory();
 
     static final ObjectMapper MAPPER;
 
@@ -94,10 +90,16 @@ public class RestMetadataServiceHandlerImpl implements RestServiceHandler {
         MAPPER = mapper;
     }
 
-    private HttpClientCreator httpClientCreator = new HttpClientCreator();
+    private final ServerConfProvider serverConfProvider;
+    private final HttpClientCreator httpClientCreator;
 
     private RestResponse restResponse;
     private CachingStream restResponseBody;
+
+    public RestMetadataServiceHandlerImpl(ServerConfProvider serverConfProvider) {
+        this.serverConfProvider = serverConfProvider;
+        this.httpClientCreator = new HttpClientCreator(serverConfProvider);
+    }
 
     @Override
     public boolean shouldVerifyAccess() {
@@ -160,13 +162,13 @@ public class RestMetadataServiceHandlerImpl implements RestServiceHandler {
     private void handleListMethods(ProxyMessage requestProxyMessage) throws IOException {
         restResponse.getHeaders().add(new BasicHeader(MimeUtils.HEADER_CONTENT_TYPE, MimeTypes.JSON));
         MAPPER.writeValue(restResponseBody,
-                ServerConf.getRestServices(requestProxyMessage.getRest().getServiceId().getClientId()));
+                serverConfProvider.getRestServices(requestProxyMessage.getRest().getServiceId().getClientId()));
     }
 
     private void handleAllowedMethods(ProxyMessage requestProxyMessage) throws IOException {
         restResponse.getHeaders().add(new BasicHeader(MimeUtils.HEADER_CONTENT_TYPE, MimeTypes.JSON));
         MAPPER.writeValue(restResponseBody,
-                ServerConf.getAllowedRestServices(requestProxyMessage.getRest().getServiceId().getClientId(),
+                serverConfProvider.getAllowedRestServices(requestProxyMessage.getRest().getServiceId().getClientId(),
                         requestProxyMessage.getRest().getClientId())
         );
     }
@@ -193,17 +195,17 @@ public class RestMetadataServiceHandlerImpl implements RestServiceHandler {
                 targetServiceCode);
         log.trace("targetServiceId={}", targetServiceId);
 
-        DescriptionType descriptionType = ServerConf.getDescriptionType(targetServiceId);
+        DescriptionType descriptionType = serverConfProvider.getDescriptionType(targetServiceId);
         if (descriptionType == null) {
             throw new CodedException(X_INTERNAL_ERROR,
-                    String.format("Service not found: %s", targetServiceId.toString()));
+                    String.format("Service not found: %s", targetServiceId));
         }
         if (descriptionType != DescriptionType.OPENAPI3) {
             throw new CodedException(X_INTERNAL_ERROR,
-                    String.format("Invalid service type: %s", descriptionType.toString()));
+                    String.format("Invalid service type: %s", descriptionType));
         }
 
-        String serviceDescriptionURL = ServerConf.getServiceDescriptionURL(targetServiceId);
+        String serviceDescriptionURL = serverConfProvider.getServiceDescriptionURL(targetServiceId);
 
         HttpClient client = httpClientCreator.getHttpClient();
 

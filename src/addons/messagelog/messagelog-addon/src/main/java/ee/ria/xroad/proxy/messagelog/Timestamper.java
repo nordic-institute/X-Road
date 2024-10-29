@@ -26,8 +26,8 @@
 package ee.ria.xroad.proxy.messagelog;
 
 import ee.ria.xroad.common.CodedException;
-import ee.ria.xroad.common.conf.globalconf.GlobalConf;
-import ee.ria.xroad.common.conf.serverconf.ServerConf;
+import ee.ria.xroad.common.conf.globalconf.GlobalConfProvider;
+import ee.ria.xroad.common.conf.serverconf.ServerConfProvider;
 import ee.ria.xroad.common.messagelog.MessageRecord;
 
 import lombok.Data;
@@ -43,7 +43,10 @@ import static ee.ria.xroad.common.ErrorCodes.X_OUTDATED_GLOBALCONF;
  * Timestamper is responsible for routing timestamping tasks to the timestamp worker.
  */
 @Slf4j
+@RequiredArgsConstructor
 public class Timestamper {
+    private final GlobalConfProvider globalConfProvider;
+    private final ServerConfProvider serverConfProvider;
 
     @Data
     @RequiredArgsConstructor
@@ -78,11 +81,11 @@ public class Timestamper {
     }
 
     protected TimestamperWorker getWorkerImpl() {
-        return new TimestamperWorker(ServerConf.getTspUrl());
+        return new TimestamperWorker(globalConfProvider, serverConfProvider.getTspUrl());
     }
 
     public TimestampResult handleTimestampTask(TimestampTask message) {
-        if (!GlobalConf.isValid()) {
+        if (!globalConfProvider.isValid()) {
             return new TimestampFailed(message.getMessageRecords(),
                     new CodedException(X_OUTDATED_GLOBALCONF, "Global configuration is not valid"));
         }

@@ -27,6 +27,8 @@ package org.niis.xroad.common.managementrequest.model;
 
 import ee.ria.xroad.common.CodedException;
 import ee.ria.xroad.common.SystemProperties;
+import ee.ria.xroad.common.crypto.identifier.DigestAlgorithm;
+import ee.ria.xroad.common.crypto.identifier.SignAlgorithm;
 import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.message.MultipartOutputStream;
 import ee.ria.xroad.common.message.SoapMessageImpl;
@@ -39,7 +41,6 @@ import ee.ria.xroad.signer.protocol.dto.CertificateInfo;
 
 import lombok.extern.slf4j.Slf4j;
 
-
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
@@ -49,14 +50,13 @@ import static ee.ria.xroad.common.ErrorCodes.X_CANNOT_CREATE_SIGNATURE;
 import static ee.ria.xroad.common.ErrorCodes.X_CERT_VALIDATION;
 import static ee.ria.xroad.common.ErrorCodes.translateException;
 import static ee.ria.xroad.common.ErrorCodes.translateWithPrefix;
-import static ee.ria.xroad.common.util.CryptoUtils.calculateDigest;
-import static ee.ria.xroad.common.util.CryptoUtils.readCertificate;
+import static ee.ria.xroad.common.crypto.Digests.calculateDigest;
 import static ee.ria.xroad.common.util.MimeUtils.HEADER_SIG_ALGO_ID;
 import static ee.ria.xroad.common.util.MimeUtils.mpRelatedContentType;
 
 @Slf4j
 public class AuthCertRegRequest implements ManagementRequest {
-    private static final String SIGNATURE_DIGEST_ALGORITHM_ID =
+    private static final DigestAlgorithm SIGNATURE_DIGEST_ALGORITHM_ID =
             SystemProperties.getAuthCertRegSignatureDigestAlgorithmId();
 
     private final byte[] authCert;
@@ -109,7 +109,7 @@ public class AuthCertRegRequest implements ManagementRequest {
 
     private void verifyAuthCert() {
         try {
-            readCertificate(authCert).checkValidity();
+            CryptoUtils.readCertificate(authCert).checkValidity();
         } catch (Exception e) {
             throw new CodedException(X_CERT_VALIDATION, "Authentication certificate is invalid: %s", e.getMessage());
         }
@@ -131,21 +131,21 @@ public class AuthCertRegRequest implements ManagementRequest {
         KeyIdInfo authKeyId = getAuthKeyId();
         MemberSigningInfoDto memberSigningInfo = getMemberSigningInfo();
 
-        String authKeySignAlogId = CryptoUtils.getSignatureAlgorithmId(SIGNATURE_DIGEST_ALGORITHM_ID,
-                authKeyId.getSignMechanismName());
-        String ownerSignAlgoId = CryptoUtils.getSignatureAlgorithmId(SIGNATURE_DIGEST_ALGORITHM_ID,
-                memberSigningInfo.getSignMechanismName());
+        var authKeySignAlogId = SignAlgorithm.ofDigestAndMechanism(SIGNATURE_DIGEST_ALGORITHM_ID,
+                authKeyId.signMechanismName());
+        var ownerSignAlgoId = SignAlgorithm.ofDigestAndMechanism(SIGNATURE_DIGEST_ALGORITHM_ID,
+                memberSigningInfo.signMechanismName());
 
-        String[] authSignaturePartHeaders = {HEADER_SIG_ALGO_ID + ": " + authKeySignAlogId};
-        String[] ownerSignaturePartHeaders = {HEADER_SIG_ALGO_ID + ": " + ownerSignAlgoId};
+        String[] authSignaturePartHeaders = {HEADER_SIG_ALGO_ID + ": " + authKeySignAlogId.name()};
+        String[] ownerSignaturePartHeaders = {HEADER_SIG_ALGO_ID + ": " + ownerSignAlgoId.name()};
 
         byte[] digest = calculateDigest(SIGNATURE_DIGEST_ALGORITHM_ID, dataToSign);
 
         multipart.startPart(MimeTypes.BINARY, authSignaturePartHeaders);
-        multipart.write(createSignature(authKeyId.getKeyId(), authKeySignAlogId, digest));
+        multipart.write(createSignature(authKeyId.keyId(), authKeySignAlogId, digest));
 
         multipart.startPart(MimeTypes.BINARY, ownerSignaturePartHeaders);
-        multipart.write(createSignature(memberSigningInfo.getKeyId(), ownerSignAlgoId, digest));
+        multipart.write(createSignature(memberSigningInfo.keyId(), ownerSignAlgoId, digest));
     }
 
     private void writeSoap() throws IOException {
@@ -166,7 +166,7 @@ public class AuthCertRegRequest implements ManagementRequest {
         try {
             MemberSigningInfoDto signingInfo = SignerProxy.getMemberSigningInfo(owner);
 
-            ownerCert = signingInfo.getCert();
+            ownerCert = signingInfo.cert();
 
             return signingInfo;
         } catch (Exception e) {
@@ -174,7 +174,7 @@ public class AuthCertRegRequest implements ManagementRequest {
         }
     }
 
-    private static byte[] createSignature(String keyId, String signAlgoId, byte[] digest) {
+    private static byte[] createSignature(String keyId, SignAlgorithm signAlgoId, byte[] digest) {
         try {
             return SignerProxy.sign(keyId, signAlgoId, digest);
         } catch (Exception e) {

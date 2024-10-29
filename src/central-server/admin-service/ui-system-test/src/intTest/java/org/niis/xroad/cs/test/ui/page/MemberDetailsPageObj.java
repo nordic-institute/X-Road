@@ -33,7 +33,9 @@ import static com.codeborne.selenide.Selenide.$x;
 public class MemberDetailsPageObj {
     private final EditNameDialog editNameDialog = new EditNameDialog();
     private final DeleteDialog deleteDialog = new DeleteDialog();
+    private final UnregisterDialog unregisterDialog = new UnregisterDialog();
     private final OwnedServers ownedServers = new OwnedServers();
+    private final UsedServers usedServers = new UsedServers();
 
 
     public SelenideElement memberNameCard(String name) {
@@ -68,6 +70,10 @@ public class MemberDetailsPageObj {
         return $x("//div[@id='owned-servers']//div[@data-test='search-query-field']");
     }
 
+    public SelenideElement usedServersSearch() {
+        return $x("//div[@id='used-servers']//div[@data-test='search-query-field']");
+    }
+
     public SelenideElement globalGroupsSearch() {
         return $x("//div[@id='global-groups']//div[@data-test='search-query-field']");
     }
@@ -84,8 +90,16 @@ public class MemberDetailsPageObj {
         return deleteDialog;
     }
 
+    public UnregisterDialog unregisterDialog() {
+        return unregisterDialog;
+    }
+
     public OwnedServers ownedServers() {
         return ownedServers;
+    }
+
+    public UsedServers usedServers() {
+        return usedServers;
     }
 
     public class OwnedServers {
@@ -94,7 +108,23 @@ public class MemberDetailsPageObj {
         }
 
         public SelenideElement server(String serverCode) {
-            return $x(String.format("//div[@data-test='owned-servers-table']//div[@data-test='owned-server-%s']",
+            return $x(String.format("//div[@data-test='owned-servers-table']//div[@data-test='server-%s']",
+                    serverCode));
+        }
+    }
+
+    public class UsedServers {
+        public SelenideElement table() {
+            return $x("//div[@data-test='used-servers-table']");
+        }
+
+        public SelenideElement server(String serverCode) {
+            return $x(String.format("//div[@data-test='used-servers-table']//div[@data-test='server-%s']",
+                    serverCode));
+        }
+
+        public SelenideElement btnUnregister(String serverCode) {
+            return $x(String.format("//div[@data-test='used-servers-table']//button[@data-test='unregister-%s']",
                     serverCode));
         }
     }
@@ -111,4 +141,19 @@ public class MemberDetailsPageObj {
             return $x("//div[@data-test='member-code']");
         }
     }
+
+    public class UnregisterDialog {
+        public SelenideElement dialog() {
+            return $x("//div[@data-test='unregister-member']");
+        }
+
+        public SelenideElement btnCancel() {
+            return $x("//div[@data-test='unregister-member']//button[@data-test='dialog-cancel-button']");
+        }
+
+        public SelenideElement btnConfirm() {
+            return $x("//div[@data-test='unregister-member']//button[@data-test='dialog-save-button']");
+        }
+    }
+
 }

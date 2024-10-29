@@ -27,9 +27,10 @@ package ee.ria.xroad.asicverifier;
 
 import ee.ria.xroad.common.ExpectedCodedException;
 import ee.ria.xroad.common.SystemProperties;
+import ee.ria.xroad.common.TestCertUtil;
 import ee.ria.xroad.common.asic.AsicContainerVerifier;
 import ee.ria.xroad.common.asic.AsicUtils;
-import ee.ria.xroad.common.conf.globalconf.GlobalConf;
+import ee.ria.xroad.common.conf.globalconf.GlobalConfProvider;
 import ee.ria.xroad.common.conf.globalconf.TestGlobalConfImpl;
 
 import lombok.RequiredArgsConstructor;
@@ -41,6 +42,7 @@ import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
 import org.junit.runners.Parameterized.Parameters;
 
+import java.security.cert.X509Certificate;
 import java.util.Arrays;
 import java.util.Collection;
 
@@ -53,9 +55,10 @@ import java.util.Collection;
 //@Ignore(value = "Test data must be updated to conform to the latest changes in X-Road message headers")
 public class AsicContainerVerifierTest {
 
+    private static GlobalConfProvider globalConfProvider;
+
     private final String containerFile;
     private final String errorCode;
-
     @Rule
     public ExpectedCodedException thrown = ExpectedCodedException.none();
 
@@ -68,7 +71,7 @@ public class AsicContainerVerifierTest {
         System.setProperty(SystemProperties.CONFIGURATION_ANCHOR_FILE,
                 "../common/common-globalconf/src/test/resources/configuration-anchor1.xml");
 
-        GlobalConf.reload(new TestGlobalConfImpl());
+        globalConfProvider = new TestGlobalConfImpl();
     }
 
     /**
@@ -110,7 +113,7 @@ public class AsicContainerVerifierTest {
         log.info("Verifying ASiC container \"" + fileName + "\" ...");
 
         try {
-            AsicContainerVerifier verifier = new AsicContainerVerifier("src/test/resources/" + fileName);
+            AsicContainerVerifier verifier = new AsicContainerVerifier(globalConfProvider, "src/test/resources/" + fileName);
             verifier.verify();
 
             log.info(AsicUtils.buildSuccessOutput(verifier));
@@ -118,6 +121,5 @@ public class AsicContainerVerifierTest {
             log.error(AsicUtils.buildFailureOutput(e));
             throw e;
         }
-
     }
 }

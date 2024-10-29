@@ -29,6 +29,7 @@ import ee.ria.xroad.common.AuditLogger;
 import ee.ria.xroad.common.SystemProperties;
 import ee.ria.xroad.common.SystemPropertiesLoader;
 import ee.ria.xroad.common.Version;
+import ee.ria.xroad.common.crypto.identifier.SignAlgorithm;
 import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.identifier.SecurityServerId;
 import ee.ria.xroad.common.util.CryptoUtils;
@@ -67,10 +68,9 @@ import java.util.Scanner;
 
 import static ee.ria.xroad.common.AuditLogger.XROAD_USER;
 import static ee.ria.xroad.common.SystemProperties.CONF_FILE_SIGNER;
-import static ee.ria.xroad.common.util.CryptoUtils.SHA512_ID;
-import static ee.ria.xroad.common.util.CryptoUtils.calculateDigest;
-import static ee.ria.xroad.common.util.CryptoUtils.encodeBase64;
-import static ee.ria.xroad.common.util.CryptoUtils.readCertificate;
+import static ee.ria.xroad.common.crypto.Digests.calculateDigest;
+import static ee.ria.xroad.common.crypto.identifier.DigestAlgorithm.SHA512;
+import static ee.ria.xroad.common.util.EncoderUtils.encodeBase64;
 import static ee.ria.xroad.signer.console.AuditLogEventsAndParams.ACTIVATE_THE_CERTIFICATE_EVENT;
 import static ee.ria.xroad.signer.console.AuditLogEventsAndParams.CERT_FILE_NAME_PARAM;
 import static ee.ria.xroad.signer.console.AuditLogEventsAndParams.CERT_ID_PARAM;
@@ -264,7 +264,7 @@ public class SignerCLI {
     public void getKeyIdForCertHash(@Param(name = "certHash", description = "Certificare hash") String certHash)
             throws Exception {
         SignerProxy.KeyIdInfo keyId = SignerProxy.getKeyIdForCertHash(certHash);
-        System.out.println(keyId.getKeyId());
+        System.out.println(keyId.keyId());
     }
 
     /**
@@ -427,9 +427,9 @@ public class SignerCLI {
         final SignerProxy.MemberSigningInfoDto response = SignerProxy.getMemberSigningInfo(clientId);
 
         System.out.println("Signing info for member " + clientId + ":");
-        System.out.println("\tKey id:         " + response.getKeyId());
-        System.out.println("\tCert:           " + response.getCert());
-        System.out.println("\tSign mechanism: " + response.getSignMechanismName());
+        System.out.println("\tKey id:         " + response.keyId());
+        System.out.println("\tCert:           " + response.cert());
+        System.out.println("\tSign mechanism: " + response.signMechanismName());
     }
 
     /**
@@ -573,11 +573,11 @@ public class SignerCLI {
     public void sign(@Param(name = "keyId", description = "Key ID") String keyId,
                      @Param(name = "data", description = "Data to sign (<data1> <data2> ...)") String... data) throws Exception {
 
-        final String signMechanism = SignerProxy.getSignMechanism(keyId);
-        String signAlgoId = CryptoUtils.getSignatureAlgorithmId(SHA512_ID, signMechanism);
+        final var signMechanism = SignerProxy.getSignMechanism(keyId);
+        final var signAlgoId = SignAlgorithm.ofDigestAndMechanism(SHA512, signMechanism);
 
         for (String d : data) {
-            byte[] digest = calculateDigest(SHA512_ID, d.getBytes(UTF_8));
+            byte[] digest = calculateDigest(SHA512, d.getBytes(UTF_8));
             final byte[] signature = SignerProxy.sign(keyId, signAlgoId, digest);
 
             System.out.println("Signature: " + Arrays.toString(signature));
@@ -595,10 +595,10 @@ public class SignerCLI {
     public void signFile(@Param(name = "keyId", description = "Key ID") String keyId,
                          @Param(name = "fileName", description = "File name") String fileName) throws Exception {
 
-        final String signMechanism = SignerProxy.getSignMechanism(keyId);
-        String signAlgoId = CryptoUtils.getSignatureAlgorithmId(SHA512_ID, signMechanism);
+        final var signMechanism = SignerProxy.getSignMechanism(keyId);
+        final var signAlgoId = SignAlgorithm.ofDigestAndMechanism(SHA512, signMechanism);
 
-        byte[] digest = calculateDigest(SHA512_ID, fileToBytes(fileName));
+        byte[] digest = calculateDigest(SHA512, fileToBytes(fileName));
         final byte[] signed = SignerProxy.sign(keyId, signAlgoId, digest);
 
         System.out.println("Signature: " + Arrays.toString(signed));
@@ -625,10 +625,10 @@ public class SignerCLI {
     public void signBenchmark(@Param(name = "keyId", description = "Key ID") String keyId,
                               @Param(name = "iterations", description = "iterations") int iterations) throws Exception {
         String data = "Hello world!";
-        final String signMechanism = SignerProxy.getSignMechanism(keyId);
+        final var signMechanism = SignerProxy.getSignMechanism(keyId);
+        final var signAlgoId = SignAlgorithm.ofDigestAndMechanism(SHA512, signMechanism);
 
-        String signAlgoId = CryptoUtils.getSignatureAlgorithmId(SHA512_ID, signMechanism);
-        final byte[] digest = calculateDigest(SHA512_ID, data.getBytes(UTF_8));
+        final byte[] digest = calculateDigest(SHA512, data.getBytes(UTF_8));
         final long startTime = System.nanoTime();
 
         for (int i = 0; i < iterations; i++) {
@@ -725,7 +725,7 @@ public class SignerCLI {
         ClientId.Conf memberId = ClientId.Conf.create("FOO", "BAR", "BAZ");
 
         final byte[] certificateBytes = SignerProxy.generateSelfSignedCert(keyId, memberId, SIGNING, cn, notBefore, notAfter);
-        X509Certificate cert = readCertificate(certificateBytes);
+        X509Certificate cert = CryptoUtils.readCertificate(certificateBytes);
 
         System.out.println("Certificate base64:");
         System.out.println(encodeBase64(cert.getEncoded()));
@@ -766,7 +766,7 @@ public class SignerCLI {
             for (KeyInfo key : token.getKeyInfo()) {
                 for (CertificateInfo cert : key.getCerts()) {
                     if (certId.equals(cert.getId())) {
-                        X509Certificate x509 = readCertificate(cert.getCertificateBytes());
+                        X509Certificate x509 = CryptoUtils.readCertificate(cert.getCertificateBytes());
                         System.out.println(x509);
                         return;
                     }

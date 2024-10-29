@@ -25,12 +25,15 @@
  */
 package org.niis.xroad.securityserver.restapi.wsdl;
 
+import ee.ria.xroad.common.conf.serverconf.ServerConfProvider;
 import ee.ria.xroad.common.util.CryptoUtils;
 
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.niis.xroad.restapi.exceptions.ErrorDeviation;
 import org.niis.xroad.restapi.service.ServiceException;
+import org.springframework.stereotype.Component;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
@@ -77,6 +80,8 @@ import static org.niis.xroad.restapi.exceptions.DeviationCodes.ERROR_WSDL_DOWNLO
  * Utils for WSDL parsing
  */
 @Slf4j
+@Component
+@RequiredArgsConstructor
 public final class WsdlParser {
     private static final String SOAP_NAMESPACE =
             "http://schemas.xmlsoap.org/wsdl/soap/";
@@ -100,18 +105,18 @@ public final class WsdlParser {
     private static final int BUF_SIZE = 8192;
     private static final long MAX_DESCRIPTION_SIZE = 10 * 1024 * 1024;
 
-    private WsdlParser() {
-    }
+    private final ServerConfProvider serverConfProvider;
 
     /**
      * Extracts the list of services that are described in the given WSDL.
+     *
      * @param wsdlUrl the URL from which the WSDL is available
      * @return collection of ServiceInfo objects
      * @throws WsdlNotFoundException if a WSDL was not found at given URL
-     * @throws WsdlParseException if anything else than WsdlNotFoundException went wrong in parsing (e.g. document
-     * size exceeds the limit defined by {@link #MAX_DESCRIPTION_SIZE})
+     * @throws WsdlParseException    if anything else than WsdlNotFoundException went wrong in parsing (e.g. document
+     *                               size exceeds the limit defined by {@link #MAX_DESCRIPTION_SIZE})
      */
-    public static Collection<ServiceInfo> parseWSDL(String wsdlUrl) throws WsdlNotFoundException, WsdlParseException {
+    public Collection<ServiceInfo> parseWSDL(String wsdlUrl) throws WsdlNotFoundException, WsdlParseException {
         try {
             return internalParseWSDL(wsdlUrl);
         } catch (PrivateWsdlNotFoundException e) {
@@ -139,7 +144,7 @@ public final class WsdlParser {
 
     }
 
-    private static Collection<ServiceInfo> internalParseWSDL(String wsdlUrl) throws Exception {
+    private Collection<ServiceInfo> internalParseWSDL(String wsdlUrl) throws Exception {
         log.info("running WSDL parser");
         WSDLFactory wsdlFactory = WSDLFactory.newInstance(
                 "com.ibm.wsdl.factory.WSDLFactoryImpl");
@@ -149,7 +154,7 @@ public final class WsdlParser {
         wsdlReader.setFeature("com.ibm.wsdl.parseXMLSchemas", false);
 
         Definition definition =
-                wsdlReader.readWSDL(new TrustAllSslCertsWsdlLocator(wsdlUrl));
+                wsdlReader.readWSDL(new TrustAllSslCertsWsdlLocator(serverConfProvider, wsdlUrl));
 
         Collection<Service> services = definition.getServices().values();
 
@@ -261,9 +266,10 @@ public final class WsdlParser {
 
         /**
          * Constructs a new service info object.
-         * @param name the name of the service
-         * @param title the title of the service
-         * @param url the URL of the service
+         *
+         * @param name    the name of the service
+         * @param title   the title of the service
+         * @param url     the URL of the service
          * @param version the version of the service
          */
         public ServiceInfo(String name, String title, String url,
@@ -285,10 +291,11 @@ public final class WsdlParser {
     }
 
     private static final class TrustAllSslCertsWsdlLocator implements WSDLLocator {
-
+        private final ServerConfProvider serverConfProvider;
         private final String wsdlUrl;
 
-        TrustAllSslCertsWsdlLocator(String wsdlUrl) {
+        TrustAllSslCertsWsdlLocator(ServerConfProvider serverConfProvider, String wsdlUrl) {
+            this.serverConfProvider = serverConfProvider;
             this.wsdlUrl = wsdlUrl;
         }
 
@@ -374,7 +381,7 @@ public final class WsdlParser {
             };
 
             SSLContext ctx = SSLContext.getInstance(CryptoUtils.SSL_PROTOCOL);
-            ctx.init(new KeyManager[]{new ClientSslKeyManager()}, trustAllCerts, new SecureRandom());
+            ctx.init(new KeyManager[]{new ClientSslKeyManager(serverConfProvider)}, trustAllCerts, new SecureRandom());
 
             conn.setSSLSocketFactory(ctx.getSocketFactory());
             conn.setHostnameVerifier(HostnameVerifiers.ACCEPT_ALL);

@@ -26,6 +26,7 @@
 package ee.ria.xroad.common.conf.globalconf;
 
 import ee.ria.xroad.common.CodedException;
+import ee.ria.xroad.common.crypto.identifier.DigestAlgorithm;
 
 import lombok.Getter;
 import org.apache.commons.lang3.StringUtils;
@@ -73,8 +74,8 @@ final class ConfigurationFile extends AbstractConfigurationPart {
         return parameters.get(HEADER_CONTENT_LOCATION);
     }
 
-    String getHashAlgorithmId() {
-        return parameters.get(HEADER_HASH_ALGORITHM_ID);
+    DigestAlgorithm getHashAlgorithmId() {
+        return DigestAlgorithm.ofUri(parameters.get(HEADER_HASH_ALGORITHM_ID));
     }
 
     String getContentFileName() {

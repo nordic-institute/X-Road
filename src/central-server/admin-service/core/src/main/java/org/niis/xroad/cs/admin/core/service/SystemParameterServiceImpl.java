@@ -26,8 +26,8 @@
  */
 package org.niis.xroad.cs.admin.core.service;
 
+import ee.ria.xroad.common.crypto.identifier.DigestAlgorithm;
 import ee.ria.xroad.common.identifier.ClientId;
-import ee.ria.xroad.common.util.CryptoUtils;
 
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
@@ -41,8 +41,6 @@ import org.niis.xroad.cs.admin.core.entity.mapper.SystemParameterMapper;
 import org.niis.xroad.cs.admin.core.repository.SystemParameterRepository;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
-
-import javax.xml.crypto.dsig.DigestMethod;
 
 import java.util.Arrays;
 import java.util.Optional;
@@ -72,13 +70,13 @@ public class SystemParameterServiceImpl implements SystemParameterService {
     public static final Integer DEFAULT_TIME_STAMPING_INTERVAL_SECONDS = 60;
 
     public static final String CONF_SIGN_DIGEST_ALGO_ID = "confSignDigestAlgoId";
-    public static final String DEFAULT_CONF_SIGN_DIGEST_ALGO_ID = CryptoUtils.SHA512_ID;
+    public static final DigestAlgorithm DEFAULT_CONF_SIGN_DIGEST_ALGO_ID = DigestAlgorithm.SHA512;
 
     public static final String CONF_HASH_ALGO_URI = "confHashAlgoUri";
-    public static final String DEFAULT_CONF_HASH_ALGO_URI = DigestMethod.SHA512;
+    public static final DigestAlgorithm DEFAULT_CONF_HASH_ALGO_URI = DigestAlgorithm.SHA512;
 
     public static final String CONF_SIGN_CERT_HASH_ALGO_URI = "confSignCertHashAlgoUri";
-    public static final String DEFAULT_CONF_SIGN_CERT_HASH_ALGO_URI = DigestMethod.SHA512;
+    public static final DigestAlgorithm DEFAULT_CONF_SIGN_CERT_HASH_ALGO_URI = DigestAlgorithm.SHA512;
 
     public static final String CONF_EXPIRE_INTERVAL_SECONDS = "confExpireIntervalSeconds";
     public static final Integer DEFAULT_CONF_EXPIRE_INTERVAL_SECONDS = 600;
@@ -115,18 +113,24 @@ public class SystemParameterServiceImpl implements SystemParameterService {
 
 
     @Override
-    public String getConfSignCertHashAlgoUri() {
-        return getParameterValue(CONF_SIGN_CERT_HASH_ALGO_URI, DEFAULT_CONF_SIGN_CERT_HASH_ALGO_URI);
+    public DigestAlgorithm getConfSignCertHashAlgoUri() {
+        return Optional.ofNullable(getParameterValue(CONF_SIGN_CERT_HASH_ALGO_URI))
+                .map(DigestAlgorithm::ofUri)
+                .orElse(DEFAULT_CONF_SIGN_CERT_HASH_ALGO_URI);
     }
 
     @Override
-    public String getConfSignDigestAlgoId() {
-        return getParameterValue(CONF_SIGN_DIGEST_ALGO_ID, DEFAULT_CONF_SIGN_DIGEST_ALGO_ID);
+    public DigestAlgorithm getConfSignDigestAlgoId() {
+        return Optional.ofNullable(getParameterValue(CONF_SIGN_DIGEST_ALGO_ID))
+                .map(DigestAlgorithm::ofName)
+                .orElse(DEFAULT_CONF_SIGN_DIGEST_ALGO_ID);
     }
 
     @Override
-    public String getConfHashAlgoUri() {
-        return getParameterValue(CONF_HASH_ALGO_URI, DEFAULT_CONF_HASH_ALGO_URI);
+    public DigestAlgorithm getConfHashAlgoUri() {
+        return Optional.ofNullable(getParameterValue(CONF_HASH_ALGO_URI))
+                .map(DigestAlgorithm::ofUri)
+                .orElse(DEFAULT_CONF_HASH_ALGO_URI);
     }
 
     @Override

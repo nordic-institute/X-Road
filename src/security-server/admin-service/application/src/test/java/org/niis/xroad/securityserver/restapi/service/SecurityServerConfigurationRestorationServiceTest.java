@@ -65,7 +65,7 @@ public class SecurityServerConfigurationRestorationServiceTest extends AbstractS
         configurationRestorationService.setConfigurationRestoreScriptPath(MOCK_SUCCESS_SCRIPT);
         File tempBackupFile = tempFolder.newFile(tempBackupFilename);
         when(backupRepository.getConfigurationBackupPath()).thenReturn(tempBackupFile.getParent() + File.separator);
-        notificationService = new NotificationService(globalConfFacade, tokenService) {
+        notificationService = new NotificationService(globalConfProvider, tokenService) {
             @Override
             public synchronized OffsetDateTime getBackupRestoreRunningSince() {
                 return null;

@@ -26,7 +26,6 @@
 package ee.ria.xroad.proxy.testsuite.testcases;
 
 import ee.ria.xroad.common.conf.serverconf.IsAuthentication;
-import ee.ria.xroad.common.conf.serverconf.ServerConf;
 import ee.ria.xroad.common.conf.serverconf.model.ClientType;
 import ee.ria.xroad.common.conf.serverconf.model.DescriptionType;
 import ee.ria.xroad.common.conf.serverconf.model.ServerConfType;
@@ -126,7 +125,7 @@ public class GetWSDLMessage extends MessageTestCase {
     @Override
     protected void startUp() throws Exception {
         super.startUp();
-        ServerConf.reload(new TestSuiteServerConf() {
+        serverConfProvider.setServerConfProvider(new TestSuiteServerConf() {
             @Override
             public IsAuthentication getIsAuthentication(ClientId client) {
                 return IsAuthentication.NOSSL;

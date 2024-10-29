@@ -25,6 +25,8 @@
  */
 package org.niis.xroad.cs.admin.core.facade;
 
+import ee.ria.xroad.common.crypto.identifier.SignAlgorithm;
+import ee.ria.xroad.common.crypto.identifier.SignMechanism;
 import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.signer.SignerProxy;
 import ee.ria.xroad.signer.protocol.RpcSignerClient;
@@ -32,9 +34,10 @@ import ee.ria.xroad.signer.protocol.dto.KeyInfo;
 import ee.ria.xroad.signer.protocol.dto.KeyUsageInfo;
 import ee.ria.xroad.signer.protocol.dto.TokenInfo;
 
-import jakarta.annotation.PostConstruct;
 import lombok.extern.slf4j.Slf4j;
 import org.niis.xroad.cs.admin.api.facade.SignerProxyFacade;
+import org.springframework.beans.factory.DisposableBean;
+import org.springframework.beans.factory.InitializingBean;
 import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Component;
 
@@ -49,12 +52,17 @@ import java.util.List;
 @Slf4j
 @Component
 @Profile("!int-test")
-public class SignerProxyFacadeImpl implements SignerProxyFacade {
+public class SignerProxyFacadeImpl implements SignerProxyFacade, InitializingBean, DisposableBean {
 
-    @PostConstruct
-    void init() throws Exception {
+    @Override
+    public void afterPropertiesSet() throws Exception {
         RpcSignerClient.init();
         log.info("SignerService rpcClient initialized with admin-service config");
+    }
+
+    @Override
+    public void destroy() {
+        RpcSignerClient.shutdown();
     }
 
     /**
@@ -118,14 +126,14 @@ public class SignerProxyFacadeImpl implements SignerProxyFacade {
     /**
      * {ling {@link SignerProxy#getSignMechanism(String)}}
      */
-    public String getSignMechanism(String keyId) throws Exception {
+    public SignMechanism getSignMechanism(String keyId) throws Exception {
         return SignerProxy.getSignMechanism(keyId);
     }
 
     /**
      * {@link SignerProxy#sign(String, String, byte[])}
      */
-    public byte[] sign(String keyId, String signatureAlgorithmId, byte[] digest) throws Exception {
+    public byte[] sign(String keyId, SignAlgorithm signatureAlgorithmId, byte[] digest) throws Exception {
         return SignerProxy.sign(keyId, signatureAlgorithmId, digest);
     }
 }

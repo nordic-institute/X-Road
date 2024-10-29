@@ -1,0 +1,17 @@
+plugins {
+    id 'java-library'
+}
+
+dependencies {
+    implementation project(':common:common-core')
+    implementation project(':common:common-domain')
+    implementation project(':common:common-verifier')
+    implementation project(':signer-protocol')
+
+    implementation(libs.acme4j)
+
+    implementation(platform(libs.springBoot.bom))
+
+    implementation("org.springframework.boot:spring-boot-starter-web")
+}
+

@@ -25,7 +25,8 @@
  */
 package ee.ria.xroad.signer.tokenmanager.token;
 
-import ee.ria.xroad.common.util.CryptoUtils;
+import ee.ria.xroad.common.crypto.identifier.SignMechanism;
+import ee.ria.xroad.common.util.EncoderUtils;
 import ee.ria.xroad.signer.tokenmanager.module.PrivKeyAttributes;
 import ee.ria.xroad.signer.tokenmanager.module.PubKeyAttributes;
 import ee.ria.xroad.signer.util.SignerUtil;
@@ -40,33 +41,33 @@ import lombok.Value;
 @EqualsAndHashCode(exclude = "readOnly")
 public class HardwareTokenType implements TokenType {
 
-    private final String moduleType;
+    String moduleType;
 
-    private final String tokenIdFormat;
+    String tokenIdFormat;
 
-    private final iaik.pkcs.pkcs11.Token token;
+    iaik.pkcs.pkcs11.Token token;
 
-    private final boolean readOnly;
+    boolean readOnly;
 
-    private final Integer slotIndex;
+    Integer slotIndex;
 
-    private final String serialNumber;
+    String serialNumber;
 
-    private final String label;
+    String label;
 
-    private boolean pinVerificationPerSigning;
+    boolean pinVerificationPerSigning;
 
-    private boolean batchSigningEnabled;
+    boolean batchSigningEnabled;
 
-    private final String signMechanismName;
+    SignMechanism signMechanismName;
 
-    private final PrivKeyAttributes privKeyAttributes;
+    PrivKeyAttributes privKeyAttributes;
 
-    private final PubKeyAttributes pubKeyAttributes;
+    PubKeyAttributes pubKeyAttributes;
 
     @Override
     public String getId() {
-        return CryptoUtils.encodeHex(SignerUtil.getFormattedTokenId(tokenIdFormat, moduleType, token).getBytes());
+        return EncoderUtils.encodeHex(SignerUtil.getFormattedTokenId(tokenIdFormat, moduleType, token).getBytes());
     }
 
 }

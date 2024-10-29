@@ -191,11 +191,11 @@ export default defineComponent({
 </script>
 
 <style lang="scss" scoped>
-@import '@/assets/colors';
-@import '@/assets/tables';
+@use '@/assets/colors';
+@use '@/assets/tables';
 
 .generated {
-  color: $XRoad-Black50;
+  color: colors.$Black50;
 }
 
 .wrap-right-tight {

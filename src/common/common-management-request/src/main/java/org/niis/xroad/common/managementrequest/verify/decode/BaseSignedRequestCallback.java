@@ -28,16 +28,19 @@
 package org.niis.xroad.common.managementrequest.verify.decode;
 
 import ee.ria.xroad.common.CodedException;
+import ee.ria.xroad.common.conf.globalconf.GlobalConfProvider;
+import ee.ria.xroad.common.crypto.identifier.SignAlgorithm;
 import ee.ria.xroad.common.message.SoapMessageImpl;
+import ee.ria.xroad.common.util.CryptoUtils;
 import ee.ria.xroad.common.util.MimeUtils;
 
-import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.IOUtils;
 import org.bouncycastle.cert.ocsp.OCSPResp;
 import org.niis.xroad.common.managementrequest.model.ManagementRequestType;
 import org.niis.xroad.common.managementrequest.verify.ManagementRequestParser;
 import org.niis.xroad.common.managementrequest.verify.ManagementRequestVerifier;
+import org.niis.xroad.common.managementrequest.verify.decode.util.ManagementRequestCertVerifier;
 import org.niis.xroad.common.managementrequest.verify.decode.util.ManagementRequestVerificationUtils;
 
 import java.io.IOException;
@@ -48,31 +51,37 @@ import java.util.Map;
 import static ee.ria.xroad.common.ErrorCodes.X_INTERNAL_ERROR;
 import static ee.ria.xroad.common.ErrorCodes.X_INVALID_SIGNATURE_VALUE;
 import static ee.ria.xroad.common.ErrorCodes.translateException;
-import static ee.ria.xroad.common.util.CryptoUtils.readCertificate;
-import static org.niis.xroad.common.managementrequest.verify.decode.util.ManagementRequestVerificationUtils.verifyCertificate;
 
 @Slf4j
-@RequiredArgsConstructor
 public abstract class BaseSignedRequestCallback<T> implements ManagementRequestDecoderCallback {
-
+    protected final GlobalConfProvider globalConfProvider;
+    protected final ManagementRequestCertVerifier managementRequestCertVerifier;
     protected final ManagementRequestVerifier.DecoderCallback rootCallback;
 
     private final ManagementRequestType requestType;
 
     private byte[] clientSignatureBytes;
-    private String clientSignatureAlgoId;
+    private SignAlgorithm clientSignatureAlgoId;
 
     protected byte[] clientCertBytes;
     private byte[] clientCertOcspBytes;
 
     private T request;
 
+    protected BaseSignedRequestCallback(GlobalConfProvider globalConfProvider, ManagementRequestVerifier.DecoderCallback rootCallback,
+                                        ManagementRequestType requestType) {
+        this.globalConfProvider = globalConfProvider;
+        this.rootCallback = rootCallback;
+        this.requestType = requestType;
+        this.managementRequestCertVerifier = new ManagementRequestCertVerifier(globalConfProvider);
+    }
+
     @Override
     public void attachment(InputStream content, Map<String, String> additionalHeaders) throws IOException {
         if (clientSignatureBytes == null) {
             log.info("Reading client signature");
 
-            clientSignatureAlgoId = additionalHeaders.get(MimeUtils.HEADER_SIG_ALGO_ID);
+            clientSignatureAlgoId = SignAlgorithm.ofName(additionalHeaders.get(MimeUtils.HEADER_SIG_ALGO_ID));
             clientSignatureBytes = IOUtils.toByteArray(content);
         } else if (clientCertBytes == null) {
             log.info("Reading client cert");
@@ -109,7 +118,7 @@ public abstract class BaseSignedRequestCallback<T> implements ManagementRequestD
 
         log.info("Verifying client signature");
 
-        X509Certificate x509ClientCert = readCertificate(this.clientCertBytes);
+        X509Certificate x509ClientCert = CryptoUtils.readCertificate(this.clientCertBytes);
 
         if (!ManagementRequestVerificationUtils.verifySignature(x509ClientCert, clientSignatureBytes,
                 clientSignatureAlgoId, dataToVerify)) {
@@ -119,7 +128,7 @@ public abstract class BaseSignedRequestCallback<T> implements ManagementRequestD
         log.info("Verifying client certificate");
 
         OCSPResp clientCertOcsp = new OCSPResp(this.clientCertOcspBytes);
-        verifyCertificate(x509ClientCert, clientCertOcsp);
+        managementRequestCertVerifier.verifyCertificate(x509ClientCert, clientCertOcsp);
     }
 
     protected abstract void verifyMessage() throws Exception;

@@ -26,8 +26,8 @@
 
 package ee.ria.xroad.common.util;
 
+import org.junit.Before;
 import org.junit.Test;
-import org.mockito.MockedStatic;
 
 import java.time.Clock;
 import java.time.Instant;
@@ -38,68 +38,44 @@ import java.time.ZoneOffset;
 import java.time.ZonedDateTime;
 
 import static org.junit.Assert.assertEquals;
-import static org.mockito.Mockito.mockStatic;
-import static org.mockito.Mockito.spy;
-import static org.mockito.Mockito.when;
 
 public class TimeUtilsTest {
-
     private static final int EPOCH_SECONDS = 1696572342; // 2023-10-06T06:05:42 UTC
 
-    private final Clock spyClock = spy(Clock.class);
+    @Before
+    public void setClock() {
+        TimeUtils.setClock(Clock.fixed(Instant.ofEpochSecond(EPOCH_SECONDS, 123456789), ZoneOffset.UTC));
+    }
 
     @Test
     public void offsetDateTimeNow() {
-        try (MockedStatic<Clock> clockMock = mockStatic(Clock.class)) {
-            clockMock.when(Clock::systemDefaultZone).thenReturn(spyClock);
-            when(spyClock.getZone()).thenReturn(ZoneId.of("UTC"));
-            when(spyClock.instant()).thenReturn(Instant.ofEpochSecond(EPOCH_SECONDS, 123456789));
+        final OffsetDateTime now = TimeUtils.offsetDateTimeNow();
 
-            final OffsetDateTime now = TimeUtils.offsetDateTimeNow();
-
-            assertEquals(123456000, now.getNano());
-        }
+        assertEquals(123456000, now.getNano());
     }
 
     @Test
     public void offsetDateTimeNowAtZone() {
         final ZoneId zone = ZoneOffset.UTC;
-        try (MockedStatic<Clock> clockMock = mockStatic(Clock.class)) {
-            clockMock.when(() -> Clock.system(zone)).thenReturn(spyClock);
-            when(spyClock.getZone()).thenReturn(zone);
-            when(spyClock.instant()).thenReturn(Instant.ofEpochSecond(EPOCH_SECONDS, 123456789));
 
-            final OffsetDateTime now = TimeUtils.offsetDateTimeNow(zone);
+        final OffsetDateTime now = TimeUtils.offsetDateTimeNow(zone);
 
-            assertEquals(123456000, now.getNano());
-        }
+        assertEquals(123456000, now.getNano());
     }
 
     @Test
     public void localDateTimeNow() {
-        try (MockedStatic<Clock> clockMock = mockStatic(Clock.class)) {
-            clockMock.when(Clock::systemDefaultZone).thenReturn(spyClock);
-            when(spyClock.getZone()).thenReturn(ZoneId.of("UTC"));
-            when(spyClock.instant()).thenReturn(Instant.ofEpochSecond(EPOCH_SECONDS, 123456789));
+        final LocalDateTime now = TimeUtils.localDateTimeNow();
 
-            final LocalDateTime now = TimeUtils.localDateTimeNow();
-
-            assertEquals(123456000, now.getNano());
-        }
+        assertEquals(123456000, now.getNano());
     }
 
     @Test
     public void zonedDateTimeNow() {
         final ZoneId zone = ZoneOffset.UTC;
-        try (MockedStatic<Clock> clockMock = mockStatic(Clock.class)) {
-            clockMock.when(() -> Clock.system(zone)).thenReturn(spyClock);
-            when(spyClock.getZone()).thenReturn(zone);
-            when(spyClock.instant()).thenReturn(Instant.ofEpochSecond(EPOCH_SECONDS, 123456789));
 
-            final ZonedDateTime now = TimeUtils.zonedDateTimeNow(zone);
+        final ZonedDateTime now = TimeUtils.zonedDateTimeNow(zone);
 
-            assertEquals(123456000, now.getNano());
-        }
+        assertEquals(123456000, now.getNano());
     }
-
 }

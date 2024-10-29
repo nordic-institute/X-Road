@@ -25,6 +25,7 @@
  */
 package ee.ria.xroad.common.conf.globalconf;
 
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
 import javax.net.ssl.X509TrustManager;
@@ -36,13 +37,15 @@ import java.security.cert.X509Certificate;
  * This trust manager is used for connections between the security servers.
  */
 @Slf4j
+@RequiredArgsConstructor
 public class AuthTrustManager implements X509TrustManager {
+    private final GlobalConfProvider globalConfProvider;
 
     @Override
     public X509Certificate[] getAcceptedIssuers() {
         log.trace("getAcceptedIssuers");
         try {
-            return GlobalConf.getAuthTrustChain();
+            return globalConfProvider.getAuthTrustChain();
         } catch (Exception e) {
             log.error("Error getting authentication trust chain", e);
             return new X509Certificate[]{};
@@ -60,7 +63,7 @@ public class AuthTrustManager implements X509TrustManager {
 
         log.trace("Received {} server certificates {}", chain.length, chain);
 
-        if (!GlobalConf.isSecurityServerAuthCert(chain[0])) {
+        if (!isSecurityServerAuthCert(chain[0])) {
             log.error("The server's authentication certificate is not trusted");
             throw new CertificateException(
                     "The server's authentication certificate is not trusted");
@@ -71,5 +74,23 @@ public class AuthTrustManager implements X509TrustManager {
     public void checkServerTrusted(X509Certificate[] certs, String authType)
             throws CertificateException {
         // Check for the certificates later in AuthTrustVerifier
+    }
+
+    /**
+     * Checks if the authentication certificate belongs to registered
+     * security server
+     *
+     * @param cert the authentication certificate
+     * @return true if the authentication certificate belongs to registered
+     * security server
+     */
+    private boolean isSecurityServerAuthCert(X509Certificate cert) {
+        log.trace("isSecurityServerAuthCert({})", cert.getSubjectX500Principal());
+        try {
+            return globalConfProvider.getServerId(cert) != null;
+        } catch (Exception e) {
+            log.error("Error occurred while getting server id", e);
+            return false;
+        }
     }
 }

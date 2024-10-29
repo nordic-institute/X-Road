@@ -27,8 +27,9 @@ package ee.ria.xroad.proxy.serverproxy;
 
 import ee.ria.xroad.common.CodedException;
 import ee.ria.xroad.common.ErrorCodes;
-import ee.ria.xroad.common.conf.monitoringconf.MonitoringConf;
-import ee.ria.xroad.common.conf.serverconf.ServerConf;
+import ee.ria.xroad.common.Version;
+import ee.ria.xroad.common.conf.globalconf.GlobalConfProvider;
+import ee.ria.xroad.common.conf.serverconf.ServerConfProvider;
 import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.identifier.ServiceId;
 import ee.ria.xroad.common.message.SimpleSoapEncoder;
@@ -38,7 +39,6 @@ import ee.ria.xroad.common.message.SoapUtils;
 import ee.ria.xroad.common.opmonitoring.OpMonitoringData;
 import ee.ria.xroad.common.util.RequestWrapper;
 import ee.ria.xroad.common.util.XmlUtils;
-import ee.ria.xroad.proxy.ProxyMain;
 import ee.ria.xroad.proxy.protocol.ProxyMessage;
 import ee.ria.xroad.proxymonitor.ProxyMonitor;
 import ee.ria.xroad.proxymonitor.message.GetSecurityServerMetricsResponse;
@@ -67,7 +67,7 @@ import java.util.List;
  * Service handler for proxy monitoring
  */
 @Slf4j
-public class ProxyMonitorServiceHandlerImpl implements ServiceHandler {
+public class ProxyMonitorServiceHandlerImpl extends AbstractServiceHandler {
 
     public static final String SERVICE_CODE = "getSecurityServerMetrics";
     public static final String MONITOR_REQ_PARAM_NODE_NAME = "outputField";
@@ -80,6 +80,10 @@ public class ProxyMonitorServiceHandlerImpl implements ServiceHandler {
             new ByteArrayOutputStream();
 
     private SoapMessageEncoder responseEncoder;
+
+    protected ProxyMonitorServiceHandlerImpl(ServerConfProvider serverConfProvider, GlobalConfProvider globalConfProvider) {
+        super(serverConfProvider, globalConfProvider);
+    }
 
     @Override
     public boolean shouldVerifyAccess() {
@@ -100,7 +104,7 @@ public class ProxyMonitorServiceHandlerImpl implements ServiceHandler {
 
     @Override
     public boolean canHandle(ServiceId requestServiceId, ProxyMessage requestProxyMessage) {
-        final ServiceId.Conf serviceId = ServiceId.Conf.create(ServerConf.getIdentifier().getOwner(), SERVICE_CODE);
+        final ServiceId.Conf serviceId = ServiceId.Conf.create(serverConfProvider.getIdentifier().getOwner(), SERVICE_CODE);
 
         if (serviceId.equals(requestServiceId)) {
             requestMessage = requestProxyMessage;
@@ -128,12 +132,12 @@ public class ProxyMonitorServiceHandlerImpl implements ServiceHandler {
 
         final GetSecurityServerMetricsResponse metricsResponse = new GetSecurityServerMetricsResponse();
         final MetricSetType root = new MetricSetType();
-        root.setName(ServerConf.getIdentifier().toString());
+        root.setName(serverConfProvider.getIdentifier().toString());
         metricsResponse.setMetricSet(root);
 
         final StringMetricType version = new StringMetricType();
         version.setName("proxyVersion");
-        version.setValue(ProxyMain.readProxyVersion());
+        version.setValue(Version.XROAD_VERSION);
         root.getMetrics().add(version);
 
         if (client != null) {
@@ -190,13 +194,13 @@ public class ProxyMonitorServiceHandlerImpl implements ServiceHandler {
     }
 
     private boolean isOwner() {
-        final ClientId owner = ServerConf.getIdentifier().getOwner();
+        final ClientId owner = serverConfProvider.getIdentifier().getOwner();
         final ClientId client = requestMessage.getSoap().getClient();
         return owner.equals(client);
     }
 
     private void verifyAccess() {
-        final ClientId owner = ServerConf.getIdentifier().getOwner();
+        final ClientId owner = serverConfProvider.getIdentifier().getOwner();
         final ClientId client = requestMessage.getSoap().getClient();
 
         if (owner.equals(client)) {
@@ -204,7 +208,7 @@ public class ProxyMonitorServiceHandlerImpl implements ServiceHandler {
         }
 
         // Grant access for configured monitoring client (if any)
-        ClientId monitoringClient = MonitoringConf.getInstance()
+        ClientId monitoringClient = globalConfProvider.getGlobalConfExtensions()
                 .getMonitoringClient();
 
         if (monitoringClient != null && monitoringClient.equals(client)) {

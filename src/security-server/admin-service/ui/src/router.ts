@@ -94,6 +94,7 @@ router.beforeEach(async (to: RouteLocationNormalized) => {
 
   const notifications = useNotifications();
   notifications.clearErrorNotifications();
+  notifications.readyUpDelayed();
 
   // User is allowed to access any other view than login only after authenticated information has been fetched
   // Session alive information is fetched before any view is accessed. This prevents UI flickering by not allowing

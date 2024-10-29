@@ -11,24 +11,25 @@
   },
   "main": "./src/index.ts",
   "dependencies": {
-    "@fontsource/open-sans": "^5.0.28",
+    "@fontsource/open-sans": "^5.1.0",
     "@mdi/font": "^7.4.47",
-    "@vee-validate/i18n": "~4.13.2",
-    "@vee-validate/rules": "~4.13.2",
-    "axios": "~1.7.2",
+    "@vee-validate/i18n": "~4.14.6",
+    "@vee-validate/rules": "~4.14.6",
+    "axios": "~1.7.7",
     "deepmerge": "^4.3.1",
-    "vuetify": "3.6.13",
-    "vue": "^3.4.33",
-    "vue-i18n": "^9.13.1",
-    "vue-router": "^4.4.0",
-    "vee-validate": "^4.13.2",
-    "pinia": "^2.1.7",
-    "pinia-plugin-persistedstate": "^3.2.1"
+    "vuetify": "3.7.3",
+    "vue": "^3.5.12",
+    "vue-i18n": "^10.0.4",
+    "vue-router": "^4.4.5",
+    "vee-validate": "^4.14.6",
+    "pinia": "^2.2.4",
+    "pinia-plugin-persistedstate": "^4.1.2",
+    "dayjs": "^1.11.12"
   },
   "engines": {
     "npm": "use-pnpm",
     "yarn": "use-pnpm",
     "node": ">=18 <=20",
-    "pnpm": ">=8"
+    "pnpm": ">=9"
   }
 }

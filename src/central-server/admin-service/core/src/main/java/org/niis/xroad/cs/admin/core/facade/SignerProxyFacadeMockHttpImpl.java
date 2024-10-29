@@ -27,6 +27,8 @@
 
 package org.niis.xroad.cs.admin.core.facade;
 
+import ee.ria.xroad.common.crypto.identifier.SignAlgorithm;
+import ee.ria.xroad.common.crypto.identifier.SignMechanism;
 import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.signer.protocol.dto.KeyInfo;
 import ee.ria.xroad.signer.protocol.dto.KeyUsageInfo;
@@ -164,12 +166,12 @@ public class SignerProxyFacadeMockHttpImpl implements SignerProxyFacade {
     }
 
     @Override
-    public String getSignMechanism(String keyId) {
+    public SignMechanism getSignMechanism(String keyId) {
         throw new NotImplementedException("getSignMechanism not implemented getSignMechanism.");
     }
 
     @Override
-    public byte[] sign(String keyId, String signatureAlgorithmId, byte[] digest) {
+    public byte[] sign(String keyId, SignAlgorithm signatureAlgorithmId, byte[] digest) {
         throw new NotImplementedException("sign not implemented getSignMechanism.");
     }
 

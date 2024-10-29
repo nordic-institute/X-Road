@@ -31,7 +31,7 @@ import ee.ria.xroad.common.certificateprofile.impl.FiVRKAuthCertificateProfileIn
 import ee.ria.xroad.common.certificateprofile.impl.FiVRKSignCertificateProfileInfo;
 import ee.ria.xroad.common.conf.globalconf.ApprovedCAInfo;
 import ee.ria.xroad.common.conf.serverconf.model.ClientType;
-import ee.ria.xroad.common.util.CryptoUtils;
+import ee.ria.xroad.common.util.EncoderUtils;
 import ee.ria.xroad.signer.protocol.dto.KeyUsageInfo;
 
 import org.bouncycastle.cert.ocsp.CertificateStatus;
@@ -97,16 +97,16 @@ public class CertificateAuthorityServiceTest extends AbstractServiceTestContext 
                 "ee.ria.xroad.common.certificateprofile.impl.FiVRKCertificateProfileInfoProvider", null, null, null, null));
         approvedCAInfos.add(new ApprovedCAInfo("mock-intermediate-ca", false,
                 "ee.ria.xroad.common.certificateprofile.impl.FiVRKCertificateProfileInfoProvider", null, null, null, null));
-        when(globalConfFacade.getApprovedCAs(any())).thenReturn(approvedCAInfos);
+        when(globalConfProvider.getApprovedCAs(any())).thenReturn(approvedCAInfos);
 
         List<X509Certificate> caCerts = new ArrayList<>();
         caCerts.add(CertificateTestUtils.getMockCertificate());
         caCerts.add(CertificateTestUtils.getMockAuthCertificate());
         caCerts.add(CertificateTestUtils.getMockTopCaCertificate());
         caCerts.add(CertificateTestUtils.getMockIntermediateCaCertificate());
-        when(globalConfFacade.getAllCaCerts(any())).thenReturn(caCerts);
+        when(globalConfProvider.getAllCaCerts(any())).thenReturn(caCerts);
 
-        when(globalConfFacade.getApprovedCA(any(), any())).thenAnswer(invocation -> {
+        when(globalConfProvider.getApprovedCA(any(), any())).thenAnswer(invocation -> {
             X509Certificate cert = (X509Certificate) invocation.getArguments()[1];
             for (int i = 0; i < caCerts.size(); i++) {
                 if (caCerts.get(i) == cert) {
@@ -130,7 +130,7 @@ public class CertificateAuthorityServiceTest extends AbstractServiceTestContext 
                 .map(cert -> {
                     try {
                         byte[] bytes = CertificateTestUtils.generateOcspBytes(cert, CertificateStatus.GOOD);
-                        return CryptoUtils.encodeBase64(bytes);
+                        return EncoderUtils.encodeBase64(bytes);
                     } catch (Exception e) {
                         throw new RuntimeException(e);
                     }
@@ -158,16 +158,16 @@ public class CertificateAuthorityServiceTest extends AbstractServiceTestContext 
     public void caching() throws Exception {
         certificateAuthorityService.getCertificateAuthorities(null);
         int expectedExecutions = 1;
-        verify(globalConfFacade, times(expectedExecutions)).getAllCaCerts(any());
+        verify(globalConfProvider, times(expectedExecutions)).getAllCaCerts(any());
 
         // repeat comes from cache
         certificateAuthorityService.getCertificateAuthorities(null);
-        verify(globalConfFacade, times(expectedExecutions)).getAllCaCerts(any());
+        verify(globalConfProvider, times(expectedExecutions)).getAllCaCerts(any());
 
         // different parameter - different cache key
         certificateAuthorityService.getCertificateAuthorities(null, true);
         expectedExecutions++;
-        verify(globalConfFacade, times(expectedExecutions)).getAllCaCerts(any());
+        verify(globalConfProvider, times(expectedExecutions)).getAllCaCerts(any());
 
         // more parameters
         certificateAuthorityService.getCertificateAuthorities(KeyUsageInfo.AUTHENTICATION);
@@ -175,23 +175,23 @@ public class CertificateAuthorityServiceTest extends AbstractServiceTestContext 
         certificateAuthorityService.getCertificateAuthorities(KeyUsageInfo.SIGNING, true);
         certificateAuthorityService.getCertificateAuthorities(KeyUsageInfo.SIGNING, false);
         expectedExecutions += 4;
-        verify(globalConfFacade, times(expectedExecutions)).getAllCaCerts(any());
+        verify(globalConfProvider, times(expectedExecutions)).getAllCaCerts(any());
 
         // repeats come from cache
         certificateAuthorityService.getCertificateAuthorities(KeyUsageInfo.AUTHENTICATION);
         certificateAuthorityService.getCertificateAuthorities(null, false);
         certificateAuthorityService.getCertificateAuthorities(KeyUsageInfo.SIGNING, false);
         certificateAuthorityService.getCertificateAuthorities(KeyUsageInfo.SIGNING, false);
-        verify(globalConfFacade, times(expectedExecutions)).getAllCaCerts(any());
+        verify(globalConfProvider, times(expectedExecutions)).getAllCaCerts(any());
 
         // evict cache
         evictCache();
         certificateAuthorityService.getCertificateAuthorities(null);
         expectedExecutions++;
-        verify(globalConfFacade, times(expectedExecutions)).getAllCaCerts(any());
+        verify(globalConfProvider, times(expectedExecutions)).getAllCaCerts(any());
 
         certificateAuthorityService.getCertificateAuthorities(null);
-        verify(globalConfFacade, times(expectedExecutions)).getAllCaCerts(any());
+        verify(globalConfProvider, times(expectedExecutions)).getAllCaCerts(any());
     }
 
     private void evictCache() {
@@ -281,7 +281,7 @@ public class CertificateAuthorityServiceTest extends AbstractServiceTestContext 
         assertFalse(ca2.isAcmeCapable());
 
         evictCache();
-        when(globalConfFacade.getAllCaCerts(any())).thenReturn(new ArrayList<>());
+        when(globalConfProvider.getAllCaCerts(any())).thenReturn(new ArrayList<>());
         when(signerProxyFacade.getOcspResponses(any())).thenReturn(new String[]{});
         assertEquals(0, certificateAuthorityService.getCertificateAuthorities(KeyUsageInfo.SIGNING).size());
         assertEquals(0, certificateAuthorityService.getCertificateAuthorities(null).size());
@@ -363,7 +363,7 @@ public class CertificateAuthorityServiceTest extends AbstractServiceTestContext 
         List<ApprovedCAInfo> approvedCAInfos = new ArrayList<>();
         approvedCAInfos.add(new ApprovedCAInfo("provider-class-does-not-exist", false,
                 "ee.ria.xroad.common.certificateprofile.impl.NonExistentProvider", null, null, null, null));
-        when(globalConfFacade.getApprovedCAs(any())).thenReturn(approvedCAInfos);
+        when(globalConfProvider.getApprovedCAs(any())).thenReturn(approvedCAInfos);
 
         try {
             certificateAuthorityService.getCertificateProfile("provider-class-does-not-exist",

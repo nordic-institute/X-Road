@@ -155,16 +155,18 @@ public class InternalTlsCertificateServiceTest {
      */
     private Map<String, byte[]> extractTarGZ(byte[] tarBytes) throws IOException {
         Map<String, byte[]> files = new HashMap<>();
-        try (ByteArrayInputStream byteArrayInputStream = new ByteArrayInputStream(tarBytes);
+        try (
+                ByteArrayInputStream byteArrayInputStream = new ByteArrayInputStream(tarBytes);
                 GzipCompressorInputStream gzipIn = new GzipCompressorInputStream(byteArrayInputStream);
-                TarArchiveInputStream tarIn = new TarArchiveInputStream(gzipIn)) {
+                TarArchiveInputStream tarIn = new TarArchiveInputStream(gzipIn)
+        ) {
             TarArchiveEntry entry;
             while ((entry = tarIn.getNextEntry()) != null) {
                 if (entry.isFile()) {
                     if (entry.getSize() > Integer.MAX_VALUE) {
                         throw new IllegalStateException("can work with so large files: " + entry.getSize());
                     }
-                    byte data[] = new byte[(int) entry.getSize()];
+                    byte[] data = new byte[(int) entry.getSize()];
                     IOUtils.readFully(tarIn, data);
                     files.put(entry.getName(), data);
                 }

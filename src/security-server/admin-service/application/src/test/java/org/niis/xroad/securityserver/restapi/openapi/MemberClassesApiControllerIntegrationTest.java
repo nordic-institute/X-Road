@@ -77,19 +77,19 @@ public class MemberClassesApiControllerIntegrationTest extends AbstractApiContro
         instanceMemberClasses.put(INSTANCE_A, A_MEMBER_CLASSES);
         instanceMemberClasses.put(INSTANCE_B, B_MEMBER_CLASSES);
         instanceMemberClasses.put(INSTANCE_C, new ArrayList<>());
-        when(globalConfFacade.getMemberClasses(anyString()))
+        when(globalConfProvider.getMemberClasses(anyString()))
                 .thenAnswer((Answer<Set<String>>) invocation -> {
                     List<String> classes = instanceMemberClasses.get(invocation.getArgument(0));
                     if (classes == null) {
                         return new HashSet<>();
                     }
-                    return new HashSet(classes);
+                    return new HashSet<>(classes);
                 });
 
-        when(globalConfFacade.getMemberClasses())
+        when(globalConfProvider.getMemberClasses())
                 .thenReturn(UNION_MEMBER_CLASSES);
 
-        when(globalConfFacade.getInstanceIdentifiers())
+        when(globalConfProvider.getInstanceIdentifiers())
                 .thenReturn(INSTANCE_IDS);
 
         when(globalConfService.getMemberClassesForThisInstance())

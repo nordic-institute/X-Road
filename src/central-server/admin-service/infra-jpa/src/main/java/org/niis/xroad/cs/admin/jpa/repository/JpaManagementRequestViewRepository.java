@@ -48,6 +48,7 @@ import java.util.List;
 import static java.util.Optional.ofNullable;
 import static java.util.stream.Collectors.toList;
 import static org.niis.xroad.cs.admin.jpa.repository.util.CriteriaBuilderUtil.caseInsensitiveLike;
+import static org.niis.xroad.cs.admin.jpa.repository.util.CriteriaBuilderUtil.castToString;
 
 @Repository
 public interface JpaManagementRequestViewRepository extends JpaRepository<ManagementRequestViewEntity, Integer>,
@@ -110,14 +111,13 @@ public interface JpaManagementRequestViewRepository extends JpaRepository<Manage
         final var q = criteria.getQuery();
         final List<Predicate> predicates = new ArrayList<>();
 
-        predicates.add(caseInsensitiveLike(root, builder, q, root.get(ManagementRequestViewEntity_.id).as(String.class)));
-        predicates.add(caseInsensitiveLike(root, builder, q, root.get(ManagementRequestViewEntity_.createdAt).as(String.class)));
-
-        predicates.add(caseInsensitiveLike(root, builder, q, root.get(ManagementRequestViewEntity_.securityServerOwnerName)));
-        predicates.add(caseInsensitiveLike(root, builder, q, root.get(ManagementRequestViewEntity_.xroadInstance)));
-        predicates.add(caseInsensitiveLike(root, builder, q, root.get(ManagementRequestViewEntity_.memberClass)));
-        predicates.add(caseInsensitiveLike(root, builder, q, root.get(ManagementRequestViewEntity_.memberCode)));
-        predicates.add(caseInsensitiveLike(root, builder, q, root.get(ManagementRequestViewEntity_.serverCode)));
+        predicates.add(caseInsensitiveLike(builder, q, castToString(root.get(ManagementRequestViewEntity_.id))));
+        predicates.add(caseInsensitiveLike(builder, q, castToString(root.get(ManagementRequestViewEntity_.createdAt))));
+        predicates.add(caseInsensitiveLike(builder, q, root.get(ManagementRequestViewEntity_.securityServerOwnerName)));
+        predicates.add(caseInsensitiveLike(builder, q, root.get(ManagementRequestViewEntity_.xroadInstance)));
+        predicates.add(caseInsensitiveLike(builder, q, root.get(ManagementRequestViewEntity_.memberClass)));
+        predicates.add(caseInsensitiveLike(builder, q, root.get(ManagementRequestViewEntity_.memberCode)));
+        predicates.add(caseInsensitiveLike(builder, q, root.get(ManagementRequestViewEntity_.serverCode)));
 
         return builder.and(pred, builder.or(predicates.toArray(new Predicate[0])));
     }

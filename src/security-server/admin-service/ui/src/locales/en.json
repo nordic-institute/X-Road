@@ -632,7 +632,11 @@
     "backupRestoreInProgress": "The Security Server configuration is being restored from a backup. Process started at {startTime}",
     "globalConfigurationInvalid": "Global configuration is expired",
     "secondaryNode": "You are on a secondary node in a Security Server cluster. Modifying configuration is disabled.",
-    "softTokenPinNotEntered": "Please enter soft token PIN"
+    "softTokenPinNotEntered": "Please enter soft token PIN",
+    "certificateRenewalJobFailure": "Last certificate renewal job has failed.",
+    "certificateRenewalJobFailureAuth": "Failed Authentication certificate(s):",
+    "certificateRenewalJobFailureSign": "Failed Signing certificate(s):",
+    "navigateToKeysPage": "See keys and certificates page for more details"
   },
   "initialConfiguration": {
     "anchor": {
@@ -741,6 +745,7 @@
     "acmeCertOrdered": "Certificate successfully ordered",
     "readOnly": "Read-only:",
     "registrationRequest": "Registration request",
+    "renewal": "Automatic Renewal",
     "request": "Request",
     "signDetailsTitle": "SIGN Key details",
     "signKeyCert": "SIGN Keys and Certificates",

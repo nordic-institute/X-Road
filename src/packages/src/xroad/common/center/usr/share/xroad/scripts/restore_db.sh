@@ -43,7 +43,7 @@ if [ -f /etc/xroad/db_libpq.env ]; then
   source /etc/xroad/db_libpq.env
 fi
 
-if [ ! -z $PGOPTIONS_EXTRA ]; then
+if [[ ! -z $PGOPTIONS_EXTRA ]]; then
   PGOPTIONS_EXTRA=" ${PGOPTIONS_EXTRA}"
 fi
 
@@ -59,7 +59,7 @@ local_psql() {
 }
 
 remote_psql() {
-    psql -h "$HOST" -p "$PORT" -qtA "$@"
+    psql -h "${PGHOST:-$HOST}" -p "${PGPORT:-$PORT}" -qtA "$@"
 }
 
 psql_adminuser() {
@@ -122,7 +122,7 @@ fi
 (cd /usr/share/xroad/db &&
   JAVA_OPTS="-Ddb_user=$USER -Ddb_schema=$SCHEMA" /usr/share/xroad/db/liquibase.sh \
   --classpath=/usr/share/xroad/jlib/postgresql.jar \
-  --url="jdbc:postgresql://$HOST:$PORT/$DATABASE?currentSchema=${SCHEMA},public" \
+  --url="jdbc:postgresql://${PGHOST:-$HOST}:${PGPORT:-$PORT}/$DATABASE?targetServerType=primary&currentSchema=${SCHEMA},public" \
   --changeLogFile=centerui-changelog.xml \
   --password="${ADMIN_PASSWORD}" \
   --username="${ADMIN_USER}" \

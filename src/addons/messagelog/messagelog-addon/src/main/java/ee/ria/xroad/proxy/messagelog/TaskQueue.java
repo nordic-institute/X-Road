@@ -106,7 +106,7 @@ public class TaskQueue {
         }
 
         // set diagnostics status
-        LogManager.putStatusMapFailures(cause);
+        logManager.putStatusMapFailures(cause);
 
         sendTimestampingStatusToLogManager(SetTimestampingStatusMessage.Status.FAILURE);
     }

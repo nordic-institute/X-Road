@@ -26,8 +26,6 @@
  */
 package org.niis.xroad.cs.admin.globalconf.generator;
 
-import ee.ria.xroad.common.util.CryptoUtils;
-
 import org.junit.jupiter.api.Test;
 
 import java.nio.charset.StandardCharsets;
@@ -35,6 +33,7 @@ import java.time.Instant;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import static ee.ria.xroad.common.crypto.identifier.DigestAlgorithm.SHA1;
 import static org.assertj.core.api.Assertions.assertThat;
 
 class DirectoryContentBuilderTest {
@@ -44,7 +43,7 @@ class DirectoryContentBuilderTest {
     @Test
     void buildDirectoryContent() {
         var directoryContentBuilder = new DirectoryContentBuilder(
-                CryptoUtils.SHA1_ID,
+                SHA1,
                 Instant.parse("2022-12-08T08:05:01.123Z"),
                 "/V2/some/path",
                 "CS-INSTANCE",

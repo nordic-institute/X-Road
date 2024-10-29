@@ -34,6 +34,7 @@ import ee.ria.xroad.common.util.HeaderValueUtils;
 import ee.ria.xroad.common.util.MimeUtils;
 import ee.ria.xroad.common.util.XmlUtils;
 
+import io.opentelemetry.instrumentation.annotations.WithSpan;
 import jakarta.xml.soap.SOAPException;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
@@ -171,6 +172,7 @@ public class SaxSoapParserImpl implements SoapParser {
     private static final SAXParserFactory PARSER_FACTORY = createSaxParserFactory();
 
     @Override
+    @WithSpan
     public Soap parse(String contentType, InputStream is) {
         String mimeType = MimeUtils.getBaseContentType(contentType);
 
@@ -532,7 +534,7 @@ public class SaxSoapParserImpl implements SoapParser {
 
         protected final void valueInternal() {
             String value = "";
-            if (valueBuffer.length() > 0) {
+            if (!valueBuffer.isEmpty()) {
                 value = valueBuffer.toString();
                 valueBuffer.setLength(0);
             }

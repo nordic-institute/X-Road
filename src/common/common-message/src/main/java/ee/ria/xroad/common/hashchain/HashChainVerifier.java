@@ -26,6 +26,7 @@
 package ee.ria.xroad.common.hashchain;
 
 import ee.ria.xroad.common.CodedException;
+import ee.ria.xroad.common.crypto.identifier.DigestAlgorithm;
 import ee.ria.xroad.common.util.XmlUtils;
 
 import jakarta.xml.bind.JAXBContext;
@@ -63,9 +64,8 @@ import static ee.ria.xroad.common.ErrorCodes.X_INVALID_HASH_CHAIN_REF;
 import static ee.ria.xroad.common.ErrorCodes.X_INVALID_HASH_CHAIN_RESULT;
 import static ee.ria.xroad.common.ErrorCodes.X_INVALID_REFERENCE;
 import static ee.ria.xroad.common.ErrorCodes.X_MALFORMED_HASH_CHAIN;
-import static ee.ria.xroad.common.util.CryptoUtils.calculateDigest;
-import static ee.ria.xroad.common.util.CryptoUtils.encodeBase64;
-import static ee.ria.xroad.common.util.CryptoUtils.getAlgorithmId;
+import static ee.ria.xroad.common.crypto.Digests.calculateDigest;
+import static ee.ria.xroad.common.util.EncoderUtils.encodeBase64;
 import static ee.ria.xroad.common.util.SchemaValidator.createSchema;
 
 /**
@@ -142,15 +142,14 @@ public final class HashChainVerifier {
         byte[] hashStepData = resolveHashStep(hashChainResult.getURI(), null);
 
         // Digest the last hash step result.
-        byte[] digestedData = calculateDigest(
-                getAlgorithmId(hashChainResult.getDigestMethod().getAlgorithm()), hashStepData);
+        var digestUri = DigestAlgorithm.ofUri(hashChainResult.getDigestMethod().getAlgorithm());
+        byte[] digestedData = calculateDigest(digestUri, hashStepData);
 
         // Compare with the signed hash chain result.
         if (!Arrays.equals(digestedData, hashChainResult.getDigestValue())) {
             throw new CodedException(X_INVALID_HASH_CHAIN_RESULT,
                     "Hash chain result does not match hash chain calculation");
         }
-
         checkReferencedInputs();
     }
 
@@ -226,7 +225,7 @@ public final class HashChainVerifier {
 
     private DigestValue resolveHashValue(HashValueType hashValue, HashChainType currentChain) {
         // Everything is already done for us.
-        String digestMethodUri = getValueDigestMethodUri(hashValue, currentChain);
+        DigestAlgorithm digestMethodUri = getValueDigestMethodUri(hashValue, currentChain);
 
         return new DigestValue(digestMethodUri, hashValue.getDigestValue());
     }
@@ -234,10 +233,10 @@ public final class HashChainVerifier {
     private DigestValue resolveStepRef(StepRefType stepRef, HashChainType currentChain) throws Exception {
         // Calculate result of the referenced hash step
         byte[] resolved = resolveHashStep(stepRef.getURI(), currentChain);
-        String digestMethodUri = getValueDigestMethodUri(stepRef, currentChain);
+        DigestAlgorithm digestMethodUri = getValueDigestMethodUri(stepRef, currentChain);
 
         // Digest the hash step result.
-        return new DigestValue(digestMethodUri, calculateDigest(getAlgorithmId(digestMethodUri), resolved));
+        return new DigestValue(digestMethodUri, calculateDigest(digestMethodUri, resolved));
     }
 
     private DigestValue resolveDataRef(DataRefType dataRef, HashChainType currentChain) throws Exception {
@@ -255,7 +254,7 @@ public final class HashChainVerifier {
 
         // We'll have to retrieve and hash the data.
 
-        String digestMethodUri = getValueDigestMethodUri(dataRef, currentChain);
+        DigestAlgorithm digestMethodUri = getValueDigestMethodUri(dataRef, currentChain);
 
         if (!referenceResolver.shouldResolve(dataRef.getURI(), dataRef.getDigestValue())) {
             return new DigestValue(digestMethodUri, dataRef.getDigestValue());
@@ -275,7 +274,7 @@ public final class HashChainVerifier {
             throw new CodedException(X_INVALID_REFERENCE, "Cannot resolve URI: %s", dataRef.getURI());
         }
 
-        byte[] digest = calculateDigest(getAlgorithmId(digestMethodUri), toDigest);
+        byte[] digest = calculateDigest(digestMethodUri, toDigest);
 
         // Compare the calculated digest with the digest in the hash chain
         if (!Arrays.equals(digest, dataRef.getDigestValue())) {
@@ -293,7 +292,7 @@ public final class HashChainVerifier {
         DigestValue inputDigest = inputs.get(dataRef.getURI());
 
         if (inputDigest != null
-                && inputDigest.getDigestMethod().equals(getValueDigestMethodUri(dataRef, currentChain))) {
+                && inputDigest.digestMethod().equals(getValueDigestMethodUri(dataRef, currentChain))) {
             return inputDigest;
         } else {
             return null;
@@ -328,11 +327,11 @@ public final class HashChainVerifier {
     /**
      * Returns either the digest method from value or the hash chain default.
      */
-    private String getValueDigestMethodUri(AbstractValueType value, HashChainType currentChain) {
+    private DigestAlgorithm getValueDigestMethodUri(AbstractValueType value, HashChainType currentChain) {
         if (value.getDigestMethod() != null && value.getDigestMethod().getAlgorithm() != null) {
-            return value.getDigestMethod().getAlgorithm();
+            return DigestAlgorithm.ofUri(value.getDigestMethod().getAlgorithm());
         } else {
-            return currentChain.getDefaultDigestMethod().getAlgorithm();
+            return DigestAlgorithm.ofUri(currentChain.getDefaultDigestMethod().getAlgorithm());
         }
     }
 

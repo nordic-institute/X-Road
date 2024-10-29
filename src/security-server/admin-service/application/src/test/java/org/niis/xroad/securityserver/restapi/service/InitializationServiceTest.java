@@ -25,6 +25,7 @@
  */
 package org.niis.xroad.securityserver.restapi.service;
 
+import ee.ria.xroad.common.conf.globalconf.GlobalConfProvider;
 import ee.ria.xroad.common.conf.serverconf.model.ServerConfType;
 import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.identifier.SecurityServerId;
@@ -44,7 +45,6 @@ import org.niis.xroad.restapi.exceptions.DeviationCodes;
 import org.niis.xroad.restapi.service.UnhandledWarningsException;
 import org.niis.xroad.securityserver.restapi.dto.InitializationStatusDto;
 import org.niis.xroad.securityserver.restapi.dto.TokenInitStatusInfo;
-import org.niis.xroad.securityserver.restapi.facade.GlobalConfFacade;
 import org.niis.xroad.securityserver.restapi.facade.SignerProxyFacade;
 import org.niis.xroad.securityserver.restapi.util.DeviationTestUtils;
 
@@ -80,7 +80,7 @@ public class InitializationServiceTest {
     @Mock
     private ClientService clientService;
     @Mock
-    private GlobalConfFacade globalConfFacade;
+    private GlobalConfProvider globalConfProvider;
     @Mock
     private ServerConfService serverConfService;
     @Mock
@@ -100,14 +100,14 @@ public class InitializationServiceTest {
         when(serverConfService.isServerCodeInitialized()).thenReturn(true);
         when(serverConfService.isServerOwnerInitialized()).thenReturn(true);
         when(tokenService.isSoftwareTokenInitialized()).thenReturn(true);
-        when(globalConfFacade.getInstanceIdentifier()).thenReturn(INSTANCE);
+        when(globalConfProvider.getInstanceIdentifier()).thenReturn(INSTANCE);
         when(serverConfService.getOrCreateServerConf()).thenReturn(new ServerConfType());
         when(serverConfService.getSecurityServerOwnerId()).thenReturn(CLIENT);
         when(tokenService.getSoftwareTokenInitStatus()).thenReturn(TokenInitStatusInfo.INITIALIZED);
         when(externalProcessRunner.executeAndThrowOnFailure(any(), any(String[].class))).thenReturn(
                 new ExternalProcessRunner.ProcessResult("mockCmd", 0, new ArrayList<>()));
         initializationService = new InitializationService(systemService, serverConfService,
-                tokenService, globalConfFacade, clientService, signerProxyFacade, auditDataHelper, tokenPinValidator,
+                tokenService, globalConfProvider, clientService, signerProxyFacade, auditDataHelper, tokenPinValidator,
                 externalProcessRunner);
     }
 
@@ -200,7 +200,7 @@ public class InitializationServiceTest {
 
     @Test
     public void initializeWarnUnknownMember() throws Exception {
-        when(globalConfFacade.getMemberName(any())).thenReturn(null);
+        when(globalConfProvider.getMemberName(any())).thenReturn(null);
         when(tokenService.isSoftwareTokenInitialized()).thenReturn(false);
         when(serverConfService.isServerCodeInitialized()).thenReturn(false);
         when(serverConfService.isServerOwnerInitialized()).thenReturn(false);
@@ -219,8 +219,8 @@ public class InitializationServiceTest {
 
     @Test
     public void initializeWarnExistingServerId() throws Exception {
-        when(globalConfFacade.getMemberName(any())).thenReturn("Some awesome name. Does not matter really");
-        when(globalConfFacade.existsSecurityServer(any())).thenReturn(true);
+        when(globalConfProvider.getMemberName(any())).thenReturn("Some awesome name. Does not matter really");
+        when(globalConfProvider.existsSecurityServer(any())).thenReturn(true);
         when(tokenService.isSoftwareTokenInitialized()).thenReturn(false);
         when(serverConfService.isServerCodeInitialized()).thenReturn(false);
         when(serverConfService.isServerOwnerInitialized()).thenReturn(false);
@@ -239,7 +239,7 @@ public class InitializationServiceTest {
 
     @Test
     public void initializeWarnSoftwareTokenAlreadyInitialized() throws Exception {
-        when(globalConfFacade.getMemberName(any())).thenReturn("Some awesome name");
+        when(globalConfProvider.getMemberName(any())).thenReturn("Some awesome name");
         when(tokenService.isSoftwareTokenInitialized()).thenReturn(true);
         when(serverConfService.isServerCodeInitialized()).thenReturn(false);
         when(serverConfService.isServerOwnerInitialized()).thenReturn(false);

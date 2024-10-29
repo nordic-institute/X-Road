@@ -361,11 +361,18 @@ public class VersionedConfigurationDirectory implements ConfigurationDirectory {
     public static Integer getVersion(Path filePath) {
         try {
             String version = getMetadata(filePath).getConfigurationVersion();
+            if (version == null) {
+                return null;
+            }
             return Integer.parseInt(version);
         } catch (IOException | NumberFormatException e) {
             log.error("Unable to read configuration version", e);
             return null;
         }
+    }
+
+    public Integer getVersion() {
+        return getVersion(Path.of(getPath().toString(), instanceIdentifier, ConfigurationConstants.FILE_NAME_SHARED_PARAMETERS));
     }
 
     protected static OffsetDateTime getFileExpiresOn(Path filePath) {

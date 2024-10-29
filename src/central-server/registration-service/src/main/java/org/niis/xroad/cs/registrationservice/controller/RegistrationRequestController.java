@@ -37,7 +37,6 @@ import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestHeader;
-import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.io.InputStream;
@@ -55,15 +54,14 @@ import static ee.ria.xroad.common.ErrorCodes.X_INVALID_REQUEST;
 @Slf4j
 @RequiredArgsConstructor
 public class RegistrationRequestController {
-
+    private final ManagementRequestSoapExecutor managementRequestSoapExecutor;
     private final AdminApiService adminApiService;
 
-    @ResponseBody
     @PostMapping(path = "/managementservice",
             produces = {MediaType.TEXT_XML_VALUE},
             consumes = {MediaType.MULTIPART_RELATED_VALUE})
     public ResponseEntity<String> register(@RequestHeader(HttpHeaders.CONTENT_TYPE) String contentType, InputStream body) {
-        return ManagementRequestSoapExecutor.process(contentType, body,
+        return managementRequestSoapExecutor.process(contentType, body,
                 result -> {
                     var authRequest = result.getAuthCertRegRequest()
                             .orElseThrow(() -> new CodedException(X_INVALID_REQUEST, "AuthCertRegRequest is missing"));

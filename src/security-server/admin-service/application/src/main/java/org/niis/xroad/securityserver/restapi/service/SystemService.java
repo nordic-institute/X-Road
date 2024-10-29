@@ -30,8 +30,8 @@ import ee.ria.xroad.common.SystemProperties;
 import ee.ria.xroad.common.conf.InternalSSLKey;
 import ee.ria.xroad.common.conf.globalconf.ConfigurationAnchor;
 import ee.ria.xroad.common.conf.serverconf.model.TspType;
+import ee.ria.xroad.common.crypto.Digests;
 import ee.ria.xroad.common.util.CertUtils;
-import ee.ria.xroad.common.util.CryptoUtils;
 import ee.ria.xroad.common.util.process.ProcessFailedException;
 import ee.ria.xroad.common.util.process.ProcessNotExecutableException;
 
@@ -455,7 +455,7 @@ public class SystemService {
      */
     private String calculateAnchorHexHash(byte[] anchor) {
         try {
-            return CryptoUtils.hexDigest(CryptoUtils.DEFAULT_ANCHOR_HASH_ALGORITHM_ID, anchor).toUpperCase();
+            return Digests.hexDigest(Digests.DEFAULT_ANCHOR_HASH_ALGORITHM_ID, anchor).toUpperCase();
         } catch (Exception e) {
             log.error("can't create hex digest for anchor file");
             throw new RuntimeException(e);

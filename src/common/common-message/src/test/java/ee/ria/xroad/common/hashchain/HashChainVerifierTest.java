@@ -26,13 +26,12 @@
 package ee.ria.xroad.common.hashchain;
 
 import ee.ria.xroad.common.ExpectedCodedException;
+import ee.ria.xroad.common.crypto.identifier.DigestAlgorithm;
 
 import org.junit.Rule;
 import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import javax.xml.crypto.dsig.DigestMethod;
 
 import java.io.InputStream;
 import java.util.HashMap;
@@ -42,8 +41,7 @@ import static ee.ria.xroad.common.ErrorCodes.X_HASHCHAIN_UNUSED_INPUTS;
 import static ee.ria.xroad.common.ErrorCodes.X_INVALID_HASH_CHAIN_REF;
 import static ee.ria.xroad.common.ErrorCodes.X_INVALID_HASH_CHAIN_RESULT;
 import static ee.ria.xroad.common.ErrorCodes.X_MALFORMED_HASH_CHAIN;
-import static ee.ria.xroad.common.util.CryptoUtils.calculateDigest;
-import static ee.ria.xroad.common.util.CryptoUtils.getAlgorithmId;
+import static ee.ria.xroad.common.crypto.Digests.calculateDigest;
 import static ee.ria.xroad.common.util.MessageFileNames.MESSAGE;
 import static ee.ria.xroad.common.util.MessageFileNames.attachmentOfIdx;
 
@@ -183,13 +181,13 @@ public class HashChainVerifierTest {
 
         Map<String, DigestValue> inputs = makeInputs(
                 MESSAGE, new DigestValue(
-                        DigestMethod.SHA256, new byte[]{(byte) 11}),
+                        DigestAlgorithm.SHA256, new byte[]{(byte) 11}),
                 attachmentOfIdx(1), new DigestValue(
-                        DigestMethod.SHA256, new byte[]{(byte) 12}),
+                        DigestAlgorithm.SHA256, new byte[]{(byte) 12}),
                 attachmentOfIdx(2), new DigestValue(
-                        DigestMethod.SHA256, new byte[]{(byte) 13}),
+                        DigestAlgorithm.SHA256, new byte[]{(byte) 13}),
                 attachmentOfIdx(3), new DigestValue(
-                        DigestMethod.SHA256, new byte[]{(byte) 14}));
+                        DigestAlgorithm.SHA256, new byte[]{(byte) 14}));
 
         HashChainVerifier.verify(
                 load("hc-verifier2-hashchainresult.xml"),
@@ -218,7 +216,7 @@ public class HashChainVerifierTest {
 
         Map<String, DigestValue> inputs = makeInputs(
                 MESSAGE, new DigestValue(
-                        DigestMethod.SHA256, new byte[]{(byte) 11}));
+                        DigestAlgorithm.SHA256, new byte[]{(byte) 11}));
 
         HashChainVerifier.verify(
                 load("hc-verifier2-hashchainresult.xml"),
@@ -295,9 +293,9 @@ public class HashChainVerifierTest {
                 String fileName = (String) items[i + 1];
                 ret.put(uri,
                         new DigestValue(
-                                DigestMethod.SHA256,
+                                DigestAlgorithm.SHA256,
                                 calculateDigest(
-                                        getAlgorithmId(DigestMethod.SHA256),
+                                        DigestAlgorithm.SHA256,
                                         load(fileName))));
             } else if (items[i + 1] instanceof DigestValue) {
                 ret.put(uri, (DigestValue) items[i + 1]);
@@ -305,9 +303,9 @@ public class HashChainVerifierTest {
                 byte[] data = (byte[]) items[i + 1];
                 ret.put(uri,
                         new DigestValue(
-                                DigestMethod.SHA256,
+                                DigestAlgorithm.SHA256,
                                 calculateDigest(
-                                        getAlgorithmId(DigestMethod.SHA256),
+                                        DigestAlgorithm.SHA256,
                                         data)));
             }
         }
