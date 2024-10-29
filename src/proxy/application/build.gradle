@@ -71,6 +71,9 @@ tasks.register('integrationTest', Test) {
     useJUnit {
         includeCategories 'ee.ria.xroad.proxy.testutil.IntegrationTest'
     }
+    reports {
+        junitXml.includeSystemOutLog = false // defaults to true
+    }
 }
 
 tasks.register('runProxyTest', JavaExec) {
