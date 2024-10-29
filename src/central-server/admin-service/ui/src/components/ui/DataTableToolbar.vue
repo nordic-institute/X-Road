@@ -63,13 +63,13 @@ export default defineComponent({
 </script>
 
 <style lang="scss" scoped>
-@import '@/assets/colors';
+@use '@/assets/colors';
 
 div.xrd-table-toolbar {
   margin-bottom: 0 !important;
 
   .xdr-table-title {
-    color: $XRoad-Black100;
+    color: colors.$Black100;
     font-style: normal;
     font-weight: bold;
     font-size: 18px;

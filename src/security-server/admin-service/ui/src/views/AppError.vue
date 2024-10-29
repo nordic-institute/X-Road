@@ -92,7 +92,7 @@ export default defineComponent({
 </script>
 
 <style lang="scss" scoped>
-@import '@/assets/colors';
+@use '@/assets/colors';
 
 .xrd-view-common {
   width: 100%;
@@ -100,7 +100,7 @@ export default defineComponent({
 
 .unicorn-text {
   text-transform: uppercase;
-  color: $XRoad-Purple100;
+  color: colors.$Purple100;
   width: 450px;
   font-style: normal;
   font-weight: 800;

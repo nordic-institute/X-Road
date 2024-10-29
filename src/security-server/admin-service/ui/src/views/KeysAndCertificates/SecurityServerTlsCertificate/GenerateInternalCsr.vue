@@ -133,9 +133,9 @@ export default defineComponent({
 </script>
 
 <style lang="scss" scoped>
-@import '@/assets/detail-views';
-@import '@/assets/colors';
-@import '@/assets/wizards';
+@use '@/assets/detail-views';
+@use '@/assets/colors';
+@use '@/assets/wizards';
 
 $spacing: 12rem;
 
@@ -143,9 +143,9 @@ $spacing: 12rem;
   max-width: 850px;
   height: 100%;
   width: 100%;
-  color: $XRoad-Black70;
-  background-color: $XRoad-White100;
-  box-shadow: $XRoad-DefaultShadow;
+  color: colors.$Black70;
+  background-color: colors.$White100;
+  box-shadow: colors.$DefaultShadow;
   border-radius: 4px;
   padding: 0px;
   margin-top: 20px;

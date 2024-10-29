@@ -397,10 +397,11 @@ export default defineComponent({
 </script>
 
 <style lang="scss" scoped>
-@import '@/assets/tables';
+@use '@/assets/tables';
+@use '@/assets/colors';
 
 .cert-icon {
-  color: $XRoad-WarmGrey100;
+  color: colors.$WarmGrey100;
   margin-right: 20px;
 }
 

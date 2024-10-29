@@ -113,24 +113,24 @@ export default defineComponent({
 </script>
 
 <style lang="scss" scoped>
-@import '@/assets/tables';
-@import '@/assets/colors';
+@use '@/assets/tables';
+@use '@/assets/colors';
 
 .status-wrap {
   text-transform: uppercase;
   font-size: 12px;
   font-weight: 700;
-  color: $XRoad-WarmGrey100;
+  color: colors.$WarmGrey100;
 }
 
 .errors {
-  color: $XRoad-Error;
+  color: colors.$Error;
 }
 
 .table-title {
   margin-top: -1px; // avoid double 2px border with multiple components
   width: 100%;
-  border-top: 1px solid $XRoad-WarmGrey30;
+  border-top: 1px solid colors.$WarmGrey30;
   padding: 10px;
   padding-right: 20px;
   display: flex;
@@ -146,7 +146,7 @@ export default defineComponent({
 
 .table-closed {
   // Show bottom border only when table is closed
-  border-bottom: 1px solid $XRoad-WarmGrey30;
+  border-bottom: 1px solid colors.$WarmGrey30;
 }
 
 .arrow-degree {

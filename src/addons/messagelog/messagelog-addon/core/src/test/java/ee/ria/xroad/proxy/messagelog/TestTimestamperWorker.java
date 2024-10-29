@@ -37,8 +37,10 @@ import java.util.List;
 import static ee.ria.xroad.proxy.messagelog.TimestamperUtil.getTimestampResponse;
 
 class TestTimestamperWorker extends TimestamperWorker {
+    private static final Lock FALSE = new Lock(false);
+    private static final Lock TRUE = new Lock(true);
     private final GlobalConfProvider globalConfProvider;
-    private static volatile Boolean shouldFail;
+    private static volatile boolean shouldFail;
 
     TestTimestamperWorker(GlobalConfProvider globalConfProvider, List<String> tspUrls) {
         super(globalConfProvider, tspUrls);
@@ -49,13 +51,17 @@ class TestTimestamperWorker extends TimestamperWorker {
         TestTimestamperWorker.shouldFail = failureExpected;
     }
 
+    static Lock lock() {
+        return shouldFail ? TRUE : FALSE;
+    }
+
     @Override
     protected AbstractTimestampRequest createSingleTimestampRequest(Long logRecord) {
         return new SingleTimestampRequest(globalConfProvider, logRecord) {
             @Override
             protected Timestamper.TimestampResult makeTsRequest(TimeStampRequest tsRequest, List<String> tspUrls)
                     throws Exception {
-                synchronized (shouldFail) {
+                synchronized (lock()) {
                     if (shouldFail) {
                         shouldFail = false;
 
@@ -86,7 +92,7 @@ class TestTimestamperWorker extends TimestamperWorker {
             @Override
             protected Timestamper.TimestampResult makeTsRequest(TimeStampRequest tsRequest, List<String> tspUrls)
                     throws Exception {
-                synchronized (shouldFail) {
+                synchronized (lock()) {
                     if (shouldFail) {
                         shouldFail = false;
 
@@ -109,5 +115,8 @@ class TestTimestamperWorker extends TimestamperWorker {
                 TimestampVerifier.verify(token, globalConfProvider.getTspCertificates());
             }
         };
+    }
+
+    record Lock(boolean value) {
     }
 }

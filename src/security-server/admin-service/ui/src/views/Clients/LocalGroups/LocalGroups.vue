@@ -213,10 +213,11 @@ export default defineComponent({
 </script>
 
 <style lang="scss" scoped>
-@import '@/assets/tables';
+@use '@/assets/tables';
+@use '@/assets/colors';
 
 .group-code {
-  color: $XRoad-Link;
+  color: colors.$Link;
   cursor: pointer;
 }
 

@@ -2,7 +2,7 @@
 
 **X-ROAD 7**
 
-Version: 2.86  
+Version: 2.87  
 Doc. ID: UG-SS
 
 ---
@@ -115,6 +115,7 @@ Doc. ID: UG-SS
 | 09.06.2024 | 2.84    | Acme related updates                                                                                                                                                                                                                                                                                                                                                                                        | Mikk-Erik Bachmann   |
 | 12.06.2024 | 2.85    | Acme related updates                                                                                                                                                                                                                                                                                                                                                                                        | Petteri Kivimäki     |
 | 16.09.2024 | 2.86    | Acme automatic renewal releated updates                                                                                                                                                                                                                                                                                                                                                                     | Mikk-Erik Bachmann   |
+| 28.10.2024 | 2.87    | Minor updates to remote database migration                                                                                                                                                                                                                                                                                                                                                                  | Eneli Reimets        |
 
 ## Table of Contents <!-- omit in toc -->
 
@@ -3047,7 +3048,7 @@ Since version `6.22.0` Security Server supports using remote databases. In case 
     systemctl stop "xroad*"
     ```
 
-2. Dump the local databases to be migrated. You can find the passwords of users `serverconf_admin`, `messagelog_admin` and `opmonitor_admin` in `/etc/xroad.properties`.Notice that the versions of the local PostgreSQL client and remote PostgreSQL server must match. Also take into account that on a busy system the messagelog database can be quite large and therefore dump and restore can take considerable amount of time and disk space. Notice that the versions of the local PostgreSQL client and remote PostgreSQL server must match. Also take into account that on a busy system the messagelog database can be quite large and therefore dump and restore can take considerable amount of time and disk space.
+2. Dump the local databases to be migrated. You can find the passwords of users `serverconf_admin`, `messagelog_admin` and `opmonitor_admin` in `/etc/xroad.properties`.Notice that the versions of the local PostgreSQL client and remote PostgreSQL server must match. Also take into account that on a busy system the messagelog database can be quite large and therefore dump and restore can take considerable amount of time and disk space. Notice that the versions of the local PostgreSQL client and remote PostgreSQL server must match.
 
     ```bash
     pg_dump -F t -h 127.0.0.1 -p 5432 -U serverconf_admin -f serverconf.dat serverconf

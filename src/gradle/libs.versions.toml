@@ -12,18 +12,18 @@ hibernate = "6.5.3.Final"
 mapstruct = "1.6.2"
 jackson = "2.18.0"
 mockito = "5.14.2"
-springBoot = "3.3.4"
+springBoot = "3.3.5"
 junitJupiter = "5.11.3"
 junit5SystemExit = "2.0.0"
 xmlUnit = "2.10.0"
 bouncyCastle = "1.78.1"
 slf4j = "2.0.16"
 testAutomationFramework = "0.2.18"
-protoc = "4.28.2"
+protoc = "4.28.3"
 grpc = "1.67.1"
-swaggerParser = "2.1.22"
+swaggerParser = "2.1.23"
 #can go newer on spring boot v3.3.3
-logback = "1.5.11"
+logback = "1.5.12"
 logbackAccess = "2.0.3"
 apacheCxf = "4.0.5"
 archUnitPlugin = "4.0.0"
@@ -143,7 +143,7 @@ logback-classic = { module = "ch.qos.logback:logback-classic", version.ref = "lo
 logback-access = { module = "ch.qos.logback.access:tomcat", version.ref = "logbackAccess" }
 
 assertj-core = { module = "org.assertj:assertj-core", version = "3.26.3" }
-wiremock-standalone = { module = "org.wiremock:wiremock-standalone", version = "3.9.1" }
+wiremock-standalone = { module = "org.wiremock:wiremock-standalone", version = "3.9.2" }
 postgresql = { module = "org.postgresql:postgresql", version = "42.7.4" }
 hsqldb = { module = "org.hsqldb:hsqldb", version = "2.7.3" }
 liquibase-core = { module = "org.liquibase:liquibase-core", version = "4.29.2" }
