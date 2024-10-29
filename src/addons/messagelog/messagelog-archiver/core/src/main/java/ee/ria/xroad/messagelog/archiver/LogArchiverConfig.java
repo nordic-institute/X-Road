@@ -31,9 +31,12 @@ import ee.ria.xroad.common.messagelog.MessageLogProperties;
 import ee.ria.xroad.common.util.JobManager;
 import ee.ria.xroad.common.util.SpringAwareJobManager;
 
+import org.niis.xroad.common.rpc.RpcServiceProperties;
 import org.niis.xroad.confclient.proto.ConfClientRpcClient;
 import org.quartz.JobDataMap;
 import org.quartz.SchedulerException;
+import org.springframework.boot.context.properties.ConfigurationProperties;
+import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
@@ -42,6 +45,7 @@ import org.springframework.scheduling.quartz.SpringBeanJobFactory;
 @Import({GlobalConfBeanConfig.class,
         GlobalConfRefreshJobConfig.class,
         ConfClientRpcClient.class})
+@EnableConfigurationProperties({LogArchiverConfig.MessageLogRpcServiceProperties.class})
 @Configuration
 public class LogArchiverConfig {
 
@@ -63,4 +67,13 @@ public class LogArchiverConfig {
         return new SpringBeanJobFactory();
     }
 
+    @ConfigurationProperties(prefix = "xroad.message-log.grpc")
+    static class MessageLogRpcServiceProperties extends RpcServiceProperties {
+
+        MessageLogRpcServiceProperties(String listenAddress, int port,
+                                       String tlsTrustStore, char[] tlsTrustStorePassword,
+                                       String tlsKeyStore, char[] tlsKeyStorePassword) {
+            super(listenAddress, port, tlsTrustStore, tlsTrustStorePassword, tlsKeyStore, tlsKeyStorePassword);
+        }
+    }
 }

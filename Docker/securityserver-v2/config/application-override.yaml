@@ -11,9 +11,11 @@ xroad:
         proxy:
           host: confclient
           port: 4001
+          deadline-after: 60000
         signer:
           host: signer
           port: 4001
+          deadline-after: 60000
   configuration-client:
     grpc:
       tls-truststore: /opt/app/mount/xroad-grpc-internal-keystore.p12

@@ -28,6 +28,7 @@ package org.niis.xroad.proxy.configuration;
 import ee.ria.xroad.common.cert.CertChainFactory;
 import ee.ria.xroad.common.cert.CertHelper;
 import ee.ria.xroad.common.conf.globalconf.GlobalConfBeanConfig;
+import ee.ria.xroad.common.conf.globalconf.GlobalConfPropertiesConfig;
 import ee.ria.xroad.common.conf.globalconf.GlobalConfProvider;
 import ee.ria.xroad.common.conf.globalconf.GlobalConfRefreshJobConfig;
 import ee.ria.xroad.common.conf.serverconf.ServerConfBeanConfig;
@@ -52,9 +53,11 @@ import ee.ria.xroad.proxy.util.CertHashBasedOcspResponderClient;
 import ee.ria.xroad.signer.SignerClientConfiguration;
 import ee.ria.xroad.signer.SignerRpcClient;
 
+import org.niis.xroad.confclient.proto.ConfClientRpcClientConfiguration;
 import org.niis.xroad.proxy.ProxyProperties;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
 
@@ -67,11 +70,15 @@ import org.springframework.context.annotation.Import;
         ProxyJobConfig.class,
         ProxyMessageLogConfig.class,
         ProxyClientConfig.class,
+        GlobalConfPropertiesConfig.class,
         GlobalConfBeanConfig.class,
         GlobalConfRefreshJobConfig.class,
         ServerConfBeanConfig.class,
-        SignerClientConfiguration.class
+        SignerClientConfiguration.class,
+        ConfClientRpcClientConfiguration.class,
+        ProxyEdcControlPlaneConfig.class
 })
+@ComponentScan("org.niis.xroad.proxy.edc")
 @EnableConfigurationProperties({
         ProxyProperties.class,
         AntiDosConfiguration.class,

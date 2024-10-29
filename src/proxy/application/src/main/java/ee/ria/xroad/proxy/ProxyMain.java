@@ -25,23 +25,24 @@
  */
 package ee.ria.xroad.proxy;
 
-import ee.ria.xroad.common.conf.globalconf.GlobalConfPropertiesConfig;
-
 import lombok.extern.slf4j.Slf4j;
 import org.niis.xroad.bootstrap.XrdSpringServiceBuilder;
-import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.niis.xroad.proxy.configuration.ProxyConfig;
+import org.springframework.boot.SpringBootConfiguration;
+import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 
 /**
  * Main program for the proxy server.
  */
 @Slf4j
-@SpringBootApplication(scanBasePackages = "org.niis.xroad.proxy")
+@EnableAutoConfiguration
+@SpringBootConfiguration
 public class ProxyMain {
 
     private static final String APP_NAME = "xroad-proxy";
 
     public static void main(String[] args) {
-        XrdSpringServiceBuilder.newApplicationBuilder(APP_NAME, ProxyMain.class, GlobalConfPropertiesConfig.class)
+        XrdSpringServiceBuilder.newApplicationBuilder(APP_NAME, ProxyMain.class, ProxyConfig.class)
                 .initializers(applicationContext -> {
                     log.info("Initializing Apache Santuario XML Security library..");
                     org.apache.xml.security.Init.init();

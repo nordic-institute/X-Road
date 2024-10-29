@@ -19,6 +19,7 @@ case $1 in
   ;;
 "proxy-ui-api")
   gradleModule="security-server/admin-service"
+  gradleArgs+="-xintTest"
   ;;
 "cs-admin-service")
   gradleModule="central-server/admin-service"

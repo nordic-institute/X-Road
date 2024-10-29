@@ -28,13 +28,15 @@ package org.niis.xroad.confproxy;
 import lombok.extern.slf4j.Slf4j;
 import org.niis.xroad.bootstrap.XrdSpringServiceBuilder;
 import org.niis.xroad.confproxy.config.ConfProxyConfig;
-import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.boot.SpringBootConfiguration;
+import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 
 /**
  * Main program for the configuration proxy.
  */
 @Slf4j
-@SpringBootApplication
+@EnableAutoConfiguration
+@SpringBootConfiguration
 public class ConfProxyMain {
     private static final String APP_NAME = "xroad-confproxy";
 

@@ -79,32 +79,33 @@ import static org.assertj.core.api.Assertions.fail;
 public class ProxyStepDefs extends BaseStepDefs {
     private String scenarioKeyId;
 
+    private final SignerRpcClient signerRpcClient = null;
     private final GlobalConfProvider globalConf = new TestGlobalConfImpl();
     private final ServerConfProvider serverConf = new ServerConfImpl(globalConf);
-    private final KeyConfProvider keyConfProvider = new CachingKeyConfImpl(globalConf, serverConf);
+    private final KeyConfProvider keyConfProvider = new CachingKeyConfImpl(globalConf, serverConf, signerRpcClient);
 
     public ProxyStepDefs() throws Exception {
     }
 
     @Step("tokens are listed")
     public void listTokens() throws Exception {
-        var tokens = SignerRpcClient.getTokens();
+        var tokens = signerRpcClient.getTokens();
         testReportService.attachJson("Tokens", tokens.toArray());
     }
 
     @Step("token is initialized with pin {string}")
     public void initToken(String pin) throws Exception {
-        SignerRpcClient.initSoftwareToken(pin.toCharArray());
+        signerRpcClient.initSoftwareToken(pin.toCharArray());
     }
 
     @Step("token with id {string} is logged in with pin {string}")
     public void tokenIsActivatedWithPin(String tokenId, String pin) throws Exception {
-        SignerRpcClient.activateToken(tokenId, pin.toCharArray());
+        signerRpcClient.activateToken(tokenId, pin.toCharArray());
     }
 
     @Step("new key {string} generated for token with id {string}")
     public void newKeyGeneratedForToken(String keyLabel, String tokenId) throws Exception {
-        final KeyInfo keyInfo = SignerRpcClient.generateKey(tokenId, keyLabel);
+        final KeyInfo keyInfo = signerRpcClient.generateKey(tokenId, keyLabel);
         scenarioKeyId = keyInfo.getId();
 
         testReportService.attachJson("keyInfo", keyInfo);
@@ -118,7 +119,7 @@ public class ProxyStepDefs extends BaseStepDefs {
                 clientId.getMemberClass(),
                 clientId.getMemberCode());
 
-        SignerRpcClient.GeneratedCertRequestInfo csrInfo = SignerRpcClient.generateCertRequest(scenarioKeyId, clientId,
+        SignerRpcClient.GeneratedCertRequestInfo csrInfo = signerRpcClient.generateCertRequest(scenarioKeyId, clientId,
                 KeyUsageInfo.valueOf(keyUsage), subjectName, CertificateRequestFormat.DER);
 
 
@@ -133,12 +134,12 @@ public class ProxyStepDefs extends BaseStepDefs {
         final ClientId.Conf clientId = getClientId(client);
         final byte[] certBytes = FileUtils.readFileToByteArray(cert.orElseThrow());
 
-        scenarioKeyId = SignerRpcClient.importCert(certBytes, initialStatus, clientId);
+        scenarioKeyId = signerRpcClient.importCert(certBytes, initialStatus, clientId);
     }
 
     @Step("token info can be retrieved by key id")
     public void tokenInfoCanBeRetrievedByKeyId() throws Exception {
-        final TokenInfo tokenForKeyId = SignerRpcClient.getTokenForKeyId(this.scenarioKeyId);
+        final TokenInfo tokenForKeyId = signerRpcClient.getTokenForKeyId(this.scenarioKeyId);
         testReportService.attachJson("tokenInfo", tokenForKeyId);
         assertThat(tokenForKeyId).isNotNull();
     }

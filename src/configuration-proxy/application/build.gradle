@@ -13,7 +13,7 @@ dependencies {
 
 bootJar {
     enabled = true
-    archiveBaseName = 'monitor'
+    archiveBaseName = 'configuration-proxy'
 
     manifest {
         attributes(

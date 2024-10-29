@@ -37,15 +37,18 @@ logging.level:
   ee.ria.xroad.common.SystemPropertiesLoader: OFF
 
 xroad:
-  configuration-client:
-    grpc-host: localhost
-    grpc-port: 5665
-    grpc-tls-enabled: false
-  signer:
-    grpc-host: localhost
-    grpc-port: 5560
-    grpc-tls-enabled: false
-  proxy:
-    grpc-host: localhost
-    grpc-port: 5567
-    grpc-tls-enabled: false
+  common:
+    grpc:
+      channel:
+        configuration-client:
+          host: 127.0.0.1
+          port: 5665
+          deadline-after: 60000
+        signer:
+          host: 127.0.0.1
+          port: 5560
+          deadline-after: 60000
+        proxy:
+          host: 127.0.0.1
+          port: 5567
+          deadline-after: 60000

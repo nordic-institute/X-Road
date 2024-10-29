@@ -32,21 +32,23 @@ import ee.ria.xroad.signer.SignerClientConfiguration;
 import lombok.extern.slf4j.Slf4j;
 import org.niis.xroad.common.rpc.RpcServiceProperties;
 import org.niis.xroad.confclient.proto.ConfClientRpcClientConfiguration;
+import org.niis.xroad.proxy.proto.ProxyRpcClientConfiguration;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
 import org.springframework.context.annotation.Profile;
 
+@Slf4j
+@Profile("!test")
 @Configuration
 @Import({
         SignerClientConfiguration.class,
+        ProxyRpcClientConfiguration.class,
         ConfClientRpcClientConfiguration.class
 })
 @EnableConfigurationProperties({RpcClientsConfig.ProxyUIRpcServiceProperties.class})
-@Profile("!test")
-@Slf4j
-public class RpcClientsConfig {
+class RpcClientsConfig {
 
     @ConfigurationProperties(prefix = "xroad.proxy-ui-api.grpc")
     static class ProxyUIRpcServiceProperties extends RpcServiceProperties {

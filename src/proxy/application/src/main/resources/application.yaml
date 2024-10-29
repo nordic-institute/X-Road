@@ -13,6 +13,18 @@ server:
   port: 5599
 
 xroad:
+  common:
+    global-conf-remoting-enabled: true
+    grpc:
+      channel:
+        configuration-client:
+          host: 127.0.0.1
+          port: 5665
+          deadline-after: 60000
+        signer:
+          host: 127.0.0.1
+          port: 5560
+          deadline-after: 60000
   proxy:
     ocsp-responder:
       listen-address: 0.0.0.0
@@ -62,27 +74,12 @@ xroad:
       client-idle-connection-monitor-timeout: 60000
       client-use-idle-connection-monitor: true
     backup-encryption-keyids: [ ]
-    grpc-server:
-      grpc-listen-address: 0.0.0.0
-      grpc-port: 5567
-      grpc-tls-enabled: false
+    grpc:
+      listen-address: 127.0.0.1
+      port: 5567
   anti-dos:
     max-cpu-load: 1.1
     max-heap-usage: 1.1
     max-parallel-connections: 5000
     min-free-file-handles: 100
     enabled: true
-  common:
-    global-conf-remoting-enabled: true
-  configuration-client:
-    update-interval: 60
-    grpc-host: localhost
-    grpc-port: 5665
-    grpc-tls-enabled: false
-  signer:
-    enforce-token-pin-policy: false
-    ocsp-cache-path: /var/cache/xroad
-    grpc-host: localhost
-    grpc-port: 5560
-    grpc-tls-enabled: false
-

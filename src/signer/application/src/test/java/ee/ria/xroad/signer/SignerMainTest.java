@@ -1,5 +1,6 @@
 /*
  * The MIT License
+ *
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
@@ -23,36 +24,19 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package ee.ria.xroad.common;
+package ee.ria.xroad.signer;
 
-import lombok.AccessLevel;
-import lombok.NoArgsConstructor;
+import org.junit.jupiter.api.Test;
+import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.test.context.ActiveProfiles;
 
-/**
- * This interface contains global constants, such as port numbers
- * and configuration locations.
- */
-@NoArgsConstructor(access = AccessLevel.PRIVATE)
-public final class PortNumbers {
-    /** Client proxy listens for HTTP queries. */
-    public static final int CLIENT_HTTP_PORT = 8080;
+@ActiveProfiles("test")
+@SpringBootTest(useMainMethod = SpringBootTest.UseMainMethod.ALWAYS)
+class SignerMainTest {
 
-    /** Client proxy listens for HTTPS queries. */
-    public static final int CLIENT_HTTPS_PORT = 8443;
-
-    /** Port for connection between client and server proxy. */
-    public static final int PROXY_PORT = 5500;
-
-    /** Admin port for proxy. */
-    public static final int ADMIN_PORT = 5566;
-
-
-    /** Port of the operational monitoring daemon. */
-    public static final int OP_MONITOR_DAEMON_PORT = 2080;
-
-    /**
-     * Environmental monitor gRPC port
-     */
-    public static final int ENV_MONITOR_PORT = 2552;
+    @Test
+    void contextLoads() {
+        // Context loads test
+    }
 
 }

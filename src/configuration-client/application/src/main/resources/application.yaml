@@ -20,5 +20,5 @@ xroad:
     proxy-configuration-backup-cron: 0 15 3 * * ?
     configuration-anchor-file: /etc/xroad/configuration-anchor.xml
     grpc:
-      listen-address: 0.0.0.0
+      listen-address: 127.0.0.1
       port: 5665

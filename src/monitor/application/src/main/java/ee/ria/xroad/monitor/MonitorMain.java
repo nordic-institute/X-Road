@@ -32,13 +32,15 @@ import ee.ria.xroad.monitor.configuration.MonitorConfig;
 
 import lombok.extern.slf4j.Slf4j;
 import org.niis.xroad.bootstrap.XrdSpringServiceBuilder;
-import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.boot.SpringBootConfiguration;
+import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 
 /**
  * Main class for monitor application
  */
 @Slf4j
-@SpringBootApplication
+@EnableAutoConfiguration
+@SpringBootConfiguration
 public class MonitorMain {
 
     private static final String APP_NAME = "xroad-monitor";

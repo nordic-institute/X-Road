@@ -1,5 +1,6 @@
 /*
  * The MIT License
+ *
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
@@ -25,20 +26,16 @@
  */
 package org.niis.xroad.securityserver.restapi;
 
-import org.junit.Test;
-import org.niis.xroad.securityserver.restapi.config.AbstractFacadeMockingTestContext;
+import org.junit.jupiter.api.Test;
+import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.test.context.ActiveProfiles;
 
-/**
- * application test
- */
-public class ApplicationTests extends AbstractFacadeMockingTestContext {
+@ActiveProfiles("test")
+@SpringBootTest(useMainMethod = SpringBootTest.UseMainMethod.ALWAYS)
+class RestApiApplicationTest {
 
-    /**
-     * test that spring context loads
-     */
     @Test
-    @SuppressWarnings("squid:S2699") // false positive: test asserts that context loads without exceptions
-    public void contextLoads() {
+    void contextLoads() {
+        // Context loads test
     }
-
 }

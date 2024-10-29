@@ -46,6 +46,7 @@ import org.niis.xroad.common.rpc.server.RpcServer;
 import org.niis.xroad.confclient.proto.ConfClientRpcClientConfiguration;
 import org.niis.xroad.proxy.proto.ProxyRpcChannelProperties;
 import org.niis.xroad.proxy.proto.ProxyRpcClientConfiguration;
+import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -64,7 +65,9 @@ import java.util.List;
         ConfClientRpcClientConfiguration.class,
         ProxyRpcClientConfiguration.class})
 @EnableScheduling
-@EnableConfigurationProperties({EnvMonitorProperties.class})
+@EnableConfigurationProperties({
+        EnvMonitorProperties.class,
+        MonitorConfig.EnvMonitorServiceProperties.class})
 @Configuration
 public class MonitorConfig {
     private static final int TASK_EXECUTOR_POOL_SIZE = 5;
@@ -115,6 +118,16 @@ public class MonitorConfig {
     CertificateInfoSensor certificateInfoSensor(TaskScheduler taskScheduler, EnvMonitorProperties envMonitorProperties,
                                                 ServerConfProvider serverConfProvider, SignerRpcClient signerRpcClient) {
         return new CertificateInfoSensor(taskScheduler, envMonitorProperties, serverConfProvider, signerRpcClient);
+    }
+
+    @ConfigurationProperties(prefix = "xroad.env-monitor.grpc")
+    static class EnvMonitorServiceProperties extends RpcServiceProperties {
+
+        EnvMonitorServiceProperties(String listenAddress, int port,
+                                    String tlsTrustStore, char[] tlsTrustStorePassword,
+                                    String tlsKeyStore, char[] tlsKeyStorePassword) {
+            super(listenAddress, port, tlsTrustStore, tlsTrustStorePassword, tlsKeyStore, tlsKeyStorePassword);
+        }
     }
 
 }

@@ -29,8 +29,6 @@ import ee.ria.xroad.common.SystemProperties;
 import ee.ria.xroad.common.conf.globalconf.ConfigurationClient;
 import ee.ria.xroad.common.conf.globalconf.ConfigurationClientActionExecutor;
 
-import org.niis.xroad.common.rpc.RpcServiceProperties;
-import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -42,8 +40,7 @@ import org.springframework.context.annotation.Import;
         ConfClientCLIConfig.class
 })
 @EnableConfigurationProperties({
-        ConfigurationClientProperties.class,
-        ConfClientRootConfig.ConfClientRpcServiceProperties.class})
+        ConfigurationClientProperties.class})
 @Configuration
 public class ConfClientRootConfig {
 
@@ -57,13 +54,5 @@ public class ConfClientRootConfig {
         return new ConfigurationClientActionExecutor(configurationClientProperties);
     }
 
-    @ConfigurationProperties(prefix = "xroad.configuration-client.grpc")
-    static class ConfClientRpcServiceProperties extends RpcServiceProperties {
-        ConfClientRpcServiceProperties(String listenAddress, int port,
-                                       String tlsTrustStore, char[] tlsTrustStorePassword,
-                                       String tlsKeyStore, char[] tlsKeyStorePassword) {
-            super(listenAddress, port, tlsTrustStore, tlsTrustStorePassword,
-                    tlsKeyStore, tlsKeyStorePassword);
-        }
-    }
+
 }

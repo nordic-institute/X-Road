@@ -36,13 +36,12 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.stereotype.Component;
 
-import static ee.ria.xroad.common.PortNumbers.SIGNER_GRPC_PORT;
-
 @Slf4j
 @Component
 @ConditionalOnProperty(value = "test-automation.custom.signer-container-enabled", havingValue = "true")
 @RequiredArgsConstructor
 public class SignerProxyInitHook implements BeforeSuiteHook {
+    private static final int SIGNER_GRPC_PORT = 5665;
     private final TestableApplicationInfoProvider testableApplicationInfoProvider;
 
     @Value("${test-automation.custom.grpc-client-host-override:#{null}}")

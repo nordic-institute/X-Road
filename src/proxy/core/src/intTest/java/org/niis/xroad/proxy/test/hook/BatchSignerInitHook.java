@@ -28,7 +28,6 @@
 package org.niis.xroad.proxy.test.hook;
 
 import ee.ria.xroad.common.TestSecurityUtil;
-import ee.ria.xroad.common.signature.BatchSigner;
 
 import com.nortal.test.core.services.hooks.BeforeSuiteHook;
 import lombok.RequiredArgsConstructor;
@@ -51,7 +50,7 @@ public class BatchSignerInitHook implements BeforeSuiteHook {
         System.setProperty("xroad.signer.key-configuration-file", format(CONTAINER_FILES_PATH, "etc/xroad/signer/keyconf.xml"));
 
         TestSecurityUtil.initSecurity();
-        BatchSigner.init();
+//        BatchSigner.init();
     }
 
     @Override

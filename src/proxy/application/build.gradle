@@ -8,7 +8,6 @@ dependencies {
     implementation(project(':proxy:core'))
     implementation(project(':common:common-service-bootstrap'))
     implementation(project(':common:common-core'))
-    implementation(project(':common:common-properties'))
     implementation(project(':common:common-rpc'))
 
     testImplementation(libs.hsqldb)

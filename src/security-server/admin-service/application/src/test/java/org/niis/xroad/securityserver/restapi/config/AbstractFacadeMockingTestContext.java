@@ -50,7 +50,7 @@ import org.springframework.transaction.annotation.Transactional;
  * application contexts built for testing.
  */
 @RunWith(SpringRunner.class)
-@SpringBootTest
+@SpringBootTest(useMainMethod = SpringBootTest.UseMainMethod.ALWAYS)
 @AutoConfigureTestDatabase
 @Transactional
 @WithMockUser

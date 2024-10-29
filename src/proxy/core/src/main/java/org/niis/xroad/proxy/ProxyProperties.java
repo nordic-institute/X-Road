@@ -39,7 +39,6 @@ import java.util.List;
 @ConfigurationProperties(prefix = "xroad.proxy")
 public class ProxyProperties {
     private final ServerProperties server;
-    private final RpcServiceProperties grpcServer;
     private final ClientProxyProperties clientProxy;
     private final OcspResponderProperties ocspResponder;
 
