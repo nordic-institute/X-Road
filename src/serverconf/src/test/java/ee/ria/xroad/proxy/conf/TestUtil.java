@@ -103,12 +103,12 @@ public final class TestUtil {
 
 
     static Map<String, String> serverConfHibernateProperties = Map.of(
-            "hibernate.dialect","org.hibernate.dialect.HSQLDialect",
-            "hibernate.connection.driver_class","org.hsqldb.jdbcDriver",
-            "hibernate.connection.url","jdbc:hsqldb:mem:serverconf",
-            "hibernate.connection.username","serverconf",
-            "hibernate.connection.password","serverconf",
-            "hibernate.hbm2ddl.auto","create-drop"
+            "dialect","org.hibernate.dialect.HSQLDialect",
+            "connection.driver_class","org.hsqldb.jdbcDriver",
+            "connection.url","jdbc:hsqldb:mem:serverconf",
+            "connection.username","serverconf",
+            "connection.password","serverconf",
+            "hbm2ddl.auto","create-drop"
     );
     static ServerConfProperties serverConfProperties = new ServerConfProperties(60, 100,
             1000, 100_000, serverConfHibernateProperties);
