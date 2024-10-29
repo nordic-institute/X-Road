@@ -50,7 +50,7 @@ xroad:
     grpc-port: 5567
     grpc-tls-enabled: false
   common:
-    server-conf:
+    serverconf:
       cache-period: 60
       client-cache-size: 100
       service-cache-size: 1000

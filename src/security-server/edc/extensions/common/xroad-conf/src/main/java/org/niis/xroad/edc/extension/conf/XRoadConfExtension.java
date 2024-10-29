@@ -92,7 +92,7 @@ public class XRoadConfExtension implements ServiceExtension {
                   60, 100, 1000, 100_000
             , Map.of());
             var serverConfSessionFactory = HibernateUtil.createSessionFactory("serverconf",
-                    serverConfProperties.hibernateProperties());
+                    serverConfProperties.hibernate());
             DatabaseCtxV2 databaseCtx = new DatabaseCtxV2("serverconf", serverConfSessionFactory);
             ServerConfProvider serverConfProvider = (serverConfProperties.cachePeriod() > 0)
                     ? new CachingServerConfImpl(databaseCtx, serverConfProperties, globalConfProvider)

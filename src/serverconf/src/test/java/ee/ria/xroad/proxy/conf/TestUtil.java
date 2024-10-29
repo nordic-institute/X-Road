@@ -114,7 +114,7 @@ public final class TestUtil {
             1000, 100_000, serverConfHibernateProperties);
     static DatabaseCtxV2 databaseCtx = new DatabaseCtxV2("serverconf",
             HibernateUtil.createSessionFactory("serverconf",
-                    serverConfProperties.hibernateProperties()));
+                    serverConfProperties.hibernate()));
 
     private TestUtil() {
     }

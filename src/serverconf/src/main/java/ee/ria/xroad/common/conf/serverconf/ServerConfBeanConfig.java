@@ -50,7 +50,7 @@ public class ServerConfBeanConfig {
     @Bean
     DatabaseCtxV2 serverConfDatabaseCtx(ServerConfProperties serverConfProperties) {
         var serverConfSessionFactory = HibernateUtil.createSessionFactory("serverconf",
-                serverConfProperties.hibernateProperties());
+                serverConfProperties.hibernate());
         return new DatabaseCtxV2("serverconf", serverConfSessionFactory);
     }
 

@@ -171,7 +171,7 @@ public final class HibernateUtil {
                 .configure(name + ".hibernate.cfg.xml");
 
         if (hibernateProperties != null) {
-            hibernateProperties.forEach(configuration::setProperty);
+            hibernateProperties.forEach((key, value) -> configuration.setProperty("hibernate." + key, value));
         } else {
             throw new CodedException(X_DATABASE_ERROR, "Database (%s) properties not found.", name);
         }

@@ -60,7 +60,7 @@ xroad:
       grpc-port: 5567
       grpc-tls-enabled: false
   common:
-    server-conf:
+    serverconf:
       cache-period: 0
       hibernate:
         dialect: org.hibernate.dialect.HSQLDialect
