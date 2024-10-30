@@ -41,7 +41,7 @@ export default defineComponent({});
 </script>
 
 <style lang="scss" scoped>
-@import '../assets/colors';
+@use '../assets/colors';
 
 .xrd-sub-view-outer-wrapper {
   width: 100%;
@@ -52,6 +52,6 @@ export default defineComponent({});
 
 /* Use this to set up font etc. common things for normal views */
 .xrd-default-font-size {
-  font-size: $XRoad-DefaultFontSize;
+  font-size: colors.$DefaultFontSize;
 }
 </style>
