@@ -43,6 +43,7 @@ import ee.ria.xroad.common.conf.serverconf.model.ServerConfType;
 import ee.ria.xroad.common.conf.serverconf.model.ServiceDescriptionType;
 import ee.ria.xroad.common.conf.serverconf.model.ServiceType;
 import ee.ria.xroad.common.conf.serverconf.model.TspType;
+import ee.ria.xroad.common.db.DatabaseCtxV2;
 import ee.ria.xroad.common.db.TransactionCallback;
 import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.identifier.GlobalGroupId;
@@ -63,7 +64,6 @@ import jakarta.persistence.criteria.CriteriaQuery;
 import jakarta.persistence.criteria.Join;
 import jakarta.persistence.criteria.Predicate;
 import jakarta.persistence.criteria.Root;
-import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.ObjectUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -84,18 +84,17 @@ import java.util.stream.Collectors;
 import static ee.ria.xroad.common.ErrorCodes.X_MALFORMED_SERVERCONF;
 import static ee.ria.xroad.common.ErrorCodes.X_UNKNOWN_SERVICE;
 import static ee.ria.xroad.common.ErrorCodes.translateException;
-import static ee.ria.xroad.common.conf.serverconf.ServerConfDatabaseCtx.doInTransaction;
 
 /**
  * Server conf implementation.
  */
 @Slf4j
-@RequiredArgsConstructor
 public class ServerConfImpl implements ServerConfProvider {
 
     // default service connection timeout in seconds
     protected static final int DEFAULT_SERVICE_TIMEOUT = 30;
 
+    protected final DatabaseCtxV2 databaseCtx;
     protected final GlobalConfProvider globalConfProvider;
 
     private final ServiceDAOImpl serviceDao = new ServiceDAOImpl();
@@ -104,6 +103,11 @@ public class ServerConfImpl implements ServerConfProvider {
     private final CertificateDAOImpl certificateDao = new CertificateDAOImpl();
     private final ServerConfDAOImpl serverConfDao = new ServerConfDAOImpl();
     private final ServiceDescriptionDAOImpl serviceDescriptionDao = new ServiceDescriptionDAOImpl();
+
+    public ServerConfImpl(DatabaseCtxV2 databaseCtx, GlobalConfProvider globalConfProvider) {
+        this.databaseCtx = databaseCtx;
+        this.globalConfProvider = globalConfProvider;
+    }
 
     @Override
     public SecurityServerId.Conf getIdentifier() {
@@ -403,7 +407,7 @@ public class ServerConfImpl implements ServerConfProvider {
     @Override
     public boolean isAvailable() {
         try {
-            return doInTransaction(SharedSessionContract::isConnected);
+            return databaseCtx.doInTransaction(SharedSessionContract::isConnected);
         } catch (Exception e) {
             log.warn("Unable to check Serverconf availability", e);
             return false;
@@ -525,7 +529,7 @@ public class ServerConfImpl implements ServerConfProvider {
      */
     protected <T> T tx(TransactionCallback<T> t) {
         try {
-            return doInTransaction(t);
+            return databaseCtx.doInTransaction(t);
         } catch (Exception e) {
             throw translateException(e);
         }

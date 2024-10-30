@@ -37,6 +37,11 @@ public class LegacyConfigPathMapping {
         MAPPING.put("proxy.client-idle-connection-monitor-interval", "proxy.client-proxy.client-idle-connection-monitor-interval");
         MAPPING.put("proxy.client-idle-connection-monitor-timeout", "proxy.client-proxy.client-idle-connection-monitor-timeout");
         MAPPING.put("proxy.client-use-idle-connection-monitor", "proxy.client-proxy.client-use-idle-connection-monitor");
+
+        MAPPING.put("proxy.server-conf-cache-period", "common.server-conf.cache-period");
+        MAPPING.put("proxy.server-conf-client-cache-size", "common.server-conf.client-cache-size");
+        MAPPING.put("proxy.server-conf-service-cache-size", "common.server-conf.service-cache-size");
+        MAPPING.put("proxy.server-conf-acl-cache-size", "common.server-conf.acl-cache-size");
     }
 
     String map(String oldPath) {

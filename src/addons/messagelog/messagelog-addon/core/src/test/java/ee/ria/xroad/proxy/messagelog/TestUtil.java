@@ -55,7 +55,7 @@ import java.security.cert.X509Certificate;
 import java.util.Arrays;
 import java.util.List;
 
-import static ee.ria.xroad.proxy.messagelog.MessageLogDatabaseCtx.doInTransaction;
+import static ee.ria.xroad.messagelog.database.MessageLogDatabaseCtx.doInTransaction;
 import static org.apache.commons.lang3.StringUtils.isBlank;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;

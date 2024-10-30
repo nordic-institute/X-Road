@@ -19,6 +19,8 @@ dependencies {
     implementation(project(':common:common-domain'))
     implementation(project(':common:common-verifier'))
 
+    implementation("org.springframework.boot:spring-boot-starter")
+
     // DB layer tests use HSQLDB with in-memory tables
     testImplementation(libs.hsqldb)
     testImplementation(project(':common:common-db'))
@@ -57,13 +59,6 @@ tasks.register('schemaExport') {
             }
         }
     }
-}
-
-tasks.register('runServerConfCRUDTest', JavaExec) {
-    jvmArgs '-Dlogback.configurationFile=src/test/resources/logback-crudtest.xml'
-    mainClass = 'ee.ria.xroad.proxy.conf.ServerConfCRUDTest'
-    classpath = sourceSets.test.runtimeClasspath
-    standardInput = System.in;
 }
 
 schemaExport.dependsOn compileJava

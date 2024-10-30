@@ -15,6 +15,18 @@ server:
 xroad:
   common:
     global-conf-remoting-enabled: true
+    serverconf:
+      cache-period: 60
+      client-cache-size: 100
+      service-cache-size: 1000
+      acl-cache-size: 100_000
+      hibernate:
+        dialect: ee.ria.xroad.common.db.CustomPostgreSQLDialect
+        connection.driver_class: org.postgresql.Driver
+        connection.url: jdbc:postgresql://127.0.0.1:5432/serverconf
+        connection.username: serverconf
+        hikari.dataSource.currentSchema: serverconf,public
+        jdbc.use_streams_for_binary: true
     grpc:
       channel:
         configuration-client:
@@ -83,3 +95,5 @@ xroad:
     max-parallel-connections: 5000
     min-free-file-handles: 100
     enabled: true
+
+

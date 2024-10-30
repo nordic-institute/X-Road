@@ -1,5 +1,6 @@
 /*
  * The MIT License
+ *
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
@@ -23,36 +24,19 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package ee.ria.xroad.proxy.messagelog;
 
-import ee.ria.xroad.common.db.DatabaseCtx;
-import ee.ria.xroad.common.db.TransactionCallback;
+package ee.ria.xroad.common.conf.serverconf;
 
-/**
- * Message log database context.
- */
-public final class MessageLogDatabaseCtx {
+import org.springframework.boot.context.properties.ConfigurationProperties;
 
-    private static final DatabaseCtx CTX = new DatabaseCtx("messagelog");
+import java.util.Map;
 
-    private MessageLogDatabaseCtx() {
-    }
-
-    /**
-     * @return the current context.
-     */
-    public static DatabaseCtx get() {
-        return CTX;
-    }
-
-    /**
-     * Convenience method for a transaction callback.
-     * @param <T> the type of result.
-     * @param callback the callback.
-     * @return the result.
-     * @throws Exception if an error occurs.
-     */
-    public static <T> T doInTransaction(TransactionCallback<T> callback) throws Exception {
-        return CTX.doInTransaction(callback);
-    }
+@ConfigurationProperties(prefix = "xroad.common.serverconf")
+public record ServerConfProperties(
+        int cachePeriod,       //xroad.proxy.server-conf-cache-period: 60
+        long clientCacheSize,  //xroad.proxy.server-conf-client-cache-size: 100
+        long serviceCacheSize, //xroad.proxy.server-conf-service-cache-size: 1000
+        long aclCacheSize,      //xroad.proxy.server-conf-acl-cache-size: 100_000
+        Map<String, String> hibernate // serverconf.hibernate.* properties from db-properties file
+) {
 }

@@ -27,9 +27,9 @@
 
 package org.niis.xroad.proxy.test.glue;
 
+import ee.ria.xroad.common.conf.EmptyServerConf;
 import ee.ria.xroad.common.conf.globalconf.GlobalConfProvider;
 import ee.ria.xroad.common.conf.globalconf.TestGlobalConfImpl;
-import ee.ria.xroad.common.conf.serverconf.ServerConfImpl;
 import ee.ria.xroad.common.conf.serverconf.ServerConfProvider;
 import ee.ria.xroad.common.crypto.identifier.DigestAlgorithm;
 import ee.ria.xroad.common.hashchain.HashChainReferenceResolver;
@@ -81,10 +81,10 @@ public class ProxyStepDefs extends BaseStepDefs {
 
     private final SignerRpcClient signerRpcClient = null;
     private final GlobalConfProvider globalConf = new TestGlobalConfImpl();
-    private final ServerConfProvider serverConf = new ServerConfImpl(globalConf);
+    private final ServerConfProvider serverConf = new EmptyServerConf();
     private final KeyConfProvider keyConfProvider = new CachingKeyConfImpl(globalConf, serverConf, signerRpcClient);
 
-    public ProxyStepDefs() throws Exception {
+    public ProxyStepDefs() {
     }
 
     @Step("tokens are listed")
@@ -209,13 +209,6 @@ public class ProxyStepDefs extends BaseStepDefs {
             testReportService.attachText("Batch signature was triggered " + batchSignatureDetectCounter.get() + " times", "");
         }
     }
-
-//    @SneakyThrows
-//    private KeyConfProvider createKeyConf() {
-//        var globalConf = new TestGlobalConfImpl();
-//        var serverConf = new ServerConfImpl(globalConf);
-//        return CachingKeyConfImpl.newInstance(globalConf, serverConf);
-//    }
 
     private List<Future<BatchSignResult>> invokeCallables(List<Callable<BatchSignResult>> callables, int threads)
             throws InterruptedException {

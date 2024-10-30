@@ -26,12 +26,12 @@
 package ee.ria.xroad.proxy.testsuite;
 
 import ee.ria.xroad.common.SystemProperties;
-import ee.ria.xroad.common.SystemPropertySource;
 import ee.ria.xroad.common.TestPortUtils;
 import ee.ria.xroad.common.conf.globalconf.GlobalConfProvider;
 import ee.ria.xroad.common.conf.globalconf.GlobalConfSource;
 import ee.ria.xroad.common.conf.globalconf.TestGlobalConfWrapper;
 import ee.ria.xroad.common.conf.serverconf.ServerConfProvider;
+import ee.ria.xroad.common.db.DatabaseCtxV2;
 import ee.ria.xroad.common.util.TimeUtils;
 import ee.ria.xroad.proxy.ProxyMain;
 import ee.ria.xroad.proxy.conf.KeyConfProvider;
@@ -42,10 +42,8 @@ import lombok.AccessLevel;
 import lombok.NoArgsConstructor;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
-import org.niis.xroad.proxy.configuration.ProxyConfig;
+import org.niis.xroad.bootstrap.XrdSpringServiceBuilder;
 import org.springframework.beans.factory.BeanCreationException;
-import org.springframework.boot.WebApplicationType;
-import org.springframework.boot.builder.SpringApplicationBuilder;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -136,7 +134,7 @@ public final class ProxyTestSuite {
     private static void setPropsIfNotSet() {
 
         System.setProperty(SystemProperties.PROXY_CLIENT_TIMEOUT, "15000");
-        System.setProperty(SystemProperties.DATABASE_PROPERTIES, "src/test/resources/hibernate.properties");
+//        System.setProperty(SystemProperties.DATABASE_PROPERTIES, "src/test/resources/hibernate.properties");
 
         PropsSolver solver = new PropsSolver();
 
@@ -210,15 +208,12 @@ public final class ProxyTestSuite {
 
     private static void runTestSuite(List<MessageTestCase> tc) {
         // todo: should be better way to start application context
-        try (var applicationContext = new SpringApplicationBuilder(ProxyMain.class, ProxyConfig.class, TestProxySpringConfig.class)
-                .profiles("group-ee")//TODO load dynamically
+        try (var applicationContext = XrdSpringServiceBuilder.newApplicationBuilder("xroad-proxy",
+                        ProxyMain.class, TestProxySpringConfig.class)
                 .initializers(ctx -> {
                     log.info("Initializing Apache Santuario XML Security library..");
                     org.apache.xml.security.Init.init();
-                    log.info("Setting property source to Spring environment..");
-                    SystemPropertySource.setEnvironment(ctx.getEnvironment());
                 })
-                .web(WebApplicationType.NONE)
                 .build()
                 .run()) {
             runTestCases(applicationContext, tc);
@@ -307,6 +302,11 @@ public final class ProxyTestSuite {
         @Bean
         ServerConfProvider serverConfProvider() {
             return new TestServerConfWrapper(new TestSuiteServerConf());
+        }
+
+        @Bean
+        DatabaseCtxV2 serverConfDatabaseCtx() {
+            return null;
         }
     }
 
