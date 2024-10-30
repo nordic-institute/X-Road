@@ -92,7 +92,6 @@ COPY --chown=root:root files/ss-xroad.conf /etc/supervisor/conf.d/xroad.conf
 COPY build/libs/ /usr/share/xroad/jlib/
 COPY build/liquibase/ /usr/share/xroad/db
 
-COPY files/edc/etc /etc/xroad-edc/
 COPY files/edc/setup_edc_controlplane_db.sh /usr/share/xroad/scripts/setup_edc_controlplane_db.sh
 COPY files/edc/setup_edc_dataplane_db.sh /usr/share/xroad/scripts/setup_edc_dataplane_db.sh
 COPY files/edc/setup_edc_identityhub_db.sh /usr/share/xroad/scripts/setup_edc_identityhub_db.sh

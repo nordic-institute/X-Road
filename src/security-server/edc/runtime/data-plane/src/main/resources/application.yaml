@@ -14,6 +14,18 @@ xroad:
   messagelog:
     enabled: true
   common:
+    serverconf:
+      cache-period: 60
+      client-cache-size: 100
+      service-cache-size: 1000
+      acl-cache-size: 100_000
+      hibernate:
+        dialect: ee.ria.xroad.common.db.CustomPostgreSQLDialect
+        connection.driver_class: org.postgresql.Driver
+        connection.url: jdbc:postgresql://127.0.0.1:5432/serverconf
+        connection.username: serverconf
+        hikari.dataSource.currentSchema: serverconf,public
+        jdbc.use_streams_for_binary: true
     grpc:
       channel:
         configuration-client:
@@ -31,11 +43,6 @@ logging:
     org.niis.xroad.edc.extension.bridge.config: DEBUG
 
 #EDC configuration
-serverconf:
-  hibernate:
-    hikari:
-      maximumPoolSize: 1
-
 web:
   http:
     port: 9291
@@ -57,7 +64,7 @@ edc:
     default:
       url: jdbc:postgresql://127.0.0.1:5432/edc-data-plane
       user: edc-data-plane
-      password: FQYUbNE7NIHsfy33dyl217c3zuw7fDK0
+      password: ${EDC_DS_PASSWORD}
   transfer:
     proxy:
       token:

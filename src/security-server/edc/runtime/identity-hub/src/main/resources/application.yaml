@@ -12,6 +12,18 @@ server:
 
 xroad:
   common:
+    serverconf:
+      cache-period: 60
+      client-cache-size: 100
+      service-cache-size: 1000
+      acl-cache-size: 100_000
+      hibernate:
+        dialect: ee.ria.xroad.common.db.CustomPostgreSQLDialect
+        connection.driver_class: org.postgresql.Driver
+        connection.url: jdbc:postgresql://127.0.0.1:5432/serverconf
+        connection.username: serverconf
+        hikari.dataSource.currentSchema: serverconf,public
+        jdbc.use_streams_for_binary: true
     grpc:
       channel:
         configuration-client:
@@ -28,11 +40,12 @@ logging:
     ROOT: INFO
 
 #EDC conf
-serverconf:
-  hibernate:
-    hikari:
-      maximumPoolSize: 1
 edc:
+  datasource:
+    default:
+      url: jdbc:postgresql://127.0.0.1:5432/edc-identity-hub
+      user: edc-identity-hub
+      password: ${EDC_DS_PASSWORD}
   participant:
     id: did:web:${EDC_DID}
   http:
