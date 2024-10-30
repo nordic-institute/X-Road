@@ -34,3 +34,7 @@ xroad:
     message-body-logging: true
   node:
     type:
+
+logging:
+  level:
+    ROOT: INFO

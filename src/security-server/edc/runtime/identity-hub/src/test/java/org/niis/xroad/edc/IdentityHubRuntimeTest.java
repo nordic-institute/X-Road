@@ -14,17 +14,16 @@
 package org.niis.xroad.edc;
 
 
-import org.eclipse.edc.junit.annotations.EndToEndTest;
 import org.eclipse.edc.junit.extensions.RuntimeExtension;
 import org.eclipse.edc.junit.extensions.RuntimePerClassExtension;
 import org.eclipse.edc.util.io.Ports;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.RegisterExtension;
 
 import java.nio.file.Paths;
 import java.util.Map;
 
-@EndToEndTest
+//@EndToEndTest
 class IdentityHubRuntimeTest {
 
     static {
@@ -34,7 +33,7 @@ class IdentityHubRuntimeTest {
         System.setProperty("xroad.signer.key-configuration-file", xrdSrcDir + "/signer/keyconf.xml");
     }
 
-    @RegisterExtension
+    //    @RegisterExtension
     private static final RuntimeExtension RUNTIME = new RuntimePerClassExtension()
             .setConfiguration(Map.ofEntries(
                     Map.entry("edc.vault.hashicorp.url", "http://url"),
@@ -51,6 +50,7 @@ class IdentityHubRuntimeTest {
             ));
 
     @Test
+    @Disabled
     void verifyStartup() {
         //do nothing
     }

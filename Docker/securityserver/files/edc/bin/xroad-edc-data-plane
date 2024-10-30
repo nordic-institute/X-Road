@@ -1,17 +1,10 @@
 #!/bin/bash
-
-# load grpc settings
-if [ -f /var/run/xroad/xroad-grpc-internal-env.properties ]; then
-  set -a
-  . /var/run/xroad/xroad-grpc-internal-env.properties
-  set +a
-fi
+. /etc/xroad/services/global.conf
 
 echo "DS: Running liquibase.."
 source /usr/share/xroad/scripts/setup_edc_dataplane_db.sh
 
-exec java -Dedc.fs.config="/etc/xroad-edc/edc-data-plane.properties" \
-    -Dserverconf.hibernate.hikari.maximumPoolSize=1 \
+exec java \
     -Xdebug -agentlib:jdwp=transport=dt_socket,address=*:9954,server=y,suspend=n \
     -javaagent:/usr/share/xroad/jlib/opentelemetry-javaagent.jar \
     -Dotel.exporter.otlp.protocol=http/protobuf \
@@ -19,4 +12,4 @@ exec java -Dedc.fs.config="/etc/xroad-edc/edc-data-plane.properties" \
     -Dotel.exporter.prometheus.port=9464 \
     -Dotel.metrics.exporter=prometheus \
     -Dotel.exporter.otlp.endpoint=http://jaeger:4318 \
-    -Xmx256m -jar /usr/share/xroad/jlib/edc-data-plane.jar
+    -Xmx256m -jar /usr/share/xroad/jlib/edc-data-plane-1.0.jar

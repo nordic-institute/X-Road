@@ -11,9 +11,8 @@ dependencies {
     implementation(project(":common:common-messagelog"))
     implementation(project(":common:common-verifier")) // for the GlobalConf
 
-    implementation(project(":common:common-domain")) {
-        exclude group: 'org.eclipse.jetty'
-    }  // for the ClientId, ServiceId identifiers
+    implementation(project(":common:common-domain"))
+    // for the ClientId, ServiceId identifiers
     implementation(project(":serverconf"))
 
     testImplementation project(':common:common-keyconf')

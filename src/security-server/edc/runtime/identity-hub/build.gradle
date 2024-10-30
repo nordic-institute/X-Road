@@ -1,14 +1,8 @@
-import com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar
-
 plugins {
-    id("java")
-    id("application")
-    alias(libs.plugins.shadow)
+    alias(libs.plugins.springBoot)
 }
 
 configurations {
-    sqlDependencies
-
     configureEach {
         exclude group: 'org.eclipse.edc', module: 'jetty-core'
         exclude group: 'com.apicatalog', module: 'titanium-json-ld-jre8' //transient dep that creates errors
@@ -16,6 +10,8 @@ configurations {
 }
 
 dependencies {
+    implementation(project(':common:common-service-bootstrap'))
+
     runtimeOnly(libs.bundles.identityhub)
     runtimeOnly(libs.edc.config.filesystem)
     runtimeOnly(libs.edc.api.observability)
@@ -31,62 +27,34 @@ dependencies {
     implementation(libs.edc.lib.vp)
     implementation(libs.edc.lib.jsonld)
 
-    sqlDependencies(libs.bundles.sql.ih)
+    implementation(libs.bundles.sql.ih)
 
-    implementation(project(":security-server:edc:extensions:common:xroad-conf"))
     implementation(project(":security-server:edc:extensions:common:xroad-jsonld"))
     implementation(project(":security-server:edc:extensions:common:xroad-ldp-verifiable-credentials"))
-    implementation(project(":security-server:edc:extensions:common:xroad-jws-signer")) {
-        exclude group: 'org.eclipse.jetty'
-    }
-    implementation(project(":security-server:edc:extensions:identity-hub:xroad-identity-hub-provisioner")) {
-        exclude group: 'org.eclipse.jetty'
-    }
+    implementation(project(":security-server:edc:extensions:common:xroad-jws-signer"))
+    implementation(project(":security-server:edc:extensions:identity-hub:xroad-identity-hub-provisioner"))
     implementation(project(":security-server:edc:extensions:common:xroad-webserver"))
+    implementation(project(":security-server:edc:extensions:common:xroad-spring-bridge"))
+    implementation(libs.logback.classic)
 
     testImplementation libs.edc.junit
     testImplementation libs.mockito.jupiter
 }
 
-application {
-    mainClass.set("org.eclipse.edc.boot.system.runtime.BaseRuntime")
+jar {
+    enabled = false
 }
 
-var distTar = tasks.named("distTar")
-var distZip = tasks.named("distZip")
-
-sourceSets {
-    main {
-        resources {
-            srcDir 'src/main/resources'
-        }
-    }
-}
-
-
-shadowJar {
-    mergeServiceFiles()
-    archiveFileName.set("edc-identity-hub-inmemory.jar")
-    dependsOn(distTar, distZip)
-}
-
-tasks.register('shadowJarWithSql', ShadowJar) {
-    from sourceSets.main.output
-    configurations = [project.configurations.runtimeClasspath, project.configurations.sqlDependencies]
-    exclude('META-INF/*.RSA', 'META-INF/*.SF', 'META-INF/*.DSA')
-    archiveFileName.set("edc-identity-hub.jar")
+bootJar {
+    enabled = true
+    archiveBaseName = 'edc-identity-hub'
     manifest {
-        attributes 'Main-Class': 'org.eclipse.edc.boot.system.runtime.BaseRuntime'
+        attributes(
+            'Implementation-Title': 'X-Road EDC Identity Hub',
+            'Implementation-Version': "$xroadVersion-$xroadBuildType",
+        )
     }
-    mergeServiceFiles()
-    dependsOn(distTar, distZip)
 }
-
-processResources {
-    duplicatesStrategy = DuplicatesStrategy.INCLUDE
-}
-
-assemble.dependsOn("shadowJarWithSql")
 
 archUnit {
     skip = true

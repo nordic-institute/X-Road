@@ -36,6 +36,8 @@ import jakarta.servlet.Servlet;
 import lombok.SneakyThrows;
 import org.eclipse.edc.spi.EdcException;
 import org.eclipse.edc.spi.monitor.Monitor;
+import org.eclipse.jetty.ee10.servlet.ServletContextHandler;
+import org.eclipse.jetty.ee10.servlet.ServletHolder;
 import org.eclipse.jetty.http.HttpVersion;
 import org.eclipse.jetty.server.HttpConfiguration;
 import org.eclipse.jetty.server.HttpConnectionFactory;
@@ -44,9 +46,6 @@ import org.eclipse.jetty.server.Server;
 import org.eclipse.jetty.server.ServerConnector;
 import org.eclipse.jetty.server.SslConnectionFactory;
 import org.eclipse.jetty.server.handler.ContextHandlerCollection;
-import org.eclipse.jetty.servlet.ServletContextHandler;
-import org.eclipse.jetty.servlet.ServletHolder;
-import org.eclipse.jetty.servlet.Source;
 import org.eclipse.jetty.util.ssl.SslContextFactory;
 import org.jetbrains.annotations.NotNull;
 import org.niis.xroad.edc.spi.XrdWebServer;
@@ -66,11 +65,10 @@ import java.util.Objects;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
-import static org.eclipse.jetty.servlet.ServletContextHandler.NO_SESSIONS;
-
+import static org.eclipse.jetty.ee10.servlet.ServletContextHandler.NO_SESSIONS;
 
 /**
- * This is ant extended vanilla JettyService with customized SSL context.
+ * This is ant extended vanilla JettyService with customized SSL context and Jetty 12.
  * NOTE: package and name is kept as is due to jersey-core dependency.
  */
 public class JettyService implements XrdWebServer {
@@ -95,8 +93,7 @@ public class JettyService implements XrdWebServer {
         this.certChainFactory = certChainFactory;
         this.monitor = monitor;
         System.setProperty(LOG_ANNOUNCE, "false");
-        // for websocket endpoints
-        handlers.put("/", new ServletContextHandler(null, "/", NO_SESSIONS));
+        handlers.put("/", new ServletContextHandler("/", NO_SESSIONS));
     }
 
     public void start() {
@@ -109,7 +106,6 @@ public class JettyService implements XrdWebServer {
                 monitor.warning("Not recommended for production use!");
             }
 
-            //create a connector for every port mapping
             configuration.getPortMappings().forEach(mapping -> {
                 if (!mapping.getPath().startsWith("/")) {
                     throw new IllegalArgumentException("A context path must start with /: " + mapping.getPath());
@@ -146,7 +142,7 @@ public class JettyService implements XrdWebServer {
         try {
             if (server != null) {
                 server.stop();
-                server.join(); //wait for all threads to wind down
+                server.join();
             }
         } catch (Exception e) {
             throw new EdcException("Error shutting down Jetty service", e);
@@ -154,9 +150,8 @@ public class JettyService implements XrdWebServer {
     }
 
     public void registerServlet(String contextName, Servlet servlet) {
-        var servletHolder = new ServletHolder(Source.EMBEDDED);
+        var servletHolder = new ServletHolder(servlet);
         servletHolder.setName("EDC-" + contextName);
-        servletHolder.setServlet(servlet);
         servletHolder.setInitOrder(1);
 
         var actualPath = configuration.getPortMappings().stream()
@@ -172,14 +167,6 @@ public class JettyService implements XrdWebServer {
         servletHandler.addServletWithMapping(servletHolder, actualPath + allPathSpec);
     }
 
-    /**
-     * Allows adding a {@link PortMapping} that is not defined in the configuration. This can only
-     * be done before the JettyService is started, i.e. before {@link #start()} is called.
-     *
-     * @param contextName name of the port mapping.
-     * @param port        port of the port mapping.
-     * @param path        path of the port mapping.
-     */
     @Override
     public void addPortMapping(String contextName, int port, String path) {
         addPortMapping(contextName, port, path, false);
@@ -200,8 +187,8 @@ public class JettyService implements XrdWebServer {
 
     @NotNull
     private ServletContextHandler createHandler(PortMapping mapping) {
-        var handler = new ServletContextHandler(server, "/", NO_SESSIONS);
-        handler.setVirtualHosts(new String[]{"@" + mapping.getName()});
+        var handler = new ServletContextHandler("/", NO_SESSIONS);
+        handler.setVirtualHosts(List.of("@" + mapping.getName()));
         return handler;
     }
 
@@ -244,7 +231,7 @@ public class JettyService implements XrdWebServer {
         var cert = keyStore.getCertificate("management-service");
         var certChain = certChainFactory.create("cs", new X509Certificate[]{
                 (X509Certificate) cert,
-                globalConfProvider.getAllCaCerts().stream().findFirst().orElseThrow() //TODO for poc, use proper cert chain.
+                globalConfProvider.getAllCaCerts().stream().findFirst().orElseThrow()
         });
         var pkey = (PrivateKey) keyStore.getKey("management-service", "management-service".toCharArray());
         return new AuthKey(certChain, pkey);
@@ -276,8 +263,6 @@ public class JettyService implements XrdWebServer {
     }
 
     private ServletContextHandler getOrCreate(String contextPath) {
-        return handlers.computeIfAbsent(contextPath, k -> new ServletContextHandler(server, "/", NO_SESSIONS));
+        return handlers.computeIfAbsent(contextPath, k -> new ServletContextHandler("/", NO_SESSIONS));
     }
-
 }
-

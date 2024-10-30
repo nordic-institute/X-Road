@@ -1,0 +1,98 @@
+spring:
+  application:
+    name: edc-control-plane
+  output:
+    ansi:
+      enabled: detect #TODO implementing logging changes to support ansi colors
+  main:
+    banner-mode: log
+
+server:
+  port: 5851
+
+xroad:
+  common:
+    grpc:
+      channel:
+        configuration-client:
+          host: 127.0.0.1
+          port: 4001
+          deadline-after: 60000
+        signer:
+          host: 127.0.0.1
+          port: 5560
+          deadline-after: 60000
+
+logging:
+  level:
+    ROOT: INFO
+
+#EDC conf
+serverconf:
+  hibernate:
+    hikari:
+      maximumPoolSize: 1
+
+edc:
+  datasource:
+    default:
+      url: jdbc:postgresql://127.0.0.1:5432/edc-control-plane
+      user: edc-control-plane
+      password: lOmFh5NFsHcKfHAfxEH4cIPnqbn-Wf_9
+  participant:
+    id: did:web:${EDC_DID}
+  public:
+    key:
+      alias: public-key
+  dsp:
+    callback:
+      address: https://${EDC_HOSTNAME}:9194/protocol
+  edr:
+    receiver:
+      sync: true
+  http:
+    client:
+      https:
+        enforce: true
+  iam:
+    issuer:
+      id: did:web:${EDC_DID}
+    sts:
+      privatekey:
+        alias: key-id
+      publickey:
+        id: did:web:${EDC_DID}#key-id
+    did:
+      web:
+        use:
+          https: true
+  jsonld:
+    https:
+      enabled: true
+    http:
+      enabled: true
+  vault:
+    hashicorp:
+      url: http://openbao:8200
+      token: 00000000-0000-0000-0000-000000000001
+  negotiation:
+    state-machine:
+      iteration-wait-millis: 300
+  policy:
+    monitor:
+      state-machine:
+        iteration-wait-millis: 300
+
+web:
+  http:
+    port: 9191
+    path: /api
+    control:
+      port: 9192
+      path: /control
+    management:
+      port: 9193
+      path: /management
+    protocol:
+      port: 9194
+      path: /

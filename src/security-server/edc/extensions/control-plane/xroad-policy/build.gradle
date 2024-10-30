@@ -7,12 +7,8 @@ dependencies {
     implementation libs.edc.spi.policy.engine
     implementation libs.edc.spi.contract
     implementation libs.edc.spi.dataplane
-    implementation(project(':common:common-domain')) {
-        exclude group: 'org.eclipse.jetty'
-    }
-    implementation(project(':common:common-verifier')) {
-        exclude group: 'org.eclipse.jetty'
-    }
+    implementation(project(':common:common-domain'))
+    implementation(project(':common:common-verifier'))
 
     testImplementation libs.edc.junit
     testImplementation libs.assertj.core

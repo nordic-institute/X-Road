@@ -1,0 +1,70 @@
+spring:
+  application:
+    name: edc-identity-hub
+  output:
+    ansi:
+      enabled: detect #TODO implementing logging changes to support ansi colors
+  main:
+    banner-mode: log
+
+server:
+  port: 5798
+
+xroad:
+  common:
+    grpc:
+      channel:
+        configuration-client:
+          host: 127.0.0.1
+          port: 4001
+          deadline-after: 60000
+        signer:
+          host: 127.0.0.1
+          port: 5560
+          deadline-after: 60000
+
+logging:
+  level:
+    ROOT: INFO
+
+#EDC conf
+serverconf:
+  hibernate:
+    hikari:
+      maximumPoolSize: 1
+edc:
+  participant:
+    id: did:web:${EDC_DID}
+  http:
+    client:
+      https:
+        enforce: true
+  did:
+    key:
+      id: key-id
+  jsonld:
+    https:
+      enabled: true
+    http:
+      enabled: true
+  vault:
+    hashicorp:
+      url: http://openbao:8200
+      token: 00000000-0000-0000-0000-000000000001
+
+web:
+  http:
+    port: 9391
+    path: /api
+    identity:
+      port: 9393
+      path: /identity
+    protocol:
+      port: 9395
+      path: /protocol
+    did:
+      path: /
+      port: 9396
+    resolution:
+      path: /resolution
+      port: 20001

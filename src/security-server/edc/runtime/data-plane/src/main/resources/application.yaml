@@ -1,0 +1,82 @@
+spring:
+  application:
+    name: edc-data-plane
+  output:
+    ansi:
+      enabled: detect #TODO implementing logging changes to support ansi colors
+  main:
+    banner-mode: log
+
+server:
+  port: 5850
+
+xroad:
+  messagelog:
+    enabled: true
+  common:
+    grpc:
+      channel:
+        configuration-client:
+          host: 127.0.0.1
+          port: 4001
+          deadline-after: 60000
+        signer:
+          host: 127.0.0.1
+          port: 5560
+          deadline-after: 60000
+
+logging:
+  level:
+    ROOT: INFO
+    org.niis.xroad.edc.extension.bridge.config: DEBUG
+
+#EDC configuration
+serverconf:
+  hibernate:
+    hikari:
+      maximumPoolSize: 1
+
+web:
+  http:
+    port: 9291
+    path: /api
+    control:
+      port: 9292
+      path: /control
+    public:
+      port: 9293
+      path: /public
+    xroad:
+      public:
+        port: 9294
+        path: /xroad/public
+        needClientAuth: true
+
+edc:
+  datasource:
+    default:
+      url: jdbc:postgresql://127.0.0.1:5432/edc-data-plane
+      user: edc-data-plane
+      password: FQYUbNE7NIHsfy33dyl217c3zuw7fDK0
+  transfer:
+    proxy:
+      token:
+        signer:
+          privatekey:
+            alias: key-id
+        verifier:
+          publickey:
+            alias: key-id
+  dataplane:
+    token:
+      validation:
+        endpoint: https://${EDC_HOSTNAME}:9192/control/token
+  dpf:
+    selector:
+      url: https://${EDC_HOSTNAME}:9192/control/v1/dataplanes
+  vault:
+    hashicorp:
+      url: http://openbao:8200
+      token: 00000000-0000-0000-0000-000000000001
+  state-machine:
+    iteration-wait-millis: 300

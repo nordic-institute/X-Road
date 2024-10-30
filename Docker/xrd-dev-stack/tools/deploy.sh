@@ -59,15 +59,15 @@ deploy_module() {
     service_name="xroad-center-registration-service"
     ;;
   "edc-control-plane")
-    jar_path="$XROAD_HOME/src/security-server/edc/runtime/control-plane/build/libs/edc-control-plane.jar"
+    jar_path="$XROAD_HOME/src/security-server/edc/runtime/control-plane/build/libs/edc-control-plane-1.0.jar"
     service_name="xroad-edc-control-plane"
     ;;
   "edc-data-plane")
-      jar_path="$XROAD_HOME/src/security-server/edc/runtime/data-plane/build/libs/edc-data-plane.jar"
+      jar_path="$XROAD_HOME/src/security-server/edc/runtime/data-plane/build/libs/edc-data-plane-1.0.jar"
       service_name="xroad-edc-data-plane"
       ;;
   "edc-ih")
-    jar_path="$XROAD_HOME/src/security-server/edc/runtime/identity-hub/build/libs/edc-identity-hub.jar"
+    jar_path="$XROAD_HOME/src/security-server/edc/runtime/identity-hub/build/libs/edc-identity-hub-1.0.jar"
     service_name="xroad-edc-ih"
     ;;
   "cs-edc")

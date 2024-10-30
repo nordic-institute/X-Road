@@ -14,7 +14,7 @@ xroad:
           deadline-after: 60000
         signer:
           host: signer
-          port: 4001
+          port: 5560
           deadline-after: 60000
   configuration-client:
     grpc:

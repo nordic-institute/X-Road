@@ -1,16 +1,9 @@
 #!/bin/bash
-
-# load grpc settings
-if [ -f /var/run/xroad/xroad-grpc-internal-env.properties ]; then
-  set -a
-  . /var/run/xroad/xroad-grpc-internal-env.properties
-  set +a
-fi
+. /etc/xroad/services/global.conf
 
 echo "DS: Running liquibase.."
 source /usr/share/xroad/scripts/setup_edc_identityhub_db.sh
 
-exec java -Dedc.fs.config="/etc/xroad-edc/edc-identity-hub.properties" \
-    -Dserverconf.hibernate.hikari.maximumPoolSize=1 \
+exec java \
     -Xdebug -agentlib:jdwp=transport=dt_socket,address=*:9955,server=y,suspend=n \
-    -Xmx256m -jar /usr/share/xroad/jlib/edc-identity-hub.jar
+    -Xmx256m -jar /usr/share/xroad/jlib/edc-identity-hub-1.0.jar

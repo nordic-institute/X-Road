@@ -32,7 +32,7 @@ import ee.ria.xroad.common.util.JobManager;
 import ee.ria.xroad.common.util.SpringAwareJobManager;
 
 import org.niis.xroad.common.rpc.RpcServiceProperties;
-import org.niis.xroad.confclient.proto.ConfClientRpcClient;
+import org.niis.xroad.confclient.proto.ConfClientRpcClientConfiguration;
 import org.quartz.JobDataMap;
 import org.quartz.SchedulerException;
 import org.springframework.boot.context.properties.ConfigurationProperties;
@@ -44,7 +44,7 @@ import org.springframework.scheduling.quartz.SpringBeanJobFactory;
 
 @Import({GlobalConfBeanConfig.class,
         GlobalConfRefreshJobConfig.class,
-        ConfClientRpcClient.class})
+        ConfClientRpcClientConfiguration.class})
 @EnableConfigurationProperties({LogArchiverConfig.MessageLogRpcServiceProperties.class})
 @Configuration
 public class LogArchiverConfig {

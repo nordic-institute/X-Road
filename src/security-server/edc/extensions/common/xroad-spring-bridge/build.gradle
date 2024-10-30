@@ -1,0 +1,17 @@
+plugins {
+    id 'java-library'
+}
+
+dependencies {
+    api project(':signer-protocol')
+    api project(':common:common-core')
+    api project(':common:common-properties')
+    api(project(':common:common-keyconf'))
+    api(project(':common:common-globalconf'))
+    api(project(':common:common-verifier'))
+    implementation(libs.edc.boot)
+
+    implementation("org.springframework.boot:spring-boot-starter")
+}
+
+
