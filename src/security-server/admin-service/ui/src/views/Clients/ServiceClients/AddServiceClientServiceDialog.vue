@@ -144,7 +144,8 @@ export default defineComponent({
 });
 </script>
 <style lang="scss" scoped>
-@import '../../../assets/tables';
+@use '@/assets/tables';
+@use '@/assets/colors';
 
 .selection-checkbox {
   width: 40px;
@@ -156,6 +157,6 @@ export default defineComponent({
 }
 .service-row:hover {
   cursor: pointer;
-  background-color: $XRoad-Purple10;
+  background-color: colors.$Purple10;
 }
 </style>

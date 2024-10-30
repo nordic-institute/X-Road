@@ -75,7 +75,7 @@ export default defineComponent({
 </script>
 
 <style lang="scss">
-@import '@/assets/colors';
+@use '@/assets/colors';
 .v-tabs-slider.xrd-main-tabs-slider {
   width: 70px;
   margin-left: auto;

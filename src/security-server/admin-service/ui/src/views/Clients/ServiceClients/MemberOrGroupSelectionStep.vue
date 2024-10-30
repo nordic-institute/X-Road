@@ -163,8 +163,8 @@ export default defineComponent({
 </script>
 
 <style lang="scss" scoped>
-@import '@/assets/tables';
-@import '@/assets/wizards';
+@use '@/assets/tables';
+@use '@/assets/wizards';
 
 .search-field {
   max-width: 300px;

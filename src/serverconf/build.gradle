@@ -59,11 +59,4 @@ tasks.register('schemaExport') {
     }
 }
 
-tasks.register('runServerConfCRUDTest', JavaExec) {
-    jvmArgs '-Dlogback.configurationFile=src/test/resources/logback-crudtest.xml'
-    mainClass = 'ee.ria.xroad.proxy.conf.ServerConfCRUDTest'
-    classpath = sourceSets.test.runtimeClasspath
-    standardInput = System.in;
-}
-
 schemaExport.dependsOn compileJava

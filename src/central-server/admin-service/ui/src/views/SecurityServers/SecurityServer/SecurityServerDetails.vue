@@ -184,8 +184,8 @@ export default defineComponent({
 </script>
 
 <style lang="scss" scoped>
-@import '@/assets/colors';
-@import '@/assets/tables';
+@use '@/assets/colors';
+@use '@/assets/tables' as *;
 
 #security-server-details {
   margin-top: 24px;
@@ -217,7 +217,7 @@ export default defineComponent({
 
 .delete-action {
   margin-top: 34px;
-  color: $XRoad-Link;
+  color: colors.$Link;
   cursor: pointer;
   display: flex;
   flex-direction: row;

@@ -116,13 +116,13 @@ export default defineComponent({
 </script>
 
 <style lang="scss" scoped>
-@import '@/assets/colors';
-@import '@/assets/tables';
+@use '@/assets/colors';
+@use '@/assets/tables' as *;
 
 .card-title {
   font-size: 12px;
   text-transform: uppercase;
-  color: $XRoad-Black70;
+  color: colors.$Black70;
   font-weight: bold;
   padding-top: 5px;
   padding-bottom: 5px;
@@ -143,7 +143,7 @@ export default defineComponent({
 }
 
 .card-main-title {
-  color: $XRoad-Black100;
+  color: colors.$Black100;
   font-style: normal;
   font-weight: bold;
   font-size: 18px;
@@ -159,7 +159,7 @@ export default defineComponent({
 
 .cert-icon {
   margin-right: 10px;
-  color: $XRoad-Purple100;
+  color: colors.$Purple100;
 }
 
 .icon-column-wrap {

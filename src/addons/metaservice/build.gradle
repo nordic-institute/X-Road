@@ -40,10 +40,12 @@ tasks.register('runMetaserviceTest', JavaExec) {
         '-Dxroad.proxy.server-connector-so-linger=-1',
         '-Dxroad.proxy.serverServiceHandlers=ee.ria.xroad.proxy.serverproxy.MetadataServiceHandlerImpl',
         '-Dxroad.proxy.clientHandlers=ee.ria.xroad.proxy.clientproxy.MetadataHandler',
-        '-Dxroad.common.grpc-internal-tls-enabled=false'
+        '-Dxroad.common.grpc-internal-tls-enabled=false',
+        '-Dtest.queries.dir=src/test/queries'
 
     mainClass = 'ee.ria.xroad.proxy.testsuite.ProxyTestSuite'
     classpath = sourceSets.test.runtimeClasspath
+    classpath += project(":proxy:application").sourceSets.main.runtimeClasspath
 }
 
 jacoco {
