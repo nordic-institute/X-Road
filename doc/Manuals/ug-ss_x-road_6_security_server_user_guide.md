@@ -3256,9 +3256,9 @@ The renewal status of ACME supported certificates can be seen on the Keys and ce
 
 **E-mail notifications**
 
-Automatic certificate renewal process also has the option to notify members with an e-mail in case of a successful renewal as well as of failure. Successful and failure notifications can be turned on and off separately with a [system paramater](ug-syspar_x-road_v6_system_parameters.md#39-management-rest-api-parameters-proxy-ui-api). The member's e-mail defined in the contact information in the `acme.yml` file is used as the recipient. 
+Automatic certificate renewal process also has the option to notify members with an e-mail in case of a successful renewal as well as of failure. Successful and failure notifications can be turned on and off separately with a [system paramater](ug-syspar_x-road_v6_system_parameters.md#39-management-rest-api-parameters-proxy-ui-api). The member's e-mail defined in the contact information in the `mail.yml` file is used as the recipient. 
 
-For the e-mail notifications to work a mail server needs to be configured beforehand in the `/etc/xroad/conf.d/mail-notification.yml` file. These include:
+For the e-mail notifications to work a mail server needs to be configured beforehand in the `/etc/xroad/conf.d/mail.yml` file. These include:
 
 * **host** - host name used to connect to the mail server.
 * **port** - port number used to connect to the mail server.

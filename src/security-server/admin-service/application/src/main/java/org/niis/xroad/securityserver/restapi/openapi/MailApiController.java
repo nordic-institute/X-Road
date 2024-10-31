@@ -34,6 +34,7 @@ import org.niis.xroad.securityserver.restapi.openapi.model.MailNotificationStatu
 import org.niis.xroad.securityserver.restapi.openapi.model.MailRecipient;
 import org.niis.xroad.securityserver.restapi.openapi.model.MailStatus;
 import org.niis.xroad.securityserver.restapi.openapi.model.TestMailResponse;
+import org.niis.xroad.securityserver.restapi.util.MailNotificationHelper;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.mail.MailException;
@@ -53,6 +54,7 @@ public class MailApiController implements MailApi {
 
     private final CurrentSecurityServerId currentSecurityServerId;
     private final MailService mailService;
+    private final MailNotificationHelper mailNotificationHelper;
 
     @Override
     @PreAuthorize("hasAuthority('DIAGNOSTICS')")
@@ -72,9 +74,7 @@ public class MailApiController implements MailApi {
     @PreAuthorize("hasAuthority('DIAGNOSTICS')")
     public ResponseEntity<TestMailResponse> sendTestMail(MailRecipient mailRecipient) {
         try {
-            mailService.sendMail(mailRecipient.getMailAddress(),
-                    "Test mail",
-                    "Test e-mail sent from the Security Server " + currentSecurityServerId.getServerId().asEncodedId());
+            mailNotificationHelper.sendTestMail(mailRecipient.getMailAddress(), currentSecurityServerId.getServerId().asEncodedId());
         } catch (MailException e) {
             log.error("Failed to send test mail", e);
             return new ResponseEntity<>(new TestMailResponse(MailStatus.ERROR, "Error: " + e.getMessage()), HttpStatus.OK);

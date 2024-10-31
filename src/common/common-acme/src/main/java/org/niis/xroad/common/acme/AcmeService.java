@@ -80,7 +80,7 @@ import java.util.Optional;
 import java.util.function.Supplier;
 
 import static ee.ria.xroad.common.util.CertUtils.createSelfSignedCertificate;
-import static org.apache.commons.lang3.StringUtils.isBlank;
+import static org.apache.commons.lang3.ArrayUtils.isEmpty;
 import static org.niis.xroad.common.acme.AcmeCustomSchema.XRD_ACME;
 import static org.niis.xroad.common.acme.AcmeCustomSchema.XRD_ACME_PROFILE_ID;
 import static org.niis.xroad.common.acme.AcmeDeviationMessage.ACCOUNT_CREATION_FAILURE;
@@ -160,15 +160,15 @@ public final class AcmeService {
     private KeyPair getAccountKeyPair(String memberId) throws GeneralSecurityException, IOException, OperatorCreationException {
         File acmeKeystoreFile = new File(acmeAccountKeystorePath);
         KeyStore keyStore;
-        String storePassword = acmeProperties.getAccountKeystorePassword();
-        if (isBlank(storePassword)) {
+        char[] storePassword = acmeProperties.getAccountKeystorePassword();
+        if (isEmpty(storePassword)) {
             throw new AcmeServiceException(ACCOUNT_KEYSTORE_PASSWORD_MISSING);
         }
         if (acmeKeystoreFile.exists()) {
-            keyStore = CryptoUtils.loadPkcs12KeyStore(acmeKeystoreFile, storePassword.toCharArray());
+            keyStore = CryptoUtils.loadPkcs12KeyStore(acmeKeystoreFile, storePassword);
         } else {
             keyStore = KeyStore.getInstance("PKCS12");
-            keyStore.load(null, storePassword.toCharArray());
+            keyStore.load(null, storePassword);
         }
         X509Certificate certificate = (X509Certificate) keyStore.getCertificate(memberId);
         KeyPair keyPair;
@@ -192,7 +192,7 @@ public final class AcmeService {
                     memberId.toCharArray(),
                     certificateChain);
             try (OutputStream outputStream = new FileOutputStream(acmeKeystoreFile)) {
-                keyStore.store(outputStream, storePassword.toCharArray());
+                keyStore.store(outputStream, storePassword);
                 outputStream.flush();
             }
         }

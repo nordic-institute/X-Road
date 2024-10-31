@@ -42,11 +42,10 @@ import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.niis.xroad.common.acme.AcmeService;
-import org.niis.xroad.common.mail.MailNotificationProperties;
-import org.niis.xroad.common.mail.MailService;
 import org.niis.xroad.common.managementrequest.ManagementRequestSender;
 import org.niis.xroad.securityserver.restapi.facade.SignerProxyFacade;
 import org.niis.xroad.securityserver.restapi.repository.ServerConfRepository;
+import org.niis.xroad.securityserver.restapi.util.MailNotificationHelper;
 import org.niis.xroad.signer.proto.CertificateRequestFormat;
 import org.springframework.stereotype.Component;
 
@@ -56,7 +55,6 @@ import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.List;
 import java.util.Objects;
-import java.util.Optional;
 
 import static ee.ria.xroad.common.util.CertUtils.getCommonName;
 import static ee.ria.xroad.common.util.CertUtils.isAuthCert;
@@ -81,8 +79,7 @@ public class AcmeClientWorker {
     private final SignerProxyFacade signerProxyFacade;
     private final GlobalConfProvider globalConfProvider;
     private final ServerConfRepository serverConfRepository;
-    private final MailService mailService;
-    private final MailNotificationProperties mailNotificationProperties;
+    private final MailNotificationHelper mailNotificationHelper;
 
     public void execute(CertificateRenewalScheduler acmeRenewalScheduler) {
         log.info("ACME certificate renewal cycle started");
@@ -158,8 +155,7 @@ public class AcmeClientWorker {
             log.error("Error when trying to retrieve information about the certificate '{}' to be renewed",
                     certificateInfo.getId(),
                     ex);
-            setRenewalErrorAndSendFailureNotification(certificateInfo,
-                    "Error when trying to retrieve information about the certificate: " + ex.getMessage());
+            setRenewalErrorAndSendFailureNotification(certificateInfo, ex.getMessage());
             return false;
         }
 
@@ -222,13 +218,8 @@ public class AcmeClientWorker {
     private void setRenewalErrorAndSendFailureNotification(CertificateInfo cert, String errorDescription, String memberId) {
         if (!Objects.equals(cert.getRenewalError(), errorDescription)) {
             setRenewalError(cert.getId(), errorDescription);
-            if (SystemProperties.getAcmeRenewalFailureNotificationEnabled()) {
-                Optional.ofNullable(mailNotificationProperties.getContacts())
-                        .map(contacts -> contacts.get(memberId))
-                        .ifPresent(address -> mailService.sendMail(address,
-                                "Renewal of cert %s failed".formatted(cert.getCertificateDisplayName()),
-                                "Error message: %s".formatted(errorDescription)));
-            }
+            SecurityServerId.Conf securityServerId = getSecurityServerId();
+            mailNotificationHelper.sendFailureNotification(memberId, cert, securityServerId, errorDescription);
         }
     }
 
@@ -289,6 +280,7 @@ public class AcmeClientWorker {
     private X509Certificate renewCertificate(ClientId memberId, ApprovedCAInfo approvedCA,
                                              CertificateInfo oldCertInfo,
                                              X509Certificate oldX509Certificate, KeyUsageInfo keyUsage) throws Exception {
+        log.info("Starting to renew certificate '{}'", oldX509Certificate.getSerialNumber());
         TokenInfoAndKeyId tokenAndOldKeyId = signerProxyFacade.getTokenAndKeyIdForCertHash(calculateCertHexHash(oldX509Certificate));
         String tokenId = tokenAndOldKeyId.getTokenInfo().getId();
         KeyInfo newKeyInfo = signerProxyFacade.generateKey(tokenId, tokenAndOldKeyId.getKeyInfo().getLabel());
@@ -334,35 +326,26 @@ public class AcmeClientWorker {
                            X509Certificate newX509Certificate,
                            KeyInfo newKeyInfo) throws Exception {
         CertificateInfo newCertInfo;
+        SecurityServerId.Conf securityServerId = getSecurityServerId();
         try {
             newCertInfo = signerProxyFacade.getCertForHash(calculateCertHexHash(newX509Certificate));
             if (keyUsage == KeyUsageInfo.AUTHENTICATION) {
-                    String securityServerAddress =
-                            globalConfProvider.getSecurityServerAddress(globalConfProvider.getServerId(oldX509Certificate));
-                    ManagementRequestSender managementRequestSender = createManagementRequestSender();
-                    managementRequestSender.sendAuthCertRegRequest(getSecurityServerId(),
-                            securityServerAddress,
-                            newX509Certificate.getEncoded());
-                    signerProxyFacade.setCertStatus(newCertInfo.getId(), CertificateInfo.STATUS_REGINPROG);
+                String securityServerAddress =
+                        globalConfProvider.getSecurityServerAddress(globalConfProvider.getServerId(oldX509Certificate));
+                ManagementRequestSender managementRequestSender = createManagementRequestSender();
+                managementRequestSender.sendAuthCertRegRequest(securityServerId,
+                        securityServerAddress,
+                        newX509Certificate.getEncoded());
+                signerProxyFacade.setCertStatus(newCertInfo.getId(), CertificateInfo.STATUS_REGINPROG);
             }
         } catch (Exception ex) {
             rollback(newKeyInfo.getId());
             throw ex;
         }
-        sendSuccessNotification(memberId, newCertInfo, keyUsage);
-    }
-
-    private void sendSuccessNotification(ClientId memberId, CertificateInfo newCertInfo, KeyUsageInfo keyUsageInfo) {
-        if (SystemProperties.getAcmeRenewalSuccessNotificationEnabled()) {
-            String notificationContent = KeyUsageInfo.AUTHENTICATION.equals(keyUsageInfo)
-                    ? "New authentication certificate has been sent for registration"
-                    : "New signing certificate needs to be activated manually";
-            Optional.ofNullable(mailNotificationProperties.getContacts())
-                    .map(contacts -> contacts.get(memberId.asEncodedId()))
-                    .ifPresent(address -> mailService.sendMail(address,
-                            "Renewal of cert %s was a success".formatted(newCertInfo.getCertificateDisplayName()),
-                            notificationContent));
-        }
+        log.info("Certificate '{}' renewed successfully. New certificate serial: '{}'",
+                oldX509Certificate.getSerialNumber(),
+                newX509Certificate.getSerialNumber());
+        mailNotificationHelper.sendSuccessNotification(memberId, securityServerId, newCertInfo, keyUsage);
     }
 
     ManagementRequestSender createManagementRequestSender() {

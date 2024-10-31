@@ -41,11 +41,10 @@ import ee.ria.xroad.signer.protocol.dto.KeyUsageInfo;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.niis.xroad.common.mail.MailNotificationProperties;
-import org.niis.xroad.common.mail.MailService;
 import org.niis.xroad.restapi.common.backup.service.BackupRestoreEvent;
 import org.niis.xroad.securityserver.restapi.cache.SecurityServerAddressChangeStatus;
 import org.niis.xroad.securityserver.restapi.facade.SignerProxyFacade;
+import org.niis.xroad.securityserver.restapi.util.MailNotificationHelper;
 import org.springframework.context.event.EventListener;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
@@ -72,8 +71,7 @@ public class GlobalConfChecker {
     private final GlobalConfProvider globalConfProvider;
     private final SignerProxyFacade signerProxyFacade;
     private final SecurityServerAddressChangeStatus addressChangeStatus;
-    private final MailService mailService;
-    private final MailNotificationProperties mailNotificationProperties;
+    private final MailNotificationHelper mailNotificationHelper;
 
     /**
      * Reloads global configuration, and updates client statuses, authentication certificate statuses
@@ -304,7 +302,7 @@ public class GlobalConfChecker {
                     // do nothing
                 }
                 case CertificateInfo.STATUS_REGINPROG -> {
-                    sendCertRegisteredNotification(securityServerId, certInfo);
+                    mailNotificationHelper.sendAuthCertRegisteredNotification(securityServerId, certInfo);
                     setCertStatus(cert, CertificateInfo.STATUS_REGISTERED, certInfo);
                 }
                 case CertificateInfo.STATUS_SAVED, CertificateInfo.STATUS_GLOBALERR ->
@@ -317,17 +315,6 @@ public class GlobalConfChecker {
 
         if (!registered && CertificateInfo.STATUS_REGISTERED.equals(certInfo.getStatus())) {
             setCertStatus(cert, CertificateInfo.STATUS_GLOBALERR, certInfo);
-        }
-    }
-
-    private void sendCertRegisteredNotification(SecurityServerId securityServerId, CertificateInfo certInfo) {
-        if (SystemProperties.getAuthCertRegisteredNotificationEnabled()) {
-            Optional.ofNullable(mailNotificationProperties.getContacts())
-                .map(contacts -> contacts.get(securityServerId.getOwner().asEncodedId()))
-                .ifPresent(address -> mailService.sendMail(address,
-                        "Security Server %s authentication certificate %s has been registered!".formatted(securityServerId.getServerCode(),
-                                certInfo.getCertificateDisplayName()),
-                    "-"));
         }
     }
 

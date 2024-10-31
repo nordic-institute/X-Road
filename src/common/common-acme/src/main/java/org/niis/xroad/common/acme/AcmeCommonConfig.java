@@ -43,13 +43,13 @@ import java.util.Map;
 
 @Slf4j
 @Configuration
-public class AcmeConfig {
+public class AcmeCommonConfig {
 
     @Bean
     public AcmeProperties acmeProperties() {
         Resource resource = new FileSystemResource(SystemProperties.getConfPath() + "conf.d/acme.yml");
         if (!SystemProperties.isAcmeChallengePortEnabled() && !resource.exists()) {
-            log.warn("Configuration {} not exists", resource);
+            log.warn("Configuration {} does not exist", resource);
             return new AcmeProperties();
         }
         Constructor constructor = createAcmeYamlConstructor();

@@ -28,8 +28,11 @@ package org.niis.xroad.common.mail;
 import ee.ria.xroad.common.SystemProperties;
 
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.context.MessageSource;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.support.MessageSourceAccessor;
+import org.springframework.context.support.ResourceBundleMessageSource;
 import org.springframework.core.io.FileSystemResource;
 import org.springframework.core.io.Resource;
 import org.springframework.mail.javamail.JavaMailSender;
@@ -41,6 +44,7 @@ import org.yaml.snakeyaml.constructor.Constructor;
 
 import java.io.InputStream;
 import java.nio.file.Files;
+import java.util.Locale;
 import java.util.Properties;
 
 @Slf4j
@@ -68,7 +72,7 @@ public class MailConfig {
         Constructor constructor = new Constructor(MailNotificationProperties.class, new LoaderOptions());
         TypeDescription mailPropertiesDescriptor = new TypeDescription(MailNotificationProperties.class);
         mailPropertiesDescriptor.substituteProperty("use-ssl-tls",
-                String.class,
+                boolean.class,
                 "isUseSslTls",
                 "setUseSslTls");
         constructor.addTypeDescription(mailPropertiesDescriptor);
@@ -104,4 +108,19 @@ public class MailConfig {
         return mailSender;
     }
 
+    @Bean
+    public MessageSource notificationMessageSource() {
+        ResourceBundleMessageSource messageSource = new ResourceBundleMessageSource();
+        messageSource.setDefaultEncoding("UTF-8");
+        messageSource.setBasename("notifications");
+        return messageSource;
+    }
+
+    @Bean
+    public MessageSourceAccessor notificationMessageSourceAccessor() {
+        String mailNotificationLocale = SystemProperties.getMailNotificationLocale();
+        return mailNotificationLocale != null
+                ? new MessageSourceAccessor(notificationMessageSource(), Locale.of(mailNotificationLocale))
+                : new MessageSourceAccessor(notificationMessageSource());
+    }
 }

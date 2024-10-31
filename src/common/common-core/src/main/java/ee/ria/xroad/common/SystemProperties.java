@@ -152,6 +152,11 @@ public final class SystemProperties {
     public static final String PROXY_UI_API_AUTH_CERT_REGISTERED_NOTIFICATION_ENABLED =
             PREFIX + "proxy-ui-api.auth-cert-registered-notification-enabled";
 
+    /** Locale for mail notifications, which determines the language of the notifications.
+     * To add a new locale a corresponding notifications_[locale].properties file needs to be added to the resource bundle  */
+    public static final String PROXY_UI_API_MAIL_NOTIFICATION_LOCALE =
+            PREFIX + "proxy-ui-api.mail-notification-locale";
+
     // Proxy ------------------------------------------------------------------
 
     private static final String PROXY_PREFIX = PREFIX + "proxy.";
@@ -1221,10 +1226,18 @@ public final class SystemProperties {
     }
 
     /**
-     * @return true if ACME automatic renewal job failure notifications are enabled
+     * @return true if authentication certificate registered notifications are enabled
      */
     public static boolean getAuthCertRegisteredNotificationEnabled() {
         return Boolean.parseBoolean(System.getProperty(PROXY_UI_API_AUTH_CERT_REGISTERED_NOTIFICATION_ENABLED, TRUE));
+    }
+
+    /**
+     * @return Locale for mail notifications.
+     * No default value here, notifications' resource bundle already has defaults in notifications.properties
+     */
+    public static String getMailNotificationLocale() {
+        return System.getProperty(PROXY_UI_API_MAIL_NOTIFICATION_LOCALE);
     }
 
     /**

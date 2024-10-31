@@ -32,6 +32,7 @@ import org.niis.xroad.common.exception.NotFoundException;
 import java.util.Map;
 import java.util.Optional;
 
+import static org.apache.commons.lang3.ObjectUtils.defaultIfNull;
 import static org.niis.xroad.common.acme.AcmeDeviationMessage.EAB_CREDENTIALS_MISSING;
 
 @Getter
@@ -39,6 +40,7 @@ import static org.niis.xroad.common.acme.AcmeDeviationMessage.EAB_CREDENTIALS_MI
 public class AcmeProperties {
 
     private EabCredentials eabCredentials;
+    private Map<String, String> contacts;
     private String accountKeystorePassword;
 
     @Getter
@@ -77,7 +79,6 @@ public class AcmeProperties {
         return getEabCredentialsOptional(caName, memberId).isPresent();
     }
 
-
     private Optional<Credentials> getEabCredentialsOptional(String caName, String memberId) {
         return Optional.ofNullable(eabCredentials)
                 .map(EabCredentials::getCertificateAuthorities)
@@ -91,6 +92,12 @@ public class AcmeProperties {
                 .map(EabCredentials::getCertificateAuthorities)
                 .map(certAuthorities -> certAuthorities.get(caName))
                 .map(CA::isMacKeyBase64Encoded).orElse(false);
+    }
+
+    public char[] getAccountKeystorePassword() {
+        return Optional.ofNullable(defaultIfNull(accountKeystorePassword, System.getenv().get("ACCOUNT_KEYSTORE_PASSWORD")))
+                .map(String::toCharArray)
+                .orElse(null);
     }
 
 }
