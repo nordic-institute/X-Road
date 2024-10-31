@@ -47,12 +47,6 @@ public class TrustedIssuerExtension implements ServiceExtension {
     @Override
     public void initialize(ServiceExtensionContext context) {
         // register VC issuers
-        //TODO should we trust only single issuer?
-        trustedIssuerRegistry.addIssuer(new Issuer("did:web:gxdch:compliance", Map.of()));
-        trustedIssuerRegistry.addIssuer(new Issuer("did:web:gxdch:notary", Map.of()));
-
-        trustedIssuerRegistry.addIssuer(new Issuer("did:web:ss0%3A9396", Map.of()));
-        trustedIssuerRegistry.addIssuer(new Issuer("did:web:ss1%3A9396", Map.of()));
-
+        trustedIssuerRegistry.addIssuer(new Issuer("did:web:cs%3A9396", Map.of()));
     }
 }

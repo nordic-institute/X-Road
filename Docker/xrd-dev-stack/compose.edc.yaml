@@ -6,12 +6,12 @@ services:
   cs:
     environment:
       - EDC_HOSTNAME=cs
-      - EDC_DID=did:web:xroad-8-member1.s3.eu-west-1.amazonaws.com
-      - EDC_DID_KEY_ID=DE9DH3UqFQpV64LraOgqmMFSgTIlk6K1BnfU2k5vBfs
+      - EDC_DID=did:web:cs%3A9396
       - EDC_TLS_CERT_PATH=/etc/xroad/ssl/management-service.p12
     ports:
       - "4195:9956" #EDC connector debug
       - "4196:9957" #EDC identity-hub debug
+      - "4197:9958" #EDC credential-service debug
       - "4151:9191" #EDC api port
       - "4152:9192" #EDC control port
       - "4153:9193" #EDC management port

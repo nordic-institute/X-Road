@@ -101,19 +101,6 @@ public class XRoadPolicyExtension implements ServiceExtension {
                 new XRoadGlobalGroupMemberConstraintFunction(globalConfProvider, monitor));
         registerFunction(XRoadDataPathConstraintFunction.KEY, XROAD_DATAPLANE_TRANSFER_SCOPE,
                 new XRoadDataPathConstraintFunction(monitor, typeManager));
-
-        registerFunction(GxLegalRegistrationNumberConstraintFunction.GX_LEGAL_REGISTRATION_NO, "catalog",
-                new GxLegalRegistrationNumberConstraintFunction(monitor));
-        registerFunction(GxLegalRegistrationNumberConstraintFunction.GX_LEGAL_REGISTRATION_NO, "request.catalog",
-                new GxLegalRegistrationNumberConstraintFunction(monitor));
-        registerFunction(GxLegalRegistrationNumberConstraintFunction.GX_LEGAL_REGISTRATION_NO, "contract.negotiation",
-                new GxLegalRegistrationNumberConstraintFunction(monitor));
-        // todo: REMOVE this!!!! Only for testing purposes. Must be replaced with real identity service
-//        var defaultXRoadClient = "CS:ORG:my-member:my-subsystem";
-//        var defaultXRoadClient = "a:b:c:d";
-//        var xroadClientId = context.getSetting("edc.mock.xroad.clientid", defaultXRoadClient);
-//        context.registerService(IdentityService.class, new XRoadMockIdentityService(typeManager, context.getParticipantId(),
-//                xroadClientId));
     }
 
     private void registerFunction(String key, String scope, AtomicConstraintFunction<Permission> function) {

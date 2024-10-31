@@ -89,13 +89,14 @@ COPY --chown=root:root files/cs-xroad.conf /etc/supervisor/conf.d/xroad.conf
 
 # dataspaces
 COPY build/libs/ /usr/share/xroad/jlib/
+COPY build/liquibase/ /usr/share/xroad/db
 
 COPY files/edc/etc /etc/xroad-edc/
+COPY files/edc/setup_edc_identityhub_db.sh /usr/share/xroad/scripts/setup_edc_identityhub_db.sh
 COPY files/edc/bin/ /usr/share/xroad/bin/
 
 ENV EDC_HOSTNAME=localhost
 ENV EDC_DID=did:web:localhost
-ENV EDC_DID_KEY_ID=key-id
 ENV EDC_TLS_CERT_PATH=/etc/xroad/ssl/management-service.p12
 # end of dataspaces
 

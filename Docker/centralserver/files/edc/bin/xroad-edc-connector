@@ -7,7 +7,6 @@ if [ -f /var/run/xroad/xroad-grpc-internal-env.properties ]; then
   set +a
 fi
 
-
 exec java -Dedc.fs.config="/etc/xroad-edc/edc-connector.properties" \
     -Xdebug -agentlib:jdwp=transport=dt_socket,address=*:9956,server=y,suspend=n \
     -Xmx256m -jar /usr/share/xroad/jlib/ds-catalog-service.jar

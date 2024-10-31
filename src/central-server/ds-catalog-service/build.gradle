@@ -24,9 +24,9 @@ dependencies {
     runtimeOnly libs.edc.dsp // protocol webhook
     runtimeOnly libs.bundles.dcp // DCP protocol impl
     runtimeOnly libs.edc.api.dsp.config // json-ld expansion
-
     runtimeOnly(libs.edc.vault.hashicorp)
-    runtimeOnly(libs.bundles.sql.edc)
+
+    sqlDependencies(libs.bundles.sql.edc)
 
     implementation(libs.edc.spi.identity.did)
     implementation(libs.edc.fc.spi.crawler)
@@ -58,4 +58,3 @@ shadowJar {
     archiveFileName.set("ds-catalog-service.jar")
     dependsOn(distTar, distZip)
 }
-

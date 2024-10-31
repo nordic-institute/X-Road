@@ -63,16 +63,20 @@ deploy_module() {
     service_name="xroad-edc-control-plane"
     ;;
   "edc-data-plane")
-      jar_path="$XROAD_HOME/src/security-server/edc/runtime/data-plane/build/libs/edc-data-plane.jar"
-      service_name="xroad-edc-data-plane"
-      ;;
+    jar_path="$XROAD_HOME/src/security-server/edc/runtime/data-plane/build/libs/edc-data-plane.jar"
+    service_name="xroad-edc-data-plane"
+    ;;
   "edc-ih")
     jar_path="$XROAD_HOME/src/security-server/edc/runtime/identity-hub/build/libs/edc-identity-hub.jar"
     service_name="xroad-edc-ih"
     ;;
-  "cs-edc")
+  "cs-edc-connector")
     jar_path="$XROAD_HOME/src/central-server/ds-catalog-service/build/libs/ds-catalog-service.jar"
     service_name="xroad-edc-connector"
+    ;;
+  "cs-credential-service")
+    jar_path="$XROAD_HOME/src/central-server/ds-credential-service/build/libs/ds-credential-service.jar"
+    service_name="xroad-edc-credential-service"
     ;;
   *)
     echo "Unknown module: $module_name"
@@ -91,13 +95,13 @@ deploy_module() {
 set -o xtrace
 
 case $1 in
-"proxy" | "messagelog-addon" | "metaservice-addon" | "proxy-ui-api" | "configuration-client" | "asicverifier" | "op-monitor-daemon" | "monitor" | "edc-control-plane" | "edc-data-plane" | "edc-ih")
+"proxy" | "messagelog-addon" | "metaservice-addon" | "proxy-ui-api" | "configuration-client" | "asicverifier" | "op-monitor-daemon" | "monitor" | "edc-control-plane" | "edc-data-plane")
   deploy_module "$1" "ss0" "ss1"
   ;;
-"cs-admin-service" | "cs-management-service" | "cs-registration-service" | "cs-edc")
+"cs-admin-service" | "cs-management-service" | "cs-registration-service" | "cs-edc-connector" | "cs-credential-service")
   deploy_module "$1" "cs"
   ;;
-"signer")
+"signer" | "edc-ih")
   deploy_module "$1" "ss0" "ss1"
   deploy_module "$1" "cs"
   ;;

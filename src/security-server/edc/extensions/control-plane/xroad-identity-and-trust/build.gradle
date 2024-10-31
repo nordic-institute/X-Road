@@ -13,8 +13,7 @@ dependencies {
     }
     implementation(project(":security-server:edc:extensions:common:xroad-ldp-verifiable-credentials"))
 
-//    implementation libs.edc.identity.trust.transform  // we use our own fork to allow "evidence" property in the Gaia-x compliance VC
-
+    implementation libs.edc.identity.trust.transform
     implementation libs.edc.dcp
     implementation libs.edc.lib.transform
     implementation libs.edc.lib.crypto
