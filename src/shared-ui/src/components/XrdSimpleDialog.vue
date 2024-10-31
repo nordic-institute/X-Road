@@ -233,12 +233,12 @@ onBeforeMount(() => blur());
 </script>
 
 <style lang="scss" scoped>
-@import '../assets/colors';
+@use '../assets/colors';
 
 .xrd-dialog-simple {
   .xrd-card {
     .xrd-card-actions {
-      background-color: $XRoad-WarmGrey10;
+      background-color: colors.$WarmGrey10;
       height: 72px;
       padding-right: 24px;
     }
