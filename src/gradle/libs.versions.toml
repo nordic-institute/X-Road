@@ -240,6 +240,7 @@ edc-spi-identity-trust = { module = "org.eclipse.edc:identity-trust-spi", versio
 edc-spi-transform = { module = "org.eclipse.edc:transform-spi", version.ref = "edc" }
 edc-spi-transaction = { module = "org.eclipse.edc:transaction-spi", version.ref = "edc" }
 edc-spi-jwt = { module = "org.eclipse.edc:jwt-spi", version.ref = "edc" }
+edc-spi-jsonLd = { module = "org.eclipse.edc:json-ld-spi", version.ref = "edc" }
 edc-spi-jwt-signer = { module = "org.eclipse.edc:jwt-signer-spi", version.ref = "edc" }
 edc-spi-identity-did = { module = "org.eclipse.edc:identity-did-spi", version.ref = "edc" }
 edc-spi-web = { module = "org.eclipse.edc:web-spi", version.ref = "edc" }

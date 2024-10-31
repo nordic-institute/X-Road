@@ -1,0 +1,68 @@
+plugins {
+    id("java")
+    id("application")
+    alias(libs.plugins.shadow)
+}
+
+configurations {
+    sqlDependencies
+
+    configureEach {
+        exclude group: 'org.eclipse.edc', module: 'jetty-core'
+        exclude group: 'com.apicatalog', module: 'titanium-json-ld-jre8' //transient dep that creates errors
+    }
+
+}
+
+dependencies {
+    implementation libs.edc.boot
+    implementation libs.edc.ext.http
+    implementation libs.edc.spi.web
+    implementation libs.edc.spi.jwt.signer
+    implementation libs.edc.lib.crypto
+    implementation libs.nimbus.jose.jwt
+    implementation libs.edc.did.web
+    implementation libs.edc.did.core
+    implementation libs.edc.core.token
+    implementation libs.edc.spi.jsonLd
+    runtimeOnly(libs.edc.config.filesystem)
+
+    implementation(project(':common:common-core')) {
+        exclude group: 'org.eclipse.jetty'
+    }
+    implementation(project(":common:common-domain")) {
+        exclude group: 'org.eclipse.jetty'
+    }
+    implementation(project(":common:common-globalconf")) {
+        exclude group: 'org.eclipse.jetty'
+    }
+    implementation(project(':common:common-verifier')) {
+        exclude group: 'org.eclipse.jetty'
+    }
+    implementation(project(":security-server:edc:extensions:common:xroad-jws-signer")) {
+        exclude group: 'org.eclipse.jetty'
+    }
+    implementation(project(":security-server:edc:extensions:common:xroad-conf"))
+    implementation(project(":security-server:edc:extensions:common:xroad-webserver"))
+
+    testImplementation libs.edc.junit
+    testImplementation(project(':common:common-test')) {
+        exclude group: 'org.eclipse.jetty'
+    }
+    testImplementation('org.springframework:spring-test:6.1.12')
+}
+
+application {
+    mainClass.set("org.eclipse.edc.boot.system.runtime.BaseRuntime")
+}
+
+
+var distTar = tasks.named("distTar")
+var distZip = tasks.named("distZip")
+
+shadowJar {
+    mergeServiceFiles()
+    archiveFileName.set("ds-credential-service.jar")
+    dependsOn(distTar, distZip)
+}
+

@@ -78,6 +78,7 @@ tasks.register('shadowJarWithSql', ShadowJar) {
     manifest {
         attributes 'Main-Class': 'org.eclipse.edc.boot.system.runtime.BaseRuntime'
     }
+
     mergeServiceFiles()
     dependsOn(distTar, distZip)
 }

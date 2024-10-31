@@ -29,8 +29,10 @@ package org.niis.xroad.edc.extension.conf;
 
 import ee.ria.xroad.common.SystemProperties;
 import ee.ria.xroad.common.cert.CertChainFactory;
+import ee.ria.xroad.common.conf.globalconf.FileSystemGlobalConfSource;
 import ee.ria.xroad.common.conf.globalconf.GlobalConfImpl;
 import ee.ria.xroad.common.conf.globalconf.GlobalConfProvider;
+import ee.ria.xroad.common.conf.globalconf.GlobalConfSource;
 import ee.ria.xroad.common.conf.globalconf.RemoteGlobalConfDataLoader;
 import ee.ria.xroad.common.conf.globalconf.RemoteGlobalConfSource;
 import ee.ria.xroad.common.conf.serverconf.CachingServerConfImpl;
@@ -69,18 +71,9 @@ public class XRoadConfExtension implements ServiceExtension {
     public void initialize(ServiceExtensionContext context) {
         try {
             // todo: fixme: implement me !!!
-            RpcClientProperties confClientProperties =  new RpcClientProperties(SystemProperties.getConfigurationClientGrpcHost(),
-                    SystemProperties.getConfigurationClientGrpcPort(),
-                    SystemProperties.isConfigurationClientGrpcTlsEnabled(),
-                    SystemProperties.getConfigurationClientGrpcTrustStore(),
-                    SystemProperties.getConfigurationClientGrpcTrustStorePassword(),
-                    SystemProperties.getConfigurationClientGrpcKeyStore(),
-                    SystemProperties.getConfigurationClientGrpcKeyStorePassword());
-            var confClientRpcClient = new ConfClientRpcClient(confClientProperties);
-            confClientRpcClient.afterPropertiesSet();
+            var globalConfRemotingEnabled = context.getConfig().getBoolean("xroad.common.global.conf.remoting.enabled");
+            var globalConfSource = globalConfRemotingEnabled ? getRemoteGlobalConfSource(): getLocalGlobalConfSource();
 
-            var globalConfDataLoader = new RemoteGlobalConfDataLoader();
-            var globalConfSource = new RemoteGlobalConfSource(confClientRpcClient, globalConfDataLoader);
             GlobalConfProvider globalConfProvider = new GlobalConfImpl(globalConfSource);
 
             ServerConfProvider serverConfProvider = (SystemProperties.getServerConfCachePeriod() > 0)
@@ -100,6 +93,26 @@ public class XRoadConfExtension implements ServiceExtension {
         } catch (Exception e) {
             throw new EdcException("Initialization failed", e);
         }
+    }
+
+    private GlobalConfSource getLocalGlobalConfSource() {
+        return new FileSystemGlobalConfSource(SystemProperties.getConfigurationPath());
+    }
+
+    private static GlobalConfSource getRemoteGlobalConfSource() throws Exception {
+        RpcClientProperties confClientProperties =  new RpcClientProperties(SystemProperties.getConfigurationClientGrpcHost(),
+                SystemProperties.getConfigurationClientGrpcPort(),
+                SystemProperties.isConfigurationClientGrpcTlsEnabled(),
+                SystemProperties.getConfigurationClientGrpcTrustStore(),
+                SystemProperties.getConfigurationClientGrpcTrustStorePassword(),
+                SystemProperties.getConfigurationClientGrpcKeyStore(),
+                SystemProperties.getConfigurationClientGrpcKeyStorePassword());
+        var confClientRpcClient = new ConfClientRpcClient(confClientProperties);
+        confClientRpcClient.afterPropertiesSet();
+
+        var globalConfDataLoader = new RemoteGlobalConfDataLoader();
+        var globalConfSource = new RemoteGlobalConfSource(confClientRpcClient, globalConfDataLoader);
+        return globalConfSource;
     }
 
     private void registerGlobalConfReloadJob(GlobalConfProvider globalConfProvider, ServiceExtensionContext context) {

@@ -40,26 +40,12 @@ import java.util.Optional;
 public class PolicyContextHelper {
     private final ClientIdConverter clientIdConverter = new ClientIdConverter();
     private static final String ATTR_IDENTIFIER = "https://w3id.org/xroad/credentials/identifier";
-    private static final String ATTR_GX_LRN_VAT_ID =
-            "https://registry.lab.gaia-x.eu/development/api/trusted-shape-registry/v1/shapes/jsonld/trustframework#vatID";
-
-
-    public static Optional<String> getGxLrnVatId(PolicyContext context) {
-        var participantAgent = context.getContextData(ParticipantAgent.class);
-
-        if (participantAgent != null) {
-            var identifier = participantAgent.getAttributes().get(ATTR_GX_LRN_VAT_ID);
-            return Optional.ofNullable(identifier);
-        }
-
-        return Optional.empty();
-    }
 
     public static Optional<String> getClientIdFromContext(PolicyContext context) {
         var participantAgent = context.getContextData(ParticipantAgent.class);
 
         if (participantAgent != null) {
-            var identifier = participantAgent.getAttributes().get(ATTR_IDENTIFIER);
+            var identifier = participantAgent.getAttributes().get("xrd:identifier");
             return Optional.ofNullable(identifier);
         }
 
