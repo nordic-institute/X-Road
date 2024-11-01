@@ -31,7 +31,7 @@ Sets up plugins and 3rd party components that the app uses.
 Creates a new Vue instance with the Vue function.
 Initialises the app root component.
 */
-import { createApp } from 'vue';
+import { createApp, nextTick } from 'vue';
 import axios from 'axios';
 import { createFilters } from '@/filters';
 import App from './App.vue';
@@ -97,8 +97,7 @@ app.component('XrdSimpleDialog', XrdSimpleDialog);
 app.component('XrdConfirmDialog', XrdConfirmDialog);
 app.component('XrdEmptyPlaceholder', XrdEmptyPlaceholder);
 app.component('XrdSubViewTitle', XrdSubViewTitle);
-//translations
-const languageStorage = useLanguage();
-await setLanguage(languageStorage.getLanguage);
-
 app.mount('#app');
+// translations
+const languageStorage = useLanguage();
+nextTick(() => setLanguage(languageStorage.getLanguage)).then();

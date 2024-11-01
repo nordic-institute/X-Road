@@ -25,13 +25,19 @@
  * THE SOFTWARE.
  */
 import { createI18n } from 'vue-i18n';
-import enAppMessages from '@/locales/en.json';
 
-export default createI18n({
-  legacy: false,
-  locale: import.meta.env.VITE_VUE_APP_I18N_LOCALE || 'en',
-  fallbackLocale: import.meta.env.VITE_VUE_APP_I18N_FALLBACK_LOCALE || 'en',
-  silentFallbackWarn: true,
-  allowComposition: true,
-  messages: { en: enAppMessages },
+import en from '../locales/en.json';
+
+type MessageSchema = typeof en;
+
+
+export default createI18n<[MessageSchema], 'en'>({
+    legacy: false,
+    locale: import.meta.env.VITE_VUE_APP_I18N_LOCALE || 'en',
+    fallbackLocale: import.meta.env.VITE_VUE_APP_I18N_FALLBACK_LOCALE || 'en',
+    silentFallbackWarn: true,
+    allowComposition: true,
+    messages: { en },
 });
+
+

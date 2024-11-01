@@ -27,16 +27,23 @@
 import { createI18n } from 'vue-i18n';
 import enValidationMessages from '@vee-validate/i18n/dist/locale/en.json';
 import merge from 'deepmerge';
-import enSharedMessages from '@niis/shared-ui/src/locales/en.json';
+import { messages } from '@niis/shared-ui';
+import enAppMessages from '@/locales/en.json';
 
-const loadedLanguages = new Set();
+const loadedLanguages = new Set('en');
+export const availableLanguages = ['en'];
+
 const defaultLanguage = import.meta.env.VITE_I18N_LOCALE || 'en';
 const defaultFallbackLanguage = import.meta.env.VITE_FALLBACK_LOCALE || 'en';
-const sharedLanguageMessages = {
-  en: enSharedMessages,
-};
 
-export const availableLanguages = ['en'];
+const sharedLanguageMessages = {
+  en: messages.en,
+};
+const defaultLanguagePack = merge.all([
+  { validation: enValidationMessages },
+  sharedLanguageMessages.en,
+  enAppMessages,
+]);
 
 // Initialize i18n instance with default configuration
 export const i18n = createI18n({
@@ -45,6 +52,7 @@ export const i18n = createI18n({
   fallbackLocale: defaultFallbackLanguage,
   silentFallbackWarn: true,
   allowComposition: true,
+  messages: { en: defaultLanguagePack },
 });
 
 // Sets the active language, loading language pack if necessary
@@ -92,7 +100,7 @@ async function loadValidationMessages(language) {
 
 // Loads shared messages based on language
 function loadSharedMessages(language) {
-  return sharedLanguageMessages[language] || enSharedMessages;
+  return sharedLanguageMessages[language] || sharedLanguageMessages.en;
 }
 
 // Merges application, validation, and shared messages into a single pack
