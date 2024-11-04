@@ -1,0 +1,48 @@
+<div>
+    <h4>Rest call: https://localhost:32769/api/v1/management-requests/8</h4>
+    <div class="content">
+  <strong>Request:</strong>
+  <pre class="details-content">curl -X GET \
+'https://localhost:32769/api/v1/management-requests/8' \
+-H 'ACCEPT: application/json' \
+-H 'AUTHORIZATION: X-ROAD-APIKEY TOKEN=4730a40b-179b-4edc-b3e4-5ee22d541fb5' \
+
+</pre>
+</div>
+<div class="content">
+  <details>
+    <summary style="cursor:pointer">
+      <strong>Response:</strong>
+    </summary>
+    <pre class="details-content"><code class="json">{
+  &quot;headers&quot; : { },
+  &quot;body&quot; : {
+    &quot;id&quot; : 8,
+    &quot;type&quot; : &quot;CLIENT_REGISTRATION_REQUEST&quot;,
+    &quot;origin&quot; : &quot;CENTER&quot;,
+    &quot;security_server_owner&quot; : &quot;E2E TC1 Member with Subsystems&quot;,
+    &quot;security_server_id&quot; : {
+      &quot;type&quot; : &quot;SERVER&quot;,
+      &quot;instance_id&quot; : &quot;CS-E2E&quot;,
+      &quot;server_code&quot; : &quot;E2E-SS1&quot;,
+      &quot;member_class&quot; : &quot;E2E-TC1&quot;,
+      &quot;member_code&quot; : &quot;e2e-tc1-member-subsystem&quot;,
+      &quot;encoded_id&quot; : &quot;CS-E2E:E2E-TC1:e2e-tc1-member-subsystem:E2E-SS1&quot;
+    },
+    &quot;status&quot; : &quot;WAITING&quot;,
+    &quot;client_id&quot; : {
+      &quot;type&quot; : &quot;SUBSYSTEM&quot;,
+      &quot;instance_id&quot; : &quot;CS-E2E&quot;,
+      &quot;subsystem_code&quot; : &quot;e2e-tc3-subsystem&quot;,
+      &quot;member_class&quot; : &quot;E2E-TC1&quot;,
+      &quot;member_code&quot; : &quot;e2e-tc3-member-subsystem&quot;,
+      &quot;encoded_id&quot; : &quot;CS-E2E:E2E-TC1:e2e-tc3-member-subsystem:e2e-tc3-subsystem&quot;
+    },
+    &quot;client_owner_name&quot; : &quot;E2E TC3 Member with Subsystems&quot;,
+    &quot;created_at&quot; : &quot;2024-11-04T11:06:21.678519Z&quot;
+  },
+  &quot;status&quot; : 200
+}</code></pre>
+  </details>
+</div>
+</div>
