@@ -29,10 +29,12 @@ import ee.ria.xroad.common.CodedException;
 import ee.ria.xroad.common.cert.CertChainFactory;
 import ee.ria.xroad.common.conf.globalconf.GlobalConfProvider;
 import ee.ria.xroad.common.conf.serverconf.ServerConfProvider;
+import ee.ria.xroad.common.messagelog.MessageLogDbContextHolder;
 import ee.ria.xroad.common.opmonitoring.OpMonitoringData;
 import ee.ria.xroad.common.util.RequestWrapper;
 import ee.ria.xroad.common.util.ResponseWrapper;
 import ee.ria.xroad.proxy.conf.KeyConfProvider;
+import ee.ria.xroad.proxy.messagelog.LogRecordManager;
 import ee.ria.xroad.proxy.util.MessageProcessorBase;
 
 import lombok.extern.slf4j.Slf4j;
@@ -49,12 +51,14 @@ import static ee.ria.xroad.common.util.JettyUtils.getTarget;
 @Slf4j
 public class AsicContainerHandler extends AbstractClientProxyHandler {
 
+    private final LogRecordManager logRecordManager;
     /**
      * Constructor
      */
     public AsicContainerHandler(GlobalConfProvider globalConfProvider, KeyConfProvider keyConfProvider,
                                 ServerConfProvider serverConfProvider, CertChainFactory certChainFactory, HttpClient client) {
         super(globalConfProvider, keyConfProvider, serverConfProvider, certChainFactory, client, false);
+        this.logRecordManager = new LogRecordManager(MessageLogDbContextHolder.instance());
     }
 
     @Override
@@ -75,12 +79,8 @@ public class AsicContainerHandler extends AbstractClientProxyHandler {
         }
 
         AsicContainerClientRequestProcessor processor = new AsicContainerClientRequestProcessor(
-                globalConfProvider,
-                keyConfProvider, serverConfProvider,
-                certChainFactory,
-                target,
-                request,
-                response);
+                globalConfProvider, keyConfProvider, serverConfProvider, certChainFactory,
+                target, request, response, logRecordManager);
 
         if (processor.canProcess()) {
             log.trace("Processing with AsicContainerRequestProcessor");

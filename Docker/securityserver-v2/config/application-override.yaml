@@ -1,4 +1,12 @@
 xroad:
+  messagelog:
+    hibernate:
+      connection.driver_class: org.postgresql.Driver
+      connection.url: jdbc:postgresql://db-messagelog:5432/messagelog
+      connection.username: messagelog
+      connection.password: secret
+      hikari.dataSource.currentSchema: messagelog,public
+      jdbc.use_streams_for_binary: true
   common:
     global-conf-remoting-enabled: true
     grpc-internal-host: 0.0.0.0

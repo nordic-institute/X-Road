@@ -29,6 +29,7 @@ import ee.ria.xroad.common.SystemProperties;
 import ee.ria.xroad.common.cert.CertChainFactory;
 import ee.ria.xroad.common.conf.globalconf.GlobalConfProvider;
 import ee.ria.xroad.common.conf.serverconf.ServerConfProvider;
+import ee.ria.xroad.common.db.DatabaseCtxV2;
 import ee.ria.xroad.common.message.RestRequest;
 import ee.ria.xroad.common.message.SoapMessageImpl;
 import ee.ria.xroad.common.messagelog.AbstractLogManager;
@@ -72,6 +73,9 @@ abstract class AbstractMessageLogTest {
     protected final String archivesDir = "build/archive";
     protected final Path archivesPath = Paths.get(archivesDir);
 
+    protected final DatabaseCtxV2 databaseCtx = TestUtil.databaseCtx;
+    protected final LogRecordManager logRecordManager = new LogRecordManager(databaseCtx);
+
     private LogArchiver logArchiverRef;
     private LogCleaner logCleanerRef;
 
@@ -92,14 +96,14 @@ abstract class AbstractMessageLogTest {
         System.setProperty(MessageLogProperties.MESSAGE_BODY_LOGGING_ENABLED, "true");
 
         logManager = (LogManager) getLogManagerImpl()
-                .getDeclaredConstructor(String.class, GlobalConfProvider.class, ServerConfProvider.class)
-                .newInstance("test", globalConfProvider, serverConfProvider);
+                .getDeclaredConstructor(String.class, GlobalConfProvider.class, ServerConfProvider.class, DatabaseCtxV2.class)
+                .newInstance("test", globalConfProvider, serverConfProvider, databaseCtx);
 
         if (!Files.exists(archivesPath)) {
             Files.createDirectory(archivesPath);
         }
-        logArchiverRef = new TestLogArchiver(globalConfProvider);
-        logCleanerRef = new TestLogCleaner();
+        logArchiverRef = new TestLogArchiver(globalConfProvider, databaseCtx);
+        logCleanerRef = new TestLogCleaner(databaseCtx);
     }
 
     void testTearDown() throws Exception {

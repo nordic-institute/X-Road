@@ -27,6 +27,9 @@ package ee.ria.xroad.messagelog.archiver;
 
 import ee.ria.xroad.common.conf.globalconf.GlobalConfBeanConfig;
 import ee.ria.xroad.common.conf.globalconf.GlobalConfRefreshJobConfig;
+import ee.ria.xroad.common.db.DatabaseCtxV2;
+import ee.ria.xroad.common.db.HibernateUtil;
+import ee.ria.xroad.common.messagelog.MessageLogConfig;
 import ee.ria.xroad.common.messagelog.MessageLogProperties;
 import ee.ria.xroad.common.util.JobManager;
 import ee.ria.xroad.common.util.SpringAwareJobManager;
@@ -66,6 +69,13 @@ public class LogArchiverConfig {
     @Bean
     ConfClientRpcClient confClientRpcClient(RpcClientProperties confClientRpcClientProperties) {
         return new ConfClientRpcClient(confClientRpcClientProperties);
+    }
+
+    @Bean
+    DatabaseCtxV2 logArchiverDatabaseCtx(MessageLogConfig messageLogProperties) {
+        var sessionFactory = HibernateUtil.createSessionFactory("messagelog",
+                messageLogProperties.getHibernate());
+        return new DatabaseCtxV2("messagelog", sessionFactory);
     }
 
 }

@@ -40,11 +40,13 @@ class TestTimestamperWorker extends TimestamperWorker {
     private static final Lock FALSE = new Lock(false);
     private static final Lock TRUE = new Lock(true);
     private final GlobalConfProvider globalConfProvider;
+    private final LogRecordManager logRecordManager;
     private static volatile boolean shouldFail;
 
-    TestTimestamperWorker(GlobalConfProvider globalConfProvider, List<String> tspUrls) {
-        super(globalConfProvider, tspUrls);
+    TestTimestamperWorker(GlobalConfProvider globalConfProvider, List<String> tspUrls, LogRecordManager logRecordManager) {
+        super(globalConfProvider, tspUrls, logRecordManager);
         this.globalConfProvider = globalConfProvider;
+        this.logRecordManager = logRecordManager;
     }
 
     public static void failNextTimestamping(boolean failureExpected) {
@@ -57,7 +59,7 @@ class TestTimestamperWorker extends TimestamperWorker {
 
     @Override
     protected AbstractTimestampRequest createSingleTimestampRequest(Long logRecord) {
-        return new SingleTimestampRequest(globalConfProvider, logRecord) {
+        return new SingleTimestampRequest(globalConfProvider, logRecord, logRecordManager) {
             @Override
             protected Timestamper.TimestampResult makeTsRequest(TimeStampRequest tsRequest, List<String> tspUrls)
                     throws Exception {
@@ -88,7 +90,7 @@ class TestTimestamperWorker extends TimestamperWorker {
 
     @Override
     protected AbstractTimestampRequest createBatchTimestampRequest(Long[] logRecords, String[] signatureHashes) {
-        return new BatchTimestampRequest(globalConfProvider, logRecords, signatureHashes) {
+        return new BatchTimestampRequest(globalConfProvider, logRecords, signatureHashes, logRecordManager) {
             @Override
             protected Timestamper.TimestampResult makeTsRequest(TimeStampRequest tsRequest, List<String> tspUrls)
                     throws Exception {

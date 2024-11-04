@@ -25,6 +25,7 @@
  */
 package ee.ria.xroad.proxy.messagelog;
 
+import ee.ria.xroad.common.db.DatabaseCtxV2;
 import ee.ria.xroad.common.messagelog.MessageLogProperties;
 import ee.ria.xroad.proxy.messagelog.Timestamper.TimestampFailed;
 import ee.ria.xroad.proxy.messagelog.Timestamper.TimestampSucceeded;
@@ -37,8 +38,6 @@ import org.hibernate.Session;
 
 import java.util.Arrays;
 import java.util.List;
-
-import static ee.ria.xroad.messagelog.database.MessageLogDatabaseCtx.doInTransaction;
 
 /**
  * Handles the TaskQueues -- adds tasks to the queue and sends the active queue for time-stamping.
@@ -53,6 +52,7 @@ public class TaskQueue {
     private final Timestamper timestamper;
     private final LogManager logManager;
     private final String origin;
+    private final DatabaseCtxV2 databaseCtx;
 
     protected void handleTimestampSucceeded(TimestampSucceeded message) {
         log.trace("handleTimestampSucceeded");
@@ -139,7 +139,7 @@ public class TaskQueue {
         List<Task> timestampTasks;
 
         try {
-            timestampTasks = doInTransaction(session -> getTimestampTasks(session, timestampRecordsLimit));
+            timestampTasks = databaseCtx.doInTransaction(session -> getTimestampTasks(session, timestampRecordsLimit));
         } catch (Exception e) {
             log.error("Error getting time-stamp tasks", e);
 
@@ -185,7 +185,7 @@ public class TaskQueue {
 
     private boolean isTaskQueueEmpty() {
         try {
-            return doInTransaction(this::getTasksQueueSize) == 0L;
+            return databaseCtx.doInTransaction(this::getTasksQueueSize) == 0L;
         } catch (Exception e) {
             log.error("Could not read timestamp task queue status", e);
 

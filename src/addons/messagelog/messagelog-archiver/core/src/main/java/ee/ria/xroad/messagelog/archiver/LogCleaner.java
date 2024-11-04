@@ -25,10 +25,11 @@
  */
 package ee.ria.xroad.messagelog.archiver;
 
+import ee.ria.xroad.common.db.DatabaseCtxV2;
 import ee.ria.xroad.common.messagelog.MessageLogProperties;
 import ee.ria.xroad.common.util.TimeUtils;
-import ee.ria.xroad.messagelog.database.MessageLogDatabaseCtx;
 
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.hibernate.query.Query;
 import org.quartz.Job;
@@ -40,9 +41,12 @@ import java.time.temporal.ChronoUnit;
  * Deletes all archived log records from the database.
  */
 @Slf4j
+@RequiredArgsConstructor
 public class LogCleaner implements Job {
 
     public static final int CLEAN_BATCH_LIMIT = MessageLogProperties.getCleanTransactionBatchSize();
+
+    private final DatabaseCtxV2 databaseCtx;
 
     @Override
     public void execute(JobExecutionContext context) {
@@ -66,7 +70,7 @@ public class LogCleaner implements Job {
         long count = 0;
         int removed;
         do {
-            removed = MessageLogDatabaseCtx.doInTransaction(session -> {
+            removed = databaseCtx.doInTransaction(session -> {
                 final Query query = session.getNamedQuery("delete-logrecords");
                 query.setParameter("time", time);
                 query.setParameter("limit", CLEAN_BATCH_LIMIT);

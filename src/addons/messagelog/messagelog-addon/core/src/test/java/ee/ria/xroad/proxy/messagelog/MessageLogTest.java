@@ -84,7 +84,6 @@ import java.util.zip.ZipInputStream;
 
 import static ee.ria.xroad.common.ErrorCodes.X_MLOG_TIMESTAMPER_FAILED;
 import static ee.ria.xroad.common.util.MessageFileNames.MESSAGE;
-import static ee.ria.xroad.messagelog.database.MessageLogDatabaseCtx.doInTransaction;
 import static ee.ria.xroad.proxy.messagelog.TestUtil.assertTaskQueueSize;
 import static ee.ria.xroad.proxy.messagelog.TestUtil.cleanUpDatabase;
 import static ee.ria.xroad.proxy.messagelog.TestUtil.createMessage;
@@ -131,7 +130,7 @@ public class MessageLogTest extends AbstractMessageLogTest {
         log.trace("timestampingForced()");
 
         log("02-04-2014 12:34:56.100", createMessage("forced"));
-        assertTaskQueueSize(1);
+        assertTaskQueueSize(1, databaseCtx);
 
         MessageRecord record = (MessageRecord) findByQueryId("forced", "02-04-2014 12:34:50.100",
                 "02-04-2014 12:34:59.100");
@@ -143,7 +142,7 @@ public class MessageLogTest extends AbstractMessageLogTest {
         record = (MessageRecord) findByQueryId("forced", "02-04-2014 12:34:50.100", "02-04-2014 12:34:59.100");
 
         assertEquals(timestamp, record.getTimestampRecord());
-        assertTaskQueueSize(0);
+        assertTaskQueueSize(0, databaseCtx);
     }
 
     /**
@@ -156,7 +155,7 @@ public class MessageLogTest extends AbstractMessageLogTest {
         log.trace("timestampingDouble()");
 
         log("02-04-2014 12:34:56.100", createMessage("forced"));
-        assertTaskQueueSize(1);
+        assertTaskQueueSize(1, databaseCtx);
 
         MessageRecord record = (MessageRecord) findByQueryId("forced", "02-04-2014 12:34:50.100",
                 "02-04-2014 12:34:59.100");
@@ -185,7 +184,7 @@ public class MessageLogTest extends AbstractMessageLogTest {
         log(createMessage(), createSignature());
         log(createMessage(), createSignature());
 
-        assertTaskQueueSize(3);
+        assertTaskQueueSize(3, databaseCtx);
 
         startTimestamping();
 
@@ -197,7 +196,7 @@ public class MessageLogTest extends AbstractMessageLogTest {
         assertNotNull(timestamp.getHashChainResult());
         assertEquals(3, timestamp.getHashChains().length);
 
-        assertTaskQueueSize(0);
+        assertTaskQueueSize(0, databaseCtx);
     }
 
     /**
@@ -267,7 +266,7 @@ public class MessageLogTest extends AbstractMessageLogTest {
             log(createMessage(), createSignature());
             log(createMessage(), createSignature());
             log(createMessage(), createSignature());
-            assertTaskQueueSize(5);
+            assertTaskQueueSize(5, databaseCtx);
 
             startTimestamping();
 
@@ -289,7 +288,7 @@ public class MessageLogTest extends AbstractMessageLogTest {
         System.setProperty(MessageLogProperties.TIMESTAMP_IMMEDIATELY, "true");
 
         log(createMessage(), createSignature());
-        assertTaskQueueSize(0);
+        assertTaskQueueSize(0, databaseCtx);
     }
 
     /**
@@ -329,17 +328,17 @@ public class MessageLogTest extends AbstractMessageLogTest {
 
         System.setProperty(MessageLogProperties.KEEP_RECORDS_FOR, "0");
 
-        assertTaskQueueSize(0);
+        assertTaskQueueSize(0, databaseCtx);
         log("01-09-2021 12:34:55.100", createMessage(), createSignature());
         log("01-09-2021 12:34:57.200", createMessage(), createSignature());
         log("01-09-2021 12:34:59.300", createMessage(), createSignature());
-        assertTaskQueueSize(3);
+        assertTaskQueueSize(3, databaseCtx);
 
         startTimestamping();
         waitForTimestampSuccessful();
         assertTrue(TestTaskQueue.waitForTimestampSaved());
 
-        assertTaskQueueSize(0);
+        assertTaskQueueSize(0, databaseCtx);
 
         startArchiving();
         TestLogArchiver.waitForArchiveSuccessful();
@@ -368,7 +367,7 @@ public class MessageLogTest extends AbstractMessageLogTest {
         log(createMessage(), createSignature());
         log(createMessage(), createSignature());
         log(createMessage(), createSignature());
-        assertTaskQueueSize(3);
+        assertTaskQueueSize(3, databaseCtx);
 
         startTimestamping();
 
@@ -376,7 +375,7 @@ public class MessageLogTest extends AbstractMessageLogTest {
         assertTrue("Got " + result, result instanceof TimestampFailed);
 
         log(createMessage(), createSignature());
-        assertTaskQueueSize(4);
+        assertTaskQueueSize(4, databaseCtx);
     }
 
     /**
@@ -396,7 +395,7 @@ public class MessageLogTest extends AbstractMessageLogTest {
         log(createMessage(), createSignature());
         log(createMessage(), createSignature());
         log(createMessage(), createSignature());
-        assertTaskQueueSize(3);
+        assertTaskQueueSize(3, databaseCtx);
 
         logManager.setTimestampFailed(TimeUtils.now().minusSeconds(60));
 
@@ -421,7 +420,7 @@ public class MessageLogTest extends AbstractMessageLogTest {
         log(createMessage(), createSignature());
         log(createMessage(), createSignature());
 
-        assertTaskQueueSize(3);
+        assertTaskQueueSize(3, databaseCtx);
 
         log.info("startTimestamping();");
 
@@ -442,7 +441,7 @@ public class MessageLogTest extends AbstractMessageLogTest {
         assertTrue(logManager.isTimestampFailed());
 
         log(createMessage(), createSignature());
-        assertTaskQueueSize(4);
+        assertTaskQueueSize(4, databaseCtx);
     }
 
     /**
@@ -530,7 +529,7 @@ public class MessageLogTest extends AbstractMessageLogTest {
         DigestEntry lastArchive = new DigestEntry(LAST_DIGEST, LAST_LOG_ARCHIVE_FILE);
         ArchiveDigest digest = new ArchiveDigest(ClientId.Conf.create("XRD", "BUSINESS", "consumer").toShortString(),
                 lastArchive);
-        doInTransaction(session -> {
+        databaseCtx.doInTransaction(session -> {
             session.createQuery(getLastEntryDeleteQuery()).executeUpdate();
             session.save(digest);
 
@@ -552,7 +551,7 @@ public class MessageLogTest extends AbstractMessageLogTest {
         System.clearProperty(MessageLogProperties.ARCHIVE_ENCRYPTION_ENABLED);
 
         testTearDown();
-        cleanUpDatabase();
+        cleanUpDatabase(databaseCtx);
     }
 
     @Override
@@ -587,11 +586,11 @@ public class MessageLogTest extends AbstractMessageLogTest {
     }
 
     protected LogRecord findByQueryId(String queryId, String startTime, String endTime) throws Exception {
-        return LogRecordManager.getByQueryId(queryId, getDate(startTime), getDate(endTime));
+        return logRecordManager.getByQueryId(queryId, getDate(startTime), getDate(endTime));
     }
 
     protected LogRecord findByQueryId(String queryId, Instant startTime, Instant endTime) throws Exception {
-        return LogRecordManager.getByQueryId(queryId, Date.from(startTime), Date.from(endTime));
+        return logRecordManager.getByQueryId(queryId, Date.from(startTime), Date.from(endTime));
     }
 
     private String getLastEntryDeleteQuery() {
@@ -649,15 +648,15 @@ public class MessageLogTest extends AbstractMessageLogTest {
         assertEquals("Last hash step file must start with last hash step result", lastStepInDatabase, prevHash);
     }
 
-    private static String getLastHashStepInDatabase() throws Exception {
-        return doInTransaction(session -> (String) session
+    private String getLastHashStepInDatabase() throws Exception {
+        return databaseCtx.doInTransaction(session -> (String) session
                 .createQuery(getLastDigestQuery())
                 .setMaxResults(1)
                 .list()
                 .get(0));
     }
 
-    private static String getLastDigestQuery() {
+    private String getLastDigestQuery() {
         return "select new java.lang.String(d.digestEntry.digest) "
                 + "from ArchiveDigest d where d.digestEntry.digest is not null";
     }
@@ -684,16 +683,16 @@ public class MessageLogTest extends AbstractMessageLogTest {
         return latestModifiedZip.getPath();
     }
 
-    private static boolean changesLatestModified(File former, File candidate) {
+    private boolean changesLatestModified(File former, File candidate) {
         return former == null || former.lastModified() < candidate.lastModified();
     }
 
-    private static Date getDate(String dateStr) throws Exception {
+    private Date getDate(String dateStr) throws Exception {
         return new SimpleDateFormat("dd-MM-yyyy HH:mm:ss.SSS").parse(dateStr);
     }
 
-    private static int getNumberOfRecords(final boolean archived) throws Exception {
-        return doInTransaction(session -> {
+    private int getNumberOfRecords(final boolean archived) throws Exception {
+        return databaseCtx.doInTransaction(session -> {
             final CriteriaBuilder cb = session.getCriteriaBuilder();
             final CriteriaQuery<Number> query = cb.createQuery(Number.class);
             final Root<AbstractLogRecord> r = query.from(AbstractLogRecord.class);

@@ -25,6 +25,7 @@
  */
 package ee.ria.xroad.proxy.messagelog;
 
+import ee.ria.xroad.common.db.DatabaseCtxV2;
 import ee.ria.xroad.proxy.messagelog.Timestamper.TimestampFailed;
 import ee.ria.xroad.proxy.messagelog.Timestamper.TimestampSucceeded;
 
@@ -48,8 +49,8 @@ class TestTaskQueue extends TaskQueue {
 
     static Exception throwWhenSavingTimestamp;
 
-    TestTaskQueue(Timestamper timestamper, LogManager logManager, String origin) {
-        super(timestamper, logManager, origin);
+    TestTaskQueue(Timestamper timestamper, LogManager logManager, String origin, DatabaseCtxV2 databaseCtx) {
+        super(timestamper, logManager, origin, databaseCtx);
     }
 
     static void initGateLatch() {

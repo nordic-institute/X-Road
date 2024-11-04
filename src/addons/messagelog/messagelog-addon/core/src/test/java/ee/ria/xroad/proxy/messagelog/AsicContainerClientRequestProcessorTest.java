@@ -93,7 +93,7 @@ public class AsicContainerClientRequestProcessorTest extends AbstractMessageLogT
 
         final AsicContainerClientRequestProcessor proc =
                 new AsicContainerClientRequestProcessor(globalConfProvider, keyConfProvider, serverConfProvider, certChainFactory,
-                        "/verificationconf", request, response);
+                        "/verificationconf", request, response, mock(LogRecordManager.class));
 
         when(response.getOutputStream()).thenReturn(mockOutputStream);
 
@@ -142,7 +142,7 @@ public class AsicContainerClientRequestProcessorTest extends AbstractMessageLogT
 
         final AsicContainerClientRequestProcessor processor =
                 new AsicContainerClientRequestProcessor(globalConfProvider, keyConfProvider, serverConfProvider, certChainFactory,
-                        "/asic", request, response);
+                        "/asic", request, response, mock(LogRecordManager.class));
 
         processor.process();
 
@@ -200,7 +200,7 @@ public class AsicContainerClientRequestProcessorTest extends AbstractMessageLogT
 
         final AsicContainerClientRequestProcessor processor =
                 new AsicContainerClientRequestProcessor(globalConfProvider, keyConfProvider, serverConfProvider, certChainFactory,
-                        "/asic", request, response);
+                        "/asic", request, response, mock(LogRecordManager.class));
 
         processor.process();
 
@@ -291,7 +291,7 @@ public class AsicContainerClientRequestProcessorTest extends AbstractMessageLogT
         System.clearProperty(MessageLogProperties.ARCHIVE_ENCRYPTION_ENABLED);
 
         testTearDown();
-        cleanUpDatabase();
+        cleanUpDatabase(databaseCtx);
     }
 
     @Override

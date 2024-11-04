@@ -44,8 +44,9 @@ class BatchTimestampRequest extends AbstractTimestampRequest {
     private String[] hashChains = null;
 
 
-    BatchTimestampRequest(GlobalConfProvider globalConfProvider, Long[] logRecords, String[] signatureHashes) {
-        super(globalConfProvider, logRecords);
+    BatchTimestampRequest(GlobalConfProvider globalConfProvider, Long[] logRecords, String[] signatureHashes,
+                          LogRecordManager logRecordManager) {
+        super(globalConfProvider, logRecords, logRecordManager);
 
         this.signatureHashes = signatureHashes;
     }

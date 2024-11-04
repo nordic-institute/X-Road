@@ -46,13 +46,13 @@ class SingleTimestampRequest extends AbstractTimestampRequest {
     private MessageRecord message;
     private Signature signature;
 
-    SingleTimestampRequest(GlobalConfProvider globalConfProvider, Long logRecord) {
-        super(globalConfProvider, new Long[]{logRecord});
+    SingleTimestampRequest(GlobalConfProvider globalConfProvider, Long logRecord, LogRecordManager logRecordManager) {
+        super(globalConfProvider, new Long[]{logRecord}, logRecordManager);
     }
 
     @Override
     byte[] getRequestData() throws Exception {
-        LogRecord record = LogRecordManager.get(logRecords[0]);
+        LogRecord record = logRecordManager.get(logRecords[0]);
 
         if (!(record instanceof MessageRecord mr)) {
             throw new CodedException(X_INTERNAL_ERROR, "Could not find message record #" + logRecords[0]);
@@ -85,6 +85,6 @@ class SingleTimestampRequest extends AbstractTimestampRequest {
         String oldHash = message.getSignatureHash();
         message.setSignatureHash(LogManager.signatureHash(signatureXml));
 
-        LogRecordManager.updateMessageRecordSignature(message, oldHash);
+        logRecordManager.updateMessageRecordSignature(message, oldHash);
     }
 }

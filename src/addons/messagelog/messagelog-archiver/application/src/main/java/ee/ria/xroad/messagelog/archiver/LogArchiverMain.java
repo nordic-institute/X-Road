@@ -27,6 +27,7 @@
 package ee.ria.xroad.messagelog.archiver;
 
 import ee.ria.xroad.common.conf.globalconf.GlobalConfPropertiesConfig;
+import ee.ria.xroad.common.messagelog.MessageLogConfig;
 
 import lombok.extern.slf4j.Slf4j;
 import org.niis.xroad.bootstrap.XrdSpringServiceBuilder;
@@ -35,9 +36,12 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 
+import java.util.Map;
+
 @Slf4j
 @SpringBootApplication
-@EnableConfigurationProperties(LogArchiverMain.ConfClientRpcClientProperties.class)
+@EnableConfigurationProperties({LogArchiverMain.ConfClientRpcClientProperties.class,
+        LogArchiverMain.SpringMessageLogProperties.class})
 public class LogArchiverMain {
     private static final String APP_NAME = "MessageLogArchiver";
 
@@ -55,6 +59,13 @@ public class LogArchiverMain {
                                       String grpcTlsKeyStore, char[] grpcTlsKeyStorePassword) {
             super(grpcHost, grpcPort, grpcTlsEnabled, grpcTlsTrustStore, grpcTlsTrustStorePassword,
                     grpcTlsKeyStore, grpcTlsKeyStorePassword);
+        }
+    }
+
+    @ConfigurationProperties(prefix = "xroad.messagelog")
+    static class SpringMessageLogProperties extends MessageLogConfig {
+        SpringMessageLogProperties(Map<String, String> hibernate) {
+            super(hibernate);
         }
     }
 

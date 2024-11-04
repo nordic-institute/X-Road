@@ -53,6 +53,7 @@ import static ee.ria.xroad.proxy.messagelog.TimestamperUtil.getTimestampResponse
 public abstract class AbstractTimestampRequest {
     protected final GlobalConfProvider globalConfProvider;
     protected final Long[] logRecords;
+    protected final LogRecordManager logRecordManager;
 
     abstract byte[] getRequestData() throws Exception;
 
