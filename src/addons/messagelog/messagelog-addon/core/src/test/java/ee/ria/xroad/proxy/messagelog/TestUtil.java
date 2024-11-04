@@ -84,7 +84,7 @@ final class TestUtil {
     static String message;
     static String signature;
 
-    private final static Map<String, String> messageLogHibernateProperties = Map.of(
+    private static final Map<String, String> MESSAGE_LOG_HIBERNATE_PROPERTIES = Map.of(
             "dialect", "org.hibernate.dialect.HSQLDialect",
             "connection.driver_class", "org.hsqldb.jdbcDriver",
             "connection.url", "jdbc:hsqldb:mem:securelog;sql.syntax_pgs=true;",
@@ -95,7 +95,7 @@ final class TestUtil {
     );
     static DatabaseCtxV2 databaseCtx = new DatabaseCtxV2("messagelog",
             HibernateUtil.createSessionFactory("messagelog",
-                    messageLogHibernateProperties));
+                    MESSAGE_LOG_HIBERNATE_PROPERTIES));
 
     static GlobalConfProvider getGlobalConf() {
         return new EmptyGlobalConf() {
