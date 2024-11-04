@@ -92,7 +92,7 @@ public class XrdEdcBeanBridgeConfig {
                 .flatMap(Arrays::stream)
                 .forEach(propName -> entries.put(propName, environment.getProperty(propName)));
         return new MapConfigImpl(entries);
-        //TODO: this impl has issues..
+        //TODO this impl has issues..
 //        return new SpringEdcConfig(environment);
     }
 

@@ -55,9 +55,9 @@ public class OpMonitorDaemonRootConfig {
     @ConfigurationProperties(prefix = "xroad.op-monitor.grpc")
     static class OpMonitorRpcServiceProperties extends RpcServiceProperties {
 
-        public OpMonitorRpcServiceProperties(String listenAddress, int port,
-                                             String tlsTrustStore, char[] tlsTrustStorePassword,
-                                             String tlsKeyStore, char[] tlsKeyStorePassword) {
+        OpMonitorRpcServiceProperties(String listenAddress, int port,
+                                      String tlsTrustStore, char[] tlsTrustStorePassword,
+                                      String tlsKeyStore, char[] tlsKeyStorePassword) {
             super(listenAddress, port, tlsTrustStore, tlsTrustStorePassword, tlsKeyStore, tlsKeyStorePassword);
         }
     }

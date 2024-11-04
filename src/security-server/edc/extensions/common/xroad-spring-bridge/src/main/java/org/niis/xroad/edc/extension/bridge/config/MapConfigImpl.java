@@ -41,17 +41,17 @@ public class MapConfigImpl implements Config {
     static final Collector<Map.Entry<String, String>, ?, Map<String, String>> TO_MAP = toMap(Map.Entry::getKey, Map.Entry::getValue);
 
     private final Map<String, String> entries;
-    private final String rootPath;
+    private final String internalRootPath;
 
     public MapConfigImpl(Map<String, String> entries) {
         this("", entries);
     }
 
-    protected MapConfigImpl(String rootPath, Map<String, String> entries) {
-        Objects.requireNonNull(rootPath, "rootPath");
+    protected MapConfigImpl(String internalRootPath, Map<String, String> entries) {
+        Objects.requireNonNull(internalRootPath, "rootPath");
 
         this.entries = entries;
-        this.rootPath = rootPath;
+        this.internalRootPath = internalRootPath;
     }
 
     @Override
@@ -103,7 +103,8 @@ public class MapConfigImpl implements Config {
     public Config getConfig(String path) {
         var absolutePath = absolutePathOf(path);
         var filteredEntries = entries.entrySet().stream()
-                .filter(entry -> absolutePath.isEmpty() || entry.getKey().startsWith(absolutePath + ".") || entry.getKey().equals(absolutePath))
+                .filter(entry -> absolutePath.isEmpty() || entry.getKey().startsWith(absolutePath + ".")
+                        || entry.getKey().equals(absolutePath))
                 .collect(TO_MAP);
 
         return new MapConfigImpl(absolutePath, filteredEntries);
@@ -130,7 +131,7 @@ public class MapConfigImpl implements Config {
 
     @Override
     public Map<String, String> getRelativeEntries() {
-        return getEntries().entrySet().stream().map(entry -> Map.entry(removePrefix(entry.getKey(), rootPath), entry.getValue()))
+        return getEntries().entrySet().stream().map(entry -> Map.entry(removePrefix(entry.getKey(), internalRootPath), entry.getValue()))
                 .collect(TO_MAP);
     }
 
@@ -141,13 +142,13 @@ public class MapConfigImpl implements Config {
 
     @Override
     public String currentNode() {
-        var parts = rootPath.split("\\.");
+        var parts = internalRootPath.split("\\.");
         return parts[parts.length - 1];
     }
 
     @Override
     public boolean isLeaf() {
-        return entries.size() == 1 && entries.keySet().stream().allMatch(rootPath::equals);
+        return entries.size() == 1 && entries.keySet().stream().allMatch(internalRootPath::equals);
     }
 
     @Override
@@ -187,7 +188,8 @@ public class MapConfigImpl implements Config {
             try {
                 return parse.apply(value);
             } catch (Exception e) {
-                throw new EdcException(format("Setting %s with value %s cannot be parsed to %s", absolutePathOf(key), value, typeDescription));
+                throw new EdcException(format("Setting %s with value %s cannot be parsed to %s",
+                        absolutePathOf(key), value, typeDescription));
             }
         }
     }
@@ -204,7 +206,7 @@ public class MapConfigImpl implements Config {
 
     @NotNull
     private String absolutePathOf(String key) {
-        String rootPath = Optional.of(this.rootPath).filter(it -> !it.isEmpty()).map(it -> it + ".").orElse("");
+        String rootPath = Optional.of(this.internalRootPath).filter(it -> !it.isEmpty()).map(it -> it + ".").orElse("");
         return rootPath + key;
     }
 }

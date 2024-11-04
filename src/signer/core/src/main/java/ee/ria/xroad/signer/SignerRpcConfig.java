@@ -58,9 +58,9 @@ public class SignerRpcConfig {
     @ConfigurationProperties(prefix = "xroad.signer.grpc")
     static class SignerRpcServiceProperties extends RpcServiceProperties {
 
-        public SignerRpcServiceProperties(String listenAddress, int port,
-                                          String tlsTrustStore, char[] tlsTrustStorePassword,
-                                          String tlsKeyStore, char[] tlsKeyStorePassword) {
+        SignerRpcServiceProperties(String listenAddress, int port,
+                                   String tlsTrustStore, char[] tlsTrustStorePassword,
+                                   String tlsKeyStore, char[] tlsKeyStorePassword) {
             super(listenAddress, port, tlsTrustStore, tlsTrustStorePassword, tlsKeyStore, tlsKeyStorePassword);
         }
     }

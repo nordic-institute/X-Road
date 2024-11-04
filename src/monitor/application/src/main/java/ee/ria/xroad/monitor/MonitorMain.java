@@ -41,6 +41,7 @@ import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 @Slf4j
 @EnableAutoConfiguration
 @SpringBootConfiguration
+@SuppressWarnings("checkstyle:HideUtilityClassConstructor")
 public class MonitorMain {
 
     private static final String APP_NAME = "xroad-monitor";

@@ -6,6 +6,7 @@ import java.util.Map;
 /**
  * Some properties have their paths changed. This class is used to map old paths to new paths.
  */
+@SuppressWarnings("checkstyle:LineLength")
 public class LegacyConfigPathMapping {
     private static final Map<String, String> MAPPING = new HashMap<>();
 

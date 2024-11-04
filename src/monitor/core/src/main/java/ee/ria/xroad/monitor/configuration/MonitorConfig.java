@@ -73,7 +73,8 @@ public class MonitorConfig {
     private static final int TASK_EXECUTOR_POOL_SIZE = 5;
 
     @Bean
-    RpcServer rpcServer(final List<BindableService> bindableServices, RpcServiceProperties envMonitorRpcServiceProperties) throws Exception {
+    RpcServer rpcServer(final List<BindableService> bindableServices, RpcServiceProperties envMonitorRpcServiceProperties)
+            throws Exception {
         return RpcServer.newServer(
                 envMonitorRpcServiceProperties,
                 builder -> bindableServices.forEach(bindableService -> {
@@ -101,7 +102,8 @@ public class MonitorConfig {
                                             ProxyRpcChannelProperties proxyRpcClientProperties,
                                             RpcServiceProperties rpcServiceProperties) throws Exception {
 
-        return new SystemMetricsSensor(taskScheduler, envMonitorProperties, rpcChannelFactory, proxyRpcClientProperties, rpcServiceProperties);
+        return new SystemMetricsSensor(taskScheduler, envMonitorProperties, rpcChannelFactory, proxyRpcClientProperties,
+                rpcServiceProperties);
     }
 
     @Bean

@@ -29,7 +29,6 @@ package org.niis.xroad.proxy;
 
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
-import org.niis.xroad.common.rpc.RpcServiceProperties;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 
 import java.util.List;

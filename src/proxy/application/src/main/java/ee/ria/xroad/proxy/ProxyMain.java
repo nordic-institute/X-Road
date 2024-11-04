@@ -37,6 +37,7 @@ import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 @Slf4j
 @EnableAutoConfiguration
 @SpringBootConfiguration
+@SuppressWarnings("checkstyle:HideUtilityClassConstructor")
 public class ProxyMain {
 
     private static final String APP_NAME = "xroad-proxy";
