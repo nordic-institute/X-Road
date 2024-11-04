@@ -30,6 +30,7 @@ import ee.ria.xroad.common.conf.globalconf.GlobalConfProvider;
 import ee.ria.xroad.common.conf.globalconf.GlobalConfSource;
 import ee.ria.xroad.common.conf.globalconf.TestGlobalConfWrapper;
 import ee.ria.xroad.common.conf.serverconf.ServerConfProvider;
+import ee.ria.xroad.common.db.DatabaseCtxV2;
 import ee.ria.xroad.proxy.conf.KeyConfProvider;
 import ee.ria.xroad.proxy.testutil.IntegrationTest;
 import ee.ria.xroad.proxy.testutil.TestGlobalConf;
@@ -116,7 +117,6 @@ public abstract class AbstractProxyIntegrationTest {
         System.setProperty(SystemProperties.DATABASE_PROPERTIES, "src/test/resources/hibernate.properties");
 
         System.setProperty(SystemProperties.PROXY_HEALTH_CHECK_PORT, "5558");
-        System.setProperty(SystemProperties.SERVER_CONF_CACHE_PERIOD, "0");
 
         System.setProperty(SystemProperties.GRPC_INTERNAL_TLS_ENABLED, Boolean.FALSE.toString());
 
@@ -152,6 +152,11 @@ public abstract class AbstractProxyIntegrationTest {
         @Bean
         ServerConfProvider serverConfProvider() {
             return TEST_SERVER_CONF;
+        }
+
+        @Bean
+        DatabaseCtxV2 serverConfDatabaseCtx() {
+            return mock(DatabaseCtxV2.class);
         }
     }
 

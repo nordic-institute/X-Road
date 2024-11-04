@@ -84,7 +84,7 @@ import java.util.zip.ZipInputStream;
 
 import static ee.ria.xroad.common.ErrorCodes.X_MLOG_TIMESTAMPER_FAILED;
 import static ee.ria.xroad.common.util.MessageFileNames.MESSAGE;
-import static ee.ria.xroad.proxy.messagelog.MessageLogDatabaseCtx.doInTransaction;
+import static ee.ria.xroad.messagelog.database.MessageLogDatabaseCtx.doInTransaction;
 import static ee.ria.xroad.proxy.messagelog.TestUtil.assertTaskQueueSize;
 import static ee.ria.xroad.proxy.messagelog.TestUtil.cleanUpDatabase;
 import static ee.ria.xroad.proxy.messagelog.TestUtil.createMessage;

@@ -19,6 +19,8 @@ dependencies {
     implementation(project(':common:common-domain'))
     implementation(project(':common:common-verifier'))
 
+    implementation("org.springframework.boot:spring-boot-starter")
+
     // DB layer tests use HSQLDB with in-memory tables
     testImplementation(libs.hsqldb)
     testImplementation(project(':common:common-db'))

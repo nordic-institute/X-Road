@@ -49,3 +49,16 @@ xroad:
     grpc-host: localhost
     grpc-port: 5567
     grpc-tls-enabled: false
+  common:
+    serverconf:
+      cache-period: 60
+      client-cache-size: 100
+      service-cache-size: 1000
+      acl-cache-size: 100_000
+      hibernate:
+        dialect: ee.ria.xroad.common.db.CustomPostgreSQLDialect
+        connection.driver_class: org.postgresql.Driver
+        connection.url: jdbc:postgresql://127.0.0.1:5432/serverconf
+        connection.username: serverconf
+        hikari.dataSource.currentSchema: serverconf,public
+        jdbc.use_streams_for_binary: true

@@ -48,7 +48,6 @@ import jakarta.xml.soap.SOAPMessage;
 import jakarta.xml.soap.SOAPPart;
 import org.hamcrest.Description;
 import org.hamcrest.TypeSafeMatcher;
-import org.hibernate.query.Query;
 import org.w3c.dom.Attr;
 import org.w3c.dom.Document;
 import org.w3c.dom.DocumentFragment;
@@ -80,7 +79,6 @@ import java.util.List;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
-import static ee.ria.xroad.common.conf.serverconf.ServerConfDatabaseCtx.doInTransaction;
 import static ee.ria.xroad.common.util.MimeUtils.UTF8;
 import static java.util.Objects.requireNonNull;
 import static org.apache.commons.io.IOUtils.toInputStream;
@@ -310,16 +308,6 @@ public final class MetaserviceTestUtil {
         protected void describeMismatchSafely(CodedException ex, Description mismatchDescription) {
             mismatchDescription.appendText("was ").appendValue(ex.getFaultCode());
         }
-    }
-
-    /** Clean the database (You are using this from a test, right?)
-     */
-    public static void cleanDB() throws Exception {
-        doInTransaction(session -> {
-            Query q = session.createNativeQuery("TRUNCATE SCHEMA public AND COMMIT");
-            q.executeUpdate();
-            return null;
-        });
     }
 
     /**

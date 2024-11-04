@@ -25,7 +25,6 @@
  */
 package ee.ria.xroad.common.conf.serverconf.dao;
 
-import ee.ria.xroad.common.conf.serverconf.ServerConfDatabaseCtx;
 import ee.ria.xroad.common.conf.serverconf.model.UiUserType;
 
 import jakarta.persistence.criteria.CriteriaBuilder;
@@ -43,8 +42,7 @@ public class UiUserDAOImpl extends AbstractDAOImpl<UiUserType> {
      * @param username the user name
      * @return the UiUser object for the given user name or null
      */
-    public static UiUserType getUiUser(String username) {
-        Session session = ServerConfDatabaseCtx.getSession();
+    public static UiUserType getUiUser(Session session, String username) {
         final CriteriaBuilder cb = session.getCriteriaBuilder();
         final CriteriaQuery<UiUserType> q = cb.createQuery(UiUserType.class);
         final Root<UiUserType> root = q.from(UiUserType.class);

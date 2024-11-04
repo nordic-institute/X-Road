@@ -59,6 +59,16 @@ xroad:
       grpc-listen-address: 0.0.0.0
       grpc-port: 5567
       grpc-tls-enabled: false
+  common:
+    serverconf:
+      cache-period: 0
+      hibernate:
+        dialect: org.hibernate.dialect.HSQLDialect
+        connection.driver_class: org.hsqldb.jdbcDriver
+        connection.url: jdbc:hsqldb:mem:serverconf
+        connection.username: serverconf
+        connection.password: serverconf
+        hbm2ddl.auto: create
   configuration-client:
     update-interval: 60
     grpc-host: localhost

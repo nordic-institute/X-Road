@@ -38,7 +38,7 @@ import org.hibernate.Session;
 import java.util.Arrays;
 import java.util.List;
 
-import static ee.ria.xroad.proxy.messagelog.MessageLogDatabaseCtx.doInTransaction;
+import static ee.ria.xroad.messagelog.database.MessageLogDatabaseCtx.doInTransaction;
 
 /**
  * Handles the TaskQueues -- adds tasks to the queue and sends the active queue for time-stamping.

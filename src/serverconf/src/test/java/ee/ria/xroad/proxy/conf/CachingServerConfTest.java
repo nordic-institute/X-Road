@@ -30,9 +30,9 @@ import ee.ria.xroad.common.conf.globalconf.EmptyGlobalConf;
 import ee.ria.xroad.common.conf.globalconf.GlobalConfProvider;
 import ee.ria.xroad.common.conf.serverconf.CachingServerConfImpl;
 import ee.ria.xroad.common.conf.serverconf.IsAuthentication;
-import ee.ria.xroad.common.conf.serverconf.ServerConfDatabaseCtx;
 import ee.ria.xroad.common.conf.serverconf.ServerConfProvider;
 import ee.ria.xroad.common.conf.serverconf.dao.ServiceDAOImpl;
+import ee.ria.xroad.common.db.DatabaseCtxV2;
 import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.identifier.SecurityServerId;
 import ee.ria.xroad.common.identifier.ServiceId;
@@ -87,6 +87,7 @@ public class CachingServerConfTest {
 
     private static GlobalConfProvider globalConfProvider;
     private static ServerConfProvider serverConfProvider;
+    private static DatabaseCtxV2 databaseCtx;
 
     /**
      * Creates test database.
@@ -95,15 +96,16 @@ public class CachingServerConfTest {
      */
     @BeforeClass
     public static void setUpBeforeClass() throws Exception {
-        prepareDB();
-
         globalConfProvider = new EmptyGlobalConf() {
             @Override
             public boolean isSecurityServerClient(ClientId client, SecurityServerId securityServer) {
                 return true;
             }
         };
-        serverConfProvider = new CachingServerConfImpl(globalConfProvider);
+        databaseCtx = TestUtil.databaseCtx;
+        serverConfProvider = new CachingServerConfImpl(databaseCtx, TestUtil.serverConfProperties, globalConfProvider);
+
+        prepareDB(databaseCtx);
     }
 
     /**
@@ -111,7 +113,7 @@ public class CachingServerConfTest {
      */
     @Before
     public void beforeTest() {
-        ServerConfDatabaseCtx.get().beginTransaction();
+        databaseCtx.beginTransaction();
     }
 
     /**
@@ -119,7 +121,7 @@ public class CachingServerConfTest {
      */
     @After
     public void afterTest() {
-        ServerConfDatabaseCtx.get().commitTransaction();
+        databaseCtx.commitTransaction();
     }
 
     /**
@@ -349,7 +351,7 @@ public class CachingServerConfTest {
 
     private static List<ServiceId.Conf> getServices(ClientId serviceProvider) {
         return new ServiceDAOImpl().getServices(
-                ServerConfDatabaseCtx.get().getSession(),
+                databaseCtx.getSession(),
                 serviceProvider);
     }
 }

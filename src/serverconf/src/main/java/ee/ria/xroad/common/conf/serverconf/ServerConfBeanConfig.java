@@ -26,21 +26,32 @@
  */
 package ee.ria.xroad.common.conf.serverconf;
 
-import ee.ria.xroad.common.SystemProperties;
 import ee.ria.xroad.common.conf.globalconf.GlobalConfProvider;
+import ee.ria.xroad.common.db.DatabaseCtxV2;
+import ee.ria.xroad.common.db.HibernateUtil;
 
+import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
 @Configuration
+@EnableConfigurationProperties(ServerConfProperties.class)
 public class ServerConfBeanConfig {
 
     @Bean
-    ServerConfProvider serverConfProvider(GlobalConfProvider globalConfProvider) {
-        if (SystemProperties.getServerConfCachePeriod() > 0) {
-            return new CachingServerConfImpl(globalConfProvider);
+    ServerConfProvider serverConfProvider(ServerConfProperties serverConfProperties, GlobalConfProvider globalConfProvider,
+                                          DatabaseCtxV2 databaseCtx) {
+        if (serverConfProperties.cachePeriod() > 0) {
+            return new CachingServerConfImpl(databaseCtx, serverConfProperties, globalConfProvider);
         }
-        return new ServerConfImpl(globalConfProvider);
-
+         return new ServerConfImpl(databaseCtx, globalConfProvider);
     }
+
+    @Bean
+    DatabaseCtxV2 serverConfDatabaseCtx(ServerConfProperties serverConfProperties) {
+        var serverConfSessionFactory = HibernateUtil.createSessionFactory("serverconf",
+                serverConfProperties.hibernate());
+        return new DatabaseCtxV2("serverconf", serverConfSessionFactory);
+    }
+
 }

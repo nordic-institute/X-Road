@@ -37,7 +37,10 @@ import ee.ria.xroad.common.conf.globalconf.RemoteGlobalConfDataLoader;
 import ee.ria.xroad.common.conf.globalconf.RemoteGlobalConfSource;
 import ee.ria.xroad.common.conf.serverconf.CachingServerConfImpl;
 import ee.ria.xroad.common.conf.serverconf.ServerConfImpl;
+import ee.ria.xroad.common.conf.serverconf.ServerConfProperties;
 import ee.ria.xroad.common.conf.serverconf.ServerConfProvider;
+import ee.ria.xroad.common.db.DatabaseCtxV2;
+import ee.ria.xroad.common.db.HibernateUtil;
 import ee.ria.xroad.proxy.conf.CachingKeyConfImpl;
 import ee.ria.xroad.proxy.conf.KeyConfProvider;
 
@@ -50,6 +53,7 @@ import org.eclipse.edc.spi.system.ServiceExtensionContext;
 import org.niis.xroad.common.rpc.RpcClientProperties;
 import org.niis.xroad.confclient.proto.ConfClientRpcClient;
 
+import java.util.Map;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 
@@ -76,9 +80,16 @@ public class XRoadConfExtension implements ServiceExtension {
 
             GlobalConfProvider globalConfProvider = new GlobalConfImpl(globalConfSource);
 
-            ServerConfProvider serverConfProvider = (SystemProperties.getServerConfCachePeriod() > 0)
-                    ? new CachingServerConfImpl(globalConfProvider)
-                    : new ServerConfImpl(globalConfProvider);
+            // todo: move to properties. DB props required
+            ServerConfProperties serverConfProperties = new ServerConfProperties(
+                  60, 100, 1000, 100_000
+            , Map.of());
+            var serverConfSessionFactory = HibernateUtil.createSessionFactory("serverconf",
+                    serverConfProperties.hibernate());
+            DatabaseCtxV2 databaseCtx = new DatabaseCtxV2("serverconf", serverConfSessionFactory);
+            ServerConfProvider serverConfProvider = (serverConfProperties.cachePeriod() > 0)
+                    ? new CachingServerConfImpl(databaseCtx, serverConfProperties, globalConfProvider)
+                    : new ServerConfImpl(databaseCtx, globalConfProvider);
 
             CertChainFactory certChainFactory = new CertChainFactory(globalConfProvider);
 
