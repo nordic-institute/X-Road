@@ -4,7 +4,9 @@ xroad:
       connection.driver_class: org.postgresql.Driver
       connection.url: jdbc:postgresql://db-messagelog:5432/messagelog
       connection.username: messagelog
-      connection.password: secret
+#      if password is provided, DB context will be created, but there is no
+#      messagelog hibernate cfg file on classpath, so it will fail.
+#      connection.password: secret
       hikari.dataSource.currentSchema: messagelog,public
       jdbc.use_streams_for_binary: true
   common:
