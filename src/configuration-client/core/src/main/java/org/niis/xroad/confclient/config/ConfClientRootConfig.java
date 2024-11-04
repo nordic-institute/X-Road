@@ -36,9 +36,11 @@ import org.springframework.context.annotation.Import;
 
 @Import({
         ConfClientJobConfig.class,
-        ConfClientRpcConfig.class
+        ConfClientRpcConfig.class,
+        ConfClientCLIConfig.class
 })
-@EnableConfigurationProperties(ConfigurationClientProperties.class)
+@EnableConfigurationProperties({
+        ConfigurationClientProperties.class})
 @Configuration
 public class ConfClientRootConfig {
 
@@ -51,4 +53,6 @@ public class ConfClientRootConfig {
     ConfigurationClientActionExecutor configurationClientActionExecutor(ConfigurationClientProperties configurationClientProperties) {
         return new ConfigurationClientActionExecutor(configurationClientProperties);
     }
+
+
 }

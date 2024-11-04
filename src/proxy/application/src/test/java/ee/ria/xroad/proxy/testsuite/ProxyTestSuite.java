@@ -144,9 +144,9 @@ public final class ProxyTestSuite {
         System.setProperty("xroad.proxy.server.listen-port", proxyPort);
         solver.setIfNotSet(SystemProperties.PROXY_SERVER_PORT, proxyPort);
         solver.setIfNotSet(SystemProperties.TEMP_FILES_PATH, "build/");
-        solver.setIfNotSet(SystemProperties.PROXY_GRPC_TLS_ENABLED, Boolean.FALSE.toString());
-        solver.setIfNotSet(SystemProperties.SIGNER_GRPC_TLS_ENABLED, Boolean.FALSE.toString());
-        solver.setIfNotSet(SystemProperties.CONFIGURATION_CLIENT_GRPC_TLS_ENABLED, Boolean.FALSE.toString());
+//        solver.setIfNotSet(SystemProperties.PROXY_GRPC_TLS_ENABLED, Boolean.FALSE.toString());
+//        solver.setIfNotSet(SystemProperties.SIGNER_GRPC_TLS_ENABLED, Boolean.FALSE.toString());
+//        solver.setIfNotSet(SystemProperties.CONFIGURATION_CLIENT_GRPC_TLS_ENABLED, Boolean.FALSE.toString());
     }
 
     private static final class PropsSolver {

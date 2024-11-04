@@ -27,18 +27,14 @@
 
 package org.niis.xroad.edc.extension.jwssigner;
 
-import ee.ria.xroad.common.SystemProperties;
-import ee.ria.xroad.common.SystemPropertiesLoader;
-import ee.ria.xroad.signer.protocol.RpcSignerClient;
+import ee.ria.xroad.signer.SignerRpcClient;
 
 import org.eclipse.edc.jwt.signer.spi.JwsSignerProvider;
 import org.eclipse.edc.runtime.metamodel.annotation.Extension;
+import org.eclipse.edc.runtime.metamodel.annotation.Inject;
 import org.eclipse.edc.runtime.metamodel.annotation.Provider;
-import org.eclipse.edc.spi.monitor.Monitor;
 import org.eclipse.edc.spi.result.Result;
 import org.eclipse.edc.spi.system.ServiceExtension;
-import org.eclipse.edc.spi.system.ServiceExtensionContext;
-import org.niis.xroad.common.rpc.RpcClientProperties;
 
 import static org.niis.xroad.edc.extension.jwssigner.XRoadJWSSignerExtension.NAME;
 
@@ -47,50 +43,13 @@ import static org.niis.xroad.edc.extension.jwssigner.XRoadJWSSignerExtension.NAM
 public class XRoadJWSSignerExtension implements ServiceExtension {
     static final String NAME = "XRD JWS Signer extension";
 
-    @Override
-    public void initialize(ServiceExtensionContext context) {
-        loadSystemProperties(context.getMonitor());
-        safelyInitSignerClient(context.getMonitor());
-    }
+    @Inject
+    SignerRpcClient signerRpcClient;
 
     @Provider
     public JwsSignerProvider jwsSignerProvider() {
-        return privateKeyAlias -> Result.ofThrowable(() -> new XRoadJWSSigner(privateKeyAlias));
+        return privateKeyAlias -> Result.ofThrowable(() -> new XRoadJWSSigner(signerRpcClient, privateKeyAlias));
     }
 
-    private void loadSystemProperties(Monitor monitor) {
-        monitor.info("Initializing X-Road System Properties..");
-        SystemPropertiesLoader.create()
-                .withCommonAndLocal()
-                .load();
-    }
-
-    private void safelyInitSignerClient(Monitor monitor) {
-        try {
-            var client = RpcSignerClient.getInstance();
-            monitor.debug("RPC signer client already initialized. Hash: %s".formatted(client.hashCode()));
-        } catch (Exception e) {
-            initSignerClient(monitor);
-        }
-    }
-
-    private void initSignerClient(Monitor monitor) {
-        monitor.info("Initializing Signer client");
-        try {
-            // todo: fixme:
-            RpcClientProperties signerClientProperties = new RpcClientProperties(
-                    SystemProperties.getSignerGrpcHost(),
-                    SystemProperties.getSignerGrpcPort(),
-                    SystemProperties.isSignerGrpcTlsEnabled(),
-                    SystemProperties.getSignerGrpcTrustStore(),
-                    SystemProperties.getSignerGrpcTrustStorePassword(),
-                    SystemProperties.getSignerGrpcKeyStore(),
-                    SystemProperties.getSignerGrpcKeyStorePassword()
-            );
-            RpcSignerClient.init(signerClientProperties, 10000);
-        } catch (Exception e) {
-            throw new RuntimeException(e);
-        }
-    }
 
 }

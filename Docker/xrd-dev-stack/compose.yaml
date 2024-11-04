@@ -25,7 +25,7 @@ services:
         reservations:
           memory: 1G
         limits:
-          memory: 4G
+          memory: 5G
     healthcheck:
       interval: 5s
       retries: 40
@@ -43,7 +43,7 @@ services:
         reservations:
           memory: 1G
         limits:
-          memory: 4G
+          memory: 5G
     healthcheck:
       interval: 5s
       retries: 40

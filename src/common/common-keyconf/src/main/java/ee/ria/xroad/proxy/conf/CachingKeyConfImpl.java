@@ -33,7 +33,7 @@ import ee.ria.xroad.common.conf.globalconf.GlobalConfProvider;
 import ee.ria.xroad.common.conf.serverconf.ServerConfProvider;
 import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.identifier.SecurityServerId;
-import ee.ria.xroad.signer.SignerProxy;
+import ee.ria.xroad.signer.SignerRpcClient;
 
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
@@ -68,8 +68,9 @@ public class CachingKeyConfImpl extends KeyConfImpl implements DisposableBean {
     private String previousChecksum;
     private final ScheduledExecutorService taskScheduler;
 
-    public CachingKeyConfImpl(GlobalConfProvider globalConfProvider, ServerConfProvider serverConfProvider) {
-        super(globalConfProvider, serverConfProvider);
+    public CachingKeyConfImpl(GlobalConfProvider globalConfProvider, ServerConfProvider serverConfProvider,
+                              SignerRpcClient signerRpcClient) {
+        super(globalConfProvider, serverConfProvider, signerRpcClient);
         signingInfoCache = CacheBuilder.newBuilder()
                 .expireAfterWrite(CACHE_PERIOD_SECONDS, TimeUnit.SECONDS)
                 .build();
@@ -137,7 +138,7 @@ public class CachingKeyConfImpl extends KeyConfImpl implements DisposableBean {
     protected AuthKeyInfo getAuthKeyInfo(SecurityServerId serverId) throws Exception {
         log.debug("Retrieving authentication info for security server '{}'", serverId);
 
-        ee.ria.xroad.signer.protocol.dto.AuthKeyInfo keyInfo = SignerProxy.getAuthKey(serverId);
+        ee.ria.xroad.signer.protocol.dto.AuthKeyInfo keyInfo = signerRpcClient.getAuthKey(serverId);
 
         CertChain certChain = getAuthCertChain(serverId.getXRoadInstance(), keyInfo.getCert().getCertificateBytes());
 
@@ -157,7 +158,7 @@ public class CachingKeyConfImpl extends KeyConfImpl implements DisposableBean {
 
     void checkForKeyConfChanges() {
         try {
-            String checkSum = SignerProxy.getKeyConfChecksum();
+            String checkSum = signerRpcClient.getKeyConfChecksum();
             if (!StringUtils.equals(previousChecksum, checkSum)) {
                 log.info("Key conf checksum changed ({}->{}), invalidating CachingKeyConf caches.", previousChecksum, checkSum);
                 previousChecksum = checkSum;

@@ -1,14 +1,8 @@
-import com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar
-
 plugins {
-    id("java")
-    id("application")
-    alias(libs.plugins.shadow)
+    alias(libs.plugins.springBoot)
 }
 
 configurations {
-    sqlDependencies
-
     configureEach {
         exclude group: 'org.eclipse.edc', module: 'jetty-core'
         exclude group: 'com.apicatalog', module: 'titanium-json-ld-jre8' //transient dep that creates errors
@@ -16,30 +10,32 @@ configurations {
 }
 
 dependencies {
+    implementation(project(':common:common-service-bootstrap'))
+
     implementation(libs.edc.spi.core) // we need some constants
     implementation(libs.bundles.controlplane)
     runtimeOnly(libs.edc.controlplane.services)
     implementation(libs.edc.core.connector)
-    runtimeOnly(libs.edc.config.filesystem)
     runtimeOnly(libs.edc.vault.hashicorp)
     runtimeOnly(libs.bundles.dpf)
     runtimeOnly(libs.edc.api.version)
+    implementation(libs.edc.monitor.jdk.logger)
+    implementation(libs.logback.classic)
 
-    sqlDependencies(libs.bundles.sql.edc)
-    sqlDependencies(libs.bundles.sql.fc)
+    runtimeOnly(libs.bundles.sql.edc)
+    runtimeOnly(libs.bundles.sql.fc)
 
     implementation 'io.opentelemetry:opentelemetry-exporter-otlp:1.38.0'
 
     // x-road extensions
-    implementation(project(":security-server:edc:extensions:common:xroad-conf"))
     implementation(project(":security-server:edc:extensions:common:xroad-jsonld"))
     implementation(project(":security-server:edc:extensions:control-plane:xroad-edr"))
     implementation(project(":security-server:edc:extensions:control-plane:xroad-policy"))
     implementation(project(":security-server:edc:extensions:control-plane:xroad-identity-and-trust"))
-    implementation(project(":security-server:edc:extensions:common:xroad-jws-signer")) {
-        exclude group: 'org.eclipse.jetty'
-    }
+    implementation(project(":security-server:edc:extensions:common:xroad-jws-signer"))
+    implementation(project(":security-server:edc:extensions:common:xroad-httpclient"))
     implementation(project(":security-server:edc:extensions:common:xroad-webserver"))
+    implementation(project(":security-server:edc:extensions:common:xroad-spring-bridge"))
 
     implementation libs.apache.commonsLang3
 
@@ -48,47 +44,21 @@ dependencies {
     testImplementation libs.edc.lib.jsonld
 }
 
-application {
-    mainClass.set("org.eclipse.edc.boot.system.runtime.BaseRuntime")
+jar {
+    enabled = false
 }
 
-
-var distTar = tasks.named("distTar")
-var distZip = tasks.named("distZip")
-
-sourceSets {
-    main {
-        resources {
-            srcDir 'src/main/resources'
-        }
-    }
-}
-
-shadowJar {
-    mergeServiceFiles()
-    archiveFileName.set("edc-control-plane-inmemory.jar")
-    dependsOn(distTar, distZip)
-}
-
-tasks.register('shadowJarWithSql', ShadowJar) {
-    from sourceSets.main.output
-    configurations = [project.configurations.runtimeClasspath, project.configurations.sqlDependencies]
-    exclude('META-INF/*.RSA', 'META-INF/*.SF', 'META-INF/*.DSA')
-    archiveFileName.set("edc-control-plane.jar")
+bootJar {
+    enabled = true
+    archiveBaseName = 'edc-control-plane'
     manifest {
-        attributes 'Main-Class': 'org.eclipse.edc.boot.system.runtime.BaseRuntime'
+        attributes(
+            'Implementation-Title': 'X-Road EDC Control Plane',
+            'Implementation-Version': "$xroadVersion-$xroadBuildType",
+        )
     }
-
-    mergeServiceFiles()
-    dependsOn(distTar, distZip)
-}
-
-processResources {
-    duplicatesStrategy = DuplicatesStrategy.INCLUDE
 }
 
 archUnit {
     skip = true
 }
-
-assemble.dependsOn("shadowJarWithSql")

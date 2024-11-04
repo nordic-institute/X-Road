@@ -57,7 +57,6 @@ import static ee.ria.xroad.common.DiagnosticsErrorCodes.RETURN_SUCCESS;
 import static ee.ria.xroad.common.conf.globalconf.ConfigurationConstants.CONTENT_ID_PRIVATE_PARAMETERS;
 
 @RequiredArgsConstructor
-@Service
 @Slf4j
 public class AnchorService extends AnchorServiceGrpc.AnchorServiceImplBase {
     private final ConfigurationClientProperties confClientProperties;

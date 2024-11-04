@@ -28,6 +28,7 @@
 package org.niis.xroad.cs.admin.core.service;
 
 import ee.ria.xroad.common.util.TimeUtils;
+import ee.ria.xroad.signer.SignerRpcClient;
 import ee.ria.xroad.signer.protocol.dto.KeyInfo;
 import ee.ria.xroad.signer.protocol.dto.TokenInfo;
 
@@ -36,7 +37,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.niis.xroad.cs.admin.api.domain.ConfigurationSigningKey;
 import org.niis.xroad.cs.admin.api.dto.AlertInfo;
 import org.niis.xroad.cs.admin.api.dto.GlobalConfGenerationStatus;
-import org.niis.xroad.cs.admin.api.facade.SignerProxyFacade;
 import org.niis.xroad.cs.admin.api.service.ConfigurationSigningKeysService;
 import org.niis.xroad.cs.admin.api.service.GlobalConfGenerationStatusService;
 import org.niis.xroad.cs.admin.api.service.NotificationService;
@@ -66,7 +66,7 @@ public class NotificationServiceImpl implements NotificationService {
 
     private final ConfigurationSigningKeysService configurationSigningKeysService;
     private final SystemParameterService systemParameterService;
-    private final SignerProxyFacade signerProxyFacade;
+    private final SignerRpcClient signerRpcClient;
     private final GlobalConfGenerationStatusService globalConfGenerationStatus;
 
     @Override
@@ -74,7 +74,7 @@ public class NotificationServiceImpl implements NotificationService {
 
         final List<TokenInfo> tokens;
         try {
-            tokens = signerProxyFacade.getTokens();
+            tokens = signerRpcClient.getTokens();
         } catch (Exception e) {
             log.error("Failed to get tokens", e);
             return Set.of(new AlertInfo("status.signer_error"));

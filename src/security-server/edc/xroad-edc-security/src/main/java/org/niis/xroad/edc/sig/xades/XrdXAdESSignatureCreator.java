@@ -29,7 +29,7 @@ package org.niis.xroad.edc.sig.xades;
 
 
 import ee.ria.xroad.common.crypto.Digests;
-import ee.ria.xroad.signer.SignerProxy;
+import ee.ria.xroad.signer.SignerRpcClient;
 
 import eu.europa.esig.dss.enumerations.DigestAlgorithm;
 import eu.europa.esig.dss.enumerations.SignatureLevel;
@@ -70,10 +70,10 @@ public class XrdXAdESSignatureCreator implements XrdSignatureCreator {
     private static final DigestAlgorithm DIGEST_ALGORITHM = DigestAlgorithm.forJavaName(Digests.DEFAULT_DIGEST_ALGORITHM.name());
     private static final SignatureLevel SIGNATURE_LEVEL = SignatureLevel.XAdES_BASELINE_B;
 
-    private final XrdDssSigner signer = new XrdDssSigner();
+    private final XrdDssSigner signer;
 
     @Override
-    public String sign(SignerProxy.MemberSigningInfoDto signingInfo, byte[] message)
+    public String sign(SignerRpcClient.MemberSigningInfoDto signingInfo, byte[] message)
             throws XrdSignatureCreationException {
 
         List<DSSDocument> documentsToSign = new ArrayList<>();
@@ -84,7 +84,7 @@ public class XrdXAdESSignatureCreator implements XrdSignatureCreator {
     }
 
     @Override
-    public String sign(SignerProxy.MemberSigningInfoDto signingInfo, byte[] message, String attachmentDigest)
+    public String sign(SignerRpcClient.MemberSigningInfoDto signingInfo, byte[] message, String attachmentDigest)
             throws XrdSignatureCreationException {
         List<DSSDocument> documentsToSign = new ArrayList<>();
         Optional.ofNullable(message)
@@ -95,7 +95,7 @@ public class XrdXAdESSignatureCreator implements XrdSignatureCreator {
         return signDocuments(signingInfo, documentsToSign);
     }
 
-    public String signDocuments(SignerProxy.MemberSigningInfoDto signingInfo, List<DSSDocument> documentsToSign)
+    public String signDocuments(SignerRpcClient.MemberSigningInfoDto signingInfo, List<DSSDocument> documentsToSign)
             throws XrdSignatureCreationException {
         XAdESSignatureParameters parameters = new XAdESSignatureParameters();
         parameters.setSignatureLevel(SIGNATURE_LEVEL);

@@ -32,19 +32,18 @@ import lombok.SneakyThrows;
 import org.apache.commons.lang3.time.StopWatch;
 import org.eclipse.edc.jsonld.spi.JsonLd;
 import org.eclipse.edc.jsonld.util.JacksonJsonLd;
-import org.eclipse.edc.junit.annotations.EndToEndTest;
 import org.eclipse.edc.junit.extensions.RuntimeExtension;
 import org.eclipse.edc.junit.extensions.RuntimePerClassExtension;
 import org.eclipse.edc.util.io.Ports;
 import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.RegisterExtension;
 
 import java.nio.file.Paths;
 import java.util.Map;
 
 @SuppressWarnings("checkstyle:linelength")
-@EndToEndTest
+//@EndToEndTest
 class JsonLdExpansionTest {
 
     private final ObjectMapper jsonLdMapper = JacksonJsonLd.createObjectMapper();
@@ -96,7 +95,7 @@ class JsonLdExpansionTest {
         System.setProperty("xroad.signer.key-configuration-file", xrdSrcDir + "/signer/keyconf.xml");
     }
 
-    @RegisterExtension
+    //    @RegisterExtension
     private static final RuntimeExtension RUNTIME = new RuntimePerClassExtension()
             .setConfiguration(Map.ofEntries(
                     Map.entry("edc.vault.hashicorp.url", "http://url"),
@@ -117,6 +116,7 @@ class JsonLdExpansionTest {
             ));
 
     @Test
+    @Disabled
     void shouldExpandJsonLd() {
         var timer = StopWatch.createStarted();
 

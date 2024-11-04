@@ -26,6 +26,7 @@
 package org.niis.xroad.securityserver.restapi.service;
 
 import ee.ria.xroad.common.CodedException;
+import ee.ria.xroad.signer.SignerRpcClient;
 import ee.ria.xroad.signer.protocol.dto.CertificateInfo;
 import ee.ria.xroad.signer.protocol.dto.KeyInfo;
 import ee.ria.xroad.signer.protocol.dto.KeyUsageInfo;
@@ -41,7 +42,6 @@ import org.niis.xroad.restapi.exceptions.WarningDeviation;
 import org.niis.xroad.restapi.service.SignerNotReachableException;
 import org.niis.xroad.restapi.service.UnhandledWarningsException;
 import org.niis.xroad.restapi.util.SecurityHelper;
-import org.niis.xroad.securityserver.restapi.facade.SignerProxyFacade;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -66,7 +66,7 @@ import static org.niis.xroad.restapi.exceptions.DeviationCodes.WARNING_AUTH_KEY_
 @PreAuthorize("isAuthenticated()")
 @RequiredArgsConstructor
 public class KeyService {
-    private final SignerProxyFacade signerProxyFacade;
+    private final SignerRpcClient signerRpcClient;
     private final TokenService tokenService;
     private final PossibleActionsRuleEngine possibleActionsRuleEngine;
     private final ManagementRequestSenderService managementRequestSenderService;
@@ -76,6 +76,7 @@ public class KeyService {
 
     /**
      * Return one key
+     *
      * @param keyId
      * @return
      * @throws KeyNotFoundException if key was not found
@@ -96,8 +97,9 @@ public class KeyService {
 
     /**
      * Finds matching KeyInfo from this TokenInfo, or throws exception
+     *
      * @param tokenInfo token
-     * @param keyId id of a key inside the token
+     * @param keyId     id of a key inside the token
      * @throws NoSuchElementException if key with keyId was not found
      */
     public KeyInfo getKey(TokenInfo tokenInfo, String keyId) throws NoSuchElementException {
@@ -109,7 +111,8 @@ public class KeyService {
 
     /**
      * Updates key friendly name
-     * @throws KeyNotFoundException if key was not found
+     *
+     * @throws KeyNotFoundException       if key was not found
      * @throws ActionNotPossibleException if friendly name could not be updated for this key
      */
     public KeyInfo updateKeyFriendlyName(String id, String friendlyName) throws KeyNotFoundException,
@@ -125,7 +128,7 @@ public class KeyService {
                 tokenInfo, keyInfo);
 
         try {
-            signerProxyFacade.setKeyFriendlyName(id, friendlyName);
+            signerRpcClient.setKeyFriendlyName(id, friendlyName);
             keyInfo = getKey(id);
         } catch (KeyNotFoundException e) {
             throw e;
@@ -144,10 +147,11 @@ public class KeyService {
 
     /**
      * Generate a new key for selected token
+     *
      * @param tokenId
      * @param keyLabel
      * @return {@link KeyInfo}
-     * @throws TokenNotFoundException if token was not found
+     * @throws TokenNotFoundException     if token was not found
      * @throws ActionNotPossibleException if generate key was not possible for this token
      */
     public KeyInfo addKey(String tokenId, String keyLabel) throws TokenNotFoundException,
@@ -161,7 +165,7 @@ public class KeyService {
 
         KeyInfo keyInfo = null;
         try {
-            keyInfo = signerProxyFacade.generateKey(tokenId, keyLabel);
+            keyInfo = signerRpcClient.generateKey(tokenId, keyLabel);
         } catch (CodedException e) {
             throw e;
         } catch (Exception other) {
@@ -187,9 +191,10 @@ public class KeyService {
      * Deletes one key, and related CSRs and certificates. If the key is an authentication key with a registered
      * certificate, warnings are ignored and certificate is first unregistered, and the key and certificate are
      * deleted after that.
+     *
      * @param keyId
-     * @throws ActionNotPossibleException if delete was not possible for the key
-     * @throws KeyNotFoundException if key with given id was not found
+     * @throws ActionNotPossibleException  if delete was not possible for the key
+     * @throws KeyNotFoundException        if key with given id was not found
      * @throws GlobalConfOutdatedException if global conf was outdated
      */
     public void deleteKeyAndIgnoreWarnings(String keyId) throws KeyNotFoundException, ActionNotPossibleException,
@@ -207,13 +212,14 @@ public class KeyService {
      * certificate and ignoreWarnings = false, an UnhandledWarningsException is thrown and the key is not deleted. If
      * ignoreWarnings = true, the authentication certificate is first unregistered, and the key and certificate are
      * deleted after that.
+     *
      * @param keyId
      * @param ignoreWarnings
-     * @throws ActionNotPossibleException if delete was not possible for the key
-     * @throws KeyNotFoundException if key with given id was not found
+     * @throws ActionNotPossibleException  if delete was not possible for the key
+     * @throws KeyNotFoundException        if key with given id was not found
      * @throws GlobalConfOutdatedException if global conf was outdated
-     * @throws UnhandledWarningsException if the key is an authentication key, it has a registered certificate,
-     * and ignoreWarnings was false
+     * @throws UnhandledWarningsException  if the key is an authentication key, it has a registered certificate,
+     *                                     and ignoreWarnings was false
      */
     public void deleteKey(String keyId, Boolean ignoreWarnings) throws KeyNotFoundException, ActionNotPossibleException,
             GlobalConfOutdatedException, UnhandledWarningsException {
@@ -258,8 +264,8 @@ public class KeyService {
 
         // delete key needs to be done twice. First call deletes the certs & csrs
         try {
-            signerProxyFacade.deleteKey(keyId, false);
-            signerProxyFacade.deleteKey(keyId, true);
+            signerRpcClient.deleteKey(keyId, false);
+            signerRpcClient.deleteKey(keyId, true);
         } catch (CodedException e) {
             throw e;
         } catch (Exception other) {
@@ -269,6 +275,7 @@ public class KeyService {
 
     /**
      * Check if the certificateInfo should be unregistered before it is deleted.
+     *
      * @param certificateInfo
      * @return if certificateInfo's status is "REGINPROG" or "REGISTERED" return true, otherwise false
      */
@@ -294,7 +301,7 @@ public class KeyService {
             managementRequestSenderService.sendAuthCertDeletionRequest(
                     certificateInfo.getCertificateBytes());
             // update status
-            signerProxyFacade.setCertStatus(certificateInfo.getId(), CertificateInfo.STATUS_DELINPROG);
+            signerRpcClient.setCertStatus(certificateInfo.getId(), CertificateInfo.STATUS_DELINPROG);
         } catch (GlobalConfOutdatedException | CodedException e) {
             throw e;
         } catch (Exception e) {
@@ -304,6 +311,7 @@ public class KeyService {
 
     /**
      * Return possible actions for one key
+     *
      * @throw KeyNotFoundException if key with given id was not found
      */
     public EnumSet<PossibleActionEnum> getPossibleActionsForKey(String keyId) throws KeyNotFoundException {

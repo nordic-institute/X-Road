@@ -1,0 +1,12 @@
+plugins {
+    id 'java-library'
+}
+
+dependencies {
+    implementation(project(':security-server:edc:xroad-edc-security'))
+    implementation project(":security-server:edc:spi:xroad-core-spi")
+
+    implementation libs.edc.spi.core
+    implementation libs.edc.core.connector
+    implementation libs.edc.lib.http
+}

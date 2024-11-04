@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<ns3:conf xmlns:ns2="http://x-road.eu/xsd/identifiers" xmlns:ns3="http://x-road.eu/xsd/xroad.xsd">
+    <instanceIdentifier>EE</instanceIdentifier>
+    <configurationAnchor>
+        <instanceIdentifier>AA</instanceIdentifier>
+        <source>
+            <downloadURL>http://192.168.8.80/externalconf</downloadURL>
+            <verificationCert>MIICqTCCAZGgAwIBAgIBATANBgkqhkiG9w0BAQ0FADAOMQwwCgYDVQQDDANOL0EwHhcNNzAwMTAxMDAwMDAwWhcNMzgwMTAxMDAwMDAwWjAOMQwwCgYDVQQDDANOL0EwggEiMA0GCSqGSIb3DQEBAQUAA4IBDwAwggEKAoIBAQCgn70YXDu/dJpNsjFqGvotmKmjnX2opSxmydABg66/w2dXuHEqcRv6rgxP2sDUBcMXki0oN15D8PB9w+OFuVeI4FK0nPsUW8phQaZwRdTKN7O8GZun/Z0QZpVFq4JlhUAYfUHHkiANhOalvj9xcFjF9wJMWvfFL8OCgt1oWa/VOkQw4jQBYq6+WhOn8hTju9Pv+xkcwaXu7OFGd8jbvt6EKwlsGQrht+ckozthtO3NH/jjIT2o3uPPVcpQk0kamxMsQ+mhds0tu2NF/XH4yHacaF+PGgMsJd5RagcRj2HYaKm2ekNocEb1l0LCY59Q4Lmdpa9NYHnQDrIq8QnDwC1XAgMBAAGjEjAQMA4GA1UdDwEB/wQEAwIGQDANBgkqhkiG9w0BAQ0FAAOCAQEALl6pYZsK1UjVlXgvVt0POQc5CyVu5Idv00ihQVAZWS5EZ+CBF2YhBHlwDZIk0hRPJ3j79/jAo5oj/YUW42MDTHLEOSP2rD8MJig19C5uowrj0G1T6b4j7vH8qXXdiB9v6xlyoipAzZDHULVFtfFcnteYXaPz+jFHqdlfCRTryYMtwBLVRKhhLv4c1KS0JqqyaqXwtqULUPX7FlHO0TyYWkazunhs51ulYhknjp1PvKMIIdRluWnF2pz+U/fcbQ0bst74XpLs2DsvBmzIvgYi9d02SkE6E7qQp83FVWmO0bV5gunWARDW4Gjl1soLFGdMHZtciHkX7bGqHNTruc32WQ==</verificationCert>
+        </source>
+    </configurationAnchor>
+    <managementService>
+        <authCertRegServiceAddress>https://iks2-central:4001/center-service/</authCertRegServiceAddress>
+        <authCertRegServiceCert>MIIDNTCCAh2gAwIBAgIJAM7+KIUOA9ppMA0GCSqGSIb3DQEBBQUAMCAxHjAcBgNVBAMMFWlrczItY2VudHJhbC5jeWJlci5lZTAeFw0xNDA0MDQxMzU1NDRaFw0xNDA1MDQxMzU1NDRaMCAxHjAcBgNVBAMMFWlrczItY2VudHJhbC5jeWJlci5lZTCCASIwDQYJKoZIhvcNAQEBBQADggEPADCCAQoCggEBAM0fV3oJQ/dKnxcNM9m3xeU3jh3UjbIKxsdhyRhm1SM9cGrCyFk0XCdufpB1VjRR8qD/gwQJCHBP/ry4TufbLtTkysma2hi9YxT0TzBj3eMiwSh2MhQUIXplcYisUcjQmfTjdW2yLRZIgGbRvhXxy5Ak+gHEq+rI+e/Kt+bMfPB5cJFyl0RmIlJxMJT7Rb//iZTgK0Bm0XLz/CkEF1rmwD3FIvERZ3H802PT4JWk6oKoSg/1c3u23wiT4U/4k4WUdWxZbOu2fEl7qt/6s9CuNefK51wrNHJX0oQOZhbA1nKNAo7tttbp73Xns0HgKaYE4uybqo2ArvdLQ0csi3iaKnUCAwEAAaNyMHAwDAYDVR0TAQH/BAIwADALBgNVHQ8EBAMCBeAwHQYDVR0lBBYwFAYIKwYBBQUHAwEGCCsGAQUFBwMCMDQGA1UdEQQtMCuHBMCoStGCDGlrczItY2VudHJhbIIVaWtzMi1jZW50cmFsLmN5YmVyLmVlMA0GCSqGSIb3DQEBBQUAA4IBAQAggbJKfnNrBzwNoDks/MI/W8J7Yb3UocFvFUQ7S0jYNQRovZlHdD070qhsnhAWtnZ0Ukbva6+k+By9XAV7NXElED0w3i4bhlYjhsy8G4FgxdbwkOZhxipilgSpjZrAmPmMe32bGLTxLetu4pjJCAr2U1NMplUWyBfkUfvf/YSrUrxkQFb+UF0i2TBcHcCFMoA6eLVVnteO1K+HHsFyGoixo83lJruLu2jlDGSV8gBR1KZx81mZWNM+v26RZ59CzoKalN9reObac3JZepN5EyAKeXnvqJGG+Oooa5PYV3n+dXvBZAM1kLZ7DSPz3Al5udDqZ7+vG3zJ79DsJPLu6St7</authCertRegServiceCert>
+        <managementRequestServiceProviderId ns2:objectType="MEMBER">
+            <ns2:xRoadInstance>EE</ns2:xRoadInstance>
+            <ns2:memberClass>GOV</ns2:memberClass>
+            <ns2:memberCode>XROAD</ns2:memberCode>
+        </managementRequestServiceProviderId>
+    </managementService>
+    <timeStampingIntervalSeconds>60</timeStampingIntervalSeconds>
+</ns3:conf>

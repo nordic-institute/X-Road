@@ -28,17 +28,21 @@
 package org.niis.xroad.edc.sig;
 
 import ee.ria.xroad.common.crypto.identifier.SignAlgorithm;
-import ee.ria.xroad.signer.SignerProxy;
+import ee.ria.xroad.signer.SignerRpcClient;
 
 import com.nimbusds.jose.JOSEException;
 import eu.europa.esig.dss.enumerations.DigestAlgorithm;
 import eu.europa.esig.dss.enumerations.SignatureAlgorithm;
 import eu.europa.esig.dss.model.SignatureValue;
 import eu.europa.esig.dss.model.ToBeSigned;
+import lombok.RequiredArgsConstructor;
 
 import static ee.ria.xroad.common.crypto.Digests.calculateDigest;
 
+@RequiredArgsConstructor
 public class XrdDssSigner {
+    private final SignerRpcClient signerRpcClient;
+
     public SignatureValue sign(String keyId, DigestAlgorithm digestAlgorithm, final ToBeSigned toBeSigned)
             throws XrdSignatureCreationException {
         try {
@@ -50,7 +54,7 @@ public class XrdDssSigner {
             };
 
             byte[] digest = calculateDigest(signAlgo.digest(), toBeSigned.getBytes());
-            byte[] sig = SignerProxy.sign(keyId, signAlgo, digest);
+            byte[] sig = signerRpcClient.sign(keyId, signAlgo, digest);
 
             return new SignatureValue(SignatureAlgorithm.RSA_SHA256, sig);
         } catch (Exception e) {

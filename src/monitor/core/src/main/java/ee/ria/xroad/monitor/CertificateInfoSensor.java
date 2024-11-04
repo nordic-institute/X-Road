@@ -29,7 +29,7 @@ import ee.ria.xroad.common.conf.serverconf.ServerConfProvider;
 import ee.ria.xroad.common.util.CryptoUtils;
 import ee.ria.xroad.monitor.CertificateMonitoringInfo.CertificateType;
 import ee.ria.xroad.monitor.common.SystemMetricNames;
-import ee.ria.xroad.signer.SignerProxy;
+import ee.ria.xroad.signer.SignerRpcClient;
 import ee.ria.xroad.signer.protocol.dto.TokenInfo;
 
 import lombok.RequiredArgsConstructor;
@@ -69,14 +69,14 @@ public class CertificateInfoSensor extends AbstractSensor {
      * Create new CertificateInfoSensor
      */
     public CertificateInfoSensor(TaskScheduler taskScheduler, EnvMonitorProperties envMonitorProperties,
-                                 ServerConfProvider serverConfProvider) {
+                                 ServerConfProvider serverConfProvider, SignerRpcClient signerRpcClient) {
         super(taskScheduler, envMonitorProperties);
         log.info("Creating sensor, measurement interval: {}", getInterval());
 
         certificateInfoCollector = new CertificateInfoCollector()
                 .addExtractor(new InternalServerCertificateExtractor(serverConfProvider))
                 .addExtractor(new InternalTlsExtractor(serverConfProvider))
-                .addExtractor(new TokenExtractor());
+                .addExtractor(new TokenExtractor(signerRpcClient));
 
         scheduleSingleMeasurement(INITIAL_DELAY);
     }
@@ -192,8 +192,8 @@ public class CertificateInfoSensor extends AbstractSensor {
             this.tokenInfoLister = tokenInfoLister;
         }
 
-        TokenExtractor() {
-            tokenInfoLister = SignerProxy::getTokens;
+        TokenExtractor(SignerRpcClient signerRpcClient) {
+            tokenInfoLister = signerRpcClient::getTokens;
         }
 
         @Override

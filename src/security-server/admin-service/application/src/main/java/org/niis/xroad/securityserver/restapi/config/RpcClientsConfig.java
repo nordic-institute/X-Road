@@ -27,64 +27,38 @@
 
 package org.niis.xroad.securityserver.restapi.config;
 
+import ee.ria.xroad.signer.SignerClientConfiguration;
+
 import lombok.extern.slf4j.Slf4j;
-import org.niis.xroad.common.rpc.RpcClientProperties;
-import org.niis.xroad.confclient.proto.ConfClientRpcClient;
-import org.niis.xroad.proxy.proto.ProxyRpcClient;
-import org.springframework.beans.factory.annotation.Qualifier;
+import org.niis.xroad.common.rpc.RpcServiceProperties;
+import org.niis.xroad.confclient.proto.ConfClientRpcClientConfiguration;
+import org.niis.xroad.proxy.proto.ProxyRpcClientConfiguration;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
-import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Import;
 import org.springframework.context.annotation.Profile;
 
-@Configuration
-@EnableConfigurationProperties({RpcClientsConfig.ConfigurationClientRpcClientProperties.class,
-        RpcClientsConfig.ProxyRpcClientProperties.class,
-        RpcClientsConfig.SignerRpcClientProperties.class})
-@Profile("!test")
 @Slf4j
-public class RpcClientsConfig {
+@Profile("!test")
+@Configuration
+@Import({
+        SignerClientConfiguration.class,
+        ProxyRpcClientConfiguration.class,
+        ConfClientRpcClientConfiguration.class
+})
+@EnableConfigurationProperties({RpcClientsConfig.ProxyUIRpcServiceProperties.class})
+class RpcClientsConfig {
 
-    @Bean
-    ProxyRpcClient proxyRpcClient(ProxyRpcClientProperties proxyRpcClientProperties) throws Exception {
-        return new ProxyRpcClient(proxyRpcClientProperties);
-    }
+    @ConfigurationProperties(prefix = "xroad.proxy-ui-api.grpc")
+    static class ProxyUIRpcServiceProperties extends RpcServiceProperties {
 
-    @Bean
-    ConfClientRpcClient confClientRpcClient(ConfigurationClientRpcClientProperties properties) {
-        return new ConfClientRpcClient(properties);
-    }
-
-    @ConfigurationProperties(prefix = "xroad.configuration-client")
-    static class ConfigurationClientRpcClientProperties extends RpcClientProperties {
-        ConfigurationClientRpcClientProperties(String grpcHost, int grpcPort, boolean grpcTlsEnabled,
-                                                      String grpcTlsTrustStore, char[] grpcTlsTrustStorePassword,
-                                                      String grpcTlsKeyStore, char[] grpcTlsKeyStorePassword) {
-            super(grpcHost, grpcPort, grpcTlsEnabled, grpcTlsTrustStore, grpcTlsTrustStorePassword,
-                    grpcTlsKeyStore, grpcTlsKeyStorePassword);
+        ProxyUIRpcServiceProperties(String listenAddress, int port,
+                                    String tlsTrustStore, char[] tlsTrustStorePassword,
+                                    String tlsKeyStore, char[] tlsKeyStorePassword) {
+            super(listenAddress, port, tlsTrustStore, tlsTrustStorePassword, tlsKeyStore, tlsKeyStorePassword);
         }
     }
 
-    @ConfigurationProperties(prefix = "xroad.signer")
-    @Qualifier("signerRpcClientProperties")
-    static class SignerRpcClientProperties extends RpcClientProperties {
-        SignerRpcClientProperties(String grpcHost, int grpcPort, boolean grpcTlsEnabled,
-                                         String grpcTlsTrustStore, char[] grpcTlsTrustStorePassword,
-                                         String grpcTlsKeyStore, char[] grpcTlsKeyStorePassword) {
-            super(grpcHost, grpcPort, grpcTlsEnabled, grpcTlsTrustStore, grpcTlsTrustStorePassword,
-                    grpcTlsKeyStore, grpcTlsKeyStorePassword);
-        }
-    }
-
-    @ConfigurationProperties(prefix = "xroad.proxy")
-    static class ProxyRpcClientProperties extends RpcClientProperties {
-        ProxyRpcClientProperties(String grpcHost, int grpcPort, boolean grpcTlsEnabled,
-                                        String grpcTlsTrustStore, char[] grpcTlsTrustStorePassword,
-                                        String grpcTlsKeyStore, char[] grpcTlsKeyStorePassword) {
-            super(grpcHost, grpcPort, grpcTlsEnabled, grpcTlsTrustStore, grpcTlsTrustStorePassword,
-                    grpcTlsKeyStore, grpcTlsKeyStorePassword);
-        }
-    }
 
 }

@@ -27,7 +27,7 @@
 
 package org.niis.xroad.edc.extension.dataplane.iam;
 
-import ee.ria.xroad.signer.SignerProxy;
+import ee.ria.xroad.signer.SignerRpcClient;
 import ee.ria.xroad.signer.protocol.dto.KeyInfo;
 
 import lombok.SneakyThrows;
@@ -63,6 +63,8 @@ public class XrdDataPlaneIamExtension implements ServiceExtension {
     private AccessTokenDataStore accessTokenDataStore;
     @Inject
     private TokenValidationService tokenValidationService;
+    @Inject
+    private SignerRpcClient signerRpcClient;
 
     @Provider
     public DataPlaneAccessTokenService dataplaneAccessTokenService(ServiceExtensionContext context) {
@@ -78,7 +80,7 @@ public class XrdDataPlaneIamExtension implements ServiceExtension {
 
     @SneakyThrows
     private PublicKey getPublicKey(String keyId) {
-        var token = SignerProxy.getTokenForKeyId(keyId);
+        var token = signerRpcClient.getTokenForKeyId(keyId);
         String base64PublicKey = token.getKeyInfo().stream()
                 .filter(keyInfo -> keyInfo.getId().equals(keyId))
                 .findFirst()

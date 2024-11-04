@@ -27,11 +27,12 @@ package org.niis.xroad.common.managementrequest.model;
 
 import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.message.SoapMessageImpl;
+import ee.ria.xroad.signer.SignerRpcClient;
 
 public class ClientDisableRequest extends GenericClientRequest {
 
-    public ClientDisableRequest(ClientId client, SoapMessageImpl request) throws Exception {
-        super(client, request);
+    public ClientDisableRequest(SignerRpcClient signerRpcClient, ClientId client, SoapMessageImpl request) throws Exception {
+        super(signerRpcClient, client, request);
     }
 
 }

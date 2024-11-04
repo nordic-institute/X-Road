@@ -30,16 +30,20 @@ import ee.ria.xroad.common.conf.globalconf.GlobalConfProvider;
 import ee.ria.xroad.common.conf.globalconf.GlobalConfRefreshJobConfig;
 import ee.ria.xroad.opmonitordaemon.OpMonitorDaemon;
 
-import org.niis.xroad.common.rpc.RpcClientProperties;
-import org.niis.xroad.confclient.proto.ConfClientRpcClient;
+import org.niis.xroad.common.rpc.RpcServiceProperties;
+import org.niis.xroad.confclient.proto.ConfClientRpcClientConfiguration;
+import org.springframework.boot.context.properties.ConfigurationProperties;
+import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
 
 @Import({OpMonitorDaemonJobConfig.class,
         GlobalConfBeanConfig.class,
-        GlobalConfRefreshJobConfig.class
+        GlobalConfRefreshJobConfig.class,
+        ConfClientRpcClientConfiguration.class
 })
+@EnableConfigurationProperties({OpMonitorDaemonRootConfig.OpMonitorRpcServiceProperties.class})
 @Configuration
 public class OpMonitorDaemonRootConfig {
 
@@ -48,9 +52,13 @@ public class OpMonitorDaemonRootConfig {
         return new OpMonitorDaemon(globalConfProvider);
     }
 
-    @Bean
-    ConfClientRpcClient confClientRpcClient(RpcClientProperties confClientRpcClientProperties) {
-        return new ConfClientRpcClient(confClientRpcClientProperties);
-    }
+    @ConfigurationProperties(prefix = "xroad.op-monitor.grpc")
+    static class OpMonitorRpcServiceProperties extends RpcServiceProperties {
 
+        public OpMonitorRpcServiceProperties(String listenAddress, int port,
+                                             String tlsTrustStore, char[] tlsTrustStorePassword,
+                                             String tlsKeyStore, char[] tlsKeyStorePassword) {
+            super(listenAddress, port, tlsTrustStore, tlsTrustStorePassword, tlsKeyStore, tlsKeyStorePassword);
+        }
+    }
 }

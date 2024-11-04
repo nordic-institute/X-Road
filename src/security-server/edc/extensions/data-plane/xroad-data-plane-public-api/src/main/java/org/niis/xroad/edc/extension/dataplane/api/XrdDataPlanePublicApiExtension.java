@@ -27,13 +27,12 @@
 
 package org.niis.xroad.edc.extension.dataplane.api;
 
-import ee.ria.xroad.common.SystemProperties;
 import ee.ria.xroad.common.SystemPropertiesLoader;
 import ee.ria.xroad.common.cert.CertChainFactory;
 import ee.ria.xroad.common.conf.globalconf.GlobalConfProvider;
 import ee.ria.xroad.common.conf.serverconf.ServerConfProvider;
 import ee.ria.xroad.proxy.conf.KeyConfProvider;
-import ee.ria.xroad.signer.protocol.RpcSignerClient;
+import ee.ria.xroad.signer.SignerRpcClient;
 
 import lombok.SneakyThrows;
 import org.eclipse.edc.connector.dataplane.spi.Endpoint;
@@ -52,7 +51,6 @@ import org.eclipse.edc.spi.types.TypeManager;
 import org.eclipse.edc.web.spi.WebService;
 import org.eclipse.edc.web.spi.configuration.WebServiceConfigurer;
 import org.eclipse.edc.web.spi.configuration.WebServiceSettings;
-import org.niis.xroad.common.rpc.RpcClientProperties;
 import org.niis.xroad.edc.sig.XrdSignatureService;
 import org.niis.xroad.edc.spi.XrdWebServer;
 import org.niis.xroad.edc.spi.messagelog.XRoadMessageLog;
@@ -120,6 +118,8 @@ public class XrdDataPlanePublicApiExtension implements ServiceExtension {
     @Inject
     private CertChainFactory certChainFactory;
 
+    private SignerRpcClient signerRpcClient;
+
     @Override
     public String name() {
         return NAME;
@@ -151,8 +151,8 @@ public class XrdDataPlanePublicApiExtension implements ServiceExtension {
 
         var endpoint = Endpoint.url(publicEndpoint);
         generatorService.addGeneratorFunction("XrdHttpData", dataAddress -> endpoint);
-
-        var signService = new XrdSignatureService(globalConfProvider, null);
+        //TODO fix signerclient
+        var signService = new XrdSignatureService(globalConfProvider, null, null);
         var proxyApiController = new XrdDataPlaneProxyApiController(monitor,
                 xRoadMessageLog, authorizationService, needClientAuth, globalConfProvider, keyConfProvider,
                 serverConfProvider, certChainFactory);
@@ -165,12 +165,7 @@ public class XrdDataPlanePublicApiExtension implements ServiceExtension {
                 needClientAuth);
         webService.registerResource(PUBLIC_SETTINGS.getContextAlias(), proxyApiController);
         webService.registerResource(PUBLIC_SETTINGS.getContextAlias(), lcController);
-        initSignerClient(monitor);
-    }
-
-    @Override
-    public void shutdown() {
-        RpcSignerClient.shutdown();
+//        initSignerClient(monitor);
     }
 
     private void loadSystemProperties(Monitor monitor) {
@@ -180,23 +175,23 @@ public class XrdDataPlanePublicApiExtension implements ServiceExtension {
                 .load();
     }
 
-    private void initSignerClient(Monitor monitor) {
-        monitor.info("Initializing Signer client");
-        try {
-            // todo: fixme:
-            RpcClientProperties signerClientProperties = new RpcClientProperties(
-                    SystemProperties.getSignerGrpcHost(),
-                    SystemProperties.getSignerGrpcPort(),
-                    SystemProperties.isSignerGrpcTlsEnabled(),
-                    SystemProperties.getSignerGrpcTrustStore(),
-                    SystemProperties.getSignerGrpcTrustStorePassword(),
-                    SystemProperties.getSignerGrpcKeyStore(),
-                    SystemProperties.getSignerGrpcKeyStorePassword()
-            );
-            RpcSignerClient.init(signerClientProperties, 10000);
-        } catch (Exception e) {
-            throw new RuntimeException(e);
-        }
-    }
+//    private void initSignerClient(Monitor monitor) {
+//        monitor.info("Initializing Signer client");
+//        try {
+//            // todo: fixme:
+//            RpcChannelProperties signerClientProperties = new RpcChannelProperties(
+//                    SystemProperties.getSignerGrpcHost(),
+//                    SystemProperties.getSignerGrpcPort(),
+//                    SystemProperties.isSignerGrpcTlsEnabled(),
+//                    SystemProperties.getSignerGrpcTrustStore(),
+//                    SystemProperties.getSignerGrpcTrustStorePassword(),
+//                    SystemProperties.getSignerGrpcKeyStore(),
+//                    SystemProperties.getSignerGrpcKeyStorePassword()
+//            );
+//            SignerRpcClient.init(signerClientProperties, 10000);
+//        } catch (Exception e) {
+//            throw new RuntimeException(e);
+//        }
+//    }
 }
 

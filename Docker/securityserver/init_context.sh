@@ -4,9 +4,9 @@ rm -rf ./build/packages
 mkdir -p ./build/packages
 mkdir -p ./build/libs
 
-cp ../../src/security-server/edc/runtime/control-plane/build/libs/edc-control-plane.jar ./build/libs
-cp ../../src/security-server/edc/runtime/data-plane/build/libs/edc-data-plane.jar ./build/libs
-cp ../../src/security-server/edc/runtime/identity-hub/build/libs/edc-identity-hub.jar ./build/libs
+cp ../../src/security-server/edc/runtime/control-plane/build/libs/edc-control-plane-1.0.jar ./build/libs
+cp ../../src/security-server/edc/runtime/data-plane/build/libs/edc-data-plane-1.0.jar ./build/libs
+cp ../../src/security-server/edc/runtime/identity-hub/build/libs/edc-identity-hub-1.0.jar ./build/libs
 
 cp -r ../../src/security-server/edc/runtime/control-plane/src/main/resources/liquibase ./build
 cp -r ../../src/security-server/edc/runtime/data-plane/src/main/resources/liquibase ./build

@@ -25,17 +25,22 @@
  */
 package org.niis.xroad.confclient.config;
 
+import ee.ria.xroad.common.conf.globalconf.ConfigurationClient;
+import ee.ria.xroad.common.conf.globalconf.ConfigurationClientActionExecutor;
 import ee.ria.xroad.common.conf.globalconf.FSGlobalConfValidator;
 
 import io.grpc.BindableService;
 import lombok.extern.slf4j.Slf4j;
-import org.niis.xroad.common.rpc.RpcServerProperties;
+import org.niis.xroad.common.rpc.RpcServiceProperties;
 import org.niis.xroad.common.rpc.server.RpcServer;
 import org.niis.xroad.confclient.admin.AdminService;
+import org.niis.xroad.confclient.globalconf.AnchorService;
 import org.niis.xroad.confclient.globalconf.GetGlobalConfRespFactory;
 import org.niis.xroad.confclient.globalconf.GlobalConfRpcCache;
 import org.niis.xroad.confclient.globalconf.GlobalConfRpcService;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
+import org.springframework.boot.context.properties.ConfigurationProperties;
+import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
@@ -43,13 +48,16 @@ import java.util.Collection;
 
 @Slf4j
 @Configuration
+@EnableConfigurationProperties({
+        ConfClientRpcConfig.ConfClientRpcServiceProperties.class})
 @ConditionalOnProperty(name = "xroad.configuration-client.cli-mode", havingValue = "false")
 public class ConfClientRpcConfig {
 
     @Bean
-    RpcServer proxyRpcServer(Collection<BindableService> services, RpcServerProperties confClientRpcServerProperties) throws Exception {
+    RpcServer confClientRpcServer(Collection<BindableService> services,
+                                  ConfClientRpcServiceProperties confClientRpcServiceProperties) throws Exception {
 
-        return RpcServer.newServer(confClientRpcServerProperties,
+        return RpcServer.newServer(confClientRpcServiceProperties,
                 builder -> services.forEach(service -> {
                     log.info("Registering {} RPC service.", service.getClass().getSimpleName());
                     builder.addService(service);
@@ -60,6 +68,13 @@ public class ConfClientRpcConfig {
     @Bean
     AdminService adminService(ConfClientJobConfig.ConfigurationClientJobListener listener) {
         return new AdminService(listener);
+    }
+
+    @Bean
+    AnchorService anchorService(ConfigurationClientProperties confClientProperties,
+                                ConfigurationClient configurationClient,
+                                ConfigurationClientActionExecutor actionExecutor) {
+        return new AnchorService(confClientProperties, configurationClient, actionExecutor);
     }
 
     @Bean
@@ -81,5 +96,15 @@ public class ConfClientRpcConfig {
     GlobalConfRpcCache globalConfRpcCache(FSGlobalConfValidator fsGlobalConfValidator,
                                           GetGlobalConfRespFactory getGlobalConfRespFactory) {
         return new GlobalConfRpcCache(fsGlobalConfValidator, getGlobalConfRespFactory);
+    }
+
+    @ConfigurationProperties(prefix = "xroad.configuration-client.grpc")
+    static class ConfClientRpcServiceProperties extends RpcServiceProperties {
+        ConfClientRpcServiceProperties(String listenAddress, int port,
+                                       String tlsTrustStore, char[] tlsTrustStorePassword,
+                                       String tlsKeyStore, char[] tlsKeyStorePassword) {
+            super(listenAddress, port, tlsTrustStore, tlsTrustStorePassword,
+                    tlsKeyStore, tlsKeyStorePassword);
+        }
     }
 }

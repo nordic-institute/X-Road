@@ -45,7 +45,7 @@ public class ServerConfBeanConfig {
         if (serverConfProperties.cachePeriod() > 0) {
             return new CachingServerConfImpl(databaseCtx, serverConfProperties, globalConfProvider);
         }
-         return new ServerConfImpl(databaseCtx, globalConfProvider);
+        return new ServerConfImpl(databaseCtx, globalConfProvider);
     }
 
     @Bean("serverConfDatabaseCtx")

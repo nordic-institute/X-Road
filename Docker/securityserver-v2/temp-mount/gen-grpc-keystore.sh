@@ -9,9 +9,9 @@ gen_pw() {
 # generate EC keypair and self-signed certificate for internal transport
 gen_grpc_internal_keypair() {
   umask 077
-  local keystore_pw="$(gen_pw)"
-  local keystore=xroad-grpc-internal-keystore.p12
-  local env_file=xroad-grpc-internal-env.properties
+  local keystore_pw="password"
+  local keystore=1xroad-grpc-internal-keystore.p12
+  local env_file=1xroad-grpc-internal-env.properties
 
   if [[ ! -f "$keystore" && ! -f "$env_file" ]]; then
       PW="$keystore_pw" \
@@ -21,7 +21,7 @@ gen_grpc_internal_keypair() {
        -sigalg SHA256withECDSA \
        -keystore "$keystore" \
        -dname "CN=127.0.0.1" \
-       -ext "SAN:c=DNS:localhost,IP:127.0.0.1,DNS:confclient,DNS:proxy,DNS:signer" \
+       -ext "SAN:c=DNS:localhost,IP:127.0.0.1" \
        -validity 3650 \
        -storepass:env PW \
        -keypass:env PW

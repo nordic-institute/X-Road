@@ -46,13 +46,6 @@ public final class PortNumbers {
     /** Admin port for proxy. */
     public static final int ADMIN_PORT = 5566;
 
-    /**
-     * Signer grpc service port.
-     */
-    public static final int SIGNER_GRPC_PORT = 5560;
-
-    /** Port for Distributed Files Client. */
-    public static final int CONFIGURATION_CLIENT_PORT = 5665;
 
     /** Port of the operational monitoring daemon. */
     public static final int OP_MONITOR_DAEMON_PORT = 2080;

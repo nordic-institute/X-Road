@@ -31,7 +31,7 @@ import ee.ria.xroad.common.ErrorCodes;
 import ee.ria.xroad.common.util.process.ExternalProcessRunner;
 import ee.ria.xroad.common.util.process.ProcessFailedException;
 import ee.ria.xroad.common.util.process.ProcessNotExecutableException;
-import ee.ria.xroad.signer.SignerProxy;
+import ee.ria.xroad.signer.SignerRpcClient;
 import ee.ria.xroad.signer.protocol.dto.TokenInfo;
 import ee.ria.xroad.signer.protocol.dto.TokenStatusInfo;
 
@@ -45,7 +45,6 @@ import org.niis.xroad.cs.admin.api.dto.HAConfigStatus;
 import org.niis.xroad.cs.admin.api.dto.InitialServerConfDto;
 import org.niis.xroad.cs.admin.api.dto.InitializationStatusDto;
 import org.niis.xroad.cs.admin.api.dto.TokenInitStatus;
-import org.niis.xroad.cs.admin.api.facade.SignerProxyFacade;
 import org.niis.xroad.cs.admin.api.service.InitializationService;
 import org.niis.xroad.cs.admin.api.service.SystemParameterService;
 import org.niis.xroad.cs.admin.api.service.TokenPinValidator;
@@ -76,7 +75,7 @@ import static org.niis.xroad.restapi.exceptions.DeviationCodes.ERROR_GPG_KEY_GEN
 @PreAuthorize("isAuthenticated()")
 @RequiredArgsConstructor
 public class InitializationServiceImpl implements InitializationService {
-    private final SignerProxyFacade signerProxyFacade;
+    private final SignerRpcClient signerRpcClient;
     private final GlobalGroupRepository globalGroupRepository;
     private final SystemParameterService systemParameterService;
     private final TokenPinValidator tokenPinValidator;
@@ -154,7 +153,7 @@ public class InitializationServiceImpl implements InitializationService {
 
         if (!isSWTokenInitialized) {
             try {
-                signerProxyFacade.initSoftwareToken(configDto.getSoftwareTokenPin().toCharArray());
+                signerRpcClient.initSoftwareToken(configDto.getSoftwareTokenPin().toCharArray());
             } catch (Exception e) {
                 if (e instanceof CodedException ce
                         && ce.getFaultCode().contains(ErrorCodes.X_TOKEN_PIN_POLICY_FAILURE)) {
@@ -230,7 +229,7 @@ public class InitializationServiceImpl implements InitializationService {
         boolean isSWTokenInitialized = false;
         TokenInfo tokenInfo;
         try {
-            tokenInfo = signerProxyFacade.getToken(SignerProxy.SSL_TOKEN_ID);
+            tokenInfo = signerRpcClient.getToken(SignerRpcClient.SSL_TOKEN_ID);
             if (null != tokenInfo) {
                 isSWTokenInitialized = tokenInfo.getStatus() != TokenStatusInfo.NOT_INITIALIZED;
             }

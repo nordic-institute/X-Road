@@ -1,6 +1,6 @@
 package org.niis.xroad.edc.ih;
 
-import ee.ria.xroad.signer.SignerProxy;
+import ee.ria.xroad.signer.SignerRpcClient;
 import ee.ria.xroad.signer.protocol.dto.CertificateInfo;
 import ee.ria.xroad.signer.protocol.dto.KeyInfo;
 
@@ -9,6 +9,7 @@ import com.nimbusds.jose.JWSObject;
 import com.nimbusds.jose.JWSSigner;
 import com.nimbusds.jose.Payload;
 import com.nimbusds.jose.util.Base64;
+import lombok.RequiredArgsConstructor;
 import org.eclipse.edc.security.token.jwt.CryptoConverter;
 
 import java.time.Instant;
@@ -16,12 +17,11 @@ import java.util.List;
 
 import static java.time.temporal.ChronoUnit.DAYS;
 
-public final class XRoadSelfDescriptionGenerator {
+@RequiredArgsConstructor
+public class XRoadSelfDescriptionGenerator {
+    private final SignerRpcClient signerRpcClient;
 
-    private XRoadSelfDescriptionGenerator() {
-    }
-
-    public static JWSObject generate(String xroadIdentifier, JWSSigner signer, String did, String keyId) throws Exception {
+    public JWSObject generate(String xroadIdentifier, JWSSigner signer, String did, String keyId) throws Exception {
         var payload = getPayload(xroadIdentifier);
         var header = new JWSHeader.Builder(CryptoConverter.getRecommendedAlgorithm(signer))
                 .base64URLEncodePayload(true)
@@ -37,8 +37,8 @@ public final class XRoadSelfDescriptionGenerator {
         return jwsObject;
     }
 
-    private static byte[] getActiveCertificate(String keyId) throws Exception {
-        var token = SignerProxy.getTokenForKeyId(keyId);
+    private byte[] getActiveCertificate(String keyId) throws Exception {
+        var token = signerRpcClient.getTokenForKeyId(keyId);
         var certificates = token.getKeyInfo().stream()
                 .filter(keyInfo -> keyInfo.getId().equals(keyId))
                 .findFirst()

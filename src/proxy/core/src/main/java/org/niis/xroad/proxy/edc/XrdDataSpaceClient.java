@@ -54,6 +54,7 @@ import static ee.ria.xroad.common.util.EncoderUtils.encodeBase64;
 import static org.niis.xroad.edc.sig.PocConstants.HEADER_XRD_SIG;
 
 @Slf4j
+@Deprecated(forRemoval = true)
 public class XrdDataSpaceClient {
     private final XrdSignatureService xrdSignatureService;
     private final GlobalConfProvider globalConfProvider;
@@ -62,7 +63,7 @@ public class XrdDataSpaceClient {
     public XrdDataSpaceClient(GlobalConfProvider globalConfProvider, KeyConfProvider keyConfProvider, CertChainFactory certChainFactory) {
         this.globalConfProvider = globalConfProvider;
         this.keyConfProvider = keyConfProvider;
-        this.xrdSignatureService = new XrdSignatureService(globalConfProvider, certChainFactory);
+        this.xrdSignatureService = new XrdSignatureService(globalConfProvider, certChainFactory, null);
     }
 
     public RestResponse processRestRequest(RestRequest restRequest,

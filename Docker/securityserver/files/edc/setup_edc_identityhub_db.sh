@@ -23,7 +23,4 @@ url=$(crudini --get /etc/xroad/db.properties '' edc-identity-hub.hibernate.conne
 user=$(crudini --get /etc/xroad/db.properties '' edc-identity-hub.hibernate.connection.username)
 password=$(crudini --get /etc/xroad/db.properties '' edc-identity-hub.hibernate.connection.password)
 
-crudini --set /etc/xroad-edc/edc-identity-hub.properties '' "edc.datasource.default.url" "$url"
-crudini --set /etc/xroad-edc/edc-identity-hub.properties '' "edc.datasource.default.user" "$user"
-crudini --set /etc/xroad-edc/edc-identity-hub.properties '' "edc.datasource.default.password" "$password"
-
+export XROAD_DS_PASSWORD=$password

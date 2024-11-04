@@ -27,7 +27,7 @@ package org.niis.xroad.securityserver.restapi.service;
 
 import ee.ria.xroad.common.CodedException;
 import ee.ria.xroad.common.conf.globalconf.GlobalConfProvider;
-import ee.ria.xroad.signer.SignerProxy;
+import ee.ria.xroad.signer.SignerRpcClient;
 import ee.ria.xroad.signer.protocol.dto.TokenInfo;
 
 import org.junit.Before;
@@ -74,7 +74,7 @@ public class NotificationServiceTest {
         doAnswer(answer -> null).when(globalConfProvider).verifyValidity();
 
         TokenInfo tokenInfo = new TokenTestUtils.TokenInfoBuilder()
-                .id(SignerProxy.SSL_TOKEN_ID)
+                .id(SignerRpcClient.SSL_TOKEN_ID)
                 .active(true)
                 .build();
         List<TokenInfo> allTokens = Collections.singletonList(tokenInfo);
@@ -139,7 +139,7 @@ public class NotificationServiceTest {
         doThrow(new RuntimeException("")).when(globalConfProvider).verifyValidity();
 
         TokenInfo tokenInfo = new TokenTestUtils.TokenInfoBuilder()
-                .id(SignerProxy.SSL_TOKEN_ID)
+                .id(SignerRpcClient.SSL_TOKEN_ID)
                 .active(true)
                 .build();
         List<TokenInfo> allTokens = Collections.singletonList(tokenInfo);

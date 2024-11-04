@@ -19,6 +19,7 @@ dependencies {
     implementation(project(':common:common-keyconf'))
     implementation(project(':common:common-scheduler'))
     implementation(project(':common:common-verifier'))
+    implementation(project(':common:common-properties'))
     implementation(project(':serverconf'))
     implementation(project(':signer-protocol'))
     implementation(project(':common:common-messagelog'))

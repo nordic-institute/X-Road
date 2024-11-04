@@ -30,7 +30,7 @@ import ee.ria.xroad.common.cert.CertChainFactory;
 import ee.ria.xroad.common.conf.globalconf.GlobalConfProvider;
 import ee.ria.xroad.common.crypto.Digests;
 import ee.ria.xroad.common.identifier.ClientId;
-import ee.ria.xroad.signer.SignerProxy;
+import ee.ria.xroad.signer.SignerRpcClient;
 
 import eu.europa.esig.dss.enumerations.DigestAlgorithm;
 import eu.europa.esig.dss.xml.common.SchemaFactoryBuilder;
@@ -47,6 +47,8 @@ public class XrdSignatureService {
 
     private static final DigestAlgorithm DIGEST_ALGORITHM = DigestAlgorithm.forJavaName(Digests.DEFAULT_DIGEST_ALGORITHM.name());
 
+    private final SignerRpcClient signerRpcClient;
+    private final XrdDssSigner dssSigner;
     private final XrdSignatureVerifier signatureVerifier;
 
     static {
@@ -55,15 +57,18 @@ public class XrdSignatureService {
         XmlDefinerUtils.getInstance().setSchemaFactoryBuilder(new JaxpSchemaFactoryBuilder());
     }
 
-    public XrdSignatureService(GlobalConfProvider globalConfProvider, CertChainFactory certChainFactory) {
+    public XrdSignatureService(GlobalConfProvider globalConfProvider, CertChainFactory certChainFactory,
+                               SignerRpcClient signerRpcClient) {
+        this.signerRpcClient = signerRpcClient;
         this.signatureVerifier = new XrdXAdESVerifier(globalConfProvider, certChainFactory, DIGEST_ALGORITHM);
+        this.dssSigner = new XrdDssSigner(signerRpcClient);
     }
 
     public SignatureResponse sign(ClientId signingClientId, byte[] message)
             throws XrdSignatureCreationException {
 
         var signingInfo = getMemberSigningInfo(signingClientId);
-        var signer = new XrdXAdESSignatureCreator();
+        var signer = new XrdXAdESSignatureCreator(dssSigner);
         var signature = signer.sign(signingInfo, message);
         return new SignatureResponse(signature);
     }
@@ -72,7 +77,7 @@ public class XrdSignatureService {
             throws XrdSignatureCreationException {
 
         var signingInfo = getMemberSigningInfo(signingClientId);
-        var signer = new XrdXAdESSignatureCreator();
+        var signer = new XrdXAdESSignatureCreator(dssSigner);
         var signature = signer.sign(signingInfo, message, attachmentDigest);
         return new SignatureResponse(signature);
     }
@@ -94,9 +99,9 @@ public class XrdSignatureService {
         signatureVerifier.verifySignature(signature, message, attachmentDigest, signerClientId);
     }
 
-    private SignerProxy.MemberSigningInfoDto getMemberSigningInfo(ClientId clientId) throws XrdSignatureCreationException {
+    private SignerRpcClient.MemberSigningInfoDto getMemberSigningInfo(ClientId clientId) throws XrdSignatureCreationException {
         try {
-            return SignerProxy.getMemberSigningInfo(clientId);
+            return signerRpcClient.getMemberSigningInfo(clientId);
         } catch (Exception e) {
             throw new XrdSignatureCreationException("Failed to get member sign cert info", e);
         }

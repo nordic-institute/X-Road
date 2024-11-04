@@ -27,40 +27,39 @@ package ee.ria.xroad.proxymonitor.util;
 
 import ee.ria.xroad.common.CodedException;
 import ee.ria.xroad.common.ErrorCodes;
-import ee.ria.xroad.common.SystemProperties;
 import ee.ria.xroad.proxymonitor.message.MetricSetType;
 
-import io.grpc.Channel;
-import lombok.Getter;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.niis.xroad.common.rpc.RpcClientProperties;
-import org.niis.xroad.common.rpc.client.RpcClient;
+import org.niis.xroad.common.rpc.RpcServiceProperties;
+import org.niis.xroad.common.rpc.client.AbstractRpcClient;
+import org.niis.xroad.common.rpc.client.RpcChannelFactory;
+import org.niis.xroad.common.rpc.client.RpcChannelProperties;
 import org.niis.xroad.monitor.common.MetricsServiceGrpc;
 import org.niis.xroad.monitor.common.SystemMetricsReq;
+import org.springframework.beans.factory.InitializingBean;
 
 import java.util.List;
 
-/**
- * Created by hyoty on 25.9.2015.
- */
+
 @Slf4j
-public class MonitorClient {
+@RequiredArgsConstructor
+public class MonitorClient extends AbstractRpcClient implements InitializingBean {
     private static final int TIMEOUT_AWAIT = 10 * 1000;
 
-    private final RpcClient<MetricsRpcExecutionContext> metricsRpcClient;
+    private final RpcChannelFactory proxyRpcChannelFactory;
+    private final RpcChannelProperties rpcChannelProperties;
+    private final RpcServiceProperties rpcServiceProperties;
 
-    public MonitorClient() throws Exception {
-        var rpcClientProperties = new RpcClientProperties(
-                SystemProperties.getEnvMonitorGrpcHost(),
-                SystemProperties.getEnvMonitorGrpcPort(),
-                SystemProperties.isEnvMonitorGrpcTlsEnabled(),
-                SystemProperties.getEnvMonitorGrpcTrustStore(),
-                SystemProperties.getEnvMonitorGrpcTrustStorePassword(),
-                SystemProperties.getEnvMonitorGrpcKeyStore(),
-                SystemProperties.getEnvMonitorGrpcKeyStorePassword()
-        );
+    private MetricsServiceGrpc.MetricsServiceBlockingStub metricsServiceBlockingStub;
 
-        this.metricsRpcClient = RpcClient.newClient(rpcClientProperties, TIMEOUT_AWAIT, MetricsRpcExecutionContext::new);
+    @Override
+    public void afterPropertiesSet() throws Exception {
+        log.info("Initializing {} rpc client to {}:{}", getClass().getSimpleName(), rpcChannelProperties.getHost(),
+                rpcChannelProperties.getPort());
+        var channel = proxyRpcChannelFactory.createChannel(rpcChannelProperties, rpcServiceProperties);
+
+        metricsServiceBlockingStub = MetricsServiceGrpc.newBlockingStub(channel).withWaitForReady();
     }
 
     /**
@@ -68,7 +67,7 @@ public class MonitorClient {
      */
     public MetricSetType getMetrics(List<String> metricNames, boolean isOwner) {
         try {
-            var response = metricsRpcClient.execute(ctx -> ctx.getMetricsServiceBlockingStub().getMetrics(SystemMetricsReq.newBuilder()
+            var response = exec(() -> metricsServiceBlockingStub.getMetrics(SystemMetricsReq.newBuilder()
                     .setIsClientOwner(isOwner)
                     .addAllMetricNames(metricNames)
                     .build()));
@@ -79,19 +78,5 @@ public class MonitorClient {
             throw new CodedException(ErrorCodes.X_INTERNAL_ERROR, "Unable to read metrics");
         }
     }
-
-    public void shutdown() {
-        metricsRpcClient.shutdown();
-    }
-
-    @Getter
-    private static class MetricsRpcExecutionContext implements RpcClient.ExecutionContext {
-        private final MetricsServiceGrpc.MetricsServiceBlockingStub metricsServiceBlockingStub;
-
-        MetricsRpcExecutionContext(Channel channel) {
-            metricsServiceBlockingStub = MetricsServiceGrpc.newBlockingStub(channel).withWaitForReady();
-        }
-    }
-
 
 }

@@ -39,7 +39,8 @@ include "proxy:application"
 include "proxy:core"
 include "signer:application"
 include "signer:core"
-include "configuration-proxy"
+include "configuration-proxy:application"
+include "configuration-proxy:core"
 include "configuration-client:confclient-rpc-client"
 include "configuration-client:application"
 include "configuration-client:core"
@@ -94,11 +95,12 @@ include 'security-server:edc:extensions:data-plane:xroad-data-plane-iam'
 include 'security-server:edc:extensions:data-plane:xroad-data-plane-public-api'
 include 'security-server:edc:extensions:data-plane:xroad-messagelog'
 include 'security-server:edc:extensions:identity-hub:xroad-identity-hub-provisioner'
-include 'security-server:edc:extensions:common:xroad-conf'
 include 'security-server:edc:extensions:common:xroad-jsonld'
 include 'security-server:edc:extensions:common:xroad-jws-signer'
 include 'security-server:edc:extensions:common:xroad-ldp-verifiable-credentials'
+include 'security-server:edc:extensions:common:xroad-httpclient'
 include 'security-server:edc:extensions:common:xroad-webserver'
+include 'security-server:edc:extensions:common:xroad-spring-bridge'
 include 'security-server:edc-client'
 include 'security-server:edc:xroad-edc-security'
 include 'security-server:edc:runtime:control-plane'

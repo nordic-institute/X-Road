@@ -35,6 +35,7 @@ import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.identifier.SecurityServerId;
 import ee.ria.xroad.common.util.CertUtils;
 import ee.ria.xroad.common.util.CryptoUtils;
+import ee.ria.xroad.signer.SignerRpcClient;
 import ee.ria.xroad.signer.protocol.dto.AuthKeyInfo;
 import ee.ria.xroad.signer.protocol.dto.CertificateInfo;
 import ee.ria.xroad.signer.protocol.dto.KeyUsageInfo;
@@ -43,7 +44,6 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.niis.xroad.restapi.common.backup.service.BackupRestoreEvent;
 import org.niis.xroad.securityserver.restapi.cache.SecurityServerAddressChangeStatus;
-import org.niis.xroad.securityserver.restapi.facade.SignerProxyFacade;
 import org.springframework.context.event.EventListener;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
@@ -68,7 +68,7 @@ public class GlobalConfChecker {
     private volatile boolean restoreInProgress = false;
     private final GlobalConfCheckerHelper globalConfCheckerHelper;
     private final GlobalConfProvider globalConfProvider;
-    private final SignerProxyFacade signerProxyFacade;
+    private final SignerRpcClient signerRpcClient;
     private final SecurityServerAddressChangeStatus addressChangeStatus;
 
     /**
@@ -223,7 +223,7 @@ public class GlobalConfChecker {
     private X509Certificate getAuthCert(SecurityServerId serverId) throws Exception {
         log.debug("Get auth cert for security server '{}'", serverId);
 
-        AuthKeyInfo keyInfo = signerProxyFacade.getAuthKey(serverId);
+        AuthKeyInfo keyInfo = signerRpcClient.getAuthKey(serverId);
         if (keyInfo != null && keyInfo.getCert() != null) {
             return CryptoUtils.readCertificate(keyInfo.getCert().getCertificateBytes());
         }
@@ -278,7 +278,7 @@ public class GlobalConfChecker {
             throws Exception {
         log.debug("Updating auth cert statuses");
 
-        signerProxyFacade.getTokens().stream().flatMap(t -> t.getKeyInfo().stream())
+        signerRpcClient.getTokens().stream().flatMap(t -> t.getKeyInfo().stream())
                 .filter(k -> KeyUsageInfo.AUTHENTICATION.equals(k.getUsage()))
                 .flatMap(k -> k.getCerts().stream()).forEach(certInfo -> {
                     try {
@@ -309,7 +309,7 @@ public class GlobalConfChecker {
                             CertUtils.identify(cert),
                             CertificateInfo.STATUS_REGISTERED);
 
-                    signerProxyFacade.setCertStatus(certInfo.getId(),
+                    signerRpcClient.setCertStatus(certInfo.getId(),
                             CertificateInfo.STATUS_REGISTERED);
                     break;
                 default:
@@ -325,7 +325,7 @@ public class GlobalConfChecker {
                     CertUtils.identify(cert),
                     CertificateInfo.STATUS_GLOBALERR);
 
-            signerProxyFacade.setCertStatus(certInfo.getId(),
+            signerRpcClient.setCertStatus(certInfo.getId(),
                     CertificateInfo.STATUS_GLOBALERR);
         }
     }

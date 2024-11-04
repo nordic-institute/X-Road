@@ -33,11 +33,12 @@ import ee.ria.xroad.common.DiagnosticsStatus;
 import ee.ria.xroad.common.MessageLogArchiveEncryptionMember;
 import ee.ria.xroad.common.MessageLogEncryptionStatusDiagnostics;
 
-import io.grpc.Channel;
-import lombok.Getter;
-import org.niis.xroad.common.rpc.RpcClientProperties;
-import org.niis.xroad.common.rpc.client.RpcClient;
-import org.springframework.beans.factory.DisposableBean;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.niis.xroad.common.rpc.RpcServiceProperties;
+import org.niis.xroad.common.rpc.client.AbstractRpcClient;
+import org.niis.xroad.common.rpc.client.RpcChannelFactory;
+import org.springframework.beans.factory.InitializingBean;
 
 import java.util.HashSet;
 import java.util.List;
@@ -47,34 +48,39 @@ import java.util.stream.Collectors;
 import static java.time.Instant.ofEpochMilli;
 import static org.niis.xroad.restapi.util.FormatUtils.fromInstantToOffsetDateTime;
 
-public class ProxyRpcClient implements DisposableBean {
-    private final RpcClient<ProxyRpcExecutionContext> proxyRpcClient;
+@Slf4j
+@RequiredArgsConstructor
+public class ProxyRpcClient extends AbstractRpcClient implements InitializingBean {
+    private final RpcChannelFactory proxyRpcChannelFactory;
+    private final ProxyRpcChannelProperties rpcChannelProperties;
+    private final RpcServiceProperties rpcServiceProperties;
 
-    public ProxyRpcClient(RpcClientProperties rpcClientProperties) throws Exception {
-        this.proxyRpcClient = RpcClient.newClient(rpcClientProperties, ProxyRpcExecutionContext::new);
-    }
+    private AdminServiceGrpc.AdminServiceBlockingStub adminServiceBlockingStub;
 
     @Override
-    public void destroy() {
-        proxyRpcClient.shutdown();
+    public void afterPropertiesSet() throws Exception {
+        log.info("Initializing {} rpc client to {}:{}", getClass().getSimpleName(), rpcChannelProperties.getHost(),
+                rpcChannelProperties.getPort());
+        var channel = proxyRpcChannelFactory.createChannel(rpcChannelProperties, rpcServiceProperties);
+
+        adminServiceBlockingStub = AdminServiceGrpc.newBlockingStub(channel).withInterceptors().withWaitForReady();
     }
 
     public BackupEncryptionStatusDiagnostics getBackupEncryptionStatus() throws Exception {
-        var response = proxyRpcClient.execute(ctx -> ctx.getAdminServiceBlockingStub()
-                .getBackupEncryptionStatus(Empty.getDefaultInstance()));
+        var response = exec(() -> adminServiceBlockingStub.getBackupEncryptionStatus(Empty.getDefaultInstance()));
         return new BackupEncryptionStatusDiagnostics(
                 response.getBackupEncryptionStatus(),
                 response.getBackupEncryptionKeysList());
     }
 
     public AddOnStatusDiagnostics getAddOnStatus() throws Exception {
-        var response = proxyRpcClient.execute(ctx -> ctx.getAdminServiceBlockingStub()
+        var response = exec(() -> adminServiceBlockingStub
                 .getAddOnStatus(Empty.getDefaultInstance()));
         return new AddOnStatusDiagnostics(response.getMessageLogEnabled());
     }
 
     public MessageLogEncryptionStatusDiagnostics getMessageLogEncryptionStatus() throws Exception {
-        var response = proxyRpcClient.execute(ctx -> ctx.getAdminServiceBlockingStub()
+        var response = exec(() -> adminServiceBlockingStub
                 .getMessageLogEncryptionStatus(Empty.getDefaultInstance()));
 
         List<MessageLogArchiveEncryptionMember> memberList = response.getMembersList().stream()
@@ -93,7 +99,7 @@ public class ProxyRpcClient implements DisposableBean {
     }
 
     public Map<String, DiagnosticsStatus> getTimestampingStatus() throws Exception {
-        var statuses = proxyRpcClient.execute(ctx -> ctx.getAdminServiceBlockingStub()
+        var statuses = exec(() -> adminServiceBlockingStub
                 .getTimestampStatus(Empty.getDefaultInstance()));
 
         return statuses.getDiagnosticsStatusMap().entrySet()
@@ -109,21 +115,10 @@ public class ProxyRpcClient implements DisposableBean {
     }
 
     public void clearConfCache() throws Exception {
-        proxyRpcClient.execute(ctx -> ctx.getAdminServiceBlockingStub()
-                .clearConfCache(Empty.getDefaultInstance()));
+        exec(() -> adminServiceBlockingStub.clearConfCache(Empty.getDefaultInstance()));
     }
 
     public void triggerDsAssetUpdate() throws Exception {
-        proxyRpcClient.execute(ctx -> ctx.getAdminServiceBlockingStub()
-                .triggerDSAssetUpdate(Empty.getDefaultInstance()));
-    }
-
-    @Getter
-    private static class ProxyRpcExecutionContext implements RpcClient.ExecutionContext {
-        private final AdminServiceGrpc.AdminServiceBlockingStub adminServiceBlockingStub;
-
-        ProxyRpcExecutionContext(Channel channel) {
-            adminServiceBlockingStub = AdminServiceGrpc.newBlockingStub(channel).withWaitForReady();
-        }
+        exec(() -> adminServiceBlockingStub.triggerDSAssetUpdate(Empty.getDefaultInstance()));
     }
 }
