@@ -157,6 +157,34 @@ public final class AcmeService {
 
     }
 
+    public void checkAccountKeyPairAndRenewIfNecessary(String memberId, ApprovedCAInfo caInfo, KeyUsageInfo keyUsage) {
+        try {
+            Login login = getLogin(memberId, caInfo, keyUsage);
+            File acmeKeystoreFile = new File(acmeAccountKeystorePath);
+            char[] storePassword = acmeProperties.getAccountKeystorePassword();
+            KeyStore keyStore = CryptoUtils.loadPkcs12KeyStore(acmeKeystoreFile, storePassword);
+            X509Certificate certificate = (X509Certificate) keyStore.getCertificate(memberId);
+            int renewalTimeBeforeExpirationDate = SystemProperties.getAcmeKeypairRenewalTimeBeforeExpirationDate();
+            if (Instant.now().isAfter(certificate.getNotAfter().toInstant().minus(renewalTimeBeforeExpirationDate, ChronoUnit.DAYS))) {
+                KeyPairGenerator keyPairGenerator = KeyPairGenerator.getInstance("RSA");
+                keyPairGenerator.initialize(SystemProperties.getSignerKeyLength(), new SecureRandom());
+                KeyPair keyPair = keyPairGenerator.generateKeyPair();
+                login.getAccount().changeKey(keyPair);
+
+                long expirationInDays = SystemProperties.getAcmeAccountKeyPairExpirationInDays();
+                X509Certificate[] certificateChain = createSelfSignedCertificate(memberId, keyPair, expirationInDays);
+                keyStore.setKeyEntry(
+                        memberId,
+                        keyPair.getPrivate(),
+                        memberId.toCharArray(),
+                        certificateChain);
+                log.info("Renewed acme account keypair for {}", memberId);
+            }
+        } catch (Exception e) {
+            log.error("Renewing account key pair failed", e);
+        }
+    }
+
     private KeyPair getAccountKeyPair(String memberId) throws GeneralSecurityException, IOException, OperatorCreationException {
         File acmeKeystoreFile = new File(acmeAccountKeystorePath);
         KeyStore keyStore;

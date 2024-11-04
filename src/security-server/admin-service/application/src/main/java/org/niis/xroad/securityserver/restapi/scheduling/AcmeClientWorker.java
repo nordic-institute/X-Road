@@ -159,6 +159,8 @@ public class AcmeClientWorker {
             return false;
         }
 
+        acmeService.checkAccountKeyPairAndRenewIfNecessary(clientId.asEncodedId(), approvedCA, keyUsage);
+
         boolean isRenewalRequired;
         try {
             isRenewalRequired = isRenewalRequired(clientId.asEncodedId(), approvedCA, x509Certificate, keyUsage);

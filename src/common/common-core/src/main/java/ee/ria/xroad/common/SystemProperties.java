@@ -140,6 +140,9 @@ public final class SystemProperties {
     public static final String PROXY_UI_API_ACME_RENEWAL_TIME_BEFORE_EXPIRATION_DATE =
             PREFIX + "proxy-ui-api.acme-renewal-time-before-expiration-date";
 
+    public static final String PROXY_UI_API_ACME_KEYPAIR_RENEWAL_TIME_BEFORE_EXPIRATION_DATE =
+            PREFIX + "proxy-ui-api.acme-keypair-renewal-time-before-expiration-date";
+
     /** property name of whether notification e-mail is sent in case of automatic certificate renewal job success */
     public static final String PROXY_UI_API_ACME_RENEWAL_SUCCESS_NOTIFICATION_ENABLED =
             PREFIX + "proxy-ui-api.acme-renewal-success-notification-enabled";
@@ -1209,6 +1212,13 @@ public final class SystemProperties {
      */
     public static int getAcmeRenewalTimeBeforeExpirationDate() {
         return Integer.parseInt(System.getProperty(PROXY_UI_API_ACME_RENEWAL_TIME_BEFORE_EXPIRATION_DATE, "14"));
+    }
+
+    /**
+     * @return when to trigger automatic acme account keypair renewal subtracted as days from the expiration date of the certificate.
+     */
+    public static int getAcmeKeypairRenewalTimeBeforeExpirationDate() {
+        return Integer.parseInt(System.getProperty(PROXY_UI_API_ACME_KEYPAIR_RENEWAL_TIME_BEFORE_EXPIRATION_DATE, "14"));
     }
 
     /**
