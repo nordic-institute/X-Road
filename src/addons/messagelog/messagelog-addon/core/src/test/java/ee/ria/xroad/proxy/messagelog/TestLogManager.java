@@ -28,6 +28,7 @@ package ee.ria.xroad.proxy.messagelog;
 
 import ee.ria.xroad.common.conf.globalconf.GlobalConfProvider;
 import ee.ria.xroad.common.conf.serverconf.ServerConfProvider;
+import ee.ria.xroad.common.db.DatabaseCtxV2;
 import ee.ria.xroad.common.messagelog.MessageRecord;
 
 import lombok.extern.slf4j.Slf4j;
@@ -42,8 +43,8 @@ class TestLogManager extends LogManager {
     // Countdownlatch for waiting for next timestamp record save.
     private static CountDownLatch setTimestampingStatusLatch = new CountDownLatch(1);
 
-    TestLogManager(String origin, GlobalConfProvider globalConfProvider, ServerConfProvider serverConfProvider) {
-        super(origin, globalConfProvider, serverConfProvider);
+    TestLogManager(String origin, GlobalConfProvider globalConfProvider, ServerConfProvider serverConfProvider, DatabaseCtxV2 databaseCtx) {
+        super(origin, globalConfProvider, serverConfProvider, databaseCtx);
     }
 
     static void initSetTimestampingStatusLatch() {
@@ -77,8 +78,8 @@ class TestLogManager extends LogManager {
     }
 
     @Override
-    protected TestTaskQueue getTaskQueueImpl(Timestamper timestamper, String origin) {
-        return new TestTaskQueue(timestamper, this, origin);
+    protected TestTaskQueue getTaskQueueImpl(Timestamper timestamper, String origin, DatabaseCtxV2 databaseCtx) {
+        return new TestTaskQueue(timestamper, this, origin, databaseCtx);
     }
 
     /**
@@ -91,7 +92,7 @@ class TestLogManager extends LogManager {
 
     @Override
     protected TestTimestamper getTimestamperImpl() {
-        return new TestTimestamper(globalConfProvider, serverConfProvider);
+        return new TestTimestamper(globalConfProvider, serverConfProvider, logRecordManager);
     }
 
     @Override

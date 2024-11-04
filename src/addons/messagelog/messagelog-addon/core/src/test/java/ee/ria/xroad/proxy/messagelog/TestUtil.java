@@ -25,10 +25,11 @@
  */
 package ee.ria.xroad.proxy.messagelog;
 
-import ee.ria.xroad.common.SystemProperties;
 import ee.ria.xroad.common.conf.globalconf.EmptyGlobalConf;
 import ee.ria.xroad.common.conf.globalconf.GlobalConfProvider;
 import ee.ria.xroad.common.conf.serverconf.ServerConfProvider;
+import ee.ria.xroad.common.db.DatabaseCtxV2;
+import ee.ria.xroad.common.db.HibernateUtil;
 import ee.ria.xroad.common.message.RestMessage;
 import ee.ria.xroad.common.message.RestRequest;
 import ee.ria.xroad.common.message.SoapMessageImpl;
@@ -38,8 +39,6 @@ import ee.ria.xroad.common.util.CryptoUtils;
 import ee.ria.xroad.common.util.MimeTypes;
 import ee.ria.xroad.messagelog.database.MessageRecordEncryption;
 
-import lombok.Getter;
-import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.IOUtils;
 import org.apache.http.message.BasicHeader;
@@ -54,9 +53,8 @@ import java.security.cert.CertificateException;
 import java.security.cert.X509Certificate;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
 
-import static ee.ria.xroad.messagelog.database.MessageLogDatabaseCtx.doInTransaction;
-import static org.apache.commons.lang3.StringUtils.isBlank;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 
@@ -85,6 +83,19 @@ final class TestUtil {
 
     static String message;
     static String signature;
+
+    private static final Map<String, String> MESSAGE_LOG_HIBERNATE_PROPERTIES = Map.of(
+            "dialect", "org.hibernate.dialect.HSQLDialect",
+            "connection.driver_class", "org.hsqldb.jdbcDriver",
+            "connection.url", "jdbc:hsqldb:mem:securelog;sql.syntax_pgs=true;",
+            "connection.username", "securelog",
+            "connection.password", "securelog",
+            "hbm2ddl.auto", "update",
+            "jdbc.batch_size", "20"
+    );
+    static DatabaseCtxV2 databaseCtx = new DatabaseCtxV2("messagelog",
+            HibernateUtil.createSessionFactory("messagelog",
+                    MESSAGE_LOG_HIBERNATE_PROPERTIES));
 
     static GlobalConfProvider getGlobalConf() {
         return new EmptyGlobalConf() {
@@ -116,15 +127,11 @@ final class TestUtil {
     }
 
     static void initForTest() {
-        System.setProperty(
-                SystemProperties.DATABASE_PROPERTIES,
-                "src/test/resources/hibernate.properties");
-
         MessageRecordEncryption.reload();
     }
 
-    static void cleanUpDatabase() throws Exception {
-        doInTransaction(session -> {
+    static void cleanUpDatabase(DatabaseCtxV2 dbCtx) throws Exception {
+        dbCtx.doInTransaction(session -> {
             Query q = session.createNativeQuery(
                     // Since we are using HSQLDB for tests, we can use
                     // special commands to completely wipe out the database
@@ -175,91 +182,17 @@ final class TestUtil {
     }
 
     @SuppressWarnings("unchecked")
-    static List<Task> getTaskQueue() throws Exception {
-        return doInTransaction(session -> session
+    static List<Task> getTaskQueue(DatabaseCtxV2 dbCtx) throws Exception {
+        return dbCtx.doInTransaction(session -> session
                 .createQuery(TaskQueue.getTaskQueueQuery())
                 .setParameter("origin", "test")
                 .list());
     }
 
-    static void assertTaskQueueSize(int expectedSize) throws Exception {
-        List<Task> taskQueue = getTaskQueue();
+    static void assertTaskQueueSize(int expectedSize, DatabaseCtxV2 dbCtx) throws Exception {
+        List<Task> taskQueue = getTaskQueue(dbCtx);
         assertNotNull(taskQueue);
         assertEquals(expectedSize, taskQueue.size());
     }
 
-    static ShellCommandOutput runShellCommand(String command) {
-        if (isBlank(command)) {
-            return null;
-        }
-
-        log.info("Executing shell command: \t{}",
-                command);
-
-        try {
-            Process process =
-                    new ProcessBuilder(command.split("\\s+")).start();
-
-            StandardErrorCollector standardErrorReader =
-                    new StandardErrorCollector(process);
-
-            StandardOutputReader standardOutputReader =
-                    new StandardOutputReader(process);
-
-            standardOutputReader.start();
-            standardErrorReader.start();
-
-            standardOutputReader.join();
-            standardErrorReader.join();
-            process.waitFor();
-
-            int exitCode = process.exitValue();
-
-            return new ShellCommandOutput(
-                    exitCode,
-                    standardOutputReader.getStandardOutput(),
-                    standardErrorReader.getStandardError());
-        } catch (Exception e) {
-            log.error(
-                    "Failed to execute archive transfer command '{}'",
-                    command);
-            throw new RuntimeException(e);
-        }
-    }
-
-    @RequiredArgsConstructor
-    private static final class StandardOutputReader extends Thread {
-        private final Process process;
-
-        @Getter
-        private String standardOutput;
-
-        @Override
-        public void run() {
-            try (InputStream input = process.getInputStream()) {
-                standardOutput = IOUtils.toString(input, StandardCharsets.UTF_8);
-            } catch (IOException e) {
-                // We can ignore it.
-                log.error("Could not read standard output", e);
-            }
-        }
-    }
-
-    @RequiredArgsConstructor
-    private static final class StandardErrorCollector extends Thread {
-        private final Process process;
-
-        @Getter
-        private String standardError;
-
-        @Override
-        public void run() {
-            try (InputStream error = process.getErrorStream()) {
-                standardError = IOUtils.toString(error, StandardCharsets.UTF_8);
-            } catch (IOException e) {
-                // We can ignore it.
-                log.error("Could not read standard error", e);
-            }
-        }
-    }
 }

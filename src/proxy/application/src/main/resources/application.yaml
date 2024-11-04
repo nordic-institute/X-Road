@@ -96,4 +96,10 @@ xroad:
     min-free-file-handles: 100
     enabled: true
 
-
+  messagelog:
+    hibernate:
+      connection.driver_class: org.postgresql.Driver
+      connection.url: jdbc:postgresql://127.0.0.1:5432/messagelog
+      connection.username: messagelog
+      hikari.dataSource.currentSchema: messagelog,public
+      jdbc.use_streams_for_binary: true

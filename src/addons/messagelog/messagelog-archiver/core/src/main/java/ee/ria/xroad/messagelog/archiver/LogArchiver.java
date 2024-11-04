@@ -28,6 +28,7 @@ package ee.ria.xroad.messagelog.archiver;
 import ee.ria.xroad.common.CodedException;
 import ee.ria.xroad.common.ErrorCodes;
 import ee.ria.xroad.common.conf.globalconf.GlobalConfProvider;
+import ee.ria.xroad.common.db.DatabaseCtxV2;
 import ee.ria.xroad.common.messagelog.LogRecord;
 import ee.ria.xroad.common.messagelog.MessageLogProperties;
 import ee.ria.xroad.common.messagelog.MessageRecord;
@@ -61,7 +62,6 @@ import java.util.stream.Stream;
 
 import static ee.ria.xroad.common.messagelog.MessageLogProperties.getArchiveTransactionBatchSize;
 import static ee.ria.xroad.common.messagelog.MessageLogProperties.getArchiveTransferCommand;
-import static ee.ria.xroad.messagelog.database.MessageLogDatabaseCtx.doInTransaction;
 import static org.apache.commons.lang3.StringUtils.isBlank;
 
 /**
@@ -76,16 +76,18 @@ public class LogArchiver implements Job {
     public static final int FETCH_SIZE = 10;
 
     private final GlobalConfProvider globalConfProvider;
+    private final DatabaseCtxV2 databaseCtx;
     private final Path archivePath = Paths.get(MessageLogProperties.getArchivePath());
 
-    public LogArchiver(GlobalConfProvider globalConfProvider) {
+    public LogArchiver(GlobalConfProvider globalConfProvider, DatabaseCtxV2 databaseCtx) {
         this.globalConfProvider = globalConfProvider;
+        this.databaseCtx = databaseCtx;
     }
 
     @Override
     public void execute(JobExecutionContext context) {
         try {
-            Long maxRecordId = doInTransaction(this::getMaxRecordId);
+            Long maxRecordId = databaseCtx.doInTransaction(this::getMaxRecordId);
             if (maxRecordId != null) {
                 while (handleArchive(maxRecordId)) {
                     // body intentionally empty
@@ -104,7 +106,7 @@ public class LogArchiver implements Job {
     }
 
     private boolean handleArchive(long maxRecordId) throws Exception {
-        return doInTransaction(session -> {
+        return databaseCtx.doInTransaction(session -> {
             final int limit = getArchiveTransactionBatchSize();
             final String archiveTransferCommand = getArchiveTransferCommand();
             final long start = System.currentTimeMillis();

@@ -27,6 +27,9 @@ package ee.ria.xroad.messagelog.archiver;
 
 import ee.ria.xroad.common.conf.globalconf.GlobalConfBeanConfig;
 import ee.ria.xroad.common.conf.globalconf.GlobalConfRefreshJobConfig;
+import ee.ria.xroad.common.db.DatabaseCtxV2;
+import ee.ria.xroad.common.db.HibernateUtil;
+import ee.ria.xroad.common.messagelog.MessageLogConfig;
 import ee.ria.xroad.common.messagelog.MessageLogProperties;
 import ee.ria.xroad.common.util.JobManager;
 import ee.ria.xroad.common.util.SpringAwareJobManager;
@@ -42,10 +45,14 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
 import org.springframework.scheduling.quartz.SpringBeanJobFactory;
 
+import java.util.Map;
+
 @Import({GlobalConfBeanConfig.class,
         GlobalConfRefreshJobConfig.class,
         ConfClientRpcClientConfiguration.class})
-@EnableConfigurationProperties({LogArchiverConfig.MessageLogRpcServiceProperties.class})
+@EnableConfigurationProperties({
+        LogArchiverConfig.MessageLogRpcServiceProperties.class,
+        LogArchiverConfig.SpringMessageLogProperties.class})
 @Configuration
 public class LogArchiverConfig {
 
@@ -74,6 +81,20 @@ public class LogArchiverConfig {
                                        String tlsTrustStore, char[] tlsTrustStorePassword,
                                        String tlsKeyStore, char[] tlsKeyStorePassword) {
             super(listenAddress, port, tlsTrustStore, tlsTrustStorePassword, tlsKeyStore, tlsKeyStorePassword);
+        }
+    }
+
+    @Bean
+    DatabaseCtxV2 logArchiverDatabaseCtx(MessageLogConfig messageLogProperties) {
+        var sessionFactory = HibernateUtil.createSessionFactory("messagelog",
+                messageLogProperties.getHibernate());
+        return new DatabaseCtxV2("messagelog", sessionFactory);
+    }
+
+    @ConfigurationProperties(prefix = "xroad.messagelog")
+    static class SpringMessageLogProperties extends MessageLogConfig {
+        SpringMessageLogProperties(Map<String, String> hibernate) {
+            super(hibernate);
         }
     }
 }

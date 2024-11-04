@@ -25,6 +25,7 @@
  */
 package ee.ria.xroad.proxy.messagelog;
 
+import ee.ria.xroad.common.db.DatabaseCtxV2;
 import ee.ria.xroad.messagelog.archiver.LogCleaner;
 
 import java.util.concurrent.CountDownLatch;
@@ -33,6 +34,10 @@ import java.util.concurrent.TimeUnit;
 class TestLogCleaner extends LogCleaner {
 
     private static CountDownLatch gate = new CountDownLatch(1);
+
+    TestLogCleaner(DatabaseCtxV2 databaseCtx) {
+        super(databaseCtx);
+    }
 
     public static void waitForCleanSuccessful() throws Exception {
         try {

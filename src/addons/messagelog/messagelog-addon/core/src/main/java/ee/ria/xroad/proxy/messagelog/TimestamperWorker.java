@@ -42,6 +42,7 @@ import java.util.List;
 public class TimestamperWorker {
     private final GlobalConfProvider globalConfProvider;
     private final List<String> tspUrls;
+    private final LogRecordManager logRecordManager;
 
     public Timestamper.TimestampResult timestamp(TimestampTask message) {
         log.trace("timestamp({})", message.getClass());
@@ -104,11 +105,11 @@ public class TimestamperWorker {
     }
 
     protected AbstractTimestampRequest createSingleTimestampRequest(Long logRecord) {
-        return new SingleTimestampRequest(globalConfProvider, logRecord);
+        return new SingleTimestampRequest(globalConfProvider, logRecord, logRecordManager);
     }
 
     protected AbstractTimestampRequest createBatchTimestampRequest(Long[] logRecords, String[] signatureHashes) {
-        return new BatchTimestampRequest(globalConfProvider, logRecords, signatureHashes);
+        return new BatchTimestampRequest(globalConfProvider, logRecords, signatureHashes, logRecordManager);
     }
 
 }
