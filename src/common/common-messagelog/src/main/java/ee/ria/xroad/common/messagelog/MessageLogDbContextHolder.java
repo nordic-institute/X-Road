@@ -1,5 +1,6 @@
 /*
  * The MIT License
+ *
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
@@ -23,33 +24,30 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package ee.ria.xroad.proxy.messagelog;
 
-import ee.ria.xroad.common.conf.globalconf.GlobalConfProvider;
+package ee.ria.xroad.common.messagelog;
+
 import ee.ria.xroad.common.db.DatabaseCtxV2;
-import ee.ria.xroad.messagelog.archiver.LogArchiver;
 
-import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.TimeUnit;
+import lombok.experimental.UtilityClass;
 
-class TestLogArchiver extends LogArchiver {
+import java.util.Objects;
 
-    private static CountDownLatch gate = new CountDownLatch(1);
+/**
+ * Workaround to access MessageLog database context.
+ */
+@UtilityClass
+public class MessageLogDbContextHolder {
+    private static DatabaseCtxV2 databaseCtx;
 
-    TestLogArchiver(GlobalConfProvider globalConfProvider, DatabaseCtxV2 databaseCtx) {
-        super(globalConfProvider, databaseCtx);
+
+    public static void set(DatabaseCtxV2 dbCtx) {
+        databaseCtx = dbCtx;
     }
 
-    public static void waitForArchiveSuccessful() throws Exception {
-        try {
-            gate.await(5, TimeUnit.SECONDS);
-        } finally {
-            gate = new CountDownLatch(1);
-        }
+    public static DatabaseCtxV2 instance() {
+        Objects.requireNonNull(databaseCtx, "MessageLog database context not initialized");
+        return databaseCtx;
     }
 
-    @Override
-    protected void onArchivingDone() {
-        gate.countDown();
-    }
 }

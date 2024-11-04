@@ -29,6 +29,8 @@ import ee.ria.xroad.common.DiagnosticsStatus;
 import ee.ria.xroad.common.conf.globalconf.GlobalConfProvider;
 import ee.ria.xroad.common.conf.serverconf.ServerConfProvider;
 
+import ee.ria.xroad.common.db.DatabaseCtxV2;
+
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.DisposableBean;
 
@@ -42,7 +44,8 @@ import java.util.concurrent.ConcurrentHashMap;
 public abstract class AbstractLogManager implements DisposableBean {
     protected static Map<String, DiagnosticsStatus> statusMap = new ConcurrentHashMap<>();
 
-    protected AbstractLogManager(String origin, GlobalConfProvider globalConfProvider, ServerConfProvider serverConfProvider) {
+    protected AbstractLogManager(String origin, GlobalConfProvider globalConfProvider, ServerConfProvider serverConfProvider,
+                                 DatabaseCtxV2 databaseCtx) {
         if (globalConfProvider == null) {
             throw new IllegalArgumentException("globalConfProvider cannot be null");
         }

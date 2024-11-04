@@ -31,16 +31,18 @@ import ee.ria.xroad.common.conf.serverconf.ServerConfProvider;
 class TestTimestamper extends Timestamper {
     private final GlobalConfProvider globalConfProvider;
     private final ServerConfProvider serverConfProvider;
+    private final LogRecordManager logRecordManager;
 
-    TestTimestamper(GlobalConfProvider globalConfProvider, ServerConfProvider serverConfProvider) {
-        super(globalConfProvider, serverConfProvider);
+    TestTimestamper(GlobalConfProvider globalConfProvider, ServerConfProvider serverConfProvider, LogRecordManager logRecordManager) {
+        super(globalConfProvider, serverConfProvider, logRecordManager);
         this.globalConfProvider = globalConfProvider;
         this.serverConfProvider = serverConfProvider;
+        this.logRecordManager = logRecordManager;
     }
 
     @Override
     protected TimestamperWorker getWorkerImpl() {
-        return new TestTimestamperWorker(globalConfProvider, serverConfProvider.getTspUrl());
+        return new TestTimestamperWorker(globalConfProvider, serverConfProvider.getTspUrl(), logRecordManager);
     }
 
 }

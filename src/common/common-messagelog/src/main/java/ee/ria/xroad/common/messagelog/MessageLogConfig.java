@@ -1,5 +1,6 @@
 /*
  * The MIT License
+ *
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
@@ -23,36 +24,18 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package ee.ria.xroad.messagelog.database;
 
-import ee.ria.xroad.common.db.DatabaseCtx;
-import ee.ria.xroad.common.db.TransactionCallback;
+package ee.ria.xroad.common.messagelog;
 
-/**
- * Message log database context.
- */
-public final class MessageLogDatabaseCtx {
+import lombok.Getter;
+import lombok.RequiredArgsConstructor;
 
-    private static final DatabaseCtx CTX = new DatabaseCtx("messagelog");
+import java.util.Map;
 
-    private MessageLogDatabaseCtx() {
-    }
-
-    /**
-     * @return the current context.
-     */
-    public static DatabaseCtx get() {
-        return CTX;
-    }
-
-    /**
-     * Convenience method for a transaction callback.
-     * @param <T> the type of result.
-     * @param callback the callback.
-     * @return the result.
-     * @throws Exception if an error occurs.
-     */
-    public static <T> T doInTransaction(TransactionCallback<T> callback) throws Exception {
-        return CTX.doInTransaction(callback);
-    }
+// todo: should be renamed to MessageLogProperties to be consistent with other classes. But first MessageLogProperties
+//  should be refactored to use configuration properties.
+@Getter
+@RequiredArgsConstructor
+public class MessageLogConfig {
+    private final Map<String, String> hibernate; // messagelog.hibernate.* properties from db-properties file
 }

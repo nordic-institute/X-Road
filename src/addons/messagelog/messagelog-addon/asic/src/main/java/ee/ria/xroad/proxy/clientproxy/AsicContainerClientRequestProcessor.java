@@ -118,14 +118,17 @@ public class AsicContainerClientRequestProcessor extends MessageProcessorBase {
 
     private final GroupingStrategy groupingStrategy = MessageLogProperties.getArchiveGrouping();
     private final EncryptionConfigProvider encryptionConfigProvider;
+    private final LogRecordManager logRecordManager;
 
     public AsicContainerClientRequestProcessor(GlobalConfProvider globalConfProvider,
                                                KeyConfProvider keyConfProvider,
                                                ServerConfProvider serverConfProvider,
                                                CertChainFactory certChainFactory,
-                                               String target, RequestWrapper request, ResponseWrapper response)
+                                               String target, RequestWrapper request, ResponseWrapper response,
+                                               LogRecordManager logRecordManager)
             throws IOException {
         super(globalConfProvider, keyConfProvider, serverConfProvider, certChainFactory, request, response, null);
+        this.logRecordManager = logRecordManager;
         this.target = target;
         this.encryptionConfigProvider = EncryptionConfigProvider.getInstance(groupingStrategy);
     }
@@ -217,7 +220,7 @@ public class AsicContainerClientRequestProcessor extends MessageProcessorBase {
     }
 
     private void ensureTimestamped(ClientId id, String queryId, Boolean response, boolean force) throws Exception {
-        final List<MessageRecord> records = LogRecordManager.getByQueryId(queryId, id, response, Function.identity());
+        final List<MessageRecord> records = logRecordManager.getByQueryId(queryId, id, response, Function.identity());
 
         if (records.isEmpty()) {
             throw new CodedExceptionWithHttpStatus(NOT_FOUND_404, ErrorCodes.X_NOT_FOUND,
@@ -300,7 +303,7 @@ public class AsicContainerClientRequestProcessor extends MessageProcessorBase {
     private void writeContainers(ClientId clientId, String queryId, AsicContainerNameGenerator nameGen,
                                  Boolean response, CheckedSupplier<OutputStream> outputSupplier) throws Exception {
 
-        LogRecordManager.getByQueryId(queryId, clientId, response, records -> {
+        logRecordManager.getByQueryId(queryId, clientId, response, records -> {
             if (records.isEmpty()) {
                 throw new CodedExceptionWithHttpStatus(NOT_FOUND_404, ErrorCodes.X_NOT_FOUND,
                         DOCUMENTS_NOT_FOUND_FAULT_MESSAGE);
@@ -362,7 +365,7 @@ public class AsicContainerClientRequestProcessor extends MessageProcessorBase {
                 encryptionConfigProvider.forGrouping(groupingStrategy.forClient(clientId));
         final boolean encryptionEnabled = encryptionConfig.isEnabled();
 
-        LogRecordManager.getByQueryIdUnique(queryId, clientId, response, record -> {
+        logRecordManager.getByQueryIdUnique(queryId, clientId, response, record -> {
             try {
                 if (record == null) {
                     throw new CodedExceptionWithHttpStatus(NOT_FOUND_404, ErrorCodes.X_NOT_FOUND,

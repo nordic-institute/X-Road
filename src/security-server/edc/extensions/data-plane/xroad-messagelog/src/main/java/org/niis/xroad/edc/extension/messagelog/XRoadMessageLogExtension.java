@@ -29,6 +29,7 @@ package org.niis.xroad.edc.extension.messagelog;
 
 import ee.ria.xroad.common.conf.globalconf.GlobalConfProvider;
 import ee.ria.xroad.common.conf.serverconf.ServerConfProvider;
+import ee.ria.xroad.common.db.DatabaseCtxV2;
 import ee.ria.xroad.common.messagelog.AbstractLogManager;
 import ee.ria.xroad.proxy.messagelog.LogManager;
 
@@ -69,9 +70,11 @@ public class XRoadMessageLogExtension implements ServiceExtension {
         boolean isMessageLogEnabled = context.getSetting(XROAD_MESSAGELOG_ENABLED, false);
         String origin = context.getSetting(XROAD_MESSAGELOG_ORIGIN, "edc");
 
+        // todo: fixme: implement me !!! create DatabaseCtx
+        DatabaseCtxV2 databaseCtx = new DatabaseCtxV2("", null);
         AbstractLogManager logManager = isMessageLogEnabled
-                ? new LogManager(origin, globalConfProvider, serverConfProvider)
-                : new NoopLogManager(origin, globalConfProvider, serverConfProvider);
+                ? new LogManager(origin, globalConfProvider, serverConfProvider, null)
+                : new NoopLogManager(origin, globalConfProvider, serverConfProvider, databaseCtx);
         context.registerService(XRoadMessageLog.class, new XRoadMessageLogImpl(monitor, logManager));
     }
 

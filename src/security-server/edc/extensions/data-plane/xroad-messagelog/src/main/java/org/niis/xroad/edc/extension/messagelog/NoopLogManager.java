@@ -29,14 +29,15 @@ package org.niis.xroad.edc.extension.messagelog;
 
 import ee.ria.xroad.common.conf.globalconf.GlobalConfProvider;
 import ee.ria.xroad.common.conf.serverconf.ServerConfProvider;
+import ee.ria.xroad.common.db.DatabaseCtxV2;
 import ee.ria.xroad.common.messagelog.AbstractLogManager;
 import ee.ria.xroad.common.messagelog.LogMessage;
 import ee.ria.xroad.common.messagelog.TimestampRecord;
 
 public class NoopLogManager extends AbstractLogManager {
 
-    NoopLogManager(String origin, GlobalConfProvider globalConfProvider, ServerConfProvider serverConfProvider) {
-        super(origin, globalConfProvider, serverConfProvider);
+    NoopLogManager(String origin, GlobalConfProvider globalConfProvider, ServerConfProvider serverConfProvider, DatabaseCtxV2 databaseCtx) {
+        super(origin, globalConfProvider, serverConfProvider, databaseCtx);
     }
 
     @Override

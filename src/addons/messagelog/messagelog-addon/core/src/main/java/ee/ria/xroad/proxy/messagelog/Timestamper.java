@@ -47,6 +47,7 @@ import static ee.ria.xroad.common.ErrorCodes.X_OUTDATED_GLOBALCONF;
 public class Timestamper {
     private final GlobalConfProvider globalConfProvider;
     private final ServerConfProvider serverConfProvider;
+    private final LogRecordManager logRecordManager;
 
     @Data
     @RequiredArgsConstructor
@@ -81,7 +82,7 @@ public class Timestamper {
     }
 
     protected TimestamperWorker getWorkerImpl() {
-        return new TimestamperWorker(globalConfProvider, serverConfProvider.getTspUrl());
+        return new TimestamperWorker(globalConfProvider, serverConfProvider.getTspUrl(), logRecordManager);
     }
 
     public TimestampResult handleTimestampTask(TimestampTask message) {

@@ -31,6 +31,7 @@ import ee.ria.xroad.common.DiagnosticsStatus;
 import ee.ria.xroad.common.DiagnosticsUtils;
 import ee.ria.xroad.common.conf.globalconf.GlobalConfProvider;
 import ee.ria.xroad.common.conf.serverconf.ServerConfProvider;
+import ee.ria.xroad.common.db.DatabaseCtxV2;
 import ee.ria.xroad.common.messagelog.AbstractLogManager;
 import ee.ria.xroad.common.messagelog.LogMessage;
 import ee.ria.xroad.common.messagelog.MessageLogProperties;
@@ -49,6 +50,7 @@ import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.Date;
 import java.util.Map;
+import java.util.Objects;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledFuture;
@@ -80,6 +82,7 @@ public class LogManager extends AbstractLogManager {
 
     protected final GlobalConfProvider globalConfProvider;
     protected final ServerConfProvider serverConfProvider;
+    protected final LogRecordManager logRecordManager;
 
     private final Timestamper timestamper;
     private final TimestamperJob timestamperJob;
@@ -89,14 +92,16 @@ public class LogManager extends AbstractLogManager {
     // package private for testing
     final TaskQueue taskQueue;
 
-    public LogManager(String origin, GlobalConfProvider globalConfProvider, ServerConfProvider serverConfProvider) {
-        super(origin, globalConfProvider, serverConfProvider);
-
+    public LogManager(String origin, GlobalConfProvider globalConfProvider, ServerConfProvider serverConfProvider,
+                      DatabaseCtxV2 databaseCtx) {
+        super(origin, globalConfProvider, serverConfProvider, databaseCtx);
+        Objects.requireNonNull(databaseCtx, "MessageLog Database configuration missing.");
         this.origin = origin;
         this.globalConfProvider = globalConfProvider;
         this.serverConfProvider = serverConfProvider;
+        this.logRecordManager = new LogRecordManager(databaseCtx);
         this.timestamper = getTimestamperImpl();
-        this.taskQueue = getTaskQueueImpl(timestamper, origin);
+        this.taskQueue = getTaskQueueImpl(timestamper, origin, databaseCtx);
         this.timestamperJob = createTimestamperJob(taskQueue);
     }
 
@@ -147,7 +152,7 @@ public class LogManager extends AbstractLogManager {
     public TimestampRecord timestamp(Long messageRecordId) throws Exception {
         log.trace("timestamp({})", messageRecordId);
 
-        MessageRecord record = (MessageRecord) LogRecordManager.get(messageRecordId);
+        MessageRecord record = (MessageRecord) logRecordManager.get(messageRecordId);
 
         if (record.getTimestampRecord() != null) {
             return record.getTimestampRecord();
@@ -169,12 +174,12 @@ public class LogManager extends AbstractLogManager {
 
     // ------------------------------------------------------------------------
 
-    protected TaskQueue getTaskQueueImpl(Timestamper timestamperParam, String originParam) {
-        return new TaskQueue(timestamperParam, this, originParam);
+    protected TaskQueue getTaskQueueImpl(Timestamper timestamperParam, String originParam, DatabaseCtxV2 databaseCtx) {
+        return new TaskQueue(timestamperParam, this, originParam, databaseCtx);
     }
 
     protected Timestamper getTimestamperImpl() {
-        return new Timestamper(globalConfProvider, serverConfProvider);
+        return new Timestamper(globalConfProvider, serverConfProvider, logRecordManager);
     }
 
     private TimestampRecord timestampImmediately(MessageRecord logRecord) throws Exception {
@@ -257,7 +262,7 @@ public class LogManager extends AbstractLogManager {
     }
 
     protected MessageRecord saveMessageRecord(MessageRecord messageRecord) throws Exception {
-        LogRecordManager.saveMessageRecord(messageRecord);
+        logRecordManager.saveMessageRecord(messageRecord);
         return messageRecord;
     }
 
@@ -267,7 +272,7 @@ public class LogManager extends AbstractLogManager {
         putStatusMapSuccess(message.getUrl());
 
         TimestampRecord timestampRecord = createTimestampRecord(message);
-        LogRecordManager.saveTimestampRecord(timestampRecord, message.getMessageRecords(), message.getHashChains());
+        logRecordManager.saveTimestampRecord(timestampRecord, message.getMessageRecords(), message.getHashChains());
 
         return timestampRecord;
     }

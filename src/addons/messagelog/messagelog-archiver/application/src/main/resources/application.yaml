@@ -11,6 +11,14 @@ server:
   port: 5598
 
 xroad:
+  #todo: unify with message-log
+  messagelog:
+    hibernate:
+      connection.driver_class: org.postgresql.Driver
+      connection.url: jdbc:postgresql://127.0.0.1:5432/messagelog
+      connection.username: messagelog
+      hikari.dataSource.currentSchema: messagelog,public
+      jdbc.use_streams_for_binary: true
   message-log:
     timestamper-client-connect-timeout: 20000
     timestamper-client-read-timeout: 60000

@@ -25,6 +25,7 @@
  */
 package ee.ria.xroad.proxy.messagelog;
 
+import ee.ria.xroad.common.db.DatabaseCtxV2;
 import ee.ria.xroad.common.db.HibernateUtil;
 import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.messagelog.AbstractLogRecord;
@@ -37,6 +38,7 @@ import jakarta.persistence.criteria.CriteriaBuilder;
 import jakarta.persistence.criteria.CriteriaQuery;
 import jakarta.persistence.criteria.Predicate;
 import jakarta.persistence.criteria.Root;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.hibernate.Session;
 import org.hibernate.query.Query;
@@ -50,12 +52,11 @@ import java.util.Date;
 import java.util.List;
 import java.util.function.Function;
 
-import static ee.ria.xroad.messagelog.database.MessageLogDatabaseCtx.doInTransaction;
-
 /**
  * Log record manager handles saving of log records to database.
  */
 @Slf4j
+@RequiredArgsConstructor
 public final class LogRecordManager {
 
     private static final int DEFAULT_BATCH_SIZE = 50;
@@ -70,8 +71,7 @@ public final class LogRecordManager {
     private static final int INDEX_2 = 2;
     private static final int INDEX_3 = 3;
 
-    private LogRecordManager() {
-    }
+    private final DatabaseCtxV2 databaseCtx;
 
     /**
      * Returns a log record for a given message Query Id, start and end time.
@@ -82,10 +82,10 @@ public final class LogRecordManager {
      * @return the log record or null, if log record is not found in database.
      * @throws Exception if an error occurs while communicating with database.
      */
-    static LogRecord getByQueryId(String queryId, Date startTime, Date endTime) throws Exception {
+    LogRecord getByQueryId(String queryId, Date startTime, Date endTime) throws Exception {
         log.trace(GET_BY_QUERY_ID_LOG_FORMAT, queryId, startTime, endTime);
 
-        return doInTransaction(session -> getMessageRecord(session, queryId, startTime, endTime));
+        return databaseCtx.doInTransaction(session -> getMessageRecord(session, queryId, startTime, endTime));
     }
 
     /**
@@ -97,12 +97,12 @@ public final class LogRecordManager {
      * @return the log record or null, if log record is not found in database.
      * @throws Exception if an error occurs while communicating with database.
      */
-    public static <R> R getByQueryIdUnique(String queryId, ClientId clientId, Boolean isResponse,
+    public <R> R getByQueryIdUnique(String queryId, ClientId clientId, Boolean isResponse,
                                            Function<MessageRecord, R> processor)
             throws Exception {
         log.trace(GET_BY_QUERY_ID_LOG_FORMAT, queryId, clientId, isResponse);
 
-        return doInTransaction(session -> processor.apply(getMessageRecord(session, queryId, clientId, isResponse)));
+        return databaseCtx.doInTransaction(session -> processor.apply(getMessageRecord(session, queryId, clientId, isResponse)));
     }
 
     /**
@@ -114,12 +114,12 @@ public final class LogRecordManager {
      * @return the log record list or empty list, if no log records were not found in database.
      * @throws Exception if an error occurs while communicating with database.
      */
-    public static <R> R getByQueryId(String queryId, ClientId clientId, Boolean isResponse,
+    public <R> R getByQueryId(String queryId, ClientId clientId, Boolean isResponse,
                                      Function<List<MessageRecord>, R> processor)
             throws Exception {
         log.trace(GET_BY_QUERY_ID_LOG_FORMAT, queryId, clientId, isResponse);
 
-        return doInTransaction(session -> processor.apply(getMessageRecords(session, queryId, clientId, isResponse)));
+        return databaseCtx.doInTransaction(session -> processor.apply(getMessageRecords(session, queryId, clientId, isResponse)));
     }
 
     /**
@@ -129,10 +129,10 @@ public final class LogRecordManager {
      * @return the log record or null, if log record is not found in database.
      * @throws Exception if an error occurs while communicating with database.
      */
-    public static LogRecord get(Long number) throws Exception {
+    public LogRecord get(Long number) throws Exception {
         log.trace("get({})", number);
 
-        return doInTransaction(session -> getLogRecord(session, number));
+        return databaseCtx.doInTransaction(session -> getLogRecord(session, number));
     }
 
     /**
@@ -141,12 +141,12 @@ public final class LogRecordManager {
      * @param messageRecord the message record to be saved.
      * @throws Exception if an error occurs while communicating with database.
      */
-    static void saveMessageRecord(MessageRecord messageRecord) throws Exception {
+    void saveMessageRecord(MessageRecord messageRecord) throws Exception {
 
         final MessageRecordEncryption encryption = MessageRecordEncryption.getInstance();
         final boolean encrypt = encryption.encryptionEnabled();
 
-        doInTransaction(session -> {
+        databaseCtx.doInTransaction(session -> {
             //the blob must be created within hibernate session
             messageRecord.setId(getNextRecordId(session));
 
@@ -172,8 +172,8 @@ public final class LogRecordManager {
      * @throws Exception if an error occurs while communicating with database.
      */
     @SuppressWarnings("JpaQlInspection")
-    static void updateMessageRecordSignature(MessageRecord messageRecord, String oldHash) throws Exception {
-        doInTransaction(session -> {
+    void updateMessageRecordSignature(MessageRecord messageRecord, String oldHash) throws Exception {
+        databaseCtx.doInTransaction(session -> {
             final Query<?> query = session.createQuery("update MessageRecord m "
                     + "set m.signature = :signature, m.signatureHash = :hash "
                     + "where m.id = :id and m.timestampRecord is null and m.signatureHash = :oldhash");
@@ -196,10 +196,10 @@ public final class LogRecordManager {
      * @param hashChains            the time-stamp hash chains for each message record.
      * @throws Exception if an error occurs while communicating with database.
      */
-    static void saveTimestampRecord(TimestampRecord timestampRecord, Long[]
+    void saveTimestampRecord(TimestampRecord timestampRecord, Long[]
             timestampedLogRecords, String[] hashChains)
             throws Exception {
-        doInTransaction(session -> {
+        databaseCtx.doInTransaction(session -> {
             timestampRecord.setId(getNextRecordId(session));
             save(session, timestampRecord);
             setMessageRecordsTimestamped(session, timestampedLogRecords, timestampRecord, hashChains);
