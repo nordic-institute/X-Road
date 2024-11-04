@@ -76,7 +76,7 @@ export default defineComponent({
 </script>
 
 <style lang="scss" scoped>
-@import '../assets/colors';
+@use '../assets/colors';
 
 .expanding-search {
   transition: 0.4s;
@@ -92,7 +92,7 @@ export default defineComponent({
   min-width: 10px;
 
   :deep(.v-field__outline:before) {
-    border-color: $XRoad-WarmGrey30;
+    border-color: colors.$WarmGrey30;
   }
 
   :deep(.v-field__input) {
@@ -100,7 +100,7 @@ export default defineComponent({
   }
 
   :deep(.v-field__prepend-inner>i) {
-    color: $XRoad-Purple100;
+    color: colors.$Purple100;
     opacity: 1;
   }
 }

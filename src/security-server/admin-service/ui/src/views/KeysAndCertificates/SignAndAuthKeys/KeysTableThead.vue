@@ -163,7 +163,8 @@ export default defineComponent({
 </script>
 
 <style lang="scss" scoped>
-@import '@/assets/tables';
+@use '@/assets/tables';
+@use '@/assets/colors';
 
 /* Needs two classes to override xrd-table style */
 .target-row {
@@ -186,7 +187,7 @@ export default defineComponent({
 .action-col {
   width: 10%;
   font-weight: 700;
-  color: $XRoad-Black100;
+  color: colors.$Black100;
   cursor: pointer;
   user-select: none;
 }
@@ -197,6 +198,6 @@ export default defineComponent({
   flex-direction: row;
   align-items: center;
   font-weight: 700;
-  color: $XRoad-Black100;
+  color: colors.$Black100;
 }
 </style>

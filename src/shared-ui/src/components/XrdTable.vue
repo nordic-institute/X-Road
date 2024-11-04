@@ -36,7 +36,7 @@ This component is a wrapper for a X-Road table component that contains default s
 </template>
 
 <style scoped lang="scss">
-@import '../assets/colors';
+@use '../assets/colors';
 
 .xrd-table {
   width: 100%;
@@ -45,23 +45,23 @@ This component is a wrapper for a X-Road table component that contains default s
 
   td {
     height: 56px;
-    border-bottom: $XRoad-WarmGrey30 solid 1px;
+    border-bottom: colors.$WarmGrey30 solid 1px;
     padding-left: 16px;
   }
 
   th {
     height: 56px;
-    border-bottom: $XRoad-WarmGrey30 solid 1px;
+    border-bottom: colors.$WarmGrey30 solid 1px;
     padding-left: 16px;
     text-align: left;
     text-transform: uppercase;
     font-size: 12px;
-    color: $XRoad-WarmGrey100;
+    color: colors.$WarmGrey100;
   }
 
   &.xrd-table-highlightable tbody tr:hover {
     cursor: pointer;
-    background-color: $XRoad-Purple10;
+    background-color: colors.$Purple10;
   }
 }
 </style>

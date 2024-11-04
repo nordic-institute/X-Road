@@ -184,7 +184,7 @@ EOF
 
   LIQUIBASE_HOME="/usr/share/xroad/db" JAVA_OPTS="-Ddb_user=$db_user -Ddb_schema=$db_schema" /usr/share/xroad/db/liquibase.sh \
     --classpath=/usr/share/xroad/jlib/postgresql.jar \
-    --url="jdbc:postgresql://$db_host/$db_database?currentSchema=${db_schema},public" \
+    --url="jdbc:postgresql://${PGHOST:-$db_addr}:${PGPORT:-$db_port}/$db_database?targetServerType=primary&currentSchema=${db_schema},public" \
     --changeLogFile="$db_name-changelog.xml" \
     --password="${db_admin_password}" \
     --username="${db_admin_conn_user}" \

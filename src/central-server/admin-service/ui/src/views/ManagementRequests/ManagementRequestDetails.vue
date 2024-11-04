@@ -221,8 +221,8 @@ export default defineComponent({
 });
 </script>
 <style lang="scss" scoped>
-@import '@/assets/tables';
-@import '@/assets/colors';
+@use '@/assets/tables' as *;
+@use '@/assets/colors';
 
 .management-request-additional-details {
   margin-top: 24px;

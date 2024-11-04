@@ -295,11 +295,11 @@ export default defineComponent({
 </script>
 
 <style lang="scss" scoped>
-@import '@/assets/colors';
-@import '@/assets/tables';
+@use '@/assets/colors';
+@use '@/assets/tables' as *;
 
 .server-code {
-  color: $XRoad-Purple100;
+  color: colors.$Purple100;
   font-weight: 600;
   font-size: 14px;
   display: flex;
@@ -309,7 +309,7 @@ export default defineComponent({
 .card-title {
   font-size: 12px;
   text-transform: uppercase;
-  color: $XRoad-Black70;
+  color: colors.$Black70;
   font-weight: bold;
   padding-top: 5px;
   padding-bottom: 5px;
@@ -322,7 +322,7 @@ export default defineComponent({
 
 .delete-action {
   margin-top: 34px;
-  color: $XRoad-Link;
+  color: colors.$Link;
   cursor: pointer;
   display: flex;
   flex-direction: row;

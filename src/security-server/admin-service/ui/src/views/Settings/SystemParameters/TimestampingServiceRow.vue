@@ -114,15 +114,15 @@ export default defineComponent({
 </script>
 
 <style lang="scss" scoped>
-@import '@/assets/colors';
-@import '@/assets/tables';
+@use '@/assets/colors';
+@use '@/assets/tables';
 
 .disabled {
-  color: $XRoad-WarmGrey100;
+  color: colors.$WarmGrey100;
 }
 
 tr td {
-  color: $XRoad-Black100;
+  color: colors.$Black100;
   font-weight: normal !important;
 }
 
