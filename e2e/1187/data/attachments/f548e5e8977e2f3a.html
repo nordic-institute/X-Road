@@ -1,0 +1,49 @@
+<div>
+    <h4>Rest call: http://localhost:32769</h4>
+    <div class="content">
+  <strong>Request:</strong>
+  <pre class="details-content">curl -X POST \
+'http://localhost:32769' \
+-H 'ACCEPT: */*' \
+-H 'CONTENT-TYPE: text/xml; charset=ISO-8859-1' \
+-d '&lt;soapenv:Envelope xmlns:soapenv=&quot;http://schemas.xmlsoap.org/soap/envelope/&quot; xmlns:xro=&quot;http://x-road.eu/xsd/xroad.xsd&quot; xmlns:iden=&quot;http://x-road.eu/xsd/identifiers&quot; &gt;
+    &lt;soapenv:Header&gt;
+        &lt;xro:client iden:objectType=&quot;SUBSYSTEM&quot;&gt;
+            &lt;iden:xRoadInstance&gt;DEV&lt;/iden:xRoadInstance&gt;
+            &lt;iden:memberClass&gt;COM&lt;/iden:memberClass&gt;
+            &lt;iden:memberCode&gt;4321&lt;/iden:memberCode&gt;
+            &lt;iden:subsystemCode&gt;TestClient&lt;/iden:subsystemCode&gt;
+        &lt;/xro:client&gt;
+        &lt;xro:service iden:objectType=&quot;SERVICE&quot;&gt;
+            &lt;iden:xRoadInstance&gt;DEV&lt;/iden:xRoadInstance&gt;
+            &lt;iden:memberClass&gt;COM&lt;/iden:memberClass&gt;
+            &lt;iden:memberCode&gt;1234&lt;/iden:memberCode&gt;
+            &lt;iden:subsystemCode&gt;TestService&lt;/iden:subsystemCode&gt;
+            &lt;iden:serviceCode&gt;getRandom&lt;/iden:serviceCode&gt;
+            &lt;iden:serviceVersion&gt;v1&lt;/iden:serviceVersion&gt;
+        &lt;/xro:service&gt;
+        &lt;xro:id&gt;ID11234&lt;/xro:id&gt;
+        &lt;xro:userId&gt;EE1234567890&lt;/xro:userId&gt;
+        &lt;xro:protocolVersion&gt;4.0&lt;/xro:protocolVersion&gt;
+    &lt;/soapenv:Header&gt;
+    &lt;soapenv:Body&gt;
+        &lt;prod:getRandom xmlns:prod=&quot;http://test.x-road.fi/producer&quot;&gt;
+            &lt;prod:request/&gt;
+        &lt;/prod:getRandom&gt;
+    &lt;/soapenv:Body&gt;
+&lt;/soapenv:Envelope&gt;'
+</pre>
+</div>
+<div class="content">
+  <details>
+    <summary style="cursor:pointer">
+      <strong>Response:</strong>
+    </summary>
+    <pre class="details-content"><code class="json">{
+  &quot;headers&quot; : { },
+  &quot;body&quot; : &quot;&lt;?xml version=\&quot;1.0\&quot; encoding=\&quot;UTF-8\&quot;?&gt;\n&lt;soapenv:Envelope xmlns:soapenv=\&quot;http://schemas.xmlsoap.org/soap/envelope/\&quot; xmlns:iden=\&quot;http://x-road.eu/xsd/identifiers\&quot; xmlns:xro=\&quot;http://x-road.eu/xsd/xroad.xsd\&quot;&gt;\n    &lt;soapenv:Header&gt;\n        &lt;xro:client iden:objectType=\&quot;SUBSYSTEM\&quot;&gt;\n            &lt;iden:xRoadInstance&gt;DEV&lt;/iden:xRoadInstance&gt;\n            &lt;iden:memberClass&gt;COM&lt;/iden:memberClass&gt;\n            &lt;iden:memberCode&gt;4321&lt;/iden:memberCode&gt;\n            &lt;iden:subsystemCode&gt;TestClient&lt;/iden:subsystemCode&gt;\n        &lt;/xro:client&gt;\n        &lt;xro:service iden:objectType=\&quot;SERVICE\&quot;&gt;\n            &lt;iden:xRoadInstance&gt;DEV&lt;/iden:xRoadInstance&gt;\n            &lt;iden:memberClass&gt;COM&lt;/iden:memberClass&gt;\n            &lt;iden:memberCode&gt;1234&lt;/iden:memberCode&gt;\n            &lt;iden:subsystemCode&gt;TestService&lt;/iden:subsystemCode&gt;\n            &lt;iden:serviceCode&gt;getRandom&lt;/iden:serviceCode&gt;\n            &lt;iden:serviceVersion&gt;v1&lt;/iden:serviceVersion&gt;\n        &lt;/xro:service&gt;\n        &lt;xro:id&gt;ID11234&lt;/xro:id&gt;\n        &lt;xro:requestHash algorithmId=\&quot;http://www.w3.org/2001/04/xmlenc#sha512\&quot;&gt;XlSn+VzYwTB+K/myNdhJb1V7zMfNTW5NqeTzHbVdZ8kUjeHkWjScDyDxEedUomDqgg2EBNtJ3QWmuO2i01AFKw==&lt;/xro:requestHash&gt;\n        &lt;xro:userId&gt;EE1234567890&lt;/xro:userId&gt;\n        &lt;xro:protocolVersion&gt;4.0&lt;/xro:protocolVersion&gt;\n    &lt;/soapenv:Header&gt;\n    &lt;soapenv:Body&gt;&lt;ts1:getRandomResponse xmlns:ts1=\&quot;http://test.x-road.global/producer\&quot;&gt;&lt;ts1:data&gt;51&lt;/ts1:data&gt;&lt;/ts1:getRandomResponse&gt;&lt;/soapenv:Body&gt;\n&lt;/soapenv:Envelope&gt;\n&quot;,
+  &quot;status&quot; : 200
+}</code></pre>
+  </details>
+</div>
+</div>
