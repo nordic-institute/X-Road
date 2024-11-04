@@ -374,6 +374,7 @@ jobs:
     name: Create Allure links
     needs: [RunCSSystemTests, RunSSSystemTests, RunE2ETests]
     runs-on: ubuntu-22.04
+    uses: actions/github-script@v7
     steps:
       - name: Generate links table
         with:
