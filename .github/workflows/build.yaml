@@ -99,6 +99,8 @@ jobs:
     name: Run Central Server system tests
     needs: BuildAndPackageWithUnitTests
     runs-on: ubuntu-22.04
+    outputs:
+      cs-artifacts-url: ${{ steps.cs-artifacts-step.outputs.artifact-url }}
     services:
       registry:
         image: registry:2
@@ -150,6 +152,7 @@ jobs:
           path: src/central-server/admin-service/ui-system-test/build/test-results/**/TEST-*.xml
           reporter: java-junit
       - name: Upload CS screenshots
+        id: cs-artifacts-step
         if: failure()
         uses: actions/upload-artifact@v4
         with:
@@ -182,6 +185,8 @@ jobs:
   RunSSSystemTests:
     name: Run Security Server system tests
     needs: BuildAndPackageWithUnitTests
+    outputs:
+      ss-artifacts-url: ${{ steps.ss-artifacts-step.outputs.artifact-url }}
     runs-on: ubuntu-22.04
     services:
       registry:
@@ -235,6 +240,7 @@ jobs:
         run: sudo chown -R $USER src/security-server/system-test/build/ss-container-logs/ && sudo chown -R $USER src/security-server/system-test/build/ca-container-logs/
         if: failure()
       - name: Upload SS report
+        id: ss-artifacts-step
         uses: actions/upload-artifact@v4
         if: failure()
         with:
@@ -272,6 +278,8 @@ jobs:
     name: Run E2E tests
     needs: BuildAndPackageWithUnitTests
     runs-on: ubuntu-22.04
+    outputs:
+      e2e-artifacts-url: ${{ steps.e2e-artifacts-step.outputs.artifact-url }}
     services:
       registry:
         image: registry:2
@@ -341,6 +349,7 @@ jobs:
           path: src/security-server/e2e-test/build/test-results/**/TEST-*.xml
           reporter: java-junit
       - name: Upload E2E report
+        id: e2e-artifacts-step
         uses: actions/upload-artifact@v4
         if: failure()
         with:
@@ -383,12 +392,12 @@ jobs:
               issue_number: context.issue.number,
               owner: context.repo.owner,
               repo: context.repo.repo,
-              body: `## Allure reports for run #{{ github.run_number }}
+              body: `## Allure reports for run #${{ github.run_number }}
 
-            | Test suite      | Report URL |
-            |-----------------|------------|
-            | Central Server  | <a href="https://nordic-institute.github.io/X-Road/central-server/ui-system-test/${{ github.run_number }}" target="_blank">Report</a> |
-            | Security Server | <a href="https://nordic-institute.github.io/X-Road/security-server/system-test/${{ github.run_number }}" target="_blank">Report</a> |
-            | E2E             | <a href="https://nordic-institute.github.io/X-Road/e2e/${{ github.run_number }}" target="_blank">Report</a> |
+            | Test suite      | Report URL | Artifacts |
+            |-----------------|------------|-----------|
+            | Central Server  | <a href="https://nordic-institute.github.io/X-Road/central-server/ui-system-test/${{ github.run_number }}" target="_blank">Report</a> | <a href="${{ needs.RunCSSystemTests.outputs.cs-artifacts-url }}" target="_blank">Artifacts</a> |
+            | Security Server | <a href="https://nordic-institute.github.io/X-Road/security-server/system-test/${{ github.run_number }}" target="_blank">Report</a> | <a href="${{ needs.RunSSSystemTests.outputs.ss-artifacts-url }}" target="_blank">Artifacts</a> |
+            | E2E             | <a href="https://nordic-institute.github.io/X-Road/e2e/${{ github.run_number }}" target="_blank">Report</a> | <a href="${{ needs.RunE2ETests.outputs.e2e-artifacts-url }}" target="_blank">Artifacts</a> |
             `
             })
