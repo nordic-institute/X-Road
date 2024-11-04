@@ -1,0 +1,3 @@
+"Status","Start Time","Stop Time","Duration in ms","Parent Suite","Suite","Sub Suite","Test Class","Test Method","Name","Description"
+"passed","Mon Nov 04 12:17:37 GMT 2024","Mon Nov 04 12:17:38 GMT 2024","600","","0100 - SS: Proxy","","REST request is successful transferred over X-Road proxy","","REST request is successful transferred over X-Road proxy",""
+"passed","Mon Nov 04 12:17:35 GMT 2024","Mon Nov 04 12:17:37 GMT 2024","2702","","0100 - SS: Proxy","","Soap request is successful over proxy","","Soap request is successful over proxy",""
