@@ -57,7 +57,7 @@ public class DcpScopeExtension implements ServiceExtension {
 
     public static final String SCOPE_FORMAT = "%s:%s:read";
     public static final String CREDENTIAL_TYPE_NAMESPACE = "org.eclipse.edc.vc.type";
-    private static final String CREDENTIAL_TYPE = "XRoadCredential";
+    private static final String XROAD_CREDENTIAL_TYPE = "XRoadCredential";
 
     @Inject
     private PolicyEngine policyEngine;
@@ -87,7 +87,7 @@ public class DcpScopeExtension implements ServiceExtension {
 
         // register a default scope provider
         var contextMappingFunction = new DefaultScopeExtractor(
-                Set.of(SCOPE_FORMAT.formatted(CREDENTIAL_TYPE_NAMESPACE, CREDENTIAL_TYPE)));
+                Set.of(SCOPE_FORMAT.formatted(CREDENTIAL_TYPE_NAMESPACE, XROAD_CREDENTIAL_TYPE)));
         policyEngine.registerPostValidator(CATALOG_REQUEST_SCOPE, contextMappingFunction);
         policyEngine.registerPostValidator(NEGOTIATION_REQUEST_SCOPE, contextMappingFunction);
         policyEngine.registerPostValidator(TRANSFER_PROCESS_REQUEST_SCOPE, contextMappingFunction);

@@ -26,27 +26,24 @@
  */
 package org.niis.xroad.edc.extension.iam;
 
-import org.eclipse.edc.iam.verifiablecredentials.spi.model.Issuer;
-import org.eclipse.edc.iam.verifiablecredentials.spi.validation.TrustedIssuerRegistry;
+import org.eclipse.edc.iam.identitytrust.spi.DcpParticipantAgentServiceExtension;
 import org.eclipse.edc.runtime.metamodel.annotation.Extension;
-import org.eclipse.edc.runtime.metamodel.annotation.Inject;
+import org.eclipse.edc.runtime.metamodel.annotation.Provider;
 import org.eclipse.edc.spi.system.ServiceExtension;
-import org.eclipse.edc.spi.system.ServiceExtensionContext;
 
-import java.util.Map;
+import static org.niis.xroad.edc.extension.iam.XRoadParticipantAgentServiceExtension.NAME;
 
-import static org.niis.xroad.edc.extension.iam.TrustedIssuerExtension.NAME;
-
+/**
+ * In case of Gaia-X VCs credentialSubject.id doesn't contain the identity in DID format -> take the identity from issuer
+ */
 @Extension(NAME)
-public class TrustedIssuerExtension implements ServiceExtension {
-    static final String NAME = "X-Road Trusted issuer registration extension";
+public class XRoadParticipantAgentServiceExtension implements ServiceExtension {
 
-    @Inject
-    private TrustedIssuerRegistry trustedIssuerRegistry;
+    static final String NAME = "X-Road participant agent extension";
 
-    @Override
-    public void initialize(ServiceExtensionContext context) {
-        // register VC issuers
-        trustedIssuerRegistry.addIssuer(new Issuer("did:web:cs%3A9396", Map.of()));
+    @Provider
+    public DcpParticipantAgentServiceExtension createGaiaXDcpParticipantAgentServiceExtension() {
+        return new XRoadDcpIdentityExtractor();
     }
+
 }

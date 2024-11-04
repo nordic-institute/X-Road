@@ -24,29 +24,54 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.edc.extension.iam;
+package org.niis.xroad.edc.extension.jsonld;
 
-import org.eclipse.edc.iam.verifiablecredentials.spi.model.Issuer;
-import org.eclipse.edc.iam.verifiablecredentials.spi.validation.TrustedIssuerRegistry;
+import org.eclipse.edc.jsonld.spi.JsonLd;
 import org.eclipse.edc.runtime.metamodel.annotation.Extension;
 import org.eclipse.edc.runtime.metamodel.annotation.Inject;
+import org.eclipse.edc.spi.result.Result;
 import org.eclipse.edc.spi.system.ServiceExtension;
 import org.eclipse.edc.spi.system.ServiceExtensionContext;
+import org.jetbrains.annotations.NotNull;
 
-import java.util.Map;
+import java.io.File;
+import java.net.URI;
+import java.net.URISyntaxException;
 
-import static org.niis.xroad.edc.extension.iam.TrustedIssuerExtension.NAME;
+import static java.lang.String.format;
+import static org.niis.xroad.edc.extension.jsonld.XRoadJsonLdExtension.NAME;
 
 @Extension(NAME)
-public class TrustedIssuerExtension implements ServiceExtension {
-    static final String NAME = "X-Road Trusted issuer registration extension";
+public class XRoadJsonLdExtension implements ServiceExtension {
+    static final String NAME = "X-Road JSON-LD extension";
 
     @Inject
-    private TrustedIssuerRegistry trustedIssuerRegistry;
+    private JsonLd jsonLdService;
 
     @Override
     public void initialize(ServiceExtensionContext context) {
-        // register VC issuers
-        trustedIssuerRegistry.addIssuer(new Issuer("did:web:cs%3A9396", Map.of()));
+        var contextDir = "json-ld-context";
+
+        getResourceUri(contextDir + File.separator + "jws-2020-v1.jsonld")
+                .onSuccess(uri -> jsonLdService.registerCachedDocument("https://w3id.org/security/suites/jws-2020/v1", uri))
+                .onFailure(failure -> context.getMonitor().warning("Failed to register cached json-ld document: " + failure.getFailureDetail()));
+
+        getResourceUri(contextDir + File.separator + "did-v1.jsonld")
+                .onSuccess(uri -> jsonLdService.registerCachedDocument("https://www.w3.org/ns/did/v1", uri))
+                .onFailure(failure -> context.getMonitor().warning("Failed to register cached json-ld document: " + failure.getFailureDetail()));
+    }
+
+    @NotNull
+    private Result<URI> getResourceUri(String name) {
+        var uri = getClass().getClassLoader().getResource(name);
+        if (uri == null) {
+            return Result.failure(format("Cannot find resource %s", name));
+        }
+
+        try {
+            return Result.success(uri.toURI());
+        } catch (URISyntaxException e) {
+            return Result.failure(format("Cannot read resource %s: %s", name, e.getMessage()));
+        }
     }
 }

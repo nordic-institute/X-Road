@@ -1,6 +1,6 @@
 #!/bin/bash
 
-configure_edc_signing_key() {
+configure_ss_edc_signing_key() {
   # Retrieve the member signing key id from signer and apply it to EDC configuration
   KEY_ID=$(docker compose $COMPOSE_FILE_ARGS --env-file "$ENV_FILE" \
       exec --user xroad ${1} sh -c "signer-console get-member-signing-info ${2} | grep -oP 'Key id:\s+\K\w+'")
@@ -8,6 +8,15 @@ configure_edc_signing_key() {
       exec ${1} sh -c "cd /etc/xroad-edc && sed -i 's|key-id|${KEY_ID}|g' edc-control-plane.properties edc-data-plane.properties edc-identity-hub.properties"
   docker compose $COMPOSE_FILE_ARGS --env-file "$ENV_FILE" \
       exec ${1} sh -c "supervisorctl restart xroad-edc-control-plane xroad-edc-data-plane xroad-edc-ih"
+}
+
+configure_cs_edc_signing_key() {
+  KEY_ID=$(docker compose $COMPOSE_FILE_ARGS --env-file "$ENV_FILE" \
+      exec ${1} sh -c "grep -oPz '(?s)<key usage=\"SIGNING\">.*?<label>Internal signing key</label>.*?</key>' /etc/xroad/signer/keyconf.xml | grep -oPa '<keyId>\K\w+(?=</keyId>)'")
+  docker compose $COMPOSE_FILE_ARGS --env-file "$ENV_FILE" \
+      exec ${1} sh -c "cd /etc/xroad-edc && sed -i 's|key-id|${KEY_ID}|g' edc-connector.properties edc-identity-hub.properties edc-credential-service.properties"
+  docker compose $COMPOSE_FILE_ARGS --env-file "$ENV_FILE" \
+      exec ${1} sh -c "supervisorctl restart xroad-edc-connector xroad-edc-ih xroad-edc-credential-service"
 }
 
 set -e # Exit immediately if a command exits with a non-zero status.
@@ -47,7 +56,6 @@ if [[ -n "$INIT_SS2" ]]; then
   COMPOSE_EXTRA_ARGS="--profile xrd7"
 fi
 
-
 if ! docker network ls | grep -q "xroad-network"; then
   docker network create xroad-network
   echo "Docker network 'xroad-network' created."
@@ -56,8 +64,6 @@ else
 fi
 
 docker compose $COMPOSE_EXTRA_ARGS $COMPOSE_FILE_ARGS --env-file "$ENV_FILE" up -d
-
-docker compose -f gxdch/compose.yaml -p gxdch up -d
 
 if [[ -n "$INITIALIZE" ]]; then
   docker compose $COMPOSE_FILE_ARGS \
@@ -70,16 +76,17 @@ if [[ -n "$INITIALIZE" ]]; then
     --retry 12 \
     --retry-interval 8000
 
-  configure_edc_signing_key ss0 '\"DEV COM 1234\"'
-  configure_edc_signing_key ss1 '\"DEV COM 4321\"'
+  configure_cs_edc_signing_key cs
+  configure_ss_edc_signing_key ss0 '\"DEV COM 1234\"'
+  configure_ss_edc_signing_key ss1 '\"DEV COM 4321\"'
 
-  # Provision Gaia-X compliance
+  # Provision X-Road DataSpace membership
   docker compose $COMPOSE_FILE_ARGS \
       --env-file "$ENV_FILE" \
       run hurl \
       --insecure \
       --variables-file /hurl-src/vars.env \
-      --file-root /hurl-files /hurl-src/provision-gx-compliance.hurl \
+      --file-root /hurl-files /hurl-src/provision-ds-membership.hurl \
       --very-verbose
 fi
 

@@ -26,18 +26,9 @@
  */
 package org.niis.xroad.edc.ih;
 
-import ee.ria.xroad.common.conf.globalconf.GlobalConfProvider;
 import ee.ria.xroad.signer.SignerRpcClient;
 import ee.ria.xroad.signer.protocol.dto.KeyInfo;
 
-import com.apicatalog.ld.DocumentError;
-import com.apicatalog.ld.signature.LinkedDataSuiteError;
-import com.nimbusds.jose.JOSEException;
-import com.nimbusds.jose.jwk.Curve;
-import com.nimbusds.jose.jwk.ECKey;
-import com.nimbusds.jose.jwk.JWK;
-import com.nimbusds.jose.jwk.RSAKey;
-import jakarta.json.JsonObject;
 import lombok.SneakyThrows;
 import org.bouncycastle.util.io.pem.PemObject;
 import org.bouncycastle.util.io.pem.PemWriter;
@@ -48,10 +39,7 @@ import org.eclipse.edc.iam.verifiablecredentials.spi.model.CredentialSubject;
 import org.eclipse.edc.iam.verifiablecredentials.spi.model.Issuer;
 import org.eclipse.edc.iam.verifiablecredentials.spi.model.VerifiableCredential;
 import org.eclipse.edc.iam.verifiablecredentials.spi.model.VerifiableCredentialContainer;
-import org.eclipse.edc.identithub.spi.did.DidWebParser;
 import org.eclipse.edc.identithub.spi.did.events.DidDocumentObservable;
-import org.eclipse.edc.identityhub.spi.IdentityHubApiContext;
-import org.eclipse.edc.identityhub.spi.keypair.KeyPairService;
 import org.eclipse.edc.identityhub.spi.keypair.model.KeyPairResource;
 import org.eclipse.edc.identityhub.spi.keypair.model.KeyPairState;
 import org.eclipse.edc.identityhub.spi.participantcontext.ParticipantContextService;
@@ -61,53 +49,38 @@ import org.eclipse.edc.identityhub.spi.store.CredentialStore;
 import org.eclipse.edc.identityhub.spi.store.KeyPairResourceStore;
 import org.eclipse.edc.identityhub.spi.verifiablecredentials.model.VcStatus;
 import org.eclipse.edc.identityhub.spi.verifiablecredentials.model.VerifiableCredentialResource;
-import org.eclipse.edc.jsonld.spi.JsonLd;
 import org.eclipse.edc.jwt.signer.spi.JwsSignerProvider;
 import org.eclipse.edc.runtime.metamodel.annotation.Extension;
 import org.eclipse.edc.runtime.metamodel.annotation.Inject;
 import org.eclipse.edc.spi.EdcException;
 import org.eclipse.edc.spi.monitor.Monitor;
-import org.eclipse.edc.spi.result.StoreFailure;
 import org.eclipse.edc.spi.system.ServiceExtension;
 import org.eclipse.edc.spi.system.ServiceExtensionContext;
 import org.eclipse.edc.spi.system.configuration.Config;
-import org.eclipse.edc.web.spi.WebService;
 
 import java.io.IOException;
 import java.io.StringWriter;
-import java.net.URI;
 import java.nio.charset.StandardCharsets;
 import java.security.KeyFactory;
 import java.security.PublicKey;
-import java.security.interfaces.ECPublicKey;
-import java.security.interfaces.RSAPublicKey;
 import java.security.spec.X509EncodedKeySpec;
 import java.time.Instant;
 import java.util.Base64;
 import java.util.Map;
 import java.util.UUID;
 
-import static org.niis.xroad.edc.ih.DidWebCertificateChainController.CERTIFICATE_CHAIN_PATH;
-import static org.niis.xroad.edc.ih.GaiaXSelfDescriptionGenerator.composeGaiaXParticipantDocument;
-import static org.niis.xroad.edc.ih.GaiaXSelfDescriptionGenerator.composeGaiaXTermsAndConditionsDocument;
-import static org.niis.xroad.edc.ih.GaiaXSelfDescriptionGenerator.composeXRoadCredentialDocument;
-
-/**
- * Identity Hub's management API is missing an endpoint for inserting credentials.
- * This extension is a "dirty" workaround to insert a Verifiable Credential into the Identity Hub.
- */
 @Extension(XRoadIdentityHubProvisionerExtension.NAME)
 @SuppressWarnings({"checkstyle:LineLength", "checkstyle:MagicNumber"})
 public class XRoadIdentityHubProvisionerExtension implements ServiceExtension {
 
-    static final String NAME = "X-Road Credential insertion extension for Identity Hub";
+    static final String NAME = "X-Road Provisioner for Identity Hub";
 
-    private static final String CREDENTIAL_TYPE = "XRoadCredential";
+    private static final String XROAD_SELF_DESCRIPTION_TYPE = "XRoadSelfDescription";
 
     private static final String DID_KEY_ID = "edc.did.key.id";
 
     private static final Map<String, String> HOSTNAME_XRDIDENTIFIER_MAP = Map.of(
-            "ss0", "DEV:COM:4321:TestService",
+            "ss0", "DEV:COM:1234:TestService",
             "ss1", "DEV:COM:4321:TestClient"
     );
 
@@ -115,29 +88,17 @@ public class XRoadIdentityHubProvisionerExtension implements ServiceExtension {
     private ParticipantContextService participantContextService;
 
     @Inject
-    private CredentialStore credentialStore;
-
-    @Inject
     private KeyPairResourceStore keyPairResourceStore;
 
-    //This is required to force a specific load order for VCs to get published status
     @Inject
-    private DidDocumentObservable didDocumentObservable;
+    private CredentialStore credentialStore;
 
     @Inject
     private JwsSignerProvider jwsSignerProvider;
 
+    //This is required to force a specific load order for VCs to get published status
     @Inject
-    private JsonLd jsonLdService;
-
-    @Inject
-    private WebService webService;
-
-    @Inject
-    private KeyPairService keyPairService;
-
-    @Inject
-    GlobalConfProvider globalConfProvider;
+    private DidDocumentObservable didDocumentObservable;
     @Inject
     SignerRpcClient signerRpcClient;
 
@@ -148,34 +109,25 @@ public class XRoadIdentityHubProvisionerExtension implements ServiceExtension {
     public void initialize(ServiceExtensionContext context) {
         config = context.getConfig();
         monitor = context.getMonitor();
-
-        webService.registerResource(
-                IdentityHubApiContext.IH_DID,
-                new DidWebCertificateChainController(new DidWebParser(), keyPairService, globalConfProvider, signerRpcClient));
     }
 
     @Override
     @SneakyThrows
     public void start() {
         String participantId = config.getString(BootServicesExtension.PARTICIPANT_ID);
-        if (!participantContextExists(participantId)) {
-            String hostname = System.getenv("EDC_HOSTNAME");
-            String keyId = config.getString(DID_KEY_ID);
-            PublicKey publicKey = getPublicKey(keyId);
+        String hostname = System.getenv("EDC_HOSTNAME");
+        String keyId = config.getString(DID_KEY_ID);
+        PublicKey publicKey = getPublicKey(keyId);
+        String publicKeyPem = convertPublicKeyToPem(publicKey);
 
-            monitor.info("Inserting credentials for participant %s".formatted(participantId));
-            createParticipantContext(hostname, participantId, keyId, convertToJWK(publicKey, hostname));
-            createKeyPairs(participantId, keyId, convertPublicKeyToPem(publicKey));
-            createCredentials(hostname, participantId, keyId);
-        }
-    }
-
-    private boolean participantContextExists(String participantId) {
-        return participantContextService.getParticipantContext(participantId).reason().equals(StoreFailure.Reason.NOT_FOUND);
+        monitor.info("Creating participant context for %s".formatted(participantId));
+        createParticipantContext(hostname, participantId, keyId, publicKeyPem);
+        createKeyPairs(participantId, keyId, publicKeyPem);
+        createCredentials(hostname, participantId, keyId);
     }
 
 
-    private void createParticipantContext(String hostname, String participantId, String keyId, JWK publicKeyJWK) {
+    private void createParticipantContext(String hostname, String participantId, String keyId, String publicKeyPem) {
         //Manifest is used for did generation. Same principle as /api/management/v1/participants/
         var manifest = ParticipantManifest.Builder.newInstance()
                 .active(true)
@@ -184,7 +136,7 @@ public class XRoadIdentityHubProvisionerExtension implements ServiceExtension {
                 .key(KeyDescriptor.Builder.newInstance()
                         .keyId(participantId + "#" + keyId)
                         .privateKeyAlias(keyId)
-                        .publicKeyJwk(publicKeyJWK.toJSONObject())
+                        .publicKeyPem(publicKeyPem)
                         .build())
                 .serviceEndpoint(new Service("credentialService-1", "CredentialService", "https://%s:%d%s/v1/participants/%s".formatted(
                         hostname,
@@ -193,50 +145,6 @@ public class XRoadIdentityHubProvisionerExtension implements ServiceExtension {
                         Base64.getUrlEncoder().encodeToString(participantId.getBytes(StandardCharsets.UTF_8)))))
                 .build();
         participantContextService.createParticipantContext(manifest);
-    }
-
-    private void createCredentials(String hostname, String participantId, String keyId)
-            throws IOException, JOSEException, LinkedDataSuiteError, DocumentError {
-        var vcGenerator = new GaiaXSelfDescriptionGenerator(jsonLdService);
-        var signerResult = jwsSignerProvider.createJwsSigner(keyId);
-        if (signerResult.failed()) {
-            throw new EdcException("JWSSigner cannot be generated for private key '%s': %s".formatted(keyId, signerResult.getFailureDetail()));
-        }
-        var signer = signerResult.getContent();
-        var verificationUrl = URI.create(participantId + "#" + keyId);
-
-        var participantDoc = composeGaiaXParticipantDocument(hostname);
-        var participantVc = vcGenerator.signDocument(participantDoc, signer, verificationUrl);
-        storeCredential("https://" + hostname + ":9396/participant.json", participantVc.compacted(), participantId);
-
-        var tsaandcsDoc = composeGaiaXTermsAndConditionsDocument(hostname);
-        var tsaandcsVc = vcGenerator.signDocument(tsaandcsDoc, signer, verificationUrl);
-        storeCredential("https://" + hostname + ":9396/tsandcs.json", tsaandcsVc.compacted(), participantId);
-
-        var xrdCredentialDoc = composeXRoadCredentialDocument(hostname, HOSTNAME_XRDIDENTIFIER_MAP.get(hostname));
-        var xrdCredentialVc = vcGenerator.signDocument(xrdCredentialDoc, signer, verificationUrl);
-        storeCredential("https://" + hostname + ":9396/xrd-cred.json", xrdCredentialVc.compacted(), participantId);
-    }
-
-    private void storeCredential(String id, JsonObject credential, String participantId) {
-        var verifiableCredential = VerifiableCredential.Builder.newInstance()
-                .credentialSubject(CredentialSubject.Builder.newInstance().id("test-subject").claim("test-key", "test-val").build())
-                .issuanceDate(Instant.now())
-                .type(CREDENTIAL_TYPE)
-                .issuer(new Issuer(participantId, Map.of()))
-                .id(participantId)
-                .build();
-
-        var verifiableCredentialContainer = new VerifiableCredentialContainer(credential.toString(), CredentialFormat.JSON_LD, verifiableCredential);
-        var verifiableCredentialResource = VerifiableCredentialResource.Builder.newInstance()
-                .issuerId("test-issuer")
-                .holderId("test-holder")
-                .state(VcStatus.ISSUED)
-                .participantId(participantId)
-                .credential(verifiableCredentialContainer)
-                .id(id)
-                .build();
-        credentialStore.create(verifiableCredentialResource);
     }
 
     private void createKeyPairs(String participantId, String keyId, String publicKeyPem) {
@@ -250,6 +158,35 @@ public class XRoadIdentityHubProvisionerExtension implements ServiceExtension {
                 .state(KeyPairState.ACTIVE)
                 .build();
         keyPairResourceStore.create(keyPairResource);
+    }
+
+    private void createCredentials(String hostname, String participantId, String keyId) throws Exception {
+        var signer = jwsSignerProvider.createJwsSigner(keyId)
+                .orElseThrow(f -> new EdcException("JWSSigner cannot be generated for private key '%s': %s".formatted(keyId, f.getFailureDetail())));
+        var selfDescription = XRoadSelfDescriptionGenerator.generate(HOSTNAME_XRDIDENTIFIER_MAP.get(hostname), signer, participantId, keyId);
+        storeCredential("xroad-self-description", selfDescription.serialize(), participantId,
+                XROAD_SELF_DESCRIPTION_TYPE);
+    }
+
+    private void storeCredential(String id, String credential, String participantId, String credentialType) {
+        var verifiableCredential = VerifiableCredential.Builder.newInstance()
+                .credentialSubject(CredentialSubject.Builder.newInstance().id("test-subject").claim("test-key", "test-val").build())
+                .issuanceDate(Instant.now())
+                .type(credentialType)
+                .issuer(new Issuer(participantId, Map.of()))
+                .id(participantId)
+                .build();
+
+        var verifiableCredentialContainer = new VerifiableCredentialContainer(credential, CredentialFormat.JWT, verifiableCredential);
+        var verifiableCredentialResource = VerifiableCredentialResource.Builder.newInstance()
+                .issuerId("test-issuer")
+                .holderId("test-holder")
+                .state(VcStatus.ISSUED)
+                .participantId(participantId)
+                .credential(verifiableCredentialContainer)
+                .id(id)
+                .build();
+        credentialStore.create(verifiableCredentialResource);
     }
 
     private PublicKey getPublicKey(String keyId) throws Exception {
@@ -272,31 +209,6 @@ public class XRoadIdentityHubProvisionerExtension implements ServiceExtension {
             pemWriter.writeObject(pemObject);
         }
         return stringWriter.toString();
-    }
-
-    public JWK convertToJWK(PublicKey publicKey, String hostname) {
-        // Essential for Gaia-X Compliance to validate the key's certificate trustworthiness during the issuance of compliance credential
-        var x509Url = URI.create("https://" + hostname + ":9396" + CERTIFICATE_CHAIN_PATH);
-        return switch (publicKey) {
-            case RSAPublicKey rsaPublicKey -> new RSAKey.Builder(rsaPublicKey).x509CertURL(x509Url).build();
-            case ECPublicKey ecPublicKey -> new ECKey.Builder(getCurve(ecPublicKey), ecPublicKey).x509CertURL(x509Url).build();
-            default -> throw new IllegalArgumentException("The provided key is neither an RSA nor an EC public key");
-        };
-    }
-
-    private Curve getCurve(ECPublicKey ecPublicKey) {
-        var ellipticCurve = ecPublicKey.getParams().getCurve();
-        if (ellipticCurve.equals(Curve.P_256.toECParameterSpec().getCurve())) {
-            return Curve.P_256;
-        } else if (ellipticCurve.equals(Curve.SECP256K1.toECParameterSpec().getCurve())) {
-            return Curve.SECP256K1;
-        } else if (ellipticCurve.equals(Curve.P_384.toECParameterSpec().getCurve())) {
-            return Curve.P_384;
-        } else if (ellipticCurve.equals(Curve.P_521.toECParameterSpec().getCurve())) {
-            return Curve.P_521;
-        } else {
-            throw new IllegalArgumentException("Unsupported curve: " + ellipticCurve);
-        }
     }
 
 }

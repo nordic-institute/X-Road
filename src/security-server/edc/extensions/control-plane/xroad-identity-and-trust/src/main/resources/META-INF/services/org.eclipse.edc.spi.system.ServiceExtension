@@ -1,5 +1,3 @@
 org.niis.xroad.edc.extension.iam.DcpScopeExtension
 org.niis.xroad.edc.extension.iam.TrustedIssuerExtension
-org.niis.xroad.edc.extension.iam.GaiaXParticipantAgentServiceExtension
-org.niis.xroad.edc.extension.iam.GaiaXSignatureExtension
-org.niis.xroad.edc.extension.iam.XRoadIdentityAndTrustServiceExtension
+org.niis.xroad.edc.extension.iam.XRoadParticipantAgentServiceExtension

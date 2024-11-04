@@ -24,29 +24,43 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.edc.extension.iam;
+package org.niis.xroad.edc.credential;
 
-import org.eclipse.edc.iam.verifiablecredentials.spi.model.Issuer;
-import org.eclipse.edc.iam.verifiablecredentials.spi.validation.TrustedIssuerRegistry;
+import ee.ria.xroad.common.conf.globalconf.GlobalConfProvider;
+
+import org.eclipse.edc.boot.BootServicesExtension;
+import org.eclipse.edc.iam.did.spi.resolution.DidPublicKeyResolver;
+import org.eclipse.edc.jwt.signer.spi.JwsSignerProvider;
 import org.eclipse.edc.runtime.metamodel.annotation.Extension;
 import org.eclipse.edc.runtime.metamodel.annotation.Inject;
 import org.eclipse.edc.spi.system.ServiceExtension;
 import org.eclipse.edc.spi.system.ServiceExtensionContext;
+import org.eclipse.edc.web.spi.WebService;
 
-import java.util.Map;
+@Extension(XRoadCredentialIssuanceExtension.NAME)
+public class XRoadCredentialIssuanceExtension implements ServiceExtension {
 
-import static org.niis.xroad.edc.extension.iam.TrustedIssuerExtension.NAME;
+    static final String NAME = "X-Road Credential Issuance extension";
 
-@Extension(NAME)
-public class TrustedIssuerExtension implements ServiceExtension {
-    static final String NAME = "X-Road Trusted issuer registration extension";
+    private static final String DID_KEY_ID = "edc.did.key.id";
 
     @Inject
-    private TrustedIssuerRegistry trustedIssuerRegistry;
+    private WebService webService;
+    @Inject
+    private DidPublicKeyResolver didPublicKeyResolver;
+    @Inject
+    private JwsSignerProvider jwsSignerProvider;
+
+    @Inject
+    private GlobalConfProvider globalConfProvider;
 
     @Override
     public void initialize(ServiceExtensionContext context) {
-        // register VC issuers
-        trustedIssuerRegistry.addIssuer(new Issuer("did:web:cs%3A9396", Map.of()));
+        String participantId = context.getConfig().getString(BootServicesExtension.PARTICIPANT_ID);
+        var keyId = context.getConfig().getString(DID_KEY_ID);
+
+        webService.registerResource(new XRoadMemberShipCredentialIssuanceController(
+                didPublicKeyResolver, globalConfProvider, participantId, jwsSignerProvider, keyId));
     }
+
 }

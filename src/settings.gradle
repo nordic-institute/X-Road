@@ -77,6 +77,7 @@ include 'central-server:management-service:int-test'
 include "central-server:registration-service"
 
 include 'central-server:ds-catalog-service'
+include 'central-server:ds-credential-service'
 
 include "security-server"
 include "security-server:openapi-model"
