@@ -36,3 +36,14 @@ ratelimit:
 server:
   tomcat:
     accesslog.enabled: false
+
+xroad:
+  common:
+    serverconf:
+      hibernate:
+        dialect: org.hibernate.dialect.HSQLDialect
+        connection.driver_class: org.hsqldb.jdbcDriver
+        connection.url: jdbc:hsqldb:mem:serverconf
+        connection.username: serverconf
+        connection.password: serverconf
+        hbm2ddl.auto: create-drop
