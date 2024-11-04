@@ -1,0 +1,40 @@
+spring:
+  application:
+    name: ds-credential-service
+  main:
+    banner-mode: log
+
+server:
+  port: 5851
+
+xroad:
+  common:
+    grpc:
+      channel:
+        configuration-client:
+          host: 127.0.0.1
+          port: 4001
+          deadline-after: 60000
+        signer:
+          host: 127.0.0.1
+          port: 5560
+          deadline-after: 60000
+    global-conf-remoting-enabled: false
+
+logging:
+  level:
+    ROOT: INFO
+    org.niis.xroad.edc.extension.bridge.config: DEBUG
+
+#EDC configuration
+edc:
+  participant:
+    id: did:web:${EDC_DID}
+  did:
+    key:
+      id: key-id
+
+web:
+  http:
+    port: 9491
+    path: /

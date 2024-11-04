@@ -14,6 +14,7 @@ sourceSets {
 }
 
 dependencies {
+    api (platform(libs.springBoot.bom))
     implementation project(':common:common-domain')
     api project(':common:common-rpc')
 

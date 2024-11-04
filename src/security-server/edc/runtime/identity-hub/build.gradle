@@ -13,7 +13,6 @@ dependencies {
     implementation(project(':common:common-service-bootstrap'))
 
     runtimeOnly(libs.bundles.identityhub)
-    runtimeOnly(libs.edc.config.filesystem)
     runtimeOnly(libs.edc.api.observability)
     runtimeOnly(libs.edc.vault.hashicorp)
 
@@ -26,6 +25,7 @@ dependencies {
     implementation(libs.edc.ih.lib.credentialquery)
     implementation(libs.edc.lib.vp)
     implementation(libs.edc.lib.jsonld)
+    implementation(libs.edc.monitor.jdk.logger)
 
     implementation(libs.bundles.sql.ih)
 

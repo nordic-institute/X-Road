@@ -10,9 +10,7 @@ configurations {
 }
 
 dependencies {
-    implementation(project(':common:common-service-bootstrap')) {
-        exclude group: 'org.eclipse.jetty'
-    }
+    implementation(project(':common:common-service-bootstrap'))
 
     runtimeOnly(libs.bundles.connector)
     runtimeOnly(libs.edc.ext.observability)
@@ -28,7 +26,7 @@ dependencies {
     runtimeOnly(libs.edc.vault.hashicorp)
 
     runtimeOnly(libs.bundles.sql.edc.dataplane)
-
+    implementation(libs.edc.monitor.jdk.logger)
     implementation libs.bundles.edc.monitoring
     implementation 'io.opentelemetry:opentelemetry-exporter-otlp:1.38.0'
 
@@ -38,6 +36,7 @@ dependencies {
     implementation(project(":security-server:edc:extensions:data-plane:xroad-data-plane-public-api"))
     implementation(project(":security-server:edc:extensions:data-plane:xroad-data-plane-iam"))
     implementation(project(":security-server:edc:extensions:common:xroad-jws-signer"))
+    implementation(project(":security-server:edc:extensions:common:xroad-httpclient"))
     implementation(project(":security-server:edc:extensions:common:xroad-webserver"))
     implementation(project(":security-server:edc:extensions:common:xroad-spring-bridge"))
     implementation(libs.logback.classic)

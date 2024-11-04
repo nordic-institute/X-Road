@@ -23,9 +23,7 @@ url=$(crudini --get /etc/xroad/db.properties '' edc-data-plane.hibernate.connect
 user=$(crudini --get /etc/xroad/db.properties '' edc-data-plane.hibernate.connection.username)
 password=$(crudini --get /etc/xroad/db.properties '' edc-data-plane.hibernate.connection.password)
 
-export EDC_DS_PASSWORD=$password
+serverconf_password=$(crudini --get /etc/xroad/db.properties "" "serverconf.hibernate.connection.password")
 
-crudini --set /etc/xroad-edc/edc-data-plane.properties '' "edc.datasource.default.url" "$url"
-crudini --set /etc/xroad-edc/edc-data-plane.properties '' "edc.datasource.default.user" "$user"
-crudini --set /etc/xroad-edc/edc-data-plane.properties '' "edc.datasource.default.password" "$password"
-
+export XROAD_DS_PASSWORD=$password
+export XROAD_SERVERCONF_PASSWORD=$password

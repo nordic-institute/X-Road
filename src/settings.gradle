@@ -98,6 +98,7 @@ include 'security-server:edc:extensions:identity-hub:xroad-identity-hub-provisio
 include 'security-server:edc:extensions:common:xroad-jsonld'
 include 'security-server:edc:extensions:common:xroad-jws-signer'
 include 'security-server:edc:extensions:common:xroad-ldp-verifiable-credentials'
+include 'security-server:edc:extensions:common:xroad-httpclient'
 include 'security-server:edc:extensions:common:xroad-webserver'
 include 'security-server:edc:extensions:common:xroad-spring-bridge'
 include 'security-server:edc-client'

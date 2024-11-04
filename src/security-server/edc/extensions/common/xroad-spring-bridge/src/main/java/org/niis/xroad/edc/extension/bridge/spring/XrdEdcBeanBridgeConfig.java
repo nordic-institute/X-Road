@@ -28,15 +28,12 @@
 package org.niis.xroad.edc.extension.bridge.spring;
 
 import ee.ria.xroad.common.cert.CertChainFactory;
+import ee.ria.xroad.common.conf.globalconf.AuthKey;
 import ee.ria.xroad.common.conf.globalconf.GlobalConfBeanConfig;
 import ee.ria.xroad.common.conf.globalconf.GlobalConfPropertiesConfig;
 import ee.ria.xroad.common.conf.globalconf.GlobalConfProvider;
-import ee.ria.xroad.common.conf.serverconf.ServerConfBeanConfig;
-import ee.ria.xroad.common.conf.serverconf.ServerConfProvider;
-import ee.ria.xroad.proxy.conf.CachingKeyConfImpl;
-import ee.ria.xroad.proxy.conf.KeyConfProvider;
+import ee.ria.xroad.common.util.CryptoUtils;
 import ee.ria.xroad.signer.SignerClientConfiguration;
-import ee.ria.xroad.signer.SignerRpcClient;
 
 import lombok.extern.slf4j.Slf4j;
 import org.eclipse.edc.boot.system.runtime.BaseRuntime;
@@ -44,9 +41,11 @@ import org.eclipse.edc.spi.system.configuration.Config;
 import org.niis.xroad.common.rpc.RpcServiceProperties;
 import org.niis.xroad.confclient.proto.ConfClientRpcClientConfiguration;
 import org.niis.xroad.edc.extension.bridge.config.MapConfigImpl;
-import org.niis.xroad.edc.extension.bridge.config.XrdSpringBridgeExtension;
+import org.niis.xroad.edc.extension.bridge.config.XrdSpringConfigExtension;
 import org.springframework.beans.factory.DisposableBean;
 import org.springframework.beans.factory.InitializingBean;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.ApplicationContext;
@@ -57,6 +56,10 @@ import org.springframework.core.env.ConfigurableEnvironment;
 import org.springframework.core.env.EnumerablePropertySource;
 import org.springframework.core.env.MutablePropertySources;
 
+import java.nio.file.Paths;
+import java.security.KeyStore;
+import java.security.PrivateKey;
+import java.security.cert.X509Certificate;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
@@ -67,17 +70,11 @@ import java.util.stream.StreamSupport;
         GlobalConfPropertiesConfig.class,
         GlobalConfBeanConfig.class,
         ConfClientRpcClientConfiguration.class,
-        ServerConfBeanConfig.class,
-        SignerClientConfiguration.class})
+        SignerClientConfiguration.class,
+        XrdEdcServerconfBeanBridgeConfig.class})
 @EnableConfigurationProperties({XrdEdcBeanBridgeConfig.EdcDataPlaneRpcServiceProperties.class})
 @Configuration
 public class XrdEdcBeanBridgeConfig {
-
-    @Bean
-    KeyConfProvider keyConfProvider(GlobalConfProvider globalConfProvider, ServerConfProvider serverConfProvider,
-                                    SignerRpcClient signerRpcClient) {
-        return new CachingKeyConfImpl(globalConfProvider, serverConfProvider, signerRpcClient);
-    }
 
     @Bean
     CertChainFactory certChainFactory(GlobalConfProvider globalConfProvider) {
@@ -90,9 +87,9 @@ public class XrdEdcBeanBridgeConfig {
         Map<String, String> entries = new HashMap<>();
         MutablePropertySources propSrcs = environment.getPropertySources();
         StreamSupport.stream(propSrcs.spliterator(), false)
-                .filter(ps -> ps instanceof EnumerablePropertySource)
-                .map(ps -> ((EnumerablePropertySource) ps).getPropertyNames())
-                .flatMap(Arrays::<String>stream)
+                .filter(EnumerablePropertySource.class::isInstance)
+                .map(ps -> ((EnumerablePropertySource<?>) ps).getPropertyNames())
+                .flatMap(Arrays::stream)
                 .forEach(propName -> entries.put(propName, environment.getProperty(propName)));
         return new MapConfigImpl(entries);
         //TODO: this impl has issues..
@@ -105,6 +102,27 @@ public class XrdEdcBeanBridgeConfig {
         XrdSpringBridgeExtension.attachContext(applicationContext);
 
         return new SpringEdcRuntime();
+    }
+
+    /**
+     * TODO xroad8, this is a temporary solution to provide a custom TLS key for CS. Consider better alternatives
+     */
+    @Bean
+    @ConditionalOnProperty(value = "web.custom-tls-keystore.enabled", havingValue = "true")
+    TlsAuthKeyProvider customAuthKey(@Value("${web.custom-tls-keystore.path}") String pkcs12Path,
+                                     CertChainFactory certChainFactory, GlobalConfProvider globalConfProvider) throws Exception {
+        KeyStore keyStore = CryptoUtils.loadPkcs12KeyStore(Paths.get(pkcs12Path).toFile(), "management-service".toCharArray());
+
+        keyStore.getKey("management-service", "management-service".toCharArray());
+
+        var cert = keyStore.getCertificate("management-service");
+        var certChain = certChainFactory.create("cs", new X509Certificate[]{
+                (X509Certificate) cert,
+                globalConfProvider.getAllCaCerts().stream().findFirst().orElseThrow()
+        });
+        var pkey = (PrivateKey) keyStore.getKey("management-service", "management-service".toCharArray());
+
+        return () -> new AuthKey(certChain, pkey);
     }
 
     @ConfigurationProperties(prefix = "xroad.edc-data-plane.grpc")
@@ -131,7 +149,11 @@ public class XrdEdcBeanBridgeConfig {
         @Override
         public void afterPropertiesSet() {
             log.info("Loading EDC runtime..");
-            boot(false);
+            try {
+                boot(false);
+            } catch (Exception e) {
+                log.error("Failed to boot EDC runtime", e);
+            }
         }
     }
 

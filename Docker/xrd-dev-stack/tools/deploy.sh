@@ -71,11 +71,11 @@ deploy_module() {
     service_name="xroad-edc-ih"
     ;;
   "cs-edc-connector")
-    jar_path="$XROAD_HOME/src/central-server/ds-catalog-service/build/libs/ds-catalog-service.jar"
+    jar_path="$XROAD_HOME/src/central-server/ds-catalog-service/build/libs/ds-catalog-service-1.0.jar"
     service_name="xroad-edc-connector"
     ;;
   "cs-credential-service")
-    jar_path="$XROAD_HOME/src/central-server/ds-credential-service/build/libs/ds-credential-service.jar"
+    jar_path="$XROAD_HOME/src/central-server/ds-credential-service/build/libs/ds-credential-service-1.0.jar"
     service_name="xroad-edc-credential-service"
     ;;
   *)

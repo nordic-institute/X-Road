@@ -22,6 +22,7 @@ xroad:
         connection.driver_class: org.postgresql.Driver
         connection.url: jdbc:postgresql://127.0.0.1:5432/serverconf
         connection.username: serverconf
+        connection.password: ${XROAD_SERVERCONF_PASSWORD:}
         hikari.dataSource.currentSchema: serverconf,public
         jdbc.use_streams_for_binary: true
     grpc:
@@ -41,17 +42,21 @@ logging:
 
 #EDC conf
 edc:
+  extension:
+    spring-bridge:
+      serverconf:
+        enabled: true
   datasource:
     default:
       url: jdbc:postgresql://127.0.0.1:5432/edc-identity-hub
       user: edc-identity-hub
-      password: ${EDC_DS_PASSWORD}
+      password: ${XROAD_DS_PASSWORD:}
   participant:
     id: did:web:${EDC_DID}
   http:
     client:
       https:
-        enforce: true
+        enforce: false #openbao runs on http
   did:
     key:
       id: key-id
@@ -66,6 +71,9 @@ edc:
       token: 00000000-0000-0000-0000-000000000001
 
 web:
+  custom-tls-keystore:
+    enabled: false
+    path:
   http:
     port: 9391
     path: /api

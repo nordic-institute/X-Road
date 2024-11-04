@@ -24,25 +24,24 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.edc.extension.bridge.spring;
+package org.niis.xroad.edc.credential;
 
-import org.eclipse.edc.spi.system.ConfigurationExtension;
-import org.eclipse.edc.spi.system.configuration.Config;
+import lombok.extern.slf4j.Slf4j;
+import org.niis.xroad.bootstrap.XrdSpringServiceBuilder;
+import org.niis.xroad.edc.extension.bridge.spring.XrdEdcBeanBridgeConfig;
+import org.springframework.boot.SpringBootConfiguration;
+import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 
-public class XrdSpringConfigExtension implements ConfigurationExtension {
-    private static Config springEdcConfig;
+@Slf4j
+@EnableAutoConfiguration
+@SpringBootConfiguration
+@SuppressWarnings("checkstyle:HideUtilityClassConstructor")
+public class XrdDsCredentialServiceMain {
+    private static final String APP_NAME = "xroad-ds-credential-service";
 
-    @Override
-    public String name() {
-        return ConfigurationExtension.super.name();
-    }
-
-    @Override
-    public Config getConfig() {
-        return springEdcConfig;
-    }
-
-    public static void attachConfiguration(Config config) {
-        XrdSpringConfigExtension.springEdcConfig = config;
+    public static void main(String[] args) {
+        XrdSpringServiceBuilder.newApplicationBuilder(APP_NAME, XrdDsCredentialServiceMain.class, XrdEdcBeanBridgeConfig.class)
+                .build()
+                .run(args);
     }
 }

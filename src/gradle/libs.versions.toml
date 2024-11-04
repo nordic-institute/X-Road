@@ -193,6 +193,7 @@ dss-spi = { module = "eu.europa.ec.joinup.sd-dss:dss-spi", version.ref = "dss" }
 ### EDC ###
 # upstream EDC dependencies
 edc-boot = { module = "org.eclipse.edc:boot", version.ref = "edc" }
+edc-monitor-jdk-logger = { module = "org.eclipse.edc:monitor-jdk-logger", version.ref = "edc" }
 edc-junit = { module = "org.eclipse.edc:junit", version.ref = "edc" }
 edc-did-core = { module = "org.eclipse.edc:identity-did-core", version.ref = "edc" }
 edc-did-web = { module = "org.eclipse.edc:identity-did-web", version.ref = "edc" }

@@ -12,18 +12,6 @@ server:
 
 xroad:
   common:
-    serverconf:
-      cache-period: 60
-      client-cache-size: 100
-      service-cache-size: 1000
-      acl-cache-size: 100_000
-      hibernate:
-        dialect: ee.ria.xroad.common.db.CustomPostgreSQLDialect
-        connection.driver_class: org.postgresql.Driver
-        connection.url: jdbc:postgresql://127.0.0.1:5432/serverconf
-        connection.username: serverconf
-        hikari.dataSource.currentSchema: serverconf,public
-        jdbc.use_streams_for_binary: true
     grpc:
       channel:
         configuration-client:
@@ -34,18 +22,34 @@ xroad:
           host: 127.0.0.1
           port: 5560
           deadline-after: 60000
-
+    serverconf:
+      cache-period: 60
+      client-cache-size: 100
+      service-cache-size: 1000
+      acl-cache-size: 100_000
+      hibernate:
+        dialect: ee.ria.xroad.common.db.CustomPostgreSQLDialect
+        connection.driver_class: org.postgresql.Driver
+        connection.url: jdbc:postgresql://127.0.0.1:5432/serverconf
+        connection.username: serverconf
+        connection.password: ${XROAD_SERVERCONF_PASSWORD}
+        hikari.dataSource.currentSchema: serverconf,public
+        jdbc.use_streams_for_binary: true
 logging:
   level:
     ROOT: INFO
 
 #EDC conf
 edc:
+  extension:
+    spring-bridge:
+      serverconf:
+        enabled: true
   datasource:
     default:
       url: jdbc:postgresql://127.0.0.1:5432/edc-control-plane
       user: edc-control-plane
-      password: ${EDC_DS_PASSWORD}
+      password: ${XROAD_DS_PASSWORD}
   participant:
     id: did:web:${EDC_DID}
   public:

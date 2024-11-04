@@ -99,8 +99,9 @@ public class XRoadIdentityHubProvisionerExtension implements ServiceExtension {
     //This is required to force a specific load order for VCs to get published status
     @Inject
     private DidDocumentObservable didDocumentObservable;
+
     @Inject
-    SignerRpcClient signerRpcClient;
+    private SignerRpcClient signerRpcClient;
 
     private Config config;
     private Monitor monitor;
@@ -162,8 +163,10 @@ public class XRoadIdentityHubProvisionerExtension implements ServiceExtension {
 
     private void createCredentials(String hostname, String participantId, String keyId) throws Exception {
         var signer = jwsSignerProvider.createJwsSigner(keyId)
-                .orElseThrow(f -> new EdcException("JWSSigner cannot be generated for private key '%s': %s".formatted(keyId, f.getFailureDetail())));
-        var selfDescription = XRoadSelfDescriptionGenerator.generate(HOSTNAME_XRDIDENTIFIER_MAP.get(hostname), signer, participantId, keyId);
+                .orElseThrow(f -> new EdcException("JWSSigner cannot be generated for private key '%s': %s"
+                        .formatted(keyId, f.getFailureDetail())));
+        var selfDescription = new XRoadSelfDescriptionGenerator(signerRpcClient)
+                .generate(HOSTNAME_XRDIDENTIFIER_MAP.get(hostname), signer, participantId, keyId);
         storeCredential("xroad-self-description", selfDescription.serialize(), participantId,
                 XROAD_SELF_DESCRIPTION_TYPE);
     }

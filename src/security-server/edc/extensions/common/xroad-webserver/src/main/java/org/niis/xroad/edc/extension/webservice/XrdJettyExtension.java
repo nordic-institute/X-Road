@@ -16,8 +16,6 @@ package org.niis.xroad.edc.extension.webservice;
 
 import ee.ria.xroad.common.cert.CertChainFactory;
 import ee.ria.xroad.common.conf.globalconf.GlobalConfProvider;
-import ee.ria.xroad.common.conf.serverconf.ServerConfProvider;
-import ee.ria.xroad.proxy.conf.KeyConfProvider;
 
 import org.eclipse.edc.runtime.metamodel.annotation.Inject;
 import org.eclipse.edc.runtime.metamodel.annotation.Provider;
@@ -30,6 +28,7 @@ import org.eclipse.edc.web.jetty.JettyService;
 import org.eclipse.edc.web.jetty.WebServiceConfigurerImpl;
 import org.eclipse.edc.web.spi.WebServer;
 import org.eclipse.edc.web.spi.configuration.WebServiceConfigurer;
+import org.niis.xroad.edc.extension.bridge.spring.TlsAuthKeyProvider;
 import org.niis.xroad.edc.spi.XrdWebServer;
 
 @SuppressWarnings("checkstyle:MagicNumber")
@@ -50,10 +49,9 @@ public class XrdJettyExtension implements ServiceExtension {
 
     @Inject
     private GlobalConfProvider globalConfProvider;
+
     @Inject
-    private ServerConfProvider serverConfProvider;
-    @Inject
-    private KeyConfProvider keyConfProvider;
+    private TlsAuthKeyProvider tlsAuthKeyProvider;
     @Inject
     private CertChainFactory certChainFactory;
 
@@ -65,7 +63,7 @@ public class XrdJettyExtension implements ServiceExtension {
                 context.getSetting(KEYSTORE_PASSWORD, "password"),
                 context.getSetting(KEYMANAGER_PASSWORD, "password"), context.getConfig());
 
-        jettyService = new JettyService(configuration, globalConfProvider, keyConfProvider, certChainFactory, monitor);
+        jettyService = new JettyService(configuration, globalConfProvider, tlsAuthKeyProvider, certChainFactory, monitor);
         context.registerService(JettyService.class, jettyService);
         context.registerService(WebServer.class, jettyService);
         context.registerService(XrdWebServer.class, jettyService);

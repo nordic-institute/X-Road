@@ -24,7 +24,7 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.edc.extension.bridge.config;
+package org.niis.xroad.edc.extension.bridge.spring;
 
 import ee.ria.xroad.common.cert.CertChainFactory;
 import ee.ria.xroad.common.conf.globalconf.GlobalConfProvider;
@@ -37,6 +37,8 @@ import org.eclipse.edc.runtime.metamodel.annotation.Provider;
 import org.eclipse.edc.spi.system.ServiceExtension;
 import org.eclipse.edc.spi.system.ServiceExtensionContext;
 import org.springframework.context.ApplicationContext;
+
+import java.util.Map;
 
 @Slf4j
 public class XrdSpringBridgeExtension implements ServiceExtension {
@@ -58,6 +60,11 @@ public class XrdSpringBridgeExtension implements ServiceExtension {
     }
 
     @Provider
+    public TlsAuthKeyProvider tlsAuthKeyProvider() {
+        return getBean(TlsAuthKeyProvider.class);
+    }
+
+    @Provider
     public ServerConfProvider serverConfProvider() {
         return getBean(ServerConfProvider.class);
     }
@@ -72,10 +79,10 @@ public class XrdSpringBridgeExtension implements ServiceExtension {
     }
 
     private <T> T getBean(Class<T> clazz) {
-        T bean = applicationContext.getBean(clazz);
-
-        log.info("Bridging bean of type {} to EDC", clazz);
-        return bean;
+        Map<String, T> availableBeans = applicationContext.getBeansOfType(clazz);
+        var bean = availableBeans.values().stream().findFirst().orElse(null);
+        log.info("Bridging bean of type [{}] to resulting bean [{}] within EDC", clazz, bean);
+        return availableBeans.values().stream().findFirst().orElse(null);
     }
 
     public static void attachContext(ApplicationContext context) {

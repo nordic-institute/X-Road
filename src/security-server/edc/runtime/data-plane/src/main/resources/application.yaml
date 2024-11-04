@@ -24,6 +24,7 @@ xroad:
         connection.driver_class: org.postgresql.Driver
         connection.url: jdbc:postgresql://127.0.0.1:5432/serverconf
         connection.username: serverconf
+        connection.password: ${XROAD_SERVERCONF_PASSWORD}
         hikari.dataSource.currentSchema: serverconf,public
         jdbc.use_streams_for_binary: true
     grpc:
@@ -60,11 +61,15 @@ web:
         needClientAuth: true
 
 edc:
+  extension:
+    spring-bridge:
+      serverconf:
+        enabled: true
   datasource:
     default:
       url: jdbc:postgresql://127.0.0.1:5432/edc-data-plane
       user: edc-data-plane
-      password: ${EDC_DS_PASSWORD}
+      password: ${XROAD_DS_PASSWORD}
   transfer:
     proxy:
       token:

@@ -27,10 +27,7 @@
 package org.eclipse.edc.web.jetty;
 
 import ee.ria.xroad.common.cert.CertChainFactory;
-import ee.ria.xroad.common.conf.globalconf.AuthKey;
 import ee.ria.xroad.common.conf.globalconf.GlobalConfProvider;
-import ee.ria.xroad.common.util.CryptoUtils;
-import ee.ria.xroad.proxy.conf.KeyConfProvider;
 
 import jakarta.servlet.Servlet;
 import lombok.SneakyThrows;
@@ -48,14 +45,11 @@ import org.eclipse.jetty.server.SslConnectionFactory;
 import org.eclipse.jetty.server.handler.ContextHandlerCollection;
 import org.eclipse.jetty.util.ssl.SslContextFactory;
 import org.jetbrains.annotations.NotNull;
+import org.niis.xroad.edc.extension.bridge.spring.TlsAuthKeyProvider;
 import org.niis.xroad.edc.spi.XrdWebServer;
 import org.niis.xroad.ssl.EdcSSLConstants;
 import org.niis.xroad.ssl.SSLContextBuilder;
 
-import java.nio.file.Paths;
-import java.security.KeyStore;
-import java.security.PrivateKey;
-import java.security.cert.X509Certificate;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -77,7 +71,7 @@ public class JettyService implements XrdWebServer {
     private static final String LOG_ANNOUNCE = "org.eclipse.jetty.util.log.announce";
     private final JettyConfiguration configuration;
     private final GlobalConfProvider globalConfProvider;
-    private final KeyConfProvider keyConfProvider;
+    private final TlsAuthKeyProvider tlsAuthKeyProvider;
     private final CertChainFactory certChainFactory;
     private final Monitor monitor;
     private final Map<String, ServletContextHandler> handlers = new HashMap<>();
@@ -85,11 +79,11 @@ public class JettyService implements XrdWebServer {
     private Server server;
 
     public JettyService(JettyConfiguration configuration, GlobalConfProvider globalConfProvider,
-                        KeyConfProvider keyConfProvider, CertChainFactory certChainFactory,
+                        TlsAuthKeyProvider tlsAuthKeyProvider, CertChainFactory certChainFactory,
                         Monitor monitor) {
         this.configuration = configuration;
         this.globalConfProvider = globalConfProvider;
-        this.keyConfProvider = keyConfProvider;
+        this.tlsAuthKeyProvider = tlsAuthKeyProvider;
         this.certChainFactory = certChainFactory;
         this.monitor = monitor;
         System.setProperty(LOG_ANNOUNCE, "false");
@@ -202,14 +196,7 @@ public class JettyService implements XrdWebServer {
         cf.setIncludeCipherSuites(EdcSSLConstants.SSL_CYPHER_SUITES);
         cf.setSessionCachingEnabled(true);
         cf.setSslSessionTimeout(SSL_SESSION_TIMEOUT);
-
-        var tlsCertPath = System.getenv("EDC_TLS_CERT_PATH");
-        if (tlsCertPath != null) {
-            cf.setSslContext(SSLContextBuilder.create(() -> getTlsCertificateChain(tlsCertPath), globalConfProvider).sslContext());
-        } else {
-            cf.setSslContext(SSLContextBuilder.create(keyConfProvider::getAuthKey, globalConfProvider).sslContext());
-        }
-
+        cf.setSslContext(SSLContextBuilder.create(tlsAuthKeyProvider::getAuthKey, globalConfProvider).sslContext());
         cf.setSniRequired(sniEnabled);
 
         var httpsConfiguration = getDefaultHttpConfiguration();
@@ -222,20 +209,6 @@ public class JettyService implements XrdWebServer {
         return new ServerConnector(server, sslConnectionFactory, httpConnectionFactory);
     }
 
-    @SneakyThrows
-    private AuthKey getTlsCertificateChain(String pkcs12Path) {
-        KeyStore keyStore = CryptoUtils.loadPkcs12KeyStore(Paths.get(pkcs12Path).toFile(), "management-service".toCharArray());
-
-        keyStore.getKey("management-service", "management-service".toCharArray());
-
-        var cert = keyStore.getCertificate("management-service");
-        var certChain = certChainFactory.create("cs", new X509Certificate[]{
-                (X509Certificate) cert,
-                globalConfProvider.getAllCaCerts().stream().findFirst().orElseThrow()
-        });
-        var pkey = (PrivateKey) keyStore.getKey("management-service", "management-service".toCharArray());
-        return new AuthKey(certChain, pkey);
-    }
 
     @NotNull
     private ServerConnector httpServerConnector(int port) {
