@@ -25,46 +25,40 @@
  */
 package org.niis.xroad.securityserver.restapi.config;
 
-import ee.ria.xroad.common.SystemProperties;
+import ee.ria.xroad.common.conf.serverconf.ServerConfProperties;
 
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.autoconfigure.orm.jpa.HibernatePropertiesCustomizer;
 import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Component;
 
-import java.io.FileInputStream;
-import java.io.IOException;
 import java.util.Map;
 import java.util.Properties;
 
 /**
- * HibernatePropertiesCustomizer that reads db.properties and sets non-datasource-properties.
- * Datasource properties are handled by {@link DatabasePropertiesEnvironmentPostProcessor}
+ * HibernatePropertiesCustomizer that reads serverconf.hibernate.* properties and sets non-datasource-properties.
  */
 @Slf4j
 @Component
 @Profile("nontest")
+@RequiredArgsConstructor
 public class PropertyFileReadingHibernateCustomizer implements HibernatePropertiesCustomizer {
+
+    private final ServerConfProperties serverConfProperties;
 
     @Override
     public void customize(Map<String, Object> hibernateProperties) {
         // called twice since IntelliJ tests load the class twice
         SecurityServerSystemPropertiesInitializer.initialize();
         Properties dbProperties = new Properties();
-
-        try (FileInputStream dbPropertiesStream = new FileInputStream(SystemProperties.getDatabasePropertiesFile())) {
-            dbProperties.load(dbPropertiesStream);
-        } catch (IOException ioe) {
-            log.warn("db.properties file not found", ioe);
+        if (serverConfProperties.hibernate() != null) {
+            serverConfProperties.hibernate().forEach((k, v) -> dbProperties.put("hibernate." + k, v));
         }
 
         for (String propertyName : dbProperties.stringPropertyNames()) {
-            // currently we have just one datasource, and convert
-            // e.g. serverconf.hibernate.jdbc.use_streams_for_binary
-            // into hibernate.jdbc.use_streams_for_binary
-            if (isServerConfProperty(propertyName)
-                    && canBeCustomized(propertyName)) {
-                hibernateProperties.put(removeServerConfPartFromName(propertyName),
+            if (canBeCustomized(propertyName)) {
+                hibernateProperties.put(propertyName,
                         dbProperties.getProperty(propertyName));
             }
         }

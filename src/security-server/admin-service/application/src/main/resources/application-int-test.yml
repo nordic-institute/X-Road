@@ -14,7 +14,12 @@ xroad:
   proxy-ui-api:
     cache-default-ttl: -1
     cache-api-key-ttl: -1
-
+  common:
+    serverconf:
+      hibernate:
+        connection.url: jdbc:postgresql://xrd-db:5432/xrd_ss
+        connection.username: xrd
+        connection.password: secret
 server:
   ssl:
     enabled: false
