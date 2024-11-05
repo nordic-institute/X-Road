@@ -5,6 +5,13 @@ spring:
     name: proxy-ui-api
   main:
     banner-mode: log
+  datasource:
+    url: ${xroad.common.serverconf.hibernate.connection.url}
+    username: ${xroad.common.serverconf.hibernate.connection.username}
+    password: ${xroad.common.serverconf.hibernate.connection.password}
+    hikari:
+      data-source-properties:
+        currentSchema: ${xroad.common.serverconf.hibernate.hikari.dataSource.currentSchema}
   jpa:
     ## *.hbm.xml files are loaded from classpath
     mapping-resources: identifiers.hbm.xml,serverconf.hbm.xml,apikey.hbm.xml
