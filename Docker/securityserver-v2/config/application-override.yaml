@@ -21,11 +21,11 @@ xroad:
       channel:
         configuration-client:
           host: confclient
-          port: 4001
+          port: 5665
           deadline-after: 60000
         proxy:
-          host: confclient
-          port: 4001
+          host: proxy
+          port: 5567
           deadline-after: 60000
         signer:
           host: signer
