@@ -29,7 +29,7 @@ import ee.ria.xroad.common.CodedException;
 import ee.ria.xroad.common.conf.globalconf.GlobalConfProvider;
 import ee.ria.xroad.common.crypto.Digests;
 import ee.ria.xroad.common.crypto.identifier.SignAlgorithm;
-import ee.ria.xroad.signer.SignerProxy;
+import ee.ria.xroad.signer.SignerRpcClient;
 
 import eu.europa.esig.dss.enumerations.DigestAlgorithm;
 import eu.europa.esig.dss.enumerations.SignatureAlgorithm;
@@ -72,6 +72,7 @@ public class DSSSigner implements MessageSigner {
     private static final DSSNamespace XADES_NAMESPACE = new DSSNamespace(XAdESNamespace.XADES_132.getUri(), "xades");
 
     private final GlobalConfProvider globalConfProvider;
+    private final SignerRpcClient signerRpcClient;
 
     static {
         XmlDefinerUtils.getInstance().setTransformerFactoryBuilder(
@@ -161,7 +162,7 @@ public class DSSSigner implements MessageSigner {
     private byte[] signRequest(String keyId, SignAlgorithm signatureAlgorithm, byte[] dataToSign) {
         try {
             byte[] digest = calculateDigest(signatureAlgorithm.digest(), dataToSign);
-            return SignerProxy.sign(keyId, signatureAlgorithm, digest);
+            return signerRpcClient.sign(keyId, signatureAlgorithm, digest);
 
         } catch (Exception exception) {
             throw new CodedException(X_CANNOT_CREATE_SIGNATURE, exception);

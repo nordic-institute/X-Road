@@ -8,6 +8,8 @@ dependencies {
     implementation project(':common:common-properties')
     implementation project(':common:common-rpc')
     implementation project(':signer:core')
+
+    testImplementation(libs.springBoot.starterTest)
 }
 
 jar {

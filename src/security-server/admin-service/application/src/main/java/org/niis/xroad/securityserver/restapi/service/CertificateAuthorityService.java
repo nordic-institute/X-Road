@@ -35,6 +35,7 @@ import ee.ria.xroad.common.conf.globalconf.GlobalConfProvider;
 import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.identifier.SecurityServerId;
 import ee.ria.xroad.common.util.CertUtils;
+import ee.ria.xroad.signer.SignerRpcClient;
 import ee.ria.xroad.signer.protocol.dto.KeyUsageInfo;
 
 import lombok.RequiredArgsConstructor;
@@ -46,7 +47,6 @@ import org.niis.xroad.restapi.service.ServiceException;
 import org.niis.xroad.restapi.util.FormatUtils;
 import org.niis.xroad.securityserver.restapi.cache.CurrentSecurityServerId;
 import org.niis.xroad.securityserver.restapi.dto.ApprovedCaDto;
-import org.niis.xroad.securityserver.restapi.facade.SignerProxyFacade;
 import org.niis.xroad.securityserver.restapi.util.OcspUtils;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -81,7 +81,7 @@ public class CertificateAuthorityService {
     private final GlobalConfService globalConfService;
     private final GlobalConfProvider globalConfProvider;
     private final ClientService clientService;
-    private final SignerProxyFacade signerProxyFacade;
+    private final SignerRpcClient signerRpcClient;
     private final CurrentSecurityServerId currentSecurityServerId;
     private final AcmeService acmeService;
     private final AcmeProperties acmeProperties;
@@ -89,6 +89,7 @@ public class CertificateAuthorityService {
     /**
      * {@link CertificateAuthorityService#getCertificateAuthorities(KeyUsageInfo, boolean)}
      * Returns top level certificate authorities
+     *
      * @param keyUsageInfo list CAs for this type of key usage. If null, list all.
      */
     @Cacheable(GET_CERTIFICATE_AUTHORITIES_CACHE)
@@ -99,12 +100,13 @@ public class CertificateAuthorityService {
 
     /**
      * Return approved certificate authorities
-     * @param keyUsageInfo list CAs for this type of key usage. If null, list all.
+     *
+     * @param keyUsageInfo           list CAs for this type of key usage. If null, list all.
      * @param includeIntermediateCas true = also include intermediate CAs.
      *                               false = only include top CAs
-     * @throws InconsistentCaDataException if required CA data could not be extracted, for example due to OCSP
-     * responses not being valid
      * @return list of approved CAs
+     * @throws InconsistentCaDataException if required CA data could not be extracted, for example due to OCSP
+     *                                     responses not being valid
      */
     @Cacheable(GET_CERTIFICATE_AUTHORITIES_CACHE)
     public List<ApprovedCaDto> getCertificateAuthorities(KeyUsageInfo keyUsageInfo,
@@ -129,7 +131,7 @@ public class CertificateAuthorityService {
         String[] base64EncodedOcspResponses;
         try {
             String[] certHashes = CertUtils.getSha1Hashes(new ArrayList<>(filteredCerts));
-            base64EncodedOcspResponses = signerProxyFacade.getOcspResponses(certHashes);
+            base64EncodedOcspResponses = signerRpcClient.getOcspResponses(certHashes);
         } catch (Exception e) {
             throw new InconsistentCaDataException("failed to get read CA OCSP responses", e);
         }
@@ -166,12 +168,13 @@ public class CertificateAuthorityService {
 
     /**
      * Build a single {@code ApprovedCaDto} object using given parameters
-     * @param certificate CA certificate
+     *
+     * @param certificate               CA certificate
      * @param base64EncodedOcspResponse OCSP response
-     * @param subjectsToIssuers map linking all CA subject DNs to corresponding issuer DNs
+     * @param subjectsToIssuers         map linking all CA subject DNs to corresponding issuer DNs
      * @return approved CA DTO
      * @throws InconsistentCaDataException if required CA data could not be extracted, for example due to OCSP
-     * responses not being valid
+     *                                     responses not being valid
      */
     private ApprovedCaDto buildCertificateAuthorityDto(
             X509Certificate certificate, String base64EncodedOcspResponse,
@@ -244,19 +247,20 @@ public class CertificateAuthorityService {
 
     /**
      * Return correct CertificateProfileInfo for given parameters
-     * @param caName name of the CA
+     *
+     * @param caName       name of the CA
      * @param keyUsageInfo key usage
-     * @param memberId member when key usage = signing, ignored otherwise
+     * @param memberId     member when key usage = signing, ignored otherwise
      * @return CertificateProfileInfo
-     * @throws CertificateAuthorityNotFoundException if matching CA was not found
+     * @throws CertificateAuthorityNotFoundException    if matching CA was not found
      * @throws CertificateProfileInstantiationException if instantiation of certificate profile failed
-     * @throws WrongKeyUsageException if attempted to read signing profile from authenticationOnly ca
-     * @throws ClientNotFoundException if client with memberId was not found
+     * @throws WrongKeyUsageException                   if attempted to read signing profile from authenticationOnly ca
+     * @throws ClientNotFoundException                  if client with memberId was not found
      */
     public CertificateProfileInfo getCertificateProfile(String caName, KeyUsageInfo keyUsageInfo, ClientId memberId,
                                                         boolean isNewMember)
             throws CertificateAuthorityNotFoundException, CertificateProfileInstantiationException,
-                   WrongKeyUsageException, ClientNotFoundException {
+            WrongKeyUsageException, ClientNotFoundException {
         ApprovedCAInfo caInfo = getCertificateAuthorityInfo(caName);
         if (Boolean.TRUE.equals(caInfo.getAuthenticationOnly()) && KeyUsageInfo.SIGNING == keyUsageInfo) {
             throw new WrongKeyUsageException();
@@ -292,6 +296,7 @@ public class CertificateAuthorityService {
 
     /**
      * Return ApprovedCAInfo for CA with given CN name
+     *
      * @param caName CN name
      * @throws CertificateAuthorityNotFoundException if matching CA was not found
      */

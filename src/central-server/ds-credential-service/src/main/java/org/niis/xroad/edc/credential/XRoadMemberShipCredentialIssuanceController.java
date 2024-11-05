@@ -86,7 +86,8 @@ public class XRoadMemberShipCredentialIssuanceController {
         this.globalConfProvider = globalConfProvider;
         this.issuingDid = issuingDid;
         this.signer = jwsSignerProvider.createJwsSigner(keyId)
-                .orElseThrow(f -> new EdcException("JWSSigner cannot be generated for private key '%s': %s".formatted(keyId, f.getFailureDetail())));
+                .orElseThrow(f ->
+                        new EdcException("JWSSigner cannot be generated for private key '%s': %s".formatted(keyId, f.getFailureDetail())));
         this.keyId = keyId;
     }
 
@@ -97,7 +98,8 @@ public class XRoadMemberShipCredentialIssuanceController {
         // verify cryptographic integrity of JWT
         var publicKeyId = signedJwt.getHeader().getKeyID();
         var publicKey = didPublicKeyResolver.resolveKey(publicKeyId)
-                .orElseThrow(f -> new EdcException("Failed to resolve DID public key with ID '%s': %s".formatted(keyId, f.getFailureDetail())));
+                .orElseThrow(f ->
+                        new EdcException("Failed to resolve DID public key with ID '%s': %s".formatted(keyId, f.getFailureDetail())));
         var jwtVerifier = CryptoConverter.createVerifierFor(publicKey);
         if (!signedJwt.verify(jwtVerifier)) {
             throw new EdcException("The Cryptographic integrity of self-description is invalid");
@@ -110,7 +112,7 @@ public class XRoadMemberShipCredentialIssuanceController {
         }
         var certChain = globalConfProvider.getCertChain(globalConfProvider.getInstanceIdentifier(), certificate);
         var verifier = new CertChainVerifier(globalConfProvider, certChain);
-        verifier.verifyChainOnly(new Date()); //TODO: also verify ocsp
+        verifier.verifyChainOnly(new Date()); //TODO also verify ocsp
 
         // Validate the membership claim using the signing certificate
         var xroadIdentifier = signedJwt.getJWTClaimsSet().getStringClaim("xroadIdentifier");

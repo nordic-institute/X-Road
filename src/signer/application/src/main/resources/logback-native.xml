@@ -7,6 +7,5 @@
 
     <root level="INFO">
         <appender-ref ref="FILE"/>
-        <appender-ref ref="SYSLOG"/>
     </root>
 </configuration>

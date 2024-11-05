@@ -29,7 +29,6 @@ package org.niis.xroad.proxy;
 
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
-import org.niis.xroad.common.rpc.RpcServerProperties;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 
 import java.util.List;
@@ -39,7 +38,6 @@ import java.util.List;
 @ConfigurationProperties(prefix = "xroad.proxy")
 public class ProxyProperties {
     private final ServerProperties server;
-    private final RpcServerProperties grpcServer;
     private final ClientProxyProperties clientProxy;
     private final OcspResponderProperties ocspResponder;
 

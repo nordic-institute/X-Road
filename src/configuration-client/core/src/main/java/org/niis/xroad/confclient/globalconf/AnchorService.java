@@ -43,7 +43,6 @@ import org.niis.xroad.confclient.proto.AnchorServiceGrpc;
 import org.niis.xroad.confclient.proto.ConfigurationAnchorMessage;
 import org.niis.xroad.confclient.proto.VerificationResult;
 import org.niis.xroad.rpc.common.Empty;
-import org.springframework.stereotype.Service;
 
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -57,7 +56,6 @@ import static ee.ria.xroad.common.DiagnosticsErrorCodes.RETURN_SUCCESS;
 import static ee.ria.xroad.common.conf.globalconf.ConfigurationConstants.CONTENT_ID_PRIVATE_PARAMETERS;
 
 @RequiredArgsConstructor
-@Service
 @Slf4j
 public class AnchorService extends AnchorServiceGrpc.AnchorServiceImplBase {
     private final ConfigurationClientProperties confClientProperties;

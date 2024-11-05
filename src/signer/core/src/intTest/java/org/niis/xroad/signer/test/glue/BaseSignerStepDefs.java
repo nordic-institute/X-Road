@@ -27,7 +27,7 @@
 
 package org.niis.xroad.signer.test.glue;
 
-import ee.ria.xroad.signer.SignerProxy;
+import ee.ria.xroad.signer.SignerRpcClient;
 import ee.ria.xroad.signer.protocol.dto.KeyInfo;
 import ee.ria.xroad.signer.protocol.dto.TokenInfo;
 
@@ -39,6 +39,8 @@ import java.util.Map;
 public class BaseSignerStepDefs extends BaseStepDefs {
     private static final String KEY_FRIENDLY_NAME_MAPPING = "tokenFriendlyNameToIdMapping";
 
+    protected SignerRpcClient signerRpcClient;
+
     protected Map<String, String> getTokenFriendlyNameToIdMapping() {
         Map<String, String> map = scenarioContext.getStepData(KEY_FRIENDLY_NAME_MAPPING);
         if (map == null) {
@@ -49,7 +51,7 @@ public class BaseSignerStepDefs extends BaseStepDefs {
     }
 
     protected TokenInfo getTokenInfoByFriendlyName(String friendlyName) throws Exception {
-        var tokenInfo = SignerProxy.getToken(getTokenFriendlyNameToIdMapping().get(friendlyName));
+        var tokenInfo = signerRpcClient.getToken(getTokenFriendlyNameToIdMapping().get(friendlyName));
         testReportService.attachJson("TokenInfo", tokenInfo);
         return tokenInfo;
     }

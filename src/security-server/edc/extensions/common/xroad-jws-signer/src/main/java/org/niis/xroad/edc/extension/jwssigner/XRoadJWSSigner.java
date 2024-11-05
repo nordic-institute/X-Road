@@ -30,7 +30,7 @@ import ee.ria.xroad.common.crypto.Digests;
 import ee.ria.xroad.common.crypto.identifier.DigestAlgorithm;
 import ee.ria.xroad.common.crypto.identifier.SignAlgorithm;
 import ee.ria.xroad.common.crypto.identifier.SignMechanism;
-import ee.ria.xroad.signer.SignerProxy;
+import ee.ria.xroad.signer.SignerRpcClient;
 
 import com.nimbusds.jose.JOSEException;
 import com.nimbusds.jose.JWSAlgorithm;
@@ -77,22 +77,24 @@ public class XRoadJWSSigner extends BaseJWSProvider implements JWSSigner {
         JWS_TO_HASH_ALGORITHM_MAP = Collections.unmodifiableMap(jwsToHashAlgorithmMap);
     }
 
+    private final SignerRpcClient signerRpcClient;
     private final String keyId;
 
-    public XRoadJWSSigner(String keyId) {
+    public XRoadJWSSigner(SignerRpcClient signerRpcClient, String keyId) {
         super(SUPPORTED_ALGORITHMS);
+        this.signerRpcClient = signerRpcClient;
         this.keyId = keyId;
     }
 
     @Override
     public Base64URL sign(JWSHeader jwsHeader, byte[] bytes) throws JOSEException {
         try {
-            SignMechanism signMechanismName = SignerProxy.getSignMechanism(keyId);
+            SignMechanism signMechanismName = signerRpcClient.getSignMechanism(keyId);
             DigestAlgorithm digestAlgorithm = getHashAlgorithm(jwsHeader.getAlgorithm());
             SignAlgorithm signatureAlgorithm = SignAlgorithm.ofDigestAndMechanism(digestAlgorithm, signMechanismName);
 
             byte[] digest = Digests.calculateDigest(digestAlgorithm, bytes);
-            byte[] signature = SignerProxy.sign(keyId, signatureAlgorithm, digest);
+            byte[] signature = signerRpcClient.sign(keyId, signatureAlgorithm, digest);
             return Base64URL.encode(signature);
         } catch (Exception e) {
             throw new JOSEException(e);

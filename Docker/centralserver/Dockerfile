@@ -97,7 +97,6 @@ COPY files/edc/bin/ /usr/share/xroad/bin/
 
 ENV EDC_HOSTNAME=localhost
 ENV EDC_DID=did:web:localhost
-ENV EDC_TLS_CERT_PATH=/etc/xroad/ssl/management-service.p12
 # end of dataspaces
 
 CMD ["/root/entrypoint.sh"]

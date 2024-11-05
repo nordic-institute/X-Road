@@ -27,71 +27,61 @@
 package org.niis.xroad.confclient.proto;
 
 import com.google.protobuf.ByteString;
-import io.grpc.Channel;
-import lombok.Getter;
-import org.niis.xroad.common.rpc.RpcClientProperties;
-import org.niis.xroad.common.rpc.client.RpcClient;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.niis.xroad.common.rpc.RpcServiceProperties;
+import org.niis.xroad.common.rpc.client.AbstractRpcClient;
+import org.niis.xroad.common.rpc.client.RpcChannelFactory;
 import org.niis.xroad.rpc.common.Empty;
-import org.springframework.beans.factory.DisposableBean;
 import org.springframework.beans.factory.InitializingBean;
 
-public class ConfClientRpcClient implements DisposableBean, InitializingBean {
+@Slf4j
+@RequiredArgsConstructor
+public class ConfClientRpcClient extends AbstractRpcClient implements InitializingBean {
+    private final RpcChannelFactory proxyRpcChannelFactory;
+    private final ConfClientRpcChannelProperties rpcChannelProperties;
+    private final RpcServiceProperties rpcServiceProperties;
 
-    private RpcClient<ConfClientRpcExecutionContext> rpcClient;
-    private final RpcClientProperties rpcClientProperties;
-
-    public ConfClientRpcClient(RpcClientProperties rpcClientProperties) {
-        this.rpcClientProperties = rpcClientProperties;
-    }
+    private AdminServiceGrpc.AdminServiceBlockingStub adminServiceBlockingStub;
+    private AnchorServiceGrpc.AnchorServiceBlockingStub anchorServiceBlockingStub;
+    private GlobalConfServiceGrpc.GlobalConfServiceBlockingStub globalConfServiceBlockingStub;
 
     @Override
     public void afterPropertiesSet() throws Exception {
-        this.rpcClient = RpcClient.newClient(rpcClientProperties, ConfClientRpcExecutionContext::new);
+        log.info("Initializing {} rpc client to {}:{}", getClass().getSimpleName(), rpcChannelProperties.getHost(),
+                rpcChannelProperties.getPort());
+        var channel = proxyRpcChannelFactory.createChannel(rpcChannelProperties, rpcServiceProperties);
+
+        this.adminServiceBlockingStub = AdminServiceGrpc.newBlockingStub(channel).withWaitForReady();
+        this.anchorServiceBlockingStub = AnchorServiceGrpc.newBlockingStub(channel).withWaitForReady();
+        this.globalConfServiceBlockingStub = GlobalConfServiceGrpc.newBlockingStub(channel).withWaitForReady();
     }
 
     public DiagnosticsStatus getStatus() throws Exception {
-        return rpcClient.execute(ctx -> ctx.getAdminServiceBlockingStub()
+        return exec(() -> adminServiceBlockingStub
                 .getStatus(Empty.getDefaultInstance()));
     }
 
     public GetGlobalConfResp getGlobalConf() throws Exception {
-        return rpcClient.execute(ctx -> ctx.getGlobalConfServiceBlockingStub()
+        return exec(() -> globalConfServiceBlockingStub
                 .getGlobalConf(GetGlobalConfReq.newBuilder().build()));
     }
 
     public byte[] getConfigurationAnchor() throws Exception {
-        return rpcClient.execute(ctx -> ctx.getAnchorServiceBlockingStub()
-                        .getConfigurationAnchor(Empty.getDefaultInstance()))
+        return exec(() -> anchorServiceBlockingStub
+                .getConfigurationAnchor(Empty.getDefaultInstance()))
                 .getConfigurationAnchor().toByteArray();
     }
 
     public int verifyAndSaveConfigurationAnchor(byte[] anchorBytes) {
         try {
-            var response = rpcClient.execute(ctx -> ctx.getAnchorServiceBlockingStub()
+            var response = exec(() -> anchorServiceBlockingStub
                     .verifyAndSaveConfigurationAnchor(ConfigurationAnchorMessage.newBuilder()
                             .setConfigurationAnchor(ByteString.copyFrom(anchorBytes))
                             .build()));
             return response.getReturnCode();
         } catch (Exception e) {
             throw new RuntimeException("Configuration anchor validation failed", e);
-        }
-    }
-
-    @Override
-    public void destroy() {
-        rpcClient.shutdown();
-    }
-
-    @Getter
-    private static class ConfClientRpcExecutionContext implements RpcClient.ExecutionContext {
-        private final AdminServiceGrpc.AdminServiceBlockingStub adminServiceBlockingStub;
-        private final AnchorServiceGrpc.AnchorServiceBlockingStub anchorServiceBlockingStub;
-        private final GlobalConfServiceGrpc.GlobalConfServiceBlockingStub globalConfServiceBlockingStub;
-
-        ConfClientRpcExecutionContext(Channel channel) {
-            this.adminServiceBlockingStub = AdminServiceGrpc.newBlockingStub(channel).withWaitForReady();
-            this.anchorServiceBlockingStub = AnchorServiceGrpc.newBlockingStub(channel).withWaitForReady();
-            this.globalConfServiceBlockingStub = GlobalConfServiceGrpc.newBlockingStub(channel).withWaitForReady();
         }
     }
 

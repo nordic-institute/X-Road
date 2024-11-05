@@ -33,7 +33,7 @@ import org.springframework.core.env.PropertyResolver;
 
 /**
  * This is a temporary SystemPropertySource class that will be removed once the SystemProperties class is refactored.
- * TODO: xroad8 should be removed
+ * TODO xroad8 should be removed
  */
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
 public class SystemPropertySource {

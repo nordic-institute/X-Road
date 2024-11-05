@@ -71,18 +71,6 @@ xroad:
     strict-identifier-checks: true
     request-size-limit-regular: 50KB
     request-size-limit-binary-upload: 10MB
-  configuration-client:
-    grpc-host: localhost
-    grpc-port: 5665
-    grpc-tls-enabled: false
-  signer:
-    grpc-host: localhost
-    grpc-port: 5560
-    grpc-tls-enabled: false
-  proxy:
-    grpc-host: localhost
-    grpc-port: 5567
-    grpc-tls-enabled: false
   common:
     serverconf:
       cache-period: 60
@@ -96,6 +84,20 @@ xroad:
         connection.username: serverconf
         hikari.dataSource.currentSchema: serverconf,public
         jdbc.use_streams_for_binary: true
+    grpc:
+      channel:
+        configuration-client:
+          host: 127.0.0.1
+          port: 5665
+          deadline-after: 60000
+        signer:
+          host: 127.0.0.1
+          port: 5560
+          deadline-after: 60000
+        proxy:
+          host: 127.0.0.1
+          port: 5567
+          deadline-after: 60000
 
 file-upload-endpoints:
   endpoint-definitions:

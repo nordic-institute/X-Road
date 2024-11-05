@@ -14,8 +14,11 @@ sourceSets {
 }
 
 dependencies {
+    api (platform(libs.springBoot.bom))
     implementation project(':common:common-domain')
     api project(':common:common-rpc')
+
+    api("org.springframework.boot:spring-boot-starter")
     api libs.opentelemetry.instrumentation.annotations
 }
 

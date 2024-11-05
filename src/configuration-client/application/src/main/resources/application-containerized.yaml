@@ -1,2 +1,7 @@
+xroad:
+  configuration-client:
+    grpc:
+      listen-address: 0.0.0.0
+
 logging:
   config: classpath:logback-containerized.xml

@@ -1,62 +1,7 @@
-plugins {
-    alias(libs.plugins.shadow)
+tasks.withType(Jar).configureEach {
+    enabled = false
 }
 
-dependencies {
-    implementation project(':common:common-globalconf')
-    implementation project(':common:common-jetty')
-    implementation project(':signer-protocol')
-
-    implementation libs.commons.cli
-
-    testImplementation project(':common:common-test')
-    testImplementation libs.assertj.core
-}
-
-ext {
-    mainClassName = 'ee.ria.xroad.confproxy.ConfProxyMain'
-}
-
-jar {
-    manifest {
-        attributes 'Main-Class': mainClassName
-    }
-}
-
-shadowJar {
-    archiveClassifier = ''
-    exclude('**/module-info.class')
-    from rootProject.file("LICENSE.txt")
-    mergeServiceFiles()
-}
-
-build {
-    dependsOn shadowJar
-}
-
-jar.enabled = false
-
-tasks.register('runConfigurationProxyMain', JavaExec) {
-    jvmArgs '-Dxroad.conf.path=src/test/resources/',
-        '-Dxroad.common.configuration-path=build/',
-        '-Dxroad.configuration-proxy.configuration-path=src/test/resources/conf-proxy-conf'
-
-    mainClass = 'ee.ria.xroad.confproxy.ConfProxyMain'
-    classpath = sourceSets.test.runtimeClasspath
-
-    args 'PROXY1'
-}
-
-tasks.register('runConfigurationProxyUtilTest', JavaExec) {
-    jvmArgs '-Dxroad.conf.path=src/test/resources/',
-        '-Dxroad.configuration-proxy.configuration-path=src/test/resources/conf-proxy-conf'
-
-    mainClass = 'ee.ria.xroad.confproxy.commandline.ConfProxyUtilMain'
-    classpath = sourceSets.test.runtimeClasspath
-
-    args 'ee.ria.xroad.confproxy.commandline.ConfProxyUtilGenerateAnchor', '-p', 'PROXY1', '-f', 'test.xml'
-    //args 'ee.ria.xroad.confproxy.commandline.ConfProxyUtilAddSigningKey', '-p', 'PROXY1', '-t', '0'
-    //args 'ee.ria.xroad.confproxy.commandline.ConfProxyUtilDelSigningKey', '-p', 'PROXY1', '-k', 'B8F553EC0944EB8022B29166D5C13E6298FB6616'
-    //args 'ee.ria.xroad.confproxy.commandline.ConfProxyUtilViewConf', '-a'
-    //args 'ee.ria.xroad.confproxy.commandline.ConfProxyUtilCreateInstance', '-p', 'PROXY2'
+archUnit {
+    skip = true
 }

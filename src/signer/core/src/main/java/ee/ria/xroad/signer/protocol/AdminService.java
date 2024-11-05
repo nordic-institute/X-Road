@@ -28,7 +28,6 @@
 package ee.ria.xroad.signer.protocol;
 
 import ee.ria.xroad.signer.protocol.handler.GetCertificationServiceDiagnosticsReqHandler;
-
 import ee.ria.xroad.signer.protocol.handler.GetKeyConfChecksumHandler;
 
 import io.grpc.stub.StreamObserver;

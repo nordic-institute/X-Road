@@ -1,0 +1,2 @@
+org.eclipse.edc.connector.core.CoreDefaultServicesExtension
+org.niis.xroad.edc.extension.webservice.XrdEdcHttpClientExtension

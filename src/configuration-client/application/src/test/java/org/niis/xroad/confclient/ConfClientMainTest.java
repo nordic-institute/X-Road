@@ -35,7 +35,7 @@ import org.springframework.context.ApplicationContext;
 import org.springframework.test.context.ActiveProfiles;
 
 @ActiveProfiles("test")
-@SpringBootTest
+@SpringBootTest(useMainMethod = SpringBootTest.UseMainMethod.ALWAYS)
 class ConfClientMainTest {
     @Autowired
     ApplicationContext context;

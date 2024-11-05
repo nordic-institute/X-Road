@@ -22,12 +22,12 @@ testAutomationFramework = "0.2.18"
 protoc = "4.28.3"
 grpc = "1.67.1"
 swaggerParser = "2.1.23"
+#can go newer on spring boot v3.3.3
 logback = "1.5.12"
 logbackAccess = "2.0.3"
 apacheCxf = "4.0.5"
 archUnitPlugin = "4.0.0"
 edc = "0.9.1"
-edcJetty = "11.0.24"
 nimbusJoseJwt = "9.39.1"
 dss = "6.0"
 caffeine = "3.1.8"
@@ -41,6 +41,7 @@ metrics-jmx = { module = "io.dropwizard.metrics:metrics-jmx", version.ref = "met
 jetty-server = { module = "org.eclipse.jetty:jetty-server", version.ref = "jetty" }
 jetty-http = { module = "org.eclipse.jetty:jetty-http", version.ref = "jetty" }
 jetty-xml = { module = "org.eclipse.jetty:jetty-xml", version.ref = "jetty" }
+jetty-servlet-ee10 = { module = "org.eclipse.jetty.ee10:jetty-ee10-servlet", version.ref = "jetty" }
 
 jaxb-runtime = { module = "org.glassfish.jaxb:jaxb-runtime", version.ref = "jaxb" }
 jaxb-xjc = { module = "org.glassfish.jaxb:jaxb-xjc", version.ref = "jaxb" }
@@ -173,10 +174,10 @@ opentelemetry-instrumentation-annotations = { module = "io.opentelemetry.instrum
 archUnit-plugin-core = { module = "com.societegenerale.commons:arch-unit-build-plugin-core", version.ref = "archUnitPlugin" }
 
 caffeine = { module = "com.github.ben-manes.caffeine:caffeine", version.ref = "caffeine" }
-jetty-servlet = { module = "org.eclipse.jetty:jetty-servlet", version.ref = "edcJetty" }
+jetty-servlet = { module = "org.eclipse.jetty:jetty-servlet", version.ref = "jetty" }
 nimbus-jose-jwt = { module = "com.nimbusds:nimbus-jose-jwt", version.ref = "nimbusJoseJwt" }
 swagger-annotations-jakarta = { module = "io.swagger.core.v3:swagger-annotations-jakarta", version.ref = "swaggerAnnotations" }
-websocket-jakarta-server = { module = "org.eclipse.jetty.websocket:websocket-jakarta-server", version.ref = "edcJetty" }
+websocket-jakarta-server = { module = "org.eclipse.jetty.websocket:websocket-jakarta-server", version.ref = "jetty" }
 
 dss-jades = { module = "eu.europa.ec.joinup.sd-dss:dss-jades", version.ref = "dss" }
 dss-xades = { module = "eu.europa.ec.joinup.sd-dss:dss-xades", version.ref = "dss" }
@@ -192,6 +193,7 @@ dss-spi = { module = "eu.europa.ec.joinup.sd-dss:dss-spi", version.ref = "dss" }
 ### EDC ###
 # upstream EDC dependencies
 edc-boot = { module = "org.eclipse.edc:boot", version.ref = "edc" }
+edc-monitor-jdk-logger = { module = "org.eclipse.edc:monitor-jdk-logger", version.ref = "edc" }
 edc-junit = { module = "org.eclipse.edc:junit", version.ref = "edc" }
 edc-did-core = { module = "org.eclipse.edc:identity-did-core", version.ref = "edc" }
 edc-did-web = { module = "org.eclipse.edc:identity-did-web", version.ref = "edc" }

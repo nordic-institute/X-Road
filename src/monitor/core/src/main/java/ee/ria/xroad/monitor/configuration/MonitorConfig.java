@@ -35,15 +35,19 @@ import ee.ria.xroad.monitor.EnvMonitorProperties;
 import ee.ria.xroad.monitor.ExecListingSensor;
 import ee.ria.xroad.monitor.MetricsRpcService;
 import ee.ria.xroad.monitor.SystemMetricsSensor;
-import ee.ria.xroad.signer.protocol.RpcSignerClient;
+import ee.ria.xroad.signer.SignerClientConfiguration;
+import ee.ria.xroad.signer.SignerRpcClient;
 
 import io.grpc.BindableService;
 import lombok.extern.slf4j.Slf4j;
-import org.niis.xroad.common.rpc.RpcClientProperties;
-import org.niis.xroad.common.rpc.RpcServerProperties;
+import org.niis.xroad.common.rpc.RpcServiceProperties;
+import org.niis.xroad.common.rpc.client.RpcChannelFactory;
 import org.niis.xroad.common.rpc.server.RpcServer;
-import org.niis.xroad.confclient.proto.ConfClientRpcClient;
-import org.springframework.beans.factory.annotation.Qualifier;
+import org.niis.xroad.confclient.proto.ConfClientRpcClientConfiguration;
+import org.niis.xroad.proxy.proto.ProxyRpcChannelProperties;
+import org.niis.xroad.proxy.proto.ProxyRpcClientConfiguration;
+import org.springframework.boot.context.properties.ConfigurationProperties;
+import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
@@ -56,16 +60,23 @@ import java.util.List;
 @Slf4j
 @Import({GlobalConfBeanConfig.class,
         ServerConfBeanConfig.class,
-        GlobalConfRefreshJobConfig.class})
+        GlobalConfRefreshJobConfig.class,
+        SignerClientConfiguration.class,
+        ConfClientRpcClientConfiguration.class,
+        ProxyRpcClientConfiguration.class})
 @EnableScheduling
+@EnableConfigurationProperties({
+        EnvMonitorProperties.class,
+        MonitorConfig.EnvMonitorServiceProperties.class})
 @Configuration
 public class MonitorConfig {
     private static final int TASK_EXECUTOR_POOL_SIZE = 5;
 
     @Bean
-    RpcServer rpcServer(final List<BindableService> bindableServices, RpcServerProperties envMonitorRpcServerProperties) throws Exception {
+    RpcServer rpcServer(final List<BindableService> bindableServices, RpcServiceProperties envMonitorRpcServiceProperties)
+            throws Exception {
         return RpcServer.newServer(
-                envMonitorRpcServerProperties,
+                envMonitorRpcServiceProperties,
                 builder -> bindableServices.forEach(bindableService -> {
                     log.info("Registering {} RPC service.", bindableService.getClass().getSimpleName());
                     builder.addService(bindableService);
@@ -87,9 +98,12 @@ public class MonitorConfig {
     @Bean
     SystemMetricsSensor systemMetricsSensor(TaskScheduler taskScheduler,
                                             EnvMonitorProperties envMonitorProperties,
-                                            @Qualifier("proxyRpcClientProperties") RpcClientProperties proxyRpcClientProperties)
-            throws Exception {
-        return new SystemMetricsSensor(taskScheduler, envMonitorProperties, proxyRpcClientProperties);
+                                            RpcChannelFactory rpcChannelFactory,
+                                            ProxyRpcChannelProperties proxyRpcClientProperties,
+                                            RpcServiceProperties rpcServiceProperties) throws Exception {
+
+        return new SystemMetricsSensor(taskScheduler, envMonitorProperties, rpcChannelFactory, proxyRpcClientProperties,
+                rpcServiceProperties);
     }
 
     @Bean
@@ -104,19 +118,18 @@ public class MonitorConfig {
 
     @Bean
     CertificateInfoSensor certificateInfoSensor(TaskScheduler taskScheduler, EnvMonitorProperties envMonitorProperties,
-                                                ServerConfProvider serverConfProvider) {
-        return new CertificateInfoSensor(taskScheduler, envMonitorProperties, serverConfProvider);
+                                                ServerConfProvider serverConfProvider, SignerRpcClient signerRpcClient) {
+        return new CertificateInfoSensor(taskScheduler, envMonitorProperties, serverConfProvider, signerRpcClient);
     }
 
-    @Bean
-    ConfClientRpcClient confClientRpcClient(@Qualifier("confClientRpcClientProperties") RpcClientProperties confClientRpcClientProperties) {
-        return new ConfClientRpcClient(confClientRpcClientProperties);
-    }
+    @ConfigurationProperties(prefix = "xroad.env-monitor.grpc")
+    static class EnvMonitorServiceProperties extends RpcServiceProperties {
 
-    @Bean
-    RpcSignerClient rpcSignerClient(@Qualifier("signerRpcClientProperties") RpcClientProperties signerRpcClientProperties)
-            throws Exception {
-        return RpcSignerClient.init(signerRpcClientProperties);
+        EnvMonitorServiceProperties(String listenAddress, int port,
+                                    String tlsTrustStore, char[] tlsTrustStorePassword,
+                                    String tlsKeyStore, char[] tlsKeyStorePassword) {
+            super(listenAddress, port, tlsTrustStore, tlsTrustStorePassword, tlsKeyStore, tlsKeyStorePassword);
+        }
     }
 
 }

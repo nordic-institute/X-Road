@@ -26,14 +26,17 @@
 package ee.ria.xroad.common.signature;
 
 import ee.ria.xroad.common.crypto.identifier.SignAlgorithm;
-import ee.ria.xroad.signer.SignerProxy;
+import ee.ria.xroad.signer.SignerRpcClient;
 
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
 import static ee.ria.xroad.common.crypto.Digests.calculateDigest;
 
 @Slf4j
+@RequiredArgsConstructor
 public class SimpleSigner implements MessageSigner {
+    private final SignerRpcClient signerRpcClient;
 
     @Override
     public SignatureData sign(String keyId, SignAlgorithm signatureAlgorithm, SigningRequest request) throws Exception {
@@ -43,7 +46,7 @@ public class SimpleSigner implements MessageSigner {
         ctx.add(request);
 
         final byte[] digest = calculateDigest(signatureAlgorithm.digest(), ctx.getDataToBeSigned());
-        final byte[] response = SignerProxy.sign(keyId, signatureAlgorithm, digest);
+        final byte[] response = signerRpcClient.sign(keyId, signatureAlgorithm, digest);
 
         String signature = ctx.createSignatureXml(response);
         return ctx.createSignatureData(signature, 0);

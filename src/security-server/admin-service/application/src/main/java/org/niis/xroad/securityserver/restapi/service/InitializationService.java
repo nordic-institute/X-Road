@@ -35,6 +35,7 @@ import ee.ria.xroad.common.util.TokenPinPolicy;
 import ee.ria.xroad.common.util.process.ExternalProcessRunner;
 import ee.ria.xroad.common.util.process.ProcessFailedException;
 import ee.ria.xroad.common.util.process.ProcessNotExecutableException;
+import ee.ria.xroad.signer.SignerRpcClient;
 
 import lombok.RequiredArgsConstructor;
 import lombok.Setter;
@@ -47,7 +48,6 @@ import org.niis.xroad.restapi.service.ServiceException;
 import org.niis.xroad.restapi.service.UnhandledWarningsException;
 import org.niis.xroad.securityserver.restapi.dto.InitializationStatusDto;
 import org.niis.xroad.securityserver.restapi.dto.TokenInitStatusInfo;
-import org.niis.xroad.securityserver.restapi.facade.SignerProxyFacade;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
@@ -92,7 +92,7 @@ public class InitializationService {
     private final TokenService tokenService;
     private final GlobalConfProvider globalConfProvider;
     private final ClientService clientService;
-    private final SignerProxyFacade signerProxyFacade;
+    private final SignerRpcClient signerRpcClient;
     private final AuditDataHelper auditDataHelper;
     private final TokenPinValidator tokenPinValidator;
     private final ExternalProcessRunner externalProcessRunner;
@@ -288,7 +288,7 @@ public class InitializationService {
         char[] pin = softwareTokenPin.toCharArray();
         tokenPinValidator.validateSoftwareTokenPin(pin);
         try {
-            signerProxyFacade.initSoftwareToken(pin);
+            signerRpcClient.initSoftwareToken(pin);
         } catch (Exception e) {
             // not good
             throw new SoftwareTokenInitException("Error initializing software token", e);

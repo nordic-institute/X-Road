@@ -11,6 +11,14 @@ server:
   port: 5699
 
 xroad:
+  common:
+    grpc:
+      channel:
+        configuration-client:
+          host: 127.0.0.1
+          port: 4001
+          deadline-after: 60000
+
   signer:
     key-length: 2048
     device-configuration-file: /etc/xroad/devices.ini
@@ -19,13 +27,9 @@ xroad:
     csr-signature-digest-algorithm: SHA-256
     enforce-token-pin-policy: false
     ocsp-cache-path: /var/cache/xroad
-    grpc-listen-address: 0.0.0.0
-    grpc-port: 5560
-    grpc-tls-enabled: false
-  configuration-client:
-    grpc-host: localhost
-    grpc-port: 5665
-    grpc-tls-enabled: false
+    grpc:
+      listen-address: 127.0.0.1
+      port: 5560
 
 logging:
   level:

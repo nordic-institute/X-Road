@@ -28,9 +28,9 @@
 package org.niis.xroad.cs.admin.core.service;
 
 import ee.ria.xroad.common.CodedException;
+import ee.ria.xroad.signer.SignerRpcClient;
 
 import org.niis.xroad.common.exception.NotFoundException;
-import org.niis.xroad.cs.admin.api.facade.SignerProxyFacade;
 import org.niis.xroad.cs.admin.core.exception.SignerProxyException;
 
 import static org.niis.xroad.cs.admin.api.exception.ErrorMessage.SIGNER_PROXY_ERROR;
@@ -40,11 +40,11 @@ import static org.niis.xroad.cs.admin.api.exception.ErrorMessage.TOKEN_NOT_FOUND
 public abstract class AbstractTokenConsumer {
     private static final String TOKEN_NOT_FOUND_FAULT_CODE = "Signer.TokenNotFound";
 
-    protected abstract SignerProxyFacade getSignerProxyFacade();
+    protected abstract SignerRpcClient getSignerRpcClient();
 
     protected ee.ria.xroad.signer.protocol.dto.TokenInfo getToken(String tokenId) {
         try {
-            return getSignerProxyFacade().getToken(tokenId);
+            return getSignerRpcClient().getToken(tokenId);
         } catch (CodedException codedException) {
             if (causedByNotFound(codedException)) {
                 throw new NotFoundException(TOKEN_NOT_FOUND);

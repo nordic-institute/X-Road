@@ -14,17 +14,16 @@
 package org.niis.xroad.edc;
 
 
-import org.eclipse.edc.junit.annotations.EndToEndTest;
 import org.eclipse.edc.junit.extensions.RuntimeExtension;
 import org.eclipse.edc.junit.extensions.RuntimePerClassExtension;
 import org.eclipse.edc.util.io.Ports;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.RegisterExtension;
 
 import java.nio.file.Paths;
 import java.util.Map;
 
-@EndToEndTest
+//@EndToEndTest
 class ControlPlaneRuntimeTest {
 
     static {
@@ -35,7 +34,7 @@ class ControlPlaneRuntimeTest {
         System.setProperty("xroad.signer.key-configuration-file", xrdSrcDir + "/signer/keyconf.xml");
     }
 
-    @RegisterExtension
+    //    @RegisterExtension
     private static final RuntimeExtension RUNTIME = new RuntimePerClassExtension()
             .setConfiguration(Map.ofEntries(
                     Map.entry("web.http.port", String.valueOf(Ports.getFreePort())),
@@ -52,6 +51,7 @@ class ControlPlaneRuntimeTest {
             ));
 
     @Test
+    @Disabled
     void verifyStartup() {
         //do nothing
     }

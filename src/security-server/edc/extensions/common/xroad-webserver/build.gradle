@@ -3,13 +3,11 @@ plugins {
 }
 
 dependencies {
-    implementation(project(':security-server:edc:xroad-edc-security')) {
-        exclude group: 'org.eclipse.jetty'
-    }
+    implementation(project(':security-server:edc:xroad-edc-security'))
     implementation project(":security-server:edc:spi:xroad-core-spi")
-
-    api libs.jetty.servlet
+    implementation(project(":security-server:edc:extensions:common:xroad-spring-bridge"))
+    api libs.jetty.server
+    api libs.jetty.servlet.ee10
     implementation libs.edc.spi.core
-    implementation libs.edc.core.connector
-    implementation libs.edc.lib.http
+    implementation libs.edc.spi.web
 }

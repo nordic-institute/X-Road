@@ -29,6 +29,7 @@ import ee.ria.xroad.common.CodedException;
 import ee.ria.xroad.common.SystemProperties;
 import ee.ria.xroad.common.conf.globalconf.GlobalConfProvider;
 import ee.ria.xroad.common.identifier.ClientId;
+import ee.ria.xroad.signer.SignerRpcClient;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -45,7 +46,7 @@ import org.springframework.stereotype.Service;
 @PreAuthorize("isAuthenticated()")
 @RequiredArgsConstructor
 public class ManagementRequestSenderService {
-
+    private final SignerRpcClient signerRpcClient;
     private final GlobalConfProvider globalConfProvider;
     private final GlobalConfService globalConfService;
     private final CurrentSecurityServerId currentSecurityServerId;
@@ -216,7 +217,8 @@ public class ManagementRequestSenderService {
         globalConfService.verifyGlobalConfValidity();
         ClientId sender = currentSecurityServerId.getServerId().getOwner();
         ClientId receiver = globalConfProvider.getManagementRequestService();
-        return new ManagementRequestSender(globalConfProvider, sender, receiver, SystemProperties.getProxyUiSecurityServerUrl());
+        return new ManagementRequestSender(globalConfProvider, signerRpcClient, sender, receiver,
+                SystemProperties.getProxyUiSecurityServerUrl());
     }
 
 }

@@ -31,7 +31,7 @@ import ee.ria.xroad.common.conf.serverconf.ServerConfProvider;
 import ee.ria.xroad.common.crypto.identifier.SignMechanism;
 import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.identifier.SecurityServerId;
-import ee.ria.xroad.signer.SignerProxy;
+import ee.ria.xroad.signer.SignerRpcClient;
 
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
@@ -41,7 +41,9 @@ import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.Timeout;
-import org.mockito.MockedStatic;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
 import org.mockito.stubbing.Answer;
 
 import java.io.IOException;
@@ -64,12 +66,13 @@ import java.util.function.BooleanSupplier;
 
 import static java.time.temporal.ChronoUnit.SECONDS;
 import static org.junit.Assert.assertEquals;
-import static org.mockito.Mockito.mockStatic;
+import static org.mockito.Mockito.when;
 
 /**
  * Test to verify that CachingKeyConf works as expected when it comes to threading
  */
 @Slf4j
+@ExtendWith(MockitoExtension.class)
 class CachingKeyConfImplTest {
 
     // booleanSuppliers for different uses
@@ -82,6 +85,9 @@ class CachingKeyConfImplTest {
     private static final BooleanSupplier VALID_SIGNING_INFO = ALWAYS_TRUE;
     public static final int NO_LOOPING = 1;
     public static final int NO_DELAY = 0;
+
+    @Mock
+    private SignerRpcClient signerRpcClient;
 
     private GlobalConfProvider globalConfProvider;
     private ServerConfProvider serverConfProvider;
@@ -164,25 +170,25 @@ class CachingKeyConfImplTest {
                 VALID_AUTH_KEY,
                 VALID_SIGNING_INFO,
                 NO_DELAY);
-        try (MockedStatic<SignerProxy> client = mockStatic(SignerProxy.class)) {
-            client.when(SignerProxy::getKeyConfChecksum).thenAnswer(
-                    (Answer<String>) invocation -> keyConfHasChanged.getAsBoolean() ? UUID.randomUUID().toString() : "theSameChecksum");
 
-            int expectedCacheHits = 1;
-            // should cause 1 cache refresh
-            testCachingKeyConf.getAuthKey();
-            assertEquals(expectedCacheHits, callsToGetAuthKeyInfo.get());
+        when(signerRpcClient.getKeyConfChecksum()).thenAnswer(
+                (Answer<String>) invocation -> keyConfHasChanged.getAsBoolean() ? UUID.randomUUID().toString() : "theSameChecksum");
 
-            // change keyconf
-            keyConfHasChanged.setValue(true);
-            testCachingKeyConf.checkForKeyConfChanges();
-            // next read one key, but this time key conf has changed -> one more hit
-            testCachingKeyConf.changed.await();
-            testCachingKeyConf.getAuthKey();
+        int expectedCacheHits = 1;
+        // should cause 1 cache refresh
+        testCachingKeyConf.getAuthKey();
+        assertEquals(expectedCacheHits, callsToGetAuthKeyInfo.get());
 
-            expectedCacheHits++;
-            assertEquals(expectedCacheHits, callsToGetAuthKeyInfo.get());
-        }
+        // change keyconf
+        keyConfHasChanged.setValue(true);
+        testCachingKeyConf.checkForKeyConfChanges();
+        // next read one key, but this time key conf has changed -> one more hit
+        testCachingKeyConf.changed.await();
+        testCachingKeyConf.getAuthKey();
+
+        expectedCacheHits++;
+        assertEquals(expectedCacheHits, callsToGetAuthKeyInfo.get());
+
     }
 
     @Test
@@ -433,7 +439,8 @@ class CachingKeyConfImplTest {
                                BooleanSupplier signingInfoIsValid,
                                int cacheReadDelayMs) {
             super(CachingKeyConfImplTest.this.globalConfProvider,
-                    CachingKeyConfImplTest.this.serverConfProvider);
+                    CachingKeyConfImplTest.this.serverConfProvider,
+                    CachingKeyConfImplTest.this.signerRpcClient);
             this.dataRefreshes = dataRefreshes;
             this.keyConfHasChanged = keyConfHasChanged;
             this.authKeyIsValid = authKeyIsValid;

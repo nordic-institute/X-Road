@@ -27,15 +27,15 @@ package ee.ria.xroad.monitor;
 
 import ee.ria.xroad.monitor.common.SystemMetricNames;
 
-import io.grpc.Channel;
 import io.grpc.stub.StreamObserver;
-import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
-import org.niis.xroad.common.rpc.RpcClientProperties;
-import org.niis.xroad.common.rpc.client.RpcClient;
+import org.niis.xroad.common.rpc.RpcServiceProperties;
+import org.niis.xroad.common.rpc.client.RpcChannelFactory;
 import org.niis.xroad.monitor.common.MonitorServiceGrpc;
 import org.niis.xroad.monitor.common.StatsReq;
 import org.niis.xroad.monitor.common.StatsResp;
+import org.niis.xroad.proxy.proto.ProxyRpcChannelProperties;
+import org.springframework.beans.factory.InitializingBean;
 import org.springframework.scheduling.TaskScheduler;
 
 import java.time.Duration;
@@ -45,19 +45,34 @@ import java.time.Duration;
  * memory, cpu, swap and file descriptors.
  */
 @Slf4j
-public class SystemMetricsSensor extends AbstractSensor {
+public class SystemMetricsSensor extends AbstractSensor implements InitializingBean {
     private static final int SYSTEM_CPU_LOAD_MULTIPLIER = 100;
 
-    private final RpcClient<ProxyRpcExecutionContext> proxyRpcClient;
+    private final RpcChannelFactory rpcChannelFactory;
+    private final ProxyRpcChannelProperties rpcChannelProperties;
+    private final RpcServiceProperties rpcServiceProperties;
+
+    private MonitorServiceGrpc.MonitorServiceStub monitorServiceStub;
 
     public SystemMetricsSensor(TaskScheduler taskScheduler, EnvMonitorProperties envMonitorProperties,
-                               RpcClientProperties proxyRpcClientProperties) throws Exception {
+                               RpcChannelFactory rpcChannelFactory, ProxyRpcChannelProperties rpcChannelProperties,
+                               RpcServiceProperties rpcServiceProperties) {
         super(taskScheduler, envMonitorProperties);
+        this.rpcChannelFactory = rpcChannelFactory;
+        this.rpcChannelProperties = rpcChannelProperties;
+        this.rpcServiceProperties = rpcServiceProperties;
         log.info("Creating sensor, measurement interval: {}", getInterval());
-
-        this.proxyRpcClient = RpcClient.newClient(proxyRpcClientProperties, ProxyRpcExecutionContext::new);
-
         scheduleSingleMeasurement(getInterval());
+    }
+
+
+    @Override
+    public void afterPropertiesSet() throws Exception {
+        log.info("Initializing {} rpc client to {}:{}", getClass().getSimpleName(), rpcChannelProperties.getHost(),
+                rpcChannelProperties.getPort());
+        var channel = rpcChannelFactory.createChannel(rpcChannelProperties, rpcServiceProperties);
+
+        monitorServiceStub = MonitorServiceGrpc.newStub(channel).withWaitForReady();
     }
 
     /**
@@ -93,7 +108,7 @@ public class SystemMetricsSensor extends AbstractSensor {
 
     @Override
     public void measure() {
-        proxyRpcClient.executeAsync(ctx -> ctx.getMonitorServiceStub().getStats(StatsReq.getDefaultInstance(), new StreamObserver<>() {
+        monitorServiceStub.getStats(StatsReq.getDefaultInstance(), new StreamObserver<>() {
 
             @Override
             public void onNext(StatsResp value) {
@@ -110,21 +125,12 @@ public class SystemMetricsSensor extends AbstractSensor {
             public void onCompleted() {
                 //NO-OP
             }
-        }));
+        });
     }
 
     @Override
     protected Duration getInterval() {
         return envMonitorProperties.getSystemMetricsSensorInterval();
-    }
-
-    @Getter
-    private static class ProxyRpcExecutionContext implements RpcClient.ExecutionContext {
-        private final MonitorServiceGrpc.MonitorServiceStub monitorServiceStub;
-
-        ProxyRpcExecutionContext(Channel channel) {
-            monitorServiceStub = MonitorServiceGrpc.newStub(channel).withWaitForReady();
-        }
     }
 
 }

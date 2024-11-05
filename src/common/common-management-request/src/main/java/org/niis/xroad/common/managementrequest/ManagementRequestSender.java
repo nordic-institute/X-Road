@@ -37,6 +37,7 @@ import ee.ria.xroad.common.message.SoapMessageImpl;
 import ee.ria.xroad.common.message.SoapParserImpl;
 import ee.ria.xroad.common.message.SoapUtils;
 import ee.ria.xroad.common.util.HttpSender;
+import ee.ria.xroad.signer.SignerRpcClient;
 
 import jakarta.xml.soap.SOAPException;
 import lombok.extern.slf4j.Slf4j;
@@ -70,6 +71,7 @@ import static ee.ria.xroad.common.util.MimeUtils.getBaseContentType;
 public final class ManagementRequestSender {
     private final GlobalConfProvider globalConfProvider;
     private final ManagementRequestClient managementRequestClient;
+    private final SignerRpcClient signerRpcClient;
     private final String securityServerUrl;
     private final ManagementRequestBuilder builder;
 
@@ -80,8 +82,10 @@ public final class ManagementRequestSender {
      * @param sender   the sender
      * @param receiver the receiver
      */
-    public ManagementRequestSender(GlobalConfProvider globalConfProvider, ClientId sender, ClientId receiver, String securityServerUrl) {
+    public ManagementRequestSender(GlobalConfProvider globalConfProvider, SignerRpcClient signerRpcClient, ClientId sender,
+                                   ClientId receiver, String securityServerUrl) {
         this.globalConfProvider = globalConfProvider;
+        this.signerRpcClient = signerRpcClient;
         this.builder = new ManagementRequestBuilder(sender, receiver);
         this.securityServerUrl = securityServerUrl;
         this.managementRequestClient = new ManagementRequestClient(globalConfProvider);
@@ -112,7 +116,7 @@ public final class ManagementRequestSender {
     public Integer sendAuthCertRegRequest(SecurityServerId.Conf securityServer, String address, byte[] authCert)
             throws Exception {
         try (HttpSender sender = managementRequestClient.createCentralHttpSender()) {
-            return send(sender, getCentralServiceURI(), new AuthCertRegRequest(authCert, securityServer.getOwner(),
+            return send(sender, getCentralServiceURI(), new AuthCertRegRequest(signerRpcClient, authCert, securityServer.getOwner(),
                     builder.buildAuthCertRegRequest(securityServer, address, authCert)));
         }
     }
@@ -144,7 +148,8 @@ public final class ManagementRequestSender {
     public Integer sendAddressChangeRequest(SecurityServerId.Conf securityServer, String address) throws Exception {
         try (HttpSender sender = managementRequestClient.createProxyHttpSender()) {
             return send(sender, getSecurityServerURI(),
-                    new AddressChangeRequest(securityServer.getOwner(), builder.buildAddressChangeRequest(securityServer, address)));
+                    new AddressChangeRequest(signerRpcClient, securityServer.getOwner(),
+                            builder.buildAddressChangeRequest(securityServer, address)));
         }
     }
 
@@ -159,7 +164,7 @@ public final class ManagementRequestSender {
     public Integer sendClientRegRequest(SecurityServerId.Conf securityServer, ClientId.Conf clientId) throws Exception {
         try (HttpSender sender = managementRequestClient.createProxyHttpSender()) {
             return send(sender, getSecurityServerURI(),
-                    new ClientRegRequest(clientId, builder.buildClientRegRequest(securityServer, clientId)));
+                    new ClientRegRequest(signerRpcClient, clientId, builder.buildClientRegRequest(securityServer, clientId)));
         }
     }
 
@@ -189,7 +194,7 @@ public final class ManagementRequestSender {
                                           ClientId.Conf clientId) throws Exception {
         try (HttpSender sender = managementRequestClient.createProxyHttpSender()) {
             return send(sender, getSecurityServerURI(),
-                    new OwnerChangeRequest(clientId, builder.buildOwnerChangeRequest(securityServer, clientId)));
+                    new OwnerChangeRequest(signerRpcClient, clientId, builder.buildOwnerChangeRequest(securityServer, clientId)));
         }
     }
 
@@ -197,7 +202,7 @@ public final class ManagementRequestSender {
                                             ClientId.Conf clientId) throws Exception {
         try (HttpSender sender = managementRequestClient.createProxyHttpSender()) {
             return send(sender, getSecurityServerURI(),
-                    new ClientDisableRequest(clientId, builder.buildClientDisableRequest(securityServer, clientId)));
+                    new ClientDisableRequest(signerRpcClient, clientId, builder.buildClientDisableRequest(securityServer, clientId)));
         }
     }
 
@@ -205,7 +210,7 @@ public final class ManagementRequestSender {
                                            ClientId.Conf clientId) throws Exception {
         try (HttpSender sender = managementRequestClient.createProxyHttpSender()) {
             return send(sender, getSecurityServerURI(),
-                    new ClientEnableRequest(clientId, builder.buildClientEnableRequest(securityServer, clientId)));
+                    new ClientEnableRequest(signerRpcClient, clientId, builder.buildClientEnableRequest(securityServer, clientId)));
         }
     }
 

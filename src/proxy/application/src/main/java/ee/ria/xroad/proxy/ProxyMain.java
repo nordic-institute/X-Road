@@ -25,62 +25,31 @@
  */
 package ee.ria.xroad.proxy;
 
-import ee.ria.xroad.common.conf.globalconf.GlobalConfPropertiesConfig;
-import ee.ria.xroad.proxy.antidos.AntiDosConfiguration;
-
 import lombok.extern.slf4j.Slf4j;
 import org.niis.xroad.bootstrap.XrdSpringServiceBuilder;
-import org.niis.xroad.common.rpc.RpcClientProperties;
-import org.niis.xroad.proxy.ProxyProperties;
-import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.boot.autoconfigure.SpringBootApplication;
-import org.springframework.boot.context.properties.ConfigurationProperties;
-import org.springframework.boot.context.properties.EnableConfigurationProperties;
+import org.niis.xroad.proxy.configuration.ProxyConfig;
+import org.springframework.boot.SpringBootConfiguration;
+import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 
 /**
  * Main program for the proxy server.
  */
 @Slf4j
-@SpringBootApplication(scanBasePackages = "org.niis.xroad.proxy")
-@EnableConfigurationProperties({ProxyMain.ConfClientRpcClientProperties.class,
-        ProxyMain.SignerRpcClientProperties.class,
-        ProxyProperties.class,
-        AntiDosConfiguration.class,
-})
+@EnableAutoConfiguration
+@SpringBootConfiguration
+@SuppressWarnings("checkstyle:HideUtilityClassConstructor")
 public class ProxyMain {
 
     private static final String APP_NAME = "xroad-proxy";
 
     public static void main(String[] args) {
-        XrdSpringServiceBuilder.newApplicationBuilder(APP_NAME, ProxyMain.class, GlobalConfPropertiesConfig.class)
+        XrdSpringServiceBuilder.newApplicationBuilder(APP_NAME, ProxyMain.class, ProxyConfig.class)
                 .initializers(applicationContext -> {
                     log.info("Initializing Apache Santuario XML Security library..");
                     org.apache.xml.security.Init.init();
                 })
                 .build()
                 .run(args);
-    }
-
-    @ConfigurationProperties(prefix = "xroad.configuration-client")
-    @Qualifier("confClientRpcClientProperties")
-    static class ConfClientRpcClientProperties extends RpcClientProperties {
-        ConfClientRpcClientProperties(String grpcHost, int grpcPort, boolean grpcTlsEnabled,
-                                      String grpcTlsTrustStore, char[] grpcTlsTrustStorePassword,
-                                      String grpcTlsKeyStore, char[] grpcTlsKeyStorePassword) {
-            super(grpcHost, grpcPort, grpcTlsEnabled, grpcTlsTrustStore, grpcTlsTrustStorePassword,
-                    grpcTlsKeyStore, grpcTlsKeyStorePassword);
-        }
-    }
-
-    @ConfigurationProperties(prefix = "xroad.signer")
-    @Qualifier("signerRpcClientProperties")
-    static class SignerRpcClientProperties extends RpcClientProperties {
-        SignerRpcClientProperties(String grpcHost, int grpcPort, boolean grpcTlsEnabled,
-                                  String grpcTlsTrustStore, char[] grpcTlsTrustStorePassword,
-                                  String grpcTlsKeyStore, char[] grpcTlsKeyStorePassword) {
-            super(grpcHost, grpcPort, grpcTlsEnabled, grpcTlsTrustStore, grpcTlsTrustStorePassword,
-                    grpcTlsKeyStore, grpcTlsKeyStorePassword);
-        }
     }
 
 }

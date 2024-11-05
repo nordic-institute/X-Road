@@ -38,13 +38,16 @@ import static java.util.Optional.ofNullable;
  * Contains system-wide constants for system properties.
  */
 // todo xroad8 FileLength checkstyle suppression is added to config/checkstyle/suppressions.xml. remove after refactor
+@SuppressWarnings("checkstyle:LineLength")
 @Deprecated(forRemoval = true)
 public final class SystemProperties {
 
     private SystemProperties() {
     }
 
-    /** The prefix for all properties. */
+    /**
+     * The prefix for all properties.
+     */
     public static final String PREFIX = "xroad.";
     private static final String SIGNER_PREFIX = PREFIX + "signer.";
 
@@ -52,83 +55,125 @@ public final class SystemProperties {
 
     // Common -----------------------------------------------------------------
 
-    /** Property name of the temporary files path. */
+    /**
+     * Property name of the temporary files path.
+     */
     public static final String TEMP_FILES_PATH =
             PREFIX + "common.temp-files-path";
 
-    /** Property name of the downloaded global configuration directory. */
+    /**
+     * Property name of the downloaded global configuration directory.
+     */
     public static final String CONFIGURATION_PATH =
             PREFIX + "common.configuration-path";
 
-    /** Current version number of the global configuration **/
+    /**
+     * Current version number of the global configuration
+     **/
     public static final int CURRENT_GLOBAL_CONFIGURATION_VERSION = 4;
 
-    /** Minimum supported version number of the global configuration **/
+    /**
+     * Minimum supported version number of the global configuration
+     **/
     public static final int MINIMUM_SUPPORTED_GLOBAL_CONFIGURATION_VERSION = 2;
 
-    /** Default minimum supported global conf version on central server */
+    /**
+     * Default minimum supported global conf version on central server
+     */
     public static final String DEFAULT_MINIMUM_CENTRAL_SERVER_GLOBAL_CONFIGURATION_VERSION = "2";
 
-    /** Default minimum supported global conf version on configuration proxy */
+    /**
+     * Default minimum supported global conf version on configuration proxy
+     */
     public static final String DEFAULT_MINIMUM_CONFIGURATION_PROXY_SERVER_GLOBAL_CONFIGURATION_VERSION = "2";
 
-    /** Minimum supported global conf version on central server **/
+    /**
+     * Minimum supported global conf version on central server
+     **/
     private static final String MINIMUM_CENTRAL_SERVER_GLOBAL_CONFIGURATION_VERSION =
             PREFIX + "center.minimum-global-configuration-version";
 
-    /** Minimum supported global conf version on configuration proxy **/
+    /**
+     * Minimum supported global conf version on configuration proxy
+     **/
     private static final String MINIMUM_CONFIGURATION_PROXY_SERVER_GLOBAL_CONFIGURATION_VERSION =
             PREFIX + "configuration-proxy.minimum-global-configuration-version";
 
     // REST API ---------------------------------------------------------------
 
-    /** Property name of the Proxy UI API's ssl configuration file. */
+    /**
+     * Property name of the Proxy UI API's ssl configuration file.
+     */
     public static final String PROXY_UI_API_SSL_PROPERTIES =
             PREFIX + "proxy-ui-api.ssl-properties";
 
-    /** Default whitelist for Proxy UI API's key management API (allow only localhost access, ipv4 and ipv6) */
+    /**
+     * Default whitelist for Proxy UI API's key management API (allow only localhost access, ipv4 and ipv6)
+     */
     public static final String DEFAULT_KEY_MANAGEMENT_API_WHITELIST = "127.0.0.0/8, ::1";
 
-    /** Default whitelist for Proxy UI API's regular APIs (allow all) */
+    /**
+     * Default whitelist for Proxy UI API's regular APIs (allow all)
+     */
     public static final String DEFAULT_REGULAR_API_WHITELIST = "0.0.0.0/0, ::/0";
 
-    /** Property name of the whitelist for Proxy UI API's key management API */
+    /**
+     * Property name of the whitelist for Proxy UI API's key management API
+     */
     public static final String PROXY_UI_API_KEY_MANAGEMENT_API_WHITELIST =
             PREFIX + "proxy-ui-api.key-management-api-whitelist";
 
-    /** Property name of the whitelist for Proxy UI API's regular APIs */
+    /**
+     * Property name of the whitelist for Proxy UI API's regular APIs
+     */
     public static final String PROXY_UI_API_REGULAR_API_WHITELIST =
             PREFIX + "proxy-ui-api.regular-api-whitelist";
 
-    /** Property name of the flag for enabling automatic time-stamping service URL updates */
+    /**
+     * Property name of the flag for enabling automatic time-stamping service URL updates
+     */
     public static final String PROXY_UI_API_AUTO_UPDATE_TIMESTAMP_SERVICE_URL =
             PREFIX + "proxy-ui-api.auto-update-timestamp-service-url";
 
-    /** property name of the flag to allow generating csr for key with certificates */
+    /**
+     * property name of the flag to allow generating csr for key with certificates
+     */
     public static final String PROXY_UI_API_ALLOW_CSR_FOR_KEY_WITH_CERTIFICATE =
             PREFIX + "proxy-ui-api.allow-csr-for-key-with-certificate";
 
-    /** property name of the number of attempts to check whether the acme authorizations have completed */
+    /**
+     * property name of the number of attempts to check whether the acme authorizations have completed
+     */
     public static final String PROXY_UI_API_ACME_AUTHORIZATION_WAIT_ATTEMPTS =
             PREFIX + "proxy-ui-api.acme-authorization-wait-attempts";
 
-    /** property name of the amount of seconds to wait between acme authorization completion check attempts */
+    /**
+     * property name of the amount of seconds to wait between acme authorization completion check attempts
+     */
     public static final String PROXY_UI_API_ACME_AUTHORIZATION_WAIT_INTERVAL =
             PREFIX + "proxy-ui-api.acme-authorization-wait-interval";
 
-    /** property name of the number of attempts to check whether the acme certificate is ready */
+    /**
+     * property name of the number of attempts to check whether the acme certificate is ready
+     */
     public static final String PROXY_UI_API_ACME_CERTIFICATE_WAIT_ATTEMPTS =
             PREFIX + "proxy-ui-api.acme-certificate-wait-attempts";
 
-    /** property name of the amount of seconds to wait between acme certificate completion check attempts */
+    /**
+     * property name of the amount of seconds to wait between acme certificate completion check attempts
+     */
     public static final String PROXY_UI_API_ACME_CERTIFICATE_WAIT_INTERVAL =
             PREFIX + "proxy-ui-api.acme-certificate-wait-interval";
 
-    /** property name of the amount of days the ACME server account's self-signed certificate is valid */
+    /**
+     * property name of the amount of days the ACME server account's self-signed certificate is valid
+     */
     public static final String PROXY_UI_API_ACME_ACCOUNT_KEY_PAIR_EXPIRATION_IN_DAYS =
             PREFIX + "proxy-ui-api.acme-certificate-account-key-pair-expiration";
 
-    /** property name of whether the service should listen on port 80 for incoming acme challenge requests */
+    /**
+     * property name of whether the service should listen on port 80 for incoming acme challenge requests
+     */
     public static final String PROXY_UI_API_ACME_CHALLENGE_PORT_ENABLED =
             PREFIX + "proxy-ui-api.acme-challenge-port-enabled";
 
@@ -148,63 +193,91 @@ public final class SystemProperties {
 
     private static final String PROXY_PREFIX = PREFIX + "proxy.";
 
-    /** Property name of controlling SSL support between Proxies. */
+    /**
+     * Property name of controlling SSL support between Proxies.
+     */
     public static final String PROXY_SSL_SUPPORT =
             PROXY_PREFIX + "ssl-enabled";
 
-    /** Property name of the Proxy's local configuration file. */
+    /**
+     * Property name of the Proxy's local configuration file.
+     */
     public static final String DATABASE_PROPERTIES =
             PROXY_PREFIX + "database-properties";
 
-    /** Property name of the Client Proxy's port number. */
+    /**
+     * Property name of the Client Proxy's port number.
+     */
     public static final String PROXY_CLIENT_HTTP_PORT =
 //            PROXY_PREFIX + "client-http-port";
             // will be removed, used in tests
             PROXY_PREFIX + "client-proxy.client-http-port";
 
-    /** Property name of the Client Proxy's port number. */
+    /**
+     * Property name of the Client Proxy's port number.
+     */
     public static final String PROXY_CLIENT_HTTPS_PORT =
 //            PROXY_PREFIX + "client-https-port";
             // will be removed, used in tests
             PROXY_PREFIX + "client-proxy.client-https-port";
 
-    /** Property name of the Client Proxy's timeout (milliseconds). */
+    /**
+     * Property name of the Client Proxy's timeout (milliseconds).
+     */
     public static final String PROXY_CLIENT_TIMEOUT =
             PROXY_PREFIX + "client-timeout";
 
-    /** Property name of the Server Proxy's port number. */
+    /**
+     * Property name of the Server Proxy's port number.
+     */
     public static final String PROXY_SERVER_PORT =
             PROXY_PREFIX + "server-port";
 
-    /** Property name of the cached OCSP response path for signer operation. */
+    /**
+     * Property name of the cached OCSP response path for signer operation.
+     */
     public static final String OCSP_CACHE_PATH = SIGNER_PREFIX + "ocsp-cache-path";
 
-    /** Property name of the flag to turn off proxy client SSL verification. */
+    /**
+     * Property name of the flag to turn off proxy client SSL verification.
+     */
     public static final String PROXY_VERIFY_CLIENT_CERT =
             PROXY_PREFIX + "verify-client-cert";
 
-    /** Property name of the flag to turn on proxy client SSL logging. */
+    /**
+     * Property name of the flag to turn on proxy client SSL logging.
+     */
     public static final String PROXY_LOG_CLIENT_CERT =
             PROXY_PREFIX + "log-client-cert";
 
-    /** Property name of the CertHashBasedOcspResponder Jetty server configuration file. */
+    /**
+     * Property name of the CertHashBasedOcspResponder Jetty server configuration file.
+     */
     public static final String JETTY_OCSP_RESPONDER_CONFIGURATION_FILE =
             PROXY_PREFIX + "jetty-ocsp-responder-configuration-file";
 
-    /** Property name of the ClientProxy HTTPS connector and ServerProxy HTTP client supported TLS protocols */
+    /**
+     * Property name of the ClientProxy HTTPS connector and ServerProxy HTTP client supported TLS protocols
+     */
     private static final String PROXY_CLIENT_TLS_PROTOCOLS =
             PROXY_PREFIX + "client-tls-protocols";
 
-    /** Property name of the ClientProxy HTTPS connector and ServerProxy HTTP client supported TLS cipher suites */
+    /**
+     * Property name of the ClientProxy HTTPS connector and ServerProxy HTTP client supported TLS cipher suites
+     */
     private static final String PROXY_CLIENT_TLS_CIPHERS =
             PROXY_PREFIX + "client-tls-ciphers";
 
-    /** Property name of the ClientProxy HTTPS client and ServerProxy HTTPS connector supported TLS cipher suites */
+    /**
+     * Property name of the ClientProxy HTTPS client and ServerProxy HTTPS connector supported TLS cipher suites
+     */
     private static final String PROXY_XROAD_TLS_CIPHERS = PROXY_PREFIX + "xroad-tls-ciphers";
 
     private static final String SIGNER_ENFORCE_TOKEN_PIN_POLICY = SIGNER_PREFIX + "enforce-token-pin-policy";
 
-    /** Property name of the server's minimum supported client version */
+    /**
+     * Property name of the server's minimum supported client version
+     */
     private static final String SERVERPROXY_MIN_SUPPORTED_CLIENT_VERSION =
             PROXY_PREFIX + "server-min-supported-client-version";
 
@@ -215,7 +288,9 @@ public final class SystemProperties {
     private static final String CLIENTPROXY_HTTPCLIENT_TIMEOUT =
             PROXY_PREFIX + "client-httpclient-timeout";
 
-    /** Property name for the so_linger value that should be set for client proxy apache HttpClient */
+    /**
+     * Property name for the so_linger value that should be set for client proxy apache HttpClient
+     */
     private static final String CLIENTPROXY_HTTPCLIENT_SO_LINGER =
             PROXY_PREFIX + "client-httpclient-so-linger";
 
@@ -285,13 +360,19 @@ public final class SystemProperties {
 
     // Signer -----------------------------------------------------------------
 
-    /** Property name of the key configuration file. */
+    /**
+     * Property name of the key configuration file.
+     */
     public static final String KEY_CONFIGURATION_FILE = SIGNER_PREFIX + "key-configuration-file";
 
-    /** Property name of the device configuration file. */
+    /**
+     * Property name of the device configuration file.
+     */
     public static final String DEVICE_CONFIGURATION_FILE = SIGNER_PREFIX + "device-configuration-file";
 
-    /** Property name of the SignerClient's timeout. */
+    /**
+     * Property name of the SignerClient's timeout.
+     */
     public static final String SIGNER_CLIENT_TIMEOUT = SIGNER_PREFIX + "client-timeout";
 
     public static final String SIGNER_MODULE_INSTANCE_PROVIDER = SIGNER_PREFIX + "module-instance-provider";
@@ -336,7 +417,11 @@ public final class SystemProperties {
      * {@link #ALL} naturally means all and {@link #NONE} means federation is disabled.
      * The configurations for those instances won't be downloaded.
      */
-    public enum AllowedFederationMode { ALL, NONE, CUSTOM }
+    public enum AllowedFederationMode {
+        ALL,
+        NONE,
+        CUSTOM
+    }
 
     // Center -----------------------------------------------------------------
 
@@ -355,43 +440,61 @@ public final class SystemProperties {
     private static final String CENTER_GENERATED_CONF_DIR =
             PREFIX + "center.generated-conf-dir";
 
-    /** Property name of the path where conf backups are created. */
+    /**
+     * Property name of the path where conf backups are created.
+     */
     public static final String CONF_BACKUP_PATH =
             PREFIX + "center.conf-backup-path";
 
-    /** Property name of enabling automatic approval of auth cert registration requests. */
+    /**
+     * Property name of enabling automatic approval of auth cert registration requests.
+     */
     public static final String CENTER_AUTO_APPROVE_AUTH_CERT_REG_REQUESTS =
             PREFIX + "center.auto-approve-auth-cert-reg-requests";
 
-    /** Property name of enabling automatic approval of client registration requests. */
+    /**
+     * Property name of enabling automatic approval of client registration requests.
+     */
     public static final String CENTER_AUTO_APPROVE_CLIENT_REG_REQUESTS =
             PREFIX + "center.auto-approve-client-reg-requests";
 
-    /** Property name of enabling automatic approval of owner change requests. */
+    /**
+     * Property name of enabling automatic approval of owner change requests.
+     */
     public static final String CENTER_AUTO_APPROVE_OWNER_CHANGE_REQUESTS =
             PREFIX + "center.auto-approve-owner-change-requests";
 
     // Misc -------------------------------------------------------------------
 
-    /** Property name of the configuration files path. */
+    /**
+     * Property name of the configuration files path.
+     */
     public static final String CONF_PATH =
             PREFIX + "conf.path";
 
-    /** Property name of the log folder for Log Reader. */
+    /**
+     * Property name of the log folder for Log Reader.
+     */
     public static final String LOG_READER_PATH =
             PREFIX + "logReader.path";
 
-    /** Property name of the application log file path. */
+    /**
+     * Property name of the application log file path.
+     */
     public static final String LOG_PATH =
             PREFIX + "appLog.path";
 
-    /** Property name of the application log level of ee.ria.xroad. */
+    /**
+     * Property name of the application log level of ee.ria.xroad.
+     */
     public static final String XROAD_LOG_LEVEL =
             PREFIX + "appLog.xroad.level";
 
     // Proxy UI ---------------------------------------------------------------
 
-    /** Property name of the WSDL validator command. */
+    /**
+     * Property name of the WSDL validator command.
+     */
     public static final String WSDL_VALIDATOR_COMMAND =
             PREFIX + "proxy-ui-api.wsdl-validator-command";
 
@@ -433,7 +536,9 @@ public final class SystemProperties {
 
     // Proxy & Central monitor agent ------------------------------------------
 
-    /** Property name of the proxy monitor info collection interval. */
+    /**
+     * Property name of the proxy monitor info collection interval.
+     */
     public static final String PROXY_PARAMS_COLLECTING_INTERVAL =
             PREFIX + "proxy-monitor-agent.params-collecting-interval";
 
@@ -442,188 +547,41 @@ public final class SystemProperties {
 
     // Configuration proxy ------------------------------------------------- //
 
-    /** Property name of the confproxy download script path. */
+    /**
+     * Property name of the confproxy download script path.
+     */
     public static final String CONFIGURATION_PROXY_DOWNLOAD_SCRIPT =
             PREFIX + "configuration-proxy.download-script";
 
-    /** Property name of the confproxy configuration path. */
+    /**
+     * Property name of the confproxy configuration path.
+     */
     public static final String CONFIGURATION_PROXY_CONF_PATH =
             PREFIX + "configuration-proxy.configuration-path";
 
-    /** Property name of the confproxy public configuration distribution path. */
+    /**
+     * Property name of the confproxy public configuration distribution path.
+     */
     public static final String CONFIGURATION_PROXY_GENERATED_CONF_PATH =
             PREFIX + "configuration-proxy.generated-conf-path";
 
-    /** Property name of the confproxy configuration signature digest algorithm. */
+    /**
+     * Property name of the confproxy configuration signature digest algorithm.
+     */
     public static final String CONFIGURATION_PROXY_SIGNATURE_DIGEST_ALGORITHM_ID =
             PREFIX + "configuration-proxy.signature-digest-algorithm-id";
 
-    /** Property name of the confproxy configuration file hashing algorithm. */
+    /**
+     * Property name of the confproxy configuration file hashing algorithm.
+     */
     public static final String CONFIGURATION_PROXY_HASH_ALGORITHM_URI =
             PREFIX + "configuration-proxy.hash-algorithm-uri";
 
-    /** Property name of the confproxy webserver address. */
+    /**
+     * Property name of the confproxy webserver address.
+     */
     public static final String CONFIGURATION_PROXY_ADDRESS =
             PREFIX + "configuration-proxy.address";
-
-    // gRPC internal cross-component transport configuration  -------------------------- //
-
-    /**
-     * Property name for gRPC host.
-     */
-    public static final String GRPC_INTERNAL_HOST =
-            PREFIX + "common.grpc-internal-host";
-
-    /**
-     * Property name for gRPC host.
-     */
-    public static final String GRPC_INTERNAL_TLS_ENABLED =
-            PREFIX + "common.grpc-internal-tls-enabled";
-
-    /**
-     * Property name for gRPC internal keystore location.
-     */
-    public static final String GRPC_INTERNAL_KEYSTORE =
-            PREFIX + "common.grpc-internal-keystore";
-
-    /**
-     * Property name for gRPC internal keystore password.
-     */
-    public static final String GRPC_INTERNAL_KEYSTORE_PASSWORD =
-            PREFIX + "common.grpc-internal-keystore-password";
-
-    /**
-     * Property name for gRPC internal truststore location.
-     */
-    public static final String GRPC_INTERNAL_TRUSTSTORE =
-            PREFIX + "common.grpc-internal-truststore";
-
-    /**
-     * Property name for gRPC internal truststore password.
-     */
-    public static final String GRPC_INTERNAL_TRUSTSTORE_PASSWORD =
-            PREFIX + "common.grpc-internal-truststore-password";
-
-    /**
-     * Property name for Signer gRPC host.
-     */
-    public static final String SIGNER_GRPC_HOST = PREFIX + "signer.grpc-host";
-
-    /**
-     * Property name for Signer gRPC port.
-     */
-    public static final String SIGNER_GRPC_PORT = PREFIX + "signer.grpc-port";
-
-    /**
-     * Property name for Signer gRPC TLS enabled on/off switch.
-     */
-    public static final String SIGNER_GRPC_TLS_ENABLED = PREFIX + "signer.grpc-tls-enabled";
-
-    /**
-     * Property name for Signer gRPC TLS truststore location.
-     */
-    public static final String SIGNER_GRPC_TLS_TRUSTSTORE = PREFIX + "signer.grpc-tls-truststore";
-
-    /**
-     * Property name for Signer gRPC TLS truststore password.
-     */
-    public static final String SIGNER_GRPC_TLS_TRUSTSTORE_PASSWORD = PREFIX + "signer.grpc-tls-truststore-password";
-
-    /**
-     * Property name for Signer gRPC TLS keystore location.
-     */
-    public static final String SIGNER_GRPC_TLS_KEYSTORE = PREFIX + "signer.grpc-tls-keystore";
-
-    /**
-     * Property name for Signer gRPC TLS keystore password.
-     */
-    public static final String SIGNER_GRPC_TLS_KEYSTORE_PASSWORD = PREFIX + "signer.grpc-tls-keystore-password";
-
-    /**
-     * Property name for Configuration Client gRPC listen address.
-     */
-    public static final String CONFIGURATION_CLIENT_GRPC_LISTEN_ADDRESS = PREFIX + "configuration-client.grpc-listen-address";
-
-    /**
-     * Property name for Configuration Client gRPC host.
-     */
-    public static final String CONFIGURATION_CLIENT_GRPC_HOST = PREFIX + "configuration-client.grpc-host";
-
-    /**
-     * Property name for Configuration Client gRPC port.
-     */
-    public static final String CONFIGURATION_CLIENT_GRPC_PORT = PREFIX + "configuration-client.grpc-port";
-
-    /**
-     * Property name for Configuration Client gRPC TLS enabled on/off switch.
-     */
-    public static final String CONFIGURATION_CLIENT_GRPC_TLS_ENABLED = PREFIX + "configuration-client.grpc-tls-enabled";
-
-    /**
-     * Property name for Configuration Client gRPC TLS truststore location.
-     */
-    public static final String CONFIGURATION_CLIENT_GRPC_TLS_TRUSTSTORE = PREFIX + "configuration-client.grpc-tls-truststore";
-
-    /**
-     * Property name for Configuration Client gRPC TLS truststore password.
-     */
-    public static final String CONFIGURATION_CLIENT_GRPC_TLS_TRUSTSTORE_PASSWORD =
-            PREFIX + "configuration-client.grpc-tls-truststore-password";
-
-    /**
-     * Property name for Configuration Client gRPC TLS keystore location.
-     */
-    public static final String CONFIGURATION_CLIENT_GRPC_TLS_KEYSTORE = PREFIX + "configuration-client.grpc-tls-keystore";
-
-    /**
-     * Property name for Configuration Client gRPC TLS keystore password.
-     */
-    public static final String CONFIGURATION_CLIENT_GRPC_TLS_KEYSTORE_PASSWORD = PREFIX + "configuration-client.grpc-tls-keystore-password";
-
-    /**
-     * Property name for Proxy gRPC TLS enabled on/off switch.
-     */
-    public static final String PROXY_GRPC_TLS_ENABLED = PROXY_PREFIX + "grpc-tls-enabled";
-
-    /**
-     * Property name for Environmental Monitoring gRPC listen address.
-     */
-    public static final String ENV_MONITOR_GRPC_LISTEN_ADDRESS = PREFIX + "env-monitor.grpc-listen-address";
-
-    /**
-     * Property name for Environmental Monitoring gRPC host.
-     */
-    public static final String ENV_MONITOR_GRPC_HOST = PREFIX + "env-monitor.grpc-host";
-
-    /**
-     * Property name for Environmental Monitoring gRPC port.
-     */
-    public static final String ENV_MONITOR_GRPC_PORT = PREFIX + "env-monitor.grpc-port";
-
-    /**
-     * Property name for Environmental Monitoring gRPC TLS enabled on/off switch.
-     */
-    public static final String ENV_MONITOR_GRPC_TLS_ENABLED = PREFIX + "env-monitor.grpc-tls-enabled";
-
-    /**
-     * Property name for Environmental Monitoring gRPC TLS truststore location.
-     */
-    public static final String ENV_MONITOR_GRPC_TLS_TRUSTSTORE = PREFIX + "env-monitor.grpc-tls-truststore";
-
-    /**
-     * Property name for Environmental Monitoring gRPC TLS truststore password.
-     */
-    public static final String ENV_MONITOR_GRPC_TLS_TRUSTSTORE_PASSWORD = PREFIX + "env-monitor.grpc-tls-truststore-password";
-
-    /**
-     * Property name for Environmental Monitoring gRPC TLS keystore location.
-     */
-    public static final String ENV_MONITOR_GRPC_TLS_KEYSTORE = PREFIX + "env-monitor.grpc-tls-keystore";
-
-    /**
-     * Property name for Environmental Monitoring gRPC TLS keystore password.
-     */
-    public static final String ENV_MONITOR_GRPC_TLS_KEYSTORE_PASSWORD = PREFIX + "env-monitor.grpc-tls-keystore-password";
 
     /**
      * Property name for global configuration refresh rate in seconds.
@@ -717,7 +675,7 @@ public final class SystemProperties {
      * @return path to the directory where configuration files are located, '/etc/xroad/' by default.
      */
     public static String getConfPath() {
-        return  SystemPropertySource.getPropertyResolver().getProperty(CONF_PATH, DefaultFilepaths.CONF_PATH);
+        return SystemPropertySource.getPropertyResolver().getProperty(CONF_PATH, DefaultFilepaths.CONF_PATH);
     }
 
     /**
@@ -1398,256 +1356,6 @@ public final class SystemProperties {
         return Optional.ofNullable(System.getProperty(PROXY_MESSAGE_SIGN_DIGEST_NAME))
                 .map(DigestAlgorithm::ofName)
                 .orElse(DigestAlgorithm.SHA512);
-    }
-
-    /**
-     * @return gRPC signer host.
-     */
-    @Deprecated
-    private static String getGrpcInternalHost() {
-        return SystemPropertySource.getPropertyResolver().getProperty(GRPC_INTERNAL_HOST, "127.0.0.1");
-    }
-
-    /**
-     * @return whether gRPC Tls is enabled.
-     */
-    @Deprecated
-    private static boolean isGrpcInternalTlsEnabled() {
-        // todo: fixme: default false while migrating
-        return Boolean.parseBoolean(SystemPropertySource.getPropertyResolver().getProperty(GRPC_INTERNAL_TLS_ENABLED, Boolean.FALSE.toString()));
-    }
-
-    /**
-     * @return gRPC internal key store path. Uses JKS format.
-     */
-    @Deprecated
-    private static String getGrpcInternalKeyStore() {
-        return SystemPropertySource.getPropertyResolver().getProperty(GRPC_INTERNAL_KEYSTORE, "/var/run/xroad/xroad-grpc-internal-keystore.p12");
-    }
-
-    /**
-     * @return gRPC internal key store password.
-     */
-    @Deprecated
-    private static char[] getGrpcInternalKeyStorePassword() {
-        return getPasswordFromPropertyOrEnvironmentVariable(GRPC_INTERNAL_KEYSTORE_PASSWORD, null);
-    }
-
-    /**
-     * @return gRPC internal trust store path. Uses JKS format.
-     */
-    @Deprecated
-    private static String getGrpcInternalTrustStore() {
-        return SystemPropertySource.getPropertyResolver().getProperty(GRPC_INTERNAL_TRUSTSTORE, "/var/run/xroad/xroad-grpc-internal-keystore.p12");
-    }
-
-    /**
-     * @return gRPC internal trust store path password.
-     */
-    @Deprecated
-    private static char[] getGrpcInternalTruststorePassword() {
-        return getPasswordFromPropertyOrEnvironmentVariable(GRPC_INTERNAL_TRUSTSTORE_PASSWORD, null);
-    }
-
-    /**
-     * @return the Signer gRPC host.
-     */
-    public static String getSignerGrpcHost() {
-        return SystemPropertySource.getPropertyResolver().getProperty(SIGNER_GRPC_HOST,
-                // todo xroad8 fallback to old property. to be removed
-                getGrpcInternalHost());
-    }
-
-    /**
-     * @return the Signer gRPC port.
-     */
-    public static int getSignerGrpcPort() {
-        return Integer.getInteger(SIGNER_GRPC_PORT, PortNumbers.SIGNER_GRPC_PORT);
-    }
-
-    /**
-     * @return whether Signer gRPC Tls is enabled.
-     */
-    public static boolean isSignerGrpcTlsEnabled() {
-        return Boolean.parseBoolean(SystemPropertySource.getPropertyResolver().getProperty(SIGNER_GRPC_TLS_ENABLED,
-                // todo xroad8 fallback to old property. to be removed
-                Boolean.toString(isGrpcInternalTlsEnabled())));
-    }
-
-    /**
-     * @return the Signer gRPC trust store path.
-     */
-    public static String getSignerGrpcTrustStore() {
-        return SystemPropertySource.getPropertyResolver().getProperty(SIGNER_GRPC_TLS_TRUSTSTORE,
-                // todo xroad8 fallback to old property. to be removed
-                getGrpcInternalTrustStore());
-    }
-
-    /**
-     * @return the Signer gRPC trust store password.
-     */
-    public static char[] getSignerGrpcTrustStorePassword() {
-        return getPasswordFromPropertyOrEnvironmentVariable(SIGNER_GRPC_TLS_TRUSTSTORE_PASSWORD,
-                // todo xroad8 fallback to old property. to be removed
-                getGrpcInternalTruststorePassword());
-    }
-
-    /**
-     * @return the Signer gRPC key store path.
-     */
-    public static String getSignerGrpcKeyStore() {
-        return SystemPropertySource.getPropertyResolver().getProperty(SIGNER_GRPC_TLS_KEYSTORE,
-                // todo xroad8 fallback to old property. to be removed
-                getGrpcInternalKeyStore());
-    }
-
-    /**
-     * @return the Signer gRPC key store password.
-     */
-    public static char[] getSignerGrpcKeyStorePassword() {
-        return getPasswordFromPropertyOrEnvironmentVariable(SIGNER_GRPC_TLS_KEYSTORE_PASSWORD,
-                // todo xroad8 fallback to old property. to be removed
-                getGrpcInternalKeyStorePassword());
-    }
-
-    /**
-     * @return the Configuration Client gRPC listen address.
-     */
-    public static String getConfigurationClientGrpcListenAddress() {
-        return SystemPropertySource.getPropertyResolver().getProperty(CONFIGURATION_CLIENT_GRPC_LISTEN_ADDRESS,
-                // todo xroad8 fallback to old property. to be removed
-                getGrpcInternalHost());
-    }
-
-    /**
-     * @return the Configuration Client gRPC host.
-     */
-    public static String getConfigurationClientGrpcHost() {
-        return SystemPropertySource.getPropertyResolver().getProperty(CONFIGURATION_CLIENT_GRPC_HOST,
-                // todo xroad8 fallback to old property. to be removed
-                getGrpcInternalHost());
-    }
-
-    /**
-     * @return the Configuration Client gRPC port.
-     */
-    public static int getConfigurationClientGrpcPort() {
-        return Integer.getInteger(CONFIGURATION_CLIENT_GRPC_PORT, PortNumbers.CONFIGURATION_CLIENT_PORT);
-    }
-
-    /**
-     * @return whether Configuration Client gRPC Tls is enabled.
-     */
-    public static boolean isConfigurationClientGrpcTlsEnabled() {
-        return Boolean.parseBoolean(SystemPropertySource.getPropertyResolver().getProperty(CONFIGURATION_CLIENT_GRPC_TLS_ENABLED,
-                // todo xroad8 fallback to old property. to be removed
-                Boolean.toString(isGrpcInternalTlsEnabled())));
-    }
-
-    /**
-     * @return the Configuration Client gRPC trust store path.
-     */
-    public static String getConfigurationClientGrpcTrustStore() {
-        return SystemPropertySource.getPropertyResolver().getProperty(CONFIGURATION_CLIENT_GRPC_TLS_TRUSTSTORE,
-                // todo xroad8 fallback to old property. to be removed
-                getGrpcInternalTrustStore());
-    }
-
-    /**
-     * @return the Configuration Client gRPC trust store password.
-     */
-    public static char[] getConfigurationClientGrpcTrustStorePassword() {
-        return getPasswordFromPropertyOrEnvironmentVariable(CONFIGURATION_CLIENT_GRPC_TLS_TRUSTSTORE_PASSWORD,
-                // todo xroad8 fallback to old property. to be removed
-                getGrpcInternalTruststorePassword());
-    }
-
-    /**
-     * @return the Configuration Client gRPC key store path.
-     */
-    public static String getConfigurationClientGrpcKeyStore() {
-        return SystemPropertySource.getPropertyResolver().getProperty(CONFIGURATION_CLIENT_GRPC_TLS_KEYSTORE,
-                // todo xroad8 fallback to old property. to be removed
-                getGrpcInternalKeyStore());
-    }
-
-    /**
-     * @return the Configuration Client gRPC key store password.
-     */
-    public static char[] getConfigurationClientGrpcKeyStorePassword() {
-        return getPasswordFromPropertyOrEnvironmentVariable(CONFIGURATION_CLIENT_GRPC_TLS_KEYSTORE_PASSWORD,
-                // todo xroad8 fallback to old property. to be removed
-                getGrpcInternalKeyStorePassword());
-    }
-
-    /**
-     * @return the Environmental Monitoring gRPC listen address.
-     */
-    public static String getEnvMonitorGrpcListenAddress() {
-        return SystemPropertySource.getPropertyResolver().getProperty(ENV_MONITOR_GRPC_LISTEN_ADDRESS,
-                // todo xroad8 fallback to old property. to be removed
-                getGrpcInternalHost());
-    }
-
-    /**
-     * @return the Environmental Monitoring gRPC host.
-     */
-    public static String getEnvMonitorGrpcHost() {
-        return SystemPropertySource.getPropertyResolver().getProperty(ENV_MONITOR_GRPC_HOST,
-                // todo xroad8 fallback to old property. to be removed
-                getGrpcInternalHost());
-    }
-
-    /**
-     * @return the Environmental Monitoring gRPC port.
-     */
-    public static int getEnvMonitorGrpcPort() {
-        return Integer.getInteger(ENV_MONITOR_GRPC_PORT, PortNumbers.ENV_MONITOR_PORT);
-    }
-
-    /**
-     * @return whether Environmental Monitoring gRPC Tls is enabled.
-     */
-    public static boolean isEnvMonitorGrpcTlsEnabled() {
-        return Boolean.parseBoolean(SystemPropertySource.getPropertyResolver().getProperty(ENV_MONITOR_GRPC_TLS_ENABLED,
-                // todo xroad8 fallback to old property. to be removed
-                Boolean.toString(isGrpcInternalTlsEnabled())));
-    }
-
-    /**
-     * @return the Environmental Monitoring gRPC trust store path.
-     */
-    public static String getEnvMonitorGrpcTrustStore() {
-        return SystemPropertySource.getPropertyResolver().getProperty(ENV_MONITOR_GRPC_TLS_TRUSTSTORE,
-                // todo xroad8 fallback to old property. to be removed
-                getGrpcInternalTrustStore());
-    }
-
-    /**
-     * @return the Environmental Monitoring gRPC trust store password.
-     */
-    public static char[] getEnvMonitorGrpcTrustStorePassword() {
-        return getPasswordFromPropertyOrEnvironmentVariable(ENV_MONITOR_GRPC_TLS_TRUSTSTORE_PASSWORD,
-                // todo xroad8 fallback to old property. to be removed
-                getGrpcInternalTruststorePassword());
-    }
-
-    /**
-     * @return the Environmental Monitoring gRPC key store path.
-     */
-    public static String getEnvMonitorGrpcKeyStore() {
-        return SystemPropertySource.getPropertyResolver().getProperty(ENV_MONITOR_GRPC_TLS_KEYSTORE,
-                // todo xroad8 fallback to old property. to be removed
-                getGrpcInternalKeyStore());
-    }
-
-    /**
-     * @return the Environmental Monitoring gRPC key store password.
-     */
-    public static char[] getEnvMonitorGrpcKeyStorePassword() {
-        return getPasswordFromPropertyOrEnvironmentVariable(ENV_MONITOR_GRPC_TLS_KEYSTORE_PASSWORD,
-                // todo xroad8 fallback to old property. to be removed
-                getGrpcInternalKeyStorePassword());
     }
 
     /**

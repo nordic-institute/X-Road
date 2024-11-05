@@ -3,7 +3,6 @@ plugins {
 }
 
 dependencies {
-    api project(':configuration-client:confclient-rpc-client')
     api project(':common:common-globalconf')
     api project(':common:common-scheduler')
     api project(':common:common-jetty')

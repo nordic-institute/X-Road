@@ -1,3 +1,4 @@
 #!/bin/bash
 . /etc/xroad/services/global.conf
+
 exec java ${XROAD_PARAMS} -Xmx50m -jar /usr/share/xroad/jlib/configuration-service.jar
