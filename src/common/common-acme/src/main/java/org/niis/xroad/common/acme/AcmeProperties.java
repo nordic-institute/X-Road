@@ -32,7 +32,6 @@ import org.niis.xroad.common.exception.NotFoundException;
 import java.util.Map;
 import java.util.Optional;
 
-import static org.apache.commons.lang3.ObjectUtils.defaultIfNull;
 import static org.niis.xroad.common.acme.AcmeDeviationMessage.EAB_CREDENTIALS_MISSING;
 
 @Getter
@@ -95,7 +94,8 @@ public class AcmeProperties {
     }
 
     public char[] getAccountKeystorePassword() {
-        return Optional.ofNullable(defaultIfNull(accountKeystorePassword, System.getenv().get("ACCOUNT_KEYSTORE_PASSWORD")))
+        return Optional.ofNullable(accountKeystorePassword)
+                .or(() -> Optional.ofNullable(System.getenv().get("ACCOUNT_KEYSTORE_PASSWORD")))
                 .map(String::toCharArray)
                 .orElse(null);
     }
