@@ -1,0 +1,57 @@
+<div>
+    <h4>Rest call: https://localhost:32769/api/v1/management-requests/4</h4>
+    <div class="content">
+  <strong>Request:</strong>
+  <pre class="details-content">curl -X GET \
+'https://localhost:32769/api/v1/management-requests/4' \
+-H 'ACCEPT: application/json' \
+-H 'AUTHORIZATION: X-ROAD-APIKEY TOKEN=7f8eda6f-38d5-40e3-8ab6-f68d9d770971' \
+
+</pre>
+</div>
+<div class="content">
+  <details>
+    <summary style="cursor:pointer">
+      <strong>Response:</strong>
+    </summary>
+    <pre class="details-content"><code class="json">{
+  &quot;headers&quot; : { },
+  &quot;body&quot; : {
+    &quot;certificate_details&quot; : {
+      &quot;hash&quot; : &quot;886180C1274E10537DFEDAAAFC6EC7EAB1990EEA044A3943227C808A0D18F836&quot;,
+      &quot;issuer_common_name&quot; : &quot;Subject-E2e-test CA&quot;,
+      &quot;issuer_distinguished_name&quot; : &quot;CN=Subject-E2e-test CA&quot;,
+      &quot;key_usages&quot; : [ &quot;DIGITAL_SIGNATURE&quot; ],
+      &quot;not_after&quot; : &quot;2025-11-06T13:05:01Z&quot;,
+      &quot;not_before&quot; : &quot;2024-11-05T13:04:01Z&quot;,
+      &quot;public_key_algorithm&quot; : &quot;RSA&quot;,
+      &quot;rsa_public_key_exponent&quot; : 65537,
+      &quot;rsa_public_key_modulus&quot; : &quot;ac70a2543d45b0b19c12d0d56ff715067f38a5a00d18d84243aa25d80b979a6ecce18ce7675ae8aae4b5d32304073fd15695db165b84b86964154ce8dc384e790b1bf06269f0e3a8276a883ee109676f3d024c913c6c868f13238b90c0aa076e3ca05605248afd324afe4bbc524396ecf77cbc2e9463faf4b601fc8bfe4fedc03baa95cdb79c11093bff6a3fd0f4986673e22ab5bfc98173707f0fb4df5a69662470bcc9634ac959cbd129766e3c88bc4636e253c4b2f91c86af984ef024caba85c55df004961815bdd15cae6d737412de2897ce3859a8039538b0b8d97e66c586412fac6331f606e3921d3f9389ed49d02beb140c22c280a7c46fddbf09c34f55f1e51693c90af078827abf4373f4575ffec21c7255d07b3eca9a57115d167a0bacb7b93237993f4d345fa78c8ab6c9c964559a8ecb3149a106ea347fe73ac9760d25877cab8e1b364e81fe78567f4363548fc25d3e6bd24325e59adf39c9cc5d5d7b99799e5421fd9a754dfc00dbdaeb3f933b28266785696146f7b3ce5fa5a104e6b62fc5f5e3975a0e8552d5fcc8bbbc7422c60a6ccf1c24056968943746c7d12839fcfea2fab02e32c0f84fec40b63789db4dafeb7717e560c1a30298d9e1b7ac03ec5d90ba5b2ff4be6724011c8c87445c4ef75ca76fa5de104e7ec2431ecdd160abd67534613737e41c4bebd8e9a96282387a8d83cfe9b7f89cd9c759&quot;,
+      &quot;serial&quot; : &quot;1&quot;,
+      &quot;signature&quot; : &quot;7987e52deb802e9013aa1b538147f3e3f75e3d090b7ec0a12c7196a04013082e644c0a2ca4f3b53131be13e42a0919dd7e3591d2f5c5260771a8d90f6037ddbdc82f4ff8d05bdcf7c068675957a6974c8cfae99eb58b1021175831499c23170b18ab4b4105c5213b23b678b5b689f27effaed4739484b0ad6dd4691e52cdb0b2133a2f144b2a5696ffb93588c8d3683841af6f68ea31c2426627c6a9edf7b570ce87a51ebcf331b8a8c9b7df177ef812d4170489d5c17c17c70d83dcb5dcdbf2500d3b71b90dfdcdf485a8c6be233a2deed934dd5de7daa662fb7d8d6ade7543e658ba86c1c35d60612fc3ed8b9d360df72b4a18dee74e46ee377183f875adea3a5f2bed0354ba0977101db70b1355a6706312432db3be57a3c5c8ed6075ffc15613054d9bcf77cfdda8fa682e9d883755707da751509c8289490e886236c5303a0430d5a09cfe95c40e749213addbc8b9263d1f28054da2b3bbf3219b2d5db57cdf1246d1a667e4260eddd993d4cf26422c4c4f7edc445d19de06c0614d3506ae6c1a00a6e8b5cb04bbef628c7c3ac037aaca1cd1522300712d892a3afa10253f083e723da036a8e1baa379209b97bf862573a507b75688ed0d48a120180c013c56d53c6f34fedfd87521bc6257919ea8de17c51ac314c8c8e6622399a2edcbf68bd34d4a51acd0cd5b785c39fc990c674711e4bf59cce3835e85cae2f50a17&quot;,
+      &quot;signature_algorithm&quot; : &quot;SHA256withRSA&quot;,
+      &quot;subject_common_name&quot; : &quot;Subject-E2E-SS3&quot;,
+      &quot;subject_distinguished_name&quot; : &quot;CN=Subject-E2E-SS3&quot;,
+      &quot;version&quot; : 3
+    },
+    &quot;id&quot; : 4,
+    &quot;type&quot; : &quot;AUTH_CERT_REGISTRATION_REQUEST&quot;,
+    &quot;origin&quot; : &quot;CENTER&quot;,
+    &quot;security_server_owner&quot; : &quot;E2E TC3 Member with Subsystems&quot;,
+    &quot;security_server_id&quot; : {
+      &quot;type&quot; : &quot;SERVER&quot;,
+      &quot;instance_id&quot; : &quot;CS-E2E&quot;,
+      &quot;server_code&quot; : &quot;E2E-SS3&quot;,
+      &quot;member_class&quot; : &quot;E2E-TC1&quot;,
+      &quot;member_code&quot; : &quot;e2e-tc3-member-subsystem&quot;,
+      &quot;encoded_id&quot; : &quot;CS-E2E:E2E-TC1:e2e-tc3-member-subsystem:E2E-SS3&quot;
+    },
+    &quot;address&quot; : &quot;security-server-address-E2E-SS3&quot;,
+    &quot;status&quot; : &quot;WAITING&quot;,
+    &quot;created_at&quot; : &quot;2024-11-05T13:05:01.298638Z&quot;
+  },
+  &quot;status&quot; : 200
+}</code></pre>
+  </details>
+</div>
+</div>
