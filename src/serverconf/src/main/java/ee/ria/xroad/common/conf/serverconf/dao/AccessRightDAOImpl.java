@@ -25,21 +25,15 @@
  */
 package ee.ria.xroad.common.conf.serverconf.dao;
 
-import ee.ria.xroad.common.conf.serverconf.model.AccessRightType;
 import ee.ria.xroad.common.identifier.XRoadId;
 
 import org.hibernate.Session;
-import org.hibernate.query.Query;
-
-import java.util.List;
 
 public class AccessRightDAOImpl {
 
-    public List<AccessRightType> findAllBySubjectId(Session session, XRoadId subjectId) {
-        Query<AccessRightType> query = session.createQuery(
-                "select a from AccessRightType as a where a.subjectId = :subjectId",
-                AccessRightType.class);
+    public void deleteBySubjectId(Session session, XRoadId subjectId) {
+        var query = session.createQuery("delete from AccessRightType where subjectId = :subjectId");
         query.setParameter("subjectId", subjectId);
-        return query.getResultList();
+        query.executeUpdate();
     }
 }

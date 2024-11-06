@@ -42,8 +42,6 @@ public class AccessRightRepository {
     private final AccessRightDAOImpl accessRightDAO = new AccessRightDAOImpl();
 
     public void deleteBySubjectId(XRoadId subjectId) {
-        var session = persistenceUtils.getCurrentSession();
-        accessRightDAO.findAllBySubjectId(persistenceUtils.getCurrentSession(), subjectId)
-                .forEach(session::remove);
+        accessRightDAO.deleteBySubjectId(persistenceUtils.getCurrentSession(), subjectId);
     }
 }

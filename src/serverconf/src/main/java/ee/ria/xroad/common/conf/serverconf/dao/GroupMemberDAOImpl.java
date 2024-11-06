@@ -25,21 +25,15 @@
  */
 package ee.ria.xroad.common.conf.serverconf.dao;
 
-import ee.ria.xroad.common.conf.serverconf.model.GroupMemberType;
 import ee.ria.xroad.common.identifier.ClientId;
 
 import org.hibernate.Session;
-import org.hibernate.query.Query;
-
-import java.util.List;
 
 public class GroupMemberDAOImpl {
 
-    public List<GroupMemberType> findAllByGroupMemberId(Session session, ClientId memberId) {
-        Query<GroupMemberType> query = session.createQuery(
-                "select g from GroupMemberType as g where g.groupMemberId = :memberId",
-                GroupMemberType.class);
+    public void deleteByGroupMemberId(Session session, ClientId memberId) {
+        var query = session.createQuery("delete from GroupMemberType where groupMemberId = :memberId");
         query.setParameter("memberId", memberId);
-        return query.getResultList();
+        query.executeUpdate();
     }
 }
