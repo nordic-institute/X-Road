@@ -238,7 +238,7 @@ jobs:
           reporter: java-junit
       - name: Fix system-test build dir permissions
         run: sudo chown -R $USER src/security-server/system-test/build/ss-container-logs/ && sudo chown -R $USER src/security-server/system-test/build/ca-container-logs/
-        if: failure()
+        if: always()
       - name: Upload SS report
         id: ss-artifacts-step
         uses: actions/upload-artifact@v4
