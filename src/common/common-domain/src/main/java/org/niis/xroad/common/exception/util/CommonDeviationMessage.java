@@ -53,6 +53,7 @@ public enum CommonDeviationMessage implements DeviationProvider {
 
     ERROR_RESOURCE_READ("resource_read_failed", "Failed to read resource"),
     ERROR_INVALID_ADDRESS_CHAR("invalid_address_char", "Address contains invalid characters"),
+    INVALID_URL("invalid_url", "Invalid url"),
 
     ANCHOR_NOT_FOR_EXTERNAL_SOURCE("conf_verification.anchor_not_for_external_source",
             "Configuration verification failed: anchor_not_for_external_source"),
