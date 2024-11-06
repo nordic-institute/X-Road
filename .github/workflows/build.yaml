@@ -390,6 +390,7 @@ jobs:
         uses: actions/github-script@v7
         with:
           script: |
+            let centralServerLinks = 
             github.rest.issues.createComment({
               issue_number: context.issue.number,
               owner: context.repo.owner,
@@ -398,7 +399,7 @@ jobs:
 
             | Test suite      | Report URL | Artifacts |
             |-----------------|------------|-----------|
-            | Central Server  | <a href="https://nordic-institute.github.io/X-Road/central-server/ui-system-test/${{ github.run_number }}" target="_blank">Report</a> | <a href="${{ needs.RunCSSystemTests.outputs.cs-artifacts-url }}" target="_blank">Artifacts</a> |
+            | Central Server  | <a href="https://nordic-institute.github.io/X-Road/central-server/ui-system-test/${{ github.run_number }}" target="_blank">Report</a> | ${needs.RunCSSystemTests.outputs.cs-artifacts-url !== '' ? '<a href="${{ needs.RunCSSystemTests.outputs.cs-artifacts-url }}" target="_blank">Artifacts</a>' : 'N/A'} |
             | Security Server | <a href="https://nordic-institute.github.io/X-Road/security-server/system-test/${{ github.run_number }}" target="_blank">Report</a> | <a href="${{ needs.RunSSSystemTests.outputs.ss-artifacts-url }}" target="_blank">Artifacts</a> |
             | E2E             | <a href="https://nordic-institute.github.io/X-Road/e2e/${{ github.run_number }}" target="_blank">Report</a> | <a href="${{ needs.RunE2ETests.outputs.e2e-artifacts-url }}" target="_blank">Artifacts</a> |
             `
