@@ -19,3 +19,4 @@ legacy/lib/
 .vagrant/
 gradle-cache
 **/.DS_Store
+mailpit*
