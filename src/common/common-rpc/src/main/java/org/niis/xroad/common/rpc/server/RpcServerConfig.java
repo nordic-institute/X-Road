@@ -23,25 +23,31 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.confclient.proto;
+package org.niis.xroad.common.rpc.server;
 
-import org.niis.xroad.common.rpc.RpcConfig;
+import io.grpc.BindableService;
+import lombok.extern.slf4j.Slf4j;
+import org.niis.xroad.common.rpc.RpcCredentialsConfigurer;
 import org.niis.xroad.common.rpc.RpcServiceProperties;
-import org.niis.xroad.common.rpc.client.RpcChannelFactory;
-import org.springframework.boot.context.properties.EnableConfigurationProperties;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.context.annotation.Import;
 
+import java.util.Collection;
+
+@Slf4j
 @Configuration
-@Import({RpcConfig.class})
-@EnableConfigurationProperties(ConfClientRpcChannelProperties.class)
-public class ConfClientRpcClientConfiguration {
+public class RpcServerConfig {
 
     @Bean
-    ConfClientRpcClient confClientRpcClient(RpcChannelFactory channelFactory,
-                                            ConfClientRpcChannelProperties channelProperties,
-                                            RpcServiceProperties serviceProperties) {
-        return new ConfClientRpcClient(channelFactory, channelProperties, serviceProperties);
+    RpcServer confClientRpcServer(Collection<BindableService> services,
+                                  RpcServiceProperties rpcServiceProperties,
+                                  RpcCredentialsConfigurer rpcCredentialsConfigurer) throws Exception {
+        var serverCredentials = rpcCredentialsConfigurer.createServerCredentials(rpcServiceProperties);
+        return new RpcServer(rpcServiceProperties.getListenAddress(), rpcServiceProperties.getPort(), serverCredentials,
+                builder -> services.forEach(service -> {
+                    log.info("Registering {} RPC service.", service.getClass().getSimpleName());
+                    builder.addService(service);
+                }));
     }
 }

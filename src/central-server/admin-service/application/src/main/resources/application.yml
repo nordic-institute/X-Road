@@ -26,6 +26,14 @@ spring:
     multipart:
       max-request-size: ${xroad.admin-service.request-size-limit-binary-upload}
       max-file-size: ${xroad.admin-service.request-size-limit-binary-upload}
+  #TODO xroad8, this is getting duplicated per component. Consider moving to common location
+  cloud:
+    vault:
+      uri: http://openbao:8200
+      token: 00000000-0000-0000-0000-000000000001
+      kv:
+        enabled: true
+        backend: secret
 
 common-module-endpoints:
   base-path: /api/v1

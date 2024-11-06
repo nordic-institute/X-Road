@@ -8,3 +8,13 @@ xroad:
 
 logging:
   config: classpath:logback-native.xml
+
+#TODO xroad8, this is getting duplicated per component. Consider moving to common location
+spring:
+  cloud:
+    vault:
+      uri: http://openbao:8200
+      token: 00000000-0000-0000-0000-000000000001
+      kv:
+        enabled: true
+        backend: secret

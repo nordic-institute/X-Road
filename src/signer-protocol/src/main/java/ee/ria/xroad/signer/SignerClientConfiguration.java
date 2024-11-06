@@ -26,22 +26,18 @@
  */
 package ee.ria.xroad.signer;
 
+import org.niis.xroad.common.rpc.RpcConfig;
 import org.niis.xroad.common.rpc.RpcServiceProperties;
 import org.niis.xroad.common.rpc.client.RpcChannelFactory;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Import;
 
 @Configuration
+@Import(RpcConfig.class)
 @EnableConfigurationProperties(SignerRpcChannelProperties.class)
 public class SignerClientConfiguration {
-
-    @Bean
-    @ConditionalOnMissingBean(RpcChannelFactory.class)
-    RpcChannelFactory rpcChannelFactory() {
-        return new RpcChannelFactory();
-    }
 
     @Bean
     SignerRpcClient signerRpcClient(RpcChannelFactory channelFactory,

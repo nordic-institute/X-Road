@@ -38,6 +38,7 @@ import ee.ria.xroad.signer.SignerClientConfiguration;
 import lombok.extern.slf4j.Slf4j;
 import org.eclipse.edc.boot.system.runtime.BaseRuntime;
 import org.eclipse.edc.spi.system.configuration.Config;
+import org.niis.xroad.common.rpc.RpcConfig;
 import org.niis.xroad.common.rpc.RpcServiceProperties;
 import org.niis.xroad.confclient.proto.ConfClientRpcClientConfiguration;
 import org.niis.xroad.edc.extension.bridge.config.MapConfigImpl;
@@ -71,7 +72,8 @@ import java.util.stream.StreamSupport;
         GlobalConfBeanConfig.class,
         ConfClientRpcClientConfiguration.class,
         SignerClientConfiguration.class,
-        XrdEdcServerconfBeanBridgeConfig.class})
+        XrdEdcServerconfBeanBridgeConfig.class,
+        RpcConfig.class})
 @EnableConfigurationProperties({XrdEdcBeanBridgeConfig.EdcDataPlaneRpcServiceProperties.class})
 @Configuration
 public class XrdEdcBeanBridgeConfig {

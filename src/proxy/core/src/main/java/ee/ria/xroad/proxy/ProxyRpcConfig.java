@@ -29,21 +29,16 @@ import ee.ria.xroad.common.AddOnStatusDiagnostics;
 import ee.ria.xroad.common.BackupEncryptionStatusDiagnostics;
 import ee.ria.xroad.common.MessageLogEncryptionStatusDiagnostics;
 import ee.ria.xroad.common.conf.serverconf.ServerConfProvider;
-import ee.ria.xroad.proxy.addon.AddOn;
 import ee.ria.xroad.proxy.admin.AdminService;
 
-import io.grpc.BindableService;
-import io.grpc.ServerBuilder;
 import lombok.extern.slf4j.Slf4j;
 import org.niis.xroad.common.rpc.RpcServiceProperties;
-import org.niis.xroad.common.rpc.server.RpcServer;
 import org.niis.xroad.proxy.edc.AssetsRegistrationJob;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
-import java.util.List;
 import java.util.Optional;
 
 @Slf4j
@@ -51,24 +46,6 @@ import java.util.Optional;
         ProxyRpcConfig.ProxyRpcServiceProperties.class})
 @Configuration
 public class ProxyRpcConfig {
-
-    @Bean
-    RpcServer proxyRpcServer(final AddOn.BindableServiceRegistry bindableServiceRegistry,
-                             List<BindableService> rpcServices, ProxyRpcServiceProperties rpcServiceProperties) throws Exception {
-        return RpcServer.newServer(
-                rpcServiceProperties,
-                builder -> {
-                    registerServices(bindableServiceRegistry.getRegisteredServices(), builder);
-                    registerServices(rpcServices, builder);
-                });
-    }
-
-    private void registerServices(List<BindableService> services, ServerBuilder<?> builder) {
-        services.forEach(service -> {
-            log.info("Registering {} RPC service.", service.getClass().getSimpleName());
-            builder.addService(service);
-        });
-    }
 
     @Bean
     AdminService adminService(ServerConfProvider serverConfProvider,

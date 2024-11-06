@@ -53,6 +53,7 @@ import ee.ria.xroad.proxy.util.CertHashBasedOcspResponderClient;
 import ee.ria.xroad.signer.SignerClientConfiguration;
 import ee.ria.xroad.signer.SignerRpcClient;
 
+import org.niis.xroad.common.rpc.server.RpcServerConfig;
 import org.niis.xroad.confclient.proto.ConfClientRpcClientConfiguration;
 import org.niis.xroad.proxy.ProxyProperties;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
@@ -76,7 +77,8 @@ import org.springframework.context.annotation.Import;
         ServerConfBeanConfig.class,
         SignerClientConfiguration.class,
         ConfClientRpcClientConfiguration.class,
-        ProxyEdcControlPlaneConfig.class
+        ProxyEdcControlPlaneConfig.class,
+        RpcServerConfig.class
 })
 @ComponentScan("org.niis.xroad.proxy.edc")
 @EnableConfigurationProperties({

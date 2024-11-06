@@ -27,7 +27,6 @@ package org.niis.xroad.proxy.proto;
 
 import org.niis.xroad.common.rpc.RpcServiceProperties;
 import org.niis.xroad.common.rpc.client.RpcChannelFactory;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -35,12 +34,6 @@ import org.springframework.context.annotation.Configuration;
 @Configuration
 @EnableConfigurationProperties(ProxyRpcChannelProperties.class)
 public class ProxyRpcClientConfiguration {
-
-    @Bean
-    @ConditionalOnMissingBean(RpcChannelFactory.class)
-    RpcChannelFactory rpcChannelFactory() {
-        return new RpcChannelFactory();
-    }
 
     @Bean
     ProxyRpcClient proxyRpcClient(RpcChannelFactory channelFactory,

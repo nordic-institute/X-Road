@@ -47,10 +47,11 @@ import static java.util.concurrent.TimeUnit.MILLISECONDS;
 @Slf4j
 @RequiredArgsConstructor
 public final class RpcChannelFactory {
+    private final RpcCredentialsConfigurer rpcCredentialsConfigurer;
 
     public ManagedChannel createChannel(RpcChannelProperties channelProperties,
                                         RpcServiceProperties rpcServiceProperties) throws Exception {
-        var credentials = RpcCredentialsConfigurer.createClientCredentials(rpcServiceProperties);
+        var credentials = rpcCredentialsConfigurer.createClientCredentials(rpcServiceProperties);
 
         var host = channelProperties.getHost();
         var port = channelProperties.getPort();

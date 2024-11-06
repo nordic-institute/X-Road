@@ -38,11 +38,10 @@ import ee.ria.xroad.monitor.SystemMetricsSensor;
 import ee.ria.xroad.signer.SignerClientConfiguration;
 import ee.ria.xroad.signer.SignerRpcClient;
 
-import io.grpc.BindableService;
 import lombok.extern.slf4j.Slf4j;
 import org.niis.xroad.common.rpc.RpcServiceProperties;
 import org.niis.xroad.common.rpc.client.RpcChannelFactory;
-import org.niis.xroad.common.rpc.server.RpcServer;
+import org.niis.xroad.common.rpc.server.RpcServerConfig;
 import org.niis.xroad.confclient.proto.ConfClientRpcClientConfiguration;
 import org.niis.xroad.proxy.proto.ProxyRpcChannelProperties;
 import org.niis.xroad.proxy.proto.ProxyRpcClientConfiguration;
@@ -55,15 +54,14 @@ import org.springframework.scheduling.TaskScheduler;
 import org.springframework.scheduling.annotation.EnableScheduling;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler;
 
-import java.util.List;
-
 @Slf4j
 @Import({GlobalConfBeanConfig.class,
         ServerConfBeanConfig.class,
         GlobalConfRefreshJobConfig.class,
         SignerClientConfiguration.class,
         ConfClientRpcClientConfiguration.class,
-        ProxyRpcClientConfiguration.class})
+        ProxyRpcClientConfiguration.class,
+        RpcServerConfig.class})
 @EnableScheduling
 @EnableConfigurationProperties({
         EnvMonitorProperties.class,
@@ -71,17 +69,6 @@ import java.util.List;
 @Configuration
 public class MonitorConfig {
     private static final int TASK_EXECUTOR_POOL_SIZE = 5;
-
-    @Bean
-    RpcServer rpcServer(final List<BindableService> bindableServices, RpcServiceProperties envMonitorRpcServiceProperties)
-            throws Exception {
-        return RpcServer.newServer(
-                envMonitorRpcServiceProperties,
-                builder -> bindableServices.forEach(bindableService -> {
-                    log.info("Registering {} RPC service.", bindableService.getClass().getSimpleName());
-                    builder.addService(bindableService);
-                }));
-    }
 
     @Bean
     TaskScheduler taskScheduler() {

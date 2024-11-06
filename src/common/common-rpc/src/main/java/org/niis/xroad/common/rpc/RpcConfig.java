@@ -23,25 +23,33 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.confclient.proto;
+package org.niis.xroad.common.rpc;
 
-import org.niis.xroad.common.rpc.RpcConfig;
-import org.niis.xroad.common.rpc.RpcServiceProperties;
 import org.niis.xroad.common.rpc.client.RpcChannelFactory;
-import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.context.annotation.Import;
+import org.springframework.scheduling.annotation.EnableScheduling;
+import org.springframework.vault.core.VaultTemplate;
+
+import java.security.cert.CertificateException;
 
 @Configuration
-@Import({RpcConfig.class})
-@EnableConfigurationProperties(ConfClientRpcChannelProperties.class)
-public class ConfClientRpcClientConfiguration {
+@EnableScheduling
+public class RpcConfig {
+    @Bean
+    ReloadableVaultKeyManager reloadableVaultKeyManager(VaultTemplate vaultTemplate) throws CertificateException {
+        return new ReloadableVaultKeyManager(vaultTemplate);
+    }
 
     @Bean
-    ConfClientRpcClient confClientRpcClient(RpcChannelFactory channelFactory,
-                                            ConfClientRpcChannelProperties channelProperties,
-                                            RpcServiceProperties serviceProperties) {
-        return new ConfClientRpcClient(channelFactory, channelProperties, serviceProperties);
+    RpcChannelFactory rpcChannelFactory(RpcCredentialsConfigurer credentialsConfigurer) {
+        return new RpcChannelFactory(credentialsConfigurer);
     }
+
+    @Bean
+    RpcCredentialsConfigurer rpcCredentialsConfigurer(ReloadableVaultKeyManager keyStoreLoader) {
+        return new RpcCredentialsConfigurer(keyStoreLoader);
+    }
+
+
 }

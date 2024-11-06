@@ -630,7 +630,7 @@ public class SignerStepDefs extends BaseSignerStepDefs {
 
     @Step("signer client initialized with timeout {int} milliseconds")
     public void signerClientReinitializedWithTimeoutMilliseconds(int timeoutMillis) throws Exception {
-        RpcChannelFactory channelFactory = new RpcChannelFactory();
+        RpcChannelFactory channelFactory = new RpcChannelFactory(null);
         SignerRpcChannelProperties signerRpcClientProperties = new SignerRpcChannelProperties("localhost",
                 5560, timeoutMillis);
 

@@ -30,82 +30,73 @@ import io.grpc.ChannelCredentials;
 import io.grpc.ServerCredentials;
 import io.grpc.TlsChannelCredentials;
 import io.grpc.TlsServerCredentials;
-import lombok.AccessLevel;
-import lombok.NoArgsConstructor;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
-import javax.net.ssl.KeyManager;
-import javax.net.ssl.KeyManagerFactory;
-import javax.net.ssl.TrustManager;
-import javax.net.ssl.TrustManagerFactory;
-
 import java.io.IOException;
-import java.io.InputStream;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.security.KeyStore;
 import java.security.KeyStoreException;
 import java.security.NoSuchAlgorithmException;
 import java.security.UnrecoverableKeyException;
 import java.security.cert.CertificateException;
 
 @Slf4j
-@NoArgsConstructor(access = AccessLevel.PRIVATE)
+@RequiredArgsConstructor
 public class RpcCredentialsConfigurer {
+    private final ReloadableVaultKeyManager reloadableVaultKeyManager;
 
-    public static ServerCredentials createServerCredentials(RpcServiceProperties rpcServiceProperties)
-            throws UnrecoverableKeyException, NoSuchAlgorithmException,
-            KeyStoreException {
+    public ServerCredentials createServerCredentials(RpcServiceProperties rpcServiceProperties)
+            throws
+            IOException {
         TlsServerCredentials.Builder tlsBuilder = TlsServerCredentials.newBuilder()
-                .keyManager(getKeyManagers(rpcServiceProperties.getTlsKeyStore(), rpcServiceProperties.getTlsKeyStorePassword()))
-                .trustManager(getTrustManagers(rpcServiceProperties.getTlsTrustStore(), rpcServiceProperties.getTlsTrustStorePassword()))
+                .keyManager(reloadableVaultKeyManager.getKeyManager())
+                .trustManager(reloadableVaultKeyManager.getTrustManager())
                 .clientAuth(TlsServerCredentials.ClientAuth.REQUIRE);
 
         return tlsBuilder.build();
     }
 
-    public static ChannelCredentials createClientCredentials(RpcServiceProperties rpcServiceProperties)
+    public ChannelCredentials createClientCredentials(RpcServiceProperties rpcServiceProperties)
             throws NoSuchAlgorithmException, KeyStoreException,
-            UnrecoverableKeyException {
+            UnrecoverableKeyException, CertificateException, IOException {
         TlsChannelCredentials.Builder tlsBuilder = TlsChannelCredentials.newBuilder()
-                .keyManager(getKeyManagers(rpcServiceProperties.getTlsKeyStore(), rpcServiceProperties.getTlsKeyStorePassword()))
-                .trustManager(getTrustManagers(rpcServiceProperties.getTlsTrustStore(),
-                        rpcServiceProperties.getTlsTrustStorePassword()));
+                .keyManager(reloadableVaultKeyManager.getKeyManager())
+                .trustManager(reloadableVaultKeyManager.getTrustManager());
 
         return tlsBuilder.build();
     }
 
-    private static KeyManager[] getKeyManagers(String keystorePath, char[] keystorePassword)
-            throws NoSuchAlgorithmException, UnrecoverableKeyException, KeyStoreException {
+//    private KeyManager getVaultKeyManager(){
+//        var keyStore = new ReloadableVaultKeyManager(vaultTemplate);
+//        return keyStore.getKeyManager();
+//    }
+//
+//    private TrustManager getTrustManager() throws CertificateException {
+//        AdvancedTlsX509TrustManager trustManager = AdvancedTlsX509TrustManager.newBuilder()
+//                .setVerification(CERTIFICATE_AND_HOST_NAME_VERIFICATION)
+//                .build();
+//
+//        SslContext.toX509Certificates(trustCertCollectionInputStream)
+//        trustManager.updateTrustCredentials();
+//    }
+//    private KeyManager[] getKeyManagers(String keystorePath, char[] keystorePassword)
+//            throws NoSuchAlgorithmException, UnrecoverableKeyException, KeyStoreException, CertificateException, IOException {
+//
+//        KeyStore keystore = keystoreLoader.loadKeystore(keystorePath, keystorePassword);
+//        KeyManagerFactory keyManagerFactory =
+//                KeyManagerFactory.getInstance(KeyManagerFactory.getDefaultAlgorithm());
+//        keyManagerFactory.init(keystore, keystorePassword);
+//        return keyManagerFactory.getKeyManagers();
+//    }
 
-        KeyStore keystore = getKeystore(keystorePath, keystorePassword);
-        KeyManagerFactory keyManagerFactory =
-                KeyManagerFactory.getInstance(KeyManagerFactory.getDefaultAlgorithm());
-        keyManagerFactory.init(keystore, keystorePassword);
-        return keyManagerFactory.getKeyManagers();
-    }
+//    private TrustManager[] getTrustManagers(String path, char[] password)
+//            throws NoSuchAlgorithmException, KeyStoreException, CertificateException, IOException {
+//
+//        KeyStore truststore = keystoreLoader.loadKeystore(path, password);
+//        TrustManagerFactory trustManagerFactory =
+//                TrustManagerFactory.getInstance(TrustManagerFactory.getDefaultAlgorithm());
+//        trustManagerFactory.init(truststore);
+//        return trustManagerFactory.getTrustManagers();
+//    }
 
-    private static TrustManager[] getTrustManagers(String path, char[] password)
-            throws NoSuchAlgorithmException, KeyStoreException {
 
-        KeyStore truststore = getKeystore(path, password);
-        TrustManagerFactory trustManagerFactory =
-                TrustManagerFactory.getInstance(TrustManagerFactory.getDefaultAlgorithm());
-        trustManagerFactory.init(truststore);
-        return trustManagerFactory.getTrustManagers();
-    }
-
-    private static KeyStore getKeystore(String filePath, char[] password) {
-        log.trace("Loading keystore for RPC operation from path {}", filePath);
-        Path path = Paths.get(filePath);
-        KeyStore keystore = null;
-        try (InputStream in = Files.newInputStream(path)) {
-            keystore = KeyStore.getInstance("JKS");
-            keystore.load(in, password);
-        } catch (IOException | CertificateException | NoSuchAlgorithmException | KeyStoreException e) {
-            log.error("Failed to read gRPC keystore.", e);
-        }
-        return keystore;
-    }
 }
