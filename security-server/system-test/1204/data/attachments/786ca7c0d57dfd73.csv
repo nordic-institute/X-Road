@@ -1,0 +1,4 @@
+Version	3
+Signature Algorithm	SHA256withRSA
+Issuer Distinguished Name	CN=Test CA, O=Test
+Subject Distinguished Name	SERIALNUMBER=DEV/SS0/COM, CN=1234, O=ui-test, C=FI
