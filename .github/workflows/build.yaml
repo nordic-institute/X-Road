@@ -153,13 +153,11 @@ jobs:
           reporter: java-junit
       - name: Upload CS screenshots
         id: cs-artifacts-step
-        if: always()
+        if: failure()
         uses: actions/upload-artifact@v4
         with:
           name: CS System Test screenshots
           path: src/central-server/admin-service/ui-system-test/build/reports/test-automation/selenide-failures/*.png
-      - name: CS report artifact URL
-        run:  echo 'Artifact URL is ${{ steps.cs-artifacts-step.outputs.artifact-url }}'
       - name: Load test report history
         uses: actions/checkout@v4
         if: always()
@@ -244,7 +242,7 @@ jobs:
       - name: Upload SS report
         id: ss-artifacts-step
         uses: actions/upload-artifact@v4
-        if: failure()
+        if: always()
         with:
           name: SS System Test report
           path: |
@@ -252,6 +250,8 @@ jobs:
             src/security-server/system-test/build/ss-container-logs/
             src/security-server/system-test/build/ca-container-logs/
             src/security-server/system-test/build/reports/test-automation/selenide-failures/*.png
+      - name: SS report artifact URL
+        run:  echo 'Artifact URL is ${{ steps.ss-artifacts-step.outputs.artifact-url }}'
       - name: Load test report history
         uses: actions/checkout@v4
         if: always()
