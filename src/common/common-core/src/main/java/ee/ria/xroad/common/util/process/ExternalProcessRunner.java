@@ -112,7 +112,14 @@ public class ExternalProcessRunner {
             IOUtils.closeQuietly(process.getErrorStream());
             IOUtils.closeQuietly(process.getOutputStream());
         }
-        return new ProcessResult(commandWithArgsString, exitCode, processOutput);
+
+        ProcessResult processResult = new ProcessResult(commandWithArgsString, exitCode, processOutput);
+
+        // if the process fails we log the exception
+        if (processResult.getExitCode() != 0) {
+            log.error(getErrorMsg(processResult));
+        }
+        return processResult;
     }
 
     /**
@@ -133,15 +140,17 @@ public class ExternalProcessRunner {
     public ProcessResult executeAndThrowOnFailure(String command, String... args) throws ProcessNotExecutableException,
             ProcessFailedException, InterruptedException {
         ProcessResult processResult = execute(command, args);
-        // if the process fails we attach the output into the exception
+        // if the process fails we throw on failure
         if (processResult.getExitCode() != 0) {
-            String processOutputString = processOutputToString(processResult.processOutput);
-            String errorMsg = String.format("Failed to run command '%s' with output: %n %s",
-                    processResult.commandWithArgs, processOutputString);
-            log.error(errorMsg);
-            throw new ProcessFailedException(errorMsg, processResult.processOutput);
+            throw new ProcessFailedException(getErrorMsg(processResult), processResult.processOutput);
         }
         return processResult;
+    }
+
+    private static String getErrorMsg(ProcessResult processResult) {
+        return String.format("Failed to run command '%s' with output: %n %s",
+                processResult.commandWithArgs,
+                processOutputToString(processResult.processOutput));
     }
 
     /**
