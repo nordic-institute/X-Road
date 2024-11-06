@@ -1,0 +1,3 @@
+$code	$condition
+security-server-owners	present
+e2e-test-group	present
