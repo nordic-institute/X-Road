@@ -1,0 +1,4 @@
+$role	$condition
+System Administrator	present
+Security Officer	present
+Registration Officer	missing
