@@ -200,12 +200,6 @@ public final class SystemProperties {
             PROXY_PREFIX + "ssl-enabled";
 
     /**
-     * Property name of the Proxy's local configuration file.
-     */
-    public static final String DATABASE_PROPERTIES =
-            PROXY_PREFIX + "database-properties";
-
-    /**
      * Property name of the Client Proxy's port number.
      */
     public static final String PROXY_CLIENT_HTTP_PORT =
@@ -690,13 +684,6 @@ public final class SystemProperties {
      */
     public static String getXROADLogLevel() {
         return SystemPropertySource.getPropertyResolver().getProperty(XROAD_LOG_LEVEL, "DEBUG");
-    }
-
-    /**
-     * @return path to the proxy database configuration file, '/etc/xroad/db.properties' by default.
-     */
-    public static String getDatabasePropertiesFile() {
-        return SystemPropertySource.getPropertyResolver().getProperty(DATABASE_PROPERTIES, getConfPath() + DefaultFilepaths.SERVER_DATABASE_PROPERTIES);
     }
 
     /**

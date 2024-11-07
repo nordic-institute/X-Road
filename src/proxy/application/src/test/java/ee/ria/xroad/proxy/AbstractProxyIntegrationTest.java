@@ -114,7 +114,6 @@ public abstract class AbstractProxyIntegrationTest {
         System.setProperty(SystemProperties.TEMP_FILES_PATH, "build/");
 
         System.setProperty(SystemProperties.PROXY_CLIENT_TIMEOUT, "15000");
-        System.setProperty(SystemProperties.DATABASE_PROPERTIES, "src/test/resources/hibernate.properties");
 
         System.setProperty(SystemProperties.PROXY_HEALTH_CHECK_PORT, "5558");
 
