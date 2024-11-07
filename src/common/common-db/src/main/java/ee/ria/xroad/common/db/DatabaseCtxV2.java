@@ -28,14 +28,17 @@ package ee.ria.xroad.common.db;
 
 import ee.ria.xroad.common.CodedException;
 
-import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.hibernate.HibernateException;
+import org.hibernate.Interceptor;
 import org.hibernate.JDBCException;
 import org.hibernate.Session;
 import org.hibernate.SessionFactory;
 import org.hibernate.Transaction;
 import org.hibernate.resource.transaction.spi.TransactionStatus;
+import org.springframework.beans.factory.DisposableBean;
+
+import java.util.Map;
 
 import static ee.ria.xroad.common.ErrorCodes.X_DATABASE_ERROR;
 
@@ -45,11 +48,19 @@ import static ee.ria.xroad.common.ErrorCodes.X_DATABASE_ERROR;
  * Code copied from ee.ria.xroad.common.db.DatabaseCtx, but using provided session factory.
  */
 @Slf4j
-@RequiredArgsConstructor
-public class DatabaseCtxV2 {
+public class DatabaseCtxV2 implements DisposableBean {
 
     private final String name;
     private final SessionFactory sessionFactory;
+
+    public DatabaseCtxV2(String name, Map<String, String> hibernateProperties) {
+        this(name, hibernateProperties, null);
+    }
+
+    public DatabaseCtxV2(String name, Map<String, String> hibernateProperties, Interceptor interceptor) {
+        this.name = name;
+        this.sessionFactory = HibernateUtil.createSessionFactory(name, hibernateProperties, interceptor);
+    }
 
     /**
      * Gets called within a transactional context. Begins a transaction,
@@ -155,5 +166,12 @@ public class DatabaseCtxV2 {
         }
 
         return e;
+    }
+
+    @Override
+    public void destroy() throws Exception {
+        if (sessionFactory != null) {
+            HibernateUtil.closeSessionFactory(sessionFactory);
+        }
     }
 }

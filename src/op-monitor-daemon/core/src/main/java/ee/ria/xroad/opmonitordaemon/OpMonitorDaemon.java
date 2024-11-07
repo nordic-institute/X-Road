@@ -71,6 +71,7 @@ public final class OpMonitorDaemon implements InitializingBean, DisposableBean {
     private Server server = new Server();
 
     private final GlobalConfProvider globalConfProvider;
+    private final OperationalDataRecordManager operationalDataRecordManager;
     private final MetricRegistry healthMetricRegistry = new MetricRegistry();
     private final JmxReporter reporter = JmxReporter.forRegistry(healthMetricRegistry).build();
 
@@ -79,8 +80,9 @@ public final class OpMonitorDaemon implements InitializingBean, DisposableBean {
      *
      * @throws Exception in case of any errors
      */
-    public OpMonitorDaemon(GlobalConfProvider globalConfProvider) throws Exception {
+    public OpMonitorDaemon(GlobalConfProvider globalConfProvider, OperationalDataRecordManager operationalDataRecordManager) {
         this.globalConfProvider = globalConfProvider;
+        this.operationalDataRecordManager = operationalDataRecordManager;
 
         createConnector();
         createHandler();
@@ -143,7 +145,7 @@ public final class OpMonitorDaemon implements InitializingBean, DisposableBean {
     }
 
     private void createHandler() {
-        server.setHandler(new OpMonitorDaemonRequestHandler(globalConfProvider, healthMetricRegistry));
+        server.setHandler(new OpMonitorDaemonRequestHandler(globalConfProvider, healthMetricRegistry, operationalDataRecordManager));
     }
 
     private void registerHealthMetrics() {

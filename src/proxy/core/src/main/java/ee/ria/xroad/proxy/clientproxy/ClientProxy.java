@@ -29,7 +29,6 @@ import ee.ria.xroad.common.SystemProperties;
 import ee.ria.xroad.common.cert.CertChainFactory;
 import ee.ria.xroad.common.conf.globalconf.GlobalConfProvider;
 import ee.ria.xroad.common.conf.serverconf.ServerConfProvider;
-import ee.ria.xroad.common.db.HibernateUtil;
 import ee.ria.xroad.common.util.CryptoUtils;
 import ee.ria.xroad.common.util.JettyUtils;
 import ee.ria.xroad.proxy.conf.KeyConfProvider;
@@ -254,8 +253,6 @@ public class ClientProxy implements InitializingBean, DisposableBean {
         log.trace("stop()");
 
         server.stop();
-
-        HibernateUtil.closeSessionFactories();
     }
 
     private static final class ClientSslTrustManager implements X509TrustManager {

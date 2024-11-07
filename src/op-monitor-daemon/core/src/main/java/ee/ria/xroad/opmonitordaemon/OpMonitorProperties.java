@@ -24,32 +24,15 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package ee.ria.xroad.common.conf.serverconf;
 
-import ee.ria.xroad.common.conf.globalconf.GlobalConfProvider;
-import ee.ria.xroad.common.db.DatabaseCtxV2;
+package ee.ria.xroad.opmonitordaemon;
 
-import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.boot.context.properties.EnableConfigurationProperties;
-import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Configuration;
+import org.springframework.boot.context.properties.ConfigurationProperties;
 
-@Configuration
-@EnableConfigurationProperties(ServerConfProperties.class)
-public class ServerConfBeanConfig {
+import java.util.Map;
 
-    @Bean
-    ServerConfProvider serverConfProvider(ServerConfProperties serverConfProperties, GlobalConfProvider globalConfProvider,
-                                          @Qualifier("serverConfDatabaseCtx") DatabaseCtxV2 databaseCtx) {
-        if (serverConfProperties.cachePeriod() > 0) {
-            return new CachingServerConfImpl(databaseCtx, serverConfProperties, globalConfProvider);
-        }
-        return new ServerConfImpl(databaseCtx, globalConfProvider);
-    }
-
-    @Bean("serverConfDatabaseCtx")
-    DatabaseCtxV2 serverConfDatabaseCtx(ServerConfProperties serverConfProperties) {
-        return new DatabaseCtxV2("serverconf", serverConfProperties.hibernate());
-    }
-
+@ConfigurationProperties(prefix = "xroad.op-monitor")
+public record OpMonitorProperties(
+        Map<String, String> hibernate // op-monitor.hibernate.* properties from db-properties file
+) {
 }

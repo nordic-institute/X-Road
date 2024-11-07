@@ -38,7 +38,6 @@ import ee.ria.xroad.common.conf.serverconf.model.ServerConfType;
 import ee.ria.xroad.common.conf.serverconf.model.ServiceDescriptionType;
 import ee.ria.xroad.common.conf.serverconf.model.ServiceType;
 import ee.ria.xroad.common.db.DatabaseCtxV2;
-import ee.ria.xroad.common.db.HibernateUtil;
 import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.identifier.LocalGroupId;
 import ee.ria.xroad.common.identifier.ServiceId;
@@ -73,8 +72,7 @@ public class DAOImplTest {
 
     private Session session;
     private IdentifierDAOImpl identifierDAO = new IdentifierDAOImpl();
-    private static final DatabaseCtxV2 DATABASE_CTX = new DatabaseCtxV2("serverconf",
-            HibernateUtil.createSessionFactory("serverconf", TestUtil.serverConfHibernateProperties));
+    private static final DatabaseCtxV2 DATABASE_CTX = new DatabaseCtxV2("serverconf", TestUtil.serverConfHibernateProperties);
 
     /**
      * Prepares test database.

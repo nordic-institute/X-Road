@@ -25,10 +25,12 @@
  */
 package ee.ria.xroad.opmonitordaemon;
 
+import ee.ria.xroad.common.db.DatabaseCtxV2;
 import ee.ria.xroad.common.db.HibernateUtil;
 import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.opmonitoring.OpMonitoringSystemProperties;
 
+import lombok.RequiredArgsConstructor;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 import org.hibernate.Session;
@@ -39,7 +41,6 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
-import static ee.ria.xroad.opmonitordaemon.OpMonitorDaemonDatabaseCtx.doInTransaction;
 import static ee.ria.xroad.opmonitordaemon.OperationalDataOutputSpecFields.MONITORING_DATA_TS;
 
 /**
@@ -47,39 +48,39 @@ import static ee.ria.xroad.opmonitordaemon.OperationalDataOutputSpecFields.MONIT
  * operational_data table, mapped by the OperationalDataRecord class.
  */
 @Slf4j
-final class OperationalDataRecordManager {
+@RequiredArgsConstructor
+public final class OperationalDataRecordManager {
 
     private static final int DEFAULT_BATCH_SIZE = 50;
 
+    private final DatabaseCtxV2 databaseCtx;
+
     @Setter
-    private static int maxRecordsInPayload = OpMonitoringSystemProperties.getOpMonitorMaxRecordsInPayload();
+    private int maxRecordsInPayload = OpMonitoringSystemProperties.getOpMonitorMaxRecordsInPayload();
 
     private static int configuredBatchSize = 0;
 
-    private OperationalDataRecordManager() {
+    void storeRecords(List<OperationalDataRecord> records, long timestamp) throws Exception {
+        databaseCtx.doInTransaction(session -> storeInTransaction(session, records, timestamp));
     }
 
-    static void storeRecords(List<OperationalDataRecord> records, long timestamp) throws Exception {
-        doInTransaction(session -> storeInTransaction(session, records, timestamp));
+    OperationalDataRecords queryAllRecords() throws Exception {
+        return databaseCtx.doInTransaction(this::queryAllOperationalDataInTransaction);
     }
 
-    static OperationalDataRecords queryAllRecords() throws Exception {
-        return doInTransaction(OperationalDataRecordManager::queryAllOperationalDataInTransaction);
-    }
-
-    static OperationalDataRecords queryRecords(long recordsFrom, long recordsTo) throws Exception {
+    OperationalDataRecords queryRecords(long recordsFrom, long recordsTo) throws Exception {
         return queryRecords(recordsFrom, recordsTo, null, null, new HashSet<>());
     }
 
-    static OperationalDataRecords queryRecords(long recordsFrom, long recordsTo, ClientId clientFilter)
+    OperationalDataRecords queryRecords(long recordsFrom, long recordsTo, ClientId clientFilter)
             throws Exception {
         return queryRecords(recordsFrom, recordsTo, clientFilter, null, new HashSet<>());
     }
 
-    static OperationalDataRecords queryRecords(long recordsFrom, long recordsTo, ClientId clientFilter,
+    OperationalDataRecords queryRecords(long recordsFrom, long recordsTo, ClientId clientFilter,
                                                ClientId serviceProviderFilter,
                                                Set<String> outputFields) throws Exception {
-        OperationalDataRecords records = doInTransaction(session -> queryOperationalDataInTransaction(session,
+        OperationalDataRecords records = databaseCtx.doInTransaction(session -> queryOperationalDataInTransaction(session,
                 recordsFrom, recordsTo, clientFilter, serviceProviderFilter, outputFields));
 
         removeMonitoringDataTsIfNotSpecified(records, outputFields);
@@ -87,7 +88,7 @@ final class OperationalDataRecordManager {
         return records;
     }
 
-    private static Void storeInTransaction(Session session, List<OperationalDataRecord> records, long timestamp) {
+    private Void storeInTransaction(Session session, List<OperationalDataRecord> records, long timestamp) {
         int storedCount = 0;
         int batchSize = getConfiguredBatchSize(session);
 
@@ -104,7 +105,7 @@ final class OperationalDataRecordManager {
         return null;
     }
 
-    private static int getConfiguredBatchSize(Session session) {
+    private int getConfiguredBatchSize(Session session) {
         if (configuredBatchSize == 0) {
             configuredBatchSize = HibernateUtil.getConfiguredBatchSize(session, DEFAULT_BATCH_SIZE);
         }
@@ -112,7 +113,7 @@ final class OperationalDataRecordManager {
         return configuredBatchSize;
     }
 
-    private static OperationalDataRecords queryAllOperationalDataInTransaction(Session session) {
+    private OperationalDataRecords queryAllOperationalDataInTransaction(Session session) {
         final Query<OperationalDataRecord> query =
                 session.createQuery("SELECT r FROM OperationalDataRecord r", OperationalDataRecord.class)
                         .setReadOnly(true);
@@ -132,7 +133,7 @@ final class OperationalDataRecordManager {
      * @return operational data records.
      */
     @SuppressWarnings("unchecked")
-    private static OperationalDataRecords queryOperationalDataInTransaction(Session session, long recordsFrom,
+    private OperationalDataRecords queryOperationalDataInTransaction(Session session, long recordsFrom,
                                                                             long recordsTo, ClientId clientFilter,
                                                                             ClientId serviceProviderFilter,
                                                                             Set<String> outputFields) {
@@ -167,20 +168,20 @@ final class OperationalDataRecordManager {
         return records;
     }
 
-    private static void removeMonitoringDataTsIfNotSpecified(OperationalDataRecords records, Set<String> outputFields) {
+    private void removeMonitoringDataTsIfNotSpecified(OperationalDataRecords records, Set<String> outputFields) {
         if (!outputFields.isEmpty() && !outputFields.contains(MONITORING_DATA_TS)) {
             records.getRecords().forEach(i -> i.setMonitoringDataTs(null));
         }
     }
 
-    private static boolean recordsOverflow(Session session, long lastMonitoringDataTs, long recordsTo,
+    private boolean recordsOverflow(Session session, long lastMonitoringDataTs, long recordsTo,
                                            ClientId clientFilter, ClientId serviceProviderFilter) {
         // Indicate overflow only if some records are not included.
         return lastMonitoringDataTs < recordsTo && hasRecordsLeft(session, lastMonitoringDataTs, recordsTo,
                 clientFilter, serviceProviderFilter);
     }
 
-    private static boolean hasRecordsLeft(Session session, long lastMonitoringDataTs, long recordsTo,
+    private boolean hasRecordsLeft(Session session, long lastMonitoringDataTs, long recordsTo,
                                           ClientId clientFilter, ClientId serviceProviderFilter) {
         if (lastMonitoringDataTs == recordsTo) {
             return false;

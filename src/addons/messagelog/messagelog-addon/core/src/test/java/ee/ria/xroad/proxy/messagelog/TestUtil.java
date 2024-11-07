@@ -29,7 +29,6 @@ import ee.ria.xroad.common.conf.globalconf.EmptyGlobalConf;
 import ee.ria.xroad.common.conf.globalconf.GlobalConfProvider;
 import ee.ria.xroad.common.conf.serverconf.ServerConfProvider;
 import ee.ria.xroad.common.db.DatabaseCtxV2;
-import ee.ria.xroad.common.db.HibernateUtil;
 import ee.ria.xroad.common.message.RestMessage;
 import ee.ria.xroad.common.message.RestRequest;
 import ee.ria.xroad.common.message.SoapMessageImpl;
@@ -93,9 +92,7 @@ final class TestUtil {
             "hbm2ddl.auto", "update",
             "jdbc.batch_size", "20"
     );
-    static DatabaseCtxV2 databaseCtx = new DatabaseCtxV2("messagelog",
-            HibernateUtil.createSessionFactory("messagelog",
-                    MESSAGE_LOG_HIBERNATE_PROPERTIES));
+    static DatabaseCtxV2 databaseCtx = new DatabaseCtxV2("messagelog", MESSAGE_LOG_HIBERNATE_PROPERTIES);
 
     static GlobalConfProvider getGlobalConf() {
         return new EmptyGlobalConf() {

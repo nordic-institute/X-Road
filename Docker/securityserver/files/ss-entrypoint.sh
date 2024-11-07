@@ -49,6 +49,8 @@ yq -Y -i ".xroad.common.serverconf.hibernate.connection.password = \"${servercon
 messagelog_pass=$(crudini --get /etc/xroad/db.properties "" "messagelog.hibernate.connection.password")
 yq -Y -i ".xroad.messagelog.hibernate.connection.password = \"${messagelog_pass}\"" /etc/xroad/conf.d/application-override.yaml
 
+opmonitor_pass=$(crudini --get /etc/xroad/db.properties "" "op-monitor.hibernate.connection.password")
+yq -Y -i ".xroad.\"op-monitor\".hibernate.connection.password = \"${opmonitor_pass}\"" /etc/xroad/conf.d/application-override.yaml
 #end of temporary set DB password
 
 exec /usr/bin/supervisord -n -c /etc/supervisor/supervisord.conf
