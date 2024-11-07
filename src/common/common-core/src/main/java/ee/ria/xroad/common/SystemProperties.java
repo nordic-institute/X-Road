@@ -43,6 +43,7 @@ public final class SystemProperties {
     /** The prefix for all properties. */
     public static final String PREFIX = "xroad.";
     private static final String SIGNER_PREFIX = PREFIX + "signer.";
+    private static final String CENTER_PREFIX = PREFIX + "center.";
 
     private static final String COMMA_SPLIT = "\\s*,\\s*";
 
@@ -70,7 +71,7 @@ public final class SystemProperties {
 
     /** Minimum supported global conf version on central server **/
     private static final String MINIMUM_CENTRAL_SERVER_GLOBAL_CONFIGURATION_VERSION =
-            PREFIX + "center.minimum-global-configuration-version";
+            CENTER_PREFIX + "minimum-global-configuration-version";
 
     /** Minimum supported global conf version on configuration proxy **/
     private static final String MINIMUM_CONFIGURATION_PROXY_SERVER_GLOBAL_CONFIGURATION_VERSION =
@@ -224,24 +225,19 @@ public final class SystemProperties {
             PROXY_PREFIX + "ocsp-responder-client-read-timeout";
 
     /** Property name of the flag to turn off proxy client SSL verification. */
-    public static final String PROXY_VERIFY_CLIENT_CERT =
-            PROXY_PREFIX + "verify-client-cert";
+    public static final String PROXY_VERIFY_CLIENT_CERT = PROXY_PREFIX + "verify-client-cert";
 
     /** Property name of the flag to turn on proxy client SSL logging. */
-    public static final String PROXY_LOG_CLIENT_CERT =
-            PROXY_PREFIX + "log-client-cert";
+    public static final String PROXY_LOG_CLIENT_CERT = PROXY_PREFIX + "log-client-cert";
 
     /** Property name of the ClientProxy Jetty server configuration file. */
-    public static final String JETTY_CLIENTPROXY_CONFIGURATION_FILE =
-            PROXY_PREFIX + "jetty-clientproxy-configuration-file";
+    public static final String JETTY_CLIENTPROXY_CONFIGURATION_FILE = PROXY_PREFIX + "jetty-clientproxy-configuration-file";
 
     /** Property name of the ServerProxy Jetty server configuration file. */
-    public static final String JETTY_SERVERPROXY_CONFIGURATION_FILE =
-            PROXY_PREFIX + "jetty-serverproxy-configuration-file";
+    public static final String JETTY_SERVERPROXY_CONFIGURATION_FILE = PROXY_PREFIX + "jetty-serverproxy-configuration-file";
 
     /** Property name of the CertHashBasedOcspResponder Jetty server configuration file. */
-    public static final String JETTY_OCSP_RESPONDER_CONFIGURATION_FILE =
-            PROXY_PREFIX + "jetty-ocsp-responder-configuration-file";
+    public static final String JETTY_OCSP_RESPONDER_CONFIGURATION_FILE = PROXY_PREFIX + "jetty-ocsp-responder-configuration-file";
 
     /** Property name of the ClientProxy HTTPS connector and ServerProxy HTTP client supported TLS protocols */
     private static final String PROXY_CLIENT_TLS_PROTOCOLS =
@@ -467,7 +463,6 @@ public final class SystemProperties {
     public static final String SOFT_TOKEN_RSA_SIGN_MECHANISM = SIGNER_PREFIX + "soft-token-rsa-sign-mechanism";
     public static final String SOFT_TOKEN_EC_SIGN_MECHANISM = SIGNER_PREFIX + "soft-token-ec-sign-mechanism";
     public static final String SOFT_TOKEN_PIN_KEYSTORE_ALGORITHM = SIGNER_PREFIX + "soft-token-pin-keystore-algorithm";
-    public static final String SIGNER_DEFAULT_KEY_ALGORITHM = SIGNER_PREFIX + "default-key-algorithm";
 
     public static final String DEFAULT_SIGNER_MODULE_MANAGER_UPDATE_INTERVAL = "60";
     public static final KeyAlgorithm DEFAULT_SIGNER_DEFAULT_KEY_ALGORITHM = KeyAlgorithm.RSA;
@@ -529,54 +524,41 @@ public final class SystemProperties {
 
     // Center -----------------------------------------------------------------
 
-    public static final String CENTER_DATABASE_PROPERTIES =
-            PREFIX + "center.database-properties";
+    public static final String CENTER_DATABASE_PROPERTIES = CENTER_PREFIX + "database-properties";
 
-    public static final String CENTER_TRUSTED_ANCHORS_ALLOWED =
-            PREFIX + "center.trusted-anchors-allowed";
+    public static final String CENTER_TRUSTED_ANCHORS_ALLOWED = CENTER_PREFIX + "trusted-anchors-allowed";
 
-    public static final String CENTER_INTERNAL_DIRECTORY =
-            PREFIX + "center.internal-directory";
+    public static final String CENTER_INTERNAL_DIRECTORY = CENTER_PREFIX + "internal-directory";
 
-    public static final String CENTER_EXTERNAL_DIRECTORY =
-            PREFIX + "center.external-directory";
+    public static final String CENTER_EXTERNAL_DIRECTORY = CENTER_PREFIX + "external-directory";
 
-    private static final String CENTER_GENERATED_CONF_DIR =
-            PREFIX + "center.generated-conf-dir";
+    private static final String CENTER_GENERATED_CONF_DIR = CENTER_PREFIX + "generated-conf-dir";
 
     /** Property name of the path where conf backups are created. */
-    public static final String CONF_BACKUP_PATH =
-            PREFIX + "center.conf-backup-path";
+    public static final String CONF_BACKUP_PATH = CENTER_PREFIX + "conf-backup-path";
 
     /** Property name of enabling automatic approval of auth cert registration requests. */
-    public static final String CENTER_AUTO_APPROVE_AUTH_CERT_REG_REQUESTS =
-            PREFIX + "center.auto-approve-auth-cert-reg-requests";
+    public static final String CENTER_AUTO_APPROVE_AUTH_CERT_REG_REQUESTS = CENTER_PREFIX + "auto-approve-auth-cert-reg-requests";
 
     /** Property name of enabling automatic approval of client registration requests. */
-    public static final String CENTER_AUTO_APPROVE_CLIENT_REG_REQUESTS =
-            PREFIX + "center.auto-approve-client-reg-requests";
+    public static final String CENTER_AUTO_APPROVE_CLIENT_REG_REQUESTS = CENTER_PREFIX + "auto-approve-client-reg-requests";
 
     /** Property name of enabling automatic approval of owner change requests. */
-    public static final String CENTER_AUTO_APPROVE_OWNER_CHANGE_REQUESTS =
-            PREFIX + "center.auto-approve-owner-change-requests";
+    public static final String CENTER_AUTO_APPROVE_OWNER_CHANGE_REQUESTS = CENTER_PREFIX + "auto-approve-owner-change-requests";
 
     // Misc -------------------------------------------------------------------
 
     /** Property name of the configuration files path. */
-    public static final String CONF_PATH =
-            PREFIX + "conf.path";
+    public static final String CONF_PATH = PREFIX + "conf.path";
 
     /** Property name of the log folder for Log Reader. */
-    public static final String LOG_READER_PATH =
-            PREFIX + "logReader.path";
+    public static final String LOG_READER_PATH = PREFIX + "logReader.path";
 
     /** Property name of the application log file path. */
-    public static final String LOG_PATH =
-            PREFIX + "appLog.path";
+    public static final String LOG_PATH = PREFIX + "appLog.path";
 
     /** Property name of the application log level of ee.ria.xroad. */
-    public static final String XROAD_LOG_LEVEL =
-            PREFIX + "appLog.xroad.level";
+    public static final String XROAD_LOG_LEVEL = PREFIX + "appLog.xroad.level";
 
     // Proxy UI ---------------------------------------------------------------
 
@@ -1203,15 +1185,6 @@ public final class SystemProperties {
         return Optional.ofNullable(System.getProperty(SOFT_TOKEN_PIN_KEYSTORE_ALGORITHM))
                 .map(KeyAlgorithm::valueOf)
                 .orElse(DEFAULT_SOFT_TOKEN_PIN_KEYSTORE_ALGORITHM);
-    }
-
-    /**
-     * @return software token keystore PIN file algorithm, RSA by default
-     */
-    public static KeyAlgorithm getSignerDefaultKeyAlgorithm() {
-        return Optional.ofNullable(System.getProperty(SIGNER_DEFAULT_KEY_ALGORITHM))
-                .map(KeyAlgorithm::valueOf)
-                .orElse(DEFAULT_SIGNER_DEFAULT_KEY_ALGORITHM);
     }
 
     /**

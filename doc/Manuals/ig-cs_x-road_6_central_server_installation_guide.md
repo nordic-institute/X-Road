@@ -58,7 +58,7 @@ Doc. ID: IG-CS
 | 02.01.2024 | 2.38    | Loopback ports added                                                                                                                                                                          | Justas Samuolis      |
 | 25.04.2024 | 2.39    | Updated for Ubuntu 24.04                                                                                                                                                                      | Madis Loitmaa        |
 | 12.06.2024 | 2.40    | Update network diagram                                                                                                                                                                        | Petteri Kivimäki     |
-| 21.10.2024 | 2.41    | Update for configurable parameters in the `/etc/xroad/devices.ini` after added support for ECDSA keys                                                                                         | Ovidijus Narkevicius |
+| 21.10.2024 | 2.41    | Update for configurable parameters in the `/etc/xroad/devices.ini` after added support for ECDSA Configuration signing keys                                                                   | Ovidijus Narkevicius |
 
 
 ## Table of Contents <!-- omit in toc -->
@@ -520,6 +520,10 @@ The Central Server produces global configuration version V2. Version V2 is suppo
 ### 4.3 Global configuration V3 support
 
 The Central Server produces global configuration version V3. Version V3 is supported by Security Servers from version 7.4.0 and up.
+
+### 4.3 Use EC Algorithm in Configuration Signing keys
+
+Since version 7.6.0, the Central Server supports EC algorithm for configuration signing keys. Refer to [UG-CS](#Ref_UG-CS) section „Migrating to EC based Configuration Signing keys“.
 
 ## 5 Installation Error Handling
 

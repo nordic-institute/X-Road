@@ -25,7 +25,6 @@
  */
 package ee.ria.xroad.signer.tokenmanager.token;
 
-import ee.ria.xroad.common.SystemProperties;
 import ee.ria.xroad.common.crypto.KeyManagers;
 import ee.ria.xroad.common.crypto.SignDataPreparer;
 import ee.ria.xroad.common.crypto.identifier.KeyAlgorithm;
@@ -219,9 +218,8 @@ public abstract class AbstractTokenWorker implements TokenWorker, WorkerWithLife
 
     protected KeyAlgorithm mapAlgorithm(Algorithm algorithm) {
         return switch (algorithm) {
-            case RSA -> KeyAlgorithm.RSA;
+            case RSA, ALGORITHM_UNKNOWN, UNRECOGNIZED -> KeyAlgorithm.RSA;
             case EC -> KeyAlgorithm.EC;
-            case UNKNOWN, UNRECOGNIZED -> SystemProperties.getSignerDefaultKeyAlgorithm();
         };
     }
 

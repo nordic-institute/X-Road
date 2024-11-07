@@ -27,6 +27,7 @@
 
 package org.niis.xroad.cs.admin.core.facade;
 
+import ee.ria.xroad.common.crypto.identifier.KeyAlgorithm;
 import ee.ria.xroad.common.crypto.identifier.SignAlgorithm;
 import ee.ria.xroad.common.crypto.identifier.SignMechanism;
 import ee.ria.xroad.common.identifier.ClientId;
@@ -150,7 +151,7 @@ public class SignerProxyFacadeMockHttpImpl implements SignerProxyFacade {
     }
 
     @Override
-    public KeyInfo generateKey(String tokenId, String keyLabel) {
+    public KeyInfo generateKey(String tokenId, String keyLabel, KeyAlgorithm algorithm) {
         throw new NotImplementedException("generateKey not implemented yet.");
     }
 

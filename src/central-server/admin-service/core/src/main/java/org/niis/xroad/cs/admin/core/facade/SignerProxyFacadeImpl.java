@@ -25,6 +25,7 @@
  */
 package org.niis.xroad.cs.admin.core.facade;
 
+import ee.ria.xroad.common.crypto.identifier.KeyAlgorithm;
 import ee.ria.xroad.common.crypto.identifier.SignAlgorithm;
 import ee.ria.xroad.common.crypto.identifier.SignMechanism;
 import ee.ria.xroad.common.identifier.ClientId;
@@ -101,10 +102,10 @@ public class SignerProxyFacadeImpl implements SignerProxyFacade, InitializingBea
     }
 
     /**
-     * {@link SignerProxy#generateKey(String, String)}
+     * {@link SignerProxy#generateKey(String, String, KeyAlgorithm)}
      */
-    public KeyInfo generateKey(String tokenId, String keyLabel) throws Exception {
-        return SignerProxy.generateKey(tokenId, keyLabel);
+    public KeyInfo generateKey(String tokenId, String keyLabel, KeyAlgorithm algorithm) throws Exception {
+        return SignerProxy.generateKey(tokenId, keyLabel, algorithm);
     }
 
     /**
@@ -131,7 +132,7 @@ public class SignerProxyFacadeImpl implements SignerProxyFacade, InitializingBea
     }
 
     /**
-     * {@link SignerProxy#sign(String, String, byte[])}
+     * {@link SignerProxy#sign(String, SignAlgorithm, byte[])}
      */
     public byte[] sign(String keyId, SignAlgorithm signatureAlgorithmId, byte[] digest) throws Exception {
         return SignerProxy.sign(keyId, signatureAlgorithmId, digest);

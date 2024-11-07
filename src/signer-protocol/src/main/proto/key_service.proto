@@ -52,7 +52,7 @@ service KeyService {
 }
 
 enum Algorithm {
-  UNKNOWN = 0;
+  ALGORITHM_UNKNOWN = 0;
   RSA = 1;
   EC = 2;
 }
@@ -109,7 +109,7 @@ message DeleteKeyReq {
 message GenerateKeyReq {
   string token_id = 1;
   string key_label = 2;
-  optional Algorithm algorithm = 3;
+  Algorithm algorithm = 3;
 }
 
 message GetAuthKeyReq {
