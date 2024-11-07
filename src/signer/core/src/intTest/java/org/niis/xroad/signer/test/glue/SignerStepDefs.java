@@ -47,25 +47,32 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.bouncycastle.asn1.pkcs.PrivateKeyInfo;
 import org.bouncycastle.cert.ocsp.CertificateStatus;
 import org.bouncycastle.cert.ocsp.OCSPResp;
+import org.bouncycastle.cert.ocsp.RevokedStatus;
+import org.bouncycastle.openssl.PEMParser;
+import org.bouncycastle.openssl.jcajce.JcaPEMKeyConverter;
 import org.bouncycastle.util.encoders.Base64;
 import org.junit.jupiter.api.Assertions;
 import org.niis.xroad.signer.proto.CertificateRequestFormat;
 
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.FileReader;
+import java.nio.file.Path;
 import java.security.KeyFactory;
+import java.security.PrivateKey;
 import java.security.PublicKey;
 import java.security.cert.X509Certificate;
 import java.security.spec.X509EncodedKeySpec;
+import java.time.Instant;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
-import java.util.UUID;
 import java.util.stream.Collectors;
 
 import static ee.ria.xroad.common.SystemProperties.getGrpcInternalHost;
@@ -76,8 +83,10 @@ import static ee.ria.xroad.common.crypto.identifier.SignAlgorithm.SHA256_WITH_RS
 import static ee.ria.xroad.common.crypto.identifier.SignAlgorithm.SHA512_WITH_RSA;
 import static ee.ria.xroad.common.util.CryptoUtils.calculateCertHexHash;
 import static ee.ria.xroad.common.util.CryptoUtils.calculateCertSha1HexHash;
+import static ee.ria.xroad.common.util.CryptoUtils.readCertificate;
 import static java.lang.String.format;
 import static java.nio.charset.StandardCharsets.UTF_8;
+import static java.nio.file.Files.readAllBytes;
 import static java.time.Instant.now;
 import static java.time.temporal.ChronoUnit.DAYS;
 import static java.util.UUID.randomUUID;
@@ -318,9 +327,11 @@ public class SignerStepDefs extends BaseSignerStepDefs {
     public void importCertFromFile(String initialStatus, String client) throws Exception {
         final Optional<File> cert = getStepData(StepDataKey.CERT_FILE);
         final ClientId.Conf clientId = getClientId(client);
-        final byte[] certBytes = FileUtils.readFileToByteArray(cert.orElseThrow());
-
-        scenarioKeyId = SignerProxy.importCert(certBytes, initialStatus, clientId);
+        byte[] certFileBytes = FileUtils.readFileToByteArray(cert.orElseThrow());
+        scenarioKeyId = SignerProxy.importCert(certFileBytes, initialStatus, clientId);
+        X509Certificate x509Certificate = readCertificate(certFileBytes);
+        scenarioCert = x509Certificate.getEncoded();
+        certInfo = SignerProxy.getCertForHash(calculateCertHexHash(scenarioCert));
     }
 
     @Step("cert request is regenerated")
@@ -397,7 +408,7 @@ public class SignerStepDefs extends BaseSignerStepDefs {
     public void digestCanBeSignedUsingKeyFromToken(String keyName, String friendlyName) throws Exception {
         final KeyInfo key = findKeyInToken(friendlyName, keyName);
 
-        var digest = String.format("%s-%d", UUID.randomUUID(), System.currentTimeMillis());
+        var digest = format("%s-%d", randomUUID(), System.currentTimeMillis());
         SignerProxy.sign(key.getId(), SHA256_WITH_RSA, calculateDigest(SHA256, digest.getBytes(UTF_8)));
     }
 
@@ -439,7 +450,7 @@ public class SignerStepDefs extends BaseSignerStepDefs {
 
         final KeyInfo key = findKeyInToken(friendlyName, keyName);
 
-        var digest = String.format("%s-%d", UUID.randomUUID(), System.currentTimeMillis());
+        var digest = format("%s-%d", randomUUID(), System.currentTimeMillis());
         byte[] bytes = SignerProxy.sign(key.getId(), SHA512_WITH_RSA, calculateDigest(SHA256, digest.getBytes(UTF_8)));
         assertThat(bytes).isNotEmpty();
     }
@@ -591,6 +602,43 @@ public class SignerStepDefs extends BaseSignerStepDefs {
         Assertions.assertEquals(faultCode, codedException.getFaultCode());
         Assertions.assertEquals(translationCode, codedException.getTranslationCode());
         Assertions.assertEquals(message, codedException.getMessage());
+    }
+
+    @Step("ocsp responses are set to REVOKED")
+    public void ocspResponsesAreSetUnknown() throws Exception {
+        CertificateStatus certificateStatus = new RevokedStatus(Date.from(Instant.parse("2022-01-01T00:00:00Z")));
+        X509Certificate subject = readCertificate(certInfo.getCertificateBytes());
+        String caHomePath = "./build/resources/intTest/META-INF/ca-container/files/home/ca/CA";
+        X509Certificate caCert =
+                readCertificate(readAllBytes(Path.of(caHomePath + "/certs/ca.cert.pem")));
+        X509Certificate ocspCert =
+                readCertificate(readAllBytes(Path.of(caHomePath + "/certs/ocsp.cert.pem")));
+        try (FileReader keyReader = new FileReader(caHomePath + "/private/ocsp.key.pem")) {
+
+            PEMParser pemParser = new PEMParser(keyReader);
+            JcaPEMKeyConverter converter = new JcaPEMKeyConverter();
+            PrivateKeyInfo privateKeyInfo = PrivateKeyInfo.getInstance(pemParser.readObject());
+
+            PrivateKey ocspPrivateKey = converter.getPrivateKey(privateKeyInfo);
+            final OCSPResp ocspResponse = OcspTestUtils.createOCSPResponse(subject, caCert,
+                    ocspCert, ocspPrivateKey, certificateStatus);
+
+            SignerProxy.setOcspResponses(new String[]{calculateCertSha1HexHash(subject)},
+                    new String[]{Base64.toBase64String(ocspResponse.getEncoded())});
+        }
+    }
+
+    @Step("certificate activation fails with ocsp verification")
+    public void certificateActivationFailsWithOcspVerification() throws Exception {
+        try {
+            SignerProxy.activateCert(this.certInfo.getId());
+            Assertions.fail("Exception expected");
+        } catch (CodedException codedException) {
+            assertException("Signer.InvalidCertPath.CertValidation", "",
+                    "Signer.InvalidCertPath.CertValidation: OCSP response indicates certificate status is REVOKED (date: 2022-01-01 "
+                            + "00:00:00)",
+                    codedException);
+        }
     }
 
 

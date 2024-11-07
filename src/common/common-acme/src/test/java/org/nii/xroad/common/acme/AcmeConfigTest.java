@@ -23,7 +23,7 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.securityserver.restapi.config;
+package org.nii.xroad.common.acme;
 
 import ee.ria.xroad.common.SystemProperties;
 
@@ -34,19 +34,20 @@ import ch.qos.logback.core.read.ListAppender;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
+import org.niis.xroad.common.acme.AcmeCommonConfig;
 import org.slf4j.LoggerFactory;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
 public class AcmeConfigTest {
-    private AcmeConfig acmeConfig;
+    private AcmeCommonConfig acmeCommonConfig;
 
     private ListAppender<ILoggingEvent> appender;
-    private final Logger logger = (Logger) LoggerFactory.getLogger(AcmeConfig.class);
+    private final Logger logger = (Logger) LoggerFactory.getLogger(AcmeCommonConfig.class);
 
     @Before
     public void setup() {
-        acmeConfig = new AcmeConfig();
+        acmeCommonConfig = new AcmeCommonConfig();
 
         appender = new ListAppender<>();
         appender.start();
@@ -64,7 +65,7 @@ public class AcmeConfigTest {
     public void whenProxyUiApiAcmeChallengePortEnabledAndAcmeYmlNotExists() {
         System.setProperty(SystemProperties.PROXY_UI_API_ACME_CHALLENGE_PORT_ENABLED, "true");
 
-        acmeConfig.acmeProperties();
+        acmeCommonConfig.acmeProperties();
 
         assertThat(appender.list).hasSize(1);
         assertThat(appender.list.get(0).getLevel()).isEqualTo(Level.WARN);
@@ -75,11 +76,11 @@ public class AcmeConfigTest {
     public void whenProxyUiApiAcmeChallengePortNotEnabledAndAcmeYmlNotExists() {
         System.setProperty(SystemProperties.PROXY_UI_API_ACME_CHALLENGE_PORT_ENABLED, "false");
 
-        acmeConfig.acmeProperties();
+        acmeCommonConfig.acmeProperties();
 
         assertThat(appender.list).hasSize(1);
         assertThat(appender.list.get(0).getLevel()).isEqualTo(Level.WARN);
-        assertThat(appender.list.get(0).getMessage()).isEqualTo("Configuration {} not exists");
+        assertThat(appender.list.get(0).getMessage()).isEqualTo("Configuration {} does not exist");
 
     }
 }
