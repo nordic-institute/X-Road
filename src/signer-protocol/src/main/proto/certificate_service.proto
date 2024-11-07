@@ -135,7 +135,8 @@ message DeleteCertRequestReq {
 message ImportCertReq {
   bytes cert_data = 1;
   string initial_status = 2;
-  optional ClientIdProto member_id = 3;
+  bool activate = 3;
+  optional ClientIdProto member_id = 4;
 }
 
 message ImportCertResp {

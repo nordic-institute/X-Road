@@ -80,6 +80,7 @@ import static junit.framework.TestCase.fail;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyBoolean;
 import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.doThrow;
@@ -105,7 +106,7 @@ public class TokenCertificatesApiControllerIntegrationTest extends AbstractApiCo
 
     @Before
     public void setup() throws Exception {
-        doAnswer(answer -> "key-id").when(signerProxyFacade).importCert(any(), any(), any());
+        doAnswer(answer -> "key-id").when(signerProxyFacade).importCert(any(), any(), any(), anyBoolean());
         doAnswer(answer -> null).when(globalConfProvider).verifyValidity();
         doAnswer(answer -> TestUtils.INSTANCE_FI).when(globalConfProvider).getInstanceIdentifier();
         doAnswer(answer -> TestUtils.getM1Ss1ClientId()).when(globalConfProvider).getSubjectName(any(), any());
@@ -212,7 +213,7 @@ public class TokenCertificatesApiControllerIntegrationTest extends AbstractApiCo
     public void importExistingSignCertificate() throws Exception {
         doThrow(CodedException
                 .tr(SIGNER_X + "." + X_CERT_EXISTS, "mock code", "mock msg"))
-                .when(signerProxyFacade).importCert(any(), any(), any());
+                .when(signerProxyFacade).importCert(any(), any(), any(), anyBoolean());
         Resource body = CertificateTestUtils.getResource(CertificateTestUtils.getMockCertificateBytes());
         try {
             tokenCertificatesApiController.importCertificate(body);
@@ -227,7 +228,7 @@ public class TokenCertificatesApiControllerIntegrationTest extends AbstractApiCo
     public void importIncorrectSignCertificate() throws Exception {
         doThrow(CodedException
                 .tr(SIGNER_X + "." + X_INCORRECT_CERTIFICATE, "mock code", "mock msg"))
-                .when(signerProxyFacade).importCert(any(), any(), any());
+                .when(signerProxyFacade).importCert(any(), any(), any(), anyBoolean());
         Resource body = CertificateTestUtils.getResource(CertificateTestUtils.getMockCertificateBytes());
         try {
             tokenCertificatesApiController.importCertificate(body);
@@ -242,7 +243,7 @@ public class TokenCertificatesApiControllerIntegrationTest extends AbstractApiCo
     public void importWrongUsageSignCertificate() throws Exception {
         doThrow(CodedException
                 .tr(SIGNER_X + "." + X_WRONG_CERT_USAGE, "mock code", "mock msg"))
-                .when(signerProxyFacade).importCert(any(), any(), any());
+                .when(signerProxyFacade).importCert(any(), any(), any(), anyBoolean());
         Resource body = CertificateTestUtils.getResource(CertificateTestUtils.getMockCertificateBytes());
         try {
             tokenCertificatesApiController.importCertificate(body);
@@ -257,7 +258,7 @@ public class TokenCertificatesApiControllerIntegrationTest extends AbstractApiCo
     public void importSignCertificateCsrMissing() throws Exception {
         doThrow(CodedException
                 .tr(SIGNER_X + "." + X_CSR_NOT_FOUND, "mock code", "mock msg"))
-                .when(signerProxyFacade).importCert(any(), any(), any());
+                .when(signerProxyFacade).importCert(any(), any(), any(), anyBoolean());
         Resource body = CertificateTestUtils.getResource(CertificateTestUtils.getMockCertificateBytes());
         try {
             tokenCertificatesApiController.importCertificate(body);
@@ -272,7 +273,7 @@ public class TokenCertificatesApiControllerIntegrationTest extends AbstractApiCo
     public void importSignCertificateKeyNotFound() throws Exception {
         doThrow(CodedException
                 .tr(SIGNER_X + "." + X_KEY_NOT_FOUND, "mock code", "mock msg"))
-                .when(signerProxyFacade).importCert(any(), any(), any());
+                .when(signerProxyFacade).importCert(any(), any(), any(), anyBoolean());
         Resource body = CertificateTestUtils.getResource(CertificateTestUtils.getMockCertificateBytes());
         try {
             tokenCertificatesApiController.importCertificate(body);

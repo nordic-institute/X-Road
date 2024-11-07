@@ -25,22 +25,68 @@
  */
 package ee.ria.xroad.signer.protocol.handler;
 
+import ee.ria.xroad.common.cert.CertChain;
+import ee.ria.xroad.common.cert.CertChainVerifier;
+import ee.ria.xroad.common.conf.globalconf.GlobalConfProvider;
+import ee.ria.xroad.common.util.CryptoUtils;
+import ee.ria.xroad.signer.certmanager.OcspResponseManager;
 import ee.ria.xroad.signer.protocol.AbstractRpcHandler;
+import ee.ria.xroad.signer.protocol.dto.CertificateInfo;
+import ee.ria.xroad.signer.protocol.message.GetOcspResponses;
+import ee.ria.xroad.signer.protocol.message.GetOcspResponsesResponse;
 import ee.ria.xroad.signer.tokenmanager.TokenManager;
 
+import lombok.RequiredArgsConstructor;
+import org.bouncycastle.cert.ocsp.OCSPResp;
 import org.niis.xroad.signer.proto.ActivateCertReq;
 import org.niis.xroad.signer.protocol.dto.Empty;
 import org.springframework.stereotype.Component;
 
+import java.security.cert.X509Certificate;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.List;
+
+import static ee.ria.xroad.common.util.CertUtils.getSha1Hashes;
+import static ee.ria.xroad.common.util.CertUtils.isSelfSigned;
+import static ee.ria.xroad.common.util.EncoderUtils.decodeBase64;
+import static ee.ria.xroad.signer.util.ExceptionHelper.certWithIdNotFound;
+
 /**
  * Handles certificate activations and deactivations.
  */
+@RequiredArgsConstructor
 @Component
 public class ActivateCertReqHandler
         extends AbstractRpcHandler<ActivateCertReq, Empty> {
 
+    private final OcspResponseManager ocspResponseManager;
+    private final GlobalConfProvider globalConfProvider;
+
     @Override
     protected Empty handle(ActivateCertReq request) throws Exception {
+        if (request.getActive()) {
+            CertificateInfo certificateInfo = TokenManager.getCertificateInfo(request.getCertIdOrHash());
+            if (certificateInfo == null) {
+                throw certWithIdNotFound(request.getCertIdOrHash());
+            }
+            X509Certificate x509Certificate = CryptoUtils.readCertificate(certificateInfo.getCertificateBytes());
+            if (!isSelfSigned(x509Certificate)) {
+                CertChain certChain = globalConfProvider.getCertChain(globalConfProvider.getInstanceIdentifier(), x509Certificate);
+                GetOcspResponses message = new GetOcspResponses(getSha1Hashes(certChain.getAllCertsWithoutTrustedRoot()));
+                GetOcspResponsesResponse result = ocspResponseManager.handleGetOcspResponses(message);
+                List<OCSPResp> ocspResponses = new ArrayList<>();
+                for (String encodedResponse : result.getBase64EncodedResponses()) {
+                    if (encodedResponse != null) {
+                        ocspResponses.add(new OCSPResp(decodeBase64(encodedResponse)));
+                    } else {
+                        throw new IllegalStateException("OCSP Response was null");
+                    }
+                }
+                new CertChainVerifier(globalConfProvider, certChain).verify(ocspResponses, new Date());
+            }
+        }
+
         TokenManager.setCertActive(request.getCertIdOrHash(), request.getActive());
 
         return Empty.getDefaultInstance();
