@@ -14,14 +14,20 @@ sourceSets {
 }
 
 dependencies {
-    implementation (project(':common:common-domain'))
+    api(platform(libs.springCloud.bom))
+
+    api (project(':common:common-domain'))
+    api (project(':common:common-properties'))
     implementation (libs.slf4j.api)
 
     api(libs.grpc.protobuf)
     api(libs.grpc.stub)
+    api(libs.grpc.util)
     api(libs.grpc.nettyShaded)
     api(libs.protobuf.javaUtil)
     api(libs.jakarta.annotationApi)
+
+    api 'org.springframework.cloud:spring-cloud-starter-vault-config'
 }
 
 protobuf {

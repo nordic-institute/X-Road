@@ -18,6 +18,7 @@ configurations {
 dependencies {
     dist(project(path: ":central-server:admin-service:ui", configuration: "dist"))
 
+    implementation(project(':common:common-service-bootstrap'))
     implementation project(":central-server:admin-service:core")
     implementation project(":central-server:admin-service:core-api")
     implementation project(":central-server:admin-service:infra-api-rest")

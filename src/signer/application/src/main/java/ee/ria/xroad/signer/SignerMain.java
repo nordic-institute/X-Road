@@ -26,8 +26,6 @@
  */
 package ee.ria.xroad.signer;
 
-import ee.ria.xroad.common.conf.globalconf.GlobalConfPropertiesConfig;
-
 import lombok.extern.slf4j.Slf4j;
 import org.niis.xroad.bootstrap.XrdSpringServiceBuilder;
 import org.springframework.boot.SpringBootConfiguration;
@@ -45,7 +43,7 @@ public class SignerMain {
     private static final String APP_NAME = "xroad-signer";
 
     public static void main(String[] args) {
-        XrdSpringServiceBuilder.newApplicationBuilder(APP_NAME, SignerMain.class, SignerConfig.class, GlobalConfPropertiesConfig.class)
+        XrdSpringServiceBuilder.newApplicationBuilder(APP_NAME, SignerMain.class, SignerConfig.class)
                 .build()
                 .run(args);
     }

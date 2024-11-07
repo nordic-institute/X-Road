@@ -1,3 +1,9 @@
+spring:
+  cloud:
+    vault:
+      uri: http://openbao:8200
+      token: 00000000-0000-0000-0000-000000000001
+
 xroad:
   messagelog:
     hibernate:
@@ -33,29 +39,15 @@ xroad:
           deadline-after: 60000
   configuration-client:
     grpc:
-      tls-truststore: /opt/app/mount/xroad-grpc-internal-keystore.p12
-      tls-truststore-password: Buk620vd9W_feyfjBEhau48Lwn98n_Fr
-      tls-keystore: /opt/app/mount/xroad-grpc-internal-keystore.p12
-      tls-keystore-password: Buk620vd9W_feyfjBEhau48Lwn98n_Fr
+      listen-address: configuration-client
   proxy:
     grpc:
-      tls-truststore: /opt/app/mount/xroad-grpc-internal-keystore.p12
-      tls-truststore-password: Buk620vd9W_feyfjBEhau48Lwn98n_Fr
-      tls-keystore: /opt/app/mount/xroad-grpc-internal-keystore.p12
-      tls-keystore-password: Buk620vd9W_feyfjBEhau48Lwn98n_Fr
+      listen-address: proxy
   signer:
     grpc:
-      tls-truststore: /opt/app/mount/xroad-grpc-internal-keystore.p12
-      tls-truststore-password: Buk620vd9W_feyfjBEhau48Lwn98n_Fr
-      tls-keystore: /opt/app/mount/xroad-grpc-internal-keystore.p12
-      tls-keystore-password: Buk620vd9W_feyfjBEhau48Lwn98n_Fr
+      listen-address: signer
   proxy-ui-api:
     security-server-url: https://proxy:8443
-    grpc:
-      tls-truststore: /opt/app/mount/xroad-grpc-internal-keystore.p12
-      tls-truststore-password: Buk620vd9W_feyfjBEhau48Lwn98n_Fr
-      tls-keystore: /opt/app/mount/xroad-grpc-internal-keystore.p12
-      tls-keystore-password: Buk620vd9W_feyfjBEhau48Lwn98n_Fr
 logging:
   level:
     org.xroad: DEBUG

@@ -1,11 +1,6 @@
 spring:
   application:
     name: monitor
-  output:
-    ansi:
-      enabled: detect #TODO implementing logging changes to support ansi colors
-  main:
-    banner-mode: log
 
 server:
   port: 5999
@@ -21,7 +16,6 @@ xroad:
       listen-address: 0.0.0.0
       port: 2552
   common:
-    global-conf-remoting-enabled: true
     serverconf:
       cache-period: 60
       client-cache-size: 100
@@ -34,17 +28,3 @@ xroad:
         connection.username: serverconf
         hikari.dataSource.currentSchema: serverconf,public
         jdbc.use_streams_for_binary: true
-    grpc:
-      channel:
-        signer:
-          host: 127.0.0.1
-          port: 5560
-          deadline-after: 60000
-        configuration-client:
-          host: 127.0.0.1
-          port: 5665
-          deadline-after: 60000
-        proxy:
-          host: 127.0.0.1
-          port: 5567
-          deadline-after: 60000

@@ -36,7 +36,7 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.niis.xroad.common.rpc.client.RpcChannelProperties;
-import org.niis.xroad.common.rpc.RpcServiceProperties;
+import org.niis.xroad.common.rpc.RpcServerProperties;
 import org.niis.xroad.common.rpc.client.RpcChannelFactory;
 import org.niis.xroad.common.rpc.server.RpcServer;
 import org.niis.xroad.monitor.common.Metrics;
@@ -85,7 +85,7 @@ class MetricsRpcServiceTest {
                 true);
 
         int port = TestPortUtils.findRandomPort();
-        rpcServer = RpcServer.newServer(new RpcServiceProperties("localhost", port, false, null, null, null, null),
+        rpcServer = RpcServer.newServer(new RpcServerProperties("localhost", port, false, null, null, null, null),
                 serverBuilder -> serverBuilder.addService(new MetricsRpcService(envMonitorProperties)));
         rpcServer.afterPropertiesSet();
         rpcChannelFactory = RpcChannelFactory.newClient(

@@ -1,6 +1,7 @@
 spring:
   servlet:
     multipart.enabled: false
+
 server:
   error:
     whitelabel:

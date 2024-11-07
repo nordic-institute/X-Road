@@ -37,8 +37,8 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.niis.xroad.common.rpc.RpcServerProperties;
 import org.niis.xroad.common.rpc.client.RpcChannelProperties;
-import org.niis.xroad.common.rpc.RpcServiceProperties;
 import org.niis.xroad.common.rpc.server.RpcServer;
 import org.niis.xroad.monitor.common.MonitorServiceGrpc;
 import org.niis.xroad.monitor.common.StatsReq;
@@ -91,15 +91,15 @@ class SystemMetricsSensorTest {
     @BeforeAll
     public static void init() throws Exception {
         rpcServer = RpcServer.newServer(
-                new RpcServiceProperties("127.0.0.1", PORT, false, null, null, null, null),
+                new RpcServerProperties("127.0.0.1", PORT, false, null, null, null, null),
                 serverBuilder ->
-                serverBuilder.addService(new MonitorServiceGrpc.MonitorServiceImplBase() {
-                    @Override
-                    public void getStats(StatsReq request, StreamObserver<StatsResp> responseObserver) {
-                        responseObserver.onNext(response);
-                        responseObserver.onCompleted();
-                    }
-                }));
+                        serverBuilder.addService(new MonitorServiceGrpc.MonitorServiceImplBase() {
+                            @Override
+                            public void getStats(StatsReq request, StreamObserver<StatsResp> responseObserver) {
+                                responseObserver.onNext(response);
+                                responseObserver.onCompleted();
+                            }
+                        }));
         rpcServer.afterPropertiesSet();
     }
 
@@ -115,8 +115,7 @@ class SystemMetricsSensorTest {
         var taskScheduler = spy(TaskScheduler.class);
         when(taskScheduler.getClock()).thenReturn(Clock.systemDefaultZone());
 
-        RpcChannelProperties proxyRpcClientProperties = new RpcChannelProperties("localhost", PORT, false,
-                null, null, null, null);
+        RpcChannelProperties proxyRpcClientProperties = new RpcChannelProperties("localhost", PORT, 60000);
 
         SystemMetricsSensor systemMetricsSensor = new SystemMetricsSensor(taskScheduler, envMonitorProperties, proxyRpcClientProperties);
 

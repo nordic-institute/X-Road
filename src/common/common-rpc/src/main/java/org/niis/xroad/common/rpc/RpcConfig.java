@@ -1,6 +1,5 @@
 /*
  * The MIT License
- *
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
@@ -24,36 +23,47 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.cs.registrationservice.config;
+package org.niis.xroad.common.rpc;
 
-import ee.ria.xroad.common.conf.globalconf.GlobalConfBeanConfig;
-import ee.ria.xroad.common.conf.globalconf.GlobalConfProvider;
-import ee.ria.xroad.common.conf.globalconf.GlobalConfRefreshJobConfig;
+import ee.ria.xroad.common.properties.CommonRpcProperties;
 
-import org.niis.xroad.common.managementrequest.ManagementRequestSoapExecutor;
-import org.niis.xroad.common.managementrequest.verify.ManagementRequestVerifier;
-import org.niis.xroad.cs.admin.client.configuration.AdminServiceClientConfiguration;
+import org.niis.xroad.common.rpc.client.RpcChannelFactory;
+import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.context.annotation.Import;
 import org.springframework.scheduling.annotation.EnableScheduling;
+import org.springframework.scheduling.concurrent.SimpleAsyncTaskScheduler;
+import org.springframework.vault.core.VaultTemplate;
 
-@Import({
-        AdminServiceClientConfiguration.class,
-        GlobalConfBeanConfig.class,
-        GlobalConfRefreshJobConfig.class
-})
 @Configuration
 @EnableScheduling
-public class RegistrationServiceConfiguration {
+@EnableConfigurationProperties({CommonRpcProperties.class,
+        CommonRpcProperties.CertificateProvisionProperties.class})
+public class RpcConfig {
+    public static final String BEAN_VIRTUAL_THREAD_SCHEDULER = "virtualThreadTaskScheduler";
 
     @Bean
-    ManagementRequestVerifier managementRequestVerifier(GlobalConfProvider globalConfProvider) {
-        return new ManagementRequestVerifier(globalConfProvider);
+    ReloadableVaultKeyManager reloadableVaultKeyManager(VaultTemplate vaultTemplate,
+                                                        CommonRpcProperties.CertificateProvisionProperties provisionProperties)
+            throws Exception {
+        return new ReloadableVaultKeyManager(provisionProperties, vaultTemplate);
     }
 
     @Bean
-    ManagementRequestSoapExecutor managementRequestSoapExecutor(ManagementRequestVerifier managementRequestVerifier) {
-        return new ManagementRequestSoapExecutor(managementRequestVerifier);
+    RpcChannelFactory rpcChannelFactory(RpcCredentialsConfigurer credentialsConfigurer) {
+        return new RpcChannelFactory(credentialsConfigurer);
+    }
+
+    @Bean
+    RpcCredentialsConfigurer rpcCredentialsConfigurer(ReloadableVaultKeyManager keyStoreLoader,
+                                                      CommonRpcProperties rpcCommonProperties) {
+        return new RpcCredentialsConfigurer(rpcCommonProperties, keyStoreLoader);
+    }
+
+    @Bean(BEAN_VIRTUAL_THREAD_SCHEDULER)
+    SimpleAsyncTaskScheduler simpleAsyncTaskScheduler() {
+        var scheduled = new SimpleAsyncTaskScheduler();
+        scheduled.setVirtualThreads(true);
+        return scheduled;
     }
 }

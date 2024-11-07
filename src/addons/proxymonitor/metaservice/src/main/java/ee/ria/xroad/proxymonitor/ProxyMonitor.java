@@ -45,7 +45,7 @@ public class ProxyMonitor implements AddOn {
         try {
             bindableServiceRegistry.register(new ProxyMonitorService());
 
-            setMonitorClient(new MonitorClient(null, null, null));
+            setMonitorClient(new MonitorClient(null, null));
         } catch (Exception e) {
             log.error("ProxyMonitor addon has failed to start. Monitor data will not be available!", e);
         }

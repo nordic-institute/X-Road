@@ -40,11 +40,6 @@ log "Enabling public postgres access.."
 sed -i 's/#listen_addresses = \x27localhost\x27/listen_addresses = \x27*\x27/g' /etc/postgresql/*/main/postgresql.conf
 sed -ri 's/host    replication     all             127.0.0.1\/32/host    all             all             0.0.0.0\/0/g' /etc/postgresql/*/main/pg_hba.conf
 
-log "initializing transport keys"
-mkdir -p -m0750 /var/run/xroad
-chown xroad:xroad /var/run/xroad
-su - xroad -c sh -c /usr/share/xroad/scripts/xroad-base.sh
-
 #temporary set DB password to application-override.yaml
 #todo: xroad8 should be removed after setting up bao
 apt-get -qq -y install yq

@@ -29,7 +29,6 @@ package org.niis.xroad.confclient.proto;
 import com.google.protobuf.ByteString;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.niis.xroad.common.rpc.RpcServiceProperties;
 import org.niis.xroad.common.rpc.client.AbstractRpcClient;
 import org.niis.xroad.common.rpc.client.RpcChannelFactory;
 import org.niis.xroad.rpc.common.Empty;
@@ -40,7 +39,6 @@ import org.springframework.beans.factory.InitializingBean;
 public class ConfClientRpcClient extends AbstractRpcClient implements InitializingBean {
     private final RpcChannelFactory proxyRpcChannelFactory;
     private final ConfClientRpcChannelProperties rpcChannelProperties;
-    private final RpcServiceProperties rpcServiceProperties;
 
     private AdminServiceGrpc.AdminServiceBlockingStub adminServiceBlockingStub;
     private AnchorServiceGrpc.AnchorServiceBlockingStub anchorServiceBlockingStub;
@@ -50,7 +48,7 @@ public class ConfClientRpcClient extends AbstractRpcClient implements Initializi
     public void afterPropertiesSet() throws Exception {
         log.info("Initializing {} rpc client to {}:{}", getClass().getSimpleName(), rpcChannelProperties.getHost(),
                 rpcChannelProperties.getPort());
-        var channel = proxyRpcChannelFactory.createChannel(rpcChannelProperties, rpcServiceProperties);
+        var channel = proxyRpcChannelFactory.createChannel(rpcChannelProperties);
 
         this.adminServiceBlockingStub = AdminServiceGrpc.newBlockingStub(channel).withWaitForReady();
         this.anchorServiceBlockingStub = AnchorServiceGrpc.newBlockingStub(channel).withWaitForReady();

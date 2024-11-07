@@ -38,7 +38,6 @@ import io.grpc.netty.shaded.io.netty.util.concurrent.DefaultThreadFactory;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.niis.xroad.common.rpc.RpcCredentialsConfigurer;
-import org.niis.xroad.common.rpc.RpcServiceProperties;
 
 import java.util.concurrent.ForkJoinPool;
 
@@ -47,15 +46,21 @@ import static java.util.concurrent.TimeUnit.MILLISECONDS;
 @Slf4j
 @RequiredArgsConstructor
 public final class RpcChannelFactory {
+    private final RpcCredentialsConfigurer rpcCredentialsConfigurer;
 
-    public ManagedChannel createChannel(RpcChannelProperties channelProperties,
-                                        RpcServiceProperties rpcServiceProperties) throws Exception {
-        var credentials = RpcCredentialsConfigurer.createClientCredentials(rpcServiceProperties);
+    public ManagedChannel createChannel(RpcChannelProperties channelProperties) throws Exception {
+        var credentials = rpcCredentialsConfigurer.createClientCredentials();
 
         var host = channelProperties.getHost();
         var port = channelProperties.getPort();
 
-        log.info("Starting grpc client to {}:{} with {} credentials..", host, port, credentials.getClass().getSimpleName());
+        if (channelProperties.getDeadlineAfter() <= 0) {
+            throw new IllegalArgumentException("Deadline must be greater than 0");
+        }
+
+        log.info("Starting grpc client to {}:{}, deadline: [] {}, credentials: [{}]", host, port,
+                channelProperties.getDeadlineAfter(),
+                credentials.getClass().getSimpleName());
 
         final ClientInterceptor timeoutInterceptor = new ClientInterceptor() {
             @Override

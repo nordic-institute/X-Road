@@ -25,20 +25,15 @@
  * THE SOFTWARE.
  */
 
-package org.niis.xroad.common.rpc;
+package ee.ria.xroad.common.properties;
 
-import lombok.Getter;
-import lombok.RequiredArgsConstructor;
+import org.springframework.boot.context.properties.ConfigurationProperties;
 
-@Getter
-@RequiredArgsConstructor
-public class RpcServiceProperties {
-    private final String listenAddress;
-    private final int port;
+@ConfigurationProperties(prefix = "xroad.common.global-conf")
+public record CommonGlobalConfProperties(GlobalConfSource source) {
 
-    private final String tlsTrustStore;
-    private final char[] tlsTrustStorePassword;
-
-    private final String tlsKeyStore;
-    private final char[] tlsKeyStorePassword;
+    public enum GlobalConfSource {
+        FILESYSTEM,
+        REMOTE
+    }
 }

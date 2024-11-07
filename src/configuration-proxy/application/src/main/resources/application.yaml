@@ -1,24 +1,12 @@
 spring:
   application:
     name: configuration-proxy
-  output:
-    ansi:
-      enabled: detect #TODO implementing logging changes to support ansi colors
-  main:
-    banner-mode: log
 
 server:
   port: 5998
 
 
 xroad:
-  common:
-    grpc:
-      channel:
-        signer:
-          host: localhost
-          port: 4001
-          deadline-after: 60000
   configuration-proxy:
     download-script: /usr/share/xroad/scripts/download_instance_configuration.sh
     address: 0.0.0.0

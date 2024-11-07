@@ -52,7 +52,7 @@ import org.bouncycastle.cert.ocsp.CertificateStatus;
 import org.bouncycastle.cert.ocsp.OCSPResp;
 import org.bouncycastle.util.encoders.Base64;
 import org.junit.jupiter.api.Assertions;
-import org.niis.xroad.common.rpc.RpcServiceProperties;
+import org.niis.xroad.common.rpc.RpcServerProperties;
 import org.niis.xroad.common.rpc.client.RpcChannelFactory;
 import org.niis.xroad.signer.proto.CertificateRequestFormat;
 
@@ -630,14 +630,13 @@ public class SignerStepDefs extends BaseSignerStepDefs {
 
     @Step("signer client initialized with timeout {int} milliseconds")
     public void signerClientReinitializedWithTimeoutMilliseconds(int timeoutMillis) throws Exception {
-        RpcChannelFactory channelFactory = new RpcChannelFactory();
+        RpcChannelFactory channelFactory = new RpcChannelFactory(null);
         SignerRpcChannelProperties signerRpcClientProperties = new SignerRpcChannelProperties("localhost",
                 5560, timeoutMillis);
 
         //TODO fix
-        RpcServiceProperties rpcServiceProperties = new RpcServiceProperties("localhost", 5560, null,
-                null, null, null);
-        signerRpcClient = new SignerRpcClient(channelFactory, signerRpcClientProperties, rpcServiceProperties);
+        RpcServerProperties rpcServerProperties = new RpcServerProperties("localhost", 5560);
+        signerRpcClient = new SignerRpcClient(channelFactory, signerRpcClientProperties);
         signerRpcClient.afterPropertiesSet();
     }
 

@@ -31,7 +31,6 @@ import ee.ria.xroad.proxymonitor.message.MetricSetType;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.niis.xroad.common.rpc.RpcServiceProperties;
 import org.niis.xroad.common.rpc.client.AbstractRpcClient;
 import org.niis.xroad.common.rpc.client.RpcChannelFactory;
 import org.niis.xroad.common.rpc.client.RpcChannelProperties;
@@ -49,7 +48,6 @@ public class MonitorClient extends AbstractRpcClient implements InitializingBean
 
     private final RpcChannelFactory proxyRpcChannelFactory;
     private final RpcChannelProperties rpcChannelProperties;
-    private final RpcServiceProperties rpcServiceProperties;
 
     private MetricsServiceGrpc.MetricsServiceBlockingStub metricsServiceBlockingStub;
 
@@ -57,7 +55,7 @@ public class MonitorClient extends AbstractRpcClient implements InitializingBean
     public void afterPropertiesSet() throws Exception {
         log.info("Initializing {} rpc client to {}:{}", getClass().getSimpleName(), rpcChannelProperties.getHost(),
                 rpcChannelProperties.getPort());
-        var channel = proxyRpcChannelFactory.createChannel(rpcChannelProperties, rpcServiceProperties);
+        var channel = proxyRpcChannelFactory.createChannel(rpcChannelProperties);
 
         metricsServiceBlockingStub = MetricsServiceGrpc.newBlockingStub(channel).withWaitForReady();
     }

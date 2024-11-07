@@ -30,3 +30,8 @@ xroad:
     update-interval: 10
   dataspaces:
     enabled: true
+
+logging:
+  level:
+    org.niis.xroad: DEBUG
+    ee.ria.xroad: DEBUG

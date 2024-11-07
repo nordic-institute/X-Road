@@ -3,9 +3,7 @@ plugins {
 }
 
 dependencies {
-    implementation(platform(libs.springCloud.bom))
-
-    implementation(project(":common:common-globalconf"))
+    implementation(platform(libs.springBoot.bom))
 
     implementation("org.springframework.boot:spring-boot-starter")
 }

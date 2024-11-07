@@ -25,9 +25,12 @@
  */
 package ee.ria.xroad.common.conf.globalconf;
 
+import ee.ria.xroad.common.properties.CommonGlobalConfProperties;
+
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.niis.xroad.confclient.proto.ConfClientRpcClient;
+import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.scheduling.annotation.EnableScheduling;
@@ -35,18 +38,20 @@ import org.springframework.scheduling.annotation.EnableScheduling;
 import java.util.Optional;
 
 import static ee.ria.xroad.common.SystemProperties.getConfigurationPath;
+import static ee.ria.xroad.common.properties.CommonGlobalConfProperties.GlobalConfSource.REMOTE;
 
 @Slf4j
 @Configuration
 @EnableScheduling
 @RequiredArgsConstructor
+@EnableConfigurationProperties(CommonGlobalConfProperties.class)
 public class GlobalConfBeanConfig {
 
     @Bean
     GlobalConfSource globalConfSource(Optional<ConfClientRpcClient> globalConfClient,
                                       RemoteGlobalConfDataLoader remoteGlobalConfDataLoader,
-                                      GlobalConfProperties globalConfProperties) {
-        if (globalConfProperties.isGlobalConfRemotingEnabled()) {
+                                      CommonGlobalConfProperties commonGlobalConfProperties) {
+        if (commonGlobalConfProperties.source() == REMOTE) {
             if (globalConfClient.isEmpty()) {
                 throw new IllegalStateException("GlobalConf remoting is enabled, but globalConfClient is not available");
             } else {

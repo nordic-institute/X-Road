@@ -21,6 +21,7 @@ bootJar {
 
 
 dependencies {
+    implementation(project(':common:common-service-bootstrap'))
     implementation(project(":central-server:management-service:core")) {
         exclude group: 'org.springframework.boot', module: 'spring-boot-starter-tomcat'
     }

@@ -26,86 +26,47 @@
  */
 package org.niis.xroad.common.rpc;
 
+import ee.ria.xroad.common.properties.CommonRpcProperties;
+
 import io.grpc.ChannelCredentials;
+import io.grpc.InsecureChannelCredentials;
+import io.grpc.InsecureServerCredentials;
 import io.grpc.ServerCredentials;
 import io.grpc.TlsChannelCredentials;
 import io.grpc.TlsServerCredentials;
-import lombok.AccessLevel;
-import lombok.NoArgsConstructor;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
-import javax.net.ssl.KeyManager;
-import javax.net.ssl.KeyManagerFactory;
-import javax.net.ssl.TrustManager;
-import javax.net.ssl.TrustManagerFactory;
-
-import java.io.IOException;
-import java.io.InputStream;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.security.KeyStore;
-import java.security.KeyStoreException;
-import java.security.NoSuchAlgorithmException;
-import java.security.UnrecoverableKeyException;
-import java.security.cert.CertificateException;
-
 @Slf4j
-@NoArgsConstructor(access = AccessLevel.PRIVATE)
+@RequiredArgsConstructor
 public class RpcCredentialsConfigurer {
+    private final CommonRpcProperties commonRpcProperties;
+    private final ReloadableVaultKeyManager reloadableVaultKeyManager;
 
-    public static ServerCredentials createServerCredentials(RpcServiceProperties rpcServiceProperties)
-            throws UnrecoverableKeyException, NoSuchAlgorithmException,
-            KeyStoreException {
-        TlsServerCredentials.Builder tlsBuilder = TlsServerCredentials.newBuilder()
-                .keyManager(getKeyManagers(rpcServiceProperties.getTlsKeyStore(), rpcServiceProperties.getTlsKeyStorePassword()))
-                .trustManager(getTrustManagers(rpcServiceProperties.getTlsTrustStore(), rpcServiceProperties.getTlsTrustStorePassword()))
-                .clientAuth(TlsServerCredentials.ClientAuth.REQUIRE);
+    public ServerCredentials createServerCredentials() {
+        if (commonRpcProperties.useTls()) {
+            TlsServerCredentials.Builder tlsBuilder = TlsServerCredentials.newBuilder()
+                    .keyManager(reloadableVaultKeyManager.getKeyManager())
+                    .trustManager(reloadableVaultKeyManager.getTrustManager())
+                    .clientAuth(TlsServerCredentials.ClientAuth.REQUIRE);
 
-        return tlsBuilder.build();
-    }
-
-    public static ChannelCredentials createClientCredentials(RpcServiceProperties rpcServiceProperties)
-            throws NoSuchAlgorithmException, KeyStoreException,
-            UnrecoverableKeyException {
-        TlsChannelCredentials.Builder tlsBuilder = TlsChannelCredentials.newBuilder()
-                .keyManager(getKeyManagers(rpcServiceProperties.getTlsKeyStore(), rpcServiceProperties.getTlsKeyStorePassword()))
-                .trustManager(getTrustManagers(rpcServiceProperties.getTlsTrustStore(),
-                        rpcServiceProperties.getTlsTrustStorePassword()));
-
-        return tlsBuilder.build();
-    }
-
-    private static KeyManager[] getKeyManagers(String keystorePath, char[] keystorePassword)
-            throws NoSuchAlgorithmException, UnrecoverableKeyException, KeyStoreException {
-
-        KeyStore keystore = getKeystore(keystorePath, keystorePassword);
-        KeyManagerFactory keyManagerFactory =
-                KeyManagerFactory.getInstance(KeyManagerFactory.getDefaultAlgorithm());
-        keyManagerFactory.init(keystore, keystorePassword);
-        return keyManagerFactory.getKeyManagers();
-    }
-
-    private static TrustManager[] getTrustManagers(String path, char[] password)
-            throws NoSuchAlgorithmException, KeyStoreException {
-
-        KeyStore truststore = getKeystore(path, password);
-        TrustManagerFactory trustManagerFactory =
-                TrustManagerFactory.getInstance(TrustManagerFactory.getDefaultAlgorithm());
-        trustManagerFactory.init(truststore);
-        return trustManagerFactory.getTrustManagers();
-    }
-
-    private static KeyStore getKeystore(String filePath, char[] password) {
-        log.trace("Loading keystore for RPC operation from path {}", filePath);
-        Path path = Paths.get(filePath);
-        KeyStore keystore = null;
-        try (InputStream in = Files.newInputStream(path)) {
-            keystore = KeyStore.getInstance("JKS");
-            keystore.load(in, password);
-        } catch (IOException | CertificateException | NoSuchAlgorithmException | KeyStoreException e) {
-            log.error("Failed to read gRPC keystore.", e);
+            return tlsBuilder.build();
+        } else {
+            log.warn("GRPC server is running without TLS. This is intended only for testing purposes.");
+            return InsecureServerCredentials.create();
         }
-        return keystore;
+    }
+
+    public ChannelCredentials createClientCredentials() {
+        if (commonRpcProperties.useTls()) {
+            TlsChannelCredentials.Builder tlsBuilder = TlsChannelCredentials.newBuilder()
+                    .keyManager(reloadableVaultKeyManager.getKeyManager())
+                    .trustManager(reloadableVaultKeyManager.getTrustManager());
+
+            return tlsBuilder.build();
+        } else {
+            log.warn("GRPC client is running without TLS. This is intended only for testing purposes.");
+            return InsecureChannelCredentials.create();
+        }
     }
 }

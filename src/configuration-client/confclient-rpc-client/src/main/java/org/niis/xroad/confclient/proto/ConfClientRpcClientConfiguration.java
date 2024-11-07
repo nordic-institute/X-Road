@@ -25,27 +25,21 @@
  */
 package org.niis.xroad.confclient.proto;
 
-import org.niis.xroad.common.rpc.RpcServiceProperties;
+import org.niis.xroad.common.rpc.RpcConfig;
 import org.niis.xroad.common.rpc.client.RpcChannelFactory;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Import;
 
 @Configuration
+@Import({RpcConfig.class})
 @EnableConfigurationProperties(ConfClientRpcChannelProperties.class)
 public class ConfClientRpcClientConfiguration {
 
     @Bean
-    @ConditionalOnMissingBean(RpcChannelFactory.class)
-    RpcChannelFactory rpcChannelFactory() {
-        return new RpcChannelFactory();
-    }
-
-    @Bean
     ConfClientRpcClient confClientRpcClient(RpcChannelFactory channelFactory,
-                                            ConfClientRpcChannelProperties channelProperties,
-                                            RpcServiceProperties serviceProperties) {
-        return new ConfClientRpcClient(channelFactory, channelProperties, serviceProperties);
+                                            ConfClientRpcChannelProperties channelProperties) {
+        return new ConfClientRpcClient(channelFactory, channelProperties);
     }
 }

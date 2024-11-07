@@ -28,7 +28,7 @@ package org.niis.xroad.proxy.proto;
 import org.niis.xroad.common.rpc.client.RpcChannelProperties;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 
-@ConfigurationProperties(prefix = "xroad.common.grpc.channel.proxy")
+@ConfigurationProperties(prefix = "xroad.common.rpc.channel.proxy")
 public class ProxyRpcChannelProperties extends RpcChannelProperties {
 
     public ProxyRpcChannelProperties(String host, int port, int deadlineAfter) {

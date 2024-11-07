@@ -70,6 +70,7 @@ protobuf-javaUtil = { module = "com.google.protobuf:protobuf-java-util", version
 
 grpc-nettyShaded = { module = "io.grpc:grpc-netty-shaded", version.ref = "grpc" }
 grpc-stub = { module = "io.grpc:grpc-stub", version.ref = "grpc" }
+grpc-util = { module = "io.grpc:grpc-util", version.ref = "grpc" }
 grpc-protobuf = { module = "io.grpc:grpc-protobuf", version.ref = "grpc" }
 grpc-protocGenGrpcJava = { module = "io.grpc:protoc-gen-grpc-java", version.ref = "grpc" }
 

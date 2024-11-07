@@ -29,10 +29,10 @@ import ee.ria.xroad.common.conf.globalconf.ConfigurationClient;
 import ee.ria.xroad.common.conf.globalconf.ConfigurationClientActionExecutor;
 import ee.ria.xroad.common.conf.globalconf.FSGlobalConfValidator;
 
-import io.grpc.BindableService;
 import lombok.extern.slf4j.Slf4j;
-import org.niis.xroad.common.rpc.RpcServiceProperties;
-import org.niis.xroad.common.rpc.server.RpcServer;
+import org.niis.xroad.common.rpc.RpcConfig;
+import org.niis.xroad.common.rpc.RpcServerProperties;
+import org.niis.xroad.common.rpc.server.RpcServerConfig;
 import org.niis.xroad.confclient.admin.AdminService;
 import org.niis.xroad.confclient.globalconf.AnchorService;
 import org.niis.xroad.confclient.globalconf.GetGlobalConfRespFactory;
@@ -43,27 +43,15 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-
-import java.util.Collection;
+import org.springframework.context.annotation.Import;
 
 @Slf4j
 @Configuration
+@Import({RpcConfig.class, RpcServerConfig.class})
 @EnableConfigurationProperties({
-        ConfClientRpcConfig.ConfClientRpcServiceProperties.class})
+        ConfClientRpcConfig.ConfClientRpcServerProperties.class})
 @ConditionalOnProperty(name = "xroad.configuration-client.cli-mode", havingValue = "false")
 public class ConfClientRpcConfig {
-
-    @Bean
-    RpcServer confClientRpcServer(Collection<BindableService> services,
-                                  ConfClientRpcServiceProperties confClientRpcServiceProperties) throws Exception {
-
-        return RpcServer.newServer(confClientRpcServiceProperties,
-                builder -> services.forEach(service -> {
-                    log.info("Registering {} RPC service.", service.getClass().getSimpleName());
-                    builder.addService(service);
-                })
-        );
-    }
 
     @Bean
     AdminService adminService(ConfClientJobConfig.ConfigurationClientJobListener listener) {
@@ -99,12 +87,9 @@ public class ConfClientRpcConfig {
     }
 
     @ConfigurationProperties(prefix = "xroad.configuration-client.grpc")
-    static class ConfClientRpcServiceProperties extends RpcServiceProperties {
-        ConfClientRpcServiceProperties(String listenAddress, int port,
-                                       String tlsTrustStore, char[] tlsTrustStorePassword,
-                                       String tlsKeyStore, char[] tlsKeyStorePassword) {
-            super(listenAddress, port, tlsTrustStore, tlsTrustStorePassword,
-                    tlsKeyStore, tlsKeyStorePassword);
+    static class ConfClientRpcServerProperties extends RpcServerProperties {
+        ConfClientRpcServerProperties(String listenAddress, int port) {
+            super(listenAddress, port);
         }
     }
 }

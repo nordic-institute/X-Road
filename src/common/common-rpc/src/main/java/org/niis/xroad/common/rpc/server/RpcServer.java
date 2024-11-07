@@ -36,16 +36,11 @@ import io.grpc.netty.shaded.io.netty.channel.nio.NioEventLoopGroup;
 import io.grpc.netty.shaded.io.netty.channel.socket.nio.NioServerSocketChannel;
 import io.grpc.netty.shaded.io.netty.util.concurrent.DefaultThreadFactory;
 import lombok.extern.slf4j.Slf4j;
-import org.niis.xroad.common.rpc.RpcCredentialsConfigurer;
-import org.niis.xroad.common.rpc.RpcServiceProperties;
 import org.springframework.beans.factory.DisposableBean;
 import org.springframework.beans.factory.InitializingBean;
 
 import java.io.IOException;
 import java.net.InetSocketAddress;
-import java.security.KeyStoreException;
-import java.security.NoSuchAlgorithmException;
-import java.security.UnrecoverableKeyException;
 import java.util.concurrent.ForkJoinPool;
 import java.util.function.Consumer;
 
@@ -89,11 +84,5 @@ public class RpcServer implements InitializingBean, DisposableBean {
         }
     }
 
-    public static RpcServer newServer(RpcServiceProperties serverProperties, Consumer<ServerBuilder<?>> configFunc)
-            throws UnrecoverableKeyException, NoSuchAlgorithmException, KeyStoreException {
-
-        var serverCredentials = RpcCredentialsConfigurer.createServerCredentials(serverProperties);
-        return new RpcServer(serverProperties.getListenAddress(), serverProperties.getPort(), serverCredentials, configFunc);
-    }
 
 }

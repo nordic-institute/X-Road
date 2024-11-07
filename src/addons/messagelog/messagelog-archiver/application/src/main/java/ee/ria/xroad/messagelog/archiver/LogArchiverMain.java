@@ -26,8 +26,6 @@
  */
 package ee.ria.xroad.messagelog.archiver;
 
-import ee.ria.xroad.common.conf.globalconf.GlobalConfPropertiesConfig;
-
 import lombok.extern.slf4j.Slf4j;
 import org.niis.xroad.bootstrap.XrdSpringServiceBuilder;
 import org.springframework.boot.SpringBootConfiguration;
@@ -41,8 +39,7 @@ public class LogArchiverMain {
     private static final String APP_NAME = "MessageLogArchiver";
 
     public static void main(String[] args) {
-        XrdSpringServiceBuilder.newApplicationBuilder(APP_NAME, LogArchiverMain.class, LogArchiverConfig.class,
-                        GlobalConfPropertiesConfig.class)
+        XrdSpringServiceBuilder.newApplicationBuilder(APP_NAME, LogArchiverMain.class, LogArchiverConfig.class)
                 .build()
                 .run(args);
     }

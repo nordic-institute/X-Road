@@ -28,7 +28,7 @@ package org.niis.xroad.confproxy.config;
 import ee.ria.xroad.signer.SignerClientConfiguration;
 import ee.ria.xroad.signer.SignerRpcClient;
 
-import org.niis.xroad.common.rpc.RpcServiceProperties;
+import org.niis.xroad.common.rpc.RpcServerProperties;
 import org.niis.xroad.confproxy.commandline.ConfProxyRunner;
 import org.niis.xroad.confproxy.commandline.ConfProxyUtilRunner;
 import org.springframework.boot.context.properties.ConfigurationProperties;
@@ -39,7 +39,7 @@ import org.springframework.context.annotation.Import;
 
 @EnableConfigurationProperties({
         ConfProxyProperties.class,
-        ConfProxyConfig.ConfProxyRpcServiceProperties.class})
+        ConfProxyConfig.ConfProxyRpcServerProperties.class})
 @Import(SignerClientConfiguration.class)
 @Configuration
 public class ConfProxyConfig {
@@ -55,12 +55,10 @@ public class ConfProxyConfig {
     }
 
     @ConfigurationProperties(prefix = "xroad.configuration-proxy.grpc")
-    static class ConfProxyRpcServiceProperties extends RpcServiceProperties {
+    static class ConfProxyRpcServerProperties extends RpcServerProperties {
 
-        ConfProxyRpcServiceProperties(String listenAddress, int port,
-                                      String tlsTrustStore, char[] tlsTrustStorePassword,
-                                      String tlsKeyStore, char[] tlsKeyStorePassword) {
-            super(listenAddress, port, tlsTrustStore, tlsTrustStorePassword, tlsKeyStore, tlsKeyStorePassword);
+        ConfProxyRpcServerProperties(String listenAddress, int port) {
+            super(listenAddress, port);
         }
     }
 }

@@ -23,5 +23,19 @@ bao server -dev \
 # Wait for OpenBao to be initialized
 wait_for_server
 
+#Preconfigure OpenBao and create PKI for grpc.
+bao secrets enable pki
+
+# Configure CA certificate
+bao write pki/root/generate/internal common_name="localhost" ttl=8760h
+
+# Configure roles
+bao write pki/roles/xrd-rpc-internal \
+    allowed_domains="localhost" \
+    allow_subdomains=true \
+    allow_localhost=true \
+    allow_ip_sans=true \
+    max_ttl="300h"
+
 # keep the container running
 wait
