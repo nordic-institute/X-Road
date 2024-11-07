@@ -10,6 +10,8 @@ Feature: 0900 - SS:Diagnostics
   Scenario: Diagnostics checks are successful
     When Diagnostics tab is selected
     Then Java version status should be ok
+    And Mail notification status should be ok
+    And Sending test mail is a success
     And Global configuration status should be ok
     And Timestamping status should be ok
     And OCSP responders status should be ok

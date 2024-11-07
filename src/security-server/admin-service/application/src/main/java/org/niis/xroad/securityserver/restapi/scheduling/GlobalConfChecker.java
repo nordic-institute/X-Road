@@ -44,6 +44,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.niis.xroad.restapi.common.backup.service.BackupRestoreEvent;
 import org.niis.xroad.securityserver.restapi.cache.SecurityServerAddressChangeStatus;
 import org.niis.xroad.securityserver.restapi.facade.SignerProxyFacade;
+import org.niis.xroad.securityserver.restapi.util.MailNotificationHelper;
 import org.springframework.context.event.EventListener;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
@@ -70,6 +71,7 @@ public class GlobalConfChecker {
     private final GlobalConfProvider globalConfProvider;
     private final SignerProxyFacade signerProxyFacade;
     private final SecurityServerAddressChangeStatus addressChangeStatus;
+    private final MailNotificationHelper mailNotificationHelper;
 
     /**
      * Reloads global configuration, and updates client statuses, authentication certificate statuses
@@ -289,44 +291,35 @@ public class GlobalConfChecker {
                 });
     }
 
-    private void updateCertStatus(SecurityServerId securityServerId,
-                                  CertificateInfo certInfo) throws Exception {
-        X509Certificate cert =
-                CryptoUtils.readCertificate(certInfo.getCertificateBytes());
+    private void updateCertStatus(SecurityServerId securityServerId, CertificateInfo certInfo) throws Exception {
+        X509Certificate cert = CryptoUtils.readCertificate(certInfo.getCertificateBytes());
 
-        boolean registered =
-                securityServerId.equals(globalConfProvider.getServerId(cert));
+        boolean registered = securityServerId.equals(globalConfProvider.getServerId(cert));
 
         if (registered && certInfo.getStatus() != null) {
             switch (certInfo.getStatus()) {
-                case CertificateInfo.STATUS_REGISTERED:
+                case CertificateInfo.STATUS_REGISTERED -> {
                     // do nothing
-                    break;
-                case CertificateInfo.STATUS_SAVED:
-                case CertificateInfo.STATUS_REGINPROG:
-                case CertificateInfo.STATUS_GLOBALERR:
-                    log.debug("Setting certificate '{}' status to '{}'",
-                            CertUtils.identify(cert),
-                            CertificateInfo.STATUS_REGISTERED);
-
-                    signerProxyFacade.setCertStatus(certInfo.getId(),
-                            CertificateInfo.STATUS_REGISTERED);
-                    break;
-                default:
-                    log.warn("Unexpected status '{}' for certificate '{}'",
-                            certInfo.getStatus(), CertUtils.identify(cert));
+                }
+                case CertificateInfo.STATUS_REGINPROG -> {
+                    mailNotificationHelper.sendAuthCertRegisteredNotification(securityServerId, certInfo);
+                    setCertStatus(cert, CertificateInfo.STATUS_REGISTERED, certInfo);
+                }
+                case CertificateInfo.STATUS_SAVED, CertificateInfo.STATUS_GLOBALERR ->
+                        setCertStatus(cert, CertificateInfo.STATUS_REGISTERED, certInfo);
+                default -> log.warn("Unexpected status '{}' for certificate '{}'",
+                        certInfo.getStatus(), CertUtils.identify(cert));
             }
 
         }
 
-        if (!registered && CertificateInfo.STATUS_REGISTERED.equals(
-                certInfo.getStatus())) {
-            log.debug("Setting certificate '{}' status to '{}'",
-                    CertUtils.identify(cert),
-                    CertificateInfo.STATUS_GLOBALERR);
-
-            signerProxyFacade.setCertStatus(certInfo.getId(),
-                    CertificateInfo.STATUS_GLOBALERR);
+        if (!registered && CertificateInfo.STATUS_REGISTERED.equals(certInfo.getStatus())) {
+            setCertStatus(cert, CertificateInfo.STATUS_GLOBALERR, certInfo);
         }
+    }
+
+    private void setCertStatus(X509Certificate cert, String status, CertificateInfo certInfo) throws Exception {
+        log.debug("Setting certificate '{}' status to '{}'", CertUtils.identify(cert), status);
+        signerProxyFacade.setCertStatus(certInfo.getId(), status);
     }
 }

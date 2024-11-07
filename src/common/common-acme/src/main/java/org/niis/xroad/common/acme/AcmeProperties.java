@@ -40,6 +40,7 @@ public class AcmeProperties {
 
     private EabCredentials eabCredentials;
     private Map<String, String> contacts;
+    private String accountKeystorePassword;
 
     @Getter
     @Setter
@@ -77,7 +78,6 @@ public class AcmeProperties {
         return getEabCredentialsOptional(caName, memberId).isPresent();
     }
 
-
     private Optional<Credentials> getEabCredentialsOptional(String caName, String memberId) {
         return Optional.ofNullable(eabCredentials)
                 .map(EabCredentials::getCertificateAuthorities)
@@ -91,6 +91,13 @@ public class AcmeProperties {
                 .map(EabCredentials::getCertificateAuthorities)
                 .map(certAuthorities -> certAuthorities.get(caName))
                 .map(CA::isMacKeyBase64Encoded).orElse(false);
+    }
+
+    public char[] getAccountKeystorePassword() {
+        return Optional.ofNullable(accountKeystorePassword)
+                .or(() -> Optional.ofNullable(System.getenv().get("ACCOUNT_KEYSTORE_PASSWORD")))
+                .map(String::toCharArray)
+                .orElse(null);
     }
 
 }

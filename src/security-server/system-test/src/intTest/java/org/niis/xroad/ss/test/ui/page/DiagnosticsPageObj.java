@@ -64,6 +64,26 @@ public class DiagnosticsPageObj {
         return $x("//td[@data-test='java-message']");
     }
 
+    public SelenideElement mailNotificationOnSuccessEnabled() {
+        return $x("//td[@data-test='mail-success-notification-status']");
+    }
+
+    public SelenideElement mailNotificationOnFailureEnabled() {
+        return $x("//td[@data-test='mail-failure-notification-status']");
+    }
+
+    public SelenideElement mailNotificationConfigurationStatus() {
+        return $x("//td[@data-test='mail-notification-configuration-status']");
+    }
+
+    public SelenideElement sendTestMail() {
+        return $x("//button[@data-test='send-test-mail']");
+    }
+
+    public SelenideElement testMailResult() {
+        return $x("//div[@data-test='test-mail-result']");
+    }
+
     public SelenideElement globalConfigurationMessage() {
         return $x("//td[@data-test='global-configuration-message']");
     }
