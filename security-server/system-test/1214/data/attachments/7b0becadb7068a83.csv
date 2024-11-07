@@ -1,0 +1,6 @@
+$role	$condition
+Security Officer	present
+Registration Officer	missing
+Service Administrator	present
+System Administrator	present
+Server Observer	present
