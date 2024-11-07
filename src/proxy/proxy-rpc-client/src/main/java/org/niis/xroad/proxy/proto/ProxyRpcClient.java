@@ -35,7 +35,6 @@ import ee.ria.xroad.common.MessageLogEncryptionStatusDiagnostics;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.niis.xroad.common.rpc.RpcServiceProperties;
 import org.niis.xroad.common.rpc.client.AbstractRpcClient;
 import org.niis.xroad.common.rpc.client.RpcChannelFactory;
 import org.springframework.beans.factory.InitializingBean;
@@ -53,7 +52,6 @@ import static org.niis.xroad.restapi.util.FormatUtils.fromInstantToOffsetDateTim
 public class ProxyRpcClient extends AbstractRpcClient implements InitializingBean {
     private final RpcChannelFactory proxyRpcChannelFactory;
     private final ProxyRpcChannelProperties rpcChannelProperties;
-    private final RpcServiceProperties rpcServiceProperties;
 
     private AdminServiceGrpc.AdminServiceBlockingStub adminServiceBlockingStub;
 
@@ -61,7 +59,7 @@ public class ProxyRpcClient extends AbstractRpcClient implements InitializingBea
     public void afterPropertiesSet() throws Exception {
         log.info("Initializing {} rpc client to {}:{}", getClass().getSimpleName(), rpcChannelProperties.getHost(),
                 rpcChannelProperties.getPort());
-        var channel = proxyRpcChannelFactory.createChannel(rpcChannelProperties, rpcServiceProperties);
+        var channel = proxyRpcChannelFactory.createChannel(rpcChannelProperties);
 
         adminServiceBlockingStub = AdminServiceGrpc.newBlockingStub(channel).withInterceptors().withWaitForReady();
     }

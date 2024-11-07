@@ -1,0 +1,40 @@
+# Common properties that are injected to all services
+spring:
+  main:
+    banner-mode: log
+  cloud:
+    vault:
+      uri: http://openbao:8200
+      token: 00000000-0000-0000-0000-000000000001  #TODO xroad8, token must be moved somewhere else
+      kv:
+        enabled: true
+        backend: secret
+
+logging:
+  level:
+    ROOT: INFO
+
+xroad:
+  common:
+    rpc:
+      use-tls: true
+      certificate-provisioning:
+        issuance-role-name: xrd-rpc-internal
+        common-name: localhost
+        ip-subject-alt-names:
+          - 127.0.0.1
+        ttl-minutes: 720 # 12 hours
+        refresh-interval-minutes: 300 # 5 hours
+      channel:
+        configuration-client:
+          host: 127.0.0.1
+          port: 5665
+          deadline-after: 60000
+        signer:
+          host: 127.0.0.1
+          port: 5560
+          deadline-after: 60000
+        proxy:
+          host: 127.0.0.1
+          port: 5567
+          deadline-after: 60000

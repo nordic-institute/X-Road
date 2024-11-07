@@ -1,11 +1,6 @@
 spring:
   application:
     name: op-monitor-daemon
-  output:
-    ansi:
-      enabled: detect #TODO implementing logging changes to support ansi colors
-  main:
-    banner-mode: log
 
 server:
   port: 5899
@@ -20,12 +15,3 @@ xroad:
     max-records-in-payload: 10000
     records-available-timestamp-offset-seconds: 60
     health-statistics-period-seconds: 600
-
-  common:
-    global-conf-remoting-enabled: true
-    grpc:
-      channel:
-        configuration-client:
-          host: 127.0.0.1
-          port: 5665
-          deadline-after: 60000

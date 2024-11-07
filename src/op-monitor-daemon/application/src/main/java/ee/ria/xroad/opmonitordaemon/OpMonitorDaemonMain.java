@@ -26,7 +26,6 @@
  */
 package ee.ria.xroad.opmonitordaemon;
 
-import ee.ria.xroad.common.conf.globalconf.GlobalConfPropertiesConfig;
 import ee.ria.xroad.opmonitordaemon.config.OpMonitorDaemonRootConfig;
 
 import lombok.extern.slf4j.Slf4j;
@@ -45,8 +44,7 @@ public class OpMonitorDaemonMain {
     private static final String APP_NAME = "xroad-opmonitor";
 
     public static void main(String[] args) {
-        XrdSpringServiceBuilder.newApplicationBuilder(APP_NAME, OpMonitorDaemonMain.class, OpMonitorDaemonRootConfig.class,
-                        GlobalConfPropertiesConfig.class)
+        XrdSpringServiceBuilder.newApplicationBuilder(APP_NAME, OpMonitorDaemonMain.class, OpMonitorDaemonRootConfig.class)
                 .build()
                 .run(args);
     }

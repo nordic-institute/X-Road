@@ -6,8 +6,3 @@ xroad:
     configuration-path: ../core/src/test/resources/conf-proxy-conf
     generated-conf-path: build/tmp/test/generated-conf
     download-script: ../core/src/test/resources/download_instance_configuration.sh
-    grpc:
-      tls-key-store: ../../common/common-test/src/test/certs/grpc-keystore.p12
-      tls-key-store-password: password
-      tls-trust-store: ../../common/common-test/src/test/certs/grpc-keystore.p12
-      tls-trust-store-password: password

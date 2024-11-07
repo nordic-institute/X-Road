@@ -1,11 +1,6 @@
 spring:
   application:
     name: configuration-client
-  output:
-    ansi:
-      enabled: detect #TODO implementing logging changes to support ansi colors
-  main:
-    banner-mode: log
 
 server:
   port: 5799

@@ -1,6 +1,5 @@
 /*
  * The MIT License
- *
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
@@ -24,26 +23,30 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.common.rpc;
+package org.niis.xroad.common.rpc.server;
 
-import io.grpc.ChannelCredentials;
-import io.grpc.InsecureChannelCredentials;
-import io.grpc.InsecureServerCredentials;
-import io.grpc.ServerCredentials;
-import lombok.AccessLevel;
-import lombok.NoArgsConstructor;
+import io.grpc.BindableService;
 import lombok.extern.slf4j.Slf4j;
+import org.niis.xroad.common.rpc.RpcCredentialsConfigurer;
+import org.niis.xroad.common.rpc.RpcServerProperties;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+
+import java.util.Collection;
 
 @Slf4j
-@NoArgsConstructor(access = AccessLevel.PRIVATE)
-public class InsecureRpcCredentialsConfigurer {
+@Configuration
+public class RpcServerConfig {
 
-    public static ServerCredentials createServerCredentials() {
-        return InsecureServerCredentials.create();
-    }
-
-    public static ChannelCredentials createClientCredentials() {
-        return InsecureChannelCredentials.create();
-
+    @Bean
+    RpcServer confClientRpcServer(Collection<BindableService> services,
+                                  RpcServerProperties rpcServerProperties,
+                                  RpcCredentialsConfigurer rpcCredentialsConfigurer) {
+        var serverCredentials = rpcCredentialsConfigurer.createServerCredentials();
+        return new RpcServer(rpcServerProperties.getListenAddress(), rpcServerProperties.getPort(), serverCredentials,
+                builder -> services.forEach(service -> {
+                    log.info("Registering {} RPC service.", service.getClass().getSimpleName());
+                    builder.addService(service);
+                }));
     }
 }

@@ -106,13 +106,6 @@ file-upload-endpoints:
       path-pattern: "/**/timestamping-services/*"
 
 xroad:
-  common:
-    grpc:
-      channel:
-        signer:
-          deadline-after: 60000
-          host: 127.0.0.1
-          port: 5560
   admin-service:
     global-configuration-generation-rate-in-seconds: 60
     rate-limit-enabled: true
@@ -130,8 +123,3 @@ xroad:
     strict-identifier-checks: true
     request-size-limit-regular: 50KB
     request-size-limit-binary-upload: 10MB
-    grpc:
-      tls-key-store: /var/run/xroad/xroad-grpc-internal-keystore.p12
-      tls-key-store-password: ${XROAD_COMMON_GRPC_INTERNAL_KEYSTORE_PASSWORD}
-      tls-trust-store: /var/run/xroad/xroad-grpc-internal-keystore.p12
-      tls-trust-store-password: ${XROAD_COMMON_GRPC_INTERNAL_TRUSTSTORE_PASSWORD}

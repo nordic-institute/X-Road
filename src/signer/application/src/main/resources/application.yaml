@@ -1,24 +1,11 @@
 spring:
   application:
     name: signer
-  output:
-    ansi:
-      enabled: detect #TODO implementing logging changes to support ansi colors
-  main:
-    banner-mode: log
 
 server:
   port: 5699
 
 xroad:
-  common:
-    grpc:
-      channel:
-        configuration-client:
-          host: 127.0.0.1
-          port: 4001
-          deadline-after: 60000
-
   signer:
     key-length: 2048
     device-configuration-file: /etc/xroad/devices.ini

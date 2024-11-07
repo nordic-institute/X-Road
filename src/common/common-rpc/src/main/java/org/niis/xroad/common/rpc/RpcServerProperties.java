@@ -25,21 +25,14 @@
  * THE SOFTWARE.
  */
 
-package ee.ria.xroad.common.conf.globalconf;
+package org.niis.xroad.common.rpc;
 
-import org.springframework.boot.context.properties.ConfigurationProperties;
-import org.springframework.boot.context.properties.EnableConfigurationProperties;
-import org.springframework.context.annotation.Configuration;
+import lombok.Getter;
+import lombok.RequiredArgsConstructor;
 
-@Configuration
-@EnableConfigurationProperties(GlobalConfPropertiesConfig.SpringGlobalConfProperties.class)
-public class GlobalConfPropertiesConfig {
-
-    @ConfigurationProperties(prefix = "xroad.common")
-    static class SpringGlobalConfProperties extends GlobalConfProperties {
-        SpringGlobalConfProperties(boolean globalConfRemotingEnabled) {
-            super(globalConfRemotingEnabled);
-        }
-    }
-
+@Getter
+@RequiredArgsConstructor
+public class RpcServerProperties {
+    private final String listenAddress;
+    private final int port;
 }

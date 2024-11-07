@@ -31,59 +31,77 @@ import ee.ria.xroad.common.Version;
 
 import lombok.experimental.UtilityClass;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.boot.builder.SpringApplicationBuilder;
 
-import java.util.ArrayList;
-import java.util.Arrays;
+import java.util.HashSet;
 import java.util.List;
-
-import static java.lang.Boolean.TRUE;
+import java.util.Set;
 
 @Slf4j
 @UtilityClass
 public class XrdSpringServiceBuilder {
-    private static final String ENV_XRD_CONFIG_SERVER_ENABLED = "XROAD_CONFIG_SERVER_ENABLED";
     private static final String ENV_XRD_CONFIG_SERVER_URI = "XROAD_CONFIG_SERVER_URI";
 
     private static final String ENV_DEPLOYMENT_TYPE = "XROAD_DEPLOYMENT_TYPE";
+    private static final String ENV_APPLICATION_TYPE = "XROAD_APPLICATION_TYPE";
     private static final String ENV_ADDITIONAL_PROFILES = "XROAD_ADDITIONAL_PROFILES";
 
+    //TODO xroad8 consider user spring application name instead of providing one
     public static SpringApplicationBuilder newApplicationBuilder(String appName, Class<?>... sources) {
         Version.outputVersionInfo(appName);
 
         var profiles = resolveProfiles();
-        log.info("Preparing Spring initializer with profiles: {}", Arrays.toString(profiles));
-        var builder = new SpringApplicationBuilder(sources)
-                .profiles(profiles)
+        log.info("Preparing Spring initializer with profiles: {}", profiles);
+
+        return new SpringApplicationBuilder(sources)
+                .profiles(profiles.toArray(new String[0]))
+                .properties(resolveProperties(profiles))
                 .initializers(applicationContext -> {
                     log.info("Setting property source to Spring environment..");
                     //TODO xroad8 Remove once SystemProperties is removed
                     SystemPropertySource.setEnvironment(applicationContext.getEnvironment());
                 });
-
-        if (TRUE.toString().equalsIgnoreCase(System.getenv(ENV_XRD_CONFIG_SERVER_ENABLED))) {
-            var configServerUri = System.getenv(ENV_XRD_CONFIG_SERVER_URI);
-            builder.properties("spring.cloud.config.enabled=true",
-                    "spring.config.import=configserver:%s".formatted(configServerUri));
-
-            log.info("{} is set to true. Config server usage is enabled. Config server host {}",
-                    ENV_XRD_CONFIG_SERVER_ENABLED,
-                    configServerUri);
-        } else {
-            builder.properties("spring.cloud.config.enabled=false");
-            log.warn("{} is set to false. Config server usage is disabled.", ENV_XRD_CONFIG_SERVER_ENABLED);
-
-        }
-        return builder;
     }
 
-    private static String[] resolveProfiles() {
-        List<String> profiles = new ArrayList<>();
+    private String[] resolveProperties(Set<String> profiles) {
+        Set<String> properties = new HashSet<>();
+
+        var imports = new StringBuilder("classpath:/xroad-common.yaml");
+        if (profiles.contains(XrdSpringProfiles.CS)) {
+            imports.append(",classpath:/xroad-cs-common.yaml");
+        } else if (profiles.contains(XrdSpringProfiles.SS)) {
+            imports.append(",classpath:/xroad-ss-common.yaml");
+        }
+
+        if (StringUtils.isNotBlank(System.getenv(ENV_XRD_CONFIG_SERVER_URI))) {
+            imports.append(",configserver:%s".formatted(System.getenv(ENV_XRD_CONFIG_SERVER_URI)));
+
+            properties.add("spring.cloud.config.enabled=true");
+        } else {
+            log.warn("No config server URI defined in environment variable {}", ENV_XRD_CONFIG_SERVER_URI);
+        }
+        properties.add("spring.config.import=" + imports);
+
+        return properties.toArray(new String[0]);
+    }
+
+    private static Set<String> resolveProfiles() {
+        Set<String> profiles = new HashSet<>();
 
         if (XrdSpringProfiles.CONTAINERIZED.equals(System.getenv(ENV_DEPLOYMENT_TYPE))) {
             profiles.add(XrdSpringProfiles.CONTAINERIZED);
         } else if (XrdSpringProfiles.NATIVE.equals(System.getenv(ENV_DEPLOYMENT_TYPE))) {
             profiles.add(XrdSpringProfiles.NATIVE);
+        }
+
+        String applicationType = System.getenv(ENV_APPLICATION_TYPE);
+        if (applicationType != null) {
+            if (applicationType.equals(XrdSpringProfiles.CS) || applicationType.equals(XrdSpringProfiles.SS)) {
+                profiles.add(applicationType);
+            } else {
+                log.warn("Unknown application type: {}", applicationType);
+            }
         }
 
         String additionalProfiles = System.getenv(ENV_ADDITIONAL_PROFILES);
@@ -94,7 +112,8 @@ public class XrdSpringServiceBuilder {
 
         //Add last to override other profiles
         profiles.add(XrdSpringProfiles.OVERRIDE);
-        return profiles.toArray(new String[0]);
+
+        return profiles;
     }
 
 }

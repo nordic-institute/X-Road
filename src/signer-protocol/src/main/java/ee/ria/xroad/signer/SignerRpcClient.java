@@ -46,7 +46,6 @@ import io.opentelemetry.instrumentation.annotations.WithSpan;
 import lombok.RequiredArgsConstructor;
 import lombok.Value;
 import lombok.extern.slf4j.Slf4j;
-import org.niis.xroad.common.rpc.RpcServiceProperties;
 import org.niis.xroad.common.rpc.client.AbstractRpcClient;
 import org.niis.xroad.common.rpc.client.RpcChannelFactory;
 import org.niis.xroad.common.rpc.mapper.ClientIdMapper;
@@ -119,7 +118,6 @@ public final class SignerRpcClient extends AbstractRpcClient implements Initiali
 
     private final RpcChannelFactory proxyRpcChannelFactory;
     private final SignerRpcChannelProperties rpcChannelProperties;
-    private final RpcServiceProperties rpcServiceProperties;
 
     private TokenServiceGrpc.TokenServiceBlockingStub blockingTokenService;
     private CertificateServiceGrpc.CertificateServiceBlockingStub blockingCertificateService;
@@ -132,7 +130,7 @@ public final class SignerRpcClient extends AbstractRpcClient implements Initiali
     public void afterPropertiesSet() throws Exception {
         log.info("Initializing {} rpc client to {}:{}", getClass().getSimpleName(), rpcChannelProperties.getHost(),
                 rpcChannelProperties.getPort());
-        var channel = proxyRpcChannelFactory.createChannel(rpcChannelProperties, rpcServiceProperties);
+        var channel = proxyRpcChannelFactory.createChannel(rpcChannelProperties);
 
         blockingTokenService = TokenServiceGrpc.newBlockingStub(channel).withWaitForReady();
         blockingCertificateService = CertificateServiceGrpc.newBlockingStub(channel).withWaitForReady();

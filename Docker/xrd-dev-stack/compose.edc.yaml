@@ -92,7 +92,8 @@ services:
     build:
       context: ../
       dockerfile: xrd-dev-stack/openbao/Dockerfile
-    container_name: openbao
+    ports:
+      - "8200:8200"
     deploy:
       resources:
         reservations:

@@ -3,8 +3,6 @@
 spring:
   application:
     name: proxy-ui-api
-  main:
-    banner-mode: log
   datasource:
     url: ${xroad.common.serverconf.hibernate.connection.url}
     username: ${xroad.common.serverconf.hibernate.connection.username}
@@ -36,7 +34,6 @@ spring:
       max-request-size: ${xroad.proxy-ui-api.request-size-limit-binary-upload}
   profiles:
     include: nontest
-
 # TLS
 # (can be overridden with external ssl.properties)
 server:
@@ -84,34 +81,16 @@ xroad:
         connection.username: serverconf
         hikari.dataSource.currentSchema: serverconf,public
         jdbc.use_streams_for_binary: true
-    grpc:
-      channel:
-        configuration-client:
-          host: 127.0.0.1
-          port: 5665
-          deadline-after: 60000
-        signer:
-          host: 127.0.0.1
-          port: 5560
-          deadline-after: 60000
-        proxy:
-          host: 127.0.0.1
-          port: 5567
-          deadline-after: 60000
 
 file-upload-endpoints:
   endpoint-definitions:
-    -
-      http-method: POST
+    - http-method: POST
       path-pattern: "/**/backups/upload"
-    -
-      http-method: POST
+    - http-method: POST
       path-pattern: "/**/tls-certificates"
-    -
-      http-method: POST
+    - http-method: POST
       path-pattern: "/**/token-certificates"
-    -
-      http-method: POST
+    - http-method: POST
       path-pattern: "/**/certificate/import"
 
 script:
