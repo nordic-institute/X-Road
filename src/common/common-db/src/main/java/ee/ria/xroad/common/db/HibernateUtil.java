@@ -37,9 +37,6 @@ import org.hibernate.cfg.AvailableSettings;
 import org.hibernate.cfg.Configuration;
 import org.hibernate.internal.util.config.ConfigurationHelper;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.HashMap;
 import java.util.Map;
 
 import static ee.ria.xroad.common.ErrorCodes.X_DATABASE_ERROR;
@@ -50,25 +47,23 @@ import static ee.ria.xroad.common.ErrorCodes.X_DATABASE_ERROR;
 @Slf4j
 @NoArgsConstructor
 public final class HibernateUtil {
-    private record SessionFactoryCtx(SessionFactory sessionFactory) {
-    }
 
-    private static void closeSessionFactory(SessionFactoryCtx ctx) {
+    static void closeSessionFactory(SessionFactory sessionFactory) {
         try {
-            ctx.sessionFactory().getCurrentSession().close();
+            sessionFactory.getCurrentSession().close();
         } catch (HibernateException e) {
             log.error("Error closing session", e);
         }
 
         try {
-            ctx.sessionFactory().close();
+            sessionFactory.close();
         } catch (HibernateException e) {
             log.error("Error closing session factory", e);
         }
 
     }
 
-    public static SessionFactory createSessionFactory(String name, Map<String, String> hibernateProperties, Interceptor interceptor) {
+    static SessionFactory createSessionFactory(String name, Map<String, String> hibernateProperties, Interceptor interceptor) {
         log.trace("Creating session factory for '{}'...", name);
         try {
             Configuration configuration = createEmptyConfiguration();
@@ -95,7 +90,7 @@ public final class HibernateUtil {
         }
     }
 
-    public static SessionFactory createSessionFactory(String name, Map<String, String> hibernateProperties) {
+    static SessionFactory createSessionFactory(String name, Map<String, String> hibernateProperties) {
         return createSessionFactory(name, hibernateProperties, null);
     }
 

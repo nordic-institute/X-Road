@@ -38,7 +38,6 @@ import ee.ria.xroad.common.conf.serverconf.model.ServiceDescriptionType;
 import ee.ria.xroad.common.conf.serverconf.model.ServiceType;
 import ee.ria.xroad.common.conf.serverconf.model.TspType;
 import ee.ria.xroad.common.db.DatabaseCtxV2;
-import ee.ria.xroad.common.db.HibernateUtil;
 import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.identifier.LocalGroupId;
 import ee.ria.xroad.common.identifier.ServiceId;
@@ -112,9 +111,7 @@ public final class TestUtil {
     );
     static ServerConfProperties serverConfProperties = new ServerConfProperties(60, 100,
             1000, 100_000, serverConfHibernateProperties);
-    static DatabaseCtxV2 databaseCtx = new DatabaseCtxV2("serverconf",
-            HibernateUtil.createSessionFactory("serverconf",
-                    serverConfProperties.hibernate()));
+    static DatabaseCtxV2 databaseCtx = new DatabaseCtxV2("serverconf", serverConfProperties.hibernate());
 
     private TestUtil() {
     }

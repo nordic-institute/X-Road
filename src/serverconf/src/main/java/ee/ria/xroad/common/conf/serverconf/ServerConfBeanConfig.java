@@ -28,7 +28,6 @@ package ee.ria.xroad.common.conf.serverconf;
 
 import ee.ria.xroad.common.conf.globalconf.GlobalConfProvider;
 import ee.ria.xroad.common.db.DatabaseCtxV2;
-import ee.ria.xroad.common.db.HibernateUtil;
 
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
@@ -50,9 +49,7 @@ public class ServerConfBeanConfig {
 
     @Bean("serverConfDatabaseCtx")
     DatabaseCtxV2 serverConfDatabaseCtx(ServerConfProperties serverConfProperties) {
-        var serverConfSessionFactory = HibernateUtil.createSessionFactory("serverconf",
-                serverConfProperties.hibernate());
-        return new DatabaseCtxV2("serverconf", serverConfSessionFactory);
+        return new DatabaseCtxV2("serverconf", serverConfProperties.hibernate());
     }
 
 }

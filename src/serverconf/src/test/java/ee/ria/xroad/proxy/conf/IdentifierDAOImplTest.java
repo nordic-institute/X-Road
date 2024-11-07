@@ -27,7 +27,6 @@ package ee.ria.xroad.proxy.conf;
 
 import ee.ria.xroad.common.conf.serverconf.dao.IdentifierDAOImpl;
 import ee.ria.xroad.common.db.DatabaseCtxV2;
-import ee.ria.xroad.common.db.HibernateUtil;
 import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.identifier.GlobalGroupId;
 import ee.ria.xroad.common.identifier.LocalGroupId;
@@ -50,8 +49,7 @@ public class IdentifierDAOImplTest {
 
     private final IdentifierDAOImpl identifierDAO = new IdentifierDAOImpl();
     private Session session;
-    private static final DatabaseCtxV2 DATABASE_CTX = new DatabaseCtxV2("serverconf",
-            HibernateUtil.createSessionFactory("serverconf", TestUtil.serverConfHibernateProperties));
+    private static final DatabaseCtxV2 DATABASE_CTX = new DatabaseCtxV2("serverconf", TestUtil.serverConfHibernateProperties);
 
     /**
      * Prepares test database.

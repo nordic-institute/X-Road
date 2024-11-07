@@ -26,7 +26,6 @@
 package ee.ria.xroad.opmonitordaemon;
 
 import ee.ria.xroad.common.db.DatabaseCtxV2;
-import ee.ria.xroad.common.db.HibernateUtil;
 
 import org.apache.commons.lang3.StringUtils;
 import org.hibernate.EmptyInterceptor;
@@ -41,10 +40,7 @@ import java.util.Map;
 public final class OpMonitorDaemonDatabaseCtx {
 
     public static DatabaseCtxV2 create(Map<String, String> hibernateProperties) {
-        var sessionFactory = HibernateUtil.createSessionFactory("op-monitor",
-                hibernateProperties, new StringValueTruncator());
-
-        return new DatabaseCtxV2("op-monitor", sessionFactory);
+        return new DatabaseCtxV2("op-monitor", hibernateProperties, new StringValueTruncator());
     }
 
     private OpMonitorDaemonDatabaseCtx() {
