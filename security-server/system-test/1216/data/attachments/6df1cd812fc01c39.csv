@@ -1,0 +1,3 @@
+$serviceCode	$url	$timeout
+testOp1	https://www.niis.org/nosuch-updated/	45
+testOpA	https://www.niis.org/nosuch-updated/	45
