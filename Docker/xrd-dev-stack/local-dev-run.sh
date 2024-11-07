@@ -36,6 +36,9 @@ for i in "$@"; do
   "---init-ss2")
     INIT_SS2=1
     ;;
+  "--init-container-ss2")
+    INIT_CONTAINER_SS2=1
+    ;;
   "--perftest")
     PERFTEST=1
     COMPOSE_FILE_ARGS="$COMPOSE_FILE_ARGS -f compose.perftest.yaml"
@@ -97,6 +100,18 @@ if [[ -n "$INIT_SS2" ]]; then
     --insecure \
     --variables-file /hurl-src/vars.env \
     --file-root /hurl-files /hurl-src/xrd7-ss2.hurl \
+    --very-verbose \
+    --retry 12 \
+    --retry-interval 8000
+fi
+
+if [[ -n "$INIT_CONTAINER_SS2" ]]; then
+  docker compose $COMPOSE_FILE_ARGS \
+    --env-file "$ENV_FILE" \
+    run hurl \
+    --insecure \
+    --variables-file /hurl-src/vars.env \
+    --file-root /hurl-files /hurl-src/containerized-ss2.hurl \
     --very-verbose \
     --retry 12 \
     --retry-interval 8000
