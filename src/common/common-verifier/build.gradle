@@ -8,5 +8,7 @@ dependencies {
     api project(':common:common-message')
     api project(':common:common-scheduler')
     api project(':common:common-globalconf')
+    api(project(':common:common-properties'))
+
     testImplementation project(':common:common-test')
 }

@@ -1,8 +1,6 @@
 #!/bin/bash
 . /etc/xroad/services/global.conf
 
-export XROAD_CONFIG_SERVER_ENABLED=false
-
 exec java \
     -Xdebug -agentlib:jdwp=transport=dt_socket,address=*:9956,server=y,suspend=n \
     -Xmx256m -jar /usr/share/xroad/jlib/ds-catalog-service-1.0.jar

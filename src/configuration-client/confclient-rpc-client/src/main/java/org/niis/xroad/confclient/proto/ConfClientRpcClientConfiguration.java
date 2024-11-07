@@ -26,7 +26,6 @@
 package org.niis.xroad.confclient.proto;
 
 import org.niis.xroad.common.rpc.RpcConfig;
-import org.niis.xroad.common.rpc.RpcServiceProperties;
 import org.niis.xroad.common.rpc.client.RpcChannelFactory;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
@@ -40,8 +39,7 @@ public class ConfClientRpcClientConfiguration {
 
     @Bean
     ConfClientRpcClient confClientRpcClient(RpcChannelFactory channelFactory,
-                                            ConfClientRpcChannelProperties channelProperties,
-                                            RpcServiceProperties serviceProperties) {
-        return new ConfClientRpcClient(channelFactory, channelProperties, serviceProperties);
+                                            ConfClientRpcChannelProperties channelProperties) {
+        return new ConfClientRpcClient(channelFactory, channelProperties);
     }
 }

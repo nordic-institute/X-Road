@@ -27,7 +27,6 @@
 package ee.ria.xroad.signer;
 
 import org.niis.xroad.common.rpc.RpcConfig;
-import org.niis.xroad.common.rpc.RpcServiceProperties;
 import org.niis.xroad.common.rpc.client.RpcChannelFactory;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
@@ -41,8 +40,7 @@ public class SignerClientConfiguration {
 
     @Bean
     SignerRpcClient signerRpcClient(RpcChannelFactory channelFactory,
-                                    SignerRpcChannelProperties channelProperties,
-                                    RpcServiceProperties serviceProperties) {
-        return new SignerRpcClient(channelFactory, channelProperties, serviceProperties);
+                                    SignerRpcChannelProperties channelProperties) {
+        return new SignerRpcClient(channelFactory, channelProperties);
     }
 }

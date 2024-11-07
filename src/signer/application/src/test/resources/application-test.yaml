@@ -5,8 +5,3 @@ xroad:
     ocsp-cache-path: build/tmp/test
     device-configuration-file: src/test/resources/devices.ini
     key-configuration-file: src/test/resources/keyconf.xml
-    grpc:
-      tls-key-store: ../../common/common-test/src/test/certs/grpc-keystore.p12
-      tls-key-store-password: password
-      tls-trust-store: ../../common/common-test/src/test/certs/grpc-keystore.p12
-      tls-trust-store-password: password

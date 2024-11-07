@@ -28,7 +28,6 @@ package org.niis.xroad.proxy.configuration;
 import ee.ria.xroad.common.cert.CertChainFactory;
 import ee.ria.xroad.common.cert.CertHelper;
 import ee.ria.xroad.common.conf.globalconf.GlobalConfBeanConfig;
-import ee.ria.xroad.common.conf.globalconf.GlobalConfPropertiesConfig;
 import ee.ria.xroad.common.conf.globalconf.GlobalConfProvider;
 import ee.ria.xroad.common.conf.globalconf.GlobalConfRefreshJobConfig;
 import ee.ria.xroad.common.conf.serverconf.ServerConfBeanConfig;
@@ -71,7 +70,6 @@ import org.springframework.context.annotation.Import;
         ProxyJobConfig.class,
         ProxyMessageLogConfig.class,
         ProxyClientConfig.class,
-        GlobalConfPropertiesConfig.class,
         GlobalConfBeanConfig.class,
         GlobalConfRefreshJobConfig.class,
         ServerConfBeanConfig.class,

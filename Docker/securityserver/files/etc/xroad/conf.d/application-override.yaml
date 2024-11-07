@@ -31,15 +31,6 @@ xroad:
   dataspaces:
     enabled: true
 
-spring:
-  cloud:
-    vault:
-      uri: http://openbao:8200
-      token: 00000000-0000-0000-0000-000000000001
-      kv:
-        enabled: true
-        backend: secret
-
 logging:
   level:
     org.niis.xroad: DEBUG

@@ -1,20 +1,12 @@
 spring:
   application:
     name: proxy
-  profiles:
-    active: override
-  output:
-    ansi:
-      enabled: detect #TODO implementin logging changes to support ansi colors
-  main:
-    banner-mode: log
 
 server:
   port: 5599
 
 xroad:
   common:
-    global-conf-remoting-enabled: true
     serverconf:
       cache-period: 60
       client-cache-size: 100
@@ -27,16 +19,6 @@ xroad:
         connection.username: serverconf
         hikari.dataSource.currentSchema: serverconf,public
         jdbc.use_streams_for_binary: true
-    grpc:
-      channel:
-        configuration-client:
-          host: 127.0.0.1
-          port: 5665
-          deadline-after: 60000
-        signer:
-          host: 127.0.0.1
-          port: 5560
-          deadline-after: 60000
   proxy:
     ocsp-responder:
       listen-address: 0.0.0.0

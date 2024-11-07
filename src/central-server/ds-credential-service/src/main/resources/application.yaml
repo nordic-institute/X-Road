@@ -1,25 +1,14 @@
 spring:
   application:
     name: ds-credential-service
-  main:
-    banner-mode: log
 
 server:
   port: 5851
 
 xroad:
   common:
-    grpc:
-      channel:
-        configuration-client:
-          host: 127.0.0.1
-          port: 4001
-          deadline-after: 60000
-        signer:
-          host: 127.0.0.1
-          port: 5560
-          deadline-after: 60000
-    global-conf-remoting-enabled: false
+    global-conf:
+      source: FILESYSTEM
 
 logging:
   level:

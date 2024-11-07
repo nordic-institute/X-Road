@@ -29,7 +29,6 @@ import ee.ria.xroad.monitor.common.SystemMetricNames;
 
 import io.grpc.stub.StreamObserver;
 import lombok.extern.slf4j.Slf4j;
-import org.niis.xroad.common.rpc.RpcServiceProperties;
 import org.niis.xroad.common.rpc.client.RpcChannelFactory;
 import org.niis.xroad.monitor.common.MonitorServiceGrpc;
 import org.niis.xroad.monitor.common.StatsReq;
@@ -50,17 +49,14 @@ public class SystemMetricsSensor extends AbstractSensor implements InitializingB
 
     private final RpcChannelFactory rpcChannelFactory;
     private final ProxyRpcChannelProperties rpcChannelProperties;
-    private final RpcServiceProperties rpcServiceProperties;
 
     private MonitorServiceGrpc.MonitorServiceStub monitorServiceStub;
 
     public SystemMetricsSensor(TaskScheduler taskScheduler, EnvMonitorProperties envMonitorProperties,
-                               RpcChannelFactory rpcChannelFactory, ProxyRpcChannelProperties rpcChannelProperties,
-                               RpcServiceProperties rpcServiceProperties) {
+                               RpcChannelFactory rpcChannelFactory, ProxyRpcChannelProperties rpcChannelProperties) {
         super(taskScheduler, envMonitorProperties);
         this.rpcChannelFactory = rpcChannelFactory;
         this.rpcChannelProperties = rpcChannelProperties;
-        this.rpcServiceProperties = rpcServiceProperties;
         log.info("Creating sensor, measurement interval: {}", getInterval());
         scheduleSingleMeasurement(getInterval());
     }
@@ -70,7 +66,7 @@ public class SystemMetricsSensor extends AbstractSensor implements InitializingB
     public void afterPropertiesSet() throws Exception {
         log.info("Initializing {} rpc client to {}:{}", getClass().getSimpleName(), rpcChannelProperties.getHost(),
                 rpcChannelProperties.getPort());
-        var channel = rpcChannelFactory.createChannel(rpcChannelProperties, rpcServiceProperties);
+        var channel = rpcChannelFactory.createChannel(rpcChannelProperties);
 
         monitorServiceStub = MonitorServiceGrpc.newStub(channel).withWaitForReady();
     }

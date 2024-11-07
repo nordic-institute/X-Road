@@ -25,7 +25,6 @@
  */
 package org.niis.xroad.proxy.proto;
 
-import org.niis.xroad.common.rpc.RpcServiceProperties;
 import org.niis.xroad.common.rpc.client.RpcChannelFactory;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
@@ -37,8 +36,7 @@ public class ProxyRpcClientConfiguration {
 
     @Bean
     ProxyRpcClient proxyRpcClient(RpcChannelFactory channelFactory,
-                                  ProxyRpcChannelProperties channelProperties,
-                                  RpcServiceProperties serviceProperties) {
-        return new ProxyRpcClient(channelFactory, channelProperties, serviceProperties);
+                                  ProxyRpcChannelProperties channelProperties) {
+        return new ProxyRpcClient(channelFactory, channelProperties);
     }
 }

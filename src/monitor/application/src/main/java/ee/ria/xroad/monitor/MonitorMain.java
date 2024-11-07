@@ -26,7 +26,6 @@
  */
 package ee.ria.xroad.monitor;
 
-import ee.ria.xroad.common.conf.globalconf.GlobalConfPropertiesConfig;
 import ee.ria.xroad.monitor.configuration.JmxReporterConfig;
 import ee.ria.xroad.monitor.configuration.MonitorConfig;
 
@@ -48,7 +47,7 @@ public class MonitorMain {
 
     public static void main(String[] args) {
         XrdSpringServiceBuilder.newApplicationBuilder(APP_NAME, MonitorMain.class, MonitorConfig.class,
-                        JmxReporterConfig.class, GlobalConfPropertiesConfig.class)
+                        JmxReporterConfig.class)
                 .build()
                 .run(args);
     }

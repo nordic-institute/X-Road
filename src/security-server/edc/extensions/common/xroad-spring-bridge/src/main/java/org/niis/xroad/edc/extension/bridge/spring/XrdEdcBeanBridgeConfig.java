@@ -30,7 +30,6 @@ package org.niis.xroad.edc.extension.bridge.spring;
 import ee.ria.xroad.common.cert.CertChainFactory;
 import ee.ria.xroad.common.conf.globalconf.AuthKey;
 import ee.ria.xroad.common.conf.globalconf.GlobalConfBeanConfig;
-import ee.ria.xroad.common.conf.globalconf.GlobalConfPropertiesConfig;
 import ee.ria.xroad.common.conf.globalconf.GlobalConfProvider;
 import ee.ria.xroad.common.util.CryptoUtils;
 import ee.ria.xroad.signer.SignerClientConfiguration;
@@ -39,7 +38,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.eclipse.edc.boot.system.runtime.BaseRuntime;
 import org.eclipse.edc.spi.system.configuration.Config;
 import org.niis.xroad.common.rpc.RpcConfig;
-import org.niis.xroad.common.rpc.RpcServiceProperties;
 import org.niis.xroad.confclient.proto.ConfClientRpcClientConfiguration;
 import org.niis.xroad.edc.extension.bridge.config.MapConfigImpl;
 import org.niis.xroad.edc.extension.bridge.config.XrdSpringConfigExtension;
@@ -47,8 +45,6 @@ import org.springframework.beans.factory.DisposableBean;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
-import org.springframework.boot.context.properties.ConfigurationProperties;
-import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -68,13 +64,11 @@ import java.util.stream.StreamSupport;
 
 @Slf4j
 @Import({
-        GlobalConfPropertiesConfig.class,
         GlobalConfBeanConfig.class,
         ConfClientRpcClientConfiguration.class,
         SignerClientConfiguration.class,
         XrdEdcServerconfBeanBridgeConfig.class,
         RpcConfig.class})
-@EnableConfigurationProperties({XrdEdcBeanBridgeConfig.EdcDataPlaneRpcServiceProperties.class})
 @Configuration
 public class XrdEdcBeanBridgeConfig {
 
@@ -125,16 +119,6 @@ public class XrdEdcBeanBridgeConfig {
         var pkey = (PrivateKey) keyStore.getKey("management-service", "management-service".toCharArray());
 
         return () -> new AuthKey(certChain, pkey);
-    }
-
-    @ConfigurationProperties(prefix = "xroad.edc-data-plane.grpc")
-    static class EdcDataPlaneRpcServiceProperties extends RpcServiceProperties {
-
-        EdcDataPlaneRpcServiceProperties(String listenAddress, int port,
-                                         String tlsTrustStore, char[] tlsTrustStorePassword,
-                                         String tlsKeyStore, char[] tlsKeyStorePassword) {
-            super(listenAddress, port, tlsTrustStore, tlsTrustStorePassword, tlsKeyStore, tlsKeyStorePassword);
-        }
     }
 
     public static class SpringEdcRuntime extends BaseRuntime implements InitializingBean, DisposableBean {

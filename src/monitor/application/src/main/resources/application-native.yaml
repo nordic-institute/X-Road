@@ -1,10 +1,2 @@
-xroad:
-  env-monitor:
-    grpc:
-      tls-key-store: /var/run/xroad/xroad-grpc-internal-keystore.p12
-      tls-key-store-password: ${XROAD_COMMON_GRPC_INTERNAL_KEYSTORE_PASSWORD}
-      tls-trust-store: /var/run/xroad/xroad-grpc-internal-keystore.p12
-      tls-trust-store-password: ${XROAD_COMMON_GRPC_INTERNAL_TRUSTSTORE_PASSWORD}
-
 logging:
   config: classpath:logback-native.xml

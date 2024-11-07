@@ -32,7 +32,7 @@ import ee.ria.xroad.common.conf.serverconf.ServerConfProvider;
 import ee.ria.xroad.proxy.admin.AdminService;
 
 import lombok.extern.slf4j.Slf4j;
-import org.niis.xroad.common.rpc.RpcServiceProperties;
+import org.niis.xroad.common.rpc.RpcServerProperties;
 import org.niis.xroad.proxy.edc.AssetsRegistrationJob;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
@@ -43,7 +43,7 @@ import java.util.Optional;
 
 @Slf4j
 @EnableConfigurationProperties({
-        ProxyRpcConfig.ProxyRpcServiceProperties.class})
+        ProxyRpcConfig.ProxyRpcServerProperties.class})
 @Configuration
 public class ProxyRpcConfig {
 
@@ -61,12 +61,10 @@ public class ProxyRpcConfig {
     }
 
     @ConfigurationProperties(prefix = "xroad.proxy.grpc")
-    public static class ProxyRpcServiceProperties extends RpcServiceProperties {
+    public static class ProxyRpcServerProperties extends RpcServerProperties {
 
-        public ProxyRpcServiceProperties(String listenAddress, int port,
-                                         String tlsTrustStore, char[] tlsTrustStorePassword,
-                                         String tlsKeyStore, char[] tlsKeyStorePassword) {
-            super(listenAddress, port, tlsTrustStore, tlsTrustStorePassword, tlsKeyStore, tlsKeyStorePassword);
+        public ProxyRpcServerProperties(String listenAddress, int port) {
+            super(listenAddress, port);
         }
     }
 }

@@ -26,77 +26,47 @@
  */
 package org.niis.xroad.common.rpc;
 
+import ee.ria.xroad.common.properties.CommonRpcProperties;
+
 import io.grpc.ChannelCredentials;
+import io.grpc.InsecureChannelCredentials;
+import io.grpc.InsecureServerCredentials;
 import io.grpc.ServerCredentials;
 import io.grpc.TlsChannelCredentials;
 import io.grpc.TlsServerCredentials;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
-import java.io.IOException;
-import java.security.KeyStoreException;
-import java.security.NoSuchAlgorithmException;
-import java.security.UnrecoverableKeyException;
-import java.security.cert.CertificateException;
-
 @Slf4j
 @RequiredArgsConstructor
 public class RpcCredentialsConfigurer {
+    private final CommonRpcProperties commonRpcProperties;
     private final ReloadableVaultKeyManager reloadableVaultKeyManager;
 
-    public ServerCredentials createServerCredentials(RpcServiceProperties rpcServiceProperties)
-            throws
-            IOException {
-        TlsServerCredentials.Builder tlsBuilder = TlsServerCredentials.newBuilder()
-                .keyManager(reloadableVaultKeyManager.getKeyManager())
-                .trustManager(reloadableVaultKeyManager.getTrustManager())
-                .clientAuth(TlsServerCredentials.ClientAuth.REQUIRE);
+    public ServerCredentials createServerCredentials() {
+        if (commonRpcProperties.useTls()) {
+            TlsServerCredentials.Builder tlsBuilder = TlsServerCredentials.newBuilder()
+                    .keyManager(reloadableVaultKeyManager.getKeyManager())
+                    .trustManager(reloadableVaultKeyManager.getTrustManager())
+                    .clientAuth(TlsServerCredentials.ClientAuth.REQUIRE);
 
-        return tlsBuilder.build();
+            return tlsBuilder.build();
+        } else {
+            log.warn("GRPC server is running without TLS. This is intended only for testing purposes.");
+            return InsecureServerCredentials.create();
+        }
     }
 
-    public ChannelCredentials createClientCredentials(RpcServiceProperties rpcServiceProperties)
-            throws NoSuchAlgorithmException, KeyStoreException,
-            UnrecoverableKeyException, CertificateException, IOException {
-        TlsChannelCredentials.Builder tlsBuilder = TlsChannelCredentials.newBuilder()
-                .keyManager(reloadableVaultKeyManager.getKeyManager())
-                .trustManager(reloadableVaultKeyManager.getTrustManager());
+    public ChannelCredentials createClientCredentials() {
+        if (commonRpcProperties.useTls()) {
+            TlsChannelCredentials.Builder tlsBuilder = TlsChannelCredentials.newBuilder()
+                    .keyManager(reloadableVaultKeyManager.getKeyManager())
+                    .trustManager(reloadableVaultKeyManager.getTrustManager());
 
-        return tlsBuilder.build();
+            return tlsBuilder.build();
+        } else {
+            log.warn("GRPC client is running without TLS. This is intended only for testing purposes.");
+            return InsecureChannelCredentials.create();
+        }
     }
-
-//    private KeyManager getVaultKeyManager(){
-//        var keyStore = new ReloadableVaultKeyManager(vaultTemplate);
-//        return keyStore.getKeyManager();
-//    }
-//
-//    private TrustManager getTrustManager() throws CertificateException {
-//        AdvancedTlsX509TrustManager trustManager = AdvancedTlsX509TrustManager.newBuilder()
-//                .setVerification(CERTIFICATE_AND_HOST_NAME_VERIFICATION)
-//                .build();
-//
-//        SslContext.toX509Certificates(trustCertCollectionInputStream)
-//        trustManager.updateTrustCredentials();
-//    }
-//    private KeyManager[] getKeyManagers(String keystorePath, char[] keystorePassword)
-//            throws NoSuchAlgorithmException, UnrecoverableKeyException, KeyStoreException, CertificateException, IOException {
-//
-//        KeyStore keystore = keystoreLoader.loadKeystore(keystorePath, keystorePassword);
-//        KeyManagerFactory keyManagerFactory =
-//                KeyManagerFactory.getInstance(KeyManagerFactory.getDefaultAlgorithm());
-//        keyManagerFactory.init(keystore, keystorePassword);
-//        return keyManagerFactory.getKeyManagers();
-//    }
-
-//    private TrustManager[] getTrustManagers(String path, char[] password)
-//            throws NoSuchAlgorithmException, KeyStoreException, CertificateException, IOException {
-//
-//        KeyStore truststore = keystoreLoader.loadKeystore(path, password);
-//        TrustManagerFactory trustManagerFactory =
-//                TrustManagerFactory.getInstance(TrustManagerFactory.getDefaultAlgorithm());
-//        trustManagerFactory.init(truststore);
-//        return trustManagerFactory.getTrustManagers();
-//    }
-
-
 }

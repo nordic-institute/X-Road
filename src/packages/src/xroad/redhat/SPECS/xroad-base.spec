@@ -95,7 +95,6 @@ rm -rf %{buildroot}
 /usr/share/xroad/scripts/_backup_restore_common.sh
 /usr/share/xroad/scripts/serverconf_migrations/add_acl.xsl
 /usr/share/xroad/scripts/_setup_db.sh
-/usr/share/xroad/scripts/xroad-base.sh
 /usr/share/xroad/db/liquibase-core.jar
 /usr/share/xroad/db/liquibase-core-*.jar
 /usr/share/xroad/db/liquibase.sh
@@ -150,10 +149,7 @@ fi
         echo "Cannot find supported java version. Please set system default java installation with 'alternatives' command." >&2   \
       fi                                                                                                                 \
     fi                                                                                                                   \
-                                                                                                                         \
-    `# restart is required to trigger any changes within xroad-base.sh`                                                  \
-    echo "Restarting xroad-base service.."                                                                               \
-    %systemd_try_restart xroad-base.service                                                                              \
+                                                                                                                         \                                                                         \
   fi
 
 %define restart_xroad_services()                                                                                                                                 \

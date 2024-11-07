@@ -30,7 +30,7 @@ bao secrets enable pki
 bao write pki/root/generate/internal common_name="localhost" ttl=8760h
 
 # Configure roles
-bao write pki/roles/grpc-internal \
+bao write pki/roles/xrd-rpc-internal \
     allowed_domains="localhost" \
     allow_subdomains=true \
     allow_localhost=true \

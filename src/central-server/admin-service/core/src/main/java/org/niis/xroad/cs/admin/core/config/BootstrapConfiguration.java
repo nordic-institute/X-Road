@@ -27,20 +27,16 @@
 package org.niis.xroad.cs.admin.core.config;
 
 import ee.ria.xroad.common.conf.globalconf.GlobalConfBeanConfig;
-import ee.ria.xroad.common.conf.globalconf.GlobalConfProperties;
 import ee.ria.xroad.common.conf.globalconf.GlobalConfRefreshJobConfig;
 import ee.ria.xroad.common.util.process.ExternalProcessRunner;
 import ee.ria.xroad.signer.SignerClientConfiguration;
 
 import jakarta.servlet.Filter;
 import org.niis.xroad.common.api.throttle.IpThrottlingFilter;
-import org.niis.xroad.common.rpc.RpcServiceProperties;
 import org.niis.xroad.restapi.config.AddCorrelationIdFilter;
 import org.niis.xroad.restapi.config.AllowedFilesConfig;
 import org.niis.xroad.restapi.service.FileVerifier;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
-import org.springframework.boot.context.properties.ConfigurationProperties;
-import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
@@ -51,20 +47,11 @@ import org.springframework.core.annotation.Order;
         SignerClientConfiguration.class
 })
 @Configuration
-@EnableConfigurationProperties({BootstrapConfiguration.AdminServiceRpcServiceProperties.class})
 public class BootstrapConfiguration {
 
     @Bean
     public ExternalProcessRunner externalProcessRunner() {
         return new ExternalProcessRunner();
-    }
-
-    // todo: fixme:
-    @Bean
-    GlobalConfProperties globalConfProperties() {
-        return new GlobalConfProperties(
-                false
-        );
     }
 
     @Bean
@@ -81,14 +68,5 @@ public class BootstrapConfiguration {
         return new IpThrottlingFilter(properties);
     }
 
-    @ConfigurationProperties(prefix = "xroad.admin-service.grpc")
-    static class AdminServiceRpcServiceProperties extends RpcServiceProperties {
-
-        AdminServiceRpcServiceProperties(String listenAddress, int port,
-                                         String tlsTrustStore, char[] tlsTrustStorePassword,
-                                         String tlsKeyStore, char[] tlsKeyStorePassword) {
-            super(listenAddress, port, tlsTrustStore, tlsTrustStorePassword, tlsKeyStore, tlsKeyStorePassword);
-        }
-    }
 }
 

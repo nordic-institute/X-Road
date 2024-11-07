@@ -25,6 +25,8 @@
  */
 package org.niis.xroad.common.rpc;
 
+import ee.ria.xroad.common.properties.CommonRpcProperties;
+
 import io.grpc.util.AdvancedTlsX509KeyManager;
 import io.grpc.util.AdvancedTlsX509TrustManager;
 import lombok.RequiredArgsConstructor;
@@ -41,21 +43,28 @@ import javax.net.ssl.TrustManager;
 import java.io.ByteArrayInputStream;
 import java.security.cert.CertificateException;
 import java.time.Duration;
-import java.util.List;
+import java.util.concurrent.TimeUnit;
 
 import static io.grpc.util.AdvancedTlsX509TrustManager.Verification.CERTIFICATE_AND_HOST_NAME_VERIFICATION;
 import static io.grpc.util.CertificateUtils.getPrivateKey;
 import static io.grpc.util.CertificateUtils.getX509Certificates;
+import static org.niis.xroad.common.rpc.RpcConfig.BEAN_VIRTUAL_THREAD_SCHEDULER;
 
 @Slf4j
 @RequiredArgsConstructor
 public class ReloadableVaultKeyManager implements InitializingBean {
+    private static final String CERTIFICATE_FORMAT = "pem";
+    private static final String PRIVATE_KEY_FORMAT = "pkcs8";
+
+    private final CommonRpcProperties.CertificateProvisionProperties certificateProvisionProperties;
     private final VaultTemplate vaultTemplate;
 
     private final AdvancedTlsX509KeyManager keyManager = new AdvancedTlsX509KeyManager();
     private final AdvancedTlsX509TrustManager trustManager;
 
-    public ReloadableVaultKeyManager(VaultTemplate vaultTemplate) throws CertificateException {
+    public ReloadableVaultKeyManager(CommonRpcProperties.CertificateProvisionProperties certificateProvisionProperties,
+                                     VaultTemplate vaultTemplate) throws CertificateException {
+        this.certificateProvisionProperties = certificateProvisionProperties;
         this.vaultTemplate = vaultTemplate;
 
         this.trustManager = AdvancedTlsX509TrustManager.newBuilder()
@@ -76,21 +85,17 @@ public class ReloadableVaultKeyManager implements InitializingBean {
         return trustManager;
     }
 
-    @Scheduled(fixedRate = 3600000) //TODO use separate thread pool
+    @Scheduled(fixedRateString = "${xroad.common.rpc.certificate-provisioning.refresh-interval-minutes}", timeUnit = TimeUnit.MINUTES,
+            scheduler = BEAN_VIRTUAL_THREAD_SCHEDULER)
     public void reload() throws Exception {
-        VaultCertificateResponse serverCert = vaultTemplate.opsForPki()
-                .issueCertificate("grpc-internal", VaultCertificateRequest.builder()
-                        .commonName("localhost")
-                        .ipSubjectAltNames(List.of("127.0.0.1"))
-                        .ttl(Duration.ofHours(24))
-                        .format("pem")
-                        .privateKeyFormat("pkcs8")
-                        .build());
+        VaultCertificateResponse vaultResponse = vaultTemplate.opsForPki()
+                .issueCertificate(certificateProvisionProperties.issuanceRoleName(), buildVaultCertificateRequest());
 
-        if (serverCert.getData() != null) {
-            var cert = getX509Certificates(new ByteArrayInputStream(serverCert.getData().getCertificate().getBytes()));
-            var privateKey = getPrivateKey(new ByteArrayInputStream(serverCert.getData().getPrivateKey().getBytes()));
-            var certTrustChain = getX509Certificates(new ByteArrayInputStream(serverCert.getData().getIssuingCaCertificate().getBytes()));
+        if (vaultResponse.getData() != null) {
+            var data = vaultResponse.getData();
+            var cert = getX509Certificates(new ByteArrayInputStream(data.getCertificate().getBytes()));
+            var privateKey = getPrivateKey(new ByteArrayInputStream(data.getPrivateKey().getBytes()));
+            var certTrustChain = getX509Certificates(new ByteArrayInputStream(data.getIssuingCaCertificate().getBytes()));
 
             log.info("Received new certificate from Vault.");
             keyManager.updateIdentityCredentials(cert, privateKey);
@@ -98,5 +103,23 @@ public class ReloadableVaultKeyManager implements InitializingBean {
         } else {
             log.error("Failed to get certificate from Vault. Data is null.");
         }
+    }
+
+    private VaultCertificateRequest buildVaultCertificateRequest() {
+        var builder = VaultCertificateRequest.builder()
+                .ttl(Duration.ofMinutes(certificateProvisionProperties.ttlMinutes()))
+                .format(CERTIFICATE_FORMAT)
+                .privateKeyFormat(PRIVATE_KEY_FORMAT);
+
+        if (certificateProvisionProperties.commonName() != null) {
+            builder.commonName(certificateProvisionProperties.commonName());
+        }
+        if (certificateProvisionProperties.altNames() != null) {
+            builder.altNames(certificateProvisionProperties.altNames());
+        }
+        if (certificateProvisionProperties.ipSubjectAltNames() != null) {
+            builder.ipSubjectAltNames(certificateProvisionProperties.ipSubjectAltNames());
+        }
+        return builder.build();
     }
 }

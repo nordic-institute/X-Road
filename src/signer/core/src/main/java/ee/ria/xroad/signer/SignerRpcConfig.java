@@ -27,7 +27,7 @@ package ee.ria.xroad.signer;
 
 import lombok.extern.slf4j.Slf4j;
 import org.niis.xroad.common.rpc.RpcConfig;
-import org.niis.xroad.common.rpc.RpcServiceProperties;
+import org.niis.xroad.common.rpc.RpcServerProperties;
 import org.niis.xroad.common.rpc.server.RpcServerConfig;
 import org.niis.xroad.confclient.proto.ConfClientRpcClientConfiguration;
 import org.springframework.boot.context.properties.ConfigurationProperties;
@@ -41,17 +41,15 @@ import org.springframework.context.annotation.Import;
         RpcConfig.class,
         RpcServerConfig.class
 })
-@EnableConfigurationProperties({SignerRpcConfig.SignerRpcServiceProperties.class})
+@EnableConfigurationProperties({SignerRpcConfig.SignerRpcServerProperties.class})
 @Configuration
 public class SignerRpcConfig {
 
     @ConfigurationProperties(prefix = "xroad.signer.grpc")
-    static class SignerRpcServiceProperties extends RpcServiceProperties {
+    static class SignerRpcServerProperties extends RpcServerProperties {
 
-        SignerRpcServiceProperties(String listenAddress, int port,
-                                   String tlsTrustStore, char[] tlsTrustStorePassword,
-                                   String tlsKeyStore, char[] tlsKeyStorePassword) {
-            super(listenAddress, port, tlsTrustStore, tlsTrustStorePassword, tlsKeyStore, tlsKeyStorePassword);
+        SignerRpcServerProperties(String listenAddress, int port) {
+            super(listenAddress, port);
         }
     }
 }

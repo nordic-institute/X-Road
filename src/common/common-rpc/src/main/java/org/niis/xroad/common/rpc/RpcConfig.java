@@ -25,20 +25,28 @@
  */
 package org.niis.xroad.common.rpc;
 
+import ee.ria.xroad.common.properties.CommonRpcProperties;
+
 import org.niis.xroad.common.rpc.client.RpcChannelFactory;
+import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.scheduling.annotation.EnableScheduling;
+import org.springframework.scheduling.concurrent.SimpleAsyncTaskScheduler;
 import org.springframework.vault.core.VaultTemplate;
-
-import java.security.cert.CertificateException;
 
 @Configuration
 @EnableScheduling
+@EnableConfigurationProperties({CommonRpcProperties.class,
+        CommonRpcProperties.CertificateProvisionProperties.class})
 public class RpcConfig {
+    public static final String BEAN_VIRTUAL_THREAD_SCHEDULER = "virtualThreadTaskScheduler";
+
     @Bean
-    ReloadableVaultKeyManager reloadableVaultKeyManager(VaultTemplate vaultTemplate) throws CertificateException {
-        return new ReloadableVaultKeyManager(vaultTemplate);
+    ReloadableVaultKeyManager reloadableVaultKeyManager(VaultTemplate vaultTemplate,
+                                                        CommonRpcProperties.CertificateProvisionProperties provisionProperties)
+            throws Exception {
+        return new ReloadableVaultKeyManager(provisionProperties, vaultTemplate);
     }
 
     @Bean
@@ -47,9 +55,15 @@ public class RpcConfig {
     }
 
     @Bean
-    RpcCredentialsConfigurer rpcCredentialsConfigurer(ReloadableVaultKeyManager keyStoreLoader) {
-        return new RpcCredentialsConfigurer(keyStoreLoader);
+    RpcCredentialsConfigurer rpcCredentialsConfigurer(ReloadableVaultKeyManager keyStoreLoader,
+                                                      CommonRpcProperties rpcCommonProperties) {
+        return new RpcCredentialsConfigurer(rpcCommonProperties, keyStoreLoader);
     }
 
-
+    @Bean(BEAN_VIRTUAL_THREAD_SCHEDULER)
+    SimpleAsyncTaskScheduler simpleAsyncTaskScheduler() {
+        var scheduled = new SimpleAsyncTaskScheduler();
+        scheduled.setVirtualThreads(true);
+        return scheduled;
+    }
 }

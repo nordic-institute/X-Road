@@ -62,7 +62,7 @@ RUN mkdir /var/log/xroad && \
 
 #Set default environment variables
 ENV XROAD_DEPLOYMENT_TYPE=containerized
-ENV XROAD_CONFIG_SERVER_ENABLED=true
+ENV XROAD_APPLICATION_TYPE=ss
 
 USER xroad
 

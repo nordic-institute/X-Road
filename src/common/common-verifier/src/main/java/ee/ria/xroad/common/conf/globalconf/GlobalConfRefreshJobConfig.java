@@ -46,7 +46,7 @@ public class GlobalConfRefreshJobConfig {
         return new GlobalConfRefreshJob(globalConfProvider);
     }
 
-    @Bean
+    @Bean(BEAN_GLOBAL_CONF_SCHEDULER)
     ScheduledExecutorService globalConfRefreshScheduler() {
         return Executors.newSingleThreadScheduledExecutor();
     }
