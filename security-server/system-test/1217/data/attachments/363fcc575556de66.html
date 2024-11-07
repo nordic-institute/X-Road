@@ -1,0 +1,49 @@
+<div>
+    <h4>Rest call: http://localhost:32773/testca/sign?type=auto</h4>
+    <div class="content">
+  <strong>Request:</strong>
+  <pre class="details-content">curl -X POST \
+'http://localhost:32773/testca/sign?type=auto' \
+-H 'ACCEPT: */*' \
+-H 'CONTENT-LENGTH: 1239' \
+-H 'CONTENT-TYPE: multipart/form-data; charset=UTF-8; boundary=193061a6466' \
+-d '--193061a6466
+Content-Disposition: form-data; name=&quot;certreq&quot;; filename=&quot;sign_csr_20241107_member_DEV_COM_1234.pem&quot;
+Content-Type: application/pem-certificate-chain
+Content-Transfer-Encoding: binary
+
+-----BEGIN CERTIFICATE REQUEST-----
+MIICtzCCAZ8CAQAwRDELMAkGA1UEBhMCRkkxEDAOBgNVBAoMB3VpLXRlc3QxFDAS
+BgNVBAUTC0RFVi9TUzAvQ09NMQ0wCwYDVQQDDAQxMjM0MIIBIjANBgkqhkiG9w0B
+AQEFAAOCAQ8AMIIBCgKCAQEAtMxIeY/0QDikb/Hk9sg1xD9qo2rcXCpddQKxyObE
+2RU/qS+tQCZB+QuP26NOgBHZjtxBXZQY1p0ryp79NwyrCPphECj/tt/yoD/IxQ6n
+orOPdIGjQtcp4I9IDKSW+yZuXrfEwi5d5V0QZy7VdfHQVaDDB1xXGEG6Pb/onqD1
+PCJRfFZWxVadrq6TFJLLY3hvb0eYitngBQ55bxwExpnSW+4n44mO4p282Ol5nFom
+IQAxZgRMJlfkrHn3zSTHB1RdrwzMlJXvofJze43sUux4YvNbJG+erPvzJZHTKvOu
+ZLUtkJssciUBTecVkNKcTG+WG9D4msjHuhkvAEYHAQkptQIDAQABoC4wLAYJKoZI
+hvcNAQkOMR8wHTAOBgNVHREEBzAFggNzczAwCwYDVR0PBAQDAgJEMA0GCSqGSIb3
+DQEBCwUAA4IBAQCvtdzdl52PqnQV+FvyYfSlvY6sYKQJ7Yg87CST+hZ/LzspFoaZ
+My5tiWTX07KxanL/5pU+KL+xs3UaEEF+7qsbvGooGqu4WVmTqd0sZOTqMn2NkfA6
+MBfRE735mtk76e5wTKdemqvvBUUX5O9eynCguW4pRt7t8jQadIBC1I9rn+HcCctA
+4ki1Obq/n7q81mHOfIH+nP3s2pKAZQEk/6joFwvbmXKsBYnn5w/r/aeLew4MiL0q
+3Rzka4uTrzfnTxt6hWN+3u6JlC4fXjfdqefGYXx9iuD1k/iiGlSIrkSGS4uBhN3V
+NuOAyHH2vgCxsmiSUyl/tIz4Rf94bHFZEDFT
+-----END CERTIFICATE REQUEST-----
+
+--193061a6466--
+'
+</pre>
+</div>
+<div class="content">
+  <details>
+    <summary style="cursor:pointer">
+      <strong>Response:</strong>
+    </summary>
+    <pre class="details-content"><code class="json">{
+  &quot;headers&quot; : { },
+  &quot;body&quot; : &quot;Endpoint returned unknown content type, not putting it to the report&quot;,
+  &quot;status&quot; : 200
+}</code></pre>
+  </details>
+</div>
+</div>
