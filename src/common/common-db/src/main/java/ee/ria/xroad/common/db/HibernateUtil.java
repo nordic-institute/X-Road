@@ -161,23 +161,35 @@ public final class HibernateUtil {
         return new SessionFactoryCtx(sessionFactory);
     }
 
-    public static SessionFactory createSessionFactory(String name, Map<String, String> hibernateProperties) {
+    public static SessionFactory createSessionFactory(String name, Map<String, String> hibernateProperties, Interceptor interceptor) {
         log.trace("Creating session factory for '{}'...", name);
+        try {
+            Configuration configuration = createEmptyConfiguration();
+            if (interceptor != null) {
+                configuration.setInterceptor(interceptor);
+            }
 
-        Configuration configuration = createEmptyConfiguration();
+            configuration
+                    .configure()
+                    .configure(name + ".hibernate.cfg.xml");
 
-        configuration
-                .configure()
-                .configure(name + ".hibernate.cfg.xml");
+            if (hibernateProperties != null) {
+                hibernateProperties.forEach((key, value) -> configuration.setProperty("hibernate." + key, value));
+            } else {
+                throw new CodedException(X_DATABASE_ERROR, "Database (%s) properties not found.", name);
+            }
+            applySystemProperties(configuration, name);
 
-        if (hibernateProperties != null) {
-            hibernateProperties.forEach((key, value) -> configuration.setProperty("hibernate." + key, value));
-        } else {
-            throw new CodedException(X_DATABASE_ERROR, "Database (%s) properties not found.", name);
+            return configuration.buildSessionFactory();
+        } catch (Exception e) {
+            log.error("Failed to create session factory", e);
+
+            throw new CodedException(X_DATABASE_ERROR, e, "Error accessing database (%s)", name);
         }
-        applySystemProperties(configuration, name);
+    }
 
-        return configuration.buildSessionFactory();
+    public static SessionFactory createSessionFactory(String name, Map<String, String> hibernateProperties) {
+        return createSessionFactory(name, hibernateProperties, null);
     }
 
     static Configuration createEmptyConfiguration() {

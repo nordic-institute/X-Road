@@ -1,5 +1,6 @@
 /*
  * The MIT License
+ *
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
@@ -23,43 +24,15 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
+
 package ee.ria.xroad.opmonitordaemon;
 
-import ee.ria.xroad.common.db.DatabaseCtxV2;
-
-import org.junit.BeforeClass;
+import org.springframework.boot.context.properties.ConfigurationProperties;
 
 import java.util.Map;
 
-import static ee.ria.xroad.opmonitordaemon.OperationalDataTestUtil.prepareDatabase;
-
-/**
- * Base class for tests using database.
- */
-public class BaseTestUsingDB {
-
-    protected static final Map<String, String> HIBERNATE_PROPERTIES = Map.of(
-            "jdbc.batch_size", "100",
-            "dialect", "org.hibernate.dialect.HSQLDialect",
-            "connection.driver_class", "org.hsqldb.jdbcDriver",
-            "connection.url", "jdbc:hsqldb:mem:op-monitor;hsqldb.sqllog=3",
-            "connection.username", "opmonitor",
-            "connection.password", "opmonitor",
-            "hbm2ddl.auto", "create-drop"
-    );
-    protected static final DatabaseCtxV2 DATABASE_CTX = OpMonitorDaemonDatabaseCtx.create(HIBERNATE_PROPERTIES);
-    protected final OperationalDataRecordManager operationalDataRecordManager = new OperationalDataRecordManager(DATABASE_CTX);
-
-    protected BaseTestUsingDB() {
-    }
-
-    /**
-     * Prepares the testing database.
-     *
-     * @throws Exception if an error occurs.
-     */
-    @BeforeClass
-    public static void setUpBeforeClass() throws Exception {
-        prepareDatabase(DATABASE_CTX);
-    }
+@ConfigurationProperties(prefix = "xroad.op-monitor")
+public record OpMonitorProperties(
+        Map<String, String> hibernate // op-monitor.hibernate.* properties from db-properties file
+) {
 }

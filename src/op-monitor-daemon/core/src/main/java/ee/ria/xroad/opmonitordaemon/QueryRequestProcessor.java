@@ -69,11 +69,12 @@ class QueryRequestProcessor {
     QueryRequestProcessor(GlobalConfProvider globalConfProvider,
                           RequestWrapper request,
                           ResponseWrapper response,
-                          MetricRegistry healthMetricRegistry) {
+                          MetricRegistry healthMetricRegistry,
+                          OperationalDataRecordManager operationalDataRecordManager) {
         this.request = request;
         this.response = response;
 
-        this.operationalDataHandler = new OperationalDataRequestHandler(globalConfProvider);
+        this.operationalDataHandler = new OperationalDataRequestHandler(globalConfProvider, operationalDataRecordManager);
         this.healthDataHandler = new HealthDataRequestHandler(
                 healthMetricRegistry);
 

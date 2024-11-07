@@ -72,7 +72,7 @@ public class OperationalDataRequestHandlerTest extends BaseTestUsingDB {
         ClientId client = ClientId.Conf.create(
                 "XTEE-CI-XM", "00000001", "GOV", "System1");
         OperationalDataRequestHandler handler =
-                new OperationalDataRequestHandler(mock(GlobalConfProvider.class));
+                new OperationalDataRequestHandler(mock(GlobalConfProvider.class), operationalDataRecordManager);
         long recordsAvailableBefore = TimeUtils.getEpochSecond();
 
         GetSecurityServerOperationalDataResponseType response = handler

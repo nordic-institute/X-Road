@@ -28,7 +28,11 @@ package ee.ria.xroad.opmonitordaemon.config;
 import ee.ria.xroad.common.conf.globalconf.GlobalConfBeanConfig;
 import ee.ria.xroad.common.conf.globalconf.GlobalConfProvider;
 import ee.ria.xroad.common.conf.globalconf.GlobalConfRefreshJobConfig;
+import ee.ria.xroad.common.db.DatabaseCtxV2;
 import ee.ria.xroad.opmonitordaemon.OpMonitorDaemon;
+import ee.ria.xroad.opmonitordaemon.OpMonitorDaemonDatabaseCtx;
+import ee.ria.xroad.opmonitordaemon.OpMonitorProperties;
+import ee.ria.xroad.opmonitordaemon.OperationalDataRecordManager;
 
 import org.niis.xroad.common.rpc.RpcServiceProperties;
 import org.niis.xroad.confclient.proto.ConfClientRpcClientConfiguration;
@@ -43,13 +47,24 @@ import org.springframework.context.annotation.Import;
         GlobalConfRefreshJobConfig.class,
         ConfClientRpcClientConfiguration.class
 })
-@EnableConfigurationProperties({OpMonitorDaemonRootConfig.OpMonitorRpcServiceProperties.class})
+@EnableConfigurationProperties({OpMonitorDaemonRootConfig.OpMonitorRpcServiceProperties.class, OpMonitorProperties.class})
 @Configuration
 public class OpMonitorDaemonRootConfig {
 
     @Bean
-    OpMonitorDaemon opMonitorDaemon(GlobalConfProvider globalConfProvider) throws Exception {
-        return new OpMonitorDaemon(globalConfProvider);
+    OpMonitorDaemon opMonitorDaemon(GlobalConfProvider globalConfProvider,
+                                    OperationalDataRecordManager operationalDataRecordManager) throws Exception {
+        return new OpMonitorDaemon(globalConfProvider, operationalDataRecordManager);
+    }
+
+    @Bean
+    DatabaseCtxV2 opMonitorDatabaseCtx(OpMonitorProperties opMonitorProperties) {
+        return OpMonitorDaemonDatabaseCtx.create(opMonitorProperties.hibernate());
+    }
+
+    @Bean
+    OperationalDataRecordManager operationalDataRecordManager(DatabaseCtxV2 databaseCtx) {
+        return new OperationalDataRecordManager(databaseCtx);
     }
 
     @ConfigurationProperties(prefix = "xroad.op-monitor.grpc")
