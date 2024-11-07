@@ -270,18 +270,6 @@ public final class SignerProxy {
     }
 
     /**
-     * Generate a new RSA key for the token with the given ID.
-     *
-     * @param tokenId  ID of the token
-     * @param keyLabel label of the key
-     * @return generated key KeyInfo object
-     * @throws Exception if any errors occur
-     */
-    public static KeyInfo generateKey(String tokenId, String keyLabel) throws Exception {
-        return generateKey(tokenId, keyLabel, null);
-    }
-
-    /**
      * Generate a self-signed certificate for the key with the given ID.
      *
      * @param keyId      ID of the key

@@ -25,6 +25,8 @@
  */
 package ee.ria.xroad.signer.console;
 
+import ee.ria.xroad.common.crypto.identifier.KeyAlgorithm;
+import ee.ria.xroad.common.crypto.identifier.SignMechanism;
 import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.signer.protocol.dto.CertificateInfo;
 import ee.ria.xroad.signer.protocol.dto.KeyInfo;
@@ -92,11 +94,13 @@ final class Utils {
                 System.out.println(padding + "<no public key available>");
             }
         } else {
-            String format = padding + "Key: %s (%s, %s)";
+            String format = padding + "Key: %s (%s, %s, %s)";
 
             String available = key.isAvailable() ? "available" : "unavailable";
+            KeyAlgorithm keyAlgorithm = SignMechanism.valueOf(key.getSignMechanismName()).keyAlgorithm();
 
-            System.out.println(String.format(format, key.getId(), key.getUsage(), available));
+            System.out.printf(format, key.getId(), key.getUsage(), keyAlgorithm, available);
+            System.out.println();
         }
     }
 

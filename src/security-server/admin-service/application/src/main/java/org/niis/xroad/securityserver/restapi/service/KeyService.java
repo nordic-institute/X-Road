@@ -26,6 +26,7 @@
 package org.niis.xroad.securityserver.restapi.service;
 
 import ee.ria.xroad.common.CodedException;
+import ee.ria.xroad.common.crypto.identifier.KeyAlgorithm;
 import ee.ria.xroad.signer.protocol.dto.CertificateInfo;
 import ee.ria.xroad.signer.protocol.dto.KeyInfo;
 import ee.ria.xroad.signer.protocol.dto.KeyUsageInfo;
@@ -161,7 +162,8 @@ public class KeyService {
 
         KeyInfo keyInfo = null;
         try {
-            keyInfo = signerProxyFacade.generateKey(tokenId, keyLabel);
+            //TODO #EC
+            keyInfo = signerProxyFacade.generateKey(tokenId, keyLabel, KeyAlgorithm.RSA);
         } catch (CodedException e) {
             throw e;
         } catch (Exception other) {
