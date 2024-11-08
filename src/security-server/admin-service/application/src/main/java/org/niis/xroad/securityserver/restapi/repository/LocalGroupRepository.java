@@ -25,12 +25,13 @@
  */
 package org.niis.xroad.securityserver.restapi.repository;
 
+import ee.ria.xroad.common.conf.serverconf.dao.GroupMemberDAOImpl;
 import ee.ria.xroad.common.conf.serverconf.dao.LocalGroupDAOImpl;
 import ee.ria.xroad.common.conf.serverconf.model.GroupMemberType;
 import ee.ria.xroad.common.conf.serverconf.model.LocalGroupType;
+import ee.ria.xroad.common.identifier.ClientId;
 
 import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 import org.hibernate.Session;
 import org.niis.xroad.restapi.util.PersistenceUtils;
 import org.springframework.stereotype.Repository;
@@ -41,17 +42,21 @@ import java.util.List;
 /**
  * LocalGroup repository
  */
-@Slf4j
 @Repository
 @Transactional
 @RequiredArgsConstructor
 public class LocalGroupRepository {
 
     private final PersistenceUtils persistenceUtils;
+    private final GroupMemberDAOImpl groupMemberDAO = new GroupMemberDAOImpl();
 
     public LocalGroupType getLocalGroup(Long entityId) {
         LocalGroupDAOImpl localGroupDAO = new LocalGroupDAOImpl();
         return localGroupDAO.getLocalGroup(persistenceUtils.getCurrentSession(), entityId);
+    }
+
+    public void deleteGroupMembersByMemberId(ClientId.Conf memberId) {
+        groupMemberDAO.deleteByGroupMemberId(persistenceUtils.getCurrentSession(), memberId);
     }
 
     /**
