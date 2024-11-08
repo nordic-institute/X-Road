@@ -22,21 +22,14 @@ xroad:
         connection:
           url: jdbc:postgresql://db-serverconf:5432/serverconf
           password: secret
-    grpc:
-      tls-enabled: true
+    rpc:
       channel:
         configuration-client:
           host: confclient
-          port: 5665
-          deadline-after: 60000
         proxy:
           host: proxy
-          port: 5567
-          deadline-after: 60000
         signer:
           host: signer
-          port: 5560
-          deadline-after: 60000
   configuration-client:
     grpc:
       listen-address: 0.0.0.0

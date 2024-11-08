@@ -1,9 +1,2 @@
-xroad:
-  common:
-    grpc:
-      channel:
-        configuration-client:
-          host: 0.0.0.0
-
 logging:
   config: classpath:logback-containerized.xml
