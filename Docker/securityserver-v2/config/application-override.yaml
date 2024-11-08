@@ -39,13 +39,13 @@ xroad:
           deadline-after: 60000
   configuration-client:
     grpc:
-      listen-address: configuration-client
+      listen-address: 0.0.0.0
   proxy:
     grpc:
-      listen-address: proxy
+      listen-address: 0.0.0.0
   signer:
     grpc:
-      listen-address: signer
+      listen-address: 0.0.0.0
   proxy-ui-api:
     security-server-url: https://proxy:8443
 logging:

@@ -39,9 +39,9 @@ import java.util.Collection;
 public class RpcServerConfig {
 
     @Bean
-    RpcServer confClientRpcServer(Collection<BindableService> services,
-                                  RpcServerProperties rpcServerProperties,
-                                  RpcCredentialsConfigurer rpcCredentialsConfigurer) {
+    RpcServer rpcServer(Collection<BindableService> services,
+                        RpcServerProperties rpcServerProperties,
+                        RpcCredentialsConfigurer rpcCredentialsConfigurer) {
         var serverCredentials = rpcCredentialsConfigurer.createServerCredentials();
         return new RpcServer(rpcServerProperties.getListenAddress(), rpcServerProperties.getPort(), serverCredentials,
                 builder -> services.forEach(service -> {
