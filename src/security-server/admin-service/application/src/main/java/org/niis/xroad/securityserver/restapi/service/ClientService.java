@@ -48,8 +48,10 @@ import org.niis.xroad.restapi.service.ServiceException;
 import org.niis.xroad.restapi.service.UnhandledWarningsException;
 import org.niis.xroad.securityserver.restapi.cache.CurrentSecurityServerId;
 import org.niis.xroad.securityserver.restapi.cache.CurrentSecurityServerSignCertificates;
+import org.niis.xroad.securityserver.restapi.repository.AccessRightRepository;
 import org.niis.xroad.securityserver.restapi.repository.ClientRepository;
 import org.niis.xroad.securityserver.restapi.repository.IdentifierRepository;
+import org.niis.xroad.securityserver.restapi.repository.LocalGroupRepository;
 import org.niis.xroad.securityserver.restapi.util.ClientUtils;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
@@ -105,6 +107,8 @@ public class ClientService {
     private final GlobalConfProvider globalConfProvider;
     private final ServerConfService serverConfService;
     private final IdentifierRepository identifierRepository;
+    private final LocalGroupRepository localGroupRepository;
+    private final AccessRightRepository accessRightRepository;
     private final ManagementRequestSenderService managementRequestSenderService;
     private final CurrentSecurityServerId currentSecurityServerId;
     private final AuditDataHelper auditDataHelper;
@@ -822,6 +826,9 @@ public class ClientService {
         if (!allowedStatuses.contains(clientType.getClientStatus())) {
             throw new ActionNotPossibleException("cannot delete client with status " + clientType.getClientStatus());
         }
+        // we also remove local group members and access rights what is given to this client
+        localGroupRepository.deleteGroupMembersByMemberId(clientType.getIdentifier());
+        accessRightRepository.deleteBySubjectId(clientType.getIdentifier());
         removeLocalClient(clientType);
     }
 
