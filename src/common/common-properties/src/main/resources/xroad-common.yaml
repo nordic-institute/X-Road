@@ -20,7 +20,7 @@ xroad:
       use-tls: true
       certificate-provisioning:
         issuance-role-name: xrd-rpc-internal
-        common-name: localhost
+        common-name: ${XROAD_HOST:localhost}
         ip-subject-alt-names:
           - 127.0.0.1
         ttl-minutes: 720 # 12 hours

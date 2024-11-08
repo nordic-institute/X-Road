@@ -99,6 +99,7 @@ services:
     image: xroad-ss-confclient:latest
     environment:
       - XROAD_CONFIG_SERVER_URI=http://config:5580
+      - XROAD_HOST=confclient
     healthcheck:
       interval: 5s
       retries: 40
@@ -119,6 +120,7 @@ services:
     image: xroad-ss-signer:latest
     environment:
       - XROAD_CONFIG_SERVER_URI=http://config:5580
+      - XROAD_HOST=signer
     volumes:
       - ./temp-mount-xroad:/etc/xroad
     healthcheck:
@@ -145,6 +147,7 @@ services:
     image: xroad-ss-proxy:latest
     environment:
       - XROAD_CONFIG_SERVER_URI=http://config:5580
+      - XROAD_HOST=proxy
     volumes:
       - ./temp-mount-xroad:/etc/xroad
     healthcheck:
