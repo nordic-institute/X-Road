@@ -25,12 +25,14 @@
  */
 package org.niis.xroad.securityserver.restapi.converter;
 
+import ee.ria.xroad.common.crypto.identifier.SignMechanism;
 import ee.ria.xroad.signer.protocol.dto.KeyInfo;
 import ee.ria.xroad.signer.protocol.dto.TokenInfo;
 
 import com.google.common.collect.Streams;
 import lombok.RequiredArgsConstructor;
 import org.niis.xroad.securityserver.restapi.openapi.model.Key;
+import org.niis.xroad.securityserver.restapi.openapi.model.KeyAlgorithm;
 import org.niis.xroad.securityserver.restapi.openapi.model.KeyUsageType;
 import org.niis.xroad.securityserver.restapi.service.PossibleActionsRuleEngine;
 import org.springframework.stereotype.Component;
@@ -81,6 +83,7 @@ public class KeyConverter {
         key.setId(keyInfo.getId());
         key.setName(keyInfo.getFriendlyName());
         key.setLabel(keyInfo.getLabel());
+        key.setKeyAlgorithm(mapKeyAlgorithm(keyInfo.getSignMechanismName()));
         if (keyInfo.getUsage() != null) {
             if (keyInfo.isForSigning()) {
                 key.setUsage(KeyUsageType.SIGNING);
@@ -107,6 +110,13 @@ public class KeyConverter {
         }
 
         return key;
+    }
+
+    private KeyAlgorithm mapKeyAlgorithm(String signMechanismName) {
+        return switch (SignMechanism.valueOf(signMechanismName).keyAlgorithm()) {
+            case RSA -> KeyAlgorithm.RSA;
+            case EC -> KeyAlgorithm.EC;
+        };
     }
 
     /**

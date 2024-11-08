@@ -71,7 +71,8 @@ public class AdminServiceProperties implements IpThrottlingFilterConfig,
         LimitRequestSizesFilter.Config,
         IdentifierValidationConfiguration.Config,
         AllowedFilesConfig,
-        UserRoleConfig {
+        UserRoleConfig,
+        KeyAlgorithmConfig {
 
     /**
      * Controls the rate of global configuration generation in seconds.
@@ -163,7 +164,9 @@ public class AdminServiceProperties implements IpThrottlingFilterConfig,
      */
     private EnumMap<Role, List<String>> complementaryUserRoleMappings;
 
+    /** Algorithm that will be used when creating external configuration signing key. */
     private KeyAlgorithm externalKeyAlgorithm;
+    /** Algorithm that will be used when creating internal configuration signing key. */
     private KeyAlgorithm internalKeyAlgorithm;
 
     @Override

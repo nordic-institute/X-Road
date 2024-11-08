@@ -26,6 +26,8 @@
  */
 package org.niis.xroad.securityserver.restapi.config;
 
+import ee.ria.xroad.common.crypto.identifier.KeyAlgorithm;
+
 import lombok.Getter;
 import lombok.Setter;
 import org.niis.xroad.common.api.throttle.IpThrottlingFilterConfig;
@@ -63,7 +65,8 @@ public class AdminServiceProperties implements IpThrottlingFilterConfig,
         ApiCachingConfiguration.Config,
         LimitRequestSizesFilter.Config,
         IdentifierValidationConfiguration.Config,
-        UserRoleConfig {
+        UserRoleConfig,
+        KeyAlgorithmConfig {
 
     /**
      * Controls how many requests from an IP address are allowed per minute.
@@ -125,6 +128,11 @@ public class AdminServiceProperties implements IpThrottlingFilterConfig,
      * Configures additional UNIX groups mapped to X-Road user roles.
      */
     private EnumMap<Role, List<String>> complementaryUserRoleMappings;
+
+    /** Algorithm that will be used when creating authentication certificate. */
+    private KeyAlgorithm authenticationKeyAlgorithm;
+    /** Algorithm that will be used when creating signing certificate. */
+    private KeyAlgorithm signingKeyAlgorithm;
 
     @Override
     public EnumMap<Role, List<String>> getUserRoleMappings() {
