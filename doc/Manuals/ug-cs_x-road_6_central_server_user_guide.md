@@ -180,6 +180,8 @@ Doc. ID: UG-CS
 - [19 Additional Security Hardening](#19-additional-security-hardening)
 - [20 Passing additional parameters to psql](#20-passing-additional-parameters-to-psql)
 - [21 Migrating to EC based Configuration Signing keys](#21-migrating-to-ec-based-configuration-signing-keys)
+  - [21.1 Steps to enable EC based signing keys](#211-Steps-to-enable-EC-based-signing-keys)
+  - [21.2 Backwards compatibility](#212-Backwards-compatibility)
 <!-- tocstop -->
 
 # License
@@ -1761,13 +1763,10 @@ In case it is needed to pass additional flags to internally initialized `PGOPTIO
 
 # 21 Migrating to EC based Configuration Signing keys
 
+## 21.1 Steps to enable EC based signing keys
+
 Since version 7.6.0 Central Server supports ECDSA based Configuration Signing keys. By default, both internal and external configuration signing keys will use RSA algorithm as in previous versions. EC algorithm can be enabled separately for internal and external keys so migration can be done steps first internal and then external keys or vice versa.
 The instructions how to start using internal and external signing EC keys are listed below.
-
-Prerequisites
-
-* If internal key will use EC then all dependant security servers should be also of at least version 7.6.0. If not, they must be upgraded first otherwise they will not be able to verify the configuration signatures.
-* If external key will use EC then all dependant security servers in federations should be also of at least version 7.6.0. If not, they must be upgraded first otherwise they will not be able to verify the configuration signatures.
 
 1. Update the configuration to use EC based keys. This can be done by updating the configuration file `/etc/xroad/conf.d/local.ini` and adding the following lines:
 
@@ -1779,3 +1778,7 @@ external-key-algorithm = EC
 
 2. Restart the `xroad-center` service to apply the changes made to the configuration file.
 3. Follow the instructions in the [Generating a Configuration Signing Key](#541-generating-a-configuration-signing-key) to generate new keys, which will be using EC algorithm now.
+
+## 21.2 Backwards compatibility
+
+If Central Server is configured to use EC based signing keys, then Security Servers with versions older than 7.6.0 will not be able to download the configuration. Although EC support can be enabled separately for internal and external keys so if your X-Road instance consists only of Security servers of version 7.6.0 or newer but there is older Security servers in federation instances then EC can be enabled only for internal keys to keep federation working as expected.
