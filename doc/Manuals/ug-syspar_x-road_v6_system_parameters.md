@@ -641,7 +641,7 @@ This chapter describes the system parameters used by the X-Road configuration pr
 > TLS_DHE_RSA_WITH_AES_256_CBC_SHA256,
 > TLS_ECDHE_ECDSA_WITH_AES_256_CBC_SHA384
 
-> (see [*https://docs.oracle.com/javase/8/docs/technotes/guides/security/SunProviders.html#SunJSSEProvider*](https://docs.oracle.com/javase/8/docs/technotes/guides/security/SunProviders.html#SunJSSEProvider) for possible values)
+> (see [*https://docs.oracle.com/en/java/javase/21/docs/specs/security/standard-names.html#jsse-cipher-suite-names*](https://docs.oracle.com/en/java/javase/21/docs/specs/security/standard-names.html#jsse-cipher-suite-names) for possible values)
 >
 > Note. OpenJDK 8 on RHEL 7 supports ECDHE key agreement protocol starting from RHEL 7.3. In RHEL 7 versions prior to RHEL 7.3 only DHE cipher suites are supported.
 
