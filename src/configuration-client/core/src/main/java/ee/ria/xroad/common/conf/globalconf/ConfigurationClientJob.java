@@ -40,6 +40,8 @@ import org.quartz.JobExecutionContext;
 import org.quartz.JobExecutionException;
 import org.quartz.SchedulerException;
 
+import java.io.FileNotFoundException;
+
 /**
  * Quartz job implementation for the configuration client.
  */
@@ -64,24 +66,20 @@ public class ConfigurationClientJob extends RetryingQuartzJob {
     protected void executeWithRetry(JobExecutionContext context) throws Exception {
         try {
             configClient.execute();
-
-            DiagnosticsStatus status =
-                    new DiagnosticsStatus(DiagnosticsErrorCodes.RETURN_SUCCESS, TimeUtils.offsetDateTimeNow(),
-                            TimeUtils.offsetDateTimeNow()
-                                    .plusSeconds(configurationClientProperties.updateInterval()));
-
+            context.setResult(status(DiagnosticsErrorCodes.RETURN_SUCCESS));
             globalConfRpcCache.refreshCache();
-
-            context.setResult(status);
+        } catch (FileNotFoundException e) {
+            context.setResult(status(DiagnosticsErrorCodes.ERROR_CODE_UNINITIALIZED));
         } catch (Exception e) {
-            DiagnosticsStatus status = new DiagnosticsStatus(ConfigurationClientUtils.getErrorCode(e),
-                    TimeUtils.offsetDateTimeNow(),
-                    TimeUtils.offsetDateTimeNow()
-                            .plusSeconds(configurationClientProperties.updateInterval()));
-            context.setResult(status);
-
+            context.setResult(status(ConfigurationClientUtils.getErrorCode(e)));
             throw new JobExecutionException(e);
         }
+    }
+
+    private DiagnosticsStatus status(int errorCode) {
+        return new DiagnosticsStatus(errorCode,
+                TimeUtils.offsetDateTimeNow(),
+                TimeUtils.offsetDateTimeNow().plusSeconds(configurationClientProperties.updateInterval()));
     }
 
     @Override

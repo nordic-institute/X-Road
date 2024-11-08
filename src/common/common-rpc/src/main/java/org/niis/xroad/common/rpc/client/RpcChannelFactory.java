@@ -58,7 +58,7 @@ public final class RpcChannelFactory {
             throw new IllegalArgumentException("Deadline must be greater than 0");
         }
 
-        log.info("Starting grpc client to {}:{}, deadline: [] {}, credentials: [{}]", host, port,
+        log.info("Starting grpc client to {}:{}, deadline: [{}], credentials: [{}]", host, port,
                 channelProperties.getDeadlineAfter(),
                 credentials.getClass().getSimpleName());
 
