@@ -49,7 +49,7 @@ import org.niis.xroad.cs.admin.api.dto.HAConfigStatus;
 import org.niis.xroad.cs.admin.api.dto.KeyLabel;
 import org.niis.xroad.cs.admin.api.facade.SignerProxyFacade;
 import org.niis.xroad.cs.admin.api.service.SystemParameterService;
-import org.niis.xroad.cs.admin.core.config.AdminServiceProperties;
+import org.niis.xroad.cs.admin.core.config.KeyAlgorithmConfig;
 import org.niis.xroad.cs.admin.core.entity.ConfigurationSigningKeyEntity;
 import org.niis.xroad.cs.admin.core.entity.ConfigurationSourceEntity;
 import org.niis.xroad.cs.admin.core.entity.mapper.ConfigurationSigningKeyMapper;
@@ -113,7 +113,7 @@ class ConfigurationSigningKeysServiceImplTest {
     @Mock
     private SystemParameterService systemParameterService;
     @Mock
-    private AdminServiceProperties adminServiceProperties;
+    private KeyAlgorithmConfig keyAlgorithmConfig;
     @Spy
     private final ConfigurationSigningKeyMapper configurationSigningKeyMapper = new ConfigurationSigningKeyMapperImpl();
     @Spy
@@ -129,7 +129,7 @@ class ConfigurationSigningKeysServiceImplTest {
                 configurationSourceRepository,
                 configurationSigningKeyMapper,
                 withDetailsMapper,
-                adminServiceProperties,
+                keyAlgorithmConfig,
                 signerProxyFacade,
                 tokenActionsResolver,
                 signingKeyActionsResolver,
@@ -236,7 +236,7 @@ class ConfigurationSigningKeysServiceImplTest {
                 eq(SIGNING_KEY_CERT_NOT_AFTER))
         ).thenReturn(new byte[0]);
         when(systemParameterService.getInstanceIdentifier()).thenReturn(INSTANCE);
-        when(adminServiceProperties.getInternalKeyAlgorithm()).thenReturn(KeyAlgorithm.RSA);
+        when(keyAlgorithmConfig.getInternalKeyAlgorithm()).thenReturn(KeyAlgorithm.RSA);
 
         var result = configurationSigningKeysServiceImpl.addKey(INTERNAL_CONFIGURATION,
                 TOKEN_ID, KEY_LABEL);
