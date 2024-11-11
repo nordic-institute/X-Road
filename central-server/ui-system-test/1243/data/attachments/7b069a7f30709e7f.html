@@ -1,0 +1,35 @@
+<div>
+    <h4>Rest call: https://localhost:32769/api/v1/management-requests</h4>
+    <div class="content">
+  <strong>Request:</strong>
+  <pre class="details-content">curl -X POST \
+'https://localhost:32769/api/v1/management-requests' \
+-H 'ACCEPT: application/json' \
+-H 'AUTHORIZATION: X-ROAD-APIKEY TOKEN=b51d6538-1a45-48e2-88c8-f749d0180eb3' \
+-H 'CONTENT-LENGTH: 302' \
+-H 'CONTENT-TYPE: application/json' \
+-d '{&quot;type&quot;:&quot;CLIENT_REGISTRATION_REQUEST&quot;,&quot;id&quot;:null,&quot;type&quot;:&quot;CLIENT_REGISTRATION_REQUEST&quot;,&quot;origin&quot;:&quot;CENTER&quot;,&quot;security_server_owner&quot;:null,&quot;security_server_id&quot;:&quot;CS-E2E:E2E-TC1:e2e-tc1-member-subsystem:E2E-SS1&quot;,&quot;status&quot;:null,&quot;created_at&quot;:null,&quot;updated_at&quot;:null,&quot;client_id&quot;:&quot;CS-E2E:E2E-TC1:e2e-tc4-test-member&quot;}'
+</pre>
+</div>
+<div class="content">
+  <details>
+    <summary style="cursor:pointer">
+      <strong>Response:</strong>
+    </summary>
+    <pre class="details-content"><code class="json">{
+  &quot;headers&quot; : { },
+  &quot;body&quot; : {
+    &quot;type&quot; : &quot;CLIENT_REGISTRATION_REQUEST&quot;,
+    &quot;id&quot; : 9,
+    &quot;origin&quot; : &quot;CENTER&quot;,
+    &quot;security_server_id&quot; : &quot;CS-E2E:E2E-TC1:e2e-tc1-member-subsystem:E2E-SS1&quot;,
+    &quot;status&quot; : &quot;WAITING&quot;,
+    &quot;created_at&quot; : &quot;2024-11-11T08:05:51.68042Z&quot;,
+    &quot;updated_at&quot; : &quot;2024-11-11T08:05:51.68042Z&quot;,
+    &quot;client_id&quot; : &quot;CS-E2E:E2E-TC1:e2e-tc4-test-member&quot;
+  },
+  &quot;status&quot; : 202
+}</code></pre>
+  </details>
+</div>
+</div>

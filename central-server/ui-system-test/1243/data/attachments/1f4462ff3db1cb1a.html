@@ -1,0 +1,36 @@
+<div>
+    <h4>Rest call: https://localhost:32769/api/v1/management-requests</h4>
+    <div class="content">
+  <strong>Request:</strong>
+  <pre class="details-content">curl -X POST \
+'https://localhost:32769/api/v1/management-requests' \
+-H 'ACCEPT: application/json' \
+-H 'AUTHORIZATION: X-ROAD-APIKEY TOKEN=990777ea-e8a0-4b07-93a2-8b17177aeec8' \
+-H 'CONTENT-LENGTH: 1982' \
+-H 'CONTENT-TYPE: application/json' \
+-d '{&quot;type&quot;:&quot;AUTH_CERT_REGISTRATION_REQUEST&quot;,&quot;id&quot;:null,&quot;type&quot;:&quot;AUTH_CERT_REGISTRATION_REQUEST&quot;,&quot;origin&quot;:&quot;CENTER&quot;,&quot;security_server_owner&quot;:null,&quot;security_server_id&quot;:&quot;CS-E2E:E2E-TC1:e2e-tc1-member-subsystem:E2E-SS1&quot;,&quot;status&quot;:null,&quot;created_at&quot;:null,&quot;updated_at&quot;:null,&quot;server_address&quot;:&quot;security-server-address-E2E-SS1&quot;,&quot;authentication_certificate&quot;:&quot;MIIEyDCCArCgAwIBAgIBAjANBgkqhkiG9w0BAQsFADAfMR0wGwYDVQQDExRTdWJqZWN0LUUyZS10ZXN0MiBDQTAeFw0yNDExMTEwODA0NDBaFw0yNTExMTMwODA1NDBaMBwxGjAYBgNVBAMTEVN1YmplY3QtMi1FMkUtU1MxMIICIjANBgkqhkiG9w0BAQEFAAOCAg8AMIICCgKCAgEArHCiVD1FsLGcEtDVb/cVBn84paANGNhCQ6ol2AuXmm7M4YznZ1roquS10yMEBz/RVpXbFluEuGlkFUzo3DhOeQsb8GJp8OOoJ2qIPuEJZ289AkyRPGyGjxMji5DAqgduPKBWBSSK/TJK/ku8UkOW7Pd8vC6UY/r0tgH8i/5P7cA7qpXNt5wRCTv/aj/Q9Jhmc+Iqtb/JgXNwfw+031ppZiRwvMljSslZy9Epdm48iLxGNuJTxLL5HIavmE7wJMq6hcVd8ASWGBW90VyubXN0Et4ol844WagDlTiwuNl+ZsWGQS+sYzH2BuOSHT+Tie1J0CvrFAwiwoCnxG/dvwnDT1Xx5RaTyQrweIJ6v0Nz9Fdf/sIcclXQez7KmlcRXRZ6C6y3uTI3mT9NNF+njIq2yclkVZqOyzFJoQbqNH/nOsl2DSWHfKuOGzZOgf54Vn9DY1SPwl0+a9JDJeWa3znJzF1de5l5nlQh/Zp1TfwA29rrP5M7KCZnhWlhRvezzl+loQTmti/F9eOXWg6FUtX8yLu8dCLGCmzPHCQFaWiUN0bH0Sg5/P6i+rAuMsD4T+xAtjeJ202v63cX5WDBowKY2eG3rAPsXZC6Wy/0vmckARyMh0RcTvdcp2+l3hBOfsJDHs3RYKvWdTRhNzfkHEvr2OmpYoI4eo2Dz+m3+JzZx1kCAwEAAaMSMBAwDgYDVR0PAQH/BAQDAgeAMA0GCSqGSIb3DQEBCwUAA4ICAQAn16wvdywV/s/AOqyPdMZnE0/MIYtncsTETmv5/eYTpEyxcJGYtyLO1vxk+nIR4K/YW+jr4T7CGqaRN3Vs3zEv0DiaM4npsGIpUbNklU8O5/ybFElhxXzI2wddzXikWZLq/bI9GCTizVaZp1PnuiJ796rGIwHkg7KnoHYYkMtfACBvbTGE1wTaT+MYS0KmPaTvZvwUfWvP6jlJevOfQErYgYAUzGOYU+OD+mRDQ21TedfYflT/COgCh3fi06dlMcnZJb9prNqD5bhXabPPN+yvc/Uma6QUBYjBoGECRBNaFk0nsjmghuSiOKgm7WlbUhsDygaOxrSv/I3ppH3dxj/PS7xs1a7ogeHMF27Tqykfcs9DssNOizJ/kGdR7Z8O5TailJnUgoCXKKZH2zHQWESKe8Bgp3AIL0UOGjZcxnaHGNSKz1KPO7ebO0MmES/ejr6pa9R4tsyp5afoVhqHAS+u54WO3UFKCfPyS6zfqbZpNWuC9SIMrzXF2Qb7aBne21UcOaoGpYNFokVO1z5ZwYi63OzpZEEjVNrvVD02UzV4BtvVN73iR/NkR22P8AP94WdNXicB5sXiPTAMrfnSWIAAz3RvOQZTs5UBiNgdwtHEklNjhkAx1RQTGQe6Tzy6UuHqklpfWq946qbGcidb/rl8mLFkRuZOeMY6JRvLXbLAFQ==&quot;}'
+</pre>
+</div>
+<div class="content">
+  <details>
+    <summary style="cursor:pointer">
+      <strong>Response:</strong>
+    </summary>
+    <pre class="details-content"><code class="json">{
+  &quot;headers&quot; : { },
+  &quot;body&quot; : {
+    &quot;type&quot; : &quot;AUTH_CERT_REGISTRATION_REQUEST&quot;,
+    &quot;id&quot; : 6,
+    &quot;origin&quot; : &quot;CENTER&quot;,
+    &quot;security_server_id&quot; : &quot;CS-E2E:E2E-TC1:e2e-tc1-member-subsystem:E2E-SS1&quot;,
+    &quot;status&quot; : &quot;WAITING&quot;,
+    &quot;created_at&quot; : &quot;2024-11-11T08:05:40.885239Z&quot;,
+    &quot;updated_at&quot; : &quot;2024-11-11T08:05:40.885239Z&quot;,
+    &quot;server_address&quot; : &quot;security-server-address-E2E-SS1&quot;,
+    &quot;authentication_certificate&quot; : &quot;MIIEyDCCArCgAwIBAgIBAjANBgkqhkiG9w0BAQsFADAfMR0wGwYDVQQDExRTdWJqZWN0LUUyZS10ZXN0MiBDQTAeFw0yNDExMTEwODA0NDBaFw0yNTExMTMwODA1NDBaMBwxGjAYBgNVBAMTEVN1YmplY3QtMi1FMkUtU1MxMIICIjANBgkqhkiG9w0BAQEFAAOCAg8AMIICCgKCAgEArHCiVD1FsLGcEtDVb/cVBn84paANGNhCQ6ol2AuXmm7M4YznZ1roquS10yMEBz/RVpXbFluEuGlkFUzo3DhOeQsb8GJp8OOoJ2qIPuEJZ289AkyRPGyGjxMji5DAqgduPKBWBSSK/TJK/ku8UkOW7Pd8vC6UY/r0tgH8i/5P7cA7qpXNt5wRCTv/aj/Q9Jhmc+Iqtb/JgXNwfw+031ppZiRwvMljSslZy9Epdm48iLxGNuJTxLL5HIavmE7wJMq6hcVd8ASWGBW90VyubXN0Et4ol844WagDlTiwuNl+ZsWGQS+sYzH2BuOSHT+Tie1J0CvrFAwiwoCnxG/dvwnDT1Xx5RaTyQrweIJ6v0Nz9Fdf/sIcclXQez7KmlcRXRZ6C6y3uTI3mT9NNF+njIq2yclkVZqOyzFJoQbqNH/nOsl2DSWHfKuOGzZOgf54Vn9DY1SPwl0+a9JDJeWa3znJzF1de5l5nlQh/Zp1TfwA29rrP5M7KCZnhWlhRvezzl+loQTmti/F9eOXWg6FUtX8yLu8dCLGCmzPHCQFaWiUN0bH0Sg5/P6i+rAuMsD4T+xAtjeJ202v63cX5WDBowKY2eG3rAPsXZC6Wy/0vmckARyMh0RcTvdcp2+l3hBOfsJDHs3RYKvWdTRhNzfkHEvr2OmpYoI4eo2Dz+m3+JzZx1kCAwEAAaMSMBAwDgYDVR0PAQH/BAQDAgeAMA0GCSqGSIb3DQEBCwUAA4ICAQAn16wvdywV/s/AOqyPdMZnE0/MIYtncsTETmv5/eYTpEyxcJGYtyLO1vxk+nIR4K/YW+jr4T7CGqaRN3Vs3zEv0DiaM4npsGIpUbNklU8O5/ybFElhxXzI2wddzXikWZLq/bI9GCTizVaZp1PnuiJ796rGIwHkg7KnoHYYkMtfACBvbTGE1wTaT+MYS0KmPaTvZvwUfWvP6jlJevOfQErYgYAUzGOYU+OD+mRDQ21TedfYflT/COgCh3fi06dlMcnZJb9prNqD5bhXabPPN+yvc/Uma6QUBYjBoGECRBNaFk0nsjmghuSiOKgm7WlbUhsDygaOxrSv/I3ppH3dxj/PS7xs1a7ogeHMF27Tqykfcs9DssNOizJ/kGdR7Z8O5TailJnUgoCXKKZH2zHQWESKe8Bgp3AIL0UOGjZcxnaHGNSKz1KPO7ebO0MmES/ejr6pa9R4tsyp5afoVhqHAS+u54WO3UFKCfPyS6zfqbZpNWuC9SIMrzXF2Qb7aBne21UcOaoGpYNFokVO1z5ZwYi63OzpZEEjVNrvVD02UzV4BtvVN73iR/NkR22P8AP94WdNXicB5sXiPTAMrfnSWIAAz3RvOQZTs5UBiNgdwtHEklNjhkAx1RQTGQe6Tzy6UuHqklpfWq946qbGcidb/rl8mLFkRuZOeMY6JRvLXbLAFQ==&quot;
+  },
+  &quot;status&quot; : 202
+}</code></pre>
+  </details>
+</div>
+</div>
