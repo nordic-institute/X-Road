@@ -1,0 +1,1 @@
+[{"uid":"75dbc326a5879f74","name":"REST request is successful transferred over X-Road proxy","time":{"start":1731329419243,"stop":1731329419848,"duration":605},"status":"passed","severity":"normal"},{"uid":"b980038f867c1ccc","name":"Soap request is successful over proxy","time":{"start":1731329416191,"stop":1731329419199,"duration":3008},"status":"passed","severity":"normal"}]

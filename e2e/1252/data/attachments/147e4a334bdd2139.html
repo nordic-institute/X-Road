@@ -1,0 +1,31 @@
+<div>
+    <h4>Rest call: http://localhost:32769/r1/DEV/COM/1234/TestService/mock1</h4>
+    <div class="content">
+  <strong>Request:</strong>
+  <pre class="details-content">curl -X POST \
+'http://localhost:32769/r1/DEV/COM/1234/TestService/mock1' \
+-H 'X-ROAD-CLIENT: DEV/COM/4321/TestClient' \
+-H 'ACCEPT: */*' \
+-H 'CONTENT-TYPE: application/json' \
+-d '{&quot;data&quot;: 1.0, &quot;service&quot;: &quot;random&quot;}'
+</pre>
+</div>
+<div class="content">
+  <details>
+    <summary style="cursor:pointer">
+      <strong>Response:</strong>
+    </summary>
+    <pre class="details-content"><code class="json">{
+  &quot;headers&quot; : { },
+  &quot;body&quot; : {
+    &quot;message&quot; : &quot;Hello, world from POST service!&quot;,
+    &quot;requestBody&quot; : {
+      &quot;data&quot; : 1.0,
+      &quot;service&quot; : &quot;random&quot;
+    }
+  },
+  &quot;status&quot; : 200
+}</code></pre>
+  </details>
+</div>
+</div>
