@@ -61,8 +61,8 @@ public class ConfClientRpcConfig {
     @Bean
     AnchorService anchorService(ConfigurationClientProperties confClientProperties,
                                 ConfigurationClient configurationClient,
-                                ConfigurationClientActionExecutor actionExecutor) {
-        return new AnchorService(confClientProperties, configurationClient, actionExecutor);
+                                ConfigurationClientActionExecutor actionExecutor, GlobalConfRpcCache globalConfRpcCache) {
+        return new AnchorService(confClientProperties, configurationClient, actionExecutor, globalConfRpcCache);
     }
 
     @Bean

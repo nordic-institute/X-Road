@@ -61,6 +61,7 @@ public class AnchorService extends AnchorServiceGrpc.AnchorServiceImplBase {
     private final ConfigurationClientProperties confClientProperties;
     private final ConfigurationClient configurationClient;
     private final ConfigurationClientActionExecutor configurationClientActionExecutor;
+    private final GlobalConfRpcCache globalConfRpcCache;
 
     @Override
     public void verifyAndSaveConfigurationAnchor(ConfigurationAnchorMessage request, StreamObserver<VerificationResult> responseObserver) {
@@ -83,6 +84,7 @@ public class AnchorService extends AnchorServiceGrpc.AnchorServiceImplBase {
             if (result == RETURN_SUCCESS) {
                 AtomicSave.moveBetweenFilesystems(anchorTempFile.getAbsolutePath(), confClientProperties.configurationAnchorFile());
                 configurationClient.execute();
+                globalConfRpcCache.refreshCache();
             }
             return VerificationResult.newBuilder()
                     .setReturnCode(result)
