@@ -151,13 +151,19 @@ jobs:
           name: Central Server system test
           path: src/central-server/admin-service/ui-system-test/build/test-results/**/TEST-*.xml
           reporter: java-junit
-      - name: Upload CS screenshots
+      - name: Fix ui-system-test build dir permissions
+        run: sudo chown -R $USER src/central-server/admin-service/ui-system-test/build/cs-container-logs/ && sudo chown -R $USER src/central-server/admin-service/ui-system-test/build/ca-container-logs/
+        if: always()
+      - name: Upload CS report
         id: cs-artifacts-step
-        if: failure()
         uses: actions/upload-artifact@v4
+        if: always()
         with:
-          name: CS System Test screenshots
-          path: src/central-server/admin-service/ui-system-test/build/reports/test-automation/selenide-failures/*.png
+          name: CS System Test report
+          path: |
+            src/central-server/admin-service/ui-system-test/cs-container-logs/
+            src/central-server/admin-service/ui-system-test/ca-container-logs/
+            src/central-server/admin-service/ui-system-test/reports/test-automation/selenide-failures/*.png
       - name: Load test report history
         uses: actions/checkout@v4
         if: always()
