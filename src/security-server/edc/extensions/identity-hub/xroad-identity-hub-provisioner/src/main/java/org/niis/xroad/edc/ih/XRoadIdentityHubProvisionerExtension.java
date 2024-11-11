@@ -77,7 +77,7 @@ public class XRoadIdentityHubProvisionerExtension implements ServiceExtension {
 
     private static final String XROAD_SELF_DESCRIPTION_TYPE = "XRoadSelfDescription";
 
-    private static final String DID_KEY_ID = "edc.did.key.id";
+    private static final String EDC_DID_KEY_ID = "edc.did.key.id";
 
     private static final Map<String, String> HOSTNAME_XRDIDENTIFIER_MAP = Map.of(
             "ss0", "DEV:COM:1234:TestService",
@@ -117,7 +117,7 @@ public class XRoadIdentityHubProvisionerExtension implements ServiceExtension {
     public void start() {
         String participantId = config.getString(BootServicesExtension.PARTICIPANT_ID);
         String hostname = System.getenv("EDC_HOSTNAME");
-        String keyId = config.getString(DID_KEY_ID);
+        String keyId = config.getString(EDC_DID_KEY_ID);
         PublicKey publicKey = getPublicKey(keyId);
         String publicKeyPem = convertPublicKeyToPem(publicKey);
 

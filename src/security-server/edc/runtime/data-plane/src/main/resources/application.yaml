@@ -60,10 +60,10 @@ edc:
       token:
         signer:
           privatekey:
-            alias: key-id
+            alias: ${EDC_DID_KEY_ID:}
         verifier:
           publickey:
-            alias: key-id
+            alias: ${EDC_DID_KEY_ID:}
   dataplane:
     token:
       validation:

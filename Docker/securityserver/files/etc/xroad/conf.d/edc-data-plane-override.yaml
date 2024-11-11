@@ -1,0 +1,10 @@
+edc:
+  transfer:
+    proxy:
+      token:
+        signer:
+          privatekey:
+            alias: ${EDC_DID_KEY_ID:}
+        verifier:
+          publickey:
+            alias: ${EDC_DID_KEY_ID:}

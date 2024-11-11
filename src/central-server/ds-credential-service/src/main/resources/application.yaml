@@ -18,10 +18,10 @@ logging:
 #EDC configuration
 edc:
   participant:
-    id: did:web:${EDC_DID}
+    id: ${EDC_DID}
   did:
     key:
-      id: key-id
+      id: ${EDC_DID_KEY_ID:}
 
 web:
   http:

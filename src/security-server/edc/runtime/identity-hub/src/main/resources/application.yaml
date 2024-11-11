@@ -33,14 +33,14 @@ edc:
       user: edc-identity-hub
       password: ${XROAD_DS_PASSWORD:}
   participant:
-    id: did:web:${EDC_DID}
+    id: ${EDC_DID}
   http:
     client:
       https:
         enforce: false #openbao runs on http
   did:
     key:
-      id: key-id
+      id: ${EDC_DID_KEY_ID:}
   jsonld:
     https:
       enabled: true

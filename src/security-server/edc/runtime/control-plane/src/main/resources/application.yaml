@@ -33,7 +33,7 @@ edc:
       user: edc-control-plane
       password: ${XROAD_DS_PASSWORD}
   participant:
-    id: did:web:${EDC_DID}
+    id: ${EDC_DID}
   public:
     key:
       alias: public-key
@@ -49,12 +49,12 @@ edc:
         enforce: true
   iam:
     issuer:
-      id: did:web:${EDC_DID}
+      id: ${EDC_DID}
     sts:
       privatekey:
-        alias: key-id
+        alias: ${EDC_DID_KEY_ID:}
       publickey:
-        id: did:web:${EDC_DID}#key-id
+        id: ${EDC_DID}#${EDC_DID_KEY_ID:}
     did:
       web:
         use:
@@ -88,4 +88,4 @@ web:
       path: /management
     protocol:
       port: 9194
-      path: /
+      path: /protocol

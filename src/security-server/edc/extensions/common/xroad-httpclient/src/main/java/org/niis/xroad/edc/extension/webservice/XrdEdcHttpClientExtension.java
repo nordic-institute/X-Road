@@ -27,8 +27,6 @@
 package org.niis.xroad.edc.extension.webservice;
 
 import ee.ria.xroad.common.conf.globalconf.GlobalConfProvider;
-import ee.ria.xroad.common.conf.serverconf.ServerConfProvider;
-import ee.ria.xroad.proxy.conf.KeyConfProvider;
 
 import dev.failsafe.RetryPolicy;
 import lombok.SneakyThrows;
@@ -43,6 +41,7 @@ import org.eclipse.edc.runtime.metamodel.annotation.Provider;
 import org.eclipse.edc.runtime.metamodel.annotation.Setting;
 import org.eclipse.edc.spi.system.ServiceExtension;
 import org.eclipse.edc.spi.system.ServiceExtensionContext;
+import org.niis.xroad.edc.extension.bridge.spring.TlsAuthKeyProvider;
 import org.niis.xroad.ssl.SSLContextBuilder;
 
 import static java.lang.Integer.parseInt;
@@ -86,10 +85,9 @@ public class XrdEdcHttpClientExtension implements ServiceExtension {
 
     @Inject
     private GlobalConfProvider globalConfProvider;
+
     @Inject
-    private ServerConfProvider serverConfProvider;
-    @Inject
-    private KeyConfProvider keyConfProvider;
+    private TlsAuthKeyProvider tlsAuthKeyProvider;
 
     @Override
     public String name() {
@@ -108,7 +106,7 @@ public class XrdEdcHttpClientExtension implements ServiceExtension {
     @Provider
     @SneakyThrows
     public OkHttpClient okHttpClient(ServiceExtensionContext context) {
-        SSLContextBuilder.Result ctxResult = SSLContextBuilder.create(keyConfProvider::getAuthKey, globalConfProvider);
+        SSLContextBuilder.Result ctxResult = SSLContextBuilder.create(tlsAuthKeyProvider::getAuthKey, globalConfProvider);
         var builder = new OkHttpClient.Builder()
                 .connectTimeout(TIMEOUT, SECONDS)
                 .readTimeout(TIMEOUT, SECONDS)

@@ -42,7 +42,7 @@ public class XRoadCredentialIssuanceExtension implements ServiceExtension {
 
     static final String NAME = "X-Road Credential Issuance extension";
 
-    private static final String DID_KEY_ID = "edc.did.key.id";
+    private static final String EDC_DID_KEY_ID = "edc.did.key.id";
 
     @Inject
     private WebService webService;
@@ -50,14 +50,13 @@ public class XRoadCredentialIssuanceExtension implements ServiceExtension {
     private DidPublicKeyResolver didPublicKeyResolver;
     @Inject
     private JwsSignerProvider jwsSignerProvider;
-
     @Inject
     private GlobalConfProvider globalConfProvider;
 
     @Override
     public void initialize(ServiceExtensionContext context) {
         String participantId = context.getConfig().getString(BootServicesExtension.PARTICIPANT_ID);
-        var keyId = context.getConfig().getString(DID_KEY_ID);
+        var keyId = context.getConfig().getString(EDC_DID_KEY_ID);
 
         webService.registerResource(new XRoadMemberShipCredentialIssuanceController(
                 didPublicKeyResolver, globalConfProvider, participantId, jwsSignerProvider, keyId));
