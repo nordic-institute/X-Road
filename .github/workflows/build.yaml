@@ -391,8 +391,8 @@ jobs:
         with:
           script: |
             const csArtifactsUrl = `${{ needs.RunCSSystemTests.outputs.cs-artifacts-url }}`;
-            const ssArtifactsUrl = `${{ needs.RunSSSystemTests.outputs.cs-artifacts-url }}`;
-            const e2eArtifactsUrl = `${{ needs.RunE2ETests.outputs.cs-artifacts-url }}`;
+            const ssArtifactsUrl = `${{ needs.RunSSSystemTests.outputs.ss-artifacts-url }}`;
+            const e2eArtifactsUrl = `${{ needs.RunE2ETests.outputs.e2e-artifacts-url }}`;
             github.rest.issues.createComment({
               issue_number: context.issue.number,
               owner: context.repo.owner,
