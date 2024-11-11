@@ -27,8 +27,8 @@ importers:
         specifier: ^1.1.0
         version: 1.1.0(vite@5.4.10(@types/node@22.9.0)(sass@1.80.6)(stylus@0.57.0))
       '@vitejs/plugin-vue':
-        specifier: ^5.1.4
-        version: 5.1.4(vite@5.4.10(@types/node@22.9.0)(sass@1.80.6)(stylus@0.57.0))(vue@3.5.12(typescript@5.6.3))
+        specifier: ^5.1.5
+        version: 5.1.5(vite@5.4.10(@types/node@22.9.0)(sass@1.80.6)(stylus@0.57.0))(vue@3.5.12(typescript@5.6.3))
       '@vue/eslint-config-prettier':
         specifier: ^10.1.0
         version: 10.1.0(eslint@8.57.1)(prettier@3.3.3)
@@ -36,8 +36,8 @@ importers:
         specifier: ^13.0.0
         version: 13.0.0(eslint-plugin-vue@9.30.0(eslint@8.57.1))(eslint@8.57.1)(typescript@5.6.3)
       '@vue/tsconfig':
-        specifier: ^0.5.1
-        version: 0.5.1
+        specifier: ^0.6.0
+        version: 0.6.0(typescript@5.6.3)(vue@3.5.12(typescript@5.6.3))
       eslint:
         specifier: ^8.57.1
         version: 8.57.1
@@ -140,11 +140,11 @@ importers:
         specifier: ^7.4.47
         version: 7.4.47
       '@vee-validate/i18n':
-        specifier: ~4.14.6
-        version: 4.14.6
+        specifier: ~4.14.7
+        version: 4.14.7
       '@vee-validate/rules':
-        specifier: ~4.14.6
-        version: 4.14.6(vue@3.5.12(typescript@5.6.3))
+        specifier: ~4.14.7
+        version: 4.14.7(vue@3.5.12(typescript@5.6.3))
       axios:
         specifier: ~1.7.7
         version: 1.7.7
@@ -158,11 +158,11 @@ importers:
         specifier: ^2.2.6
         version: 2.2.6(typescript@5.6.3)(vue@3.5.12(typescript@5.6.3))
       pinia-plugin-persistedstate:
-        specifier: ^4.1.2
-        version: 4.1.2(pinia@2.2.6(typescript@5.6.3)(vue@3.5.12(typescript@5.6.3)))(rollup@4.24.2)
+        specifier: ^4.1.3
+        version: 4.1.3(pinia@2.2.6(typescript@5.6.3)(vue@3.5.12(typescript@5.6.3)))(rollup@4.24.2)
       vee-validate:
-        specifier: ^4.14.6
-        version: 4.14.6(vue@3.5.12(typescript@5.6.3))
+        specifier: ^4.14.7
+        version: 4.14.7(vue@3.5.12(typescript@5.6.3))
       vue:
         specifier: ^3.5.12
         version: 3.5.12(typescript@5.6.3)
@@ -886,11 +886,11 @@ packages:
   '@ungap/structured-clone@1.2.0':
     resolution: {integrity: sha512-zuVdFrMJiuCDQUMCzQaD6KL28MjnqqN8XnAqiEq9PNm/hCPTSGfrXCOfwj1ow4LFb/tNymJPwsNbVePc1xFqrQ==}
 
-  '@vee-validate/i18n@4.14.6':
-    resolution: {integrity: sha512-NXxwGuYcm9rxMyfmEQUVWnCEhYurrihGHFjGOQPBtooJuIdfw8UEroHSFpmyXlSrBFI0GvcDlCqYe8SyLzq5mg==}
+  '@vee-validate/i18n@4.14.7':
+    resolution: {integrity: sha512-CTGNXC0d6tMSi6pEbf+jW1ZsLhvtNClgKDna8QmHD9G/8U8W9MlyQfgcQMqmpUz0kUHyGHNZ3B13jzILUeVcXw==}
 
-  '@vee-validate/rules@4.14.6':
-    resolution: {integrity: sha512-aq2AGKyovW+1TrJ8I8y4b/KshyAyNJr3Ar7PDSRE1LaMNhJrb8TmjU/30T2jZjpvBd93S1x8Pdxk6QXG4GsH3w==}
+  '@vee-validate/rules@4.14.7':
+    resolution: {integrity: sha512-DK2Frj6s8eQZgjeSRYHOIX3heFX1aic8taKY6q4RPY/5JtEkLDCxyWP3EBt1bteoiSDGDADrmahwqkcfJShhoA==}
 
   '@vitejs/plugin-basic-ssl@1.1.0':
     resolution: {integrity: sha512-wO4Dk/rm8u7RNhOf95ZzcEmC9rYOncYgvq4z3duaJrCgjN8BxAnDVyndanfcJZ0O6XZzHz6Q0hTimxTg8Y9g/A==}
@@ -898,8 +898,8 @@ packages:
     peerDependencies:
       vite: ^3.0.0 || ^4.0.0 || ^5.0.0
 
-  '@vitejs/plugin-vue@5.1.4':
-    resolution: {integrity: sha512-N2XSI2n3sQqp5w7Y/AN/L2XDjBIRGqXko+eDp42sydYSBeJuSm5a1sLf8zakmo8u7tA8NmBgoDLA1HeOESjp9A==}
+  '@vitejs/plugin-vue@5.1.5':
+    resolution: {integrity: sha512-dlnib73G05CDBAUR/YpuZcQQ47fpjihnnNouAAqN62z+oqSsWJ+kh52GRzIxpkgFG3q11eXK7Di7RMmoCwISZA==}
     engines: {node: ^18.0.0 || >=20.0.0}
     peerDependencies:
       vite: ^5.0.0
@@ -1012,8 +1012,16 @@ packages:
   '@vue/shared@3.5.12':
     resolution: {integrity: sha512-L2RPSAwUFbgZH20etwrXyVyCBu9OxRSi8T/38QsvnkJyvq2LufW2lDCOzm7t/U9C1mkhJGWYfCuFBCmIuNivrg==}
 
-  '@vue/tsconfig@0.5.1':
-    resolution: {integrity: sha512-VcZK7MvpjuTPx2w6blwnwZAu5/LgBUtejFOi3pPGQFXQN5Ela03FUtd2Qtg4yWGGissVL0dr6Ro1LfOFh+PCuQ==}
+  '@vue/tsconfig@0.6.0':
+    resolution: {integrity: sha512-MHXNd6lzugsEHvuA6l1GqrF5jROqUon8sP/HInLPnthJiYvB0VvpHMywg7em1dBZfFZNBSkR68qH37zOdRHmCw==}
+    peerDependencies:
+      typescript: 5.x
+      vue: ^3.3.0
+    peerDependenciesMeta:
+      typescript:
+        optional: true
+      vue:
+        optional: true
 
   '@vuetify/loader-shared@2.0.3':
     resolution: {integrity: sha512-Ss3GC7eJYkp2SF6xVzsT7FAruEmdihmn4OCk2+UocREerlXKWgOKKzTN5PN3ZVN5q05jHHrsNhTuWbhN61Bpdg==}
@@ -2107,8 +2115,8 @@ packages:
     resolution: {integrity: sha512-JU3teHTNjmE2VCGFzuY8EXzCDVwEqB2a8fsIvwaStHhAWJEeVd1o1QD80CU6+ZdEXXSLbSsuLwJjkCBWqRQUVA==}
     engines: {node: '>=8.6'}
 
-  pinia-plugin-persistedstate@4.1.2:
-    resolution: {integrity: sha512-oh4y4lmtXcgbE3BDWTDBUl9F4G1lhtgDI+GnF+cDDZ/fF6wnGYp4TKQ6FCuv9hMLAkNjs6IzADZHwPBYq10ksQ==}
+  pinia-plugin-persistedstate@4.1.3:
+    resolution: {integrity: sha512-5Rad7oSoEh0na+j4jEViVQMtAYE38KjU7ixKc+am33QX/clJ1mb19zTZqMJXvq+PnQW7uuEuL33Q6NL0GbkfWw==}
     peerDependencies:
       '@pinia/nuxt': '>=0.5.0'
       pinia: '>=2.0.0'
@@ -2520,8 +2528,8 @@ packages:
   util@0.10.4:
     resolution: {integrity: sha512-0Pm9hTQ3se5ll1XihRic3FDIku70C+iHUdT/W926rSgHV5QgXsYbKZN8MSC3tJtSkhuROzvsQjAaFENRXr+19A==}
 
-  vee-validate@4.14.6:
-    resolution: {integrity: sha512-5w6e+YqJFLfzRR6gmRZgE6ZIVZ5nW1UAQdAlu78Oy3CFVrhTraqMMsfDC/Kmz7CNtCpIYaXxC8oKfr2hAiTnew==}
+  vee-validate@4.14.7:
+    resolution: {integrity: sha512-XVb1gBFJR57equ11HEI8uxNqFJkwvCP/b+p+saDPQYaW7k45cdF5jsYPEJud1o29GD6h2y7Awm7Qfm89yKi74A==}
     peerDependencies:
       vue: ^3.4.26
 
@@ -3481,11 +3489,11 @@ snapshots:
 
   '@ungap/structured-clone@1.2.0': {}
 
-  '@vee-validate/i18n@4.14.6': {}
+  '@vee-validate/i18n@4.14.7': {}
 
-  '@vee-validate/rules@4.14.6(vue@3.5.12(typescript@5.6.3))':
+  '@vee-validate/rules@4.14.7(vue@3.5.12(typescript@5.6.3))':
     dependencies:
-      vee-validate: 4.14.6(vue@3.5.12(typescript@5.6.3))
+      vee-validate: 4.14.7(vue@3.5.12(typescript@5.6.3))
     transitivePeerDependencies:
       - vue
 
@@ -3493,7 +3501,7 @@ snapshots:
     dependencies:
       vite: 5.4.10(@types/node@22.9.0)(sass@1.80.6)(stylus@0.57.0)
 
-  '@vitejs/plugin-vue@5.1.4(vite@5.4.10(@types/node@22.9.0)(sass@1.80.6)(stylus@0.57.0))(vue@3.5.12(typescript@5.6.3))':
+  '@vitejs/plugin-vue@5.1.5(vite@5.4.10(@types/node@22.9.0)(sass@1.80.6)(stylus@0.57.0))(vue@3.5.12(typescript@5.6.3))':
     dependencies:
       vite: 5.4.10(@types/node@22.9.0)(sass@1.80.6)(stylus@0.57.0)
       vue: 3.5.12(typescript@5.6.3)
@@ -3663,7 +3671,10 @@ snapshots:
 
   '@vue/shared@3.5.12': {}
 
-  '@vue/tsconfig@0.5.1': {}
+  '@vue/tsconfig@0.6.0(typescript@5.6.3)(vue@3.5.12(typescript@5.6.3))':
+    optionalDependencies:
+      typescript: 5.6.3
+      vue: 3.5.12(typescript@5.6.3)
 
   '@vuetify/loader-shared@2.0.3(vue@3.5.12(typescript@5.6.3))(vuetify@3.7.4)':
     dependencies:
@@ -4715,7 +4726,7 @@ snapshots:
 
   picomatch@2.3.1: {}
 
-  pinia-plugin-persistedstate@4.1.2(pinia@2.2.6(typescript@5.6.3)(vue@3.5.12(typescript@5.6.3)))(rollup@4.24.2):
+  pinia-plugin-persistedstate@4.1.3(pinia@2.2.6(typescript@5.6.3)(vue@3.5.12(typescript@5.6.3)))(rollup@4.24.2):
     dependencies:
       '@nuxt/kit': 3.13.2(rollup@4.24.2)
       deep-pick-omit: 1.2.1
@@ -5117,7 +5128,7 @@ snapshots:
     dependencies:
       inherits: 2.0.3
 
-  vee-validate@4.14.6(vue@3.5.12(typescript@5.6.3)):
+  vee-validate@4.14.7(vue@3.5.12(typescript@5.6.3)):
     dependencies:
       '@vue/devtools-api': 7.5.2
       type-fest: 4.9.0
