@@ -31,6 +31,7 @@ import ee.ria.xroad.common.conf.globalconf.GlobalConfProvider;
 import ee.ria.xroad.common.conf.serverconf.ServerConfProvider;
 import ee.ria.xroad.common.db.DatabaseCtxV2;
 import ee.ria.xroad.common.messagelog.AbstractLogManager;
+import ee.ria.xroad.common.messagelog.MessageLogConfig;
 import ee.ria.xroad.proxy.messagelog.LogManager;
 
 import org.eclipse.edc.runtime.metamodel.annotation.Extension;
@@ -61,6 +62,8 @@ public class XRoadMessageLogExtension implements ServiceExtension {
     private GlobalConfProvider globalConfProvider;
     @Inject
     private ServerConfProvider serverConfProvider;
+    @Inject
+    private MessageLogConfig messageLogProperties;
 
     @Override
     @SuppressWarnings("checkstyle:magicnumber")
@@ -69,12 +72,13 @@ public class XRoadMessageLogExtension implements ServiceExtension {
 
         boolean isMessageLogEnabled = context.getSetting(XROAD_MESSAGELOG_ENABLED, false);
         String origin = context.getSetting(XROAD_MESSAGELOG_ORIGIN, "edc");
-
-        // todo: fixme: implement me !!! create DatabaseCtx
-        DatabaseCtxV2 databaseCtx = new DatabaseCtxV2("", null);
-        AbstractLogManager logManager = isMessageLogEnabled
-                ? new LogManager(origin, globalConfProvider, serverConfProvider, null)
-                : new NoopLogManager(origin, globalConfProvider, serverConfProvider, databaseCtx);
+        AbstractLogManager logManager;
+        if (isMessageLogEnabled) {
+            DatabaseCtxV2 databaseCtx = new DatabaseCtxV2("messagelog", messageLogProperties.getHibernate());
+            logManager = new LogManager(origin, globalConfProvider, serverConfProvider, databaseCtx);
+        } else {
+            logManager = new NoopLogManager(origin, globalConfProvider, serverConfProvider, null);
+        }
         context.registerService(XRoadMessageLog.class, new XRoadMessageLogImpl(monitor, logManager));
     }
 

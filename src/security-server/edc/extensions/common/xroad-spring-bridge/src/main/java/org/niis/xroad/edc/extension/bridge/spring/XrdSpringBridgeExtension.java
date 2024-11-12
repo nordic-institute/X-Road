@@ -29,6 +29,7 @@ package org.niis.xroad.edc.extension.bridge.spring;
 import ee.ria.xroad.common.cert.CertChainFactory;
 import ee.ria.xroad.common.conf.globalconf.GlobalConfProvider;
 import ee.ria.xroad.common.conf.serverconf.ServerConfProvider;
+import ee.ria.xroad.common.messagelog.MessageLogConfig;
 import ee.ria.xroad.proxy.conf.KeyConfProvider;
 import ee.ria.xroad.signer.SignerRpcClient;
 
@@ -72,6 +73,11 @@ public class XrdSpringBridgeExtension implements ServiceExtension {
     @Provider
     public CertChainFactory certChainFactory() {
         return getBean(CertChainFactory.class);
+    }
+
+    @Provider
+    public MessageLogConfig messageLogConfig() {
+        return getBean(MessageLogConfig.class);
     }
 
     @Override

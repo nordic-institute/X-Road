@@ -8,6 +8,13 @@ server:
 xroad:
   messagelog:
     enabled: true
+    hibernate:
+      connection.driver_class: org.postgresql.Driver
+      connection.url: jdbc:postgresql://127.0.0.1:5432/messagelog
+      connection.username: messagelog
+      connection.password: ${XROAD_MESSAGELOG_PASSWORD}
+      hikari.dataSource.currentSchema: messagelog,public
+      jdbc.use_streams_for_binary: true
   common:
     serverconf:
       cache-period: 60

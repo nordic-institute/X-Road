@@ -31,6 +31,7 @@ import ee.ria.xroad.common.cert.CertChainFactory;
 import ee.ria.xroad.common.conf.globalconf.AuthKey;
 import ee.ria.xroad.common.conf.globalconf.GlobalConfBeanConfig;
 import ee.ria.xroad.common.conf.globalconf.GlobalConfProvider;
+import ee.ria.xroad.common.messagelog.MessageLogConfig;
 import ee.ria.xroad.common.util.CryptoUtils;
 import ee.ria.xroad.signer.SignerClientConfiguration;
 
@@ -45,6 +46,8 @@ import org.springframework.beans.factory.DisposableBean;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
+import org.springframework.boot.context.properties.ConfigurationProperties;
+import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -70,6 +73,7 @@ import java.util.stream.StreamSupport;
         XrdEdcServerconfBeanBridgeConfig.class,
         RpcConfig.class})
 @Configuration
+@EnableConfigurationProperties(XrdEdcBeanBridgeConfig.SpringMessageLogProperties.class)
 public class XrdEdcBeanBridgeConfig {
 
     @Bean
@@ -90,6 +94,13 @@ public class XrdEdcBeanBridgeConfig {
         return new MapConfigImpl(entries);
         //TODO this impl has issues..
 //        return new SpringEdcConfig(environment);
+    }
+
+    @ConfigurationProperties(prefix = "xroad.messagelog")
+    static class SpringMessageLogProperties extends MessageLogConfig {
+        SpringMessageLogProperties(Map<String, String> hibernate) {
+            super(hibernate);
+        }
     }
 
     @Bean

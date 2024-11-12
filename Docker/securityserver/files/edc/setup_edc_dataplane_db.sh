@@ -24,6 +24,8 @@ user=$(crudini --get /etc/xroad/db.properties '' edc-data-plane.hibernate.connec
 password=$(crudini --get /etc/xroad/db.properties '' edc-data-plane.hibernate.connection.password)
 
 serverconf_password=$(crudini --get /etc/xroad/db.properties "" "serverconf.hibernate.connection.password")
+messagelog_password=$(crudini --get /etc/xroad/db.properties "" "messagelog.hibernate.connection.password")
 
 export XROAD_DS_PASSWORD=$password
 export XROAD_SERVERCONF_PASSWORD=$password
+export XROAD_MESSAGELOG_PASSWORD=$messagelog_password
