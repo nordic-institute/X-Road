@@ -60,7 +60,7 @@ public class ConfClientRpcClient extends AbstractRpcClient implements Initializi
                 .getStatus(Empty.getDefaultInstance()));
     }
 
-    public GetGlobalConfResp getGlobalConf() throws Exception {
+    public GetGlobalConfRespWrapped getGlobalConf() throws Exception {
         return exec(() -> globalConfServiceBlockingStub
                 .getGlobalConf(GetGlobalConfReq.newBuilder().build()));
     }

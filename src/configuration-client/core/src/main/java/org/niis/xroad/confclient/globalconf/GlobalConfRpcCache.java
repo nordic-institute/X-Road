@@ -33,6 +33,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.time.StopWatch;
 import org.niis.xroad.confclient.proto.GetGlobalConfResp;
+import org.niis.xroad.confclient.proto.GetGlobalConfRespStatus;
 import org.springframework.beans.factory.InitializingBean;
 
 import java.util.Optional;
@@ -44,15 +45,16 @@ public class GlobalConfRpcCache implements InitializingBean {
     private final FSGlobalConfValidator fsGlobalConfValidator;
     private final GetGlobalConfRespFactory getGlobalConfRespFactory;
 
-    private GetGlobalConfResp cachedGlobalConf = null;
+    private CachedGlobalConf cachedGlobalConf = new CachedGlobalConf(GetGlobalConfRespStatus.GLOBAL_CONF_STATUS_UNSPECIFIED,
+            Optional.empty());
 
     @Override
     public void afterPropertiesSet() {
         refreshCache();
     }
 
-    public Optional<GetGlobalConfResp> getGlobalConf() {
-        return Optional.ofNullable(cachedGlobalConf);
+    public CachedGlobalConf getGlobalConf() {
+        return cachedGlobalConf;
     }
 
     public void refreshCache() {
@@ -60,23 +62,33 @@ public class GlobalConfRpcCache implements InitializingBean {
             loadGlobalConf();
         } catch (Exception e) {
             log.error("Failed to initialize cache.", e);
+            cachedGlobalConf = new CachedGlobalConf(GetGlobalConfRespStatus.GLOBAL_CONF_STATUS_ERROR,
+                    Optional.empty());
         }
     }
 
     private synchronized void loadGlobalConf() {
         if (fsGlobalConfValidator.getReadinessState(SystemProperties.getConfigurationPath()) != GlobalConfInitState.READY_TO_INIT) {
             log.warn("GlobalConf is not ready to be initialized. Skipping cache refresh.");
+            cachedGlobalConf = new CachedGlobalConf(GetGlobalConfRespStatus.GLOBAL_CONF_STATUS_UNINITIALIZED,
+                    Optional.empty());
             return;
         }
 
         var stopWatch = StopWatch.createStarted();
         try {
             log.trace("Refreshing cache");
-            cachedGlobalConf = getGlobalConfRespFactory.createGlobalConfResp();
+            cachedGlobalConf = new CachedGlobalConf(GetGlobalConfRespStatus.GLOBAL_CONF_STATUS_OK,
+                    Optional.of(getGlobalConfRespFactory.createGlobalConfResp()));
         } finally {
             log.trace("Cache refreshed in {} ms", stopWatch.getTime(TimeUnit.MILLISECONDS));
         }
     }
 
+    public record CachedGlobalConf(
+            GetGlobalConfRespStatus status,
+            Optional<GetGlobalConfResp> globalConf
+    ) {
+    }
 
 }

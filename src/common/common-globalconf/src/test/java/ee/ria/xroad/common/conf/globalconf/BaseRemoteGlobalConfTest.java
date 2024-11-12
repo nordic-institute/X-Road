@@ -28,6 +28,8 @@ package ee.ria.xroad.common.conf.globalconf;
 import lombok.SneakyThrows;
 import org.apache.commons.io.FileUtils;
 import org.niis.xroad.confclient.proto.GetGlobalConfResp;
+import org.niis.xroad.confclient.proto.GetGlobalConfRespStatus;
+import org.niis.xroad.confclient.proto.GetGlobalConfRespWrapped;
 import org.niis.xroad.confclient.proto.GlobalConfFile;
 import org.niis.xroad.confclient.proto.GlobalConfInstance;
 
@@ -44,7 +46,7 @@ abstract class BaseRemoteGlobalConfTest {
     static final String INSTANCE_IDENTIFIER = "EE";
 
     @SneakyThrows
-    GetGlobalConfResp loadGlobalConf(String instanceIdentifier, String path, long dateRefreshed) {
+    GetGlobalConfRespWrapped loadGlobalConf(String instanceIdentifier, String path, long dateRefreshed) {
         var builder = GetGlobalConfResp.newBuilder();
 
         try (DirectoryStream<Path> stream = Files.newDirectoryStream(Path.of(path), Files::isDirectory)) {
@@ -53,9 +55,13 @@ abstract class BaseRemoteGlobalConfTest {
                 builder.addInstances(loadParameters(instanceDir));
             }
         }
-        return builder
-                .setInstanceIdentifier(instanceIdentifier)
-                .setDateRefreshed(dateRefreshed)
+
+        builder.setInstanceIdentifier(instanceIdentifier)
+                .setDateRefreshed(dateRefreshed);
+
+        return GetGlobalConfRespWrapped.newBuilder()
+                .setStatus(GetGlobalConfRespStatus.GLOBAL_CONF_STATUS_OK)
+                .setData(builder.build())
                 .build();
     }
 

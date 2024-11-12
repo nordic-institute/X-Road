@@ -39,7 +39,7 @@ class RemoteGlobalConfDataLoaderTest extends BaseRemoteGlobalConfTest {
         var globalConfResp = loadGlobalConf(INSTANCE_IDENTIFIER, PATH_GOOD_GLOBALCONF,
                 1000L);
 
-        var result = dataLoader.load(globalConfResp, new HashMap<>(), new HashMap<>());
+        var result = dataLoader.load(globalConfResp.getData(), new HashMap<>(), new HashMap<>());
 
         assertThat(result.dateRefreshed()).isEqualTo(1000L);
         assertThat(result.defaultGlobalConfVersion()).isEqualTo(4);

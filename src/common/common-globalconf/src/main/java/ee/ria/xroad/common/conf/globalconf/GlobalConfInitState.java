@@ -34,6 +34,10 @@ public enum GlobalConfInitState {
      */
     UNKNOWN,
     /**
+     * GlobalConf is uninitialized.
+     */
+    UNINITIALIZED,
+    /**
      * Unexpected exception has occurred during initialization.
      */
     FAILURE_UNEXPECTED,
