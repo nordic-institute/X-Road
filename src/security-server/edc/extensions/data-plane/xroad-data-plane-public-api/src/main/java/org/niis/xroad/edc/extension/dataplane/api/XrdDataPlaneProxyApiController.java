@@ -44,12 +44,11 @@ import org.eclipse.edc.connector.dataplane.spi.iam.DataPlaneAuthorizationService
 import org.eclipse.edc.connector.dataplane.spi.response.TransferErrorResponse;
 import org.eclipse.edc.spi.EdcException;
 import org.eclipse.edc.spi.monitor.Monitor;
+import org.eclipse.jetty.io.EndPoint;
 import org.niis.xroad.edc.extension.dataplane.api.legacy.MessageProcessorBase;
 import org.niis.xroad.edc.extension.dataplane.api.legacy.RestMessageProcessor;
 import org.niis.xroad.edc.extension.dataplane.api.legacy.SoapMessageProcessor;
 import org.niis.xroad.edc.spi.messagelog.XRoadMessageLog;
-
-import javax.net.ssl.SSLSession;
 
 import java.security.cert.X509Certificate;
 import java.util.HashMap;
@@ -143,8 +142,7 @@ public class XrdDataPlaneProxyApiController {
     private X509Certificate[] getClientSslCerts(ContainerRequestContext requestContext) {
         if (needClientAuth) {
             try {
-                return (X509Certificate[]) ((SSLSession) requestContext.getProperty("org.eclipse.jetty.servlet.request.ssl_session"))
-                        .getPeerCertificates();
+                return ((EndPoint.SslSessionData) requestContext.getProperty("org.eclipse.jetty.io.Endpoint.SslSessionData")).peerCertificates();
             } catch (Exception e) {
                 monitor.severe("Failed to get client SSL certificates", e);
             }
