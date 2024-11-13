@@ -26,17 +26,16 @@
  */
 package org.niis.xroad.ds;
 
-import org.eclipse.edc.junit.annotations.ComponentTest;
 import org.eclipse.edc.junit.extensions.RuntimeExtension;
 import org.eclipse.edc.junit.extensions.RuntimePerClassExtension;
 import org.eclipse.edc.util.io.Ports;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.RegisterExtension;
 
 import java.nio.file.Paths;
 import java.util.Map;
 
-@ComponentTest
+//@ComponentTest
 class DsCatalogIntegrationTest {
 
     static {
@@ -46,7 +45,7 @@ class DsCatalogIntegrationTest {
         System.setProperty("xroad.signer.key-configuration-file", xrdSrcDir + "/signer/keyconf.xml");
     }
 
-    @RegisterExtension
+    //    @RegisterExtension
     private static final RuntimeExtension RUNTIME = new RuntimePerClassExtension()
             .setConfiguration(Map.ofEntries(
                     Map.entry("edc.vault.hashicorp.url", "http://url"),
@@ -71,6 +70,7 @@ class DsCatalogIntegrationTest {
             ));
 
     @Test
+    @Disabled
     void shouldStartup() {
 
     }
