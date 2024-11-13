@@ -1,6 +1,13 @@
 server:
   address: 0.0.0.0
 
+spring:
+  cloud:
+    config:
+      enabled: false
+    vault:
+      enabled: false
+
 logging:
   level:
     ROOT: INFO
