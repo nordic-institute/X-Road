@@ -578,7 +578,7 @@ public class GlobalConfImpl implements GlobalConfProvider {
                 .isPresent();
     }
 
-    Optional<SharedParameters.GlobalGroup> findGlobalGroup(GlobalGroupId groupId) {
+    public Optional<SharedParameters.GlobalGroup> findGlobalGroup(GlobalGroupId groupId) {
         Optional<SharedParameters> sharedParameters = globalConfSource.findShared(groupId.getXRoadInstance());
         return sharedParameters.flatMap(params -> params.getGlobalGroups().stream()
                 .filter(g -> g.getGroupCode().equals(groupId.getGroupCode()))

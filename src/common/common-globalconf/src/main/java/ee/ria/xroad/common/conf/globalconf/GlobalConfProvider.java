@@ -38,6 +38,7 @@ import java.security.cert.X509Certificate;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 
 /**
@@ -294,6 +295,8 @@ public interface GlobalConfProvider {
      * @return true, if given subject belongs to given global group
      */
     boolean isSubjectInGlobalGroup(ClientId subject, GlobalGroupId group);
+
+    Optional<SharedParameters.GlobalGroup> findGlobalGroup(GlobalGroupId groupId);
 
     /**
      * @param client         the client identifier

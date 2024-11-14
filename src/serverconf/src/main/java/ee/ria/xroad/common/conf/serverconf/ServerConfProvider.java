@@ -28,6 +28,7 @@ package ee.ria.xroad.common.conf.serverconf;
 import ee.ria.xroad.common.conf.InternalSSLKey;
 import ee.ria.xroad.common.conf.serverconf.model.DescriptionType;
 import ee.ria.xroad.common.identifier.ClientId;
+import ee.ria.xroad.common.identifier.LocalGroupId;
 import ee.ria.xroad.common.identifier.SecurityServerId;
 import ee.ria.xroad.common.identifier.ServiceId;
 import ee.ria.xroad.common.identifier.XRoadId;
@@ -164,6 +165,8 @@ public interface ServerConfProvider {
      * @return whether the SSL certificate of the service provider is verified.
      */
     boolean isSslAuthentication(ServiceId service);
+
+    boolean isSubjectAssociatedWithLocalGroup(ClientId clientId, LocalGroupId localGroupId);
 
     /**
      * @return all members identifiers

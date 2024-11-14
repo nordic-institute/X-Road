@@ -39,6 +39,7 @@ import lombok.Setter;
 import java.security.cert.X509Certificate;
 import java.util.Collection;
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 
 /**
@@ -227,6 +228,11 @@ public class TestGlobalConfWrapper implements GlobalConfProvider {
     @Override
     public boolean isSubjectInGlobalGroup(ClientId subject, GlobalGroupId group) {
         return globalConfProvider.isSubjectInGlobalGroup(subject, group);
+    }
+
+    @Override
+    public Optional<SharedParameters.GlobalGroup> findGlobalGroup(GlobalGroupId groupId) {
+        return globalConfProvider.findGlobalGroup(groupId);
     }
 
     @Override

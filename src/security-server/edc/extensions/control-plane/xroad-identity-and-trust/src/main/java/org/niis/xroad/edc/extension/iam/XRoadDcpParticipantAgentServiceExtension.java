@@ -48,7 +48,7 @@ import static org.eclipse.edc.verifiablecredentials.jwt.JwtPresentationVerifier.
  * Implementation of {@link ParticipantAgentServiceExtension} which extracts the identity of a participant
  * from the MembershipCredential
  */
-public class XRoadDcpIdentityExtractor implements DcpParticipantAgentServiceExtension {
+public class XRoadDcpParticipantAgentServiceExtension implements DcpParticipantAgentServiceExtension {
 
     private static final String IDENTITY_CREDENTIAL = "VerifiableCredential";
     public static final String CREDENTIAL_NS = "https://www.w3.org/2018/credentials";

@@ -28,6 +28,7 @@
 package org.niis.xroad.edc.extension.policy;
 
 import ee.ria.xroad.common.conf.globalconf.GlobalConfProvider;
+import ee.ria.xroad.common.conf.serverconf.ServerConfProvider;
 
 import org.eclipse.edc.connector.controlplane.contract.spi.negotiation.store.ContractNegotiationStore;
 import org.eclipse.edc.connector.dataplane.spi.iam.DataPlaneAccessControlService;
@@ -71,6 +72,9 @@ public class XRoadPolicyExtension implements ServiceExtension {
     @Inject
     private GlobalConfProvider globalConfProvider;
 
+    @Inject
+    private ServerConfProvider serverConfProvider;
+
     @Override
     public String name() {
         return NAME;
@@ -87,11 +91,11 @@ public class XRoadPolicyExtension implements ServiceExtension {
         // - request.contract.negotiation <- participant agent is not set in policy context.
 
         registerFunction(XRoadClientIdConstraintFunction.KEY, "catalog",
-                new XRoadClientIdConstraintFunction(monitor));
+                new XRoadClientIdConstraintFunction(globalConfProvider, monitor));
         registerFunction(XRoadClientIdConstraintFunction.KEY, "request.catalog",
-                new XRoadClientIdConstraintFunction(monitor));
+                new XRoadClientIdConstraintFunction(globalConfProvider, monitor));
         registerFunction(XRoadClientIdConstraintFunction.KEY, "contract.negotiation",
-                new XRoadClientIdConstraintFunction(monitor));
+                new XRoadClientIdConstraintFunction(globalConfProvider, monitor));
 
         registerFunction(XRoadGlobalGroupMemberConstraintFunction.KEY, "catalog",
                 new XRoadGlobalGroupMemberConstraintFunction(globalConfProvider, monitor));
@@ -99,6 +103,14 @@ public class XRoadPolicyExtension implements ServiceExtension {
                 new XRoadGlobalGroupMemberConstraintFunction(globalConfProvider, monitor));
         registerFunction(XRoadGlobalGroupMemberConstraintFunction.KEY, "contract.negotiation",
                 new XRoadGlobalGroupMemberConstraintFunction(globalConfProvider, monitor));
+
+        registerFunction(XRoadLocalGroupMemberConstraintFunction.KEY, "catalog",
+                new XRoadLocalGroupMemberConstraintFunction(serverConfProvider, monitor));
+        registerFunction(XRoadLocalGroupMemberConstraintFunction.KEY, "request.catalog",
+                new XRoadLocalGroupMemberConstraintFunction(serverConfProvider, monitor));
+        registerFunction(XRoadLocalGroupMemberConstraintFunction.KEY, "contract.negotiation",
+                new XRoadLocalGroupMemberConstraintFunction(serverConfProvider, monitor));
+
         registerFunction(XRoadDataPathConstraintFunction.KEY, XROAD_DATAPLANE_TRANSFER_SCOPE,
                 new XRoadDataPathConstraintFunction(monitor, typeManager));
     }

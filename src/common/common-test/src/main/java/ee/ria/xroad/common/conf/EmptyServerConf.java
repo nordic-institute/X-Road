@@ -31,6 +31,7 @@ import ee.ria.xroad.common.conf.serverconf.ServerConfProvider;
 import ee.ria.xroad.common.conf.serverconf.model.ClientType;
 import ee.ria.xroad.common.conf.serverconf.model.DescriptionType;
 import ee.ria.xroad.common.identifier.ClientId;
+import ee.ria.xroad.common.identifier.LocalGroupId;
 import ee.ria.xroad.common.identifier.SecurityServerId;
 import ee.ria.xroad.common.identifier.ServiceId;
 import ee.ria.xroad.common.identifier.XRoadId;
@@ -173,6 +174,11 @@ public class EmptyServerConf implements ServerConfProvider {
 
     @Override
     public boolean isSslAuthentication(ServiceId service) {
+        return false;
+    }
+
+    @Override
+    public boolean isSubjectAssociatedWithLocalGroup(ClientId clientId, LocalGroupId localGroupId) {
         return false;
     }
 

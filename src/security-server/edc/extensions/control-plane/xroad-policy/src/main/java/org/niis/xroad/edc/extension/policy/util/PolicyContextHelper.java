@@ -41,15 +41,21 @@ public class PolicyContextHelper {
     private final ClientIdConverter clientIdConverter = new ClientIdConverter();
     private static final String ATTR_IDENTIFIER = "https://w3id.org/xroad/credentials/identifier";
 
-    public static Optional<String> getClientIdFromContext(PolicyContext context) {
+    public static Optional<ClientId> findMemberIdFromContext(PolicyContext context) {
         var participantAgent = context.getContextData(ParticipantAgent.class);
 
         if (participantAgent != null) {
-            var identifier = participantAgent.getAttributes().get("xrd:identifier");
-            return Optional.ofNullable(identifier);
+            var memberIdentifierString = participantAgent.getAttributes().get("xrd:memberIdentifier");
+            if (!clientIdConverter.isEncodedMemberId(memberIdentifierString)) {
+                throw new IllegalStateException("Invalid member identifier: " + memberIdentifierString);
+            }
+            return Optional.ofNullable(parseClientId(memberIdentifierString));
         }
-
         return Optional.empty();
+    }
+
+    public static boolean clientBelongsTo(ClientId client, ClientId target) {
+        return client.memberEquals(target);
     }
 
     public static ClientId parseClientId(String value) {

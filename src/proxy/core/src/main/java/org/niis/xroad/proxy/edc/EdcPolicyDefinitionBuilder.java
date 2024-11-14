@@ -65,6 +65,7 @@ public class EdcPolicyDefinitionBuilder {
     private static final String XROAD_CLIENT_ID_CONSTRAINT = "xroad:clientId";
     private static final String XROAD_DATAPATH_CONSTRAINT = "xroad:datapath";
     private static final String XROAD_GLOBALGROUP_CONSTRAINT = "xroad:globalGroupMember";
+    private static final String XROAD_LOCALGROUP_CONSTRAINT = "xroad:localGroupMember";
 
     /**
      * Create new policy definition. Each endpoint is mapper as a separate constraint, but depending on condition we could just as well map
@@ -113,7 +114,7 @@ public class EdcPolicyDefinitionBuilder {
     }
 
     private Optional<Constraint> createClientConstraint(XRoadId subjectId) {
-        AtomicConstraint clientConstraint = null;
+        AtomicConstraint clientConstraint;
         if (subjectId instanceof GlobalGroupId) {
             clientConstraint = AtomicConstraint.Builder.newInstance()
                     .leftExpression(new LiteralExpression(XROAD_GLOBALGROUP_CONSTRAINT))
@@ -121,8 +122,11 @@ public class EdcPolicyDefinitionBuilder {
                     .rightExpression(new LiteralExpression(subjectId.asEncodedId()))
                     .build();
         } else if (subjectId instanceof LocalGroupId) {
-            // todo: implement. not yet supported.
-            log.warn("LocalGroupId not yet supported. Condition will be ignored.");
+            clientConstraint = AtomicConstraint.Builder.newInstance()
+                    .leftExpression(new LiteralExpression(XROAD_LOCALGROUP_CONSTRAINT))
+                    .operator(Operator.EQ)
+                    .rightExpression(new LiteralExpression(subjectId.asEncodedId()))
+                    .build();
         } else {
             // single client id
             clientConstraint = AtomicConstraint.Builder.newInstance()
