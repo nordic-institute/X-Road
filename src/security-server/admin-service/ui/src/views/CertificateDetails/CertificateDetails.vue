@@ -227,7 +227,7 @@ export default defineComponent({
       // Fetch possible actions
       api
         .get<PossibleActionsList>(
-          `/token-certificates/${hash}/possible-actions`,
+          `/token-certificates/${encodePathParameter(hash)}/possible-actions`,
         )
         .then((res) => {
           this.possibleActions = res.data;
