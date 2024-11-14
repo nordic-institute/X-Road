@@ -25,9 +25,12 @@
  */
 package ee.ria.xroad.common;
 
-import ee.ria.xroad.common.util.CryptoUtils;
+import ee.ria.xroad.common.crypto.identifier.DigestAlgorithm;
+import ee.ria.xroad.common.crypto.identifier.SignAlgorithm;
+import ee.ria.xroad.common.crypto.identifier.SignMechanism;
 
 import java.util.Arrays;
+import java.util.Optional;
 
 /**
  * Contains system-wide constants for system properties.
@@ -39,6 +42,7 @@ public final class SystemProperties {
 
     /** The prefix for all properties. */
     public static final String PREFIX = "xroad.";
+    private static final String SIGNER_PREFIX = PREFIX + "signer.";
 
     private static final String COMMA_SPLIT = "\\s*,\\s*";
 
@@ -104,7 +108,7 @@ public final class SystemProperties {
     public static final String PROXY_UI_API_ACME_AUTHORIZATION_WAIT_ATTEMPTS =
             PREFIX + "proxy-ui-api.acme-authorization-wait-attempts";
 
-    /** property name of the amount of time to wait between acme authorization completion check attempts */
+    /** property name of the amount of seconds to wait between acme authorization completion check attempts */
     public static final String PROXY_UI_API_ACME_AUTHORIZATION_WAIT_INTERVAL =
             PREFIX + "proxy-ui-api.acme-authorization-wait-interval";
 
@@ -112,7 +116,7 @@ public final class SystemProperties {
     public static final String PROXY_UI_API_ACME_CERTIFICATE_WAIT_ATTEMPTS =
             PREFIX + "proxy-ui-api.acme-certificate-wait-attempts";
 
-    /** property name of the amount of time to wait between acme certificate completion check attempts */
+    /** property name of the amount of seconds to wait between acme certificate completion check attempts */
     public static final String PROXY_UI_API_ACME_CERTIFICATE_WAIT_INTERVAL =
             PREFIX + "proxy-ui-api.acme-certificate-wait-interval";
 
@@ -124,210 +128,249 @@ public final class SystemProperties {
     public static final String PROXY_UI_API_ACME_CHALLENGE_PORT_ENABLED =
             PREFIX + "proxy-ui-api.acme-challenge-port-enabled";
 
+    public static final String PROXY_UI_API_ACME_RENEWAL_ACTIVE =
+            PREFIX + "proxy-ui-api.acme-renewal-active";
+
+    public static final String PROXY_UI_API_ACME_RENEWAL_RETRY_DELAY =
+            PREFIX + "proxy-ui-api.acme-renewal-retry-delay";
+
+    public static final String PROXY_UI_API_ACME_RENEWAL_INTERVAL =
+            PREFIX + "proxy-ui-api.acme-renewal-interval";
+
+    public static final String PROXY_UI_API_ACME_RENEWAL_TIME_BEFORE_EXPIRATION_DATE =
+            PREFIX + "proxy-ui-api.acme-renewal-time-before-expiration-date";
+
+    public static final String PROXY_UI_API_ACME_KEYPAIR_RENEWAL_TIME_BEFORE_EXPIRATION_DATE =
+            PREFIX + "proxy-ui-api.acme-keypair-renewal-time-before-expiration-date";
+
+    /** property name of whether notification e-mail is sent in case of automatic certificate renewal job success */
+    public static final String PROXY_UI_API_ACME_RENEWAL_SUCCESS_NOTIFICATION_ENABLED =
+            PREFIX + "proxy-ui-api.acme-renewal-success-notification-enabled";
+
+    /** property name of whether notification e-mail is sent in case of automatic certificate renewal job failure */
+    public static final String PROXY_UI_API_ACME_RENEWAL_FAILURE_NOTIFICATION_ENABLED =
+            PREFIX + "proxy-ui-api.acme-renewal-failure-notification-enabled";
+
+    /** property name of whether notification e-mail is sent when authentication certificate has been registered in global conf */
+    public static final String PROXY_UI_API_AUTH_CERT_REGISTERED_NOTIFICATION_ENABLED =
+            PREFIX + "proxy-ui-api.auth-cert-registered-notification-enabled";
+
+    /** Locale for mail notifications, which determines the language of the notifications.
+     * To add a new locale a corresponding notifications_[locale].properties file needs to be added to the resource bundle  */
+    public static final String PROXY_UI_API_MAIL_NOTIFICATION_LOCALE =
+            PREFIX + "proxy-ui-api.mail-notification-locale";
+
     // Proxy ------------------------------------------------------------------
+
+    private static final String PROXY_PREFIX = PREFIX + "proxy.";
 
     /** Property name of controlling SSL support between Proxies. */
     public static final String PROXY_SSL_SUPPORT =
-            PREFIX + "proxy.ssl-enabled";
+            PROXY_PREFIX + "ssl-enabled";
 
     /** Property name of the configuration anchor file. */
     public static final String CONFIGURATION_ANCHOR_FILE =
-            PREFIX + "proxy.configuration-anchor-file";
+            PROXY_PREFIX + "configuration-anchor-file";
 
     /** Property name of the Proxy's local configuration file. */
     public static final String DATABASE_PROPERTIES =
-            PREFIX + "proxy.database-properties";
+            PROXY_PREFIX + "database-properties";
 
     /** Property name of the Proxy's connector host name. */
     public static final String PROXY_CONNECTOR_HOST =
-            PREFIX + "proxy.connector-host";
+            PROXY_PREFIX + "connector-host";
 
     /** Property name of the Client Proxy's port number. */
     public static final String PROXY_CLIENT_HTTP_PORT =
-            PREFIX + "proxy.client-http-port";
+            PROXY_PREFIX + "client-http-port";
 
     /** Property name of the Client Proxy's port number. */
     public static final String PROXY_CLIENT_HTTPS_PORT =
-            PREFIX + "proxy.client-https-port";
+            PROXY_PREFIX + "client-https-port";
 
     /** Property name of the Client Proxy's timeout (milliseconds). */
     public static final String PROXY_CLIENT_TIMEOUT =
-            PREFIX + "proxy.client-timeout";
+            PROXY_PREFIX + "client-timeout";
 
     /** Property name of the Server Proxy's port number. */
     public static final String PROXY_SERVER_PORT =
-            PREFIX + "proxy.server-port";
+            PROXY_PREFIX + "server-port";
 
     /** Property name of the Server Proxy's listen address. */
     public static final String PROXY_SERVER_LISTEN_ADDRESS =
-            PREFIX + "proxy.server-listen-address";
+            PROXY_PREFIX + "server-listen-address";
 
     /** Property name of the Server Proxy's listen port number. */
     public static final String PROXY_SERVER_LISTEN_PORT =
-            PREFIX + "proxy.server-listen-port";
+            PROXY_PREFIX + "server-listen-port";
 
     /** Property name of the cached OCSP response path for signer operation. */
-    public static final String OCSP_CACHE_PATH =
-            PREFIX + "signer.ocsp-cache-path";
+    public static final String OCSP_CACHE_PATH = SIGNER_PREFIX + "ocsp-cache-path";
 
     /** Property name of the Ocsp Responder port. */
     public static final String OCSP_RESPONDER_PORT =
-            PREFIX + "proxy.ocsp-responder-port";
+            PROXY_PREFIX + "ocsp-responder-port";
 
     /** Property name of the Ocsp Responder listen address. */
     public static final String OCSP_RESPONDER_LISTEN_ADDRESS =
-            PREFIX + "proxy.ocsp-responder-listen-address";
+            PROXY_PREFIX + "ocsp-responder-listen-address";
 
     /** Property name of the Ocsp Responder Client connect timeout. */
     public static final String OCSP_RESPONDER_CLIENT_CONNECT_TIMEOUT =
-            PREFIX + "proxy.ocsp-responder-client-connect-timeout";
+            PROXY_PREFIX + "ocsp-responder-client-connect-timeout";
 
     /** Property name of the Ocsp Responder Client read timeout. */
     public static final String OCSP_RESPONDER_CLIENT_READ_TIMEOUT =
-            PREFIX + "proxy.ocsp-responder-client-read-timeout";
+            PROXY_PREFIX + "ocsp-responder-client-read-timeout";
 
     /** Property name of the flag to turn off proxy client SSL verification. */
     public static final String PROXY_VERIFY_CLIENT_CERT =
-            PREFIX + "proxy.verify-client-cert";
+            PROXY_PREFIX + "verify-client-cert";
+
+    /** Property name of the flag to turn on proxy client SSL logging. */
+    public static final String PROXY_LOG_CLIENT_CERT =
+            PROXY_PREFIX + "log-client-cert";
 
     /** Property name of the ClientProxy Jetty server configuration file. */
     public static final String JETTY_CLIENTPROXY_CONFIGURATION_FILE =
-            PREFIX + "proxy.jetty-clientproxy-configuration-file";
+            PROXY_PREFIX + "jetty-clientproxy-configuration-file";
 
     /** Property name of the ServerProxy Jetty server configuration file. */
     public static final String JETTY_SERVERPROXY_CONFIGURATION_FILE =
-            PREFIX + "proxy.jetty-serverproxy-configuration-file";
+            PROXY_PREFIX + "jetty-serverproxy-configuration-file";
 
     /** Property name of the CertHashBasedOcspResponder Jetty server configuration file. */
     public static final String JETTY_OCSP_RESPONDER_CONFIGURATION_FILE =
-            PREFIX + "proxy.jetty-ocsp-responder-configuration-file";
+            PROXY_PREFIX + "jetty-ocsp-responder-configuration-file";
 
     /** Property name of the ClientProxy HTTPS connector and ServerProxy HTTP client supported TLS protocols */
     private static final String PROXY_CLIENT_TLS_PROTOCOLS =
-            PREFIX + "proxy.client-tls-protocols";
+            PROXY_PREFIX + "client-tls-protocols";
 
     /** Property name of the ClientProxy HTTPS connector and ServerProxy HTTP client supported TLS cipher suites */
     private static final String PROXY_CLIENT_TLS_CIPHERS =
-            PREFIX + "proxy.client-tls-ciphers";
+            PROXY_PREFIX + "client-tls-ciphers";
 
     /** Property name of the ClientProxy HTTPS client and ServerProxy HTTPS connector supported TLS cipher suites */
-    private static final String PROXY_XROAD_TLS_CIPHERS = PREFIX + "proxy.xroad-tls-ciphers";
+    private static final String PROXY_XROAD_TLS_CIPHERS = PROXY_PREFIX + "xroad-tls-ciphers";
 
-    private static final String SIGNER_ENFORCE_TOKEN_PIN_POLICY =
-            PREFIX + "signer.enforce-token-pin-policy";
+    private static final String SIGNER_ENFORCE_TOKEN_PIN_POLICY = SIGNER_PREFIX + "enforce-token-pin-policy";
 
     public static final String SERVER_CONF_CACHE_PERIOD =
-            PREFIX + "proxy.server-conf-cache-period";
+            PROXY_PREFIX + "server-conf-cache-period";
 
-    public static final String SERVER_CONF_CLIENT_CACHE_SIZE = PREFIX + "proxy.server-conf-client-cache-size";
+    public static final String SERVER_CONF_CLIENT_CACHE_SIZE = PROXY_PREFIX + "server-conf-client-cache-size";
 
-    public static final String SERVER_CONF_SERVICE_CACHE_SIZE = PREFIX + "proxy.server-conf-service-cache-size";
+    public static final String SERVER_CONF_SERVICE_CACHE_SIZE = PROXY_PREFIX + "server-conf-service-cache-size";
 
-    public static final String SERVER_CONF_ACL_CACHE_SIZE = PREFIX + "proxy.server-conf-acl-cache-size";
+    public static final String SERVER_CONF_ACL_CACHE_SIZE = PROXY_PREFIX + "server-conf-acl-cache-size";
 
 
     /** Property name of the idle time that connections to the ServerProxy Connector are allowed, in milliseconds */
     private static final String SERVERPROXY_CONNECTOR_MAX_IDLE_TIME =
-            PREFIX + "proxy.server-connector-max-idle-time";
+            PROXY_PREFIX + "server-connector-max-idle-time";
 
     /**
      * Property name of the idle time that connections to the serverproxy connector are initially allowed,
      * in milliseconds
      */
     private static final String SERVERPROXY_CONNECTOR_INITIAL_IDLE_TIME =
-            PREFIX + "proxy.server-connector-initial-idle-time";
+            PROXY_PREFIX + "server-connector-initial-idle-time";
 
     /** Property name of the server Connector socket SO_LINGER timer, in seconds, value of -1 means off */
     private static final String SERVERPROXY_CONNECTOR_SO_LINGER =
-            PREFIX + "proxy.server-connector-so-linger";
+            PROXY_PREFIX + "server-connector-so-linger";
 
     /** Property name of the server's minimum supported client version */
     private static final String SERVERPROXY_MIN_SUPPORTED_CLIENT_VERSION =
-            PREFIX + "proxy.server-min-supported-client-version";
+            PROXY_PREFIX + "server-min-supported-client-version";
 
     private static final String SERVERPROXY_SUPPORT_CLIENTS_POOLED_CONNECTIONS =
-            PREFIX + "proxy.server-support-clients-pooled-connections";
+            PROXY_PREFIX + "server-support-clients-pooled-connections";
 
     /**
      * Property name of the idle time that connections to the clientproxy connector are initially allowed,
      * in milliseconds
      */
     private static final String CLIENTPROXY_CONNECTOR_INITIAL_IDLE_TIME =
-            PREFIX + "proxy.client-connector-initial-idle-time";
+            PROXY_PREFIX + "client-connector-initial-idle-time";
 
     /** Property name of the idle time that ClientProxy connections are allowed, in milliseconds */
     private static final String CLIENTPROXY_CONNECTOR_MAX_IDLE_TIME =
-            PREFIX + "proxy.client-connector-max-idle-time";
+            PROXY_PREFIX + "client-connector-max-idle-time";
 
     /** Property name of the client connector socket SO_LINGER timer, in seconds, value of -1 means off */
     private static final String CLIENTPROXY_CONNECTOR_SO_LINGER =
-            PREFIX + "proxy.client-connector-so-linger";
+            PROXY_PREFIX + "client-connector-so-linger";
 
     /**
      * Property name for he connection maximum idle time that should be set for client proxy apache HttpClient,
      * in milliseconds, value 0 means infinite timeout, -1 means the system default
      */
     private static final String CLIENTPROXY_HTTPCLIENT_TIMEOUT =
-            PREFIX + "proxy.client-httpclient-timeout";
+            PROXY_PREFIX + "client-httpclient-timeout";
 
     /** Property name for the so_linger value that should be set for client proxy apache HttpClient */
     private static final String CLIENTPROXY_HTTPCLIENT_SO_LINGER =
-            PREFIX + "proxy.client-httpclient-so-linger";
+            PROXY_PREFIX + "client-httpclient-so-linger";
 
     private static final String CLIENTPROXY_POOL_IDLE_MONITOR_INTERVAL =
-            PREFIX + "proxy.client-idle-connection-monitor-interval";
+            PROXY_PREFIX + "client-idle-connection-monitor-interval";
 
     private static final String CLIENTPROXY_POOL_IDLE_MONITOR_IDLE_TIME =
-            PREFIX + "proxy.client-idle-connection-monitor-timeout";
+            PROXY_PREFIX + "client-idle-connection-monitor-timeout";
 
     private static final String CLIENTPROXY_POOL_USE_IDLE_CONNECTION_MONITOR =
-            PREFIX + "proxy.client-use-idle-connection-monitor";
+            PROXY_PREFIX + "client-use-idle-connection-monitor";
 
     private static final String CLIENTPROXY_POOL_TOTAL_MAX_CONNECTIONS =
-            PREFIX + "proxy.pool-total-max-connections";
+            PROXY_PREFIX + "pool-total-max-connections";
 
     private static final String CLIENTPROXY_POOL_DEFAULT_MAX_CONN_PER_ROUTE =
-            PREFIX + "proxy.pool-total-default-max-connections-per-route";
+            PROXY_PREFIX + "pool-total-default-max-connections-per-route";
 
     private static final String CLIENTPROXY_USE_FASTEST_CONNECTING_SSL_SOCKET_AUTOCLOSE =
-            PREFIX + "proxy.client-use-fastest-connecting-ssl-socket-autoclose";
+            PROXY_PREFIX + "client-use-fastest-connecting-ssl-socket-autoclose";
 
     public static final String CLIENTPROXY_FASTEST_CONNECTING_SSL_URI_CACHE_PERIOD =
-            PREFIX + "proxy.client-fastest-connecting-ssl-uri-cache-period";
+            PROXY_PREFIX + "client-fastest-connecting-ssl-uri-cache-period";
 
     private static final String CLIENTPROXY_POOL_VALIDATE_CONNECTIONS_AFTER_INACTIVITY_OF_MS =
-            PREFIX + "proxy.pool-validate-connections-after-inactivity-of-millis";
+            PROXY_PREFIX + "pool-validate-connections-after-inactivity-of-millis";
 
     private static final String CLIENTPROXY_POOL_REUSE_CONNECTIONS =
-            PREFIX + "proxy.pool-enable-connection-reuse";
+            PROXY_PREFIX + "pool-enable-connection-reuse";
 
-    private static final String PROXY_HEALTH_CHECK_INTERFACE = PREFIX + "proxy.health-check-interface";
+    private static final String PROXY_HEALTH_CHECK_INTERFACE = PROXY_PREFIX + "health-check-interface";
 
-    public static final String PROXY_HEALTH_CHECK_PORT = PREFIX + "proxy.health-check-port";
+    public static final String PROXY_HEALTH_CHECK_PORT = PROXY_PREFIX + "health-check-port";
 
     private static final String ENFORCE_CLIENT_IS_CERT_VALIDITY_PERIOD_CHECK =
-            PREFIX + "proxy.enforce-client-is-cert-validity-period-check";
+            PROXY_PREFIX + "enforce-client-is-cert-validity-period-check";
 
-    private static final String PROXY_BACKUP_ENCRYPTION_ENABLED = PREFIX + "proxy.backup-encryption-enabled";
+    private static final String PROXY_BACKUP_ENCRYPTION_ENABLED = PROXY_PREFIX + "backup-encryption-enabled";
 
-    private static final String PROXY_BACKUP_ENCRYPTION_KEY_IDS = PREFIX + "proxy.backup-encryption-keyids";
+    private static final String PROXY_BACKUP_ENCRYPTION_KEY_IDS = PROXY_PREFIX + "backup-encryption-keyids";
 
-    private static final String HSM_HEALTH_CHECK_ENABLED = PREFIX + "proxy.hsm-health-check-enabled";
+    private static final String HSM_HEALTH_CHECK_ENABLED = PROXY_PREFIX + "hsm-health-check-enabled";
+    private static final String PROXY_MESSAGE_SIGN_DIGEST_NAME = PROXY_PREFIX + "message-sign-digest-name";
 
-    private static final String DEFAULT_HSM_HEALTH_CHECK_ENABLED = "false";
-    private static final String DEFAULT_PROXY_UI_API_ACME_CHALLENGE_PORT_ENABLED = "false";
-    private static final String DEFAULT_PROXY_BACKUP_ENCRYPTED = "false";
-    private static final String DEFAULT_CENTER_TRUSTED_ANCHORS_ALLOWED = "false";
+    private static final String FALSE = Boolean.FALSE.toString();
+    private static final String TRUE = Boolean.TRUE.toString();
+    private static final String DEFAULT_HSM_HEALTH_CHECK_ENABLED = FALSE;
+    private static final String DEFAULT_PROXY_UI_API_ACME_CHALLENGE_PORT_ENABLED = FALSE;
+    private static final String DEFAULT_PROXY_BACKUP_ENCRYPTED = FALSE;
+    private static final String DEFAULT_CENTER_TRUSTED_ANCHORS_ALLOWED = FALSE;
 
-    private static final String DEFAULT_CENTER_AUTO_APPROVE_AUTH_CERT_REG_REQUESTS = "false";
+    private static final String DEFAULT_CENTER_AUTO_APPROVE_AUTH_CERT_REG_REQUESTS = FALSE;
 
-    private static final String DEFAULT_CENTER_AUTO_APPROVE_CLIENT_REG_REQUESTS = "false";
+    private static final String DEFAULT_CENTER_AUTO_APPROVE_CLIENT_REG_REQUESTS = FALSE;
 
-    private static final String DEFAULT_CENTER_AUTO_APPROVE_OWNER_CHANGE_REQUESTS = "false";
+    private static final String DEFAULT_CENTER_AUTO_APPROVE_OWNER_CHANGE_REQUESTS = FALSE;
 
-    private static final String DEFAULT_AUTO_UPDATE_TIMESTAMP_SERVICE_URL = "false";
+    private static final String DEFAULT_AUTO_UPDATE_TIMESTAMP_SERVICE_URL = FALSE;
 
-    private static final String DEFAULT_ALLOW_CSR_FOR_KEY_WITH_CERTIFICATE = "false";
+    private static final String DEFAULT_ALLOW_CSR_FOR_KEY_WITH_CERTIFICATE = FALSE;
 
     private static final String DEFAULT_SERVERPROXY_CONNECTOR_MAX_IDLE_TIME = "0";
 
@@ -335,7 +378,7 @@ public final class SystemProperties {
 
     private static final String DEFAULT_SERVERPROXY_CONNECTOR_SO_LINGER = "-1";
 
-    private static final String DEFAULT_SERVERPROXY_SUPPORT_CLIENTS_POOLED_CONNECTIONS = "false";
+    private static final String DEFAULT_SERVERPROXY_SUPPORT_CLIENTS_POOLED_CONNECTIONS = FALSE;
 
     private static final String DEFAULT_CLIENTPROXY_CONNECTOR_MAX_IDLE_TIME = "0";
 
@@ -351,7 +394,7 @@ public final class SystemProperties {
 
     private static final String DEFAULT_CLIENTPROXY_POOL_IDLE_MONITOR_IDLE_TIME = "60000";
 
-    private static final String DEFAULT_CLIENTPROXY_POOL_USE_IDLE_CONNECTION_MONITOR = "true";
+    private static final String DEFAULT_CLIENTPROXY_POOL_USE_IDLE_CONNECTION_MONITOR = TRUE;
 
     private static final String DEFAULT_CLIENTPROXY_POOL_TOTAL_MAX_CONNECTIONS = "10000";
 
@@ -359,82 +402,71 @@ public final class SystemProperties {
 
     private static final String DEFAULT_CLIENTPROXY_TIMEOUT = "30000";
 
-    private static final String DEFAULT_CLIENTPROXY_USE_FASTEST_CONNECTING_SSL_SOCKET_AUTOCLOSE = "true";
+    private static final String DEFAULT_CLIENTPROXY_USE_FASTEST_CONNECTING_SSL_SOCKET_AUTOCLOSE = TRUE;
 
     private static final String DEFAULT_CLIENTPROXY_FASTEST_CONNECTING_SSL_URI_CACHE_PERIOD = "3600";
 
-    private static final String DEFAULT_ENV_MONITOR_LIMIT_REMOTE_DATA_SET = "false";
+    private static final String DEFAULT_ENV_MONITOR_LIMIT_REMOTE_DATA_SET = FALSE;
 
     private static final String DEFAULT_CLIENTPROXY_POOL_VALIDATE_CONNECTIONS_AFTER_INACTIVITY_OF_MS = "2000";
 
-    private static final String DEFAULT_ENFORCE_CLIENT_IS_CERT_VALIDITY_PERIOD_CHECK = "false";
+    private static final String DEFAULT_ENFORCE_CLIENT_IS_CERT_VALIDITY_PERIOD_CHECK = FALSE;
 
     /**
      * The default value of the on/off switch for a group of settings that affect whether or not pooled connections
      * for the ClientProxy can be actually reused
      **/
-    private static final String DEFAULT_CLIENTPROXY_POOL_REUSE_CONNECTIONS = "false";
+    private static final String DEFAULT_CLIENTPROXY_POOL_REUSE_CONNECTIONS = FALSE;
 
     private static final String DEFAULT_PROXY_HEALTH_CHECK_INTERFACE = "0.0.0.0";
 
     private static final String DEFAULT_PROXY_HEALTH_CHECK_PORT = "0";
 
-    public static final String DEFAULT_SIGNER_ENFORCE_TOKEN_PIN_POLICY = "false";
+    public static final String DEFAULT_SIGNER_ENFORCE_TOKEN_PIN_POLICY = FALSE;
 
     private static final String OCSP_VERIFIER_CACHE_PERIOD =
-            PREFIX + "proxy.ocsp-verifier-cache-period";
+            PROXY_PREFIX + "ocsp-verifier-cache-period";
 
     private static final int OCSP_VERIFIER_CACHE_PERIOD_MAX = 180;
 
     // Signer -----------------------------------------------------------------
 
     /** Property name of the key configuration file. */
-    public static final String KEY_CONFIGURATION_FILE =
-            PREFIX + "signer.key-configuration-file";
+    public static final String KEY_CONFIGURATION_FILE = SIGNER_PREFIX + "key-configuration-file";
 
     /** Property name of the device configuration file. */
-    public static final String DEVICE_CONFIGURATION_FILE =
-            PREFIX + "signer.device-configuration-file";
-
-    /** Property name of the Signer's port number. */
-    public static final String SIGNER_PORT =
-            PREFIX + "signer.port";
+    public static final String DEVICE_CONFIGURATION_FILE = SIGNER_PREFIX + "device-configuration-file";
 
     /** Property name of the Signer's admin port number. */
-    public static final String SIGNER_ADMIN_PORT =
-            PREFIX + "signer.admin-port";
+    public static final String SIGNER_ADMIN_PORT = SIGNER_PREFIX + "admin-port";
 
     /** Property name of the SignerClient's timeout. */
-    public static final String SIGNER_CLIENT_TIMEOUT =
-            PREFIX + "signer.client-timeout";
+    public static final String SIGNER_CLIENT_TIMEOUT = SIGNER_PREFIX + "client-timeout";
 
-    public static final String SIGNER_MODULE_INSTANCE_PROVIDER =
-            PREFIX + "signer.module-instance-provider";
+    public static final String SIGNER_MODULE_INSTANCE_PROVIDER = SIGNER_PREFIX + "module-instance-provider";
 
-    public static final String SIGNER_KEY_LENGTH =
-            PREFIX + "signer.key-length";
+    public static final String SIGNER_KEY_LENGTH = SIGNER_PREFIX + "key-length";
 
-    public static final String PASSWORD_STORE_IPC_KEY_PATHNAME =
-            PREFIX + "signer.password-store-ipc-key-pathname";
+    public static final String SIGNER_KEY_SIGN_ALGORITHM_NAME = SIGNER_PREFIX + "key-sign-algorithm-name";
+
+    public static final String PASSWORD_STORE_IPC_KEY_PATHNAME = SIGNER_PREFIX + "password-store-ipc-key-pathname";
 
     public static final int MIN_SIGNER_KEY_LENGTH = 2048;
     public static final int DEFAULT_SIGNER_KEY_LENGTH = MIN_SIGNER_KEY_LENGTH;
+    public static final SignAlgorithm DEFAULT_SIGNER_KEY_SIGN_ALGORITHM = SignAlgorithm.SHA512_WITH_RSA;
 
     public static final String DEFAULT_SIGNER_CLIENT_TIMEOUT = "60000";
 
-    public static final String SIGNER_CSR_SIGNATURE_DIGEST_ALGORITHM =
-            PREFIX + "signer.csr-signature-digest-algorithm";
+    public static final String SIGNER_CSR_SIGNATURE_DIGEST_ALGORITHM = SIGNER_PREFIX + "csr-signature-digest-algorithm";
 
-    public static final String OCSP_RESPONSE_RETRIEVAL_ACTIVE =
-            PREFIX + "signer.ocsp-response-retrieval-active";
+    public static final String OCSP_RESPONSE_RETRIEVAL_ACTIVE = SIGNER_PREFIX + "ocsp-response-retrieval-active";
 
-    public static final String SIGNER_OCSP_RETRY_DELAY =
-            PREFIX + "signer.ocsp-retry-delay";
+    public static final String SIGNER_OCSP_RETRY_DELAY = SIGNER_PREFIX + "ocsp-retry-delay";
 
     private static final String DEFAULT_SIGNER_OCSP_RETRY_DELAY = "60";
 
-    public static final String SIGNER_MODULE_MANAGER_UPDATE_INTERVAL =
-            PREFIX + "signer.module-manager-update-interval";
+    public static final String SIGNER_MODULE_MANAGER_UPDATE_INTERVAL = SIGNER_PREFIX + "module-manager-update-interval";
+    public static final String SOFTWARE_TOKEN_SIGN_MECHANISM = SIGNER_PREFIX + "software-token-sign-mechanism";
 
     public static final String DEFAULT_SIGNER_MODULE_MANAGER_UPDATE_INTERVAL = "60";
 
@@ -555,6 +587,39 @@ public final class SystemProperties {
     private static final String PROXYUI_AUTH_CERT_REG_SIGNATURE_DIGEST_ALGORITHM_ID =
             PREFIX + "proxy-ui-api.auth-cert-reg-signature-digest-algorithm-id";
 
+    /**
+     * Property name of the Security Server url, used to send management requests from Proxy UI.
+     */
+    private static final String PROXYUI_SECURITY_SERVER_URL = PREFIX + "proxy-ui-api.security-server-url";
+
+    /**
+     * Property name of the management request sender client keystore path, used to send management requests from Proxy UI.
+     */
+    private static final String MANAGEMENT_REQUEST_SENDER_CLIENT_KEYSTORE =
+            PREFIX + "proxy-ui-api.management-request-sender-client-keystore";
+
+    /**
+     * Property name of the management request sender client keystore password, used to send management requests from Proxy UI.
+     */
+    private static final String MANAGEMENT_REQUEST_SENDER_CLIENT_KEYSTORE_PASSWORD =
+            PREFIX + "proxy-ui-api.management-request-sender-client-keystore-password";
+    private static final String MANAGEMENT_REQUEST_SENDER_CLIENT_KEYSTORE_PASSWORD_ENV =
+            propertyNameToEnvVariable(MANAGEMENT_REQUEST_SENDER_CLIENT_KEYSTORE_PASSWORD);
+
+    /**
+     * Property name of the management request sender client truststore path, used to send management requests from Proxy UI.
+     */
+    private static final String MANAGEMENT_REQUEST_SENDER_CLIENT_TRUSTSTORE =
+            PREFIX + "proxy-ui-api.management-request-sender-client-truststore";
+
+    /**
+     * Property name of the management request sender client truststore password, used to send management requests from Proxy UI.
+     */
+    private static final String MANAGEMENT_REQUEST_SENDER_CLIENT_TRUSTSTORE_PASSWORD =
+            PREFIX + "proxy-ui-api.management-request-sender-client-truststore-password";
+    private static final String MANAGEMENT_REQUEST_SENDER_CLIENT_TRUSTSTORE_PASSWORD_ENV =
+            propertyNameToEnvVariable(MANAGEMENT_REQUEST_SENDER_CLIENT_TRUSTSTORE_PASSWORD);
+
     // Proxy & Central monitor agent ------------------------------------------
 
     /** Property name of the proxy monitor info collection interval. */
@@ -635,12 +700,12 @@ public final class SystemProperties {
     /**
      * Property name for gRPC signer port.
      */
-    public static final String GRPC_SIGNER_PORT = PREFIX + "signer.grpc-port";
+    public static final String GRPC_SIGNER_PORT = SIGNER_PREFIX + "grpc-port";
 
     /**
      * Property name for gRPC proxy port.
      */
-    public static final String PROXY_GRPC_PORT = PREFIX + "proxy.grpc-port";
+    public static final String PROXY_GRPC_PORT = PROXY_PREFIX + "grpc-port";
 
     /**
      * Property name for gRPC internal keystore location.
@@ -654,7 +719,7 @@ public final class SystemProperties {
     public static final String GRPC_INTERNAL_KEYSTORE_PASSWORD =
             PREFIX + "common.grpc-internal-keystore-password";
     public static final String GRPC_INTERNAL_KEYSTORE_PASSWORD_ENV =
-            GRPC_INTERNAL_KEYSTORE_PASSWORD.toUpperCase().replaceAll("[.-]", "_");
+            propertyNameToEnvVariable(GRPC_INTERNAL_KEYSTORE_PASSWORD);
 
     /**
      * Property name for gRPC internal truststore location.
@@ -668,7 +733,13 @@ public final class SystemProperties {
     public static final String GRPC_INTERNAL_TRUSTSTORE_PASSWORD =
             PREFIX + "common.grpc-internal-truststore-password";
     public static final String GRPC_INTERNAL_TRUSTSTORE_PASSWORD_ENV =
-            GRPC_INTERNAL_TRUSTSTORE_PASSWORD.toUpperCase().replaceAll("[.-]", "_");
+            propertyNameToEnvVariable(GRPC_INTERNAL_TRUSTSTORE_PASSWORD);
+
+    /**
+     * Property name for global configuration refresh rate in seconds.
+     */
+    public static final String GLOBAL_CONF_REFRESH_RATE_SECONDS = PREFIX + "common.global-conf-refresh-rate-seconds";
+
     // Cluster node configuration ------------------------------------------ //
 
     /**
@@ -819,7 +890,7 @@ public final class SystemProperties {
     }
 
     public static long getAcmeAuthorizationWaitInterval() {
-        return Long.parseLong(System.getProperty(PROXY_UI_API_ACME_AUTHORIZATION_WAIT_INTERVAL, "5000"));
+        return Long.parseLong(System.getProperty(PROXY_UI_API_ACME_AUTHORIZATION_WAIT_INTERVAL, "5"));
     }
 
     public static int getAcmeCertificateWaitAttempts() {
@@ -827,7 +898,7 @@ public final class SystemProperties {
     }
 
     public static long getAcmeCertificateWaitInterval() {
-        return Long.parseLong(System.getProperty(PROXY_UI_API_ACME_CERTIFICATE_WAIT_INTERVAL, "5000"));
+        return Long.parseLong(System.getProperty(PROXY_UI_API_ACME_CERTIFICATE_WAIT_INTERVAL, "5"));
     }
 
     public static long getAcmeAccountKeyPairExpirationInDays() {
@@ -906,8 +977,51 @@ public final class SystemProperties {
      * @return signature digest algorithm ID used for generating authentication certificate registration request,
      * SHA-512 by default.
      */
-    public static String getAuthCertRegSignatureDigestAlgorithmId() {
-        return System.getProperty(PROXYUI_AUTH_CERT_REG_SIGNATURE_DIGEST_ALGORITHM_ID, CryptoUtils.SHA512_ID);
+    public static DigestAlgorithm getAuthCertRegSignatureDigestAlgorithmId() {
+        return Optional.ofNullable(System.getProperty(PROXYUI_AUTH_CERT_REG_SIGNATURE_DIGEST_ALGORITHM_ID))
+                .map(DigestAlgorithm::ofName)
+                .orElse(DigestAlgorithm.SHA512);
+    }
+
+    /**
+     * @return Security Server url, used to send management requests from Proxy UI. Defaults to 'https://localhost:8443'.
+     */
+    public static String getProxyUiSecurityServerUrl() {
+        return System.getProperty(PROXYUI_SECURITY_SERVER_URL, "https://localhost:" + getClientProxyHttpsPort());
+    }
+
+    /**
+     * @return path to the management request sender client keystore. Uses PKCS#12 format.
+     */
+    public static String getManagementRequestSenderClientKeystore() {
+        return System.getProperty(MANAGEMENT_REQUEST_SENDER_CLIENT_KEYSTORE);
+    }
+
+    /**
+     * @return management request sender client keystore password.
+     */
+    public static char[] getManagementRequestSenderClientKeystorePassword() {
+        return Optional.ofNullable(System.getProperty(MANAGEMENT_REQUEST_SENDER_CLIENT_KEYSTORE_PASSWORD,
+                        System.getenv().get(MANAGEMENT_REQUEST_SENDER_CLIENT_KEYSTORE_PASSWORD_ENV)))
+                .map(String::toCharArray)
+                .orElse(null);
+    }
+
+    /**
+     * @return path to the management request sender client truststore. Uses PKCS#12 format.
+     */
+    public static String getManagementRequestSenderClientTruststore() {
+        return System.getProperty(MANAGEMENT_REQUEST_SENDER_CLIENT_TRUSTSTORE);
+    }
+
+    /**
+     * @return management request sender client truststore password.
+     */
+    public static char[] getManagementRequestSenderClientTruststorePassword() {
+        return Optional.ofNullable(System.getProperty(MANAGEMENT_REQUEST_SENDER_CLIENT_TRUSTSTORE_PASSWORD,
+                        System.getenv().get(MANAGEMENT_REQUEST_SENDER_CLIENT_TRUSTSTORE_PASSWORD_ENV)))
+                .map(String::toCharArray)
+                .orElse(null);
     }
 
     /**
@@ -990,13 +1104,6 @@ public final class SystemProperties {
     }
 
     /**
-     * @return the HTTP port on which the signer listens for signing requests, '5558' by default.
-     */
-    public static int getSignerPort() {
-        return Integer.parseInt(System.getProperty(SIGNER_PORT, Integer.toString(PortNumbers.SIGNER_PORT)));
-    }
-
-    /**
      * @return the port on which the signer admin listens for requests
      */
     public static int getSignerAdminPort() {
@@ -1018,6 +1125,15 @@ public final class SystemProperties {
     }
 
     /**
+     * @return authentication and signing key sign algorithm name, by default SHA512WITHRSA.
+     */
+    public static SignAlgorithm getSignerKeySignatureAlgorithm() {
+        return Optional.ofNullable(System.getProperty(SIGNER_KEY_SIGN_ALGORITHM_NAME))
+                .map(SignAlgorithm::ofName)
+                .orElse(DEFAULT_SIGNER_KEY_SIGN_ALGORITHM);
+    }
+
+    /**
      * Get the pathname for password store IPC key generation (used as an input for ftok kernel function).
      *
      * @return path
@@ -1031,15 +1147,17 @@ public final class SystemProperties {
      *
      * @return algorithm
      */
-    public static String getSignerCsrSignatureDigestAlgorithm() {
-        return System.getProperty(SIGNER_CSR_SIGNATURE_DIGEST_ALGORITHM, CryptoUtils.SHA256_ID);
+    public static DigestAlgorithm getSignerCsrSignatureDigestAlgorithm() {
+        return Optional.ofNullable(System.getProperty(SIGNER_CSR_SIGNATURE_DIGEST_ALGORITHM))
+                .map(DigestAlgorithm::ofName)
+                .orElse(DigestAlgorithm.SHA256);
     }
 
     /**
      * @return whether OCSP-response retrieval loop should be activated
      */
     public static boolean isOcspResponseRetrievalActive() {
-        return "true".equalsIgnoreCase(System.getProperty(OCSP_RESPONSE_RETRIEVAL_ACTIVE, "true"));
+        return Boolean.parseBoolean(System.getProperty(OCSP_RESPONSE_RETRIEVAL_ACTIVE, TRUE));
     }
 
     /**
@@ -1059,7 +1177,81 @@ public final class SystemProperties {
     }
 
     /**
-     * @return the HTTP port on which the configuration client is listening, '5665' by default.
+     * @return software token signing mechanism type, CKM_RSA_PKCS by default
+     */
+    public static SignMechanism getSoftwareTokenSignMechanism() {
+        return Optional.ofNullable(System.getProperty(SOFTWARE_TOKEN_SIGN_MECHANISM))
+                .map(SignMechanism::valueOf)
+                .orElse(SignMechanism.CKM_RSA_PKCS);
+    }
+
+    /**
+     * @return the ACME certificate renewal toggle
+     */
+    public static boolean isAcmeCertificateRenewalActive() {
+        return Boolean.parseBoolean(System.getProperty(PROXY_UI_API_ACME_RENEWAL_ACTIVE, "true"));
+    }
+
+    /**
+     * @return the ACME certificate renewal retry delay in seconds
+     */
+    public static int getAcmeCertificateRenewalRetryDelay() {
+        return Integer.parseInt(System.getProperty(PROXY_UI_API_ACME_RENEWAL_RETRY_DELAY, "60"));
+    }
+
+    /**
+     * @return the ACME certificate renewal job interval in seconds
+     */
+    public static int getAcmeCertificateRenewalInterval() {
+        return Integer.parseInt(System.getProperty(PROXY_UI_API_ACME_RENEWAL_INTERVAL, "1200"));
+    }
+
+    /**
+     * @return when to trigger automatic renewal subtracted as days from the expiration date of the certificate.
+     * Used when it's not possible to receive the ACME renewal information from the ACME server.
+     */
+    public static int getAcmeRenewalTimeBeforeExpirationDate() {
+        return Integer.parseInt(System.getProperty(PROXY_UI_API_ACME_RENEWAL_TIME_BEFORE_EXPIRATION_DATE, "14"));
+    }
+
+    /**
+     * @return when to trigger automatic acme account keypair renewal subtracted as days from the expiration date of the certificate.
+     */
+    public static int getAcmeKeypairRenewalTimeBeforeExpirationDate() {
+        return Integer.parseInt(System.getProperty(PROXY_UI_API_ACME_KEYPAIR_RENEWAL_TIME_BEFORE_EXPIRATION_DATE, "14"));
+    }
+
+    /**
+     * @return true if ACME automatic renewal job success notifications are enabled
+     */
+    public static boolean getAcmeRenewalSuccessNotificationEnabled() {
+        return Boolean.parseBoolean(System.getProperty(PROXY_UI_API_ACME_RENEWAL_SUCCESS_NOTIFICATION_ENABLED, TRUE));
+    }
+
+    /**
+     * @return true if ACME automatic renewal job failure notifications are enabled
+     */
+    public static boolean getAcmeRenewalFailureNotificationEnabled() {
+        return Boolean.parseBoolean(System.getProperty(PROXY_UI_API_ACME_RENEWAL_FAILURE_NOTIFICATION_ENABLED, TRUE));
+    }
+
+    /**
+     * @return true if authentication certificate registered notifications are enabled
+     */
+    public static boolean getAuthCertRegisteredNotificationEnabled() {
+        return Boolean.parseBoolean(System.getProperty(PROXY_UI_API_AUTH_CERT_REGISTERED_NOTIFICATION_ENABLED, TRUE));
+    }
+
+    /**
+     * @return Locale for mail notifications.
+     * No default value here, notifications' resource bundle already has defaults in notifications.properties
+     */
+    public static String getMailNotificationLocale() {
+        return System.getProperty(PROXY_UI_API_MAIL_NOTIFICATION_LOCALE);
+    }
+
+    /**
+     * @return the gRPC port on which the configuration client is listening, '5665' by default.
      */
     public static int getConfigurationClientPort() {
         return Integer.parseInt(System.getProperty(CONFIGURATION_CLIENT_PORT,
@@ -1091,11 +1283,11 @@ public final class SystemProperties {
     }
 
     public static boolean isConfigurationClientGlobalConfTlsCertVerificationEnabled() {
-        return Boolean.parseBoolean(System.getProperty(CONFIGURATION_CLIENT_GLOBAL_CONF_TLS_CERT_VERIFICATION, "true"));
+        return Boolean.parseBoolean(System.getProperty(CONFIGURATION_CLIENT_GLOBAL_CONF_TLS_CERT_VERIFICATION, TRUE));
     }
 
     public static boolean isConfigurationClientGlobalConfHostnameVerificationEnabled() {
-        return Boolean.parseBoolean(System.getProperty(CONFIGURATION_CLIENT_GLOBAL_CONF_HOSTNAME_VERIFICATION, "true"));
+        return Boolean.parseBoolean(System.getProperty(CONFIGURATION_CLIENT_GLOBAL_CONF_HOSTNAME_VERIFICATION, TRUE));
     }
 
     public static String getConfigurationClientAllowedFederations() {
@@ -1135,7 +1327,7 @@ public final class SystemProperties {
      * @return whether SSL should be used between client and server proxies, 'true' by default.
      */
     public static boolean isSslEnabled() {
-        return "true".equalsIgnoreCase(System.getProperty(PROXY_SSL_SUPPORT, "true"));
+        return Boolean.parseBoolean(System.getProperty(PROXY_SSL_SUPPORT, TRUE));
     }
 
     /**
@@ -1150,7 +1342,7 @@ public final class SystemProperties {
      * @return whether configuration of trusted anchors is enabled in the central server UI, 'true' by default.
      */
     public static boolean getCenterTrustedAnchorsAllowed() {
-        return "true".equalsIgnoreCase(System.getProperty(CENTER_TRUSTED_ANCHORS_ALLOWED,
+        return Boolean.parseBoolean(System.getProperty(CENTER_TRUSTED_ANCHORS_ALLOWED,
                 DEFAULT_CENTER_TRUSTED_ANCHORS_ALLOWED));
     }
 
@@ -1232,8 +1424,10 @@ public final class SystemProperties {
      * @return ID of the signing digest algorithm the configuration proxy uses when
      * signing generated global configuration directories, 'SHA-512' by default.
      */
-    public static String getConfigurationProxySignatureDigestAlgorithmId() {
-        return System.getProperty(CONFIGURATION_PROXY_SIGNATURE_DIGEST_ALGORITHM_ID, CryptoUtils.SHA512_ID);
+    public static DigestAlgorithm getConfigurationProxySignatureDigestAlgorithmId() {
+        return Optional.ofNullable(System.getProperty(CONFIGURATION_PROXY_SIGNATURE_DIGEST_ALGORITHM_ID))
+                .map(DigestAlgorithm::ofName)
+                .orElse(DigestAlgorithm.SHA512);
     }
 
     /**
@@ -1241,8 +1435,10 @@ public final class SystemProperties {
      * calculating hashes of files in the global configuratoin directory,
      * 'http://www.w3.org/2001/04/xmlenc#sha512' by default.
      */
-    public static String getConfigurationProxyHashAlgorithmUri() {
-        return System.getProperty(CONFIGURATION_PROXY_HASH_ALGORITHM_URI, CryptoUtils.DEFAULT_DIGEST_ALGORITHM_URI);
+    public static DigestAlgorithm getConfigurationProxyHashAlgorithmUri() {
+        return Optional.ofNullable(System.getProperty(CONFIGURATION_PROXY_HASH_ALGORITHM_URI))
+                .map(DigestAlgorithm::ofUri)
+                .orElse(DigestAlgorithm.SHA512);
     }
 
     /**
@@ -1327,7 +1523,17 @@ public final class SystemProperties {
      * 'true' by default.
      */
     public static boolean shouldVerifyClientCert() {
-        return "true".equalsIgnoreCase(System.getProperty(PROXY_VERIFY_CLIENT_CERT, "true"));
+        return Boolean.parseBoolean(System.getProperty(PROXY_VERIFY_CLIENT_CERT, TRUE));
+    }
+
+    /**
+     * This parameter may be set to true for cases where there is a need to log client's SSL certificate.
+     *
+     * @return whether the client proxy should log client's SSL certificate,
+     * 'false' by default.
+     */
+    public static boolean shouldLogClientCert() {
+        return Boolean.parseBoolean(System.getProperty(PROXY_LOG_CLIENT_CERT, FALSE));
     }
 
     /**
@@ -1368,7 +1574,7 @@ public final class SystemProperties {
      * @return whether Anti-Dos should be used, 'true' by default.
      */
     public static boolean isAntiDosEnabled() {
-        return "true".equalsIgnoreCase(System.getProperty(ANTIDOS_ENABLED, "true"));
+        return Boolean.parseBoolean(System.getProperty(ANTIDOS_ENABLED, TRUE));
     }
 
     /**
@@ -1669,7 +1875,7 @@ public final class SystemProperties {
      * @return Whether to throw an exception about expired or not yet valid certificates, 'false' by default..
      */
     public static boolean isClientIsCertValidityPeriodCheckEnforced() {
-        return "true".equalsIgnoreCase(System.getProperty(ENFORCE_CLIENT_IS_CERT_VALIDITY_PERIOD_CHECK,
+        return Boolean.parseBoolean(System.getProperty(ENFORCE_CLIENT_IS_CERT_VALIDITY_PERIOD_CHECK,
                 DEFAULT_ENFORCE_CLIENT_IS_CERT_VALIDITY_PERIOD_CHECK));
     }
 
@@ -1678,7 +1884,7 @@ public final class SystemProperties {
      * 'false' by default.
      */
     public static boolean isBackupEncryptionEnabled() {
-        return "true".equalsIgnoreCase(System.getProperty(PROXY_BACKUP_ENCRYPTION_ENABLED,
+        return Boolean.parseBoolean(System.getProperty(PROXY_BACKUP_ENCRYPTION_ENABLED,
                 DEFAULT_PROXY_BACKUP_ENCRYPTED));
     }
 
@@ -1695,6 +1901,16 @@ public final class SystemProperties {
      */
     public static boolean isHSMHealthCheckEnabled() {
         return Boolean.parseBoolean(System.getProperty(HSM_HEALTH_CHECK_ENABLED, DEFAULT_HSM_HEALTH_CHECK_ENABLED));
+    }
+
+    /**
+     * @return Digest name used for signing proxy messages
+     * 'SHA-512' by default
+     */
+    public static DigestAlgorithm getProxyMessageSignDigestName() {
+        return Optional.ofNullable(System.getProperty(PROXY_MESSAGE_SIGN_DIGEST_NAME))
+                .map(DigestAlgorithm::ofName)
+                .orElse(DigestAlgorithm.SHA512);
     }
 
     /**
@@ -1744,5 +1960,16 @@ public final class SystemProperties {
      */
     public static String getGrpcInternalTruststorePassword() {
         return System.getProperty(GRPC_INTERNAL_TRUSTSTORE_PASSWORD, System.getenv().get(GRPC_INTERNAL_TRUSTSTORE_PASSWORD_ENV));
+    }
+
+    /**
+     * @return GlobalConf scheduled refresh rate in seconds
+     */
+    public static String getGlobalConfRefreshRateSeconds() {
+        return System.getProperty(GLOBAL_CONF_REFRESH_RATE_SECONDS, "60");
+    }
+
+    private static String propertyNameToEnvVariable(String propName) {
+        return propName.toUpperCase().replaceAll("[.-]", "_");
     }
 }

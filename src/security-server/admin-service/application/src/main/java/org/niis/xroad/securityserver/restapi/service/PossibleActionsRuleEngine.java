@@ -201,19 +201,11 @@ public class PossibleActionsRuleEngine {
                                        boolean canUnregister) {
 
         boolean canDeleteCertFromTokenRenderer;
-        if (tokenInfo.isReadOnly() && !savedToConfiguration) {
-            canDeleteCertFromTokenRenderer = false;
-        } else {
-            canDeleteCertFromTokenRenderer = true;
-        }
+        canDeleteCertFromTokenRenderer = !tokenInfo.isReadOnly() || savedToConfiguration;
 
-        if (!canUnregister
+        return !canUnregister
                 && canDeleteCertFromTokenRenderer
-                && (savedToConfiguration || tokenInfo.isActive())) {
-            return true;
-        } else {
-            return false;
-        }
+                && (savedToConfiguration || tokenInfo.isActive());
     }
 
     /**
@@ -281,23 +273,12 @@ public class PossibleActionsRuleEngine {
                                       KeyInfo keyInfo,
                                       CertificateInfo certificateInfo,
                                       CertRequestInfo certRequestInfo) throws ActionNotPossibleException {
-        EnumSet<PossibleActionEnum> possibleActions;
-        switch (target) {
-            case TOKEN:
-                possibleActions = getPossibleTokenActions(tokenInfo);
-                break;
-            case KEY:
-                possibleActions = getPossibleKeyActions(tokenInfo, keyInfo);
-                break;
-            case CERTIFICATE:
-                possibleActions = getPossibleCertificateActions(tokenInfo, keyInfo, certificateInfo);
-                break;
-            case CSR:
-                possibleActions = getPossibleCsrActions(tokenInfo);
-                break;
-            default:
-                throw new IllegalStateException("bad target: " + target);
-        }
+        EnumSet<PossibleActionEnum> possibleActions = switch (target) {
+            case TOKEN -> getPossibleTokenActions(tokenInfo);
+            case KEY -> getPossibleKeyActions(tokenInfo, keyInfo);
+            case CERTIFICATE -> getPossibleCertificateActions(tokenInfo, keyInfo, certificateInfo);
+            case CSR -> getPossibleCsrActions(tokenInfo);
+        };
         if (!possibleActions.contains(action)) {
             throw new ActionNotPossibleException(action + " is not possible");
         }

@@ -25,76 +25,87 @@
  */
 package org.niis.xroad.securityserver.restapi.wsdl;
 
+import ee.ria.xroad.common.conf.serverconf.ServerConfProvider;
+
 import org.junit.BeforeClass;
 import org.junit.Test;
 
 import java.util.Collection;
 
 import static org.junit.Assert.assertEquals;
+import static org.mockito.Mockito.mock;
 
 /**
  * Tests correctness of the WSDL parser.
  */
 public class WsdlParserTest {
+    private static WsdlParser wsdlParser;
 
     @BeforeClass
     public static void setup() throws Exception {
         // restrict access to external entities
         System.setProperty("javax.xml.accessExternalDTD", "");
+        wsdlParser = new WsdlParser(mock(ServerConfProvider.class));
     }
 
     /**
      * Test if a valid WSDL is parsed correctly.
+     *
      * @throws Exception in case of any errors
      */
     @Test
     public void readValidWsdl() throws Exception {
-        Collection<WsdlParser.ServiceInfo> si = WsdlParser.parseWSDL("file:src/test/resources/wsdl/valid.wsdl");
+        Collection<WsdlParser.ServiceInfo> si = wsdlParser.parseWSDL("file:src/test/resources/wsdl/valid.wsdl");
         assertEquals(3, si.size());
     }
 
     /**
      * Test if an invalid WSDL is recognized.
+     *
      * @throws Exception in case of any errors
      */
     @Test(expected = WsdlParser.WsdlParseException.class)
     public void readInvalidWsdl() throws Exception {
-        WsdlParser.parseWSDL("file:src/test/resources/wsdl/invalid.wsdl");
+        wsdlParser.parseWSDL("file:src/test/resources/wsdl/invalid.wsdl");
     }
 
     /**
      * Test if an invalid URL is recognized.
+     *
      * @throws Exception in case of any errors
      */
     @Test(expected = WsdlParser.WsdlNotFoundException.class)
     public void readWsdlFromInvalidUrl() throws Exception {
-        WsdlParser.parseWSDL("http://localhost:1234/foo.wsdl");
+        wsdlParser.parseWSDL("http://localhost:1234/foo.wsdl");
     }
 
     /**
      * Test if a fault XML is recognized.
+     *
      * @throws Exception in case of any errors
      */
     @Test(expected = WsdlParser.WsdlParseException.class)
     public void readFaultInsteadOfWsdl() throws Exception {
-        WsdlParser.parseWSDL("file:src/test/resources/fault.xml");
+        wsdlParser.parseWSDL("file:src/test/resources/fault.xml");
     }
 
     /**
      * Test if NotFound is recognized.
+     *
      * @throws Exception in case of any errors
      */
     @Test(expected = WsdlParser.WsdlNotFoundException.class)
     public void tryReadNotFoundWsdl() throws Exception {
-        WsdlParser.parseWSDL("file:src/test/resources/wsdl/notfound.wsdl");
+        wsdlParser.parseWSDL("file:src/test/resources/wsdl/notfound.wsdl");
     }
 
     /**
      * Test if a valid WSDL parsing fails due to an external entity.
+     *
      * @throws Exception in case of any errors
      */
     @Test(expected = WsdlParser.WsdlParseException.class)
     public void readValidWsdlWithExternalEntity() throws Exception {
-        WsdlParser.parseWSDL("file:src/test/resources/wsdl/xxe.wsdl");
+        wsdlParser.parseWSDL("file:src/test/resources/wsdl/xxe.wsdl");
     }
 }

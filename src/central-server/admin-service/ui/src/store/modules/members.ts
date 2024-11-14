@@ -25,14 +25,7 @@
  * THE SOFTWARE.
  */
 import axios from 'axios';
-import {
-  Client,
-  ClientId,
-  MemberAdd,
-  MemberGlobalGroup,
-  MemberName,
-  SecurityServer,
-} from '@/openapi-types';
+import { Client, ClientId, MemberAdd, MemberGlobalGroup, MemberName, SecurityServer } from '@/openapi-types';
 import { defineStore } from 'pinia';
 
 export interface State {
@@ -81,6 +74,14 @@ export const useMember = defineStore('member', {
           throw error;
         });
     },
+    getUsedServers(memberId: string) {
+      return axios
+        .get<SecurityServer[]>(`/members/${memberId}/used-servers`)
+        .then((resp) => resp.data)
+        .catch((error) => {
+          throw error;
+        });
+    },
     getMemberGlobalGroups(memberId: string) {
       return axios
         .get<MemberGlobalGroup[]>(`/members/${memberId}/global-groups`)
@@ -88,6 +89,9 @@ export const useMember = defineStore('member', {
         .catch((error) => {
           throw error;
         });
+    },
+    unregister(memberId: string, serverId: string) {
+      return axios.delete(`/members/${memberId}/servers/${serverId}`);
     },
   },
 });

@@ -61,7 +61,7 @@ public class SecurityServerApiStepDefs extends BaseStepDefs {
     public void systemStatusIsRequested(String id) {
         try {
             var response = securityServersApi.getSecurityServerAuthCerts(id);
-            putStepData(StepDataKey.RESPONSE_STATUS, response.getStatusCodeValue());
+            putStepData(StepDataKey.RESPONSE_STATUS, response.getStatusCode().value());
         } catch (FeignException feignException) {
             putStepData(StepDataKey.RESPONSE_STATUS, feignException.status());
         }

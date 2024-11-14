@@ -48,6 +48,7 @@ import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
+import static org.assertj.core.api.InstanceOfAssertFactories.LIST;
 import static org.springframework.http.HttpStatus.TOO_MANY_REQUESTS;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
@@ -99,7 +100,7 @@ class ApplicationIpRateLimitTest {
                     .map(MockHttpServletResponse::getStatus)
                     .collect(Collectors.toList());
 
-            assertThat(result).asList().containsOnlyOnce(TOO_MANY_REQUESTS.value());
+            assertThat(result).asInstanceOf(LIST).containsOnlyOnce(TOO_MANY_REQUESTS.value());
         }
     }
 

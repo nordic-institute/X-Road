@@ -25,6 +25,8 @@
  */
 package ee.ria.xroad.common.hashchain;
 
+import ee.ria.xroad.common.crypto.identifier.DigestAlgorithm;
+
 import jakarta.xml.bind.JAXBContext;
 import jakarta.xml.bind.JAXBElement;
 import jakarta.xml.bind.Marshaller;
@@ -38,7 +40,6 @@ import java.util.List;
 import java.util.Map;
 
 import static ee.ria.xroad.common.hashchain.DigestList.digestHashStep;
-import static ee.ria.xroad.common.util.CryptoUtils.getDigestAlgorithmURI;
 import static ee.ria.xroad.common.util.MessageFileNames.attachment;
 import static java.lang.Integer.numberOfLeadingZeros;
 
@@ -84,10 +85,7 @@ public final class HashChainBuilder {
     private static final String STEP = "STEP";
 
     /** Hash algorithm used to hash tree nodes and inputs. */
-    private final String hashAlgorithm;
-
-    /** Hash algorithm URI used in XML. */
-    private final String hashAlgorithmUri;
+    private final DigestAlgorithm hashAlgorithm;
 
     /** Array of input hashes. */
     private final List<byte[]> inputs = new ArrayList<>();
@@ -121,9 +119,8 @@ public final class HashChainBuilder {
      *                      algorithm. Example: SHA-256.
      * @throws Exception in case of errors
      */
-    public HashChainBuilder(String hashAlgorithm) throws Exception {
+    public HashChainBuilder(DigestAlgorithm hashAlgorithm) throws Exception {
         this.hashAlgorithm = hashAlgorithm;
-        hashAlgorithmUri = getDigestAlgorithmURI(hashAlgorithm);
 
         marshaller = jaxbCtx.createMarshaller();
         // Format the XML, good for debugging.
@@ -320,7 +317,7 @@ public final class HashChainBuilder {
         if (inputs.size() == 1) {
             // For single input, we do not build the nodes array
             // and directly return the input.
-            return inputs.get(0);
+            return inputs.getFirst();
         } else {
             return nodes[ROOT_IDX];
         }
@@ -562,7 +559,7 @@ public final class HashChainBuilder {
      */
     private DigestMethodType digestMethod() {
         DigestMethodType digestMethod = new DigestMethodType();
-        digestMethod.setAlgorithm(hashAlgorithmUri);
+        digestMethod.setAlgorithm(hashAlgorithm.uri());
         return digestMethod;
     }
 

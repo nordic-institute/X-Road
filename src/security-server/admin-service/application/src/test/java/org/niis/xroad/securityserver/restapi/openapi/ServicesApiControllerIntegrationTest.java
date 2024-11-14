@@ -84,18 +84,18 @@ public class ServicesApiControllerIntegrationTest extends AbstractApiControllerT
 
     @Before
     public void setup() {
-        when(globalConfFacade.getGlobalGroupDescription(any())).thenAnswer((Answer<String>) invocation -> {
+        when(globalConfProvider.getGlobalGroupDescription(any())).thenAnswer((Answer<String>) invocation -> {
             Object[] args = invocation.getArguments();
             GlobalGroupId id = (GlobalGroupId) args[0];
             return TestUtils.NAME_FOR + id.getGroupCode();
         });
 
-        when(globalConfFacade.getMemberName(any())).thenAnswer((Answer<String>) invocation -> {
+        when(globalConfProvider.getMemberName(any())).thenAnswer((Answer<String>) invocation -> {
             Object[] args = invocation.getArguments();
             ClientId identifier = (ClientId) args[0];
             return TestUtils.NAME_FOR + identifier.toShortString().replace("/", ":");
         });
-        when(globalConfFacade.getMembers(any())).thenReturn(new ArrayList<>(Arrays.asList(
+        when(globalConfProvider.getMembers(any())).thenReturn(new ArrayList<>(Arrays.asList(
                 TestUtils.getMemberInfo(TestUtils.INSTANCE_FI, TestUtils.MEMBER_CLASS_GOV, TestUtils.MEMBER_CODE_M1,
                         null),
                 TestUtils.getMemberInfo(TestUtils.INSTANCE_FI, TestUtils.MEMBER_CLASS_GOV, TestUtils.MEMBER_CODE_M1,

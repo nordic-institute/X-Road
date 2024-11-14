@@ -33,6 +33,12 @@ import lombok.ToString;
 import lombok.Value;
 
 import java.io.Serializable;
+import java.security.cert.X509Certificate;
+import java.time.Instant;
+
+import static ee.ria.xroad.common.util.CertUtils.getIssuerCommonName;
+import static ee.ria.xroad.common.util.CryptoUtils.readCertificate;
+import static org.apache.commons.lang3.StringUtils.joinWith;
 
 /**
  * Certificate info DTO.
@@ -93,7 +99,33 @@ public class CertificateInfo implements Serializable {
         return message.getOcspBytes().toByteArray();
     }
 
+    @ToString.Include
+    public String getRenewedCertHash() {
+        return message.getRenewedCertHash();
+    }
+
+    @ToString.Include
+    public String getRenewalError() {
+        return message.getRenewalError();
+    }
+
+    @ToString.Include
+    public Instant getNextAutomaticRenewalTime() {
+        if (message.hasNextAutomaticRenewalTime()) {
+            return Instant.ofEpochSecond(message.getNextAutomaticRenewalTime().getSeconds(),
+                    message.getNextAutomaticRenewalTime().getNanos());
+        }
+        return null;
+    }
+
     public CertificateInfoProto asMessage() {
         return message;
+    }
+
+    @JsonIgnore
+    public String getCertificateDisplayName() {
+        X509Certificate x509Certificate = readCertificate(getCertificateBytes());
+        String issuerCommonName = getIssuerCommonName(x509Certificate);
+        return joinWith(" ", issuerCommonName, x509Certificate.getSerialNumber().toString());
     }
 }

@@ -64,7 +64,7 @@ public class ManagementServicesApiStepDefs extends BaseStepDefs {
 
         try {
             response = managementServicesApi.updateManagementServicesConfiguration(request);
-            putStepData(StepDataKey.RESPONSE_STATUS, response.getStatusCodeValue());
+            putStepData(StepDataKey.RESPONSE_STATUS, response.getStatusCode().value());
         } catch (FeignException feignException) {
             putStepData(StepDataKey.RESPONSE_STATUS, feignException.status());
             putStepData(StepDataKey.ERROR_RESPONSE_BODY, feignException.contentUTF8());
@@ -75,7 +75,7 @@ public class ManagementServicesApiStepDefs extends BaseStepDefs {
     public void getManagementServicesConfiguration() {
         try {
             response = managementServicesApi.getManagementServicesConfiguration();
-            putStepData(StepDataKey.RESPONSE_STATUS, response.getStatusCodeValue());
+            putStepData(StepDataKey.RESPONSE_STATUS, response.getStatusCode().value());
         } catch (FeignException feignException) {
             putStepData(StepDataKey.RESPONSE_STATUS, feignException.status());
             putStepData(StepDataKey.ERROR_RESPONSE_BODY, feignException.contentUTF8());
@@ -86,7 +86,7 @@ public class ManagementServicesApiStepDefs extends BaseStepDefs {
     public void getCertificate() {
         try {
             tlsCertificateResponse = managementServicesApi.getCertificate();
-            putStepData(StepDataKey.RESPONSE_STATUS, tlsCertificateResponse.getStatusCodeValue());
+            putStepData(StepDataKey.RESPONSE_STATUS, tlsCertificateResponse.getStatusCode().value());
         } catch (FeignException feignException) {
             putStepData(StepDataKey.RESPONSE_STATUS, feignException.status());
             putStepData(StepDataKey.ERROR_RESPONSE_BODY, feignException.contentUTF8());
@@ -97,7 +97,7 @@ public class ManagementServicesApiStepDefs extends BaseStepDefs {
     public void downloadCertificate() {
         try {
             resourceResponse = managementServicesApi.downloadCertificate();
-            putStepData(StepDataKey.RESPONSE_STATUS, resourceResponse.getStatusCodeValue());
+            putStepData(StepDataKey.RESPONSE_STATUS, resourceResponse.getStatusCode().value());
         } catch (FeignException feignException) {
             putStepData(StepDataKey.RESPONSE_STATUS, feignException.status());
             putStepData(StepDataKey.ERROR_RESPONSE_BODY, feignException.contentUTF8());
@@ -108,7 +108,7 @@ public class ManagementServicesApiStepDefs extends BaseStepDefs {
     public void generateKeyAndCertificate() {
         try {
             voidResponse = managementServicesApi.generateKeyAndCertificate();
-            putStepData(StepDataKey.RESPONSE_STATUS, voidResponse.getStatusCodeValue());
+            putStepData(StepDataKey.RESPONSE_STATUS, voidResponse.getStatusCode().value());
         } catch (FeignException feignException) {
             putStepData(StepDataKey.RESPONSE_STATUS, feignException.status());
             putStepData(StepDataKey.ERROR_RESPONSE_BODY, feignException.contentUTF8());
@@ -121,7 +121,7 @@ public class ManagementServicesApiStepDefs extends BaseStepDefs {
         distinguishedName.setName("CN=cs");
         try {
             resourceResponse = managementServicesApi.generateCertificateRequest(distinguishedName);
-            putStepData(StepDataKey.RESPONSE_STATUS, resourceResponse.getStatusCodeValue());
+            putStepData(StepDataKey.RESPONSE_STATUS, resourceResponse.getStatusCode().value());
         } catch (FeignException feignException) {
             putStepData(StepDataKey.RESPONSE_STATUS, feignException.status());
             putStepData(StepDataKey.ERROR_RESPONSE_BODY, feignException.contentUTF8());
@@ -134,7 +134,7 @@ public class ManagementServicesApiStepDefs extends BaseStepDefs {
         MultipartFile certificate = new MockMultipartFile("certificate", "certificate.cer", null, keyInputStream.readAllBytes());
         try {
             tlsCertificateResponse = managementServicesApi.uploadCertificate(certificate);
-            putStepData(StepDataKey.RESPONSE_STATUS, tlsCertificateResponse.getStatusCodeValue());
+            putStepData(StepDataKey.RESPONSE_STATUS, tlsCertificateResponse.getStatusCode().value());
         } catch (FeignException feignException) {
             putStepData(StepDataKey.RESPONSE_STATUS, feignException.status());
             putStepData(StepDataKey.ERROR_RESPONSE_BODY, feignException.contentUTF8());
@@ -163,7 +163,7 @@ public class ManagementServicesApiStepDefs extends BaseStepDefs {
 
         try {
             response = managementServicesApi.registerServiceProvider(dto);
-            putStepData(StepDataKey.RESPONSE_STATUS, response.getStatusCodeValue());
+            putStepData(StepDataKey.RESPONSE_STATUS, response.getStatusCode().value());
         } catch (FeignException feignException) {
             putStepData(StepDataKey.RESPONSE_STATUS, feignException.status());
             putStepData(StepDataKey.ERROR_RESPONSE_BODY, feignException.contentUTF8());

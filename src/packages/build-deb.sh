@@ -1,9 +1,16 @@
 #!/bin/bash
 set -e
-LAST_SUPPORTED_VERSION=7.3.0
+LAST_SUPPORTED_VERSION=7.4.0
+
+# Global variable to determine if text coloring is enabled
+isTextColoringEnabled=$(command -v tput >/dev/null && tput setaf 1 &>/dev/null && echo true || echo false)
 
 warn() {
-  echo "$(tput setaf 3)*** $*$(tput sgr0)"
+  if $isTextColoringEnabled; then
+    echo "$(tput setaf 3)*** $*$(tput sgr0)"
+  else
+    echo "*** $*"
+  fi
 }
 
 function builddeb {
@@ -72,10 +79,6 @@ else
 fi
 
 case "$1" in
-    focal)
-        prepare ubuntu20.04
-        builddeb build/xroad/ubuntu focal ubuntu20.04 "$PACKAGE_VERSION"
-        ;;
     jammy)
         prepare ubuntu22.04
         builddeb build/xroad/ubuntu jammy ubuntu22.04 "$PACKAGE_VERSION"

@@ -68,29 +68,18 @@ public class TokenInfoMapper implements GenericUniDirectionalMapper<ee.ria.xroad
     }
 
     private TokenStatus mapStatus(TokenStatusInfo status) {
-        switch (status) {
-            case TOKEN_STATUS_UNSPECIFIED:
-                return null;
-            case OK:
-                return TokenStatus.OK;
-            case USER_PIN_LOCKED:
-                return TokenStatus.USER_PIN_LOCKED;
-            case USER_PIN_INCORRECT:
-                return TokenStatus.USER_PIN_INCORRECT;
-            case USER_PIN_INVALID:
-                return TokenStatus.USER_PIN_INVALID;
-            case USER_PIN_EXPIRED:
-                return TokenStatus.USER_PIN_EXPIRED;
-            case USER_PIN_COUNT_LOW:
-                return TokenStatus.USER_PIN_COUNT_LOW;
-            case USER_PIN_FINAL_TRY:
-                return TokenStatus.USER_PIN_FINAL_TRY;
-            case NOT_INITIALIZED:
-                return TokenStatus.NOT_INITIALIZED;
-            case UNRECOGNIZED:
-            default:
-                throw new IllegalArgumentException("Unexpected enum constant: " + status);
-        }
+        return switch (status) {
+            case TOKEN_STATUS_UNSPECIFIED -> null;
+            case OK -> TokenStatus.OK;
+            case USER_PIN_LOCKED -> TokenStatus.USER_PIN_LOCKED;
+            case USER_PIN_INCORRECT -> TokenStatus.USER_PIN_INCORRECT;
+            case USER_PIN_INVALID -> TokenStatus.USER_PIN_INVALID;
+            case USER_PIN_EXPIRED -> TokenStatus.USER_PIN_EXPIRED;
+            case USER_PIN_COUNT_LOW -> TokenStatus.USER_PIN_COUNT_LOW;
+            case USER_PIN_FINAL_TRY -> TokenStatus.USER_PIN_FINAL_TRY;
+            case NOT_INITIALIZED -> TokenStatus.NOT_INITIALIZED;
+            default -> throw new IllegalArgumentException("Unexpected enum constant: " + status);
+        };
     }
 
 }

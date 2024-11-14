@@ -38,7 +38,7 @@ import lombok.RequiredArgsConstructor;
 
 @Getter
 @RequiredArgsConstructor
-public abstract class LogMessage {
+public abstract sealed class LogMessage permits SoapLogMessage, RestLogMessage {
 
     private final SignatureData signature;
     private final boolean clientSide;

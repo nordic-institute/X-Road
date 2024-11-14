@@ -48,7 +48,7 @@ import static org.niis.xroad.common.exception.util.CommonDeviationMessage.MISSIN
 @Component
 @RequiredArgsConstructor
 public class ConfigurationVerifier {
-    public static final int EXIT_STATUS_ANCHOR_NOT_FOR_EXTERNAL_SOURCE = 120;
+    public static final int EXIT_STATUS_ANCHOR_NOT_FOR_EXTERNAL_SOURCE = 117;
     public static final int EXIT_STATUS_MISSING_PRIVATE_PARAMS = 121;
     public static final int EXIT_STATUS_UNREACHABLE = 122;
     public static final int EXIT_STATUS_OUTDATED = 123;
@@ -90,7 +90,7 @@ public class ConfigurationVerifier {
             case EXIT_STATUS_OTHER:
                 throw new ConfigurationVerificationException(CONF_VERIFICATION_OTHER);
             default:
-                throw new RuntimeException("Internal configuration verifier exited with an unknown code: " + exitCode);
+                throw new RuntimeException("Configuration verifier exited with an unknown code: " + exitCode);
         }
     }
 

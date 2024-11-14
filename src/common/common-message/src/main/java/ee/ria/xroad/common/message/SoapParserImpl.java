@@ -206,7 +206,6 @@ public class SoapParserImpl implements SoapParser {
         }
 
         unmarshaller.setEventHandler(event -> switch (event.getSeverity()) {
-            case ValidationEvent.WARNING -> true;
             case ValidationEvent.ERROR -> {
                 Throwable t = event.getLinkedException();
                 yield !(t instanceof AccessorException

@@ -33,6 +33,7 @@ import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
 import io.swagger.v3.oas.models.servers.Server;
 import io.swagger.v3.parser.OpenAPIV3Parser;
 import io.swagger.v3.parser.core.models.SwaggerParseResult;
+import lombok.RequiredArgsConstructor;
 import lombok.Value;
 import lombok.extern.slf4j.Slf4j;
 import org.niis.xroad.restapi.exceptions.ErrorDeviation;
@@ -60,6 +61,7 @@ import static org.niis.xroad.restapi.exceptions.DeviationCodes.ERROR_UNSUPPORTED
  */
 @Slf4j
 @Component
+@RequiredArgsConstructor
 public class OpenApiParser {
 
     private static final String SUPPORTED_OPENAPI_MINOR_VERSION_3_0 = "3.0";
@@ -67,6 +69,8 @@ public class OpenApiParser {
     private static final int BUF_SIZE = 8192;
     private static final long MAX_DESCRIPTION_SIZE = 10 * 1024 * 1024;
     private static final ObjectMapper YAML_MAPPER = new ObjectMapper(new YAMLFactory());
+
+    private final HttpUrlConnectionConfig httpUrlConnectionConfig;
 
     /**
      * Parse openapi3 description
@@ -149,8 +153,8 @@ public class OpenApiParser {
                 throw new ParsingException("Invalid protocol: " + openApiUrl.getScheme());
             }
             conn = openApiUrl.toURL().openConnection();
-            if (conn instanceof HttpURLConnection) {
-                HttpUrlConnectionConfig.apply((HttpURLConnection) conn);
+            if (conn instanceof HttpURLConnection httpURLConnection) {
+                httpUrlConnectionConfig.apply(httpURLConnection);
             }
             conn.connect();
             try (InputStreamReader in = new InputStreamReader(conn.getInputStream(), StandardCharsets.UTF_8)) {

@@ -45,6 +45,7 @@ import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
 
+import static ee.ria.xroad.common.SystemProperties.getConfigurationPath;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
@@ -55,14 +56,15 @@ public class GlobalConfVer3Test {
     @Rule
     public ExpectedCodedException thrown = ExpectedCodedException.none();
 
+    private static GlobalConfProvider globalConfProvider;
+
     @BeforeClass
     public static void setUpBeforeClass() throws Exception {
-        GlobalConf.reset();
         System.setProperty(SystemProperties.CONFIGURATION_PATH, GOOD_CONF_DIR);
 
         createConfigurationFiles();
 
-        GlobalConf.reload();
+        globalConfProvider = new GlobalConfImpl(new FileSystemGlobalConfSource(getConfigurationPath()));
     }
 
     private static void createConfigurationFiles() throws IOException {
@@ -97,19 +99,19 @@ public class GlobalConfVer3Test {
 
     @Test
     public void isSubjectInGlobalGroup() {
-        assertTrue(GlobalConf.isSubjectInGlobalGroup(
+        assertTrue(globalConfProvider.isSubjectInGlobalGroup(
                 ClientId.Conf.create("EE", "BUSINESS", "member1", "subsys"),
                 GlobalGroupId.Conf.create("EE", "Test group"))
         );
-        assertTrue(GlobalConf.isSubjectInGlobalGroup(
+        assertTrue(globalConfProvider.isSubjectInGlobalGroup(
                 ClientId.Conf.create("EE", "BUSINESS", "member2"),
                 GlobalGroupId.Conf.create("EE", "Test group"))
         );
-        assertFalse(GlobalConf.isSubjectInGlobalGroup(
+        assertFalse(globalConfProvider.isSubjectInGlobalGroup(
                 ClientId.Conf.create("EE", "BUSINESS", "member2", "subsys"),
                 GlobalGroupId.Conf.create("EE", "Test group"))
         );
-        assertFalse(GlobalConf.isSubjectInGlobalGroup(
+        assertFalse(globalConfProvider.isSubjectInGlobalGroup(
                 ClientId.Conf.create("EE", "BUSINESS", "member2"),
                 GlobalGroupId.Conf.create("non-existent-instance", "non-existent-group"))
         );

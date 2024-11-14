@@ -41,9 +41,8 @@ public class PersistentApiKeyDAOImpl {
         return (PersistentApiKeyType) session.get(PersistentApiKeyType.class, id);
     }
 
-    @SuppressWarnings("unchecked")
     public List<PersistentApiKeyType> findAll(Session session) {
-        Query query = session.createQuery("from " + PersistentApiKeyType.class.getName());
+        Query<PersistentApiKeyType> query = session.createQuery("from " + PersistentApiKeyType.class.getName(), PersistentApiKeyType.class);
         return query.list();
     }
 
@@ -52,7 +51,7 @@ public class PersistentApiKeyDAOImpl {
     }
 
     public void delete(Session session, PersistentApiKeyType apiKeyType) {
-        session.delete(apiKeyType);
+        session.remove(apiKeyType);
     }
 
     public void update(Session session, PersistentApiKeyType apiKeyType) {

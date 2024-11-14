@@ -243,7 +243,7 @@ public final class TestUtils {
      * @param endpointPath for example "/api/service-descriptions/12"
      * @param response
      */
-    public static void assertLocationHeader(String endpointPath, ResponseEntity response) {
+    public static <T> void assertLocationHeader(String endpointPath, ResponseEntity<T> response) {
         assertEquals(Collections.singletonList(TEST_API_URL + endpointPath),
                 response.getHeaders().get("Location"));
     }
@@ -255,7 +255,7 @@ public final class TestUtils {
      *
      * @param response
      */
-    public static void assertMissingLocationHeader(ResponseEntity response) {
+    public static <T> void assertMissingLocationHeader(ResponseEntity<T> response) {
         List<String> locationHeaders = response.getHeaders().get("Location");
         assertNull(locationHeaders);
     }

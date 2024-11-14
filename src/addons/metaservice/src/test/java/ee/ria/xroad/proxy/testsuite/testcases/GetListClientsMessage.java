@@ -26,7 +26,6 @@
 package ee.ria.xroad.proxy.testsuite.testcases;
 
 import ee.ria.xroad.common.SystemProperties;
-import ee.ria.xroad.common.conf.globalconf.GlobalConf;
 import ee.ria.xroad.common.conf.globalconf.MemberInfo;
 import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.metadata.ClientListType;
@@ -127,7 +126,7 @@ public class GetListClientsMessage extends MessageTestCase {
     protected void startUp() throws Exception {
         super.startUp();
 
-        GlobalConf.reload(new TestSuiteGlobalConf() {
+        globalConfProvider.setGlobalConfProvider(new TestSuiteGlobalConf() {
 
             @Override
             public List<MemberInfo> getMembers(String... instanceIdentifier) {

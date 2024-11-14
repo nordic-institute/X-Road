@@ -27,13 +27,13 @@ package org.niis.xroad.common.managementrequest;
 
 import ee.ria.xroad.common.SystemProperties;
 import ee.ria.xroad.common.conf.InternalSSLKey;
-import ee.ria.xroad.common.conf.globalconf.GlobalConf;
+import ee.ria.xroad.common.conf.globalconf.GlobalConfProvider;
 import ee.ria.xroad.common.util.CryptoUtils;
 import ee.ria.xroad.common.util.HttpSender;
-import ee.ria.xroad.common.util.StartStop;
 
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.IOUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.http.client.config.RequestConfig;
 import org.apache.http.config.RegistryBuilder;
 import org.apache.http.conn.socket.ConnectionSocketFactory;
@@ -44,49 +44,50 @@ import org.apache.http.impl.client.DefaultHttpRequestRetryHandler;
 import org.apache.http.impl.client.HttpClientBuilder;
 import org.apache.http.impl.client.HttpClients;
 import org.apache.http.impl.conn.PoolingHttpClientConnectionManager;
+import org.springframework.beans.factory.DisposableBean;
+import org.springframework.beans.factory.InitializingBean;
 
 import javax.net.ssl.KeyManager;
+import javax.net.ssl.KeyManagerFactory;
 import javax.net.ssl.SSLContext;
 import javax.net.ssl.SSLEngine;
 import javax.net.ssl.TrustManager;
+import javax.net.ssl.TrustManagerFactory;
 import javax.net.ssl.X509ExtendedKeyManager;
 import javax.net.ssl.X509TrustManager;
 
 import java.net.Socket;
+import java.nio.file.Paths;
+import java.security.KeyStore;
 import java.security.Principal;
 import java.security.PrivateKey;
 import java.security.SecureRandom;
 import java.security.cert.CertificateException;
 import java.security.cert.X509Certificate;
+import java.util.Objects;
 
 /**
  * Client that sends managements requests to the Central Server.
  */
 @Slf4j
-public final class ManagementRequestClient implements StartStop {
+public final class ManagementRequestClient implements InitializingBean, DisposableBean {
 
     // HttpClient configuration parameters.
     private static final int CLIENT_MAX_TOTAL_CONNECTIONS = 100;
     private static final int CLIENT_MAX_CONNECTIONS_PER_ROUTE = 25;
 
+    private final GlobalConfProvider globalConfProvider;
+
     private CloseableHttpClient centralHttpClient;
     private CloseableHttpClient proxyHttpClient;
 
-    private static ManagementRequestClient instance = new ManagementRequestClient();
 
-    /**
-     * @return the singleton ManagementRequestClient
-     */
-    public static ManagementRequestClient getInstance() {
-        return instance;
+    HttpSender createCentralHttpSender() {
+        return createSender(centralHttpClient);
     }
 
-    static HttpSender createCentralHttpSender() {
-        return createSender(getInstance().centralHttpClient);
-    }
-
-    static HttpSender createProxyHttpSender() {
-        return createSender(getInstance().proxyHttpClient);
+    HttpSender createProxyHttpSender() {
+        return createSender(proxyHttpClient);
     }
 
     private static HttpSender createSender(CloseableHttpClient client) {
@@ -101,7 +102,8 @@ public final class ManagementRequestClient implements StartStop {
         return httpSender;
     }
 
-    private ManagementRequestClient() {
+    ManagementRequestClient(GlobalConfProvider globalConfProvider) {
+        this.globalConfProvider = globalConfProvider;
         try {
             createCentralHttpClient();
             createProxyHttpClient();
@@ -111,21 +113,16 @@ public final class ManagementRequestClient implements StartStop {
     }
 
     @Override
-    public void start() throws Exception {
+    public void afterPropertiesSet() throws Exception {
         log.info("Starting ManagementRequestClient...");
     }
 
     @Override
-    public void stop() throws Exception {
+    public void destroy() throws Exception {
         log.info("Stopping ManagementRequestClient...");
 
         IOUtils.closeQuietly(proxyHttpClient);
         IOUtils.closeQuietly(centralHttpClient);
-    }
-
-    @Override
-    public void join() throws InterruptedException {
-        // Not applicable
     }
 
     // -- Helper methods ------------------------------------------------------
@@ -149,7 +146,7 @@ public final class ManagementRequestClient implements StartStop {
                 X509Certificate centralServerSslCert = null;
 
                 try {
-                    centralServerSslCert = GlobalConf.getCentralServerSslCertificate();
+                    centralServerSslCert = globalConfProvider.getCentralServerSslCertificate();
                 } catch (Exception e) {
                     throw new CertificateException("Could not get central server TLS certificate from global conf", e);
                 }
@@ -169,13 +166,25 @@ public final class ManagementRequestClient implements StartStop {
             }
         };
 
-        centralHttpClient = createHttpClient(null, tm);
+        centralHttpClient = createHttpClient(null, new TrustManager[]{tm});
     }
 
-    @SuppressWarnings("java:S4830")
     private void createProxyHttpClient() throws Exception {
         log.trace("createProxyHttpClient()");
 
+        String keyStore = SystemProperties.getManagementRequestSenderClientKeystore();
+        String trustStore = SystemProperties.getManagementRequestSenderClientTruststore();
+
+        if (StringUtils.isAllEmpty(keyStore, trustStore)) {
+            proxyHttpClient = createProxyHttpClientWithInternalKey();
+        } else {
+            proxyHttpClient = createProxyHttpClient(keyStore, SystemProperties.getManagementRequestSenderClientKeystorePassword(),
+                    trustStore, SystemProperties.getManagementRequestSenderClientTruststorePassword());
+        }
+    }
+
+    @SuppressWarnings("java:S4830") // Won't fix: Works as designed ("Server certificates should be verified")
+    private CloseableHttpClient createProxyHttpClientWithInternalKey() throws Exception {
         TrustManager tm = new X509TrustManager() {
             @Override
             public void checkClientTrusted(X509Certificate[] chain, String authType) throws CertificateException {
@@ -249,17 +258,33 @@ public final class ManagementRequestClient implements StartStop {
             }
         };
 
-        proxyHttpClient = createHttpClient(km, tm);
+        return createHttpClient(new KeyManager[]{km}, new TrustManager[]{tm});
     }
 
-    private static CloseableHttpClient createHttpClient(KeyManager km, TrustManager tm) throws Exception {
+    private CloseableHttpClient createProxyHttpClient(String keyStorePath, char[] keyStorePassword, String trustStorePath,
+                                                      char[] trustStorePassword) throws Exception {
+
+        Objects.requireNonNull(keyStorePath, "Management request client key store path is not provided.");
+        Objects.requireNonNull(trustStorePath, "Management request client trust store path is not provided.");
+
+        KeyStore keyStore = CryptoUtils.loadPkcs12KeyStore(Paths.get(keyStorePath).toFile(), keyStorePassword);
+        KeyManagerFactory keyManagerFactory = KeyManagerFactory.getInstance(KeyManagerFactory.getDefaultAlgorithm());
+        keyManagerFactory.init(keyStore, keyStorePassword);
+
+        KeyStore trustStore = CryptoUtils.loadPkcs12KeyStore(Paths.get(trustStorePath).toFile(), trustStorePassword);
+        TrustManagerFactory trustManagerFactory = TrustManagerFactory.getInstance(TrustManagerFactory.getDefaultAlgorithm());
+        trustManagerFactory.init(trustStore);
+
+        return createHttpClient(keyManagerFactory.getKeyManagers(), trustManagerFactory.getTrustManagers());
+    }
+
+    private static CloseableHttpClient createHttpClient(KeyManager[] keyManagers, TrustManager[] trustManagers) throws Exception {
         RegistryBuilder<ConnectionSocketFactory> sfr = RegistryBuilder.<ConnectionSocketFactory>create();
 
         sfr.register("http", PlainConnectionSocketFactory.INSTANCE);
 
         SSLContext ctx = SSLContext.getInstance(CryptoUtils.SSL_PROTOCOL);
-        ctx.init(km != null ? new KeyManager[]{km} : null, tm != null ? new TrustManager[]{tm} : null,
-                new SecureRandom());
+        ctx.init(keyManagers, trustManagers, new SecureRandom());
 
         SSLConnectionSocketFactory sf = new SSLConnectionSocketFactory(ctx,
                 SSLConnectionSocketFactory.ALLOW_ALL_HOSTNAME_VERIFIER);

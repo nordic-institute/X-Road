@@ -27,7 +27,7 @@ package ee.ria.xroad.common.messagelog.archive;
 
 import ee.ria.xroad.common.SystemProperties;
 import ee.ria.xroad.common.conf.globalconf.EmptyGlobalConf;
-import ee.ria.xroad.common.conf.globalconf.GlobalConf;
+import ee.ria.xroad.common.conf.globalconf.GlobalConfProvider;
 import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.messagelog.LogRecord;
 import ee.ria.xroad.common.messagelog.MessageLogProperties;
@@ -61,6 +61,8 @@ public class LogArchiveTest {
     private static boolean rotated;
     private long recordNo;
 
+    private GlobalConfProvider globalConfProvider;
+
     @Parameterized.Parameter(0)
     public boolean encrypted;
 
@@ -82,16 +84,17 @@ public class LogArchiveTest {
 
     /**
      * Preparations for testing log archive.
+     *
      * @throws Exception - when cannot prepare for testing log archive.
      */
     @Before
     public void beforeTest() throws Exception {
-        GlobalConf.reload(new EmptyGlobalConf() {
+        globalConfProvider = new EmptyGlobalConf() {
             @Override
             public String getInstanceIdentifier() {
                 return "INSTANCE";
             }
-        });
+        };
 
         if (encrypted) {
             Assume.assumeTrue(Files.isExecutable(Paths.get("/usr/bin/gpg")));
@@ -120,6 +123,7 @@ public class LogArchiveTest {
 
     /**
      * Writes many records and rotates to new file.
+     *
      * @throws Exception - when cannot either write or rotate
      */
     @Test
@@ -161,7 +165,7 @@ public class LogArchiveTest {
     }
 
     private LogArchiveWriter getWriter() throws IOException {
-        return new LogArchiveWriter(
+        return new LogArchiveWriter(globalConfProvider,
                 Paths.get("build/slog"),
                 dummyLogArchiveBase()) {
 
@@ -197,7 +201,7 @@ public class LogArchiveTest {
 
         MessageRecord record = new MessageRecord("qid" + recordNo,
                 "msg" + recordNo, "sig" + recordNo, false,
-                ClientId.Conf.create(GlobalConf.getInstanceIdentifier(), "memberClass", "memberCode", "subsystemCode"),
+                ClientId.Conf.create(globalConfProvider.getInstanceIdentifier(), "memberClass", "memberCode", "subsystemCode"),
                 "92060130-3ba8-4e35-89e2-41b90aac074b");
         record.setId(recordNo);
         record.setTime((long) (Math.random() * 100000L));

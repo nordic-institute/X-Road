@@ -62,10 +62,11 @@ export default defineComponent({
 </script>
 
 <style lang="scss" scoped>
-@import '@/assets/tables.scss';
+@use '@/assets/tables' as *;
+@use '@/assets/colors';
 
 .card-main-title {
-  color: $XRoad-Black100;
+  color: colors.$Black100;
   font-style: normal;
   font-weight: bold;
   font-size: 18px;

@@ -111,7 +111,7 @@ Feature: 0900 - CS: Management Requests
     And the user clicks on the Approve button in the row from Security server E2E-SS3 with owner code e2e-tc1-member-subsystem
     Then the pending management request from Security server E2E-SS3 with owner code e2e-tc1-member-subsystem should be removed from the list
 
-  Scenario: User Approves Management Request for adding another client to security server
+  Scenario: User Approves Management Request for adding another client(subsystem) to security server
     Given a client with code e2e-tc3-member-subsystem and subsystem code e2e-tc3-subsystem is registered in security server E2E-SS1 with owner code e2e-tc1-member-subsystem
     And Management requests tab is selected
     And the option to show only pending requests is selected
@@ -120,5 +120,18 @@ Feature: 0900 - CS: Management Requests
     And the details page displays the Request Information for the PENDING management request
     And the details page displays the Affected Security Server Information for the Client request
     And the details page displays the client information for the Client Submitted for Registration
+    When the user clicks Approve button
+    Then the pending management request from Security server E2E-SS1 with owner code e2e-tc1-member-subsystem should be removed from the list
+
+  Scenario: User Approves Management Request for adding another client(member) to security server
+    Given Members tab is selected
+    When A new member with name: E2E TC4 Test Member, code: e2e-tc4-test-member & member class: E2E-TC1 is added
+    Then a member client with code e2e-tc4-test-member is registered in security server E2E-SS1 with owner code e2e-tc1-member-subsystem
+    And Management requests tab is selected
+    And the option to show only pending requests is selected
+    When the user clicks Pending request Add Client from Security server E2E-SS1 with owner code e2e-tc1-member-subsystem
+    Then the details page is shown with title Add Client
+    And the details page displays the Request Information for the PENDING management request
+    And the details page displays the Affected Security Server Information for the Client request
     When the user clicks Approve button
     Then the pending management request from Security server E2E-SS1 with owner code e2e-tc1-member-subsystem should be removed from the list

@@ -25,6 +25,7 @@
  */
 import { Client } from '@/openapi-types';
 import { AxiosResponse } from 'axios';
+import dayjs from 'dayjs';
 
 // Filters an array of objects excluding specified object key
 export function selectedFilter<T extends object, K extends keyof T>(
@@ -200,4 +201,15 @@ export function toClipboard(val: string): void {
 // Deep clones an object or array using JSON
 export function deepClone<T>(value: T): T {
   return JSON.parse(JSON.stringify(value)) as T;
+}
+
+export function formatDateTime(
+  valueAsText: string | undefined,
+  format: string,
+): string {
+  if (!valueAsText) {
+    return '-';
+  }
+  const time = dayjs(valueAsText);
+  return time.isValid() ? time.format(format) : '-';
 }

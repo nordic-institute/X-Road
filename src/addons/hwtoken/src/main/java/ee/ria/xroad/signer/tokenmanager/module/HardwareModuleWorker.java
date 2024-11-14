@@ -88,13 +88,13 @@ public class HardwareModuleWorker extends AbstractModuleWorker {
         }
 
         return new DefaultInitializeArgs(null,
-                libraryCantCreateOsThreads == null ? false : libraryCantCreateOsThreads,
-                osLockingOk == null ? false : osLockingOk);
+                libraryCantCreateOsThreads != null && libraryCantCreateOsThreads,
+                osLockingOk != null && osLockingOk);
     }
 
     @Override
-    public void stop() {
-        super.stop();
+    public void destroy() {
+        super.destroy();
         if (pkcs11Module == null) {
             return;
         }
@@ -114,7 +114,7 @@ public class HardwareModuleWorker extends AbstractModuleWorker {
     public void reload() {
         log.info("Reloading {}", module);
         try {
-            stop();
+            destroy();
         } catch (Exception e) {
             log.warn("Failed to stop module {}.", module.getType());
         }

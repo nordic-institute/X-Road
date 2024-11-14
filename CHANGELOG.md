@@ -1,5 +1,7 @@
 # Change Log
 
+## 7.6.0 - UNRELEASED
+
 ## 7.5.1 - 2024-09-02
 - XRDDEV-2669: As an Administrator I would like to be able to override the database host in the environments file as well so that it can be used in scripts
 - XRDDEV-2688: Adding WSDL gives a library error as a warning

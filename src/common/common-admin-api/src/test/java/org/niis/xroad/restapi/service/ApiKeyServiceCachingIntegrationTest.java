@@ -40,11 +40,11 @@ import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.security.test.context.support.WithMockUser;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.same;
 import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -69,20 +69,20 @@ class ApiKeyServiceCachingIntegrationTest extends AbstractSpringMvcTest {
     private Session session;
 
     @Mock
-    private Query query;
+    private Query<PersistentApiKeyType> query;
 
     @Test
     @WithMockUser(authorities = {"ROLE_XROAD_REGISTRATION_OFFICER"})
     void testList() throws Exception {
         when(entityManager.unwrap(any())).thenReturn(session);
-        when(session.createQuery(anyString())).thenReturn(query);
-        when(query.list()).thenReturn(new ArrayList());
+        when(session.createQuery(anyString(), same(PersistentApiKeyType.class))).thenReturn(query);
+        when(query.list()).thenReturn(new ArrayList<>());
         // No keys
         apiKeyService.listAll();
         apiKeyService.listAll();
         verify(query, times(0)).list();
         // Create one key and then get it
-        PlaintextApiKeyDto key = apiKeyService.create(Role.XROAD_REGISTRATION_OFFICER.name());
+        apiKeyService.create(Role.XROAD_REGISTRATION_OFFICER.name());
         apiKeyService.listAll();
         apiKeyService.listAll();
         verify(query, times(1)).list();
@@ -97,10 +97,10 @@ class ApiKeyServiceCachingIntegrationTest extends AbstractSpringMvcTest {
     void testCacheEviction() throws Exception {
         // "store" one key
         when(entityManager.unwrap(any())).thenReturn(session);
-        when(session.createQuery(anyString())).thenReturn(query);
+        when(session.createQuery(anyString(), same(PersistentApiKeyType.class))).thenReturn(query);
         doNothing().when(session).persist(any());
         PlaintextApiKeyDto key = apiKeyService.create(Role.XROAD_REGISTRATION_OFFICER.name());
-        List<PersistentApiKeyType> listOfOne = Arrays.asList(getPersistedKey(key));
+        List<PersistentApiKeyType> listOfOne = List.of(getPersistedKey(key));
         when(query.list()).thenReturn(listOfOne);
         // then get this key
         apiKeyService.getForPlaintextKey(key.getPlaintextKey());
@@ -136,11 +136,11 @@ class ApiKeyServiceCachingIntegrationTest extends AbstractSpringMvcTest {
     void testGet() throws Exception {
         // "store" one key
         when(entityManager.unwrap(any())).thenReturn(session);
-        when(session.createQuery(anyString())).thenReturn(query);
+        when(session.createQuery(anyString(), same(PersistentApiKeyType.class))).thenReturn(query);
         doNothing().when(session).persist(any());
         PlaintextApiKeyDto key =
                 apiKeyService.create(Role.XROAD_REGISTRATION_OFFICER.name());
-        List<PersistentApiKeyType> listOfOne = Arrays.asList(getPersistedKey(key));
+        List<PersistentApiKeyType> listOfOne = List.of(getPersistedKey(key));
         when(query.list()).thenReturn(listOfOne);
         // then get this key
         apiKeyService.getForPlaintextKey(key.getPlaintextKey());

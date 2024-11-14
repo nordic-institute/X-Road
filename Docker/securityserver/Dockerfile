@@ -7,10 +7,9 @@ FROM ubuntu:24.04 AS base
 ENV DEBIAN_FRONTEND=noninteractive
 
 RUN apt-get -qq update \
-    && apt-get -qq -y upgrade \
     && apt-get -qq -y install --no-install-recommends \
         ca-certificates gnupg supervisor net-tools iproute2 locales \
-        openjdk-17-jre-headless rlwrap ca-certificates-java \
+        openjdk-21-jre-headless rlwrap ca-certificates-java \
         crudini adduser expect curl rsyslog dpkg-dev \
     && echo "LC_ALL=en_US.UTF-8" >>/etc/environment \
     && locale-gen en_US.UTF-8 \
@@ -84,6 +83,7 @@ RUN useradd xrd-sec && adduser xrd-sec xroad-security-officer && sh -c "echo 'xr
     && useradd xrd-obs && adduser xrd-obs xroad-securityserver-observer && sh -c "echo 'xrd-obs:$USER_PASSWD' | chpasswd"
 
 COPY --chown=xroad:xroad files/etc /etc/
+COPY --chown=xroad:xroad build/libs /usr/share/xroad/jlib/
 
 COPY files/ss-entrypoint.sh /root/entrypoint.sh
 COPY --chown=xroad:xroad files/override-docker.ini /etc/xroad/conf.d/

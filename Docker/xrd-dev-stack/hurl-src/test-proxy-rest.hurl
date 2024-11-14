@@ -8,4 +8,4 @@ X-Road-Client: DEV/COM/4321/TestClient
 HTTP 200
 
 [Asserts]
-jsonpath "$.message" == "Hello, world!"
+jsonpath "$.message" == "Hello, world from POST service!"

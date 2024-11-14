@@ -25,23 +25,30 @@
  * THE SOFTWARE.
  */
 
-import { defineConfig, loadEnv } from 'vite';
-import vue from '@vitejs/plugin-vue';
-import vuetify from 'vite-plugin-vuetify';
 import basicSsl from '@vitejs/plugin-basic-ssl';
+import vue from '@vitejs/plugin-vue';
+import {resolve} from "node:path";
+import {defineConfig, loadEnv} from 'vite';
+import vuetify from 'vite-plugin-vuetify';
 
 // https://vitejs.dev/config/
-const path = require('path');
-export default defineConfig(({ mode }) => {
+export default defineConfig(({mode}) => {
   const env = loadEnv(mode, process.cwd(), '');
   return {
-    plugins: [vue(), vuetify({ autoImport: false }), basicSsl()],
+    plugins: [vue(), vuetify({autoImport: false}), basicSsl()],
+    css: {
+      preprocessorOptions: {
+        scss: {
+          api: 'modern',
+        },
+      },
+    },
     build: {
       cssCodeSplit: false,
     },
     resolve: {
       alias: {
-        '@': path.resolve(__dirname, './src'),
+        '@': resolve(__dirname, './src'),
         'vue-i18n': 'vue-i18n/dist/vue-i18n.cjs.js',
       },
     },
@@ -61,11 +68,11 @@ export default defineConfig(({ mode }) => {
       proxy: {
         '/api': {
           secure: false,
-          target: env.PROXY_ADDRESS || 'https://localhost:4100',
+          target: env.PROXY_ADDRESS || 'https://localhost:4200',
         },
         '/login': {
           secure: false,
-          target: env.PROXY_ADDRESS || 'https://localhost:4100',
+          target: env.PROXY_ADDRESS || 'https://localhost:4200',
         },
       },
     },

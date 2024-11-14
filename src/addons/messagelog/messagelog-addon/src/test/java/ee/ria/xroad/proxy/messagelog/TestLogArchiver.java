@@ -25,6 +25,7 @@
  */
 package ee.ria.xroad.proxy.messagelog;
 
+import ee.ria.xroad.common.conf.globalconf.GlobalConfProvider;
 import ee.ria.xroad.messagelog.archiver.LogArchiver;
 
 import java.util.concurrent.CountDownLatch;
@@ -33,6 +34,10 @@ import java.util.concurrent.TimeUnit;
 class TestLogArchiver extends LogArchiver {
 
     private static CountDownLatch gate = new CountDownLatch(1);
+
+    TestLogArchiver(GlobalConfProvider globalConfProvider) {
+        super(globalConfProvider);
+    }
 
     public static void waitForArchiveSuccessful() throws Exception {
         try {

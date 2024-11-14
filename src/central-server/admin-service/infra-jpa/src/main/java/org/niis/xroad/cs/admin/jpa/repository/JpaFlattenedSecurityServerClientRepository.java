@@ -117,108 +117,59 @@ public interface JpaFlattenedSecurityServerClientRepository extends
                 predicates.add(clientNotPartOfGroupPredicate(root, builder,
                         params.getExcludingGroup()));
             }
-            if (params.getClientType() != null) {
-                switch (params.getClientType()) {
-                    case MEMBER:
-                        predicates.add(memberPredicate(root, builder));
-                        break;
-                    case SUBSYSTEM:
-                        predicates.add(subsystemPredicate(root, builder));
-                        break;
-                    default:
-                        throw new IllegalArgumentException("Invalid client type " + params.getClientType());
-                }
+            switch (params.getClientType()) {
+                case MEMBER:
+                    predicates.add(memberPredicate(root, builder));
+                    break;
+                case SUBSYSTEM:
+                    predicates.add(subsystemPredicate(root, builder));
+                    break;
+                case null:
+                    break;
+                default:
+                    throw new IllegalArgumentException("Invalid client type " + params.getClientType());
             }
+
             if (predicates.isEmpty()) {
                 predicates.add(idIsNotNull(root, builder));
             }
-            return builder.and(predicates.toArray(new Predicate[predicates.size()]));
+            return builder.and(predicates.toArray(new Predicate[0]));
         };
     }
 
     static Specification<FlattenedSecurityServerClientViewEntity> instance(String s) {
-        return (root, query, builder) -> {
-            return instancePredicate(root, builder, s);
-        };
+        return (root, query, builder) -> instancePredicate(root, builder, s);
     }
 
-    static Specification<FlattenedSecurityServerClientViewEntity> memberClass(String s) {
-        return (root, query, builder) -> {
-            return memberClassPredicate(root, builder, s);
-        };
-    }
-
-    static Specification<FlattenedSecurityServerClientViewEntity> memberCode(String s) {
-        return (root, query, builder) -> {
-            return memberCodePredicate(root, builder, s);
-        };
-    }
-
-    static Specification<FlattenedSecurityServerClientViewEntity> memberName(String s) {
-        return (root, query, builder) -> {
-            return memberNamePredicate(root, builder, s);
-        };
-    }
-
-    static Specification<FlattenedSecurityServerClientViewEntity> subsystemCode(String s) {
-        return (root, query, builder) -> {
-            return subsystemCodePredicate(root, builder, s);
-        };
-    }
-
-    static Specification<FlattenedSecurityServerClientViewEntity> member() {
-        return (root, query, builder) -> {
-            return memberPredicate(root, builder);
-        };
-    }
-
-    static Specification<FlattenedSecurityServerClientViewEntity> subsystem() {
-        return (root, query, builder) -> {
-            return subsystemPredicate(root, builder);
-        };
-    }
-
-    static Specification<FlattenedSecurityServerClientViewEntity> securityServerId(int id) {
-        return (root, query, builder) -> {
-            return clientOfSecurityServerPredicate(root, builder, id, null);
-        };
-    }
-
-    static Specification<FlattenedSecurityServerClientViewEntity> multifieldSearch(String q) {
-        return (root, query, builder) -> {
-            return multifieldTextSearchPredicate(root, builder, q);
-        };
-    }
-
-    private static Predicate memberPredicate(Root root, CriteriaBuilder builder) {
+    private static Predicate memberPredicate(Root<FlattenedSecurityServerClientViewEntity> root, CriteriaBuilder builder) {
         return builder.equal(
                 root.get(FlattenedSecurityServerClientViewEntity_.TYPE).as(String.class), XRoadMemberEntity.DISCRIMINATOR_VALUE);
     }
 
-    private static Predicate subsystemPredicate(Root root, CriteriaBuilder builder) {
+    private static Predicate subsystemPredicate(Root<FlattenedSecurityServerClientViewEntity> root, CriteriaBuilder builder) {
         return builder.equal(
                 root.get(FlattenedSecurityServerClientViewEntity_.TYPE).as(String.class), SubsystemEntity.DISCRIMINATOR_VALUE);
     }
 
-    private static Predicate memberNamePredicate(Root root, CriteriaBuilder builder, String s) {
-        return CriteriaBuilderUtil.caseInsensitiveLike(root, builder, s, root.get(FlattenedSecurityServerClientViewEntity_.MEMBER_NAME));
+    private static Predicate memberNamePredicate(Root<FlattenedSecurityServerClientViewEntity> root, CriteriaBuilder builder, String s) {
+        return CriteriaBuilderUtil.caseInsensitiveLike(builder, s, root.get(FlattenedSecurityServerClientViewEntity_.MEMBER_NAME));
     }
 
-    private static Predicate subsystemCodePredicate(Root root, CriteriaBuilder builder, String s) {
-        return CriteriaBuilderUtil.caseInsensitiveLike(root, builder, s, root.get(FlattenedSecurityServerClientViewEntity_.SUBSYSTEM_CODE));
+    private static Predicate subsystemCodePredicate(Root<FlattenedSecurityServerClientViewEntity> root, CriteriaBuilder builder, String s) {
+        return CriteriaBuilderUtil.caseInsensitiveLike(builder, s, root.get(FlattenedSecurityServerClientViewEntity_.SUBSYSTEM_CODE));
     }
 
-    private static Predicate memberCodePredicate(Root root, CriteriaBuilder builder, String s) {
-        return CriteriaBuilderUtil.caseInsensitiveLike(root, builder, s, root.get(FlattenedSecurityServerClientViewEntity_.MEMBER_CODE));
+    private static Predicate memberCodePredicate(Root<FlattenedSecurityServerClientViewEntity> root, CriteriaBuilder builder, String s) {
+        return CriteriaBuilderUtil.caseInsensitiveLike(builder, s, root.get(FlattenedSecurityServerClientViewEntity_.MEMBER_CODE));
     }
 
-    private static Predicate memberClassPredicate(Root root, CriteriaBuilder builder, String s) {
-        return CriteriaBuilderUtil.caseInsensitiveLike(root, builder, s, root.get(FlattenedSecurityServerClientViewEntity_.MEMBER_CLASS)
+    private static Predicate memberClassPredicate(Root<FlattenedSecurityServerClientViewEntity> root, CriteriaBuilder builder, String s) {
+        return CriteriaBuilderUtil.caseInsensitiveLike(builder, s, root.get(FlattenedSecurityServerClientViewEntity_.MEMBER_CLASS)
                 .get(MemberClassEntity_.CODE));
     }
 
-    private static Predicate instancePredicate(Root root, CriteriaBuilder builder, String s) {
-        return CriteriaBuilderUtil.caseInsensitiveLike(root, builder, s, root.get(FlattenedSecurityServerClientViewEntity_.XROAD_INSTANCE));
+    private static Predicate instancePredicate(Root<FlattenedSecurityServerClientViewEntity> root, CriteriaBuilder builder, String s) {
+        return CriteriaBuilderUtil.caseInsensitiveLike(builder, s, root.get(FlattenedSecurityServerClientViewEntity_.XROAD_INSTANCE));
     }
 
     static Predicate clientOfSecurityServerPredicate(
@@ -235,7 +186,9 @@ public interface JpaFlattenedSecurityServerClientRepository extends
         return securityServerIdEquals;
     }
 
-    static Predicate clientNotPartOfGroupPredicate(Root root, CriteriaBuilder builder, String groupCode) {
+    static Predicate clientNotPartOfGroupPredicate(Root<FlattenedSecurityServerClientViewEntity> root,
+                                                   CriteriaBuilder builder,
+                                                   String groupCode) {
         var criteriaQuery = builder.createQuery();
 
         var memberClass = root.join(FlattenedSecurityServerClientViewEntity_.MEMBER_CLASS);
@@ -267,7 +220,7 @@ public interface JpaFlattenedSecurityServerClientRepository extends
         return builder.not(builder.exists(subquery));
     }
 
-    static Predicate multifieldTextSearchPredicate(Root root, CriteriaBuilder builder, String q) {
+    static Predicate multifieldTextSearchPredicate(Root<FlattenedSecurityServerClientViewEntity> root, CriteriaBuilder builder, String q) {
         return builder.or(
                 memberNamePredicate(root, builder, q),
                 memberClassPredicate(root, builder, q),
@@ -279,7 +232,7 @@ public interface JpaFlattenedSecurityServerClientRepository extends
     /**
      * For "find all" when no search parameters are defined
      */
-    private static Predicate idIsNotNull(Root root, CriteriaBuilder builder) {
+    private static Predicate idIsNotNull(Root<FlattenedSecurityServerClientViewEntity> root, CriteriaBuilder builder) {
         return builder.isNotNull(root.get("id"));
     }
 }

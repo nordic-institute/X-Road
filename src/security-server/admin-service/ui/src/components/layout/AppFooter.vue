@@ -121,11 +121,11 @@ export default defineComponent({
 </script>
 
 <style lang="scss" scoped>
-@import '@/assets/colors';
-$text-color: $XRoad-Black100;
+@use '@/assets/colors';
+$text-color: colors.$Black100;
 
 .footer {
-  background: $XRoad-WarmGrey30;
+  background: colors.$WarmGrey30;
   width: 100%;
   display: flex;
   flex-direction: column;
@@ -144,6 +144,6 @@ $text-color: $XRoad-Black100;
 }
 
 .footer-link {
-  color: $XRoad-Purple100;
+  color: colors.$Purple100;
 }
 </style>

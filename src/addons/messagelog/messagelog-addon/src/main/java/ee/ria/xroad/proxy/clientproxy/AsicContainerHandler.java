@@ -26,9 +26,13 @@
 package ee.ria.xroad.proxy.clientproxy;
 
 import ee.ria.xroad.common.CodedException;
+import ee.ria.xroad.common.cert.CertChainFactory;
+import ee.ria.xroad.common.conf.globalconf.GlobalConfProvider;
+import ee.ria.xroad.common.conf.serverconf.ServerConfProvider;
 import ee.ria.xroad.common.opmonitoring.OpMonitoringData;
 import ee.ria.xroad.common.util.RequestWrapper;
 import ee.ria.xroad.common.util.ResponseWrapper;
+import ee.ria.xroad.proxy.conf.KeyConfProvider;
 import ee.ria.xroad.proxy.util.MessageProcessorBase;
 
 import lombok.extern.slf4j.Slf4j;
@@ -46,8 +50,9 @@ public class AsicContainerHandler extends AbstractClientProxyHandler {
     /**
      * Constructor
      */
-    public AsicContainerHandler(HttpClient client) {
-        super(client, false);
+    public AsicContainerHandler(GlobalConfProvider globalConfProvider, KeyConfProvider keyConfProvider,
+                                ServerConfProvider serverConfProvider, CertChainFactory certChainFactory, HttpClient client) {
+        super(globalConfProvider, keyConfProvider, serverConfProvider, certChainFactory, client, false);
     }
 
     @Override
@@ -68,6 +73,9 @@ public class AsicContainerHandler extends AbstractClientProxyHandler {
         }
 
         AsicContainerClientRequestProcessor processor = new AsicContainerClientRequestProcessor(
+                globalConfProvider,
+                keyConfProvider, serverConfProvider,
+                certChainFactory,
                 target,
                 request,
                 response);

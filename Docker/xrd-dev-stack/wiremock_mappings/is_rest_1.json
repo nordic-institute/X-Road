@@ -5,10 +5,11 @@
   },
   "response": {
     "status": 200,
-    "body": "{\"message\": \"Hello, world!\"}",
+    "body": "{\"message\": \"Hello, world from POST service!\", \"requestBody\": {{request.body}} }",
     "headers": {
       "Content-Type": "application/json",
       "mock-response": "true"
-    }
+    },
+    "transformers": ["response-template"]
   }
 }

@@ -25,9 +25,9 @@
  */
 package ee.ria.xroad.common.messagelog;
 
+import ee.ria.xroad.common.crypto.identifier.DigestAlgorithm;
 import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.messagelog.archive.GroupingStrategy;
-import ee.ria.xroad.common.util.CryptoUtils;
 
 import com.google.common.base.Splitter;
 import com.google.common.collect.Lists;
@@ -37,6 +37,7 @@ import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+import java.util.Optional;
 
 /**
  * Contains constants for messagelog properties.
@@ -275,8 +276,10 @@ public final class MessageLogProperties {
     /**
      * @return the hash algorithm that is used for hashing in message log.
      */
-    public static String getHashAlg() {
-        return System.getProperty(HASH_ALGO_ID, CryptoUtils.SHA512_ID);
+    public static DigestAlgorithm getHashAlg() {
+        return Optional.ofNullable(System.getProperty(HASH_ALGO_ID))
+                .map(DigestAlgorithm::ofName)
+                .orElse(DigestAlgorithm.SHA512);
     }
 
     /**

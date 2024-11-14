@@ -25,7 +25,9 @@
  */
 package ee.ria.xroad.proxy.clientproxy;
 
-import ee.ria.xroad.common.conf.globalconf.GlobalConf;
+import ee.ria.xroad.common.cert.CertChainFactory;
+import ee.ria.xroad.common.conf.globalconf.GlobalConfProvider;
+import ee.ria.xroad.common.conf.serverconf.ServerConfProvider;
 import ee.ria.xroad.common.metadata.ClientListType;
 import ee.ria.xroad.common.metadata.ClientType;
 import ee.ria.xroad.common.metadata.ObjectFactory;
@@ -33,6 +35,7 @@ import ee.ria.xroad.common.util.MimeTypes;
 import ee.ria.xroad.common.util.MimeUtils;
 import ee.ria.xroad.common.util.RequestWrapper;
 import ee.ria.xroad.common.util.ResponseWrapper;
+import ee.ria.xroad.proxy.conf.KeyConfProvider;
 import ee.ria.xroad.proxy.util.MessageProcessorBase;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
@@ -76,8 +79,12 @@ class MetadataClientRequestProcessor extends MessageProcessorBase {
 
     private final String target;
 
-    MetadataClientRequestProcessor(String target, RequestWrapper request, ResponseWrapper response) {
-        super(request, response, null);
+    MetadataClientRequestProcessor(GlobalConfProvider globalConfProvider,
+                                   KeyConfProvider keyConfProvider,
+                                   ServerConfProvider serverConfProvider,
+                                   CertChainFactory certChainFactory,
+                                   String target, RequestWrapper request, ResponseWrapper response) {
+        super(globalConfProvider, keyConfProvider, serverConfProvider, certChainFactory, request, response, null);
 
         this.target = target;
     }
@@ -102,7 +109,7 @@ class MetadataClientRequestProcessor extends MessageProcessorBase {
 
         ClientListType list = OBJECT_FACTORY.createClientListType();
         list.getMember().addAll(
-                GlobalConf.getMembers(instanceIdentifier).stream().map(m -> {
+                globalConfProvider.getMembers(instanceIdentifier).stream().map(m -> {
                     ClientType client = OBJECT_FACTORY.createClientType();
                     client.setId(m.getId());
                     client.setName(m.getName());
@@ -134,7 +141,7 @@ class MetadataClientRequestProcessor extends MessageProcessorBase {
     private String getInstanceIdentifierFromRequest() throws Exception {
         String instanceIdentifier = jRequest.getParameter(PARAM_INSTANCE_IDENTIFIER);
         if (StringUtils.isBlank(instanceIdentifier)) {
-            instanceIdentifier = GlobalConf.getInstanceIdentifier();
+            instanceIdentifier = globalConfProvider.getInstanceIdentifier();
         }
 
         return instanceIdentifier;

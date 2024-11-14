@@ -28,6 +28,7 @@ package org.niis.xroad.securityserver.restapi.service;
 import ee.ria.xroad.common.CodedException;
 import ee.ria.xroad.common.SystemProperties;
 import ee.ria.xroad.common.conf.globalconf.ApprovedCAInfo;
+import ee.ria.xroad.common.conf.globalconf.GlobalConfProvider;
 import ee.ria.xroad.common.conf.globalconf.GlobalGroupInfo;
 import ee.ria.xroad.common.conf.globalconf.MemberInfo;
 import ee.ria.xroad.common.conf.globalconf.SharedParameters;
@@ -39,7 +40,6 @@ import ee.ria.xroad.common.identifier.XRoadId;
 import lombok.extern.slf4j.Slf4j;
 import org.niis.xroad.restapi.exceptions.DeviationAwareRuntimeException;
 import org.niis.xroad.restapi.exceptions.ErrorDeviation;
-import org.niis.xroad.securityserver.restapi.facade.GlobalConfFacade;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.web.client.RestTemplateBuilder;
@@ -62,7 +62,7 @@ import static org.niis.xroad.restapi.exceptions.DeviationCodes.ERROR_GLOBAL_CONF
 
 /**
  * Global configuration service.
- * Contains methods that add some extra logic to the methods provided by {@link GlobalConfFacade}.
+ * Contains methods that add some extra logic to the methods provided by {@link GlobalConfProvider}.
  * To avoid method explosion, do not add pure delegate methods here, use GlobalConfFacade directly instead.
  */
 @Slf4j
@@ -72,16 +72,16 @@ public class GlobalConfService {
     private static final int CONF_CLIENT_ADMIN_PORT = SystemProperties.getConfigurationClientAdminPort();
     private static final int REST_TEMPLATE_TIMEOUT_MS = 60000;
 
-    private final GlobalConfFacade globalConfFacade;
+    private final GlobalConfProvider globalConfProvider;
     private final ServerConfService serverConfService;
     private final RestTemplate restTemplate;
     private final String downloadConfigurationAnchorUrl;
 
     @Autowired
-    public GlobalConfService(GlobalConfFacade globalConfFacade, ServerConfService serverConfService,
+    public GlobalConfService(GlobalConfProvider globalConfProvider, ServerConfService serverConfService,
                              @Value("${url.download-configuration-anchor}") String downloadConfigurationAnchorUrl,
                              RestTemplateBuilder restTemplateBuilder) {
-        this.globalConfFacade = globalConfFacade;
+        this.globalConfProvider = globalConfProvider;
         this.serverConfService = serverConfService;
         this.downloadConfigurationAnchorUrl = String.format(downloadConfigurationAnchorUrl, CONF_CLIENT_ADMIN_PORT);
         this.restTemplate = restTemplateBuilder
@@ -94,13 +94,13 @@ public class GlobalConfService {
      * @return whether the security server exists in current instance's global configuration
      */
     public boolean securityServerExists(SecurityServerId securityServerId) {
-        if (!globalConfFacade.getInstanceIdentifiers().contains(securityServerId.getXRoadInstance())) {
+        if (!globalConfProvider.getInstanceIdentifiers().contains(securityServerId.getXRoadInstance())) {
             // unless we check instance existence like this, we will receive
             // CodedException: InternalError: Invalid instance identifier: x -exception
             // which is hard to turn correctly into http 404 instead of 500
             return false;
         }
-        return globalConfFacade.existsSecurityServer(securityServerId);
+        return globalConfProvider.existsSecurityServer(securityServerId);
     }
 
     /**
@@ -109,7 +109,7 @@ public class GlobalConfService {
      * Global groups may or may not have entries in IDENTIFIER table
      */
     public boolean globalGroupsExist(Collection<? extends XRoadId> identifiers) {
-        List<XRoadId> existingIdentifiers = globalConfFacade.getGlobalGroups().stream()
+        List<XRoadId> existingIdentifiers = globalConfProvider.getGlobalGroups().stream()
                 .map(GlobalGroupInfo::getId)
                 .collect(Collectors.toList());
         return existingIdentifiers.containsAll(identifiers);
@@ -121,7 +121,7 @@ public class GlobalConfService {
      * Clients may or may not have entries in IDENTIFIER table
      */
     public boolean clientsExist(Collection<? extends XRoadId> identifiers) {
-        List<XRoadId> existingIdentifiers = globalConfFacade.getMembers().stream()
+        List<XRoadId> existingIdentifiers = globalConfProvider.getMembers().stream()
                 .map(MemberInfo::getId)
                 .collect(Collectors.toList());
         return existingIdentifiers.containsAll(identifiers);
@@ -131,20 +131,21 @@ public class GlobalConfService {
      * @return member classes for current instance
      */
     public Set<String> getMemberClassesForThisInstance() {
-        return globalConfFacade.getMemberClasses(globalConfFacade.getInstanceIdentifier());
+        return globalConfProvider.getMemberClasses(globalConfProvider.getInstanceIdentifier());
     }
 
     public String getSecurityServerAddress(SecurityServerId securityServerId) {
-        return globalConfFacade.getSecurityServerAddress(securityServerId);
+        return globalConfProvider.getSecurityServerAddress(securityServerId);
     }
 
     /**
      * Check the validity of the GlobalConf
+     *
      * @throws GlobalConfOutdatedException if conf is outdated
      */
     public void verifyGlobalConfValidity() throws GlobalConfOutdatedException {
         try {
-            globalConfFacade.verifyValidity();
+            globalConfProvider.verifyValidity();
         } catch (CodedException e) {
             if (isCausedByOutdatedGlobalconf(e)) {
                 throw new GlobalConfOutdatedException(e);
@@ -164,21 +165,21 @@ public class GlobalConfService {
      * @return approved CAs for current instance
      */
     public Collection<ApprovedCAInfo> getApprovedCAsForThisInstance() {
-        return globalConfFacade.getApprovedCAs(globalConfFacade.getInstanceIdentifier());
+        return globalConfProvider.getApprovedCAs(globalConfProvider.getInstanceIdentifier());
     }
 
     /**
      * @return approved CA matching given CA cert (top level or intermediate), for current instance
      */
     public ApprovedCAInfo getApprovedCAForThisInstance(X509Certificate certificate) {
-        return globalConfFacade.getApprovedCA(globalConfFacade.getInstanceIdentifier(), certificate);
+        return globalConfProvider.getApprovedCA(globalConfProvider.getInstanceIdentifier(), certificate);
     }
 
     /**
      * @return CA certs for current instance
      */
     public Collection<X509Certificate> getAllCaCertsForThisInstance() {
-        return globalConfFacade.getAllCaCerts(globalConfFacade.getInstanceIdentifier());
+        return globalConfProvider.getAllCaCerts(globalConfProvider.getInstanceIdentifier());
     }
 
     /**
@@ -187,11 +188,10 @@ public class GlobalConfService {
      */
     public List<TspType> getApprovedTspsForThisInstance() {
         List<SharedParameters.ApprovedTSA> approvedTspTypes =
-                globalConfFacade.getApprovedTsps(globalConfFacade.getInstanceIdentifier());
-        List<TspType> tsps = approvedTspTypes.stream()
+                globalConfProvider.getApprovedTsps(globalConfProvider.getInstanceIdentifier());
+        return approvedTspTypes.stream()
                 .map(this::createTspType)
                 .collect(Collectors.toList());
-        return tsps;
     }
 
     /**
@@ -208,12 +208,13 @@ public class GlobalConfService {
      * Checks if given client is one of this security server's clients
      */
     public boolean isSecurityServerClientForThisInstance(ClientId client) {
-        return globalConfFacade.isSecurityServerClient(client,
+        return globalConfProvider.isSecurityServerClient(client,
                 serverConfService.getSecurityServerId());
     }
 
     /**
      * Sends an http request to configuration-client in order to trigger the downloading of the global conf
+     *
      * @throws ConfigurationDownloadException if the request succeeds but configuration-client returns an error
      * @throws DeviationAwareRuntimeException if the request fails
      */
@@ -232,13 +233,14 @@ public class GlobalConfService {
 
     /**
      * Find member's name in the global conf
+     *
      * @param memberClass
      * @param memberCode
      * @return
      */
     public String findMemberName(String memberClass, String memberCode) {
-        String instanceIdentifier = globalConfFacade.getInstanceIdentifier();
+        String instanceIdentifier = globalConfProvider.getInstanceIdentifier();
         ClientId clientId = ClientId.Conf.create(instanceIdentifier, memberClass, memberCode);
-        return globalConfFacade.getMemberName(clientId);
+        return globalConfProvider.getMemberName(clientId);
     }
 }

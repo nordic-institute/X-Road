@@ -106,7 +106,7 @@ public class TaskQueue {
         }
 
         // set diagnostics status
-        LogManager.putStatusMapFailures(cause);
+        logManager.putStatusMapFailures(cause);
 
         sendTimestampingStatusToLogManager(SetTimestampingStatusMessage.Status.FAILURE);
     }
@@ -168,7 +168,6 @@ public class TaskQueue {
         } else if (timestampResult instanceof TimestampFailed) {
             handleTimestampFailed((TimestampFailed) timestampResult);
         }
-
     }
 
     private TimestampTask createTimestampTask(List<Task> timestampTasks) {

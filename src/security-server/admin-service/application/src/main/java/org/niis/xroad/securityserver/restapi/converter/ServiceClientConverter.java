@@ -26,6 +26,7 @@
 
 package org.niis.xroad.securityserver.restapi.converter;
 
+import ee.ria.xroad.common.conf.globalconf.GlobalConfProvider;
 import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.identifier.GlobalGroupId;
 import ee.ria.xroad.common.identifier.LocalGroupId;
@@ -38,7 +39,6 @@ import org.niis.xroad.restapi.converter.ClientIdConverter;
 import org.niis.xroad.restapi.openapi.BadRequestException;
 import org.niis.xroad.securityserver.restapi.converter.comparator.ServiceClientSortingComparator;
 import org.niis.xroad.securityserver.restapi.dto.ServiceClientDto;
-import org.niis.xroad.securityserver.restapi.facade.GlobalConfFacade;
 import org.niis.xroad.securityserver.restapi.openapi.model.ServiceClient;
 import org.niis.xroad.securityserver.restapi.openapi.model.ServiceClientType;
 import org.springframework.stereotype.Component;
@@ -55,7 +55,7 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 public class ServiceClientConverter {
 
-    private final GlobalConfFacade globalConfFacade;
+    private final GlobalConfProvider globalConfProvider;
     private final GlobalGroupConverter globalGroupConverter;
     private final ServiceClientSortingComparator serviceClientSortingComparator;
 
@@ -75,7 +75,7 @@ public class ServiceClientConverter {
         switch (subjectId.getObjectType()) {
             case SUBSYSTEM:
                 ClientId serviceClientId = (ClientId) subjectId;
-                serviceClient.setName(globalConfFacade.getMemberName(serviceClientId));
+                serviceClient.setName(globalConfProvider.getMemberName(serviceClientId));
                 serviceClient.setId(clientIdConverter.convertId(serviceClientId));
                 serviceClient.setServiceClientType(ServiceClientType.SUBSYSTEM);
                 break;
@@ -118,24 +118,17 @@ public class ServiceClientConverter {
     public XRoadId convertId(ServiceClient serviceClient) {
         XRoadObjectType serviceClientType = ServiceClientTypeMapping.map(serviceClient.getServiceClientType()).get();
         String encodedId = serviceClient.getId();
-        XRoadId xRoadId;
-        switch (serviceClientType) {
-            case SUBSYSTEM:
+        return switch (serviceClientType) {
+            case SUBSYSTEM -> {
                 if (!clientIdConverter.isEncodedSubsystemId(encodedId)) {
                     throw new BadRequestException("Invalid subsystem id " + encodedId);
                 }
-                xRoadId = clientIdConverter.convertId(encodedId);
-                break;
-            case GLOBALGROUP:
-                xRoadId = globalGroupConverter.convertId(encodedId);
-                break;
-            case LOCALGROUP:
-                xRoadId = LocalGroupId.Conf.create(serviceClient.getLocalGroupCode());
-                break;
-            default:
-                throw new BadRequestException("Invalid service client type");
-        }
-        return xRoadId;
+                yield clientIdConverter.convertId(encodedId);
+            }
+            case GLOBALGROUP -> globalGroupConverter.convertId(encodedId);
+            case LOCALGROUP -> LocalGroupId.Conf.create(serviceClient.getLocalGroupCode());
+            default -> throw new BadRequestException("Invalid service client type");
+        };
     }
 
     /**

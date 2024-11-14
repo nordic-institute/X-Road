@@ -27,7 +27,10 @@ package ee.ria.xroad.common.ocsp;
 
 import ee.ria.xroad.common.CodedException;
 import ee.ria.xroad.common.SystemProperties;
-import ee.ria.xroad.common.conf.globalconf.GlobalConf;
+import ee.ria.xroad.common.conf.globalconf.GlobalConfProvider;
+import ee.ria.xroad.common.crypto.identifier.DigestAlgorithm;
+import ee.ria.xroad.common.util.CryptoUtils;
+import ee.ria.xroad.common.util.TimeUtils;
 
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
@@ -58,12 +61,10 @@ import java.util.concurrent.TimeUnit;
 
 import static ee.ria.xroad.common.ErrorCodes.X_CERT_VALIDATION;
 import static ee.ria.xroad.common.ErrorCodes.X_INCORRECT_VALIDATION_INFO;
-import static ee.ria.xroad.common.util.CryptoUtils.SHA1_ID;
-import static ee.ria.xroad.common.util.CryptoUtils.calculateDigest;
+import static ee.ria.xroad.common.crypto.Digests.calculateDigest;
+import static ee.ria.xroad.common.crypto.Digests.createDigestCalculator;
 import static ee.ria.xroad.common.util.CryptoUtils.createCertId;
 import static ee.ria.xroad.common.util.CryptoUtils.createDefaultContentVerifier;
-import static ee.ria.xroad.common.util.CryptoUtils.createDigestCalculator;
-import static ee.ria.xroad.common.util.CryptoUtils.readCertificate;
 import static ee.ria.xroad.common.util.TimeUtils.toOffsetDateTime;
 
 /**
@@ -73,6 +74,8 @@ import static ee.ria.xroad.common.util.TimeUtils.toOffsetDateTime;
 public final class OcspVerifier {
 
     private static final String ID_KP_OCSPSIGNING = "1.3.6.1.5.5.7.3.9";
+
+    private final GlobalConfProvider globalConfProvider;
 
     private final int ocspFreshnessSeconds;
 
@@ -90,11 +93,16 @@ public final class OcspVerifier {
                 .build();
     }
 
+    public OcspVerifier(GlobalConfProvider globalConfProvider) {
+        this(globalConfProvider, null);
+    }
+
     /**
      * Constructor
      */
-    public OcspVerifier(int ocspFreshnessSeconds, OcspVerifierOptions options) {
-        this.ocspFreshnessSeconds = ocspFreshnessSeconds;
+    public OcspVerifier(GlobalConfProvider globalConfProvider, OcspVerifierOptions options) {
+        this.globalConfProvider = globalConfProvider;
+        this.ocspFreshnessSeconds = globalConfProvider.getOcspFreshnessSeconds();
 
         if (options == null) {
             this.options = new OcspVerifierOptions(true);
@@ -114,7 +122,7 @@ public final class OcspVerifier {
      */
     public void verifyValidityAndStatus(OCSPResp response,
                                         X509Certificate subject, X509Certificate issuer) throws Exception {
-        verifyValidityAndStatus(response, subject, issuer, new Date());
+        verifyValidityAndStatus(response, subject, issuer, Date.from(TimeUtils.now()));
     }
 
     /**
@@ -254,7 +262,7 @@ public final class OcspVerifier {
     }
 
     private boolean verifySignature(BasicOCSPResp basicResp, X509Certificate ocspCert) throws OperatorCreationException,
-            OCSPException {
+                                                                                              OCSPException {
         ContentVerifierProvider verifier =
                 createDefaultContentVerifier(ocspCert.getPublicKey());
 
@@ -330,8 +338,7 @@ public final class OcspVerifier {
      * @return certificate that was used to sign the given OCSP response.
      * @throws Exception if an error occurs
      */
-    public static X509Certificate getOcspCert(BasicOCSPResp response)
-            throws Exception {
+    public X509Certificate getOcspCert(BasicOCSPResp response) throws Exception {
         List<X509Certificate> knownCerts = getOcspCerts(response);
         ResponderID respId = response.getResponderId().toASN1Primitive();
 
@@ -346,7 +353,7 @@ public final class OcspVerifier {
                 }
             }
         } else if (respId.getKeyHash() != null) {
-            DigestCalculator dc = createDigestCalculator(SHA1_ID);
+            DigestCalculator dc = createDigestCalculator(DigestAlgorithm.SHA1);
             for (X509Certificate cert : knownCerts) {
                 X509CertificateHolder certHolder = new X509CertificateHolder(cert.getEncoded());
                 var keyData = certHolder.getSubjectPublicKeyInfo().getPublicKeyData();
@@ -360,15 +367,14 @@ public final class OcspVerifier {
         return null;
     }
 
-    private static List<X509Certificate> getOcspCerts(BasicOCSPResp response)
-            throws Exception {
+    private List<X509Certificate> getOcspCerts(BasicOCSPResp response) throws Exception {
         List<X509Certificate> certs = new ArrayList<>();
 
-        certs.addAll(GlobalConf.getOcspResponderCertificates());
-        certs.addAll(GlobalConf.getAllCaCerts());
+        certs.addAll(globalConfProvider.getOcspResponderCertificates());
+        certs.addAll(globalConfProvider.getAllCaCerts());
 
         for (X509CertificateHolder cert : response.getCerts()) {
-            certs.add(readCertificate(cert.getEncoded()));
+            certs.add(CryptoUtils.readCertificate(cert.getEncoded()));
         }
 
         return certs;
@@ -377,8 +383,7 @@ public final class OcspVerifier {
     private static String getStatusString(CertificateStatus status) {
         if (status instanceof UnknownStatus) {
             return "UNKNOWN";
-        } else if (status instanceof RevokedStatus) {
-            RevokedStatus rs = (RevokedStatus) status;
+        } else if (status instanceof RevokedStatus rs) {
             return String.format("REVOKED (date: %tF %tT)",
                     rs.getRevocationTime(), rs.getRevocationTime());
         } else {
@@ -387,11 +392,11 @@ public final class OcspVerifier {
 
     }
 
-    private static boolean isAuthorizedOcspSigner(X509Certificate ocspCert,
-                                                  X509Certificate issuer) throws Exception {
+    private boolean isAuthorizedOcspSigner(X509Certificate ocspCert,
+                                           X509Certificate issuer) throws Exception {
         // 1. Matches a local configuration of OCSP signing authority for the
         // certificate in question; or
-        if (GlobalConf.isOcspResponderCert(issuer, ocspCert)) {
+        if (globalConfProvider.isOcspResponderCert(issuer, ocspCert)) {
             return true;
         }
 

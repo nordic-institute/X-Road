@@ -29,7 +29,7 @@ package org.niis.xroad.cs.registrationservice.controller;
 import ee.ria.xroad.common.OcspTestUtils;
 import ee.ria.xroad.common.SystemProperties;
 import ee.ria.xroad.common.TestCertUtil;
-import ee.ria.xroad.common.conf.globalconf.GlobalConf;
+import ee.ria.xroad.common.conf.globalconf.GlobalConfProvider;
 import ee.ria.xroad.common.identifier.SecurityServerId;
 import ee.ria.xroad.common.util.TimeUtils;
 
@@ -39,6 +39,7 @@ import org.bouncycastle.asn1.x509.CRLReason;
 import org.bouncycastle.cert.ocsp.CertificateStatus;
 import org.bouncycastle.cert.ocsp.RevokedStatus;
 import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.niis.xroad.common.managemenetrequest.test.TestAuthRegTypeRequest;
 import org.niis.xroad.common.managemenetrequest.test.TestManagementRequestBuilder;
@@ -48,6 +49,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.context.TestConfiguration;
 import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Primary;
 import org.springframework.http.ResponseEntity;
 
 import java.io.ByteArrayInputStream;
@@ -69,11 +71,11 @@ class RegistrationRequestControllerTest {
     private static KeyPair authKeyPair;
 
     private static MessageFactory factory;
-    private final SecurityServerId.Conf serverId =
-            SecurityServerId.Conf.create(GlobalConf.getInstanceIdentifier(), "CLASS", "MEMBER", "SS1");
-
+    private SecurityServerId.Conf serverId = null;
     @Autowired
-    RegistrationRequestController controller;
+    private RegistrationRequestController controller;
+    @Autowired
+    private GlobalConfProvider globalConfProvider;
 
     @TestConfiguration
     static class TestConfig {
@@ -81,7 +83,14 @@ class RegistrationRequestControllerTest {
         AdminApiService adminApiServiceImpl() {
             return (serverId, address, certificate) -> 0;
         }
+
+        @Bean
+        @Primary
+        GlobalConfProvider testGlobalConfProvider() {
+            return new TestGlobalConf();
+        }
     }
+
 
     @BeforeAll
     public static void setup() throws Exception {
@@ -92,7 +101,12 @@ class RegistrationRequestControllerTest {
         factory = MessageFactory.newInstance();
 
         System.setProperty(SystemProperties.CONFIGURATION_PATH, "build/resources/test/testconf");
-        GlobalConf.reload(new TestGlobalConf());
+    }
+
+    @BeforeEach
+    void beforeEach() {
+        serverId = SecurityServerId.Conf.create(globalConfProvider.getInstanceIdentifier(),
+                "CLASS", "MEMBER", "SS1");
     }
 
     @Test
@@ -190,7 +204,7 @@ class RegistrationRequestControllerTest {
                 TestCertUtil.getOcspSigner().key,
                 CertificateStatus.GOOD);
 
-        var builder = new TestManagementRequestBuilder(serverId.getOwner(), GlobalConf.getManagementRequestService());
+        var builder = new TestManagementRequestBuilder(serverId.getOwner(), globalConfProvider.getManagementRequestService());
         var req = builder.buildAuthCertRegRequest(serverId, "ss1.example.org", new byte[authCert.length]);
 
         var envelope = new TestAuthRegTypeRequest(authCert,
@@ -216,7 +230,7 @@ class RegistrationRequestControllerTest {
 
     @Test
     void shouldFailIfWrongInstanceId() throws Exception {
-        var sid = SecurityServerId.Conf.create(GlobalConf.getInstanceIdentifier() + "-X", "CLASS", "MEMBER", "SS1");
+        var sid = SecurityServerId.Conf.create(globalConfProvider.getInstanceIdentifier() + "-X", "CLASS", "MEMBER", "SS1");
         var result = register(sid, "ss1.example.org");
         assertTrue(result.getStatusCode().is5xxServerError());
         assertFault(result.getBody(), "InvalidRequest");
@@ -224,7 +238,7 @@ class RegistrationRequestControllerTest {
 
     @Test
     void shouldFailIfInvalidServerId() throws Exception {
-        var sid = SecurityServerId.Conf.create(GlobalConf.getInstanceIdentifier(), "CLASS", "MEM BER", "S:;S1");
+        var sid = SecurityServerId.Conf.create(globalConfProvider.getInstanceIdentifier(), "CLASS", "MEM BER", "S:;S1");
         var result = register(sid, "ss1.example.org");
         assertTrue(result.getStatusCode().is5xxServerError());
         assertFault(result.getBody(), "InvalidClientIdentifier");
@@ -253,7 +267,7 @@ class RegistrationRequestControllerTest {
                 TestCertUtil.getOcspSigner().key,
                 CertificateStatus.GOOD);
 
-        var builder = new TestManagementRequestBuilder(sid.getOwner(), GlobalConf.getManagementRequestService());
+        var builder = new TestManagementRequestBuilder(sid.getOwner(), globalConfProvider.getManagementRequestService());
         var req = builder.buildAuthCertRegRequest(sid, address, authCert);
 
         var envelope = new TestAuthRegTypeRequest(authCert,
@@ -273,7 +287,7 @@ class RegistrationRequestControllerTest {
         var mockData = new byte[1024];
         new Random().nextBytes(mockData);
 
-        var builder = new TestManagementRequestBuilder(sid.getOwner(), GlobalConf.getManagementRequestService());
+        var builder = new TestManagementRequestBuilder(sid.getOwner(), globalConfProvider.getManagementRequestService());
         var req = builder.buildAuthCertRegRequest(sid, "ss1.example.org", mockData);
 
         var envelope = new TestAuthRegTypeRequest(mockData,

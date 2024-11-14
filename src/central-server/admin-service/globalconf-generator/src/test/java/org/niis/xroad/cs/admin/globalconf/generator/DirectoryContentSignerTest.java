@@ -26,7 +26,8 @@
  */
 package org.niis.xroad.cs.admin.globalconf.generator;
 
-import ee.ria.xroad.common.util.CryptoUtils;
+import ee.ria.xroad.common.crypto.Digests;
+import ee.ria.xroad.common.util.EncoderUtils;
 
 import lombok.SneakyThrows;
 import org.junit.jupiter.api.Test;
@@ -36,8 +37,9 @@ import org.niis.xroad.cs.admin.api.facade.SignerProxyFacade;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import static ee.ria.xroad.common.util.CryptoUtils.CKM_RSA_PKCS_NAME;
-import static ee.ria.xroad.common.util.CryptoUtils.SHA512WITHRSA_ID;
+import static ee.ria.xroad.common.crypto.identifier.DigestAlgorithm.SHA512;
+import static ee.ria.xroad.common.crypto.identifier.SignAlgorithm.SHA512_WITH_RSA;
+import static ee.ria.xroad.common.crypto.identifier.SignMechanism.CKM_RSA_PKCS;
 import static java.nio.charset.StandardCharsets.UTF_8;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.when;
@@ -70,18 +72,18 @@ class DirectoryContentSignerTest {
     public static final String KEY_ID = "KEY-ID";
     public static final byte[] SIGNING_CERT = "SIGNING-CERT".getBytes(UTF_8);
     public static final byte[] SIGNATURE = "<signature>".getBytes(UTF_8);
-    public static final String SIGNATURE_BASE64 = CryptoUtils.encodeBase64(SIGNATURE);
+    public static final String SIGNATURE_BASE64 = EncoderUtils.encodeBase64(SIGNATURE);
 
 
     @SneakyThrows
     @Test
     void createSignedDirectory() {
         var signerProxyFacade = Mockito.mock(SignerProxyFacade.class);
-        when(signerProxyFacade.getSignMechanism(KEY_ID)).thenReturn(CKM_RSA_PKCS_NAME);
-        var digest = CryptoUtils.calculateDigest(CryptoUtils.SHA512_ID, SIGNABLE_DIRECTORY_CONTENT.getBytes());
-        when(signerProxyFacade.sign(KEY_ID, SHA512WITHRSA_ID, digest)).thenReturn(SIGNATURE);
+        when(signerProxyFacade.getSignMechanism(KEY_ID)).thenReturn(CKM_RSA_PKCS);
+        var digest = Digests.calculateDigest(SHA512, SIGNABLE_DIRECTORY_CONTENT.getBytes());
+        when(signerProxyFacade.sign(KEY_ID, SHA512_WITH_RSA, digest)).thenReturn(SIGNATURE);
 
-        var signedDirectory = new DirectoryContentSigner(signerProxyFacade, CryptoUtils.SHA512_ID, CryptoUtils.SHA512_ID)
+        var signedDirectory = new DirectoryContentSigner(signerProxyFacade, SHA512, SHA512)
                 .createSignedDirectory(directoryContentHolder, KEY_ID, SIGNING_CERT);
 
         var headerMatcher = HEADER_PATTERN.matcher(signedDirectory);

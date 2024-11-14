@@ -7,16 +7,17 @@ dependencyResolutionManagement {
 }
 
 // Common projects
+include 'arch-rules'
 include "signer-protocol"
 include "serverconf"
-include "monitoring-conf"
-
 
 include "common"
+include "common:common-acme"
 include "common:common-admin-api"
 include "common:common-api-throttling"
 include "common:common-db"
 include "common:common-domain"
+include "common:common-mail"
 include "common:common-management-request"
 include "common:common-messagelog"
 include "common:common-op-monitoring"
@@ -31,14 +32,20 @@ include 'common:common-scheduler'
 
 // Main projects
 include "proxy"
-include "signer"
+include "proxy:application"
+include "proxy:core"
+include "signer:application"
+include "signer:core"
 include "configuration-proxy"
-include "configuration-client"
+include "configuration-client:application"
+include "configuration-client:core"
 include "asicverifier"
 include "asic-util"
-include "monitor"
+include "monitor:application"
+include "monitor:core"
 include "monitor-common"
-include "op-monitor-daemon"
+include "op-monitor-daemon:application"
+include "op-monitor-daemon:core"
 include "shared-ui"
 
 include "central-server"

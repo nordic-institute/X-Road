@@ -25,6 +25,7 @@
  */
 package org.niis.xroad.securityserver.restapi.util;
 
+import ee.ria.xroad.common.crypto.identifier.SignMechanism;
 import ee.ria.xroad.signer.protocol.dto.CertRequestInfo;
 import ee.ria.xroad.signer.protocol.dto.CertRequestInfoProto;
 import ee.ria.xroad.signer.protocol.dto.CertificateInfo;
@@ -182,7 +183,7 @@ public final class TokenTestUtils {
                     .setPublicKey("public-key")
                     .addAllCerts(certificates)
                     .addAllCertRequests(certRequests)
-                    .setSignMechanismName("sign-mechanism-name");
+                    .setSignMechanismName(SignMechanism.CKM_RSA_PKCS.name());
 
             ofNullable(keyUsageInfo).ifPresent(builder::setUsage);
 

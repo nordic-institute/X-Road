@@ -25,7 +25,6 @@
  * THE SOFTWARE.
  */
 import type { App } from 'vue';
-import * as dayjs from 'dayjs';
 
 // Format date string. Result YYYY-MM-DD.
 export function formatDate(value: string): string {

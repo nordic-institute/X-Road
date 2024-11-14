@@ -28,10 +28,11 @@ package org.niis.xroad.common.managementrequest.verify.decode;
 
 import ee.ria.xroad.common.CodedException;
 import ee.ria.xroad.common.certificateprofile.impl.SignCertificateProfileInfoParameters;
-import ee.ria.xroad.common.conf.globalconf.GlobalConf;
+import ee.ria.xroad.common.conf.globalconf.GlobalConfProvider;
 import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.identifier.SecurityServerId;
 import ee.ria.xroad.common.request.ClientRequestType;
+import ee.ria.xroad.common.util.CryptoUtils;
 
 import lombok.extern.slf4j.Slf4j;
 import org.niis.xroad.common.managementrequest.model.ManagementRequestType;
@@ -41,15 +42,15 @@ import java.security.cert.X509Certificate;
 import java.util.Objects;
 
 import static ee.ria.xroad.common.ErrorCodes.X_INVALID_REQUEST;
-import static ee.ria.xroad.common.util.CryptoUtils.readCertificate;
 import static org.niis.xroad.common.managementrequest.verify.decode.util.ManagementRequestVerificationUtils.validateServerId;
 
 @Slf4j
 public class BaseClientRequestCallback extends BaseSignedRequestCallback<ClientRequestType> {
     private static final String DUMMY_CLIENT_ID = "dummy";
 
-    public BaseClientRequestCallback(ManagementRequestVerifier.DecoderCallback rootCallback, ManagementRequestType requestType) {
-        super(rootCallback, requestType);
+    public BaseClientRequestCallback(GlobalConfProvider globalConfProvider, ManagementRequestVerifier.DecoderCallback rootCallback,
+                                     ManagementRequestType requestType) {
+        super(globalConfProvider, rootCallback, requestType);
     }
 
     @Override
@@ -63,7 +64,7 @@ public class BaseClientRequestCallback extends BaseSignedRequestCallback<ClientR
         // Verify that the subject id from the certificate matches the one
         // in the request (client). The certificate must belong to the member
         // that is used as a client.
-        X509Certificate x509ClientCert = readCertificate(clientCertBytes);
+        X509Certificate x509ClientCert = CryptoUtils.readCertificate(clientCertBytes);
         ClientId idFromCert = getClientIdFromCert(x509ClientCert);
 
         ClientId idFromReq = getRequest().getClient();
@@ -83,11 +84,11 @@ public class BaseClientRequestCallback extends BaseSignedRequestCallback<ClientR
         }
     }
 
-    private static ClientId getClientIdFromCert(X509Certificate cert) throws Exception {
-        return GlobalConf.getSubjectName(
+    private ClientId getClientIdFromCert(X509Certificate cert) throws Exception {
+        return globalConfProvider.getSubjectName(
                 new SignCertificateProfileInfoParameters(
                         ClientId.Conf.create(
-                                GlobalConf.getInstanceIdentifier(),
+                                globalConfProvider.getInstanceIdentifier(),
                                 DUMMY_CLIENT_ID,
                                 DUMMY_CLIENT_ID
                         ),

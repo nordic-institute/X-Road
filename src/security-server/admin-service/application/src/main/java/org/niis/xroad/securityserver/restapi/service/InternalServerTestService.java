@@ -26,7 +26,7 @@
 package org.niis.xroad.securityserver.restapi.service;
 
 import ee.ria.xroad.common.conf.InternalSSLKey;
-import ee.ria.xroad.common.conf.serverconf.ServerConf;
+import ee.ria.xroad.common.conf.serverconf.ServerConfProvider;
 import ee.ria.xroad.common.conf.serverconf.model.CertificateType;
 import ee.ria.xroad.common.util.CryptoUtils;
 
@@ -62,8 +62,11 @@ import java.util.List;
 @Slf4j
 @Service
 @Transactional
+@RequiredArgsConstructor
 @PreAuthorize("isAuthenticated()")
 public class InternalServerTestService {
+    private final ServerConfProvider serverConfProvider;
+
     /**
      * Tests if a HTTPS connection can be established to the given URL using
      * the specified certificates.
@@ -94,7 +97,7 @@ public class InternalServerTestService {
     }
 
     private KeyManager[] createServiceKeyManager() throws Exception {
-        InternalSSLKey key = ServerConf.getSSLKey();
+        InternalSSLKey key = serverConfProvider.getSSLKey();
 
         if (key != null) {
             return new KeyManager[]{new ServiceKeyManager(key)};

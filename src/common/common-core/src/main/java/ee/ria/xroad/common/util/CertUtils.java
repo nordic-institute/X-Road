@@ -27,8 +27,8 @@ package ee.ria.xroad.common.util;
 
 import ee.ria.xroad.common.CodedException;
 import ee.ria.xroad.common.ErrorCodes;
-import ee.ria.xroad.common.SystemProperties;
 import ee.ria.xroad.common.conf.InternalSSLKey;
+import ee.ria.xroad.common.crypto.identifier.SignAlgorithm;
 
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.ArrayUtils;
@@ -94,14 +94,13 @@ import java.security.spec.InvalidKeySpecException;
 import java.security.spec.PKCS8EncodedKeySpec;
 import java.security.spec.RSAPublicKeySpec;
 import java.time.temporal.ChronoUnit;
-import java.util.Arrays;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 import java.util.Optional;
 
 import static ee.ria.xroad.common.ErrorCodes.X_INTERNAL_ERROR;
+import static ee.ria.xroad.common.crypto.identifier.SignAlgorithm.SHA256_WITH_RSA;
 import static ee.ria.xroad.common.util.CryptoUtils.calculateCertHexHash;
 import static ee.ria.xroad.common.util.CryptoUtils.calculateCertSha1HexHash;
 import static ee.ria.xroad.common.util.CryptoUtils.toDERObject;
@@ -116,19 +115,18 @@ public final class CertUtils {
     private static final int KEY_ENCIPHERMENT_IDX = 2;
     private static final int DATA_ENCIPHERMENT_IDX = 3;
 
-    private static final List<String> FIELD_NAMES = Collections.unmodifiableList(
-            Arrays.asList("othername", "email", "DNS", "x400", "DirName", "ediPartyName",
-                    "URI", "IP Address", "Registered ID"));
+    private static final List<String> FIELD_NAMES = List.of(
+            "othername", "email", "DNS", "x400", "DirName", "ediPartyName",
+            "URI", "IP Address", "Registered ID");
 
     private static final int OTHER_NAME_IDX = 0;
     private static final int X400_IDX = 3;
     private static final int EDI_PARTY_NAME_IDX = 5;
     private static final int MAX_IDX = 8;
 
-    private static final List<Integer> UNSUPPORTED_FIELDS = Collections
-            .unmodifiableList(Arrays.asList(
-                    OTHER_NAME_IDX, X400_IDX,
-                    EDI_PARTY_NAME_IDX));
+    private static final List<Integer> UNSUPPORTED_FIELDS = List.of(
+            OTHER_NAME_IDX, X400_IDX,
+            EDI_PARTY_NAME_IDX);
 
     private CertUtils() {
     }
@@ -236,7 +234,7 @@ public final class CertUtils {
      *
      * @param cert certificate to check
      * @return boolean
-     * @throws Exception if the cert has no keyUsage extension
+     * @throws CertificateParsingException if the cert has no keyUsage extension
      */
     public static boolean isAuthCert(X509Certificate cert) throws CertificateParsingException {
         List<String> extendedKeyUsage = cert.getExtendedKeyUsage();
@@ -263,9 +261,8 @@ public final class CertUtils {
      *
      * @param cert certificate to check
      * @return boolean
-     * @throws Exception if the cert has no keyUsage extension
      */
-    public static boolean isSigningCert(X509Certificate cert) throws Exception {
+    public static boolean isSigningCert(X509Certificate cert) {
         boolean[] keyUsage = cert.getKeyUsage();
 
         if (keyUsage == null) {
@@ -286,8 +283,8 @@ public final class CertUtils {
             cert.checkValidity();
 
             return true;
-        } catch (CertificateExpiredException | CertificateNotYetValidException ignored) {
-            log.info("Certificate not valid: {}", ignored);
+        } catch (CertificateExpiredException | CertificateNotYetValidException ex) {
+            log.info("Certificate not valid: {}", ex.getMessage(), ex);
 
             return false;
         }
@@ -303,7 +300,7 @@ public final class CertUtils {
         return cert.getIssuerX500Principal().equals(cert.getSubjectX500Principal());
     }
 
-    public static X509Certificate[] createSelfSignedCertificate(String commonName, KeyPair keyPair)
+    public static X509Certificate[] createSelfSignedCertificate(String commonName, KeyPair keyPair, long expirationInDays)
             throws CertIOException, OperatorCreationException, CertificateException {
         X500Name subject = new X500Name("CN=" + commonName);
         JcaX509v3CertificateBuilder certificateBuilder =
@@ -311,12 +308,12 @@ public final class CertUtils {
                         subject,
                         BigInteger.ONE,
                         Date.from(TimeUtils.now()),
-                        Date.from(TimeUtils.now().plus(SystemProperties.getAcmeAccountKeyPairExpirationInDays(), ChronoUnit.DAYS)),
+                        Date.from(TimeUtils.now().plus(expirationInDays, ChronoUnit.DAYS)),
                         subject,
                         keyPair.getPublic());
         KeyUsage keyUsage = new KeyUsage(KeyUsage.digitalSignature);
         certificateBuilder.addExtension(Extension.keyUsage, true, keyUsage);
-        ContentSigner signer = new JcaContentSignerBuilder(CryptoUtils.SHA512WITHRSA_ID).build(keyPair.getPrivate());
+        ContentSigner signer = new JcaContentSignerBuilder(SignAlgorithm.SHA512_WITH_RSA.name()).build(keyPair.getPrivate());
         X509CertificateHolder holder = certificateBuilder.build(signer);
         X509Certificate certificate = new JcaX509CertificateConverter().getCertificate(holder);
         X509Certificate[] certificateChain = new X509Certificate[1];
@@ -335,8 +332,7 @@ public final class CertUtils {
         if (extensionValue != null) {
             ASN1Primitive derObject = toDERObject(extensionValue);
 
-            if (derObject instanceof DEROctetString) {
-                DEROctetString derOctetString = (DEROctetString) derObject;
+            if (derObject instanceof DEROctetString derOctetString) {
                 derObject = toDERObject(derOctetString.getOctets());
 
                 AuthorityInformationAccess authorityInformationAccess =
@@ -358,7 +354,7 @@ public final class CertUtils {
 
     /**
      * @param certs list of certificates
-     * @return list of certificate SHA-1 hashes for given list of certificates.
+     * @return array of certificate SHA-1 hashes for given list of certificates.
      * @throws CertificateEncodingException if a certificate encoding error occurs
      * @throws OperatorCreationException    if digest calculator cannot be created
      * @throws IOException                  if an I/O error occurred
@@ -379,7 +375,7 @@ public final class CertUtils {
 
     /**
      * @param certs list of certificates
-     * @return list of certificate SHA-256 hashes for given list of certificates.
+     * @return array of certificate SHA-256 hashes for given list of certificates.
      * @throws CertificateEncodingException if a certificate encoding error occurs
      * @throws OperatorCreationException    if digest calculator cannot be created
      * @throws IOException                  if an I/O error occurred
@@ -415,12 +411,11 @@ public final class CertUtils {
      *
      * @return byte content of the certificate request
      */
-    public static byte[] generateCertRequest(PrivateKey privateKey, PublicKey publicKey, String
-            principal)
+    public static byte[] generateCertRequest(PrivateKey privateKey, PublicKey publicKey, String principal)
             throws NoSuchAlgorithmException, OperatorCreationException, IOException {
         X500Principal subject = new X500Principal(principal);
 
-        ContentSigner signGen = new JcaContentSignerBuilder("SHA256withRSA").build(privateKey);
+        ContentSigner signGen = new JcaContentSignerBuilder(SHA256_WITH_RSA.name()).build(privateKey);
 
         PKCS10CertificationRequestBuilder builder = new JcaPKCS10CertificationRequestBuilder(subject, publicKey);
         PKCS10CertificationRequest csr = builder.build(signGen);
@@ -449,19 +444,17 @@ public final class CertUtils {
         File pkFile = new File(filename);
         try (PEMParser pemParser = new PEMParser(new FileReader(pkFile))) {
             Object o = pemParser.readObject();
-            if (o == null || !(o instanceof PrivateKeyInfo)) {
+            if (!(o instanceof PrivateKeyInfo pki)) {
                 throw new CodedException(X_INTERNAL_ERROR,
                         "Could not read key from '%s'", filename);
             }
-            PrivateKeyInfo pki = (PrivateKeyInfo) o;
             KeyFactory kf = KeyFactory.getInstance("RSA");
             final PKCS8EncodedKeySpec ks = new PKCS8EncodedKeySpec(pki.getEncoded());
             final PrivateKey privateKey = kf.generatePrivate(ks);
             final RSAPrivateKey rpk = RSAPrivateKey.getInstance(pki.parsePrivateKey());
             final PublicKey publicKey = kf.generatePublic(new RSAPublicKeySpec(rpk.getModulus(),
                     rpk.getPublicExponent()));
-            KeyPair kp = new KeyPair(publicKey, privateKey);
-            return kp;
+            return new KeyPair(publicKey, privateKey);
         }
     }
 
@@ -489,8 +482,9 @@ public final class CertUtils {
     public static X509Certificate[] readCertificateChain(byte[] certBytes) throws CertificateException, IOException {
         CertificateFactory fact = CertificateFactory.getInstance("X.509");
         try (InputStream is = new ByteArrayInputStream(certBytes)) {
-            final Collection<? extends Certificate> certs = fact.generateCertificates(is);
-            return certs.toArray(new X509Certificate[0]);
+            return fact.generateCertificates(is).stream()
+                    .map(X509Certificate.class::cast)
+                    .toArray(X509Certificate[]::new);
         }
     }
 
@@ -527,6 +521,6 @@ public final class CertUtils {
      * @return the string identifying the certificate
      */
     public static String identify(X509Certificate certificate) {
-        return certificate.getIssuerDN() + " " + certificate.getSerialNumber();
+        return certificate.getIssuerX500Principal() + " " + certificate.getSerialNumber();
     }
 }

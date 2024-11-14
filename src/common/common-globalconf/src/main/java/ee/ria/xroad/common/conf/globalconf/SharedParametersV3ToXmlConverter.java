@@ -36,8 +36,8 @@ import ee.ria.xroad.common.conf.globalconf.sharedparameters.v3.ObjectFactory;
 import ee.ria.xroad.common.conf.globalconf.sharedparameters.v3.SecurityServerType;
 import ee.ria.xroad.common.conf.globalconf.sharedparameters.v3.SharedParametersTypeV3;
 import ee.ria.xroad.common.conf.globalconf.sharedparameters.v3.SubsystemType;
+import ee.ria.xroad.common.crypto.identifier.DigestAlgorithm;
 import ee.ria.xroad.common.identifier.ClientId;
-import ee.ria.xroad.common.util.CryptoUtils;
 
 import jakarta.xml.bind.JAXBElement;
 import lombok.SneakyThrows;
@@ -126,7 +126,7 @@ abstract class SharedParametersV3ToXmlConverter {
 
     @SneakyThrows
     private byte[] toAuthCertHash(CertHash authCert) {
-        return authCert.getHash(CryptoUtils.SHA256_ID);
+        return authCert.getHash(DigestAlgorithm.SHA256);
     }
 
     private Map<ClientId, Object> createClientIdMap(SharedParameters sharedParameters) {

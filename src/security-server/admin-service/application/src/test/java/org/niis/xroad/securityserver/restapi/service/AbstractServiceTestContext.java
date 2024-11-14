@@ -95,7 +95,7 @@ public abstract class AbstractServiceTestContext extends AbstractFacadeMockingTe
         sct.setOwner(owner);
         sct.setServerCode("SS1");
         when(serverConfRepository.getServerConf()).thenReturn(sct);
-        when(globalConfFacade.getMemberName(any())).thenAnswer((Answer<String>) invocation -> {
+        when(globalConfProvider.getMemberName(any())).thenAnswer((Answer<String>) invocation -> {
             Object[] args = invocation.getArguments();
             ClientId.Conf identifier = (ClientId.Conf) args[0];
             return identifier.getSubsystemCode() != null ? TestUtils.NAME_FOR + identifier.getSubsystemCode()

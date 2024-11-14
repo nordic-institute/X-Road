@@ -26,8 +26,8 @@
 
 import { Key, Token, TokenCertificate, TokenPinUpdate } from '@/openapi-types';
 import * as api from '@/util/api';
-import { deepClone } from '@/util/helpers';
 import { encodePathParameter } from '@/util/api';
+import { deepClone } from '@/util/helpers';
 import { useAlerts } from './alerts';
 import { defineStore } from 'pinia';
 
@@ -125,31 +125,31 @@ export const useTokens = defineStore('tokens', {
 
     tokensFilteredByName:
       (state) =>
-      (search: string | undefined): Token[] => {
-        // Filter term is applied to token name
-        const arr: Token[] = sortTokens(state.tokens);
+        (search: string | undefined): Token[] => {
+          // Filter term is applied to token name
+          const arr: Token[] = sortTokens(state.tokens);
 
-        if (!search || search.length < 1) {
-          return arr;
-        }
+          if (!search || search.length < 1) {
+            return arr;
+          }
 
-        const mysearch = search.toLowerCase();
+          const mysearch = search.toLowerCase();
 
-        return arr.filter((token: Token) => {
-          return token.name.toLowerCase().includes(mysearch);
-        });
-      },
+          return arr.filter((token: Token) => {
+            return token.name.toLowerCase().includes(mysearch);
+          });
+        },
   },
 
   actions: {
     expandToken(id: string) {
-      const index = this.expandedTokens.findIndex((element) => {
-        return element === id;
-      });
+      this.expandedTokens.push(id);
+      this.expandedTokens = [...new Set(this.expandedTokens)];
+    },
 
-      if (index === -1) {
-        this.expandedTokens.push(id);
-      }
+    hideToken(id: string) {
+      this.expandedTokens = this.expandedTokens
+        .filter(item => item !== id);
     },
 
     fetchTokens() {
@@ -162,16 +162,6 @@ export const useTokens = defineStore('tokens', {
         .catch((error) => {
           throw error;
         });
-    },
-
-    hideToken(id: string) {
-      const index = this.expandedTokens.findIndex((element) => {
-        return element === id;
-      });
-
-      if (index >= 0) {
-        this.expandedTokens.splice(index, 1);
-      }
     },
 
     setSelectedToken(token: Token) {

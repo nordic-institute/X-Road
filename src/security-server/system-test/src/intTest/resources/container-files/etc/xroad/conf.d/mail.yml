@@ -1,0 +1,7 @@
+host: testmailserver
+port: 587
+username: testuser
+password: passw0rd
+use-ssl-tls: true
+contacts:
+  "DEV:COM:1234": member1@example.org

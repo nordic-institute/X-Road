@@ -26,7 +26,8 @@
 package ee.ria.xroad.proxy.serverproxy;
 
 import ee.ria.xroad.common.CodedException;
-import ee.ria.xroad.common.conf.serverconf.ServerConf;
+import ee.ria.xroad.common.conf.globalconf.GlobalConfProvider;
+import ee.ria.xroad.common.conf.serverconf.ServerConfProvider;
 import ee.ria.xroad.common.identifier.ServiceId;
 import ee.ria.xroad.common.opmonitoring.OpMonitoringDaemonEndpoints;
 import ee.ria.xroad.common.opmonitoring.OpMonitoringData;
@@ -56,7 +57,7 @@ import static ee.ria.xroad.common.util.TimeUtils.getEpochMillisecond;
  * Service handler for operational monitoring.
  */
 @Slf4j
-public class OpMonitoringServiceHandlerImpl implements ServiceHandler {
+public class OpMonitoringServiceHandlerImpl extends AbstractServiceHandler {
 
     private static final int CONNECTION_TIMEOUT_MILLISECONDS = TimeUtils.secondsToMillis(
             OpMonitoringSystemProperties.getOpMonitorServiceConnectionTimeoutSeconds());
@@ -67,6 +68,10 @@ public class OpMonitoringServiceHandlerImpl implements ServiceHandler {
     private static final String OP_MONITOR_ADDRESS = getOpMonitorAddress();
 
     private HttpSender sender;
+
+    protected OpMonitoringServiceHandlerImpl(ServerConfProvider serverConfProvider, GlobalConfProvider globalConfProvider) {
+        super(serverConfProvider, globalConfProvider);
+    }
 
     @Override
     public boolean shouldVerifyAccess() {
@@ -86,13 +91,11 @@ public class OpMonitoringServiceHandlerImpl implements ServiceHandler {
     @Override
     public boolean canHandle(ServiceId requestServiceId,
                              ProxyMessage proxyRequestMessage) {
-        switch (requestServiceId.getServiceCode()) {
-            case GET_SECURITY_SERVER_HEALTH_DATA: // $FALL-THROUGH$
-            case GET_SECURITY_SERVER_OPERATIONAL_DATA:
-                return requestServiceId.getClientId().equals(ServerConf.getIdentifier().getOwner());
-            default:
-                return false;
-        }
+        return switch (requestServiceId.getServiceCode()) {
+            case GET_SECURITY_SERVER_HEALTH_DATA, GET_SECURITY_SERVER_OPERATIONAL_DATA ->
+                    requestServiceId.getClientId().equals(serverConfProvider.getIdentifier().getOwner());
+            default -> false;
+        };
     }
 
     @Override

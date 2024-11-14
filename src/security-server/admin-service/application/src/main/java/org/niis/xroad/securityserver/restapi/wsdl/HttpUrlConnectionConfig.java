@@ -26,7 +26,12 @@
 
 package org.niis.xroad.securityserver.restapi.wsdl;
 
+import ee.ria.xroad.common.conf.serverconf.ServerConfProvider;
 import ee.ria.xroad.common.util.CryptoUtils;
+
+import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.InitializingBean;
+import org.springframework.stereotype.Component;
 
 import javax.net.ssl.HttpsURLConnection;
 import javax.net.ssl.KeyManager;
@@ -41,32 +46,33 @@ import java.security.NoSuchAlgorithmException;
 import java.security.SecureRandom;
 import java.security.cert.X509Certificate;
 
-final class HttpUrlConnectionConfig {
+@Component
+@RequiredArgsConstructor
+final class HttpUrlConnectionConfig implements InitializingBean {
+    private final ServerConfProvider serverConfProvider;
 
-    private HttpUrlConnectionConfig() {
-        //Utility class
-    }
-
-    static void apply(HttpURLConnection conn) {
-        if (conn instanceof HttpsURLConnection) {
-            ((HttpsURLConnection) conn).setSSLSocketFactory(SSL_SOCKET_FACTORY);
-            ((HttpsURLConnection) conn).setHostnameVerifier(HostnameVerifiers.ACCEPT_ALL);
+    void apply(HttpURLConnection conn) {
+        if (conn instanceof HttpsURLConnection httpsURLConnection) {
+            httpsURLConnection.setSSLSocketFactory(sslSocketFactory);
+            httpsURLConnection.setHostnameVerifier(HostnameVerifiers.ACCEPT_ALL);
         }
         conn.setConnectTimeout(CONNECT_TIMEOUT_MS);
         conn.setReadTimeout(READ_TIMEOUT_MS);
     }
 
-    private static final SSLSocketFactory SSL_SOCKET_FACTORY;
     private static final int CONNECT_TIMEOUT_MS = 30_000;
     private static final int READ_TIMEOUT_MS = 30_000;
 
-    static {
+    private SSLSocketFactory sslSocketFactory;
+
+    @Override
+    public void afterPropertiesSet() {
         try {
             final SSLContext ctx = SSLContext.getInstance(CryptoUtils.SSL_PROTOCOL);
-            ctx.init(new KeyManager[]{new ClientSslKeyManager()},
+            ctx.init(new KeyManager[]{new ClientSslKeyManager(serverConfProvider)},
                     new TrustManager[]{new NoopTrustManager()},
                     new SecureRandom());
-            SSL_SOCKET_FACTORY = ctx.getSocketFactory();
+            sslSocketFactory = ctx.getSocketFactory();
         } catch (NoSuchAlgorithmException | KeyManagementException e) {
             throw new IllegalStateException("FATAL: Unable to create socket factory", e);
         }

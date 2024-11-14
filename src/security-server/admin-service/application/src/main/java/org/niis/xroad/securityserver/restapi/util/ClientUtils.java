@@ -55,7 +55,7 @@ public final class ClientUtils {
             try {
                 ocspResponseStatus = OcspUtils.getOcspResponseStatus(certificateInfo.getOcspBytes());
             } catch (OcspUtils.OcspStatusExtractionException e) {
-                log.error(ERROR_OCSP_EXTRACT_MSG + " for client: " + clientId.toString(), e);
+                log.error(ERROR_OCSP_EXTRACT_MSG + " for client: " + clientId, e);
                 break;
             }
             if (certificateInfo.getStatus().equals(CertificateInfo.STATUS_REGISTERED)

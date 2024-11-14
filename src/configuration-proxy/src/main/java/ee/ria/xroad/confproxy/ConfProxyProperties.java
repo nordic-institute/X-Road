@@ -26,6 +26,7 @@
 package ee.ria.xroad.confproxy;
 
 import ee.ria.xroad.common.SystemProperties;
+import ee.ria.xroad.common.crypto.identifier.DigestAlgorithm;
 import ee.ria.xroad.common.util.AtomicSave;
 import ee.ria.xroad.common.util.CryptoUtils;
 
@@ -202,10 +203,9 @@ public class ConfProxyProperties {
 
     /**
      * Gets the id for the configured signature digest algorithm.
-     *
      * @return the id of the configured signature digest algorithm.
      */
-    public final String getSignatureDigestAlgorithmId() {
+    public final DigestAlgorithm getSignatureDigestAlgorithmId() {
         return SystemProperties.getConfigurationProxySignatureDigestAlgorithmId();
     }
 
@@ -232,10 +232,9 @@ public class ConfProxyProperties {
 
     /**
      * Gets the URI for the configured hash algorithm.
-     *
      * @return the URI of the configured hash algorithm.
      */
-    public final String getHashAlgorithmURI() {
+    public final DigestAlgorithm getHashAlgorithmURI() {
         return SystemProperties.getConfigurationProxyHashAlgorithmUri();
     }
 
@@ -389,8 +388,7 @@ public class ConfProxyProperties {
      * @return the certificate for the provided key id
      */
     private X509Certificate readCert(final String keyId) {
-        try (InputStream is =
-                     new FileInputStream(getCertPath(keyId).toFile())) {
+        try (InputStream is = new FileInputStream(getCertPath(keyId).toFile())) {
             return CryptoUtils.readCertificate(is);
         } catch (Exception e) {
             log.error("Failed to read cert for key ID '{}'", keyId, e);

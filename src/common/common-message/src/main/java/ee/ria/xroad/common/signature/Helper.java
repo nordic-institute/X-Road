@@ -27,6 +27,8 @@ package ee.ria.xroad.common.signature;
 
 import ee.ria.xroad.common.CodedException;
 import ee.ria.xroad.common.ErrorCodes;
+import ee.ria.xroad.common.crypto.identifier.DigestAlgorithm;
+import ee.ria.xroad.common.crypto.identifier.SignAlgorithm;
 import ee.ria.xroad.common.util.XmlUtils;
 
 import org.apache.xml.security.algorithms.MessageDigestAlgorithm;
@@ -46,12 +48,10 @@ import java.nio.charset.StandardCharsets;
 import java.security.NoSuchAlgorithmException;
 import java.util.Iterator;
 
-import static ee.ria.xroad.common.util.CryptoUtils.DEFAULT_DIGEST_ALGORITHM_URI;
-import static ee.ria.xroad.common.util.CryptoUtils.calculateDigest;
-import static ee.ria.xroad.common.util.CryptoUtils.decodeBase64;
-import static ee.ria.xroad.common.util.CryptoUtils.encodeBase64;
-import static ee.ria.xroad.common.util.CryptoUtils.getAlgorithmId;
-import static ee.ria.xroad.common.util.CryptoUtils.getDigestAlgorithmURI;
+import static ee.ria.xroad.common.crypto.Digests.DEFAULT_DIGEST_ALGORITHM;
+import static ee.ria.xroad.common.crypto.Digests.calculateDigest;
+import static ee.ria.xroad.common.util.EncoderUtils.decodeBase64;
+import static ee.ria.xroad.common.util.EncoderUtils.encodeBase64;
 
 /**
  * Local helper class for constructing Xades signatures.
@@ -168,8 +168,8 @@ final class Helper {
                 namespaceAware);
     }
 
-    static XMLSignature createSignatureElement(Document document, String signatureAlgorithmUri) throws Exception {
-        XMLSignature signature = new XMLSignature(document, BASE_URI, signatureAlgorithmUri);
+    static XMLSignature createSignatureElement(Document document, SignAlgorithm signatureAlgorithmUri) throws Exception {
+        XMLSignature signature = new XMLSignature(document, BASE_URI, signatureAlgorithmUri.uri());
         signature.setId(ID_SIGNATURE);
         document.getDocumentElement().appendChild(signature.getElement());
 
@@ -179,9 +179,9 @@ final class Helper {
     /**
      * Creates and returns a ds:DigestMethod element.
      */
-    static Element createDigestMethodElement(Document doc, String hashMethod) throws Exception {
+    static Element createDigestMethodElement(Document doc, DigestAlgorithm hashMethod) throws Exception {
         Element digestMethodElement = doc.createElement(PREFIX_DS + Constants._TAG_DIGESTMETHOD);
-        digestMethodElement.setAttribute(Constants._ATT_ALGORITHM, getDigestAlgorithmURI(hashMethod));
+        digestMethodElement.setAttribute(Constants._ATT_ALGORITHM, hashMethod.uri());
 
         return digestMethodElement;
     }
@@ -205,10 +205,11 @@ final class Helper {
      */
     static boolean verifyDigest(Element digAlgAndValueElement, byte[] data)
             throws NoSuchAlgorithmException, IOException, OperatorCreationException {
-        String digestMethod = ((Element) digAlgAndValueElement.getFirstChild()).getAttribute(ALGORITHM_ATTRIBUTE);
+        DigestAlgorithm digestMethod = DigestAlgorithm
+                .ofUri(((Element) digAlgAndValueElement.getFirstChild()).getAttribute(ALGORITHM_ATTRIBUTE));
         String digestValue = digAlgAndValueElement.getLastChild().getTextContent();
 
-        byte[] digest = calculateDigest(getAlgorithmId(digestMethod), data);
+        byte[] digest = calculateDigest(digestMethod, data);
 
         return MessageDigestAlgorithm.isEqual(decodeBase64(digestValue), digest);
     }
@@ -217,7 +218,7 @@ final class Helper {
      * Shortcut for adding a reference to a manifest.
      */
     static void addManifestReference(Manifest manifest, String uri) throws Exception {
-        manifest.addDocument(null, "#" + uri, null, DEFAULT_DIGEST_ALGORITHM_URI, null, null);
+        manifest.addDocument(null, "#" + uri, null, DEFAULT_DIGEST_ALGORITHM.uri(), null, null);
     }
 
     /**
@@ -350,16 +351,12 @@ final class Helper {
         return new NamespaceContext() {
             @Override
             public String getNamespaceURI(String prefix) {
-                switch (prefix) {
-                    case "asic":
-                        return NS_ASIC;
-                    case "ds":
-                        return NS_DS;
-                    case "xades":
-                        return NS_XADES;
-                    default:
-                        return null;
-                }
+                return switch (prefix) {
+                    case "asic" -> NS_ASIC;
+                    case "ds" -> NS_DS;
+                    case "xades" -> NS_XADES;
+                    default -> null;
+                };
             }
 
             @SuppressWarnings("rawtypes")

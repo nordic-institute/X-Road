@@ -26,6 +26,8 @@
 package ee.ria.xroad.confproxy.commandline;
 
 import ee.ria.xroad.common.conf.globalconf.ConfigurationAnchor;
+import ee.ria.xroad.common.crypto.Digests;
+import ee.ria.xroad.common.crypto.identifier.DigestAlgorithm;
 import ee.ria.xroad.common.util.CryptoUtils;
 import ee.ria.xroad.confproxy.ConfProxyProperties;
 import ee.ria.xroad.confproxy.util.ConfProxyHelper;
@@ -188,7 +190,7 @@ public class ConfProxyUtilViewConf extends ConfProxyUtil {
             log.warn("Invalid certificate: {}", e);
             return " (INVALID CERTIFICATE - " + e.getMessage() + ")";
         }
-        return " (Certificate: " + certPath.toString() + ")";
+        return " (Certificate: " + certPath + ")";
     }
 
     /**
@@ -207,7 +209,7 @@ public class ConfProxyUtilViewConf extends ConfProxyUtil {
             fail("Failed to load proxy '" + conf.getInstance()
                     + "' anchor file: ", e);
         }
-        String hash = CryptoUtils.hexDigest(CryptoUtils.SHA224_ID, anchorBytes);
+        String hash = Digests.hexDigest(DigestAlgorithm.SHA224, anchorBytes);
         return StringUtils.join(hash.toUpperCase().split("(?<=\\G.{2})"), ':');
     }
 }

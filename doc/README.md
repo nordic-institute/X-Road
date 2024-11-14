@@ -34,6 +34,7 @@
 - [\[IG-SS\] Security Server Installation Guide](Manuals/ig-ss_x-road_v6_security_server_installation_guide.md)
 - [\[IG-SS-RHEL\] Security Server Installation Guide for RHEL](Manuals/ig-ss_x-road_v6_security_server_installation_guide_for_rhel.md)
 - [\[IG-CS\] Central Server Installation Guide](Manuals/ig-cs_x-road_6_central_server_installation_guide.md)
+- [\[UG-SEC\] Security Hardening Guide](Manuals/ug-sec_x_road_security_hardening.md)
 - [\[IG-CSHA\] HA Installation Guide](Manuals/ig-csha_x-road_6_ha_installation_guide.md)
 - [\[IG-XLB\] External Load Balancer Installation Guide](Manuals/LoadBalancing/ig-xlb_x-road_external_load_balancer_installation_guide.md)
 - [\[UG-SS\] Security Server User Guide](Manuals/ug-ss_x-road_6_security_server_user_guide.md)

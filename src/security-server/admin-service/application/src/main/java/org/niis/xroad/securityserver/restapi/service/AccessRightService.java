@@ -27,6 +27,7 @@
 package org.niis.xroad.securityserver.restapi.service;
 
 import ee.ria.xroad.common.CodedException;
+import ee.ria.xroad.common.conf.globalconf.GlobalConfProvider;
 import ee.ria.xroad.common.conf.globalconf.GlobalGroupInfo;
 import ee.ria.xroad.common.conf.serverconf.model.AccessRightType;
 import ee.ria.xroad.common.conf.serverconf.model.ClientType;
@@ -49,7 +50,6 @@ import org.niis.xroad.restapi.service.ServiceException;
 import org.niis.xroad.restapi.util.FormatUtils;
 import org.niis.xroad.securityserver.restapi.dto.ServiceClientAccessRightDto;
 import org.niis.xroad.securityserver.restapi.dto.ServiceClientDto;
-import org.niis.xroad.securityserver.restapi.facade.GlobalConfFacade;
 import org.niis.xroad.securityserver.restapi.repository.ClientRepository;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
@@ -82,7 +82,7 @@ import static org.niis.xroad.restapi.exceptions.DeviationCodes.ERROR_DUPLICATE_A
 @RequiredArgsConstructor
 public class AccessRightService {
 
-    private final GlobalConfFacade globalConfFacade;
+    private final GlobalConfProvider globalConfProvider;
     private final ClientRepository clientRepository;
     private final IdentifierService identifierService;
     private final EndpointService endpointService;
@@ -194,10 +194,10 @@ public class AccessRightService {
             List<AccessRightType> accessRightsToBeRemoved = clientType.getAcl().stream()
                     .filter(acl -> acl.getEndpoint().getId().equals(endpointType.getId())
                             && subjectIds.contains(acl.getSubjectId()))
-                    .collect(Collectors.toList());
+                    .toList();
             if (accessRightsToBeRemoved.size() != subjectIds.size()) {
                 throw new AccessRightNotFoundException("All local service client identifiers + "
-                        + subjectIds.toString()
+                        + subjectIds
                         + " weren't found in the access rights list of the given client: "
                         + clientType.getIdentifier());
             }
@@ -326,7 +326,7 @@ public class AccessRightService {
         validateServiceClientObjectType(subjectId);
 
         // verify that given service client objects exist, otherwise access cannot be added
-        identifierService.verifyServiceClientObjectsExist(clientType, new HashSet(Arrays.asList(subjectId)));
+        identifierService.verifyServiceClientObjectsExist(clientType, new HashSet<>(Arrays.asList(subjectId)));
 
         // prepare params for addAccessRightsInternal
         List<EndpointType> baseEndpoints = null;
@@ -395,12 +395,11 @@ public class AccessRightService {
     private List<AccessRightType> getEndpointAccessRights(ClientType clientType, List<EndpointType> endpointTypes,
                                                           Set<XRoadId> subjectIds) {
 
-        List<Long> endpointIds = endpointTypes.stream().map(e -> e.getId()).collect(Collectors.toList());
-        List<AccessRightType> accessRights = clientType.getAcl().stream()
+        List<Long> endpointIds = endpointTypes.stream().map(EndpointType::getId).toList();
+        return clientType.getAcl().stream()
                 .filter(acl -> endpointIds.contains(acl.getEndpoint().getId())
                         && subjectIds.contains(acl.getSubjectId()))
                 .collect(Collectors.toList());
-        return accessRights;
     }
 
     /**
@@ -464,7 +463,7 @@ public class AccessRightService {
             serviceClientDto.setLocalGroupDescription(localGroupType.getDescription());
         } else if (subjectId.getObjectType() == XRoadObjectType.GLOBALGROUP) {
             GlobalGroupId globalGroupId = (GlobalGroupId) subjectId;
-            serviceClientDto.setGlobalGroupDescription(globalConfFacade.getGlobalGroupDescription(globalGroupId));
+            serviceClientDto.setGlobalGroupDescription(globalConfProvider.getGlobalGroupDescription(globalGroupId));
         }
         return serviceClientDto;
     }
@@ -558,7 +557,7 @@ public class AccessRightService {
         // list endpoints, which this subject / service client has already been granted access to
         Set<EndpointType> existingAccessibleEndpoints = clientType.getAcl().stream()
                 .filter(accessRightType -> accessRightType.getSubjectId().equals(subjectId))
-                .map(accessRightType -> accessRightType.getEndpoint())
+                .map(AccessRightType::getEndpoint)
                 .collect(Collectors.toSet());
 
         if (existingAccessibleEndpoints.contains(endpoint)) {
@@ -573,12 +572,11 @@ public class AccessRightService {
         clientType.getAcl().add(newAccessRight);
 
         // return a dto
-        ServiceClientAccessRightDto dto = ServiceClientAccessRightDto.builder()
+        return ServiceClientAccessRightDto.builder()
                 .serviceCode(endpoint.getServiceCode())
                 .rightsGiven(FormatUtils.fromDateToOffsetDateTime(rightsGiven))
                 .title(serviceDescriptionService.getServiceTitle(clientType, endpoint.getServiceCode()))
                 .build();
-        return dto;
     }
 
     /**
@@ -670,7 +668,7 @@ public class AccessRightService {
     }
 
     private List<ServiceClientDto> getGlobalMembersAsDtos() {
-        return globalConfFacade.getMembers().stream()
+        return globalConfProvider.getMembers().stream()
                 .map(memberInfo -> {
                     ServiceClientDto serviceClientDto = new ServiceClientDto();
                     serviceClientDto.setSubjectId(memberInfo.getId());
@@ -682,25 +680,25 @@ public class AccessRightService {
 
     private List<ServiceClientDto> getGlobalGroupsAsDtos(String instance) {
         List<ServiceClientDto> globalGroups = new ArrayList<>();
-        Set<String> globalGroupInstances = globalConfFacade.getInstanceIdentifiers();
+        Set<String> globalGroupInstances = globalConfProvider.getInstanceIdentifiers();
         List<GlobalGroupInfo> globalGroupInfos = null;
         // core throws CodedException if nothing is found for the provided instance/instances
         try {
             if (!StringUtils.isEmpty(instance)) {
                 List<String> globalGroupInstancesMatchingSearch = globalGroupInstances.stream()
                         .filter(s -> s.contains(instance))
-                        .collect(Collectors.toList());
-                if (globalGroupInstancesMatchingSearch.size() > 0) {
-                    globalGroupInfos = globalConfFacade
+                        .toList();
+                if (!globalGroupInstancesMatchingSearch.isEmpty()) {
+                    globalGroupInfos = globalConfProvider
                             .getGlobalGroups(globalGroupInstancesMatchingSearch.toArray(new String[]{}));
                 }
             } else {
-                globalGroupInfos = globalConfFacade.getGlobalGroups();
+                globalGroupInfos = globalConfProvider.getGlobalGroups();
             }
         } catch (CodedException e) {
             // no GlobalGroups found for the provided instance -> GlobalGroups are just ignored in the results
         }
-        if (globalGroupInfos != null && globalGroupInfos.size() > 0) {
+        if (globalGroupInfos != null && !globalGroupInfos.isEmpty()) {
             globalGroupInfos.forEach(globalGroupInfo -> {
                 ServiceClientDto serviceClientDto = new ServiceClientDto();
                 serviceClientDto.setSubjectId(globalGroupInfo.getId());
@@ -827,10 +825,9 @@ public class AccessRightService {
             String memberName = dto.getMemberName();
             String localGroupDescription = dto.getLocalGroupDescription();
             String globalGroupDescription = dto.getGlobalGroupDescription();
-            boolean isMatch = StringUtils.containsIgnoreCase(memberName, memberNameOrGroupDescription)
+            return StringUtils.containsIgnoreCase(memberName, memberNameOrGroupDescription)
                     || StringUtils.containsIgnoreCase(localGroupDescription, memberNameOrGroupDescription)
                     || StringUtils.containsIgnoreCase(globalGroupDescription, memberNameOrGroupDescription);
-            return isMatch;
         };
     }
 }

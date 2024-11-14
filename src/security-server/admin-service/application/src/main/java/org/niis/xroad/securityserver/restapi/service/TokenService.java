@@ -92,7 +92,7 @@ public class TokenService {
     /**
      * get all sign certificates for a given client.
      *
-     * @param clientType client who's member certificates need to be
+     * @param clientType client whose member certificates need to be
      * linked to
      * @return
      */
@@ -103,7 +103,7 @@ public class TokenService {
     /**
      * get all certificates for a given client.
      *
-     * @param clientType client who's member certificates need to be
+     * @param clientType client whose member certificates need to be
      * linked to
      * @return
      */
@@ -252,11 +252,9 @@ public class TokenService {
         if (PIN_INCORRECT_FAULT_CODE.equals(e.getFaultCode())) {
             return true;
         } else if (LOGIN_FAILED_FAULT_CODE.equals(e.getFaultCode())) {
-            if (CKR_PIN_INCORRECT_MESSAGE.equals(e.getFaultString())) {
-                // only way to detect HSM pin incorrect is by matching to codedException
-                // fault string.
-                return true;
-            }
+            // only way to detect HSM pin incorrect is by matching to codedException
+            // fault string.
+            return CKR_PIN_INCORRECT_MESSAGE.equals(e.getFaultString());
         }
         return false;
     }

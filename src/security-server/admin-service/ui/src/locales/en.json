@@ -319,6 +319,21 @@
       "title": "Java version",
       "vendor": "Vendor name"
     },
+    "mailNotificationConfiguration": {
+      "title": "Mail notification status",
+      "failureEnabled": "Failure notifications",
+      "successEnabled": "Success notifications",
+      "configuration": "Mail server configuration",
+      "recipientsEmails": "Recipients' emails",
+      "enabled": {
+        "true": "Enabled",
+        "false": "Disabled"
+      },
+      "confStatus": {
+        "true": "Configured",
+        "false": "Configuration incomplete"
+      }
+    },
     "message": "Message",
     "nextUpdate": "Next Update",
     "ocspResponders": {
@@ -394,6 +409,7 @@
       "eab_credentials_missing": "External Account binding credentials missing, but required",
       "eab_secret_length": "Invalid external account binding base64 secret length",
       "account_key_pair_error": "Getting key pair for ACME server account failed",
+      "account_keystore_password_missing": "ACME account keystore password missing from the acme.yml configuration file",
       "fetching_metadata_error": "Fetching ACME server metadata failed. ACME Server might be unreachable",
       "account_creation_failure": "Creating Account on ACME server failed. If external account binding is required, check that the correct credentials are configured in acme.yml",
       "order_creation_failure": "Creating new Order on ACME server failed",
@@ -632,7 +648,11 @@
     "backupRestoreInProgress": "The Security Server configuration is being restored from a backup. Process started at {startTime}",
     "globalConfigurationInvalid": "Global configuration is expired",
     "secondaryNode": "You are on a secondary node in a Security Server cluster. Modifying configuration is disabled.",
-    "softTokenPinNotEntered": "Please enter soft token PIN"
+    "softTokenPinNotEntered": "Please enter soft token PIN",
+    "certificateRenewalJobFailure": "Last certificate renewal job has failed.",
+    "certificateRenewalJobFailureAuth": "Failed Authentication certificate(s):",
+    "certificateRenewalJobFailureSign": "Failed Signing certificate(s):",
+    "navigateToKeysPage": "See keys and certificates page for more details"
   },
   "initialConfiguration": {
     "anchor": {
@@ -741,6 +761,7 @@
     "acmeCertOrdered": "Certificate successfully ordered",
     "readOnly": "Read-only:",
     "registrationRequest": "Registration request",
+    "renewal": "Automatic Renewal",
     "request": "Request",
     "signDetailsTitle": "SIGN Key details",
     "signKeyCert": "SIGN Keys and Certificates",
@@ -817,7 +838,7 @@
     "noMatches": "No items matching criteria",
     "noServices": "No services",
     "noServiceClients": "No service clients",
-    "noTimestampingServices": "No timestaping services",
+    "noTimestampingServices": "No timestamping services",
     "noTokens": "No tokens"
   },
   "serviceClientType": {

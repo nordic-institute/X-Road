@@ -1,0 +1,15 @@
+{
+  "request": {
+    "method": "PUT",
+    "url": "/integration/mock_1"
+  },
+  "response": {
+    "status": 201,
+    "body": "{\"message\": \"Hello, world from PUT service!\", \"request\": {{request.body}} }",
+    "headers": {
+      "Content-Type": "application/json",
+      "mock-response": "true"
+    },
+    "transformers": ["response-template"]
+  }
+}

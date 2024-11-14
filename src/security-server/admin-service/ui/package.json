@@ -2,6 +2,7 @@
   "name": "xroad-securityserver-admin-ui",
   "version": "1.0.0",
   "private": true,
+  "type": "module",
   "scripts": {
     "dev": "vite --host",
     "build": "pnpm run generate-types && vitest --run && vite build",
@@ -18,14 +19,14 @@
     "@niis/shared-ui": "workspace:*"
   },
   "devDependencies": {
-    "@typescript-eslint/eslint-plugin": "~7.12.0",
-    "@typescript-eslint/parser": "~7.12.0",
-    "eslint-plugin-vue-scoped-css": "^2.8.0"
+    "@typescript-eslint/eslint-plugin": "~8.13.0",
+    "@typescript-eslint/parser": "~8.13.0",
+    "eslint-plugin-vue-scoped-css": "^2.8.1"
   },
   "engines": {
     "npm": "use-pnpm",
     "yarn": "use-pnpm",
     "node": ">=18 <=20",
-    "pnpm": ">=8"
+    "pnpm": ">=9"
   }
 }

@@ -36,6 +36,9 @@ import org.quartz.Scheduler;
 import org.quartz.SchedulerException;
 import org.quartz.Trigger;
 import org.quartz.impl.StdSchedulerFactory;
+import org.quartz.spi.JobFactory;
+import org.springframework.beans.factory.DisposableBean;
+import org.springframework.beans.factory.InitializingBean;
 
 import java.util.Date;
 import java.util.List;
@@ -49,7 +52,7 @@ import static org.quartz.TriggerBuilder.newTrigger;
  * Service to manage periodic jobs.
  */
 @Slf4j
-public class JobManager implements StartStop {
+public class JobManager implements InitializingBean, DisposableBean {
 
     static {
         // Disable update check
@@ -70,19 +73,25 @@ public class JobManager implements StartStop {
         jobScheduler = new StdSchedulerFactory().getScheduler();
     }
 
+    /**
+     * Creates a new job manager.
+     *
+     * @param jobFactory job factory to use
+     * @throws SchedulerException if there is a problem with the underlying Scheduler
+     */
+    public JobManager(JobFactory jobFactory) throws SchedulerException {
+        jobScheduler = new StdSchedulerFactory().getScheduler();
+        jobScheduler.setJobFactory(jobFactory);
+    }
+
     @Override
-    public void start() throws Exception {
+    public void afterPropertiesSet() throws Exception {
         jobScheduler.start();
     }
 
     @Override
-    public void stop() throws Exception {
+    public void destroy() throws Exception {
         jobScheduler.shutdown();
-    }
-
-    @Override
-    public void join() throws InterruptedException {
-        // not applicable
     }
 
     /**

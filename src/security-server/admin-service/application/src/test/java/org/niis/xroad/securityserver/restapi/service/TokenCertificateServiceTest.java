@@ -29,6 +29,7 @@ import ee.ria.xroad.common.CodedException;
 import ee.ria.xroad.common.certificateprofile.DnFieldDescription;
 import ee.ria.xroad.common.certificateprofile.impl.DnFieldDescriptionImpl;
 import ee.ria.xroad.common.conf.globalconf.ApprovedCAInfo;
+import ee.ria.xroad.common.conf.globalconf.GlobalConfProvider;
 import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.signer.SignerProxy;
 import ee.ria.xroad.signer.protocol.dto.CertRequestInfo;
@@ -47,9 +48,9 @@ import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mockito;
+import org.niis.xroad.common.acme.AcmeService;
 import org.niis.xroad.restapi.exceptions.DeviationCodes;
 import org.niis.xroad.restapi.exceptions.ErrorDeviation;
-import org.niis.xroad.securityserver.restapi.facade.GlobalConfFacade;
 import org.niis.xroad.securityserver.restapi.facade.SignerProxyFacade;
 import org.niis.xroad.securityserver.restapi.repository.ClientRepository;
 import org.niis.xroad.securityserver.restapi.util.CertificateTestUtils;
@@ -158,7 +159,7 @@ public class TokenCertificateServiceTest {
     private GlobalConfService globalConfService;
 
     @MockBean
-    private GlobalConfFacade globalConfFacade;
+    private GlobalConfProvider globalConfProvider;
 
     @MockBean
     private ClientRepository clientRepository;
@@ -190,6 +191,7 @@ public class TokenCertificateServiceTest {
                 .setId(id)
                 .setMemberId(ClientIdMapper.toDto(client))
                 .setSubjectName("CN=common name")
+                .setSubjectAltName("ss0")
                 .build());
     }
 
@@ -206,7 +208,7 @@ public class TokenCertificateServiceTest {
                 .setReadOnly(false);
         when(certificateAuthorityService.getCertificateProfile(any(), any(), any(), anyBoolean()))
                 .thenReturn(new DnFieldTestCertificateProfileInfo(
-                        new DnFieldDescription[] {editableOField, editableCNField, editableSANField}, true));
+                        new DnFieldDescription[]{editableOField, editableCNField, editableSANField}, true));
         when(certificateAuthorityService.getCertificateAuthorityInfo(CA_NAME)).thenReturn(acmeCA);
 
         // need lots of mocking
@@ -272,8 +274,8 @@ public class TokenCertificateServiceTest {
 
         //doAnswer(answer -> signCert).when(signerProxyFacade).getCertForHash(any());
 
-        when(globalConfFacade.getInstanceIdentifier()).thenReturn(TestUtils.INSTANCE_FI);
-        when(globalConfFacade.getSubjectName(any(), any())).thenReturn(client);
+        when(globalConfProvider.getInstanceIdentifier()).thenReturn(TestUtils.INSTANCE_FI);
+        when(globalConfProvider.getSubjectName(any(), any())).thenReturn(client);
 
         when(clientRepository.clientExists(any(), anyBoolean())).thenReturn(true);
 
@@ -291,16 +293,10 @@ public class TokenCertificateServiceTest {
     private void mockGetTokenForKeyId(TokenInfo tokenInfo) throws KeyNotFoundException {
         doAnswer(invocation -> {
             String keyId = (String) invocation.getArguments()[0];
-            switch (keyId) {
-                case AUTH_KEY_ID:
-                    return tokenInfo;
-                case SIGN_KEY_ID:
-                    return tokenInfo;
-                case GOOD_KEY_ID:
-                    return tokenInfo;
-                default:
-                    throw new KeyNotFoundException("unknown keyId: " + keyId);
-            }
+            return switch (keyId) {
+                case AUTH_KEY_ID, GOOD_KEY_ID, SIGN_KEY_ID -> tokenInfo;
+                default -> throw new KeyNotFoundException("unknown keyId: " + keyId);
+            };
         }).when(tokenService).getTokenForKeyId(any());
     }
 
@@ -326,20 +322,14 @@ public class TokenCertificateServiceTest {
         // attempts to delete either succeed or throw specific exceptions
         doAnswer(invocation -> {
             String certHash = (String) invocation.getArguments()[0];
-            switch (certHash) {
-                case EXISTING_CERT_HASH:
-                    return null;
-                case SIGNER_EX_CERT_WITH_ID_NOT_FOUND_HASH:
-                    throw signerException(X_CERT_NOT_FOUND);
-                case SIGNER_EX_INTERNAL_ERROR_HASH:
-                    throw signerException(X_INTERNAL_ERROR);
-                case SIGNER_EX_TOKEN_NOT_AVAILABLE_HASH:
-                    throw signerException(X_TOKEN_NOT_AVAILABLE);
-                case SIGNER_EX_TOKEN_READONLY_HASH:
-                    throw signerException(X_TOKEN_READONLY);
-                default:
-                    throw new RuntimeException("bad switch option: " + certHash);
-            }
+            return switch (certHash) {
+                case EXISTING_CERT_HASH -> null;
+                case SIGNER_EX_CERT_WITH_ID_NOT_FOUND_HASH -> throw signerException(X_CERT_NOT_FOUND);
+                case SIGNER_EX_INTERNAL_ERROR_HASH -> throw signerException(X_INTERNAL_ERROR);
+                case SIGNER_EX_TOKEN_NOT_AVAILABLE_HASH -> throw signerException(X_TOKEN_NOT_AVAILABLE);
+                case SIGNER_EX_TOKEN_READONLY_HASH -> throw signerException(X_TOKEN_READONLY);
+                default -> throw new RuntimeException("bad switch option: " + certHash);
+            };
         }).when(signerProxyFacade).deleteCert(any());
     }
 
@@ -347,25 +337,17 @@ public class TokenCertificateServiceTest {
         // signerProxyFacade.getCertForHash(hash)
         doAnswer(invocation -> {
             String certHash = (String) invocation.getArguments()[0];
-            switch (certHash) {
-                case NOT_FOUND_CERT_HASH:
-                    throw signerException(X_CERT_NOT_FOUND);
-                case EXISTING_CERT_HASH:
-                case EXISTING_CERT_IN_AUTH_KEY_HASH:
-                case EXISTING_CERT_IN_SIGN_KEY_HASH:
-                case SIGNER_EX_CERT_WITH_ID_NOT_FOUND_HASH:
-                case SIGNER_EX_INTERNAL_ERROR_HASH:
-                case SIGNER_EX_TOKEN_NOT_AVAILABLE_HASH:
-                case SIGNER_EX_TOKEN_READONLY_HASH:
-                case HASH_FOR_ACME_IMPORT:
+            return switch (certHash) {
+                case NOT_FOUND_CERT_HASH -> throw signerException(X_CERT_NOT_FOUND);
+                case EXISTING_CERT_HASH, EXISTING_CERT_IN_AUTH_KEY_HASH, EXISTING_CERT_IN_SIGN_KEY_HASH,
+                     SIGNER_EX_CERT_WITH_ID_NOT_FOUND_HASH, SIGNER_EX_INTERNAL_ERROR_HASH, SIGNER_EX_TOKEN_NOT_AVAILABLE_HASH,
+                     SIGNER_EX_TOKEN_READONLY_HASH, HASH_FOR_ACME_IMPORT ->
                     // cert will have same id as hash
-                    return new CertificateTestUtils.CertificateInfoBuilder().id(certHash).build();
-                case MISSING_CERTIFICATE_HASH:
-                    return createCertificateInfo(null, false, false, "status", "certID",
-                            CertificateTestUtils.getMockAuthCertificateBytes(), null);
-                default:
-                    throw new RuntimeException("bad switch option: " + certHash);
-            }
+                        new CertificateTestUtils.CertificateInfoBuilder().id(certHash).build();
+                case MISSING_CERTIFICATE_HASH -> createCertificateInfo(null, false, false, "status", "certID",
+                        CertificateTestUtils.getMockAuthCertificateBytes(), null, null);
+                default -> throw new RuntimeException("bad switch option: " + certHash);
+            };
         }).when(signerProxyFacade).getCertForHash(any());
     }
 
@@ -385,16 +367,12 @@ public class TokenCertificateServiceTest {
         // keyService.getKey(keyId)
         doAnswer(invocation -> {
             String keyId = (String) invocation.getArguments()[0];
-            switch (keyId) {
-                case AUTH_KEY_ID:
-                    return authKey;
-                case SIGN_KEY_ID:
-                    return signKey;
-                case GOOD_KEY_ID:
-                    return goodKey;
-                default:
-                    throw new KeyNotFoundException("unknown keyId: " + keyId);
-            }
+            return switch (keyId) {
+                case AUTH_KEY_ID -> authKey;
+                case SIGN_KEY_ID -> signKey;
+                case GOOD_KEY_ID -> goodKey;
+                default -> throw new KeyNotFoundException("unknown keyId: " + keyId);
+            };
         }).when(keyService).getKey(any());
     }
 
@@ -418,23 +396,15 @@ public class TokenCertificateServiceTest {
                                                         TokenInfo tokenInfo) throws KeyNotFoundException, CertificateNotFoundException {
         doAnswer(invocation -> {
             String hash = (String) invocation.getArguments()[0];
-            switch (hash) {
-                case EXISTING_CERT_IN_AUTH_KEY_HASH:
-                case CertificateTestUtils.MOCK_AUTH_CERTIFICATE_HASH:
-                    return new TokenInfoAndKeyId(tokenInfo, authKey.getId());
-                case EXISTING_CERT_IN_SIGN_KEY_HASH:
-                    return new TokenInfoAndKeyId(tokenInfo, signKey.getId());
-                case NOT_FOUND_CERT_HASH:
-                case EXISTING_CERT_HASH:
-                case SIGNER_EX_CERT_WITH_ID_NOT_FOUND_HASH:
-                case SIGNER_EX_INTERNAL_ERROR_HASH:
-                case SIGNER_EX_TOKEN_NOT_AVAILABLE_HASH:
-                case SIGNER_EX_TOKEN_READONLY_HASH:
-                case CertificateTestUtils.MOCK_CERTIFICATE_HASH:
-                    return new TokenInfoAndKeyId(tokenInfo, goodKey.getId());
-                default:
-                    throw new CertificateNotFoundException("unknown cert: " + hash);
-            }
+            return switch (hash) {
+                case EXISTING_CERT_IN_AUTH_KEY_HASH, CertificateTestUtils.MOCK_AUTH_CERTIFICATE_HASH ->
+                        new TokenInfoAndKeyId(tokenInfo, authKey.getId());
+                case EXISTING_CERT_IN_SIGN_KEY_HASH -> new TokenInfoAndKeyId(tokenInfo, signKey.getId());
+                case NOT_FOUND_CERT_HASH, EXISTING_CERT_HASH, SIGNER_EX_CERT_WITH_ID_NOT_FOUND_HASH, SIGNER_EX_INTERNAL_ERROR_HASH,
+                     SIGNER_EX_TOKEN_NOT_AVAILABLE_HASH, SIGNER_EX_TOKEN_READONLY_HASH, CertificateTestUtils.MOCK_CERTIFICATE_HASH ->
+                        new TokenInfoAndKeyId(tokenInfo, goodKey.getId());
+                default -> throw new CertificateNotFoundException("unknown cert: " + hash);
+            };
         }).when(tokenService).getTokenAndKeyIdForCertificateHash(any());
     }
 
@@ -488,6 +458,8 @@ public class TokenCertificateServiceTest {
         X509Certificate mockSignCertificate = CertificateTestUtils.getMockSignCertificate();
         when(acmeService.orderCertificateFromACMEServer(any(), any(), any(), any(), any(), any()))
                 .thenReturn(List.of(mockSignCertificate));
+        when(globalConfProvider.getApprovedCA(any(), any()))
+                .thenReturn(new ApprovedCAInfo("testca", false, "ee.test.Profile", null, null, null, null));
         tokenCertificateService.generateCertRequest(SIGN_KEY_ID, client,
                 KeyUsageInfo.SIGNING, CA_NAME,
                 ImmutableMap.of("CN", "test-common-name", "O", "test-org", "subjectAltName", "test-alt-name"),
@@ -502,7 +474,8 @@ public class TokenCertificateServiceTest {
                         PROFILE_CLASS);
         verify(signerProxyFacade).importCert(mockSignCertificate.getEncoded(),
                 CertificateInfo.STATUS_REGISTERED,
-                client.getMemberId());
+                client.getMemberId(),
+                true);
     }
 
     @Test
@@ -543,7 +516,7 @@ public class TokenCertificateServiceTest {
     @Test(expected = ActionNotPossibleException.class)
     @WithMockUser(authorities = {"DELETE_SIGN_CERT", "DELETE_AUTH_CERT"})
     public void deleteCertificateActionNotPossible() throws Exception {
-        EnumSet empty = EnumSet.noneOf(PossibleActionEnum.class);
+        EnumSet<PossibleActionEnum> empty = EnumSet.noneOf(PossibleActionEnum.class);
         doReturn(empty).when(possibleActionsRuleEngine).getPossibleCertificateActions(any(), any(), any());
         tokenCertificateService.deleteCertificate(EXISTING_CERT_HASH);
     }
@@ -647,6 +620,10 @@ public class TokenCertificateServiceTest {
                 .thenReturn(List.of(mockSignCertificate));
         when(signerProxyFacade.regenerateCertRequest(any(), any()))
                 .thenReturn(new SignerProxy.GeneratedCertRequestInfo(null, csrBytes, null, null, null));
+        when(globalConfProvider.getCaCert(any(), any()))
+                .thenReturn(CertificateTestUtils.getMockIntermediateCaCertificate());
+        when(globalConfProvider.getApprovedCA(any(), any()))
+                .thenReturn(new ApprovedCAInfo("testca", false, "ee.test.Profile", "http://test-ca/acme", "123.4.5.6", "5", "6"));
         tokenCertificateService.orderAcmeCertificate(CA_NAME, GOOD_CSR_ID, KeyUsageInfo.SIGNING);
         verify(acmeService).orderCertificateFromACMEServer("common name",
                 "ss0",
@@ -656,7 +633,9 @@ public class TokenCertificateServiceTest {
                 csrBytes);
         verify(signerProxyFacade).importCert(mockSignCertificate.getEncoded(),
                 CertificateInfo.STATUS_REGISTERED,
-                client.getMemberId());
+                client.getMemberId(),
+                true);
+        verify(signerProxyFacade).setNextPlannedRenewal(any(), any());
     }
 
     @Test
@@ -668,19 +647,13 @@ public class TokenCertificateServiceTest {
         // EXISTING_CERT_IN_AUTH_KEY_HASH - inactive
         doAnswer(invocation -> {
             String certHash = (String) invocation.getArguments()[0];
-            boolean active = false;
-            switch (certHash) {
-                case EXISTING_CERT_IN_SIGN_KEY_HASH:
-                    active = false;
-                    break;
-                case EXISTING_CERT_IN_AUTH_KEY_HASH:
-                    active = true;
-                    break;
-                default:
-                    throw new RuntimeException("bad switch option: " + certHash);
-            }
+            boolean active = switch (certHash) {
+                case EXISTING_CERT_IN_SIGN_KEY_HASH -> false;
+                case EXISTING_CERT_IN_AUTH_KEY_HASH -> true;
+                default -> throw new RuntimeException("bad switch option: " + certHash);
+            };
             return createCertificateInfo(null, active, true, "status", "certID",
-                    CertificateTestUtils.getMockAuthCertificateBytes(), null);
+                    CertificateTestUtils.getMockAuthCertificateBytes(), null, null);
         }).when(signerProxyFacade).getCertForHash(any());
 
         // can activate inactive
@@ -711,7 +684,7 @@ public class TokenCertificateServiceTest {
         // we want to use the real rules for this test
         Mockito.reset(possibleActionsRuleEngine);
         doReturn(createCertificateInfo(null, true, true, "status",
-                "certID", CertificateTestUtils.getMockCertificateWithoutExtensionsBytes(), null))
+                "certID", CertificateTestUtils.getMockCertificateWithoutExtensionsBytes(), null, null))
                 .when(signerProxyFacade).getCertForHash(any());
 
         try {
@@ -762,7 +735,7 @@ public class TokenCertificateServiceTest {
 
     @Test(expected = ActionNotPossibleException.class)
     public void registerAuthCertificateNotPossible() throws Exception {
-        EnumSet empty = EnumSet.noneOf(PossibleActionEnum.class);
+        EnumSet<PossibleActionEnum> empty = EnumSet.noneOf(PossibleActionEnum.class);
         doReturn(empty).when(possibleActionsRuleEngine).getPossibleCertificateActions(any(), any(), any());
         doAnswer(answer -> authCert).when(signerProxyFacade).getCertForHash(any());
         tokenCertificateService.registerAuthCert(CertificateTestUtils.MOCK_AUTH_CERTIFICATE_HASH, GOOD_ADDRESS);

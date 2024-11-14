@@ -27,6 +27,19 @@ init_db_dir() {
   fi
 }
 
+create_backup_dir_if_not_exists() {
+  local xroadDir=/var/lib/xroad
+  local backupDir=$xroadDir/backup
+  if [ ! -d "$backupDir" ]; then
+    log "Create backup dir \"$backupDir\""
+    mkdir -p "$backupDir"
+    chown xroad:xroad "$xroadDir"
+    chown xroad:xroad "$backupDir"
+    chmod 0755 "$backupDir"
+    chmod -R go-w "$backupDir"
+  fi
+}
+
 XROAD_SCRIPT_LOCATION=/usr/share/xroad/scripts
 DB_PROPERTIES=/etc/xroad/db.properties
 
@@ -226,3 +239,5 @@ rm -rf /var/run/xroad
 mkdir -p -m0750 /var/run/xroad
 chown xroad:xroad /var/run/xroad
 su - xroad -c sh -c /usr/share/xroad/scripts/xroad-base.sh
+
+create_backup_dir_if_not_exists
