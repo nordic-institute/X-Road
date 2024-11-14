@@ -47,8 +47,10 @@ import org.niis.xroad.cs.admin.api.service.GlobalConfGenerationService;
 import org.niis.xroad.cs.admin.api.service.InitializationService;
 import org.niis.xroad.cs.admin.api.service.NotificationService;
 import org.niis.xroad.cs.admin.api.service.SystemParameterService;
+import org.springframework.beans.factory.DisposableBean;
+import org.springframework.beans.factory.InitializingBean;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.ApplicationEventPublisher;
-import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -56,6 +58,8 @@ import java.nio.file.Path;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
 
 import static ee.ria.xroad.common.conf.globalconf.ConfigurationConstants.CONTENT_ID_PRIVATE_PARAMETERS;
 import static ee.ria.xroad.common.conf.globalconf.ConfigurationConstants.CONTENT_ID_SHARED_PARAMETERS;
@@ -74,7 +78,7 @@ import static org.niis.xroad.cs.admin.globalconf.generator.GlobalConfGenerationE
 @Component
 @Slf4j
 @RequiredArgsConstructor
-public class GlobalConfGenerationServiceImpl implements GlobalConfGenerationService {
+public class GlobalConfGenerationServiceImpl implements GlobalConfGenerationService, InitializingBean, DisposableBean {
 
     private static final Set<String> EXTERNAL_SOURCE_CONTENT_IDENTIFIERS = Set.of(
             CONTENT_ID_SHARED_PARAMETERS);
@@ -90,11 +94,27 @@ public class GlobalConfGenerationServiceImpl implements GlobalConfGenerationServ
     private final NotificationService notificationService;
     private final ApplicationEventPublisher eventPublisher;
 
+    private final ScheduledExecutorService taskScheduler = Executors.newSingleThreadScheduledExecutor();
+
     private final List<ConfigurationPartsGenerator> configurationPartsGenerators;
+
+    @Value("${xroad.admin-service.global-configuration-generation-rate-in-seconds}")
+    private int globalConfigurationGenerationRateInSeconds;
+
+    @Override
+    public void afterPropertiesSet() throws Exception {
+        log.info("Scheduling global conf generation every {} seconds", globalConfigurationGenerationRateInSeconds);
+        taskScheduler.scheduleWithFixedDelay(this::generate, globalConfigurationGenerationRateInSeconds, globalConfigurationGenerationRateInSeconds,
+                SECONDS);
+    }
+
+    @Override
+    public void destroy() throws Exception {
+        taskScheduler.shutdown();
+    }
 
     @Override
     @Transactional
-    @Scheduled(fixedRateString = "${xroad.admin-service.global-configuration-generation-rate-in-seconds}", timeUnit = SECONDS)
     public void generate() {
         if (!canGenerateGlobalConf()) {
             log.info("Server configuration is not complete, skipping global conf generation.");
