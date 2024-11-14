@@ -56,7 +56,6 @@ import org.niis.xroad.restapi.exceptions.DeviationAwareRuntimeException;
 import org.niis.xroad.restapi.exceptions.ErrorDeviation;
 import org.niis.xroad.restapi.service.SignerNotReachableException;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
 
 import java.util.Arrays;
@@ -72,7 +71,6 @@ import static org.niis.xroad.restapi.exceptions.DeviationCodes.ERROR_GPG_KEY_GEN
 @Slf4j
 @Service
 @Transactional(rollbackOn = ValidationFailureException.class)
-@PreAuthorize("isAuthenticated()")
 @RequiredArgsConstructor
 public class InitializationServiceImpl implements InitializationService {
     private final SignerRpcClient signerRpcClient;

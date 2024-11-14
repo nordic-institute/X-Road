@@ -85,14 +85,31 @@ public class RemoteGlobalConfSource implements GlobalConfSource, InitializingBea
         try {
 
             var getGlobalConfResp = client.getGlobalConf();
-
             log.debug("Received GlobalConf data in {}ms.", stopWatch.getTime(MILLISECONDS));
+
+            switch (getGlobalConfResp.getStatus()) {
+                case GLOBAL_CONF_STATUS_OK:
+                    // continue processing
+                    break;
+                case GLOBAL_CONF_STATUS_UNINITIALIZED:
+                    log.error("Global conf not initialized.");
+                    lastState = GlobalConfInitState.UNINITIALIZED;
+                    return false;
+                case GLOBAL_CONF_STATUS_ERROR:
+                    log.error("Error returned while loading global conf");
+                    lastState = GlobalConfInitState.FAILURE_MALFORMED;
+                    return false;
+                default:
+                    log.error("Unknown status while loading global conf");
+                    lastState = GlobalConfInitState.FAILURE_UNEXPECTED;
+                    return false;
+            }
 
             Map<String, PrivateParametersProvider> basePrivateParams;
             Map<String, SharedParametersProvider> baseSharedParams;
 
             if (globalConfData != null) {
-                if (globalConfData.dateRefreshed() == getGlobalConfResp.getDateRefreshed()) {
+                if (globalConfData.dateRefreshed() == getGlobalConfResp.getData().getDateRefreshed()) {
                     log.debug("GlobalConf data is up to date, not reloading.");
                     return true;
                 }
@@ -104,7 +121,7 @@ public class RemoteGlobalConfSource implements GlobalConfSource, InitializingBea
                 baseSharedParams = new HashMap<>();
             }
 
-            globalConfData = dataLoader.load(getGlobalConfResp, basePrivateParams, baseSharedParams);
+            globalConfData = dataLoader.load(getGlobalConfResp.getData(), basePrivateParams, baseSharedParams);
 
             lastState = GlobalConfInitState.INITIALIZED;
             return true;

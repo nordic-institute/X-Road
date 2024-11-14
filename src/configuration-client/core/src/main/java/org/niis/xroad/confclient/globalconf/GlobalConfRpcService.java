@@ -25,16 +25,12 @@
  */
 package org.niis.xroad.confclient.globalconf;
 
-import ee.ria.xroad.common.CodedException;
-
 import io.grpc.stub.StreamObserver;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.niis.xroad.confclient.proto.GetGlobalConfReq;
-import org.niis.xroad.confclient.proto.GetGlobalConfResp;
+import org.niis.xroad.confclient.proto.GetGlobalConfRespWrapped;
 import org.niis.xroad.confclient.proto.GlobalConfServiceGrpc;
-
-import static ee.ria.xroad.common.ErrorCodes.X_MALFORMED_GLOBALCONF;
 
 @Slf4j
 @RequiredArgsConstructor
@@ -42,15 +38,16 @@ public class GlobalConfRpcService extends GlobalConfServiceGrpc.GlobalConfServic
     private final GlobalConfRpcCache globalConfRpcCache;
 
     @Override
-    public void getGlobalConf(GetGlobalConfReq request, StreamObserver<GetGlobalConfResp> responseObserver) {
-        globalConfRpcCache.getGlobalConf().ifPresentOrElse(globalConf -> {
-            responseObserver.onNext(globalConf);
-            responseObserver.onCompleted();
-        }, () -> {
-            log.error("GlobalConf not found");
-            responseObserver.onError(new CodedException(X_MALFORMED_GLOBALCONF, "Global configuration is malformed or missing"));
-        });
+    public void getGlobalConf(GetGlobalConfReq request, StreamObserver<GetGlobalConfRespWrapped> responseObserver) {
 
+        GlobalConfRpcCache.CachedGlobalConf cachedGlobalConf = globalConfRpcCache.getGlobalConf();
+
+        GetGlobalConfRespWrapped.Builder builder = GetGlobalConfRespWrapped.newBuilder();
+        builder.setStatus(cachedGlobalConf.status());
+        cachedGlobalConf.globalConf().ifPresent(builder::setData);
+
+        responseObserver.onNext(builder.build());
+        responseObserver.onCompleted();
     }
 
 }

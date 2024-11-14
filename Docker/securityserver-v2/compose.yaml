@@ -115,7 +115,7 @@ services:
         reservations:
           memory: 64M
         limits:
-          memory: 256M
+          memory: 320M
   signer:
     image: xroad-ss-signer:latest
     environment:
@@ -142,7 +142,7 @@ services:
         reservations:
           memory: 64M
         limits:
-          memory: 256M
+          memory: 320M
   proxy:
     image: xroad-ss-proxy:latest
     environment:

@@ -120,7 +120,8 @@ public class NotificationServiceImpl implements NotificationService {
         return SECONDS.between(status.getTime(), TimeUtils.now()) > systemParameterService.getConfExpireIntervalSeconds();
     }
 
-    private Set<AlertInfo> checkConfigurationSigningKey(String sourceType, List<TokenInfo> tokens) {
+    @Override
+    public Set<AlertInfo> checkConfigurationSigningKey(String sourceType, List<TokenInfo> tokens) {
         final Optional<ConfigurationSigningKey> signingKeyOptional = configurationSigningKeysService.findActiveForSource(sourceType);
         if (signingKeyOptional.isEmpty()) {
             return Set.of(new AlertInfo(format("status.signing_key.%s.missing", sourceType)));

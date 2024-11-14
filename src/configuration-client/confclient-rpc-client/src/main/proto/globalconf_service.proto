@@ -32,10 +32,22 @@ package org.niis.xroad.confclient.proto;
 option java_multiple_files = true;
 
 service GlobalConfService {
-  rpc GetGlobalConf(GetGlobalConfReq) returns (GetGlobalConfResp) {}
+  rpc GetGlobalConf(GetGlobalConfReq) returns (GetGlobalConfRespWrapped) {}
 }
 
 message GetGlobalConfReq {
+}
+
+message GetGlobalConfRespWrapped {
+  GetGlobalConfRespStatus status = 1;
+  GetGlobalConfResp data = 2;
+}
+
+enum GetGlobalConfRespStatus {
+  GLOBAL_CONF_STATUS_UNSPECIFIED = 0;
+  GLOBAL_CONF_STATUS_UNINITIALIZED = 1;
+  GLOBAL_CONF_STATUS_OK = 2;
+  GLOBAL_CONF_STATUS_ERROR = 3;
 }
 
 message GetGlobalConfResp {

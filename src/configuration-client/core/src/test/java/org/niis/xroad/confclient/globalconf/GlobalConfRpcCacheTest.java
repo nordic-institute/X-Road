@@ -59,7 +59,7 @@ class GlobalConfRpcCacheTest {
         System.setProperty(CONFIGURATION_PATH, GOOD_CONF_DIR);
 
         globalConfRpcCache.refreshCache();
-        var result = globalConfRpcCache.getGlobalConf();
+        var result = globalConfRpcCache.getGlobalConf().globalConf();
 
         verify(globalConfValidator, times(1)).getReadinessState(anyString());
 
@@ -83,7 +83,7 @@ class GlobalConfRpcCacheTest {
         when(globalConfValidator.getReadinessState(anyString())).thenReturn(GlobalConfInitState.FAILURE_MALFORMED);
 
         globalConfRpcCache.refreshCache();
-        var result = globalConfRpcCache.getGlobalConf();
+        var result = globalConfRpcCache.getGlobalConf().globalConf();
 
         assertThat(result).isEmpty();
     }
@@ -91,7 +91,7 @@ class GlobalConfRpcCacheTest {
     @Test
     void shouldReturnEmptyResponse() {
 
-        var result = globalConfRpcCache.getGlobalConf();
+        var result = globalConfRpcCache.getGlobalConf().globalConf();
 
         assertThat(result).isNotPresent();
     }

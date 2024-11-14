@@ -34,6 +34,8 @@ import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.niis.xroad.confclient.proto.ConfClientRpcClient;
 import org.niis.xroad.confclient.proto.GetGlobalConfResp;
+import org.niis.xroad.confclient.proto.GetGlobalConfRespStatus;
+import org.niis.xroad.confclient.proto.GetGlobalConfRespWrapped;
 import org.niis.xroad.confclient.proto.GlobalConfInstance;
 
 import static java.util.Collections.emptyList;
@@ -95,13 +97,18 @@ class RemoteGlobalConfSourceTest extends BaseRemoteGlobalConfTest {
 
     @Test
     void shouldReturnVersion() throws Exception {
-        when(confClientRpcClient.getGlobalConf()).thenReturn(GetGlobalConfResp.newBuilder()
-                .setDateRefreshed(1000L).setInstanceIdentifier(INSTANCE_IDENTIFIER)
-                .addInstances(GlobalConfInstance.newBuilder()
-                        .setVersion(1)
-                        .setInstanceIdentifier(INSTANCE_IDENTIFIER)
-                        .build())
-                .build());
+        when(confClientRpcClient.getGlobalConf()).thenReturn(
+                GetGlobalConfRespWrapped.newBuilder()
+                        .setStatus(GetGlobalConfRespStatus.GLOBAL_CONF_STATUS_OK)
+                        .setData(GetGlobalConfResp.newBuilder()
+                                .setDateRefreshed(1000L).setInstanceIdentifier(INSTANCE_IDENTIFIER)
+                                .addInstances(GlobalConfInstance.newBuilder()
+                                        .setVersion(1)
+                                        .setInstanceIdentifier(INSTANCE_IDENTIFIER)
+                                        .build())
+                                .build())
+                        .build()
+                );
 
         Integer version = remoteGlobalConfSource.getVersion();
 
@@ -116,6 +123,18 @@ class RemoteGlobalConfSourceTest extends BaseRemoteGlobalConfTest {
         var result = remoteGlobalConfSource.isExpired();
 
         assertThat(result).isFalse();
+    }
+
+    @Test
+    void shouldHaveStateUninitialized() throws Exception {
+        when(confClientRpcClient.getGlobalConf()).thenReturn(
+                GetGlobalConfRespWrapped.newBuilder()
+                        .setStatus(GetGlobalConfRespStatus.GLOBAL_CONF_STATUS_UNINITIALIZED)
+                        .build()
+        );
+        remoteGlobalConfSource.reload();
+
+        assertThat(remoteGlobalConfSource.getReadinessState()).isEqualTo(GlobalConfInitState.UNINITIALIZED);
     }
 
     @Test

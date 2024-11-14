@@ -30,20 +30,27 @@ import ee.ria.xroad.common.SystemProperties;
 import ee.ria.xroad.common.crypto.identifier.DigestAlgorithm;
 import ee.ria.xroad.common.util.TimeUtils;
 import ee.ria.xroad.signer.SignerRpcClient;
+import ee.ria.xroad.signer.protocol.dto.TokenInfo;
 
 import lombok.RequiredArgsConstructor;
-import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
 import org.niis.xroad.cs.admin.api.domain.ConfigurationSigningKey;
 import org.niis.xroad.cs.admin.api.domain.DistributedFile;
+import org.niis.xroad.cs.admin.api.dto.AlertInfo;
 import org.niis.xroad.cs.admin.api.dto.OptionalConfPart;
+import org.niis.xroad.cs.admin.api.dto.TokenInitStatus;
 import org.niis.xroad.cs.admin.api.globalconf.OptionalPartsConf;
 import org.niis.xroad.cs.admin.api.service.ConfigurationService;
 import org.niis.xroad.cs.admin.api.service.ConfigurationSigningKeysService;
 import org.niis.xroad.cs.admin.api.service.GlobalConfGenerationService;
+import org.niis.xroad.cs.admin.api.service.InitializationService;
+import org.niis.xroad.cs.admin.api.service.NotificationService;
 import org.niis.xroad.cs.admin.api.service.SystemParameterService;
+import org.springframework.beans.factory.DisposableBean;
+import org.springframework.beans.factory.InitializingBean;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.ApplicationEventPublisher;
-import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -51,11 +58,14 @@ import java.nio.file.Path;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
 
 import static ee.ria.xroad.common.conf.globalconf.ConfigurationConstants.CONTENT_ID_PRIVATE_PARAMETERS;
 import static ee.ria.xroad.common.conf.globalconf.ConfigurationConstants.CONTENT_ID_SHARED_PARAMETERS;
 import static java.nio.charset.StandardCharsets.UTF_8;
 import static java.util.concurrent.TimeUnit.SECONDS;
+import static java.util.stream.Collectors.joining;
 import static java.util.stream.Collectors.toSet;
 import static java.util.stream.Stream.concat;
 import static org.niis.xroad.cs.admin.api.service.ConfigurationSigningKeysService.SOURCE_TYPE_EXTERNAL;
@@ -68,8 +78,7 @@ import static org.niis.xroad.cs.admin.globalconf.generator.GlobalConfGenerationE
 @Component
 @Slf4j
 @RequiredArgsConstructor
-public class GlobalConfGenerationServiceImpl implements GlobalConfGenerationService {
-
+public class GlobalConfGenerationServiceImpl implements GlobalConfGenerationService, InitializingBean, DisposableBean {
 
     private static final Set<String> EXTERNAL_SOURCE_CONTENT_IDENTIFIERS = Set.of(
             CONTENT_ID_SHARED_PARAMETERS);
@@ -82,14 +91,37 @@ public class GlobalConfGenerationServiceImpl implements GlobalConfGenerationServ
     private final ConfigurationService configurationService;
     private final ConfigurationSigningKeysService configurationSigningKeysService;
     private final ApplicationEventPublisher eventPublisher;
-
     private final List<ConfigurationPartsGenerator> configurationPartsGenerators;
+    private final InitializationService initializationService;
+    private final NotificationService notificationService;
 
-    @SneakyThrows
+    private final ScheduledExecutorService taskScheduler = Executors.newSingleThreadScheduledExecutor();
+
+    @Value("${xroad.admin-service.global-configuration-generation-rate-in-seconds}")
+    private int globalConfigurationGenerationRateInSeconds;
+
+    @Override
+    public void afterPropertiesSet() throws Exception {
+        log.info("Scheduling global conf generation every {} seconds", globalConfigurationGenerationRateInSeconds);
+        taskScheduler.scheduleWithFixedDelay(this::generate, globalConfigurationGenerationRateInSeconds,
+                globalConfigurationGenerationRateInSeconds, SECONDS);
+    }
+
+    @Override
+    public void destroy() throws Exception {
+        taskScheduler.shutdown();
+    }
+
     @Override
     @Transactional
-    @Scheduled(fixedRateString = "${xroad.admin-service.global-configuration-generation-rate-in-seconds}", timeUnit = SECONDS)
     public void generate() {
+        if (!canGenerateGlobalConf()) {
+            log.info("Server configuration is not complete, skipping global conf generation.");
+            // publish the FAILURE to display the warning in the UI
+            eventPublisher.publishEvent(FAILURE);
+            return;
+        }
+
         final var results = configurationPartsGenerators.stream()
                 .map(this::generate)
                 .filter(Optional::isPresent)
@@ -208,22 +240,63 @@ public class GlobalConfGenerationServiceImpl implements GlobalConfGenerationServ
                 .build();
     }
 
-    @SneakyThrows
     private DigestAlgorithm getConfSignCertHashAlgoId() {
         return systemParameterService.getConfSignCertHashAlgoUri();
     }
 
-    @SneakyThrows
     private DigestAlgorithm getConfHashAlgoId() {
         return systemParameterService.getConfHashAlgoUri();
     }
-
 
     private static Set<String> getInternalSourceContentIdentifiers() {
         return concat(INTERNAL_SOURCE_REQUIRED_CONTENT_IDENTIFIERS.stream(),
                 OptionalPartsConf.getOptionalPartsConf().getAllParts().stream()
                         .map(OptionalConfPart::contentIdentifier))
                 .collect(toSet());
+    }
+
+    private boolean canGenerateGlobalConf() {
+        var status = initializationService.getInitializationStatus();
+
+        boolean canGenerate =
+                // check server is initialized (similar check on the UI side, system.ts:isServerInitialized())
+                StringUtils.isNotBlank(status.getInstanceIdentifier())
+                        && StringUtils.isNotBlank(status.getCentralServerAddress())
+                        && status.getSoftwareTokenInitStatus() != TokenInitStatus.NOT_INITIALIZED
+                        // check management service is set
+                        && StringUtils.isNotBlank(systemParameterService.getAuthCertRegUrl())
+                        && systemParameterService.getManagementServiceProviderId() != null;
+
+        if (!canGenerate) {
+            log.debug("Server is not initialized (instance identifier: '{}', server address: '{}', "
+                            + "token status: '{}', auth cert reg url: '{}', management service: '{}')",
+                    status.getInstanceIdentifier(), status.getCentralServerAddress(),
+                    status.getSoftwareTokenInitStatus(), systemParameterService.getAuthCertRegUrl(),
+                    systemParameterService.getManagementServiceProviderId());
+            return false;
+        }
+        try {
+            List<TokenInfo> tokens = signerRpcClient.getTokens();
+            Set<AlertInfo> internalKeyAlerts = notificationService.checkConfigurationSigningKey(SOURCE_TYPE_INTERNAL, tokens);
+            if (!internalKeyAlerts.isEmpty()) {
+                log.debug("Internal signing keys alerts: {}", errorCodes(internalKeyAlerts));
+                return false;
+            }
+            Set<AlertInfo> externalKeyAlerts = notificationService.checkConfigurationSigningKey(SOURCE_TYPE_EXTERNAL, tokens);
+            if (!externalKeyAlerts.isEmpty()) {
+                log.debug("External signing keys alerts: {}", errorCodes(externalKeyAlerts));
+                return false;
+            }
+        } catch (Exception e) {
+            log.debug("Failed to get tokens", e);
+            return false;
+        }
+
+        return true;
+    }
+
+    private String errorCodes(Set<AlertInfo> alertInfos) {
+        return alertInfos.stream().map(AlertInfo::getErrorCode).collect(joining(", "));
     }
 
     private record Result(boolean success, GlobalConfApplier applier) {
