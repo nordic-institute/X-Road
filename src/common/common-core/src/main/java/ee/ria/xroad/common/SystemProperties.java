@@ -189,6 +189,26 @@ public final class SystemProperties {
     public static final String PROXY_UI_API_ACME_RENEWAL_TIME_BEFORE_EXPIRATION_DATE =
             PREFIX + "proxy-ui-api.acme-renewal-time-before-expiration-date";
 
+    public static final String PROXY_UI_API_ACME_KEYPAIR_RENEWAL_TIME_BEFORE_EXPIRATION_DATE =
+            PREFIX + "proxy-ui-api.acme-keypair-renewal-time-before-expiration-date";
+
+    /** property name of whether notification e-mail is sent in case of automatic certificate renewal job success */
+    public static final String PROXY_UI_API_ACME_RENEWAL_SUCCESS_NOTIFICATION_ENABLED =
+            PREFIX + "proxy-ui-api.acme-renewal-success-notification-enabled";
+
+    /** property name of whether notification e-mail is sent in case of automatic certificate renewal job failure */
+    public static final String PROXY_UI_API_ACME_RENEWAL_FAILURE_NOTIFICATION_ENABLED =
+            PREFIX + "proxy-ui-api.acme-renewal-failure-notification-enabled";
+
+    /** property name of whether notification e-mail is sent when authentication certificate has been registered in global conf */
+    public static final String PROXY_UI_API_AUTH_CERT_REGISTERED_NOTIFICATION_ENABLED =
+            PREFIX + "proxy-ui-api.auth-cert-registered-notification-enabled";
+
+    /** Locale for mail notifications, which determines the language of the notifications.
+     * To add a new locale a corresponding notifications_[locale].properties file needs to be added to the resource bundle  */
+    public static final String PROXY_UI_API_MAIL_NOTIFICATION_LOCALE =
+            PREFIX + "proxy-ui-api.mail-notification-locale";
+
     // Proxy ------------------------------------------------------------------
 
     private static final String PROXY_PREFIX = PREFIX + "proxy.";
@@ -979,6 +999,74 @@ public final class SystemProperties {
      */
     public static int getAcmeRenewalTimeBeforeExpirationDate() {
         return Integer.parseInt(SystemPropertySource.getPropertyResolver().getProperty(PROXY_UI_API_ACME_RENEWAL_TIME_BEFORE_EXPIRATION_DATE, "14"));
+    }
+
+    /**
+     * @return when to trigger automatic acme account keypair renewal subtracted as days from the expiration date of the certificate.
+     */
+    public static int getAcmeKeypairRenewalTimeBeforeExpirationDate() {
+        return Integer.parseInt(SystemPropertySource.getPropertyResolver().getProperty(PROXY_UI_API_ACME_KEYPAIR_RENEWAL_TIME_BEFORE_EXPIRATION_DATE, "14"));
+    }
+
+    /**
+     * @return true if ACME automatic renewal job success notifications are enabled
+     */
+    public static boolean getAcmeRenewalSuccessNotificationEnabled() {
+        return Boolean.parseBoolean(SystemPropertySource.getPropertyResolver().getProperty(PROXY_UI_API_ACME_RENEWAL_SUCCESS_NOTIFICATION_ENABLED, TRUE));
+    }
+
+    /**
+     * @return true if ACME automatic renewal job failure notifications are enabled
+     */
+    public static boolean getAcmeRenewalFailureNotificationEnabled() {
+        return Boolean.parseBoolean(SystemPropertySource.getPropertyResolver().getProperty(PROXY_UI_API_ACME_RENEWAL_FAILURE_NOTIFICATION_ENABLED, TRUE));
+    }
+
+    /**
+     * @return true if authentication certificate registered notifications are enabled
+     */
+    public static boolean getAuthCertRegisteredNotificationEnabled() {
+        return Boolean.parseBoolean(SystemPropertySource.getPropertyResolver().getProperty(PROXY_UI_API_AUTH_CERT_REGISTERED_NOTIFICATION_ENABLED, TRUE));
+    }
+
+    /**
+     * @return Locale for mail notifications.
+     * No default value here, notifications' resource bundle already has defaults in notifications.properties
+     */
+    public static String getMailNotificationLocale() {
+        return SystemPropertySource.getPropertyResolver().getProperty(PROXY_UI_API_MAIL_NOTIFICATION_LOCALE);
+    }
+
+    /**
+     * @return the gRPC port on which the configuration client is listening, '5665' by default.
+     */
+    public static int getConfigurationClientPort() {
+        return Integer.parseInt(SystemPropertySource.getPropertyResolver().getProperty(CONFIGURATION_CLIENT_PORT,
+                Integer.toString(PortNumbers.CONFIGURATION_CLIENT_PORT)));
+    }
+
+    /**
+     * @return the HTTP port on which the configuration client is listening, '5675' by default.
+     */
+    public static int getConfigurationClientAdminPort() {
+        return Integer.parseInt(SystemPropertySource.getPropertyResolver().getProperty(CONFIGURATION_CLIENT_ADMIN_PORT,
+                Integer.toString(PortNumbers.CONFIGURATION_CLIENT_ADMIN_PORT)));
+    }
+
+    /**
+     * @return the update interval in seconds at which configuration client
+     * downloads the global configuration, '60' by default.
+     */
+    public static int getConfigurationClientUpdateIntervalSeconds() {
+        return Integer.parseInt(SystemPropertySource.getPropertyResolver().getProperty(CONFIGURATION_CLIENT_UPDATE_INTERVAL_SECONDS, "60"));
+    }
+
+    /**
+     * @return the proxy configuration auto backup cron expression.
+     * defaults to '0 15 3 * * ?'
+     */
+    public static String getConfigurationClientProxyConfigurationBackupCron() {
+        return SystemPropertySource.getPropertyResolver().getProperty(CONFIGURATION_CLIENT_PROXY_CONFIGURATION_BACKUP_CRON, "0 15 3 * * ?");
     }
 
     public static boolean isConfigurationClientGlobalConfTlsCertVerificationEnabled() {

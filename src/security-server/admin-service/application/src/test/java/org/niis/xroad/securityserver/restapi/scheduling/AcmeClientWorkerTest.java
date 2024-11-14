@@ -28,7 +28,6 @@ package org.niis.xroad.securityserver.restapi.scheduling;
 
 import ee.ria.xroad.common.TestCertUtil;
 import ee.ria.xroad.common.conf.globalconf.ApprovedCAInfo;
-import ee.ria.xroad.common.crypto.identifier.SignMechanism;
 import ee.ria.xroad.common.util.TimeUtils;
 import ee.ria.xroad.signer.SignerRpcClient;
 import ee.ria.xroad.signer.protocol.dto.CertificateInfo;
@@ -200,48 +199,10 @@ public class AcmeClientWorkerTest extends AbstractFacadeMockingTestContext {
     public void successfulAuthAndSignCertRenewals() throws Exception {
         CertificateRenewalScheduler scheduler = new CertificateRenewalScheduler(acmeClientWorker, new NoOpTaskScheduler());
         acmeClientWorker.execute(scheduler);
-        verify(signerRpcClient, times(2)).importCert(any(), any(), any());
+        verify(signerRpcClient, times(2)).importCert(any(), any(), any(), anyBoolean());
         verify(managementRequestSenderMock, times(1)).sendAuthCertRegRequest(any(), any(), any());
-        verify(signerRpcClient, times(1)).setRenewedCertHash(any(), any());
-        verify(signerRpcClient, times(2)).deleteKey(any(), anyBoolean());
+        verify(signerRpcClient, times(2)).setRenewedCertHash(any(), any());
         verify(signerRpcClient, times(2)).setNextPlannedRenewal(any(), any());
-    }
-
-    @Test
-    public void successfulOldAuthCertRenewalCleanUp() throws Exception {
-        CertificateInfo newAuthCertInfo = createCertificateInfo("new_auth_cert_id", DNS, new KeyUsage(KeyUsage.digitalSignature),
-                Date.from(TimeUtils.now()), Date.from(TimeUtils.now().plus(365, ChronoUnit.DAYS)), null);
-        KeyInfo newAuthKey = new TokenTestUtils.KeyInfoBuilder()
-                .id("auth_key_id")
-                .keyUsageInfo(KeyUsageInfo.AUTHENTICATION)
-                .cert(newAuthCertInfo)
-                .build();
-
-        String renewedCertHash = calculateCertHexHash(newAuthCertInfo.getCertificateBytes());
-        CertificateInfo inProgressAuthCertInfo = createCertificateInfo("new_auth_cert_id", DNS, new KeyUsage(KeyUsage.digitalSignature),
-                Date.from(TimeUtils.now()), Date.from(TimeUtils.now().plus(365, ChronoUnit.DAYS)), renewedCertHash);
-        KeyInfo inProgressAuthKey = new TokenTestUtils.KeyInfoBuilder()
-                .id("auth_key_id")
-                .keyUsageInfo(KeyUsageInfo.AUTHENTICATION)
-                .cert(inProgressAuthCertInfo)
-                .build();
-
-        TokenInfo tokenInfo = new TokenTestUtils.TokenInfoBuilder()
-                .friendlyName("test-token")
-                .key(inProgressAuthKey)
-                .build();
-
-        when(signerRpcClient.getTokens()).thenReturn(new ArrayList<>(List.of(tokenInfo)));
-        when(signerRpcClient.getCertForHash(renewedCertHash)).thenReturn(newAuthCertInfo);
-        when(signerRpcClient.getKeyIdForCertHash(renewedCertHash)).thenReturn(new SignerRpcClient.KeyIdInfo(newAuthKey.getId(),
-                SignMechanism.valueOf(newAuthKey.getSignMechanismName())));
-
-        CertificateRenewalScheduler scheduler = new CertificateRenewalScheduler(acmeClientWorker, new NoOpTaskScheduler());
-        acmeClientWorker.execute(scheduler);
-
-        verify(signerRpcClient, never()).importCert(any(), any(), any());
-        verify(managementRequestSenderMock, times(1)).sendAuthCertDeletionRequest(any(), any());
-        verify(signerRpcClient, times(2)).deleteKey(any(), anyBoolean());
     }
 
     @Test
@@ -251,7 +212,7 @@ public class AcmeClientWorkerTest extends AbstractFacadeMockingTestContext {
         CertificateRenewalScheduler scheduler = new CertificateRenewalScheduler(acmeClientWorker, new NoOpTaskScheduler());
         acmeClientWorker.execute(scheduler);
 
-        verify(signerRpcClient, never()).importCert(any(), any(), any());
+        verify(signerRpcClient, never()).importCert(any(), any(), any(), anyBoolean());
         verify(signerRpcClient, times(4)).deleteKey(any(), anyBoolean());
         verify(signerRpcClient, times(2)).setRenewalError(any(), any());
     }

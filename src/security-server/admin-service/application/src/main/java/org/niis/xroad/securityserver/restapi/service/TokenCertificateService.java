@@ -418,7 +418,7 @@ public class TokenCertificateService {
             byte[] certBytes = x509Certificate.getEncoded();
             String hash = CryptoUtils.calculateCertHexHash(certBytes);
             auditDataHelper.putCertificateHash(hash);
-            signerRpcClient.importCert(certBytes, certificateState, clientId);
+            signerRpcClient.importCert(certBytes, certificateState, clientId, !isAuthCert);
             certificateInfo = getCertificateInfo(hash);
             setNextPlannedAcmeAutomaticRenewalDate(clientId, x509Certificate, keyUsageInfo, certificateInfo);
         } catch (ClientNotFoundException | AccessDeniedException | AuthCertificateNotSupportedException e) {

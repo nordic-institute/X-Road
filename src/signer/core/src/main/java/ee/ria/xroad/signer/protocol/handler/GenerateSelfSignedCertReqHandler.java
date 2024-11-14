@@ -29,6 +29,7 @@ import ee.ria.xroad.common.CodedException;
 import ee.ria.xroad.common.crypto.KeyManagers;
 import ee.ria.xroad.common.crypto.identifier.DigestAlgorithm;
 import ee.ria.xroad.common.crypto.identifier.SignAlgorithm;
+import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.signer.protocol.AbstractRpcHandler;
 import ee.ria.xroad.signer.protocol.dto.CertificateInfo;
 import ee.ria.xroad.signer.protocol.dto.KeyUsageInfo;
@@ -101,9 +102,11 @@ public class GenerateSelfSignedCertReqHandler extends AbstractRpcHandler<Generat
 
         X509Certificate cert = new DummyCertBuilder().build(tokenAndKey, request, pk, signAlgoId);
 
+        ClientId.Conf memberId = request.hasMemberId() ? ClientIdMapper.fromDto(request.getMemberId()) : null;
         importCertReqHandler.importCertificate(cert,
                 CertificateInfo.STATUS_REGISTERED,
-                request.hasMemberId() ? ClientIdMapper.fromDto(request.getMemberId()) : null
+                memberId,
+                !KeyUsageInfo.AUTHENTICATION.equals(request.getKeyUsage())
         );
 
         return GenerateSelfSignedCertResp.newBuilder()

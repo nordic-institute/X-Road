@@ -473,7 +473,8 @@ public class TokenCertificateServiceTest {
                         PROFILE_CLASS);
         verify(signerRpcClient).importCert(mockSignCertificate.getEncoded(),
                 CertificateInfo.STATUS_REGISTERED,
-                client.getMemberId());
+                client.getMemberId(),
+                true);
     }
 
     @Test
@@ -631,7 +632,8 @@ public class TokenCertificateServiceTest {
                 csrBytes);
         verify(signerRpcClient).importCert(mockSignCertificate.getEncoded(),
                 CertificateInfo.STATUS_REGISTERED,
-                client.getMemberId());
+                client.getMemberId(),
+                true);
         verify(signerRpcClient).setNextPlannedRenewal(any(), any());
     }
 

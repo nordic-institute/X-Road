@@ -58,7 +58,7 @@ defineEmits(['close']);
 </script>
 
 <style lang="scss" scoped>
-@import '../assets/colors';
+@use '../assets/colors';
 
 .new-content {
   width: 100%;
@@ -67,7 +67,7 @@ defineEmits(['close']);
 .cert-dialog-header {
   display: flex;
   justify-content: center;
-  color: $XRoad-WarmGrey100;
+  color: colors.$WarmGrey100;
   font-style: normal;
   font-weight: bold;
   font-size: 24px;

@@ -1,6 +1,5 @@
 /*
  * The MIT License
- *
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
@@ -25,30 +24,40 @@
  * THE SOFTWARE.
  */
 
-// New UI colors
-$XRoad-Purple10: #efebfb;
-$XRoad-Purple20: #e0d8f8;
-$XRoad-Purple30: #d1c4f4;
-$XRoad-Purple70: #9376e6;
-$XRoad-Purple100: #663cdc;
+import {
+  MailNotificationStatus,
+  TestMailResponse,
+} from "@/openapi-types";
+import * as api from '@/util/api';
+import { defineStore } from 'pinia';
 
-$XRoad-Black10: #e8e8e8;
-$XRoad-Black30: #bcbbbb;
-$XRoad-Black50: #908e8e;
-$XRoad-Black70: #636161;
-$XRoad-Black100: #211e1e;
-$XRoad-White100: #ffffff;
+export interface MailState {
+  mailNotificationStatus: MailNotificationStatus,
+}
 
-$XRoad-WarmGrey10: #f4f3f6;
-$XRoad-WarmGrey20: #eae8ee;
-$XRoad-WarmGrey30: #dedce4;
-$XRoad-WarmGrey50: #c9c6d3;
-$XRoad-WarmGrey70: #b4afc2;
-$XRoad-WarmGrey100: #575169;
+export const useMail = defineStore('mail', {
+  state: (): MailState => {
+    return {
+      mailNotificationStatus: {},
+    };
+  },
 
-$XRoad-Error: #ec4040;
-$XRoad-Success100: #0cc177;
-$XRoad-Success10: #e6f8f1;
-
-$XRoad-DefaultShadow: 20px 20px 30px rgba(148, 141, 168, 0.3);
-$XRoad-DefaultFontSize: 14px;
+  actions: {
+    async fetchMailNotificationStatus() {
+      return api
+        .get<MailNotificationStatus>('/mail/mail-notification-status')
+        .then((res) => {
+          this.mailNotificationStatus = res.data;
+        })
+        .catch((error) => {
+          throw error;
+        });
+    },
+    async sendTestMail(mailAddress: string) {
+      return api
+        .put<TestMailResponse>('/mail/send-test-mail', {
+          mail_address: mailAddress,
+        });
+    },
+  },
+});

@@ -41,16 +41,12 @@ import org.springframework.context.event.EventListener;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
 
-import java.security.cert.X509Certificate;
 import java.time.OffsetDateTime;
 import java.time.ZoneOffset;
 import java.util.List;
 import java.util.Optional;
 
-import static ee.ria.xroad.common.util.CertUtils.getIssuerCommonName;
-import static ee.ria.xroad.common.util.CryptoUtils.readCertificate;
 import static org.apache.commons.lang3.StringUtils.isNotBlank;
-import static org.apache.commons.lang3.StringUtils.joinWith;
 
 /**
  * service class for handling notifications
@@ -145,14 +141,8 @@ public class NotificationService {
                 .filter(k -> k.getUsage() == keyUsage)
                 .flatMap(k -> k.getCerts().stream())
                 .filter(c -> c.getStatus().equals(CertificateInfo.STATUS_REGISTERED) && isNotBlank(c.getRenewalError()))
-                .map(this::getCertificateDisplayName)
+                .map(CertificateInfo::getCertificateDisplayName)
                 .toList();
-    }
-
-    private String getCertificateDisplayName(CertificateInfo certificateInfo) {
-        X509Certificate x509Certificate = readCertificate(certificateInfo.getCertificateBytes());
-        String issuerCommonName = getIssuerCommonName(x509Certificate);
-        return joinWith(" ", issuerCommonName, x509Certificate.getSerialNumber().toString());
     }
 
     /**

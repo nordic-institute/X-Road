@@ -77,6 +77,13 @@ services:
       - "4600:8080"
     networks:
       - xroad-network
+  mailpit:
+    container_name: mailpit
+    ports:
+      - "8025:8025"
+      - "1025:1025"
+    networks:
+      - xroad-network
   hurl:
     networks:
       - xroad-network

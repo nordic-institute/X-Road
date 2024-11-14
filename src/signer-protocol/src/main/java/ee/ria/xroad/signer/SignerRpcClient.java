@@ -96,6 +96,7 @@ import org.niis.xroad.signer.proto.UpdateSoftwareTokenPinReq;
 import org.springframework.beans.factory.InitializingBean;
 
 import java.security.PublicKey;
+import java.security.cert.X509Certificate;
 import java.time.Instant;
 import java.util.Arrays;
 import java.util.Date;
@@ -104,6 +105,8 @@ import java.util.Map;
 import java.util.stream.Collectors;
 
 import static java.time.Instant.ofEpochMilli;
+import static ee.ria.xroad.common.util.CertUtils.isAuthCert;
+import static ee.ria.xroad.common.util.CryptoUtils.readCertificate;
 import static java.util.Arrays.asList;
 import static java.util.Optional.ofNullable;
 import static org.niis.xroad.restapi.util.FormatUtils.fromInstantToOffsetDateTime;
@@ -331,12 +334,13 @@ public final class SignerRpcClient extends AbstractRpcClient implements Initiali
      * @return key ID of the new certificate as a String
      * @throws Exception if any errors occur
      */
-    public String importCert(byte[] certBytes, String initialStatus, ClientId.Conf clientId) throws Exception {
+    public String importCert(byte[] certBytes, String initialStatus, ClientId.Conf clientId, boolean activate) throws Exception {
         log.trace("Importing cert from file with length of '{}' bytes", certBytes.length);
 
         final ImportCertReq.Builder builder = ImportCertReq.newBuilder()
                 .setCertData(ByteString.copyFrom(certBytes))
-                .setInitialStatus(initialStatus);
+                .setInitialStatus(initialStatus)
+                .setActivate(activate);
         ofNullable(clientId).map(ClientIdMapper::toDto).ifPresent(builder::setMemberId);
 
         var response = blockingCertificateService.importCert(builder.build());
@@ -344,6 +348,11 @@ public final class SignerRpcClient extends AbstractRpcClient implements Initiali
         log.trace("Cert imported successfully, keyId received: {}", response.getKeyId());
 
         return response.getKeyId();
+    }
+
+    public String importCert(byte[] certBytes, String initialStatus, ClientId.Conf clientId) throws Exception {
+        X509Certificate x509Certificate = readCertificate(certBytes);
+        return importCert(certBytes, initialStatus, clientId, !isAuthCert(x509Certificate));
     }
 
     /**

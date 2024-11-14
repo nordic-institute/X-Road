@@ -85,8 +85,8 @@ public class ImportCertReqHandler extends AbstractRpcHandler<ImportCertReq, Impo
                     "Failed to parse certificate: %s", e.getMessage());
         }
 
-        String keyId = importCertificate(cert, request.getInitialStatus(),
-                request.hasMemberId() ? ClientIdMapper.fromDto(request.getMemberId()) : null);
+        ClientId.Conf memberId = request.hasMemberId() ? ClientIdMapper.fromDto(request.getMemberId()) : null;
+        String keyId = importCertificate(cert, request.getInitialStatus(), memberId, request.getActivate());
 
         return ImportCertResp.newBuilder()
                 .setKeyId(keyId)
@@ -94,7 +94,7 @@ public class ImportCertReqHandler extends AbstractRpcHandler<ImportCertReq, Impo
     }
 
     public String importCertificate(X509Certificate cert,
-                                    String initialStatus, ClientId.Conf memberId) throws Exception {
+                                    String initialStatus, ClientId.Conf memberId, boolean activate) throws Exception {
         String publicKey = encodeBase64(cert.getPublicKey().getEncoded());
 
         // Find the key based on the public key of the cert
@@ -105,7 +105,7 @@ public class ImportCertReqHandler extends AbstractRpcHandler<ImportCertReq, Impo
                     log.debug("Importing certificate under key '{}'", keyId);
 
                     importCertificateToKey(keyInfo, cert, initialStatus,
-                            memberId);
+                            memberId, activate);
                     return keyId;
                 }
             }
@@ -137,7 +137,7 @@ public class ImportCertReqHandler extends AbstractRpcHandler<ImportCertReq, Impo
     }
 
     private void importCertificateToKey(KeyInfo keyInfo, X509Certificate cert,
-                                        String initialStatus, ClientId.Conf memberId) throws Exception {
+                                        String initialStatus, ClientId.Conf memberId, boolean activate) throws Exception {
         String certHash = calculateCertHexHash(cert);
 
         CertificateInfo existingCert = TokenManager.getCertificateInfoForCertHash(certHash);
@@ -170,7 +170,7 @@ public class ImportCertReqHandler extends AbstractRpcHandler<ImportCertReq, Impo
         }
 
         TokenManager.addCert(keyInfo.getId(), memberId,
-                !authentication, true, initialStatus, SignerUtil.randomId(),
+                activate, true, initialStatus, SignerUtil.randomId(),
                 cert.getEncoded());
         TokenManager.setKeyUsage(keyInfo.getId(), keyUsage);
         updateOcspResponse(cert);

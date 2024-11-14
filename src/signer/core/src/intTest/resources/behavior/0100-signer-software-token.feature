@@ -131,5 +131,13 @@ Feature: 0100 - Signer: SoftToken
     Then ocsp responses can be retrieved
     And null ocsp response is returned for unknown certificate
 
+  Scenario: Ocsp responses verified on certificate activation
+    When the SIGNING cert request is generated for token "soft-token-000" key "SignKey from CA" for client "DEV:COM:1234:MANAGEMENT"
+    And SIGN CSR is processed by test CA
+    And Generated certificate with initial status "registered" is imported for client "DEV:COM:1234:MANAGEMENT"
+    Then certificate can be activated
+    When ocsp responses are set to REVOKED
+    Then certificate activation fails with ocsp verification
+
 #  not covered SignerProxy methods:
 #  AuthKeyInfo getAuthKey(SecurityServerId serverId)                            #requires valid ocsp response

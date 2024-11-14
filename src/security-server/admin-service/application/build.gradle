@@ -31,6 +31,7 @@ dependencies {
     implementation(project(':common:common-api-throttling'))
     implementation(project(":common:common-properties"))
     implementation(project(":common:common-verifier"))
+    implementation(project(":common:common-mail"))
     implementation(project(":security-server:openapi-model"))
     implementation(project(":proxy:proxy-rpc-client"))
     implementation(project(":configuration-client:confclient-rpc-client"))
