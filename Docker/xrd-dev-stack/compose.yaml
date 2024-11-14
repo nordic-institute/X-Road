@@ -55,6 +55,18 @@ services:
       test: [ "CMD", "curl", "-f", "-k", "http://localhost:8888/testca/certs" ]
     volumes:
       - ca-volume:/home/ca/certs
+  mailpit:
+    image: axllent/mailpit
+    restart: unless-stopped
+    volumes:
+      - ./testmail:/data
+    environment:
+      MP_MAX_MESSAGES: 5000
+      MP_DATABASE: /data/mailpit.db
+      MP_SMTP_REQUIRE_STARTTLS: 1
+      MP_SMTP_TLS_CERT: /data/mailpit_cert.pem
+      MP_SMTP_TLS_KEY: /data/mailpit_key.pem
+      MP_SMTP_AUTH_FILE: /data/password_file
   issoap:
     image: ${IS_SOAP_IMG}
     deploy:

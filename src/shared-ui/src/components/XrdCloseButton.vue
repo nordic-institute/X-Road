@@ -40,14 +40,14 @@ defineEmits(['click']);
 </script>
 
 <style lang="scss" scoped>
-@import '../assets/colors';
+@use '../assets/colors';
 
 #dlg-close-x {
   font-size: 34px;
   cursor: pointer;
   font-style: normal;
   font-weight: 300;
-  color: $XRoad-Purple100;
+  color: colors.$Purple100;
   margin-top: -5px;
 }
 

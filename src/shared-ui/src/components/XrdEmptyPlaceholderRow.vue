@@ -95,7 +95,7 @@ export default defineComponent({
 </script>
 
 <style lang="scss" scoped>
-@import '../assets/colors';
+@use '../assets/colors';
 
 .empty-text {
   height: 112px;
@@ -106,6 +106,6 @@ export default defineComponent({
 }
 
 td {
-  border-bottom: $XRoad-WarmGrey30 solid 1px;
+  border-bottom: colors.$WarmGrey30 solid 1px;
 }
 </style>

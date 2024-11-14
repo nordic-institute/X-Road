@@ -23,33 +23,17 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.securityserver.restapi;
+package ee.ria.xroad.common.conf.serverconf.dao;
 
-import ee.ria.xroad.common.conf.serverconf.ServerConfDatabaseCtx;
-import ee.ria.xroad.common.db.TransactionCallback;
+import ee.ria.xroad.common.identifier.XRoadId;
 
-import static ee.ria.xroad.common.ErrorCodes.translateException;
+import org.hibernate.Session;
 
-/**
- * Helper utility for executing core xroad style transactions
- * and handling errors
- */
-public final class DatabaseContextHelper {
-    private DatabaseContextHelper() {
+public class AccessRightDAOImpl {
+
+    public void deleteBySubjectId(Session session, XRoadId subjectId) {
+        var query = session.createMutationQuery("delete from AccessRightType where subjectId = :subjectId");
+        query.setParameter("subjectId", subjectId);
+        query.executeUpdate();
     }
-
-    /**
-     * server config tx
-     * @param t
-     * @param <T>
-     * @return
-     */
-    public static <T> T serverConfTransaction(TransactionCallback<T> t) {
-        try {
-            return ServerConfDatabaseCtx.doInTransaction(t);
-        } catch (Exception e) {
-            throw translateException(e);
-        }
-    }
-
 }

@@ -37,6 +37,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.bouncycastle.operator.OperatorCreationException;
 import org.jose4j.jws.AlgorithmIdentifiers;
 import org.niis.xroad.common.exception.ValidationFailureException;
+import org.niis.xroad.common.mail.MailNotificationProperties;
 import org.shredzone.acme4j.Account;
 import org.shredzone.acme4j.AccountBuilder;
 import org.shredzone.acme4j.AcmeJsonResource;
@@ -79,9 +80,11 @@ import java.util.Optional;
 import java.util.function.Supplier;
 
 import static ee.ria.xroad.common.util.CertUtils.createSelfSignedCertificate;
+import static org.apache.commons.lang3.ArrayUtils.isEmpty;
 import static org.niis.xroad.common.acme.AcmeCustomSchema.XRD_ACME;
 import static org.niis.xroad.common.acme.AcmeCustomSchema.XRD_ACME_PROFILE_ID;
 import static org.niis.xroad.common.acme.AcmeDeviationMessage.ACCOUNT_CREATION_FAILURE;
+import static org.niis.xroad.common.acme.AcmeDeviationMessage.ACCOUNT_KEYSTORE_PASSWORD_MISSING;
 import static org.niis.xroad.common.acme.AcmeDeviationMessage.ACCOUNT_KEY_PAIR_ERROR;
 import static org.niis.xroad.common.acme.AcmeDeviationMessage.AUTHORIZATION_FAILURE;
 import static org.niis.xroad.common.acme.AcmeDeviationMessage.AUTHORIZATION_WAIT_FAILURE;
@@ -108,6 +111,7 @@ public final class AcmeService {
     private final String acmeChallengePath = SystemProperties.getConfPath() + "acme-challenge/";
 
     private final AcmeProperties acmeProperties;
+    private final MailNotificationProperties mailNotificationProperties;
 
     public boolean isExternalAccountBindingRequired(String acmeServerDirectoryUrl) {
         Session session = new Session(acmeServerDirectoryUrl);
@@ -153,14 +157,46 @@ public final class AcmeService {
 
     }
 
+    public void checkAccountKeyPairAndRenewIfNecessary(String memberId, ApprovedCAInfo caInfo, KeyUsageInfo keyUsage) {
+        try {
+            Login login = getLogin(memberId, caInfo, keyUsage);
+            File acmeKeystoreFile = new File(acmeAccountKeystorePath);
+            char[] storePassword = acmeProperties.getAccountKeystorePassword();
+            KeyStore keyStore = CryptoUtils.loadPkcs12KeyStore(acmeKeystoreFile, storePassword);
+            X509Certificate certificate = (X509Certificate) keyStore.getCertificate(memberId);
+            int renewalTimeBeforeExpirationDate = SystemProperties.getAcmeKeypairRenewalTimeBeforeExpirationDate();
+            if (Instant.now().isAfter(certificate.getNotAfter().toInstant().minus(renewalTimeBeforeExpirationDate, ChronoUnit.DAYS))) {
+                KeyPairGenerator keyPairGenerator = KeyPairGenerator.getInstance("RSA");
+                keyPairGenerator.initialize(SystemProperties.getSignerKeyLength(), new SecureRandom());
+                KeyPair keyPair = keyPairGenerator.generateKeyPair();
+                login.getAccount().changeKey(keyPair);
+
+                long expirationInDays = SystemProperties.getAcmeAccountKeyPairExpirationInDays();
+                X509Certificate[] certificateChain = createSelfSignedCertificate(memberId, keyPair, expirationInDays);
+                keyStore.setKeyEntry(
+                        memberId,
+                        keyPair.getPrivate(),
+                        memberId.toCharArray(),
+                        certificateChain);
+                log.info("Renewed acme account keypair for {}", memberId);
+            }
+        } catch (Exception e) {
+            log.error("Renewing account key pair failed", e);
+        }
+    }
+
     private KeyPair getAccountKeyPair(String memberId) throws GeneralSecurityException, IOException, OperatorCreationException {
         File acmeKeystoreFile = new File(acmeAccountKeystorePath);
         KeyStore keyStore;
+        char[] storePassword = acmeProperties.getAccountKeystorePassword();
+        if (isEmpty(storePassword)) {
+            throw new AcmeServiceException(ACCOUNT_KEYSTORE_PASSWORD_MISSING);
+        }
         if (acmeKeystoreFile.exists()) {
-            keyStore = CryptoUtils.loadPkcs12KeyStore(acmeKeystoreFile, null);
+            keyStore = CryptoUtils.loadPkcs12KeyStore(acmeKeystoreFile, storePassword);
         } else {
             keyStore = KeyStore.getInstance("PKCS12");
-            keyStore.load(null, null);
+            keyStore.load(null, storePassword);
         }
         X509Certificate certificate = (X509Certificate) keyStore.getCertificate(memberId);
         KeyPair keyPair;
@@ -184,7 +220,7 @@ public final class AcmeService {
                     memberId.toCharArray(),
                     certificateChain);
             try (OutputStream outputStream = new FileOutputStream(acmeKeystoreFile)) {
-                keyStore.store(outputStream, null);
+                keyStore.store(outputStream, storePassword);
                 outputStream.flush();
             }
         }
@@ -206,7 +242,7 @@ public final class AcmeService {
         AccountBuilder accountBuilder = new AccountBuilder()
                 .agreeToTermsOfService()
                 .useKeyPair(keyPair);
-        Optional.ofNullable(acmeProperties.getContacts())
+        Optional.ofNullable(mailNotificationProperties.getContacts())
                 .map(contacts -> contacts.get(memberId))
                 .ifPresent(accountBuilder::addContact);
         if (metadata.isExternalAccountRequired()) {
@@ -357,7 +393,7 @@ public final class AcmeService {
         try {
             AccountBuilder accountBuilder = new AccountBuilder()
                     .useKeyPair(accountKeyPair);
-            Optional.ofNullable(acmeProperties.getContacts())
+            Optional.ofNullable(mailNotificationProperties.getContacts())
                     .map(contacts -> contacts.get(memberId))
                     .ifPresent(accountBuilder::addContact);
             accountWithEabCredentials(accountBuilder, keyUsage, approvedCA, memberId);

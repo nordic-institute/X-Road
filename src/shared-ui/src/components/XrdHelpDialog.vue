@@ -90,7 +90,7 @@ export default defineComponent({
 </script>
 
 <style lang="scss" scoped>
-@import '../assets/dialogs';
+@use '../assets/colors';
 
 .content-wrapper {
   margin-top: 20px;
@@ -108,7 +108,7 @@ export default defineComponent({
 
 .xrd-card {
   .xrd-card-actions {
-    background-color: $XRoad-WarmGrey10;
+    background-color: colors.$WarmGrey10;
     height: 72px;
     padding-right: 24px;
   }

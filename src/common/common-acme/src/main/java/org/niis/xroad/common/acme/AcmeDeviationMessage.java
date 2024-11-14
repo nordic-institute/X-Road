@@ -33,6 +33,8 @@ public enum AcmeDeviationMessage implements DeviationProvider {
     EAB_CREDENTIALS_MISSING("acme.eab_credentials_missing", "External Account binding credentials missing, but required"),
     EAB_SECRET_LENGTH("acme.eab_secret_length", "Invalid external account binding base64 secret length"),
     ACCOUNT_KEY_PAIR_ERROR("acme.account_key_pair_error", "Getting key pair for ACME server account failed"),
+    ACCOUNT_KEYSTORE_PASSWORD_MISSING("acme.account_keystore_password_missing",
+            "ACME account keystore password missing from the acme.yml configuration file"),
     FETCHING_METADATA_ERROR("acme.fetching_metadata_error", "Fetching ACME server metadata failed. ACME Server might be unreachable"),
     ACCOUNT_CREATION_FAILURE("acme.account_creation_failure",
             "Creating Account on ACME server failed. If external account binding is required, check that the correct credentials are "

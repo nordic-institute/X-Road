@@ -69,7 +69,6 @@ export default defineComponent({
 </script>
 
 <style lang="scss" scoped>
-@import '../assets/colors';
 
 .alerts-container {
   padding: 0;
