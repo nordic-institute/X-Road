@@ -310,7 +310,6 @@ public class GlobalConfChecker {
                 default -> log.warn("Unexpected status '{}' for certificate '{}'",
                         certInfo.getStatus(), CertUtils.identify(cert));
             }
-
         }
 
         if (!registered && CertificateInfo.STATUS_REGISTERED.equals(certInfo.getStatus())) {
@@ -320,6 +319,6 @@ public class GlobalConfChecker {
 
     private void setCertStatus(X509Certificate cert, String status, CertificateInfo certInfo) throws Exception {
         log.debug("Setting certificate '{}' status to '{}'", CertUtils.identify(cert), status);
-        signerProxyFacade.setCertStatus(certInfo.getId(), status);
+        signerRpcClient.setCertStatus(certInfo.getId(), status);
     }
 }

@@ -93,7 +93,7 @@ public class ConfigurationVerifier {
             case EXIT_STATUS_OTHER:
                 throw new ConfigurationVerificationException(CONF_VERIFICATION_OTHER);
             default:
-                throw new RuntimeException("Configuration verifier exited with an unknown code: " + exitCode);
+                throw new RuntimeException("Configuration verifier exited with an unknown code: " + returnCode);
         }
     }
 

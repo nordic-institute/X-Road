@@ -625,7 +625,7 @@ public class SignerStepDefs extends BaseSignerStepDefs {
             final OCSPResp ocspResponse = OcspTestUtils.createOCSPResponse(subject, caCert,
                     ocspCert, ocspPrivateKey, certificateStatus);
 
-            SignerProxy.setOcspResponses(new String[]{calculateCertSha1HexHash(subject)},
+            signerRpcClient.setOcspResponses(new String[]{calculateCertSha1HexHash(subject)},
                     new String[]{Base64.toBase64String(ocspResponse.getEncoded())});
         }
     }
@@ -633,7 +633,7 @@ public class SignerStepDefs extends BaseSignerStepDefs {
     @Step("certificate activation fails with ocsp verification")
     public void certificateActivationFailsWithOcspVerification() throws Exception {
         try {
-            SignerProxy.activateCert(this.certInfo.getId());
+            signerRpcClient.activateCert(this.certInfo.getId());
             Assertions.fail("Exception expected");
         } catch (CodedException codedException) {
             assertException("Signer.InvalidCertPath.CertValidation", "",

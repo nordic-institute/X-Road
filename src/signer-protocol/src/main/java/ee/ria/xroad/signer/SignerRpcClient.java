@@ -104,9 +104,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
-import static java.time.Instant.ofEpochMilli;
 import static ee.ria.xroad.common.util.CertUtils.isAuthCert;
 import static ee.ria.xroad.common.util.CryptoUtils.readCertificate;
+import static java.time.Instant.ofEpochMilli;
 import static java.util.Arrays.asList;
 import static java.util.Optional.ofNullable;
 import static org.niis.xroad.restapi.util.FormatUtils.fromInstantToOffsetDateTime;

@@ -37,7 +37,6 @@ import static java.util.Optional.ofNullable;
 /**
  * Contains system-wide constants for system properties.
  */
-// todo xroad8 FileLength checkstyle suppression is added to config/checkstyle/suppressions.xml. remove after refactor
 @SuppressWarnings("checkstyle:LineLength")
 @Deprecated(forRemoval = true)
 public final class SystemProperties {
@@ -1037,38 +1036,6 @@ public final class SystemProperties {
         return SystemPropertySource.getPropertyResolver().getProperty(PROXY_UI_API_MAIL_NOTIFICATION_LOCALE);
     }
 
-    /**
-     * @return the gRPC port on which the configuration client is listening, '5665' by default.
-     */
-    public static int getConfigurationClientPort() {
-        return Integer.parseInt(SystemPropertySource.getPropertyResolver().getProperty(CONFIGURATION_CLIENT_PORT,
-                Integer.toString(PortNumbers.CONFIGURATION_CLIENT_PORT)));
-    }
-
-    /**
-     * @return the HTTP port on which the configuration client is listening, '5675' by default.
-     */
-    public static int getConfigurationClientAdminPort() {
-        return Integer.parseInt(SystemPropertySource.getPropertyResolver().getProperty(CONFIGURATION_CLIENT_ADMIN_PORT,
-                Integer.toString(PortNumbers.CONFIGURATION_CLIENT_ADMIN_PORT)));
-    }
-
-    /**
-     * @return the update interval in seconds at which configuration client
-     * downloads the global configuration, '60' by default.
-     */
-    public static int getConfigurationClientUpdateIntervalSeconds() {
-        return Integer.parseInt(SystemPropertySource.getPropertyResolver().getProperty(CONFIGURATION_CLIENT_UPDATE_INTERVAL_SECONDS, "60"));
-    }
-
-    /**
-     * @return the proxy configuration auto backup cron expression.
-     * defaults to '0 15 3 * * ?'
-     */
-    public static String getConfigurationClientProxyConfigurationBackupCron() {
-        return SystemPropertySource.getPropertyResolver().getProperty(CONFIGURATION_CLIENT_PROXY_CONFIGURATION_BACKUP_CRON, "0 15 3 * * ?");
-    }
-
     public static boolean isConfigurationClientGlobalConfTlsCertVerificationEnabled() {
         return Boolean.parseBoolean(SystemPropertySource.getPropertyResolver().getProperty(CONFIGURATION_CLIENT_GLOBAL_CONF_TLS_CERT_VERIFICATION, TRUE));
     }
@@ -1314,7 +1281,6 @@ public final class SystemProperties {
     public static int getClientProxyHttpClientTimeout() {
         return Integer.parseInt(SystemPropertySource.getPropertyResolver().getProperty(CLIENTPROXY_HTTPCLIENT_TIMEOUT,
                 DEFAULT_CLIENTPROXY_HTTPCLIENT_TIMEOUT));
-
     }
 
     /**

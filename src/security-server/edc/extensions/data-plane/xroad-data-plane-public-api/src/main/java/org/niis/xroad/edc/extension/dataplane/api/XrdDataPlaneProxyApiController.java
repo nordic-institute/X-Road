@@ -142,7 +142,8 @@ public class XrdDataPlaneProxyApiController {
     private X509Certificate[] getClientSslCerts(ContainerRequestContext requestContext) {
         if (needClientAuth) {
             try {
-                return ((EndPoint.SslSessionData) requestContext.getProperty("org.eclipse.jetty.io.Endpoint.SslSessionData")).peerCertificates();
+                return ((EndPoint.SslSessionData) requestContext.getProperty("org.eclipse.jetty.io.Endpoint.SslSessionData"))
+                        .peerCertificates();
             } catch (Exception e) {
                 monitor.severe("Failed to get client SSL certificates", e);
             }

@@ -30,6 +30,7 @@ import ee.ria.xroad.common.util.CryptoUtils;
 import ee.ria.xroad.monitor.CertificateInfoSensor.CertificateInfoCollector;
 import ee.ria.xroad.monitor.CertificateInfoSensor.TokenExtractor;
 import ee.ria.xroad.monitor.common.SystemMetricNames;
+import ee.ria.xroad.signer.SignerRpcClient;
 import ee.ria.xroad.signer.protocol.dto.CertificateInfo;
 import ee.ria.xroad.signer.protocol.dto.CertificateInfoProto;
 import ee.ria.xroad.signer.protocol.dto.KeyInfo;
@@ -114,7 +115,8 @@ class CertificateInfoSensorTest {
         var taskScheduler = spy(TaskScheduler.class);
         when(taskScheduler.getClock()).thenReturn(Clock.systemDefaultZone());
 
-        certificateInfoSensor = new CertificateInfoSensor(taskScheduler, envMonitorProperties, serverConfProvider);
+        certificateInfoSensor = new CertificateInfoSensor(taskScheduler, envMonitorProperties, serverConfProvider,
+                mock(SignerRpcClient.class));
     }
 
     private TokenInfo createTestTokenInfo(KeyInfo... keyInfoParams) {

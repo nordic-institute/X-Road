@@ -26,18 +26,18 @@
 package ee.ria.xroad.monitor;
 
 import ee.ria.xroad.common.TestPortUtils;
+import ee.ria.xroad.common.properties.CommonRpcProperties;
 
 import com.codahale.metrics.Histogram;
 import com.codahale.metrics.MetricRegistry;
-import io.grpc.Channel;
-import lombok.Getter;
+import io.grpc.ManagedChannel;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.niis.xroad.common.rpc.client.RpcChannelProperties;
-import org.niis.xroad.common.rpc.RpcServerProperties;
+import org.niis.xroad.common.rpc.RpcCredentialsConfigurer;
 import org.niis.xroad.common.rpc.client.RpcChannelFactory;
+import org.niis.xroad.common.rpc.client.RpcChannelProperties;
 import org.niis.xroad.common.rpc.server.RpcServer;
 import org.niis.xroad.monitor.common.Metrics;
 import org.niis.xroad.monitor.common.MetricsGroup;
@@ -61,16 +61,9 @@ class MetricsRpcServiceTest {
     private static final String GAUGE_NAME = "TestGauge";
 
     private RpcServer rpcServer;
-    private RpcChannelFactory<TestMetricsExecutionContext> rpcChannelFactory;
 
-    @Getter
-    private static class TestMetricsExecutionContext implements RpcChannelFactory.ExecutionContext {
-        private final MetricsServiceGrpc.MetricsServiceBlockingStub metricsServiceBlockingStub;
-
-        TestMetricsExecutionContext(Channel channel) {
-            metricsServiceBlockingStub = MetricsServiceGrpc.newBlockingStub(channel).withWaitForReady();
-        }
-    }
+    private ManagedChannel channel;
+    private MetricsServiceGrpc.MetricsServiceBlockingStub metricsServiceBlockingStub;
 
     /**
      * Before test handler
@@ -84,14 +77,18 @@ class MetricsRpcServiceTest {
                 Duration.ofSeconds(5),
                 true);
 
+        RpcCredentialsConfigurer rpcCredentialsConfigurer = new RpcCredentialsConfigurer(
+                new CommonRpcProperties(false, null), null);
+
         int port = TestPortUtils.findRandomPort();
-        rpcServer = RpcServer.newServer(new RpcServerProperties("localhost", port, false, null, null, null, null),
-                serverBuilder -> serverBuilder.addService(new MetricsRpcService(envMonitorProperties)));
+
+        rpcServer = new RpcServer("localhost", port, rpcCredentialsConfigurer.createServerCredentials(),
+                builder -> builder.addService(new MetricsRpcService(envMonitorProperties)));
         rpcServer.afterPropertiesSet();
-        rpcChannelFactory = RpcChannelFactory.newClient(
-                new RpcChannelProperties("localhost", port, false, null,
-                        null, null, null),
-                TestMetricsExecutionContext::new);
+
+        channel = new RpcChannelFactory(rpcCredentialsConfigurer).createChannel(
+                new RpcChannelProperties("localhost", port, 5000));
+        metricsServiceBlockingStub = MetricsServiceGrpc.newBlockingStub(channel).withWaitForReady();
 
         MetricRegistry metricsRegistry = new MetricRegistry();
         Histogram testHistogram = metricsRegistry.histogram(HISTOGRAM_NAME);
@@ -109,14 +106,14 @@ class MetricsRpcServiceTest {
      */
     @AfterEach
     public void tearDown() throws Exception {
-        rpcChannelFactory.shutdown();
+        channel.shutdownNow();
         rpcServer.destroy();
     }
 
     @Test
     void testAllSystemMetricsRequest() throws Exception {
         var request = SystemMetricsReq.newBuilder().setIsClientOwner(true).build();
-        var response = rpcChannelFactory.execute(ctx -> ctx.getMetricsServiceBlockingStub().getMetrics(request));
+        var response = metricsServiceBlockingStub.getMetrics(request);
 
         assertNotNull(response);
 
@@ -147,7 +144,7 @@ class MetricsRpcServiceTest {
     @Test
     void testLimitedSystemMetricsRequest() throws Exception {
         var request = SystemMetricsReq.newBuilder().setIsClientOwner(false).build();
-        var response = rpcChannelFactory.execute(ctx -> ctx.getMetricsServiceBlockingStub().getMetrics(request));
+        var response = metricsServiceBlockingStub.getMetrics(request);
 
         MetricsGroup metricSetDto = response.getMetrics();
         List<Metrics> dtoSet = metricSetDto.getMetricsList();
@@ -186,7 +183,7 @@ class MetricsRpcServiceTest {
                 .setIsClientOwner(true)
                 .build();
 
-        var response = rpcChannelFactory.execute(ctx -> ctx.getMetricsServiceBlockingStub().getMetrics(request));
+        var response = metricsServiceBlockingStub.getMetrics(request);
 
         MetricsGroup metricSetDto = response.getMetrics();
         List<Metrics> dtoSet = metricSetDto.getMetricsList();

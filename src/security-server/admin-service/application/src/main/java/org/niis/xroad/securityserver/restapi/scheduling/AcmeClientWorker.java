@@ -329,7 +329,7 @@ public class AcmeClientWorker {
         CertificateInfo newCertInfo;
         SecurityServerId.Conf securityServerId = getSecurityServerId();
         try {
-            newCertInfo = signerProxyFacade.getCertForHash(calculateCertHexHash(newX509Certificate));
+            newCertInfo = signerRpcClient.getCertForHash(calculateCertHexHash(newX509Certificate));
             if (keyUsage == KeyUsageInfo.AUTHENTICATION) {
                 String securityServerAddress =
                         globalConfProvider.getSecurityServerAddress(globalConfProvider.getServerId(oldX509Certificate));
