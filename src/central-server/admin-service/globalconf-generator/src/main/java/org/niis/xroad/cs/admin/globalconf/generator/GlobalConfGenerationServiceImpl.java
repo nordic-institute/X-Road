@@ -90,13 +90,12 @@ public class GlobalConfGenerationServiceImpl implements GlobalConfGenerationServ
     private final SystemParameterService systemParameterService;
     private final ConfigurationService configurationService;
     private final ConfigurationSigningKeysService configurationSigningKeysService;
+    private final ApplicationEventPublisher eventPublisher;
+    private final List<ConfigurationPartsGenerator> configurationPartsGenerators;
     private final InitializationService initializationService;
     private final NotificationService notificationService;
-    private final ApplicationEventPublisher eventPublisher;
 
     private final ScheduledExecutorService taskScheduler = Executors.newSingleThreadScheduledExecutor();
-
-    private final List<ConfigurationPartsGenerator> configurationPartsGenerators;
 
     @Value("${xroad.admin-service.global-configuration-generation-rate-in-seconds}")
     private int globalConfigurationGenerationRateInSeconds;
@@ -104,8 +103,8 @@ public class GlobalConfGenerationServiceImpl implements GlobalConfGenerationServ
     @Override
     public void afterPropertiesSet() throws Exception {
         log.info("Scheduling global conf generation every {} seconds", globalConfigurationGenerationRateInSeconds);
-        taskScheduler.scheduleWithFixedDelay(this::generate, globalConfigurationGenerationRateInSeconds, globalConfigurationGenerationRateInSeconds,
-                SECONDS);
+        taskScheduler.scheduleWithFixedDelay(this::generate, globalConfigurationGenerationRateInSeconds,
+                globalConfigurationGenerationRateInSeconds, SECONDS);
     }
 
     @Override
