@@ -523,8 +523,7 @@ The Central Server produces global configuration version V3. Version V3 is suppo
 
 ### 4.3 Use EC Algorithm in Configuration Signing keys
 
-Since version 7.6.0, the Central Server supports EC algorithm for configuration signing keys. Refer to [UG-CS](#Ref_UG-CS) section „Migrating to EC based Configuration Signing keys“.
-
+Since version 7.6.0, the Central Server supports EC algorithm for configuration signing keys. Refer to [UG-CS](#Ref_UG-CS) section „Migrating to EC based Configuration Signing keys“. By default, both internal and external configuration signing keys use the RSA algorithm.
 ## 5 Installation Error Handling
 
 ### 5.1 Cannot Set LC_ALL to Default Locale
