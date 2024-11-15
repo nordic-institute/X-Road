@@ -110,6 +110,7 @@ This document is licensed under the Creative Commons Attribution-ShareAlike 3.0 
     - [3.4.1 Accepting Connections](#341-accepting-connections)
   - [3.5 Configuring Configuration Backup Encryption](#35-configuring-configuration-backup-encryption)
   - [3.6 Enabling ACME Support](#36-enabling-acme-support)
+  - [3.7 Enabling EC Keys for Authentication and Signing Certificates](#37-Enabling-EC-Keys-for-Authentication-and-Signing-Certificates)
 - [4 Installation Error handling](#4-installation-error-handling)
   - [4.1 Cannot Set LC\_ALL to Default Locale](#41-cannot-set-lc_all-to-default-locale)
   - [4.2 PostgreSQL Is Not UTF8 Compatible](#42-postgresql-is-not-utf8-compatible)
@@ -569,9 +570,9 @@ The key can then be moved to an external host and imported to GPG keyring with t
 Automated Certificate Management Environment (ACME) protocol enables automated certificate management of the authentication and sign
 certificates on the Security Server. More information about the required configuration is available in the [Security Server User Guide](ug-ss_x-road_6_security_server_user_guide.md#24-configuring-acme).
 
-### 3.7 Enabling EC keys for authentication and signing certificates
+### 3.7 Enabling EC Keys for Authentication and Signing Certificates
 
-Security server supports EC based authentication and signing certificates since version 7.6.0.
+Security Server supports EC based authentication and signing certificates since version 7.6.0.
 More information about the required configuration is available in the [Security Server User Guide](ug-ss_x-road_6_security_server_user_guide.md#25-migrating-to-ec-based-authentication-and-signing-certificates).
 
 ## 4 Installation Error handling
