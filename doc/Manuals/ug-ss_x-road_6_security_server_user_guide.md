@@ -264,9 +264,9 @@ Doc. ID: UG-SS
 - [22 Additional Security Hardening](#22-additional-security-hardening)
 - [23 Passing additional parameters to psql](#23-passing-additional-parameters-to-psql)
 - [24 Configuring ACME](#24-configuring-acme)
-- [25 Migrating to EC based Authentication and Signing certificates](#25-migrating-to-ec-based-authentication-and-signing-certificates)
-  - [25.1 Steps to enable EC based certificates](#251-Steps-to-enable-EC-based-certificates) 
-  - [25.2 Backwards compatibility](#252-Backwards-compatibility) 
+- [25 Migrating to EC Based Authentication and Signing Certificates](#25-migrating-to-ec-based-authentication-and-signing-certificates)
+  - [25.1 Steps to Enable EC Based Certificates](#251-Steps-to-enable-EC-based-certificates) 
+  - [25.2Backwards Compatibility](#252-Backwards-compatibility) 
 
 <!-- vim-markdown-toc -->
 <!-- tocstop -->
@@ -3328,12 +3328,11 @@ eab-credentials:
 
 ```
 
-## 25 Migrating to EC based Authentication and Signing certificates
+## 25 Migrating to EC Based Authentication and Signing Certificates
 
-### 25.1 Steps to enable EC based certificates
+### 25.1 Steps to Enable EC Based Certificates
 
-Since version 7.6.0 Security Server supports ECDSA based Authentication and Signing certificates. By default, both authentication and signing certificates will use RSA algorithm as in previous versions. EC algorithm can be enabled separately for authentication and/or signing keys so migration can be done gradual way.
-The instructions how to start using EC based certificates are listed below.
+Since version 7.6.0 Security Server supports ECDSA based authentication and signing keys. By default, both authentication and signing keys use the RSA algorithm as in previous versions. The EC algorithm can be enabled separately for authentication and/or signing keys so migration can be done in a gradual way. The instructions on how to start using EC based keys are listed below.
 
 1. Update the configuration to use EC based keys. This can be done by updating the configuration file `/etc/xroad/conf.d/local.ini` and adding the following lines:
 
@@ -3347,8 +3346,8 @@ signing-key-algorithm = EC
 3. - Follow the instructions in Section [3.1](#31-configuring-the-signing-key-and-certificate-for-the-security-server-owner) to create new Signing certificate, which will be using EC algorithm now.
    - Follow the instructions in Section [3.2](#32-configuring-the-authentication-key-and-certificate-for-the-security-server) to create new Authentication certificate, which will be using EC algorithm now.
 
-### 25.2 Backwards compatibility
+### 25.2 Backwards Compatibility
 
-EC based certificates are supported from version 7.6.0 onwards. In case X-Road instance contains Security Servers prior version 7.6.0, then:
-- Older Security Servers should be able to verify requests signed with EC keys from newer Security server.
-- If older Security Server makes to request to newer Security Server,which uses EC based authentication certificate, then `TLS handshake failed` error may occur. To fix this without upgrading the older Security Server, just update on that security server `xroad-tls-ciphers` property to include EC compatible TLS cypher for example: `TLS_ECDHE_ECDSA_WITH_AES_256_CBC_SHA384`, read more in [UG-SYSPAR](../Manuals/ug-syspar_x-road_v6_system_parameters.md).
+EC based keys are supported starting from X-Road version 7.6.0 (=> 7.6.0). If an X-Road instance contains Security Servers prior to version 7.6.0 (< 7.6.0), then:
+A Security Server prior to version 7.6.0 (< 7.6.0) is able to verify requests signed with EC keys from a Security Server version 7.6.0 or later (=> 7.6.0).
+If a Security Server prior to version 7.6.0 (< 7.6.0) makes a request to a Security Server version 7.6.0 or later (=> 7.6.0), which uses EC based authentication certificate, then TLS handshake failed error may occur. To fix this without upgrading the older Security Server, update the Security Server's xroad-tls-ciphers property to include EC compatible TLS cipher, e.g.: TLS_ECDHE_ECDSA_WITH_AES_256_CBC_SHA384, read more in [UG-SYSPAR](../Manuals/ug-syspar_x-road_v6_system_parameters.md).
