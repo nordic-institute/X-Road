@@ -274,7 +274,7 @@ A command may have one or more arguments, and may or may not produce any output.
 **Arguments:**
 * ***token id***: the identifier of the token. Use *[list-tokens](#241-list-tokens)* to look up token identifiers.
 * ***label***: the label of the key is set for SSCD devices.
-* ***algorithm***: the algorithm used by generated key, Possible values: RSA, EC. RSA was used by default in X-Road version before 7.6.0.
+* ***algorithm***: the algorithm used by generated key, Possible values: RSA, EC. Prior to version 7.6.0 only RSA is supported.
 
 **Output:** The id of the generated key.
 

@@ -179,9 +179,9 @@ Doc. ID: UG-CS
 - [18 Migrating to Remote Database Host](#18-migrating-to-remote-database-host)
 - [19 Additional Security Hardening](#19-additional-security-hardening)
 - [20 Passing additional parameters to psql](#20-passing-additional-parameters-to-psql)
-- [21 Migrating to EC based Configuration Signing keys](#21-migrating-to-ec-based-configuration-signing-keys)
-  - [21.1 Steps to enable EC based signing keys](#211-Steps-to-enable-EC-based-signing-keys)
-  - [21.2 Backwards compatibility](#212-Backwards-compatibility)
+- [21 Migrating to EC Based Configuration Signing Keys](#21-migrating-to-ec-based-configuration-signing-keys)
+  - [21.1 Steps to Enable EC Based Signing Keys](#211-Steps-to-enable-EC-based-signing-keys)
+  - [21.2 Backwards Compatibility](#212-Backwards-compatibility)
 <!-- tocstop -->
 
 # License
@@ -1761,12 +1761,11 @@ Some of the variables like `PGOPTIONS`, `PGDATABASE`, `PGUSER`, `PGPASSWORD` are
 
 In case it is needed to pass additional flags to internally initialized `PGOPTIONS` variable, then `PGOPTIONS_EXTRA` variable can be used. It will be appended to `PGOPTIONS` variable.
 
-# 21 Migrating to EC based Configuration Signing keys
+# 21 Migrating to EC Based Configuration Signing Keys
 
-## 21.1 Steps to enable EC based signing keys
+## 21.1 Steps to Enable EC Based Signing Keys
 
-Since version 7.6.0 Central Server supports ECDSA based Configuration Signing keys. By default, both internal and external configuration signing keys will use RSA algorithm as in previous versions. EC algorithm can be enabled separately for internal and external keys so migration can be done steps first internal and then external keys or vice versa.
-The instructions how to start using internal and external signing EC keys are listed below.
+Since version 7.6.0 Central Server supports ECDSA based configuration signing keys. By default, both internal and external configuration signing keys use the RSA algorithm as in previous versions. The EC algorithm can be enabled separately for internal and external keys so migration can be done in steps, e.g., first internal and then external keys or vice versa. The instructions on how to start using internal and external signing EC keys are listed below.
 
 1. Update the configuration to use EC based keys. This can be done by updating the configuration file `/etc/xroad/conf.d/local.ini` and adding the following lines:
 
@@ -1779,6 +1778,7 @@ external-key-algorithm = EC
 2. Restart the `xroad-center` service to apply the changes made to the configuration file.
 3. Follow the instructions in the [Generating a Configuration Signing Key](#541-generating-a-configuration-signing-key) to generate new keys, which will be using EC algorithm now.
 
-## 21.2 Backwards compatibility
+## 21.2 Backwards Compatibility
 
-If Central Server is configured to use EC based signing keys, then Security Servers with versions older than 7.6.0 will not be able to download the configuration. Although EC support can be enabled separately for internal and external keys so if your X-Road instance consists only of Security servers of version 7.6.0 or newer but there is older Security servers in federation instances then EC can be enabled only for internal keys to keep federation working as expected.
+When Central Server is configured to use EC based signing keys, then Security Servers prior to version 7.6.0 are not be able to use the global configuration. In other words, EC based internal signing keys can be used only when all the Security Servers in the local ecosystem use X-Road version 7.6.0 or later. Instead, in a federated setup, EC based external signing keys can be used only when all the Security Servers in all the federated ecosystems use X-Road version 7.6.0 or later.
+Before migrating to EC based configuration signing keys, always remember to make sure that all the Security Servers in all the affected ecosystems use X-Road version 7.6.0 or later.
