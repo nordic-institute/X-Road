@@ -24,42 +24,24 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-
 package org.niis.xroad.edc.catalog;
 
+import lombok.extern.slf4j.Slf4j;
+import org.niis.xroad.bootstrap.XrdSpringServiceBuilder;
+import org.niis.xroad.edc.extension.bridge.spring.XrdEdcBeanBridgeConfig;
+import org.springframework.boot.SpringBootConfiguration;
+import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 
-import org.eclipse.edc.catalog.spi.CatalogConstants;
-import org.eclipse.edc.crawler.spi.TargetNode;
-import org.eclipse.edc.crawler.spi.TargetNodeDirectory;
-import org.eclipse.edc.runtime.metamodel.annotation.Extension;
-import org.eclipse.edc.runtime.metamodel.annotation.Inject;
-import org.eclipse.edc.spi.system.ServiceExtension;
-import org.eclipse.edc.spi.system.ServiceExtensionContext;
+@Slf4j
+@EnableAutoConfiguration
+@SpringBootConfiguration
+@SuppressWarnings("checkstyle:HideUtilityClassConstructor")
+public class XrdDsCatalogServiceMain {
+    private static final String APP_NAME = "xroad-ds-catalog-service";
 
-import java.util.List;
-
-import static org.niis.xroad.edc.catalog.DsCatalogDirectoryExtension.NAME;
-
-@Extension(value = NAME)
-public class DsCatalogDirectoryExtension implements ServiceExtension {
-
-    static final String NAME = "DS Catalog Directory Extension";
-
-    @Inject
-    private TargetNodeDirectory directory;
-
-    @Override
-    public void initialize(ServiceExtensionContext context) {
-        directory.insert(new TargetNode(
-                "ss0",
-                "did:web:ss0%3A9396",
-                "https://ss0:9194/protocol",
-                List.of(CatalogConstants.DATASPACE_PROTOCOL)));
-        directory.insert(new TargetNode(
-                "ss1",
-                "did:web:ss1%3A9396",
-                "https://ss1:9194/protocol",
-                List.of(CatalogConstants.DATASPACE_PROTOCOL)));
-
+    public static void main(String[] args) {
+        XrdSpringServiceBuilder.newApplicationBuilder(APP_NAME, XrdDsCatalogServiceMain.class, XrdEdcBeanBridgeConfig.class)
+                .build()
+                .run(args);
     }
 }

@@ -2,11 +2,11 @@
 . /etc/xroad/services/global.conf
 
 echo "DS: Running liquibase.."
-source /usr/share/xroad/scripts/setup_edc_identityhub_db.sh
+source /usr/share/xroad/scripts/setup_edc_catalogservice_db.sh
 
 exec java \
-    -Xdebug -agentlib:jdwp=transport=dt_socket,address=*:9958,server=y,suspend=n \
+    -Xdebug -agentlib:jdwp=transport=dt_socket,address=*:9956,server=y,suspend=n \
     -Dedc.extension.spring-bridge.serverconf.enabled=false \
     -Dweb.custom-tls-keystore.enabled=true \
     -Dweb.custom-tls-keystore.path=/etc/xroad/ssl/management-service.p12 \
-    -Xmx256m -jar /usr/share/xroad/jlib/ds-credential-service-1.0.jar
+    -Xmx256m -jar /usr/share/xroad/jlib/ds-catalog-service-1.0.jar

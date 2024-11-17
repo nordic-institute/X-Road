@@ -1,12 +1,8 @@
 plugins {
-    id("java")
-    id("application")
-    alias(libs.plugins.shadow)
+    alias(libs.plugins.springBoot)
 }
 
 configurations {
-    sqlDependencies
-
     configureEach {
         exclude group: 'org.eclipse.edc', module: 'jetty-core'
         exclude group: 'com.apicatalog', module: 'titanium-json-ld-jre8' //transient dep that creates errors
@@ -15,6 +11,8 @@ configurations {
 }
 
 dependencies {
+    implementation(project(':common:common-service-bootstrap'))
+
     runtimeOnly libs.bundles.connector
     runtimeOnly(libs.edc.config.filesystem)
     runtimeOnly libs.edc.api.management
@@ -26,7 +24,7 @@ dependencies {
     runtimeOnly libs.edc.api.dsp.config // json-ld expansion
     runtimeOnly(libs.edc.vault.hashicorp)
 
-    sqlDependencies(libs.bundles.sql.edc)
+    runtimeOnly(libs.bundles.sql.edc)
 
     implementation(libs.edc.spi.identity.did)
     implementation(libs.edc.fc.spi.crawler)
@@ -35,23 +33,27 @@ dependencies {
     runtimeOnly(libs.edc.fc.api)
 
     implementation(project(":security-server:edc:extensions:control-plane:xroad-identity-and-trust"))
+    implementation(project(":security-server:edc:extensions:common:xroad-jws-signer"))
     implementation(project(":security-server:edc:extensions:common:xroad-webserver"))
+    implementation(project(":security-server:edc:extensions:common:xroad-httpclient"))
+    implementation(project(":security-server:edc:extensions:common:xroad-spring-bridge"))
 
     testImplementation libs.edc.junit
     testImplementation(project(':common:common-test'))
     testImplementation('org.springframework:spring-test:6.1.12')
 }
 
-application {
-    mainClass.set("org.eclipse.edc.boot.system.runtime.BaseRuntime")
+jar {
+    enabled = false
 }
 
-
-var distTar = tasks.named("distTar")
-var distZip = tasks.named("distZip")
-
-shadowJar {
-    mergeServiceFiles()
-    archiveFileName.set("ds-catalog-service.jar")
-    dependsOn(distTar, distZip)
+bootJar {
+    enabled = true
+    archiveBaseName = 'ds-catalog-service'
+    manifest {
+        attributes(
+            'Implementation-Title': 'X-Road DS Catalog Service',
+            'Implementation-Version': "$xroadVersion-$xroadBuildType",
+        )
+    }
 }

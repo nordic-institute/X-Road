@@ -119,7 +119,7 @@ public class XRoadIdentityHubProvisionerExtension implements ServiceExtension {
         monitor.info("Creating participant context for %s".formatted(participantId));
         createParticipantContext(hostname, participantId, keyId, publicKeyPem);
         createKeyPairs(participantId, keyId, publicKeyPem);
-        createCredentials(System.getenv("XROAD_MEMBER_IDENTIFIER"), participantId, keyId);
+        createCredentials(System.getenv("EDC_XROAD_MEMBER_IDENTIFIER"), participantId, keyId);
     }
 
 
