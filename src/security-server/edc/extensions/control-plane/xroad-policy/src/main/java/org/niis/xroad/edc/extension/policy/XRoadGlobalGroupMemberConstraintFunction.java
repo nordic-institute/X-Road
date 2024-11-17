@@ -28,6 +28,7 @@
 package org.niis.xroad.edc.extension.policy;
 
 import ee.ria.xroad.common.conf.globalconf.GlobalConfProvider;
+import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.identifier.GlobalGroupId;
 
 import lombok.RequiredArgsConstructor;
@@ -38,8 +39,6 @@ import org.eclipse.edc.policy.model.Operator;
 import org.eclipse.edc.policy.model.Permission;
 import org.eclipse.edc.spi.monitor.Monitor;
 import org.niis.xroad.edc.extension.policy.util.PolicyContextHelper;
-
-import java.util.Optional;
 
 import static java.util.concurrent.TimeUnit.MILLISECONDS;
 
@@ -61,19 +60,15 @@ public class XRoadGlobalGroupMemberConstraintFunction implements AtomicConstrain
                 context.reportProblem("Right-value expected to be String but was " + rightValue.getClass());
                 return false;
             }
-            Optional<String> subject = PolicyContextHelper.getClientIdFromContext(context);
-            if (subject.isPresent()) {
-                GlobalGroupId globalGroupId = parseGlobalGroup(globalGroupCode);
-                var clientId = PolicyContextHelper.parseClientId(subject.get());
-                return switch (operator) {
-                    case EQ, IN -> globalConfProvider.isSubjectInGlobalGroup(clientId, globalGroupId);
-                    default -> {
-                        context.reportProblem("Unsupported operator: " + operator);
-                        yield false;
-                    }
-                };
-            }
-            return false;
+            GlobalGroupId globalGroupId = parseGlobalGroup(globalGroupCode);
+            return PolicyContextHelper.findMemberIdFromContext(context)
+                    .map(memberId -> switch (operator) {
+                        case EQ, IN -> isMemberAssociatedWithGlobalGroup(memberId, globalGroupId);
+                        default -> {
+                            context.reportProblem("Unsupported operator: " + operator);
+                            yield false;
+                        }
+                    }).orElse(false);
         } finally {
             monitor.debug("XRoadGlobalGroupMemberConstraintFunction took " + stopWatch.getTime(MILLISECONDS) + " ms");
         }
@@ -82,6 +77,12 @@ public class XRoadGlobalGroupMemberConstraintFunction implements AtomicConstrain
     private GlobalGroupId parseGlobalGroup(String encodedGlobalGroup) {
         String[] parts = encodedGlobalGroup.split(":", 2);
         return GlobalGroupId.Conf.create(parts[0], parts[1]);
+    }
+
+    private boolean isMemberAssociatedWithGlobalGroup(ClientId memberId, GlobalGroupId globalGroupId) {
+        return globalConfProvider.findGlobalGroup(globalGroupId)
+                .filter(group -> group.getGroupMembers().stream().anyMatch(m -> m.memberEquals(memberId)))
+                .isPresent();
     }
 
 }

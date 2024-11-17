@@ -63,7 +63,7 @@ import static org.niis.xroad.edc.credential.XRoadMemberShipCredentialIssuanceCon
 
 @Path(MEMBERSHIP_CREDENTIAL_PATH)
 @Consumes("application/jwt")
-@Produces("application/vc+ld+jwt")
+@Produces("application/vc+jwt")
 public class XRoadMemberShipCredentialIssuanceController {
 
     static final String MEMBERSHIP_CREDENTIAL_PATH = "/membership-credential";
@@ -108,18 +108,26 @@ public class XRoadMemberShipCredentialIssuanceController {
         // Ensure the certificate corresponds to the signing public key and is issued by a trusted chain
         var certificate = CryptoUtils.readCertificate(signedJwt.getHeader().getX509CertChain().getFirst().decode());
         if (!Arrays.equals(publicKey.getEncoded(), certificate.getPublicKey().getEncoded())) {
-            throw new EdcException("The certificate in self-description does not match the public key");
+            throw new EdcException("The certificate in self-description does not match with the public key");
         }
         var certChain = globalConfProvider.getCertChain(globalConfProvider.getInstanceIdentifier(), certificate);
         var verifier = new CertChainVerifier(globalConfProvider, certChain);
         verifier.verifyChainOnly(new Date()); //TODO also verify ocsp
 
         // Validate the membership claim using the signing certificate
-        var xroadIdentifier = signedJwt.getJWTClaimsSet().getStringClaim("xroadIdentifier");
-        var clientId = clientIdConverter.convertId(xroadIdentifier);
+        var xroadMemberIdentifier = signedJwt.getJWTClaimsSet().getStringClaim("xroadMemberIdentifier");
+        if (!clientIdConverter.isEncodedMemberId(xroadMemberIdentifier)) {
+            throw new IllegalStateException("Invalid member identifier: " + xroadMemberIdentifier);
+        }
+        var clientId = clientIdConverter.convertId(xroadMemberIdentifier);
         var clientIdFromCert = getClientIdFromCert(certificate, clientId);
-        if (!clientId.memberEquals(clientIdFromCert)) {
-            throw new EdcException("The xroadIdentifier claim in self-description is not owned by the clientId from certificate");
+        if (!clientId.equals(clientIdFromCert)) {
+            throw new EdcException("The 'xroadMemberIdentifier' claim in self-description does not belong to the one in certificate");
+        }
+        var isMemberRecognized = globalConfProvider.getMembers(globalConfProvider.getInstanceIdentifier()).stream()
+                .anyMatch(m -> m.getId().equals(clientIdFromCert));
+        if (!isMemberRecognized) {
+            throw new EdcException("Member '%s' is not recognized".formatted(clientIdFromCert));
         }
 
         // Construct the membership credential
@@ -128,11 +136,12 @@ public class XRoadMemberShipCredentialIssuanceController {
                 .type(JOSEObjectType.JWT)
                 .build();
         var participantDid = signedJwt.getHeader().getCustomParam("iss").toString();
-        var credentialPayload = mapper.readValue(constructCredentialPayload(xroadIdentifier, participantDid).toString(), Map.class);
+        var memberName = globalConfProvider.getMemberName(clientIdFromCert);
+        var credentialPayload = constructCredentialPayload(participantDid, xroadMemberIdentifier, memberName);
         var claims = new JWTClaimsSet.Builder()
                 .subject(participantDid)
                 .issuer(issuingDid)
-                .claim("vc", credentialPayload)
+                .claim("vc", mapper.readValue(credentialPayload.toString(), Map.class))
                 .issueTime(Date.from(Instant.now()))
                 .build();
         var jwt = new SignedJWT(header, claims);
@@ -146,7 +155,7 @@ public class XRoadMemberShipCredentialIssuanceController {
         );
     }
 
-    private JsonObject constructCredentialPayload(String xroadIdentifier, String participantDid) {
+    private JsonObject constructCredentialPayload(String participantDid, String memberIdentifier, String memberName) {
         return createObjectBuilder()
                 .add(JsonLdKeywords.CONTEXT, createArrayBuilder()
                         .add("https://www.w3.org/2018/credentials/v1")
@@ -154,7 +163,7 @@ public class XRoadMemberShipCredentialIssuanceController {
                         .add("https://www.w3.org/ns/did/v1")
                         .add(createObjectBuilder().add("xrd", "https://w3id.org/xroad/credentials/").build())
                         .build())
-                .add("id", xroadIdentifier)
+                .add("id", memberIdentifier)
                 .add("type", createArrayBuilder()
                         .add("VerifiableCredential")
                         .add("XRoadCredential")
@@ -163,7 +172,8 @@ public class XRoadMemberShipCredentialIssuanceController {
                 .add("issuanceDate", Instant.now().toString())
                 .add("credentialSubject", createObjectBuilder()
                         .add("id", participantDid)
-                        .add("xrd:identifier", xroadIdentifier)
+                        .add("xrd:memberIdentifier", memberIdentifier)
+                        .add("xrd:memberName", memberName)
                         .build())
                 .build();
     }

@@ -31,13 +31,19 @@ package org.niis.xroad.edc.catalog;
 import org.eclipse.edc.catalog.spi.CatalogConstants;
 import org.eclipse.edc.crawler.spi.TargetNode;
 import org.eclipse.edc.crawler.spi.TargetNodeDirectory;
+import org.eclipse.edc.runtime.metamodel.annotation.Extension;
 import org.eclipse.edc.runtime.metamodel.annotation.Inject;
 import org.eclipse.edc.spi.system.ServiceExtension;
 import org.eclipse.edc.spi.system.ServiceExtensionContext;
 
 import java.util.List;
 
+import static org.niis.xroad.edc.catalog.DsCatalogDirectoryExtension.NAME;
+
+@Extension(value = NAME)
 public class DsCatalogDirectoryExtension implements ServiceExtension {
+
+    static final String NAME = "DS Catalog Directory Extension";
 
     @Inject
     private TargetNodeDirectory directory;

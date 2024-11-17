@@ -24,42 +24,24 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
+package org.niis.xroad.edc.catalog;
 
-package org.niis.xroad.edc.extension.policy.util;
+import lombok.extern.slf4j.Slf4j;
+import org.niis.xroad.bootstrap.XrdSpringServiceBuilder;
+import org.niis.xroad.edc.extension.bridge.spring.XrdEdcBeanBridgeConfig;
+import org.springframework.boot.SpringBootConfiguration;
+import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 
-import ee.ria.xroad.common.identifier.ClientId;
+@Slf4j
+@EnableAutoConfiguration
+@SpringBootConfiguration
+@SuppressWarnings("checkstyle:HideUtilityClassConstructor")
+public class XrdDsCatalogServiceMain {
+    private static final String APP_NAME = "xroad-ds-catalog-service";
 
-import lombok.experimental.UtilityClass;
-import org.eclipse.edc.policy.engine.spi.PolicyContext;
-import org.eclipse.edc.spi.agent.ParticipantAgent;
-import org.niis.xroad.restapi.converter.ClientIdConverter;
-
-import java.util.Optional;
-
-@UtilityClass
-public class PolicyContextHelper {
-    private final ClientIdConverter clientIdConverter = new ClientIdConverter();
-    private static final String ATTR_IDENTIFIER = "https://w3id.org/xroad/credentials/identifier";
-
-    public static Optional<ClientId> findMemberIdFromContext(PolicyContext context) {
-        var participantAgent = context.getContextData(ParticipantAgent.class);
-
-        if (participantAgent != null) {
-            var memberIdentifierString = participantAgent.getAttributes().get("xrd:memberIdentifier");
-            if (!clientIdConverter.isEncodedMemberId(memberIdentifierString)) {
-                throw new IllegalStateException("Invalid member identifier: " + memberIdentifierString);
-            }
-            return Optional.ofNullable(parseClientId(memberIdentifierString));
-        }
-        return Optional.empty();
+    public static void main(String[] args) {
+        XrdSpringServiceBuilder.newApplicationBuilder(APP_NAME, XrdDsCatalogServiceMain.class, XrdEdcBeanBridgeConfig.class)
+                .build()
+                .run(args);
     }
-
-    public static boolean clientBelongsTo(ClientId client, ClientId target) {
-        return client.memberEquals(target);
-    }
-
-    public static ClientId parseClientId(String value) {
-        return clientIdConverter.convertId(value);
-    }
-
 }

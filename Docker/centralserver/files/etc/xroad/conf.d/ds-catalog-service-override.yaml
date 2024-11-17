@@ -1,0 +1,7 @@
+edc:
+  iam:
+    sts:
+      privatekey:
+        alias: ${EDC_DID_KEY_ID:}
+      publickey:
+        id: ${EDC_DID}#${EDC_DID_KEY_ID:}

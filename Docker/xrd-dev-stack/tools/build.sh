@@ -38,7 +38,7 @@ case $1 in
 "edc-ih")
   gradleModule="security-server/edc/runtime/identity-hub"
   ;;
-"cs-edc-connector")
+"cs-catalog-service")
   gradleModule="central-server/ds-catalog-service"
   ;;
 "cs-credential-service")

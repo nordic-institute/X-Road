@@ -9,7 +9,7 @@ dependencies {
     implementation libs.edc.spi.dataplane
     implementation(project(':common:common-domain'))
     implementation(project(':common:common-verifier'))
-
+    implementation(project(':serverconf'))
     testImplementation libs.edc.junit
     testImplementation libs.assertj.core
     testImplementation libs.mockito.jupiter

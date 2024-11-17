@@ -79,11 +79,6 @@ public class XRoadIdentityHubProvisionerExtension implements ServiceExtension {
 
     private static final String EDC_DID_KEY_ID = "edc.did.key.id";
 
-    private static final Map<String, String> HOSTNAME_XRDIDENTIFIER_MAP = Map.of(
-            "ss0", "DEV:COM:1234:TestService",
-            "ss1", "DEV:COM:4321:TestClient"
-    );
-
     @Inject
     private ParticipantContextService participantContextService;
 
@@ -124,7 +119,7 @@ public class XRoadIdentityHubProvisionerExtension implements ServiceExtension {
         monitor.info("Creating participant context for %s".formatted(participantId));
         createParticipantContext(hostname, participantId, keyId, publicKeyPem);
         createKeyPairs(participantId, keyId, publicKeyPem);
-        createCredentials(hostname, participantId, keyId);
+        createCredentials(System.getenv("EDC_XROAD_MEMBER_IDENTIFIER"), participantId, keyId);
     }
 
 
@@ -161,12 +156,11 @@ public class XRoadIdentityHubProvisionerExtension implements ServiceExtension {
         keyPairResourceStore.create(keyPairResource);
     }
 
-    private void createCredentials(String hostname, String participantId, String keyId) throws Exception {
+    private void createCredentials(String xroadMemberIdentifier, String participantId, String keyId) throws Exception {
         var signer = jwsSignerProvider.createJwsSigner(keyId)
-                .orElseThrow(f -> new EdcException("JWSSigner cannot be generated for private key '%s': %s"
-                        .formatted(keyId, f.getFailureDetail())));
+                .orElseThrow(f -> new EdcException("JWSSigner cannot be generated for private key '%s': %s".formatted(keyId, f.getFailureDetail())));
         var selfDescription = new XRoadSelfDescriptionGenerator(signerRpcClient)
-                .generate(HOSTNAME_XRDIDENTIFIER_MAP.get(hostname), signer, participantId, keyId);
+                .generate(xroadMemberIdentifier, signer, participantId, keyId);
         storeCredential("xroad-self-description", selfDescription.serialize(), participantId,
                 XROAD_SELF_DESCRIPTION_TYPE);
     }

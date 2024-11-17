@@ -70,9 +70,9 @@ deploy_module() {
     jar_path="$XROAD_HOME/src/security-server/edc/runtime/identity-hub/build/libs/edc-identity-hub-1.0.jar"
     service_name="xroad-edc-ih"
     ;;
-  "cs-edc-connector")
+  "cs-catalog-service")
     jar_path="$XROAD_HOME/src/central-server/ds-catalog-service/build/libs/ds-catalog-service-1.0.jar"
-    service_name="xroad-edc-connector"
+    service_name="xroad-edc-catalog-service"
     ;;
   "cs-credential-service")
     jar_path="$XROAD_HOME/src/central-server/ds-credential-service/build/libs/ds-credential-service-1.0.jar"
@@ -98,7 +98,7 @@ case $1 in
 "proxy" | "messagelog-addon" | "metaservice-addon" | "proxy-ui-api" | "configuration-client" | "asicverifier" | "op-monitor-daemon" | "monitor" | "edc-control-plane" | "edc-data-plane")
   deploy_module "$1" "ss0" "ss1"
   ;;
-"cs-admin-service" | "cs-management-service" | "cs-registration-service" | "cs-edc-connector" | "cs-credential-service")
+"cs-admin-service" | "cs-management-service" | "cs-registration-service" | "cs-catalog-service" | "cs-credential-service")
   deploy_module "$1" "cs"
   ;;
 "signer" | "edc-ih")

@@ -42,21 +42,18 @@ import org.eclipse.edc.security.token.jwt.CryptoConverter;
 import java.time.Instant;
 import java.util.List;
 
-import static java.time.temporal.ChronoUnit.DAYS;
-
 @RequiredArgsConstructor
 public class XRoadSelfDescriptionGenerator {
     private final SignerRpcClient signerRpcClient;
 
-    public JWSObject generate(String xroadIdentifier, JWSSigner signer, String did, String keyId) throws Exception {
-        var payload = getPayload(xroadIdentifier);
+    public JWSObject generate(String xroadMemberIdentifier, JWSSigner signer, String did, String keyId) throws Exception {
+        var payload = getPayload(xroadMemberIdentifier);
         var header = new JWSHeader.Builder(CryptoConverter.getRecommendedAlgorithm(signer))
                 .base64URLEncodePayload(true)
                 .customParam("iss", did)
                 .keyID(did + "#" + keyId)
-                .customParam("iat", Instant.now().toString())
-                .customParam("exp", Instant.now().plus(90, DAYS).toString())
                 .x509CertChain(List.of(Base64.encode(getActiveCertificate(keyId))))
+                .customParam("iat", Instant.now().toString())
                 .build();
         var detachedPayload = new Payload(payload);
         var jwsObject = new JWSObject(header, detachedPayload);
@@ -78,9 +75,9 @@ public class XRoadSelfDescriptionGenerator {
                 .orElseThrow();
     }
 
-    private static String getPayload(String xroadIdentifier) {
+    private static String getPayload(String xroadMemberIdentifier) {
         return "{\n" +
-                "  \"xroadIdentifier\": \"" + xroadIdentifier + "\"\n" +
+                "  \"xroadMemberIdentifier\": \"" + xroadMemberIdentifier + "\"\n" +
                 "}";
     }
 

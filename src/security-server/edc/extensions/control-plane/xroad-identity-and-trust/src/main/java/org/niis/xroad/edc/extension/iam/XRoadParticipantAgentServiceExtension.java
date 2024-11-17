@@ -42,8 +42,8 @@ public class XRoadParticipantAgentServiceExtension implements ServiceExtension {
     static final String NAME = "X-Road participant agent extension";
 
     @Provider
-    public DcpParticipantAgentServiceExtension createGaiaXDcpParticipantAgentServiceExtension() {
-        return new XRoadDcpIdentityExtractor();
+    public DcpParticipantAgentServiceExtension createXRoadDcpParticipantAgentServiceExtension() {
+        return new XRoadDcpParticipantAgentServiceExtension();
     }
 
 }

@@ -7,6 +7,7 @@ services:
     environment:
       - EDC_HOSTNAME=cs
       - EDC_DID=did:web:cs%3A9396
+      - EDC_XROAD_MEMBER_IDENTIFIER=DEV:COM:1234
     ports:
       - "4195:9956" #EDC connector debug
       - "4196:9957" #EDC identity-hub debug
@@ -23,6 +24,7 @@ services:
     environment:
       - EDC_HOSTNAME=ss0
       - EDC_DID=did:web:ss0%3A9396
+      - EDC_XROAD_MEMBER_IDENTIFIER=DEV:COM:1234
     ports:
       - "4295:9953" #control-plane debug
       - "4296:9954" #data-plane debug
@@ -41,6 +43,7 @@ services:
     environment:
       - EDC_HOSTNAME=ss1
       - EDC_DID=did:web:ss1%3A9396
+      - EDC_XROAD_MEMBER_IDENTIFIER=DEV:COM:4321
     ports:
       - "4395:9953" #control-plane debug
       - "4396:9954" #data-plane debug

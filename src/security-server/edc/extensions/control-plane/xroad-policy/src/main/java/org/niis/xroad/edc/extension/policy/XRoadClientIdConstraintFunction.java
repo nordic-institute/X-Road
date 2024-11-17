@@ -27,6 +27,8 @@
 
 package org.niis.xroad.edc.extension.policy;
 
+import ee.ria.xroad.common.conf.globalconf.GlobalConfProvider;
+
 import lombok.RequiredArgsConstructor;
 import org.apache.commons.lang3.time.StopWatch;
 import org.eclipse.edc.policy.engine.spi.AtomicConstraintFunction;
@@ -36,32 +38,33 @@ import org.eclipse.edc.policy.model.Permission;
 import org.eclipse.edc.spi.monitor.Monitor;
 import org.niis.xroad.edc.extension.policy.util.PolicyContextHelper;
 
-import java.util.Optional;
+import static org.niis.xroad.edc.extension.policy.util.PolicyContextHelper.parseClientId;
 
 @RequiredArgsConstructor
 public class XRoadClientIdConstraintFunction implements AtomicConstraintFunction<Permission> {
 
     static final String KEY = "xroad:clientId";
 
+    private final GlobalConfProvider globalConfProvider;
     private final Monitor monitor;
 
     @Override
     public boolean evaluate(Operator operator, Object rightValue, Permission permission, PolicyContext context) {
         var stopWatch = StopWatch.createStarted();
         try {
-            if (!(rightValue instanceof String allowedClientId)) {
+            if (!(rightValue instanceof String allowedClientIdString)) {
                 context.reportProblem("Right-value expected to be String but was " + rightValue.getClass());
                 return false;
             }
-
-            Optional<String> clientId = PolicyContextHelper.getClientIdFromContext(context);
-            return clientId.map(s -> switch (operator) {
-                case EQ -> s.equals(allowedClientId);
-                default -> {
-                    context.reportProblem("Operator " + operator + " not supported");
-                    yield false;
-                }
-            }).orElse(false);
+            var allowedClientId = parseClientId(allowedClientIdString);
+            return PolicyContextHelper.findMemberIdFromContext(context)
+                    .map(memberId -> switch (operator) {
+                        case EQ -> PolicyContextHelper.clientBelongsTo(allowedClientId, memberId);
+                        default -> {
+                            context.reportProblem("Operator " + operator + " not supported");
+                            yield false;
+                        }
+                    }).orElse(false);
         } finally {
             monitor.debug("RoadClientIdConstraintFunction took " + stopWatch.getTime() + " ms");
         }
