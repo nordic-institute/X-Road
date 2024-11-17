@@ -9,7 +9,7 @@ services:
       - EDC_DID=did:web:cs%3A9396
       - EDC_XROAD_MEMBER_IDENTIFIER=DEV:COM:1234
     ports:
-      - "4195:9956" #EDC connector debug
+      - "4195:9956" #EDC catalog-service debug
       - "4196:9957" #EDC identity-hub debug
       - "4197:9958" #EDC credential-service debug
       - "4151:9191" #EDC api port

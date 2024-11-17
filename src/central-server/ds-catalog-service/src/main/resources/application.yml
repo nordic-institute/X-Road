@@ -12,10 +12,6 @@ xroad:
 
 #EDC conf
 edc:
-  extension:
-    spring-bridge:
-      serverconf:
-        enabled: true
   datasource:
     default:
       url: jdbc:postgresql://127.0.0.1:5432/edc-control-plane
@@ -64,6 +60,16 @@ edc:
     monitor:
       state-machine:
         iteration-wait-millis: 300
+  catalog:
+    cache:
+      execution:
+        delay:
+          seconds: 5
+        period:
+          seconds: 20
+      partition:
+        num:
+          crawlers: 2
 
 web:
   http:
