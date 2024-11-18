@@ -43,7 +43,8 @@
   },
   "pnpm": {
     "overrides": {
-      "semver": "^7.5.3"
+      "semver": "^7.5.3",
+      "cross-spawn": "7.0.5"
     }
   },
   "packageManager": "pnpm@9.12.2",
