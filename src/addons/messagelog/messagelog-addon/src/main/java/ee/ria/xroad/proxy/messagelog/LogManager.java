@@ -260,8 +260,11 @@ public class LogManager extends AbstractLogManager {
             if (message.getBody().size() > MAX_LOGGABLE_BODY_SIZE && !TRUNCATED_BODY_ALLOWED) {
                 throw new CodedException(X_LOGGING_FAILED_X, "Message size exceeds maximum loggable size");
             }
-            final BoundedInputStream body = new BoundedInputStream(message.getBody(), MAX_LOGGABLE_BODY_SIZE);
-            body.setPropagateClose(false);
+            final BoundedInputStream body = BoundedInputStream.builder()
+                    .setInputStream(message.getBody())
+                    .setMaxCount(MAX_LOGGABLE_BODY_SIZE)
+                    .setPropagateClose(false)
+                    .get();
             messageRecord.setAttachmentStream(body, Math.min(message.getBody().size(), MAX_LOGGABLE_BODY_SIZE));
         }
 

@@ -6,9 +6,11 @@
 <hibernate-configuration>
   <session-factory>
       <property name="hikari.maximumPoolSize">4</property>
-      <!--TODO Migrate to newer strategies -->
-      <property name="hibernate.id.db_structure_naming_strategy">legacy</property>
-      <!--TODO Migrate hbm.xml to orm.xml or mapping xml -->
-      <mapping resource="messagelog.hbm.xml"/>
+      <property name="hibernate.id.db_structure_naming_strategy">single</property>
+      <mapping class="ee.ria.xroad.messagelog.database.entity.AbstractLogRecordEntity" />
+      <mapping class="ee.ria.xroad.messagelog.database.entity.TimestampRecordEntity" />
+      <mapping class="ee.ria.xroad.messagelog.database.entity.MessageRecordEntity" />
+      <mapping class="ee.ria.xroad.messagelog.database.entity.DigestEntryEmbeddable" />
+      <mapping class="ee.ria.xroad.messagelog.database.entity.ArchiveDigestEntity" />
   </session-factory>
 </hibernate-configuration>
