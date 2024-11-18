@@ -35,5 +35,7 @@ public record ConfProxyProperties(
         String signatureDigestAlgorithmId,
         String configurationPath,
         String generatedConfPath,
-        String hashAlgorithmUri) {
+        String hashAlgorithmUri,
+        boolean cliMode,
+        String updateJobCron) {
 }

@@ -8,6 +8,10 @@ server:
 
 xroad:
   configuration-proxy:
+    cli-mode: false
+    update-job-cron: 0 * * * * *
+
+    #    todo: review the following properties
     download-script: /usr/share/xroad/scripts/download_instance_configuration.sh
     address: 0.0.0.0
     signature-digest-algorithm-id: SHA-512

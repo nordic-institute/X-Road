@@ -28,37 +28,23 @@ package org.niis.xroad.confproxy.config;
 import ee.ria.xroad.signer.SignerClientConfiguration;
 import ee.ria.xroad.signer.SignerRpcClient;
 
-import org.niis.xroad.common.rpc.RpcServerProperties;
-import org.niis.xroad.confproxy.commandline.ConfProxyRunner;
-import org.niis.xroad.confproxy.commandline.ConfProxyUtilRunner;
-import org.springframework.boot.context.properties.ConfigurationProperties;
+import org.niis.xroad.confproxy.ConfProxyExecutor;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
 
-@EnableConfigurationProperties({
-        ConfProxyProperties.class,
-        ConfProxyConfig.ConfProxyRpcServerProperties.class})
-@Import(SignerClientConfiguration.class)
+
+@Import({ConfProxyJobConfig.class,
+        ConfProxyCLIConfig.class,
+        SignerClientConfiguration.class})
+@EnableConfigurationProperties(ConfProxyProperties.class)
 @Configuration
 public class ConfProxyConfig {
 
     @Bean
-    ConfProxyRunner confProxyRunner(SignerRpcClient signerRpcClient) {
-        return new ConfProxyRunner(signerRpcClient);
+    ConfProxyExecutor confProxyExecutor(SignerRpcClient signerRpcClient) {
+        return new ConfProxyExecutor(signerRpcClient);
     }
 
-    @Bean
-    ConfProxyUtilRunner confProxyUtilRunner(ConfProxyProperties confProxyProperties, SignerRpcClient signerRpcClient) {
-        return new ConfProxyUtilRunner(confProxyProperties, signerRpcClient);
-    }
-
-    @ConfigurationProperties(prefix = "xroad.configuration-proxy.grpc")
-    static class ConfProxyRpcServerProperties extends RpcServerProperties {
-
-        ConfProxyRpcServerProperties(String listenAddress, int port) {
-            super(listenAddress, port);
-        }
-    }
 }

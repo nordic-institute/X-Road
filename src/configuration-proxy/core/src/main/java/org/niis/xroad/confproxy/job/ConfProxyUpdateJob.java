@@ -1,5 +1,6 @@
 /*
  * The MIT License
+ *
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
@@ -23,33 +24,29 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.confproxy;
 
+package org.niis.xroad.confproxy.job;
+
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.niis.xroad.bootstrap.XrdSpringServiceBuilder;
-import org.niis.xroad.confproxy.config.ConfProxyConfig;
-import org.springframework.boot.SpringBootConfiguration;
-import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
+import org.niis.xroad.confproxy.ConfProxyExecutor;
+import org.springframework.scheduling.annotation.Scheduled;
 
-/**
- * Main program for the configuration proxy.
- */
+import static org.niis.xroad.confproxy.config.ConfProxyJobConfig.BEAN_UPDATE_JOB_SCHEDULER;
+
+@RequiredArgsConstructor
 @Slf4j
-@EnableAutoConfiguration
-@SpringBootConfiguration
-@SuppressWarnings("checkstyle:HideUtilityClassConstructor")
-public class ConfProxyMain {
-    private static final String APP_NAME = "xroad-confproxy";
+public class ConfProxyUpdateJob {
 
-    public static void main(String[] args) {
-        var appBuilder = XrdSpringServiceBuilder.newApplicationBuilder(APP_NAME, ConfProxyMain.class, ConfProxyConfig.class);
+    private final ConfProxyExecutor confProxyExecutor;
 
-        if (args.length > 0) {
-            appBuilder.profiles("cli");
+    @Scheduled(scheduler = BEAN_UPDATE_JOB_SCHEDULER,
+            cron = "${xroad.configuration-proxy.update-job-cron}")
+    public void execute() {
+        try {
+            confProxyExecutor.execute();
+        } catch (Exception e) {
+            log.error("Error when executing configuration-proxy update job", e);
         }
-
-        appBuilder.build()
-                .run(args);
     }
-
 }

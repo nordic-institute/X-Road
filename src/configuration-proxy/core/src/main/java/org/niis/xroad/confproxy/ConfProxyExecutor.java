@@ -1,5 +1,6 @@
 /*
  * The MIT License
+ *
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
@@ -23,33 +24,41 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
+
 package org.niis.xroad.confproxy;
 
+import ee.ria.xroad.signer.SignerRpcClient;
+
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.niis.xroad.bootstrap.XrdSpringServiceBuilder;
-import org.niis.xroad.confproxy.config.ConfProxyConfig;
-import org.springframework.boot.SpringBootConfiguration;
-import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
+import org.niis.xroad.confproxy.util.ConfProxyHelper;
 
-/**
- * Main program for the configuration proxy.
- */
+import java.util.List;
+
+@RequiredArgsConstructor
 @Slf4j
-@EnableAutoConfiguration
-@SpringBootConfiguration
-@SuppressWarnings("checkstyle:HideUtilityClassConstructor")
-public class ConfProxyMain {
-    private static final String APP_NAME = "xroad-confproxy";
+public class ConfProxyExecutor {
+    private final SignerRpcClient signerRpcClient;
 
-    public static void main(String[] args) {
-        var appBuilder = XrdSpringServiceBuilder.newApplicationBuilder(APP_NAME, ConfProxyMain.class, ConfProxyConfig.class);
+    public void execute() throws Exception {
+        List<String> instances = ConfProxyHelper.availableInstances();
+        log.debug("Instances from available instances: {}", instances);
+        execute(instances);
+    }
 
-        if (args.length > 0) {
-            appBuilder.profiles("cli");
+    public void execute(List<String> instances) {
+        // todo: locking should be introduced to prevent concurrent execution if called manually
+        for (String instance : instances) {
+            try {
+                ConfProxy proxy = new ConfProxy(signerRpcClient, instance);
+                log.info("ConfProxy executing for instance {}", instance);
+                proxy.execute();
+            } catch (Exception ex) {
+                log.error("Error when executing configuration-proxy '{}'",
+                        instance, ex);
+            }
         }
-
-        appBuilder.build()
-                .run(args);
     }
 
 }
+

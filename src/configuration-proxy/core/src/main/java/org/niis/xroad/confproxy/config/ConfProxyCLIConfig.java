@@ -23,33 +23,33 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.confproxy;
+package org.niis.xroad.confproxy.config;
 
-import lombok.extern.slf4j.Slf4j;
-import org.niis.xroad.bootstrap.XrdSpringServiceBuilder;
-import org.niis.xroad.confproxy.config.ConfProxyConfig;
-import org.springframework.boot.SpringBootConfiguration;
-import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
+import ee.ria.xroad.signer.SignerRpcClient;
 
-/**
- * Main program for the configuration proxy.
- */
-@Slf4j
-@EnableAutoConfiguration
-@SpringBootConfiguration
-@SuppressWarnings("checkstyle:HideUtilityClassConstructor")
-public class ConfProxyMain {
-    private static final String APP_NAME = "xroad-confproxy";
+import org.niis.xroad.confproxy.ConfProxyExecutor;
+import org.niis.xroad.confproxy.commandline.ConfProxyRunner;
+import org.niis.xroad.confproxy.commandline.ConfProxyUtilRunner;
+import org.springframework.boot.ApplicationArguments;
+import org.springframework.boot.ApplicationRunner;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
 
-    public static void main(String[] args) {
-        var appBuilder = XrdSpringServiceBuilder.newApplicationBuilder(APP_NAME, ConfProxyMain.class, ConfProxyConfig.class);
+@Configuration
+@ConditionalOnProperty(name = "xroad.configuration-proxy.cli-mode", havingValue = "true")
+public class ConfProxyCLIConfig {
 
-        if (args.length > 0) {
-            appBuilder.profiles("cli");
+    @Bean
+    ApplicationRunner commandLineRunner(ApplicationArguments applicationArguments,
+                                        ConfProxyProperties confProxyProperties, SignerRpcClient signerRpcClient,
+                                        ConfProxyExecutor confProxyExecutor) {
+
+        if (applicationArguments.containsOption("run-util")) {
+            return new ConfProxyUtilRunner(confProxyProperties, signerRpcClient);
         }
 
-        appBuilder.build()
-                .run(args);
+        return new ConfProxyRunner(confProxyExecutor);
     }
 
 }

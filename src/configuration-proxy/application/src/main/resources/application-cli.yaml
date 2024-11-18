@@ -1,0 +1,7 @@
+spring:
+  main:
+    web-application-type: none
+
+xroad:
+  configuration-proxy:
+    cli-mode: true

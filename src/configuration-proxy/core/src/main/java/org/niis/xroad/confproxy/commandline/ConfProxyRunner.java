@@ -25,32 +25,31 @@
  */
 package org.niis.xroad.confproxy.commandline;
 
-import ee.ria.xroad.signer.SignerRpcClient;
-
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.niis.xroad.confproxy.ConfProxy;
+import org.niis.xroad.confproxy.ConfProxyExecutor;
 import org.niis.xroad.confproxy.util.ConfProxyHelper;
-import org.springframework.boot.CommandLineRunner;
+import org.springframework.boot.ApplicationArguments;
+import org.springframework.boot.ApplicationRunner;
 
 import java.util.Arrays;
 import java.util.List;
 
 @Slf4j
 @RequiredArgsConstructor
-public class ConfProxyRunner implements CommandLineRunner {
-    private final SignerRpcClient signerRpcClient;
+public class ConfProxyRunner implements ApplicationRunner {
+    private final ConfProxyExecutor confProxyExecutor;
 
     /**
      * Executes all configuration proxy instances in sequence.
      *
-     * @param args program arguments
+     * @param applicationArguments program arguments
      * @throws Exception if not able to get list of available instances
      */
     @Override
-    public void run(String... args) throws Exception {
+    public void run(ApplicationArguments applicationArguments) throws Exception {
         List<String> instances;
-
+        String[] args = applicationArguments.getSourceArgs();
         if (args.length > 0) {
             instances = Arrays.asList(args);
             log.debug("Instances from args: {}", instances);
@@ -59,16 +58,8 @@ public class ConfProxyRunner implements CommandLineRunner {
             log.debug("Instances from available instances: {}", instances);
         }
 
-        for (String instance : instances) {
-            try {
-                ConfProxy proxy = new ConfProxy(signerRpcClient, instance);
-                log.info("ConfProxy executing for instance {}", instance);
-                proxy.execute();
-            } catch (Exception ex) {
-                log.error("Error when executing configuration-proxy '{}'",
-                        instance, ex);
-            }
-        }
+        confProxyExecutor.execute(instances);
+
         System.exit(0);
     }
 }

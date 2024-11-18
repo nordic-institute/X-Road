@@ -1,5 +1,6 @@
 /*
  * The MIT License
+ *
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
@@ -23,33 +24,33 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.confproxy;
 
-import lombok.extern.slf4j.Slf4j;
-import org.niis.xroad.bootstrap.XrdSpringServiceBuilder;
-import org.niis.xroad.confproxy.config.ConfProxyConfig;
-import org.springframework.boot.SpringBootConfiguration;
-import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
+package org.niis.xroad.confproxy.config;
 
-/**
- * Main program for the configuration proxy.
- */
-@Slf4j
-@EnableAutoConfiguration
-@SpringBootConfiguration
-@SuppressWarnings("checkstyle:HideUtilityClassConstructor")
-public class ConfProxyMain {
-    private static final String APP_NAME = "xroad-confproxy";
+import org.niis.xroad.confproxy.ConfProxyExecutor;
+import org.niis.xroad.confproxy.job.ConfProxyUpdateJob;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.scheduling.annotation.EnableScheduling;
 
-    public static void main(String[] args) {
-        var appBuilder = XrdSpringServiceBuilder.newApplicationBuilder(APP_NAME, ConfProxyMain.class, ConfProxyConfig.class);
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
 
-        if (args.length > 0) {
-            appBuilder.profiles("cli");
-        }
+@Configuration
+@ConditionalOnProperty(name = "xroad.configuration-proxy.cli-mode", havingValue = "false")
+@EnableScheduling
+public class ConfProxyJobConfig {
+    public static final String BEAN_UPDATE_JOB_SCHEDULER = "confProxyUpdateJobScheduler";
 
-        appBuilder.build()
-                .run(args);
+    @Bean
+    ConfProxyUpdateJob confProxyUpdateJob(ConfProxyExecutor confProxyExecutor) {
+        return new ConfProxyUpdateJob(confProxyExecutor);
+    }
+
+    @Bean(BEAN_UPDATE_JOB_SCHEDULER)
+    ScheduledExecutorService updateJobScheduler() {
+        return Executors.newSingleThreadScheduledExecutor();
     }
 
 }
