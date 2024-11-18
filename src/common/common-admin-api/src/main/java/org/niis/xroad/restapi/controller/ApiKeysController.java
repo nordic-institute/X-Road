@@ -36,7 +36,6 @@ import org.niis.xroad.restapi.domain.PersistentApiKeyType;
 import org.niis.xroad.restapi.domain.PublicApiKeyData;
 import org.niis.xroad.restapi.dto.PlaintextApiKeyDto;
 import org.niis.xroad.restapi.service.ApiKeyService;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -76,7 +75,7 @@ public class ApiKeysController {
     public ResponseEntity<PublicApiKeyData> createKey(@RequestBody List<String> roles) {
         try {
             PlaintextApiKeyDto createdKeyData = apiKeyService.create(roles);
-            return new ResponseEntity<>(publicApiKeyDataConverter.convert(createdKeyData), HttpStatus.OK);
+            return ResponseEntity.ok(publicApiKeyDataConverter.convert(createdKeyData));
         } catch (InvalidRoleNameException e) {
             throw new ValidationFailureException(API_KEY_INVALID_ROLE);
         }
@@ -92,7 +91,7 @@ public class ApiKeysController {
                                                       @RequestBody List<String> roles) {
         try {
             PersistentApiKeyType key = apiKeyService.update(id, roles);
-            return new ResponseEntity<>(publicApiKeyDataConverter.convert(key), HttpStatus.OK);
+            return ResponseEntity.ok(publicApiKeyDataConverter.convert(key));
         } catch (InvalidRoleNameException e) {
             throw new ValidationFailureException(API_KEY_INVALID_ROLE);
         }
@@ -102,14 +101,14 @@ public class ApiKeysController {
     @PreAuthorize("hasAuthority('VIEW_API_KEYS')")
     public ResponseEntity<PublicApiKeyData> getKey(@PathVariable("id") long id) {
         PersistentApiKeyType key = apiKeyService.getForId(id);
-        return new ResponseEntity<>(publicApiKeyDataConverter.convert(key), HttpStatus.OK);
+        return ResponseEntity.ok(publicApiKeyDataConverter.convert(key));
     }
 
     @GetMapping
     @PreAuthorize("hasAuthority('VIEW_API_KEYS')")
     public ResponseEntity<Collection<PublicApiKeyData>> list() {
-        Collection<PersistentApiKeyType> keys = apiKeyService.listAll();
-        return new ResponseEntity<>(publicApiKeyDataConverter.convert(keys), HttpStatus.OK);
+        var keys = apiKeyService.listAll();
+        return ResponseEntity.ok(publicApiKeyDataConverter.convert(keys));
     }
 
     @DeleteMapping("/{id}")
@@ -118,7 +117,7 @@ public class ApiKeysController {
     public ResponseEntity<Void> revoke(@PathVariable("id") long id) {
         apiKeyService.removeForId(id);
 
-        return new ResponseEntity<>(HttpStatus.OK);
+        return ResponseEntity.ok().build();
     }
 
 }

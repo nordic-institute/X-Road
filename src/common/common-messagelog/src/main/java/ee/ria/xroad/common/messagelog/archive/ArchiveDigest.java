@@ -36,7 +36,7 @@ public class ArchiveDigest {
     @Setter
     private DigestEntry digestEntry;
 
-    protected ArchiveDigest() {
+    public ArchiveDigest() {
         //for JPA
     }
 

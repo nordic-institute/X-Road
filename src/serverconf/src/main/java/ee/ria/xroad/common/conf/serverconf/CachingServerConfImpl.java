@@ -212,7 +212,7 @@ public class CachingServerConfImpl extends ServerConfImpl {
     @Override
     public boolean isSslAuthentication(ServiceId service) {
         Optional<ServiceType> serviceTypeOptional = getService(service);
-        if (serviceTypeOptional.isEmpty()) {
+        if (!serviceTypeOptional.isPresent()) {
             throw new CodedException(X_UNKNOWN_SERVICE, "Service '%s' not found", service);
         }
         ServiceType serviceType = serviceTypeOptional.get();

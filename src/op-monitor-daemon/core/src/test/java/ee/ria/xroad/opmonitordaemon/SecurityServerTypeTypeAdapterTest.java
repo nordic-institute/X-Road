@@ -36,13 +36,12 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
-import org.junit.Rule;
 import org.junit.Test;
-import org.junit.rules.ExpectedException;
 
 import java.io.IOException;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertThrows;
 
 /**
  * Tests serialization and deserialization of the type adapter for the
@@ -55,9 +54,6 @@ public class SecurityServerTypeTypeAdapterTest {
 
     private static final String OK_JSON_CLIENT = "{\"securityServerType\":\"Client\"}";
     private static final String OK_JSON_PRODUCER = "{\"securityServerType\":\"Producer\"}";
-
-    @Rule
-    public final ExpectedException expectedException = ExpectedException.none();
 
     @AllArgsConstructor
     @NoArgsConstructor(access = AccessLevel.PRIVATE)
@@ -79,11 +75,9 @@ public class SecurityServerTypeTypeAdapterTest {
 
     @Test
     public void nokType() throws IOException {
-        expectedException.expect(JsonProcessingException.class);
-        expectedException.expectMessage("Invalid value of securityServerType");
-
         String nokJson = "{\"securityServerType\":\"UNKNOWN\"}";
-        OBJECT_READER.readValue(nokJson, Type.class);
+        var err = assertThrows(JsonProcessingException.class, () -> OBJECT_READER.readValue(nokJson, Type.class));
+        assertEquals("Invalid value of securityServerType", err.getOriginalMessage());
     }
 
     @Test

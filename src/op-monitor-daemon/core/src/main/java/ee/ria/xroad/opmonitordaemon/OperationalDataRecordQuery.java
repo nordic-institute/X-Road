@@ -26,6 +26,7 @@
 package ee.ria.xroad.opmonitordaemon;
 
 import ee.ria.xroad.common.identifier.ClientId;
+import ee.ria.xroad.opmonitordaemon.entity.OperationalDataRecordEntity;
 
 import jakarta.persistence.Tuple;
 import jakarta.persistence.TupleElement;
@@ -66,7 +67,7 @@ final class OperationalDataRecordQuery {
 
     private final CriteriaBuilder cb;
     private final CriteriaQuery<Tuple> query;
-    private final Root<OperationalDataRecord> from;
+    private final Root<OperationalDataRecordEntity> from;
     private final Session session;
 
     @Setter
@@ -81,7 +82,7 @@ final class OperationalDataRecordQuery {
         this.session = session;
         cb = this.session.getCriteriaBuilder();
         query = cb.createTupleQuery();
-        from = query.from(OperationalDataRecord.class);
+        from = query.from(OperationalDataRecordEntity.class);
         pred = cb.conjunction();
 
         configureOutputFields(clientFilter != null, outputFields);

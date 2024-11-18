@@ -8,6 +8,7 @@
     <include file="serverconf/000-baseline.xml" relativeToChangelogFile="true"/>
     <include file="serverconf/001-apikeys.xml" relativeToChangelogFile="true"/>
     <include file="serverconf/002-drop-securitycategories.xml"  relativeToChangelogFile="true"/>
+    <include file="serverconf/003-drop-unneeded-sequences.xml"  relativeToChangelogFile="true"/>
 
     <!-- must be the last one -->
     <changeSet id="separate-admin-user" author="niis" context="admin" runAlways="true" runOnChange="true" runOrder="last">

@@ -75,7 +75,7 @@ case $1 in
 "proxy" | "messagelog-addon" | "metaservice-addon" | "proxy-ui-api" | "configuration-client" | "op-monitor-daemon")
   hosts=("ss0" "ss1")
   if [[ $# > 1 ]]; then hosts=("${@:2}"); fi
-  deploy_module "$1" "${hosts[@]}"
+  deploy_module "$1" "${hosts[@]}" "ss1"
   ;;
 "signer" | "hwtoken-addon")
   hosts=("ss0" "ss1" "cs")

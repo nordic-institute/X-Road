@@ -43,7 +43,6 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.IOUtils;
 import org.apache.http.message.BasicHeader;
-import org.hibernate.query.Query;
 
 import java.io.ByteArrayInputStream;
 import java.io.FileInputStream;
@@ -92,7 +91,7 @@ final class TestUtil {
             public List<X509Certificate> getTspCertificates()
                     throws CertificateException {
                 try {
-                    return Arrays.asList(CryptoUtils.readCertificate(TSP_CERT));
+                    return List.of(CryptoUtils.readCertificate(TSP_CERT));
                 } catch (IOException e) {
                     throw new CertificateException(e);
                 }
@@ -109,7 +108,7 @@ final class TestUtil {
         return new EmptyServerConf() {
             @Override
             public List<String> getTspUrl() {
-                return Arrays.asList("http://iks2-ubuntu.cyber.ee:8080/"
+                return List.of("http://iks2-ubuntu.cyber.ee:8080/"
                         + "signserver/tsa?workerName=TimeStampSigner");
             }
         };
@@ -125,7 +124,7 @@ final class TestUtil {
 
     static void cleanUpDatabase() throws Exception {
         doInTransaction(session -> {
-            Query q = session.createNativeQuery(
+            var q = session.createNativeMutationQuery(
                     // Since we are using HSQLDB for tests, we can use
                     // special commands to completely wipe out the database
                     "TRUNCATE SCHEMA public AND COMMIT");
@@ -174,10 +173,9 @@ final class TestUtil {
         return new SignatureData(signature, null, null);
     }
 
-    @SuppressWarnings("unchecked")
     static List<Task> getTaskQueue() throws Exception {
         return doInTransaction(session -> session.createQuery(
-                TaskQueue.getTaskQueueQuery()).list());
+                TaskQueue.getTaskQueueQuery(), Task.class).list());
     }
 
     static void assertTaskQueueSize(int expectedSize) throws Exception {

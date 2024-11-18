@@ -32,22 +32,20 @@ import ee.ria.xroad.common.util.TimeUtils;
 import ee.ria.xroad.opmonitordaemon.message.GetSecurityServerOperationalDataResponseType;
 
 import com.google.common.collect.Sets;
-import org.junit.Rule;
 import org.junit.Test;
-import org.junit.rules.ExpectedException;
 
 import java.util.Collections;
+import java.util.Set;
 
+import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertThrows;
 import static org.mockito.Mockito.mock;
 
 /**
  * Tests for verifying query request handler behavior.
  */
 public class OperationalDataRequestHandlerTest extends BaseTestUsingDB {
-
-    @Rule
-    public ExpectedException thrown = ExpectedException.none();
 
     @Test
     public void checkOkSearchCriteriaOutputFields() {
@@ -58,12 +56,9 @@ public class OperationalDataRequestHandlerTest extends BaseTestUsingDB {
 
     @Test
     public void checkInvalidSearchCriteriaOutputFields() {
-        thrown.expect(CodedException.class);
-        thrown.expectMessage(
-                "Unknown output field in search criteria: UNKNOWN-FIELD");
-
-        OperationalDataRequestHandler.checkOutputFields(Sets.newHashSet(
-                "monitoringDataTs", "UNKNOWN-FIELD"));
+        var err = assertThrows(CodedException.class, () -> OperationalDataRequestHandler.checkOutputFields(Set.of(
+                "monitoringDataTs", "UNKNOWN-FIELD")));
+        assertEquals("Unknown output field in search criteria: UNKNOWN-FIELD", err.getFaultString());
     }
 
     @Test
@@ -85,34 +80,25 @@ public class OperationalDataRequestHandlerTest extends BaseTestUsingDB {
 
     @Test
     public void checkNegativeRecordsFromTimestamps() {
-        thrown.expect(CodedException.class);
-        thrown.expectMessage("Records from timestamp is a negative number");
-
-        OperationalDataRequestHandler.checkTimestamps(-10, 10, 10);
+        var err = assertThrows(CodedException.class, () -> OperationalDataRequestHandler.checkTimestamps(-10, 10, 10));
+        assertEquals("Records from timestamp is a negative number", err.getFaultString());
     }
 
     @Test
     public void checkNegativeRecordsToTimestamps() {
-        thrown.expect(CodedException.class);
-        thrown.expectMessage("Records to timestamp is a negative number");
-
-        OperationalDataRequestHandler.checkTimestamps(10, -10, 10);
+        var err = assertThrows(CodedException.class, () -> OperationalDataRequestHandler.checkTimestamps(10, -10, 10));
+        assertEquals("Records to timestamp is a negative number", err.getFaultString());
     }
 
     @Test
     public void checkEarlierRecordsToTimestamps() {
-        thrown.expect(CodedException.class);
-        thrown.expectMessage("Records to timestamp is earlier than records"
-                + " from timestamp");
-
-        OperationalDataRequestHandler.checkTimestamps(10, 5, 10);
+        var err = assertThrows(CodedException.class, () -> OperationalDataRequestHandler.checkTimestamps(10, 5, 10));
+        assertEquals("Records to timestamp is earlier than records from timestamp", err.getFaultString());
     }
 
     @Test
     public void checkRecordsNotAvailable() {
-        thrown.expect(CodedException.class);
-        thrown.expectMessage("Records not available from " + 10 + " yet");
-
-        OperationalDataRequestHandler.checkTimestamps(10, 10, 5);
+        var err = assertThrows(CodedException.class, () -> OperationalDataRequestHandler.checkTimestamps(10, 10, 5));
+        assertEquals("Records not available from " + 10 + " yet", err.getFaultString());
     }
 }

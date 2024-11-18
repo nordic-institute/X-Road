@@ -28,6 +28,8 @@ package org.niis.xroad.securityserver.restapi.repository;
 import ee.ria.xroad.common.conf.serverconf.dao.ServiceDescriptionDAOImpl;
 import ee.ria.xroad.common.conf.serverconf.model.ServiceDescriptionType;
 
+import lombok.AccessLevel;
+import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.niis.xroad.restapi.util.PersistenceUtils;
@@ -43,8 +45,9 @@ import java.util.List;
 @Repository
 @Transactional
 @RequiredArgsConstructor
-public class ServiceDescriptionRepository {
+public class ServiceDescriptionRepository extends AbstractRepository<ServiceDescriptionType> {
 
+    @Getter(AccessLevel.PROTECTED)
     private final PersistenceUtils persistenceUtils;
 
     /**
@@ -71,8 +74,8 @@ public class ServiceDescriptionRepository {
      * Executes a Hibernate saveOrUpdate(serviceDescriptionType)
      * @param serviceDescriptionType
      */
-    public void saveOrUpdate(ServiceDescriptionType serviceDescriptionType) {
-        persistenceUtils.getCurrentSession().saveOrUpdate(serviceDescriptionType);
+    public ServiceDescriptionType saveOrUpdate(ServiceDescriptionType serviceDescriptionType) {
+        return persistenceUtils.getCurrentSession().merge(serviceDescriptionType);
     }
 
     /**
@@ -80,6 +83,6 @@ public class ServiceDescriptionRepository {
      * @param serviceDescriptionType
      */
     public void delete(ServiceDescriptionType serviceDescriptionType) {
-        persistenceUtils.getCurrentSession().delete(serviceDescriptionType);
+        persistenceUtils.getCurrentSession().remove(serviceDescriptionType);
     }
 }

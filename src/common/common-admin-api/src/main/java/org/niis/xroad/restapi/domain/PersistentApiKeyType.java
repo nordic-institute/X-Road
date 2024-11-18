@@ -36,10 +36,10 @@ import java.util.Set;
  * Api key which is persisted in DB. Contains encoded key (instead of plaintext)
  */
 @Getter
+@Setter
 public class PersistentApiKeyType {
     private Long id;
     private String encodedKey;
-    @Setter
     private Set<Role> roles;
 
     /**

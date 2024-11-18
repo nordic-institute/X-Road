@@ -197,6 +197,7 @@ public class TransactionHandlingRestTemplateTest extends AbstractApiControllerTe
         doAnswer((Answer<String>) invocation -> {
             ClientType clientType = (ClientType) invocation.getArguments()[0];
             // cause a lazy loading exception
+            clientType.getServiceDescription().size();
             log.info("lazy loaded server code=" + clientType.getConf().getServerCode());
             return null;
         }).when(clientConverter).convert(any(ClientType.class));
