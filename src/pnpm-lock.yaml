@@ -6,6 +6,7 @@ settings:
 
 overrides:
   semver: ^7.5.3
+  cross-spawn: 7.0.5
 
 importers:
 
@@ -51,8 +52,8 @@ importers:
         specifier: ^9.31.0
         version: 9.31.0(eslint@8.57.1)
       eslint-plugin-vuetify:
-        specifier: ^2.4.0
-        version: 2.4.0(eslint@8.57.1)(vuetify@3.7.4)
+        specifier: ^2.5.1
+        version: 2.5.1(eslint@8.57.1)(vuetify@3.7.4)
       happy-dom:
         specifier: ^15.11.6
         version: 15.11.6
@@ -1258,8 +1259,8 @@ packages:
     resolution: {integrity: sha512-yCEafptTtb4bk7GLEQoM8KVJpxAfdBJYaXyzQEgQQQgYrZiDp8SJmGKlYza6CYjEDNstAdNdKA3UuoULlEbS6w==}
     engines: {node: '>=12.13'}
 
-  cross-spawn@7.0.3:
-    resolution: {integrity: sha512-iRDPJKUPVEND7dHPO8rkbOnPpyDygcDFtWjpeWNCgy8WP2rXcxXL8TskReQl6OrB2G7+UJrags1q15Fudc7G6w==}
+  cross-spawn@7.0.5:
+    resolution: {integrity: sha512-ZVJrKKYunU38/76t0RMOulHOnUcbU9GbpWKAOZ0mhjr7CX6FVrH+4FrAapSOekrgFQ3f/8gwMEuIft0aKq6Hug==}
     engines: {node: '>= 8'}
 
   css@3.0.0:
@@ -1437,10 +1438,10 @@ packages:
     peerDependencies:
       eslint: ^6.2.0 || ^7.0.0 || ^8.0.0 || ^9.0.0
 
-  eslint-plugin-vuetify@2.4.0:
-    resolution: {integrity: sha512-WAZjnGXPrxqHBzYjxxUT8jf30O69Hitmj+wYhTIEG/XgqfvnPwqVtqrU2FGLsDtfFskKva0vuZemfbiq8yA/fQ==}
+  eslint-plugin-vuetify@2.5.1:
+    resolution: {integrity: sha512-iTyPkTC7wOP2nlBPXevqbeTIDHQ+btt+Tt8abowMEiDZcFSdUjBCcggJgMF1pLcpWwFpbfOcnqFLf73g5WM2qA==}
     peerDependencies:
-      eslint: ^8.0.0
+      eslint: ^8.0.0 || ^9.0.0
       vuetify: ^3.0.0
 
   eslint-scope@7.2.2:
@@ -3904,7 +3905,7 @@ snapshots:
     dependencies:
       is-what: 4.1.16
 
-  cross-spawn@7.0.3:
+  cross-spawn@7.0.5:
     dependencies:
       path-key: 3.1.1
       shebang-command: 2.0.0
@@ -4062,7 +4063,7 @@ snapshots:
     transitivePeerDependencies:
       - supports-color
 
-  eslint-plugin-vuetify@2.4.0(eslint@8.57.1)(vuetify@3.7.4):
+  eslint-plugin-vuetify@2.5.1(eslint@8.57.1)(vuetify@3.7.4):
     dependencies:
       eslint: 8.57.1
       eslint-plugin-vue: 9.31.0(eslint@8.57.1)
@@ -4092,7 +4093,7 @@ snapshots:
       '@ungap/structured-clone': 1.2.0
       ajv: 6.12.6
       chalk: 4.1.2
-      cross-spawn: 7.0.3
+      cross-spawn: 7.0.5
       debug: 4.3.7
       doctrine: 3.0.0
       escape-string-regexp: 4.0.0
@@ -4157,7 +4158,7 @@ snapshots:
 
   execa@8.0.1:
     dependencies:
-      cross-spawn: 7.0.3
+      cross-spawn: 7.0.5
       get-stream: 8.0.1
       human-signals: 5.0.0
       is-stream: 3.0.0
@@ -4223,7 +4224,7 @@ snapshots:
 
   foreground-child@3.2.1:
     dependencies:
-      cross-spawn: 7.0.3
+      cross-spawn: 7.0.5
       signal-exit: 4.1.0
 
   form-data@4.0.0:
