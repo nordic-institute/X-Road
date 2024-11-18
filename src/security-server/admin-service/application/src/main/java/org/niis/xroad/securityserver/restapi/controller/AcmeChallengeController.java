@@ -25,6 +25,7 @@
  */
 package org.niis.xroad.securityserver.restapi.controller;
 
+import org.niis.xroad.common.exception.ValidationFailureException;
 import org.springframework.core.io.FileSystemResource;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -32,16 +33,24 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.io.File;
 import java.io.IOException;
-import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
+
+import static org.niis.xroad.common.exception.util.CommonDeviationMessage.INVALID_URL;
 
 @RestController
 public class AcmeChallengeController {
 
     @GetMapping(value = "/.well-known/acme-challenge/{token}")
     public ResponseEntity<String> getChallenge(@PathVariable("token") String token) throws IOException {
-        FileSystemResource fileSystemResource = new FileSystemResource("/etc/xroad/acme-challenge/" + token);
-        return new ResponseEntity<>(fileSystemResource.getContentAsString(Charset.defaultCharset()), HttpStatus.OK);
+        String baseDirectory = "/etc/xroad/acme-challenge";
+        File file = new File(baseDirectory, token);
+        if (!file.getParent().equals(baseDirectory)) {
+            throw new ValidationFailureException(INVALID_URL);
+        }
+        FileSystemResource fileSystemResource = new FileSystemResource(file);
+        return new ResponseEntity<>(fileSystemResource.getContentAsString(StandardCharsets.UTF_8), HttpStatus.OK);
     }
 
 }
