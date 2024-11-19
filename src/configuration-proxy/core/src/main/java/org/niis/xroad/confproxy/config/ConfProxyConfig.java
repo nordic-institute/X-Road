@@ -43,8 +43,8 @@ import org.springframework.context.annotation.Import;
 public class ConfProxyConfig {
 
     @Bean
-    ConfProxyExecutor confProxyExecutor(SignerRpcClient signerRpcClient) {
-        return new ConfProxyExecutor(signerRpcClient);
+    ConfProxyExecutor confProxyExecutor(SignerRpcClient signerRpcClient, ConfProxyProperties confProxyProperties) {
+        return new ConfProxyExecutor(signerRpcClient, confProxyProperties);
     }
 
 }

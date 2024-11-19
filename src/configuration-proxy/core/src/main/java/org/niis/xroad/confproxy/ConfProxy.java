@@ -51,9 +51,10 @@ public class ConfProxy {
      * @param instance name of this proxy instance
      * @throws Exception if loading instance configuration fails
      */
-    public ConfProxy(final SignerRpcClient signerRpcClient, final String instance) throws Exception {
+    public ConfProxy(final SignerRpcClient signerRpcClient, final String instance,
+                     org.niis.xroad.confproxy.config.ConfProxyProperties springProperties) throws Exception {
         this.signerRpcClient = signerRpcClient;
-        this.conf = new ConfProxyProperties(instance);
+        this.conf = new ConfProxyProperties(instance, springProperties);
         log.debug("Starting configuration-proxy '{}'...", instance);
     }
 
@@ -107,6 +108,7 @@ public class ConfProxy {
         log.debug("Create directories");
         Files.createDirectories(Paths.get(conf.getConfigurationDownloadPath(version)));
         return ConfProxyHelper.downloadConfiguration(
+                conf.getDownloadScriptPath(),
                 conf.getConfigurationDownloadPath(version),
                 conf.getProxyAnchorPath(),
                 version);

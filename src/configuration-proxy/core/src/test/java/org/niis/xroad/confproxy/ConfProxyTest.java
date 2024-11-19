@@ -42,8 +42,6 @@ import java.nio.file.Files;
 import java.nio.file.Paths;
 
 import static ee.ria.xroad.common.SystemProperties.CONFIGURATION_PATH;
-import static ee.ria.xroad.common.SystemProperties.CONFIGURATION_PROXY_CONF_PATH;
-import static ee.ria.xroad.common.SystemProperties.CONFIGURATION_PROXY_GENERATED_CONF_PATH;
 import static ee.ria.xroad.common.SystemProperties.TEMP_FILES_PATH;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertThrows;
@@ -59,18 +57,22 @@ import static org.mockito.Mockito.when;
 class ConfProxyTest {
     @Mock
     SignerRpcClient signerRpcClient;
+    private org.niis.xroad.confproxy.config.ConfProxyProperties springProperties;
 
     @BeforeEach
     public void setUp() {
-        System.setProperty(CONFIGURATION_PROXY_CONF_PATH, "src/test/resources/conf-proxy-conf");
-        System.setProperty(CONFIGURATION_PROXY_GENERATED_CONF_PATH, "build/tmp/test/generated-conf");
         System.setProperty(CONFIGURATION_PATH, "src/test/resources/test-conf-simple");
         System.setProperty(TEMP_FILES_PATH, "build/tmp/test");
+
+        springProperties = new org.niis.xroad.confproxy.config.ConfProxyProperties(
+                "", "", "SHA-512", "src/test/resources/conf-proxy-conf",
+                "build/tmp/test/generated-conf", "http://www.w3.org/2001/04/xmlenc#sha512",
+                false, "");
     }
 
     @Test
     void cleanupTempDirectoriesWhenBuildingSignedDirectoryFails() throws Exception {
-        ConfProxyProperties conf = new ConfProxyProperties("PROXY1");
+        ConfProxyProperties conf = new ConfProxyProperties("PROXY1", springProperties);
         ConfProxyHelper.purgeOutdatedGenerations(conf);
         VersionedConfigurationDirectory confDir = new VersionedConfigurationDirectory(conf.getConfigurationDownloadPath(2));
 

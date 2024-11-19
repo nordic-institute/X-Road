@@ -29,39 +29,38 @@ package org.niis.xroad.confproxy;
 
 import org.apache.commons.configuration2.ex.ConfigurationException;
 import org.junit.Before;
-import org.junit.Rule;
 import org.junit.Test;
-import org.junit.contrib.java.lang.system.RestoreSystemProperties;
 
-import static ee.ria.xroad.common.SystemProperties.CONFIGURATION_PROXY_ADDRESS;
-import static ee.ria.xroad.common.SystemProperties.CONFIGURATION_PROXY_CONF_PATH;
-import static ee.ria.xroad.common.SystemProperties.DEFAULT_CONNECTOR_HOST;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
+import static org.niis.xroad.confproxy.ConfProxyProperties.DEFAULT_CONNECTOR_HOST;
 
 public class ConfProxyPropertiesTest {
 
-    @Rule
-    public final RestoreSystemProperties restoreSystemProperties = new RestoreSystemProperties();
     private ConfProxyProperties proxyProperties;
+    private org.niis.xroad.confproxy.config.ConfProxyProperties springProperties;
 
     @Before
     public void initProxyProperties() throws ConfigurationException {
-        System.setProperty(CONFIGURATION_PROXY_CONF_PATH, "src/test/resources/conf-proxy-conf");
-        proxyProperties = new ConfProxyProperties("PROXY1");
+        springProperties = mock(org.niis.xroad.confproxy.config.ConfProxyProperties.class);
+        when(springProperties.configurationPath()).thenReturn("src/test/resources/conf-proxy-conf");
+        proxyProperties = new ConfProxyProperties("PROXY1", springProperties);
     }
 
     @Test
     public void getConfigurationProxyURLsWhenAddressNotSet() throws Exception {
-        System.setProperty(CONFIGURATION_PROXY_ADDRESS, DEFAULT_CONNECTOR_HOST);
+        when(springProperties.address()).thenReturn(DEFAULT_CONNECTOR_HOST);
 
         assertThat(proxyProperties.getConfigurationProxyURLs()).isEmpty();
     }
 
     @Test
     public void getConfigurationProxyURLsWhenAddressIsSet() throws Exception {
-        System.setProperty(CONFIGURATION_PROXY_ADDRESS, "proxy");
+        when(springProperties.address()).thenReturn("proxy");
 
         assertThat(proxyProperties.getConfigurationProxyURLs())
                 .containsExactly("http://proxy/PROXY1", "https://proxy/PROXY1");
     }
+
 }

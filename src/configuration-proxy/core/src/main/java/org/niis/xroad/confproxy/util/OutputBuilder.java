@@ -25,7 +25,6 @@
  */
 package org.niis.xroad.confproxy.util;
 
-import ee.ria.xroad.common.SystemProperties;
 import ee.ria.xroad.common.conf.globalconf.ConfigurationPartMetadata;
 import ee.ria.xroad.common.conf.globalconf.ParametersProviderFactory;
 import ee.ria.xroad.common.conf.globalconf.SharedParameters;
@@ -257,7 +256,7 @@ public class OutputBuilder implements AutoCloseable {
 
     private SharedParameters.ConfigurationSource buildConfProxyConfigurationSource() {
         SharedParameters.ConfigurationSource confProxySource = new SharedParameters.ConfigurationSource();
-        confProxySource.setAddress(SystemProperties.getConfigurationProxyAddress());
+        confProxySource.setAddress(conf.getConfigurationProxyAddress());
         // PS! Need to allocate both external & internal in order not to break 7.4.0 versioned clients of confproxy
         // as their shared-parameters.xsd requires at least 1 internal & 1 external verification cert to be present.
         // If 7.4.0 is no longer supported we can decide the configuration type from whether private-params

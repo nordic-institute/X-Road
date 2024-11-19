@@ -58,11 +58,10 @@ import java.util.stream.Collectors;
  */
 @Slf4j
 public class ConfProxyProperties {
+    static final String DEFAULT_CONNECTOR_HOST = "0.0.0.0";
 
     public static final String ACTIVE_SIGNING_KEY_ID = "active-signing-key-id";
-
     public static final String SIGNING_KEY_ID_PREFIX = "signing-key-id-";
-
     public static final String VALIDITY_INTERVAL_SECONDS = "validity-interval-seconds";
 
     public static final String CONF_INI = "conf.ini";
@@ -72,6 +71,7 @@ public class ConfProxyProperties {
 
     private final INIConfiguration config;
     private final Path configFile;
+    private final org.niis.xroad.confproxy.config.ConfProxyProperties springProperties;
 
     @Getter
     String instance;
@@ -83,10 +83,11 @@ public class ConfProxyProperties {
      * @param name the if of the configuration proxy instance
      * @throws ConfigurationException if the configuration could not be loaded
      */
-    public ConfProxyProperties(final String name) throws ConfigurationException {
+    public ConfProxyProperties(final String name, org.niis.xroad.confproxy.config.ConfProxyProperties springProperties)
+            throws ConfigurationException {
         this.instance = name;
-        String confDir = SystemProperties.getConfigurationProxyConfPath();
-        this.configFile = Paths.get(confDir, instance, CONF_INI);
+        this.springProperties = springProperties;
+        this.configFile = Paths.get(springProperties.configurationPath(), instance, CONF_INI);
         if (!Files.exists(configFile)) {
             throw new ConfigurationException("'" + CONF_INI
                     + "' does not exist.");
@@ -109,8 +110,8 @@ public class ConfProxyProperties {
      *
      * @return path to the configuration client script
      */
-    public static String getDownloadScriptPath() {
-        return SystemProperties.getConfigurationProxyDownloadScript();
+    public String getDownloadScriptPath() {
+        return springProperties.downloadScript();
     }
 
     /**
@@ -131,8 +132,7 @@ public class ConfProxyProperties {
      * @return path to the global configuration destination
      */
     public final String getConfigurationTargetPath() {
-        return Paths.get(
-                SystemProperties.getConfigurationProxyGeneratedConfPath(),
+        return Paths.get(springProperties.generatedConfPath(),
                 instance).toString();
     }
 
@@ -154,7 +154,7 @@ public class ConfProxyProperties {
      * @return the configuration proxy instance 'anchor.xml' file.
      */
     public final String getProxyAnchorPath() {
-        return Paths.get(SystemProperties.getConfigurationProxyConfPath(),
+        return Paths.get(springProperties.configurationPath(),
                 instance, ANCHOR_XML).toString();
     }
 
@@ -167,14 +167,18 @@ public class ConfProxyProperties {
      *                   address is invalid
      */
     public final List<String> getConfigurationProxyURLs() throws Exception {
-        String address = SystemProperties.getConfigurationProxyAddress();
-        if (SystemProperties.DEFAULT_CONNECTOR_HOST.equals(address)) {
+        String address = springProperties.address();
+        if (DEFAULT_CONNECTOR_HOST.equals(address)) {
             return List.of();
         }
 
         return List.of(
                 new URI("http", address, "/" + instance, null).toString(),
                 new URI("https", address, "/" + instance, null).toString());
+    }
+
+    public final String getConfigurationProxyAddress() {
+        return springProperties.address();
     }
 
     /**
@@ -206,7 +210,7 @@ public class ConfProxyProperties {
      * @return the id of the configured signature digest algorithm.
      */
     public final DigestAlgorithm getSignatureDigestAlgorithmId() {
-        return SystemProperties.getConfigurationProxySignatureDigestAlgorithmId();
+        return DigestAlgorithm.ofName(springProperties.signatureDigestAlgorithmId());
     }
 
     /**
@@ -235,7 +239,7 @@ public class ConfProxyProperties {
      * @return the URI of the configured hash algorithm.
      */
     public final DigestAlgorithm getHashAlgorithmURI() {
-        return SystemProperties.getConfigurationProxyHashAlgorithmUri();
+        return DigestAlgorithm.ofUri(springProperties.hashAlgorithmUri());
     }
 
     /**
@@ -351,7 +355,7 @@ public class ConfProxyProperties {
      * @return the path to the certificate file
      */
     public final Path getCertPath(final String keyId) {
-        return Paths.get(SystemProperties.getConfigurationProxyConfPath(),
+        return Paths.get(springProperties.configurationPath(),
                 instance, "cert_" + keyId + CERT_EXTENSION);
     }
 

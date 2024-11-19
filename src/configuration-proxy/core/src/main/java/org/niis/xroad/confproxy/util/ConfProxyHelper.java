@@ -25,7 +25,6 @@
  */
 package org.niis.xroad.confproxy.util;
 
-import ee.ria.xroad.common.SystemProperties;
 import ee.ria.xroad.common.conf.globalconf.VersionedConfigurationDirectory;
 
 import lombok.extern.slf4j.Slf4j;
@@ -71,36 +70,17 @@ public final class ConfProxyHelper {
      * @throws Exception if an configuration client error occurs
      */
     public static VersionedConfigurationDirectory downloadConfiguration(
+            final String scriptPath,
             final String path, final String sourceAnchor, final int version) throws Exception {
         ProcessBuilder pb = new ProcessBuilder(
-                ConfProxyProperties.getDownloadScriptPath(),
+                scriptPath,
                 sourceAnchor, path, String.format("%d", version));
         pb.redirectErrorStream(true);
         pb.redirectOutput(ProcessBuilder.Redirect.INHERIT);
-        log.info("Running '{} {} {} {}' ...", ConfProxyProperties.getDownloadScriptPath(), sourceAnchor, path,
+        log.info("Running '{} {} {} {}' ...", scriptPath, sourceAnchor, path,
                 version);
         runConfClient(pb);
         return new VersionedConfigurationDirectory(path);
-    }
-
-    /**
-     * Invoke the configuration client script to check whether the downloaded
-     * global configuration is valid according to the provided source anchor.
-     *
-     * @param sourceAnchor path to the source anchor xml file
-     * @throws Exception if an configuration client error occurs
-     */
-    public static void validateConfiguration(final String sourceAnchor)
-            throws Exception {
-        ProcessBuilder pb = new ProcessBuilder(
-                ConfProxyProperties.getDownloadScriptPath(),
-                sourceAnchor);
-        pb.redirectErrorStream(true);
-        pb.redirectOutput(ProcessBuilder.Redirect.INHERIT);
-        log.info("Running '{} {}' ...",
-                ConfProxyProperties.getDownloadScriptPath(),
-                sourceAnchor);
-        runConfClient(pb);
     }
 
     /**
@@ -152,14 +132,13 @@ public final class ConfProxyHelper {
      * configuration directory, which correspond to the configuration proxy
      * instance ids.
      *
+     * @param confPath configuration directory
      * @return list of configuration proxy instance ids
      * @throws IOException if the configuration proxy configuration path is
      *                     erroneous
      */
-    public static List<String> availableInstances() throws IOException {
-        Path confPath =
-                Paths.get(SystemProperties.getConfigurationProxyConfPath());
-        return subDirectoryNames(confPath);
+    public static List<String> availableInstances(String confPath) throws IOException {
+        return subDirectoryNames(Paths.get(confPath));
     }
 
     /**

@@ -49,7 +49,7 @@ public class ConfProxyCLIConfig {
             return new ConfProxyUtilRunner(confProxyProperties, signerRpcClient);
         }
 
-        return new ConfProxyRunner(confProxyExecutor);
+        return new ConfProxyRunner(confProxyExecutor, confProxyProperties);
     }
 
 }

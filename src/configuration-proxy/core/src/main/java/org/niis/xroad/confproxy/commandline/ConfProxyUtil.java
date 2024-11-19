@@ -93,7 +93,7 @@ public abstract class ConfProxyUtil {
             String instance = commandLine
                     .getOptionValue(PROXY_INSTANCE.getOpt());
             try {
-                return new ConfProxyProperties(instance);
+                return new ConfProxyProperties(instance, confProxyProperties);
             } catch (Exception e) {
                 fail("Could not load configuration for '" + instance,
                         e);

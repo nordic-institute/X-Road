@@ -558,44 +558,6 @@ public final class SystemProperties {
     public static final String NET_STATS_FILE =
             PREFIX + "proxy-monitor-agent.net-stats-file";
 
-    // Configuration proxy ------------------------------------------------- //
-
-    /**
-     * Property name of the confproxy download script path.
-     */
-    public static final String CONFIGURATION_PROXY_DOWNLOAD_SCRIPT =
-            PREFIX + "configuration-proxy.download-script";
-
-    /**
-     * Property name of the confproxy configuration path.
-     */
-    public static final String CONFIGURATION_PROXY_CONF_PATH =
-            PREFIX + "configuration-proxy.configuration-path";
-
-    /**
-     * Property name of the confproxy public configuration distribution path.
-     */
-    public static final String CONFIGURATION_PROXY_GENERATED_CONF_PATH =
-            PREFIX + "configuration-proxy.generated-conf-path";
-
-    /**
-     * Property name of the confproxy configuration signature digest algorithm.
-     */
-    public static final String CONFIGURATION_PROXY_SIGNATURE_DIGEST_ALGORITHM_ID =
-            PREFIX + "configuration-proxy.signature-digest-algorithm-id";
-
-    /**
-     * Property name of the confproxy configuration file hashing algorithm.
-     */
-    public static final String CONFIGURATION_PROXY_HASH_ALGORITHM_URI =
-            PREFIX + "configuration-proxy.hash-algorithm-uri";
-
-    /**
-     * Property name of the confproxy webserver address.
-     */
-    public static final String CONFIGURATION_PROXY_ADDRESS =
-            PREFIX + "configuration-proxy.address";
-
     /**
      * Property name for global configuration refresh rate in seconds.
      */
@@ -682,7 +644,7 @@ public final class SystemProperties {
 
     // --------------------------------------------------------------------- //
 
-    public static final String DEFAULT_CONNECTOR_HOST = "0.0.0.0";
+
 
     /**
      * @return path to the directory where configuration files are located, '/etc/xroad/' by default.
@@ -1117,61 +1079,6 @@ public final class SystemProperties {
     public static boolean getCenterAutoApproveOwnerChangeRequests() {
         return Boolean.parseBoolean(SystemPropertySource.getPropertyResolver().getProperty(CENTER_AUTO_APPROVE_OWNER_CHANGE_REQUESTS,
                 DEFAULT_CENTER_AUTO_APPROVE_OWNER_CHANGE_REQUESTS));
-    }
-
-    /**
-     * @return path to the directory containing configuration proxy configuration files,
-     * '/etc/xroad/confproxy' by default.
-     */
-    public static String getConfigurationProxyConfPath() {
-        return SystemPropertySource.getPropertyResolver().getProperty(CONFIGURATION_PROXY_CONF_PATH, getConfPath() + "confproxy/");
-    }
-
-    /**
-     * @return path to the global configuration download script,
-     * '/usr/share/xroad/scripts/download_instance_configuration.sh' by default.
-     */
-    public static String getConfigurationProxyDownloadScript() {
-        return SystemPropertySource.getPropertyResolver().getProperty(CONFIGURATION_PROXY_DOWNLOAD_SCRIPT,
-                "/usr/share/xroad/scripts/download_instance_configuration.sh");
-    }
-
-    /**
-     * @return path to the directory on the configuration proxy where global
-     * configuration files are generated for distribution, '/var/lib/xroad/public' by default.
-     */
-    public static String getConfigurationProxyGeneratedConfPath() {
-        return SystemPropertySource.getPropertyResolver().getProperty(CONFIGURATION_PROXY_GENERATED_CONF_PATH,
-                DefaultFilepaths.DISTRIBUTED_GLOBALCONF_PATH);
-    }
-
-    /**
-     * @return ID of the signing digest algorithm the configuration proxy uses when
-     * signing generated global configuration directories, 'SHA-512' by default.
-     */
-    public static DigestAlgorithm getConfigurationProxySignatureDigestAlgorithmId() {
-        return Optional.ofNullable(SystemPropertySource.getPropertyResolver().getProperty(CONFIGURATION_PROXY_SIGNATURE_DIGEST_ALGORITHM_ID))
-                .map(DigestAlgorithm::ofName)
-                .orElse(DigestAlgorithm.SHA512);
-    }
-
-    /**
-     * @return URI of the hashing algorithm the configuration proxy uses when
-     * calculating hashes of files in the global configuratoin directory,
-     * 'http://www.w3.org/2001/04/xmlenc#sha512' by default.
-     */
-    public static DigestAlgorithm getConfigurationProxyHashAlgorithmUri() {
-        return Optional.ofNullable(SystemPropertySource.getPropertyResolver().getProperty(CONFIGURATION_PROXY_HASH_ALGORITHM_URI))
-                .map(DigestAlgorithm::ofUri)
-                .orElse(DigestAlgorithm.SHA512);
-    }
-
-    /**
-     * @return the host address on which the configuration proxy listens for
-     * global configuration download requests, '0.0.0.0' by default.
-     */
-    public static String getConfigurationProxyAddress() {
-        return SystemPropertySource.getPropertyResolver().getProperty(CONFIGURATION_PROXY_ADDRESS, DEFAULT_CONNECTOR_HOST);
     }
 
     /**

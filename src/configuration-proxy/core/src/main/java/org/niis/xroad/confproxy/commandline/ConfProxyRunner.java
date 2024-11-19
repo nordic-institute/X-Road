@@ -28,6 +28,7 @@ package org.niis.xroad.confproxy.commandline;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.niis.xroad.confproxy.ConfProxyExecutor;
+import org.niis.xroad.confproxy.config.ConfProxyProperties;
 import org.niis.xroad.confproxy.util.ConfProxyHelper;
 import org.springframework.boot.ApplicationArguments;
 import org.springframework.boot.ApplicationRunner;
@@ -39,6 +40,7 @@ import java.util.List;
 @RequiredArgsConstructor
 public class ConfProxyRunner implements ApplicationRunner {
     private final ConfProxyExecutor confProxyExecutor;
+    private final ConfProxyProperties confProxyProperties;
 
     /**
      * Executes all configuration proxy instances in sequence.
@@ -54,7 +56,7 @@ public class ConfProxyRunner implements ApplicationRunner {
             instances = Arrays.asList(args);
             log.debug("Instances from args: {}", instances);
         } else {
-            instances = ConfProxyHelper.availableInstances();
+            instances = ConfProxyHelper.availableInstances(confProxyProperties.configurationPath());
             log.debug("Instances from available instances: {}", instances);
         }
 

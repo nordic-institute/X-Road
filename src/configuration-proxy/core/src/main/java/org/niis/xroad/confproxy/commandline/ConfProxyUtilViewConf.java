@@ -80,10 +80,10 @@ public class ConfProxyUtilViewConf extends ConfProxyUtil {
             ConfProxyProperties conf = loadConf(commandLine);
             displayInfo(conf.getInstance(), conf);
         } else if (commandLine.hasOption("a")) {
-            for (String instance : ConfProxyHelper.availableInstances()) {
+            for (String instance : ConfProxyHelper.availableInstances(confProxyProperties.configurationPath())) {
                 ConfProxyProperties conf;
                 try {
-                    conf = new ConfProxyProperties(instance);
+                    conf = new ConfProxyProperties(instance, confProxyProperties);
                 } catch (Exception e) {
                     fail("'" + ConfProxyProperties.CONF_INI
                             + "' could not be loaded for proxy '"

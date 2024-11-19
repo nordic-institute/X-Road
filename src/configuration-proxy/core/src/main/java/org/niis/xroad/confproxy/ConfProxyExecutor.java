@@ -31,6 +31,7 @@ import ee.ria.xroad.signer.SignerRpcClient;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.niis.xroad.confproxy.config.ConfProxyProperties;
 import org.niis.xroad.confproxy.util.ConfProxyHelper;
 
 import java.util.List;
@@ -39,9 +40,10 @@ import java.util.List;
 @Slf4j
 public class ConfProxyExecutor {
     private final SignerRpcClient signerRpcClient;
+    private final ConfProxyProperties confProxyProperties;
 
     public void execute() throws Exception {
-        List<String> instances = ConfProxyHelper.availableInstances();
+        List<String> instances = ConfProxyHelper.availableInstances(confProxyProperties.configurationPath());
         log.debug("Instances from available instances: {}", instances);
         execute(instances);
     }
@@ -50,7 +52,7 @@ public class ConfProxyExecutor {
         // todo: locking should be introduced to prevent concurrent execution if called manually
         for (String instance : instances) {
             try {
-                ConfProxy proxy = new ConfProxy(signerRpcClient, instance);
+                ConfProxy proxy = new ConfProxy(signerRpcClient, instance, confProxyProperties);
                 log.info("ConfProxy executing for instance {}", instance);
                 proxy.execute();
             } catch (Exception ex) {

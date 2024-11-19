@@ -73,7 +73,7 @@ public class ConfProxyUtilCreateInstance extends ConfProxyUtil {
                 fail("Configuration for instance '" + instance
                         + "' already exists, aborting. ", ex);
             }
-            ConfProxyProperties conf = new ConfProxyProperties(instance);
+            ConfProxyProperties conf = new ConfProxyProperties(instance, confProxyProperties);
             System.out.println("Populating '" + CONF_INI
                     + "' with default values ...");
             conf.setValidityIntervalSeconds(DEFAULT_VALIDITY_INTERVAL_SECONDS);
