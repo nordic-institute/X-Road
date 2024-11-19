@@ -4,8 +4,8 @@ spring:
     banner-mode: log
   cloud:
     vault:
-      uri: http://openbao:8200
-      token: 00000000-0000-0000-0000-000000000001  #TODO xroad8, token must be moved somewhere else
+      uri: ${XROAD_SECRET_STORE_URI}
+      token: ${XROAD_SECRET_STORE_TOKEN}
       kv:
         enabled: true
         backend: secret
