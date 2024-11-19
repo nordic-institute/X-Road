@@ -30,12 +30,10 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
 
 @ConfigurationProperties("xroad.configuration-proxy")
 public record ConfProxyProperties(
-        String downloadScript,
         String address,
         String signatureDigestAlgorithmId,
         String configurationPath,
         String generatedConfPath,
         String hashAlgorithmUri,
-        boolean cliMode,
         String updateJobCron) {
 }

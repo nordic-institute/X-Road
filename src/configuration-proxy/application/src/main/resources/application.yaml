@@ -8,7 +8,7 @@ server:
 
 xroad:
   configuration-proxy:
-    download-script: /usr/share/xroad/scripts/download_instance_configuration.sh
+#    download-script: /usr/share/xroad/scripts/download_instance_configuration.sh
     address: 0.0.0.0
     signature-digest-algorithm-id: SHA-512
     configuration-path: /etc/xroad/confproxy

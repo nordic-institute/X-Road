@@ -5,4 +5,4 @@ xroad:
   configuration-proxy:
     configuration-path: ../core/src/test/resources/conf-proxy-conf
     generated-conf-path: build/tmp/test/generated-conf
-    download-script: ../core/src/test/resources/download_instance_configuration.sh
+#    download-script: ../core/src/test/resources/download_instance_configuration.sh

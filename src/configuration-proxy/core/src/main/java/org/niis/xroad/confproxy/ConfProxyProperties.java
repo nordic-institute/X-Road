@@ -105,16 +105,6 @@ public class ConfProxyProperties {
     }
 
     /**
-     * Gets the location of the configuration client script, which downloads
-     * the global configuration.
-     *
-     * @return path to the configuration client script
-     */
-    public String getDownloadScriptPath() {
-        return springProperties.downloadScript();
-    }
-
-    /**
      * Gets the path to the directory which should hold the downloaded global
      * configuration files for this configuration proxy instance.
      *

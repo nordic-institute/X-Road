@@ -7,6 +7,7 @@ dependencies {
     api project(':common:common-globalconf')
     api project(':common:common-jetty')
     api project(':signer-protocol')
+    implementation project(':configuration-client:core')
 
     implementation libs.commons.cli
     implementation("org.springframework.boot:spring-boot-starter")

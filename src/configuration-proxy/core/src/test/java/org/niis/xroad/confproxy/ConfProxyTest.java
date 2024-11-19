@@ -65,9 +65,8 @@ class ConfProxyTest {
         System.setProperty(TEMP_FILES_PATH, "build/tmp/test");
 
         springProperties = new org.niis.xroad.confproxy.config.ConfProxyProperties(
-                "", "", "SHA-512", "src/test/resources/conf-proxy-conf",
-                "build/tmp/test/generated-conf", "http://www.w3.org/2001/04/xmlenc#sha512",
-                false, "");
+                "", "SHA-512", "src/test/resources/conf-proxy-conf",
+                "build/tmp/test/generated-conf", "http://www.w3.org/2001/04/xmlenc#sha512", "");
     }
 
     @Test

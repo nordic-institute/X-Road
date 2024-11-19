@@ -4,17 +4,17 @@
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
  * Copyright (c) 2015-2017 Estonian Information System Authority (RIA), Population Register Centre (VRK)
- * <p>
+ *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
  * in the Software without restriction, including without limitation the rights
  * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
  * copies of the Software, and to permit persons to whom the Software is
  * furnished to do so, subject to the following conditions:
- * <p>
+ *
  * The above copyright notice and this permission notice shall be included in
  * all copies or substantial portions of the Software.
- * <p>
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -25,6 +25,7 @@
  */
 package org.niis.xroad.confproxy.util;
 
+import ee.ria.xroad.common.conf.globalconf.ConfigurationClientDownloadActionExecutor;
 import ee.ria.xroad.common.conf.globalconf.VersionedConfigurationDirectory;
 
 import lombok.extern.slf4j.Slf4j;
@@ -70,36 +71,20 @@ public final class ConfProxyHelper {
      * @throws Exception if an configuration client error occurs
      */
     public static VersionedConfigurationDirectory downloadConfiguration(
-            final String scriptPath,
             final String path, final String sourceAnchor, final int version) throws Exception {
-        ProcessBuilder pb = new ProcessBuilder(
-                scriptPath,
-                sourceAnchor, path, String.format("%d", version));
-        pb.redirectErrorStream(true);
-        pb.redirectOutput(ProcessBuilder.Redirect.INHERIT);
-        log.info("Running '{} {} {} {}' ...", scriptPath, sourceAnchor, path,
-                version);
-        runConfClient(pb);
+
+        log.info("Downloading configuration '{} {} {}' ...", sourceAnchor, path, version);
+        download(sourceAnchor, path, version);
         return new VersionedConfigurationDirectory(path);
     }
 
-    /**
-     * Helper method for running the configuration client script.
-     *
-     * @param pb the configuration client script process builder
-     * @throws Exception if errors occur when running the configuration client
-     */
-    private static void runConfClient(final ProcessBuilder pb)
+    private static void download(String sourceAnchor, String path, int version)
             throws Exception {
-        int exitCode = -1;
-        try {
-            Process process = pb.start();
-            exitCode = process.waitFor();
 
-        } catch (IOException e) {
-            log.error("IOException", e);
-            exitCode = 2;
-            throw e;
+        int exitCode;
+        try {
+            ConfigurationClientDownloadActionExecutor downloadActionExecutor = new ConfigurationClientDownloadActionExecutor();
+            exitCode = downloadActionExecutor.download(sourceAnchor, path, version);
         } catch (Exception e) {
             log.error("Undetermined ConfigurationClient exitCode", e);
             //undetermined ConfigurationClient exitCode, fail in 'finally'
@@ -122,8 +107,7 @@ public final class ConfProxyHelper {
             default:
                 throw new Exception("Failed to download GlobalConf ["
                         + String.format(CONFIGURATION_CLIENT_ERROR, exitCode)
-                        + "], make sure configuration-client is"
-                        + "installed correctly");
+                        + "]");
         }
     }
 
