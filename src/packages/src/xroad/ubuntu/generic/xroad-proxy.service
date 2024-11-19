@@ -2,7 +2,7 @@
 Description=X-Road Proxy
 After=network.target xroad-base.service
 Requires=xroad-base.service
-Wants=postgresql.service
+Wants=postgresql.service xroad-configuration-service.service
 Wants=xroad-configuration-service.service xroad-signer.service xroad-confclient.service xroad-proxy-ui-api.service
 
 [Service]

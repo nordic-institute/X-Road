@@ -4,11 +4,14 @@ spring:
     banner-mode: log
   cloud:
     vault:
-      uri: ${XROAD_SECRET_STORE_URI}
+      enabled: true
+      host: ${XROAD_SECRET_STORE_HOST:127.0.0.1}
+      port: ${XROAD_SECRET_STORE_PORT:8200}
+      scheme: ${XROAD_SECRET_STORE_SCHEME:https}
       token: ${XROAD_SECRET_STORE_TOKEN}
       kv:
         enabled: true
-        backend: secret
+        backend: xrd-secret
 
 logging:
   level:

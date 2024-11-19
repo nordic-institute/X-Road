@@ -1,0 +1,5 @@
+xroad:
+  messagelog:
+    hibernate:
+      connection.username: "{vault}:messagelog.hibernate.connection#username"
+      connection.password: "{vault}:messagelog.hibernate.connection#password"
