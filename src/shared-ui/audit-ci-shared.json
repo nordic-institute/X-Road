@@ -21,7 +21,8 @@
     "GHSA-3h5v-q93c-6h6q|ws",
     "GHSA-qwcr-r2fm-qrc7|*",
     "GHSA-9wv6-86v2-598j|*",
-    "GHSA-c7qv-q95q-8v27|*"
+    "GHSA-c7qv-q95q-8v27|*",
+    "GHSA-3xgq-45jj-v275|*"
   ],
   "registry": "https://registry.npmjs.org"
 }
