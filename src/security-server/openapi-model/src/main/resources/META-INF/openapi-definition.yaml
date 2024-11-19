@@ -406,6 +406,7 @@ paths:
             format: text
             minLength: 1
             maxLength: 64
+            pattern: ^[a-fA-F0-9]+
       responses:
         '200':
           description: token certificate
@@ -443,6 +444,7 @@ paths:
             format: text
             minLength: 1
             maxLength: 64
+            pattern: ^[a-fA-F0-9]+
       responses:
         '204':
           description: deletion was successful
@@ -482,6 +484,7 @@ paths:
             format: text
             minLength: 1
             maxLength: 64
+            pattern: ^[a-fA-F0-9]+
       responses:
         '204':
           description: request was successful
@@ -514,6 +517,7 @@ paths:
             format: text
             minLength: 1
             maxLength: 64
+            pattern: ^[a-fA-F0-9]+
       responses:
         '204':
           description: certificate was deactivated
@@ -548,6 +552,7 @@ paths:
             format: text
             minLength: 1
             maxLength: 64
+            pattern: ^[a-fA-F0-9]+
       responses:
         '201':
           description: the imported certificate
@@ -595,6 +600,7 @@ paths:
             format: text
             minLength: 1
             maxLength: 64
+            pattern: ^[a-fA-F0-9]+
       responses:
         '200':
           description: possible actions that can be done on the certificate
@@ -631,6 +637,7 @@ paths:
             format: text
             minLength: 1
             maxLength: 64
+            pattern: ^[a-fA-F0-9]+
       requestBody:
         content:
           application/json:
@@ -670,6 +677,7 @@ paths:
             format: text
             minLength: 1
             maxLength: 64
+            pattern: ^[a-fA-F0-9]+
       responses:
         '204':
           description: request was successful
@@ -720,6 +728,7 @@ paths:
             format: text
             minLength: 1
             maxLength: 64
+            pattern: ^[a-fA-F0-9]+
       responses:
         '204':
           description: request was successful
@@ -1616,6 +1625,7 @@ paths:
             format: text
             minLength: 1
             maxLength: 64
+            pattern: ^[a-fA-F0-9]+
       responses:
         '200':
           description: certificate details

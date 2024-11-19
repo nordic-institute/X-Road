@@ -98,7 +98,7 @@ export default defineComponent({
     fetchData(clientId: string, hash: string): void {
       api
         .get<CertificateDetails>(
-          `/clients/${clientId}/tls-certificates/${hash}`,
+          `/clients/${clientId}/tls-certificates/${encodePathParameter(hash)}`,
         )
         .then(
           (response) => {
