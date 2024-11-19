@@ -27,7 +27,8 @@ package org.niis.xroad.confclient.config;
 
 import ee.ria.xroad.common.SystemProperties;
 import ee.ria.xroad.common.conf.globalconf.ConfigurationClient;
-import ee.ria.xroad.common.conf.globalconf.ConfigurationClientActionExecutor;
+import ee.ria.xroad.common.conf.globalconf.ConfigurationClientDownloadActionExecutor;
+import ee.ria.xroad.common.conf.globalconf.ConfigurationClientValidateActionExecutor;
 
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
@@ -50,9 +51,14 @@ public class ConfClientRootConfig {
     }
 
     @Bean
-    ConfigurationClientActionExecutor configurationClientActionExecutor(ConfigurationClientProperties configurationClientProperties) {
-        return new ConfigurationClientActionExecutor(configurationClientProperties);
+    ConfigurationClientDownloadActionExecutor configurationClientDownloadActionExecutor() {
+        return new ConfigurationClientDownloadActionExecutor();
     }
 
+    @Bean
+    ConfigurationClientValidateActionExecutor configurationClientValidateActionExecutor(
+            ConfigurationClientProperties configurationClientProperties) {
+        return new ConfigurationClientValidateActionExecutor(configurationClientProperties);
+    }
 
 }

@@ -1,5 +1,6 @@
 /*
  * The MIT License
+ *
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
@@ -23,26 +24,49 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
+
 package ee.ria.xroad.common.conf.globalconf;
 
 import lombok.extern.slf4j.Slf4j;
 
-import static ee.ria.xroad.common.DiagnosticsErrorCodes.RETURN_SUCCESS;
+import java.util.List;
 
-/**
- * Configuration client action executor for customized operations.
- */
 @Slf4j
-public abstract class ConfigurationClientActionExecutor {
+public class ConfigurationClientDownloadActionExecutor extends ConfigurationClientActionExecutor {
 
-    protected int execute(ConfigurationClient client) {
-        try {
-            client.execute();
-            return RETURN_SUCCESS;
-        } catch (Exception e) {
-            log.error("Error when downloading conf", e);
-            return ConfigurationClientUtils.getErrorCode(e);
-        }
+    public int download(String configurationAnchorFile, String configurationPath, int configurationVersion) {
+        log.debug("Downloading configuration using anchor {} path = {} version {}",
+                configurationAnchorFile,
+                configurationPath,
+                configurationVersion);
+
+        var client = new ConfigurationClient(configurationAnchorFile, configurationPath, configurationVersion) {
+            @Override
+            protected void deleteExtraConfigurationDirectories(
+                    List<? extends ConfigurationSource> configurationSources,
+                    FederationConfigurationSourceFilter sourceFilter) {
+                // do not delete anything
+            }
+        };
+
+        return execute(client);
+    }
+
+    public int download(String configurationAnchorFile, String configurationPath) {
+        log.debug("Downloading configuration using anchor {} path = {})",
+                configurationAnchorFile, configurationPath);
+
+
+        var client = new ConfigurationClient(configurationAnchorFile, configurationPath) {
+            @Override
+            protected void deleteExtraConfigurationDirectories(
+                    List<? extends ConfigurationSource> configurationSources,
+                    FederationConfigurationSourceFilter sourceFilter) {
+                // do not delete anything
+            }
+        };
+
+        return execute(client);
     }
 
 }

@@ -26,7 +26,7 @@
 package org.niis.xroad.confclient.config;
 
 import ee.ria.xroad.common.conf.globalconf.ConfigurationClient;
-import ee.ria.xroad.common.conf.globalconf.ConfigurationClientActionExecutor;
+import ee.ria.xroad.common.conf.globalconf.ConfigurationClientValidateActionExecutor;
 import ee.ria.xroad.common.conf.globalconf.FSGlobalConfValidator;
 
 import lombok.extern.slf4j.Slf4j;
@@ -61,8 +61,8 @@ public class ConfClientRpcConfig {
     @Bean
     AnchorService anchorService(ConfigurationClientProperties confClientProperties,
                                 ConfigurationClient configurationClient,
-                                ConfigurationClientActionExecutor actionExecutor, GlobalConfRpcCache globalConfRpcCache) {
-        return new AnchorService(confClientProperties, configurationClient, actionExecutor, globalConfRpcCache);
+                                ConfigurationClientValidateActionExecutor validateExecutor, GlobalConfRpcCache globalConfRpcCache) {
+        return new AnchorService(confClientProperties, configurationClient, validateExecutor, globalConfRpcCache);
     }
 
     @Bean

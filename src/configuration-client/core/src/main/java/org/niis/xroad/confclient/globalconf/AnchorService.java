@@ -30,7 +30,7 @@ package org.niis.xroad.confclient.globalconf;
 import ee.ria.xroad.common.SystemProperties;
 import ee.ria.xroad.common.conf.globalconf.ConfigurationAnchor;
 import ee.ria.xroad.common.conf.globalconf.ConfigurationClient;
-import ee.ria.xroad.common.conf.globalconf.ConfigurationClientActionExecutor;
+import ee.ria.xroad.common.conf.globalconf.ConfigurationClientValidateActionExecutor;
 import ee.ria.xroad.common.util.AtomicSave;
 
 import com.google.protobuf.ByteString;
@@ -60,7 +60,7 @@ import static ee.ria.xroad.common.conf.globalconf.ConfigurationConstants.CONTENT
 public class AnchorService extends AnchorServiceGrpc.AnchorServiceImplBase {
     private final ConfigurationClientProperties confClientProperties;
     private final ConfigurationClient configurationClient;
-    private final ConfigurationClientActionExecutor configurationClientActionExecutor;
+    private final ConfigurationClientValidateActionExecutor validateActionExecutor;
     private final GlobalConfRpcCache globalConfRpcCache;
 
     @Override
@@ -78,9 +78,9 @@ public class AnchorService extends AnchorServiceGrpc.AnchorServiceImplBase {
         try {
             anchorTempFile = createTemporaryAnchorFile(anchorBytes);
             var configurationAnchor = new ConfigurationAnchor(anchorTempFile.getAbsolutePath());
-            var paramsValidator = new ConfigurationClientActionExecutor
+            var paramsValidator = new ConfigurationClientValidateActionExecutor
                     .ParamsValidator(CONTENT_ID_PRIVATE_PARAMETERS, ERROR_CODE_MISSING_PRIVATE_PARAMS);
-            var result = configurationClientActionExecutor.validate(configurationAnchor, paramsValidator);
+            var result = validateActionExecutor.validate(configurationAnchor, paramsValidator);
             if (result == RETURN_SUCCESS) {
                 AtomicSave.moveBetweenFilesystems(anchorTempFile.getAbsolutePath(), confClientProperties.configurationAnchorFile());
                 configurationClient.execute();

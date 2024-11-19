@@ -28,7 +28,7 @@ package org.niis.xroad.confclient;
 import org.junit.jupiter.api.Test;
 
 import static com.ginsberg.junit.exit.assertions.SystemExitAssertion.assertThatCallsSystemExit;
-import static ee.ria.xroad.common.conf.globalconf.ConfigurationClientActionExecutor.OPTION_VERIFY_ANCHOR_FOR_EXTERNAL_SOURCE;
+import static ee.ria.xroad.common.conf.globalconf.ConfigurationClientValidateActionExecutor.OPTION_VERIFY_ANCHOR_FOR_EXTERNAL_SOURCE;
 
 class ConfClientMainCLITVerifyTest {
 

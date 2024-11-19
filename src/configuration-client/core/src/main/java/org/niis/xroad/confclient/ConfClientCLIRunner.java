@@ -25,7 +25,8 @@
  */
 package org.niis.xroad.confclient;
 
-import ee.ria.xroad.common.conf.globalconf.ConfigurationClientActionExecutor;
+import ee.ria.xroad.common.conf.globalconf.ConfigurationClientDownloadActionExecutor;
+import ee.ria.xroad.common.conf.globalconf.ConfigurationClientValidateActionExecutor;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -36,8 +37,9 @@ import org.apache.commons.cli.Options;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.context.annotation.Profile;
 
-import static ee.ria.xroad.common.conf.globalconf.ConfigurationClientActionExecutor.OPTION_VERIFY_ANCHOR_FOR_EXTERNAL_SOURCE;
-import static ee.ria.xroad.common.conf.globalconf.ConfigurationClientActionExecutor.OPTION_VERIFY_PRIVATE_PARAMS_EXISTS;
+import static ee.ria.xroad.common.conf.globalconf.ConfigurationClientValidateActionExecutor.OPTION_VERIFY_ANCHOR_FOR_EXTERNAL_SOURCE;
+import static ee.ria.xroad.common.conf.globalconf.ConfigurationClientValidateActionExecutor.OPTION_VERIFY_PRIVATE_PARAMS_EXISTS;
+
 
 @Slf4j
 @Profile("cli")
@@ -46,7 +48,8 @@ public class ConfClientCLIRunner implements CommandLineRunner {
     private static final int NUM_ARGS_FROM_CONF_PROXY_FULL = 3;
     private static final int NUM_ARGS_FROM_CONF_PROXY = 2;
 
-    private final ConfigurationClientActionExecutor executor;
+    private final ConfigurationClientValidateActionExecutor validateExecutor;
+    private final ConfigurationClientDownloadActionExecutor downloadExecutor;
 
     /**
      * Main entry point of configuration client. Based on the arguments, the configuration client run:
@@ -66,13 +69,13 @@ public class ConfClientCLIRunner implements CommandLineRunner {
             int result;
             if (actualArgs.length == NUM_ARGS_FROM_CONF_PROXY_FULL) {
                 // Run configuration client in one-shot mode downloading the specified global configuration version.
-                result = executor.download(actualArgs[0], actualArgs[1], Integer.parseInt(actualArgs[2]));
+                result = downloadExecutor.download(actualArgs[0], actualArgs[1], Integer.parseInt(actualArgs[2]));
             } else if (actualArgs.length == NUM_ARGS_FROM_CONF_PROXY) {
                 // Run configuration client in one-shot mode downloading the current global configuration version.
-                result = executor.download(actualArgs[0], actualArgs[1]);
+                result = downloadExecutor.download(actualArgs[0], actualArgs[1]);
             } else if (actualArgs.length == 1) {
                 // Run configuration client in validate mode.
-                result = executor.validate(actualArgs[0], cmd);
+                result = validateExecutor.validate(actualArgs[0], cmd);
             } else {
                 result = 1;
             }

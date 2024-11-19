@@ -25,7 +25,8 @@
  */
 package org.niis.xroad.confclient.config;
 
-import ee.ria.xroad.common.conf.globalconf.ConfigurationClientActionExecutor;
+import ee.ria.xroad.common.conf.globalconf.ConfigurationClientDownloadActionExecutor;
+import ee.ria.xroad.common.conf.globalconf.ConfigurationClientValidateActionExecutor;
 
 import org.niis.xroad.confclient.ConfClientCLIRunner;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
@@ -36,7 +37,8 @@ import org.springframework.context.annotation.Configuration;
 @ConditionalOnProperty(name = "xroad.configuration-client.cli-mode", havingValue = "true")
 public class ConfClientCLIConfig {
     @Bean
-    ConfClientCLIRunner confClientCLIRunner(ConfigurationClientActionExecutor executor) {
-        return new ConfClientCLIRunner(executor);
+    ConfClientCLIRunner confClientCLIRunner(ConfigurationClientValidateActionExecutor validateExecutor,
+                                            ConfigurationClientDownloadActionExecutor downloadExecutor) {
+        return new ConfClientCLIRunner(validateExecutor, downloadExecutor);
     }
 }
