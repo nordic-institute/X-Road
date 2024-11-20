@@ -97,10 +97,9 @@ public class XrdSpringServiceBuilder {
 
         String applicationType = System.getenv(ENV_APPLICATION_TYPE);
         if (applicationType != null) {
-            if (applicationType.equals(XrdSpringProfiles.CS) || applicationType.equals(XrdSpringProfiles.SS)) {
-                profiles.add(applicationType);
-            } else {
-                log.warn("Unknown application type: {}", applicationType);
+            switch (applicationType) {
+                case XrdSpringProfiles.CS, XrdSpringProfiles.SS, XrdSpringProfiles.CP -> profiles.add(applicationType);
+                default -> log.warn("Unknown application type: {}", applicationType);
             }
         }
 

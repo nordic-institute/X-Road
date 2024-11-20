@@ -36,4 +36,5 @@ public class XrdSpringProfiles {
 
     static final String SS = "ss";
     static final String CS = "cs";
+    static final String CP = "cp";
 }
