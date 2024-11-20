@@ -120,7 +120,7 @@ public class CertificateConverter {
                 certificateDetails.setEcPublicParameters(getCurveName(ecPublicKey));
                 certificateDetails.setEcPublicKeyPoint(getEncodedPoint(ecPublicKey));
             }
-            default -> { /* do nothing */ }
+            default -> throw new IllegalStateException("Unexpected type of public key: " + publicKey.getClass().getName());
         }
     }
 }
