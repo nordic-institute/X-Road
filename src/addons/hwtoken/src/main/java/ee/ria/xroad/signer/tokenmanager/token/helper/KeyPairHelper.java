@@ -22,10 +22,30 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package ee.ria.xroad.common.crypto.identifier;
+package ee.ria.xroad.signer.tokenmanager.token.helper;
 
-public class UnknownAlgorithmException extends RuntimeException {
-    public UnknownAlgorithmException(String message) {
-        super(message);
+import ee.ria.xroad.common.crypto.identifier.KeyAlgorithm;
+import ee.ria.xroad.signer.tokenmanager.module.PrivKeyAttributes;
+import ee.ria.xroad.signer.tokenmanager.module.PubKeyAttributes;
+
+import iaik.pkcs.pkcs11.Session;
+import iaik.pkcs.pkcs11.TokenException;
+import iaik.pkcs.pkcs11.objects.KeyPair;
+import iaik.pkcs.pkcs11.objects.PublicKey;
+
+public sealed interface KeyPairHelper permits RsaKeyPairHelper, EcKeyPairHelper {
+
+    KeyPair createKeypair(Session activeSession,
+                          String keyLabel,
+                          PubKeyAttributes pubKeyAttributes,
+                          PrivKeyAttributes privKeyAttributes) throws TokenException;
+
+    byte[] generateX509PublicKey(PublicKey publicKey) throws Exception;
+
+    static KeyPairHelper of(KeyAlgorithm algorithm) {
+        return switch (algorithm) {
+            case RSA -> RsaKeyPairHelper.INSTANCE;
+            case EC -> EcKeyPairHelper.INSTANCE;
+        };
     }
 }

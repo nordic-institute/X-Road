@@ -25,7 +25,7 @@
  */
 package ee.ria.xroad.common;
 
-import org.bouncycastle.jce.provider.BouncyCastleProvider;
+import ee.ria.xroad.common.crypto.identifier.Providers;
 
 import java.security.Security;
 
@@ -47,7 +47,7 @@ public final class TestSecurityUtil {
         // for example, on the command line via -Djava.security.properties.
         Security.setProperty("jdk.certpath.disabledAlgorithms", "MD5");
 
-        Security.addProvider(new BouncyCastleProvider());
+        Providers.init();
 
         org.apache.xml.security.Init.init();
     }

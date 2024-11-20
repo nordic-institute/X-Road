@@ -23,6 +23,8 @@ xroad:
   admin-service:
     cache-default-ttl: 5
     cache-api-key-ttl: 5
+    internal-key-algorithm: RSA
+    external-key-algorithm: RSA
 
 file-upload-endpoints:
   endpoint-definitions:

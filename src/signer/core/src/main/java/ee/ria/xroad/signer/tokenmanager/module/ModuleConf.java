@@ -75,7 +75,8 @@ public final class ModuleConf {
     // Maps mechanism name to mechanism code of supported key allowed mechanisms.
     private static final Map<String, Long> SUPPORTED_KEY_ALLOWED_MECHANISMS = createSupportedKeyAllowedMechanismMap();
 
-    private static final SignMechanism DEFAULT_SIGN_MECHANISM_NAME = SignMechanism.CKM_RSA_PKCS;
+    private static final SignMechanism DEFAULT_RSA_SIGN_MECHANISM_NAME = SignMechanism.CKM_RSA_PKCS;
+    private static final SignMechanism DEFAULT_EC_SIGN_MECHANISM_NAME = SignMechanism.CKM_ECDSA;
 
     // Module configuration fields.
     private static final String ENABLED_PARAM = "enabled";
@@ -87,6 +88,8 @@ public final class ModuleConf {
     private static final String READ_ONLY_PARAM = "read_only";
     private static final String TOKEN_ID_FORMAT_PARAM = "token_id_format";
     private static final String SIGN_MECHANISM_PARAM = "sign_mechanism";
+    private static final String RSA_SIGN_MECHANISM_PARAM = "rsa_sign_mechanism";
+    private static final String EC_SIGN_MECHANISM_PARAM = "ec_sign_mechanism";
     private static final String PUB_KEY_ATTRIBUTE_ENCRYPT_PARAM = "pub_key_attribute_encrypt";
     private static final String PUB_KEY_ATTRIBUTE_VERIFY_PARAM = "pub_key_attribute_verify";
     private static final String PUB_KEY_ATTRIBUTE_VERIFY_RECOVER_PARAM = "pub_key_attribute_verify_recover";
@@ -111,6 +114,7 @@ public final class ModuleConf {
         Map<SignMechanism, Long> mechanisms = new HashMap<>();
         mechanisms.put(SignMechanism.CKM_RSA_PKCS, PKCS11Constants.CKM_RSA_PKCS);
         mechanisms.put(SignMechanism.CKM_RSA_PKCS_PSS, PKCS11Constants.CKM_RSA_PKCS_PSS);
+        mechanisms.put(SignMechanism.CKM_ECDSA, PKCS11Constants.CKM_ECDSA);
 
         return mechanisms;
     }
@@ -125,6 +129,10 @@ public final class ModuleConf {
         mechanisms.put(PKCS11Constants.NAME_CKM_SHA256_RSA_PKCS_PSS, PKCS11Constants.CKM_SHA256_RSA_PKCS_PSS);
         mechanisms.put(PKCS11Constants.NAME_CKM_SHA384_RSA_PKCS_PSS, PKCS11Constants.CKM_SHA384_RSA_PKCS_PSS);
         mechanisms.put(PKCS11Constants.NAME_CKM_SHA512_RSA_PKCS_PSS, PKCS11Constants.CKM_SHA512_RSA_PKCS_PSS);
+        mechanisms.put(PKCS11Constants.NAME_CKM_ECDSA, PKCS11Constants.CKM_ECDSA);
+        mechanisms.put(PKCS11Constants.NAME_CKM_ECDSA_SHA256, PKCS11Constants.CKM_ECDSA_SHA256);
+        mechanisms.put(PKCS11Constants.NAME_CKM_ECDSA_SHA384, PKCS11Constants.CKM_ECDSA_SHA384);
+        mechanisms.put(PKCS11Constants.NAME_CKM_ECDSA_SHA512, PKCS11Constants.CKM_ECDSA_SHA512);
 
         return mechanisms;
     }
@@ -238,16 +246,30 @@ public final class ModuleConf {
             tokenIdFormat = DEFAULT_TOKEN_ID_FORMAT;
         }
 
-        SignMechanism signMechanismName = Optional.ofNullable(section.getString(SIGN_MECHANISM_PARAM))
+        var rsaSignMechanismName = Optional.ofNullable(section.getString(RSA_SIGN_MECHANISM_PARAM))
+                .filter(StringUtils::isNotBlank)
+                .or(() -> Optional.ofNullable(section.getString(SIGN_MECHANISM_PARAM)).filter(StringUtils::isNotBlank))
+                .map(SignMechanism::valueOf)
+                .orElse(DEFAULT_RSA_SIGN_MECHANISM_NAME);
+
+        var ecSignMechanismName = Optional.ofNullable(section.getString(EC_SIGN_MECHANISM_PARAM))
                 .filter(StringUtils::isNotBlank)
                 .map(SignMechanism::valueOf)
-                .orElse(DEFAULT_SIGN_MECHANISM_NAME);
+                .orElse(DEFAULT_EC_SIGN_MECHANISM_NAME);
 
-        Long signMechanism = getSupportedSignMechanismCode(signMechanismName);
+        var rsaSignMechanism = getSupportedSignMechanismCode(rsaSignMechanismName);
+        var ecSignMechanism = getSupportedSignMechanismCode(ecSignMechanismName);
 
-        if (signMechanism == null) {
+        if (rsaSignMechanism == null) {
             log.error("Not supported sign mechanism ({}) specified for module ({}), skipping...",
-                    signMechanismName, uid);
+                    rsaSignMechanismName, uid);
+
+            return;
+        }
+
+        if (ecSignMechanism == null) {
+            log.error("Not supported sign mechanism ({}) specified for module ({}), skipping...",
+                    ecSignMechanismName, uid);
 
             return;
         }
@@ -257,9 +279,9 @@ public final class ModuleConf {
 
         log.debug("Read module configuration (UID = {}, library = {}, library_cant_create_os_threads = {}"
                         + ", os_locking_ok = {}, token_id_format = {}, pin_verification_per_signing = {}, batch_signing = {}"
-                        + ", sign_mechanism = {}, pub_key_attributes = {}, priv_key_attributes = {})",
+                        + ", rsa_sign_mechanism = {}, ec_sign_mechanism = {},pub_key_attributes = {}, priv_key_attributes = {})",
                 uid, library, libraryCantCreateOsThreads, osLockingOk, tokenIdFormat, verifyPin, batchSigning,
-                signMechanismName, pubKeyAttributes, privKeyAttributes);
+                rsaSignMechanismName, ecSignMechanismName, pubKeyAttributes, privKeyAttributes);
 
         if (MODULES.containsKey(uid)) {
             log.warn("Module information already defined for {}, skipping...", uid);
@@ -270,8 +292,12 @@ public final class ModuleConf {
         List<String> slotIdStrings = Arrays.asList(getStringArray(section, SLOT_IDS_PARAM));
         Set<Long> slotIds = slotIdStrings.stream().map(String::trim).map(Long::parseLong).collect(Collectors.toSet());
 
-        MODULES.put(uid, new HardwareModuleType(uid, library, libraryCantCreateOsThreads, osLockingOk, tokenIdFormat,
-                verifyPin, batchSigning, readOnly, signMechanismName, privKeyAttributes, pubKeyAttributes, slotIds));
+        MODULES.put(uid, new HardwareModuleType(
+                uid, library, libraryCantCreateOsThreads,
+                osLockingOk, tokenIdFormat, verifyPin,
+                batchSigning, readOnly, rsaSignMechanismName,
+                ecSignMechanismName, privKeyAttributes, pubKeyAttributes,
+                slotIds));
     }
 
     private static PubKeyAttributes loadPubKeyAttributes(SubnodeConfiguration section) {
@@ -302,8 +328,7 @@ public final class ModuleConf {
         attributes.setAlwaysSensitive(getBoolean(section, PRIV_KEY_ATTRIBUTE_ALWAYS_SENSITIVE_PARAM, null));
         attributes.setNeverExtractable(getBoolean(section, PRIV_KEY_ATTRIBUTE_NEVER_EXTRACTABLE_PARAM, null));
         attributes.setWrapWithTrusted(getBoolean(section, PRIV_KEY_ATTRIBUTE_WRAP_WITH_TRUSTED_PARAM, null));
-        attributes.setAllowedMechanisms(loadAllowedKeyUsageMechanisms(
-                section, PRIV_KEY_ATTRIBUTE_ALLOWED_MECHANISMS_PARAM));
+        attributes.setAllowedMechanisms(loadAllowedKeyUsageMechanisms(section, PRIV_KEY_ATTRIBUTE_ALLOWED_MECHANISMS_PARAM));
 
         return attributes;
     }

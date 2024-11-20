@@ -79,6 +79,10 @@
           <div class="row-data">{{ key.label }}</div>
         </div>
         <div class="info-row">
+          <div class="row-title">{{ $t('keys.keyAlgorithm') }}</div>
+          <div class="row-data">{{ key.key_algorithm }}</div>
+        </div>
+        <div class="info-row">
           <div class="row-title">{{ $t('keys.readOnly') }}</div>
           <div class="row-data">{{ tokenForCurrentKey.read_only }}</div>
         </div>
