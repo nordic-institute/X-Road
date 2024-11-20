@@ -82,7 +82,7 @@ public class ConfProxyUtilRunner implements ApplicationRunner {
     private ConfProxyUtil createUtilInstance(final String className) throws Exception {
         Class<ConfProxyUtil> utilClass =
                 (Class<ConfProxyUtil>) Class.forName(className);
-        return utilClass.getConstructor(ConfProxyProperties.class, SignerRpcClient.class)
+        return utilClass.getDeclaredConstructor(ConfProxyProperties.class, SignerRpcClient.class)
                 .newInstance(confProxyProperties, signerRpcClient);
     }
 

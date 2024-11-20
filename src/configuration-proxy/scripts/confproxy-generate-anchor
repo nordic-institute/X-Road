@@ -15,6 +15,6 @@ fi
 
 UTIL_CP="/usr/share/xroad/jlib/configuration-proxy.jar"
 
-java ${XROAD_PARAMS} ${XROAD_CONFPROXY_PARAMS} -cp ${UTIL_CP} \
-org.niis.xroad.confproxy.ConfProxyMain --run-util ee.ria.xroad.confproxy.commandline.ConfProxyUtilGenerateAnchor $@
+java ${XROAD_PARAMS} ${XROAD_CONFPROXY_PARAMS} -jar ${UTIL_CP} \
+  --run-util org.niis.xroad.confproxy.commandline.ConfProxyUtilGenerateAnchor $@
 
