@@ -1,38 +1,32 @@
 plugins {
-    alias(libs.plugins.shadow)
+    alias(libs.plugins.springBoot)
 }
 
 dependencies {
     implementation(libs.commons.cli)
     implementation(libs.cliche)
 
+    implementation project(':common:common-service-bootstrap')
     implementation(project(':common:common-domain'))
     implementation(project(':signer-protocol'))
 }
 
-ext {
-    mainClassName = 'ee.ria.xroad.signer.console.SignerCLI'
+jar {
+    enabled = false
 }
 
-jar {
+bootJar {
+    enabled = true
+    archiveBaseName = 'signer-console'
     manifest {
-        attributes 'Main-Class': mainClassName
+        attributes(
+            'Implementation-Title': 'X-Road Signer Console',
+            'Implementation-Version': "$xroadVersion-$xroadBuildType",
+            'Main-Class': 'org.springframework.boot.loader.launch.PropertiesLauncher'
+        )
     }
 }
 
-shadowJar {
-    archiveClassifier = ''
-    exclude('**/module-info.class')
-    exclude 'asg/cliche/example/**'
-    from rootProject.file("LICENSE.txt")
-    mergeServiceFiles()
-}
-
-jar.enabled = false
-
-build {
-    dependsOn shadowJar
-}
 
 tasks.register('runSignerConsole', JavaExec) {
     jvmArgs '-Djava.library.path=../passwordstore'
