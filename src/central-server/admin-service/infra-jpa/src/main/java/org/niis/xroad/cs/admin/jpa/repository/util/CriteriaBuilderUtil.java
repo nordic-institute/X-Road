@@ -31,7 +31,6 @@ import jakarta.persistence.criteria.Expression;
 import jakarta.persistence.criteria.Predicate;
 import lombok.AccessLevel;
 import lombok.NoArgsConstructor;
-import org.hibernate.query.criteria.JpaExpression;
 
 /**
  * Utility for working with CriteriaBuilder
@@ -53,9 +52,15 @@ public final class CriteriaBuilderUtil {
         );
     }
 
-    public static <T> Expression<String> castToString(Expression<T> expression) {
-        //TODO starting hibernate 6.6 use this: return ((JpaExpression<T>) expression).cast(String.class);
-        return ((JpaExpression<T>) expression).as(String.class);
+    /**
+     * Create a case LIKE expression Predicate. Also escape special characters \, % and _
+     */
+    public static Predicate caseLike(CriteriaBuilder builder, String s, Expression<String> expression) {
+        return builder.like(
+                expression,
+                builder.lower(builder.literal("%" + escapeSpecialChars(s) + "%")),
+                LIKE_EXPRESSION_ESCAPE_CHAR
+        );
     }
 
     private static String escapeSpecialChars(String s) {
@@ -63,6 +68,4 @@ public final class CriteriaBuilderUtil {
                 .replace("%", LIKE_EXPRESSION_ESCAPE_STRING + "%")
                 .replace("_", LIKE_EXPRESSION_ESCAPE_STRING + "_");
     }
-
-
 }

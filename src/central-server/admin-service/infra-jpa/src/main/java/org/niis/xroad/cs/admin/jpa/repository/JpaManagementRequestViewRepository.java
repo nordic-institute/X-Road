@@ -48,12 +48,16 @@ import java.util.List;
 import static java.util.Optional.ofNullable;
 import static java.util.stream.Collectors.toList;
 import static org.niis.xroad.cs.admin.jpa.repository.util.CriteriaBuilderUtil.caseInsensitiveLike;
-import static org.niis.xroad.cs.admin.jpa.repository.util.CriteriaBuilderUtil.castToString;
+import static org.niis.xroad.cs.admin.jpa.repository.util.CriteriaBuilderUtil.caseLike;
 
 @Repository
 public interface JpaManagementRequestViewRepository extends JpaRepository<ManagementRequestViewEntity, Integer>,
         JpaSpecificationExecutor<ManagementRequestViewEntity>,
         ManagementRequestViewRepository {
+
+    String INTEGER_FORMAT = "9999999999";
+    String TIMESTAMP_FORMAT = "YYYY-MM-DD HH24:MI:SS";
+    String TO_CHAR = "TO_CHAR";
 
     default Page<ManagementRequestViewEntity> findAll(ManagementRequestService.Criteria criteria, Pageable pageable) {
         return findAll(findSpec(criteria), pageable);
@@ -100,7 +104,6 @@ public interface JpaManagementRequestViewRepository extends JpaRepository<Manage
             if (StringUtils.isNotBlank(criteria.getQuery())) {
                 pred = setQueryPredicates(criteria, builder, root, pred);
             }
-
             return pred;
         };
     }
@@ -111,8 +114,10 @@ public interface JpaManagementRequestViewRepository extends JpaRepository<Manage
         final var q = criteria.getQuery();
         final List<Predicate> predicates = new ArrayList<>();
 
-        predicates.add(caseInsensitiveLike(builder, q, castToString(root.get(ManagementRequestViewEntity_.id))));
-        predicates.add(caseInsensitiveLike(builder, q, castToString(root.get(ManagementRequestViewEntity_.createdAt))));
+        predicates.add(caseLike(builder, q, builder.function(
+                TO_CHAR, String.class, root.get(ManagementRequestViewEntity_.id), builder.literal(INTEGER_FORMAT))));
+        predicates.add(caseLike(builder, q, builder.function(
+                TO_CHAR, String.class, root.get(ManagementRequestViewEntity_.createdAt), builder.literal(TIMESTAMP_FORMAT))));
         predicates.add(caseInsensitiveLike(builder, q, root.get(ManagementRequestViewEntity_.securityServerOwnerName)));
         predicates.add(caseInsensitiveLike(builder, q, root.get(ManagementRequestViewEntity_.xroadInstance)));
         predicates.add(caseInsensitiveLike(builder, q, root.get(ManagementRequestViewEntity_.memberClass)));
