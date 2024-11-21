@@ -53,12 +53,12 @@ public final class CriteriaBuilderUtil {
     }
 
     /**
-     * Create a case LIKE expression Predicate. Also escape special characters \, % and _
+     * Create a LIKE expression Predicate. Also escape special characters \, % and _
      */
-    public static Predicate caseLike(CriteriaBuilder builder, String s, Expression<String> expression) {
+    public static Predicate like(CriteriaBuilder builder, String s, Expression<String> expression) {
         return builder.like(
                 expression,
-                builder.lower(builder.literal("%" + escapeSpecialChars(s) + "%")),
+                builder.literal("%" + escapeSpecialChars(s) + "%"),
                 LIKE_EXPRESSION_ESCAPE_CHAR
         );
     }
