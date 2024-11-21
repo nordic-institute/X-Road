@@ -26,7 +26,6 @@
 package ee.ria.xroad.signer.console;
 
 import ee.ria.xroad.common.AuditLogger;
-import ee.ria.xroad.common.SystemPropertiesLoader;
 import ee.ria.xroad.common.Version;
 import ee.ria.xroad.common.crypto.identifier.SignAlgorithm;
 import ee.ria.xroad.common.identifier.ClientId;
@@ -46,12 +45,14 @@ import asg.cliche.InputConverter;
 import asg.cliche.Param;
 import asg.cliche.Shell;
 import asg.cliche.ShellFactory;
+import lombok.RequiredArgsConstructor;
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.CommandLineParser;
 import org.apache.commons.cli.DefaultParser;
 import org.apache.commons.cli.Options;
 import org.apache.commons.lang3.StringUtils;
 import org.niis.xroad.signer.proto.CertificateRequestFormat;
+import org.springframework.boot.CommandLineRunner;
 
 import java.io.IOException;
 import java.security.cert.X509Certificate;
@@ -65,7 +66,7 @@ import java.util.Map;
 import java.util.Scanner;
 
 import static ee.ria.xroad.common.AuditLogger.XROAD_USER;
-import static ee.ria.xroad.common.SystemProperties.CONF_FILE_SIGNER;
+import static ee.ria.xroad.common.Version.XROAD_VERSION;
 import static ee.ria.xroad.common.crypto.Digests.calculateDigest;
 import static ee.ria.xroad.common.crypto.identifier.DigestAlgorithm.SHA512;
 import static ee.ria.xroad.common.util.EncoderUtils.encodeBase64;
@@ -112,7 +113,8 @@ import static org.niis.xroad.signer.proto.CertificateRequestFormat.PEM;
 /**
  * Signer command line interface.
  */
-public class SignerCLI {
+@RequiredArgsConstructor
+public class SignerCLI implements CommandLineRunner {
 
     private static final String APP_NAME = "xroad-signer-console";
     private static final String PIN_PROMPT = "PIN: ";
@@ -120,13 +122,6 @@ public class SignerCLI {
     static boolean verbose;
 
     private final SignerRpcClient signerRpcClient;
-
-    static {
-        SystemPropertiesLoader.create()
-                .withCommonAndLocal()
-                .with(CONF_FILE_SIGNER)
-                .load();
-    }
 
     /**
      * Shell input converters
@@ -143,10 +138,6 @@ public class SignerCLI {
                 }
             },
     };
-
-    public SignerCLI(SignerRpcClient signerRpcClient) {
-        this.signerRpcClient = signerRpcClient;
-    }
 
     /**
      * Lists all tokens.
@@ -789,8 +780,10 @@ public class SignerCLI {
      * @param args arguments
      * @throws Exception if an error occurs
      */
-    public static void main(String[] args) throws Exception {
+    @Override
+    public void run(String... args) throws Exception {
         Version.outputVersionInfo(APP_NAME);
+        System.out.printf("%s %s%n", APP_NAME, XROAD_VERSION);
 
         CommandLine cmd = getCommandLine(args);
         if (cmd.hasOption("verbose")) {
@@ -802,47 +795,34 @@ public class SignerCLI {
             return;
         }
 
-//        try {
-            // todo: xroad8 spring-bootify
-//            RpcClientProperties signerClientProperties = new RpcClientProperties(
-//                    SystemProperties.getSignerGrpcHost(),
-//                    SystemProperties.getSignerGrpcPort(),
-//                    SystemProperties.isSignerGrpcTlsEnabled(),
-//                    SystemProperties.getSignerGrpcTrustStore(),
-//                    SystemProperties.getSignerGrpcTrustStorePassword(),
-//                    SystemProperties.getSignerGrpcKeyStore(),
-//                    SystemProperties.getSignerGrpcKeyStorePassword()
-//            );
-//            RpcSignerClient.init(signerClientProperties);
+        String[] arguments = cmd.getArgs();
 
-            String[] arguments = cmd.getArgs();
-
-            if (arguments.length > 0) {
-                processCommandAndExit(StringUtils.join(arguments, " "));
-            } else {
-                startCommandLoop();
-            }
-//        } finally {
-//            signerRpcClient.shutdown();
-//        }
+        if (arguments.length > 0) {
+            processCommandAndExit(StringUtils.join(arguments, " "));
+        } else {
+            startCommandLoop();
+        }
     }
 
-    private static void startCommandLoop() throws IOException {
-        // todo: xroad8 spring-bootify
-        String prompt = "signer@%s:%d".formatted("host", " SystemProperties.getSignerGrpcPort()");
+    private void startCommandLoop() throws IOException {
+        // todo: xroad8 show host/port if needed
+        String prompt = "signer@%s:%s".formatted("host", "port");
 
-        String description = "Enter '?list' to get list of available commands\n"
-                + "Enter '?help <command>' to get command description\n"
-                + "\nNOTE: Member identifier is entered as \"<INSTANCE> <CLASS> <CODE>\" (in quotes)\n";
+        String description = """
+                Enter '?list' to get list of available commands
+                Enter '?help <command>' to get command description
+
+                NOTE: Member identifier is entered as "<INSTANCE> <CLASS> <CODE>" (in quotes)
+                """;
 
         getShell(prompt, description).commandLoop();
     }
 
-    private static void processCommandAndExit(String command) throws CLIException {
+    private void processCommandAndExit(String command) throws CLIException {
         getShell("", "").processLine(command);
     }
 
-    private static CommandLine getCommandLine(String[] args) throws Exception {
+    private CommandLine getCommandLine(String[] args) throws Exception {
         CommandLineParser parser = new DefaultParser();
 
         Options options = new Options();
@@ -853,7 +833,7 @@ public class SignerCLI {
         return parser.parse(options, args);
     }
 
-    private static Shell getShell(String prompt, String description) {
-        return ShellFactory.createConsoleShell(prompt, description, new SignerCLI(null));
+    private Shell getShell(String prompt, String description) {
+        return ShellFactory.createConsoleShell(prompt, description, this);
     }
 }

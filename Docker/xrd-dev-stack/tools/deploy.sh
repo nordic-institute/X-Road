@@ -31,6 +31,9 @@ deploy_module() {
     jar_path="$XROAD_HOME/src/signer/application/build/libs/signer-1.0.jar"
     service_name="all"
     ;;
+  "signer-console")
+    jar_path="$XROAD_HOME/src/signer-console/build/libs/signer-console-1.0.jar"
+    ;;
   "configuration-client")
     jar_path="$XROAD_HOME/src/configuration-client/application/build/libs/configuration-client-1.0.jar"
     service_name="xroad-confclient"
@@ -101,7 +104,7 @@ case $1 in
 "cs-admin-service" | "cs-management-service" | "cs-registration-service" | "cs-catalog-service" | "cs-credential-service")
   deploy_module "$1" "cs"
   ;;
-"signer" | "edc-ih")
+"signer" | "signer-console" | "edc-ih")
   deploy_module "$1" "ss0" "ss1"
   deploy_module "$1" "cs"
   ;;
