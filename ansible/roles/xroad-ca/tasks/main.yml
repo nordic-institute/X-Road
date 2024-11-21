@@ -20,9 +20,7 @@
       - "uwsgi-plugin-python3"
 
 - name: download acme2certifier
-  get_url:
-    url: "https://github.com/grindsa/acme2certifier/releases/download/{{ a2c_ver }}/acme2certifier_{{ a2c_ver }}-1_all.deb"
-    dest: /tmp/
+  shell: "curl -L -o /tmp/acme2certifier_{{ a2c_ver }}-1_all.deb https://github.com/grindsa/acme2certifier/releases/download/{{ a2c_ver }}/acme2certifier_{{ a2c_ver }}-1_all.deb"
   when: (ansible_distribution_release == "jammy" or ansible_distribution_release == "noble")
 
 - name: group ca
