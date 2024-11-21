@@ -46,7 +46,7 @@ import jakarta.xml.bind.JAXBContext;
 import jakarta.xml.bind.JAXBException;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.ObjectUtils;
-import org.eclipse.jetty.util.StringUtil;
+import org.apache.commons.lang3.StringUtils;
 
 import javax.xml.datatype.DatatypeConfigurationException;
 import javax.xml.datatype.DatatypeFactory;
@@ -209,8 +209,6 @@ public final class TokenConf extends AbstractXmlConf<KeyConfType> {
                     deviceType.getKey().add(from(key));
                 });
 
-        deviceType.setSignMechanismName(token.getSignMechanismName().name());
-
         return deviceType;
     }
 
@@ -220,6 +218,7 @@ public final class TokenConf extends AbstractXmlConf<KeyConfType> {
         keyType.setLabel(key.getLabel());
         keyType.setKeyId(key.getId());
         keyType.setUsage(key.getUsage());
+        keyType.setSignMechanismName(key.getSignMechanismName().name());
 
         if (key.getPublicKey() != null) {
             keyType.setPublicKey(decodeBase64(key.getPublicKey()));
@@ -237,10 +236,7 @@ public final class TokenConf extends AbstractXmlConf<KeyConfType> {
     }
 
     private static Token from(DeviceType type) {
-        SignMechanism signMechanismName = StringUtil.isBlank(type.getSignMechanismName())
-                ? SignMechanism.CKM_RSA_PKCS : SignMechanism.valueOf(type.getSignMechanismName());
-
-        Token token = new Token(type.getDeviceType(), type.getId(), signMechanismName);
+        Token token = new Token(type.getDeviceType(), type.getId());
         token.setFriendlyName(type.getFriendlyName());
         token.setSlotIndex(type.getPinIndex() != null ? type.getPinIndex() : 0);
         token.setSerialNumber(type.getTokenId());
@@ -252,14 +248,14 @@ public final class TokenConf extends AbstractXmlConf<KeyConfType> {
         }
 
         for (KeyType keyType : type.getKey()) {
-            token.addKey(from(token, keyType));
+            token.addKey(from(token, keyType, toSignMechanism(type.getSignMechanismName())));
         }
 
         return token;
     }
 
-    private static Key from(Token device, KeyType keyType) {
-        Key key = new Key(device, keyType.getKeyId());
+    private static Key from(Token device, KeyType keyType, SignMechanism defaultSigneMechanism) {
+        Key key = new Key(device, keyType.getKeyId(), toSignMechanism(keyType.getSignMechanismName(), defaultSigneMechanism));
         key.setFriendlyName(keyType.getFriendlyName());
         key.setLabel(keyType.getLabel());
         key.setUsage(keyType.getUsage());
@@ -277,6 +273,14 @@ public final class TokenConf extends AbstractXmlConf<KeyConfType> {
         }
 
         return key;
+    }
+
+    private static SignMechanism toSignMechanism(String signMechanism, SignMechanism defaultSignMechanism) {
+        return SignMechanism.valueOf(StringUtils.firstNonBlank(signMechanism, defaultSignMechanism.name()));
+    }
+
+    private static SignMechanism toSignMechanism(String signMechanism) {
+        return toSignMechanism(signMechanism, SignMechanism.CKM_RSA_PKCS);
     }
 
     private static Cert from(CertificateType type) {

@@ -38,7 +38,9 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import static ee.ria.xroad.common.crypto.identifier.DigestAlgorithm.SHA512;
+import static ee.ria.xroad.common.crypto.identifier.SignAlgorithm.SHA512_WITH_ECDSA;
 import static ee.ria.xroad.common.crypto.identifier.SignAlgorithm.SHA512_WITH_RSA;
+import static ee.ria.xroad.common.crypto.identifier.SignMechanism.CKM_ECDSA;
 import static ee.ria.xroad.common.crypto.identifier.SignMechanism.CKM_RSA_PKCS;
 import static java.nio.charset.StandardCharsets.UTF_8;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -72,12 +74,14 @@ class DirectoryContentSignerTest {
     public static final String KEY_ID = "KEY-ID";
     public static final byte[] SIGNING_CERT = "SIGNING-CERT".getBytes(UTF_8);
     public static final byte[] SIGNATURE = "<signature>".getBytes(UTF_8);
+    public static final byte[] SIGNATURE_EC = {0x30, 4, 1, 1, 1, 1};
     public static final String SIGNATURE_BASE64 = EncoderUtils.encodeBase64(SIGNATURE);
+    public static final String SIGNATURE_EC_BASE64 = EncoderUtils.encodeBase64(SIGNATURE_EC);
 
 
     @SneakyThrows
     @Test
-    void createSignedDirectory() {
+    void createSignedDirectoryUsingRSA() {
         var signerProxyFacade = Mockito.mock(SignerProxyFacade.class);
         when(signerProxyFacade.getSignMechanism(KEY_ID)).thenReturn(CKM_RSA_PKCS);
         var digest = Digests.calculateDigest(SHA512, SIGNABLE_DIRECTORY_CONTENT.getBytes());
@@ -104,6 +108,37 @@ class DirectoryContentSignerTest {
                 + "\r\n"
                 + "%s\r\n"
                 + "--%s--\r\n", boundary, boundary, DIRECTORY_CONTENT, boundary, SIGNATURE_BASE64, boundary);
+    }
+
+    @SneakyThrows
+    @Test
+    void createSignedDirectoryUsingEC() {
+        var signerProxyFacade = Mockito.mock(SignerProxyFacade.class);
+        when(signerProxyFacade.getSignMechanism(KEY_ID)).thenReturn(CKM_ECDSA);
+        var digest = Digests.calculateDigest(SHA512, SIGNABLE_DIRECTORY_CONTENT.getBytes());
+        when(signerProxyFacade.sign(KEY_ID, SHA512_WITH_ECDSA, digest)).thenReturn(SIGNATURE_EC);
+
+        var signedDirectory = new DirectoryContentSigner(signerProxyFacade, SHA512, SHA512)
+                .createSignedDirectory(directoryContentHolder, KEY_ID, SIGNING_CERT);
+
+        var headerMatcher = HEADER_PATTERN.matcher(signedDirectory);
+        assertThat(headerMatcher).as("Expecting header to match pattern").matches(Matcher::matches);
+        var boundary = headerMatcher.group(1);
+
+        assertThat(signedDirectory).isEqualTo("Content-Type: multipart/related; charset=UTF-8; boundary=%s\r\n"
+                + "\r\n"
+                + "--%s\r\n"
+                + "%s\r\n"
+                + "--%s\r\n"
+                + "Content-Type: application/octet-stream\r\n"
+                + "Content-Transfer-Encoding: base64\r\n"
+                + "Signature-Algorithm-Id: http://www.w3.org/2001/04/xmldsig-more#ecdsa-sha512\r\n"
+                + "Verification-certificate-hash:"
+                + " BRWad0j23C27HEofaHQZpBI8DqwjTT8wkucCTGIB9v6kQFAn7AIPevuPWn6SkdZSnru0YCbI9mxzv7DwyNG7dg==;"
+                + " hash-algorithm-id=\"http://www.w3.org/2001/04/xmlenc#sha512\"\r\n"
+                + "\r\n"
+                + "%s\r\n"
+                + "--%s--\r\n", boundary, boundary, DIRECTORY_CONTENT, boundary, SIGNATURE_EC_BASE64, boundary);
     }
 
 }

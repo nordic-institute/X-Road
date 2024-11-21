@@ -47,6 +47,8 @@ public class CertificateDetails {
     private String publicKeyAlgorithm;
     private BigInteger rsaPublicKeyExponent;
     private String rsaPublicKeyModulus;
+    private String ecPublicParameters;
+    private String ecPublicKeyPoint;
     private String serial;
     private String signature;
     private String signatureAlgorithm;

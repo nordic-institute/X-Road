@@ -28,6 +28,7 @@ import '@mdi/font/css/materialdesignicons.css';
 import { createVuetify } from 'vuetify';
 import * as components from 'vuetify/components';
 import { aliases, mdi } from 'vuetify/iconsets/mdi';
+import { Colors } from '@/global';
 
 export default createVuetify({
   components,
@@ -63,10 +64,9 @@ export default createVuetify({
       light: {
         dark: false,
         colors: {
-          primary: '#663cdc',
-          secondary: '#00C9E7',
-          accent: '#8c9eff',
-          grey: '#9c9c9c',
+          primary: Colors.Purple100,
+          secondary: Colors.Purple70,
+          error: Colors.Error,
         },
       },
     },

@@ -25,6 +25,7 @@
  */
 package org.niis.xroad.cs.admin.api.facade;
 
+import ee.ria.xroad.common.crypto.identifier.KeyAlgorithm;
 import ee.ria.xroad.common.crypto.identifier.SignAlgorithm;
 import ee.ria.xroad.common.crypto.identifier.SignMechanism;
 import ee.ria.xroad.common.identifier.ClientId;
@@ -68,9 +69,9 @@ public interface SignerProxyFacade {
     void deactivateToken(String tokenId) throws Exception;
 
     /**
-     * {@link SignerProxy#generateKey(String, String)}
+     * {@link SignerProxy#generateKey(String, String, KeyAlgorithm)}
      */
-    KeyInfo generateKey(String tokenId, String keyLabel) throws Exception;
+    KeyInfo generateKey(String tokenId, String keyLabel, KeyAlgorithm algorithm) throws Exception;
 
     /**
      * {@link SignerProxy#generateSelfSignedCert(String, ClientId.Conf, KeyUsageInfo, String, Date, Date)}
@@ -89,7 +90,7 @@ public interface SignerProxyFacade {
     SignMechanism getSignMechanism(String keyId) throws Exception;
 
     /**
-     * {@link SignerProxy#sign(String, String, byte[])}
+     * {@link SignerProxy#sign(String, SignAlgorithm, byte[])}
      */
     byte[] sign(String keyId, SignAlgorithm signatureAlgorithmId, byte[] digest) throws Exception;
 

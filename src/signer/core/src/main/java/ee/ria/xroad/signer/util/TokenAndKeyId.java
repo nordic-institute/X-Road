@@ -27,15 +27,11 @@ package ee.ria.xroad.signer.util;
 
 import ee.ria.xroad.signer.protocol.dto.TokenInfo;
 
-import lombok.Value;
-
 /**
  * DTO for holding a TokenInfo and key id.
+ * @param tokenInfo the token info
+ * @param keyId the key id
  */
-@Value
-public final class TokenAndKeyId {
+public record TokenAndKeyId(TokenInfo tokenInfo, String keyId) {
 
-    private final TokenInfo tokenInfo;
-
-    private final String keyId;
 }

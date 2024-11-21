@@ -55,6 +55,7 @@ import static ee.ria.xroad.common.ErrorCodes.X_CERT_VALIDATION;
 import static ee.ria.xroad.common.ErrorCodes.X_INVALID_CERT_PATH_X;
 import static ee.ria.xroad.common.ErrorCodes.translateWithPrefix;
 import static ee.ria.xroad.common.cert.CertHelper.getOcspResponseForCert;
+import static ee.ria.xroad.common.crypto.identifier.Providers.BOUNCY_CASTLE;
 
 /**
  * Certificate chain verifier.
@@ -109,7 +110,7 @@ public class CertChainVerifier {
                 CertStore intermediateCertStore =
                         CertStore.getInstance("Collection",
                                 new CollectionCertStoreParameters(
-                                        certChain.getAdditionalCerts()), "BC");
+                                        certChain.getAdditionalCerts()), BOUNCY_CASTLE);
                 pkixParams.addCertStore(intermediateCertStore);
             }
         } catch (Exception e) {

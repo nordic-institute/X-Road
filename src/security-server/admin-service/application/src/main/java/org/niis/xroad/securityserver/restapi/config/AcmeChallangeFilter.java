@@ -50,6 +50,11 @@ public class AcmeChallangeFilter implements Filter {
             ((HttpServletResponse) response).sendError(404);
             return;
         }
+        if (request.getServerPort() != 80 && isAcmeChallenge) {
+            log.warn("ACME challenge endpoint should not be accessible from any port other than 80!");
+            ((HttpServletResponse) response).sendError(404);
+            return;
+        }
         chain.doFilter(request, response);
     }
 }

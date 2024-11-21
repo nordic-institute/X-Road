@@ -27,6 +27,8 @@
 
 package org.niis.xroad.cs.admin.api.domain;
 
+import ee.ria.xroad.common.crypto.identifier.KeyAlgorithm;
+
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
@@ -44,6 +46,7 @@ public class ConfigurationSigningKeyWithDetails extends ConfigurationSigningKey 
     private Boolean available;
     private KeyLabel label;
     private List<PossibleKeyAction> possibleActions = null;
+    private KeyAlgorithm keyAlgorithm;
 }
 
 
