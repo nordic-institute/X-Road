@@ -27,6 +27,7 @@ package org.niis.xroad.securityserver.restapi.service;
 
 import ee.ria.xroad.common.CodedException;
 import ee.ria.xroad.common.conf.globalconf.ApprovedCAInfo;
+import ee.ria.xroad.common.crypto.identifier.KeyAlgorithm;
 import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.identifier.SecurityServerId;
 import ee.ria.xroad.signer.SignerProxy;
@@ -85,7 +86,7 @@ public class KeyAndCertificateRequestServiceIntegrationTest extends AbstractServ
         when(signerProxyFacade.getTokens()).thenAnswer(i -> new ArrayList<>(tokens.values()));
         when(signerProxyFacade.getToken(any())).thenAnswer(
                 invocation -> tokens.get(invocation.getArguments()[0]));
-        when(signerProxyFacade.generateKey(any(), any())).thenAnswer(invocation -> {
+        when(signerProxyFacade.generateKey(any(), any(), any())).thenAnswer(invocation -> {
             String tokenId = (String) invocation.getArguments()[0];
             String label = (String) invocation.getArguments()[1];
             // new keys start with usage = null
@@ -172,7 +173,7 @@ public class KeyAndCertificateRequestServiceIntegrationTest extends AbstractServ
                         KeyUsageInfo.SIGNING, MOCK_CA, dnParams,
                         CertificateRequestFormat.PEM, false);
         verify(signerProxyFacade, times(1))
-                .generateKey(SOFTWARE_TOKEN_ID, "keylabel");
+                .generateKey(SOFTWARE_TOKEN_ID, "keylabel", KeyAlgorithm.RSA);
         verify(signerProxyFacade, times(1))
                 .generateCertRequest(any(), any(), any(), any(), any(), any(), any());
     }

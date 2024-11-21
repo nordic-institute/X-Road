@@ -25,6 +25,7 @@
  */
 package org.niis.xroad.securityserver.restapi.openapi;
 
+import ee.ria.xroad.common.crypto.identifier.KeyAlgorithm;
 import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.signer.protocol.dto.KeyInfo;
 import ee.ria.xroad.signer.protocol.dto.KeyUsageInfo;
@@ -179,7 +180,7 @@ public class TokensApiController implements TokensApi {
     @AuditEventMethod(event = RestApiAuditEvent.GENERATE_KEY)
     public ResponseEntity<Key> addKey(String tokenId, KeyLabel keyLabel) {
         try {
-            KeyInfo keyInfo = keyService.addKey(tokenId, keyLabel.getLabel());
+            KeyInfo keyInfo = keyService.addKey(tokenId, keyLabel.getLabel(), KeyAlgorithm.RSA);
             Key key = keyConverter.convert(keyInfo);
             return ControllerUtil.createCreatedResponse("/api/keys/{keyId}", key, key.getId());
         } catch (TokenNotFoundException e) {

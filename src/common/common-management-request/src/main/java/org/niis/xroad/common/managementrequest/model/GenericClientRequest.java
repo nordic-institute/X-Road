@@ -26,6 +26,7 @@
 package org.niis.xroad.common.managementrequest.model;
 
 import ee.ria.xroad.common.SystemProperties;
+import ee.ria.xroad.common.crypto.Signatures;
 import ee.ria.xroad.common.crypto.identifier.DigestAlgorithm;
 import ee.ria.xroad.common.crypto.identifier.SignAlgorithm;
 import ee.ria.xroad.common.identifier.ClientId;
@@ -140,7 +141,7 @@ abstract class GenericClientRequest implements ManagementRequest {
 
     private static byte[] createSignature(String keyId, SignAlgorithm signAlgoId, byte[] digest) {
         try {
-            return SignerProxy.sign(keyId, signAlgoId, digest);
+            return Signatures.useAsn1DerFormat(signAlgoId, SignerProxy.sign(keyId, signAlgoId, digest));
         } catch (Exception e) {
             throw translateWithPrefix(X_CANNOT_CREATE_SIGNATURE, e);
         }

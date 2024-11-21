@@ -53,7 +53,9 @@ public class HardwareModuleType implements ModuleType {
 
     private final boolean forceReadOnly;
 
-    private final SignMechanism signMechanismName;
+    private final SignMechanism rsaSignMechanismName;
+
+    private final SignMechanism ecSignMechanismName;
 
     private final PrivKeyAttributes privKeyAttributes;
 

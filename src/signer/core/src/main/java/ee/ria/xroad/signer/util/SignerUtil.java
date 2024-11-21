@@ -25,7 +25,6 @@
  */
 package ee.ria.xroad.signer.util;
 
-import ee.ria.xroad.common.crypto.identifier.SignAlgorithm;
 import ee.ria.xroad.signer.protocol.dto.TokenInfo;
 
 import iaik.pkcs.pkcs11.Token;
@@ -41,7 +40,6 @@ import org.bouncycastle.operator.ContentSigner;
 
 import java.math.BigInteger;
 import java.security.KeyPair;
-import java.security.NoSuchAlgorithmException;
 import java.security.cert.X509Certificate;
 import java.util.Calendar;
 import java.util.Date;
@@ -56,43 +54,6 @@ public final class SignerUtil {
     private static final int RANDOM_ID_LENGTH = 20;
 
     private SignerUtil() {
-    }
-
-    /**
-     * Returns the digest prefix bytes for the given digest. The digest must
-     * be calculated using one of the following algorithms: SHA1, SHA224,
-     * SHA256, SHA384, SHA512.
-     *
-     * @param digest the digest
-     * @return the digest prefix bytes for the given digest
-     */
-    private static byte[] getDigestInfoPrefix(byte[] digest) {
-        return DigestPrefixCache.getPrefix(digest);
-    }
-
-    /**
-     * Creates data to be signed from the digest.
-     *
-     * @param digest     the digest
-     * @param signAlgoId sign algorithm id
-     * @return the data to be signed
-     * @throws NoSuchAlgorithmException if the algorithm is not supported
-     */
-    public static byte[] createDataToSign(byte[] digest, SignAlgorithm signAlgoId) throws NoSuchAlgorithmException {
-        return switch (signAlgoId.signMechanism()) {
-            case CKM_RSA_PKCS -> createDataToSign(digest);
-            case CKM_RSA_PKCS_PSS -> digest;
-        };
-    }
-
-    private static byte[] createDataToSign(byte[] digest) {
-        byte[] prefix = getDigestInfoPrefix(digest);
-        byte[] digestInfo = new byte[prefix.length + digest.length];
-
-        System.arraycopy(prefix, 0, digestInfo, 0, prefix.length);
-        System.arraycopy(digest, 0, digestInfo, prefix.length, digest.length);
-
-        return digestInfo;
     }
 
     /**
@@ -147,10 +108,9 @@ public final class SignerUtil {
 
         X500Name subject = new X500Name("CN=" + commonName);
 
-        JcaX509v3CertificateBuilder builder =
-                new JcaX509v3CertificateBuilder(
-                        subject, BigInteger.ONE, notBefore, notAfter,
-                        subject, keyPair.getPublic());
+        var builder = new JcaX509v3CertificateBuilder(
+                subject, BigInteger.ONE, notBefore, notAfter,
+                subject, keyPair.getPublic());
 
         X509CertificateHolder holder = builder.build(signer);
         return new JcaX509CertificateConverter().getCertificate(holder);
