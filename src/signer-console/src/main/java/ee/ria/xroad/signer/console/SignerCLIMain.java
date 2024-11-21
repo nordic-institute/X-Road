@@ -33,6 +33,7 @@ import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 
 @EnableAutoConfiguration
 @SpringBootConfiguration
+@SuppressWarnings("checkstyle:HideUtilityClassConstructor")
 public class SignerCLIMain {
     private static final String APP_NAME = "xroad-signer-console";
 
