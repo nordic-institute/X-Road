@@ -2,53 +2,56 @@
 # This playbook compiles X-Road and installs the compiled version
 
 
-- hosts: lxd_servers
-  roles:
-    - init-lxd
-  tags: 
-    - init
-        
-- hosts: compile_servers
+#- hosts: lxd_servers
+#  roles:
+#    - init-lxd
+#  tags:
+#    - init
+- name: Compile X-Road modules [{{selected_modules}}]
+  hosts: compile_servers
   vars_files:
     - vars_files/common_modules.yml
     - vars_files/cs_modules.yml
     - vars_files/cp_modules.yml
     - vars_files/ss_modules.yml
   roles:
-    - { role: compile-module, modules: "{{common_modules | combine(cs_modules,cp_modules,ss_modules)  }}"}
-  tags: 
+    - { role: compile-module, modules: "{{common_modules | combine(cs_modules,cp_modules,ss_modules)  }}" }
+  tags:
     - compile
 
-- hosts: cs_servers
+- name: Copy to CS modules [{{selected_modules}}]
+  hosts: cs_servers
   vars_files:
     - vars_files/common_modules.yml
     - vars_files/cs_modules.yml
   roles:
-    - { role: packages-to-server, modules: "{{common_modules | combine(cs_modules) }}"}
+    - { role: packages-to-server, modules: "{{common_modules | combine(cs_modules) }}" }
   tags:
     - packages
 
-- hosts: cp_servers
+- name: Copy to CP modules [{{selected_modules}}]
+  hosts: cp_servers
   vars_files:
     - vars_files/common_modules.yml
     - vars_files/cp_modules.yml
   roles:
-    - { role: packages-to-server, modules: "{{common_modules | combine(cp_modules) }}"}
+    - { role: packages-to-server, modules: "{{common_modules | combine(cp_modules) }}" }
   tags:
     - packages
 
-- hosts: ss_servers
+- name: Copy to SS modules [{{selected_modules}}]
+  hosts: ss_servers
   vars_files:
     - vars_files/common_modules.yml
     - vars_files/ss_modules.yml
   roles:
-    - { role: packages-to-server, modules: "{{common_modules | combine(ss_modules) }}"}
+    - { role: packages-to-server, modules: "{{common_modules | combine(ss_modules) }}" }
   tags:
     - packages
 
-
-- hosts: lxd_servers
-  roles:
-    - restart-lxd
-  tags:
-    - restart
+#- name: Restart LXD
+#  hosts: lxd_servers
+#  roles:
+#    - restart-lxd
+#  tags:
+#    - restart

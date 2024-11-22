@@ -1,9 +1,17 @@
 --- 
-- name: Copy to server modules {{selected_modules}}
+- name: Copy to server modules [{{selected_modules}}]
   copy: src=../src/{{modules[item].dir}}/build/libs/{{modules[item].lib}} dest={{modules[item].target}}/
   when: item in modules
   with_items: "{{selected_modules.split(',')}}"
 
+- name: Restart updated service [{{selected_modules}}]
+  service:
+    name: "{{modules[item].service}}"
+    state: restarted
+    enabled: yes
+  when: item in modules
+  with_items: "{{selected_modules.split(',')}}"
+  tags: restart-services
 
   
   

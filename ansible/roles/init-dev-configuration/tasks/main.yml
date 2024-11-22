@@ -1,0 +1,20 @@
+---
+- name: copy CS container configuration files
+  copy:
+    src: "files/cs/"
+    dest: "/"
+    group: "root"
+    owner: "root"
+    mode: "0644"
+    directory_mode: "0755"
+  when: inventory_hostname in groups['cs_servers']
+
+- name: copy SS container configuration files
+  copy:
+    src: "files/ss/"
+    dest: "/"
+    group: "root"
+    owner: "root"
+    mode: "0644"
+    directory_mode: "0755"
+  when: inventory_hostname in groups['ss_servers']

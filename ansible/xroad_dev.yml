@@ -1,13 +1,16 @@
 ---
-# This playbook compiles X-Road and installs the compiled packages to the defined host inventory
 
-- hosts: lxd_servers
+- name: Initialize LXD servers
+  hosts: lxd_servers
   roles:
     - init-lxd
-  tags: 
+  tags:
     - init
 
-- hosts: ss_servers
+- name: Perform RHEL support check
+  hosts: ss_servers
+  become: true
+  become_user: root
   any_errors_fatal: true
   tasks:
     - name: RHEL-support check
@@ -17,27 +20,40 @@
         - (variant is defined and variant == "ee")
         - ansible_os_family == "RedHat"
 
-- hosts: compile_servers
+- name: Run compilation tasks
+  hosts: compile_servers
   roles:
-    - compile
-  tags: 
+    - role: compile
+  tags:
     - compile
 
-- hosts: compile_servers
+- name: Build packages
+  hosts: compile_servers
   roles:
-    - build-packages
+    - role: build-packages
   tags:
     - build-packages
-  
-- hosts: ss_servers, cs_servers, cp_servers
+
+- name: Apply dev env configuration
+  hosts: ss_servers, cs_servers
+  become: true
+  roles:
+    - init-dev-configuration
+
+- name: Configure local repositories
+  hosts: ss_servers, cs_servers, cp_servers
+  pre_tasks:
+    - name: Check host connectivity
+      ping:
+    - name: Show target hosts
+      debug:
+        msg: "Target hosts in group: {{ groups['ss_servers'] + groups['cs_servers'] + groups['cp_servers'] }}"
   roles:
     - packages-to-local-repo
-  tags:
-    - packages
 
-- hosts: cs_servers
-  become: yes
-  become_user: root
+- name: Install CS servers
+  hosts: cs_servers
+  become: true
   roles:
     - xroad-cs
   tags:
@@ -47,9 +63,9 @@
     - vars_files/local_repo.yml
     - vars_files/cs_database.yml
 
-- hosts: cp_servers
-  become: yes
-  become_user: root
+- name: Install CP servers
+  hosts: cp_servers
+  become: true
   roles:
     - xroad-cp
   tags:
@@ -58,17 +74,18 @@
   vars_files:
     - vars_files/local_repo.yml
 
-- hosts: ca_servers
-  become: yes
-  become_user: root
+- name: Install CA servers
+  hosts: ca_servers
+  become: true
   roles:
     - xroad-ca
   tags:
     - ca
     - install
 
-- hosts: ss_servers
-  become: yes
+- name: Install SS servers
+  hosts: ss_servers
+  become: true
   become_user: root
   roles:
     - xroad-ss
