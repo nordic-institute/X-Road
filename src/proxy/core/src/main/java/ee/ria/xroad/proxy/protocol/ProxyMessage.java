@@ -29,7 +29,6 @@ import ee.ria.xroad.common.message.MultipartSoapMessageEncoder;
 import ee.ria.xroad.common.message.RestRequest;
 import ee.ria.xroad.common.message.RestResponse;
 import ee.ria.xroad.common.message.SoapFault;
-import ee.ria.xroad.common.message.SoapMessageEncoder;
 import ee.ria.xroad.common.message.SoapMessageImpl;
 import ee.ria.xroad.common.signature.SignatureData;
 import ee.ria.xroad.common.util.CacheInputStream;
@@ -72,12 +71,12 @@ public class ProxyMessage implements ProxyMessageConsumer {
     private SignatureData signature;
     private SoapFault fault;
 
-    protected Map<String, String> soapPartHeaders;
+    private Map<String, String> soapPartHeaders;
 
-    protected CachingStream attachmentCache;
-    protected SoapMessageEncoder encoder;
+    private CachingStream restBodyCache;
 
-    private boolean hasBeenConsumed;
+    private final List<Attachment> attachmentCache = new ArrayList<>();
+
     private RestRequest restMessage;
     private RestResponse restResponse;
 
@@ -132,7 +131,7 @@ public class ProxyMessage implements ProxyMessageConsumer {
      */
     public String getSoapContentType() {
         return isMimeEncodedSoap() || hasAttachments()
-                ? (originalContentType != null ? originalContentType : encoder.getContentType())
+                ? originalContentType           // cannot be null here, because isMimeEncodedSoap() would throw before
                 : MimeTypes.TEXT_XML_UTF8;
     }
 
@@ -140,6 +139,7 @@ public class ProxyMessage implements ProxyMessageConsumer {
      * @return content of the cached message.
      * @throws Exception in case of any errors
      */
+    // TODO refactor to writing to OutputStream to avoid double caching
     public InputStream getSoapContent() throws Exception {
         if (isMimeEncodedSoap()) {
             ByteArrayOutputStream out = new ByteArrayOutputStream();
@@ -150,12 +150,16 @@ public class ProxyMessage implements ProxyMessageConsumer {
 
             return new ByteArrayInputStream(out.toByteArray());
         } else if (hasAttachments()) {
+            CachingStream outputCache = new CachingStream();
+            MultipartSoapMessageEncoder multipartEncoder = new MultipartSoapMessageEncoder(outputCache, originalMimeBoundary);
+            // Write the SOAP before attachments
+            multipartEncoder.soap(soapMessage, soapPartHeaders);
+            for (Attachment attachment : attachmentCache) {
+                multipartEncoder.attachment(attachment.contentType, attachment.content.getCachedContents(), attachment.additionalHeaders);
+            }
             // Finish writing to the attachment cache.
-            encoder.close();
-
-            hasBeenConsumed = true;
-
-            return attachmentCache.getCachedContents();
+            multipartEncoder.close();
+            return outputCache.getCachedContents();
         } else {
             return new ByteArrayInputStream(soapMessage.getBytes());
         }
@@ -165,18 +169,12 @@ public class ProxyMessage implements ProxyMessageConsumer {
      * Finalize SOAP message processing.
      */
     public void consume() {
-        if (hasAttachments() && !hasBeenConsumed) {
-            try {
-                encoder.close();
-
-                hasBeenConsumed = true;
-            } catch (Exception ignored) {
-                log.warn("Error closing SOAP encoder: {}", ignored);
-            }
+        if (restBodyCache != null) {
+            restBodyCache.consume();
         }
 
-        if (attachmentCache != null) {
-            attachmentCache.consume();
+        for (var attachment : attachmentCache) {
+            attachment.content.consume();
         }
     }
 
@@ -216,9 +214,9 @@ public class ProxyMessage implements ProxyMessageConsumer {
 
     @Override
     public void restBody(InputStream content) throws Exception {
-        assert (attachmentCache == null);
-        attachmentCache = new CachingStream();
-        IOUtils.copyLarge(content, attachmentCache);
+        assert (restBodyCache == null);
+        restBodyCache = new CachingStream();
+        IOUtils.copyLarge(content, restBodyCache);
     }
 
     @Override
@@ -226,15 +224,9 @@ public class ProxyMessage implements ProxyMessageConsumer {
             throws Exception {
         log.trace("Attachment: {}", contentType);
 
-        if (!hasAttachments()) {
-            attachmentCache = new CachingStream();
-            encoder = createEncoder();
-
-            // Write the SOAP before attachments
-            encoder.soap(soapMessage, soapPartHeaders);
-        }
-
-        encoder.attachment(contentType, content, additionalHeaders);
+        CachingStream attachmentCacheStream = new CachingStream();
+        IOUtils.copyLarge(content, attachmentCacheStream);
+        attachmentCache.add(new Attachment(contentType, attachmentCacheStream, additionalHeaders));
     }
 
     @Override
@@ -245,11 +237,7 @@ public class ProxyMessage implements ProxyMessageConsumer {
     }
 
     protected boolean hasAttachments() {
-        return encoder != null;
-    }
-
-    protected SoapMessageEncoder createEncoder() {
-        return new MultipartSoapMessageEncoder(attachmentCache, originalMimeBoundary);
+        return !attachmentCache.isEmpty();
     }
 
     // Returns true, if this the original message was a MIME-encoded SOAP
@@ -261,16 +249,18 @@ public class ProxyMessage implements ProxyMessageConsumer {
 
 
     public boolean hasRestBody() {
-        return attachmentCache != null && (restMessage != null || restResponse != null);
+        return restBodyCache != null && (restMessage != null || restResponse != null);
     }
 
     /**
      * Get rest body as inputstream.
      */
     public CacheInputStream getRestBody() {
-        if (attachmentCache != null) {
-            return attachmentCache.getCachedContents();
+        if (restBodyCache != null) {
+            return restBodyCache.getCachedContents();
         }
         return null;
     }
+
+    private record Attachment(String contentType, CachingStream content, Map<String, String> additionalHeaders) { }
 }
