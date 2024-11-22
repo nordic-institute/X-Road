@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<databaseChangeLog xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+                   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                   xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.3.xsd">
+    <changeSet author="niis" id="11-attachments">
+        <createTable tableName="message_attachment">
+            <column name="id" autoIncrement="true" type="bigserial">
+                <constraints primaryKey="true"/>
+            </column>
+            <column name="logrecord_id" type="bigint">
+                <constraints nullable="false"/>
+            </column>
+            <column name="attachment_no" type="int">
+                <constraints nullable="false"></constraints>
+            </column>
+            <column name="attachment" type="oid">
+                <constraints nullable="false"></constraints>
+            </column>
+        </createTable>
+        <addForeignKeyConstraint baseTableName="message_attachment" baseColumnNames="logrecord_id"
+                                 referencedTableName="logrecord" referencedColumnNames="id"
+                                 constraintName="message_attachment_logrecord_fk" onDelete="CASCADE"/>
+        <addUniqueConstraint tableName="message_attachment" columnNames="logrecord_id, attachment_no" />
+    </changeSet>
+    <changeSet id="11-message-attachment-del-trigger" author="niis">
+        <sql dbms="postgresql" splitStatements="false"><![CDATA[
+DROP TRIGGER IF EXISTS t_message_attachment_del ON message_attachment;
+
+CREATE OR REPLACE FUNCTION del_message_attachment() RETURNS trigger LANGUAGE plpgsql AS
+$function$
+BEGIN
+  PERFORM LO_UNLINK(OLD.ATTACHMENT);
+  RETURN OLD;
+END;
+$function$;
+
+CREATE TRIGGER t_message_attachment_del
+  BEFORE DELETE ON message_attachment
+  FOR EACH ROW WHEN (old.attachment IS NOT NULL)
+  EXECUTE PROCEDURE del_message_attachment();
+            ]]></sql>
+    </changeSet>
+    <!-- TODO: migration script for existing attachments -->
+    <!-- TODO: drop logrecord.attachment -->
+    <!-- TODO: index on message_attachment.logrecord_id -->
+</databaseChangeLog>

@@ -197,13 +197,14 @@ public final class MessageRecordEncryption {
         messageRecord.setCipherMessage(
                 messageCipher.doFinal(messageRecord.getMessage().getBytes(StandardCharsets.UTF_8)));
 
-        if (messageRecord.getAttachmentStream() != null) {
-            final Cipher attachmentCipher = createCipher(mode, messageRecord.getId(), keyId, attachmentKeys);
-            messageRecord.setAttachmentStream(
-                    new CipherInputStream(messageRecord.getAttachmentStream(), attachmentCipher),
-                    //CTR mode does not change the message length.
-                    messageRecord.getAttachmentStreamSize());
-        }
+        // TODO
+//        if (messageRecord.getAttachmentStream() != null) {
+//            final Cipher attachmentCipher = createCipher(mode, messageRecord.getId(), keyId, attachmentKeys);
+//            messageRecord.setAttachmentStream(
+//                    new CipherInputStream(messageRecord.getAttachmentStream(), attachmentCipher),
+//                    //CTR mode does not change the message length.
+//                    messageRecord.getAttachmentStreamSize());
+//        }
         return messageRecord;
     }
 

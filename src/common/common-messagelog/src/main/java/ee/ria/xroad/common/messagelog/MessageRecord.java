@@ -28,13 +28,13 @@ package ee.ria.xroad.common.messagelog;
 import ee.ria.xroad.common.asic.AsicContainer;
 import ee.ria.xroad.common.asic.TimestampData;
 import ee.ria.xroad.common.identifier.ClientId;
-import ee.ria.xroad.common.message.SoapMessageImpl;
 import ee.ria.xroad.common.signature.SignatureData;
 
 import lombok.AccessLevel;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.NonNull;
 import lombok.Setter;
 import lombok.ToString;
 import lombok.extern.slf4j.Slf4j;
@@ -45,6 +45,8 @@ import javax.crypto.CipherInputStream;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
 import java.sql.Blob;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * A message log record.
@@ -105,12 +107,16 @@ public class MessageRecord extends AbstractLogRecord {
 
     @Getter
     @Setter
+    @Deprecated
     private Blob attachment;
 
     @Getter
-    private transient InputStream attachmentStream;
+    private List<MessageAttachment> attachments = new ArrayList<>();
+
     @Getter
-    private transient long attachmentStreamSize;
+    @Setter
+    @NonNull
+    private transient AttachmentStreamProvider attachmentStreamProvider = new NullAttachmentStreamProvider();
 
     @Getter
     @Setter
@@ -127,20 +133,6 @@ public class MessageRecord extends AbstractLogRecord {
 
     @Setter
     private transient Cipher attachmentCipher;
-
-    /**
-     * Constructs a message record.
-     *
-     * @param msg the message
-     * @param sig the signature
-     * @param clientId message sender client identifier
-     * @param xRequestId common id between a request and it's response
-     * @throws Exception in case of any errors
-     */
-    public MessageRecord(SoapMessageImpl msg, String sig, ClientId clientId, String xRequestId)
-            throws Exception {
-        this(msg.getQueryId(), msg.getXml(), sig, msg.isResponse(), clientId, xRequestId);
-    }
 
     /**
      * Constructs a message record.
@@ -205,13 +197,66 @@ public class MessageRecord extends AbstractLogRecord {
     }
 
     public void setAttachmentStream(InputStream stream, long size) {
-        this.attachmentStream = stream;
-        this.attachmentStreamSize = size;
+        this.setAttachmentStreamProvider(new SingleAttachmentStreamProvider(stream, size));
     }
 
     public void setCipherMessage(byte[] msg) {
         this.cipherMessage = msg;
         this.message = null;
+    }
+
+    public MessageAttachment addAttachment(int attachmentNo, Blob attachment) {
+        MessageAttachment messageAttachment = new MessageAttachment(this, attachmentNo, attachment);
+        attachments.add(messageAttachment);
+        return messageAttachment;
+    }
+
+
+    public interface AttachmentStream {
+        InputStream getStream();
+        long getSize();
+    }
+
+    public interface AttachmentStreamProvider {
+        int getAttachmentCount();
+        AttachmentStream getAttachmentStream(int attachmentNo);
+    }
+
+    private static class NullAttachmentStreamProvider implements AttachmentStreamProvider {
+        @Override
+        public int getAttachmentCount() {
+            return 0;
+        }
+
+        @Override
+        public AttachmentStream getAttachmentStream(int attachmentNo) {
+            throw new IllegalArgumentException("Invalid attachment number: " + attachmentNo);
+        }
+    }
+
+    private record SingleAttachmentStreamProvider(@NonNull InputStream stream, long size) implements AttachmentStreamProvider {
+        @Override
+        public int getAttachmentCount() {
+            return 1;
+        }
+
+        @Override
+        public AttachmentStream getAttachmentStream(int attachmentNo) {
+            if (attachmentNo != 1) {
+                throw new IllegalArgumentException("Invalid attachment number: " + attachmentNo);
+            }
+            return new AttachmentStream() {
+                @Override
+                public InputStream getStream() {
+                    return stream;
+                }
+
+                @Override
+                public long getSize() {
+                    return size;
+                }
+            };
+        }
     }
 
 }

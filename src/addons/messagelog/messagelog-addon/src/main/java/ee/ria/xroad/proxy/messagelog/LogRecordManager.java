@@ -39,9 +39,8 @@ import jakarta.persistence.criteria.Predicate;
 import jakarta.persistence.criteria.Root;
 import lombok.extern.slf4j.Slf4j;
 import org.hibernate.Session;
-import org.hibernate.query.Query;
+import org.hibernate.query.MutationQuery;
 
-import java.io.InputStream;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
@@ -149,10 +148,13 @@ public final class LogRecordManager {
                 encryption.prepareEncryption(messageRecord);
             }
 
-            InputStream is = messageRecord.getAttachmentStream();
-            if (is != null) {
-                messageRecord.setAttachment(
-                        session.getLobHelper().createBlob(is, messageRecord.getAttachmentStreamSize()));
+            var attachmentStreamProvider = messageRecord.getAttachmentStreamProvider();
+            if (attachmentStreamProvider != null) {
+                for (int i = 1; i <= attachmentStreamProvider.getAttachmentCount(); i++) {
+                    var attachmentStream = attachmentStreamProvider.getAttachmentStream(i);
+                    messageRecord.addAttachment(
+                            i, session.getLobHelper().createBlob(attachmentStream.getStream(), attachmentStream.getSize()));
+                }
             }
 
             save(session, messageRecord);
@@ -168,7 +170,7 @@ public final class LogRecordManager {
     @SuppressWarnings("JpaQlInspection")
     static void updateMessageRecordSignature(MessageRecord messageRecord, String oldHash) throws Exception {
         doInTransaction(session -> {
-            final Query<?> query = session.createQuery("update MessageRecord m "
+            final MutationQuery query = session.createMutationQuery("update MessageRecord m "
                     + "set m.signature = :signature, m.signatureHash = :hash "
                     + "where m.id = :id and m.timestampRecord is null and m.signatureHash = :oldhash");
 
@@ -207,11 +209,11 @@ public final class LogRecordManager {
      */
     static void save(Session session, LogRecord logRecord) {
         log.trace("save({})", logRecord.getClass());
-        session.save(logRecord);
+        session.persist(logRecord);
     }
 
     static long getNextRecordId(Session session) {
-        return ((Number) session.createNativeQuery("SELECT nextval('logrecord_sequence')").getSingleResult()).longValue();
+        return session.createNativeQuery("SELECT nextval('logrecord_sequence')", Long.class).getSingleResult();
     }
 
     /**

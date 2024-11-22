@@ -32,7 +32,11 @@
             <property name="timestampHashChain" access="field" type="text"/>
             <property name="response" access="field" type="boolean" update="false"/>
             <!-- length for DDL only -->
-            <property name="attachment" access="field" lazy="true" type="blob" update="false" length="1000000"/>
+<!--            <property name="attachment" access="field" lazy="true" type="blob" update="false" length="1000000"/>-->
+            <bag name="attachments" access="field" cascade="persist">
+                <key column="logrecord_id"/>
+                <one-to-many class="ee.ria.xroad.common.messagelog.MessageAttachment"/>
+            </bag>
             <property name="xRequestId" access="field" type="string" update="false"/>
             <property name="keyId" access="field" type="string" update="false"/>
             <!-- length for DDL only -->
@@ -43,7 +47,16 @@
             <property name="timestamp" access="field" type="text"/>
             <property name="hashChainResult" access="field" type="text"/>
         </subclass>
+    </class>
 
+    <class name="ee.ria.xroad.common.messagelog.MessageAttachment" table="MESSAGE_ATTACHMENT">
+        <id name="id" type="long" access="field">
+            <generator class="native"/>
+        </id>
+        <property name="attachmentNo" column="attachment_no" access="field" type="int"/>
+        <property name="attachment" access="field" lazy="true" type="blob" update="false" length="1000000"/>
+        <many-to-one name="logRecord" column="logrecord_id" access="field" cascade="none"
+                     class="ee.ria.xroad.common.messagelog.MessageRecord"/>
     </class>
 
     <class name="ee.ria.xroad.common.messagelog.archive.ArchiveDigest" table="LAST_ARCHIVE_DIGEST">
