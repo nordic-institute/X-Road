@@ -39,7 +39,7 @@ import java.util.Set;
 
 import static ee.ria.xroad.common.SystemProperties.getCenterExternalDirectory;
 import static ee.ria.xroad.common.SystemProperties.getCenterInternalDirectory;
-import static org.niis.xroad.cs.admin.globalconf.generator.FileUtils.delete;
+import static ee.ria.xroad.common.util.FileUtils.delete;
 
 @Slf4j
 @RequiredArgsConstructor

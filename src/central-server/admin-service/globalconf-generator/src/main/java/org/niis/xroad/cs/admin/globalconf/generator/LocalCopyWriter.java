@@ -26,6 +26,8 @@
  */
 package org.niis.xroad.cs.admin.globalconf.generator;
 
+import ee.ria.xroad.common.util.FileUtils;
+
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 

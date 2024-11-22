@@ -24,7 +24,7 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.cs.admin.globalconf.generator;
+package ee.ria.xroad.common.util;
 
 import lombok.extern.slf4j.Slf4j;
 
@@ -38,7 +38,7 @@ import java.util.Set;
 import static java.nio.file.attribute.PosixFilePermissions.asFileAttribute;
 
 @Slf4j
-final class FileUtils {
+public final class FileUtils {
     private static final Set<PosixFilePermission> DIRECTORY_PERMISSIONS = PosixFilePermissions.fromString("rwxr-xr-x");
     private static final Set<PosixFilePermission> FILE_PERMISSIONS = PosixFilePermissions.fromString("rw-r--r--");
 
@@ -63,6 +63,13 @@ final class FileUtils {
         Files.setPosixFilePermissions(dir, DIRECTORY_PERMISSIONS);
     }
 
+    public static Path createFile(Path file) throws IOException {
+        log.trace("createFile({})", file);
+        Path path = Files.createFile(file);
+        Files.setPosixFilePermissions(path, FILE_PERMISSIONS);
+        return path;
+    }
+
     public static void delete(Path target) throws IOException {
         log.trace("Delete: {}", target);
         if (Files.isDirectory(target)) {
@@ -72,12 +79,17 @@ final class FileUtils {
         }
     }
 
-    static void write(Path path, byte[] data) throws IOException {
+    public static void cleanDirectory(Path dir) throws IOException {
+        log.trace("Clean directory: {}", dir);
+        org.apache.commons.io.FileUtils.cleanDirectory(dir.toFile());
+    }
+
+    public static void write(Path path, byte[] data) throws IOException {
         Files.write(path, data);
         Files.setPosixFilePermissions(path, FILE_PERMISSIONS);
     }
 
-    static void writeString(Path path, String data) throws IOException {
+    public static void writeString(Path path, String data) throws IOException {
         Files.writeString(path, data);
         Files.setPosixFilePermissions(path, FILE_PERMISSIONS);
     }

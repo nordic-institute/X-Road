@@ -32,6 +32,7 @@ import ee.ria.xroad.common.conf.globalconf.VersionedConfigurationDirectory;
 import ee.ria.xroad.common.crypto.identifier.DigestAlgorithm;
 import ee.ria.xroad.common.crypto.identifier.SignAlgorithm;
 import ee.ria.xroad.common.util.CryptoUtils;
+import ee.ria.xroad.common.util.FileUtils;
 import ee.ria.xroad.common.util.HashCalculator;
 import ee.ria.xroad.common.util.MimeTypes;
 import ee.ria.xroad.common.util.MultipartEncoder;
@@ -39,7 +40,6 @@ import ee.ria.xroad.common.util.TimeUtils;
 import ee.ria.xroad.signer.SignerRpcClient;
 
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.input.TeeInputStream;
 import org.eclipse.jetty.util.MultiPartWriter;
 import org.niis.xroad.confproxy.ConfProxyProperties;
@@ -137,7 +137,7 @@ public class OutputBuilder implements AutoCloseable {
             byte[] contentBytes = mimeContent.toByteArray();
             mimeContent.reset();
             sign(contentBytes, mimeContent);
-            Files.write(tempConfPath, mimeContent.toByteArray());
+            FileUtils.write(tempConfPath, mimeContent.toByteArray());
 
             log.debug("Written signed directory to '{}'", tempConfPath);
         }
@@ -153,7 +153,7 @@ public class OutputBuilder implements AutoCloseable {
         String path = conf.getConfigurationTargetPath();
         Path targetPath = Paths.get(path, timestamp);
         Path targetConf = Paths.get(path, String.format("%s-v%d", SIGNED_DIRECTORY_NAME, version));
-        Files.createDirectories(targetPath.getParent());
+        FileUtils.createDirectories(targetPath.getParent());
 
         log.debug("Moving '{}' to '{}'", tempDirPath, targetPath);
 
@@ -172,7 +172,7 @@ public class OutputBuilder implements AutoCloseable {
     @Override
     public final void close() throws IOException {
         log.debug("Cleaning up '{}'", tempDirPath);
-        FileUtils.deleteDirectory(tempDirPath.toFile());
+        FileUtils.delete(tempDirPath);
     }
 
     /**
@@ -191,11 +191,11 @@ public class OutputBuilder implements AutoCloseable {
 
         log.debug("Creating directories {}", tempDirPath);
 
-        Files.createDirectories(tempDirPath);
+        FileUtils.createDirectories(tempDirPath);
 
         log.debug("Clean directory {}", tempDirPath);
 
-        FileUtils.cleanDirectory(tempDirPath.toFile());
+        FileUtils.cleanDirectory(tempDirPath);
 
         dataBoundary = randomBoundary();
         envelopeBoundary = randomBoundary();
@@ -302,7 +302,7 @@ public class OutputBuilder implements AutoCloseable {
 
         log.debug("Generated signed directory:\n{}\n", mimeContent);
 
-        Files.write(tempConfPath, mimeContent.toByteArray());
+        FileUtils.write(tempConfPath, mimeContent.toByteArray());
 
         log.debug("Written signed directory to '{}'", tempConfPath);
     }
@@ -333,8 +333,8 @@ public class OutputBuilder implements AutoCloseable {
     private FileOutputStream createFileOutputStream(final Path targetPath, final ConfigurationPartMetadata metadata)
             throws IOException {
         Path filepath = targetPath.resolve(Paths.get(metadata.getInstanceIdentifier(), metadata.getContentLocation()));
-        Files.createDirectories(filepath.getParent());
-        Path newFile = Files.createFile(filepath);
+        FileUtils.createDirectories(filepath.getParent());
+        Path newFile = FileUtils.createFile(filepath);
 
         log.debug("Copying file '{}' to directory '{}'", newFile.toAbsolutePath(), targetPath);
 

@@ -28,8 +28,9 @@ package org.niis.xroad.confproxy.util;
 import ee.ria.xroad.common.conf.globalconf.ConfigurationClientDownloadActionExecutor;
 import ee.ria.xroad.common.conf.globalconf.VersionedConfigurationDirectory;
 
+import ee.ria.xroad.common.util.FileUtils;
+
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.io.FileUtils;
 import org.niis.xroad.confproxy.ConfProxyProperties;
 
 import java.io.IOException;
@@ -136,7 +137,7 @@ public final class ConfProxyHelper {
             throws IOException {
         Path instanceDir = Paths.get(conf.getConfigurationTargetPath());
         log.debug("Create directories {}", instanceDir);
-        Files.createDirectories(instanceDir); //avoid errors if it's not present
+        FileUtils.createDirectories(instanceDir); //avoid errors if it's not present
         for (String genTime : subDirectoryNames(instanceDir)) {
             Date current = new Date();
             Date old;
@@ -153,8 +154,8 @@ public final class ConfProxyHelper {
             if (diffSeconds > timeToKeep) {
                 Path oldPath =
                         Paths.get(conf.getConfigurationTargetPath(), genTime);
-                FileUtils.deleteDirectory(oldPath.toFile());
                 log.debug("Purge directory {}", oldPath);
+                FileUtils.delete(oldPath);
             } else {
                 Path valid = instanceDir.resolve(genTime);
                 log.debug("A valid generated configuration exists in '{}'",
