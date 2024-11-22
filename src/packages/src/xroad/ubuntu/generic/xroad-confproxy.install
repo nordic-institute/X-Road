@@ -1,4 +1,5 @@
 ../../../../src/xroad/common/confproxy/etc/* etc/
+../../../../src/xroad/common/confproxy/usr/* usr/
 ../../../../../configuration-proxy/scripts/* usr/share/xroad/scripts
 ../../../../../configuration-proxy/application/build/libs/configuration-proxy-1.0.jar usr/share/xroad/jlib/
 ../../../../src/xroad/default-configuration/confproxy.ini etc/xroad/conf.d

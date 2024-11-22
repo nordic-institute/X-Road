@@ -1,0 +1,3 @@
+#!/bin/bash
+. /etc/xroad/services/confproxy.conf
+exec java ${XROAD_PARAMS} ${XROAD_CONFPROXY_PARAMS} -Dloader.path="${ADDON_CP}" ${XROAD_ADDON_PARAMS} -jar /usr/share/xroad/jlib/configuration-proxy.jar
