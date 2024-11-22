@@ -1,0 +1,57 @@
+
+images:
+  - location: "https://cloud-images.ubuntu.com/releases/24.04/release/ubuntu-24.04-server-cloudimg-amd64.img"
+    arch: "x86_64"
+  - location: "https://cloud-images.ubuntu.com/releases/24.04/release/ubuntu-24.04-server-cloudimg-arm64.img"
+    arch: "aarch64"
+
+cpus: 4
+memory: 10GiB
+
+mounts:
+  - location: "~"
+    writable: true
+
+portForwards:
+  - guestIP: "0.0.0.0"
+    guestPortRange: [3000, 3999]
+    hostIP: "0.0.0.0"
+    hostPortRange: [3000, 3999]
+
+provision:
+  - mode: system
+    script: |
+      #!/bin/bash
+      cat > /tmp/lxd_preseed.yaml <<EOF
+      config:
+        core.https_address: '[::]:28443'
+        core.trust_password: secret
+      networks:
+        - config:
+            ipv4.address: 10.10.10.1/24
+            ipv4.nat: true
+            ipv6.address: none
+          name: lxdbr0
+          type: ""
+          project: default
+      storage_pools:
+        - config: {}
+          name: default
+          driver: dir
+      profiles:
+        - config: {}
+          devices:
+            eth0:
+              name: eth0
+              network: lxdbr0
+              type: nic
+            root:
+              path: /
+              pool: default
+              type: disk
+          name: default
+      projects: []
+      cluster: null
+      EOF
+      cat /tmp/lxd_preseed.yaml | lxd init --preseed
+      usermod -aG lxd ${USER}

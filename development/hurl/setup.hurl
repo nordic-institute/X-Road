@@ -20,7 +20,7 @@ Content-Type: application/json
 {
   "software_token_pin": "Secret1234",
   "instance_identifier": "DEV",
-  "central_server_address": "cs"
+  "central_server_address": "{{cs_host}}"
 }
 
 # TODO: The Central Server currently returns the incorrect HTTP code, the documentation notes that it should be "201":

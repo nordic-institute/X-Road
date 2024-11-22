@@ -1,0 +1,67 @@
+---
+- name: Set architecture-specific variables
+  set_fact:
+    java_arch_path: "{{ ansible_architecture | regex_replace('x86_64', 'amd64') | regex_replace('aarch64', 'arm64') }}"
+
+- name: Set Java home paths
+  set_fact:
+    java_11_home: "/usr/lib/jvm/java-11-openjdk-{{ java_arch_path }}"
+    java_17_home: "/usr/lib/jvm/java-17-openjdk-{{ java_arch_path }}"
+
+- name: Install required packages
+  apt:
+    name:
+      - openjdk-11-jdk-headless
+      - openjdk-17-jdk-headless
+      - git
+    update_cache: yes
+    state: present
+
+- name: Create app directory
+  file:
+    path: "/opt/app"
+    state: directory
+    mode: '0755'
+
+- name: Clone XRD4J repository
+  git:
+    repo: https://github.com/nordic-institute/xrd4j.git
+    dest: "/opt/app/xrd4j"
+    clone: yes
+
+- name: Build XRD4J library
+  environment:
+    JAVA_HOME: "{{ java_11_home }}"
+    GRADLE_OPTS: "-Dorg.gradle.daemon=false -Dmaven.repo.local=/opt/app/.m2_repository -Dgradle.user.home=/opt/app/.gradle_home"
+  shell: |
+    cd /opt/app/xrd4j/src
+    ./gradlew assemble publishToMavenLocal
+  args:
+    executable: /bin/bash
+
+- name: Build example-adapter
+  environment:
+    JAVA_HOME: "{{ java_17_home }}"
+    GRADLE_OPTS: "-Dorg.gradle.daemon=false -Dmaven.repo.local=/opt/app/.m2_repository -Dgradle.user.home=/opt/app/.gradle_home"
+  shell: |
+    cd /opt/app/xrd4j/example-adapter
+    ./gradlew assemble
+  args:
+    executable: /bin/bash
+
+- name: Copy example-adapter WAR file
+  shell: |
+    cp /opt/app/xrd4j/example-adapter/build/libs/example-adapter-*-boot.war /example-adapter.war
+
+- name: Create systemd service
+  template:
+    src: templates/example-adapter.service.j2
+    dest: /etc/systemd/system/example-adapter.service
+    mode: '0644'
+
+- name: Start and enable example-adapter service
+  systemd:
+    name: example-adapter
+    state: started
+    enabled: yes
+    daemon_reload: yes

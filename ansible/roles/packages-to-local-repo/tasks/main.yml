@@ -1,4 +1,11 @@
 ---
+- name: Debug connection settings (local repo)
+  debug:
+    msg:
+      - "Connection type: {{ ansible_connection }}"
+      - "LXD URL: {{ lxd_url | default('not set') }}"
+  delegate_to: "{{ item }}"
+  with_inventory_hostnames: all:!lxd_servers:!centos_ss:!localhost
 - include_tasks: ubuntu.yml
   when: ansible_os_family == "Debian"
 

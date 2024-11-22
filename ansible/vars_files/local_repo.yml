@@ -1,7 +1,13 @@
 ---
 package_source: "local"
+xroad_repo_key:  "https://artifactory.niis.org/api/gpg/key/public"
+
+ubuntu_apt_key:  "{{xroad_repo_key}}"
+ubuntu_apt_key_file: "/usr/share/keyrings/xroad.gpg"
+ubuntu_apt_option: "signed-by={{ubuntu_apt_key_file}}"
 ubuntu_apt_repo: "deb [trusted=yes] file:///xroad /"
 ubuntu_apt_repo_with_option: "{{ubuntu_apt_repo}}"
+
 
 rhel_repo_baseurl: "file:///xroad"
 rhel_repo_gpgcheck: "no"

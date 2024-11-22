@@ -5,6 +5,10 @@
   tags:
     - debug
 
+- name: Debug path
+  debug:
+    msg: "../src/packages/build/ubuntu{{ ansible_distribution_version }}/"
+
 - name: Clean local repo
   file:
     path: "/xroad/"

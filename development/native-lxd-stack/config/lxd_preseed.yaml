@@ -1,0 +1,32 @@
+config:
+  core.https_address: '[::]:28443'
+  core.trust_password: secret
+networks:
+  - config:
+      ipv4.address: 10.10.10.1/24
+      ipv4.nat: true
+      ipv6.address: none
+    description: ""
+    name: lxdbr0
+    type: ""
+    project: default
+storage_pools:
+  - config: { }
+    description: ""
+    name: default
+    driver: dir
+profiles:
+  - config: { }
+    description: ""
+    devices:
+      eth0:
+        name: eth0
+        network: lxdbr0
+        type: nic
+      root:
+        path: /
+        pool: default
+        type: disk
+    name: default
+projects: [ ]
+cluster: null

@@ -88,7 +88,7 @@ public class ReloadableVaultKeyManager implements InitializingBean {
     @Scheduled(fixedRateString = "${xroad.common.rpc.certificate-provisioning.refresh-interval-minutes}", timeUnit = TimeUnit.MINUTES,
             scheduler = BEAN_VIRTUAL_THREAD_SCHEDULER)
     public void reload() throws Exception {
-        VaultCertificateResponse vaultResponse = vaultTemplate.opsForPki()
+        VaultCertificateResponse vaultResponse = vaultTemplate.opsForPki(certificateProvisionProperties.secretStorePkiPath())
                 .issueCertificate(certificateProvisionProperties.issuanceRoleName(), buildVaultCertificateRequest());
 
         if (vaultResponse.getData() != null) {
