@@ -67,6 +67,9 @@ case "$1" in
           fi
       fi
   fi;
+
+  invoke-rc.d --quiet xroad-proxy-ui-api reload ||:
+
  ;;
 
  abort-upgrade|abort-remove|abort-deconfigure)
