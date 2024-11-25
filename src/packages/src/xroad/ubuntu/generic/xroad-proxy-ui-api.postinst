@@ -67,7 +67,6 @@ case "$1" in
           fi
       fi
   fi;
-
  ;;
 
  abort-upgrade|abort-remove|abort-deconfigure)
