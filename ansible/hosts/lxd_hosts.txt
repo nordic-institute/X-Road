@@ -1,0 +1,27 @@
+
+[cs_servers]
+xroad-lxd-cs ansible_connection=lxd
+
+[cp_servers]
+#xroad-lxd-cp ansible_connection=lxd
+
+[ca_servers]
+xroad-lxd-ca ansible_connection=lxd
+
+[ss_servers]
+ss0 ansible_connection=lxd
+ss1 ansible_connection=lxd
+
+[is_servers]
+is ansible_connection=lxd
+
+[lxd_servers]
+lima-xroad-lxd ansible_ssh_args="-F {{ lookup('env','HOME') }}/.lima/xroad-lxd/ssh.config"
+
+[compile_servers]
+localhost ansible_connection=local
+
+### vars ###
+
+[ss_servers:vars]
+variant=vanilla

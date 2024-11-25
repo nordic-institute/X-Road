@@ -1,4 +1,5 @@
 ---
+
 - name: Initialize LXD servers
   hosts: lxd_servers
   strategy: free
