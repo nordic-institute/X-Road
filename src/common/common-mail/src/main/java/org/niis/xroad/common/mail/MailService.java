@@ -28,13 +28,17 @@ package org.niis.xroad.common.mail;
 import ee.ria.xroad.common.SystemProperties;
 
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.mail.SimpleMailMessage;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class MailService {
@@ -57,7 +61,32 @@ public class MailService {
         return new MailNotificationStatus(successStatus, failureStatus, configurationPresent, recipientsEmails);
     }
 
-    public void sendMail(String to, String subject, String text) {
+    /** Sends mail notification without stopping the flow in case of error */
+    public void sendMailAsync(String to, String subject, String text) {
+        if (!mailNotificationProperties.isMailNotificationConfigurationPresent()) {
+            log.error("Attempted to send mail notification, but configuration is incomplete. Message wasn't sent!");
+            return;
+        }
+        SimpleMailMessage message = new SimpleMailMessage();
+        message.setTo(to);
+        message.setSubject(subject);
+        message.setText(text);
+        try (ExecutorService executorService = Executors.newSingleThreadExecutor()) {
+            executorService.execute(() -> sendMail(message));
+        }
+    }
+
+    private void sendMail(SimpleMailMessage message) {
+        try {
+            mailSender.send(message);
+        } catch (Exception e) {
+            log.error("Failed to send mail notification", e);
+        }
+    }
+
+    /** NB! Meant only for test notifications!
+     * For regular notification sending use {@link #sendMailAsync(String, String, String)} which is non-blocking */
+    public void sendTestMail(String to, String subject, String text) {
         SimpleMailMessage message = new SimpleMailMessage();
         message.setTo(to);
         message.setSubject(subject);

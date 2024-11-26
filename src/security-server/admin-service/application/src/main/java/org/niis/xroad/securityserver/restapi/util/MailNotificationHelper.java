@@ -69,7 +69,7 @@ public class MailNotificationHelper {
             String content = KeyUsageInfo.AUTHENTICATION.equals(keyUsageInfo) ? authCertContent : signCertContent;
             Optional.ofNullable(mailNotificationProperties.getContacts())
                     .map(contacts -> contacts.get(memberId.asEncodedId()))
-                    .ifPresent(address -> mailService.sendMail(address, title, content));
+                    .ifPresent(address -> mailService.sendMailAsync(address, title, content));
         }
     }
 
@@ -95,7 +95,7 @@ public class MailNotificationHelper {
             String content = isSignCert ? signCertContent : authCertContent;
             Optional.ofNullable(mailNotificationProperties.getContacts())
                     .map(contacts -> contacts.get(memberId))
-                    .ifPresent(address -> mailService.sendMail(address, title, content));
+                    .ifPresent(address -> mailService.sendMailAsync(address, title, content));
         }
     }
 
@@ -108,12 +108,12 @@ public class MailNotificationHelper {
                             new String[]{certInfo.getCertificateDisplayName(), securityServerId.getServerCode()});
             Optional.ofNullable(mailNotificationProperties.getContacts())
                     .map(contacts -> contacts.get(securityServerId.getOwner().asEncodedId()))
-                    .ifPresent(address -> mailService.sendMail(address, title, content));
+                    .ifPresent(address -> mailService.sendMailAsync(address, title, content));
         }
     }
 
     public void sendTestMail(String recipientAddress, String securityServerId) {
-        mailService.sendMail(recipientAddress,
+        mailService.sendTestMail(recipientAddress,
                 notificationMessageSourceAccessor.getMessage("test_mail_title", new String[]{securityServerId}),
                 notificationMessageSourceAccessor.getMessage("test_mail_content", new String[]{securityServerId}));
     }
