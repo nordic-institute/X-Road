@@ -1,0 +1,9 @@
+eab-credentials:
+  certificate-authorities:
+    'Test CA':
+      mac-key-base64-encoded: true
+      members:
+        'DEV:COM:1234':
+          kid: keyid_01
+          mac-key: YW5vdXRoZXJfdmVyeV9sb25nX2htYWNfZm9yX2tleWlkXzAxX3doaWNoIHdpbGxfYmUgdXNlZF9kdXJpbmcgcmVncmVzc2lvbg
+account-keystore-password: testPassword1234
