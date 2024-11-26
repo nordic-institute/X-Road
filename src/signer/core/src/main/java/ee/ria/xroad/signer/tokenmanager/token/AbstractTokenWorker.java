@@ -26,14 +26,17 @@
 package ee.ria.xroad.signer.tokenmanager.token;
 
 import ee.ria.xroad.common.crypto.KeyManagers;
+import ee.ria.xroad.common.crypto.SignDataPreparer;
+import ee.ria.xroad.common.crypto.identifier.KeyAlgorithm;
 import ee.ria.xroad.common.crypto.identifier.SignAlgorithm;
+import ee.ria.xroad.common.crypto.identifier.SignMechanism;
+import ee.ria.xroad.common.util.PasswordStore;
 import ee.ria.xroad.signer.protocol.dto.KeyInfo;
 import ee.ria.xroad.signer.protocol.dto.TokenInfo;
 import ee.ria.xroad.signer.tokenmanager.TokenManager;
 import ee.ria.xroad.signer.util.SignerUtil;
 import ee.ria.xroad.signer.util.passwordstore.PasswordStore;
 
-import lombok.Value;
 import lombok.extern.slf4j.Slf4j;
 import org.bouncycastle.asn1.x500.X500Name;
 import org.bouncycastle.asn1.x509.BasicConstraints;
@@ -42,6 +45,7 @@ import org.bouncycastle.asn1.x509.KeyUsage;
 import org.bouncycastle.cert.CertIOException;
 import org.bouncycastle.cert.jcajce.JcaX509v3CertificateBuilder;
 import org.niis.xroad.signer.proto.ActivateTokenReq;
+import org.niis.xroad.signer.proto.Algorithm;
 import org.niis.xroad.signer.proto.GenerateKeyReq;
 import org.niis.xroad.signer.proto.SignCertificateReq;
 import org.niis.xroad.signer.proto.SignReq;
@@ -104,12 +108,13 @@ public abstract class AbstractTokenWorker implements TokenWorker, WorkerWithLife
             throw translateException(e).withPrefix(X_FAILED_TO_GENERATE_R_KEY);
         }
 
-        String keyId = result.getKeyId();
+        String keyId = result.keyId();
 
         log.debug("Generated new key with id '{}'", keyId);
 
-        if (!hasKey(keyId)) {
-            TokenManager.addKey(tokenId, keyId, result.getPublicKeyBase64());
+        if (isKeyMissing(keyId)) {
+            var signMechanism = resolveSignMechanism(mapAlgorithm(message.getAlgorithm()));
+            TokenManager.addKey(tokenId, keyId, result.publicKeyBase64(), signMechanism);
             TokenManager.setKeyAvailable(keyId, true);
             TokenManager.setKeyLabel(keyId, message.getKeyLabel());
             TokenManager.setKeyFriendlyName(keyId, message.getKeyLabel());
@@ -145,7 +150,7 @@ public abstract class AbstractTokenWorker implements TokenWorker, WorkerWithLife
     public byte[] handleSign(SignReq request) {
         try {
             var signatureAlgId = SignAlgorithm.ofName(request.getSignatureAlgorithmId());
-            byte[] data = SignerUtil.createDataToSign(request.getDigest().toByteArray(), signatureAlgId);
+            byte[] data = SignDataPreparer.of(signatureAlgId).prepare(request.getDigest().toByteArray());
 
             return sign(request.getKeyId(), signatureAlgId, data);
         } catch (Exception e) {
@@ -172,8 +177,8 @@ public abstract class AbstractTokenWorker implements TokenWorker, WorkerWithLife
         setTokenAvailable(tokenId, false);
     }
 
-    protected boolean hasKey(String keyId) {
-        return TokenManager.getKeyInfo(keyId) != null;
+    protected boolean isKeyMissing(String keyId) {
+        return TokenManager.getKeyInfo(keyId) == null;
     }
 
     protected boolean isPinStored() {
@@ -210,10 +215,19 @@ public abstract class AbstractTokenWorker implements TokenWorker, WorkerWithLife
     protected abstract byte[] signCertificate(String keyId, SignAlgorithm signatureAlgorithmId, String subjectName,
                                               PublicKey publicKey) throws Exception;
 
+    protected abstract SignMechanism resolveSignMechanism(KeyAlgorithm algorithm);
+
     protected void assertKeyAvailable(String keyId) {
         if (!isKeyAvailable(keyId)) {
             throw keyNotAvailable(keyId);
         }
+    }
+
+    protected KeyAlgorithm mapAlgorithm(Algorithm algorithm) {
+        return switch (algorithm) {
+            case RSA, ALGORITHM_UNKNOWN, UNRECOGNIZED -> KeyAlgorithm.RSA;
+            case EC -> KeyAlgorithm.EC;
+        };
     }
 
     protected static JcaX509v3CertificateBuilder getCertificateBuilder(String subjectName,
@@ -236,9 +250,6 @@ public abstract class AbstractTokenWorker implements TokenWorker, WorkerWithLife
 
     // ------------------------------------------------------------------------
 
-    @Value
-    protected static class GenerateKeyResult {
-        String keyId;
-        String publicKeyBase64;
+    protected record GenerateKeyResult(String keyId, String publicKeyBase64) {
     }
 }

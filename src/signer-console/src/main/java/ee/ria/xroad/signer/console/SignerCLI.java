@@ -27,6 +27,7 @@ package ee.ria.xroad.signer.console;
 
 import ee.ria.xroad.common.AuditLogger;
 import ee.ria.xroad.common.Version;
+import ee.ria.xroad.common.crypto.identifier.KeyAlgorithm;
 import ee.ria.xroad.common.crypto.identifier.SignAlgorithm;
 import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.identifier.SecurityServerId;
@@ -640,17 +641,21 @@ public class SignerCLI implements CommandLineRunner {
      *
      * @param tokenId token id
      * @param label   label
+     * @param algorithm   algorithm
      * @throws Exception if an error occurs
      */
     @Command(description = "Generate key on token")
     public void generateKey(@Param(name = "tokenId", description = "Token ID") String tokenId,
-                            @Param(name = "label", description = "Key label") String label) throws Exception {
+                            @Param(name = "label", description = "Key label") String label,
+                            @Param(name = "algorithm", description = "Key algorithm (RSA/EC)") String algorithm) throws Exception {
         Map<String, Object> logData = new LinkedHashMap<>();
         logData.put(TOKEN_ID_PARAM, tokenId);
         logData.put(KEY_LABEL_PARAM, label);
 
+        var keyALgorithm = StringUtils.equalsIgnoreCase(KeyAlgorithm.EC.name(), algorithm) ? KeyAlgorithm.EC : KeyAlgorithm.RSA;
+
         try {
-            KeyInfo response = signerRpcClient.generateKey(tokenId, label);
+            KeyInfo response = signerRpcClient.generateKey(tokenId, label, keyALgorithm);
 
             logData.put(KEY_ID_PARAM, response.getId());
             AuditLogger.log(GENERATE_A_KEY_ON_THE_TOKEN_EVENT, XROAD_USER, null, logData);

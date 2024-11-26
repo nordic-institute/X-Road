@@ -181,6 +181,8 @@
     },
     "rsaExp": "RSA Public Key Exponent",
     "rsaModulus": "RSA Public Key Modulus",
+    "ecParameters": "EC Public Key Parameters",
+    "ecPoint": "EC Public Key Point",
     "serialNumber": "Serial Number",
     "signCertificate": "Sign Certificate",
     "state": "State"
@@ -759,6 +761,7 @@
     "orderAcmeCertificate": "Order Certificate",
     "acmeCertOrdered": "Certificate successfully ordered",
     "readOnly": "Read-only:",
+    "keyAlgorithm": "Key Algorithm:",
     "registrationRequest": "Registration request",
     "renewal": "Automatic Renewal",
     "request": "Request",

@@ -100,9 +100,9 @@ public class TokenCertificatesApiControllerIntegrationTest extends AbstractApiCo
     @Autowired
     TokenCertificatesApiController tokenCertificatesApiController;
 
-    private static final String AUTH_CERT_HASH = "auth-cert-hash";
-    private static final String SIGN_CERT_HASH = "sign-cert-hash";
-    private static final String UNKNOWN_CERT_HASH = "unknown-cert-hash";
+    private static final String AUTH_CERT_HASH = "1A24F22E9BA8DDD86DAC48D854AD3C8701D28391DB705A7FAD1AB09BD1";
+    private static final String SIGN_CERT_HASH = "1A24F22E9BA8DDD86DAC48D854AD3C8701D28391DB705A7FAD1AB09BD2";
+    private static final String UNKNOWN_CERT_HASH = "1A24F22E9BA8DDD86DAC48D854AD3C8701D28391DB705A7FAD1AB09BD0";
 
     @Before
     public void setup() throws Exception {
@@ -369,7 +369,7 @@ public class TokenCertificatesApiControllerIntegrationTest extends AbstractApiCo
                 .tr(SIGNER_X + "." + X_CERT_NOT_FOUND, "mock code", "mock msg"))
                 .when(signerRpcClient).getCertForHash(any());
         try {
-            tokenCertificatesApiController.getCertificate("knock knock");
+            tokenCertificatesApiController.getCertificate(UNKNOWN_CERT_HASH);
         } catch (ResourceNotFoundException e) {
             ErrorDeviation error = e.getErrorDeviation();
             Assert.assertEquals(DeviationCodes.ERROR_CERTIFICATE_NOT_FOUND, error.getCode());
@@ -495,7 +495,7 @@ public class TokenCertificatesApiControllerIntegrationTest extends AbstractApiCo
                 .withPrefix(SIGNER_X))
                 .when(signerRpcClient).deleteCert(any());
         try {
-            tokenCertificatesApiController.deleteCertificate("knock knock");
+            tokenCertificatesApiController.deleteCertificate(UNKNOWN_CERT_HASH);
         } catch (ResourceNotFoundException e) {
             ErrorDeviation error = e.getErrorDeviation();
             Assert.assertEquals(DeviationCodes.ERROR_CERTIFICATE_NOT_FOUND, error.getCode());

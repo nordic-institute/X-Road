@@ -31,7 +31,9 @@ import ee.ria.xroad.common.CertificationServiceDiagnostics;
 import ee.ria.xroad.common.CodedException;
 import ee.ria.xroad.common.OcspTestUtils;
 import ee.ria.xroad.common.TestCertUtil;
+import ee.ria.xroad.common.crypto.identifier.KeyAlgorithm;
 import ee.ria.xroad.common.crypto.identifier.SignAlgorithm;
+import ee.ria.xroad.common.crypto.identifier.SignMechanism;
 import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.identifier.SecurityServerId;
 import ee.ria.xroad.signer.SignerRpcChannelProperties;
@@ -43,6 +45,7 @@ import ee.ria.xroad.signer.protocol.dto.TokenInfo;
 import ee.ria.xroad.signer.protocol.dto.TokenInfoAndKeyId;
 import ee.ria.xroad.signer.protocol.dto.TokenStatusInfo;
 
+import io.cucumber.java.ParameterType;
 import io.cucumber.java.en.Step;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.FileUtils;
@@ -80,8 +83,8 @@ import java.util.stream.Collectors;
 
 import static ee.ria.xroad.common.crypto.Digests.calculateDigest;
 import static ee.ria.xroad.common.crypto.identifier.DigestAlgorithm.SHA256;
+import static ee.ria.xroad.common.crypto.identifier.SignAlgorithm.SHA256_WITH_ECDSA;
 import static ee.ria.xroad.common.crypto.identifier.SignAlgorithm.SHA256_WITH_RSA;
-import static ee.ria.xroad.common.crypto.identifier.SignAlgorithm.SHA512_WITH_RSA;
 import static ee.ria.xroad.common.util.CryptoUtils.calculateCertHexHash;
 import static ee.ria.xroad.common.util.CryptoUtils.calculateCertSha1HexHash;
 import static ee.ria.xroad.common.util.CryptoUtils.readCertificate;
@@ -223,10 +226,10 @@ public class SignerStepDefs extends BaseSignerStepDefs {
         assertThat(signerRpcClient.getToken(tokenId).getFriendlyName()).isEqualTo(name);
     }
 
-    @Step("new key {string} generated for token {string}")
-    public void newKeyGeneratedForToken(String keyLabel, String friendlyName) throws Exception {
+    @Step("new {algorithm} key {string} generated for token {string}")
+    public void newKeyGeneratedForToken(KeyAlgorithm algorithm, String keyLabel, String friendlyName) throws Exception {
         var tokenId = getTokenFriendlyNameToIdMapping().get(friendlyName);
-        final KeyInfo keyInfo = signerRpcClient.generateKey(tokenId, keyLabel);
+        final KeyInfo keyInfo = signerRpcClient.generateKey(tokenId, keyLabel, algorithm);
         testReportService.attachJson("keyInfo", keyInfo);
         this.scenarioKeyId = keyInfo.getId();
     }
@@ -411,7 +414,13 @@ public class SignerStepDefs extends BaseSignerStepDefs {
         final KeyInfo key = findKeyInToken(friendlyName, keyName);
 
         var digest = format("%s-%d", randomUUID(), System.currentTimeMillis());
-        signerRpcClient.sign(key.getId(), SHA256_WITH_RSA, calculateDigest(SHA256, digest.getBytes(UTF_8)));
+
+        var signAlgorithm = switch (SignMechanism.valueOf(key.getSignMechanismName()).keyAlgorithm()) {
+            case RSA -> SHA256_WITH_RSA;
+            case EC -> SHA256_WITH_ECDSA;
+        };
+
+        signerRpcClient.sign(key.getId(), signAlgorithm, calculateDigest(SHA256, digest.getBytes(UTF_8)));
     }
 
     @Step("certificate can be deactivated")
@@ -439,10 +448,16 @@ public class SignerStepDefs extends BaseSignerStepDefs {
         final KeyInfo key = findKeyInToken(friendlyName, keyName);
         byte[] keyBytes = Base64.decode(key.getPublicKey().getBytes());
         X509EncodedKeySpec x509publicKey = new X509EncodedKeySpec(keyBytes);
-        KeyFactory kf = KeyFactory.getInstance("RSA");
+        var algorithm = SignMechanism.valueOf(key.getSignMechanismName()).keyAlgorithm();
+        KeyFactory kf = KeyFactory.getInstance(algorithm.name());
         PublicKey publicKey = kf.generatePublic(x509publicKey);
 
-        final byte[] bytes = signerRpcClient.signCertificate(key.getId(), SHA256_WITH_RSA, "CN=CS", publicKey);
+        var signAlgorithm = switch (algorithm) {
+            case RSA -> SHA256_WITH_RSA;
+            case EC -> SHA256_WITH_ECDSA;
+        };
+
+        final byte[] bytes = signerRpcClient.signCertificate(key.getId(), signAlgorithm, "CN=CS", publicKey);
         assertThat(bytes).isNotEmpty();
     }
 
@@ -453,7 +468,13 @@ public class SignerStepDefs extends BaseSignerStepDefs {
         final KeyInfo key = findKeyInToken(friendlyName, keyName);
 
         var digest = format("%s-%d", randomUUID(), System.currentTimeMillis());
-        byte[] bytes = signerRpcClient.sign(key.getId(), SHA512_WITH_RSA, calculateDigest(SHA256, digest.getBytes(UTF_8)));
+
+        var signAlgorithm = switch (SignMechanism.valueOf(key.getSignMechanismName()).keyAlgorithm()) {
+            case RSA -> SHA256_WITH_RSA;
+            case EC -> SHA256_WITH_ECDSA;
+        };
+
+        byte[] bytes = signerRpcClient.sign(key.getId(), signAlgorithm, calculateDigest(SHA256, digest.getBytes(UTF_8)));
         assertThat(bytes).isNotEmpty();
     }
 
@@ -643,7 +664,6 @@ public class SignerStepDefs extends BaseSignerStepDefs {
         }
     }
 
-
     @Step("ocsp responses are set")
     public void ocspResponsesAreSet() throws Exception {
         X509Certificate subject = TestCertUtil.getConsumer().certChain[0];
@@ -696,6 +716,10 @@ public class SignerStepDefs extends BaseSignerStepDefs {
                 .hasMessageContaining("Signer: Signer client timed out.");
     }
 
+    @ParameterType("RSA|EC")
+    public KeyAlgorithm algorithm(String value) {
+        return KeyAlgorithm.valueOf(value);
+    }
     @Step("certification service diagnostics is requested")
     public void certificationServiceDiagnosticsWorks() throws Exception {
         this.diagnosticsResponse = signerRpcClient.getCertificationServiceDiagnostics();

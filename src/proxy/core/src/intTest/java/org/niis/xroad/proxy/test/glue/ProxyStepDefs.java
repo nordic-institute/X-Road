@@ -32,6 +32,7 @@ import ee.ria.xroad.common.conf.globalconf.GlobalConfProvider;
 import ee.ria.xroad.common.conf.globalconf.TestGlobalConfImpl;
 import ee.ria.xroad.common.conf.serverconf.ServerConfProvider;
 import ee.ria.xroad.common.crypto.identifier.DigestAlgorithm;
+import ee.ria.xroad.common.crypto.identifier.KeyAlgorithm;
 import ee.ria.xroad.common.hashchain.HashChainReferenceResolver;
 import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.signature.MessagePart;
@@ -105,7 +106,7 @@ public class ProxyStepDefs extends BaseStepDefs {
 
     @Step("new key {string} generated for token with id {string}")
     public void newKeyGeneratedForToken(String keyLabel, String tokenId) throws Exception {
-        final KeyInfo keyInfo = signerRpcClient.generateKey(tokenId, keyLabel);
+        final KeyInfo keyInfo = signerRpcClient.generateKey(tokenId, keyLabel, KeyAlgorithm.RSA);
         scenarioKeyId = keyInfo.getId();
 
         testReportService.attachJson("keyInfo", keyInfo);

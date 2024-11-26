@@ -18,6 +18,11 @@ deploy_module() {
     target_path="${target_path}addon/proxy/"
     service_name="xroad-proxy"
     ;;
+  "hwtoken-addon")
+    jar_path="$XROAD_HOME/src/addons/hwtoken/build/libs/hwtoken-1.0.jar"
+    service_name="xroad-signer"
+    target_path="usr/share/xroad/jlib/addon/signer"
+    ;;
   "metaservice-addon")
     jar_path="$XROAD_HOME/src/addons/metaservice/build/libs/metaservice-1.0.jar"
     target_path="${target_path}addon/proxy/"
@@ -104,7 +109,7 @@ case $1 in
 "cs-admin-service" | "cs-management-service" | "cs-registration-service" | "cs-catalog-service" | "cs-credential-service")
   deploy_module "$1" "cs"
   ;;
-"signer" | "signer-console" | "edc-ih")
+"signer" | "signer-console" | "hwtoken-addon" | "edc-ih")
   deploy_module "$1" "ss0" "ss1"
   deploy_module "$1" "cs"
   ;;

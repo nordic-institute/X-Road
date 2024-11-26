@@ -25,6 +25,7 @@
  */
 package org.niis.xroad.securityserver.restapi.service;
 
+import ee.ria.xroad.common.crypto.identifier.KeyAlgorithm;
 import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.signer.SignerRpcClient.GeneratedCertRequestInfo;
 import ee.ria.xroad.signer.protocol.dto.KeyInfo;
@@ -33,6 +34,7 @@ import ee.ria.xroad.signer.protocol.dto.KeyUsageInfo;
 import lombok.Value;
 import lombok.extern.slf4j.Slf4j;
 import org.niis.xroad.restapi.exceptions.DeviationAwareRuntimeException;
+import org.niis.xroad.securityserver.restapi.config.KeyAlgorithmConfig;
 import org.niis.xroad.signer.proto.CertificateRequestFormat;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -52,12 +54,15 @@ public class KeyAndCertificateRequestService {
 
     private final KeyService keyService;
     private final TokenCertificateService tokenCertificateService;
+    private final KeyAlgorithmConfig keyAlgorithmConfig;
 
     @Autowired
     public KeyAndCertificateRequestService(KeyService keyService,
-                                           TokenCertificateService tokenCertificateService) {
+                                           TokenCertificateService tokenCertificateService,
+                                           KeyAlgorithmConfig keyAlgorithmConfig) {
         this.keyService = keyService;
         this.tokenCertificateService = tokenCertificateService;
+        this.keyAlgorithmConfig = keyAlgorithmConfig;
     }
 
     /**
@@ -97,12 +102,18 @@ public class KeyAndCertificateRequestService {
                                                       Map<String, String> subjectFieldValues, CertificateRequestFormat csrFormat,
                                                       Boolean isAcmeOrder)
             throws ActionNotPossibleException,
-            ClientNotFoundException, CertificateAuthorityNotFoundException, TokenNotFoundException,
-            DnFieldHelper.InvalidDnParameterException, CertificateAlreadyExistsException, GlobalConfOutdatedException,
-            CsrNotFoundException, TokenCertificateService.WrongCertificateUsageException, InvalidCertificateException,
-            TokenCertificateService.AuthCertificateNotSupportedException {
+                   ClientNotFoundException, CertificateAuthorityNotFoundException, TokenNotFoundException,
+                   DnFieldHelper.InvalidDnParameterException, CertificateAlreadyExistsException, GlobalConfOutdatedException,
+                   CsrNotFoundException, TokenCertificateService.WrongCertificateUsageException, InvalidCertificateException,
+                   TokenCertificateService.AuthCertificateNotSupportedException {
 
-        KeyInfo keyInfo = keyService.addKey(tokenId, keyLabel);
+        KeyAlgorithm algorithm = switch (keyUsageInfo) {
+            case KEY_USAGE_UNSPECIFIED, UNRECOGNIZED -> KeyAlgorithm.RSA;
+            case SIGNING -> keyAlgorithmConfig.getSigningKeyAlgorithm();
+            case AUTHENTICATION -> keyAlgorithmConfig.getAuthenticationKeyAlgorithm();
+        };
+
+        KeyInfo keyInfo = keyService.addKey(tokenId, keyLabel, algorithm);
         GeneratedCertRequestInfo csrInfo;
         boolean csrGenerateSuccess = false;
         Exception csrGenerateException = null;

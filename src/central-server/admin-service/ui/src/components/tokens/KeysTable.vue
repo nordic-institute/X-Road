@@ -135,6 +135,11 @@ export default defineComponent({
           key: 'id',
         },
         {
+          title: this.$t('keys.algorithm') as string,
+          align: 'start',
+          key: 'key_algorithm',
+        },
+        {
           title: this.$t('keys.created') as string,
           align: 'start',
           key: 'createdAt',

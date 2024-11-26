@@ -26,6 +26,7 @@
  */
 package org.niis.xroad.cs.admin.globalconf.generator;
 
+import ee.ria.xroad.common.crypto.Signatures;
 import ee.ria.xroad.common.crypto.identifier.DigestAlgorithm;
 import ee.ria.xroad.common.crypto.identifier.SignAlgorithm;
 import ee.ria.xroad.common.util.HashCalculator;
@@ -79,7 +80,7 @@ public class DirectoryContentSigner {
 
         byte[] digest = calculateDigest(signatureAlgorithmId.digest(), data);
 
-        return signerRpcClient.sign(keyId, signatureAlgorithmId, digest);
+        return Signatures.useAsn1DerFormat(signatureAlgorithmId, signerRpcClient.sign(keyId, signatureAlgorithmId, digest));
     }
 
     @SneakyThrows

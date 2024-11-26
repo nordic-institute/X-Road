@@ -459,7 +459,8 @@ public class ServiceDescriptionServiceIntegrationTest extends AbstractServiceInt
         serviceDescriptionService.updateWsdlUrl(serviceDescription.getId(),
                 "file:src/test/resources/wsdl/valid-additional-services.wsdl", true);
 
-        clientType = clientService.getLocalClient(CLIENT_ID_SS1);
+        var serviceDescriptionType = serviceDescriptionService.getServiceDescriptiontype(serviceDescription.getId());
+        clientType = serviceDescriptionType.getClient();
 
         assertEquals(6, clientType.getEndpoint().size());
         assertTrue(clientType.getEndpoint()

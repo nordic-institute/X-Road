@@ -131,7 +131,7 @@ public class TokensApiControllerTest extends AbstractApiControllerTestContext {
                 throw new CodedException.Fault(SIGNER_X + "." + X_TOKEN_NOT_FOUND, null);
             }
             throw new RuntimeException("given tokenId not supported in mocked method SignerRpcClient#generateKey");
-        }).when(signerRpcClient).generateKey(any(), any());
+        }).when(signerRpcClient).generateKey(any(), any(), any());
     }
 
     @Test

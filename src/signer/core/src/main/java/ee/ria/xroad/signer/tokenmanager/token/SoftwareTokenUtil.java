@@ -26,6 +26,7 @@
 package ee.ria.xroad.signer.tokenmanager.token;
 
 import ee.ria.xroad.common.SystemProperties;
+import ee.ria.xroad.common.crypto.KeyManagers;
 import ee.ria.xroad.common.util.CryptoUtils;
 import ee.ria.xroad.common.util.ResourceUtils;
 import ee.ria.xroad.signer.util.SignerUtil;
@@ -145,7 +146,8 @@ public final class SoftwareTokenUtil {
     }
 
     static KeyStore createKeyStore(KeyPair kp, String alias, char[] password) throws Exception {
-        ContentSigner signer = CryptoUtils.createContentSigner(SystemProperties.getSignerKeySignatureAlgorithm(), kp.getPrivate());
+        var signALgo = KeyManagers.getFor(kp.getPrivate().getAlgorithm()).getSoftwareTokenKeySignAlgorithm();
+        ContentSigner signer = CryptoUtils.createContentSigner(signALgo, kp.getPrivate());
 
         X509Certificate[] certChain = new X509Certificate[1];
         certChain[0] = SignerUtil.createCertificate("KeyHolder", kp, signer);

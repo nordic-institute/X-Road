@@ -27,8 +27,11 @@ package ee.ria.xroad.signer.tokenmanager.token;
 
 import ee.ria.xroad.common.CodedException;
 import ee.ria.xroad.common.SystemProperties;
+import ee.ria.xroad.common.crypto.CryptoException;
 import ee.ria.xroad.common.crypto.KeyManagers;
+import ee.ria.xroad.common.crypto.identifier.KeyAlgorithm;
 import ee.ria.xroad.common.crypto.identifier.SignAlgorithm;
+import ee.ria.xroad.common.crypto.identifier.SignMechanism;
 import ee.ria.xroad.common.util.CryptoUtils;
 import ee.ria.xroad.common.util.TokenPinPolicy;
 import ee.ria.xroad.signer.protocol.dto.CertificateInfo;
@@ -70,12 +73,15 @@ import java.security.cert.X509Certificate;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 
 import static ee.ria.xroad.common.ErrorCodes.X_INTERNAL_ERROR;
 import static ee.ria.xroad.common.ErrorCodes.X_TOKEN_PIN_POLICY_FAILURE;
 import static ee.ria.xroad.common.ErrorCodes.X_UNSUPPORTED_SIGN_ALGORITHM;
 import static ee.ria.xroad.common.ErrorCodes.translateException;
+import static ee.ria.xroad.common.crypto.identifier.KeyAlgorithm.RSA;
+import static ee.ria.xroad.common.crypto.identifier.Providers.BOUNCY_CASTLE;
 import static ee.ria.xroad.common.util.CryptoUtils.loadPkcs12KeyStore;
 import static ee.ria.xroad.common.util.EncoderUtils.encodeBase64;
 import static ee.ria.xroad.signer.tokenmanager.TokenManager.addKey;
@@ -116,8 +122,14 @@ public class SoftwareTokenWorker extends AbstractTokenWorker {
             SignAlgorithm.SHA1_WITH_RSA,
             SignAlgorithm.SHA256_WITH_RSA,
             SignAlgorithm.SHA384_WITH_RSA,
-            SignAlgorithm.SHA512_WITH_RSA
+            SignAlgorithm.SHA512_WITH_RSA,
+
+            SignAlgorithm.SHA1_WITH_ECDSA,
+            SignAlgorithm.SHA256_WITH_ECDSA,
+            SignAlgorithm.SHA384_WITH_ECDSA,
+            SignAlgorithm.SHA512_WITH_ECDSA
     );
+    private static final String UNSUPPORTED_SIGN_ALGORITHM = "unsupported_sign_algorithm";
 
     private final Map<String, PrivateKey> privateKeys = new HashMap<>();
     private final TokenType tokenType;
@@ -177,7 +189,7 @@ public class SoftwareTokenWorker extends AbstractTokenWorker {
 
         assertTokenAvailable();
 
-        java.security.KeyPair keyPair = KeyManagers.getFor(tokenType.getSignMechanismName()).generateKeyPair();
+        var keyPair = KeyManagers.getFor(mapAlgorithm(message.getAlgorithm())).generateKeyPair();
 
         String keyId = SignerUtil.randomId();
         savePkcs12Keystore(keyPair, keyId, getKeyStoreFileName(keyId), getPin());
@@ -209,8 +221,6 @@ public class SoftwareTokenWorker extends AbstractTokenWorker {
     protected byte[] sign(String keyId, SignAlgorithm signatureAlgorithmId, byte[] data) throws Exception {
         log.trace("sign({}, {})", keyId, signatureAlgorithmId);
 
-        checkSignatureAlgorithm(signatureAlgorithmId);
-
         assertTokenAvailable();
 
         assertKeyAvailable(keyId);
@@ -220,34 +230,51 @@ public class SoftwareTokenWorker extends AbstractTokenWorker {
         if (key == null) {
             throw keyNotFound(keyId);
         }
+        var keyAlgorithm = KeyAlgorithm.valueOf(key.getAlgorithm());
+        checkSignatureAlgorithm(signatureAlgorithmId, keyAlgorithm);
+
+        if (!keyAlgorithm.equals(signatureAlgorithmId.algorithm())) {
+            throw CodedException.tr(X_UNSUPPORTED_SIGN_ALGORITHM, UNSUPPORTED_SIGN_ALGORITHM,
+                    "Unsupported signature algorithm '%s' for key algorithm '%s'", signatureAlgorithmId.name(), keyAlgorithm);
+        }
 
         log.debug("Signing with key '{}' and signature algorithm '{}'", keyId, signatureAlgorithmId);
 
-        SignAlgorithm signAlgorithm = KeyManagers.getFor(tokenType.getSignMechanismName()).getSoftwareTokenSignAlgorithm();
-        Signature signature = Signature.getInstance(signAlgorithm.name());
+
+        SignAlgorithm signAlgorithm = KeyManagers.getFor(keyAlgorithm).getSoftwareTokenSignAlgorithm();
+        Signature signature = Signature.getInstance(signAlgorithm.name(), BOUNCY_CASTLE);
         signature.initSign(key);
         signature.update(data);
 
         return signature.sign();
     }
 
-    private static void checkSignatureAlgorithm(SignAlgorithm signatureAlgorithmId) throws CodedException {
+    private static void checkSignatureAlgorithm(SignAlgorithm signatureAlgorithmId, KeyAlgorithm algorithm) throws CodedException {
         if (!SUPPORTED_ALGORITHMS.contains(signatureAlgorithmId)) {
-            throw CodedException.tr(X_UNSUPPORTED_SIGN_ALGORITHM, "unsupported_sign_algorithm",
+            throw CodedException.tr(X_UNSUPPORTED_SIGN_ALGORITHM, UNSUPPORTED_SIGN_ALGORITHM,
                     "Unsupported signature algorithm '%s'", signatureAlgorithmId.name());
         }
+
+        if (!algorithm.equals(signatureAlgorithmId.algorithm())) {
+            throw CodedException.tr(X_UNSUPPORTED_SIGN_ALGORITHM, UNSUPPORTED_SIGN_ALGORITHM,
+                    "Unsupported signature algorithm '%s' for key algorithm '%s'", signatureAlgorithmId.name(), algorithm);
+        }
     }
+
 
     protected byte[] signCertificate(String keyId, SignAlgorithm signatureAlgorithmId, String subjectName, PublicKey publicKey)
             throws Exception {
         log.trace("signCertificate({}, {}, {})", keyId, signatureAlgorithmId, subjectName);
-        checkSignatureAlgorithm(signatureAlgorithmId);
         assertTokenAvailable();
         assertKeyAvailable(keyId);
         KeyInfo keyInfo = getKeyInfo(keyId);
+        PrivateKey privateKey = getPrivateKey(keyId);
+
+        var keyAlgorithm = KeyAlgorithm.valueOf(privateKey.getAlgorithm());
+        checkSignatureAlgorithm(signatureAlgorithmId, keyAlgorithm);
+
         CertificateInfo certificateInfo = keyInfo.getCerts().getFirst();
         X509Certificate issuerX509Certificate = CryptoUtils.readCertificate(certificateInfo.getCertificateBytes());
-        PrivateKey privateKey = getPrivateKey(keyId);
         JcaX509v3CertificateBuilder certificateBuilder = getCertificateBuilder(subjectName, publicKey,
                 issuerX509Certificate);
 
@@ -255,7 +282,7 @@ public class SoftwareTokenWorker extends AbstractTokenWorker {
         ContentSigner signer = new JcaContentSignerBuilder(signatureAlgorithmId.name()).build(privateKey);
         X509CertificateHolder certHolder = certificateBuilder.build(signer);
         X509Certificate signedCert = new JcaX509CertificateConverter().getCertificate(certHolder);
-        CertificateFactory certificateFactory = CertificateFactory.getInstance("X.509", "BC");
+        CertificateFactory certificateFactory = CertificateFactory.getInstance("X.509", BOUNCY_CASTLE);
         CertPath certPath = certificateFactory.generateCertPath(Arrays.asList(signedCert, issuerX509Certificate));
         return certPath.getEncoded("PEM");
     }
@@ -307,18 +334,24 @@ public class SoftwareTokenWorker extends AbstractTokenWorker {
         log.debug("Searching for new software keys from '{}'", getKeyDir());
 
         for (String keyId : listKeysOnDisk()) {
-            if (!hasKey(keyId)) {
+            if (isKeyMissing(keyId)) {
                 try {
-                    String publicKeyBase64 = isPinStored() ? loadPublicKeyBase64(keyId) : null;
+                    Optional<KeyData> publicKey = isPinStored() ? loadPublicKeyBase64(keyId) : Optional.empty();
 
                     log.debug("Found new key with id '{}'", keyId);
 
-                    addKey(tokenId, keyId, publicKeyBase64);
+                    var signMechanism = resolveSignMechanism(publicKey.map(KeyData::algorithm).orElse(null));
+                    addKey(tokenId, keyId, publicKey.map(KeyData::data).orElse(null), signMechanism);
                 } catch (Exception e) {
                     log.error("Failed to read pkcs#12 key '{}'", keyId, e);
                 }
             }
         }
+    }
+
+    protected SignMechanism resolveSignMechanism(KeyAlgorithm algorithm) {
+        return tokenType.resolveSignMechanismName(algorithm)
+                .orElseThrow(() -> new CryptoException("Unsupported key algorithm: " + algorithm));
     }
 
     private PrivateKey getPrivateKey(String keyId) throws Exception {
@@ -350,7 +383,7 @@ public class SoftwareTokenWorker extends AbstractTokenWorker {
         }
 
         try {
-            java.security.KeyPair kp = KeyManagers.getFor(tokenType.getSignMechanismName()).generateKeyPair();
+            java.security.KeyPair kp = KeyManagers.getFor(SystemProperties.getSofTokenPinKeystoreAlgorithm()).generateKeyPair();
 
             String keyStoreFile = getKeyStoreFileName(PIN_FILE);
             savePkcs12Keystore(kp, PIN_ALIAS, keyStoreFile, pin);
@@ -491,7 +524,7 @@ public class SoftwareTokenWorker extends AbstractTokenWorker {
         return SoftwareTokenUtil.loadPrivateKey(keyStoreFile, keyId, getPin());
     }
 
-    private String loadPublicKeyBase64(String keyId) throws Exception {
+    private Optional<KeyData> loadPublicKeyBase64(String keyId) throws Exception {
         String keyStoreFile = getKeyStoreFileName(keyId);
 
         log.trace("Loading pkcs#12 public key '{}' from file '{}'", keyId, keyStoreFile);
@@ -501,14 +534,15 @@ public class SoftwareTokenWorker extends AbstractTokenWorker {
         if (cert == null) {
             log.error("No certificate found in '{}' using alias '{}'", keyStoreFile, keyId);
 
-            return null;
+            return Optional.empty();
         }
 
         if (cert.getPublicKey() != null) {
-            return encodeBase64(cert.getPublicKey().getEncoded());
+            var algorithm = cert.getPublicKey().getAlgorithm() == null ? RSA : KeyAlgorithm.valueOf(cert.getPublicKey().getAlgorithm());
+            return Optional.of(new KeyData(encodeBase64(cert.getPublicKey().getEncoded()), algorithm));
         }
 
-        return null;
+        return Optional.empty();
     }
 
     private static void verifyPin(char[] pin) throws Exception {
@@ -551,5 +585,8 @@ public class SoftwareTokenWorker extends AbstractTokenWorker {
     @Override
     public boolean isSoftwareToken() {
         return true;
+    }
+
+    private record KeyData(String data, KeyAlgorithm algorithm) {
     }
 }

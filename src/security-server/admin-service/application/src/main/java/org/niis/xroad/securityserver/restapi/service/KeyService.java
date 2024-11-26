@@ -27,6 +27,7 @@ package org.niis.xroad.securityserver.restapi.service;
 
 import ee.ria.xroad.common.CodedException;
 import ee.ria.xroad.signer.SignerRpcClient;
+import ee.ria.xroad.common.crypto.identifier.KeyAlgorithm;
 import ee.ria.xroad.signer.protocol.dto.CertificateInfo;
 import ee.ria.xroad.signer.protocol.dto.KeyInfo;
 import ee.ria.xroad.signer.protocol.dto.KeyUsageInfo;
@@ -150,11 +151,12 @@ public class KeyService {
      *
      * @param tokenId
      * @param keyLabel
+     * @param algorithm
      * @return {@link KeyInfo}
      * @throws TokenNotFoundException     if token was not found
      * @throws ActionNotPossibleException if generate key was not possible for this token
      */
-    public KeyInfo addKey(String tokenId, String keyLabel) throws TokenNotFoundException,
+    public KeyInfo addKey(String tokenId, String keyLabel, KeyAlgorithm algorithm) throws TokenNotFoundException,
             ActionNotPossibleException {
 
         // check that adding a key is possible
@@ -165,7 +167,7 @@ public class KeyService {
 
         KeyInfo keyInfo = null;
         try {
-            keyInfo = signerRpcClient.generateKey(tokenId, keyLabel);
+            keyInfo = signerRpcClient.generateKey(tokenId, keyLabel, algorithm);
         } catch (CodedException e) {
             throw e;
         } catch (Exception other) {

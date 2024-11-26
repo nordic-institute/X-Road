@@ -26,8 +26,8 @@
 package ee.ria.xroad.signer.protocol.handler;
 
 import ee.ria.xroad.common.CodedException;
+import ee.ria.xroad.common.SystemProperties;
 import ee.ria.xroad.common.crypto.KeyManagers;
-import ee.ria.xroad.common.crypto.identifier.DigestAlgorithm;
 import ee.ria.xroad.common.crypto.identifier.SignAlgorithm;
 import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.signer.protocol.AbstractRpcHandler;
@@ -80,9 +80,6 @@ public class GenerateSelfSignedCertReqHandler extends AbstractRpcHandler<Generat
     private final SignReqHandler signReqHandler;
     private final ImportCertReqHandler importCertReqHandler;
 
-    // TODO make configurable
-    private static final DigestAlgorithm SIGNATURE_DIGEST_ALGORITHM = DigestAlgorithm.SHA512;
-
     @Override
     protected GenerateSelfSignedCertResp handle(GenerateSelfSignedCertReq request) throws Exception {
         TokenAndKey tokenAndKey = TokenManager.findTokenAndKey(request.getKeyId());
@@ -97,8 +94,10 @@ public class GenerateSelfSignedCertReqHandler extends AbstractRpcHandler<Generat
 
         PublicKey pk = KeyManagers.getFor(tokenAndKey.getSignMechanism()).readX509PublicKey(tokenAndKey.key().getPublicKey());
 
-        SignAlgorithm signAlgoId = SignAlgorithm.ofDigestAndMechanism(SIGNATURE_DIGEST_ALGORITHM,
-                tokenAndKey.getSignMechanism());
+        SignAlgorithm signAlgoId = SignAlgorithm.ofDigestAndMechanism(
+                SystemProperties.getSelfSignedCertDigestAlgorithm(),
+                tokenAndKey.getSignMechanism()
+        );
 
         X509Certificate cert = new DummyCertBuilder().build(tokenAndKey, request, pk, signAlgoId);
 

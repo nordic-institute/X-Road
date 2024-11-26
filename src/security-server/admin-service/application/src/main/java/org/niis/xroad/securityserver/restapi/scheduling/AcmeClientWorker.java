@@ -29,6 +29,8 @@ import ee.ria.xroad.common.SystemProperties;
 import ee.ria.xroad.common.conf.globalconf.ApprovedCAInfo;
 import ee.ria.xroad.common.conf.globalconf.GlobalConfProvider;
 import ee.ria.xroad.common.conf.serverconf.model.ServerConfType;
+import ee.ria.xroad.common.crypto.identifier.KeyAlgorithm;
+import ee.ria.xroad.common.crypto.identifier.SignMechanism;
 import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.identifier.SecurityServerId;
 import ee.ria.xroad.signer.SignerRpcClient;
@@ -284,7 +286,8 @@ public class AcmeClientWorker {
         log.info("Starting to renew certificate '{}'", oldX509Certificate.getSerialNumber());
         TokenInfoAndKeyId tokenAndOldKeyId = signerRpcClient.getTokenAndKeyIdForCertHash(calculateCertHexHash(oldX509Certificate));
         String tokenId = tokenAndOldKeyId.getTokenInfo().getId();
-        KeyInfo newKeyInfo = signerRpcClient.generateKey(tokenId, tokenAndOldKeyId.getKeyInfo().getLabel());
+        KeyAlgorithm keyAlgorithm = SignMechanism.valueOf(tokenAndOldKeyId.getKeyInfo().getSignMechanismName()).keyAlgorithm();
+        KeyInfo newKeyInfo = signerRpcClient.generateKey(tokenId, tokenAndOldKeyId.getKeyInfo().getLabel(), keyAlgorithm);
 
         X509Certificate newX509Certificate;
         try {

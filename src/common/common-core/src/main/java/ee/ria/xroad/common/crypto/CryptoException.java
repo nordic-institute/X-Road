@@ -22,8 +22,14 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package ee.ria.xroad.common.crypto.identifier;
+package ee.ria.xroad.common.crypto;
 
-public enum KeyType {
-    RSA,
+public class CryptoException extends RuntimeException {
+    public CryptoException(String message) {
+        super(message);
+    }
+
+    public CryptoException(String message, Exception cause) {
+        super(message, cause);
+    }
 }

@@ -26,6 +26,7 @@
 package ee.ria.xroad.common.signature;
 
 import ee.ria.xroad.common.CodedException;
+import ee.ria.xroad.common.crypto.Signatures;
 import ee.ria.xroad.common.crypto.identifier.SignAlgorithm;
 import ee.ria.xroad.common.hashchain.HashChainBuilder;
 
@@ -80,7 +81,7 @@ class SignatureCtx {
      * Produces the XML signature from the given signed data.
      */
     synchronized String createSignatureXml(byte[] signatureValue) throws Exception {
-        return builder.createSignatureXml(signatureValue);
+        return builder.createSignatureXml(Signatures.useRawFormat(signatureAlgorithmId, signatureValue));
     }
 
     /**

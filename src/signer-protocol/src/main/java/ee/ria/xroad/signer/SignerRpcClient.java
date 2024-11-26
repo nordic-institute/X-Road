@@ -29,6 +29,7 @@ package ee.ria.xroad.signer;
 import ee.ria.xroad.common.CertificationServiceDiagnostics;
 import ee.ria.xroad.common.CertificationServiceStatus;
 import ee.ria.xroad.common.OcspResponderStatus;
+import ee.ria.xroad.common.crypto.identifier.KeyAlgorithm;
 import ee.ria.xroad.common.crypto.identifier.SignAlgorithm;
 import ee.ria.xroad.common.crypto.identifier.SignMechanism;
 import ee.ria.xroad.common.identifier.ClientId;
@@ -54,6 +55,7 @@ import org.niis.xroad.rpc.common.Empty;
 import org.niis.xroad.signer.proto.ActivateCertReq;
 import org.niis.xroad.signer.proto.ActivateTokenReq;
 import org.niis.xroad.signer.proto.AdminServiceGrpc;
+import org.niis.xroad.signer.proto.Algorithm;
 import org.niis.xroad.signer.proto.CertificateRequestFormat;
 import org.niis.xroad.signer.proto.CertificateServiceGrpc;
 import org.niis.xroad.signer.proto.CertificationServiceDiagnosticsResp;
@@ -271,16 +273,21 @@ public final class SignerRpcClient extends AbstractRpcClient implements Initiali
      *
      * @param tokenId  ID of the token
      * @param keyLabel label of the key
+     * @param algorithm algorithm to use, RSA or EC
      * @return generated key KeyInfo object
      * @throws Exception if any errors occur
      */
-    public KeyInfo generateKey(String tokenId, String keyLabel) throws Exception {
+    public KeyInfo generateKey(String tokenId, String keyLabel, KeyAlgorithm algorithm) throws Exception {
         log.trace("Generating key for token '{}'", tokenId);
 
-        var response = blockingKeyService.generateKey(GenerateKeyReq.newBuilder()
+        var builder = GenerateKeyReq.newBuilder()
                 .setTokenId(tokenId)
-                .setKeyLabel(keyLabel)
-                .build());
+                .setKeyLabel(keyLabel);
+        if (algorithm != null) {
+            builder.setAlgorithm(Algorithm.valueOf(algorithm.name()));
+        }
+
+        var response = blockingKeyService.generateKey(builder.build());
 
         KeyInfo keyInfo = new KeyInfo(response);
 
@@ -840,7 +847,6 @@ public final class SignerRpcClient extends AbstractRpcClient implements Initiali
     }
 
     public record MemberSigningInfoDto(String keyId, CertificateInfo cert, SignMechanism signMechanismName) {
-
     }
 
     public record KeyIdInfo(String keyId, SignMechanism signMechanismName) {

@@ -131,7 +131,7 @@ public class AcmeClientWorkerTest extends AbstractFacadeMockingTestContext {
                 .id("new_key_id")
                 .build();
 
-        when(signerRpcClient.generateKey(any(), any())).thenReturn(newKey);
+        when(signerRpcClient.generateKey(any(), any(), any())).thenReturn(newKey);
         when(signerRpcClient.generateCertRequest(any(), any(), any(), any(), any(), any(), any()))
                 .thenReturn(new SignerRpcClient.GeneratedCertRequestInfo(null, getMockSignCsrBytes(), null, null, null));
 
