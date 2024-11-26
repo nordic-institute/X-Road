@@ -372,7 +372,7 @@ class ClientMessageProcessor extends AbstractClientMessageProcessor {
     private void logResponseMessage() throws Exception {
         log.trace("logResponseMessage()");
 
-        MessageLog.log(response.getSoap(), response.getSignature(), true, xRequestId);
+        MessageLog.log(response.getSoap(), response.getSignature(), response.getAttachments(), true, xRequestId);
     }
 
     private void sendResponse() throws Exception {
@@ -536,7 +536,8 @@ class ClientMessageProcessor extends AbstractClientMessageProcessor {
         private void logRequestMessage() throws Exception {
             log.trace("logRequestMessage()");
 
-            MessageLog.log(requestSoap, request.getSignature(), true, xRequestId);
+            // Not logging request attachments, as they are always batch-signed in X-Road 7
+            MessageLog.log(requestSoap, request.getSignature(), List.of(), true, xRequestId);
         }
 
         @Override

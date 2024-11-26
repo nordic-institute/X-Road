@@ -27,6 +27,7 @@ package ee.ria.xroad.proxy.messagelog;
 
 import ee.ria.xroad.common.db.HibernateUtil;
 import ee.ria.xroad.common.identifier.ClientId;
+import ee.ria.xroad.common.message.AttachmentStream;
 import ee.ria.xroad.common.messagelog.AbstractLogRecord;
 import ee.ria.xroad.common.messagelog.LogRecord;
 import ee.ria.xroad.common.messagelog.MessageRecord;
@@ -148,13 +149,11 @@ public final class LogRecordManager {
                 encryption.prepareEncryption(messageRecord);
             }
 
-            var attachmentStreamProvider = messageRecord.getAttachmentStreamProvider();
-            if (attachmentStreamProvider != null) {
-                for (int i = 1; i <= attachmentStreamProvider.getAttachmentCount(); i++) {
-                    var attachmentStream = attachmentStreamProvider.getAttachmentStream(i);
-                    messageRecord.addAttachment(
-                            i, session.getLobHelper().createBlob(attachmentStream.getStream(), attachmentStream.getSize()));
-                }
+            int attachmentNo = 0;
+            for (AttachmentStream attachmentStream : messageRecord.getAttachmentStreams()) {
+                attachmentNo++;
+                messageRecord.addAttachment(attachmentNo,   // attachment numbering starts from one as in asic container
+                        session.getLobHelper().createBlob(attachmentStream.getStream(), attachmentStream.getSize()));
             }
 
             save(session, messageRecord);

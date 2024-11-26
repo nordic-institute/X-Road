@@ -27,10 +27,14 @@ package ee.ria.xroad.common.messagelog;
 
 import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.identifier.ServiceId;
+import ee.ria.xroad.common.message.AttachmentStream;
 import ee.ria.xroad.common.message.SoapMessageImpl;
 import ee.ria.xroad.common.signature.SignatureData;
 
 import lombok.Getter;
+import lombok.NonNull;
+
+import java.util.List;
 
 /**
  * LogMessage for SOAP
@@ -39,17 +43,24 @@ public final class SoapLogMessage extends LogMessage {
     @Getter
     private final SoapMessageImpl message;
 
+    @Getter
+    @NonNull
+    private final List<AttachmentStream> attachments;
+
+
     /**
      * Create a SOAP log message
      */
     public SoapLogMessage(SoapMessageImpl message, SignatureData signature, boolean clientSide) {
         super(signature, clientSide);
         this.message = message;
+        this.attachments = List.of();
     }
 
-    public SoapLogMessage(SoapMessageImpl message, SignatureData signature, boolean clientSide, String xRequestId) {
+    public SoapLogMessage(SoapMessageImpl message, SignatureData signature, @NonNull List<AttachmentStream> attachments, boolean clientSide, String xRequestId) {
         super(signature, clientSide, xRequestId);
         this.message = message;
+        this.attachments = attachments;
     }
 
     public String getQueryId() {

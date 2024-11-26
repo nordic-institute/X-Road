@@ -25,6 +25,7 @@
  */
 package ee.ria.xroad.proxy.protocol;
 
+import ee.ria.xroad.common.message.AttachmentStream;
 import ee.ria.xroad.common.message.MultipartSoapMessageEncoder;
 import ee.ria.xroad.common.message.RestRequest;
 import ee.ria.xroad.common.message.RestResponse;
@@ -38,6 +39,7 @@ import ee.ria.xroad.common.util.MimeTypes;
 import ee.ria.xroad.common.util.MimeUtils;
 import ee.ria.xroad.common.util.MultipartEncoder;
 
+import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.IOUtils;
 import org.bouncycastle.cert.ocsp.OCSPResp;
@@ -62,13 +64,18 @@ import java.util.Map;
 public class ProxyMessage implements ProxyMessageConsumer {
 
     public static final int REST_BODY_LIMIT = 8192; //store up to limit bytes into memory
+
+    @Getter
     private final List<OCSPResp> ocspResponses = new ArrayList<>();
 
     private final String originalContentType;
     private final String originalMimeBoundary;
 
     private SoapMessageImpl soapMessage;
+    @Getter
     private SignatureData signature;
+
+    @Getter
     private SoapFault fault;
 
     private Map<String, String> soapPartHeaders;
@@ -78,6 +85,7 @@ public class ProxyMessage implements ProxyMessageConsumer {
     private final List<Attachment> attachmentCache = new ArrayList<>();
 
     private RestRequest restMessage;
+    @Getter
     private RestResponse restResponse;
 
     /**
@@ -99,31 +107,6 @@ public class ProxyMessage implements ProxyMessageConsumer {
 
     public RestRequest getRest() {
         return restMessage;
-    }
-
-    public RestResponse getRestResponse() {
-        return restResponse;
-    }
-
-    /**
-     * @return the message signature
-     */
-    public SignatureData getSignature() {
-        return signature;
-    }
-
-    /**
-     * @return TLS OCSP responses
-     */
-    public List<OCSPResp> getOcspResponses() {
-        return ocspResponses;
-    }
-
-    /**
-     * @return SOAP fault if this message is a fault, null otherwise
-     */
-    public SoapFault getFault() {
-        return fault;
     }
 
     /**
@@ -262,5 +245,24 @@ public class ProxyMessage implements ProxyMessageConsumer {
         return null;
     }
 
-    private record Attachment(String contentType, CachingStream content, Map<String, String> additionalHeaders) { }
+    public List<AttachmentStream> getAttachments() {
+        return attachmentCache.stream().map(Attachment::getAttachmentStream).toList();
+    }
+
+
+    private record Attachment(String contentType, CachingStream content, Map<String, String> additionalHeaders) {
+        AttachmentStream getAttachmentStream() {
+            return new AttachmentStream() {
+                @Override
+                public InputStream getStream() {
+                    return content.getCachedContents();
+                }
+
+                @Override
+                public long getSize() {
+                    return content.size();
+                }
+            };
+        }
+    }
 }

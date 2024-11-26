@@ -409,14 +409,14 @@ class ServerMessageProcessor extends MessageProcessorBase {
     private void logRequestMessage() throws Exception {
         log.trace("logRequestMessage()");
 
-        MessageLog.log(requestMessage.getSoap(), requestMessage.getSignature(), false, xRequestId);
+        MessageLog.log(requestMessage.getSoap(), requestMessage.getSignature(), requestMessage.getAttachments(), false, xRequestId);
     }
 
     private void logResponseMessage() throws Exception {
         if (responseSoap != null && encoder != null) {
             log.trace("logResponseMessage()");
-
-            MessageLog.log(responseSoap, encoder.getSignature(), false, xRequestId);
+            // Attachments are not logged here, because response from X-Road 7 server is always batch signed
+            MessageLog.log(responseSoap, encoder.getSignature(), List.of(), false, xRequestId);
         }
     }
 

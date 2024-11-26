@@ -28,6 +28,7 @@ package ee.ria.xroad.common.messagelog;
 import ee.ria.xroad.common.asic.AsicContainer;
 import ee.ria.xroad.common.asic.TimestampData;
 import ee.ria.xroad.common.identifier.ClientId;
+import ee.ria.xroad.common.message.AttachmentStream;
 import ee.ria.xroad.common.signature.SignatureData;
 
 import lombok.AccessLevel;
@@ -115,8 +116,7 @@ public class MessageRecord extends AbstractLogRecord {
 
     @Getter
     @Setter
-    @NonNull
-    private transient AttachmentStreamProvider attachmentStreamProvider = new NullAttachmentStreamProvider();
+    private transient List<AttachmentStream> attachmentStreams;
 
     @Getter
     @Setter
@@ -197,7 +197,7 @@ public class MessageRecord extends AbstractLogRecord {
     }
 
     public void setAttachmentStream(InputStream stream, long size) {
-        this.setAttachmentStreamProvider(new SingleAttachmentStreamProvider(stream, size));
+        this.setAttachmentStreams(List.of(AttachmentStream.fromInputStream(stream, size)));
     }
 
     public void setCipherMessage(byte[] msg) {
@@ -209,54 +209,6 @@ public class MessageRecord extends AbstractLogRecord {
         MessageAttachment messageAttachment = new MessageAttachment(this, attachmentNo, attachment);
         attachments.add(messageAttachment);
         return messageAttachment;
-    }
-
-
-    public interface AttachmentStream {
-        InputStream getStream();
-        long getSize();
-    }
-
-    public interface AttachmentStreamProvider {
-        int getAttachmentCount();
-        AttachmentStream getAttachmentStream(int attachmentNo);
-    }
-
-    private static class NullAttachmentStreamProvider implements AttachmentStreamProvider {
-        @Override
-        public int getAttachmentCount() {
-            return 0;
-        }
-
-        @Override
-        public AttachmentStream getAttachmentStream(int attachmentNo) {
-            throw new IllegalArgumentException("Invalid attachment number: " + attachmentNo);
-        }
-    }
-
-    private record SingleAttachmentStreamProvider(@NonNull InputStream stream, long size) implements AttachmentStreamProvider {
-        @Override
-        public int getAttachmentCount() {
-            return 1;
-        }
-
-        @Override
-        public AttachmentStream getAttachmentStream(int attachmentNo) {
-            if (attachmentNo != 1) {
-                throw new IllegalArgumentException("Invalid attachment number: " + attachmentNo);
-            }
-            return new AttachmentStream() {
-                @Override
-                public InputStream getStream() {
-                    return stream;
-                }
-
-                @Override
-                public long getSize() {
-                    return size;
-                }
-            };
-        }
     }
 
 }
