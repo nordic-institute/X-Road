@@ -28,7 +28,9 @@ package org.niis.xroad.confproxy.commandline;
 import ee.ria.xroad.signer.SignerRpcClient;
 import ee.ria.xroad.signer.protocol.dto.KeyInfo;
 
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.cli.CommandLine;
+import org.apache.commons.lang3.StringUtils;
 import org.niis.xroad.confproxy.ConfProxyProperties;
 
 import java.util.Date;
@@ -39,12 +41,13 @@ import static org.niis.xroad.confproxy.ConfProxyProperties.CONF_INI;
 /**
  * Utility tool for adding new signing keys to a configuration proxy instance.
  */
+@Slf4j
 public class ConfProxyUtilAddSigningKey extends ConfProxyUtil {
 
     /**
      * Constructs a confproxy-add-signing-key utility program instance.
      */
-    ConfProxyUtilAddSigningKey(org.niis.xroad.confproxy.config.ConfProxyProperties confProxyProperties, SignerRpcClient signerRpcClient) {
+    public ConfProxyUtilAddSigningKey(org.niis.xroad.confproxy.config.ConfProxyProperties confProxyProperties, SignerRpcClient signerRpcClient) {
         super("confproxy-add-signing-key", confProxyProperties, signerRpcClient);
         getOptions()
                 .addOption(PROXY_INSTANCE)
@@ -69,6 +72,17 @@ public class ConfProxyUtilAddSigningKey extends ConfProxyUtil {
             addSigningKey(conf, keyInfo.getId());
         } else {
             printHelp();
+        }
+    }
+
+    public final void execute(String instance, String keyId, String tokenId) throws Exception {
+        final ConfProxyProperties conf = new ConfProxyProperties(instance, confProxyProperties);
+        if (StringUtils.isNotBlank(keyId)) {
+            addSigningKey(conf, keyId);
+        } else if (StringUtils.isNotBlank(tokenId)) {
+            KeyInfo keyInfo = signerRpcClient.generateKey(tokenId, "key-" + System.currentTimeMillis());
+            log.info("Generated key with ID {}", keyInfo.getId());
+            addSigningKey(conf, keyInfo.getId());
         }
     }
 

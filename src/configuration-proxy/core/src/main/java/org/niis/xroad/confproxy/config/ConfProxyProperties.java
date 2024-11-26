@@ -27,6 +27,10 @@ package org.niis.xroad.confproxy.config;
 
 import org.springframework.boot.context.properties.ConfigurationProperties;
 
+import java.net.URI;
+import java.time.Duration;
+import java.util.Map;
+
 
 @ConfigurationProperties("xroad.configuration-proxy")
 public record ConfProxyProperties(
@@ -35,5 +39,16 @@ public record ConfProxyProperties(
         String configurationPath,
         String generatedConfPath,
         String hashAlgorithmUri,
-        String updateJobCron) {
+        String updateJobCron,
+        Map<String, InstanceProperties> instances) {
+
+    public record InstanceProperties(
+            String signingKeyId,
+            String tokenId,
+            URI sourceAnchorFileUri,
+            Duration validityInterval
+    ) {
+    }
+
 }
+

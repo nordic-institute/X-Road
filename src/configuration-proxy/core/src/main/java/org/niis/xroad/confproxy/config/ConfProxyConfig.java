@@ -29,6 +29,7 @@ import ee.ria.xroad.signer.SignerClientConfiguration;
 import ee.ria.xroad.signer.SignerRpcClient;
 
 import org.niis.xroad.confproxy.ConfProxyExecutor;
+import org.niis.xroad.confproxy.ConfProxyInitializer;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -45,6 +46,11 @@ public class ConfProxyConfig {
     @Bean
     ConfProxyExecutor confProxyExecutor(SignerRpcClient signerRpcClient, ConfProxyProperties confProxyProperties) {
         return new ConfProxyExecutor(signerRpcClient, confProxyProperties);
+    }
+
+    @Bean
+    ConfProxyInitializer confProxyInitializer(SignerRpcClient signerRpcClient, ConfProxyProperties confProxyProperties) {
+        return new ConfProxyInitializer(signerRpcClient, confProxyProperties);
     }
 
 }

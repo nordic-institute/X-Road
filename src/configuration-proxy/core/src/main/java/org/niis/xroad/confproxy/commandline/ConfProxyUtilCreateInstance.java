@@ -27,6 +27,7 @@ package org.niis.xroad.confproxy.commandline;
 
 import ee.ria.xroad.signer.SignerRpcClient;
 
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.cli.CommandLine;
 import org.niis.xroad.confproxy.ConfProxyProperties;
 
@@ -42,14 +43,15 @@ import static org.niis.xroad.confproxy.ConfProxyProperties.CONF_INI;
  * Utility tool for creating a new configuration proxy instance
  * with default settings.
  */
+@Slf4j
 public class ConfProxyUtilCreateInstance extends ConfProxyUtil {
 
-    static final int DEFAULT_VALIDITY_INTERVAL_SECONDS = 600;
+    public static final int DEFAULT_VALIDITY_INTERVAL_SECONDS = 600;
 
     /**
      * Constructs a confproxy-create-instance utility program instance.
      */
-    ConfProxyUtilCreateInstance(org.niis.xroad.confproxy.config.ConfProxyProperties confProxyProperties, SignerRpcClient signerRpcClient) {
+    public ConfProxyUtilCreateInstance(org.niis.xroad.confproxy.config.ConfProxyProperties confProxyProperties, SignerRpcClient signerRpcClient) {
         super("confproxy-create-instance", confProxyProperties, signerRpcClient);
         getOptions()
                 .addOption(PROXY_INSTANCE);
@@ -82,4 +84,23 @@ public class ConfProxyUtilCreateInstance extends ConfProxyUtil {
             printHelp();
         }
     }
+
+    public void execute(String instance, long validityInterval) throws Exception {
+            log.info("Generating configuration directory for instance '{}' ...", instance);
+            Path instancePath = Paths.get(confProxyProperties.configurationPath(), instance);
+            Files.createDirectories(instancePath);
+            Path confPath = instancePath.resolve(CONF_INI);
+            try {
+                Files.createFile(confPath);
+            } catch (FileAlreadyExistsException ex) {
+                throw new RuntimeException("Configuration for instance '" + instance
+                        + "' already exists, aborting. ", ex);
+            }
+            ConfProxyProperties conf = new ConfProxyProperties(instance, confProxyProperties);
+            log.info("Populating '{}' with default values ...", CONF_INI);
+            conf.setValidityIntervalSeconds(validityInterval);
+            log.info("Done.");
+    }
+
+
 }

@@ -218,7 +218,7 @@ public class ConfProxyProperties {
      * @param value number of seconds the configurations should be valid
      * @throws ConfigurationException if an error occurs when saving the configuration
      */
-    public final void setValidityIntervalSeconds(final int value)
+    public final void setValidityIntervalSeconds(final long value)
             throws ConfigurationException {
         config.setProperty(VALIDITY_INTERVAL_SECONDS, value);
         saveConfig();

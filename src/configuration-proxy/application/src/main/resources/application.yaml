@@ -8,7 +8,7 @@ server:
 
 xroad:
   configuration-proxy:
-#    download-script: /usr/share/xroad/scripts/download_instance_configuration.sh
+    #    download-script: /usr/share/xroad/scripts/download_instance_configuration.sh
     address: 0.0.0.0
     signature-digest-algorithm-id: SHA-512
     configuration-path: /etc/xroad/confproxy
@@ -16,3 +16,12 @@ xroad:
     hash-algorithm-uri: http://www.w3.org/2001/04/xmlenc#sha512
     cli-mode: false
     update-job-cron: 0 * * * * *
+#    instances:
+#      PROXY:
+##        signing-key-id: key-id # optional, existing keyId
+#        token-id: 0 # if provided, the key will be generated
+#        source-anchor-file-uri: file:///mnt/anchor.xml
+#        validity-interval: 90s
+#      ANOTHER_PROXY:
+#        token-id: 0
+#        source-anchor-file-uri: file:///mnt/anchor_2.xml
