@@ -964,7 +964,7 @@ public final class SystemProperties {
      * @return software token signing mechanism type, CKM_RSA_PKCS by default
      */
     public static SignMechanism getSoftTokenRsaSignMechanism() {
-        return Optional.ofNullable(SystemPropertySource.getProperty(SOFT_TOKEN_RSA_SIGN_MECHANISM))
+        return Optional.ofNullable(SystemPropertySource.getPropertyResolver().getProperty(SOFT_TOKEN_RSA_SIGN_MECHANISM))
                 .map(SignMechanism::valueOf)
                 .orElse(SignMechanism.CKM_RSA_PKCS);
     }
@@ -973,7 +973,7 @@ public final class SystemProperties {
      * @return software token signing mechanism type for EC keys, CKM_ECDSA by default
      */
     public static SignMechanism getSofTokenEcSignMechanism() {
-        return Optional.ofNullable(SystemPropertySource.getProperty(SOFT_TOKEN_EC_SIGN_MECHANISM))
+        return Optional.ofNullable(SystemPropertySource.getPropertyResolver().getProperty(SOFT_TOKEN_EC_SIGN_MECHANISM))
                 .map(SignMechanism::valueOf)
                 .orElse(SignMechanism.CKM_ECDSA);
     }
@@ -982,7 +982,7 @@ public final class SystemProperties {
      * @return software token keystore PIN file algorithm, RSA by default
      */
     public static KeyAlgorithm getSofTokenPinKeystoreAlgorithm() {
-        return Optional.ofNullable(SystemPropertySource.getProperty(SOFT_TOKEN_PIN_KEYSTORE_ALGORITHM))
+        return Optional.ofNullable(SystemPropertySource.getPropertyResolver().getProperty(SOFT_TOKEN_PIN_KEYSTORE_ALGORITHM))
                 .map(KeyAlgorithm::valueOf)
                 .orElse(DEFAULT_SOFT_TOKEN_PIN_KEYSTORE_ALGORITHM);
     }
@@ -991,7 +991,7 @@ public final class SystemProperties {
      * @return software token keystore PIN file algorithm, RSA by default
      */
     public static DigestAlgorithm getSelfSignedCertDigestAlgorithm() {
-        return Optional.ofNullable(SystemPropertySource.getProperty(SIGNER_SELF_SIGNED_CERT_DIGEST_ALGORITHM))
+        return Optional.ofNullable(SystemPropertySource.getPropertyResolver().getProperty(SIGNER_SELF_SIGNED_CERT_DIGEST_ALGORITHM))
                 .map(DigestAlgorithm::ofName)
                 .orElse(DigestAlgorithm.SHA512);
     }

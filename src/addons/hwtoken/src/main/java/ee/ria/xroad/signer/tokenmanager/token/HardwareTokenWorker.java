@@ -37,10 +37,8 @@ import ee.ria.xroad.signer.protocol.dto.KeyInfo;
 import ee.ria.xroad.signer.protocol.dto.TokenInfo;
 import ee.ria.xroad.signer.protocol.dto.TokenStatusInfo;
 import ee.ria.xroad.signer.tokenmanager.TokenManager;
-import ee.ria.xroad.signer.tokenmanager.module.ModuleConf;
-import ee.ria.xroad.signer.util.SignerUtil;
-import ee.ria.xroad.signer.util.passwordstore.PasswordStore;
 import ee.ria.xroad.signer.tokenmanager.token.helper.KeyPairHelper;
+import ee.ria.xroad.signer.util.passwordstore.PasswordStore;
 
 import iaik.pkcs.pkcs11.Mechanism;
 import iaik.pkcs.pkcs11.Session;

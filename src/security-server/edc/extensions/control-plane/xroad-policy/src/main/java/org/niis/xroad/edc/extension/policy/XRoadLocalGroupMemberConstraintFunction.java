@@ -14,7 +14,6 @@ import org.niis.xroad.edc.extension.policy.util.PolicyContextHelper;
 
 import static java.util.concurrent.TimeUnit.MILLISECONDS;
 
-;
 
 @RequiredArgsConstructor
 public class XRoadLocalGroupMemberConstraintFunction implements AtomicConstraintFunction<Permission> {

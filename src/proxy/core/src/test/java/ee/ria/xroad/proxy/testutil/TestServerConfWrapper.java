@@ -31,6 +31,7 @@ import ee.ria.xroad.common.conf.serverconf.IsAuthentication;
 import ee.ria.xroad.common.conf.serverconf.ServerConfProvider;
 import ee.ria.xroad.common.conf.serverconf.model.DescriptionType;
 import ee.ria.xroad.common.identifier.ClientId;
+import ee.ria.xroad.common.identifier.LocalGroupId;
 import ee.ria.xroad.common.identifier.SecurityServerId;
 import ee.ria.xroad.common.identifier.ServiceId;
 import ee.ria.xroad.common.identifier.XRoadId;
@@ -144,6 +145,11 @@ public class TestServerConfWrapper implements ServerConfProvider {
     }
 
     @Override
+    public boolean isSubjectAssociatedWithLocalGroup(ClientId clientId, LocalGroupId localGroupId) {
+        return serverConfProvider.isSubjectAssociatedWithLocalGroup(clientId, localGroupId);
+    }
+
+    @Override
     public List<ClientId.Conf> getMembers() throws Exception {
         return serverConfProvider.getMembers();
     }
@@ -181,5 +187,20 @@ public class TestServerConfWrapper implements ServerConfProvider {
     @Override
     public List<Endpoint> getServiceEndpoints(ServiceId service) {
         return serverConfProvider.getServiceEndpoints(service);
+    }
+
+    @Override
+    public void logStatistics() {
+        serverConfProvider.logStatistics();
+    }
+
+    @Override
+    public void clearCache() {
+        serverConfProvider.clearCache();
+    }
+
+    @Override
+    public boolean isAvailable() {
+        return serverConfProvider.isAvailable();
     }
 }

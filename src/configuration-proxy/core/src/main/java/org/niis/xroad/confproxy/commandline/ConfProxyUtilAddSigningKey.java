@@ -25,13 +25,13 @@
  */
 package org.niis.xroad.confproxy.commandline;
 
-import ee.ria.xroad.signer.SignerRpcClient;
 import ee.ria.xroad.common.crypto.identifier.KeyAlgorithm;
+import ee.ria.xroad.signer.SignerRpcClient;
 import ee.ria.xroad.signer.protocol.dto.KeyInfo;
 
 import org.apache.commons.cli.CommandLine;
-import org.niis.xroad.confproxy.ConfProxyProperties;
 import org.apache.commons.lang3.StringUtils;
+import org.niis.xroad.confproxy.ConfProxyProperties;
 
 import java.util.Date;
 
