@@ -31,7 +31,9 @@ import ee.ria.xroad.common.SystemPropertiesLoader;
 import ee.ria.xroad.common.cert.CertChainFactory;
 import ee.ria.xroad.common.conf.globalconf.GlobalConfProvider;
 import ee.ria.xroad.common.conf.serverconf.ServerConfProvider;
+import ee.ria.xroad.common.signature.SimpleSigner;
 import ee.ria.xroad.proxy.conf.KeyConfProvider;
+import ee.ria.xroad.proxy.conf.SigningCtxProvider;
 import ee.ria.xroad.signer.SignerRpcClient;
 
 import lombok.SneakyThrows;
@@ -118,6 +120,7 @@ public class XrdDataPlanePublicApiExtension implements ServiceExtension {
     @Inject
     private CertChainFactory certChainFactory;
 
+    @Inject
     private SignerRpcClient signerRpcClient;
 
     @Override
@@ -149,9 +152,11 @@ public class XrdDataPlanePublicApiExtension implements ServiceExtension {
 
         monitor.debug("X-Road public endpoint is set to: %s".formatted(publicEndpoint));
 
+        // todo remove this workaround...
+        SigningCtxProvider.setSigner(new SimpleSigner(signerRpcClient));
+
         var endpoint = Endpoint.url(publicEndpoint);
         generatorService.addGeneratorFunction("XrdHttpData", dataAddress -> endpoint);
-        //TODO fix signerclient
         var signService = new XrdSignatureService(globalConfProvider, null, null);
         var proxyApiController = new XrdDataPlaneProxyApiController(monitor,
                 xRoadMessageLog, authorizationService, needClientAuth, globalConfProvider, keyConfProvider,
@@ -165,7 +170,6 @@ public class XrdDataPlanePublicApiExtension implements ServiceExtension {
                 needClientAuth);
         webService.registerResource(PUBLIC_SETTINGS.getContextAlias(), proxyApiController);
         webService.registerResource(PUBLIC_SETTINGS.getContextAlias(), lcController);
-//        initSignerClient(monitor);
     }
 
     private void loadSystemProperties(Monitor monitor) {
@@ -175,23 +179,5 @@ public class XrdDataPlanePublicApiExtension implements ServiceExtension {
                 .load();
     }
 
-//    private void initSignerClient(Monitor monitor) {
-//        monitor.info("Initializing Signer client");
-//        try {
-//            // todo: fixme:
-//            RpcChannelProperties signerClientProperties = new RpcChannelProperties(
-//                    SystemProperties.getSignerGrpcHost(),
-//                    SystemProperties.getSignerGrpcPort(),
-//                    SystemProperties.isSignerGrpcTlsEnabled(),
-//                    SystemProperties.getSignerGrpcTrustStore(),
-//                    SystemProperties.getSignerGrpcTrustStorePassword(),
-//                    SystemProperties.getSignerGrpcKeyStore(),
-//                    SystemProperties.getSignerGrpcKeyStorePassword()
-//            );
-//            SignerRpcClient.init(signerClientProperties, 10000);
-//        } catch (Exception e) {
-//            throw new RuntimeException(e);
-//        }
-//    }
 }
 
