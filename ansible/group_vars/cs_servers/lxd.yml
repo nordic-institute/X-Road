@@ -7,6 +7,10 @@ container_ports:
     connect: "tcp:127.0.0.1:5432"
     listen: "tcp:0.0.0.0:{{ 3020 + (groups['cs_servers'].index(inventory_hostname) * 100) }}"
     type: proxy
+  mailpit_cs:
+    connect: "tcp:127.0.0.1:8025"
+    listen: "tcp:0.0.0.0:{{ 3089 + (groups['cs_servers'].index(inventory_hostname) * 100) }}"
+    type: proxy
   admin_debug:
     connect: "tcp:127.0.0.1:9950"
     listen: "tcp:0.0.0.0:{{ 3090 + (groups['cs_servers'].index(inventory_hostname) * 100) }}"

@@ -22,7 +22,7 @@
   tags: dev-configuration
 
 - name: Install and configure Mailpit
-  when: inventory_hostname in groups['ss_servers']
+  when: inventory_hostname in groups['cs_servers']
   block:
     - name: Download and run Mailpit installation script
       shell: curl -sL https://raw.githubusercontent.com/axllent/mailpit/develop/install.sh | bash
@@ -47,7 +47,7 @@
         openssl req -x509 -newkey rsa:4096 \
         -nodes -keyout /etc/mailpit/key.pem -out /etc/mailpit/cert.pem \
         -sha256 -days 3650 \
-        -subj "/CN=localhost"
+        -subj "/CN=xrd-cs"
       args:
         creates: /etc/mailpit/cert.pem
         chdir: /etc/mailpit
