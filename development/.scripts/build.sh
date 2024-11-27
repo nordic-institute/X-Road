@@ -61,7 +61,7 @@ case $1 in
   ;;
 esac
 
-cd "$XROAD_HOME"/src/
+cd ../../src/
 set -o xtrace
 ./gradlew $gradleArgs -p $gradleModule
 set +o xtrace

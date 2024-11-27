@@ -127,8 +127,8 @@ services:
       - xroad-network
   hurl:
     build:
-        context: .
-        dockerfile: ./hurl/Dockerfile
+        context: ../../development/hurl
+        dockerfile: ./Dockerfile
     deploy:
       resources:
         reservations:

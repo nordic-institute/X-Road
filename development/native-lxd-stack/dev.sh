@@ -17,9 +17,6 @@ Examples:
 ./dev.sh -bdm proxy => Builds proxy.jar and deploys (moves) it to container and restart processes
 "
 
-# Set working directory
-cd "$XROAD_HOME"/Docker/xrd-dev-stack/tools
-
 BUILD=false
 DEPLOY=false
 
@@ -43,10 +40,10 @@ shift $((OPTIND -1))
 
 if [ "$BUILD" = true ] ; then
   echo "Building module $MODULE"
-  source "$XROAD_HOME"/development/.scripts/build.sh $MODULE
+  source ../.scripts/build.sh $MODULE
 fi
 
 if [ "$DEPLOY" = true ] ; then
   echo "Deploying module $MODULE"
-  source deploy.sh $MODULE
+  source scripts/deploy-module.sh $MODULE
 fi
