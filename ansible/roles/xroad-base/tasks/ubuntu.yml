@@ -23,7 +23,7 @@
 
 - name: Add X-Road apt repo key
   shell: "curl -sL {{ ubuntu_apt_key }} | sudo gpg --dearmor --batch --yes -o {{ ubuntu_apt_key_file }}"
-  when: package_source == "remote" and (ansible_distribution == "Ubuntu")
+  when: ansible_distribution == "Ubuntu"
 
 - name: Remove old repo config
   file:
@@ -32,10 +32,13 @@
 
 - name: xroad apt repository
   apt_repository:
-    repo: "{{ ubuntu_apt_repo_with_option }}"
+    repo: "{{ item }}"
     state: present
     filename: xroad
     update_cache: yes
+  with_items:
+    - "{{ ubuntu_apt_repo_with_option }}"
+    - "deb [{{ubuntu_apt_option}}] https://artifactory.niis.org/artifactory/xroad-dependencies-deb xroad external"
   when: ansible_distribution == "Ubuntu"
 
 - name: enable UTF-8 locales

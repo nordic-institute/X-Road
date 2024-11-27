@@ -1,0 +1,48 @@
+- name: Install Hurl
+  block:
+    - name: Set Hurl facts
+      set_fact:
+        hurl_version: "5.0.1"
+        hurl_install_dir: "/opt/hurl"
+        hurl_files: "{{ playbook_dir }}/../development/hurl/scenarios/"
+
+    - name: Set package name
+      set_fact:
+        hurl_dirname: "hurl-{{ hurl_version }}-{{ ansible_architecture }}-unknown-linux-gnu"
+
+    - name: Create install directory
+      file:
+        path: "{{ hurl_install_dir }}"
+        state: directory
+        mode: '0755'
+
+    - name: Download and extract Hurl
+      unarchive:
+        src: "https://github.com/Orange-OpenSource/hurl/releases/download/{{ hurl_version }}/{{ hurl_dirname }}.tar.gz"
+        dest: "{{ hurl_install_dir }}"
+        remote_src: yes
+        creates: "{{ hurl_install_dir }}/{{ hurl_dirname }}"
+
+    - name: Add execution script
+      template:
+        src: templates/run-hurl.sh.j2
+        dest: /opt/hurl/run-hurl.sh
+        mode: '0755'
+
+    - name: Copy Hurl configuration files
+      copy:
+        src: "{{ hurl_files }}"
+        dest: "{{ hurl_install_dir }}/scenario"
+        group: "root"
+        owner: "root"
+        mode: "0644"
+        directory_mode: "0755"
+
+    - name: Copy Hurl env file
+      copy:
+        src: "files/hurl.env"
+        dest: "{{ hurl_install_dir }}/"
+        group: "root"
+        owner: "root"
+        mode: "0644"
+        directory_mode: "0755"

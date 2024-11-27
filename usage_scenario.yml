@@ -23,7 +23,7 @@ services:
       context: ./Docker/xrd-dev-stack/.
       dockerfile: ./hurl/Dockerfile
     volumes:
-      - ./Docker/xrd-dev-stack/hurl-src:/hurl-src:ro
+      - ./development/hurl/scenarios:/hurl-src:ro
       - ca-volume:/hurl-files/ca:ro
     # Workaround to keep the hurl container running so that we can do the setup, which runs an exec command
     command: --interactive hurl-src/setup.hurl
