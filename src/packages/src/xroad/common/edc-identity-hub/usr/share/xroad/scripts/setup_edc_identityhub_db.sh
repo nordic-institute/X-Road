@@ -10,18 +10,16 @@ source /usr/share/xroad/scripts/_setup_db.sh
 
 default_host=$1
 if [[ -z "$default_host" ]]; then
-    url=$(get_prop '/etc/xroad/db.properties' 'serverconf.hibernate.connection.url' '')
-    pat='^jdbc:postgresql://([^/]*).*'
-    if [[ "$url" =~ $pat ]]; then
-        default_host="${BASH_REMATCH[1]}"
+    if [[ "$XROAD_APPLICATION_TYPE" == "ss" ]]; then
+      # security server
+      url=$(get_prop '/etc/xroad/db.properties' 'serverconf.hibernate.connection.url' '')
     else
       # central server
       url=$(get_prop '/etc/xroad/db.properties' 'spring.datasource.url' '')
-      if [[ "$url" =~ $pat ]]; then
-          default_host="${BASH_REMATCH[1]}"
-      else
-        default_host="127.0.0.1:5432"
-      fi
+    fi
+    pat='^jdbc:postgresql://([^/]*).*'
+    if [[ "$url" =~ $pat ]]; then
+        default_host="${BASH_REMATCH[1]}"
     fi
 fi
 
