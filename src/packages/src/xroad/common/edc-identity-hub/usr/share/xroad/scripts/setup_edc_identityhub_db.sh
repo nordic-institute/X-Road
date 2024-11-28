@@ -14,6 +14,14 @@ if [[ -z "$default_host" ]]; then
     pat='^jdbc:postgresql://([^/]*).*'
     if [[ "$url" =~ $pat ]]; then
         default_host="${BASH_REMATCH[1]}"
+    else
+      # central server
+      url=$(get_prop '/etc/xroad/db.properties' 'spring.datasource.url' '')
+      if [[ "$url" =~ $pat ]]; then
+          default_host="${BASH_REMATCH[1]}"
+      else
+        default_host="127.0.0.1:5432"
+      fi
     fi
 fi
 
