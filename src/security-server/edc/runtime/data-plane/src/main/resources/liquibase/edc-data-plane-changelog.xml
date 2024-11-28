@@ -7,9 +7,9 @@
                       http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.19.xsd">
 
     <changeSet id="1" author="niis">
-        <sqlFile path="edc/accesstoken-data-schema.sql" relativeToChangelogFile="true"/>
-        <sqlFile path="edc/data-plane-instance-schema.sql" relativeToChangelogFile="true"/>
-        <sqlFile path="edc/data-plane-schema.sql" relativeToChangelogFile="true"/>
+        <sqlFile path="edc-data-plane/accesstoken-data-schema.sql" relativeToChangelogFile="true"/>
+        <sqlFile path="edc-data-plane/data-plane-instance-schema.sql" relativeToChangelogFile="true"/>
+        <sqlFile path="edc-data-plane/data-plane-schema.sql" relativeToChangelogFile="true"/>
     </changeSet>
 
     <changeSet id="separate-admin-user" author="niis" context="admin" runAlways="true" runOnChange="true" runOrder="last">
