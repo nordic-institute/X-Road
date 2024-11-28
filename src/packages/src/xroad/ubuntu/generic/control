@@ -22,7 +22,7 @@ Description: X-Road central server
 Package: xroad-center
 Conflicts: xroad-proxy, xroad-confproxy, xtee55-center
 Architecture: all
-Depends: ${misc:Depends}, rsyslog, curl, unzip, libmhash2, xroad-nginx (=${binary:Version}), xroad-signer (=${binary:Version}), xroad-confclient (=${binary:Version}), xroad-configuration-service (=${binary:Version})
+Depends: ${misc:Depends}, rsyslog, curl, unzip, libmhash2, xroad-nginx (=${binary:Version}), xroad-signer (=${binary:Version}), xroad-confclient (=${binary:Version}), xroad-configuration-service (=${binary:Version}), xroad-edc-catalog-service (=${binary:Version}), xroad-edc-credential-service (=${binary:Version}), xroad-edc-identity-hub (=${binary:Version})
 Pre-depends: xroad-database-local (=${binary:Version}) | xroad-database-remote (=${binary:Version}), xroad-secret-store-local (=${binary:Version}) | xroad-secret-store-remote (=${binary:Version}), xroad-base (=${binary:Version})
 Description: X-Road central server
  X-Road central server programs and utilities
@@ -64,7 +64,7 @@ Description: X-Road signer component
 Package: xroad-securityserver
 Conflicts: xroad-centralserver, uxp-addon-monitor (<=6.5)
 Architecture: all
-Depends: xroad-proxy (=${binary:Version}), xroad-addon-metaservices (=${binary:Version}), xroad-addon-messagelog (=${binary:Version}), xroad-addon-proxymonitor (=${binary:Version}), xroad-addon-wsdlvalidator (=${binary:Version}), xroad-proxy-ui-api (=${binary:Version}), xroad-configuration-service (=${binary:Version})
+Depends: xroad-proxy (=${binary:Version}), xroad-addon-metaservices (=${binary:Version}), xroad-addon-messagelog (=${binary:Version}), xroad-addon-proxymonitor (=${binary:Version}), xroad-addon-wsdlvalidator (=${binary:Version}), xroad-proxy-ui-api (=${binary:Version}), xroad-configuration-service (=${binary:Version}), xroad-edc-identity-hub (=${binary:Version}), xroad-edc-control-plane (=${binary:Version}), xroad-edc-data-plane (=${binary:Version})
 Description: X-Road security server
  This is meta-package of X-Road security server.
 
