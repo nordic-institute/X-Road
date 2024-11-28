@@ -81,7 +81,19 @@ public class ClientInfoPageObj {
         }
 
         public SelenideElement linkTLSCertificate() {
-            return $x("//table[contains(@class, 'server-certificates')]//span[contains(@class, 'certificate-link')]");
+            return $x("//table[contains(@class, 'server-certificates')]//span[@data-test='tls-certificate-link']]");
+        }
+
+        public SelenideElement tlsCertificateSubjectDistinguishedName() {
+            return $x("//table[contains(@class, 'server-certificates')]//span[@data-test='tls-certificate-subject-distinguished-name']]");
+        }
+
+        public SelenideElement tlsCertificateNotBefore() {
+            return $x("//table[contains(@class, 'server-certificates')]//span[@data-test='tls-certificate-not-before']]");
+        }
+
+        public SelenideElement tlsCertificateNotAfter() {
+            return $x("//table[contains(@class, 'server-certificates')]//span[@data-test='tls-certificate-not-after']]");
         }
 
         public SelenideElement inputTlsCertificate() {
