@@ -1,6 +1,6 @@
 spring:
   application:
-    name: message-log
+    name: message-log-archiver
 
 server:
   port: 5598

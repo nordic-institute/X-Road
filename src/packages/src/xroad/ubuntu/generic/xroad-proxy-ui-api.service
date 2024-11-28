@@ -1,6 +1,6 @@
 [Unit]
 Description=X-Road Proxy UI REST API
-After=network.target xroad-base.service
+After=network.target xroad-base.service xroad-configuration-service.service
 Requires=xroad-base.service
 # configure longer StartLimitIntervalSec to prevent eternal restart loop with bad logback config
 StartLimitBurst=5

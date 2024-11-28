@@ -180,6 +180,18 @@ EOF
     crudini --set ${db_properties} '' ${db_name}.hibernate.hikari.dataSource.currentSchema "${db_schema},public"
     crudini --set ${db_properties} '' ${db_name}.hibernate.connection.username "${db_conn_user}"
     crudini --set ${db_properties} '' ${db_name}.hibernate.connection.password "${db_password}"
+
+# TODO xroad8 refactor while working on remote implementation
+    if [[ ! -v XROAD_IGNORE_SECRET_STORE_SETUP ]]; then
+        ROOT_TOKEN="$(cat /etc/xroad/secret-store-root-token)"
+        curl -s \
+            -H "X-Vault-Token: $ROOT_TOKEN" \
+            -H "Content-Type: application/json" \
+            -X PUT \
+            -d "{\"username\":\"${db_conn_user}\",\"password\":\"${db_password}\"}" \
+            "https://127.0.0.1:8200/v1/xrd-secret/${db_name}.hibernate.connection" || die "Failed to write secret to secret store"
+    fi
+
   else
     log "$db_properties is not writable, not updating database properties"
   fi

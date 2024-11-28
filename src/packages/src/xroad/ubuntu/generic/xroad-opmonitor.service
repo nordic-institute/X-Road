@@ -2,7 +2,7 @@
 Description=X-Road opmonitor daemon
 After=network.target xroad-base.service xroad-confclient.service
 Requires=xroad-base.service
-Wants=postgresql.service
+Wants=postgresql.service xroad-configuration-service.service
 Wants=xroad-confclient.service
 
 [Service]

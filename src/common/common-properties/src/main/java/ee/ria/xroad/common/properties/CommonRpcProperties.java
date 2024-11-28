@@ -45,7 +45,8 @@ public record CommonRpcProperties(
             List<String> altNames,
             List<String> ipSubjectAltNames,
             int ttlMinutes,
-            int refreshIntervalMinutes
+            int refreshIntervalMinutes,
+            String secretStorePkiPath
     ) {
     }
 }
