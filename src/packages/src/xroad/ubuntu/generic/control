@@ -214,3 +214,28 @@ Architecture: all
 Depends: ${misc:Depends}, systemd,  openjdk-21-jre-headless | java21-runtime-headless | java21-runtime
 Pre-depends: xroad-base (=${binary:Version})
 Description: X-Road Configuration Service
+
+Package: xroad-edc-catalog-service
+Architecture: all
+Depends: ${misc:Depends}, xroad-signer (=${binary:Version})
+Description: X-Road EDC Catalog Service
+
+Package: xroad-edc-credential-service
+Architecture: all
+Depends: ${misc:Depends}, xroad-signer (=${binary:Version})
+Description: X-Road EDC Credential Service
+
+Package: xroad-edc-identity-hub
+Architecture: all
+Depends: ${misc:Depends}, xroad-signer (=${binary:Version})
+Description: X-Road EDC Identity Hub
+
+Package: xroad-edc-control-plane
+Architecture: all
+Depends: ${misc:Depends}, xroad-proxy (=${binary:Version}), xroad-signer (=${binary:Version}), xroad-edc-identity-hub (=${binary:Version})
+Description: X-Road EDC Control Plane
+
+Package: xroad-edc-data-plane
+Architecture: all
+Depends: ${misc:Depends}, xroad-proxy (=${binary:Version}), xroad-signer (=${binary:Version}), xroad-edc-identity-hub (=${binary:Version})
+Description: X-Road EDC Data Plane

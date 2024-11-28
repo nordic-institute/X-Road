@@ -1,0 +1,3 @@
+../../../../src/xroad/common/edc-identity-hub/usr/* usr/
+../../../../../security-server/edc/runtime/identity-hub/src/main/resources/liquibase/* usr/share/xroad/db/
+../../../../../security-server/edc/runtime/identity-hub/build/libs/edc-identity-hub-1.0.jar usr/share/xroad/jlib/

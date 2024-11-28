@@ -33,7 +33,8 @@ RUN echo "deb $REPO $DIST $COMPONENT" >/etc/apt/sources.list.d/xroad.list \
   # Install
   && pg_ctlcluster 16 main start \
   && apt-get -qq update \
-  && apt-get -qq install xroad-centralserver xroad-autologin \
+  && apt-get -qq install xroad-centralserver xroad-autologin  \
+      xroad-edc-identity-hub xroad-edc-credential-service  xroad-edc-catalog-service \
   && pg_ctlcluster 16 main stop \
   # Clean up
   && rm -rf /tmp/repo \
@@ -50,7 +51,8 @@ RUN --mount=type=bind,source=build/packages,target=/tmp/packages \
   # Install
   && pg_ctlcluster 16 main start \
   && apt-get -qq update \
-  && apt-get -qq install xroad-centralserver xroad-autologin \
+  && apt-get -qq install xroad-centralserver xroad-autologin  \
+      xroad-edc-identity-hub xroad-edc-credential-service xroad-edc-catalog-service  \
   && pg_ctlcluster 16 main stop \
   # Clean up
   && rm -rf /tmp/repo \
@@ -88,12 +90,6 @@ COPY files/cs-entrypoint.sh /root/entrypoint.sh
 COPY --chown=root:root files/cs-xroad.conf /etc/supervisor/conf.d/xroad.conf
 
 # dataspaces
-COPY build/libs/ /usr/share/xroad/jlib/
-COPY build/liquibase/ /usr/share/xroad/db
-
-COPY files/edc/setup_edc_identityhub_db.sh /usr/share/xroad/scripts/setup_edc_identityhub_db.sh
-COPY files/edc/setup_edc_catalogservice_db.sh /usr/share/xroad/scripts/setup_edc_catalogservice_db.sh
-COPY files/edc/bin/ /usr/share/xroad/bin/
 
 ENV EDC_HOSTNAME=localhost
 ENV EDC_DID=did:web:localhost

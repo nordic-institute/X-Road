@@ -1,4 +1,5 @@
 #!/bin/bash
+
 . /etc/xroad/services/global.conf
 
 echo "DS: Running liquibase.."
@@ -7,4 +8,4 @@ source /usr/share/xroad/scripts/setup_edc_identityhub_db.sh
 exec java \
     -Dserverconf.hibernate.hikari.maximumPoolSize=1 \
     -Xdebug -agentlib:jdwp=transport=dt_socket,address=*:9955,server=y,suspend=n \
-    -Xmx256m -jar /usr/share/xroad/jlib/edc-identity-hub-1.0.jar
+    -Xmx256m -jar /usr/share/xroad/jlib/edc-identity-hub.jar
