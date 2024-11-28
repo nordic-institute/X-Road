@@ -16,12 +16,14 @@ spring:
 logging:
   level:
     ROOT: INFO
+    org.springframework: INFO
 
 xroad:
   common:
     rpc:
       use-tls: true
       certificate-provisioning:
+        secret-store-pki-path: xrd-pki
         issuance-role-name: xrd-rpc-internal
         common-name: ${XROAD_HOST:localhost}
         ip-subject-alt-names:
