@@ -1,0 +1,72 @@
+{
+    "locals_demo": "Lokaliseeritakse teegis",
+    "type": "Tüüp",
+    "warning": "Hoiatus",
+    "fields": {
+        "password": "Parool",
+        "username": "LIB-Kasutajanimi",
+        "shared": "ühisteek",
+        "code": "Kood",
+        "description": "Kirjeldus"
+    },
+    "action": {
+        "cancel": "Tühista",
+        "add": "Lisa",
+        "yes": "Jah",
+        "delete": "Kustuta",
+        "download": "Lae alla",
+        "upload": "Lae üles",
+        "restore": "Taasta"
+    },
+    "noData": {
+        "noMatches": "Kriteeriumile vastavaid elemente pole",
+        "loading": "Laadimine... Palun oodake"
+    },
+    "keys": {
+        "gotIt": "Sain aru"
+    },
+    "global": {
+        "all": "Kõik",
+        "name": "Nimi"
+    },
+    "backup": {
+        "deleteBackup": {
+            "dialog": {
+                "confirmation": "Kas soovite kindlasti {file} varukoopia kustutada?",
+                "title": "Kas olete kindel?"
+            },
+            "success": "{file} varukoopia kustutatud"
+        },
+        "restoreFromBackup": {
+            "dialog": {
+                "confirmation": "Kas soovite kindlasti {file} taastada?",
+                "title": "Kas olete kindel?"
+            },
+            "success": "Konfiguratsioon {file} taastatud"
+        },
+        "createBackup": {
+            "button": "Varunda konfiguratsiooni",
+            "messages": {
+                "success": "Varukoopia {file} edukalt loodud",
+                "localConfWarning": "Hoiatus! Konfiguratsiooni üle kirjutamiseks kasutatav fail „/etc/xroad/services/local.conf“ on mittesobiv ja ei sisaldu enam varukoopiate hulgas. Selle asemel tuleb kasutada faili „/etc/xroad/services/local.properties“."
+            }
+        },
+        "uploadBackup": {
+            "button": "Lae varukoopia üles",
+            "confirmationDialog": {
+                "confirmation": "Fail {name} on juba olemas, kas soovite selle kindlasti üle kirjutada?",
+                "title": "Fail on juba olemas"
+            },
+            "success": "Varukoopia {file} edukalt üles laaditud"
+        }
+    },
+    "validationError": {
+        "ValidHostAddress": "Vajalik on kehtiv täielikult kvalifitseeritud domeeni nimi (nt host.example.org) või avalik IP aadress (nt 192.168.123.123)",
+        "ValidHostAddressField": "Vajalik on kehtiv IP aadress või täielikult kvalifitseeritud domeeni nimi"
+    },
+    "validation": {
+        "messages": {
+            "address": "{field} väli sisaldab kehtetuid tähemärke"
+        }
+    }
+}
