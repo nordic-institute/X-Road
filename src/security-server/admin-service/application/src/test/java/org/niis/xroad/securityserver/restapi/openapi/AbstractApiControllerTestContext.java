@@ -58,9 +58,9 @@ import org.niis.xroad.securityserver.restapi.service.VersionService;
 import org.niis.xroad.securityserver.restapi.util.TestUtils;
 import org.niis.xroad.securityserver.restapi.wsdl.WsdlValidator;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.boot.test.mock.mockito.SpyBean;
 import org.springframework.mail.javamail.JavaMailSender;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.web.context.request.RequestContextHolder;
 
 /**
@@ -69,9 +69,9 @@ import org.springframework.web.context.request.RequestContextHolder;
  * Spring Application Context therefore drastically reducing the execution time of the tests.
  * <p>
  * Service layer mocking strategy varies
- * - real implementations are used for services not defined as @MockBean or @SpyBean here
+ * - real implementations are used for services not defined as @MockitoBean or @SpyBean here
  * (example: {@link ClientService}
- * - mocks are always used for services defined as @MockBeans
+ * - mocks are always used for services defined as @MockitoBeans
  * (example: {@link BackupService}
  * - mocking depends on a case by case basis when @SpyBean is used. Some tests use 100% real implementation, others
  * mock some parts
@@ -81,38 +81,38 @@ import org.springframework.web.context.request.RequestContextHolder;
  */
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 public abstract class AbstractApiControllerTestContext extends AbstractFacadeMockingTestContext {
-    @MockBean
+    @MockitoBean
     CertificateAuthorityService certificateAuthorityService;
-    @MockBean
+    @MockitoBean
     BackupService backupService;
-    @MockBean
+    @MockitoBean
     SecurityServerConfigurationBackupGenerator backupGenerator;
-    @MockBean
+    @MockitoBean
     ConfigurationRestorationService configurationRestorationService;
-    @MockBean
+    @MockitoBean
     UrlValidator urlValidator;
-    @MockBean
+    @MockitoBean
     SystemService systemService;
-    @MockBean
+    @MockitoBean
     CurrentSecurityServerSignCertificates currentSecurityServerSignCertificates;
-    @MockBean
+    @MockitoBean
     CurrentSecurityServerId currentSecurityServerId;
-    @MockBean
+    @MockitoBean
     InitializationService initializationService;
-    @MockBean
+    @MockitoBean
     InternalTlsCertificateRepository mockRepository;
-    @MockBean
+    @MockitoBean
     VersionService versionService;
-    @MockBean
+    @MockitoBean
     InternalServerTestService internalServerTestService;
     // temporarily public accessor, I have plan to merge restapi.controller and restapi.openapi packages
-    @MockBean
+    @MockitoBean
     public NotificationService notificationService;
-    @MockBean
+    @MockitoBean
     public ApiKeyService apiKeyService;
-    @MockBean
+    @MockitoBean
     public PublicApiKeyDataConverter publicApiKeyDataConverter;
-    @MockBean
+    @MockitoBean
     JavaMailSender mailSender;
 
     @SpyBean

@@ -28,15 +28,15 @@ package org.niis.xroad.securityserver.restapi.converter;
 import org.niis.xroad.securityserver.restapi.config.AbstractFacadeMockingTestContext;
 import org.niis.xroad.securityserver.restapi.service.PossibleActionsRuleEngine;
 import org.niis.xroad.securityserver.restapi.service.VersionService;
-import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.boot.test.mock.mockito.SpyBean;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
 
 /**
  * Base for all converter tests that need some mocked beans in the application context.
  * All converter test classes inheriting this will have a common Spring Application Context
  * therefore drastically reducing the execution time of the converter tests
  *
- * Do not introduce new @MockBean or @SpyBean dependencies in the inherited classes. Doing so will mean Spring
+ * Do not introduce new @MockitoBean or @SpyBean dependencies in the inherited classes. Doing so will mean Spring
  * creates a different applicationContext for the inherited class and other AbstractServiceTestContext classes,
  * and the performance improvement from using this base class is not realized. If possible, define all mocks and spies
  * in this base class instead.
@@ -45,7 +45,7 @@ import org.springframework.boot.test.mock.mockito.SpyBean;
  */
 
 public abstract class AbstractConverterTestContext extends AbstractFacadeMockingTestContext {
-    @MockBean
+    @MockitoBean
     VersionService versionService;
     @SpyBean
     PossibleActionsRuleEngine possibleActionsRuleEngine;

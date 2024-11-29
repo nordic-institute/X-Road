@@ -34,8 +34,8 @@ import org.niis.xroad.securityserver.restapi.facade.SignerProxyFacade;
 import org.niis.xroad.securityserver.restapi.service.ManagementRequestSenderService;
 import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.security.test.context.support.WithMockUser;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -53,15 +53,15 @@ import org.springframework.transaction.annotation.Transactional;
 @Transactional
 @WithMockUser
 public abstract class AbstractFacadeMockingTestContext {
-    @MockBean
+    @MockitoBean
     protected GlobalConfProvider globalConfProvider;
-    @MockBean
+    @MockitoBean
     protected ServerConfProvider serverConfProvider;
-    @MockBean
+    @MockitoBean
     protected ManagementRequestSenderService managementRequestSenderService;
-    @MockBean
+    @MockitoBean
     protected SignerProxyFacade signerProxyFacade;
-    @MockBean
+    @MockitoBean
     protected AcmeService acmeService;
 
 }
