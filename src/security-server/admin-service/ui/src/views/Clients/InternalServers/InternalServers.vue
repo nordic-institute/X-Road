@@ -71,6 +71,7 @@
       :loader-height="2"
       hide-default-footer
       :no-data-text="$t('noData.noCertificates')"
+      data-test="tls-certificate-table"
     >
 
       <template #[`item.hash`]="{ item }">
