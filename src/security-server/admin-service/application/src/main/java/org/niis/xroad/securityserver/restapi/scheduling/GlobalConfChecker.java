@@ -302,8 +302,8 @@ public class GlobalConfChecker {
                     // do nothing
                 }
                 case CertificateInfo.STATUS_REGINPROG -> {
-                    mailNotificationHelper.sendAuthCertRegisteredNotification(securityServerId, certInfo);
                     setCertStatus(cert, CertificateInfo.STATUS_REGISTERED, certInfo);
+                    mailNotificationHelper.sendAuthCertRegisteredNotification(securityServerId, certInfo);
                 }
                 case CertificateInfo.STATUS_SAVED, CertificateInfo.STATUS_GLOBALERR ->
                         setCertStatus(cert, CertificateInfo.STATUS_REGISTERED, certInfo);
