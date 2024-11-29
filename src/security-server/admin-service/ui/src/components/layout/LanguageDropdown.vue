@@ -24,97 +24,71 @@
    THE SOFTWARE.
  -->
 <template>
-  <v-layout class="main-content">
-    <app-icon />
-    <v-tabs
-      v-model="currentTab"
-      class="main-tabs"
-      color="black"
-      height="56px"
-      slider-size="2"
-      slider-color="primary"
-      :show-arrows="true"
-    >
-      <v-tab
-        v-for="tab in allowedTabs"
-        :key="tab.key"
-        :to="tab.to"
-        :data-test="tab.key"
-        >{{ $t(tab.name) }}</v-tab
-      >
-    </v-tabs>
-    <language-dropdown />
-    <app-drop-menu />
-  </v-layout>
+  <div class="language-changer">
+    <v-menu location="bottom">
+      <template #activator="{ props }">
+        <v-btn
+          class="no-uppercase"
+          data-test="language-button"
+          v-bind="props"
+          variant="text"
+        >
+          <strong>{{ currentLanguage }}</strong>
+          <v-icon icon="mdi-chevron-down" />
+        </v-btn>
+      </template>
+
+      <v-list>
+        <v-list-item
+          v-for="language in languages"
+          :key="language"
+          :active="language === currentLanguage"
+          data-test="language-list-tile"
+          @click="switchLanguage(language)"
+        >
+          {{ language }}
+        </v-list-item>
+      </v-list>
+    </v-menu>
+  </div>
 </template>
 
 <script lang="ts">
 import { defineComponent } from 'vue';
-import { Tab } from '@/ui-types';
-import { mainTabs } from '@/global';
-import AppIcon from './AppIcon.vue';
-import AppDropMenu from './AppDropMenu.vue';
-import { mapState } from 'pinia';
-import { useUser } from '@/store/modules/user';
-import LanguageDropdown from '@/components/layout/LanguageDropdown.vue';
+import { mapActions } from 'pinia';
+import { useLanguage } from '@/store/modules/language';
+import { availableLanguages } from '@/plugins/i18n';
 
 export default defineComponent({
-  components: {
-    AppIcon,
-    AppDropMenu,
-    LanguageDropdown,
-  },
-  data() {
-    return {
-      currentTab: undefined as undefined | Tab,
-    };
-  },
   computed: {
-    ...mapState(useUser, ['getAllowedTabs']),
-    allowedTabs(): Tab[] {
-      return this.getAllowedTabs(mainTabs);
+    // Using a computed property for the current language for reactivity
+    currentLanguage() {
+      return this.$i18n.locale;
+    },
+    languages() {
+      return availableLanguages;
+    },
+  },
+  methods: {
+    ...mapActions(useLanguage, ['changeLanguage']),
+    switchLanguage(language: string): void {
+      if (language !== this.currentLanguage) {
+        this.changeLanguage(language);
+      }
     },
   },
 });
 </script>
 
-<style lang="scss">
-.v-tabs-slider.xrd-main-tabs-slider {
-  width: 70px;
-  margin-left: auto;
-  margin-right: auto;
-}
-
-.v-tab {
-  text-transform: none;
-  font-weight: 600;
-}
-
-.v-tabs-slider.xrd-sub-tabs-slider {
-  width: 40px;
-  margin-left: auto;
-  margin-right: auto;
-}
-</style>
-
 <style lang="scss" scoped>
-.main-content {
-  background-color: #ffffff;
-  height: 56px;
-  padding-left: 92px;
-  @media only screen and (max-width: 920px) {
-    padding-left: 0;
+.language-changer {
+  margin-left: auto;
+  display: flex;
+  align-items: center;
+
+  .no-uppercase {
+    text-transform: none;
+    font-weight: 600;
   }
-}
-
-.main-tabs {
-  margin-left: 20px;
-  max-width: 1000px;
-}
-
-:deep(.v-tab) {
-  text-transform: none;
-  font-weight: 600;
-  color: rgb(0 0 0 / 54%);
 }
 </style>
