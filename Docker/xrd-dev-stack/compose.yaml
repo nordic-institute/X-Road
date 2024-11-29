@@ -96,8 +96,8 @@ services:
       - ./wiremock_mappings:/home/wiremock/mappings
   hurl:
     build:
-        context: .
-        dockerfile: ./hurl/Dockerfile
+        context: ../../development/hurl
+        dockerfile: ./Dockerfile
     deploy:
       resources:
         reservations:

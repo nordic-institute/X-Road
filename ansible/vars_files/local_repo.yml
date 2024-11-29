@@ -1,7 +1,18 @@
 ---
 package_source: "local"
+xroad_repo_key:  "https://artifactory.niis.org/api/gpg/key/public"
+
+ubuntu_apt_key:  "{{xroad_repo_key}}"
+ubuntu_apt_key_file: "/usr/share/keyrings/xroad.gpg"
+ubuntu_apt_option: "signed-by={{ubuntu_apt_key_file}}"
 ubuntu_apt_repo: "deb [trusted=yes] file:///xroad /"
 ubuntu_apt_repo_with_option: "{{ubuntu_apt_repo}}"
+
+ubuntu_deps_apt_key:  "https://artifactory.niis.org/api/gpg/key/public"
+ubuntu_deps_repo_url: "https://artifactory.niis.org/artifactory/xroad-dependencies-deb"
+ubuntu_deps_apt_key_file: "/usr/share/keyrings/xroad-deps.gpg"
+ubuntu_deps_apt_option: "signed-by={{ubuntu_deps_apt_key_file}}"
+ubuntu_deps_apt_repo_with_option: "deb [{{ubuntu_deps_apt_option}}] {{ubuntu_deps_repo_url}} xroad external"
 
 rhel_repo_baseurl: "file:///xroad"
 rhel_repo_gpgcheck: "no"
