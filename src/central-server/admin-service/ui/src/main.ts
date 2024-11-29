@@ -31,7 +31,7 @@ Sets up plugins and 3rd party components that the app uses.
 Creates a new Vue instance with the Vue function.
 Initialises the app root component.
 */
-import { createApp } from 'vue';
+import { createApp, nextTick } from 'vue';
 import axios from 'axios';
 import { createFilters } from '@/filters';
 import App from './App.vue';
@@ -43,7 +43,7 @@ import { createPinia } from 'pinia';
 import { createPersistedState } from 'pinia-plugin-persistedstate';
 import validation from '@/plugins/vee-validate';
 import vuetify from '@/plugins/vuetify';
-import { i18n } from '@/plugins/i18n';
+import { i18n, setLanguage } from '@/plugins/i18n';
 import {
   XrdButton,
   XrdCloseButton,
@@ -61,6 +61,7 @@ import {
   XrdSubViewContainer,
   XrdSubViewTitle,
 } from '@niis/shared-ui';
+import { useLanguage } from '@/store/modules/language';
 
 const pinia = createPinia();
 pinia.use(
@@ -96,5 +97,7 @@ app.component('XrdSimpleDialog', XrdSimpleDialog);
 app.component('XrdConfirmDialog', XrdConfirmDialog);
 app.component('XrdEmptyPlaceholder', XrdEmptyPlaceholder);
 app.component('XrdSubViewTitle', XrdSubViewTitle);
-
 app.mount('#app');
+// translations
+const languageStorage = useLanguage();
+nextTick(() => setLanguage(languageStorage.getLanguage)).then();
