@@ -1,4 +1,4 @@
-FROM openbao/openbao:latest
+FROM openbao/openbao:2
 
 COPY xrd-dev-stack/openbao/init.sh /root/entrypoint.sh
 
