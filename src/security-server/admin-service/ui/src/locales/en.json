@@ -690,12 +690,18 @@
     }
   },
   "internalServers": {
-    "certHash": "Certificate Hash (SHA/1)",
+    "certHash": "Certificate Hash",
     "connTypeUpdated": "Connection type updated",
     "connectionInfo": "Connection type for servers in service provider role is set in the Services tab by the service URL (http/https).",
     "connectionType": "Connection type",
     "ssCertTitle": "Security Server certificate",
     "tlsTitle": "Information System TLS certificate"
+  },
+  "certificate": {
+    "hash": "Certificate Hash",
+    "subjectDistinguishedName": "Subject Distinguished Name",
+    "notBefore": "Not Before",
+    "notAfter": "Not After"
   },
   "keys": {
     "addKey": "Add key",
