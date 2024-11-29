@@ -1,0 +1,71 @@
+global:
+  environment: dev
+
+config:
+  image: xroad-ss-config:latest
+  imagePullPolicy: Never
+  resources:
+    requests:
+      memory: 32Mi
+    limits:
+      memory: 256Mi
+  port: 5580
+
+confclient:
+  image: xroad-ss-confclient:latest
+  imagePullPolicy: Never
+  resources:
+    requests:
+      memory: 64Mi
+    limits:
+      memory: 320Mi
+  port: 5799
+  env:
+    - name: XROAD_CONFIG_SERVER_URI
+      value: "http://config:5580"
+    - name: XROAD_HOST
+      value: "confclient"
+
+signer:
+  image: xroad-ss-signer:latest
+  imagePullPolicy: Never
+  resources:
+    requests:
+      memory: 64Mi
+    limits:
+      memory: 320Mi
+  port: 5699
+  env:
+    - name: XROAD_CONFIG_SERVER_URI
+      value: "http://config:5580"
+    - name: XROAD_HOST
+      value: "signer"
+
+proxy:
+  image: xroad-ss-proxy:latest
+  imagePullPolicy: Never
+  resources:
+    requests:
+      memory: 64Mi
+    limits:
+      memory: 512Mi
+  port: 5599
+  env:
+    - name: XROAD_CONFIG_SERVER_URI
+      value: "http://config:5580"
+    - name: XROAD_HOST
+      value: "proxy"
+
+ui:
+  image: xroad-ss-ui:latest
+  imagePullPolicy: Never
+  resources:
+    requests:
+      memory: 64Mi
+    limits:
+      memory: 512Mi
+  port: 4000
+  debugPort: 9999
+  env:
+    - name: XROAD_CONFIG_SERVER_URI
+      value: "http://config:5580"

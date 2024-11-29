@@ -1,0 +1,38 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ .Release.Name }}-config
+  labels:
+    {{- include "xroad.labels" . | nindent 4 }}
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: xroad-config
+  template:
+    metadata:
+      labels:
+        app: xroad-config
+    spec:
+      containers:
+        - name: config
+          image: {{ .Values.config.image }}
+          imagePullPolicy: {{ .Values.config.imagePullPolicy }}
+          ports:
+            - containerPort: {{ .Values.config.port }}
+          resources:
+            {{- toYaml .Values.config.resources | nindent 12 }}
+          readinessProbe:
+            httpGet:
+              path: /actuator/health
+              port: {{ .Values.config.port }}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: config
+spec:
+  ports:
+    - port: {{ .Values.config.port }}
+  selector:
+    app: xroad-config
