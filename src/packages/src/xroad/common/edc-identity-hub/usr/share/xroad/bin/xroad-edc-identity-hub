@@ -2,9 +2,6 @@
 
 . /etc/xroad/services/global.conf
 
-echo "DS: Running liquibase.."
-source /usr/share/xroad/scripts/setup_edc_identityhub_db.sh
-
 if [[ "$XROAD_APPLICATION_TYPE" == "ss" ]]; then
   #security server
   IH_JAVA_OPTS=" \

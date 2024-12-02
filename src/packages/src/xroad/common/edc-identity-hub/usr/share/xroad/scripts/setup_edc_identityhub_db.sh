@@ -25,8 +25,8 @@ fi
 
 setup_database "edc-identity-hub" "edc-identity-hub" "$default_host"
 
-url=$(crudini --get /etc/xroad/db.properties '' edc-identity-hub.hibernate.connection.url)
-user=$(crudini --get /etc/xroad/db.properties '' edc-identity-hub.hibernate.connection.username)
-password=$(crudini --get /etc/xroad/db.properties '' edc-identity-hub.hibernate.connection.password)
+#url=$(crudini --get /etc/xroad/db.properties '' edc-identity-hub.hibernate.connection.url)
+#user=$(crudini --get /etc/xroad/db.properties '' edc-identity-hub.hibernate.connection.username)
+#password=$(crudini --get /etc/xroad/db.properties '' edc-identity-hub.hibernate.connection.password)
 
-export XROAD_DS_PASSWORD=$password
+#export XROAD_DS_PASSWORD=$password

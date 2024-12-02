@@ -2,8 +2,8 @@
 
 . /etc/xroad/services/global.conf
 
-echo "DS: Running liquibase.."
-source /usr/share/xroad/scripts/setup_edc_catalogservice_db.sh
+#echo "DS: Running liquibase.."
+#source /usr/share/xroad/scripts/setup_edc_catalogservice_db.sh
 
 exec java \
     -Xdebug -agentlib:jdwp=transport=dt_socket,address=*:9956,server=y,suspend=n \

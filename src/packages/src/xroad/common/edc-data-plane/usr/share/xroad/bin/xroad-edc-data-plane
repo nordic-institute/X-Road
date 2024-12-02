@@ -1,16 +1,13 @@
 #!/bin/bash
 . /etc/xroad/services/global.conf
 
-echo "DS: Running liquibase.."
-source /usr/share/xroad/scripts/setup_edc_dataplane_db.sh
-
+#    -javaagent:/usr/share/xroad/jlib/opentelemetry-javaagent.jar \
+#    -Dotel.exporter.otlp.protocol=http/protobuf \
+#    -Dotel.service.name="$EDC_HOSTNAME-edc-data-plane" \
+#    -Dotel.exporter.prometheus.port=9464 \
+#    -Dotel.metrics.exporter=prometheus \
+#    -Dotel.exporter.otlp.endpoint=http://jaeger:4318 \
 exec java \
     -Dserverconf.hibernate.hikari.maximumPoolSize=1 \
     -Xdebug -agentlib:jdwp=transport=dt_socket,address=*:9954,server=y,suspend=n \
-    -javaagent:/usr/share/xroad/jlib/opentelemetry-javaagent.jar \
-    -Dotel.exporter.otlp.protocol=http/protobuf \
-    -Dotel.service.name="$EDC_HOSTNAME-edc-data-plane" \
-    -Dotel.exporter.prometheus.port=9464 \
-    -Dotel.metrics.exporter=prometheus \
-    -Dotel.exporter.otlp.endpoint=http://jaeger:4318 \
     -Xmx256m -jar /usr/share/xroad/jlib/edc-data-plane-1.0.jar
