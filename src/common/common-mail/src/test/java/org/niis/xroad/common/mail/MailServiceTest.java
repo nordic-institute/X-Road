@@ -30,6 +30,8 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
+import org.springframework.mail.MailSendException;
+import org.springframework.mail.SimpleMailMessage;
 import org.springframework.mail.javamail.JavaMailSender;
 
 import java.util.List;
@@ -37,6 +39,11 @@ import java.util.Map;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.doThrow;
+import static org.mockito.Mockito.verify;
 
 @RunWith(MockitoJUnitRunner.class)
 public class MailServiceTest {
@@ -66,6 +73,18 @@ public class MailServiceTest {
         assertEquals(List.of("TestMember: myMail@example.org"), mailNotificationStatus.recipientsEmails());
     }
 
+    @Test
+    public void sendTestMailThrows() {
+        doThrow(new MailSendException("Fatal error!")).when(mailSender).send((SimpleMailMessage) any());
+        assertThrows(MailSendException.class, () -> mailService.sendTestMail("recipient", "subject", "body"));
+        verify(mailSender).send((SimpleMailMessage) any());
+    }
 
+    @Test
+    public void sendMailAsyncDoesntThrows() {
+        doThrow(new MailSendException("Fatal error!")).when(mailSender).send((SimpleMailMessage) any());
+        assertDoesNotThrow(() -> mailService.sendMailAsync("recipient", "subject", "body"));
+        verify(mailSender).send((SimpleMailMessage) any());
+    }
 
 }
