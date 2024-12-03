@@ -200,6 +200,11 @@ public class KeyAndCertPageObj {
                     + "//div[@class='status-text']", label));
         }
 
+        public SelenideElement keyOcspStatusByLabel(String label) {
+            return $x(format("//tbody[ tr/td/div[@class ='name-wrap-top']//div[contains(@class,'identifier-wrap')]//span[text() = '%s']]"
+                    + "//td[@data-test='ocsp-status']", label));
+        }
+
         public SelenideElement keyAutomaticRenewalStatusByLabel(String label) {
             return $x(format("//tbody[ tr/td/div[@class ='name-wrap-top']//div[contains(@class,'identifier-wrap')]//span[text() = '%s']]"
                     + "//div[@data-test='renewal-status']", label));

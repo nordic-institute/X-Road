@@ -29,7 +29,9 @@ RUN chown -R ca:ca /home/ca/CA \
   && chmod 0664 /var/log/ocsp.log \
   && chmod 0774 /home/ca/CA/newcerts \
   && chmod 0754 /home/ca/CA/ca.py \
-  && chmod 0754 /home/ca/CA/sign_req.sh
+  && chmod 0754 /home/ca/CA/sign_req.sh \
+  && chmod 0664 /home/ca/CA/index.txt \
+  && chmod 0664 /home/ca/CA/serial
 
 #Setup ACME2Certifier
 RUN sed -i "s/run\/uwsgi\/acme.sock/var\/www\/acme2certifier\/acme.sock/g" /var/www/acme2certifier/examples/nginx/nginx_acme_srv.conf \
@@ -41,11 +43,14 @@ RUN sed -i "s/run\/uwsgi\/acme.sock/var\/www\/acme2certifier\/acme.sock/g" /var/
     && echo "plugins = python3" >> /var/www/acme2certifier/examples/nginx/acme2certifier.ini \
     && cp /var/www/acme2certifier/examples/nginx/acme2certifier.ini /var/www/acme2certifier \
     && sed -i s/level=log_mode\)/level=log_mode,filename=\'logs\\/a2c_logs\'\)/g /var/www/acme2certifier/acme_srv/helper.py \
-    && sed -i "61i \            if serial.startswith(\'00\'\): serial = serial[2:]" /var/www/acme2certifier/acme_srv/renewalinfo.py \
+    #&& sed -i "61i \            if serial.startswith(\'00\'\): serial = serial[2:]" /var/www/acme2certifier/acme_srv/renewalinfo.py \
+    && sed -i "4i import base64" /var/www/acme2certifier/acme_srv/renewalinfo.py \
+    && sed -i s/b64_decode\(self.logger,\ /base64.b64decode\(/g /var/www/acme2certifier/acme_srv/renewalinfo.py \
     && usermod -a -G ca www-data
 
 COPY --chown=www-data:www-data files/acme_srv.cfg /var/www/acme2certifier/acme_srv/acme_srv.cfg
-COPY --chown=www-data:www-data files/key_file.csv /var/www/acme2certifier/examples/eab_handler/key_file.csv
+COPY --chown=www-data:www-data files/kid_profiles.json /var/www/acme2certifier/examples/eab_handler/kid_profiles.json
+COPY --chown=www-data:www-data files/openssl_ca_handler.py /var/www/acme2certifier/examples/ca_handler/openssl_ca_handler.py
 
 COPY files/ca-entrypoint.sh /root/entrypoint.sh
 RUN chmod +x /root/entrypoint.sh

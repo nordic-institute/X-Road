@@ -15,8 +15,10 @@ DN_TSA_CN="{{ xroad_ca_tsa_cn }}"
 rm -rf private certs newcerts crl csr
 rm -f index.* serial
 echo 01 > serial
+chmod 0664 serial
 mkdir -p private certs newcerts crl csr
 touch index.txt index.txt.attr
+chmod 0664 index.txt
 set -e
 
 echo "Generating CA Certificate"
