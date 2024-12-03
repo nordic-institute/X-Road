@@ -460,6 +460,7 @@
     "logIn": "Log in",
     "logOut": "Log out",
     "signKey": "Sign key",
+    "algorithm": "Key algorithm",
     "token": "Token:",
     "dialog": {
       "delete": {
@@ -507,6 +508,8 @@
     "hashInfo": "Hash (SHA-256)",
     "rsaExp": "RSA Public Key Exponent",
     "rsaModulus": "RSA Public Key Modulus",
+    "ecParameters": "EC Public Key Parameters",
+    "ecPoint": "EC Public Key Point",
     "keyUsage": {
       "CRL_SIGN": "CRL Sign",
       "DATA_ENCIPHERMENT": "Data Encipherment",

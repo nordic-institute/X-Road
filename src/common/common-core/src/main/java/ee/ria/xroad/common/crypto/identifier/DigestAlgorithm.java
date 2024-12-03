@@ -24,6 +24,8 @@
  */
 package ee.ria.xroad.common.crypto.identifier;
 
+import ee.ria.xroad.common.crypto.CryptoException;
+
 import org.apache.commons.codec.digest.MessageDigestAlgorithms;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.xml.security.algorithms.MessageDigestAlgorithm;
@@ -68,7 +70,7 @@ public sealed interface DigestAlgorithm {
         @Override
         public String name() {
             if (name == null) {
-                throw new UnknownAlgorithmException("Unknown digest algorithm name for uri: %s".formatted(uri()));
+                throw new CryptoException("Unknown digest algorithm name for uri: %s".formatted(uri()));
             }
             return name;
         }
@@ -76,7 +78,7 @@ public sealed interface DigestAlgorithm {
         @Override
         public String uri() {
             if (uri == null) {
-                throw new UnknownAlgorithmException("Unknown digest algorithm uri for name: %s".formatted(name()));
+                throw new CryptoException("Unknown digest algorithm uri for name: %s".formatted(name()));
             }
             return uri;
         }

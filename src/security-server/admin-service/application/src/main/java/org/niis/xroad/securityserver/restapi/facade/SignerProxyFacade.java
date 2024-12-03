@@ -25,6 +25,7 @@
  */
 package org.niis.xroad.securityserver.restapi.facade;
 
+import ee.ria.xroad.common.crypto.identifier.KeyAlgorithm;
 import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.identifier.SecurityServerId;
 import ee.ria.xroad.signer.SignerProxy;
@@ -118,10 +119,10 @@ public class SignerProxyFacade implements InitializingBean, DisposableBean {
     }
 
     /**
-     * {@link SignerProxy#generateKey(String, String)}
+     * {@link SignerProxy#generateKey(String, String, KeyAlgorithm)}
      */
-    public KeyInfo generateKey(String tokenId, String keyLabel) throws Exception {
-        return SignerProxy.generateKey(tokenId, keyLabel);
+    public KeyInfo generateKey(String tokenId, String keyLabel, KeyAlgorithm keyAlgorithm) throws Exception {
+        return SignerProxy.generateKey(tokenId, keyLabel, keyAlgorithm);
     }
 
     /**

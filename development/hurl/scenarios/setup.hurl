@@ -20,7 +20,7 @@ Content-Type: application/json
 {
   "software_token_pin": "Secret1234",
   "instance_identifier": "DEV",
-  "central_server_address": "cs"
+  "central_server_address": "{{cs_host}}"
 }
 
 # TODO: The Central Server currently returns the incorrect HTTP code, the documentation notes that it should be "201":
@@ -271,7 +271,7 @@ Content-Type: application/json
     }
   }
 }
-# TODO: This should return 201 according to the definition: 
+# TODO: This should return 201 according to the definition:
 # https://github.com/nordic-institute/X-Road/blob/e14d198f704b34b4d1789c2972e816152b6a35f8/src/security-server/openapi-model/src/main/resources/META-INF/openapi-definition.yaml#L4846
 HTTP 200
 
@@ -508,7 +508,7 @@ X-XSRF-TOKEN: {{ss0_xsrf_token}}
     {
       "service_code": "addressChange"
     }
-  ] 
+  ]
 }
 
 # Enable management subsystem on management Security Server
@@ -613,7 +613,7 @@ Content-Type: application/json
     }
   }
 }
-# TODO: This should return 201 according to the definition: 
+# TODO: This should return 201 according to the definition:
 # https://github.com/nordic-institute/X-Road/blob/e14d198f704b34b4d1789c2972e816152b6a35f8/src/security-server/openapi-model/src/main/resources/META-INF/openapi-definition.yaml#L4846
 HTTP 200
 
@@ -1042,7 +1042,7 @@ X-XSRF-TOKEN: {{ss0_xsrf_token}}
     {
       "service_code": "personDetails"
     }
-  ] 
+  ]
 }
 
 HTTP 201

@@ -90,11 +90,11 @@ public class MergeOntoFileTokenStrategyTest {
     @Test
     public void mergeShouldAddMissingTokens() {
 
-        Token fileToken1 = new Token(SoftwareModuleType.TYPE, "1", SignMechanism.CKM_RSA_PKCS);
-        Token fileToken2 = new Token(SoftwareModuleType.TYPE, "2", SignMechanism.CKM_RSA_PKCS);
-        Token memoryToken1 = new Token(SoftwareModuleType.TYPE, "1", SignMechanism.CKM_RSA_PKCS);
-        Token memoryToken2 = new Token(SoftwareModuleType.TYPE, "2", SignMechanism.CKM_RSA_PKCS);
-        Token memoryToken3 = new Token(SoftwareModuleType.TYPE, "3", SignMechanism.CKM_RSA_PKCS);
+        Token fileToken1 = new Token(SoftwareModuleType.TYPE, "1");
+        Token fileToken2 = new Token(SoftwareModuleType.TYPE, "2");
+        Token memoryToken1 = new Token(SoftwareModuleType.TYPE, "1");
+        Token memoryToken2 = new Token(SoftwareModuleType.TYPE, "2");
+        Token memoryToken3 = new Token(SoftwareModuleType.TYPE, "3");
 
 
         List<Token> fileList = Arrays.asList(fileToken1, fileToken2);
@@ -117,10 +117,10 @@ public class MergeOntoFileTokenStrategyTest {
     public void mergeShouldMergeTokensInLists() {
         final String tokenId = "1124";
 
-        Token fileToken = new Token(SoftwareModuleType.TYPE, tokenId, SignMechanism.CKM_RSA_PKCS);
+        Token fileToken = new Token(SoftwareModuleType.TYPE, tokenId);
         fileToken.setActive(false);
 
-        Token memoryToken = new Token(SoftwareModuleType.TYPE, tokenId, SignMechanism.CKM_RSA_PKCS);
+        Token memoryToken = new Token(SoftwareModuleType.TYPE, tokenId);
         memoryToken.setActive(true);
 
         MergeResult result = testedStrategy.merge(Collections.singletonList(fileToken),
@@ -136,7 +136,7 @@ public class MergeOntoFileTokenStrategyTest {
     public void mergeTokenShouldMergeOnlySpecificFields() {
 
         final String fileTokenId = "1";
-        Token fileToken = new Token(SoftwareModuleType.TYPE, fileTokenId, SignMechanism.CKM_RSA_PKCS);
+        Token fileToken = new Token(SoftwareModuleType.TYPE, fileTokenId);
 
         final String fileFriendlyName = "fileFriendlyName";
         fileToken.setFriendlyName(fileFriendlyName);
@@ -158,7 +158,7 @@ public class MergeOntoFileTokenStrategyTest {
         fileToken.setReadOnly(false);
         fileToken.setActive(false);
 
-        Token memoryToken = new Token(SoftwareModuleType.TYPE, "2", SignMechanism.CKM_RSA_PKCS);
+        Token memoryToken = new Token(SoftwareModuleType.TYPE, "2");
 
         final String memModuleId = "memoryModuleId";
         memoryToken.setModuleId(memModuleId);
@@ -203,8 +203,8 @@ public class MergeOntoFileTokenStrategyTest {
     public void mergeTokenShouldMergeKeysInTokens() {
 
         final String tokenId = "1123";
-        Token fileToken = new Token(SoftwareModuleType.TYPE, tokenId, SignMechanism.CKM_RSA_PKCS);
-        Token memoryToken = new Token(SoftwareModuleType.TYPE, tokenId, SignMechanism.CKM_RSA_PKCS);
+        Token fileToken = new Token(SoftwareModuleType.TYPE, tokenId);
+        Token memoryToken = new Token(SoftwareModuleType.TYPE, tokenId);
 
         final String keyId = "1551";
 
@@ -400,8 +400,8 @@ public class MergeOntoFileTokenStrategyTest {
     public void mergeKeyShouldOnlyCopyOverAvailabilityOutOfSingleFields() {
 
         final String fileId = "123t5dssd";
-        final Token fileToken = new Token("fileToken", "fileId", SignMechanism.CKM_RSA_PKCS);
-        final Key fileKey = new Key(fileToken, fileId);
+        final Token fileToken = new Token("fileToken", "fileId");
+        final Key fileKey = new Key(fileToken, fileId, SignMechanism.CKM_RSA_PKCS);
 
         final String fileFriendlyName = "d§gsdasd";
         fileKey.setFriendlyName(fileFriendlyName);
@@ -419,7 +419,7 @@ public class MergeOntoFileTokenStrategyTest {
         fileKey.setUsage(fileKeyUsageInfo);
 
         final String memId = "asre111";
-        Key memKey = new Key(new Token("memToken", "memId", SignMechanism.CKM_RSA_PKCS), memId);
+        Key memKey = new Key(new Token("memToken", "memId"), memId, SignMechanism.CKM_RSA_PKCS);
 
         final boolean memAvailable = true;
         assertNotEquals("test setup failure", fileAvailable, memAvailable);
@@ -452,12 +452,12 @@ public class MergeOntoFileTokenStrategyTest {
 
         final ClientId.Conf clientId = ClientId.Conf.create("FI", "CLIENTMEMBERCLASS", "MEMBERCODE11");
 
-        final Key memKey = new Key(null, "memId");
+        final Key memKey = new Key(null, "memId", SignMechanism.CKM_RSA_PKCS);
 
         memKey.addCertRequest(new CertRequest("memRequest 1", clientId, "CN=memRequest1", null, "org.example.TestProfileInfoProvider"));
         memKey.addCertRequest(new CertRequest("memRequest 2", clientId, "CN=memRequest2", null, "org.example.TestProfileInfoProvider2"));
 
-        final Key fileKey = new Key(null, "fileId");
+        final Key fileKey = new Key(null, "fileId", SignMechanism.CKM_RSA_PKCS);
         final CertRequest fileRequest1 =
                 new CertRequest("fileRequest 1", clientId, "CN=fileRequest1", null, "org.example.TestProfileInfoProvider");
         final CertRequest fileRequest2 =
@@ -514,7 +514,7 @@ public class MergeOntoFileTokenStrategyTest {
             checkArgument(setResponseFor >= 0 && setResponseFor < certCount,
                     "setResponse must be between 0 and certCount");
 
-            Key key = new Key(null, keyId);
+            Key key = new Key(null, keyId, SignMechanism.CKM_RSA_PKCS);
             key.setPublicKey("public-key_" + keyId);
 
             IntStream.range(0, certCount).forEach(

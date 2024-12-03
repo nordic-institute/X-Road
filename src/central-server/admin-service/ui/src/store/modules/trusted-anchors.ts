@@ -29,6 +29,7 @@ import { defineStore } from 'pinia';
 import { saveResponseAsFile } from '@/util/helpers';
 import axios from 'axios';
 import { TrustedAnchor } from '@/openapi-types';
+import {encodePathParameter} from "@/util/api";
 
 export const useTrustedAnchor = defineStore('trustedAnchor', {
   actions: {
@@ -67,7 +68,7 @@ export const useTrustedAnchor = defineStore('trustedAnchor', {
     },
     downloadTrustedAnchor(hash: string) {
       return axios
-        .get(`/trusted-anchors/${hash}/download`, {
+        .get(`/trusted-anchors/${encodePathParameter(hash)}/download`, {
           responseType: 'blob',
         })
         .then((resp) => {
@@ -79,7 +80,7 @@ export const useTrustedAnchor = defineStore('trustedAnchor', {
     },
     deleteTrustedAnchor(hash: string) {
       return axios
-        .delete(`/trusted-anchors/${hash}`, {
+        .delete(`/trusted-anchors/${encodePathParameter(hash)}`, {
           responseType: 'blob',
         })
         .catch((error) => {

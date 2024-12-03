@@ -44,6 +44,7 @@ import static ee.ria.xroad.common.ErrorCodes.X_INTERNAL_ERROR;
 import static ee.ria.xroad.common.ErrorCodes.X_MALFORMED_SIGNATURE;
 import static ee.ria.xroad.common.ErrorCodes.X_TIMESTAMP_VALIDATION;
 import static ee.ria.xroad.common.crypto.Digests.calculateDigest;
+import static ee.ria.xroad.common.crypto.identifier.Providers.BOUNCY_CASTLE;
 import static ee.ria.xroad.common.util.EncoderUtils.encodeBase64;
 
 /**
@@ -151,7 +152,7 @@ public final class TimestampVerifier {
             X509Certificate cert) throws OperatorCreationException {
         JcaSimpleSignerInfoVerifierBuilder verifierBuilder =
                 new JcaSimpleSignerInfoVerifierBuilder();
-        verifierBuilder.setProvider("BC");
+        verifierBuilder.setProvider(BOUNCY_CASTLE);
 
         return verifierBuilder.build(cert);
     }

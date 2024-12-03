@@ -181,6 +181,8 @@
     },
     "rsaExp": "RSA Public Key Exponent",
     "rsaModulus": "RSA Public Key Modulus",
+    "ecParameters": "EC Public Key Parameters",
+    "ecPoint": "EC Public Key Point",
     "serialNumber": "Serial Number",
     "signCertificate": "Sign Certificate",
     "state": "State"
@@ -688,12 +690,18 @@
     }
   },
   "internalServers": {
-    "certHash": "Certificate Hash (SHA/1)",
+    "certHash": "Certificate Hash",
     "connTypeUpdated": "Connection type updated",
     "connectionInfo": "Connection type for servers in service provider role is set in the Services tab by the service URL (http/https).",
     "connectionType": "Connection type",
     "ssCertTitle": "Security Server certificate",
     "tlsTitle": "Information System TLS certificate"
+  },
+  "certificate": {
+    "hash": "Certificate Hash",
+    "subjectDistinguishedName": "Subject Distinguished Name",
+    "notBefore": "Not Before",
+    "notAfter": "Not After"
   },
   "keys": {
     "addKey": "Add key",
@@ -760,6 +768,7 @@
     "orderAcmeCertificate": "Order Certificate",
     "acmeCertOrdered": "Certificate successfully ordered",
     "readOnly": "Read-only:",
+    "keyAlgorithm": "Key Algorithm:",
     "registrationRequest": "Registration request",
     "renewal": "Automatic Renewal",
     "request": "Request",

@@ -3400,6 +3400,20 @@ components:
           maxLength: 1000
           minLength: 1
           type: string
+        ec_public_parameters:
+          description: EC public key named curve (if EC key)
+          example: 'secp256r1(1.2.840.10045.3.1.7)'
+          format: text
+          maxLength: 255
+          minLength: 1
+          type: string
+        ec_public_key_point:
+          description: hex encoded EC public key point (if EC key)
+          example: c44421d601...
+          format: hex
+          maxLength: 1000
+          minLength: 1
+          type: string
         serial:
           description: serial number
           example: '123456789'
@@ -3609,6 +3623,14 @@ components:
         - INTERNAL
         - EXTERNAL
       example: INTERNAL
+      format: enum
+      type: string
+    KeyAlgorithm:
+      description: Key type
+      enum:
+        - RSA
+        - EC
+      example: RSA
       format: enum
       type: string
     ErrorInfo:
@@ -3853,6 +3875,8 @@ components:
           type: array
         source_type:
             $ref: '#/components/schemas/ConfigurationType'
+        key_algorithm:
+            $ref: '#/components/schemas/KeyAlgorithm'
       required:
         - id
         - label

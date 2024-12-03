@@ -56,6 +56,7 @@ import static ee.ria.xroad.common.ErrorCodes.X_INVALID_SIGNATURE_VALUE;
 import static ee.ria.xroad.common.ErrorCodes.X_MALFORMED_GLOBALCONF;
 import static ee.ria.xroad.common.ErrorCodes.X_OUTDATED_GLOBALCONF;
 import static ee.ria.xroad.common.ErrorCodes.translateException;
+import static ee.ria.xroad.common.crypto.identifier.Providers.BOUNCY_CASTLE;
 import static ee.ria.xroad.common.util.EncoderUtils.decodeBase64;
 import static ee.ria.xroad.common.util.MimeUtils.HEADER_CONTENT_TYPE;
 import static ee.ria.xroad.common.util.MimeUtils.HEADER_EXPIRE_DATE;
@@ -196,7 +197,7 @@ public class ConfigurationParser {
 
                 log.trace("Verifying signed content using signature algorithm id {}", algoUri);
 
-                Signature verifier = Signature.getInstance(algoUri.name(), "BC");
+                Signature verifier = Signature.getInstance(algoUri.name(), BOUNCY_CASTLE);
 
                 X509Certificate verificationCert = getVerificationCert(configuration.getLocation(), parameters);
 

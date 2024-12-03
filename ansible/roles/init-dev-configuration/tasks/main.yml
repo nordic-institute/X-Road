@@ -1,0 +1,97 @@
+---
+- name: copy CS container configuration files
+  copy:
+    src: "files/cs/"
+    dest: "/"
+    group: "root"
+    owner: "root"
+    mode: "0644"
+    directory_mode: "0755"
+  when: inventory_hostname in groups['cs_servers']
+  tags: dev-configuration
+
+- name: copy SS container configuration files
+  copy:
+    src: "files/ss/"
+    dest: "/"
+    group: "root"
+    owner: "root"
+    mode: "0644"
+    directory_mode: "0755"
+  when: inventory_hostname in groups['ss_servers']
+  tags: dev-configuration
+
+- name: Install and configure Mailpit
+  when: inventory_hostname in groups['cs_servers']
+  block:
+    - name: Download and run Mailpit installation script
+      shell: curl -sL https://raw.githubusercontent.com/axllent/mailpit/develop/install.sh | bash
+      args:
+        creates: /usr/local/bin/mailpit
+
+    - name: Create Mailpit config directory
+      file:
+        path: /etc/mailpit
+        state: directory
+        mode: '0755'
+
+    - name: Create auth file
+      copy:
+        dest: /etc/mailpit/auth.txt
+        content: "testusername:testpassword"
+        mode: '0644'
+
+    - name: Generate TLS certificates
+      shell: |
+        cd /etc/mailpit && \
+        openssl req -x509 -newkey rsa:4096 \
+        -nodes -keyout /etc/mailpit/key.pem -out /etc/mailpit/cert.pem \
+        -sha256 -days 3650 \
+        -subj "/CN=xrd-cs"
+      args:
+        creates: /etc/mailpit/cert.pem
+        chdir: /etc/mailpit
+
+    - name: Set TLS cert permissions
+      file:
+        path: "{{ item }}"
+        mode: '0644'
+      loop:
+        - /etc/mailpit/cert.pem
+        - /etc/mailpit/key.pem
+
+    - name: Create Mailpit systemd service file
+      copy:
+        dest: /etc/systemd/system/mailpit.service
+        content: |
+          [Unit]
+          Description=Mailpit mail server
+          After=network.target
+
+          [Service]
+          ExecStart=/usr/local/bin/mailpit \
+            --smtp-auth-file /etc/mailpit/auth.txt \
+            --smtp-tls-cert /etc/mailpit/cert.pem \
+            --smtp-tls-key /etc/mailpit/key.pem
+          Restart=always
+          User=xroad
+          Group=xroad
+          RestartSec=10
+          SyslogIdentifier=mailpit
+
+          [Install]
+          WantedBy=multi-user.target
+        mode: '0644'
+
+    - name: Reload systemd daemon
+      systemd:
+        daemon_reload: yes
+
+    - name: Enable and start Mailpit service
+      systemd:
+        name: mailpit
+        state: started
+        enabled: yes
+  tags:
+    - dev-configuration
+    - mailpit

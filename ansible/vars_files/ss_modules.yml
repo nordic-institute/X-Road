@@ -6,20 +6,22 @@ ss_modules:
     lib: monitor-1.0.jar
     target: /usr/share/xroad/jlib
   proxy:
-    dir: proxy
+    dir: proxy/application
     build: build
     lib: proxy-1.0.jar
     target: /usr/share/xroad/jlib
+    service: xroad-proxy
   addon-proxy:
     dir: addons/proxymonitor/metaservice
     build: build
     lib: proxymonitor-metaservice-1.0.jar
     target: /usr/share/xroad/jlib/addon/proxy
-  addon-proxy-messagelog:
-    dir: addons/messagelog
+  addon-message-log-archiver:
+    dir: addons/messagelog/messagelog-archiver/application
     build: build
-    lib: messagelog-1.0.jar
+    lib: messagelog-archiver.jar
     target: /usr/share/xroad/jlib/addon/proxy
+    service: xroad-addon-messagelog
   addon-metaservice:
     dir: addons/metaservice
     build: build
@@ -30,8 +32,10 @@ ss_modules:
     build: build
     lib: configuration-client-1.0.jar
     target: /usr/share/xroad/jlib
+    service: xroad-configuration-client
   proxy-ui-api:
     dir: security-server/admin-service/application
     build: build
     lib: proxy-ui-api-1.0.jar
     target: /usr/share/xroad/jlib
+    service: xroad-proxy-ui-api

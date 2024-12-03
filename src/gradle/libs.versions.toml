@@ -8,7 +8,7 @@
 metrics = "4.2.28"
 jetty = "12.0.14"
 jaxb = "4.0.5"
-hibernate = "6.5.3.Final"
+hibernate = "6.6.2.Final"
 mapstruct = "1.6.3"
 jackson = "2.18.1"
 mockito = "5.14.2"
@@ -122,7 +122,7 @@ openapi-parser = { module = "org.openapi4j:openapi-parser", version = "1.0.7" }
 openapi-styleValidatorLib = { module = "org.openapitools.openapistylevalidator:openapi-style-validator-lib", version = "1.11" }
 openapi-empoaSwaggerCore = { module = "org.openapitools.empoa:empoa-swagger-core", version = "2.1.0" }
 
-lombok = { module = "org.projectlombok:lombok", version = "1.18.34" }
+lombok = { module = "org.projectlombok:lombok", version = "1.18.36" }
 lombokMapstructBinding = { module = "org.projectlombok:lombok-mapstruct-binding", version = "0.2.0" }
 
 logback-classic = { module = "ch.qos.logback:logback-classic", version.ref = "logback" }
@@ -144,17 +144,17 @@ wsdl4j = { module = "wsdl4j:wsdl4j", version = "1.6.3" }
 licenseGradlePlugin = { module = "gradle.plugin.com.hierynomus.gradle.plugins:license-gradle-plugin", version = "0.16.1" }
 hamcrest = { module = "org.hamcrest:hamcrest", version = "3.0" }
 javax-annotationApi = { module = "javax.annotation:javax.annotation-api", version = "1.3.2" }
-hikariCP = { module = "com.zaxxer:HikariCP", version = "6.1.0" }
+hikariCP = { module = "com.zaxxer:HikariCP", version = "6.2.0" }
 saajImpl = { module = "com.sun.xml.messaging.saaj:saaj-impl", version = "3.0.4" }
-quartz = { module = "org.quartz-scheduler:quartz", version = "2.3.2" }
+quartz = { module = "org.quartz-scheduler:quartz", version = "2.5.0" }
 antlrST4 = { module = "org.antlr:ST4", version = "4.3.4" }
 systemRules = { module = "com.github.stefanbirkner:system-rules", version = "1.19.0" }
 semver4j = { module = "org.semver4j:semver4j", version = "5.4.1" }
 restAssured = { module = "io.rest-assured:rest-assured", version = "5.5.0" }
 cliche = { module = "com.googlecode.clichemaven:cliche", version = "110413" }
 acme4j = { module = "org.shredzone.acme4j:acme4j-client", version = "3.4.0" }
-jsonUnit-assertj = { module = "net.javacrumbs.json-unit:json-unit-assertj", version = "3.5.0" }
-opentelemetry-instrumentation-annotations = { module = "io.opentelemetry.instrumentation:opentelemetry-instrumentation-annotations", version = "2.9.0" }
+jsonUnit-assertj = { module = "net.javacrumbs.json-unit:json-unit-assertj", version = "4.0.0" }
+opentelemetry-instrumentation-annotations = { module = "io.opentelemetry.instrumentation:opentelemetry-instrumentation-annotations", version = "2.10.0" }
 archUnit-plugin-core = { module = "com.societegenerale.commons:arch-unit-build-plugin-core", version.ref = "archUnitPlugin" }
 
 [bundles]
@@ -165,8 +165,8 @@ testAutomation = ["testAutomation-containers", "testAutomation-allure", "testAut
 [plugins]
 springBoot = { id = "org.springframework.boot", version.ref = "springBoot" }
 openapi-generator = { id = "org.openapi.generator", version = "7.9.0" }
-sonarqube = { id = "org.sonarqube", version = "5.1.0.4882" }
+sonarqube = { id = "org.sonarqube", version = "6.0.1.5171" }
 protobuf = { id = "com.google.protobuf", version = "0.9.4" }
-frontendJDK21 = { id = "org.siouan.frontend-jdk21", version = "9.0.0" }
+frontendJDK21 = { id = "org.siouan.frontend-jdk21", version = "9.1.0" }
 shadow = { id = "com.gradleup.shadow", version = "8.3.5" }
 archUnit = { id = "com.societegenerale.commons.arch-unit-gradle-plugin", version.ref = "archUnitPlugin" }

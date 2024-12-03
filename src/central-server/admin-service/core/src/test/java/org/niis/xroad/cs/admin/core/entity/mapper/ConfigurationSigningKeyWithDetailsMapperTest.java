@@ -26,6 +26,8 @@
  */
 package org.niis.xroad.cs.admin.core.entity.mapper;
 
+import ee.ria.xroad.common.crypto.identifier.KeyAlgorithm;
+
 import org.junit.jupiter.api.Test;
 import org.niis.xroad.cs.admin.api.domain.ConfigurationSigningKey;
 import org.niis.xroad.cs.admin.api.dto.PossibleKeyAction;
@@ -48,10 +50,11 @@ class ConfigurationSigningKeyWithDetailsMapperTest {
         var configurationSigningKey = new ConfigurationSigningKey();
         var possibleKeys = List.of(PossibleKeyAction.ACTIVATE, PossibleKeyAction.DELETE);
 
-        var result = mapper.toTarget(configurationSigningKey, possibleKeys, LABEL, true);
+        var result = mapper.toTarget(configurationSigningKey, possibleKeys, LABEL, true, KeyAlgorithm.RSA);
 
         assertThat(result.getAvailable()).isTrue();
         assertThat(result.getLabel().getLabel()).isEqualTo(LABEL);
+        assertThat(result.getKeyAlgorithm()).isEqualTo(KeyAlgorithm.RSA);
         assertThat(result.getPossibleActions()).containsExactlyInAnyOrder(PossibleKeyAction.ACTIVATE, PossibleKeyAction.DELETE);
     }
 }
