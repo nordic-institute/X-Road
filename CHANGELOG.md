@@ -28,6 +28,7 @@
 - XRDDEV-2732: As a Developer I want to disable port 4000 for ACME challenges so that we don't expose it needlessly
 - XRDDEV-2733: As a Developer I want to harden the way we handle use input in ACME challenges so that we don't leave a potential opening in the future
 - XRDDEV-2759: Fresh install fails for Security Server Estonian metapackage on Ubuntu 24.04 with X-Road 7.5.1
+- XRDDEV-2773: Broken notifications breaks Certificate status change flow
 
 ## 7.5.1 - 2024-09-02
 - XRDDEV-2669: As an Administrator I would like to be able to override the database host in the environments file as well so that it can be used in scripts
