@@ -81,4 +81,8 @@ public final class MessageFileNames {
     public static String attachmentOfIdx(int idx) {
         return ATTACHMENT + idx;
     }
+
+    public static boolean isAttachment(String uri) {
+        return uri != null && uri.startsWith(MessageFileNames.ATTACHMENT);
+    }
 }

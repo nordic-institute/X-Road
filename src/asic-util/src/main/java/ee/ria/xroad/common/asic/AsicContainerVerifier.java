@@ -117,7 +117,7 @@ public class AsicContainerVerifier {
 
     /**
      * Constructs a new ASiC container verifier for the ZIP file with the
-     * given filename. Attempts to verify it's contents.
+     * given filename. Attempts to verify its contents.
      *
      * @param globalConfProvider global conf provider
      * @param filename           name of the ASiC container ZIP file
@@ -185,25 +185,20 @@ public class AsicContainerVerifier {
         attachmentHashes.clear();
 
         verifier.setSignatureResourceResolver(new ResourceResolverSpi() {
-            /**
-             * attachment1 is a special rase for non batch signature operations. Note: more than one attachment  is not supported.
-             */
-            private static final String ATTACHMENT1 = MessageFileNames.attachmentOfIdx(1);
 
             @Override
             public boolean engineCanResolveURI(ResourceResolverContext context) {
-                if (ATTACHMENT1.equals(context.attr.getValue())) {
-                    return asic.getAttachmentDigest() != null;
+                if (MessageFileNames.isAttachment(context.attr.getValue())) {
+                    return asic.getAttachmentDigest(context.attr.getValue()) != null;
                 }
                 return asic.hasEntry(context.attr.getValue());
             }
 
             @Override
             public XMLSignatureInput engineResolveURI(ResourceResolverContext context) throws ResourceResolverException {
-                if (ATTACHMENT1.equals(context.attr.getValue())) {
-                    return new XMLSignatureDigestInput(EncoderUtils.encodeBase64(asic.getAttachmentDigest()));
+                if (MessageFileNames.isAttachment(context.attr.getValue())) {
+                    return new XMLSignatureDigestInput(EncoderUtils.encodeBase64(asic.getAttachmentDigest(context.attr.getValue())));
                 }
-
                 return new XMLSignatureStreamInput(asic.getEntry(context.attr.getValue()));
             }
         });
@@ -212,7 +207,7 @@ public class AsicContainerVerifier {
     }
 
     private void logUnresolvableHash(String uri, byte[] digestValue) {
-        boolean verified = uri.equals("/attachment1") && Arrays.equals(digestValue, asic.getAttachmentDigest());
+        boolean verified = uri.equals("/attachment1") && Arrays.equals(digestValue, asic.getAttachmentDigest(uri));
         attachmentHashes.add(String.format("The digest for \"%s\" is: %s", uri,
                 encodeHex(digestValue)) + (verified ? " (verified)" : " (unverified)"));
     }

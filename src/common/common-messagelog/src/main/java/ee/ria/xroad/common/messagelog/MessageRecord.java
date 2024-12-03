@@ -186,14 +186,16 @@ public class MessageRecord extends AbstractLogRecord {
             plaintextMessage = message;
         }
 
-        final InputStream plainAttachment;
-        if (encrypted && attachment != null) {
-            plainAttachment = new CipherInputStream(attachment.getBinaryStream(), attachmentCipher);
-        } else {
-            plainAttachment = (attachment != null) ? attachment.getBinaryStream() : null;
-        }
+        // TODO: decryption
+//        final InputStream plainAttachment;
+//        if (encrypted && attachment != null) {
+//            plainAttachment = new CipherInputStream(attachment.getBinaryStream(), attachmentCipher);
+//        } else {
+//            plainAttachment = (attachment != null) ? attachment.getBinaryStream() : null;
+//        }
 
-        return new AsicContainer(plaintextMessage, signatureData, timestamp, plainAttachment, getTime());
+        var attachmentList = attachments.stream().map(MessageAttachment::getInputStream).toList();
+        return new AsicContainer(plaintextMessage, signatureData, timestamp, attachmentList, getTime());
     }
 
     public void setAttachmentStream(InputStream stream, long size) {

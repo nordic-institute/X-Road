@@ -216,7 +216,7 @@ public class MessageLogTest extends AbstractMessageLogTest {
         assertEquals(logRecord.getQueryId(), message.getQueryId());
         final AsicContainer asic = logRecord.toAsicContainer();
         assertArrayEquals(asic.getMessage().getBytes(StandardCharsets.UTF_8), message.getMessageBytes());
-        final byte[] attachment = IOUtils.readFully(asic.getAttachment(), body.length);
+        final byte[] attachment = IOUtils.readFully(asic.getAttachments().getFirst(), body.length);
         assertArrayEquals(body, attachment);
     }
 

@@ -71,6 +71,7 @@ import static ee.ria.xroad.common.ErrorCodes.X_INVALID_SIGNATURE_VALUE;
 import static ee.ria.xroad.common.ErrorCodes.X_MALFORMED_SIGNATURE;
 import static ee.ria.xroad.common.ErrorCodes.translateException;
 import static ee.ria.xroad.common.util.MessageFileNames.SIG_HASH_CHAIN_RESULT;
+import static ee.ria.xroad.common.util.MessageFileNames.isAttachment;
 
 /**
  * Encapsulates the AsiC XAdES signature profile. This class verifies the
@@ -410,10 +411,6 @@ public class SignatureVerifier {
             };
         }
 
-        private boolean isAttachment(String uri) {
-            return uri != null && uri.startsWith(MessageFileNames.ATTACHMENT);
-        }
-
         @Override
         public XMLSignatureInput engineResolveURI(ResourceResolverContext context) {
             if (MessageFileNames.MESSAGE.equals(context.attr.getValue())) {
@@ -443,7 +440,6 @@ public class SignatureVerifier {
         public InputStream resolve(String uri) {
             if (uri.equals(MessageFileNames.SIG_HASH_CHAIN) && (hashChain != null)) {
                 return is(hashChain);
-                // $FALL-THROUGH$
             }
             return null;
         }
