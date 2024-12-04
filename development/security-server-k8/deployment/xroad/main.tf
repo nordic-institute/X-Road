@@ -1,48 +1,7 @@
-resource "helm_release" "openbao_secret_store" {
-  name       = "openbao"
-  repository = "https://openbao.github.io/openbao-helm"
-  chart      = "openbao"
-
-  set {
-    name  = "server.dev.enabled"
-    value = var.openbao_dev
-  }
-
-  set {
-    name  = "server.ha.enabled"
-    value = "true"
-  }
-  set {
-    name  = "server.ha.raft.enabled"
-    value = "true"
-  }
-  set {
-    name  = "server.ha.raft.setNodeId"
-    value = "true"
-  }
-  set {
-    name  = "server.ha.raft.config"
-    value = <<EOT
-  ui = false
-
-  listener "tcp" {
-    tls_disable = 1
-    address = "[::]:8200"
-    cluster_address = "[::]:8201"
-  }
-
-  storage "raft" {
-    path    = "/openbao/data"
-  }
-
-  service_registration "kubernetes" {}
-
-  EOT
-  }
-}
-
 resource "helm_release" "postgresql_serverconf" {
   name       = "serverconf-db-${var.environment}"
+  namespace  = var.namespace
+
   repository = "https://charts.bitnami.com/bitnami"
   chart      = "postgresql"
   version    = local.versions.postgres.chart
@@ -72,6 +31,8 @@ resource "helm_release" "postgresql_serverconf" {
 
 resource "helm_release" "postgresql_messagelog" {
   name       = "messagelog-db-${var.environment}"
+  namespace  = var.namespace
+
   repository = "https://charts.bitnami.com/bitnami"
   chart      = "postgresql"
   version    = local.versions.postgres.chart
@@ -101,15 +62,22 @@ resource "helm_release" "postgresql_messagelog" {
 
 resource "helm_release" "security_server" {
   name  = "xroad-${var.environment}"
+  namespace  = var.namespace
+
   chart = "${path.module}/../charts/security_server"
   timeout = 90 # TODO make it configurable
 
   depends_on = [
     var.images_loaded,
-    helm_release.openbao_secret_store,
     helm_release.postgresql_serverconf,
     helm_release.postgresql_messagelog,
   ]
+
+  #TODO might differ between environments
+  # cleanup_on_fail = true   # Clean up on failed install/upgrade
+  # atomic = true        # Roll back on failure
+  recreate_pods = true        # Force pod recreation
+  wait = true        # Wait for resources to be ready
 
   set {
     name  = "environment"

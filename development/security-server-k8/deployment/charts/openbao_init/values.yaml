@@ -1,0 +1,9 @@
+serviceAccount:
+  name: "openbao-init-sa"
+  create: true
+
+openbao:
+  addr: "http://openbao:8200"
+  image: "openbao/openbao:2.1.0"
+  threshold: 3
+  shares: 5

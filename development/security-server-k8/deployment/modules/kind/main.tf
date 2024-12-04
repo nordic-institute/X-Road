@@ -42,7 +42,7 @@ resource "null_resource" "load_images" {
     cluster_id = kind_cluster.xroad.id
     image_list = join(",", var.images)  # Triggers on image list changes
     # TODO: Add timestamp for forced updates
-    always_run = timestamp()  # WARNING: This will run on every apply
+    # always_run = timestamp()  # WARNING: This will run on every apply
   }
 
   provisioner "local-exec" {

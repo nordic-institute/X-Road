@@ -1,5 +1,7 @@
 #!/bin/bash
 
+./init_image/build-initializer.sh
+
 echo "Building config-server"
 docker build --tag xroad-ss-config \
 --file build-context/Dockerfile \

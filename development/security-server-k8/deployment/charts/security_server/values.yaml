@@ -1,71 +1,113 @@
+# values.yaml
 global:
   environment: dev
 
-config:
-  image: xroad-ss-config:latest
-  imagePullPolicy: Never
-  resources:
-    requests:
-      memory: 32Mi
-    limits:
-      memory: 256Mi
-  port: 5580
+services:
+  config:
+    image: xroad-ss-config:latest
+    imagePullPolicy: Never
+    resources:
+      requests:
+        memory: 32Mi
+      limits:
+        memory: 256Mi
+    port: 5580
+    env:
+      SERVER_PORT: "5580"
+      XROAD_SECRET_STORE_HOST: "openbao.ss.svc.cluster.local"
+      XROAD_SECRET_STORE_SCHEME: "http"
+      XROAD_SECRET_STORE_SKIP_SSL: "true"
+    envFromSecrets:
+      - name: "XROAD_SECRET_STORE_TOKEN"
+        secretName: "xroad-token"
+        key: "XROAD_SECRET_STORE_TOKEN"
 
-confclient:
-  image: xroad-ss-confclient:latest
-  imagePullPolicy: Never
-  resources:
-    requests:
-      memory: 64Mi
-    limits:
-      memory: 320Mi
-  port: 5799
-  env:
-    - name: XROAD_CONFIG_SERVER_URI
-      value: "http://config:5580"
-    - name: XROAD_HOST
-      value: "confclient"
+  confclient:
+    image: xroad-ss-confclient:latest
+    imagePullPolicy: Never
+    resources:
+      requests:
+        memory: 64Mi
+      limits:
+        memory: 320Mi
+    port: 5799
+    dependencies:
+      - config
+    env:
+      SERVER_PORT: "5799"
+      XROAD_CONFIG_SERVER_URI: "http://config:5580"
+      XROAD_HOST: "confclient"
+      XROAD_SECRET_STORE_HOST: "openbao.ss.svc.cluster.local"
+      XROAD_SECRET_STORE_SCHEME: "http"
+      XROAD_SECRET_STORE_SKIP_SSL: "true"
+    envFromSecrets:
+      - name: "XROAD_SECRET_STORE_TOKEN"
+        secretName: "xroad-token"
+        key: "XROAD_SECRET_STORE_TOKEN"
 
-signer:
-  image: xroad-ss-signer:latest
-  imagePullPolicy: Never
-  resources:
-    requests:
-      memory: 64Mi
-    limits:
-      memory: 320Mi
-  port: 5699
-  env:
-    - name: XROAD_CONFIG_SERVER_URI
-      value: "http://config:5580"
-    - name: XROAD_HOST
-      value: "signer"
+  signer:
+    image: xroad-ss-signer:latest
+    imagePullPolicy: Never
+    resources:
+      requests:
+        memory: 64Mi
+      limits:
+        memory: 320Mi
+    port: 5699
+    dependencies:
+      - config
+    env:
+      SERVER_PORT: "5699"
+      XROAD_CONFIG_SERVER_URI: "http://config:5580"
+      XROAD_HOST: "signer"
+      XROAD_SECRET_STORE_HOST: "openbao.ss.svc.cluster.local"
+      XROAD_SECRET_STORE_SCHEME: "http"
+    envFromSecrets:
+      - name: "XROAD_SECRET_STORE_TOKEN"
+        secretName: "xroad-token"
+        key: "XROAD_SECRET_STORE_TOKEN"
 
-proxy:
-  image: xroad-ss-proxy:latest
-  imagePullPolicy: Never
-  resources:
-    requests:
-      memory: 64Mi
-    limits:
-      memory: 512Mi
-  port: 5599
-  env:
-    - name: XROAD_CONFIG_SERVER_URI
-      value: "http://config:5580"
-    - name: XROAD_HOST
-      value: "proxy"
-
-ui:
-  image: xroad-ss-ui:latest
-  imagePullPolicy: Never
-  resources:
-    requests:
-      memory: 64Mi
-    limits:
-      memory: 512Mi
-  port: 4000
-  debugPort: 9999
-  env:
-    - name: XROAD_CONFIG_SERVER_URI
-      value: "http://config:5580"
+  proxy:
+    image: xroad-ss-proxy:latest
+    imagePullPolicy: Never
+    resources:
+      requests:
+        memory: 64Mi
+      limits:
+        memory: 512Mi
+    port: 5599
+    dependencies:
+      - config
+      - signer
+    env:
+      SERVER_PORT: "5599"
+      XROAD_CONFIG_SERVER_URI: "http://config:5580"
+      XROAD_HOST: "proxy"
+      XROAD_SECRET_STORE_HOST: "openbao.ss.svc.cluster.local"
+      XROAD_SECRET_STORE_SCHEME: "http"
+    envFromSecrets:
+      - name: "XROAD_SECRET_STORE_TOKEN"
+        secretName: "xroad-token"
+        key: "XROAD_SECRET_STORE_TOKEN"
+  ui:
+    image: xroad-ss-ui:latest
+    imagePullPolicy: Never
+    resources:
+      requests:
+        memory: 64Mi
+      limits:
+        memory: 512Mi
+    port: 4000
+    debugPort: 9999
+    dependencies:
+      - config
+    env:
+      SERVER_PORT: "4000"
+      DEBUG_PORT: "9999"
+      XROAD_CONFIG_SERVER_URI: "http://config:5580"
+      XROAD_SECRET_STORE_HOST: "openbao.ss.svc.cluster.local"
+      XROAD_SECRET_STORE_SCHEME: "http"
+    envFromSecrets:
+      - name: "XROAD_SECRET_STORE_TOKEN"
+        secretName: "xroad-token"
+        key: "XROAD_SECRET_STORE_TOKEN"
