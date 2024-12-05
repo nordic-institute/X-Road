@@ -27,7 +27,7 @@
 - XRDDEV-2731: As a Developer I want the potential CSPT to be fixed so that we are hardened against future issues
 - XRDDEV-2732: As a Developer I want to disable port 4000 for ACME challenges so that we don't expose it needlessly
 - XRDDEV-2733: As a Developer I want to harden the way we handle use input in ACME challenges so that we don't leave a potential opening in the future
-- XRDDEV-2759: Fresh install fails for Security Server Estonian metapackage on Ubuntu 24.04 with X-Road 7.5.1
+- XRDDEV-2759: Fix an issue on the Security Server that caused the proxy-ui-api service not being started automatically after a fresh metapackage install
 - XRDDEV-2773: Broken notifications breaks Certificate status change flow
 
 ## 7.5.1 - 2024-09-02
