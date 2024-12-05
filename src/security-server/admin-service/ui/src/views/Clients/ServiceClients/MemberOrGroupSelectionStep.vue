@@ -63,11 +63,11 @@
     <div class="button-footer full-width">
       <xrd-button outlined data-test="cancel-button" @click="cancel">{{
         $t('action.cancel')
-        }}</xrd-button>
+      }}</xrd-button>
 
       <xrd-button :disabled="!selection" data-test="next-button" @click="$emit('set-step', selection)">{{
         $t('action.next')
-        }}</xrd-button>
+      }}</xrd-button>
     </div>
   </div>
 </template>
