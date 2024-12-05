@@ -78,6 +78,8 @@ public class XRoadIdentityHubProvisionerExtension implements ServiceExtension {
     private static final String XROAD_SELF_DESCRIPTION_TYPE = "XRoadSelfDescription";
 
     private static final String EDC_DID_KEY_ID = "edc.did.key.id";
+    private static final String EDC_HOSTNAME = "edc.hostname";
+    private static final String EDC_XROAD_MEMBER_ID = "edc.xroad-member-id";
 
     @Inject
     private ParticipantContextService participantContextService;
@@ -111,7 +113,7 @@ public class XRoadIdentityHubProvisionerExtension implements ServiceExtension {
     @SneakyThrows
     public void start() {
         String participantId = config.getString(BootServicesExtension.PARTICIPANT_ID);
-        String hostname = System.getenv("EDC_HOSTNAME");
+        String hostname = config.getString(EDC_HOSTNAME);
         String keyId = config.getString(EDC_DID_KEY_ID);
         PublicKey publicKey = getPublicKey(keyId);
         String publicKeyPem = convertPublicKeyToPem(publicKey);
@@ -119,7 +121,7 @@ public class XRoadIdentityHubProvisionerExtension implements ServiceExtension {
         monitor.info("Creating participant context for %s".formatted(participantId));
         createParticipantContext(hostname, participantId, keyId, publicKeyPem);
         createKeyPairs(participantId, keyId, publicKeyPem);
-        createCredentials(System.getenv("EDC_XROAD_MEMBER_IDENTIFIER"), participantId, keyId);
+        createCredentials(config.getString(EDC_XROAD_MEMBER_ID), participantId, keyId);
     }
 
 

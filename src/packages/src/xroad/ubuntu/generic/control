@@ -241,7 +241,7 @@ Description: X-Road EDC Credential Service
 
 Package: xroad-edc-identity-hub
 Architecture: all
-Depends: ${misc:Depends}, xroad-signer (=${binary:Version})
+Depends: ${misc:Depends}, xroad-signer (=${binary:Version}), xroad-secret-store-local (=${binary:Version}) | xroad-secret-store-remote (=${binary:Version})
 Description: X-Road EDC Identity Hub
 
 Package: xroad-edc-control-plane
