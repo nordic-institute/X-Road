@@ -31,6 +31,12 @@ tasks.register('checkFrontAudit', RunPnpmTaskType) {
 
     args = 'run npx-check-audit'
 }
+
+tasks.register('test', RunPnpmTaskType) {
+    dependsOn installFrontend
+    args = 'run test-ss'
+}
+
 if (project.hasProperty('frontend-npm-audit')) {
     assemble.dependsOn checkFrontAudit
 }
