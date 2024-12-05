@@ -78,11 +78,13 @@ public class AsicContainerVerifierTest {
     @Parameters(name = "{index}: verify(\"{0}\") should throw \"{1}\"")
     public static Collection<Object[]> data() {
         return Arrays.asList(new Object[][]{
+                {"valid-signed-message.asice", null},
                 {"valid-non-batch-rest.asice", null},
-//TODO broken TC                {"valid-non-batch-soap-attachments.asice", null},
+                {"valid-non-batch-soap-attachments.asice", null},
+                {"valid-signed-hashchain.asice", null},
+                {"valid-batch-ts.asice", null},
 
-//                {"valid-signed-hashchain.asice", null},
-//                {"valid-batch-ts.asice", null},
+                // TODO
 //                {"wrong-message.asice", X_INVALID_SIGNATURE_VALUE},
 //                {"invalid-digest.asice", X_INVALID_SIGNATURE_VALUE},
 //                {"invalid-signed-hashchain.asice", X_MALFORMED_SIGNATURE + "." + X_INVALID_HASH_CHAIN_REF},

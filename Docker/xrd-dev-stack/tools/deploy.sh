@@ -78,7 +78,9 @@ case $1 in
   deploy_module "$1" "${hosts[@]}"
   ;;
 "signer" | "hwtoken-addon")
-  deploy_module "$1" "ss0" "ss1" "cs"
+  hosts=("ss0" "ss1" "cs")
+  if [[ $# > 1 ]]; then hosts=("${@:2}"); fi
+  deploy_module "$1" "${hosts[@]}"
   ;;
 "cs-admin-service" | "cs-management-service" | "cs-registration-service")
   deploy_module "$1" "cs"

@@ -116,7 +116,7 @@ public class MessageRecord extends AbstractLogRecord {
 
     @Getter
     @Setter
-    private transient List<AttachmentStream> attachmentStreams;
+    private transient List<AttachmentStream> attachmentStreams = new ArrayList<>();
 
     @Getter
     @Setter
