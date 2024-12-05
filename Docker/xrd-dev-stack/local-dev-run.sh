@@ -92,6 +92,17 @@ if [[ -n "$INITIALIZE" ]]; then
       --very-verbose \
       --retry 4 \
       --retry-interval 4000
+
+  # Trigger DS assets update
+  docker compose $COMPOSE_FILE_ARGS \
+      --env-file "$ENV_FILE" \
+      run hurl \
+      --insecure \
+      --variables-file /hurl-src/vars.env \
+      --file-root /hurl-files /hurl-src/trigger-ds-asset-update.hurl \
+      --very-verbose \
+      --retry 4 \
+      --retry-interval 4000
 fi
 
 if [[ -n "$INIT_SS2" ]]; then

@@ -92,7 +92,28 @@ function handleBuild() {
 
 function handleInitialize() {
   if [ "$SKIP_INITIALIZE" = false ]; then
-    lxc exec xrd-hurl -- bash -c "cd /opt/hurl && ./run-hurl.sh"
+    lxc exec xrd-hurl -- bash -c "cd /opt/hurl && ./run-hurl.sh scenario/setup.hurl"
+
+    #configure edc keys on CS
+    lxc file push ./scripts/config-ds-cs-ss.sh xrd-cs/root/
+    lxc exec xrd-cs -- bash /root/config-ds-cs-ss.sh cs DEV:COM:1234
+
+    #configure edc keys on SS
+    #ss0
+    lxc file push ./scripts/config-ds-cs-ss.sh xrd-ss0/root/
+    lxc exec xrd-ss0 -- bash /root/config-ds-cs-ss.sh ss DEV:COM:1234
+
+    #ss1
+    lxc file push ./scripts/config-ds-cs-ss.sh xrd-ss1/root/
+    lxc exec xrd-ss1 -- bash /root/config-ds-cs-ss.sh ss DEV:COM:4321
+    #todo: remove the init file after init from containers?
+
+    #provision ds membership
+    lxc exec xrd-hurl -- bash -c "cd /opt/hurl && ./run-hurl.sh scenario/provision-ds-membership.hurl"
+
+    #trigger DS assets update job
+    lxc exec xrd-hurl -- bash -c "cd /opt/hurl && ./run-hurl.sh scenario/trigger-ds-asset-update.hurl"
+
   fi
 }
 

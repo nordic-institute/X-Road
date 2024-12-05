@@ -3,6 +3,7 @@ Description=X-Road EDC Identity Hub
 After=network.target
 Wants=postgresql.service
 Wants=xroad-signer.service
+Wants=xroad-secret-store-local.service xroad-secret-store-remote.service
 
 [Service]
 User=xroad

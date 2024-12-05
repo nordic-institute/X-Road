@@ -48,5 +48,6 @@ public class TrustedIssuerExtension implements ServiceExtension {
     public void initialize(ServiceExtensionContext context) {
         // register VC issuers
         trustedIssuerRegistry.addIssuer(new Issuer("did:web:cs%3A9396", Map.of()));
+        trustedIssuerRegistry.addIssuer(new Issuer("did:web:xrd-cs%3A9396", Map.of()));
     }
 }
