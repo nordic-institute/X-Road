@@ -27,11 +27,11 @@
   <div class="cert-row-wrap" data-test="renewal-status">
     <xrd-status-icon :status="status.icon" />
     <div class="status-text">{{ status.text }}</div>
-    <div v-if="status.additionalText" v-tooltip="status.tooltipText">
+    <div v-if="status.additionalText">
       &nbsp;{{ status.additionalText }}
-      <v-tooltip v-if="status.tooltipText" activator="parent" location="top"
-        >{{ status.tooltipText }}</v-tooltip
-      >
+      <v-tooltip v-if="status.tooltipText" activator="parent" location="top">
+        {{ status.tooltipText }}
+      </v-tooltip>
     </div>
   </div>
 </template>
