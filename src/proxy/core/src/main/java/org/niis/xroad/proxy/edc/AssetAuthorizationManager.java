@@ -80,17 +80,21 @@ public class AssetAuthorizationManager {
                 .add("counterPartyAddress", providerSecurityServer.getServerAddress().protocolUrl())
                 .add("oneTimeUseToken", oneTimeUseToken)
                 .build();
-        JsonObject response = xrdEdrApi.requestAssetAccess(request);
+        try {
+            JsonObject response = xrdEdrApi.requestAssetAccess(request);
 
-        AuthorizedAssetRegistry.GrantedAssetInfo grantedAssetInfo = new AuthorizedAssetRegistry.GrantedAssetInfo(
-                "dummy",
-                response.getString("endpoint"),
-                response.getString("authType"),
-                response.getString("authorization")
-        );
-        authorizedAssetRegistry.registerAsset(senderId.asEncodedId(), providerServiceId.asEncodedId(), grantedAssetInfo);
+            AuthorizedAssetRegistry.GrantedAssetInfo grantedAssetInfo = new AuthorizedAssetRegistry.GrantedAssetInfo(
+                    "dummy",
+                    response.getString("endpoint"),
+                    response.getString("authType"),
+                    response.getString("authorization")
+            );
+            authorizedAssetRegistry.registerAsset(senderId.asEncodedId(), providerServiceId.asEncodedId(), grantedAssetInfo);
 
-        return grantedAssetInfo;
+            return grantedAssetInfo;
+        } catch (Exception e) {
+            throw new RuntimeException("Error requesting asset access: " + e.getMessage(), e);
+        }
     }
 
 }

@@ -112,7 +112,8 @@ public class AssetAuthorizationManager {
                 counterPartyAddress,
                 "dataspace-protocol-http", assetIdQuery(assetId));
 
-        byte[] content = result.get().getContent();
+        byte[] content = result.get()
+                .orElseThrow(failure -> new EdcException("Failed to get catalog: " + failure.getFailureDetail()));
         try (JsonReader reader = Json.createReader(new ByteArrayInputStream(content))) {
             JsonObject jsonObject = jsonLd.expand(reader.readObject()).getContent();
             return transformerRegistry.transform(jsonObject, Catalog.class)
