@@ -18,14 +18,3 @@ if [[ -z "$default_host" ]]; then
 fi
 
 setup_database "edc-data-plane" "edc-data-plane" "$default_host"
-
-#url=$(crudini --get /etc/xroad/db.properties '' edc-data-plane.hibernate.connection.url)
-#user=$(crudini --get /etc/xroad/db.properties '' edc-data-plane.hibernate.connection.username)
-#password=$(crudini --get /etc/xroad/db.properties '' edc-data-plane.hibernate.connection.password)
-
-#serverconf_password=$(crudini --get /etc/xroad/db.properties "" "serverconf.hibernate.connection.password")
-#messagelog_password=$(crudini --get /etc/xroad/db.properties "" "messagelog.hibernate.connection.password")
-
-#export XROAD_DS_PASSWORD=$password
-#export XROAD_SERVERCONF_PASSWORD=$password
-#export XROAD_MESSAGELOG_PASSWORD=$messagelog_password

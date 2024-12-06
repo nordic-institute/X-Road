@@ -94,6 +94,10 @@ function handleInitialize() {
   if [ "$SKIP_INITIALIZE" = false ]; then
     lxc exec xrd-hurl -- bash -c "cd /opt/hurl && ./run-hurl.sh scenario/setup.hurl"
 
+    ######
+    ### TODO: Temporary script to initialize the DS environment. Should be refactored.
+    ######
+
     #configure edc keys on CS
     lxc file push ./scripts/config-ds-cs-ss.sh xrd-cs/root/
     lxc exec xrd-cs -- bash /root/config-ds-cs-ss.sh cs DEV:COM:1234

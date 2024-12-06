@@ -1,5 +1,9 @@
 #!/bin/bash
 
+######
+### TODO: Temporary script to initialize the DS environment. Should be refactored.
+######
+
 set -e
 
 ensure_file_exists() {
