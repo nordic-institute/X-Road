@@ -168,7 +168,7 @@
   },
   "fields": {
     "password": "Password",
-    "username": "LIB-Username",
+    "username": "Username",
     "shared": "sharedlib",
     "code": "Code",
     "description": "Description",

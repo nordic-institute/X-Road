@@ -24,7 +24,7 @@
    THE SOFTWARE.
  -->
 <template>
-  <div class="language-changer">
+  <div v-if="languages.length > 1" class="language-changer">
     <v-menu location="bottom">
       <template #activator="{ props }">
         <v-btn
@@ -57,13 +57,13 @@
 import { defineComponent } from 'vue';
 import { mapActions } from 'pinia';
 import { useLanguage } from '@/store/modules/language';
-import { availableLanguages } from '@/plugins/i18n';
+import { availableLanguages, languageHelper } from '@/plugins/i18n';
 
 export default defineComponent({
   computed: {
     // Using a computed property for the current language for reactivity
     currentLanguage() {
-      return this.$i18n.locale;
+      return languageHelper.getCurrentLanguage();
     },
     languages() {
       return availableLanguages;

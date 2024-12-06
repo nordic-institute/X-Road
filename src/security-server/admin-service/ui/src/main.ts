@@ -66,7 +66,7 @@ import router from './router';
 import '@fontsource/open-sans/800.css';
 import '@fontsource/open-sans/700.css';
 import '@fontsource/open-sans';
-import { i18n, setLanguage } from './plugins/i18n';
+import { i18n, languageHelper } from './plugins/i18n';
 import { createPinia } from 'pinia';
 import { createPersistedState } from 'pinia-plugin-persistedstate';
 import { createFilters } from '@/filters';
@@ -116,7 +116,7 @@ app.component('XrdCloseButton', XrdCloseButton);
 app.component('XrdFileUpload', XrdFileUpload);
 app.component('XrdFormLabel', XrdFormLabel);
 app.component('XrdExpandable', XrdExpandable);
-app.mount('#app');
 // translations
 const languageStorage = useLanguage();
-nextTick(() => setLanguage(languageStorage.getLanguage)).then();
+languageHelper.selectLanguage(languageStorage.getLanguage)
+  .finally(() => app.mount('#app'))
