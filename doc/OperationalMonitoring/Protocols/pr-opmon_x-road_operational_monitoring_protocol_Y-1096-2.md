@@ -2,7 +2,7 @@
 
 **Technical Specification**
 
-Version: 1.3  
+Version: 1.4  
 Doc. ID: PR-OPMON
 
 | Date       | Version | Description                                                          | Author           |
@@ -17,6 +17,7 @@ Doc. ID: PR-OPMON
 | 10.05.2023 | 1.1     | Security Categories removed.                                         | Justas Samuolis  |
 | 01.06.2023 | 1.2     | Update references                                                    | Petteri Kivimäki |
 | 02.10.2024 | 1.3     | Update schema file locations                                         | Justas Samuolis  | 
+| 05.12.2024 | 1.4     | Add endpoint level statistics gathering support                      | Eneli Reimets    |
 
 ## Table of Contents <!-- omit in toc -->
 
@@ -45,7 +46,7 @@ This document is licensed under the Creative Commons Attribution-ShareAlike 3.0 
 
 # 1 Introduction
 
-This specification describes services that can be used by X-Road participants to gather operational monitoring information of the security servers. The operational monitoring information contains data about request exchange (such as which services have been called, how many times, what was the size of the response, etc.) of the security servers. The X-Road operational monitoring protocol is intended to support external monitoring systems and other software that can monitor service level agreements, make service statistics, etc.
+This specification describes services that can be used by X-Road participants to gather operational monitoring information of the security servers. The operational monitoring information contains data about request exchange (such as which services or endpoints have been called, how many times, what was the size of the response, etc.) of the security servers. The X-Road operational monitoring protocol is intended to support external monitoring systems and other software that can monitor service level agreements, make service statistics, etc.
 
 The operational monitoring services are the following:
 * *getSecurityServerOperationalData* - downloading operational data of the specified time period of the security server.
@@ -105,6 +106,8 @@ The body of the request MUST contain an XML element *getSecurityServerOperationa
  * *serviceMemberCode*
  * *serviceSubsystemCode*
  * *serviceCode*
+ * *restMethod*
+ * *restPath*
  * *serviceVersion*
  * *representedPartyClass*
  * *representedPartyCode*
@@ -1026,6 +1029,14 @@ properties:
           maxLength: 255
         serviceCode:
           description: Code of the service
+          type: string
+          maxLength: 255
+        restMethod:
+          description: Method of the rest
+          type: string
+          maxLength: 255
+        restPath:
+          description: Path of the rest
           type: string
           maxLength: 255
         serviceVersion:
