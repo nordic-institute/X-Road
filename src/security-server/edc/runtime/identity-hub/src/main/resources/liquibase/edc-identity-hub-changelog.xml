@@ -7,10 +7,10 @@
                       http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.19.xsd">
 
     <changeSet id="1" author="niis">
-        <sqlFile path="edc/credentials-schema.sql" relativeToChangelogFile="true"/>
-        <sqlFile path="edc/did-schema.sql" relativeToChangelogFile="true"/>
-        <sqlFile path="edc/keypairs-schema.sql" relativeToChangelogFile="true"/>
-        <sqlFile path="edc/participant-schema.sql" relativeToChangelogFile="true"/>
+        <sqlFile path="edc-identity-hub/credentials-schema.sql" relativeToChangelogFile="true"/>
+        <sqlFile path="edc-identity-hub/did-schema.sql" relativeToChangelogFile="true"/>
+        <sqlFile path="edc-identity-hub/keypairs-schema.sql" relativeToChangelogFile="true"/>
+        <sqlFile path="edc-identity-hub/participant-schema.sql" relativeToChangelogFile="true"/>
     </changeSet>
 
     <changeSet id="separate-admin-user" author="niis" context="admin" runAlways="true" runOnChange="true" runOrder="last">

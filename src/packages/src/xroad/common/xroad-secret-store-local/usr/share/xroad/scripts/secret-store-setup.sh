@@ -7,6 +7,7 @@ export BAO_TOKEN="$(cat /etc/xroad/secret-store-root-token)"
 # Enable secrets engines
 bao secrets enable -path=xrd-pki pki || exit 1
 bao secrets enable -path=xrd-secret kv || exit 1
+bao secrets enable -path=xrd-ds-secret -version=2 kv || exit 1
 
 # Configure PKI
 bao secrets tune -max-lease-ttl=87600h xrd-pki || exit 1
@@ -40,6 +41,9 @@ path "xrd-secret/*" {
 }
 path "xrd-secret" {
   capabilities = ["list"]
+}
+path "xrd-ds-secret/*" {
+  capabilities = ["create", "read", "update", "delete", "list"]
 }
 path "sys/internal/ui/mounts/*" {
   capabilities = ["read", "list"]

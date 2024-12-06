@@ -23,6 +23,8 @@ xroad:
 
 #EDC conf
 edc:
+  hostname: ${EDC_HOSTNAME}
+  xroad-member-id: ${EDC_XROAD_MEMBER_IDENTIFIER}
   extension:
     spring-bridge:
       serverconf:
@@ -48,9 +50,11 @@ edc:
       enabled: true
   vault:
     hashicorp:
-      url: http://openbao:8200
-      token: 00000000-0000-0000-0000-000000000001
-
+      url: ${XROAD_SECRET_STORE_SCHEME:http}://${XROAD_SECRET_STORE_HOST:127.0.0.1}:${XROAD_SECRET_STORE_PORT:8200}
+      token: ${XROAD_SECRET_STORE_TOKEN}
+      api:
+        secret:
+          path: v1/xrd-ds-secret
 web:
   custom-tls-keystore:
     enabled: false

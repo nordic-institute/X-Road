@@ -1,0 +1,3 @@
+../../../../src/xroad/common/edc-control-plane/usr/* usr/
+../../../../../security-server/edc/runtime/control-plane/src/main/resources/liquibase/* usr/share/xroad/db/
+../../../../../security-server/edc/runtime/control-plane/build/libs/edc-control-plane-1.0.jar usr/share/xroad/jlib/

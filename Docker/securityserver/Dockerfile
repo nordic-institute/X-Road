@@ -37,6 +37,7 @@ RUN echo "deb $REPO $DIST $COMPONENT" >/etc/apt/sources.list.d/xroad.list \
     && pg_ctlcluster 16 main start \
     && apt-get update \
     && apt-get -y -qq install xroad-securityserver xroad-autologin xroad-addon-opmonitoring xroad-configuration-service \
+        xroad-edc-identity-hub xroad-edc-control-plane xroad-edc-data-plane \
     && pg_ctlcluster 16 main stop \
     # Clean up
     && rm -rf /tmp/repo \
@@ -54,6 +55,7 @@ RUN --mount=type=bind,source=build/packages,target=/tmp/packages \
     && pg_ctlcluster 16 main start \
     && apt-get update \
     && apt-get -y -qq install xroad-securityserver xroad-autologin xroad-addon-opmonitoring \
+        xroad-edc-identity-hub xroad-edc-control-plane xroad-edc-data-plane \
     && apt-get -qq clean \
     && pg_ctlcluster 16 main stop \
     # Clean up
@@ -90,12 +92,6 @@ COPY --chown=root:root files/ss-xroad.conf /etc/supervisor/conf.d/xroad.conf
 
 # dataspaces
 COPY build/libs/ /usr/share/xroad/jlib/
-COPY build/liquibase/ /usr/share/xroad/db
-
-COPY files/edc/setup_edc_controlplane_db.sh /usr/share/xroad/scripts/setup_edc_controlplane_db.sh
-COPY files/edc/setup_edc_dataplane_db.sh /usr/share/xroad/scripts/setup_edc_dataplane_db.sh
-COPY files/edc/setup_edc_identityhub_db.sh /usr/share/xroad/scripts/setup_edc_identityhub_db.sh
-COPY files/edc/bin/ /usr/share/xroad/bin/
 
 ENV EDC_HOSTNAME=localhost
 ENV EDC_DID=did:web:localhost
