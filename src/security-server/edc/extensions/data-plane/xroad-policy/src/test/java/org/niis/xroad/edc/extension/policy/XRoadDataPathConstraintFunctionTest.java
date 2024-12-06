@@ -36,6 +36,7 @@ import org.eclipse.edc.policy.model.Permission;
 import org.eclipse.edc.spi.monitor.Monitor;
 import org.eclipse.edc.spi.types.TypeManager;
 import org.junit.jupiter.api.Test;
+import org.niis.xroad.edc.extension.policy.dataplane.XRoadDataPathConstraintFunction;
 
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;

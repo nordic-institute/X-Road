@@ -90,8 +90,8 @@ if [[ -n "$INITIALIZE" ]]; then
       --variables-file /hurl-src/vars.env \
       --file-root /hurl-files /hurl-src/provision-ds-membership.hurl \
       --very-verbose \
-      --retry 4 \
-      --retry-interval 4000
+      --retry 12 \
+      --retry-interval 8000
 fi
 
 if [[ -n "$INIT_SS2" ]]; then

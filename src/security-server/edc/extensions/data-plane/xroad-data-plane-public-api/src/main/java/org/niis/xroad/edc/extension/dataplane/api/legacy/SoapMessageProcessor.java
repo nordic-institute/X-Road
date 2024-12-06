@@ -32,7 +32,6 @@ import ee.ria.xroad.common.cert.CertChainFactory;
 import ee.ria.xroad.common.conf.globalconf.GlobalConfProvider;
 import ee.ria.xroad.common.conf.serverconf.ServerConfProvider;
 import ee.ria.xroad.common.conf.serverconf.model.ClientType;
-import ee.ria.xroad.common.conf.serverconf.model.DescriptionType;
 import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.identifier.SecurityServerId;
 import ee.ria.xroad.common.identifier.ServiceId;
@@ -54,7 +53,6 @@ import ee.ria.xroad.proxy.protocol.ProxyMessage;
 import ee.ria.xroad.proxy.protocol.ProxyMessageDecoder;
 import ee.ria.xroad.proxy.protocol.ProxyMessageEncoder;
 
-import jakarta.ws.rs.container.ContainerRequestContext;
 import jakarta.ws.rs.core.Response;
 import jakarta.ws.rs.core.StreamingOutput;
 import org.apache.http.client.HttpClient;
@@ -68,67 +66,59 @@ import java.security.cert.X509Certificate;
 import java.util.Map;
 
 import static ee.ria.xroad.common.ErrorCodes.SERVER_SERVERPROXY_X;
-import static ee.ria.xroad.common.ErrorCodes.X_ACCESS_DENIED;
 import static ee.ria.xroad.common.ErrorCodes.X_INVALID_MESSAGE;
 import static ee.ria.xroad.common.ErrorCodes.X_INVALID_SECURITY_SERVER;
-import static ee.ria.xroad.common.ErrorCodes.X_INVALID_SERVICE_TYPE;
 import static ee.ria.xroad.common.ErrorCodes.X_MISSING_SIGNATURE;
 import static ee.ria.xroad.common.ErrorCodes.X_MISSING_SOAP;
-import static ee.ria.xroad.common.ErrorCodes.X_SERVICE_DISABLED;
 import static ee.ria.xroad.common.ErrorCodes.X_SERVICE_FAILED_X;
 import static ee.ria.xroad.common.ErrorCodes.X_SERVICE_MALFORMED_URL;
 import static ee.ria.xroad.common.ErrorCodes.X_SERVICE_MISSING_URL;
 import static ee.ria.xroad.common.ErrorCodes.X_UNKNOWN_MEMBER;
-import static ee.ria.xroad.common.ErrorCodes.X_UNKNOWN_SERVICE;
 import static ee.ria.xroad.common.ErrorCodes.translateException;
 import static ee.ria.xroad.common.ErrorCodes.translateWithPrefix;
 import static ee.ria.xroad.common.util.AbstractHttpSender.CHUNKED_LENGTH;
 import static ee.ria.xroad.common.util.MimeUtils.HEADER_HASH_ALGO_ID;
 import static ee.ria.xroad.common.util.MimeUtils.HEADER_ORIGINAL_CONTENT_TYPE;
-import static ee.ria.xroad.common.util.MimeUtils.HEADER_ORIGINAL_SOAP_ACTION;
-import static ee.ria.xroad.common.util.MimeUtils.HEADER_REQUEST_ID;
 import static ee.ria.xroad.common.util.MimeUtils.randomBoundary;
 import static java.util.Optional.ofNullable;
 
 public class SoapMessageProcessor extends MessageProcessorBase {
 
     private String originalSoapAction;
-    private ProxyMessage requestMessage;
-    private ServiceId requestServiceId;
     private SoapMessageImpl responseSoap;
     private SoapFault responseFault;
-    private String xRequestId;
-
-    private ProxyMessageDecoder decoder;
 
     private SigningCtx responseSigningCtx;
 
     private final XRoadMessageLog xRoadMessageLog;
 
-    public SoapMessageProcessor(ContainerRequestContext request,
+    public SoapMessageProcessor(ProxyMessage requestMessage,
+                                ProxyMessageDecoder decoder,
+                                String xRequestId,
                                 HttpClient httpClient, X509Certificate[] clientSslCerts,
                                 boolean needClientAuth, XRoadMessageLog messageLog,
                                 GlobalConfProvider globalConfProvider,
                                 KeyConfProvider keyConfProvider,
                                 ServerConfProvider serverConfProvider,
                                 CertChainFactory certChainFactory,
-                                Monitor monitor) {
-        super(request, clientSslCerts, needClientAuth, httpClient, globalConfProvider, keyConfProvider, serverConfProvider,
-                certChainFactory, monitor);
+                                Monitor monitor) throws Exception {
+        super(requestMessage, decoder, xRequestId, clientSslCerts, needClientAuth, httpClient, globalConfProvider,
+                keyConfProvider, serverConfProvider, certChainFactory, monitor);
 
         this.xRoadMessageLog = messageLog;
+        verifySecurityServer();
+        verifyServiceStatus();
+        verifySslClientCert(requestMessage.getOcspResponses(), requestMessage.getSoap().getClient());
+        checkRequest();
     }
 
     @Override
     public Response process() throws Exception {
-        monitor.debug(() -> "process(%s)".formatted(requestContext.getMediaType().toString()));
+        responseSigningCtx = SigningCtxProvider.getSigningCtx(requestMessage.getSoap().getService().getClientId(), globalConfProvider, keyConfProvider);
 
-        xRequestId = requestContext.getHeaderString(HEADER_REQUEST_ID);
         DefaultServiceHandlerImpl handler = new DefaultServiceHandlerImpl();
 
         try {
-            readMessage();
-            verifyAccess();
             verifySignature();
             logRequestMessage();
 
@@ -170,40 +160,6 @@ public class SoapMessageProcessor extends MessageProcessorBase {
         }
     }
 
-    private void readMessage() throws Exception {
-        monitor.debug("readMessage()");
-
-        originalSoapAction = validateSoapActionHeader(requestContext.getHeaderString(HEADER_ORIGINAL_SOAP_ACTION));
-        requestMessage = new ProxyMessage(requestContext.getHeaderString(HEADER_ORIGINAL_CONTENT_TYPE)) {
-            @Override
-            public void soap(SoapMessageImpl soapMessage, Map<String, String> additionalHeaders) throws Exception {
-                super.soap(soapMessage, additionalHeaders);
-
-                requestServiceId = soapMessage.getService();
-
-                verifySecurityServer();
-                verifyClientStatus();
-
-                responseSigningCtx = SigningCtxProvider.getSigningCtx(requestServiceId.getClientId(), globalConfProvider, keyConfProvider);
-
-                if (needClientAuth) {
-                    verifySslClientCert(requestMessage.getOcspResponses(), requestMessage.getSoap().getClient());
-                }
-            }
-        };
-
-        decoder = new ProxyMessageDecoder(globalConfProvider, requestMessage, requestContext.getMediaType().toString(), false,
-                getHashAlgoId(requestContext));
-        try {
-            decoder.parse(requestContext.getEntityStream());
-        } catch (CodedException e) {
-            throw e.withPrefix(X_SERVICE_FAILED_X);
-        }
-
-        // Check if the input contained all the required bits.
-        checkRequest();
-    }
-
     private void checkRequest() {
         if (requestMessage.getSoap() == null) {
             throw new CodedException(X_MISSING_SOAP, "Request does not have SOAP message");
@@ -217,13 +173,13 @@ public class SoapMessageProcessor extends MessageProcessorBase {
         checkIdentifier(requestMessage.getSoap().getSecurityServer());
     }
 
-    private void verifyClientStatus() {
-        ClientId client = requestServiceId.getClientId();
+    private void verifyServiceStatus() {
+        ClientId service = requestMessage.getSoap().getService().getClientId();
 
-        String status = serverConfProvider.getMemberStatus(client);
+        String status = serverConfProvider.getMemberStatus(service);
 
         if (!ClientType.STATUS_REGISTERED.equals(status)) {
-            throw new CodedException(X_UNKNOWN_MEMBER, "Client '%s' not found", client);
+            throw new CodedException(X_UNKNOWN_MEMBER, "Client '%s' not found", service);
         }
     }
 
@@ -237,31 +193,6 @@ public class SoapMessageProcessor extends MessageProcessorBase {
                 throw new CodedException(X_INVALID_SECURITY_SERVER,
                         "Invalid security server identifier '%s' expected '%s'", requestServerId, serverId);
             }
-        }
-    }
-
-    private void verifyAccess() {
-        monitor.debug("verifyAccess()");
-
-        if (!serverConfProvider.serviceExists(requestServiceId)) {
-            throw new CodedException(X_UNKNOWN_SERVICE, "Unknown service: %s", requestServiceId);
-        }
-
-        DescriptionType descriptionType = serverConfProvider.getDescriptionType(requestServiceId);
-        if (descriptionType != null && descriptionType != DescriptionType.WSDL) {
-            throw new CodedException(X_INVALID_SERVICE_TYPE,
-                    "Service is a REST service and cannot be called using SOAP interface");
-        }
-
-        if (!serverConfProvider.isQueryAllowed(requestMessage.getSoap().getClient(), requestServiceId)) {
-            throw new CodedException(X_ACCESS_DENIED, "Request is not allowed: %s", requestServiceId);
-        }
-
-        String disabledNotice = serverConfProvider.getDisabledNotice(requestServiceId);
-
-        if (disabledNotice != null) {
-            throw new CodedException(X_SERVICE_DISABLED, "Service %s is disabled: %s", requestServiceId,
-                    disabledNotice);
         }
     }
 
@@ -299,7 +230,7 @@ public class SoapMessageProcessor extends MessageProcessorBase {
 
         monitor.debug(() -> "Sending request to %s".formatted(uri));
         try (InputStream in = requestMessage.getSoapContent()) {
-            httpSender.doPost(uri, in, CHUNKED_LENGTH, requestContext.getHeaderString(HEADER_ORIGINAL_CONTENT_TYPE));
+            httpSender.doPost(uri, in, CHUNKED_LENGTH, requestMessage.getOriginalContentType());
         } catch (Exception ex) {
             throw translateException(ex).withPrefix(X_SERVICE_FAILED_X);
         }
@@ -331,7 +262,7 @@ public class SoapMessageProcessor extends MessageProcessorBase {
     }
 
     private void sign(ProxyMessageEncoder encoder) throws Exception {
-        monitor.debug(() -> "sign(%s)".formatted(requestServiceId.getClientId()));
+        monitor.debug(() -> "sign(%s)".formatted(requestMessage.getSoap().getService().getClientId()));
 
         encoder.sign(responseSigningCtx);
     }
@@ -367,6 +298,8 @@ public class SoapMessageProcessor extends MessageProcessorBase {
 
         public void sendProviderRequest() {
             sender = createHttpSender();
+
+            var requestServiceId = requestMessage.getSoap().getService();
 
             monitor.debug("processRequest(%s)".formatted(requestServiceId));
 

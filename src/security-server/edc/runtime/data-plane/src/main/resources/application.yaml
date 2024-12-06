@@ -78,6 +78,9 @@ edc:
   dpf:
     selector:
       url: https://${EDC_HOSTNAME}:9192/control/v1/dataplanes
+  controlplane:
+    management:
+      url: https://${EDC_HOSTNAME}:9193/management
   vault:
     hashicorp:
       url: http://openbao:8200

@@ -25,37 +25,29 @@
  * THE SOFTWARE.
  */
 
-package org.niis.xroad.edc.extension.policy;
+package org.niis.xroad.edc.extension.policy.controlplane;
 
 import ee.ria.xroad.common.conf.globalconf.GlobalConfProvider;
 import ee.ria.xroad.common.conf.serverconf.ServerConfProvider;
 
 import org.eclipse.edc.connector.controlplane.contract.spi.negotiation.store.ContractNegotiationStore;
-import org.eclipse.edc.connector.dataplane.spi.iam.DataPlaneAccessControlService;
 import org.eclipse.edc.policy.engine.spi.AtomicConstraintFunction;
 import org.eclipse.edc.policy.engine.spi.PolicyEngine;
 import org.eclipse.edc.policy.engine.spi.RuleBindingRegistry;
 import org.eclipse.edc.policy.model.Permission;
 import org.eclipse.edc.runtime.metamodel.annotation.Extension;
 import org.eclipse.edc.runtime.metamodel.annotation.Inject;
-import org.eclipse.edc.runtime.metamodel.annotation.Provider;
-import org.eclipse.edc.runtime.metamodel.annotation.Provides;
-import org.eclipse.edc.spi.iam.IdentityService;
 import org.eclipse.edc.spi.system.ServiceExtension;
 import org.eclipse.edc.spi.system.ServiceExtensionContext;
 import org.eclipse.edc.spi.types.TypeManager;
-import org.niis.xroad.edc.extension.policy.dataplane.XrdDataPlaneAccessControlService;
 
 import static org.eclipse.edc.policy.model.OdrlNamespace.ODRL_SCHEMA;
-import static org.niis.xroad.edc.extension.policy.XRoadPolicyExtension.NAME;
+import static org.niis.xroad.edc.extension.policy.controlplane.XRoadControlPlanePolicyExtension.NAME;
 
 @Extension(value = NAME)
-@Provides({IdentityService.class, DataPlaneAccessControlService.class})
-public class XRoadPolicyExtension implements ServiceExtension {
+public class XRoadControlPlanePolicyExtension implements ServiceExtension {
 
-    public static final String NAME = "X-Road Policy extension";
-
-    private static final String XROAD_DATAPLANE_TRANSFER_SCOPE = "xroad.dataplane.transfer";
+    public static final String NAME = "X-Road Control Plane Policy extension";
 
     @Inject
     private RuleBindingRegistry ruleBindingRegistry;
@@ -91,11 +83,11 @@ public class XRoadPolicyExtension implements ServiceExtension {
         // - request.contract.negotiation <- participant agent is not set in policy context.
 
         registerFunction(XRoadClientIdConstraintFunction.KEY, "catalog",
-                new XRoadClientIdConstraintFunction(globalConfProvider, monitor));
+                new XRoadClientIdConstraintFunction(monitor));
         registerFunction(XRoadClientIdConstraintFunction.KEY, "request.catalog",
-                new XRoadClientIdConstraintFunction(globalConfProvider, monitor));
+                new XRoadClientIdConstraintFunction(monitor));
         registerFunction(XRoadClientIdConstraintFunction.KEY, "contract.negotiation",
-                new XRoadClientIdConstraintFunction(globalConfProvider, monitor));
+                new XRoadClientIdConstraintFunction(monitor));
 
         registerFunction(XRoadGlobalGroupMemberConstraintFunction.KEY, "catalog",
                 new XRoadGlobalGroupMemberConstraintFunction(globalConfProvider, monitor));
@@ -110,9 +102,6 @@ public class XRoadPolicyExtension implements ServiceExtension {
                 new XRoadLocalGroupMemberConstraintFunction(serverConfProvider, monitor));
         registerFunction(XRoadLocalGroupMemberConstraintFunction.KEY, "contract.negotiation",
                 new XRoadLocalGroupMemberConstraintFunction(serverConfProvider, monitor));
-
-        registerFunction(XRoadDataPathConstraintFunction.KEY, XROAD_DATAPLANE_TRANSFER_SCOPE,
-                new XRoadDataPathConstraintFunction(monitor, typeManager));
     }
 
     private void registerFunction(String key, String scope, AtomicConstraintFunction<Permission> function) {
@@ -121,10 +110,5 @@ public class XRoadPolicyExtension implements ServiceExtension {
         ruleBindingRegistry.bind(key, scope);
 
         policyEngine.registerFunction(scope, Permission.class, key, function);
-    }
-
-    @Provider
-    public DataPlaneAccessControlService defaultAccessControlService(ServiceExtensionContext context) {
-        return new XrdDataPlaneAccessControlService(contractNegotiationStore, policyEngine, context.getMonitor());
     }
 }

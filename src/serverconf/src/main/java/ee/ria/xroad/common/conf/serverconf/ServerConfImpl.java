@@ -291,6 +291,15 @@ public class ServerConfImpl implements ServerConfProvider {
     }
 
     @Override
+    public boolean isSubjectInLocalGroup(ClientId clientId, LocalGroupId localGroupId) {
+        return tx(session -> getConf(session).getClient().stream()
+                .filter(c -> c.getIdentifier().equals(clientId))
+                .anyMatch(c -> c.getLocalGroup().stream()
+                        .anyMatch(g -> g.getGroupCode().equals(localGroupId.getGroupCode())))
+        );
+    }
+
+    @Override
     public List<ClientId.Conf> getMembers() {
         return tx(session -> getConf(session).getClient().stream()
                 .map(ClientType::getIdentifier)

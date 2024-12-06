@@ -168,6 +168,8 @@ public interface ServerConfProvider {
 
     boolean isSubjectAssociatedWithLocalGroup(ClientId clientId, LocalGroupId localGroupId);
 
+    boolean isSubjectInLocalGroup(ClientId clientId, LocalGroupId localGroupId);
+
     /**
      * @return all members identifiers
      * @throws Exception if an error occurs

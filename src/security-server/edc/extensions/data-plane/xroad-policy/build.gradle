@@ -3,10 +3,18 @@ plugins {
 }
 
 dependencies {
+    implementation libs.edc.spi.core
     implementation libs.edc.spi.policy.engine
     implementation libs.edc.spi.contract
+    implementation libs.edc.spi.dataplane
+    implementation(project(':common:common-domain'))
     implementation(project(':common:common-verifier'))
     implementation(project(':serverconf'))
+    implementation libs.edc.lib.http
+    implementation libs.edc.spi.jsonLd
+
+    // needed to remotely fetch contract agreement & its policy from control plane
+    implementation libs.edc.controlplane.transform
 
     testImplementation libs.edc.junit
     testImplementation libs.assertj.core

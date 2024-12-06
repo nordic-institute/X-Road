@@ -32,7 +32,6 @@ import ee.ria.xroad.common.cert.CertChainFactory;
 import ee.ria.xroad.common.conf.globalconf.GlobalConfProvider;
 import ee.ria.xroad.common.conf.serverconf.ServerConfProvider;
 import ee.ria.xroad.common.conf.serverconf.model.ClientType;
-import ee.ria.xroad.common.conf.serverconf.model.DescriptionType;
 import ee.ria.xroad.common.crypto.Digests;
 import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.identifier.ServiceId;
@@ -51,7 +50,6 @@ import ee.ria.xroad.proxy.protocol.ProxyMessage;
 import ee.ria.xroad.proxy.protocol.ProxyMessageDecoder;
 import ee.ria.xroad.proxy.protocol.ProxyMessageEncoder;
 
-import jakarta.ws.rs.container.ContainerRequestContext;
 import jakarta.ws.rs.core.Response;
 import jakarta.ws.rs.core.StreamingOutput;
 import lombok.Getter;
@@ -85,61 +83,50 @@ import java.security.cert.X509Certificate;
 import java.util.Arrays;
 
 import static ee.ria.xroad.common.ErrorCodes.SERVER_SERVERPROXY_X;
-import static ee.ria.xroad.common.ErrorCodes.X_ACCESS_DENIED;
 import static ee.ria.xroad.common.ErrorCodes.X_INVALID_REQUEST;
-import static ee.ria.xroad.common.ErrorCodes.X_INVALID_SERVICE_TYPE;
 import static ee.ria.xroad.common.ErrorCodes.X_MISSING_REST;
 import static ee.ria.xroad.common.ErrorCodes.X_MISSING_SIGNATURE;
-import static ee.ria.xroad.common.ErrorCodes.X_SERVICE_DISABLED;
-import static ee.ria.xroad.common.ErrorCodes.X_SERVICE_FAILED_X;
 import static ee.ria.xroad.common.ErrorCodes.X_SERVICE_MISSING_URL;
 import static ee.ria.xroad.common.ErrorCodes.X_UNKNOWN_MEMBER;
-import static ee.ria.xroad.common.ErrorCodes.X_UNKNOWN_SERVICE;
 import static ee.ria.xroad.common.ErrorCodes.translateWithPrefix;
 import static ee.ria.xroad.common.util.MimeUtils.HEADER_HASH_ALGO_ID;
-import static ee.ria.xroad.common.util.MimeUtils.HEADER_ORIGINAL_CONTENT_TYPE;
-import static ee.ria.xroad.common.util.MimeUtils.HEADER_REQUEST_ID;
 import static ee.ria.xroad.common.util.MimeUtils.randomBoundary;
 import static java.util.Optional.ofNullable;
 
 public class RestMessageProcessor extends MessageProcessorBase {
-
-    private ProxyMessage requestMessage;
-    private ServiceId requestServiceId;
-
-    private ProxyMessageDecoder decoder;
 
     private SigningCtx responseSigningCtx;
 
     private RestResponse restResponse;
     private CachingStream restResponseBody;
 
-    private String xRequestId;
     private final XRoadMessageLog xRoadMessageLog;
 
-    public RestMessageProcessor(ContainerRequestContext request,
+    public RestMessageProcessor(ProxyMessage requestMessage,
+                                ProxyMessageDecoder decoder,
+                                String xRequestId,
                                 HttpClient httpClient, X509Certificate[] clientSslCerts,
                                 boolean needClientAuth, XRoadMessageLog messageLog,
-                                GlobalConfProvider globalConfProvider, ServerConfProvider serverConfProvider,
-                                KeyConfProvider keyConfProvider, CertChainFactory certChainFactory,
-                                Monitor monitor) {
-        super(request, clientSslCerts, needClientAuth, httpClient, globalConfProvider, keyConfProvider,
-                serverConfProvider, certChainFactory, monitor);
+                                GlobalConfProvider globalConfProvider, KeyConfProvider keyConfProvider,
+                                ServerConfProvider serverConfProvider, CertChainFactory certChainFactory,
+                                Monitor monitor) throws Exception {
+        super(requestMessage, decoder, xRequestId, clientSslCerts, needClientAuth, httpClient,
+                globalConfProvider, keyConfProvider, serverConfProvider, certChainFactory, monitor);
         this.xRoadMessageLog = messageLog;
+        verifyServiceStatus();
+        verifySslClientCert(requestMessage.getOcspResponses(), requestMessage.getRest().getClientId());
+        checkRequest();
     }
 
     @Override
     public Response process() {
-        monitor.debug("process(%s)".formatted(requestContext.getMediaType().toString()));
-
-        xRequestId = requestContext.getHeaderString(HEADER_REQUEST_ID);
+        responseSigningCtx = SigningCtxProvider.getSigningCtx(requestMessage.getRest().getServiceId().getClientId(),
+                globalConfProvider, keyConfProvider);
 
         String multipartBoundary = randomBoundary();
-
         StreamingOutput streamingOut = output -> {
             ProxyMessageEncoder encoder = new ProxyMessageEncoder(output, Digests.DEFAULT_DIGEST_ALGORITHM, multipartBoundary);
             try {
-                readMessage();
                 handleRequest(encoder);
                 sign(encoder);
                 logResponseMessage(encoder);
@@ -165,48 +152,18 @@ public class RestMessageProcessor extends MessageProcessorBase {
     }
 
     private void handleRequest(ProxyMessageEncoder encoder) throws Exception {
-        verifyAccess();
         verifySignature();
         logRequestMessage();
 
         DefaultRestServiceHandlerImpl handler = new DefaultRestServiceHandlerImpl(serverConfProvider);
 
         try {
-            handler.startHandling(requestContext, requestMessage, decoder, encoder,
+            handler.startHandling(requestMessage, decoder, encoder,
                     httpClient);
         } finally {
             restResponse = handler.getRestResponse();
             restResponseBody = handler.getRestResponseBody();
         }
-    }
-
-    private void readMessage() throws Exception {
-        monitor.debug("readMessage()");
-
-        requestMessage = new ProxyMessage(requestContext.getHeaderString(HEADER_ORIGINAL_CONTENT_TYPE)) {
-            @Override
-            public void rest(RestRequest message) throws Exception {
-                super.rest(message);
-                requestServiceId = message.getServiceId();
-                verifyClientStatus();
-                responseSigningCtx = SigningCtxProvider.getSigningCtx(requestServiceId.getClientId(), globalConfProvider, keyConfProvider);
-
-                if (needClientAuth) {
-                    verifySslClientCert(requestMessage.getOcspResponses(), requestMessage.getRest().getClientId());
-                }
-            }
-        };
-
-        decoder = new ProxyMessageDecoder(globalConfProvider, requestMessage, requestContext.getMediaType().toString(), false,
-                getHashAlgoId(requestContext));
-        try {
-            decoder.parse(requestContext.getEntityStream());
-        } catch (CodedException e) {
-            throw e.withPrefix(X_SERVICE_FAILED_X);
-        }
-
-        // Check if the input contained all the required bits.
-        checkRequest();
     }
 
     private void checkRequest() {
@@ -223,43 +180,13 @@ public class RestMessageProcessor extends MessageProcessorBase {
         checkIdentifier(rest.getTargetSecurityServer());
     }
 
-    private void verifyClientStatus() {
-        ClientId client = requestServiceId.getClientId();
+    private void verifyServiceStatus() {
+        ClientId service = requestMessage.getRest().getServiceId().getClientId();
 
-        String status = serverConfProvider.getMemberStatus(client);
+        String status = serverConfProvider.getMemberStatus(service);
 
         if (!ClientType.STATUS_REGISTERED.equals(status)) {
-            throw new CodedException(X_UNKNOWN_MEMBER, "Client '%s' not found", client);
-        }
-    }
-
-    private void verifyAccess() {
-        monitor.debug("verifyAccess()");
-
-        if (!serverConfProvider.serviceExists(requestServiceId)) {
-            throw new CodedException(X_UNKNOWN_SERVICE, "Unknown service: %s", requestServiceId);
-        }
-
-        DescriptionType descriptionType = serverConfProvider.getDescriptionType(requestServiceId);
-        if (descriptionType != null && descriptionType != DescriptionType.REST
-                && descriptionType != DescriptionType.OPENAPI3) {
-            throw new CodedException(X_INVALID_SERVICE_TYPE,
-                    "Service is a SOAP service and cannot be called using REST interface");
-        }
-
-        if (!serverConfProvider.isQueryAllowed(
-                requestMessage.getRest().getClientId(),
-                requestServiceId,
-                requestMessage.getRest().getVerb().name(),
-                requestMessage.getRest().getServicePath())) {
-            throw new CodedException(X_ACCESS_DENIED, "Request is not allowed: %s", requestServiceId);
-        }
-
-        String disabledNotice = serverConfProvider.getDisabledNotice(requestServiceId);
-
-        if (disabledNotice != null) {
-            throw new CodedException(X_SERVICE_DISABLED, "Service %s is disabled: %s", requestServiceId,
-                    disabledNotice);
+            throw new CodedException(X_UNKNOWN_MEMBER, "Client '%s' not found", service);
         }
     }
 
@@ -278,7 +205,7 @@ public class RestMessageProcessor extends MessageProcessorBase {
                 requestMessage.getSignature(),
                 requestMessage.getRestBody(),
                 false,
-                xRequestId);
+                requestMessage.getRest().getXRequestId());
 
         xRoadMessageLog.log(logMessage);
     }
@@ -292,13 +219,13 @@ public class RestMessageProcessor extends MessageProcessorBase {
                 encoder.getSignature(),
                 restResponseBody == null ? null : restResponseBody.getCachedContents(),
                 false,
-                xRequestId);
+                requestMessage.getRest().getXRequestId());
 
         xRoadMessageLog.log(logMessage);
     }
 
     private void sign(ProxyMessageEncoder encoder) throws Exception {
-        monitor.debug("sign(%s)".formatted(requestServiceId.getClientId()));
+        monitor.debug("sign(%s)".formatted(requestMessage.getRest().getServiceId().getClientId()));
         encoder.sign(responseSigningCtx);
     }
 
@@ -346,22 +273,22 @@ public class RestMessageProcessor extends MessageProcessorBase {
             return address.concat(path);
         }
 
-        public void startHandling(ContainerRequestContext request, ProxyMessage requestProxyMessage,
+        public void startHandling(ProxyMessage requestMessage,
                                   ProxyMessageDecoder messageDecoder, ProxyMessageEncoder messageEncoder,
                                   HttpClient restClient) throws Exception {
-            String address = serverConfProvider.getServiceAddress(requestProxyMessage.getRest().getServiceId());
+            String address = serverConfProvider.getServiceAddress(requestMessage.getRest().getServiceId());
             if (address == null || address.isEmpty()) {
                 throw new CodedException(X_SERVICE_MISSING_URL, "Service address not specified for '%s'",
-                        requestProxyMessage.getRest().getServiceId());
+                        requestMessage.getRest().getServiceId());
             }
 
-            address = concatPath(address, requestProxyMessage.getRest().getServicePath());
-            final String query = requestProxyMessage.getRest().getQuery();
+            address = concatPath(address, requestMessage.getRest().getServicePath());
+            final String query = requestMessage.getRest().getQuery();
             if (query != null) {
                 address += "?" + query;
             }
 
-            HttpRequestBase req = switch (requestProxyMessage.getRest().getVerb()) {
+            HttpRequestBase req = switch (requestMessage.getRest().getVerb()) {
                 case GET -> new HttpGet(address);
                 case POST -> new HttpPost(address);
                 case PUT -> new HttpPut(address);
@@ -374,23 +301,23 @@ public class RestMessageProcessor extends MessageProcessorBase {
             };
 
             int timeout = TimeUtils.secondsToMillis(serverConfProvider
-                    .getServiceTimeout(requestProxyMessage.getRest().getServiceId()));
+                    .getServiceTimeout(requestMessage.getRest().getServiceId()));
             req.setConfig(RequestConfig
                     .custom()
                     .setSocketTimeout(timeout)
                     .build());
 
-            for (Header header : requestProxyMessage.getRest().getHeaders()) {
+            for (Header header : requestMessage.getRest().getHeaders()) {
                 req.addHeader(header);
             }
 
-            if (req instanceof HttpEntityEnclosingRequest && requestProxyMessage.hasRestBody()) {
-                ((HttpEntityEnclosingRequest) req).setEntity(new InputStreamEntity(requestProxyMessage.getRestBody(),
-                        requestProxyMessage.getRestBody().size()));
+            if (req instanceof HttpEntityEnclosingRequest && requestMessage.hasRestBody()) {
+                ((HttpEntityEnclosingRequest) req).setEntity(new InputStreamEntity(requestMessage.getRestBody(),
+                        requestMessage.getRestBody().size()));
             }
 
             final HttpContext ctx = new BasicHttpContext();
-            ctx.setAttribute(ServiceId.class.getName(), requestProxyMessage.getRest().getServiceId());
+            ctx.setAttribute(ServiceId.class.getName(), requestMessage.getRest().getServiceId());
             final HttpResponse response = restClient.execute(req, ctx);
             final StatusLine statusLine = response.getStatusLine();
 
@@ -399,23 +326,22 @@ public class RestMessageProcessor extends MessageProcessorBase {
             if (messageDecoder.getRestBodyDigest() != null) {
                 final DigestCalculator dc = Digests.createDigestCalculator(Digests.DEFAULT_DIGEST_ALGORITHM);
                 try (OutputStream out = dc.getOutputStream()) {
-                    out.write(requestProxyMessage.getRest().getHash());
+                    out.write(requestMessage.getRest().getHash());
                     out.write(messageDecoder.getRestBodyDigest());
                 }
                 requestDigest = dc.getDigest();
             } else {
-                requestDigest = requestProxyMessage.getRest().getHash();
+                requestDigest = requestMessage.getRest().getHash();
             }
 
-            restResponse = new RestResponse(requestProxyMessage.getRest().getClientId(),
-                    requestProxyMessage.getRest().getQueryId(),
+            restResponse = new RestResponse(requestMessage.getRest().getClientId(),
+                    requestMessage.getRest().getQueryId(),
                     requestDigest,
-                    requestProxyMessage.getRest().getServiceId(),
+                    requestMessage.getRest().getServiceId(),
                     statusLine.getStatusCode(),
                     statusLine.getReasonPhrase(),
                     Arrays.asList(response.getAllHeaders()),
-                    request.getHeaderString(HEADER_REQUEST_ID)
-
+                    requestMessage.getRest().getXRequestId()
             );
             messageEncoder.restResponse(restResponse);
 
