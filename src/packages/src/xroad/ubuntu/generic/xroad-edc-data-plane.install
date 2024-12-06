@@ -1,3 +1,0 @@
-../../../../src/xroad/common/edc-data-plane/usr/* usr/
-../../../../../security-server/edc/runtime/data-plane/src/main/resources/liquibase/* usr/share/xroad/db/
-../../../../../security-server/edc/runtime/data-plane/build/libs/edc-data-plane-1.0.jar usr/share/xroad/jlib/
