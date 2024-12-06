@@ -21,7 +21,7 @@ dependencies {
     testImplementation(project(':common:common-test'))
     testImplementation(project(':common:common-verifier'))
     testImplementation(project(':serverconf'))
-    testImplementation(project(':security-server:edc-client'))
+    testImplementation(project(':security-server:ds-client'))
     testImplementation(project(path: ":proxy:core", configuration: 'testArtifacts'))
 
     testImplementation("org.springframework.boot:spring-boot-starter-test")

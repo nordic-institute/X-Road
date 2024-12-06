@@ -1,0 +1,3 @@
+../../../../src/xroad/common/ds-control-plane/usr/* usr/
+../../../../../security-server/ds/runtime/control-plane/src/main/resources/liquibase/* usr/share/xroad/db/
+../../../../../security-server/ds/runtime/control-plane/build/libs/ds-control-plane-1.0.jar usr/share/xroad/jlib/

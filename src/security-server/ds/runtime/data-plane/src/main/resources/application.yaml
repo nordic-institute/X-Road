@@ -1,0 +1,90 @@
+spring:
+  application:
+    name: ds-data-plane
+
+server:
+  port: 5850
+
+xroad:
+  messagelog:
+    enabled: true
+    hibernate:
+      connection.driver_class: org.postgresql.Driver
+      connection.url: jdbc:postgresql://127.0.0.1:5432/messagelog
+      connection.username: messagelog
+      connection.password: ${XROAD_MESSAGELOG_PASSWORD}
+      hikari.dataSource.currentSchema: messagelog,public
+      jdbc.use_streams_for_binary: true
+  common:
+    serverconf:
+      cache-period: 60
+      client-cache-size: 100
+      service-cache-size: 1000
+      acl-cache-size: 100_000
+      hibernate:
+        dialect: ee.ria.xroad.common.db.CustomPostgreSQLDialect
+        connection.driver_class: org.postgresql.Driver
+        connection.url: jdbc:postgresql://127.0.0.1:5432/serverconf
+        connection.username: serverconf
+        connection.password: ${XROAD_SERVERCONF_PASSWORD}
+        hikari.dataSource.currentSchema: serverconf,public
+        jdbc.use_streams_for_binary: true
+
+logging:
+  level:
+    ROOT: INFO
+    org.niis.xroad.edc.extension.bridge.config: DEBUG
+
+#EDC configuration
+web:
+  http:
+    port: 9291
+    path: /api
+    control:
+      port: 9292
+      path: /control
+    public:
+      port: 9293
+      path: /public
+    xroad:
+      public:
+        port: 9294
+        path: /xroad/public
+        needClientAuth: true
+
+edc:
+  hostname: ${EDC_HOSTNAME}
+  extension:
+    spring-bridge:
+      serverconf:
+        enabled: true
+  datasource:
+    default:
+      url: jdbc:postgresql://127.0.0.1:5432/ds-data-plane
+      user: ds-data-plane
+      password: ${XROAD_DS_PASSWORD}
+  transfer:
+    proxy:
+      token:
+        signer:
+          privatekey:
+            alias: ${EDC_DID_KEY_ID:}
+        verifier:
+          publickey:
+            alias: ${EDC_DID_KEY_ID:}
+  dataplane:
+    token:
+      validation:
+        endpoint: https://${edc.hostname}:9192/control/token
+  dpf:
+    selector:
+      url: https://${edc.hostname}:9192/control/v1/dataplanes
+  vault:
+    hashicorp:
+      url: ${XROAD_SECRET_STORE_SCHEME:http}://${XROAD_SECRET_STORE_HOST:127.0.0.1}:${XROAD_SECRET_STORE_PORT:8200}
+      token: ${XROAD_SECRET_STORE_TOKEN}
+      api:
+        secret:
+          path: v1/xrd-ds-secret
+  state-machine:
+    iteration-wait-millis: 300

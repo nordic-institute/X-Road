@@ -12,7 +12,7 @@ ensure_file_exists() {
 configure_cs_edc_signing_key() {
   ensure_file_exists ds-catalog-service-override.yaml
   ensure_file_exists ds-credential-service-override.yaml
-  ensure_file_exists edc-identity-hub-override.yaml
+  ensure_file_exists ds-identity-hub-override.yaml
 
   HOSTNAME=$(hostname)
   EDC_DID="did:web:${HOSTNAME}%3A9396"
@@ -28,43 +28,43 @@ configure_cs_edc_signing_key() {
   yq -Y -i ".edc.did.key.id = \"${KEY_ID}\"" /etc/xroad/conf.d/ds-credential-service-override.yaml
   yq -Y -i ".edc.participant.id = \"${EDC_DID}\"" /etc/xroad/conf.d/ds-credential-service-override.yaml
 
-  yq -Y -i ".edc.hostname = \"${HOSTNAME}\"" /etc/xroad/conf.d/edc-identity-hub-override.yaml
-  yq -Y -i ".edc.did.key.id = \"${KEY_ID}\"" /etc/xroad/conf.d/edc-identity-hub-override.yaml
-  yq -Y -i ".edc.participant.id = \"${EDC_DID}\"" /etc/xroad/conf.d/edc-identity-hub-override.yaml
-  yq -Y -i ".edc.\"xroad-member-id\" = \"${MEMBER_ID}\"" /etc/xroad/conf.d/edc-identity-hub-override.yaml
+  yq -Y -i ".edc.hostname = \"${HOSTNAME}\"" /etc/xroad/conf.d/ds-identity-hub-override.yaml
+  yq -Y -i ".edc.did.key.id = \"${KEY_ID}\"" /etc/xroad/conf.d/ds-identity-hub-override.yaml
+  yq -Y -i ".edc.participant.id = \"${EDC_DID}\"" /etc/xroad/conf.d/ds-identity-hub-override.yaml
+  yq -Y -i ".edc.\"xroad-member-id\" = \"${MEMBER_ID}\"" /etc/xroad/conf.d/ds-identity-hub-override.yaml
 
 
   echo "Restarting services"
-  systemctl restart xroad-edc-catalog-service xroad-edc-credential-service xroad-edc-identity-hub
+  systemctl restart xroad-ds-catalog-service xroad-ds-credential-service xroad-ds-identity-hub
 }
 
 configure_ss_edc_signing_key() {
-  ensure_file_exists edc-control-plane-override.yaml
-  ensure_file_exists edc-data-plane-override.yaml
-  ensure_file_exists edc-identity-hub-override.yaml
+  ensure_file_exists ds-control-plane-override.yaml
+  ensure_file_exists ds-data-plane-override.yaml
+  ensure_file_exists ds-identity-hub-override.yaml
 
   HOSTNAME=$(hostname)
   EDC_DID="did:web:${HOSTNAME}%3A9396"
   KEY_ID=$(grep -oPz '(?s)<key usage=\"SIGNING\">.*?<label>Sign key</label>.*?</key>' /etc/xroad/signer/keyconf.xml | grep -oPa '<keyId>\K\w+(?=</keyId>)')
   MEMBER_ID="$1"
 
-  yq -Y -i ".edc.hostname = \"${HOSTNAME}\"" /etc/xroad/conf.d/edc-control-plane-override.yaml
-  yq -Y -i ".edc.iam.sts.privatekey.alias = \"${KEY_ID}\"" /etc/xroad/conf.d/edc-control-plane-override.yaml
-  yq -Y -i ".edc.iam.sts.publickey.id = \"${EDC_DID}#${KEY_ID}\"" /etc/xroad/conf.d/edc-control-plane-override.yaml
-  yq -Y -i ".edc.participant.id = \"${EDC_DID}\"" /etc/xroad/conf.d/edc-control-plane-override.yaml
-  yq -Y -i ".edc.iam.issuer.id = \"${EDC_DID}\"" /etc/xroad/conf.d/edc-control-plane-override.yaml
+  yq -Y -i ".edc.hostname = \"${HOSTNAME}\"" /etc/xroad/conf.d/ds-control-plane-override.yaml
+  yq -Y -i ".edc.iam.sts.privatekey.alias = \"${KEY_ID}\"" /etc/xroad/conf.d/ds-control-plane-override.yaml
+  yq -Y -i ".edc.iam.sts.publickey.id = \"${EDC_DID}#${KEY_ID}\"" /etc/xroad/conf.d/ds-control-plane-override.yaml
+  yq -Y -i ".edc.participant.id = \"${EDC_DID}\"" /etc/xroad/conf.d/ds-control-plane-override.yaml
+  yq -Y -i ".edc.iam.issuer.id = \"${EDC_DID}\"" /etc/xroad/conf.d/ds-control-plane-override.yaml
 
-  yq -Y -i ".edc.hostname = \"${HOSTNAME}\"" /etc/xroad/conf.d/edc-data-plane-override.yaml
-  yq -Y -i ".edc.transfer.proxy.token.signer.privatekey.alias = \"${KEY_ID}\"" /etc/xroad/conf.d/edc-data-plane-override.yaml
-  yq -Y -i ".edc.transfer.proxy.token.verifier.publickey.alias = \"${KEY_ID}\"" /etc/xroad/conf.d/edc-data-plane-override.yaml
+  yq -Y -i ".edc.hostname = \"${HOSTNAME}\"" /etc/xroad/conf.d/ds-data-plane-override.yaml
+  yq -Y -i ".edc.transfer.proxy.token.signer.privatekey.alias = \"${KEY_ID}\"" /etc/xroad/conf.d/ds-data-plane-override.yaml
+  yq -Y -i ".edc.transfer.proxy.token.verifier.publickey.alias = \"${KEY_ID}\"" /etc/xroad/conf.d/ds-data-plane-override.yaml
 
-  yq -Y -i ".edc.hostname = \"${HOSTNAME}\""  /etc/xroad/conf.d/edc-identity-hub-override.yaml
-  yq -Y -i ".edc.did.key.id = \"${KEY_ID}\"" /etc/xroad/conf.d/edc-identity-hub-override.yaml
-  yq -Y -i ".edc.participant.id = \"${EDC_DID}\"" /etc/xroad/conf.d/edc-identity-hub-override.yaml
-  yq -Y -i ".edc.\"xroad-member-id\" = \"${MEMBER_ID}\"" /etc/xroad/conf.d/edc-identity-hub-override.yaml
+  yq -Y -i ".edc.hostname = \"${HOSTNAME}\""  /etc/xroad/conf.d/ds-identity-hub-override.yaml
+  yq -Y -i ".edc.did.key.id = \"${KEY_ID}\"" /etc/xroad/conf.d/ds-identity-hub-override.yaml
+  yq -Y -i ".edc.participant.id = \"${EDC_DID}\"" /etc/xroad/conf.d/ds-identity-hub-override.yaml
+  yq -Y -i ".edc.\"xroad-member-id\" = \"${MEMBER_ID}\"" /etc/xroad/conf.d/ds-identity-hub-override.yaml
 
   echo "Restarting services"
-  systemctl restart xroad-edc-data-plane xroad-edc-control-plane xroad-edc-identity-hub
+  systemctl restart xroad-ds-data-plane xroad-ds-control-plane xroad-ds-identity-hub
 }
 
 apt-get -qq update && apt-get -qq install yq
