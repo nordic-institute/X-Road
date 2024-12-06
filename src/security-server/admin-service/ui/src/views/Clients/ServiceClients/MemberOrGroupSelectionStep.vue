@@ -45,14 +45,12 @@
           <td class="checkbox-column">
             <div class="checkbox-wrap">
               <v-radio :key="candidate.id" :disabled="isDisabled(candidate)" data-test="candidate-selection"
-                v-model="selection" @click="updateSelection(candidate)" />
-            </div>
-          </td>
-          <td class="identifier-wrap">
-            {{
-              candidate.service_client_type === 'LOCALGROUP'
-                ? candidate.local_group_code
-                : candidate.name
+                v-model="selection" @click="updateSelection(candidate)"/>
+              </div>
+            </td>
+            <td class="identifier-wrap">
+              {{
+                candidate.name
             }}
           </td>
           <td class="identifier-wrap">{{ candidate.id }}</td>
