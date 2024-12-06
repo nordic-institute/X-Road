@@ -52,11 +52,14 @@ export function prepareI18n(fallbackMessages: any, ...loaders: MessageLoader[]) 
 
   const enMessages = merge.all([{ validation: enValidationMessages }, enSharedMessages, fallbackMessages]) as any;
 
+  const missigAndFallbackWarn = import.meta.env.VITE_WARN_MISSING_TRANSLATION == 'true';
+
   const i18n = createI18n({
     legacy: false,
     locale: defaultLanguage,
     fallbackLocale: defaultFallbackLanguage,
-    silentFallbackWarn: true,
+    missingWarn: missigAndFallbackWarn,
+    fallbackWarn: missigAndFallbackWarn,
     allowComposition: true,
     messages: { en: enMessages },
   });
