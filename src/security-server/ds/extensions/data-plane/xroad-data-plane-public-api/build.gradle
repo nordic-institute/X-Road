@@ -1,0 +1,37 @@
+plugins {
+    id 'java-library'
+}
+
+
+dependencies {
+    implementation project(":serverconf")
+    implementation(project(":proxy:core")) {
+        exclude module: "ds-client"
+    }
+    implementation project(':signer-protocol')
+    implementation project(':common:common-core')
+    implementation project(':common:common-keyconf')
+    implementation project(':security-server:ds:spi:xroad-core-spi')
+    implementation project(':security-server:ds:spi:xroad-messagelog-spi')
+    implementation project(':common:common-messagelog')
+    implementation project(':security-server:ds:xroad-ds-security')
+
+    implementation libs.edc.spi.core
+    implementation libs.edc.core.connector
+
+    implementation libs.edc.spi.transfer
+    implementation libs.edc.spi.jwt
+    implementation libs.edc.lib.crypto
+    implementation libs.nimbus.jose.jwt
+
+    implementation libs.edc.dataplane.core
+    implementation libs.edc.dataplane.http
+    implementation libs.edc.dataplane.util
+
+    implementation libs.edc.ext.jsonld
+    implementation libs.edc.lib.jws2020
+
+    testImplementation libs.edc.junit
+    testImplementation libs.assertj.core
+    testImplementation libs.mockito.jupiter
+}

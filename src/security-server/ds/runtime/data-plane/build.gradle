@@ -1,0 +1,66 @@
+plugins {
+    alias(libs.plugins.springBoot)
+}
+
+configurations {
+    configureEach {
+        exclude group: 'org.eclipse.edc', module: 'jetty-core'
+        exclude group: 'com.apicatalog', module: 'titanium-json-ld-jre8' //transient dep that creates errors
+    }
+}
+
+dependencies {
+    implementation(project(':common:common-service-bootstrap'))
+
+    runtimeOnly(libs.bundles.connector)
+    runtimeOnly(libs.edc.ext.observability)
+    runtimeOnly(libs.edc.dataplane.core)
+    runtimeOnly(libs.edc.dataplane.api.control.config)
+    runtimeOnly(libs.edc.dataplane.api.control.client)
+    //runtimeOnly(libs.edc.dataplane.selfregistration) // currently we register dataplane instance manually
+    runtimeOnly(libs.edc.dataplane.http)
+    //runtimeOnly(libs.edc.dataplane.api.public)
+    runtimeOnly(libs.edc.dataplane.api.signaling)
+    runtimeOnly(libs.edc.ext.jsonld) // needed by the DataPlaneSignalingApi
+    runtimeOnly(libs.edc.dpf.selector.client)
+    runtimeOnly(libs.edc.vault.hashicorp)
+
+    runtimeOnly(libs.bundles.sql.edc.dataplane)
+    implementation(libs.edc.monitor.jdk.logger)
+    implementation libs.bundles.edc.monitoring
+    implementation 'io.opentelemetry:opentelemetry-exporter-otlp:1.38.0'
+
+    // x-road extensions
+    implementation(project(":security-server:ds:extensions:common:xroad-jsonld"))
+    implementation(project(":security-server:ds:extensions:data-plane:xroad-messagelog"))
+    implementation(project(":security-server:ds:extensions:data-plane:xroad-data-plane-public-api"))
+    implementation(project(":security-server:ds:extensions:data-plane:xroad-data-plane-iam"))
+    implementation(project(":security-server:ds:extensions:common:xroad-jws-signer"))
+    implementation(project(":security-server:ds:extensions:common:xroad-httpclient"))
+    implementation(project(":security-server:ds:extensions:common:xroad-webserver"))
+    implementation(project(":security-server:ds:extensions:common:xroad-spring-bridge"))
+    implementation(libs.logback.classic)
+    implementation libs.apache.commonsLang3
+
+    testImplementation libs.edc.junit
+    testImplementation libs.mockito.jupiter
+}
+
+jar {
+    enabled = false
+}
+
+bootJar {
+    enabled = true
+    archiveBaseName = 'ds-data-plane'
+    manifest {
+        attributes(
+            'Implementation-Title': 'X-Road EDC Data Plane',
+            'Implementation-Version': "$xroadVersion-$xroadBuildType",
+        )
+    }
+}
+
+archUnit {
+    skip = true
+}

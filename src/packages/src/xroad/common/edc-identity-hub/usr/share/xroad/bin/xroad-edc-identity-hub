@@ -1,0 +1,20 @@
+#!/bin/bash
+
+. /etc/xroad/services/global.conf
+
+if [[ "$XROAD_APPLICATION_TYPE" == "ss" ]]; then
+  #security server
+  IH_JAVA_OPTS=" \
+      -Dserverconf.hibernate.hikari.maximumPoolSize=1 \
+      -Xdebug -agentlib:jdwp=transport=dt_socket,address=*:9955,server=y,suspend=n "
+else
+  #central server
+  IH_JAVA_OPTS=" \
+      -Xdebug -agentlib:jdwp=transport=dt_socket,address=*:9957,server=y,suspend=n \
+      -Dedc.extension.spring-bridge.serverconf.enabled=false \
+      -Dweb.custom-tls-keystore.enabled=true \
+      -Dweb.custom-tls-keystore.path=/etc/xroad/ssl/management-service.p12"
+fi
+
+exec java $IH_JAVA_OPTS \
+    -Xmx256m -jar /usr/share/xroad/jlib/edc-identity-hub.jar

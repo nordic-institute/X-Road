@@ -66,25 +66,25 @@ deploy_module() {
     jar_path="$XROAD_HOME/src/central-server/registration-service/build/libs/centralserver-registration-service-1.0.jar"
     service_name="xroad-center-registration-service"
     ;;
-  "edc-control-plane")
-    jar_path="$XROAD_HOME/src/security-server/edc/runtime/control-plane/build/libs/edc-control-plane-1.0.jar"
-    service_name="xroad-edc-control-plane"
+  "ds-control-plane")
+    jar_path="$XROAD_HOME/src/security-server/ds/runtime/control-plane/build/libs/ds-control-plane-1.0.jar"
+    service_name="xroad-ds-control-plane"
     ;;
-  "edc-data-plane")
-    jar_path="$XROAD_HOME/src/security-server/edc/runtime/data-plane/build/libs/edc-data-plane-1.0.jar"
-    service_name="xroad-edc-data-plane"
+  "ds-data-plane")
+    jar_path="$XROAD_HOME/src/security-server/ds/runtime/data-plane/build/libs/ds-data-plane-1.0.jar"
+    service_name="xroad-ds-data-plane"
     ;;
-  "edc-ih")
-    jar_path="$XROAD_HOME/src/security-server/edc/runtime/identity-hub/build/libs/edc-identity-hub-1.0.jar"
-    service_name="xroad-edc-ih"
+  "ds-ih")
+    jar_path="$XROAD_HOME/src/security-server/ds/runtime/identity-hub/build/libs/ds-identity-hub-1.0.jar"
+    service_name="xroad-ds-ih"
     ;;
   "cs-catalog-service")
     jar_path="$XROAD_HOME/src/central-server/ds-catalog-service/build/libs/ds-catalog-service-1.0.jar"
-    service_name="xroad-edc-catalog-service"
+    service_name="xroad-ds-catalog-service"
     ;;
   "cs-credential-service")
     jar_path="$XROAD_HOME/src/central-server/ds-credential-service/build/libs/ds-credential-service-1.0.jar"
-    service_name="xroad-edc-credential-service"
+    service_name="xroad-ds-credential-service"
     ;;
   *)
     echo "Unknown module: $module_name"
@@ -103,13 +103,13 @@ deploy_module() {
 set -o xtrace
 
 case $1 in
-"proxy" | "messagelog-addon" | "metaservice-addon" | "proxy-ui-api" | "configuration-client" | "asicverifier" | "op-monitor-daemon" | "monitor" | "edc-control-plane" | "edc-data-plane")
+"proxy" | "messagelog-addon" | "metaservice-addon" | "proxy-ui-api" | "configuration-client" | "asicverifier" | "op-monitor-daemon" | "monitor" | "ds-control-plane" | "ds-data-plane")
   deploy_module "$1" "ss0" "ss1"
   ;;
 "cs-admin-service" | "cs-management-service" | "cs-registration-service" | "cs-catalog-service" | "cs-credential-service")
   deploy_module "$1" "cs"
   ;;
-"signer" | "signer-console" | "hwtoken-addon" | "edc-ih")
+"signer" | "signer-console" | "hwtoken-addon" | "ds-ih")
   deploy_module "$1" "ss0" "ss1"
   deploy_module "$1" "cs"
   ;;

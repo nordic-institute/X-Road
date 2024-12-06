@@ -12,10 +12,11 @@ xroad:
 
 #EDC conf
 edc:
+  hostname: ${EDC_HOSTNAME}
   datasource:
     default:
-      url: jdbc:postgresql://127.0.0.1:5432/edc-control-plane
-      user: edc-control-plane
+      url: jdbc:postgresql://127.0.0.1:5432/ds-control-plane
+      user: ds-control-plane
       password: ${XROAD_DS_PASSWORD}
   participant:
     id: ${EDC_DID}
@@ -24,7 +25,7 @@ edc:
       alias: public-key
   dsp:
     callback:
-      address: https://${EDC_HOSTNAME}:9194/protocol
+      address: https://${edc.hostname}:9194/protocol
   edr:
     receiver:
       sync: true
@@ -51,8 +52,11 @@ edc:
       enabled: true
   vault:
     hashicorp:
-      url: http://openbao:8200
-      token: 00000000-0000-0000-0000-000000000001
+      url: ${XROAD_SECRET_STORE_SCHEME:http}://${XROAD_SECRET_STORE_HOST:127.0.0.1}:${XROAD_SECRET_STORE_PORT:8200}
+      token: ${XROAD_SECRET_STORE_TOKEN}
+      api:
+        secret:
+          path: v1/xrd-ds-secret
   negotiation:
     state-machine:
       iteration-wait-millis: 300

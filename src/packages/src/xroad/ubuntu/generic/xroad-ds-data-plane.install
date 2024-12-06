@@ -1,0 +1,3 @@
+../../../../src/xroad/common/ds-data-plane/usr/* usr/
+../../../../../security-server/ds/runtime/data-plane/src/main/resources/liquibase/* usr/share/xroad/db/
+../../../../../security-server/ds/runtime/data-plane/build/libs/ds-data-plane-1.0.jar usr/share/xroad/jlib/

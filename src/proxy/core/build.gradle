@@ -24,8 +24,8 @@ dependencies {
     implementation(project(':signer-protocol'))
     implementation(project(':common:common-messagelog'))
     implementation(project(':common:common-op-monitoring'))
-    implementation project(':security-server:edc-client')
-    implementation project(':security-server:edc:xroad-edc-security')
+    implementation project(':security-server:ds-client')
+    implementation project(':security-server:ds:xroad-ds-security')
 
     implementation("org.springframework.boot:spring-boot-starter")
     implementation("com.fasterxml.jackson.dataformat:jackson-dataformat-yaml")
