@@ -22,9 +22,4 @@ if [[ -z "$default_host" ]]; then
     fi
 fi
 
-<<<<<<<< HEAD:src/packages/src/xroad/common/ds-catalog-service/usr/share/xroad/scripts/setup_ds_catalogservice_db.sh
 setup_database "ds-control-plane" "ds-control-plane" "$default_host"
-========
-setup_database "edc-identity-hub" "edc-identity-hub" "$default_host"
-
->>>>>>>> edc-poc:src/packages/src/xroad/common/edc-identity-hub/usr/share/xroad/scripts/setup_edc_identityhub_db.sh

@@ -17,9 +17,4 @@ if [[ -z "$default_host" ]]; then
     fi
 fi
 
-<<<<<<<< HEAD:src/packages/src/xroad/common/ds-data-plane/usr/share/xroad/scripts/setup_ds_dataplane_db.sh
 setup_database "ds-data-plane" "ds-data-plane" "$default_host"
-========
-setup_database "edc-control-plane" "edc-control-plane" "$default_host"
-
->>>>>>>> edc-poc:src/packages/src/xroad/common/edc-control-plane/usr/share/xroad/scripts/setup_edc_controlplane_db.sh
