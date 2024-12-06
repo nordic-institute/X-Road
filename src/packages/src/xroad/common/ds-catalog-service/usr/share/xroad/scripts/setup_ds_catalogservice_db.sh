@@ -9,11 +9,22 @@ source /usr/share/xroad/scripts/_setup_db.sh
 
 default_host=$1
 if [[ -z "$default_host" ]]; then
-    url=$(get_prop '/etc/xroad/db.properties' 'spring.datasource.url' '')
+    if [[ "$XROAD_APPLICATION_TYPE" == "ss" ]]; then
+      # security server
+      url=$(get_prop '/etc/xroad/db.properties' 'serverconf.hibernate.connection.url' '')
+    else
+      # central server
+      url=$(get_prop '/etc/xroad/db.properties' 'spring.datasource.url' '')
+    fi
     pat='^jdbc:postgresql://([^/]*).*'
     if [[ "$url" =~ $pat ]]; then
         default_host="${BASH_REMATCH[1]}"
     fi
 fi
 
+<<<<<<<< HEAD:src/packages/src/xroad/common/ds-catalog-service/usr/share/xroad/scripts/setup_ds_catalogservice_db.sh
 setup_database "ds-control-plane" "ds-control-plane" "$default_host"
+========
+setup_database "edc-identity-hub" "edc-identity-hub" "$default_host"
+
+>>>>>>>> edc-poc:src/packages/src/xroad/common/edc-identity-hub/usr/share/xroad/scripts/setup_edc_identityhub_db.sh
