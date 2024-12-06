@@ -170,7 +170,7 @@ The schema is located in the file *src/op-monitor-daemon/core/src/main/resources
 
 ### A.2 Example Store Operational Monitoring Data Request
 
-The first record of the store request reflects successfully mediated WSDL request, the second one successfully mediated REST request and the third one unsuccessfully mediated request.
+The first record of the store request reflects successfully mediated SOAP request, the second one successfully mediated REST request and the third one unsuccessfully mediated request.
 
 ```json
 {
