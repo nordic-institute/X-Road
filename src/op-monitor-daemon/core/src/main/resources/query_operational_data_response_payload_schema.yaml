@@ -7,10 +7,15 @@ properties:
     items:
       type: object
       properties:
+        monitoringDataTs:
+          description: The Unix timestamp in seconds when the record was received by the monitoring daemon
+          type: integer
+          minimum: 0
         securityServerInternalIp:
           description: Internal IP address of the security server
           type: string
           format: ipv4
+          maxLength: 255
         securityServerType:
           description: Type of the security server
           type: string
@@ -36,63 +41,83 @@ properties:
         clientXRoadInstance:
           description: Instance identifier of the instance used by the client
           type: string
+          maxLength: 255
         clientMemberClass:
           description: Member class of the X-Road member (client)
           type: string
+          maxLength: 255
         clientMemberCode:
           description: Member code of the X-Road member (client)
           type: string
+          maxLength: 255
         clientSubsystemCode:
           description: Subsystem code of the X-Road member (client)
           type: string
+          maxLength: 255
         serviceXRoadInstance:
           description: Instance identifier of the instance used by the service provider
           type: string
+          maxLength: 255
         serviceMemberClass:
           description: Member class of the X-Road member (service provider)
           type: string
+          maxLength: 255
         serviceMemberCode:
           description: Member code of the X-Road member (service provider)
           type: string
+          maxLength: 255
         serviceSubsystemCode:
           description: Subsystem code of the X-Road member (service provider)
           type: string
+          maxLength: 255
         serviceCode:
           description: Code of the service
           type: string
+          maxLength: 255
         restMethod:
           description: Method of the rest
           type: string
+          maxLength: 255
         restPath:
           description: Path of the rest
           type: string
+          maxLength: 255
         serviceVersion:
           description: Version of the service
           type: string
+          maxLength: 255
         representedPartyClass:
           description: Class of the represented party
           type: string
+          maxLength: 255
         representedPartyCode:
           description: Code of the represented party
           type: string
+          maxLength: 255
         messageId:
           description: Unique identifier of the message
           type: string
+          maxLength: 255
         messageUserId:
           description: Personal code of the client that initiated the request
           type: string
+          maxLength: 255
         messageIssue:
           description: Client's internal identifier of a file or document related to the service
           type: string
+          maxLength: 255
         messageProtocolVersion:
           description: X-Road message protocol version
           type: string
+          maxLength: 255
         clientSecurityServerAddress:
           description: External address of client's security server (IP or name) defined in global configuration
           type: string
+          maxLength: 255
         serviceSecurityServerAddress:
           description: External address of service provider's security server (IP or name) defined in global configuration
           type: string
+          maxLength: 255
         requestMimeSize:
           description: Size of the MIME-container of the request (bytes)
           type: integer
@@ -115,9 +140,11 @@ properties:
         faultCode:
           description: fault code in case error received
           type: string
+          maxLength: 255
         faultString:
           description: fault reason in case error received
           type: string
+          maxLength: 2048
         requestSize:
           description: Size of the request (bytes)
           type: integer
@@ -131,8 +158,8 @@ properties:
           type: integer
           minimum: 0
         serviceType:
-            description: Type of the service WSDL, REST or OPENAPI3
-            type: string
-            minimum: 0
+          description: Type of the service WSDL, REST or OPENAPI3
+          type: string
+          minimum: 0
 required:
   - records
