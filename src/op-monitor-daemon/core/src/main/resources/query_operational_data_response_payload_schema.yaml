@@ -20,8 +20,8 @@ properties:
           description: Type of the security server
           type: string
           enum:
-          - Client
-          - Producer
+            - Client
+            - Producer
         requestInTs:
           description: 'In the client''s security server: the Unix timestamp in milliseconds when the request was received by the client''s security server. In the service provider''s security server: the Unix timestamp in milliseconds when the request was received by the service provider''s security server. In both cases, the timestamp is taken just before received payload byte array is decoded and processed'
           type: integer
@@ -72,6 +72,14 @@ properties:
           maxLength: 255
         serviceCode:
           description: Code of the service
+          type: string
+          maxLength: 255
+        restMethod:
+          description: Method of the rest
+          type: string
+          maxLength: 255
+        restPath:
+          description: Path of the rest
           type: string
           maxLength: 255
         serviceVersion:
@@ -150,8 +158,8 @@ properties:
           type: integer
           minimum: 0
         serviceType:
-            description: Type of the service WSDL, REST or OPENAPI3
-            type: string
-            minimum: 0
+          description: Type of the service WSDL, REST or OPENAPI3
+          type: string
+          minimum: 0
 required:
-- records
+  - records
