@@ -1,0 +1,3 @@
+../../../../src/xroad/common/ds-catalog-service/usr/* usr/
+../../../../../security-server/ds/runtime/control-plane/src/main/resources/liquibase/* usr/share/xroad/db/
+../../../../../central-server/ds-catalog-service/build/libs/ds-catalog-service-1.0.jar usr/share/xroad/jlib/

@@ -38,14 +38,14 @@ case $1 in
   gradleModule="central-server/management-service"
   gradleArgs+="-xintTest"
   ;;
-"edc-control-plane")
-  gradleModule="security-server/edc/runtime/control-plane"
+"ds-control-plane")
+  gradleModule="security-server/ds/runtime/control-plane"
   ;;
-"edc-data-plane")
-  gradleModule="security-server/edc/runtime/data-plane"
+"ds-data-plane")
+  gradleModule="security-server/ds/runtime/data-plane"
   ;;
-"edc-ih")
-  gradleModule="security-server/edc/runtime/identity-hub"
+"ds-ih")
+  gradleModule="security-server/ds/runtime/identity-hub"
   ;;
 "cs-catalog-service")
   gradleModule="central-server/ds-catalog-service"

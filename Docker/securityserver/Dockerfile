@@ -37,7 +37,7 @@ RUN echo "deb $REPO $DIST $COMPONENT" >/etc/apt/sources.list.d/xroad.list \
     && pg_ctlcluster 16 main start \
     && apt-get update \
     && apt-get -y -qq install xroad-securityserver xroad-autologin xroad-addon-opmonitoring xroad-configuration-service \
-        xroad-edc-identity-hub xroad-edc-control-plane xroad-edc-data-plane \
+        xroad-ds-identity-hub xroad-ds-control-plane xroad-ds-data-plane \
     && pg_ctlcluster 16 main stop \
     # Clean up
     && rm -rf /tmp/repo \
@@ -55,7 +55,7 @@ RUN --mount=type=bind,source=build/packages,target=/tmp/packages \
     && pg_ctlcluster 16 main start \
     && apt-get update \
     && apt-get -y -qq install xroad-securityserver xroad-autologin xroad-addon-opmonitoring \
-        xroad-edc-identity-hub xroad-edc-control-plane xroad-edc-data-plane \
+        xroad-ds-identity-hub xroad-ds-control-plane xroad-ds-data-plane \
     && apt-get -qq clean \
     && pg_ctlcluster 16 main stop \
     # Clean up

@@ -1,0 +1,13 @@
+plugins {
+    id 'java-library'
+}
+
+dependencies {
+    implementation(project(':security-server:ds:xroad-ds-security'))
+    implementation project(":security-server:ds:spi:xroad-core-spi")
+    implementation(project(":security-server:ds:extensions:common:xroad-spring-bridge"))
+    api libs.jetty.server
+    api libs.jetty.servlet.ee10
+    implementation libs.edc.spi.core
+    implementation libs.edc.spi.web
+}

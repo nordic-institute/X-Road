@@ -4,18 +4,18 @@ configure_ss_edc_signing_key() {
   KEY_ID=$(docker compose $COMPOSE_FILE_ARGS --env-file "$ENV_FILE" \
       exec ${1} sh -c "grep -oPz '(?s)<key usage=\"SIGNING\">.*?<label>Sign key</label>.*?</key>' /etc/xroad/signer/keyconf.xml | grep -oPa '<keyId>\K\w+(?=</keyId>)'")
   docker compose $COMPOSE_FILE_ARGS --env-file "$ENV_FILE" \
-      exec ${1} sh -c "cd /etc/xroad/conf.d && sed -i 's|\${EDC_DID_KEY_ID:}|${KEY_ID}|g' edc-control-plane-override.yaml edc-data-plane-override.yaml edc-identity-hub-override.yaml"
+      exec ${1} sh -c "cd /etc/xroad/conf.d && sed -i 's|\${EDC_DID_KEY_ID:}|${KEY_ID}|g' ds-control-plane-override.yaml ds-data-plane-override.yaml ds-identity-hub-override.yaml"
   docker compose $COMPOSE_FILE_ARGS --env-file "$ENV_FILE" \
-      exec ${1} sh -c "supervisorctl restart xroad-edc-control-plane xroad-edc-data-plane xroad-edc-ih"
+      exec ${1} sh -c "supervisorctl restart xroad-ds-control-plane xroad-ds-data-plane xroad-ds-ih"
 }
 
 configure_cs_edc_signing_key() {
   KEY_ID=$(docker compose $COMPOSE_FILE_ARGS --env-file "$ENV_FILE" \
       exec ${1} sh -c "grep -oPz '(?s)<key usage=\"SIGNING\">.*?<label>Internal signing key</label>.*?</key>' /etc/xroad/signer/keyconf.xml | grep -oPa '<keyId>\K\w+(?=</keyId>)'")
   docker compose $COMPOSE_FILE_ARGS --env-file "$ENV_FILE" \
-      exec ${1} sh -c "cd /etc/xroad/conf.d && sed -i 's|\${EDC_DID_KEY_ID:}|${KEY_ID}|g' ds-catalog-service-override.yaml ds-credential-service-override.yaml edc-identity-hub-override.yaml"
+      exec ${1} sh -c "cd /etc/xroad/conf.d && sed -i 's|\${EDC_DID_KEY_ID:}|${KEY_ID}|g' ds-catalog-service-override.yaml ds-credential-service-override.yaml ds-identity-hub-override.yaml"
   docker compose $COMPOSE_FILE_ARGS --env-file "$ENV_FILE" \
-      exec ${1} sh -c "supervisorctl restart xroad-edc-ih xroad-edc-credential-service xroad-edc-catalog-service"
+      exec ${1} sh -c "supervisorctl restart xroad-ds-ih xroad-ds-credential-service xroad-ds-catalog-service"
 }
 
 set -e # Exit immediately if a command exits with a non-zero status.

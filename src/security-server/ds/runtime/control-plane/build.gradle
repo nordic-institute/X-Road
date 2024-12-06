@@ -1,0 +1,64 @@
+plugins {
+    alias(libs.plugins.springBoot)
+}
+
+configurations {
+    configureEach {
+        exclude group: 'org.eclipse.edc', module: 'jetty-core'
+        exclude group: 'com.apicatalog', module: 'titanium-json-ld-jre8' //transient dep that creates errors
+    }
+}
+
+dependencies {
+    implementation(project(':common:common-service-bootstrap'))
+
+    implementation(libs.edc.spi.core) // we need some constants
+    implementation(libs.bundles.controlplane)
+    runtimeOnly(libs.edc.controlplane.services)
+    implementation(libs.edc.core.connector)
+    runtimeOnly(libs.edc.vault.hashicorp)
+    runtimeOnly(libs.bundles.dpf)
+    runtimeOnly(libs.edc.api.version)
+    implementation(libs.edc.monitor.jdk.logger)
+    implementation(libs.logback.classic)
+
+    runtimeOnly(libs.bundles.sql.edc)
+    runtimeOnly(libs.bundles.sql.fc)
+
+    implementation 'io.opentelemetry:opentelemetry-exporter-otlp:1.38.0'
+
+    // x-road extensions
+    implementation(project(":security-server:ds:extensions:common:xroad-jsonld"))
+    implementation(project(":security-server:ds:extensions:control-plane:xroad-edr"))
+    implementation(project(":security-server:ds:extensions:control-plane:xroad-policy"))
+    implementation(project(":security-server:ds:extensions:control-plane:xroad-identity-and-trust"))
+    implementation(project(":security-server:ds:extensions:common:xroad-jws-signer"))
+    implementation(project(":security-server:ds:extensions:common:xroad-httpclient"))
+    implementation(project(":security-server:ds:extensions:common:xroad-webserver"))
+    implementation(project(":security-server:ds:extensions:common:xroad-spring-bridge"))
+
+    implementation libs.apache.commonsLang3
+
+    testImplementation libs.edc.junit
+    testImplementation libs.mockito.jupiter
+    testImplementation libs.edc.lib.jsonld
+}
+
+jar {
+    enabled = false
+}
+
+bootJar {
+    enabled = true
+    archiveBaseName = 'ds-control-plane'
+    manifest {
+        attributes(
+            'Implementation-Title': 'X-Road DS Control Plane',
+            'Implementation-Version': "$xroadVersion-$xroadBuildType",
+        )
+    }
+}
+
+archUnit {
+    skip = true
+}
