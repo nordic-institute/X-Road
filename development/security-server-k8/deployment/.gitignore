@@ -24,3 +24,6 @@ crash.*.log
 terraform.log
 
 .terraform.lock.hcl
+
+xroad-dev-config
+terraform.tfstate
