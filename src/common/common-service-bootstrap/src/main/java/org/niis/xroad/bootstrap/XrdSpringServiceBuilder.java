@@ -31,7 +31,6 @@ import ee.ria.xroad.common.Version;
 
 import lombok.experimental.UtilityClass;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.lang3.StringUtils;
 import org.springframework.boot.builder.SpringApplicationBuilder;
 
 import java.util.HashSet;
@@ -41,8 +40,6 @@ import java.util.Set;
 @Slf4j
 @UtilityClass
 public class XrdSpringServiceBuilder {
-    private static final String ENV_XRD_CONFIG_SERVER_URI = "XROAD_CONFIG_SERVER_URI";
-
     private static final String ENV_DEPLOYMENT_TYPE = "XROAD_DEPLOYMENT_TYPE";
     private static final String ENV_APPLICATION_TYPE = "XROAD_APPLICATION_TYPE";
     private static final String ENV_ADDITIONAL_PROFILES = "XROAD_ADDITIONAL_PROFILES";
@@ -72,15 +69,19 @@ public class XrdSpringServiceBuilder {
             imports.append(",classpath:/xroad-cs-common.yaml");
         } else if (profiles.contains(XrdSpringProfiles.SS)) {
             imports.append(",classpath:/xroad-ss-common.yaml");
+
+            //TODO this should be configurable
+            imports.append(",vault://xrd-secret/serverconf?prefix=secret-serverconf.");
+            imports.append(",vault://xrd-secret/messagelog?prefix=secret-messagelog.");
         }
 
-        if (StringUtils.isNotBlank(System.getenv(ENV_XRD_CONFIG_SERVER_URI))) {
-            imports.append(",configserver:%s".formatted(System.getenv(ENV_XRD_CONFIG_SERVER_URI)));
-
-            properties.add("spring.cloud.config.enabled=true");
-        } else {
-            log.warn("No config server URI defined in environment variable {}", ENV_XRD_CONFIG_SERVER_URI);
+        if (profiles.contains(XrdSpringProfiles.K8)) {
+            imports.append(",kubernetes:");
         }
+
+
+        imports.append(",optional:file:///etc/xroad/conf.d/application-override.yaml");
+
         properties.add("spring.config.import=" + imports);
 
         return properties.toArray(new String[0]);
