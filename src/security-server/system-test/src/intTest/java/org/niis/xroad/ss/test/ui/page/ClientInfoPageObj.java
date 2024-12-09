@@ -394,7 +394,7 @@ public class ClientInfoPageObj {
         }
 
         public ElementsCollection memberTableRows() {
-            return $$x("//table[contains(@class,'members-table')]/tbody/tr");
+            return $$x("//div[@data-test='add-subjects-dialog']//table[contains(@class,'members-table')]/tbody/tr");
         }
 
         public SelenideElement memberTableRowOfId(String id) {
@@ -469,11 +469,11 @@ public class ClientInfoPageObj {
 
     public static class ServiceClientsEdit {
         public SelenideElement cellMemberName() {
-            return $x("//table[@data-test='service-clients-table']/tr/td[1]");
+            return $x("//table[@data-test='service-clients-table']/tbody/tr/td[1]");
         }
 
         public SelenideElement cellId() {
-            return $x("//table[@data-test='service-clients-table']/tr/td[2]");
+            return $x("//table[@data-test='service-clients-table']/tbody/tr/td[2]");
         }
 
         public SelenideElement tableAccessRightsOfServiceCode(String id) {

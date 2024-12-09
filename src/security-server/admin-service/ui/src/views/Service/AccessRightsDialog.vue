@@ -27,6 +27,7 @@
   <v-dialog
     v-if="dialog"
     :model-value="dialog"
+    data-test="add-subjects-dialog"
     width="842"
     scrollable
     persistent
