@@ -36,7 +36,7 @@ import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 @SpringBootConfiguration
 @SuppressWarnings("checkstyle:HideUtilityClassConstructor")
 public class LogArchiverMain {
-    private static final String APP_NAME = "MessageLogArchiver";
+    private static final String APP_NAME = "message-log-archiver";
 
     public static void main(String[] args) {
         XrdSpringServiceBuilder.newApplicationBuilder(APP_NAME, LogArchiverMain.class, LogArchiverConfig.class)

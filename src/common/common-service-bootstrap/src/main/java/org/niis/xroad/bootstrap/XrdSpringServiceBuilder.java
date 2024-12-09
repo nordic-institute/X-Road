@@ -44,7 +44,9 @@ public class XrdSpringServiceBuilder {
     private static final String ENV_APPLICATION_TYPE = "XROAD_APPLICATION_TYPE";
     private static final String ENV_ADDITIONAL_PROFILES = "XROAD_ADDITIONAL_PROFILES";
 
-    private static final String CONFIG_OVERRIDE_PATH = "/etc/xroad/conf.d/application-override.yaml";
+    //TODO perhaps introduce config dir location env var.
+    private static final String CONFIG_GLOBAL_OVERRIDE_PATH = "/etc/xroad/conf.d/application-override.yaml";
+    private static final String CONFIG_APP_OVERRIDE_PATH = "/etc/xroad/conf.d/%s-override.yaml";
 
     //TODO xroad8 consider user spring application name instead of providing one
     public static SpringApplicationBuilder newApplicationBuilder(String appName, Class<?>... sources) {
@@ -55,7 +57,7 @@ public class XrdSpringServiceBuilder {
 
         return new SpringApplicationBuilder(sources)
                 .profiles(profiles.toArray(new String[0]))
-                .properties(resolveProperties(profiles))
+                .properties(resolveProperties(profiles, appName))
                 .initializers(applicationContext -> {
                     log.info("Setting property source to Spring environment..");
                     //TODO xroad8 Remove once SystemProperties is removed
@@ -63,7 +65,7 @@ public class XrdSpringServiceBuilder {
                 });
     }
 
-    private String[] resolveProperties(Set<String> profiles) {
+    private String[] resolveProperties(Set<String> profiles, String appName) {
         Set<String> properties = new HashSet<>();
 
         var imports = new StringBuilder("classpath:/xroad-common.yaml");
@@ -77,7 +79,8 @@ public class XrdSpringServiceBuilder {
             imports.append(",kubernetes:");
         }
 
-        imports.append(",optional:file://%s".formatted(CONFIG_OVERRIDE_PATH));
+        imports.append(",optional:file://%s".formatted(CONFIG_GLOBAL_OVERRIDE_PATH));
+        imports.append(",optional:file://%s".formatted(CONFIG_APP_OVERRIDE_PATH.formatted(appName)));
 
         properties.add("spring.config.import=" + imports);
 

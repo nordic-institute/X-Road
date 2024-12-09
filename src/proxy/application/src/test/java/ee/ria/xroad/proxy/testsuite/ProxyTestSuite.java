@@ -208,7 +208,7 @@ public final class ProxyTestSuite {
 
     private static void runTestSuite(List<MessageTestCase> tc) {
         // todo: should be better way to start application context
-        try (var applicationContext = XrdSpringServiceBuilder.newApplicationBuilder("xroad-proxy",
+        try (var applicationContext = XrdSpringServiceBuilder.newApplicationBuilder("proxy",
                         ProxyMain.class, TestProxySpringConfig.class)
                 .initializers(ctx -> {
                     log.info("Initializing Apache Santuario XML Security library..");

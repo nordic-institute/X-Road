@@ -48,7 +48,7 @@ import org.springframework.context.annotation.Import;
 @NoArgsConstructor
 public class RestApiApplication {
 
-    private static final String APP_NAME = "xroad-proxy-ui-api";
+    private static final String APP_NAME = "proxy-ui-api";
 
     /**
      * start application
