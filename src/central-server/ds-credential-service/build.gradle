@@ -31,10 +31,10 @@ dependencies {
     implementation(project(":common:common-domain"))
     implementation(project(":common:common-globalconf"))
     implementation(project(':common:common-verifier'))
-    implementation(project(":security-server:edc:extensions:common:xroad-jws-signer"))
-    implementation(project(":security-server:edc:extensions:common:xroad-spring-bridge"))
-    implementation(project(":security-server:edc:extensions:common:xroad-webserver"))
-    implementation(project(":security-server:edc:extensions:common:xroad-httpclient"))
+    implementation(project(":security-server:ds:extensions:common:xroad-jws-signer"))
+    implementation(project(":security-server:ds:extensions:common:xroad-spring-bridge"))
+    implementation(project(":security-server:ds:extensions:common:xroad-webserver"))
+    implementation(project(":security-server:ds:extensions:common:xroad-httpclient"))
 
     testImplementation libs.edc.junit
     testImplementation(project(':common:common-test'))

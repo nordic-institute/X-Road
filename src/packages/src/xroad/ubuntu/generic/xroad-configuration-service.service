@@ -1,7 +1,7 @@
 [Unit]
 Description=X-Road Configuration Service
-After=network.target xroad-base.service
-Requires=xroad-base.service
+After=network.target xroad-secret-store-local.service xroad-secret-store-remote.service
+Wants=xroad-secret-store-local.service xroad-secret-store-remote.service
 
 [Service]
 User=xroad
@@ -12,4 +12,3 @@ SuccessExitStatus=143
 
 [Install]
 WantedBy=multi-user.target
-

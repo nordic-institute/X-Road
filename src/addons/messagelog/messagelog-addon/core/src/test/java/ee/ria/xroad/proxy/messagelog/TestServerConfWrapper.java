@@ -150,6 +150,11 @@ public class TestServerConfWrapper implements ServerConfProvider {
     }
 
     @Override
+    public boolean isSubjectInLocalGroup(ClientId clientId, LocalGroupId localGroupId) {
+        return false;
+    }
+
+    @Override
     public List<ClientId.Conf> getMembers() throws Exception {
         return serverConfProvider.getMembers();
     }

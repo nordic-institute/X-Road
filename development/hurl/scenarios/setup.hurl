@@ -1092,7 +1092,7 @@ X-XSRF-TOKEN: {{cs_xsrf_token}}
 Content-Type: application/json
 {
   "member_name":"Test member",
-  "did":"did:web:ss0%3A9396"
+  "did":"did:web:{{ss0_host}}%3A9396"
 }
 
 HTTP 200
@@ -1102,7 +1102,7 @@ X-XSRF-TOKEN: {{cs_xsrf_token}}
 Content-Type: application/json
 {
   "member_name":"Test client",
-  "did":"did:web:ss1%3A9396"
+  "did":"did:web:{{ss1_host}}%3A9396"
 }
 
 HTTP 200
@@ -1112,9 +1112,9 @@ PATCH https://{{cs_host}}:4000/api/v1/security-servers/DEV:COM:1234:SS0
 X-XSRF-TOKEN: {{cs_xsrf_token}}
 Content-Type: application/json
 {
-  "server_address": "ss0",
+  "server_address": "{{ss0_host}}",
   "ds_enabled": true,
-  "protocol_url": "ss0:9194/protocol"
+  "protocol_url": "{{ss0_host}}:9194/protocol"
 }
 
 HTTP 200
@@ -1123,19 +1123,9 @@ PATCH https://{{cs_host}}:4000/api/v1/security-servers/DEV:COM:4321:SS1
 X-XSRF-TOKEN: {{cs_xsrf_token}}
 Content-Type: application/json
 {
-  "server_address": "ss1",
+  "server_address": "{{ss1_host}}",
   "ds_enabled": true,
-  "protocol_url": "ss1:9194/protocol"
+  "protocol_url": "{{ss1_host}}:9194/protocol"
 }
-
-HTTP 200
-
-GET https://{{ss0_host}}:4000/api/v1/ds/trigger-asset-update
-X-XSRF-TOKEN: {{ss0_xsrf_token}}
-
-HTTP 200
-
-GET https://{{ss1_host}}:4000/api/v1/ds/trigger-asset-update
-X-XSRF-TOKEN: {{ss1_xsrf_token}}
 
 HTTP 200

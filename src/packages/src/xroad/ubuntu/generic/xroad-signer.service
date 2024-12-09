@@ -1,6 +1,6 @@
 [Unit]
 Description=X-Road signer
-After=network.target xroad-base.service
+After=network.target xroad-base.service xroad-configuration-service.service
 Requires=xroad-base.service
 
 [Service]

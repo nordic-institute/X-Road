@@ -236,7 +236,12 @@ public class GlobalConfImpl implements GlobalConfProvider {
             return emptySet();
         }
 
-        return getSharedParametersCache(clientId.getXRoadInstance()).getSecurityServersByClientId().get(clientId).stream()
+        var securityServers = getSharedParametersCache(clientId.getXRoadInstance()).getSecurityServersByClientId().get(clientId);
+        if (securityServers == null) {
+            return emptySet();
+        }
+
+        return securityServers.stream()
                 .map(SharedParameters.SecurityServer::getServerAddress)
                 .map(SharedParameters.ServerAddress::address)
                 .filter(StringUtils::isNotBlank)

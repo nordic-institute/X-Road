@@ -6,6 +6,12 @@ origin="$(pwd)"
 gradleModule=""
 gradleArgs="clean build -xtest -xcheckstyleMain -xcheckstyleTest "
 case $1 in
+"addon-message-log-archiver")
+  gradleModule="addons/messagelog/messagelog-archiver"
+  ;;
+"configuration-service")
+  gradleModule="security-server/configuration-service"
+  ;;
 "proxy")
   gradleModule="proxy"
   gradleArgs+="-xintTest -xintegrationTest"
@@ -32,14 +38,14 @@ case $1 in
   gradleModule="central-server/management-service"
   gradleArgs+="-xintTest"
   ;;
-"edc-control-plane")
-  gradleModule="security-server/edc/runtime/control-plane"
+"ds-control-plane")
+  gradleModule="security-server/ds/runtime/control-plane"
   ;;
-"edc-data-plane")
-  gradleModule="security-server/edc/runtime/data-plane"
+"ds-data-plane")
+  gradleModule="security-server/ds/runtime/data-plane"
   ;;
-"edc-ih")
-  gradleModule="security-server/edc/runtime/identity-hub"
+"ds-ih")
+  gradleModule="security-server/ds/runtime/identity-hub"
   ;;
 "cs-catalog-service")
   gradleModule="central-server/ds-catalog-service"

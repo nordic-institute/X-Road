@@ -4,21 +4,26 @@ spring:
     banner-mode: log
   cloud:
     vault:
-      uri: http://openbao:8200
-      token: 00000000-0000-0000-0000-000000000001  #TODO xroad8, token must be moved somewhere else
+      enabled: true
+      host: ${XROAD_SECRET_STORE_HOST:127.0.0.1}
+      port: ${XROAD_SECRET_STORE_PORT:8200}
+      scheme: ${XROAD_SECRET_STORE_SCHEME:https}
+      token: ${XROAD_SECRET_STORE_TOKEN}
       kv:
         enabled: true
-        backend: secret
+        backend: xrd-secret
 
 logging:
   level:
     ROOT: INFO
+    org.springframework: INFO
 
 xroad:
   common:
     rpc:
       use-tls: true
       certificate-provisioning:
+        secret-store-pki-path: xrd-pki
         issuance-role-name: xrd-rpc-internal
         common-name: ${XROAD_HOST:localhost}
         ip-subject-alt-names:

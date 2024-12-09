@@ -27,3 +27,15 @@ container_ports:
     connect: "tcp:127.0.0.1:9996"
     listen: "tcp:0.0.0.0:{{ 3293 + (groups['ss_servers'].index(inventory_hostname) * 100) }}"
     type: proxy
+  ds_control_plane_debug:
+    connect: "tcp:127.0.0.1:9953"
+    listen: "tcp:0.0.0.0:{{ 3294 + (groups['ss_servers'].index(inventory_hostname) * 100) }}"
+    type: proxy
+  ds_data_plane_debug:
+    connect: "tcp:127.0.0.1:9954"
+    listen: "tcp:0.0.0.0:{{ 3295 + (groups['ss_servers'].index(inventory_hostname) * 100) }}"
+    type: proxy
+  ds_identity_hub_debug:
+    connect: "tcp:127.0.0.1:9955"
+    listen: "tcp:0.0.0.0:{{ 3296 + (groups['ss_servers'].index(inventory_hostname) * 100) }}"
+    type: proxy
