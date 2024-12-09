@@ -177,7 +177,7 @@ public class ClientInfoPageObj {
             }
 
             public SelenideElement memberByCode(String code) {
-                return $x(format("//table[contains(@class, 'group-members-table')]//tr[td[2][text()='%s']]",
+                return $x(format("//table[contains(@class, 'group-members-table')]/tbody/tr[td[2][text()='%s']]",
                         code));
             }
 
@@ -287,11 +287,11 @@ public class ClientInfoPageObj {
         }
 
         public SelenideElement accessRightsTableRowOfId(String id) {
-            return $x(format("//table[contains(@class,'group-members-table')]//td[text()='%s']", id));
+            return $x(format("//table[contains(@class,'group-members-table')]/tbody/tr/td[text()='%s']", id));
         }
 
         public SelenideElement accessRightsTableRowRemoveOfId(String id) {
-            return $x(format("//table[contains(@class,'group-members-table')]//tr[ td[text()='%s']]//button[@data-test='remove-subject']",
+            return $x(format("//table[contains(@class,'group-members-table')]/tbody/tr[td[text()='%s']]//button[@data-test='remove-subject']",
                     id));
         }
     }
@@ -394,7 +394,7 @@ public class ClientInfoPageObj {
         }
 
         public ElementsCollection memberTableRows() {
-            return $$x("//table[contains(@class,'members-table')]//tbody/tr");
+            return $$x("//table[contains(@class,'members-table')]/tbody/tr");
         }
 
         public SelenideElement memberTableRowOfId(String id) {
