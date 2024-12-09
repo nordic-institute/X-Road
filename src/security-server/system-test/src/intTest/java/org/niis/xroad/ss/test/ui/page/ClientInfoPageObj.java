@@ -291,8 +291,8 @@ public class ClientInfoPageObj {
         }
 
         public SelenideElement accessRightsTableRowRemoveOfId(String id) {
-            return $x(format("//table[contains(@class,'group-members-table')]/tbody/tr[td[text()='%s']]//button[@data-test='remove-subject']",
-                    id));
+            return $x("//table[contains(@class,'group-members-table')]/tbody/tr[td[text()='%s']]//button[@data-test='remove-subject']"
+                    .formatted(id));
         }
     }
 
@@ -551,9 +551,11 @@ public class ClientInfoPageObj {
         public SelenideElement title() {
             return $x("//div[@data-test='service-warning-dialog-title']");
         }
+
         public SelenideElement btnCancel() {
             return $x("//button[@data-test='dialog-cancel-button']");
         }
+
         public SelenideElement btnContinue() {
             return $x("//button[@data-test='service-url-change-button']");
         }
