@@ -2,32 +2,105 @@
   "locals_demo": "This is localised in library",
   "type": "Type",
   "warning": "Warning",
-  "fields": {
-    "password": "Password",
-    "username": "LIB-Username",
-    "shared": "sharedlib",
-    "code": "Code",
-    "description": "Description"
-  },
   "action": {
+    "activate": "Activate",
     "cancel": "Cancel",
     "add": "Add",
-    "yes": "Yes",
+    "addClient": "Add client",
+    "addMember": "Add member",
+    "addSubsystem": "Add subsystem",
+    "close": "Close",
+    "confirm": "Confirm",
+    "continue": "Continue",
+    "copy": "Copy",
+    "copyId": "Copy ID",
     "delete": "Delete",
+    "deactivate": "Disable",
+    "done": "Done",
     "download": "Download",
+    "edit": "Edit",
+    "emptySearch": "Your search for {msg} found no results.",
+    "export": "Export",
+    "finish": "Finish",
+    "goToFront": "Go to the front page",
+    "next": "Next",
+    "no": "No",
+    "noData": "No data",
+    "ok": "Ok",
+    "previous": "Previous",
+    "refresh": "Refresh",
+    "register": "Register",
+    "remove": "Remove",
+    "removeAll": "Remove All",
+    "restore": "Restore",
+    "save": "Save",
+    "search": "Search",
+    "searching": "Searching...",
+    "submit": "Submit",
+    "unregister": "Unregister",
     "upload": "Upload",
-    "restore": "Restore"
+    "yes": "Yes"
   },
-  "noData": {
-    "noMatches": "No items matching criteria",
-    "loading": "Loading... Please wait"
+  "alert": {
+    "count": "Amount of same errors:",
+    "id": "ID"
+  },
+  "apiKey": {
+    "createApiKey": {
+      "button": "CREATE API KEY",
+      "step": {
+        "keyDetails": {
+          "apiKey": "API key",
+          "apiKeyID": "API key ID",
+          "assignedRoles": "Roles assigned",
+          "createKeyButton": "Create Key",
+          "name": "Key Details",
+          "note": "NOTE: save the API key in a secure place. The API key is visible only at the time of key generation. It will not be presented again and cannot be retrieved later."
+        },
+        "roles": {
+          "description": "Please select the roles associated with the API key. The roles define the permissions granted to the API key.",
+          "name": "Roles",
+          "selectRoles": "Select roles"
+        }
+      },
+      "success": "API key successfully created",
+      "title": "Create API key"
+    },
+    "role": {
+      "XROAD_REGISTRATION_OFFICER": "Registration Officer",
+      "XROAD_SECURITY_OFFICER": "Security Officer",
+      "XROAD_SYSTEM_ADMINISTRATOR": "System Administrator"
+    },
+    "edit": {
+      "roleRemoveOnly": "(remove only)"
+    },
+    "table": {
+      "action": {
+        "edit": {
+          "button": "Edit",
+          "dialog": {
+            "message": "Roles associated with the API key:",
+            "title": "Edit API Key (ID: {id})"
+          },
+          "success": "API key with ID {id} saved"
+        },
+        "revoke": {
+          "button": "Revoke key",
+          "confirmationDialog": {
+            "message": "Are you sure you want to revoke the API key with ID {id}?",
+            "title": "Are you sure?"
+          },
+          "success": "API key with ID {id} successfully revoked"
+        }
+      },
+      "header": {
+        "id": "ID",
+        "roles": "Roles"
+      }
+    }
   },
   "keys": {
     "gotIt": "Got it"
-  },
-  "global": {
-    "all": "All",
-    "name": "Name"
   },
   "backup": {
     "deleteBackup": {
@@ -60,13 +133,119 @@
       "success": "Backup {file} uploaded successfully"
     }
   },
+  "cert": {
+    "certificate": "Certificate",
+    "hashInfo": "Hash (SHA-256)",
+    "keyUsage": {
+      "CRL_SIGN": "CRL Sign",
+      "DATA_ENCIPHERMENT": "Data Encipherment",
+      "DECIPHER_ONLY": "Decipher Only",
+      "DIGITAL_SIGNATURE": "Digital Signature",
+      "ENCIPHER_ONLY": "Encipher Only",
+      "KEY_AGREEMENT": "Key Agreement",
+      "KEY_CERT_SIGN": "Certificate Sign",
+      "KEY_ENCIPHERMENT": "Key Encipherment",
+      "NON_REPUDIATION": "Non Repudiation"
+    },
+    "rsaExp": "RSA Public Key Exponent",
+    "rsaModulus": "RSA Public Key Modulus",
+    "ecParameters": "EC Public Key Parameters",
+    "ecPoint": "EC Public Key Point"
+  },
+  "error_code": {
+    "api_key_not_found": "API key not found",
+    "backup_file_not_found": "Backup was not found",
+    "backup_generation_failed": "Failed to generate backup",
+    "backup_restore_interrupted": "Backup restoration has been interrupted",
+    "generate_backup_interrupted": "Backup generation has been interrupted",
+    "invalid_backup_file": "Invalid backup file",
+    "invalid_distinguished_name": "Distinguished name is invalid",
+    "invalid_filename": "Invalid filename",
+    "resource_read_failed": "Failed to read resource",
+    "restore_process_failed": "Restore process failed",
+    "token_not_found": "Token not found",
+    "validation_failure": "Validation failure"
+  },
+  "fields": {
+    "password": "Password",
+    "username": "LIB-Username",
+    "shared": "sharedlib",
+    "code": "Code",
+    "description": "Description",
+    "memberClass": "Member Class",
+    "securityServerCode": "Security Server Code"
+  },
+  "footer": {
+    "copyright": {
+      "company": "Nordic Institute for Interoperability Solutions (NIIS)",
+      "licenceInfo": "Licence info",
+      "title": "Copyright"
+    },
+    "software": {
+      "feedback": "Feedback",
+      "title": "Software",
+      "versionPrefix": "X-Road"
+    }
+  },
+  "global": {
+    "all": "All",
+    "name": "Name"
+  },
+  "login": {
+    "errorMsg401": "Wrong username or password",
+    "generalError": "Login failed. Please try again.",
+    "logIn": "Log in",
+    "logOut": "Log out"
+  },
+  "logout": {
+    "idleWarning": "You have been idle for 30 minutes and your session has expired. For security reasons, you will be logged out.",
+    "sessionExpired": "Session expired"
+  },
+  "noData": {
+    "loading": "Loading... Please wait",
+    "noBackups": "No backups yet",
+    "noCertificate": "No certificate",
+    "noCertificates": "No certificates",
+    "noData": "No data",
+    "noMatches": "No items matching criteria",
+    "noServices": "No services",
+    "noTokens": "No tokens"
+  },
   "validationError": {
+    "AssertFalse": "value should be 'false'",
+    "AssertTrue": "value should be 'true'",
+    "DecimalMax": "numeric value exceeds the maximum allowed",
+    "DecimalMin": "numeric value is under the minimum allowed",
+    "Digits": "value should contain only digits",
+    "Email": "value does not meet the email format",
+    "Future": "datetime value should be in the future",
+    "FutureOrPresent": "datetime value should be now or in the future",
+    "Max": "numeric value exceeds the maximum allowed",
+    "Min": "numeric value is under the minimum allowed",
+    "Negative": "numeric value should be less than zero",
+    "NegativeOrZero": "numeric value should be less or equal to zero",
+    "NoBackslashes": "value should not contain backslash (\\) symbols",
+    "NoColons": "value should not contain colon (:) symbols",
+    "NoForwardslashes": "value should not contain forward slash (/) symbols",
+    "NoPercents": "value should not contain percentage (%) symbols",
+    "NoSemicolons": "value should not contain semicolon (;) symbols",
+    "Normalized": "value should be normalized",
+    "NotBlank": "value should not be blank",
+    "NotEmpty": "value should not be empty",
+    "NotNull": "value is required",
+    "Null": "value should not be set",
+    "Past": "datetime value should be in the past",
+    "PastOrPresent": "datetime value should be now or in the past",
+    "Pattern": "value did not match the required format",
+    "Positive": "numeric value should be greater that zero",
+    "PositiveOrZero": "numeric value should be greater or equal to zero",
+    "Size": "value does not meet length requirements",
     "ValidHostAddress": "Valid fully qualified domain name (e.g. host.example.org) or public IP address (eg. 192.168.123.123) needed",
     "ValidHostAddressField": "Valid IP address or fully qualified domain name needed"
   },
   "validation": {
     "messages": {
-      "address" : "The {field} field contains invalid characters"
+      "address": "The {field} field contains invalid characters"
     }
   }
 }

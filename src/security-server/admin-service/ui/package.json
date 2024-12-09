@@ -19,9 +19,9 @@
     "@niis/shared-ui": "workspace:*"
   },
   "devDependencies": {
-    "@typescript-eslint/eslint-plugin": "~8.14.0",
-    "@typescript-eslint/parser": "~8.14.0",
-    "eslint-plugin-vue-scoped-css": "^2.8.1"
+    "@typescript-eslint/eslint-plugin": "~8.16.0",
+    "@typescript-eslint/parser": "~8.16.0",
+    "eslint-plugin-vue-scoped-css": "^2.9.0"
   },
   "engines": {
     "npm": "use-pnpm",

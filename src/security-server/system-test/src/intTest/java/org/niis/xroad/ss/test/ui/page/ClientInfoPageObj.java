@@ -80,8 +80,24 @@ public class ClientInfoPageObj {
 
         }
 
+        private SelenideElement tlsCertificateTable() {
+            return $x("//div[@data-test='tls-certificate-table']//table");
+        }
+
         public SelenideElement linkTLSCertificate() {
-            return $x("//table[contains(@class, 'server-certificates')]//span[contains(@class, 'certificate-link')]");
+            return tlsCertificateTable().$x(".//span[@data-test='tls-certificate-link']");
+        }
+
+        public SelenideElement tlsCertificateSubjectDistinguishedName() {
+            return tlsCertificateTable().$x(".//span[@data-test='tls-certificate-subject-distinguished-name']");
+        }
+
+        public SelenideElement tlsCertificateNotBefore() {
+            return tlsCertificateTable().$x(".//span[@data-test='tls-certificate-not-before']");
+        }
+
+        public SelenideElement tlsCertificateNotAfter() {
+            return tlsCertificateTable().$x(".//span[@data-test='tls-certificate-not-after']");
         }
 
         public SelenideElement inputTlsCertificate() {

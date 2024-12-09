@@ -23,54 +23,29 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-import 'vuetify/styles';
-import '@mdi/font/css/materialdesignicons.css';
-import { createVuetify } from 'vuetify';
-import * as components from 'vuetify/components';
-import * as directives from 'vuetify/directives'
-import { aliases, mdi } from 'vuetify/iconsets/mdi';
-import { Colors } from '@/global';
 
-export default createVuetify({
-  components,
-  directives,
-  defaults: {
-    VTextField: {
-      color: 'primary',
-    },
-    VSwitch: {
-      color: 'primary',
-    },
-    VStepperItem: {
-      color: 'primary',
-    },
-    VRadioGroup: {
-      color: 'primary',
-    },
-    VRadio: {
-      color: 'primary',
-    },
-    VCheckbox: {
-      color: 'primary',
+import { defineStore } from 'pinia';
+import { setLanguage } from '@/plugins/i18n';
+
+export const useLanguage = defineStore('language', {
+  state: () => ({
+    language: import.meta.env.VITE_I18N_LOCALE || ('en' as string),
+  }),
+
+  persist: {
+    storage: localStorage,
+  },
+
+  getters: {
+    getLanguage(state): string {
+      return state.language;
     },
   },
-  icons: {
-    defaultSet: 'mdi',
-    aliases,
-    sets: {
-      mdi,
-    },
-  },
-  theme: {
-    themes: {
-      light: {
-        dark: false,
-        colors: {
-          primary: Colors.Purple100,
-          secondary: Colors.Purple70,
-          error: Colors.Error,
-        },
-      },
+
+  actions: {
+    async changeLanguage(language: string) {
+      this.language = language;
+      await setLanguage(language);
     },
   },
 });
