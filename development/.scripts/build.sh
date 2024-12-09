@@ -9,9 +9,6 @@ case $1 in
 "addon-message-log-archiver")
   gradleModule="addons/messagelog/messagelog-archiver"
   ;;
-"configuration-service")
-  gradleModule="security-server/configuration-service"
-  ;;
 "proxy")
   gradleModule="proxy"
   gradleArgs+="-xintTest -xintegrationTest"

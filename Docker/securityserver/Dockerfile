@@ -36,7 +36,7 @@ RUN echo "deb $REPO $DIST $COMPONENT" >/etc/apt/sources.list.d/xroad.list \
     # Install
     && pg_ctlcluster 16 main start \
     && apt-get update \
-    && apt-get -y -qq install xroad-securityserver xroad-autologin xroad-addon-opmonitoring xroad-configuration-service \
+    && apt-get -y -qq install xroad-securityserver xroad-autologin xroad-addon-opmonitoring \
         xroad-ds-identity-hub xroad-ds-control-plane xroad-ds-data-plane \
     && pg_ctlcluster 16 main stop \
     # Clean up

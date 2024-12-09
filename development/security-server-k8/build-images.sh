@@ -2,14 +2,6 @@
 
 ./init_image/build-initializer.sh
 
-echo "Building config-server"
-docker build --tag xroad-ss-config \
---file build-context/Dockerfile \
---build-context entrypoint-ctx=build-context/entrypoint \
---build-arg JAR_FILE=build/libs/*.jar \
---build-arg ENTRYPOINT_SCRIPT=entrypoint.sh \
-$XROAD_HOME/src/security-server/configuration-service/application
-
 echo "Building confclient"
 docker build --tag xroad-ss-confclient \
 --file build-context/Dockerfile \

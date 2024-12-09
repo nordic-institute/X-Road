@@ -1,6 +1,0 @@
-xroad:
-  common:
-    serverconf:
-      hibernate:
-        connection.username: "{vault}:serverconf.hibernate.connection#username"
-        connection.password: "{vault}:serverconf.hibernate.connection#password"

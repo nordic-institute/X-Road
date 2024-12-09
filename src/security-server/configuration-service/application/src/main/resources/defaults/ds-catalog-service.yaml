@@ -1,5 +1,0 @@
-edc:
-  datasource:
-    default:
-      user: "{vault}:ds-control-plane.hibernate.connection#username"
-      password: "{vault}:ds-control-plane.hibernate.connection#password"

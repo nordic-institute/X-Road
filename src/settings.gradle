@@ -109,9 +109,8 @@ include 'security-server:ds:runtime:data-plane'
 include 'security-server:ds:runtime:identity-hub'
 include "security-server:system-test"
 include 'security-server:e2e-test'
-include 'security-server:configuration-service'
-include 'security-server:configuration-service:migration-cli'
-include 'security-server:configuration-service:application'
+include 'security-server:tools'
+include 'security-server:tools:migration-cli'
 
 // Utils
 include "signer-console"
