@@ -44,6 +44,8 @@ public class XrdSpringServiceBuilder {
     private static final String ENV_APPLICATION_TYPE = "XROAD_APPLICATION_TYPE";
     private static final String ENV_ADDITIONAL_PROFILES = "XROAD_ADDITIONAL_PROFILES";
 
+    private static final String CONFIG_OVERRIDE_PATH = "/etc/xroad/conf.d/application-override.yaml";
+
     //TODO xroad8 consider user spring application name instead of providing one
     public static SpringApplicationBuilder newApplicationBuilder(String appName, Class<?>... sources) {
         Version.outputVersionInfo(appName);
@@ -69,18 +71,13 @@ public class XrdSpringServiceBuilder {
             imports.append(",classpath:/xroad-cs-common.yaml");
         } else if (profiles.contains(XrdSpringProfiles.SS)) {
             imports.append(",classpath:/xroad-ss-common.yaml");
-
-            //TODO this should be configurable
-            imports.append(",vault://xrd-secret/serverconf?prefix=secret-serverconf.");
-            imports.append(",vault://xrd-secret/messagelog?prefix=secret-messagelog.");
         }
 
         if (profiles.contains(XrdSpringProfiles.K8)) {
             imports.append(",kubernetes:");
         }
 
-
-        imports.append(",optional:file:///etc/xroad/conf.d/application-override.yaml");
+        imports.append(",optional:file://%s".formatted(CONFIG_OVERRIDE_PATH));
 
         properties.add("spring.config.import=" + imports);
 
@@ -92,8 +89,10 @@ public class XrdSpringServiceBuilder {
 
         if (XrdSpringProfiles.CONTAINERIZED.equals(System.getenv(ENV_DEPLOYMENT_TYPE))) {
             profiles.add(XrdSpringProfiles.CONTAINERIZED);
+            profiles.add(XrdSpringProfiles.SECRET_STORE);
         } else if (XrdSpringProfiles.NATIVE.equals(System.getenv(ENV_DEPLOYMENT_TYPE))) {
             profiles.add(XrdSpringProfiles.NATIVE);
+            profiles.add(XrdSpringProfiles.SECRET_STORE);
         }
 
         String applicationType = System.getenv(ENV_APPLICATION_TYPE);
