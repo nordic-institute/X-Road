@@ -189,7 +189,7 @@ EOF
             -H "Content-Type: application/json" \
             -X PUT \
             -d "{\"username\":\"${db_conn_user}\",\"password\":\"${db_password}\"}" \
-            "https://127.0.0.1:8200/v1/xrd-secret/${db_name}.hibernate.connection" || die "Failed to write secret to secret store"
+            "https://127.0.0.1:8200/v1/xrd-secret/serverconf" || die "Failed to write secret to secret store"
     fi
 
   else

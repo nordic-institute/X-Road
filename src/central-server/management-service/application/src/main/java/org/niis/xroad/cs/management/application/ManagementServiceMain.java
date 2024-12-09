@@ -35,7 +35,7 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 @SpringBootApplication(scanBasePackages = {"org.niis.xroad.cs.management", "org.niis.xroad.restapi"})
 public class ManagementServiceMain {
 
-    private static final String APP_NAME = "xroad-center-management-service";
+    private static final String APP_NAME = "center-management-service";
 
     public static void main(String[] args) {
         XrdSpringServiceBuilder.newApplicationBuilder(APP_NAME, ManagementServiceMain.class)

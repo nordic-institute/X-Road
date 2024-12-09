@@ -2,7 +2,7 @@
 Description=X-Road Monitor
 After=network.target xroad-base.service
 Requires=xroad-base.service
-Wants=postgresql.service xroad-configuration-service.service
+Wants=postgresql.service
 
 [Service]
 User=xroad

@@ -37,7 +37,7 @@ import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 @SpringBootConfiguration
 @SuppressWarnings("checkstyle:HideUtilityClassConstructor")
 public class XrdDsCredentialServiceMain {
-    private static final String APP_NAME = "xroad-ds-credential-service";
+    private static final String APP_NAME = "ds-credential-service";
 
     public static void main(String[] args) {
         XrdSpringServiceBuilder.newApplicationBuilder(APP_NAME, XrdDsCredentialServiceMain.class, XrdEdcBeanBridgeConfig.class)

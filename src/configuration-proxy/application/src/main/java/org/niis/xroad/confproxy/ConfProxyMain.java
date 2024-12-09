@@ -39,7 +39,7 @@ import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 @SpringBootConfiguration
 @SuppressWarnings("checkstyle:HideUtilityClassConstructor")
 public class ConfProxyMain {
-    private static final String APP_NAME = "xroad-confproxy";
+    private static final String APP_NAME = "configuration-proxy";
 
 
     public static void main(String[] args) {

@@ -36,7 +36,7 @@ import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 @SpringBootConfiguration
 @SuppressWarnings("checkstyle:HideUtilityClassConstructor")
 public class ConfClientMain {
-    static final String APP_NAME = "xroad-confclient";
+    static final String APP_NAME = "configuration-client";
 
     public static void main(String[] args) {
         var appBuilder = XrdSpringServiceBuilder.newApplicationBuilder(APP_NAME, ConfClientMain.class, ConfClientRootConfig.class);

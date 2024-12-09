@@ -1,0 +1,8 @@
+{{- range $service, $config := .Values.services }}
+---
+{{- include "xroad.configmap" (dict "root" $ "service" $service "config" $config) }}
+---
+{{- include "xroad.service" (dict "root" $ "service" $service "config" $config) }}
+---
+{{- include "xroad.deployment" (dict "root" $ "service" $service "config" $config) }}
+{{- end }}

@@ -37,7 +37,7 @@ import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 @SpringBootConfiguration
 @SuppressWarnings("checkstyle:HideUtilityClassConstructor")
 public class XrdControlPlaneMain {
-    private static final String APP_NAME = "xroad-ds-control-plane";
+    private static final String APP_NAME = "ds-control-plane";
 
     public static void main(String[] args) {
         XrdSpringServiceBuilder.newApplicationBuilder(APP_NAME, XrdControlPlaneMain.class, XrdEdcBeanBridgeConfig.class)

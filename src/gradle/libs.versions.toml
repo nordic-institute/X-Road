@@ -12,7 +12,7 @@ hibernate = "6.6.2.Final"
 mapstruct = "1.6.3"
 jackson = "2.18.1"
 mockito = "5.14.2"
-springBoot = "3.3.5"
+springBoot = "3.4.0"
 junitJupiter = "5.11.3"
 junit5SystemExit = "2.0.0"
 xmlUnit = "2.10.0"
@@ -50,7 +50,7 @@ springBoot-bom = { module = "org.springframework.boot:spring-boot-dependencies",
 springBoot-starterTest = { module = "org.springframework.boot:spring-boot-starter-test", version.ref = "springBoot" }
 springBoot-starterWeb = { module = "org.springframework.boot:spring-boot-starter-web", version.ref = "springBoot" }
 
-springCloud-bom = { module = "org.springframework.cloud:spring-cloud-dependencies", version = "2023.0.3" }
+springCloud-bom = { module = "org.springframework.cloud:spring-cloud-dependencies", version = "2024.0.0" }
 
 junit-jupiterEngine = { module = "org.junit.jupiter:junit-jupiter-engine", version.ref = "junitJupiter" }
 junit-vintageEngine = { module = "org.junit.vintage:junit-vintage-engine", version.ref = "junitJupiter" }

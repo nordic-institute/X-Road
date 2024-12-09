@@ -37,7 +37,7 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 @Slf4j
 public class Main {
 
-    private static final String APP_NAME = "xroad-center-registration-service";
+    private static final String APP_NAME = "center-registration-service";
 
     public static void main(String[] args) {
         XrdSpringServiceBuilder.newApplicationBuilder(APP_NAME, Main.class)
