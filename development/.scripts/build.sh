@@ -41,7 +41,7 @@ case $1 in
 "ds-data-plane")
   gradleModule="security-server/ds/runtime/data-plane"
   ;;
-"ds-ih")
+"ds-identity-hub")
   gradleModule="security-server/ds/runtime/identity-hub"
   ;;
 "cs-catalog-service")

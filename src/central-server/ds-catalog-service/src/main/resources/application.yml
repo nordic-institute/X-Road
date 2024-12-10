@@ -12,6 +12,10 @@ xroad:
 
 #EDC conf
 edc:
+  extension:
+    spring-bridge:
+      serverconf:
+        enabled: false
   hostname: ${EDC_HOSTNAME}
   datasource:
     default:

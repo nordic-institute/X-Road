@@ -17,6 +17,10 @@ logging:
 
 #EDC configuration
 edc:
+  extension:
+    spring-bridge:
+      serverconf:
+        enabled: false
   participant:
     id: ${EDC_DID}
   did:

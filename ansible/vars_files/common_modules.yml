@@ -12,3 +12,9 @@ common_modules:
     lib: signer-console-1.0.jar
     target: /usr/share/xroad/jlib
     service: xroad-signer
+  ds-identity-hub:
+    dir: security-server/ds/runtime/identity-hub
+    build: build
+    lib: ds-identity-hub-1.0.jar
+    target: /usr/share/xroad/jlib
+    service: xroad-ds-identity-hub
