@@ -48,9 +48,9 @@ RUN sed -i "s/run\/uwsgi\/acme.sock/var\/www\/acme2certifier\/acme.sock/g" /var/
     && sed -i s/b64_decode\(self.logger,\ /base64.b64decode\(/g /var/www/acme2certifier/acme_srv/renewalinfo.py \
     && usermod -a -G ca www-data
 
-COPY --chown=www-data:www-data files/acme_srv.cfg /var/www/acme2certifier/acme_srv/acme_srv.cfg
-COPY --chown=www-data:www-data files/kid_profiles.json /var/www/acme2certifier/examples/eab_handler/kid_profiles.json
-COPY --chown=www-data:www-data files/openssl_ca_handler.py /var/www/acme2certifier/examples/ca_handler/openssl_ca_handler.py
+COPY --chown=www-data:www-data files/acme2certifier/acme_srv.cfg /var/www/acme2certifier/acme_srv/acme_srv.cfg
+COPY --chown=www-data:www-data files/acme2certifier/kid_profiles.json /var/www/acme2certifier/examples/eab_handler/kid_profiles.json
+COPY --chown=www-data:www-data files/acme2certifier/openssl_ca_handler.py /var/www/acme2certifier/examples/ca_handler/openssl_ca_handler.py
 
 COPY files/ca-entrypoint.sh /root/entrypoint.sh
 RUN chmod +x /root/entrypoint.sh
