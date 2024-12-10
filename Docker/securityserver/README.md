@@ -18,6 +18,19 @@ docker build -t xroad-security-server .
 
 Alternatively, it's possible to use the image (`niis/xroad-security-server`) available on [Docker Hub](https://hub.docker.com/r/niis/xroad-security-server).
 
+## Container parameters
+
+| Port   | Description                          |
+|--------|--------------------------------------|
+| `80`   | Management REST API endpoint         | 
+| `4000` | Additional Management REST API port  |
+| `5500` | Management REST API interface        |
+| `5558` | Management REST API alternative port |
+| `5577` | Admin UI access point                |
+| `8443` | Secure Admin UI (HTTPS)              |
+| `8080` | Standard Admin UI (HTTP)             |
+| `5432` | PostgreSQL database connection       |
+
 ## Running
 
 Publish the container ports (`8080` and/or `8443`, `4000`, and optionally `5500` and `5577`) to localhost (loopback address).
