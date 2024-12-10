@@ -51,13 +51,11 @@ public final class SoapLogMessage extends LogMessage {
     /**
      * Create a SOAP log message
      */
-    public SoapLogMessage(SoapMessageImpl message, SignatureData signature, boolean clientSide) {
-        super(signature, clientSide);
-        this.message = message;
-        this.attachments = List.of();
-    }
-
-    public SoapLogMessage(SoapMessageImpl message, SignatureData signature, @NonNull List<AttachmentStream> attachments, boolean clientSide, String xRequestId) {
+    public SoapLogMessage(SoapMessageImpl message,
+                          SignatureData signature,
+                          @NonNull List<AttachmentStream> attachments,
+                          boolean clientSide,
+                          String xRequestId) {
         super(signature, clientSide, xRequestId);
         this.message = message;
         this.attachments = attachments;

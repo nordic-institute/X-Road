@@ -53,9 +53,11 @@ import ee.ria.xroad.proxy.messagelog.Timestamper.TimestampSucceeded;
 import jakarta.persistence.criteria.CriteriaBuilder;
 import jakarta.persistence.criteria.CriteriaQuery;
 import jakarta.persistence.criteria.Root;
+import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.io.filefilter.RegexFileFilter;
+import org.assertj.core.api.Assertions;
 import org.hibernate.Hibernate;
 import org.junit.After;
 import org.junit.Before;
@@ -67,6 +69,7 @@ import org.junit.runners.Parameterized;
 import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.FileFilter;
+import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Paths;
@@ -78,7 +81,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
-import java.util.function.Function;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 
@@ -217,6 +219,26 @@ public class MessageLogTest extends AbstractMessageLogTest {
         assertArrayEquals(asic.getMessage().getBytes(StandardCharsets.UTF_8), message.getMessageBytes());
         final byte[] attachment = IOUtils.readFully(asic.getAttachments().getFirst(), body.length);
         assertArrayEquals(body, attachment);
+    }
+
+    @Test
+    public void logSoapWithAttachments() throws Exception {
+        final String requestId = UUID.randomUUID().toString();
+        final var message = createMessage(requestId);
+        var attachment1 = "ONE".getBytes(StandardCharsets.UTF_8);
+        var attachment2 = "TWO".getBytes(StandardCharsets.UTF_8);
+
+        log(message, createSignature(), List.of(attachment1, attachment2));
+
+        final MessageRecord logRecord = findByQueryId(message.getQueryId());
+        MessageRecordEncryption.getInstance().prepareDecryption(logRecord);
+        assertEquals(logRecord.getXRequestId(), requestId);
+        assertEquals(logRecord.getQueryId(), message.getQueryId());
+
+        final AsicContainer asic = logRecord.toAsicContainer();
+        assertEquals(asic.getMessage(), message.getXml());
+        var attachments = asic.getAttachments().stream().map(MessageLogTest::readAllBytes).toList();
+        Assertions.assertThat(attachments).containsExactly(attachment1, attachment2);
     }
 
     /**
@@ -553,14 +575,11 @@ public class MessageLogTest extends AbstractMessageLogTest {
 
     protected MessageRecord findByQueryId(String queryId) throws Exception {
         ClientId clientId = ClientId.Conf.create("EE", "BUSINESS", "consumer");
-        return LogRecordManager.getByQueryIdUnique(queryId, clientId, false, Function.identity());
+        return LogRecordManager.getByQueryIdUnique(queryId, clientId, false, MessageLogTest::initializeAttachments);
     }
 
     protected MessageRecord findByQueryId(String queryId, ClientId clientId) throws Exception {
-        return LogRecordManager.getByQueryIdUnique(queryId, clientId, false, messageRecord -> {
-            Hibernate.initialize(messageRecord.getAttachments());
-            return messageRecord;
-        });
+        return LogRecordManager.getByQueryIdUnique(queryId, clientId, false, MessageLogTest::initializeAttachments);
     }
 
     private String getLastEntryDeleteQuery() {
@@ -669,6 +688,18 @@ public class MessageLogTest extends AbstractMessageLogTest {
             query.select(cb.count(r)).where(cb.equal(r.get("archived"), archived));
             return session.createQuery(query).getSingleResult().intValue();
         });
+    }
+
+    private static MessageRecord initializeAttachments(MessageRecord messageRecord) {
+        if (messageRecord != null) {
+            Hibernate.initialize(messageRecord.getAttachments());
+        }
+        return messageRecord;
+    }
+
+    @SneakyThrows
+    private static byte[] readAllBytes(InputStream is) {
+        return is.readAllBytes();
     }
 
 }
