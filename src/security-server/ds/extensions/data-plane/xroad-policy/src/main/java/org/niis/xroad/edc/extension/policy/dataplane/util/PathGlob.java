@@ -25,7 +25,7 @@
  * THE SOFTWARE.
  */
 
-package org.niis.xroad.edc.extension.policy.util;
+package org.niis.xroad.edc.extension.policy.dataplane.util;
 
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;

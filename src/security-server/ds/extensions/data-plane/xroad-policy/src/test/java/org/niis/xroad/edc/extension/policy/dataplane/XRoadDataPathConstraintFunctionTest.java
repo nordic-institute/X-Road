@@ -25,7 +25,7 @@
  * THE SOFTWARE.
  */
 
-package org.niis.xroad.edc.extension.policy;
+package org.niis.xroad.edc.extension.policy.dataplane;
 
 
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -36,6 +36,7 @@ import org.eclipse.edc.policy.model.Permission;
 import org.eclipse.edc.spi.monitor.Monitor;
 import org.eclipse.edc.spi.types.TypeManager;
 import org.junit.jupiter.api.Test;
+import org.niis.xroad.edc.extension.policy.dataplane.util.PolicyContextData;
 
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -74,7 +75,7 @@ class XRoadDataPathConstraintFunctionTest {
 
         return constraint.evaluate(Operator.EQ, allowed, rule,
                 PolicyContextImpl.Builder.newInstance()
-                        .additional(String.class, requested)
+                        .additional(PolicyContextData.class, new PolicyContextData(null, requested))
                         .build());
     }
 

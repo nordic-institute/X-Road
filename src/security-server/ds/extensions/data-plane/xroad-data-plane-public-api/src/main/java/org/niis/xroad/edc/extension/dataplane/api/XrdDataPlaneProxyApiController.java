@@ -26,10 +26,14 @@
  */
 package org.niis.xroad.edc.extension.dataplane.api;
 
+import ee.ria.xroad.common.CodedException;
 import ee.ria.xroad.common.cert.CertChainFactory;
 import ee.ria.xroad.common.conf.globalconf.GlobalConfProvider;
 import ee.ria.xroad.common.conf.serverconf.ServerConfProvider;
+import ee.ria.xroad.common.crypto.identifier.DigestAlgorithm;
 import ee.ria.xroad.proxy.conf.KeyConfProvider;
+import ee.ria.xroad.proxy.protocol.ProxyMessage;
+import ee.ria.xroad.proxy.protocol.ProxyMessageDecoder;
 import ee.ria.xroad.proxy.serverproxy.HttpClientCreator;
 
 import jakarta.ws.rs.POST;
@@ -55,7 +59,11 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import static ee.ria.xroad.common.ErrorCodes.X_INTERNAL_ERROR;
+import static ee.ria.xroad.common.util.MimeUtils.HEADER_HASH_ALGO_ID;
 import static ee.ria.xroad.common.util.MimeUtils.HEADER_MESSAGE_TYPE;
+import static ee.ria.xroad.common.util.MimeUtils.HEADER_ORIGINAL_CONTENT_TYPE;
+import static ee.ria.xroad.common.util.MimeUtils.HEADER_REQUEST_ID;
 import static ee.ria.xroad.common.util.MimeUtils.VALUE_MESSAGE_TYPE_REST;
 import static jakarta.ws.rs.core.MediaType.APPLICATION_JSON;
 import static jakarta.ws.rs.core.MediaType.WILDCARD;
@@ -107,34 +115,39 @@ public class XrdDataPlaneProxyApiController {
     }
 
     @POST
-    public Response post(@Context ContainerRequestContext requestContext) {
+    public Response post(@Context ContainerRequestContext requestContext) throws Exception {
         return handle(requestContext);
     }
 
-    private Response handle(ContainerRequestContext requestContext) {
+    private Response handle(ContainerRequestContext requestContext) throws Exception {
         var token = requestContext.getHeaderString(HttpHeaders.AUTHORIZATION);
         if (token == null) {
             return error(UNAUTHORIZED, "Missing Authorization Header");
         }
+        var requestMessage = new ProxyMessage(requestContext.getHeaderString(HEADER_ORIGINAL_CONTENT_TYPE));
+        var decoder = new ProxyMessageDecoder(globalConfProvider, requestMessage, requestContext.getMediaType().toString(), false, getHashAlgoId(requestContext));
+        decoder.parse(requestContext.getEntityStream());
 
-        var sourceDataAddress = authorizationService.authorize(token, buildRequestData(requestContext));
+        var sourceDataAddress = authorizationService.authorize(token, buildRequestData(requestContext, requestMessage));
         if (sourceDataAddress.failed()) {
             return error(FORBIDDEN, sourceDataAddress.getFailureDetail());
         }
 
         try {
-            return getMessageProcessor(requestContext).process();
+            return getMessageProcessor(requestContext, requestMessage, decoder).process();
         } catch (Exception e) {
             throw new EdcException("Request processing failed", e);
         }
     }
 
-    private MessageProcessorBase getMessageProcessor(ContainerRequestContext requestContext) {
-        if (VALUE_MESSAGE_TYPE_REST.equals(requestContext.getHeaderString(HEADER_MESSAGE_TYPE))) {
-            return new RestMessageProcessor(requestContext, httpClient, getClientSslCerts(requestContext),
-                    needClientAuth, xRoadMessageLog, globalConfProvider, serverConfProvider, keyConfProvider, certChainFactory, monitor);
+    private MessageProcessorBase getMessageProcessor(ContainerRequestContext requestContext, ProxyMessage requestMessage, ProxyMessageDecoder decoder) throws Exception {
+        var isRestRequest = VALUE_MESSAGE_TYPE_REST.equals(requestContext.getHeaderString(HEADER_MESSAGE_TYPE));
+        var xRequestId = requestContext.getHeaderString(HEADER_REQUEST_ID);
+        if (isRestRequest) {
+            return new RestMessageProcessor(requestMessage, decoder, xRequestId, httpClient, getClientSslCerts(requestContext),
+                    needClientAuth, xRoadMessageLog, globalConfProvider, keyConfProvider, serverConfProvider, certChainFactory, monitor);
         } else {
-            return new SoapMessageProcessor(requestContext, httpClient, getClientSslCerts(requestContext),
+            return new SoapMessageProcessor(requestMessage, decoder, xRequestId, httpClient, getClientSslCerts(requestContext),
                     needClientAuth, xRoadMessageLog, globalConfProvider, keyConfProvider, serverConfProvider, certChainFactory, monitor);
         }
     }
@@ -151,7 +164,7 @@ public class XrdDataPlaneProxyApiController {
         return null;
     }
 
-    private Map<String, Object> buildRequestData(ContainerRequestContext requestContext) {
+    private Map<String, Object> buildRequestData(ContainerRequestContext requestContext, ProxyMessage requestMessage) {
         var requestData = new HashMap<String, Object>();
         requestData.put("headers", requestContext.getHeaders());
 
@@ -162,11 +175,24 @@ public class XrdDataPlaneProxyApiController {
         requestData.put("resolvedPath", path.startsWith("/") ? path.substring(1) : path);
         requestData.put("method", requestContext.getMethod());
         requestData.put("content-type", requestContext.getMediaType());
+        if (requestMessage.getRest() == null) {
+            requestData.put("clientId", requestMessage.getSoap().getClient().asEncodedId());
+        } else {
+            requestData.put("clientId", requestMessage.getRest().getClientId().asEncodedId());
+        }
         return requestData;
     }
 
     private static Response error(Response.Status status, String error) {
         return status(status).type(APPLICATION_JSON).entity(new TransferErrorResponse(List.of(error))).build();
+    }
+
+    private DigestAlgorithm getHashAlgoId(ContainerRequestContext request) {
+        var hashAlgoId = DigestAlgorithm.ofName(request.getHeaderString(HEADER_HASH_ALGO_ID));
+        if (hashAlgoId == null) {
+            throw new CodedException(X_INTERNAL_ERROR, "Could not get hash algorithm identifier from message");
+        }
+        return hashAlgoId;
     }
 
 }

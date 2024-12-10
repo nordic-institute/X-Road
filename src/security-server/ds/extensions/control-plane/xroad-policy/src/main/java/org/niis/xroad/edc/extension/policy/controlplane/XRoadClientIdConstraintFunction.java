@@ -25,11 +25,7 @@
  * THE SOFTWARE.
  */
 
-package org.niis.xroad.edc.extension.policy;
-
-import ee.ria.xroad.common.conf.globalconf.GlobalConfProvider;
-import ee.ria.xroad.common.identifier.ClientId;
-import ee.ria.xroad.common.identifier.GlobalGroupId;
+package org.niis.xroad.edc.extension.policy.controlplane;
 
 import lombok.RequiredArgsConstructor;
 import org.apache.commons.lang3.time.StopWatch;
@@ -38,51 +34,35 @@ import org.eclipse.edc.policy.engine.spi.PolicyContext;
 import org.eclipse.edc.policy.model.Operator;
 import org.eclipse.edc.policy.model.Permission;
 import org.eclipse.edc.spi.monitor.Monitor;
-import org.niis.xroad.edc.extension.policy.util.PolicyContextHelper;
+import org.niis.xroad.edc.extension.policy.controlplane.util.PolicyContextHelper;
 
-import static java.util.concurrent.TimeUnit.MILLISECONDS;
-
+import static org.niis.xroad.edc.extension.policy.controlplane.util.PolicyContextHelper.parseClientId;
 
 @RequiredArgsConstructor
-public class XRoadGlobalGroupMemberConstraintFunction implements AtomicConstraintFunction<Permission> {
+public class XRoadClientIdConstraintFunction implements AtomicConstraintFunction<Permission> {
 
-    static final String KEY = "xroad:globalGroupMember";
-
-    private final GlobalConfProvider globalConfProvider;
+    static final String KEY = "xroad:clientId";
     private final Monitor monitor;
 
     @Override
-    public boolean evaluate(Operator operator, Object rightValue, Permission rule, PolicyContext context) {
+    public boolean evaluate(Operator operator, Object rightValue, Permission permission, PolicyContext context) {
         var stopWatch = StopWatch.createStarted();
         try {
-
-            if (!(rightValue instanceof String globalGroupCode)) {
+            if (!(rightValue instanceof String allowedClientIdString)) {
                 context.reportProblem("Right-value expected to be String but was " + rightValue.getClass());
                 return false;
             }
-            GlobalGroupId globalGroupId = parseGlobalGroup(globalGroupCode);
+            var allowedClientId = parseClientId(allowedClientIdString);
             return PolicyContextHelper.findMemberIdFromContext(context)
                     .map(memberId -> switch (operator) {
-                        case EQ, IN -> isMemberAssociatedWithGlobalGroup(memberId, globalGroupId);
+                        case EQ -> allowedClientId.memberEquals(memberId);
                         default -> {
-                            context.reportProblem("Unsupported operator: " + operator);
+                            context.reportProblem("Operator " + operator + " not supported");
                             yield false;
                         }
                     }).orElse(false);
         } finally {
-            monitor.debug("XRoadGlobalGroupMemberConstraintFunction took " + stopWatch.getTime(MILLISECONDS) + " ms");
+            monitor.debug("RoadClientIdConstraintFunction took " + stopWatch.getTime() + " ms");
         }
     }
-
-    private GlobalGroupId parseGlobalGroup(String encodedGlobalGroup) {
-        String[] parts = encodedGlobalGroup.split(":", 2);
-        return GlobalGroupId.Conf.create(parts[0], parts[1]);
-    }
-
-    private boolean isMemberAssociatedWithGlobalGroup(ClientId memberId, GlobalGroupId globalGroupId) {
-        return globalConfProvider.findGlobalGroup(globalGroupId)
-                .filter(group -> group.getGroupMembers().stream().anyMatch(m -> m.memberEquals(memberId)))
-                .isPresent();
-    }
-
 }

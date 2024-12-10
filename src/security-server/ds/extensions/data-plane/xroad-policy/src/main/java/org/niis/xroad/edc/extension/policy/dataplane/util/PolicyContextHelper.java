@@ -25,38 +25,16 @@
  * THE SOFTWARE.
  */
 
-package org.niis.xroad.edc.extension.policy.util;
+package org.niis.xroad.edc.extension.policy.dataplane.util;
 
 import ee.ria.xroad.common.identifier.ClientId;
 
 import lombok.experimental.UtilityClass;
-import org.eclipse.edc.policy.engine.spi.PolicyContext;
-import org.eclipse.edc.spi.agent.ParticipantAgent;
 import org.niis.xroad.restapi.converter.ClientIdConverter;
-
-import java.util.Optional;
 
 @UtilityClass
 public class PolicyContextHelper {
     private final ClientIdConverter clientIdConverter = new ClientIdConverter();
-    private static final String ATTR_IDENTIFIER = "https://w3id.org/xroad/credentials/identifier";
-
-    public static Optional<ClientId> findMemberIdFromContext(PolicyContext context) {
-        var participantAgent = context.getContextData(ParticipantAgent.class);
-
-        if (participantAgent != null) {
-            var memberIdentifierString = participantAgent.getAttributes().get("xrd:memberIdentifier");
-            if (!clientIdConverter.isEncodedMemberId(memberIdentifierString)) {
-                throw new IllegalStateException("Invalid member identifier: " + memberIdentifierString);
-            }
-            return Optional.ofNullable(parseClientId(memberIdentifierString));
-        }
-        return Optional.empty();
-    }
-
-    public static boolean clientBelongsTo(ClientId client, ClientId target) {
-        return client.memberEquals(target);
-    }
 
     public static ClientId parseClientId(String value) {
         return clientIdConverter.convertId(value);

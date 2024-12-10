@@ -33,13 +33,13 @@ import ee.ria.xroad.common.cert.CertChainFactory;
 import ee.ria.xroad.common.cert.CertHelper;
 import ee.ria.xroad.common.conf.globalconf.GlobalConfProvider;
 import ee.ria.xroad.common.conf.serverconf.ServerConfProvider;
-import ee.ria.xroad.common.crypto.identifier.DigestAlgorithm;
 import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.identifier.XRoadId;
 import ee.ria.xroad.common.util.HttpSender;
 import ee.ria.xroad.proxy.conf.KeyConfProvider;
+import ee.ria.xroad.proxy.protocol.ProxyMessage;
+import ee.ria.xroad.proxy.protocol.ProxyMessageDecoder;
 
-import jakarta.ws.rs.container.ContainerRequestContext;
 import jakarta.ws.rs.core.Response;
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.http.client.HttpClient;
@@ -51,16 +51,14 @@ import java.net.URISyntaxException;
 import java.security.cert.X509Certificate;
 import java.util.List;
 
-import static ee.ria.xroad.common.ErrorCodes.X_INTERNAL_ERROR;
 import static ee.ria.xroad.common.ErrorCodes.X_INVALID_SOAPACTION;
 import static ee.ria.xroad.common.ErrorCodes.X_SSL_AUTH_FAILED;
-import static ee.ria.xroad.common.util.MimeUtils.HEADER_HASH_ALGO_ID;
 
 public abstract class MessageProcessorBase {
 
-    private final X509Certificate[] clientSslCerts;
+    protected ProxyMessage requestMessage;
 
-    protected final ContainerRequestContext requestContext;
+    private final X509Certificate[] clientSslCerts;
     protected final boolean needClientAuth;
     protected final HttpClient httpClient;
     protected final Monitor monitor;
@@ -69,15 +67,24 @@ public abstract class MessageProcessorBase {
     protected final ServerConfProvider serverConfProvider;
     protected final CertChainFactory certChainFactory;
 
+    protected final ProxyMessageDecoder decoder;
+
+    protected final String xRequestId;
+
     protected final CertHelper certHelper;
 
-    protected MessageProcessorBase(ContainerRequestContext request,
-                                   X509Certificate[] clientSslCerts, boolean needClientAuth,
+    protected MessageProcessorBase(ProxyMessage requestMessage,
+                                   ProxyMessageDecoder decoder,
+                                   String xRequestId,
+                                   X509Certificate[] clientSslCerts,
+                                   boolean needClientAuth,
                                    HttpClient httpClient, GlobalConfProvider globalConfProvider,
                                    KeyConfProvider keyConfProvider,
                                    ServerConfProvider serverConfProvider, CertChainFactory certChainFactory,
                                    Monitor monitor) {
-        this.requestContext = request;
+        this.requestMessage = requestMessage;
+        this.decoder = decoder;
+        this.xRequestId = xRequestId;
         this.clientSslCerts = clientSslCerts;
         this.needClientAuth = needClientAuth;
         this.httpClient = httpClient;
@@ -167,7 +174,7 @@ public abstract class MessageProcessorBase {
      * @see ee.ria.xroad.common.validation.SpringFirewallValidationRules
      * @see ee.ria.xroad.common.validation.LegacyEncodedIdentifierValidator;
      */
-    public boolean checkIdentifier(final XRoadId id) {
+    protected boolean checkIdentifier(final XRoadId id) {
         if (id != null) {
             if (!validateIdentifierField(id.getXRoadInstance())) {
                 monitor.warning(() -> "Invalid character(s) in identifier %s".formatted(id));
@@ -198,16 +205,6 @@ public abstract class MessageProcessorBase {
             //"normalized path" check is redundant since path separators (/,\) are forbidden
         }
         return true;
-    }
-
-    protected DigestAlgorithm getHashAlgoId(ContainerRequestContext request) {
-        var hashAlgoId = DigestAlgorithm.ofName(request.getHeaderString(HEADER_HASH_ALGO_ID));
-
-        if (hashAlgoId == null) {
-            throw new CodedException(X_INTERNAL_ERROR, "Could not get hash algorithm identifier from message");
-        }
-
-        return hashAlgoId;
     }
 
 }

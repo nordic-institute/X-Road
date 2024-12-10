@@ -24,10 +24,10 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
+package org.niis.xroad.edc.extension.policy.dataplane;
 
-package org.niis.xroad.edc.extension.policy;
-
-import ee.ria.xroad.common.conf.globalconf.GlobalConfProvider;
+import ee.ria.xroad.common.conf.serverconf.ServerConfProvider;
+import ee.ria.xroad.common.identifier.LocalGroupId;
 
 import lombok.RequiredArgsConstructor;
 import org.apache.commons.lang3.time.StopWatch;
@@ -36,37 +36,47 @@ import org.eclipse.edc.policy.engine.spi.PolicyContext;
 import org.eclipse.edc.policy.model.Operator;
 import org.eclipse.edc.policy.model.Permission;
 import org.eclipse.edc.spi.monitor.Monitor;
-import org.niis.xroad.edc.extension.policy.util.PolicyContextHelper;
+import org.niis.xroad.edc.extension.policy.dataplane.util.PolicyContextData;
 
-import static org.niis.xroad.edc.extension.policy.util.PolicyContextHelper.parseClientId;
+import java.util.Optional;
+
+import static java.util.concurrent.TimeUnit.MILLISECONDS;
+import static org.niis.xroad.edc.extension.policy.dataplane.util.PolicyContextHelper.parseClientId;
 
 @RequiredArgsConstructor
-public class XRoadClientIdConstraintFunction implements AtomicConstraintFunction<Permission> {
+public class XRoadLocalGroupMemberConstraintFunction implements AtomicConstraintFunction<Permission> {
 
-    static final String KEY = "xroad:clientId";
+    static final String KEY = "xroad:localGroupMember";
 
-    private final GlobalConfProvider globalConfProvider;
+    private final ServerConfProvider serverConfProvider;
+
     private final Monitor monitor;
 
     @Override
-    public boolean evaluate(Operator operator, Object rightValue, Permission permission, PolicyContext context) {
+    public boolean evaluate(Operator operator, Object rightValue, Permission rule, PolicyContext context) {
         var stopWatch = StopWatch.createStarted();
         try {
-            if (!(rightValue instanceof String allowedClientIdString)) {
+            if (!(rightValue instanceof String globalGroupCode)) {
                 context.reportProblem("Right-value expected to be String but was " + rightValue.getClass());
                 return false;
             }
-            var allowedClientId = parseClientId(allowedClientIdString);
-            return PolicyContextHelper.findMemberIdFromContext(context)
-                    .map(memberId -> switch (operator) {
-                        case EQ -> PolicyContextHelper.clientBelongsTo(allowedClientId, memberId);
+            LocalGroupId localGroupId = parseLocalGroup(globalGroupCode);
+            String clientIdString = context.getContextData(PolicyContextData.class).clientId();
+            return Optional.of(parseClientId(clientIdString))
+                    .map(clientId -> switch (operator) {
+                        case EQ, IN -> serverConfProvider.isSubjectInLocalGroup(clientId, localGroupId);
                         default -> {
-                            context.reportProblem("Operator " + operator + " not supported");
+                            context.reportProblem("Unsupported operator: " + operator);
                             yield false;
                         }
                     }).orElse(false);
         } finally {
-            monitor.debug("RoadClientIdConstraintFunction took " + stopWatch.getTime() + " ms");
+            monitor.debug("XRoadLocalGroupMemberConstraintFunction took " + stopWatch.getTime(MILLISECONDS) + " ms");
         }
     }
+
+    private LocalGroupId parseLocalGroup(String localGroupCode) {
+        return LocalGroupId.Conf.create(localGroupCode);
+    }
+
 }

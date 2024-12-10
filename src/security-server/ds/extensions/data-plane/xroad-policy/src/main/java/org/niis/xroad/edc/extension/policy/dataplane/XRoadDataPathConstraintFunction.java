@@ -25,7 +25,7 @@
  * THE SOFTWARE.
  */
 
-package org.niis.xroad.edc.extension.policy;
+package org.niis.xroad.edc.extension.policy.dataplane;
 
 import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
@@ -35,7 +35,8 @@ import org.eclipse.edc.policy.model.Operator;
 import org.eclipse.edc.policy.model.Permission;
 import org.eclipse.edc.spi.monitor.Monitor;
 import org.eclipse.edc.spi.types.TypeManager;
-import org.niis.xroad.edc.extension.policy.util.PathGlob;
+import org.niis.xroad.edc.extension.policy.dataplane.util.PathGlob;
+import org.niis.xroad.edc.extension.policy.dataplane.util.PolicyContextData;
 
 import java.util.Collection;
 import java.util.Set;
@@ -62,7 +63,7 @@ public class XRoadDataPathConstraintFunction implements AtomicConstraintFunction
             return false;
         }
 
-        String requestedPath = context.getContextData(String.class); //todo: xroad8 put to dedicated dto?
+        String requestedPath = context.getContextData(PolicyContextData.class).dataPath();
         Endpoint requested = Endpoint.from(requestedPath);
 
         Collection<String> allowedEndpointPatterns = Set.of(allowedPaths);
