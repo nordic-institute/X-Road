@@ -2,32 +2,105 @@
     "locals_demo": "Lokaliseeritakse teegis",
     "type": "Tüüp",
     "warning": "Hoiatus",
-    "fields": {
-        "password": "Parool",
-        "username": "LIB-Kasutajanimi",
-        "shared": "ühisteek",
-        "code": "Kood",
-        "description": "Kirjeldus"
-    },
     "action": {
+        "activate": "Aktiveeri",
         "cancel": "Tühista",
         "add": "Lisa",
-        "yes": "Jah",
+        "addClient": "Lisa klient",
+        "addMember": "Lisa liige",
+        "addSubsystem": "Lisa alamsüsteem",
+        "close": "Sulge",
+        "confirm": "Kinnita",
+        "continue": "Jätka",
+        "copy": "Kopeeri",
+        "copyId": "Kopeeri ID",
         "delete": "Kustuta",
+        "deactivate": "Blokeeri",
+        "done": "Valmis",
         "download": "Lae alla",
-        "upload": "Lae üles",
-        "restore": "Taasta"
+        "edit": "Redigeeri",
+        "emptySearch": "Teie {msg} otsing ei andnud tulemusi.",
+        "export": "Eksport",
+        "finish": "Lõpeta",
+        "goToFront": "Mine esilehele",
+        "next": "Järgmine",
+        "no": "Ei",
+        "noData": "Andmed puuduvad",
+        "ok": "Korras",
+        "previous": "Eelmine",
+        "refresh": "Värskenda",
+        "register": "Registreeri",
+        "remove": "Eemalda",
+        "removeAll": "Eemalda kõik",
+        "restore": "Taasta",
+        "save": "Salvesta",
+        "search": "Otsi",
+        "searching": "Otsimine...",
+        "submit": "Esita",
+        "unregister": "Kustuta registrist",
+        "upload": "",
+        "yes": "Jah"
+        },
+  "alert": {
+    "count": "Samade vigade hulk:",
+    "id": "ID"
+  },
+  "apiKey": {
+    "createApiKey": {
+      "button": "LOO API VÕTI",
+      "step": {
+        "keyDetails": {
+          "apiKey": "API võti",
+          "apiKeyID": "API võtme ID",
+          "assignedRoles": "Rollid määratud",
+          "createKeyButton": "Loo võti",
+          "name": "Võtme detailid",
+          "note": "MÄRKUS: salvestage API võti turvalisse paika. API võti on nähtav ainult võtme loomise ajal. Seda ei esitata uuesti ja seda ei saa hiljem välja otsida."
+        },
+        "roles": {
+          "description": "Valige API võtmega seotud rollid. Rollid määravad API võtmele antud load.",
+          "name": "Rollid",
+          "selectRoles": "Vali rollid"
+        }
+      },
+      "success": "API võti edukalt loodud",
+      "title": "Loo API võti"
     },
-    "noData": {
-        "noMatches": "Kriteeriumile vastavaid elemente pole",
-        "loading": "Laadimine... Palun oodake"
+    "role": {
+      "XROAD_REGISTRATION_OFFICER": "Registreerimisadministraator",
+      "XROAD_SECURITY_OFFICER": "Turvaadministraator",
+      "XROAD_SYSTEM_ADMINISTRATOR": "Süsteemiadministraator"
     },
+    "edit": {
+      "roleRemoveOnly": "(remove only)"
+    },
+    "table": {
+      "action": {
+        "edit": {
+          "button": "Redigeeri",
+          "dialog": {
+            "message": "API võtmega seotud rollid:",
+            "title": "Redigeeri API võtit (ID: {id})"
+          },
+          "success": "API võti koos ID-ga {id} salvestatud"
+        },
+        "revoke": {
+          "button": "Tühista võti",
+          "confirmationDialog": {
+            "message": "Kas olete kindel, et soovite tühistada API võtme ID-ga {id}?",
+            "title": "Kas olete kindel?"
+          },
+          "success": "API võti ID-ga {id} edukalt tühistatud"
+        }
+      },
+      "header": {
+        "id": "ID",
+        "roles": "Rollid"
+      }
+    }
+  },
     "keys": {
         "gotIt": "Sain aru"
-    },
-    "global": {
-        "all": "Kõik",
-        "name": "Nimi"
     },
     "backup": {
         "deleteBackup": {
@@ -59,8 +132,114 @@
             },
             "success": "Varukoopia {file} edukalt üles laaditud"
         }
+  },
+  "cert": {
+    "certificate": "Sertifikaat",
+    "hashInfo": "Räsi (SHA-256)",
+    "keyUsage": {
+      "CRL_SIGN": "CRL Märk",
+      "DATA_ENCIPHERMENT": "Krüpteeri andmed",
+      "DECIPHER_ONLY": "Ainult dekrüpteeri",
+      "DIGITAL_SIGNATURE": "Digiallkiri",
+      "ENCIPHER_ONLY": "Ainult krüpteeri",
+      "KEY_AGREEMENT": "Võtmeleping",
+      "KEY_CERT_SIGN": "Sertifikaadi märk",
+      "KEY_ENCIPHERMENT": "Krüpteeri võti",
+      "NON_REPUDIATION": "Salgamatus"
+    },
+    "rsaExp": "RSA avaliku võtme eksponent",
+    "rsaModulus": "RSA avaliku võtme moodul",
+    "ecParameters": "EC avaliku võtme parameetrid",
+    "ecPoint": "EC avaliku võtme punkt"
+  },
+  "error_code": {
+    "api_key_not_found": "API võtit ei leitud",
+    "backup_file_not_found": "Varufaili ei leitud",
+    "backup_generation_failed": "Varukoopia loomine ebaõnnestus",
+    "backup_restore_interrupted": "Varukoopia taastamine katkestatud",
+    "generate_backup_interrupted": "Varukoopia loomine katkestatud",
+    "invalid_backup_file": "Kehtetu varundusfail",
+    "invalid_distinguished_name": "Eristusnimi on kehtetu",
+    "invalid_filename": "Kehtetu failinimi",
+    "resource_read_failed": "Ressursi lugemine ebaõnnestus",
+    "restore_process_failed": "Taastamise protsess ebaõnnestus",
+    "token_not_found": "Krüptomoodulit ei leitud",
+    "validation_failure": "Valideerimistõrge"
+  },
+  "fields": {
+    "password": "Parool",
+    "username": "LIB-Kasutajanimi",
+    "shared": "ühisteek",
+    "code": "Kood",
+    "description": "Kirjeldus",
+    "memberClass": "Liikmeklass",
+    "securityServerCode": "Turvaserveri kood"
+  },
+  "footer": {
+    "copyright": {
+      "company": "Nordic Institute for Interoperability Solutions  (NIIS)",
+      "licenceInfo": "Litsentsiteave",
+      "title": "Autoriõigus"
+    },
+    "software": {
+      "feedback": "Tagasiside",
+      "title": "Tarkvara",
+      "versionPrefix": "X-Road"
+    }
+  },
+  "global": {
+    "all": "Kõik",
+    "name": "Nimi"
+  },
+  "login": {
+    "errorMsg401": "Vale kasutajanimi või parool",
+    "generalError": "Sisselogimine ebaõnnestus. Palun proovige uuesti.",
+    "logIn": "Logi sisse",
+    "logOut": "Logi välja"
+  },
+  "logout": {
+    "idleWarning": "Olete olnud eemal 30 minutit ja teie seanss on aegunud. Turvapõhjustel logitakse teid välja.",
+    "sessionExpired": "Seanss on aegunud"
+  },
+  "noData": {
+    "loading": "Laadimine... Palun oodake",
+    "noBackups": "Varukoopiaid pole",
+    "noCertificate": "Sertifikaat puudub",
+    "noCertificates": "Sertifikaadid puuduvad",
+    "noData": "Andmed puuduvad",
+    "noMatches": "Kriteeriumidele vastavad elemendid puuduvad",
+    "noServices": "Teenused puuduvad",
+    "noTokens": "Krüptomoodulid puuduvad"
     },
     "validationError": {
+        "AssertFalse": "väärtus peab olema 'väär'",
+        "AssertTrue": "väärtus peab olema 'tõene'",
+        "DecimalMax": "arvuline väärtus ületab maksimaalse lubatud väärtuse",
+        "DecimalMin": "arvuline väärtus on minimaalsest lubatud väärtusest väiksem",
+        "Digits": "väärtus võib sisaldada ainult numbreid",
+        "Email": "väärtus ei vasta e-posti vormingule",
+        "Future": "kuupäeva ja kellaaja väärtus peab olema tulevikus",
+        "FutureOrPresent": "kuupäeva ja kellaaja väärtus peab olema praegu või tulevikus",
+        "Max": "arvuline väärtus ületab maksimaalse lubatud väärtuse",
+        "Min": "arvuline väärtus on minimaalsest lubatud väärtusest väiksem",
+        "Negative": "arvuline väärtus peab olema nullist väiksem",
+        "NegativeOrZero": "arvuline väärtus peab olema nullist väiksem või sellega võrdne",
+        "NoBackslashes": "väärtus ei tohi sisaldada längkriipsu (\\) sümboleid",
+        "NoColons": "väärtus ei tohi sisaldada kooloni (:) sümboleid",
+        "NoForwardslashes": "väärtus ei tohi sisaldada kaldkriipsu (/) sümboleid",
+        "NoPercents": "väärtus ei tohi sisaldada protsendi (%) sümboleid",
+        "NoSemicolons": "väärtus ei tohi sisaldada semikooloni (;) sümboleid",
+        "Normalized": "väärtus peab olema normaliseeritud",
+        "NotBlank": "väärtus ei tohi olla tühimärk",
+        "NotEmpty": "väärtus ei tohi olla tühi",
+        "NotNull": "väärtus on nõutav",
+        "Null": "väärtust ei tohi seadistada",
+        "Past": "kuupäeva ja kellaaja väärtus peab olema minevikus",
+        "PastOrPresent": "kuupäeva ja kellaaja väärtus peab olema praegu või minevikus",
+        "Pattern": "väärtus ei vasta nõutavale vormingule",
+        "Positive": "arvuline väärtus peab olema nullist suurem",
+        "PositiveOrZero": "arvuline väärtus peab olema nullist suurem või sellega võrdne",
+        "Size": "väärtus ei vasta pikkusenõuetele",
         "ValidHostAddress": "Vajalik on kehtiv täielikult kvalifitseeritud domeeni nimi (nt host.example.org) või avalik IP aadress (nt 192.168.123.123)",
         "ValidHostAddressField": "Vajalik on kehtiv IP aadress või täielikult kvalifitseeritud domeeni nimi"
     },
