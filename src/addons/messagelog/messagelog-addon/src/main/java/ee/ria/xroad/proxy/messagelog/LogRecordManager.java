@@ -74,20 +74,6 @@ public final class LogRecordManager {
     }
 
     /**
-     * Returns a log record for a given message Query Id, start and end time.
-     * @param queryId the message query id.
-     * @param startTime the start time.
-     * @param endTime the end time.
-     * @return the log record or null, if log record is not found in database.
-     * @throws Exception if an error occurs while communicating with database.
-     */
-    static LogRecord getByQueryId(String queryId, Date startTime, Date endTime) throws Exception {
-        log.trace(GET_BY_QUERY_ID_LOG_FORMAT, queryId, startTime, endTime);
-
-        return doInTransaction(session -> getMessageRecord(session, queryId, startTime, endTime));
-    }
-
-    /**
      * Returns a log record for a given message Query Id and sender Client Id.
      * @param queryId the message query id.
      * @param clientId the sender client id.
@@ -275,19 +261,6 @@ public final class LogRecordManager {
 
     private static LogRecord getLogRecord(Session session, Long number) {
         return session.get(AbstractLogRecord.class, number);
-    }
-
-    private static MessageRecord getMessageRecord(Session session, String queryId, Date startTime, Date endTime) {
-        final CriteriaBuilder cb = session.getCriteriaBuilder();
-        final CriteriaQuery<MessageRecord> query = cb.createQuery(MessageRecord.class);
-        final Root<MessageRecord> m = query.from(MessageRecord.class);
-
-        query.select(m)
-                .where(cb.and(
-                        cb.equal(m.get("queryId"), queryId),
-                        cb.between(m.get("time"), startTime.getTime(), endTime.getTime())
-                ));
-        return session.createQuery(query).setMaxResults(1).uniqueResult();
     }
 
     private static MessageRecord getMessageRecord(Session session, String queryId, ClientId clientId,

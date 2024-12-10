@@ -56,6 +56,7 @@ import jakarta.persistence.criteria.Root;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.io.filefilter.RegexFileFilter;
+import org.hibernate.Hibernate;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Rule;
@@ -77,6 +78,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
+import java.util.function.Function;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 
@@ -129,14 +131,13 @@ public class MessageLogTest extends AbstractMessageLogTest {
         log("02-04-2014 12:34:56.100", createMessage("forced"));
         assertTaskQueueSize(1);
 
-        MessageRecord record = (MessageRecord) findByQueryId("forced", "02-04-2014 12:34:50.100",
-                "02-04-2014 12:34:59.100");
+        MessageRecord record = findByQueryId("forced");
         assertMessageRecord(record, "forced");
 
         TimestampRecord timestamp = timestamp(record);
         assertNotNull(timestamp);
 
-        record = (MessageRecord) findByQueryId("forced", "02-04-2014 12:34:50.100", "02-04-2014 12:34:59.100");
+        record = findByQueryId("forced");
 
         assertEquals(timestamp, record.getTimestampRecord());
         assertTaskQueueSize(0);
@@ -154,8 +155,7 @@ public class MessageLogTest extends AbstractMessageLogTest {
         log("02-04-2014 12:34:56.100", createMessage("forced"));
         assertTaskQueueSize(1);
 
-        MessageRecord record = (MessageRecord) findByQueryId("forced", "02-04-2014 12:34:50.100",
-                "02-04-2014 12:34:59.100");
+        MessageRecord record = findByQueryId("forced");
         assertMessageRecord(record, "forced");
 
         TimestampRecord timestamp1 = timestamp(record);
@@ -208,8 +208,7 @@ public class MessageLogTest extends AbstractMessageLogTest {
         final Instant atDate = TimeUtils.now();
         final byte[] body = "\"test message body\"".getBytes(StandardCharsets.UTF_8);
         log(atDate, message, createSignature(), body);
-        final MessageRecord logRecord = (MessageRecord) findByQueryId(message.getQueryId(), atDate.minusMillis(1),
-                atDate.plusMillis(1));
+        final MessageRecord logRecord = findByQueryId(message.getQueryId(), ClientId.Conf.create("XRD", "Class", "Member", "SubSystem"));
 
         MessageRecordEncryption.getInstance().prepareDecryption(logRecord);
         assertEquals(logRecord.getXRequestId(), requestId);
@@ -426,17 +425,16 @@ public class MessageLogTest extends AbstractMessageLogTest {
         log("02-04-2014 12:34:57.100", createMessage("message2"));
         log("02-04-2014 12:34:58.100", createMessage("message3"));
 
-        LogRecord message1 = findByQueryId("message1", "02-04-2014 12:34:50.100", "02-04-2014 12:34:59.100");
+        LogRecord message1 = findByQueryId("message1");
         assertMessageRecord(message1, "message1");
 
-        LogRecord message2 = findByQueryId("message2", "02-04-2014 12:34:50.100", "02-04-2014 12:34:59.100");
+        LogRecord message2 = findByQueryId("message2");
         assertMessageRecord(message2, "message2");
 
-        LogRecord message3 = findByQueryId("message3", "02-04-2014 12:34:50.100", "02-04-2014 12:34:59.100");
+        LogRecord message3 = findByQueryId("message3");
         assertMessageRecord(message3, "message3");
 
-        assertNull(findByQueryId("message1", "02-04-2014 12:34:56.200", "02-04-2014 12:34:59.100"));
-        assertNull(findByQueryId("foo", "02-04-2014 12:34:56.100", "02-04-2014 12:34:59.100"));
+        assertNull(findByQueryId("foo"));
     }
 
     /**
@@ -499,9 +497,8 @@ public class MessageLogTest extends AbstractMessageLogTest {
         ArchiveDigest digest = new ArchiveDigest(ClientId.Conf.create("XRD", "BUSINESS", "consumer").toShortString(),
                 lastArchive);
         doInTransaction(session -> {
-            session.createQuery(getLastEntryDeleteQuery()).executeUpdate();
-            session.save(digest);
-
+            session.createMutationQuery(getLastEntryDeleteQuery()).executeUpdate();
+            session.persist(digest);
             return null;
         });
     }
@@ -554,12 +551,16 @@ public class MessageLogTest extends AbstractMessageLogTest {
         logManager.log(logMessage);
     }
 
-    protected LogRecord findByQueryId(String queryId, String startTime, String endTime) throws Exception {
-        return LogRecordManager.getByQueryId(queryId, getDate(startTime), getDate(endTime));
+    protected MessageRecord findByQueryId(String queryId) throws Exception {
+        ClientId clientId = ClientId.Conf.create("EE", "BUSINESS", "consumer");
+        return LogRecordManager.getByQueryIdUnique(queryId, clientId, false, Function.identity());
     }
 
-    protected LogRecord findByQueryId(String queryId, Instant startTime, Instant endTime) throws Exception {
-        return LogRecordManager.getByQueryId(queryId, Date.from(startTime), Date.from(endTime));
+    protected MessageRecord findByQueryId(String queryId, ClientId clientId) throws Exception {
+        return LogRecordManager.getByQueryIdUnique(queryId, clientId, false, messageRecord -> {
+            Hibernate.initialize(messageRecord.getAttachments());
+            return messageRecord;
+        });
     }
 
     private String getLastEntryDeleteQuery() {
@@ -618,11 +619,11 @@ public class MessageLogTest extends AbstractMessageLogTest {
     }
 
     private static String getLastHashStepInDatabase() throws Exception {
-        return doInTransaction(session -> (String) session
-                .createQuery(getLastDigestQuery())
+        return doInTransaction(session -> session
+                .createQuery(getLastDigestQuery(), String.class)
                 .setMaxResults(1)
                 .list()
-                .get(0));
+                .getFirst());
     }
 
     private static String getLastDigestQuery() {
