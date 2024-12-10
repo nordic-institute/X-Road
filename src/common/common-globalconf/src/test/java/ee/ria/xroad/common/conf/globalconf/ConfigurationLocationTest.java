@@ -39,8 +39,8 @@ import static org.junit.Assert.assertTrue;
  * Unit tests for {@link ConfigurationLocation}
  */
 public class ConfigurationLocationTest {
-    private static final String TLS_CERTIFICATION_VERIFICATION_ENABLED = "xroad.configuration-client.global_conf_tls_cert_verification";
-    private static final String HOSTNAME_VERIFICATION_ENABLED = "xroad.configuration-client.global_conf_hostname_verification";
+    private static final String TLS_CERTIFICATION_VERIFICATION_ENABLED = "xroad.configuration-client.global-conf-tls-cert-verification";
+    private static final String HOSTNAME_VERIFICATION_ENABLED = "xroad.configuration-client.global-conf-hostname-verification";
 
     /**
      * Checks that {@link ConfigurationLocation} uses connections that timeout after a period of time.
