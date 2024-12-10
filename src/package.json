@@ -11,7 +11,7 @@
     "npx-check-audit": "pnpm run prepReportDirs && pnpm dlx audit-ci@^7 --config shared-ui/audit-ci-shared.json >build/reports/audit-ci.txt"
   },
   "devDependencies": {
-    "@intlify/eslint-plugin-vue-i18n": "^3.1.0",
+    "@intlify/eslint-plugin-vue-i18n": "^3.2.0",
     "@rushstack/eslint-patch": "^1.10.4",
     "@tsconfig/node18": "^18.2.4",
     "@types/node": "^22.10.1",
@@ -30,13 +30,13 @@
     "mkdirp": "^3.0.1",
     "openapi-typescript-codegen": "^0.29.0",
     "path": "^0.12.7",
-    "prettier": "^3.4.1",
+    "prettier": "^3.4.2",
     "resize-observer-polyfill": "^1.5.1",
-    "sass": "^1.81.0",
+    "sass": "^1.82.0",
     "typescript": "~5.7.2",
-    "vite": "^6.0.2",
+    "vite": "^6.0.3",
     "vite-plugin-vuetify": "^2.0.4",
-    "vitest": "^2.1.6",
+    "vitest": "^2.1.8",
     "vue-eslint-parser": "^9.4.3",
     "vue-i18n": "^10.0.5",
     "vue-tsc": "^2.1.10"
