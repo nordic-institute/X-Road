@@ -6,7 +6,7 @@ images:
     arch: "aarch64"
 
 cpus: 4
-memory: 10GiB
+memory: 12GiB
 
 mounts:
   - location: "~"

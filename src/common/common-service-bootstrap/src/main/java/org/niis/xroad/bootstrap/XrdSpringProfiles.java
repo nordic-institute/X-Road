@@ -33,6 +33,8 @@ public class XrdSpringProfiles {
     static final String OVERRIDE = "override";
     static final String NATIVE = "native";
     static final String CONTAINERIZED = "containerized";
+    static final String SECRET_STORE = "secret-store";
+    static final String K8 = "k8";
 
     static final String SS = "ss";
     static final String CS = "cs";

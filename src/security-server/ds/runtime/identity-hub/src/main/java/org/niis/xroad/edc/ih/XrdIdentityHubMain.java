@@ -37,7 +37,7 @@ import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 @SpringBootConfiguration
 @SuppressWarnings("checkstyle:HideUtilityClassConstructor")
 public class XrdIdentityHubMain {
-    private static final String APP_NAME = "xroad-ds-identity-hub";
+    private static final String APP_NAME = "ds-identity-hub";
 
     public static void main(String[] args) {
         XrdSpringServiceBuilder.newApplicationBuilder(APP_NAME, XrdIdentityHubMain.class, XrdEdcBeanBridgeConfig.class)

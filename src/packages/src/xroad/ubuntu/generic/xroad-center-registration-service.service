@@ -2,7 +2,6 @@
 Description=X-Road Central Server Registration Service
 After=network.target xroad-base.service
 Requires=xroad-base.service
-Wants=xroad-configuration-service.service
 StartLimitBurst=5
 StartLimitIntervalSec=40
 

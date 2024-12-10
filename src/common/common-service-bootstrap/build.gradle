@@ -10,6 +10,8 @@ dependencies {
     api(project(':common:common-properties'))
 
     api("org.springframework.boot:spring-boot-starter-web")
-    api("org.springframework.cloud:spring-cloud-config-client")
     api("org.springframework.boot:spring-boot-starter-actuator")
+
+    api("org.springframework.cloud:spring-cloud-starter-kubernetes-client-config")
+    api("org.springframework.cloud:spring-cloud-starter-vault-config")
 }

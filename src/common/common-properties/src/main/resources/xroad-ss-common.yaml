@@ -4,4 +4,3 @@ xroad:
   common:
     global-conf:
       source: REMOTE
-

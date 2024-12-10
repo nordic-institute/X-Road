@@ -16,8 +16,6 @@ edc:
   datasource:
     default:
       url: jdbc:postgresql://127.0.0.1:5432/ds-control-plane
-      user: ds-control-plane
-      password: ${XROAD_DS_PASSWORD}
   participant:
     id: ${EDC_DID}
   public:

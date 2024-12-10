@@ -41,7 +41,7 @@ import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 @SpringBootConfiguration
 @SuppressWarnings("checkstyle:HideUtilityClassConstructor")
 public class OpMonitorDaemonMain {
-    private static final String APP_NAME = "xroad-opmonitor";
+    private static final String APP_NAME = "opmonitor";
 
     public static void main(String[] args) {
         XrdSpringServiceBuilder.newApplicationBuilder(APP_NAME, OpMonitorDaemonMain.class, OpMonitorDaemonRootConfig.class)

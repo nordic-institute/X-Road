@@ -1,7 +1,4 @@
 spring:
-  cloud:
-    config:
-      enabled: false
   main:
     allow-bean-definition-overriding: true
 # todo: fixme: should be laoded from default config

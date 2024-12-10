@@ -35,7 +35,7 @@ import org.springframework.scheduling.annotation.EnableScheduling;
 @SpringBootApplication(scanBasePackages = {"org.niis.xroad.cs.admin", "org.niis.xroad.restapi"})
 public class Main {
 
-    private static final String APP_NAME = "xroad-center";
+    private static final String APP_NAME = "center-admin-service";
 
     public static void main(String[] args) {
         XrdSpringServiceBuilder.newApplicationBuilder(APP_NAME, Main.class)

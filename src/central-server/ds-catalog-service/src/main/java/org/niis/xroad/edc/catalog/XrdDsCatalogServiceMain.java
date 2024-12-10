@@ -37,7 +37,7 @@ import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 @SpringBootConfiguration
 @SuppressWarnings("checkstyle:HideUtilityClassConstructor")
 public class XrdDsCatalogServiceMain {
-    private static final String APP_NAME = "xroad-ds-catalog-service";
+    private static final String APP_NAME = "ds-catalog-service";
 
     public static void main(String[] args) {
         XrdSpringServiceBuilder.newApplicationBuilder(APP_NAME, XrdDsCatalogServiceMain.class, XrdEdcBeanBridgeConfig.class)

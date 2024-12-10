@@ -43,7 +43,7 @@ import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 @SuppressWarnings("checkstyle:HideUtilityClassConstructor")
 public class MonitorMain {
 
-    private static final String APP_NAME = "xroad-monitor";
+    private static final String APP_NAME = "monitor";
 
     public static void main(String[] args) {
         XrdSpringServiceBuilder.newApplicationBuilder(APP_NAME, MonitorMain.class, MonitorConfig.class,

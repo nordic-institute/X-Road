@@ -2,7 +2,6 @@
 Description=X-Road confclient
 After=network.target xroad-base.service
 Requires=xroad-base.service
-Wants=xroad-configuration-service.service
 
 [Service]
 User=xroad
