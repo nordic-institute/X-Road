@@ -16,8 +16,6 @@ xroad:
         dialect: ee.ria.xroad.common.db.CustomPostgreSQLDialect
         connection.driver_class: org.postgresql.Driver
         connection.url: jdbc:postgresql://127.0.0.1:5432/serverconf
-        connection.username: serverconf
-        connection.password: ${XROAD_SERVERCONF_PASSWORD:}
         hikari.dataSource.currentSchema: serverconf,public
         jdbc.use_streams_for_binary: true
 

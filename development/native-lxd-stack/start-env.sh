@@ -100,7 +100,7 @@ function handleInitialize() {
 
     #configure edc keys on CS
     lxc file push ./scripts/config-ds-cs-ss.sh xrd-cs/root/
-    lxc exec xrd-cs -- bash /root/config-ds-cs-ss.sh cs DEV:COM:1234
+    lxc exec xrd-cs -- bash /root/config-ds-cs-ss./s.sh cs DEV:COM:1234
 
     #configure edc keys on SS
     #ss0

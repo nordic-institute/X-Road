@@ -45,3 +45,9 @@ ss_modules:
     lib: ds-control-plane-1.0.jar
     target: /usr/share/xroad/jlib
     service: xroad-ds-control-plane
+  ds-data-plane:
+    dir: security-server/ds/runtime/data-plane
+    build: build
+    lib: ds-data-plane-1.0.jar
+    target: /usr/share/xroad/jlib
+    service: xroad-ds-data-plane
