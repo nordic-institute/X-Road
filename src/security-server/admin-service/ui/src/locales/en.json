@@ -196,7 +196,7 @@
       "vendor": "Vendor name"
     },
     "mailNotificationConfiguration": {
-      "title": "Mail notification status",
+      "title": "ACME update automated mail notifications status",
       "failureEnabled": "Failure notifications",
       "successEnabled": "Success notifications",
       "configuration": "Mail server configuration",
