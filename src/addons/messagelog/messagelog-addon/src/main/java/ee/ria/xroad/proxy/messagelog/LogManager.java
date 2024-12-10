@@ -209,7 +209,7 @@ public class LogManager extends AbstractLogManager {
             messageRecord.setHashChain(message.getSignature().getHashChain());
         } else if (manipulator.isBodyLogged(message)) {
             // log attachments for non-batch signatures
-            if (MAX_LOGGABLE_BODY_SIZE > 0) { // TODO: should we configure different max size for attachments?
+            if (MAX_LOGGABLE_BODY_SIZE > 0) {
                 messageRecord.setAttachmentStreams(message.getAttachments()
                         .stream().map(LogManager::boundedAttachmentStream).toList());
             }

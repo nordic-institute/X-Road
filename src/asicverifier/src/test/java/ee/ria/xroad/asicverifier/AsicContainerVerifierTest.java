@@ -25,7 +25,6 @@
  */
 package ee.ria.xroad.asicverifier;
 
-import ee.ria.xroad.common.ErrorCodes;
 import ee.ria.xroad.common.ExpectedCodedException;
 import ee.ria.xroad.common.SystemProperties;
 import ee.ria.xroad.common.asic.AsicContainerVerifier;

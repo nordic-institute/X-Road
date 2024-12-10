@@ -85,11 +85,11 @@ public class AsicContainer {
 
     /**
      * Creates an AsicContainer containing given message, signature and timestamp.
-     * Attempts to verify it's contents.
+     * Attempts to verify its contents.
      * @param message content of the signed message
      * @param signature signature of the message
      * @param timestamp timestamp data of the message
-     * @param attachment optional rest message body
+     * @param attachments message attachments. For Rest messages, the first attachment is message body.
      * @param time logrecord creation time
      * @throws Exception if container content verification fails
      */
