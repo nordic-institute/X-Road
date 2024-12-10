@@ -48,13 +48,17 @@ import java.nio.charset.StandardCharsets;
 import java.sql.Blob;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
+import java.util.function.Predicate;
+
+import static java.util.function.Predicate.not;
 
 /**
  * A message log record.
  */
 @Slf4j
-@ToString(callSuper = true, exclude = {"attachment"})
-@EqualsAndHashCode(callSuper = true, exclude = {"attachment"})
+@ToString(callSuper = true, exclude = {"attachments", "attachmentStreams", "messageCipher"})
+@EqualsAndHashCode(callSuper = true, exclude = {"attachments"})
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class MessageRecord extends AbstractLogRecord {
 
@@ -107,11 +111,6 @@ public class MessageRecord extends AbstractLogRecord {
     private String subsystemCode;
 
     @Getter
-    @Setter
-    @Deprecated
-    private Blob attachment;
-
-    @Getter
     private List<MessageAttachment> attachments = new ArrayList<>();
 
     @Getter
@@ -131,17 +130,14 @@ public class MessageRecord extends AbstractLogRecord {
     @Setter
     private transient Cipher messageCipher;
 
-    @Setter
-    private transient Cipher attachmentCipher;
-
     /**
      * Constructs a message record.
      *
-     * @param qid the query ID
-     * @param msg the message
-     * @param sig the signature
-     * @param response whether this record is for a response
-     * @param clientId message sender client identifier
+     * @param qid        the query ID
+     * @param msg        the message
+     * @param sig        the signature
+     * @param response   whether this record is for a response
+     * @param clientId   message sender client identifier
      * @param xRequestId common id between a request and it's response
      */
     public MessageRecord(String qid, String msg, String sig, boolean response,
@@ -166,7 +162,7 @@ public class MessageRecord extends AbstractLogRecord {
         final boolean encrypted = keyId != null;
         final SignatureData signatureData = new SignatureData(signature, hashChainResult, hashChain);
 
-        if (encrypted && (messageCipher == null || attachmentCipher == null)) {
+        if (encrypted && (messageCipher == null || attachments.stream().anyMatch(not(MessageAttachment::hasCipher)))) {
             throw new IllegalStateException("Encrypted message record has not been prepared for decryption");
         }
 
@@ -185,15 +181,6 @@ public class MessageRecord extends AbstractLogRecord {
         } else {
             plaintextMessage = message;
         }
-
-        // TODO: decryption
-//        final InputStream plainAttachment;
-//        if (encrypted && attachment != null) {
-//            plainAttachment = new CipherInputStream(attachment.getBinaryStream(), attachmentCipher);
-//        } else {
-//            plainAttachment = (attachment != null) ? attachment.getBinaryStream() : null;
-//        }
-
         var attachmentList = attachments.stream().map(MessageAttachment::getInputStream).toList();
         return new AsicContainer(plaintextMessage, signatureData, timestamp, attachmentList, getTime());
     }
