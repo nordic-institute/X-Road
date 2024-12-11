@@ -234,7 +234,7 @@ xmlns:prod="http://vrk-test.x-road.fi/producer">
 </SOAP-ENV:Envelope>
 ```
 
-For monitoring queries this is not enough. In a clustered security server configuration, one service can be served from multiple security servers. When X-Road routes the message, it picks one candidate based on which one answers the quickest. When executing monitoring queries, we need to be able to fetch monitoring data from a specific security server in a cluster. To make this possible the Security server targeting extension for the X-Road message protocol \[[PR-TARGETSS](#12-references)\] is used, which adds a new SOAP header element `securityServer`. Using this element, the caller identifies which security server should respond with the monitoring data (`servercode` = `fdev-ss1.i.palveluvayla.com`). To execute a query, we call service `getSecurityServerMetrics`:
+For monitoring queries this is not enough. In a clustered security server configuration, one service can be served from multiple security servers. When X-Road routes the message, it picks one candidate based on which one answers the quickest. When executing monitoring queries, we need to be able to fetch monitoring data from a specific security server in a cluster. To make this possible the Security server targeting extension for the X-Road message protocol \[[PR-TARGETSS](#12-references)\] is used, which adds a new SOAP header element `securityServer`. Using this element, the caller identifies which security server should respond with the monitoring data (`servercode` = `fdev-ss1.i.x-road.global`). To execute a query, we call service `getSecurityServerMetrics`:
 
 ```xml
 <SOAP-ENV:Envelope
@@ -258,7 +258,7 @@ For monitoring queries this is not enough. In a clustered security server config
             <id:xRoadInstance>fdev</id:xRoadInstance>
             <id:memberClass>GOV</id:memberClass>
             <id:memberCode>1710128-9</id:memberCode>
-            <id:serverCode>fdev-ss1.i.palveluvayla.com</id:serverCode>
+            <id:serverCode>fdev-ss1.i.x-road.global</id:serverCode>
         </xrd:securityServer>
         <xrd:id>ID11234</xrd:id>
         <xrd:protocolVersion>4.0</xrd:protocolVersion>
@@ -293,7 +293,7 @@ The response looks like:
          <id:xRoadInstance>fdev</id:xRoadInstance>
          <id:memberClass>GOV</id:memberClass>
          <id:memberCode>1710128-9</id:memberCode>
-         <id:serverCode>fdev-ss1.i.palveluvayla.com</id:serverCode>
+         <id:serverCode>fdev-ss1.i.x-road.global</id:serverCode>
       </xrd:securityServer>
       <xrd:id>ID11234</xrd:id>
       <xrd:protocolVersion>4.0</xrd:protocolVersion>
@@ -302,7 +302,7 @@ The response looks like:
    <SOAP-ENV:Body>
       <m:getSecurityServerMetricsResponse>
          <m:metricSet>
-            <m:name>SERVER:fdev/GOV/1710128-9/fdev-ss1.i.palveluvayla.com</m:name>
+            <m:name>SERVER:fdev/GOV/1710128-9/fdev-ss1.i.x-road.global</m:name>
             <m:stringMetric>
                <m:name>proxyVersion</m:name>
                <m:value>6.7.7-1.20151201075839gitb72b28e</m:value>

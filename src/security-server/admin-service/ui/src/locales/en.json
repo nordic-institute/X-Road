@@ -197,6 +197,10 @@
     },
     "mailNotificationConfiguration": {
       "title": "Mail notification status",
+      "help": {
+        "title": "Different mail notification statuses available",
+        "description": "Mail notifications are sent automatically to configured recipients for the following events depending on the configuration: authentication certificate renewal over ACME succeeded / failed, signing certificate renewal over ACME succeeded / failed, authentication certificate registration succeeded. Enabling email notifications requires changes to the Security Server’s configuration. Please see the Security Server User Guide for details."
+      },
       "failureEnabled": "Failure notifications",
       "successEnabled": "Success notifications",
       "configuration": "Mail server configuration",
