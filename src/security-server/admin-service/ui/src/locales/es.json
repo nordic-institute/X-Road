@@ -196,7 +196,11 @@
       "vendor": "Nombre del proveedor"
     },
     "mailNotificationConfiguration": {
-      "title": "Estado de notificaciones por correo",
+      "title": "Notificaciones por correo",
+      "help": {
+        "title": "Notificación de correo disponibles",
+        "description": "Las notificaciones por correo se envían automáticamente a los destinatarios configurados para los siguientes eventos, dependiendo de la configuración: renovación del certificado de autenticación a través de ACME exitosa / fallida, renovación del certificado de firma a través de ACME exitosa / fallida, registro del certificado de autenticación exitoso. Habilitar las notificaciones por correo electrónico requiere cambios en la configuración del Servidor de Seguridad. Consulta la Guía de Usuario del Servidor de Seguridad para más detalles."
+      },
       "failureEnabled": "Notificaciones de falla",
       "successEnabled": "Notificaciones de éxito",
       "configuration": "Configuración del servidor de correo",
@@ -237,7 +241,7 @@
         "SUCCESS": "Todo bien",
         "UNKNOWN": "Desconocido"
       },
-      "title": "Marco de tiempo"
+      "title": "Marca de tiempo"
     },
     "encryption": {
       "status": {
@@ -739,8 +743,9 @@
     "serviceType": "Tipo de URL",
     "serviceUrl": "URL de servicio",
     "service_parameters_ssl_test_warnings": {
-	"internal_server_ssl_error": "La verificación de los certificados del servidor interno falló. ¿Es correcta y accesible la URL del servidor de origen desde el Servidor de Seguridad?",
-	"internal_server_ssl_handshake_error": "El TLS handshake con el servidor de origen falló. Falta el certificado del servidor en la configuración:"    },
+	  "internal_server_ssl_error": "La verificación de los certificados del servidor interno falló. ¿Es correcta y accesible la URL del servidor de origen desde el Servidor de Seguridad?",
+	  "internal_server_ssl_handshake_error": "El TLS handshake con el servidor de origen falló. Falta el certificado del servidor en la configuración:"
+	},
     "timeout": "Tiempo de espera agotado",
     "timeoutSec": "Tiempo de espera (s)",
     "timeoutTooltip": "Duración máxima del tiempo de espera de una solicitud, en segundos",
@@ -840,7 +845,7 @@
           "generated": "Generado"
         }
       },
-      "title": "Ancla de la configuración"
+      "title": "Ancla de configuración"
     },
     "timestampingServices": {
       "action": {
