@@ -40,7 +40,7 @@
       :text="helpText"
       @cancel="closeHelp"
     >
-      <v-img :src="helpImage"></v-img>
+      <v-img v-if="helpImage" :src="helpImage"></v-img>
     </xrd-help-dialog>
   </div>
 </template>
@@ -57,7 +57,7 @@ export default defineComponent({
   props: {
     helpImage: {
       type: String,
-      required: true,
+      required: false,
     },
     helpTitle: {
       type: String,
