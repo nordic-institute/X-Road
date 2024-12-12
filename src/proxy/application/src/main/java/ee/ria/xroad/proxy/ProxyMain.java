@@ -43,7 +43,7 @@ public class ProxyMain {
     private static final String APP_NAME = "proxy";
 
     public static void main(String[] args) {
-        XrdSpringServiceBuilder.newApplicationBuilder(APP_NAME, ProxyMain.class, ProxyConfig.class)
+        XrdSpringServiceBuilder.newApplicationBuilder(APP_NAME, ProxyMain.class, ProxyConfig.class, ProxyAddonsConfig.class)
                 .initializers(applicationContext -> {
                     log.info("Initializing Apache Santuario XML Security library..");
                     org.apache.xml.security.Init.init();

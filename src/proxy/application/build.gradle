@@ -10,17 +10,21 @@ dependencies {
     implementation(project(':common:common-core'))
     implementation(project(':common:common-rpc'))
 
+    implementation(libs.apache.httpclient)
+    implementation project(':common:common-keyconf')
+    implementation project(':serverconf')
+    implementation(project(':addons:metaservice'))
+    implementation(project(':addons:messagelog:messagelog-addon:asic'))
+
     testImplementation(libs.hsqldb)
     testImplementation(libs.restAssured)
 
     testImplementation(project(':common:common-domain'))
     testImplementation(project(':common:common-globalconf'))
     testImplementation(project(':common:common-jetty'))
-    testImplementation(project(':common:common-keyconf'))
     testImplementation(project(':common:common-message'))
     testImplementation(project(':common:common-test'))
     testImplementation(project(':common:common-verifier'))
-    testImplementation(project(':serverconf'))
     testImplementation(project(':security-server:ds-client'))
     testImplementation(project(path: ":proxy:core", configuration: 'testArtifacts'))
 

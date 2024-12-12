@@ -19,6 +19,11 @@ xroad:
         hikari.dataSource.currentSchema: serverconf,public
         jdbc.use_streams_for_binary: true
   proxy:
+    addon:
+      metaservices:
+        enabled: true
+      messagelog:
+        enabled: true
     ocsp-responder:
       listen-address: 0.0.0.0
       port: 5577
