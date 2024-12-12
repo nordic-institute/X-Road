@@ -108,6 +108,7 @@ public class CachingServerConfImpl extends ServerConfImpl {
                 .build();
 
         endpointCache = CacheBuilder.newBuilder()
+                .weigher((ClientId k, List<Endpoint> v) -> v.size() + 1)
                 .maximumWeight(SystemProperties.getServerConfEndpointCacheSize())
                 .expireAfterWrite(expireSeconds, TimeUnit.SECONDS)
                 .recordStats()
