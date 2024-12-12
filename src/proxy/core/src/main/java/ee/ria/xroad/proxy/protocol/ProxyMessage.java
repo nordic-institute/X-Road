@@ -46,7 +46,9 @@ import org.bouncycastle.cert.ocsp.OCSPResp;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
+import java.io.IOException;
 import java.io.InputStream;
+import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -120,21 +122,24 @@ public class ProxyMessage implements ProxyMessageConsumer {
 
     /**
      * @return content of the cached message.
-     * @throws Exception in case of any errors
+     * @throws IOException in case of any errors
+     * @deprecated use {@link #writeSoapContent(OutputStream)} instead
      */
-    // TODO refactor to writing to OutputStream to avoid double caching
-    public InputStream getSoapContent() throws Exception {
+    @Deprecated
+    public InputStream getSoapContent() throws IOException {
+        ByteArrayOutputStream out = new ByteArrayOutputStream();
+        writeSoapContent(out);
+        return new ByteArrayInputStream(out.toByteArray());
+    }
+
+    public void writeSoapContent(OutputStream out) throws IOException {
         if (isMimeEncodedSoap()) {
-            ByteArrayOutputStream out = new ByteArrayOutputStream();
             MultipartEncoder mp = new MultipartEncoder(out, originalMimeBoundary);
             mp.startPart(getSoap().getContentType(), MimeUtils.toHeaders(soapPartHeaders));
             mp.write(getSoap().getBytes());
             mp.close();
-
-            return new ByteArrayInputStream(out.toByteArray());
         } else if (hasAttachments()) {
-            CachingStream outputCache = new CachingStream();
-            MultipartSoapMessageEncoder multipartEncoder = new MultipartSoapMessageEncoder(outputCache, originalMimeBoundary);
+            MultipartSoapMessageEncoder multipartEncoder = new MultipartSoapMessageEncoder(out, originalMimeBoundary);
             // Write the SOAP before attachments
             multipartEncoder.soap(soapMessage, soapPartHeaders);
             for (Attachment attachment : attachmentCache) {
@@ -142,9 +147,8 @@ public class ProxyMessage implements ProxyMessageConsumer {
             }
             // Finish writing to the attachment cache.
             multipartEncoder.close();
-            return outputCache.getCachedContents();
         } else {
-            return new ByteArrayInputStream(soapMessage.getBytes());
+            out.write(soapMessage.getBytes());
         }
     }
 

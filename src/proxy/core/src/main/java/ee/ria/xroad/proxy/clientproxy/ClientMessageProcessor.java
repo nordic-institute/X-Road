@@ -56,7 +56,6 @@ import io.opentelemetry.api.OpenTelemetry;
 import io.opentelemetry.context.Context;
 import io.opentelemetry.instrumentation.annotations.WithSpan;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.io.IOUtils;
 import org.apache.http.client.HttpClient;
 import org.bouncycastle.cert.ocsp.OCSPResp;
 import org.bouncycastle.util.Arrays;
@@ -383,8 +382,8 @@ class ClientMessageProcessor extends AbstractClientMessageProcessor {
         jResponse.setStatus(OK_200);
         jResponse.setContentType(response.getSoapContentType(), MimeUtils.UTF8);
 
-        try (InputStream is = response.getSoapContent(); var out = jResponse.getOutputStream()) {
-            IOUtils.copy(is, out);
+        try (var out = jResponse.getOutputStream()) {
+            response.writeSoapContent(out);
         }
     }
 
