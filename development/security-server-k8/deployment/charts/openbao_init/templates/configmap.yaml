@@ -9,5 +9,7 @@ data:
     {{- .Files.Get "scripts/init.sh" | nindent 4 }}
   setup.sh: |
     {{- .Files.Get "scripts/setup.sh" | nindent 4 }}
+  setup_db_credentials.sh: |
+    {{- .Files.Get "scripts/setup_db_credentials.sh" | nindent 4 }}
   unseal.sh: |
     {{- .Files.Get "scripts/unseal.sh" | nindent 4 }}

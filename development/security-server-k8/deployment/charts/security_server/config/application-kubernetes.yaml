@@ -2,7 +2,7 @@ xroad:
   messagelog:
     hibernate:
       connection.driver_class: org.postgresql.Driver
-      connection.url: jdbc:postgresql://db-messagelog:5432/messagelog
+      connection.url: jdbc:postgresql://db-messagelog.ss.svc.cluster.local:5432/messagelog
       connection.username: messagelog
       #      if password is provided, DB context will be created, but there is no
       #      messagelog hibernate cfg file on classpath, so it will fail.
@@ -14,8 +14,7 @@ xroad:
     serverconf:
       hibernate:
         connection:
-          url: jdbc:postgresql://db-serverconf:5432/serverconf
-          password: secret
+          url: jdbc:postgresql://db-serverconf.ss.svc.cluster.local:5432/serverconf
     rpc:
       channel:
         configuration-client:

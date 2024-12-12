@@ -31,6 +31,7 @@ spec:
                 if [ $? -eq 0 ]; then
                   echo "[MAIN] Unseal successful, starting setup..."
                   /scripts/setup.sh
+                  /scripts/setup_db_credentials.sh
                 else
                   echo "[MAIN] Unseal failed"
                   exit 1
@@ -52,6 +53,14 @@ spec:
               value: {{ .Values.openbao.threshold | quote }}
             - name: SHARES
               value: {{ .Values.openbao.shares | quote }}
+            - name: SERVERCONF_USERNAME
+              value: {{ .Values.databaseCredentials.serverConf.username | quote }}
+            - name: SERVERCONF_PASSWORD
+              value: {{ .Values.databaseCredentials.serverConf.password | quote }}
+            - name: MESSAGELOG_USERNAME
+              value: {{ .Values.databaseCredentials.messageLog.username | quote }}
+            - name: MESSAGELOG_PASSWORD
+              value: {{ .Values.databaseCredentials.messageLog.password | quote }}
           volumeMounts:
             - name: init-script
               mountPath: /scripts

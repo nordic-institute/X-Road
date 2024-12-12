@@ -9,19 +9,25 @@ variable "environment" {
 
 variable "images_loaded" {
   description = "Dependency marker for images being loaded"
-  type = string
+  type        = string
 }
 
-variable "openbao_dev" {
-  description = "OpenBAO dev"
-  type        = bool
-  default = false
+variable "postgres_serverconf_username" {
+  description = "PostgreSQL serverconf username"
+  type        = string
+  default     = "serverconf"
 }
 
 variable "postgres_serverconf_password" {
   description = "PostgreSQL serverconf password"
   type        = string
   sensitive   = true
+}
+
+variable "postgres_messagelog_username" {
+  description = "PostgreSQL messagelog username"
+  type        = string
+  default     = "messagelog"
 }
 
 variable "postgres_messagelog_password" {
