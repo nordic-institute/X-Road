@@ -1,0 +1,251 @@
+{
+  "locals_demo": "Esto se localiza en la biblioteca",
+  "type": "Tipo",
+  "warning": "Advertencia",
+  "action": {
+    "activate": "Activar",
+    "cancel": "Cancelar",
+    "add": "Agregar",
+    "addClient": "Agregar cliente",
+    "addMember": "Agregar miembro",
+    "addSubsystem": "Agregar subsistema",
+    "close": "Cerrar",
+    "confirm": "Confirmar",
+    "continue": "Continuar",
+    "copy": "Copiar",
+    "copyId": "Copiar identificación",
+    "delete": "Borrar",
+    "deactivate": "Desactivar",
+    "done": "Hecho",
+    "download": "Descargar",
+    "edit": "Editar",
+    "emptySearch": "Su búsqueda de {msg} no obtuvo resultados.",
+    "export": "Exportar",
+    "finish": "Finalizar",
+    "goToFront": "Ir al Inicio",
+    "next": "Siguiente",
+    "no": "No",
+    "noData": "Sin datos",
+    "ok": "De acuerdo",
+    "previous": "Anterior",
+    "refresh": "Refrescar",
+    "register": "Registrar",
+    "remove": "Eliminar",
+    "removeAll": "Eliminar todo",
+    "restore": "Restaurar",
+    "save": "Guardar",
+    "search": "Buscar",
+    "searching": "Buscando...",
+    "submit": "Enviar",
+    "unregister": "No registrado",
+    "upload": "Subir",
+    "yes": "Sí"
+  },
+  "alert": {
+    "count": "Cantidad errores similares:",
+    "id": "ID"
+  },
+  "apiKey": {
+    "createApiKey": {
+      "button": "Crear clave API",
+      "step": {
+        "keyDetails": {
+          "apiKey": "Clave de API",
+          "apiKeyID": "ID de clave API",
+          "assignedRoles": "Roles asignados",
+          "createKeyButton": "Crear clave",
+          "name": "Detalles clave",
+          "note": "Nota: Guarda la clave API en un lugar seguro. La clave API es visible solo en el momento de la generación de la clave. No se volverá a mostrar y no se puede recuperar más tarde."
+        },
+        "roles": {
+          "description": "Selecciona los roles asociados con la clave API. Los roles definen los permisos otorgados a la clave API.",
+          "name": "Roles",
+          "selectRoles": "Seleccionar roles"
+        }
+      },
+      "success": "Clave API creada con éxito",
+      "title": "Crear clave API"
+    },
+    "role": {
+      "XROAD_REGISTRATION_OFFICER": "Oficial de registro",
+      "XROAD_SECURITY_OFFICER": "Oficial de seguridad",
+      "XROAD_SYSTEM_ADMINISTRATOR": "Administrador del Sistema"
+    },
+    "edit": {
+      "roleRemoveOnly": "(solo eliminar)"
+    },
+    "table": {
+      "action": {
+        "edit": {
+          "button": "Editar",
+          "dialog": {
+            "message": "Roles asociados con la clave API:",
+            "title": "Editar clave API (id: {id})"
+          },
+          "success": "Clave API con id {id} guardada"
+        },
+        "revoke": {
+          "button": "Revocar la clave",
+          "confirmationDialog": {
+            "message": "¿Estás seguro de que quieres revocar la clave API con ID {ID}?",
+            "title": "¿Estás seguro?"
+          },
+          "success": "Clave API con id {id} revocada con éxito"
+        }
+      },
+      "header": {
+        "id": "ID",
+        "roles": "Roles"
+      }
+    }
+  },
+  "keys": {
+    "gotIt": "Entiendo"
+  },
+  "backup": {
+    "deleteBackup": {
+      "dialog": {
+        "confirmation": "¿Estás seguro de que quieres eliminar la copia de seguridad {archivo}?",
+        "title": "¿Estás seguro?"
+      },
+      "success": "Archivo o fichero de copia de seguridad {file} eliminado"
+    },
+    "restoreFromBackup": {
+      "dialog": {
+        "confirmation": "¿Estás seguro de que quieres restaurar desde el archivo o fichero {archivo}?",
+        "title": "¿Estás seguro?"
+      },
+      "success": "Configuración restaurada desde {archivo}"
+    },
+    "createBackup": {
+      "button": "Refiguración de copia de seguridad.",
+      "messages": {
+        "success": "Copia de seguridad {archivo} creada correctamente",
+        "localConfWarning": "¡Advertencia! El archivo o fichero \"/etc/xroad/services/local.conf\" utilizado para las anulaciones de configuración está en desuso y ya no se incluye en las copias de seguridad. El archivo \"/etc/xroad/services/local.properties\" debe usarse en su lugar."
+      }
+    },
+    "uploadBackup": {
+      "button": "Subir copia de seguridad",
+      "confirmationDialog": {
+        "confirmation": "El archivo o fichero {name} ya existe, ¿estás seguro de que quieres sobrescribirlo?",
+        "title": "El archivo o fichero ya existe"
+      },
+      "success": "Copia de seguridad {archivo} cargada correctamente"
+    }
+  },
+  "cert": {
+    "certificate": "Certificado",
+    "hashInfo": "Hash (SHA-256)",
+    "keyUsage": {
+      "CRL_SIGN": "Firma CRL",
+      "DATA_ENCIPHERMENT": "Cifrado de datos",
+      "DECIPHER_ONLY": "Decifrado solamente",
+      "DIGITAL_SIGNATURE": "Firma digital",
+      "ENCIPHER_ONLY": "SOLO CIFRADO",
+      "KEY_AGREEMENT": "Clave acordada",
+      "KEY_CERT_SIGN": "Firma certificado",
+      "KEY_ENCIPHERMENT": "Clave de cifrado",
+      "NON_REPUDIATION": "No repudio"
+    },
+    "rsaExp": "Exponente de clave pública de RSA",
+    "rsaModulus": "Módulo de clave pública RSA",
+    "ecParameters": "Parámetros de clave pública de la EC",
+    "ecPoint": "Punto de clave pública de la EC"
+  },
+  "error_code": {
+    "api_key_not_found": "Clave de API no encontrada",
+    "backup_file_not_found": "La copia de seguridad no se encontró",
+    "backup_generation_failed": "No se pudo generar la copia de seguridad",
+    "backup_restore_interrupted": "La restauración de la copia de seguridad ha sido interrumpida",
+    "generate_backup_interrupted": "La generación de la copia de seguridad ha sido interrumpida",
+    "invalid_backup_file": "Archivo de copia de seguridad no válido",
+    "invalid_distinguished_name": "El nombre distinguido no es válido",
+    "invalid_filename": "Nombre de archivo no válido",
+    "resource_read_failed": "No se pudo leer el recurso",
+    "restore_process_failed": "El proceso de restauración falló",
+    "token_not_found": "Token no encontrado",
+    "validation_failure": "Falla de validación"
+  },
+  "fields": {
+    "password": "Contraseña",
+    "username": "LIB-Username",
+    "shared": "sharedlib",
+    "code": "Código",
+    "description": "Descripción",
+    "memberClass": "Clase del miembro",
+    "securityServerCode": "Código de servidor de seguridad"
+  },
+  "footer": {
+    "copyright": {
+      "company": "Instituto Nordico de Soluciones de Introperabilidad (NIIS)",
+      "licenceInfo": "Información de la licencia",
+      "title": "Derechos de autor"
+    },
+    "software": {
+      "feedback": "Comentario",
+      "title": "Software",
+      "versionPrefix": "X-road"
+    }
+  },
+  "global": {
+    "all": "Todo",
+    "name": "Nombre"
+  },
+  "login": {
+    "errorMsg401": "Nombre de usuario o contraseña incorrectos",
+    "generalError": "Error de inicio de sesion. Por favor intente de nuevo.",
+    "logIn": "Acceso",
+    "logOut": "Finalizar la sesión"
+  },
+  "logout": {
+    "idleWarning": "Has estado inactivo durante 30 minutos y tu sesión ha expirado. Por razones de seguridad, deberás autenticarte nuevamente.",
+    "sessionExpired": "Sesión expirada"
+  },
+  "noData": {
+    "loading": "Cargando ... por favor espera",
+    "noBackups": "No hay copias de seguridad todavía",
+    "noCertificate": "Sin certificado",
+    "noCertificates": "Sin certificados",
+    "noData": "Sin datos",
+    "noMatches": "Sin coincidencias con los criterios",
+    "noServices": "Sin servicios",
+    "noTokens": "Sin Tokens"
+  },
+  "validationError": {
+    "AssertFalse": "el valor debe ser 'falso'",
+    "AssertTrue": "el valor debe ser 'verdadero'",
+    "DecimalMax": "El valor numérico excede el máximo permitido",
+    "DecimalMin": "El valor numérico está por debajo del mínimo permitido",
+    "Digits": "El valor debe contener solo dígitos",
+    "Email": "El valor no cumple con el formato de correo electrónico",
+    "Future": "El valor de fecha y hora debe ser posterior al actual",
+    "FutureOrPresent": "El valor de fecha y hora debe ser posterior al actual",
+    "Max": "El valor numérico excede el máximo permitido",
+    "Min": "El valor numérico está por debajo del mínimo permitido",
+    "Negative": "El valor numérico debe ser inferior a cero",
+    "NegativeOrZero": "El valor numérico debe ser menor o igual a cero",
+    "NoBackslashes": "El valor no debe contener caracteres como barra invertida (\\)",
+    "NoColons": "El valor no debe contener dos puntos (:)",
+    "NoForwardslashes": "El valor no debe contener barra (/)",
+    "NoPercents": "El valor no debe contener porcentaje (%)",
+    "NoSemicolons": "El valor no debe contener punto y coma (;)",
+    "Normalized": "El valor debe normalizarse",
+    "NotBlank": "El valor no debe estar en blanco",
+    "NotEmpty": "el valor no debe estar vacío",
+    "NotNull": "Se requiere un valor",
+    "Null": "El valor no debe establecerse",
+    "Past": "El valor de fecha y hora debe ser anterior al actual",
+    "PastOrPresent": "El valor de fecha y hora debe ser anterior al actual",
+    "Pattern": "el valor no coincidía con el formato requerido",
+    "Positive": "El valor numérico debe ser mayor que cero",
+    "PositiveOrZero": "El valor numérico debe ser mayor o igual a cero",
+    "Size": "El valor no cumple con los requisitos de longitud",
+    "ValidHostAddress": "Se requiere un nombre de dominio completamente calificado (FQDN) válido (por ejemplo, host.example.org) o una dirección IP pública (por ejemplo, 192.168.123.123).",
+    "ValidHostAddressField": "Se requiere una dirección IP válida o un nombre de dominio completamente calificado (FQDN)."
+  },
+  "validation": {
+    "messages": {
+      "address": "El campo {campo} contiene caracteres no válidos"
+    }
+  }
+}

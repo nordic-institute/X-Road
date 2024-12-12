@@ -31,10 +31,12 @@ import '@mdi/font/css/materialdesignicons.css';
 import './assets/icons.css';
 
 import en from './locales/en.json';
+import ee from './locales/ee.json';
+import es from './locales/es.json';
 
 export * from './components';
 export * from './components/icons';
 export * from './components/backups-and-restore';
 export * from './types';
 export * from './plugins/i18n';
-export const messages = { en };
+export const messages = { en, ee, es };
