@@ -368,7 +368,7 @@ public class ServerConfImpl implements ServerConfProvider {
                 .filter(e -> e.getServiceCode().equals(serviceId.getServiceCode()))
                 .filter(e -> !e.isBaseEndpoint())
                 .map(e -> createEndpoint(e.getMethod(), e.getPath()))
-                .collect(Collectors.toList()));
+                .toList());
     }
 
     @Override
