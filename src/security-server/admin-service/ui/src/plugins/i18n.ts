@@ -30,13 +30,14 @@ import { messages } from '@niis/shared-ui';
 import enAppMessages from '@/locales/en.json';
 
 const loadedLanguages = new Set('en');
-export const availableLanguages = ['en'];
+export const availableLanguages = ['en', 'es'];
 
 const defaultLanguage = import.meta.env.VITE_I18N_LOCALE || 'en';
 const defaultFallbackLanguage = import.meta.env.VITE_FALLBACK_LOCALE || 'en';
 
 const sharedLanguageMessages = {
   en: messages.en,
+  es: messages.es,
 };
 const defaultLanguagePack = merge.all([
   { validation: enValidationMessages },
