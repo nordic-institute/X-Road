@@ -34,7 +34,7 @@
             <!-- length for DDL only -->
 <!--            <property name="attachment" access="field" lazy="true" type="blob" update="false" length="1000000"/>-->
             <bag name="attachments" access="field" cascade="persist">
-                <key column="logrecord_id"/>
+                <key column="logrecord_id" update="false"/>
                 <one-to-many class="ee.ria.xroad.common.messagelog.MessageAttachment"/>
             </bag>
             <property name="xRequestId" access="field" type="string" update="false"/>
@@ -51,7 +51,7 @@
 
     <class name="ee.ria.xroad.common.messagelog.MessageAttachment" table="MESSAGE_ATTACHMENT">
         <id name="id" type="long" access="field">
-            <generator class="native"/>
+            <generator class="identity"/>
         </id>
         <property name="attachmentNo" column="attachment_no" access="field" type="int"/>
         <property name="attachment" access="field" lazy="true" type="blob" update="false" length="1000000"/>
