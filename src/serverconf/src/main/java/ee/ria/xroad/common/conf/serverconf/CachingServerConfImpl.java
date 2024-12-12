@@ -65,7 +65,7 @@ public class CachingServerConfImpl extends ServerConfImpl {
     private final Cache<Object, List<String>> tspCache;
     private final Cache<ServiceId, Optional<ServiceType>> serviceCache;
     private final Cache<AclCacheKey, List<EndpointType>> aclCache;
-    private final Cache<ClientId, List<Endpoint>> endpointCache;
+    private final Cache<ServiceId, List<Endpoint>> serviceEndpointsCache;
     private final Cache<ClientId, Optional<ClientType>> clientCache;
     private final Cache<String, InternalSSLKey> internalKeyCache;
 
@@ -107,9 +107,9 @@ public class CachingServerConfImpl extends ServerConfImpl {
                 .recordStats()
                 .build();
 
-        endpointCache = CacheBuilder.newBuilder()
-                .weigher((ClientId k, List<Endpoint> v) -> v.size() + 1)
-                .maximumWeight(SystemProperties.getServerConfEndpointCacheSize())
+        serviceEndpointsCache = CacheBuilder.newBuilder()
+                .weigher((ServiceId k, List<Endpoint> v) -> v.size() + 1)
+                .maximumWeight(SystemProperties.getServerConfServiceEndpointsCacheSize())
                 .expireAfterWrite(expireSeconds, TimeUnit.SECONDS)
                 .recordStats()
                 .build();
@@ -171,14 +171,14 @@ public class CachingServerConfImpl extends ServerConfImpl {
     }
 
     @Override
-    public List<Endpoint> getServiceEndpoints(ServiceId service) {
+    public List<Endpoint> getServiceEndpoints(ServiceId serviceId) {
         try {
-            return endpointCache.get(service.getClientId(), () -> super.getServiceEndpoints(service));
+            return serviceEndpointsCache.get(serviceId, () -> super.getServiceEndpoints(serviceId));
         } catch (ExecutionException e) {
-            if (e.getCause() instanceof CodedException) {
-                throw (CodedException) e.getCause();
+            if (e.getCause() instanceof CodedException codedException) {
+                throw codedException;
             }
-            log.debug("Failed to get list of endpoints", e);
+            log.debug("Failed to get list of service endpoints", e);
             return List.of();
         }
     }
@@ -285,8 +285,8 @@ public class CachingServerConfImpl extends ServerConfImpl {
                     serviceCache.stats());
             log.trace("ServerConf.aclCache    : entries: {}, stats: {}", aclCache.size(),
                     aclCache.stats());
-            log.trace("ServerConf.endpointCache: entries: {}, stats: {}", endpointCache.size(),
-                    endpointCache.stats());
+            log.trace("ServerConf.serviceEndpointsCache: entries: {}, stats: {}", serviceEndpointsCache.size(),
+                    serviceEndpointsCache.stats());
         }
     }
 
