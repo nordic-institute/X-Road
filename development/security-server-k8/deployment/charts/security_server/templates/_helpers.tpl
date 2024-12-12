@@ -8,20 +8,6 @@ app.kubernetes.io/managed-by: {{ .Release.Service }}
 helm.sh/chart: {{ .Chart.Name }}-{{ .Chart.Version }}
 {{- end }}
 
-{{/*
-ConfigMap template
-*/}}
-{{- define "xroad.configmap" -}}
-apiVersion: v1
-kind: ConfigMap
-metadata:
-  name: {{ .root.Release.Name }}-{{ .service }}-service
-  labels:
-    {{- include "xroad.labels" .root | nindent 4 }}
-    app: xroad-{{ .service }}
-data:
-  {{- toYaml .config.env | nindent 2 }}
-{{- end }}
 
 {{/*
 Service template
@@ -69,6 +55,7 @@ spec:
         {{- include "xroad.labels" .root | nindent 8 }}
         app: xroad-{{ .service }}
     spec:
+      serviceAccountName: {{ .service }}-sa
       # Add DNS settings
       dnsPolicy: ClusterFirst
       dnsConfig:
@@ -125,7 +112,7 @@ spec:
             {{- toYaml .config.resources | nindent 12 }}
           envFrom:
             - configMapRef:
-                name: {{ .root.Release.Name }}-{{ .service }}-service
+                name: {{ .root.Release.Name }}-{{ .service }}-env
           env:
             {{- range .config.envFromSecrets }}
             - name: {{ .name }}
@@ -143,4 +130,55 @@ spec:
             timeoutSeconds: 1
             successThreshold: 1
             failureThreshold: 3
+{{- end }}
+{{- define "xroad.serviceaccount" -}}
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: {{ .service }}-sa
+  labels:
+    {{- include "xroad.labels" .root | nindent 4 }}
+    app: xroad-{{ .service }}
+  {{- with .config.serviceAccount.annotations }}
+  annotations:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: {{ .service }}-role
+  labels:
+    {{- include "xroad.labels" .root | nindent 4 }}
+    app: xroad-{{ .service }}
+rules:
+  {{- include "xroad.serviceAccountRules" . | nindent 2 }}
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: {{ .service }}-rolebinding
+  labels:
+    {{- include "xroad.labels" .root | nindent 4 }}
+    app: xroad-{{ .service }}
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: Role
+  name: {{ .service }}-role
+subjects:
+  - kind: ServiceAccount
+    name: {{ .service }}-sa
+    namespace: {{ .root.Release.Namespace }}
+{{- end }}
+{{/* Service Account rules template */}}
+{{- define "xroad.serviceAccountRules" -}}
+- apiGroups: [""]
+  resources: ["configmaps", "pods"]
+  verbs: ["get", "watch", "list"]
+- apiGroups: [""]
+  resources: ["configmaps"]
+  resourceNames:
+    - {{ printf "%s-common-xroad-config" .root.Release.Name | quote }}
+    - {{ printf "%s-%s-config" .root.Release.Name .service | quote }}
+  verbs: ["get", "watch", "list"]
 {{- end }}
