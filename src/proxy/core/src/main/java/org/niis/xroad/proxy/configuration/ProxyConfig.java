@@ -47,6 +47,7 @@ import ee.ria.xroad.proxy.conf.KeyConfProvider;
 import ee.ria.xroad.proxy.conf.SigningCtxProvider;
 import ee.ria.xroad.proxy.opmonitoring.OpMonitoring;
 import ee.ria.xroad.proxy.serverproxy.ServerProxy;
+import ee.ria.xroad.proxy.serverproxy.ServiceHandlerLoader;
 import ee.ria.xroad.proxy.util.CertHashBasedOcspResponder;
 import ee.ria.xroad.proxy.util.CertHashBasedOcspResponderClient;
 import ee.ria.xroad.signer.SignerClientConfiguration;
@@ -56,6 +57,7 @@ import org.niis.xroad.common.rpc.server.RpcServerConfig;
 import org.niis.xroad.confclient.proto.ConfClientRpcClientConfiguration;
 import org.niis.xroad.proxy.ProxyProperties;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
+import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
@@ -108,9 +110,15 @@ public class ProxyConfig {
                             GlobalConfProvider globalConfProvider,
                             KeyConfProvider keyConfProvider,
                             ServerConfProvider serverConfProvider,
-                            CertChainFactory certChainFactory) throws Exception {
+                            CertChainFactory certChainFactory,
+                            ServiceHandlerLoader serviceHandlerLoader) throws Exception {
         return new ServerProxy(proxyProperties.getServer(), antiDosConfiguration,
-                globalConfProvider, keyConfProvider, serverConfProvider, certChainFactory);
+                globalConfProvider, keyConfProvider, serverConfProvider, certChainFactory, serviceHandlerLoader);
+    }
+
+    @Bean
+    ServiceHandlerLoader serviceHandlerLoader(ApplicationContext applicationContext) {
+        return new ServiceHandlerLoader(applicationContext);
     }
 
     @Bean

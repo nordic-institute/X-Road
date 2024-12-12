@@ -34,12 +34,20 @@ import ee.ria.xroad.proxy.clientproxy.AbstractClientProxyHandler;
 import ee.ria.xroad.proxy.clientproxy.AsicContainerHandler;
 import ee.ria.xroad.proxy.clientproxy.MetadataHandler;
 import ee.ria.xroad.proxy.conf.KeyConfProvider;
+import ee.ria.xroad.proxy.serverproxy.MetadataServiceHandlerImpl;
+import ee.ria.xroad.proxy.serverproxy.OpMonitoringServiceHandlerImpl;
+import ee.ria.xroad.proxy.serverproxy.ProxyMonitorServiceHandlerImpl;
+import ee.ria.xroad.proxy.serverproxy.RestMetadataServiceHandlerImpl;
+import ee.ria.xroad.proxy.serverproxy.RestServiceHandler;
+import ee.ria.xroad.proxy.serverproxy.ServiceHandler;
 
 import org.apache.http.client.HttpClient;
 import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Scope;
 
 @Configuration
 class ProxyAddonsConfig {
@@ -54,12 +62,40 @@ class ProxyAddonsConfig {
     }
 
     @Bean
+    @ConditionalOnProperty(name = "xroad.proxy.addon.metaservices.enabled", havingValue = "true")
+    @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
+    ServiceHandler metadataServiceHandler(ServerConfProvider serverConfProvider, GlobalConfProvider globalConfProvider) {
+        return new MetadataServiceHandlerImpl(serverConfProvider, globalConfProvider);
+    }
+
+    @Bean
+    @ConditionalOnProperty(name = "xroad.proxy.addon.metaservices.enabled", havingValue = "true")
+    @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
+    RestServiceHandler restMetadataServiceHandler(ServerConfProvider serverConfProvider) {
+        return new RestMetadataServiceHandlerImpl(serverConfProvider);
+    }
+
+    @Bean
     @ConditionalOnProperty(name = "xroad.proxy.addon.messagelog.enabled", havingValue = "true")
     AbstractClientProxyHandler asicContainerHandler(GlobalConfProvider globalConfProvider, KeyConfProvider keyConfProvider,
                                                     ServerConfProvider serverConfProvider, CertChainFactory certChainFactory,
                                                     @Qualifier("proxyHttpClient") HttpClient client) {
         return new AsicContainerHandler(globalConfProvider, keyConfProvider,
                 serverConfProvider, certChainFactory, client);
+    }
+
+    @Bean
+    @ConditionalOnProperty(name = "xroad.proxy.addon.proxymonitor.enabled", havingValue = "true")
+    @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
+    ServiceHandler proxyMonitorServiceHandler(ServerConfProvider serverConfProvider, GlobalConfProvider globalConfProvider) {
+        return new ProxyMonitorServiceHandlerImpl(serverConfProvider, globalConfProvider);
+    }
+
+    @Bean
+    @ConditionalOnProperty(name = "xroad.proxy.addon.op-monitor.enabled", havingValue = "true")
+    @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
+    ServiceHandler opMonitoringServiceHandler(ServerConfProvider serverConfProvider, GlobalConfProvider globalConfProvider) {
+        return new OpMonitoringServiceHandlerImpl(serverConfProvider, globalConfProvider);
     }
 
 }

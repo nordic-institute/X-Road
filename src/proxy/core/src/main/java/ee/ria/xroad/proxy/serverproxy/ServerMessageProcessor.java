@@ -60,7 +60,6 @@ import ee.ria.xroad.proxy.util.MessageProcessorBase;
 import io.opentelemetry.instrumentation.annotations.WithSpan;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.ArrayUtils;
-import org.apache.commons.lang3.StringUtils;
 import org.apache.http.client.HttpClient;
 
 import java.io.InputStream;
@@ -98,11 +97,10 @@ import static ee.ria.xroad.common.util.TimeUtils.getEpochMillisecond;
 @Slf4j
 class ServerMessageProcessor extends MessageProcessorBase {
 
-    private static final String SERVERPROXY_SERVICE_HANDLERS = SystemProperties.PREFIX + "proxy.serverServiceHandlers";
-
     private final X509Certificate[] clientSslCerts;
 
     private final List<ServiceHandler> handlers = new ArrayList<>();
+    private final ServiceHandlerLoader serviceHandlerLoader;
 
     private String originalSoapAction;
     private ProxyMessage requestMessage;
@@ -116,8 +114,9 @@ class ServerMessageProcessor extends MessageProcessorBase {
 
     private SigningCtx responseSigningCtx;
 
-    private HttpClient opMonitorHttpClient;
-    private OpMonitoringData opMonitoringData;
+    private final HttpClient opMonitorHttpClient;
+    private final OpMonitoringData opMonitoringData;
+
 
     ServerMessageProcessor(GlobalConfProvider globalConfProvider,
                            KeyConfProvider keyConfProvider,
@@ -125,14 +124,16 @@ class ServerMessageProcessor extends MessageProcessorBase {
                            CertChainFactory certChainFactory,
                            RequestWrapper request, ResponseWrapper response,
                            HttpClient httpClient, X509Certificate[] clientSslCerts,
-                           HttpClient opMonitorHttpClient, OpMonitoringData opMonitoringData) {
+                           HttpClient opMonitorHttpClient, OpMonitoringData opMonitoringData,
+                           ServiceHandlerLoader serviceHandlerLoader) {
         super(globalConfProvider, keyConfProvider, serverConfProvider, certChainFactory, request, response, httpClient);
 
         this.clientSslCerts = clientSslCerts;
         this.opMonitorHttpClient = opMonitorHttpClient;
         this.opMonitoringData = opMonitoringData;
+        this.serviceHandlerLoader = serviceHandlerLoader;
 
-        loadServiceHandlers();
+        loadServiceHandlers(serviceHandlerLoader);
     }
 
     @Override
@@ -208,16 +209,11 @@ class ServerMessageProcessor extends MessageProcessorBase {
         opMonitoringData.setSucceeded(true);
     }
 
-    private void loadServiceHandlers() {
-        String serviceHandlerNames = System.getProperty(SERVERPROXY_SERVICE_HANDLERS);
-
-        if (!StringUtils.isBlank(serviceHandlerNames)) {
-            for (String serviceHandlerName : serviceHandlerNames.split(",")) {
-                handlers.add(ServiceHandlerLoader.load(serviceHandlerName, serverConfProvider, globalConfProvider));
-
-                log.debug("Loaded service handler: {}", serviceHandlerName);
-            }
-        }
+    private void loadServiceHandlers(ServiceHandlerLoader serviceHandlerLoader) {
+        serviceHandlerLoader.loadSoapServiceHandlers().forEach(handler -> {
+            handlers.add(handler);
+            log.debug("Loaded service handler: {}", handler.getClass().getName());
+        });
 
         handlers.add(new DefaultServiceHandlerImpl(serverConfProvider, globalConfProvider)); // default handler
     }

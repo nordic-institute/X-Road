@@ -20,6 +20,8 @@ xroad:
         jdbc.use_streams_for_binary: true
   proxy:
     addon:
+      proxymonitor:
+        enabled: true
       metaservices:
         enabled: true
       messagelog:

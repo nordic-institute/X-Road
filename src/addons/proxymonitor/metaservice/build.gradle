@@ -74,7 +74,7 @@ tasks.register('runProxymonitorMetaserviceTest', JavaExec) {
         '-Dxroad.proxy.client-connector-so-linger=-1',
         '-Dxroad.proxy.client-httpclient-so-linger=-1',
         '-Dxroad.proxy.server-connector-so-linger=-1',
-        '-Dxroad.proxy.serverServiceHandlers=ee.ria.xroad.proxy.serverproxy.ProxyMonitorServiceHandlerImpl',
+// default        '-Dxroad.proxy.addon.proxymonitor.enabled=true',
         '-Dxroad.proxy.grpc-tls-enabled=false',
         '-Dtest.queries.dir=src/test/queries'
 
