@@ -31,8 +31,6 @@
 
             <property name="timestampHashChain" access="field" type="text"/>
             <property name="response" access="field" type="boolean" update="false"/>
-            <!-- length for DDL only -->
-<!--            <property name="attachment" access="field" lazy="true" type="blob" update="false" length="1000000"/>-->
             <bag name="attachments" access="field" cascade="persist">
                 <key column="logrecord_id" update="false"/>
                 <one-to-many class="ee.ria.xroad.common.messagelog.MessageAttachment"/>
@@ -54,6 +52,7 @@
             <generator class="identity"/>
         </id>
         <property name="attachmentNo" column="attachment_no" access="field" type="int"/>
+        <!-- length for DDL only -->
         <property name="attachment" access="field" lazy="true" type="blob" update="false" length="1000000"/>
         <many-to-one name="logRecord" column="logrecord_id" access="field" cascade="none"
                      class="ee.ria.xroad.common.messagelog.MessageRecord"/>

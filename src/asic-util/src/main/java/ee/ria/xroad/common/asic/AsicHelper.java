@@ -64,6 +64,7 @@ import static ee.ria.xroad.common.asic.AsicContainerEntries.ENTRY_TIMESTAMP;
 import static ee.ria.xroad.common.asic.AsicContainerEntries.ENTRY_TS_HASH_CHAIN;
 import static ee.ria.xroad.common.asic.AsicContainerEntries.ENTRY_TS_HASH_CHAIN_RESULT;
 import static ee.ria.xroad.common.asic.AsicContainerEntries.MIMETYPE;
+import static ee.ria.xroad.common.asic.AsicContainerEntries.isAttachment;
 import static ee.ria.xroad.common.util.EncoderUtils.decodeBase64;
 import static ee.ria.xroad.common.util.EncoderUtils.encodeBase64;
 import static org.apache.commons.lang3.StringUtils.isBlank;
@@ -96,7 +97,7 @@ final class AsicHelper {
                     entries.put(zipEntry.getName(), data);
 
                     break;
-                } else if (AsicContainerEntries.isAttachment(zipEntry.getName())) {
+                } else if (isAttachment(zipEntry.getName())) {
                     final DigestCalculator digest =
                             Digests.createDigestCalculator(Digests.DEFAULT_DIGEST_ALGORITHM);
                     IOUtils.copy(zip, digest.getOutputStream());

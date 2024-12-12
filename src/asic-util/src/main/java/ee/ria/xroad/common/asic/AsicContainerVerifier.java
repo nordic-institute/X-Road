@@ -82,6 +82,7 @@ import static ee.ria.xroad.common.util.EncoderUtils.decodeBase64;
 import static ee.ria.xroad.common.util.EncoderUtils.encodeHex;
 import static ee.ria.xroad.common.util.MessageFileNames.MESSAGE;
 import static ee.ria.xroad.common.util.MessageFileNames.SIG_HASH_CHAIN_RESULT;
+import static ee.ria.xroad.common.util.MessageFileNames.isAttachment;
 import static java.nio.charset.StandardCharsets.UTF_8;
 
 /**
@@ -187,7 +188,7 @@ public class AsicContainerVerifier {
 
             @Override
             public boolean engineCanResolveURI(ResourceResolverContext context) {
-                if (MessageFileNames.isAttachment(context.attr.getValue())) {
+                if (isAttachment(context.attr.getValue())) {
                     return asic.getAttachmentDigest(context.attr.getValue()) != null;
                 }
                 return asic.hasEntry(context.attr.getValue());
@@ -195,7 +196,7 @@ public class AsicContainerVerifier {
 
             @Override
             public XMLSignatureInput engineResolveURI(ResourceResolverContext context) throws ResourceResolverException {
-                if (MessageFileNames.isAttachment(context.attr.getValue())) {
+                if (isAttachment(context.attr.getValue())) {
                     return new XMLSignatureDigestInput(EncoderUtils.encodeBase64(asic.getAttachmentDigest(context.attr.getValue())));
                 }
                 return new XMLSignatureStreamInput(asic.getEntry(context.attr.getValue()));
@@ -206,7 +207,7 @@ public class AsicContainerVerifier {
     }
 
     private void logUnresolvableHash(String uri, byte[] digestValue) {
-        boolean verified = uri.equals("/attachment1") && Arrays.equals(digestValue, asic.getAttachmentDigest(uri));
+        boolean verified = isAttachment(uri) && Arrays.equals(digestValue, asic.getAttachmentDigest(uri));
         attachmentHashes.add(String.format("The digest for \"%s\" is: %s", uri,
                 encodeHex(digestValue)) + (verified ? " (verified)" : " (unverified)"));
     }
