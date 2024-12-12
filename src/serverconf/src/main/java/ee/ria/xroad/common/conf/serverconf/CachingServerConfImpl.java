@@ -36,6 +36,7 @@ import ee.ria.xroad.common.conf.serverconf.model.ServiceType;
 import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.identifier.SecurityServerId;
 import ee.ria.xroad.common.identifier.ServiceId;
+import ee.ria.xroad.common.metadata.Endpoint;
 
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
@@ -60,11 +61,11 @@ public class CachingServerConfImpl extends ServerConfImpl {
 
     public static final String TSP_URL = "tsp_url";
 
-    private final int expireSeconds;
     private volatile SecurityServerId.Conf serverId;
     private final Cache<Object, List<String>> tspCache;
     private final Cache<ServiceId, Optional<ServiceType>> serviceCache;
     private final Cache<AclCacheKey, List<EndpointType>> aclCache;
+    private final Cache<ClientId, List<Endpoint>> endpointCache;
     private final Cache<ClientId, Optional<ClientType>> clientCache;
     private final Cache<String, InternalSSLKey> internalKeyCache;
 
@@ -75,7 +76,7 @@ public class CachingServerConfImpl extends ServerConfImpl {
     @SuppressWarnings("checkstyle:MagicNumber")
     public CachingServerConfImpl(GlobalConfProvider globalConfProvider) {
         super(globalConfProvider);
-        expireSeconds = SystemProperties.getServerConfCachePeriod();
+        int expireSeconds = SystemProperties.getServerConfCachePeriod();
 
         internalKeyCache = CacheBuilder.newBuilder()
                 .maximumSize(1)
@@ -106,6 +107,11 @@ public class CachingServerConfImpl extends ServerConfImpl {
                 .recordStats()
                 .build();
 
+        endpointCache = CacheBuilder.newBuilder()
+                .maximumWeight(SystemProperties.getServerConfEndpointCacheSize())
+                .expireAfterWrite(expireSeconds, TimeUnit.SECONDS)
+                .recordStats()
+                .build();
     }
 
     @Override
@@ -164,6 +170,19 @@ public class CachingServerConfImpl extends ServerConfImpl {
     }
 
     @Override
+    public List<Endpoint> getServiceEndpoints(ServiceId service) {
+        try {
+            return endpointCache.get(service.getClientId(), () -> super.getServiceEndpoints(service));
+        } catch (ExecutionException e) {
+            if (e.getCause() instanceof CodedException) {
+                throw (CodedException) e.getCause();
+            }
+            log.debug("Failed to get list of endpoints", e);
+            return List.of();
+        }
+    }
+
+    @Override
     public IsAuthentication getIsAuthentication(ClientId clientId) {
         return getClient(clientId).map(c -> c.getIsAuthentication() == null ? IsAuthentication.NOSSL
                 : IsAuthentication.valueOf(c.getIsAuthentication())).orElse(null);
@@ -192,7 +211,7 @@ public class CachingServerConfImpl extends ServerConfImpl {
     @Override
     public boolean isSslAuthentication(ServiceId service) {
         Optional<ServiceType> serviceTypeOptional = getService(service);
-        if (!serviceTypeOptional.isPresent()) {
+        if (serviceTypeOptional.isEmpty()) {
             throw new CodedException(X_UNKNOWN_SERVICE, "Service '%s' not found", service);
         }
         ServiceType serviceType = serviceTypeOptional.get();
@@ -265,6 +284,8 @@ public class CachingServerConfImpl extends ServerConfImpl {
                     serviceCache.stats());
             log.trace("ServerConf.aclCache    : entries: {}, stats: {}", aclCache.size(),
                     aclCache.stats());
+            log.trace("ServerConf.endpointCache: entries: {}, stats: {}", endpointCache.size(),
+                    endpointCache.stats());
         }
     }
 
@@ -273,7 +294,6 @@ public class CachingServerConfImpl extends ServerConfImpl {
         log.info("Clearing configuration cache");
         internalKeyCache.invalidateAll();
     }
-
 
     private record AclCacheKey(ClientId client, ServiceId serviceId) {
     }

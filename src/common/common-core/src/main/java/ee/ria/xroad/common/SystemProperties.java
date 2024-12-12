@@ -261,6 +261,7 @@ public final class SystemProperties {
 
     public static final String SERVER_CONF_ACL_CACHE_SIZE = PROXY_PREFIX + "server-conf-acl-cache-size";
 
+    public static final String SERVER_CONF_ENDPOINT_CACHE_SIZE = PROXY_PREFIX + "server-conf-endpoint-cache-size";
 
     /** Property name of the idle time that connections to the ServerProxy Connector are allowed, in milliseconds */
     private static final String SERVERPROXY_CONNECTOR_MAX_IDLE_TIME =
@@ -1876,6 +1877,11 @@ public final class SystemProperties {
     @SuppressWarnings("checkstyle:MagicNumber")
     public static long getServerConfAclCacheSize() {
         return Long.getLong(SERVER_CONF_ACL_CACHE_SIZE, 100_000);
+    }
+
+    @SuppressWarnings("checkstyle:MagicNumber")
+    public static long getServerConfEndpointCacheSize() {
+        return Long.getLong(SERVER_CONF_ENDPOINT_CACHE_SIZE, 100_000);
     }
 
     private static void checkVersionValidity(int min, int current, String defaultVersion) {
