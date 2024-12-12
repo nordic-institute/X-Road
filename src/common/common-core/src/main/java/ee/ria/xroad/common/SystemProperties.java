@@ -421,10 +421,10 @@ public final class SystemProperties {
     // Configuration client ---------------------------------------------------
 
     public static final String CONFIGURATION_CLIENT_GLOBAL_CONF_TLS_CERT_VERIFICATION =
-            PREFIX + "configuration-client.global_conf_tls_cert_verification";
+            PREFIX + "configuration-client.global-conf-tls-cert-verification";
 
     public static final String CONFIGURATION_CLIENT_GLOBAL_CONF_HOSTNAME_VERIFICATION =
-            PREFIX + "configuration-client.global_conf_hostname_verification";
+            PREFIX + "configuration-client.global-conf-hostname-verification";
 
     public static final String CONFIGURATION_CLIENT_ALLOWED_FEDERATIONS =
             PREFIX + "configuration-client.allowed-federations";

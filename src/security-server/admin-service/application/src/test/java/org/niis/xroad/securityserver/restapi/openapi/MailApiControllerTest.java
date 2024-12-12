@@ -96,7 +96,7 @@ public class MailApiControllerTest extends AbstractApiControllerTestContext {
     @WithMockUser(authorities = {"DIAGNOSTICS"})
     public void testSendMailException() {
 
-        doThrow(new MailSendException("Sending failed")).when(mailService).sendMail(any(), any(), any());
+        doThrow(new MailSendException("Sending failed")).when(mailService).sendTestMail(any(), any(), any());
         ResponseEntity<TestMailResponse> testMailResponse =
                 mailApiController.sendTestMail(new MailRecipient("test@mailaddress.org"));
         assertEquals(MailStatus.ERROR, testMailResponse.getBody().getStatus());

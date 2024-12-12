@@ -1,5 +1,6 @@
 <!--
    The MIT License
+
    Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
    Copyright (c) 2018 Estonian Information System Authority (RIA),
    Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
@@ -24,75 +25,71 @@
    THE SOFTWARE.
  -->
 <template>
-  <div class="help-wrap" @click="helpClick()">
-    <v-hover v-slot="{ isHovering }">
-      <xrd-icon-base
-        :color="isHovering ? '#663cdc' : '#575169'"
-        class="help-icon"
-      >
-        <xrd-icon-tooltip />
-      </xrd-icon-base>
-    </v-hover>
+  <div class="language-changer">
+    <v-menu location="bottom">
+      <template #activator="{ props }">
+        <v-btn
+          class="no-uppercase"
+          data-test="language-button"
+          v-bind="props"
+          variant="text"
+        >
+          <strong>{{ currentLanguage }}</strong>
+          <v-icon icon="mdi-chevron-down" />
+        </v-btn>
+      </template>
 
-    <xrd-help-dialog
-      :dialog="showHelp"
-      :title="helpTitle"
-      :text="helpText"
-      @cancel="closeHelp"
-    >
-      <v-img :src="helpImage"></v-img>
-    </xrd-help-dialog>
+      <v-list>
+        <v-list-item
+          v-for="language in languages"
+          :key="language"
+          :active="language === currentLanguage"
+          data-test="language-list-tile"
+          @click="switchLanguage(language)"
+        >
+          {{ language }}
+        </v-list-item>
+      </v-list>
+    </v-menu>
   </div>
 </template>
 
 <script lang="ts">
 import { defineComponent } from 'vue';
-import { XrdHelpDialog, XrdIconTooltip } from '@niis/shared-ui';
+import { mapActions } from 'pinia';
+import { useLanguage } from '@/store/modules/language';
+import { availableLanguages } from '@/plugins/i18n';
 
 export default defineComponent({
-  components: {
-    XrdIconTooltip,
-    XrdHelpDialog,
-  },
-  props: {
-    helpImage: {
-      type: String,
-      required: true,
+  computed: {
+    // Using a computed property for the current language for reactivity
+    currentLanguage() {
+      return this.$i18n.locale;
     },
-    helpTitle: {
-      type: String,
-      required: true,
-    },
-    helpText: {
-      type: String,
-      required: true,
+    languages() {
+      return availableLanguages;
     },
   },
-  data: () => ({
-    showHelp: false,
-  }),
   methods: {
-    helpClick(): void {
-      this.showHelp = true;
-    },
-    closeHelp(): void {
-      this.showHelp = false;
+    ...mapActions(useLanguage, ['changeLanguage']),
+    switchLanguage(language: string): void {
+      if (language !== this.currentLanguage) {
+        this.changeLanguage(language);
+      }
     },
   },
 });
 </script>
 
 <style lang="scss" scoped>
-.help-wrap {
+.language-changer {
+  margin-left: auto;
   display: flex;
-  flex-direction: column;
   align-items: center;
-}
 
-.help-icon {
-  margin-left: 20px;
-  margin-bottom: 4px;
-  font-size: 22px;
-  cursor: pointer;
+  .no-uppercase {
+    text-transform: none;
+    font-weight: 600;
+  }
 }
 </style>

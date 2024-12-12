@@ -24,97 +24,75 @@
    THE SOFTWARE.
  -->
 <template>
-  <v-layout class="main-content">
-    <app-icon />
-    <v-tabs
-      v-model="currentTab"
-      class="main-tabs"
-      color="black"
-      height="56px"
-      slider-size="2"
-      slider-color="primary"
-      :show-arrows="true"
-    >
-      <v-tab
-        v-for="tab in allowedTabs"
-        :key="tab.key"
-        :to="tab.to"
-        :data-test="tab.key"
-        >{{ $t(tab.name) }}</v-tab
+  <div class="help-wrap" @click="helpClick()">
+    <v-hover v-slot="{ isHovering }">
+      <xrd-icon-base
+        :color="isHovering ? '#663cdc' : '#575169'"
+        class="help-icon"
       >
-    </v-tabs>
-    <language-dropdown />
-    <app-drop-menu />
-  </v-layout>
+        <xrd-icon-tooltip />
+      </xrd-icon-base>
+    </v-hover>
+
+    <xrd-help-dialog
+      :dialog="showHelp"
+      :title="helpTitle"
+      :text="helpText"
+      @cancel="closeHelp"
+    >
+      <v-img v-if="helpImage" :src="helpImage"></v-img>
+    </xrd-help-dialog>
+  </div>
 </template>
 
 <script lang="ts">
 import { defineComponent } from 'vue';
-import { Tab } from '@/ui-types';
-import { mainTabs } from '@/global';
-import AppIcon from './AppIcon.vue';
-import AppDropMenu from './AppDropMenu.vue';
-import { mapState } from 'pinia';
-import { useUser } from '@/store/modules/user';
-import LanguageDropdown from '@/components/layout/LanguageDropdown.vue';
+import { XrdHelpDialog, XrdIconTooltip } from '@niis/shared-ui';
 
 export default defineComponent({
   components: {
-    AppIcon,
-    AppDropMenu,
-    LanguageDropdown,
+    XrdIconTooltip,
+    XrdHelpDialog,
   },
-  data() {
-    return {
-      currentTab: undefined as undefined | Tab,
-    };
+  props: {
+    helpImage: {
+      type: String,
+      required: false,
+    },
+    helpTitle: {
+      type: String,
+      required: true,
+    },
+    helpText: {
+      type: String,
+      required: true,
+    },
   },
-  computed: {
-    ...mapState(useUser, ['getAllowedTabs']),
-    allowedTabs(): Tab[] {
-      return this.getAllowedTabs(mainTabs);
+  data: () => ({
+    showHelp: false,
+  }),
+  methods: {
+    helpClick(): void {
+      this.showHelp = true;
+    },
+    closeHelp(): void {
+      this.showHelp = false;
     },
   },
 });
 </script>
 
-<style lang="scss">
-.v-tabs-slider.xrd-main-tabs-slider {
-  width: 70px;
-  margin-left: auto;
-  margin-right: auto;
-}
-
-.v-tab {
-  text-transform: none;
-  font-weight: 600;
-}
-
-.v-tabs-slider.xrd-sub-tabs-slider {
-  width: 40px;
-  margin-left: auto;
-  margin-right: auto;
-}
-</style>
-
 <style lang="scss" scoped>
-.main-content {
-  background-color: #ffffff;
-  height: 56px;
-  padding-left: 92px;
-  @media only screen and (max-width: 920px) {
-    padding-left: 0;
-  }
+.help-wrap {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
 }
 
-.main-tabs {
+.help-icon {
   margin-left: 20px;
-  max-width: 1000px;
-}
-
-:deep(.v-tab) {
-  text-transform: none;
-  font-weight: 600;
-  color: rgb(0 0 0 / 54%);
+  margin-bottom: 4px;
+  font-size: 22px;
+  cursor: pointer;
 }
 </style>
