@@ -16,6 +16,9 @@ resource "helm_release" "postgresql_serverconf" {
         database = "serverconf"
         username = var.postgres_serverconf_username
         password = var.postgres_serverconf_password
+        //admin user for setup
+        enablePostgresUser = true
+        postgresPassword= var.postgres_serverconf_password
       }
       primary = {
         resources = {
@@ -49,6 +52,9 @@ resource "helm_release" "postgresql_messagelog" {
         database = "messagelog"
         username = var.postgres_messagelog_username
         password = var.postgres_messagelog_password
+        //admin user for setup
+        enablePostgresUser = true
+        postgresPassword= var.postgres_messagelog_password
       }
       primary = {
         resources = {
@@ -88,4 +94,19 @@ resource "helm_release" "security_server" {
     name  = "environment"
     value = var.environment
   }
+
+  values = [
+    yamlencode({
+      environment = var.environment,
+      init = {
+        serverconf = {
+          username = var.postgres_serverconf_username
+          password = var.postgres_serverconf_password
+        }
+        messagelog = {
+          username = var.postgres_messagelog_username
+          password = var.postgres_messagelog_password
+        }
+      }
+    })]
 }

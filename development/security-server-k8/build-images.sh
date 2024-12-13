@@ -2,6 +2,18 @@
 
 ./init_image/build-initializer.sh
 
+echo "Building serverconf-init"
+docker build --tag xroad-ss-serverconf-init \
+--build-arg CHANGELOG_FILE=serverconf-changelog.xml \
+--build-context changelog=$XROAD_HOME/src/security-server/admin-service/infra-jpa/src/main/resources/liquibase/ \
+init_db/
+
+echo "Building messagelog-init"
+docker build --tag xroad-ss-messagelog-init \
+--build-arg CHANGELOG_FILE=messagelog-changelog.xml \
+--build-context changelog=$XROAD_HOME/src/packages/src/xroad/common/addon/proxy/ \
+init_db/
+
 echo "Building confclient"
 docker build --tag xroad-ss-confclient \
 --file build-context/Dockerfile \

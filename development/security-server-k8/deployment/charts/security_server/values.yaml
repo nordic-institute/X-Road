@@ -2,6 +2,24 @@
 global:
   environment: dev
 
+init:
+  serverconf:
+    image: xroad-ss-serverconf-init:latest
+    host: "db-serverconf.ss.svc.cluster.local"
+    port: "5432"
+    database: "serverconf"
+    username: "replace-me"
+    password: "replace-me"
+    schema: "public"
+  messagelog:
+    image: xroad-ss-messagelog-init:latest
+    host: "db-messagelog.ss.svc.cluster.local"
+    port: "5432"
+    database: "messagelog"
+    username: "replace-me"
+    password: "replace-me"
+    schema: "public"
+
 services:
   configuration-client:
     image: xroad-ss-confclient:latest

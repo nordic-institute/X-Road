@@ -8,6 +8,8 @@ variable "images" {
   type    = list(string)
   default = [
     "init-runner:latest",
+    "xroad-ss-serverconf-init:latest",
+    "xroad-ss-messagelog-init:latest",
     "xroad-ss-ui:latest",
     "xroad-ss-config:latest",
     "xroad-ss-confclient:latest",
