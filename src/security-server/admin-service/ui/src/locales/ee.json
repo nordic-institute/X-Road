@@ -1,0 +1,1000 @@
+{
+  "403": {
+    "goBack": " Tagasi",
+    "mainTitle": " Toiming ei ole lubatud",
+    "text": "Näib, et teil pole selle lehekülje vaatamiseks luba. Kui teie arvates on tegemist veaga, siis kontrollige, kas olete õige kontoga sisse logitud või võtke ühendust oma administraatoriga.",
+    "topTitle": "Keelatud"
+  },
+  "404": {
+    "pageNotFound": "404 – lehekülge ei leitud",
+    "text": "Näib, et olete leidnud",
+    "textUnicorn": "ükssarviku"
+  },
+  "accessRights": {
+    "addServiceClients": "Lisa ligipääs",
+    "addServiceClientsSuccess": "Ligipääs edukalt antud",
+    "addServiceClientsTitle": "Lisa ligipääs",
+    "addSubjectsSuccess": "Ligipääs edukalt antud",
+    "id": "ID",
+    "memberName": "Liikme nimi / Rühma kirjeldus",
+    "removeAllText": "Kas olete kindel, et soovite kõikidelt klientidelt pääsuõigused eemaldada?",
+    "removeAllTitle": "Eemalda kõik pääsuõigused?",
+    "removeSuccess": "Pääsuõigused edukalt eemaldatud",
+    "removeText": "Kas olete kindel, et soovite sellelt kliendilt pääsuõigused eemaldada?",
+    "removeTitle": "Eemalda pääsuõigused?",
+    "rightsGiven": "Pääsuõigused antud",
+    "title": "Pääsuõigused"
+  },
+  "action": {
+    "cancel": "Tühista",
+    "delete": "Kustuta",
+    "disable": "Blokeeri",
+    "enable": "Aktiveeri",
+    "order": "Telli"
+  },
+  "alert": {
+    "warningCount": "Samade hoiatuste hulk"
+  },
+  "apiKey": {
+    "role": {
+      "XROAD_SECURITYSERVER_OBSERVER": "Serveri vaatleja roll",
+      "XROAD_SERVICE_ADMINISTRATOR": "Hooldusadministraator"
+    },
+    "backup": {
+      "createBackup": {
+        "messages": {
+          "localConfWarning": "Hoiatus! Konfiguratsiooni üle kirjutamiseks kasutatav fail „/etc/xroad/services/local.conf“ on mittesobiv ja ei sisaldu enam varukoopiate hulgas. Selle asemel tuleb kasutada faili „/etc/xroad/services/local.properties“."
+        }
+      }
+    },
+    "cert": {
+      "activateSuccess": "Sertifikaat on aktiveeritud",
+      "certDeleted": "Sertifikaat kustutatud",
+      "deleteCertConfirm": "Kas olete kindel, et soovite selle sertifikaadi kustutada?",
+      "deleteCertTitle": "Kustutada sertifikaat?",
+      "disableSuccess": "Sertifikaat on blokeeritud",
+      "disabled": "blokeeritud",
+      "expires": "Aegub",
+      "inUse": "kasutusel",
+      "serialNumber": "Seerianumber",
+      "signCertificate": "Allkirjasertifikaat",
+      "state": "Olek"
+    },
+    "certificateProfile": {
+      "COMMON_NAME": "Üldnimi (CN)",
+      "COUNTRY_CODE": "Maakood (C)",
+      "INSTANCE_IDENTIFIER": "Keskkonna identifikaator (C)",
+      "INSTANCE_IDENTIFIER_O": "Keskkonna identifikaator (O)",
+      "MEMBER_CLASS": "Liikmeklass (O)",
+      "MEMBER_CLASS_BC": "Liikmeklass (BC)",
+      "MEMBER_CLASS_OU": "Liikmeklass (OU)",
+      "MEMBER_CODE": "Liikmekood (CN)",
+      "MEMBER_CODE_SN": "Liikmekood (SN)",
+      "ORGANIZATION_NAME": "Organisatsiooni nimi (O)",
+      "ORGANIZATION_NAME_CN": "Organisatsiooni nimi (CN)",
+      "SERIAL_NUMBER": "Seerianumber",
+      "SERIAL_NUMBER_SN": "Seerianumber (SN)",
+      "SERVER_CODE": "Serveri kood (CN)",
+      "SERVER_DNS_NAME": "Serveri DNS nimi (CN)",
+      "SUBJECT_ALTERNATIVE_NAME": "Subjekti alternatiivne nimi (SAN)"
+    },
+    "client": {
+      "action": {
+        "delete": {
+          "confirmText": "Kas soovite selle kliendi kustutada?",
+          "confirmTitle": "Kustuta klient",
+          "success": "Klient kustutatud"
+        },
+        "makeOwner": {
+          "button": "Muuda omanikuks",
+          "confirmText1": "Kas soovite muuta alloleva liikme selle turvaserveri uueks omanikuks?",
+          "confirmText2": "Alloleva nupu \"Muutke omanikuks\" vajutamisel edastatakse omaniku muutmise taotlus keskusesse.",
+          "confirmTitle": "Muuda omanikuks",
+          "success": "Omanik muudetud"
+        },
+        "removeOrphans": {
+          "cancelButtonText": "Ei",
+          "confirmText": "Kustutatud kliendiga seotud allkirjavõtmel ja sertifikaadil puuduvad kasutajad. Kustutada võti ja sertifikaat?",
+          "confirmTitle": "Kustuta võti ja sertifikaat",
+          "success": "Sertifikaat kustutatud"
+        },
+        "unregister": {
+          "confirmText": "Kas soovite selle kliendi nimekirjast kustutada?",
+          "confirmTitle": "Kustuta klient nimekirjast",
+          "success": "Klient nimekirjast kustutatud"
+        },
+        "disable": {
+          "confirmText": "Kas soovite selle kliendi blokeerida?",
+          "confirmTitle": "Blokeeri klient",
+          "success": "Klient blokeeritakse"
+        },
+        "enable": {
+          "confirmText": "Kas soovite selle kliendi aktiveerida?",
+          "confirmTitle": "Aktiveeri klient",
+          "success": "Klient aktiveeritud"
+        }
+      },
+      "id": "ID",
+      "member": "Liige",
+      "memberClass": "Liikmeklass",
+      "memberCode": "Liikmekood",
+      "memberName": "Liikme nimi",
+      "name": "Nimi",
+      "owner": "Omanik",
+      "status": "Olek",
+      "statusText": {
+        "deletionInProgress": "TOIMUB KUSTUTAMINE",
+        "globalError": "GLOBAALNE VIGA",
+        "registered": "REGISTREERITUD",
+        "registrationInProgress": "TOIMUB REGISTREERIMINE",
+        "saved": "SALVESTATUD",
+        "disabled": "BLOKEERITUD",
+        "disablingInProgress": "TOIMUB BLOKEERIMINE",
+        "enablingInProgress": "TOIMUB AKTIVEERIMINE"
+      },
+      "subsystemCode": "Alamsüsteemi kood",
+      "unknownMember": "tundmatu liige"
+    },
+    "clients": {
+      "action": {
+        "register": {
+          "confirm": {
+            "text": "Kas olete kindel, et soovite saata kliendi registreerimise taotluse?",
+            "title": "Registreeri klient"
+          },
+          "success": "Kliendi registreerimise taotlus edukalt saadetud"
+        }
+      }
+    },
+    "csr": {
+      "addKey": "Lisa võti",
+      "certificationService": "Sertifitseerimisteenus",
+      "client": "Klient",
+      "csrDetails": "CSR detailid",
+      "csrFormat": "CSR vorming",
+      "eabCredRequired": "Valitud sertifitseerimiskeskus nõuab ACME jaoks välise konto sidumist, kuid konfiguratsioonis puuduvad identsustõendid.",
+      "failedFetchAcmeMetadata": "Valitud sertifitseerimiskeskuse jaoks ACME metaandmete võtmine ebaõnnestus, see võib põhjustada vigu järgmistes etappides.",
+      "generateCsr": "Loo CSR",
+      "helpCertificationService": "Sertifitseerimiskeskus (CA), mis väljastab sertifikaadi.",
+      "helpClient": "Liige, kellele sertifikaat väljastatakse.",
+      "helpCsrFormat": "Sertifikaadi allkirjastamise taotluse vorm lähtudes CA nõuetest.",
+      "helpUsage": "Sertifikaadi kasutuspoliitika: sõnumite allkirjastamine või turvaserveri autentimine.",
+      "saveInfo": "Loo uus CSR ja salvesta see turvalisse kohta.",
+      "usage": "Kasutus",
+      "orderAcmeCertificate": "Telli sertifikaat ACME serverilt koos loodud CSR-iga ja impordi tagastatud sertifikaat krüptomoodulile."
+    },
+    "customValidation": {
+      "invalidEndpoint": "Otspunkt sisaldab lubamatuid märke",
+      "invalidUrl": "URL on kehtetu",
+      "invalidXrdIdentifier": "Identifikaatori väärtus sisaldab lubamatuid märke",
+      "requiredIf": "Väli {fieldName} on nõutav"
+    },
+    "diagnostics": {
+      "addOnStatus": {
+        "messageLogDisabled": "Konfiguratsiooniga blokeeritud"
+      },
+      "globalConfiguration": {
+        "configurationStatus": {
+          "ERROR_CODE_CANNOT_DOWNLOAD_CONF": "Globaalse konfiguratsiooni allalaadimine ei õnnestu. Kontrollige võrguühendust.",
+          "ERROR_CODE_EXPIRED_CONF": "Alla laaditud globaalne konfiguratsioon on aegunud.",
+          "ERROR_CODE_INTERNAL": "Tekkis sisemine viga.",
+          "ERROR_CODE_INVALID_SIGNATURE_VALUE": "Kehtetu allkirja väärtus.",
+          "ERROR_CODE_MISSING_PRIVATE_PARAMS": "Alla laaditud globaalne konfiguratsioon ei sisaldanud privaatseid parameetreid",
+          "ERROR_CODE_UNINITIALIZED": "Toimub konfiguratsiooni kliendi lähtestamine.",
+          "SUCCESS": "Kõik on korras",
+          "UNKNOWN": "Tundmatu viga"
+        },
+        "title": "Globaalne konfiguratsioon"
+      },
+      "javaVersion": {
+        "earliest": "Vanim toetatav versioon",
+        "latest": "Uusim toetatav versioon",
+        "notSupported": "Praegust Java versiooni ei toetata",
+        "ok": "Kõik on korras",
+        "title": "Java versioon",
+        "vendor": "Tarnija nimi"
+      },
+      "mailNotificationConfiguration": {
+        "title": "Emaili teavituste staatus",
+        "help": {
+          "title": "Erinevad emaili teavituste staatused",
+          "description": "Sõltuvalt konfiguratsioonist saadetakse konfigureeritud adressaatidele automaatselt emaili teavitused järgmiste sündmuste kohta: autentimissertifikaadi uuendamine ACME kaudu õnnestus / ebaõnnestus, allkirjastamise sertifikaadi uuendamine ACME kaudu õnnestus / ebaõnnestus, autentimissertifikaadi registreerimine õnnestus. Meiliteatiste lubamine nõuab turvaserveri konfiguratsiooni muutmist. Lisateavet leiate turvaserveri User Guide dokumentatsioonist."
+        },
+        "failureEnabled": "Tõrketeated",
+        "successEnabled": "Õnnestumisteated",
+        "configuration": "Meiliserveri konfiguratsioon",
+        "recipientsEmails": "E-kirjade saajad",
+        "enabled": {
+          "true": "Aktiveeritud",
+          "false": "Blokeeritud"
+        },
+        "confStatus": {
+          "true": "Konfigureeritud",
+          "false": "Konfiguratsioon lõpetamata"
+        }
+      },
+      "message": "Sõnum",
+      "nextUpdate": "Järgmine värskendus",
+      "ocspResponders": {
+        "certificationService": "Sertifitseerimisteenus:",
+        "ocspStatus": {
+          "ERROR_CODE_OCSP_CONNECTION_ERROR": "OCSP vastajaga ei õnnestu ühendust luua",
+          "ERROR_CODE_OCSP_FAILED": "OCSP vastajalt ei õnnestu vastust saada",
+          "ERROR_CODE_OCSP_RESPONSE_INVALID": "OCSP vastus vigane/kehtetu ",
+          "ERROR_CODE_OCSP_RESPONSE_UNVERIFIED": "OCSP vastust ei õnnestu kontrollida",
+          "ERROR_CODE_OCSP_UNINITIALIZED": "OCSP olekupäringut pole veel saadetud",
+          "SUCCESS": "Kõik on korras",
+          "UNKNOWN": "Tundmatu olek"
+        },
+        "title": "OCSP vastajad"
+      },
+      "previousUpdate": "Eelmine värskendus",
+      "serviceUrl": "Teenuse URL",
+      "status": "Olek",
+      "timestamping": {
+        "timestampingStatus": {
+          "ERROR_CODE_INTERNAL": "Tekkis sisemine viga",
+          "ERROR_CODE_MALFORMED_TIMESTAMP_SERVER_URL": "Vale vorminguga ajatempli serveri URL. Kontrollige URL-i.",
+          "ERROR_CODE_TIMESTAMP_REQUEST_TIMED_OUT": "Ajatempli teenuse ühendamisaeg ületatud, kontrollige võrguühendust!",
+          "ERROR_CODE_TIMESTAMP_UNINITIALIZED": "Ühendus on korras, ajatempli päringut pole veel esitatud",
+          "SUCCESS": "Kõik on korras",
+          "UNKNOWN": "Tundmatu olek"
+        },
+        "title": "Ajatembeldus"
+      },
+      "encryption": {
+        "status": {
+          "false": "Blokeeritud",
+          "true": "Lubatud"
+        },
+        "statusTitle": "Krüpteerimise staatus:",
+        "backup": {
+          "title": "Krüpteeri varukoopia",
+          "configuredKeyId": "Konfigureeritud võtme ID"
+        },
+        "messageLog": {
+          "archive": {
+            "title": "Krüpteeri sõnumilogi arhiiv",
+            "groupingTitle": "Rühmitamise reegel:",
+            "memberIdentifier": "Liikme identifikaator",
+            "keyId": "Võtme ID",
+            "defaultKeyNote": "See liige on konfigureeritud kasutama serveri vaikimisi krüpteerimisvõtit. Lisaturbe tagamiseks kaaluge kasutamiseks konkreetse võtme määramist."
+          },
+          "database": {
+            "title": "Krüpteeri sõnumilogi andmebaas"
+          }
+        }
+      }
+    },
+    "endpoints": {
+      "addEndpoint": "Lisa otspunkt",
+      "all": "KÕIK",
+      "deleteEndpointText": "Kas olete kindel, et soovite selle otspunkti kustutada",
+      "deleteSuccess": "Otspunkt kustutatud",
+      "deleteTitle": "Kustuta otspunkt",
+      "details": "Otspunkti detailid",
+      "editSuccess": "Otspunkti muudatused edukalt salvestatud",
+      "endpointHelp1": "Otspunkti asukoht on seotud API baasteega, nt „/pets“. Tärni (*) saab kasutada  üle kõige siduvalt",
+      "endpointHelp2": "* = ühtivus ühe otspunkti asukoha segmendiga.",
+      "endpointHelp3": "** = ühtivus nulli või mitme segmendiga, nt „/pets/**“.",
+      "endpointHelp4": " Otspunkti asukoha parameetrid tuleb asendada tärniga, nt „/pets/{id}/images“ => „/pets/*/images“.",
+      "httpRequestMethod": "HTTP-päringu meetod",
+      "path": "Asukoht",
+      "saveNewEndpointSuccess": "Uus otspunkt edukalt loodud"
+    },
+    "error_code": {
+      "accessright_not_found": "Pääsuõigust ei leitud",
+      "acme": {
+        "eab_credentials_missing": "Välise konto sidumise identsustõendid puuduvad, kuid on nõutavad",
+        "eab_secret_length": "Kehtetu välise konto sidumise base64 saladuse pikkus",
+        "account_key_pair_error": "Võtmepaari hankimine ACME serveri kontole ebaõnnestus",
+        "account_keystore_password_missing": "ACME konto võtmehoidla parool puudub acme.yml konfiguratsioonifailis",
+        "fetching_metadata_error": "ACME serveri metaandmete hankimine ebaõnnestus. ACME server võib olla ligipääsematu",
+        "account_creation_failure": "Konto loomine ACME serveris ebaõnnestus. Kui välise konto sidumine on nõutav, siis veenduge, et acme.yml failis on konfigureeritud õiged identsustõendid",
+        "order_creation_failure": "Uue tellimuse loomine ACME serveris ebaõnnestus",
+        "order_finalization_failure": "Tellimuse lõpule viimine ACME serveris ebaõnnestus",
+        "http_challenge_file_creation": "ACME HTTP pretensioonifaili loomine ebaõnnestus",
+        "http_challenge_file_deletion": "ACME HTTP pretensioonifaili kustutamine ebaõnnestus",
+        "http_challenge_missing": "Praegu toetab X-Road tarkvara ainult HTTP pretensiooni, kuid see puudub ACME serveri võimalikes valikutes",
+        "challenge_trigger_failure": "Päring ACME serverile pretensiooni valideerimiseks ebaõnnestus",
+        "authorization_failure": "Volitamine ebaõnnestus. Tavaliselt seotud pretensiooni valideerimise tõrkega, mis on nõutav domeeni omandi tõendamiseks",
+        "authorization_wait_failure": "Volitamise lõpule viimise ootamine ebaõnnestus",
+        "certificate_failure": "Sertifikaadi hankimine ACME serverilt ebaõnnestus",
+        "certificate_wait_failure": "Uue sertifikaadi loomise ootamine ebaõnnestus"
+      },
+      "action_not_possible": "Toiming pole võimalik",
+      "additional_member_already_exists": "Täiendav liige on juba olemas",
+      "anchor_already_exists": "Ankur on juba olemas",
+      "anchor_file_not_found": "Ankrufaili ei leitud",
+      "anchor_not_found": "Ankrut ei leitud",
+      "anchor_upload_failed": "Ankru üleslaadimine ebaõnnestus",
+      "api_key_not_found": "API võtit ei leitud",
+      "auth_cert_not_supported": "Autentimissertifikaati ei toetata",
+      "backup_file_not_found": "Varufaili ei leitud",
+      "backup_generation_failed": "Varukoopia loomine ebaõnnestus",
+      "backup_restore_interrupted": "Varukoopia taastamine katkestatud",
+      "base_endpoint_not_found": "Baasotspunkti ei leitud",
+      "ca_cert_status_processing_failure": "CA sertifikaadi oleku töötlemine ebaõnnestus",
+      "cannot_delete_owner": "Omanikku ei saa kustutada",
+      "cannot_register_owner": "Omanikku ei saa registreerida",
+      "cannot_unregister_owner": "Omanikku ei saa registrist kustutada",
+      "cert_wrong_usage": "Sertifikaadi vale kasutus",
+      "certificate_already_exists": "Sertifikaat on juba olemas",
+      "certificate_authority_not_found": "Sertifitseerimiskeskust ei leitud",
+      "certificate_id_not_found": "Sertifikaadi ID-d ei leitud",
+      "certificate_not_found": "Sertifikaati ei leitud",
+      "certificate_profile_instantiation_failure": "Sertifikaadi profiili käitamise tõrge",
+      "client_already_exists": "Klient on juba olemas",
+      "client_not_deleted": "Võtmeid, sertifikaate ja CSR-e ei saa kustutada, sest need kuuluvad olemasolevale kliendile",
+      "client_not_found": "Klienti ei leitud",
+      "conf_download_failed": "Konfiguratsiooni allalaadimine ebaõnnestus",
+      "conf_verification": {
+        "anchor_not_for_external_source": "Sisemise konfiguratsiooniallika ankrupunktid. Usaldusankrutena toetatakse ainult välise konfiguratsiooniallika ankruid.",
+        "missing_private_params": "Konfiguratsiooniankru import ebaõnnestus: kehtetu ankrufail",
+        "other": "Allikast konfigureerimise tõendamine ebaõnnestus",
+        "outdated": "Konfiguratsioon allikast on vananenud",
+        "signature_invalid": "Konfiguratsiooni signatuuri ei saa tõendada",
+        "unreachable": "Konfiguratsiooni allikas pole ligipääsetav, kontrollige allika URL-i üles laaditud ankrufailis"
+      },
+      "core": {
+        "Server": {
+          "InternalError": "Sisemine viga",
+          "ServerProxy": {
+            "ServiceFailed": {
+              "HttpError": "HTTP viga",
+              "SslAuthenticationFailed": "SSL-i autentimine ebaõnnestus"
+            },
+            "UnknownService": "Tundmatu teenus"
+          }
+        },
+        "Signer": {
+          "CertNotFound": "Sertifikaati ei leitud",
+          "KeyNotFound": "Võtit ei leitud",
+          "TokenNotAvailable": "Krüptomoodul pole saadaval",
+          "TokenNotFound": " Krüptomoodulit ei leitud",
+          "UnknownMember": "X-Road tarkvara - signeerija: Tundmatu liige"
+        }
+      },
+      "csr_not_found": "CSR-i ei leitud",
+      "diagnostic_request_failed": "Diagnostiline päring ebaõnnestus",
+      "duplicate_accessright": "Dubleeri pääsuõigus",
+      "endpoint_already_exists": "Otspunkt on juba olemas",
+      "endpoint_not_found": "Otspunkti ei leitud",
+      "generate_backup_interrupted": "Varukoopia loomine katkestatud",
+      "global_conf_download_request_failed": "Globaalse konfiguratsiooni allalaadimise päring ebaõnnestus",
+      "global_conf_outdated": "Globaalne konfiguratsioon on aegunud",
+      "gpg_key_generation_failed": "GPG võtmepaari loomine ebaõnnestus",
+      "gpg_key_generation_interrupted": "GPG võtmepaari loomine katkestatud",
+      "identifier_not_found": "Identifikaatorit ei leitud",
+      "illegal_generated_endpoint_remove": "Loodud otspunkti eemaldamine pole lubatud",
+      "illegal_generated_endpoint_update": "Loodud otspunkti värskendamine pole lubatud",
+      "import_internal_cert_failed": "Sisemise sertifikaadi import ebaõnnestus",
+      "internal_anchor_upload_invalid_instance_id": "Ankrul on kehtetu juhtumi ID",
+      "internal_key_cert_interrupted": "Sisemise võtme sertifikaat katkestatud",
+      "invalid_cert": "Kehtetu sertifikaat",
+      "invalid_characters_pin": "PIN-kood sisaldab kehtetuid märke",
+      "invalid_dn_parameter": "Kehtetu DN parameeter",
+      "invalid_https_url": "URL ei kasuta HTTPS-i",
+      "invalid_init_params": "Kehtetud lähtestamisparameetrid",
+      "invalid_instance_identifier": "Kehtetu juhtumi identifikaator",
+      "invalid_member_class": "Kehtetu liikmeklass",
+      "invalid_service_client_id": "Kehtetu teenuse kliendi ID",
+      "invalid_service_url": "Kehtetu teenuse URL",
+      "invalid_wsdl": "Kehtetu WSDL",
+      "invalid_wsdl_service_identifier": "Kehtetu WSDL teenuse identifikaator",
+      "key_and_cert_generation_failed": "Võtme ja sertifikaadi loomine ebaõnnestus",
+      "key_not_found": "Võtit ei leitud",
+      "local_group_code_already_exists": "Lokaalse rühma kood on juba olemas",
+      "local_group_member_already_exists": "Lokaalse rühma liige on juba olemas",
+      "local_group_member_not_found": "Lokaalse rühma liiget ei leitud",
+      "local_group_not_found": "Lokaalset rühma ei leitud",
+      "malformed_anchor": "Vale vorminguga ankur",
+      "malformed_url": "Vale vorminguga URL",
+      "management_request_sending_failed": "Halduspäringu saatmine ebaõnnestus",
+      "member_already_owner": "Liige on juba omanik",
+      "member_class_exists": "Liikmeklass on olemas",
+      "member_class_not_provided": "Liikmeklass puudub",
+      "member_code_exists": "Liikmekood on olemas",
+      "member_code_not_provided": "Liikmekood puudub",
+      "missing_parameter": "Parameeter puudub",
+      "openapi_parsing_error": "OpenApi3 kirjelduse analüüs ebaõnnestus",
+      "orphans_not_found": "Antud kliendile kuuluvaid orbvõtmeid, sertifikaate ja/või CSR-e ei leitud",
+      "pin_code_exists": "PIN-kood on olemas",
+      "pin_code_not_provided": "PIN-kood puudub",
+      "pin_incorrect": "Vale PIN-kood. Proovige uuesti.",
+      "pin_min_char_classes_count": "PIN-koodi minimaalne tähemärgiklasside arv",
+      "pin_min_length": "PIN-koodi minimaalne pikkus",
+      "process_failed": "Protsess ebaõnnestus",
+      "process_not_executable": "Protsess pole teostatav",
+      "server_already_fully_initialized": "Server on juba täielikult lähtestatud",
+      "server_code_exists": "Serveri kood on juba olemas",
+      "server_code_not_provided": "Serveri kood puudub",
+      "service_already_exists": "Teenus on juba olemas",
+      "service_client_not_found": "Teenuse klienti ei leitud",
+      "service_code_already_exists": "Teenuse kood on juba olemas",
+      "service_description_not_found": "Teenuse kirjeldust ei leitud",
+      "service_not_found": "teenust ei leitud",
+      "sign_cert_not_supported": "Signeerimise sertifikaati ei toetata",
+      "signer_not_reachable": "Signeerija pole hetkel kättesaadav. Vt täpsemalt vt signeerija logi.",
+      "software_token_init_failed": "Tarkvaralise krüptomooduli lähtestamine ebaõnnestus",
+      "timestamping_service_already_configured": "Ajatempli teenus on juba konfigureeritud",
+      "timestamping_service_not_found": "Ajatempli teenust ei leitud",
+      "token": {
+        "malformed_csr": "CSR andmete vorming on vale"
+      },
+      "token_not_active": "Krüptomoodul pole aktiivne",
+      "unsupported_openapi_version": "Toetamata OpenAPI versioon. Hetkel toetatakse ainult versioone 3.0.x ja 3.1.0.",
+      "url_already_exists": "URL on juba olemas",
+      "warnings_detected": "Tuvastati hoiatused",
+      "weak_pin": "Nõrk PIN",
+      "wrong_key_usage": "Vale võtme kasutus",
+      "wrong_servicedescription_type": "Vale teenuse kirjelduse tüüp",
+      "wsdl_download_failed": "WSDL-i allalaadimine ebaõnnestus",
+      "wsdl_exists": "WSDL on olemas",
+      "wsdl_validator_interrupted": "WSDL valideerimine katkestatud",
+      "wsdl_validator_not_executable": "WSDL valideerimist ei saa teostada"
+    },
+    "fields": {
+      "addClient": {
+        "memberClass": "Liikmeklass",
+        "memberCode": "Liikmekood",
+        "subsystemCode": "Alamsüsteemi kood"
+      },
+      "C": "Maakood",
+      "clientAdd": {
+        "client": {
+          "memberCode": "Liikmekood",
+          "subsystemCode": "Alamsüsteemi kood"
+        }
+      },
+      "CN": "Serveri DNS nimi",
+      "confirmPin": "Kinnita PIN",
+      "csr": {
+        "certService": "Sertifitseerimisteenus",
+        "client": "Klient",
+        "csrFormat": "CSR vorming",
+        "usage": "Kasutus",
+        "certificationService": "Sertifitseerimisteenus"
+      },
+      "dns": "DNS",
+      "keys": {
+        "name": "Nimi"
+      },
+      "O": "Organisatsiooni nimi",
+      "path": "asukoht",
+      "pin": "PIN",
+      "memberCode": "Liikmekood",
+      "securityServerAddress": "Turvaserveri aadress",
+      "serialNumber": "Seerianumber",
+      "serviceCode": "Teenuse kood",
+      "serviceDescriptionAdd": {
+        "restServiceCode": "Teenuse kood"
+      },
+      "serviceDescriptionUpdate": {
+        "newRestServiceCode": "Teenuse kood"
+      },
+      "serviceTimeout": "Teenuse ajalõpp",
+      "serviceType": "Teenuse tüüp",
+      "serviceUrl": "Teenuse URL",
+      "subjectAltName": "Subjekti alternatiivne nimi",
+      "token": {
+        "friendlyName": "Sobilik nimi",
+        "newPin": "Uus PIN",
+        "newPinConfirm": "Kinnitage uus PIN",
+        "oldPin": "Vana PIN"
+      },
+      "tokenPin": "Krüptomooduli PIN",
+      "url": "URL",
+      "username": "Kasutajanimi",
+      "certificationService": "Sertifitseerimisteenus"
+    },
+    "global": {
+      "appTitle": "X-Road turvaserver"
+    },
+    "general": {
+      "instance": "Instants",
+      "memberClass": "Liikmeklass",
+      "memberCode": "Liikmekood",
+      "name": "Nimi",
+      "subsystem": "alamsüsteem",
+      "subsystemCode": "Alamsüsteemi kood",
+      "type": "Tüüp"
+    },
+    "globalAlert": {
+      "backupRestoreInProgress": "Toimub turvaserveri konfiguratsiooni taastamine varukoopiast. Protsess algas kell {startTime}",
+      "globalConfigurationInvalid": "Globaalne konfiguratsioon on aegunud",
+      "secondaryNode": "Olete turvaserveri klastri sekundaarses õlas. Konfiguratsiooni muutmine on blokeeritud.",
+      "softTokenPinNotEntered": "Palun sisestage tarkvaralise krüptomooduli PIN",
+      "certificateRenewalJobFailure": "Viimase sertifikaadi uuendamine ebaõnnestus.",
+      "certificateRenewalJobFailureAuth": "Ebaõnnestunud autentimise sertifikaadi genereerimine:",
+      "certificateRenewalJobFailureSign": "Ebaõnnestunud signeerimise sertifikaadi genereerimine:",
+      "navigateToKeysPage": "Vt täpsemalt võtmete ja sertifikaatide lehekülge"
+    },
+    "initialConfiguration": {
+      "anchor": {
+        "generated": "Loodud",
+        "hash": "Räsi (SHA-224)",
+        "info": "Importige keskserveri administraatori edastatud konfigureerimisankur.",
+        "title": "Konfigureerimisankur"
+      },
+      "member": {
+        "info": "Määrake liige, kellest saab turvaserveri omanik:",
+        "serverCodeHelp": "Turvaserveri kood, millega identifitseeritakse kordumatult see turvaserver kõikide sama omaniku turvaserverite hulgas.",
+        "title": "Omanik"
+      },
+      "noInitializationStatus": "Lähtestamisolekut pole saadaval",
+      "noPermission": "See turvaserver pole hetkel lähtestatud, algkonfigureerimiseks võtke ühendust administraatoriga",
+      "pin": {
+        "confirmPin": "Kinnita PIN",
+        "info1": "Tarkvaraline krüptomoodul on koht, kuhu on salvestatud turvaserveri AUTH võtmed. Tarkvaralisse krüptomoodulisse sisselogimiseks määrake PIN.",
+        "info2": "Kõik vajalik teave on kogutud, turvaserveri lähtestamiseks vajutage esitamise nuppu.",
+        "info3": "Pärast lähtestamist tuleb turvaserveri konfigureerimine lõpule viia – klõpsake lihtsalt konfigureerimise nuppu hüpikteates, mis ilmub mõne hetke jooksul.",
+        "pin": "PIN",
+        "pinMatchError": "PIN-koodi kinnitus ei sobi",
+        "title": "Krüptomooduli PIN"
+      },
+      "success": "Server on lähtestatud",
+      "title": "Algkonfiguratsioon",
+      "warning": {
+        "init_server_id_exists": "Serveri ID on olemas",
+        "init_server_owner_exists": "Serveri omanik on olemas",
+        "init_servercode_exists": "Serverikood on olemas",
+        "init_software_token_initialized": "Tarkvaraline krüptomoodul on lähtestatud",
+        "init_unregistered_member": "Liige on registrist kustutatud"
+      }
+    },
+    "internalServers": {
+      "certHash": "Sertifikaadi räsi (SHA/1)",
+      "connTypeUpdated": "Ühenduse tüüp värskendatud",
+      "connectionInfo": "Serverite ühenduse tüüp teenuse osutaja rollis seadistatakse teenuste vahekaardil teenuse URL-is (http/https).",
+      "connectionType": "Ühenduse tüüp",
+      "ssCertTitle": "Turvaserveri sertifikaat",
+      "tlsTitle": "Infosüsteemi TLS sertifikaat"
+    },
+    "keys": {
+      "addKey": "Lisa võti",
+      "authDetailsTitle": "Autentimisvõtme detailid",
+      "authKeyCert": "Autentimise võtmed ja sertifikaadid",
+      "authNotSupported": "Autentimisvõtit ei toetata",
+      "auth_key_with_registered_cert_warning": "Võtmel on sertifikaadid, mis tuleb enne kustutamist registrist kustutada. Kas soovite jätkata seotud sertifikaatide ja võtme kustutamist serveri konfiguratsioonist ja registrist? Võtme ID:",
+      "certMarkedForDeletion": "Sertifikaat märgitud kustutamiseks",
+      "certRegistrationInfo": "Turvaserveri DNS nimi või IP aadress",
+      "certStatus": {
+        "deletion": "Toimub kustutamine",
+        "globalError": "Globaalne viga",
+        "onlyInHWToken": "Ainult riistvaralises krüptomoodulis",
+        "registered": "Registreeritud",
+        "registration": "Toimub registreerimine",
+        "saved": "Salvestatud"
+      },
+      "certificateRegistered": "Sertifikaadi registreerimistaotlus edukalt saadetud",
+      "certificateUnregistered": "Sertifikaadi registrist kustutamise taotlus edukalt saadetud",
+      "csrDeleted": "CSR kustutatud",
+      "deleteCsr": "Kustutada CSR",
+      "deleteCsrText": "Kas olete kindel, et soovite selle CSR-i kustutada?",
+      "deleteCsrTitle": "Kustuta CSR?",
+      "deleteKeyText": "Kas olete kindel, et soovite selle võtme ja kõik seotud sertifikaadid serveri konfiguratsioonist kustutada?",
+      "deleteTitle": "Kustuta võti?",
+      "detailsTitle": "Võtme detailid",
+      "expires": "Aegub",
+      "friendlyName": "Sõbralik nimi",
+      "generateCsr": "Loo CSR",
+      "globalErrors": "Globaalsed vead",
+      "gotIt": "Selge",
+      "helpTextApi": "API võtmeid kasutatakse turvaserveri halduse REST API API kõnede autentimiseks. API võtmed on seotud rollidega, mis määravad API võtmega antud load.",
+      "helpTextKeys": "Autentimisvõti ja -sertifikaat tõendavad turvaserveri autentsust. Neid kasutatakse autentimiseks turvaserverite vahelistes ühendustes. Signeerimisvõti ja -sertifikaat tõendavad X-tee liikme autentsust. Neid kasutatakse signeerimiseks ja edastatud sõnumite puutumatuse tõendamiseks.",
+      "helpTextSS": "Turvaserveri TLS sertifikaati kasutatakse turvaserveri ja infosüsteemi vahelistes ühendustes. Sisemist TLS sertifikaati kasutatakse nii kliendi kui ka serveri sertifikaadina, olenevalt turvaserveri ja infosüsteemi rollidest.",
+      "helpTitleApi": "API võtmed",
+      "helpTitleKeys": "AUTH- ja SIGN-võtmed",
+      "helpTitleSS": "Turvaserveri TLS sertifikaat",
+      "id": "ID",
+      "importCert": "Impordi sert.",
+      "importCertSuccess": "Sertifikaadi üleslaadimine õnnestus",
+      "incorrectPin": "Vale PIN. Palun proovige uuesti.",
+      "keyDeleted": "Võti kustutatud",
+      "keyId": "Võtme ID:",
+      "keyInfo": "Võtme teave",
+      "keyLabelInput": "Võtme märgend",
+      "keySaved": "Võti salvestatud",
+      "label": "Märgend:",
+      "logIn": "Logi sisse",
+      "logOut": "Logi välja",
+      "logOutText": "Logi krüptomoodulist välja?",
+      "logOutTitle": "Väljalogimine",
+      "loggedIn": "Krüptomoodulisse sisse logitud",
+      "loggedOut": "Krüptomoodulist välja logitud",
+      "noIssues": "Probleeme pole",
+      "ocsp": "OCSP",
+      "ocspStatus": {
+        "disabled": "Blokeeritud",
+        "expired": "Aegunud",
+        "good": "Korras",
+        "revoked": "Tühistatud",
+        "suspended": "Peatatud",
+        "unknown": "Tundmatu"
+      },
+      "orderAcmeCertificate": "Tellida sertifikaat",
+      "acmeCertOrdered": "Sertifikaat edukalt tellitud",
+      "readOnly": "Ainult lugemiseks:",
+      "registrationRequest": "Registreerimistaotlus",
+      "renewal": "Automaatne uuendamine",
+      "request": "Päring",
+      "signDetailsTitle": "SIGN-võtme detailid",
+      "signKeyCert": "SIGN-võtmed ja sertifikaadid",
+      "status": "Olek",
+      "token": "Krüptomoodul:",
+      "tokenDetails": "Krüptomooduli detailid",
+      "tokenId": "Krüptomooduli ID:",
+      "tokenInfo": "Krüptomooduli teave",
+      "tokenPin": "Krüptomooduli PIN",
+      "tokenSaved": "Krüptomoodul salvestatud",
+      "tokenStatus": {
+        "active": "",
+        "available": "",
+        "inactive": "Mitteaktiivne",
+        "unavailable": "Blokeeritud",
+        "unsaved": "Salvestamata"
+      },
+      "type": "Tüüp:",
+      "unknown": "Võtme tüüp määramata",
+      "unregisterError": "Sertifikaadi registrist kustutamine ebaõnnestus. Kas jätkata ikkagi sertifikaadi kustutamist?",
+      "unregisterText": "Kas soovite selle sertifikaadi registrist kustutada?",
+      "unregisterTitle": "Kustuta sertifikaat registrist"
+    },
+    "localGroup": {
+      "accessDate": "Pääsuõigused antud",
+      "addLocalGroup": "Lisa lokaalne rühm",
+      "addMembers": "Lisa liikmed",
+      "addSelected": "Lisa valitud",
+      "code": "Kood",
+      "deleteText": "Kas olete kindel, et soovite selle rühma kustutada?",
+      "deleteTitle": "Kustuta rühm?",
+      "descSaved": "Kirjeldus salvestatud",
+      "description": "Kirjeldus",
+      "groupDeleted": "Rühm kustutatud",
+      "groupMembers": "Rühma liikmed",
+      "id": "ID",
+      "localGroup": "Lokaalne rühm",
+      "localGroupAdded": "Lokaalne rühm lisatud",
+      "name": "Liikme nimi",
+      "noResults": "Otsing ei andnud tulemusi.",
+      "removeAllText": "Kas olete kindel, et soovite kõik selle rühma liikmed eemaldada?",
+      "removeAllTitle": "Eemalda kõik liikmed?",
+      "removeText": "Kas olete kindel, et soovite selle liikme eemaldada?",
+      "removeTitle": "Eemalda liige?",
+      "searchOptions": "Valikute otsimine"
+    },
+    "localGroups": {
+      "addGroup": "Lisa rühm",
+      "code": "Kood",
+      "description": "Kirjeldus",
+      "memberCount": "Liikmete loend",
+      "updated": "Värskendatud"
+    },
+    "noData": {
+      "noBackUpEncryptionKeys": "Konfigureeritud varukoopia krüpteerimisvõtmed puuduvad",
+      "noClientData": "Kliendi andmed puuduvad",
+      "noCertificateAuthorities": "Sertifitseerimiskeskus puudub",
+      "noLocalGroups": "Lokaalsed grupid puuduvad",
+      "noServiceClients": "Teenuse kliendid puuduvad",
+      "noTimestampingServices": "Ajatempli teenused puuduvad"
+    },
+    "serviceClientType": {
+      "globalGroup": "GLOBAALNE RÜHM",
+      "localGroup": "LOKAALNE RÜHM",
+      "subsystem": "ALAMSÜSTEEM"
+    },
+    "serviceClients": {
+      "accessRights": "Pääsuõigused",
+      "accessRightsGiven": "Ligipääs antud",
+      "addSelected": "Lisa valitud",
+      "addService": "Lisa teenus",
+      "addServiceClient": "Lisa teenuse kasutaja",
+      "addServiceClientAccessRightSuccess": "Ligipääs edukalt antud",
+      "addServiceClientTitle": "Lisa teenuse kasutaja",
+      "id": "ID",
+      "memberGroupCodeLabel": "Liikme/Grupi kood",
+      "memberGroupStep": "Liige/Grupp",
+      "name": "Liikme nimi / Grupi kirjeldus",
+      "noAccessRights": "Sellel kliendil pääsuõigused puuduvad",
+      "noAvailableServices": "Teenuseid pole saadaval",
+      "removeAll": "Eemalda kõik",
+      "removeAllText": "Kas olete kindel, et soovite sellelt teenuse kliendilt kõik pääsuõigused eemaldada?",
+      "removeAllTitle": "Eemalda kõik pääsuõigused?",
+      "removeOneText": "Kas olete kindel, et soovite sellelt teenuse kliendilt pääsuõigused eemaldada?",
+      "removeOneTitle": "Eemalda pääsuõigused?",
+      "searchPlaceHolder": "Teenuse kliendid",
+      "serviceCode": "Teenuse kood",
+      "serviceSelectionStep": "Teenusekood",
+      "servicesStep": "Teenused",
+      "title": "Tiitel"
+    },
+    "services": {
+      "OpenApi3Description": "OpenAPI  kirjeldus",
+      "addRest": "Lisa REST",
+      "addWsdl": "Lisa WSDL",
+      "applyToAll": "Kohalda kõigile",
+      "deleteRestText": "Kas olete kindel, et soovite selle REST-teenuse kustutada?",
+      "deleteTitle": "Kustutada teenuse kirjeldus?",
+      "deleteWsdlText": "Kas olete kindel, et soovite selle WSDL-i kustutada?",
+      "deleted": "Teenuse kirjeldus kustutatud",
+      "disableNotice": "Blokeerimisteade",
+      "disableSuccess": "Teenuse kirjeldus blokeeritud",
+      "disableTitle": "Blokeeri?",
+      "editUrl": "Redigeeri URL",
+      "enableSuccess": "Teenuse kirjeldus aktiveeritud",
+      "idGroupCode": "ID / Grupi kood",
+      "lastRefreshed": "Viimati värskendatud:",
+      "memberNameGroupDesc": "Liikme nimi / Grupi kirjeldus",
+      "noMatches": "Sobivad kirjed puuduvad",
+      "openApi3Added": "OpenApi teenus lisatud",
+      "openapiDetails": "OpenAPI teenuse detailid",
+      "refreshed": "Värskendatud",
+      "restAdded": "REST teenus lisatud",
+      "restApiBasePath": "REST API asukoht",
+      "restDetails": "REST teenuse detailid",
+      "service": "Teenus",
+      "serviceCode": "Teenuse kood",
+      "serviceCodePlaceholder": "Sisesta teenuse kood",
+      "serviceSaved": "Teenus salvestatud",
+      "serviceType": "Teenuse tüüp",
+      "serviceUrl": "Teenuse URL",
+      "service_parameters_ssl_test_warnings": {
+        "internal_server_ssl_error": "Serveri sertifikaatide kontroll ebaõnnestus. Kas serveri URL on õige ja turvaserverile ligipääsetav?",
+        "internal_server_ssl_handshake_error": "TLS-i kätlus serveriga ebaõnnestus, serveri sertifikaat puudub konfiguratsioonist:"
+      },
+      "timeout": "Ajalõpp",
+      "timeoutSec": "Ajalõpp (s)",
+      "timeoutTooltip": "Teenuse päringu maksimaalne kestus sekundites",
+      "tlsTooltip": "Kontrollige TLS-sertifikaati turvalise ühenduse loomisel",
+      "url": "URL",
+      "urlPlaceholder": "Sisesta URL",
+      "urlTooltip": "URL, kuhu on suunatud teenuse päringud",
+      "warning": "Hoiatus",
+      "warningCode": {
+        "adding_endpoints": "Otspunktide lisamine:",
+        "adding_services": "Teenuste lisamine:",
+        "deleting_endpoints": "Otspunktide kustutamine:",
+        "deleting_services": "Teenuste kustutamine:",
+        "wsdl_validation_warnings": "Valideerimise hoiatused:",
+        "openapi_validation_warnings": "Valideerimise hoiatused:"
+      },
+      "verifyTls": "Kontrolli TLS sertifikaati",
+      "wsdlAdded": "WSDL lisatud",
+      "wsdlDescription": "WSDL-i kirjeldus",
+      "wsdlDetails": "WSDL-i detailid"
+    },
+    "ssTlsCertificate": {
+      "certificateImported": "Sertifikaat imporditud",
+      "exportCertificate": "Ekspordi sertifikaat",
+      "generateCsr": "Loo CSR",
+      "generateInternalCsr": {
+        "cancel": "TÜHISTA",
+        "done": "VALMIS",
+        "step1": {
+          "description": "1) Kõigepealt määrake eristusnimi",
+          "label": "Eristusnimi",
+          "placeholder": "CN=mysecurityserver.example.com, O=Minu organisatsioon, C=EE",
+          "tooltip": "Eristusnimi (DN) identifitseerib kordumatult üksuse X.509 sertifikaadis. DN sisaldab tavaliselt järgmisi atribuudi tüüpe: CN = Üldnimi, O = Organisatsiooni nimi, C = Maakood."
+        },
+        "step2": {
+          "description": "2) Looge uus CSR ja salvestage see turvalisse kohta",
+          "generateCSR": "Loo CSR"
+        },
+        "title": "Loo TLS sertifikaadi signeerimise päring"
+      },
+      "generateKey": "Loo võti",
+      "generateTlsAndCertificateDialog": {
+        "confirmation": "Kas luua uus turvaserveri TLS võti ja sertifikaat?",
+        "explanation": "Süsteem loob uue turvaserveri TLS võtme ja endasigneeritud sertifikaadi, asendades olemasoleva võtme ja sertifikaadi.",
+        "success": "Uus turvaserveri TLS võti ja sertifikaat edukalt loodud",
+        "title": "Turvaserveri TLS võti"
+      },
+      "importCertificate": "Impordi sertifikaat",
+      "keyCertTitle": "TLS võti ja sertifikaat",
+      "keyText": "Sisemine TLS võti"
+    },
+    "stores": {
+      "user": {
+        "currentSecurityServerNotFound": "Kehtiva turvaserveri teabe määramine ebaõnnestus. API vastus on kehtetu."
+      }
+    },
+    "systemParameters": {
+      "approvedCertificateAuthorities": {
+        "table": {
+          "header": {
+            "distinguishedName": "Eristusnimi",
+            "expires": "Aegub",
+            "ocspResponse": "OCSP vastus",
+            "acmeIpAddresses": "ACME serveri IP"
+          },
+          "notAvailable": "Ei kohaldata",
+          "ocspResponse": {
+            "NOT_AVAILABLE": "Ei kohaldata",
+            "OCSP_RESPONSE_GOOD": "Korras",
+            "OCSP_RESPONSE_REVOKED": "Tühistatud",
+            "OCSP_RESPONSE_SUSPENDED": "Peatatud",
+            "OCSP_RESPONSE_UNKNOWN": "Tundmatu"
+          }
+        },
+        "title": "Heakskiidetud sertifitseerimiskeskused"
+      },
+      "configurationAnchor": {
+        "action": {
+          "download": "Lae alla",
+          "upload": {
+            "button": "Lae üles",
+            "dialog": {
+              "confirmation": "Jätka importimist?",
+              "field": {
+                "generated": "Loodud",
+                "hash": "Räsi (SHA-224)"
+              },
+              "info": "Konfiguratsiooniankru detailid:",
+              "success": "Konfiguratsiooniankur üles laaditud",
+              "title": "Kinnitage konfiguratsiooniankru detailid"
+            }
+          }
+        },
+        "table": {
+          "header": {
+            "distinguishedName": "Räsi (SHA-224)",
+            "generated": "Loodud"
+          }
+        },
+        "title": "Konfiguratsiooniankur"
+      },
+      "timestampingServices": {
+        "action": {
+          "add": {
+            "button": "Lisa",
+            "dialog": {
+              "info": "Usaldatava ajatempli teenused:",
+              "success": "Ajatempli teenus lisatud",
+              "title": "Lisa ajatempli teenus"
+            }
+          }
+        },
+        "table": {
+          "action": {
+            "delete": {
+              "button": "Kustuta",
+              "confirmation": {
+                "text": "Kas olete kindel, et soovite ajatempli teenuse kustutada?",
+                "title": "Kas olete kindel?"
+              },
+              "success": "Ajatempli teenus edukalt kustutatud"
+            }
+          },
+          "header": {
+            "serviceURL": "Teenuse URL",
+            "timestampingService": "Ajatempli teenus"
+          }
+        },
+        "title": "Ajatempli teenused"
+      },
+      "securityServer": {
+        "securityServer": "Turvaserver",
+        "serverAddress": "Serveri aadress",
+        "editDialog": {
+          "title": "Redigeerida turvaserveri aadressi"
+        },
+        "addressChangeInProgress": "MUUTUS ON POOLELI",
+        "updateSubmitted": "Turvaserveri aadressi muutus edukalt esitatud"
+      },
+      "title": "Süsteemi parameetrid"
+    },
+    "tab": {
+      "client": {
+        "details": "Detailid",
+        "internalServers": "Sisemised serverid",
+        "localGroups": "Lokaalsed rühmad",
+        "serviceClients": "Teenuse kliendid",
+        "services": "Teenused"
+      },
+      "keys": {
+        "apiKey": "API võtmed",
+        "signAndAuthKeys": "SIGN- ja AUTH-võtmed",
+        "ssTlsCertificate": "Turvaserveri TLS-võti"
+      },
+      "main": {
+        "clients": "Kliendid",
+        "diagnostics": "Diagnostika",
+        "keys": "Võtmed ja sertifikaadid",
+        "settings": "Seaded"
+      },
+      "services": {
+        "endpoints": "Otspunktid",
+        "parameters": "Teenuse parameetrid"
+      },
+      "settings": {
+        "backupAndRestore": "Varundamine ja taastamine",
+        "systemParameters": "Süsteemi parameetrid"
+      }
+    },
+    "token": {
+      "changePin": "Muuda PIN",
+      "pinChanged": "Krüptomooduli PIN-koodi muudeti – logige Krüptomoodulisse sisse uue PIN-koodiga",
+      "tokenPinPolicyHeader": "Krüptomooduli PIN-koodi poliitika on lubatud.",
+      "tokenPinPolicy": "Tarkvaralise krüptomooduli PIN-kood peab sisaldama vähemalt 10 ASCII märki vähemalt kolmest märgiklassist (väiketähed, suurtähed, numbrid, erimärgid)."
+    },
+    "toolbar": {
+      "securityServerNodeType": {
+        "undefined": "",
+        "PRIMARY": "Primaarne õlg",
+        "SECONDARY": "Sekundaarne õlg"
+      }
+    },
+    "validationError": {
+      "IdentifierChars": "kehtetud identifikaatori märgid"
+    },
+    "wizard": {
+      "addClientTitle": "Lisa klient",
+      "addMemberTitle": "Lisa liige",
+      "addSubsystemTitle": "Lisa alamsüsteem",
+      "client": {
+        "addClient": "Lisa klient",
+        "clientExists": "Klient on juba olemas",
+        "memberClassTooltip": "Liikmeklassi identifitseerimiskood (nt riigiasutus, eraettevõte vms).",
+        "memberCodeTooltip": "Liikmekood, mis identifitseerib kordumatult selle X-tee liikme tema liikmeklassis (nt ettevõtte ID).",
+        "memberNameTooltip": "Liikmeorganisatsiooni nimi.",
+        "register": "Registreeri klient",
+        "searchLabel": "Klient",
+        "subsystemCodeTooltip": "Alamsüsteemi kood, mis identifitseerib liikmele kuuluva infosüsteemi."
+      },
+      "clientDetails": "Kliendi detailid",
+      "clientInfo1": "Täpsustage kliendi detailid, keda te soovite lisada.",
+      "clientInfo2": "Kui klient on juba olemas, saate ta valida globaalsest loendist.",
+      "finish": {
+        "acme": {
+          "infoLine": "Kogu nõutav teave on kogutud. Kui klõpsata \"Esitada\", lisatakse uus klient klientide loendisse ning uus võti ja sertifikaat ilmuvad võtmete ja sertifikaatide vaatesse. Sertifikaat tellitakse CA ACME serverilt ja imporditakse automaatselt. Seejärel saate uue kliendi registreerida."
+        },
+        "infoLine1": "Kogu nõutav teave on kogutud. Kui klõpsata \"Esitada\", lisatakse uus klient klientide loendisse ning uus võti ja CSR ilmuvad võtmete ja sertifikaatide vaatesse.",
+        "infoLine2": "Uue kliendi registreerimiseks viige läbi järgmised toimingud:",
+        "note": "MÄRKUS: kui klõpsata „Tühista“, kustutatakse kõik andmed",
+        "title": "Lõpetamine",
+        "todo1": "1) Saatke CSR sertifitseerimiskeskusele signeerimiseks",
+        "todo2": "2) Pärast tagasisaamist importige saadud sertifikaat vastavale võtmele",
+        "todo3": "3) Selles punktis saate uue kliendi registreerida"
+      },
+      "member": {
+        "info1": "Täpsustage liikme detailid, keda soovite lisada.",
+        "info2": "Kui liige on juba olemas, saate ta valida globaalsest loendist.",
+        "memberExists": "Liige on juba olemas",
+        "register": "Registreerige liige",
+        "searchLabel": "Liige",
+        "select": "Vali liige",
+        "title": "Liikme detailid"
+      },
+      "memberClass": "Liikmeklass",
+      "memberCode": "Liikmekood",
+      "memberName": "Liikme nimi",
+      "selectClient": "Vali klient",
+      "selectMemberClass": "Vali liikmeklass",
+      "signKey": {
+        "info": "Saate määrata märgendi uuele loodud SIGN-võtmele (pole kohustuslik)",
+        "keyLabel": "Võtme märgend",
+        "title": "Signeerimisvõti"
+      },
+      "subsystem": {
+        "info1": "Täpsustage lisatava alamsüsteemi kood.",
+        "info2": "Kui alamsüsteem on juba olemas, saate selle valida globaalsest loendist.",
+        "registerSubsystem": "Registreeri alamsüsteem",
+        "searchLabel": "Alamsüsteem",
+        "selectSubsystem": "Vali alamsüsteem",
+        "subsystemAdded": "Alamsüsteem lisatud",
+        "subsystemExists": "Alamsüsteem on juba olemas"
+      },
+      "subsystemCode": "Alamsüsteemi kood",
+      "token": {
+        "info": "Valige krüptomoodul, millele soovite lisada SIGN-võtme uue kliendi jaoks. Märkus: krüptomoodul peab olema sisselogitud olekus.",
+        "loggedIn": "Sisselogitud",
+        "title": "krüptomoodul",
+        "tokenName": "krüptomooduli nimi"
+      },
+      "warning": {
+        "unregistered_member": "Registreerimata liige"
+      }
+    }
+  }
+}
