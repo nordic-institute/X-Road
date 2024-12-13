@@ -11,10 +11,13 @@ dependencies {
     implementation(project(':common:common-rpc'))
 
     implementation(libs.apache.httpclient)
-    implementation project(':common:common-keyconf')
-    implementation project(':serverconf')
+    implementation(project(':common:common-keyconf'))
+    implementation(project(':common:common-messagelog'))
+    implementation(project(':common:common-op-monitoring'))
+    implementation(project(':serverconf'))
     implementation(project(':addons:metaservice'))
     implementation(project(':addons:messagelog:messagelog-addon:asic'))
+    implementation(project(':addons:messagelog:messagelog-addon:core'))
     implementation(project(':addons:proxymonitor-metaservice'))
     implementation(project(':addons:op-monitoring'))
 

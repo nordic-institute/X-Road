@@ -62,11 +62,16 @@ public class ProxyMessageLogConfig {
     private static final GroupingStrategy ARCHIVE_GROUPING = MessageLogProperties.getArchiveGrouping();
 
     @Bean
-    AbstractLogManager messageLogManager(GlobalConfProvider globalConfProvider,
-                                         ServerConfProvider serverConfProvider,
-                                         @Autowired(required = false) @Qualifier("messagelogDatabaseCtx")
-                                         DatabaseCtxV2 messagelogDatabaseCtx) {
-        return MessageLog.init("proxy", globalConfProvider, serverConfProvider, messagelogDatabaseCtx);
+    MessageLog messageLogManager(AbstractLogManager logManager) {
+        return MessageLog.init(logManager);
+    }
+
+    @Bean
+    AbstractLogManager nullLogManager(GlobalConfProvider globalConfProvider,
+                                      ServerConfProvider serverConfProvider,
+                                      @Autowired(required = false) @Qualifier("messagelogDatabaseCtx")
+                                      DatabaseCtxV2 messagelogDatabaseCtx) {
+        return new NullLogManager("proxy", globalConfProvider, serverConfProvider, messagelogDatabaseCtx);
     }
 
     @ConfigurationProperties(prefix = "xroad.messagelog")

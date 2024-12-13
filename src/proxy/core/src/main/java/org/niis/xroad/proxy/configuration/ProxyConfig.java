@@ -45,6 +45,7 @@ import ee.ria.xroad.proxy.clientproxy.AuthTrustVerifier;
 import ee.ria.xroad.proxy.conf.CachingKeyConfImpl;
 import ee.ria.xroad.proxy.conf.KeyConfProvider;
 import ee.ria.xroad.proxy.conf.SigningCtxProvider;
+import ee.ria.xroad.proxy.opmonitoring.NullOpMonitoringBuffer;
 import ee.ria.xroad.proxy.opmonitoring.OpMonitoring;
 import ee.ria.xroad.proxy.serverproxy.ServerProxy;
 import ee.ria.xroad.proxy.serverproxy.ServiceHandlerLoader;
@@ -133,8 +134,13 @@ public class ProxyConfig {
     }
 
     @Bean
-    AbstractOpMonitoringBuffer opMonitoringBuffer(ServerConfProvider serverConfProvider) throws Exception {
-        return OpMonitoring.init(serverConfProvider);
+    OpMonitoring opMonitoringBuffer(AbstractOpMonitoringBuffer opMonitoringBuffer) throws Exception {
+        return OpMonitoring.init(opMonitoringBuffer);
+    }
+
+    @Bean
+    AbstractOpMonitoringBuffer nullOpMonitoringBuffer(ServerConfProvider serverConfProvider) {
+        return new NullOpMonitoringBuffer(serverConfProvider);
     }
 
     @Bean

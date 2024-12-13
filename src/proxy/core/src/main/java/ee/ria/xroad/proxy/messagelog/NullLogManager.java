@@ -41,7 +41,7 @@ import java.util.Map;
  */
 public class NullLogManager extends AbstractLogManager {
 
-    NullLogManager(String origin, GlobalConfProvider globalConfProvider, ServerConfProvider serverConfProvider, DatabaseCtxV2 databaseCtx) {
+    public NullLogManager(String origin, GlobalConfProvider globalConfProvider, ServerConfProvider serverConfProvider, DatabaseCtxV2 databaseCtx) {
         super(origin, globalConfProvider, serverConfProvider, databaseCtx);
     }
 
