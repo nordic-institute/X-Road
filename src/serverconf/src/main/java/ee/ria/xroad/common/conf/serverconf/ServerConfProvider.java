@@ -196,10 +196,10 @@ public interface ServerConfProvider {
     String getServiceDescriptionURL(ServiceId service);
 
     /**
-     * @param service the service identifier
+     * @param serviceId the service identifier
      * @return list of endpoints
      */
-    List<Endpoint> getServiceEndpoints(ServiceId service);
+    List<Endpoint> getServiceEndpoints(ServiceId serviceId);
 
     /**
      * Log serverconf statistics
