@@ -30,7 +30,7 @@ import ee.ria.xroad.common.util.TimeUtils;
 import ee.ria.xroad.messagelog.database.MessageLogDatabaseCtx;
 
 import lombok.extern.slf4j.Slf4j;
-import org.hibernate.query.Query;
+import org.hibernate.query.MutationQuery;
 import org.quartz.Job;
 import org.quartz.JobExecutionContext;
 
@@ -67,7 +67,7 @@ public class LogCleaner implements Job {
         int removed;
         do {
             removed = MessageLogDatabaseCtx.doInTransaction(session -> {
-                final Query query = session.getNamedQuery("delete-logrecords");
+                final MutationQuery query = session.createNamedMutationQuery("delete-logrecords");
                 query.setParameter("time", time);
                 query.setParameter("limit", CLEAN_BATCH_LIMIT);
                 return query.executeUpdate();

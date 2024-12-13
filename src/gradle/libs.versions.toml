@@ -64,6 +64,7 @@ grpc-protocGenGrpcJava = { module = "io.grpc:protoc-gen-grpc-java", version.ref 
 
 slf4j-api = { module = "org.slf4j:slf4j-api", version.ref = "slf4j" }
 jclOverSlf4j = { module = "org.slf4j:jcl-over-slf4j", version.ref = "slf4j" }
+julOverSlf4j = { module = "org.slf4j:jul-to-slf4j", version.ref = "slf4j" }
 
 testAutomation-core = { module = "com.nortal.test:test-automation-core", version.ref = "testAutomationFramework" }
 testAutomation-allure = { module = "com.nortal.test:test-automation-allure", version.ref = "testAutomationFramework" }

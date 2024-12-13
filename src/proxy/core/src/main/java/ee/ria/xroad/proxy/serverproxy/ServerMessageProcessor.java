@@ -93,7 +93,6 @@ import static ee.ria.xroad.common.ErrorCodes.X_UNKNOWN_MEMBER;
 import static ee.ria.xroad.common.ErrorCodes.X_UNKNOWN_SERVICE;
 import static ee.ria.xroad.common.ErrorCodes.translateException;
 import static ee.ria.xroad.common.ErrorCodes.translateWithPrefix;
-import static ee.ria.xroad.common.util.AbstractHttpSender.CHUNKED_LENGTH;
 import static ee.ria.xroad.common.util.EncoderUtils.encodeBase64;
 import static ee.ria.xroad.common.util.MimeUtils.HEADER_HASH_ALGO_ID;
 import static ee.ria.xroad.common.util.MimeUtils.HEADER_ORIGINAL_CONTENT_TYPE;
@@ -409,14 +408,14 @@ class ServerMessageProcessor extends MessageProcessorBase {
     private void logRequestMessage() throws Exception {
         log.trace("logRequestMessage()");
 
-        MessageLog.log(requestMessage.getSoap(), requestMessage.getSignature(), false, xRequestId);
+        MessageLog.log(requestMessage.getSoap(), requestMessage.getSignature(), requestMessage.getAttachments(), false, xRequestId);
     }
 
     private void logResponseMessage() throws Exception {
         if (responseSoap != null && encoder != null) {
             log.trace("logResponseMessage()");
-
-            MessageLog.log(responseSoap, encoder.getSignature(), false, xRequestId);
+            // Attachments are not logged here, because response from X-Road 7 server is always batch signed
+            MessageLog.log(responseSoap, encoder.getSignature(), List.of(), false, xRequestId);
         }
     }
 
@@ -432,15 +431,14 @@ class ServerMessageProcessor extends MessageProcessorBase {
         }
 
         log.info("Sending request to {}", uri);
-        try (InputStream in = requestMessage.getSoapContent()) {
+        try {
             opMonitoringData.setRequestOutTs(getEpochMillisecond());
-            httpSender.doPost(uri, in, CHUNKED_LENGTH, jRequest.getHeaders().get(HEADER_ORIGINAL_CONTENT_TYPE));
+            httpSender.doPost(uri, new ProxyMessageSoapEntity(requestMessage));
             opMonitoringData.setResponseInTs(getEpochMillisecond());
         } catch (Exception ex) {
             if (ex instanceof CodedException) {
                 opMonitoringData.setResponseInTs(getEpochMillisecond());
             }
-
             throw translateException(ex).withPrefix(X_SERVICE_FAILED_X);
         }
     }
