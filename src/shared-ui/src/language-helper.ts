@@ -100,7 +100,7 @@ async function loadSharedMessages(language: string) {
   try {
     const module = await import(`./locales/${language}.json`);
     return module.default;
-  } catch {
+  } catch(e) {
     return {};
   }
 }
@@ -109,7 +109,7 @@ async function loadValidationMessages(language: string) {
   try {
     const msg = await import(`../../node_modules/@vee-validate/i18n/dist/locale/${language}.json`);
     return { validation: msg.default };
-  } catch {
+  } catch(e) {
     return {}
   }
 }
@@ -124,23 +124,22 @@ function getUserLanguages(): string[] {
 
 export function pickDefaultLanguage(supportedLanguages: string[]) {
   if (import.meta.env.VITE_I18N_STOP_USER_LOCALE != 'true') {
-    let userLanguages = getUserLanguages()
+
+    const userLanguages = getUserLanguages()
       .map(lang => lang.replace('_', '-'));
     const lcSupportedLanguages = supportedLanguages
       .map(lang => lang.toLowerCase());
 
-    //language+region match
+
     for (const lang of userLanguages) {
+      //language+region(if present) match
       if (lcSupportedLanguages.includes(lang)) {
         return lang;
       }
-    }
-    //only language match
-    userLanguages = userLanguages
-      .map(lang => lang.split('-')[0]);
-    for (const lang of userLanguages) {
-      if (lcSupportedLanguages.includes(lang)) {
-        return lang;
+      //just language match
+      const langCode = lang.split('-')[0];
+      if (lcSupportedLanguages.includes(langCode)) {
+        return langCode;
       }
     }
   }

@@ -42,12 +42,18 @@
       <v-list>
         <v-list-item
           v-for="language in languages"
-          :key="language"
-          :active="language === currentLanguage"
+          :key="language.code"
+          :active="language.code === currentLanguage"
           data-test="language-list-tile"
-          @click="switchLanguage(language)"
+          @click="switchLanguage(language.code)"
         >
-          {{ language }}
+          <v-tooltip
+            activator="parent"
+            location="right"
+          >
+            <span class="text-capitalize">{{ language.display }}</span>
+          </v-tooltip>
+          {{ language.code }}
         </v-list-item>
       </v-list>
     </v-menu>
@@ -66,8 +72,11 @@ export default defineComponent({
     currentLanguage() {
       return languageHelper.getCurrentLanguage();
     },
+    displayName() {
+      return new Intl.DisplayNames([this.currentLanguage], { type: 'language' });
+    },
     languages() {
-      return availableLanguages;
+      return availableLanguages.map(lang => ({ code: lang, display: this.displayName.of(lang) }));
     },
   },
   methods: {
