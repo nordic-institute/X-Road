@@ -26,12 +26,14 @@
 package org.niis.xroad.securityserver.restapi.service;
 
 import ee.ria.xroad.common.CodedException;
+import ee.ria.xroad.common.ErrorCodes;
 import ee.ria.xroad.common.certificateprofile.DnFieldDescription;
 import ee.ria.xroad.common.certificateprofile.impl.DnFieldDescriptionImpl;
 import ee.ria.xroad.common.conf.globalconf.ApprovedCAInfo;
 import ee.ria.xroad.common.conf.globalconf.GlobalConfProvider;
 import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.signer.SignerProxy;
+import ee.ria.xroad.signer.exception.SignerException;
 import ee.ria.xroad.signer.protocol.dto.CertRequestInfo;
 import ee.ria.xroad.signer.protocol.dto.CertRequestInfoProto;
 import ee.ria.xroad.signer.protocol.dto.CertificateInfo;
@@ -257,7 +259,7 @@ public class TokenCertificateServiceTest {
             Object[] args = invocation.getArguments();
             String hash = (String) args[0];
             if (MISSING_CERTIFICATE_HASH.equals(hash)) {
-                throw new CodedException(TokenCertificateService.CERT_NOT_FOUND_FAULT_CODE);
+                throw new SignerException(ErrorCodes.X_CERT_NOT_FOUND);
             }
 
             return null;
@@ -267,7 +269,7 @@ public class TokenCertificateServiceTest {
             Object[] args = invocation.getArguments();
             String hash = (String) args[0];
             if (MISSING_CERTIFICATE_HASH.equals(hash)) {
-                throw new CodedException(TokenCertificateService.CERT_NOT_FOUND_FAULT_CODE);
+                throw new SignerException(ErrorCodes.X_CERT_NOT_FOUND);
             }
             return null;
         }).when(signerProxyFacade).activateCert(eq("certID"));

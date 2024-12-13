@@ -319,10 +319,10 @@ public class SignerStepDefs extends BaseSignerStepDefs {
                 KeyUsageInfo.valueOf(keyUsage),
                 "CN=key-" + keyName, CertificateRequestFormat.DER);
 
-        this.scenarioCsrId = csrInfo.getCertReqId();
+        this.scenarioCsrId = csrInfo.certReqId();
 
         File csrFile = File.createTempFile("tmp", keyUsage.toLowerCase() + "_csr" + System.currentTimeMillis());
-        FileUtils.writeByteArrayToFile(csrFile, csrInfo.getCertRequest());
+        FileUtils.writeByteArrayToFile(csrFile, csrInfo.certRequest());
         putStepData(StepDataKey.DOWNLOADED_FILE, csrFile);
     }
 

@@ -31,6 +31,7 @@ import ee.ria.xroad.common.crypto.identifier.KeyAlgorithm;
 import ee.ria.xroad.common.crypto.identifier.SignAlgorithm;
 import ee.ria.xroad.common.crypto.identifier.SignMechanism;
 import ee.ria.xroad.common.identifier.ClientId;
+import ee.ria.xroad.signer.exception.SignerException;
 import ee.ria.xroad.signer.protocol.dto.KeyInfo;
 import ee.ria.xroad.signer.protocol.dto.KeyUsageInfo;
 import ee.ria.xroad.signer.protocol.dto.TokenInfo;
@@ -104,25 +105,36 @@ public class SignerProxyFacadeMockHttpImpl implements SignerProxyFacade {
     }
 
     @Override
-    public List<TokenInfo> getTokens() throws Exception {
+    public List<TokenInfo> getTokens() throws SignerException {
         final String response = restTemplate.getForObject("/getTokens", String.class);
         return parseTokenInfoList(response);
     }
 
     @Override
-    public TokenInfo getToken(String tokenId) throws Exception {
+    public TokenInfo getToken(String tokenId) throws SignerException {
         final String response = restTemplate.getForObject("/getToken/{tokenId}", String.class, tokenId);
         return parseTokenInfo(response);
     }
 
-    private List<TokenInfo> parseTokenInfoList(String tokenListString) throws JsonProcessingException {
-        final JsonNode json = objectMapper.readTree(tokenListString);
-        return StreamSupport.stream(json.spliterator(), true).map(this::parseTokenInfo).collect(Collectors.toList());
+    private List<TokenInfo> parseTokenInfoList(String tokenListString) throws SignerException {
+        try {
+            final JsonNode json = objectMapper.readTree(tokenListString);
+            return StreamSupport.stream(json.spliterator(), true)
+                    .map(this::parseTokenInfo)
+                    .collect(Collectors.toList());
+        } catch (JsonProcessingException e) {
+            throw new SignerException(e.getMessage(), e);
+        }
     }
 
-    private TokenInfo parseTokenInfo(String tokenString) throws JsonProcessingException {
-        final JsonNode json = objectMapper.readTree(tokenString);
-        return parseTokenInfo(json);
+    private TokenInfo parseTokenInfo(String tokenString) throws SignerException {
+        try {
+            final JsonNode json = objectMapper.readTree(tokenString);
+            return parseTokenInfo(json);
+        } catch (JsonProcessingException e) {
+            throw new SignerException(e.getMessage(), e);
+        }
+
     }
 
     private TokenInfo parseTokenInfo(JsonNode json) {

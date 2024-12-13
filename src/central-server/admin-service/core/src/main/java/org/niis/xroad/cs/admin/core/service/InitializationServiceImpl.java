@@ -32,6 +32,7 @@ import ee.ria.xroad.common.util.process.ExternalProcessRunner;
 import ee.ria.xroad.common.util.process.ProcessFailedException;
 import ee.ria.xroad.common.util.process.ProcessNotExecutableException;
 import ee.ria.xroad.signer.SignerProxy;
+import ee.ria.xroad.signer.exception.SignerException;
 import ee.ria.xroad.signer.protocol.dto.TokenInfo;
 import ee.ria.xroad.signer.protocol.dto.TokenStatusInfo;
 
@@ -55,7 +56,6 @@ import org.niis.xroad.restapi.config.audit.AuditDataHelper;
 import org.niis.xroad.restapi.config.audit.RestApiAuditProperty;
 import org.niis.xroad.restapi.exceptions.DeviationAwareRuntimeException;
 import org.niis.xroad.restapi.exceptions.ErrorDeviation;
-import org.niis.xroad.restapi.service.SignerNotReachableException;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
@@ -63,7 +63,6 @@ import org.springframework.stereotype.Service;
 import java.util.Arrays;
 import java.util.Optional;
 
-import static ee.ria.xroad.common.ErrorCodes.X_KEY_NOT_FOUND;
 import static org.niis.xroad.common.exception.util.CommonDeviationMessage.INITIALIZATION_INTERRUPTED;
 import static org.niis.xroad.cs.admin.api.exception.ErrorMessage.INIT_ALREADY_INITIALIZED;
 import static org.niis.xroad.cs.admin.api.exception.ErrorMessage.INIT_SIGNER_PIN_POLICY_FAILED;
@@ -107,7 +106,7 @@ public class InitializationServiceImpl implements InitializationService {
             } else {
                 initStatusInfo = TokenInitStatus.NOT_INITIALIZED;
             }
-        } catch (SignerNotReachableException notReachableException) {
+        } catch (SignerException notReachableException) {
             log.info("getInitializationStatus - signer was not reachable", notReachableException);
             initStatusInfo = TokenInitStatus.UNKNOWN;
         }
@@ -234,9 +233,9 @@ public class InitializationServiceImpl implements InitializationService {
             if (null != tokenInfo) {
                 isSWTokenInitialized = tokenInfo.getStatus() != TokenStatusInfo.NOT_INITIALIZED;
             }
-        } catch (Exception e) {
-            if (!((e instanceof CodedException ce) && X_KEY_NOT_FOUND.equals(ce.getFaultCode()))) {
-                throw new SignerNotReachableException("could not list all tokens", e);
+        } catch (SignerException se) {
+            if (!se.isCausedByKeyNotFound()) {
+                throw se;
             }
         }
         return isSWTokenInitialized;

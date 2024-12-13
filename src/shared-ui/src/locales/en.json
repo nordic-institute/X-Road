@@ -158,6 +158,7 @@
     "backup_generation_failed": "Failed to generate backup",
     "backup_restore_interrupted": "Backup restoration has been interrupted",
     "generate_backup_interrupted": "Backup generation has been interrupted",
+    "internal_error": "Internal error. See server logs for more details",
     "invalid_backup_file": "Invalid backup file",
     "invalid_distinguished_name": "Distinguished name is invalid",
     "invalid_filename": "Invalid filename",
