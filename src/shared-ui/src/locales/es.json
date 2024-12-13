@@ -163,6 +163,7 @@
     "invalid_filename": "Nombre de archivo no válido",
     "resource_read_failed": "No se pudo leer el recurso",
     "restore_process_failed": "El proceso de restauración falló",
+    "token_fetch_failed": "Error al obtener el token",
     "token_not_found": "Token no encontrado",
     "validation_failure": "Falla de validación"
   },

@@ -36,6 +36,7 @@ import ee.ria.xroad.common.crypto.identifier.SignMechanism;
 import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.identifier.SecurityServerId;
 import ee.ria.xroad.signer.SignerProxy;
+import ee.ria.xroad.signer.exception.SignerException;
 import ee.ria.xroad.signer.protocol.RpcSignerClient;
 import ee.ria.xroad.signer.protocol.dto.CertificateInfo;
 import ee.ria.xroad.signer.protocol.dto.KeyInfo;
@@ -706,7 +707,7 @@ public class SignerStepDefs extends BaseSignerStepDefs {
     @Step("getTokens fails with timeout exception")
     public void signerGetTokensFailsWithTimeoutException() {
         assertThatThrownBy(SignerProxy::getTokens)
-                .isInstanceOf(CodedException.class)
+                .isInstanceOf(SignerException.class)
                 .hasMessageContaining("Signer: Signer client timed out.");
     }
 

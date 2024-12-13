@@ -117,7 +117,7 @@ public class TokenServiceTest extends AbstractServiceTestContext {
             if (TOKEN_NOT_FOUND_TOKEN_ID.equals(tokenId)) {
                 throw new SignerException(ErrorCodes.X_TOKEN_NOT_FOUND, "did not find it");
             } else if (UNRECOGNIZED_FAULT_CODE_TOKEN_ID.equals(tokenId)) {
-                throw new CodedException("foo", "bar");
+                throw new SignerException("foo", "bar");
             } else {
                 log.debug("deactivate successful");
             }
@@ -183,7 +183,7 @@ public class TokenServiceTest extends AbstractServiceTestContext {
             tokenService.activateToken(UNRECOGNIZED_FAULT_CODE_TOKEN_ID, password);
             fail("should have thrown exception");
         } catch (CodedException expected) {
-            assertEquals("foo", expected.getFaultCode());
+            assertEquals("Signer.foo", expected.getFaultCode());
             assertEquals("bar", expected.getFaultString());
         }
         tokenPinValidator.setTokenPinEnforced(false);
@@ -203,7 +203,7 @@ public class TokenServiceTest extends AbstractServiceTestContext {
             tokenService.deactivateToken(UNRECOGNIZED_FAULT_CODE_TOKEN_ID);
             fail("should have thrown exception");
         } catch (CodedException expected) {
-            assertEquals("foo", expected.getFaultCode());
+            assertEquals("Signer.foo", expected.getFaultCode());
             assertEquals("bar", expected.getFaultString());
         }
     }
@@ -235,7 +235,7 @@ public class TokenServiceTest extends AbstractServiceTestContext {
 
     @Test
     public void getUnknownSoftwareTokenInitStatus() throws Exception {
-        when(signerProxyFacade.getTokens()).thenThrow(new Exception());
+        when(signerProxyFacade.getTokens()).thenThrow(new SignerException("Error"));
         TokenInitStatusInfo tokenStatus = tokenService.getSoftwareTokenInitStatus();
         assertEquals(TokenInitStatusInfo.UNKNOWN, tokenStatus);
     }

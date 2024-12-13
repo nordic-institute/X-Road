@@ -44,6 +44,7 @@ public class SignerException extends CodedException {
         super(ce.getFaultCode(), ce, ce.getFaultString());
         withPrefix(SIGNER_X);
         translationCode = ce.getTranslationCode();
+        arguments = ce.getArguments();
     }
 
     public SignerException(String faultCode) {
@@ -51,8 +52,8 @@ public class SignerException extends CodedException {
         withPrefix(SIGNER_X);
     }
 
-    public SignerException(String faultCode, String faultMessage) {
-        super(faultCode, faultMessage);
+    public SignerException(String faultCode, String faultMessage, Object... arguments) {
+        super(faultCode, faultMessage, arguments);
         withPrefix(SIGNER_X);
     }
 
@@ -109,4 +110,30 @@ public class SignerException extends CodedException {
         }
         return false;
     }
+
+    /**
+     * Creates new exception with translation code for i18n.
+     * @param faultCode the fault code
+     * @param trCode the translation code
+     * @param faultMessage the message
+     * @return CodedException
+     */
+    public static SignerException tr(String faultCode, String trCode,
+                                     String faultMessage) {
+        SignerException ret = new SignerException(faultCode, faultMessage);
+
+        ret.translationCode = trCode;
+
+        return ret;
+    }
+
+    public static SignerException tr(String faultCode, String trCode,
+                                     String faultMessage, Object... args) {
+        SignerException ret = new SignerException(faultCode, faultMessage, args);
+
+        ret.translationCode = trCode;
+
+        return ret;
+    }
+
 }

@@ -88,7 +88,6 @@
     "token_action_not_possible": "Token action not possible",
     "token_activation_failed": "Token activation failed",
     "token_deactivation_failed": "Token deactivation failed",
-    "token_fetch_failed": "Error getting tokens",
     "token_incorrect_pin_format": "Incorrect PIN format",
     "token_invalid_characters": "The provided pin code contains invalid characters",
     "token_pin_final_try": "Tries left: 1",
