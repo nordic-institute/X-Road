@@ -14,6 +14,12 @@ docker build --tag xroad-ss-messagelog-init \
 --build-context changelog=$XROAD_HOME/src/packages/src/xroad/common/addon/proxy/ \
 init_db/
 
+echo "Building baseline"
+docker build --tag xroad-ss-baseline-runtime \
+--file build-context/Dockerfile-baseline \
+$XROAD_HOME/src/configuration-client/application
+
+
 echo "Building confclient"
 docker build --tag xroad-ss-confclient \
 --file build-context/Dockerfile \
