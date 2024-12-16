@@ -29,7 +29,11 @@ services:
         memory: 64Mi
       limits:
         memory: 320Mi
-    port: 5799
+    ports:
+      - port: 5799
+        name: http
+      - port: 5665
+        name: grpc
     serviceAccount:
       annotations: { }
     env:
@@ -52,7 +56,11 @@ services:
         memory: 64Mi
       limits:
         memory: 320Mi
-    port: 5699
+    ports:
+      - port: 5699
+        name: http
+      - port: 5560
+        name: grpc
     serviceAccount:
       annotations: { }
     env:
@@ -73,7 +81,11 @@ services:
         memory: 64Mi
       limits:
         memory: 512Mi
-    port: 5599
+    ports:
+      - port: 5599
+        name: http
+      - port: 5567
+        name: grpc
     serviceAccount:
       annotations: { }
     env:
@@ -93,7 +105,9 @@ services:
         memory: 64Mi
       limits:
         memory: 512Mi
-    port: 4000
+    ports:
+      - port: 4000
+        name: http
     debugPort: 9999
     serviceAccount:
       annotations: { }
@@ -101,6 +115,144 @@ services:
       SERVER_PORT: "4000"
       DEBUG_PORT: "9999"
       XROAD_HOST: "ui.ss.svc.cluster.local"
+      XROAD_SECRET_STORE_HOST: "openbao.ss.svc.cluster.local"
+      XROAD_SECRET_STORE_SCHEME: "http"
+    envFromSecrets:
+      - name: "XROAD_SECRET_STORE_TOKEN"
+        secretName: "xroad-token"
+        key: "XROAD_SECRET_STORE_TOKEN"
+  messagelog-archiver:
+    image: xroad-ss-messagelog-archiver:latest
+    imagePullPolicy: Never
+    resources:
+      requests:
+        memory: 64Mi
+      limits:
+        memory: 512Mi
+    ports:
+      - port: 5598
+        name: http
+    debugPort: 9999
+    serviceAccount:
+      annotations: { }
+    env:
+      DEBUG_PORT: "9999"
+      XROAD_HOST: "messagelog-archiver.ss.svc.cluster.local"
+      XROAD_SECRET_STORE_HOST: "openbao.ss.svc.cluster.local"
+      XROAD_SECRET_STORE_SCHEME: "http"
+    envFromSecrets:
+      - name: "XROAD_SECRET_STORE_TOKEN"
+        secretName: "xroad-token"
+        key: "XROAD_SECRET_STORE_TOKEN"
+  monitor:
+    image: xroad-ss-monitor:latest
+    imagePullPolicy: Never
+    resources:
+      requests:
+        memory: 64Mi
+      limits:
+        memory: 512Mi
+    ports:
+      - port: 5999
+        name: http
+    debugPort: 9999
+    serviceAccount:
+      annotations: { }
+    env:
+      DEBUG_PORT: "9999"
+      XROAD_HOST: "monitor.ss.svc.cluster.local"
+      XROAD_SECRET_STORE_HOST: "openbao.ss.svc.cluster.local"
+      XROAD_SECRET_STORE_SCHEME: "http"
+    envFromSecrets:
+      - name: "XROAD_SECRET_STORE_TOKEN"
+        secretName: "xroad-token"
+        key: "XROAD_SECRET_STORE_TOKEN"
+  op-monitor:
+    image: xroad-ss-op-monitor:latest
+    imagePullPolicy: Never
+    resources:
+      requests:
+        memory: 64Mi
+      limits:
+        memory: 512Mi
+    ports:
+      - port: 5899
+        name: http
+    debugPort: 9999
+    serviceAccount:
+      annotations: { }
+    env:
+      DEBUG_PORT: "9999"
+      XROAD_HOST: "op-monitor.ss.svc.cluster.local"
+      XROAD_SECRET_STORE_HOST: "openbao.ss.svc.cluster.local"
+      XROAD_SECRET_STORE_SCHEME: "http"
+    envFromSecrets:
+      - name: "XROAD_SECRET_STORE_TOKEN"
+        secretName: "xroad-token"
+        key: "XROAD_SECRET_STORE_TOKEN"
+  ds-data-plane:
+    image: xroad-ss-ds-data-plane:latest
+    imagePullPolicy: Never
+    resources:
+      requests:
+        memory: 64Mi
+      limits:
+        memory: 512Mi
+    ports:
+      - port: 5850
+        name: http
+    debugPort: 9999
+    serviceAccount:
+      annotations: { }
+    env:
+      DEBUG_PORT: "9999"
+      XROAD_HOST: "ds-data-plane.ss.svc.cluster.local"
+      XROAD_SECRET_STORE_HOST: "openbao.ss.svc.cluster.local"
+      XROAD_SECRET_STORE_SCHEME: "http"
+    envFromSecrets:
+      - name: "XROAD_SECRET_STORE_TOKEN"
+        secretName: "xroad-token"
+        key: "XROAD_SECRET_STORE_TOKEN"
+  ds-control-plane:
+    image: xroad-ss-ds-control-plane:latest
+    imagePullPolicy: Never
+    resources:
+      requests:
+        memory: 64Mi
+      limits:
+        memory: 512Mi
+    ports:
+      - port: 5851
+        name: http
+    debugPort: 9999
+    serviceAccount:
+      annotations: { }
+    env:
+      DEBUG_PORT: "9999"
+      XROAD_HOST: "ds-control-plane.ss.svc.cluster.local"
+      XROAD_SECRET_STORE_HOST: "openbao.ss.svc.cluster.local"
+      XROAD_SECRET_STORE_SCHEME: "http"
+    envFromSecrets:
+      - name: "XROAD_SECRET_STORE_TOKEN"
+        secretName: "xroad-token"
+        key: "XROAD_SECRET_STORE_TOKEN"
+  ds-identity-hub:
+    image: xroad-ss-ds-identity-hub:latest
+    imagePullPolicy: Never
+    resources:
+      requests:
+        memory: 64Mi
+      limits:
+        memory: 512Mi
+    ports:
+      - port: 5798
+        name: http
+    debugPort: 9999
+    serviceAccount:
+      annotations: { }
+    env:
+      DEBUG_PORT: "9999"
+      XROAD_HOST: "ds-identity-hub.ss.svc.cluster.local"
       XROAD_SECRET_STORE_HOST: "openbao.ss.svc.cluster.local"
       XROAD_SECRET_STORE_SCHEME: "http"
     envFromSecrets:

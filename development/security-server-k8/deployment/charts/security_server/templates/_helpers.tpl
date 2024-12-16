@@ -22,9 +22,17 @@ metadata:
     app: xroad-{{ .service }}
 spec:
   ports:
+    {{- if kindIs "slice" .config.ports }}
+    {{- range .config.ports }}
+    - port: {{ .port }}
+      targetPort: {{ .port }}
+      name: {{ .name }}
+    {{- end }}
+    {{- else }}
     - port: {{ .config.port }}
       targetPort: {{ .config.port }}
       name: http
+    {{- end }}
     {{- if .config.debugPort }}
     - port: {{ .config.debugPort }}
       targetPort: {{ .config.debugPort }}
@@ -104,9 +112,18 @@ spec:
           image: {{ .config.image }}
           imagePullPolicy: {{ .config.imagePullPolicy }}
           ports:
+            {{- if kindIs "slice" .config.ports }}
+            {{- range .config.ports }}
+            - containerPort: {{ .port }}
+              name: {{ .name }}
+            {{- end }}
+            {{- else }}
             - containerPort: {{ .config.port }}
+              name: http
+            {{- end }}
             {{- if .config.debugPort }}
             - containerPort: {{ .config.debugPort }}
+              name: debug
             {{- end }}
           resources:
             {{- toYaml .config.resources | nindent 12 }}
@@ -124,7 +141,7 @@ spec:
           readinessProbe:
             httpGet:
               path: /actuator/health
-              port: {{ .config.port }}
+              port: {{ (index .config.ports 0).port }}
             initialDelaySeconds: 10
             periodSeconds: 5
             timeoutSeconds: 1

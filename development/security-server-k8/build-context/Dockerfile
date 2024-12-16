@@ -26,6 +26,9 @@ COPY --from=entrypoint-ctx /generate_certificate.sh /opt/app/scripts/generate_ce
 #TODO for now its file by file, for better visibility. Simplify later
 COPY --from=entrypoint-ctx /openssl.cnf /opt/app/scripts/openssl.cnf
 
+# Copy service specific files to image
+COPY --from=service-ctx --chown=xroad:xroad /etc /etc
+
 #Set default environment variables
 ENV XROAD_DEPLOYMENT_TYPE=containerized
 ENV XROAD_APPLICATION_TYPE=ss
