@@ -506,12 +506,6 @@ public final class SystemProperties {
     // Proxy UI ---------------------------------------------------------------
 
     /**
-     * Property name of the WSDL validator command.
-     */
-    public static final String WSDL_VALIDATOR_COMMAND =
-            PREFIX + "proxy-ui-api.wsdl-validator-command";
-
-    /**
      * Property name of the signature digest algorithm ID used for generating authentication certificate
      * registration request.
      */
@@ -793,13 +787,6 @@ public final class SystemProperties {
     public static String getDeviceConfFile() {
         return SystemPropertySource.getPropertyResolver().getProperty(DEVICE_CONFIGURATION_FILE,
                 getConfPath() + DefaultFilepaths.DEVICE_CONFIGURATION_FILE);
-    }
-
-    /**
-     * @return WSDL validator command string. Defaults to null.
-     */
-    public static String getWsdlValidatorCommand() {
-        return SystemPropertySource.getPropertyResolver().getProperty(WSDL_VALIDATOR_COMMAND);
     }
 
     /**
