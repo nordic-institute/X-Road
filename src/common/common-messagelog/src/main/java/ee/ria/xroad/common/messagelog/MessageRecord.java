@@ -191,7 +191,7 @@ public class MessageRecord extends AbstractLogRecord {
     }
 
     public MessageAttachment addAttachment(int attachmentNo, Blob attachment) {
-        MessageAttachment messageAttachment = new MessageAttachment(this, attachmentNo, attachment);
+        MessageAttachment messageAttachment = new MessageAttachment(attachmentNo, attachment);
         attachments.add(messageAttachment);
         return messageAttachment;
     }

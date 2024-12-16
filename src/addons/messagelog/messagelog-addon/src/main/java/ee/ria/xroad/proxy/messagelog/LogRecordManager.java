@@ -28,7 +28,6 @@ package ee.ria.xroad.proxy.messagelog;
 import ee.ria.xroad.common.db.HibernateUtil;
 import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.message.AttachmentStream;
-import ee.ria.xroad.common.messagelog.AbstractLogRecord;
 import ee.ria.xroad.common.messagelog.LogRecord;
 import ee.ria.xroad.common.messagelog.MessageRecord;
 import ee.ria.xroad.common.messagelog.TimestampRecord;
@@ -159,7 +158,7 @@ public final class LogRecordManager {
     @SuppressWarnings("JpaQlInspection")
     static void updateMessageRecordSignature(MessageRecord messageRecord, String oldHash) throws Exception {
         doInTransaction(session -> {
-            final MutationQuery query = session.createMutationQuery("update MessageRecord m "
+            final MutationQuery query = session.createMutationQuery("update MessageRecordEntity m "
                     + "set m.signature = :signature, m.signatureHash = :hash "
                     + "where m.id = :id and m.timestampRecord is null and m.signatureHash = :oldhash");
 
@@ -197,7 +196,7 @@ public final class LogRecordManager {
      * @param logRecord the log record to save.
      */
     static void save(Session session, LogRecord logRecord) {
-        log.trace("save({})", logRecord.getClass());
+        log.trace("save({})", logRecord);
         session.persist(MessageRecordMapper.get().toEntity(logRecord));
     }
 
@@ -267,9 +266,9 @@ public final class LogRecordManager {
         return session.get(AbstractLogRecordEntity.class, number);
     }
 
-    private static MessageRecord getMessageRecord(Session session, String queryId, ClientId clientId,
-                                                  Boolean isResponse) {
-        final CriteriaQuery<MessageRecord> query = createRecordCriteria(session, queryId, clientId, isResponse);
+    private static MessageRecordEntity getMessageRecord(Session session, String queryId, ClientId clientId,
+                                                        Boolean isResponse) {
+        final CriteriaQuery<MessageRecordEntity> query = createRecordCriteria(session, queryId, clientId, isResponse);
         return session.createQuery(query).setReadOnly(true).setMaxResults(1).uniqueResult();
     }
 

@@ -12,5 +12,6 @@
       <mapping class="ee.ria.xroad.messagelog.database.entity.MessageRecordEntity" />
       <mapping class="ee.ria.xroad.messagelog.database.entity.DigestEntryEmbeddable" />
       <mapping class="ee.ria.xroad.messagelog.database.entity.ArchiveDigestEntity" />
+      <mapping class="ee.ria.xroad.messagelog.database.entity.MessageAttachmentEntity" />
   </session-factory>
 </hibernate-configuration>

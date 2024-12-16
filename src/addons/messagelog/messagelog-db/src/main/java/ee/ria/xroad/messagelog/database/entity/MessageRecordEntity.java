@@ -25,17 +25,18 @@
  */
 package ee.ria.xroad.messagelog.database.entity;
 
+import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.DiscriminatorValue;
 import jakarta.persistence.Entity;
 import jakarta.persistence.FetchType;
 import jakarta.persistence.JoinColumn;
-import jakarta.persistence.Lob;
 import jakarta.persistence.ManyToOne;
+import jakarta.persistence.OneToMany;
 import lombok.Getter;
 import lombok.Setter;
 
-import java.sql.Blob;
+import java.util.List;
 
 @Getter
 @Setter
@@ -79,9 +80,9 @@ public class MessageRecordEntity extends AbstractLogRecordEntity {
     @Column(name = "RESPONSE", updatable = false)
     private boolean response;
 
-    @Lob
-    @Column(name = "ATTACHMENT", updatable = false, length = 1000000)
-    private Blob attachment;
+    @OneToMany(cascade = CascadeType.PERSIST)
+    @JoinColumn(name = "logrecord_id", updatable = false, nullable = false)
+    private List<MessageAttachmentEntity> attachments;
 
     @Column(name = "XREQUESTID", updatable = false)
     private String xRequestId;
