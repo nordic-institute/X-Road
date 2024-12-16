@@ -63,20 +63,12 @@ import org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler;
         "ee.ria.xroad.signer.certmanager"})
 @Configuration
 public class SignerConfig {
-    private static final String MODULE_MANAGER_IMPL_CLASS = SystemProperties.PREFIX + "signer.moduleManagerImpl";
     static final int OCSP_SCHEDULER_BEAN_ORDER = Ordered.LOWEST_PRECEDENCE - 100;
 
     @Bean("moduleManager")
     AbstractModuleManager moduleManager() {
-        final String moduleManagerImplClassName = System.getProperty(MODULE_MANAGER_IMPL_CLASS, DefaultModuleManagerImpl.class.getName());
-        log.debug("Using module manager implementation: {}", moduleManagerImplClassName);
-
-        try {
-            var clazz = Class.forName(moduleManagerImplClassName);
-            return (AbstractModuleManager) clazz.getDeclaredConstructor().newInstance();
-        } catch (Exception e) {
-            throw new RuntimeException("Could not load module manager impl: " + moduleManagerImplClassName, e);
-        }
+        log.debug("Using default module manager implementation");
+        return new DefaultModuleManagerImpl();
     }
 
     @Bean

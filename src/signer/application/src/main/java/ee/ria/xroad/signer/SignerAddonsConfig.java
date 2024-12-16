@@ -24,28 +24,29 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
+
 package ee.ria.xroad.signer;
 
+import ee.ria.xroad.signer.tokenmanager.module.AbstractModuleManager;
+
+import ee.ria.xroad.signer.tokenmanager.module.HardwareModuleManagerImpl;
+
 import lombok.extern.slf4j.Slf4j;
-import org.niis.xroad.bootstrap.XrdSpringServiceBuilder;
-import org.springframework.boot.SpringBootConfiguration;
-import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Primary;
 
-/**
- * Signer main program.
- */
+@Configuration
 @Slf4j
-@EnableAutoConfiguration
-@SpringBootConfiguration
-@SuppressWarnings("checkstyle:HideUtilityClassConstructor")
-public class SignerMain {
+public class SignerAddonsConfig {
 
-    private static final String APP_NAME = "signer";
-
-    public static void main(String[] args) {
-        XrdSpringServiceBuilder.newApplicationBuilder(APP_NAME, SignerMain.class, SignerConfig.class, SignerAddonsConfig.class)
-                .build()
-                .run(args);
+    @Bean("moduleManager")
+    @Primary
+    @ConditionalOnProperty(name = "xroad.signer.addon.hwtoken.enabled", havingValue = "true")
+    AbstractModuleManager moduleManager() {
+        log.info("Hardware token manager enabled.");
+        return new HardwareModuleManagerImpl();
     }
 
 }

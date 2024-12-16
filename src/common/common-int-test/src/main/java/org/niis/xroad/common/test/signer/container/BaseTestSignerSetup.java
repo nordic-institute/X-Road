@@ -108,7 +108,7 @@ public abstract class BaseTestSignerSetup {
             @SuppressWarnings("squid:S2068")
             public void beforeStart(@NotNull GenericContainer<?> genericContainer) {
                 var modulemanager = enableHwModule
-                        ? "-Dxroad.signer.moduleManagerImpl=ee.ria.xroad.signer.tokenmanager.module.HardwareModuleManagerImpl"
+                        ? "-Dxroad.signer.addon.hwtoken.enabled=true"
                         : "";
 
                 genericContainer
