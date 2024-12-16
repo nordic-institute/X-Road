@@ -63,7 +63,7 @@ BEGIN
 END;
 $function$;
 
-CREATE OR REPLACE TRIGGER t_logrecord_del_attachments
+CREATE TRIGGER t_logrecord_del_attachments
     BEFORE DELETE ON logrecord
     FOR EACH ROW
 EXECUTE FUNCTION del_message_attachments();
