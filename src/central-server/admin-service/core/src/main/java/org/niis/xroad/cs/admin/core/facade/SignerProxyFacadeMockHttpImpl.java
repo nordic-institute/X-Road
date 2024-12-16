@@ -106,35 +106,32 @@ public class SignerProxyFacadeMockHttpImpl implements SignerProxyFacade {
 
     @Override
     public List<TokenInfo> getTokens() throws SignerException {
-        final String response = restTemplate.getForObject("/getTokens", String.class);
-        return parseTokenInfoList(response);
+        try {
+            final String response = restTemplate.getForObject("/getTokens", String.class);
+            return parseTokenInfoList(response);
+        } catch (Exception e) {
+            throw new SignerException(e.getMessage(), e);
+        }
     }
 
     @Override
     public TokenInfo getToken(String tokenId) throws SignerException {
-        final String response = restTemplate.getForObject("/getToken/{tokenId}", String.class, tokenId);
-        return parseTokenInfo(response);
-    }
-
-    private List<TokenInfo> parseTokenInfoList(String tokenListString) throws SignerException {
         try {
-            final JsonNode json = objectMapper.readTree(tokenListString);
-            return StreamSupport.stream(json.spliterator(), true)
-                    .map(this::parseTokenInfo)
-                    .collect(Collectors.toList());
-        } catch (JsonProcessingException e) {
+            final String response = restTemplate.getForObject("/getToken/{tokenId}", String.class, tokenId);
+            return parseTokenInfo(response);
+        } catch (Exception e) {
             throw new SignerException(e.getMessage(), e);
         }
     }
 
-    private TokenInfo parseTokenInfo(String tokenString) throws SignerException {
-        try {
-            final JsonNode json = objectMapper.readTree(tokenString);
-            return parseTokenInfo(json);
-        } catch (JsonProcessingException e) {
-            throw new SignerException(e.getMessage(), e);
-        }
+    private List<TokenInfo> parseTokenInfoList(String tokenListString) throws JsonProcessingException {
+        final JsonNode json = objectMapper.readTree(tokenListString);
+        return StreamSupport.stream(json.spliterator(), true).map(this::parseTokenInfo).collect(Collectors.toList());
+    }
 
+    private TokenInfo parseTokenInfo(String tokenString) throws JsonProcessingException {
+        final JsonNode json = objectMapper.readTree(tokenString);
+        return parseTokenInfo(json);
     }
 
     private TokenInfo parseTokenInfo(JsonNode json) {
