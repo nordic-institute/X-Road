@@ -26,6 +26,8 @@
  */
 package ee.ria.xroad.messagelog.database;
 
+import ee.ria.xroad.common.message.AttachmentStream;
+import ee.ria.xroad.common.messagelog.MessageAttachment;
 import ee.ria.xroad.common.messagelog.MessageLogProperties;
 import ee.ria.xroad.common.messagelog.MessageRecord;
 
@@ -50,21 +52,27 @@ import java.security.GeneralSecurityException;
 import java.security.Key;
 import java.security.KeyException;
 import java.security.KeyStore;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Enumeration;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 /**
  * Helper class for applying message log encryption/decryption to a message record.
- *
+ * <p>
  * Implementation note:
  * The cipher used is AES-CTR, column keys are deterministically derived from the master key
  * using HKDF (RFC 5869) and the CTR initial counter value (iv) is derived from message record id
  * (database primary key); first 64 bits are id (big endian) and the rest are initially zero.
  * Since there can not be two message records with the same id in the database, the (key, counter) pair is
  * unique (as required by AES-CTR security) as long as each message is shorter than ~2^68 bytes.
- *
+ * <p>
+ * For message attachments, separate master key is derived using the same HKDF method. The iv is derived from
+ * the message record id and the attachment number, using 64 + 32 bits in total, leaving 32 bits for the counter.
+ * This allows up to ~2^34 bytes for each attachment.
+ * <p>
  * The implementation is a bit convoluted, mostly due to JPA and Blob (large object) handling.
  */
 @Slf4j
@@ -159,15 +167,17 @@ public final class MessageRecordEncryption {
      */
     public MessageRecord prepareDecryption(MessageRecord messageRecord) throws GeneralSecurityException {
         if (messageRecord != null && messageRecord.getKeyId() != null) {
-            final Cipher messageCipher = createCipher(Cipher.DECRYPT_MODE, messageRecord.getId(),
+            final Cipher messageCipher = createCipher(Cipher.DECRYPT_MODE,
                     messageRecord.getKeyId(),
-                    messageKeys);
-            final Cipher attachmentCipher = createCipher(Cipher.DECRYPT_MODE, messageRecord.getId(),
-                    messageRecord.getKeyId(),
-                    attachmentKeys);
-
+                    messageKeys, messageIv(messageRecord.getId()));
             messageRecord.setMessageCipher(messageCipher);
-            messageRecord.setAttachmentCipher(attachmentCipher);
+
+            for (MessageAttachment attachment : messageRecord.getAttachments()) {
+                final Cipher attachmentCipher = createCipher(Cipher.DECRYPT_MODE,
+                        messageRecord.getKeyId(),
+                        attachmentKeys, attachmentIv(messageRecord.getId(), attachment.getAttachmentNo()));
+                attachment.setAttachmentCipher(attachmentCipher);
+            }
         }
         return messageRecord;
     }
@@ -192,22 +202,23 @@ public final class MessageRecordEncryption {
         messageRecord.setKeyId(keyId);
         final int mode = Cipher.ENCRYPT_MODE;
 
-        final Cipher messageCipher = createCipher(mode, messageRecord.getId(), keyId, messageKeys);
+        final Cipher messageCipher = createCipher(mode, keyId, messageKeys, messageIv(messageRecord.getId()));
 
         messageRecord.setCipherMessage(
                 messageCipher.doFinal(messageRecord.getMessage().getBytes(StandardCharsets.UTF_8)));
 
-        if (messageRecord.getAttachmentStream() != null) {
-            final Cipher attachmentCipher = createCipher(mode, messageRecord.getId(), keyId, attachmentKeys);
-            messageRecord.setAttachmentStream(
-                    new CipherInputStream(messageRecord.getAttachmentStream(), attachmentCipher),
-                    //CTR mode does not change the message length.
-                    messageRecord.getAttachmentStreamSize());
+        if (!messageRecord.getAttachmentStreams().isEmpty()) {
+            List<AttachmentStream> cipherAttachmentStreams = new ArrayList<>();
+            for (int i = 0; i < messageRecord.getAttachmentStreams().size(); i++) {
+                Cipher attachmentCipher = createCipher(mode, keyId, attachmentKeys, attachmentIv(messageRecord.getId(), i + 1));
+                cipherAttachmentStreams.add(new CipherAttachmentStream(messageRecord.getAttachmentStreams().get(i), attachmentCipher));
+            }
+            messageRecord.setAttachmentStreams(cipherAttachmentStreams);
         }
         return messageRecord;
     }
 
-    private Cipher createCipher(int mode, long recordId, String keyId, Map<String, SecretKeySpec> keys)
+    private Cipher createCipher(int mode, String keyId, Map<String, SecretKeySpec> keys, IvParameterSpec iv)
             throws GeneralSecurityException {
 
         final SecretKeySpec keySpec = keys.get(keyId);
@@ -216,15 +227,33 @@ public final class MessageRecordEncryption {
         }
 
         Cipher cipher = Cipher.getInstance("AES/CTR/NoPadding");
-        ByteBuffer ivBuf = ByteBuffer.allocate(AES_BLOCK_SIZE);
-
-        ivBuf.putLong(recordId);
-
-        @SuppressWarnings("java:S3329") //predictable IV can be used in CTR mode, uniqueness is important
-        IvParameterSpec iv = new IvParameterSpec(ivBuf.array());
 
         cipher.init(mode, keySpec, iv);
         return cipher;
+    }
+
+    private IvParameterSpec messageIv(long messageRecordId) {
+        ByteBuffer ivBuf = ByteBuffer.allocate(AES_BLOCK_SIZE);
+
+        ivBuf.putLong(messageRecordId);
+
+        return toIvParameterSpec(ivBuf);
+    }
+
+    private IvParameterSpec attachmentIv(long messageRecordId, int attachmentNo) {
+        ByteBuffer ivBuf = ByteBuffer.allocate(AES_BLOCK_SIZE);
+
+        ivBuf.putLong(messageRecordId);
+        // Attachment numbering starts from 1. To keep backward compatibility, one is subtracted.
+        // Previously, only one attachment was supported and it was not included in the IV.
+        ivBuf.putInt(attachmentNo - 1);
+
+        return toIvParameterSpec(ivBuf);
+    }
+
+    @SuppressWarnings("java:S3329") //predictable IV can be used in CTR mode, uniqueness is important
+    private IvParameterSpec toIvParameterSpec(ByteBuffer ivBuf) {
+        return new IvParameterSpec(ivBuf.array());
     }
 
     /**
@@ -232,5 +261,18 @@ public final class MessageRecordEncryption {
      */
     public static synchronized void reload() {
         instance = new MessageRecordEncryption();
+    }
+
+    private record CipherAttachmentStream(AttachmentStream attachmentStream, Cipher cipher) implements AttachmentStream {
+        @Override
+        public InputStream getStream() {
+            return new CipherInputStream(attachmentStream.getStream(), cipher);
+        }
+
+        @Override
+        public long getSize() {
+            //CTR mode does not change the message length.
+            return attachmentStream.getSize();
+        }
     }
 }

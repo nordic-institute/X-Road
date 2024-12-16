@@ -33,21 +33,19 @@ import static ee.ria.xroad.common.SystemProperties.getConfigurationPath;
  * Test globalconf implementation.
  */
 public class TestGlobalConfImpl extends GlobalConfImpl {
-    private static final GlobalConfSource SOURCE;
-
-    static {
-        try {
-            SOURCE = new FileSystemGlobalConfSource(getConfigurationPath());
-        } catch (Exception e) {
-            throw translateWithPrefix(X_MALFORMED_GLOBALCONF, e);
-        }
-    }
-
     /**
      * Constructs a new test globalconf.
      */
     public TestGlobalConfImpl() {
-        super(SOURCE);
+        super(globalConfSource());
+    }
+
+    private static GlobalConfSource globalConfSource() {
+        try {
+            return new FileSystemGlobalConfSource(getConfigurationPath());
+        } catch (Exception e) {
+            throw translateWithPrefix(X_MALFORMED_GLOBALCONF, e);
+        }
     }
 
 }

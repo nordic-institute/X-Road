@@ -55,6 +55,7 @@ public class AsicContainerTest {
     @Parameters(name = "{index}: verify(\"{0}\") should throw \"{1}\"")
     public static Collection<Object[]> data() {
         return Arrays.asList(new Object[][]{
+                {"valid-signed-message-with-attachments.asice", null},
                 {"valid-signed-message.asice", null},
                 {"no-mimetype.asice", X_ASIC_MIME_TYPE_NOT_FOUND},
                 {"no-message.asice", X_ASIC_MESSAGE_NOT_FOUND},

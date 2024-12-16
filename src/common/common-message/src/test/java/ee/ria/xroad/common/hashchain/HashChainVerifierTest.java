@@ -43,7 +43,7 @@ import static ee.ria.xroad.common.ErrorCodes.X_INVALID_HASH_CHAIN_RESULT;
 import static ee.ria.xroad.common.ErrorCodes.X_MALFORMED_HASH_CHAIN;
 import static ee.ria.xroad.common.crypto.Digests.calculateDigest;
 import static ee.ria.xroad.common.util.MessageFileNames.MESSAGE;
-import static ee.ria.xroad.common.util.MessageFileNames.attachment;
+import static ee.ria.xroad.common.util.MessageFileNames.attachmentOfIdx;
 
 /**
  * Tests to verify that hash chain verification is correct.
@@ -182,11 +182,11 @@ public class HashChainVerifierTest {
         Map<String, DigestValue> inputs = makeInputs(
                 MESSAGE, new DigestValue(
                         DigestAlgorithm.SHA256, new byte[]{(byte) 11}),
-                attachment(1), new DigestValue(
+                attachmentOfIdx(1), new DigestValue(
                         DigestAlgorithm.SHA256, new byte[]{(byte) 12}),
-                attachment(2), new DigestValue(
+                attachmentOfIdx(2), new DigestValue(
                         DigestAlgorithm.SHA256, new byte[]{(byte) 13}),
-                attachment(3), new DigestValue(
+                attachmentOfIdx(3), new DigestValue(
                         DigestAlgorithm.SHA256, new byte[]{(byte) 14}));
 
         HashChainVerifier.verify(

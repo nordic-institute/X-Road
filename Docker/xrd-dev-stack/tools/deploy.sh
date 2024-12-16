@@ -1,5 +1,7 @@
 #!/bin/bash
 
+: ${XROAD_HOME:?"XROAD_HOME is not set"}
+
 deploy_module() {
   local module_name=$1
   shift
@@ -15,6 +17,7 @@ deploy_module() {
     ;;
   "messagelog-addon")
     jar_path="$XROAD_HOME/src/addons/messagelog/messagelog-addon/build/libs/messagelog-addon.jar"
+    target_path="/usr/share/xroad/jlib/addon/proxy/"
     service_name="xroad-proxy"
     ;;
   "hwtoken-addon")
@@ -66,14 +69,18 @@ deploy_module() {
   done
 }
 
-set -o xtrace
+set -o xtrace -o errexit
 
 case $1 in
 "proxy" | "messagelog-addon" | "metaservice-addon" | "proxy-ui-api" | "configuration-client" | "op-monitor-daemon")
-  deploy_module "$1" "ss0" "ss1"
+  hosts=("ss0" "ss1")
+  if [[ $# > 1 ]]; then hosts=("${@:2}"); fi
+  deploy_module "$1" "${hosts[@]}"
   ;;
 "signer" | "hwtoken-addon")
-  deploy_module "$1" "ss0" "ss1" "cs"
+  hosts=("ss0" "ss1" "cs")
+  if [[ $# > 1 ]]; then hosts=("${@:2}"); fi
+  deploy_module "$1" "${hosts[@]}"
   ;;
 "cs-admin-service" | "cs-management-service" | "cs-registration-service")
   deploy_module "$1" "cs"
