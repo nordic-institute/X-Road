@@ -1,6 +1,5 @@
 /*
  * The MIT License
- *
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
@@ -24,61 +23,38 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package ee.ria.xroad.common.messagelog;
+package ee.ria.xroad.messagelog.database.entity;
 
-import lombok.AccessLevel;
-import lombok.EqualsAndHashCode;
+import jakarta.persistence.Access;
+import jakarta.persistence.AccessType;
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.Lob;
+import jakarta.persistence.Table;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
-import lombok.ToString;
-import lombok.extern.slf4j.Slf4j;
 
-import javax.crypto.Cipher;
-import javax.crypto.CipherInputStream;
-
-import java.io.InputStream;
 import java.sql.Blob;
 
-
-@Slf4j
-@ToString(callSuper = true, exclude = {"attachment", "attachmentCipher"})
-@EqualsAndHashCode(exclude = {"attachment"})
-@NoArgsConstructor(access = AccessLevel.PROTECTED)
-public class MessageAttachment {
-
-    @Getter
+@Getter
+@Setter
+@Entity
+@Table(name = "MESSAGE_ATTACHMENT")
+@Access(AccessType.FIELD)
+@NoArgsConstructor
+public class MessageAttachmentEntity {
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Getter
-    @Setter
-    private Integer attachmentNo;
+    @Column(name = "attachment_no", updatable = false, columnDefinition = "text")
+    private int attachmentNo;
 
-    @Getter
-    @Setter
+    @Lob
+    @Column(name = "ATTACHMENT", updatable = false, length = 1000000)
     private Blob attachment;
-
-    @Setter
-    private transient Cipher attachmentCipher;
-
-    public MessageAttachment(Integer attachmentNo, Blob attachment) {
-        this.attachmentNo = attachmentNo;
-        this.attachment = attachment;
-    }
-
-    public InputStream getInputStream() {
-        try {
-            if (attachmentCipher != null) {
-                return new CipherInputStream(attachment.getBinaryStream(), attachmentCipher);
-            }
-            return attachment.getBinaryStream();
-        } catch (Exception e) {
-            throw new RuntimeException(e);
-        }
-    }
-
-    public boolean hasCipher() {
-        return attachmentCipher != null;
-    }
-
 }

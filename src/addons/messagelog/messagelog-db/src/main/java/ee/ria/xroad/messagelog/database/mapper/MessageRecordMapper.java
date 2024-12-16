@@ -25,9 +25,11 @@
 package ee.ria.xroad.messagelog.database.mapper;
 
 import ee.ria.xroad.common.messagelog.LogRecord;
+import ee.ria.xroad.common.messagelog.MessageAttachment;
 import ee.ria.xroad.common.messagelog.MessageRecord;
 import ee.ria.xroad.common.messagelog.TimestampRecord;
 import ee.ria.xroad.messagelog.database.entity.AbstractLogRecordEntity;
+import ee.ria.xroad.messagelog.database.entity.MessageAttachmentEntity;
 import ee.ria.xroad.messagelog.database.entity.MessageRecordEntity;
 import ee.ria.xroad.messagelog.database.entity.TimestampRecordEntity;
 
@@ -62,14 +64,17 @@ public interface MessageRecordMapper {
     }
 
     @Mapping(target = "messageCipher", ignore = true)
-    @Mapping(target = "attachmentCipher", ignore = true)
     MessageRecord toDTO(MessageRecordEntity source);
+
+    MessageAttachment toDTO(MessageAttachmentEntity source);
 
     TimestampRecord toDTO(TimestampRecordEntity source);
 
     List<MessageRecord> toDTOs(List<MessageRecordEntity> sources);
 
     MessageRecordEntity toEntity(MessageRecord source);
+
+    MessageAttachmentEntity toEntity(MessageAttachment source);
 
     TimestampRecordEntity toEntity(TimestampRecord source);
 
