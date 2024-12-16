@@ -76,10 +76,13 @@ xroad:
     strict-identifier-checks: true
     request-size-limit-regular: 50KB
     request-size-limit-binary-upload: 10MB
+    authentication-key-algorithm: RSA
+    signing-key-algorithm: RSA
     addon:
       wsdl-validator:
         enabled: true
         command: src/test/resources/validator/mock-wsdlvalidator.sh
+
 file-upload-endpoints:
   endpoint-definitions:
     -
