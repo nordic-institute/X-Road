@@ -60,6 +60,7 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.core.Ordered;
 import org.springframework.core.annotation.Order;
 
 import java.util.List;
@@ -77,7 +78,7 @@ public class ProxyClientConfig {
     }
 
     @Bean
-    @Order(0)
+    @Order(Ordered.HIGHEST_PRECEDENCE)
     AbstractClientProxyHandler clientRestMessageHandler(GlobalConfProvider globalConfProvider,
                                                       KeyConfProvider keyConfProvider,
                                                       ServerConfProvider serverConfProvider,
@@ -89,7 +90,7 @@ public class ProxyClientConfig {
     }
 
     @Bean
-    @Order
+    @Order(Ordered.LOWEST_PRECEDENCE)
     AbstractClientProxyHandler clientSoapMessageHandler(GlobalConfProvider globalConfProvider,
                                                       KeyConfProvider keyConfProvider,
                                                       ServerConfProvider serverConfProvider,

@@ -55,6 +55,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Primary;
 import org.springframework.context.annotation.Scope;
+import org.springframework.core.annotation.Order;
 
 @Configuration
 class ProxyAddonsConfig {
@@ -63,6 +64,7 @@ class ProxyAddonsConfig {
     @ConditionalOnProperty(name = "xroad.proxy.addon.metaservices.enabled", havingValue = "true")
     static class MetaServicesAddonConfig {
         @Bean
+        @Order(100)
         AbstractClientProxyHandler metadataHandler(GlobalConfProvider globalConfProvider, KeyConfProvider keyConfProvider,
                                                    ServerConfProvider serverConfProvider, CertChainFactory certChainFactory,
                                                    @Qualifier("proxyHttpClient") HttpClient httpClient) {
@@ -87,6 +89,7 @@ class ProxyAddonsConfig {
     @ConditionalOnProperty(name = "xroad.proxy.addon.messagelog.enabled", havingValue = "true")
     static class MessageLogAddonConfig {
         @Bean
+        @Order(200)
         AbstractClientProxyHandler asicContainerHandler(GlobalConfProvider globalConfProvider, KeyConfProvider keyConfProvider,
                                                         ServerConfProvider serverConfProvider, CertChainFactory certChainFactory,
                                                         @Qualifier("proxyHttpClient") HttpClient client) {
