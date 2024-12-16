@@ -1,0 +1,11 @@
+[Unit]
+Description=Example REST API
+After=network.target
+
+[Service]
+Environment="JAVA_HOME={{ java_17_home }}"
+ExecStart={{ java_17_home }}/bin/java -jar -Dserver.port=80 /example-restapi.jar
+Restart=always
+
+[Install]
+WantedBy=multi-user.target
