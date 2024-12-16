@@ -3,13 +3,11 @@ plugins {
 }
 
 dependencies {
-    implementation libs.edc.spi.core
     implementation libs.edc.spi.policy.engine
     implementation libs.edc.spi.contract
-    implementation libs.edc.spi.dataplane
-    implementation(project(':common:common-domain'))
     implementation(project(':common:common-verifier'))
     implementation(project(':serverconf'))
+
     testImplementation libs.edc.junit
     testImplementation libs.assertj.core
     testImplementation libs.mockito.jupiter

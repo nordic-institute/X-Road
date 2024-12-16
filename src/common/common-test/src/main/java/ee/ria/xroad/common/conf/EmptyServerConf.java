@@ -183,6 +183,11 @@ public class EmptyServerConf implements ServerConfProvider {
     }
 
     @Override
+    public boolean isSubjectInLocalGroup(ClientId clientId, LocalGroupId localGroupId) {
+        return false;
+    }
+
+    @Override
     public List<ClientId.Conf> getMembers() throws Exception {
         return List.of(ClientId.Conf.ensure(DEFAULT_CLIENT));
     }

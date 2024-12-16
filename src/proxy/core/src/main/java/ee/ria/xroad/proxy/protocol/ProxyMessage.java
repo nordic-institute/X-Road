@@ -39,6 +39,7 @@ import ee.ria.xroad.common.util.MimeTypes;
 import ee.ria.xroad.common.util.MimeUtils;
 import ee.ria.xroad.common.util.MultipartEncoder;
 
+import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.IOUtils;
 import org.bouncycastle.cert.ocsp.OCSPResp;
@@ -65,6 +66,7 @@ public class ProxyMessage implements ProxyMessageConsumer {
     public static final int REST_BODY_LIMIT = 8192; //store up to limit bytes into memory
     private final List<OCSPResp> ocspResponses = new ArrayList<>();
 
+    @Getter
     private final String originalContentType;
     private final String originalMimeBoundary;
 
