@@ -77,7 +77,7 @@ import { defineComponent } from 'vue';
 import { RouteName } from '@/global';
 import TokenExpandable from './TokenExpandable.vue';
 import TokenLoginDialog from '@/components/token/TokenLoginDialog.vue';
-import HelpButton from '../HelpButton.vue';
+import HelpButton from '@/components/ui/HelpButton.vue';
 import { mapActions, mapState } from 'pinia';
 import { useNotifications } from '@/store/modules/notifications';
 import { useTokens } from '@/store/modules/tokens';
@@ -90,7 +90,7 @@ import {
   TokenCertificateSigningRequest,
 } from '@/openapi-types';
 import { deepClone } from '@/util/helpers';
-import { useCsr } from "@/store/modules/certificateSignRequest";
+import { useCsr } from '@/store/modules/certificateSignRequest';
 
 export default defineComponent({
   components: {
@@ -212,10 +212,9 @@ export default defineComponent({
         .finally(() => {
           this.loading = false;
         });
-      this.fetchCertificateAuthorities()
-        .catch((error) => {
-          this.showError(error);
-        });
+      this.fetchCertificateAuthorities().catch((error) => {
+        this.showError(error);
+      });
     },
     acceptTokenLogout(): void {
       if (!this.selectedToken) {

@@ -64,6 +64,7 @@ import static ee.ria.xroad.common.asic.AsicContainerEntries.ENTRY_TIMESTAMP;
 import static ee.ria.xroad.common.asic.AsicContainerEntries.ENTRY_TS_HASH_CHAIN;
 import static ee.ria.xroad.common.asic.AsicContainerEntries.ENTRY_TS_HASH_CHAIN_RESULT;
 import static ee.ria.xroad.common.asic.AsicContainerEntries.MIMETYPE;
+import static ee.ria.xroad.common.asic.AsicContainerEntries.isAttachment;
 import static ee.ria.xroad.common.util.EncoderUtils.decodeBase64;
 import static ee.ria.xroad.common.util.EncoderUtils.encodeBase64;
 import static org.apache.commons.lang3.StringUtils.isBlank;
@@ -80,7 +81,7 @@ final class AsicHelper {
         Map<String, String> entries = new HashMap<>();
         ZipInputStream zip = new ZipInputStream(is);
         ZipEntry zipEntry;
-        byte[] attachmentDigest = null;
+        Map<String, byte[]> attachmentDigests = new HashMap<>();
 
         while ((zipEntry = zip.getNextEntry()) != null) {
             for (Object expectedEntry : AsicContainerEntries.getALL_ENTRIES()) {
@@ -96,17 +97,17 @@ final class AsicHelper {
                     entries.put(zipEntry.getName(), data);
 
                     break;
-                } else if (matches(ENTRY_ATTACHMENT + "1", zipEntry.getName())) {
+                } else if (isAttachment(zipEntry.getName())) {
                     final DigestCalculator digest =
                             Digests.createDigestCalculator(Digests.DEFAULT_DIGEST_ALGORITHM);
                     IOUtils.copy(zip, digest.getOutputStream());
-                    attachmentDigest = digest.getDigest();
+                    attachmentDigests.put(zipEntry.getName(), digest.getDigest());
                     break;
                 }
             }
         }
 
-        return new AsicContainer(entries, attachmentDigest);
+        return new AsicContainer(entries, attachmentDigests);
     }
 
     static void write(AsicContainer asic, ZipOutputStream zip) throws Exception {
@@ -140,13 +141,15 @@ final class AsicHelper {
             }
         }
 
-        if (asic.getAttachment() != null) {
-            try (InputStream is = asic.getAttachment()) {
-                final ZipEntry e = new ZipEntry(ENTRY_ATTACHMENT + "1");
-                e.setLastModifiedTime(FileTime.from(time, TimeUnit.MILLISECONDS));
-                zip.putNextEntry(e);
-                IOUtils.copy(is, zip);
-                zip.closeEntry();
+        if (asic.getAttachments() != null) {
+            for (int i = 0; i < asic.getAttachments().size(); i++) {
+                try (InputStream is = asic.getAttachments().get(i)) {
+                    final ZipEntry e = new ZipEntry(ENTRY_ATTACHMENT + (i + 1));
+                    e.setLastModifiedTime(FileTime.from(time, TimeUnit.MILLISECONDS));
+                    zip.putNextEntry(e);
+                    IOUtils.copy(is, zip);
+                    zip.closeEntry();
+                }
             }
         }
     }
