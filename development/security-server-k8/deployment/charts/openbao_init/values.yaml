@@ -15,3 +15,6 @@ databaseCredentials:
   messageLog:
     username: ""
     password: ""
+  ds:
+    username: ""
+    password: ""

@@ -110,3 +110,21 @@ docker build --tag xroad-ss-ds-identity-hub \
 --build-arg JAR_FILE=build/libs/*.jar \
 --build-arg ENTRYPOINT_SCRIPT=entrypoint.sh \
 $XROAD_HOME/src/security-server/ds/runtime/identity-hub
+
+echo "Building ds-data-plane-db-init"
+docker build --tag xroad-ss-ds-data-plane-db-init \
+--build-arg CHANGELOG_FILE=ds-data-plane-changelog.xml \
+--build-context changelog=$XROAD_HOME/src/security-server/ds/runtime/data-plane/src/main/resources/liquibase/ \
+init_db/
+
+echo "Building ds-control-plane-db-init"
+docker build --tag xroad-ss-ds-control-plane-db-init \
+--build-arg CHANGELOG_FILE=ds-control-plane-changelog.xml \
+--build-context changelog=$XROAD_HOME/src/security-server/ds/runtime/control-plane/src/main/resources/liquibase/ \
+init_db/
+
+echo "Building ds-identity-hub-db-init"
+docker build --tag xroad-ss-ds-identity-hub-db-init \
+--build-arg CHANGELOG_FILE=ds-identity-hub-changelog.xml \
+--build-context changelog=$XROAD_HOME/src/security-server/ds/runtime/identity-hub/src/main/resources/liquibase/ \
+init_db/

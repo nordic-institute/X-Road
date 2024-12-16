@@ -1,6 +1,7 @@
 # values.yaml
 global:
   environment: dev
+  dataSpacesEnabled: false
 
 init:
   serverconf:
@@ -16,6 +17,33 @@ init:
     host: "db-messagelog.ss.svc.cluster.local"
     port: "5432"
     database: "messagelog"
+    username: "replace-me"
+    password: "replace-me"
+    schema: "public"
+  dsControlPlane:
+    dsComponent: true
+    image: xroad-ss-ds-control-plane-db-init:latest
+    host: "db-ds-control-plane.ss.svc.cluster.local"
+    port: "5432"
+    database: "ds-control-plane"
+    username: "replace-me"
+    password: "replace-me"
+    schema: "public"
+  dsDataPlane:
+    dsComponent: true
+    image: xroad-ss-ds-data-plane-db-init:latest
+    host: "db-ds-data-plane.ss.svc.cluster.local"
+    port: "5432"
+    database: "ds-data-plane"
+    username: "replace-me"
+    password: "replace-me"
+    schema: "public"
+  dsIdentityHub:
+    dsComponent: true
+    image: xroad-ss-ds-identity-hub-db-init:latest
+    host: "db-ds-identity-hub.ss.svc.cluster.local"
+    port: "5432"
+    database: "ds-identity-hub"
     username: "replace-me"
     password: "replace-me"
     schema: "public"
@@ -191,6 +219,7 @@ services:
         secretName: "xroad-token"
         key: "XROAD_SECRET_STORE_TOKEN"
   ds-data-plane:
+    dsComponent: true
     image: xroad-ss-ds-data-plane:latest
     imagePullPolicy: Never
     resources:
@@ -207,6 +236,8 @@ services:
     env:
       DEBUG_PORT: "9999"
       XROAD_HOST: "ds-data-plane.ss.svc.cluster.local"
+      EDC_HOSTNAME: "ds-data-plane.ss.svc.cluster.local"
+      EDC_DID: "did:web:ds-identity-hub.ss.svc.cluster.local%3A9396" #TODO this is most surely wrong
       XROAD_SECRET_STORE_HOST: "openbao.ss.svc.cluster.local"
       XROAD_SECRET_STORE_SCHEME: "http"
     envFromSecrets:
@@ -214,6 +245,7 @@ services:
         secretName: "xroad-token"
         key: "XROAD_SECRET_STORE_TOKEN"
   ds-control-plane:
+    dsComponent: true
     image: xroad-ss-ds-control-plane:latest
     imagePullPolicy: Never
     resources:
@@ -230,6 +262,8 @@ services:
     env:
       DEBUG_PORT: "9999"
       XROAD_HOST: "ds-control-plane.ss.svc.cluster.local"
+      EDC_HOSTNAME: "ds-control-plane.ss.svc.cluster.local"
+      EDC_DID: "did:web:ds-identity-hub.ss.svc.cluster.local%3A9396" #TODO this is most surely wrong
       XROAD_SECRET_STORE_HOST: "openbao.ss.svc.cluster.local"
       XROAD_SECRET_STORE_SCHEME: "http"
     envFromSecrets:
@@ -237,6 +271,7 @@ services:
         secretName: "xroad-token"
         key: "XROAD_SECRET_STORE_TOKEN"
   ds-identity-hub:
+    dsComponent: true
     image: xroad-ss-ds-identity-hub:latest
     imagePullPolicy: Never
     resources:
@@ -253,6 +288,8 @@ services:
     env:
       DEBUG_PORT: "9999"
       XROAD_HOST: "ds-identity-hub.ss.svc.cluster.local"
+      EDC_HOSTNAME: "ds-identity-hub.ss.svc.cluster.local"
+      EDC_DID: "did:web:ds-identity-hub.ss.svc.cluster.local%3A9396" #TODO this is most surely wrong
       XROAD_SECRET_STORE_HOST: "openbao.ss.svc.cluster.local"
       XROAD_SECRET_STORE_SCHEME: "http"
     envFromSecrets:

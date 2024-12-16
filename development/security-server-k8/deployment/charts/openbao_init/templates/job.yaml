@@ -61,6 +61,10 @@ spec:
               value: {{ .Values.databaseCredentials.messageLog.username | quote }}
             - name: MESSAGELOG_PASSWORD
               value: {{ .Values.databaseCredentials.messageLog.password | quote }}
+            - name: DS_USERNAME
+              value: {{ .Values.databaseCredentials.ds.username | quote }}
+            - name: DS_PASSWORD
+              value: {{ .Values.databaseCredentials.ds.password | quote }}
           volumeMounts:
             - name: init-script
               mountPath: /scripts

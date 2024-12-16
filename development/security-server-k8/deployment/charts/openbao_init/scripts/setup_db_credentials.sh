@@ -23,4 +23,12 @@ bao_api "PUT" "/v1/xrd-secret/serverconf" \
 bao_api "PUT" "/v1/xrd-secret/messagelog" \
   "{\"username\":\"${MESSAGELOG_USERNAME}\",\"password\":\"${MESSAGELOG_PASSWORD}\"}" "$ROOT_TOKEN" "Creating messagelog secret" >/dev/null
 
+# Store DS secret
+bao_api "PUT" "/v1/xrd-secret/ds-control-plane" \
+  "{\"username\":\"${DS_USERNAME}\",\"password\":\"${DS_PASSWORD}\"}" "$ROOT_TOKEN" "Creating DS secret" >/dev/null
+bao_api "PUT" "/v1/xrd-secret/ds-data-plane" \
+  "{\"username\":\"${DS_USERNAME}\",\"password\":\"${DS_PASSWORD}\"}" "$ROOT_TOKEN" "Creating DS secret" >/dev/null
+bao_api "PUT" "/v1/xrd-secret/ds-identity-hub" \
+  "{\"username\":\"${DS_USERNAME}\",\"password\":\"${DS_PASSWORD}\"}" "$ROOT_TOKEN" "Creating DS secret" >/dev/null
+
 echo "[SETUP] Credential creation complete"

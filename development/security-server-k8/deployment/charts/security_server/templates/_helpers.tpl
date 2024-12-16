@@ -54,6 +54,11 @@ metadata:
     {{- include "xroad.labels" .root | nindent 4 }}
     app: xroad-{{ .service }}
 spec:
+  {{- if and .config.dsComponent (not .root.Values.global.dataSpacesEnabled) }}
+  replicas: 0
+  {{- else }}
+  replicas: 1
+  {{- end }}
   selector:
     matchLabels:
       app: xroad-{{ .service }}

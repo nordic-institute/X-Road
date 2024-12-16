@@ -21,6 +21,9 @@ variable "images" {
     "xroad-ss-ds-data-plane:latest",
     "xroad-ss-ds-control-plane:latest",
     "xroad-ss-ds-identity-hub:latest",
+    "xroad-ss-ds-data-plane-db-init:latest",
+    "xroad-ss-ds-control-plane-db-init:latest",
+    "xroad-ss-ds-identity-hub-db-init:latest",
   ]
   description = "List of Docker images to load into Kind cluster"
 }

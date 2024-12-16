@@ -42,6 +42,12 @@ module "xroad" {
   postgres_messagelog_username = "messagelog"
   postgres_messagelog_password = "messagelog-password"
 
+  postgres_ds_username = "ds-user"
+  postgres_ds_password = "ds-password"
+
+  #TODO: data spaces is not yet usable in k8
+  data_spaces_enabled = false
+
   providers = {
     kubernetes = kubernetes
     helm       = helm
@@ -50,4 +56,5 @@ module "xroad" {
   depends_on = [
     module.openbao
   ]
+
 }
