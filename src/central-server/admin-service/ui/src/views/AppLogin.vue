@@ -156,10 +156,7 @@ export default defineComponent({
   computed: {
     ...mapState(useUser, ['getFirstAllowedTab']),
     isDisabled() {
-      // beware: simplified one-liner fails at runtime
-      return (this.values.username?.length | 0) < 1 ||
-        (this.values.password?.length | 0) < 1 ||
-        this.loading;
+      return !this.values.username || !this.values.password || this.loading;
     },
   },
   methods: {
