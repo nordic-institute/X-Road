@@ -29,6 +29,25 @@ module "openbao" {
   postgres_messagelog_password = "messagelog-password"
 }
 
+module "cs_service_bridge" {
+  source        = "../../modules/external_service_bridge"
+  namespace     = "ss"
+  name          = "xrd-cs"
+  external_host = "host.docker.internal"
+  ports = [
+    {
+      name       = "http"
+      port       = 80
+      targetPort = 3010
+    },
+    {
+      name       = "https"
+      port       = 443
+      targetPort = 3015
+    }
+  ]
+}
+
 module "xroad" {
   source = "../../xroad"
 
@@ -54,7 +73,8 @@ module "xroad" {
   }
 
   depends_on = [
-    module.openbao
+    module.openbao,
+    module.cs_service_bridge
   ]
 
 }
