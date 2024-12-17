@@ -116,6 +116,10 @@ else
   warn "Installed version ($INSTALLED_VERSION) does not match packaged version ($PACKAGED_VERSION)"
 fi
 
+if dpkg --compare-versions "$CONFIG_VERSION" lt-nl "7.6.0" && test -f /etc/xroad/conf.d/acme.yml; then
+  /usr/share/xroad/scripts/acme_contacts_and_keystore_pw_migra.sh
+fi
+
 # Generate internal and admin UI TLS keys and certificates if necessary
 if [ ! -f /etc/xroad/ssl/internal.crt ]; then
   log "Generating new internal TLS key and certificate"
