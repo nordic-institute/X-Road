@@ -30,7 +30,7 @@ Sets up plugins and 3rd party components that the app uses.
 Creates a new Vue instance with the Vue function.
 Initialises the app root component.
 */
-import { createApp, nextTick } from 'vue';
+import { createApp } from 'vue';
 import axios from 'axios';
 import {
   XrdButton,

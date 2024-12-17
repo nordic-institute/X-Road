@@ -101,6 +101,7 @@ async function loadSharedMessages(language: string) {
     const module = await import(`./locales/${language}.json`);
     return module.default;
   } catch(e) {
+    console.error("Failed to load translations for: " + language);
     return {};
   }
 }
@@ -110,6 +111,7 @@ async function loadValidationMessages(language: string) {
     const msg = await import(`../../node_modules/@vee-validate/i18n/dist/locale/${language}.json`);
     return { validation: msg.default };
   } catch(e) {
+    console.error("Failed to load translations for: " + language);
     return {}
   }
 }

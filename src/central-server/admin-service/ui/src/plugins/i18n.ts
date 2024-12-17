@@ -37,6 +37,7 @@ async function loadMessages(language: string) {
     const module = await import(`@/locales/${language}.json`);
     return module.default;
   } catch {
+    console.error("Failed to load translations for: " + language);
     return {};
   }
 }
