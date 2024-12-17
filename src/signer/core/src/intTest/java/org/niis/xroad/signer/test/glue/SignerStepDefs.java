@@ -708,7 +708,7 @@ public class SignerStepDefs extends BaseSignerStepDefs {
     public void signerGetTokensFailsWithTimeoutException() {
         assertThatThrownBy(SignerProxy::getTokens)
                 .isInstanceOf(SignerException.class)
-                .hasMessageContaining("Signer: Signer client timed out.");
+                .hasMessageContaining("Signer.NetworkError: Signer client timed out.");
     }
 
     @ParameterType("RSA|EC")

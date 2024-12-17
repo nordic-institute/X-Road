@@ -36,8 +36,10 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.boot.test.mock.mockito.SpyBean;
 import org.springframework.context.annotation.ComponentScan;
+import org.springframework.context.support.MessageSourceAccessor;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -80,6 +82,9 @@ class AuditLoggingTest {
 
     @SpyBean
     AuditEventLoggingFacadeImpl auditEventLoggingFacade;
+
+    @MockBean
+    MessageSourceAccessor errorsMessageSourceAccessor;
 
     @Autowired
     protected MockMvc mockMvc;

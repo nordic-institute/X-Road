@@ -1,7 +1,5 @@
 /*
  * The MIT License
- * <p>
- * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
  * Copyright (c) 2015-2017 Estonian Information System Authority (RIA), Population Register Centre (VRK)
@@ -24,33 +22,27 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
+package org.niis.xroad.restapi.config;
 
-package org.niis.xroad.cs.admin.core.service;
+import org.springframework.context.MessageSource;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.context.support.MessageSourceAccessor;
+import org.springframework.context.support.ResourceBundleMessageSource;
 
-import ee.ria.xroad.signer.exception.SignerException;
+@Configuration
+public class MessagesConfig {
 
-import org.niis.xroad.common.exception.NotFoundException;
-import org.niis.xroad.common.exception.SignerProxyException;
-import org.niis.xroad.cs.admin.api.facade.SignerProxyFacade;
+    @Bean
+    public MessageSource errorsMessageSource() {
+        ResourceBundleMessageSource messageSource = new ResourceBundleMessageSource();
+        messageSource.setDefaultEncoding("UTF-8");
+        messageSource.setBasename("locales/errors");
+        return messageSource;
+    }
 
-import static org.niis.xroad.cs.admin.api.exception.ErrorMessage.SIGNER_PROXY_ERROR;
-import static org.niis.xroad.cs.admin.api.exception.ErrorMessage.TOKEN_NOT_FOUND;
-
-
-public abstract class AbstractTokenConsumer {
-
-    protected abstract SignerProxyFacade getSignerProxyFacade();
-
-    protected ee.ria.xroad.signer.protocol.dto.TokenInfo getToken(String tokenId) {
-        try {
-            return getSignerProxyFacade().getToken(tokenId);
-        } catch (SignerException signerException) {
-            if (signerException.isCausedByTokenNotFound()) {
-                throw new NotFoundException(TOKEN_NOT_FOUND);
-            }
-            throw new SignerProxyException(SIGNER_PROXY_ERROR, signerException, signerException.getFaultCode());
-        } catch (Exception exception) {
-            throw new SignerProxyException(SIGNER_PROXY_ERROR, exception);
-        }
+    @Bean
+    public MessageSourceAccessor errorsMessageSourceAccessor(MessageSource errorsMessageSource) {
+        return new MessageSourceAccessor(errorsMessageSource);
     }
 }

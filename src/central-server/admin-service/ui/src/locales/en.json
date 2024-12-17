@@ -38,6 +38,7 @@
     "init_software_token_failed": "Software token initialization failed",
     "instance_identifier_not_set": "System parameter for instance identifier not set",
     "intermediate_ca_not_found": "Intermediate CA not found",
+    "internal_error": "Internal error. See server logs for more details",
     "invalid_certificate": "Invalid X.509 certificate",
     "invalid_member_id": "Invalid member id",
     "invalid_pagination_properties": "Pagination has invalid properties",

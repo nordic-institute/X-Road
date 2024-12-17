@@ -115,7 +115,7 @@ class TokensServiceImplTest {
 
     @Test
     void loginShouldThrowWhenTokenNotFound() throws Exception {
-        when(signerProxyFacade.getToken(TOKEN_ID)).thenThrow(new CodedException("Signer.TokenNotFound"));
+        when(signerProxyFacade.getToken(TOKEN_ID)).thenThrow(new SignerException("Signer.TokenNotFound"));
 
         assertThatThrownBy(() -> tokensService.login(new TokenLoginRequest(TOKEN_ID, PASSWORD)))
                 .isInstanceOf(NotFoundException.class)
@@ -228,7 +228,7 @@ class TokensServiceImplTest {
 
     @Test
     void logoutShouldThrowNotFound() throws Exception {
-        when(signerProxyFacade.getToken(TOKEN_ID)).thenThrow(new CodedException("Signer.TokenNotFound"));
+        when(signerProxyFacade.getToken(TOKEN_ID)).thenThrow(new SignerException("Signer.TokenNotFound"));
 
         assertThatThrownBy(() -> tokensService.logout(TOKEN_ID))
                 .isInstanceOf(NotFoundException.class)

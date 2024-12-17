@@ -26,12 +26,15 @@
 package org.niis.xroad.restapi.exceptions;
 
 import ee.ria.xroad.common.CodedException;
+import ee.ria.xroad.signer.exception.SignerException;
 
 import jakarta.validation.ConstraintViolationException;
 import org.niis.xroad.common.exception.ServiceException;
 import org.niis.xroad.restapi.openapi.model.CodeWithDetails;
 import org.niis.xroad.restapi.openapi.model.ErrorInfo;
+import org.niis.xroad.restapi.util.RequestHelper;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.support.MessageSourceAccessor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.HttpStatusCode;
 import org.springframework.http.MediaType;
@@ -40,7 +43,9 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 
 import java.util.HashMap;
+import java.util.LinkedList;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 
 import static org.niis.xroad.restapi.exceptions.DeviationCodes.ERROR_VALIDATION_FAILURE;
@@ -55,10 +60,16 @@ public class ExceptionTranslator {
     public static final String CORE_CODED_EXCEPTION_PREFIX = "core.";
 
     private final ValidationErrorHelper validationErrorHelper;
+    private final RequestHelper requestHelper;
+    private final MessageSourceAccessor errorsMessageSourceAccessor;
 
     @Autowired
-    public ExceptionTranslator(ValidationErrorHelper validationErrorHelper) {
+    public ExceptionTranslator(ValidationErrorHelper validationErrorHelper,
+                               RequestHelper requestHelper,
+                               MessageSourceAccessor errorsMessageSourceAccessor) {
         this.validationErrorHelper = validationErrorHelper;
+        this.requestHelper = requestHelper;
+        this.errorsMessageSourceAccessor = errorsMessageSourceAccessor;
     }
 
     /**
@@ -74,29 +85,37 @@ public class ExceptionTranslator {
         HttpStatusCode status = resolveHttpStatus(e, defaultStatus);
         ErrorInfo errorDto = new ErrorInfo();
         errorDto.setStatus(status.value());
-        if (e instanceof DeviationAware errorCodedException) {
-            // add information about errors and warnings
-            if (errorCodedException.getErrorDeviation() != null) {
-                errorDto.setError(convert(errorCodedException.getErrorDeviation()));
-            }
-            if (errorCodedException.getWarningDeviations() != null) {
-                for (Deviation warning : errorCodedException.getWarningDeviations()) {
-                    errorDto.addWarningsItem(convert(warning));
+        switch (e) {
+            case DeviationAware errorCodedException -> {
+                // add information about errors and warnings
+                if (errorCodedException.getErrorDeviation() != null) {
+                    errorDto.setError(convert(errorCodedException.getErrorDeviation()));
+                }
+                if (errorCodedException.getWarningDeviations() != null) {
+                    for (Deviation warning : errorCodedException.getWarningDeviations()) {
+                        errorDto.addWarningsItem(convert(warning));
+                    }
                 }
             }
-        } else if (e instanceof CodedException ce) {
-            // map fault code and string from core CodedException
-            Deviation deviation = new ErrorDeviation(CORE_CODED_EXCEPTION_PREFIX + ce.getFaultCode(), ce.getFaultString());
-            errorDto.setError(convert(deviation));
-        } else if (e instanceof MethodArgumentNotValidException manve) {
-            errorDto.setError(validationErrorHelper.createError(manve));
-        } else if (e instanceof ConstraintViolationException cve) {
-            Map<String, List<String>> violations = new HashMap<>();
-            cve.getConstraintViolations()
-                    .forEach(constraintViolation -> violations.put(constraintViolation.getPropertyPath().toString(),
-                            List.of(constraintViolation.getMessage())));
-            errorDto.setError(new CodeWithDetails().code(ERROR_VALIDATION_FAILURE).validationErrors(violations));
+            case CodedException ce -> {
+                // map fault code and string from core CodedException
+                Deviation deviation = new ErrorDeviation(CORE_CODED_EXCEPTION_PREFIX + ce.getFaultCode(), ce.getFaultString());
+                errorDto.setError(convert(deviation));
+            }
+            case MethodArgumentNotValidException manve -> errorDto.setError(validationErrorHelper.createError(manve));
+            case ConstraintViolationException cve -> {
+                Map<String, List<String>> violations = new HashMap<>();
+                cve.getConstraintViolations()
+                        .forEach(constraintViolation -> violations.put(constraintViolation.getPropertyPath().toString(),
+                                List.of(constraintViolation.getMessage())));
+                errorDto.setError(new CodeWithDetails().code(ERROR_VALIDATION_FAILURE).validationErrors(violations));
+            }
+            default -> {
+
+            }
         }
+
+        attachCausedBySignerIfNeeded(e, errorDto);
 
         return ResponseEntity.status(status)
                 .contentType(MediaType.APPLICATION_JSON)
@@ -114,10 +133,29 @@ public class ExceptionTranslator {
         return result;
     }
 
+    private boolean isCausedBySignerException(Throwable e) {
+        return e != null && (e instanceof SignerException || isCausedBySignerException(e.getCause()));
+    }
+
+    private void attachCausedBySignerIfNeeded(Throwable e, ErrorInfo errorDto) {
+        if (isCausedBySignerException(e)) {
+            var metadata = errorDto.getError().getMetadata();
+            metadata = metadata == null ? new LinkedList<>() : new LinkedList<>(metadata);
+            metadata.add(errorsMessageSourceAccessor.getMessage("check_signer_logs", getLocale()));
+            errorDto.getError().setMetadata(metadata);
+        }
+    }
+
+    private Locale getLocale() {
+        return requestHelper.getCurrentHttpRequest().getLocale();
+    }
+
     public HttpStatusCode resolveHttpStatus(Exception e, HttpStatus defaultStatus) {
         if (e instanceof ServiceException se) {
             return HttpStatus.resolve(se.getHttpStatus());
         }
         return getAnnotatedResponseStatus(e, defaultStatus);
     }
+
+
 }

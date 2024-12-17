@@ -92,7 +92,6 @@ public final class ErrorCodes {
     public static final String X_HASHCHAIN_UNUSED_INPUTS = "HashChainUnusedInputs";
     public static final String X_INVALID_HASH_CHAIN_REF = "InvalidHashChainRef";
 
-
     // Message processing errors
 
     public static final String X_SSL_AUTH_FAILED = "SslAuthenticationFailed";
@@ -143,7 +142,6 @@ public final class ErrorCodes {
     public static final String X_ASIC_MANIFEST_NOT_FOUND =
             "AsicManifestNotFound";
 
-
     // Configuration errors
 
     public static final String X_UNKNOWN_MEMBER = "UnknownMember";
@@ -157,7 +155,6 @@ public final class ErrorCodes {
     public static final String X_SERVICE_MALFORMED_URL = "ServiceMalformedUrl";
     public static final String X_ADAPTER_WSDL_NOT_FOUND = "AdapterWsdlNotFound";
     public static final String X_HW_MODULE_NON_OPERATIONAL = "HSMNonOperational";
-
 
     // Signer Errors
 
@@ -202,35 +199,31 @@ public final class ErrorCodes {
      */
     @SuppressWarnings("squid:S1872")
     public static CodedException translateException(Throwable ex) {
-        if (ex instanceof CodedException cex) {
-            return cex;
-        } else if (ex instanceof UnknownHostException
-                || ex instanceof MalformedURLException
-                || ex instanceof SocketException
-                || ex instanceof UnknownServiceException
-                || ex instanceof UnresolvedAddressException) {
-            return new CodedException(X_NETWORK_ERROR, ex);
-        } else if (ex instanceof IOException) {
-            return new CodedException(X_IO_ERROR, ex);
-        } else if (ex instanceof CertificateException) {
-            return new CodedException(X_INCORRECT_CERTIFICATE, ex);
-        } else if (ex instanceof SOAPException) {
-            return new CodedException(X_INVALID_SOAP, ex);
-        } else if ("org.apache.james.mime4j.MimeException".equals(ex.getClass().getName())) {
-            return new CodedException(X_MIME_PARSING_FAILED, ex);
-        } else if (ex instanceof SAXException) {
-            return new CodedException(X_INVALID_XML, ex);
-        } else if (ex instanceof UnmarshalException) {
-            return ex.getCause() != null && "org.glassfish.jaxb.runtime.api.AccessorException".equals(ex.getCause().getClass().getName())
-                    ? translateException(ex.getCause())
-                    : new CodedException(X_INTERNAL_ERROR, ex);
-        } else if ("org.glassfish.jaxb.runtime.api.AccessorException".equals(ex.getClass().getName())) {
-            return ex.getCause() instanceof CodedException
-                    ? (CodedException) ex.getCause()
-                    : new CodedException(X_INTERNAL_ERROR, ex);
-        } else { // other system exceptions.
-            return new CodedException(X_INTERNAL_ERROR, ex);
-        }
+        return switch (ex) {
+            case CodedException cex -> cex;
+            case UnknownHostException ne -> new CodedException(X_NETWORK_ERROR, ne);
+            case MalformedURLException ne -> new CodedException(X_NETWORK_ERROR, ne);
+            case SocketException ne -> new CodedException(X_NETWORK_ERROR, ne);
+            case UnknownServiceException ne -> new CodedException(X_NETWORK_ERROR, ne);
+            case UnresolvedAddressException ne -> new CodedException(X_NETWORK_ERROR, ne);
+            case IOException ioe -> new CodedException(X_IO_ERROR, ioe);
+            case CertificateException ice -> new CodedException(X_INCORRECT_CERTIFICATE, ice);
+            case SOAPException ise -> new CodedException(X_INVALID_SOAP, ise);
+            case SAXException ixe -> new CodedException(X_INVALID_XML, ixe);
+            case UnmarshalException ue when isAccessorException(ue.getCause()) -> translateException(ue.getCause());
+            case Exception me when isMimeException(me) -> new CodedException(X_MIME_PARSING_FAILED, me);
+            case Exception ae when isAccessorException(ae) && ae.getCause() instanceof CodedException cex -> cex;
+            default -> new CodedException(X_INTERNAL_ERROR, ex);
+
+        };
+    }
+
+    private static boolean isAccessorException(Throwable ex) {
+        return ex != null && ex.getClass().getName().equals("org.glassfish.jaxb.runtime.api.AccessorException");
+    }
+
+    private static boolean isMimeException(Throwable ex) {
+        return ex != null && ex.getClass().getName().equals("org.apache.james.mime4j.MimeException");
     }
 
     /**
