@@ -275,10 +275,11 @@ public class KeyAndCertStepDefs extends BaseUiStepDefs {
         commonPageObj.snackBar.btnClose().click();
     }
 
-    @Step("Token: {} - has key {string} with status {string}")
-    public void validateCert(String tokenKey, String keyLabel, String status) {
+    @Step("Token: {} - has key {string} with status {string} and ocsp status {string}")
+    public void validateCert(String tokenKey, String keyLabel, String certStatus, String ocspStatus) {
         keyAndCertPageObj.section(tokenKey).keyLabelByName(keyLabel).shouldBe(visible);
-        keyAndCertPageObj.section(tokenKey).keyStatusByLabel(keyLabel).shouldBe(text(status));
+        keyAndCertPageObj.section(tokenKey).keyStatusByLabel(keyLabel).shouldBe(text(certStatus));
+        keyAndCertPageObj.section(tokenKey).keyOcspStatusByLabel(keyLabel).shouldBe(text(ocspStatus));
     }
 
     @Step("Token: {} - has {string} key {string} with correct ARI automatic renewal status")
@@ -330,15 +331,15 @@ public class KeyAndCertStepDefs extends BaseUiStepDefs {
         commonPageObj.dialog.btnSave().click();
     }
 
-    @Step("Token: {} - CSR of key {string} is used to order certificate")
-    public void orderCertificateWithCsr(String tokenKey, String keyLabel) {
+    @Step("Token: {} - CSR of key {string} is used to order certificate from {string}")
+    public void orderCertificateWithCsr(String tokenKey, String keyLabel, String ca) {
 
         SelenideElement btnOrderCertificate = keyAndCertPageObj.section(tokenKey).btnAcmeOrderCertByLabel(keyLabel);
 
         btnOrderCertificate.click();
         commonPageObj.dialog.btnCancel().click();
         btnOrderCertificate.click();
-        vSelect(keyAndCertPageObj.acmeOrderCertificateDialog.certificateAuthority()).clickAndSelect("X-Road Test CA CN");
+        vSelect(keyAndCertPageObj.acmeOrderCertificateDialog.certificateAuthority()).clickAndSelect(ca);
         commonPageObj.dialog.btnSave().click();
     }
 

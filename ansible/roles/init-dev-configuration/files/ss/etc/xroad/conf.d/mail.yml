@@ -1,4 +1,4 @@
- host: xrd-cs # This is hardcoded to lxd dev env host.
+host: xrd-cs # This is hardcoded to lxd dev env host.
 port: 1025
 username: testusername
 password: testpassword

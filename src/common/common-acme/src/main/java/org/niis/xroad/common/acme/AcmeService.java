@@ -126,7 +126,7 @@ public final class AcmeService {
                                                                 byte[] certRequest) {
         KeyPair keyPair;
         try {
-            keyPair = getAccountKeyPair(memberId);
+            keyPair = getAccountKeyPair(memberId, keyUsage, caInfo);
         } catch (GeneralSecurityException | OperatorCreationException | IOException e) {
             throw new AcmeServiceException(ACCOUNT_KEY_PAIR_ERROR, e);
         }
@@ -165,7 +165,8 @@ public final class AcmeService {
             KeyStore keyStore = CryptoUtils.loadPkcs12KeyStore(acmeKeystoreFile, storePassword);
             X509Certificate certificate = (X509Certificate) keyStore.getCertificate(memberId);
             int renewalTimeBeforeExpirationDate = SystemProperties.getAcmeKeypairRenewalTimeBeforeExpirationDate();
-            if (Instant.now().isAfter(certificate.getNotAfter().toInstant().minus(renewalTimeBeforeExpirationDate, ChronoUnit.DAYS))) {
+            if (certificate != null && Instant.now()
+                    .isAfter(certificate.getNotAfter().toInstant().minus(renewalTimeBeforeExpirationDate, ChronoUnit.DAYS))) {
                 KeyPairGenerator keyPairGenerator = KeyPairGenerator.getInstance("RSA");
                 keyPairGenerator.initialize(SystemProperties.getSignerKeyLength(), new SecureRandom());
                 KeyPair keyPair = keyPairGenerator.generateKeyPair();
@@ -185,7 +186,15 @@ public final class AcmeService {
         }
     }
 
-    private KeyPair getAccountKeyPair(String memberId) throws GeneralSecurityException, IOException, OperatorCreationException {
+    private KeyPair getAccountKeyPair(String memberId, KeyUsageInfo keyUsage, ApprovedCAInfo caInfo)
+            throws GeneralSecurityException, IOException, OperatorCreationException {
+        AcmeProperties.Credentials credential = acmeProperties.getEabCredentials(caInfo.getName(), memberId);
+        String alias = memberId;
+        if (credential.getAuthKid() != null && keyUsage == KeyUsageInfo.AUTHENTICATION) {
+            alias = "auth_" + alias;
+        } else if (credential.getSignKid() != null && keyUsage == KeyUsageInfo.SIGNING) {
+            alias = "sign_" + alias;
+        }
         File acmeKeystoreFile = new File(acmeAccountKeystorePath);
         KeyStore keyStore;
         char[] storePassword = acmeProperties.getAccountKeystorePassword();
@@ -198,12 +207,12 @@ public final class AcmeService {
             keyStore = KeyStore.getInstance("PKCS12");
             keyStore.load(null, storePassword);
         }
-        X509Certificate certificate = (X509Certificate) keyStore.getCertificate(memberId);
+        X509Certificate certificate = (X509Certificate) keyStore.getCertificate(alias);
         KeyPair keyPair;
         if (certificate != null) {
             log.debug("Loading keypair");
             PublicKey publicKey = certificate.getPublicKey();
-            PrivateKey privateKey = (PrivateKey) keyStore.getKey(memberId, memberId.toCharArray());
+            PrivateKey privateKey = (PrivateKey) keyStore.getKey(alias, alias.toCharArray());
             keyPair = new KeyPair(publicKey, privateKey);
         } else {
             log.debug("Creating keypair");
@@ -212,12 +221,12 @@ public final class AcmeService {
             keyPair = keyPairGenerator.generateKeyPair();
 
             long expirationInDays = SystemProperties.getAcmeAccountKeyPairExpirationInDays();
-            X509Certificate[] certificateChain = createSelfSignedCertificate(memberId, keyPair, expirationInDays);
+            X509Certificate[] certificateChain = createSelfSignedCertificate(alias, keyPair, expirationInDays);
 
             keyStore.setKeyEntry(
-                    memberId,
+                    alias,
                     keyPair.getPrivate(),
-                    memberId.toCharArray(),
+                    alias.toCharArray(),
                     certificateChain);
             try (OutputStream outputStream = new FileOutputStream(acmeKeystoreFile)) {
                 keyStore.store(outputStream, storePassword);
@@ -384,7 +393,7 @@ public final class AcmeService {
     private Login getLogin(String memberId, ApprovedCAInfo approvedCA, KeyUsageInfo keyUsage) {
         KeyPair accountKeyPair;
         try {
-            accountKeyPair = getAccountKeyPair(memberId);
+            accountKeyPair = getAccountKeyPair(memberId, keyUsage, approvedCA);
         } catch (GeneralSecurityException | IOException | OperatorCreationException e) {
             throw new AcmeServiceException(ACCOUNT_KEY_PAIR_ERROR, e);
         }
