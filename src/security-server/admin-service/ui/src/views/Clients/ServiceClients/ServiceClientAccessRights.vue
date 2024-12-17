@@ -37,10 +37,12 @@
             <th>{{ $t('serviceClients.id') }}</th>
           </tr>
         </thead>
-        <tr>
-          <td class="identifier-wrap">{{ serviceClient.name }}</td>
-          <td class="identifier-wrap">{{ serviceClient.id }}</td>
-        </tr>
+        <tbody>
+          <tr>
+            <td class="identifier-wrap">{{ serviceClient.name }}</td>
+            <td class="identifier-wrap">{{ serviceClient.id }}</td>
+          </tr>
+        </tbody>
       </table>
     </v-card>
 
