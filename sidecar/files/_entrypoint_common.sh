@@ -57,7 +57,7 @@ INSTALLED_VERSION=$(dpkg-query --showformat='${Version}' --show xroad-proxy)
 PACKAGED_CONFIG=/usr/share/xroad/config
 PACKAGED_VERSION="$(cat /${PACKAGED_CONFIG}/VERSION)"
 
-RECONFIG=(xroad-signer xroad-proxy)
+RECONFIG=(xroad-signer xroad-proxy xroad-confclient)
 if [ -f /usr/share/xroad/jlib/addon/proxy/messagelog.conf ]; then
   RECONFIG+=(xroad-addon-messagelog)
 fi
