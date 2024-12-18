@@ -203,6 +203,9 @@
     "idleWarning": "You have been idle for 30 minutes and your session has expired. For security reasons, you will be logged out.",
     "sessionExpired": "Session expired"
   },
+  "meta": {
+    "check_signer_logs": "Please check the signer log for details."
+  },
   "noData": {
     "loading": "Loading... Please wait",
     "noBackups": "No backups yet",

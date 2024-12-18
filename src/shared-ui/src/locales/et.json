@@ -201,6 +201,9 @@
     "idleWarning": "Olete olnud eemal 30 minutit ja teie seanss on aegunud. Turvapõhjustel logitakse teid välja.",
     "sessionExpired": "Seanss on aegunud"
   },
+  "meta": {
+    "check_signer_logs": "Vt täpsemalt vt signeerija logi."
+  },
   "noData": {
     "loading": "Laadimine... Palun oodake",
     "noBackups": "Varukoopiaid pole",

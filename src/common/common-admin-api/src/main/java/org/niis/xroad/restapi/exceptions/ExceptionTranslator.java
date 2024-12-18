@@ -32,9 +32,7 @@ import jakarta.validation.ConstraintViolationException;
 import org.niis.xroad.common.exception.ServiceException;
 import org.niis.xroad.restapi.openapi.model.CodeWithDetails;
 import org.niis.xroad.restapi.openapi.model.ErrorInfo;
-import org.niis.xroad.restapi.util.RequestHelper;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.support.MessageSourceAccessor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.HttpStatusCode;
 import org.springframework.http.MediaType;
@@ -45,7 +43,6 @@ import org.springframework.web.bind.MethodArgumentNotValidException;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.Locale;
 import java.util.Map;
 
 import static org.niis.xroad.restapi.exceptions.DeviationCodes.ERROR_VALIDATION_FAILURE;
@@ -58,18 +55,13 @@ import static org.niis.xroad.restapi.exceptions.ResponseStatusUtil.getAnnotatedR
 public class ExceptionTranslator {
 
     public static final String CORE_CODED_EXCEPTION_PREFIX = "core.";
+    public static final String META_PREFIX = "meta.";
 
     private final ValidationErrorHelper validationErrorHelper;
-    private final RequestHelper requestHelper;
-    private final MessageSourceAccessor errorsMessageSourceAccessor;
 
     @Autowired
-    public ExceptionTranslator(ValidationErrorHelper validationErrorHelper,
-                               RequestHelper requestHelper,
-                               MessageSourceAccessor errorsMessageSourceAccessor) {
+    public ExceptionTranslator(ValidationErrorHelper validationErrorHelper) {
         this.validationErrorHelper = validationErrorHelper;
-        this.requestHelper = requestHelper;
-        this.errorsMessageSourceAccessor = errorsMessageSourceAccessor;
     }
 
     /**
@@ -141,13 +133,9 @@ public class ExceptionTranslator {
         if (isCausedBySignerException(e)) {
             var metadata = errorDto.getError().getMetadata();
             metadata = metadata == null ? new LinkedList<>() : new LinkedList<>(metadata);
-            metadata.add(errorsMessageSourceAccessor.getMessage("check_signer_logs", getLocale()));
+            metadata.add(META_PREFIX + "check_signer_logs");
             errorDto.getError().setMetadata(metadata);
         }
-    }
-
-    private Locale getLocale() {
-        return requestHelper.getCurrentHttpRequest().getLocale();
     }
 
     public HttpStatusCode resolveHttpStatus(Exception e, HttpStatus defaultStatus) {
