@@ -10,6 +10,9 @@ dependencies {
     implementation(project(':common:common-core'))
     implementation(project(':common:common-rpc'))
 
+    implementation(project(':common:common-messagelog'))
+    implementation(project(':addons:messagelog:messagelog-addon:core'))
+
     testImplementation(libs.hsqldb)
     testImplementation(libs.restAssured)
 

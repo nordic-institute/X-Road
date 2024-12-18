@@ -1,0 +1,4 @@
+xroad:
+  proxy:
+    grpc:
+      listen-address: 0.0.0.0

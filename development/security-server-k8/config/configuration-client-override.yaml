@@ -1,5 +1,0 @@
-logging:
-  level:
-    org.xroad: DEBUG
-    ee.ria.xroad: DEBUG
-    io.grpc: INFO

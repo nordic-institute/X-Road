@@ -1,5 +1,5 @@
 # Log in to the Central Server
-POST https://{{cs_host}}:4000/login
+POST https://{{cs_host}}:{{cs_port}}/login
 [FormParams]
 username: xrd
 password: secret
@@ -9,7 +9,7 @@ HTTP 200
 cs_xsrf_token: cookie "XSRF-TOKEN"
 
 # Download global configuration anchor from Central Server
-GET https://{{cs_host}}:4000/api/v1/configuration-sources/INTERNAL/anchor/download
+GET https://{{cs_host}}:{{cs_port}}/api/v1/configuration-sources/INTERNAL/anchor/download
 X-XSRF-TOKEN: {{cs_xsrf_token}}
 
 HTTP 200
@@ -114,7 +114,7 @@ ss2_auth_key_csr: body
 
 # Sign the auth key CSR (note that the test CA needs filename so we can't just send it under
 # [FormMultiPart] as we do with the other requests)
-POST http://{{ca_host}}:8888/testca/sign
+POST http://{{ca_host}}:{{ca_port}}/testca/sign
 Content-Type: multipart/form-data; boundary=certboundary
 ```
 --certboundary
@@ -184,7 +184,7 @@ ss2_sign_key_csr: body
 
 # Sign the sign key CSR (note that the test CA needs filename so we can't just send it under
 # [FormMultiPart] as we do with the other requests)
-POST http://{{ca_host}}:8888/testca/sign
+POST http://{{ca_host}}:{{ca_port}}/testca/sign
 Content-Type: multipart/form-data; boundary=certboundary
 ```
 --certboundary
@@ -228,7 +228,7 @@ X-XSRF-TOKEN: {{ss2_xsrf_token}}
 HTTP 204
 
 # Accept Security Server auth certificate registration
-GET https://{{cs_host}}:4000/api/v1/management-requests?sort=id&desc=true&status=WAITING
+GET https://{{cs_host}}:{{cs_port}}/api/v1/management-requests?sort=id&desc=true&status=WAITING
 X-XSRF-TOKEN: {{cs_xsrf_token}}
 
 HTTP 200
@@ -236,7 +236,7 @@ HTTP 200
 [Captures]
 ss2_auth_cert_reg_req_id: jsonpath "$.items[0].id"
 
-POST https://{{cs_host}}:4000/api/v1/management-requests/{{ss2_auth_cert_reg_req_id}}/approval
+POST https://{{cs_host}}:{{cs_port}}/api/v1/management-requests/{{ss2_auth_cert_reg_req_id}}/approval
 X-XSRF-TOKEN: {{cs_xsrf_token}}
 
 HTTP 200
@@ -291,7 +291,7 @@ X-XSRF-TOKEN: {{ss2_xsrf_token}}
 HTTP 204
 
 # Accept Security Server ss2-subsystem registration
-GET https://{{cs_host}}:4000/api/v1/management-requests?sort=id&desc=true&status=WAITING
+GET https://{{cs_host}}:{{cs_port}}/api/v1/management-requests?sort=id&desc=true&status=WAITING
 X-XSRF-TOKEN: {{cs_xsrf_token}}
 
 HTTP 200
@@ -299,7 +299,7 @@ HTTP 200
 [Captures]
 ss1_test_client_req_id: jsonpath "$.items[0].id"
 
-POST https://{{cs_host}}:4000/api/v1/management-requests/{{ss1_test_client_req_id}}/approval
+POST https://{{cs_host}}:{{cs_port}}/api/v1/management-requests/{{ss1_test_client_req_id}}/approval
 X-XSRF-TOKEN: {{cs_xsrf_token}}
 
 HTTP 200
@@ -315,7 +315,7 @@ HTTP 200
 [Captures]
 ss0_xsrf_token: cookie "XSRF-TOKEN"
 
-POST https://{{ss0_host}}:4000/api/v1/clients/DEV%3ACOM%3A1234%3ATestService/service-clients/DEV%3AORG%3ASS2-Member%3Ass2-subsystem/access-rights
+POST https://{{ss2_host}}:4000/api/v1/clients/DEV%3ACOM%3A1234%3ATestService/service-clients/DEV%3AORG%3ASS2-Member%3Ass2-subsystem/access-rights
 X-XSRF-TOKEN: {{ss0_xsrf_token}}
 {
   "items": [
