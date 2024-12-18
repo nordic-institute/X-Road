@@ -138,14 +138,14 @@ public class CachingKeyConfImpl extends KeyConfImpl implements DisposableBean {
     protected AuthKeyInfo getAuthKeyInfo(SecurityServerId serverId) throws Exception {
         log.debug("Retrieving authentication info for security server '{}'", serverId);
 
-        ee.ria.xroad.signer.protocol.dto.AuthKeyInfo keyInfo = signerRpcClient.getAuthKey(serverId);
+        var keyInfo = signerRpcClient.getAuthKey(serverId);
 
-        CertChain certChain = getAuthCertChain(serverId.getXRoadInstance(), keyInfo.getCert().getCertificateBytes());
+        CertChain certChain = getAuthCertChain(serverId.getXRoadInstance(), keyInfo.cert().getCertificateBytes());
 
         List<OCSPResp> ocspResponses = getOcspResponses(certChain.getAdditionalCerts());
-        ocspResponses.add(new OCSPResp(keyInfo.getCert().getOcspBytes()));
+        ocspResponses.add(new OCSPResp(keyInfo.cert().getOcspBytes()));
 
-        PrivateKey key = loadAuthPrivateKey(keyInfo);
+        PrivateKey key = keyInfo.key();
 
         // Lower bound for validity is "now", verify validity of the chain at that time.
         final Date notBefore = new Date();

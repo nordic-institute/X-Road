@@ -502,7 +502,7 @@ class ClientSoapMessageProcessor extends AbstractClientMessageProcessor {
         }
 
         private void writeOcspResponses() throws Exception {
-            CertChain chain = keyConfProvider.getAuthKey().getCertChain();
+            CertChain chain = keyConfProvider.getAuthKey().certChain();
             // exclude TopCA
             List<OCSPResp> ocspResponses = keyConfProvider.getAllOcspResponses(chain.getAllCertsWithoutTrustedRoot());
 

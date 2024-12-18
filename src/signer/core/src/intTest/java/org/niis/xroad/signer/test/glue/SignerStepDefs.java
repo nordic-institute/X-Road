@@ -480,7 +480,7 @@ public class SignerStepDefs extends BaseSignerStepDefs {
 
     @Step("auth key for Security Server {string} is retrieved")
     public void getAuthKey(String securityServerId) throws Exception {
-        var authKeyInfo = signerRpcClient.getAuthKey(getSecurityServerId(securityServerId));
+        var authKeyInfo = signerRpcClient.getAuthKeyCert(getSecurityServerId(securityServerId));
         testReportService.attachJson("authKeyInfo", authKeyInfo);
         assertThat(authKeyInfo).isNotNull();
     }
@@ -488,7 +488,7 @@ public class SignerStepDefs extends BaseSignerStepDefs {
     @Step("auth key retrieval for Security Server {string} fails when no active token is found")
     public void getAuthKeyFail(String securityServerId) throws Exception {
         try {
-            signerRpcClient.getAuthKey(getSecurityServerId(securityServerId));
+            signerRpcClient.getAuthKeyCert(getSecurityServerId(securityServerId));
             Assertions.fail("Exception expected");
         } catch (CodedException codedException) {
             var errorServerId = securityServerId.replace(":", "/");

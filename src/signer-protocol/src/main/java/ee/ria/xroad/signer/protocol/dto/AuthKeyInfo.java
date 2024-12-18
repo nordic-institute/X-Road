@@ -25,24 +25,9 @@
  */
 package ee.ria.xroad.signer.protocol.dto;
 
-import lombok.ToString;
-import lombok.Value;
+import java.security.PrivateKey;
 
-import java.io.Serializable;
 
-/**
- * Authentication key info DTO.
- */
-@Value
-@ToString(exclude = {"password"})
-public class AuthKeyInfo implements Serializable {
-
-    private final String alias;
-
-    private final String keyStoreFileName;
-
-    private final char[] password;
-
-    private final CertificateInfo cert;
+public record AuthKeyInfo(String alias, PrivateKey key, CertificateInfo cert) {
 
 }

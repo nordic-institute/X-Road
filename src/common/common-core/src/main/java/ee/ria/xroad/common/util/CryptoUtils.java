@@ -357,7 +357,8 @@ public final class CryptoUtils {
 
     /**
      * Loads a pkcs12 keystore from a file.
-     * @param file the file to load
+     *
+     * @param file     the file to load
      * @param password the password for the key store
      * @return the loaded keystore
      * @throws Exception if any errors occur
@@ -368,19 +369,49 @@ public final class CryptoUtils {
     }
 
     /**
+     * Loads a pkcs12 keystore from a file.
+     *
+     * @param keyStoreInputStream stream that will be read. NOTE: The stream will not be closed.
+     * @param password            the password for the key store
+     * @return the loaded keystore
+     * @throws Exception if any errors occur
+     */
+    public static KeyStore loadPkcs12KeyStore(InputStream keyStoreInputStream, char[] password)
+            throws CertificateException, IOException, KeyStoreException, NoSuchAlgorithmException {
+        return loadKeyStore("pkcs12", keyStoreInputStream, password);
+    }
+
+    /**
      * Loads a key store from a file.
-     * @param type the type of key store to load ("pkcs12" for PKCS12 type)
-     * @param file the file to load
+     *
+     * @param type     the type of key store to load ("pkcs12" for PKCS12 type)
+     * @param file     the file to load
      * @param password the password for the key store
      * @return the loaded keystore
      * @throws Exception if any errors occur
      */
     public static KeyStore loadKeyStore(String type, File file, char[] password)
             throws IOException, KeyStoreException, CertificateException, NoSuchAlgorithmException {
-        KeyStore keyStore = KeyStore.getInstance(type);
+
         try (FileInputStream fis = new FileInputStream(file)) {
-            keyStore.load(fis, password);
+            return loadKeyStore(type, fis, password);
         }
+    }
+
+    /**
+     * Loads a key store from a file.
+     *
+     * @param type                the type of key store to load ("pkcs12" for PKCS12 type)
+     * @param keystoreInputStream stream that will be read. NOTE: The stream will not be closed.
+     * @param password            the password for the key store
+     * @return the loaded keystore
+     * @throws Exception if any errors occur
+     */
+    public static KeyStore loadKeyStore(String type, InputStream keystoreInputStream, char[] password)
+            throws IOException, KeyStoreException, CertificateException, NoSuchAlgorithmException {
+        KeyStore keyStore = KeyStore.getInstance(type);
+
+        keyStore.load(keystoreInputStream, password);
 
         return keyStore;
     }

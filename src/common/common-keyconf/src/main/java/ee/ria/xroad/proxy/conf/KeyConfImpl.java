@@ -33,7 +33,6 @@ import ee.ria.xroad.common.conf.serverconf.ServerConfProvider;
 import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.identifier.SecurityServerId;
 import ee.ria.xroad.signer.SignerRpcClient;
-import ee.ria.xroad.signer.protocol.dto.AuthKeyInfo;
 
 import lombok.extern.slf4j.Slf4j;
 import org.bouncycastle.cert.ocsp.BasicOCSPResp;
@@ -41,8 +40,6 @@ import org.bouncycastle.cert.ocsp.OCSPException;
 import org.bouncycastle.cert.ocsp.OCSPResp;
 import org.bouncycastle.cert.ocsp.SingleResp;
 
-import java.io.File;
-import java.security.KeyStore;
 import java.security.PrivateKey;
 import java.security.cert.X509Certificate;
 import java.util.ArrayList;
@@ -53,7 +50,6 @@ import java.util.List;
 import static ee.ria.xroad.common.ErrorCodes.X_CANNOT_CREATE_SIGNATURE;
 import static ee.ria.xroad.common.util.CertUtils.getSha1Hashes;
 import static ee.ria.xroad.common.util.CryptoUtils.calculateCertSha1HexHash;
-import static ee.ria.xroad.common.util.CryptoUtils.loadPkcs12KeyStore;
 import static ee.ria.xroad.common.util.CryptoUtils.readCertificate;
 import static ee.ria.xroad.common.util.EncoderUtils.decodeBase64;
 import static ee.ria.xroad.common.util.EncoderUtils.encodeBase64;
@@ -105,15 +101,15 @@ class KeyConfImpl implements KeyConfProvider {
             log.debug("Retrieving authentication info for security "
                     + "server '{}'", serverId);
 
-            AuthKeyInfo keyInfo = signerRpcClient.getAuthKey(serverId);
+            var keyInfo = signerRpcClient.getAuthKey(serverId);
 
-            pkey = loadAuthPrivateKey(keyInfo);
+            pkey = keyInfo.key();
             if (pkey == null) {
                 log.warn("Failed to read authentication key");
             }
 
             certChain = getAuthCertChain(serverId.getXRoadInstance(),
-                    keyInfo.getCert().getCertificateBytes());
+                    keyInfo.cert().getCertificateBytes());
             if (certChain == null) {
                 log.warn("Failed to read authentication certificate");
             }
@@ -181,22 +177,6 @@ class KeyConfImpl implements KeyConfProvider {
         }
 
         return null;
-    }
-
-    static PrivateKey loadAuthPrivateKey(AuthKeyInfo keyInfo) throws Exception {
-        File keyStoreFile = new File(keyInfo.getKeyStoreFileName());
-        log.trace("Loading authentication key from key store '{}'",
-                keyStoreFile);
-
-        KeyStore ks = loadPkcs12KeyStore(keyStoreFile, keyInfo.getPassword());
-
-        PrivateKey privateKey = (PrivateKey) ks.getKey(keyInfo.getAlias(),
-                keyInfo.getPassword());
-        if (privateKey == null) {
-            log.warn("Failed to read authentication key");
-        }
-
-        return privateKey;
     }
 
     /*

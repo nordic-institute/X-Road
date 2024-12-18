@@ -28,53 +28,31 @@ package ee.ria.xroad.signer.protocol.handler;
 import ee.ria.xroad.common.conf.globalconf.GlobalConfProvider;
 import ee.ria.xroad.signer.protocol.dto.CertificateInfo;
 import ee.ria.xroad.signer.protocol.dto.KeyInfo;
-import ee.ria.xroad.signer.tokenmanager.token.SoftwareTokenType;
-import ee.ria.xroad.signer.tokenmanager.token.SoftwareTokenUtil;
-import ee.ria.xroad.signer.util.passwordstore.PasswordStore;
 
-import com.google.protobuf.ByteString;
 import lombok.extern.slf4j.Slf4j;
-import org.niis.xroad.signer.proto.AuthKeyProto;
+import org.niis.xroad.signer.proto.AuthKeyCertInfoProto;
 import org.springframework.stereotype.Component;
 
-import java.io.File;
-import java.io.FileInputStream;
-
-import static java.util.Optional.ofNullable;
-
 /**
- * Handles authentication key retrieval requests.
+ * Handles authentication key cert retrieval requests.
  */
 @Slf4j
 @Component
-public class GetAuthKeyReqHandler extends AbstractAuthKeyReqHandler<AuthKeyProto> {
+public class GetAuthKeyCertReqHandler
+        extends AbstractAuthKeyReqHandler<AuthKeyCertInfoProto> {
 
-    public GetAuthKeyReqHandler(GlobalConfProvider globalConfProvider) {
+    public GetAuthKeyCertReqHandler(GlobalConfProvider globalConfProvider) {
         super(globalConfProvider);
     }
 
-    @Override
-    protected AuthKeyProto resolveResponse(KeyInfo keyInfo, CertificateInfo certInfo) throws Exception {
-        final var alias = keyInfo.getId();
-        final var keyStoreFileName = SoftwareTokenUtil.getKeyStoreFileName(alias);
-        final char[] password = PasswordStore.getPassword(SoftwareTokenType.ID);
 
-        final var builder = AuthKeyProto.newBuilder()
-                .setAlias(alias)
-                .setKeyStore(getKeyStore(keyStoreFileName))
+    @Override
+    protected AuthKeyCertInfoProto resolveResponse(KeyInfo keyInfo, CertificateInfo certInfo) {
+        var builder = AuthKeyCertInfoProto.newBuilder()
+                .setAlias(keyInfo.getId())
                 .setCert(certInfo.asMessage());
 
-        ofNullable(password).ifPresent(passwd -> builder.setPassword(new String(passwd)));
         return builder.build();
-    }
-
-    private ByteString getKeyStore(String keyStoreFileName) throws Exception {
-        final var keyStoreFile = new File(keyStoreFileName);
-        log.trace("Loading authentication key from key store '{}'", keyStoreFile);
-
-        try (var fis = new FileInputStream(keyStoreFile)) {
-            return ByteString.readFrom(fis);
-        }
     }
 
 

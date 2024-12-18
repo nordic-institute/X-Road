@@ -70,7 +70,7 @@ public final class AuthKeyManager extends X509ExtendedKeyManager {
     public X509Certificate[] getCertificateChain(String alias) {
         log.trace("getCertificateChain {}", alias);
 
-        CertChain certChain = authKeySupplier.get().getCertChain();
+        CertChain certChain = authKeySupplier.get().certChain();
         List<X509Certificate> allCerts = certChain.getAllCertsWithoutTrustedRoot();
         return allCerts.toArray(new X509Certificate[0]);
     }
@@ -83,7 +83,7 @@ public final class AuthKeyManager extends X509ExtendedKeyManager {
 
     @Override
     public PrivateKey getPrivateKey(String alias) {
-        PrivateKey key = authKeySupplier.get().getKey();
+        PrivateKey key = authKeySupplier.get().key();
         log.debug("getPrivateKey {} exist? {} ", alias, key != null);
         return key;
     }

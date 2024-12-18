@@ -99,7 +99,7 @@ public class ClientSoapMessageHandler extends AbstractClientProxyHandler {
         }
 
         AuthKey authKey = keyConfProvider.getAuthKey();
-        if (authKey.getCertChain() == null) {
+        if (authKey.certChain() == null) {
             throw new CodedException(X_SSL_AUTH_FAILED,
                     "Security server has no valid authentication certificate");
         }
