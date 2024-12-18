@@ -3245,25 +3245,29 @@ In case it is needed to pass additional flags to internally initialized `PGOPTIO
 
 ## 24 Configuring ACME
 
-Automated Certificate Management Environment \[[ACME](#Ref_ACME)\] protocol enables automated certificate management of the authentication and sign certificates on the Security Server. The Security Server supports automating most of the certificate request process, but the process has to be initiated manually. Also, activating and/or registering the received certificates is a manual task.
+Automated Certificate Management Environment \[[ACME](#Ref_ACME)\] protocol enables automated certificate management of the authentication and sign certificates on the Security Server. The Security Server supports automating the certificate request process, but the process has to be initiated manually when applying for a certificate for the first time. Also, activating the received certificates is a manual task.
 
 The ACME protocol can be used only if the Certificate Authority (CA) issuing the certificates supports it and the X-Road operator has enabled the use of the protocol on the Central Server. Therefore, also the communication between the CA's ACME server and the Security Server is disabled by default. In addition, some member-specific configuration is required on the Security Server.
 
 **Automatic certificate renewal**
 
-Besides requesting new certificates from the ACME server, Security Server also runs automatic job periodically, that checks whether any of the existing certificates should be renewed and if so, new certificate is ordered. Authentication certificate is sent for registration to the Central Server automatically, but enabling of the new ordered signing and authentication certificates needs to be done manually and once their enabled, the old certificates can be removed. Whether the job runs and how often it runs is controlled by corresponding `[proxy-ui-api]` system parameters starting with [acme-renewal-*](ug-syspar_x-road_v6_system_parameters.md#39-management-rest-api-parameters-proxy-ui-api). The time when a certificate is ready for renewal is determined by the ACME server, if it supports it (ACME ARI extension \[[ACME-ARI](#Ref_ACME-ARI)\]). Otherwise, by a `acme-renewal-time-before-expiration-date` system parameter. 
+Authentication and sign certificates issued by a CA that supports ACME can be automatically renewed. Automatic renewal is enabled by default, but the Security Server administrator can turn it off.
+
+The Security Server runs an automatic renewal job periodically and tries to renew certificates ready for renewal. If the server supports the ACME ARI extension (\[[ACME-ARI](#Ref_ACME-ARI)\]), the time when a certificate is ready for renewal is determined by the ACME server. Otherwise, the time is defined by the `proxy-ui-api.acme-renewal-time-before-expiration-date` system property. The default value of the property is 14 days, which means that the Security Server starts trying to renew a certificate 14 days before it expires. The renewal job configuration can be managed by the `proxy-ui-api.acme-renewal-*` configuration properties.
 
 The renewal status of ACME supported certificates can be seen on the Keys and certificates page:
-* **"N/A"** - certificate is not `REGISTERED` or not issued by ACME supported CA and is ignored by the automatic certificate renewal job.
+* **"N/A"** - certificate is not `REGISTERED` or not issued by ACME supported CA and therefore, it is ignored by the automatic certificate renewal job.
 * **"Renewal in progress"** - Renewal has started, but is not yet finished. Once the new certificate is registered and enabled, this certificate can be removed.
 * **"Renewal error:"** followed by an error message - indicates that the last renewal attempt has failed, also showing the reason for the failure.
 * **"Next planned renewal on"** followed by a date - indicates when the next renewal should happen. Note that this date might change in the future when the information is received from the ACME Server.
 
 **E-mail notifications**
 
-Automatic certificate renewal process also has the option to notify members with an e-mail in case of a successful renewal as well as of failure. Successful and failure notifications can be turned on and off separately with a [system paramater](ug-syspar_x-road_v6_system_parameters.md#39-management-rest-api-parameters-proxy-ui-api). The member's e-mail defined in the contact information in the `mail.yml` file is used as the recipient. These are also used as contact information of the member for whom the certificate is ordered from ACME Server. It is passed along to the Certificate Authority at the beginning of the communication between Security Server and the CA's ACME server.
+The Security Server supports sending email notifications on ACME-related events. Notifications are sent in case of authentication and sign certificate renewal success and failure and authentication certificate registration success. The notifications can be turned on and off separately with [system paramaters](ug-syspar_x-road_v6_system_parameters.md#39-management-rest-api-parameters-proxy-ui-api).
 
-For the e-mail notifications to work a mail server needs to be configured beforehand in the `/etc/xroad/conf.d/mail.yml` file. These include:
+The member's e-mail address defined in the `mail.yml` configuration file is used as the recipient. The same email address is also used as a member-specific contact information when a certificate is ordered from the ACME Server.
+
+For the e-mail notifications to work, an external mail server needs to be configured beforehand in the `/etc/xroad/conf.d/mail.yml` configuration file. The configuration include:
 
 * **host** - host name used to connect to the mail server.
 * **port** - port number used to connect to the mail server.
@@ -3271,7 +3275,7 @@ For the e-mail notifications to work a mail server needs to be configured before
 * **password** - used for authentication to the mail server.
 * **use-ssl-tls** - if "true", then full `ssl/tls` protocol is used for connection. If "false" or missing, then `starttls` protocol is used instead.
 
-**host**, **port**, **username** and **password** are mandatory. If Diagnostics page shows that the configuration is incomplete, it means that at least one of them is missing.
+The **host**, **port**, **username** and **password** properties are mandatory. The mail server configuration status can be viewed in the Diagnostics page. If the Diagnostics page shows that the configuration is incomplete, it means that at least one of required configuration properties is missing. Instead, if all the required configuration are in-place, a test email can be sent from the Diagnostics page.
 
 **Enable connections from the ACME server**
 
