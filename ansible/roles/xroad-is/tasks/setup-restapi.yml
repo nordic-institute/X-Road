@@ -15,18 +15,25 @@
     update_cache: yes
     state: present
 
-- name: Build example-restapi locally
-  command: ./gradlew clean build
-  args:
-    chdir: ../Docker/test-services/example-restapi
-  delegate_to: localhost
-  become: false
+- name: Get latest example-restapi version
+  shell: |
+    curl -s "https://artifactory.niis.org/api/storage/xroad-maven-releases/org/niis/example-restapi/" | \
+    jq -r '.children[] | select(.uri | match("/[0-9]+.[0-9]+.[0-9]+")) | .uri' | \
+    sort -V | tail -n1 | tr -d '/'
+  register: latest_version
 
-- name: Transfer example-restapi
-  copy:
-    src: "{{ playbook_dir }}/../Docker/test-services/example-restapi/build/libs/restapi-0.0.1-SNAPSHOT.jar"
-    dest: "/example-restapi.jar"
-    mode: "0644"
+- name: Get latest example-restapi artifact URL
+  shell: |
+    curl -s "https://artifactory.niis.org/api/storage/xroad-maven-releases/org/niis/example-restapi/{{ latest_version.stdout }}" | \
+    jq -r '.children[] | select(.uri | endswith("-boot.jar")) | .uri' | \
+    sort -V | tail -n1 | tr -d '/'
+  register: artifact_filename
+
+- name: Download example-restapi
+  get_url:
+    url: "https://artifactory.niis.org/xroad-maven-releases/org/niis/example-restapi/{{ latest_version.stdout }}/{{ artifact_filename.stdout }}"
+    dest: /example-restapi.jar
+    mode: '0644'
 
 - name: Create systemd service
   template:
