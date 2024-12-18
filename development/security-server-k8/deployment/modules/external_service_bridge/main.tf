@@ -1,5 +1,5 @@
 resource "helm_release" "external_service_bridge" {
-  name      = "xroad-external-service-bridge"
+  name      = "xroad-bridge-${var.name}"
   namespace = var.namespace
 
   chart   = "${path.module}/../../charts/external_service_bridge"

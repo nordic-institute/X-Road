@@ -26,7 +26,7 @@ resource "helm_release" "postgresql_serverconf" {
             memory = "64Mi"
           }
           limits = {
-            memory = "128Mi"
+            memory = "256Mi"
           }
         }
       }

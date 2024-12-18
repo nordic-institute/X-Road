@@ -44,7 +44,36 @@ module "cs_service_bridge" {
       name       = "https"
       port       = 443
       targetPort = 3015
+    },
+    {
+      name       = "registration"
+      port       = 4001
+      targetPort = 3030
+    },
+    {
+      name       = "management"
+      port       = 4002
+      targetPort = 3035
     }
+  ]
+}
+
+module "ca_service_bridge" {
+  source        = "../../modules/external_service_bridge"
+  namespace     = "ss"
+  name          = "xrd-ca"
+  external_host = "host.docker.internal"
+  ports = [
+    {
+      name       = "ca"
+      port       = 8888
+      targetPort = 4002
+    },
+    {
+      name       = "tsa"
+      port       = 8899
+      targetPort = 4003
+    },
   ]
 }
 
@@ -74,7 +103,8 @@ module "xroad" {
 
   depends_on = [
     module.openbao,
-    module.cs_service_bridge
+    module.cs_service_bridge,
+    module.ca_service_bridge,
   ]
 
 }

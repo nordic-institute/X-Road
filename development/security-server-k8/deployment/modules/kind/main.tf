@@ -24,14 +24,25 @@ resource "kind_cluster" "xroad" {
         host_port = 4000
         protocol = "TCP"
       }
-
-      # Commented ports as in original YAML
-      # extra_port_mappings {
-      #   container_port = 443
-      #   host_port = 443
-      #   protocol = "TCP"
-      # }
     }
+  }
+}
+
+resource "helm_release" "metrics_server" {
+  name       = "metrics-server"
+  namespace  = "kube-system"
+  repository = "https://kubernetes-sigs.github.io/metrics-server/"
+  chart      = "metrics-server"
+  version    = "3.11.0"
+
+  set {
+    name  = "args[0]"
+    value = "--kubelet-insecure-tls"
+  }
+
+  set {
+    name  = "args[1]"
+    value = "--kubelet-preferred-address-types=InternalIP"
   }
 }
 

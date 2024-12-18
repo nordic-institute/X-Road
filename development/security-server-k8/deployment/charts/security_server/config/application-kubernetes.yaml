@@ -23,9 +23,7 @@ xroad:
           host: proxy.ss.svc.cluster.local
         signer:
           host: signer.ss.svc.cluster.local
-  proxy-ui-api:
-    security-server-url: https://proxy:8443
 logging:
   level:
     org.niis.xroad: DEBUG
-    ee.ria.xroad: DEBUG
+    ee.ria.xroad: INFO

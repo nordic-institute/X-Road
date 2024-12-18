@@ -28,6 +28,7 @@ COPY --from=entrypoint-ctx /openssl.cnf /opt/app/scripts/openssl.cnf
 
 # Copy service specific files to image
 COPY --from=service-ctx --chown=xroad:xroad /etc /etc
+COPY --from=service-ctx --chown=xroad:xroad /usr /usr
 
 #Set default environment variables
 ENV XROAD_DEPLOYMENT_TYPE=containerized
