@@ -118,21 +118,19 @@
         <table class="xrd-table members-table fixed_header">
           <thead>
             <tr>
-              <th></th>
+              <th class="checkbox-col"></th>
               <th>{{ $t('general.name') }}</th>
               <th>{{ $t('localGroup.id') }}</th>
             </tr>
           </thead>
           <tbody v-if="members && members.length > 0">
             <tr v-for="member in members" :key="member.id">
-              <td>
+              <td class="checkbox-col">
                 <div class="checkbox-wrap">
-                  <v-checkbox
+                  <v-checkbox-btn
+                    density="compact"
                     data-test="add-local-group-member-checkbox"
-                    @update:model-value="
-                      checkboxChange(member.id as string, $event)
-                    "
-                  ></v-checkbox>
+                    @update:model-value="checkboxChange(member.id as string, $event)" />
                 </div>
               </td>
 
@@ -305,5 +303,9 @@ export default defineComponent({
 
 .cursor-pointer {
   cursor: pointer;
+}
+
+.checkbox-col {
+  width: 48px;
 }
 </style>

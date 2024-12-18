@@ -24,7 +24,7 @@
    THE SOFTWARE.
  -->
 <template>
-  <div class="language-changer">
+  <div v-if="languages.length > 1" class="language-changer">
     <v-menu location="bottom">
       <template #activator="{ props }">
         <v-btn
@@ -41,12 +41,18 @@
       <v-list>
         <v-list-item
           v-for="language in languages"
-          :key="language"
-          :active="language === currentLanguage"
+          :key="language.code"
+          :active="language.code === currentLanguage"
           data-test="language-list-tile"
-          @click="switchLanguage(language)"
+          @click="switchLanguage(language.code)"
         >
-          {{ language }}
+          <v-tooltip
+            activator="parent"
+            location="right"
+          >
+            <span class="text-capitalize">{{ language.display }}</span>
+          </v-tooltip>
+          {{ language.code }}
         </v-list-item>
       </v-list>
     </v-menu>
@@ -57,16 +63,19 @@
 import { defineComponent } from 'vue';
 import { mapActions } from 'pinia';
 import { useLanguage } from '@/store/modules/language';
-import { availableLanguages } from '@/plugins/i18n';
+import { availableLanguages, languageHelper } from '@/plugins/i18n';
 
 export default defineComponent({
   computed: {
     // Using a computed property for the current language for reactivity
     currentLanguage() {
-      return this.$i18n.locale;
+      return languageHelper.getCurrentLanguage();
+    },
+    displayName() {
+      return new Intl.DisplayNames([this.currentLanguage], { type: 'language' });
     },
     languages() {
-      return availableLanguages;
+      return availableLanguages.map(lang => ({ code: lang, display: this.displayName.of(lang) }));
     },
   },
   methods: {
