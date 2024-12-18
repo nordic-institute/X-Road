@@ -39,7 +39,7 @@ tasks.register('runMetaserviceTest', JavaExec) {
         '-Dxroad.proxy.client-connector-so-linger=-1',
         '-Dxroad.proxy.client-httpclient-so-linger=-1',
         '-Dxroad.proxy.server-connector-so-linger=-1',
-// default       '-Dxroad.proxy.addon.metaservices.enabled=true',
+        '-Dxroad.proxy.addon.metaservices.enabled=true',
         '-Dxroad.proxy.grpc-tls-enabled=false',
         '-Dtest.queries.dir=src/test/queries'
 
