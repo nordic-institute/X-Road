@@ -164,8 +164,8 @@
     "invalid_filename": "Invalid filename",
     "resource_read_failed": "Failed to read resource",
     "restore_process_failed": "Restore process failed",
-    "token_fetch_failed": "Error getting tokens",
-    "token_not_found": "Token not found",
+    "token_fetch_failed": "Error getting tokens.",
+    "token_not_found": "Token not found.",
     "validation_failure": "Validation failure"
   },
   "fields": {
