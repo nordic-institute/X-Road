@@ -2,6 +2,11 @@
 
 echo "Migrating contact information from acme.yml to mail.yml"
 
+if ! test -f /etc/xroad/conf.d/acme.yml; then
+    echo "acme.yml not found, skipping migration"
+    exit 0
+fi
+
 awk '/^contacts:/ {contacts=1} {
      if (/^ *#/) {
            commentbuf = commentbuf $0 ORS;

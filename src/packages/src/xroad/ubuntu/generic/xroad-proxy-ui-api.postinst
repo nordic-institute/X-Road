@@ -31,7 +31,7 @@ case "$1" in
           crudini --set /etc/xroad/conf.d/local.ini proxy-ui-api strict-identifier-checks false
       fi
 
-      if dpkg --compare-versions "$2" lt-nl  "7.6.0" && test -f /etc/xroad/conf.d/acme.yml; then
+      if dpkg --compare-versions "$2" lt-nl  "7.6.0"; then
           /usr/share/xroad/scripts/acme_contacts_and_keystore_pw_migra.sh
       fi
   fi;
