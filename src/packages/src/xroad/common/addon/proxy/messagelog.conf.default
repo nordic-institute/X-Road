@@ -1,2 +1,0 @@
-ADDON_CP="${ADDON_CP},${ADDON_PATH}/proxy/messagelog-addon.jar"
-
