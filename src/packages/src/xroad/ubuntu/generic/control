@@ -89,9 +89,10 @@ Architecture: amd64 arm64
 # These following 2 package relationship changes were required to fix an issue caused by a file dependency diversion from xroad-signer to xroad-addon-hwtokens in 7.1.0
 Replaces: xroad-signer (<< 7.1.0)
 Breaks: xroad-signer (<< 7.1.0)
-Depends: ${misc:Depends}, xroad-base (=${binary:Version}), xroad-confclient (=${binary:Version}), xroad-signer (=${binary:Version})
-Description: X-Road AddOn: hwtokens
- AddOn for hardware tokens
+Depends: ${misc:Depends}, xroad-base (=${binary:Version}), xroad-confclient (=${binary:Version}), xroad-signer (=${binary:Version}), yq
+Section: oldlibs
+Description: transitional package
+ This is a transitional package. It can safely be removed.
 
 Package: xroad-addon-messagelog
 Architecture: all
