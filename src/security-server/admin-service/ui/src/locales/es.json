@@ -347,6 +347,7 @@
       "Signer": {
         "CertNotFound": "No se encuentra el certificado",
         "KeyNotFound": "No se encuentra la clave",
+        "NetworkError": "El firmante no es actualmente accesible.",
         "TokenNotAvailable": "El token no está disponible",
         "TokenNotFound": "No se encuentra el token",
         "UnknownMember": "X -Road Core - Signer: miembro desconocido"
@@ -411,7 +412,6 @@
     "service_description_not_found": "Descripción del servicio no encontrada",
     "service_not_found": "servicio no encontrado",
     "sign_cert_not_supported": "El certificado de firma no es compatible",
-    "signer_not_reachable": "El firmante no es actualmente accesible. Consulte el registro (log) del firmante para más detalles.",
     "software_token_init_failed": "Error al inicializar el token de software",
     "timestamping_service_already_configured": "El servicio de marca de tiempo ya está configurado",
     "timestamping_service_not_found": "Servicio de marca de tiempo no encontrado",

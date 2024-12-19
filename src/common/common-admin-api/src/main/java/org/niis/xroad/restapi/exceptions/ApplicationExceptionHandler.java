@@ -25,13 +25,14 @@
  */
 package org.niis.xroad.restapi.exceptions;
 
+import ee.ria.xroad.signer.exception.SignerException;
+
 import jakarta.validation.ConstraintViolationException;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.niis.xroad.restapi.config.audit.AuditEventLoggingFacade;
 import org.niis.xroad.restapi.config.audit.RestApiAuditEvent;
 import org.niis.xroad.restapi.openapi.model.ErrorInfo;
-import org.niis.xroad.restapi.service.SignerNotReachableException;
 import org.springframework.beans.factory.BeanCreationException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DataIntegrityViolationException;
@@ -128,9 +129,9 @@ public class ApplicationExceptionHandler {
         log.error(EXCEPTION_CAUGHT, beanCreationException);
         Exception exception = beanCreationException;
         int indexOfSignerException = ExceptionUtils
-                .indexOfThrowable(beanCreationException, SignerNotReachableException.class);
+                .indexOfThrowable(beanCreationException, SignerException.class);
         if (indexOfSignerException != -1) {
-            exception = (SignerNotReachableException) ExceptionUtils
+            exception = (SignerException) ExceptionUtils
                     .getThrowables(beanCreationException)[indexOfSignerException];
         }
         return exceptionTranslator.toResponseEntity(exception, HttpStatus.INTERNAL_SERVER_ERROR);

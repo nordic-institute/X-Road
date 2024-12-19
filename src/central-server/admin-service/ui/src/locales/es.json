@@ -88,7 +88,6 @@
     "token_action_not_possible": "Acción del token no es posible",
     "token_activation_failed": "Falló la activación del token",
     "token_deactivation_failed": "La desactivación del token falló",
-    "token_fetch_failed": "Error al obtener el token",
     "token_incorrect_pin_format": "Formato de PIN incorrecto",
     "token_invalid_characters": "El código PIN proporcionado contiene caracteres no válidos",
     "token_pin_final_try": "Intentos restantes: 1",

@@ -30,6 +30,7 @@ import ee.ria.xroad.common.crypto.identifier.KeyAlgorithm;
 import ee.ria.xroad.common.crypto.identifier.SignMechanism;
 import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.util.TimeUtils;
+import ee.ria.xroad.signer.exception.SignerException;
 import ee.ria.xroad.signer.protocol.dto.KeyInfo;
 import ee.ria.xroad.signer.protocol.dto.KeyInfoProto;
 import ee.ria.xroad.signer.protocol.dto.KeyUsageInfo;
@@ -163,7 +164,7 @@ class ConfigurationSigningKeysServiceImplTest {
         ConfigurationSigningKeyEntity signingKeyEntity = createConfigurationSigningEntity("INTERNAL", false);
         when(configurationSigningKeyRepository.findByKeyIdentifier(signingKeyEntity.getKeyIdentifier()))
                 .thenReturn(Optional.of(signingKeyEntity));
-        when(signerProxyFacade.getToken(signingKeyEntity.getTokenIdentifier())).thenThrow(new Exception());
+        when(signerProxyFacade.getToken(signingKeyEntity.getTokenIdentifier())).thenThrow(new SignerException("Error"));
 
         assertThatThrownBy(() -> configurationSigningKeysServiceImpl.deleteKey(signingKeyEntity.getKeyIdentifier()))
                 .isInstanceOf(SigningKeyException.class)
@@ -177,7 +178,7 @@ class ConfigurationSigningKeysServiceImplTest {
                 .thenReturn(Optional.of(signingKeyEntity));
         when(signerProxyFacade.getToken(signingKeyEntity.getTokenIdentifier()))
                 .thenReturn(createTokenInfo(true, true, List.of()));
-        doThrow(new Exception()).when(signerProxyFacade).deleteKey(signingKeyEntity.getKeyIdentifier(), true);
+        doThrow(new SignerException("Error")).when(signerProxyFacade).deleteKey(signingKeyEntity.getKeyIdentifier(), true);
 
         assertThatThrownBy(() -> configurationSigningKeysServiceImpl.deleteKey(signingKeyEntity.getKeyIdentifier()))
                 .isInstanceOf(SigningKeyException.class)
@@ -325,7 +326,7 @@ class ConfigurationSigningKeysServiceImplTest {
         ConfigurationSigningKeyEntity signingKeyEntity = createConfigurationSigningEntity("INTERNAL", false);
         when(configurationSigningKeyRepository.findByKeyIdentifier(signingKeyEntity.getKeyIdentifier()))
                 .thenReturn(Optional.of(signingKeyEntity));
-        when(signerProxyFacade.getToken(signingKeyEntity.getTokenIdentifier())).thenThrow(new Exception());
+        when(signerProxyFacade.getToken(signingKeyEntity.getTokenIdentifier())).thenThrow(new SignerException("Error"));
 
         assertThatThrownBy(() -> configurationSigningKeysServiceImpl.activateKey(signingKeyEntity.getKeyIdentifier()))
                 .isInstanceOf(SigningKeyException.class)

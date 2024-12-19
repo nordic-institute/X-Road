@@ -346,6 +346,7 @@
       },
       "Signer": {
         "CertNotFound": "Certification is not found",
+        "NetworkError": "Signer is not currently reachable.",
         "KeyNotFound": "Key is not found",
         "TokenNotAvailable": "Token is not available",
         "TokenNotFound": "Token is not found",
@@ -366,6 +367,7 @@
     "illegal_generated_endpoint_update": "Updating the generated endpoint is not allowed",
     "import_internal_cert_failed": "Importing internal certificate failed",
     "internal_anchor_upload_invalid_instance_id": "Anchor has an invalid instance id",
+    "internal_error": "Internal error. See the Security Server application logs for more details.",
     "internal_key_cert_interrupted": "Internal key certificate interrupted",
     "invalid_cert": "Invalid certificate",
     "invalid_characters_pin": "PIN has invalid characters",
@@ -411,7 +413,6 @@
     "service_description_not_found": "Service description not found",
     "service_not_found": "service not found",
     "sign_cert_not_supported": "Signing certificate is not supported",
-    "signer_not_reachable": "Signer is not currently reachable. Please check the signer log for details.",
     "software_token_init_failed": "Software token initialisation failed",
     "timestamping_service_already_configured": "Timestamping service is already configured",
     "timestamping_service_not_found": "Timestamping service not found",

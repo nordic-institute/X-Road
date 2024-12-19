@@ -1,7 +1,5 @@
 /*
  * The MIT License
- * <p>
- * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
  * Copyright (c) 2015-2017 Estonian Information System Authority (RIA), Population Register Centre (VRK)
@@ -24,19 +22,30 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
+package org.niis.xroad.securityserver.restapi.exceptions;
 
-package org.niis.xroad.cs.admin.core.exception;
+import lombok.Getter;
+import org.niis.xroad.restapi.exceptions.DeviationProvider;
 
-import org.niis.xroad.common.exception.ServiceException;
-import org.niis.xroad.cs.admin.api.exception.ErrorMessage;
+import static org.niis.xroad.restapi.exceptions.DeviationCodes.ERROR_AUTH_CERT_NOT_SUPPORTED;
+import static org.niis.xroad.restapi.exceptions.DeviationCodes.ERROR_CERTIFICATE_NOT_FOUND;
+import static org.niis.xroad.restapi.exceptions.DeviationCodes.ERROR_CERTIFICATE_NOT_FOUND_WITH_ID;
+import static org.niis.xroad.restapi.exceptions.DeviationCodes.ERROR_CERTIFICATE_WRONG_USAGE;
+import static org.niis.xroad.restapi.exceptions.DeviationCodes.ERROR_SIGN_CERT_NOT_SUPPORTED;
 
-public class SignerProxyException extends ServiceException {
+@Getter
+public enum ErrorMessage implements DeviationProvider {
+    CERTIFICATE_WRONG_USAGE(ERROR_CERTIFICATE_WRONG_USAGE, "Certificate has wrong usage"),
+    AUTH_CERT_NOT_SUPPORTED(ERROR_AUTH_CERT_NOT_SUPPORTED, "Not supported authentication certificate"),
+    SIGN_CERT_NOT_SUPPORTED(ERROR_SIGN_CERT_NOT_SUPPORTED, "Not supported sign certificate"),
+    CERTIFICATE_NOT_FOUND(ERROR_CERTIFICATE_NOT_FOUND, "Certificate not found"),
+    CERTIFICATE_NOT_FOUND_WITH_ID(ERROR_CERTIFICATE_NOT_FOUND_WITH_ID, "Certificate not found by id");
 
-    public SignerProxyException(ErrorMessage code, Object... metadata) {
-        super(code, metadata);
-    }
+    private final String code;
+    private final String description;
 
-    public SignerProxyException(ErrorMessage code, Throwable cause, Object... metadata) {
-        super(code, cause, metadata);
+    ErrorMessage(final String code, final String description) {
+        this.code = code;
+        this.description = description;
     }
 }

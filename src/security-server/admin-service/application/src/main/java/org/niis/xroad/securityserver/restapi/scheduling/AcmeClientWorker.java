@@ -306,7 +306,7 @@ public class AcmeClientWorker {
                                       approvedCA,
                                       keyUsage,
                                       oldX509Certificate,
-                                      generatedCertRequestInfo.getCertRequest()
+                                      generatedCertRequestInfo.certRequest()
                     );
             if (newCert == null || newCert.isEmpty()) {
                 return null;

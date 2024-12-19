@@ -704,7 +704,7 @@ public class SignerCLI {
 
             AuditLogger.log(GENERATE_A_CERT_REQUEST_EVENT, XROAD_USER, null, logData);
 
-            bytesToFile(keyId + ".csr", generatedCertRequestInfo.getCertRequest());
+            bytesToFile(keyId + ".csr", generatedCertRequestInfo.certRequest());
         } catch (Exception e) {
             AuditLogger.log(GENERATE_A_CERT_REQUEST_EVENT, XROAD_USER, null, e.getMessage(), logData);
             throw e;
