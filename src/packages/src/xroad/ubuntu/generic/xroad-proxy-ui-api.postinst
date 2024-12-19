@@ -19,6 +19,22 @@ function migrate_conf_value {
     fi
 }
 
+function set_yaml_property { # $1 property, $2 value, $3 file
+  if [ ! -f "$3" ]; then
+    echo "File $3 does not exist. Creating the file."
+    echo "---" > "$3"
+    chown xroad:xroad "$3"
+  fi
+
+  CURRENT_VALUE=$(yq "$1" "$3")
+  if [ -z "$CURRENT_VALUE" ] || [ "$CURRENT_VALUE" == "null" ]; then
+    if [ ! -s "$3" ]; then
+        echo "---" > "$3"
+    fi
+    yq -Y -i "$1 = $2" "$3"
+  fi
+}
+
 case "$1" in
  configure)
   #migrating possible local configuration for modified configuration values (for version 6.24.0)
@@ -67,6 +83,15 @@ case "$1" in
           fi
       fi
   fi;
+
+  if [[ "$1" == 'configure' && -z "$2" ]]; then
+      # by default, enable the plugin on the fist install
+      chown root:xroad /usr/share/xroad/wsdlvalidator/bin/wsdlvalidator_wrapper.sh
+      chmod 0750 /usr/share/xroad/wsdlvalidator/bin/wsdlvalidator_wrapper.sh
+
+      CONFIG_FILE="/etc/xroad/conf.d/proxy-ui-api-override.yaml"
+      set_yaml_property ".xroad.proxy-ui-api.addon.wsdlvalidator.enabled" "true" "$CONFIG_FILE"
+    fi
  ;;
 
  abort-upgrade|abort-remove|abort-deconfigure)

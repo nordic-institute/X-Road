@@ -1,6 +1,6 @@
 plugins {
     id 'java'
-    alias(libs.plugins.shadow)
+//    alias(libs.plugins.shadow)
 }
 
 project.ext.schemaTargetDir = layout.buildDirectory.dir("generated-sources").get().asFile
@@ -39,21 +39,21 @@ tasks.register('createDirs') {
     }
 }
 
-jar {
-    enabled = false
-}
+//jar {
+//    enabled = true
+//}
 
-shadowJar {
-    archiveClassifier = ''
-    exclude('**/module-info.class')
-    dependencies {
-        include(project(':addons:proxymonitor-common'))
-        include(project(':monitor-common'))
-    }
-    mergeServiceFiles()
-}
+//shadowJar {
+//    archiveClassifier = ''
+//    exclude('**/module-info.class')
+//    dependencies {
+//        include(project(':addons:proxymonitor-common'))
+//        include(project(':monitor-common'))
+//    }
+//    mergeServiceFiles()
+//}
 
-build.dependsOn shadowJar
+//build.dependsOn shadowJar
 
 compileJava.dependsOn processResources
 
@@ -74,7 +74,7 @@ tasks.register('runProxymonitorMetaserviceTest', JavaExec) {
         '-Dxroad.proxy.client-connector-so-linger=-1',
         '-Dxroad.proxy.client-httpclient-so-linger=-1',
         '-Dxroad.proxy.server-connector-so-linger=-1',
-// default        '-Dxroad.proxy.addon.proxymonitor.enabled=true',
+        '-Dxroad.proxy.addon.proxymonitor.enabled=true',
         '-Dxroad.proxy.grpc-tls-enabled=false',
         '-Dtest.queries.dir=src/test/queries'
 
