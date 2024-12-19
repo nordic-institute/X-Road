@@ -23,60 +23,60 @@
         <addUniqueConstraint tableName="message_attachment" columnNames="logrecord_id, attachment_no" />
     </changeSet>
     <changeSet id="11-drop-logrecord-del-trigger" author="niis"><sql><![CDATA[
-        DROP TRIGGER IF EXISTS t_logrecord_attachment ON logrecord;
-        DROP FUNCTION IF EXISTS del_logrecord_attachment;
+DROP TRIGGER IF EXISTS t_logrecord_attachment ON logrecord;
+DROP FUNCTION IF EXISTS del_logrecord_attachment;
         ]]></sql>
     </changeSet>
     <changeSet id="11-message-attachment-del-trigger" author="niis">
         <sql dbms="postgresql" splitStatements="false"><![CDATA[
-            DROP TRIGGER IF EXISTS t_message_attachment_del_lo ON message_attachment;
+DROP TRIGGER IF EXISTS t_message_attachment_del_lo ON message_attachment;
 
-            CREATE OR REPLACE FUNCTION del_message_attachment_lo() RETURNS trigger LANGUAGE plpgsql AS
-            $function$
-            BEGIN
+CREATE OR REPLACE FUNCTION del_message_attachment_lo() RETURNS trigger LANGUAGE plpgsql AS
+$function$
+BEGIN
   PERFORM LO_UNLINK(OLD.ATTACHMENT);
-            RETURN OLD;
-            END;
-            $function$;
+  RETURN OLD;
+END;
+$function$;
 
-            CREATE TRIGGER t_message_attachment_del_lo
-                BEFORE DELETE ON message_attachment
-                FOR EACH ROW
-                EXECUTE PROCEDURE del_message_attachment_lo();
+CREATE TRIGGER t_message_attachment_del_lo
+  BEFORE DELETE ON message_attachment
+  FOR EACH ROW
+  EXECUTE PROCEDURE del_message_attachment_lo();
             ]]></sql>
     </changeSet>
     <changeSet id="11-logrecord-del-trigger" author="niis">
         <sql dbms="postgresql" splitStatements="false"><![CDATA[
-            DROP TRIGGER IF EXISTS t_logrecord_del_attachments ON logrecord;
+DROP TRIGGER IF EXISTS t_logrecord_del_attachments ON logrecord;
 
-            CREATE OR REPLACE FUNCTION del_message_attachments()
+CREATE OR REPLACE FUNCTION del_message_attachments()
     RETURNS trigger
     LANGUAGE plpgsql
 AS $function$
-            BEGIN
+BEGIN
     -- Trigger is used here instead of cascading FK here because of the LO_UNLINK call in del_message_attachment_lo()
     -- trigger function. This way we can ensure that the LO_UNLINK is called with correct role.
     -- In case of cascading FK, the del_message_attachment_lo() would be called with the role of messagelog_admin and
     -- LO_UNLINK would fail.
-            DELETE FROM message_attachment WHERE logrecord_id = old.id;
-            RETURN OLD;
-            END;
-            $function$;
+    DELETE FROM message_attachment WHERE logrecord_id = old.id;
+    RETURN OLD;
+END;
+$function$;
 
-            CREATE TRIGGER t_logrecord_del_attachments
-                BEFORE DELETE ON logrecord
-                FOR EACH ROW
-                EXECUTE PROCEDURE del_message_attachments();
+CREATE TRIGGER t_logrecord_del_attachments
+    BEFORE DELETE ON logrecord
+    FOR EACH ROW
+    EXECUTE PROCEDURE del_message_attachments();
             ]]></sql>
     </changeSet>
     <changeSet id="11-migrate-logrecord-attacments" author="niis">
         <sql><![CDATA[
-            INSERT INTO message_attachment (logrecord_id, attachment_no, attachment)
-                (SELECT lr.id, 1, lr.attachment
-                 FROM logrecord lr
-                 WHERE lr.attachment IS NOT NULL
-                   AND NOT exists(SELECT 1 FROM message_attachment ma WHERE ma.logrecord_id = lr.id AND ma.attachment_no = 1));
-            ]]></sql>
+INSERT INTO message_attachment (logrecord_id, attachment_no, attachment)
+    (SELECT lr.id, 1, lr.attachment
+     FROM logrecord lr
+     WHERE lr.attachment IS NOT NULL
+       AND NOT exists(SELECT 1 FROM message_attachment ma WHERE ma.logrecord_id = lr.id AND ma.attachment_no = 1));
+        ]]></sql>
     </changeSet>
     <changeSet id="11-drop-logrecord-attachment" author="niis">
         <dropColumn tableName="logrecord" columnName="attachment" />
