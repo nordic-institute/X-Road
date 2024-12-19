@@ -158,12 +158,14 @@
     "backup_generation_failed": "Failed to generate backup",
     "backup_restore_interrupted": "Backup restoration has been interrupted",
     "generate_backup_interrupted": "Backup generation has been interrupted",
+    "internal_error": "Internal error. See server logs for more details",
     "invalid_backup_file": "Invalid backup file",
     "invalid_distinguished_name": "Distinguished name is invalid",
     "invalid_filename": "Invalid filename",
     "resource_read_failed": "Failed to read resource",
     "restore_process_failed": "Restore process failed",
-    "token_not_found": "Token not found",
+    "token_fetch_failed": "Error getting tokens.",
+    "token_not_found": "Token not found.",
     "validation_failure": "Validation failure"
   },
   "fields": {
@@ -200,6 +202,9 @@
   "logout": {
     "idleWarning": "You have been idle for 30 minutes and your session has expired. For security reasons, you will be logged out.",
     "sessionExpired": "Session expired"
+  },
+  "meta": {
+    "check_signer_logs": "Please check the signer log for details."
   },
   "noData": {
     "loading": "Loading... Please wait",

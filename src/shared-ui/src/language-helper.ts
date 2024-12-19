@@ -29,6 +29,7 @@ import { createI18n } from 'vue-i18n';
 import merge from 'deepmerge';
 import enSharedMessages from './locales/en.json';
 import enValidationMessages from '@vee-validate/i18n/dist/locale/en.json';
+import axios from 'axios';
 
 interface MessageLoader {
   (language: string): Promise<any>
@@ -83,6 +84,9 @@ export function prepareI18n(fallbackMessages: any, ...loaders: MessageLoader[]) 
   async function selectLanguage(language: string) {
     await loadLanguage(language);
     i18n.global.locale.value = language;
+
+    axios.defaults.headers.common['Accept-Language'] = language
+    document.querySelector('html').setAttribute('lang', language)
   }
 
   const languageHelper: LanguageHelper = {
