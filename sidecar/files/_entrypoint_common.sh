@@ -116,7 +116,7 @@ else
   warn "Installed version ($INSTALLED_VERSION) does not match packaged version ($PACKAGED_VERSION)"
 fi
 
-if dpkg --compare-versions "$CONFIG_VERSION" lt-nl "7.6.0" && test -f /etc/xroad/conf.d/acme.yml; then
+if dpkg --compare-versions "$CONFIG_VERSION" lt-nl "7.6.0"; then
   /usr/share/xroad/scripts/acme_contacts_and_keystore_pw_migra.sh
 fi
 
