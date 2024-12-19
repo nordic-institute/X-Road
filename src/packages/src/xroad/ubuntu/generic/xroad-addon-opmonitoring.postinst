@@ -1,6 +1,23 @@
 #!/bin/bash
 
+function set_property_if_not_set { # $1 property, $2 value, $3 file
+  if [ ! -f "$3" ]; then
+    echo "File $3 does not exist. Creating the file."
+    echo "---" > "$3"
+    chown xroad:xroad "$3"
+  fi
+
+  CURRENT_VALUE=$(yq "$1" "$3")
+  if [ -z "$CURRENT_VALUE" ] || [ "$CURRENT_VALUE" == "null" ]; then
+    if [ ! -s "$3" ]; then
+        echo "---" > "$3"
+    fi
+    yq -Y -i "$1 = $2" "$3"
+  fi
+}
+
 if [ "$1" = configure ]; then
+  set_property_if_not_set ".xroad.proxy.addon.op-monitor.enabled" "true" "/etc/xroad/conf.d/proxy-override.yaml"
   invoke-rc.d --quiet xroad-proxy try-restart || true
 fi
 
