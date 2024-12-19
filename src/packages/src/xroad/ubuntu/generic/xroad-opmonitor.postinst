@@ -12,7 +12,7 @@ configure() {
   /usr/share/xroad/scripts/setup_opmonitor_db.sh "$RET"
 }
 
-function set_property_if_not_set { # $1 property, $2 value, $3 file
+function set_yaml_property { # $1 property, $2 value, $3 file
   if [ ! -f "$3" ]; then
     echo "File $3 does not exist. Creating the file."
     echo "---" > "$3"
@@ -30,7 +30,7 @@ function set_property_if_not_set { # $1 property, $2 value, $3 file
 
 if [[ "$1" == "configure" || "$1" == "reconfigure" ]]; then
   configure
-  set_property_if_not_set ".xroad.proxy.addon.op-monitor.enabled" "true" "/etc/xroad/conf.d/proxy-override.yaml"
+  set_yaml_property ".xroad.proxy.addon.op-monitor.enabled" "true" "/etc/xroad/conf.d/proxy-override.yaml"
   invoke-rc.d --quiet xroad-proxy try-restart || true
 fi
 

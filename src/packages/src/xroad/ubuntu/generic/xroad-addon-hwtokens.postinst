@@ -1,6 +1,6 @@
 #!/bin/bash
 
-function set_property_if_not_set { # $1 property, $2 value, $3 file
+function set_yaml_property { # $1 property, $2 value, $3 file
   if [ ! -f "$3" ]; then
     echo "File $3 does not exist. Creating the file."
     echo "---" > "$3"
@@ -17,7 +17,7 @@ function set_property_if_not_set { # $1 property, $2 value, $3 file
 }
 
 if [ "$1" = configure ]; then
-  set_property_if_not_set ".xroad.signer.addon.hwtoken.enabled" "true" "/etc/xroad/conf.d/signer-override.yaml"
+  set_yaml_property ".xroad.signer.addon.hwtoken.enabled" "true" "/etc/xroad/conf.d/signer-override.yaml"
   invoke-rc.d --quiet xroad-signer try-restart || true
 fi
 

@@ -1,6 +1,6 @@
 #!/bin/bash
 
-function set_property_if_not_set { # $1 property, $2 value, $3 file
+function set_yaml_property { # $1 property, $2 value, $3 file
   if [ ! -f "$3" ]; then
     echo "File $3 does not exist. Creating the file."
     echo "---" > "$3"
@@ -18,7 +18,7 @@ function set_property_if_not_set { # $1 property, $2 value, $3 file
 
 if [ "$1" = configure ]; then
   # enable the addon in /etc/xroad/conf.d/proxy-override.yaml
-  set_property_if_not_set ".xroad.proxy.addon.metaservices.enabled" "true" "/etc/xroad/conf.d/proxy-override.yaml"
+  set_yaml_property ".xroad.proxy.addon.metaservices.enabled" "true" "/etc/xroad/conf.d/proxy-override.yaml"
 fi
 
 if [ "$1" = abort-upgrade ]; then
