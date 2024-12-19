@@ -1,21 +1,18 @@
 {
-  "locals_demo": "This is localised in library",
-  "type": "Type",
-  "warning": "Warning",
   "action": {
     "activate": "Activate",
-    "cancel": "Cancel",
     "add": "Add",
     "addClient": "Add client",
     "addMember": "Add member",
     "addSubsystem": "Add subsystem",
+    "cancel": "Cancel",
     "close": "Close",
     "confirm": "Confirm",
     "continue": "Continue",
     "copy": "Copy",
     "copyId": "Copy ID",
-    "delete": "Delete",
     "deactivate": "Disable",
+    "delete": "Delete",
     "done": "Done",
     "download": "Download",
     "edit": "Edit",
@@ -66,13 +63,13 @@
       "success": "API key successfully created",
       "title": "Create API key"
     },
+    "edit": {
+      "roleRemoveOnly": "(remove only)"
+    },
     "role": {
       "XROAD_REGISTRATION_OFFICER": "Registration Officer",
       "XROAD_SECURITY_OFFICER": "Security Officer",
       "XROAD_SYSTEM_ADMINISTRATOR": "System Administrator"
-    },
-    "edit": {
-      "roleRemoveOnly": "(remove only)"
     },
     "table": {
       "action": {
@@ -99,10 +96,14 @@
       }
     }
   },
-  "keys": {
-    "gotIt": "Got it"
-  },
   "backup": {
+    "createBackup": {
+      "button": "Back up config.",
+      "messages": {
+        "localConfWarning": "Warning! The file “/etc/xroad/services/local.conf” used for configuration overrides is deprecated and not included in the backups anymore. The file “/etc/xroad/services/local.properties” should be used instead.",
+        "success": "Backup {file} successfully created"
+      }
+    },
     "deleteBackup": {
       "dialog": {
         "confirmation": "Are you sure you want to delete backup {file}?",
@@ -117,13 +118,6 @@
       },
       "success": "Configuration restored from {file}"
     },
-    "createBackup": {
-      "button": "Back up config.",
-      "messages": {
-        "success": "Backup {file} successfully created",
-        "localConfWarning": "Warning! The file “/etc/xroad/services/local.conf” used for configuration overrides is deprecated and not included in the backups anymore. The file “/etc/xroad/services/local.properties” should be used instead."
-      }
-    },
     "uploadBackup": {
       "button": "Upload backup",
       "confirmationDialog": {
@@ -135,6 +129,8 @@
   },
   "cert": {
     "certificate": "Certificate",
+    "ecParameters": "EC Public Key Parameters",
+    "ecPoint": "EC Public Key Point",
     "hashInfo": "Hash (SHA-256)",
     "keyUsage": {
       "CRL_SIGN": "CRL Sign",
@@ -148,9 +144,7 @@
       "NON_REPUDIATION": "Non Repudiation"
     },
     "rsaExp": "RSA Public Key Exponent",
-    "rsaModulus": "RSA Public Key Modulus",
-    "ecParameters": "EC Public Key Parameters",
-    "ecPoint": "EC Public Key Point"
+    "rsaModulus": "RSA Public Key Modulus"
   },
   "error_code": {
     "api_key_not_found": "API key not found",
@@ -169,13 +163,13 @@
     "validation_failure": "Validation failure"
   },
   "fields": {
-    "password": "Password",
-    "username": "LIB-Username",
-    "shared": "sharedlib",
     "code": "Code",
     "description": "Description",
     "memberClass": "Member Class",
-    "securityServerCode": "Security Server Code"
+    "password": "Password",
+    "securityServerCode": "Security Server Code",
+    "shared": "sharedlib",
+    "username": "LIB-Username"
   },
   "footer": {
     "copyright": {
@@ -193,6 +187,10 @@
     "all": "All",
     "name": "Name"
   },
+  "keys": {
+    "gotIt": "Got it"
+  },
+  "locals_demo": "This is localised in library",
   "login": {
     "errorMsg401": "Wrong username or password",
     "generalError": "Login failed. Please try again.",
@@ -215,6 +213,12 @@
     "noMatches": "No items matching criteria",
     "noServices": "No services",
     "noTokens": "No tokens"
+  },
+  "type": "Type",
+  "validation": {
+    "messages": {
+      "address": "The {field} field contains invalid characters"
+    }
   },
   "validationError": {
     "AssertFalse": "value should be 'false'",
@@ -248,9 +252,5 @@
     "ValidHostAddress": "Valid fully qualified domain name (e.g. host.example.org) or public IP address (eg. 192.168.123.123) needed",
     "ValidHostAddressField": "Valid IP address or fully qualified domain name needed"
   },
-  "validation": {
-    "messages": {
-      "address": "The {field} field contains invalid characters"
-    }
-  }
+  "warning": "Warning"
 }
