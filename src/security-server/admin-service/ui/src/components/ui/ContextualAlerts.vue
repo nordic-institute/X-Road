@@ -26,12 +26,12 @@
 <template>
   <!-- Error -->
   <v-container
-    v-if="errorNotifications && errorNotifications.length > 0"
+    v-if="notifications.errorNotifications && notifications.errorNotifications.length > 0"
     fluid
     class="alerts-container px-3"
   >
     <v-alert
-      v-for="notification in errorNotifications"
+      v-for="notification in notifications.errorNotifications"
       :key="notification.timeAdded"
       v-model="notification.show"
       data-test="contextual-alert"
@@ -57,7 +57,7 @@
 
             <!-- Show localised text by id from error object -->
             <div v-else-if="notification.errorCode">
-              {{ $t(`error_code.${notification.errorCode}`) }}
+              {{ $t(errorCodePrefix + notification.errorCode) }}
             </div>
 
             <!-- If error doesn't have a text or localisation key then just print the error object -->
@@ -69,21 +69,19 @@
             <template v-if="notification.errorCode === 'weak_pin'">
               <div>
                 {{
-                  $t(`error_code.${notification.metaData?.[0]}`) +
-                  `: ${notification.metaData?.[1]}`
+                  $t(errorCodePrefix + notification.metaData?.[0]) + ': ' + notification.metaData?.[1]
                 }}
               </div>
               <div>
                 {{
-                  $t(`error_code.${notification.metaData?.[2]}`) +
-                  `: ${notification.metaData?.[3]}`
+                  $t(errorCodePrefix + notification.metaData?.[2]) + ': ' + notification.metaData?.[3]
                 }}
               </div>
             </template>
 
             <!-- Show the error metadata if it exists -->
             <div v-for="meta in notification.metaData" v-else :key="meta">
-              {{ meta }}
+              {{ meta.startsWith(metaPrefix) ? $t(meta) : meta }}
             </div>
 
             <!-- Show validation errors -->
@@ -154,43 +152,33 @@
   </v-container>
 </template>
 
-<script lang="ts">
-import { defineComponent } from 'vue';
-import { mapActions, mapState } from 'pinia';
+<script lang="ts" setup>
 import { useNotifications } from '@/store/modules/notifications';
 import { toClipboard } from '@/util/helpers';
 import { Notification } from '@/ui-types';
 import { Colors } from '@/global';
-import {
-  XrdIconCopy,
-  XrdIconErrorNotification,
-  XrdIconWarning,
-} from '@niis/shared-ui';
+import { XrdIconCopy, XrdIconErrorNotification, XrdIconWarning } from '@niis/shared-ui';
 
-export default defineComponent({
-  components: { XrdIconWarning, XrdIconErrorNotification, XrdIconCopy },
-  // Component for contextual notifications
-  computed: {
-    ...mapState(useNotifications, ['errorNotifications']),
-  },
-  methods: {
-    notificationColor(notification: Notification) {
-      // TODO - how to import these values from colors.css?
-      return notification.isWarning ? Colors.Warning : Colors.Error;
-    },
-    ...mapActions(useNotifications, ['deleteNotification']),
+const errorCodePrefix = 'error_code.';
+const metaPrefix = 'meta.';
 
-    closeError(id: number): void {
-      this.deleteNotification(id);
-    },
-    copyId(notification: Notification): void {
-      const id = notification.errorId;
-      if (id) {
-        toClipboard(id);
-      }
-    },
-  },
-});
+const notifications = useNotifications();
+
+function notificationColor(notification: Notification) {
+  // TODO - how to import these values from colors.css?
+  return notification.isWarning ? Colors.Warning : Colors.Error;
+}
+
+function closeError(id: number): void {
+  notifications.deleteNotification(id);
+}
+
+function copyId(notification: Notification): void {
+  const id = notification.errorId;
+  if (id) {
+    toClipboard(id);
+  }
+}
 </script>
 
 <style lang="scss" scoped>
@@ -229,6 +217,7 @@ export default defineComponent({
     margin-right: 12px;
     color: colors.$Error;
   }
+
   .warning-icon {
     margin-right: 12px;
     color: colors.$Warning;

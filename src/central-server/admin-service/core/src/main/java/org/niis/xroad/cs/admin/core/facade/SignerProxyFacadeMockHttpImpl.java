@@ -31,6 +31,7 @@ import ee.ria.xroad.common.crypto.identifier.KeyAlgorithm;
 import ee.ria.xroad.common.crypto.identifier.SignAlgorithm;
 import ee.ria.xroad.common.crypto.identifier.SignMechanism;
 import ee.ria.xroad.common.identifier.ClientId;
+import ee.ria.xroad.signer.exception.SignerException;
 import ee.ria.xroad.signer.protocol.dto.KeyInfo;
 import ee.ria.xroad.signer.protocol.dto.KeyUsageInfo;
 import ee.ria.xroad.signer.protocol.dto.TokenInfo;
@@ -104,15 +105,23 @@ public class SignerProxyFacadeMockHttpImpl implements SignerProxyFacade {
     }
 
     @Override
-    public List<TokenInfo> getTokens() throws Exception {
-        final String response = restTemplate.getForObject("/getTokens", String.class);
-        return parseTokenInfoList(response);
+    public List<TokenInfo> getTokens() throws SignerException {
+        try {
+            final String response = restTemplate.getForObject("/getTokens", String.class);
+            return parseTokenInfoList(response);
+        } catch (Exception e) {
+            throw new SignerException(e.getMessage(), e);
+        }
     }
 
     @Override
-    public TokenInfo getToken(String tokenId) throws Exception {
-        final String response = restTemplate.getForObject("/getToken/{tokenId}", String.class, tokenId);
-        return parseTokenInfo(response);
+    public TokenInfo getToken(String tokenId) throws SignerException {
+        try {
+            final String response = restTemplate.getForObject("/getToken/{tokenId}", String.class, tokenId);
+            return parseTokenInfo(response);
+        } catch (Exception e) {
+            throw new SignerException(e.getMessage(), e);
+        }
     }
 
     private List<TokenInfo> parseTokenInfoList(String tokenListString) throws JsonProcessingException {

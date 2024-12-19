@@ -50,6 +50,7 @@ import org.niis.xroad.rpc.error.CodedExceptionProto;
 import java.util.concurrent.ForkJoinPool;
 
 import static ee.ria.xroad.common.ErrorCodes.SIGNER_X;
+import static ee.ria.xroad.common.ErrorCodes.X_NETWORK_ERROR;
 import static java.util.concurrent.TimeUnit.MILLISECONDS;
 
 @Slf4j
@@ -120,7 +121,7 @@ public final class RpcClient<C extends RpcClient.ExecutionContext> {
             return grpcCall.exec(executionContext);
         } catch (StatusRuntimeException error) {
             if (error.getStatus().getCode() == Status.Code.DEADLINE_EXCEEDED) {
-                throw CodedException.tr(SIGNER_X, "signer_client_timeout",
+                throw CodedException.tr(X_NETWORK_ERROR, "signer_client_timeout",
                                 "Signer client timed out. Deadline: " + rpcDeadlineMillis + " ms")
                         .withPrefix(SIGNER_X);
             }

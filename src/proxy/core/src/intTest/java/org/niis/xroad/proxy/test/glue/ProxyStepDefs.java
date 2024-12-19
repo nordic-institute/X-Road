@@ -115,7 +115,7 @@ public class ProxyStepDefs extends BaseStepDefs {
 
 
         File csrFile = File.createTempFile("tmp", keyUsage.toLowerCase() + "_csr" + System.currentTimeMillis());
-        FileUtils.writeByteArrayToFile(csrFile, csrInfo.getCertRequest());
+        FileUtils.writeByteArrayToFile(csrFile, csrInfo.certRequest());
         putStepData(StepDataKey.DOWNLOADED_FILE, csrFile);
     }
 
