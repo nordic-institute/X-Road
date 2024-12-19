@@ -1,6 +1,6 @@
 # Change Log
 
-## 7.6.0 - UNRELEASED
+## 7.6.0 - 2024-12-20
 - XRDDEV-2185: As a Security Server Administrator I want the information system TLS certificate table under the subsystem internal server tab to show more information regarding the certificate so that I can differentiate them better
 - XRDDEV-2536: As a Security Server Administrator I want the software to automatically renew signing and authentication certificates issued by trusted CA-s that support ACME so that the renewal would happen automatically
 - XRDDEV-2542: As a Security Server Administrator I would like to be able to log the CN field of the client certificate that is used to send a query to the Security Server so that I can better monitor the connections
@@ -11,9 +11,11 @@
 - XRDDEV-2659: Disabled subsystem can be deleted on the Security Server without unregistering first, causing a faulty state
 - XRDDEV-2665: Signer port 5558 must be removed source code and configuration files, because it's not used anymore.
 - XRDDEV-2667: As a Security Server Administrator I want to be notified if automatic certificate renewal using ACME fails or succeeds so that I know what the certificate renewal status is.
+- XRDDEV-2668: As a Security Server Administrator I want to have more specific error messages in the Security Server UI so that it's easier to understand what's the problem.
 - XRDDEV-2682: As a System Administrator, I want backups to work in Kubernetes when a volume is added for /var/lib/xroad/ so that automatic backups work as expected
 - XRDDEV-2683: As a Developer I want to ensure the configuration files override-securityserver-ee.ini and override-docker.ini have consistent and appropriate settings for Docker environments
 - XRDDEV-2686: As a Developer I want to redirect the Security Server API UI access logs in the sidecar image to standard output instead of files within the container to align with container best practices
+- XRDDEV-2687: As a Developer I want to update our signing and verification process so that verification of ASIC-E containers succeeds for both batched and non-batched signing
 - XRDDEV-2692: Re-ordering keys with multiple CSR-s and certificates causes duplicates to appear in the table
 - XRDDEV-2693: As a Developer I want the Security Server encryption and verification code to be refactored so that it would better support adding new crypto algorithms
 - XRDDEV-2694: As a Developer I want to add EC key support to the Security Server and test backwards compatibility so that we can use it in the product
@@ -23,12 +25,20 @@
 - XRDDEV-2714: As a Developer I want the sidecar to correctly output ConfigurationVerifier logs for the confclient so that troubleshooting issues with global conf in sidecar is easier
 - XRDDEV-2718: Issues with database custom database configuration when using backup/restore
 - XRDDEV-2723: As a Developer I want to update our PKCS11 library so that we have the latest fixes
+- XRDDEV-2728: As a Central Server and Security Server Administrator I want to be able to switch the UI language so that I can use the UI in my preferred language.
 - XRDDEV-2729: Unable to delete a subsystem that is both a consumer and producer on the same Security Server
 - XRDDEV-2731: As a Developer I want the potential CSPT to be fixed so that we are hardened against future issues
 - XRDDEV-2732: As a Developer I want to disable port 4000 for ACME challenges so that we don't expose it needlessly
 - XRDDEV-2733: As a Developer I want to harden the way we handle use input in ACME challenges so that we don't leave a potential opening in the future
-- XRDDEV-2759: Fix an issue on the Security Server that caused the proxy-ui-api service not being started automatically after a fresh metapackage install
+- XRDDEV-2759: Fresh install fails for Security Server Estonian metapackage on Ubuntu 24.04 with X-Road 7.5.1
+- XRDDEV-2764: As a Developer I want to introduce caching to the SavedServiceEndpoint.getPathIfExists method so that performance is improved
+- XRDDEV-2765: As a Developer I want to maintain consistency in the system parameter naming convention so that it is more straightforward to use
 - XRDDEV-2773: Broken notifications breaks Certificate status change flow
+- XRDDEV-2783: RHEL and Dockerized versions of the Security Server do not support migrating contacts from acme.yml to mail.yml
+- XRDDEV-2786: The Operational Monitoring Protocol document doesn't include restMethod and restEndpoint elements.
+- XRDDEV-2787: As an Administrator I want to use the Central Server and Security Server UIs in Spanish so that I can use my preferred language.
+- XRDDEV-2788: As a Security Server Administrator I want to use the Security Server UI in Estonian so that I can use my preferred language.
+- XRDDEV-2790: Setting up a Security Server cluster for Noble need verifying
 
 ## 7.5.1 - 2024-09-02
 - XRDDEV-2669: As an Administrator I would like to be able to override the database host in the environments file as well so that it can be used in scripts
