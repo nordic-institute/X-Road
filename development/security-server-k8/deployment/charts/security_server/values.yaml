@@ -3,6 +3,11 @@ global:
   environment: dev
   dataSpacesEnabled: false
 
+#TODO for now this purely for temporary cert init
+serviceAccount:
+  name: "ss-init-sa"
+  create: true
+
 init:
   serverconf:
     image: xroad-ss-serverconf-init:latest

@@ -1,0 +1,41 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ .Values.serviceAccount.name }}-script
+data:
+  tmp_generate_certificate.sh: |
+    {{- .Files.Get "scripts/tmp_generate_certificate.sh" | nindent 4 }}
+
+---
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: {{ .Values.serviceAccount.name }}
+spec:
+  backoffLimit: 0
+  template:
+    spec:
+      serviceAccountName: {{ .Values.serviceAccount.name }}
+      automountServiceAccountToken: true
+      containers:
+        - name: openbao-init
+          image: init-runner:latest
+          imagePullPolicy: Never
+          command: [ "/bin/sh", "-c" ]
+          args:
+            - |
+              echo "[MAIN] Starting SS cert creation process..."
+              /scripts/tmp_generate_certificate.sh \
+              -n internal -f -S -p \
+              -D "op-monitor.ss.svc.cluster.local,proxy-ui-api.ss.svc.cluster.local,proxy.ss.svc.cluster.local" \
+              2>&1 >/dev/null
+          volumeMounts:
+            - name: init-script
+              mountPath: /scripts
+              readOnly: true
+      volumes:
+        - name: init-script
+          configMap:
+            name: {{ .Values.serviceAccount.name }}-script
+            defaultMode: 0755
+      restartPolicy: Never
