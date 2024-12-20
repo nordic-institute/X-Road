@@ -29,7 +29,7 @@ import ee.ria.xroad.common.CodedException;
 import ee.ria.xroad.common.cert.CertChainFactory;
 import ee.ria.xroad.common.conf.globalconf.GlobalConfProvider;
 import ee.ria.xroad.common.conf.serverconf.ServerConfProvider;
-import ee.ria.xroad.common.messagelog.MessageLogDbContextHolder;
+import ee.ria.xroad.common.db.DatabaseCtxV2;
 import ee.ria.xroad.common.opmonitoring.OpMonitoringData;
 import ee.ria.xroad.common.util.RequestWrapper;
 import ee.ria.xroad.common.util.ResponseWrapper;
@@ -56,9 +56,10 @@ public class AsicContainerHandler extends AbstractClientProxyHandler {
      * Constructor
      */
     public AsicContainerHandler(GlobalConfProvider globalConfProvider, KeyConfProvider keyConfProvider,
-                                ServerConfProvider serverConfProvider, CertChainFactory certChainFactory, HttpClient client) {
+                                ServerConfProvider serverConfProvider, CertChainFactory certChainFactory, HttpClient client,
+                                DatabaseCtxV2 messagelogDatabaseCtx) {
         super(globalConfProvider, keyConfProvider, serverConfProvider, certChainFactory, client, false);
-        this.logRecordManager = new LogRecordManager(MessageLogDbContextHolder.instance());
+        this.logRecordManager = new LogRecordManager(messagelogDatabaseCtx);
     }
 
     @Override

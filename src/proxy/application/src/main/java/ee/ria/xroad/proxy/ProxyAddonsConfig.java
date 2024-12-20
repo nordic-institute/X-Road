@@ -94,10 +94,12 @@ class ProxyAddonsConfig {
         @Order(200)
         AbstractClientProxyHandler asicContainerHandler(GlobalConfProvider globalConfProvider, KeyConfProvider keyConfProvider,
                                                         ServerConfProvider serverConfProvider, CertChainFactory certChainFactory,
-                                                        @Qualifier("proxyHttpClient") HttpClient client) {
+                                                        @Qualifier("proxyHttpClient") HttpClient client,
+                                                        @Autowired(required = false) @Qualifier("messagelogDatabaseCtx")
+                                                        DatabaseCtxV2 messagelogDatabaseCtx) {
             log.debug("Initializing messagelog addon: AsicContainerHandler");
             return new AsicContainerHandler(globalConfProvider, keyConfProvider,
-                    serverConfProvider, certChainFactory, client);
+                    serverConfProvider, certChainFactory, client, messagelogDatabaseCtx);
         }
 
         @Bean

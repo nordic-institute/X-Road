@@ -33,7 +33,6 @@ import ee.ria.xroad.common.db.DatabaseCtxV2;
 import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.messagelog.AbstractLogManager;
 import ee.ria.xroad.common.messagelog.MessageLogConfig;
-import ee.ria.xroad.common.messagelog.MessageLogDbContextHolder;
 import ee.ria.xroad.common.messagelog.MessageLogProperties;
 import ee.ria.xroad.common.messagelog.archive.EncryptionConfigProvider;
 import ee.ria.xroad.common.messagelog.archive.GroupingStrategy;
@@ -86,9 +85,7 @@ public class ProxyMessageLogConfig {
     @ConditionalOnProperty(value = "xroad.messagelog.hibernate.connection.password")
     @Bean("messagelogDatabaseCtx")
     DatabaseCtxV2 messagelogDatabaseCtx(MessageLogConfig messageLogProperties) {
-        DatabaseCtxV2 databaseCtx = new DatabaseCtxV2("messagelog", messageLogProperties.getHibernate());
-        MessageLogDbContextHolder.set(databaseCtx);
-        return databaseCtx;
+        return new DatabaseCtxV2("messagelog", messageLogProperties.getHibernate());
     }
 
     @Bean("messageLogEnabledStatus")
