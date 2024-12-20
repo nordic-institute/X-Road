@@ -46,6 +46,7 @@ import ee.ria.xroad.proxy.serverproxy.RestMetadataServiceHandlerImpl;
 import ee.ria.xroad.proxy.serverproxy.RestServiceHandler;
 import ee.ria.xroad.proxy.serverproxy.ServiceHandler;
 
+import lombok.extern.slf4j.Slf4j;
 import org.apache.http.client.HttpClient;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -53,11 +54,11 @@ import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.context.annotation.Primary;
 import org.springframework.context.annotation.Scope;
 import org.springframework.core.annotation.Order;
 
 @Configuration
+@Slf4j
 class ProxyAddonsConfig {
 
     @Configuration
@@ -68,6 +69,7 @@ class ProxyAddonsConfig {
         AbstractClientProxyHandler metadataHandler(GlobalConfProvider globalConfProvider, KeyConfProvider keyConfProvider,
                                                    ServerConfProvider serverConfProvider, CertChainFactory certChainFactory,
                                                    @Qualifier("proxyHttpClient") HttpClient httpClient) {
+            log.debug("Initializing metaservices addon: MetadataHandler");
             return new MetadataHandler(globalConfProvider, keyConfProvider,
                     serverConfProvider, certChainFactory, httpClient);
         }
@@ -93,16 +95,17 @@ class ProxyAddonsConfig {
         AbstractClientProxyHandler asicContainerHandler(GlobalConfProvider globalConfProvider, KeyConfProvider keyConfProvider,
                                                         ServerConfProvider serverConfProvider, CertChainFactory certChainFactory,
                                                         @Qualifier("proxyHttpClient") HttpClient client) {
+            log.debug("Initializing messagelog addon: AsicContainerHandler");
             return new AsicContainerHandler(globalConfProvider, keyConfProvider,
                     serverConfProvider, certChainFactory, client);
         }
 
         @Bean
-        @Primary
         AbstractLogManager logManager(GlobalConfProvider globalConfProvider,
                                       ServerConfProvider serverConfProvider,
                                       @Autowired(required = false) @Qualifier("messagelogDatabaseCtx")
                                       DatabaseCtxV2 messagelogDatabaseCtx) {
+            log.debug("Initializing messagelog addon: LogManager");
             return new LogManager("proxy", globalConfProvider, serverConfProvider, messagelogDatabaseCtx);
         }
     }
@@ -123,12 +126,13 @@ class ProxyAddonsConfig {
         @Bean
         @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
         ServiceHandler opMonitoringServiceHandler(ServerConfProvider serverConfProvider, GlobalConfProvider globalConfProvider) {
+            log.debug("Initializing op-monitoring addon: OpMonitoringServiceHandlerImpl");
             return new OpMonitoringServiceHandlerImpl(serverConfProvider, globalConfProvider);
         }
 
         @Bean
-        @Primary
         AbstractOpMonitoringBuffer opMonitoringBuffer(ServerConfProvider serverConfProvider) throws Exception {
+            log.debug("Initializing op-monitoring addon: OpMonitoringBuffer");
             return new OpMonitoringBuffer(serverConfProvider);
         }
     }

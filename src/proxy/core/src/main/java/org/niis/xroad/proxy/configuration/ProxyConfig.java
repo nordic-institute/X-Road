@@ -57,6 +57,7 @@ import ee.ria.xroad.signer.SignerRpcClient;
 import org.niis.xroad.common.rpc.server.RpcServerConfig;
 import org.niis.xroad.confclient.proto.ConfClientRpcClientConfiguration;
 import org.niis.xroad.proxy.ProxyProperties;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Bean;
@@ -139,6 +140,7 @@ public class ProxyConfig {
     }
 
     @Bean
+    @ConditionalOnMissingBean
     AbstractOpMonitoringBuffer nullOpMonitoringBuffer(ServerConfProvider serverConfProvider) {
         return new NullOpMonitoringBuffer(serverConfProvider);
     }

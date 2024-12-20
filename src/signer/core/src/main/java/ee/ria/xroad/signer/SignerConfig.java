@@ -38,6 +38,7 @@ import ee.ria.xroad.signer.tokenmanager.module.AbstractModuleManager;
 import ee.ria.xroad.signer.tokenmanager.module.DefaultModuleManagerImpl;
 
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Condition;
@@ -66,6 +67,7 @@ public class SignerConfig {
     static final int OCSP_SCHEDULER_BEAN_ORDER = Ordered.LOWEST_PRECEDENCE - 100;
 
     @Bean
+    @ConditionalOnMissingBean
     AbstractModuleManager moduleManager() {
         log.debug("Using default module manager implementation");
         return new DefaultModuleManagerImpl();
