@@ -75,43 +75,6 @@ spec:
         options:
           - name: ndots
             value: "1"
-
-{{/*      {{- if .config.dependencies }}*/}}
-{{/*      initContainers:*/}}
-{{/*        - name: wait-for-dependencies*/}}
-{{/*          image: busybox:1.36*/}}
-{{/*          command: ['sh', '-c']*/}}
-{{/*          args:*/}}
-{{/*            - |*/}}
-{{/*              # Wait for DNS to be ready*/}}
-{{/*              echo "Waiting for DNS to be ready..."*/}}
-{{/*              until nslookup kubernetes.default.svc.cluster.local; do*/}}
-{{/*                echo "DNS not ready yet..."*/}}
-{{/*                sleep 2*/}}
-{{/*              done*/}}
-
-{{/*              {{- range .config.dependencies }}*/}}
-{{/*              echo "Waiting for {{ . }} service..."*/}}
-{{/*              until nslookup {{ . }}.{{ $.root.Release.Namespace }}.svc.cluster.local >/dev/null 2>&1; do*/}}
-{{/*                echo "Service {{ . }} not found yet..."*/}}
-{{/*                sleep 5*/}}
-{{/*              done*/}}
-
-{{/*              # More resilient health check with timeout*/}}
-{{/*              for i in $(seq 1 30); do*/}}
-{{/*                if wget -T 5 -q --spider http://{{ . }}.{{ $.root.Release.Namespace }}.svc.cluster.local:{{ $.root.Values.services.config.port }}/actuator/health; then*/}}
-{{/*                  echo "Service {{ . }} is healthy"*/}}
-{{/*                  break*/}}
-{{/*                fi*/}}
-{{/*                if [ $i -eq 30 ]; then*/}}
-{{/*                  echo "Service {{ . }} health check failed after 30 attempts"*/}}
-{{/*                  exit 1*/}}
-{{/*                fi*/}}
-{{/*                echo "Waiting for service {{ . }} to be healthy... attempt $i/30"*/}}
-{{/*                sleep 5*/}}
-{{/*              done*/}}
-{{/*              {{- end }}*/}}
-{{/*      {{- end }}*/}}
       containers:
         - name: {{ .service }}
           image: {{ .config.image }}
@@ -143,6 +106,10 @@ spec:
                   name: {{ .secretName }}
                   key: {{ .key }}
             {{- end }}
+          {{- if .config.volumeMounts }}
+          volumeMounts:
+            {{- toYaml .config.volumeMounts | nindent 12 }}
+          {{- end }}
           readinessProbe:
             httpGet:
               path: /actuator/health
@@ -152,6 +119,18 @@ spec:
             timeoutSeconds: 1
             successThreshold: 1
             failureThreshold: 3
+      {{- if .config.volumes }}
+      volumes:
+        {{- range .config.volumes }}
+        {{- if .persistentVolumeClaim }}
+        - name: {{ .name }}
+          persistentVolumeClaim:
+            claimName: {{ $.root.Release.Name }}-{{ .persistentVolumeClaim.claimName }}
+        {{- else }}
+        - {{ toYaml . | nindent 10 }}
+        {{- end }}
+        {{- end }}
+      {{- end }}
 {{- end }}
 {{- define "xroad.serviceaccount" -}}
 apiVersion: v1

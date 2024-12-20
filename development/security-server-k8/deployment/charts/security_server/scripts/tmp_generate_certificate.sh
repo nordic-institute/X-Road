@@ -202,5 +202,4 @@ if [[ -n $P12 ]]; then
     fi
 fi
 
-chmod -f 660 "${DIR}"/"${NAME}".*
-chown -f xroad:xroad "${DIR}"/"${NAME}".*
+chmod -f 666 "${DIR}"/"${NAME}".*

@@ -2,6 +2,10 @@ apiVersion: v1
 kind: ConfigMap
 metadata:
   name: {{ .Values.serviceAccount.name }}-script
+  annotations:
+    "helm.sh/hook": pre-install,pre-upgrade
+    "helm.sh/hook-weight": "-6"
+    "helm.sh/hook-delete-policy": before-hook-creation,hook-succeeded
 data:
   tmp_generate_certificate.sh: |
     {{- .Files.Get "scripts/tmp_generate_certificate.sh" | nindent 4 }}
@@ -11,31 +15,38 @@ apiVersion: batch/v1
 kind: Job
 metadata:
   name: {{ .Values.serviceAccount.name }}
+  annotations:
+    "helm.sh/hook": pre-install,pre-upgrade
+    "helm.sh/hook-weight": "-5"
+    "helm.sh/hook-delete-policy": before-hook-creation,hook-succeeded
 spec:
   backoffLimit: 0
   template:
     spec:
       serviceAccountName: {{ .Values.serviceAccount.name }}
-      automountServiceAccountToken: true
       containers:
-        - name: openbao-init
+        - name: cert-init
           image: init-runner:latest
           imagePullPolicy: Never
           command: [ "/bin/sh", "-c" ]
           args:
             - |
-              echo "[MAIN] Starting SS cert creation process..."
+              mkdir -p /etc/xroad/ssl
               /scripts/tmp_generate_certificate.sh \
-              -n internal -f -S -p \
-              -D "op-monitor.ss.svc.cluster.local,proxy-ui-api.ss.svc.cluster.local,proxy.ss.svc.cluster.local" \
-              2>&1 >/dev/null
+              -n internal -S -p \
+              -D "op-monitor.ss.svc.cluster.local,proxy-ui-api.ss.svc.cluster.local,proxy.ss.svc.cluster.local"
           volumeMounts:
             - name: init-script
               mountPath: /scripts
               readOnly: true
+            - name: ssl-certs
+              mountPath: /etc/xroad/ssl
       volumes:
         - name: init-script
           configMap:
             name: {{ .Values.serviceAccount.name }}-script
             defaultMode: 0755
+        - name: ssl-certs
+          persistentVolumeClaim:
+            claimName: {{ .Release.Name }}-ss-ssl-certs
       restartPolicy: Never
