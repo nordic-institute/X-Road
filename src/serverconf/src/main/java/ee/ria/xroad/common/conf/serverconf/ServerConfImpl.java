@@ -84,6 +84,7 @@ import java.util.stream.Collectors;
 import static ee.ria.xroad.common.ErrorCodes.X_MALFORMED_SERVERCONF;
 import static ee.ria.xroad.common.ErrorCodes.X_UNKNOWN_SERVICE;
 import static ee.ria.xroad.common.ErrorCodes.translateException;
+import static ee.ria.xroad.common.conf.serverconf.model.EndpointType.ANY_METHOD;
 
 /**
  * Server conf implementation.
@@ -170,10 +171,15 @@ public class ServerConfImpl implements ServerConfProvider {
         return tx(session -> {
             ClientType client = clientDao.getClient(session, serviceProvider);
 
+            var serviceDescription = client.getServiceDescription().stream()
+                    .filter(sd -> sd.getService().stream().anyMatch(s -> s.getServiceCode().equals(serviceCode)))
+                    .findFirst()
+                    .orElseThrow();
+
             Map<XRoadId, Set<AccessRightPath>> map = new HashMap<>();
             for (AccessRightType acl : client.getAcl()) {
                 if (serviceCode.equals(acl.getEndpoint().getServiceCode())) {
-                    String endpoint = "%s %s".formatted(acl.getEndpoint().getMethod(), acl.getEndpoint().getPath());
+                    String endpoint = composeEndpoint(serviceDescription, acl);
                     if (!map.containsKey(acl.getSubjectId())) {
                         map.put(acl.getSubjectId(), new HashSet<>());
                     }
@@ -183,6 +189,14 @@ public class ServerConfImpl implements ServerConfProvider {
 
             return map;
         });
+    }
+
+    private String composeEndpoint(ServiceDescriptionType serviceDescription, AccessRightType acl) {
+        if (DescriptionType.WSDL == serviceDescription.getType()) {
+            return "%s %s".formatted(ANY_METHOD, acl.getEndpoint().getServiceCode());
+        } else {
+            return "%s %s".formatted(acl.getEndpoint().getMethod(), acl.getEndpoint().getPath());
+        }
     }
 
     @Override

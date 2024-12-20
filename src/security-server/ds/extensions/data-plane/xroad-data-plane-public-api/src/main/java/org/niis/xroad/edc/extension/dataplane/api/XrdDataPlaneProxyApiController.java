@@ -166,19 +166,14 @@ public class XrdDataPlaneProxyApiController {
 
     private Map<String, Object> buildRequestData(ContainerRequestContext requestContext, ProxyMessage requestMessage) {
         var requestData = new HashMap<String, Object>();
-        requestData.put("headers", requestContext.getHeaders());
-
-        var uriInfo = requestContext.getUriInfo();
-        requestData.put("path", uriInfo);
-
-        var path = uriInfo.getPath();
-        requestData.put("resolvedPath", path.startsWith("/") ? path.substring(1) : path);
-        requestData.put("method", requestContext.getMethod());
-        requestData.put("content-type", requestContext.getMediaType());
         if (requestMessage.getRest() == null) {
             requestData.put("clientId", requestMessage.getSoap().getClient().asEncodedId());
+            requestData.put("method", requestContext.getMethod());
+            requestData.put("resolvedPath", requestMessage.getSoap().getService().getServiceCode());
         } else {
             requestData.put("clientId", requestMessage.getRest().getClientId().asEncodedId());
+            requestData.put("method", requestMessage.getRest().getVerb().name());
+            requestData.put("resolvedPath", requestMessage.getRest().getServicePath());
         }
         return requestData;
     }
