@@ -37,5 +37,19 @@ resource "helm_release" "openbao_secret_store_init" {
   chart = "${path.module}/../../charts/openbao_init"
 
   values = [
+    yamlencode({
+      databaseCredentials = {
+        serverConf = {
+          username = var.postgres_serverconf_username
+          password = var.postgres_serverconf_password
+        }
+        messageLog = {
+          username = var.postgres_messagelog_username
+          password = var.postgres_messagelog_password
+        }
+      }
+    })
   ]
+
+  depends_on = [helm_release.openbao_secret_store]
 }

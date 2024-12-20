@@ -7,3 +7,14 @@ openbao:
   image: "openbao/openbao:2.1.0"
   threshold: 3
   shares: 5
+
+databaseCredentials:
+  serverConf:
+    username: ""
+    password: ""
+  messageLog:
+    username: ""
+    password: ""
+  ds:
+    username: ""
+    password: ""

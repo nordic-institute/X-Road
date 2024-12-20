@@ -33,6 +33,7 @@ import lombok.experimental.UtilityClass;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.builder.SpringApplicationBuilder;
 
+import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -68,23 +69,35 @@ public class XrdSpringServiceBuilder {
     private String[] resolveProperties(Set<String> profiles, String appName) {
         Set<String> properties = new HashSet<>();
 
-        var imports = new StringBuilder("classpath:/xroad-common.yaml");
-        if (profiles.contains(XrdSpringProfiles.CS)) {
-            imports.append(",classpath:/xroad-cs-common.yaml");
-        } else if (profiles.contains(XrdSpringProfiles.SS)) {
-            imports.append(",classpath:/xroad-ss-common.yaml");
-        }
-
-        if (profiles.contains(XrdSpringProfiles.K8)) {
-            imports.append(",kubernetes:");
-        }
-
-        imports.append(",optional:file://%s".formatted(CONFIG_GLOBAL_OVERRIDE_PATH));
-        imports.append(",optional:file://%s".formatted(CONFIG_APP_OVERRIDE_PATH.formatted(appName)));
-
-        properties.add("spring.config.import=" + imports);
+        properties.add(resolveConfigImportProperty(profiles, appName));
 
         return properties.toArray(new String[0]);
+    }
+
+    private String resolveConfigImportProperty(Set<String> profiles, String appName) {
+        List<String> imports = new ArrayList<>();
+
+        // Base import
+        imports.add("classpath:/xroad-common.yaml");
+
+        // Profile specific imports
+        if (profiles.contains(XrdSpringProfiles.CS)) {
+            imports.add("classpath:/xroad-cs-common.yaml");
+        } else if (profiles.contains(XrdSpringProfiles.SS)) {
+            imports.add("classpath:/xroad-ss-common.yaml");
+        }
+
+        // K8s import
+        if (profiles.contains(XrdSpringProfiles.K8)) {
+            imports.add("kubernetes:");
+        }
+
+        // Override imports
+        imports.add("optional:file://" + CONFIG_GLOBAL_OVERRIDE_PATH);
+        imports.add("optional:file://" + CONFIG_APP_OVERRIDE_PATH.formatted(appName));
+
+        log.info("Registered configuration imports: {}", imports);
+        return "spring.config.import=" + String.join(",", imports);
     }
 
     private static Set<String> resolveProfiles() {

@@ -1,0 +1,8 @@
+xroad:
+  proxy-ui-api:
+    security-server-url: https://proxy.ss.svc.cluster.local:8443
+
+logging:
+  level:
+    ROOT: INFO
+    org.niis.xroad: INFO

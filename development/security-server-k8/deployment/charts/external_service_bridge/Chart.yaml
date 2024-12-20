@@ -1,0 +1,6 @@
+# Chart.yaml
+apiVersion: v2
+name: external_service_bridge
+description: Helm chart for external service configuration
+version: 0.1.0
+type: application
