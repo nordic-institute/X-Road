@@ -56,13 +56,12 @@ public abstract class BaseTestSignerSetup {
 
     public TestContainerConfigurator testContainerConfigurator(
             TestableContainerProperties testableContainerProperties,
-            String signerPath, String hwTokenPath) {
+            String signerPath) {
         return new TestContainerConfigurator() {
             @NotNull
             @Override
             public ImageFromDockerfile imageDefinition() {
                 var appJarPath = Paths.get(signerPath);
-                var hwTokenJarPath = Paths.get(hwTokenPath);
 
                 log.info("Will use {} jar for container creation", appJarPath);
 
@@ -73,7 +72,6 @@ public abstract class BaseTestSignerSetup {
                         testableContainerProperties.getReuseBetweenRuns())
                         .withFileFromFile(".", filesToAdd)
                         .withFileFromPath("files/lib/%s".formatted(PKCS11_WRAPPER_FILENAME), getPkcsWrapperPath())
-                        .withFileFromPath("files/lib/hwtoken.jar", hwTokenJarPath)
                         .withFileFromPath("files/app.jar", appJarPath);
             }
 
@@ -96,7 +94,6 @@ public abstract class BaseTestSignerSetup {
                     default -> throw new IllegalStateException("Unsupported arch: " + SystemUtils.OS_ARCH);
                 };
                 return Paths.get("../../libs/pkcs11wrapper/%s/%s".formatted(archDir, PKCS11_WRAPPER_FILENAME));
-
             }
         };
     }

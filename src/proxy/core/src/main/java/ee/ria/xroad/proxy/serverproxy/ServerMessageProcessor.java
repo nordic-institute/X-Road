@@ -100,7 +100,6 @@ class ServerMessageProcessor extends MessageProcessorBase {
     private final X509Certificate[] clientSslCerts;
 
     private final List<ServiceHandler> handlers = new ArrayList<>();
-    private final ServiceHandlerLoader serviceHandlerLoader;
 
     private String originalSoapAction;
     private ProxyMessage requestMessage;
@@ -131,7 +130,6 @@ class ServerMessageProcessor extends MessageProcessorBase {
         this.clientSslCerts = clientSslCerts;
         this.opMonitorHttpClient = opMonitorHttpClient;
         this.opMonitoringData = opMonitoringData;
-        this.serviceHandlerLoader = serviceHandlerLoader;
 
         loadServiceHandlers(serviceHandlerLoader);
     }

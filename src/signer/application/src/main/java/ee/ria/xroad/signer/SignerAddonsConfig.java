@@ -28,7 +28,6 @@
 package ee.ria.xroad.signer;
 
 import ee.ria.xroad.signer.tokenmanager.module.AbstractModuleManager;
-
 import ee.ria.xroad.signer.tokenmanager.module.HardwareModuleManagerImpl;
 
 import lombok.extern.slf4j.Slf4j;
@@ -39,12 +38,12 @@ import org.springframework.context.annotation.Primary;
 
 @Configuration
 @Slf4j
-public class SignerAddonsConfig {
+class SignerAddonsConfig {
 
-    @Bean("moduleManager")
+    @Bean
     @Primary
     @ConditionalOnProperty(name = "xroad.signer.addon.hwtoken.enabled", havingValue = "true")
-    AbstractModuleManager moduleManager() {
+    AbstractModuleManager hardwareModuleManager() {
         log.info("Hardware token manager enabled.");
         return new HardwareModuleManagerImpl();
     }

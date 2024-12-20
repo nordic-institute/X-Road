@@ -43,6 +43,7 @@ import org.eclipse.edc.spi.monitor.Monitor;
 import org.eclipse.edc.spi.result.Result;
 import org.eclipse.edc.spi.types.domain.DataAddress;
 import org.eclipse.edc.transform.spi.TypeTransformerRegistry;
+import org.eclipse.jetty.http.HttpStatus;
 import org.niis.xroad.edc.extension.policy.dataplane.util.PolicyContextData;
 
 import java.io.IOException;
@@ -90,7 +91,7 @@ public class XrdDataPlaneAccessControlService implements DataPlaneAccessControlS
         var request = new Request.Builder().url(contractAgreementApiUrl + "/" + contractId).build();
 
         try (var response = httpClient.execute(request)) {
-            if (response.code() != 200) {
+            if (response.code() != HttpStatus.OK_200) {
                 return Result.failure(format("Error getting contract agreement with id: %s. HTTP Code was: %s",
                         contractId, response.code()));
             }

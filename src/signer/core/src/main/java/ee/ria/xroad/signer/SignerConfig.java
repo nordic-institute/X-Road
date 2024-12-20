@@ -65,7 +65,7 @@ import org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler;
 public class SignerConfig {
     static final int OCSP_SCHEDULER_BEAN_ORDER = Ordered.LOWEST_PRECEDENCE - 100;
 
-    @Bean("moduleManager")
+    @Bean
     AbstractModuleManager moduleManager() {
         log.debug("Using default module manager implementation");
         return new DefaultModuleManagerImpl();

@@ -90,6 +90,7 @@ public class ProxyClientConfig {
     }
 
     @Bean
+    // soap handler must be the last handler in the list.
     @Order(Ordered.LOWEST_PRECEDENCE)
     AbstractClientProxyHandler clientSoapMessageHandler(GlobalConfProvider globalConfProvider,
                                                       KeyConfProvider keyConfProvider,
