@@ -17,7 +17,7 @@ function set_yaml_property { # $1 property, $2 value, $3 file
 }
 
 if [ "$1" = configure ]; then
-  set_yaml_property ".xroad.proxy.addon.op-monitor.enabled" "true" "/etc/xroad/conf.d/proxy-override.yaml"
+  set_yaml_property ".xroad.proxy.addon.\"op-monitor\".enabled" "true" "/etc/xroad/conf.d/proxy-override.yaml"
   invoke-rc.d --quiet xroad-proxy try-restart || true
 fi
 

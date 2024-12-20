@@ -18,7 +18,7 @@ function set_yaml_property { # $1 property, $2 value, $3 file
 
 if [ "$1" = configure ]; then
   # enable the addon in /etc/xroad/conf.d/proxy-ui-api-override.yaml
-  set_yaml_property ".xroad.proxy-ui-api.addon.wsdlvalidator.enabled" "true" "/etc/xroad/conf.d/proxy-ui-api-override.yaml"
+  set_yaml_property ".xroad.\"proxy-ui-api\".addon.wsdlvalidator.enabled" "true" "/etc/xroad/conf.d/proxy-ui-api-override.yaml"
   invoke-rc.d --quiet xroad-proxy-ui-api try-restart || true
 fi
 

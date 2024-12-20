@@ -47,7 +47,7 @@ import java.util.Map;
 @Slf4j
 @SuppressWarnings("checkstyle:MagicNumber")
 public abstract class BaseTestSignerSetup {
-    private static final String PKCS11_WRAPPER_FILENAME = "libpkcs11wrapper.so";
+    private static final String PKCS11_WRAPPER_FILENAME = "libpkcs11-wrapper.so";
 
     static {
         //This is to set docker api version in testcontainers. By default it uses 1.32, which does not support platform setting.
