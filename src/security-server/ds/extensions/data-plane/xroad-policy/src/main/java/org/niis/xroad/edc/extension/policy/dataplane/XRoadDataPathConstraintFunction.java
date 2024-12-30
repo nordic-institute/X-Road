@@ -35,6 +35,7 @@ import org.eclipse.edc.policy.model.Operator;
 import org.eclipse.edc.policy.model.Permission;
 import org.eclipse.edc.spi.monitor.Monitor;
 import org.eclipse.edc.spi.types.TypeManager;
+import org.niis.xroad.edc.extension.policy.dataplane.util.Endpoint;
 import org.niis.xroad.edc.extension.policy.dataplane.util.PathGlob;
 import org.niis.xroad.edc.extension.policy.dataplane.util.PolicyContextData;
 
@@ -63,16 +64,15 @@ public class XRoadDataPathConstraintFunction implements AtomicConstraintFunction
             return false;
         }
 
-        String requestedPath = context.getContextData(PolicyContextData.class).dataPath();
-        Endpoint requested = Endpoint.from(requestedPath);
+        var requestedEndpoint = context.getContextData(PolicyContextData.class).endpoint();
 
         Collection<String> allowedEndpointPatterns = Set.of(allowedPaths);
-
         for (String allowedPath : allowedEndpointPatterns) {
-            Endpoint allowed = Endpoint.from(allowedPath);
+            String[] parts = allowedPath.split(" ", 2);
+            Endpoint allowed = new Endpoint(parts[0], parts[1]);
             boolean matches = switch (operator) {
-                case IS_ANY_OF, EQ -> (ANY_METHOD.equals(allowed.method) || requested.method.equals(allowed.method))
-                        && (ANY_PATH.equals(allowed.path) || PathGlob.matches(allowed.path, requested.path));
+                case IS_ANY_OF, EQ -> (ANY_METHOD.equals(allowed.method()) || requestedEndpoint.method().equals(allowed.method()))
+                        && (ANY_PATH.equals(allowed.path()) || PathGlob.matches(allowed.path(), requestedEndpoint.path()));
                 default -> {
                     context.reportProblem("Operator " + operator + " not supported");
                     yield false;
@@ -83,13 +83,6 @@ public class XRoadDataPathConstraintFunction implements AtomicConstraintFunction
             }
         }
         return false;
-    }
-
-    record Endpoint(String method, String path) {
-        public static Endpoint from(String param) {
-            String[] parts = param.split(" ", 2);
-            return new Endpoint(parts[0], parts[1]);
-        }
     }
 
 }
