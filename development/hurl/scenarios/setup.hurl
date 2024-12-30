@@ -1057,7 +1057,7 @@ HTTP 200
 
 
 
-#Register REST service
+# Register REST service
 POST https://{{ss0_host}}:4000/api/v1/clients/{{ss0_test_service_id}}/service-descriptions
 X-XSRF-TOKEN: {{ss0_xsrf_token}}
 {
@@ -1085,3 +1085,46 @@ X-XSRF-TOKEN: {{ss0_xsrf_token}}
     }
   ]
 }
+
+# Register OpenAPI REST service
+POST https://{{ss0_host}}:4000/api/v1/clients/{{ss0_test_service_id}}/service-descriptions
+X-XSRF-TOKEN: {{ss0_xsrf_token}}
+{
+  "url": "{{is_rest_openapi_url}}",
+  "type": "OPENAPI3",
+  "rest_service_code": "{{is_rest_openapi_service_code}}"
+}
+
+HTTP 201
+
+[Captures]
+ss0_test_rest_openapi_service_service_id: jsonpath "$.id"
+
+# Add TestClient access to OpenAPI REST service's "GET members" endpoint
+GET https://{{ss0_host}}:4000/api/v1/services/{{ss0_test_service_id}}%3A{{is_rest_openapi_service_code}}
+X-XSRF-TOKEN: {{ss0_xsrf_token}}
+
+HTTP 200
+
+[Captures]
+# TODO: Currently, Hurl does not support combining multiple filters in JSONPath - https://github.com/Orange-OpenSource/hurl/issues/1697
+# TODO: Once it does, replace the jsonpath below with following: "$.endpoints[?(@.path == '/api/members' && @.method == 'GET')].id" nth 0
+ss0_test_rest_openapi_service_get_members_endpoint_id: jsonpath "$.endpoints[?(@.path == '/api/members')].id" nth 0
+
+POST https://{{ss0_host}}:4000/api/v1/endpoints/{{ss0_test_rest_openapi_service_get_members_endpoint_id}}/service-clients
+X-XSRF-TOKEN: {{ss0_xsrf_token}}
+{
+  "items": [
+    {
+      "id": "DEV:COM:4321:TestClient",
+      "name": "Test client",
+      "service_client_type": "SUBSYSTEM"
+    }
+  ]
+}
+
+HTTP 201
+
+# Enable OpenAPI REST service
+PUT https://{{ss0_host}}:4000/api/v1/service-descriptions/{{ss0_test_rest_openapi_service_service_id}}/enable
+X-XSRF-TOKEN: {{ss0_xsrf_token}}

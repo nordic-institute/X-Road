@@ -42,7 +42,7 @@ $function$;
 CREATE TRIGGER t_message_attachment_del_lo
   BEFORE DELETE ON message_attachment
   FOR EACH ROW
-  EXECUTE FUNCTION del_message_attachment_lo();
+  EXECUTE PROCEDURE del_message_attachment_lo();
             ]]></sql>
     </changeSet>
     <changeSet id="11-logrecord-del-trigger" author="niis">
@@ -66,7 +66,7 @@ $function$;
 CREATE TRIGGER t_logrecord_del_attachments
     BEFORE DELETE ON logrecord
     FOR EACH ROW
-EXECUTE FUNCTION del_message_attachments();
+    EXECUTE PROCEDURE del_message_attachments();
             ]]></sql>
     </changeSet>
     <changeSet id="11-migrate-logrecord-attacments" author="niis">

@@ -25,7 +25,7 @@
  */
 package org.niis.xroad.restapi.openapi;
 
-import org.niis.xroad.restapi.exceptions.DeviationAwareException;
+import org.niis.xroad.restapi.exceptions.DeviationAware;
 import org.niis.xroad.restapi.exceptions.DeviationAwareRuntimeException;
 import org.niis.xroad.restapi.exceptions.ErrorDeviation;
 import org.springframework.http.HttpStatus;
@@ -43,7 +43,7 @@ public class ResourceNotFoundException extends DeviationAwareRuntimeException {
     public ResourceNotFoundException() {
     }
 
-    public ResourceNotFoundException(DeviationAwareException e) {
+    public <TD extends Throwable & DeviationAware> ResourceNotFoundException(TD e) {
         super(e, e.getErrorDeviation(), e.getWarningDeviations());
     }
 

@@ -26,12 +26,14 @@
 package org.niis.xroad.securityserver.restapi.service;
 
 import ee.ria.xroad.common.CodedException;
+import ee.ria.xroad.common.ErrorCodes;
 import ee.ria.xroad.common.certificateprofile.DnFieldDescription;
 import ee.ria.xroad.common.certificateprofile.impl.DnFieldDescriptionImpl;
 import ee.ria.xroad.common.conf.globalconf.ApprovedCAInfo;
 import ee.ria.xroad.common.conf.globalconf.GlobalConfProvider;
 import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.signer.SignerProxy;
+import ee.ria.xroad.signer.exception.SignerException;
 import ee.ria.xroad.signer.protocol.dto.CertRequestInfo;
 import ee.ria.xroad.signer.protocol.dto.CertRequestInfoProto;
 import ee.ria.xroad.signer.protocol.dto.CertificateInfo;
@@ -76,7 +78,6 @@ import java.util.HashSet;
 import java.util.List;
 
 import static ee.ria.xroad.common.ErrorCodes.SERVER_CLIENTPROXY_X;
-import static ee.ria.xroad.common.ErrorCodes.SIGNER_X;
 import static ee.ria.xroad.common.ErrorCodes.X_CERT_NOT_FOUND;
 import static ee.ria.xroad.common.ErrorCodes.X_CSR_NOT_FOUND;
 import static ee.ria.xroad.common.ErrorCodes.X_INTERNAL_ERROR;
@@ -257,7 +258,7 @@ public class TokenCertificateServiceTest {
             Object[] args = invocation.getArguments();
             String hash = (String) args[0];
             if (MISSING_CERTIFICATE_HASH.equals(hash)) {
-                throw new CodedException(TokenCertificateService.CERT_NOT_FOUND_FAULT_CODE);
+                throw new SignerException(ErrorCodes.X_CERT_NOT_FOUND);
             }
 
             return null;
@@ -267,7 +268,7 @@ public class TokenCertificateServiceTest {
             Object[] args = invocation.getArguments();
             String hash = (String) args[0];
             if (MISSING_CERTIFICATE_HASH.equals(hash)) {
-                throw new CodedException(TokenCertificateService.CERT_NOT_FOUND_FAULT_CODE);
+                throw new SignerException(ErrorCodes.X_CERT_NOT_FOUND);
             }
             return null;
         }).when(signerProxyFacade).activateCert(eq("certID"));
@@ -307,9 +308,8 @@ public class TokenCertificateServiceTest {
             if (GOOD_CSR_ID.equals(csrId)) {
                 return null;
             } else if (SIGNER_EXCEPTION_CSR_ID.equals(csrId)) {
-                throw CodedException.tr(X_CSR_NOT_FOUND,
-                                "csr_not_found", "Certificate request '%s' not found", csrId)
-                        .withPrefix(SIGNER_X);
+                throw SignerException.tr(X_CSR_NOT_FOUND,
+                        "csr_not_found", "Certificate request '%s' not found", csrId);
             } else if (CSR_NOT_FOUND_CSR_ID.equals(csrId)) {
                 throw new CsrNotFoundException("not found");
             } else {
@@ -501,9 +501,8 @@ public class TokenCertificateServiceTest {
                 .regenerateCertRequest(SIGN_KEY_ID, GOOD_SIGN_CSR_ID, CertificateRequestFormat.PEM);
     }
 
-    private CodedException signerException(String code) {
-        return CodedException.tr(code, "mock-translation", "mock-message")
-                .withPrefix(SIGNER_X);
+    private SignerException signerException(String code) {
+        return SignerException.tr(code, "mock-translation", "mock-message");
     }
 
     @Test

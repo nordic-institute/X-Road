@@ -33,6 +33,7 @@ import com.codeborne.selenide.WebElementCondition;
 import static com.codeborne.selenide.Condition.cssClass;
 import static com.codeborne.selenide.Condition.enabled;
 import static com.codeborne.selenide.Condition.focused;
+import static com.codeborne.selenide.Condition.or;
 import static com.codeborne.selenide.Condition.tagName;
 import static com.codeborne.selenide.Condition.value;
 import static com.codeborne.selenide.Condition.visible;
@@ -76,7 +77,7 @@ public final class VuetifyHelper {
 
         private Checkbox(final SelenideElement vuetifyCheckbox) {
             this.controlElement = vuetifyCheckbox.shouldBe(tagName(ROOT_TAG))
-                    .shouldHave(cssClass("v-checkbox"));
+                    .shouldHave(or("One of checkbox components", cssClass("v-checkbox"), cssClass("v-checkbox-btn")));
             this.input = this.controlElement.$x(INPUT_XPATH);
         }
 

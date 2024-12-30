@@ -31,8 +31,9 @@
   border-collapse: collapse;
 
   td {
-    height: 56px;
+    height: 52px;
     border-bottom: colors.$WarmGrey30 solid 1px;
+    font-size: 14px;
     padding-left: 16px;
   }
   th {
