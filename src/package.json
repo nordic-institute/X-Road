@@ -34,12 +34,12 @@
     "resize-observer-polyfill": "^1.5.1",
     "sass": "^1.83.0",
     "typescript": "~5.7.2",
-    "vite": "^6.0.3",
+    "vite": "^6.0.6",
     "vite-plugin-vuetify": "^2.0.4",
     "vitest": "^2.1.8",
     "vue-eslint-parser": "^9.4.3",
     "vue-i18n": "^10.0.5",
-    "vue-tsc": "^2.1.10"
+    "vue-tsc": "^2.2.0"
   },
   "pnpm": {
     "overrides": {
