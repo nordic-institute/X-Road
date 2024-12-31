@@ -24,8 +24,13 @@
    THE SOFTWARE.
  -->
 <template>
-  <v-container fluid class="xrd-view-common px-7" data-test="diagnostics-view">
-    <div class="xrd-view-title pt-6">{{ $t('tab.main.diagnostics') }}</div>
+  <v-container fluid class="xrd-view-common pa-7" data-test="diagnostics-view">
+    <div class="table-toolbar pb-3 pt-5">
+      <div class="xrd-view-title">{{ $t('tab.main.diagnostics') }}</div>
+      <div>
+        <DiagnosticsDownloadSystemInfoBtn />
+      </div>
+    </div>
     <v-row align="center" justify="center" class="fill-height elevation-0">
       <DiagnosticsJavaVersionCard />
 
@@ -66,9 +71,11 @@ import DiagnosticsOcspRespondersCard from '@/views/Diagnostics/DiagnosticsOcspRe
 import DiagnosticsBackupEncryptionCard from '@/views/Diagnostics/DiagonsticsBackupEncryptionCard.vue';
 import DiagnosticsMessageLogArchiveCard from '@/views/Diagnostics/DiagnosticsMessageLogArchiveCard.vue';
 import DiagnosticsMessageLogDatabaseCard from '@/views/Diagnostics/DiagnosticsMessageLogDatabaseCard.vue';
+import DiagnosticsDownloadSystemInfoBtn from '@/views/Diagnostics/DiagnosticsDownloadSystemInfoBtn.vue';
 
 export default defineComponent({
   components: {
+    DiagnosticsDownloadSystemInfoBtn,
     DiagnosticsJavaVersionCard,
     DiagnosticsMailNotificationCard,
     DiagnosticsGlobalConfigurationCard,
@@ -119,3 +126,13 @@ export default defineComponent({
   },
 });
 </script>
+<style lang="scss" scoped>
+.table-toolbar {
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+  align-items: flex-end;
+  width: 100%;
+  margin-bottom: 24px;
+}
+</style>
