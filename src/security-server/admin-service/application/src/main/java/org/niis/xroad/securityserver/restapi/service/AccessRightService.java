@@ -569,8 +569,6 @@ public class AccessRightService {
         newAccessRight.setRightsGiven(rightsGiven);
         clientType.getAcl().add(newAccessRight);
 
-        // clientRepository.merge(clientType);
-
         // return a dto
         return ServiceClientAccessRightDto.builder()
                 .serviceCode(endpoint.getServiceCode())
