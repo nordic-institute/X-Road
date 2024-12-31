@@ -158,6 +158,7 @@ export enum Permissions {
   VIEW_SYS_PARAMS = 'VIEW_SYS_PARAMS', // settings > system paramters tab
   VIEW_TSPS = 'VIEW_TSPS', // settings > system parameters > timestamping services
   CHANGE_SS_ADDRESS = 'CHANGE_SS_ADDRESS', // settings > system parameters > server address
+  DOWNLOAD_SYSTEM_INFO = 'DOWNLOAD_SYSTEM_INFO', // settings > system parameters > server address
 }
 
 export enum UsageTypes {

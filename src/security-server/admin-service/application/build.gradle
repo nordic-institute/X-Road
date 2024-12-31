@@ -50,6 +50,7 @@ dependencies {
     implementation(libs.logback.access){
         exclude group: 'org.apache.tomcat', module: 'tomcat-catalina'
     }
+    implementation 'com.github.oshi:oshi-core:6.6.5'
 
     testImplementation(platform(libs.springBoot.bom))
     testImplementation(project(":common:common-test"))
