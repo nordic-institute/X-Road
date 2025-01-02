@@ -24,6 +24,10 @@
  */
 package org.niis.xroad.securityserver.restapi.service;
 
+import ee.ria.xroad.common.util.process.ExternalProcessRunner;
+import ee.ria.xroad.common.util.process.ProcessFailedException;
+import ee.ria.xroad.common.util.process.ProcessNotExecutableException;
+
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -32,11 +36,6 @@ import org.springframework.stereotype.Component;
 import oshi.SystemInfo;
 import oshi.software.os.OSProcess;
 
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.InputStreamReader;
-import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -50,18 +49,15 @@ import java.util.stream.Collectors;
 
 @Slf4j
 @Component
+@RequiredArgsConstructor
 public class OSHelper {
     private static final Map<String, String> JAR2PACKAGE;
 
     private static final Pattern XRD_JAR_PATTERN = Pattern.compile("/usr/share/xroad/jlib/(\\w+/)*(?<name>[\\w.-]+\\.jar)");
     private static final String JAR_GROUP_NAME = "name";
-    private static final String XRD_PREFIX = "xroad-";
     private static final String JAVA_PROCESS = "java";
+    private static final String PKG_LIST_SCRIPT_PATH = "/usr/share/xroad/scripts/list-installed-xrd-packages.sh";
     private static final String NAME_VERSION_SEPARATOR = "##";
-    private static final String DEB_FORMAT = "${Package}" + NAME_VERSION_SEPARATOR + "${Version}\\n";
-    private static final String RPM_FORMAT = "%{NAME}" + NAME_VERSION_SEPARATOR + "%{VERSION}\\n'";
-    private static final Path DPKG = Paths.get("/usr/bin/dpkg");
-    private static final Path RPM = Paths.get("/usr/bin/rpm");
 
     static {
         var map = new HashMap<String, String>();
@@ -101,6 +97,7 @@ public class OSHelper {
     }
 
     private final SystemInfo systemInfo = new SystemInfo();
+    private final ExternalProcessRunner externalProcessRunner;
 
     public PackagesDetails getXRoadPackagesDetails() {
         var packages = getInstalledXRoadPackages();
@@ -129,35 +126,22 @@ public class OSHelper {
     }
 
     private List<Package> getInstalledXRoadPackages() {
-        String[] command = switch (detectPackageManager()) {
-            case DEB -> new String[]{"dpkg-query", "-W", "-f", DEB_FORMAT};
-            case RPM -> new String[]{"rpm", "-qa", "--qf", RPM_FORMAT};
-            case UNKNOWN -> throw new OSException("Unsupported package manager");
-        };
-
-        ProcessBuilder pb = new ProcessBuilder(command);
-        pb.redirectErrorStream(true);
 
         try {
-            Process process = pb.start();
-
-            try (var reader = new BufferedReader(new InputStreamReader(process.getInputStream()))) {
-                var lines = reader.lines().toList();
-
-                int exitCode = process.waitFor();
-                if (exitCode != 0) {
-                    throw new OSException("Read failed with exit code: " + exitCode);
-                }
-                return lines.stream()
-                        .map(line -> line.split(NAME_VERSION_SEPARATOR))
-                        .filter(parts -> parts.length == 2)
-                        .filter(parts -> StringUtils.startsWithIgnoreCase(parts[0], XRD_PREFIX))
-                        .map(parts -> new Package(parts[0], parts[1]))
-                        .toList();
+            var result = externalProcessRunner.executeAndThrowOnFailure(PKG_LIST_SCRIPT_PATH);
+            if (result.getExitCode() != 0) {
+                throw new OSException("Read failed with exit code: " + result.getExitCode());
             }
 
-        } catch (IOException e) {
-            throw new OSException("Failed to collect installed packages list", e);
+            return result.getProcessOutput().stream()
+                    .map(line -> line.split(NAME_VERSION_SEPARATOR))
+                    .filter(parts -> parts.length == 2)
+                    .map(parts -> new Package(parts[0], parts[1]))
+                    .toList();
+
+
+        } catch (ProcessFailedException | ProcessNotExecutableException e) {
+            throw new OSException("Read of installed X-Road packages failed", e);
         } catch (InterruptedException e) {
             Thread.currentThread().interrupt();
             throw new OSException("Read of installed packages was interrupted", e);
@@ -167,16 +151,6 @@ public class OSHelper {
     public OSDetails getOsDetails() {
         var os = systemInfo.getOperatingSystem();
         return new OSDetails(os.getFamily(), os.getVersionInfo().toString());
-    }
-
-    private PackageManager detectPackageManager() {
-        if (DPKG.toFile().exists()) {
-            return PackageManager.DEB;
-        } else if (RPM.toFile().exists()) {
-            return PackageManager.RPM;
-        } else {
-            return PackageManager.UNKNOWN;
-        }
     }
 
     @RequiredArgsConstructor
@@ -200,8 +174,6 @@ public class OSHelper {
 
     public record OSDetails(String name, String version) {
     }
-
-    enum PackageManager { DEB, RPM, UNKNOWN; }
 
     public static class OSException extends RuntimeException {
 
