@@ -27,7 +27,7 @@
 <template>
   <div>
     <div data-test="certification-services">
-      <titled-view title-key="trustServices.certificationServices">
+      <xrd-titled-view title-key="trustServices.certificationServices">
         <template #header-buttons>
           <xrd-button
             v-if="showAddCSButton"
@@ -78,7 +78,7 @@
             <custom-data-table-footer />
           </template>
         </v-data-table>
-      </titled-view>
+      </xrd-titled-view>
     </div>
 
     <timestamping-services-list v-if="showTsaList" class="tsa-list" />
@@ -104,14 +104,14 @@ import { ApprovedCertificationServiceListItem } from '@/openapi-types';
 import TimestampingServicesList from '@/components/timestampingServices/TimestampingServicesList.vue';
 import DateTime from '@/components/ui/DateTime.vue';
 import { DataTableHeader } from '@/ui-types';
-import TitledView from '@/components/ui/TitledView.vue';
 import CustomDataTableFooter from '@/components/ui/CustomDataTableFooter.vue';
+import { XrdTitledView } from '@niis/shared-ui';
 
 export default defineComponent({
   name: 'TrustServiceList',
   components: {
+    XrdTitledView,
     CustomDataTableFooter,
-    TitledView,
     DateTime,
     AddCertificationServiceDialog,
     TimestampingServicesList,

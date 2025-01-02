@@ -26,7 +26,7 @@
  -->
 <template>
   <details-view id="certification-service-view" :back-to="backTo">
-    <titled-view
+    <xrd-titled-view
       :title="certificationServiceStore.currentCertificationService?.name"
     >
       <template #header-buttons>
@@ -42,7 +42,7 @@
         :tabs="certificationServiceNavigationTabs"
       ></PageNavigation>
       <router-view />
-    </titled-view>
+    </xrd-titled-view>
   </details-view>
 </template>
 
@@ -53,14 +53,14 @@ import { Colors, Permissions, RouteName } from '@/global';
 import { mapStores } from 'pinia';
 import { useCertificationService } from '@/store/modules/trust-services';
 import DetailsView from '@/components/ui/DetailsView.vue';
-import TitledView from '@/components/ui/TitledView.vue';
+import { XrdTitledView } from '@niis/shared-ui';
 
 /**
  * Wrapper component for a certification service view
  */
 export default defineComponent({
   name: 'CertificationService',
-  components: { TitledView, DetailsView, PageNavigation },
+  components: { XrdTitledView, DetailsView, PageNavigation },
   props: {
     certificationServiceId: {
       type: Number,

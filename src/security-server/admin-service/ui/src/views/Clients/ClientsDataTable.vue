@@ -24,39 +24,35 @@
    THE SOFTWARE.
  -->
 <template>
-  <v-container fluid class="xrd-view-common pa-7">
-    <div class="table-toolbar pb-3 pt-5">
-      <div class="xrd-title-search">
-        <div class="xrd-view-title">{{ $t('tab.main.clients') }}</div>
+  <XrdTitledView title-key="tab.main.clients">
+    <template #append-title>
+      <xrd-search v-model="search" class="mb-1 ml-5" />
+    </template>
+    <template #header-buttons>
+      <xrd-button
+        v-if="showAddMember"
+        data-test="add-member-button"
+        class="add-member"
+        outlined
+        @click="addMember"
+      >
+        <xrd-icon-base class="xrd-large-button-icon">
+          <xrd-icon-add />
+        </xrd-icon-base>
 
-        <xrd-search v-model="search" />
-      </div>
-      <div>
-        <xrd-button
-          v-if="showAddMember"
-          data-test="add-member-button"
-          class="add-member"
-          outlined
-          @click="addMember"
-        >
-          <xrd-icon-base class="xrd-large-button-icon">
-            <xrd-icon-add />
-          </xrd-icon-base>
-
-          {{ $t('action.addMember') }}
-        </xrd-button>
-        <xrd-button
-          v-if="showAddClient"
-          data-test="add-client-button"
-          @click="addClient"
-        >
-          <xrd-icon-base class="xrd-large-button-icon">
-            <xrd-icon-add />
-          </xrd-icon-base>
-          {{ $t('action.addClient') }}
-        </xrd-button>
-      </div>
-    </div>
+        {{ $t('action.addMember') }}
+      </xrd-button>
+      <xrd-button
+        v-if="showAddClient"
+        data-test="add-client-button"
+        @click="addClient"
+      >
+        <xrd-icon-base class="xrd-large-button-icon">
+          <xrd-icon-add />
+        </xrd-icon-base>
+        {{ $t('action.addClient') }}
+      </xrd-button>
+    </template>
 
     <!-- @vue-ignore -->
     <v-data-table
@@ -87,11 +83,11 @@
             v-if="canOpenClient"
             class="member-name identifier-wrap clickable"
             @click="openClient(item)"
-            >{{ item.visibleName }}
+          >{{ item.visibleName }}
             <span class="owner-box">{{ $t('client.owner') }}</span></span
           >
           <span v-else class="member-name identifier-wrap owner-box"
-            >{{ item.visibleName }} {{ $t('client.owner') }}</span
+          >{{ item.visibleName }} {{ $t('client.owner') }}</span
           >
         </template>
         <!-- Name - Member -->
@@ -106,11 +102,11 @@
             v-if="canOpenClient"
             class="member-name identifier-wrap clickable"
             @click="openClient(item)"
-            >{{ item.visibleName }}</span
+          >{{ item.visibleName }}</span
           >
           <span v-else class="name identifier-wrap">{{
-            item.visibleName
-          }}</span>
+              item.visibleName
+            }}</span>
         </template>
         <!-- Name - virtual member -->
         <template
@@ -124,8 +120,8 @@
           </xrd-icon-base>
 
           <span class="identifier-wrap member-name">{{
-            item.visibleName
-          }}</span>
+              item.visibleName
+            }}</span>
         </template>
         <!-- Name - Subsystem -->
         <template v-else>
@@ -133,7 +129,7 @@
             v-if="canOpenClient"
             class="name identifier-wrap clickable"
             @click="openSubsystem(item)"
-            >{{ item.visibleName }}</span
+          >{{ item.visibleName }}</span
           >
           <span v-else class="name">{{ item.visibleName }}</span>
         </template>
@@ -177,7 +173,7 @@
             text
             :outlined="false"
             @click="registerClient(item)"
-            >{{ $t('action.register') }}
+          >{{ $t('action.register') }}
           </xrd-button>
         </div>
       </template>
@@ -201,7 +197,8 @@
       @cancel="confirmRegisterClient = false"
       @accept="registerAccepted(selectedClient)"
     />
-  </v-container>
+
+  </XrdTitledView>
 </template>
 
 <script lang="ts">
@@ -211,7 +208,7 @@
  */
 import { defineComponent } from 'vue';
 import ClientStatus from './ClientStatus.vue';
-import { Permissions, RouteName, ClientTypes } from '@/global';
+import { ClientTypes, Permissions, RouteName } from '@/global';
 import { createClientId } from '@/util/helpers';
 import { DataTableHeader, ExtendedClient } from '@/ui-types';
 import * as api from '@/util/api';
