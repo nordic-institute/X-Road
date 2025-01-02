@@ -52,10 +52,6 @@ public class MessageAttachment {
 
     @Getter
     @Setter
-    private MessageRecord logRecord;
-
-    @Getter
-    @Setter
     private Integer attachmentNo;
 
     @Getter
@@ -65,8 +61,7 @@ public class MessageAttachment {
     @Setter
     private transient Cipher attachmentCipher;
 
-    public MessageAttachment(MessageRecord logRecord, Integer attachmentNo, Blob attachment) {
-        this.logRecord = logRecord;
+    public MessageAttachment(Integer attachmentNo, Blob attachment) {
         this.attachmentNo = attachmentNo;
         this.attachment = attachment;
     }

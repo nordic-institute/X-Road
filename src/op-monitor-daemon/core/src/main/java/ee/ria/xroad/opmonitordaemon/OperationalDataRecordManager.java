@@ -28,7 +28,10 @@ package ee.ria.xroad.opmonitordaemon;
 import ee.ria.xroad.common.db.HibernateUtil;
 import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.opmonitoring.OpMonitoringSystemProperties;
+import ee.ria.xroad.opmonitordaemon.entity.OperationalDataRecordEntity;
+import ee.ria.xroad.opmonitordaemon.mapper.OperationalDataRecordMapper;
 
+import lombok.RequiredArgsConstructor;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 import org.hibernate.Session;
@@ -88,18 +91,16 @@ final class OperationalDataRecordManager {
     }
 
     private static Void storeInTransaction(Session session, List<OperationalDataRecord> records, long timestamp) {
-        int storedCount = 0;
-        int batchSize = getConfiguredBatchSize(session);
+        var sessionFlusher = new SessionFlusher(session, getConfiguredBatchSize(session));
 
-        for (OperationalDataRecord record : records) {
-            record.setMonitoringDataTs(timestamp);
-            session.save(record);
+        records.stream()
+                .map(OperationalDataRecordMapper.get()::toEntity)
+                .forEach(record -> {
+                    record.setMonitoringDataTs(timestamp);
+                    session.persist(record);
 
-            if (++storedCount % batchSize == 0) {
-                session.flush();
-                session.clear();
-            }
-        }
+                    sessionFlusher.flushIfReady();
+                });
 
         return null;
     }
@@ -113,10 +114,10 @@ final class OperationalDataRecordManager {
     }
 
     private static OperationalDataRecords queryAllOperationalDataInTransaction(Session session) {
-        final Query<OperationalDataRecord> query =
-                session.createQuery("SELECT r FROM OperationalDataRecord r", OperationalDataRecord.class)
+        final Query<OperationalDataRecordEntity> query =
+                session.createQuery("SELECT r FROM OperationalDataRecordEntity r", OperationalDataRecordEntity.class)
                         .setReadOnly(true);
-        return new OperationalDataRecords(query.getResultList());
+        return new OperationalDataRecords(OperationalDataRecordMapper.get().toDTOs(query.getResultList()));
     }
 
     /**
@@ -131,7 +132,6 @@ final class OperationalDataRecordManager {
      * @param outputFields          list of the requested operational data field
      * @return operational data records.
      */
-    @SuppressWarnings("unchecked")
     private static OperationalDataRecords queryOperationalDataInTransaction(Session session, long recordsFrom,
                                                                             long recordsTo, ClientId clientFilter,
                                                                             ClientId serviceProviderFilter,
@@ -194,5 +194,21 @@ final class OperationalDataRecordManager {
         query.setMaxRecords(1);
 
         return !query.list().isEmpty();
+    }
+
+    @RequiredArgsConstructor
+    private static final class SessionFlusher {
+        private final Session session;
+        private final int batchSize;
+        private int count = 0;
+
+        public void flushIfReady() {
+            count++;
+
+            if (count % batchSize == 0) {
+                session.flush();
+                session.clear();
+            }
+        }
     }
 }

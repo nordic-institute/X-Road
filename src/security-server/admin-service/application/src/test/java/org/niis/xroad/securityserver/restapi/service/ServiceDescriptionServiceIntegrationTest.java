@@ -496,13 +496,15 @@ public class ServiceDescriptionServiceIntegrationTest extends AbstractServiceInt
 
         ServiceDescriptionType serviceDescription1 = createServiceDescription(clientType, "wsdl1");
         ServiceType serviceV1 = createServiceType("foo-service", "foo", "v1");
+        serviceV1.setServiceDescription(serviceDescription1);
         serviceDescription1.getService().add(serviceV1);
-        serviceDescriptionRepository.saveOrUpdate(serviceDescription1);
+        serviceDescriptionRepository.persist(serviceDescription1);
 
         ServiceDescriptionType serviceDescription2 = createServiceDescription(clientType, "wsdl2");
         ServiceType serviceV2 = createServiceType("foo-service", "foo", "v2");
+        serviceV2.setServiceDescription(serviceDescription2);
         serviceDescription2.getService().add(serviceV2);
-        serviceDescriptionRepository.saveOrUpdate(serviceDescription2);
+        serviceDescriptionRepository.persist(serviceDescription2);
 
         EndpointType endpointType = new EndpointType("foo", ANY_METHOD, ANY_PATH, true);
         clientType.getEndpoint().add(endpointType);

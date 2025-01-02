@@ -254,7 +254,7 @@ public class ServiceService {
                     + "exists for this client");
         }
         client.getEndpoint().add(endpointType);
-        clientRepository.saveOrUpdate(client);
+        clientRepository.merge(client, false);
         return endpointType;
     }
 }

@@ -31,7 +31,6 @@ import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.message.AttachmentStream;
 import ee.ria.xroad.common.signature.SignatureData;
 
-import lombok.AccessLevel;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -55,7 +54,7 @@ import static java.util.function.Predicate.not;
 @Slf4j
 @ToString(callSuper = true, exclude = {"attachments", "attachmentStreams", "messageCipher"})
 @EqualsAndHashCode(callSuper = true, exclude = {"attachments"})
-@NoArgsConstructor(access = AccessLevel.PROTECTED)
+@NoArgsConstructor
 public class MessageRecord extends AbstractLogRecord {
 
     @Getter
@@ -121,6 +120,7 @@ public class MessageRecord extends AbstractLogRecord {
     @Setter
     private String keyId;
 
+    @Getter
     private byte[] cipherMessage;
 
     @Setter
@@ -191,7 +191,7 @@ public class MessageRecord extends AbstractLogRecord {
     }
 
     public MessageAttachment addAttachment(int attachmentNo, Blob attachment) {
-        MessageAttachment messageAttachment = new MessageAttachment(this, attachmentNo, attachment);
+        MessageAttachment messageAttachment = new MessageAttachment(attachmentNo, attachment);
         attachments.add(messageAttachment);
         return messageAttachment;
     }

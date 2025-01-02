@@ -6,9 +6,7 @@
 <hibernate-configuration>
   <session-factory>
       <property name="hikari.maximumPoolSize">4</property>
-      <!--TODO Migrate to newer strategies -->
-      <property name="hibernate.id.db_structure_naming_strategy">legacy</property>
-      <!--TODO Migrate hbm.xml to orm.xml or mapping xml -->
-      <mapping resource="op-monitor.hbm.xml"/>
+      <property name="hibernate.id.db_structure_naming_strategy">single</property>
+      <mapping class="ee.ria.xroad.opmonitordaemon.entity.OperationalDataRecordEntity"/>
   </session-factory>
 </hibernate-configuration>

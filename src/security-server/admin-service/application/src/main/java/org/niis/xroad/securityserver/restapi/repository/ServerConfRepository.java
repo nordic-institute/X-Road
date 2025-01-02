@@ -57,7 +57,6 @@ public class ServerConfRepository {
      * @return
      */
     public ServerConfType saveOrUpdate(ServerConfType serverConfType) {
-        persistenceUtils.getCurrentSession().saveOrUpdate(serverConfType);
-        return serverConfType;
+        return persistenceUtils.getCurrentSession().merge(serverConfType);
     }
 }

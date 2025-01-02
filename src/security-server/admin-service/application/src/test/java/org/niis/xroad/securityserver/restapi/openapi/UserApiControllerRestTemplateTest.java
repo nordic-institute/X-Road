@@ -37,7 +37,6 @@ import org.springframework.security.test.context.support.WithMockUser;
 
 import java.util.Arrays;
 import java.util.List;
-import java.util.stream.Collectors;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
@@ -70,7 +69,7 @@ public class UserApiControllerRestTemplateTest extends AbstractApiControllerTest
 
         assertFalse(response.getBody().getRoles().isEmpty());
         List<String> allRoleNames = Arrays.stream(Role.values())
-                .map(Role::getGrantedAuthorityName).collect(Collectors.toList());
+                .map(Role::getGrantedAuthorityName).toList();
 
         assertTrue(allRoleNames.containsAll(response.getBody().getRoles()));
         assertTrue(response.getBody().getPermissions().contains("VIEW_CLIENTS"));

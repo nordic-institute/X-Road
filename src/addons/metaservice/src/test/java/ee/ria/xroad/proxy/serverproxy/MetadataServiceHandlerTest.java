@@ -695,7 +695,7 @@ public class MetadataServiceHandlerTest {
         client.getServiceDescription().add(wsdl);
 
         doInTransaction(session -> {
-            session.save(conf);
+            session.persist(conf);
             return null;
         });
 
