@@ -48,8 +48,8 @@ import org.niis.xroad.securityserver.restapi.openapi.model.GlobalConfDiagnostics
 import org.niis.xroad.securityserver.restapi.openapi.model.MessageLogEncryptionStatus;
 import org.niis.xroad.securityserver.restapi.openapi.model.OcspResponderDiagnostics;
 import org.niis.xroad.securityserver.restapi.openapi.model.TimestampingServiceDiagnostics;
+import org.niis.xroad.securityserver.restapi.service.DiagnosticReportService;
 import org.niis.xroad.securityserver.restapi.service.DiagnosticService;
-import org.niis.xroad.securityserver.restapi.service.SystemInformationService;
 import org.springframework.core.io.Resource;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -75,7 +75,7 @@ public class DiagnosticsApiController implements DiagnosticsApi {
     private static final DateTimeFormatter FORMATTER = DateTimeFormatter.ofPattern("yyyyMMddHHmmss");
 
     private final DiagnosticService diagnosticService;
-    private final SystemInformationService systemInformationService;
+    private final DiagnosticReportService diagnosticReportService;
     private final GlobalConfDiagnosticConverter globalConfDiagnosticConverter;
     private final TimestampingServiceDiagnosticConverter timestampingServiceDiagnosticConverter;
     private final OcspResponderDiagnosticConverter ocspResponderDiagnosticConverter;
@@ -110,7 +110,7 @@ public class DiagnosticsApiController implements DiagnosticsApi {
     @PreAuthorize("hasAnyAuthority('DOWNLOAD_SYSTEM_INFO')")
     public ResponseEntity<Resource> downloadSystemInformation() {
         try {
-            return ControllerUtil.createAttachmentResourceResponse(systemInformationService.collectSystemInformation(),
+            return ControllerUtil.createAttachmentResourceResponse(diagnosticReportService.collectSystemInformation(),
                     systemInformationFilename());
         } catch (Exception e) {
             throw new ServiceException(ErrorMessage.FAILED_COLLECT_SYSTEM_INFORMATION, e);
@@ -144,6 +144,6 @@ public class DiagnosticsApiController implements DiagnosticsApi {
     }
 
     private String systemInformationFilename() {
-        return "system-information-%s.json".formatted(FORMATTER.format(LocalDateTime.now()));
+        return "diagnostic-report-%s.json".formatted(FORMATTER.format(LocalDateTime.now()));
     }
 }
