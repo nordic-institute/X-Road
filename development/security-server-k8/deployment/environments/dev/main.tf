@@ -77,6 +77,24 @@ module "ca_service_bridge" {
   ]
 }
 
+module "ss0_service_bridge" {
+  source        = "../../modules/external_service_bridge"
+  namespace     = "ss"
+  name          = "xrd-ss0"
+  external_host = "host.docker.internal"
+  ports = [
+    {
+      name       = "proxy"
+      port       = 5500
+      targetPort = 3230
+    },
+    {
+      name       = "proxy-ocsp"
+      port       = 5577
+      targetPort = 3240
+    },
+  ]
+}
 module "xroad" {
   source = "../../xroad"
 

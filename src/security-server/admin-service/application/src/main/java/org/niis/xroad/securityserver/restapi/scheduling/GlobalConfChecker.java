@@ -36,7 +36,7 @@ import ee.ria.xroad.common.identifier.SecurityServerId;
 import ee.ria.xroad.common.util.CertUtils;
 import ee.ria.xroad.common.util.CryptoUtils;
 import ee.ria.xroad.signer.SignerRpcClient;
-import ee.ria.xroad.signer.protocol.dto.AuthKeyInfo;
+import ee.ria.xroad.signer.protocol.dto.AuthKeyCertInfo;
 import ee.ria.xroad.signer.protocol.dto.CertificateInfo;
 import ee.ria.xroad.signer.protocol.dto.KeyUsageInfo;
 
@@ -225,9 +225,9 @@ public class GlobalConfChecker {
     private X509Certificate getAuthCert(SecurityServerId serverId) throws Exception {
         log.debug("Get auth cert for security server '{}'", serverId);
 
-        AuthKeyInfo keyInfo = signerRpcClient.getAuthKey(serverId);
-        if (keyInfo != null && keyInfo.getCert() != null) {
-            return CryptoUtils.readCertificate(keyInfo.getCert().getCertificateBytes());
+        AuthKeyCertInfo keyInfo = signerRpcClient.getAuthKeyCert(serverId);
+        if (keyInfo != null && keyInfo.cert() != null) {
+            return CryptoUtils.readCertificate(keyInfo.cert().getCertificateBytes());
         }
         log.warn("Failed to read authentication key");
         return null;

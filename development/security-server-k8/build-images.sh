@@ -1,6 +1,7 @@
 #!/bin/bash
 
-./init_image/build-initializer.sh
+echo "Building init-runner"
+docker build --tag init-runner init_image/
 
 echo "Building serverconf-init"
 docker build --tag xroad-ss-serverconf-init \

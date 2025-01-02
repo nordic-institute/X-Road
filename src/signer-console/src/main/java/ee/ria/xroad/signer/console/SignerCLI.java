@@ -34,7 +34,7 @@ import ee.ria.xroad.common.identifier.SecurityServerId;
 import ee.ria.xroad.common.util.CryptoUtils;
 import ee.ria.xroad.signer.SignerRpcClient;
 import ee.ria.xroad.signer.SignerRpcClient.GeneratedCertRequestInfo;
-import ee.ria.xroad.signer.protocol.dto.AuthKeyInfo;
+import ee.ria.xroad.signer.protocol.dto.AuthKeyCertInfo;
 import ee.ria.xroad.signer.protocol.dto.CertificateInfo;
 import ee.ria.xroad.signer.protocol.dto.KeyInfo;
 import ee.ria.xroad.signer.protocol.dto.KeyUsageInfo;
@@ -403,12 +403,11 @@ public class SignerCLI implements CommandLineRunner {
     public void getAuthenticationKey(@Param(name = "clientId", description = "Member identifier") ClientId clientId,
                                      @Param(name = "serverCode", description = "Security server code") String serverCode) throws Exception {
         SecurityServerId serverId = SecurityServerId.Conf.create(clientId, serverCode);
-        AuthKeyInfo authKey = signerRpcClient.getAuthKey(serverId);
+        AuthKeyCertInfo authKey = signerRpcClient.getAuthKeyCert(serverId);
 
         System.out.println("Auth key:");
-        System.out.println("\tAlias:\t" + authKey.getAlias());
-        System.out.println("\tKeyStore:\t" + authKey.getKeyStoreFileName());
-        System.out.println("\tCert:   " + authKey.getCert());
+        System.out.println("\tAlias:\t" + authKey.alias());
+        System.out.println("\tCert:   " + authKey.cert());
     }
 
     /**

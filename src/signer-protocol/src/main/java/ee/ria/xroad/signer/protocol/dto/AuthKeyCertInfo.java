@@ -23,16 +23,13 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package ee.ria.xroad.common.conf.globalconf;
+package ee.ria.xroad.signer.protocol.dto;
 
-import ee.ria.xroad.common.cert.CertChain;
-
-import java.security.PrivateKey;
+import java.io.Serializable;
 
 /**
- * Value object representing the authentication key of the security server
- * It consists of the certificate chain and private key.
+ * Authentication key info DTO.
  */
-public record AuthKey(CertChain certChain, PrivateKey key) {
+public record AuthKeyCertInfo(String alias, CertificateInfo cert) implements Serializable {
 
 }

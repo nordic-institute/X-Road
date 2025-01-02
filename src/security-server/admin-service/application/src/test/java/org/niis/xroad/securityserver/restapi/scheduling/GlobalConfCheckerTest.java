@@ -32,7 +32,7 @@ import ee.ria.xroad.common.conf.serverconf.model.ClientType;
 import ee.ria.xroad.common.conf.serverconf.model.TspType;
 import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.identifier.SecurityServerId;
-import ee.ria.xroad.signer.protocol.dto.AuthKeyInfo;
+import ee.ria.xroad.signer.protocol.dto.AuthKeyCertInfo;
 import ee.ria.xroad.signer.protocol.dto.CertificateInfo;
 import ee.ria.xroad.signer.protocol.dto.KeyInfo;
 import ee.ria.xroad.signer.protocol.dto.KeyUsageInfo;
@@ -162,8 +162,8 @@ public class GlobalConfCheckerTest extends AbstractFacadeMockingTestContext {
         tokens.put(tokenInfo.getId(), tokenInfo);
 
         when(signerRpcClient.getTokens()).thenReturn(new ArrayList<>(tokens.values()));
-        when(signerRpcClient.getAuthKey(any())).thenReturn(new AuthKeyInfo(
-                KEY_AUTH_ID, null, null, certificateInfo));
+        when(signerRpcClient.getAuthKeyCert(any())).thenReturn(new AuthKeyCertInfo(
+                KEY_AUTH_ID, certificateInfo));
     }
 
     @Test

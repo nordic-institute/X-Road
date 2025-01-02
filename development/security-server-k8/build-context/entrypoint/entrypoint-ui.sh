@@ -8,4 +8,5 @@ XROAD_SCRIPT_LOCATION=/opt/app/scripts
 log "Generating new SSL key and certificate for the admin UI"
 "$XROAD_SCRIPT_LOCATION/generate_certificate.sh" -c /opt/app/scripts/ -n proxy-ui-api -f -S -p 2>&1 >/dev/null | sed 's/^/   /'
 
-exec java -jar /opt/app/application.jar
+JVM_OPTS="-Xdebug -agentlib:jdwp=transport=dt_socket,address=*:9999,server=y,suspend=n"
+exec java $JVM_OPTS -jar /opt/app/application.jar

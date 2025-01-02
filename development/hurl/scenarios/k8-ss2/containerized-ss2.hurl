@@ -306,7 +306,7 @@ HTTP 200
 
 # grant access right to ss2-subsystem for services on SS0
 # login to ss0
-POST https://{{ss0_host}}:4000/login
+POST https://{{ss0_host}}:{{ss0_port}}/login
 [FormParams]
 username: xrd
 password: secret
@@ -315,7 +315,7 @@ HTTP 200
 [Captures]
 ss0_xsrf_token: cookie "XSRF-TOKEN"
 
-POST https://{{ss2_host}}:4000/api/v1/clients/DEV%3ACOM%3A1234%3ATestService/service-clients/DEV%3AORG%3ASS2-Member%3Ass2-subsystem/access-rights
+POST https://{{ss0_host}}:{{ss0_port}}/api/v1/clients/DEV%3ACOM%3A1234%3ATestService/service-clients/DEV%3AORG%3ASS2-Member%3Ass2-subsystem/access-rights
 X-XSRF-TOKEN: {{ss0_xsrf_token}}
 {
   "items": [

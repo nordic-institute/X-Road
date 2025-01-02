@@ -3,13 +3,21 @@ container_ports:
     connect: "tcp:127.0.0.1:4000"
     listen: "tcp:0.0.0.0:{{ 3200 + (groups['ss_servers'].index(inventory_hostname) * 100) }}"
     type: proxy
-  proxy:
+  proxy_http:
     connect: "tcp:127.0.0.1:8080"
     listen: "tcp:0.0.0.0:{{ 3210 + (groups['ss_servers'].index(inventory_hostname) * 100) }}"
     type: proxy
   database:
     connect: "tcp:127.0.0.1:5432"
     listen: "tcp:0.0.0.0:{{ 3220 + (groups['ss_servers'].index(inventory_hostname) * 100) }}"
+    type: proxy
+  proxy:
+    connect: "tcp:127.0.0.1:5500"
+    listen: "tcp:0.0.0.0:{{ 3230 + (groups['ss_servers'].index(inventory_hostname) * 100) }}"
+    type: proxy
+  proxy_ocsp:
+    connect: "tcp:127.0.0.1:5577"
+    listen: "tcp:0.0.0.0:{{ 3240 + (groups['ss_servers'].index(inventory_hostname) * 100) }}"
     type: proxy
   proxy_debug:
     connect: "tcp:127.0.0.1:9999"

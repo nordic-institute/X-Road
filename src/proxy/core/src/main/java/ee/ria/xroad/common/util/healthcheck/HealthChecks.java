@@ -75,7 +75,7 @@ public class HealthChecks {
                 return failure("No authentication key available. Signer might be down.");
             }
 
-            CertChain certChain = authKey.getCertChain();
+            CertChain certChain = authKey.certChain();
 
             if (certChain == null) {
                 return failure("No certificate chain available in authentication key.");

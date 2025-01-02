@@ -43,6 +43,7 @@ import org.eclipse.edc.spi.monitor.Monitor;
 import org.eclipse.edc.spi.result.Result;
 import org.eclipse.edc.spi.types.domain.DataAddress;
 import org.eclipse.edc.transform.spi.TypeTransformerRegistry;
+import org.niis.xroad.edc.extension.policy.dataplane.util.Endpoint;
 import org.eclipse.jetty.http.HttpStatus;
 import org.niis.xroad.edc.extension.policy.dataplane.util.PolicyContextData;
 
@@ -74,16 +75,16 @@ public class XrdDataPlaneAccessControlService implements DataPlaneAccessControlS
         }
         var contractAgreement = contractAgreementResult.getContent();
 
-        String dataPath = "%s /%s".formatted(requestData.get("method"), requestData.get("resolvedPath"));
         String clientId = requestData.get("clientId").toString();
-        monitor.debug("Checking access for %s".formatted(dataPath));
+        var endpoint = new Endpoint(requestData.get("method").toString(), requestData.get("resolvedPath").toString());
+        monitor.debug("Checking access for endpoint: %s %s".formatted(endpoint.method(), endpoint.path()));
         var startTime = StopWatch.createStarted();
         var result = this.policyEngine.evaluate(XROAD_DATAPLANE_TRANSFER_SCOPE,
                 contractAgreement.getPolicy(),
                 PolicyContextImpl.Builder.newInstance()
-                        .additional(PolicyContextData.class, new PolicyContextData(clientId, dataPath))
+                        .additional(PolicyContextData.class, new PolicyContextData(clientId, endpoint))
                         .build());
-        monitor.debug("Access check for %s took %s ms".formatted(dataPath, startTime.getTime()));
+        monitor.debug("Access check for endpoint: %s %s took %s ms".formatted(endpoint.method(), endpoint.path(), startTime.getTime()));
         return result;
     }
 

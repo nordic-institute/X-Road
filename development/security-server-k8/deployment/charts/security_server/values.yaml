@@ -3,6 +3,11 @@ global:
   environment: dev
   dataSpacesEnabled: false
 
+#TODO for now this purely for temporary cert init
+serviceAccount:
+  name: "ss-init-sa"
+  create: true
+
 init:
   serverconf:
     image: xroad-ss-serverconf-init:latest
@@ -126,6 +131,14 @@ services:
       - name: "XROAD_SECRET_STORE_TOKEN"
         secretName: "xroad-token"
         key: "XROAD_SECRET_STORE_TOKEN"
+    volumeMounts:
+      - name: ssl-certs
+        mountPath: /etc/xroad/ssl
+        readOnly: false
+    volumes:
+      - name: ssl-certs
+        persistentVolumeClaim:
+          claimName: ss-ssl-certs
   proxy-ui-api:
     image: xroad-ss-ui:latest
     imagePullPolicy: Never
@@ -150,6 +163,14 @@ services:
       - name: "XROAD_SECRET_STORE_TOKEN"
         secretName: "xroad-token"
         key: "XROAD_SECRET_STORE_TOKEN"
+    volumeMounts:
+      - name: ssl-certs
+        mountPath: /etc/xroad/ssl
+        readOnly: false
+    volumes:
+      - name: ssl-certs
+        persistentVolumeClaim:
+          claimName: ss-ssl-certs
   messagelog-archiver:
     image: xroad-ss-messagelog-archiver:latest
     imagePullPolicy: Never

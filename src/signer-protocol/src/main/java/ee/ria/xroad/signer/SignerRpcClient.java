@@ -35,6 +35,7 @@ import ee.ria.xroad.common.crypto.identifier.SignMechanism;
 import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.identifier.SecurityServerId;
 import ee.ria.xroad.signer.protocol.Utils;
+import ee.ria.xroad.signer.protocol.dto.AuthKeyCertInfo;
 import ee.ria.xroad.signer.protocol.dto.AuthKeyInfo;
 import ee.ria.xroad.signer.protocol.dto.CertificateInfo;
 import ee.ria.xroad.signer.protocol.dto.KeyInfo;
@@ -97,6 +98,7 @@ import org.niis.xroad.signer.proto.TokenServiceGrpc;
 import org.niis.xroad.signer.proto.UpdateSoftwareTokenPinReq;
 import org.springframework.beans.factory.InitializingBean;
 
+import java.security.PrivateKey;
 import java.security.PublicKey;
 import java.security.cert.X509Certificate;
 import java.time.Instant;
@@ -107,6 +109,7 @@ import java.util.Map;
 import java.util.stream.Collectors;
 
 import static ee.ria.xroad.common.util.CertUtils.isAuthCert;
+import static ee.ria.xroad.common.util.CryptoUtils.loadPkcs12KeyStore;
 import static ee.ria.xroad.common.util.CryptoUtils.readCertificate;
 import static java.time.Instant.ofEpochMilli;
 import static java.util.Arrays.asList;
@@ -271,8 +274,8 @@ public final class SignerRpcClient extends AbstractRpcClient implements Initiali
     /**
      * Generate a new key for the token with the given ID.
      *
-     * @param tokenId  ID of the token
-     * @param keyLabel label of the key
+     * @param tokenId   ID of the token
+     * @param keyLabel  label of the key
      * @param algorithm algorithm to use, RSA or EC
      * @return generated key KeyInfo object
      * @throws Exception if any errors occur
@@ -696,6 +699,23 @@ public final class SignerRpcClient extends AbstractRpcClient implements Initiali
     }
 
     /**
+     * Get Security Server auth key certificate.
+     *
+     * @param serverId securityServerId
+     * @return authKeyInfo
+     * @throws Exception
+     */
+    public AuthKeyCertInfo getAuthKeyCert(SecurityServerId serverId) throws Exception {
+        var response = blockingKeyService.getAuthKeyCert(GetAuthKeyReq.newBuilder()
+                .setSecurityServer(SecurityServerIdMapper.toDto(serverId))
+                .build());
+
+        return new AuthKeyCertInfo(response.getAlias(),
+                new CertificateInfo(response.getCert()));
+    }
+
+
+    /**
      * Get Security Server auth key
      *
      * @param serverId securityServerId
@@ -707,10 +727,15 @@ public final class SignerRpcClient extends AbstractRpcClient implements Initiali
                 .setSecurityServer(SecurityServerIdMapper.toDto(serverId))
                 .build());
 
-        return new AuthKeyInfo(response.getAlias(),
-                response.getKeyStoreFileName(),
-                response.getPassword().toCharArray(),
-                new CertificateInfo(response.getCert()));
+        try (var keystoreStream = response.getKeyStore().newInput()) {
+            var password = response.getPassword().toCharArray();
+            var ks = loadPkcs12KeyStore(keystoreStream, password);
+            var privateKey = (PrivateKey) ks.getKey(response.getAlias(),
+                    password);
+            return new AuthKeyInfo(response.getAlias(),
+                   privateKey,
+                    new CertificateInfo(response.getCert()));
+        }
     }
 
     /**
