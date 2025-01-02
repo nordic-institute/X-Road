@@ -24,51 +24,53 @@
    THE SOFTWARE.
  -->
 <template>
-  <div class="title-and-search">
-    <div class="xrd-view-title">{{ $t('tab.keys.signAndAuthKeys') }}</div>
-    <help-button
-      :help-image="helpImage"
-      help-title="keys.helpTitleKeys"
-      help-text="keys.helpTextKeys"
-    ></help-button>
-    <div class="search-row">
-      <xrd-search v-model="search" />
-    </div>
-  </div>
+  <XrdTitledView title-key="tab.keys.signAndAuthKeys">
+    <template #appendTitle>
+      <help-button
+        :help-image="helpImage"
+        help-title="keys.helpTitleKeys"
+        help-text="keys.helpTextKeys" />
 
-  <XrdEmptyPlaceholder
-    :data="filtered"
-    :loading="loading"
-    :filtered="!!search && search.length > 0"
-    :no-items-text="$t('noData.noTokens')"
-    skeleton-type="table-heading"
-  />
+      <xrd-search v-model="search" class="ml-5 mb-1" />
+    </template>
+    <template #default>
+      <XrdEmptyPlaceholder
+        :data="filtered"
+        :loading="loading"
+        :filtered="!!search && search.length > 0"
+        :no-items-text="$t('noData.noTokens')"
+        skeleton-type="table-heading"
+      />
 
-  <template v-if="filtered && !loading">
-    <TokenExpandable
-      v-for="token in filtered"
-      :key="token.id"
-      :token="token"
-      @refresh-list="fetchData"
-      @token-logout="logoutDialog = true"
-      @token-login="loginDialog = true"
-      @add-key="addKey"
-    />
-  </template>
+      <template v-if="filtered && !loading">
+        <TokenExpandable
+          v-for="token in filtered"
+          class="tokens-table"
+          :key="token.id"
+          :token="token"
+          @refresh-list="fetchData"
+          @token-logout="logoutDialog = true"
+          @token-login="loginDialog = true"
+          @add-key="addKey"
+        />
+      </template>
 
-  <xrd-confirm-dialog
-    v-if="logoutDialog"
-    title="keys.logOutTitle"
-    text="keys.logOutText"
-    @cancel="logoutDialog = false"
-    @accept="acceptTokenLogout()"
-  />
+      <xrd-confirm-dialog
+        v-if="logoutDialog"
+        title="keys.logOutTitle"
+        text="keys.logOutText"
+        @cancel="logoutDialog = false"
+        @accept="acceptTokenLogout()"
+      />
 
-  <TokenLoginDialog
-    :dialog="loginDialog"
-    @cancel="loginDialog = false"
-    @save="tokenLogin"
-  />
+      <TokenLoginDialog
+        :dialog="loginDialog"
+        @cancel="loginDialog = false"
+        @save="tokenLogin"
+      />
+
+    </template>
+  </XrdTitledView>
 </template>
 
 <script lang="ts">
@@ -83,12 +85,7 @@ import { useNotifications } from '@/store/modules/notifications';
 import { useTokens } from '@/store/modules/tokens';
 import helpImage from '@/assets/keys_and_certificates.png';
 
-import {
-  Key,
-  Token,
-  TokenCertificate,
-  TokenCertificateSigningRequest,
-} from '@/openapi-types';
+import { Key, Token, TokenCertificate, TokenCertificateSigningRequest } from '@/openapi-types';
 import { deepClone } from '@/util/helpers';
 import { useCsr } from '@/store/modules/certificateSignRequest';
 
@@ -257,18 +254,7 @@ export default defineComponent({
 </script>
 
 <style lang="scss" scoped>
-.title-and-search {
-  display: flex;
-  flex-direction: row;
-  align-items: flex-end;
-  margin-bottom: 40px;
-}
-
-.search-row {
-  margin-left: 20px;
-  display: flex;
-  flex-direction: row;
-  justify-content: space-between;
-  align-items: center;
+.tokens-table {
+  width: 100%;
 }
 </style>

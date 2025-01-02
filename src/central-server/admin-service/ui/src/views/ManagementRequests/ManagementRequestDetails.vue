@@ -32,7 +32,7 @@
       :no-items-text="$t('noData.noData')"
       skeleton-type="table-heading"
     />
-    <titled-view v-if="managementRequest && !loading" :title="typeText">
+    <xrd-titled-view v-if="managementRequest && !loading" :title="typeText">
       <template v-if="managementRequest.status === 'WAITING'" #header-buttons>
         <xrd-button
           outlined
@@ -88,7 +88,7 @@
         @decline="decline"
         @cancel="showDeclineDialog = false"
       />
-    </titled-view>
+    </xrd-titled-view>
   </details-view>
 </template>
 
@@ -107,7 +107,7 @@ import MrInformation from '@/components/managementRequests/details/MrInformation
 import { useNotifications } from '@/store/modules/notifications';
 import DetailsView from '@/components/ui/DetailsView.vue';
 import { RouteName } from '@/global';
-import TitledView from '@/components/ui/TitledView.vue';
+import { XrdTitledView } from '@niis/shared-ui';
 
 /**
  * Wrapper component for a certification service view
@@ -115,7 +115,7 @@ import TitledView from '@/components/ui/TitledView.vue';
 export default defineComponent({
   name: 'ManagementRequestDetails',
   components: {
-    TitledView,
+    XrdTitledView,
     DetailsView,
     MrInformation,
     MrSecurityServerInformation,

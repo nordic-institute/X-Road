@@ -26,10 +26,10 @@
  -->
 <template>
   <details-view id="memberview" :back-to="backTo">
-    <titled-view :title="memberStore.currentMember.member_name">
+    <xrd-titled-view :title="memberStore.currentMember.member_name">
       <page-navigation :tabs="memberNavigationTabs" />
       <router-view />
-    </titled-view>
+    </xrd-titled-view>
   </details-view>
 </template>
 
@@ -42,13 +42,13 @@ import { Colors, Permissions, RouteName } from '@/global';
 import { mapStores } from 'pinia';
 import { useMember } from '@/store/modules/members';
 import DetailsView from '@/components/ui/DetailsView.vue';
-import TitledView from '@/components/ui/TitledView.vue';
+import { XrdTitledView } from '@niis/shared-ui';
 
 /**
  * Wrapper component for a member view
  */
 export default defineComponent({
-  components: { TitledView, DetailsView, PageNavigation },
+  components: { XrdTitledView, DetailsView, PageNavigation },
   props: {
     memberid: {
       type: String,

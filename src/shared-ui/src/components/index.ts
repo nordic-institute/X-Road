@@ -43,6 +43,7 @@ import XrdStatusIcon from './XrdStatusIcon.vue';
 import XrdSubViewContainer from './XrdSubViewContainer.vue';
 import XrdSubViewTitle from './XrdSubViewTitle.vue';
 import XrdTable from './XrdTable.vue';
+import XrdTitledView from './XrdTitledView.vue';
 
 export {
   XrdAlert,
@@ -62,5 +63,6 @@ export {
   XrdStatusIcon,
   XrdSubViewContainer,
   XrdSubViewTitle,
-  XrdTable
+  XrdTable,
+  XrdTitledView,
 };

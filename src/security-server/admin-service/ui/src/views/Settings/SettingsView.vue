@@ -24,11 +24,9 @@
    THE SOFTWARE.
  -->
 <template>
-  <div class="xrd-sub-view-wrapper" data-test="settings-tab-view">
-    <v-container fluid class="xrd-view-common mt-7">
-      <router-view />
-    </v-container>
-  </div>
+  <xrd-sub-view-container data-test="settings-tab-view">
+    <router-view />
+  </xrd-sub-view-container>
 </template>
 
 <script lang="ts">
