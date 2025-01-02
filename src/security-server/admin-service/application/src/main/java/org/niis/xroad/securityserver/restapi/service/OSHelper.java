@@ -28,7 +28,6 @@ import ee.ria.xroad.common.util.process.ExternalProcessRunner;
 import ee.ria.xroad.common.util.process.ProcessFailedException;
 import ee.ria.xroad.common.util.process.ProcessNotExecutableException;
 
-import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
@@ -37,21 +36,16 @@ import oshi.SystemInfo;
 import oshi.software.os.OSProcess;
 
 import java.util.Collection;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.LinkedList;
 import java.util.List;
-import java.util.Map;
-import java.util.function.Function;
+import java.util.regex.MatchResult;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-import java.util.stream.Collectors;
 
 @Slf4j
 @Component
 @RequiredArgsConstructor
 public class OSHelper {
-    private static final Map<String, String> JAR2PACKAGE;
+
 
     private static final Pattern XRD_JAR_PATTERN = Pattern.compile("/usr/share/xroad/jlib/(\\w+/)*(?<name>[\\w.-]+\\.jar)");
     private static final String JAR_GROUP_NAME = "name";
@@ -59,73 +53,18 @@ public class OSHelper {
     private static final String PKG_LIST_SCRIPT_PATH = "/usr/share/xroad/scripts/list-installed-xrd-packages.sh";
     private static final String NAME_VERSION_SEPARATOR = "##";
 
-    static {
-        var map = new HashMap<String, String>();
-        map.put("hwtoken-1.0.jar", "xroad-addon-hwtokens");
-
-        map.put("messagelog-archiver.jar", "xroad-addon-messagelog");
-        map.put("messagelog-archive-verifier.jar", "xroad-addon-messagelog");
-        map.put("asicverifier.jar", "xroad-addon-messagelog");
-        map.put("messagelog-addon.jar", "xroad-addon-messagelog");
-
-        map.put("metaservice-1.0.jar", "xroad-addon-metaservices");
-
-        map.put("op-monitoring-1.0.jar", "xroad-addon-opmonitoring");
-
-        map.put("proxymonitor-metaservice-1.0.jar", "xroad-addon-proxymonitor");
-
-        map.put("wsdlvalidator-1.0.jar", "xroad-addon-wsdlvalidator");
-
-        map.put("common-db.jar", "xroad-base");
-
-        map.put("configuration-client.jar", "xroad-confclient");
-
-        map.put("configuration-proxy.jar", "xroad-confproxy");
-
-        map.put("monitor.jar", "xroad-monitor");
-
-        map.put("op-monitor-daemon.jar", "xroad-opmonitor");
-
-        map.put("proxy.jar", "xroad-proxy");
-
-        map.put("proxy-ui-api.jar", "xroad-proxy-ui-api");
-
-        map.put("signer.jar", "xroad-signer");
-        map.put("signer-console.jar", "xroad-signer");
-
-        JAR2PACKAGE = Map.copyOf(map);
-    }
 
     private final SystemInfo systemInfo = new SystemInfo();
     private final ExternalProcessRunner externalProcessRunner;
 
-    public PackagesDetails getXRoadPackagesDetails() {
-        var packages = getInstalledXRoadPackages();
-
-        var unknownJars = new HashSet<String>();
-        var packagesWithJars = packages.stream()
-                .collect(Collectors.toMap(Package::getName, Function.identity()));
-
-        systemInfo.getOperatingSystem().getProcesses().stream()
+    public List<JavaProcess> getJavaProcesses() {
+        return systemInfo.getOperatingSystem().getProcesses().stream()
                 .filter(pr -> StringUtils.equalsIgnoreCase(pr.getName(), JAVA_PROCESS))
-                .map(OSProcess::getArguments)
-                .flatMap(List::stream)
-                .map(XRD_JAR_PATTERN::matcher)
-                .flatMap(Matcher::results)
-                .forEach(res -> {
-                    var packageName = JAR2PACKAGE.get(res.group(JAR_GROUP_NAME));
-                    var xrdPackage = packageName == null ? null : packagesWithJars.get(packageName);
-                    if (xrdPackage == null) {
-                        unknownJars.add(res.group());
-                    } else {
-                        xrdPackage.addJar(res.group());
-                    }
-                });
-
-        return new PackagesDetails(packagesWithJars.values(), unknownJars);
+                .map(this::toJavaProcess)
+                .toList();
     }
 
-    private List<Package> getInstalledXRoadPackages() {
+    public List<Package> getInstalledXRoadPackages() {
 
         try {
             var result = externalProcessRunner.executeAndThrowOnFailure(PKG_LIST_SCRIPT_PATH);
@@ -153,20 +92,23 @@ public class OSHelper {
         return new OSDetails(os.getFamily(), os.getVersionInfo().toString());
     }
 
-    @RequiredArgsConstructor
-    @Getter
-    public class Package {
+    private JavaProcess toJavaProcess(OSProcess process) {
+        var jars = process.getArguments().stream()
+                .map(XRD_JAR_PATTERN::matcher)
+                .flatMap(Matcher::results)
+                .map(MatchResult::group)
+                .toList();
 
-        private final String name;
-        private final String version;
-        private List<String> runningJars;
+        var args = process.getArguments().stream()
+                .filter(arg -> StringUtils.startsWithIgnoreCase(arg, "-x"))
+                .toList();
+        return new JavaProcess(jars, args);
+    }
 
-        public void addJar(String jar) {
-            if (runningJars == null) {
-                runningJars = new LinkedList<>();
-            }
-            runningJars.add(jar);
-        }
+    public record Package(String name, String version) {
+    }
+
+    public record JavaProcess(List<String> jars, List<String> args) {
     }
 
     public record PackagesDetails(Collection<Package> packages, Collection<String> unknownJars) {

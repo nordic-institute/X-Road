@@ -24,6 +24,7 @@
  */
 package org.niis.xroad.securityserver.restapi.service;
 
+import ee.ria.xroad.common.SystemProperties;
 import ee.ria.xroad.common.util.JsonUtils;
 import ee.ria.xroad.signer.protocol.dto.KeyInfo;
 import ee.ria.xroad.signer.protocol.dto.TokenInfo;
@@ -32,6 +33,9 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.configuration2.INIConfiguration;
+import org.apache.commons.configuration2.convert.DisabledListDelimiterHandler;
+import org.apache.commons.configuration2.ex.ConfigurationException;
 import org.niis.xroad.securityserver.restapi.converter.GlobalConfDiagnosticConverter;
 import org.niis.xroad.securityserver.restapi.converter.OcspResponderDiagnosticConverter;
 import org.niis.xroad.securityserver.restapi.converter.TimestampingServiceDiagnosticConverter;
@@ -39,6 +43,9 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.util.Collection;
 import java.util.LinkedHashMap;
 import java.util.LinkedList;
@@ -53,35 +60,61 @@ import static java.util.function.Predicate.not;
 @Service
 @Transactional
 @PreAuthorize("isAuthenticated()")
-public class SystemInformationService {
+public class DiagnosticReportService {
     private static final ObjectMapper MAPPER = JsonUtils.getObjectMapperCopy()
             .enable(SerializationFeature.INDENT_OUTPUT);
     private final Map<String, Supplier<Object>> collectors = new LinkedHashMap<>();
     private final TokenService tokenService;
 
-    public SystemInformationService(DiagnosticService diagnosticService,
-                                    VersionService versionService,
-                                    TokenService tokenService,
-                                    OSHelper osHelper,
-                                    GlobalConfDiagnosticConverter gcDiagnosticConverter,
-                                    TimestampingServiceDiagnosticConverter tsDiagnosticConverter,
-                                    OcspResponderDiagnosticConverter ocspResponderDiagnosticConverter) {
+    public DiagnosticReportService(DiagnosticService diagnosticService,
+                                   VersionService versionService,
+                                   TokenService tokenService,
+                                   OSHelper osHelper,
+                                   GlobalConfDiagnosticConverter gcDiagnosticConverter,
+                                   TimestampingServiceDiagnosticConverter tsDiagnosticConverter,
+                                   OcspResponderDiagnosticConverter ocspResponderDiagnosticConverter) {
         this.tokenService = tokenService;
 
-        collectors.put("X-Road and Java Version", versionService::getVersionInfo);
-        collectors.put("OS Version", osHelper::getOsDetails);
+        collectors.put("X-Road and Java version", versionService::getVersionInfo);
+        collectors.put("OS version", osHelper::getOsDetails);
         collectors.put("Global configuration", combine(diagnosticService::queryGlobalConfStatus, gcDiagnosticConverter::convert));
         collectors.put("Timestamping", combine(diagnosticService::queryTimestampingStatus, tsDiagnosticConverter::convert));
         collectors.put("OCSP responders", combine(diagnosticService::queryOcspResponderStatus, ocspResponderDiagnosticConverter::convert));
         collectors.put("Authentication certificates", this::collectAuthCertificates);
-        collectors.put("Installed X-Road packages", osHelper::getXRoadPackagesDetails);
+        collectors.put("Configuration overrides from local.ini", this::collectOverridesInLocalIni);
+        collectors.put("Runs in sidecar", this::runsInSidecar);
+        collectors.put("Installed X-Road packages", osHelper::getInstalledXRoadPackages);
+        collectors.put("JAVA Processes", osHelper::getJavaProcesses);
     }
 
     public byte[] collectSystemInformation() throws JsonProcessingException {
-        var data = new LinkedList<SystemInformationService.InfoFragment>();
+        var data = new LinkedList<DiagnosticReportService.InfoFragment>();
 
         collectors.forEach((name, provider) -> data.add(collect(name, provider)));
         return MAPPER.writeValueAsBytes(data);
+    }
+
+    private String runsInSidecar() {
+        return Paths.get(SystemProperties.CONF_FILE_NODE).toFile().exists() ? "Yes" : "No";
+    }
+
+    private List<String> collectOverridesInLocalIni() {
+        INIConfiguration ini = new INIConfiguration();
+        // turn off list delimiting (before parsing),
+        // otherwise we lose everything after first ","
+        // in loadSection/sec.getString(key)
+        ini.setListDelimiterHandler(DisabledListDelimiterHandler.INSTANCE);
+        try (var r = Files.newBufferedReader(Paths.get(SystemProperties.CONF_FILE_USER_LOCAL))) {
+            var keys = new LinkedList<String>();
+            ini.read(r);
+
+            for (String sectionName : ini.getSections()) {
+                ini.getSection(sectionName).getKeys().forEachRemaining(key -> keys.add(sectionName + "." + key));
+            }
+            return keys;
+        } catch (IOException | ConfigurationException e) {
+            throw new RuntimeException("Failed to read local.ini file", e);
+        }
     }
 
     private List<Certificate> collectAuthCertificates() {
@@ -95,12 +128,12 @@ public class SystemInformationService {
                 .toList();
     }
 
-    private SystemInformationService.InfoFragment collect(String name, Supplier<Object> collector) {
+    private DiagnosticReportService.InfoFragment collect(String name, Supplier<Object> collector) {
         try {
-            return new SystemInformationService.InfoFragment(name, collector.get(), null);
+            return new DiagnosticReportService.InfoFragment(name, collector.get(), null);
         } catch (Exception e) {
             log.error("Failed to read data for {}", name, e);
-            return new SystemInformationService.InfoFragment(name, null, e.getMessage());
+            return new DiagnosticReportService.InfoFragment(name, null, e.getMessage());
         }
     }
 
@@ -113,7 +146,6 @@ public class SystemInformationService {
 
     private record Certificate(String name, String status, boolean active) {
     }
-
 
 }
 

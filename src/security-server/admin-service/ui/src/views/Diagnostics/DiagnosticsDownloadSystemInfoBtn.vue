@@ -35,7 +35,7 @@
     <xrd-icon-base class="xrd-large-button-icon">
       <xrd-icon-download />
     </xrd-icon-base>
-    {{ $t('action.download') }}
+    {{ $t('diagnostics.downloadReport') }}
   </xrd-button>
 
 </template>
@@ -58,7 +58,7 @@ const canDownload = computed(() => hasPermission(Permissions.DOWNLOAD_SYSTEM_INF
 function download(): void {
   downloading.value = true;
   api.get('/diagnostics/info/download', { responseType: 'blob' })
-    .then((res) => saveResponseAsFile(res, 'system-information.json'))
+    .then((res) => saveResponseAsFile(res, 'diagnostic-report.json'))
     .catch((error) => {
       showError(error);
     })
