@@ -41,7 +41,7 @@ springBoot-bom = { module = "org.springframework.boot:spring-boot-dependencies",
 springBoot-starterTest = { module = "org.springframework.boot:spring-boot-starter-test", version.ref = "springBoot" }
 springBoot-starterWeb = { module = "org.springframework.boot:spring-boot-starter-web", version.ref = "springBoot" }
 
-springCloud-bom = { module = "org.springframework.cloud:spring-cloud-dependencies", version = "2023.0.3" }
+springCloud-bom = { module = "org.springframework.cloud:spring-cloud-dependencies", version = "2024.0.0" }
 
 junit-jupiterEngine = { module = "org.junit.jupiter:junit-jupiter-engine", version.ref = "junitJupiter" }
 junit-vintageEngine = { module = "org.junit.vintage:junit-vintage-engine", version.ref = "junitJupiter" }
