@@ -1,6 +1,5 @@
 plugins {
     id 'java'
-//    alias(libs.plugins.shadow)
 }
 
 project.ext.schemaTargetDir = layout.buildDirectory.dir("generated-sources").get().asFile
@@ -38,22 +37,6 @@ tasks.register('createDirs') {
         project.ext.schemaTargetDir.mkdirs()
     }
 }
-
-//jar {
-//    enabled = true
-//}
-
-//shadowJar {
-//    archiveClassifier = ''
-//    exclude('**/module-info.class')
-//    dependencies {
-//        include(project(':addons:proxymonitor-common'))
-//        include(project(':monitor-common'))
-//    }
-//    mergeServiceFiles()
-//}
-
-//build.dependsOn shadowJar
 
 compileJava.dependsOn processResources
 
