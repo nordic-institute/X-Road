@@ -13,6 +13,7 @@ Group:              Applications/Internet
 License:            MIT
 BuildRequires:      systemd
 Requires(post):     systemd
+#Requires(post):     /usr/sbin/semanage, /usr/sbin/setsebool, yq
 Requires(post):     /usr/sbin/semanage, /usr/sbin/setsebool
 Requires(preun):    systemd
 Requires(postun):   systemd

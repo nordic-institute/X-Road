@@ -66,7 +66,7 @@ import static org.eclipse.jetty.server.Request.getRemoteAddr;
  */
 @Slf4j
 @RequiredArgsConstructor
-abstract class AbstractClientProxyHandler extends HandlerBase {
+public abstract class AbstractClientProxyHandler extends HandlerBase {
 
     private static final String START_TIME_ATTRIBUTE = AbstractClientProxyHandler.class.getName() + ".START_TIME";
 

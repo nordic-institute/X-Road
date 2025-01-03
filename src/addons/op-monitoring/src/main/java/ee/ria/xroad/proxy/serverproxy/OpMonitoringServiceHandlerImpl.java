@@ -69,7 +69,7 @@ public class OpMonitoringServiceHandlerImpl extends AbstractServiceHandler {
 
     private HttpSender sender;
 
-    protected OpMonitoringServiceHandlerImpl(ServerConfProvider serverConfProvider, GlobalConfProvider globalConfProvider) {
+    public OpMonitoringServiceHandlerImpl(ServerConfProvider serverConfProvider, GlobalConfProvider globalConfProvider) {
         super(serverConfProvider, globalConfProvider);
     }
 

@@ -8,3 +8,6 @@
 ../../../../src/xroad/default-configuration/mail.example.yml etc/xroad/conf.d
 ../../../../../security-server/admin-service/application/build/libs/proxy-ui-api-1.0.jar usr/share/xroad/jlib/
 ../../../../../3RD-PARTY-NOTICES.txt usr/share/doc/xroad-proxy-ui-api
+
+../../../../src/xroad/common/addon/wsdlvalidator/usr/* usr/
+../../../../../addons/wsdlvalidator/build/libs/wsdlvalidator-1.0.jar usr/share/xroad/wsdl-validator/jlib

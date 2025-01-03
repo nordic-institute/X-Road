@@ -50,6 +50,10 @@ cp -p %{srcdir}/../../../../CHANGELOG.md %{buildroot}/usr/share/doc/%{name}/CHAN
 
 ln -s /usr/share/xroad/jlib/proxy-ui-api-1.0.jar %{buildroot}/usr/share/xroad/jlib/proxy-ui-api.jar
 
+cp -a %{srcdir}/common/addon/wsdlvalidator/usr %{buildroot}
+mkdir -p %{buildroot}/usr/share/xroad/wsdl-validator/jlib/
+cp %{srcdir}/../../../addons/wsdlvalidator/build/libs/wsdlvalidator-1.0.jar %{buildroot}/usr/share/xroad/wsdl-validator/jlib/
+
 %clean
 rm -rf %{buildroot}
 
@@ -63,8 +67,10 @@ rm -rf %{buildroot}
 %config /etc/xroad/conf.d/mail.example.yml
 %attr(644,root,root) %{_unitdir}/xroad-proxy-ui-api.service
 %attr(755,root,root) /usr/share/xroad/bin/xroad-proxy-ui-api
+%attr(750,root,xroad) /usr/share/xroad/wsdl-validator/bin/wsdlvalidator_wrapper.sh
 %defattr(-,root,root,-)
 /usr/share/xroad/jlib/proxy-ui-api*.jar
+/usr/share/xroad/wsdl-validator
 %doc /usr/share/doc/%{name}/LICENSE.txt
 %doc /usr/share/doc/%{name}/3RD-PARTY-NOTICES.txt
 %doc /usr/share/doc/%{name}/CHANGELOG.md

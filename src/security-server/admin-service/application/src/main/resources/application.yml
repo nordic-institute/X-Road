@@ -70,6 +70,10 @@ xroad:
     request-size-limit-binary-upload: 10MB
     authentication-key-algorithm: RSA
     signing-key-algorithm: RSA
+    addon:
+      wsdl-validator:
+        enabled: true
+        command: /usr/share/xroad/wsdl-validator/bin/wsdlvalidator_wrapper.sh
   common:
     serverconf:
       cache-period: 60

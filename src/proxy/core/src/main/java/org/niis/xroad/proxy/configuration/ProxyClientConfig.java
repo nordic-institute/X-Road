@@ -29,6 +29,7 @@ import ee.ria.xroad.common.SystemProperties;
 import ee.ria.xroad.common.cert.CertChainFactory;
 import ee.ria.xroad.common.conf.globalconf.GlobalConfProvider;
 import ee.ria.xroad.common.conf.serverconf.ServerConfProvider;
+import ee.ria.xroad.proxy.clientproxy.AbstractClientProxyHandler;
 import ee.ria.xroad.proxy.clientproxy.AuthTrustVerifier;
 import ee.ria.xroad.proxy.clientproxy.ClientProxy;
 import ee.ria.xroad.proxy.clientproxy.ClientRestMessageHandler;
@@ -59,6 +60,10 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.core.Ordered;
+import org.springframework.core.annotation.Order;
+
+import java.util.List;
 
 @Slf4j
 @Configuration
@@ -66,20 +71,15 @@ public class ProxyClientConfig {
 
     @Bean
     ClientProxy clientProxy(ProxyProperties proxyProperties,
-                            @Qualifier("proxyHttpClient") HttpClient httpClient,
-                            ClientRestMessageHandler clientRestMessageHandler,
-                            ClientSoapMessageHandler clientSoapMessageHandler,
-                            GlobalConfProvider globalConfProvider,
-                            KeyConfProvider keyConfProvider,
-                            ServerConfProvider serverConfProvider,
-                            CertChainFactory certChainFactory,
-                            AuthTrustVerifier authTrustVerifier) throws Exception {
-        return new ClientProxy(proxyProperties.getClientProxy(), httpClient, clientRestMessageHandler, clientSoapMessageHandler,
-                globalConfProvider, keyConfProvider, serverConfProvider, certChainFactory, authTrustVerifier);
+                            List<AbstractClientProxyHandler> clientProxyHandlers,
+                            ServerConfProvider serverConfProvider) throws Exception {
+        return new ClientProxy(proxyProperties.getClientProxy(),
+                clientProxyHandlers, serverConfProvider);
     }
 
     @Bean
-    ClientRestMessageHandler clientRestMessageHandler(GlobalConfProvider globalConfProvider,
+    @Order(Ordered.HIGHEST_PRECEDENCE)
+    AbstractClientProxyHandler clientRestMessageHandler(GlobalConfProvider globalConfProvider,
                                                       KeyConfProvider keyConfProvider,
                                                       ServerConfProvider serverConfProvider,
                                                       CertChainFactory certChainFactory,
@@ -90,7 +90,9 @@ public class ProxyClientConfig {
     }
 
     @Bean
-    ClientSoapMessageHandler clientSoapMessageHandler(GlobalConfProvider globalConfProvider,
+    // soap handler must be the last handler in the list.
+    @Order(Ordered.LOWEST_PRECEDENCE)
+    AbstractClientProxyHandler clientSoapMessageHandler(GlobalConfProvider globalConfProvider,
                                                       KeyConfProvider keyConfProvider,
                                                       ServerConfProvider serverConfProvider,
                                                       CertChainFactory certChainFactory,

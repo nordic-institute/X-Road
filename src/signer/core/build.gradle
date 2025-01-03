@@ -78,6 +78,7 @@ xjc.dependsOn createDirs
 compileJava.dependsOn xjc
 
 tasks.register('intTest', Test) {
+    dependsOn(':signer:application:bootJar')
     useJUnitPlatform()
 
     setDescription("Runs integration tests.")

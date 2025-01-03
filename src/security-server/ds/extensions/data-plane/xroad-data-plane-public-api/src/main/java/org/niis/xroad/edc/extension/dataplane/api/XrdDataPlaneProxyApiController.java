@@ -125,7 +125,8 @@ public class XrdDataPlaneProxyApiController {
             return error(UNAUTHORIZED, "Missing Authorization Header");
         }
         var requestMessage = new ProxyMessage(requestContext.getHeaderString(HEADER_ORIGINAL_CONTENT_TYPE));
-        var decoder = new ProxyMessageDecoder(globalConfProvider, requestMessage, requestContext.getMediaType().toString(), false, getHashAlgoId(requestContext));
+        var decoder = new ProxyMessageDecoder(globalConfProvider, requestMessage, requestContext.getMediaType().toString(),
+                false, getHashAlgoId(requestContext));
         decoder.parse(requestContext.getEntityStream());
 
         var sourceDataAddress = authorizationService.authorize(token, buildRequestData(requestContext, requestMessage));
@@ -140,7 +141,8 @@ public class XrdDataPlaneProxyApiController {
         }
     }
 
-    private MessageProcessorBase getMessageProcessor(ContainerRequestContext requestContext, ProxyMessage requestMessage, ProxyMessageDecoder decoder) throws Exception {
+    private MessageProcessorBase getMessageProcessor(ContainerRequestContext requestContext, ProxyMessage requestMessage,
+                                                     ProxyMessageDecoder decoder) throws Exception {
         var isRestRequest = VALUE_MESSAGE_TYPE_REST.equals(requestContext.getHeaderString(HEADER_MESSAGE_TYPE));
         var xRequestId = requestContext.getHeaderString(HEADER_REQUEST_ID);
         if (isRestRequest) {

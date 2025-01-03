@@ -114,7 +114,8 @@ public class SoapMessageProcessor extends MessageProcessorBase {
 
     @Override
     public Response process() throws Exception {
-        responseSigningCtx = SigningCtxProvider.getSigningCtx(requestMessage.getSoap().getService().getClientId(), globalConfProvider, keyConfProvider);
+        responseSigningCtx = SigningCtxProvider.getSigningCtx(requestMessage.getSoap().getService().getClientId(),
+                globalConfProvider, keyConfProvider);
 
         DefaultServiceHandlerImpl handler = new DefaultServiceHandlerImpl();
 

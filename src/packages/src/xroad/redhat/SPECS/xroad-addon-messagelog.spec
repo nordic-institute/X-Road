@@ -11,6 +11,7 @@ Summary:    X-Road AddOn: messagelog
 Group:      Applications/Internet
 License:    MIT
 Requires:   xroad-proxy = %version-%release
+#Requires:   yq
 
 %define src %{_topdir}/..
 
@@ -33,10 +34,7 @@ mkdir -p %{buildroot}/usr/share/doc/xroad-addon-messagelog/archive-hashchain-ver
 mkdir -p %{buildroot}/usr/share/doc/%{name}
 mkdir -p %{buildroot}%{_unitdir}
 
-cp -p %{srcdir}/common/addon/proxy/messagelog.conf.default %{buildroot}/usr/share/xroad/jlib/addon/proxy/
-ln -s /usr/share/xroad/jlib/addon/proxy/messagelog.conf.default %{buildroot}/usr/share/xroad/jlib/addon/proxy/messagelog.conf
 cp -p %{_sourcedir}/messagelog/xroad-addon-messagelog.service %{buildroot}%{_unitdir}
-cp -p %{srcdir}/../../../addons/messagelog/messagelog-addon/build/libs/messagelog-addon.jar %{buildroot}/usr/share/xroad/jlib/addon/proxy/
 cp -p %{srcdir}/default-configuration/addons/message-log.ini %{buildroot}/etc/xroad/conf.d/addons/
 cp -p %{srcdir}/default-configuration/addons/messagelog-archiver-logback.xml %{buildroot}/etc/xroad/conf.d/addons/
 cp -p %{srcdir}/common/addon/proxy/messagelog-changelog.xml %{buildroot}/usr/share/xroad/db/
@@ -70,10 +68,7 @@ rm -rf %{buildroot}
 /usr/share/doc/xroad-addon-messagelog/archive-server/demo-upload.pl
 /usr/share/xroad/db/messagelog-changelog.xml
 /usr/share/xroad/db/messagelog
-/usr/share/xroad/jlib/addon/proxy/messagelog-addon.jar
 /usr/share/xroad/jlib/addon/proxy/messagelog-archiver.jar
-/usr/share/xroad/jlib/addon/proxy/messagelog.conf.default
-%config /usr/share/xroad/jlib/addon/proxy/messagelog.conf
 /usr/share/xroad/scripts/archive-http-transporter.sh
 %attr(540,root,xroad) /usr/share/xroad/scripts/setup_messagelog_db.sh
 %attr(554,root,xroad) /usr/share/xroad/bin/xroad-messagelog-archiver
@@ -93,7 +88,7 @@ fi
 if [ "$1" -gt 1 ] ; then
   rpm -q %{name} --queryformat="%%{version}" &> "%{_localstatedir}/lib/rpm-state/%{name}/prev-version"
 fi
-
+%set_yaml_property_function
 %define manage_messagelog_activation()                                               \\\
     isMessagelogDisabled=\$(                                                         \\\
         [[ -e /etc/sysconfig/xroad-addon-messagelog ]]                               \\\
@@ -102,8 +97,10 @@ fi
     );                                                                               \\\
     if (( \$isMessagelogDisabled )); then                                            \\\
       rm -f /usr/share/xroad/jlib/addon/proxy/messagelog.conf;                       \\\
+      set_yaml_property ".xroad.proxy.addon.messagelog.enabled" "false" "/etc/xroad/conf.d/proxy-override.yaml" \\\
     else                                                                             \\\
       /usr/share/xroad/scripts/setup_messagelog_db.sh;                               \\\
+      set_yaml_property ".xroad.proxy.addon.messagelog.enabled" "true" "/etc/xroad/conf.d/proxy-override.yaml" \\\
     fi
 
 %post -p /bin/bash
@@ -129,9 +126,11 @@ fi
 %systemd_preun xroad-addon-messagelog.service
 
 %postun
+%disable_addon_function
 if [ "$1" -eq 0 ]; then
   # addon removed
   rm -f /usr/share/xroad/jlib/addon/proxy/messagelog.conf
+  disable_addon ".xroad.proxy.addon.messagelog.enabled" "/etc/xroad/conf.d/proxy-override.yaml"
 fi
 
 %systemd_postun_with_restart xroad-proxy.service xroad-addon-messagelog.service

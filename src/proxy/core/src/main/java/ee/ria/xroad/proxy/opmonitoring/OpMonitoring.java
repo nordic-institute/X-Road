@@ -25,12 +25,9 @@
  */
 package ee.ria.xroad.proxy.opmonitoring;
 
-import ee.ria.xroad.common.SystemProperties;
-import ee.ria.xroad.common.conf.serverconf.ServerConfProvider;
 import ee.ria.xroad.common.opmonitoring.AbstractOpMonitoringBuffer;
 import ee.ria.xroad.common.opmonitoring.OpMonitoringData;
 
-import lombok.AccessLevel;
 import lombok.NoArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
@@ -38,11 +35,8 @@ import lombok.extern.slf4j.Slf4j;
  * Contains method for storing operational monitoring data.
  */
 @Slf4j
-@NoArgsConstructor(access = AccessLevel.PRIVATE)
+@NoArgsConstructor
 public final class OpMonitoring {
-
-    private static final String OP_MONITORING_BUFFER_IMPL_CLASS =
-            SystemProperties.PREFIX + "proxy.opMonitoringBufferImpl";
 
     private static AbstractOpMonitoringBuffer opMonitoringBuffer;
 
@@ -51,12 +45,10 @@ public final class OpMonitoring {
      *
      * @throws Exception if initialization fails
      */
-    public static AbstractOpMonitoringBuffer init(ServerConfProvider serverConfProvider) throws Exception {
-        Class<? extends AbstractOpMonitoringBuffer> clazz = getOpMonitoringManagerImpl();
-
-        log.trace("Using implementation class: {}", clazz);
-        opMonitoringBuffer = clazz.getDeclaredConstructor(ServerConfProvider.class).newInstance(serverConfProvider);
-        return opMonitoringBuffer;
+    public static OpMonitoring init(AbstractOpMonitoringBuffer opMonitorBuffer) throws Exception {
+        log.trace("Using implementation class: {}", opMonitorBuffer.getClass().getName());
+        opMonitoringBuffer = opMonitorBuffer;
+        return new OpMonitoring();
     }
 
     /**
@@ -69,22 +61,6 @@ public final class OpMonitoring {
             opMonitoringBuffer.store(data);
         } catch (Throwable t) {
             log.error("Storing operational monitoring data failed", t);
-        }
-    }
-
-    @SuppressWarnings("unchecked")
-    private static Class<? extends AbstractOpMonitoringBuffer> getOpMonitoringManagerImpl() {
-        String opMonitoringBufferImplClassName = System.getProperty(
-                OP_MONITORING_BUFFER_IMPL_CLASS,
-                NullOpMonitoringBuffer.class.getName());
-
-        try {
-            Class<?> clazz = Class.forName(opMonitoringBufferImplClassName);
-
-            return (Class<? extends AbstractOpMonitoringBuffer>) clazz;
-        } catch (ClassNotFoundException e) {
-            throw new RuntimeException("Unable to load operational monitoring buffer impl: "
-                    + opMonitoringBufferImplClassName, e);
         }
     }
 

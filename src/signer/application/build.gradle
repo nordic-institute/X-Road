@@ -9,6 +9,8 @@ dependencies {
     implementation project(':common:common-rpc')
     implementation project(':signer:core')
 
+    implementation project(':addons:hwtoken')
+
     testImplementation(libs.springBoot.starterTest)
 }
 

@@ -39,6 +39,8 @@ import ee.ria.xroad.proxy.util.MessageProcessorBase;
 import ee.ria.xroad.proxy.util.PerformanceLogger;
 
 import io.opentelemetry.instrumentation.annotations.WithSpan;
+import lombok.AccessLevel;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.http.client.HttpClient;
 import org.eclipse.jetty.server.Request;
@@ -58,6 +60,7 @@ import static ee.ria.xroad.common.util.TimeUtils.getEpochMillisecond;
 import static org.eclipse.jetty.server.Request.getRemoteAddr;
 
 @Slf4j
+@RequiredArgsConstructor(access = AccessLevel.PACKAGE)
 class ServerProxyHandler extends HandlerBase {
     private final ProxyProperties.ServerProperties serverProperties;
     private final GlobalConfProvider globalConfProvider;
@@ -67,20 +70,7 @@ class ServerProxyHandler extends HandlerBase {
 
     private final HttpClient client;
     private final HttpClient opMonitorClient;
-
-    ServerProxyHandler(ProxyProperties.ServerProperties serverProperties,
-                       GlobalConfProvider globalConfProvider,
-                       KeyConfProvider keyConfProvider,
-                       ServerConfProvider serverConfProvider,
-                       CertChainFactory certChainFactory, HttpClient client, HttpClient opMonitorClient) {
-        this.serverProperties = serverProperties;
-        this.globalConfProvider = globalConfProvider;
-        this.keyConfProvider = keyConfProvider;
-        this.serverConfProvider = serverConfProvider;
-        this.certChainFactory = certChainFactory;
-        this.client = client;
-        this.opMonitorClient = opMonitorClient;
-    }
+    private final ServiceHandlerLoader serviceHandlerLoader;
 
     @Override
     @WithSpan
@@ -133,12 +123,12 @@ class ServerProxyHandler extends HandlerBase {
             return new ServerRestMessageProcessor(globalConfProvider, keyConfProvider, serverConfProvider, certChainFactory,
                     request, response, client, request.getPeerCertificates()
                     .orElse(null),
-                    opMonitoringData);
+                    opMonitoringData, serviceHandlerLoader);
         } else {
             return new ServerMessageProcessor(globalConfProvider, keyConfProvider, serverConfProvider, certChainFactory,
                     request, response, client, request.getPeerCertificates()
                     .orElse(null),
-                    opMonitorClient, opMonitoringData);
+                    opMonitorClient, opMonitoringData, serviceHandlerLoader);
         }
     }
 
