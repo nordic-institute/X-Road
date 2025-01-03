@@ -57,6 +57,7 @@ dependencies {
     testImplementation("org.springframework.boot:spring-boot-starter-test")
     testImplementation("org.springframework.security:spring-security-test")
     testImplementation(libs.hsqldb)
+    testImplementation libs.jsonUnit.assertj
     testImplementation("org.springframework.cloud:spring-cloud-contract-wiremock")
     testImplementation(testFixtures(project(":common:common-api-throttling")))
     testRuntimeOnly(libs.junit.vintageEngine)

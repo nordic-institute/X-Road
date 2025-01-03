@@ -22,7 +22,7 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.securityserver.restapi.service;
+package org.niis.xroad.securityserver.restapi.service.diagnostic;
 
 import ee.ria.xroad.common.util.process.ExternalProcessRunner;
 import ee.ria.xroad.common.util.process.ProcessFailedException;
@@ -31,7 +31,6 @@ import ee.ria.xroad.common.util.process.ProcessNotExecutableException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
-import org.springframework.stereotype.Component;
 import oshi.SystemInfo;
 import oshi.software.os.OSProcess;
 
@@ -42,19 +41,15 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 @Slf4j
-@Component
 @RequiredArgsConstructor
 public class OSHelper {
-
-
-    private static final Pattern XRD_JAR_PATTERN = Pattern.compile("/usr/share/xroad/jlib/(\\w+/)*(?<name>[\\w.-]+\\.jar)");
-    private static final String JAR_GROUP_NAME = "name";
+    protected static final String PKG_LIST_SCRIPT_PATH = "/usr/share/xroad/scripts/list-installed-xrd-packages.sh";
+    private static final Pattern XRD_JAR_PATTERN = Pattern.compile("/usr/share/xroad/jlib/(\\w+/)*([\\w.-]+\\.jar)");
     private static final String JAVA_PROCESS = "java";
-    private static final String PKG_LIST_SCRIPT_PATH = "/usr/share/xroad/scripts/list-installed-xrd-packages.sh";
     private static final String NAME_VERSION_SEPARATOR = "##";
 
 
-    private final SystemInfo systemInfo = new SystemInfo();
+    private final SystemInfo systemInfo;
     private final ExternalProcessRunner externalProcessRunner;
 
     public List<JavaProcess> getJavaProcesses() {

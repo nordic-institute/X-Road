@@ -2121,9 +2121,9 @@ paths:
     get:
       tags:
         - diagnostics
-      summary: download system information
-      operationId: downloadSystemInformation
-      description: <h3>Administrator downloads information about runtime and software.</h3>
+      summary: download diagnostics report
+      operationId: downloadDiagnosticsReport
+      description: <h3>Administrator downloads diagnostics report.</h3>
       responses:
         '200':
           description: system information

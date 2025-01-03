@@ -22,11 +22,29 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.securityserver.restapi.service.information.collector;
+package org.niis.xroad.securityserver.restapi.service.diagnostic;
 
-public interface InformationCollector<T> {
-    String name();
+import lombok.RequiredArgsConstructor;
+import org.niis.xroad.securityserver.restapi.converter.GlobalConfDiagnosticConverter;
+import org.niis.xroad.securityserver.restapi.openapi.model.GlobalConfDiagnostics;
+import org.niis.xroad.securityserver.restapi.service.DiagnosticService;
+import org.springframework.core.annotation.Order;
+import org.springframework.stereotype.Component;
 
-    T collect();
+@Component
+@RequiredArgsConstructor
+@Order(DiagnosticCollector.ORDER_GROUP3)
+public class GlobalConfigurationCollector implements DiagnosticCollector<GlobalConfDiagnostics> {
+    private final DiagnosticService diagnosticService;
+    private final GlobalConfDiagnosticConverter gcDiagnosticConverter;
 
+    @Override
+    public String name() {
+        return "Global configuration";
+    }
+
+    @Override
+    public GlobalConfDiagnostics collect() {
+        return gcDiagnosticConverter.convert(diagnosticService.queryGlobalConfStatus());
+    }
 }
