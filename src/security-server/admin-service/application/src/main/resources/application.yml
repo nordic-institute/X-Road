@@ -72,7 +72,7 @@ xroad:
     signing-key-algorithm: RSA
     addon:
       wsdl-validator:
-        enabled: false
+        enabled: true
         command: /usr/share/xroad/wsdl-validator/bin/wsdlvalidator_wrapper.sh
   common:
     serverconf:

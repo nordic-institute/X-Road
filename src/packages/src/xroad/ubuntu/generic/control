@@ -84,16 +84,6 @@ Pre-depends: xroad-base (=${binary:Version})
 Description: X-Road configuration proxy
  X-Road configuration proxy
 
-Package: xroad-addon-hwtokens
-Architecture: amd64 arm64
-# These following 2 package relationship changes were required to fix an issue caused by a file dependency diversion from xroad-signer to xroad-addon-hwtokens in 7.1.0
-Replaces: xroad-signer (<< 7.1.0)
-Breaks: xroad-signer (<< 7.1.0)
-Depends: ${misc:Depends}, xroad-base (=${binary:Version}), xroad-confclient (=${binary:Version}), xroad-signer (=${binary:Version}), yq
-Section: oldlibs
-Description: transitional package
- This is a transitional package. It can safely be removed.
-
 Package: xroad-addon-messagelog
 Architecture: all
 Depends: ${misc:Depends}, xroad-proxy (=${binary:Version}), yq
@@ -101,37 +91,11 @@ Conflicts: xroad-addon-legacy-securelog
 Description: X-Road AddOn: messagelog
  AddOn for secure message log
 
-Package: xroad-addon-metaservices
-Architecture: all
-Depends: ${misc:Depends}, xroad-proxy (=${binary:Version}), yq
-Section: oldlibs
-Description: transitional package
- This is a transitional package. It can safely be removed.
-
-Package: xroad-addon-proxymonitor
-Architecture: all
-Depends: ${misc:Depends}, xroad-proxy (=${binary:Version}), yq
-Section: oldlibs
-Description: transitional package
- This is a transitional package. It can safely be removed.
-
 Package: xroad-monitor
 Architecture: all
 Depends: ${misc:Depends}, xroad-base (=${binary:Version})
 Description: X-Road monitoring service
  Monitoring service
-
-Package: xroad-addon-wsdlvalidator
-Architecture: all
-Depends: ${misc:Depends}, xroad-proxy-ui-api (=${binary:Version}), yq
-Description: transitional package
- This is a transitional package. It can safely be removed.
-
-Package: xroad-addon-opmonitoring
-Architecture: all
-Depends: ${misc:Depends}, xroad-proxy (=${binary:Version}), xroad-opmonitor (=${binary:Version}), yq
-Description: transitional package
- This is a transitional package. It can safely be removed.
 
 Package: xroad-securityserver-fi
 Conflicts: xroad-centralserver

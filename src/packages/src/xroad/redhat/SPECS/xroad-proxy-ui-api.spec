@@ -90,7 +90,6 @@ if [ "$1" -gt 1 ]; then
 fi
 
 %post
-%set_yaml_property_function
 %systemd_post xroad-proxy-ui-api.service
 
 #parameters:
@@ -108,12 +107,6 @@ function migrate_conf_value {
             crudini --del "$1" "$2" "$3"
     fi
 }
-
-if [ $1 -eq 1 ] ; then
-    # Initial installation
-    # by default, enable the wsdlvalidator plugin
-    set_yaml_property ".xroad.\"proxy-ui-api\".addon.wsdlvalidator.enabled" "true" "/etc/xroad/conf.d/proxy-ui-api-override.yaml"
-fi
 
 if [ $1 -gt 1 ] ; then
   #migrating possible local configuration for modified configuration values (for version 6.24.0)

@@ -153,7 +153,6 @@ fi
     fi
 
 %post -p /bin/bash
-%set_yaml_property_function
 %systemd_post xroad-proxy.service
 
 if [ $1 -eq 1 ] ; then
@@ -165,11 +164,6 @@ if [ $1 -eq 1 ] ; then
 # DISABLE_PORT_REDIRECT=true
 EOF
     fi
-
-    # by default, enable the plugins on the fist install
-    CONFIG_FILE="/etc/xroad/conf.d/proxy-override.yaml"
-    set_yaml_property ".xroad.proxy.addon.metaservices.enabled" "true" "$CONFIG_FILE"
-    set_yaml_property ".xroad.proxy.addon.proxymonitor.enabled" "true" "$CONFIG_FILE"
 fi
 
 if [ $1 -gt 1 ] ; then
