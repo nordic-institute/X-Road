@@ -48,8 +48,8 @@ import org.niis.xroad.securityserver.restapi.openapi.model.GlobalConfDiagnostics
 import org.niis.xroad.securityserver.restapi.openapi.model.MessageLogEncryptionStatus;
 import org.niis.xroad.securityserver.restapi.openapi.model.OcspResponderDiagnostics;
 import org.niis.xroad.securityserver.restapi.openapi.model.TimestampingServiceDiagnostics;
-import org.niis.xroad.securityserver.restapi.service.DiagnosticReportService;
 import org.niis.xroad.securityserver.restapi.service.DiagnosticService;
+import org.niis.xroad.securityserver.restapi.service.diagnostic.DiagnosticReportService;
 import org.springframework.core.io.Resource;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -107,8 +107,8 @@ public class DiagnosticsApiController implements DiagnosticsApi {
     }
 
     @Override
-    @PreAuthorize("hasAnyAuthority('DOWNLOAD_SYSTEM_INFO')")
-    public ResponseEntity<Resource> downloadSystemInformation() {
+    @PreAuthorize("hasAnyAuthority('DOWNLOAD_DIAGNOSTICS_REPORT')")
+    public ResponseEntity<Resource> downloadDiagnosticsReport() {
         try {
             return ControllerUtil.createAttachmentResourceResponse(diagnosticReportService.collectSystemInformation(),
                     systemInformationFilename());

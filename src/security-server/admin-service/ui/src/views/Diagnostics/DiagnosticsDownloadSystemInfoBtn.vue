@@ -29,7 +29,7 @@
     v-if="canDownload"
     :loading="downloading"
     @click="download"
-    data-test="system-info-download-button"
+    data-test="download-diagnostics-report-button"
     outlined
   >
     <xrd-icon-base class="xrd-large-button-icon">
@@ -53,7 +53,7 @@ const { hasPermission } = useUser();
 
 const downloading = ref(false);
 
-const canDownload = computed(() => hasPermission(Permissions.DOWNLOAD_SYSTEM_INFO));
+const canDownload = computed(() => hasPermission(Permissions.DOWNLOAD_DIAGNOSTICS_REPORT));
 
 function download(): void {
   downloading.value = true;

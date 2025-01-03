@@ -32,10 +32,16 @@ import org.niis.xroad.common.api.throttle.IpThrottlingFilter;
 import org.niis.xroad.restapi.config.AddCorrelationIdFilter;
 import org.niis.xroad.restapi.config.ApiCachingConfiguration;
 import org.niis.xroad.restapi.util.CaffeineCacheBuilder;
+import org.niis.xroad.securityserver.restapi.service.diagnostic.DiagnosticCollector;
+import org.niis.xroad.securityserver.restapi.service.diagnostic.DiagnosticReportService;
+import org.niis.xroad.securityserver.restapi.service.diagnostic.OSHelper;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Profile;
 import org.springframework.core.annotation.Order;
+import oshi.SystemInfo;
+
+import java.util.List;
 
 import static org.niis.xroad.securityserver.restapi.service.CertificateAuthorityService.GET_CERTIFICATE_AUTHORITIES_CACHE;
 
@@ -60,5 +66,15 @@ public class SecurityServerConfiguration {
     @Bean
     public CaffeineCacheBuilder.ConfiguredCache cacheGetCertAuthorities(ApiCachingConfiguration.Config cachingProperties) {
         return CaffeineCacheBuilder.newExpireAfterWriteCache(GET_CERTIFICATE_AUTHORITIES_CACHE, cachingProperties.getCacheDefaultTtl());
+    }
+
+    @Bean
+    public OSHelper osHelper(final ExternalProcessRunner externalProcessRunner) {
+        return new OSHelper(new SystemInfo(), externalProcessRunner);
+    }
+
+    @Bean
+    public DiagnosticReportService diagnosticReportService(List<DiagnosticCollector<?>> diagnosticCollectors) {
+        return new DiagnosticReportService(diagnosticCollectors);
     }
 }
