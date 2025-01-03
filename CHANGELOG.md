@@ -1,5 +1,7 @@
 # Change Log
 
+## 7.7.0 - UNRELEASED
+
 ## 7.6.0 - 2025-12-01
 - XRDDEV-2185: As a Security Server Administrator I want the information system TLS certificate table under the subsystem internal server tab to show more information regarding the certificate so that I can differentiate them better
 - XRDDEV-2536: As a Security Server Administrator I want the software to automatically renew signing and authentication certificates issued by trusted CA-s that support ACME so that the renewal would happen automatically
