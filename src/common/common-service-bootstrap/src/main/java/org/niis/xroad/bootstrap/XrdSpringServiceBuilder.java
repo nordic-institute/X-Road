@@ -62,7 +62,22 @@ public class XrdSpringServiceBuilder {
                 .initializers(applicationContext -> {
                     log.info("Setting property source to Spring environment..");
                     //TODO xroad8 Remove once SystemProperties is removed
-                    SystemPropertySource.setEnvironment(applicationContext.getEnvironment());
+                    SystemPropertySource.setPropertyResolver(new SystemPropertySource.PropertyResolver() {
+                        @Override
+                        public String getProperty(String key) {
+                            return applicationContext.getEnvironment().getProperty(key);
+                        }
+
+                        @Override
+                        public String getProperty(String key, String defaultValue) {
+                            return applicationContext.getEnvironment().getProperty(key, defaultValue);
+                        }
+
+                        @Override
+                        public <T> T getProperty(String key, Class<T> targetType) {
+                            return applicationContext.getEnvironment().getProperty(key, targetType);
+                        }
+                    });
                 });
     }
 

@@ -41,7 +41,7 @@ import static ee.ria.xroad.common.SystemProperties.getConfigurationPath;
 import static ee.ria.xroad.common.properties.CommonGlobalConfProperties.GlobalConfSource.REMOTE;
 
 @Slf4j
-@Configuration
+@Configuration(proxyBeanMethods = false)
 @EnableScheduling
 @RequiredArgsConstructor
 @EnableConfigurationProperties(CommonGlobalConfProperties.class)

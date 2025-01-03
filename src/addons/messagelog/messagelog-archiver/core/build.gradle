@@ -3,6 +3,9 @@ plugins {
 }
 
 dependencies {
+    api(platform(libs.springBoot.bom))
+
+    api('org.springframework:spring-context-support')
     api(project(':common:common-messagelog'))
 
     implementation(project(':common:common-scheduler'))

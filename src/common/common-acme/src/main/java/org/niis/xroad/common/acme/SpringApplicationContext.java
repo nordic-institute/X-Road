@@ -23,12 +23,14 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package ee.ria.xroad.common.util;
+package org.niis.xroad.common.acme;
 
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
 import org.springframework.stereotype.Component;
 
+//TODO it is a bad practice to use ApplicationContextAware
+@Deprecated(forRemoval = true)
 @Component
 public class SpringApplicationContext implements ApplicationContextAware {
 

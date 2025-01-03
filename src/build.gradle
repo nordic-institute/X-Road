@@ -192,8 +192,6 @@ configure(subprojects.findAll { !["shared-ui", "ui"].contains(it.name) }) {
 
         preConfiguredRules = [
             "org.niis.xroad.arch.rule.NoBeanAnnotationWithInitDestroy",
-            "org.niis.xroad.arch.rule.NoPostConstructAnnotation",
-            "org.niis.xroad.arch.rule.NoPreDestroyAnnotation",
         ]
     }
 

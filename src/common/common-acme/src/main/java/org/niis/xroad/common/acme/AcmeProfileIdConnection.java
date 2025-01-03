@@ -27,7 +27,6 @@ package org.niis.xroad.common.acme;
 
 import ee.ria.xroad.common.conf.globalconf.ApprovedCAInfo;
 import ee.ria.xroad.common.conf.globalconf.GlobalConfProvider;
-import ee.ria.xroad.common.util.SpringApplicationContext;
 
 import lombok.extern.slf4j.Slf4j;
 import org.bouncycastle.asn1.x509.KeyUsage;

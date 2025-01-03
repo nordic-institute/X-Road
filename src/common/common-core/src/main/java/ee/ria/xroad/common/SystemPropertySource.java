@@ -28,36 +28,29 @@ package ee.ria.xroad.common;
 import lombok.AccessLevel;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
-import org.springframework.core.env.Environment;
-import org.springframework.core.env.PropertyResolver;
 
 /**
  * This is a temporary SystemPropertySource class that will be removed once the SystemProperties class is refactored.
  * TODO xroad8 should be removed
  */
+@Deprecated(forRemoval = true)
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
 public class SystemPropertySource {
     private static final SystemPropertiesPropertyResolver SYSTEM_PROPERTIES_PROPERTY_RESOLVER = new SystemPropertiesPropertyResolver();
 
     @Setter
-    private static Environment environment;
+    private static PropertyResolver propertyResolver;
 
 
     public static PropertyResolver getPropertyResolver() {
-        if (environment == null) {
+        if (propertyResolver == null) {
             return SYSTEM_PROPERTIES_PROPERTY_RESOLVER;
         }
-        return environment;
+        return propertyResolver;
     }
 
 
     public static class SystemPropertiesPropertyResolver implements PropertyResolver {
-
-        @Override
-        public boolean containsProperty(String key) {
-            return false;
-        }
-
         @Override
         public String getProperty(String key) {
             return System.getProperty(key);
@@ -73,29 +66,13 @@ public class SystemPropertySource {
             throw new UnsupportedOperationException();
         }
 
-        @Override
-        public <T> T getProperty(String key, Class<T> targetType, T defaultValue) {
-            throw new UnsupportedOperationException();
-        }
+    }
 
-        @Override
-        public String getRequiredProperty(String key) throws IllegalStateException {
-            return System.getProperty(key);
-        }
+    public interface PropertyResolver {
+        String getProperty(String key);
 
-        @Override
-        public <T> T getRequiredProperty(String key, Class<T> targetType) throws IllegalStateException {
-            return null;
-        }
+        String getProperty(String key, String defaultValue);
 
-        @Override
-        public String resolvePlaceholders(String text) {
-            throw new UnsupportedOperationException();
-        }
-
-        @Override
-        public String resolveRequiredPlaceholders(String text) throws IllegalArgumentException {
-            throw new UnsupportedOperationException();
-        }
+        <T> T getProperty(String key, Class<T> targetType);
     }
 }

@@ -28,6 +28,7 @@ package ee.ria.xroad.common.db;
 
 import ee.ria.xroad.common.CodedException;
 
+import jakarta.annotation.PreDestroy;
 import lombok.extern.slf4j.Slf4j;
 import org.hibernate.HibernateException;
 import org.hibernate.Interceptor;
@@ -36,7 +37,6 @@ import org.hibernate.Session;
 import org.hibernate.SessionFactory;
 import org.hibernate.Transaction;
 import org.hibernate.resource.transaction.spi.TransactionStatus;
-import org.springframework.beans.factory.DisposableBean;
 
 import java.util.Map;
 
@@ -48,7 +48,7 @@ import static ee.ria.xroad.common.ErrorCodes.X_DATABASE_ERROR;
  * Code copied from ee.ria.xroad.common.db.DatabaseCtx, but using provided session factory.
  */
 @Slf4j
-public class DatabaseCtxV2 implements DisposableBean {
+public class DatabaseCtxV2 {
 
     private final String name;
     private final SessionFactory sessionFactory;
@@ -67,7 +67,8 @@ public class DatabaseCtxV2 implements DisposableBean {
      * calls the callback and then commits the transaction or rollbacks the
      * transaction depending whether the callback finished successfully or
      * threw an exception.
-     * @param <T> the type of result
+     *
+     * @param <T>      the type of result
      * @param callback the callback to call
      * @return the result from the callback
      * @throws Exception if an exception occurred
@@ -122,6 +123,7 @@ public class DatabaseCtxV2 implements DisposableBean {
 
     /**
      * Starts a new transaction.
+     *
      * @return the current session
      */
     public Session beginTransaction() {
@@ -168,7 +170,7 @@ public class DatabaseCtxV2 implements DisposableBean {
         return e;
     }
 
-    @Override
+    @PreDestroy
     public void destroy() throws Exception {
         if (sessionFactory != null) {
             HibernateUtil.closeSessionFactory(sessionFactory);

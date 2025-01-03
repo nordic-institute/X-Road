@@ -27,6 +27,8 @@ dependencies {
     implementation project(':security-server:ds-client')
     implementation project(':security-server:ds:xroad-ds-security')
 
+    api(platform(libs.springBoot.bom))
+    api('org.springframework:spring-context-support')
     implementation("org.springframework.boot:spring-boot-starter")
     implementation("com.fasterxml.jackson.dataformat:jackson-dataformat-yaml")
     implementation(libs.caffeine)
