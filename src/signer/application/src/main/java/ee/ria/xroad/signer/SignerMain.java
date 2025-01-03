@@ -43,7 +43,7 @@ public class SignerMain {
     private static final String APP_NAME = "signer";
 
     public static void main(String[] args) {
-        XrdSpringServiceBuilder.newApplicationBuilder(APP_NAME, SignerMain.class, SignerConfig.class)
+        XrdSpringServiceBuilder.newApplicationBuilder(APP_NAME, SignerAddonsConfig.class, SignerMain.class, SignerConfig.class)
                 .build()
                 .run(args);
     }

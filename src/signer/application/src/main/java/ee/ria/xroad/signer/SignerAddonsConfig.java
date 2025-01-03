@@ -1,5 +1,6 @@
 /*
  * The MIT License
+ *
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
@@ -23,25 +24,26 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package ee.ria.xroad.proxy.serverproxy;
 
-import ee.ria.xroad.common.conf.serverconf.ServerConfProvider;
+package ee.ria.xroad.signer;
 
-/**
- * Dynamic loader for rest service handlers
- */
-public final class RestServiceHandlerLoader {
+import ee.ria.xroad.signer.tokenmanager.module.AbstractModuleManager;
+import ee.ria.xroad.signer.tokenmanager.module.HardwareModuleManagerImpl;
 
-    private RestServiceHandlerLoader() {
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+
+@Configuration
+@Slf4j
+class SignerAddonsConfig {
+
+    @Bean
+    @ConditionalOnProperty(name = "xroad.signer.addon.hwtoken.enabled", havingValue = "true")
+    AbstractModuleManager hardwareModuleManager() {
+        log.info("Hardware token manager enabled.");
+        return new HardwareModuleManagerImpl();
     }
 
-    static RestServiceHandler load(ServerConfProvider serverConfProvider, String className) {
-        try {
-            Class<?> clazz = Class.forName(className);
-            return (RestServiceHandler) clazz.getDeclaredConstructor(ServerConfProvider.class).newInstance(serverConfProvider);
-        } catch (Exception e) {
-            throw new RuntimeException("Failed to load rest service handler: "
-                    + className, e);
-        }
-    }
 }

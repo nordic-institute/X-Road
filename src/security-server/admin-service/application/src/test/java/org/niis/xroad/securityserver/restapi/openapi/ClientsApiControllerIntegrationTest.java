@@ -145,7 +145,6 @@ public class ClientsApiControllerIntegrationTest extends AbstractApiControllerTe
         when(globalConfProvider.getMembers()).thenReturn(new ArrayList<>(members));
         List<TokenInfo> mockTokens = createMockTokenInfos();
         doReturn(mockTokens).when(tokenService).getAllTokens();
-        when(wsdlValidator.getWsdlValidatorCommand()).thenReturn("src/test/resources/validator/mock-wsdlvalidator.sh");
         when(globalConfProvider.getGlobalGroups()).thenReturn(globalGroupInfos);
         when(globalConfProvider.getGlobalGroups(any(String[].class))).thenReturn(globalGroupInfos);
         when(globalConfProvider.getInstanceIdentifier()).thenReturn(TestUtils.INSTANCE_FI);

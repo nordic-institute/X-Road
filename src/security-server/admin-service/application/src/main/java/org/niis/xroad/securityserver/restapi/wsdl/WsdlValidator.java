@@ -25,15 +25,14 @@
  */
 package org.niis.xroad.securityserver.restapi.wsdl;
 
-import ee.ria.xroad.common.SystemProperties;
 import ee.ria.xroad.common.util.process.ExternalProcessRunner;
 import ee.ria.xroad.common.util.process.ProcessFailedException;
 import ee.ria.xroad.common.util.process.ProcessNotExecutableException;
 
-import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import org.niis.xroad.restapi.exceptions.ErrorDeviation;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 import org.springframework.util.StringUtils;
 
@@ -49,41 +48,45 @@ import static org.niis.xroad.restapi.exceptions.DeviationCodes.ERROR_WSDL_VALIDA
 @Component
 public class WsdlValidator {
     private final ExternalProcessRunner externalProcessRunner;
-    @Getter
     private final String wsdlValidatorCommand;
+    private final boolean wsdlValidatorEnabled;
 
     @Autowired
-    public WsdlValidator(ExternalProcessRunner externalProcessRunner) {
+    public WsdlValidator(ExternalProcessRunner externalProcessRunner,
+                         @Value("${xroad.proxy-ui-api.addon.wsdl-validator.enabled:false}") boolean enabled,
+                         @Value("${xroad.proxy-ui-api.addon.wsdl-validator.command:}") String wsdlValidatorCommand) {
         this.externalProcessRunner = externalProcessRunner;
-        this.wsdlValidatorCommand = SystemProperties.getWsdlValidatorCommand();
+        this.wsdlValidatorEnabled = enabled;
+        this.wsdlValidatorCommand = wsdlValidatorCommand;
     }
 
     /**
      * validate WSDL with user selected validator
+     *
      * @param wsdlUrl
      * @return List of validation warnings that could be ignored by choice
      * @throws WsdlValidatorNotExecutableException when validator is not found or
-     * there are errors (not warnings, cant be ignored) when trying to execute the validator
-     * @throws WsdlValidationFailedException when validation itself fails.
-     * @throws InterruptedException if the thread running the validator is interrupted. <b>The interrupted thread has
-     * already been handled with so you can choose to ignore this exception if you so please.</b>
+     *                                             there are errors (not warnings, cant be ignored) when trying to execute the validator
+     * @throws WsdlValidationFailedException       when validation itself fails.
+     * @throws InterruptedException                if the thread running the validator is interrupted. <b>The interrupted thread has
+     *                                             already been handled with so you can choose to ignore this exception
+     *                                             if you so please.</b>
      */
     public List<String> executeValidator(String wsdlUrl) throws WsdlValidatorNotExecutableException,
             WsdlValidationFailedException, InterruptedException {
         List<String> warnings = new ArrayList<>();
         // validator not set - this is ok since validator is optional
-        if (StringUtils.isEmpty(getWsdlValidatorCommand())) {
-            log.warn("Skipping WSDL validator, command not set");
+        if (!this.wsdlValidatorEnabled || !StringUtils.hasText(wsdlValidatorCommand)) {
+            log.warn("Skipping WSDL validator, addon disabled or command not set");
             return warnings;
         }
-
-        if (StringUtils.isEmpty(wsdlUrl)) {
+        if (!StringUtils.hasText(wsdlUrl)) {
             throw new IllegalArgumentException("wsdl url cannot be null or empty");
         }
 
         try {
             ExternalProcessRunner.ProcessResult processResult = externalProcessRunner
-                    .executeAndThrowOnFailure(getWsdlValidatorCommand(), wsdlUrl);
+                    .executeAndThrowOnFailure(wsdlValidatorCommand, wsdlUrl);
 
             logValidatorOutput(processResult.getProcessOutput());
             return processResult.getProcessOutput();

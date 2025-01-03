@@ -10,7 +10,7 @@ Summary:            X-Road security server with the Faroe Islands' settings
 BuildArch:          noarch
 Group:              Applications/Internet
 License:            MIT
-Requires:           xroad-securityserver = %version-%release, xroad-addon-opmonitoring = %version-%release
+Requires:           xroad-securityserver = %version-%release, xroad-opmonitor = %version-%release
 Conflicts:          xroad-centralserver
 
 %define src %{_topdir}/..

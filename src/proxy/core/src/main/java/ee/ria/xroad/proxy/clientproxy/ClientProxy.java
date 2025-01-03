@@ -25,19 +25,13 @@
  */
 package ee.ria.xroad.proxy.clientproxy;
 
-import ee.ria.xroad.common.SystemProperties;
-import ee.ria.xroad.common.cert.CertChainFactory;
-import ee.ria.xroad.common.conf.globalconf.GlobalConfProvider;
 import ee.ria.xroad.common.conf.serverconf.ServerConfProvider;
 import ee.ria.xroad.common.util.CryptoUtils;
 import ee.ria.xroad.common.util.JettyUtils;
-import ee.ria.xroad.proxy.conf.KeyConfProvider;
 
 import jakarta.annotation.PostConstruct;
 import jakarta.annotation.PreDestroy;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.lang3.StringUtils;
-import org.apache.http.client.HttpClient;
 import org.eclipse.jetty.http.UriCompliance;
 import org.eclipse.jetty.server.CustomRequestLog;
 import org.eclipse.jetty.server.Handler;
@@ -58,7 +52,6 @@ import javax.net.ssl.X509TrustManager;
 import java.security.SecureRandom;
 import java.security.cert.CertificateException;
 import java.security.cert.X509Certificate;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
@@ -72,49 +65,28 @@ public class ClientProxy {
     // SSL session timeout
     private static final int SSL_SESSION_TIMEOUT = 600;
 
-    private static final String CLIENTPROXY_HANDLERS = SystemProperties.PREFIX + "proxy.clientHandlers";
-
     private static final String CLIENT_HTTP_CONNECTOR_NAME = "ClientConnector";
     private static final String CLIENT_HTTPS_CONNECTOR_NAME = "ClientSSLConnector";
 
     private final ProxyProperties.ClientProxyProperties clientProxyProperties;
-    private final GlobalConfProvider globalConfProvider;
-    private final KeyConfProvider keyConfProvider;
     private final ServerConfProvider serverConfProvider;
-    private final CertChainFactory certChainFactory;
-
-    private final AuthTrustVerifier authTrustVerifier;
 
     private final Server server = new Server();
 
-    private final HttpClient client;
-    private final ClientRestMessageHandler clientRestMessageHandler;
-    private final ClientSoapMessageHandler clientSoapMessageHandler;
-
+    private final List<AbstractClientProxyHandler> clientHandlers;
 
     /**
      * Constructs and configures a new client proxy.
      *
      * @throws Exception in case of any errors
      */
-    public ClientProxy(ProxyProperties.ClientProxyProperties clientProxyProperties, HttpClient httpClient,
-                       ClientRestMessageHandler clientRestMessageHandler,
-                       ClientSoapMessageHandler clientSoapMessageHandler,
-                       GlobalConfProvider globalConfProvider,
-                       KeyConfProvider keyConfProvider,
-                       ServerConfProvider serverConfProvider,
-                       CertChainFactory certChainFactory,
-                       AuthTrustVerifier authTrustVerifier) throws Exception {
+    public ClientProxy(ProxyProperties.ClientProxyProperties clientProxyProperties,
+                       List<AbstractClientProxyHandler> clientHandlers,
+                       ServerConfProvider serverConfProvider) throws Exception {
         this.clientProxyProperties = clientProxyProperties;
-        this.client = httpClient;
-        this.clientRestMessageHandler = clientRestMessageHandler;
-        this.clientSoapMessageHandler = clientSoapMessageHandler;
+        this.clientHandlers = clientHandlers;
 
-        this.globalConfProvider = globalConfProvider;
-        this.keyConfProvider = keyConfProvider;
         this.serverConfProvider = serverConfProvider;
-        this.certChainFactory = certChainFactory;
-        this.authTrustVerifier = authTrustVerifier;
 
         configureServer();
         createConnectors();
@@ -206,39 +178,17 @@ public class ClientProxy {
                 });
     }
 
-    private void createHandlers() throws Exception {
+    private void createHandlers() {
         log.trace("createHandlers()");
 
         var handlers = new Handler.Sequence();
 
-        getClientHandlers().forEach(handlers::addHandler);
+        clientHandlers.forEach(handler -> {
+            log.debug("Loading client handler: {}", handler.getClass().getName());
+            handlers.addHandler(handler);
+        });
 
         server.setHandler(handlers);
-    }
-
-    private List<Handler> getClientHandlers() {
-        List<Handler> handlers = new ArrayList<>();
-        String handlerClassNames = System.getProperty(CLIENTPROXY_HANDLERS);
-
-        handlers.add(clientRestMessageHandler);
-
-        if (!StringUtils.isBlank(handlerClassNames)) {
-            var handlerLoader = new HandlerLoader(globalConfProvider, keyConfProvider, serverConfProvider, certChainFactory);
-            for (String handlerClassName : handlerClassNames.split(",")) {
-                try {
-                    log.trace("Loading client handler {}", handlerClassName);
-
-                    handlers.add(handlerLoader.loadHandler(handlerClassName, client));
-                } catch (Exception e) {
-                    throw new RuntimeException("Failed to load client handler: " + handlerClassName, e);
-                }
-            }
-        }
-
-        log.trace("Loading default client handler");
-        handlers.add(clientSoapMessageHandler); // default handler
-
-        return handlers;
     }
 
     @PostConstruct

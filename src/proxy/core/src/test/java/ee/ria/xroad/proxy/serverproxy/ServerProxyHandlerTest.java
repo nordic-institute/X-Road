@@ -56,7 +56,7 @@ public class ServerProxyHandlerTest {
         var certChainFactory = mock(CertChainFactory.class);
         ServerProxyHandler serverProxyHandler = new ServerProxyHandler(mock(ProxyProperties.ServerProperties.class),
                 globalConfProvider, keyConfProvider, serverConfProvider,
-                certChainFactory, mock(HttpClient.class), mock(HttpClient.class));
+                certChainFactory, mock(HttpClient.class), mock(HttpClient.class), mock(ServiceHandlerLoader.class));
 
         try (
                 var checkMock = mockStatic(ClientProxyVersionVerifier.class)

@@ -7,3 +7,4 @@
 ../../../../../signer/application/build/libs/signer-1.0.jar usr/share/xroad/jlib/
 ../../../../../signer-console/build/libs/signer-console-1.0.jar usr/share/xroad/jlib/
 ../../../../../libs/passwordstore/${DEB_HOST_ARCH}/libpasswordstore.so usr/share/xroad/lib/
+../../../../../libs/pkcs11wrapper/${DEB_HOST_ARCH}/libpkcs11-wrapper.so usr/share/xroad/lib/

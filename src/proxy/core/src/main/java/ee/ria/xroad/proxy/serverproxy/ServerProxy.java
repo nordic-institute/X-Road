@@ -90,7 +90,7 @@ public class ServerProxy {
     public ServerProxy(ProxyProperties.ServerProperties serverProperties, AntiDosConfiguration antiDosConfiguration,
                        GlobalConfProvider globalConfProvider, KeyConfProvider keyConfProvider,
                        ServerConfProvider serConfProvider,
-                       CertChainFactory certChainFactory) throws Exception {
+                       CertChainFactory certChainFactory, ServiceHandlerLoader serviceHandlerLoader) throws Exception {
 
         this.serverProperties = serverProperties;
         this.antiDosConfiguration = antiDosConfiguration;
@@ -104,7 +104,7 @@ public class ServerProxy {
         createClient();
         createOpMonitorClient();
         createConnectors();
-        createHandlers();
+        createHandlers(serviceHandlerLoader);
     }
 
     private void configureServer() throws Exception {
@@ -168,11 +168,11 @@ public class ServerProxy {
         log.info("ClientProxy {} created ({}:{})", connector.getClass().getSimpleName(), serverProperties.listenAddress(), port);
     }
 
-    private void createHandlers() {
+    private void createHandlers(ServiceHandlerLoader serviceHandlerLoader) {
         log.trace("createHandlers()");
 
         ServerProxyHandler proxyHandler = new ServerProxyHandler(serverProperties, globalConfProvider, keyConfProvider, serverConfProvider,
-                certChainFactory, client, opMonitorClient);
+                certChainFactory, client, opMonitorClient, serviceHandlerLoader);
 
         var handler = new Handler.Sequence();
         handler.addHandler(proxyHandler);

@@ -1,0 +1,22 @@
+#!/bin/bash
+
+function disable_addon { # $1 property, $2 file
+  if [ ! -f "$2" ]; then
+    return 0
+  fi
+
+  CURRENT_VALUE=$(yq "$1" "$2")
+  if [ -z "$CURRENT_VALUE" ]; then
+    return 0;
+  fi
+  if [ "$CURRENT_VALUE" == "true" ]; then
+    yq -Y -i "$1 = false" "$2"
+  fi
+}
+
+if [[ "$1" == "remove" ]]; then
+  disable_addon ".xroad.proxy.addon.\"op-monitor\".enabled" "/etc/xroad/conf.d/proxy-override.yaml"
+  invoke-rc.d --quiet xroad-proxy try-restart || true
+fi
+
+exit 0

@@ -97,7 +97,7 @@ import static ee.ria.xroad.proxy.util.MetadataRequests.GET_WSDL;
 import static ee.ria.xroad.proxy.util.MetadataRequests.LIST_METHODS;
 
 @Slf4j
-class MetadataServiceHandlerImpl extends AbstractServiceHandler {
+public class MetadataServiceHandlerImpl extends AbstractServiceHandler {
 
     static final JAXBContext JAXB_CTX = initJaxbCtx();
     static final ObjectFactory OBJECT_FACTORY = new ObjectFactory();
@@ -115,7 +115,7 @@ class MetadataServiceHandlerImpl extends AbstractServiceHandler {
 
     private static final SAXTransformerFactory TRANSFORMER_FACTORY = createSaxTransformerFactory();
 
-    protected MetadataServiceHandlerImpl(ServerConfProvider serverConfProvider, GlobalConfProvider globalConfProvider) {
+    public MetadataServiceHandlerImpl(ServerConfProvider serverConfProvider, GlobalConfProvider globalConfProvider) {
         super(serverConfProvider, globalConfProvider);
         wsdlHttpClientCreator = new HttpClientCreator(serverConfProvider);
     }

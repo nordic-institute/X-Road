@@ -33,7 +33,6 @@ import ee.ria.xroad.common.db.DatabaseCtxV2;
 import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.messagelog.AbstractLogManager;
 import ee.ria.xroad.common.messagelog.MessageLogConfig;
-import ee.ria.xroad.common.messagelog.MessageLogDbContextHolder;
 import ee.ria.xroad.common.messagelog.MessageLogProperties;
 import ee.ria.xroad.common.messagelog.archive.EncryptionConfigProvider;
 import ee.ria.xroad.common.messagelog.archive.GroupingStrategy;
@@ -43,6 +42,7 @@ import ee.ria.xroad.proxy.messagelog.NullLogManager;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
@@ -62,11 +62,17 @@ public class ProxyMessageLogConfig {
     private static final GroupingStrategy ARCHIVE_GROUPING = MessageLogProperties.getArchiveGrouping();
 
     @Bean
-    AbstractLogManager messageLogManager(GlobalConfProvider globalConfProvider,
-                                         ServerConfProvider serverConfProvider,
-                                         @Autowired(required = false) @Qualifier("messagelogDatabaseCtx")
-                                         DatabaseCtxV2 messagelogDatabaseCtx) {
-        return MessageLog.init("proxy", globalConfProvider, serverConfProvider, messagelogDatabaseCtx);
+    MessageLog messageLogManager(AbstractLogManager logManager) {
+        return MessageLog.init(logManager);
+    }
+
+    @Bean
+    @ConditionalOnMissingBean
+    AbstractLogManager nullLogManager(GlobalConfProvider globalConfProvider,
+                                      ServerConfProvider serverConfProvider,
+                                      @Autowired(required = false) @Qualifier("messagelogDatabaseCtx")
+                                      DatabaseCtxV2 messagelogDatabaseCtx) {
+        return new NullLogManager("proxy", globalConfProvider, serverConfProvider, messagelogDatabaseCtx);
     }
 
     @ConfigurationProperties(prefix = "xroad.messagelog")
@@ -79,9 +85,7 @@ public class ProxyMessageLogConfig {
     @ConditionalOnProperty(value = "xroad.messagelog.hibernate.connection.password")
     @Bean("messagelogDatabaseCtx")
     DatabaseCtxV2 messagelogDatabaseCtx(MessageLogConfig messageLogProperties) {
-        DatabaseCtxV2 databaseCtx = new DatabaseCtxV2("messagelog", messageLogProperties.getHibernate());
-        MessageLogDbContextHolder.set(databaseCtx);
-        return databaseCtx;
+        return new DatabaseCtxV2("messagelog", messageLogProperties.getHibernate());
     }
 
     @Bean("messageLogEnabledStatus")

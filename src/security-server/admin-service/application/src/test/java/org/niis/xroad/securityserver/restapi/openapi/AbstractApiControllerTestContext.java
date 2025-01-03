@@ -56,7 +56,6 @@ import org.niis.xroad.securityserver.restapi.service.TokenService;
 import org.niis.xroad.securityserver.restapi.service.UrlValidator;
 import org.niis.xroad.securityserver.restapi.service.VersionService;
 import org.niis.xroad.securityserver.restapi.util.TestUtils;
-import org.niis.xroad.securityserver.restapi.wsdl.WsdlValidator;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.boot.test.mock.mockito.SpyBean;
@@ -129,8 +128,6 @@ public abstract class AbstractApiControllerTestContext extends AbstractFacadeMoc
     ServerConfService serverConfService;
     @SpyBean
     MailService mailService;
-    @SpyBean
-    WsdlValidator wsdlValidator;
     @SpyBean
     MockableAuditEventLoggingFacade auditEventLoggingFacade;
     @SpyBean

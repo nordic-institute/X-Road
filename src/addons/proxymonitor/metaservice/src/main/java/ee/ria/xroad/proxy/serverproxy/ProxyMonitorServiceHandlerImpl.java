@@ -81,7 +81,7 @@ public class ProxyMonitorServiceHandlerImpl extends AbstractServiceHandler {
 
     private SoapMessageEncoder responseEncoder;
 
-    protected ProxyMonitorServiceHandlerImpl(ServerConfProvider serverConfProvider, GlobalConfProvider globalConfProvider) {
+    public ProxyMonitorServiceHandlerImpl(ServerConfProvider serverConfProvider, GlobalConfProvider globalConfProvider) {
         super(serverConfProvider, globalConfProvider);
     }
 

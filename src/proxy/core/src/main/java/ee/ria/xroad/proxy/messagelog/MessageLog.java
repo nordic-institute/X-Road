@@ -26,10 +26,6 @@
 package ee.ria.xroad.proxy.messagelog;
 
 import ee.ria.xroad.common.DiagnosticsStatus;
-import ee.ria.xroad.common.SystemProperties;
-import ee.ria.xroad.common.conf.globalconf.GlobalConfProvider;
-import ee.ria.xroad.common.conf.serverconf.ServerConfProvider;
-import ee.ria.xroad.common.db.DatabaseCtxV2;
 import ee.ria.xroad.common.message.RestRequest;
 import ee.ria.xroad.common.message.RestResponse;
 import ee.ria.xroad.common.message.SoapMessageImpl;
@@ -54,32 +50,14 @@ import static ee.ria.xroad.common.ErrorCodes.translateWithPrefix;
  */
 @Slf4j
 public final class MessageLog {
-    private static final String LOG_MANAGER_IMPL_CLASS = SystemProperties.PREFIX + "proxy.messageLogManagerImpl";
-    private static AbstractLogManager logManager;
+    private static AbstractLogManager logManagerImpl;
 
     private MessageLog() {
     }
 
-    /**
-     * Initializes the message log using the provided actor system. Use control aware mailbox.
-     *
-     * @param globalConfProvider global conf source provider
-     * @return LogManager instance
-     */
-    public static AbstractLogManager init(String origin, GlobalConfProvider globalConfProvider,
-                                          ServerConfProvider serverConfProvider, DatabaseCtxV2 databaseCtx) {
-        Class<? extends AbstractLogManager> clazz = getLogManagerImpl();
-
-        log.trace("Using implementation class: {}", clazz);
-
-        try {
-            logManager = clazz.getDeclaredConstructor(String.class, GlobalConfProvider.class, ServerConfProvider.class, DatabaseCtxV2.class)
-                    .newInstance(origin, globalConfProvider, serverConfProvider, databaseCtx);
-        } catch (Exception e) {
-            throw new RuntimeException("Failed to initialize LogManager", e);
-        }
-
-        return logManager;
+    public static MessageLog init(AbstractLogManager logManager) {
+        logManagerImpl = logManager;
+        return new MessageLog();
     }
 
     /**
@@ -94,7 +72,7 @@ public final class MessageLog {
                            String xRequestId) {
         try {
             assertInitialized();
-            logManager.log(new SoapLogMessage(message, signature, clientSide, xRequestId));
+            logManagerImpl.log(new SoapLogMessage(message, signature, clientSide, xRequestId));
         } catch (Exception e) {
             throw translateWithPrefix(X_LOGGING_FAILED_X, e);
         }
@@ -107,7 +85,7 @@ public final class MessageLog {
                            String xRequestId) {
         try {
             assertInitialized();
-            logManager.log(new RestLogMessage(message.getQueryId(), message.getClientId(), message.getServiceId(),
+            logManagerImpl.log(new RestLogMessage(message.getQueryId(), message.getClientId(), message.getServiceId(),
                     message, signature, body, clientside, xRequestId));
         } catch (Exception e) {
             throw translateWithPrefix(X_LOGGING_FAILED_X, e);
@@ -121,7 +99,7 @@ public final class MessageLog {
                            SignatureData signature, CacheInputStream body, boolean clientside, String xRequestId) {
         try {
             assertInitialized();
-            logManager.log(new RestLogMessage(request.getQueryId(), request.getClientId(), request.getServiceId(),
+            logManagerImpl.log(new RestLogMessage(request.getQueryId(), request.getClientId(), request.getServiceId(),
                     message, signature, body, clientside, xRequestId));
         } catch (Exception e) {
             throw translateWithPrefix(X_LOGGING_FAILED_X, e);
@@ -130,7 +108,7 @@ public final class MessageLog {
 
     public static Map<String, DiagnosticsStatus> getDiagnosticStatus() {
         assertInitialized();
-        return logManager.getDiagnosticStatus();
+        return logManagerImpl.getDiagnosticStatus();
     }
 
     /**
@@ -143,27 +121,14 @@ public final class MessageLog {
         try {
             log.trace("timestamp()");
             assertInitialized();
-            return logManager.timestamp(record.getId());
+            return logManagerImpl.timestamp(record.getId());
         } catch (Exception e) {
             throw translateWithPrefix(X_TIMESTAMPING_FAILED_X, e);
         }
     }
 
-    @SuppressWarnings("unchecked")
-    private static Class<? extends AbstractLogManager> getLogManagerImpl() {
-        String logManagerImplClassName = System.getProperty(LOG_MANAGER_IMPL_CLASS, NullLogManager.class.getName());
-
-        try {
-            Class<?> clazz = Class.forName(logManagerImplClassName);
-
-            return (Class<? extends AbstractLogManager>) clazz;
-        } catch (ClassNotFoundException e) {
-            throw new RuntimeException("Unable to load log manager impl: " + logManagerImplClassName, e);
-        }
-    }
-
     private static void assertInitialized() {
-        if (logManager == null) {
+        if (logManagerImpl == null) {
             throw new IllegalStateException("not initialized");
         }
     }
