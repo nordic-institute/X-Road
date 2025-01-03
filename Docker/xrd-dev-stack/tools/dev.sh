@@ -43,7 +43,7 @@ shift $((OPTIND -1))
 
 if [ "$BUILD" = true ] ; then
   echo "Building module $MODULE"
-  source build.sh $MODULE
+  source "$XROAD_HOME"/development/.scripts/build.sh $MODULE
 fi
 
 if [ "$DEPLOY" = true ] ; then

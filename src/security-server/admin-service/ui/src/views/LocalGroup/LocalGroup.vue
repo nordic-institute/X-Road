@@ -83,31 +83,35 @@
 
     <v-card flat>
       <table class="xrd-table group-members-table">
-        <tr>
-          <th>{{ $t('localGroup.name') }}</th>
-          <th>{{ $t('localGroup.id') }}</th>
-          <th>{{ $t('localGroup.accessDate') }}</th>
-          <th></th>
-        </tr>
-        <template v-if="group && group.members && group.members.length > 0">
-          <tr v-for="groupMember in group.members" :key="groupMember.id">
-            <td>{{ groupMember.name }}</td>
-            <td>{{ groupMember.id }}</td>
-            <td>{{ groupMember.created_at }}</td>
-
-            <td>
-              <div class="button-wrap">
-                <xrd-button
-                  v-if="canEditMembers"
-                  text
-                  :outlined="false"
-                  @click="removeMember(groupMember)"
-                  >{{ $t('action.remove') }}</xrd-button
-                >
-              </div>
-            </td>
+        <thead>
+          <tr>
+            <th>{{ $t('localGroup.name') }}</th>
+            <th>{{ $t('localGroup.id') }}</th>
+            <th>{{ $t('localGroup.accessDate') }}</th>
+            <th></th>
           </tr>
-        </template>
+        </thead>
+        <tbody>
+          <template v-if="group && group.members && group.members.length > 0">
+            <tr v-for="groupMember in group.members" :key="groupMember.id">
+              <td>{{ groupMember.name }}</td>
+              <td>{{ groupMember.id }}</td>
+              <td>{{ groupMember.created_at }}</td>
+
+              <td>
+                <div class="button-wrap">
+                  <xrd-button
+                    v-if="canEditMembers"
+                    text
+                    :outlined="false"
+                    @click="removeMember(groupMember)"
+                    >{{ $t('action.remove') }}</xrd-button
+                  >
+                </div>
+              </td>
+            </tr>
+          </template>
+        </tbody>
       </table>
 
       <div class="close-button-wrap">
@@ -343,7 +347,7 @@ export default defineComponent({
       api
         .remove(`/local-groups/${encodePathParameter(this.groupId)}`)
         .then(() => {
-          this.showSuccess(this.$t('localGroup.groupDeleted'));
+          this.showSuccess(this.$t('localGroup.groupDeleted'), true);
           this.$router.back();
         })
         .catch((error) => {
@@ -355,7 +359,8 @@ export default defineComponent({
 </script>
 
 <style lang="scss" scoped>
-@import '@/assets/tables';
+@use '@/assets/tables';
+@use '@/assets/colors';
 
 .group-members-row {
   width: 100%;
@@ -366,7 +371,7 @@ export default defineComponent({
 .row-title {
   width: 100%;
   justify-content: space-between;
-  color: $XRoad-Black100;
+  color: colors.$Black100;
   font-size: 20px;
   font-weight: 500;
   letter-spacing: 0.5px;
@@ -379,7 +384,7 @@ export default defineComponent({
   margin-top: 50px;
   display: flex;
   justify-content: space-between;
-  color: $XRoad-Black100;
+  color: colors.$Black100;
   font-size: 20px;
   font-weight: 500;
   letter-spacing: 0.5px;
@@ -405,7 +410,7 @@ export default defineComponent({
   display: flex;
   justify-content: flex-end;
   padding: 20px;
-  background-color: $XRoad-WarmGrey10;
+  background-color: colors.$WarmGrey10;
   height: 72px;
 }
 

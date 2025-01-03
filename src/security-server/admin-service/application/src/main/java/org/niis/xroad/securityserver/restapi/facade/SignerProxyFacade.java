@@ -25,6 +25,7 @@
  */
 package org.niis.xroad.securityserver.restapi.facade;
 
+import ee.ria.xroad.common.crypto.identifier.KeyAlgorithm;
 import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.identifier.SecurityServerId;
 import ee.ria.xroad.signer.SignerProxy;
@@ -38,13 +39,14 @@ import ee.ria.xroad.signer.protocol.dto.KeyUsageInfo;
 import ee.ria.xroad.signer.protocol.dto.TokenInfo;
 import ee.ria.xroad.signer.protocol.dto.TokenInfoAndKeyId;
 
-import jakarta.annotation.PostConstruct;
-import jakarta.annotation.PreDestroy;
 import lombok.extern.slf4j.Slf4j;
 import org.niis.xroad.signer.proto.CertificateRequestFormat;
+import org.springframework.beans.factory.DisposableBean;
+import org.springframework.beans.factory.InitializingBean;
 import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Component;
 
+import java.time.Instant;
 import java.util.List;
 
 /**
@@ -55,92 +57,92 @@ import java.util.List;
 @Slf4j
 @Profile("!test")
 @Component
-public class SignerProxyFacade {
+public class SignerProxyFacade implements InitializingBean, DisposableBean {
 
-    @PostConstruct
-    public void init() throws Exception {
+    @Override
+    public void afterPropertiesSet() throws Exception {
         RpcSignerClient.init();
     }
 
-    @PreDestroy
-    public void shutdown() {
+    @Override
+    public void destroy() {
         RpcSignerClient.shutdown();
     }
 
     /**
      * {@link SignerProxy#initSoftwareToken(char[])}
      */
-    public void initSoftwareToken(char[] password) throws Exception {
+    public void initSoftwareToken(char[] password) throws SecurityException {
         SignerProxy.initSoftwareToken(password);
     }
 
     /**
      * {@link SignerProxy#getTokens()}
      */
-    public List<TokenInfo> getTokens() throws Exception {
+    public List<TokenInfo> getTokens() throws SecurityException {
         return SignerProxy.getTokens();
     }
 
     /**
      * {@link SignerProxy#getToken(String)}
      */
-    public TokenInfo getToken(String tokenId) throws Exception {
+    public TokenInfo getToken(String tokenId) throws SecurityException {
         return SignerProxy.getToken(tokenId);
     }
 
     /**
      * {@link SignerProxy#activateToken(String, char[])}
      */
-    public void activateToken(String tokenId, char[] password) throws Exception {
+    public void activateToken(String tokenId, char[] password) throws SecurityException {
         SignerProxy.activateToken(tokenId, password);
     }
 
     /**
      * {@link SignerProxy#deactivateToken(String)}
      */
-    public void deactivateToken(String tokenId) throws Exception {
+    public void deactivateToken(String tokenId) throws SecurityException {
         SignerProxy.deactivateToken(tokenId);
     }
 
     /**
      * {@link SignerProxy#setTokenFriendlyName(String, String)}
      */
-    public void setTokenFriendlyName(String tokenId, String friendlyName) throws Exception {
+    public void setTokenFriendlyName(String tokenId, String friendlyName) throws SecurityException {
         SignerProxy.setTokenFriendlyName(tokenId, friendlyName);
     }
 
     /**
      * {@link SignerProxy#setKeyFriendlyName(String, String)}
      */
-    public void setKeyFriendlyName(String keyId, String friendlyName) throws Exception {
+    public void setKeyFriendlyName(String keyId, String friendlyName) throws SecurityException {
         SignerProxy.setKeyFriendlyName(keyId, friendlyName);
     }
 
     /**
-     * {@link SignerProxy#generateKey(String, String)}
+     * {@link SignerProxy#generateKey(String, String, KeyAlgorithm)}
      */
-    public KeyInfo generateKey(String tokenId, String keyLabel) throws Exception {
-        return SignerProxy.generateKey(tokenId, keyLabel);
+    public KeyInfo generateKey(String tokenId, String keyLabel, KeyAlgorithm keyAlgorithm) throws SecurityException {
+        return SignerProxy.generateKey(tokenId, keyLabel, keyAlgorithm);
     }
 
     /**
      * {@link SignerProxy#importCert(byte[], String, ClientId.Conf)}
      */
-    public String importCert(byte[] certBytes, String initialStatus, ClientId.Conf clientId) throws Exception {
-        return SignerProxy.importCert(certBytes, initialStatus, clientId);
+    public String importCert(byte[] certBytes, String initialStatus, ClientId.Conf clientId, boolean activate) throws SecurityException {
+        return SignerProxy.importCert(certBytes, initialStatus, clientId, activate);
     }
 
     /**
      * {@link SignerProxy#activateCert(String)}
      */
-    public void activateCert(String certId) throws Exception {
+    public void activateCert(String certId) throws SecurityException {
         SignerProxy.activateCert(certId);
     }
 
     /**
      * {@link SignerProxy#deactivateCert(String)}
      */
-    public void deactivateCert(String certId) throws Exception {
+    public void deactivateCert(String certId) throws SecurityException {
         SignerProxy.deactivateCert(certId);
     }
 
@@ -148,7 +150,7 @@ public class SignerProxyFacade {
      * {@link SignerProxy#generateCertRequest(String, ClientId.Conf, KeyUsageInfo, String, CertificateRequestFormat)}
      */
     public GeneratedCertRequestInfo generateCertRequest(String keyId, ClientId.Conf memberId, KeyUsageInfo keyUsage,
-                                                        String subjectName, CertificateRequestFormat format) throws Exception {
+                                                        String subjectName, CertificateRequestFormat format) throws SecurityException {
         return SignerProxy.generateCertRequest(keyId, memberId, keyUsage, subjectName, format);
     }
 
@@ -156,8 +158,9 @@ public class SignerProxyFacade {
      * {@link SignerProxy#generateCertRequest(String, ClientId.Conf, KeyUsageInfo, String, String, CertificateRequestFormat, String)}
      */
     public GeneratedCertRequestInfo generateCertRequest(String keyId, ClientId.Conf memberId, KeyUsageInfo keyUsage,
-            String subjectName, String altName, CertificateRequestFormat format, String certificateProfile)
-            throws Exception {
+                                                        String subjectName, String altName, CertificateRequestFormat format,
+                                                        String certificateProfile)
+            throws SecurityException {
         return SignerProxy.generateCertRequest(keyId, memberId, keyUsage, subjectName, altName, format, certificateProfile);
     }
 
@@ -165,88 +168,109 @@ public class SignerProxyFacade {
      * {@link SignerProxy#regenerateCertRequest(String, CertificateRequestFormat)}
      */
     public GeneratedCertRequestInfo regenerateCertRequest(String certRequestId, CertificateRequestFormat format)
-            throws Exception {
+            throws SecurityException {
         return SignerProxy.regenerateCertRequest(certRequestId, format);
     }
 
     /**
      * {@link SignerProxy#deleteCertRequest(String)}
      */
-    public void deleteCertRequest(String certRequestId) throws Exception {
+    public void deleteCertRequest(String certRequestId) throws SecurityException {
         SignerProxy.deleteCertRequest(certRequestId);
     }
 
     /**
      * {@link SignerProxy#deleteCert(String)}
      */
-    public void deleteCert(String certId) throws Exception {
+    public void deleteCert(String certId) throws SecurityException {
         SignerProxy.deleteCert(certId);
     }
 
     /**
      * {@link SignerProxy#deleteKey(String, boolean)}
      */
-    public void deleteKey(String keyId, boolean deleteFromToken) throws Exception {
+    public void deleteKey(String keyId, boolean deleteFromToken) throws SecurityException {
         SignerProxy.deleteKey(keyId, deleteFromToken);
     }
 
     /**
      * {@link SignerProxy#setCertStatus(String, String)}
      */
-    public void setCertStatus(String certId, String status) throws Exception {
+    public void setCertStatus(String certId, String status) throws SecurityException {
         SignerProxy.setCertStatus(certId, status);
+    }
+
+    /**
+     * {@link SignerProxy#setCertStatus(String, String)}
+     */
+    public void setRenewedCertHash(String certId, String hash) throws SecurityException {
+        SignerProxy.setRenewedCertHash(certId, hash);
+    }
+
+    /**
+     * {@link SignerProxy#setRenewalError(String, String)}
+     */
+    public void setRenewalError(String certId, String errorMessage) throws SecurityException {
+        SignerProxy.setRenewalError(certId, errorMessage);
+    }
+
+    /**
+     * {@link SignerProxy#setNextPlannedRenewal(String, Instant)}
+     */
+    public void setNextPlannedRenewal(String certId, Instant nextRenewalTime) throws SecurityException {
+        SignerProxy.setNextPlannedRenewal(certId, nextRenewalTime);
     }
 
     /**
      * {@link SignerProxy#getCertForHash(String)}
      */
-    public CertificateInfo getCertForHash(String hash) throws Exception {
+    public CertificateInfo getCertForHash(String hash) throws SecurityException {
         return SignerProxy.getCertForHash(hash);
     }
 
     /**
      * {@link SignerProxy#getKeyIdForCertHash(String)}
      */
-    public KeyIdInfo getKeyIdForCertHash(String hash) throws Exception {
+    public KeyIdInfo getKeyIdForCertHash(String hash) throws SecurityException {
         return SignerProxy.getKeyIdForCertHash(hash);
     }
 
     /**
      * {@link SignerProxy#getTokenAndKeyIdForCertHash(String)}
      */
-    public TokenInfoAndKeyId getTokenAndKeyIdForCertHash(String hash) throws Exception {
+    public TokenInfoAndKeyId getTokenAndKeyIdForCertHash(String hash) throws SecurityException {
         return SignerProxy.getTokenAndKeyIdForCertHash(hash);
     }
 
     /**
      * {@link SignerProxy#getTokenAndKeyIdForCertRequestId(String)}
      */
-    public TokenInfoAndKeyId getTokenAndKeyIdForCertRequestId(String certRequestId) throws Exception {
+    public TokenInfoAndKeyId getTokenAndKeyIdForCertRequestId(String certRequestId) throws SecurityException {
         return SignerProxy.getTokenAndKeyIdForCertRequestId(certRequestId);
     }
 
     /**
      * {@link SignerProxy#getTokenForKeyId(String)}
      */
-    public TokenInfo getTokenForKeyId(String keyId) throws Exception {
+    public TokenInfo getTokenForKeyId(String keyId) throws SecurityException {
         return SignerProxy.getTokenForKeyId(keyId);
     }
 
     /**
      * {@link SignerProxy#getOcspResponses(String[])}
      */
-    public String[] getOcspResponses(String[] certHashes) throws Exception {
+    public String[] getOcspResponses(String[] certHashes) throws SecurityException {
         return SignerProxy.getOcspResponses(certHashes);
     }
 
     /**
      * {@link SignerProxy#getAuthKey(SecurityServerId)}
      */
-    public AuthKeyInfo getAuthKey(SecurityServerId serverId) throws Exception {
+    public AuthKeyInfo getAuthKey(SecurityServerId serverId) throws SecurityException {
         return SignerProxy.getAuthKey(serverId);
     }
 
-    public void updateSoftwareTokenPin(String tokenId, char[] oldPin, char[] newPin) throws Exception {
+    public void updateSoftwareTokenPin(String tokenId, char[] oldPin, char[] newPin) throws SecurityException {
         SignerProxy.updateTokenPin(tokenId, oldPin, newPin);
     }
 }

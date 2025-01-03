@@ -1,6 +1,6 @@
 # X-Road: Central Server User Guide <!-- omit in toc --> 
 
-Version: 2.44  
+Version: 2.45  
 Doc. ID: UG-CS
 
 ## Version history <!-- omit in toc --> 
@@ -70,6 +70,7 @@ Doc. ID: UG-CS
 | 26.03.2024 | 2.42    | Passing additional parameters to psql                                                                                                                                                                                                                                                                                                                                                                                                   | Ovidijus Narkevicius |
 | 08.04.2024 | 2.43    | Taking configuration download url from shared parameters                                                                                                                                                                                                                                                                                                                                                                                | Eneli Reimets        |
 | 09.06.2024 | 2.44    | Added ACME information for Approved CAs                                                                                                                                                                                                                                                                                                                                                                                                 | Mikk-Erik Bachmann   |
+| 01.08.2024 | 2.45    | Minor updates                                                                                                                                                                                                                                                                                                                                                                                                                           | Petteri Kivimäki     |
 ## Table of Contents <!-- omit in toc --> 
 
 <!-- toc -->
@@ -178,6 +179,9 @@ Doc. ID: UG-CS
 - [18 Migrating to Remote Database Host](#18-migrating-to-remote-database-host)
 - [19 Additional Security Hardening](#19-additional-security-hardening)
 - [20 Passing additional parameters to psql](#20-passing-additional-parameters-to-psql)
+- [21 Migrating to EC Based Configuration Signing Keys](#21-migrating-to-ec-based-configuration-signing-keys)
+  - [21.1 Steps to Enable EC Based Signing Keys](#211-Steps-to-enable-EC-based-signing-keys)
+  - [21.2 Backwards Compatibility](#212-Backwards-compatibility)
 <!-- tocstop -->
 
 # License
@@ -432,9 +436,9 @@ To change the Central Server address, follow these steps.
   - generates new configuration anchors for the internal and external configuration sources.
 4. After the Central Server address is changed, act as follows.
   - Download the internal configuration source anchor and distribute the anchor along with the anchor’s hash value to the Security Server administrators of the local X-Road infrastructure.
-    > **NOTE**: Starting from version 7.5.0 new Central Server address is automatically distributed to Security Servers within the global configuration. Distribution will take place within two global configuration refresh cycles.
+    > **NOTE**: Starting from version 7.5.0 new Central Server address is automatically distributed to Security Servers within the global configuration. Distribution will take place within two global configuration refresh cycles. However, the new Central Server address is not updated to the configuration anchor stored on the Security Server. If the Security Server's local copy of the global configuration expires, the Security Server returns using the Central Server address from the configuration anchor. Therefore, if the Security Server's local copy of the global configuration is expired, importing a new version of the configuration anchor is required if the current Central Server address doesn't match with the address in the original configuration anchor.
   - In case of federated X-Road systems, download the external configuration source anchor and distribute the anchor along with the anchor’s hash value to the federation partners.
-    > **NOTE**: Starting from version 7.5.0 new Central Server address is automatically distributed to the federation partners within the global configuration. Distribution will take place within two global configuration refresh cycles.
+    > **NOTE**: Starting from version 7.5.0 new Central Server address is automatically distributed to the federation partners within the global configuration. Distribution will take place within two global configuration refresh cycles. However, the new Central Server address is not updated to the configuration anchor stored on the Security Server. If the Security Server's local copy of the global configuration expires, the Security Server returns using the Central Server address from the configuration anchor. Therefore, if the Security Server's local copy of the global configuration is expired, importing a new version of the configuration anchor is required if the current Central Server address doesn't match with the address in the original configuration anchor.
   - Reconfigure the management services addresses in the management service Security Server.
 
 ## 4.4 Managing the TLS certificates
@@ -540,7 +544,7 @@ To perform a regular key change, follow these steps.
 
 1. Generate, but do not activate a new configuration signing key (see 5.4.1) (in an HA setup, for each node). The system uses the old (active) key(s) to sign the configuration. Upon the generation of a new key, the system generates a new anchor for the corresponding configuration sources.
 2. If there are pre 7.4.0 Security Servers within the ecosystem (including federations) then download the anchor (see 5.2) containing the public key part(s) of the new signing key(s) and distribute the anchor along with the anchor file hash value either to these Security Servers' administrators (in case of internal configuration anchor) or to the federation partners (in case of external configuration anchor).
-   > **NOTE**: Starting from version 7.4.0 new configuration signing keys are automatically distributed to Security Servers within the global configuration. Distribution will take place within two global configuration refresh cycles.
+   > **NOTE**: Starting from version 7.4.0 new configuration signing keys are automatically distributed to Security Servers within the global configuration. Distribution will take place within two global configuration refresh cycles. However, the new sign keys are not updated to the configuration anchor stored on the Security Server. If the Security Server's local copy of the global configuration expires, the Security Server returns using sign keys from the configuration anchor. Therefore, if the Security Server's local copy of the global configuration is expired, importing a new version of the configuration anchor is required if the current sign keys don't match with the sign keys in the original configuration anchor.
 3. Activate the new signing key(s) (see 5.4.2).
 The new signing key(s) should only be activated after all the affected Security Servers have received & applied the new public key (either through automatic configuration signing key rotation or uploading the distributed anchor manually). The Central Servers use the active key to sign configuration. If a server administrator has not applied the new public key before the key is activated, the verification of the downloaded configuration in the Security Servers will fail and the services exchange with the X-Road participants described in the configuration will be discontinued.
 4. Delete the old signing key (in an HA setup, delete the old keys on all the nodes) (see 5.4.3). Upon the deletion of a key, the system generates a new configuration anchor.
@@ -1756,3 +1760,25 @@ This example shows how SSL configurations for _psql_ could look like. List of po
 Some of the variables like `PGOPTIONS`, `PGDATABASE`, `PGUSER`, `PGPASSWORD` are already used by scripts(created and initialized with values from `/etc/xroad/db.properties` file) so adding same variables to `db_libpq.env` won't have any effect on script behaviour.
 
 In case it is needed to pass additional flags to internally initialized `PGOPTIONS` variable, then `PGOPTIONS_EXTRA` variable can be used. It will be appended to `PGOPTIONS` variable.
+
+# 21 Migrating to EC Based Configuration Signing Keys
+
+## 21.1 Steps to Enable EC Based Signing Keys
+
+Since version 7.6.0 Central Server supports ECDSA based configuration signing keys. By default, both internal and external configuration signing keys use the RSA algorithm as in previous versions. The EC algorithm can be enabled separately for internal and external keys so migration can be done in steps, e.g., first internal and then external keys or vice versa. The instructions on how to start using internal and external signing EC keys are listed below.
+
+1. Update the configuration to use EC based keys. This can be done by updating the configuration file `/etc/xroad/conf.d/local.ini` and adding the following lines:
+
+```ini
+[admin-service]
+internal-key-algorithm = EC
+external-key-algorithm = EC
+```
+
+2. Restart the `xroad-center` service to apply the changes made to the configuration file.
+3. Follow the instructions in the [Generating a Configuration Signing Key](#541-generating-a-configuration-signing-key) to generate new keys, which will be using EC algorithm now.
+
+## 21.2 Backwards Compatibility
+
+When Central Server is configured to use EC based signing keys, then Security Servers prior to version 7.6.0 are not be able to use the global configuration. In other words, EC based internal signing keys can be used only when all the Security Servers in the local ecosystem use X-Road version 7.6.0 or later. Instead, in a federated setup, EC based external signing keys can be used only when all the Security Servers in all the federated ecosystems use X-Road version 7.6.0 or later.
+Before migrating to EC based configuration signing keys, always remember to make sure that all the Security Servers in all the affected ecosystems use X-Road version 7.6.0 or later.

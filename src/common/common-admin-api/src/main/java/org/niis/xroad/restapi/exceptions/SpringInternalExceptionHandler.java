@@ -77,10 +77,10 @@ public class SpringInternalExceptionHandler extends ResponseEntityExceptionHandl
         Optional<Throwable> wrappedStatusCause = getWrappedStatusCarryingExceptionCause(ex);
         if (wrappedStatusCause.isPresent()) {
             status = getAnnotatedResponseStatus(wrappedStatusCause.get(), status);
-        } else if (ex instanceof MethodArgumentNotValidException) {
-            errorInfo.setError(validationErrorHelper.createError((MethodArgumentNotValidException) ex));
-        } else if (ex instanceof MethodArgumentTypeMismatchException) {
-            errorInfo.setError(validationErrorHelper.createError((MethodArgumentTypeMismatchException) ex));
+        } else if (ex instanceof MethodArgumentNotValidException manve) {
+            errorInfo.setError(validationErrorHelper.createError(manve));
+        } else if (ex instanceof MethodArgumentTypeMismatchException matme) {
+            errorInfo.setError(validationErrorHelper.createError(matme));
         }
 
         errorInfo.setStatus(status.value());
@@ -99,7 +99,7 @@ public class SpringInternalExceptionHandler extends ResponseEntityExceptionHandl
      */
     private Optional<Throwable> getWrappedStatusCarryingExceptionCause(Throwable t) {
         return ExceptionUtils.getThrowableList(t).stream()
-                .filter(e -> e instanceof WrappedStatusCarryingException)
+                .filter(WrappedStatusCarryingException.class::isInstance)
                 .findFirst();
     }
 }

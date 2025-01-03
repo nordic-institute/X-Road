@@ -26,6 +26,8 @@
  */
 package org.niis.xroad.cs.admin.core.service;
 
+import ee.ria.xroad.common.crypto.identifier.KeyAlgorithm;
+import ee.ria.xroad.common.crypto.identifier.SignMechanism;
 import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.util.TimeUtils;
 import ee.ria.xroad.signer.protocol.dto.KeyInfo;
@@ -35,6 +37,7 @@ import ee.ria.xroad.signer.protocol.dto.TokenInfo;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.niis.xroad.common.exception.NotFoundException;
+import org.niis.xroad.common.exception.SignerProxyException;
 import org.niis.xroad.common.exception.ValidationFailureException;
 import org.niis.xroad.cs.admin.api.domain.ConfigurationSigningKey;
 import org.niis.xroad.cs.admin.api.domain.ConfigurationSigningKeyWithDetails;
@@ -45,11 +48,11 @@ import org.niis.xroad.cs.admin.api.facade.SignerProxyFacade;
 import org.niis.xroad.cs.admin.api.service.ConfigurationSigningKeysService;
 import org.niis.xroad.cs.admin.api.service.SystemParameterService;
 import org.niis.xroad.cs.admin.api.service.TokenActionsResolver;
+import org.niis.xroad.cs.admin.core.config.KeyAlgorithmConfig;
 import org.niis.xroad.cs.admin.core.entity.ConfigurationSigningKeyEntity;
 import org.niis.xroad.cs.admin.core.entity.ConfigurationSourceEntity;
 import org.niis.xroad.cs.admin.core.entity.mapper.ConfigurationSigningKeyMapper;
 import org.niis.xroad.cs.admin.core.entity.mapper.ConfigurationSigningKeyWithDetailsMapper;
-import org.niis.xroad.cs.admin.core.exception.SignerProxyException;
 import org.niis.xroad.cs.admin.core.exception.SigningKeyException;
 import org.niis.xroad.cs.admin.core.repository.ConfigurationSigningKeyRepository;
 import org.niis.xroad.cs.admin.core.repository.ConfigurationSourceRepository;
@@ -101,6 +104,7 @@ public class ConfigurationSigningKeysServiceImpl extends AbstractTokenConsumer i
     private final ConfigurationSourceRepository configurationSourceRepository;
     private final ConfigurationSigningKeyMapper configurationSigningKeyMapper;
     private final ConfigurationSigningKeyWithDetailsMapper configurationSigningKeyWithDetailsMapper;
+    private final KeyAlgorithmConfig keyAlgorithmConfig;
     private final SignerProxyFacade signerProxyFacade;
     private final TokenActionsResolver tokenActionsResolver;
     private final SigningKeyActionsResolver signingKeyActionsResolver;
@@ -141,7 +145,8 @@ public class ConfigurationSigningKeysServiceImpl extends AbstractTokenConsumer i
                 signingKey,
                 possibleActions,
                 keyInfo.getLabel(),
-                keyInfo.isAvailable());
+                keyInfo.isAvailable(),
+                SignMechanism.valueOf(keyInfo.getSignMechanismName()).keyAlgorithm());
     }
 
     @Override
@@ -225,6 +230,10 @@ public class ConfigurationSigningKeysServiceImpl extends AbstractTokenConsumer i
                 ? GENERATE_INTERNAL_KEY
                 : GENERATE_EXTERNAL_KEY;
 
+        final KeyAlgorithm keyAlgorithm = INTERNAL.equals(configurationSourceType)
+                ? keyAlgorithmConfig.getInternalKeyAlgorithm()
+                : keyAlgorithmConfig.getExternalKeyAlgorithm();
+
         if (configurationSourceType == INTERNAL) {
             auditEventHelper.changeRequestScopedEvent(GENERATE_INTERNAL_CONFIGURATION_SIGNING_KEY);
         } else if (configurationSourceType == EXTERNAL) {
@@ -238,7 +247,7 @@ public class ConfigurationSigningKeysServiceImpl extends AbstractTokenConsumer i
 
         KeyInfo keyInfo;
         try {
-            keyInfo = signerProxyFacade.generateKey(tokenId, keyLabel);
+            keyInfo = signerProxyFacade.generateKey(tokenId, keyLabel, keyAlgorithm);
             auditDataHelper.put(RestApiAuditProperty.KEY_ID, keyInfo.getId());
             auditDataHelper.put(RestApiAuditProperty.KEY_FRIENDLY_NAME, keyInfo.getFriendlyName());
         } catch (Exception e) {

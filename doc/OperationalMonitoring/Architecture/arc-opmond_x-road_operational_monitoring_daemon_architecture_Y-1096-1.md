@@ -1,6 +1,6 @@
 # X-Road: Operational Monitoring Daemon Architecture <!-- omit in toc -->
 
-Version: 1.2  
+Version: 1.4  
 Document ID: ARC-OPMOND
 
 | Date       | Version | Description                                                         | Author           |
@@ -13,6 +13,8 @@ Document ID: ARC-OPMOND
 | 12.12.2019 | 1.0     | Update appendix A.2 with the updated fields                         | Ilkka Seppälä    |
 | 25.06.2020 | 1.1     | Update section 3.3 with the instructions how to enable JMX          | Petteri Kivimäki |
 | 01.06.2023 | 1.2     | Update references                                                   | Petteri Kivimäki |
+| 02.10.2024 | 1.3     | Update schema file locations                                        | Justas Samuolis  |
+| 05.12.2024 | 1.4     | Add endpoint level statistics gathering support                     | Eneli Reimets    |
 
 ## Table of Contents <!-- omit in toc -->
 
@@ -48,7 +50,7 @@ This document is licensed under the Creative Commons Attribution-ShareAlike 3.0 
 
 ## 1 Introduction
 
-The X-Road monitoring solution is conceptually split into two parts: environmental and operational monitoring. The operational monitoring processes operational statistics (such as which services have been called, how many times, what was the size of the response, etc.) of the security servers.
+The X-Road monitoring solution is conceptually split into two parts: environmental and operational monitoring. The operational monitoring processes operational statistics (such as which services or endpoints have been called, how many times, what was the size of the response, etc.) of the security servers.
 
 This document describes the architecture of the X-Road operational monitoring daemon. It presents an overview of the components of the monitoring daemon and its interfaces.
 
@@ -164,11 +166,11 @@ Figure 2 shows the deployment diagram.
 
 ### A.1 JSON-Schema for Store Operational Monitoring Data Request
 
-The schema is located in the file *src/op-monitor-daemon/src/main/resources/store_operational_data_request_schema.yaml* of the X-Road source code.
+The schema is located in the file *src/op-monitor-daemon/core/src/main/resources/store_operational_data_request_schema.yaml* of the X-Road source code.
 
 ### A.2 Example Store Operational Monitoring Data Request
 
-The first record of the store request reflects successfully mediated request, the second one unsuccessfully mediated request.
+The first record of the store request reflects successfully mediated SOAP request, the second one successfully mediated REST request and the third one unsuccessfully mediated request.
 
 ```json
 {
@@ -206,6 +208,38 @@ The first record of the store request reflects successfully mediated request, th
       "serviceType": "WSDL"
     },
     {
+      "monitoringDataTs": 1733404603,
+      "securityServerInternalIp": "fd42:2642:2cb3:31ac:216:3eff:fedf:85c%eth0",
+      "securityServerType": "Client",
+      "requestInTs": 1733404602876,
+      "requestOutTs": 1733404602884,
+      "responseInTs": 1733404602970,
+      "responseOutTs": 1733404603005,
+      "clientXRoadInstance": "FI",
+      "clientMemberClass": "COM",
+      "clientMemberCode": "111",
+      "clientSubsystemCode": "CLIENT",
+      "serviceXRoadInstance": "FI",
+      "serviceMemberClass": "COM",
+      "serviceMemberCode": "111",
+      "serviceSubsystemCode": "SERVICE",
+      "serviceCode": "pets",
+      "restMethod": "GET",
+      "restPath": "/cat",
+      "messageId": "1234",
+      "messageProtocolVersion": "1",
+      "clientSecurityServerAddress": "ss1",
+      "serviceSecurityServerAddress": "ss1",
+      "requestSize": 214,
+      "responseSize": 462,
+      "requestAttachmentCount": 0,
+      "responseAttachmentCount": 0,
+      "succeeded": true,
+      "statusCode": 200,
+      "xRequestId": "1244d018-9300-4f1b-8c2b-9b7f2bc4e933",
+      "serviceType": "REST"
+    },
+    {
       "monitoringDataTs": 1576134508,
       "securityServerInternalIp": "fd42:2642:2cb3:31ac:216:3eff:fedf:85c%eth0",
       "securityServerType": "Client",
@@ -239,7 +273,7 @@ The first record of the store request reflects successfully mediated request, th
 
 ### A.3 JSON-Schema for Store Operational Monitoring Data Response
 
-The schema is located in the file *src/op-monitor-daemon/src/main/resources/store_operational_data_response_schema.yaml* of the X-Road source code.
+The schema is located in the file *src/op-monitor-daemon/core/src/main/resources/store_operational_data_response_schema.yaml* of the X-Road source code.
 
 ### A.4 Example Store Operational Monitoring Data Responses
 

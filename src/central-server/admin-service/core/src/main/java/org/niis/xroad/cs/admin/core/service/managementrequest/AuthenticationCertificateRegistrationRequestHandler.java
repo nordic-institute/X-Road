@@ -27,7 +27,8 @@
 package org.niis.xroad.cs.admin.core.service.managementrequest;
 
 import ee.ria.xroad.common.SystemProperties;
-import ee.ria.xroad.common.conf.globalconf.GlobalConf;
+import ee.ria.xroad.common.conf.globalconf.GlobalConfProvider;
+import ee.ria.xroad.common.util.CryptoUtils;
 
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
@@ -57,7 +58,6 @@ import java.util.List;
 import java.util.function.Predicate;
 
 import static ee.ria.xroad.common.util.CertUtils.isAuthCert;
-import static ee.ria.xroad.common.util.CryptoUtils.readCertificate;
 import static java.lang.String.valueOf;
 import static org.niis.xroad.cs.admin.api.domain.ManagementRequestStatus.APPROVED;
 import static org.niis.xroad.cs.admin.api.domain.ManagementRequestStatus.SUBMITTED_FOR_APPROVAL;
@@ -81,6 +81,7 @@ import static org.niis.xroad.cs.admin.core.service.SystemParameterServiceImpl.DE
 public class AuthenticationCertificateRegistrationRequestHandler implements
         RequestHandler<AuthenticationCertificateRegistrationRequest> {
 
+    private final GlobalConfProvider globalConfProvider;
     private final IdentifierRepository<SecurityServerIdEntity> serverIds;
     private final SecurityServerClientRepository<XRoadMemberEntity> members;
     private final AuthenticationCertificateRegistrationRequestRepository authCertReqRequests;
@@ -111,14 +112,14 @@ public class AuthenticationCertificateRegistrationRequestHandler implements
 
         final byte[] validatedCert;
         try {
-            final X509Certificate authCert = readCertificate(request.getAuthCert());
+            final X509Certificate authCert = CryptoUtils.readCertificate(request.getAuthCert());
             if (!isAuthCert(authCert)) {
                 throw new ValidationFailureException(MR_INVALID_AUTH_CERTIFICATE);
             }
 
             //verify that certificate is issued by a known CA
-            var instanceId = GlobalConf.getInstanceIdentifier();
-            var caCert = GlobalConf.getCaCert(instanceId, authCert);
+            var instanceId = globalConfProvider.getInstanceIdentifier();
+            var caCert = globalConfProvider.getCaCert(instanceId, authCert);
             authCert.verify(caCert.getPublicKey());
 
             authCert.checkValidity();
@@ -140,7 +141,7 @@ public class AuthenticationCertificateRegistrationRequestHandler implements
                 authCertRegRequest = newRequest(request);
                 break;
             case 1:
-                AuthenticationCertificateRegistrationRequestEntity existingRequest = pendingRequests.get(0);
+                AuthenticationCertificateRegistrationRequestEntity existingRequest = pendingRequests.getFirst();
                 Predicate<Void> isDifferentOrigin = __ ->
                         !existingRequest.getOrigin().equals(origin);
                 Predicate<Void> isSameSecurityServerId = __ ->

@@ -36,7 +36,7 @@
         </div>
       </div>
     </td>
-    <td colspan="4"></td>
+    <td colspan="5"></td>
     <td class="td-align-right">
       <xrd-button
         v-if="showGenerateCsr"
@@ -119,7 +119,8 @@ export default defineComponent({
 </script>
 
 <style lang="scss" scoped>
-@import '@/assets/tables';
+@use '@/assets/tables';
+@use '@/assets/colors';
 
 .table-button-fix {
   margin-left: auto;
@@ -131,13 +132,13 @@ export default defineComponent({
 }
 
 .clickable-link {
-  color: $XRoad-Purple100;
+  color: colors.$Purple100;
   cursor: pointer;
 }
 
 .key-icon {
   margin-right: 18px;
-  color: $XRoad-Purple100;
+  color: colors.$Purple100;
 }
 
 .name-wrap-top {

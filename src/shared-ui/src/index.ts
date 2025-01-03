@@ -30,11 +30,9 @@ import '@fontsource/open-sans';
 import '@mdi/font/css/materialdesignicons.css';
 import './assets/icons.css';
 
-import en from './locales/en.json';
+export * from './language-helper';
 
 export * from './components';
 export * from './components/icons';
 export * from './components/backups-and-restore';
 export * from './types';
-export * from './plugins/i18n';
-export const messages = { en };

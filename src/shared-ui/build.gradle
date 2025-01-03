@@ -1,7 +1,7 @@
-import org.siouan.frontendgradleplugin.infrastructure.gradle.RunPnpm
+import org.siouan.frontendgradleplugin.infrastructure.gradle.RunPnpmTaskType
 
 plugins {
-    alias(libs.plugins.frontendJDK17)
+    alias(libs.plugins.frontendJDK21)
 }
 
 frontend {
@@ -17,28 +17,34 @@ frontend {
     }
 }
 
-tasks.register('build-pnpm-workspace', RunPnpm) {
+tasks.register('build-pnpm-workspace', RunPnpmTaskType) {
     dependsOn installFrontend
-    script = 'run build-workspace'
+    args = 'run build-workspace'
 }
 
 tasks.named("cleanFrontend").configure {
     enabled(false)
 }
 
-tasks.register('checkFrontAudit', RunPnpm) {
+tasks.register('checkFrontAudit', RunPnpmTaskType) {
     dependsOn assembleFrontend
 
-    script = 'run npx-check-audit'
+    args = 'run npx-check-audit'
 }
+
+tasks.register('test', RunPnpmTaskType) {
+    dependsOn installFrontend
+    args = 'run test-ss'
+}
+
 if (project.hasProperty('frontend-npm-audit')) {
     assemble.dependsOn checkFrontAudit
 }
 
 //check that pnpm run license-check passes
-tasks.register('checkFrontWorkspaceLicense', RunPnpm) {
+tasks.register('checkFrontWorkspaceLicense', RunPnpmTaskType) {
     dependsOn installFrontend
-    script = ' run -r license-check'
+    args = ' run -r license-check'
 }
 checkFrontend.dependsOn checkFrontWorkspaceLicense
 

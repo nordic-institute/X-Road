@@ -40,6 +40,7 @@
           variant="underlined"
           :error-messages="errors"
           class="dlg-row-input"
+          autofocus
         />
       </div>
     </template>
@@ -83,5 +84,5 @@ export default defineComponent({
 </script>
 
 <style lang="scss" scoped>
-@import '../../../assets/dialogs';
+@use '@/assets/dialogs';
 </style>

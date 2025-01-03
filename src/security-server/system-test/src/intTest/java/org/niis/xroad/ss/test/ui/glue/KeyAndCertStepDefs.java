@@ -38,6 +38,7 @@ import org.niis.xroad.ss.test.ui.glue.mappers.ParameterMappers;
 import org.niis.xroad.ss.test.ui.page.KeyAndCertPageObj;
 
 import java.io.File;
+import java.time.LocalDate;
 import java.util.Optional;
 import java.util.concurrent.TimeUnit;
 
@@ -274,10 +275,44 @@ public class KeyAndCertStepDefs extends BaseUiStepDefs {
         commonPageObj.snackBar.btnClose().click();
     }
 
-    @Step("Token: {} - has key {string} with status {string}")
-    public void validateCert(String tokenKey, String keyLabel, String status) {
+    @Step("Token: {} - has key {string} with status {string} and ocsp status {string}")
+    public void validateCert(String tokenKey, String keyLabel, String certStatus, String ocspStatus) {
         keyAndCertPageObj.section(tokenKey).keyLabelByName(keyLabel).shouldBe(visible);
-        keyAndCertPageObj.section(tokenKey).keyStatusByLabel(keyLabel).shouldBe(text(status));
+        keyAndCertPageObj.section(tokenKey).keyStatusByLabel(keyLabel).shouldBe(text(certStatus));
+        keyAndCertPageObj.section(tokenKey).keyOcspStatusByLabel(keyLabel).shouldBe(text(ocspStatus));
+    }
+
+    @Step("Token: {} - has {string} key {string} with correct ARI automatic renewal status")
+    public void validateAriAutomaticRenewalStatus(String tokenKey, String usage, String keyLabel) {
+        validateAutomaticRenewalStatus(tokenKey, usage, keyLabel, true);
+    }
+
+    @Step("Token: {} - has {string} key {string} with correct fixed automatic renewal status")
+    public void validateFixedAutomaticRenewalStatus(String tokenKey, String usage, String keyLabel) {
+        validateAutomaticRenewalStatus(tokenKey, usage, keyLabel, false);
+    }
+
+    @SuppressWarnings("checkstyle:MagicNumber")
+    private void validateAutomaticRenewalStatus(String tokenKey, String usage, String keyLabel, boolean ariSupported) {
+        String expectedAutomaticRenewalStatus;
+        if ("SIGNING".equalsIgnoreCase(usage)) {
+            if (ariSupported) {
+                // acme2certifier ARI renewal suggestion date is calculated as follows:
+                // now() + 90% of days between issued date (here now()) and expiration date
+                // (renewaltreshold_pctg and cert_validity_days are configurable in acme_serv.cfg)
+                expectedAutomaticRenewalStatus = "NEXT PLANNED RENEWAL ON " + LocalDate.now().plusDays(27);
+            } else {
+                // Fixed renewal suggestion date is calculated as follows:
+                // value given for the '-days' certificate option when generating the certificate in sign_req.sh script
+                // -
+                // SystemProperties.PROXY_UI_API_ACME_RENEWAL_TIME_BEFORE_EXPIRATION_DATE
+                expectedAutomaticRenewalStatus = "NEXT PLANNED RENEWAL ON " + LocalDate.now().plusDays(7300 - 14);
+            }
+        } else {
+            // Generated AUTH cert is in saved not registered status and ignored by the renewal job
+            expectedAutomaticRenewalStatus = "N/A";
+        }
+        keyAndCertPageObj.section(tokenKey).keyAutomaticRenewalStatusByLabel(keyLabel).shouldBe(text(expectedAutomaticRenewalStatus));
     }
 
     @Step("Token: {} - {string} CSR in position {} is deleted")
@@ -296,15 +331,15 @@ public class KeyAndCertStepDefs extends BaseUiStepDefs {
         commonPageObj.dialog.btnSave().click();
     }
 
-    @Step("Token: {} - CSR of key {string} is used to order certificate")
-    public void orderCertificateWithCsr(String tokenKey, String keyLabel) {
+    @Step("Token: {} - CSR of key {string} is used to order certificate from {string}")
+    public void orderCertificateWithCsr(String tokenKey, String keyLabel, String ca) {
 
         SelenideElement btnOrderCertificate = keyAndCertPageObj.section(tokenKey).btnAcmeOrderCertByLabel(keyLabel);
 
         btnOrderCertificate.click();
         commonPageObj.dialog.btnCancel().click();
         btnOrderCertificate.click();
-        vSelect(keyAndCertPageObj.acmeOrderCertificateDialog.certificateAuthority()).clickAndSelect("X-Road Test CA CN");
+        vSelect(keyAndCertPageObj.acmeOrderCertificateDialog.certificateAuthority()).clickAndSelect(ca);
         commonPageObj.dialog.btnSave().click();
     }
 

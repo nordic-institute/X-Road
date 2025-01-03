@@ -110,13 +110,12 @@ public class ClientDeletionRequestHandler implements RequestHandler<ClientDeleti
     }
 
     private void deleteSecurityServerClient(final SecurityServerEntity securityServer, final ClientIdEntity clientId) {
-        clients.findOneBy(clientId).ifPresentOrElse(
-                client -> securityServer.getServerClients()
-                        .stream()
-                        .filter(serverClient -> client.equals(serverClient.getSecurityServerClient()))
-                        .forEach(serverClientRepository::delete),
-                this::mrClientRegistrationNotFound
-        );
+        clients.findOneBy(clientId)
+                .ifPresentOrElse(client -> securityServer.getServerClients().stream()
+                                .filter(serverClient -> client.getId() == serverClient.getSecurityServerClient().getId())
+                                .forEach(serverClientRepository::delete),
+                        this::mrClientRegistrationNotFound
+                );
     }
 
     private void revokeRegistration(final ClientRegistrationRequestEntity requestEntity) {

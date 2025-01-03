@@ -25,24 +25,22 @@
  */
 package ee.ria.xroad.common.signature;
 
-import ee.ria.xroad.common.util.CryptoUtils;
+import ee.ria.xroad.common.crypto.identifier.DigestAlgorithm;
 
 import lombok.Data;
-
-import java.io.Serializable;
 
 
 /**
  * Encapsulates part of the input that will be added to the signature.
  */
 @Data
-public final class MessagePart implements Serializable {
+public final class MessagePart {
 
     /** Holds the name of the part. */
     private final String name;
 
     /** The identifier of the algorithm used to calculate the hash. */
-    private final String hashAlgoId;
+    private final DigestAlgorithm hashAlgoId;
 
     /** The data in data. */
     private final byte[] data;
@@ -57,16 +55,8 @@ public final class MessagePart implements Serializable {
         return data;
     }
 
-    /**
-     * @return the hash algorithm URI
-     * @throws Exception if the algorithm is unknown
-     */
-    public String getHashAlgorithmURI() throws Exception {
-        return CryptoUtils.getDigestAlgorithmURI(hashAlgoId);
-    }
-
     @Override
     public String toString() {
-        return name + " (" + hashAlgoId + ")";
+        return name + " (" + hashAlgoId.name() + ")";
     }
 }

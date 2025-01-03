@@ -29,7 +29,7 @@ package org.niis.xroad.cs.registrationservice.controller;
 import ee.ria.xroad.common.OcspTestUtils;
 import ee.ria.xroad.common.SystemProperties;
 import ee.ria.xroad.common.TestCertUtil;
-import ee.ria.xroad.common.conf.globalconf.GlobalConf;
+import ee.ria.xroad.common.conf.globalconf.GlobalConfProvider;
 import ee.ria.xroad.common.identifier.SecurityServerId;
 
 import com.github.tomakehurst.wiremock.client.WireMock;
@@ -52,6 +52,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.autoconfigure.web.servlet.MockMvcPrint;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.test.context.TestConfiguration;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Primary;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers;
@@ -83,11 +86,21 @@ class RegistrationRequestApiTest {
 
     @Autowired
     private RegistrationServiceProperties properties;
+    @Autowired
+    private GlobalConfProvider globalConfProvider;
+
+    @TestConfiguration
+    static class TestGlobalConfConfiguration {
+        @Bean
+        @Primary
+        GlobalConfProvider testGlobalConfProvider() {
+            return new TestGlobalConf();
+        }
+    }
 
     @BeforeAll
     public static void setup() {
         System.setProperty(SystemProperties.CONF_PATH, "build/resources/test/testconf");
-        GlobalConf.reload(new TestGlobalConf());
     }
 
     @Autowired
@@ -144,8 +157,8 @@ class RegistrationRequestApiTest {
         var authKeyPair = keyPairGenerator.generateKeyPair();
         var authCert = TestCertUtil.generateAuthCert(authKeyPair.getPublic());
 
-        var serverId = SecurityServerId.Conf.create(GlobalConf.getInstanceIdentifier(), "CLASS", "MEMBER", "SS1");
-        var receiver = GlobalConf.getManagementRequestService();
+        var serverId = SecurityServerId.Conf.create(globalConfProvider.getInstanceIdentifier(), "CLASS", "MEMBER", "SS1");
+        var receiver = globalConfProvider.getManagementRequestService();
         var ownerKeyPair = keyPairGenerator.generateKeyPair();
         var ownerCert = TestCertUtil.generateSignCert(ownerKeyPair.getPublic(), serverId.getOwner());
 

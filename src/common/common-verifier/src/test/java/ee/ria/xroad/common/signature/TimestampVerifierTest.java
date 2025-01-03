@@ -29,7 +29,8 @@ import ee.ria.xroad.common.ErrorCodes;
 import ee.ria.xroad.common.ExpectedCodedException;
 import ee.ria.xroad.common.SystemProperties;
 import ee.ria.xroad.common.TestSecurityUtil;
-import ee.ria.xroad.common.conf.globalconf.GlobalConf;
+import ee.ria.xroad.common.conf.globalconf.GlobalConfProvider;
+import ee.ria.xroad.common.conf.globalconf.TestGlobalConfImpl;
 
 import org.apache.commons.io.IOUtils;
 import org.bouncycastle.asn1.ASN1Primitive;
@@ -54,34 +55,38 @@ public class TimestampVerifierTest {
     @Rule
     public ExpectedCodedException thrown = ExpectedCodedException.none();
 
+    private static GlobalConfProvider globalConfProvider;
+
     /**
      * Sets up test data
      */
     @BeforeClass
-    public static void setUpBeforeClass() throws Exception {
+    public static void setUpBeforeClass() {
         TestSecurityUtil.initSecurity();
 
         System.setProperty(SystemProperties.CONFIGURATION_PATH,
                 "../common-globalconf/src/test/resources/globalconf_good_v2");
         System.setProperty(SystemProperties.CONFIGURATION_ANCHOR_FILE,
                 "../common-globalconf/src/test/resources/configuration-anchor1.xml");
-        GlobalConf.reload();
+        globalConfProvider = new TestGlobalConfImpl();
     }
 
     /**
      * Tests valid timestamp.
+     *
      * @throws Exception if an error occurs
      */
     @Test
     public void validTimestamp() throws Exception {
         TimeStampToken token = getTimestampFromFile("valid");
         byte[] stampedData = getBytesFromFile("stamped-data");
-        List<X509Certificate> tspCerts = GlobalConf.getTspCertificates();
+        List<X509Certificate> tspCerts = globalConfProvider.getTspCertificates();
         TimestampVerifier.verify(token, stampedData, tspCerts);
     }
 
     /**
      * Tests that verification fails if timestamp hashes mismatch.
+     *
      * @throws Exception if an error occurs
      */
     @Test
@@ -95,6 +100,7 @@ public class TimestampVerifierTest {
 
     /**
      * Tests that verification fails if wrong certificate is used.
+     *
      * @throws Exception if an error occurs
      */
     @Test
@@ -103,12 +109,13 @@ public class TimestampVerifierTest {
         TimeStampToken token = getTimestampFromFile("valid");
         byte[] stampedData = getBytesFromFile("stamped-data");
         List<X509Certificate> tspCerts =
-                GlobalConf.getOcspResponderCertificates(); // use ocsp certs
+                globalConfProvider.getOcspResponderCertificates(); // use ocsp certs
         TimestampVerifier.verify(token, stampedData, tspCerts);
     }
 
     /**
      * Tests that verification fails if timestamp signature is invalid.
+     *
      * @throws Exception if an error occurs
      */
     @Test
@@ -116,7 +123,7 @@ public class TimestampVerifierTest {
         thrown.expectError(ErrorCodes.X_TIMESTAMP_VALIDATION);
         TimeStampToken token = getTimestampFromFile("invalid-signature");
         byte[] stampedData = getBytesFromFile("stamped-data");
-        List<X509Certificate> tspCerts = GlobalConf.getTspCertificates();
+        List<X509Certificate> tspCerts = globalConfProvider.getTspCertificates();
         TimestampVerifier.verify(token, stampedData, tspCerts);
     }
 

@@ -26,13 +26,14 @@
 package org.niis.xroad.securityserver.restapi.service;
 
 import ee.ria.xroad.common.CodedException;
+import ee.ria.xroad.common.SystemProperties;
+import ee.ria.xroad.common.conf.globalconf.GlobalConfProvider;
 import ee.ria.xroad.common.identifier.ClientId;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.niis.xroad.common.managementrequest.ManagementRequestSender;
 import org.niis.xroad.securityserver.restapi.cache.CurrentSecurityServerId;
-import org.niis.xroad.securityserver.restapi.facade.GlobalConfFacade;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
 
@@ -45,7 +46,7 @@ import org.springframework.stereotype.Service;
 @RequiredArgsConstructor
 public class ManagementRequestSenderService {
 
-    private final GlobalConfFacade globalConfFacade;
+    private final GlobalConfProvider globalConfProvider;
     private final GlobalConfService globalConfService;
     private final CurrentSecurityServerId currentSecurityServerId;
 
@@ -64,7 +65,7 @@ public class ManagementRequestSenderService {
      * @return request ID in the central server database (e.g. for audit logs if wanted)
      * @throws GlobalConfOutdatedException
      */
-    Integer sendAuthCertRegisterRequest(String address, byte[] authCert)
+    public Integer sendAuthCertRegisterRequest(String address, byte[] authCert)
             throws GlobalConfOutdatedException {
         ManagementRequestSender sender = createManagementRequestSender();
         try {
@@ -90,7 +91,7 @@ public class ManagementRequestSenderService {
      * @throws GlobalConfOutdatedException
      * @throws ManagementRequestSendingFailedException if there is a problem sending the message
      */
-    Integer sendAuthCertDeletionRequest(byte[] authCert) throws
+    public Integer sendAuthCertDeletionRequest(byte[] authCert) throws
             GlobalConfOutdatedException, ManagementRequestSendingFailedException {
         ManagementRequestSender sender = createManagementRequestSender();
         try {
@@ -214,7 +215,8 @@ public class ManagementRequestSenderService {
             throws GlobalConfOutdatedException {
         globalConfService.verifyGlobalConfValidity();
         ClientId sender = currentSecurityServerId.getServerId().getOwner();
-        ClientId receiver = globalConfFacade.getManagementRequestService();
-        return new ManagementRequestSender(sender, receiver);
+        ClientId receiver = globalConfProvider.getManagementRequestService();
+        return new ManagementRequestSender(globalConfProvider, sender, receiver, SystemProperties.getProxyUiSecurityServerUrl());
     }
+
 }

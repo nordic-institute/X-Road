@@ -26,161 +26,37 @@
     "title": "Access Rights"
   },
   "action": {
-    "activate": "Activate",
-    "add": "Add",
-    "addClient": "Add client",
-    "addMember": "Add member",
-    "addSubsystem": "Add subsystem",
     "cancel": "Cancel",
-    "close": "Close",
-    "confirm": "Confirm",
-    "continue": "Continue",
-    "copy": "Copy",
-    "copyId": "Copy ID",
-    "deactivate": "Disable",
     "delete": "Delete",
     "disable": "Disable",
-    "done": "Done",
-    "download": "Download",
-    "edit": "Edit",
-    "emptySearch": "Your search for {msg} found no results.",
     "enable": "Enable",
-    "export": "Export",
-    "finish": "Finish",
-    "goToFront": "Go to the front page",
-    "next": "Next",
-    "noData": "No data",
-    "ok": "Ok",
-    "order": "Order",
-    "previous": "Previous",
-    "refresh": "Refresh",
-    "register": "Register",
-    "remove": "Remove",
-    "removeAll": "Remove All",
-    "restore": "Restore",
-    "save": "Save",
-    "search": "Search",
-    "searching": "Searching...",
-    "submit": "Submit",
-    "unregister": "Unregister",
-    "yes": "Yes"
+    "order": "Order"
   },
   "alert": {
-    "count": "Amount of same errors:",
-    "warningCount": "Amount of same warnings",
-    "id": "ID"
+    "warningCount": "Amount of same warnings"
   },
   "apiKey": {
-    "createApiKey": {
-      "button": "CREATE API KEY",
-      "step": {
-        "keyDetails": {
-          "apiKey": "API key",
-          "apiKeyID": "API key ID",
-          "assignedRoles": "Roles assigned",
-          "createKeyButton": "Create Key",
-          "name": "Key Details",
-          "note": "NOTE: save the API key in a secure place. The API key is visible only at the time of key generation. It will not be presented again and cannot be retrieved later."
-        },
-        "roles": {
-          "description": "Please select the roles associated with the API key. The roles define the permissions granted to the API key.",
-          "name": "Roles",
-          "selectRoles": "Select roles"
-        }
-      },
-      "success": "API key successfully created",
-      "title": "Create API key"
-    },
     "role": {
-      "XROAD_REGISTRATION_OFFICER": "Registration Officer",
       "XROAD_SECURITYSERVER_OBSERVER": "Server Observer",
-      "XROAD_SECURITY_OFFICER": "Security Officer",
-      "XROAD_SERVICE_ADMINISTRATOR": "Service Administrator",
-      "XROAD_SYSTEM_ADMINISTRATOR": "System Administrator"
-    },
-    "edit": {
-      "roleRemoveOnly": "(remove only)"
-    },
-    "table": {
-      "action": {
-        "edit": {
-          "button": "Edit",
-          "dialog": {
-            "message": "Roles associated with the API key:",
-            "title": "Edit API Key (ID: {id})"
-          },
-          "success": "API key with ID {id} saved"
-        },
-        "revoke": {
-          "button": "Revoke key",
-          "confirmationDialog": {
-            "message": "Are you sure you want to revoke the API key with ID {id}?",
-            "title": "Are you sure?"
-          },
-          "success": "API key with ID {id} successfully revoked"
-        }
-      },
-      "header": {
-        "id": "ID",
-        "roles": "Roles"
-      }
+      "XROAD_SERVICE_ADMINISTRATOR": "Service Administrator"
     }
   },
   "backup": {
-    "deleteBackup": {
-      "dialog": {
-        "confirmation": "Are you sure you want to delete backup {file}?",
-        "title": "Are you sure?"
-      },
-      "success": "Backup {file} deleted"
-    },
-    "restoreFromBackup": {
-      "dialog": {
-        "confirmation": "Are you sure you want to restore from {file}?",
-        "title": "Are you sure?"
-      },
-      "success": "Configuration restored from {file}"
-    },
     "createBackup": {
-      "button": "Back up config.",
       "messages": {
-        "success": "Backup {file} successfully created",
         "localConfWarning": "Warning! The file “/etc/xroad/services/local.conf” used for configuration overrides is deprecated and not included in the backups anymore. The file “/etc/xroad/services/local.properties” should be used instead."
       }
-    },
-    "uploadBackup": {
-      "button": "Upload backup",
-      "confirmationDialog": {
-        "confirmation": "File {name} already exists, are you sure you want to overwrite it?",
-        "title": "File already exists"
-      },
-      "success": "Backup {file} uploaded successfully"
     }
   },
   "cert": {
     "activateSuccess": "Certificate has been activated",
     "certDeleted": "Certificate deleted",
-    "certificate": "Certificate",
     "deleteCertConfirm": "Are you sure that you want to delete this certificate?",
     "deleteCertTitle": "Delete certificate?",
     "disableSuccess": "Certificate has been disabled",
     "disabled": "disabled",
     "expires": "Expires",
-    "hashInfo": "Hash (SHA-256)",
     "inUse": "in use",
-    "keyUsage": {
-      "CRL_SIGN": "CRL Sign",
-      "DATA_ENCIPHERMENT": "Data Encipherment",
-      "DECIPHER_ONLY": "Decipher Only",
-      "DIGITAL_SIGNATURE": "Digital Signature",
-      "ENCIPHER_ONLY": "Encipher Only",
-      "KEY_AGREEMENT": "Key Agreement",
-      "KEY_CERT_SIGN": "Certificate Sign",
-      "KEY_ENCIPHERMENT": "Key Encipherment",
-      "NON_REPUDIATION": "Non Repudiation"
-    },
-    "rsaExp": "RSA Public Key Exponent",
-    "rsaModulus": "RSA Public Key Modulus",
     "serialNumber": "Serial Number",
     "signCertificate": "Sign Certificate",
     "state": "State"
@@ -319,6 +195,25 @@
       "title": "Java version",
       "vendor": "Vendor name"
     },
+    "mailNotificationConfiguration": {
+      "title": "Mail notification status",
+      "help": {
+        "title": "Different mail notification statuses available",
+        "description": "Mail notifications are sent automatically to configured recipients for the following events depending on the configuration: authentication certificate renewal over ACME succeeded / failed, signing certificate renewal over ACME succeeded / failed, authentication certificate registration succeeded. Enabling email notifications requires changes to the Security Server’s configuration. Please see the Security Server User Guide for details."
+      },
+      "failureEnabled": "Failure notifications",
+      "successEnabled": "Success notifications",
+      "configuration": "Mail server configuration",
+      "recipientsEmails": "Recipients' emails",
+      "enabled": {
+        "true": "Enabled",
+        "false": "Disabled"
+      },
+      "confStatus": {
+        "true": "Configured",
+        "false": "Configuration incomplete"
+      }
+    },
     "message": "Message",
     "nextUpdate": "Next Update",
     "ocspResponders": {
@@ -394,6 +289,7 @@
       "eab_credentials_missing": "External Account binding credentials missing, but required",
       "eab_secret_length": "Invalid external account binding base64 secret length",
       "account_key_pair_error": "Getting key pair for ACME server account failed",
+      "account_keystore_password_missing": "ACME account keystore password missing from the acme.yml configuration file",
       "fetching_metadata_error": "Fetching ACME server metadata failed. ACME Server might be unreachable",
       "account_creation_failure": "Creating Account on ACME server failed. If external account binding is required, check that the correct credentials are configured in acme.yml",
       "order_creation_failure": "Creating new Order on ACME server failed",
@@ -413,11 +309,7 @@
     "anchor_file_not_found": "Anchor file not found",
     "anchor_not_found": "Anchor not found",
     "anchor_upload_failed": "Anchor upload failed",
-    "api_key_not_found": "API key not found",
     "auth_cert_not_supported": "Authentication certificate is not supported",
-    "backup_file_not_found": "Backup file not found",
-    "backup_generation_failed": "Backup generation failed",
-    "backup_restore_interrupted": "Backup restore interrupted",
     "base_endpoint_not_found": "Base endpoint not found",
     "ca_cert_status_processing_failure": "CA certificate status processing failed",
     "cannot_delete_owner": "Cannot delete the owner",
@@ -454,6 +346,7 @@
       },
       "Signer": {
         "CertNotFound": "Certification is not found",
+        "NetworkError": "Signer is not currently reachable.",
         "KeyNotFound": "Key is not found",
         "TokenNotAvailable": "Token is not available",
         "TokenNotFound": "Token is not found",
@@ -465,7 +358,6 @@
     "duplicate_accessright": "Duplicate access right",
     "endpoint_already_exists": "Endpoint already exists",
     "endpoint_not_found": "Endpoint not found",
-    "generate_backup_interrupted": "Backup generation interrupted",
     "global_conf_download_request_failed": "Global configuration download request failed",
     "global_conf_outdated": "Global configuration is outdated",
     "gpg_key_generation_failed": "GPG keypair generation failed",
@@ -475,13 +367,11 @@
     "illegal_generated_endpoint_update": "Updating the generated endpoint is not allowed",
     "import_internal_cert_failed": "Importing internal certificate failed",
     "internal_anchor_upload_invalid_instance_id": "Anchor has an invalid instance id",
+    "internal_error": "Internal error. See the Security Server application logs for more details.",
     "internal_key_cert_interrupted": "Internal key certificate interrupted",
-    "invalid_backup_file": "Invalid backup file",
     "invalid_cert": "Invalid certificate",
     "invalid_characters_pin": "PIN has invalid characters",
-    "invalid_distinguished_name": "Distinguished name is invalid",
     "invalid_dn_parameter": "Invalid DN parameter",
-    "invalid_filename": "Invalid filename",
     "invalid_https_url": "URL does not use HTTPS",
     "invalid_init_params": "Invalid initialisation parameters",
     "invalid_instance_identifier": "Invalid instance identifier",
@@ -514,8 +404,6 @@
     "pin_min_length": "PIN minimum length",
     "process_failed": "Process failed",
     "process_not_executable": "Process is not executable",
-    "resource_read_failed": "Failed to read resource",
-    "restore_process_failed": "Restore process failed",
     "server_already_fully_initialized": "Server is already fully initialised",
     "server_code_exists": "Server code exists",
     "server_code_not_provided": "Server code is not provided",
@@ -525,7 +413,6 @@
     "service_description_not_found": "Service description not found",
     "service_not_found": "service not found",
     "sign_cert_not_supported": "Signing certificate is not supported",
-    "signer_not_reachable": "Signer is not currently reachable. Please check the signer log for details.",
     "software_token_init_failed": "Software token initialisation failed",
     "timestamping_service_already_configured": "Timestamping service is already configured",
     "timestamping_service_not_found": "Timestamping service not found",
@@ -533,10 +420,8 @@
       "malformed_csr": "CSR data is malformed"
     },
     "token_not_active": "Token is not active",
-    "token_not_found": "Token not found",
     "unsupported_openapi_version": "Unsupported OpenAPI version. Only versions 3.0.x and 3.1.0 are currently supported.",
     "url_already_exists": "URL already exists",
-    "validation_failure": "Validation failure",
     "warnings_detected": "Warnings detected",
     "weak_pin": "Weak PIN",
     "wrong_key_usage": "Wrong key usage",
@@ -573,12 +458,9 @@
       "name": "Name"
     },
     "O": "Organization Name",
-    "password": "Password",
     "path": "path",
     "pin": "PIN",
-    "memberClass": "Member Class",
     "memberCode": "Member Code",
-    "securityServerCode": "Security Server Code",
     "securityServerAddress": "Security Server address",
     "serialNumber": "Serial Number",
     "serviceCode": "Service Code",
@@ -603,20 +485,7 @@
     "username": "Username",
     "certificationService": "Certification Service"
   },
-  "footer": {
-    "copyright": {
-      "company": "Nordic Institute for Interoperability Solutions (NIIS)",
-      "licenceInfo": "Licence info",
-      "title": "Copyright"
-    },
-    "software": {
-      "feedback": "Feedback",
-      "title": "Software",
-      "versionPrefix": "X-Road"
-    }
-  },
   "global": {
-    "name": "Name",
     "appTitle": "X-Road Security Server"
   },
   "general": {
@@ -632,7 +501,11 @@
     "backupRestoreInProgress": "The Security Server configuration is being restored from a backup. Process started at {startTime}",
     "globalConfigurationInvalid": "Global configuration is expired",
     "secondaryNode": "You are on a secondary node in a Security Server cluster. Modifying configuration is disabled.",
-    "softTokenPinNotEntered": "Please enter soft token PIN"
+    "softTokenPinNotEntered": "Please enter soft token PIN",
+    "certificateRenewalJobFailure": "Last certificate renewal job has failed.",
+    "certificateRenewalJobFailureAuth": "Failed Authentication certificate(s):",
+    "certificateRenewalJobFailureSign": "Failed Signing certificate(s):",
+    "navigateToKeysPage": "See keys and certificates page for more details"
   },
   "initialConfiguration": {
     "anchor": {
@@ -668,12 +541,18 @@
     }
   },
   "internalServers": {
-    "certHash": "Certificate Hash (SHA/1)",
+    "certHash": "Certificate Hash",
     "connTypeUpdated": "Connection type updated",
     "connectionInfo": "Connection type for servers in service provider role is set in the Services tab by the service URL (http/https).",
     "connectionType": "Connection type",
     "ssCertTitle": "Security Server certificate",
     "tlsTitle": "Information System TLS certificate"
+  },
+  "certificate": {
+    "hash": "Certificate Hash",
+    "subjectDistinguishedName": "Subject Distinguished Name",
+    "notBefore": "Not Before",
+    "notAfter": "Not After"
   },
   "keys": {
     "addKey": "Add key",
@@ -740,7 +619,9 @@
     "orderAcmeCertificate": "Order Certificate",
     "acmeCertOrdered": "Certificate successfully ordered",
     "readOnly": "Read-only:",
+    "keyAlgorithm": "Key Algorithm:",
     "registrationRequest": "Registration request",
+    "renewal": "Automatic Renewal",
     "request": "Request",
     "signDetailsTitle": "SIGN Key details",
     "signKeyCert": "SIGN Keys and Certificates",
@@ -794,31 +675,13 @@
     "memberCount": "Member Count",
     "updated": "Updated"
   },
-  "login": {
-    "errorMsg401": "Wrong username or password",
-    "generalError": "Login failed. Please try again.",
-    "logIn": "Log in",
-    "logOut": "Log out"
-  },
-  "logout": {
-    "idleWarning": "You have been idle for 30 minutes and your session has expired. For security reasons, you will be logged out.",
-    "sessionExpired": "Session expired"
-  },
   "noData": {
-    "loading": "Loading... Please wait",
     "noBackUpEncryptionKeys": "No configured backup encryption keys",
-    "noBackups": "No backups yet",
-    "noCertificate": "No certificate",
-    "noCertificates": "No certificates",
     "noClientData": "No client data",
     "noCertificateAuthorities": "No certificate authorities",
-    "noData": "No data",
     "noLocalGroups": "No local groups",
-    "noMatches": "No items matching criteria",
-    "noServices": "No services",
     "noServiceClients": "No service clients",
-    "noTimestampingServices": "No timestaping services",
-    "noTokens": "No tokens"
+    "noTimestampingServices": "No timestamping services"
   },
   "serviceClientType": {
     "globalGroup": "GLOBALGROUP",
@@ -1067,34 +930,6 @@
     }
   },
   "validationError": {
-    "AssertFalse": "value should be 'false'",
-    "AssertTrue": "value should be 'true'",
-    "DecimalMax": "numeric value exceeds the maximum allowed",
-    "DecimalMin": "numeric value is under the minimum allowed",
-    "Digits": "value should contain only digits",
-    "Email": "value does not meet the email format",
-    "Future": "datetime value should be in the future",
-    "FutureOrPresent": "datetime value should be now or in the future",
-    "Max": "numeric value exceeds the maximum allowed",
-    "Min": "numeric value is under the minimum allowed",
-    "Negative": "numeric value should be less than zero",
-    "NegativeOrZero": "numeric value should be less or equal to zero",
-    "NoBackslashes": "value should not contain backslash (\\) symbols",
-    "NoColons": "value should not contain colon (:) symbols",
-    "NoForwardslashes": "value should not contain forward slash (/) symbols",
-    "NoPercents": "value should not contain percentage (%) symbols",
-    "NoSemicolons": "value should not contain semicolon (;) symbols",
-    "Normalized": "value should be normalized",
-    "NotBlank": "value should not be blank",
-    "NotEmpty": "value should not be empty",
-    "NotNull": "value is required",
-    "Null": "value should not be set",
-    "Past": "datetime value should be in the past",
-    "PastOrPresent": "datetime value should be now or in the past",
-    "Pattern": "value did not match the required format",
-    "Positive": "numeric value should be greater that zero",
-    "PositiveOrZero": "numeric value should be greater or equal to zero",
-    "Size": "value does not meet length requirements",
     "IdentifierChars": "invalid identifier characters"
   },
   "wizard": {

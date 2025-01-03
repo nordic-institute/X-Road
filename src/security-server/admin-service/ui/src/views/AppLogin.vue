@@ -26,9 +26,10 @@
 <template>
   <v-container fluid class="login-view-wrap fill-height">
     <alerts-container class="alerts" />
+    <language-dropdown class="language-dropdown"/>
     <v-row no-gutters class="fill-height">
-      <v-col cols="5">
-        <v-card class="graphics">
+      <v-col cols="3">
+        <div class="graphics">
           <v-img
             :src="xroad7Large"
             height="195"
@@ -37,61 +38,63 @@
             max-width="144"
             class="xrd-logo"
           ></v-img>
-        </v-card>
+        </div>
       </v-col>
-      <v-col cols="7" align-self="center" class="d-flex justify-center">
-        <v-card variant="flat" class="set-width flex-grow-1">
-          <v-card-title class="login-form">
-            <div class="title-wrap">
-              <div class="login-form-title">
+      <v-col cols="9" align-self="center">
+        <v-container class="set-width">
+          <v-card variant="flat">
+            <v-card-item class="title-wrap">
+              <v-card-title class="login-form-title">
                 {{ $t('login.logIn') }}
-              </div>
-              <div class="sub-title">{{ $t('global.appTitle') }}</div>
-            </div>
-          </v-card-title>
+              </v-card-title>
+              <v-card-subtitle class="sub-title">
+                {{ $t('global.appTitle') }}
+              </v-card-subtitle>
+            </v-card-item>
 
-          <v-card-text>
-            <v-form>
-              <v-text-field
-                id="username"
-                v-model="username"
-                v-bind="usernameAttrs"
-                variant="outlined"
-                :label="$t('fields.username')"
-                type="text"
-                autofocus
-                data-test="login-username-input"
-                @keyup.enter="submit"
-              ></v-text-field>
+            <v-card-text>
+              <v-form>
+                <v-text-field
+                  id="username"
+                  v-model="username"
+                  v-bind="usernameAttrs"
+                  variant="outlined"
+                  :label="$t('fields.username')"
+                  type="text"
+                  autofocus
+                  data-test="login-username-input"
+                  @keyup.enter="submit"
+                ></v-text-field>
 
-              <v-text-field
-                id="password"
-                v-model="password"
-                v-bind="passwordAttrs"
-                variant="outlined"
-                :label="$t('fields.password')"
-                type="password"
-                data-test="login-password-input"
-                @keyup.enter="submit"
-              ></v-text-field>
-            </v-form>
-          </v-card-text>
-          <v-card-actions class="px-4">
-            <xrd-button
-              id="submit-button"
-              color="primary"
-              gradient
-              block
-              large
-              :min_width="120"
-              rounded
-              :disabled="loading || !meta.valid"
-              :loading="loading"
-              @click="submit"
-              >{{ $t('login.logIn') }}
-            </xrd-button>
-          </v-card-actions>
-        </v-card>
+                <v-text-field
+                  id="password"
+                  v-model="password"
+                  v-bind="passwordAttrs"
+                  variant="outlined"
+                  :label="$t('fields.password')"
+                  type="password"
+                  data-test="login-password-input"
+                  @keyup.enter="submit"
+                ></v-text-field>
+              </v-form>
+            </v-card-text>
+            <v-card-actions class="px-4">
+              <xrd-button
+                id="submit-button"
+                color="primary"
+                gradient
+                block
+                data-test="login-button"
+                :min_width="120"
+                :disabled="loading || !meta.valid"
+                :loading="loading"
+                @click="submit"
+              >
+                {{ $t('login.logIn') }}
+              </xrd-button>
+            </v-card-actions>
+          </v-card>
+        </v-container>
       </v-col>
     </v-row>
   </v-container>
@@ -108,9 +111,11 @@ import { useNotifications } from '@/store/modules/notifications';
 import { defineComponent } from 'vue';
 import xroad7Large from '@/assets/xroad7_large.svg';
 import { PublicPathState, useForm } from 'vee-validate';
+import LanguageDropdown from '@/components/layout/LanguageDropdown.vue';
 
 export default defineComponent({
   components: {
+    LanguageDropdown,
     AlertsContainer,
   },
   setup() {
@@ -270,7 +275,11 @@ export default defineComponent({
 </script>
 
 <style lang="scss" scoped>
-@import '@/assets/colors';
+@use '@/assets/colors';
+
+.v-text-field {
+  margin-bottom: 6px;
+}
 
 .alerts {
   top: 40px;
@@ -282,50 +291,49 @@ export default defineComponent({
   position: absolute;
 }
 
-.graphics {
-  height: 100%;
-  max-width: 576px; // width of the backround image
-  background-image: url('../assets/background.png');
-  background-size: cover;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
+.language-dropdown {
+  position: absolute;
+  top: 10px;
+  right: 10px;
 }
 
 .login-view-wrap {
   background-color: white;
   padding: 0;
-}
 
-.title-wrap {
-  display: flex;
-  flex-direction: column;
-}
+  .graphics {
+    height: 100%;
+    max-width: 576px; // width of the backround image
+    background-image: url('../assets/background.png');
+    background-size: cover;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+  }
 
-.login-form {
-  background-color: white;
-  margin-bottom: 30px;
-  padding-left: 0;
-}
+  .set-width {
+    max-width: 420px;
 
-.login-form-title {
-  margin-left: 0;
-  color: #252121;
-  font-style: normal;
-  font-weight: bold;
-  font-size: 40px;
-  line-height: 54px;
-}
+    .title-wrap {
+      margin-bottom: 30px;
 
-.sub-title {
-  font-style: normal;
-  font-weight: normal;
-  font-size: $XRoad-DefaultFontSize;
-  line-height: 19px;
-}
+      .login-form-title {
+        margin-left: 0;
+        color: #252121;
+        font-style: normal;
+        font-weight: bold;
+        font-size: 40px;
+        line-height: 54px;
+      }
 
-.set-width {
-  max-width: 420px;
+      .sub-title {
+        font-style: normal;
+        font-weight: normal;
+        font-size: colors.$DefaultFontSize;
+        line-height: 19px;
+      }
+    }
+  }
 }
 </style>

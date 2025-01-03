@@ -135,6 +135,11 @@ export default defineComponent({
           key: 'id',
         },
         {
+          title: this.$t('keys.algorithm') as string,
+          align: 'start',
+          key: 'key_algorithm',
+        },
+        {
           title: this.$t('keys.created') as string,
           align: 'start',
           key: 'createdAt',
@@ -185,11 +190,12 @@ export default defineComponent({
 </script>
 
 <style lang="scss" scoped>
-@import '@/assets/tables';
+@use '@/assets/tables' as *;
+@use '@/assets/colors';
 
 .key-icon {
   margin-right: 18px;
-  color: $XRoad-Purple100;
+  color: colors.$Purple100;
 }
 
 .keys-table {

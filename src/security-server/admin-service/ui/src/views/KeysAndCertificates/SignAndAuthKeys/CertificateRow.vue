@@ -38,10 +38,16 @@
       </div>
     </td>
     <td>{{ cert.owner_id }}</td>
-    <td>{{ $filters.ocspStatus(cert.ocsp_status) }}</td>
+    <td data-test="ocsp-status">{{ $filters.ocspStatus(cert.ocsp_status) }}</td>
     <td>{{ $filters.formatDate(cert.certificate_details.not_after) }}</td>
     <td class="status-cell">
       <certificate-status-icon :certificate="cert" />
+    </td>
+    <td>
+      <certificate-renewal-status
+        :certificate="cert"
+        :is-acme-certificate="isAcmeCertificate"
+      />
     </td>
     <td class="td-align-right">
       <slot name="certificateAction"></slot>
@@ -58,15 +64,20 @@ import CertificateStatusIcon from './CertificateStatusIcon.vue';
 import { CertificateStatus } from '@/openapi-types';
 import { TokenCertificate } from '@/openapi-types';
 import { Colors } from '@/global';
+import CertificateRenewalStatus from '@/views/KeysAndCertificates/SignAndAuthKeys/CertificateRenewalStatus.vue';
 
 export default defineComponent({
   components: {
+    CertificateRenewalStatus,
     CertificateStatusIcon,
   },
   props: {
     cert: {
       type: Object as PropType<TokenCertificate>,
       required: true,
+    },
+    isAcmeCertificate: {
+      type: Boolean,
     },
   },
   emits: ['certificate-click'],
@@ -87,21 +98,22 @@ export default defineComponent({
 </script>
 
 <style lang="scss" scoped>
-@import '@/assets/tables';
+@use '@/assets/tables';
+@use '@/assets/colors';
 
 .td-align-right {
   text-align: right;
 }
 
 .clickable-link {
-  color: $XRoad-Purple100;
+  color: colors.$Purple100;
   cursor: pointer;
   height: 100%;
 }
 
 .cert-icon {
   margin-right: 18px;
-  color: $XRoad-Purple100;
+  color: colors.$Purple100;
 }
 
 .name-wrap {
@@ -109,5 +121,22 @@ export default defineComponent({
   flex-direction: row;
   align-items: center;
   margin-left: 57px;
+}
+
+.cert-row-wrap {
+  display: flex;
+  flex-direction: row;
+  align-items: baseline;
+}
+
+.status-text {
+  font-style: normal;
+  font-weight: bold;
+  text-transform: uppercase;
+  font-size: 12px;
+  line-height: 16px;
+  color: colors.$WarmGrey100;
+  margin-left: 2px;
+  white-space: nowrap;
 }
 </style>

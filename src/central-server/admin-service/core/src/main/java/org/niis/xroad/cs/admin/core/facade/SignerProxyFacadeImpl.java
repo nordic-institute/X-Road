@@ -25,16 +25,21 @@
  */
 package org.niis.xroad.cs.admin.core.facade;
 
+import ee.ria.xroad.common.crypto.identifier.KeyAlgorithm;
+import ee.ria.xroad.common.crypto.identifier.SignAlgorithm;
+import ee.ria.xroad.common.crypto.identifier.SignMechanism;
 import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.signer.SignerProxy;
+import ee.ria.xroad.signer.exception.SignerException;
 import ee.ria.xroad.signer.protocol.RpcSignerClient;
 import ee.ria.xroad.signer.protocol.dto.KeyInfo;
 import ee.ria.xroad.signer.protocol.dto.KeyUsageInfo;
 import ee.ria.xroad.signer.protocol.dto.TokenInfo;
 
-import jakarta.annotation.PostConstruct;
 import lombok.extern.slf4j.Slf4j;
 import org.niis.xroad.cs.admin.api.facade.SignerProxyFacade;
+import org.springframework.beans.factory.DisposableBean;
+import org.springframework.beans.factory.InitializingBean;
 import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Component;
 
@@ -49,61 +54,66 @@ import java.util.List;
 @Slf4j
 @Component
 @Profile("!int-test")
-public class SignerProxyFacadeImpl implements SignerProxyFacade {
+public class SignerProxyFacadeImpl implements SignerProxyFacade, InitializingBean, DisposableBean {
 
-    @PostConstruct
-    void init() throws Exception {
+    @Override
+    public void afterPropertiesSet() throws Exception {
         RpcSignerClient.init();
         log.info("SignerService rpcClient initialized with admin-service config");
+    }
+
+    @Override
+    public void destroy() {
+        RpcSignerClient.shutdown();
     }
 
     /**
      * {@link SignerProxy#initSoftwareToken(char[])}
      */
-    public void initSoftwareToken(char[] password) throws Exception {
+    public void initSoftwareToken(char[] password) throws SignerException {
         SignerProxy.initSoftwareToken(password);
     }
 
     /**
      * {@link SignerProxy#getTokens()}
      */
-    public List<TokenInfo> getTokens() throws Exception {
+    public List<TokenInfo> getTokens() throws SignerException {
         return SignerProxy.getTokens();
     }
 
     /**
      * {@link SignerProxy#getToken(String)}
      */
-    public TokenInfo getToken(String tokenId) throws Exception {
+    public TokenInfo getToken(String tokenId) throws SignerException {
         return SignerProxy.getToken(tokenId);
     }
 
     /**
      * {@link SignerProxy#activateToken(String, char[])}
      */
-    public void activateToken(String tokenId, char[] password) throws Exception {
+    public void activateToken(String tokenId, char[] password) throws SignerException {
         SignerProxy.activateToken(tokenId, password);
     }
 
     /**
      * {@link SignerProxy#deactivateToken(String)}
      */
-    public void deactivateToken(String tokenId) throws Exception {
+    public void deactivateToken(String tokenId) throws SignerException {
         SignerProxy.deactivateToken(tokenId);
     }
 
     /**
-     * {@link SignerProxy#generateKey(String, String)}
+     * {@link SignerProxy#generateKey(String, String, KeyAlgorithm)}
      */
-    public KeyInfo generateKey(String tokenId, String keyLabel) throws Exception {
-        return SignerProxy.generateKey(tokenId, keyLabel);
+    public KeyInfo generateKey(String tokenId, String keyLabel, KeyAlgorithm algorithm) throws SignerException {
+        return SignerProxy.generateKey(tokenId, keyLabel, algorithm);
     }
 
     /**
      * {@link SignerProxy#generateSelfSignedCert(String, ClientId.Conf, KeyUsageInfo, String, Date, Date)}
      */
     public byte[] generateSelfSignedCert(String keyId, ClientId.Conf memberId, KeyUsageInfo keyUsage,
-                                         String commonName, Date notBefore, Date notAfter) throws Exception {
+                                         String commonName, Date notBefore, Date notAfter) throws SignerException {
         return SignerProxy.generateSelfSignedCert(keyId, memberId, keyUsage,
                 commonName, notBefore, notAfter);
     }
@@ -111,21 +121,21 @@ public class SignerProxyFacadeImpl implements SignerProxyFacade {
     /**
      * {@link SignerProxy#deleteKey(String, boolean)}
      */
-    public void deleteKey(String keyId, boolean deleteFromToken) throws Exception {
+    public void deleteKey(String keyId, boolean deleteFromToken) throws SignerException {
         SignerProxy.deleteKey(keyId, deleteFromToken);
     }
 
     /**
      * {ling {@link SignerProxy#getSignMechanism(String)}}
      */
-    public String getSignMechanism(String keyId) throws Exception {
+    public SignMechanism getSignMechanism(String keyId) throws SignerException {
         return SignerProxy.getSignMechanism(keyId);
     }
 
     /**
-     * {@link SignerProxy#sign(String, String, byte[])}
+     * {@link SignerProxy#sign(String, SignAlgorithm, byte[])}
      */
-    public byte[] sign(String keyId, String signatureAlgorithmId, byte[] digest) throws Exception {
+    public byte[] sign(String keyId, SignAlgorithm signatureAlgorithmId, byte[] digest) throws SignerException {
         return SignerProxy.sign(keyId, signatureAlgorithmId, digest);
     }
 }

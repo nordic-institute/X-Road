@@ -1,45 +1,7 @@
-plugins {
-    alias(libs.plugins.shadow)
+tasks.withType(Jar).configureEach {
+    enabled = false
 }
 
-dependencies {
-    implementation project(':common:common-globalconf')
-    implementation project(':common:common-scheduler')
-    implementation project(':common:common-jetty')
-    implementation project(':common:common-verifier')
-
-    implementation libs.commons.cli
-
-    testImplementation project(':common:common-test')
-    testImplementation libs.wiremock.standalone
+archUnit {
+    skip = true
 }
-
-ext {
-    mainClassName = 'ee.ria.xroad.common.conf.globalconf.ConfigurationClientMain'
-}
-
-jar {
-    manifest {
-        attributes 'Main-Class': mainClassName
-    }
-}
-
-shadowJar {
-    exclude('**/module-info.class')
-    archiveClassifier = ''
-    mergeServiceFiles()
-}
-
-jar.enabled = false
-
-build {
-    dependsOn shadowJar
-}
-
-tasks.register('runConfigurationClient', JavaExec) {
-    jvmArgs '-Dxroad.conf.path=build/',
-        '-Dxroad.distributedfiles.signatureFreshness=-1' // disable freshness checking since we read local file
-    mainClass = mainClassName
-    classpath = sourceSets.main.runtimeClasspath
-}
-

@@ -37,10 +37,12 @@
             <th>{{ $t('serviceClients.id') }}</th>
           </tr>
         </thead>
-        <tr>
-          <td class="identifier-wrap">{{ serviceClient.name }}</td>
-          <td class="identifier-wrap">{{ serviceClient.id }}</td>
-        </tr>
+        <tbody>
+          <tr>
+            <td class="identifier-wrap">{{ serviceClient.name }}</td>
+            <td class="identifier-wrap">{{ serviceClient.id }}</td>
+          </tr>
+        </tbody>
       </table>
     </v-card>
 
@@ -312,7 +314,8 @@ export default defineComponent({
 </script>
 
 <style lang="scss" scoped>
-@import '@/assets/tables';
+@use '@/assets/tables';
+@use '@/assets/colors';
 
 .group-members-row {
   width: 100%;
@@ -331,7 +334,7 @@ export default defineComponent({
   .row-title {
     width: 100%;
     justify-content: space-between;
-    color: $XRoad-Black100;
+    color: colors.$Black100;
     font-size: 20px;
     font-weight: 500;
     letter-spacing: 0.5px;

@@ -26,5 +26,5 @@ cd "$XROAD_HOME"/src && ./gradlew :security-server:e2e-test:e2eTest --rerun-task
   -Pe2eTestCSImage=xrd-centralserver-dev \
   -Pe2eTestSSImage=xrd-securityserver-dev \
   -Pe2eTestTestCAImage=xrd-testca \
-  -Pe2eTestISSOAPImage=xrd-is-soap \
+  -Pe2eTestISSOAPImage=example-adapter-v2:latest \
   $ADDITIONAL_GRADLE_ARGS

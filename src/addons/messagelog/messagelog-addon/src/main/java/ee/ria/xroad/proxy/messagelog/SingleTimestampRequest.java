@@ -26,6 +26,7 @@
 package ee.ria.xroad.proxy.messagelog;
 
 import ee.ria.xroad.common.CodedException;
+import ee.ria.xroad.common.conf.globalconf.GlobalConfProvider;
 import ee.ria.xroad.common.messagelog.LogRecord;
 import ee.ria.xroad.common.messagelog.MessageRecord;
 import ee.ria.xroad.common.signature.Signature;
@@ -37,7 +38,7 @@ import static ee.ria.xroad.common.ErrorCodes.X_INTERNAL_ERROR;
 
 /**
  * Creates a timestamp request for a single message.
- *
+ * <p>
  * The data to be time-stamped is the ds:SignatureValue element.
  */
 @Slf4j
@@ -45,19 +46,19 @@ class SingleTimestampRequest extends AbstractTimestampRequest {
     private MessageRecord message;
     private Signature signature;
 
-    SingleTimestampRequest(Long logRecord) {
-        super(new Long[]{logRecord});
+    SingleTimestampRequest(GlobalConfProvider globalConfProvider, Long logRecord) {
+        super(globalConfProvider, new Long[]{logRecord});
     }
 
     @Override
     byte[] getRequestData() throws Exception {
         LogRecord record = LogRecordManager.get(logRecords[0]);
 
-        if (record == null || !(record instanceof MessageRecord)) {
+        if (!(record instanceof MessageRecord mr)) {
             throw new CodedException(X_INTERNAL_ERROR, "Could not find message record #" + logRecords[0]);
         }
 
-        message = (MessageRecord) record;
+        message = mr;
 
         signature = new Signature(message.getSignature());
 

@@ -36,6 +36,9 @@ import lombok.ToString;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Objects;
+
+import static ee.ria.xroad.common.opmonitoring.OpMonitoringData.SecurityServerType.PRODUCER;
 
 /**
  * The constants and operations used for representing and processing
@@ -46,7 +49,7 @@ import java.util.Map;
 public class OpMonitoringData {
 
     // The following fields correspond to the schema defined in
-    // src/op-monitor-daemon/src/main/resources/store_operational_data_request_schema.yaml .
+    // src/op-monitor-daemon/core/src/main/resources/store_operational_data_request_schema.yaml .
     // Refer to the schema for detailed documentation.
 
     public static final String SECURITY_SERVER_INTERNAL_IP =
@@ -68,6 +71,8 @@ public class OpMonitoringData {
     public static final String SERVICE_SUBSYSTEM_CODE = "serviceSubsystemCode";
 
     private static final String SERVICE_CODE = "serviceCode";
+    private static final String REST_METHOD = "restMethod";
+    private static final String REST_PATH = "restPath";
     private static final String SERVICE_VERSION = "serviceVersion";
 
     private static final String SECURITY_SERVER_TYPE = "securityServerType";
@@ -104,8 +109,8 @@ public class OpMonitoringData {
     private static final String SUCCEEDED = "succeeded";
     private static final String REST_RESPONSE_STATUS_CODE = "statusCode";
 
-    private static final String SOAP_FAULT_CODE = "faultCode";
-    private static final String SOAP_FAULT_STRING = "faultString";
+    private static final String FAULT_CODE = "faultCode";
+    private static final String FAULT_STRING = "faultString";
     private static final String SERVICE_TYPE = "serviceType";
 
     /**
@@ -262,6 +267,20 @@ public class OpMonitoringData {
     }
 
     /**
+     * Gets service ID from related fields.
+     */
+    public ServiceId getServiceId() {
+        String xRoadInstance = (String) data.get(SERVICE_XROAD_INSTANCE);
+        String memberClass = (String) data.get(SERVICE_MEMBER_CLASS);
+        String memberCode = (String) data.get(SERVICE_MEMBER_CODE);
+        String subsystemCode = (String) data.get(SERVICE_SUBSYSTEM_CODE);
+        String serviceCode = (String) data.get(SERVICE_CODE);
+        String serviceVersion = (String) data.get(SERVICE_VERSION);
+
+        return ServiceId.Conf.create(xRoadInstance, memberClass, memberCode, subsystemCode, serviceCode, serviceVersion);
+    }
+
+    /**
      * Sets the message ID.
      * @param messageId message ID
      */
@@ -390,8 +409,8 @@ public class OpMonitoringData {
      */
     public void setFaultCodeAndString(CodedException e) {
         if (e != null) {
-            data.put(SOAP_FAULT_CODE, e.getFaultCode());
-            data.put(SOAP_FAULT_STRING, e.getFaultString());
+            data.put(FAULT_CODE, e.getFaultCode());
+            data.put(FAULT_STRING, e.getFaultString());
         }
     }
 
@@ -411,4 +430,39 @@ public class OpMonitoringData {
         data.put(SERVICE_TYPE, serviceType);
     }
 
+    /**
+     * Sets REST method.
+     * @param restMethod REST method
+     */
+    public void setRestMethod(String restMethod) {
+        data.put(REST_METHOD, restMethod);
+    }
+
+    /**
+     * Gets REST method.
+     */
+    public String getRestMethod() {
+        return (String) data.get(REST_METHOD);
+    }
+
+    /**
+     * Sets REST path.
+     * @param restPath REST path
+     */
+    public void setRestPath(String restPath) {
+        data.put(REST_PATH, restPath);
+    }
+
+    /**
+     * Gets REST path.
+     */
+    public String getRestPath() {
+        return (String) data.get(REST_PATH);
+    }
+
+    public boolean isProducer() {
+        var type = (String) data.get(SECURITY_SERVER_TYPE);
+        return Objects.equals(PRODUCER, SecurityServerType.fromString(type));
+
+    }
 }

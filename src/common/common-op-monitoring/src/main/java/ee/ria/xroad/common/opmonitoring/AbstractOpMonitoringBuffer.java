@@ -25,20 +25,22 @@
  */
 package ee.ria.xroad.common.opmonitoring;
 
-import ee.ria.xroad.common.util.StartStop;
+import ee.ria.xroad.common.conf.serverconf.ServerConfProvider;
 
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.DisposableBean;
+import org.springframework.beans.factory.InitializingBean;
 
 /**
  * Abstract operational monitoring buffer.
  */
 @Slf4j
-public abstract class AbstractOpMonitoringBuffer implements StartStop {
+public abstract class AbstractOpMonitoringBuffer implements InitializingBean, DisposableBean {
+
+    protected AbstractOpMonitoringBuffer(ServerConfProvider serverConfProvider) {
+        //No-OP
+    }
 
     public abstract void store(OpMonitoringData data) throws Exception;
 
-    @Override
-    public void join() throws InterruptedException {
-        //No-OP
-    }
 }

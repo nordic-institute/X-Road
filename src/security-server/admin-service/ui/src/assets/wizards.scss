@@ -24,7 +24,7 @@
  * THE SOFTWARE.
  */
 
-@import "./colors";
+@use 'colors';
 
 .wizard-step-form-content {
   margin: 24px;
@@ -41,7 +41,7 @@
   align-items: baseline;
   font-style: normal;
   font-weight: bold;
-  font-size: $XRoad-DefaultFontSize;
+  font-size: colors.$DefaultFontSize;
 }
 
 .wizard-row-wrap {
@@ -72,7 +72,7 @@
   flex-direction: row;
   align-items: center;
   justify-content: flex-end;
-  background-color: $XRoad-WarmGrey10;
+  background-color: colors.$WarmGrey10;
   height: 72px;
   padding-right: 24px;
   padding-left: 24px;
@@ -94,14 +94,15 @@
   max-width: 1050px;
   margin: 40px;
   margin-top: 30px;
-  box-shadow: $XRoad-DefaultShadow;
+  box-shadow: colors.$DefaultShadow;
   border-radius: 4px;
 
   // override Vuetify style
+  background-color: #ffffff;
   .v-stepper__content {
     padding: 0;
   }
-  background-color: #ffffff;
+
 }
 
 .wizard-view-title {

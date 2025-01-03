@@ -1,0 +1,107 @@
+plugins {
+    id 'java-library'
+}
+
+project.ext.schemaTargetDir = layout.buildDirectory.dir("generated-sources").get().asFile
+
+configurations {
+    xjc
+}
+
+sourceSets {
+    main {
+        java.srcDirs = ['src/main/java', schemaTargetDir]
+    }
+    intTest {
+        resources {
+            srcDir '../../common/common-int-test/src/main/resources/'
+        }
+    }
+}
+
+dependencies {
+    implementation(platform(libs.springBoot.bom))
+
+    implementation project(':common:common-core')
+    implementation project(':common:common-jetty')
+    implementation project(':common:common-verifier')
+    implementation project(':common:common-rpc')
+    implementation project(':signer-protocol')
+
+    // Necessary since there are jars with no adequate Maven dependencies
+    api fileTree(dir: '../../libs/pkcs11wrapper', include: '*.jar')
+
+    testImplementation project(':common:common-test')
+    testImplementation project(path: ':common:common-verifier', configuration: 'testArtifacts')
+
+    testImplementation libs.mockito.core
+
+
+    intTestRuntimeOnly project(':addons:hwtoken')
+    intTestRuntimeOnly project(':common:common-globalconf')
+    intTestImplementation project(":common:common-test")
+    intTestImplementation project(":common:common-int-test")
+
+    xjc libs.bundles.jaxb
+}
+
+jar {
+    archiveBaseName = 'signer-core'
+}
+
+tasks.register('createDirs') {
+    doLast {
+        project.ext.schemaTargetDir.mkdirs()
+    }
+}
+
+tasks.register('xjc') {
+    dependsOn(':common:common-domain:xjc', ':common:common-globalconf:xjc')
+    inputs.files files('src/main/resources/*.xsd')
+    outputs.dir project.ext.schemaTargetDir
+
+    doLast {
+        ant.taskdef(name: 'xjc', classname: 'com.sun.tools.xjc.XJCTask', classpath: configurations.xjc.asPath)
+
+        ant.xjc(
+            destdir: project.ext.schemaTargetDir,
+            package: 'ee.ria.xroad.common.conf.keyconf',
+            schema: 'src/main/resources/keyconf.xsd',
+            binding: '../../common/common-domain/src/main/resources/identifiers-bindings.xml'
+        )
+    }
+}
+
+xjc.dependsOn createDirs
+compileJava.dependsOn xjc
+
+tasks.register('intTest', Test) {
+    useJUnitPlatform()
+
+    setDescription("Runs integration tests.")
+    group = 'verification'
+
+    testClassesDirs = sourceSets.intTest.output.classesDirs
+    classpath = sourceSets.intTest.runtimeClasspath
+
+    def intTestArgs = []
+    if (project.hasProperty('intTestProfilesInclude')) {
+        intTestArgs += "-Dspring.profiles.include=" + project.getProperty('intTestProfilesInclude')
+    }
+
+    jvmArgs intTestArgs
+
+    testLogging {
+        showStackTraces(true)
+        showExceptions(true)
+        showCauses(true)
+        showStandardStreams(true)
+    }
+    reports {
+        junitXml.includeSystemOutLog = false // defaults to true
+    }
+}
+
+tasks.named('check') {
+    dependsOn tasks.named('intTest')
+}

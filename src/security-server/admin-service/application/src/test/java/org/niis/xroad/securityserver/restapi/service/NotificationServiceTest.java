@@ -26,6 +26,7 @@
 package org.niis.xroad.securityserver.restapi.service;
 
 import ee.ria.xroad.common.CodedException;
+import ee.ria.xroad.common.conf.globalconf.GlobalConfProvider;
 import ee.ria.xroad.signer.SignerProxy;
 import ee.ria.xroad.signer.protocol.dto.TokenInfo;
 
@@ -35,7 +36,6 @@ import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
 import org.niis.xroad.securityserver.restapi.dto.AlertStatus;
-import org.niis.xroad.securityserver.restapi.facade.GlobalConfFacade;
 import org.niis.xroad.securityserver.restapi.util.TokenTestUtils;
 
 import java.util.Collections;
@@ -53,7 +53,7 @@ import static org.mockito.Mockito.when;
 @RunWith(MockitoJUnitRunner.class)
 public class NotificationServiceTest {
     @Mock
-    private GlobalConfFacade globalConfFacade;
+    private GlobalConfProvider globalConfProvider;
     @Mock
     private TokenService tokenService;
 
@@ -63,7 +63,7 @@ public class NotificationServiceTest {
 
     @Before
     public void setup() {
-        notificationService = new NotificationService(globalConfFacade, tokenService);
+        notificationService = new NotificationService(globalConfProvider, tokenService);
     }
 
     @Test
@@ -71,7 +71,7 @@ public class NotificationServiceTest {
         notificationService.resetBackupRestoreRunningSince();
         assertEquals(null, notificationService.getBackupRestoreRunningSince());
 
-        doAnswer(answer -> null).when(globalConfFacade).verifyValidity();
+        doAnswer(answer -> null).when(globalConfProvider).verifyValidity();
 
         TokenInfo tokenInfo = new TokenTestUtils.TokenInfoBuilder()
                 .id(SignerProxy.SSL_TOKEN_ID)
@@ -95,7 +95,7 @@ public class NotificationServiceTest {
         notificationService.setBackupRestoreRunningSince();
         assertNotNull(null, notificationService.getBackupRestoreRunningSince());
 
-        doThrow(new CodedException("")).when(globalConfFacade).verifyValidity();
+        doThrow(new CodedException("")).when(globalConfProvider).verifyValidity();
 
         AlertStatus alertStatus = notificationService.getAlerts();
         assertNotNull(alertStatus.getBackupRestoreRunningSince());
@@ -114,7 +114,7 @@ public class NotificationServiceTest {
         notificationService.resetBackupRestoreRunningSince();
         assertEquals(null, notificationService.getBackupRestoreRunningSince());
 
-        doAnswer(answer -> null).when(globalConfFacade).verifyValidity();
+        doAnswer(answer -> null).when(globalConfProvider).verifyValidity();
 
         TokenInfo tokenInfo = new TokenTestUtils.TokenInfoBuilder()
                 .id(SIGN_TOKEN_ID)
@@ -136,7 +136,7 @@ public class NotificationServiceTest {
         notificationService.resetBackupRestoreRunningSince();
         assertEquals(null, notificationService.getBackupRestoreRunningSince());
 
-        doThrow(new RuntimeException("")).when(globalConfFacade).verifyValidity();
+        doThrow(new RuntimeException("")).when(globalConfProvider).verifyValidity();
 
         TokenInfo tokenInfo = new TokenTestUtils.TokenInfoBuilder()
                 .id(SignerProxy.SSL_TOKEN_ID)

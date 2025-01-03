@@ -46,7 +46,7 @@ mkdir -p %{buildroot}/usr/share/doc/xroad-opmonitor/examples/zabbix/
 
 cp -p %{_sourcedir}/opmonitor/xroad-opmonitor.service %{buildroot}%{_unitdir}
 cp -p %{_sourcedir}/opmonitor/xroad-opmonitor-initdb.sh %{buildroot}/usr/share/xroad/scripts/
-cp -p %{srcdir}/../../../op-monitor-daemon/build/libs/op-monitor-daemon-1.0.jar %{buildroot}/usr/share/xroad/jlib/
+cp -p %{srcdir}/../../../op-monitor-daemon/application/build/libs/op-monitor-daemon-1.0.jar %{buildroot}/usr/share/xroad/jlib/
 cp -p %{srcdir}/default-configuration/op-monitor.ini %{buildroot}/etc/xroad/conf.d/
 cp -p %{srcdir}/default-configuration/op-monitor-logback.xml %{buildroot}/etc/xroad/conf.d/
 cp -p %{srcdir}/common/op-monitor/etc/xroad/services/opmonitor.conf %{buildroot}/etc/xroad/services/
@@ -107,7 +107,7 @@ fi
 %post
 %systemd_post xroad-opmonitor.service
 
-# RHEL7 java-17-* package makes java binaries available since %post scriptlet
+# RHEL7 java-21-* package makes java binaries available since %post scriptlet
 %if 0%{?el7}
 %init_xroad_opmonitor_db
 %endif
@@ -119,7 +119,7 @@ fi
 %systemd_postun_with_restart xroad-opmonitor.service
 
 %posttrans
-# RHEL8/9 java-17-* package makes java binaries available since %posttrans scriptlet
+# RHEL8/9 java-21-* package makes java binaries available since %posttrans scriptlet
 %if 0%{?el8} || 0%{?el9}
 %init_xroad_opmonitor_db
 %endif

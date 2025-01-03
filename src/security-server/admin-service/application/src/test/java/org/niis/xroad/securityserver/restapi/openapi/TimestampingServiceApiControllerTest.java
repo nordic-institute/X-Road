@@ -71,7 +71,7 @@ public class TimestampingServiceApiControllerTest extends AbstractApiControllerT
         APPROVED_TIMESTAMPING_SERVICES.put(tsa1.getName(), tsa1);
         APPROVED_TIMESTAMPING_SERVICES.put(tsa2.getName(), tsa2);
 
-        when(globalConfFacade.getInstanceIdentifier()).thenReturn("TEST");
+        when(globalConfProvider.getInstanceIdentifier()).thenReturn("TEST");
 
         doReturn(Arrays.asList(tsa1, tsa2)).when(globalConfService).getApprovedTspsForThisInstance();
     }

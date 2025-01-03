@@ -136,7 +136,7 @@ public final class FileWatcherRunner implements AutoCloseable {
             };
 
             // AbstractPoller.register will throw if there are no events to listen to, so throw early
-            checkArgument(eventTypes.size() > 0, "You have to listen to at least one type of event");
+            checkArgument(!eventTypes.isEmpty(), "You have to listen to at least one type of event");
             FileWatcher watcher = new FileWatcher(this.watchPath, this.watchListener, eventTypes, this.startupListener);
             return new FileWatcherRunner(watcher).start();
         }

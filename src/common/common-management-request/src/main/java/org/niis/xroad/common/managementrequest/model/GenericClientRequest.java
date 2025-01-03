@@ -26,9 +26,11 @@
 package org.niis.xroad.common.managementrequest.model;
 
 import ee.ria.xroad.common.SystemProperties;
+import ee.ria.xroad.common.crypto.Signatures;
+import ee.ria.xroad.common.crypto.identifier.DigestAlgorithm;
+import ee.ria.xroad.common.crypto.identifier.SignAlgorithm;
 import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.message.SoapMessageImpl;
-import ee.ria.xroad.common.util.CryptoUtils;
 import ee.ria.xroad.common.util.MimeTypes;
 import ee.ria.xroad.common.util.MultiPartOutputStream;
 import ee.ria.xroad.signer.SignerProxy;
@@ -45,13 +47,13 @@ import java.io.InputStream;
 import static ee.ria.xroad.common.ErrorCodes.X_CANNOT_CREATE_SIGNATURE;
 import static ee.ria.xroad.common.ErrorCodes.translateException;
 import static ee.ria.xroad.common.ErrorCodes.translateWithPrefix;
-import static ee.ria.xroad.common.util.CryptoUtils.calculateDigest;
+import static ee.ria.xroad.common.crypto.Digests.calculateDigest;
 import static ee.ria.xroad.common.util.MimeUtils.HEADER_SIG_ALGO_ID;
 import static ee.ria.xroad.common.util.MimeUtils.mpRelatedContentType;
 
 @Slf4j
 abstract class GenericClientRequest implements ManagementRequest {
-    private static final String SIGNATURE_DIGEST_ALGORITHM_ID =
+    private static final DigestAlgorithm SIGNATURE_DIGEST_ALGORITHM_ID =
             SystemProperties.getAuthCertRegSignatureDigestAlgorithmId();
 
     private final ClientId client;
@@ -109,15 +111,15 @@ abstract class GenericClientRequest implements ManagementRequest {
     private void writeSignature() throws Exception {
         MemberSigningInfoDto memberSigningInfo = getMemberSigningInfo();
 
-        String clientSignAlgoId = CryptoUtils.getSignatureAlgorithmId(SIGNATURE_DIGEST_ALGORITHM_ID,
-                memberSigningInfo.getSignMechanismName());
+        var clientSignAlgoId = SignAlgorithm.ofDigestAndMechanism(SIGNATURE_DIGEST_ALGORITHM_ID,
+                memberSigningInfo.signMechanismName());
 
-        String[] clientSignaturePartHeaders = {HEADER_SIG_ALGO_ID + ": " + clientSignAlgoId};
+        String[] clientSignaturePartHeaders = {HEADER_SIG_ALGO_ID + ": " + clientSignAlgoId.name()};
 
         byte[] digest = calculateDigest(SIGNATURE_DIGEST_ALGORITHM_ID, dataToSign);
 
         multipart.startPart(MimeTypes.BINARY, clientSignaturePartHeaders);
-        multipart.write(createSignature(memberSigningInfo.getKeyId(), clientSignAlgoId, digest));
+        multipart.write(createSignature(memberSigningInfo.keyId(), clientSignAlgoId, digest));
     }
 
     private void writeSoap() throws IOException {
@@ -129,7 +131,7 @@ abstract class GenericClientRequest implements ManagementRequest {
         try {
             MemberSigningInfoDto signingInfo = SignerProxy.getMemberSigningInfo(client);
 
-            clientCert = signingInfo.getCert();
+            clientCert = signingInfo.cert();
 
             return signingInfo;
         } catch (Exception e) {
@@ -137,9 +139,9 @@ abstract class GenericClientRequest implements ManagementRequest {
         }
     }
 
-    private static byte[] createSignature(String keyId, String signAlgoId, byte[] digest) {
+    private static byte[] createSignature(String keyId, SignAlgorithm signAlgoId, byte[] digest) {
         try {
-            return SignerProxy.sign(keyId, signAlgoId, digest);
+            return Signatures.useAsn1DerFormat(signAlgoId, SignerProxy.sign(keyId, signAlgoId, digest));
         } catch (Exception e) {
             throw translateWithPrefix(X_CANNOT_CREATE_SIGNATURE, e);
         }

@@ -49,6 +49,7 @@ import org.niis.xroad.securityserver.restapi.util.CertificateTestUtils;
 import org.niis.xroad.securityserver.restapi.util.TestUtils;
 import org.niis.xroad.securityserver.restapi.util.TokenTestUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.test.annotation.DirtiesContext;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -74,6 +75,7 @@ import static org.mockito.Mockito.when;
  * Test GlobalConfChecker
  */
 @Slf4j
+@DirtiesContext(classMode = DirtiesContext.ClassMode.BEFORE_CLASS)
 public class GlobalConfCheckerTest extends AbstractFacadeMockingTestContext {
 
     @Autowired
@@ -104,28 +106,24 @@ public class GlobalConfCheckerTest extends AbstractFacadeMockingTestContext {
 
     @Before
     public void setup() throws Exception {
-        doAnswer(answer -> null).when(globalConfFacade).verifyValidity();
-        doAnswer(answer -> null).when(globalConfFacade).reload();
+        doAnswer(answer -> null).when(globalConfProvider).verifyValidity();
+        doAnswer(answer -> null).when(globalConfProvider).reload();
 
-        List<MemberInfo> globalMemberInfos = new ArrayList<>(Arrays.asList(
+        List<MemberInfo> globalMemberInfos = Arrays.asList(
                 TestUtils.getMemberInfo(TestUtils.INSTANCE_FI, TestUtils.MEMBER_CLASS_GOV, TestUtils.MEMBER_CODE_M1,
                         null),
                 TestUtils.getMemberInfo(TestUtils.INSTANCE_FI, TestUtils.MEMBER_CLASS_GOV, TestUtils.MEMBER_CODE_M2,
-                        null)));
-        when(globalConfFacade.getMembers(any())).thenReturn(globalMemberInfos);
-        when(globalConfFacade.getMemberName(any())).thenAnswer(invocation -> {
+                        null));
+        when(globalConfProvider.getMembers(any())).thenReturn(globalMemberInfos);
+        when(globalConfProvider.getMemberName(any())).thenAnswer(invocation -> {
             ClientId clientId = (ClientId) invocation.getArguments()[0];
             Optional<MemberInfo> m = globalMemberInfos.stream()
                     .filter(g -> g.getId().equals(clientId))
                     .findFirst();
-            if (m.isPresent()) {
-                return m.get().getName();
-            } else {
-                return null;
-            }
+            return m.map(MemberInfo::getName).orElse(null);
         });
 
-        when(globalConfFacade.getInstanceIdentifier()).thenReturn(TestUtils.INSTANCE_FI);
+        when(globalConfProvider.getInstanceIdentifier()).thenReturn(TestUtils.INSTANCE_FI);
         when(managementRequestSenderService.sendClientRegisterRequest(any())).thenReturn(1);
 
         KeyInfo ownerSignKey = new TokenTestUtils.KeyInfoBuilder()
@@ -170,7 +168,7 @@ public class GlobalConfCheckerTest extends AbstractFacadeMockingTestContext {
 
     @Test
     public void updateLocalClientStatus() {
-        when(globalConfFacade.isSecurityServerClient(OWNER_MEMBER, SS_ID)).thenReturn(true);
+        when(globalConfProvider.isSecurityServerClient(OWNER_MEMBER, SS_ID)).thenReturn(true);
         // Verify initial state
         assertEquals(OWNER_MEMBER.toString(), serverConfService.getSecurityServerOwnerId().toString());
         ClientType owner = clientService.getLocalClient(OWNER_MEMBER);
@@ -187,7 +185,7 @@ public class GlobalConfCheckerTest extends AbstractFacadeMockingTestContext {
         assertEquals(ClientType.STATUS_GLOBALERR, subsystem.getClientStatus());
 
         // Global conf starts to recognize the subsystem as a Security Server client
-        when(globalConfFacade.isSecurityServerClient(SUBSYSTEM, SS_ID)).thenReturn(true);
+        when(globalConfProvider.isSecurityServerClient(SUBSYSTEM, SS_ID)).thenReturn(true);
         // Update serverconf
         globalConfChecker.checkGlobalConf();
         // Subsystem status is changed back to "REGISTERED"
@@ -209,7 +207,7 @@ public class GlobalConfCheckerTest extends AbstractFacadeMockingTestContext {
         // Register new member
         clientService.registerClient(NEW_OWNER_MEMBER);
         assertEquals(ClientType.STATUS_REGINPROG, clientType.getClientStatus());
-        when(globalConfFacade.isSecurityServerClient(any(), any())).thenReturn(true);
+        when(globalConfProvider.isSecurityServerClient(any(), any())).thenReturn(true);
 
         // Update serverconf
         globalConfChecker.checkGlobalConf();
@@ -217,9 +215,9 @@ public class GlobalConfCheckerTest extends AbstractFacadeMockingTestContext {
         assertEquals(OWNER_MEMBER.toString(), serverConfService.getSecurityServerOwnerId().toString());
 
         // Global conf starts to recognize the new member as the Security Server owner
-        when(globalConfFacade.getServerOwner(SS_ID)).thenReturn(null);
-        when(globalConfFacade.getServerOwner(NEW_SS_ID)).thenReturn(NEW_OWNER_MEMBER);
-        when(globalConfFacade.getServerId(any())).thenReturn(NEW_SS_ID);
+        when(globalConfProvider.getServerOwner(SS_ID)).thenReturn(null);
+        when(globalConfProvider.getServerOwner(NEW_SS_ID)).thenReturn(NEW_OWNER_MEMBER);
+        when(globalConfProvider.getServerId(any())).thenReturn(NEW_SS_ID);
 
         // Update serverconf => owner is changed
         globalConfChecker.checkGlobalConf();
@@ -287,9 +285,9 @@ public class GlobalConfCheckerTest extends AbstractFacadeMockingTestContext {
 
         globalConfChecker.checkGlobalConf();
 
-        verify(globalConfFacade).reload();
-        verify(globalConfFacade).verifyValidity();
-        verifyNoMoreInteractions(globalConfFacade);
+        verify(globalConfProvider).reload();
+        verify(globalConfProvider).verifyValidity();
+        verifyNoMoreInteractions(globalConfProvider);
 
         System.setProperty(NODE_TYPE, MASTER.toString());
     }

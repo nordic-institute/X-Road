@@ -28,12 +28,12 @@
   <div>
     <!-- Error -->
     <v-container
-      v-if="errorNotifications && errorNotifications.length > 0"
+      v-if="notifications.errorNotifications && notifications.errorNotifications.length > 0"
       fluid
       class="alerts-container px-3"
     >
       <v-alert
-        v-for="notification in errorNotifications"
+        v-for="notification in notifications.errorNotifications"
         :key="notification.timeAdded"
         v-model="notification.show"
         data-test="contextual-alert"
@@ -53,7 +53,7 @@
 
               <!-- Show localised text by id from error object -->
               <div v-else-if="notification.errorCode">
-                {{ $t('error_code.' + notification.errorCode) }}
+                {{ $t(errorCodePrefix + notification.errorCode) }}
               </div>
 
               <!-- If error doesn't have a text or localisation key then just print the error object -->
@@ -65,19 +65,17 @@
               <div v-if="notification.errorCode === 'token_weak_pin'">
                 <div>
                   {{
-                    $t(`error_code.${notification.metaData?.[0]}`) +
-                    `: ${notification.metaData?.[1]}`
+                    $t(errorCodePrefix + notification.metaData?.[0]) + ': ' + notification.metaData?.[1]
                   }}
                 </div>
                 <div>
                   {{
-                    $t(`error_code.${notification.metaData?.[2]}`) +
-                    `: ${notification.metaData?.[3]}`
+                    $t(errorCodePrefix + notification.metaData?.[2]) + ': ' + notification.metaData?.[3]
                   }}
                 </div>
               </div>
               <div v-for="meta in notification.metaData" v-else :key="meta">
-                {{ meta }}
+                {{ meta.startsWith(metaPrefix) ? $t(meta) : meta }}
               </div>
 
               <!-- Show validation errors -->
@@ -126,7 +124,8 @@
             <xrd-icon-base class="xrd-large-button-icon">
               <XrdIconCopy />
             </xrd-icon-base>
-            {{ $t('action.copyId') }}</xrd-button
+            {{ $t('action.copyId') }}
+          </xrd-button
           >
 
           <!-- Handle possible action -->
@@ -149,7 +148,9 @@
             variant="plain"
             @click="closeError(notification.timeAdded)"
           >
-            <xrd-icon-base><xrd-icon-close /></xrd-icon-base>
+            <xrd-icon-base>
+              <xrd-icon-close />
+            </xrd-icon-base>
           </v-btn>
         </template>
       </v-alert>
@@ -157,45 +158,42 @@
   </div>
 </template>
 
-<script lang="ts">
-import { defineComponent } from 'vue';
-import { mapActions, mapState } from 'pinia';
+<script lang="ts" setup>
 import { useNotifications } from '@/store/modules/notifications';
 import { toClipboard } from '@/util/helpers';
 import { Notification } from '@/ui-types';
+import { useRouter } from 'vue-router';
 
-export default defineComponent({
-  // Component for contextual notifications
-  computed: {
-    ...mapState(useNotifications, ['errorNotifications']),
-  },
-  methods: {
-    ...mapActions(useNotifications, ['deleteNotification']),
+const errorCodePrefix = 'error_code.';
+const metaPrefix = 'meta.';
 
-    closeError(id: number): void {
-      this.deleteNotification(id);
-    },
-    copyId(notification: Notification): void {
-      const id = notification.errorId;
-      if (id) {
-        toClipboard(id);
-      }
-    },
+const notifications = useNotifications();
+const router = useRouter();
 
-    routeAction(notification: Notification): void {
-      if (notification.action) {
-        this.$router.push({
-          name: notification.action.route,
-        });
-      }
-      this.closeError(notification.timeAdded);
-    },
-  },
-});
+function closeError(id: number): void {
+  notifications.deleteNotification(id);
+}
+
+function copyId(notification: Notification): void {
+  const id = notification.errorId;
+  if (id) {
+    toClipboard(id);
+  }
+}
+
+function routeAction(notification: Notification): void {
+  if (notification.action) {
+    router.push({
+      name: notification.action.route,
+    });
+  }
+  closeError(notification.timeAdded);
+}
+
 </script>
 
 <style lang="scss" scoped>
-@import '@/assets/colors';
+@use '@/assets/colors';
 
 .alerts-container {
   padding: 0;
@@ -207,10 +205,10 @@ export default defineComponent({
 
 .alert {
   margin-top: 16px;
-  border: 2px solid $XRoad-WarmGrey30;
+  border: 2px solid colors.$WarmGrey30;
   box-sizing: border-box;
   border-radius: 4px;
-  background-color: $XRoad-White100;
+  background-color: colors.$White100;
 }
 
 .row-wrapper-top {
@@ -234,7 +232,7 @@ export default defineComponent({
   overflow-wrap: break-word;
   justify-content: center;
   margin-right: 30px;
-  color: $XRoad-Black100;
+  color: colors.$Black100;
 }
 
 .id-button {

@@ -62,7 +62,7 @@ public class TrustedAnchorsApiStepDefs extends BaseStepDefs {
     public void userUploadsTrustedAnchorFileForPreview(String resource, String filename) throws IOException {
         try {
             var result = trustedAnchorsApi.previewTrustedAnchor(getFileAsMultipart(filename, resource));
-            putStepData(StepDataKey.RESPONSE_STATUS, result.getStatusCodeValue());
+            putStepData(StepDataKey.RESPONSE_STATUS, result.getStatusCode().value());
             putStepData(StepDataKey.RESPONSE_BODY, result.getBody());
         } catch (FeignException feignException) {
             putStepData(StepDataKey.RESPONSE_STATUS, feignException.status());
@@ -84,7 +84,7 @@ public class TrustedAnchorsApiStepDefs extends BaseStepDefs {
     public void userUploadsTrustedAnchorFile(String resource, String filename) throws IOException {
         try {
             var result = trustedAnchorsApi.uploadTrustedAnchor(getFileAsMultipart(filename, resource));
-            putStepData(StepDataKey.RESPONSE_STATUS, result.getStatusCodeValue());
+            putStepData(StepDataKey.RESPONSE_STATUS, result.getStatusCode().value());
             putStepData(StepDataKey.RESPONSE_BODY, result.getBody());
         } catch (FeignException feignException) {
             putStepData(StepDataKey.RESPONSE_STATUS, feignException.status());
@@ -96,7 +96,7 @@ public class TrustedAnchorsApiStepDefs extends BaseStepDefs {
     public void trustedAnchorIsDownloaded(String hash) {
         try {
             var result = trustedAnchorsApi.downloadTrustedAnchor(hash);
-            putStepData(StepDataKey.RESPONSE_STATUS, result.getStatusCodeValue());
+            putStepData(StepDataKey.RESPONSE_STATUS, result.getStatusCode().value());
             putStepData(StepDataKey.RESPONSE, result);
         } catch (FeignException feignException) {
             putStepData(StepDataKey.RESPONSE_STATUS, feignException.status());
@@ -157,7 +157,7 @@ public class TrustedAnchorsApiStepDefs extends BaseStepDefs {
     public void trustedAnchorsListIsRetrieved() {
         try {
             var result = trustedAnchorsApi.getTrustedAnchors();
-            putStepData(StepDataKey.RESPONSE_STATUS, result.getStatusCodeValue());
+            putStepData(StepDataKey.RESPONSE_STATUS, result.getStatusCode().value());
             putStepData(StepDataKey.RESPONSE_BODY, result.getBody());
         } catch (FeignException feignException) {
             putStepData(StepDataKey.RESPONSE_STATUS, feignException.status());
@@ -169,7 +169,7 @@ public class TrustedAnchorsApiStepDefs extends BaseStepDefs {
     public void trustedAnchorIsDeletedByHash(String hash) {
         try {
             var result = trustedAnchorsApi.deleteTrustedAnchor(hash);
-            putStepData(StepDataKey.RESPONSE_STATUS, result.getStatusCodeValue());
+            putStepData(StepDataKey.RESPONSE_STATUS, result.getStatusCode().value());
         } catch (FeignException feignException) {
             putStepData(StepDataKey.RESPONSE_STATUS, feignException.status());
             putStepData(StepDataKey.ERROR_RESPONSE_BODY, feignException.contentUTF8());

@@ -26,8 +26,9 @@
 package ee.ria.xroad.proxy.serverproxy;
 
 import ee.ria.xroad.common.CodedException;
-import ee.ria.xroad.common.conf.serverconf.ServerConf;
+import ee.ria.xroad.common.conf.globalconf.GlobalConfProvider;
 import ee.ria.xroad.common.conf.serverconf.ServerConfDatabaseCtx;
+import ee.ria.xroad.common.conf.serverconf.ServerConfProvider;
 import ee.ria.xroad.common.conf.serverconf.dao.ServiceDescriptionDAOImpl;
 import ee.ria.xroad.common.conf.serverconf.model.DescriptionType;
 import ee.ria.xroad.common.conf.serverconf.model.ServiceDescriptionType;
@@ -99,7 +100,7 @@ import static ee.ria.xroad.proxy.util.MetadataRequests.GET_WSDL;
 import static ee.ria.xroad.proxy.util.MetadataRequests.LIST_METHODS;
 
 @Slf4j
-class MetadataServiceHandlerImpl implements ServiceHandler {
+class MetadataServiceHandlerImpl extends AbstractServiceHandler {
 
     static final JAXBContext JAXB_CTX = initJaxbCtx();
     static final ObjectFactory OBJECT_FACTORY = new ObjectFactory();
@@ -109,12 +110,18 @@ class MetadataServiceHandlerImpl implements ServiceHandler {
     private final ByteArrayOutputStream responseOut =
             new ByteArrayOutputStream();
 
+
     private SoapMessageImpl requestMessage;
     private SoapMessageEncoder responseEncoder;
 
-    private HttpClientCreator wsdlHttpClientCreator = new HttpClientCreator();
+    private final HttpClientCreator wsdlHttpClientCreator;
 
     private static final SAXTransformerFactory TRANSFORMER_FACTORY = createSaxTransformerFactory();
+
+    protected MetadataServiceHandlerImpl(ServerConfProvider serverConfProvider, GlobalConfProvider globalConfProvider) {
+        super(serverConfProvider, globalConfProvider);
+        wsdlHttpClientCreator = new HttpClientCreator(serverConfProvider);
+    }
 
     private static SAXTransformerFactory createSaxTransformerFactory() {
         try {
@@ -180,17 +187,11 @@ class MetadataServiceHandlerImpl implements ServiceHandler {
 
 
         switch (serviceCode) {
-            case LIST_METHODS:
-                handleListMethods(requestMessage);
-                return;
-            case ALLOWED_METHODS:
-                handleAllowedMethods(requestMessage);
-                return;
-            case GET_WSDL:
-                handleGetWsdl(requestMessage);
-                return;
-            default: // do nothing
-                return;
+            case LIST_METHODS -> handleListMethods(requestMessage);
+            case ALLOWED_METHODS -> handleAllowedMethods(requestMessage);
+            case GET_WSDL -> handleGetWsdl(requestMessage);
+            default -> {
+            }
         }
     }
 
@@ -216,7 +217,7 @@ class MetadataServiceHandlerImpl implements ServiceHandler {
 
         MethodListType methodList = OBJECT_FACTORY.createMethodListType();
         methodList.getService().addAll(
-                ServerConf.getServicesByDescriptionType(
+                serverConfProvider.getServicesByDescriptionType(
                         request.getService().getClientId(), DescriptionType.WSDL));
 
         SoapMessageImpl result = createMethodListResponse(request,
@@ -230,7 +231,7 @@ class MetadataServiceHandlerImpl implements ServiceHandler {
 
         MethodListType methodList = OBJECT_FACTORY.createMethodListType();
         methodList.getService().addAll(
-                ServerConf.getAllowedServicesByDescriptionType(
+                serverConfProvider.getAllowedServicesByDescriptionType(
                         request.getService().getClientId(),
                         request.getClient(), DescriptionType.WSDL));
 

@@ -26,6 +26,8 @@
 package org.niis.xroad.securityserver.restapi.service;
 
 import ee.ria.xroad.common.CodedException;
+import ee.ria.xroad.common.crypto.identifier.KeyAlgorithm;
+import ee.ria.xroad.signer.exception.SignerException;
 import ee.ria.xroad.signer.protocol.dto.CertificateInfo;
 import ee.ria.xroad.signer.protocol.dto.KeyInfo;
 import ee.ria.xroad.signer.protocol.dto.KeyUsageInfo;
@@ -33,12 +35,12 @@ import ee.ria.xroad.signer.protocol.dto.TokenInfo;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.niis.xroad.common.exception.ServiceException;
 import org.niis.xroad.restapi.config.audit.AuditDataHelper;
 import org.niis.xroad.restapi.config.audit.AuditEventHelper;
 import org.niis.xroad.restapi.config.audit.RestApiAuditEvent;
 import org.niis.xroad.restapi.config.audit.RestApiAuditProperty;
 import org.niis.xroad.restapi.exceptions.WarningDeviation;
-import org.niis.xroad.restapi.service.SignerNotReachableException;
 import org.niis.xroad.restapi.service.UnhandledWarningsException;
 import org.niis.xroad.restapi.util.SecurityHelper;
 import org.niis.xroad.securityserver.restapi.facade.SignerProxyFacade;
@@ -51,10 +53,8 @@ import java.util.EnumSet;
 import java.util.List;
 import java.util.NoSuchElementException;
 import java.util.Optional;
-import java.util.stream.Collectors;
 
-import static ee.ria.xroad.common.ErrorCodes.SIGNER_X;
-import static ee.ria.xroad.common.ErrorCodes.X_KEY_NOT_FOUND;
+import static org.niis.xroad.common.exception.util.CommonDeviationMessage.INTERNAL_ERROR;
 import static org.niis.xroad.restapi.exceptions.DeviationCodes.WARNING_AUTH_KEY_REGISTERED_CERT_DETECTED;
 
 /**
@@ -113,7 +113,7 @@ public class KeyService {
      * @throws ActionNotPossibleException if friendly name could not be updated for this key
      */
     public KeyInfo updateKeyFriendlyName(String id, String friendlyName) throws KeyNotFoundException,
-            ActionNotPossibleException {
+                                                                                ActionNotPossibleException {
 
         // check that updating friendly name is possible
         TokenInfo tokenInfo = tokenService.getTokenForKeyId(id);
@@ -127,16 +127,16 @@ public class KeyService {
         try {
             signerProxyFacade.setKeyFriendlyName(id, friendlyName);
             keyInfo = getKey(id);
-        } catch (KeyNotFoundException e) {
-            throw e;
-        } catch (CodedException e) {
-            if (isCausedByKeyNotFound(e)) {
+        } catch (SignerException e) {
+            if (e.isCausedByKeyNotFound()) {
                 throw new KeyNotFoundException(e);
             } else {
                 throw e;
             }
+        } catch (CodedException | KeyNotFoundException e) {
+            throw e;
         } catch (Exception e) {
-            throw new SignerNotReachableException("Update key friendly name failed", e);
+            throw new ServiceException(INTERNAL_ERROR, e, "Update key friendly name failed");
         }
 
         return keyInfo;
@@ -146,12 +146,13 @@ public class KeyService {
      * Generate a new key for selected token
      * @param tokenId
      * @param keyLabel
+     * @param algorithm
      * @return {@link KeyInfo}
      * @throws TokenNotFoundException if token was not found
      * @throws ActionNotPossibleException if generate key was not possible for this token
      */
-    public KeyInfo addKey(String tokenId, String keyLabel) throws TokenNotFoundException,
-            ActionNotPossibleException {
+    public KeyInfo addKey(String tokenId, String keyLabel, KeyAlgorithm algorithm) throws TokenNotFoundException,
+                                                                                          ActionNotPossibleException {
 
         // check that adding a key is possible
         TokenInfo tokenInfo = tokenService.getToken(tokenId);
@@ -161,27 +162,17 @@ public class KeyService {
 
         KeyInfo keyInfo = null;
         try {
-            keyInfo = signerProxyFacade.generateKey(tokenId, keyLabel);
+            keyInfo = signerProxyFacade.generateKey(tokenId, keyLabel, algorithm);
         } catch (CodedException e) {
             throw e;
         } catch (Exception other) {
-            throw new SignerNotReachableException("adding a new key failed", other);
+            throw new ServiceException(INTERNAL_ERROR, other, "adding a new key failed");
         }
         auditDataHelper.put(RestApiAuditProperty.KEY_ID, keyInfo.getId());
         auditDataHelper.put(RestApiAuditProperty.KEY_LABEL, keyInfo.getLabel());
         auditDataHelper.put(RestApiAuditProperty.KEY_FRIENDLY_NAME, keyInfo.getFriendlyName());
         return keyInfo;
     }
-
-    static boolean isCausedByKeyNotFound(CodedException e) {
-        return KEY_NOT_FOUND_FAULT_CODE.equals(e.getFaultCode());
-    }
-
-    private static String signerFaultCode(String detail) {
-        return SIGNER_X + "." + detail;
-    }
-
-    static final String KEY_NOT_FOUND_FAULT_CODE = signerFaultCode(X_KEY_NOT_FOUND);
 
     /**
      * Deletes one key, and related CSRs and certificates. If the key is an authentication key with a registered
@@ -193,7 +184,7 @@ public class KeyService {
      * @throws GlobalConfOutdatedException if global conf was outdated
      */
     public void deleteKeyAndIgnoreWarnings(String keyId) throws KeyNotFoundException, ActionNotPossibleException,
-            GlobalConfOutdatedException {
+                                                                GlobalConfOutdatedException {
         try {
             deleteKey(keyId, true);
         } catch (UnhandledWarningsException e) {
@@ -216,7 +207,7 @@ public class KeyService {
      * and ignoreWarnings was false
      */
     public void deleteKey(String keyId, Boolean ignoreWarnings) throws KeyNotFoundException, ActionNotPossibleException,
-            GlobalConfOutdatedException, UnhandledWarningsException {
+                                                                       GlobalConfOutdatedException, UnhandledWarningsException {
 
         TokenInfo tokenInfo = tokenService.getTokenForKeyId(keyId);
         auditDataHelper.put(tokenInfo);
@@ -239,8 +230,9 @@ public class KeyService {
         // unregister possible auth certs
         if (keyInfo.getUsage() == KeyUsageInfo.AUTHENTICATION) {
             // get list of auth certs to be unregistered
-            List<CertificateInfo> unregister = keyInfo.getCerts().stream().filter(this::shouldUnregister)
-                    .collect(Collectors.toList());
+            List<CertificateInfo> unregister = keyInfo.getCerts().stream()
+                    .filter(this::shouldUnregister)
+                    .toList();
 
             if (!unregister.isEmpty() && !ignoreWarnings) {
                 throw new UnhandledWarningsException(
@@ -263,7 +255,7 @@ public class KeyService {
         } catch (CodedException e) {
             throw e;
         } catch (Exception other) {
-            throw new SignerNotReachableException("delete key failed", other);
+            throw new ServiceException(INTERNAL_ERROR, other, "delete key failed");
         }
     }
 
@@ -298,7 +290,7 @@ public class KeyService {
         } catch (GlobalConfOutdatedException | CodedException e) {
             throw e;
         } catch (Exception e) {
-            throw new SignerNotReachableException("Could not unregister auth cert", e);
+            throw new ServiceException(INTERNAL_ERROR, e, "Could not unregister auth cert");
         }
     }
 
@@ -309,9 +301,8 @@ public class KeyService {
     public EnumSet<PossibleActionEnum> getPossibleActionsForKey(String keyId) throws KeyNotFoundException {
         TokenInfo tokenInfo = tokenService.getTokenForKeyId(keyId);
         KeyInfo keyInfo = getKey(tokenInfo, keyId);
-        EnumSet<PossibleActionEnum> possibleActions = possibleActionsRuleEngine
+        return possibleActionsRuleEngine
                 .getPossibleKeyActions(tokenInfo, keyInfo);
-        return possibleActions;
     }
 
 }

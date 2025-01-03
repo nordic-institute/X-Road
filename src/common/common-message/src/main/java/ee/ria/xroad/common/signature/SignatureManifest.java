@@ -27,6 +27,7 @@ package ee.ria.xroad.common.signature;
 
 import ee.ria.xroad.common.CodedException;
 import ee.ria.xroad.common.ErrorCodes;
+import ee.ria.xroad.common.crypto.identifier.DigestAlgorithm;
 
 import org.apache.xml.security.signature.Manifest;
 import org.apache.xml.security.utils.Constants;
@@ -98,7 +99,7 @@ public class SignatureManifest {
      * @param hashMethod the hash method
      * @param hashValue the hash value (digest value)
      */
-    public void addReference(String name, String hashMethod, byte[] hashValue) {
+    public void addReference(String name, DigestAlgorithm hashMethod, byte[] hashValue) {
         addReference(new MessagePart(name, hashMethod, hashValue, null));
     }
 
@@ -209,7 +210,7 @@ public class SignatureManifest {
      * @throws Exception if errors occur when creating the DOM elements
      */
     public static Element createReferenceInfoElement(Document doc,
-                                                     String hashMethod, byte[] hashValue) throws Exception {
+                                                     DigestAlgorithm hashMethod, byte[] hashValue) throws Exception {
         Element referenceElement = doc.createElement(Helper.PREFIX_XADES
                 + Helper.REFERENCE_INFO_TAG);
 

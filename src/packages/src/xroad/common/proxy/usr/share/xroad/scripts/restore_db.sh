@@ -42,7 +42,7 @@ if [[ ! -z $PGOPTIONS_EXTRA ]]; then
 fi
 
 remote_psql() {
-  psql -v ON_ERROR_STOP=1 -h "$db_addr" -p "$db_port" -qtA
+  psql -v ON_ERROR_STOP=1 -h "${PGHOST:-$db_addr}" -p "${PGPORT:-$db_port}" -qtA
 }
 
 psql_adminuser() {
@@ -108,7 +108,7 @@ fi
 
 JAVA_OPTS="-Ddb_user=$db_user -Ddb_schema=$db_schema" /usr/share/xroad/db/liquibase.sh \
   --classpath=/usr/share/xroad/jlib/postgresql.jar \
-  --url="jdbc:postgresql://$db_addr:$db_port/$db_database?currentSchema=${db_schema},public" \
+  --url="jdbc:postgresql://${PGHOST:-$db_addr}:${PGPORT:-$db_port}/$db_database?targetServerType=primary&currentSchema=${db_schema},public" \
   --changeLogFile=serverconf-changelog.xml \
   --password="${db_admin_password}" \
   --username="${db_admin_user}" \

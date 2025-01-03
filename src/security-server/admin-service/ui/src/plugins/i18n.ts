@@ -23,27 +23,20 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-import { createI18n } from 'vue-i18n';
-import veeEn from '@vee-validate/i18n/dist/locale/en.json';
-import en from '@/locales/en.json';
-import merge from 'deepmerge';
+import { prepareI18n } from '@niis/shared-ui';
+import enMessages from '@/locales/en.json';
 
-import { messages } from '@niis/shared-ui';
+export const availableLanguages = ['en', 'es', 'et'];
 
-const validation = { validation: veeEn };
+export const { i18n, languageHelper } = prepareI18n(enMessages, loadMessages);
 
-type Shared = typeof messages.en;
-type Vee = typeof validation;
-type En = typeof en;
-export type MessageSchema = Vee & Shared & En;
-
-let common = merge(validation, messages.en);
-common = merge(common, en);
-export const i18n = createI18n<[MessageSchema], 'en'>({
-  legacy: false,
-  locale: import.meta.env.VITE_VUE_APP_I18N_LOCALE || 'en',
-  fallbackLocale: import.meta.env.VITE_VUE_APP_I18N_FALLBACK_LOCALE || 'en',
-  silentFallbackWarn: true,
-  allowComposition: true,
-  messages: { en: common as MessageSchema },
-});
+// Fetches all language-specific messages for the given language
+async function loadMessages(language: string) {
+  try {
+    let module = await import(`@/locales/${language}.json`);
+    return await module.default;
+  } catch (e) {
+    console.error("Failed to load translations for: " + language);
+    return {};
+  }
+}

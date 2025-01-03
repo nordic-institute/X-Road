@@ -1,20 +1,29 @@
 #!/bin/bash
 
+: ${XROAD_HOME:?"XROAD_HOME is not set"}
+
 deploy_module() {
   local module_name=$1
   shift
   local -a containers=("$@")
   local jar_path
   local service_name
+  local target_path
 
   case $module_name in
   "proxy")
-    jar_path="$XROAD_HOME/src/proxy/build/libs/proxy-1.0.jar"
+    jar_path="$XROAD_HOME/src/proxy/application/build/libs/proxy-1.0.jar"
     service_name="xroad-proxy"
     ;;
   "messagelog-addon")
     jar_path="$XROAD_HOME/src/addons/messagelog/messagelog-addon/build/libs/messagelog-addon.jar"
+    target_path="/usr/share/xroad/jlib/addon/proxy/"
     service_name="xroad-proxy"
+    ;;
+  "hwtoken-addon")
+    jar_path="$XROAD_HOME/src/addons/hwtoken/build/libs/hwtoken-1.0.jar"
+    service_name="xroad-signer"
+    target_path="usr/share/xroad/jlib/addon/signer"
     ;;
   "metaservice-addon")
     jar_path="$XROAD_HOME/src/addons/metaservice/build/libs/metaservice-1.0.jar"
@@ -25,15 +34,15 @@ deploy_module() {
     service_name="xroad-proxy-ui-api"
     ;;
   "signer")
-    jar_path="$XROAD_HOME/src/signer/build/libs/signer-1.0.jar"
-    service_name="all"
+    jar_path="$XROAD_HOME/src/signer/application/build/libs/signer-1.0.jar"
+    service_name="xroad-signer"
     ;;
   "configuration-client")
-    jar_path="$XROAD_HOME/src/configuration-client/build/libs/configuration-client-1.0.jar"
+    jar_path="$XROAD_HOME/src/configuration-client/application/build/libs/configuration-client-1.0.jar"
     service_name="xroad-confclient"
     ;;
   "op-monitor-daemon")
-    jar_path="$XROAD_HOME/src/op-monitor-daemon/build/libs/op-monitor-daemon-1.0.jar"
+    jar_path="$XROAD_HOME/src/op-monitor-daemon/application/build/libs/op-monitor-daemon-1.0.jar"
     service_name="all"
     ;;
   "cs-admin-service")
@@ -55,19 +64,26 @@ deploy_module() {
   esac
 
   for container in "${containers[@]}"; do
-    docker cp "$jar_path" "$container:/usr/share/xroad/jlib/"
+    docker cp "$jar_path" "$container:${target_path:-/usr/share/xroad/jlib/}"
     docker exec -it "$container" supervisorctl restart "$service_name"
   done
 }
 
-set -o xtrace
+set -o xtrace -o errexit
 
 case $1 in
-"proxy" | "messagelog-addon" | "metaservice-addon" | "proxy-ui-api" | "signer" | "configuration-client" | "op-monitor-daemon")
-  deploy_module "$1" "xrd-dev-stack-ss0-1" "xrd-dev-stack-ss1-1"
+"proxy" | "messagelog-addon" | "metaservice-addon" | "proxy-ui-api" | "configuration-client" | "op-monitor-daemon")
+  hosts=("ss0" "ss1")
+  if [[ $# > 1 ]]; then hosts=("${@:2}"); fi
+  deploy_module "$1" "${hosts[@]}"
+  ;;
+"signer" | "hwtoken-addon")
+  hosts=("ss0" "ss1" "cs")
+  if [[ $# > 1 ]]; then hosts=("${@:2}"); fi
+  deploy_module "$1" "${hosts[@]}"
   ;;
 "cs-admin-service" | "cs-management-service" | "cs-registration-service")
-  deploy_module "$1" "xrd-dev-stack-cs-1"
+  deploy_module "$1" "cs"
   ;;
 *)
   echo "Usage: $0 [modulename] [host]"

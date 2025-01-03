@@ -64,6 +64,19 @@
       :source-object="certificate"
     />
 
+    <certificate-line
+      child-key="ec_public_key_point"
+      :label="$t('cert.ecPoint')"
+      :source-object="certificate"
+      chunk
+    />
+
+    <certificate-line
+      child-key="ec_public_parameters"
+      :label="$t('cert.ecParameters')"
+      :source-object="certificate"
+    />
+
     <certificate-line child-key="state" :source-object="certificate" />
     <certificate-line
       child-key="key_usages"

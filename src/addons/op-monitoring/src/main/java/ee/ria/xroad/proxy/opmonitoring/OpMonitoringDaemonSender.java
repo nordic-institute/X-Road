@@ -25,7 +25,7 @@
  */
 package ee.ria.xroad.proxy.opmonitoring;
 
-import ee.ria.xroad.common.conf.serverconf.ServerConf;
+import ee.ria.xroad.common.conf.serverconf.ServerConfProvider;
 import ee.ria.xroad.common.opmonitoring.OpMonitoringDaemonEndpoints;
 import ee.ria.xroad.common.opmonitoring.OpMonitoringDaemonHttpClient;
 import ee.ria.xroad.common.opmonitoring.OpMonitoringData;
@@ -35,7 +35,6 @@ import ee.ria.xroad.common.util.HttpSender;
 import ee.ria.xroad.common.util.JsonUtils;
 import ee.ria.xroad.common.util.MimeTypes;
 import ee.ria.xroad.common.util.MimeUtils;
-import ee.ria.xroad.common.util.StartStop;
 import ee.ria.xroad.common.util.TimeUtils;
 
 import com.fasterxml.jackson.databind.ObjectReader;
@@ -43,6 +42,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.http.impl.client.CloseableHttpClient;
+import org.springframework.beans.factory.DisposableBean;
 
 import java.net.URI;
 import java.net.URISyntaxException;
@@ -59,7 +59,7 @@ import static ee.ria.xroad.common.opmonitoring.StoreOpMonitoringDataResponse.STA
  * OpMonitoringBuffer class for periodically forwarding operational data gathered in the buffer.
  */
 @Slf4j
-public class OpMonitoringDaemonSender implements StartStop {
+public class OpMonitoringDaemonSender implements DisposableBean {
 
     private static final ObjectReader OBJECT_READER = JsonUtils.getObjectReader();
 
@@ -70,13 +70,15 @@ public class OpMonitoringDaemonSender implements StartStop {
             OpMonitoringSystemProperties.getOpMonitorBufferSocketTimeoutSeconds());
 
     private final OpMonitoringDataProcessor opMonitoringDataProcessor = new OpMonitoringDataProcessor();
+    private final ServerConfProvider serverConfProvider;
     private final OpMonitoringBuffer opMonitoringBuffer;
     private final CloseableHttpClient httpClient;
     private final ExecutorService executorService = Executors.newSingleThreadExecutor();
 
     private final AtomicBoolean processing = new AtomicBoolean(false);
 
-    OpMonitoringDaemonSender(OpMonitoringBuffer opMonitoringBuffer) throws Exception {
+    OpMonitoringDaemonSender(ServerConfProvider serverConfProvider, OpMonitoringBuffer opMonitoringBuffer) throws Exception {
+        this.serverConfProvider = serverConfProvider;
         this.httpClient = createHttpClient();
         this.opMonitoringBuffer = opMonitoringBuffer;
     }
@@ -142,19 +144,14 @@ public class OpMonitoringDaemonSender implements StartStop {
     }
 
     CloseableHttpClient createHttpClient() throws Exception {
-        return OpMonitoringDaemonHttpClient.createHttpClient(ServerConf.getSSLKey(),
+        return OpMonitoringDaemonHttpClient.createHttpClient(serverConfProvider.getSSLKey(),
                 1, 1,
                 TimeUtils.secondsToMillis(OpMonitoringSystemProperties.getOpMonitorBufferConnectionTimeoutSeconds()),
                 TimeUtils.secondsToMillis(OpMonitoringSystemProperties.getOpMonitorBufferSocketTimeoutSeconds()));
     }
 
     @Override
-    public void start() {
-        //No-OP
-    }
-
-    @Override
-    public void stop() {
+    public void destroy() {
         executorService.shutdown();
 
         if (httpClient != null) {
@@ -162,8 +159,4 @@ public class OpMonitoringDaemonSender implements StartStop {
         }
     }
 
-    @Override
-    public void join() {
-        //NO-OP
-    }
 }

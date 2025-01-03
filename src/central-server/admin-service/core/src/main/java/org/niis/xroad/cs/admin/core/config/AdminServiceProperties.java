@@ -26,6 +26,8 @@
  */
 package org.niis.xroad.cs.admin.core.config;
 
+import ee.ria.xroad.common.crypto.identifier.KeyAlgorithm;
+
 import lombok.Getter;
 import lombok.Setter;
 import org.niis.xroad.common.api.throttle.IpThrottlingFilterConfig;
@@ -69,7 +71,8 @@ public class AdminServiceProperties implements IpThrottlingFilterConfig,
         LimitRequestSizesFilter.Config,
         IdentifierValidationConfiguration.Config,
         AllowedFilesConfig,
-        UserRoleConfig {
+        UserRoleConfig,
+        KeyAlgorithmConfig {
 
     /**
      * Controls the rate of global configuration generation in seconds.
@@ -160,6 +163,11 @@ public class AdminServiceProperties implements IpThrottlingFilterConfig,
      * Configures additional UNIX groups mapped to X-Road user roles.
      */
     private EnumMap<Role, List<String>> complementaryUserRoleMappings;
+
+    /** Algorithm that will be used when creating external configuration signing key. */
+    private KeyAlgorithm externalKeyAlgorithm;
+    /** Algorithm that will be used when creating internal configuration signing key. */
+    private KeyAlgorithm internalKeyAlgorithm;
 
     @Override
     public EnumMap<Role, List<String>> getUserRoleMappings() {

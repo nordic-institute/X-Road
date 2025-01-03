@@ -1,6 +1,6 @@
 buildscript {
     dependencies {
-        classpath (libs.licenseGradlePlugin) {
+        classpath(libs.licenseGradlePlugin) {
             exclude group: 'org.springframework', module: 'spring-core'
         }
     }
@@ -12,6 +12,7 @@ plugins {
     id 'java'
     id 'idea'
     alias(libs.plugins.springBoot) apply false
+    alias(libs.plugins.archUnit) apply false
 }
 
 sonarqube {
@@ -52,11 +53,12 @@ configure(subprojects.findAll { !["shared-ui", "ui"].contains(it.name) }) {
     apply plugin: 'idea'
     apply plugin: 'checkstyle'
     apply plugin: 'jacoco'
+    apply plugin: 'com.societegenerale.commons.plugin.gradle.ArchUnitGradlePlugin'
     version = '1.0'
 
     java {
         toolchain {
-            languageVersion = JavaLanguageVersion.of(17)
+            languageVersion = JavaLanguageVersion.of(21)
         }
     }
 
@@ -86,10 +88,15 @@ configure(subprojects.findAll { !["shared-ui", "ui"].contains(it.name) }) {
 
         intTestCompileOnly libs.lombok
         intTestAnnotationProcessor libs.lombok
+
+        archUnitExtraLib project(":arch-rules")
     }
 
     test {
         useJUnitPlatform()
+        reports {
+            junitXml.includeSystemOutLog = false // defaults to true
+        }
     }
 
     tasks.register('testJar', Jar) {
@@ -102,6 +109,11 @@ configure(subprojects.findAll { !["shared-ui", "ui"].contains(it.name) }) {
 
     tasks.withType(JavaCompile).configureEach {
         options.encoding = "UTF-8"
+        // options.compilerArgs << "-Xlint:unchecked"
+        // options.compilerArgs << "-Xlint:deprecation"
+        // options.compilerArgs << "-Xlint:rawtypes"
+        options.compilerArgs << "-Xlint:fallthrough"
+        options.compilerArgs << "-Xlint:finally"
         options.compilerArgs << '-parameters'
     }
 
@@ -175,6 +187,18 @@ configure(subprojects.findAll { !["shared-ui", "ui"].contains(it.name) }) {
     licenseFormatMain.source = fileTree('src/main')
     licenseFormatTest.source = fileTree('src/test')
 
+    archUnit {
+        testScopePath = "/classes/java/main" // disabling default test scanning
+
+        preConfiguredRules = [
+            "org.niis.xroad.arch.rule.NoBeanAnnotationWithInitDestroy",
+            "org.niis.xroad.arch.rule.NoPostConstructAnnotation",
+            "org.niis.xroad.arch.rule.NoPreDestroyAnnotation",
+        ]
+    }
+
+    checkRules.dependsOn assemble
+
     jar {
         from rootProject.file('LICENSE.txt')
         duplicatesStrategy = DuplicatesStrategy.WARN
@@ -218,7 +242,22 @@ tasks.withType(Jar).configureEach {
 tasks.register("installGitHooks", Copy) {
     from file("$rootDir/../.githooks")
     into file("$rootDir/../.git/hooks")
-    fileMode 0775
+    filePermissions {
+        user {
+            read = true
+            write = true
+            execute = true
+        }
+        group {
+            read = true
+            write = true
+            execute = true
+        }
+        other {
+            read = true
+            execute = false
+        }
+    }
 }
 assemble.dependsOn installGitHooks
 tasks.sonar.dependsOn testCodeCoverageReport

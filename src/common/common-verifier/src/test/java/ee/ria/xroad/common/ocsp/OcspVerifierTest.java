@@ -30,7 +30,7 @@ import ee.ria.xroad.common.OcspTestUtils;
 import ee.ria.xroad.common.TestCertUtil;
 import ee.ria.xroad.common.TestSecurityUtil;
 import ee.ria.xroad.common.conf.globalconf.EmptyGlobalConf;
-import ee.ria.xroad.common.conf.globalconf.GlobalConf;
+import ee.ria.xroad.common.conf.globalconf.GlobalConfProvider;
 import ee.ria.xroad.common.util.TimeUtils;
 
 import com.google.common.cache.Cache;
@@ -69,6 +69,7 @@ public class OcspVerifierTest {
         TestSecurityUtil.initSecurity();
     }
 
+    GlobalConfProvider globalConfProvider;
     X509Certificate subject;
     X509Certificate issuer;
     X509Certificate signer;
@@ -87,7 +88,7 @@ public class OcspVerifierTest {
 
         thrown.expectError(X_INCORRECT_VALIDATION_INFO);
         OcspVerifier verifier =
-                new OcspVerifier(GlobalConf.getOcspFreshnessSeconds(), new OcspVerifierOptions(true));
+                new OcspVerifier(globalConfProvider, new OcspVerifierOptions(true));
         verifier.verifyValidityAndStatus(ocsp, subject, subject);
     }
 
@@ -104,7 +105,7 @@ public class OcspVerifierTest {
 
         thrown.expectError(X_INCORRECT_VALIDATION_INFO);
         OcspVerifier verifier =
-                new OcspVerifier(GlobalConf.getOcspFreshnessSeconds(), new OcspVerifierOptions(true));
+                new OcspVerifier(globalConfProvider, new OcspVerifierOptions(true));
         verifier.verifyValidityAndStatus(ocsp, issuer, issuer);
     }
 
@@ -120,7 +121,7 @@ public class OcspVerifierTest {
 
         thrown.expectError(X_INCORRECT_VALIDATION_INFO);
         OcspVerifier verifier =
-                new OcspVerifier(GlobalConf.getOcspFreshnessSeconds(), new OcspVerifierOptions(true));
+                new OcspVerifier(globalConfProvider, new OcspVerifierOptions(true));
         verifier.verifyValidityAndStatus(ocsp, issuer, signer);
     }
 
@@ -143,7 +144,7 @@ public class OcspVerifierTest {
 
         thrown.expectError(X_INCORRECT_VALIDATION_INFO);
         OcspVerifier verifier =
-                new OcspVerifier(GlobalConf.getOcspFreshnessSeconds(), new OcspVerifierOptions(true));
+                new OcspVerifier(globalConfProvider, new OcspVerifierOptions(true));
         verifier.verifyValidityAndStatus(ocsp, subject, issuer);
     }
 
@@ -161,7 +162,7 @@ public class OcspVerifierTest {
 
         thrown.expectError(X_INCORRECT_VALIDATION_INFO);
         OcspVerifier verifier =
-                new OcspVerifier(GlobalConf.getOcspFreshnessSeconds(), new OcspVerifierOptions(true));
+                new OcspVerifier(globalConfProvider, new OcspVerifierOptions(true));
         verifier.verifyValidityAndStatus(ocsp, subject, issuer);
     }
 
@@ -179,7 +180,7 @@ public class OcspVerifierTest {
 
         thrown.expectError(X_INCORRECT_VALIDATION_INFO);
         OcspVerifier verifier =
-                new OcspVerifier(GlobalConf.getOcspFreshnessSeconds(), new OcspVerifierOptions(true));
+                new OcspVerifier(globalConfProvider, new OcspVerifierOptions(true));
         verifier.verifyValidityAndStatus(ocsp, subject, issuer);
     }
 
@@ -196,7 +197,7 @@ public class OcspVerifierTest {
                 signer, signerKey, CertificateStatus.GOOD,
                 new Date(), nextUpdate);
         OcspVerifier verifier =
-                new OcspVerifier(GlobalConf.getOcspFreshnessSeconds(), new OcspVerifierOptions(false));
+                new OcspVerifier(globalConfProvider, new OcspVerifierOptions(false));
         verifier.verifyValidityAndStatus(ocsp, subject, issuer);
     }
 
@@ -213,7 +214,7 @@ public class OcspVerifierTest {
                 thisUpdate, null);
 
         OcspVerifier verifier =
-                new OcspVerifier(GlobalConf.getOcspFreshnessSeconds(), new OcspVerifierOptions(true));
+                new OcspVerifier(globalConfProvider, new OcspVerifierOptions(true));
         verifier.verifyValidityAndStatus(ocsp, subject, issuer);
     }
 
@@ -232,7 +233,7 @@ public class OcspVerifierTest {
 
         thrown.expectError(X_CERT_VALIDATION);
         OcspVerifier verifier =
-                new OcspVerifier(GlobalConf.getOcspFreshnessSeconds(), new OcspVerifierOptions(true));
+                new OcspVerifier(globalConfProvider, new OcspVerifierOptions(true));
         verifier.verifyValidityAndStatus(ocsp, subject, issuer);
     }
 
@@ -250,7 +251,7 @@ public class OcspVerifierTest {
 
         thrown.expectError(X_CERT_VALIDATION);
         OcspVerifier verifier =
-                new OcspVerifier(GlobalConf.getOcspFreshnessSeconds(), new OcspVerifierOptions(true));
+                new OcspVerifier(globalConfProvider, new OcspVerifierOptions(true));
         verifier.verifyValidityAndStatus(ocsp, subject, issuer);
     }
 
@@ -262,7 +263,7 @@ public class OcspVerifierTest {
                 thisUpdate, null);
 
         OcspVerifier verifier =
-                new OcspVerifier(GlobalConf.getOcspFreshnessSeconds(), new OcspVerifierOptions(true));
+                new OcspVerifier(globalConfProvider, new OcspVerifierOptions(true));
         verifier.verifyValidity(ocsp, subject, issuer);
         Field field = OcspVerifier.class.getDeclaredField("RESPONSE_VALIDITY_CACHE");
         field.setAccessible(true);
@@ -278,7 +279,7 @@ public class OcspVerifierTest {
      */
     @Before
     public void loadCerts() {
-        GlobalConf.reload(new TestGlobalConf());
+        globalConfProvider = new TestGlobalConf();
 
         if (issuer == null) {
             issuer = TestCertUtil.getCertChainCert("root_ca.p12");

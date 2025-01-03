@@ -26,10 +26,12 @@
 package ee.ria.xroad.proxy.clientproxy;
 
 import ee.ria.xroad.common.CodedException;
-import ee.ria.xroad.common.conf.globalconf.GlobalConf;
+import ee.ria.xroad.common.cert.CertChainFactory;
+import ee.ria.xroad.common.conf.globalconf.GlobalConfProvider;
+import ee.ria.xroad.common.conf.serverconf.ServerConfProvider;
 import ee.ria.xroad.common.util.RequestWrapper;
 import ee.ria.xroad.common.util.ResponseWrapper;
-import ee.ria.xroad.proxy.conf.KeyConf;
+import ee.ria.xroad.proxy.conf.KeyConfProvider;
 import ee.ria.xroad.proxy.testsuite.TestSuiteGlobalConf;
 import ee.ria.xroad.proxy.testsuite.TestSuiteKeyConf;
 import ee.ria.xroad.proxy.util.MessageProcessorBase;
@@ -66,13 +68,20 @@ public class MetadataHandlerTest {
     private ResponseWrapper mockResponse;
 
 
+    private GlobalConfProvider globalConfProvider;
+    private KeyConfProvider keyConfProvider;
+    private ServerConfProvider serverConfProvider;
+    private CertChainFactory certChainFactory;
+
     /**
      * Init common data for tests
      */
     @Before
     public void init() {
-        GlobalConf.reload(new TestSuiteGlobalConf());
-        KeyConf.reload(new TestSuiteKeyConf());
+        globalConfProvider = new TestSuiteGlobalConf();
+        keyConfProvider = new TestSuiteKeyConf(globalConfProvider);
+        serverConfProvider = mock(ServerConfProvider.class);
+        certChainFactory = mock(CertChainFactory.class);
 
         httpClientMock = mock(HttpClient.class);
         mockRequest = mock(RequestWrapper.class);
@@ -89,7 +98,8 @@ public class MetadataHandlerTest {
 
         when(mockRequest.getMethod()).thenReturn("POST");
 
-        MetadataHandler handlerToTest = new MetadataHandler(httpClientMock);
+        MetadataHandler handlerToTest = new MetadataHandler(globalConfProvider, keyConfProvider, serverConfProvider, certChainFactory,
+                httpClientMock);
 
 
         MessageProcessorBase returnValue =
@@ -103,7 +113,8 @@ public class MetadataHandlerTest {
 
         when(mockRequest.getMethod()).thenReturn("GET");
 
-        MetadataHandler handlerToTest = new MetadataHandler(httpClientMock);
+        MetadataHandler handlerToTest = new MetadataHandler(globalConfProvider, keyConfProvider, serverConfProvider, certChainFactory,
+                httpClientMock);
 
 
         MessageProcessorBase returnValue =
@@ -115,7 +126,8 @@ public class MetadataHandlerTest {
     @Test
     public void shouldThrowWhenTargetNull() throws Exception {
 
-        MetadataHandler handlerToTest = new MetadataHandler(httpClientMock);
+        MetadataHandler handlerToTest = new MetadataHandler(globalConfProvider, keyConfProvider, serverConfProvider, certChainFactory,
+                httpClientMock);
         when(mockRequest.getMethod()).thenReturn("GET");
         when(mockHttpUri.getPath()).thenReturn(null);
 
@@ -134,7 +146,8 @@ public class MetadataHandlerTest {
         when(mockRequest.getMethod()).thenReturn("GET");
         when(mockHttpUri.getPath()).thenReturn("/listClients");
 
-        MetadataHandler handlerToTest = new MetadataHandler(httpClientMock);
+        MetadataHandler handlerToTest = new MetadataHandler(globalConfProvider, keyConfProvider, serverConfProvider, certChainFactory,
+                httpClientMock);
 
         MessageProcessorBase result = handlerToTest.createRequestProcessor(mockRequest, mockResponse, null);
 

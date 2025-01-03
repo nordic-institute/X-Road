@@ -1,0 +1,17 @@
+ #!/bin/bash
+
+export PATH={{ hurl_install_dir }}/{{ hurl_dirname }}/bin:$PATH
+
+echo "Downloading CA certs.."
+mkdir scenario/ca
+wget http://xrd-ca:8888/testca/certs/ca.cert.pem -O scenario/ca/ca.pem
+wget http://xrd-ca:8888/testca/certs/tsa.cert.pem -O scenario/ca/tsa.pem
+wget http://xrd-ca:8888/testca/certs/ocsp.cert.pem -O scenario/ca/ocsp.pem
+
+echo "Running Hurl scenario..."
+hurl scenario/setup.hurl \
+    --variables-file=hurl.env \
+    --insecure \
+    --very-verbose \
+    --retry 12 \
+    --retry-interval 8000

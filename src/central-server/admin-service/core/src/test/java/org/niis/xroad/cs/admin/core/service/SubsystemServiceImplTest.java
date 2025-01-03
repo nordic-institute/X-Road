@@ -49,9 +49,6 @@ import org.niis.xroad.cs.admin.api.dto.SubsystemCreationRequest;
 import org.niis.xroad.cs.admin.api.exception.ErrorMessage;
 import org.niis.xroad.cs.admin.api.service.GlobalGroupMemberService;
 import org.niis.xroad.cs.admin.core.entity.MemberClassEntity;
-import org.niis.xroad.cs.admin.core.entity.SecurityServerEntity;
-import org.niis.xroad.cs.admin.core.entity.SecurityServerIdEntity;
-import org.niis.xroad.cs.admin.core.entity.ServerClientEntity;
 import org.niis.xroad.cs.admin.core.entity.SubsystemEntity;
 import org.niis.xroad.cs.admin.core.entity.SubsystemIdEntity;
 import org.niis.xroad.cs.admin.core.entity.XRoadMemberEntity;
@@ -67,9 +64,7 @@ import org.niis.xroad.restapi.config.audit.AuditDataHelper;
 
 import java.util.Optional;
 import java.util.Set;
-import java.util.stream.Stream;
 
-import static java.util.stream.Collectors.toSet;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -80,14 +75,9 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.niis.xroad.cs.admin.api.exception.ErrorMessage.SUBSYSTEM_EXISTS;
 import static org.niis.xroad.cs.admin.api.exception.ErrorMessage.SUBSYSTEM_NOT_FOUND;
-import static org.niis.xroad.cs.admin.api.exception.ErrorMessage.SUBSYSTEM_NOT_REGISTERED_TO_SECURITY_SERVER;
-import static org.niis.xroad.restapi.config.audit.RestApiAuditProperty.CLIENT_IDENTIFIER;
 import static org.niis.xroad.restapi.config.audit.RestApiAuditProperty.MEMBER_CLASS;
 import static org.niis.xroad.restapi.config.audit.RestApiAuditProperty.MEMBER_CODE;
 import static org.niis.xroad.restapi.config.audit.RestApiAuditProperty.MEMBER_SUBSYSTEM_CODE;
-import static org.niis.xroad.restapi.config.audit.RestApiAuditProperty.OWNER_CLASS;
-import static org.niis.xroad.restapi.config.audit.RestApiAuditProperty.OWNER_CODE;
-import static org.niis.xroad.restapi.config.audit.RestApiAuditProperty.SERVER_CODE;
 
 @ExtendWith(MockitoExtension.class)
 public class SubsystemServiceImplTest implements WithInOrder {
@@ -166,85 +156,6 @@ public class SubsystemServiceImplTest implements WithInOrder {
             verify(auditDataHelper).put(MEMBER_CLASS, memberId.getMemberClass());
             verify(auditDataHelper).put(MEMBER_CODE, memberId.getMemberCode());
             verify(auditDataHelper).put(MEMBER_SUBSYSTEM_CODE, subsystemId.getSubsystemCode());
-        }
-    }
-
-    @Nested
-    @DisplayName("unregisterSubsystem(String subsystemId, String serverId)")
-    class UnregisterSubsystem implements WithInOrder {
-
-        @Mock
-        private SubsystemEntity subsystem;
-        @Mock
-        private ServerClientEntity serverClient;
-        @Mock
-        private SecurityServerEntity securityServer;
-
-        private final ClientId subsystemClientId = SubsystemId.create(
-                "TEST", "CLASS", "MEMBER", "SUBSYSTEM");
-
-        private final SecurityServerIdEntity securityServerId = SecurityServerIdEntity.create(
-                "TEST", "CLASS", "MEMBER", "SERVER");
-
-        @Test
-        @DisplayName("Should unregister subsystem")
-        void shouldUnregisterSubsystem() {
-            Set<ServerClientEntity> serverClients = Stream.of(serverClient).collect(toSet());
-            doReturn(Optional.of(subsystem)).when(subsystemRepository).findOneBy(subsystemClientId);
-            doReturn(serverClients).when(subsystem).getServerClients();
-            doReturn(securityServer).when(serverClient).getSecurityServer();
-            doReturn(securityServerId).when(securityServer).getServerId();
-
-            subsystemService.unregisterSubsystem(subsystemClientId, securityServerId);
-
-            inOrder().verify(inOrder -> {
-                inOrder.verify(subsystemRepository).findOneBy(subsystemClientId);
-                inOrder.verify(subsystem).getServerClients();
-                inOrder.verify(serverClient).getSecurityServer();
-                inOrder.verify(securityServer).getServerId();
-                inOrder.verify(serverClientRepository).delete(serverClient);
-            });
-            verify(auditDataHelper).put(SERVER_CODE, securityServerId.getServerCode());
-            verify(auditDataHelper).put(OWNER_CLASS, securityServerId.getOwner().getMemberClass());
-            verify(auditDataHelper).put(OWNER_CODE, securityServerId.getOwner().getMemberCode());
-            verify(auditDataHelper).put(CLIENT_IDENTIFIER, subsystemClientId);
-        }
-
-        @Test
-        @DisplayName("Should not unregister subsystem if it does not exist")
-        void shouldThrowNotFoundExceptionWhenSubsystemNotFound() {
-            doReturn(Optional.empty()).when(subsystemRepository).findOneBy(subsystemClientId);
-
-            Executable testable = () -> subsystemService.unregisterSubsystem(subsystemClientId, securityServerId);
-
-            NotFoundException actualThrown = assertThrows(NotFoundException.class, testable);
-            assertEquals(SUBSYSTEM_NOT_FOUND.getDescription(), actualThrown.getMessage());
-            verify(subsystemRepository).findOneBy(subsystemClientId);
-            verify(auditDataHelper).put(SERVER_CODE, securityServerId.getServerCode());
-            verify(auditDataHelper).put(OWNER_CLASS, securityServerId.getOwner().getMemberClass());
-            verify(auditDataHelper).put(OWNER_CODE, securityServerId.getOwner().getMemberCode());
-            verify(auditDataHelper).put(CLIENT_IDENTIFIER, subsystemClientId);
-        }
-
-        @Test
-        @DisplayName("Should not unregister subsystem from server if not already registered")
-        void shouldThrowNotFoundExceptionWhenSubsystemNotRegisteredToGivenServer() {
-            doReturn(Optional.of(subsystem)).when(subsystemRepository).findOneBy(subsystemClientId);
-            doReturn(Set.of()).when(subsystem).getServerClients();
-
-            Executable testable = () -> subsystemService.unregisterSubsystem(subsystemClientId, securityServerId);
-
-            NotFoundException actualThrown = assertThrows(NotFoundException.class, testable);
-            assertEquals(SUBSYSTEM_NOT_REGISTERED_TO_SECURITY_SERVER.getDescription(), actualThrown.getMessage()
-            );
-            inOrder().verify(inOrder -> {
-                inOrder.verify(subsystemRepository).findOneBy(subsystemClientId);
-                inOrder.verify(subsystem).getServerClients();
-            });
-            verify(auditDataHelper).put(SERVER_CODE, securityServerId.getServerCode());
-            verify(auditDataHelper).put(OWNER_CLASS, securityServerId.getOwner().getMemberClass());
-            verify(auditDataHelper).put(OWNER_CODE, securityServerId.getOwner().getMemberCode());
-            verify(auditDataHelper).put(CLIENT_IDENTIFIER, subsystemClientId);
         }
     }
 

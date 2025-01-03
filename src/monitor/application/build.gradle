@@ -1,0 +1,28 @@
+plugins {
+    alias(libs.plugins.shadow)
+}
+
+dependencies {
+    implementation(platform(libs.springBoot.bom))
+
+    implementation project(':common:common-core')
+    implementation project(':monitor:core')
+    implementation project(':monitor-common')
+    implementation project(':signer-protocol')
+
+    implementation libs.bundles.metrics
+    implementation('org.springframework:spring-context')
+}
+
+shadowJar {
+    exclude('**/module-info.class')
+    archiveBaseName = "monitor"
+    archiveClassifier = ''
+    manifest {
+        attributes 'Main-Class': 'ee.ria.xroad.monitor.MonitorMain'
+    }
+    mergeServiceFiles()
+}
+
+jar.enabled = false
+assemble.dependsOn shadowJar

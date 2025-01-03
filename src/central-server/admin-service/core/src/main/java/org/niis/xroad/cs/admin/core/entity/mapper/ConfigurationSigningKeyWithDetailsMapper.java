@@ -26,6 +26,8 @@
  */
 package org.niis.xroad.cs.admin.core.entity.mapper;
 
+import ee.ria.xroad.common.crypto.identifier.KeyAlgorithm;
+
 import org.mapstruct.Mapper;
 import org.mapstruct.MappingConstants;
 import org.niis.xroad.cs.admin.api.converter.GenericMapper;
@@ -42,7 +44,8 @@ public interface ConfigurationSigningKeyWithDetailsMapper extends GenericMapper 
     ConfigurationSigningKeyWithDetails toTarget(ConfigurationSigningKey source,
                                                 List<PossibleKeyAction> possibleActions,
                                                 String label,
-                                                Boolean available);
+                                                Boolean available,
+                                                KeyAlgorithm keyAlgorithm);
 
     default KeyLabel map(String value) {
         return new KeyLabel(value);

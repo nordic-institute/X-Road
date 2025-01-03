@@ -25,10 +25,12 @@
  */
 package ee.ria.xroad.common.asic;
 
+import ee.ria.xroad.common.crypto.identifier.DigestAlgorithm;
 import ee.ria.xroad.common.signature.SignatureData;
 import ee.ria.xroad.common.util.MimeTypes;
 
 import lombok.Getter;
+import lombok.NonNull;
 
 import java.io.ByteArrayInputStream;
 import java.io.InputStream;
@@ -36,6 +38,7 @@ import java.io.OutputStream;
 import java.nio.charset.StandardCharsets;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.zip.ZipOutputStream;
 
@@ -52,11 +55,9 @@ import static ee.ria.xroad.common.asic.AsicContainerEntries.ENTRY_TIMESTAMP;
 import static ee.ria.xroad.common.asic.AsicContainerEntries.ENTRY_TS_HASH_CHAIN;
 import static ee.ria.xroad.common.asic.AsicContainerEntries.ENTRY_TS_HASH_CHAIN_RESULT;
 import static ee.ria.xroad.common.asic.AsicContainerEntries.MIMETYPE;
-import static ee.ria.xroad.common.util.CryptoUtils.SHA512_ID;
-import static ee.ria.xroad.common.util.CryptoUtils.calculateDigest;
-import static ee.ria.xroad.common.util.CryptoUtils.encodeBase64;
-import static ee.ria.xroad.common.util.CryptoUtils.getAlgorithmIdentifier;
-import static ee.ria.xroad.common.util.CryptoUtils.getDigestAlgorithmURI;
+import static ee.ria.xroad.common.crypto.Digests.calculateDigest;
+import static ee.ria.xroad.common.crypto.Digests.getAlgorithmIdentifier;
+import static ee.ria.xroad.common.util.EncoderUtils.encodeBase64;
 import static org.apache.commons.lang3.StringUtils.isNotBlank;
 
 /**
@@ -67,16 +68,16 @@ public class AsicContainer {
 
     /** Holds the entries in the container. */
     private final Map<String, String> entries = new HashMap<>();
-    private final InputStream attachment;
     @Getter
-    private final byte[] attachmentDigest;
+    private final List<InputStream> attachments;
+    private final Map<String, byte[]> attachmentDigests;
     @Getter
     private final long creationTime;
 
-    AsicContainer(Map<String, String> entries, byte[] attachmentDigest) throws Exception {
+    AsicContainer(Map<String, String> entries, @NonNull Map<String, byte[]> attachmentDigests) throws Exception {
         this.entries.putAll(entries);
-        this.attachment = null;
-        this.attachmentDigest = attachmentDigest;
+        this.attachments = List.of();
+        this.attachmentDigests = Map.copyOf(attachmentDigests);
         this.creationTime = new Date().getTime();
         verifyContents();
     }
@@ -84,23 +85,23 @@ public class AsicContainer {
 
     /**
      * Creates an AsicContainer containing given message, signature and timestamp.
-     * Attempts to verify it's contents.
+     * Attempts to verify its contents.
      * @param message content of the signed message
      * @param signature signature of the message
      * @param timestamp timestamp data of the message
-     * @param attachment optional rest message body
+     * @param attachments message attachments. For Rest messages, the first attachment is message body.
      * @param time logrecord creation time
      * @throws Exception if container content verification fails
      */
     public AsicContainer(String message, SignatureData signature,
-                         TimestampData timestamp, InputStream attachment, long time) throws Exception {
+                         TimestampData timestamp, List<InputStream> attachments, long time) throws Exception {
         put(ENTRY_MIMETYPE, MIMETYPE);
         put(ENTRY_MESSAGE, message);
         put(ENTRY_SIGNATURE, signature.getSignatureXml());
         put(ENTRY_SIG_HASH_CHAIN_RESULT, signature.getHashChainResult());
         put(ENTRY_SIG_HASH_CHAIN, signature.getHashChain());
-        this.attachment = attachment;
-        this.attachmentDigest = null;
+        this.attachments = attachments;
+        this.attachmentDigests = Map.of();
         this.creationTime = time;
 
         if (timestamp != null) {
@@ -202,6 +203,10 @@ public class AsicContainer {
         return get(AsicHelper.stripSlash(fileName));
     }
 
+    public byte[] getAttachmentDigest(String fileName) {
+        return attachmentDigests.get(AsicHelper.stripSlash(fileName));
+    }
+
     /**
      * Create a ASiC container from the given input stream.
      * @param is the stream containing the container ZIP data
@@ -240,8 +245,10 @@ public class AsicContainer {
             b.addFile(entryName, MimeTypes.TEXT_XML); // assume files are XML
         }
 
-        if (attachment != null) {
-            b.addFile(ENTRY_ATTACHMENT + "1", MimeTypes.BINARY);
+        if (attachments != null) {
+            for (int i = 1; i <= attachments.size(); i++) {
+                b.addFile(ENTRY_ATTACHMENT + i, MimeTypes.BINARY);
+            }
         }
 
         put(ENTRY_MANIFEST, b.build());
@@ -256,11 +263,11 @@ public class AsicContainer {
         AsicManifestBuilder b = new AsicManifestBuilder();
         b.setSigReference(ENTRY_TIMESTAMP, "vnd.etsi.timestamp-token");
 
-        String algoId = SHA512_ID;
+        DigestAlgorithm algoId = DigestAlgorithm.SHA512;
         byte[] digest = calculateDigest(getAlgorithmIdentifier(algoId),
                 tsHashChainResult.getBytes(StandardCharsets.UTF_8));
         b.addDataObjectReference(ENTRY_TS_HASH_CHAIN_RESULT,
-                MimeTypes.TEXT_XML, getDigestAlgorithmURI(algoId),
+                MimeTypes.TEXT_XML, algoId,
                 encodeBase64(digest));
 
         put(ENTRY_ASIC_MANIFEST, b.build());
@@ -279,12 +286,10 @@ public class AsicContainer {
     }
 
     String get(String entryName) {
-        switch (entryName) {
-            case ENTRY_TIMESTAMP:
-                return getTimestampValueBase64();
-            default:
-                return entries.get(entryName);
+        if (entryName.equals(ENTRY_TIMESTAMP)) {
+            return getTimestampValueBase64();
         }
+        return entries.get(entryName);
     }
 
     String getTimestampValueBase64() {
@@ -305,9 +310,5 @@ public class AsicContainer {
         if (isNotBlank(data)) {
             this.entries.put(entryName, data);
         }
-    }
-
-    public InputStream getAttachment() {
-        return attachment;
     }
 }

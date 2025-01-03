@@ -24,12 +24,21 @@
  * THE SOFTWARE.
  */
 
-import { NodeType, NodeTypeResponse, VersionInfo } from '@/openapi-types';
+import {
+  NodeType,
+  NodeTypeResponse,
+  VersionInfo
+} from "@/openapi-types";
 import * as api from '@/util/api';
 import { defineStore } from 'pinia';
 
+export interface SystemState {
+  securityServerVersion: VersionInfo,
+  securityServerNodeType: undefined | NodeType,
+}
+
 export const useSystem = defineStore('system', {
-  state: () => {
+  state: (): SystemState => {
     return {
       securityServerVersion: {} as VersionInfo,
       securityServerNodeType: undefined as undefined | NodeType,

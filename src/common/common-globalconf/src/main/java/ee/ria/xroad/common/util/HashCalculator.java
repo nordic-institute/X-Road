@@ -25,6 +25,8 @@
  */
 package ee.ria.xroad.common.util;
 
+import ee.ria.xroad.common.crypto.identifier.DigestAlgorithm;
+
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -32,9 +34,8 @@ import lombok.extern.slf4j.Slf4j;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
 
-import static ee.ria.xroad.common.util.CryptoUtils.calculateDigest;
-import static ee.ria.xroad.common.util.CryptoUtils.encodeBase64;
-import static ee.ria.xroad.common.util.CryptoUtils.getAlgorithmId;
+import static ee.ria.xroad.common.crypto.Digests.calculateDigest;
+import static ee.ria.xroad.common.util.EncoderUtils.encodeBase64;
 
 /**
  * Calculates hash values according to the provided algorithm URI.
@@ -44,7 +45,7 @@ import static ee.ria.xroad.common.util.CryptoUtils.getAlgorithmId;
 public class HashCalculator {
 
     @Getter
-    private final String algoURI;
+    private final DigestAlgorithm algoURI;
 
     /**
      * Calculates hash value in base64 format.
@@ -66,8 +67,7 @@ public class HashCalculator {
      * @throws Exception in case of any errors
      */
     public String calculateFromBytes(byte[] data) throws Exception {
-        String algoId = getAlgorithmId(algoURI);
-        byte[] hashBytes = calculateDigest(algoId, data);
+        byte[] hashBytes = calculateDigest(algoURI, data);
         return encodeBase64(hashBytes);
     }
 
@@ -78,8 +78,7 @@ public class HashCalculator {
      * @throws Exception in case of any errors
      */
     public String calculateFromStream(InputStream data) throws Exception {
-        String algoId = getAlgorithmId(algoURI);
-        byte[] hashBytes = calculateDigest(algoId, data);
+        byte[] hashBytes = calculateDigest(algoURI, data);
         return encodeBase64(hashBytes);
     }
 

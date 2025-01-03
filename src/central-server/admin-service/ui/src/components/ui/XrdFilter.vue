@@ -92,12 +92,12 @@ export default defineComponent({
 </script>
 
 <style lang="scss" scoped>
-@import '@/assets/colors';
+@use '@/assets/colors';
 
 .icon-closed {
   margin-top: 20px; // adjusted so that icon stays in the same place open/closed
   cursor: pointer;
-  color: $XRoad-Purple100;
+  color: colors.$Purple100;
   padding-bottom: 4px; // adjusted so that icon takes same space than input
 }
 </style>

@@ -25,6 +25,7 @@
  */
 package ee.ria.xroad.proxy.opmonitoring;
 
+import ee.ria.xroad.common.conf.serverconf.ServerConfProvider;
 import ee.ria.xroad.common.opmonitoring.OpMonitoringData;
 import ee.ria.xroad.common.opmonitoring.StoreOpMonitoringDataResponse;
 
@@ -58,6 +59,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.RETURNS_DEEP_STUBS;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
 /**
@@ -74,12 +76,12 @@ class OpMonitoringBufferTest {
     @SuppressWarnings("checkstyle:FinalClass")
     private class TestOpMonitoringBuffer extends OpMonitoringBuffer {
         TestOpMonitoringBuffer() throws Exception {
-            super();
+            super(mock(ServerConfProvider.class));
         }
 
         @Override
-        OpMonitoringDaemonSender createSender() throws Exception {
-            return new OpMonitoringDaemonSender(this) {
+        OpMonitoringDaemonSender createSender(ServerConfProvider serverConfProvider) throws Exception {
+            return new OpMonitoringDaemonSender(serverConfProvider, this) {
                 @Override
                 CloseableHttpClient createHttpClient() {
                     return httpClient;
@@ -165,7 +167,7 @@ class OpMonitoringBufferTest {
 
         final TestOpMonitoringBuffer opMonitoringBuffer = new TestOpMonitoringBuffer() {
             @Override
-            OpMonitoringDaemonSender createSender() throws Exception {
+            OpMonitoringDaemonSender createSender(ServerConfProvider serverConfProvider) throws Exception {
                 var mockedSender = mock(OpMonitoringDaemonSender.class);
                 when(mockedSender.isReady()).thenReturn(false);
                 return mockedSender;
@@ -193,6 +195,14 @@ class OpMonitoringBufferTest {
                 });
 
 //
+    }
+
+    @Test
+    void noOpMonitoringDataIsStored() throws Exception {
+        System.setProperty("xroad.op-monitor-buffer.size", "0");
+        var serverConfProvider = mock(ServerConfProvider.class);
+        new OpMonitoringBuffer(serverConfProvider);
+        verifyNoInteractions(serverConfProvider);
     }
 
     @SneakyThrows

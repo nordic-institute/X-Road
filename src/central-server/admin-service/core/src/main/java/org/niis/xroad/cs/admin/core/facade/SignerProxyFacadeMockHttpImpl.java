@@ -27,7 +27,11 @@
 
 package org.niis.xroad.cs.admin.core.facade;
 
+import ee.ria.xroad.common.crypto.identifier.KeyAlgorithm;
+import ee.ria.xroad.common.crypto.identifier.SignAlgorithm;
+import ee.ria.xroad.common.crypto.identifier.SignMechanism;
 import ee.ria.xroad.common.identifier.ClientId;
+import ee.ria.xroad.signer.exception.SignerException;
 import ee.ria.xroad.signer.protocol.dto.KeyInfo;
 import ee.ria.xroad.signer.protocol.dto.KeyUsageInfo;
 import ee.ria.xroad.signer.protocol.dto.TokenInfo;
@@ -101,15 +105,23 @@ public class SignerProxyFacadeMockHttpImpl implements SignerProxyFacade {
     }
 
     @Override
-    public List<TokenInfo> getTokens() throws Exception {
-        final String response = restTemplate.getForObject("/getTokens", String.class);
-        return parseTokenInfoList(response);
+    public List<TokenInfo> getTokens() throws SignerException {
+        try {
+            final String response = restTemplate.getForObject("/getTokens", String.class);
+            return parseTokenInfoList(response);
+        } catch (Exception e) {
+            throw new SignerException(e.getMessage(), e);
+        }
     }
 
     @Override
-    public TokenInfo getToken(String tokenId) throws Exception {
-        final String response = restTemplate.getForObject("/getToken/{tokenId}", String.class, tokenId);
-        return parseTokenInfo(response);
+    public TokenInfo getToken(String tokenId) throws SignerException {
+        try {
+            final String response = restTemplate.getForObject("/getToken/{tokenId}", String.class, tokenId);
+            return parseTokenInfo(response);
+        } catch (Exception e) {
+            throw new SignerException(e.getMessage(), e);
+        }
     }
 
     private List<TokenInfo> parseTokenInfoList(String tokenListString) throws JsonProcessingException {
@@ -148,7 +160,7 @@ public class SignerProxyFacadeMockHttpImpl implements SignerProxyFacade {
     }
 
     @Override
-    public KeyInfo generateKey(String tokenId, String keyLabel) {
+    public KeyInfo generateKey(String tokenId, String keyLabel, KeyAlgorithm algorithm) {
         throw new NotImplementedException("generateKey not implemented yet.");
     }
 
@@ -164,12 +176,12 @@ public class SignerProxyFacadeMockHttpImpl implements SignerProxyFacade {
     }
 
     @Override
-    public String getSignMechanism(String keyId) {
+    public SignMechanism getSignMechanism(String keyId) {
         throw new NotImplementedException("getSignMechanism not implemented getSignMechanism.");
     }
 
     @Override
-    public byte[] sign(String keyId, String signatureAlgorithmId, byte[] digest) {
+    public byte[] sign(String keyId, SignAlgorithm signatureAlgorithmId, byte[] digest) {
         throw new NotImplementedException("sign not implemented getSignMechanism.");
     }
 

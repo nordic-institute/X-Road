@@ -27,6 +27,7 @@
   <v-dialog
     v-if="dialog"
     :model-value="dialog"
+    data-test="add-subjects-dialog"
     width="842"
     scrollable
     persistent
@@ -147,11 +148,11 @@
             <tr v-for="sc in serviceClientCandidates" :key="sc.id">
               <td class="first-column">
                 <div class="checkbox-wrap">
-                  <v-checkbox
+                  <v-checkbox-btn
                     data-test="service-client-checkbox"
                     hide-details
                     @update:model-value="checkboxChange(sc, $event)"
-                  ></v-checkbox>
+                  ></v-checkbox-btn>
                 </div>
               </td>
               <td>{{ sc.name }}</td>
@@ -368,8 +369,8 @@ export default defineComponent({
 </script>
 
 <style lang="scss" scoped>
-@import '../../assets/tables';
-@import '../../assets/add-dialogs';
+@use '@/assets/tables';
+@use '@/assets/add-dialogs';
 
 .first-column {
   width: 40px;

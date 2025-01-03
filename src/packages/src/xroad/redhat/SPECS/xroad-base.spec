@@ -19,7 +19,7 @@ Requires:  systemd
 %if 0%{?el7}
 Requires:  rlwrap
 %endif
-Requires:  jre-17-headless, tzdata-java
+Requires:  jre-21-headless, tzdata-java
 Requires:  crudini, hostname, sudo, openssl
 
 %define src %{_topdir}/..
@@ -51,12 +51,12 @@ mkdir -p %{buildroot}/var/lib/xroad/backup
 mkdir -p %{buildroot}/etc/xroad/backup.d
 
 ln -s /usr/share/xroad/jlib/common-db-1.0.jar %{buildroot}/usr/share/xroad/jlib/common-db.jar
-ln -s /usr/share/xroad/jlib/postgresql-42.7.3.jar %{buildroot}/usr/share/xroad/jlib/postgresql.jar
+ln -s /usr/share/xroad/jlib/postgresql-42.7.4.jar %{buildroot}/usr/share/xroad/jlib/postgresql.jar
 ln -s /usr/share/xroad/db/liquibase-core-4.19.0.jar %{buildroot}/usr/share/xroad/db/liquibase-core.jar
 
 cp -p %{_sourcedir}/base/xroad-base.service %{buildroot}%{_unitdir}
 cp -p %{srcdir}/../../../common/common-db/build/libs/common-db-1.0.jar %{buildroot}/usr/share/xroad/jlib/
-cp -p %{srcdir}/../../../security-server/admin-service/application/build/unpacked-libs/postgresql-42.7.3.jar %{buildroot}/usr/share/xroad/jlib/
+cp -p %{srcdir}/../../../security-server/admin-service/application/build/unpacked-libs/postgresql-42.7.4.jar %{buildroot}/usr/share/xroad/jlib/
 cp -p %{srcdir}/default-configuration/common.ini %{buildroot}/etc/xroad/conf.d/
 cp -p %{srcdir}/../../../LICENSE.txt %{buildroot}/usr/share/doc/%{name}/LICENSE.txt
 cp -p %{srcdir}/../../../3RD-PARTY-NOTICES.txt %{buildroot}/usr/share/doc/%{name}/3RD-PARTY-NOTICES.txt
@@ -136,16 +136,16 @@ fi
 
 %define set_default_java_version()                                                                                         \
   if [ $1 -ge 1 ] ; then                                                                                                \
-    `# 7.4.0. Check that the default java version is at least 17`                                                       \
+    `# 7.4.0. Check that the default java version is at least 21`                                                       \
     java_version_supported() {                                                                                          \
       local java_exec=$1                                                                                                \
       local java_version=$("$java_exec" -version 2>&1 | grep -i version | cut -d '"' -f2 | cut -d. -f1)                 \
-      [[ $java_version -ge 17 ]]                                                                                        \
+      [[ $java_version -ge 21 ]]                                                                                        \
     }                                                                                                                   \
     if ! java_version_supported /etc/alternatives/java; then                                                            \
-      if [ -x /etc/alternatives/jre_17/bin/java ] && java_version_supported /etc/alternatives/jre_17/bin/java; then     \
-        echo "Configuring Java 17 as the default version..."                                                            \
-        alternatives --set java $(readlink -f /etc/alternatives/jre_17)/bin/java                                        \
+      if [ -x /etc/alternatives/jre_21/bin/java ] && java_version_supported /etc/alternatives/jre_21/bin/java; then     \
+        echo "Configuring Java 21 as the default version..."                                                            \
+        alternatives --set java $(readlink -f /etc/alternatives/jre_21)/bin/java                                        \
       else                                                                                                              \
         echo "Cannot find supported java version. Please set system default java installation with 'alternatives' command." >&2   \
       fi                                                                                                                 \

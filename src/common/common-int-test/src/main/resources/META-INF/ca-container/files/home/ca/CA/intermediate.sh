@@ -13,7 +13,9 @@ name=$1
     rm -rf private certs newcerts crl csr
     rm index.* serial
     touch index.txt
+    chmod 0664 index.txt
     echo 01 > serial
+    chmod 0664 serial
     mkdir -p private certs newcerts crl csr
     cd ..
 

@@ -2,7 +2,7 @@
 
 **X-ROAD 7**
 
-Version: 2.85  
+Version: 2.89  
 Doc. ID: UG-SS
 
 ---
@@ -114,6 +114,10 @@ Doc. ID: UG-SS
 | 26.03.2024 | 2.83    | Passing additional parameters to psql                                                                                                                                                                                                                                                                                                                                                                       | Ovidijus Narkevicius |
 | 09.06.2024 | 2.84    | Acme related updates                                                                                                                                                                                                                                                                                                                                                                                        | Mikk-Erik Bachmann   |
 | 12.06.2024 | 2.85    | Acme related updates                                                                                                                                                                                                                                                                                                                                                                                        | Petteri Kivimäki     |
+| 16.09.2024 | 2.86    | Acme automatic renewal related updates                                                                                                                                                                                                                                                                                                                                                                      | Mikk-Erik Bachmann   |
+| 28.10.2024 | 2.87    | Minor updates to remote database migration                                                                                                                                                                                                                                                                                                                                                                  | Eneli Reimets        |
+| 08.11.2024 | 2.88    | Add EC key support for authentication and signing certificates                                                                                                                                                                                                                                                                                                                                              | Ovidijus Narkevicius |
+| 17.12.2024 | 2.89    | Acme related updates                                                                                                                                                                                                                                                                                                                                                                                        | Mikk-Erik Bachmann   |
 
 ## Table of Contents <!-- omit in toc -->
 
@@ -261,6 +265,9 @@ Doc. ID: UG-SS
 - [22 Additional Security Hardening](#22-additional-security-hardening)
 - [23 Passing additional parameters to psql](#23-passing-additional-parameters-to-psql)
 - [24 Configuring ACME](#24-configuring-acme)
+- [25 Migrating to EC Based Authentication and Signing Certificates](#25-migrating-to-ec-based-authentication-and-signing-certificates)
+  - [25.1 Steps to Enable EC Based Certificates](#251-Steps-to-enable-EC-based-certificates) 
+  - [25.2Backwards Compatibility](#252-Backwards-compatibility) 
 
 <!-- vim-markdown-toc -->
 <!-- tocstop -->
@@ -361,6 +368,8 @@ See X-Road terms and abbreviations documentation \[[TA-TERMS](#Ref_TERMS)\].
 25. <a id="Ref_UG-SIGDOC" class="anchor"></a>\[UG-SIGDOC\] X-Road: Signed Document Download and Verification Manual. Document ID: [UG-SIGDOC](../Manuals/ug-sigdoc_x-road_signed_document_download_and_verification_manual.md).
 
 26. <a id="Ref_ACME" class="anchor"></a>\[ACME\] RFC8555: Automatic Certificate Management Environment (ACME), <https://datatracker.ietf.org/doc/html/rfc8555>
+
+27. <a id="Ref_ACME-ARI" class="anchor"></a>\[ACME-ARI\] draft-ietf-acme-ari-05:  Automated Certificate Management Environment (ACME) Renewal Information (ARI) Extension , <https://datatracker.ietf.org/doc/draft-ietf-acme-ari/>
 
 ## 2 User Management
 
@@ -1006,7 +1015,7 @@ If a client is deleted from the Security Server, all the information related to 
 
 When one of the clients is deleted, it is not advisable to delete the signing certificate if the certificate is used by other clients registered to the Security Server, e.g., other subsystems belonging the same X-Road member as the deleted subsystem.
 
-A client registered or submitted for registration in the X-Road governing authority (indicated by the "Registered" or "Registration in progress" state) must be unregistered before it can be deleted. The unregistering event sends a Security Server client deletion request from the Security Server to the Central Server.
+A client registered or submitted for registration in the X-Road governing authority (indicated by the "Registered", "Registration in progress" or "Disabled" state) must be unregistered before it can be deleted. The unregistering event sends a Security Server client deletion request from the Security Server to the Central Server.
 
 
 #### 4.6.1 Unregistering a Client
@@ -2061,14 +2070,14 @@ The message log package provides a helper script `/usr/share/xroad/scripts/archi
 
 Usage of the script:
 
- Options:          | &nbsp;
------------------- | -----------------------------------------------------------------------------------------------
- `-d, --dir DIR`   | Archive directory. Defaults to '/var/lib/xroad'
- `-r, --remove`    | Remove successfully transported files form the archive directory.
- `-k, --key KEY`   | Private key file name in PEM format (TLS). Defaults to '/etc/xroad/ssl/internal.key'
- `-c, --cert CERT` | Client certificate file in PEM format (TLS). Defaults to '/etc/xroad/ssl/internal.crt'
- `-cacert FILE`    | CA certificate file to verify the peer (TLS). The file may contain multiple CA certificates. The certificate(s) must be in PEM format.
- `-h, --help`      | This help text.
+| Options:          | &nbsp;                                                                                                                                 |
+|-------------------|----------------------------------------------------------------------------------------------------------------------------------------|
+| `-d, --dir DIR`   | Archive directory. Defaults to '/var/lib/xroad'                                                                                        |
+| `-r, --remove`    | Remove successfully transported files form the archive directory.                                                                      |
+| `-k, --key KEY`   | Private key file name in PEM format (TLS). Defaults to '/etc/xroad/ssl/internal.key'                                                   |
+| `-c, --cert CERT` | Client certificate file in PEM format (TLS). Defaults to '/etc/xroad/ssl/internal.crt'                                                 |
+| `-cacert FILE`    | CA certificate file to verify the peer (TLS). The file may contain multiple CA certificates. The certificate(s) must be in PEM format. |
+| `-h, --help`      | This help text.                                                                                                                        |
 
 The archive file has been successfully transferred when the archiving server returns the HTTP status code `200`.
 
@@ -2420,11 +2429,11 @@ On the Diagnostics page you can view the status information of:
 
 Security server services status information covers the following services:
 
- Service              | Status           | Message        | Previous Update          | Next Update
---------------------- | ---------------- | -------------- | ------------------------ | ------------------------
- Global configuration | Green/yellow/red | Status message | The time of the global configuration client's last run | The estimated time of the global configuration client's next run
- Timestamping         | Green/yellow/red | Status message | The time of the last timestamping operation            | Not used                                   
- OCSP-responders      | Green/yellow/red | Status message | The time of the last contact with the OCSP-responder   | The latest possible time for the next OCSP-refresh
+| Service              | Status           | Message        | Previous Update                                        | Next Update                                                      |
+|----------------------|------------------|----------------|--------------------------------------------------------|------------------------------------------------------------------|
+| Global configuration | Green/yellow/red | Status message | The time of the global configuration client's last run | The estimated time of the global configuration client's next run |
+| Timestamping         | Green/yellow/red | Status message | The time of the last timestamping operation            | Not used                                                         |
+| OCSP-responders      | Green/yellow/red | Status message | The time of the last contact with the OCSP-responder   | The latest possible time for the next OCSP-refresh               |
 
 To refresh the service statuses, refresh the page.
 
@@ -2441,14 +2450,14 @@ If a section of the diagnostics view appears empty, it means that there either i
 
 Security server Java version information provides the following details:
 
- Column                    | Description 
----------------------------|------------
-Status                     | Green/red
-Message                    | Status message
-Vendor name                | Vendor name of Java that the Security Server is using
-Java version               | Java version number that the Security Server is using
-Earliest supported version | Earliest supported Java version number
-Latest supported version   | Latest supported Java version number
+| Column                     | Description                                           |
+|----------------------------|-------------------------------------------------------|
+| Status                     | Green/red                                             |
+| Message                    | Status message                                        |
+| Vendor name                | Vendor name of Java that the Security Server is using |
+| Java version               | Java version number that the Security Server is using |
+| Earliest supported version | Earliest supported Java version number                |
+| Latest supported version   | Latest supported Java version number                  |
 
 To refresh the status, refresh the page.
 
@@ -2685,16 +2694,16 @@ It is possibility to limit what allowed non-owners can request via environmental
 
 The most important system services of a Security Server are as follows.
 
- **Service**              | **Purpose**                                             | **Log**
-------------------------- | ------------------------------------------------------  | -----------------------------------------
- `xroad-addon-messagelog` | Message log archiving and cleaning of the message logs  | `/var/log/xroad/messagelog-archiver.log`
- `xroad-confclient`       | Client process for the global configuration distributor | `/var/log/xroad/configuration_client.log`
- `xroad-proxy`            | Message exchanger                                       | `/var/log/xroad/proxy.log`
- `xroad-signer`           | Manager process for key settings                        | `/var/log/xroad/signer.log`
- `xroad-proxy-ui-api`     | Management UI and REST API                              | `/var/log/xroad/proxy_ui_api.log` and <br/>`/var/log/xroad/proxy_ui_api_access.log` 
- `xroad-monitor`          | Environmental monitoring                                | `/var/log/xroad/monitor.log`
- `xroad-opmonitor`        | Operational monitoring                                  | `/var/log/xroad/op-monitor.log`
- 
+| **Service**              | **Purpose**                                             | **Log**                                                                             |
+|--------------------------|---------------------------------------------------------|-------------------------------------------------------------------------------------|
+| `xroad-addon-messagelog` | Message log archiving and cleaning of the message logs  | `/var/log/xroad/messagelog-archiver.log`                                            |
+| `xroad-confclient`       | Client process for the global configuration distributor | `/var/log/xroad/configuration_client.log`                                           |
+| `xroad-proxy`            | Message exchanger                                       | `/var/log/xroad/proxy.log`                                                          |
+| `xroad-signer`           | Manager process for key settings                        | `/var/log/xroad/signer.log`                                                         |
+| `xroad-proxy-ui-api`     | Management UI and REST API                              | `/var/log/xroad/proxy_ui_api.log` and <br/>`/var/log/xroad/proxy_ui_api_access.log` |
+| `xroad-monitor`          | Environmental monitoring                                | `/var/log/xroad/monitor.log`                                                        |
+| `xroad-opmonitor`        | Operational monitoring                                  | `/var/log/xroad/op-monitor.log`                                                     |
+
 System services are managed through the *systemd* facility.
 
 **To start a service**, issue the following command as a `root` user:
@@ -2990,14 +2999,14 @@ Response body:
 
 In addition to the validation messages declared in [Java Validation API](https://javaee.github.io/javaee-spec/javadocs/javax/validation/constraints/package-summary.html), the following validation errors are possible:
 
-Error             | Explanation
-------------------|-----------
-`NoControlChars`    | The provided string contains [ISO control characters](https://en.wikipedia.org/wiki/Control_character) or zero-width spaces
-`NoColons`          | The provided string contains colons `:`
-`NoSemicolons`      | The provided string contains semicolons `;`
-`NoForwardslashes`  | The provided string contains slashes `/`
-`NoBackslashes`     | The provided string contains backslashes `\`
-`NoPercents`        | The provided string contains percent symbol `%`
+| Error              | Explanation                                                                                                                 |
+|--------------------|-----------------------------------------------------------------------------------------------------------------------------|
+| `NoControlChars`   | The provided string contains [ISO control characters](https://en.wikipedia.org/wiki/Control_character) or zero-width spaces |
+| `NoColons`         | The provided string contains colons `:`                                                                                     |
+| `NoSemicolons`     | The provided string contains semicolons `;`                                                                                 |
+| `NoForwardslashes` | The provided string contains slashes `/`                                                                                    |
+| `NoBackslashes`    | The provided string contains backslashes `\`                                                                                |
+| `NoPercents`       | The provided string contains percent symbol `%`                                                                             |
 
 ### 19.5 Warning responses
 
@@ -3044,7 +3053,7 @@ Since version `6.22.0` Security Server supports using remote databases. In case 
     systemctl stop "xroad*"
     ```
 
-2. Dump the local databases to be migrated. You can find the passwords of users `serverconf_admin`, `messagelog_admin` and `opmonitor_admin` in `/etc/xroad.properties`.Notice that the versions of the local PostgreSQL client and remote PostgreSQL server must match. Also take into account that on a busy system the messagelog database can be quite large and therefore dump and restore can take considerable amount of time and disk space. Notice that the versions of the local PostgreSQL client and remote PostgreSQL server must match. Also take into account that on a busy system the messagelog database can be quite large and therefore dump and restore can take considerable amount of time and disk space.
+2. Dump the local databases to be migrated. You can find the passwords of users `serverconf_admin`, `messagelog_admin` and `opmonitor_admin` in `/etc/xroad.properties`.Notice that the versions of the local PostgreSQL client and remote PostgreSQL server must match. Also take into account that on a busy system the messagelog database can be quite large and therefore dump and restore can take considerable amount of time and disk space. Notice that the versions of the local PostgreSQL client and remote PostgreSQL server must match.
 
     ```bash
     pg_dump -F t -h 127.0.0.1 -p 5432 -U serverconf_admin -f serverconf.dat serverconf
@@ -3236,9 +3245,37 @@ In case it is needed to pass additional flags to internally initialized `PGOPTIO
 
 ## 24 Configuring ACME
 
-Automated Certificate Management Environment \[[ACME](#Ref_ACME)\] protocol enables partly automated certificate management of the authentication and sign certificates on the Security Server. The Security Server supports automating most of the certificate request process, but the process has to be initiated manually. Also, activating and/or registering the received certificates is a manual task.
+Automated Certificate Management Environment \[[ACME](#Ref_ACME)\] protocol enables automated certificate management of the authentication and sign certificates on the Security Server. The Security Server supports automating the certificate request process, but the process has to be initiated manually when applying for a certificate for the first time. Also, activating the received certificates is a manual task.
 
 The ACME protocol can be used only if the Certificate Authority (CA) issuing the certificates supports it and the X-Road operator has enabled the use of the protocol on the Central Server. Therefore, also the communication between the CA's ACME server and the Security Server is disabled by default. In addition, some member-specific configuration is required on the Security Server.
+
+**Automatic certificate renewal**
+
+Authentication and sign certificates issued by a CA that supports ACME can be automatically renewed. Automatic renewal is enabled by default, but the Security Server administrator can turn it off.
+
+The Security Server runs an automatic renewal job periodically and tries to renew certificates ready for renewal. If the server supports the ACME ARI extension (\[[ACME-ARI](#Ref_ACME-ARI)\]), the time when a certificate is ready for renewal is determined by the ACME server. Otherwise, the time is defined by the `proxy-ui-api.acme-renewal-time-before-expiration-date` system property. The default value of the property is 14 days, which means that the Security Server starts trying to renew a certificate 14 days before it expires. The renewal job configuration can be managed by the `proxy-ui-api.acme-renewal-*` configuration properties.
+
+The renewal status of ACME supported certificates can be seen on the Keys and certificates page:
+* **"N/A"** - certificate is not `REGISTERED` or not issued by ACME supported CA and therefore, it is ignored by the automatic certificate renewal job.
+* **"Renewal in progress"** - Renewal has started, but is not yet finished. Once the new certificate is registered and enabled, this certificate can be removed.
+* **"Renewal error:"** followed by an error message - indicates that the last renewal attempt has failed, also showing the reason for the failure.
+* **"Next planned renewal on"** followed by a date - indicates when the next renewal should happen. Note that this date might change in the future when the information is received from the ACME Server.
+
+**E-mail notifications**
+
+The Security Server supports sending email notifications on ACME-related events. Notifications are sent in case of authentication and sign certificate renewal success and failure and authentication certificate registration success. The notifications can be turned on and off separately with [system paramaters](ug-syspar_x-road_v6_system_parameters.md#39-management-rest-api-parameters-proxy-ui-api).
+
+The member's e-mail address defined in the `mail.yml` configuration file is used as the recipient. The same email address is also used as a member-specific contact information when a certificate is ordered from the ACME Server.
+
+For the e-mail notifications to work, an external mail server needs to be configured beforehand in the `/etc/xroad/conf.d/mail.yml` configuration file. The configuration include:
+
+* **host** - host name used to connect to the mail server.
+* **port** - port number used to connect to the mail server.
+* **username** - used for authentication to the mail server.
+* **password** - used for authentication to the mail server.
+* **use-ssl-tls** - if "true", then full `ssl/tls` protocol is used for connection. If "false" or missing, then `starttls` protocol is used instead.
+
+The **host**, **port**, **username** and **password** properties are mandatory. The mail server configuration status can be viewed in the Diagnostics page. If the Diagnostics page shows that the configuration is incomplete, it means that at least one of required configuration properties is missing. Instead, if all the required configuration are in-place, a test email can be sent from the Diagnostics page.
 
 **Enable connections from the ACME server**
 
@@ -3248,9 +3285,8 @@ The Security Server has a `[proxy-ui-api]` parameter [acme-challenge-port-enable
 
 Although the main ACME-related configuration is managed on the Central Server and distributed to the Security Servers over the Global Configuration, in order to use the ACME standard, some of the member-specific configurations have to be set on the Security Server side as well. These configurations go in the file `acme.yml`, that is in the configurations folder on the file system (default `/etc/xroad/conf.d`). An example file is added by the installer when installing or upgrading X-Road to version 7.5. The configurations to be added are:
 
-1. Contact information, usually an email address, of the member for whom the certificate is ordered. It is passed along to the Certificate Authority at the beginning of the communication between Security Server and the CA's ACME server.
-
-2. Credentials (kid and hmac secret) for external account binding. Some CAs require these for added security. They tie the X-Road member to an external account on the Certificate Authority's side and so need to be acquired externally from the CA.
+1. Credentials (kid and hmac secret) for external account binding. Some CAs require these for added security. They tie the X-Road member to an external account on the Certificate Authority's side and so need to be acquired externally from the CA.
+2. `account-keystore-password` -  a password of the ACME Server account PKCS #12 keystore that is populated automatically by the Security Server, when communicating with the ACME Server.
 
 There are currently two ways to let the ACME server know which type of certificate to return (the chosen CA also needs to support them). The first one, which sends profile ids for authentication and signing certificates in http header, does not require any further configuration on the Security Server side. The second one uses certificate type specific external account credentials. For the authentication certificate add "**auth-**" prefix to the external account binding credentials property names in the `/etc/xroad/conf.d/acme.yml` file. For the signing certificate add the prefix "**sign-**".
 
@@ -3260,14 +3296,6 @@ Example of the `/etc/xroad/conf.d/acme.yml` file contents (can be found from `/e
 # Example acme.yml file that has properties related to Automatic Certificate Management Environment (ACME)
 # that is used to automate acquiring certificates from Certificate Authorities. To use this file
 # remove '.example' form the file name and replace with correct values as needed or create a new file named 'acme.yml'.
-
-# Contact emails for each Member used when ordering certificates from the ACME Servers,
-# where the key is the Member ID in the form <instance_id>:<member_class>:<member_code> and
-# should also be surrounded by quotation marks to allow for ':' (both single and double work). 
-# When ordering Authentication Certificates, Security Server owner's Member ID is used.
-contacts:
-  'EU:COM:1234567-8': member1@example.org
-  'EU:GOV:9090909-1': member2@example.org
 
 # ACME external account binding credentials grouped by Certification Authorities(CA-s) and Members,
 # where CAs have their name as key and should be surrounded by quotation marks to allow spaces.
@@ -3294,4 +3322,32 @@ eab-credentials:
           kid: kid123
           mac-key: goodlongsecretwordthatisnotshort
 
+# This is a password of the ACME Server account PKCS #12 keystore that is populated automatically by the Security Server.
+# Keystore is at /etc/xroad/ssl/acme.p12
+account-keystore-password: acmep12Password1234
+
 ```
+
+## 25 Migrating to EC Based Authentication and Signing Certificates
+
+### 25.1 Steps to Enable EC Based Certificates
+
+Since version 7.6.0 Security Server supports ECDSA based authentication and signing keys. By default, both authentication and signing keys use the RSA algorithm as in previous versions. The EC algorithm can be enabled separately for authentication and/or signing keys so migration can be done in a gradual way. The instructions on how to start using EC based keys are listed below.
+
+1. Update the configuration to use EC based keys. This can be done by updating the configuration file `/etc/xroad/conf.d/local.ini` and adding the following lines:
+
+```ini
+[proxy-ui-api]
+authentication-key-algorithm = EC
+signing-key-algorithm = EC
+```
+
+2. Restart the `xroad-proxy-ui-api` service to apply the changes made to the configuration file.
+3. - Follow the instructions in Section [3.1](#31-configuring-the-signing-key-and-certificate-for-the-security-server-owner) to create new Signing certificate, which will be using EC algorithm now.
+   - Follow the instructions in Section [3.2](#32-configuring-the-authentication-key-and-certificate-for-the-security-server) to create new Authentication certificate, which will be using EC algorithm now.
+
+### 25.2 Backwards Compatibility
+
+EC based keys are supported starting from X-Road version 7.6.0 (=> 7.6.0). If an X-Road instance contains Security Servers prior to version 7.6.0 (< 7.6.0), then:
+A Security Server prior to version 7.6.0 (< 7.6.0) is able to verify requests signed with EC keys from a Security Server version 7.6.0 or later (=> 7.6.0).
+If a Security Server prior to version 7.6.0 (< 7.6.0) makes a request to a Security Server version 7.6.0 or later (=> 7.6.0), which uses EC based authentication certificate, then TLS handshake failed error may occur. To fix this without upgrading the older Security Server, update the Security Server's xroad-tls-ciphers property to include EC compatible TLS cipher, e.g.: TLS_ECDHE_ECDSA_WITH_AES_256_CBC_SHA384, read more in [UG-SYSPAR](../Manuals/ug-syspar_x-road_v6_system_parameters.md).

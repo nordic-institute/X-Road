@@ -25,11 +25,13 @@
  */
 package ee.ria.xroad.confproxy.commandline;
 
+import ee.ria.xroad.common.crypto.identifier.KeyAlgorithm;
 import ee.ria.xroad.confproxy.ConfProxyProperties;
 import ee.ria.xroad.signer.SignerProxy;
 import ee.ria.xroad.signer.protocol.dto.KeyInfo;
 
 import org.apache.commons.cli.CommandLine;
+import org.apache.commons.lang3.StringUtils;
 
 import java.util.Date;
 
@@ -49,8 +51,8 @@ public class ConfProxyUtilAddSigningKey extends ConfProxyUtil {
         getOptions()
                 .addOption(PROXY_INSTANCE)
                 .addOption("k", "key-id", true, "Id of the key to be added")
-                .addOption("t", "token-id", true,
-                        "Id of the token to generate a new key");
+                .addOption("t", "token-id", true, "Id of the token to generate a new key")
+                .addOption("a", "algorithm", true, "Key algorithm used by new key (RSA/EC), default RSA");
     }
 
     @Override
@@ -64,7 +66,9 @@ public class ConfProxyUtilAddSigningKey extends ConfProxyUtil {
             addSigningKey(conf, keyId);
         } else if (commandLine.hasOption("token-id")) {
             String tokenId = commandLine.getOptionValue("t");
-            KeyInfo keyInfo = SignerProxy.generateKey(tokenId, "key-" + System.currentTimeMillis());
+            String alg = commandLine.getOptionValue("a", KeyAlgorithm.RSA.name());
+            KeyAlgorithm keyAlgorithm = StringUtils.equalsIgnoreCase(KeyAlgorithm.EC.name(), alg) ? KeyAlgorithm.EC : KeyAlgorithm.RSA;
+            KeyInfo keyInfo = SignerProxy.generateKey(tokenId, "key-" + System.currentTimeMillis(), keyAlgorithm);
             System.out.println("Generated key with ID " + keyInfo.getId());
             addSigningKey(conf, keyInfo.getId());
         } else {

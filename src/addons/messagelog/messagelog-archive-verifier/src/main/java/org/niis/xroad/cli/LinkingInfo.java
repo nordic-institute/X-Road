@@ -26,6 +26,8 @@
  */
 package org.niis.xroad.cli;
 
+import ee.ria.xroad.common.crypto.identifier.DigestAlgorithm;
+
 import lombok.Getter;
 
 import java.util.HashMap;
@@ -36,7 +38,7 @@ import java.util.Set;
 class LinkingInfo {
     private String prevDigest;
     private String prevArchFile;
-    private String digestAlgoId;
+    private DigestAlgorithm digestAlgoId;
     private final Map<String, String> contentLines;
 
     LinkingInfo(String[] fileLines) {
@@ -60,7 +62,7 @@ class LinkingInfo {
         String[] firstLineParts = fileLines[0].split("\\s+");
         prevDigest = firstLineParts[0].equals("-") ? "" : firstLineParts[0];
         prevArchFile = firstLineParts[1].equals("-") ? "" : firstLineParts[1];
-        digestAlgoId = firstLineParts[2];
+        digestAlgoId = DigestAlgorithm.ofName(firstLineParts[2]);
 
         for (int i = 1; i < fileLines.length; i++) {
             String line = fileLines[i];

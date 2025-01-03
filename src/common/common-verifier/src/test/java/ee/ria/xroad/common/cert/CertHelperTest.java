@@ -26,12 +26,14 @@
 package ee.ria.xroad.common.cert;
 
 import ee.ria.xroad.common.TestCertUtil;
+import ee.ria.xroad.common.util.CertUtils;
 import ee.ria.xroad.common.util.CryptoUtils;
 
 import org.apache.commons.io.IOUtils;
 import org.junit.Test;
 
 import java.io.FileInputStream;
+import java.nio.charset.StandardCharsets;
 import java.security.cert.X509Certificate;
 
 import static org.junit.Assert.assertEquals;
@@ -48,7 +50,7 @@ public class CertHelperTest {
     @Test
     public void getSubjectCommonName() {
         X509Certificate cert = TestCertUtil.getProducer().certChain[0];
-        String commonName = CertHelper.getSubjectCommonName(cert);
+        String commonName = CertUtils.getSubjectCommonName(cert);
         assertEquals("producer", commonName);
     }
 
@@ -59,9 +61,9 @@ public class CertHelperTest {
     @Test
     public void getSubjectSerialNumber() throws Exception {
         String base64data = IOUtils.toString(new FileInputStream(
-                "../common-test/src/test/certs/test-esteid.txt"));
+                "../common-test/src/test/certs/test-esteid.txt"), StandardCharsets.UTF_8);
         X509Certificate cert = CryptoUtils.readCertificate(base64data);
-        String serialNumber = CertHelper.getSubjectSerialNumber(cert);
+        String serialNumber = CertUtils.getSubjectSerialNumber(cert);
         assertEquals("47101010033", serialNumber);
     }
 
@@ -73,7 +75,7 @@ public class CertHelperTest {
     @Test
     public void subjectSerialNumberNotAvailable() throws Exception {
         X509Certificate cert = TestCertUtil.getProducer().certChain[0];
-        String serialNumber = CertHelper.getSubjectSerialNumber(cert);
+        String serialNumber = CertUtils.getSubjectSerialNumber(cert);
         assertNull(serialNumber);
     }
 }

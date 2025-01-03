@@ -30,7 +30,7 @@ package org.niis.xroad.cs.admin.core.service;
 import ee.ria.xroad.common.SystemProperties;
 import ee.ria.xroad.common.conf.globalconf.privateparameters.v2.ConfigurationAnchorType;
 import ee.ria.xroad.common.conf.globalconf.privateparameters.v2.ObjectFactory;
-import ee.ria.xroad.common.util.CryptoUtils;
+import ee.ria.xroad.common.crypto.Digests;
 import ee.ria.xroad.common.util.TimeUtils;
 
 import jakarta.transaction.Transactional;
@@ -140,7 +140,7 @@ public class ConfigurationAnchorServiceImpl implements ConfigurationAnchorServic
         final var now = TimeUtils.zonedDateTimeNow(ZoneId.of("UTC"));
         final var anchorXml = buildAnchorXml(instanceIdentifier, now, sources);
         final var anchorXmlBytes = anchorXml.getBytes(StandardCharsets.UTF_8);
-        final var anchorXmlHash = CryptoUtils.calculateAnchorHashDelimited(anchorXmlBytes);
+        final var anchorXmlHash = Digests.calculateAnchorHashDelimited(anchorXmlBytes);
         if (addAuditLog) {
             auditDataHelper.putAnchorHash(anchorXmlHash);
         }

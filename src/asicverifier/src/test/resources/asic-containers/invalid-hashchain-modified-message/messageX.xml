@@ -1,25 +1,27 @@
 <?xml version="1.0" encoding="utf-8"?>
 <SOAP-ENV:Envelope
-        xmlns:SOAP-ENV="http://schemas.xmlsoap.org/soap/envelope/"
-        xmlns:xroad="http://x-road.eu/xsd/xroad.xsd"
-        xmlns:id="http://x-road.eu/xsd/identifiers">
+    xmlns:SOAP-ENV="http://schemas.xmlsoap.org/soap/envelope/"
+    xmlns:id="http://x-road.eu/xsd/identifiers"
+    xmlns:xroad="http://x-road.eu/xsd/xroad.xsd">
     <SOAP-ENV:Header>
-        <xroad:client id:objectType="MEMBER">
-            <id:xRoadInstance>EE</id:xRoadInstance>
-            <id:memberClass>BUSINESS</id:memberClass>
-            <id:memberCode>consumer</id:memberCode>
+        <xroad:client id:objectType="SUBSYSTEM">
+            <id:xRoadInstance>DEV</id:xRoadInstance>
+            <id:memberClass>COM</id:memberClass>
+            <id:memberCode>4321</id:memberCode>
+            <id:subsystemCode>TestClient</id:subsystemCode>
         </xroad:client>
         <xroad:service id:objectType="SERVICE">
-            <id:xRoadInstance>EE</id:xRoadInstance>
-            <id:memberClass>BUSINESS</id:memberClass>
-            <id:memberCode>producer</id:memberCode>
-            <id:serviceCode>test</id:serviceCode>
+            <id:xRoadInstance>DEV</id:xRoadInstance>
+            <id:memberClass>COM</id:memberClass>
+            <id:memberCode>1234</id:memberCode>
+            <id:subsystemCode>TestService</id:subsystemCode>
+            <id:serviceCode>storeAttachments</id:serviceCode>
+            <id:serviceVersion>v1</id:serviceVersion>
         </xroad:service>
-        <xroad:userId>EE37702211234</xroad:userId>
-        <xroad:id>7113f3a6e47b76a91055d9d9a9ccaa87</xroad:id>
-        <xroad:issue>issue</xroad:issue>
+        <xroad:id>modified</xroad:id>
+        <xroad:protocolVersion>4.0</xroad:protocolVersion>
     </SOAP-ENV:Header>
     <SOAP-ENV:Body>
-        <ns1:test xmlns:ns1="http://cosumer.ee.xroad.net">aä</ns1:test>
+        <prod:storeAttachments xmlns:prod="http://test.x-road.global/producer"/>
     </SOAP-ENV:Body>
 </SOAP-ENV:Envelope>

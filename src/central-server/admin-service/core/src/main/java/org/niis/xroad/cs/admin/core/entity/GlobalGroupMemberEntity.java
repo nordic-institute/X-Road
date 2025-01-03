@@ -79,9 +79,7 @@ public class GlobalGroupMemberEntity extends AuditableEntity {
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
-        if (!(o instanceof GlobalGroupMemberEntity)) return false;
-
-        final GlobalGroupMemberEntity member = (GlobalGroupMemberEntity) o;
+        if (!(o instanceof GlobalGroupMemberEntity member)) return false;
 
         return identifier.equals(member.identifier);
     }

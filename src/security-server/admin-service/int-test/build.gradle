@@ -48,10 +48,17 @@ tasks.register('intTest', Test) {
         showCauses(true)
         showStandardStreams(true)
     }
+    reports {
+        junitXml.includeSystemOutLog = false // defaults to true
+    }
 
     shouldRunAfter test
 }
 
 tasks.named('check') {
     dependsOn tasks.named('intTest')
+}
+
+archUnit {
+    skip = true
 }

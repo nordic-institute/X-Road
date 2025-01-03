@@ -36,6 +36,8 @@ public enum ErrorMessage implements DeviationProvider {
     MEMBER_CLASS_EXISTS("member_class_exists", "Member class with the same code already exists."),
     MEMBER_NOT_FOUND("member_not_found", "No member with the specified code/id found."),
     MEMBER_EXISTS("member_exists", "Member with the same code already exists."),
+    MEMBER_NOT_REGISTERED_TO_SECURITY_SERVER("member_not_registered_to_security_server",
+            "Member is not registered to the given security server."),
 
     SUBSYSTEM_EXISTS("subsystem_exists", "Subsystem with the same code already exists."),
     SUBSYSTEM_NOT_FOUND("subsystem_not_found", "Subsystem with specified code not found."),
@@ -102,7 +104,6 @@ public enum ErrorMessage implements DeviationProvider {
     IMPORTED_CERTIFICATE_ALREADY_EXISTS("certificate_already_exists", "The imported certificate already exists"),
     CERTIFICATE_IMPORT_FAILED("certificate_import_failed", "Cannot import TLS certificate"),
 
-
     SIGNER_PROXY_ERROR("signer_proxy_error", "Signer proxy exception"),
 
     SIGNING_KEY_ACTION_NOT_POSSIBLE("signing_key_action_not_possible", "Signing key action not possible"),
@@ -130,7 +131,6 @@ public enum ErrorMessage implements DeviationProvider {
     TOKEN_PIN_FINAL_TRY("token_pin_final_try", "Tries left: 1"),
     TOKEN_INCORRECT_PIN_FORMAT("token_incorrect_pin_format", "Incorrect PIN format"),
     TOKEN_ACTION_NOT_POSSIBLE("token_action_not_possible", "Token action not possible"),
-    TOKEN_FETCH_FAILED("token_fetch_failed", "Error getting tokens"),
 
     MALFORMED_ANCHOR("malformed_anchor", "Malformed anchor file"),
     TRUSTED_ANCHOR_VERIFICATION_FAILED("trusted_anchor_verification_failed", "Trusted anchor file verification failed"),

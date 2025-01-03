@@ -50,7 +50,7 @@
 <script lang="ts">
 import { defineComponent } from 'vue';
 
-import { Permissions } from '@/global';
+import { Permissions, RouteName } from '@/global';
 import * as api from '@/util/api';
 import { encodePathParameter } from '@/util/api';
 import { CertificateDetails } from '@/openapi-types';
@@ -98,7 +98,7 @@ export default defineComponent({
     fetchData(clientId: string, hash: string): void {
       api
         .get<CertificateDetails>(
-          `/clients/${clientId}/tls-certificates/${hash}`,
+          `/clients/${clientId}/tls-certificates/${encodePathParameter(hash)}`,
         )
         .then(
           (response) => {
@@ -123,7 +123,7 @@ export default defineComponent({
         )
         .then(
           () => {
-            this.showSuccess(this.$t('cert.certDeleted'));
+            this.showSuccess(this.$t('cert.certDeleted'), true);
           },
           (error) => {
             this.showError(error);

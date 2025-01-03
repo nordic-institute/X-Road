@@ -26,14 +26,13 @@
 package ee.ria.xroad.proxy.serverproxy;
 
 import ee.ria.xroad.common.CodedException;
-import ee.ria.xroad.common.conf.serverconf.ServerConf;
+import ee.ria.xroad.common.conf.globalconf.GlobalConfProvider;
+import ee.ria.xroad.common.conf.serverconf.ServerConfProvider;
 import ee.ria.xroad.common.identifier.ServiceId;
 import ee.ria.xroad.common.opmonitoring.OpMonitoringDaemonEndpoints;
 import ee.ria.xroad.common.opmonitoring.OpMonitoringData;
 import ee.ria.xroad.common.opmonitoring.OpMonitoringSystemProperties;
-import ee.ria.xroad.common.util.AbstractHttpSender;
 import ee.ria.xroad.common.util.HttpSender;
-import ee.ria.xroad.common.util.MimeUtils;
 import ee.ria.xroad.common.util.RequestWrapper;
 import ee.ria.xroad.common.util.TimeUtils;
 import ee.ria.xroad.proxy.protocol.ProxyMessage;
@@ -56,7 +55,7 @@ import static ee.ria.xroad.common.util.TimeUtils.getEpochMillisecond;
  * Service handler for operational monitoring.
  */
 @Slf4j
-public class OpMonitoringServiceHandlerImpl implements ServiceHandler {
+public class OpMonitoringServiceHandlerImpl extends AbstractServiceHandler {
 
     private static final int CONNECTION_TIMEOUT_MILLISECONDS = TimeUtils.secondsToMillis(
             OpMonitoringSystemProperties.getOpMonitorServiceConnectionTimeoutSeconds());
@@ -67,6 +66,10 @@ public class OpMonitoringServiceHandlerImpl implements ServiceHandler {
     private static final String OP_MONITOR_ADDRESS = getOpMonitorAddress();
 
     private HttpSender sender;
+
+    protected OpMonitoringServiceHandlerImpl(ServerConfProvider serverConfProvider, GlobalConfProvider globalConfProvider) {
+        super(serverConfProvider, globalConfProvider);
+    }
 
     @Override
     public boolean shouldVerifyAccess() {
@@ -86,13 +89,11 @@ public class OpMonitoringServiceHandlerImpl implements ServiceHandler {
     @Override
     public boolean canHandle(ServiceId requestServiceId,
                              ProxyMessage proxyRequestMessage) {
-        switch (requestServiceId.getServiceCode()) {
-            case GET_SECURITY_SERVER_HEALTH_DATA: // $FALL-THROUGH$
-            case GET_SECURITY_SERVER_OPERATIONAL_DATA:
-                return requestServiceId.getClientId().equals(ServerConf.getIdentifier().getOwner());
-            default:
-                return false;
-        }
+        return switch (requestServiceId.getServiceCode()) {
+            case GET_SECURITY_SERVER_HEALTH_DATA, GET_SECURITY_SERVER_OPERATIONAL_DATA ->
+                    requestServiceId.getClientId().equals(serverConfProvider.getIdentifier().getOwner());
+            default -> false;
+        };
     }
 
     @Override
@@ -144,11 +145,10 @@ public class OpMonitoringServiceHandlerImpl implements ServiceHandler {
 
         log.info("Sending request to {}", opMonitorUri);
 
-        try (InputStream in = proxyRequestMessage.getSoapContent()) {
+        try {
             opMonitoringData.setRequestOutTs(getEpochMillisecond());
 
-            sender.doPost(opMonitorUri, in, AbstractHttpSender.CHUNKED_LENGTH,
-                    servletRequest.getHeaders().get(MimeUtils.HEADER_ORIGINAL_CONTENT_TYPE));
+            sender.doPost(opMonitorUri, new ProxyMessageSoapEntity(proxyRequestMessage));
 
             opMonitoringData.setResponseInTs(getEpochMillisecond());
         } catch (Exception ex) {

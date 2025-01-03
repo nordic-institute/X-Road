@@ -26,6 +26,7 @@
 package org.niis.xroad.restapi.exceptions;
 
 import ee.ria.xroad.common.CodedException;
+import ee.ria.xroad.signer.exception.SignerException;
 
 import jakarta.validation.ConstraintViolationException;
 import org.niis.xroad.common.exception.ServiceException;
@@ -40,6 +41,7 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 
 import java.util.HashMap;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 
@@ -53,6 +55,7 @@ import static org.niis.xroad.restapi.exceptions.ResponseStatusUtil.getAnnotatedR
 public class ExceptionTranslator {
 
     public static final String CORE_CODED_EXCEPTION_PREFIX = "core.";
+    public static final String META_PREFIX = "meta.";
 
     private final ValidationErrorHelper validationErrorHelper;
 
@@ -74,31 +77,37 @@ public class ExceptionTranslator {
         HttpStatusCode status = resolveHttpStatus(e, defaultStatus);
         ErrorInfo errorDto = new ErrorInfo();
         errorDto.setStatus(status.value());
-        if (e instanceof DeviationAware) {
-            // add information about errors and warnings
-            DeviationAware errorCodedException = (DeviationAware) e;
-            if (errorCodedException.getErrorDeviation() != null) {
-                errorDto.setError(convert(errorCodedException.getErrorDeviation()));
-            }
-            if (errorCodedException.getWarningDeviations() != null) {
-                for (Deviation warning : errorCodedException.getWarningDeviations()) {
-                    errorDto.addWarningsItem(convert(warning));
+        switch (e) {
+            case DeviationAware errorCodedException -> {
+                // add information about errors and warnings
+                if (errorCodedException.getErrorDeviation() != null) {
+                    errorDto.setError(convert(errorCodedException.getErrorDeviation()));
+                }
+                if (errorCodedException.getWarningDeviations() != null) {
+                    for (Deviation warning : errorCodedException.getWarningDeviations()) {
+                        errorDto.addWarningsItem(convert(warning));
+                    }
                 }
             }
-        } else if (e instanceof CodedException) {
-            // map fault code and string from core CodedException
-            CodedException c = (CodedException) e;
-            Deviation deviation = new ErrorDeviation(CORE_CODED_EXCEPTION_PREFIX + c.getFaultCode(), c.getFaultString());
-            errorDto.setError(convert(deviation));
-        } else if (e instanceof MethodArgumentNotValidException) {
-            errorDto.setError(validationErrorHelper.createError((MethodArgumentNotValidException) e));
-        } else if (e instanceof ConstraintViolationException) {
-            Map<String, List<String>> violations = new HashMap<>();
-            ((ConstraintViolationException) e).getConstraintViolations()
-                    .forEach(constraintViolation -> violations.put(constraintViolation.getPropertyPath().toString(),
-                            List.of(constraintViolation.getMessage())));
-            errorDto.setError(new CodeWithDetails().code(ERROR_VALIDATION_FAILURE).validationErrors(violations));
+            case CodedException ce -> {
+                // map fault code and string from core CodedException
+                Deviation deviation = new ErrorDeviation(CORE_CODED_EXCEPTION_PREFIX + ce.getFaultCode(), ce.getFaultString());
+                errorDto.setError(convert(deviation));
+            }
+            case MethodArgumentNotValidException manve -> errorDto.setError(validationErrorHelper.createError(manve));
+            case ConstraintViolationException cve -> {
+                Map<String, List<String>> violations = new HashMap<>();
+                cve.getConstraintViolations()
+                        .forEach(constraintViolation -> violations.put(constraintViolation.getPropertyPath().toString(),
+                                List.of(constraintViolation.getMessage())));
+                errorDto.setError(new CodeWithDetails().code(ERROR_VALIDATION_FAILURE).validationErrors(violations));
+            }
+            default -> {
+
+            }
         }
+
+        attachCausedBySignerIfNeeded(e, errorDto);
 
         return ResponseEntity.status(status)
                 .contentType(MediaType.APPLICATION_JSON)
@@ -116,10 +125,25 @@ public class ExceptionTranslator {
         return result;
     }
 
+    private boolean isCausedBySignerException(Throwable e) {
+        return e != null && (e instanceof SignerException || isCausedBySignerException(e.getCause()));
+    }
+
+    private void attachCausedBySignerIfNeeded(Throwable e, ErrorInfo errorDto) {
+        if (isCausedBySignerException(e)) {
+            var metadata = errorDto.getError().getMetadata();
+            metadata = metadata == null ? new LinkedList<>() : new LinkedList<>(metadata);
+            metadata.add(META_PREFIX + "check_signer_logs");
+            errorDto.getError().setMetadata(metadata);
+        }
+    }
+
     public HttpStatusCode resolveHttpStatus(Exception e, HttpStatus defaultStatus) {
-        if (e instanceof ServiceException) {
-            return HttpStatus.resolve(((ServiceException) e).getHttpStatus());
+        if (e instanceof ServiceException se) {
+            return HttpStatus.resolve(se.getHttpStatus());
         }
         return getAnnotatedResponseStatus(e, defaultStatus);
     }
+
+
 }

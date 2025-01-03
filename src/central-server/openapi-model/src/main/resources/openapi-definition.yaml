@@ -1878,6 +1878,58 @@ paths:
       tags:
         - members
         - security-servers
+  /members/{member_id}/used-servers:
+    get:
+      description: <h3>CS administrator views a servers, where member is registered as a client.</h3>
+      operationId: getUsedServers
+      parameters:
+        - $ref: '#/components/parameters/MemberIdParam'
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                description: array of member security servers
+                items:
+                  $ref: '#/components/schemas/SecurityServer'
+                type: array
+                uniqueItems: false
+          description: List of member's global groups
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+      tags:
+        - members
+        - security-servers
+  /members/{member_id}/servers/{server_id}:
+    delete:
+      description: <h3>CS administrator unregisters a member from a Security Server</h3>
+      operationId: unregisterMember
+      parameters:
+        - $ref: '#/components/parameters/MemberIdParam'
+        - $ref: '#/components/parameters/ServerIdParam'
+      responses:
+        '204':
+          $ref: '#/components/responses/NoContent'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+      summary: delete a member
+      tags:
+        - members
+        - security-servers
   /subsystems:
     post:
       description:
@@ -3348,6 +3400,20 @@ components:
           maxLength: 1000
           minLength: 1
           type: string
+        ec_public_parameters:
+          description: EC public key named curve (if EC key)
+          example: 'secp256r1(1.2.840.10045.3.1.7)'
+          format: text
+          maxLength: 255
+          minLength: 1
+          type: string
+        ec_public_key_point:
+          description: hex encoded EC public key point (if EC key)
+          example: c44421d601...
+          format: hex
+          maxLength: 1000
+          minLength: 1
+          type: string
         serial:
           description: serial number
           example: '123456789'
@@ -3557,6 +3623,14 @@ components:
         - INTERNAL
         - EXTERNAL
       example: INTERNAL
+      format: enum
+      type: string
+    KeyAlgorithm:
+      description: Key type
+      enum:
+        - RSA
+        - EC
+      example: RSA
       format: enum
       type: string
     ErrorInfo:
@@ -3801,6 +3875,8 @@ components:
           type: array
         source_type:
             $ref: '#/components/schemas/ConfigurationType'
+        key_algorithm:
+            $ref: '#/components/schemas/KeyAlgorithm'
       required:
         - id
         - label

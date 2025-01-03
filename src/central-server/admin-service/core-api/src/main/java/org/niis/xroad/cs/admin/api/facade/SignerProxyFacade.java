@@ -25,8 +25,12 @@
  */
 package org.niis.xroad.cs.admin.api.facade;
 
+import ee.ria.xroad.common.crypto.identifier.KeyAlgorithm;
+import ee.ria.xroad.common.crypto.identifier.SignAlgorithm;
+import ee.ria.xroad.common.crypto.identifier.SignMechanism;
 import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.signer.SignerProxy;
+import ee.ria.xroad.signer.exception.SignerException;
 import ee.ria.xroad.signer.protocol.dto.KeyInfo;
 import ee.ria.xroad.signer.protocol.dto.KeyUsageInfo;
 import ee.ria.xroad.signer.protocol.dto.TokenInfo;
@@ -43,52 +47,52 @@ public interface SignerProxyFacade {
     /**
      * {@link SignerProxy#initSoftwareToken(char[])}
      */
-    void initSoftwareToken(char[] password) throws Exception;
+    void initSoftwareToken(char[] password) throws SignerException;
 
     /**
      * {@link SignerProxy#getTokens()}
      */
-    List<TokenInfo> getTokens() throws Exception;
+    List<TokenInfo> getTokens() throws SignerException;
 
     /**
      * {@link SignerProxy#getToken(String)}
      */
-    TokenInfo getToken(String tokenId) throws Exception;
+    TokenInfo getToken(String tokenId) throws SignerException;
 
     /**
      * {@link SignerProxy#activateToken(String, char[])}
      */
-    void activateToken(String tokenId, char[] password) throws Exception;
+    void activateToken(String tokenId, char[] password) throws SignerException;
 
     /**
      * {@link SignerProxy#deactivateToken(String)}
      */
-    void deactivateToken(String tokenId) throws Exception;
+    void deactivateToken(String tokenId) throws SignerException;
 
     /**
-     * {@link SignerProxy#generateKey(String, String)}
+     * {@link SignerProxy#generateKey(String, String, KeyAlgorithm)}
      */
-    KeyInfo generateKey(String tokenId, String keyLabel) throws Exception;
+    KeyInfo generateKey(String tokenId, String keyLabel, KeyAlgorithm algorithm) throws SignerException;
 
     /**
      * {@link SignerProxy#generateSelfSignedCert(String, ClientId.Conf, KeyUsageInfo, String, Date, Date)}
      */
     byte[] generateSelfSignedCert(String keyId, ClientId.Conf memberId, KeyUsageInfo keyUsage,
-                                  String commonName, Date notBefore, Date notAfter) throws Exception;
+                                  String commonName, Date notBefore, Date notAfter) throws SignerException;
 
     /**
      * {@link SignerProxy#deleteKey(String, boolean)}
      */
-    void deleteKey(String keyId, boolean deleteFromToken) throws Exception;
+    void deleteKey(String keyId, boolean deleteFromToken) throws SignerException;
 
     /**
      * {ling {@link SignerProxy#getSignMechanism(String)}}
      */
-    String getSignMechanism(String keyId) throws Exception;
+    SignMechanism getSignMechanism(String keyId) throws SignerException;
 
     /**
-     * {@link SignerProxy#sign(String, String, byte[])}
+     * {@link SignerProxy#sign(String, SignAlgorithm, byte[])}
      */
-    byte[] sign(String keyId, String signatureAlgorithmId, byte[] digest) throws Exception;
+    byte[] sign(String keyId, SignAlgorithm signatureAlgorithmId, byte[] digest) throws SignerException;
 
 }

@@ -27,6 +27,7 @@ package ee.ria.xroad.common.messagelog.archive;
 
 import ee.ria.xroad.common.SystemProperties;
 import ee.ria.xroad.common.asic.AsicContainer;
+import ee.ria.xroad.common.crypto.identifier.DigestAlgorithm;
 import ee.ria.xroad.common.messagelog.MessageLogProperties;
 import ee.ria.xroad.common.messagelog.MessageRecord;
 
@@ -226,14 +227,15 @@ public class LogArchiveCacheTest {
     public void archivingShouldBeDeterministic() throws Exception {
         cache.close();
 
-        final LinkingInfoBuilder builder1 = new LinkingInfoBuilder("SHA-512", new DigestEntry("deadbeef", "test"));
+        var sha512 = DigestAlgorithm.ofName("SHA-512");
+        final LinkingInfoBuilder builder1 = new LinkingInfoBuilder(sha512, new DigestEntry("deadbeef", "test"));
         cache = createCache(builder1);
         cache.add(createRequestRecordNormal());
         final byte[] bytes1 = getArchiveBytes();
         cache.close();
 
         id = 0;
-        final LinkingInfoBuilder builder2 = new LinkingInfoBuilder("SHA-512", new DigestEntry("deadbeef", "test"));
+        final LinkingInfoBuilder builder2 = new LinkingInfoBuilder(sha512, new DigestEntry("deadbeef", "test"));
         cache = createCache(builder2);
         cache.add(createRequestRecordNormal());
         final byte[] bytes2 = getArchiveBytes();
@@ -243,7 +245,7 @@ public class LogArchiveCacheTest {
         assertEquals(builder1.getLastDigest(), builder2.getLastDigest());
 
         id = 0;
-        final LinkingInfoBuilder builder3 = new LinkingInfoBuilder("SHA-512", new DigestEntry("", ""));
+        final LinkingInfoBuilder builder3 = new LinkingInfoBuilder(sha512, new DigestEntry("", ""));
         cache = createCache(builder3);
         cache.add(createRequestRecordNormal());
         final byte[] bytes3 = getArchiveBytes();
@@ -432,7 +434,7 @@ public class LogArchiveCacheTest {
     }
 
     private LinkingInfoBuilder mockLinkingInfoBuilder() {
-        return new LinkingInfoBuilder("SHA-512", new DigestEntry("", ""));
+        return new LinkingInfoBuilder(DigestAlgorithm.ofName("SHA-512"), new DigestEntry("", ""));
     }
 
     private LogArchiveCache createCache() {

@@ -2,6 +2,7 @@
   "name": "xroad-centralserver-admin-ui",
   "version": "1.0.0",
   "private": true,
+  "type": "module",
   "scripts": {
     "dev": "vite --host",
     "build": "pnpm run generate-types && vitest --run &&  vite build",
@@ -18,7 +19,6 @@
   },
   "dependencies": {
     "@niis/shared-ui": "workspace:*",
-    "dayjs": "^1.11.11",
     "is-ip": "^5.0.1"
   },
   "devDependencies": {
@@ -29,6 +29,6 @@
     "npm": "use-pnpm",
     "yarn": "use-pnpm",
     "node": ">=18 <=20",
-    "pnpm": ">=8"
+    "pnpm": ">=9"
   }
 }

@@ -55,7 +55,7 @@ cp -p %{_sourcedir}/proxy/xroad-add-admin-user.sh %{buildroot}/usr/share/xroad/b
 cp -p %{_sourcedir}/proxy/xroad.pam %{buildroot}/etc/pam.d/xroad
 cp -p %{_sourcedir}/proxy/xroad-*.service %{buildroot}%{_unitdir}
 cp -a %{srcdir}/../../../security-server/admin-service/infra-jpa/src/main/resources/liquibase/* %{buildroot}/usr/share/xroad/db/
-cp -p %{srcdir}/../../../proxy/build/libs/proxy-1.0.jar %{buildroot}/usr/share/xroad/jlib/
+cp -p %{srcdir}/../../../proxy/application/build/libs/proxy-1.0.jar %{buildroot}/usr/share/xroad/jlib/
 cp -p %{srcdir}/default-configuration/proxy.ini %{buildroot}/etc/xroad/conf.d
 cp -p %{srcdir}/default-configuration/proxy-logback.xml %{buildroot}/etc/xroad/conf.d
 cp -p %{srcdir}/default-configuration/rsyslog.d/* %{buildroot}/etc/rsyslog.d/
@@ -161,7 +161,10 @@ fi
 
 if [ $1 -eq 1 ] ; then
     # Initial installation
-    /usr/share/xroad/scripts/xroad-initdb.sh
+    if ! /usr/share/xroad/scripts/xroad-initdb.sh; then
+      echo "Error: Failed to initialize DB."
+      exit 1
+    fi
     if ! grep -qs DISABLE_PORT_REDIRECT /etc/sysconfig/xroad-proxy; then
     cat <<"EOF" >>/etc/sysconfig/xroad-proxy
 # Setting DISABLE_PORT_REDIRECT to false enables iptables port redirection (default: disabled)
@@ -233,7 +236,7 @@ function migrate_conf_value {
 migrate_conf_value /etc/xroad/conf.d/local.ini proxy ocsp-cache-path signer ocsp-cache-path
 migrate_conf_value /etc/xroad/conf.d/local.ini proxy enforce-token-pin-policy signer enforce-token-pin-policy
 
-# RHEL7 java-17-* package makes java binaries available since %post scriptlet
+# RHEL7 java-21-* package makes java binaries available since %post scriptlet
 %if 0%{?el7}
 %execute_init_or_update_resources
 %endif
@@ -248,7 +251,7 @@ migrate_conf_value /etc/xroad/conf.d/local.ini proxy enforce-token-pin-policy si
 # restart (if running) nginx after /etc/xroad/nginx/xroad-proxy.conf has (possibly) been removed, so that port 4000 is freed
 %systemd_try_restart nginx.service
 
-# RHEL8/9 java-17-* package makes java binaries available since %posttrans scriptlet
+# RHEL8/9 java-21-* package makes java binaries available since %posttrans scriptlet
 %if 0%{?el8} || 0%{?el9}
 %execute_init_or_update_resources
 %endif

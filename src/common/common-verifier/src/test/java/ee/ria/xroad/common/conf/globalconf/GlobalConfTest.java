@@ -56,6 +56,7 @@ import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+import static ee.ria.xroad.common.SystemProperties.getConfigurationPath;
 import static ee.ria.xroad.common.TestCertUtil.getCertChainCert;
 import static java.util.Collections.singleton;
 import static org.junit.Assert.assertEquals;
@@ -74,6 +75,8 @@ public class GlobalConfTest {
     @Rule
     public ExpectedCodedException thrown = ExpectedCodedException.none();
 
+    private static GlobalConfProvider globalConfProvider;
+
     /**
      * Sets up the test configuration.
      *
@@ -81,12 +84,11 @@ public class GlobalConfTest {
      */
     @BeforeClass
     public static void setUpBeforeClass() throws Exception {
-        GlobalConf.reset();
         System.setProperty(SystemProperties.CONFIGURATION_PATH, GOOD_CONF_DIR);
 
         createConfigurationFiles();
 
-        GlobalConf.reload();
+        globalConfProvider = new GlobalConfImpl(new FileSystemGlobalConfSource(getConfigurationPath()));
     }
 
     private static void createConfigurationFiles() throws IOException {
@@ -121,7 +123,7 @@ public class GlobalConfTest {
 
     @Test
     public void isValidConfiguration() {
-        assertTrue(GlobalConf.isValid());
+        assertTrue(globalConfProvider.isValid());
     }
 
     /**
@@ -129,7 +131,7 @@ public class GlobalConfTest {
      */
     @Test
     public void getInstanceIdentifiers() {
-        assertTrue(Arrays.asList("EE", "bar", "foo").containsAll(GlobalConf.getInstanceIdentifiers()));
+        assertTrue(Arrays.asList("EE", "bar", "foo").containsAll(globalConfProvider.getInstanceIdentifiers()));
     }
 
     /**
@@ -137,19 +139,19 @@ public class GlobalConfTest {
      */
     @Test
     public void isSubjectInGlobalGroup() {
-        assertTrue(GlobalConf.isSubjectInGlobalGroup(
+        assertTrue(globalConfProvider.isSubjectInGlobalGroup(
                 ClientId.Conf.create("EE", "BUSINESS", "member1", "subsys"),
                 GlobalGroupId.Conf.create("EE", "Test group"))
         );
-        assertTrue(GlobalConf.isSubjectInGlobalGroup(
+        assertTrue(globalConfProvider.isSubjectInGlobalGroup(
                 ClientId.Conf.create("EE", "BUSINESS", "member2"),
                 GlobalGroupId.Conf.create("EE", "Test group"))
         );
-        assertFalse(GlobalConf.isSubjectInGlobalGroup(
+        assertFalse(globalConfProvider.isSubjectInGlobalGroup(
                 ClientId.Conf.create("EE", "BUSINESS", "member2", "subsys"),
                 GlobalGroupId.Conf.create("EE", "Test group"))
         );
-        assertFalse(GlobalConf.isSubjectInGlobalGroup(
+        assertFalse(globalConfProvider.isSubjectInGlobalGroup(
                 ClientId.Conf.create("EE", "BUSINESS", "member2"),
                 GlobalGroupId.Conf.create("non-existent-instance", "non-existent-group"))
         );
@@ -160,8 +162,8 @@ public class GlobalConfTest {
      */
     @Test
     public void getGlobalGroupDescription() {
-        assertEquals("Description", GlobalConf.getGlobalGroupDescription(GlobalGroupId.Conf.create("EE", "Test group")));
-        assertNull("Description", GlobalConf.getGlobalGroupDescription(GlobalGroupId.Conf.create("EE", "foo")));
+        assertEquals("Description", globalConfProvider.getGlobalGroupDescription(GlobalGroupId.Conf.create("EE", "Test group")));
+        assertNull("Description", globalConfProvider.getGlobalGroupDescription(GlobalGroupId.Conf.create("EE", "foo")));
     }
 
     /**
@@ -172,7 +174,7 @@ public class GlobalConfTest {
         List<ClientId> expected = Arrays.asList(newClientId("producer"), newClientId("consumer"),
                 newClientId("foo"), newClientId("foo", "foosubsystem"));
 
-        assertEquals(expected, GlobalConf.getMembers("EE").stream()
+        assertEquals(expected, globalConfProvider.getMembers("EE").stream()
                 .map(i -> i.getId())
                 .collect(Collectors.toList()));
     }
@@ -191,8 +193,8 @@ public class GlobalConfTest {
         expected.add("https://www.foo.com/bar");
         expected.add("127.0.0.1");
 
-        assertEquals(expected, GlobalConf.getProviderAddress(consumer));
-        assertEquals(singleton("127.0.0.1"), GlobalConf.getProviderAddress(producer));
+        assertEquals(expected, globalConfProvider.getProviderAddress(consumer));
+        assertEquals(singleton("127.0.0.1"), globalConfProvider.getProviderAddress(producer));
     }
 
     /**
@@ -205,7 +207,7 @@ public class GlobalConfTest {
         X509Certificate org = TestCertUtil.getProducer().certChain[0];
         assertNotNull(org);
 
-        X509Certificate x509 = GlobalConf.getCaCert("EE", org);
+        X509Certificate x509 = globalConfProvider.getCaCert("EE", org);
 
         assertNotNull(x509);
     }
@@ -221,7 +223,7 @@ public class GlobalConfTest {
 
         assertNotNull(org);
 
-        CertChain certChain = GlobalConf.getCertChain("EE", org);
+        CertChain certChain = globalConfProvider.getCertChain("EE", org);
         List<X509Certificate> chain = certChain.getAllCerts();
 
         assertEquals(5, chain.size());
@@ -237,7 +239,7 @@ public class GlobalConfTest {
      */
     @Test
     public void getAllOcspResponderCertificates() {
-        List<X509Certificate> ocspResponderCerts = GlobalConf.getOcspResponderCertificates();
+        List<X509Certificate> ocspResponderCerts = globalConfProvider.getOcspResponderCertificates();
 
         for (X509Certificate cert : ocspResponderCerts) {
             assertNotNull("Got null certificate", cert);
@@ -256,7 +258,7 @@ public class GlobalConfTest {
         // Does not matter which org exactly as long as CA is adminca1
         X509Certificate orgCert = TestCertUtil.getConsumer().certChain[0];
         List<String> actualAddresses =
-                GlobalConf.getOcspResponderAddresses(orgCert);
+                globalConfProvider.getOcspResponderAddresses(orgCert);
         List<String> expectedAddresses = Arrays.asList(
                 "http://127.0.0.1:8082/ocsp",
                 "http://www.example.net/ocsp");
@@ -278,10 +280,10 @@ public class GlobalConfTest {
         ClientId producer = newClientId("producer");
         ClientId consumer = newClientId("consumer");
 
-        assertTrue(GlobalConf.authCertMatchesMember(producerCert, producer));
-        assertFalse(GlobalConf.authCertMatchesMember(consumerCert, producer));
-        assertFalse(GlobalConf.authCertMatchesMember(producerCert, consumer));
-        assertTrue(GlobalConf.authCertMatchesMember(consumerCert, consumer));
+        assertTrue(globalConfProvider.authCertMatchesMember(producerCert, producer));
+        assertFalse(globalConfProvider.authCertMatchesMember(consumerCert, producer));
+        assertFalse(globalConfProvider.authCertMatchesMember(producerCert, consumer));
+        assertTrue(globalConfProvider.authCertMatchesMember(consumerCert, consumer));
     }
 
     /**
@@ -295,7 +297,7 @@ public class GlobalConfTest {
                 SecurityServerId.Conf.create("EE", "BUSINESS", "foo",
                         "fooServerCode");
         X509Certificate cert = TestCertUtil.getProducer().certChain[0];
-        assertEquals(server, GlobalConf.getServerId(cert));
+        assertEquals(server, globalConfProvider.getServerId(cert));
     }
 
     /**
@@ -308,12 +310,12 @@ public class GlobalConfTest {
         SecurityServerId serverId = SecurityServerId.Conf.create("EE", "BUSINESS", "producer", "producerServerCode");
 
         ClientId owner = ClientId.Conf.create("EE", "BUSINESS", "producer");
-        ClientId ownerFromGlobalConf = GlobalConf.getServerOwner(serverId);
+        ClientId ownerFromGlobalConf = globalConfProvider.getServerOwner(serverId);
 
         assertEquals(owner, ownerFromGlobalConf);
 
         serverId = SecurityServerId.Conf.create("EE", "BUSINESS", "producer", "unknown");
-        ownerFromGlobalConf = GlobalConf.getServerOwner(serverId);
+        ownerFromGlobalConf = globalConfProvider.getServerOwner(serverId);
 
         assertNull(ownerFromGlobalConf);
     }
@@ -325,15 +327,16 @@ public class GlobalConfTest {
     public void isOcspResponderCert() {
         X509Certificate caCert = TestCertUtil.getCaCert();
 
-        assertFalse(GlobalConf.isOcspResponderCert(caCert, caCert));
+        assertFalse(globalConfProvider.isOcspResponderCert(caCert, caCert));
 
         PKCS12 ocspSigner = TestCertUtil.getOcspSigner();
         X509Certificate ocspCert = ocspSigner.certChain[0];
-        assertTrue(GlobalConf.isOcspResponderCert(caCert, ocspCert));
+        assertTrue(globalConfProvider.isOcspResponderCert(caCert, ocspCert));
     }
 
     /**
      * Tests getting the subject name from a certificate.
+     *
      * @throws Exception if an error occurs
      */
     @Test
@@ -341,7 +344,7 @@ public class GlobalConfTest {
         X509Certificate cert = TestCertUtil.getProducer().certChain[0];
 
         ClientId expected = ClientId.Conf.create("EE", "BUSINESS", "producer");
-        ClientId actual = GlobalConf.getSubjectName(
+        ClientId actual = globalConfProvider.getSubjectName(
                 new SignCertificateProfileInfoParameters(ClientId.Conf.create("EE", "foo", "bar"), "baz"), cert);
 
         assertEquals(expected, actual);
@@ -352,7 +355,7 @@ public class GlobalConfTest {
      */
     @Test
     public void getVerificationCaCerts() {
-        List<X509Certificate> certs = GlobalConf.getVerificationCaCerts();
+        List<X509Certificate> certs = globalConfProvider.getVerificationCaCerts();
 
         assertEquals(4, certs.size());
     }
@@ -367,7 +370,7 @@ public class GlobalConfTest {
                         "127.0.0.1",
                         "https://www.foo.com/bar",
                         "https://foo.bar.baz"));
-        Set<String> actualAddresses = GlobalConf.getKnownAddresses();
+        Set<String> actualAddresses = globalConfProvider.getKnownAddresses();
 
         assertEquals(expectedAddresses, actualAddresses);
     }
@@ -379,7 +382,7 @@ public class GlobalConfTest {
      */
     @Test
     public void getTspCerts() throws Exception {
-        List<X509Certificate> tspCertificates = GlobalConf.getTspCertificates();
+        List<X509Certificate> tspCertificates = globalConfProvider.getTspCertificates();
 
         assertEquals(3, tspCertificates.size());
     }
@@ -389,11 +392,11 @@ public class GlobalConfTest {
      */
     @Test
     public void getGlobalSettings() {
-        String serviceAddr = GlobalConf.getManagementRequestServiceAddress();
+        String serviceAddr = globalConfProvider.getManagementRequestServiceAddress();
 
         assertEquals("http://mgmt.com:1234", serviceAddr);
-        assertEquals(newClientId("servicemember2"), GlobalConf.getManagementRequestService());
-        assertEquals(42, GlobalConf.getOcspFreshnessSeconds());
+        assertEquals(newClientId("servicemember2"), globalConfProvider.getManagementRequestService());
+        assertEquals(42, globalConfProvider.getOcspFreshnessSeconds());
     }
 
     /**
@@ -410,16 +413,16 @@ public class GlobalConfTest {
         SecurityServerId server2 = SecurityServerId.Conf.create("EE", "BUSINESS", "producer", "foo");
         SecurityServerId server3 = SecurityServerId.Conf.create("EE", "BUSINESS", "foo", "FooBarServerCode");
 
-        assertTrue(GlobalConf.isSecurityServerClient(client1, server1));
-        assertTrue(GlobalConf.isSecurityServerClient(client2, server1));
-        assertTrue(GlobalConf.isSecurityServerClient(client3, server1));
-        assertFalse(GlobalConf.isSecurityServerClient(client4, server1));
+        assertTrue(globalConfProvider.isSecurityServerClient(client1, server1));
+        assertTrue(globalConfProvider.isSecurityServerClient(client2, server1));
+        assertTrue(globalConfProvider.isSecurityServerClient(client3, server1));
+        assertFalse(globalConfProvider.isSecurityServerClient(client4, server1));
 
-        assertFalse(GlobalConf.isSecurityServerClient(client1, server2));
-        assertFalse(GlobalConf.isSecurityServerClient(client2, server2));
-        assertFalse(GlobalConf.isSecurityServerClient(client3, server2));
+        assertFalse(globalConfProvider.isSecurityServerClient(client1, server2));
+        assertFalse(globalConfProvider.isSecurityServerClient(client2, server2));
+        assertFalse(globalConfProvider.isSecurityServerClient(client3, server2));
 
-        assertFalse(GlobalConf.isSecurityServerClient(client3, server3));
+        assertFalse(globalConfProvider.isSecurityServerClient(client3, server3));
     }
 
     /**
@@ -441,7 +444,7 @@ public class GlobalConfTest {
         expectedList.add(server3);
         expectedList.add(server4);
 
-        assertEquals(expectedList, GlobalConf.getSecurityServers(instanceIdentifier));
+        assertEquals(expectedList, globalConfProvider.getSecurityServers(instanceIdentifier));
     }
 
     /**
@@ -449,7 +452,7 @@ public class GlobalConfTest {
      */
     @Test
     public void getApprovedCAs() {
-        Collection<ApprovedCAInfo> cas = GlobalConf.getApprovedCAs("EE");
+        Collection<ApprovedCAInfo> cas = globalConfProvider.getApprovedCAs("EE");
 
         assertEquals(5, cas.size());
     }

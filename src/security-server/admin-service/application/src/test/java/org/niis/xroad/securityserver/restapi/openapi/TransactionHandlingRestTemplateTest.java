@@ -90,7 +90,7 @@ public class TransactionHandlingRestTemplateTest extends AbstractApiControllerTe
                 members.add(new MemberInfo(clientId, "mock-name-for-" + encodedId));
             }
             return members;
-        }).when(globalConfFacade).getMembers();
+        }).when(globalConfProvider).getMembers();
 
         when(currentSecurityServerSignCertificates.getSignCertificateInfos()).thenReturn(new ArrayList<>());
         when(serverConfService.getSecurityServerId()).thenReturn(OWNER_SERVER_ID);

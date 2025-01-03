@@ -38,7 +38,7 @@ import org.niis.xroad.cs.admin.core.entity.TrustedAnchorEntity;
 
 import java.util.Set;
 
-import static ee.ria.xroad.common.util.CryptoUtils.calculateAnchorHashDelimited;
+import static ee.ria.xroad.common.crypto.Digests.calculateAnchorHashDelimited;
 import static java.util.Arrays.copyOf;
 import static java.util.stream.Collectors.toSet;
 import static org.mapstruct.MappingConstants.ComponentModel.SPRING;

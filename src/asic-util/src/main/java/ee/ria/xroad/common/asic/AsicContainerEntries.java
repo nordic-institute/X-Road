@@ -102,6 +102,15 @@ public final class AsicContainerEntries {
             ENTRY_TIMESTAMP,
     };
 
+    /**
+     * True if the given file is an attachment.
+     * @param fileName the file to check
+     * @return true if the given file is an attachment, false otherwise
+     */
+    public static boolean isAttachment(String fileName) {
+        return fileName.startsWith(ENTRY_ATTACHMENT);
+    }
+
     private AsicContainerEntries() {
     }
 

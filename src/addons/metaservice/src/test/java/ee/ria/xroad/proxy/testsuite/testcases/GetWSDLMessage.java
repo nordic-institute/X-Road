@@ -26,7 +26,6 @@
 package ee.ria.xroad.proxy.testsuite.testcases;
 
 import ee.ria.xroad.common.conf.serverconf.IsAuthentication;
-import ee.ria.xroad.common.conf.serverconf.ServerConf;
 import ee.ria.xroad.common.conf.serverconf.model.ClientType;
 import ee.ria.xroad.common.conf.serverconf.model.DescriptionType;
 import ee.ria.xroad.common.conf.serverconf.model.ServerConfType;
@@ -59,9 +58,9 @@ import static com.github.tomakehurst.wiremock.core.WireMockConfiguration.options
 import static ee.ria.xroad.common.conf.serverconf.ServerConfDatabaseCtx.doInTransaction;
 import static ee.ria.xroad.proxy.util.MetaserviceTestUtil.cleanDB;
 import static ee.ria.xroad.proxy.util.MetaserviceTestUtil.parseOperationNamesFromWSDLDefinition;
+import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.containsInAnyOrder;
 import static org.hamcrest.Matchers.startsWith;
-import static org.junit.Assert.assertThat;
 
 /**
  * Test WSDL retrieval.
@@ -100,11 +99,10 @@ public class GetWSDLMessage extends MessageTestCase {
     @Override
     protected void validateNormalResponse(Message receivedResponse) {
 
-        if (!(receivedResponse instanceof WSDLMessage)) {
+        if (!(receivedResponse instanceof WSDLMessage wsdl)) {
             throw new IllegalStateException("Needed a WSDL response");
         }
 
-        WSDLMessage wsdl = (WSDLMessage) receivedResponse;
         wsdl.parse();
 
         Definition definition = wsdl.getDefinition();
@@ -127,7 +125,7 @@ public class GetWSDLMessage extends MessageTestCase {
     @Override
     protected void startUp() throws Exception {
         super.startUp();
-        ServerConf.reload(new TestSuiteServerConf() {
+        serverConfProvider.setServerConfProvider(new TestSuiteServerConf() {
             @Override
             public IsAuthentication getIsAuthentication(ClientId client) {
                 return IsAuthentication.NOSSL;
@@ -166,7 +164,7 @@ public class GetWSDLMessage extends MessageTestCase {
         client.getServiceDescription().add(wsdl);
 
         doInTransaction(session -> {
-            session.save(conf);
+            session.persist(conf);
             return null;
         });
 
@@ -207,19 +205,17 @@ public class GetWSDLMessage extends MessageTestCase {
 
             @Override
             public void body(BodyDescriptor bd, InputStream is) throws IOException {
+                if (nextPart == 0) {
+                    // SOAP
+                    nextPart = 1;
+                } else {
+                    // Attachment => WSDL
+                    try {
+                        definition = wsdlReader.readWSDL(null, new InputSource(is));
+                    } catch (WSDLException e) {
+                        throw new IOException(e);
 
-                switch (nextPart) {
-                    case 0: // SOAP
-                        nextPart = 1;
-                        break;
-                    default: // Attachment => WSDL
-                        try {
-                            definition = wsdlReader.readWSDL(null, new InputSource(is));
-                        } catch (WSDLException e) {
-                            throw new IOException(e);
-
-                        }
-                        break;
+                    }
                 }
             }
         }

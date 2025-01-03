@@ -1,0 +1,50 @@
+---
+- name: Set architecture-specific variables
+  set_fact:
+    java_arch_path: "{{ ansible_architecture | regex_replace('x86_64', 'amd64') | regex_replace('aarch64', 'arm64') }}"
+
+- name: Set Java home path
+  set_fact:
+    java_17_home: "/usr/lib/jvm/java-17-openjdk-{{ java_arch_path }}"
+
+- name: Install required packages
+  apt:
+    name:
+      - openjdk-17-jdk-headless
+      - curl
+      - jq
+    update_cache: yes
+    state: present
+
+- name: Get latest example-adapter version
+  shell: |
+    curl -s "https://artifactory.niis.org/api/storage/xroad-maven-snapshots/org/niis/example-adapter/" | \
+    jq -r '.children[] | select(.uri | contains("SNAPSHOT")) | .uri' | \
+    sort -V | tail -n1 | tr -d '/'
+  register: latest_version
+
+- name: Get latest artifact URL
+  shell: |
+    curl -s "https://artifactory.niis.org/api/storage/xroad-maven-snapshots/org/niis/example-adapter/{{ latest_version.stdout }}" | \
+    jq -r '.children[] | select(.uri | endswith("-boot.war")) | .uri' | \
+    sort -V | tail -n1 | tr -d '/'
+  register: artifact_filename
+
+- name: Download example-adapter
+  get_url:
+    url: "https://artifactory.niis.org/xroad-maven-snapshots/org/niis/example-adapter/{{ latest_version.stdout }}/{{ artifact_filename.stdout }}"
+    dest: /example-adapter.war
+    mode: '0644'
+
+- name: Create systemd service
+  template:
+    src: templates/example-adapter.service.j2
+    dest: /etc/systemd/system/example-adapter.service
+    mode: '0644'
+
+- name: Start and enable example-adapter service
+  systemd:
+    name: example-adapter
+    state: started
+    enabled: yes
+    daemon_reload: yes

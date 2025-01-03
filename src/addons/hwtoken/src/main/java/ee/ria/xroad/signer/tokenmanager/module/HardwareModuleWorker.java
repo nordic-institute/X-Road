@@ -25,6 +25,7 @@
  */
 package ee.ria.xroad.signer.tokenmanager.module;
 
+import ee.ria.xroad.common.crypto.identifier.KeyAlgorithm;
 import ee.ria.xroad.signer.tokenmanager.token.AbstractTokenWorker;
 import ee.ria.xroad.signer.tokenmanager.token.HardwareTokenType;
 import ee.ria.xroad.signer.tokenmanager.token.HardwareTokenWorker;
@@ -88,13 +89,13 @@ public class HardwareModuleWorker extends AbstractModuleWorker {
         }
 
         return new DefaultInitializeArgs(null,
-                libraryCantCreateOsThreads == null ? false : libraryCantCreateOsThreads,
-                osLockingOk == null ? false : osLockingOk);
+                libraryCantCreateOsThreads != null && libraryCantCreateOsThreads,
+                osLockingOk != null && osLockingOk);
     }
 
     @Override
-    public void stop() {
-        super.stop();
+    public void destroy() {
+        super.destroy();
         if (pkcs11Module == null) {
             return;
         }
@@ -114,7 +115,7 @@ public class HardwareModuleWorker extends AbstractModuleWorker {
     public void reload() {
         log.info("Reloading {}", module);
         try {
-            stop();
+            destroy();
         } catch (Exception e) {
             log.warn("Failed to stop module {}.", module.getType());
         }
@@ -184,7 +185,10 @@ public class HardwareModuleWorker extends AbstractModuleWorker {
                 tokenInfo.getLabel().trim(), // PKCS11 gives us only 32 bytes.
                 module.isPinVerificationPerSigning(),
                 module.isBatchSigningEnabled(),
-                module.getSignMechanismName(),
+                Map.of(
+                        KeyAlgorithm.RSA, module.getRsaSignMechanismName(),
+                        KeyAlgorithm.EC, module.getEcSignMechanismName()
+                ),
                 module.getPrivKeyAttributes(),
                 module.getPubKeyAttributes()
         );

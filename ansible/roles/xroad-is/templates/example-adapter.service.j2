@@ -1,0 +1,11 @@
+[Unit]
+Description=XRD4J Example Adapter
+After=network.target
+
+[Service]
+Environment="JAVA_HOME={{ java_17_home }}"
+ExecStart={{ java_17_home }}/bin/java -jar /example-adapter.war
+Restart=always
+
+[Install]
+WantedBy=multi-user.target

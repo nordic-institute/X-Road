@@ -1,0 +1,16 @@
+dependencies {
+    implementation(platform(libs.springBoot.bom))
+
+    implementation(libs.jakarta.annotationApi)
+    implementation('org.springframework:spring-context')
+
+    implementation libs.archUnit.plugin.core
+}
+
+test {
+    useJUnitPlatform()
+}
+
+archUnit {
+    skip = true // do not self-test
+}

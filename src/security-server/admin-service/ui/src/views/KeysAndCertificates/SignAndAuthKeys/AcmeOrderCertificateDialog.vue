@@ -25,7 +25,6 @@
  -->
 <template>
   <xrd-simple-dialog
-    v-if="dialog"
     title="keys.orderAcmeCertificate"
     save-button-text="action.order"
     :disable-save="!meta.valid || hasAcmeEabRequiredButNoCredentials"
@@ -64,22 +63,18 @@ import { useNotifications } from '@/store/modules/notifications';
 
 export default defineComponent({
   props: {
-    dialog: {
-      type: Boolean,
-      required: true,
-    },
     csr: {
       type: Object as PropType<TokenCertificateSigningRequest>,
       required: true,
     },
     keyUsage: {
-      type: Object as PropType<KeyUsageType>,
+      type: String as PropType<KeyUsageType>,
     },
   },
   emits: ['cancel', 'save'],
   setup() {
     const { meta, errors, setErrors, value, resetField } = useField(
-      'certificateService',
+      'certificationService',
       'required',
       { initialValue: '' },
     );
@@ -137,5 +132,5 @@ export default defineComponent({
 </script>
 
 <style lang="scss" scoped>
-@import '../../../assets/dialogs';
+@use '@/assets/dialogs';
 </style>

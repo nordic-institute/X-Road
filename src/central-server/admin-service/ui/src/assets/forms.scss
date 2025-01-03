@@ -25,16 +25,16 @@
  * THE SOFTWARE.
  */
 
-@import '@/assets/colors';
+@use 'colors';
 
 // Card looking outer wrap for the form
 .form-view-wrap {
   width: 100%;
   max-width: 1280px;
-  background-color: $XRoad-White100;
+  background-color: colors.$White100;
   margin: 40px;
   margin-top: 30px;
-  box-shadow: $XRoad-DefaultShadow;
+  box-shadow: colors.$DefaultShadow;
   border-radius: 4px;
   display: flex;
   flex-direction: column;
@@ -79,7 +79,7 @@
   flex-direction: row;
   align-items: center;
   justify-content: flex-end;
-  background-color: $XRoad-WarmGrey10;
+  background-color: colors.$WarmGrey10;
   height: 72px;
   padding-right: 24px;
   padding-left: 24px;

@@ -28,8 +28,8 @@
     <SOAP-ENV:Body>
         <om:getSecurityServerOperationalData>
             <om:searchCriteria>
-                <om:recordsFrom>1695654010</om:recordsFrom>
-                <om:recordsTo>33252649210</om:recordsTo>
+                <om:recordsFrom>0</om:recordsFrom>
+                <om:recordsTo>1924995955342</om:recordsTo>
             </om:searchCriteria>
         </om:getSecurityServerOperationalData>
     </SOAP-ENV:Body>

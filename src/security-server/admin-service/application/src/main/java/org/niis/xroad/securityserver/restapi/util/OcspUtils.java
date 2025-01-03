@@ -25,7 +25,7 @@
  */
 package org.niis.xroad.securityserver.restapi.util;
 
-import ee.ria.xroad.common.util.CryptoUtils;
+import ee.ria.xroad.common.util.EncoderUtils;
 import ee.ria.xroad.signer.protocol.dto.CertificateInfo;
 
 import org.apache.commons.lang3.StringUtils;
@@ -55,7 +55,7 @@ public final class OcspUtils {
         if (StringUtils.isEmpty(base64EncodedOcspResponse)) {
             return null;
         }
-        return getOcspResponseStatus(CryptoUtils.decodeBase64(base64EncodedOcspResponse));
+        return getOcspResponseStatus(EncoderUtils.decodeBase64(base64EncodedOcspResponse));
     }
 
     /**
@@ -95,8 +95,7 @@ public final class OcspUtils {
             OCSPResp response = new OCSPResp(ocspBytes);
             BasicOCSPResp basicResponse = (BasicOCSPResp) response.getResponseObject();
             SingleResp resp = basicResponse.getResponses()[0];
-            CertificateStatus status = resp.getCertStatus();
-            return status;
+            return resp.getCertStatus();
         } catch (IOException | OCSPException e) {
             throw new OcspStatusExtractionException(e);
         }

@@ -48,7 +48,7 @@ import org.hibernate.query.Query;
 import java.util.Date;
 
 import static ee.ria.xroad.common.conf.serverconf.ServerConfDatabaseCtx.doInTransaction;
-import static ee.ria.xroad.common.util.CryptoUtils.decodeBase64;
+import static ee.ria.xroad.common.util.EncoderUtils.decodeBase64;
 
 /**
  * Contains server conf test utility methods.
@@ -246,10 +246,12 @@ public final class TestUtil {
 
             EndpointType restEndpoint = new EndpointType(service.getServiceCode(), "GET", "/api/**", false);
             session.persist(restEndpoint);
+            client.getEndpoint().add(restEndpoint);
             client.getAcl().add(createAccessRight(restEndpoint, client.getIdentifier()));
 
             EndpointType restEndpoint2 = new EndpointType(service.getServiceCode(), "POST", "/api/test/*", false);
             session.persist(restEndpoint2);
+            client.getEndpoint().add(restEndpoint2);
             client.getAcl().add(createAccessRight(restEndpoint2, client.getIdentifier()));
 
             LocalGroupType localGroup = new LocalGroupType();

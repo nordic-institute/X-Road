@@ -27,21 +27,20 @@ package ee.ria.xroad.asicverifier;
 
 import ee.ria.xroad.common.ExpectedCodedException;
 import ee.ria.xroad.common.SystemProperties;
-import ee.ria.xroad.common.TestCertUtil;
 import ee.ria.xroad.common.asic.AsicContainerVerifier;
-import ee.ria.xroad.common.conf.globalconf.GlobalConf;
+import ee.ria.xroad.common.asic.AsicUtils;
+import ee.ria.xroad.common.conf.globalconf.GlobalConfProvider;
 import ee.ria.xroad.common.conf.globalconf.TestGlobalConfImpl;
 
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.junit.BeforeClass;
-import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
 import org.junit.runners.Parameterized.Parameters;
 
-import java.security.cert.X509Certificate;
 import java.util.Arrays;
 import java.util.Collection;
 
@@ -53,14 +52,16 @@ import static ee.ria.xroad.common.ErrorCodes.X_MALFORMED_SIGNATURE;
 /**
  * Tests to verify correct ASiC container verifier behavior.
  */
+@Slf4j
 @RunWith(Parameterized.class)
 @RequiredArgsConstructor
-@Ignore(value = "Test data must be updated to conform to the latest changes in X-Road message headers")
+//@Ignore(value = "Test data must be updated to conform to the latest changes in X-Road message headers")
 public class AsicContainerVerifierTest {
+
+    private static GlobalConfProvider globalConfProvider;
 
     private final String containerFile;
     private final String errorCode;
-
     @Rule
     public ExpectedCodedException thrown = ExpectedCodedException.none();
 
@@ -69,16 +70,11 @@ public class AsicContainerVerifierTest {
      */
     @BeforeClass
     public static void setUpConf() {
-        System.setProperty(SystemProperties.CONFIGURATION_PATH, "../common/common-globalconf/src/test/resources/globalconf_good");
+        System.setProperty(SystemProperties.CONFIGURATION_PATH, "../common/common-globalconf/src/test/resources/globalconf_good2_v3");
         System.setProperty(SystemProperties.CONFIGURATION_ANCHOR_FILE,
                 "../common/common-globalconf/src/test/resources/configuration-anchor1.xml");
 
-        GlobalConf.reload(new TestGlobalConfImpl() {
-            @Override
-            public X509Certificate getCaCert(String instanceIdentifier, X509Certificate memberCert) throws Exception {
-                return TestCertUtil.getCaCert();
-            }
-        });
+        globalConfProvider = new TestGlobalConfImpl();
     }
 
     /**
@@ -88,6 +84,8 @@ public class AsicContainerVerifierTest {
     public static Collection<Object[]> data() {
         return Arrays.asList(new Object[][]{
                 {"valid-signed-message.asice", null},
+                {"valid-non-batch-rest.asice", null},
+                {"valid-non-batch-soap-attachments.asice", null},
                 {"valid-signed-hashchain.asice", null},
                 {"valid-batch-ts.asice", null},
                 {"wrong-message.asice", X_INVALID_SIGNATURE_VALUE},
@@ -104,6 +102,7 @@ public class AsicContainerVerifierTest {
 
     /**
      * Test to ensure container file verification result is as expected.
+     *
      * @throws Exception in case of any unexpected errors
      */
     @Test
@@ -114,7 +113,16 @@ public class AsicContainerVerifierTest {
     }
 
     private static void verify(String fileName) throws Exception {
-        AsicContainerVerifier verifier = new AsicContainerVerifier("src/test/resources/" + fileName);
-        verifier.verify();
+        log.info("Verifying ASiC container \"" + fileName + "\" ...");
+
+        try {
+            AsicContainerVerifier verifier = new AsicContainerVerifier(globalConfProvider, "src/test/resources/" + fileName);
+            verifier.verify();
+
+            log.info(AsicUtils.buildSuccessOutput(verifier));
+        } catch (Exception e) {
+            log.error(AsicUtils.buildFailureOutput(e));
+            throw e;
+        }
     }
 }

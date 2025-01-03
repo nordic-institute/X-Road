@@ -132,7 +132,7 @@ public class ClientRegistrationRequestHandler implements RequestHandler<ClientRe
                 req = new ClientRegistrationRequestEntity(origin, serverId, clientId, request.getComments());
                 break;
             case 1:
-                ClientRegistrationRequestEntity anotherReq = pending.get(0);
+                ClientRegistrationRequestEntity anotherReq = pending.getFirst();
                 if (anotherReq.getOrigin().equals(request.getOrigin())) {
                     throw new DataIntegrityException(MR_EXISTS, valueOf(anotherReq.getId()));
                 }
@@ -163,20 +163,14 @@ public class ClientRegistrationRequestHandler implements RequestHandler<ClientRe
 
         XRoadMemberEntity clientMember = memberHelper.findOrCreate(clientRegistrationRequest.getClientId());
 
-        SecurityServerClientEntity client;
-        switch (clientRegistrationRequest.getClientId().getObjectType()) {
-            case MEMBER:
-                client = clientMember;
-                break;
-            case SUBSYSTEM:
-                // create new subsystem if necessary
-                client = clients
-                        .findOneBy(clientRegistrationRequest.getClientId())
-                        .orElseGet(() -> clients.save(new SubsystemEntity(clientMember, clientRegistrationRequest.getClientId())));
-                break;
-            default:
-                throw new IllegalArgumentException("Invalid client type");
-        }
+        SecurityServerClientEntity client = switch (clientRegistrationRequest.getClientId().getObjectType()) {
+            case MEMBER -> clientMember;
+            case SUBSYSTEM -> clients
+                    .findOneBy(clientRegistrationRequest.getClientId())
+                    // create new subsystem if necessary
+                    .orElseGet(() -> clients.save(new SubsystemEntity(clientMember, clientRegistrationRequest.getClientId())));
+            default -> throw new IllegalArgumentException("Invalid client type");
+        };
 
         serverClientRepository.saveAndFlush(new ServerClientEntity(server, client));
 

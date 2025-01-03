@@ -39,6 +39,7 @@
         $t(tab.name)
       }}</v-tab>
     </v-tabs>
+    <language-dropdown />
     <app-drop-menu />
   </v-layout>
 </template>
@@ -51,11 +52,13 @@ import AppIcon from './AppIcon.vue';
 import AppDropMenu from './UserDropMenu.vue';
 import { mapState } from 'pinia';
 import { useUser } from '@/store/modules/user';
+import LanguageDropdown from './LanguageDropdown.vue';
 
 export default defineComponent({
   components: {
     AppIcon,
     AppDropMenu,
+    LanguageDropdown,
   },
   data() {
     return {
@@ -72,7 +75,7 @@ export default defineComponent({
 </script>
 
 <style lang="scss">
-@import '@/assets/colors';
+@use '@/assets/colors';
 .v-tabs-slider.xrd-main-tabs-slider {
   width: 70px;
   margin-left: auto;

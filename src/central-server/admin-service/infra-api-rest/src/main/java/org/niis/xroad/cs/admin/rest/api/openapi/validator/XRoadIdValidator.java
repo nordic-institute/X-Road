@@ -43,14 +43,12 @@ public class XRoadIdValidator implements ConstraintValidator<ValidXRoadId, XRoad
         if (value == null) return true;
         if (!isValidPart(value.getInstanceId())) return false;
 
-        if (value instanceof ClientIdDto) {
-            var id = (ClientIdDto) value;
+        if (value instanceof ClientIdDto id) {
             return isValidPart(id.getMemberClass())
                     && isValidPart(id.getMemberCode())
                     && ((id.getType() == XRoadIdDto.TypeEnum.SUBSYSTEM && isValidPart(id.getSubsystemCode()))
                     || ((id.getType() == XRoadIdDto.TypeEnum.MEMBER && id.getSubsystemCode() == null)));
-        } else if (value instanceof SecurityServerIdDto) {
-            var id = (SecurityServerIdDto) value;
+        } else if (value instanceof SecurityServerIdDto id) {
             return isValidPart(id.getMemberClass())
                     && isValidPart(id.getMemberCode())
                     && isValidPart(id.getServerCode());

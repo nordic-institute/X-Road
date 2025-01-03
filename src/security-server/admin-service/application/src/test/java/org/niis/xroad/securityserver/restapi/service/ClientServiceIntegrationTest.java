@@ -119,8 +119,8 @@ public class ClientServiceIntegrationTest extends AbstractServiceIntegrationTest
                 TestUtils.getMemberInfo(TestUtils.INSTANCE_EE, TestUtils.MEMBER_CLASS_PRO, TestUtils.MEMBER_CODE_M1, TestUtils.SUBSYSTEM1),
                 TestUtils.getMemberInfo(TestUtils.INSTANCE_EE, TestUtils.MEMBER_CLASS_PRO, TestUtils.MEMBER_CODE_M2, null),
                 TestUtils.getMemberInfo(TestUtils.INSTANCE_EE, TestUtils.MEMBER_CLASS_PRO, TestUtils.MEMBER_CODE_M3, null)));
-        when(globalConfFacade.getMembers()).thenReturn(globalMemberInfos);
-        when(globalConfFacade.getMemberName(any())).thenAnswer(invocation -> {
+        when(globalConfProvider.getMembers()).thenReturn(globalMemberInfos);
+        when(globalConfProvider.getMemberName(any())).thenAnswer(invocation -> {
             ClientId clientId = (ClientId) invocation.getArguments()[0];
             return globalMemberInfos.stream()
                     .filter(g -> g.getId().equals(clientId))
@@ -129,9 +129,9 @@ public class ClientServiceIntegrationTest extends AbstractServiceIntegrationTest
                     .orElse(null);
         });
         when(managementRequestSenderService.sendClientRegisterRequest(any())).thenReturn(1);
-        when(globalConfFacade.getInstanceIdentifier()).thenReturn(INSTANCE_FI);
+        when(globalConfProvider.getInstanceIdentifier()).thenReturn(INSTANCE_FI);
         when(globalConfService.getMemberClassesForThisInstance()).thenReturn(new HashSet<>(MEMBER_CLASSES));
-        when(globalConfFacade.isSecurityServerClient(any(), any())).thenAnswer(invocation -> {
+        when(globalConfProvider.isSecurityServerClient(any(), any())).thenAnswer(invocation -> {
             // mock isSecurityServerClient: it is a client, if it exists in DB / getAllLocalClients
             ClientId clientId = (ClientId) invocation.getArguments()[0];
             Optional<ClientType> match = clientService.getAllLocalClients()
@@ -373,29 +373,41 @@ public class ClientServiceIntegrationTest extends AbstractServiceIntegrationTest
     }
 
     @Test
-    public void deleteLocalClientWithStatusDisabledIsPossible() throws Exception {
+    public void deleteLocalClientWithStatusDisabledIsNotPossible() throws Exception {
         String status = STATUS_DISABLED;
         var startMembers = countMembers();
         var startSubsystems = countSubsystems();
         var startIdentifiers = countClientIdentifiers();
 
-        addAndDeleteLocalClient(MEMBER_FI_GOV_M3, status);
-        addAndDeleteLocalClient(SUBSYSTEM_FI_GOV_M3_SS_NEW, status);
+        try {
+            addAndDeleteLocalClient(MEMBER_FI_GOV_M3, status);
+        } catch (ActionNotPossibleException expected) {
+        }
+        try {
+            addAndDeleteLocalClient(SUBSYSTEM_FI_GOV_M3_SS_NEW, status);
+        } catch (ActionNotPossibleException expected) {
+        }
 
-        assertAfterDelete(startMembers, startSubsystems, startIdentifiers);
+        assertAfterCouldNotDelete(startMembers, startSubsystems, startIdentifiers);
     }
 
     @Test
-    public void deleteLocalClientWithStatusDisablingInProgressIsPossible() throws Exception {
+    public void deleteLocalClientWithStatusDisablingInProgressIsNotPossible() throws Exception {
         String status = STATUS_DISABLING_INPROG;
         var startMembers = countMembers();
         var startSubsystems = countSubsystems();
         var startIdentifiers = countClientIdentifiers();
 
-        addAndDeleteLocalClient(MEMBER_FI_GOV_M3, status);
-        addAndDeleteLocalClient(SUBSYSTEM_FI_GOV_M3_SS_NEW, status);
+        try {
+            addAndDeleteLocalClient(MEMBER_FI_GOV_M3, status);
+        } catch (ActionNotPossibleException expected) {
+        }
+        try {
+            addAndDeleteLocalClient(SUBSYSTEM_FI_GOV_M3_SS_NEW, status);
+        } catch (ActionNotPossibleException expected) {
+        }
 
-        assertAfterDelete(startMembers, startSubsystems, startIdentifiers);
+        assertAfterCouldNotDelete(startMembers, startSubsystems, startIdentifiers);
     }
 
     private void assertAfterDelete(long startMembers, long startSubsystems, long startIdentifiers) {
@@ -579,7 +591,7 @@ public class ClientServiceIntegrationTest extends AbstractServiceIntegrationTest
         // add clients who global conf says are already linked to this security server
         // this can occur (at least) if admin deletes a client from serverconf, but does not send
         // unregistration request to remove clients from globalconf
-        when(globalConfFacade.isSecurityServerClient(any(), any())).thenReturn(true);
+        when(globalConfProvider.isSecurityServerClient(any(), any())).thenReturn(true);
         long startMembers = countMembers();
         long startSubsystems = countSubsystems();
         int startIdentifiers = countIdentifiers();
@@ -1243,7 +1255,7 @@ public class ClientServiceIntegrationTest extends AbstractServiceIntegrationTest
 
     @Test
     public void getLocalClientMemberIds() {
-        Set<ClientId> expected = new HashSet();
+        Set<ClientId> expected = new HashSet<>();
         expected.add(ClientId.Conf.create(INSTANCE_FI,
                 MEMBER_CLASS_GOV, TestUtils.MEMBER_CODE_M1));
         expected.add(ClientId.Conf.create(INSTANCE_FI,

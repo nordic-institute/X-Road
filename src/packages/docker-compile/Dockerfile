@@ -1,4 +1,4 @@
-FROM ubuntu:22.04
+FROM ubuntu:24.04
 RUN apt-get clean && apt-get -y update && apt-get install -y locales && locale-gen en_US.UTF-8
 ENV LANG en_US.UTF-8
 ENV LANGUAGE en_US:en
@@ -9,7 +9,7 @@ ENV DEBIAN_FRONTEND=noninteractive
 RUN apt-get -qq update \
   && apt-get -qq upgrade \
   && apt-get -qq install curl software-properties-common gawk \
-  openjdk-17-jdk-headless build-essential git unzip debhelper \
+  openjdk-21-jdk-headless build-essential git unzip debhelper \
   && apt-get -qq autoremove \
   && apt-get -qq clean
 

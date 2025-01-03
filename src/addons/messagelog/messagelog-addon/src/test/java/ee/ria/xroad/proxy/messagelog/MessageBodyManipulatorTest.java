@@ -63,7 +63,7 @@ import static org.junit.Assert.assertTrue;
 @Slf4j
 public class MessageBodyManipulatorTest {
 
-    public static final String QUERY_DIR = "../../../proxy/src/test/queries/";
+    public static final String QUERY_DIR = "../../../proxy/core/src/test/queries/";
 
     @Getter
     @Setter
@@ -103,16 +103,16 @@ public class MessageBodyManipulatorTest {
     public static SoapMessageImpl createRequest(String fileName)
             throws Exception {
         Soap message = createSoapMessage(fileName);
-        if (!(message instanceof SoapMessageImpl)) {
+        if (!(message instanceof SoapMessageImpl soapMessage)) {
             throw new RuntimeException(
                     "Got " + message.getClass() + " instead of SoapMessage");
         }
 
-        if (((SoapMessageImpl) message).isResponse()) {
+        if (soapMessage.isResponse()) {
             throw new RuntimeException("Got response instead of request");
         }
 
-        return (SoapMessageImpl) message;
+        return soapMessage;
     }
 
     /**
@@ -124,16 +124,16 @@ public class MessageBodyManipulatorTest {
     public static SoapMessageImpl createResponse(String fileName)
             throws Exception {
         Soap message = createSoapMessage(fileName);
-        if (!(message instanceof SoapMessageImpl)) {
+        if (!(message instanceof SoapMessageImpl soapMessage)) {
             throw new RuntimeException(
                     "Got " + message.getClass() + " instead of SoapResponse");
         }
 
-        if (((SoapMessageImpl) message).isRequest()) {
+        if (soapMessage.isRequest()) {
             throw new RuntimeException("Got request instead of response");
         }
 
-        return (SoapMessageImpl) message;
+        return soapMessage;
     }
 
     /**
@@ -196,7 +196,7 @@ public class MessageBodyManipulatorTest {
                                                       String elementName,
                                                       boolean keepBody) throws Exception {
         String loggableMessage = new TestableMessageBodyManipulator(keepBody)
-                .getLoggableMessageText(new SoapLogMessage(query, null, clientSide));
+                .getLoggableMessageText(new SoapLogMessage(query, null, List.of(), clientSide, null));
         log.debug("loggable message with body"
                 + (keepBody ? " intact: " : " removed: ")
                 + loggableMessage);

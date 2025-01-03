@@ -3,7 +3,7 @@ Description=X-Road Proxy
 After=network.target xroad-base.service
 Requires=xroad-base.service
 Wants=postgresql.service
-Wants=xroad-signer.service xroad-confclient.service xroad-proxy-ui-api.service
+Wants=xroad-signer.service xroad-confclient.service
 
 [Service]
 AmbientCapabilities=CAP_NET_BIND_SERVICE

@@ -26,6 +26,8 @@
  */
 package org.niis.xroad.common.managementrequest.verify.decode;
 
+import ee.ria.xroad.common.conf.globalconf.GlobalConfProvider;
+
 import lombok.extern.slf4j.Slf4j;
 import org.niis.xroad.common.managementrequest.model.ManagementRequestType;
 import org.niis.xroad.common.managementrequest.verify.ManagementRequestVerifier;
@@ -33,8 +35,8 @@ import org.niis.xroad.common.managementrequest.verify.ManagementRequestVerifier;
 @Slf4j
 public class ClientEnableRequestCallback extends BaseClientRequestCallback {
 
-    public ClientEnableRequestCallback(ManagementRequestVerifier.DecoderCallback rootCallback) {
-        super(rootCallback, ManagementRequestType.CLIENT_ENABLE_REQUEST);
+    public ClientEnableRequestCallback(GlobalConfProvider globalConfProvider, ManagementRequestVerifier.DecoderCallback rootCallback) {
+        super(globalConfProvider, rootCallback, ManagementRequestType.CLIENT_ENABLE_REQUEST);
     }
 
 }

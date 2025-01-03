@@ -27,6 +27,7 @@ package org.niis.xroad.cs.admin.core.converter;
 
 import ee.ria.xroad.common.util.CertUtils;
 import ee.ria.xroad.common.util.CryptoUtils;
+import ee.ria.xroad.common.util.EncoderUtils;
 
 import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
@@ -37,8 +38,11 @@ import org.springframework.stereotype.Component;
 
 import java.security.PublicKey;
 import java.security.cert.X509Certificate;
+import java.security.interfaces.ECPublicKey;
 import java.security.interfaces.RSAPublicKey;
 
+import static ee.ria.xroad.common.crypto.NamedCurves.getCurveName;
+import static ee.ria.xroad.common.crypto.NamedCurves.getEncodedPoint;
 import static ee.ria.xroad.common.util.CertUtils.getIssuerCommonName;
 import static ee.ria.xroad.common.util.CertUtils.getSubjectAlternativeNames;
 import static ee.ria.xroad.common.util.CertUtils.getSubjectCommonName;
@@ -94,23 +98,29 @@ public class CertificateConverter {
                 .setVersion(certificate.getVersion())
                 .setSerial(valueOf(certificate.getSerialNumber()))
                 .setSignatureAlgorithm(certificate.getSigAlgName())
-                .setIssuerDistinguishedName(certificate.getIssuerDN().getName())
+                .setIssuerDistinguishedName(certificate.getIssuerX500Principal().toString())
                 .setNotBefore(certificate.getNotBefore().toInstant())
                 .setNotAfter(certificate.getNotAfter().toInstant())
-                .setSubjectDistinguishedName(certificate.getSubjectDN().getName())
+                .setSubjectDistinguishedName(certificate.getSubjectX500Principal().toString())
                 .setPublicKeyAlgorithm(certificate.getPublicKey().getAlgorithm())
                 .setKeyUsages(keyUsageConverter.convert(certificate.getKeyUsage()))
                 .setSubjectAlternativeNames(getSubjectAlternativeNames(certificate))
-                .setSignature(CryptoUtils.encodeHex(certificate.getSignature()))
+                .setSignature(EncoderUtils.encodeHex(certificate.getSignature()))
                 .setIssuerCommonName(getIssuerCommonName(certificate))
                 .setSubjectCommonName(getSubjectCommonName(certificate))
                 .setEncoded(cert);
 
         final PublicKey publicKey = certificate.getPublicKey();
-        if (publicKey instanceof RSAPublicKey) {
-            final RSAPublicKey rsaPublicKey = (RSAPublicKey) publicKey;
-            certificateDetails.setRsaPublicKeyExponent(rsaPublicKey.getPublicExponent());
-            certificateDetails.setRsaPublicKeyModulus(rsaPublicKey.getModulus().toString(RADIX_FOR_HEX));
+        switch (publicKey) {
+            case RSAPublicKey rsaPublicKey -> {
+                certificateDetails.setRsaPublicKeyExponent(rsaPublicKey.getPublicExponent());
+                certificateDetails.setRsaPublicKeyModulus(rsaPublicKey.getModulus().toString(RADIX_FOR_HEX));
+            }
+            case ECPublicKey ecPublicKey -> {
+                certificateDetails.setEcPublicParameters(getCurveName(ecPublicKey));
+                certificateDetails.setEcPublicKeyPoint(getEncodedPoint(ecPublicKey));
+            }
+            default -> throw new IllegalStateException("Unexpected type of public key: " + publicKey.getClass().getName());
         }
     }
 }

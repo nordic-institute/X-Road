@@ -26,7 +26,8 @@
 package ee.ria.xroad.common.asic;
 
 import ee.ria.xroad.common.CodedException;
-import ee.ria.xroad.common.conf.globalconf.GlobalConf;
+import ee.ria.xroad.common.conf.globalconf.GlobalConfProvider;
+import ee.ria.xroad.common.crypto.identifier.Providers;
 import ee.ria.xroad.common.hashchain.DigestValue;
 import ee.ria.xroad.common.hashchain.HashChainReferenceResolver;
 import ee.ria.xroad.common.hashchain.HashChainVerifier;
@@ -41,12 +42,14 @@ import ee.ria.xroad.common.signature.Signature;
 import ee.ria.xroad.common.signature.SignatureData;
 import ee.ria.xroad.common.signature.SignatureVerifier;
 import ee.ria.xroad.common.signature.TimestampVerifier;
+import ee.ria.xroad.common.util.EncoderUtils;
 import ee.ria.xroad.common.util.MessageFileNames;
 import ee.ria.xroad.common.util.MimeTypes;
 
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
+import org.apache.xml.security.signature.XMLSignatureDigestInput;
 import org.apache.xml.security.signature.XMLSignatureInput;
 import org.apache.xml.security.signature.XMLSignatureStreamInput;
 import org.apache.xml.security.utils.resolver.ResourceResolverContext;
@@ -56,7 +59,6 @@ import org.bouncycastle.asn1.ASN1Primitive;
 import org.bouncycastle.asn1.cms.ContentInfo;
 import org.bouncycastle.cert.ocsp.BasicOCSPResp;
 import org.bouncycastle.cert.ocsp.OCSPResp;
-import org.bouncycastle.jce.provider.BouncyCastleProvider;
 import org.bouncycastle.tsp.TimeStampToken;
 
 import java.io.ByteArrayInputStream;
@@ -64,7 +66,6 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
-import java.security.Security;
 import java.security.cert.X509Certificate;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -77,10 +78,11 @@ import static ee.ria.xroad.common.ErrorCodes.X_INVALID_SOAP;
 import static ee.ria.xroad.common.ErrorCodes.X_MALFORMED_SIGNATURE;
 import static ee.ria.xroad.common.asic.AsicContainerEntries.ENTRY_TIMESTAMP;
 import static ee.ria.xroad.common.asic.AsicContainerEntries.ENTRY_TS_HASH_CHAIN_RESULT;
-import static ee.ria.xroad.common.util.CryptoUtils.decodeBase64;
-import static ee.ria.xroad.common.util.CryptoUtils.encodeHex;
+import static ee.ria.xroad.common.util.EncoderUtils.decodeBase64;
+import static ee.ria.xroad.common.util.EncoderUtils.encodeHex;
 import static ee.ria.xroad.common.util.MessageFileNames.MESSAGE;
 import static ee.ria.xroad.common.util.MessageFileNames.SIG_HASH_CHAIN_RESULT;
+import static ee.ria.xroad.common.util.MessageFileNames.isAttachment;
 import static java.nio.charset.StandardCharsets.UTF_8;
 
 /**
@@ -91,10 +93,12 @@ import static java.nio.charset.StandardCharsets.UTF_8;
 public class AsicContainerVerifier {
 
     static {
-        Security.addProvider(new BouncyCastleProvider());
+        Providers.init();
         org.apache.xml.security.Init.init();
     }
 
+    private final GlobalConfProvider globalConfProvider;
+    private final OcspVerifier ocspVerifier;
     private final List<String> attachmentHashes = new ArrayList<>();
     private final AsicContainer asic;
 
@@ -113,12 +117,17 @@ public class AsicContainerVerifier {
 
     /**
      * Constructs a new ASiC container verifier for the ZIP file with the
-     * given filename. Attempts to verify it's contents.
+     * given filename. Attempts to verify its contents.
      *
-     * @param filename name of the ASiC container ZIP file
+     * @param globalConfProvider global conf provider
+     * @param filename           name of the ASiC container ZIP file
      * @throws Exception if the file could not be read
      */
-    public AsicContainerVerifier(String filename) throws Exception {
+    public AsicContainerVerifier(GlobalConfProvider globalConfProvider,
+                                 String filename) throws Exception {
+        this.globalConfProvider = globalConfProvider;
+        this.ocspVerifier = new OcspVerifier(globalConfProvider);
+
         try (FileInputStream in = new FileInputStream(filename)) {
             asic = AsicContainer.read(in);
         }
@@ -136,7 +145,8 @@ public class AsicContainerVerifier {
         signerName = getSigner(message);
 
         SignatureVerifier signatureVerifier =
-                new SignatureVerifier(signature,
+                new SignatureVerifier(globalConfProvider,
+                        signature,
                         signatureData.getHashChainResult(),
                         signatureData.getHashChain());
         verifyRequiredReferencesExist();
@@ -158,7 +168,7 @@ public class AsicContainerVerifier {
         OCSPResp ocsp = signatureVerifier.getSigningOcspResponse(
                 signerName.getXRoadInstance());
         ocspDate = ((BasicOCSPResp) ocsp.getResponseObject()).getProducedAt();
-        ocspCert = OcspVerifier.getOcspCert(
+        ocspCert = ocspVerifier.getOcspCert(
                 (BasicOCSPResp) ocsp.getResponseObject());
     }
 
@@ -175,14 +185,20 @@ public class AsicContainerVerifier {
         attachmentHashes.clear();
 
         verifier.setSignatureResourceResolver(new ResourceResolverSpi() {
+
             @Override
             public boolean engineCanResolveURI(ResourceResolverContext context) {
+                if (isAttachment(context.attr.getValue())) {
+                    return asic.getAttachmentDigest(context.attr.getValue()) != null;
+                }
                 return asic.hasEntry(context.attr.getValue());
             }
 
             @Override
-            public XMLSignatureInput engineResolveURI(ResourceResolverContext context)
-                    throws ResourceResolverException {
+            public XMLSignatureInput engineResolveURI(ResourceResolverContext context) throws ResourceResolverException {
+                if (isAttachment(context.attr.getValue())) {
+                    return new XMLSignatureDigestInput(EncoderUtils.encodeBase64(asic.getAttachmentDigest(context.attr.getValue())));
+                }
                 return new XMLSignatureStreamInput(asic.getEntry(context.attr.getValue()));
             }
         });
@@ -191,7 +207,7 @@ public class AsicContainerVerifier {
     }
 
     private void logUnresolvableHash(String uri, byte[] digestValue) {
-        boolean verified = uri.equals("/attachment1") && Arrays.equals(digestValue, asic.getAttachmentDigest());
+        boolean verified = isAttachment(uri) && Arrays.equals(digestValue, asic.getAttachmentDigest(uri));
         attachmentHashes.add(String.format("The digest for \"%s\" is: %s", uri,
                 encodeHex(digestValue)) + (verified ? " (verified)" : " (unverified)"));
     }
@@ -199,12 +215,10 @@ public class AsicContainerVerifier {
     private Date verifyTimestamp() throws Exception {
         TimeStampToken tsToken = getTimeStampToken();
 
-        TimestampVerifier.verify(tsToken, getTimestampedData(),
-                GlobalConf.getTspCertificates());
+        TimestampVerifier.verify(tsToken, getTimestampedData(), globalConfProvider.getTspCertificates());
 
         timestampDate = tsToken.getTimeStampInfo().getGenTime();
-        timestampCert = TimestampVerifier.getSignerCertificate(
-                tsToken, GlobalConf.getTspCertificates());
+        timestampCert = TimestampVerifier.getSignerCertificate(tsToken, globalConfProvider.getTspCertificates());
 
         return tsToken.getTimeStampInfo().getGenTime();
     }
@@ -248,10 +262,9 @@ public class AsicContainerVerifier {
             Soap soap = new SaxSoapParserImpl().parse(
                     MimeTypes.TEXT_XML_UTF8,
                     new ByteArrayInputStream(messageBytes));
-            if (!(soap instanceof SoapMessageImpl)) {
+            if (!(soap instanceof SoapMessageImpl msg)) {
                 throw new RuntimeException("Unexpected SOAP: " + soap.getClass());
             }
-            SoapMessageImpl msg = (SoapMessageImpl) soap;
             return msg.isRequest()
                     ? msg.getClient() : msg.getService().getClientId();
         } catch (CodedException ce) {

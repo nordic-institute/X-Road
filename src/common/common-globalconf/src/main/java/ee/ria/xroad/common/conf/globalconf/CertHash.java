@@ -26,7 +26,8 @@
  */
 package ee.ria.xroad.common.conf.globalconf;
 
-import ee.ria.xroad.common.util.CryptoUtils;
+import ee.ria.xroad.common.crypto.Digests;
+import ee.ria.xroad.common.crypto.identifier.DigestAlgorithm;
 
 import lombok.EqualsAndHashCode;
 import lombok.NonNull;
@@ -36,7 +37,7 @@ import lombok.SneakyThrows;
 public class CertHash {
     final byte[] cert;
 
-    final String algorithm;
+    final DigestAlgorithm algorithm;
     final byte[] hash;
 
     public CertHash(byte @NonNull [] cert) {
@@ -46,7 +47,7 @@ public class CertHash {
         this.hash = null;
     }
 
-    public CertHash(@NonNull String algorithm, byte @NonNull [] hash) {
+    public CertHash(@NonNull DigestAlgorithm algorithm, byte @NonNull [] hash) {
         this.algorithm = algorithm;
         this.hash = hash;
 
@@ -54,9 +55,9 @@ public class CertHash {
     }
 
     @SneakyThrows
-    public byte[] getHash(@NonNull String algorithmId) {
+    public byte[] getHash(@NonNull DigestAlgorithm algorithmId) {
         if (cert != null) {
-            return CryptoUtils.calculateDigest(algorithmId, cert);
+            return Digests.calculateDigest(algorithmId, cert);
         } else if (algorithmId.equals(this.algorithm)) {
             return hash;
         }

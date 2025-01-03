@@ -25,8 +25,11 @@
  */
 package org.niis.xroad.securityserver.restapi.config;
 
+import ee.ria.xroad.common.conf.globalconf.GlobalConfProvider;
+import ee.ria.xroad.common.conf.serverconf.ServerConfProvider;
+
 import org.junit.runner.RunWith;
-import org.niis.xroad.securityserver.restapi.facade.GlobalConfFacade;
+import org.niis.xroad.common.acme.AcmeService;
 import org.niis.xroad.securityserver.restapi.facade.SignerProxyFacade;
 import org.niis.xroad.securityserver.restapi.service.ManagementRequestSenderService;
 import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
@@ -37,10 +40,10 @@ import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.transaction.annotation.Transactional;
 
 /**
- * Base for all tests that mock GlobalConfFacade, ManagementRequestSenderService, and SignerProxyFacade.
+ * Base for all tests that mock GlobalConfProvider, ManagementRequestSenderService, and SignerProxyFacade.
  * Tests usually always want to do this, since they want to make sure they do not (accidentally) attempt to
  * read global configuration from filesystem, send actual management requests, or send rpc requests to signer.
- *
+ * <p>
  * Extending this base class also helps in keeping mock injections standard, and reduce number of different
  * application contexts built for testing.
  */
@@ -51,10 +54,14 @@ import org.springframework.transaction.annotation.Transactional;
 @WithMockUser
 public abstract class AbstractFacadeMockingTestContext {
     @MockBean
-    protected GlobalConfFacade globalConfFacade;
+    protected GlobalConfProvider globalConfProvider;
+    @MockBean
+    protected ServerConfProvider serverConfProvider;
     @MockBean
     protected ManagementRequestSenderService managementRequestSenderService;
     @MockBean
     protected SignerProxyFacade signerProxyFacade;
+    @MockBean
+    protected AcmeService acmeService;
 
 }

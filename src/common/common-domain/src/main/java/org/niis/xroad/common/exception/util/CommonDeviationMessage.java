@@ -53,6 +53,7 @@ public enum CommonDeviationMessage implements DeviationProvider {
 
     ERROR_RESOURCE_READ("resource_read_failed", "Failed to read resource"),
     ERROR_INVALID_ADDRESS_CHAR("invalid_address_char", "Address contains invalid characters"),
+    INVALID_URL("invalid_url", "Invalid url"),
 
     ANCHOR_NOT_FOR_EXTERNAL_SOURCE("conf_verification.anchor_not_for_external_source",
             "Configuration verification failed: anchor_not_for_external_source"),
@@ -70,7 +71,12 @@ public enum CommonDeviationMessage implements DeviationProvider {
             "Error reading locations from shared parameters: not supported format of download url"),
 
     ERROR_READING_OPENAPI_FILE("openapi_file_error", "Error reading open api definition file"),
-    INITIALIZATION_INTERRUPTED("initialization_interrupted", "Initialization has been interrupted");
+    INITIALIZATION_INTERRUPTED("initialization_interrupted", "Initialization has been interrupted"),
+    EMAIL_SENDING_FAILED("email_sending_error", "Failed to send email"),
+
+    TOKEN_FETCH_FAILED("token_fetch_failed", "Error getting tokens"),
+    TOKEN_PIN_INCORRECT("pin_incorrect", "Entered PIN was incorrect"),
+    TOKEN_NOT_ACTIVE("token_not_active", "Token is not active");
 
     @Getter
     private final String code;

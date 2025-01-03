@@ -13,6 +13,9 @@ services:
       test: [ "CMD", "curl", "-f", "-k", "https://localhost:4000" ]
   ss0:
     image: ${SS_IMG}
+    environment:
+      - PROXY_JMX_PORT=4299
+      - SIGNER_JMX_PORT=4298
     deploy:
       resources:
         reservations:
@@ -25,6 +28,9 @@ services:
       test: [ "CMD", "curl", "-f", "-k", "https://localhost:4000" ]
   ss1:
     image: ${SS_IMG}
+    environment:
+      - PROXY_JMX_PORT=4399
+      - SIGNER_JMX_PORT=4398
     deploy:
       resources:
         reservations:
@@ -49,6 +55,18 @@ services:
       test: [ "CMD", "curl", "-f", "-k", "http://localhost:8888/testca/certs" ]
     volumes:
       - ca-volume:/home/ca/certs
+  mailpit:
+    image: axllent/mailpit
+    restart: unless-stopped
+    volumes:
+      - ./testmail:/data
+    environment:
+      MP_MAX_MESSAGES: 5000
+      MP_DATABASE: /data/mailpit.db
+      MP_SMTP_REQUIRE_STARTTLS: 1
+      MP_SMTP_TLS_CERT: /data/mailpit_cert.pem
+      MP_SMTP_TLS_KEY: /data/mailpit_key.pem
+      MP_SMTP_AUTH_FILE: /data/password_file
   issoap:
     image: ${IS_SOAP_IMG}
     deploy:
@@ -61,7 +79,7 @@ services:
       interval: 5s
       retries: 40
       test: [ "CMD", "curl", "-f", "-k", "http://localhost:8080/example-adapter/Endpoint?wsdl" ]
-    entrypoint: ["java", "-Xms64m", "-Xmx256m", "-jar", "/example-adapter.war"]
+    entrypoint: [ "java", "-Xms64m", "-Xmx256m", "-jar", "/example-adapter.war" ]
   isrest:
     image: wiremock/wiremock:latest
     deploy:
@@ -77,7 +95,9 @@ services:
     volumes:
       - ./wiremock_mappings:/home/wiremock/mappings
   hurl:
-    image: ghcr.io/orange-opensource/hurl:latest
+    build:
+        context: ../../development/hurl
+        dockerfile: ./Dockerfile
     deploy:
       resources:
         reservations:
@@ -85,7 +105,6 @@ services:
         limits:
           memory: 128M
     volumes:
-      - ./hurl-src:/hurl-src
       - ca-volume:/hurl-files/ca
     depends_on:
       cs:

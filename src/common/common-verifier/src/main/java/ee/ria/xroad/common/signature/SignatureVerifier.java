@@ -27,10 +27,11 @@ package ee.ria.xroad.common.signature;
 
 import ee.ria.xroad.common.CodedException;
 import ee.ria.xroad.common.cert.CertChain;
+import ee.ria.xroad.common.cert.CertChainFactory;
 import ee.ria.xroad.common.cert.CertChainVerifier;
 import ee.ria.xroad.common.cert.CertHelper;
 import ee.ria.xroad.common.certificateprofile.impl.SignCertificateProfileInfoParameters;
-import ee.ria.xroad.common.conf.globalconf.GlobalConf;
+import ee.ria.xroad.common.conf.globalconf.GlobalConfProvider;
 import ee.ria.xroad.common.hashchain.DigestValue;
 import ee.ria.xroad.common.hashchain.HashChainReferenceResolver;
 import ee.ria.xroad.common.hashchain.HashChainVerifier;
@@ -43,10 +44,10 @@ import org.apache.xml.security.signature.Manifest;
 import org.apache.xml.security.signature.MissingResourceFailureException;
 import org.apache.xml.security.signature.XMLSignature;
 import org.apache.xml.security.signature.XMLSignatureByteInput;
+import org.apache.xml.security.signature.XMLSignatureDigestInput;
 import org.apache.xml.security.signature.XMLSignatureInput;
 import org.apache.xml.security.signature.XMLSignatureStreamInput;
 import org.apache.xml.security.utils.resolver.ResourceResolverContext;
-import org.apache.xml.security.utils.resolver.ResourceResolverException;
 import org.apache.xml.security.utils.resolver.ResourceResolverSpi;
 import org.bouncycastle.cert.ocsp.OCSPResp;
 import org.w3c.dom.Node;
@@ -58,6 +59,7 @@ import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
 import java.security.cert.X509Certificate;
 import java.util.ArrayList;
+import java.util.Base64;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
@@ -69,6 +71,7 @@ import static ee.ria.xroad.common.ErrorCodes.X_INVALID_SIGNATURE_VALUE;
 import static ee.ria.xroad.common.ErrorCodes.X_MALFORMED_SIGNATURE;
 import static ee.ria.xroad.common.ErrorCodes.translateException;
 import static ee.ria.xroad.common.util.MessageFileNames.SIG_HASH_CHAIN_RESULT;
+import static ee.ria.xroad.common.util.MessageFileNames.isAttachment;
 
 /**
  * Encapsulates the AsiC XAdES signature profile. This class verifies the
@@ -76,6 +79,9 @@ import static ee.ria.xroad.common.util.MessageFileNames.SIG_HASH_CHAIN_RESULT;
  */
 @Slf4j
 public class SignatureVerifier {
+
+    private final GlobalConfProvider globalConfProvider;
+    private final CertChainFactory certChainFactory;
 
     /**
      * The signature object.
@@ -117,10 +123,11 @@ public class SignatureVerifier {
      * Constructs a new signature verifier using the specified string
      * containing the signature xml.
      *
-     * @param signatureData the signature data
+     * @param globalConfProvider global conf provider
+     * @param signatureData      the signature data
      */
-    public SignatureVerifier(SignatureData signatureData) {
-        this(new Signature(signatureData.getSignatureXml()),
+    public SignatureVerifier(GlobalConfProvider globalConfProvider, SignatureData signatureData) {
+        this(globalConfProvider, new Signature(signatureData.getSignatureXml()),
                 signatureData.getHashChainResult(),
                 signatureData.getHashChain());
     }
@@ -128,24 +135,28 @@ public class SignatureVerifier {
     /**
      * Constructs a new signature verifier for the specified signature.
      *
-     * @param signature the signature
+     * @param globalConfProvider global conf provider
+     * @param signature          the signature
      */
-    public SignatureVerifier(Signature signature) {
-        this(signature, null, null);
+    public SignatureVerifier(GlobalConfProvider globalConfProvider, Signature signature) {
+        this(globalConfProvider, signature, null, null);
     }
 
     /**
      * Constructs a new signature verifier for the specified signature.
      *
-     * @param signature       the signature
-     * @param hashChainResult the hash chain result
-     * @param hashChain       the hash chain
+     * @param globalConfProvider global conf provider
+     * @param signature          the signature
+     * @param hashChainResult    the hash chain result
+     * @param hashChain          the hash chain
      */
-    public SignatureVerifier(Signature signature, String hashChainResult,
+    public SignatureVerifier(GlobalConfProvider globalConfProvider, Signature signature, String hashChainResult,
                              String hashChain) {
+        this.globalConfProvider = globalConfProvider;
         this.signature = signature;
         this.hashChainResult = hashChainResult;
         this.hashChain = hashChain;
+        this.certChainFactory = new CertChainFactory(globalConfProvider);
     }
 
     /**
@@ -234,7 +245,7 @@ public class SignatureVerifier {
             throws Exception {
         X509Certificate cert = signature.getSigningCertificate();
         List<OCSPResp> responses = signature.getOcspResponses();
-        X509Certificate issuer = GlobalConf.getCaCert(instanceIdentifier, cert);
+        X509Certificate issuer = globalConfProvider.getCaCert(instanceIdentifier, cert);
 
         return CertHelper.getOcspResponseForCert(cert, issuer, responses);
     }
@@ -303,9 +314,9 @@ public class SignatureVerifier {
         }
     }
 
-    private static void verifySignerName(ClientId signer,
-                                         X509Certificate signingCert) throws Exception {
-        ClientId cn = GlobalConf.getSubjectName(
+    private void verifySignerName(ClientId signer,
+                                  X509Certificate signingCert) throws Exception {
+        ClientId cn = globalConfProvider.getSubjectName(
                 new SignCertificateProfileInfoParameters(
                         signer, signer.getMemberCode()
                 ),
@@ -330,8 +341,7 @@ public class SignatureVerifier {
         }
 
         if (!s.checkSignatureValue(signingCert)) {
-            throw new CodedException(X_INVALID_SIGNATURE_VALUE,
-                    "Signature is not valid");
+            throw new CodedException(X_INVALID_SIGNATURE_VALUE, "Signature is not valid");
         }
     }
 
@@ -357,9 +367,9 @@ public class SignatureVerifier {
 
     private void verifyCertificateChain(Date atDate, ClientId signer, X509Certificate signingCert) {
         CertChain certChain =
-                CertChain.create(signer.getXRoadInstance(), signingCert,
+                certChainFactory.create(signer.getXRoadInstance(), signingCert,
                         signature.getExtraCertificates());
-        new CertChainVerifier(certChain).verify(signature.getOcspResponses(),
+        new CertChainVerifier(globalConfProvider, certChain).verify(signature.getOcspResponses(),
                 atDate);
     }
 
@@ -385,7 +395,7 @@ public class SignatureVerifier {
     private static DigestValue getDigestValue(MessagePart part)
             throws Exception {
         if (part.getData() != null) {
-            return new DigestValue(part.getHashAlgorithmURI(), part.getData());
+            return new DigestValue(part.getHashAlgoId(), part.getData());
         }
 
         return null;
@@ -397,24 +407,26 @@ public class SignatureVerifier {
         public boolean engineCanResolveURI(ResourceResolverContext context) {
             return switch (context.attr.getValue()) {
                 case MessageFileNames.MESSAGE, MessageFileNames.SIG_HASH_CHAIN_RESULT -> true;
-                default -> false;
+                default -> isAttachment(context.attr.getValue()); // only attachments can be resolved
             };
         }
 
         @Override
-        public XMLSignatureInput engineResolveURI(ResourceResolverContext context) throws ResourceResolverException {
-            switch (context.attr.getValue()) {
-                case MessageFileNames.MESSAGE:
-                    MessagePart part = getPart(MessageFileNames.MESSAGE);
+        public XMLSignatureInput engineResolveURI(ResourceResolverContext context) {
+            if (MessageFileNames.MESSAGE.equals(context.attr.getValue())) {
+                MessagePart part = getPart(MessageFileNames.MESSAGE);
 
-                    if (part != null && part.getMessage() != null) {
-                        return new XMLSignatureByteInput(part.getMessage());
-                    }
+                if (part != null && part.getMessage() != null) {
+                    return new XMLSignatureByteInput(part.getMessage());
+                }
+            } else if (MessageFileNames.SIG_HASH_CHAIN_RESULT.equals(context.attr.getValue())) {
+                return new XMLSignatureStreamInput(is(hashChainResult));
+            } else if (isAttachment(context.attr.getValue())) {
+                MessagePart part = getPart(context.attr.getValue());
 
-                    break;
-                case MessageFileNames.SIG_HASH_CHAIN_RESULT:
-                    return new XMLSignatureStreamInput(is(hashChainResult));
-                default: // do nothing
+                if (part != null && part.getData() != null) {
+                    return new XMLSignatureDigestInput(Base64.getEncoder().encodeToString(part.getData()));
+                }
             }
 
             return null;
@@ -428,7 +440,6 @@ public class SignatureVerifier {
         public InputStream resolve(String uri) {
             if (uri.equals(MessageFileNames.SIG_HASH_CHAIN) && (hashChain != null)) {
                 return is(hashChain);
-                // $FALL-THROUGH$
             }
             return null;
         }

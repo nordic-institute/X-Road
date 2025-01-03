@@ -27,7 +27,7 @@
 package org.niis.xroad.common.managementrequest.verify;
 
 import ee.ria.xroad.common.CodedException;
-import ee.ria.xroad.common.conf.globalconf.GlobalConf;
+import ee.ria.xroad.common.conf.globalconf.GlobalConfProvider;
 import ee.ria.xroad.common.message.SoapFault;
 import ee.ria.xroad.common.message.SoapMessage;
 import ee.ria.xroad.common.message.SoapMessageDecoder;
@@ -38,7 +38,7 @@ import ee.ria.xroad.common.request.AuthCertRegRequestType;
 import ee.ria.xroad.common.request.ClientRequestType;
 
 import lombok.Getter;
-import lombok.NoArgsConstructor;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.niis.xroad.common.managementrequest.model.ManagementRequestType;
 import org.niis.xroad.common.managementrequest.verify.decode.AddressChangeRequestCallback;
@@ -65,9 +65,9 @@ import static org.niis.xroad.common.managementrequest.model.ManagementRequestTyp
  * Reads and verifies management requests.
  */
 @Slf4j
-@NoArgsConstructor
+@RequiredArgsConstructor
 public final class ManagementRequestVerifier {
-
+    private final GlobalConfProvider globalConfProvider;
 
     public static class Result {
         @Getter
@@ -141,13 +141,13 @@ public final class ManagementRequestVerifier {
      * @return management request message
      * @throws Exception in case of any errors
      */
-    public static Result readRequest(String contentType, InputStream inputStream) throws Exception {
+    public Result readRequest(String contentType, InputStream inputStream) throws Exception {
 
-        if (!GlobalConf.isValid()) {
+        if (!globalConfProvider.isValid()) {
             throw new CodedException(X_OUTDATED_GLOBALCONF, "Global configuration is not valid");
         }
 
-        DecoderCallback cb = new DecoderCallback();
+        DecoderCallback cb = new DecoderCallback(globalConfProvider);
 
         SoapMessageDecoder decoder = new SoapMessageDecoder(contentType, cb);
         decoder.parse(inputStream);
@@ -160,29 +160,23 @@ public final class ManagementRequestVerifier {
             throw new CodedException(X_INVALID_REQUEST, "Failed to parse SOAP request. Decoder was not fully initialized.");
         }
         Object request = cb.getManagementRequestDecoderCallback().getRequest();
-        if (request == null) {
-            throw new CodedException(X_INVALID_REQUEST, "Failed to parse SOAP request");
-        }
 
-        if (request instanceof AuthCertRegRequestType authCertRegRequestType) {
-            return new Result(cb.getSoapMessage(), authCertRegRequestType);
-        }
-        if (request instanceof AuthCertDeletionRequestType authCertDeletionRequestType) {
-            return new Result(cb.getSoapMessage(), authCertDeletionRequestType);
-        }
-        if (request instanceof ClientRequestType clientRequestType) {
-            return new Result(cb.getSoapMessage(), cb.getRequestType(), clientRequestType);
-        }
-        if (request instanceof AddressChangeRequestType addressChangeRequestType) {
-            return new Result(cb.getSoapMessage(), addressChangeRequestType);
-        }
-
-        throw new CodedException(X_INVALID_REQUEST, "Unrecognized soap request of type '%s'",
-                request.getClass().getSimpleName());
+        return switch (request) {
+            case null -> throw new CodedException(X_INVALID_REQUEST, "Failed to parse SOAP request");
+            case AuthCertRegRequestType authCertRegRequestType -> new Result(cb.getSoapMessage(), authCertRegRequestType);
+            case AuthCertDeletionRequestType authCertDeletionRequestType -> new Result(cb.getSoapMessage(), authCertDeletionRequestType);
+            case ClientRequestType clientRequestType -> new Result(cb.getSoapMessage(), cb.getRequestType(), clientRequestType);
+            case AddressChangeRequestType addressChangeRequestType -> new Result(cb.getSoapMessage(), addressChangeRequestType);
+            default -> throw new CodedException(X_INVALID_REQUEST, "Unrecognized soap request of type '%s'",
+                    request.getClass().getSimpleName());
+        };
     }
 
     @Getter
+    @RequiredArgsConstructor
     public static class DecoderCallback implements SoapMessageDecoder.Callback {
+        private final GlobalConfProvider globalConfProvider;
+
         private SoapMessageImpl soapMessage;
         private ManagementRequestType requestType;
 
@@ -194,15 +188,14 @@ public final class ManagementRequestVerifier {
             this.requestType = ManagementRequestType.getByServiceCode(soapMessage.getService().getServiceCode());
 
             managementRequestDecoderCallback = switch (requestType) {
-                case AUTH_CERT_REGISTRATION_REQUEST -> new AuthCertRegRequestDecoderCallback(this);
-                case CLIENT_REGISTRATION_REQUEST -> new ClientRegRequestCallback(this);
-                case OWNER_CHANGE_REQUEST -> new OwnerChangeRequestCallback(this);
+                case AUTH_CERT_REGISTRATION_REQUEST -> new AuthCertRegRequestDecoderCallback(globalConfProvider, this);
+                case CLIENT_REGISTRATION_REQUEST -> new ClientRegRequestCallback(globalConfProvider, this);
+                case OWNER_CHANGE_REQUEST -> new OwnerChangeRequestCallback(globalConfProvider, this);
                 case CLIENT_DELETION_REQUEST -> new ClientDeletionRequestCallback(this);
                 case AUTH_CERT_DELETION_REQUEST -> new AuthCertDeletionRequestDecoderCallback(this);
-                case ADDRESS_CHANGE_REQUEST -> new AddressChangeRequestCallback(this);
-                case CLIENT_DISABLE_REQUEST -> new ClientDisableRequestCallback(this);
-                case CLIENT_ENABLE_REQUEST -> new ClientEnableRequestCallback(this);
-                default -> throw new CodedException(X_INVALID_REQUEST, "Unsupported request type %s", requestType);
+                case ADDRESS_CHANGE_REQUEST -> new AddressChangeRequestCallback(globalConfProvider, this);
+                case CLIENT_DISABLE_REQUEST -> new ClientDisableRequestCallback(globalConfProvider, this);
+                case CLIENT_ENABLE_REQUEST -> new ClientEnableRequestCallback(globalConfProvider, this);
             };
         }
 

@@ -162,6 +162,14 @@ public interface ServerConfProvider {
     /**
      * @param sender the sender identifier
      * @param service the service identifier
+     * @return true, if member <code>sender</code> is allowed
+     * to invoke service <code>serviceName</code>
+     */
+    boolean isQueryAllowed(ClientId sender, ServiceId service);
+
+    /**
+     * @param sender the sender identifier
+     * @param service the service identifier
      * @param method the request method (can be null)
      * @param path the request path (can be null)
      * @return true, if member <code>sender</code> is allowed
@@ -188,10 +196,10 @@ public interface ServerConfProvider {
     String getServiceDescriptionURL(ServiceId service);
 
     /**
-     * @param service the service identifier
+     * @param serviceId the service identifier
      * @return list of endpoints
      */
-    List<Endpoint> getServiceEndpoints(ServiceId service);
+    List<Endpoint> getServiceEndpoints(ServiceId serviceId);
 
     /**
      * Log serverconf statistics

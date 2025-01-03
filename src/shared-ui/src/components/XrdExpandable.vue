@@ -104,7 +104,7 @@ export default defineComponent({
 </script>
 
 <style lang="scss" scoped>
-@import '../assets/colors';
+@use '../assets/colors';
 
 .no-hover:hover:before,
 .no-hover:focus:before {
@@ -118,7 +118,7 @@ export default defineComponent({
 
 .exp-wrapper {
   border-radius: 4px;
-  background-color: $XRoad-White100;
+  background-color: colors.$White100;
 }
 
 .exp-header {

@@ -1,10 +1,10 @@
-FROM ubuntu:20.04
+FROM ubuntu:24.04
 ENV DEBIAN_FRONTEND=noninteractive
 
 RUN apt-get -qq update \
   && apt-get -qq upgrade \
   && apt-get -qq install curl software-properties-common gawk \
-    openjdk-17-jdk-headless build-essential git unzip debhelper
+    openjdk-21-jdk-headless build-essential git unzip debhelper
 
 ARG uid=1000
 ARG gid=1000

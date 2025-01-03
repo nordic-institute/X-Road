@@ -33,7 +33,12 @@ protobuf {
 compileJava.dependsOn generateProto
 
 test {
-    jvmArgs '-Djava.library.path=../lib'
+    if (Os.isArch("x86_64") || Os.isArch("amd64")) {
+        jvmArgs '-Djava.library.path=../libs/passwordstore/amd64'
+    }
+    if (Os.isArch("aarch64") || Os.isArch("arm64")) {
+        jvmArgs '-Djava.library.path=../libs/passwordstore/arm64'
+    }
 }
 
 if (Os.isName("linux")) {
@@ -54,6 +59,5 @@ if (Os.isName("linux")) {
         commandLine 'make', 'clean'
     }
 
-    classes.dependsOn make
     clean.dependsOn makeClean
 }

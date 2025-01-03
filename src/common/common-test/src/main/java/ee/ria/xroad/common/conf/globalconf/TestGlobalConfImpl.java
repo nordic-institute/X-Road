@@ -25,16 +25,27 @@
  */
 package ee.ria.xroad.common.conf.globalconf;
 
+import static ee.ria.xroad.common.ErrorCodes.X_MALFORMED_GLOBALCONF;
+import static ee.ria.xroad.common.ErrorCodes.translateWithPrefix;
+import static ee.ria.xroad.common.SystemProperties.getConfigurationPath;
+
 /**
  * Test globalconf implementation.
  */
 public class TestGlobalConfImpl extends GlobalConfImpl {
-
     /**
      * Constructs a new test globalconf.
      */
     public TestGlobalConfImpl() {
-        super();
+        super(globalConfSource());
+    }
+
+    private static GlobalConfSource globalConfSource() {
+        try {
+            return new FileSystemGlobalConfSource(getConfigurationPath());
+        } catch (Exception e) {
+            throw translateWithPrefix(X_MALFORMED_GLOBALCONF, e);
+        }
     }
 
 }

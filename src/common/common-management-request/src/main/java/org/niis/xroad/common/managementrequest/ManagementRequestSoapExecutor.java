@@ -30,8 +30,7 @@ import ee.ria.xroad.common.CodedException;
 import ee.ria.xroad.common.ErrorCodes;
 import ee.ria.xroad.common.message.SoapFault;
 
-import lombok.AccessLevel;
-import lombok.NoArgsConstructor;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.input.BoundedInputStream;
 import org.niis.xroad.common.managementrequest.verify.ManagementRequestUtil;
@@ -45,14 +44,16 @@ import java.io.InputStream;
 import java.util.function.ToIntFunction;
 
 @Slf4j
-@NoArgsConstructor(access = AccessLevel.PRIVATE)
+@RequiredArgsConstructor
 public class ManagementRequestSoapExecutor {
     public static final int MAX_REQUEST_SIZE = 100_000;
 
-    public static ResponseEntity<String> process(String contentType, InputStream body,
-                                                 ToIntFunction<ManagementRequestVerifier.Result> onSuccess) {
-        try (var bos = new BoundedInputStream(body, MAX_REQUEST_SIZE)) {
-            var verificationResult = ManagementRequestVerifier.readRequest(contentType, bos);
+    private final ManagementRequestVerifier managementRequestVerifier;
+
+    public ResponseEntity<String> process(String contentType, InputStream body,
+                                          ToIntFunction<ManagementRequestVerifier.Result> onSuccess) {
+        try (var bos = BoundedInputStream.builder().setInputStream(body).setMaxCount(MAX_REQUEST_SIZE).get()) {
+            var verificationResult = managementRequestVerifier.readRequest(contentType, bos);
 
             var createdRequestId = onSuccess.applyAsInt(verificationResult);
 

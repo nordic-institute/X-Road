@@ -25,47 +25,29 @@
  -->
 <template>
   <v-sheet class="view-wrap" data-test="add-subject-view">
-    <xrd-sub-view-title
-      :title="$t('serviceClients.addServiceClientTitle')"
-      :show-close="false"
-      data-test="add-subject-title"
-      class="pa-4"
-    />
+    <xrd-sub-view-title :title="$t('serviceClients.addServiceClientTitle')" :show-close="false"
+      data-test="add-subject-title" class="pa-4" />
     <!-- eslint-disable-next-line vuetify/no-deprecated-components -->
-    <v-stepper
-      v-model="step"
-      :alt-labels="true"
-      class="wizard-stepper wizard-noshadow"
-    >
+    <v-stepper v-model="step" :alt-labels="true" class="wizard-stepper wizard-noshadow">
       <v-stepper-header class="wizard-noshadow stepper-header">
         <v-stepper-item :complete="step > 1" :value="1">{{
           $t('serviceClients.memberGroupStep')
-        }}</v-stepper-item>
+          }}</v-stepper-item>
         <v-divider></v-divider>
         <v-stepper-item :complete="step > 2" :value="2">{{
           $t('serviceClients.servicesStep')
-        }}</v-stepper-item>
+          }}</v-stepper-item>
       </v-stepper-header>
 
       <v-stepper-window class="wizard-stepper-content">
         <v-stepper-window-item :value="1">
-          <MemberOrGroupSelectionStep
-            :id="id"
-            :service-clients="serviceClients"
-            @candidate-selection="candidateSelection"
-            @set-step="nextStep"
-          ></MemberOrGroupSelectionStep>
+          <MemberOrGroupSelectionStep :id="id" :service-clients="serviceClients" @set-step="nextStep">
+          </MemberOrGroupSelectionStep>
         </v-stepper-window-item>
         <v-stepper-window-item :value="2">
-          <ServiceSelectionStep
-            v-if="serviceClientCandidateSelection"
-            :id="id"
-            :service-candidates="serviceCandidates"
-            :service-client-candidate-selection="
-              serviceClientCandidateSelection
-            "
-            @set-step="previousStep"
-          ></ServiceSelectionStep>
+          <ServiceSelectionStep v-if="serviceClientCandidateSelection" :id="id" :service-candidates="serviceCandidates"
+            :service-client-candidate-selection="serviceClientCandidateSelection
+              " @set-step="previousStep"></ServiceSelectionStep>
         </v-stepper-window-item>
       </v-stepper-window>
     </v-stepper>
@@ -114,9 +96,6 @@ export default defineComponent({
   },
   methods: {
     ...mapActions(useNotifications, ['showError', 'showSuccess']),
-    candidateSelection(candidate: ServiceClient): void {
-      this.serviceClientCandidateSelection = candidate;
-    },
     fetchData: function (): void {
       api
         .get<ServiceClient[]>(
@@ -149,7 +128,8 @@ export default defineComponent({
     previousStep(): void {
       this.step -= 1;
     },
-    nextStep(): void {
+    nextStep(candidate: ServiceClient): void {
+      this.serviceClientCandidateSelection = candidate;
       this.step += 1;
     },
   },
@@ -157,7 +137,7 @@ export default defineComponent({
 </script>
 
 <style lang="scss" scoped>
-@import '../../../assets/wizards';
+@use '@/assets/wizards';
 
 /* Modify wizard import */
 .view-wrap {

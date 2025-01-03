@@ -53,40 +53,61 @@
       >
         <xrd-button outlined color="primary" @click="upload">
           <xrd-icon-base class="xrd-large-button-icon">
-            <xrd-icon-add />
+            <xrd-icon-add/>
           </xrd-icon-base>
           {{ $t('action.add') }}
         </xrd-button>
       </xrd-file-upload>
     </v-card-title>
-    <div class="cert-table-title pl-4">
-      {{ $t('internalServers.certHash') }}
-    </div>
-    <table class="server-certificates xrd-table">
-      <template v-if="tlsCertificates && tlsCertificates.length > 0">
-        <tr v-for="certificate in tlsCertificates" :key="certificate.hash">
-          <td class="pl-4 pt-2">
-            <i class="icon-Certificate icon" />
-          </td>
-          <td>
-            <span
-              v-if="canViewTlsCertDetails"
-              class="certificate-link"
-              @click="openCertificate(certificate)"
-              >{{ $filters.colonize(certificate.hash) }}</span
-            >
-            <span v-else>{{ $filters.colonize(certificate.hash) }}</span>
-          </td>
-        </tr>
+
+    <v-data-table
+      :loading="tlsCertLoading"
+      :headers="headers"
+      :items="tlsCertificates"
+      :must-sort="true"
+      :items-per-page="-1"
+      class="data-table elevation-0"
+      item-key="id"
+      :loader-height="2"
+      hide-default-footer
+      :no-data-text="$t('noData.noCertificates')"
+      data-test="tls-certificate-table"
+    >
+
+      <template #[`item.hash`]="{ item }">
+        <td class="pr-12 pt-2">
+          <i class="icon-Certificate icon"/>
+        </td>
+        <td>
+          <span
+            v-if="canViewTlsCertDetails"
+            class="certificate-link"
+            @click="openCertificate(item)"
+            data-test="tls-certificate-link"
+          >{{ $filters.colonize(item.hash) }}</span>
+          <span v-else>{{ $filters.colonize(item.hash) }}</span>
+        </td>
       </template>
 
-      <XrdEmptyPlaceholderRow
-        :colspan="2"
-        :loading="tlsCertLoading"
-        :data="tlsCertificates"
-        :no-items-text="$t('noData.noCertificates')"
-      />
-    </table>
+      <template #[`item.subject_distinguished_name`]="{ item }">
+        <span data-test="tls-certificate-subject-distinguished-name">
+          {{ item.subject_distinguished_name }}
+        </span>
+      </template>
+
+      <template #[`item.not_before`]="{ item }">
+        <span data-test="tls-certificate-not-before">
+          {{ $filters.formatDate(item.not_before) }}
+        </span>
+      </template>
+
+      <template #[`item.not_after`]="{ item }">
+        <span data-test="tls-certificate-not-after">
+          {{ $filters.formatDate(item.not_after) }}
+        </span>
+      </template>
+
+    </v-data-table>
   </v-card>
 
   <v-card v-if="canViewSSCert" variant="flat" class="xrd-card pb-4">
@@ -142,10 +163,11 @@ import { mapActions, mapState } from 'pinia';
 import { useNotifications } from '@/store/modules/notifications';
 import { useUser } from '@/store/modules/user';
 import { useClient } from '@/store/modules/client';
-import { FileUploadResult, XrdIconAdd } from '@niis/shared-ui';
+import {FileUploadResult, XrdIconAdd, XrdIconFolder} from '@niis/shared-ui';
+import {DataTableHeader} from "@/ui-types";
 
 export default defineComponent({
-  components: { XrdIconAdd },
+  components: {XrdIconFolder, XrdIconAdd },
   props: {
     id: {
       type: String,
@@ -173,6 +195,30 @@ export default defineComponent({
       'ssCertificate',
       'connectionType',
     ]),
+    headers(): DataTableHeader[] {
+      return [
+        {
+          title: this.$t('certificate.hash') as string,
+          align: 'start',
+          key: 'hash',
+        },
+        {
+          title: this.$t('certificate.subjectDistinguishedName') as string,
+          align: 'start',
+          key: 'subject_distinguished_name',
+        },
+        {
+          title: this.$t('certificate.notBefore') as string,
+          align: 'start',
+          key: 'not_before',
+        },
+        {
+          title: this.$t('certificate.notAfter') as string,
+          align: 'start',
+          key: 'not_after',
+        },
+      ];
+    },
 
     connectionTypeModel: {
       get(): string | undefined | null {
@@ -295,8 +341,8 @@ export default defineComponent({
 </script>
 
 <style lang="scss" scoped>
-@import '@/assets/tables';
-@import '@/assets/colors';
+@use '@/assets/tables';
+@use '@/assets/colors';
 
 .select-connection {
   max-width: 240px;
@@ -313,19 +359,19 @@ export default defineComponent({
 }
 
 .conn-info {
-  color: $XRoad-Black70;
+  color: colors.$Black70;
 }
 
 .cert-table-title {
-  color: $XRoad-Black70;
-  font-size: $XRoad-DefaultFontSize;
+  color: colors.$Black70;
+  font-size: colors.$DefaultFontSize;
   font-weight: bold;
   margin: 5px;
 }
 
 .server-certificates {
   width: 100%;
-  border-top: $XRoad-WarmGrey30 solid 1px;
+  border-top: colors.$WarmGrey30 solid 1px;
 }
 
 .icon {

@@ -49,7 +49,7 @@ mkdir -p %{buildroot}/usr/share/xroad/bin
 ln -s /usr/share/xroad/jlib/configuration-client-1.0.jar %{buildroot}/usr/share/xroad/jlib/configuration-client.jar
 
 cp -p %{_sourcedir}/confclient/xroad-confclient.service %{buildroot}%{_unitdir}
-cp -p %{srcdir}/../../../configuration-client/build/libs/configuration-client-1.0.jar %{buildroot}/usr/share/xroad/jlib/
+cp -p %{srcdir}/../../../configuration-client/application/build/libs/configuration-client-1.0.jar %{buildroot}/usr/share/xroad/jlib/
 cp -p %{srcdir}/default-configuration/confclient-logback.xml %{buildroot}/etc/xroad/conf.d
 cp -p %{srcdir}/default-configuration/confclient-logback-service.xml %{buildroot}/etc/xroad/conf.d
 cp -p %{srcdir}/common/confclient/etc/xroad/backup.d/??_xroad-confclient %{buildroot}/etc/xroad/backup.d/
@@ -94,6 +94,20 @@ mkdir -p /var/lib/xroad/backup
 su - xroad -c "test -O /var/lib/xroad && test -G /var/lib/xroad" || chown xroad:xroad /var/lib/xroad
 chown xroad:xroad /var/lib/xroad/backup
 chmod 0775 /var/lib/xroad
+
+### this script can be delete starting from 7.9.0 version
+local_ini_file="/etc/xroad/conf.d/local.ini"
+if [[ -f "$local_ini_file" ]]; then
+    if grep -q "^global_conf_tls_cert_verification" "$local_ini_file"; then
+        sed -i 's/^global_conf_tls_cert_verification/global-conf-tls-cert-verification/' "$local_ini_file"
+        echo "Successfully updated property name: global_conf_tls_cert_verification -> global-conf-tls-cert-verification"
+    fi
+    if grep -q "^global_conf_hostname_verification" "$local_ini_file"; then
+        sed -i 's/^global_conf_hostname_verification/global-conf-hostname-verification/' "$local_ini_file"
+        echo "Successfully updated property name: global_conf_hostname_verification -> global-conf-hostname-verification"
+    fi
+fi
+###
 
 chown -R xroad:xroad /etc/xroad/services/* /etc/xroad/conf.d/*
 chmod -R o=rwX,g=rX,o= /etc/xroad/services/* /etc/xroad/conf.d/*

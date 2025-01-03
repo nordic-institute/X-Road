@@ -26,10 +26,10 @@
 package org.niis.xroad.e2e.container;
 
 import com.nortal.test.testcontainers.TestableContainerInitializer;
-import jakarta.annotation.PreDestroy;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.niis.xroad.e2e.CustomProperties;
+import org.springframework.beans.factory.DisposableBean;
 import org.springframework.context.annotation.Primary;
 import org.springframework.stereotype.Service;
 import org.testcontainers.containers.ComposeContainer;
@@ -50,7 +50,7 @@ import static org.testcontainers.containers.wait.strategy.Wait.forListeningPort;
 @Service
 @Slf4j
 @RequiredArgsConstructor
-public class EnvSetup implements TestableContainerInitializer {
+public class EnvSetup implements TestableContainerInitializer, DisposableBean {
     private static final String COMPOSE_BASE_FILE = "../../../Docker/xrd-dev-stack/compose.yaml";
     private static final String COMPOSE_E2E_FILE = "../../../Docker/xrd-dev-stack/compose.e2e.yaml";
 
@@ -114,13 +114,12 @@ public class EnvSetup implements TestableContainerInitializer {
                             .orElse(false);
                 });
 
-        var gracePeriod = Duration.ofSeconds(30);
+        var gracePeriod = Duration.ofSeconds(60); //match globalconf refresh
         log.info("Waiting grace period of {} before continuing..", gracePeriod);
         await().pollDelay(gracePeriod).timeout(gracePeriod.plusMinutes(1)).until(() -> true);
     }
 
-    @PreDestroy
-    public void stop() {
+    public void destroy() {
         if (!customProperties.isUseCustomEnv()) {
             environment.stop();
         }
