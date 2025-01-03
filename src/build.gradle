@@ -261,3 +261,4 @@ tasks.register("installGitHooks", Copy) {
 }
 assemble.dependsOn installGitHooks
 tasks.sonar.dependsOn testCodeCoverageReport
+tasks.sonar.onlyIf { System.env['SONAR_TOKEN'] != null }
