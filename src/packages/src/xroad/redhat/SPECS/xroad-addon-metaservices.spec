@@ -11,39 +11,33 @@ Summary:    X-Road AddOn: metaservices
 Group:      Applications/Internet
 License:    MIT
 Requires:   xroad-proxy = %version-%release
+#Requires(post): yq
+Provides: deprecated()
 
 %define src %{_topdir}/..
 
 %description
-AddOn for metaservice responders
+This is a transitional package. It can safely be removed.
 
 %prep
 
 %build
 
 %install
-mkdir -p %{buildroot}/usr/share/xroad/jlib/addon/proxy/
-mkdir -p %{buildroot}/usr/share/doc/%{name}
-
-cp -a %{srcdir}/common/addon/proxy/metaservice* %{buildroot}/usr/share/xroad/jlib/addon/proxy/
-cp -p %{srcdir}/../../../addons/metaservice/build/libs/metaservice-1.0.jar %{buildroot}/usr/share/xroad/jlib/addon/proxy/
-cp -p %{srcdir}/../../../LICENSE.txt %{buildroot}/usr/share/doc/%{name}/
-cp -p %{srcdir}/../../../3RD-PARTY-NOTICES.txt %{buildroot}/usr/share/doc/%{name}/
-cp -p %{srcdir}/../../../../CHANGELOG.md %{buildroot}/usr/share/doc/%{name}/
 
 %clean
 rm -rf %{buildroot}
 
 %files
-%defattr(-,root,root,-)
-/usr/share/xroad/jlib/addon/proxy/metaservice-1.0.jar
-/usr/share/xroad/jlib/addon/proxy/metaservices.conf
-%doc /usr/share/doc/%{name}/LICENSE.txt
-%doc /usr/share/doc/%{name}/3RD-PARTY-NOTICES.txt
-%doc /usr/share/doc/%{name}/CHANGELOG.md
 
 %pre -p /bin/bash
 %upgrade_check
+
+%post
+%set_yaml_property_function
+if [ "$1" -gt 1 ] ; then
+  set_yaml_property ".xroad.proxy.addon.metaservices.enabled" "true" "/etc/xroad/conf.d/proxy-override.yaml"
+fi
 
 %changelog
 

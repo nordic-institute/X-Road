@@ -50,6 +50,10 @@ cp -p %{srcdir}/../../../../CHANGELOG.md %{buildroot}/usr/share/doc/%{name}/CHAN
 
 ln -s /usr/share/xroad/jlib/proxy-ui-api-1.0.jar %{buildroot}/usr/share/xroad/jlib/proxy-ui-api.jar
 
+cp -a %{srcdir}/common/addon/wsdlvalidator/usr %{buildroot}
+mkdir -p %{buildroot}/usr/share/xroad/wsdl-validator/jlib/
+cp %{srcdir}/../../../addons/wsdlvalidator/build/libs/wsdlvalidator-1.0.jar %{buildroot}/usr/share/xroad/wsdl-validator/jlib/
+
 %clean
 rm -rf %{buildroot}
 
@@ -63,8 +67,10 @@ rm -rf %{buildroot}
 %config /etc/xroad/conf.d/mail.example.yml
 %attr(644,root,root) %{_unitdir}/xroad-proxy-ui-api.service
 %attr(755,root,root) /usr/share/xroad/bin/xroad-proxy-ui-api
+%attr(750,root,xroad) /usr/share/xroad/wsdl-validator/bin/wsdlvalidator_wrapper.sh
 %defattr(-,root,root,-)
 /usr/share/xroad/jlib/proxy-ui-api*.jar
+/usr/share/xroad/wsdl-validator
 %doc /usr/share/doc/%{name}/LICENSE.txt
 %doc /usr/share/doc/%{name}/3RD-PARTY-NOTICES.txt
 %doc /usr/share/doc/%{name}/CHANGELOG.md
@@ -84,6 +90,7 @@ if [ "$1" -gt 1 ]; then
 fi
 
 %post
+%set_yaml_property_function
 %systemd_post xroad-proxy-ui-api.service
 
 #parameters:
@@ -101,6 +108,12 @@ function migrate_conf_value {
             crudini --del "$1" "$2" "$3"
     fi
 }
+
+if [ $1 -eq 1 ] ; then
+    # Initial installation
+    # by default, enable the wsdlvalidator plugin
+    set_yaml_property ".xroad.\"proxy-ui-api\".addon.wsdlvalidator.enabled" "true" "/etc/xroad/conf.d/proxy-ui-api-override.yaml"
+fi
 
 if [ $1 -gt 1 ] ; then
   #migrating possible local configuration for modified configuration values (for version 6.24.0)

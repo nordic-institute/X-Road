@@ -15,8 +15,10 @@ Summary:            X-Road operations monitoring daemon
 Group:              Applications/Internet
 License:            MIT
 BuildRequires:      systemd
+#Requires(post):     systemd, yq
 Requires(post):     systemd
 Requires(preun):    systemd
+#Requires(postun):   systemd, yq
 Requires(postun):   systemd
 Requires:           xroad-base = %version-%release, xroad-confclient = %version-%release
 Requires:           xroad-database >= %version-%release, xroad-database <= %version-%{release}.1
@@ -105,7 +107,12 @@ fi
     /usr/share/xroad/scripts/xroad-opmonitor-initdb.sh
 
 %post
+%set_yaml_property_function
 %systemd_post xroad-opmonitor.service
+
+if [ $1 -eq 1 ] ; then
+   set_yaml_property ".xroad.proxy.addon.\"op-monitor\".enabled" "true" "/etc/xroad/conf.d/proxy-override.yaml"
+fi
 
 # RHEL7 java-21-* package makes java binaries available since %post scriptlet
 %if 0%{?el7}
@@ -116,6 +123,12 @@ fi
 %systemd_preun xroad-opmonitor.service
 
 %postun
+%disable_addon_function
+if [ "$1" -eq 0 ]; then
+  # addon removed
+  disable_addon ".xroad.proxy.addon.\"op-monitor\".enabled" "/etc/xroad/conf.d/proxy-override.yaml"
+fi
+
 %systemd_postun_with_restart xroad-opmonitor.service
 
 %posttrans

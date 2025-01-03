@@ -11,36 +11,36 @@ Summary:    X-Road addon: proxy monitoring
 Group:      Applications/Internet
 License:    MIT
 Requires:   xroad-proxy = %version-%release, xroad-monitor = %version-%release
+#Requires(post): systemd, yq
 Requires(post): systemd
-Requires(preun): systemd
-Requires(postun): systemd
+Provides: deprecated()
+
 
 %define src %{_topdir}/..
 
 %description
-Addon for proxy monitoring
+This is a transitional package. It can safely be removed.
 
 %prep
 
 %build
 
 %install
-mkdir -p %{buildroot}/usr/share/xroad/jlib/addon/proxy/
-cp -a %{srcdir}/common/addon/proxy/proxymonitor-service.conf %{buildroot}/usr/share/xroad/jlib/addon/proxy/
-cp -p %{srcdir}/../../../addons/proxymonitor/metaservice/build/libs/proxymonitor-metaservice-1.0.jar %{buildroot}/usr/share/xroad/jlib/addon/proxy/
 
 %clean
 rm -rf %{buildroot}
 
 %files
-%defattr(-,root,root,-)
-/usr/share/xroad/jlib/addon/proxy/proxymonitor-metaservice-1.0.jar
-/usr/share/xroad/jlib/addon/proxy/proxymonitor-service.conf
 
 %pre -p /bin/bash
 %upgrade_check
 
+%post
+%set_yaml_property_function
+if [ "$1" -gt 1 ] ; then
+  set_yaml_property ".xroad.proxy.addon.metaservices.enabled" "true" "/etc/xroad/conf.d/proxy-override.yaml"
+fi
+
 %postun
-%systemd_postun_with_restart xroad-proxy.service
 
 %changelog
