@@ -24,7 +24,9 @@
    THE SOFTWARE.
  -->
 <template>
-  <clientsDataTable />
+  <xrd-sub-view-container>
+    <clientsDataTable />
+  </xrd-sub-view-container>
 </template>
 
 <script lang="ts">

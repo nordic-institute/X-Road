@@ -25,7 +25,7 @@
    THE SOFTWARE.
  -->
 <template>
-  <titled-view title-key="tab.globalConf.trustedAnchors">
+  <xrd-titled-view title-key="tab.globalConf.trustedAnchors">
     <template #header-buttons>
       <upload-trusted-anchor-button @uploaded="fetchTrustedAnchors" />
     </template>
@@ -51,7 +51,7 @@
         />
       </configuration-anchor-item>
     </div>
-  </titled-view>
+  </xrd-titled-view>
 </template>
 
 <script lang="ts">
@@ -70,7 +70,7 @@ import { useNotifications } from '@/store/modules/notifications';
 import UploadTrustedAnchorButton from '@/components/trustedAnchors/UploadTrustedAnchorButton.vue';
 import DownloadTrustedAnchorButton from '@/components/trustedAnchors/DownloadTrustedAnchorButton.vue';
 import DeleteTrustedAnchorButton from '@/components/trustedAnchors/DeleteTrustedAnchorButton.vue';
-import TitledView from '@/components/ui/TitledView.vue';
+import { XrdTitledView } from '@niis/shared-ui';
 
 function convert(source: TrustedAnchor): Anchor {
   return {
@@ -82,7 +82,7 @@ function convert(source: TrustedAnchor): Anchor {
 
 export default defineComponent({
   components: {
-    TitledView,
+    XrdTitledView,
     DeleteTrustedAnchorButton,
     DownloadTrustedAnchorButton,
     UploadTrustedAnchorButton,

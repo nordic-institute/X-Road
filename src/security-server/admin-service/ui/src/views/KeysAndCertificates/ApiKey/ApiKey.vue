@@ -24,17 +24,14 @@
    THE SOFTWARE.
  -->
 <template>
-  <div class="mt-3" data-test="api-keys-view">
-    <div class="xrd-table-toolbar mt-0 pl-0">
-      <div class="xrd-title-search">
-        <div class="xrd-view-title">{{ $t('tab.keys.apiKey') }}</div>
-
-        <help-button
-          :help-image="helpImg"
-          help-title="keys.helpTitleApi"
-          help-text="keys.helpTextApi"
-        ></help-button>
-      </div>
+  <XrdTitledView title-key="tab.keys.apiKey" data-test="api-keys-view">
+    <template #append-title>
+      <help-button
+        :help-image="helpImg"
+        help-title="keys.helpTitleApi"
+        help-text="keys.helpTextApi" />
+    </template>
+    <template #header-buttons>
       <xrd-button
         v-if="canCreateApiKey"
         data-test="api-key-create-key-button"
@@ -45,7 +42,7 @@
         </xrd-icon-base>
         {{ $t('apiKey.createApiKey.title') }}
       </xrd-button>
-    </div>
+    </template>
 
     <!-- Table -->
     <v-data-table
@@ -83,7 +80,7 @@
             :data-test="`api-key-row-${item.id}-edit-button`"
             :outlined="false"
             @click="editKey(item)"
-            >{{ $t('action.edit') }}
+          >{{ $t('action.edit') }}
           </xrd-button>
 
           <xrd-button
@@ -92,7 +89,7 @@
             :data-test="`api-key-row-${item.id}-revoke-button`"
             :outlined="false"
             @click="showRevokeDialog(item)"
-            >{{ $t('apiKey.table.action.revoke.button') }}
+          >{{ $t('apiKey.table.action.revoke.button') }}
           </xrd-button>
         </div>
       </template>
@@ -161,7 +158,8 @@
       @cancel="confirmRevoke = false"
       @accept="revokeApiKey"
     />
-  </div>
+
+  </XrdTitledView>
 </template>
 
 <script lang="ts">

@@ -69,6 +69,7 @@ rm -rf %{buildroot}
 %doc /usr/share/doc/%{name}/3RD-PARTY-NOTICES.txt
 %doc /usr/share/doc/%{name}/CHANGELOG.md
 /usr/share/xroad/scripts/acme_contacts_and_keystore_pw_migra.sh
+/usr/share/xroad/scripts/list-installed-xrd-packages.sh
 
 %pre -p /bin/bash
 %upgrade_check

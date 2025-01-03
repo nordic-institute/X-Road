@@ -2117,6 +2117,34 @@ paths:
               examples:
                 error_metadata_response:
                   $ref: '#/components/examples/ErrorWithMetadataExample'
+  /diagnostics/info/download:
+    get:
+      tags:
+        - diagnostics
+      summary: download diagnostics report
+      operationId: downloadDiagnosticsReport
+      description: <h3>Administrator downloads diagnostics report.</h3>
+      responses:
+        '200':
+          description: system information
+          content:
+            application/json:
+              schema:
+                type: string
+                format: binary
+                description: system information file
+        '400':
+          description: request was invalid
+        '401':
+          description: authentication credentials are missing
+        '403':
+          description: request has been refused
+        '404':
+          description: resource requested does not exists
+        '406':
+          description: request specified an invalid format
+        '500':
+          description: internal server error
   /diagnostics/globalconf:
     get:
       tags:

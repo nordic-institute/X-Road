@@ -25,7 +25,7 @@
    THE SOFTWARE.
  -->
 <template>
-  <titled-view title-key="globalResources.globalGroups">
+  <xrd-titled-view title-key="globalResources.globalGroups">
     <template #header-buttons>
       <xrd-button
         v-if="allowAddGlobalGroup"
@@ -74,7 +74,7 @@
       @cancel="closeAddGroupDialog()"
       @save="groupAdded()"
     />
-  </titled-view>
+  </xrd-titled-view>
 </template>
 <script lang="ts">
 import { defineComponent } from 'vue';
@@ -85,18 +85,17 @@ import { GlobalGroupResource } from '@/openapi-types';
 import { Permissions, RouteName } from '@/global';
 import AddGroupDialog from './AddGroupDialog.vue';
 import { useUser } from '@/store/modules/user';
-import TitledView from '@/components/ui/TitledView.vue';
 import DateTime from '@/components/ui/DateTime.vue';
 import CustomDataTableFooter from '@/components/ui/CustomDataTableFooter.vue';
-import { XrdIconFolder } from '@niis/shared-ui';
+import { XrdIconFolder, XrdTitledView } from '@niis/shared-ui';
 import { DataTableHeader } from '@/ui-types';
 
 export default defineComponent({
   name: 'GlobalResourcesList',
   components: {
+    XrdTitledView,
     CustomDataTableFooter,
     DateTime,
-    TitledView,
     AddGroupDialog,
     XrdIconFolder,
   },

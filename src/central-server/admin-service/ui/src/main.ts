@@ -59,7 +59,7 @@ import {
   XrdSearch,
   XrdSimpleDialog,
   XrdSubViewContainer,
-  XrdSubViewTitle,
+  XrdSubViewTitle, XrdTitledView,
 } from '@niis/shared-ui';
 import { useLanguage } from '@/store/modules/language';
 
@@ -97,6 +97,7 @@ app.component('XrdSimpleDialog', XrdSimpleDialog);
 app.component('XrdConfirmDialog', XrdConfirmDialog);
 app.component('XrdEmptyPlaceholder', XrdEmptyPlaceholder);
 app.component('XrdSubViewTitle', XrdSubViewTitle);
+app.component('XrdTitledView', XrdTitledView);
 
 // translations
 const languageStorage = useLanguage();

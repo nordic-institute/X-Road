@@ -95,4 +95,8 @@ public class DiagnosticsPageObj {
     public SelenideElement ocspResponderMessage() {
         return $x("//td[@data-test='ocsp-responders-message']");
     }
+
+    public SelenideElement btnDownloadDiagnoticsReport() {
+        return $x("//button[@data-test='download-diagnostics-report-button']");
+    }
 }
