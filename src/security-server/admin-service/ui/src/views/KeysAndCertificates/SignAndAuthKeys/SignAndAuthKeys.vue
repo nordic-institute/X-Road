@@ -45,6 +45,7 @@
       <template v-if="filtered && !loading">
         <TokenExpandable
           v-for="token in filtered"
+          data-test="tokens-table"
           class="tokens-table"
           :key="token.id"
           :token="token"
