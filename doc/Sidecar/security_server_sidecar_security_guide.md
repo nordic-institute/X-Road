@@ -1,17 +1,18 @@
 # Security Server Sidecar Security Guide <!-- omit in toc -->
 
-Version: 1.3  
+Version: 1.4  
 Doc. ID: UG-SS-SEC-SIDECAR
 
 ## Version history <!-- omit in toc -->
 
- Date       | Version | Description            | Author
- ---------- |---------|------------------------| --------------------
- 05.02.2021 | 1.0     | Initial version        | Raul Martinez Lopez
- 28.11.2021 | 1.1     | Add license info       | Petteri Kivimäki
- 11.10.2022 | 1.2     | Updating links         | Monika Liutkute
- 06.07.2023 | 1.3     | Sidecar repo migration | Eneli Reimets
-
+| Date       | Version | Description                 | Author              |
+|------------|---------|-----------------------------|---------------------|
+| 05.02.2021 | 1.0     | Initial version             | Raul Martinez Lopez |
+| 28.11.2021 | 1.1     | Add license info            | Petteri Kivimäki    |
+| 11.10.2022 | 1.2     | Updating links              | Monika Liutkute     |
+| 06.07.2023 | 1.3     | Sidecar repo migration      | Eneli Reimets       |
+| 23.12.2024 | 1.4     | Minor documentation updates | Eneli Reimets       |
+ 
 ## License
 
 This document is licensed under the Creative Commons Attribution-ShareAlike 4.0 International License.
@@ -64,17 +65,17 @@ The document is intended for readers with a moderate knowledge of Linux server m
 
 ### 1.2 Environment assumptions
 
-The regular version of the Sidecar includes message log, operational monitoring, and environmental monitoring modules, whereas the Sidecar slim version does not include the aforementioned modules. Both the slim and regular versions of the Sidecar can be used for both consuming and producing services. In addition, there are country-specific configuration versions available, such as the Finnish meta-package (currently the only one). More information can be found on the Security Server Sidecar User Guide for the different [image versions](security_server_sidecar_user_guide.md#22-x-road-security-server-sidecar-images).
+The regular version of the Sidecar includes message log, operational monitoring, and environmental monitoring modules, whereas the Sidecar slim version does not include the aforementioned modules. Both the slim and regular versions of the Sidecar can be used for both consuming and producing services. In addition, there are country-specific configuration versions available, such as the Finnish meta-package. More information can be found on the Security Server Sidecar User Guide for the different [image versions](security_server_sidecar_user_guide.md#22-x-road-security-server-sidecar-images).
 
-Note(1) For the scope of this document, we will assume the regular Security Server Sidecar image version is used.
+>**Note(1)** For the scope of this document, we will assume the regular Security Server Sidecar image version is used.
 
 The Security Server Sidecar can run alongside the client or service information system in the same host but in separate containers. In a production environment, a single Security Server Sidecar container may be shared between different information systems. However, the footprint of the Sidecar container is relatively high compared to the footprint of average containers and it has to be taken into account for dimensioning the host where the containers should run. More information can be found on the Security Server Sidecar User Guide for the [requirements to run a Security Server Sidecar container](security_server_sidecar_user_guide.md#24-requirements-for-the-x-road-security-server-sidecar).
 
-Note(2) For the scope of this document, we will assume a single Security Server Sidecar container is running alongside an information system for consuming or providing services.
+>**Note(2)** For the scope of this document, we will assume a single Security Server Sidecar container is running alongside an information system for consuming or providing services.
 
 The Security Server Sidecar can be configured to use either a local database running inside the container or a remote database running externally. Since the Security Server is a stateful application, it is recommended to configure the Sidecar container to use a remote database and persistent file storage external to the container. More information can be found on the Security Server Sidecar User Guide to [set up an external database](security_server_sidecar_user_guide.md#27-external-database) and [bind an external volume](security_server_sidecar_user_guide.md#29-volume-support).
 
-Note(3) For the scope of this document, we will assume the Security Server sidecar is configured to use an external database for storing server configuration, message logs and operational monitoring data and an external volume to store configuration files.
+>**Note(3)** For the scope of this document, we will assume the Security Server sidecar is configured to use an external database for storing server configuration, message logs and operational monitoring data and an external volume to store configuration files.
 
 ### 1.3 References
 
