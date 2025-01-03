@@ -33,6 +33,9 @@ caffeine = "3.1.8"
 swaggerAnnotations = "2.2.17"
 feign = "13.5"
 
+quarkus = "3.17.5"
+quarkus-vault = "4.1.0"
+
 [libraries]
 metrics-core = { module = "io.dropwizard.metrics:metrics-core", version.ref = "metrics" }
 metrics-jmx = { module = "io.dropwizard.metrics:metrics-jmx", version.ref = "metrics" }
@@ -48,6 +51,18 @@ jaxb-xjc = { module = "org.glassfish.jaxb:jaxb-xjc", version.ref = "jaxb" }
 springBoot-bom = { module = "org.springframework.boot:spring-boot-dependencies", version.ref = "springBoot" }
 springBoot-starterTest = { module = "org.springframework.boot:spring-boot-starter-test", version.ref = "springBoot" }
 springBoot-starterWeb = { module = "org.springframework.boot:spring-boot-starter-web", version.ref = "springBoot" }
+
+quarkus-bom = { module = "io.quarkus.platform:quarkus-bom", version.ref = "quarkus" }
+quarkus-arc = { group = "io.quarkus", name = "quarkus-arc", version.ref = "quarkus" }
+quarkus-rest = { group = "io.quarkus", name = "quarkus-rest", version.ref = "quarkus" }
+quarkus-kubernetes = { group = "io.quarkus", name = "quarkus-kubernetes", version.ref = "quarkus" }
+quarkus-health = { group = "io.quarkus", name = "quarkus-smallrye-health", version.ref = "quarkus" }
+quarkus-container-image = { group = "io.quarkus", name = "quarkus-container-image-docker", version.ref = "quarkus" }
+quarkus-config-yaml = { group = "io.quarkus", name = "quarkus-config-yaml", version.ref = "quarkus" }
+quarkus-springBoot-properties = { group = "io.quarkus", name = "quarkus-spring-boot-properties", version.ref = "quarkus" }
+quarkus-scheduler = { group = "io.quarkus", name = "quarkus-scheduler", version.ref = "quarkus" }
+
+quarkus-extension-vault = { group = "io.quarkiverse.vault", name = "quarkus-vault", version.ref = "quarkus-vault" }
 
 springCloud-bom = { module = "org.springframework.cloud:spring-cloud-dependencies", version = "2024.0.0" }
 
@@ -366,8 +381,23 @@ sql-fc = ["edc-fc-cache-sql"]
 
 edc-monitoring = ["edc-micrometer-core", "edc-micrometer-jersey", "edc-micrometer-jetty"]
 
+quarkus-core = [
+  "quarkus-arc",
+  "quarkus-config-yaml",
+  "quarkus-extension-vault"
+
+]
+quarkus-containerized = [
+  "quarkus-kubernetes",
+  "quarkus-health",
+]
+
 [plugins]
 springBoot = { id = "org.springframework.boot", version.ref = "springBoot" }
+
+quarkus = { id = "io.quarkus", version.ref = "quarkus" }
+jandex = { id = "org.kordamp.gradle.jandex", version = "2.1.0" }
+
 openapi-generator = { id = "org.openapi.generator", version = "7.9.0" }
 sonarqube = { id = "org.sonarqube", version = "6.0.1.5171" }
 protobuf = { id = "com.google.protobuf", version = "0.9.4" }

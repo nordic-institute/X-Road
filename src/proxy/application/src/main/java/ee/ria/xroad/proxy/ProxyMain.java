@@ -25,31 +25,18 @@
  */
 package ee.ria.xroad.proxy;
 
-import lombok.extern.slf4j.Slf4j;
-import org.niis.xroad.bootstrap.XrdSpringServiceBuilder;
-import org.niis.xroad.proxy.configuration.ProxyConfig;
-import org.springframework.boot.SpringBootConfiguration;
-import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
+import io.quarkus.runtime.Quarkus;
+import io.quarkus.runtime.annotations.QuarkusMain;
+import org.niis.xroad.bootstrap.XrdQuarkusApplication;
 
 /**
  * Main program for the proxy server.
  */
-@Slf4j
-@EnableAutoConfiguration
-@SpringBootConfiguration
-@SuppressWarnings("checkstyle:HideUtilityClassConstructor")
+@QuarkusMain
 public class ProxyMain {
 
-    private static final String APP_NAME = "proxy";
-
     public static void main(String[] args) {
-        XrdSpringServiceBuilder.newApplicationBuilder(APP_NAME, ProxyMain.class, ProxyConfig.class)
-                .initializers(applicationContext -> {
-                    log.info("Initializing Apache Santuario XML Security library..");
-                    org.apache.xml.security.Init.init();
-                })
-                .build()
-                .run(args);
+        Quarkus.run(XrdQuarkusApplication.class, args);
     }
 
 }

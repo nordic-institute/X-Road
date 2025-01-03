@@ -41,7 +41,7 @@ import lombok.extern.slf4j.Slf4j;
 @RequiredArgsConstructor
 public class RpcCredentialsConfigurer {
     private final CommonRpcProperties commonRpcProperties;
-    private final ReloadableVaultKeyManager reloadableVaultKeyManager;
+    private final VaultKeyProvider reloadableVaultKeyManager;
 
     public ServerCredentials createServerCredentials() {
         if (commonRpcProperties.useTls()) {

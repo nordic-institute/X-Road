@@ -1,5 +1,6 @@
 /*
  * The MIT License
+ *
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
@@ -23,62 +24,53 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package ee.ria.xroad.proxy.serverproxy;
+package org.niis.xroad.bootstrap;
 
-import jakarta.annotation.PostConstruct;
-import jakarta.annotation.PreDestroy;
-import lombok.AccessLevel;
+import ee.ria.xroad.common.SystemPropertySource;
+
+import io.quarkus.runtime.Quarkus;
+import io.quarkus.runtime.QuarkusApplication;
+import io.quarkus.runtime.StartupEvent;
+import jakarta.enterprise.event.Observes;
 import lombok.RequiredArgsConstructor;
-import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.http.conn.HttpClientConnectionManager;
+import org.eclipse.microprofile.config.Config;
 
-import java.util.concurrent.TimeUnit;
-
-/**
- * Thread that periodically closes expired and idle connections.
- */
 @Slf4j
-@RequiredArgsConstructor(access = AccessLevel.PUBLIC)
-public class IdleConnectionMonitorThread extends Thread {
+@RequiredArgsConstructor
+public class XrdQuarkusApplication implements QuarkusApplication {
+    private final Config config;
 
-    private static final int DEFAULT_IDLE_TIMEOUT = 1000;
-    private static final int DEFAULT_MONITORING_INTERVAL = 5000;
-
-    private final HttpClientConnectionManager connectionManager;
-
-    private volatile boolean shutdown;
-
-    @Setter
-    private int intervalMilliseconds = DEFAULT_MONITORING_INTERVAL;
-    @Setter
-    private int connectionIdleTimeMilliseconds = DEFAULT_IDLE_TIMEOUT;
-
-    void closeNow() {
-        connectionManager.closeIdleConnections(connectionIdleTimeMilliseconds, TimeUnit.MILLISECONDS);
+    void onStart(@Observes StartupEvent ev) {
+        log.info("Setting property source to Quarkus config..");
+        initializePropertyResolver();
+        log.info("Initializing Apache Santuario XML Security library..");
+        org.apache.xml.security.Init.init();
     }
 
     @Override
-    public void run() {
-        while (!shutdown && !isInterrupted()) {
-            try {
-                sleep(intervalMilliseconds);
-                closeNow();
-            } catch (InterruptedException ex) {
-                //ignored (stopping controlled by shutdown)
+    public int run(String... args) {
+        Quarkus.waitForExit();
+        return 0;
+    }
+
+    private void initializePropertyResolver() {
+        SystemPropertySource.setPropertyResolver(new SystemPropertySource.PropertyResolver() {
+            @Override
+            public String getProperty(String key) {
+                return config.getValue(key, String.class);
             }
-        }
-    }
 
-    @PostConstruct
-    public void afterPropertiesSet() throws Exception {
-        start();
-    }
+            @Override
+            public String getProperty(String key, String defaultValue) {
+                return config.getOptionalValue(key, String.class)
+                        .orElse(defaultValue);
+            }
 
-    @PreDestroy
-    public void destroy() {
-        shutdown = true;
-        interrupt();
+            @Override
+            public <T> T getProperty(String key, Class<T> targetType) {
+                return config.getValue(key, targetType);
+            }
+        });
     }
-
 }

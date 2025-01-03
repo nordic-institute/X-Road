@@ -29,13 +29,11 @@ import ee.ria.xroad.common.conf.globalconf.SharedParameters;
 import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.identifier.ServiceId;
 
+import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.json.JsonObject;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.niis.xroad.edc.management.client.FeignXroadEdrApi;
-import org.niis.xroad.proxy.configuration.ProxyEdcControlPlaneConfig;
-import org.springframework.context.annotation.Conditional;
-import org.springframework.stereotype.Component;
 
 import static jakarta.json.Json.createObjectBuilder;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.CONTEXT;
@@ -44,8 +42,8 @@ import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.VOCAB;
 import static org.eclipse.edc.spi.constants.CoreConstants.EDC_NAMESPACE;
 
 @Slf4j
-@Component
-@Conditional(ProxyEdcControlPlaneConfig.DataspacesEnabledCondition.class)
+@ApplicationScoped
+//@Conditional(ProxyEdcControlPlaneConfig.DataspacesEnabledCondition.class) TODO: Fix this
 @RequiredArgsConstructor
 public class AssetAuthorizationManager {
     private final FeignXroadEdrApi xrdEdrApi;

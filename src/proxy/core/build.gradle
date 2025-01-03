@@ -11,6 +11,8 @@ sourceSets {
 }
 
 dependencies {
+    implementation(libs.quarkus.scheduler)
+
     implementation(project(':proxy:proxy-rpc-client'))
 
     implementation(project(':common:common-jetty'))
@@ -27,9 +29,9 @@ dependencies {
     implementation project(':security-server:ds-client')
     implementation project(':security-server:ds:xroad-ds-security')
 
-    api(platform(libs.springBoot.bom))
-    api('org.springframework:spring-context-support')
-    implementation("org.springframework.boot:spring-boot-starter")
+//    api(platform(libs.springBoot.bom))
+//    api('org.springframework:spring-context-support')
+//    implementation("org.springframework.boot:spring-boot-starter")
     implementation("com.fasterxml.jackson.dataformat:jackson-dataformat-yaml")
     implementation(libs.caffeine)
     implementation(libs.jetty.xml)

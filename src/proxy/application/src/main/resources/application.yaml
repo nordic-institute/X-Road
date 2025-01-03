@@ -1,9 +1,16 @@
-spring:
-  application:
-    name: proxy
+quarkus:
+  config:
+    locations:
+      - classpath:/xroad-common.yaml
+      - file:/etc/xroad/application-overrides.yaml
+      - file:/etc/xroad/application-proxy.yaml
 
-server:
-  port: 5599
+#spring:
+#  application:
+#    name: proxy
+#
+#server:
+#  port: 5599
 
 xroad:
   common:

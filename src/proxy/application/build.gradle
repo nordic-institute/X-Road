@@ -1,12 +1,12 @@
 plugins {
-    alias(libs.plugins.springBoot)
+    alias(libs.plugins.quarkus)
+    alias(libs.plugins.jandex)
 }
 
 dependencies {
-    implementation(platform(libs.springCloud.bom))
 
     implementation(project(':proxy:core'))
-    implementation(project(':common:common-service-bootstrap'))
+    implementation(project(':common:common-quarkus-bootstrap'))
     implementation(project(':common:common-core'))
     implementation(project(':common:common-rpc'))
 
@@ -34,17 +34,29 @@ jar {
     enabled = false
 }
 
-bootJar {
-    enabled = true
-    archiveBaseName = 'proxy'
-    manifest {
-        attributes(
-            'Implementation-Title': 'X-Road Proxy',
-            'Implementation-Version': "$xroadVersion-$xroadBuildType",
-            'Main-Class': 'org.springframework.boot.loader.launch.PropertiesLauncher'
-        )
-    }
+quarkusDev {
+    jvmArgs = ['-Xmx256m']
 }
+
+quarkusRun {
+    jvmArgs = ['-Xmx130m',"-XX:MaxMetaspaceSize=100m"]
+}
+
+jandex {
+
+}
+
+//bootJar {
+//    enabled = true
+//    archiveBaseName = 'proxy'
+//    manifest {
+//        attributes(
+//            'Implementation-Title': 'X-Road Proxy',
+//            'Implementation-Version': "$xroadVersion-$xroadBuildType",
+//            'Main-Class': 'org.springframework.boot.loader.launch.PropertiesLauncher'
+//        )
+//    }
+//}
 
 testJar.enabled = true
 

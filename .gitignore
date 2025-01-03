@@ -20,3 +20,4 @@ legacy/lib/
 gradle-cache
 **/.DS_Store
 mailpit*
+.quarkus

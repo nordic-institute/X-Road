@@ -16,8 +16,6 @@ sourceSets {
 dependencies {
     api project(':common:common-core')
     api project(':common:common-rpc')
-
-    api("org.springframework.boot:spring-boot-starter")
 }
 
 protobuf {

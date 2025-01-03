@@ -52,7 +52,7 @@ import static org.niis.xroad.common.rpc.RpcConfig.BEAN_VIRTUAL_THREAD_SCHEDULER;
 
 @Slf4j
 @RequiredArgsConstructor
-public class ReloadableVaultKeyManager implements InitializingBean {
+public class ReloadableVaultKeyManager implements InitializingBean, VaultKeyProvider {
     private static final String CERTIFICATE_FORMAT = "pem";
     private static final String PRIVATE_KEY_FORMAT = "pkcs8";
 
@@ -77,10 +77,12 @@ public class ReloadableVaultKeyManager implements InitializingBean {
         reload();
     }
 
+    @Override
     public KeyManager getKeyManager() {
         return keyManager;
     }
 
+    @Override
     public TrustManager getTrustManager() {
         return trustManager;
     }

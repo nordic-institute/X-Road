@@ -42,7 +42,7 @@ import lombok.AccessLevel;
 import lombok.NoArgsConstructor;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
-import org.niis.xroad.bootstrap.XrdSpringServiceBuilder;
+import org.niis.xroad.bootstrap.XrdQuarkusApplication;
 import org.springframework.beans.factory.BeanCreationException;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Bean;
@@ -208,7 +208,7 @@ public final class ProxyTestSuite {
 
     private static void runTestSuite(List<MessageTestCase> tc) {
         // todo: should be better way to start application context
-        try (var applicationContext = XrdSpringServiceBuilder.newApplicationBuilder("proxy",
+        try (var applicationContext = XrdQuarkusApplication.newApplicationBuilder("proxy",
                         ProxyMain.class, TestProxySpringConfig.class)
                 .initializers(ctx -> {
                     log.info("Initializing Apache Santuario XML Security library..");

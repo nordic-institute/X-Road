@@ -35,7 +35,7 @@ import org.springframework.scheduling.annotation.EnableScheduling;
 import org.springframework.scheduling.concurrent.SimpleAsyncTaskScheduler;
 import org.springframework.vault.core.VaultTemplate;
 
-@Configuration
+@Configuration(proxyBeanMethods = false)
 @EnableScheduling
 @EnableConfigurationProperties({CommonRpcProperties.class,
         CommonRpcProperties.CertificateProvisionProperties.class})

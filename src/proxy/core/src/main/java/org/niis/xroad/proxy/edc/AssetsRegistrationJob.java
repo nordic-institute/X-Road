@@ -36,6 +36,9 @@ import ee.ria.xroad.common.identifier.ServiceId;
 import ee.ria.xroad.common.identifier.XRoadId;
 
 import feign.FeignException;
+import io.quarkus.scheduler.Scheduled;
+import jakarta.annotation.PostConstruct;
+import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.json.Json;
 import jakarta.json.JsonObject;
 import jakarta.ws.rs.core.MediaType;
@@ -66,11 +69,6 @@ import org.eclipse.edc.transform.transformer.edc.from.JsonObjectFromCriterionTra
 import org.eclipse.edc.transform.transformer.edc.from.JsonObjectFromQuerySpecTransformer;
 import org.eclipse.edc.transform.transformer.edc.to.JsonObjectToQuerySpecTransformer;
 import org.eclipse.edc.transform.transformer.edc.to.JsonValueToGenericTypeTransformer;
-import org.niis.xroad.proxy.configuration.ProxyEdcControlPlaneConfig;
-import org.springframework.beans.factory.InitializingBean;
-import org.springframework.context.annotation.Conditional;
-import org.springframework.scheduling.annotation.Scheduled;
-import org.springframework.stereotype.Component;
 
 import java.util.HashSet;
 import java.util.Map;
@@ -89,12 +87,13 @@ import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.VOCAB;
 import static org.eclipse.edc.spi.constants.CoreConstants.EDC_NAMESPACE;
 import static org.eclipse.edc.spi.query.Criterion.criterion;
 
-@Component
-@Conditional(ProxyEdcControlPlaneConfig.DataspacesEnabledCondition.class)
+/**
+ * TODO: migrate out of proxy.
+ */
 @Slf4j
+@ApplicationScoped
 @SuppressWarnings("checkstyle:MagicNumber")
-public class AssetsRegistrationJob implements InitializingBean {
-    private static final int FIVE_MINUTES = 5 * 60;
+public class AssetsRegistrationJob {
 
     private static final String XROAD_NAMESPACE = "https://x-road.eu/v0.1/ns/";
     static final String XROAD_JOB_MANAGED_PROPERTY = XROAD_NAMESPACE + "xroadJobManaged";
@@ -145,7 +144,7 @@ public class AssetsRegistrationJob implements InitializingBean {
         return registry;
     }
 
-    @Override
+    @PostConstruct
     @SuppressWarnings("checkstyle:MagicNumber")
     public void afterPropertiesSet() {
         //TODO disabled for now. Initialized by hurl
@@ -181,7 +180,7 @@ public class AssetsRegistrationJob implements InitializingBean {
         }
     }
 
-    @Scheduled(initialDelay = FIVE_MINUTES, fixedDelay = FIVE_MINUTES, timeUnit = SECONDS)
+    @Scheduled(every = "5m", delay = 5, delayUnit = SECONDS)
     public void registerAssets() throws Exception {
         final JobContext jobContext = fetchAllJobManagedIds();
         process(jobContext);
