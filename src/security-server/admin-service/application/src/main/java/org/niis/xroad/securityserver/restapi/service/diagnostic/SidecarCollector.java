@@ -35,15 +35,22 @@ import java.nio.file.Paths;
 @Component
 @RequiredArgsConstructor
 @Order(DiagnosticCollector.ORDER_GROUP4)
-public class SidecarCollector implements DiagnosticCollector<String> {
+public class SidecarCollector implements DiagnosticCollector<SidecarCollector.Containerized> {
 
     @Override
     public String name() {
-        return "Runs in sidecar";
+        return "Runs in container";
     }
 
     @Override
-    public String collect() {
-        return Paths.get(SystemProperties.CONF_FILE_NODE).toFile().exists() ? "Yes" : "No";
+    public Containerized collect() {
+        return new Containerized(
+                Paths.get(SystemProperties.getConfPath(), "conf.d", "override-docker.ini").toFile().exists(),
+                Paths.get(SystemProperties.CONF_FILE_NODE).toFile().exists()
+        );
+    }
+
+    public record Containerized(boolean containerized, boolean asNode) {
+
     }
 }

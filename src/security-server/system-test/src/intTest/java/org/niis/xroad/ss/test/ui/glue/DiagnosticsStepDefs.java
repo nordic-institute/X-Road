@@ -61,7 +61,7 @@ public class DiagnosticsStepDefs extends BaseUiStepDefs {
             "JAVA Processes",
             "Installed X-Road packages",
             "Timestamping",
-            "Runs in sidecar",
+            "Runs in container",
             "OS version",
             "OCSP responders",
             "Global configuration",
