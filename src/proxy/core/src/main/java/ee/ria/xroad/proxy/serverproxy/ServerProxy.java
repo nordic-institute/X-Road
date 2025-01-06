@@ -32,11 +32,11 @@ import ee.ria.xroad.common.conf.serverconf.ServerConfProvider;
 import ee.ria.xroad.common.opmonitoring.OpMonitoringDaemonHttpClient;
 import ee.ria.xroad.common.opmonitoring.OpMonitoringSystemProperties;
 import ee.ria.xroad.common.util.CryptoUtils;
-import ee.ria.xroad.common.util.JettyUtils;
 import ee.ria.xroad.common.util.TimeUtils;
 import ee.ria.xroad.proxy.antidos.AntiDosConfiguration;
 import ee.ria.xroad.proxy.antidos.AntiDosConnector;
 import ee.ria.xroad.proxy.conf.KeyConfProvider;
+import ee.ria.xroad.proxy.util.JettyUtil;
 import ee.ria.xroad.proxy.util.SSLContextUtil;
 
 import lombok.extern.slf4j.Slf4j;
@@ -112,7 +112,7 @@ public class ServerProxy implements InitializingBean, DisposableBean {
 
         var config = serverProperties.jettyConfigurationFile();
         log.debug("Configuring server from {}", config);
-        new XmlConfiguration(JettyUtils.toResource(config)).configure(server);
+        new XmlConfiguration(JettyUtil.toResource(config)).configure(server);
 
         final var writer = new Slf4jRequestLogWriter();
         writer.setLoggerName(getClass().getPackage().getName() + ".RequestLog");

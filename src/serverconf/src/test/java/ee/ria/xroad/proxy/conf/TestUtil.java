@@ -110,7 +110,7 @@ public final class TestUtil {
             "hbm2ddl.auto", "create-drop"
     );
     static ServerConfProperties serverConfProperties = new ServerConfProperties(60, 100,
-            1000, 100_000, serverConfHibernateProperties);
+            1000, 100_000, 100_000, serverConfHibernateProperties);
     static DatabaseCtxV2 databaseCtx = new DatabaseCtxV2("serverconf", serverConfProperties.hibernate());
 
     private TestUtil() {

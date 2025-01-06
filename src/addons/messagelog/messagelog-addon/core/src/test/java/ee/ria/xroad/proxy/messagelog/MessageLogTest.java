@@ -27,6 +27,7 @@ package ee.ria.xroad.proxy.messagelog;
 
 import ee.ria.xroad.common.CodedException;
 import ee.ria.xroad.common.ExpectedCodedException;
+import ee.ria.xroad.common.asic.AsicContainer;
 import ee.ria.xroad.common.crypto.identifier.DigestAlgorithm;
 import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.message.RestRequest;
@@ -266,7 +267,9 @@ public class MessageLogTest extends AbstractMessageLogTest {
         assertEquals(logRecord.getXRequestId(), requestId);
         assertEquals(logRecord.getQueryId(), message.getQueryId());
 
-        final AsicContainer asic = logRecord.toAsicContainer();
+        ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
+        logRecord.writeAsicContainer(outputStream);
+        final AsicContainer asic = AsicContainer.read(new ByteArrayInputStream(outputStream.toByteArray()));
         assertEquals(asic.getMessage(), message.getXml());
         var attachments = asic.getAttachments().stream().map(MessageLogTest::readAllBytes).toList();
         Assertions.assertThat(attachments).containsExactly(attachment1, attachment2);

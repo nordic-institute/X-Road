@@ -36,6 +36,7 @@ public record ServerConfProperties(
         int cachePeriod,       //xroad.proxy.server-conf-cache-period: 60
         long clientCacheSize,  //xroad.proxy.server-conf-client-cache-size: 100
         long serviceCacheSize, //xroad.proxy.server-conf-service-cache-size: 1000
+        long serviceEndpointsCacheSize, //xroad.proxy.server-conf-service-endpoints-cache-size: 100_000
         long aclCacheSize,      //xroad.proxy.server-conf-acl-cache-size: 100_000
         Map<String, String> hibernate // serverconf.hibernate.* properties from db-properties file
 ) {

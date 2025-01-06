@@ -62,7 +62,7 @@ import static ee.ria.xroad.signer.util.ExceptionHelper.tokenNotInitialized;
 @Slf4j
 @Component
 @RequiredArgsConstructor
-@SuppressWarnings("squid:S119")
+@SuppressWarnings({"squid:S119", "checkstyle:JavadocType"})
 public abstract class AbstractAuthKeyReqHandler<RespT extends AbstractMessage> extends AbstractRpcHandler<GetAuthKeyReq, RespT> {
     private final GlobalConfProvider globalConfProvider;
 

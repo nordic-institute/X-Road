@@ -77,7 +77,7 @@ public class CachingServerConfImpl extends ServerConfImpl {
     public CachingServerConfImpl(DatabaseCtxV2 databaseCtx, ServerConfProperties serverConfProperties,
                                  GlobalConfProvider globalConfProvider) {
         super(databaseCtx, globalConfProvider);
-        expireSeconds = serverConfProperties.cachePeriod();
+        int expireSeconds = serverConfProperties.cachePeriod();
 
         internalKeyCache = CacheBuilder.newBuilder()
                 .maximumSize(1)
@@ -96,7 +96,7 @@ public class CachingServerConfImpl extends ServerConfImpl {
                 .build();
 
         serviceCache = CacheBuilder.newBuilder()
-                .maximumSize()
+                .maximumSize(serverConfProperties.serviceCacheSize())
                 .expireAfterWrite(expireSeconds, TimeUnit.SECONDS)
                 .recordStats()
                 .build();
@@ -110,7 +110,7 @@ public class CachingServerConfImpl extends ServerConfImpl {
 
         serviceEndpointsCache = CacheBuilder.newBuilder()
                 .weigher((ServiceId k, List<Endpoint> v) -> v.size() + 1)
-                .maximumWeight(serverConfProperties.serviceCacheSize())
+                .maximumWeight(serverConfProperties.serviceEndpointsCacheSize())
                 .expireAfterWrite(expireSeconds, TimeUnit.SECONDS)
                 .recordStats()
                 .build();

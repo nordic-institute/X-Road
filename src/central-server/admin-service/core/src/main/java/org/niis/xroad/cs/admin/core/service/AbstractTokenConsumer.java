@@ -27,14 +27,11 @@
 
 package org.niis.xroad.cs.admin.core.service;
 
-import ee.ria.xroad.common.CodedException;
 import ee.ria.xroad.signer.SignerRpcClient;
 import ee.ria.xroad.signer.exception.SignerException;
 
 import org.niis.xroad.common.exception.NotFoundException;
-import org.niis.xroad.cs.admin.core.exception.SignerProxyException;
 import org.niis.xroad.common.exception.SignerProxyException;
-import org.niis.xroad.cs.admin.api.facade.SignerProxyFacade;
 
 import static org.niis.xroad.cs.admin.api.exception.ErrorMessage.SIGNER_PROXY_ERROR;
 import static org.niis.xroad.cs.admin.api.exception.ErrorMessage.TOKEN_NOT_FOUND;

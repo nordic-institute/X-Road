@@ -36,9 +36,8 @@ import ee.ria.xroad.common.identifier.SecurityServerId;
 import ee.ria.xroad.common.util.CertUtils;
 import ee.ria.xroad.common.util.CryptoUtils;
 import ee.ria.xroad.signer.SignerRpcClient;
-import ee.ria.xroad.signer.protocol.dto.AuthKeyCertInfo;
 import ee.ria.xroad.signer.exception.SignerException;
-import ee.ria.xroad.signer.protocol.dto.AuthKeyInfo;
+import ee.ria.xroad.signer.protocol.dto.AuthKeyCertInfo;
 import ee.ria.xroad.signer.protocol.dto.CertificateInfo;
 import ee.ria.xroad.signer.protocol.dto.KeyUsageInfo;
 

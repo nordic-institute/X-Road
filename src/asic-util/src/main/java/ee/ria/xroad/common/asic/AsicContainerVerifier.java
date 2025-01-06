@@ -49,7 +49,6 @@ import ee.ria.xroad.common.util.MimeTypes;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
-import org.apache.xml.security.signature.XMLSignatureDigestInput;
 import org.apache.xml.security.signature.XMLSignatureInput;
 import org.apache.xml.security.utils.resolver.ResourceResolverContext;
 import org.apache.xml.security.utils.resolver.ResourceResolverException;
@@ -194,9 +193,9 @@ public class AsicContainerVerifier {
             @Override
             public XMLSignatureInput engineResolveURI(ResourceResolverContext context) throws ResourceResolverException {
                 if (isAttachment(context.attr.getValue())) {
-                    return new XMLSignatureDigestInput(EncoderUtils.encodeBase64(asic.getAttachmentDigest(context.attr.getValue())));
+                    return new XMLSignatureInput(EncoderUtils.encodeBase64(asic.getAttachmentDigest(context.attr.getValue())));
                 }
-                return new XMLSignatureStreamInput(asic.getEntry(context.attr.getValue()));
+                return new XMLSignatureInput(asic.getEntry(context.attr.getValue()));
             }
         });
 

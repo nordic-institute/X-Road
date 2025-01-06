@@ -27,7 +27,7 @@ package ee.ria.xroad.proxy.clientproxy;
 
 import ee.ria.xroad.common.conf.serverconf.ServerConfProvider;
 import ee.ria.xroad.common.util.CryptoUtils;
-import ee.ria.xroad.common.util.JettyUtils;
+import ee.ria.xroad.proxy.util.JettyUtil;
 
 import lombok.extern.slf4j.Slf4j;
 import org.eclipse.jetty.http.UriCompliance;
@@ -99,7 +99,7 @@ public class ClientProxy implements InitializingBean, DisposableBean {
         var file = clientProxyProperties.jettyConfigurationFile();
 
         log.debug("Configuring server from {}", file);
-        new XmlConfiguration(JettyUtils.toResource(file)).configure(server);
+        new XmlConfiguration(JettyUtil.toResource(file)).configure(server);
 
         final var writer = new Slf4jRequestLogWriter();
         writer.setLoggerName(getClass().getPackage().getName() + ".RequestLog");

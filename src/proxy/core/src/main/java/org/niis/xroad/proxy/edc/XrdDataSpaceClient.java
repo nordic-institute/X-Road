@@ -127,10 +127,10 @@ public class XrdDataSpaceClient {
                 .addHeader("Authorization", assetInfo.authCode())
                 .addHeader(HEADER_XRD_SIG, signatureResponse.getSignature())
                 .setEntity(soapRequest.getBytes(), ContentType.parse(soapRequest.getContentType()));
-
-        MessageLog.log(soapRequest, toSignatureData(signatureResponse.getSignature()), true, xRequestId);
+//      todo if needed
+//      MessageLog.log(soapRequest, toSignatureData(signatureResponse.getSignature()), true, xRequestId);
         var response = EdcDataPlaneHttpClient.sendSoapRequest(dsRequest.build(), globalConfProvider, keyConfProvider);
-        MessageLog.log((SoapMessageImpl) response.soapMessage(), toSignatureData(response.headers().get(HEADER_XRD_SIG)), true, xRequestId);
+//      MessageLog.log((SoapMessageImpl) response.soapMessage(), toSignatureData(response.headers().get(HEADER_XRD_SIG)), true, xRequestId);
         return response;
     }
 

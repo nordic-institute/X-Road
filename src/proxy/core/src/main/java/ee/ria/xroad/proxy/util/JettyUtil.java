@@ -1,5 +1,6 @@
 /*
  * The MIT License
+ *
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
@@ -23,17 +24,24 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package ee.ria.xroad.common.conf.globalconf;
 
-import ee.ria.xroad.common.cert.CertChain;
+package ee.ria.xroad.proxy.util;
 
-import java.security.PrivateKey;
+import lombok.experimental.UtilityClass;
+import org.eclipse.jetty.util.resource.Resource;
+import org.eclipse.jetty.util.resource.ResourceFactory;
+import org.springframework.core.io.ClassPathResource;
+import org.springframework.core.io.FileSystemResource;
 
-/**
- * Value object representing the authentication key of the security server
- * It consists of the certificate chain and private key.
- */
-@SuppressWarnings("checkstyle:JavadocType")
-public record AuthKey(CertChain certChain, PrivateKey key) {
+import java.io.IOException;
 
+@UtilityClass
+public final class JettyUtil {
+
+    public static Resource toResource(String resourcePath) throws IOException {
+        org.springframework.core.io.Resource resource = resourcePath.startsWith("classpath:")
+                ? new ClassPathResource(resourcePath.replace("classpath:", ""))
+                : new FileSystemResource(resourcePath);
+        return ResourceFactory.root().newResource(resource.getURL());
+    }
 }

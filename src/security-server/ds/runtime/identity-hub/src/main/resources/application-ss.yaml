@@ -10,6 +10,7 @@ xroad:
       cache-period: 60
       client-cache-size: 100
       service-cache-size: 1000
+      service-endpoints-cache-size: 100_000
       acl-cache-size: 100_000
       hibernate:
         dialect: ee.ria.xroad.common.db.CustomPostgreSQLDialect

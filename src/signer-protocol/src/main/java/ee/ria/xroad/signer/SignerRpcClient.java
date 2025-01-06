@@ -28,19 +28,17 @@ package ee.ria.xroad.signer;
 
 import ee.ria.xroad.common.CertificationServiceDiagnostics;
 import ee.ria.xroad.common.CertificationServiceStatus;
-import ee.ria.xroad.common.OcspResponderStatus;
 import ee.ria.xroad.common.CodedException;
 import ee.ria.xroad.common.ErrorCodes;
+import ee.ria.xroad.common.OcspResponderStatus;
 import ee.ria.xroad.common.crypto.identifier.KeyAlgorithm;
 import ee.ria.xroad.common.crypto.identifier.SignAlgorithm;
 import ee.ria.xroad.common.crypto.identifier.SignMechanism;
 import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.identifier.SecurityServerId;
+import ee.ria.xroad.signer.exception.SignerException;
 import ee.ria.xroad.signer.protocol.Utils;
 import ee.ria.xroad.signer.protocol.dto.AuthKeyCertInfo;
-import ee.ria.xroad.common.util.PasswordStore;
-import ee.ria.xroad.signer.exception.SignerException;
-import ee.ria.xroad.signer.protocol.RpcSignerClient;
 import ee.ria.xroad.signer.protocol.dto.AuthKeyInfo;
 import ee.ria.xroad.signer.protocol.dto.CertificateInfo;
 import ee.ria.xroad.signer.protocol.dto.KeyInfo;
@@ -51,9 +49,6 @@ import ee.ria.xroad.signer.protocol.dto.TokenInfoAndKeyId;
 import com.google.protobuf.ByteString;
 import io.opentelemetry.instrumentation.annotations.WithSpan;
 import lombok.RequiredArgsConstructor;
-import lombok.Value;
-import lombok.AccessLevel;
-import lombok.NoArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.niis.xroad.common.rpc.client.AbstractRpcClient;
 import org.niis.xroad.common.rpc.client.RpcChannelFactory;
@@ -88,7 +83,6 @@ import org.niis.xroad.signer.proto.GetTokenByKeyIdReq;
 import org.niis.xroad.signer.proto.ImportCertReq;
 import org.niis.xroad.signer.proto.InitSoftwareTokenReq;
 import org.niis.xroad.signer.proto.KeyServiceGrpc;
-import org.niis.xroad.signer.proto.ListTokensResp;
 import org.niis.xroad.signer.proto.OcspServiceGrpc;
 import org.niis.xroad.signer.proto.RegenerateCertRequestReq;
 import org.niis.xroad.signer.proto.SetCertStatusReq;
@@ -222,9 +216,9 @@ public final class SignerRpcClient extends AbstractRpcClient implements Initiali
     public TokenInfo getToken(String tokenId) throws SignerException {
         return tryToRun(
                 () -> blockingTokenService.getTokenById(GetTokenByIdReq.newBuilder()
-                        .setTokenId(tokenId).build())
+                        .setTokenId(tokenId).build()),
+                TokenInfo::new
         );
-//        return new TokenInfo(response);
     }
 
     /**
@@ -832,21 +826,24 @@ public final class SignerRpcClient extends AbstractRpcClient implements Initiali
      */
     public AuthKeyInfo getAuthKey(SecurityServerId serverId) throws SignerException {
         return tryToRun(
-                () -> blockingKeyService.getAuthKey(GetAuthKeyReq.newBuilder()
-                        .setSecurityServer(SecurityServerIdMapper.toDto(serverId))
-                        .build()),
-                response -> {
-                    try (var keystoreStream = response.getKeyStore().newInput()) {
-                        var password = response.getPassword().toCharArray();
-                        var ks = loadPkcs12KeyStore(keystoreStream, password);
-                        var privateKey = (PrivateKey) ks.getKey(response.getAlias(),
-                                password);
-                        return new AuthKeyInfo(response.getAlias(),
-                                privateKey,
-                                new CertificateInfo(response.getCert()));
-                    }
-                }
+                () -> internalGetAuthKey(serverId)
         );
+    }
+
+    public AuthKeyInfo internalGetAuthKey(SecurityServerId serverId) throws Exception {
+        var response = blockingKeyService.getAuthKey(GetAuthKeyReq.newBuilder()
+                .setSecurityServer(SecurityServerIdMapper.toDto(serverId))
+                .build());
+
+        try (var keystoreStream = response.getKeyStore().newInput()) {
+            var password = response.getPassword().toCharArray();
+            var ks = loadPkcs12KeyStore(keystoreStream, password);
+            var privateKey = (PrivateKey) ks.getKey(response.getAlias(),
+                    password);
+            return new AuthKeyInfo(response.getAlias(),
+                    privateKey,
+                    new CertificateInfo(response.getCert()));
+        }
     }
 
     /**

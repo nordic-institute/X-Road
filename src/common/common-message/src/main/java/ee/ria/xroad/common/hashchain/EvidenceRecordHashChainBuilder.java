@@ -41,7 +41,7 @@ import java.util.List;
 import java.util.Map;
 
 import static ee.ria.xroad.common.util.EncoderUtils.encodeBase64;
-import static ee.ria.xroad.common.util.MessageFileNames.attachment;
+import static ee.ria.xroad.common.util.MessageFileNames.attachmentOfIdx;
 import static java.lang.Integer.numberOfLeadingZeros;
 
 /**
@@ -573,7 +573,7 @@ public final class EvidenceRecordHashChainBuilder {
             } else {
                 // All the other inputs are attachments, starting from 1.
                 ret.getHashValueOrStepRefOrDataRef().add(
-                        dataRef(attachment(i), inputSet[i]));
+                        dataRef(attachmentOfIdx(i), inputSet[i]));
             }
         }
 

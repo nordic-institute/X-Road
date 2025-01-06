@@ -87,8 +87,6 @@ import static ee.ria.xroad.common.ErrorCodes.X_UNKNOWN_MEMBER;
 import static ee.ria.xroad.common.ErrorCodes.X_UNKNOWN_SERVICE;
 import static ee.ria.xroad.common.ErrorCodes.translateException;
 import static ee.ria.xroad.common.ErrorCodes.translateWithPrefix;
-import static ee.ria.xroad.common.util.AbstractHttpSender.CHUNKED_LENGTH;
-import static ee.ria.xroad.common.util.EncoderUtils.encodeBase64;
 import static ee.ria.xroad.common.util.MimeUtils.HEADER_HASH_ALGO_ID;
 import static ee.ria.xroad.common.util.MimeUtils.HEADER_ORIGINAL_CONTENT_TYPE;
 import static ee.ria.xroad.common.util.MimeUtils.HEADER_ORIGINAL_SOAP_ACTION;
@@ -351,7 +349,7 @@ class ServerMessageProcessor extends MessageProcessorBase {
         }
     }
 
-    private void verifySecurityServer() throws Exception {
+    private void verifySecurityServer() {
         final SecurityServerId requestServerId = requestMessage.getSoap().getSecurityServer();
 
         if (requestServerId != null) {
@@ -364,7 +362,7 @@ class ServerMessageProcessor extends MessageProcessorBase {
         }
     }
 
-    private void verifyAccess() throws Exception {
+    private void verifyAccess() {
         log.trace("verifyAccess()");
 
         if (!serverConfProvider.serviceExists(requestServiceId)) {
@@ -395,7 +393,7 @@ class ServerMessageProcessor extends MessageProcessorBase {
         decoder.verify(requestMessage.getSoap().getClient(), requestMessage.getSignature());
     }
 
-    private void logRequestMessage() throws Exception {
+    private void logRequestMessage() {
         log.trace("logRequestMessage()");
 
         MessageLog.log(requestMessage.getSoap(), requestMessage.getSignature(), requestMessage.getAttachments(), false, xRequestId);

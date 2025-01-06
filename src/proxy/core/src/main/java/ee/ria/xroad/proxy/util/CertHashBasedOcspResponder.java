@@ -94,7 +94,7 @@ public class CertHashBasedOcspResponder implements InitializingBean, DisposableB
         var file = ocspResponderProperties.jettyConfigurationFile();
 
         log.debug("Configuring server from {}", file);
-        new XmlConfiguration(JettyUtils.toResource(file)).configure(server);
+        new XmlConfiguration(JettyUtil.toResource(file)).configure(server);
     }
 
     private void createConnector() {

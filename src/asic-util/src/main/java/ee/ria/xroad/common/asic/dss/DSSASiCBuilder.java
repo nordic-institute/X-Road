@@ -65,13 +65,15 @@ public class DSSASiCBuilder {
         return new DSSASiCBuilder();
     }
 
-    public DSSDocument createContainer(byte[] plainTextMessage, InputStream plainAttachment,
+    public DSSDocument createContainer(byte[] plainTextMessage, List<InputStream> attachments,
                                        SignatureData signatureData, TimestampData timestamp, long creationTime) {
         List<DSSDocument> dssDocs = new ArrayList<>();
         dssDocs.add(new InMemoryDocument(MIMETYPE.getBytes(StandardCharsets.UTF_8), ENTRY_MIMETYPE));
         dssDocs.add(new InMemoryDocument(plainTextMessage, MessageFileNames.MESSAGE));
-        if (plainAttachment != null) {
-            dssDocs.add(new InMemoryDocument(plainAttachment, MessageFileNames.attachment(1)));
+        if (attachments != null && !attachments.isEmpty()) {
+            for (int i = 0; i < attachments.size(); i++) {
+                dssDocs.add(new InMemoryDocument(attachments.get(i), MessageFileNames.attachmentOfIdx(i + 1)));
+            }
         }
         var signature = new InMemoryDocument(signatureData.getSignatureXml().getBytes(), "signatures.xml");
         var creationDate = new Date(creationTime);

@@ -184,12 +184,13 @@ public class MessageRecord extends AbstractLogRecord {
             plaintextMessage = message;
         }
         var attachmentList = attachments.stream().map(MessageAttachment::getInputStream).toList();
+        // todo attachments encryption?
         if (signatureData.isBatchSignature()) {
             var legacyContainer = new AsicContainer(plaintextMessage, signatureData, timestamp, attachmentList, getTime());
             legacyContainer.write(out);
         } else {
             var container = DSSASiCBuilder.newBuilder().createContainer(
-                    plaintextMessage.getBytes(), plainAttachment, signatureData, timestamp, getTime());
+                    plaintextMessage.getBytes(), attachmentList, signatureData, timestamp, getTime());
             container.writeTo(out);
         }
     }

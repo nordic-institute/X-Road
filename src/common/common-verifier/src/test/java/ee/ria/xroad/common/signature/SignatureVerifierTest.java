@@ -452,7 +452,7 @@ class SignatureVerifierTest {
 
     void loadGlobalConf(String globalConfPath, String configurationAnchorFile, boolean useTestCaCert) {
         System.setProperty(SystemProperties.CONFIGURATION_PATH, globalConfPath);
-        System.setProperty(SystemProperties.CONFIGURATION_ANCHOR_FILE, configurationAnchorFile);
+//        System.setProperty(SystemProperties.CONFIGURATION_ANCHOR_FILE, configurationAnchorFile);
 
         globalConfProvider = new TestGlobalConfImpl() {
             @Override

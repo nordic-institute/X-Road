@@ -30,12 +30,7 @@ import org.eclipse.jetty.http.HttpURI;
 import org.eclipse.jetty.http.MimeTypes;
 import org.eclipse.jetty.server.Request;
 import org.eclipse.jetty.server.Response;
-import org.eclipse.jetty.util.resource.Resource;
-import org.eclipse.jetty.util.resource.ResourceFactory;
-import org.springframework.core.io.ClassPathResource;
-import org.springframework.core.io.FileSystemResource;
 
-import java.io.IOException;
 import java.util.Optional;
 
 public final class JettyUtils {
@@ -121,14 +116,6 @@ public final class JettyUtils {
     public static void setContentLength(final Response response, final int length) {
         response.getHeaders().put(HttpHeader.CONTENT_LENGTH, length);
     }
-
-    public static Resource toResource(String resourcePath) throws IOException  {
-        org.springframework.core.io.Resource resource = resourcePath.startsWith("classpath:")
-                ? new ClassPathResource(resourcePath.replace("classpath:", ""))
-                : new FileSystemResource(resourcePath);
-       return ResourceFactory.root().newResource(resource.getURL());
-    }
-
 
     private JettyUtils() {
     }
