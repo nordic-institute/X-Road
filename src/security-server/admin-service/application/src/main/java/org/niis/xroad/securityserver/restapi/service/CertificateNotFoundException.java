@@ -25,38 +25,33 @@
  */
 package org.niis.xroad.securityserver.restapi.service;
 
-import org.niis.xroad.restapi.exceptions.ErrorDeviation;
-import org.niis.xroad.restapi.service.NotFoundException;
-
-import static org.niis.xroad.restapi.exceptions.DeviationCodes.ERROR_CERTIFICATE_NOT_FOUND;
+import org.niis.xroad.common.exception.NotFoundException;
+import org.niis.xroad.restapi.exceptions.DeviationProvider;
+import org.niis.xroad.securityserver.restapi.exceptions.ErrorMessage;
 
 public class CertificateNotFoundException extends NotFoundException {
 
-    /**
-     * default error
-     * @return
-     */
-    private static ErrorDeviation createDefaultError() {
-        return new ErrorDeviation(ERROR_CERTIFICATE_NOT_FOUND);
+    public CertificateNotFoundException(DeviationProvider deviationProvider) {
+        super(deviationProvider);
     }
 
-    public CertificateNotFoundException(ErrorDeviation errorDeviation) {
-        super(errorDeviation);
-    }
-
-    public CertificateNotFoundException(Throwable t, ErrorDeviation errorDeviation) {
-        super(t, errorDeviation);
+    public CertificateNotFoundException(DeviationProvider deviationProvider, Throwable t, Object...metadata) {
+        super(deviationProvider, t, metadata);
     }
 
     public CertificateNotFoundException(String s) {
-        super(s, createDefaultError());
+        super(ErrorMessage.CERTIFICATE_NOT_FOUND, s);
+    }
+
+    public CertificateNotFoundException(String s, Throwable cause) {
+        super(ErrorMessage.CERTIFICATE_NOT_FOUND, cause, s);
     }
 
     public CertificateNotFoundException() {
-        super(createDefaultError());
+        super(ErrorMessage.CERTIFICATE_NOT_FOUND);
     }
 
     public CertificateNotFoundException(Throwable t) {
-        super(t, createDefaultError());
+        super(ErrorMessage.CERTIFICATE_NOT_FOUND, t);
     }
 }

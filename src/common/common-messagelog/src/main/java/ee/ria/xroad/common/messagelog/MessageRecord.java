@@ -29,6 +29,7 @@ import ee.ria.xroad.common.asic.AsicContainer;
 import ee.ria.xroad.common.asic.TimestampData;
 import ee.ria.xroad.common.asic.dss.DSSASiCBuilder;
 import ee.ria.xroad.common.identifier.ClientId;
+import ee.ria.xroad.common.message.AttachmentStream;
 import ee.ria.xroad.common.signature.SignatureData;
 
 import lombok.AccessLevel;
@@ -40,19 +41,22 @@ import lombok.ToString;
 import lombok.extern.slf4j.Slf4j;
 
 import javax.crypto.Cipher;
-import javax.crypto.CipherInputStream;
 
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.nio.charset.StandardCharsets;
 import java.sql.Blob;
+import java.util.ArrayList;
+import java.util.List;
+
+import static java.util.function.Predicate.not;
 
 /**
  * A message log record.
  */
 @Slf4j
-@ToString(callSuper = true, exclude = {"attachment"})
-@EqualsAndHashCode(callSuper = true, exclude = {"attachment"})
+@ToString(callSuper = true, exclude = {"attachments", "attachmentStreams", "messageCipher"})
+@EqualsAndHashCode(callSuper = true, exclude = {"attachments"})
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class MessageRecord extends AbstractLogRecord {
 
@@ -105,13 +109,11 @@ public class MessageRecord extends AbstractLogRecord {
     private String subsystemCode;
 
     @Getter
-    @Setter
-    private Blob attachment;
+    private List<MessageAttachment> attachments = new ArrayList<>();
 
     @Getter
-    private transient InputStream attachmentStream;
-    @Getter
-    private transient long attachmentStreamSize;
+    @Setter
+    private transient List<AttachmentStream> attachmentStreams = new ArrayList<>();
 
     @Getter
     @Setter
@@ -132,11 +134,11 @@ public class MessageRecord extends AbstractLogRecord {
     /**
      * Constructs a message record.
      *
-     * @param qid the query ID
-     * @param msg the message
-     * @param sig the signature
-     * @param response whether this record is for a response
-     * @param clientId message sender client identifier
+     * @param qid        the query ID
+     * @param msg        the message
+     * @param sig        the signature
+     * @param response   whether this record is for a response
+     * @param clientId   message sender client identifier
      * @param xRequestId common id between a request and it's response
      */
     public MessageRecord(String qid, String msg, String sig, boolean response,
@@ -162,7 +164,7 @@ public class MessageRecord extends AbstractLogRecord {
         final boolean encrypted = keyId != null;
         final SignatureData signatureData = new SignatureData(signature, hashChainResult, hashChain);
 
-        if (encrypted && (messageCipher == null || attachmentCipher == null)) {
+        if (encrypted && (messageCipher == null || attachments.stream().anyMatch(not(MessageAttachment::hasCipher)))) {
             throw new IllegalStateException("Encrypted message record has not been prepared for decryption");
         }
 
@@ -181,16 +183,9 @@ public class MessageRecord extends AbstractLogRecord {
         } else {
             plaintextMessage = message;
         }
-
-        final InputStream plainAttachment;
-        if (encrypted && attachment != null) {
-            plainAttachment = new CipherInputStream(attachment.getBinaryStream(), attachmentCipher);
-        } else {
-            plainAttachment = (attachment != null) ? attachment.getBinaryStream() : null;
-        }
-
+        var attachmentList = attachments.stream().map(MessageAttachment::getInputStream).toList();
         if (signatureData.isBatchSignature()) {
-            var legacyContainer = new AsicContainer(plaintextMessage, signatureData, timestamp, plainAttachment, getTime());
+            var legacyContainer = new AsicContainer(plaintextMessage, signatureData, timestamp, attachmentList, getTime());
             legacyContainer.write(out);
         } else {
             var container = DSSASiCBuilder.newBuilder().createContainer(
@@ -199,16 +194,19 @@ public class MessageRecord extends AbstractLogRecord {
         }
     }
 
-
-
     public void setAttachmentStream(InputStream stream, long size) {
-        this.attachmentStream = stream;
-        this.attachmentStreamSize = size;
+        this.setAttachmentStreams(List.of(AttachmentStream.fromInputStream(stream, size)));
     }
 
     public void setCipherMessage(byte[] msg) {
         this.cipherMessage = msg;
         this.message = null;
+    }
+
+    public MessageAttachment addAttachment(int attachmentNo, Blob attachment) {
+        MessageAttachment messageAttachment = new MessageAttachment(this, attachmentNo, attachment);
+        attachments.add(messageAttachment);
+        return messageAttachment;
     }
 
 }

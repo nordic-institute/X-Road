@@ -33,6 +33,7 @@ import ee.ria.xroad.common.util.process.ExternalProcessRunner;
 import ee.ria.xroad.common.util.process.ProcessFailedException;
 import ee.ria.xroad.common.util.process.ProcessNotExecutableException;
 import ee.ria.xroad.signer.SignerRpcClient;
+import ee.ria.xroad.signer.exception.SignerException;
 
 import org.junit.Assert;
 import org.junit.Before;
@@ -272,7 +273,7 @@ public class InitializationServiceTest {
 
     @Test
     public void initializeFailToken() throws Exception {
-        doThrow(new Exception()).when(signerRpcClient).initSoftwareToken(any());
+        doThrow(new SignerException("Error")).when(signerRpcClient).initSoftwareToken(any());
         when(tokenService.isSoftwareTokenInitialized()).thenReturn(false);
         when(serverConfService.isServerCodeInitialized()).thenReturn(false);
         when(serverConfService.isServerOwnerInitialized()).thenReturn(false);

@@ -45,7 +45,9 @@ RUN sed -i "s/run\/uwsgi\/acme.sock/var\/www\/acme2certifier\/acme.sock/g" /var/
     && echo "plugins = python3" >> /var/www/acme2certifier/examples/nginx/acme2certifier.ini \
     && cp /var/www/acme2certifier/examples/nginx/acme2certifier.ini /var/www/acme2certifier \
     && usermod -a -G ca www-data
-COPY --chown=www-data:www-data files/acme_srv.cfg /var/www/acme2certifier/acme_srv/acme_srv.cfg
+COPY --chown=www-data:www-data build/acme2certifier/acme_srv.cfg /var/www/acme2certifier/acme_srv/acme_srv.cfg
+COPY --chown=www-data:www-data build/acme2certifier/kid_profiles.json /var/www/acme2certifier/examples/eab_handler/kid_profiles.json
+COPY --chown=www-data:www-data build/acme2certifier/openssl_ca_handler.py /var/www/acme2certifier/examples/ca_handler/openssl_ca_handler.py
 
 CMD ["/root/entrypoint.sh"]
 

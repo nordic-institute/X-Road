@@ -74,6 +74,7 @@ rm -rf %{buildroot}
 %doc /usr/share/doc/%{name}/LICENSE.txt
 %doc /usr/share/doc/%{name}/3RD-PARTY-NOTICES.txt
 %doc /usr/share/doc/%{name}/CHANGELOG.md
+/usr/share/xroad/scripts/acme_contacts_and_keystore_pw_migra.sh
 
 %pre -p /bin/bash
 %upgrade_check
@@ -117,6 +118,10 @@ if [ $1 -gt 1 ] ; then
   # disable strict-identifier-checks for upgrades from version < 7.3.0
   if ! echo -e "7.3.0\n$prev_version" | sort -V -C; then
       crudini --set /etc/xroad/conf.d/local.ini proxy-ui-api strict-identifier-checks false
+  fi
+
+  if ! echo -e "7.6.0\n$prev_version" | sort -V -C; then
+    /usr/share/xroad/scripts/acme_contacts_and_keystore_pw_migra.sh
   fi
 
   rm -f "%{_localstatedir}/lib/rpm-state/%{name}/prev-version" >/dev/null 2>&1 || :

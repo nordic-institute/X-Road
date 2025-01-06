@@ -26,33 +26,38 @@
 <template>
   <v-card variant="flat" class="mt-10">
     <table v-if="client && !clientLoading" class="xrd-table detail-table">
-      <tr>
-        <td>{{ $t('client.memberName') }}</td>
-        <td class="identifier-wrap">{{ client.member_name }}</td>
-      </tr>
-      <tr>
-        <td>{{ $t('client.memberClass') }}</td>
-        <td class="identifier-wrap">{{ client.member_class }}</td>
-      </tr>
-      <tr>
-        <td>{{ $t('client.memberCode') }}</td>
-        <td class="identifier-wrap">{{ client.member_code }}</td>
-      </tr>
-      <tr v-if="client.subsystem_code">
-        <td>{{ $t('client.subsystemCode') }}</td>
-        <td class="identifier-wrap">{{ client.subsystem_code }}</td>
-      </tr>
+      <tbody>
+        <tr>
+          <td>{{ $t('client.memberName') }}</td>
+          <td class="identifier-wrap">{{ client.member_name }}</td>
+        </tr>
+        <tr>
+          <td>{{ $t('client.memberClass') }}</td>
+          <td class="identifier-wrap">{{ client.member_class }}</td>
+        </tr>
+        <tr>
+          <td>{{ $t('client.memberCode') }}</td>
+          <td class="identifier-wrap">{{ client.member_code }}</td>
+        </tr>
+        <tr v-if="client.subsystem_code">
+          <td>{{ $t('client.subsystemCode') }}</td>
+          <td class="identifier-wrap">{{ client.subsystem_code }}</td>
+        </tr>
+      </tbody>
     </table>
   </v-card>
 
   <v-card variant="flat" class="mt-10">
     <table class="xrd-table">
-      <tr>
-        <th>{{ $t('cert.signCertificate') }}</th>
-        <th>{{ $t('cert.serialNumber') }}</th>
-        <th>{{ $t('cert.state') }}</th>
-        <th>{{ $t('cert.expires') }}</th>
-      </tr>
+      <thead>
+        <tr>
+          <th>{{ $t('cert.signCertificate') }}</th>
+          <th>{{ $t('cert.serialNumber') }}</th>
+          <th>{{ $t('cert.state') }}</th>
+          <th>{{ $t('cert.expires') }}</th>
+        </tr>
+      </thead>
+      <tbody>
       <template
         v-if="
           signCertificates &&
@@ -80,6 +85,7 @@
           </td>
         </tr>
       </template>
+      </tbody>
       <XrdEmptyPlaceholderRow
         :colspan="5"
         :loading="certificatesLoading"

@@ -1,0 +1,17 @@
+{
+  "keyid_1": {
+    "hmac": "Jzy09jeiXT0yrpZ7ZRmOV0esf4Fs1Z02"
+  },
+  "keyid_2": {
+    "hmac": "Yke2zFqPBeKdel4WTpnf9hH9q7hmPh1O",
+    "cahandler": {
+      "profile_id": "auth"
+    }
+  },
+  "keyid_3": {
+    "hmac": "RugB859khJwluk96E3FdcfeYlcwXJcof",
+    "cahandler": {
+      "profile_id": "sign"
+    }
+  }
+}

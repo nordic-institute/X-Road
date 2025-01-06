@@ -32,6 +32,8 @@ import ee.ria.xroad.common.util.process.ExternalProcessRunner;
 import ee.ria.xroad.common.util.process.ProcessFailedException;
 import ee.ria.xroad.common.util.process.ProcessNotExecutableException;
 import ee.ria.xroad.signer.SignerRpcClient;
+import ee.ria.xroad.signer.SignerProxy;
+import ee.ria.xroad.signer.exception.SignerException;
 import ee.ria.xroad.signer.protocol.dto.TokenInfo;
 import ee.ria.xroad.signer.protocol.dto.TokenStatusInfo;
 
@@ -54,15 +56,16 @@ import org.niis.xroad.restapi.config.audit.AuditDataHelper;
 import org.niis.xroad.restapi.config.audit.RestApiAuditProperty;
 import org.niis.xroad.restapi.exceptions.DeviationAwareRuntimeException;
 import org.niis.xroad.restapi.exceptions.ErrorDeviation;
-import org.niis.xroad.restapi.service.SignerNotReachableException;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import java.util.Arrays;
 import java.util.Optional;
 
-import static ee.ria.xroad.common.ErrorCodes.X_KEY_NOT_FOUND;
 import static org.niis.xroad.common.exception.util.CommonDeviationMessage.INITIALIZATION_INTERRUPTED;
+import static org.niis.xroad.cs.admin.api.dto.TokenInitStatus.INITIALIZED;
+import static org.niis.xroad.cs.admin.api.dto.TokenInitStatus.NOT_INITIALIZED;
+import static org.niis.xroad.cs.admin.api.dto.TokenInitStatus.UNKNOWN;
 import static org.niis.xroad.cs.admin.api.exception.ErrorMessage.INIT_ALREADY_INITIALIZED;
 import static org.niis.xroad.cs.admin.api.exception.ErrorMessage.INIT_SIGNER_PIN_POLICY_FAILED;
 import static org.niis.xroad.cs.admin.api.exception.ErrorMessage.INIT_SOFTWARE_TOKEN_FAILED;
@@ -87,28 +90,13 @@ public class InitializationServiceImpl implements InitializationService {
 
     @Override
     public InitializationStatusDto getInitializationStatus() {
-        TokenInitStatus initStatusInfo = getTokenInitStatusInfo();
+        TokenInitStatus initStatusInfo = isSWTokenInitialized();
         InitializationStatusDto statusDto = new InitializationStatusDto();
 
         statusDto.setInstanceIdentifier(systemParameterService.getInstanceIdentifier());
         statusDto.setCentralServerAddress(systemParameterService.getCentralServerAddress());
         statusDto.setSoftwareTokenInitStatus(initStatusInfo);
         return statusDto;
-    }
-
-    private TokenInitStatus getTokenInitStatusInfo() {
-        TokenInitStatus initStatusInfo;
-        try {
-            if (isSWTokenInitialized()) {
-                initStatusInfo = TokenInitStatus.INITIALIZED;
-            } else {
-                initStatusInfo = TokenInitStatus.NOT_INITIALIZED;
-            }
-        } catch (SignerNotReachableException notReachableException) {
-            log.info("getInitializationStatus - signer was not reachable", notReachableException);
-            initStatusInfo = TokenInitStatus.UNKNOWN;
-        }
-        return initStatusInfo;
     }
 
     @Override
@@ -120,7 +108,7 @@ public class InitializationServiceImpl implements InitializationService {
         auditDataHelper.put(RestApiAuditProperty.INSTANCE_IDENTIFIER, configDto.getInstanceIdentifier());
         auditDataHelper.put(RestApiAuditProperty.HA_NODE, currentHaConfigStatus.getCurrentHaNodeName());
 
-        final boolean isSWTokenInitialized = TokenInitStatus.INITIALIZED == getTokenInitStatusInfo();
+        final boolean isSWTokenInitialized = TokenInitStatus.INITIALIZED == isSWTokenInitialized();
         final boolean isServerAddressInitialized = !systemParameterService.getCentralServerAddress().isEmpty();
         final boolean isInstanceIdentifierInitialized = !systemParameterService.getInstanceIdentifier().isEmpty();
         if (isSWTokenInitialized && isServerAddressInitialized && isInstanceIdentifierInitialized) {
@@ -223,20 +211,20 @@ public class InitializationServiceImpl implements InitializationService {
         }
     }
 
-    private boolean isSWTokenInitialized() {
-        boolean isSWTokenInitialized = false;
+    private TokenInitStatus isSWTokenInitialized() {
+        var status = NOT_INITIALIZED;
         TokenInfo tokenInfo;
         try {
             tokenInfo = signerRpcClient.getToken(SignerRpcClient.SSL_TOKEN_ID);
             if (null != tokenInfo) {
-                isSWTokenInitialized = tokenInfo.getStatus() != TokenStatusInfo.NOT_INITIALIZED;
+                status = tokenInfo.getStatus() != TokenStatusInfo.NOT_INITIALIZED ? INITIALIZED : NOT_INITIALIZED;
             }
         } catch (Exception e) {
-            if (!((e instanceof CodedException ce) && X_KEY_NOT_FOUND.equals(ce.getFaultCode()))) {
-                throw new SignerNotReachableException("could not list all tokens", e);
+            if (!(e instanceof SignerException se && se.isCausedByKeyNotFound())) {
+                status = UNKNOWN;
             }
         }
-        return isSWTokenInitialized;
+        return status;
     }
 }
 

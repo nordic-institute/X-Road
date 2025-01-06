@@ -36,6 +36,7 @@ import ee.ria.xroad.common.db.DatabaseCtxV2;
 import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.identifier.SecurityServerId;
 import ee.ria.xroad.common.identifier.ServiceId;
+import ee.ria.xroad.common.metadata.Endpoint;
 
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
@@ -60,11 +61,11 @@ public class CachingServerConfImpl extends ServerConfImpl {
 
     public static final String TSP_URL = "tsp_url";
 
-    private final int expireSeconds;
     private volatile SecurityServerId.Conf serverId;
     private final Cache<Object, List<String>> tspCache;
     private final Cache<ServiceId, Optional<ServiceType>> serviceCache;
     private final Cache<AclCacheKey, List<EndpointType>> aclCache;
+    private final Cache<ServiceId, List<Endpoint>> serviceEndpointsCache;
     private final Cache<ClientId, Optional<ClientType>> clientCache;
     private final Cache<String, InternalSSLKey> internalKeyCache;
 
@@ -95,7 +96,7 @@ public class CachingServerConfImpl extends ServerConfImpl {
                 .build();
 
         serviceCache = CacheBuilder.newBuilder()
-                .maximumSize(serverConfProperties.serviceCacheSize())
+                .maximumSize()
                 .expireAfterWrite(expireSeconds, TimeUnit.SECONDS)
                 .recordStats()
                 .build();
@@ -103,6 +104,13 @@ public class CachingServerConfImpl extends ServerConfImpl {
         aclCache = CacheBuilder.newBuilder()
                 .weigher((AclCacheKey k, List<EndpointType> v) -> v.size() + 1)
                 .maximumWeight(serverConfProperties.aclCacheSize())
+                .expireAfterWrite(expireSeconds, TimeUnit.SECONDS)
+                .recordStats()
+                .build();
+
+        serviceEndpointsCache = CacheBuilder.newBuilder()
+                .weigher((ServiceId k, List<Endpoint> v) -> v.size() + 1)
+                .maximumWeight(serverConfProperties.serviceCacheSize())
                 .expireAfterWrite(expireSeconds, TimeUnit.SECONDS)
                 .recordStats()
                 .build();
@@ -164,6 +172,19 @@ public class CachingServerConfImpl extends ServerConfImpl {
     }
 
     @Override
+    public List<Endpoint> getServiceEndpoints(ServiceId serviceId) {
+        try {
+            return serviceEndpointsCache.get(serviceId, () -> super.getServiceEndpoints(serviceId));
+        } catch (ExecutionException e) {
+            if (e.getCause() instanceof CodedException codedException) {
+                throw codedException;
+            }
+            log.debug("Failed to get list of service endpoints", e);
+            return List.of();
+        }
+    }
+
+    @Override
     public IsAuthentication getIsAuthentication(ClientId clientId) {
         return getClient(clientId).map(c -> c.getIsAuthentication() == null ? IsAuthentication.NOSSL
                 : IsAuthentication.valueOf(c.getIsAuthentication())).orElse(null);
@@ -192,7 +213,7 @@ public class CachingServerConfImpl extends ServerConfImpl {
     @Override
     public boolean isSslAuthentication(ServiceId service) {
         Optional<ServiceType> serviceTypeOptional = getService(service);
-        if (!serviceTypeOptional.isPresent()) {
+        if (serviceTypeOptional.isEmpty()) {
             throw new CodedException(X_UNKNOWN_SERVICE, "Service '%s' not found", service);
         }
         ServiceType serviceType = serviceTypeOptional.get();
@@ -265,6 +286,8 @@ public class CachingServerConfImpl extends ServerConfImpl {
                     serviceCache.stats());
             log.trace("ServerConf.aclCache    : entries: {}, stats: {}", aclCache.size(),
                     aclCache.stats());
+            log.trace("ServerConf.serviceEndpointsCache: entries: {}, stats: {}", serviceEndpointsCache.size(),
+                    serviceEndpointsCache.stats());
         }
     }
 
@@ -273,7 +296,6 @@ public class CachingServerConfImpl extends ServerConfImpl {
         log.info("Clearing configuration cache");
         internalKeyCache.invalidateAll();
     }
-
 
     private record AclCacheKey(ClientId client, ServiceId serviceId) {
     }

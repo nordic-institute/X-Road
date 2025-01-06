@@ -25,11 +25,12 @@
  */
 
 import { defineStore } from 'pinia';
-import { setLanguage } from '@/plugins/i18n';
+import { availableLanguages, languageHelper } from '@/plugins/i18n';
+import { pickDefaultLanguage } from '@niis/shared-ui';
 
 export const useLanguage = defineStore('language', {
   state: () => ({
-    language: import.meta.env.VITE_I18N_LOCALE || ('en' as string),
+    language: pickDefaultLanguage(availableLanguages),
   }),
 
   persist: {
@@ -45,7 +46,7 @@ export const useLanguage = defineStore('language', {
   actions: {
     async changeLanguage(language: string) {
       this.language = language;
-      await setLanguage(language);
+      await languageHelper.selectLanguage(language);
     },
   },
 });

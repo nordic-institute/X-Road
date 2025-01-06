@@ -25,12 +25,13 @@
  */
 package org.niis.xroad.securityserver.restapi.service;
 
-import ee.ria.xroad.common.CodedException;
+import ee.ria.xroad.common.ErrorCodes;
 import ee.ria.xroad.common.conf.globalconf.ApprovedCAInfo;
 import ee.ria.xroad.common.crypto.identifier.KeyAlgorithm;
 import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.identifier.SecurityServerId;
 import ee.ria.xroad.signer.SignerRpcClient;
+import ee.ria.xroad.signer.exception.SignerException;
 import ee.ria.xroad.signer.protocol.dto.KeyInfo;
 import ee.ria.xroad.signer.protocol.dto.KeyUsageInfo;
 import ee.ria.xroad.signer.protocol.dto.TokenInfo;
@@ -236,7 +237,7 @@ public class KeyAndCertificateRequestServiceIntegrationTest extends AbstractServ
     @WithMockUser(authorities = {"DELETE_KEY", "DELETE_SIGN_KEY", "DELETE_AUTH_KEY"})
     public void failedRollback() throws Exception {
         HashMap<String, String> dnParams = createCsrDnParams();
-        doThrow(new CodedException(TokenService.KEY_NOT_FOUND_FAULT_CODE))
+        doThrow(new SignerException(ErrorCodes.X_KEY_NOT_FOUND))
                 .when(signerRpcClient).getTokenForKeyId(any());
         try {
             ClientId.Conf notFoundClient = ClientId.Conf.create("not-found", "GOV", "M1");

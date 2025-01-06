@@ -30,6 +30,7 @@ import ee.ria.xroad.common.cert.CertChainFactory;
 import ee.ria.xroad.common.conf.globalconf.GlobalConfProvider;
 import ee.ria.xroad.common.conf.serverconf.ServerConfProvider;
 import ee.ria.xroad.common.db.DatabaseCtxV2;
+import ee.ria.xroad.common.message.AttachmentStream;
 import ee.ria.xroad.common.message.RestRequest;
 import ee.ria.xroad.common.message.SoapMessageImpl;
 import ee.ria.xroad.common.messagelog.AbstractLogManager;
@@ -52,6 +53,7 @@ import java.io.ByteArrayInputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.List;
 
 import static ee.ria.xroad.proxy.messagelog.TestUtil.getGlobalConf;
 import static ee.ria.xroad.proxy.messagelog.TestUtil.getServerConf;
@@ -129,7 +131,13 @@ abstract class AbstractMessageLogTest {
     }
 
     protected void log(SoapMessageImpl message, SignatureData signature) throws Exception {
-        logManager.log(new SoapLogMessage(message, signature, true));
+        log(message, signature, List.of());
+    }
+
+    protected void log(SoapMessageImpl message, SignatureData signature, List<byte[]> attachments) throws Exception {
+        var attachmentStreamList = attachments.stream()
+                .map(attachment -> AttachmentStream.fromInputStream(new ByteArrayInputStream(attachment), attachment.length)).toList();
+        logManager.log(new SoapLogMessage(message, signature, attachmentStreamList, true, message.getQueryId()));
     }
 
     protected void log(RestRequest message, SignatureData signatureData, byte[] body)

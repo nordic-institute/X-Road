@@ -157,7 +157,10 @@ fi
 
 if [ $1 -eq 1 ] ; then
     # Initial installation
-    /usr/share/xroad/scripts/xroad-initdb.sh
+    if ! /usr/share/xroad/scripts/xroad-initdb.sh; then
+      echo "Error: Failed to initialize DB."
+      exit 1
+    fi
     if ! grep -qs DISABLE_PORT_REDIRECT /etc/sysconfig/xroad-proxy; then
     cat <<"EOF" >>/etc/sysconfig/xroad-proxy
 # Setting DISABLE_PORT_REDIRECT to false enables iptables port redirection (default: disabled)

@@ -1,7 +1,6 @@
 ---
 - name: Ready all Ubuntu {{ubuntu_releasever}} containers
   with_inventory_hostnames: all:!lxd_servers:!centos_ss:!localhost
-  become: yes
   community.general.lxd_container:
     name: "{{item}}"
     url: "{{ lxd_url | default(omit) }}"
@@ -28,7 +27,7 @@
     source:
       type: image
       mode: pull
-      server: https://images.linuxcontainers.org
+      server: https://images.lxd.canonical.com
       protocol: simplestreams
       alias: centos/{{centos_releasever}}{{ (centos_releasever|int > 7) | ternary('-Stream', '') }}/{{ arch[ansible_architecture] }}
     profiles: [ "default" ]

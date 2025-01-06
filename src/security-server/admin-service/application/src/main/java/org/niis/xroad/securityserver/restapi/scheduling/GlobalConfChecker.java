@@ -37,6 +37,8 @@ import ee.ria.xroad.common.util.CertUtils;
 import ee.ria.xroad.common.util.CryptoUtils;
 import ee.ria.xroad.signer.SignerRpcClient;
 import ee.ria.xroad.signer.protocol.dto.AuthKeyCertInfo;
+import ee.ria.xroad.signer.exception.SignerException;
+import ee.ria.xroad.signer.protocol.dto.AuthKeyInfo;
 import ee.ria.xroad.signer.protocol.dto.CertificateInfo;
 import ee.ria.xroad.signer.protocol.dto.KeyUsageInfo;
 
@@ -276,8 +278,7 @@ public class GlobalConfChecker {
         log.debug("Setting client '{}' status to '{}'", client.getIdentifier(), client.getClientStatus());
     }
 
-    private void updateAuthCertStatuses(SecurityServerId securityServerId)
-            throws Exception {
+    private void updateAuthCertStatuses(SecurityServerId securityServerId) {
         log.debug("Updating auth cert statuses");
 
         signerRpcClient.getTokens().stream().flatMap(t -> t.getKeyInfo().stream())
@@ -285,6 +286,8 @@ public class GlobalConfChecker {
                 .flatMap(k -> k.getCerts().stream()).forEach(certInfo -> {
                     try {
                         updateCertStatus(securityServerId, certInfo);
+                    } catch (SignerException se) {
+                        throw se;
                     } catch (Exception e) {
                         throw translateException(e);
                     }

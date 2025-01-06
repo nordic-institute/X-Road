@@ -57,7 +57,7 @@ INSTALLED_VERSION=$(dpkg-query --showformat='${Version}' --show xroad-proxy)
 PACKAGED_CONFIG=/usr/share/xroad/config
 PACKAGED_VERSION="$(cat /${PACKAGED_CONFIG}/VERSION)"
 
-RECONFIG=(xroad-signer xroad-proxy)
+RECONFIG=(xroad-signer xroad-proxy xroad-confclient)
 if [ -f /usr/share/xroad/jlib/addon/proxy/messagelog.conf ]; then
   RECONFIG+=(xroad-addon-messagelog)
 fi
@@ -114,6 +114,10 @@ if [ "$INSTALLED_VERSION" == "$PACKAGED_VERSION" ]; then
   fi
 else
   warn "Installed version ($INSTALLED_VERSION) does not match packaged version ($PACKAGED_VERSION)"
+fi
+
+if dpkg --compare-versions "$CONFIG_VERSION" lt-nl "7.6.0"; then
+  /usr/share/xroad/scripts/acme_contacts_and_keystore_pw_migra.sh
 fi
 
 # Generate internal and admin UI TLS keys and certificates if necessary

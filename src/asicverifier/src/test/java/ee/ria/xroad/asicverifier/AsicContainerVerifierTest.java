@@ -27,11 +27,14 @@ package ee.ria.xroad.asicverifier;
 
 import ee.ria.xroad.common.ExpectedCodedException;
 import ee.ria.xroad.common.SystemProperties;
+import ee.ria.xroad.common.asic.AsicContainerVerifier;
+import ee.ria.xroad.common.asic.AsicUtils;
 import ee.ria.xroad.common.TestCertUtil;
 import ee.ria.xroad.common.conf.globalconf.GlobalConfProvider;
 import ee.ria.xroad.common.conf.globalconf.TestGlobalConfImpl;
 
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.junit.BeforeClass;
 import org.junit.Rule;
 import org.junit.Test;
@@ -52,6 +55,7 @@ import static org.mockito.ArgumentMatchers.anyString;
 /**
  * Tests to verify correct ASiC container verifier behavior.
  */
+@Slf4j
 @RunWith(Parameterized.class)
 @RequiredArgsConstructor
 public class AsicContainerVerifierTest {

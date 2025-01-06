@@ -29,6 +29,7 @@ package org.niis.xroad.cs.admin.core.service;
 
 import ee.ria.xroad.common.CodedException;
 import ee.ria.xroad.signer.SignerRpcClient;
+import ee.ria.xroad.signer.exception.SignerException;
 import ee.ria.xroad.signer.protocol.dto.TokenInfoProto;
 import ee.ria.xroad.signer.protocol.dto.TokenStatusInfo;
 
@@ -39,12 +40,12 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.niis.xroad.common.exception.NotFoundException;
 import org.niis.xroad.common.exception.ServiceException;
+import org.niis.xroad.common.exception.SignerProxyException;
 import org.niis.xroad.common.exception.ValidationFailureException;
 import org.niis.xroad.cs.admin.api.dto.TokenInfo;
 import org.niis.xroad.cs.admin.api.dto.TokenLoginRequest;
 import org.niis.xroad.cs.admin.api.service.ConfigurationSigningKeysService;
 import org.niis.xroad.cs.admin.core.converter.TokenInfoMapper;
-import org.niis.xroad.cs.admin.core.exception.SignerProxyException;
 import org.niis.xroad.restapi.config.audit.AuditDataHelper;
 import org.niis.xroad.restapi.config.audit.RestApiAuditProperty;
 
@@ -105,7 +106,7 @@ class TokensServiceImplTest {
 
     @Test
     void getTokensShouldThrowException() throws Exception {
-        doThrow(new Exception()).when(signerRpcClient).getTokens();
+        doThrow(new SignerException("Error")).when(signerRpcClient).getTokens();
 
         assertThatThrownBy(() -> tokensService.getTokens())
                 .isInstanceOf(ServiceException.class)
@@ -114,7 +115,7 @@ class TokensServiceImplTest {
 
     @Test
     void loginShouldThrowWhenTokenNotFound() throws Exception {
-        when(signerRpcClient.getToken(TOKEN_ID)).thenThrow(new CodedException("Signer.TokenNotFound"));
+        when(signerRpcClient.getToken(TOKEN_ID)).thenThrow(new SignerException("Signer.TokenNotFound"));
 
         assertThatThrownBy(() -> tokensService.login(new TokenLoginRequest(TOKEN_ID, PASSWORD)))
                 .isInstanceOf(NotFoundException.class)
@@ -161,7 +162,7 @@ class TokensServiceImplTest {
     @Test
     void loginShouldThrowOtherException() throws Exception {
         when(signerRpcClient.getToken(TOKEN_ID)).thenReturn(mockTokenInfo(OK));
-        doThrow(new Exception()).when(signerRpcClient).activateToken(TOKEN_ID, PASSWORD.toCharArray());
+        doThrow(new SignerException("Error")).when(signerRpcClient).activateToken(TOKEN_ID, PASSWORD.toCharArray());
 
         assertThatThrownBy(() -> tokensService.login(new TokenLoginRequest(TOKEN_ID, PASSWORD)))
                 .isInstanceOf(SignerProxyException.class)
@@ -227,7 +228,7 @@ class TokensServiceImplTest {
 
     @Test
     void logoutShouldThrowNotFound() throws Exception {
-        when(signerRpcClient.getToken(TOKEN_ID)).thenThrow(new CodedException("Signer.TokenNotFound"));
+        when(signerRpcClient.getToken(TOKEN_ID)).thenThrow(new SignerException("Signer.TokenNotFound"));
 
         assertThatThrownBy(() -> tokensService.logout(TOKEN_ID))
                 .isInstanceOf(NotFoundException.class)
@@ -236,7 +237,7 @@ class TokensServiceImplTest {
 
     @Test
     void logoutShouldThrowOtherExceptionWhenGetTokenFails() throws Exception {
-        when(signerRpcClient.getToken(TOKEN_ID)).thenThrow(new Exception());
+        when(signerRpcClient.getToken(TOKEN_ID)).thenThrow(new SignerException("Error"));
 
         assertThatThrownBy(() -> tokensService.logout(TOKEN_ID))
                 .isInstanceOf(SignerProxyException.class)

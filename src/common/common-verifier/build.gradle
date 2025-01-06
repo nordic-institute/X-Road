@@ -11,4 +11,5 @@ dependencies {
     api(project(':common:common-properties'))
 
     testImplementation project(':common:common-test')
+    testImplementation(libs.julOverSlf4j)
 }

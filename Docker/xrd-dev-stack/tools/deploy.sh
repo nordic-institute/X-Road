@@ -1,5 +1,7 @@
 #!/bin/bash
 
+: ${XROAD_HOME:?"XROAD_HOME is not set"}
+
 deploy_module() {
   local module_name=$1
   shift
@@ -100,17 +102,22 @@ deploy_module() {
   done
 }
 
-set -o xtrace
+set -o xtrace -o errexit
 
 case $1 in
 "proxy" | "messagelog-addon" | "metaservice-addon" | "proxy-ui-api" | "configuration-client" | "asicverifier" | "op-monitor-daemon" | "monitor" | "ds-control-plane" | "ds-data-plane")
-  deploy_module "$1" "ss0" "ss1"
+  hosts=("ss0" "ss1")
+  if [[ $# > 1 ]]; then hosts=("${@:2}"); fi
+  deploy_module "$1" "${hosts[@]}"
   ;;
 "cs-admin-service" | "cs-management-service" | "cs-registration-service" | "cs-catalog-service" | "cs-credential-service")
   deploy_module "$1" "cs"
   ;;
-"signer" | "signer-console" | "hwtoken-addon" | "ds-ih")
-  deploy_module "$1" "ss0" "ss1"
+"signer" | "hwtoken-addon" | "ds-ih")
+  hosts=("ss0" "ss1" "cs")
+  if [[ $# > 1 ]]; then hosts=("${@:2}"); fi
+  deploy_module "$1" "${hosts[@]}"
+"cs-admin-service" | "cs-management-service" | "cs-registration-service")
   deploy_module "$1" "cs"
   ;;
 *)

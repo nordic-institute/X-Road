@@ -2,8 +2,9 @@
 
 **Note**. The test CA is for _testing and development purposes only_. It is not a secure certification authority and therefore, it's not suitable for production use.
 
-The `roles/xroad-ca/` directory contains a collection of scripts to set up an openssl-based test-CA environment for signing certificates and providing TSA and OCSP services during development. 
+The `roles/xroad-ca/` directory contains a collection of scripts to set up an openssl-based test-CA environment for signing certificates and providing TSA and OCSP services during development.
 The scripts require Ubuntu 20.04 or Ubuntu 22.04.
+ACME support is also possible with acme2certifier, but this requires Ubuntu 24.04.
 
 You can initialize the test-CA server automatically [with Ansible](README.md). This initializes a new test-CA server if one is listed in `ca_servers` category.
 
@@ -13,7 +14,7 @@ Chapters 1 and 5-7 describe usage of the initialized CA server and are useful fo
 
 To customize test-CA DN details for Ansible installation, specify parameters in a file in group_vars ([read more](README.md) about `group_vars`).
 
-Example group_vars configuration file with all of the test-CA parameters:
+Example group_vars configuration file with all the test-CA parameters:
 
 ```
 xroad_ca_o: "Customized Test"
@@ -34,6 +35,8 @@ xroad_ca_tsa_cn: "Customized Test TSA CN"
 * `files/home/ca/TSA` - the TSA server
 * `files/usr` - scripts for signing certificates
 * `templates/init.sh` - script for creating the test-CA environment
+* `files/acme2certifier` - ACME server configuration
+* `templates/init_acme.sh` - script for setting up the ACME server
 
 ---------------------------------------------
 
@@ -41,23 +44,25 @@ xroad_ca_tsa_cn: "Customized Test TSA CN"
 
 (Ansible does these steps automatically)
 
-1. Install nginx-light on the target machine (`sudo apt install nginx-light`)
-2. Create the following users on the target machine:
+1. Install python3, acl, nginx-core, openssl, python3-pip, uwsgi, uwsgi-plugin-python3 on the target machine (`sudo apt install python3 acl nginx-core  openssl  python3-pip  uwsgi  uwsgi-plugin-python3`)
+2. Download acme2certifier for its github page (https://github.com/grindsa/acme2certifier/releases/download/0.35/acme2certifier_0.35-1_all.deb)
+3. Create the following users on the target machine:
     - `ca`
     - `ocsp`
-3. Copy the following directories from the `roles/xroad-ca/files` directory to the target machine root:
+4. Copy the following directories from the `roles/xroad-ca/files` directory to the target machine root:
     - `etc`
     - `home`
     - `usr`
     - `lib`
-4. Copy `roles/xroad-ca/templates/init.sh` to `/home/ca/CA/`
-5. Add user `ocsp` to group `ca`
-6. Grant `ca` ownership and all permissions to files under `/home/ca/CA`
-7. Grant read permission for group `ca` to files under `/home/ca/CA`
-8. Grant read + execute permissions for group `ca` to directories under `/home/ca/CA`
-9. Create a file called `ocsp.log` under `/var/log`
-10. Grant `ca` ownership and group `ca` read and write permissions for `ocsp.log`
-11. Fill in parameters for CA, OCSP and TSA distinguished names (DN) in `/home/ca/CA/init.sh`:
+5. Copy `roles/xroad-ca/templates/init.sh` to `/home/ca/CA/`
+6. Copy `roles/xroad-ca/templates/init_acme.sh` to `/home/ca/CA/init_acme.sh`
+7. Add user `ocsp` to group `ca`
+8. Grant `ca` ownership and all permissions to files under `/home/ca/CA`
+9. Grant read permission for group `ca` to files under `/home/ca/CA`
+10. Grant read + execute permissions for group `ca` to directories under `/home/ca/CA`
+11. Create a file called `ocsp.log` under `/var/log`
+12. Grant `ca` ownership and group `ca` read and write permissions for `ocsp.log`
+13. Fill in parameters for CA, OCSP and TSA distinguished names (DN) in `/home/ca/CA/init.sh`:
 ```
 # dn parameters
 DN_CA_O="{{ xroad_ca_o }}"
@@ -82,16 +87,27 @@ Using recognizable and meaningful values helps to distinguish the certification 
 
 ---------------------------------------------
 
-## 4. (Re)start NGINX, CA, OCSP and TSA services
+## 4. Set up the ACME server
+
+(Ansible does this step automatically)
+
+1. As `root`, run `init_acme.sh` under `/home/ca/CA`
+2. Copy `/files/acme2certifier/acme_srv.cfg` under `/var/www/acme2certifier/acme_srv/acme_srv.cfg` and change its owner and group to `www-data`
+3. Copy `/files/acme2certifier/kid_profiles.json` under `/var/www/acme2certifier/examples/eab_handler/kid_profiles.json` and change its owner and group to `www-data`
+4. Copy `/files/acme2certifier/openssl_ca_handler.py` under `/var/www/acme2certifier/examples/ca_handler/openssl_ca_handler.py` and change its owner and group to `www-data`
+
+---------------------------------------------
+
+## 5. (Re)start NGINX, CA, OCSP, TSA and acme2certifier (ACME server) services
 
 (Ansible does these steps automatically)
 
 1. Before starting the jobs, restart the nginx service to apply the proxy changes (`sudo systemctl reload nginx`)
-2. Start the jobs by calling `sudo systemctl start ca ocsp tsa`
+2. Start the jobs by calling `sudo systemctl start ca ocsp tsa acme2certifier`
 
 ---------------------------------------------
 
-## 5. About the CA, TSA, and OCSP services
+## 6. About the CA, TSA, and OCSP services
 
 Both services use nginx as a proxy to redirect the requests to listened ports:
 
@@ -101,23 +117,45 @@ Both services use nginx as a proxy to redirect the requests to listened ports:
 
 ---------------------------------------------
 
-## 6. Configuring the central server to use the test-CA
+## 7. About the ACME services
+
+ACME services are provided by acme2certifier which is a python app served on `port 8887` over nginx and uwsgi.  
+For external account binding to work the kid and hmac have to match in acme2certifier's `kid_profiles.json` and Security Server's `acme.yml` files.  
+It uses `extensions_auth` and `extensions_sign` blocks in `CA.cnf` file when creating authentication and signing certificates respectively.  
+There are two methods to let the ACME server know which type of certificate to return using profile id-s:
+- profile id in `HTTP_USER_AGENT` header. To use this, 
+  - put `eab_profiling: False` in `acme_srv.cfg` 
+  - use `keyid_1` in security server's `acme.yml` 
+  - in Central Server for the `Test CA` set `Authentication certificate profile id` to `auth` and `Signing certificate profile id` to `sign`.
+- profile id in external account binding `kid_profiles.json` file. To use this, 
+  - put `eab_profiling: True` in `acme_srv.cfg` 
+  - use `keyid_2` and `keyid_3` in security server's `acme.yml`
+  - unset `Authentication certificate profile id` and `Signing certificate profile id` in Central Server `Test CA` configuration, if they are set.
+
+The profile id-s in `kid_profiles.json` or in `Test CA` configuration in Central Server have to match the suffix of `extensions_[suffix]`. So if you want to play around with your own profiles you could add, for example, `[extensions_my-profile]` in the Test CA `CA.cnf` file. Then in `kid_profiles.json` and in `Test CA` configuration the profile id would have to be `my-profile`.
+
+Restart to the ACME server on the Test CA machine: `systemctl restart acme2certifier.service`
+
+---------------------------------------------
+
+## 8. Configuring the central server to use the test-CA
 After the jobs have been successfully started, the test-CA is ready to be used in the test environment.
 
 To configure the central server to use the test-CA:
 
 1. Import the CA, TSA and OCSP certificates from `/home/ca/CA/certs` to the central server
-   - `ee.ria.xroad.common.certificateprofile.impl.EjbcaCertificateProfileInfoProvider` can be used as the certificate profile info provider.
+   - `ee.ria.xroad.common.certificateprofile.impl.FiVRKCertificateProfileInfoProvider` can be used as the certificate profile info provider.
+   - For ACME use url `http://some-ca-server:8887`
 2. Configure the CA to use the test-CA OCSP through `port 8888` on the test-CA machine
 3. Configure the TSA to `port 8899` on the test-CA machine
 
 ---------------------------------------------
 
-## 7. Signing certificates
+## 9. Signing certificates
 
 To sign a CSR, you have three options:
 
-### 7.1 Use the web interface
+### 9.1 Use the web interface
 
 There is a simple web interface running at `http://some-ca-server:8888/testca/` which can be used to sign requests.
 
@@ -126,7 +164,7 @@ It is also possible to use a command line http client (e.g. curl):
 curl -Fcertreq=@auth_csr.pem http://some-ca-server:8888/testca/sign
 ```
 
-### 7.2 Use command `sign` on a file
+### 9.2 Use command `sign` on a file
 
 1. Upload the CSR to test CA server
 2. Register the certificate using command `sign` (user needs to have sudo rights)
@@ -156,7 +194,7 @@ Data Base Updated
 ```
 The signed certificate is stored in `/home/ca/CA/newcerts/??.pem`, where ?? = serial number
 
-### 7.3 Use commands `sign-sign` and `sign-auth` on piped data
+### 9.3 Use commands `sign-sign` and `sign-auth` on piped data
 
 You can use SSH to pipe the CSR and signed certificate remotely.
 Pick either `sign-sign` or `sign-auth` based on the certificate type.
@@ -186,7 +224,7 @@ Write out database with 1 new entries
 Data Base Updated
 ```
 
-### 7.4 Certificate revocation
+### 9.4 Certificate revocation
 
 To revoke a signed certificate, you can use revoke.sh script from `/home/ca/CA`.
 Run the script as a user with sudo rights, from `/home/ca/CA`.
@@ -205,7 +243,8 @@ Revoking Certificate 05.
 Data Base Updated
 ```
 
-## 8. Troubleshooting
+## 10. Troubleshooting
 
-Systemd service logs can be viewed with journalctl -u service-name, e.g `journalctl -u ocsp`.
+Systemd service logs can be viewed with journalctl -u service-name, e.g `journalctl -u ocsp`.  
+To see more detailed ACME logs set `debug: True` in `/var/www/acme2certifier/acme_srv/acme_srv.cfg`
 

@@ -90,10 +90,13 @@ public class TestCaAuxiliaryContainer extends AbstractAuxiliaryContainer<TestCaA
     @SneakyThrows
     private ImageFromDockerfile imageDefinition() {
         log.info("Initializing test-ca..");
+        String xroadHome = System.getenv("XROAD_HOME");
+        var a2cPath = Paths.get(xroadHome + "/development/acme2certifier");
 
         var reuse = testableContainerProperties.getContextContainers().get(getConfigurationKey()).getReuseBetweenRuns();
         return new ReusableImageFromDockerfile("xrd-test-ca", !reuse, reuse)
-                .withFileFromClasspath(".", "META-INF/ca-container/");
+                .withFileFromClasspath(".", "META-INF/ca-container/")
+                .withFileFromPath("files/acme2certifier", a2cPath);
     }
 
     @NotNull

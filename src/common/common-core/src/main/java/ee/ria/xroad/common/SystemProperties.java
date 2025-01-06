@@ -289,6 +289,12 @@ public final class SystemProperties {
 
     private static final String SIGNER_ENFORCE_TOKEN_PIN_POLICY = SIGNER_PREFIX + "enforce-token-pin-policy";
 
+    public static final String SERVER_CONF_SERVICE_ENDPOINTS_CACHE_SIZE = PROXY_PREFIX + "server-conf-service-endpoints-cache-size";
+
+    /** Property name of the idle time that connections to the ServerProxy Connector are allowed, in milliseconds */
+    private static final String SERVERPROXY_CONNECTOR_MAX_IDLE_TIME =
+            PROXY_PREFIX + "server-connector-max-idle-time";
+
     /**
      * Property name of the server's minimum supported client version
      */
@@ -1001,7 +1007,7 @@ public final class SystemProperties {
      * @return the ACME certificate renewal job interval in seconds
      */
     public static int getAcmeCertificateRenewalInterval() {
-        return Integer.parseInt(SystemPropertySource.getPropertyResolver().getProperty(PROXY_UI_API_ACME_RENEWAL_INTERVAL, "1200"));
+        return Integer.parseInt(SystemPropertySource.getPropertyResolver().getProperty(PROXY_UI_API_ACME_RENEWAL_INTERVAL, "3600"));
     }
 
     /**
@@ -1378,6 +1384,11 @@ public final class SystemProperties {
             minVersion = MINIMUM_SUPPORTED_GLOBAL_CONFIGURATION_VERSION;
         }
         return minVersion;
+    }
+
+    @SuppressWarnings("checkstyle:MagicNumber")
+    public static long getServerConfServiceEndpointsCacheSize() {
+        return Long.getLong(SERVER_CONF_SERVICE_ENDPOINTS_CACHE_SIZE, 100_000);
     }
 
     private static void checkVersionValidity(int min, int current, String defaultVersion) {

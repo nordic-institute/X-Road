@@ -27,6 +27,7 @@
 <template>
   <v-container fluid class="login-view-wrap fill-height">
     <alerts-container class="alerts" />
+    <language-dropdown class="language-dropdown"/>
     <v-row no-gutters class="fill-height">
       <v-col cols="3">
         <div class="graphics">
@@ -113,9 +114,11 @@ import { useForm } from 'vee-validate';
 import AlertsContainer from '@/components/ui/AlertsContainer.vue';
 import { swallowRedirectedNavigationError } from '@/util/helpers';
 import axios from 'axios';
+import LanguageDropdown from '@/components/layout/LanguageDropdown.vue';
 
 export default defineComponent({
   components: {
+    LanguageDropdown,
     AlertsContainer,
   },
   setup() {
@@ -153,16 +156,7 @@ export default defineComponent({
   computed: {
     ...mapState(useUser, ['getFirstAllowedTab']),
     isDisabled() {
-      // beware: simplified one-liner fails at runtime
-      if (
-        (this.values.username?.length | 0) < 1 ||
-        (this.values.password?.length | 0) < 1 ||
-        this.loading
-      ) {
-        return true;
-      } else {
-        return false;
-      }
+      return !this.values.username || !this.values.password || this.loading;
     },
   },
   methods: {
@@ -248,6 +242,12 @@ export default defineComponent({
   margin-right: auto;
   z-index: 100;
   position: absolute;
+}
+
+.language-dropdown {
+  position: absolute;
+  top: 10px;
+  right: 10px;
 }
 
 .login-view-wrap {
