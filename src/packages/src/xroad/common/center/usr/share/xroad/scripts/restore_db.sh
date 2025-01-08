@@ -47,6 +47,34 @@ if [[ ! -z $PGOPTIONS_EXTRA ]]; then
   PGOPTIONS_EXTRA=" ${PGOPTIONS_EXTRA}"
 fi
 
+IFS=',' read -ra host_array <<< "${PGHOST:-$HOST}"
+IFS=',' read -ra port_array <<< "${PGPORT:-$PORT}"
+
+if [ "${#port_array[@]}" -eq 1 ]; then
+  HOSTS_AND_PORTS=${PGHOST:-$HOST}:${PGPORT:-$PORT}
+else
+  # Pair host and port, assuming they have the same length
+  for i in "${!host_array[@]}"; do
+    HOSTS_AND_PORTS+="${host_array[i]}:${port_array[i]},"
+  done
+
+  # Remove the trailing comma
+  HOSTS_AND_PORTS=${HOSTS_AND_PORTS%,}
+fi
+
+if [[ ! -z $PGSSLMODE ]]; then
+  SSL_PARAMETERS+="&sslmode="$PGSSLMODE
+fi
+if [[ ! -z $PGSSLCERT ]]; then
+  SSL_PARAMETERS+="&sslcert="$PGSSLCERT
+fi
+if [[ ! -z $PGSSLKEY ]]; then
+  SSL_PARAMETERS+="&sslkey="$PGSSLKEY
+fi
+if [[ ! -z $PGSSLROOTCERT ]]; then
+  SSL_PARAMETERS+="&sslrootcert="$PGSSLROOTCERT
+fi
+
 export PGOPTIONS="-c client-min-messages=warning -c search_path=$SCHEMA,public${PGOPTIONS_EXTRA-}"
 
 if [ "$SCHEMA" == "public" ]; then
@@ -122,7 +150,7 @@ fi
 (cd /usr/share/xroad/db &&
   JAVA_OPTS="-Ddb_user=$USER -Ddb_schema=$SCHEMA" /usr/share/xroad/db/liquibase.sh \
   --classpath=/usr/share/xroad/jlib/postgresql.jar \
-  --url="jdbc:postgresql://${PGHOST:-$HOST}:${PGPORT:-$PORT}/$DATABASE?targetServerType=primary&currentSchema=${SCHEMA},public" \
+  --url="jdbc:postgresql://$HOSTS_AND_PORTS/$DATABASE?targetServerType=primary$SSL_PARAMETERS&currentSchema=${SCHEMA},public" \
   --changeLogFile=centerui-changelog.xml \
   --password="${ADMIN_PASSWORD}" \
   --username="${ADMIN_USER}" \
