@@ -35,6 +35,7 @@ dependencies {
 
     testImplementation project(':common:common-test')
     testImplementation project(path: ':common:common-verifier', configuration: 'testArtifacts')
+    testImplementation 'org.springframework:spring-test'
 
     testImplementation libs.mockito.core
 
