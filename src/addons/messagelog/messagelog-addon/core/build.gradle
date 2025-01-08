@@ -19,6 +19,7 @@ dependencies {
 
     testImplementation project(':common:common-keyconf')
     testImplementation project(':common:common-test')
+    testImplementation project(':asic-util')
     testImplementation libs.hsqldb
     testImplementation libs.bouncyCastle.bcpg
     testImplementation libs.dss.asic.xades

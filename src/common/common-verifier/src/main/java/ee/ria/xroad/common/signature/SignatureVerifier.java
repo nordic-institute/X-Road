@@ -334,8 +334,7 @@ public class SignatureVerifier {
         }
 
         if (!s.checkSignatureValue(signingCert)) {
-            throw new CodedException(X_INVALID_SIGNATURE_VALUE,
-                    "Signature is not valid");
+            throw new CodedException(X_INVALID_SIGNATURE_VALUE, "Signature is not valid");
         }
     }
 
@@ -392,7 +391,6 @@ public class SignatureVerifier {
         public InputStream resolve(String uri) {
             if (uri.equals(MessageFileNames.SIG_HASH_CHAIN) && (hashChain != null)) {
                 return is(hashChain);
-                // $FALL-THROUGH$
             }
             return null;
         }

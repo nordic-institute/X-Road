@@ -30,6 +30,7 @@ package org.niis.xroad.cs.admin.core.service;
 import ee.ria.xroad.common.SystemProperties;
 import ee.ria.xroad.common.util.TimeUtils;
 import ee.ria.xroad.signer.SignerRpcClient;
+import ee.ria.xroad.signer.exception.SignerException;
 import ee.ria.xroad.signer.protocol.dto.KeyInfoProto;
 import ee.ria.xroad.signer.protocol.dto.TokenInfo;
 import ee.ria.xroad.signer.protocol.dto.TokenInfoProto;
@@ -81,7 +82,7 @@ class NotificationServiceImplTest {
 
     @Test
     void getAlertsSignerException() throws Exception {
-        when(signerRpcClient.getTokens()).thenThrow(new Exception());
+        when(signerRpcClient.getTokens()).thenThrow(new SignerException("Error"));
 
         final Set<AlertInfo> alerts = notificationService.getAlerts();
 

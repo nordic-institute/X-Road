@@ -1,6 +1,6 @@
 # X-Road: Security hardening guidelines <!-- omit in toc -->
 
-Version: 0.4  
+Version: 0.5  
 Doc. ID: UG-SEC
 
 ## Version history <!-- omit in toc -->
@@ -11,6 +11,7 @@ Doc. ID: UG-SEC
 | 24.08.2023 | 0.2     | Minimum supported client Security Server version | Eneli Reimets     |
 | 14.11.2023 | 0.3     | Publish global configuration over HTTPS          | Eneli Reimets     |
 | 15.12.2023 | 0.4     | Minor updates                                    | Eneli Reimets     |
+| 07.01.2025 | 0.5     | Update references                                | Petteri Kivimäki  |
 
 ## Table of Contents <!-- omit in toc -->
 <!-- toc -->
@@ -71,7 +72,7 @@ X-Road uses the Linux Pluggable Authentication Modules (PAM) to authenticate use
 The example PAM configurations provided in this guide may or may not work on your system depending on your system and existing PAM configurations. 
 Note that editing the PAM configurations will take effect immediately without the need to restart anything.
 
-For configuring the following security policies for the X-Road components Admin UI in production, please refer to [The Linux-PAM System Administrator's Guide](http://www.linux-pam.org/Linux-PAM-html/Linux-PAM_SAG.html) for the full documentation on how to configure PAM.
+For configuring the following security policies for the X-Road components Admin UI in production, please refer to [The Linux-PAM System Administrator's Guide](https://fossies.org/linux/Linux-PAM-docs/doc/sag/Linux-PAM_SAG.pdf) for the full documentation on how to configure PAM.
 
 ### 2.1 Configuring account lockout
 

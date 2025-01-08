@@ -157,7 +157,7 @@ public class KeysApiController implements KeysApi {
                     csrGenerate.getCaName(),
                     csrGenerate.getSubjectFieldValues(),
                     csrFormat,
-                    csrGenerate.getAcmeOrder()).getCertRequest();
+                    csrGenerate.getAcmeOrder()).certRequest();
         } catch (WrongKeyUsageException | DnFieldHelper.InvalidDnParameterException
                  | ClientNotFoundException | CertificateAuthorityNotFoundException
                  | TokenCertificateService.AuthCertificateNotSupportedException e) {
@@ -248,11 +248,11 @@ public class KeysApiController implements KeysApi {
             throw new ConflictException(e);
         }
 
-        String filename = csrFilenameCreator.createCsrFilename(csrInfo.getKeyUsage(),
-                certificateRequestFormat, csrInfo.getMemberId(),
+        String filename = csrFilenameCreator.createCsrFilename(csrInfo.keyUsage(),
+                certificateRequestFormat, csrInfo.memberId(),
                 serverConfService.getSecurityServerId());
 
-        return ControllerUtil.createAttachmentResourceResponse(csrInfo.getCertRequest(), filename);
+        return ControllerUtil.createAttachmentResourceResponse(csrInfo.certRequest(), filename);
     }
 
 }

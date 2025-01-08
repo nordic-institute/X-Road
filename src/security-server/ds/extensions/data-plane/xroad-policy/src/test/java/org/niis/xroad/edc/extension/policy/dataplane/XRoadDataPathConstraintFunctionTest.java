@@ -28,7 +28,6 @@
 package org.niis.xroad.edc.extension.policy.dataplane;
 
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import org.eclipse.edc.json.JacksonTypeManager;
 import org.eclipse.edc.policy.engine.spi.PolicyContextImpl;
 import org.eclipse.edc.policy.model.Operator;
@@ -36,6 +35,7 @@ import org.eclipse.edc.policy.model.Permission;
 import org.eclipse.edc.spi.monitor.Monitor;
 import org.eclipse.edc.spi.types.TypeManager;
 import org.junit.jupiter.api.Test;
+import org.niis.xroad.edc.extension.policy.dataplane.util.Endpoint;
 import org.niis.xroad.edc.extension.policy.dataplane.util.PolicyContextData;
 
 import static org.junit.jupiter.api.Assertions.assertFalse;
@@ -47,30 +47,28 @@ class XRoadDataPathConstraintFunctionTest {
     private final Monitor monitor = mock(Monitor.class);
     private final Permission rule = mock(Permission.class);
 
-    private final ObjectMapper objectMapper = new ObjectMapper();
-
     private final TypeManager typeManager = new JacksonTypeManager();
 
     @Test
     void test() throws Exception {
-        assertTrue(evaluate("GET /user/1", "* **"));
-        assertTrue(evaluate("PUT /user/1/name", "* **"));
-        assertTrue(evaluate("POST /users", "* **"));
+        assertTrue(evaluate(new Endpoint("GET", "/user/1"), "* **"));
+        assertTrue(evaluate(new Endpoint("PUT", "/user/1/name"), "* **"));
+        assertTrue(evaluate(new Endpoint("POST", "/users"), "* **"));
 
-        assertFalse(evaluate("POST /users", "GET /**"));
-        assertFalse(evaluate("PUT /users", "GET /**"));
-        assertTrue(evaluate("GET /users/8", "GET /**"));
+        assertFalse(evaluate(new Endpoint("POST", "/users"), "GET /**"));
+        assertFalse(evaluate(new Endpoint("PUT", "/users"), "GET /**"));
+        assertTrue(evaluate(new Endpoint("GET", "/users/8"), "GET /**"));
 
-        assertTrue(evaluate("POST /user/1/name", "POST /user/**/name"));
-        assertTrue(evaluate("POST /user/2/name", "POST /user/**/name"));
+        assertTrue(evaluate(new Endpoint("POST", "/user/1/name"), "POST /user/**/name"));
+        assertTrue(evaluate(new Endpoint("POST", "/user/2/name"), "POST /user/**/name"));
 //        assertTrue(evaluate("POST /user/3/name", "GET /user/**/name", "POST /user/**/name"));
-        assertTrue(evaluate("POST /user/1/2/3/name", "POST /user/**/name"));
-        assertFalse(evaluate("GET /user/1/2/3/name", "POST /user/**/name"));
-        assertFalse(evaluate("GET /user/1/2/name", "POST /user/**/name"));
-        assertFalse(evaluate("GET /user/1/name", "POST /user/**/name"));
+        assertTrue(evaluate(new Endpoint("POST", "/user/1/2/3/name"), "POST /user/**/name"));
+        assertFalse(evaluate(new Endpoint("GET", "/user/1/2/3/name"), "POST /user/**/name"));
+        assertFalse(evaluate(new Endpoint("GET", "/user/1/2/name"), "POST /user/**/name"));
+        assertFalse(evaluate(new Endpoint("GET", "/user/1/name"), "POST /user/**/name"));
     }
 
-    private boolean evaluate(String requested, String allowed) throws Exception {
+    private boolean evaluate(Endpoint requested, String allowed) {
         XRoadDataPathConstraintFunction constraint = new XRoadDataPathConstraintFunction(monitor, typeManager);
 
         return constraint.evaluate(Operator.EQ, allowed, rule,

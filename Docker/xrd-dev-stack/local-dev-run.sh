@@ -70,7 +70,9 @@ docker compose $COMPOSE_EXTRA_ARGS $COMPOSE_FILE_ARGS --env-file "$ENV_FILE" up 
 if [[ -n "$INITIALIZE" ]]; then
   docker compose $COMPOSE_FILE_ARGS \
     --env-file "$ENV_FILE" \
-    run hurl \
+    run \
+    --rm \
+    hurl \
     --insecure \
     --variables-file /hurl-src/vars.env \
     --file-root /hurl-files /hurl-src/setup.hurl \
@@ -132,7 +134,9 @@ fi
 if [[ -n "$PERFTEST" && -n "$INITIALIZE" ]]; then
   docker compose $COMPOSE_FILE_ARGS \
     --env-file "$ENV_FILE" \
-    run hurl \
+    run \
+    --rm \
+    hurl \
     --insecure \
     --variables-file /hurl-src/vars.env \
     --file-root /hurl-files /hurl-src/perftest-ss0.hurl \

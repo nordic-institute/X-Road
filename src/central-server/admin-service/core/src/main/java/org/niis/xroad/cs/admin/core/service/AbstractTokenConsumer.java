@@ -27,35 +27,30 @@
 
 package org.niis.xroad.cs.admin.core.service;
 
-import ee.ria.xroad.common.CodedException;
 import ee.ria.xroad.signer.SignerRpcClient;
+import ee.ria.xroad.signer.exception.SignerException;
 
 import org.niis.xroad.common.exception.NotFoundException;
-import org.niis.xroad.cs.admin.core.exception.SignerProxyException;
+import org.niis.xroad.common.exception.SignerProxyException;
 
 import static org.niis.xroad.cs.admin.api.exception.ErrorMessage.SIGNER_PROXY_ERROR;
 import static org.niis.xroad.cs.admin.api.exception.ErrorMessage.TOKEN_NOT_FOUND;
 
 
 public abstract class AbstractTokenConsumer {
-    private static final String TOKEN_NOT_FOUND_FAULT_CODE = "Signer.TokenNotFound";
 
     protected abstract SignerRpcClient getSignerRpcClient();
 
     protected ee.ria.xroad.signer.protocol.dto.TokenInfo getToken(String tokenId) {
         try {
             return getSignerRpcClient().getToken(tokenId);
-        } catch (CodedException codedException) {
-            if (causedByNotFound(codedException)) {
+        } catch (SignerException signerException) {
+            if (signerException.isCausedByTokenNotFound()) {
                 throw new NotFoundException(TOKEN_NOT_FOUND);
             }
-            throw new SignerProxyException(SIGNER_PROXY_ERROR, codedException, codedException.getFaultCode());
+            throw new SignerProxyException(SIGNER_PROXY_ERROR, signerException, signerException.getFaultCode());
         } catch (Exception exception) {
             throw new SignerProxyException(SIGNER_PROXY_ERROR, exception);
         }
-    }
-
-    private boolean causedByNotFound(CodedException codedException) {
-        return TOKEN_NOT_FOUND_FAULT_CODE.equals(codedException.getFaultCode());
     }
 }

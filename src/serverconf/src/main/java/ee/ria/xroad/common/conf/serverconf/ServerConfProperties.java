@@ -43,6 +43,8 @@ public class ServerConfProperties {
     private long clientCacheSize;  //xroad.proxy.server-conf-client-cache-size: 100
     @WithName("service-cache-size")
     private long serviceCacheSize; //xroad.proxy.server-conf-service-cache-size: 1000
+    @WithName("service-endpoints-cache-size)
+    private long serviceEndpointsCacheSize; //xroad.proxy.server-conf-service-endpoints-cache-size: 100_000
     @WithName("acl-cache-size")
     private long aclCacheSize;     //xroad.proxy.server-conf-acl-cache-size: 100_000
     @WithName("hibernate")

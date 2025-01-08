@@ -25,7 +25,7 @@
  */
 package org.niis.xroad.securityserver.restapi.service;
 
-import ee.ria.xroad.common.CodedException;
+import ee.ria.xroad.signer.exception.SignerException;
 import ee.ria.xroad.signer.protocol.dto.CertRequestInfo;
 import ee.ria.xroad.signer.protocol.dto.CertificateInfo;
 import ee.ria.xroad.signer.protocol.dto.KeyInfo;
@@ -54,7 +54,6 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
-import static ee.ria.xroad.common.ErrorCodes.SIGNER_X;
 import static ee.ria.xroad.common.ErrorCodes.X_KEY_NOT_FOUND;
 import static junit.framework.TestCase.fail;
 import static org.junit.Assert.assertEquals;
@@ -148,7 +147,7 @@ public class KeyServiceTest extends AbstractServiceTestContext {
             Object[] arguments = invocation.getArguments();
             String newKeyName = (String) arguments[1];
             if ("new-friendly-name-update-fails".equals(newKeyName)) {
-                throw new CodedException(SIGNER_X + "." + X_KEY_NOT_FOUND);
+                throw new SignerException(X_KEY_NOT_FOUND);
             }
             if (arguments[0].equals(AUTH_KEY_ID)) {
                 tokenInfo = createTokenInfo(newKeyName);

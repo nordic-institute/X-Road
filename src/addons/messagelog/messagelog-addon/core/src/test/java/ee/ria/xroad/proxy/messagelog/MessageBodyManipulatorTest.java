@@ -196,7 +196,7 @@ public class MessageBodyManipulatorTest {
                                                       String elementName,
                                                       boolean keepBody) throws Exception {
         String loggableMessage = new TestableMessageBodyManipulator(keepBody)
-                .getLoggableMessageText(new SoapLogMessage(query, null, clientSide));
+                .getLoggableMessageText(new SoapLogMessage(query, null, List.of(), clientSide, null));
         log.debug("loggable message with body"
                 + (keepBody ? " intact: " : " removed: ")
                 + loggableMessage);

@@ -20,13 +20,13 @@ Feature: 0300 - SS: Keys and certificates
     And Token: <$token> - has key with label "<$label>"
     Then CSR is processed by test CA
     And Token: <$token> - Generated certificate is imported
-    And Token: <$token> - has key "<$label>" with status "<$certStatus>"
+    And Token: <$token> - has key "<$label>" with status "<$certStatus>" and ocsp status "<$ocspStatus>"
     And Token: <$token> - has "<$usage>" key "<$label>" with correct fixed automatic renewal status
     And Token: <$token>, key "<$label>" generate CSR button is disabled
     Examples:
-      | $token      | $usage         | $label             | $client      | $dns  | $certService | $certStatus |
-      | softToken-0 | SIGNING        | test signing key   | DEV:COM:1234 | ss0   | Test CA      | Registered  |
-      | softToken-0 | AUTHENTICATION | test auth key      |              | ss0   | Test CA      | Saved       |
+      | $token      | $usage         | $label             | $client      | $dns  | $certService | $certStatus | $ocspStatus |
+      | softToken-0 | SIGNING        | test signing key   | DEV:COM:1234 | ss0   | Test CA      | Registered  | Good        |
+      | softToken-0 | AUTHENTICATION | test auth key      |              | ss0   | Test CA      | Saved       | Disabled    |
 
   Scenario: Token edit page is navigable
     Given Keys and certificates tab is selected

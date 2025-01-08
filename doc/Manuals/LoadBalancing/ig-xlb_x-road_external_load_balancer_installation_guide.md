@@ -1,6 +1,6 @@
 # X-Road: External Load Balancer Installation Guide
 
-Version: 1.24 
+Version: 1.25 
 Doc. ID: IG-XLB
 
 
@@ -31,6 +31,7 @@ Doc. ID: IG-XLB
 | 26.04.2024 | 1.22    | Added Ubuntu 24.04 support                                                                                               | Madis Loitmaa               |
 | 16.08.2024 | 1.23    | Added assumption that the load balancer supports TLS passthrough                                                         | Petteri Kivimäki            |
 | 06.09.2024 | 1.24    | Updated RHEL default configuration files location                                                                        | Eneli Reimets               |
+| 17.12.2024 | 1.25    | When adding user xroad-slave, the home directory must be explicitly added for Ubuntu                                     | Eneli Reimets               |
 ## Table of Contents
 
 <!-- toc -->
@@ -307,13 +308,13 @@ In order to properly set up the data replication, the secondary nodes must be ab
    (`/home/xroad-slave/.ssh/authorized_keys`)
    > On RHEL 8, 9: generate a new key which is compliant with FIPS-140-2, for example ECDSA with curve nistp256
       ```bash
-      ssh-keygen -t ecdsa
+      sudo -u xroad ssh-keygen -t ecdsa
       ```
 6. Set up state synchronization using rsync+ssh. See section
    [5. Configuring data replication with rsync over SSH](#5-configuring-data-replication-with-rsync-over-ssh)
    * Make the initial synchronization between the primary and the secondary.
    ```bash
-   rsync -e ssh -avz --delete --exclude db.properties --exclude "/postgresql" --exclude "/conf.d/node.ini" --exclude "/gpghome" xroad-slave@<primary>:/etc/xroad/ /etc/xroad/
+   sudo -u xroad rsync -e ssh -avz --delete --exclude db.properties --exclude "/postgresql" --exclude "/conf.d/node.ini" --exclude "/gpghome" xroad-slave@<primary>:/etc/xroad/ /etc/xroad/
    ```
    Where `<primary>` is the primary server's DNS or IP address.
 7. Configure the node type as `slave` in `/etc/xroad/conf.d/node.ini`.
@@ -769,7 +770,7 @@ in normally.
 **Ubuntu:**
 
 ```bash
-adduser --system --shell /bin/bash --ingroup xroad xroad-slave
+adduser --system --shell /bin/bash --ingroup xroad --home /home/xroad-slave xroad-slave
 ```
 **RHEL:**
 

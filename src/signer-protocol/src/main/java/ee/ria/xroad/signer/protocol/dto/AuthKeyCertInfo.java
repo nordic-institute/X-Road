@@ -30,6 +30,7 @@ import java.io.Serializable;
 /**
  * Authentication key info DTO.
  */
+@SuppressWarnings("checkstyle:JavadocType")
 public record AuthKeyCertInfo(String alias, CertificateInfo cert) implements Serializable {
 
 }

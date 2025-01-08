@@ -28,6 +28,7 @@ package ee.ria.xroad.proxy.messagelog;
 import ee.ria.xroad.common.db.DatabaseCtxV2;
 import ee.ria.xroad.common.db.HibernateUtil;
 import ee.ria.xroad.common.identifier.ClientId;
+import ee.ria.xroad.common.message.AttachmentStream;
 import ee.ria.xroad.common.messagelog.AbstractLogRecord;
 import ee.ria.xroad.common.messagelog.LogRecord;
 import ee.ria.xroad.common.messagelog.MessageRecord;
@@ -41,14 +42,12 @@ import jakarta.persistence.criteria.Root;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.hibernate.Session;
-import org.hibernate.query.Query;
+import org.hibernate.query.MutationQuery;
 
-import java.io.InputStream;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
 import java.util.Arrays;
-import java.util.Date;
 import java.util.List;
 import java.util.function.Function;
 
@@ -72,21 +71,6 @@ public final class LogRecordManager {
     private static final int INDEX_3 = 3;
 
     private final DatabaseCtxV2 databaseCtx;
-
-    /**
-     * Returns a log record for a given message Query Id, start and end time.
-     *
-     * @param queryId   the message query id.
-     * @param startTime the start time.
-     * @param endTime   the end time.
-     * @return the log record or null, if log record is not found in database.
-     * @throws Exception if an error occurs while communicating with database.
-     */
-    LogRecord getByQueryId(String queryId, Date startTime, Date endTime) throws Exception {
-        log.trace(GET_BY_QUERY_ID_LOG_FORMAT, queryId, startTime, endTime);
-
-        return databaseCtx.doInTransaction(session -> getMessageRecord(session, queryId, startTime, endTime));
-    }
 
     /**
      * Returns a log record for a given message Query Id and sender Client Id.
@@ -154,10 +138,11 @@ public final class LogRecordManager {
                 encryption.prepareEncryption(messageRecord);
             }
 
-            InputStream is = messageRecord.getAttachmentStream();
-            if (is != null) {
-                messageRecord.setAttachment(
-                        session.getLobHelper().createBlob(is, messageRecord.getAttachmentStreamSize()));
+            int attachmentNo = 0;
+            for (AttachmentStream attachmentStream : messageRecord.getAttachmentStreams()) {
+                attachmentNo++;
+                messageRecord.addAttachment(attachmentNo,   // attachment numbering starts from one as in asic container
+                        session.getLobHelper().createBlob(attachmentStream.getStream(), attachmentStream.getSize()));
             }
 
             save(session, messageRecord);
@@ -174,7 +159,7 @@ public final class LogRecordManager {
     @SuppressWarnings("JpaQlInspection")
     void updateMessageRecordSignature(MessageRecord messageRecord, String oldHash) throws Exception {
         databaseCtx.doInTransaction(session -> {
-            final Query<?> query = session.createQuery("update MessageRecord m "
+            final MutationQuery query = session.createMutationQuery("update MessageRecord m "
                     + "set m.signature = :signature, m.signatureHash = :hash "
                     + "where m.id = :id and m.timestampRecord is null and m.signatureHash = :oldhash");
 
@@ -215,11 +200,11 @@ public final class LogRecordManager {
      */
     static void save(Session session, LogRecord logRecord) {
         log.trace("save({})", logRecord.getClass());
-        session.save(logRecord);
+        session.persist(logRecord);
     }
 
     static long getNextRecordId(Session session) {
-        return ((Number) session.createNativeQuery("SELECT nextval('logrecord_sequence')").getSingleResult()).longValue();
+        return session.createNativeQuery("SELECT nextval('logrecord_sequence')", Long.class).getSingleResult();
     }
 
     /**
@@ -283,19 +268,6 @@ public final class LogRecordManager {
 
     private static LogRecord getLogRecord(Session session, Long number) {
         return session.get(AbstractLogRecord.class, number);
-    }
-
-    private static MessageRecord getMessageRecord(Session session, String queryId, Date startTime, Date endTime) {
-        final CriteriaBuilder cb = session.getCriteriaBuilder();
-        final CriteriaQuery<MessageRecord> query = cb.createQuery(MessageRecord.class);
-        final Root<MessageRecord> m = query.from(MessageRecord.class);
-
-        query.select(m)
-                .where(cb.and(
-                        cb.equal(m.get("queryId"), queryId),
-                        cb.between(m.get("time"), startTime.getTime(), endTime.getTime())
-                ));
-        return session.createQuery(query).setMaxResults(1).uniqueResult();
     }
 
     private static MessageRecord getMessageRecord(Session session, String queryId, ClientId clientId,

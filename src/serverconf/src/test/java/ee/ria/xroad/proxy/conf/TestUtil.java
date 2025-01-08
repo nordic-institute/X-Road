@@ -110,7 +110,7 @@ public final class TestUtil {
             "hbm2ddl.auto", "create-drop"
     );
     static ServerConfProperties serverConfProperties = new ServerConfProperties(60, 100,
-            1000, 100_000, serverConfHibernateProperties);
+            1000, 100_000, 100_000, serverConfHibernateProperties);
     static DatabaseCtxV2 databaseCtx = new DatabaseCtxV2("serverconf", serverConfProperties.hibernate());
 
     private TestUtil() {
@@ -258,10 +258,12 @@ public final class TestUtil {
 
             EndpointType restEndpoint = new EndpointType(service.getServiceCode(), "GET", "/api/**", false);
             session.persist(restEndpoint);
+            client.getEndpoint().add(restEndpoint);
             client.getAcl().add(createAccessRight(restEndpoint, client.getIdentifier()));
 
             EndpointType restEndpoint2 = new EndpointType(service.getServiceCode(), "POST", "/api/test/*", false);
             session.persist(restEndpoint2);
+            client.getEndpoint().add(restEndpoint2);
             client.getAcl().add(createAccessRight(restEndpoint2, client.getIdentifier()));
 
             LocalGroupType localGroup = new LocalGroupType();

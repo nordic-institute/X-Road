@@ -19,6 +19,8 @@ cp /var/www/acme2certifier/examples/nginx/acme2certifier.ini /var/www/acme2certi
 sed -i "s/\/run\/uwsgi\/acme.sock/acme.sock/g" /var/www/acme2certifier/acme2certifier.ini
 sed -i "s/nginx/www-data/g" /var/www/acme2certifier/acme2certifier.ini
 echo "plugins = python3" >> /var/www/acme2certifier/acme2certifier.ini
+sed -i "4i import base64" /var/www/acme2certifier/acme_srv/renewalinfo.py
+sed -i s/b64_decode\(self.logger,\ /base64.b64decode\(/g /var/www/acme2certifier/acme_srv/renewalinfo.py
 usermod -a -G ca www-data
 
 touch .init_acme

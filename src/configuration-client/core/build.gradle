@@ -9,6 +9,8 @@ dependencies {
     api project(':common:common-rpc')
 
     api libs.commons.cli
+    api(platform(libs.springBoot.bom))
+    api('org.springframework:spring-context-support')
     implementation("org.springframework.boot:spring-boot-starter")
 
     testImplementation project(':common:common-test')

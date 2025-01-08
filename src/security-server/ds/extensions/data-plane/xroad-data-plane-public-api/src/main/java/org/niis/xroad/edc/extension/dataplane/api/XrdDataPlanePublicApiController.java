@@ -274,6 +274,8 @@ public class XrdDataPlanePublicApiController {
                 SoapLogMessage logMessage = new SoapLogMessage(
                         soapMessage,
                         new SignatureData(signatureXml),
+                        // todo attachments?
+                        List.of(),
                         false,
                         xRequestId);
 
@@ -400,6 +402,8 @@ public class XrdDataPlanePublicApiController {
             var logMessage = new SoapLogMessage(
                     soapMessage,
                     new SignatureData(signatureResponse.getSignatureDecoded()),
+                    // todo attachments?
+                    List.of(),
                     false,
                     xRequestId);
             xRoadMessageLog.log(logMessage);

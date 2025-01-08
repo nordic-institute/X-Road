@@ -63,6 +63,7 @@ import java.io.InputStream;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.security.cert.X509Certificate;
+import java.util.List;
 import java.util.Map;
 
 import static ee.ria.xroad.common.ErrorCodes.SERVER_SERVERPROXY_X;
@@ -207,14 +208,14 @@ public class SoapMessageProcessor extends MessageProcessorBase {
         monitor.debug("logRequestMessage()");
 
         xRoadMessageLog.log(new SoapLogMessage(requestMessage.getSoap(),
-                requestMessage.getSignature(), false, xRequestId));
+                requestMessage.getSignature(), requestMessage.getAttachments(), false, xRequestId));
     }
 
     private void logResponseMessage(ProxyMessageEncoder encoder) {
         if (responseSoap != null && encoder != null) {
             monitor.debug("logResponseMessage()");
-
-            xRoadMessageLog.log(new SoapLogMessage(responseSoap, encoder.getSignature(), false, xRequestId));
+            // todo attachments?
+            xRoadMessageLog.log(new SoapLogMessage(responseSoap, encoder.getSignature(), List.of(), false, xRequestId));
         }
     }
 

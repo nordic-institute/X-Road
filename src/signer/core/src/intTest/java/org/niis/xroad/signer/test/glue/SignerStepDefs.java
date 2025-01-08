@@ -39,6 +39,7 @@ import ee.ria.xroad.common.identifier.SecurityServerId;
 import ee.ria.xroad.signer.SignerRpcChannelProperties;
 import ee.ria.xroad.signer.SignerRpcClient;
 import ee.ria.xroad.signer.SpringSignerRpcChannelProperties;
+import ee.ria.xroad.signer.exception.SignerException;
 import ee.ria.xroad.signer.protocol.dto.CertificateInfo;
 import ee.ria.xroad.signer.protocol.dto.KeyInfo;
 import ee.ria.xroad.signer.protocol.dto.KeyUsageInfo;
@@ -713,14 +714,15 @@ public class SignerStepDefs extends BaseSignerStepDefs {
     @Step("getTokens fails with timeout exception")
     public void signerGetTokensFailsWithTimeoutException() {
         assertThatThrownBy(signerRpcClient::getTokens)
-                .isInstanceOf(CodedException.class)
-                .hasMessageContaining("Signer: Signer client timed out.");
+                .isInstanceOf(SignerException.class)
+                .hasMessageContaining("Signer.NetworkError: Signer client timed out.");
     }
 
     @ParameterType("RSA|EC")
     public KeyAlgorithm algorithm(String value) {
         return KeyAlgorithm.valueOf(value);
     }
+
     @Step("certification service diagnostics is requested")
     public void certificationServiceDiagnosticsWorks() throws Exception {
         this.diagnosticsResponse = signerRpcClient.getCertificationServiceDiagnostics();

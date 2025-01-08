@@ -4,6 +4,9 @@ eab-credentials:
       mac-key-base64-encoded: true
       members:
         "DEV:COM:1234":
-          kid: keyid_1
-          mac-key: k21lms0bWFjXzAxdd39Dnsk2nr20am1WAx
+          auth-kid: keyid_2
+          auth-mac-key: Yke2zFqPBeKdel4WTpnf9hH9q7hmPh1O
+          sign-kid: keyid_3
+          sign-mac-key: RugB859khJwluk96E3FdcfeYlcwXJcof
+
 account-keystore-password: testPassword1234

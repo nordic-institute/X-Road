@@ -53,6 +53,7 @@ import static org.niis.xroad.common.acme.AcmeXroadHttpConnector.XROAD_ACME_USER_
 @Slf4j
 public class AcmeProfileIdConnection extends DefaultConnection {
 
+    private static final String PROFILE_ID_HEADER_KEY = "profile_id";
     private KeyUsage keyUsage;
 
     public AcmeProfileIdConnection(HttpConnector httpConnector) {
@@ -111,7 +112,7 @@ public class AcmeProfileIdConnection extends DefaultConnection {
         ApprovedCAInfo approvedCA = approvedCAsForThisInstance.stream()
                 .filter(ca -> isCABeingConnectedTo(session, ca))
                 .findFirst().orElseThrow();
-        String profileId = "profileID=";
+        String profileId = PROFILE_ID_HEADER_KEY + "=";
         if (keyUsage.hasUsages(KeyUsage.nonRepudiation)) {
             profileId += approvedCA.getSigningCertificateProfileId();
         } else {

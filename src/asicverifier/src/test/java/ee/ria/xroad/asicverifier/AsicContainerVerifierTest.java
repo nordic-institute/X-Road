@@ -32,6 +32,7 @@ import ee.ria.xroad.common.conf.globalconf.GlobalConfProvider;
 import ee.ria.xroad.common.conf.globalconf.TestGlobalConfImpl;
 
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.junit.BeforeClass;
 import org.junit.Rule;
 import org.junit.Test;
@@ -52,6 +53,7 @@ import static org.mockito.ArgumentMatchers.anyString;
 /**
  * Tests to verify correct ASiC container verifier behavior.
  */
+@Slf4j
 @RunWith(Parameterized.class)
 @RequiredArgsConstructor
 public class AsicContainerVerifierTest {

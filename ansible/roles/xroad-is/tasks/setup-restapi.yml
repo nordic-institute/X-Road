@@ -1,0 +1,49 @@
+---
+
+- name: Set architecture-specific variables
+  set_fact:
+    java_arch_path: "{{ ansible_architecture | regex_replace('x86_64', 'amd64') | regex_replace('aarch64', 'arm64') }}"
+
+- name: Set Java home path
+  set_fact:
+    java_17_home: "/usr/lib/jvm/java-17-openjdk-{{ java_arch_path }}"
+
+- name: Install required packages
+  apt:
+    name:
+      - openjdk-17-jdk-headless
+    update_cache: yes
+    state: present
+
+- name: Get latest example-restapi version
+  shell: |
+    curl -s "https://artifactory.niis.org/api/storage/xroad-maven-releases/org/niis/example-restapi/" | \
+    jq -r '.children[] | select(.uri | match("/[0-9]+.[0-9]+.[0-9]+")) | .uri' | \
+    sort -V | tail -n1 | tr -d '/'
+  register: latest_version
+
+- name: Get latest example-restapi artifact URL
+  shell: |
+    curl -s "https://artifactory.niis.org/api/storage/xroad-maven-releases/org/niis/example-restapi/{{ latest_version.stdout }}" | \
+    jq -r '.children[] | select(.uri | endswith("-boot.jar")) | .uri' | \
+    sort -V | tail -n1 | tr -d '/'
+  register: artifact_filename
+
+- name: Download example-restapi
+  get_url:
+    url: "https://artifactory.niis.org/xroad-maven-releases/org/niis/example-restapi/{{ latest_version.stdout }}/{{ artifact_filename.stdout }}"
+    dest: /example-restapi.jar
+    mode: '0644'
+
+- name: Create systemd service
+  template:
+    src: templates/example-restapi.service.j2
+    dest: /etc/systemd/system/example-restapi.service
+    mode: '0644'
+
+- name: Start and enable example-restapi service
+  systemd:
+    name: example-restapi
+    state: started
+    enabled: yes
+    daemon_reload: yes

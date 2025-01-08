@@ -1,21 +1,21 @@
 /*
  * The MIT License
- * <p>
+ *
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
  * Copyright (c) 2015-2017 Estonian Information System Authority (RIA), Population Register Centre (VRK)
- * <p>
+ *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
  * in the Software without restriction, including without limitation the rights
  * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
  * copies of the Software, and to permit persons to whom the Software is
  * furnished to do so, subject to the following conditions:
- * <p>
+ *
  * The above copyright notice and this permission notice shall be included in
  * all copies or substantial portions of the Software.
- * <p>
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -24,19 +24,53 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
+package ee.ria.xroad.proxy.serverproxy;
 
-package org.niis.xroad.cs.admin.core.exception;
+import ee.ria.xroad.proxy.protocol.ProxyMessage;
 
-import org.niis.xroad.common.exception.ServiceException;
-import org.niis.xroad.cs.admin.api.exception.ErrorMessage;
+import lombok.RequiredArgsConstructor;
+import org.apache.http.Header;
+import org.apache.http.entity.AbstractHttpEntity;
+import org.apache.http.message.BasicHeader;
+import org.apache.http.protocol.HTTP;
 
-public class SignerProxyException extends ServiceException {
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
 
-    public SignerProxyException(ErrorMessage code, Object... metadata) {
-        super(code, metadata);
+import static ee.ria.xroad.common.util.AbstractHttpSender.CHUNKED_LENGTH;
+
+@RequiredArgsConstructor
+class ProxyMessageSoapEntity extends AbstractHttpEntity {
+    private final ProxyMessage proxyMessage;
+
+    @Override
+    public boolean isRepeatable() {
+        return false;
     }
 
-    public SignerProxyException(ErrorMessage code, Throwable cause, Object... metadata) {
-        super(code, cause, metadata);
+    @Override
+    public long getContentLength() {
+        return CHUNKED_LENGTH;
+    }
+
+    @Override
+    public Header getContentType() {
+        return new BasicHeader(HTTP.CONTENT_TYPE, proxyMessage.getSoapContentType());
+    }
+
+    @Override
+    public InputStream getContent() {
+        throw new UnsupportedOperationException("getContent() is not supported");
+    }
+
+    @Override
+    public void writeTo(OutputStream outStream) throws IOException {
+        proxyMessage.writeSoapContent(outStream);
+    }
+
+    @Override
+    public boolean isStreaming() {
+        return true;
     }
 }

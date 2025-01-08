@@ -27,6 +27,7 @@ package ee.ria.xroad.proxy.messagelog;
 
 import ee.ria.xroad.common.CodedException;
 import ee.ria.xroad.common.ExpectedCodedException;
+import ee.ria.xroad.common.asic.AsicContainer;
 import ee.ria.xroad.common.crypto.identifier.DigestAlgorithm;
 import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.message.RestRequest;
@@ -55,8 +56,11 @@ import eu.europa.esig.dss.model.InMemoryDocument;
 import jakarta.persistence.criteria.CriteriaBuilder;
 import jakarta.persistence.criteria.CriteriaQuery;
 import jakarta.persistence.criteria.Root;
+import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.filefilter.RegexFileFilter;
+import org.assertj.core.api.Assertions;
+import org.hibernate.Hibernate;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Rule;
@@ -68,6 +72,7 @@ import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileFilter;
+import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Paths;
@@ -132,14 +137,13 @@ public class MessageLogTest extends AbstractMessageLogTest {
         log("02-04-2014 12:34:56.100", createMessage("forced"));
         assertTaskQueueSize(1, databaseCtx);
 
-        MessageRecord record = (MessageRecord) findByQueryId("forced", "02-04-2014 12:34:50.100",
-                "02-04-2014 12:34:59.100");
+        MessageRecord record = findByQueryId("forced");
         assertMessageRecord(record, "forced");
 
         TimestampRecord timestamp = timestamp(record);
         assertNotNull(timestamp);
 
-        record = (MessageRecord) findByQueryId("forced", "02-04-2014 12:34:50.100", "02-04-2014 12:34:59.100");
+        record = findByQueryId("forced");
 
         assertEquals(timestamp, record.getTimestampRecord());
         assertTaskQueueSize(0, databaseCtx);
@@ -157,8 +161,7 @@ public class MessageLogTest extends AbstractMessageLogTest {
         log("02-04-2014 12:34:56.100", createMessage("forced"));
         assertTaskQueueSize(1, databaseCtx);
 
-        MessageRecord record = (MessageRecord) findByQueryId("forced", "02-04-2014 12:34:50.100",
-                "02-04-2014 12:34:59.100");
+        MessageRecord record = findByQueryId("forced");
         assertMessageRecord(record, "forced");
 
         TimestampRecord timestamp1 = timestamp(record);
@@ -211,8 +214,7 @@ public class MessageLogTest extends AbstractMessageLogTest {
         final Instant atDate = TimeUtils.now();
         final byte[] body = "\"test message body\"".getBytes(StandardCharsets.UTF_8);
         log(atDate, message, createSignature(), body);
-        final MessageRecord logRecord = (MessageRecord) findByQueryId(message.getQueryId(), atDate.minusMillis(1),
-                atDate.plusMillis(1));
+        final MessageRecord logRecord = findByQueryId(message.getQueryId(), ClientId.Conf.create("XRD", "Class", "Member", "SubSystem"));
 
         MessageRecordEncryption.getInstance().prepareDecryption(logRecord);
         assertEquals(logRecord.getXRequestId(), requestId);
@@ -249,6 +251,28 @@ public class MessageLogTest extends AbstractMessageLogTest {
         try (var attachmentDocumentInputStream = documentMap.get("/attachment1").openStream()) {
             assertArrayEquals(attachmentDocumentInputStream.readAllBytes(), body);
         }
+    }
+
+    @Test
+    public void logSoapWithAttachments() throws Exception {
+        final String requestId = UUID.randomUUID().toString();
+        final var message = createMessage(requestId);
+        var attachment1 = "ONE".getBytes(StandardCharsets.UTF_8);
+        var attachment2 = "TWO".getBytes(StandardCharsets.UTF_8);
+
+        log(message, createSignature(), List.of(attachment1, attachment2));
+
+        final MessageRecord logRecord = findByQueryId(message.getQueryId());
+        MessageRecordEncryption.getInstance().prepareDecryption(logRecord);
+        assertEquals(logRecord.getXRequestId(), requestId);
+        assertEquals(logRecord.getQueryId(), message.getQueryId());
+
+        ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
+        logRecord.writeAsicContainer(outputStream);
+        final AsicContainer asic = AsicContainer.read(new ByteArrayInputStream(outputStream.toByteArray()));
+        assertEquals(asic.getMessage(), message.getXml());
+        var attachments = asic.getAttachments().stream().map(MessageLogTest::readAllBytes).toList();
+        Assertions.assertThat(attachments).containsExactly(attachment1, attachment2);
     }
 
     /**
@@ -457,17 +481,16 @@ public class MessageLogTest extends AbstractMessageLogTest {
         log("02-04-2014 12:34:57.100", createMessage("message2"));
         log("02-04-2014 12:34:58.100", createMessage("message3"));
 
-        LogRecord message1 = findByQueryId("message1", "02-04-2014 12:34:50.100", "02-04-2014 12:34:59.100");
+        LogRecord message1 = findByQueryId("message1");
         assertMessageRecord(message1, "message1");
 
-        LogRecord message2 = findByQueryId("message2", "02-04-2014 12:34:50.100", "02-04-2014 12:34:59.100");
+        LogRecord message2 = findByQueryId("message2");
         assertMessageRecord(message2, "message2");
 
-        LogRecord message3 = findByQueryId("message3", "02-04-2014 12:34:50.100", "02-04-2014 12:34:59.100");
+        LogRecord message3 = findByQueryId("message3");
         assertMessageRecord(message3, "message3");
 
-        assertNull(findByQueryId("message1", "02-04-2014 12:34:56.200", "02-04-2014 12:34:59.100"));
-        assertNull(findByQueryId("foo", "02-04-2014 12:34:56.100", "02-04-2014 12:34:59.100"));
+        assertNull(findByQueryId("foo"));
     }
 
     /**
@@ -530,9 +553,8 @@ public class MessageLogTest extends AbstractMessageLogTest {
         ArchiveDigest digest = new ArchiveDigest(ClientId.Conf.create("XRD", "BUSINESS", "consumer").toShortString(),
                 lastArchive);
         databaseCtx.doInTransaction(session -> {
-            session.createQuery(getLastEntryDeleteQuery()).executeUpdate();
-            session.save(digest);
-
+            session.createMutationQuery(getLastEntryDeleteQuery()).executeUpdate();
+            session.persist(digest);
             return null;
         });
     }
@@ -585,12 +607,13 @@ public class MessageLogTest extends AbstractMessageLogTest {
         logManager.log(logMessage);
     }
 
-    protected LogRecord findByQueryId(String queryId, String startTime, String endTime) throws Exception {
-        return logRecordManager.getByQueryId(queryId, getDate(startTime), getDate(endTime));
+    protected MessageRecord findByQueryId(String queryId) throws Exception {
+        ClientId clientId = ClientId.Conf.create("EE", "BUSINESS", "consumer");
+        return logRecordManager.getByQueryIdUnique(queryId, clientId, false, MessageLogTest::initializeAttachments);
     }
 
-    protected LogRecord findByQueryId(String queryId, Instant startTime, Instant endTime) throws Exception {
-        return logRecordManager.getByQueryId(queryId, Date.from(startTime), Date.from(endTime));
+    protected MessageRecord findByQueryId(String queryId, ClientId clientId) throws Exception {
+        return logRecordManager.getByQueryIdUnique(queryId, clientId, false, MessageLogTest::initializeAttachments);
     }
 
     private String getLastEntryDeleteQuery() {
@@ -649,11 +672,11 @@ public class MessageLogTest extends AbstractMessageLogTest {
     }
 
     private String getLastHashStepInDatabase() throws Exception {
-        return databaseCtx.doInTransaction(session -> (String) session
-                .createQuery(getLastDigestQuery())
+        return databaseCtx.doInTransaction(session -> session
+                .createQuery(getLastDigestQuery(), String.class)
                 .setMaxResults(1)
                 .list()
-                .get(0));
+                .getFirst());
     }
 
     private String getLastDigestQuery() {
@@ -699,6 +722,18 @@ public class MessageLogTest extends AbstractMessageLogTest {
             query.select(cb.count(r)).where(cb.equal(r.get("archived"), archived));
             return session.createQuery(query).getSingleResult().intValue();
         });
+    }
+
+    private static MessageRecord initializeAttachments(MessageRecord messageRecord) {
+        if (messageRecord != null) {
+            Hibernate.initialize(messageRecord.getAttachments());
+        }
+        return messageRecord;
+    }
+
+    @SneakyThrows
+    private static byte[] readAllBytes(InputStream is) {
+        return is.readAllBytes();
     }
 
 }

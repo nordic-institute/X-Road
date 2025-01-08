@@ -24,8 +24,8 @@ else
     INFORM=DER
 fi
 
-while ! mkdir lock &>/dev/null; do 
-    sleep 1; 
+while ! mkdir lock &>/dev/null; do
+    sleep 1;
 done
 trap 'status=$?; rm -rf "lock"; exit $status' INT TERM EXIT
 
@@ -33,6 +33,8 @@ set -e
 SER=$(cat serial)
 openssl req -in $2 -inform $INFORM -out csr/${SER}.csr
 openssl ca -batch -config CA.cnf -extensions $EXT -days 7300 -notext -md sha256 -in csr/${SER}.csr
+chmod 0664 index.txt
+chmod 0664 serial
 echo $SER>changed
 set +e
 exit 0

@@ -165,15 +165,34 @@
     - stat_result.stat.exists == False
     - (ansible_distribution_release == "jammy" or ansible_distribution_release == "noble")
 
-
 - name: copy acme2certifier conf
   copy:
-    src: "files/{{ item }}"
+    src: "../../../development/acme2certifier/{{ item }}"
     dest: /var/www/acme2certifier/acme_srv/acme_srv.cfg
     group: "www-data"
     owner: "www-data"
   with_items:
-    - "acme2certifier/acme_srv.cfg"
+    - "acme_srv.cfg"
+  when: (ansible_distribution_release == "jammy" or ansible_distribution_release == "noble")
+
+- name: copy acme2certifier external account binding conf
+  copy:
+    src: "../../../development/acme2certifier/{{ item }}"
+    dest: /var/www/acme2certifier/examples/eab_handler/kid_profiles.json
+    group: "www-data"
+    owner: "www-data"
+  with_items:
+    - "kid_profiles.json"
+  when: (ansible_distribution_release == "jammy" or ansible_distribution_release == "noble")
+
+- name: copy acme2certifier openssl handler
+  copy:
+    src: "../../../development/acme2certifier/{{ item }}"
+    dest: /var/www/acme2certifier/examples/ca_handler/openssl_ca_handler.py
+    group: "www-data"
+    owner: "www-data"
+  with_items:
+    - "openssl_ca_handler.py"
   when: (ansible_distribution_release == "jammy" or ansible_distribution_release == "noble")
 
 - name: remove obsolete files
@@ -206,4 +225,10 @@
   service:
     name: tsa
     state: restarted
+    enabled: yes
+
+- name: start acme2certifier (acme server)
+  service:
+    name: acme2certifier
+    state: started
     enabled: yes

@@ -32,9 +32,7 @@ import ee.ria.xroad.common.identifier.ServiceId;
 import ee.ria.xroad.common.opmonitoring.OpMonitoringDaemonEndpoints;
 import ee.ria.xroad.common.opmonitoring.OpMonitoringData;
 import ee.ria.xroad.common.opmonitoring.OpMonitoringSystemProperties;
-import ee.ria.xroad.common.util.AbstractHttpSender;
 import ee.ria.xroad.common.util.HttpSender;
-import ee.ria.xroad.common.util.MimeUtils;
 import ee.ria.xroad.common.util.RequestWrapper;
 import ee.ria.xroad.common.util.TimeUtils;
 import ee.ria.xroad.proxy.protocol.ProxyMessage;
@@ -147,11 +145,10 @@ public class OpMonitoringServiceHandlerImpl extends AbstractServiceHandler {
 
         log.info("Sending request to {}", opMonitorUri);
 
-        try (InputStream in = proxyRequestMessage.getSoapContent()) {
+        try {
             opMonitoringData.setRequestOutTs(getEpochMillisecond());
 
-            sender.doPost(opMonitorUri, in, AbstractHttpSender.CHUNKED_LENGTH,
-                    servletRequest.getHeaders().get(MimeUtils.HEADER_ORIGINAL_CONTENT_TYPE));
+            sender.doPost(opMonitorUri, new ProxyMessageSoapEntity(proxyRequestMessage));
 
             opMonitoringData.setResponseInTs(getEpochMillisecond());
         } catch (Exception ex) {

@@ -33,6 +33,7 @@ import java.security.PrivateKey;
  * Value object representing the authentication key of the security server
  * It consists of the certificate chain and private key.
  */
+@SuppressWarnings("checkstyle:JavadocType")
 public record AuthKey(CertChain certChain, PrivateKey key) {
 
 }

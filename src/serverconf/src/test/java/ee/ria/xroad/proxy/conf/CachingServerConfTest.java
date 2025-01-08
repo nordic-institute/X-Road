@@ -36,6 +36,7 @@ import ee.ria.xroad.common.db.DatabaseCtxV2;
 import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.identifier.SecurityServerId;
 import ee.ria.xroad.common.identifier.ServiceId;
+import ee.ria.xroad.common.metadata.Endpoint;
 import ee.ria.xroad.common.util.CryptoUtils;
 
 import org.junit.After;
@@ -323,6 +324,14 @@ public class CachingServerConfTest {
     public void getTsps() throws Exception {
         List<String> tspUrls = serverConfProvider.getTspUrl();
         assertEquals(NUM_TSPS, tspUrls.size());
+    }
+
+    @Test
+    public void getServiceEndpoints() {
+        ClientId client1 = createTestClientId(client(1));
+        ServiceId serviceRest = createTestServiceId(client1.getMemberCode(), "rest", null);
+        List<Endpoint> endpoints = serverConfProvider.getServiceEndpoints(serviceRest);
+        assertEquals(2, endpoints.size());
     }
 
     /**

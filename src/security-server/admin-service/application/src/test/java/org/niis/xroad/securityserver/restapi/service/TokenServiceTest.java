@@ -26,6 +26,8 @@
 package org.niis.xroad.securityserver.restapi.service;
 
 import ee.ria.xroad.common.CodedException;
+import ee.ria.xroad.common.ErrorCodes;
+import ee.ria.xroad.signer.exception.SignerException;
 import ee.ria.xroad.signer.protocol.dto.TokenInfo;
 
 import lombok.extern.slf4j.Slf4j;
@@ -82,15 +84,15 @@ public class TokenServiceTest extends AbstractServiceTestContext {
             Object[] args = invocation.getArguments();
             String tokenId = (String) args[0];
             if (WRONG_SOFTTOKEN_PIN_TOKEN_ID.equals(tokenId)) {
-                throw new CodedException(TokenService.PIN_INCORRECT_FAULT_CODE);
+                throw new SignerException(ErrorCodes.X_PIN_INCORRECT);
             } else if (WRONG_HSM_PIN_TOKEN_ID.equals(tokenId)) {
-                throw new CodedException(TokenService.LOGIN_FAILED_FAULT_CODE, TokenService.CKR_PIN_INCORRECT_MESSAGE);
+                throw new SignerException(ErrorCodes.X_LOGIN_FAILED, SignerException.CKR_PIN_INCORRECT_MESSAGE);
             } else if (UNKNOWN_LOGIN_FAIL_TOKEN_ID.equals(tokenId)) {
-                throw new CodedException(TokenService.LOGIN_FAILED_FAULT_CODE, "dont know what happened");
+                throw new SignerException(ErrorCodes.X_LOGIN_FAILED, "dont know what happened");
             } else if (TOKEN_NOT_FOUND_TOKEN_ID.equals(tokenId)) {
-                throw new CodedException(TokenService.TOKEN_NOT_FOUND_FAULT_CODE, "did not find it");
+                throw new SignerException(ErrorCodes.X_TOKEN_NOT_FOUND, "did not find it");
             } else if (UNRECOGNIZED_FAULT_CODE_TOKEN_ID.equals(tokenId)) {
-                throw new CodedException("foo", "bar");
+                throw new SignerException("foo", "bar");
             } else {
                 log.debug("activate successful");
             }
@@ -102,7 +104,7 @@ public class TokenServiceTest extends AbstractServiceTestContext {
             String oldPin = new String((char[]) args[1]);
             String newPin = new String((char[]) args[2]);
             if (WRONG_SOFTTOKEN_PIN_TOKEN_ID.equals(oldPin)) {
-                throw new CodedException(TokenService.PIN_INCORRECT_FAULT_CODE);
+                throw new SignerException(ErrorCodes.X_PIN_INCORRECT);
             } else {
                 log.debug("activate successful");
             }
@@ -113,9 +115,9 @@ public class TokenServiceTest extends AbstractServiceTestContext {
             Object[] args = invocation.getArguments();
             String tokenId = (String) args[0];
             if (TOKEN_NOT_FOUND_TOKEN_ID.equals(tokenId)) {
-                throw new CodedException(TokenService.TOKEN_NOT_FOUND_FAULT_CODE, "did not find it");
+                throw new SignerException(ErrorCodes.X_TOKEN_NOT_FOUND, "did not find it");
             } else if (UNRECOGNIZED_FAULT_CODE_TOKEN_ID.equals(tokenId)) {
-                throw new CodedException("foo", "bar");
+                throw new SignerException("foo", "bar");
             } else {
                 log.debug("deactivate successful");
             }
@@ -126,7 +128,7 @@ public class TokenServiceTest extends AbstractServiceTestContext {
             Object[] args = invocation.getArguments();
             String tokenId = (String) args[0];
             if (TOKEN_NOT_FOUND_TOKEN_ID.equals(tokenId)) {
-                throw new CodedException(TokenService.TOKEN_NOT_FOUND_FAULT_CODE, "did not find it");
+                throw new SignerException(ErrorCodes.X_TOKEN_NOT_FOUND, "did not find it");
             } else {
                 return tokenInfo;
             }
@@ -166,8 +168,8 @@ public class TokenServiceTest extends AbstractServiceTestContext {
         try {
             tokenService.activateToken(UNKNOWN_LOGIN_FAIL_TOKEN_ID, password);
             fail("should have thrown exception");
-        } catch (CodedException expected) {
-            Assert.assertEquals(TokenService.LOGIN_FAILED_FAULT_CODE, expected.getFaultCode());
+        } catch (SignerException expected) {
+            Assert.assertTrue(expected.getFaultCode().endsWith("." + ErrorCodes.X_LOGIN_FAILED));
             assertEquals("dont know what happened", expected.getFaultString());
         }
 
@@ -181,7 +183,7 @@ public class TokenServiceTest extends AbstractServiceTestContext {
             tokenService.activateToken(UNRECOGNIZED_FAULT_CODE_TOKEN_ID, password);
             fail("should have thrown exception");
         } catch (CodedException expected) {
-            assertEquals("foo", expected.getFaultCode());
+            assertEquals("Signer.foo", expected.getFaultCode());
             assertEquals("bar", expected.getFaultString());
         }
         tokenPinValidator.setTokenPinEnforced(false);
@@ -201,7 +203,7 @@ public class TokenServiceTest extends AbstractServiceTestContext {
             tokenService.deactivateToken(UNRECOGNIZED_FAULT_CODE_TOKEN_ID);
             fail("should have thrown exception");
         } catch (CodedException expected) {
-            assertEquals("foo", expected.getFaultCode());
+            assertEquals("Signer.foo", expected.getFaultCode());
             assertEquals("bar", expected.getFaultString());
         }
     }
@@ -233,7 +235,7 @@ public class TokenServiceTest extends AbstractServiceTestContext {
 
     @Test
     public void getUnknownSoftwareTokenInitStatus() throws Exception {
-        when(signerRpcClient.getTokens()).thenThrow(new Exception());
+        when(signerRpcClient.getTokens()).thenThrow(new SignerException("Error"));
         TokenInitStatusInfo tokenStatus = tokenService.getSoftwareTokenInitStatus();
         assertEquals(TokenInitStatusInfo.UNKNOWN, tokenStatus);
     }
@@ -279,7 +281,7 @@ public class TokenServiceTest extends AbstractServiceTestContext {
         possibleActionsRuleEngine = new PossibleActionsRuleEngine() {
             @Override
             public void requirePossibleTokenAction(PossibleActionEnum action, TokenInfo token) throws
-                    ActionNotPossibleException {
+                                                                                               ActionNotPossibleException {
                 // noop
             }
         };

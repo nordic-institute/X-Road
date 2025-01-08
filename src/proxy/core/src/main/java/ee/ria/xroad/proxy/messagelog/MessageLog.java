@@ -26,6 +26,7 @@
 package ee.ria.xroad.proxy.messagelog;
 
 import ee.ria.xroad.common.DiagnosticsStatus;
+import ee.ria.xroad.common.message.AttachmentStream;
 import ee.ria.xroad.common.message.RestRequest;
 import ee.ria.xroad.common.message.RestResponse;
 import ee.ria.xroad.common.message.SoapMessageImpl;
@@ -39,6 +40,7 @@ import ee.ria.xroad.common.util.CacheInputStream;
 
 import lombok.extern.slf4j.Slf4j;
 
+import java.util.List;
 import java.util.Map;
 
 import static ee.ria.xroad.common.ErrorCodes.X_LOGGING_FAILED_X;
@@ -63,16 +65,17 @@ public final class MessageLog {
     /**
      * Save the message and signature to message log. Attachments are not logged.
      *
-     * @param message    the message
-     * @param signature  the signature
-     * @param clientSide whether this message is logged by the client proxy
-     * @param xRequestId (optional) additional request if to distinguish request/response pairs
+     * @param message     the message
+     * @param signature   the signature
+     * @param attachments message attachments
+     * @param clientSide  whether this message is logged by the client proxy
+     * @param xRequestId  (optional) additional request if to distinguish request/response pairs
      */
-    public static void log(SoapMessageImpl message, SignatureData signature, boolean clientSide,
+    public static void log(SoapMessageImpl message, SignatureData signature, List<AttachmentStream> attachments, boolean clientSide,
                            String xRequestId) {
         try {
             assertInitialized();
-            logManagerImpl.log(new SoapLogMessage(message, signature, clientSide, xRequestId));
+            logManagerImpl.log(new SoapLogMessage(message, signature, attachments, clientSide, xRequestId));
         } catch (Exception e) {
             throw translateWithPrefix(X_LOGGING_FAILED_X, e);
         }

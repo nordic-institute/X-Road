@@ -301,11 +301,11 @@ public class AcmeClientWorker {
                     approvedCA.getCertificateProfileInfo());
             List<X509Certificate> newCert =
                     acmeService.renew(memberId.asEncodedId(),
-                            subjectAltName,
-                            approvedCA,
-                            keyUsage,
-                            oldX509Certificate,
-                            generatedCertRequestInfo.getCertRequest()
+                                      subjectAltName,
+                                      approvedCA,
+                                      keyUsage,
+                                      oldX509Certificate,
+                                      generatedCertRequestInfo.certRequest()
                     );
             if (newCert == null || newCert.isEmpty()) {
                 return null;

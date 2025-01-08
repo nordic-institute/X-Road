@@ -33,13 +33,13 @@ import ee.ria.xroad.signer.SignerRpcClient;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.niis.xroad.common.exception.ServiceException;
+import org.niis.xroad.common.exception.SignerProxyException;
 import org.niis.xroad.common.exception.ValidationFailureException;
 import org.niis.xroad.cs.admin.api.dto.TokenInfo;
 import org.niis.xroad.cs.admin.api.dto.TokenLoginRequest;
 import org.niis.xroad.cs.admin.api.service.ConfigurationSigningKeysService;
 import org.niis.xroad.cs.admin.api.service.TokensService;
 import org.niis.xroad.cs.admin.core.converter.TokenInfoMapper;
-import org.niis.xroad.cs.admin.core.exception.SignerProxyException;
 import org.niis.xroad.restapi.config.audit.AuditDataHelper;
 import org.springframework.stereotype.Service;
 
@@ -50,11 +50,11 @@ import static ee.ria.xroad.signer.protocol.dto.TokenStatusInfo.USER_PIN_FINAL_TR
 import static ee.ria.xroad.signer.protocol.dto.TokenStatusInfo.USER_PIN_LOCKED;
 import static java.lang.Integer.parseInt;
 import static java.util.stream.Collectors.toSet;
+import static org.niis.xroad.common.exception.util.CommonDeviationMessage.TOKEN_FETCH_FAILED;
 import static org.niis.xroad.cs.admin.api.dto.PossibleTokenAction.LOGIN;
 import static org.niis.xroad.cs.admin.api.dto.PossibleTokenAction.LOGOUT;
 import static org.niis.xroad.cs.admin.api.exception.ErrorMessage.TOKEN_ACTIVATION_FAILED;
 import static org.niis.xroad.cs.admin.api.exception.ErrorMessage.TOKEN_DEACTIVATION_FAILED;
-import static org.niis.xroad.cs.admin.api.exception.ErrorMessage.TOKEN_FETCH_FAILED;
 import static org.niis.xroad.cs.admin.api.exception.ErrorMessage.TOKEN_INCORRECT_PIN_FORMAT;
 import static org.niis.xroad.cs.admin.api.exception.ErrorMessage.TOKEN_PIN_FINAL_TRY;
 import static org.niis.xroad.cs.admin.api.exception.ErrorMessage.TOKEN_PIN_LOCKED;
