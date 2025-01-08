@@ -36,6 +36,7 @@ import ee.ria.xroad.common.identifier.ServiceId;
 import ee.ria.xroad.common.identifier.XRoadId;
 
 import feign.FeignException;
+import jakarta.annotation.PostConstruct;
 import jakarta.json.Json;
 import jakarta.json.JsonObject;
 import jakarta.ws.rs.core.MediaType;
@@ -67,7 +68,6 @@ import org.eclipse.edc.transform.transformer.edc.from.JsonObjectFromQuerySpecTra
 import org.eclipse.edc.transform.transformer.edc.to.JsonObjectToQuerySpecTransformer;
 import org.eclipse.edc.transform.transformer.edc.to.JsonValueToGenericTypeTransformer;
 import org.niis.xroad.proxy.configuration.ProxyEdcControlPlaneConfig;
-import org.springframework.beans.factory.InitializingBean;
 import org.springframework.context.annotation.Conditional;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
@@ -93,7 +93,7 @@ import static org.eclipse.edc.spi.query.Criterion.criterion;
 @Conditional(ProxyEdcControlPlaneConfig.DataspacesEnabledCondition.class)
 @Slf4j
 @SuppressWarnings("checkstyle:MagicNumber")
-public class AssetsRegistrationJob implements InitializingBean {
+public class AssetsRegistrationJob {
     private static final int FIVE_MINUTES = 5 * 60;
 
     private static final String XROAD_NAMESPACE = "https://x-road.eu/v0.1/ns/";
@@ -145,7 +145,7 @@ public class AssetsRegistrationJob implements InitializingBean {
         return registry;
     }
 
-    @Override
+    @PostConstruct
     @SuppressWarnings("checkstyle:MagicNumber")
     public void afterPropertiesSet() {
         //TODO disabled for now. Initialized by hurl

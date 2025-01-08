@@ -27,16 +27,16 @@
 package org.niis.xroad.confclient.proto;
 
 import com.google.protobuf.ByteString;
+import jakarta.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.niis.xroad.common.rpc.client.AbstractRpcClient;
 import org.niis.xroad.common.rpc.client.RpcChannelFactory;
 import org.niis.xroad.rpc.common.Empty;
-import org.springframework.beans.factory.InitializingBean;
 
 @Slf4j
 @RequiredArgsConstructor
-public class ConfClientRpcClient extends AbstractRpcClient implements InitializingBean {
+public class ConfClientRpcClient extends AbstractRpcClient {
     private final RpcChannelFactory proxyRpcChannelFactory;
     private final ConfClientRpcChannelProperties rpcChannelProperties;
 
@@ -44,7 +44,7 @@ public class ConfClientRpcClient extends AbstractRpcClient implements Initializi
     private AnchorServiceGrpc.AnchorServiceBlockingStub anchorServiceBlockingStub;
     private GlobalConfServiceGrpc.GlobalConfServiceBlockingStub globalConfServiceBlockingStub;
 
-    @Override
+    @PostConstruct
     public void afterPropertiesSet() throws Exception {
         log.info("Initializing {} rpc client to {}:{}", getClass().getSimpleName(), rpcChannelProperties.getHost(),
                 rpcChannelProperties.getPort());

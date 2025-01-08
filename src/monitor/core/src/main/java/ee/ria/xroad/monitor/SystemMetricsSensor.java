@@ -28,13 +28,13 @@ package ee.ria.xroad.monitor;
 import ee.ria.xroad.monitor.common.SystemMetricNames;
 
 import io.grpc.stub.StreamObserver;
+import jakarta.annotation.PostConstruct;
 import lombok.extern.slf4j.Slf4j;
 import org.niis.xroad.common.rpc.client.RpcChannelFactory;
 import org.niis.xroad.monitor.common.MonitorServiceGrpc;
 import org.niis.xroad.monitor.common.StatsReq;
 import org.niis.xroad.monitor.common.StatsResp;
 import org.niis.xroad.proxy.proto.ProxyRpcChannelProperties;
-import org.springframework.beans.factory.InitializingBean;
 import org.springframework.scheduling.TaskScheduler;
 
 import java.time.Duration;
@@ -44,7 +44,7 @@ import java.time.Duration;
  * memory, cpu, swap and file descriptors.
  */
 @Slf4j
-public class SystemMetricsSensor extends AbstractSensor implements InitializingBean {
+public class SystemMetricsSensor extends AbstractSensor {
     private static final int SYSTEM_CPU_LOAD_MULTIPLIER = 100;
 
     private final RpcChannelFactory rpcChannelFactory;
@@ -62,7 +62,7 @@ public class SystemMetricsSensor extends AbstractSensor implements InitializingB
     }
 
 
-    @Override
+    @PostConstruct
     public void afterPropertiesSet() throws Exception {
         log.info("Initializing {} rpc client to {}:{}", getClass().getSimpleName(), rpcChannelProperties.getHost(),
                 rpcChannelProperties.getPort());

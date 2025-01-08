@@ -35,9 +35,9 @@ import io.grpc.netty.shaded.io.grpc.netty.NettyServerBuilder;
 import io.grpc.netty.shaded.io.netty.channel.nio.NioEventLoopGroup;
 import io.grpc.netty.shaded.io.netty.channel.socket.nio.NioServerSocketChannel;
 import io.grpc.netty.shaded.io.netty.util.concurrent.DefaultThreadFactory;
+import jakarta.annotation.PostConstruct;
+import jakarta.annotation.PreDestroy;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.DisposableBean;
-import org.springframework.beans.factory.InitializingBean;
 
 import java.io.IOException;
 import java.net.InetSocketAddress;
@@ -48,7 +48,7 @@ import java.util.function.Consumer;
  * Server that manages startup/shutdown of RPC server.
  */
 @Slf4j
-public class RpcServer implements InitializingBean, DisposableBean {
+public class RpcServer {
     private final Server server;
 
     public RpcServer(final String host, final int port, final ServerCredentials creds, final Consumer<ServerBuilder<?>> configFunc) {
@@ -68,14 +68,14 @@ public class RpcServer implements InitializingBean, DisposableBean {
         server = builder.build();
     }
 
-    @Override
+    @PostConstruct
     public void afterPropertiesSet() throws IOException {
         server.start();
 
         log.info("RPC server has started, listening on {}", server.getListenSockets());
     }
 
-    @Override
+    @PreDestroy
     public void destroy() throws Exception {
         if (server != null) {
             log.info("Shutting down RPC server..");

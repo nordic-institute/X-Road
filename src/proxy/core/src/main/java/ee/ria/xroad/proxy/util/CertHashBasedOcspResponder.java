@@ -30,6 +30,8 @@ import ee.ria.xroad.common.util.MimeTypes;
 import ee.ria.xroad.common.util.MimeUtils;
 import ee.ria.xroad.proxy.conf.KeyConfProvider;
 
+import jakarta.annotation.PostConstruct;
+import jakarta.annotation.PreDestroy;
 import lombok.extern.slf4j.Slf4j;
 import org.bouncycastle.cert.ocsp.OCSPResp;
 import org.eclipse.jetty.io.Content;
@@ -44,8 +46,6 @@ import org.eclipse.jetty.util.Callback;
 import org.eclipse.jetty.util.MultiPartOutputStream;
 import org.eclipse.jetty.xml.XmlConfiguration;
 import org.niis.xroad.proxy.ProxyProperties;
-import org.springframework.beans.factory.DisposableBean;
-import org.springframework.beans.factory.InitializingBean;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -64,7 +64,7 @@ import static org.eclipse.jetty.server.Request.getRemoteAddr;
  * http://<host>:<port>/?cert=hash1&cert=hash2&cert=hash3 ...
  */
 @Slf4j
-public class CertHashBasedOcspResponder implements InitializingBean, DisposableBean {
+public class CertHashBasedOcspResponder {
 
     private static final String METHOD_HEAD = "HEAD";
     private static final String METHOD_GET = "GET";
@@ -126,12 +126,12 @@ public class CertHashBasedOcspResponder implements InitializingBean, DisposableB
         server.setHandler(new RequestHandler());
     }
 
-    @Override
+    @PostConstruct
     public void afterPropertiesSet() throws Exception {
         server.start();
     }
 
-    @Override
+    @PreDestroy
     public void destroy() throws Exception {
         server.stop();
     }

@@ -29,9 +29,9 @@ import ee.ria.xroad.common.properties.CommonRpcProperties;
 
 import io.grpc.util.AdvancedTlsX509KeyManager;
 import io.grpc.util.AdvancedTlsX509TrustManager;
+import jakarta.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.InitializingBean;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.vault.core.VaultTemplate;
 import org.springframework.vault.support.VaultCertificateRequest;
@@ -52,7 +52,7 @@ import static org.niis.xroad.common.rpc.RpcConfig.BEAN_VIRTUAL_THREAD_SCHEDULER;
 
 @Slf4j
 @RequiredArgsConstructor
-public class ReloadableVaultKeyManager implements InitializingBean {
+public class ReloadableVaultKeyManager {
     private static final String CERTIFICATE_FORMAT = "pem";
     private static final String PRIVATE_KEY_FORMAT = "pkcs8";
 
@@ -72,7 +72,7 @@ public class ReloadableVaultKeyManager implements InitializingBean {
                 .build();
     }
 
-    @Override
+    @PostConstruct
     public void afterPropertiesSet() throws Exception {
         reload();
     }

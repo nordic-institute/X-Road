@@ -27,6 +27,8 @@ package ee.ria.xroad.common.util.healthcheck;
 
 import ee.ria.xroad.common.SystemProperties;
 
+import jakarta.annotation.PostConstruct;
+import jakarta.annotation.PreDestroy;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.eclipse.jetty.io.Content;
@@ -39,8 +41,6 @@ import org.eclipse.jetty.server.Server;
 import org.eclipse.jetty.server.ServerConnector;
 import org.eclipse.jetty.util.Callback;
 import org.eclipse.jetty.util.thread.QueuedThreadPool;
-import org.springframework.beans.factory.DisposableBean;
-import org.springframework.beans.factory.InitializingBean;
 
 import java.util.concurrent.atomic.AtomicBoolean;
 
@@ -53,7 +53,7 @@ import static org.eclipse.jetty.http.HttpStatus.SERVICE_UNAVAILABLE_503;
  * Service that listens for health check requests on a specific port and interface
  */
 @Slf4j
-public class HealthCheckPort implements InitializingBean, DisposableBean {
+public class HealthCheckPort {
 
     static final String MAINTENANCE_MESSAGE = "Health check interface is in maintenance mode.";
 
@@ -120,14 +120,14 @@ public class HealthCheckPort implements InitializingBean, DisposableBean {
         return maintenanceMode.get();
     }
 
-    @Override
+    @PostConstruct
     public void afterPropertiesSet() throws Exception {
         log.info("Started HealthCheckPort on port {}", portNumber);
         server.start();
     }
 
 
-    @Override
+    @PreDestroy
     public void destroy() throws Exception {
         log.info("Stopping HealthCheckPort on port {}", portNumber);
         server.stop();
