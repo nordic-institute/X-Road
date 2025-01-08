@@ -4,7 +4,6 @@ plugins {
 
 dependencies {
     api project(':common:common-globalconf')
-    api project(':common:common-scheduler')
     api project(':common:common-jetty')
     api project(':common:common-verifier')
     api project(':common:common-rpc')

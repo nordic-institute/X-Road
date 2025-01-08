@@ -27,12 +27,12 @@
 
 package org.niis.xroad.common.rpc;
 
-import lombok.Getter;
-import lombok.RequiredArgsConstructor;
+import io.smallrye.config.WithName;
 
-@Getter
-@RequiredArgsConstructor
-public class RpcServerProperties {
-    private final String listenAddress;
-    private final int port;
+public interface RpcServerProperties {
+    @WithName("listen-address")
+    String listenAddress();
+
+    @WithName("port")
+    int port();
 }

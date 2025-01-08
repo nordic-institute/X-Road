@@ -31,23 +31,22 @@ import ee.ria.xroad.common.util.RequestWrapper;
 import ee.ria.xroad.common.util.ResponseWrapper;
 import ee.ria.xroad.common.util.healthcheck.HealthCheckPort;
 
+import jakarta.enterprise.context.ApplicationScoped;
+import jakarta.enterprise.inject.Produces;
 import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 import org.eclipse.jetty.http.MimeTypes;
-import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Configuration;
 
 import java.io.PrintWriter;
 import java.util.Optional;
 
-@Slf4j
-@Configuration
+@ApplicationScoped
 @RequiredArgsConstructor
 public class ProxyAdminPortConfig {
 
     private final Optional<HealthCheckPort> healthCheckPort;
 
-    @Bean
+    @Produces
+    @ApplicationScoped
     AdminPort createAdminPort() {
         AdminPort adminPort = new AdminPort(PortNumbers.ADMIN_PORT);
 

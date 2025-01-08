@@ -25,46 +25,33 @@
  */
 package ee.ria.xroad.proxy;
 
-import ee.ria.xroad.common.AddOnStatusDiagnostics;
-import ee.ria.xroad.common.BackupEncryptionStatusDiagnostics;
-import ee.ria.xroad.common.MessageLogEncryptionStatusDiagnostics;
-import ee.ria.xroad.common.conf.serverconf.ServerConfProvider;
-import ee.ria.xroad.proxy.admin.AdminService;
-
+import io.smallrye.config.ConfigMapping;
+import jakarta.enterprise.context.ApplicationScoped;
 import lombok.extern.slf4j.Slf4j;
 import org.niis.xroad.common.rpc.RpcServerProperties;
-import org.niis.xroad.proxy.edc.AssetsRegistrationJob;
-import org.springframework.boot.context.properties.ConfigurationProperties;
-import org.springframework.boot.context.properties.EnableConfigurationProperties;
-import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Configuration;
-
-import java.util.Optional;
 
 @Slf4j
-@EnableConfigurationProperties({
-        ProxyRpcConfig.ProxyRpcServerProperties.class})
-@Configuration
+//@EnableConfigurationProperties({
+//        ProxyRpcConfig.ProxyRpcServerProperties.class})
+//@Configuration
+@ApplicationScoped
 public class ProxyRpcConfig {
 
-    @Bean
-    AdminService adminService(ServerConfProvider serverConfProvider,
-                              BackupEncryptionStatusDiagnostics backupEncryptionStatusDiagnostics,
-                              AddOnStatusDiagnostics addOnStatusDiagnostics,
-                              MessageLogEncryptionStatusDiagnostics messageLogEncryptionStatusDiagnostics,
-                              Optional<AssetsRegistrationJob> assetsRegistrationJob) {
-        return new AdminService(serverConfProvider,
-                backupEncryptionStatusDiagnostics,
-                addOnStatusDiagnostics,
-                messageLogEncryptionStatusDiagnostics,
-                assetsRegistrationJob);
+    //    @Bean
+//    AdminService adminService(ServerConfProvider serverConfProvider,
+//                              BackupEncryptionStatusDiagnostics backupEncryptionStatusDiagnostics,
+//                              AddOnStatusDiagnostics addOnStatusDiagnostics,
+//                              MessageLogEncryptionStatusDiagnostics messageLogEncryptionStatusDiagnostics,
+//                              Optional<AssetsRegistrationJob> assetsRegistrationJob) {
+//        return new AdminService(serverConfProvider,
+//                backupEncryptionStatusDiagnostics,
+//                addOnStatusDiagnostics,
+//                messageLogEncryptionStatusDiagnostics,
+//                assetsRegistrationJob);
+//    }
+
+    @ConfigMapping(prefix = "xroad.proxy.grpc")
+    public interface ProxyRpcServerProperties extends RpcServerProperties {
     }
 
-    @ConfigurationProperties(prefix = "xroad.proxy.grpc")
-    public static class ProxyRpcServerProperties extends RpcServerProperties {
-
-        public ProxyRpcServerProperties(String listenAddress, int port) {
-            super(listenAddress, port);
-        }
-    }
 }

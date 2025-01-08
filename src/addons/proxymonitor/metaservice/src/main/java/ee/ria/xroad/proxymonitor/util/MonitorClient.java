@@ -29,6 +29,7 @@ import ee.ria.xroad.common.CodedException;
 import ee.ria.xroad.common.ErrorCodes;
 import ee.ria.xroad.proxymonitor.message.MetricSetType;
 
+import jakarta.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.niis.xroad.common.rpc.client.AbstractRpcClient;
@@ -36,14 +37,13 @@ import org.niis.xroad.common.rpc.client.RpcChannelFactory;
 import org.niis.xroad.common.rpc.client.RpcChannelProperties;
 import org.niis.xroad.monitor.common.MetricsServiceGrpc;
 import org.niis.xroad.monitor.common.SystemMetricsReq;
-import org.springframework.beans.factory.InitializingBean;
 
 import java.util.List;
 
 
 @Slf4j
 @RequiredArgsConstructor
-public class MonitorClient extends AbstractRpcClient implements InitializingBean {
+public class MonitorClient extends AbstractRpcClient {
     private static final int TIMEOUT_AWAIT = 10 * 1000;
 
     private final RpcChannelFactory proxyRpcChannelFactory;
@@ -51,10 +51,10 @@ public class MonitorClient extends AbstractRpcClient implements InitializingBean
 
     private MetricsServiceGrpc.MetricsServiceBlockingStub metricsServiceBlockingStub;
 
-    @Override
+    @PostConstruct
     public void afterPropertiesSet() throws Exception {
-        log.info("Initializing {} rpc client to {}:{}", getClass().getSimpleName(), rpcChannelProperties.getHost(),
-                rpcChannelProperties.getPort());
+        log.info("Initializing {} rpc client to {}:{}", getClass().getSimpleName(), rpcChannelProperties.host(),
+                rpcChannelProperties.port());
         var channel = proxyRpcChannelFactory.createChannel(rpcChannelProperties);
 
         metricsServiceBlockingStub = MetricsServiceGrpc.newBlockingStub(channel).withWaitForReady();

@@ -27,7 +27,6 @@ package ee.ria.xroad.proxy;
 
 import ee.ria.xroad.common.MessageLogArchiveEncryptionMember;
 import ee.ria.xroad.common.MessageLogEncryptionStatusDiagnostics;
-import ee.ria.xroad.common.conf.globalconf.GlobalConfProvider;
 import ee.ria.xroad.common.conf.serverconf.ServerConfProvider;
 import ee.ria.xroad.common.db.DatabaseCtxV2;
 import ee.ria.xroad.common.identifier.ClientId;
@@ -37,63 +36,46 @@ import ee.ria.xroad.common.messagelog.MessageLogProperties;
 import ee.ria.xroad.common.messagelog.archive.EncryptionConfigProvider;
 import ee.ria.xroad.common.messagelog.archive.GroupingStrategy;
 import ee.ria.xroad.proxy.messagelog.MessageLog;
-import ee.ria.xroad.proxy.messagelog.NullLogManager;
 
+import io.smallrye.config.ConfigMapping;
+import jakarta.enterprise.context.ApplicationScoped;
+import jakarta.enterprise.inject.Produces;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
-import org.springframework.boot.context.properties.ConfigurationProperties;
-import org.springframework.boot.context.properties.EnableConfigurationProperties;
-import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Configuration;
+import org.eclipse.microprofile.config.inject.ConfigProperty;
 
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-import java.util.Map;
 
 @Slf4j
-@Configuration
-@EnableConfigurationProperties(ProxyMessageLogConfig.SpringMessageLogProperties.class)
 public class ProxyMessageLogConfig {
     private static final GroupingStrategy ARCHIVE_GROUPING = MessageLogProperties.getArchiveGrouping();
 
-    @Bean
+    @Produces
+    @ApplicationScoped
     MessageLog messageLogManager(AbstractLogManager logManager) {
         return MessageLog.init(logManager);
     }
 
-    @Bean
-    @ConditionalOnMissingBean
-    AbstractLogManager nullLogManager(GlobalConfProvider globalConfProvider,
-                                      ServerConfProvider serverConfProvider,
-                                      @Autowired(required = false) @Qualifier("messagelogDatabaseCtx")
-                                      DatabaseCtxV2 messagelogDatabaseCtx) {
-        return new NullLogManager("proxy", globalConfProvider, serverConfProvider, messagelogDatabaseCtx);
+
+    @ApplicationScoped
+    @ConfigMapping(prefix = "xroad.messagelog")
+    public static class SpringMessageLogProperties extends MessageLogConfig {
     }
 
-    @ConfigurationProperties(prefix = "xroad.messagelog")
-    static class SpringMessageLogProperties extends MessageLogConfig {
-        SpringMessageLogProperties(Map<String, String> hibernate) {
-            super(hibernate);
+    @Produces
+    @ApplicationScoped
+    DatabaseCtxV2 messagelogDatabaseCtx(@ConfigProperty(name = "xroad.proxy.addon.messagelog.enabled") boolean enabled,
+                                        MessageLogConfig messageLogProperties) {
+        if (enabled) {
+            return new DatabaseCtxV2("messagelog", messageLogProperties.getHibernate());
         }
+        return null;
     }
 
-    @ConditionalOnProperty(value = "xroad.messagelog.hibernate.connection.password")
-    @Bean("messagelogDatabaseCtx")
-    DatabaseCtxV2 messagelogDatabaseCtx(MessageLogConfig messageLogProperties) {
-        return new DatabaseCtxV2("messagelog", messageLogProperties.getHibernate());
-    }
-
-    @Bean("messageLogEnabledStatus")
-    Boolean messageLogEnabledStatus(AbstractLogManager logManager) {
-        return NullLogManager.class != logManager.getClass();
-    }
-
-    @Bean
+    @Produces
+    @ApplicationScoped
     MessageLogEncryptionStatusDiagnostics messageLogEncryptionStatusDiagnostics(ServerConfProvider serverConfProvider) throws IOException {
         return new MessageLogEncryptionStatusDiagnostics(
                 MessageLogProperties.isArchiveEncryptionEnabled(),

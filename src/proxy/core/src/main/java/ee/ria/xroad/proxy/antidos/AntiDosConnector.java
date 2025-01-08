@@ -77,7 +77,7 @@ public class AntiDosConnector extends ServerConnector {
         this.configuration = configuration;
         this.globalConfProvider = globalConfProvider;
         this.manager = createConnectionManager();
-        this.semaphore = new Semaphore(configuration.getMaxParallelConnections());
+        this.semaphore = new Semaphore(configuration.maxParallelConnections());
     }
 
     /**
@@ -94,7 +94,7 @@ public class AntiDosConnector extends ServerConnector {
         this.configuration = configuration;
         this.globalConfProvider = globalConfProvider;
         this.manager = createConnectionManager();
-        this.semaphore = new Semaphore(configuration.getMaxParallelConnections());
+        this.semaphore = new Semaphore(configuration.maxParallelConnections());
     }
 
     private AntiDosConnectionManager<SocketChannelWrapperImpl> createConnectionManager() {

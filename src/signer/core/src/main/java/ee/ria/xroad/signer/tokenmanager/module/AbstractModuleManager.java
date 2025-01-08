@@ -36,9 +36,9 @@ import ee.ria.xroad.signer.tokenmanager.token.TokenWorker;
 import ee.ria.xroad.signer.tokenmanager.token.TokenWorkerProvider;
 import ee.ria.xroad.signer.tokenmanager.token.WorkerWithLifecycle;
 
+import jakarta.annotation.PostConstruct;
+import jakarta.annotation.PreDestroy;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.DisposableBean;
-import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import java.nio.file.Paths;
@@ -59,7 +59,7 @@ import static java.util.Objects.requireNonNull;
  * Module manager base class.
  */
 @Slf4j
-public abstract class AbstractModuleManager implements WorkerWithLifecycle, TokenWorkerProvider, InitializingBean, DisposableBean {
+public abstract class AbstractModuleManager implements WorkerWithLifecycle, TokenWorkerProvider {
     private final SystemProperties.NodeType serverNodeType = SystemProperties.getServerNodeType();
 
     @Autowired
@@ -70,7 +70,7 @@ public abstract class AbstractModuleManager implements WorkerWithLifecycle, Toke
 
     private FileWatcherRunner keyConfFileWatcherRunner;
 
-    @Override
+    @PostConstruct
     public void afterPropertiesSet() throws Exception {
         start();
     }
@@ -97,6 +97,7 @@ public abstract class AbstractModuleManager implements WorkerWithLifecycle, Toke
     }
 
     @Override
+    @PreDestroy
     public void destroy() {
         log.info("Destroying module worker");
 

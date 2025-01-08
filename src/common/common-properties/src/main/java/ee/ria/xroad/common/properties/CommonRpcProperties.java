@@ -27,24 +27,45 @@
 
 package ee.ria.xroad.common.properties;
 
+import io.smallrye.config.ConfigMapping;
+import io.smallrye.config.WithDefault;
+import io.smallrye.config.WithName;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 
 import java.util.List;
 
-@ConfigurationProperties(prefix = "xroad.common.rpc")
-public record CommonRpcProperties(
-        boolean useTls,
-        CertificateProvisionProperties certificateProvisioning
-) {
-    @ConfigurationProperties(prefix = "xroad.common.rpc.certificate-provisioning")
-    public record CertificateProvisionProperties(
-            String issuanceRoleName,
-            String commonName,
-            List<String> altNames,
-            List<String> ipSubjectAltNames,
-            int ttlMinutes,
-            int refreshIntervalMinutes,
-            String secretStorePkiPath
-    ) {
+@ConfigMapping(prefix = "xroad.common.rpc")
+public interface CommonRpcProperties {
+
+    @WithName("use-tls")
+    @WithDefault("false")
+    boolean useTls();
+
+    @WithName("certificate-provisioning")
+    CertificateProvisionProperties certificateProvisioning();
+
+    interface CertificateProvisionProperties {
+        @WithName("issuance-role-name")
+        String issuanceRoleName();
+
+        @WithName("common-name")
+        String commonName();
+
+        @WithName("alt-names")
+        @WithDefault("[]")
+        List<String> altNames();
+
+        @WithName("ip-subject-alt-names")
+        @WithDefault("[]")
+        List<String> ipSubjectAltNames();
+
+        @WithName("ttl-minutes")
+        int ttlMinutes();
+
+        @WithName("refresh-interval-minutes")
+        int refreshIntervalMinutes();
+
+        @WithName("secret-store-pki-path")
+        String secretStorePkiPath();
     }
 }

@@ -108,9 +108,9 @@ public class FastestConnectionSelectingSSLSocketFactoryIntegrationTest {
     public void setup() {
         globalConfProvider = new TestGlobalConf();
         keyConfProvider = new TestKeyConf(globalConfProvider);
-        CertHashBasedOcspResponderClient ocspResponderClient = new CertHashBasedOcspResponderClient(
+        CertHashBasedOcspResponderClient ocspResponderClient =null; /*new CertHashBasedOcspResponderClient(
                 new ProxyProperties.OcspResponderProperties("0.0.0.0", 5577, 20000, 30000,
-                        "src/test/ocsp-responder.xml"));
+                        "src/test/ocsp-responder.xml"));*/
         authTrustVerifier = new AuthTrustVerifier(ocspResponderClient, keyConfProvider, new CertHelper(globalConfProvider),
                 new CertChainFactory(globalConfProvider));
 

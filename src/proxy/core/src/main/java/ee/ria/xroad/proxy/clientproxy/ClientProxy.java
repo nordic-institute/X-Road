@@ -29,8 +29,10 @@ import ee.ria.xroad.common.conf.serverconf.ServerConfProvider;
 import ee.ria.xroad.common.util.CryptoUtils;
 import ee.ria.xroad.common.util.JettyUtils;
 
+import io.quarkus.arc.All;
 import jakarta.annotation.PostConstruct;
 import jakarta.annotation.PreDestroy;
+import jakarta.enterprise.context.ApplicationScoped;
 import lombok.extern.slf4j.Slf4j;
 import org.eclipse.jetty.http.UriCompliance;
 import org.eclipse.jetty.server.CustomRequestLog;
@@ -52,6 +54,7 @@ import javax.net.ssl.X509TrustManager;
 import java.security.SecureRandom;
 import java.security.cert.CertificateException;
 import java.security.cert.X509Certificate;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 
@@ -59,6 +62,7 @@ import java.util.Optional;
  * Client proxy that handles requests of service clients.
  */
 @Slf4j
+@ApplicationScoped
 public class ClientProxy {
     private static final int ACCEPTOR_COUNT = Runtime.getRuntime().availableProcessors();
 
@@ -81,7 +85,7 @@ public class ClientProxy {
      * @throws Exception in case of any errors
      */
     public ClientProxy(ProxyProperties.ClientProxyProperties clientProxyProperties,
-                       List<AbstractClientProxyHandler> clientHandlers,
+                   @All List<AbstractClientProxyHandler> clientHandlers,
                        ServerConfProvider serverConfProvider) throws Exception {
         this.clientProxyProperties = clientProxyProperties;
         this.clientHandlers = clientHandlers;
@@ -141,8 +145,8 @@ public class ClientProxy {
         cf.setWantClientAuth(true);
         cf.setSessionCachingEnabled(true);
         cf.setSslSessionTimeout(SSL_SESSION_TIMEOUT);
-        cf.setIncludeProtocols(clientProxyProperties.clientTlsProtocols());
-        cf.setIncludeCipherSuites(clientProxyProperties.clientTlsCiphers());
+        cf.setIncludeProtocols(clientProxyProperties.clientTlsProtocols().toArray(new String[0]));
+        cf.setIncludeCipherSuites(clientProxyProperties.clientTlsCiphers().toArray(new String[0]));
 
         SSLContext ctx = SSLContext.getInstance(CryptoUtils.SSL_PROTOCOL);
         ctx.init(new KeyManager[]{new ClientSslKeyManager(serverConfProvider)}, new TrustManager[]{new ClientSslTrustManager()},

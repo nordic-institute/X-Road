@@ -38,6 +38,7 @@ import ee.ria.xroad.monitor.SystemMetricsSensor;
 import ee.ria.xroad.signer.SignerClientConfiguration;
 import ee.ria.xroad.signer.SignerRpcClient;
 
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.niis.xroad.common.rpc.RpcServerProperties;
 import org.niis.xroad.common.rpc.client.RpcChannelFactory;
@@ -107,11 +108,20 @@ public class MonitorConfig {
         return new CertificateInfoSensor(taskScheduler, envMonitorProperties, serverConfProvider, signerRpcClient);
     }
 
+    @RequiredArgsConstructor
     @ConfigurationProperties(prefix = "xroad.env-monitor.grpc")
-    static class EnvMonitorServerProperties extends RpcServerProperties {
+    static class EnvMonitorServerProperties implements RpcServerProperties {
+        private final String listenAddress;
+        private final int port;
 
-        EnvMonitorServerProperties(String listenAddress, int port) {
-            super(listenAddress, port);
+        @Override
+        public String listenAddress() {
+            return listenAddress;
+        }
+
+        @Override
+        public int port() {
+            return port;
         }
     }
 

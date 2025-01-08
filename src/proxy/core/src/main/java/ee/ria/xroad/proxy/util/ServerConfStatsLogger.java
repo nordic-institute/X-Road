@@ -27,23 +27,23 @@ package ee.ria.xroad.proxy.util;
 
 import ee.ria.xroad.common.conf.serverconf.ServerConfProvider;
 
+import io.quarkus.scheduler.Scheduled;
+import jakarta.enterprise.context.ApplicationScoped;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.quartz.DisallowConcurrentExecution;
-import org.quartz.Job;
-import org.quartz.JobExecutionContext;
 
 /**
  * Periodic reload of global configuration
  */
 @Slf4j
+@ApplicationScoped
 @RequiredArgsConstructor
-@DisallowConcurrentExecution
-public class ServerConfStatsLogger implements Job {
+public class ServerConfStatsLogger {
+
     private final ServerConfProvider serverConfProvider;
 
-    @Override
-    public void execute(JobExecutionContext context) {
+    @Scheduled(every = "60s", concurrentExecution = Scheduled.ConcurrentExecution.SKIP)
+    void logStats() {
         serverConfProvider.logStatistics();
     }
 }

@@ -18,6 +18,8 @@ dependencies {
     implementation (project(':common:common-globalconf')) //for the ee.ria.xroad.common.DiagnosticsStatus
     implementation (project(':common:common-rpc'))
 
+    implementation(libs.quarkus.springBoot.di)
+
     api(libs.grpc.protobuf)
     api(libs.grpc.stub)
     api(libs.grpc.nettyShaded)

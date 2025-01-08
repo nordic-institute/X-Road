@@ -27,15 +27,16 @@ package ee.ria.xroad.proxy;
 
 import ee.ria.xroad.proxy.addon.AddOn;
 
-import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Configuration;
+import jakarta.enterprise.context.ApplicationScoped;
+import jakarta.enterprise.inject.Produces;
 
 import java.util.ServiceLoader;
 
-@Configuration
+@ApplicationScoped //TODO check if needed on class w/o injects
 public class ProxyAddonConfig {
 
-    @Bean
+    @Produces
+    @ApplicationScoped
     public AddOn.BindableServiceRegistry bindableServiceRegistry() {
         AddOn.BindableServiceRegistry bindableServiceRegistry = new AddOn.BindableServiceRegistry();
         ServiceLoader.load(AddOn.class)

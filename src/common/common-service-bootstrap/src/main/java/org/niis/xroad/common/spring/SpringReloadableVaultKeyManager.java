@@ -23,15 +23,18 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.common.rpc;
+package org.niis.xroad.common.spring;
 
 import ee.ria.xroad.common.properties.CommonRpcProperties;
 
 import io.grpc.util.AdvancedTlsX509KeyManager;
 import io.grpc.util.AdvancedTlsX509TrustManager;
+import io.grpc.util.CertificateUtils;
+import jakarta.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.InitializingBean;
+import org.niis.xroad.common.rpc.RpcConfig;
+import org.niis.xroad.common.rpc.VaultKeyProvider;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.vault.core.VaultTemplate;
 import org.springframework.vault.support.VaultCertificateRequest;
@@ -45,14 +48,9 @@ import java.security.cert.CertificateException;
 import java.time.Duration;
 import java.util.concurrent.TimeUnit;
 
-import static io.grpc.util.AdvancedTlsX509TrustManager.Verification.CERTIFICATE_AND_HOST_NAME_VERIFICATION;
-import static io.grpc.util.CertificateUtils.getPrivateKey;
-import static io.grpc.util.CertificateUtils.getX509Certificates;
-import static org.niis.xroad.common.rpc.RpcConfig.BEAN_VIRTUAL_THREAD_SCHEDULER;
-
 @Slf4j
 @RequiredArgsConstructor
-public class ReloadableVaultKeyManager implements InitializingBean, VaultKeyProvider {
+public class SpringReloadableVaultKeyManager implements VaultKeyProvider {
     private static final String CERTIFICATE_FORMAT = "pem";
     private static final String PRIVATE_KEY_FORMAT = "pkcs8";
 
@@ -62,17 +60,17 @@ public class ReloadableVaultKeyManager implements InitializingBean, VaultKeyProv
     private final AdvancedTlsX509KeyManager keyManager = new AdvancedTlsX509KeyManager();
     private final AdvancedTlsX509TrustManager trustManager;
 
-    public ReloadableVaultKeyManager(CommonRpcProperties.CertificateProvisionProperties certificateProvisionProperties,
-                                     VaultTemplate vaultTemplate) throws CertificateException {
+    public SpringReloadableVaultKeyManager(CommonRpcProperties.CertificateProvisionProperties certificateProvisionProperties,
+                                           VaultTemplate vaultTemplate) throws CertificateException {
         this.certificateProvisionProperties = certificateProvisionProperties;
         this.vaultTemplate = vaultTemplate;
 
         this.trustManager = AdvancedTlsX509TrustManager.newBuilder()
-                .setVerification(CERTIFICATE_AND_HOST_NAME_VERIFICATION)
+                .setVerification(AdvancedTlsX509TrustManager.Verification.CERTIFICATE_AND_HOST_NAME_VERIFICATION)
                 .build();
     }
 
-    @Override
+    @PostConstruct
     public void afterPropertiesSet() throws Exception {
         reload();
     }
@@ -88,7 +86,7 @@ public class ReloadableVaultKeyManager implements InitializingBean, VaultKeyProv
     }
 
     @Scheduled(fixedRateString = "${xroad.common.rpc.certificate-provisioning.refresh-interval-minutes}", timeUnit = TimeUnit.MINUTES,
-            scheduler = BEAN_VIRTUAL_THREAD_SCHEDULER)
+            scheduler = RpcConfig.BEAN_VIRTUAL_THREAD_SCHEDULER)
     public void reload() throws Exception {
         var request = buildVaultCertificateRequest();
         if (log.isDebugEnabled()) {
@@ -101,9 +99,9 @@ public class ReloadableVaultKeyManager implements InitializingBean, VaultKeyProv
 
         if (vaultResponse.getData() != null) {
             var data = vaultResponse.getData();
-            var cert = getX509Certificates(new ByteArrayInputStream(data.getCertificate().getBytes()));
-            var privateKey = getPrivateKey(new ByteArrayInputStream(data.getPrivateKey().getBytes()));
-            var certTrustChain = getX509Certificates(new ByteArrayInputStream(data.getIssuingCaCertificate().getBytes()));
+            var cert = CertificateUtils.getX509Certificates(new ByteArrayInputStream(data.getCertificate().getBytes()));
+            var privateKey = CertificateUtils.getPrivateKey(new ByteArrayInputStream(data.getPrivateKey().getBytes()));
+            var certTrustChain = CertificateUtils.getX509Certificates(new ByteArrayInputStream(data.getIssuingCaCertificate().getBytes()));
 
             log.info("Received new certificate from Vault.");
             keyManager.updateIdentityCredentials(cert, privateKey);

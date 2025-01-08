@@ -25,10 +25,34 @@
  */
 package ee.ria.xroad.proxy.antidos;
 
-class TestConfiguration extends AntiDosConfiguration {
+ class TestConfiguration implements AntiDosConfiguration {
 
     TestConfiguration(int minFreeFileHandles, double maxCpuLoad) {
-        super(maxCpuLoad, 1.1, 5000, minFreeFileHandles, true);
+// TODO       super(maxCpuLoad, 1.1, 5000, minFreeFileHandles, true);
     }
 
-}
+     @Override
+     public double maxCpuLoad() {
+         return 0;
+     }
+
+     @Override
+     public double maxHeapUsage() {
+         return 0;
+     }
+
+     @Override
+     public int maxParallelConnections() {
+         return 0;
+     }
+
+     @Override
+     public int minFreeFileHandles() {
+         return 0;
+     }
+
+     @Override
+     public boolean enabled() {
+         return false;
+     }
+ }

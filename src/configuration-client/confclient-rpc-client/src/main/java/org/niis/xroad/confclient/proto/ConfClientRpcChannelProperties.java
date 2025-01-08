@@ -26,12 +26,7 @@
 package org.niis.xroad.confclient.proto;
 
 import org.niis.xroad.common.rpc.client.RpcChannelProperties;
-import org.springframework.boot.context.properties.ConfigurationProperties;
 
-@ConfigurationProperties(prefix = "xroad.common.rpc.channel.configuration-client")
-public class ConfClientRpcChannelProperties extends RpcChannelProperties {
+public interface ConfClientRpcChannelProperties extends RpcChannelProperties {
 
-    public ConfClientRpcChannelProperties(String host, int port, int deadlineAfter) {
-        super(host, port, deadlineAfter);
-    }
 }

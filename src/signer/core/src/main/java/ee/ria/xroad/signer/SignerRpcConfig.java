@@ -25,6 +25,7 @@
  */
 package ee.ria.xroad.signer;
 
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.niis.xroad.common.rpc.RpcConfig;
 import org.niis.xroad.common.rpc.RpcServerProperties;
@@ -45,11 +46,21 @@ import org.springframework.context.annotation.Import;
 @Configuration
 public class SignerRpcConfig {
 
-    @ConfigurationProperties(prefix = "xroad.signer.grpc")
-    static class SignerRpcServerProperties extends RpcServerProperties {
 
-        SignerRpcServerProperties(String listenAddress, int port) {
-            super(listenAddress, port);
+    @RequiredArgsConstructor
+    @ConfigurationProperties(prefix = "xroad.signer.grpc")
+    static class SignerRpcServerProperties implements RpcServerProperties {
+        private final String listenAddress;
+        private final int port;
+
+        @Override
+        public String listenAddress() {
+            return listenAddress;
+        }
+
+        @Override
+        public int port() {
+            return port;
         }
     }
 }

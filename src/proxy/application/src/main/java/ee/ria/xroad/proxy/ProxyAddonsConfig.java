@@ -38,6 +38,8 @@ import ee.ria.xroad.proxy.clientproxy.AsicContainerHandler;
 import ee.ria.xroad.proxy.clientproxy.MetadataHandler;
 import ee.ria.xroad.proxy.conf.KeyConfProvider;
 import ee.ria.xroad.proxy.messagelog.LogManager;
+import ee.ria.xroad.proxy.messagelog.NullLogManager;
+import ee.ria.xroad.proxy.opmonitoring.NullOpMonitoringBuffer;
 import ee.ria.xroad.proxy.opmonitoring.OpMonitoringBuffer;
 import ee.ria.xroad.proxy.serverproxy.MetadataServiceHandlerImpl;
 import ee.ria.xroad.proxy.serverproxy.OpMonitoringServiceHandlerImpl;
@@ -46,97 +48,138 @@ import ee.ria.xroad.proxy.serverproxy.RestMetadataServiceHandlerImpl;
 import ee.ria.xroad.proxy.serverproxy.RestServiceHandler;
 import ee.ria.xroad.proxy.serverproxy.ServiceHandler;
 
+import jakarta.annotation.Priority;
+import jakarta.enterprise.context.ApplicationScoped;
+import jakarta.enterprise.context.Dependent;
+import jakarta.enterprise.inject.Instance;
+import jakarta.enterprise.inject.Produces;
+import jakarta.inject.Inject;
+import jakarta.inject.Named;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.http.client.HttpClient;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.beans.factory.config.ConfigurableBeanFactory;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
-import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Configuration;
-import org.springframework.context.annotation.Scope;
-import org.springframework.core.annotation.Order;
+import org.eclipse.microprofile.config.inject.ConfigProperty;
 
-@Configuration
+@ApplicationScoped
 @Slf4j
 class ProxyAddonsConfig {
 
-    @Configuration
-    @ConditionalOnProperty(name = "xroad.proxy.addon.metaservices.enabled", havingValue = "true")
-    static class MetaServicesAddonConfig {
-        @Bean
-        @Order(100)
-        AbstractClientProxyHandler metadataHandler(GlobalConfProvider globalConfProvider, KeyConfProvider keyConfProvider,
-                                                   ServerConfProvider serverConfProvider, CertChainFactory certChainFactory,
-                                                   @Qualifier("proxyHttpClient") HttpClient httpClient) {
+
+    @Produces
+    @Dependent
+    @Priority(100)
+    AbstractClientProxyHandler metadataHandler(@ConfigProperty(name = "xroad.proxy.addon.metaservices.enabled") boolean enabled,
+                                               GlobalConfProvider globalConfProvider, KeyConfProvider keyConfProvider,
+                                               ServerConfProvider serverConfProvider, CertChainFactory certChainFactory,
+                                               @Named("proxyHttpClient") HttpClient httpClient) {
+        if (enabled) {
             log.debug("Initializing metaservices addon: MetadataHandler");
             return new MetadataHandler(globalConfProvider, keyConfProvider,
                     serverConfProvider, certChainFactory, httpClient);
         }
+        return null;
+    }
 
-        @Bean
-        @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
-        ServiceHandler metadataServiceHandler(ServerConfProvider serverConfProvider, GlobalConfProvider globalConfProvider) {
+    @Produces
+    @Dependent
+    ServiceHandler metadataServiceHandler(@ConfigProperty(name = "xroad.proxy.addon.metaservices.enabled") boolean enabled,
+                                          ServerConfProvider serverConfProvider, GlobalConfProvider globalConfProvider) {
+        if (enabled) {
             return new MetadataServiceHandlerImpl(serverConfProvider, globalConfProvider);
         }
+        return null;
+    }
 
-        @Bean
-        @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
-        RestServiceHandler restMetadataServiceHandler(ServerConfProvider serverConfProvider) {
+    @Produces
+    @Dependent
+    RestServiceHandler restMetadataServiceHandler(@ConfigProperty(name = "xroad.proxy.addon.metaservices.enabled") boolean enabled,
+                                                  ServerConfProvider serverConfProvider) {
+        if (enabled) {
             return new RestMetadataServiceHandlerImpl(serverConfProvider);
         }
+        return null;
     }
 
-    @Configuration
-    @ConditionalOnProperty(name = "xroad.proxy.addon.messagelog.enabled", havingValue = "true")
-    static class MessageLogAddonConfig {
-        @Bean
-        @Order(200)
-        AbstractClientProxyHandler asicContainerHandler(GlobalConfProvider globalConfProvider, KeyConfProvider keyConfProvider,
-                                                        ServerConfProvider serverConfProvider, CertChainFactory certChainFactory,
-                                                        @Qualifier("proxyHttpClient") HttpClient client,
-                                                        @Autowired(required = false) @Qualifier("messagelogDatabaseCtx")
-                                                        DatabaseCtxV2 messagelogDatabaseCtx) {
+
+    @Produces
+    @ApplicationScoped
+    @Priority(200)
+    AbstractClientProxyHandler asicContainerHandler(
+            @ConfigProperty(name = "xroad.proxy.addon.messagelog.enabled") boolean enabled,
+            GlobalConfProvider globalConfProvider,
+            KeyConfProvider keyConfProvider,
+            ServerConfProvider serverConfProvider,
+            CertChainFactory certChainFactory,
+            @Named("proxyHttpClient") HttpClient client,
+            Instance<DatabaseCtxV2> messagelogDatabaseCtx) {
+
+        if (!enabled) {
             log.debug("Initializing messagelog addon: AsicContainerHandler");
-            return new AsicContainerHandler(globalConfProvider, keyConfProvider,
-                    serverConfProvider, certChainFactory, client, messagelogDatabaseCtx);
+            return new AsicContainerHandler(
+                    globalConfProvider,
+                    keyConfProvider,
+                    serverConfProvider,
+                    certChainFactory,
+                    client,
+                    messagelogDatabaseCtx.isResolvable() ? messagelogDatabaseCtx.get() : null);
         }
-
-        @Bean
-        AbstractLogManager logManager(GlobalConfProvider globalConfProvider,
-                                      ServerConfProvider serverConfProvider,
-                                      @Autowired(required = false) @Qualifier("messagelogDatabaseCtx")
-                                      DatabaseCtxV2 messagelogDatabaseCtx) {
-            log.debug("Initializing messagelog addon: LogManager");
-            return new LogManager("proxy", globalConfProvider, serverConfProvider, messagelogDatabaseCtx);
-        }
+        return null;
     }
 
-    @Configuration
-    @ConditionalOnProperty(name = "xroad.proxy.addon.proxymonitor.enabled", havingValue = "true")
-    static class ProxyMonitorAddonConfig {
-        @Bean
-        @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
-        ServiceHandler proxyMonitorServiceHandler(ServerConfProvider serverConfProvider, GlobalConfProvider globalConfProvider) {
+    @Produces
+    @ApplicationScoped
+    AbstractLogManager logManager(
+            @ConfigProperty(name = "xroad.proxy.addon.messagelog.enabled") boolean enabled,
+            GlobalConfProvider globalConfProvider,
+            ServerConfProvider serverConfProvider,
+            Instance<DatabaseCtxV2> messagelogDatabaseCtx) {
+
+        var dbCtx = messagelogDatabaseCtx.isResolvable()
+                ? messagelogDatabaseCtx.get()
+                : null;
+
+        if (enabled) {
+            log.debug("Initializing messagelog addon: LogManager");
+            return new LogManager("proxy", globalConfProvider, serverConfProvider, dbCtx);
+        }
+
+        log.debug("Initializing messagelog addon: NullLogManager");
+        return new NullLogManager("proxy", globalConfProvider, serverConfProvider, dbCtx);
+    }
+
+
+    @Produces
+    @Dependent
+    ServiceHandler proxyMonitorServiceHandler(
+            @ConfigProperty(name = "xroad.proxy.addon.proxymonitor.enabled") boolean enabled,
+            ServerConfProvider serverConfProvider, GlobalConfProvider globalConfProvider) {
+        if (enabled) {
+            log.debug("Initializing proxymonitoring addon: ProxyMonitorServiceHandlerImpl");
             return new ProxyMonitorServiceHandlerImpl(serverConfProvider, globalConfProvider);
         }
+        return null;
     }
 
-    @Configuration
-    @ConditionalOnProperty(name = "xroad.proxy.addon.op-monitor.enabled", havingValue = "true")
-    static class OpMonitorAddonConfig {
-        @Bean
-        @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
-        ServiceHandler opMonitoringServiceHandler(ServerConfProvider serverConfProvider, GlobalConfProvider globalConfProvider) {
-            log.debug("Initializing op-monitoring addon: OpMonitoringServiceHandlerImpl");
-            return new OpMonitoringServiceHandlerImpl(serverConfProvider, globalConfProvider);
-        }
 
-        @Bean
-        AbstractOpMonitoringBuffer opMonitoringBuffer(ServerConfProvider serverConfProvider) throws Exception {
+    @Inject
+    @ConfigProperty(name = "xroad.proxy.addon.op-monitor.enabled")
+    boolean opMonitorEnabled;
+
+    @Produces
+    @Dependent
+    ServiceHandler opMonitoringServiceHandler(ServerConfProvider serverConfProvider, GlobalConfProvider globalConfProvider) {
+        log.debug("Initializing op-monitoring addon: OpMonitoringServiceHandlerImpl");
+        return new OpMonitoringServiceHandlerImpl(serverConfProvider, globalConfProvider);
+    }
+
+    @Produces
+    @ApplicationScoped
+    AbstractOpMonitoringBuffer opMonitoringBuffer(ServerConfProvider serverConfProvider) throws Exception {
+        if (opMonitorEnabled) {
             log.debug("Initializing op-monitoring addon: OpMonitoringBuffer");
             return new OpMonitoringBuffer(serverConfProvider);
         }
+        return new NullOpMonitoringBuffer(serverConfProvider);
     }
+
 
 }

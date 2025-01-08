@@ -1,5 +1,6 @@
 /*
  * The MIT License
+ *
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
@@ -23,31 +24,29 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package ee.ria.xroad.proxy;
+package ee.ria.xroad.signer;
 
-import ee.ria.xroad.common.util.JobManager;
-import ee.ria.xroad.proxy.util.ServerConfStatsLogger;
+import lombok.RequiredArgsConstructor;
 
-import org.quartz.SchedulerException;
-import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Configuration;
-import org.springframework.scheduling.quartz.SpringBeanJobFactory;
+@RequiredArgsConstructor
+//@ConfigurationProperties(prefix = "xroad.common.rpc.channel.signer")
+public class SpringSignerRpcChannelProperties implements SignerRpcChannelProperties {
+    private final String host;
+    private final int port;
+    private final int deadlineAfter;
 
-@Configuration
-public class ProxyJobConfig {
-    private static final int STATS_LOG_REPEAT_INTERVAL = 60;
-
-    @Bean
-    JobManager jobManager(SpringBeanJobFactory springBeanJobFactory) throws SchedulerException {
-        final var jobManager = new JobManager(springBeanJobFactory);
-
-        jobManager.registerRepeatingJob(ServerConfStatsLogger.class, STATS_LOG_REPEAT_INTERVAL);
-
-        return jobManager;
+    @Override
+    public String host() {
+        return host;
     }
 
-    @Bean
-    SpringBeanJobFactory springBeanJobFactory() {
-        return new SpringBeanJobFactory();
+    @Override
+    public int port() {
+        return port;
+    }
+
+    @Override
+    public int deadlineAfter() {
+        return deadlineAfter;
     }
 }

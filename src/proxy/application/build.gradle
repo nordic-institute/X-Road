@@ -1,9 +1,13 @@
 plugins {
     alias(libs.plugins.quarkus)
-    alias(libs.plugins.jandex)
+//    alias(libs.plugins.jandex)
 }
 
 dependencies {
+    implementation(platform(libs.quarkus.bom))
+
+    implementation(libs.quarkus.springBoot.di) //TODO might be removed , comes from bootstrap
+    implementation(libs.quarkus.kubernetes) //TODO use classifer?
 
     implementation(project(':proxy:core'))
     implementation(project(':common:common-quarkus-bootstrap'))
@@ -47,22 +51,6 @@ quarkusDev {
 quarkusRun {
     jvmArgs = ['-Xmx130m',"-XX:MaxMetaspaceSize=100m"]
 }
-
-jandex {
-
-}
-
-//bootJar {
-//    enabled = true
-//    archiveBaseName = 'proxy'
-//    manifest {
-//        attributes(
-//            'Implementation-Title': 'X-Road Proxy',
-//            'Implementation-Version': "$xroadVersion-$xroadBuildType",
-//            'Main-Class': 'org.springframework.boot.loader.launch.PropertiesLauncher'
-//        )
-//    }
-//}
 
 testJar.enabled = true
 

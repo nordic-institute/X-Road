@@ -27,6 +27,7 @@
 
 package ee.ria.xroad.common.messagelog;
 
+import lombok.Data;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 
@@ -34,8 +35,8 @@ import java.util.Map;
 
 // todo: should be renamed to MessageLogProperties to be consistent with other classes. But first MessageLogProperties
 //  should be refactored to use configuration properties.
-@Getter
+@Data
 @RequiredArgsConstructor
 public class MessageLogConfig {
-    private final Map<String, String> hibernate; // messagelog.hibernate.* properties from db-properties file
+    private Map<String, String> hibernate; // messagelog.hibernate.* properties from db-properties file
 }

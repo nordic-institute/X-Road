@@ -28,6 +28,7 @@ package org.niis.xroad.confproxy.config;
 import ee.ria.xroad.signer.SignerClientConfiguration;
 import ee.ria.xroad.signer.SignerRpcClient;
 
+import lombok.RequiredArgsConstructor;
 import org.niis.xroad.common.rpc.RpcServerProperties;
 import org.niis.xroad.confproxy.commandline.ConfProxyRunner;
 import org.niis.xroad.confproxy.commandline.ConfProxyUtilRunner;
@@ -54,11 +55,20 @@ public class ConfProxyConfig {
         return new ConfProxyUtilRunner(confProxyProperties, signerRpcClient);
     }
 
+    @RequiredArgsConstructor
     @ConfigurationProperties(prefix = "xroad.configuration-proxy.grpc")
-    static class ConfProxyRpcServerProperties extends RpcServerProperties {
+    static class ConfProxyRpcServerProperties implements RpcServerProperties {
+        private final String listenAddress;
+        private final int port;
 
-        ConfProxyRpcServerProperties(String listenAddress, int port) {
-            super(listenAddress, port);
+        @Override
+        public String listenAddress() {
+            return listenAddress;
+        }
+
+        @Override
+        public int port() {
+            return port;
         }
     }
 }

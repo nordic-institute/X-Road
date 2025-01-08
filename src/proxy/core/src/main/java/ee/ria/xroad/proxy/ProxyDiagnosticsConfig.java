@@ -27,58 +27,73 @@ package ee.ria.xroad.proxy;
 
 import ee.ria.xroad.common.AddOnStatusDiagnostics;
 import ee.ria.xroad.common.BackupEncryptionStatusDiagnostics;
-import ee.ria.xroad.common.SystemProperties;
 import ee.ria.xroad.common.conf.globalconf.GlobalConfProvider;
 import ee.ria.xroad.common.conf.serverconf.ServerConfProvider;
+import ee.ria.xroad.common.messagelog.AbstractLogManager;
 import ee.ria.xroad.common.util.healthcheck.HealthCheckPort;
 import ee.ria.xroad.common.util.healthcheck.HealthChecks;
 import ee.ria.xroad.proxy.conf.KeyConfProvider;
+import ee.ria.xroad.proxy.messagelog.NullLogManager;
 import ee.ria.xroad.signer.SignerRpcClient;
 
+import jakarta.enterprise.context.ApplicationScoped;
+import jakarta.enterprise.inject.Instance;
+import jakarta.enterprise.inject.Produces;
+import lombok.extern.slf4j.Slf4j;
+import org.eclipse.microprofile.config.inject.ConfigProperty;
 import org.niis.xroad.proxy.ProxyProperties;
-import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Condition;
-import org.springframework.context.annotation.ConditionContext;
-import org.springframework.context.annotation.Conditional;
-import org.springframework.context.annotation.Configuration;
-import org.springframework.core.type.AnnotatedTypeMetadata;
 
+import java.util.Optional;
 
-@Configuration
+@Slf4j
+@ApplicationScoped
 public class ProxyDiagnosticsConfig {
 
-    @Bean
-    BackupEncryptionStatusDiagnostics backupEncryptionStatusDiagnostics(ProxyProperties proxyProperties) {
+    @Produces
+    @ApplicationScoped
+    BackupEncryptionStatusDiagnostics backupEncryptionStatusDiagnostics(
+            ProxyProperties proxyProperties) {
         return new BackupEncryptionStatusDiagnostics(
-                proxyProperties.isBackupEncryptionEnabled(),
-                proxyProperties.getBackupEncryptionKeyids());
+                proxyProperties.backupEncryptionEnabled(),
+                proxyProperties.backupEncryptionKeyids());
     }
 
-    @Bean
-    AddOnStatusDiagnostics addOnStatusDiagnostics(@Qualifier("messageLogEnabledStatus") Boolean messageLogEnabledStatus) {
-        return new AddOnStatusDiagnostics(messageLogEnabledStatus);
+    @Produces
+    @ApplicationScoped
+    AddOnStatusDiagnostics addOnStatusDiagnostics(AbstractLogManager logManager) {
+        return new AddOnStatusDiagnostics(NullLogManager.class != logManager.getClass());
     }
 
-    @Bean
-    @Conditional(HealthCheckEnabledCondition.class)
-    HealthChecks healthChecks(GlobalConfProvider globalConfProvider, KeyConfProvider keyConfProvider,
-                              ServerConfProvider serverConfProvider,
-                              SignerRpcClient signerRpcClient) {
-        return new HealthChecks(globalConfProvider, keyConfProvider, serverConfProvider, signerRpcClient);
-    }
+    @Produces
+    @ApplicationScoped
+    HealthChecks healthChecks(
+            @ConfigProperty(name = "xroad.health-check.enabled") boolean healthCheckEnabled,
+            GlobalConfProvider globalConfProvider,
+            KeyConfProvider keyConfProvider,
+            ServerConfProvider serverConfProvider,
+            SignerRpcClient signerRpcClient) {
 
-    @Bean
-    @Conditional(HealthCheckEnabledCondition.class)
-    HealthCheckPort healthCheckPort(HealthChecks healthChecks) {
-        return new HealthCheckPort(healthChecks);
-    }
-
-    static class HealthCheckEnabledCondition implements Condition {
-        @Override
-        public boolean matches(ConditionContext context, AnnotatedTypeMetadata metadata) {
-            return SystemProperties.isHealthCheckEnabled();
+        if (!healthCheckEnabled) {
+            return null;
         }
+
+        return new HealthChecks(
+                globalConfProvider,
+                keyConfProvider,
+                serverConfProvider,
+                signerRpcClient);
     }
 
+    @Produces
+    @ApplicationScoped
+    Optional<HealthCheckPort> healthCheckPort(
+            @ConfigProperty(name = "xroad.health-check.enabled") boolean healthCheckEnabled,
+            Instance<HealthChecks> healthChecks) {
+
+        if (!healthCheckEnabled || healthChecks.isResolvable()) {
+            return Optional.empty();
+        }
+
+        return Optional.of(new HealthCheckPort(healthChecks.get()));
+    }
 }

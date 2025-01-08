@@ -25,22 +25,25 @@
  */
 package ee.ria.xroad.proxy.serverproxy;
 
+import io.quarkus.arc.Arc;
+import jakarta.enterprise.context.ApplicationScoped;
 import lombok.RequiredArgsConstructor;
-import org.springframework.context.ApplicationContext;
 
 import java.util.Collection;
 
+//TODO: inject directly?
+@ApplicationScoped
 @RequiredArgsConstructor
 public final class ServiceHandlerLoader {
 
-    private final ApplicationContext applicationContext;
-
     public Collection<ServiceHandler> loadSoapServiceHandlers() {
-        return applicationContext.getBeansOfType(ServiceHandler.class).values();
+        return Arc.container().select(ServiceHandler.class).stream()
+                .toList();
     }
 
     public Collection<RestServiceHandler> loadRestServiceHandlers() {
-        return applicationContext.getBeansOfType(RestServiceHandler.class).values();
+        return Arc.container().select(RestServiceHandler.class).stream()
+                .toList();
     }
 
 }

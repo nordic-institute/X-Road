@@ -34,6 +34,7 @@ import ee.ria.xroad.common.conf.serverconf.ServerConfProvider;
 import ee.ria.xroad.proxy.admin.handler.TimestampStatusHandler;
 
 import io.grpc.stub.StreamObserver;
+import jakarta.enterprise.context.ApplicationScoped;
 import lombok.RequiredArgsConstructor;
 import org.niis.xroad.proxy.edc.AssetsRegistrationJob;
 import org.niis.xroad.proxy.proto.AddOnStatusResp;
@@ -50,6 +51,7 @@ import java.util.function.Supplier;
 
 import static java.util.Collections.unmodifiableList;
 
+@ApplicationScoped
 @RequiredArgsConstructor
 public class AdminService extends AdminServiceGrpc.AdminServiceImplBase {
 

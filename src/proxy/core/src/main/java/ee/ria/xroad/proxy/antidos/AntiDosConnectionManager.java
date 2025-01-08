@@ -232,11 +232,11 @@ class AntiDosConnectionManager<T extends SocketChannelWrapper> {
 
     private boolean hasSufficientResources() {
         long freeFileDescriptorCount = getFreeFileDescriptorCount();
-        int minFreeFileHandles = configuration.getMinFreeFileHandles();
+        int minFreeFileHandles = configuration.minFreeFileHandles();
         double cpuLoad = getCpuLoad();
-        double maxCpuLoad = configuration.getMaxCpuLoad();
+        double maxCpuLoad = configuration.maxCpuLoad();
         double heapUsage = getHeapUsage();
-        double maxHeapUsage = configuration.getMaxHeapUsage();
+        double maxHeapUsage = configuration.maxHeapUsage();
 
         log.trace("Resource usage when considering connection:\n"
                         + "freeFileDescriptorCount: {} ( >= {})\n"

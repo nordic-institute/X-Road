@@ -30,8 +30,10 @@ import ee.ria.xroad.common.util.MimeTypes;
 import ee.ria.xroad.common.util.MimeUtils;
 import ee.ria.xroad.proxy.conf.KeyConfProvider;
 
+import io.quarkus.runtime.Startup;
 import jakarta.annotation.PostConstruct;
 import jakarta.annotation.PreDestroy;
+import jakarta.enterprise.context.ApplicationScoped;
 import lombok.extern.slf4j.Slf4j;
 import org.bouncycastle.cert.ocsp.OCSPResp;
 import org.eclipse.jetty.io.Content;
@@ -64,6 +66,8 @@ import static org.eclipse.jetty.server.Request.getRemoteAddr;
  * http://<host>:<port>/?cert=hash1&cert=hash2&cert=hash3 ...
  */
 @Slf4j
+@Startup
+@ApplicationScoped
 public class CertHashBasedOcspResponder {
 
     private static final String METHOD_HEAD = "HEAD";

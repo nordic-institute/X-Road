@@ -1,2 +1,8 @@
+quarkus:
+  package:
+    jar:
+      type: uber-jar
+      add-runner-suffix: false
+
 logging:
   config: classpath:logback-native.xml

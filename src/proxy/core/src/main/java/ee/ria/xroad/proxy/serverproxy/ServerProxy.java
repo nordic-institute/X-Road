@@ -39,8 +39,10 @@ import ee.ria.xroad.proxy.antidos.AntiDosConnector;
 import ee.ria.xroad.proxy.conf.KeyConfProvider;
 import ee.ria.xroad.proxy.util.SSLContextUtil;
 
+import io.quarkus.runtime.Startup;
 import jakarta.annotation.PostConstruct;
 import jakarta.annotation.PreDestroy;
+import jakarta.enterprise.context.ApplicationScoped;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.eclipse.jetty.server.CustomRequestLog;
@@ -60,6 +62,8 @@ import java.util.Optional;
  * Server proxy that handles requests of client proxies.
  */
 @Slf4j
+@Startup
+@ApplicationScoped
 public class ServerProxy {
 
     private static final int ACCEPTOR_COUNT = Math.max(2, Runtime.getRuntime().availableProcessors());
@@ -206,7 +210,7 @@ public class ServerProxy {
     }
 
     private ServerConnector createClientProxyConnector() {
-        return antiDosConfiguration.isEnabled()
+        return antiDosConfiguration.enabled()
                 ? new AntiDosConnector(antiDosConfiguration, globalConfProvider, server, ACCEPTOR_COUNT)
                 : new ServerConnector(server, ACCEPTOR_COUNT, -1);
     }
@@ -220,7 +224,7 @@ public class ServerProxy {
         cf.setSslSessionTimeout(SSL_SESSION_TIMEOUT);
         cf.setSslContext(SSLContextUtil.createXroadSSLContext(globalConfProvider, keyConfProvider));
 
-        return antiDosConfiguration.isEnabled()
+        return antiDosConfiguration.enabled()
                 ? new AntiDosConnector(antiDosConfiguration, globalConfProvider, server, ACCEPTOR_COUNT, cf)
                 : new ServerConnector(server, ACCEPTOR_COUNT, -1, cf);
     }

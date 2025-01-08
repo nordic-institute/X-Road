@@ -50,12 +50,12 @@ class TestConnectionManager
 
     @Override
     protected long getFreeFileDescriptorCount() {
-        return systemMetrics.get().getMinFreeFileHandles();
+        return systemMetrics.get().minFreeFileHandles();
     }
 
     @Override
     protected double getCpuLoad() {
-        return systemMetrics.get().getMaxCpuLoad();
+        return systemMetrics.get().maxCpuLoad();
     }
 
     int numActivePartners() {

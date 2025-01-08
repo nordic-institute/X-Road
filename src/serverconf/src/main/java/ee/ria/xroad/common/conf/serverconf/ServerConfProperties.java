@@ -27,16 +27,24 @@
 
 package ee.ria.xroad.common.conf.serverconf;
 
-import org.springframework.boot.context.properties.ConfigurationProperties;
+import io.smallrye.config.ConfigMapping;
+import io.smallrye.config.WithName;
+import lombok.Data;
 
 import java.util.Map;
 
-@ConfigurationProperties(prefix = "xroad.common.serverconf")
-public record ServerConfProperties(
-        int cachePeriod,       //xroad.proxy.server-conf-cache-period: 60
-        long clientCacheSize,  //xroad.proxy.server-conf-client-cache-size: 100
-        long serviceCacheSize, //xroad.proxy.server-conf-service-cache-size: 1000
-        long aclCacheSize,      //xroad.proxy.server-conf-acl-cache-size: 100_000
-        Map<String, String> hibernate // serverconf.hibernate.* properties from db-properties file
-) {
+@ConfigMapping(prefix = "xroad.common.serverconf")
+//@ConfigurationProperties(prefix = "xroad.common.serverconf")
+@Data
+public class ServerConfProperties {
+    @WithName("cache-period")
+    private int cachePeriod;       //xroad.proxy.server-conf-cache-period: 60
+    @WithName("client-cache-size")
+    private long clientCacheSize;  //xroad.proxy.server-conf-client-cache-size: 100
+    @WithName("service-cache-size")
+    private long serviceCacheSize; //xroad.proxy.server-conf-service-cache-size: 1000
+    @WithName("acl-cache-size")
+    private long aclCacheSize;     //xroad.proxy.server-conf-acl-cache-size: 100_000
+    @WithName("hibernate")
+    private Map<String, String> hibernate; // serverconf.hibernate.* properties from db-properties file
 }

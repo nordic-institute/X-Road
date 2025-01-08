@@ -45,6 +45,7 @@ import ee.ria.xroad.signer.protocol.dto.TokenInfoAndKeyId;
 
 import com.google.protobuf.ByteString;
 import io.opentelemetry.instrumentation.annotations.WithSpan;
+import jakarta.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
 import lombok.Value;
 import lombok.extern.slf4j.Slf4j;
@@ -96,7 +97,6 @@ import org.niis.xroad.signer.proto.SignCertificateReq;
 import org.niis.xroad.signer.proto.SignReq;
 import org.niis.xroad.signer.proto.TokenServiceGrpc;
 import org.niis.xroad.signer.proto.UpdateSoftwareTokenPinReq;
-import org.springframework.beans.factory.InitializingBean;
 
 import java.security.PrivateKey;
 import java.security.PublicKey;
@@ -121,7 +121,7 @@ import static org.niis.xroad.restapi.util.FormatUtils.fromInstantToOffsetDateTim
  */
 @Slf4j
 @RequiredArgsConstructor
-public final class SignerRpcClient extends AbstractRpcClient implements InitializingBean {
+public final class SignerRpcClient extends AbstractRpcClient {
     public static final String SSL_TOKEN_ID = "0";
 
     private final RpcChannelFactory proxyRpcChannelFactory;
@@ -134,10 +134,10 @@ public final class SignerRpcClient extends AbstractRpcClient implements Initiali
     private OcspServiceGrpc.OcspServiceBlockingStub blockingOcspService;
     private AdminServiceGrpc.AdminServiceBlockingStub adminServiceBlockingStub;
 
-    @Override
+    @PostConstruct
     public void afterPropertiesSet() throws Exception {
-        log.info("Initializing {} rpc client to {}:{}", getClass().getSimpleName(), rpcChannelProperties.getHost(),
-                rpcChannelProperties.getPort());
+        log.info("Initializing {} rpc client to {}:{}", getClass().getSimpleName(), rpcChannelProperties.host(),
+                rpcChannelProperties.port());
         var channel = proxyRpcChannelFactory.createChannel(rpcChannelProperties);
 
         blockingTokenService = TokenServiceGrpc.newBlockingStub(channel).withWaitForReady();
@@ -733,7 +733,7 @@ public final class SignerRpcClient extends AbstractRpcClient implements Initiali
             var privateKey = (PrivateKey) ks.getKey(response.getAlias(),
                     password);
             return new AuthKeyInfo(response.getAlias(),
-                   privateKey,
+                    privateKey,
                     new CertificateInfo(response.getCert()));
         }
     }

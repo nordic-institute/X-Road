@@ -27,69 +27,186 @@
 
 package org.niis.xroad.proxy;
 
-import lombok.Getter;
-import lombok.RequiredArgsConstructor;
-import org.springframework.boot.context.properties.ConfigurationProperties;
+import io.smallrye.config.ConfigMapping;
+import io.smallrye.config.WithDefault;
+import io.smallrye.config.WithName;
 
 import java.util.List;
 
-@Getter
-@RequiredArgsConstructor
-@ConfigurationProperties(prefix = "xroad.proxy")
-public class ProxyProperties {
-    private final ServerProperties server;
-    private final ClientProxyProperties clientProxy;
-    private final OcspResponderProperties ocspResponder;
+@ConfigMapping(prefix = "xroad.proxy")
+public interface ProxyProperties {
 
-    private final boolean verifyClientCert;  // verify-client-cert: true
-    private final String databaseProperties;  // database-properties: /etc/xroad/db.properties
-    private final int serverPort;  // server-port: 5500
-    private final boolean poolEnableConnectionReuse;  // pool-enable-connection-reuse: false
+    ServerProperties server();
 
-    private final int clientFastestConnectingSslUriCachePeriod;  // client-fastest-connecting-ssl-uri-cache-period: 3600
-    private final boolean hsmHealthCheckEnabled; // hsm-health-check-enabled: false
-    private final boolean enforceClientIsCertValidityPeriodCheck;  // enforce-client-is-cert-validity-period-check: false
-    // todo: should go to ClientProxyProperties?
-    private final int clientTimeout;  // client-timeout: 30000
-    private final boolean clientUseFastestConnectingSslSocketAutoclose;  // client-use-fastest-connecting-ssl-socket-autoclose: true
-    private final boolean backupEncryptionEnabled;  // backup-encryption-enabled: false
-    private final List<String> backupEncryptionKeyids; // backup-encryption-keyids:[]
+    ClientProxyProperties clientProxy();
 
-    public record ClientProxyProperties(
-            String connectorHost,  // connector-host: 0.0.0.0
-            int clientHttpPort,  // client-http-port: 8080
-            int clientHttpsPort,  // client-https-port: 8443
-            String jettyConfigurationFile,  // jetty-clientproxy-configuration-file: /etc/xroad/jetty/clientproxy.xml
-            int clientConnectorInitialIdleTime, // client-connector-initial-idle-time: 30000
-            String[] clientTlsProtocols, //client-tls-protocols: "TLSv1.2"
-            String[] clientTlsCiphers, //client-tls-ciphers: <long list>
-            int jettyMaxHeaderSize,
-            int clientHttpclientSoLinger,  // client-httpclient-so-linger: -1
-            int clientHttpclientTimeout,  // client-httpclient-timeout: 0
-            int poolTotalMaxConnections, //pool-total-max-connections 10000
-            int poolTotalDefaultMaxConnectionsPerRoute, //pool-total-default-max-connections-per-route: 2500
-            int poolValidateConnectionsAfterInactivityOfMillis, // pool-validate-connections-after-inactivity-of-millis: 2000
-            int clientIdleConnectionMonitorInterval, //client-idle-connection-monitor-interval: 30000
-            int clientIdleConnectionMonitorTimeout, // client-idle-connection-monitor-timeout: 60000
-            boolean clientUseIdleConnectionMonitor  // client-use-idle-connection-monitor: true
-    ) {
+    OcspResponderProperties ocspResponder();
+
+    ProxyAddonProperties addon();
+
+    @WithName("verify-client-cert")
+    @WithDefault("true")
+    boolean verifyClientCert();
+
+    @WithName("database-properties")
+    @WithDefault("/etc/xroad/db.properties")
+    String databaseProperties();
+
+    @WithName("server-port")
+    @WithDefault("5500")
+    int serverPort();
+
+    @WithName("pool-enable-connection-reuse")
+    @WithDefault("false")
+    boolean poolEnableConnectionReuse();
+
+    @WithName("client-fastest-connecting-ssl-uri-cache-period")
+    @WithDefault("3600")
+    int clientFastestConnectingSslUriCachePeriod();
+
+    @WithName("hsm-health-check-enabled")
+    @WithDefault("false")
+    boolean hsmHealthCheckEnabled();
+
+    @WithName("enforce-client-is-cert-validity-period-check")
+    @WithDefault("false")
+    boolean enforceClientIsCertValidityPeriodCheck();
+
+    @WithName("client-timeout")
+    @WithDefault("30000")
+    int clientTimeout();
+
+    @WithName("client-use-fastest-connecting-ssl-socket-autoclose")
+    @WithDefault("true")
+    boolean clientUseFastestConnectingSslSocketAutoclose();
+
+    @WithName("backup-encryption-enabled")
+    @WithDefault("false")
+    boolean backupEncryptionEnabled();
+
+    @WithName("backup-encryption-keyids")
+    @WithDefault("[]")
+    List<String> backupEncryptionKeyids();
+
+    @ConfigMapping(prefix = "xroad.proxy.addon")
+    interface ProxyAddonProperties {
+        @WithName("metaservices.enabled")//TODO might be improved
+        @WithDefault("true")
+        boolean metaServicesEnabled();
+
+        @WithName("proxymonitor.enabled")
+        @WithDefault("true")
+        boolean oroxyMonitorEnabled();
     }
 
-    public record ServerProperties(
-            String listenAddress,  // server-listen-address: 0.0.0.0
-            int listenPort,  // server-listen-port: 5500
-            int connectorInitialIdleTime,   //server-connector-initial-idle-time 30000
-            boolean serverSupportClientsPooledConnections, //server-support-clients-pooled-connections: false
-            String jettyConfigurationFile  // jetty-serverproxy-configuration-file: /etc/xroad/jetty/serverproxy.xml
-    ) {
+    @ConfigMapping(prefix = "xroad.proxy.client-proxy")
+    interface ClientProxyProperties {
+        @WithName("connector-host")
+        @WithDefault("0.0.0.0")
+        String connectorHost();
+
+        @WithName("client-http-port")
+        @WithDefault("8080")
+        int clientHttpPort();
+
+        @WithName("client-https-port")
+        @WithDefault("8443")
+        int clientHttpsPort();
+
+        @WithName("jetty-configuration-file")
+        @WithDefault("/etc/xroad/jetty/clientproxy.xml")
+        String jettyConfigurationFile();
+
+        @WithName("client-connector-initial-idle-time")
+        @WithDefault("30000")
+        int clientConnectorInitialIdleTime();
+
+        @WithName("client-tls-protocols")
+        @WithDefault("TLSv1.2")
+        List<String> clientTlsProtocols();
+
+        @WithName("client-tls-ciphers")
+        List<String> clientTlsCiphers();
+
+        @WithName("jetty-max-header-size")
+        int jettyMaxHeaderSize();
+
+        @WithName("client-httpclient-so-linger")
+        @WithDefault("-1")
+        int clientHttpclientSoLinger();
+
+        @WithName("client-httpclient-timeout")
+        @WithDefault("0")
+        int clientHttpclientTimeout();
+
+        @WithName("pool-total-max-connections")
+        @WithDefault("10000")
+        int poolTotalMaxConnections();
+
+        @WithName("pool-total-default-max-connections-per-route")
+        @WithDefault("2500")
+        int poolTotalDefaultMaxConnectionsPerRoute();
+
+        @WithName("pool-validate-connections-after-inactivity-of-millis")
+        @WithDefault("2000")
+        int poolValidateConnectionsAfterInactivityOfMillis();
+
+        @WithName("client-idle-connection-monitor-interval")
+        @WithDefault("30000")
+        int clientIdleConnectionMonitorInterval();
+
+        @WithName("client-idle-connection-monitor-timeout")
+        @WithDefault("60000")
+        int clientIdleConnectionMonitorTimeout();
+
+        @WithName("client-use-idle-connection-monitor")
+        @WithDefault("true")
+        boolean clientUseIdleConnectionMonitor();
     }
 
-    public record OcspResponderProperties(
-            String listenAddress,  // ocsp-responder-listen-address: 0.0.0.0
-            int port,  // ocsp-responder-port: 5577
-            int clientConnectTimeout,  // ocsp-responder-client-connect-timeout: 20000
-            int clientReadTimeout,  // ocsp-responder-client-read-timeout: 30000
-            String jettyConfigurationFile //jetty-ocsp-responder-configuration-file:/etc/xroad/jetty/ocsp-responder.xml
-    ) {
+    @ConfigMapping(prefix = "xroad.proxy.server")
+    interface ServerProperties {
+        @WithName("listen-address")
+        @WithDefault("0.0.0.0")
+        String listenAddress();
+
+        @WithName("listen-port")
+        @WithDefault("5500")
+        int listenPort();
+
+        @WithName("connector-initial-idle-time")
+        @WithDefault("30000")
+        int connectorInitialIdleTime();
+
+        @WithName("support-clients-pooled-connections")
+        @WithDefault("false")
+        boolean serverSupportClientsPooledConnections();
+
+        @WithName("jetty-configuration-file")
+        @WithDefault("/etc/xroad/jetty/serverproxy.xml")
+        String jettyConfigurationFile();
+    }
+
+    @ConfigMapping(prefix = "xroad.proxy.ocsp-responder")
+    interface OcspResponderProperties {
+        @WithName("listen-address")
+        @WithDefault("0.0.0.0")
+        String listenAddress();
+
+        @WithName("port")
+        @WithDefault("5577")
+        int port();
+
+        @WithName("client-connect-timeout")
+        @WithDefault("20000")
+        int clientConnectTimeout();
+
+        @WithName("client-read-timeout")
+        @WithDefault("30000")
+        int clientReadTimeout();
+
+        @WithName("jetty-configuration-file")
+        @WithDefault("/etc/xroad/jetty/ocsp-responder.xml")
+        String jettyConfigurationFile();
     }
 }

@@ -28,6 +28,7 @@ package ee.ria.xroad.proxy.util;
 import ee.ria.xroad.common.util.CertUtils;
 import ee.ria.xroad.common.util.MimeTypes;
 
+import jakarta.enterprise.context.ApplicationScoped;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.IOUtils;
@@ -56,8 +57,9 @@ import java.util.List;
 /**
  * Contains utility methods for getting OCSP responses for certificates.
  */
-@RequiredArgsConstructor
 @Slf4j
+@RequiredArgsConstructor
+@ApplicationScoped
 public final class CertHashBasedOcspResponderClient {
 
     private static final String METHOD = "GET";

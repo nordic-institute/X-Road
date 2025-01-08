@@ -24,6 +24,8 @@ dependencies {
     api(libs.grpc.nettyShaded)
     api(libs.protobuf.javaUtil)
     api(libs.jakarta.annotationApi)
+
+    implementation(libs.quarkus.springBoot.di)
 }
 
 protobuf {

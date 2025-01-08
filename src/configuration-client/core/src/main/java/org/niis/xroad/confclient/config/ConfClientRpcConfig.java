@@ -29,6 +29,7 @@ import ee.ria.xroad.common.conf.globalconf.ConfigurationClient;
 import ee.ria.xroad.common.conf.globalconf.ConfigurationClientActionExecutor;
 import ee.ria.xroad.common.conf.globalconf.FSGlobalConfValidator;
 
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.niis.xroad.common.rpc.RpcConfig;
 import org.niis.xroad.common.rpc.RpcServerProperties;
@@ -86,10 +87,20 @@ public class ConfClientRpcConfig {
         return new GlobalConfRpcCache(fsGlobalConfValidator, getGlobalConfRespFactory);
     }
 
+    @RequiredArgsConstructor
     @ConfigurationProperties(prefix = "xroad.configuration-client.grpc")
-    static class ConfClientRpcServerProperties extends RpcServerProperties {
-        ConfClientRpcServerProperties(String listenAddress, int port) {
-            super(listenAddress, port);
+    static class ConfClientRpcServerProperties implements RpcServerProperties {
+        private final String listenAddress;
+        private final int port;
+
+        @Override
+        public String listenAddress() {
+            return listenAddress;
+        }
+
+        @Override
+        public int port() {
+            return port;
         }
     }
 }

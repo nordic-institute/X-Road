@@ -1,6 +1,5 @@
 /*
  * The MIT License
- *
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
@@ -24,13 +23,10 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
+package org.niis.xroad.confclient.proto;
 
-/**
- * Annotation support for the Application Context, including JSR-250 "common"
- * annotations, component-scanning, and Java-based metadata for creating
- * Spring-managed objects.
- */
-@NonNullApi
-package ee.ria.xroad.proxy;
+import io.smallrye.config.ConfigMapping;
 
-import org.springframework.lang.NonNullApi;
+@ConfigMapping(prefix = "xroad.common.rpc.channel.configuration-client")
+public interface QuarkusConfClientRpcChannelProperties extends ConfClientRpcChannelProperties {
+}

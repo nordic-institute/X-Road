@@ -26,12 +26,11 @@
 package org.niis.xroad.proxy.proto;
 
 import org.niis.xroad.common.rpc.client.RpcChannelFactory;
-import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
 @Configuration
-@EnableConfigurationProperties(ProxyRpcChannelProperties.class)
+//@EnableConfigurationProperties(SpringProxyRpcChannelProperties.class)
 public class ProxyRpcClientConfiguration {
 
     @Bean

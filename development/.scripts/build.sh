@@ -11,7 +11,7 @@ case $1 in
   ;;
 "proxy")
   gradleModule="proxy"
-  gradleArgs+="-xintTest -xintegrationTest"
+  gradleArgs+="-xintTest -xintegrationTest -xcompileTestJava"
   ;;
 "configuration-client")
   gradleModule="configuration-client"

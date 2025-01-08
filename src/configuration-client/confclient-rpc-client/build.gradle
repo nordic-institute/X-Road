@@ -16,6 +16,10 @@ sourceSets {
 dependencies {
     api project(':common:common-core')
     api project(':common:common-rpc')
+
+    implementation(platform(libs.springBoot.bom))
+    implementation("org.springframework.boot:spring-boot-starter")
+//    implementation(libs.quarkus.springBoot.di)
 }
 
 protobuf {

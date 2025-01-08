@@ -26,24 +26,25 @@
 package org.niis.xroad.common.rpc.server;
 
 import io.grpc.BindableService;
+import io.quarkus.arc.All;
 import lombok.extern.slf4j.Slf4j;
 import org.niis.xroad.common.rpc.RpcCredentialsConfigurer;
 import org.niis.xroad.common.rpc.RpcServerProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
-import java.util.Collection;
+import java.util.List;
 
 @Slf4j
 @Configuration
 public class RpcServerConfig {
 
     @Bean
-    RpcServer rpcServer(Collection<BindableService> services,
+    RpcServer rpcServer(@All List<BindableService> services,
                         RpcServerProperties rpcServerProperties,
                         RpcCredentialsConfigurer rpcCredentialsConfigurer) {
         var serverCredentials = rpcCredentialsConfigurer.createServerCredentials();
-        return new RpcServer(rpcServerProperties.getListenAddress(), rpcServerProperties.getPort(), serverCredentials,
+        return new RpcServer(rpcServerProperties.listenAddress(), rpcServerProperties.port(), serverCredentials,
                 builder -> services.forEach(service -> {
                     log.info("Registering {} RPC service.", service.getClass().getSimpleName());
                     builder.addService(service);

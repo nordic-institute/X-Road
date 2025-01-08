@@ -34,6 +34,8 @@ import ee.ria.xroad.common.identifier.ServiceId;
 import ee.ria.xroad.proxy.conf.KeyConfProvider;
 import ee.ria.xroad.proxy.util.CertHashBasedOcspResponderClient;
 
+import jakarta.enterprise.context.ApplicationScoped;
+import jakarta.inject.Singleton;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.ArrayUtils;
@@ -67,6 +69,7 @@ import static ee.ria.xroad.common.ErrorCodes.translateException;
  * the peer certificates and do the validation of the certificate.
  */
 @Slf4j
+@Singleton
 @RequiredArgsConstructor
 public class AuthTrustVerifier {
 

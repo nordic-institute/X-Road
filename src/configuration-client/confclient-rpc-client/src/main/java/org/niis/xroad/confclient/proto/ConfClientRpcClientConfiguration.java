@@ -34,7 +34,7 @@ import org.springframework.context.annotation.Import;
 
 @Configuration(proxyBeanMethods = false)
 @Import({RpcConfig.class})
-@EnableConfigurationProperties(ConfClientRpcChannelProperties.class)
+@EnableConfigurationProperties(SpringConfClientRpcChannelProperties.class)
 public class ConfClientRpcClientConfiguration {
 
     @Bean

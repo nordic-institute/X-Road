@@ -32,10 +32,10 @@ import org.eclipse.jetty.server.Request;
 import org.eclipse.jetty.server.Response;
 import org.eclipse.jetty.util.resource.Resource;
 import org.eclipse.jetty.util.resource.ResourceFactory;
-import org.springframework.core.io.ClassPathResource;
-import org.springframework.core.io.FileSystemResource;
 
+import java.io.File;
 import java.io.IOException;
+import java.net.URL;
 import java.util.Optional;
 
 public final class JettyUtils {
@@ -122,11 +122,20 @@ public final class JettyUtils {
         response.getHeaders().put(HttpHeader.CONTENT_LENGTH, length);
     }
 
-    public static Resource toResource(String resourcePath) throws IOException  {
-        org.springframework.core.io.Resource resource = resourcePath.startsWith("classpath:")
-                ? new ClassPathResource(resourcePath.replace("classpath:", ""))
-                : new FileSystemResource(resourcePath);
-       return ResourceFactory.root().newResource(resource.getURL());
+    public static Resource toResource(String resourcePath) throws IOException {
+        URL url;
+        if (resourcePath.startsWith("classpath:")) {
+            String path = resourcePath.replace("classpath:", "");
+            // Ensure path starts with forward slash
+            path = path.startsWith("/") ? path.substring(1) : path;
+            url = Thread.currentThread().getContextClassLoader().getResource(path);
+            if (url == null) {
+                throw new IOException("Classpath resource not found: " + path);
+            }
+        } else {
+            url = new File(resourcePath).toURI().toURL();
+        }
+        return ResourceFactory.root().newResource(url);
     }
 
 

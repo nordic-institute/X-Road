@@ -27,12 +27,7 @@
 package ee.ria.xroad.signer;
 
 import org.niis.xroad.common.rpc.client.RpcChannelProperties;
-import org.springframework.boot.context.properties.ConfigurationProperties;
 
-@ConfigurationProperties(prefix = "xroad.common.rpc.channel.signer")
-public class SignerRpcChannelProperties extends RpcChannelProperties {
+public interface SignerRpcChannelProperties extends RpcChannelProperties {
 
-    public SignerRpcChannelProperties(String host, int port, int deadlineAfter) {
-        super(host, port, deadlineAfter);
-    }
 }

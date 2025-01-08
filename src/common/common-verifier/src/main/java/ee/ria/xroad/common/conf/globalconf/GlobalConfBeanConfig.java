@@ -30,34 +30,30 @@ import ee.ria.xroad.common.properties.CommonGlobalConfProperties;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.niis.xroad.confclient.proto.ConfClientRpcClient;
-import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.scheduling.annotation.EnableScheduling;
-
-import java.util.Optional;
 
 import static ee.ria.xroad.common.SystemProperties.getConfigurationPath;
 import static ee.ria.xroad.common.properties.CommonGlobalConfProperties.GlobalConfSource.REMOTE;
 
 @Slf4j
 @Configuration(proxyBeanMethods = false)
-@EnableScheduling
+//@EnableScheduling
 @RequiredArgsConstructor
-@EnableConfigurationProperties(CommonGlobalConfProperties.class)
+//@EnableConfigurationProperties(CommonGlobalConfProperties.class)
 public class GlobalConfBeanConfig {
 
     @Bean
-    GlobalConfSource globalConfSource(Optional<ConfClientRpcClient> globalConfClient,
+    GlobalConfSource globalConfSource(ConfClientRpcClient globalConfClient,
                                       RemoteGlobalConfDataLoader remoteGlobalConfDataLoader,
                                       CommonGlobalConfProperties commonGlobalConfProperties) {
-        if (commonGlobalConfProperties.source() == REMOTE) {
-            if (globalConfClient.isEmpty()) {
+        if (commonGlobalConfProperties.getSource() == REMOTE) {
+            if (globalConfClient == null) { //TODO: this is for SS now
                 throw new IllegalStateException("GlobalConf remoting is enabled, but globalConfClient is not available");
             } else {
                 log.info("GlobalConf source is set to: RemoteGlobalConfSource(gRPC)");
                 return new RemoteGlobalConfSource(
-                        globalConfClient.get(),
+                        globalConfClient,
                         remoteGlobalConfDataLoader);
             }
         }

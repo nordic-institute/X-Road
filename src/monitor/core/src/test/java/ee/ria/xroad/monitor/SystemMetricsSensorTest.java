@@ -45,6 +45,7 @@ import org.niis.xroad.monitor.common.MonitorServiceGrpc;
 import org.niis.xroad.monitor.common.StatsReq;
 import org.niis.xroad.monitor.common.StatsResp;
 import org.niis.xroad.proxy.proto.ProxyRpcChannelProperties;
+import org.niis.xroad.proxy.proto.SpringProxyRpcChannelProperties;
 import org.springframework.scheduling.TaskScheduler;
 
 import java.io.IOException;
@@ -119,7 +120,7 @@ class SystemMetricsSensorTest {
         var taskScheduler = spy(TaskScheduler.class);
         when(taskScheduler.getClock()).thenReturn(Clock.systemDefaultZone());
 
-        ProxyRpcChannelProperties proxyRpcClientProperties = new ProxyRpcChannelProperties("localhost", PORT, 60000);
+        ProxyRpcChannelProperties proxyRpcClientProperties = new SpringProxyRpcChannelProperties("localhost", PORT, 60000);
         SystemMetricsSensor systemMetricsSensor = new SystemMetricsSensor(taskScheduler, envMonitorProperties,
                 new RpcChannelFactory(RPC_CREDENTIALS_CONFIGURER), proxyRpcClientProperties);
         systemMetricsSensor.afterPropertiesSet();

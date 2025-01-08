@@ -1,10 +1,38 @@
 quarkus:
+  application:
+    name: proxy
+    version: 1.0.0
+  package:
+    output-directory: libs
+    output-name: proxy-1.0
+    jar:
+      add-runner-suffix: false
+
+  spring-di:
+    enabled: true
+  vault:
+    url: https://127.0.0.1:8200
+#    tls:
+#      skip-verify: true
+    authentication:
+      client-token: "${XROAD_SECRET_STORE_TOKEN}"
+    kv-secret-engine-version: 1
+    kv-secret-engine-mount-path: xrd-secret
+    secret-config-kv-path:
+      "secret-serverconf": serverconf
+      "secret-messagelog": messagelog
   config:
     locations:
-      - classpath:/xroad-common.yaml
-      - file:/etc/xroad/application-overrides.yaml
-      - file:/etc/xroad/application-proxy.yaml
-
+      - xroad-common.yaml
+      - xroad-ss-common.yaml
+  #      - /etc/xroad/application-overrides.yaml
+  #      - /etc/xroad/application-proxy.yaml
+  console:
+    color: true
+  log:
+    file:
+      enable: true
+      path: /var/log/xroad/proxy.log
 #spring:
 #  application:
 #    name: proxy
@@ -18,13 +46,15 @@ xroad:
       cache-period: 60
       client-cache-size: 100
       service-cache-size: 1000
-      acl-cache-size: 100_000
+      acl-cache-size: 100000
       hibernate:
         dialect: ee.ria.xroad.common.db.CustomPostgreSQLDialect
         connection.driver_class: org.postgresql.Driver
         connection.url: jdbc:postgresql://127.0.0.1:5432/serverconf
         hikari.dataSource.currentSchema: serverconf,public
         jdbc.use_streams_for_binary: true
+        connection.username: "${secret-serverconf.username}"
+        connection.password: "${secret-serverconf.password}"
   proxy:
     addon:
       proxymonitor:
@@ -61,14 +91,14 @@ xroad:
       client-connector-initial-idle-time: 30000
       client-tls-protocols: "TLSv1.2"
       client-tls-ciphers:
-          - TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256
-          - TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA256
-          - TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384
-          - TLS_ECDHE_RSA_WITH_AES_256_CBC_SHA384
-          - TLS_DHE_RSA_WITH_AES_128_GCM_SHA256
-          - TLS_DHE_RSA_WITH_AES_128_CBC_SHA256
-          - TLS_DHE_RSA_WITH_AES_256_CBC_SHA256
-          - TLS_DHE_RSA_WITH_AES_256_GCM_SHA384
+        - TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256
+        - TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA256
+        - TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384
+        - TLS_ECDHE_RSA_WITH_AES_256_CBC_SHA384
+        - TLS_DHE_RSA_WITH_AES_128_GCM_SHA256
+        - TLS_DHE_RSA_WITH_AES_128_CBC_SHA256
+        - TLS_DHE_RSA_WITH_AES_256_CBC_SHA256
+        - TLS_DHE_RSA_WITH_AES_256_GCM_SHA384
       jetty-max-header-size: 16384
       client-httpclient-so-linger: -1
       client-httpclient-timeout: 0
@@ -78,7 +108,7 @@ xroad:
       client-idle-connection-monitor-interval: 30000
       client-idle-connection-monitor-timeout: 60000
       client-use-idle-connection-monitor: true
-    backup-encryption-keyids: [ ]
+    #    backup-encryption-keyids: []
     grpc:
       listen-address: 127.0.0.1
       port: 5567
@@ -95,3 +125,5 @@ xroad:
       connection.url: jdbc:postgresql://127.0.0.1:5432/messagelog
       hikari.dataSource.currentSchema: messagelog,public
       jdbc.use_streams_for_binary: true
+      connection.username: "${secret-messagelog.username}"
+      connection.password: "${secret-messagelog.password}"

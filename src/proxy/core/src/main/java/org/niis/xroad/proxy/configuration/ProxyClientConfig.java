@@ -39,6 +39,11 @@ import ee.ria.xroad.proxy.conf.KeyConfProvider;
 import ee.ria.xroad.proxy.serverproxy.IdleConnectionMonitorThread;
 import ee.ria.xroad.proxy.util.SSLContextUtil;
 
+import jakarta.annotation.Priority;
+import jakarta.enterprise.context.ApplicationScoped;
+import jakarta.enterprise.inject.Instance;
+import jakarta.enterprise.inject.Produces;
+import jakarta.inject.Named;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.http.client.HttpClient;
 import org.apache.http.client.config.RequestConfig;
@@ -50,112 +55,142 @@ import org.apache.http.conn.socket.PlainConnectionSocketFactory;
 import org.apache.http.conn.ssl.SSLConnectionSocketFactory;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.DefaultHttpRequestRetryHandler;
-import org.apache.http.impl.client.HttpClientBuilder;
 import org.apache.http.impl.client.HttpClients;
 import org.apache.http.impl.conn.PoolingHttpClientConnectionManager;
+import org.eclipse.microprofile.config.inject.ConfigProperty;
 import org.niis.xroad.proxy.ProxyProperties;
 import org.niis.xroad.proxy.edc.AssetAuthorizationManager;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
-import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Configuration;
-import org.springframework.core.Ordered;
-import org.springframework.core.annotation.Order;
-
-import java.util.List;
 
 @Slf4j
-@Configuration
+@ApplicationScoped
 public class ProxyClientConfig {
 
-    @Bean
-    ClientProxy clientProxy(ProxyProperties proxyProperties,
-                            List<AbstractClientProxyHandler> clientProxyHandlers,
-                            ServerConfProvider serverConfProvider) throws Exception {
-        return new ClientProxy(proxyProperties.getClientProxy(),
-                clientProxyHandlers, serverConfProvider);
+    @Produces
+    @ApplicationScoped
+    ClientProxy clientProxy(
+            ProxyProperties proxyProperties,
+            Instance<AbstractClientProxyHandler> clientProxyHandlers,
+            ServerConfProvider serverConfProvider) throws Exception {
+        return new ClientProxy(
+                proxyProperties.clientProxy(),
+                clientProxyHandlers.stream().toList(),
+                serverConfProvider);
     }
 
-    @Bean
-    @Order(Ordered.HIGHEST_PRECEDENCE)
-    AbstractClientProxyHandler clientRestMessageHandler(GlobalConfProvider globalConfProvider,
-                                                      KeyConfProvider keyConfProvider,
-                                                      ServerConfProvider serverConfProvider,
-                                                      CertChainFactory certChainFactory,
-                                                      @Qualifier("proxyHttpClient") HttpClient httpClient,
-                                                      @Autowired(required = false) AssetAuthorizationManager assetAuthorizationManager) {
-        return new ClientRestMessageHandler(globalConfProvider, keyConfProvider, serverConfProvider, certChainFactory,
-                httpClient, assetAuthorizationManager);
+    @Produces
+    @ApplicationScoped
+    @Priority(100)
+        // Highest precedence
+    AbstractClientProxyHandler clientRestMessageHandler(
+            GlobalConfProvider globalConfProvider,
+            KeyConfProvider keyConfProvider,
+            ServerConfProvider serverConfProvider,
+            CertChainFactory certChainFactory,
+            @Named("proxyHttpClient") HttpClient httpClient,
+            Instance<AssetAuthorizationManager> assetAuthManager) {
+        return new ClientRestMessageHandler(
+                globalConfProvider,
+                keyConfProvider,
+                serverConfProvider,
+                certChainFactory,
+                httpClient,
+                assetAuthManager.isResolvable() ? assetAuthManager.get() : null);
     }
 
-    @Bean
-    // soap handler must be the last handler in the list.
-    @Order(Ordered.LOWEST_PRECEDENCE)
-    AbstractClientProxyHandler clientSoapMessageHandler(GlobalConfProvider globalConfProvider,
-                                                      KeyConfProvider keyConfProvider,
-                                                      ServerConfProvider serverConfProvider,
-                                                      CertChainFactory certChainFactory,
-                                                      @Qualifier("proxyHttpClient") HttpClient httpClient,
-                                                      @Autowired(required = false) AssetAuthorizationManager assetAuthorizationManager) {
-        return new ClientSoapMessageHandler(globalConfProvider, keyConfProvider, serverConfProvider, certChainFactory,
-                httpClient, assetAuthorizationManager);
+    @Produces
+    @ApplicationScoped
+    @Priority(1)
+        //TODO xroad8 order might not be working.. Verify
+        // Lowest precedence
+    AbstractClientProxyHandler clientSoapMessageHandler(
+            GlobalConfProvider globalConfProvider,
+            KeyConfProvider keyConfProvider,
+            ServerConfProvider serverConfProvider,
+            CertChainFactory certChainFactory,
+            @Named("proxyHttpClient") HttpClient httpClient,
+            Instance<AssetAuthorizationManager> assetAuthManager) {
+        return new ClientSoapMessageHandler(
+                globalConfProvider,
+                keyConfProvider,
+                serverConfProvider,
+                certChainFactory,
+                httpClient,
+                assetAuthManager.isResolvable() ? assetAuthManager.get() : null);
     }
 
-    @ConditionalOnProperty(name = "xroad.proxy.client-proxy.client-use-idle-connection-monitor", havingValue = "true")
-    @Bean
-    IdleConnectionMonitorThread idleConnectionMonitorThread(ProxyProperties proxyProperties,
-            @Qualifier("proxyHttpClientManager") HttpClientConnectionManager connectionManager) {
+    @Produces
+    @ApplicationScoped
+    IdleConnectionMonitorThread idleConnectionMonitorThread(
+            @ConfigProperty(name = "xroad.proxy.client-proxy.client-use-idle-connection-monitor") boolean enabled,
+            ProxyProperties proxyProperties,
+            @Named("proxyHttpClientManager") HttpClientConnectionManager connectionManager) {
+
+        if (!enabled) {
+            return null;
+        }
+
         var connectionMonitor = new IdleConnectionMonitorThread(connectionManager);
-        connectionMonitor.setIntervalMilliseconds(proxyProperties.getClientProxy().clientIdleConnectionMonitorInterval());
+        connectionMonitor.setIntervalMilliseconds(
+                proxyProperties.clientProxy().clientIdleConnectionMonitorInterval());
         connectionMonitor.setConnectionIdleTimeMilliseconds(
-                proxyProperties.getClientProxy().clientIdleConnectionMonitorTimeout());
+                proxyProperties.clientProxy().clientIdleConnectionMonitorTimeout());
         return connectionMonitor;
     }
 
-    @Bean("proxyHttpClient")
-    CloseableHttpClient proxyHttpClient(ProxyProperties proxyProperties,
-            @Qualifier("proxyHttpClientManager") HttpClientConnectionManager connectionManager) {
+    @Produces
+    @ApplicationScoped
+    @Named("proxyHttpClient")
+    CloseableHttpClient proxyHttpClient(
+            ProxyProperties proxyProperties,
+            @Named("proxyHttpClientManager") HttpClientConnectionManager connectionManager) {
         log.trace("createClient()");
 
-        int timeout = proxyProperties.getClientTimeout();
-        int socketTimeout = proxyProperties.getClientProxy().clientHttpclientTimeout();
-        RequestConfig.Builder rb = RequestConfig.custom();
-        rb.setConnectTimeout(timeout);
-        rb.setConnectionRequestTimeout(timeout);
-        rb.setSocketTimeout(socketTimeout);
+        var timeout = proxyProperties.clientTimeout();
+        var socketTimeout = proxyProperties.clientProxy().clientHttpclientTimeout();
 
-        HttpClientBuilder cb = HttpClients.custom();
+        var requestConfig = RequestConfig.custom()
+                .setConnectTimeout(timeout)
+                .setConnectionRequestTimeout(timeout)
+                .setSocketTimeout(socketTimeout)
+                .build();
 
-        cb.setConnectionManager(connectionManager);
-        cb.setDefaultRequestConfig(rb.build());
-
-        // Disable request retry
-        cb.setRetryHandler(new DefaultHttpRequestRetryHandler(0, false));
-
-        return cb.build();
+        return HttpClients.custom()
+                .setConnectionManager(connectionManager)
+                .setDefaultRequestConfig(requestConfig)
+                .setRetryHandler(new DefaultHttpRequestRetryHandler(0, false))
+                .build();
     }
 
-    @Bean("proxyHttpClientManager")
-    HttpClientConnectionManager getClientConnectionManager(ProxyProperties proxyProperties, GlobalConfProvider globalConfProvider,
-                                                           KeyConfProvider keyConfProvider, AuthTrustVerifier authTrustVerifier)
-            throws Exception {
-        RegistryBuilder<ConnectionSocketFactory> sfr = RegistryBuilder.create();
+    @Produces
+    @ApplicationScoped
+    @Named("proxyHttpClientManager")
+    HttpClientConnectionManager getClientConnectionManager(
+            ProxyProperties proxyProperties,
+            GlobalConfProvider globalConfProvider,
+            KeyConfProvider keyConfProvider,
+            AuthTrustVerifier authTrustVerifier) throws Exception {
 
-        sfr.register("http", PlainConnectionSocketFactory.INSTANCE);
+        var sfr = RegistryBuilder.<ConnectionSocketFactory>create()
+                .register("http", PlainConnectionSocketFactory.INSTANCE);
 
         if (SystemProperties.isSslEnabled()) {
-            sfr.register("https", createSSLSocketFactory(globalConfProvider, keyConfProvider, authTrustVerifier));
+            sfr.register("https", createSSLSocketFactory(
+                    globalConfProvider,
+                    keyConfProvider,
+                    authTrustVerifier));
         }
-        ProxyProperties.ClientProxyProperties clientProxyProperties = proxyProperties.getClientProxy();
-        SocketConfig.Builder sockBuilder = SocketConfig.custom().setTcpNoDelay(true);
-        sockBuilder.setSoLinger(clientProxyProperties.clientHttpclientSoLinger());
-        sockBuilder.setSoTimeout(clientProxyProperties.clientHttpclientTimeout());
-        SocketConfig socketConfig = sockBuilder.build();
 
-        PoolingHttpClientConnectionManager poolingManager = new PoolingHttpClientConnectionManager(sfr.build());
+        var clientProxyProperties = proxyProperties.clientProxy();
+        var socketConfig = SocketConfig.custom()
+                .setTcpNoDelay(true)
+                .setSoLinger(clientProxyProperties.clientHttpclientSoLinger())
+                .setSoTimeout(clientProxyProperties.clientHttpclientTimeout())
+                .build();
+
+        var poolingManager = new PoolingHttpClientConnectionManager(sfr.build());
         poolingManager.setMaxTotal(clientProxyProperties.poolTotalMaxConnections());
-        poolingManager.setDefaultMaxPerRoute(clientProxyProperties.poolTotalDefaultMaxConnectionsPerRoute());
+        poolingManager.setDefaultMaxPerRoute(
+                clientProxyProperties.poolTotalDefaultMaxConnectionsPerRoute());
         poolingManager.setDefaultSocketConfig(socketConfig);
         poolingManager.setValidateAfterInactivity(
                 clientProxyProperties.poolValidateConnectionsAfterInactivityOfMillis());
@@ -163,12 +198,12 @@ public class ProxyClientConfig {
         return poolingManager;
     }
 
-    private SSLConnectionSocketFactory createSSLSocketFactory(GlobalConfProvider globalConfProvider, KeyConfProvider keyConfProvider,
-                                                              AuthTrustVerifier authTrustVerifier)
-            throws Exception {
-        return new FastestConnectionSelectingSSLSocketFactory(authTrustVerifier, SSLContextUtil.createXroadSSLContext(globalConfProvider,
-                keyConfProvider)
-        );
+    private SSLConnectionSocketFactory createSSLSocketFactory(
+            GlobalConfProvider globalConfProvider,
+            KeyConfProvider keyConfProvider,
+            AuthTrustVerifier authTrustVerifier) throws Exception {
+        return new FastestConnectionSelectingSSLSocketFactory(
+                authTrustVerifier,
+                SSLContextUtil.createXroadSSLContext(globalConfProvider, keyConfProvider));
     }
-
 }

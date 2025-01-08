@@ -42,8 +42,6 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
 import org.springframework.scheduling.quartz.SpringBeanJobFactory;
 
-import java.util.Map;
-
 @Import({GlobalConfBeanConfig.class,
         GlobalConfRefreshJobConfig.class,
         ConfClientRpcClientConfiguration.class})
@@ -77,8 +75,5 @@ public class LogArchiverConfig {
 
     @ConfigurationProperties(prefix = "xroad.messagelog")
     static class SpringMessageLogProperties extends MessageLogConfig {
-        SpringMessageLogProperties(Map<String, String> hibernate) {
-            super(hibernate);
-        }
     }
 }

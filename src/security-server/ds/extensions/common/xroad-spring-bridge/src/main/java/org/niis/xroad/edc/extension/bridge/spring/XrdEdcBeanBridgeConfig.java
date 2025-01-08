@@ -98,9 +98,6 @@ public class XrdEdcBeanBridgeConfig {
 
     @ConfigurationProperties(prefix = "xroad.messagelog")
     static class SpringMessageLogProperties extends MessageLogConfig {
-        SpringMessageLogProperties(Map<String, String> hibernate) {
-            super(hibernate);
-        }
     }
 
     @Bean

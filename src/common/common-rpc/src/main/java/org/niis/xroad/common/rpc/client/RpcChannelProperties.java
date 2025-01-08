@@ -27,22 +27,22 @@
 
 package org.niis.xroad.common.rpc.client;
 
-import lombok.Getter;
-import lombok.RequiredArgsConstructor;
+import io.smallrye.config.WithName;
 
-@Getter
-@RequiredArgsConstructor
-public class RpcChannelProperties {
+public interface RpcChannelProperties {
     /**
      * Hostname or IP address of the server
      */
-    private final String host;
+    String host();
+
     /**
      * Port of the server
      */
-    private final int port;
+    int port();
+
     /**
      * Deadline in ms for the RPC call
      */
-    private final int deadlineAfter;
+    @WithName("deadline-after")
+    int deadlineAfter();
 }

@@ -25,19 +25,30 @@
  */
 package ee.ria.xroad.proxy.antidos;
 
-import lombok.Getter;
-import lombok.RequiredArgsConstructor;
-import org.springframework.boot.context.properties.ConfigurationProperties;
+import io.smallrye.config.ConfigMapping;
+import io.smallrye.config.WithDefault;
+import io.smallrye.config.WithName;
 
-@Getter
-@RequiredArgsConstructor
-@ConfigurationProperties(prefix = "xroad.anti-dos")
-public class AntiDosConfiguration {
+@ConfigMapping(prefix = "xroad.proxy.antidos")
+public interface AntiDosConfiguration {
 
-    private final double maxCpuLoad; // max-cpu-load: 1.1
-    private final double maxHeapUsage; // max-heap-usage: 1.1
-    private final int maxParallelConnections; // max-parallel-connections: 5000
-    private final int minFreeFileHandles; // min-free-file-handles: 100
-    private final boolean enabled; // enabled: true
+    @WithName("max-cpu-load")
+    @WithDefault("1.1")
+    double maxCpuLoad();
 
+    @WithName("max-heap-usage")
+    @WithDefault("1.1")
+    double maxHeapUsage();
+
+    @WithName("max-parallel-connections")
+    @WithDefault("5000")
+    int maxParallelConnections();
+
+    @WithName("min-free-file-handles")
+    @WithDefault("100")
+    int minFreeFileHandles();
+
+    @WithName("enabled")
+    @WithDefault("true")
+    boolean enabled();
 }

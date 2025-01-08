@@ -51,22 +51,22 @@ public final class RpcChannelFactory {
     public ManagedChannel createChannel(RpcChannelProperties channelProperties) throws Exception {
         var credentials = rpcCredentialsConfigurer.createClientCredentials();
 
-        var host = channelProperties.getHost();
-        var port = channelProperties.getPort();
+        var host = channelProperties.host();
+        var port = channelProperties.port();
 
-        if (channelProperties.getDeadlineAfter() <= 0) {
+        if (channelProperties.deadlineAfter() <= 0) {
             throw new IllegalArgumentException("Deadline must be greater than 0");
         }
 
         log.info("Starting grpc client to {}:{}, deadline: [{}], credentials: [{}]", host, port,
-                channelProperties.getDeadlineAfter(),
+                channelProperties.deadlineAfter(),
                 credentials.getClass().getSimpleName());
 
         final ClientInterceptor timeoutInterceptor = new ClientInterceptor() {
             @Override
             public <ReqT, RespT> ClientCall<ReqT, RespT> interceptCall(
                     MethodDescriptor<ReqT, RespT> method, CallOptions callOptions, Channel next) {
-                return next.newCall(method, callOptions.withDeadlineAfter(channelProperties.getDeadlineAfter(), MILLISECONDS));
+                return next.newCall(method, callOptions.withDeadlineAfter(channelProperties.deadlineAfter(), MILLISECONDS));
             }
         };
 

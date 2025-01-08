@@ -27,134 +27,112 @@ package org.niis.xroad.proxy.configuration;
 
 import ee.ria.xroad.common.cert.CertChainFactory;
 import ee.ria.xroad.common.cert.CertHelper;
-import ee.ria.xroad.common.conf.globalconf.GlobalConfBeanConfig;
 import ee.ria.xroad.common.conf.globalconf.GlobalConfProvider;
-import ee.ria.xroad.common.conf.globalconf.GlobalConfRefreshJobConfig;
-import ee.ria.xroad.common.conf.serverconf.ServerConfBeanConfig;
 import ee.ria.xroad.common.conf.serverconf.ServerConfProvider;
 import ee.ria.xroad.common.opmonitoring.AbstractOpMonitoringBuffer;
 import ee.ria.xroad.common.signature.SimpleSigner;
-import ee.ria.xroad.proxy.ProxyAddonConfig;
-import ee.ria.xroad.proxy.ProxyAdminPortConfig;
-import ee.ria.xroad.proxy.ProxyDiagnosticsConfig;
-import ee.ria.xroad.proxy.ProxyJobConfig;
-import ee.ria.xroad.proxy.ProxyMessageLogConfig;
-import ee.ria.xroad.proxy.ProxyRpcConfig;
-import ee.ria.xroad.proxy.antidos.AntiDosConfiguration;
-import ee.ria.xroad.proxy.clientproxy.AuthTrustVerifier;
 import ee.ria.xroad.proxy.conf.CachingKeyConfImpl;
 import ee.ria.xroad.proxy.conf.KeyConfProvider;
 import ee.ria.xroad.proxy.conf.SigningCtxProvider;
-import ee.ria.xroad.proxy.opmonitoring.NullOpMonitoringBuffer;
 import ee.ria.xroad.proxy.opmonitoring.OpMonitoring;
-import ee.ria.xroad.proxy.serverproxy.ServerProxy;
-import ee.ria.xroad.proxy.serverproxy.ServiceHandlerLoader;
-import ee.ria.xroad.proxy.util.CertHashBasedOcspResponder;
-import ee.ria.xroad.proxy.util.CertHashBasedOcspResponderClient;
-import ee.ria.xroad.signer.SignerClientConfiguration;
 import ee.ria.xroad.signer.SignerRpcClient;
 
-import org.niis.xroad.common.rpc.server.RpcServerConfig;
-import org.niis.xroad.confclient.proto.ConfClientRpcClientConfiguration;
-import org.niis.xroad.proxy.ProxyProperties;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
-import org.springframework.boot.context.properties.EnableConfigurationProperties;
-import org.springframework.context.ApplicationContext;
-import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.ComponentScan;
-import org.springframework.context.annotation.Configuration;
-import org.springframework.context.annotation.Import;
+import io.quarkus.runtime.ShutdownEvent;
+import io.smallrye.common.annotation.Identifier;
+import jakarta.enterprise.context.ApplicationScoped;
+import jakarta.enterprise.event.Observes;
+import jakarta.enterprise.inject.Default;
+import jakarta.enterprise.inject.Produces;
+
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
 
 //TODO  This is getting out of hand, refactor to be more readable.
-@Import({
-        ProxyRpcConfig.class,
-        ProxyAdminPortConfig.class,
-        ProxyAddonConfig.class,
-        ProxyDiagnosticsConfig.class,
-        ProxyJobConfig.class,
-        ProxyMessageLogConfig.class,
-        ProxyClientConfig.class,
-        GlobalConfBeanConfig.class,
-        GlobalConfRefreshJobConfig.class,
-        ServerConfBeanConfig.class,
-        SignerClientConfiguration.class,
-        ConfClientRpcClientConfiguration.class,
-        ProxyEdcControlPlaneConfig.class,
-        RpcServerConfig.class
-})
-@ComponentScan("org.niis.xroad.proxy.edc")
-@EnableConfigurationProperties({
-        ProxyProperties.class,
-        AntiDosConfiguration.class,
-})
-@Configuration
+//@Import({
+//        ProxyRpcConfig.class,
+//        ProxyAdminPortConfig.class,
+//        ProxyAddonConfig.class,
+//        ProxyDiagnosticsConfig.class,
+//        ProxyJobConfig.class,
+//        ProxyMessageLogConfig.class,
+//        ProxyClientConfig.class,
+//        GlobalConfBeanConfig.class,
+//        GlobalConfRefreshJobConfig.class,
+//        ServerConfBeanConfig.class,
+//        SignerClientConfiguration.class,
+//        ConfClientRpcClientConfiguration.class,
+//        ProxyEdcControlPlaneConfig.class,
+//        RpcServerConfig.class
+//})
+//@EnableConfigurationProperties({
+//        ProxyProperties.class,
+//        AntiDosConfiguration.class,
+//})
+@ApplicationScoped
 public class ProxyConfig {
 
-    @Bean
+    @Produces
     CertHelper certHelper(GlobalConfProvider globalConfProvider) {
         return new CertHelper(globalConfProvider);
     }
 
-    @Bean
+    @Produces
     CertChainFactory certChainFactory(GlobalConfProvider globalConfProvider) {
         return new CertChainFactory(globalConfProvider);
     }
 
-    @Bean
-    AuthTrustVerifier authTrustVerifier(CertHashBasedOcspResponderClient certHashBasedOcspResponderClient,
-                                        KeyConfProvider keyConfProvider, CertHelper certHelper, CertChainFactory certChainFactory) {
-        return new AuthTrustVerifier(certHashBasedOcspResponderClient, keyConfProvider, certHelper, certChainFactory);
-    }
+//    @Bean
+//    AuthTrustVerifier authTrustVerifier(CertHashBasedOcspResponderClient certHashBasedOcspResponderClient,
+//                                        KeyConfProvider keyConfProvider, CertHelper certHelper, CertChainFactory certChainFactory) {
+//        return new AuthTrustVerifier(certHashBasedOcspResponderClient, keyConfProvider, certHelper, certChainFactory);
+//    }
 
-    @Bean
-    ServerProxy serverProxy(ProxyProperties proxyProperties,
-                            AntiDosConfiguration antiDosConfiguration,
-                            GlobalConfProvider globalConfProvider,
-                            KeyConfProvider keyConfProvider,
-                            ServerConfProvider serverConfProvider,
-                            CertChainFactory certChainFactory,
-                            ServiceHandlerLoader serviceHandlerLoader) throws Exception {
-        return new ServerProxy(proxyProperties.getServer(), antiDosConfiguration,
-                globalConfProvider, keyConfProvider, serverConfProvider, certChainFactory, serviceHandlerLoader);
-    }
+//    @Bean
+//    ServerProxy serverProxy(ProxyProperties proxyProperties,
+//                            AntiDosConfiguration antiDosConfiguration,
+//                            GlobalConfProvider globalConfProvider,
+//                            KeyConfProvider keyConfProvider,
+//                            ServerConfProvider serverConfProvider,
+//                            CertChainFactory certChainFactory,
+//                            ServiceHandlerLoader serviceHandlerLoader) throws Exception {
+//        return new ServerProxy(proxyProperties.getServer(), antiDosConfiguration,
+//                globalConfProvider, keyConfProvider, serverConfProvider, certChainFactory, serviceHandlerLoader);
+//    }
 
-    @Bean
-    ServiceHandlerLoader serviceHandlerLoader(ApplicationContext applicationContext) {
-        return new ServiceHandlerLoader(applicationContext);
-    }
+//    @Bean
+//    ServiceHandlerLoader serviceHandlerLoader(ApplicationContext applicationContext) {
+//        return new ServiceHandlerLoader(applicationContext);
+//    }
 
-    @Bean
-    CertHashBasedOcspResponder certHashBasedOcspResponder(ProxyProperties proxyProperties, KeyConfProvider keyConfProvider)
-            throws Exception {
-        return new CertHashBasedOcspResponder(proxyProperties.getOcspResponder(), keyConfProvider);
-    }
+//    @Bean
+//    CertHashBasedOcspResponder certHashBasedOcspResponder(ProxyProperties proxyProperties, KeyConfProvider keyConfProvider)
+//            throws Exception {
+//        return new CertHashBasedOcspResponder(proxyProperties.getOcspResponder(), keyConfProvider);
+//    }
 
-    @Bean
-    CertHashBasedOcspResponderClient certHashBasedOcspResponderClient(ProxyProperties proxyProperties) {
-        return new CertHashBasedOcspResponderClient(proxyProperties.getOcspResponder());
-    }
-
-    @Bean
+    //    @Bean
+//    CertHashBasedOcspResponderClient certHashBasedOcspResponderClient(ProxyProperties proxyProperties) {
+//        return new CertHashBasedOcspResponderClient(proxyProperties.getOcspResponder());
+//    }
+    @Produces
+    @ApplicationScoped
     OpMonitoring opMonitoringBuffer(AbstractOpMonitoringBuffer opMonitoringBuffer) throws Exception {
         return OpMonitoring.init(opMonitoringBuffer);
     }
 
-    @Bean
-    @ConditionalOnMissingBean
-    AbstractOpMonitoringBuffer nullOpMonitoringBuffer(ServerConfProvider serverConfProvider) {
-        return new NullOpMonitoringBuffer(serverConfProvider);
-    }
-
-    @Bean
+    @Produces
+    @ApplicationScoped
     KeyConfProvider keyConfProvider(GlobalConfProvider globalConfProvider, ServerConfProvider serverConfProvider,
                                     SignerRpcClient signerRpcClient) throws Exception {
         return new CachingKeyConfImpl(globalConfProvider, serverConfProvider, signerRpcClient);
     }
 
-    @Bean
+    @Produces
     SimpleSigner simpleSigner(SignerRpcClient signerRpcClient) {
         var signer = new SimpleSigner(signerRpcClient);
         SigningCtxProvider.setSigner(signer);
         return signer;
     }
+
 }

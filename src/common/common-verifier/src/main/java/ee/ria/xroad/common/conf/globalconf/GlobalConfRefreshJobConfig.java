@@ -29,14 +29,13 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.scheduling.annotation.EnableScheduling;
 
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 
 @Slf4j
 @Configuration(proxyBeanMethods = false)
-@EnableScheduling
+//@EnableScheduling
 @RequiredArgsConstructor
 public class GlobalConfRefreshJobConfig {
     public static final String BEAN_GLOBAL_CONF_SCHEDULER = "globalConfRefreshScheduler";
@@ -46,9 +45,9 @@ public class GlobalConfRefreshJobConfig {
         return new GlobalConfRefreshJob(globalConfProvider);
     }
 
-    @Bean(BEAN_GLOBAL_CONF_SCHEDULER)
-    ScheduledExecutorService globalConfRefreshScheduler() {
-        return Executors.newSingleThreadScheduledExecutor();
-    }
+//    @Bean(BEAN_GLOBAL_CONF_SCHEDULER)
+//    ScheduledExecutorService globalConfRefreshScheduler() {
+//        return Executors.newSingleThreadScheduledExecutor();
+//    }
 
 }

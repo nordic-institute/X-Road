@@ -28,26 +28,19 @@ package org.niis.xroad.common.rpc;
 import ee.ria.xroad.common.properties.CommonRpcProperties;
 
 import org.niis.xroad.common.rpc.client.RpcChannelFactory;
-import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.scheduling.annotation.EnableScheduling;
-import org.springframework.scheduling.concurrent.SimpleAsyncTaskScheduler;
-import org.springframework.vault.core.VaultTemplate;
 
 @Configuration(proxyBeanMethods = false)
-@EnableScheduling
-@EnableConfigurationProperties({CommonRpcProperties.class,
-        CommonRpcProperties.CertificateProvisionProperties.class})
 public class RpcConfig {
     public static final String BEAN_VIRTUAL_THREAD_SCHEDULER = "virtualThreadTaskScheduler";
 
-    @Bean
-    ReloadableVaultKeyManager reloadableVaultKeyManager(VaultTemplate vaultTemplate,
-                                                        CommonRpcProperties.CertificateProvisionProperties provisionProperties)
-            throws Exception {
-        return new ReloadableVaultKeyManager(provisionProperties, vaultTemplate);
-    }
+//    @Bean
+//    ReloadableVaultKeyManager reloadableVaultKeyManager(VaultTemplate vaultTemplate,
+//                                                        CommonRpcProperties.CertificateProvisionProperties provisionProperties)
+//            throws Exception {
+//        return new ReloadableVaultKeyManager(provisionProperties, vaultTemplate);
+//    }
 
     @Bean
     RpcChannelFactory rpcChannelFactory(RpcCredentialsConfigurer credentialsConfigurer) {
@@ -55,15 +48,15 @@ public class RpcConfig {
     }
 
     @Bean
-    RpcCredentialsConfigurer rpcCredentialsConfigurer(ReloadableVaultKeyManager keyStoreLoader,
+    RpcCredentialsConfigurer rpcCredentialsConfigurer(VaultKeyProvider vaultKeyProvider,
                                                       CommonRpcProperties rpcCommonProperties) {
-        return new RpcCredentialsConfigurer(rpcCommonProperties, keyStoreLoader);
+        return new RpcCredentialsConfigurer(rpcCommonProperties, vaultKeyProvider);
     }
 
-    @Bean(BEAN_VIRTUAL_THREAD_SCHEDULER)
-    SimpleAsyncTaskScheduler simpleAsyncTaskScheduler() {
-        var scheduled = new SimpleAsyncTaskScheduler();
-        scheduled.setVirtualThreads(true);
-        return scheduled;
-    }
+//    @Bean(BEAN_VIRTUAL_THREAD_SCHEDULER)
+//    SimpleAsyncTaskScheduler simpleAsyncTaskScheduler() {
+//        var scheduled = new SimpleAsyncTaskScheduler();
+//        scheduled.setVirtualThreads(true);
+//        return scheduled;
+//    }
 }
