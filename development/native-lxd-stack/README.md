@@ -35,3 +35,14 @@ Default hosts assume presence of Lima, but you can specify your own custom inven
 # Compile code -> create packages -> deploy.
 ./start-env.sh --custom-inventory=config/custom/my-inventory.txt
 ```
+
+### Accessing JMX from host
+
+1. Get container IP from `lxc list`
+2. Run the following command to forward JMX port to localhost.
+
+```bash
+ssh -F ~/.lima/xroad-lxd/ssh.config -NL 9990:<lxd-container-ip>:9990 lima-xroad-lxd 
+```
+
+Note: this assumes that you have Lima is used to manage LXD containers.
