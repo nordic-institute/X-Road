@@ -55,8 +55,8 @@ importers:
         specifier: ^2.5.1
         version: 2.5.1(eslint@8.57.1)(vuetify@3.7.6)
       happy-dom:
-        specifier: ^15.11.7
-        version: 15.11.7
+        specifier: ^16.5.2
+        version: 16.5.2
       license-check-and-add:
         specifier: ~4.0.5
         version: 4.0.5
@@ -89,7 +89,7 @@ importers:
         version: 2.0.4(vite@6.0.7(@types/node@22.10.5)(jiti@2.4.1)(sass@1.83.1)(stylus@0.57.0)(yaml@2.6.1))(vue@3.5.13(typescript@5.7.2))(vuetify@3.7.6)
       vitest:
         specifier: ^2.1.8
-        version: 2.1.8(@types/node@22.10.5)(happy-dom@15.11.7)(sass@1.83.1)(stylus@0.57.0)
+        version: 2.1.8(@types/node@22.10.5)(happy-dom@16.5.2)(sass@1.83.1)(stylus@0.57.0)
       vue-eslint-parser:
         specifier: ^9.4.3
         version: 9.4.3(eslint@8.57.1)
@@ -1847,8 +1847,8 @@ packages:
     engines: {node: '>=0.4.7'}
     hasBin: true
 
-  happy-dom@15.11.7:
-    resolution: {integrity: sha512-KyrFvnl+J9US63TEzwoiJOQzZBJY7KgBushJA8X61DMbNsH+2ONkDuLDnCnwUiPTF42tLoEmrPyoqbenVA5zrg==}
+  happy-dom@16.5.2:
+    resolution: {integrity: sha512-XWXjbbNjog3Me13Q9FQ5L1D7p4bCUdxrJndLVdsCIsCZgHpKz7HUQzAy+R2TidjKEz2Spe3gaqNpPPxOOkepyg==}
     engines: {node: '>=18.0.0'}
 
   has-flag@4.0.0:
@@ -4676,9 +4676,8 @@ snapshots:
     optionalDependencies:
       uglify-js: 3.19.3
 
-  happy-dom@15.11.7:
+  happy-dom@16.5.2:
     dependencies:
-      entities: 4.5.0
       webidl-conversions: 7.0.0
       whatwg-mimetype: 3.0.0
 
@@ -5513,7 +5512,7 @@ snapshots:
       stylus: 0.57.0
       yaml: 2.6.1
 
-  vitest@2.1.8(@types/node@22.10.5)(happy-dom@15.11.7)(sass@1.83.1)(stylus@0.57.0):
+  vitest@2.1.8(@types/node@22.10.5)(happy-dom@16.5.2)(sass@1.83.1)(stylus@0.57.0):
     dependencies:
       '@vitest/expect': 2.1.8
       '@vitest/mocker': 2.1.8(vite@5.4.11(@types/node@22.10.5)(sass@1.83.1)(stylus@0.57.0))
@@ -5537,7 +5536,7 @@ snapshots:
       why-is-node-running: 2.3.0
     optionalDependencies:
       '@types/node': 22.10.5
-      happy-dom: 15.11.7
+      happy-dom: 16.5.2
     transitivePeerDependencies:
       - less
       - lightningcss
