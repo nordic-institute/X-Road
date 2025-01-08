@@ -323,10 +323,10 @@ public class SignerStepDefs extends BaseSignerStepDefs {
                 KeyUsageInfo.valueOf(keyUsage),
                 "CN=key-" + keyName, CertificateRequestFormat.DER);
 
-        this.scenarioCsrId = csrInfo.getCertReqId();
+        this.scenarioCsrId = csrInfo.certReqId();
 
         File csrFile = File.createTempFile("tmp", keyUsage.toLowerCase() + "_csr" + System.currentTimeMillis());
-        FileUtils.writeByteArrayToFile(csrFile, csrInfo.getCertRequest());
+        FileUtils.writeByteArrayToFile(csrFile, csrInfo.certRequest());
         putStepData(StepDataKey.DOWNLOADED_FILE, csrFile);
     }
 
@@ -706,7 +706,17 @@ public class SignerStepDefs extends BaseSignerStepDefs {
                 5560, timeoutMillis);
 
         //TODO fix
-        RpcServerProperties rpcServerProperties = new RpcServerProperties("localhost", 5560);
+        RpcServerProperties rpcServerProperties = new RpcServerProperties() {
+            @Override
+            public String listenAddress() {
+                return "localhost";
+            }
+
+            @Override
+            public int port() {
+                return 5560;
+            }
+        };
         signerRpcClient = new SignerRpcClient(channelFactory, signerRpcClientProperties);
         signerRpcClient.afterPropertiesSet();
     }

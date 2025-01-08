@@ -109,9 +109,16 @@ public final class TestUtil {
             "connection.password", "serverconf",
             "hbm2ddl.auto", "create-drop"
     );
-    static ServerConfProperties serverConfProperties = new ServerConfProperties(60, 100,
-            1000, 100_000, 100_000, serverConfHibernateProperties);
-    static DatabaseCtxV2 databaseCtx = new DatabaseCtxV2("serverconf", serverConfProperties.hibernate());
+    static ServerConfProperties serverConfProperties = new ServerConfProperties();
+    static {
+        serverConfProperties.setCachePeriod(60);
+        serverConfProperties.setClientCacheSize(100);
+        serverConfProperties.setServiceCacheSize(1000);
+        serverConfProperties.setServiceEndpointsCacheSize(100_000);
+        serverConfProperties.setAclCacheSize(100_000);
+        serverConfProperties.setHibernate(serverConfHibernateProperties);
+    }
+    static DatabaseCtxV2 databaseCtx = new DatabaseCtxV2("serverconf", serverConfProperties.getHibernate());
 
     private TestUtil() {
     }

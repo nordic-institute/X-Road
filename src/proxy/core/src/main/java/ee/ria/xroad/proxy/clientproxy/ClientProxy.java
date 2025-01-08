@@ -27,7 +27,7 @@ package ee.ria.xroad.proxy.clientproxy;
 
 import ee.ria.xroad.common.conf.serverconf.ServerConfProvider;
 import ee.ria.xroad.common.util.CryptoUtils;
-import ee.ria.xroad.proxy.util.JettyUtil;
+import ee.ria.xroad.common.util.JettyUtils;
 
 import io.quarkus.arc.All;
 import jakarta.annotation.PostConstruct;
@@ -54,7 +54,6 @@ import javax.net.ssl.X509TrustManager;
 import java.security.SecureRandom;
 import java.security.cert.CertificateException;
 import java.security.cert.X509Certificate;
-import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 
@@ -103,7 +102,7 @@ public class ClientProxy {
         var file = clientProxyProperties.jettyConfigurationFile();
 
         log.debug("Configuring server from {}", file);
-        new XmlConfiguration(JettyUtil.toResource(file)).configure(server);
+        new XmlConfiguration(JettyUtils.toResource(file)).configure(server);
 
         final var writer = new Slf4jRequestLogWriter();
         writer.setLoggerName(getClass().getPackage().getName() + ".RequestLog");
