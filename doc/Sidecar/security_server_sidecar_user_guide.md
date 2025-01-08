@@ -1,6 +1,6 @@
 # Security Server Sidecar User Guide <!-- omit in toc -->
 
-Version: 1.14  
+Version: 1.15  
 Doc. ID: UG-SS-SIDECAR
 
 ## Version history <!-- omit in toc -->
@@ -22,6 +22,7 @@ Doc. ID: UG-SS-SIDECAR
 | 13.05.2024 | 1.12    | Add additional upgrade details for Sidecar 7.5          | Ovidijus Narkevicius      |
 | 22.08.2024 | 1.13    | Add a section about enabling ACME support               | Eneli Reimets             |
 | 23.09.2024 | 1.14    | Changing System Parameter Values in Configuration Files | Eneli Reimets             |
+| 23.12.2024 | 1.15    | Minor documentation updates                             | Eneli Reimets             |
 
 ## License
 
@@ -59,7 +60,7 @@ To view a copy of this license, visit <https://creativecommons.org/licenses/by-s
 
 ## 1 Introduction
 
-X-Road Security Server Sidecar is containerized, production ready, version of the X-Road Security Server. This document describes the installation and maintenance of the Sidecar, to the extent it differs from the X-Road Security Server for Ubuntu server. For additional details, see [IG-SS](#Ref_IG-SS) and [UG-SS](#Ref_UG_SS).
+X-Road Security Server Sidecar is containerized, production ready, version of the X-Road Security Server. This document describes the installation and maintenance of the Sidecar, to the extent it differs from the X-Road Security Server for Ubuntu server. For additional details, see [IG-SS](#Ref_IG-SS) and [UG-SS](#Ref_UG-SS).
 
 ### 1.1 X-Road Security Server Sidecar images
 
@@ -133,12 +134,13 @@ The table below lists the required connections between different components.
 | Inbound    | Consumer Information System | Sidecar                      | 8080, 8443       | tcp          | From "internal" network |
 | Inbound    | Admin                       | Sidecar                      | 4000             | https        | From "internal" network |
 | Inbound    | ACME Server                 | Sidecar                      | 80               | http         |                         |
-| Outbound   | Sidecar                     | Central Server               | 80, 4001         | http(s)      |                         |
+| Outbound   | Sidecar                     | Central Server               | 80, 443, 4001    | http(s)      |                         |
 | Outbound   | Sidecar                     | OCSP Service                 | 80 / 443 / other | http(s)      |                         |
 | Outbound   | Sidecar                     | Timestamping Service         | 80 / 443 / other | http(s)      | Not used by *slim*      |
 | Outbound   | Sidecar                     | Other Security Server(s)     | 5500, 5577       | tcp          |                         |
 | Outbound   | Sidecar                     | Producer Information System  | 80, 443, other   | http(s)      | To "internal" network   |
 | Outbound   | Sidecar                     | ACME Server                  | 80 / 443         | http(s)      |                         |
+| Outbound   | Sidecar                     | Mail server                  | 587              | tcp          |                         |
 
 Notes:
 * Using a firewall to protect the Security Server is recommended. The firewall can be applied to both incoming and outgoing connections, depending on the security requirements of the environment where the Security Server will be deployed.
@@ -165,11 +167,11 @@ docker run --detach \
   -e XROAD_TOKEN_PIN=<token pin> \
   -e XROAD_ADMIN_USER=<admin user> \
   -e XROAD_ADMIN_PASSWORD=<admin password> \
-  -e XROAD_LOG_LEVEL=INFO \
   # Optional parameters - BEGIN
   -v <config-volume>:/etc/xroad \
   -v <archive-volume>:/var/lib/xroad \
   -v <database-volume>:/var/lib/postgresql/16/main \
+  -e XROAD_LOG_LEVEL=INFO \
   -e XROAD_DB_HOST=<database-host> \
   -e XROAD_DB_PORT=<database-port> \
   -e XROAD_DB_PWD=<postgres password> \
@@ -193,13 +195,16 @@ In production use, either persistent volumes should be used. Using a separate da
 2. Ensure from the command line that the X-Road services are running in the container:
     ```bash
     docker exec -t <container name> supervisorctl status
-    xroad-autologin                  RUNNING    Nov 04 12:23 PM
-    xroad-confclient                 RUNNING   pid 468, uptime 0:15:55
-    xroad-monitor                    RUNNING   pid 471, uptime 0:15:55
-    xroad-opmonitor                  RUNNING   pid 470, uptime 0:15:55
-    xroad-proxy                      RUNNING   pid 473, uptime 0:15:55
-    xroad-proxy-ui-api               RUNNING   pid 476, uptime 0:15:55
-    xroad-signer                     RUNNING   pid 472, upt|ime 0:15:55
+    cron                             RUNNING   pid 557, uptime 0:07:44
+    postgres                         RUNNING   pid 552, uptime 0:07:44
+    xroad-addon-messagelog           RUNNING   pid 558, uptime 0:07:44
+    xroad-autologin                  EXITED    Dec 19 01:18 PM
+    xroad-confclient                 RUNNING   pid 553, uptime 0:07:44
+    xroad-monitor                    RUNNING   pid 554, uptime 0:07:44
+    xroad-opmonitor                  RUNNING   pid 555, uptime 0:07:44
+    xroad-proxy                      RUNNING   pid 560, uptime 0:07:44
+    xroad-proxy-ui-api               RUNNING   pid 561, uptime 0:07:44
+    xroad-signer                     RUNNING   pid 556, uptime 0:07:44
     ```
 
 3. Ensure that you can open the admin user interface URL `https://127.0.0.1:<admin port>` in a web browser. To log in, use the credentials you set during the installation (\<admin user>, \<admin password>). While the user interface is still starting up, the web browser may display a connection refused -error.
@@ -252,7 +257,7 @@ To change the database host, you need to:
 1. Edit db.properties inside the container
 
     ```bash
-    docker exec -it <sidecar container name> nano /etc/xroad/db.properties
+    docker exec -it <sidecar container name> nano-tiny /etc/xroad/db.properties
     ```
 2. Replace the connection host, the username and password with the properties of the new database:
 
@@ -305,7 +310,7 @@ It is recommended to configure persistent [storage](https://docs.docker.com/stor
 For example, to run sidecar using volumes for each mount point execute the following command:
 ```bash
 docker run --detach \
-  --name sss-7.4.1 \
+  --name sss-7.6.0 \
   -p 127.0.0.1:4170:4000 \
   -p 127.0.0.1:5588:5588 \
   -p 8443:8443 \
@@ -318,13 +323,13 @@ docker run --detach \
   -v sidecar_config_volume:/etc/xroad \
   -v sidecar_backup_volume:/var/lib/xroad \
   -v sidecar_db_volume:/var/lib/postgresql/16/main \
-  niis/xroad-security-server-sidecar:7.4.1
+  niis/xroad-security-server-sidecar:7.6.0
 ```
 
 ### 2.8 Automatic backups
 
-The Security Server backs up its configuration automatically once every day, by default. Backups older than 30 days are automatically removed from the server.
-If needed, you can adjust the automatic backup policies by editing the `/etc/cron.d/xroad-proxy` file.
+The Security Server backs up its configuration automatically once every day, by default. It can be changed with system parameter `proxy-configuration-backup-cron`, see UG-SYSPAR(#Ref_UG-SYSPAR) for configuration details. Backups older than 30 days are automatically removed from the server.
+If needed, you can adjust the automatic backup deletion policies by editing the `/etc/cron.d/xroad-proxy` file.
 
 Automatic backups will be stored in the folder `/var/lib/xroad/backup/`.
 
@@ -359,13 +364,13 @@ certificates on the Security Server. More information about the required configu
 
 Upgrading to a new image is supported, provided that:
 
-* The new container image has the same or subsequent minor version of the X-Road Security Server
+* The new container image has the same or subsequent minor version of the X-Road Security Server.
   * As an exception, upgrading from 6.26.0 to 7.0.x is supported despite the major version change.
   * As an exception, upgrading from 7.4.2 to 7.5.x is supported using backup archive if local database is used.
-* A volume is used for `/etc/xroad`
-* A remote database is used, or a volume is mapped to `/var/lib/postgresql/16/main`
-* The `xroad.properties` file with `serverconf.database.admin_user` etc. credentials is either mapped to `/etc/xroad.properties` or present in `/etc/xroad/xroad.properties`
-* The same image type (slim or full) and variant (ee, fi, ...) are used for the new container
+* A volume is used for `/etc/xroad`.
+* A remote database is used, or a volume is mapped to `/var/lib/postgresql/16/main`.
+* The `xroad.properties` file with `serverconf.database.admin_user` etc. credentials is either mapped to `/etc/xroad.properties` or present in `/etc/xroad/xroad.properties`.
+* The same image type (slim or full) and variant (ee, fi, ...) are used for the new container.
 
 If the prerequisites are met, upgrading is straightforward:
 
@@ -418,11 +423,11 @@ In case the prerequisites are not fully met, it is possible to manually prepare 
   docker stop <container-name-temp>
   ```
 * Upgrade using the upgrade instructions above
-* 
+
 ### 4.2 Upgrading from version 7.4.2 to 7.5.x with local database
 
 Upgrading from 7.4.2 to 7.5.x is supported, if the above prerequisites are met. 
-However, due to a newer PostgreSQL version(16, previously 12) used in new sidecar image, it isn't straightforward to upgrade using the same database volume.
+However, due to a newer PostgreSQL version (16, previously 12) used in new sidecar image, it isn't straightforward to upgrade using the same database volume.
 
 * Create a backup for the current sidecar instance using UI or command line and download it.
 * Stop the old container and rename it.

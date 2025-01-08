@@ -86,6 +86,16 @@
         "confirmTitle": "Kustuta klient",
         "success": "Klient kustutatud"
       },
+      "disable": {
+        "confirmText": "Kas soovite selle kliendi blokeerida?",
+        "confirmTitle": "Blokeeri klient",
+        "success": "Klient blokeeritakse"
+      },
+      "enable": {
+        "confirmText": "Kas soovite selle kliendi aktiveerida?",
+        "confirmTitle": "Aktiveeri klient",
+        "success": "Klient aktiveeritud"
+      },
       "makeOwner": {
         "button": "Muuda omanikuks",
         "confirmText1": "Kas soovite muuta alloleva liikme selle turvaserveri uueks omanikuks?",
@@ -103,16 +113,6 @@
         "confirmText": "Kas soovite selle kliendi nimekirjast kustutada?",
         "confirmTitle": "Kustuta klient nimekirjast",
         "success": "Klient nimekirjast kustutatud"
-      },
-      "disable": {
-        "confirmText": "Kas soovite selle kliendi blokeerida?",
-        "confirmTitle": "Blokeeri klient",
-        "success": "Klient blokeeritakse"
-      },
-      "enable": {
-        "confirmText": "Kas soovite selle kliendi aktiveerida?",
-        "confirmTitle": "Aktiveeri klient",
-        "success": "Klient aktiveeritud"
       }
     },
     "id": "ID",
@@ -125,13 +125,13 @@
     "status": "Olek",
     "statusText": {
       "deletionInProgress": "TOIMUB KUSTUTAMINE",
+      "disabled": "BLOKEERITUD",
+      "disablingInProgress": "TOIMUB BLOKEERIMINE",
+      "enablingInProgress": "TOIMUB AKTIVEERIMINE",
       "globalError": "GLOBAALNE VIGA",
       "registered": "REGISTREERITUD",
       "registrationInProgress": "TOIMUB REGISTREERIMINE",
-      "saved": "SALVESTATUD",
-      "disabled": "BLOKEERITUD",
-      "disablingInProgress": "TOIMUB BLOKEERIMINE",
-      "enablingInProgress": "TOIMUB AKTIVEERIMINE"
+      "saved": "SALVESTATUD"
     },
     "subsystemCode": "Alamsüsteemi kood",
     "unknownMember": "tundmatu liige"
@@ -160,9 +160,9 @@
     "helpClient": "Liige, kellele sertifikaat väljastatakse.",
     "helpCsrFormat": "Sertifikaadi allkirjastamise taotluse vorm lähtudes CA nõuetest.",
     "helpUsage": "Sertifikaadi kasutuspoliitika: sõnumite allkirjastamine või turvaserveri autentimine.",
+    "orderAcmeCertificate": "Telli sertifikaat ACME serverilt koos loodud CSR-iga ja impordi tagastatud sertifikaat krüptomoodulile.",
     "saveInfo": "Loo uus CSR ja salvesta see turvalisse kohta.",
-    "usage": "Kasutus",
-    "orderAcmeCertificate": "Telli sertifikaat ACME serverilt koos loodud CSR-iga ja impordi tagastatud sertifikaat krüptomoodulile."
+    "usage": "Kasutus"
   },
   "customValidation": {
     "invalidEndpoint": "Otspunkt sisaldab lubamatuid märke",
@@ -173,6 +173,29 @@
   "diagnostics": {
     "addOnStatus": {
       "messageLogDisabled": "Konfiguratsiooniga blokeeritud"
+    },
+    "encryption": {
+      "backup": {
+        "configuredKeyId": "Konfigureeritud võtme ID",
+        "title": "Krüpteeri varukoopia"
+      },
+      "messageLog": {
+        "archive": {
+          "defaultKeyNote": "See liige on konfigureeritud kasutama serveri vaikimisi krüpteerimisvõtit. Lisaturbe tagamiseks kaaluge kasutamiseks konkreetse võtme määramist.",
+          "groupingTitle": "Rühmitamise reegel:",
+          "keyId": "Võtme ID",
+          "memberIdentifier": "Liikme identifikaator",
+          "title": "Krüpteeri sõnumilogi arhiiv"
+        },
+        "database": {
+          "title": "Krüpteeri sõnumilogi andmebaas"
+        }
+      },
+      "status": {
+        "false": "Blokeeritud",
+        "true": "Lubatud"
+      },
+      "statusTitle": "Krüpteerimise staatus:"
     },
     "globalConfiguration": {
       "configurationStatus": {
@@ -196,23 +219,23 @@
       "vendor": "Tarnija nimi"
     },
     "mailNotificationConfiguration": {
-      "title": "Emaili teavituste staatus",
-      "help": {
-        "title": "Erinevad emaili teavituste staatused",
-        "description": "Sõltuvalt konfiguratsioonist saadetakse konfigureeritud adressaatidele automaatselt emaili teavitused järgmiste sündmuste kohta: autentimissertifikaadi uuendamine ACME kaudu õnnestus / ebaõnnestus, allkirjastamise sertifikaadi uuendamine ACME kaudu õnnestus / ebaõnnestus, autentimissertifikaadi registreerimine õnnestus. Meiliteatiste lubamine nõuab turvaserveri konfiguratsiooni muutmist. Lisateavet leiate turvaserveri User Guide dokumentatsioonist."
+      "confStatus": {
+        "false": "Konfiguratsioon lõpetamata",
+        "true": "Konfigureeritud"
+      },
+      "configuration": "Meiliserveri konfiguratsioon",
+      "enabled": {
+        "false": "Blokeeritud",
+        "true": "Aktiveeritud"
       },
       "failureEnabled": "Tõrketeated",
-      "successEnabled": "Õnnestumisteated",
-      "configuration": "Meiliserveri konfiguratsioon",
-      "recipientsEmails": "E-kirjade saajad",
-      "enabled": {
-        "true": "Aktiveeritud",
-        "false": "Blokeeritud"
+      "help": {
+        "description": "Sõltuvalt konfiguratsioonist saadetakse konfigureeritud adressaatidele automaatselt emaili teavitused järgmiste sündmuste kohta: autentimissertifikaadi uuendamine ACME kaudu õnnestus / ebaõnnestus, allkirjastamise sertifikaadi uuendamine ACME kaudu õnnestus / ebaõnnestus, autentimissertifikaadi registreerimine õnnestus. Meiliteatiste lubamine nõuab turvaserveri konfiguratsiooni muutmist. Lisateavet leiate turvaserveri User Guide dokumentatsioonist.",
+        "title": "Erinevad emaili teavituste staatused"
       },
-      "confStatus": {
-        "true": "Konfigureeritud",
-        "false": "Konfiguratsioon lõpetamata"
-      }
+      "recipientsEmails": "E-kirjade saajad",
+      "successEnabled": "Õnnestumisteated",
+      "title": "Emaili teavituste staatus"
     },
     "message": "Sõnum",
     "nextUpdate": "Järgmine värskendus",
@@ -242,29 +265,6 @@
         "UNKNOWN": "Tundmatu olek"
       },
       "title": "Ajatembeldus"
-    },
-    "encryption": {
-      "status": {
-        "false": "Blokeeritud",
-        "true": "Lubatud"
-      },
-      "statusTitle": "Krüpteerimise staatus:",
-      "backup": {
-        "title": "Krüpteeri varukoopia",
-        "configuredKeyId": "Konfigureeritud võtme ID"
-      },
-      "messageLog": {
-        "archive": {
-          "title": "Krüpteeri sõnumilogi arhiiv",
-          "groupingTitle": "Rühmitamise reegel:",
-          "memberIdentifier": "Liikme identifikaator",
-          "keyId": "Võtme ID",
-          "defaultKeyNote": "See liige on konfigureeritud kasutama serveri vaikimisi krüpteerimisvõtit. Lisaturbe tagamiseks kaaluge kasutamiseks konkreetse võtme määramist."
-        },
-        "database": {
-          "title": "Krüpteeri sõnumilogi andmebaas"
-        }
-      }
     }
   },
   "endpoints": {
@@ -286,22 +286,22 @@
   "error_code": {
     "accessright_not_found": "Pääsuõigust ei leitud",
     "acme": {
-      "eab_credentials_missing": "Välise konto sidumise identsustõendid puuduvad, kuid on nõutavad",
-      "eab_secret_length": "Kehtetu välise konto sidumise base64 saladuse pikkus",
+      "account_creation_failure": "Konto loomine ACME serveris ebaõnnestus. Kui välise konto sidumine on nõutav, siis veenduge, et acme.yml failis on konfigureeritud õiged identsustõendid",
       "account_key_pair_error": "Võtmepaari hankimine ACME serveri kontole ebaõnnestus",
       "account_keystore_password_missing": "ACME konto võtmehoidla parool puudub acme.yml konfiguratsioonifailis",
-      "fetching_metadata_error": "ACME serveri metaandmete hankimine ebaõnnestus. ACME server võib olla ligipääsematu",
-      "account_creation_failure": "Konto loomine ACME serveris ebaõnnestus. Kui välise konto sidumine on nõutav, siis veenduge, et acme.yml failis on konfigureeritud õiged identsustõendid",
-      "order_creation_failure": "Uue tellimuse loomine ACME serveris ebaõnnestus",
-      "order_finalization_failure": "Tellimuse lõpule viimine ACME serveris ebaõnnestus",
-      "http_challenge_file_creation": "ACME HTTP pretensioonifaili loomine ebaõnnestus",
-      "http_challenge_file_deletion": "ACME HTTP pretensioonifaili kustutamine ebaõnnestus",
-      "http_challenge_missing": "Praegu toetab X-Road tarkvara ainult HTTP pretensiooni, kuid see puudub ACME serveri võimalikes valikutes",
-      "challenge_trigger_failure": "Päring ACME serverile pretensiooni valideerimiseks ebaõnnestus",
       "authorization_failure": "Volitamine ebaõnnestus. Tavaliselt seotud pretensiooni valideerimise tõrkega, mis on nõutav domeeni omandi tõendamiseks",
       "authorization_wait_failure": "Volitamise lõpule viimise ootamine ebaõnnestus",
       "certificate_failure": "Sertifikaadi hankimine ACME serverilt ebaõnnestus",
-      "certificate_wait_failure": "Uue sertifikaadi loomise ootamine ebaõnnestus"
+      "certificate_wait_failure": "Uue sertifikaadi loomise ootamine ebaõnnestus",
+      "challenge_trigger_failure": "Päring ACME serverile pretensiooni valideerimiseks ebaõnnestus",
+      "eab_credentials_missing": "Välise konto sidumise identsustõendid puuduvad, kuid on nõutavad",
+      "eab_secret_length": "Kehtetu välise konto sidumise base64 saladuse pikkus",
+      "fetching_metadata_error": "ACME serveri metaandmete hankimine ebaõnnestus. ACME server võib olla ligipääsematu",
+      "http_challenge_file_creation": "ACME HTTP pretensioonifaili loomine ebaõnnestus",
+      "http_challenge_file_deletion": "ACME HTTP pretensioonifaili kustutamine ebaõnnestus",
+      "http_challenge_missing": "Praegu toetab X-Road tarkvara ainult HTTP pretensiooni, kuid see puudub ACME serveri võimalikes valikutes",
+      "order_creation_failure": "Uue tellimuse loomine ACME serveris ebaõnnestus",
+      "order_finalization_failure": "Tellimuse lõpule viimine ACME serveris ebaõnnestus"
     },
     "action_not_possible": "Toiming pole võimalik",
     "additional_member_already_exists": "Täiendav liige on juba olemas",
@@ -436,35 +436,36 @@
     "wsdl_validator_not_executable": "WSDL valideerimist ei saa teostada"
   },
   "fields": {
+    "C": "Maakood",
+    "CN": "Serveri DNS nimi",
+    "O": "Organisatsiooni nimi",
     "addClient": {
       "memberClass": "Liikmeklass",
       "memberCode": "Liikmekood",
       "subsystemCode": "Alamsüsteemi kood"
     },
-    "C": "Maakood",
+    "certificationService": "Sertifitseerimisteenus",
     "clientAdd": {
       "client": {
         "memberCode": "Liikmekood",
         "subsystemCode": "Alamsüsteemi kood"
       }
     },
-    "CN": "Serveri DNS nimi",
     "confirmPin": "Kinnita PIN",
     "csr": {
       "certService": "Sertifitseerimisteenus",
+      "certificationService": "Sertifitseerimisteenus",
       "client": "Klient",
       "csrFormat": "CSR vorming",
-      "usage": "Kasutus",
-      "certificationService": "Sertifitseerimisteenus"
+      "usage": "Kasutus"
     },
     "dns": "DNS",
     "keys": {
       "name": "Nimi"
     },
-    "O": "Organisatsiooni nimi",
+    "memberCode": "Liikmekood",
     "path": "asukoht",
     "pin": "PIN",
-    "memberCode": "Liikmekood",
     "securityServerAddress": "Turvaserveri aadress",
     "serialNumber": "Seerianumber",
     "serviceCode": "Teenuse kood",
@@ -486,11 +487,7 @@
     },
     "tokenPin": "Krüptomooduli PIN",
     "url": "URL",
-    "username": "Kasutajanimi",
-    "certificationService": "Sertifitseerimisteenus"
-  },
-  "global": {
-    "appTitle": "X-Road turvaserver"
+    "username": "Kasutajanimi"
   },
   "general": {
     "instance": "Instants",
@@ -501,15 +498,18 @@
     "subsystemCode": "Alamsüsteemi kood",
     "type": "Tüüp"
   },
+  "global": {
+    "appTitle": "X-Road turvaserver"
+  },
   "globalAlert": {
     "backupRestoreInProgress": "Toimub turvaserveri konfiguratsiooni taastamine varukoopiast. Protsess algas kell {startTime}",
-    "globalConfigurationInvalid": "Globaalne konfiguratsioon on aegunud",
-    "secondaryNode": "Olete turvaserveri klastri sekundaarses õlas. Konfiguratsiooni muutmine on blokeeritud.",
-    "softTokenPinNotEntered": "Palun sisestage tarkvaralise krüptomooduli PIN",
     "certificateRenewalJobFailure": "Viimase sertifikaadi uuendamine ebaõnnestus.",
     "certificateRenewalJobFailureAuth": "Ebaõnnestunud autentimise sertifikaadi genereerimine:",
     "certificateRenewalJobFailureSign": "Ebaõnnestunud signeerimise sertifikaadi genereerimine:",
-    "navigateToKeysPage": "Vt täpsemalt võtmete ja sertifikaatide lehekülge"
+    "globalConfigurationInvalid": "Globaalne konfiguratsioon on aegunud",
+    "navigateToKeysPage": "Vt täpsemalt võtmete ja sertifikaatide lehekülge",
+    "secondaryNode": "Olete turvaserveri klastri sekundaarses õlas. Konfiguratsiooni muutmine on blokeeritud.",
+    "softTokenPinNotEntered": "Palun sisestage tarkvaralise krüptomooduli PIN"
   },
   "initialConfiguration": {
     "anchor": {
@@ -553,6 +553,7 @@
     "tlsTitle": "Infosüsteemi TLS sertifikaat"
   },
   "keys": {
+    "acmeCertOrdered": "Sertifikaat edukalt tellitud",
     "addKey": "Lisa võti",
     "authDetailsTitle": "Autentimisvõtme detailid",
     "authKeyCert": "Autentimise võtmed ja sertifikaadid",
@@ -615,7 +616,6 @@
       "unknown": "Tundmatu"
     },
     "orderAcmeCertificate": "Tellida sertifikaat",
-    "acmeCertOrdered": "Sertifikaat edukalt tellitud",
     "readOnly": "Ainult lugemiseks:",
     "registrationRequest": "Registreerimistaotlus",
     "renewal": "Automaatne uuendamine",
@@ -674,8 +674,8 @@
   },
   "noData": {
     "noBackUpEncryptionKeys": "Konfigureeritud varukoopia krüpteerimisvõtmed puuduvad",
-    "noClientData": "Kliendi andmed puuduvad",
     "noCertificateAuthorities": "Sertifitseerimiskeskus puudub",
+    "noClientData": "Kliendi andmed puuduvad",
     "noLocalGroups": "Lokaalsed grupid puuduvad",
     "noServiceClients": "Teenuse kliendid puuduvad",
     "noTimestampingServices": "Ajatempli teenused puuduvad"
@@ -751,16 +751,16 @@
     "url": "URL",
     "urlPlaceholder": "Sisesta URL",
     "urlTooltip": "URL, kuhu on suunatud teenuse päringud",
+    "verifyTls": "Kontrolli TLS sertifikaati",
     "warning": "Hoiatus",
     "warningCode": {
       "adding_endpoints": "Otspunktide lisamine:",
       "adding_services": "Teenuste lisamine:",
       "deleting_endpoints": "Otspunktide kustutamine:",
       "deleting_services": "Teenuste kustutamine:",
-      "wsdl_validation_warnings": "Valideerimise hoiatused:",
-      "openapi_validation_warnings": "Valideerimise hoiatused:"
+      "openapi_validation_warnings": "Valideerimise hoiatused:",
+      "wsdl_validation_warnings": "Valideerimise hoiatused:"
     },
-    "verifyTls": "Kontrolli TLS sertifikaati",
     "wsdlAdded": "WSDL lisatud",
     "wsdlDescription": "WSDL-i kirjeldus",
     "wsdlDetails": "WSDL-i detailid"
@@ -804,10 +804,10 @@
     "approvedCertificateAuthorities": {
       "table": {
         "header": {
+          "acmeIpAddresses": "ACME serveri IP",
           "distinguishedName": "Eristusnimi",
           "expires": "Aegub",
-          "ocspResponse": "OCSP vastus",
-          "acmeIpAddresses": "ACME serveri IP"
+          "ocspResponse": "OCSP vastus"
         },
         "notAvailable": "Ei kohaldata",
         "ocspResponse": {
@@ -845,6 +845,15 @@
       },
       "title": "Konfiguratsiooniankur"
     },
+    "securityServer": {
+      "addressChangeInProgress": "MUUTUS ON POOLELI",
+      "editDialog": {
+        "title": "Redigeerida turvaserveri aadressi"
+      },
+      "securityServer": "Turvaserver",
+      "serverAddress": "Serveri aadress",
+      "updateSubmitted": "Turvaserveri aadressi muutus edukalt esitatud"
+    },
     "timestampingServices": {
       "action": {
         "add": {
@@ -873,15 +882,6 @@
         }
       },
       "title": "Ajatempli teenused"
-    },
-    "securityServer": {
-      "securityServer": "Turvaserver",
-      "serverAddress": "Serveri aadress",
-      "editDialog": {
-        "title": "Redigeerida turvaserveri aadressi"
-      },
-      "addressChangeInProgress": "MUUTUS ON POOLELI",
-      "updateSubmitted": "Turvaserveri aadressi muutus edukalt esitatud"
     },
     "title": "Süsteemi parameetrid"
   },
@@ -916,14 +916,14 @@
   "token": {
     "changePin": "Muuda PIN",
     "pinChanged": "Krüptomooduli PIN-koodi muudeti – logige Krüptomoodulisse sisse uue PIN-koodiga",
-    "tokenPinPolicyHeader": "Krüptomooduli PIN-koodi poliitika on lubatud.",
-    "tokenPinPolicy": "Tarkvaralise krüptomooduli PIN-kood peab sisaldama vähemalt 10 ASCII märki vähemalt kolmest märgiklassist (väiketähed, suurtähed, numbrid, erimärgid)."
+    "tokenPinPolicy": "Tarkvaralise krüptomooduli PIN-kood peab sisaldama vähemalt 10 ASCII märki vähemalt kolmest märgiklassist (väiketähed, suurtähed, numbrid, erimärgid).",
+    "tokenPinPolicyHeader": "Krüptomooduli PIN-koodi poliitika on lubatud."
   },
   "toolbar": {
     "securityServerNodeType": {
-      "undefined": "",
       "PRIMARY": "Primaarne õlg",
-      "SECONDARY": "Sekundaarne õlg"
+      "SECONDARY": "Sekundaarne õlg",
+      "undefined": ""
     }
   },
   "validationError": {
