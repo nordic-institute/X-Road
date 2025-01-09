@@ -15,6 +15,7 @@ quarkus:
     image: xroad-ss-proxy-qrk
   jib:
     base-jvm-image: eclipse-temurin:21-jre
+    jvm-entrypoint: "/bin/bash,run-java.sh"
   kubernetes-config:
     enabled: true
   log:
@@ -29,6 +30,3 @@ xroad:
   proxy:
     grpc:
       listen-address: 0.0.0.0
-
-#logging:
-#  config: classpath:logback-containerized.xml

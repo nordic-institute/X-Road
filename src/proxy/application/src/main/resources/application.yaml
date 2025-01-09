@@ -7,6 +7,8 @@ quarkus:
   vault:
     devservices:
         enabled: true
+  http:
+    host-enabled: false
   config:
     locations:
       - xroad-common.yaml

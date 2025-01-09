@@ -6,6 +6,7 @@ plugins {
 configurations {
     configureEach {
         exclude group: 'ch.qos.logback', module: 'logback-classic' //TODO remove once actual source is removed
+        exclude group: 'xml-apis', module: 'xml-apis' // This library interferes with Jett
     }
 }
 

@@ -12,7 +12,7 @@ readinessProbe:
   default:
     path: /actuator/health
     port: http  # Use named port
-    initialDelaySeconds: 10
+    initialDelaySeconds: 20
     periodSeconds: 5
     timeoutSeconds: 1
     successThreshold: 1
