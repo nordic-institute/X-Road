@@ -48,6 +48,7 @@ import ee.ria.xroad.proxy.serverproxy.RestMetadataServiceHandlerImpl;
 import ee.ria.xroad.proxy.serverproxy.RestServiceHandler;
 import ee.ria.xroad.proxy.serverproxy.ServiceHandler;
 
+import io.quarkus.arc.lookup.LookupIfProperty;
 import jakarta.annotation.Priority;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.enterprise.context.Dependent;
@@ -101,8 +102,9 @@ class ProxyAddonsConfig {
     @Produces
     @ApplicationScoped
     @Priority(200)
+    @LookupIfProperty(name = "xroad.proxy.addon.messagelog.enabled", stringValue = "true")
     AbstractClientProxyHandler asicContainerHandler(
-            ProxyAddonProperties proxyAddonProperties,
+//            ProxyAddonProperties proxyAddonProperties,
             GlobalConfProvider globalConfProvider,
             KeyConfProvider keyConfProvider,
             ServerConfProvider serverConfProvider,
@@ -110,7 +112,7 @@ class ProxyAddonsConfig {
             @Named("proxyHttpClient") HttpClient client,
             Instance<DatabaseCtxV2> messagelogDatabaseCtx) {
 
-        if (proxyAddonProperties.messagelog().enabled()) {
+//        if (proxyAddonProperties.messagelog().enabled()) {
             log.debug("Initializing messagelog addon: AsicContainerHandler");
             return new AsicContainerHandler(
                     globalConfProvider,
@@ -119,8 +121,8 @@ class ProxyAddonsConfig {
                     certChainFactory,
                     client,
                     messagelogDatabaseCtx.isResolvable() ? messagelogDatabaseCtx.get() : null);
-        }
-        return null;
+//        }
+//        return null;
     }
 
     @Produces
