@@ -42,7 +42,7 @@ import ee.ria.xroad.proxy.util.SSLContextUtil;
 import io.quarkus.runtime.Startup;
 import jakarta.annotation.PostConstruct;
 import jakarta.annotation.PreDestroy;
-import jakarta.enterprise.context.ApplicationScoped;
+import jakarta.inject.Singleton;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.eclipse.jetty.server.CustomRequestLog;
@@ -63,7 +63,7 @@ import java.util.Optional;
  */
 @Slf4j
 @Startup
-@ApplicationScoped
+@Singleton
 public class ServerProxy {
 
     private static final int ACCEPTOR_COUNT = Math.max(2, Runtime.getRuntime().availableProcessors());

@@ -44,9 +44,13 @@ xroad:
         connection.password:
   proxy:
     addon:
-      proxymonitor:
+      message-log:
+        enabled: false
+      proxy-monitor:
         enabled: true
-      metaservices:
+      meta-services:
+        enabled: true
+      op-monitor:
         enabled: true
     ocsp-responder:
       listen-address: 0.0.0.0

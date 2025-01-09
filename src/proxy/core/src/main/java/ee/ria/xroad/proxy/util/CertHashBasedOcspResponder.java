@@ -33,7 +33,7 @@ import ee.ria.xroad.proxy.conf.KeyConfProvider;
 import io.quarkus.runtime.Startup;
 import jakarta.annotation.PostConstruct;
 import jakarta.annotation.PreDestroy;
-import jakarta.enterprise.context.ApplicationScoped;
+import jakarta.inject.Singleton;
 import lombok.extern.slf4j.Slf4j;
 import org.bouncycastle.cert.ocsp.OCSPResp;
 import org.eclipse.jetty.io.Content;
@@ -67,7 +67,7 @@ import static org.eclipse.jetty.server.Request.getRemoteAddr;
  */
 @Slf4j
 @Startup
-@ApplicationScoped
+@Singleton
 public class CertHashBasedOcspResponder {
 
     private static final String METHOD_HEAD = "HEAD";

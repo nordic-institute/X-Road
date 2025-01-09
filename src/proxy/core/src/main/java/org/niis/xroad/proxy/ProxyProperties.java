@@ -33,6 +33,7 @@ import io.smallrye.config.WithName;
 import java.util.List;
 import java.util.Optional;
 
+
 @ConfigMapping(prefix = "xroad.proxy")
 public interface ProxyProperties {
 
@@ -42,7 +43,6 @@ public interface ProxyProperties {
 
     OcspResponderProperties ocspResponder();
 
-    ProxyAddonProperties addon();
 
     @WithName("verify-client-cert")
     boolean verifyClientCert();
@@ -76,16 +76,6 @@ public interface ProxyProperties {
 
     @WithName("backup-encryption-keyids")
     Optional<List<String>> backupEncryptionKeyids();
-
-    @ConfigMapping(prefix = "xroad.proxy.addon")
-    interface ProxyAddonProperties {
-        @WithName("metaservices.enabled")
-//TODO might be improved
-        boolean metaServicesEnabled();
-
-        @WithName("proxymonitor.enabled")
-        boolean oroxyMonitorEnabled();
-    }
 
     @ConfigMapping(prefix = "xroad.proxy.client-proxy")
     interface ClientProxyProperties {

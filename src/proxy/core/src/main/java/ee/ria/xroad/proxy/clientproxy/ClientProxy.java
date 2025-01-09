@@ -30,9 +30,10 @@ import ee.ria.xroad.common.util.CryptoUtils;
 import ee.ria.xroad.common.util.JettyUtils;
 
 import io.quarkus.arc.All;
+import io.quarkus.runtime.Startup;
 import jakarta.annotation.PostConstruct;
 import jakarta.annotation.PreDestroy;
-import jakarta.enterprise.context.ApplicationScoped;
+import jakarta.inject.Singleton;
 import lombok.extern.slf4j.Slf4j;
 import org.eclipse.jetty.http.UriCompliance;
 import org.eclipse.jetty.server.CustomRequestLog;
@@ -61,7 +62,8 @@ import java.util.Optional;
  * Client proxy that handles requests of service clients.
  */
 @Slf4j
-@ApplicationScoped
+@Startup
+@Singleton
 public class ClientProxy {
     private static final int ACCEPTOR_COUNT = Runtime.getRuntime().availableProcessors();
 
@@ -84,7 +86,7 @@ public class ClientProxy {
      * @throws Exception in case of any errors
      */
     public ClientProxy(ProxyProperties.ClientProxyProperties clientProxyProperties,
-                   @All List<AbstractClientProxyHandler> clientHandlers,
+                       @All List<AbstractClientProxyHandler> clientHandlers,
                        ServerConfProvider serverConfProvider) throws Exception {
         this.clientProxyProperties = clientProxyProperties;
         this.clientHandlers = clientHandlers;

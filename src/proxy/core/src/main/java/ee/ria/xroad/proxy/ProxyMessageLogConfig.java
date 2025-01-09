@@ -41,7 +41,7 @@ import io.smallrye.config.ConfigMapping;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.enterprise.inject.Produces;
 import lombok.extern.slf4j.Slf4j;
-import org.eclipse.microprofile.config.inject.ConfigProperty;
+import org.niis.xroad.proxy.ProxyAddonProperties;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -66,9 +66,9 @@ public class ProxyMessageLogConfig {
 
     @Produces
     @ApplicationScoped
-    DatabaseCtxV2 messagelogDatabaseCtx(@ConfigProperty(name = "xroad.proxy.addon.messagelog.enabled") boolean enabled,
+    DatabaseCtxV2 messagelogDatabaseCtx(ProxyAddonProperties proxyAddonProperties,
                                         MessageLogConfig messageLogProperties) {
-        if (enabled) {
+        if (proxyAddonProperties.messagelog().enabled()) {
             return new DatabaseCtxV2("messagelog", messageLogProperties.getHibernate());
         }
         return null;

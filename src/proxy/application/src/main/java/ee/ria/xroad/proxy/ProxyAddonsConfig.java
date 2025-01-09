@@ -53,25 +53,25 @@ import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.enterprise.context.Dependent;
 import jakarta.enterprise.inject.Instance;
 import jakarta.enterprise.inject.Produces;
-import jakarta.inject.Inject;
 import jakarta.inject.Named;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.http.client.HttpClient;
-import org.eclipse.microprofile.config.inject.ConfigProperty;
+import org.niis.xroad.proxy.ProxyAddonProperties;
 
-@ApplicationScoped
 @Slf4j
+@ApplicationScoped
+@RequiredArgsConstructor
 class ProxyAddonsConfig {
-
+    private final ProxyAddonProperties proxyAddonProperties;
 
     @Produces
     @Dependent
     @Priority(100)
-    AbstractClientProxyHandler metadataHandler(@ConfigProperty(name = "xroad.proxy.addon.metaservices.enabled") boolean enabled,
-                                               GlobalConfProvider globalConfProvider, KeyConfProvider keyConfProvider,
+    AbstractClientProxyHandler metadataHandler(GlobalConfProvider globalConfProvider, KeyConfProvider keyConfProvider,
                                                ServerConfProvider serverConfProvider, CertChainFactory certChainFactory,
                                                @Named("proxyHttpClient") HttpClient httpClient) {
-        if (enabled) {
+        if (proxyAddonProperties.metaservices().enabled()) {
             log.debug("Initializing metaservices addon: MetadataHandler");
             return new MetadataHandler(globalConfProvider, keyConfProvider,
                     serverConfProvider, certChainFactory, httpClient);
@@ -81,9 +81,8 @@ class ProxyAddonsConfig {
 
     @Produces
     @Dependent
-    ServiceHandler metadataServiceHandler(@ConfigProperty(name = "xroad.proxy.addon.metaservices.enabled") boolean enabled,
-                                          ServerConfProvider serverConfProvider, GlobalConfProvider globalConfProvider) {
-        if (enabled) {
+    ServiceHandler metadataServiceHandler(ServerConfProvider serverConfProvider, GlobalConfProvider globalConfProvider) {
+        if (proxyAddonProperties.metaservices().enabled()) {
             return new MetadataServiceHandlerImpl(serverConfProvider, globalConfProvider);
         }
         return null;
@@ -91,9 +90,8 @@ class ProxyAddonsConfig {
 
     @Produces
     @Dependent
-    RestServiceHandler restMetadataServiceHandler(@ConfigProperty(name = "xroad.proxy.addon.metaservices.enabled") boolean enabled,
-                                                  ServerConfProvider serverConfProvider) {
-        if (enabled) {
+    RestServiceHandler restMetadataServiceHandler(ServerConfProvider serverConfProvider) {
+        if (proxyAddonProperties.metaservices().enabled()) {
             return new RestMetadataServiceHandlerImpl(serverConfProvider);
         }
         return null;
@@ -104,7 +102,7 @@ class ProxyAddonsConfig {
     @ApplicationScoped
     @Priority(200)
     AbstractClientProxyHandler asicContainerHandler(
-            @ConfigProperty(name = "xroad.proxy.addon.messagelog.enabled") boolean enabled,
+            ProxyAddonProperties proxyAddonProperties,
             GlobalConfProvider globalConfProvider,
             KeyConfProvider keyConfProvider,
             ServerConfProvider serverConfProvider,
@@ -112,7 +110,7 @@ class ProxyAddonsConfig {
             @Named("proxyHttpClient") HttpClient client,
             Instance<DatabaseCtxV2> messagelogDatabaseCtx) {
 
-        if (!enabled) {
+        if (proxyAddonProperties.messagelog().enabled()) {
             log.debug("Initializing messagelog addon: AsicContainerHandler");
             return new AsicContainerHandler(
                     globalConfProvider,
@@ -128,7 +126,6 @@ class ProxyAddonsConfig {
     @Produces
     @ApplicationScoped
     AbstractLogManager logManager(
-            @ConfigProperty(name = "xroad.proxy.addon.messagelog.enabled") boolean enabled,
             GlobalConfProvider globalConfProvider,
             ServerConfProvider serverConfProvider,
             Instance<DatabaseCtxV2> messagelogDatabaseCtx) {
@@ -137,7 +134,7 @@ class ProxyAddonsConfig {
                 ? messagelogDatabaseCtx.get()
                 : null;
 
-        if (enabled) {
+        if (proxyAddonProperties.messagelog().enabled()) {
             log.debug("Initializing messagelog addon: LogManager");
             return new LogManager("proxy", globalConfProvider, serverConfProvider, dbCtx);
         }
@@ -150,19 +147,15 @@ class ProxyAddonsConfig {
     @Produces
     @Dependent
     ServiceHandler proxyMonitorServiceHandler(
-            @ConfigProperty(name = "xroad.proxy.addon.proxymonitor.enabled") boolean enabled,
+            ProxyAddonProperties proxyAddonProperties,
             ServerConfProvider serverConfProvider, GlobalConfProvider globalConfProvider) {
-        if (enabled) {
+        if (proxyAddonProperties.proxyMonitor().enabled()) {
             log.debug("Initializing proxymonitoring addon: ProxyMonitorServiceHandlerImpl");
             return new ProxyMonitorServiceHandlerImpl(serverConfProvider, globalConfProvider);
         }
         return null;
     }
 
-
-    @Inject
-    @ConfigProperty(name = "xroad.proxy.addon.op-monitor.enabled")
-    boolean opMonitorEnabled;
 
     @Produces
     @Dependent
@@ -174,7 +167,7 @@ class ProxyAddonsConfig {
     @Produces
     @ApplicationScoped
     AbstractOpMonitoringBuffer opMonitoringBuffer(ServerConfProvider serverConfProvider) throws Exception {
-        if (opMonitorEnabled) {
+        if (proxyAddonProperties.opmonitor().enabled()) {
             log.debug("Initializing op-monitoring addon: OpMonitoringBuffer");
             return new OpMonitoringBuffer(serverConfProvider);
         }
