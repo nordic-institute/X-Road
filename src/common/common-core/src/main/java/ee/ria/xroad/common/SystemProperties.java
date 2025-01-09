@@ -1289,7 +1289,7 @@ public final class SystemProperties {
     }
 
     public static String getServerProxyMinSupportedClientVersion() {
-        return SystemPropertySource.getPropertyResolver().getProperty(SERVERPROXY_MIN_SUPPORTED_CLIENT_VERSION);
+        return SystemPropertySource.getPropertyResolver().getProperty(SERVERPROXY_MIN_SUPPORTED_CLIENT_VERSION, (String) null);
     }
 
     /**

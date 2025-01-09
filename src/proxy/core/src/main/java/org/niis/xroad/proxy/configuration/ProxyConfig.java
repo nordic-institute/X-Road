@@ -37,16 +37,9 @@ import ee.ria.xroad.proxy.conf.SigningCtxProvider;
 import ee.ria.xroad.proxy.opmonitoring.OpMonitoring;
 import ee.ria.xroad.signer.SignerRpcClient;
 
-import io.quarkus.runtime.ShutdownEvent;
-import io.smallrye.common.annotation.Identifier;
+import io.quarkus.runtime.Startup;
 import jakarta.enterprise.context.ApplicationScoped;
-import jakarta.enterprise.event.Observes;
-import jakarta.enterprise.inject.Default;
 import jakarta.enterprise.inject.Produces;
-
-import java.util.concurrent.Executors;
-import java.util.concurrent.ScheduledExecutorService;
-import java.util.concurrent.TimeUnit;
 
 //TODO  This is getting out of hand, refactor to be more readable.
 //@Import({
@@ -129,6 +122,7 @@ public class ProxyConfig {
     }
 
     @Produces
+    @Startup
     SimpleSigner simpleSigner(SignerRpcClient signerRpcClient) {
         var signer = new SimpleSigner(signerRpcClient);
         SigningCtxProvider.setSigner(signer);
