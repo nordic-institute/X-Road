@@ -1,6 +1,6 @@
 # X-Road: Central Server User Guide <!-- omit in toc --> 
 
-Version: 2.45  
+Version: 2.46  
 Doc. ID: UG-CS
 
 ## Version history <!-- omit in toc --> 
@@ -71,6 +71,8 @@ Doc. ID: UG-CS
 | 08.04.2024 | 2.43    | Taking configuration download url from shared parameters                                                                                                                                                                                                                                                                                                                                                                                | Eneli Reimets        |
 | 09.06.2024 | 2.44    | Added ACME information for Approved CAs                                                                                                                                                                                                                                                                                                                                                                                                 | Mikk-Erik Bachmann   |
 | 01.08.2024 | 2.45    | Minor updates                                                                                                                                                                                                                                                                                                                                                                                                                           | Petteri Kivimäki     |
+| 08.01.2025 | 2.46    | Minor updates                                                                                                                                                                                                                                                                                                                                                                                                                           | Raido Kaju           |
+
 ## Table of Contents <!-- omit in toc --> 
 
 <!-- toc -->
@@ -188,19 +190,19 @@ Doc. ID: UG-CS
 
 This document is licensed under the Creative Commons Attribution-ShareAlike 3.0 Unported License. To view a copy of this license, visit http://creativecommons.org/licenses/by-sa/3.0/.
 
-# 1. Introduction
+## 1. Introduction
 
-## 1.1 Target Audience
+### 1.1 Target Audience
 
 The intended audience of this User Guide are X-Road Central Server administrators who are responsible for everyday management of the X-Road Central Server.
 
 Instructions for the installation and initial configuration of the Central Server can be found in the Central Server Installation Guide [CSI](#13-references). Instructions for installing the Central Server in a cluster for achieving high availability can be found in the Central Server High Availability Installation Guide [IG-CSHA](#13-references).
 
-## 1.2 Terms and abbreviations
+### 1.2 Terms and abbreviations
 
 See X-Road terms and abbreviations documentation \[[TA-TERMS](#Ref_TERMS)\].
 
-## 1.3 References
+### 1.3 References
 
 1. [CSI] X-Road 7. Central Server Installation Guide. Document ID: [IG-CS](ig-cs_x-road_6_central_server_installation_guide.md)
 2. [IG-CSHA] X-Road 7. Central Server High Availability Installation Guide. Document ID: [IG-CSHA](ig-csha_x-road_6_ha_installation_guide.md)
@@ -215,9 +217,9 @@ See X-Road terms and abbreviations documentation \[[TA-TERMS](#Ref_TERMS)\].
 11. <a id="Ref_REST_UI-API" class="anchor"></a>\[REST_UI-API\] X-Road Central Server Admin API OpenAPI Specification: <https://github.com/nordic-institute/X-Road/blob/develop/src/central-server/openapi-model/src/main/resources/openapi-definition.yaml>.
 12. [UG-SS] X-Road 7. Security Server User Guide. Document ID: [UG-SS](ug-ss_x-road_6_security_server_user_guide.md)
 
-# 2. User and Role Management
+## 2. User and Role Management
 
-## 2.1 User Roles
+### 2.1 User Roles
 
 The Central Server supports the following user roles:
 
@@ -233,7 +235,7 @@ The document indicates in sections similar to the following example, which user 
 
 Caution: If the logged-in user does not have a permission to carry out a task, the button that initiates the action is hidden (and neither is it possible to run the task using its corresponding keyboard combinations or mouse actions). Only the permitted information and actions are visible and available to the user.
 
-## 2.2 Managing the Users
+### 2.2 Managing the Users
 
 During the installation, a super user equipped with all the roles is created. You can create additional users that have restricted rights. User management is carried out in root user's permissions using the command line.
 
@@ -255,14 +257,14 @@ To remove a user, enter:
 
 `deluser username`
 
-## 2.3 LDAP user authentication
+### 2.3 LDAP user authentication
 
 X-Road leverages PAM (Pluggable Authentication Modules) for user authentication, which facilitates LDAP integration.
 
 A detailed setup guide can be found under security server user guide [2.3 LDAP user authentication](ug-ss_x-road_6_security_server_user_guide.md#23-ldap-user-authentication).
 Please note that x-road property path will be different in case of Central Server. Refer to [ug-syspar_x-road_v6_system_parameters.md](ug-syspar_x-road_v6_system_parameters.md#413-center-parameters-admin-service) for relevant properties.
 
-## 2.4 Managing API Keys
+### 2.4 Managing API Keys
 
 API keys are used to authenticate API calls to Central Server's management REST API. API keys are associated with roles that define the permissions granted to the API key. If an API key is lost, it can be revoked.
 
@@ -290,7 +292,7 @@ To revoke API key from roles, follow these steps.
 2. Select a API key and click Revoke key. 
 3. Confirm the revoking by clicking Yes.
 
-# 3. Standalone and High-Availability Systems
+## 3. Standalone and High-Availability Systems
 
 The Central Server can be installed and configured in several ways:
 - A standalone server with local database
@@ -303,11 +305,11 @@ In the case of an HA setup, the Central Servers share configuration via an optio
 
 In an HA setup, if the system is configured using different nodes in parallel, the effect will be similar to several people updating the configuration of a standalone server at the same time.
 
-## 3.1 Detecting the Type of Deployment in the User Interface
+### 3.1 Detecting the Type of Deployment in the User Interface
 
 In order to detect the type of deployment and the name of the node in the cluster in the case of HA setup, the logged-in user should check the instance identifier displayed in the left upper corner of the user interface. In the case of an HA setup, the name of the node is displayed in the right upper corner of the user interface.
 
-## 3.2 Checking the Status of the Nodes of the Cluster
+### 3.2 Checking the Status of the Nodes of the Cluster
 
 Access rights: Registration Office, System Administrator, Security Officer
 
@@ -319,7 +321,7 @@ curl --header "Authorization: X-Road-ApiKey token=<api key>" -k https://localhos
 
 **Note:** This endpoint requires authentication which can be provided with a valid API KEY (with at least one of the aforementioned roles) in the `Authorization` header of the request. See [Managing API Keys](#23-managing-api-keys) for instructions regarding setting up an API KEY.
 
-## 3.3 API key considerations in High-Availability setup
+### 3.3 API key considerations in High-Availability setup
 
 API keys are cached in memory, which is typically not a problem in non-clustered Central Server configuration.
 However, in case of High-Availability setup, the caches of different nodes can become out of sync.
@@ -331,8 +333,9 @@ For instance, revoking an API key from `node 1` may not be recognized by `node 2
 - **Option C:** Always restart REST API modules when API key operations are executed.
 - **Option D:** Disable Api key cache. (See [admin-service parameters](ug-syspar_x-road_v6_system_parameters.md#413-center-parameters-admin-service) for more details). This option will degrade API throughput and should only be used when other options do not work.
 
-# 4. System Settings
-## 4.1 Managing the Member Classes
+## 4. System Settings
+
+### 4.1 Managing the Member Classes
 
 Access rights: Security Officer
 
@@ -355,7 +358,7 @@ To delete a member class, follow these steps.
 
 Only the member classes that are used by none of the X-Road members can be deleted.
 
-## 4.2 Configuring the Management Service Provider
+### 4.2 Configuring the Management Service Provider
 
 The Central Server provides management services to the Security Servers that are part of the (local) X-Road infrastructure (see Chapter 6).
 
@@ -363,7 +366,7 @@ A subsystem of an X-Road member acting as a service provider for the management 
 
 The management services’ Security Server must be installed and registered in the Central Server before the management service provider can be registered as a client of the Security Server and the management services can be configured (see [SSI](#13-references)).
 
-### 4.2.1 Appointing the Management Service Provider
+#### 4.2.1 Appointing the Management Service Provider
 
 Access rights: Security Officer
 
@@ -373,7 +376,7 @@ To appoint the management service provider in the Central Server, follow these s
 2. Locate the Management Services section and click Edit on the Service Provider Identifier field.
 3. In the window that opens, find the subsystem of an X-Road member to be appointed as the management service provider and check the subsystem checkbox and then click Select.
 
-### 4.2.2 Registering the Management Service Provider as a Security Server Client
+#### 4.2.2 Registering the Management Service Provider as a Security Server Client
 
 The management service provider can be registered as a Security Server client as described in this section only if the management service provider is not registered as a client of any Security Servers. In case the management service provider is already a client of a Security Server then the Edit button is not shown next to the identifier of the Management Services' Security Server.
 
@@ -386,7 +389,7 @@ To register the appointed management service provider as a Security Server clien
 
 On successful registration the identifier of the management services’ Security Server is displayed and Edit button should hide.
 
-### 4.2.3 Configuring the Management Services in the Management Services’ Security Server
+#### 4.2.3 Configuring the Management Services in the Management Services’ Security Server
 
 Access rights: Security server’s Service Administrator
 
@@ -403,7 +406,7 @@ To configure management services in the management services’ Security Server, 
 7. Click Add subject and search for the global group security-server-owners. Select the group and click Next.
 8. In the window that opens, check management services checkboxes (authCertDeletion, clientDeletion, clientReg, ownerChange) and click Add Selected to add the security-server-owners group’s access rights list.
 
-## 4.3 Configuring the Central Server Address
+### 4.3 Configuring the Central Server Address
 
 Access rights: Security Officer
 
@@ -417,13 +420,13 @@ In the System Settings view (Settings tab --> System Settings), the Central Serv
 
 The services provided by the Central Server must be available from both the new and old address, until all servers using the services have uploaded the configuration anchor containing the new address.
 
-### 4.3.1 Notes on HA Setup
+#### 4.3.1 Notes on HA Setup
 
 In an HA setup, the address of the Central Server is local to the node that is being configured.
 
 In an HA setup, internal and external configuration anchors contain information about each Central Server that is part of the cluster. If the address of one of the servers is changed, configuration anchors will be re-generated automatically on all the nodes.
 
-### 4.3.2 Changing the Central Server Address
+#### 4.3.2 Changing the Central Server Address
 
 To change the Central Server address, follow these steps.
 
@@ -441,11 +444,11 @@ To change the Central Server address, follow these steps.
     > **NOTE**: Starting from version 7.5.0 new Central Server address is automatically distributed to the federation partners within the global configuration. Distribution will take place within two global configuration refresh cycles. However, the new Central Server address is not updated to the configuration anchor stored on the Security Server. If the Security Server's local copy of the global configuration expires, the Security Server returns using the Central Server address from the configuration anchor. Therefore, if the Security Server's local copy of the global configuration is expired, importing a new version of the configuration anchor is required if the current Central Server address doesn't match with the address in the original configuration anchor.
   - Reconfigure the management services addresses in the management service Security Server.
 
-## 4.4 Managing the TLS certificates
+### 4.4 Managing the TLS certificates
 
 Access rights: Security Officer
 
-### 4.4.1 Registration and Management Service TLS certificate
+#### 4.4.1 Registration and Management Service TLS certificate
 
 Registration and Management Service TLS certificate is used to secure the communication between:
 - the management Security Server and the member management web service;
@@ -484,7 +487,7 @@ To upload Management Service certificate, follow these steps.
 3. Find the proper certificate file and click Open, to finish certificate uploading click button Upload.
 4. Complete the activities defined in section [4.4.1.1 Necessary activities after changing certificate](#4411-necessary-activities-after-changing-certificate)
 
-#### 4.4.1.1 Necessary activities after changing certificate
+##### 4.4.1.1 Necessary activities after changing certificate
 
 When the key and certificate are rotated, and mTLS is enabled between the management Security Server and the management services, the new certificate must be updated to the management Security Server. To add new certificate follow Security Server User Guide [UG-SS](#13-references) instruction in section "Managing Information System TLS Certificates".
 
@@ -492,9 +495,9 @@ When the key and certificate are rotated, and mTLS is enabled between the manage
 - The changed TLS certificate is added in the global configuration `private-params.xml` part. The global configuration generation interval on the Central Server and the global configuration fetching interval on the Security Server depend on the system parameters. The system parameters are specified in the [UG-SYSPAR](#13-references) section "Center parameters: [admin-service]" and "Configuration Client parameters: [configuration-client]". With the default values, a new Registration and Management service TLS certificate is usable for the authentication certificate registration request on the Security Server side after ~1.5 min.
 - The changed TLS certificate is automatically detected by Nginx within five minutes after the change.
 
-# 5. Configuration Management
+## 5. Configuration Management
 
-## 5.1 Viewing the Configuration Settings
+### 5.1 Viewing the Configuration Settings
 
 Access rights: Security Officer, System Administrator
 
@@ -503,7 +506,7 @@ The Global Configuration view consists of three sub-tabs.
 - The External Configuration view. The external configuration is distributed by the Central Server to the federation partners (either to the Security Servers directly or through a configuration proxy). The information needed to download and verify the external configuration is included in the external configuration anchor, which must be distributed to the federation partner’s Central Server (or configuration proxy) administrators and uploaded to the Central Server (or configuration proxy). Along with the external configuration anchor, the anchor file hash value must be distributed. The hash value is used by the federation partners to verify the integrity of the anchor file.
 - The Trusted Anchors view. A trusted anchor is the configuration anchor of the configuration source(s) distributing the external configuration of a federation partner. Upon loading the trusted anchor into the Central Server, the anchor is included into the internal configuration, allowing the Security Servers to download the external configuration of a federation partner as well as the internal configuration of the local X-Road infrastructure.
 
-## 5.2 Downloading the Configuration Anchor
+### 5.2 Downloading the Configuration Anchor
 
 Access rights: Security Officer
 
@@ -512,7 +515,7 @@ To download a configuration anchor, follow these steps.
 1. In the Navigation tabs, select Global Configuration and select either the Internal Configuration or External Configuration sub-tab, as appropriate.
 2. In the Anchor section, click Download and save the prompted file.
 
-## 5.3 Re-Creating the Configuration Anchor
+### 5.3 Re-Creating the Configuration Anchor
 
 Access rights: Security Officer
 
@@ -523,7 +526,7 @@ To re-create an anchor, follow these steps.
 1. In the Navigation tabs, select Global Configuration and select either the Internal Configuration or External Configuration sub-tab, as appropriate.
 2. In the Anchor section, click Re-create.
 
-## 5.4 Changing the Configuration Signing Keys
+### 5.4 Changing the Configuration Signing Keys
 
 Access rights: Security Officer
 
@@ -552,7 +555,7 @@ The new signing key(s) should only be activated after all the affected Security 
 
 To perform an emergency key change, the new key must be activated and the old key deleted immediately after the generation of the new key (in the steps described above, step 2 is skipped). The configuration anchor distributed to the Security Server administrators (in case of internal configuration anchor) or to the federation partners (in case of external configuration anchor) must only contain the public key part of the new signing key.
 
-### 5.4.1 Generating a Configuration Signing Key
+#### 5.4.1 Generating a Configuration Signing Key
 
 Access rights: Security Officer
 
@@ -566,7 +569,7 @@ To generate a configuration signing key, follow these steps.
 The system will automatically generate the corresponding configuration anchor containing the public key part of the generated key.
 If the generated key is the only signing key for the configuration source, the key will automatically be set as active.
 
-### 5.4.2 Activating a Configuration Signing Key
+#### 5.4.2 Activating a Configuration Signing Key
 
 Access rights: Security Officer
 
@@ -575,7 +578,7 @@ To activate a configuration signing key, follow these steps.
 1. In the Navigation tabs, select Global Configuration and select either the Internal Configuration or External Configuration sub-tab, as appropriate.
 2. In the Signing Keys section, expand the token's information by clicking the caret next to the token name and select an inactive key (only for an inactive key are the Activate and Delete buttons displayed) and click Activate.
 
-### 5.4.3 Deleting a Configuration Signing Key
+#### 5.4.3 Deleting a Configuration Signing Key
 
 Access rights: Security Officer
 
@@ -585,7 +588,7 @@ To delete a configuration signing key, follow these steps.
 2. In the Signing Keys section,expand the token's information by clicking the caret next to the token name and select an inactive key (only for an inactive key are the Activate and Delete buttons displayed) and click Delete.
 3. Confirm the deletion by clicking Confirm.
 
-## 5.5 Managing the Contents of a Configuration Part
+### 5.5 Managing the Contents of a Configuration Part
 
 Access rights: Security Officer, System Administrator
 
@@ -596,7 +599,7 @@ To download or upload a configuration file, follow these steps.
 1. In the Navigation tabs, select Global Configuration and select either the Internal Configuration or External Configuration sub-tab, as appropriate
 2. In the Configuration Parts section, select a configuration part file and click Download or Upload
 
-## 5.6 Uploading a Trusted Anchor
+### 5.6 Uploading a Trusted Anchor
 
 Access rights: Security Officer
 
@@ -608,7 +611,7 @@ To upload a trusted anchor, follow these steps.
 
 In case a previous anchor from the same federation partner has been uploaded to the system, the new anchor will replace the old one.
 
-## 5.7 Viewing the Contents of a Trusted Anchor
+### 5.7 Viewing the Contents of a Trusted Anchor
 
 Access rights: Security Officer, System Administrator
 
@@ -619,7 +622,7 @@ To download an anchor file, follow these steps.
 2. In an anchor section, click Download.
 3. Save or open the prompted file.
 
-## 5.8 Deleting a Trusted Anchor
+### 5.8 Deleting a Trusted Anchor
 
 Access rights: Security Officer
 
@@ -628,7 +631,7 @@ To delete an anchor file, follow these steps.
 2. In the anchor section, click Delete.
 3. Confirm the deletion by clicking Yes.
 
-## 5.9 Publishing global configuration over HTTPS
+### 5.9 Publishing global configuration over HTTPS
 
 Starting from version 7.4.0, the Central Server supports publishing global configuration over HTTP and HTTPS. Instead, before version 7.4.0, only HTTP was supported.
 
@@ -640,8 +643,8 @@ Applying for a TLS certificate issued by a trusted CA is required, because the S
 
 > **NOTE**: Starting from version 7.5.0, it's not required to re-generate and import the configuration anchor to all the Security Servers to enable downloading global configuration over HTTPS.
 
-# 6. The Management Requests System
-## 6.1 Registration Requests
+## 6. The Management Requests System
+### 6.1 Registration Requests
 
 As the registration of associations in the X-Road governing authority is security-critical, the following measures are applied to increase security by default:
 
@@ -669,7 +672,7 @@ It is possible to streamline the registration process of authentication certific
   - Automatic approval is applied to existing members only.
   - By default, automatic approval of Security Server owner change requests is disabled. It can be enabled by setting the `auto-approve-owner-change-requests` property value to `true` on Central Server.
     
-### 6.1.1 State Model for Registration Requests
+#### 6.1.1 State Model for Registration Requests
 
 A registration request can be in one of the following states. See Figure 1 for the state diagram.
 
@@ -685,7 +688,7 @@ Pending – a registration request has been submitted from a Security Server. Fr
 
 If automatic approval of authentication certificate registration requests, Security Server client registration requests and/or Security Server owner change requests is enabled, the request is approved automatically. Therefore, the request moves directly to Approved state.
 
-## 6.2 Deletion Requests
+### 6.2 Deletion Requests
 
 Deleted requests is submitted through a Security Server or formalized in the Central Server.
 
@@ -693,16 +696,16 @@ Deletion requests are
 - authentication certificate deletion request (see Section 8.4);
 - Security Server client deletion request (see Section 7.6).
 
-## 6.3 Address Change Request
+### 6.3 Address Change Request
 
 Address change request is submitted through a Security Server to change its address. The request does not require any additional approvals on the Central Server.
 
-## 6.4 Temporarily Disabling Client Requests
+### 6.4 Temporarily Disabling Client Requests
 
 Security Server can disable client subsystem temporarily by issuing "Disable client" request. Disabled client can be enabled again to with "Enable client" request.
 These requests do not require any additional approvals on Central Server.
 
-## 6.5 Viewing the Management Request Details
+### 6.5 Viewing the Management Request Details
 
 Access rights: Registration Officer
 
@@ -740,8 +743,8 @@ There are three data sections in the view.
   - Code – the member code of the X-Road member managing the subsystem;
   - Subsystem – the code of the subsystem.
 
-# 7 Managing the X-Road Members
-## 7.1 Adding a Member
+## 7. Managing the X-Road Members
+### 7.1 Adding a Member
 
 Access rights: Registration Officer
 
@@ -749,7 +752,7 @@ To add a new X-Road member, follow these steps.
 1. In the Members tab, click Add member.
 2. In the window that opens, enter the member's information and click Add. The new member appears in the list of members.
 
-## 7.2 Viewing the Member Details
+### 7.2 Viewing the Member Details
 
 Access rights: Registration Officer
 
@@ -765,7 +768,7 @@ The view consists of five sections and a tab Subsystems.
 5. "Global Groups" – displays information about the group membership of the member or its subsystems.
 6. "Subsystems" tab – displays a list of member's subsystems. If a subsystem is not a client of any Security Servers, then subsystem status is UNREGISTERED.
 
-## 7.3 Adding a Subsystem to an X-Road Member
+### 7.3 Adding a Subsystem to an X-Road Member
 
 Access rights: Registration Officer
 
@@ -774,7 +777,7 @@ To add a subsystem to an X-Road member, follow these steps.
 2. In the view that opens, locate the Subsystems tab and click Add new subsystem to database.
 3. Enter the code of the subsystem and click Add.
 
-## 7.4 Registering a Member's Security Server
+### 7.4 Registering a Member's Security Server
 
 Access rights: Registration Officer
 
@@ -798,7 +801,7 @@ To decline a request, it can be done either through in the Management request vi
 On the decline of the request
 - the request moves to the "Rejected" state.
 
-## 7.5 Registering a Client to a Security Server
+### 7.5 Registering a Client to a Security Server
 
 Access rights: Registration Officer
 
@@ -821,7 +824,7 @@ To decline a request, it can be done either through in the Management request vi
 On the decline of the request
 - the request moves to the "Rejected" state.
 
-## 7.6 Removing a Client from a Security Server
+### 7.6 Removing a Client from a Security Server
 
 Access rights: Registration Officer
 
@@ -836,7 +839,7 @@ To submit a Security Server client deletion request through a member's detail vi
 2. In the window that opens, select Subsystems tab and select the client subsystem, and click Unregister.
 3. Review the information displayed on the client deletion request and click Delete to submit the request.
 
-## 7.7 Changing the Owner of Security Server
+### 7.7 Changing the Owner of Security Server
 
 Access rights: Registration Officer
 
@@ -851,7 +854,7 @@ Automatic approval of Security Server owner change requests is disabled by defau
 
 To approve/decline a request, it can be done either through in the Management request view list or in the Management request details view.
 
-## 7.8 Deleting a Subsystem
+### 7.8 Deleting a Subsystem
 
 Access rights: Registration Officer
 
@@ -861,7 +864,7 @@ To delete an X-Road member's subsystem, follow these steps.
 1. In the Members tab, select the member whose subsystem you wish to delete and click members name.
 2. In the window that opens, select Subsystems tab and select the client subsystem, and click Delete. Note: The "Delete" button is displayed only if the subsystem is not a client of any Security Servers.
 
-## 7.9 Deleting an X-Road Member
+### 7.9 Deleting an X-Road Member
 
 Access rights: Registration Officer
 
@@ -871,8 +874,8 @@ To delete an X-Road member, follow these steps.
 1. In the Members tab, select a member that you wish to delete, and click members name.
 2. In the view that opens, click Delete member "\<member name\>". In the confirmation window that opens, enter member code and click Delete.
 
-# 8. Managing the Security Servers
-## 8.1 Viewing the Security Server Details
+## 8. Managing the Security Servers
+### 8.1 Viewing the Security Server Details
 
 Access rights: Registration Officer
 
@@ -887,7 +890,7 @@ Hint: Click a client's member name to open the client's detail view.
 - "Authentication Certificates" – information about the Security Server's registered authentication certificates.
 Hint: Click a certificate's certification authority to open the certificate's detail view.
 
-## 8.2 Changing the Security Server Address
+### 8.2 Changing the Security Server Address
 
 Access rights: Registration Officer
 
@@ -904,7 +907,7 @@ To change the Security Server address from the Central Server, follow these step
 2. In the view that opens, locate the "Address" section and click Edit adjacent to the "Address" field.
 3. Enter the Security Server's address and click Save.
 
-## 8.3 Registering a Security Server's Authentication Certificate
+### 8.3 Registering a Security Server's Authentication Certificate
 
 Access rights: Registration Officer
 
@@ -926,7 +929,7 @@ Upon approving the request
 To decline the request
 - the request moves to the "Rejected" state;
 
-## 8.4 Deleting a Security Server's Authentication Certificate
+### 8.4 Deleting a Security Server's Authentication Certificate
 
 Access rights: Registration Officer
 
@@ -938,7 +941,7 @@ To submit an authentication certificate deletion request in the Central Server, 
 3. Review the information displayed on the deletion request and enter Security Server code and click Delete to submit the request.
 4. The submitted request appears in the management requests view (Management Requests tab).
 
-## 8.5 Deleting a Security Server
+### 8.5 Deleting a Security Server
 
 Access rights: Registration Officer
 
@@ -948,8 +951,8 @@ To delete a Security Server, follow these steps.
 
 If the Security Server being deleted has registered clients or authentication certificates, deletion requests for those associations are automatically generated.
 
-# 9. Managing the Global Groups
-## 9.1 Adding a Global Group
+## 9. Managing the Global Groups
+### 9.1 Adding a Global Group
 
 Access rights: Registration Officer
 
@@ -957,7 +960,7 @@ To add a new global group, follow these steps.
 1. In the Navigation tabs, select Settings --> Global Resources and click Add Global Group.
 2. In the window that opens, enter the new group's code and description, and click Add. The new group is added to the list of global groups.
 
-## 9.2 Viewing the Global Group Details
+### 9.2 Viewing the Global Group Details
 
 Access rights: Registration Officer
 
@@ -967,7 +970,7 @@ To see the details of a global group, follow these steps.
 
 In the global group detail view, a list of the group's members is displayed. The detail view allows you to change the group's description, delete the group, and add or remove its members.
 
-## 9.3 Changing the Description of a Global Group
+### 9.3 Changing the Description of a Global Group
 
 Access rights: Registration Officer
 
@@ -976,7 +979,7 @@ To change the description of a global group, follow these steps.
 2. Select a global group from the table and click its Code.
 3. In the view that opens, click Edit, change the group’s description and click Save.
 
-## 9.4 Changing the Members of a Global Group
+### 9.4 Changing the Members of a Global Group
 
 Access rights: Registration Officer
 
@@ -994,7 +997,7 @@ To remove members from a group, follow these steps.
 3. Click Remove button on the selected subsystem row.
 4. In the confirmation window that opens, enter the member code and then click Delete.
 
-## 9.5 Deleting a Global Group
+### 9.5 Deleting a Global Group
 
 Access rights: Registration Officer
 
@@ -1003,8 +1006,9 @@ To delete a global group, follow these steps.
 2. Select a global group from the table and click its Code.
 3. In the view that opens, click Delete Group and in the confirmation window click Yes.
 
-# 10. Managing the Approved Certification Services
-## 10.1 Adding an Approved Certification Service
+## 10. Managing the Approved Certification Services
+
+### 10.1 Adding an Approved Certification Service
 
 Access rights: System Administrator
 
@@ -1027,7 +1031,7 @@ To add a new intermediate CA
   - in the window that opens, locate the certificate file of the intermediate CA and click Save;
   - to add OCSP service information to the new intermediate CA, click on the added intermediate CA, in the window that opens, locate OCSP Responders tab and click Add.
 
-## 10.2 Changing an Approved Certification Service
+### 10.2 Changing an Approved Certification Service
 
 Access rights: System Administrator
 
@@ -1040,7 +1044,7 @@ To edit a certification service, follow these steps.
 1. In the Trust Services tab, select Certification Services.
 2. Select from the list the certification service you want to edit and click on the approved certification service field.
 
-## 10.3 Deleting an Approved Certification Service
+### 10.3 Deleting an Approved Certification Service
 
 Access rights: System Administrator
 
@@ -1049,8 +1053,9 @@ To delete a certification service from the list of approved services, follow the
 2. Select from the list the approved certification service you wish to remove and click on the approved certification service field.
 3. In the window that opens, click Delete trust service "\<certification service name\>" and in the confirmation window click Yes.
 
-# 11. Managing the Approved Timestamping Services
-## 11.1 Adding an Approved Timestamping Service
+## 11. Managing the Approved Timestamping Services
+
+### 11.1 Adding an Approved Timestamping Service
 
 Access rights: System Administrator
 
@@ -1059,7 +1064,7 @@ To add an approved timestamping service, follow these steps.
 2. In the window that opens, enter the timestamping service URL and locate the certificate file of the timestamping service and click Add.
 3. Information about the new timestamping service appears in the list.
 
-## 11.2 Changing an Approved Timestamping Service
+### 11.2 Changing an Approved Timestamping Service
 
 Access rights: System Administrator
 
@@ -1067,7 +1072,7 @@ To change the timestamping service, follow these steps.
 1. In the Trust Services tab, select Timestamping Services, select a timestamping service from the list and click Edit.
 2. In the window that opens, edit the URL and/or upload new certificate. Click Save.
 
-## 11.3 Deleting an Approved Timestamping Service
+### 11.3 Deleting an Approved Timestamping Service
 
 Access rights: System Administrator
 
@@ -1075,7 +1080,7 @@ To remove a timestamping service, follow these steps.
 1. In the Trust Services tab, select Timestamping Services, select a timestamping service from the list and click Delete.
 2. In the window that opens, click Yes.
 
-# 12. Configuration Backup and Restore
+## 12. Configuration Backup and Restore
 
 Access rights: System Administrator
 
@@ -1087,14 +1092,14 @@ Backups contain sensitive information that must be kept secret (for example, pri
 
 Central Server backups are signed and optionally encrypted. The GNU Privacy Guard [GnuPG] is used for encryption and signing. Central Server's backup encryption key is generated during Central Server initialisation. In addition to the automatically generated backup encryption key, additional public keys can be used to encrypt backups.
 
-## 12.1 Backing Up the System Configuration
+### 12.1 Backing Up the System Configuration
 
 To back up the configuration, follow these steps.
 1. In the Settings tab, select Back Up and Restore sub-tab.
 2. Click Back up config. to start the backup process.
 3. When done, the configuration backup file appears in the list of configuration backup files.
 
-## 12.2 Restoring the System Configuration in the User Interface
+### 12.2 Restoring the System Configuration in the User Interface
 
 To restore configuration, follow these steps.
 1. In the Settings tab, select Back Up and Restore sub-tab.
@@ -1104,7 +1109,7 @@ To restore configuration, follow these steps.
 
 If something goes wrong while restoring the configuration it is possible to revert back to the old configuration. Central Server stores so called pre-restore configuration automatically to `/var/lib/xroad/conf_prerestore_backup.tar`. Move it to `/var/lib/xroad/backup/` folder and use the command line interface described in the next chapter (some specific switches with the restore command is required).
 
-## 12.3 Restoring the Configuration from the Command Line
+### 12.3 Restoring the Configuration from the Command Line
 
 To restore configuration from the command line, the following data must be available:
 - the instance ID of the Central Server and,
@@ -1156,7 +1161,7 @@ To see all the possible parameters use the -h switch, e.g.
 /usr/share/xroad/scripts/restore_xroad_center_configuration.sh -h
 ```
 
-## 12.4 Downloading, Uploading and Deleting Configuration Backup Files
+### 12.4 Downloading, Uploading and Deleting Configuration Backup Files
 
 The following actions can be performed in the Backup And Restore view.
 
@@ -1169,11 +1174,11 @@ To delete the configuration backup file:
 To upload a configuration file from the local file system to the Central Server:
 - click Upload backup, select a file to be uploaded and click Open. The uploaded configuration file appears in the list of configuration files.
 
-## 12.5 Automatic Backups
+### 12.5 Automatic Backups
 
 By default the Central Server backs up its configuration automatically once every day. Backups older than 30 days are automatically removed from the server. If needed, the automatic backup policies can be adjusted by editing the `/etc/cron.d/xroad-center` file.
 
-## 12.6 Backup Encryption Configuration
+### 12.6 Backup Encryption Configuration
 
 Backups are always signed, but backup encryption is initially turned off. To turn encryption on, please override the
 default configuration in the file `/etc/xroad/conf.d/local.ini`, in the `[center]` section (add or edit this section).
@@ -1233,7 +1238,7 @@ To decrypt the encrypted backups, use the following syntax:
 gpg --homedir /etc/xroad/gpghome --output <output file name> --decrypt <backup name>  
 ```
 
-## 12.7 Verifying Backup Archive Consistency
+### 12.7 Verifying Backup Archive Consistency
 
 During restore Central Server verifies consistency of backup archives automatically, archives are not checked during upload.
 Also, it is possible to verify the consistency of the archives externally. For verifying the consistency externally,
@@ -1256,7 +1261,7 @@ for example, `EE`.
 Resulting file (`server-public-key.gpg`) should then be exported from Central Server and imported to GPG keystore used
 for backup archive consistency verification.
 
-# 13. Audit Log
+## 13. Audit Log
 
 The Central Server keeps an audit log of the events performed by the Central Server administrator. The audit log events are generated by the user interface and the management REST API when the user changes the system’s state or configuration. The user actions are logged regardless of whether the outcome of the action was a success or a failure. The complete list of the audit log events is described in [SPEC-AL](#13-references).
 
@@ -1289,7 +1294,7 @@ By default, audit log is located in the file
 
 `/var/log/xroad/audit.log`
 
-## 13.1 Changing the Configuration of the Audit Log
+### 13.1 Changing the Configuration of the Audit Log
 
 The X-Road software writes the audit log to the syslog (rsyslog) using UDP interface (default port is 514). Corresponding configuration is located in the file
 
@@ -1311,13 +1316,13 @@ The audit log is rotated monthly by logrotate. To configure the audit log rotati
 
 `/etc/logrotate.d/xroad-center`
 
-## 13.2 Archiving the Audit Log
+### 13.2 Archiving the Audit Log
 
 In order to save hard disk space and avoid loss of the audit log records during Central Server crash, it is recommended to archive the audit log files periodically to an external storage or a log server.
 
 The X-Road software does not offer special tools for archiving the audit log. The rsyslog can be configured to redirect the audit log to an external location.
 
-# 14. Monitoring
+## 14. Monitoring
 
 Monitoring is taken to use by installing the monitoring support (see [IG-CS](#13-references) and appointing the central monitoring client as specified below.
 
@@ -1347,8 +1352,9 @@ To disable central monitoring client altogether, update configuration to one whi
 </tns:conf>
 ```
 
-# 15. Additional configuration options
-## 15.1 Verify next update
+## 15. Additional configuration options
+
+### 15.1 Verify next update
 
 For additional robustness the OCSP [RFC-OCSP](#13-references) response verifier can be configured to skip checking of nextUpdate parameter. By default the checking is turned on and to turn it off the user has to take action.
 
@@ -1362,7 +1368,7 @@ Configuration is done by updating a specific optional configuration file (see [
 
 With verifyNextUpdate element value “false” the nextUpdate parameter checking is switched off.
 
-## 15.2 OCSP fetch interval
+### 15.2 OCSP fetch interval
 
 The xroad-signer component has a specific interval how often it downloads new OCSP [RFC-OCSP](#13-references) responses. By default the fetch interval is configured to 1200 seconds. To use something else than the default value a global configuration extension part (see [UC-GCONF](#13-references)) of specific format can be uploaded to Central Server.
 
@@ -1374,7 +1380,7 @@ The xroad-signer component has a specific interval how often it downloads new OC
 
 The value is the fetch interval in seconds for new OCSP responses.
 
-# 16. Logs and System Services
+## 16. Logs and System Services
 
 Most significant Central Server services are the following:
 
@@ -1405,7 +1411,7 @@ Default settings for logging are the following:
 - logging level: INFO;
 - rolling policy: whenever file size reaches 100 MB.
 
-# 17 Management REST API
+## 17 Management REST API
 
 Central Server has a REST API that can be used to do all the same server configuration operations that can be done
 using the web UI.
@@ -1439,7 +1445,7 @@ If the default limits are too restricting (or too loose), they can be overridden
 Size limit parameters support formats from Formats from [DataSize](https://docs.spring.io/spring/docs/current/javadoc-api/org/springframework/util/unit/DataSize.html),
 for example `5MB`.
 
-## 17.1 API key management operations
+### 17.1 API key management operations
 
 **Access rights:** [System Administrator](#xroad-system-administrator)
 
@@ -1450,7 +1456,7 @@ or with session authentication (for admin web application).
 Basic authentication access is limited to localhost by default, but this can
 be changed using System Parameters \[[UG-SYSPAR](#Ref_UG-SYSPAR)\].
 
-### 17.1.1 Creating new API keys
+#### 17.1.1 Creating new API keys
 
 A new API key is created with a `POST` request to `/api/v1/api-keys`. Message body must contain the roles to be
 associated with the key. Server responds with data that contains the actual API key. After this point the key
@@ -1470,7 +1476,7 @@ curl -X POST -u <user>:<password> https://localhost:4000/api/v1/api-keys --data 
 
 In this example the created key was `68117d38-8613-40b4-a9ff-5afe5ea4d27b`.
 
-### 17.1.2 Listing API keys
+#### 17.1.2 Listing API keys
 
 Existing API keys can be listed with a `GET` request to `/api/v1/api-keys`. This lists all keys, regardless of who has created them.
 
@@ -1504,7 +1510,7 @@ curl -X GET -u <user>:<password> https://localhost:4000/api/v1/api-keys/59 -k
 
 ```
 
-### 17.1.3 Updating API keys
+#### 17.1.3 Updating API keys
 
 An existing API key is updated with a `PUT` request to `/api/v1/api-keys/{id}`. Message body must contain the roles to be
 associated with the key. Server responds with data that contains the key id and roles associated with the key.
@@ -1521,7 +1527,7 @@ curl -X PUT -u <user>:<password> https://localhost:4000/api/v1/api-keys/5 --data
 
 ```
 
-### 17.1.4 Revoking API keys
+#### 17.1.4 Revoking API keys
 
 An API key can be revoked with a `DELETE` request to `/api/v1/api-keys/{id}`. Server responds with `HTTP 200` if
 revocation was successful and `HTTP 404` if key did not exist.
@@ -1531,7 +1537,7 @@ curl -X DELETE -u <user>:<password> https://localhost:4000/api/v1/api-keys/5  -k
 
 ```
 
-## 17.2 Executing REST calls
+### 17.2 Executing REST calls
 
 **Access rights:** Depends on the API.
 
@@ -1560,7 +1566,7 @@ as the corresponding UI operations.
 Access to regular APIs is allowed from all IP addresses by default, but this can
 be changed using System Parameters \[[UG-SYSPAR](#Ref_UG-SYSPAR)\].
 
-## 17.3 Correlation ID HTTP header
+### 17.3 Correlation ID HTTP header
 
 The REST API endpoints return an **x-road-ui-correlation-id** HTTP header. This header is also logged in `centralserver-admin-service.log`, so it
 can be used to find the log messages related to a specific API call.
@@ -1574,7 +1580,7 @@ For example, these log messages are related to an API call with correlation ID `
 2019-08-26 13:16:23,611 [https-jsse-nio-4000-exec-10] correlation-id:[3d5f193102435242] DEBUG o.s.s.w.a.ExceptionTranslationFilter - Chain processed normally
 ```
 
-## 17.4 Data Integrity errors
+### 17.4 Data Integrity errors
 
 An error response from the REST API can include data integrity errors if incorrect data was provided with the request.
 When
@@ -1606,7 +1612,7 @@ Response body:
 
 Possible data integrity error codes and messages declared in [Central Server ErrorMessage](https://github.com/nordic-institute/X-Road/blob/develop/src/central-server/admin-service/core-api/src/main/java/org/niis/xroad/cs/admin/api/exception/ErrorMessage.java)
 
-## 17.5 Warning responses
+### 17.5 Warning responses
 
 Error response from the Management API can include additional warnings that you can ignore if seen necessary. The warnings can be ignored by your decision, by executing the same operation with `ignore_warnings` boolean parameter set to `true`. *Always consider the warning before making the decision to ignore it.*
 
@@ -1644,7 +1650,7 @@ Response:
 
 Note that when you are using the admin UI and you encounter warnings, you will always be provided with a popup window with a `CONTINUE` button in it. When you click the `CONTINUE` button in the popup, the request is sent again but this time warnings will be ignored.
 
-# 18 Migrating to Remote Database Host
+## 18. Migrating to Remote Database Host
 
 Since version 6.23.0 Central Server supports using remote databases. In case you have an already running standalone Central Server with local database, it is possible to migrate it to use remote database host instead. The instructions for this process are listed below.
 
@@ -1735,11 +1741,11 @@ pg_restore -h <remote-db-url> -p <remote-db-port> -U centerui_admin -O -n center
 systemctl start "xroad*"
 ```
 
-# 19 Additional Security Hardening
+## 19. Additional Security Hardening
 
 For the guidelines on security hardening, please refer to [UG-SEC](ug-sec_x_road_security_hardening.md).
 
-# 20 Passing additional parameters to psql
+## 20. Passing additional parameters to psql
 
 By default any scripts(for example backup/restore) that uses `psql` utility tries to parse `/etc/xroad/db.properties` file for database related configurations like: database name, user, password, host, port. If the file is not found, the script may use default values which will point to local database. When such behaviour doesn't cover the requirements, it is possible to pass additional configurations to `psql` utility using environment variables from file.
 
@@ -1761,9 +1767,9 @@ Some of the variables like `PGOPTIONS`, `PGDATABASE`, `PGUSER`, `PGPASSWORD` are
 
 In case it is needed to pass additional flags to internally initialized `PGOPTIONS` variable, then `PGOPTIONS_EXTRA` variable can be used. It will be appended to `PGOPTIONS` variable.
 
-# 21 Migrating to EC Based Configuration Signing Keys
+## 21. Migrating to EC Based Configuration Signing Keys
 
-## 21.1 Steps to Enable EC Based Signing Keys
+### 21.1 Steps to Enable EC Based Signing Keys
 
 Since version 7.6.0 Central Server supports ECDSA based configuration signing keys. By default, both internal and external configuration signing keys use the RSA algorithm as in previous versions. The EC algorithm can be enabled separately for internal and external keys so migration can be done in steps, e.g., first internal and then external keys or vice versa. The instructions on how to start using internal and external signing EC keys are listed below.
 
@@ -1778,7 +1784,7 @@ external-key-algorithm = EC
 2. Restart the `xroad-center` service to apply the changes made to the configuration file.
 3. Follow the instructions in the [Generating a Configuration Signing Key](#541-generating-a-configuration-signing-key) to generate new keys, which will be using EC algorithm now.
 
-## 21.2 Backwards Compatibility
+### 21.2 Backwards Compatibility
 
 When Central Server is configured to use EC based signing keys, then Security Servers prior to version 7.6.0 are not be able to use the global configuration. In other words, EC based internal signing keys can be used only when all the Security Servers in the local ecosystem use X-Road version 7.6.0 or later. Instead, in a federated setup, EC based external signing keys can be used only when all the Security Servers in all the federated ecosystems use X-Road version 7.6.0 or later.
 Before migrating to EC based configuration signing keys, always remember to make sure that all the Security Servers in all the affected ecosystems use X-Road version 7.6.0 or later.
