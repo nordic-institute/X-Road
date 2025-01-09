@@ -32,12 +32,12 @@ import ee.ria.xroad.common.util.FileContentChangeChecker;
 import ee.ria.xroad.common.util.filewatcher.FileWatcherRunner;
 import ee.ria.xroad.signer.protocol.AbstractRpcHandler;
 
+import jakarta.annotation.PostConstruct;
+import jakarta.annotation.PreDestroy;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.niis.xroad.rpc.common.Empty;
 import org.niis.xroad.signer.proto.KeyConfChecksum;
-import org.springframework.beans.factory.DisposableBean;
-import org.springframework.beans.factory.InitializingBean;
 import org.springframework.stereotype.Component;
 
 import java.lang.ref.WeakReference;
@@ -45,7 +45,7 @@ import java.nio.file.Paths;
 
 @Component
 @Slf4j
-public class GetKeyConfChecksumHandler extends AbstractRpcHandler<Empty, KeyConfChecksum> implements DisposableBean, InitializingBean {
+public class GetKeyConfChecksumHandler extends AbstractRpcHandler<Empty, KeyConfChecksum> {
 
     private FileWatcherRunner fileWatcherRunner;
     private String checkSum;
@@ -53,7 +53,7 @@ public class GetKeyConfChecksumHandler extends AbstractRpcHandler<Empty, KeyConf
     public GetKeyConfChecksumHandler() {
     }
 
-    @Override
+    @PostConstruct
     public void afterPropertiesSet() throws Exception {
         // the change watcher can not be created in the constructor, because that would publish the
         // instance reference to another thread before the constructor finishes.
@@ -102,7 +102,7 @@ public class GetKeyConfChecksumHandler extends AbstractRpcHandler<Empty, KeyConf
     }
 
 
-    @Override
+    @PreDestroy
     public void destroy() throws Exception {
         if (fileWatcherRunner != null) {
             fileWatcherRunner.stop();

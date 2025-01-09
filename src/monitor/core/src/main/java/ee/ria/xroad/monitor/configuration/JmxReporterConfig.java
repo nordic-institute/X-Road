@@ -32,9 +32,9 @@ import ee.ria.xroad.monitor.common.SystemMetricNames;
 
 import com.codahale.metrics.jmx.JmxReporter;
 import com.google.common.collect.Lists;
+import jakarta.annotation.PostConstruct;
+import jakarta.annotation.PreDestroy;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.DisposableBean;
-import org.springframework.beans.factory.InitializingBean;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
@@ -49,7 +49,7 @@ public class JmxReporterConfig {
         return new JmxReporterWrapper();
     }
 
-    static class JmxReporterWrapper implements InitializingBean, DisposableBean {
+    static class JmxReporterWrapper {
         private static JmxReporter jmxReporter;
 
         JmxReporterWrapper() {
@@ -61,12 +61,12 @@ public class JmxReporterConfig {
                     .build();
         }
 
-        @Override
+        @PostConstruct
         public void afterPropertiesSet() {
             jmxReporter.start();
         }
 
-        @Override
+        @PreDestroy
         public void destroy() {
             log.trace("stopReporter()");
 

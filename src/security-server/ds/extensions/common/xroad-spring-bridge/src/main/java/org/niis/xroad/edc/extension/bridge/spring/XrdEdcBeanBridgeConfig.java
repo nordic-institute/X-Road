@@ -35,6 +35,8 @@ import ee.ria.xroad.common.messagelog.MessageLogConfig;
 import ee.ria.xroad.common.util.CryptoUtils;
 import ee.ria.xroad.signer.SignerClientConfiguration;
 
+import jakarta.annotation.PostConstruct;
+import jakarta.annotation.PreDestroy;
 import lombok.extern.slf4j.Slf4j;
 import org.eclipse.edc.boot.system.runtime.BaseRuntime;
 import org.eclipse.edc.spi.system.configuration.Config;
@@ -42,8 +44,6 @@ import org.niis.xroad.common.rpc.RpcConfig;
 import org.niis.xroad.confclient.proto.ConfClientRpcClientConfiguration;
 import org.niis.xroad.edc.extension.bridge.config.MapConfigImpl;
 import org.niis.xroad.edc.extension.bridge.config.XrdSpringConfigExtension;
-import org.springframework.beans.factory.DisposableBean;
-import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.context.properties.ConfigurationProperties;
@@ -129,18 +129,18 @@ public class XrdEdcBeanBridgeConfig {
         return () -> new AuthKey(certChain, pkey);
     }
 
-    public static class SpringEdcRuntime extends BaseRuntime implements InitializingBean, DisposableBean {
+    public static class SpringEdcRuntime extends BaseRuntime {
 
         public SpringEdcRuntime() {
             super();
         }
 
-        @Override
+        @PreDestroy
         public void destroy() {
             shutdown();
         }
 
-        @Override
+        @PostConstruct
         public void afterPropertiesSet() {
             log.info("Loading EDC runtime..");
             try {

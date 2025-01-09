@@ -60,6 +60,6 @@ public abstract class AbstractLogManager {
         throw new RuntimeException("Must be implemented by subclass");
     }
 
-    public abstract void destroy() ;
+    public abstract void destroy();
 
 }

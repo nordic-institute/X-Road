@@ -31,6 +31,8 @@ import ee.ria.xroad.common.TestCertUtil;
 import ee.ria.xroad.common.TestCertUtil.PKCS12;
 import ee.ria.xroad.common.util.CryptoUtils;
 
+import jakarta.annotation.PostConstruct;
+import jakarta.annotation.PreDestroy;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.ByteOrderMark;
 import org.apache.commons.io.IOUtils;
@@ -44,8 +46,6 @@ import org.eclipse.jetty.server.Server;
 import org.eclipse.jetty.server.ServerConnector;
 import org.eclipse.jetty.util.Callback;
 import org.eclipse.jetty.util.ssl.SslContextFactory;
-import org.springframework.beans.factory.DisposableBean;
-import org.springframework.beans.factory.InitializingBean;
 
 import javax.net.ssl.KeyManager;
 import javax.net.ssl.SSLContext;
@@ -74,7 +74,7 @@ import static org.eclipse.jetty.io.Content.Sink.asOutputStream;
 import static org.eclipse.jetty.io.Content.Source.asInputStream;
 
 @Slf4j
-class DummyService extends Server implements InitializingBean, DisposableBean {
+class DummyService extends Server {
 
     private static X509Certificate[] serverCertChain;
     private static PrivateKey serverKey;
@@ -89,12 +89,12 @@ class DummyService extends Server implements InitializingBean, DisposableBean {
         }
     }
 
-    @Override
+    @PostConstruct
     public void afterPropertiesSet() throws Exception {
         start();
     }
 
-    @Override
+    @PreDestroy
     public void destroy() {
         try {
             stop();

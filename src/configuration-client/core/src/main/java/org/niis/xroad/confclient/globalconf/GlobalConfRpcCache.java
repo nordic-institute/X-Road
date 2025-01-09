@@ -29,26 +29,26 @@ import ee.ria.xroad.common.SystemProperties;
 import ee.ria.xroad.common.conf.globalconf.FSGlobalConfValidator;
 import ee.ria.xroad.common.conf.globalconf.GlobalConfInitState;
 
+import jakarta.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.time.StopWatch;
 import org.niis.xroad.confclient.proto.GetGlobalConfResp;
 import org.niis.xroad.confclient.proto.GetGlobalConfRespStatus;
-import org.springframework.beans.factory.InitializingBean;
 
 import java.util.Optional;
 import java.util.concurrent.TimeUnit;
 
 @Slf4j
 @RequiredArgsConstructor
-public class GlobalConfRpcCache implements InitializingBean {
+public class GlobalConfRpcCache {
     private final FSGlobalConfValidator fsGlobalConfValidator;
     private final GetGlobalConfRespFactory getGlobalConfRespFactory;
 
     private CachedGlobalConf cachedGlobalConf = new CachedGlobalConf(GetGlobalConfRespStatus.GLOBAL_CONF_STATUS_UNSPECIFIED,
             Optional.empty());
 
-    @Override
+    @PostConstruct
     public void afterPropertiesSet() {
         refreshCache();
     }

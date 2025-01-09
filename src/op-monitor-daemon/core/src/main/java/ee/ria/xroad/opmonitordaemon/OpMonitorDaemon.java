@@ -32,6 +32,8 @@ import ee.ria.xroad.common.util.CryptoUtils;
 
 import com.codahale.metrics.MetricRegistry;
 import com.codahale.metrics.jmx.JmxReporter;
+import jakarta.annotation.PostConstruct;
+import jakarta.annotation.PreDestroy;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.SneakyThrows;
@@ -40,8 +42,6 @@ import org.eclipse.jetty.server.HttpConnectionFactory;
 import org.eclipse.jetty.server.Server;
 import org.eclipse.jetty.server.ServerConnector;
 import org.eclipse.jetty.util.ssl.SslContextFactory;
-import org.springframework.beans.factory.DisposableBean;
-import org.springframework.beans.factory.InitializingBean;
 
 import javax.net.ssl.KeyManager;
 import javax.net.ssl.SSLContext;
@@ -57,7 +57,7 @@ import static ee.ria.xroad.common.util.TimeUtils.getEpochMillisecond;
  * SOAP requests for monitoring data are further processed by the QueryRequestProcessor class.
  */
 @Slf4j
-public final class OpMonitorDaemon implements InitializingBean, DisposableBean {
+public final class OpMonitorDaemon {
 
     private static final String CLIENT_CONNECTOR_NAME = "OpMonitorDaemonClientConnector";
 
@@ -89,7 +89,7 @@ public final class OpMonitorDaemon implements InitializingBean, DisposableBean {
         registerHealthMetrics();
     }
 
-    @Override
+    @PostConstruct
     public void afterPropertiesSet() throws Exception {
         startTimestamp = getEpochMillisecond();
 
@@ -97,7 +97,7 @@ public final class OpMonitorDaemon implements InitializingBean, DisposableBean {
         server.start();
     }
 
-    @Override
+    @PreDestroy
     public void destroy() throws Exception {
         server.stop();
         reporter.stop();
