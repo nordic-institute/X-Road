@@ -8,6 +8,16 @@ serviceAccount:
   name: "ss-init-sa"
   create: true
 
+readinessProbe:
+  default:
+    path: /actuator/health
+    port: http  # Use named port
+    initialDelaySeconds: 10
+    periodSeconds: 5
+    timeoutSeconds: 1
+    successThreshold: 1
+    failureThreshold: 3
+
 init:
   serverconf:
     image: xroad-ss-serverconf-init:latest
@@ -106,7 +116,7 @@ services:
         key: "XROAD_SECRET_STORE_TOKEN"
 
   proxy:
-    image: xroad-ss-proxy:latest
+    image: xroad-ss-proxy-qrk:latest
     imagePullPolicy: Never
     resources:
       requests:
@@ -114,7 +124,7 @@ services:
       limits:
         memory: 512Mi
     ports:
-      - port: 5599
+      - port: 9000
         name: http
       - port: 5567
         name: grpc
@@ -123,7 +133,6 @@ services:
     serviceAccount:
       annotations: { }
     env:
-      SERVER_PORT: "5599"
       XROAD_HOST: "proxy.ss.svc.cluster.local"
       XROAD_SECRET_STORE_HOST: "openbao.ss.svc.cluster.local"
       XROAD_SECRET_STORE_SCHEME: "http"
@@ -139,6 +148,8 @@ services:
       - name: ssl-certs
         persistentVolumeClaim:
           claimName: ss-ssl-certs
+    readinessProbe:
+      path: /q/health/ready
   proxy-ui-api:
     image: xroad-ss-ui:latest
     imagePullPolicy: Never

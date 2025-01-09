@@ -1,7 +1,34 @@
+quarkus:
+  management:
+    enabled: true
+    port: 9000
+  package:
+    output-directory: libs
+    output-name: proxy-1.0
+    jar:
+      add-runner-suffix: false
+  container-image:
+    build: true
+    push: false #false will push to local docker daemon
+    builder: jib
+    group: org.niis
+    image: xroad-ss-proxy-qrk
+  jib:
+    base-jvm-image: eclipse-temurin:21-jre
+  kubernetes-config:
+    enabled: true
+  log:
+    level: INFO
+    category:
+      "io.smallrye":
+        level: DEBUG
+      "io.quarkus":
+        level: DEBUG
+
 xroad:
   proxy:
     grpc:
       listen-address: 0.0.0.0
 
-logging:
-  config: classpath:logback-containerized.xml
+#logging:
+#  config: classpath:logback-containerized.xml

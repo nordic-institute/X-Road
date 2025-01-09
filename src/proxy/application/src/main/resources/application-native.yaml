@@ -1,5 +1,7 @@
 quarkus:
   package:
+    output-directory: libs
+    output-name: proxy-1.0
     jar:
       type: uber-jar
       add-runner-suffix: false

@@ -13,8 +13,7 @@ xroad:
     global-conf-remoting-enabled: true
     serverconf:
       hibernate:
-        connection:
-          url: jdbc:postgresql://db-serverconf.ss.svc.cluster.local:5432/serverconf
+        connection.url: jdbc:postgresql://db-serverconf.ss.svc.cluster.local:5432/serverconf
     rpc:
       channel:
         configuration-client:

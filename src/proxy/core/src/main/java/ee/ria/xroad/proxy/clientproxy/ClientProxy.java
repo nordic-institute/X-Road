@@ -90,10 +90,6 @@ public class ClientProxy {
         this.clientHandlers = clientHandlers;
 
         this.serverConfProvider = serverConfProvider;
-
-        configureServer();
-        createConnectors();
-        createHandlers();
     }
 
     private void configureServer() throws Exception {
@@ -197,6 +193,9 @@ public class ClientProxy {
     @PostConstruct
     public void afterPropertiesSet() throws Exception {
         log.trace("start()");
+        configureServer();
+        createConnectors();
+        createHandlers();
 
         server.start();
     }

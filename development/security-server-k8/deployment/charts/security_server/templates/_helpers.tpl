@@ -112,13 +112,14 @@ spec:
           {{- end }}
           readinessProbe:
             httpGet:
-              path: /actuator/health
-              port: {{ (index .config.ports 0).port }}
-            initialDelaySeconds: 10
-            periodSeconds: 5
-            timeoutSeconds: 1
-            successThreshold: 1
-            failureThreshold: 3
+              path: {{ if hasKey .config "readinessProbe" }}{{ .config.readinessProbe.path }}{{ else }}{{ .root.Values.readinessProbe.default.path }}{{ end }}
+              port: {{ if hasKey .config "readinessProbe" }}{{ .config.readinessProbe.port | default .root.Values.readinessProbe.default.port | default (index .config.ports 0).name }}{{ else }}{{ .root.Values.readinessProbe.default.port | default (index .config.ports 0).name }}{{ end }}
+            initialDelaySeconds: {{ if hasKey .config "readinessProbe" }}{{ .config.readinessProbe.initialDelaySeconds | default .root.Values.readinessProbe.default.initialDelaySeconds }}{{ else }}{{ .root.Values.readinessProbe.default.initialDelaySeconds }}{{ end }}
+            periodSeconds: {{ if hasKey .config "readinessProbe" }}{{ .config.readinessProbe.periodSeconds | default .root.Values.readinessProbe.default.periodSeconds }}{{ else }}{{ .root.Values.readinessProbe.default.periodSeconds }}{{ end }}
+            timeoutSeconds: {{ if hasKey .config "readinessProbe" }}{{ .config.readinessProbe.timeoutSeconds | default .root.Values.readinessProbe.default.timeoutSeconds }}{{ else }}{{ .root.Values.readinessProbe.default.timeoutSeconds }}{{ end }}
+            successThreshold: {{ if hasKey .config "readinessProbe" }}{{ .config.readinessProbe.successThreshold | default .root.Values.readinessProbe.default.successThreshold }}{{ else }}{{ .root.Values.readinessProbe.default.successThreshold }}{{ end }}
+            failureThreshold: {{ if hasKey .config "readinessProbe" }}{{ .config.readinessProbe.failureThreshold | default .root.Values.readinessProbe.default.failureThreshold }}{{ else }}{{ .root.Values.readinessProbe.default.failureThreshold }}{{ end }}
+
       {{- if .config.volumes }}
       volumes:
         {{- range .config.volumes }}

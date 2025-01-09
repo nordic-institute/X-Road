@@ -58,9 +58,11 @@ quarkus-rest = { group = "io.quarkus", name = "quarkus-rest", version.ref = "qua
 quarkus-kubernetes = { group = "io.quarkus", name = "quarkus-kubernetes", version.ref = "quarkus" }
 quarkus-kubernetesConfig = { group = "io.quarkus", name = "quarkus-kubernetes-config", version.ref = "quarkus" }
 quarkus-health = { group = "io.quarkus", name = "quarkus-smallrye-health", version.ref = "quarkus" }
-quarkus-container-image = { group = "io.quarkus", name = "quarkus-container-image-docker", version.ref = "quarkus" }
+quarkus-containerImage-docker = { group = "io.quarkus", name = "quarkus-container-image-docker", version.ref = "quarkus" } #TODO remove one once finalized which to use
+quarkus-containerImage-jib = { group = "io.quarkus", name = "quarkus-container-image-jib", version.ref = "quarkus" }
 quarkus-config-yaml = { group = "io.quarkus", name = "quarkus-config-yaml", version.ref = "quarkus" }
 quarkus-scheduler = { group = "io.quarkus", name = "quarkus-scheduler", version.ref = "quarkus" }
+quarkus-jaxb = { group = "io.quarkus", name = "quarkus-jaxb", version.ref = "quarkus" }
 quarkus-grpc = { group = "io.quarkus", name = "quarkus-grpc", version.ref = "quarkus" }
 quarkus-springBoot-di = { group = "io.quarkus", name = "quarkus-spring-di", version.ref = "quarkus" }
 quarkus-springBoot-properties = { group = "io.quarkus", name = "quarkus-spring-boot-properties", version.ref = "quarkus" }
@@ -388,7 +390,7 @@ edc-monitoring = ["edc-micrometer-core", "edc-micrometer-jersey", "edc-micromete
 quarkus-core = [
   "quarkus-arc",
   "quarkus-config-yaml",
-  "quarkus-extension-vault"
+  "quarkus-extension-vault",
 
 ]
 quarkus-containerized = [

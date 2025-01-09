@@ -85,7 +85,7 @@ public class ServerProxy {
     private final KeyConfProvider keyConfProvider;
     private final ServerConfProvider serverConfProvider;
     private final CertChainFactory certChainFactory;
-
+    private final ServiceHandlerLoader serviceHandlerLoader;
     private CloseableHttpClient client;
     private IdleConnectionMonitorThread connMonitor;
 
@@ -102,13 +102,7 @@ public class ServerProxy {
         this.keyConfProvider = keyConfProvider;
         this.serverConfProvider = serConfProvider;
         this.certChainFactory = certChainFactory;
-
-        configureServer();
-
-        createClient();
-        createOpMonitorClient();
-        createConnectors();
-        createHandlers(serviceHandlerLoader);
+        this.serviceHandlerLoader = serviceHandlerLoader;
     }
 
     private void configureServer() throws Exception {
@@ -187,6 +181,12 @@ public class ServerProxy {
     @PostConstruct
     public void afterPropertiesSet() throws Exception {
         log.trace("start()");
+        configureServer();
+
+        createClient();
+        createOpMonitorClient();
+        createConnectors();
+        createHandlers(serviceHandlerLoader);
 
         server.start();
         connMonitor.start();

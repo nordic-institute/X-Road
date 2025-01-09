@@ -84,10 +84,13 @@ public class CertHashBasedOcspResponder {
      *
      * @throws Exception in case of any errors
      */
-    public CertHashBasedOcspResponder(ProxyProperties.OcspResponderProperties ocspResponderProperties, KeyConfProvider keyConfProvider)
-            throws Exception {
+    public CertHashBasedOcspResponder(ProxyProperties.OcspResponderProperties ocspResponderProperties, KeyConfProvider keyConfProvider) {
         this.ocspResponderProperties = ocspResponderProperties;
         this.keyConfProvider = keyConfProvider;
+    }
+
+    @PostConstruct
+    public void init() throws Exception {
         configureServer();
         createConnector();
         createHandler();

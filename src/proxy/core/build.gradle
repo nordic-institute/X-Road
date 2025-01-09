@@ -12,7 +12,7 @@ sourceSets {
 
 dependencies {
     implementation(libs.quarkus.scheduler)
-    implementation(libs.quarkus.grpc)
+//    implementation(libs.quarkus.grpc)
 
     implementation(project(':proxy:proxy-rpc-client'))
 

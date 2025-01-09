@@ -11,6 +11,9 @@ data:
   XROAD_DEPLOYMENT_TYPE: "containerized"
   XROAD_APPLICATION_TYPE: "ss"
   XROAD_ADDITIONAL_PROFILES: "kubernetes"
+  QUARKUS_PROFILE: "kubernetes,containerized,secret-store"
+  QUARKUS_KUBERNETES_CONFIG_CONFIG_MAPS: "{{ .root.Release.Name }}-{{ .service }}-config,{{ .root.Release.Name }}-common-xroad-config"
+  QUARKUS_KUBERNETES_CONFIG_NAMESPACE: "{{ .root.Release.Namespace }}"
   SPRING_CLOUD_KUBERNETES_CONFIG_SOURCES_0_NAME: {{ .root.Release.Name }}-{{ .service }}-config
   SPRING_CLOUD_KUBERNETES_CONFIG_SOURCES_1_NAME: {{ .root.Release.Name }}-common-xroad-config
   SPRING_CLOUD_KUBERNETES_CONFIG_NAMESPACE: {{ .root.Release.Namespace }}
@@ -27,7 +30,7 @@ metadata:
 data:
   {{- $configFile := printf "config/%s-kubernetes.yaml" .service }}
   {{- if $.root.Files.Glob $configFile }}
-  {{ .service }}-kubernetes.yml: |
+  application.yaml: |
     {{- $.root.Files.Get $configFile | nindent 4 }}
   {{- else }}
   {{- end }}
@@ -42,9 +45,9 @@ metadata:
     {{- include "xroad.labels" .root | nindent 4 }}
     app: xroad-common
 data:
-  {{- $configFile := printf "config/application-kubernetes.yaml" }}
+  {{- $configFile := printf "config/application.yaml" }}
   {{- if $.root.Files.Glob $configFile }}
-  application-kubernetes.yml: |
+  application.yaml: |
     {{- $.root.Files.Get $configFile | nindent 4 }}
   {{- else }}
   {{- end }}

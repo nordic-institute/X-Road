@@ -2,33 +2,19 @@ quarkus:
   application:
     name: proxy
     version: 1.0.0
-  package:
-    output-directory: libs
-    output-name: proxy-1.0
-    jar:
-      add-runner-suffix: false
-
   spring-di:
     enabled: true
   vault:
-    url: https://127.0.0.1:8200
-#    tls:
-#      skip-verify: true
-    authentication:
-      client-token: "${XROAD_SECRET_STORE_TOKEN}"
-    kv-secret-engine-version: 1
-    kv-secret-engine-mount-path: xrd-secret
-    secret-config-kv-path:
-      "secret-serverconf": serverconf
-      "secret-messagelog": messagelog
+    devservices:
+        enabled: true
   config:
     locations:
       - xroad-common.yaml
       - xroad-ss-common.yaml
   #      - /etc/xroad/application-overrides.yaml
   #      - /etc/xroad/application-proxy.yaml
-  console:
-    color: true
+#  console:
+#    color: false
   log:
     file:
       enable: true
@@ -54,8 +40,8 @@ xroad:
         connection.url: jdbc:postgresql://127.0.0.1:5432/serverconf
         hikari.dataSource.currentSchema: serverconf,public
         jdbc.use_streams_for_binary: true
-        connection.username: "${secret-serverconf.username}"
-        connection.password: "${secret-serverconf.password}"
+        connection.username: "serverconf"
+        connection.password:
   proxy:
     addon:
       proxymonitor:
@@ -109,7 +95,7 @@ xroad:
       client-idle-connection-monitor-interval: 30000
       client-idle-connection-monitor-timeout: 60000
       client-use-idle-connection-monitor: true
-    #    backup-encryption-keyids: []
+    backup-encryption-keyids: []
     grpc:
       listen-address: 127.0.0.1
       port: 5567
@@ -126,5 +112,5 @@ xroad:
       connection.url: jdbc:postgresql://127.0.0.1:5432/messagelog
       hikari.dataSource.currentSchema: messagelog,public
       jdbc.use_streams_for_binary: true
-      connection.username: "${secret-messagelog.username}"
-      connection.password: "${secret-messagelog.password}"
+      connection.username: "messagelog"
+      connection.password:

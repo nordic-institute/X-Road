@@ -55,7 +55,7 @@ public class ProxyDiagnosticsConfig {
             ProxyProperties proxyProperties) {
         return new BackupEncryptionStatusDiagnostics(
                 proxyProperties.backupEncryptionEnabled(),
-                proxyProperties.backupEncryptionKeyids());
+                proxyProperties.backupEncryptionKeyids().orElse(null));
     }
 
     @Produces

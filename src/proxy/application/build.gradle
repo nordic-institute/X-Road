@@ -3,11 +3,21 @@ plugins {
 //    alias(libs.plugins.jandex)
 }
 
+configurations {
+    configureEach {
+        exclude group: 'ch.qos.logback', module: 'logback-classic' //TODO remove once actual source is removed
+    }
+}
+
 dependencies {
     implementation(platform(libs.quarkus.bom))
 
+//    implementation(libs.quarkus.jaxb)
     implementation(libs.quarkus.springBoot.di) //TODO might be removed , comes from bootstrap
-    implementation(libs.quarkus.kubernetes) //TODO use classifer?
+    implementation(libs.bundles.quarkus.containerized) //TODO use classifer?
+    implementation(libs.quarkus.kubernetesConfig) //TODO
+    implementation(libs.quarkus.containerImage.jib)
+//    implementation(libs.jaxb.runtime)
 
     implementation(project(':proxy:core'))
     implementation(project(':common:common-quarkus-bootstrap'))
