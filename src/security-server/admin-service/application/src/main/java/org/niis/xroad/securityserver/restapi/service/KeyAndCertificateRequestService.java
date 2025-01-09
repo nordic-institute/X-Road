@@ -150,11 +150,11 @@ public class KeyAndCertificateRequestService {
         }
 
         return new KeyAndCertRequestInfo(refreshedKeyInfo,
-                csrInfo.getCertReqId(),
-                csrInfo.getCertRequest(),
-                csrInfo.getFormat(),
-                csrInfo.getMemberId(),
-                csrInfo.getKeyUsage());
+                csrInfo.certReqId(),
+                csrInfo.certRequest(),
+                csrInfo.format(),
+                csrInfo.memberId(),
+                csrInfo.keyUsage());
     }
 
     /**

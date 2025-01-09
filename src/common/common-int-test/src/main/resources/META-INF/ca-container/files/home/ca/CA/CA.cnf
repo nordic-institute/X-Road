@@ -178,13 +178,17 @@ basicConstraints = CA:FALSE
 keyUsage = critical, digitalSignature, keyEncipherment, dataEncipherment, keyAgreement
 extendedKeyUsage = clientAuth, serverAuth
 
-[extensions]
+[extensions_auth]
+subjectKeyIdentifier = hash, issuer:always
+authorityKeyIdentifier = keyid:always, issuer:always
+basicConstraints = CA:FALSE
+keyUsage = critical, digitalSignature, keyEncipherment, dataEncipherment, keyAgreement
+
+[extensions_sign]
 subjectKeyIdentifier = hash, issuer:always
 authorityKeyIdentifier = keyid:always, issuer:always
 basicConstraints = CA:FALSE
 keyUsage = critical,nonRepudiation
-#keyUsage = critical, digitalSignature, keyEncipherment, dataEncipherment, keyAgreement
-#extendedKeyUsage = clientAuth, serverAuth
 
 [ tsa ]
 default_tsa = tsa_config1 # the default TSA section

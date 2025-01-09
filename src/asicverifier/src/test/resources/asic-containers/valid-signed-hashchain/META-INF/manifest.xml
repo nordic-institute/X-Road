@@ -1,6 +1,7 @@
-<?xml version="1.0" encoding="utf-8"?>
-<manifest:manifest xmlns:manifest="urn:oasis:names:tc:opendocument:xmlns:manifest:1.0">
-<manifest:file-entry manifest:media-type="text/xml" manifest:full-path="message.xml" />
-<manifest:file-entry manifest:media-type="text/xml" manifest:full-path="sig-hashchainresult.xml" />
-<manifest:file-entry manifest:media-type="text/xml" manifest:full-path="sig-hashchain.xml" />
+<?xml version="1.0" encoding="UTF-8"?>
+<manifest:manifest xmlns:manifest="urn:oasis:names:tc:opendocument:xmlns:manifest:1.0" manifest:version="1.2">
+    <manifest:file-entry manifest:media-type="application/vnd.etsi.asic-e+zip" manifest:full-path="/"/>
+    <manifest:file-entry manifest:media-type="text/xml" manifest:full-path="sig-hashchain.xml"/>
+    <manifest:file-entry manifest:media-type="text/xml" manifest:full-path="message.xml"/>
+    <manifest:file-entry manifest:media-type="text/xml" manifest:full-path="sig-hashchainresult.xml"/>
 </manifest:manifest>

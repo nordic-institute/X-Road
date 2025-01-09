@@ -151,33 +151,37 @@
 
     <v-card flat class="pa-0 ma-0">
       <table class="xrd-table group-members-table">
-        <tr>
-          <th>{{ $t('services.memberNameGroupDesc') }}</th>
-          <th>{{ $t('services.idGroupCode') }}</th>
-          <th>{{ $t('general.type') }}</th>
-          <th>{{ $t('accessRights.rightsGiven') }}</th>
-          <th></th>
-        </tr>
-        <template v-if="serviceClients">
-          <tr v-for="sc in serviceClients" :key="sc.id">
-            <td class="identifier-wrap">{{ sc.name }}</td>
-            <td class="identifier-wrap">{{ sc.id }}</td>
-            <td>{{ sc.service_client_type }}</td>
-            <td>{{ $filters.formatDateTime(sc.rights_given_at ?? '') }}</td>
-            <td>
-              <div class="button-wrap">
-                <xrd-button
-                  v-if="canEdit"
-                  text
-                  :outlined="false"
-                  data-test="remove-subject"
-                  @click="removeServiceClient(sc)"
-                  >{{ $t('action.remove') }}
-                </xrd-button>
-              </div>
-            </td>
+        <thead>
+          <tr>
+            <th>{{ $t('services.memberNameGroupDesc') }}</th>
+            <th>{{ $t('services.idGroupCode') }}</th>
+            <th>{{ $t('general.type') }}</th>
+            <th>{{ $t('accessRights.rightsGiven') }}</th>
+            <th></th>
           </tr>
-        </template>
+        </thead>
+        <tbody>
+          <template v-if="serviceClients">
+            <tr v-for="sc in serviceClients" :key="sc.id">
+              <td class="identifier-wrap">{{ sc.name }}</td>
+              <td class="identifier-wrap">{{ sc.id }}</td>
+              <td>{{ sc.service_client_type }}</td>
+              <td>{{ $filters.formatDateTime(sc.rights_given_at ?? '') }}</td>
+              <td>
+                <div class="button-wrap">
+                  <xrd-button
+                    v-if="canEdit"
+                    text
+                    :outlined="false"
+                    data-test="remove-subject"
+                    @click="removeServiceClient(sc)"
+                    >{{ $t('action.remove') }}
+                  </xrd-button>
+                </div>
+              </td>
+            </tr>
+          </template>
+        </tbody>
       </table>
 
       <div class="xrd-footer-buttons-wrap">

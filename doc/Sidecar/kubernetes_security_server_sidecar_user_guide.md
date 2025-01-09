@@ -1,6 +1,6 @@
 # Kubernetes Security Server Sidecar User Guide <!-- omit in toc -->
 
-Version: 1.12  
+Version: 1.13  
 Doc. ID: UG-K-SS-SIDECAR
 
 ## Version history <!-- omit in toc -->
@@ -20,6 +20,7 @@ Doc. ID: UG-K-SS-SIDECAR
 | 13.05.2024 | 1.10    | Add additional upgrade details for Sidecar 7.5        | Ovidijus Narkevicius      |
 | 10.07.2024 | 1.11    | Fix incorrect section numbering                       | Petteri Kivimäki          |
 | 02.10.2024 | 1.12    | Add example of set up the volume for backups          | Eneli Reimets             |
+| 23.12.2024 | 1.13    | Minor documentation updates                           | Eneli Reimets             |
 ## License
 
 This document is licensed under the Creative Commons Attribution-ShareAlike 4.0 International License.
@@ -141,11 +142,14 @@ The table below lists the required connections between different components.
 | Inbound    | Other Security Servers      | Sidecar                     | 5500, 5577       | tcp      |                               |
 | Inbound    | Consumer Information System | Sidecar                     | 8080, 8443       | tcp      | From "internal" network       |
 | Inbound    | Admin                       | Sidecar                     | 4000             | https    | From "internal" network       |
-| Outbound   | Sidecar                     | Central Server              | 80, 4001         | http(s)  |                               |
+| Inbound    | ACME Server                 | Sidecar                     | 80               | http     | From "internal" network       |
+| Outbound   | Sidecar                     | Central Server              | 80, 443, 4001    | http(s)  |                               |
 | Outbound   | Sidecar                     | OCSP Service                | 80 / 443 / other | http(s)  |                               |
 | Outbound   | Sidecar                     | Timestamping Service        | 80 / 443 / other | http(s)  | Not used by *slim*            |
 | Outbound   | Sidecar                     | Other Security Server(s)    | 5500, 5577       | tcp      |                               |
 | Outbound   | Sidecar                     | Producer Information System | 80, 443, other   | http(s)  | To "internal" network         |
+| Outbound   | Sidecar                     | ACME Server                 | 80 / 443         | http(s)  |                               |
+| Outbound   | Sidecar                     | Mail server                 | 587              | tcp      |                               |
 | Inbound    | Sidecar (secondary)         | Sidecar (primary)           | 22               | ssh      | Configuration synchronization |
 
 ### 4.4 Reference Data
@@ -471,19 +475,19 @@ spec:
       value: "<xroad db password>"
     - name: XROAD_DATABASE_NAME
       value: "<database name>"
-  startupProbe:
-    httpGet:
-      path: /
-      port: 8080
-    periodSeconds: 10
-    failureThreshold: 60
-  livenessProbe:
-    httpGet:
-      path: /
-      port: 8080
-    periodSeconds: 10
-    successThreshold: 1
-    failureThreshold: 5
+    startupProbe:
+      httpGet:
+        path: /
+        port: 8080
+      periodSeconds: 10
+      failureThreshold: 60
+    livenessProbe:
+      httpGet:
+       path: /
+       port: 8080
+      periodSeconds: 10
+      successThreshold: 1
+      failureThreshold: 5
     ports:
     - containerPort: 4000
     - containerPort: 5588
@@ -527,7 +531,7 @@ spec:
     name: xroad-message-transport
   - port: 5577
     targetPort: 5577
-    protocol: HTTP
+    protocol: TCP
     name: xroad-ocsp
 ---
 apiVersion: v1

@@ -1,6 +1,6 @@
 # X-Road: Security hardening guidelines <!-- omit in toc -->
 
-Version: 0.4  
+Version: 0.6  
 Doc. ID: UG-SEC
 
 ## Version history <!-- omit in toc -->
@@ -11,6 +11,8 @@ Doc. ID: UG-SEC
 | 24.08.2023 | 0.2     | Minimum supported client Security Server version | Eneli Reimets     |
 | 14.11.2023 | 0.3     | Publish global configuration over HTTPS          | Eneli Reimets     |
 | 15.12.2023 | 0.4     | Minor updates                                    | Eneli Reimets     |
+| 07.01.2025 | 0.5     | Update references                                | Petteri Kivimäki  |
+| 09.01.2025 | 0.6     | Restructure heading levels                       | Raido Kaju        |
 
 ## Table of Contents <!-- omit in toc -->
 <!-- toc -->
@@ -42,20 +44,20 @@ Doc. ID: UG-SEC
 
 This document is licensed under the Creative Commons Attribution-ShareAlike 3.0 Unported License. To view a copy of this license, visit http://creativecommons.org/licenses/by-sa/3.0/.
 
-# 1. Introduction
+## 1. Introduction
 
 You may want to harden the security of your X-Road instance by configuring additional security policies within your X-Road infrastructure.
 The security measures that are introduced in this guide are common security policies that can be configured on operating system level.
 
-## 1.1 Target Audience
+### 1.1 Target Audience
 
 The intended audience of this User Guide are X-Road administrators (Central or Security server) who are responsible for X-Road instance set-up and/or everyday management of the X-Road infrastructure.
 
-## 1.2 Terms and abbreviations
+### 1.2 Terms and abbreviations
 
 See X-Road terms and abbreviations documentation \[[TA-TERMS](#Ref_TERMS)\].
 
-## 1.3 References
+### 1.3 References
 
 1. <a id="Ref_IG-CS" class="anchor"></a>\[IG-CS\] X-Road: Central Server Installation Guide. Document ID: [IG-CS](ig-cs_x-road_6_central_server_installation_guide.md).
 2. <a id="Ref_UG-CS" class="anchor"></a>\[UG-CS\] X-Road: Central Server User Guide. Document ID: [UG-CS](ug-cs_x-road_6_central_server_user_guide.md).
@@ -65,13 +67,13 @@ See X-Road terms and abbreviations documentation \[[TA-TERMS](#Ref_TERMS)\].
 6. <a id="Ref_TERMS" class="anchor"></a>\[TA-TERMS\] X-Road Terms and Abbreviations. Document ID: [TA-TERMS](../terms_x-road_docs.md).
 7. <a id="Ref_UG-CP" class="anchor"></a>\[UG-CP\] X-Road: Configuration Proxy Manual. Document ID: [UG-CP](ug-cp_x-road_v6_configuration_proxy_manual.md).
 
-## 2 User management
+## 2. User management
 
 X-Road uses the Linux Pluggable Authentication Modules (PAM) to authenticate users. This makes it easy to configure the account management to your liking. 
 The example PAM configurations provided in this guide may or may not work on your system depending on your system and existing PAM configurations. 
 Note that editing the PAM configurations will take effect immediately without the need to restart anything.
 
-For configuring the following security policies for the X-Road components Admin UI in production, please refer to [The Linux-PAM System Administrator's Guide](http://www.linux-pam.org/Linux-PAM-html/Linux-PAM_SAG.html) for the full documentation on how to configure PAM.
+For configuring the following security policies for the X-Road components Admin UI in production, please refer to [The Linux-PAM System Administrator's Guide](https://fossies.org/linux/Linux-PAM-docs/doc/sag/Linux-PAM_SAG.pdf) for the full documentation on how to configure PAM.
 
 ### 2.1 Configuring account lockout
 

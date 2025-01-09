@@ -49,7 +49,7 @@ public class MemberPageObj {
     }
 
     public SelenideElement listRowOf(String memberName) {
-        var xpath = "//div[@data-test='members-table']//table//tbody//tr//td//div[contains(text(), '%s')]";
+        var xpath = "//div[@data-test='members-table']//table/tbody/tr/td//div[contains(text(), '%s')]";
         return $x(String.format(xpath, memberName));
     }
 

@@ -26,69 +26,46 @@
 <template>
   <div>
     <div class="search-field">
-      <v-text-field
-        v-model="search"
-        :label="$t('serviceClients.memberGroupStep')"
-        single-line
-        hide-details
-        autofocus
-        data-test="search-service-client"
-        variant="underlined"
-        density="compact"
-        class="search-input"
-        append-inner-icon="mdi-magnify"
-      >
+      <v-text-field v-model="search" :label="$t('serviceClients.memberGroupStep')" single-line hide-details autofocus
+        data-test="search-service-client" variant="underlined" density="compact" class="search-input"
+        append-inner-icon="mdi-magnify">
       </v-text-field>
     </div>
 
-    <v-radio-group
-      v-model="selection"
-      @update:model-value="$emit('candidate-selection', $event)"
-    >
-      <table class="xrd-table service-clients-table">
-        <thead>
-          <tr>
-            <th class="checkbox-column"></th>
-            <th>{{ $t('serviceClients.name') }}</th>
-            <th>{{ $t('serviceClients.id') }}</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr v-for="candidate in filteredCandidates()" :key="candidate.id">
-            <td class="checkbox-column">
-              <div class="checkbox-wrap">
-                <v-radio
-                  :key="candidate.id"
-                  :disabled="isDisabled(candidate)"
-                  :value="candidate"
-                  data-test="candidate-selection"
-                />
+    <table class="xrd-table service-clients-table">
+      <thead>
+        <tr>
+          <th class="checkbox-column"></th>
+          <th>{{ $t('serviceClients.name') }}</th>
+          <th>{{ $t('serviceClients.id') }}</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr v-for="candidate in filteredCandidates" :key="candidate.id">
+          <td class="checkbox-column">
+            <div class="checkbox-wrap">
+              <v-radio :key="candidate.id" :disabled="isDisabled(candidate)" data-test="candidate-selection"
+                v-model="selection" @click="updateSelection(candidate)"/>
               </div>
             </td>
             <td class="identifier-wrap">
               {{
-                candidate.service_client_type === 'LOCALGROUP'
-                  ? candidate.local_group_code
-                  : candidate.name
-              }}
-            </td>
-            <td class="identifier-wrap">{{ candidate.id }}</td>
-          </tr>
-        </tbody>
-      </table>
-    </v-radio-group>
+                candidate.name
+            }}
+          </td>
+          <td class="identifier-wrap">{{ candidate.id }}</td>
+        </tr>
+      </tbody>
+    </table>
 
     <div class="button-footer full-width">
       <xrd-button outlined data-test="cancel-button" @click="cancel">{{
         $t('action.cancel')
       }}</xrd-button>
 
-      <xrd-button
-        :disabled="!selection"
-        data-test="next-button"
-        @click="$emit('set-step')"
-        >{{ $t('action.next') }}</xrd-button
-      >
+      <xrd-button :disabled="!selection" data-test="next-button" @click="$emit('set-step', selection)">{{
+        $t('action.next')
+      }}</xrd-button>
     </div>
   </div>
 </template>
@@ -112,7 +89,7 @@ export default defineComponent({
       required: true,
     },
   },
-  emits: ['candidate-selection', 'set-step'],
+  emits: ['set-step'],
   data() {
     return {
       search: '' as string,
@@ -120,22 +97,7 @@ export default defineComponent({
       selection: undefined as undefined | ServiceClient,
     };
   },
-  created(): void {
-    this.fetchData();
-  },
-  methods: {
-    ...mapActions(useNotifications, ['showError', 'showSuccess']),
-    fetchData(): void {
-      api
-        .get<ServiceClient[]>(
-          `/clients/${encodePathParameter(this.id)}/service-client-candidates`,
-        )
-        .then((response) => (this.serviceClientCandidates = response.data))
-        .catch((error) => this.showError(error));
-    },
-    cancel(): void {
-      this.$router.back();
-    },
+  computed: {
     filteredCandidates(): ServiceClient[] {
       return this.serviceClientCandidates.filter(
         (candidate: ServiceClient): boolean => {
@@ -152,6 +114,26 @@ export default defineComponent({
           );
         },
       );
+    },
+  },
+  created(): void {
+    this.fetchData();
+  },
+  methods: {
+    ...mapActions(useNotifications, ['showError', 'showSuccess']),
+    updateSelection(value: ServiceClient): void {
+      this.selection = value;
+    },
+    fetchData(): void {
+      api
+        .get<ServiceClient[]>(
+          `/clients/${encodePathParameter(this.id)}/service-client-candidates`,
+        )
+        .then((response) => (this.serviceClientCandidates = response.data))
+        .catch((error) => this.showError(error));
+    },
+    cancel(): void {
+      this.$router.back();
     },
     isDisabled(scCandidate: ServiceClient): boolean {
       return this.serviceClients.some(

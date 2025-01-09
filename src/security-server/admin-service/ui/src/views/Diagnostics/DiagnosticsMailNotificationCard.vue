@@ -26,7 +26,12 @@
 <template>
   <v-card variant="flat" class="xrd-card diagnostic-card">
     <v-card-title class="text-h5" data-test="diagnostics-mail-notification">
-      {{ $t('diagnostics.mailNotificationConfiguration.title') }}
+      {{ $t('diagnostics.mailNotificationConfiguration.title')
+      }}<HelpButton
+        class="help-icon"
+        help-text="diagnostics.mailNotificationConfiguration.help.description"
+        help-title="diagnostics.mailNotificationConfiguration.help.title"
+      />
     </v-card-title>
 
     <v-card-text class="xrd-card-text">
@@ -58,7 +63,10 @@
         <tbody>
           <tr>
             <td data-test="mail-success-notification-status">
-              <div class="status-wrapper" v-if="mailNotificationStatus.success_status !== undefined">
+              <div
+                class="status-wrapper"
+                v-if="mailNotificationStatus.success_status !== undefined"
+              >
                 <xrd-status-icon
                   v-if="mailNotificationStatus.success_status"
                   status="ok"
@@ -72,7 +80,10 @@
               </div>
             </td>
             <td data-test="mail-failure-notification-status">
-              <div class="status-wrapper" v-if="mailNotificationStatus.failure_status !== undefined">
+              <div
+                class="status-wrapper"
+                v-if="mailNotificationStatus.failure_status !== undefined"
+              >
                 <xrd-status-icon
                   v-if="mailNotificationStatus.failure_status"
                   status="ok"
@@ -86,7 +97,12 @@
               </div>
             </td>
             <td data-test="mail-notification-configuration-status">
-              <div class="status-wrapper" v-if="mailNotificationStatus.configuration_present !== undefined">
+              <div
+                class="status-wrapper"
+                v-if="
+                  mailNotificationStatus.configuration_present !== undefined
+                "
+              >
                 <xrd-status-icon
                   v-if="mailNotificationStatus.configuration_present"
                   status="ok"
@@ -135,6 +151,7 @@ import { mapActions, mapState } from 'pinia';
 import { useNotifications } from '@/store/modules/notifications';
 import { useMail } from '@/store/modules/mail';
 import { defineComponent } from 'vue';
+import HelpButton from '@/components/ui/HelpButton.vue';
 
 type TestMailStatuses = {
   [key: string]: {
@@ -144,6 +161,9 @@ type TestMailStatuses = {
 };
 
 export default defineComponent({
+  components: {
+    HelpButton,
+  },
   computed: {
     ...mapState(useMail, ['mailNotificationStatus']),
   },
@@ -214,5 +234,9 @@ h3 {
   display: flex;
   flex-direction: row;
   align-items: center;
+}
+
+.help-icon {
+  display: inline-block;
 }
 </style>

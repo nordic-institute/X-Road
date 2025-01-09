@@ -28,6 +28,17 @@
   tags:
     - install-xroad-ss-packages
 
+- name: Install PostgreSQL packages (RHEL)
+  become: yes
+  yum:
+    name: "{{ items }}"
+    state: present
+  vars:
+    items:
+      - postgresql-server
+      - postgresql-contrib
+  when: not ((database_admin_password is defined) and (database_admin_password != ""))
+
 # verify presence of xroad packages and dependencies
 - name: install xroad packages and dependencies from set up repository (RHEL)
   yum:

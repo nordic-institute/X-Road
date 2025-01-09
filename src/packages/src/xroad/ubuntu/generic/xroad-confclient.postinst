@@ -2,9 +2,23 @@
 umask 027
 
 if [ "$1" = configure ]; then
-    chown xroad:xroad /etc/xroad/backup.d/??_xroad-confclient
-    chmod 0440 /etc/xroad/backup.d/??_xroad-confclient
-    test -e /etc/xroad/globalconf/files && rm -f /etc/xroad/globalconf/files
+  chown xroad:xroad /etc/xroad/backup.d/??_xroad-confclient
+  chmod 0440 /etc/xroad/backup.d/??_xroad-confclient
+  test -e /etc/xroad/globalconf/files && rm -f /etc/xroad/globalconf/files
+
+  ### this script can be delete starting from 7.9.0 version
+  local_ini_file="/etc/xroad/conf.d/local.ini"
+  if [[ -f "$local_ini_file" ]]; then
+    if grep -q "^global_conf_tls_cert_verification" "$local_ini_file"; then
+      sed -i 's/^global_conf_tls_cert_verification/global-conf-tls-cert-verification/' "$local_ini_file"
+      echo "Successfully updated property name: global_conf_tls_cert_verification -> global-conf-tls-cert-verification"
+    fi
+    if grep -q "^global_conf_hostname_verification" "$local_ini_file"; then
+      sed -i 's/^global_conf_hostname_verification/global-conf-hostname-verification/' "$local_ini_file"
+      echo "Successfully updated property name: global_conf_hostname_verification -> global-conf-hostname-verification"
+    fi
+  fi
+  ###
 fi
 
 if [ "$1" = abort-upgrade ]; then

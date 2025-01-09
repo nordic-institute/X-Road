@@ -11,5 +11,6 @@ mkdir -p ./build
 
 cp -r "$XROAD_HOME"/ansible/roles/xroad-ca/files/etc ./build/
 cp -r "$XROAD_HOME"/ansible/roles/xroad-ca/files/home ./build/
+cp -r "$XROAD_HOME"/development/acme2certifier ./build/
 
 mkdir -p ./build/usr

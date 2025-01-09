@@ -177,7 +177,7 @@ public class ClientInfoPageObj {
             }
 
             public SelenideElement memberByCode(String code) {
-                return $x(format("//table[contains(@class, 'group-members-table')]//tr[td[2][text()='%s']]",
+                return $x(format("//table[contains(@class, 'group-members-table')]/tbody/tr[td[2][text()='%s']]",
                         code));
             }
 
@@ -287,12 +287,12 @@ public class ClientInfoPageObj {
         }
 
         public SelenideElement accessRightsTableRowOfId(String id) {
-            return $x(format("//table[contains(@class,'group-members-table')]//td[text()='%s']", id));
+            return $x(format("//table[contains(@class,'group-members-table')]/tbody/tr/td[text()='%s']", id));
         }
 
         public SelenideElement accessRightsTableRowRemoveOfId(String id) {
-            return $x(format("//table[contains(@class,'group-members-table')]//tr[ td[text()='%s']]//button[@data-test='remove-subject']",
-                    id));
+            return $x("//table[contains(@class,'group-members-table')]/tbody/tr[td[text()='%s']]//button[@data-test='remove-subject']"
+                    .formatted(id));
         }
     }
 
@@ -394,7 +394,7 @@ public class ClientInfoPageObj {
         }
 
         public ElementsCollection memberTableRows() {
-            return $$x("//table[contains(@class,'members-table')]//tbody/tr");
+            return $$x("//div[@data-test='add-subjects-dialog']//table[contains(@class,'members-table')]/tbody/tr");
         }
 
         public SelenideElement memberTableRowOfId(String id) {
@@ -469,11 +469,11 @@ public class ClientInfoPageObj {
 
     public static class ServiceClientsEdit {
         public SelenideElement cellMemberName() {
-            return $x("//table[@data-test='service-clients-table']/tr/td[1]");
+            return $x("//table[@data-test='service-clients-table']/tbody/tr/td[1]");
         }
 
         public SelenideElement cellId() {
-            return $x("//table[@data-test='service-clients-table']/tr/td[2]");
+            return $x("//table[@data-test='service-clients-table']/tbody/tr/td[2]");
         }
 
         public SelenideElement tableAccessRightsOfServiceCode(String id) {
@@ -551,9 +551,11 @@ public class ClientInfoPageObj {
         public SelenideElement title() {
             return $x("//div[@data-test='service-warning-dialog-title']");
         }
+
         public SelenideElement btnCancel() {
             return $x("//button[@data-test='dialog-cancel-button']");
         }
+
         public SelenideElement btnContinue() {
             return $x("//button[@data-test='service-url-change-button']");
         }

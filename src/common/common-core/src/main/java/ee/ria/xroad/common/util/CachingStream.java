@@ -101,4 +101,13 @@ public class CachingStream extends FilterOutputStream {
         }
     }
 
+    public long size() {
+        try {
+            return channel.size();
+        } catch (IOException ex) {
+            throw ErrorCodes.translateException(ex);
+        }
+    }
+
+
 }

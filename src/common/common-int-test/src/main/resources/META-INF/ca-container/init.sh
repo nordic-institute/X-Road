@@ -15,8 +15,10 @@ DN_TSA_CN="Test TSA"
 rm -rf private certs newcerts crl csr
 rm -f index.* serial
 echo 01 > serial
+chmod 0664 serial
 mkdir -p private certs newcerts crl csr
 touch index.txt index.txt.attr
+chmod 0664 index.txt
 set -e
 openssl rand -hex -out pw -writerand private/.rnd 16
 echo "Generating CA Certificate"

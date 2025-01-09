@@ -25,7 +25,7 @@
  */
 package org.niis.xroad.restapi.openapi;
 
-import org.niis.xroad.restapi.exceptions.DeviationAwareException;
+import org.niis.xroad.restapi.exceptions.DeviationAware;
 import org.niis.xroad.restapi.exceptions.DeviationAwareRuntimeException;
 import org.niis.xroad.restapi.exceptions.ErrorDeviation;
 import org.niis.xroad.restapi.exceptions.WarningDeviation;
@@ -43,7 +43,7 @@ import java.util.Collection;
 @ResponseStatus(value = HttpStatus.BAD_REQUEST)
 public class BadRequestException extends DeviationAwareRuntimeException {
 
-    public BadRequestException(DeviationAwareException e) {
+    public <TD extends Throwable & DeviationAware> BadRequestException(TD e) {
         super(e, e.getErrorDeviation(), e.getWarningDeviations());
     }
 

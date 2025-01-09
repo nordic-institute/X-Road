@@ -363,12 +363,12 @@ public class ServerConfImpl implements ServerConfProvider {
     }
 
     @Override
-    public List<Endpoint> getServiceEndpoints(ServiceId service) {
-        return tx(session -> getClient(session, service.getClientId()).getEndpoint().stream()
-                .filter(e -> e.getServiceCode().equals(service.getServiceCode()))
+    public List<Endpoint> getServiceEndpoints(ServiceId serviceId) {
+        return tx(session -> getClient(session, serviceId.getClientId()).getEndpoint().stream()
+                .filter(e -> e.getServiceCode().equals(serviceId.getServiceCode()))
                 .filter(e -> !e.isBaseEndpoint())
                 .map(e -> createEndpoint(e.getMethod(), e.getPath()))
-                .collect(Collectors.toList()));
+                .toList());
     }
 
     @Override

@@ -133,7 +133,7 @@ import { CertificateDetails } from '@/openapi-types';
 import * as api from '@/util/api';
 import GenerateTlsAndCertificateDialog from '@/views/KeysAndCertificates/SecurityServerTlsCertificate/GenerateTlsAndCertificateDialog.vue';
 import { saveResponseAsFile } from '@/util/helpers';
-import HelpButton from '../HelpButton.vue';
+import HelpButton from '@/components/ui/HelpButton.vue';
 import { mapActions, mapState } from 'pinia';
 import { useUser } from '@/store/modules/user';
 import { useNotifications } from '@/store/modules/notifications';

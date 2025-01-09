@@ -1,6 +1,6 @@
 # X-Road: Message Log Data Model
 
-Version: 1.10
+Version: 1.11
 Doc. ID: DM-ML
 
 | Date       | Version | Description                                                  | Author             |
@@ -23,7 +23,9 @@ Doc. ID: DM-ML
 | 11.09.2019 | 1.8     | Remove Ubuntu 14.04 support                                  | Jarkko Hyöty       |
 | 06.09.2021 | 1.9     | Update data model due to encryption features                 | Ilkka Seppälä      |
 | 26.09.2022 | 1.10    | Remove Ubuntu 18.04 support                                  | Andres Rosenthal   |
+| 09.01.2025 | 1.11    | Heading level changes for the documentation platform         | Raido Kaju         |
 
+## Table of Contents
 <!-- vim-markdown-toc GFM -->
 
 - [X-Road: Message Log Data Model](#x-road-message-log-data-model)
@@ -49,13 +51,13 @@ Doc. ID: DM-ML
 
 <!-- vim-markdown-toc -->
 
-# 1. General
+## 1. General
 
-## 1.1 Preamble
+### 1.1 Preamble
 
 This document describes database model of X-Road message log.
 
-## 1.2 Terms and abbreviations
+### 1.2 Terms and abbreviations
 
 See X-Road terms and abbreviations documentation \[[TA-TERMS](#Ref_TERMS)\].
 
@@ -63,11 +65,11 @@ See X-Road terms and abbreviations documentation \[[TA-TERMS](#Ref_TERMS)\].
 
 1. <a id="Ref_TERMS" class="anchor"></a>\[TA-TERMS\] X-Road Terms and Abbreviations. Document ID: [TA-TERMS](../terms_x-road_docs.md).
 
-## 1.4 Database Version
+### 1.4 Database Version
 
 This database assumes PostgreSQL version 9.2 or later.
 
-## 1.5 Creating, Backing Up and Restoring the Database
+### 1.5 Creating, Backing Up and Restoring the Database
 
 This database is integrated into X-Road message log component.
 
@@ -75,7 +77,7 @@ The database, the database user and the data model is created by the component's
 
 The database is used for logging purposes only and does not contain any configuration. Backing-up and restoring the database is not necessary for the functioning of the component.
 
-## 1.6 Message Logging and Timestamping
+### 1.6 Message Logging and Timestamping
 
 The input to the message log component consists of a message and its corresponding signature (along with hash chain and hash chain result if the signature is a batch signature). Depending on the security policy, timestamping can be asynchronous (one or more signatures are batch timestamped) or synchronous (to guarantee the timestamp).
 
@@ -90,17 +92,17 @@ When timestamping synchronously, the logging call will block until the timestamp
 1. The system saves the message and signature in the message log.
 2. System timestamps the message synchronously.
 
-## 1.7 Entity-Relationship Diagram
+### 1.7 Entity-Relationship Diagram
 
 ![Entity-Relationship Diagram](img/messagelog-er.svg)
 
-# 2. Description of Entities
+## 2. Description of Entities
 
-## 2.1 LOGRECORD
+### 2.1 LOGRECORD
 
 Log record can either be a message record or a timestamp record. A message record is created when the system processes an X-Road message. A timestamp record is created when the system timestamps the message records created since the last timestamping. A message record is modified by adding a reference to a timestamp record after it has been timestamped. All the records are modified by changing the archived flag after they have been archived. All the records are eventually deleted after they have been timestamped and archived.
 
-### 2.1.1 Indexes
+#### 2.1.1 Indexes
 
 | Name                           | Columns                                    | Partial index details  |
 | ------------------------------ |:------------------------------------------:| ----------------------:|
@@ -115,7 +117,7 @@ Log record can either be a message record or a timestamp record. A message recor
 | IX_NOT_ARCHIVED_LOGRECORD      | id                                         | where discriminator = 't' and archived = false |
 | IX_NOT_TIMESTAMPED_LOGRECORD   | id, discriminator, signaturehash           | where discriminator = 'm' and signaturehash is not null |
 
-### 2.1.2 Attributes
+#### 2.1.2 Attributes
 
 | Name                 | Type                   | Modifiers  | Description |
 | -------------------- |:----------------------:| ----------:| -----------:|
@@ -140,20 +142,20 @@ Log record can either be a message record or a timestamp record. A message recor
 | keyid                | character varying(255) |            | ID of the key used to encrypt/decrypt the message. |
 | ciphermessage        | bytea                  |            | The SOAP message body or REST request data in encrypted form. Only present for message records. Created only when encryption is switched on. |
 
-## 2.2 LAST_ARCHIVE_DIGEST
+### 2.2 LAST_ARCHIVE_DIGEST
 
 Records the last digest of the archive file. When archiving signatures, the message log links them together using cryptographic hash functions. When creating an archive, the last link is saved in the last_archive_digest table. This makes it possible to continue the hash chain for the next archive file.
 
 The record is created when the first archive file is created. The record is modified every time when an archive file s created. The record is never deleted.
 
-### 2.2.1 Indexes
+#### 2.2.1 Indexes
 
 | Name                              | Columns                                    | Partial index details  |
 | --------------------------------- |:------------------------------------------:| ----------------------:|
 | last_archive_digestpk             | id                                         | N/A                    |
 | last_archive_digest_groupname_key | groupname                                  | N/A                    |
 
-### 2.2.2 Attributes
+#### 2.2.2 Attributes
 
 | Name        | Type                   | Modifiers  | Description |
 | ----------- |:----------------------:| ----------:| -----------:|
@@ -162,11 +164,11 @@ The record is created when the first archive file is created. The record is modi
 | filename    | character varying(255) |            | The filename of the last archive. |
 | groupname   | character varying(255) |            | The name of the archive group. |
 
-## 2.3 DATABASECHANGELOG
+### 2.3 DATABASECHANGELOG
 
 Liquibase migration of the database. A record is created when the administrator updates the software package containing this database and the database structure needs to be modified. The record is never modified or deleted. This table has a technical nature and is not managed by X-Road application software.
 
-### 2.3.1 Attributes
+#### 2.3.1 Attributes
 
 | Name          | Type                     | Modifiers  | Description |
 | ------------- |:------------------------:| ----------:| -----------:|
@@ -185,11 +187,11 @@ Liquibase migration of the database. A record is created when the administrator 
 | labels        | character varying(255)   |            | Label(s) used to execute the changeset. |
 | deployment_id | character varying(10)    |            | Changesets deployed together will have the same unique identifier. |
 
-## 2.4 DATABASECHANGELOGLOCK
+### 2.4 DATABASECHANGELOGLOCK
 
 Lock used by Liquibase to allow only one migration of the database to run at a time. This table has a technical nature and is not managed by X-Road application software.
 
-### 2.4.1 Attributes
+#### 2.4.1 Attributes
 
 | Name        | Type                     | Modifiers  | Description |
 | ----------- |:------------------------:| ----------:| -----------:|
