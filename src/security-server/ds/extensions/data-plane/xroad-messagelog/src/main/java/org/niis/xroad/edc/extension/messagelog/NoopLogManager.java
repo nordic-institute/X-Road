@@ -50,4 +50,9 @@ public class NoopLogManager extends AbstractLogManager {
         return null;
     }
 
+    @Override
+    public void destroy() {
+        // noop
+    }
+
 }

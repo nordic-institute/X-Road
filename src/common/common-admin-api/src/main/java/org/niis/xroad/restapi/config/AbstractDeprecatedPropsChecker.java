@@ -27,19 +27,19 @@
 
 package org.niis.xroad.restapi.config;
 
+import jakarta.annotation.PostConstruct;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.BeansException;
-import org.springframework.beans.factory.InitializingBean;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
 
 import java.util.Set;
 
 @Slf4j
-public abstract class AbstractDeprecatedPropsChecker implements ApplicationContextAware, InitializingBean {
+public abstract class AbstractDeprecatedPropsChecker implements ApplicationContextAware {
 
     private ApplicationContext applicationContext;
 
@@ -48,6 +48,7 @@ public abstract class AbstractDeprecatedPropsChecker implements ApplicationConte
         this.applicationContext = applicationContext;
     }
 
+    @PostConstruct
     public void afterPropertiesSet() {
         final var env = applicationContext.getEnvironment();
         getDeprecatedProperties().stream()

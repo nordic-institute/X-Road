@@ -31,6 +31,8 @@ import ee.ria.xroad.common.conf.globalconf.GlobalConfProvider;
 import ee.ria.xroad.common.util.CryptoUtils;
 import ee.ria.xroad.common.util.HttpSender;
 
+import jakarta.annotation.PostConstruct;
+import jakarta.annotation.PreDestroy;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -44,8 +46,6 @@ import org.apache.http.impl.client.DefaultHttpRequestRetryHandler;
 import org.apache.http.impl.client.HttpClientBuilder;
 import org.apache.http.impl.client.HttpClients;
 import org.apache.http.impl.conn.PoolingHttpClientConnectionManager;
-import org.springframework.beans.factory.DisposableBean;
-import org.springframework.beans.factory.InitializingBean;
 
 import javax.net.ssl.KeyManager;
 import javax.net.ssl.KeyManagerFactory;
@@ -70,7 +70,7 @@ import java.util.Objects;
  * Client that sends managements requests to the Central Server.
  */
 @Slf4j
-public final class ManagementRequestClient implements InitializingBean, DisposableBean {
+public final class ManagementRequestClient {
 
     // HttpClient configuration parameters.
     private static final int CLIENT_MAX_TOTAL_CONNECTIONS = 100;
@@ -112,13 +112,13 @@ public final class ManagementRequestClient implements InitializingBean, Disposab
         }
     }
 
-    @Override
-    public void afterPropertiesSet() throws Exception {
+    @PostConstruct
+    public void afterPropertiesSet() {
         log.info("Starting ManagementRequestClient...");
     }
 
-    @Override
-    public void destroy() throws Exception {
+    @PreDestroy
+    public void destroy() {
         log.info("Stopping ManagementRequestClient...");
 
         IOUtils.closeQuietly(proxyHttpClient);

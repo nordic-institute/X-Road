@@ -25,6 +25,8 @@
  */
 package ee.ria.xroad.proxy.testutil;
 
+import jakarta.annotation.PostConstruct;
+import jakarta.annotation.PreDestroy;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.IOUtils;
 import org.eclipse.jetty.io.Content;
@@ -35,8 +37,6 @@ import org.eclipse.jetty.server.SecureRequestCustomizer;
 import org.eclipse.jetty.server.Server;
 import org.eclipse.jetty.server.ServerConnector;
 import org.eclipse.jetty.util.Callback;
-import org.springframework.beans.factory.DisposableBean;
-import org.springframework.beans.factory.InitializingBean;
 
 import java.util.Optional;
 
@@ -52,7 +52,7 @@ import static org.eclipse.jetty.io.Content.Source.asInputStream;
  * Test service
  */
 @Slf4j
-public class TestService implements InitializingBean, DisposableBean {
+public class TestService {
 
     private final Server server = new Server();
 
@@ -99,12 +99,12 @@ public class TestService implements InitializingBean, DisposableBean {
         server.addConnector(connector);
     }
 
-    @Override
+    @PostConstruct
     public synchronized void afterPropertiesSet() throws Exception {
         server.start();
     }
 
-    @Override
+    @PreDestroy
     public synchronized void destroy() throws Exception {
         server.stop();
     }

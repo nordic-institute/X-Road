@@ -71,7 +71,7 @@ public abstract class AbstractModuleManager implements WorkerWithLifecycle, Toke
     private FileWatcherRunner keyConfFileWatcherRunner;
 
     @PostConstruct
-    public void afterPropertiesSet() throws Exception {
+    public void afterPropertiesSet() {
         start();
     }
 
