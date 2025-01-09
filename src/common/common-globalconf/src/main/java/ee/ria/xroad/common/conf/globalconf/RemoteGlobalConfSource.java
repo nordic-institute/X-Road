@@ -30,11 +30,11 @@ import ee.ria.xroad.common.util.FileSource;
 import ee.ria.xroad.common.util.InMemoryFile;
 import ee.ria.xroad.common.util.TimeUtils;
 
+import jakarta.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.time.StopWatch;
 import org.niis.xroad.confclient.proto.ConfClientRpcClient;
-import org.springframework.beans.factory.InitializingBean;
 
 import java.time.OffsetDateTime;
 import java.util.HashMap;
@@ -53,7 +53,7 @@ import static java.util.concurrent.TimeUnit.MILLISECONDS;
  */
 @Slf4j
 @RequiredArgsConstructor
-public class RemoteGlobalConfSource implements GlobalConfSource, InitializingBean {
+public class RemoteGlobalConfSource implements GlobalConfSource {
     private final ConfClientRpcClient client;
     private final RemoteGlobalConfDataLoader dataLoader;
 
@@ -62,7 +62,7 @@ public class RemoteGlobalConfSource implements GlobalConfSource, InitializingBea
     @SuppressWarnings("java:S3077")
     private volatile GlobalConfData globalConfData;
 
-    @Override
+    @PostConstruct
     public void afterPropertiesSet() {
         var pool = new ForkJoinPool(Runtime.getRuntime().availableProcessors(),
                 new CustomForkJoinWorkerThreadFactory(), null, true);

@@ -61,4 +61,8 @@ public class NullLogManager extends AbstractLogManager {
         throw new RuntimeException("Status not available while using NullLogManager");
     }
 
+    @Override
+    public void destroy() {
+        // do nothing
+    }
 }

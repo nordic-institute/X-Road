@@ -30,11 +30,11 @@ import ee.ria.xroad.common.SystemProperties;
 import ee.ria.xroad.common.crypto.identifier.SignAlgorithm;
 import ee.ria.xroad.signer.SignerRpcClient;
 
+import jakarta.annotation.PreDestroy;
 import lombok.Data;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.DisposableBean;
 
 import java.security.cert.X509Certificate;
 import java.util.ArrayList;
@@ -63,7 +63,7 @@ import static ee.ria.xroad.common.util.CryptoUtils.calculateCertHexHash;
  */
 @Slf4j
 @RequiredArgsConstructor
-public class BatchSigner implements DisposableBean, MessageSigner {
+public class BatchSigner implements MessageSigner {
 
     private static final int TIMEOUT_MILLIS = SystemProperties.getSignerClientTimeout();
 
@@ -71,7 +71,7 @@ public class BatchSigner implements DisposableBean, MessageSigner {
 
     private final Map<String, WorkerImpl> workers = new ConcurrentHashMap<>();
 
-    @Override
+    @PreDestroy
     public void destroy() {
         workers.values().forEach(WorkerImpl::stop);
 

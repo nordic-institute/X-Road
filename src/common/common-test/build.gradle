@@ -3,7 +3,6 @@ plugins {
 }
 
 dependencies {
-    api(platform(libs.springBoot.bom))
     implementation(project(':common:common-message'))
     implementation(project(':common:common-globalconf'))
     implementation(project(':common:common-keyconf'))
@@ -12,7 +11,6 @@ dependencies {
     // JUnit is needed for ExpectedCodedException
     implementation libs.junit.vintageEngine
 
-    api('org.springframework:spring-test')
     api(libs.apache.httpasyncclient)
     api(libs.mockito.jupiter)
     api(libs.awaitility)

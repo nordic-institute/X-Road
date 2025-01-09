@@ -37,10 +37,10 @@ import ee.ria.xroad.signer.SignerRpcClient;
 
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
+import jakarta.annotation.PreDestroy;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.bouncycastle.cert.ocsp.OCSPResp;
-import org.springframework.beans.factory.DisposableBean;
 
 import java.security.PrivateKey;
 import java.util.Date;
@@ -56,7 +56,7 @@ import static ee.ria.xroad.common.ErrorCodes.X_CANNOT_CREATE_SIGNATURE;
  * Encapsulates KeyConf related functionality.
  */
 @Slf4j
-public class CachingKeyConfImpl extends KeyConfImpl implements DisposableBean {
+public class CachingKeyConfImpl extends KeyConfImpl {
 
     // Specifies how long data is cached
     private static final int CACHE_PERIOD_SECONDS = 300;
@@ -83,6 +83,7 @@ public class CachingKeyConfImpl extends KeyConfImpl implements DisposableBean {
     }
 
     @Override
+    @PreDestroy
     public void destroy() {
         invalidateCaches();
         super.destroy();

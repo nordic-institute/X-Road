@@ -33,11 +33,11 @@ import ee.ria.xroad.common.DiagnosticsStatus;
 import ee.ria.xroad.common.MessageLogArchiveEncryptionMember;
 import ee.ria.xroad.common.MessageLogEncryptionStatusDiagnostics;
 
+import jakarta.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.niis.xroad.common.rpc.client.AbstractRpcClient;
 import org.niis.xroad.common.rpc.client.RpcChannelFactory;
-import org.springframework.beans.factory.InitializingBean;
 
 import java.util.HashSet;
 import java.util.List;
@@ -49,13 +49,13 @@ import static org.niis.xroad.restapi.util.FormatUtils.fromInstantToOffsetDateTim
 
 @Slf4j
 @RequiredArgsConstructor
-public class ProxyRpcClient extends AbstractRpcClient implements InitializingBean {
+public class ProxyRpcClient extends AbstractRpcClient {
     private final RpcChannelFactory proxyRpcChannelFactory;
     private final ProxyRpcChannelProperties rpcChannelProperties;
 
     private AdminServiceGrpc.AdminServiceBlockingStub adminServiceBlockingStub;
 
-    @Override
+    @PostConstruct
     public void afterPropertiesSet() throws Exception {
         log.info("Initializing {} rpc client to {}:{}", getClass().getSimpleName(), rpcChannelProperties.getHost(),
                 rpcChannelProperties.getPort());
