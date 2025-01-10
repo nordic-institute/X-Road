@@ -8,7 +8,7 @@
 #    -Dotel.exporter.prometheus.port=9464 \
 #    -Dotel.metrics.exporter=prometheus \
 #    -Dotel.exporter.otlp.endpoint=http://jaeger:4318 \
-exec java \
+exec java -XX:UseSVE=0 \
     -Dserverconf.hibernate.hikari.maximumPoolSize=1 \
     -Xdebug -agentlib:jdwp=transport=dt_socket,address=*:9954,server=y,suspend=n \
     -Xmx256m -jar /usr/share/xroad/jlib/ds-data-plane.jar

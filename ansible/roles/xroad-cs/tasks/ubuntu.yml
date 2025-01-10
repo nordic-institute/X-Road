@@ -37,3 +37,7 @@
     force: yes
   tags:
     - install-xroad-cs-packages
+
+- name: Workaround for successfully installing ca-certificates-java
+  become: yes
+  shell: "_JAVA_OPTIONS=-XX:UseSVE=0 apt install --reinstall ca-certificates-java"

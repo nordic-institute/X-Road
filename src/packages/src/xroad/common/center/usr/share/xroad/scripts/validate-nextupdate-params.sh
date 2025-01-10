@@ -12,7 +12,7 @@ set -e
 
 if (( $FILE_EXISTS == 0 )) ;  then
   echo validating ocsp nextupdate params file
-  cat $NEXTUPDATE_PARAMS_FILE | java -cp $CLASSPATH $VALIDATOR_CLASS
+  cat $NEXTUPDATE_PARAMS_FILE | java -XX:UseSVE=0 -cp $CLASSPATH $VALIDATOR_CLASS
   echo done.
 else
   echo ocsp nextupdate params file $NEXTUPDATE_PARAMS_FILE not found or parameter missing

@@ -12,7 +12,7 @@ set -e
 
 if (( $FILE_EXISTS == 0 )) ;  then
   echo validating monitoring params file
-  cat $MONITORING_PARAMS_FILE | java -cp $CLASSPATH $VALIDATOR_CLASS
+  cat $MONITORING_PARAMS_FILE | java -XX:UseSVE=0 -cp $CLASSPATH $VALIDATOR_CLASS
   echo done.
 else
   echo monitoring params file $MONITORING_PARAMS_FILE not found or parameter missing

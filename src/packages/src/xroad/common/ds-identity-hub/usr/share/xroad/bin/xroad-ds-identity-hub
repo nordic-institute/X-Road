@@ -15,5 +15,5 @@ else
       -Dweb.custom-tls-keystore.path=/etc/xroad/ssl/management-service.p12"
 fi
 
-exec java $IH_JAVA_OPTS \
+exec java -XX:UseSVE=0 $IH_JAVA_OPTS \
     -Xmx256m -jar /usr/share/xroad/jlib/ds-identity-hub.jar
