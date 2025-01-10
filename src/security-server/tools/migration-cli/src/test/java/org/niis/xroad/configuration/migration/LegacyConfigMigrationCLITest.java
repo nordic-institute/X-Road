@@ -48,7 +48,7 @@ class LegacyConfigMigrationCLITest {
 
         var result = loadYaml("build/local.yml");
 
-        assertEquals("0.0.0.0", result.getProperty("xroad.proxy.connector-host"));
+        assertEquals("0.0.0.0", result.getProperty("xroad.proxy.client-proxy.connector-host"));
         assertEquals(false, result.getProperty("xroad.proxy.pool-enable-connection-reuse"));
         assertEquals(5665, result.getProperty("xroad.configuration-client.port"));
         assertEquals("/var/cache/xroad", result.getProperty("xroad.signer.ocsp-cache-path"));
