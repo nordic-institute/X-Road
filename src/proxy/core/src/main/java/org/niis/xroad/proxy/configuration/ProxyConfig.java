@@ -109,7 +109,7 @@ public class ProxyConfig {
 //        return new CertHashBasedOcspResponderClient(proxyProperties.getOcspResponder());
 //    }
     @Produces
-    @ApplicationScoped
+    @Startup
     OpMonitoring opMonitoringBuffer(AbstractOpMonitoringBuffer opMonitoringBuffer) throws Exception {
         return OpMonitoring.init(opMonitoringBuffer);
     }
