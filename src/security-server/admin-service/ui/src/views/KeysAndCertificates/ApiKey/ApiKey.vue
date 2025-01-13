@@ -40,14 +40,11 @@
         data-test="api-key-create-key-button"
         @click="createApiKey()"
       >
-        <xrd-icon-base class="xrd-large-button-icon"
-        >
-          <XrdIconAdd
-          />
+        <xrd-icon-base class="xrd-large-button-icon">
+          <XrdIconAdd />
         </xrd-icon-base>
         {{ $t('apiKey.createApiKey.title') }}
-      </xrd-button
-      >
+      </xrd-button>
     </div>
 
     <!-- Table -->
@@ -86,9 +83,8 @@
             :data-test="`api-key-row-${item.id}-edit-button`"
             :outlined="false"
             @click="editKey(item)"
-          >{{ $t('action.edit') }}
-          </xrd-button
-          >
+            >{{ $t('action.edit') }}
+          </xrd-button>
 
           <xrd-button
             v-if="canRevoke"
@@ -96,9 +92,8 @@
             :data-test="`api-key-row-${item.id}-revoke-button`"
             :outlined="false"
             @click="showRevokeDialog(item)"
-          >{{ $t('apiKey.table.action.revoke.button') }}
-          </xrd-button
-          >
+            >{{ $t('apiKey.table.action.revoke.button') }}
+          </xrd-button>
         </div>
       </template>
 
@@ -176,7 +171,7 @@
 import { defineComponent } from 'vue';
 
 import { ApiKey } from '@/global-types';
-import HelpButton from '../HelpButton.vue';
+import HelpButton from '@/components/ui/HelpButton.vue';
 import { Permissions, Roles, RouteName } from '@/global';
 import * as api from '@/util/api';
 import { mapActions, mapState } from 'pinia';
@@ -189,7 +184,7 @@ import { XrdIconKey } from '@niis/shared-ui';
 export default defineComponent({
   components: {
     HelpButton,
-    XrdIconKey
+    XrdIconKey,
   },
   data() {
     return {

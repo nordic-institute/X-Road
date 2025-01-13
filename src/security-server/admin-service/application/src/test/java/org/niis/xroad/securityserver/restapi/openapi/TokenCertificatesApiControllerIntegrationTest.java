@@ -25,11 +25,11 @@
  */
 package org.niis.xroad.securityserver.restapi.openapi;
 
-import ee.ria.xroad.common.CodedException;
 import ee.ria.xroad.common.conf.globalconf.ApprovedCAInfo;
 import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.identifier.SecurityServerId;
 import ee.ria.xroad.signer.SignerProxy;
+import ee.ria.xroad.signer.exception.SignerException;
 import ee.ria.xroad.signer.protocol.dto.CertificateInfo;
 import ee.ria.xroad.signer.protocol.dto.KeyInfo;
 import ee.ria.xroad.signer.protocol.dto.TokenInfo;
@@ -69,7 +69,6 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
-import static ee.ria.xroad.common.ErrorCodes.SIGNER_X;
 import static ee.ria.xroad.common.ErrorCodes.X_CERT_EXISTS;
 import static ee.ria.xroad.common.ErrorCodes.X_CERT_NOT_FOUND;
 import static ee.ria.xroad.common.ErrorCodes.X_CSR_NOT_FOUND;
@@ -211,8 +210,8 @@ public class TokenCertificatesApiControllerIntegrationTest extends AbstractApiCo
     @Test
     @WithMockUser(authorities = "IMPORT_SIGN_CERT")
     public void importExistingSignCertificate() throws Exception {
-        doThrow(CodedException
-                .tr(SIGNER_X + "." + X_CERT_EXISTS, "mock code", "mock msg"))
+        doThrow(SignerException
+                .tr(X_CERT_EXISTS, "mock code", "mock msg"))
                 .when(signerProxyFacade).importCert(any(), any(), any(), anyBoolean());
         Resource body = CertificateTestUtils.getResource(CertificateTestUtils.getMockCertificateBytes());
         try {
@@ -226,8 +225,8 @@ public class TokenCertificatesApiControllerIntegrationTest extends AbstractApiCo
     @Test
     @WithMockUser(authorities = "IMPORT_SIGN_CERT")
     public void importIncorrectSignCertificate() throws Exception {
-        doThrow(CodedException
-                .tr(SIGNER_X + "." + X_INCORRECT_CERTIFICATE, "mock code", "mock msg"))
+        doThrow(SignerException
+                .tr(X_INCORRECT_CERTIFICATE, "mock code", "mock msg"))
                 .when(signerProxyFacade).importCert(any(), any(), any(), anyBoolean());
         Resource body = CertificateTestUtils.getResource(CertificateTestUtils.getMockCertificateBytes());
         try {
@@ -241,8 +240,8 @@ public class TokenCertificatesApiControllerIntegrationTest extends AbstractApiCo
     @Test
     @WithMockUser(authorities = "IMPORT_SIGN_CERT")
     public void importWrongUsageSignCertificate() throws Exception {
-        doThrow(CodedException
-                .tr(SIGNER_X + "." + X_WRONG_CERT_USAGE, "mock code", "mock msg"))
+        doThrow(SignerException
+                .tr(X_WRONG_CERT_USAGE, "mock code", "mock msg"))
                 .when(signerProxyFacade).importCert(any(), any(), any(), anyBoolean());
         Resource body = CertificateTestUtils.getResource(CertificateTestUtils.getMockCertificateBytes());
         try {
@@ -256,8 +255,8 @@ public class TokenCertificatesApiControllerIntegrationTest extends AbstractApiCo
     @Test
     @WithMockUser(authorities = "IMPORT_SIGN_CERT")
     public void importSignCertificateCsrMissing() throws Exception {
-        doThrow(CodedException
-                .tr(SIGNER_X + "." + X_CSR_NOT_FOUND, "mock code", "mock msg"))
+        doThrow(SignerException
+                .tr(X_CSR_NOT_FOUND, "mock code", "mock msg"))
                 .when(signerProxyFacade).importCert(any(), any(), any(), anyBoolean());
         Resource body = CertificateTestUtils.getResource(CertificateTestUtils.getMockCertificateBytes());
         try {
@@ -271,8 +270,8 @@ public class TokenCertificatesApiControllerIntegrationTest extends AbstractApiCo
     @Test
     @WithMockUser(authorities = "IMPORT_SIGN_CERT")
     public void importSignCertificateKeyNotFound() throws Exception {
-        doThrow(CodedException
-                .tr(SIGNER_X + "." + X_KEY_NOT_FOUND, "mock code", "mock msg"))
+        doThrow(SignerException
+                .tr(X_KEY_NOT_FOUND, "mock code", "mock msg"))
                 .when(signerProxyFacade).importCert(any(), any(), any(), anyBoolean());
         Resource body = CertificateTestUtils.getResource(CertificateTestUtils.getMockCertificateBytes());
         try {
@@ -365,8 +364,8 @@ public class TokenCertificatesApiControllerIntegrationTest extends AbstractApiCo
     @Test
     @WithMockUser(authorities = {"VIEW_AUTH_CERT", "VIEW_SIGN_CERT"})
     public void getCertificateForHashNotFound() throws Exception {
-        doThrow(CodedException
-                .tr(SIGNER_X + "." + X_CERT_NOT_FOUND, "mock code", "mock msg"))
+        doThrow(SignerException
+                .tr(X_CERT_NOT_FOUND, "mock code", "mock msg"))
                 .when(signerProxyFacade).getCertForHash(any());
         try {
             tokenCertificatesApiController.getCertificate(UNKNOWN_CERT_HASH);
@@ -401,8 +400,8 @@ public class TokenCertificatesApiControllerIntegrationTest extends AbstractApiCo
     @Test
     @WithMockUser(authorities = "IMPORT_SIGN_CERT")
     public void importCertificateFromTokenHashNotFound() throws Exception {
-        doThrow(CodedException
-                .tr(SIGNER_X + "." + X_CERT_NOT_FOUND, "mock code", "mock msg"))
+        doThrow(SignerException
+                .tr(X_CERT_NOT_FOUND, "mock code", "mock msg"))
                 .when(signerProxyFacade).getCertForHash(any());
         try {
             tokenCertificatesApiController.importCertificateFromToken(MOCK_CERTIFICATE_HASH);
@@ -486,13 +485,11 @@ public class TokenCertificatesApiControllerIntegrationTest extends AbstractApiCo
     @Test
     @WithMockUser(authorities = {"DELETE_SIGN_CERT", "DELETE_AUTH_CERT"})
     public void deleteCertificateNotFound() throws Exception {
-        doThrow(CodedException
-                .tr(X_CERT_NOT_FOUND, "mock code", "mock msg")
-                .withPrefix(SIGNER_X))
+        doThrow(SignerException
+                .tr(X_CERT_NOT_FOUND, "mock code", "mock msg"))
                 .when(signerProxyFacade).getCertForHash(any());
-        doThrow(CodedException
-                .tr(X_CERT_NOT_FOUND, "mock code", "mock msg")
-                .withPrefix(SIGNER_X))
+        doThrow(SignerException
+                .tr(X_CERT_NOT_FOUND, "mock code", "mock msg"))
                 .when(signerProxyFacade).deleteCert(any());
         try {
             tokenCertificatesApiController.deleteCertificate(UNKNOWN_CERT_HASH);

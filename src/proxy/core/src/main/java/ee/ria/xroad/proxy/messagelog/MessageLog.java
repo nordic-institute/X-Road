@@ -29,6 +29,7 @@ import ee.ria.xroad.common.DiagnosticsStatus;
 import ee.ria.xroad.common.SystemProperties;
 import ee.ria.xroad.common.conf.globalconf.GlobalConfProvider;
 import ee.ria.xroad.common.conf.serverconf.ServerConfProvider;
+import ee.ria.xroad.common.message.AttachmentStream;
 import ee.ria.xroad.common.message.RestRequest;
 import ee.ria.xroad.common.message.RestResponse;
 import ee.ria.xroad.common.message.SoapMessageImpl;
@@ -43,6 +44,7 @@ import ee.ria.xroad.common.util.JobManager;
 
 import lombok.extern.slf4j.Slf4j;
 
+import java.util.List;
 import java.util.Map;
 
 import static ee.ria.xroad.common.ErrorCodes.X_LOGGING_FAILED_X;
@@ -86,16 +88,17 @@ public final class MessageLog {
     /**
      * Save the message and signature to message log. Attachments are not logged.
      *
-     * @param message    the message
-     * @param signature  the signature
-     * @param clientSide whether this message is logged by the client proxy
-     * @param xRequestId (optional) additional request if to distinguish request/response pairs
+     * @param message     the message
+     * @param signature   the signature
+     * @param attachments message attachments
+     * @param clientSide  whether this message is logged by the client proxy
+     * @param xRequestId  (optional) additional request if to distinguish request/response pairs
      */
-    public static void log(SoapMessageImpl message, SignatureData signature, boolean clientSide,
+    public static void log(SoapMessageImpl message, SignatureData signature, List<AttachmentStream> attachments, boolean clientSide,
                            String xRequestId) {
         try {
             assertInitialized();
-            logManager.log(new SoapLogMessage(message, signature, clientSide, xRequestId));
+            logManager.log(new SoapLogMessage(message, signature, attachments, clientSide, xRequestId));
         } catch (Exception e) {
             throw translateWithPrefix(X_LOGGING_FAILED_X, e);
         }
@@ -127,10 +130,6 @@ public final class MessageLog {
         } catch (Exception e) {
             throw translateWithPrefix(X_LOGGING_FAILED_X, e);
         }
-    }
-
-    public static void log(SoapMessageImpl message, SignatureData signature, boolean clientSide) {
-        log(message, signature, clientSide, null);
     }
 
     public static void log(RestRequest message, SignatureData signature, CacheInputStream body, boolean clientside) {

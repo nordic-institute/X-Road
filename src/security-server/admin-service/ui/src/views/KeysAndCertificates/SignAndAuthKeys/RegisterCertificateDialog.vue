@@ -40,6 +40,7 @@
           variant="underlined"
           :error-messages="errors"
           class="dlg-row-input"
+          autofocus
         />
       </div>
     </template>

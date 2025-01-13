@@ -61,6 +61,12 @@
     "signCertificate": "Sign Certificate",
     "state": "State"
   },
+  "certificate": {
+    "hash": "Certificate Hash",
+    "notAfter": "Not After",
+    "notBefore": "Not Before",
+    "subjectDistinguishedName": "Subject Distinguished Name"
+  },
   "certificateProfile": {
     "COMMON_NAME": "Common Name (CN)",
     "COUNTRY_CODE": "Country Code (C)",
@@ -86,6 +92,16 @@
         "confirmTitle": "Delete client",
         "success": "Client deleted"
       },
+      "disable": {
+        "confirmText": "Do you want to disable this client?",
+        "confirmTitle": "Disable client",
+        "success": "Client disabling in progress"
+      },
+      "enable": {
+        "confirmText": "Do you want to enable this client?",
+        "confirmTitle": "Enable client",
+        "success": "Client enabling in progress"
+      },
       "makeOwner": {
         "button": "Make Owner",
         "confirmText1": "Do you want to make the Member below the new Owner Member of this Security Server?",
@@ -103,16 +119,6 @@
         "confirmText": "Do you want to unregister this client?",
         "confirmTitle": "Unregister client",
         "success": "Client unregistered"
-      },
-      "disable": {
-        "confirmText": "Do you want to disable this client?",
-        "confirmTitle": "Disable client",
-        "success": "Client disabling in progress"
-      },
-      "enable": {
-        "confirmText": "Do you want to enable this client?",
-        "confirmTitle": "Enable client",
-        "success": "Client enabling in progress"
       }
     },
     "id": "ID",
@@ -125,13 +131,13 @@
     "status": "Status",
     "statusText": {
       "deletionInProgress": "DELETION IN PROGRESS",
+      "disabled": "DISABLED",
+      "disablingInProgress": "DISABLING IN PROGRESS",
+      "enablingInProgress": "ENABLING IN PROGRESS",
       "globalError": "GLOBAL ERROR",
       "registered": "REGISTERED",
       "registrationInProgress": "REGISTRATION IN PROGRESS",
-      "saved": "SAVED",
-      "disabled": "DISABLED",
-      "disablingInProgress": "DISABLING IN PROGRESS",
-      "enablingInProgress": "ENABLING IN PROGRESS"
+      "saved": "SAVED"
     },
     "subsystemCode": "Subsystem Code",
     "unknownMember": "unknown member"
@@ -160,9 +166,9 @@
     "helpClient": "X-Road member the certificate will be issued for.",
     "helpCsrFormat": "Format of the certificate signing request according to the CA’s requirements.",
     "helpUsage": "Usage policy of the certificate: signing messages or authenticating Security Server.",
+    "orderAcmeCertificate": "Order certificate from ACME Server with the generated CSR and import the returned certificate to the token.",
     "saveInfo": "Generate a new CSR and save it into a safe place.",
-    "usage": "Usage",
-    "orderAcmeCertificate": "Order certificate from ACME Server with the generated CSR and import the returned certificate to the token."
+    "usage": "Usage"
   },
   "customValidation": {
     "invalidEndpoint": "Endpoint contains illegal characters",
@@ -173,6 +179,29 @@
   "diagnostics": {
     "addOnStatus": {
       "messageLogDisabled": "Disabled by configuration"
+    },
+    "encryption": {
+      "backup": {
+        "configuredKeyId": "Configured Key Id",
+        "title": "Backup encryption"
+      },
+      "messageLog": {
+        "archive": {
+          "defaultKeyNote": "This member is configured to use the servers default encryption key. For additional security, consider defining a specific key to be used.",
+          "groupingTitle": "Grouping rule:",
+          "keyId": "Key id",
+          "memberIdentifier": "Member identifier",
+          "title": "Message log archive encryption"
+        },
+        "database": {
+          "title": "Message log database encryption"
+        }
+      },
+      "status": {
+        "false": "Disabled",
+        "true": "Enabled"
+      },
+      "statusTitle": "Encryption status:"
     },
     "globalConfiguration": {
       "configurationStatus": {
@@ -196,19 +225,23 @@
       "vendor": "Vendor name"
     },
     "mailNotificationConfiguration": {
-      "title": "Mail notification status",
-      "failureEnabled": "Failure notifications",
-      "successEnabled": "Success notifications",
-      "configuration": "Mail server configuration",
-      "recipientsEmails": "Recipients' emails",
-      "enabled": {
-        "true": "Enabled",
-        "false": "Disabled"
-      },
       "confStatus": {
-        "true": "Configured",
-        "false": "Configuration incomplete"
-      }
+        "false": "Configuration incomplete",
+        "true": "Configured"
+      },
+      "configuration": "Mail server configuration",
+      "enabled": {
+        "false": "Disabled",
+        "true": "Enabled"
+      },
+      "failureEnabled": "Failure notifications",
+      "help": {
+        "description": "Mail notifications are sent automatically to configured recipients for the following events depending on the configuration: authentication certificate renewal over ACME succeeded / failed, signing certificate renewal over ACME succeeded / failed, authentication certificate registration succeeded. Enabling email notifications requires changes to the Security Server’s configuration. Please see the Security Server User Guide for details.",
+        "title": "Different mail notification statuses available"
+      },
+      "recipientsEmails": "Recipients' emails",
+      "successEnabled": "Success notifications",
+      "title": "Mail notification status"
     },
     "message": "Message",
     "nextUpdate": "Next Update",
@@ -238,29 +271,6 @@
         "UNKNOWN": "Unknown"
       },
       "title": "Timestamping"
-    },
-    "encryption": {
-      "status": {
-        "false": "Disabled",
-        "true": "Enabled"
-      },
-      "statusTitle": "Encryption status:",
-      "backup": {
-        "title": "Backup encryption",
-        "configuredKeyId": "Configured Key Id"
-      },
-      "messageLog": {
-        "archive": {
-          "title": "Message log archive encryption",
-          "groupingTitle": "Grouping rule:",
-          "memberIdentifier": "Member identifier",
-          "keyId": "Key id",
-          "defaultKeyNote": "This member is configured to use the servers default encryption key. For additional security, consider defining a specific key to be used."
-        },
-        "database": {
-          "title": "Message log database encryption"
-        }
-      }
     }
   },
   "endpoints": {
@@ -282,22 +292,22 @@
   "error_code": {
     "accessright_not_found": "Access right not found",
     "acme": {
-      "eab_credentials_missing": "External Account binding credentials missing, but required",
-      "eab_secret_length": "Invalid external account binding base64 secret length",
+      "account_creation_failure": "Creating Account on ACME server failed. If external account binding is required, check that the correct credentials are configured in acme.yml",
       "account_key_pair_error": "Getting key pair for ACME server account failed",
       "account_keystore_password_missing": "ACME account keystore password missing from the acme.yml configuration file",
-      "fetching_metadata_error": "Fetching ACME server metadata failed. ACME Server might be unreachable",
-      "account_creation_failure": "Creating Account on ACME server failed. If external account binding is required, check that the correct credentials are configured in acme.yml",
-      "order_creation_failure": "Creating new Order on ACME server failed",
-      "order_finalization_failure": "Finalizing the Order on ACME server failed",
-      "http_challenge_file_creation": "Creating ACME HTTP challenge file failed",
-      "http_challenge_file_deletion": "Deleting ACME HTTP challenge file failed",
-      "http_challenge_missing": "Currently X-Road only supports HTTP challenge, but is missing from the possible options from the ACME server",
-      "challenge_trigger_failure": "Requesting the ACME server to validate the challenge failed",
       "authorization_failure": "Authorization failed. Usually related to a challenge validation failure that is required to prove the ownership of the domain",
       "authorization_wait_failure": "Waiting for the Authorization to complete failed",
       "certificate_failure": "Getting the Certificate from the ACME server failed",
-      "certificate_wait_failure": "Waiting for the creation of the new Certificate failed"
+      "certificate_wait_failure": "Waiting for the creation of the new Certificate failed",
+      "challenge_trigger_failure": "Requesting the ACME server to validate the challenge failed",
+      "eab_credentials_missing": "External Account binding credentials missing, but required",
+      "eab_secret_length": "Invalid external account binding base64 secret length",
+      "fetching_metadata_error": "Fetching ACME server metadata failed. ACME Server might be unreachable",
+      "http_challenge_file_creation": "Creating ACME HTTP challenge file failed",
+      "http_challenge_file_deletion": "Deleting ACME HTTP challenge file failed",
+      "http_challenge_missing": "Currently X-Road only supports HTTP challenge, but is missing from the possible options from the ACME server",
+      "order_creation_failure": "Creating new Order on ACME server failed",
+      "order_finalization_failure": "Finalizing the Order on ACME server failed"
     },
     "action_not_possible": "Action is not possible",
     "additional_member_already_exists": "Additional member already exists",
@@ -343,6 +353,7 @@
       "Signer": {
         "CertNotFound": "Certification is not found",
         "KeyNotFound": "Key is not found",
+        "NetworkError": "Signer is not currently reachable.",
         "TokenNotAvailable": "Token is not available",
         "TokenNotFound": "Token is not found",
         "UnknownMember": "X-Road core - signer: Unknown member"
@@ -362,6 +373,7 @@
     "illegal_generated_endpoint_update": "Updating the generated endpoint is not allowed",
     "import_internal_cert_failed": "Importing internal certificate failed",
     "internal_anchor_upload_invalid_instance_id": "Anchor has an invalid instance id",
+    "internal_error": "Internal error. See the Security Server application logs for more details.",
     "internal_key_cert_interrupted": "Internal key certificate interrupted",
     "invalid_cert": "Invalid certificate",
     "invalid_characters_pin": "PIN has invalid characters",
@@ -407,7 +419,6 @@
     "service_description_not_found": "Service description not found",
     "service_not_found": "service not found",
     "sign_cert_not_supported": "Signing certificate is not supported",
-    "signer_not_reachable": "Signer is not currently reachable. Please check the signer log for details.",
     "software_token_init_failed": "Software token initialisation failed",
     "timestamping_service_already_configured": "Timestamping service is already configured",
     "timestamping_service_not_found": "Timestamping service not found",
@@ -427,35 +438,36 @@
     "wsdl_validator_not_executable": "WSDL validator is not executable"
   },
   "fields": {
+    "C": "Country Code",
+    "CN": "Server DNS Name",
+    "O": "Organization Name",
     "addClient": {
       "memberClass": "Member Class",
       "memberCode": "Member Code",
       "subsystemCode": "Subsystem Code"
     },
-    "C": "Country Code",
+    "certificationService": "Certification Service",
     "clientAdd": {
       "client": {
         "memberCode": "Member Code",
         "subsystemCode": "Subsystem Code"
       }
     },
-    "CN": "Server DNS Name",
     "confirmPin": "Confirm PIN",
     "csr": {
       "certService": "Certification Service",
+      "certificationService": "Certification Service",
       "client": "Client",
       "csrFormat": "CSR Format",
-      "usage": "Usage",
-      "certificationService": "Certification Service"
+      "usage": "Usage"
     },
     "dns": "DNS",
     "keys": {
       "name": "Name"
     },
-    "O": "Organization Name",
+    "memberCode": "Member Code",
     "path": "path",
     "pin": "PIN",
-    "memberCode": "Member Code",
     "securityServerAddress": "Security Server address",
     "serialNumber": "Serial Number",
     "serviceCode": "Service Code",
@@ -477,11 +489,7 @@
     },
     "tokenPin": "Token PIN",
     "url": "URL",
-    "username": "Username",
-    "certificationService": "Certification Service"
-  },
-  "global": {
-    "appTitle": "X-Road Security Server"
+    "username": "Username"
   },
   "general": {
     "instance": "Instance",
@@ -492,15 +500,18 @@
     "subsystemCode": "Subsystem code",
     "type": "Type"
   },
+  "global": {
+    "appTitle": "X-Road Security Server"
+  },
   "globalAlert": {
     "backupRestoreInProgress": "The Security Server configuration is being restored from a backup. Process started at {startTime}",
-    "globalConfigurationInvalid": "Global configuration is expired",
-    "secondaryNode": "You are on a secondary node in a Security Server cluster. Modifying configuration is disabled.",
-    "softTokenPinNotEntered": "Please enter soft token PIN",
     "certificateRenewalJobFailure": "Last certificate renewal job has failed.",
     "certificateRenewalJobFailureAuth": "Failed Authentication certificate(s):",
     "certificateRenewalJobFailureSign": "Failed Signing certificate(s):",
-    "navigateToKeysPage": "See keys and certificates page for more details"
+    "globalConfigurationInvalid": "Global configuration is expired",
+    "navigateToKeysPage": "See keys and certificates page for more details",
+    "secondaryNode": "You are on a secondary node in a Security Server cluster. Modifying configuration is disabled.",
+    "softTokenPinNotEntered": "Please enter soft token PIN"
   },
   "initialConfiguration": {
     "anchor": {
@@ -543,13 +554,8 @@
     "ssCertTitle": "Security Server certificate",
     "tlsTitle": "Information System TLS certificate"
   },
-  "certificate": {
-    "hash": "Certificate Hash",
-    "subjectDistinguishedName": "Subject Distinguished Name",
-    "notBefore": "Not Before",
-    "notAfter": "Not After"
-  },
   "keys": {
+    "acmeCertOrdered": "Certificate successfully ordered",
     "addKey": "Add key",
     "authDetailsTitle": "AUTH Key details",
     "authKeyCert": "AUTH Keys and Certificates",
@@ -589,6 +595,7 @@
     "importCert": "Import cert.",
     "importCertSuccess": "Uploading certificate succeeded",
     "incorrectPin": "Incorrect PIN. Please try again.",
+    "keyAlgorithm": "Key Algorithm:",
     "keyDeleted": "Key deleted",
     "keyId": "Key ID:",
     "keyInfo": "Key information",
@@ -612,9 +619,7 @@
       "unknown": "Unknown"
     },
     "orderAcmeCertificate": "Order Certificate",
-    "acmeCertOrdered": "Certificate successfully ordered",
     "readOnly": "Read-only:",
-    "keyAlgorithm": "Key Algorithm:",
     "registrationRequest": "Registration request",
     "renewal": "Automatic Renewal",
     "request": "Request",
@@ -672,8 +677,8 @@
   },
   "noData": {
     "noBackUpEncryptionKeys": "No configured backup encryption keys",
-    "noClientData": "No client data",
     "noCertificateAuthorities": "No certificate authorities",
+    "noClientData": "No client data",
     "noLocalGroups": "No local groups",
     "noServiceClients": "No service clients",
     "noTimestampingServices": "No timestamping services"
@@ -749,16 +754,16 @@
     "url": "URL",
     "urlPlaceholder": "Insert URL",
     "urlTooltip": "The URL where requests targeted at the service are directed",
+    "verifyTls": "Verify TLS certificate",
     "warning": "Warning",
     "warningCode": {
       "adding_endpoints": "Adding endpoints:",
       "adding_services": "Adding services:",
       "deleting_endpoints": "Deleting endpoints:",
       "deleting_services": "Deleting services:",
-      "wsdl_validation_warnings": "Validation warnings:",
-      "openapi_validation_warnings": "Validation warnings:"
+      "openapi_validation_warnings": "Validation warnings:",
+      "wsdl_validation_warnings": "Validation warnings:"
     },
-    "verifyTls": "Verify TLS certificate",
     "wsdlAdded": "WSDL added",
     "wsdlDescription": "WSDL Description",
     "wsdlDetails": "WSDL details"
@@ -802,10 +807,10 @@
     "approvedCertificateAuthorities": {
       "table": {
         "header": {
+          "acmeIpAddresses": "ACME Server IP",
           "distinguishedName": "Distinguished Name",
           "expires": "Expires",
-          "ocspResponse": "OCSP Response",
-          "acmeIpAddresses": "ACME Server IP"
+          "ocspResponse": "OCSP Response"
         },
         "notAvailable": "N/A",
         "ocspResponse": {
@@ -843,6 +848,15 @@
       },
       "title": "Configuration Anchor"
     },
+    "securityServer": {
+      "addressChangeInProgress": "CHANGE IN PROGRESS",
+      "editDialog": {
+        "title": "Edit Security Server address"
+      },
+      "securityServer": "Security Server",
+      "serverAddress": "Server address",
+      "updateSubmitted": "Security Server address change successfully submitted"
+    },
     "timestampingServices": {
       "action": {
         "add": {
@@ -871,15 +885,6 @@
         }
       },
       "title": "Timestamping Services"
-    },
-    "securityServer": {
-      "securityServer": "Security Server",
-      "serverAddress": "Server address",
-      "editDialog": {
-        "title": "Edit Security Server address"
-      },
-      "addressChangeInProgress": "CHANGE IN PROGRESS",
-      "updateSubmitted": "Security Server address change successfully submitted"
     },
     "title": "System parameters"
   },
@@ -914,14 +919,14 @@
   "token": {
     "changePin": "Change the pin",
     "pinChanged": "Token pin was changed – please log in the token with the new pin",
-    "tokenPinPolicyHeader": "Token PIN policy is enabled.",
-    "tokenPinPolicy": "Software token pin is required to be at least 10 ASCII characters from at least tree character classes (lowercase letters, uppercase letters, digits, special characters)."
+    "tokenPinPolicy": "Software token pin is required to be at least 10 ASCII characters from at least tree character classes (lowercase letters, uppercase letters, digits, special characters).",
+    "tokenPinPolicyHeader": "Token PIN policy is enabled."
   },
   "toolbar": {
     "securityServerNodeType": {
-      "undefined": "",
       "PRIMARY": "Primary node",
-      "SECONDARY": "Secondary node"
+      "SECONDARY": "Secondary node",
+      "undefined": ""
     }
   },
   "validationError": {

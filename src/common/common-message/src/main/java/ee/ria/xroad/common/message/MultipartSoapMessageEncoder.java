@@ -84,7 +84,7 @@ public class MultipartSoapMessageEncoder implements SoapMessageEncoder {
 
     @Override
     public void soap(SoapMessage soapMessage,
-                     Map<String, String> additionalHeaders) throws Exception {
+                     Map<String, String> additionalHeaders) throws IOException {
         multipart.startPart(soapMessage.getContentType(),
                 convertHeaders(additionalHeaders));
         multipart.write(soapMessage.getBytes());
@@ -92,7 +92,7 @@ public class MultipartSoapMessageEncoder implements SoapMessageEncoder {
 
     @Override
     public void attachment(String contentType, InputStream content,
-                           Map<String, String> additionalHeaders) throws Exception {
+                           Map<String, String> additionalHeaders) throws IOException {
         String[] headers = {};
         if (additionalHeaders != null && !additionalHeaders.isEmpty()) {
             headers = convertHeaders(additionalHeaders);

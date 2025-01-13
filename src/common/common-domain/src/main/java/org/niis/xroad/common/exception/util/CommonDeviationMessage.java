@@ -72,7 +72,11 @@ public enum CommonDeviationMessage implements DeviationProvider {
 
     ERROR_READING_OPENAPI_FILE("openapi_file_error", "Error reading open api definition file"),
     INITIALIZATION_INTERRUPTED("initialization_interrupted", "Initialization has been interrupted"),
-    EMAIL_SENDING_FAILED("email_sending_error", "Failed to send email"),;
+    EMAIL_SENDING_FAILED("email_sending_error", "Failed to send email"),
+
+    TOKEN_FETCH_FAILED("token_fetch_failed", "Error getting tokens"),
+    TOKEN_PIN_INCORRECT("pin_incorrect", "Entered PIN was incorrect"),
+    TOKEN_NOT_ACTIVE("token_not_active", "Token is not active");
 
     @Getter
     private final String code;

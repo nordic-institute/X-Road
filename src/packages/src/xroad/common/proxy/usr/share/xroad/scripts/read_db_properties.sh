@@ -11,9 +11,9 @@ get_db_prop() { crudini --get "$1" '' "$2" 2>/dev/null || echo -n "$3"; }
 #  db_conn_user
 #  db_user
 #  db_password
+#  db_url
 read_serverconf_database_properties() {
   local db_properties=$1
-  local db_url
   local db_host="127.0.0.1:5432"
 
   db_conn_user=$(get_db_prop "${db_properties}" 'serverconf.hibernate.connection.username' 'serverconf')

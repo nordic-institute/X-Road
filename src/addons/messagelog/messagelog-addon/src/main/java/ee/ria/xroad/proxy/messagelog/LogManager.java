@@ -31,6 +31,7 @@ import ee.ria.xroad.common.DiagnosticsStatus;
 import ee.ria.xroad.common.DiagnosticsUtils;
 import ee.ria.xroad.common.conf.globalconf.GlobalConfProvider;
 import ee.ria.xroad.common.conf.serverconf.ServerConfProvider;
+import ee.ria.xroad.common.message.AttachmentStream;
 import ee.ria.xroad.common.messagelog.AbstractLogManager;
 import ee.ria.xroad.common.messagelog.LogMessage;
 import ee.ria.xroad.common.messagelog.MessageLogProperties;
@@ -44,6 +45,7 @@ import ee.ria.xroad.common.util.TimeUtils;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.input.BoundedInputStream;
 
+import java.io.InputStream;
 import java.time.Duration;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
@@ -190,11 +192,11 @@ public class LogManager extends AbstractLogManager {
     private static MessageRecord createMessageRecord(SoapLogMessage message) throws Exception {
         log.trace("createMessageRecord()");
 
-        String loggedMessage = new MessageBodyManipulator().getLoggableMessageText(message);
+        var manipulator = new MessageBodyManipulator();
 
         MessageRecord messageRecord = new MessageRecord(
                 message.getQueryId(),
-                loggedMessage,
+                manipulator.getLoggableMessageText(message),
                 message.getSignature().getSignatureXml(),
                 message.isResponse(),
                 message.isClientSide() ? message.getClient() : message.getService().getClientId(),
@@ -205,10 +207,36 @@ public class LogManager extends AbstractLogManager {
         if (message.getSignature().isBatchSignature()) {
             messageRecord.setHashChainResult(message.getSignature().getHashChainResult());
             messageRecord.setHashChain(message.getSignature().getHashChain());
+        } else if (manipulator.isBodyLogged(message)) {
+            // log attachments for non-batch signatures
+            if (MAX_LOGGABLE_BODY_SIZE > 0) {
+                messageRecord.setAttachmentStreams(message.getAttachments()
+                        .stream().map(LogManager::boundedAttachmentStream).toList());
+            }
+
         }
 
         messageRecord.setSignatureHash(signatureHash(message.getSignature().getSignatureXml()));
         return messageRecord;
+    }
+
+    private static AttachmentStream boundedAttachmentStream(AttachmentStream attachment) {
+        return new AttachmentStream() {
+            @Override
+            public InputStream getStream() {
+                if (attachment.getSize() > MAX_LOGGABLE_BODY_SIZE && !TRUNCATED_BODY_ALLOWED) {
+                    throw new CodedException(X_LOGGING_FAILED_X, "Message attachment size exceeds maximum loggable size");
+                }
+                final BoundedInputStream body = new BoundedInputStream(attachment.getStream(), MAX_LOGGABLE_BODY_SIZE);
+                body.setPropagateClose(false);
+                return body;
+            }
+
+            @Override
+            public long getSize() {
+                return attachment.getSize();
+            }
+        };
     }
 
     private static MessageRecord createMessageRecord(RestLogMessage message) throws Exception {

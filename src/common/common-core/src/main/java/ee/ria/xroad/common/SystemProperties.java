@@ -261,6 +261,7 @@ public final class SystemProperties {
 
     public static final String SERVER_CONF_ACL_CACHE_SIZE = PROXY_PREFIX + "server-conf-acl-cache-size";
 
+    public static final String SERVER_CONF_SERVICE_ENDPOINTS_CACHE_SIZE = PROXY_PREFIX + "server-conf-service-endpoints-cache-size";
 
     /** Property name of the idle time that connections to the ServerProxy Connector are allowed, in milliseconds */
     private static final String SERVERPROXY_CONNECTOR_MAX_IDLE_TIME =
@@ -507,10 +508,10 @@ public final class SystemProperties {
             PREFIX + "configuration-client.proxy-configuration-backup-cron";
 
     public static final String CONFIGURATION_CLIENT_GLOBAL_CONF_TLS_CERT_VERIFICATION =
-            PREFIX + "configuration-client.global_conf_tls_cert_verification";
+            PREFIX + "configuration-client.global-conf-tls-cert-verification";
 
     public static final String CONFIGURATION_CLIENT_GLOBAL_CONF_HOSTNAME_VERIFICATION =
-            PREFIX + "configuration-client.global_conf_hostname_verification";
+            PREFIX + "configuration-client.global-conf-hostname-verification";
 
     public static final String CONFIGURATION_CLIENT_ALLOWED_FEDERATIONS =
             PREFIX + "configuration-client.allowed-federations";
@@ -1215,7 +1216,7 @@ public final class SystemProperties {
      * @return the ACME certificate renewal job interval in seconds
      */
     public static int getAcmeCertificateRenewalInterval() {
-        return Integer.parseInt(System.getProperty(PROXY_UI_API_ACME_RENEWAL_INTERVAL, "1200"));
+        return Integer.parseInt(System.getProperty(PROXY_UI_API_ACME_RENEWAL_INTERVAL, "3600"));
     }
 
     /**
@@ -1876,6 +1877,11 @@ public final class SystemProperties {
     @SuppressWarnings("checkstyle:MagicNumber")
     public static long getServerConfAclCacheSize() {
         return Long.getLong(SERVER_CONF_ACL_CACHE_SIZE, 100_000);
+    }
+
+    @SuppressWarnings("checkstyle:MagicNumber")
+    public static long getServerConfServiceEndpointsCacheSize() {
+        return Long.getLong(SERVER_CONF_SERVICE_ENDPOINTS_CACHE_SIZE, 100_000);
     }
 
     private static void checkVersionValidity(int min, int current, String defaultVersion) {

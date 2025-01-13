@@ -38,7 +38,7 @@
       </div>
     </td>
     <td>{{ cert.owner_id }}</td>
-    <td>{{ $filters.ocspStatus(cert.ocsp_status) }}</td>
+    <td data-test="ocsp-status">{{ $filters.ocspStatus(cert.ocsp_status) }}</td>
     <td>{{ $filters.formatDate(cert.certificate_details.not_after) }}</td>
     <td class="status-cell">
       <certificate-status-icon :certificate="cert" />

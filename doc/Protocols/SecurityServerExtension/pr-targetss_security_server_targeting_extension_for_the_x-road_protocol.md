@@ -178,7 +178,7 @@ Below are examples from a request and response related to the Environmental Moni
             <id:xRoadInstance>fdev</id:xRoadInstance>
             <id:memberClass>GOV</id:memberClass>
             <id:memberCode>1710128-9</id:memberCode>
-            <id:serverCode>fdev-ss1.i.palveluvayla.com</id:serverCode>
+            <id:serverCode>fdev-ss1.i.x-road.global</id:serverCode>
         </xrd:securityServer>
         <xrd:id>ID11234</xrd:id>
         <xrd:protocolVersion>4.0</xrd:protocolVersion>
@@ -211,7 +211,7 @@ Below are examples from a request and response related to the Environmental Moni
          <id:xRoadInstance>fdev</id:xRoadInstance>
          <id:memberClass>GOV</id:memberClass>
          <id:memberCode>1710128-9</id:memberCode>
-         <id:serverCode>fdev-ss1.i.palveluvayla.com</id:serverCode>
+         <id:serverCode>fdev-ss1.i.x-road.global</id:serverCode>
       </xrd:securityServer>
       <xrd:id>ID11234</xrd:id>
       <xrd:protocolVersion>4.0</xrd:protocolVersion>
@@ -220,7 +220,7 @@ Below are examples from a request and response related to the Environmental Moni
    <SOAP-ENV:Body>
       <m:getSecurityServerMetricsResponse>
          <m:metricSet>
-            <m:name>SERVER:fdev/GOV/1710128-9/fdev-ss1.i.palveluvayla.com</m:name>
+            <m:name>SERVER:fdev/GOV/1710128-9/fdev-ss1.i.x-road.global</m:name>
             <m:stringMetric>
                <m:name>proxyVersion</m:name>
                <m:value>6.7.7-1.20151201075839gitb72b28e</m:value>

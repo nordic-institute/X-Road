@@ -28,6 +28,8 @@ permissions:
 concurrency:
   group: ${{ github.head_ref || github.run_id }}
   cancel-in-progress: true
+env:
+  XROAD_HOME: ${{ github.workspace }}
 jobs:
   BuildAndPackageWithUnitTests:
     name: Build, test and package code

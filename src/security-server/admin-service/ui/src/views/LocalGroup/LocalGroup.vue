@@ -83,31 +83,35 @@
 
     <v-card flat>
       <table class="xrd-table group-members-table">
-        <tr>
-          <th>{{ $t('localGroup.name') }}</th>
-          <th>{{ $t('localGroup.id') }}</th>
-          <th>{{ $t('localGroup.accessDate') }}</th>
-          <th></th>
-        </tr>
-        <template v-if="group && group.members && group.members.length > 0">
-          <tr v-for="groupMember in group.members" :key="groupMember.id">
-            <td>{{ groupMember.name }}</td>
-            <td>{{ groupMember.id }}</td>
-            <td>{{ groupMember.created_at }}</td>
-
-            <td>
-              <div class="button-wrap">
-                <xrd-button
-                  v-if="canEditMembers"
-                  text
-                  :outlined="false"
-                  @click="removeMember(groupMember)"
-                  >{{ $t('action.remove') }}</xrd-button
-                >
-              </div>
-            </td>
+        <thead>
+          <tr>
+            <th>{{ $t('localGroup.name') }}</th>
+            <th>{{ $t('localGroup.id') }}</th>
+            <th>{{ $t('localGroup.accessDate') }}</th>
+            <th></th>
           </tr>
-        </template>
+        </thead>
+        <tbody>
+          <template v-if="group && group.members && group.members.length > 0">
+            <tr v-for="groupMember in group.members" :key="groupMember.id">
+              <td>{{ groupMember.name }}</td>
+              <td>{{ groupMember.id }}</td>
+              <td>{{ groupMember.created_at }}</td>
+
+              <td>
+                <div class="button-wrap">
+                  <xrd-button
+                    v-if="canEditMembers"
+                    text
+                    :outlined="false"
+                    @click="removeMember(groupMember)"
+                    >{{ $t('action.remove') }}</xrd-button
+                  >
+                </div>
+              </td>
+            </tr>
+          </template>
+        </tbody>
       </table>
 
       <div class="close-button-wrap">

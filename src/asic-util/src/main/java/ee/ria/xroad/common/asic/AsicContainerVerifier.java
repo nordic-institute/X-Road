@@ -42,12 +42,14 @@ import ee.ria.xroad.common.signature.Signature;
 import ee.ria.xroad.common.signature.SignatureData;
 import ee.ria.xroad.common.signature.SignatureVerifier;
 import ee.ria.xroad.common.signature.TimestampVerifier;
+import ee.ria.xroad.common.util.EncoderUtils;
 import ee.ria.xroad.common.util.MessageFileNames;
 import ee.ria.xroad.common.util.MimeTypes;
 
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
+import org.apache.xml.security.signature.XMLSignatureDigestInput;
 import org.apache.xml.security.signature.XMLSignatureInput;
 import org.apache.xml.security.signature.XMLSignatureStreamInput;
 import org.apache.xml.security.utils.resolver.ResourceResolverContext;
@@ -80,6 +82,7 @@ import static ee.ria.xroad.common.util.EncoderUtils.decodeBase64;
 import static ee.ria.xroad.common.util.EncoderUtils.encodeHex;
 import static ee.ria.xroad.common.util.MessageFileNames.MESSAGE;
 import static ee.ria.xroad.common.util.MessageFileNames.SIG_HASH_CHAIN_RESULT;
+import static ee.ria.xroad.common.util.MessageFileNames.isAttachment;
 import static java.nio.charset.StandardCharsets.UTF_8;
 
 /**
@@ -114,7 +117,7 @@ public class AsicContainerVerifier {
 
     /**
      * Constructs a new ASiC container verifier for the ZIP file with the
-     * given filename. Attempts to verify it's contents.
+     * given filename. Attempts to verify its contents.
      *
      * @param globalConfProvider global conf provider
      * @param filename           name of the ASiC container ZIP file
@@ -182,14 +185,20 @@ public class AsicContainerVerifier {
         attachmentHashes.clear();
 
         verifier.setSignatureResourceResolver(new ResourceResolverSpi() {
+
             @Override
             public boolean engineCanResolveURI(ResourceResolverContext context) {
+                if (isAttachment(context.attr.getValue())) {
+                    return asic.getAttachmentDigest(context.attr.getValue()) != null;
+                }
                 return asic.hasEntry(context.attr.getValue());
             }
 
             @Override
-            public XMLSignatureInput engineResolveURI(ResourceResolverContext context)
-                    throws ResourceResolverException {
+            public XMLSignatureInput engineResolveURI(ResourceResolverContext context) throws ResourceResolverException {
+                if (isAttachment(context.attr.getValue())) {
+                    return new XMLSignatureDigestInput(EncoderUtils.encodeBase64(asic.getAttachmentDigest(context.attr.getValue())));
+                }
                 return new XMLSignatureStreamInput(asic.getEntry(context.attr.getValue()));
             }
         });
@@ -198,7 +207,7 @@ public class AsicContainerVerifier {
     }
 
     private void logUnresolvableHash(String uri, byte[] digestValue) {
-        boolean verified = uri.equals("/attachment1") && Arrays.equals(digestValue, asic.getAttachmentDigest());
+        boolean verified = isAttachment(uri) && Arrays.equals(digestValue, asic.getAttachmentDigest(uri));
         attachmentHashes.add(String.format("The digest for \"%s\" is: %s", uri,
                 encodeHex(digestValue)) + (verified ? " (verified)" : " (unverified)"));
     }

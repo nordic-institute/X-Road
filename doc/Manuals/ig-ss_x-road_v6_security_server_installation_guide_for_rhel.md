@@ -2,7 +2,7 @@
 
 **X-ROAD 7**
 
-Version: 1.30  
+Version: 1.31  
 Doc. ID: IG-SS-RHEL
 
 ---
@@ -43,6 +43,8 @@ Doc. ID: IG-SS-RHEL
 | 12.06.2024 | 1.28    | Add ACME server to the network diagram, add a section about enabling ACME support                                                                                                                                    | Petteri Kivimäki     |
 | 25.06.2024 | 1.29    | Add global configuration download port 443 to the network diagram                                                                                                                                                    | Petteri Kivimäki     |
 | 17.07.2024 | 1.30    | Java 21 installation instructions for RHEL 7                                                                                                                                                                         | Ovidijus Narkevičius |
+| 16.12.2024 | 1.31    | Instructions to install PostgreSQL packages                                                                                                                                                                          | Justas Samuolis      |
+
 ## License
 
 This document is licensed under the Creative Commons Attribution-ShareAlike 3.0 Unported License. To view a copy of this license, visit http://creativecommons.org/licenses/by-sa/3.0/
@@ -67,7 +69,9 @@ This document is licensed under the Creative Commons Attribution-ShareAlike 3.0 
       - [2.3.1.1 Installing Java 21 on RHEL 7](#2311-installing-java-21-on-rhel-7)
   - [2.4 Preparing OS](#24-preparing-os)
   - [2.5 Setup Package Repository](#25-setup-package-repository)
-  - [2.6 Remote Database Setup (optional)](#26-remote-database-setup-optional)
+  - [2.6 Database Setup](#26-database-setup)
+    - [2.6.1 Local Database Setup](#261-local-database-setup)
+    - [2.6.2 Remote Database Setup (optional)](#262-remote-database-setup-optional)
   - [2.7 Disable the Messagelog Addon before Installation (optional)](#27-disable-the-messagelog-addon-before-installation-optional)
   - [2.8 Security Server Installation](#28-security-server-installation)
     - [2.8.1 Configure Proxy Ports](#281-configure-proxy-ports)
@@ -292,9 +296,19 @@ Add the X-Road repository’s signing key to the list of trusted keys (**referen
   sudo rpm --import https://artifactory.niis.org/api/gpg/key/public
   ```
 
-If you are installing the default setup with local PostgreSQL database and want to enable the messagelog addon, continue at section 2.8. If you need to customize database properties and e.g. use a remote database or disable the messagelog addon, read on.
+### 2.6 Database Setup
 
-### 2.6 Remote Database Setup (optional)
+If you are installing the default setup with local PostgreSQL database, continue at section 2.6.1. If you need to use a remote database, continue at section 2.6.2.
+
+#### 2.6.1 Local Database Setup
+
+When installing the default setup with local database, PostgreSQL packages need to be installed before continuing with X-Road Security Server installation: 
+
+```bash
+sudo yum install postgresql-server postgresql-contrib
+```
+
+#### 2.6.2 Remote Database Setup (optional)
 
 *This is an optional step.* 
 

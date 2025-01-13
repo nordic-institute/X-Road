@@ -2,7 +2,7 @@
 
 **Technical Specification**
 
-Version: 1.4  
+Version: 1.5  
 Doc. ID: PR-OPMON
 
 | Date       | Version | Description                                                          | Author           |
@@ -18,6 +18,7 @@ Doc. ID: PR-OPMON
 | 01.06.2023 | 1.2     | Update references                                                    | Petteri Kivimäki |
 | 02.10.2024 | 1.3     | Update schema file locations                                         | Justas Samuolis  | 
 | 05.12.2024 | 1.4     | Add endpoint level statistics gathering support                      | Eneli Reimets    |
+| 09.01.2025 | 1.5     | Restructure heading levels for the documentation platform            | Raido Kaju       |
 
 ## Table of Contents <!-- omit in toc -->
 
@@ -40,11 +41,11 @@ Doc. ID: PR-OPMON
 
 <!-- tocstop -->
 
-# License
+## License
 
 This document is licensed under the Creative Commons Attribution-ShareAlike 3.0 Unported License. To view a copy of this license, visit http://creativecommons.org/licenses/by-sa/3.0/.
 
-# 1 Introduction
+## 1 Introduction
 
 This specification describes services that can be used by X-Road participants to gather operational monitoring information of the security servers. The operational monitoring information contains data about request exchange (such as which services or endpoints have been called, how many times, what was the size of the response, etc.) of the security servers. The X-Road operational monitoring protocol is intended to support external monitoring systems and other software that can monitor service level agreements, make service statistics, etc.
 
@@ -77,7 +78,7 @@ See X-Road terms and abbreviations documentation \[[TA-TERMS](#Ref_TERMS)\].
 <a name="RFC2119"></a>**RFC2119** -- Key words for use in RFCs to Indicate Requirement Levels. Request for Comments 2119, Internet Engineering Task Force, March 1997, https://www.ietf.org/rfc/rfc2119.txt  
 <a name="Ref_TERMS" class="anchor"></a>**TA-TERMS** -- X-Road Terms and Abbreviations. Document ID: [TA-TERMS](../../terms_x-road_docs.md).
 
-# 2 Retrieving Operational Data of Security Server
+## 2 Retrieving Operational Data of Security Server
 
 Security server clients can retrieve operational data of the specified time period of the security server. Method is invoked as regular X-Road service.
 
@@ -183,7 +184,7 @@ The XML schema fragment of the operational data response body is shown below. Fo
 
 The example response message is presented in \[[Annex C.2](#AnnexC.2)\].
 
-# 3 Retrieving Health Data of Security Server
+## 3 Retrieving Health Data of Security Server
 
 Security server clients can retrieve health data of the specified security server. Method is invoked as regular X-Road service.
 
@@ -950,7 +951,7 @@ The WSDL is located in the file *src/op-monitor-daemon/core/src/main/resources/o
 ```
 
 <a name="AnnexB"/></a>
-# Annex B JSON-Schema for Payload of getSecurityServerOperationalData Response
+## Annex B JSON-Schema for Payload of getSecurityServerOperationalData Response
 
 The schema is located in the file *src/op-monitor-daemon/core/src/main/resources/query_operational_data_response_payload_schema.yaml* of the X-Road source code.
 
@@ -1123,10 +1124,10 @@ required:
 ```
 
 <a name="AnnexC"/></a>
-# Annex C Example Messages
+## Annex C Example Messages
 
 <a name="AnnexC.1"/></a>
-## C.1 getSecurityServerOperationalData Request
+### C.1 getSecurityServerOperationalData Request
 
 ```xml
 <?xml version="1.0" encoding="utf-8"?>
@@ -1169,7 +1170,7 @@ required:
 ```
 
 <a name="AnnexC.2"/></a>
-## C.2 getSecurityServerOperationalData Response
+### C.2 getSecurityServerOperationalData Response
 
 ```xml
 Content-Type: multipart/related; type="text/xml"; charset=UTF-8;
@@ -1226,7 +1227,7 @@ content-id: <operational-monitoring-data.json.gz>
 --xroadfngEfgBlxyLszDaqXiFfDxVzvvlbhU--
 ```
 
-### C.2.1 Example JSON-Payload of getSecurityServerOperationalData Response
+#### C.2.1 Example JSON-Payload of getSecurityServerOperationalData Response
 
 ```json
 {
@@ -1269,7 +1270,7 @@ content-id: <operational-monitoring-data.json.gz>
 }
 ```
 <a name="AnnexC.3"/></a>
-## C.3 getSecurityServerHealthData Request
+### C.3 getSecurityServerHealthData Request
 
 ```xml
 <?xml version="1.0" encoding="utf-8"?>
@@ -1316,7 +1317,7 @@ content-id: <operational-monitoring-data.json.gz>
 ```
 
 <a name="AnnexC.3"/></a>
-## C.4 getSecurityServerHealthData Response
+### C.4 getSecurityServerHealthData Response
 
 ```xml
 <?xml version="1.0" encoding="utf-8"?>
