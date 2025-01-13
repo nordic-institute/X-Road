@@ -25,15 +25,15 @@
 package org.niis.xroad.securityserver.restapi.service.diagnostic;
 
 import lombok.RequiredArgsConstructor;
-import org.springframework.core.annotation.Order;
-import org.springframework.stereotype.Component;
+import org.niis.xroad.monitor.common.Metrics;
+import org.niis.xroad.monitor.common.SingleMetrics;
 
-@Component
 @RequiredArgsConstructor
-@Order(DiagnosticCollector.ORDER_GROUP1)
-public class OsVersionCollector implements DiagnosticCollector<OSHelper.OSDetails> {
+public class OsVersionCollector implements DiagnosticCollector<String> {
 
-    private final OSHelper osHelper;
+    public static final String OPERATING_SYSTEM = "OperatingSystem";
+
+    private final MonitorClient monitorClient;
 
     @Override
     public String name() {
@@ -41,7 +41,11 @@ public class OsVersionCollector implements DiagnosticCollector<OSHelper.OSDetail
     }
 
     @Override
-    public OSHelper.OSDetails collect() {
-        return osHelper.getOsDetails();
+    public String collect() {
+        return monitorClient.getMetrics(OPERATING_SYSTEM).getMetricsList().stream()
+                .filter(Metrics::hasSingleMetrics)
+                .map(Metrics::getSingleMetrics)
+                .map(SingleMetrics::getValue)
+                .findFirst().orElse("OS version not found");
     }
 }

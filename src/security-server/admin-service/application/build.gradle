@@ -33,6 +33,7 @@ dependencies {
     implementation(project(":common:common-verifier"))
     implementation(project(":common:common-mail"))
     implementation(project(":security-server:openapi-model"))
+    implementation(project(':monitor-common'))
 
     implementation("org.springframework.boot:spring-boot-starter-security")
     implementation("org.springframework.boot:spring-boot-starter-web")
@@ -47,10 +48,9 @@ dependencies {
     implementation(libs.bucket4j.core)
     implementation(libs.swagger.parserV3)
     implementation(libs.jakarta.validationApi)
-    implementation(libs.logback.access){
+    implementation(libs.logback.access) {
         exclude group: 'org.apache.tomcat', module: 'tomcat-catalina'
     }
-    implementation 'com.github.oshi:oshi-core:6.6.5'
 
     testImplementation(platform(libs.springBoot.bom))
     testImplementation(project(":common:common-test"))

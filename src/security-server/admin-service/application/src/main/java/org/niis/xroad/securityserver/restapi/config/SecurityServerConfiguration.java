@@ -34,12 +34,14 @@ import org.niis.xroad.restapi.config.ApiCachingConfiguration;
 import org.niis.xroad.restapi.util.CaffeineCacheBuilder;
 import org.niis.xroad.securityserver.restapi.service.diagnostic.DiagnosticCollector;
 import org.niis.xroad.securityserver.restapi.service.diagnostic.DiagnosticReportService;
-import org.niis.xroad.securityserver.restapi.service.diagnostic.OSHelper;
+import org.niis.xroad.securityserver.restapi.service.diagnostic.MonitorClient;
+import org.niis.xroad.securityserver.restapi.service.diagnostic.OsVersionCollector;
+import org.niis.xroad.securityserver.restapi.service.diagnostic.XrdPackagesCollector;
+import org.niis.xroad.securityserver.restapi.service.diagnostic.XrdProcessesCollector;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Profile;
 import org.springframework.core.annotation.Order;
-import oshi.SystemInfo;
 
 import java.util.List;
 
@@ -69,12 +71,34 @@ public class SecurityServerConfiguration {
     }
 
     @Bean
-    public OSHelper osHelper(final ExternalProcessRunner externalProcessRunner) {
-        return new OSHelper(new SystemInfo(), externalProcessRunner);
+    public DiagnosticReportService diagnosticReportService(List<DiagnosticCollector<?>> diagnosticCollectors) {
+        return new DiagnosticReportService(diagnosticCollectors);
     }
 
     @Bean
-    public DiagnosticReportService diagnosticReportService(List<DiagnosticCollector<?>> diagnosticCollectors) {
-        return new DiagnosticReportService(diagnosticCollectors);
+    @Profile("nontest")
+    public MonitorClient monitorClient() throws Exception {
+        return new MonitorClient();
+    }
+
+    @Bean
+    @Profile("nontest")
+    @Order(DiagnosticCollector.ORDER_GROUP1)
+    public OsVersionCollector osVersionCollector(MonitorClient monitorClient) {
+        return new OsVersionCollector(monitorClient);
+    }
+
+    @Bean
+    @Profile("nontest")
+    @Order(DiagnosticCollector.ORDER_GROUP5)
+    public XrdPackagesCollector xrdPackagesCollector(MonitorClient monitorClient) {
+        return new XrdPackagesCollector(monitorClient);
+    }
+
+    @Bean
+    @Profile("nontest")
+    @Order(DiagnosticCollector.ORDER_GROUP5)
+    public XrdProcessesCollector xrdProcessesCollector(MonitorClient monitorClient) {
+        return new XrdProcessesCollector(monitorClient);
     }
 }

@@ -24,46 +24,40 @@
  */
 package org.niis.xroad.securityserver.restapi.service.diagnostic;
 
-import lombok.RequiredArgsConstructor;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
 import org.niis.xroad.monitor.common.Metrics;
 import org.niis.xroad.monitor.common.MetricsGroup;
 import org.niis.xroad.monitor.common.SingleMetrics;
 
-import java.util.List;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.when;
 
+@ExtendWith(MockitoExtension.class)
+class OsVersionCollectorTest {
+    private static final String OS_VERSION = "Ubuntu 123";
 
-@RequiredArgsConstructor
-public class XrdProcessesCollector implements DiagnosticCollector<List<XrdProcessesCollector.Process>> {
+    @Mock
+    private MonitorClient monitorClient;
 
-    public static final String PROCESSES = "Xroad Processes";
-    public static final String COMMAND = "command";
+    @InjectMocks
+    private OsVersionCollector osVersionCollector;
 
-    private final MonitorClient monitorClient;
+    @Test
+    void getOsVersion() {
+        MetricsGroup metrics = MetricsGroup.newBuilder()
+                .addMetrics(Metrics.newBuilder().setSingleMetrics(
+                        SingleMetrics.newBuilder()
+                                .setValue(OS_VERSION)
+                                .build())
+                )
+                .build();
+        when(monitorClient.getMetrics("OperatingSystem")).thenReturn(metrics);
 
-    @Override
-    public String name() {
-        return "JAVA Processes";
+        assertThat(osVersionCollector.collect()).isEqualTo(OS_VERSION);
     }
 
-    @Override
-    public List<Process> collect() {
-        return monitorClient.getMetrics(PROCESSES).getMetricsList().stream()
-                .filter(Metrics::hasMetricsGroup)
-                .map(Metrics::getMetricsGroup)
-                .map(MetricsGroup::getMetricsList)
-                .flatMap(List::stream)
-                .filter(Metrics::hasMetricsGroup)
-                .map(Metrics::getMetricsGroup)
-                .map(MetricsGroup::getMetricsList)
-                .flatMap(List::stream)
-                .filter(Metrics::hasSingleMetrics)
-                .map(Metrics::getSingleMetrics)
-                .filter(mts -> COMMAND.equals(mts.getName()))
-                .map(SingleMetrics::getValue)
-                .map(Process::new)
-                .toList();
-    }
-
-    public record Process(String command) {
-    }
 }

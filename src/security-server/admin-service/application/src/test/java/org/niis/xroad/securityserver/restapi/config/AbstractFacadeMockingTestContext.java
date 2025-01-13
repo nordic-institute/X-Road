@@ -32,6 +32,7 @@ import org.junit.runner.RunWith;
 import org.niis.xroad.common.acme.AcmeService;
 import org.niis.xroad.securityserver.restapi.facade.SignerProxyFacade;
 import org.niis.xroad.securityserver.restapi.service.ManagementRequestSenderService;
+import org.niis.xroad.securityserver.restapi.service.diagnostic.MonitorClient;
 import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
@@ -63,5 +64,7 @@ public abstract class AbstractFacadeMockingTestContext {
     protected SignerProxyFacade signerProxyFacade;
     @MockBean
     protected AcmeService acmeService;
+    @MockBean
+    MonitorClient monitorClient;
 
 }

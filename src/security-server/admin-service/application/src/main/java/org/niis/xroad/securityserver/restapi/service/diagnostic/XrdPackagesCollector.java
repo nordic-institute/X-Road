@@ -25,17 +25,18 @@
 package org.niis.xroad.securityserver.restapi.service.diagnostic;
 
 import lombok.RequiredArgsConstructor;
-import org.springframework.core.annotation.Order;
-import org.springframework.stereotype.Component;
+import org.niis.xroad.monitor.common.Metrics;
+import org.niis.xroad.monitor.common.MetricsGroup;
 
 import java.util.List;
 
-@Component
 @RequiredArgsConstructor
-@Order(DiagnosticCollector.ORDER_GROUP5)
-public class XrdPackagesCollector implements DiagnosticCollector<List<OSHelper.Package>> {
+public class XrdPackagesCollector implements DiagnosticCollector<List<XrdPackagesCollector.Package>> {
 
-    private final OSHelper osHelper;
+    public static final String PACKAGES = "Packages";
+    public static final String XRD_PKG_PREFIX = "xroad-";
+
+    private final MonitorClient monitorClient;
 
     @Override
     public String name() {
@@ -43,7 +44,19 @@ public class XrdPackagesCollector implements DiagnosticCollector<List<OSHelper.P
     }
 
     @Override
-    public List<OSHelper.Package> collect() {
-        return osHelper.getInstalledXRoadPackages();
+    public List<XrdPackagesCollector.Package> collect() {
+        return monitorClient.getMetrics(PACKAGES).getMetricsList().stream()
+                .filter(Metrics::hasMetricsGroup)
+                .map(Metrics::getMetricsGroup)
+                .map(MetricsGroup::getMetricsList)
+                .flatMap(List::stream)
+                .filter(Metrics::hasSingleMetrics)
+                .map(Metrics::getSingleMetrics)
+                .filter(mts -> mts.getName().startsWith(XRD_PKG_PREFIX))
+                .map(mts -> new XrdPackagesCollector.Package(mts.getName(), mts.getValue()))
+                .toList();
+    }
+
+    public record Package(String name, String version) {
     }
 }
