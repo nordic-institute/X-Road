@@ -68,8 +68,9 @@ public class MailServiceTest {
     public void getMailNotificationStatus() {
         MailService.MailNotificationStatus mailNotificationStatus = mailService.getMailNotificationStatus();
         assertTrue(mailNotificationStatus.configurationPresent());
-        assertTrue(mailNotificationStatus.successStatus());
-        assertTrue(mailNotificationStatus.failureStatus());
+        assertTrue(mailNotificationStatus.acmeSuccessStatus());
+        assertTrue(mailNotificationStatus.acmeFailureStatus());
+        assertTrue(mailNotificationStatus.authCertRegisteredStatus());
         assertEquals(List.of("TestMember: myMail@example.org"), mailNotificationStatus.recipientsEmails());
     }
 
