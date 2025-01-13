@@ -4,7 +4,7 @@
 
 The Docker image (`niis/xroad-security-server`) is published on [Docker Hub](https://hub.docker.com/r/niis/xroad-security-server).
 
-All services, including the `serverconf` and `messagelog` PostgreSQL databases, are installed into the same container and run using supervisord.
+All services, including the `serverconf` and `messagelog` PostgreSQL databases, are installed into the same container and run using [supervisord](https://docs.docker.com/engine/containers/multi-service_container/#use-a-process-manager).
 The installed Security Server is in uninitialized state.
 
 Admin UI credentials: `xrd`/`secret`
