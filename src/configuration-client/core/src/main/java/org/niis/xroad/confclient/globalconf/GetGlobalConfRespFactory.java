@@ -34,6 +34,7 @@ import ee.ria.xroad.common.conf.monitoringconf.MonitoringParameters;
 import ee.ria.xroad.common.crypto.identifier.DigestAlgorithm;
 import ee.ria.xroad.common.util.InMemoryFile;
 
+import jakarta.enterprise.context.ApplicationScoped;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.FileUtils;
 import org.niis.xroad.confclient.proto.GetGlobalConfResp;
@@ -56,6 +57,7 @@ import static ee.ria.xroad.common.crypto.Digests.hexDigest;
 import static java.nio.charset.StandardCharsets.UTF_8;
 
 @Slf4j
+@ApplicationScoped
 public class GetGlobalConfRespFactory {
     private static final Set<String> GLOBAL_CONF_FILES = Set.of(
             ConfigurationConstants.FILE_NAME_PRIVATE_PARAMETERS,

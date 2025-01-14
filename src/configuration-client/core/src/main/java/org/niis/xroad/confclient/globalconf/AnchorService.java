@@ -35,6 +35,7 @@ import ee.ria.xroad.common.util.AtomicSave;
 
 import com.google.protobuf.ByteString;
 import io.grpc.stub.StreamObserver;
+import jakarta.enterprise.context.ApplicationScoped;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.FileUtils;
@@ -57,6 +58,7 @@ import static ee.ria.xroad.common.conf.globalconf.ConfigurationConstants.CONTENT
 
 @RequiredArgsConstructor
 @Slf4j
+@ApplicationScoped
 public class AnchorService extends AnchorServiceGrpc.AnchorServiceImplBase {
     private final ConfigurationClientProperties confClientProperties;
     private final ConfigurationClient configurationClient;

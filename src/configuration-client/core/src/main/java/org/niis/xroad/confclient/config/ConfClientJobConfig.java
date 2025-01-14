@@ -31,6 +31,8 @@ import ee.ria.xroad.common.conf.globalconf.ConfigurationClientJob;
 import ee.ria.xroad.common.util.JobManager;
 import ee.ria.xroad.common.util.TimeUtils;
 
+import io.quarkus.runtime.Startup;
+import jakarta.enterprise.context.ApplicationScoped;
 import lombok.extern.slf4j.Slf4j;
 import org.niis.xroad.schedule.backup.ProxyConfigurationBackupJob;
 import org.quartz.JobDataMap;
@@ -38,46 +40,32 @@ import org.quartz.JobExecutionContext;
 import org.quartz.JobExecutionException;
 import org.quartz.JobListener;
 import org.quartz.SchedulerException;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
-import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Configuration;
-import org.springframework.scheduling.quartz.SpringBeanJobFactory;
 
-@Configuration
-@ConditionalOnProperty(name = "xroad.configuration-client.cli-mode", havingValue = "false")
 public class ConfClientJobConfig {
 
-    @Bean
-    JobManager jobManager(ConfigurationClientJobListener listener,
-                          ConfigurationClientProperties configurationClientProperties,
-                          SpringBeanJobFactory springBeanJobFactory) throws SchedulerException {
-        final var jobManager = new JobManager(springBeanJobFactory);
+    @ApplicationScoped
+    @Startup
+    public static class JobManagerInitializer {
 
-        jobManager.getJobScheduler().getListenerManager().addJobListener(listener);
+        public JobManagerInitializer(ConfigurationClientJobListener listener,
+                                     ConfigurationClientProperties configurationClientProperties,
+                                     JobManager jobManager) throws SchedulerException {
 
-        jobManager.registerRepeatingJob(ConfigurationClientJob.class,
-                configurationClientProperties.updateInterval(), new JobDataMap());
+            jobManager.getJobScheduler().getListenerManager().addJobListener(listener);
 
-        jobManager.registerJob(ProxyConfigurationBackupJob.class,
-                configurationClientProperties.proxyConfigurationBackupCron(), new JobDataMap());
+            jobManager.registerRepeatingJob(ConfigurationClientJob.class,
+                    configurationClientProperties.updateInterval(), new JobDataMap());
 
-        return jobManager;
-    }
-
-    @Bean
-    ConfigurationClientJobListener getConfigurationClientJobListener(ConfigurationClientProperties configurationClientProperties) {
-        return new ConfigurationClientJobListener(configurationClientProperties);
-    }
-
-    @Bean
-    public SpringBeanJobFactory springBeanJobFactory() {
-        return new SpringBeanJobFactory();
+            jobManager.registerJob(ProxyConfigurationBackupJob.class,
+                    configurationClientProperties.proxyConfigurationBackupCron(), new JobDataMap());
+        }
     }
 
     /**
      * Listens for daemon job completions and collects results.
      */
     @Slf4j
+    @ApplicationScoped
     public static final class ConfigurationClientJobListener implements JobListener {
         public static final String LISTENER_NAME = "confClientJobListener";
         // Access only via synchronized getter/setter.
@@ -119,5 +107,6 @@ public class ConfClientJobConfig {
                 setStatus(diagnosticsStatus);
             }
         }
+
     }
 }

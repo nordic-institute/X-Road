@@ -1,8 +1,0 @@
-spring:
-  main:
-    web-application-type: none
-
-xroad:
-  configuration-client:
-    cli-mode: true
-

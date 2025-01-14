@@ -12,6 +12,7 @@ quarkus:
   config:
     locations:
       - xroad-common.yaml
+      - xroad-common-rpc-proxy.yaml
       - xroad-ss-common.yaml
   #      - /etc/xroad/application-overrides.yaml
   #      - /etc/xroad/application-proxy.yaml

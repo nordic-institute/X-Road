@@ -27,6 +27,7 @@ package ee.ria.xroad.common.conf.globalconf;
 
 import ee.ria.xroad.common.SystemProperties;
 
+import jakarta.enterprise.context.ApplicationScoped;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.cli.CommandLine;
@@ -50,6 +51,7 @@ import static ee.ria.xroad.common.conf.globalconf.ConfigurationConstants.CONTENT
  */
 @Slf4j
 @RequiredArgsConstructor
+@ApplicationScoped
 public class ConfigurationClientActionExecutor {
     public static final String OPTION_VERIFY_PRIVATE_PARAMS_EXISTS = "verifyPrivateParamsExists";
     public static final String OPTION_VERIFY_ANCHOR_FOR_EXTERNAL_SOURCE = "verifyAnchorForExternalSource";

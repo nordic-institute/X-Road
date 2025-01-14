@@ -1,16 +1,37 @@
-spring:
+quarkus:
   application:
     name: configuration-client
+    version: 1.0.0
+  spring-di:
+    enabled: true
+  vault:
+#    devservices:
+#      enabled: true
+    url: "${XROAD_SECRET_STORE_SCHEME:http}://${XROAD_SECRET_STORE_HOST:127.0.0.1}:${XROAD_SECRET_STORE_PORT:8200}"
+    authentication:
+      client-token: "${XROAD_SECRET_STORE_TOKEN}"
+    kv-secret-engine-version: 1
+    kv-secret-engine-mount-path: xrd-secret
+#  http:
+#    host-enabled: false
+  config:
+    locations:
+      - xroad-common.yaml
+      - xroad-common-rpc-confclient.yaml
+      - xroad-ss-common.yaml
 
-server:
-  port: 5799
+#spring:
+#  application:
+#    name: configuration-client
+#
+#server:
+#  port: 5799
 
 logging.level:
   ee.ria.xroad.common.SystemPropertiesLoader: OFF
 
 xroad:
   configuration-client:
-    cli-mode: false
     update-interval: 60
     proxy-configuration-backup-cron: 0 15 3 * * ?
     configuration-anchor-file: /etc/xroad/configuration-anchor.xml

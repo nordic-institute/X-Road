@@ -29,6 +29,7 @@ import ee.ria.xroad.common.util.JobManager;
 import ee.ria.xroad.opmonitordaemon.OperationalDataRecordCleaner;
 
 import org.quartz.SchedulerException;
+import org.quartz.impl.StdSchedulerFactory;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.scheduling.quartz.SpringBeanJobFactory;
@@ -38,7 +39,7 @@ public class OpMonitorDaemonJobConfig {
 
     @Bean
     JobManager jobManager(SpringBeanJobFactory springBeanJobFactory) throws SchedulerException {
-        final var jobManager = new JobManager(springBeanJobFactory);
+        final var jobManager = new JobManager(new StdSchedulerFactory().getScheduler(), springBeanJobFactory);
 
         OperationalDataRecordCleaner.init(jobManager);
 

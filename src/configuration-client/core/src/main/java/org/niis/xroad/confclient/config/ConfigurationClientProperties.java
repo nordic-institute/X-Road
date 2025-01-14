@@ -27,12 +27,19 @@
 
 package org.niis.xroad.confclient.config;
 
-import org.springframework.boot.context.properties.ConfigurationProperties;
+import io.smallrye.config.ConfigMapping;
+import io.smallrye.config.WithName;
 
-@ConfigurationProperties(prefix = "xroad.configuration-client")
-public record ConfigurationClientProperties(
-        boolean cliMode,
-        int updateInterval,
-        String proxyConfigurationBackupCron,
-        String configurationAnchorFile) {
+@ConfigMapping(prefix = "xroad.configuration-client")
+public interface ConfigurationClientProperties {
+
+    @WithName("update-interval")
+    int updateInterval();
+
+    @WithName("proxy-configuration-backup-cron")
+    String proxyConfigurationBackupCron();
+
+    @WithName("configuration-anchor-file")
+    String configurationAnchorFile();
+
 }

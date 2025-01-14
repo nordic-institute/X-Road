@@ -28,6 +28,7 @@
 package org.niis.xroad.confclient.admin;
 
 import io.grpc.stub.StreamObserver;
+import jakarta.enterprise.context.ApplicationScoped;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
@@ -43,6 +44,7 @@ import static java.util.Optional.ofNullable;
 
 @Slf4j
 @RequiredArgsConstructor
+@ApplicationScoped
 public class AdminService extends AdminServiceGrpc.AdminServiceImplBase {
 
     private final ConfClientJobConfig.ConfigurationClientJobListener listener;
