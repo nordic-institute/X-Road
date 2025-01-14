@@ -25,10 +25,6 @@ dependencies {
     testImplementation libs.dss.asic.xades
 }
 
-jar {
-    archiveBaseName = 'messagelog-addon-core'
-}
-
 tasks.register('copyGpg', Copy) {
     from 'src/test/gpg'
     into layout.buildDirectory.dir("gpg")
