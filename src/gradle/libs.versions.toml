@@ -33,7 +33,7 @@ caffeine = "3.1.8"
 swaggerAnnotations = "2.2.17"
 feign = "13.5"
 
-quarkus = "3.17.5"
+quarkus = "3.17.6"
 quarkus-vault = "4.1.0"
 
 [libraries]
@@ -66,7 +66,7 @@ quarkus-jaxb = { group = "io.quarkus", name = "quarkus-jaxb", version.ref = "qua
 quarkus-grpc = { group = "io.quarkus", name = "quarkus-grpc", version.ref = "quarkus" }
 quarkus-springBoot-di = { group = "io.quarkus", name = "quarkus-spring-di", version.ref = "quarkus" }
 quarkus-springBoot-properties = { group = "io.quarkus", name = "quarkus-spring-boot-properties", version.ref = "quarkus" }
-
+quarkus-junit5 = { group = "io.quarkus", name = "quarkus-junit5", version.ref = "quarkus" }
 quarkus-extension-vault = { group = "io.quarkiverse.vault", name = "quarkus-vault", version.ref = "quarkus-vault" }
 
 springCloud-bom = { module = "org.springframework.cloud:spring-cloud-dependencies", version = "2024.0.0" }
@@ -112,6 +112,7 @@ jakarta-bindApi = { module = "jakarta.xml.bind:jakarta.xml.bind-api", version = 
 jakarta-soapApi = { module = "jakarta.xml.soap:jakarta.xml.soap-api", version = "3.0.2" }
 jakarta-annotationApi = { module = "jakarta.annotation:jakarta.annotation-api", version = "3.0.0" }
 jakarta-json-module = { module = "org.glassfish:jakarta.json", version = "2.0.1" }
+jakarta-cdi = { module = "jakarta.enterprise:jakarta.enterprise.cdi-api", version = "4.1.0" }
 
 mapstructProcessor = { module = "org.mapstruct:mapstruct-processor", version.ref = "mapstruct" }
 mapstruct = { module = "org.mapstruct:mapstruct", version.ref = "mapstruct" }

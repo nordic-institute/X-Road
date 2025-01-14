@@ -48,10 +48,6 @@ dependencies {
     intTestImplementation(project(":common:common-int-test"))
 }
 
-jar {
-    archiveBaseName = 'proxy-core'
-}
-
 testJar {
     enabled = true
     archiveBaseName = 'proxy-core'
