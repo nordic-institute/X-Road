@@ -41,6 +41,7 @@ public class ConfClientMain {
     public static void main(String[] args) {
         if (args.length > 0) {
             // run cli.
+            // todo consider using Quarkus for CLI
             int result = runCli(args);
             System.exit(result);
         } else {
