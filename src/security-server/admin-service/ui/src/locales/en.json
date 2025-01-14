@@ -225,6 +225,7 @@
       "vendor": "Vendor name"
     },
     "mailNotificationConfiguration": {
+      "authCertRegisteredEnabled": "AUTH certificate registered notifications",
       "confStatus": {
         "false": "Configuration incomplete",
         "true": "Configured"
