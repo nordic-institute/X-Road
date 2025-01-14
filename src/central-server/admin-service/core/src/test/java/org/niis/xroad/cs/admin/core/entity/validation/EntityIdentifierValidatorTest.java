@@ -75,8 +75,8 @@ public class EntityIdentifierValidatorTest {
         assertThat(violations)
                 .hasSize(1)
                 .first()
-                .<ConstraintViolation<Model>, String>extracting(ConstraintViolation::getMessage)
-                .startsWith(expectedFault);
+                .extracting(ConstraintViolation::getMessage)
+                .asString().startsWith(expectedFault);
     }
 
     private static Stream<Arguments> invalidEntityIdentifiers() {
