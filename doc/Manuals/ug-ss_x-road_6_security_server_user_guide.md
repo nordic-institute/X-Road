@@ -817,7 +817,7 @@ On submitting the request, the message "Certificate registration request success
 
 After the X-Road governing authority has accepted the registration, the registration state of the authentication certificate is set to "Registered" and the registration process is completed.
 
-**Note:** If the registration request is rejected by the X-Road governing authority, no automatic notification is sent by the Central Server and the authentication certificate remains in the "Registration in process" state on the Security Server. The X-Road governing authority must notify the Security Server administrator about the rejection of the request through an external channel, e.g., email.
+**Note:** If the registration request is rejected by the X-Road governing authority, no automatic notification is sent to the Security Server administrator and the authentication certificate remains in the "Registration in process" state on the Security Server. The X-Road governing authority must notify the Security Server administrator about the rejection of the request through an external channel, e.g., email.
 
 ### 3.4 Changing the Security Server Owner
 
@@ -1012,7 +1012,7 @@ On submitting the request, the message "Request sent" is displayed, and the clie
 
 After the X-Road governing authority has accepted the registration, the state of the client is set to "Registered" and the registration process is completed.
 
-**Note:** If the registration request is rejected by the X-Road governing authority, no automatic notification is sent by the Central Server and the client remains in the "Registration in process" state on the Security Server. The X-Road governing authority must notify the Security Server administrator about the rejection of the request through an external channel, e.g., email.
+**Note:** If the registration request is rejected by the X-Road governing authority, no automatic notification is sent to the Security Server administrator and the client remains in the "Registration in process" state on the Security Server. The X-Road governing authority must notify the Security Server administrator about the rejection of the request through an external channel, e.g., email.
 
 ### 4.6 Deleting a Client from the Security Server
 
