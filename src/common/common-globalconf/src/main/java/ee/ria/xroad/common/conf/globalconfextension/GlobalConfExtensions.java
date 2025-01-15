@@ -35,6 +35,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
 import java.util.Optional;
+import java.util.function.Supplier;
 
 import static ee.ria.xroad.common.conf.globalconfextension.OcspFetchInterval.FILE_NAME_OCSP_FETCH_INTERVAL_PARAMETERS;
 import static ee.ria.xroad.common.conf.globalconfextension.OcspNextUpdate.FILE_NAME_OCSP_NEXT_UPDATE_PARAMETERS;
@@ -47,16 +48,16 @@ import static ee.ria.xroad.common.conf.monitoringconf.MonitoringParameters.FILE_
 @RequiredArgsConstructor
 public final class GlobalConfExtensions {
 
-    private final GlobalConfExtensionLoader<OcspNextUpdate> ocspNextUpdateLoader;
-    private final GlobalConfExtensionLoader<OcspFetchInterval> ocsFetchIntervalLoader;
-    private final GlobalConfExtensionLoader<MonitoringParameters> monitoringParametersLoader;
+    private final Supplier<OcspNextUpdate> ocspNextUpdateLoader;
+    private final Supplier<OcspFetchInterval> ocsFetchIntervalLoader;
+    private final Supplier<MonitoringParameters> monitoringParametersLoader;
 
-    public GlobalConfExtensions(GlobalConfSource globalConfSource) {
-        this.ocspNextUpdateLoader = new GlobalConfExtensionLoader<>(
+    public GlobalConfExtensions(GlobalConfSource globalConfSource, GlobalConfExtensionFactory factory) {
+        this.ocspNextUpdateLoader = () -> factory.createExtension(
                 globalConfSource, FILE_NAME_OCSP_NEXT_UPDATE_PARAMETERS, OcspNextUpdate.class);
-        this.ocsFetchIntervalLoader = new GlobalConfExtensionLoader<>(
+        this.ocsFetchIntervalLoader = () -> factory.createExtension(
                 globalConfSource, FILE_NAME_OCSP_FETCH_INTERVAL_PARAMETERS, OcspFetchInterval.class);
-        this.monitoringParametersLoader = new GlobalConfExtensionLoader<>(
+        this.monitoringParametersLoader = () -> factory.createExtension(
                 globalConfSource, FILE_NAME_MONITORING_PARAMETERS, MonitoringParameters.class);
     }
 
@@ -64,7 +65,7 @@ public final class GlobalConfExtensions {
      * @return true if ocsp nextUpdate should be verified
      */
     public boolean shouldVerifyOcspNextUpdate() {
-        OcspNextUpdate update = ocspNextUpdateLoader.getExtension();
+        OcspNextUpdate update = ocspNextUpdateLoader.get();
         if (update != null) {
             log.trace("shouldVerifyOcspNextUpdate: {}", update.shouldVerifyOcspNextUpdate());
             return update.shouldVerifyOcspNextUpdate();
@@ -78,7 +79,7 @@ public final class GlobalConfExtensions {
      * @return OCSP fetch interval in seconds
      */
     public int getOcspFetchInterval() {
-        OcspFetchInterval update = ocsFetchIntervalLoader.getExtension();
+        OcspFetchInterval update = ocsFetchIntervalLoader.get();
         if (update != null) {
             log.trace("getOcspFetchInterval: {}", update.getOcspFetchInterval());
             return update.getOcspFetchInterval();
@@ -93,7 +94,7 @@ public final class GlobalConfExtensions {
      * to request monitoring data from other security servers
      */
     public ClientId getMonitoringClient() {
-        return Optional.ofNullable(monitoringParametersLoader.getExtension())
+        return Optional.ofNullable(monitoringParametersLoader.get())
                 .map(MonitoringParameters::getMonitoringClient)
                 .map(MonitoringClientType::getMonitoringClientId)
                 .orElse(null);

@@ -8,7 +8,8 @@ dependencies {
     api project(':common:common-message')
     api project(':common:common-globalconf')
     api(project(':common:common-properties'))
-
+    api(project(':common:globalconf-provider'))
+    implementation(project(":configuration-client:confclient-rpc-client"))
     implementation(libs.quarkus.springBoot.di)
 
     testImplementation project(':common:common-test')
