@@ -25,12 +25,7 @@
    THE SOFTWARE.
  -->
 <template>
-  <div>
-    <div class="header-row">
-      <div class="title-search">
-        <div class="xrd-view-title">{{ $t('keys.title') }}</div>
-      </div>
-    </div>
+  <xrd-titled-view title-key="keys.title">
 
     <tokens-list
       :configuration-type="configurationType"
@@ -53,7 +48,7 @@
 
     <!-- Configuration parts -->
     <configuration-parts-list :configuration-type="configurationType" />
-  </div>
+  </xrd-titled-view>
 </template>
 
 <script lang="ts">
@@ -66,9 +61,11 @@ import ConfigurationPartsList from '@/components/configurationParts/Configuratio
 import ConfigurationDownloadUrl from './ConfigurationDownloadUrl.vue';
 import { ConfigurationType } from '@/openapi-types';
 import TokensList from '@/components/tokens/TokensList.vue';
+import { XrdTitledView } from '@niis/shared-ui';
 
 export default defineComponent({
   components: {
+    XrdTitledView,
     TokensList,
     ConfigurationDownloadUrl,
     ConfigurationAnchor,
