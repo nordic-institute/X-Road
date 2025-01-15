@@ -24,10 +24,13 @@
    THE SOFTWARE.
  -->
 <template>
-  <v-container fluid class="xrd-view-common px-7" data-test="diagnostics-view">
-    <div class="xrd-view-title pt-6">{{ $t('tab.main.diagnostics') }}</div>
-    <v-row align="center" justify="center" class="fill-height elevation-0">
-      <DiagnosticsJavaVersionCard />
+  <xrd-sub-view-container>
+    <XrdTitledView title-key="tab.main.diagnostics" data-test="diagnostics-view">
+      <template #header-buttons>
+        <DiagnosticsDownloadSystemInfoBtn />
+      </template>
+
+      <DiagnosticsJavaVersionCard class="mt-0" />
 
       <DiagnosticsMailNotificationCard />
 
@@ -49,8 +52,8 @@
       <DiagnosticsMessageLogDatabaseCard
         :message-log-encryption-loading="messageLogEncryptionLoading"
       />
-    </v-row>
-  </v-container>
+    </XrdTitledView>
+  </xrd-sub-view-container>
 </template>
 
 <script lang="ts">
@@ -66,9 +69,14 @@ import DiagnosticsOcspRespondersCard from '@/views/Diagnostics/DiagnosticsOcspRe
 import DiagnosticsBackupEncryptionCard from '@/views/Diagnostics/DiagonsticsBackupEncryptionCard.vue';
 import DiagnosticsMessageLogArchiveCard from '@/views/Diagnostics/DiagnosticsMessageLogArchiveCard.vue';
 import DiagnosticsMessageLogDatabaseCard from '@/views/Diagnostics/DiagnosticsMessageLogDatabaseCard.vue';
+import DiagnosticsDownloadSystemInfoBtn from '@/views/Diagnostics/DiagnosticsDownloadSystemInfoBtn.vue';
+import { XrdSubViewContainer, XrdTitledView } from '@niis/shared-ui';
 
 export default defineComponent({
   components: {
+    XrdSubViewContainer,
+    XrdTitledView,
+    DiagnosticsDownloadSystemInfoBtn,
     DiagnosticsJavaVersionCard,
     DiagnosticsMailNotificationCard,
     DiagnosticsGlobalConfigurationCard,
