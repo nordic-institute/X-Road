@@ -30,24 +30,25 @@ plugins {
 dependencies {
     implementation(platform(libs.quarkus.bom))
     implementation(project(':common:common-quarkus-bootstrap'))
-
+    implementation(libs.quarkus.quartz)
     implementation(libs.quarkus.springBoot.di)
 
-    implementation project(':common:common-core')
-    implementation project(':common:common-rpc')
+//    implementation project(':common:common-core')
+//    implementation project(':common:common-rpc')
     implementation project(':configuration-client:core')
 
 //    testImplementation project(':common:common-test')
     testImplementation(libs.junit.system.exit)
-    testImplementation("io.quarkus:quarkus-junit5:3.17.5")
+    testImplementation(libs.quarkus.junit5)
 }
 
 jar.enabled = false
 
 test {
     useJUnitPlatform()
+    systemProperty "java.util.logging.manager", "org.jboss.logmanager.LogManager"
 
     def junit5SystemExit = configurations.testRuntimeClasspath.files
         .find { it.name.contains('junit5-system-exit') }
-    jvmArgumentProviders.add({["-javaagent:$junit5SystemExit"]} as CommandLineArgumentProvider)
+    jvmArgumentProviders.add({ ["-javaagent:$junit5SystemExit"] } as CommandLineArgumentProvider)
 }

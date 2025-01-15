@@ -1,21 +1,15 @@
 plugins {
     id 'java-library'
     alias(libs.plugins.protobuf)
+    alias(libs.plugins.jandex)
 }
 
-sourceSets {
-    main {
-        java.srcDirs = [
-            'src/main/java'
-            , 'build/generated-sources'
-            , 'build/generated/source/proto/main/grpc'
-            , 'build/generated/source/proto/main/java']
-    }
-}
+
 
 dependencies {
     api project(':common:common-core')
     api project(':common:common-rpc')
+    api project(":configuration-client:confclient-model")
 
     implementation(platform(libs.springBoot.bom))
     implementation("org.springframework.boot:spring-boot-starter")

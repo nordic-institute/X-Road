@@ -5,8 +5,7 @@ plugins {
 dependencies {
     api project(':common:common-core')
 
-    // todo add to toml
-    implementation group: 'jakarta.enterprise', name: 'jakarta.enterprise.cdi-api', version: '4.1.0'
+    implementation(libs.jakarta.cdi)
 
     api(libs.quartz) {
         exclude module: 'c3p0'

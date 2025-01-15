@@ -33,6 +33,7 @@ include 'common:common-message'
 include 'common:common-scheduler'
 include 'common:common-service-bootstrap'
 include 'common:common-quarkus-bootstrap'
+include 'common:globalconf-provider'
 
 // Main projects
 include "proxy"
@@ -46,6 +47,8 @@ include "configuration-proxy:core"
 include "configuration-client:confclient-rpc-client"
 include "configuration-client:application"
 include "configuration-client:core"
+include 'configuration-client:confclient-model'
+
 include "asicverifier"
 include "asic-util"
 include "monitor:application"

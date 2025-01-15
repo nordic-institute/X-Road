@@ -1,8 +1,0 @@
-xroad:
-  common:
-    rpc:
-      channel:
-        configuration-client:
-          host: 127.0.0.1
-          port: 5665
-          deadline-after: 60000
