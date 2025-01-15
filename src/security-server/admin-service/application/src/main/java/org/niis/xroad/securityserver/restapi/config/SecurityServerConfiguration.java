@@ -25,6 +25,10 @@
  */
 package org.niis.xroad.securityserver.restapi.config;
 
+import ee.ria.xroad.common.SystemProperties;
+import ee.ria.xroad.common.conf.globalconf.GlobalConfProvider;
+import ee.ria.xroad.common.conf.serverconf.ServerConfFactory;
+import ee.ria.xroad.common.conf.serverconf.ServerConfProvider;
 import ee.ria.xroad.common.util.process.ExternalProcessRunner;
 
 import jakarta.servlet.Filter;
@@ -100,5 +104,10 @@ public class SecurityServerConfiguration {
     @Order(DiagnosticCollector.ORDER_GROUP5)
     public XrdProcessesCollector xrdProcessesCollector(MonitorClient monitorClient) {
         return new XrdProcessesCollector(monitorClient);
+    }
+
+    @Bean
+    public ServerConfProvider serverConfProvider(GlobalConfProvider globalConfProvider) {
+        return ServerConfFactory.create(globalConfProvider, SystemProperties.getServerConfCachePeriod());
     }
 }

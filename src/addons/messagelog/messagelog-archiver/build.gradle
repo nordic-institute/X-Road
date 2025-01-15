@@ -3,13 +3,14 @@ plugins {
 }
 
 dependencies {
-
+    implementation(platform(libs.springBoot.bom))
     implementation(project(':common:common-scheduler'))
     implementation(project(':common:common-db'))
     implementation(project(':common:common-messagelog'))
     implementation(project(':common:common-verifier'))
     implementation(project(':addons:messagelog:messagelog-db'))
     implementation(project(':asic-util'))
+    implementation('org.springframework:spring-context-support')
 }
 
 jar {

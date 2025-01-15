@@ -26,7 +26,6 @@
 package ee.ria.xroad.proxy;
 
 import ee.ria.xroad.common.util.JobManager;
-import ee.ria.xroad.common.util.SpringAwareJobManager;
 import ee.ria.xroad.proxy.util.ServerConfStatsLogger;
 
 import org.quartz.SchedulerException;
@@ -40,7 +39,7 @@ public class ProxyJobConfig {
 
     @Bean
     JobManager jobManager(SpringBeanJobFactory springBeanJobFactory) throws SchedulerException {
-        final var jobManager = new SpringAwareJobManager(springBeanJobFactory);
+        final var jobManager = new JobManager(springBeanJobFactory);
 
         jobManager.registerRepeatingJob(ServerConfStatsLogger.class, STATS_LOG_REPEAT_INTERVAL);
 

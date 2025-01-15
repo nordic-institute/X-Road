@@ -23,23 +23,25 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package ee.ria.xroad.common.util;
+package org.niis.xroad.common.acme;
+
+import ee.ria.xroad.common.conf.globalconf.GlobalConfProvider;
 
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
 import org.springframework.stereotype.Component;
 
 @Component
-public class SpringApplicationContext implements ApplicationContextAware {
+public class GlobalConfBeanLookup implements ApplicationContextAware {
 
     private static ApplicationContext applicationContext;
 
     @SuppressWarnings("java:S2696")
     public void setApplicationContext(ApplicationContext applicationContext) {
-        SpringApplicationContext.applicationContext = applicationContext;
+        GlobalConfBeanLookup.applicationContext = applicationContext;
     }
 
-    public static <T> T getBean(Class<T> beanClass) {
-        return applicationContext.getBean(beanClass);
+    static GlobalConfProvider getGlobalConfProvider() {
+        return applicationContext.getBean(GlobalConfProvider.class);
     }
 }

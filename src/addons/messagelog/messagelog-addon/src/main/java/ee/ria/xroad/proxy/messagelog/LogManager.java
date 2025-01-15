@@ -42,6 +42,7 @@ import ee.ria.xroad.common.messagelog.TimestampRecord;
 import ee.ria.xroad.common.util.JobManager;
 import ee.ria.xroad.common.util.TimeUtils;
 
+import jakarta.annotation.PreDestroy;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.input.BoundedInputStream;
 
@@ -98,10 +99,9 @@ public class LogManager extends AbstractLogManager {
         this.timestamperJob = createTimestamperJob(taskQueue);
     }
 
-    @Override
+    @PreDestroy
     public void destroy() {
         timestamperJob.shutdown();
-        super.destroy();
     }
 
     private TimestamperJob createTimestamperJob(TaskQueue taskQueueParam) {

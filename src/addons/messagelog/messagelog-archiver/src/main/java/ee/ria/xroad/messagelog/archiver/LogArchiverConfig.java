@@ -29,7 +29,6 @@ import ee.ria.xroad.common.conf.globalconf.GlobalConfBeanConfig;
 import ee.ria.xroad.common.conf.globalconf.GlobalConfRefreshJobConfig;
 import ee.ria.xroad.common.messagelog.MessageLogProperties;
 import ee.ria.xroad.common.util.JobManager;
-import ee.ria.xroad.common.util.SpringAwareJobManager;
 
 import org.quartz.JobDataMap;
 import org.quartz.SchedulerException;
@@ -45,7 +44,7 @@ public class LogArchiverConfig {
 
     @Bean
     JobManager jobManager(SpringBeanJobFactory springBeanJobFactory) throws SchedulerException {
-        final var jobManager = new SpringAwareJobManager(springBeanJobFactory);
+        final var jobManager = new JobManager(springBeanJobFactory);
 
         jobManager.registerJob(LogArchiver.class, "ArchiverJob", MessageLogProperties.getArchiveInterval(),
                 new JobDataMap());

@@ -10,6 +10,7 @@ dependencies {
     implementation project(':common:common-jetty')
     implementation project(':common:common-verifier')
     implementation project(':common:common-rpc')
+    implementation('org.springframework:spring-context-support')
 
     implementation libs.commons.cli
 

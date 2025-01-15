@@ -25,10 +25,10 @@
  */
 package ee.ria.xroad.common.conf.globalconf;
 
+import jakarta.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
 import lombok.ToString;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.InitializingBean;
 
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -40,7 +40,7 @@ import java.util.Optional;
  * Wrapper source for file system based global configuration.
  */
 @Slf4j
-public class FileSystemGlobalConfSource implements GlobalConfSource, InitializingBean {
+public class FileSystemGlobalConfSource implements GlobalConfSource {
     private final FSGlobalConfValidator fsGlobalConfValidator;
     private final String globalConfigurationDir;
     private volatile VersionedConfigurationDirectory configurationDirectory;
@@ -51,7 +51,7 @@ public class FileSystemGlobalConfSource implements GlobalConfSource, Initializin
         this.fsGlobalConfValidator = new FSGlobalConfValidator();
     }
 
-    @Override
+    @PostConstruct
     public void afterPropertiesSet() {
         try {
             load();

@@ -28,14 +28,12 @@ package ee.ria.xroad.common.opmonitoring;
 import ee.ria.xroad.common.conf.serverconf.ServerConfProvider;
 
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.DisposableBean;
-import org.springframework.beans.factory.InitializingBean;
 
 /**
  * Abstract operational monitoring buffer.
  */
 @Slf4j
-public abstract class AbstractOpMonitoringBuffer implements InitializingBean, DisposableBean {
+public abstract class AbstractOpMonitoringBuffer {
 
     protected AbstractOpMonitoringBuffer(ServerConfProvider serverConfProvider) {
         //No-OP

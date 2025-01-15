@@ -26,6 +26,7 @@
 package ee.ria.xroad.proxy.conf;
 
 import ee.ria.xroad.common.ExpectedCodedException;
+import ee.ria.xroad.common.SystemProperties;
 import ee.ria.xroad.common.conf.globalconf.EmptyGlobalConf;
 import ee.ria.xroad.common.conf.globalconf.GlobalConfProvider;
 import ee.ria.xroad.common.conf.serverconf.CachingServerConfImpl;
@@ -104,7 +105,7 @@ public class CachingServerConfTest {
                 return true;
             }
         };
-        serverConfProvider = new CachingServerConfImpl(globalConfProvider);
+        serverConfProvider = new CachingServerConfImpl(globalConfProvider, SystemProperties.getServerConfCachePeriod());
     }
 
     /**

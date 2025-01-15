@@ -24,6 +24,7 @@ dependencies {
     implementation(project(':common:common-op-monitoring'))
 
     implementation("com.fasterxml.jackson.dataformat:jackson-dataformat-yaml")
+    implementation('org.springframework:spring-context-support')
     implementation(libs.jetty.xml)
     implementation(libs.xerces.impl)
     implementation(libs.semver4j)
@@ -31,7 +32,6 @@ dependencies {
     testImplementation(project(':common:common-test'))
 
     testImplementation(libs.wsdl4j)
-
     intTestRuntimeOnly(project(':signer:application'))
     intTestImplementation(project(":common:common-test"))
     intTestImplementation(project(":common:common-int-test"))
