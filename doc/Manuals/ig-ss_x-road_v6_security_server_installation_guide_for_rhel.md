@@ -2,7 +2,7 @@
 
 **X-ROAD 7**
 
-Version: 1.31  
+Version: 1.32  
 Doc. ID: IG-SS-RHEL
 
 ---
@@ -44,6 +44,7 @@ Doc. ID: IG-SS-RHEL
 | 25.06.2024 | 1.29    | Add global configuration download port 443 to the network diagram                                                                                                                                                    | Petteri Kivimäki     |
 | 17.07.2024 | 1.30    | Java 21 installation instructions for RHEL 7                                                                                                                                                                         | Ovidijus Narkevičius |
 | 16.12.2024 | 1.31    | Instructions to install PostgreSQL packages                                                                                                                                                                          | Justas Samuolis      |
+| 14.01.2025 | 1.32    | Adding extra check for remote database setup                                                                                                                                                                         | Eneli Reimets        |
 
 ## License
 
@@ -315,6 +316,12 @@ sudo yum install postgresql-server postgresql-contrib
 Optionally, the Security Server can use a remote database server. To avoid installing the default local PostgreSQL server during Security Server installation, install the `xroad-database-remote` -package, which will also install the PostgreSQL client and create the `xroad` system user and configuration directories (`/etc/xroad`).
 ```bash
 sudo yum install xroad-database-remote
+```
+
+Verify in the remote database server, that PostgreSQL package `postgresql-contrib` was installed before continuing with X-Road Security Server installation:
+
+```bash
+sudo yum install postgresql-contrib
 ```
 
 For the application level backup and restore feature to work correctly, it is important to verify that the local PostgreSQL client has the same or later major version than the remote database server and, if necessary, install a different version of the `postgresql` package (see https://www.postgresql.org/download/linux/redhat/)
@@ -703,6 +710,12 @@ These databases can be hosted on one database server (default setup), or you can
 Login to the database server(s) as the superuser (`postgres` by default) to run the commands, e.g.
 ```bash
 psql -h <database host>:<port> -U <superuser> -d postgres
+```
+
+Verify in the database server, that PostgreSQL package `postgresql-contrib` was installed before running following scripts:
+
+```bash
+sudo yum install postgresql-contrib
 ```
 
 Run the following commands to create the necessary database structures. If necessary, customize the database and role names to suit your environment (e.g when the same database server is shared between several Security Server instances, it is necessary to have separate database names and roles for each server). By default, the database, database user, and schema use the same name (e.g. serverconf), and the admin user is named with \_admin prefix (e.g. serverconf_admin).
