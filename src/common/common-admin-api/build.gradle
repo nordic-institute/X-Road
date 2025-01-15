@@ -15,6 +15,7 @@ dependencies {
     api project(':common:common-domain')
     implementation(project(':common:common-core'))
     implementation(project(':signer-protocol'))
+    implementation(project(':configuration-client:confclient-rpc-client'))
     implementation(project(':serverconf'))
 
     implementation(platform(libs.springBoot.bom))
