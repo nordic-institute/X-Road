@@ -80,7 +80,7 @@ public class MessageRecordEntity extends AbstractLogRecordEntity {
     @Column(name = "RESPONSE", updatable = false)
     private boolean response;
 
-    @OneToMany(cascade = CascadeType.PERSIST)
+    @OneToMany(cascade = CascadeType.ALL)
     @JoinColumn(name = "logrecord_id", updatable = false, nullable = false)
     private List<MessageAttachmentEntity> attachments;
 

@@ -175,7 +175,7 @@
         </createTable>
 
         <createTable tableName="history">
-            <column autoIncrement="true" name="id" type="SERIAL" >
+            <column autoIncrement="true" name="id" type="SERIAL">
                 <constraints primaryKey="true" primaryKeyName="history_pkey"/>
             </column>
             <column name="operation" type="VARCHAR(255)">
