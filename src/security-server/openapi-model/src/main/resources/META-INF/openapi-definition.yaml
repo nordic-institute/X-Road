@@ -5658,12 +5658,15 @@ components:
       type: object
       description: automatic e-mail notification status
       properties:
-        failure_status:
+        acme_failure_status:
           type: boolean
-          description: status of failure notifications
-        success_status:
+          description: status of ACME automatic renewal failure notifications
+        acme_success_status:
           type: boolean
-          description: status of success notifications
+          description: status of ACME automatic renewal success notifications
+        auth_cert_registered_status:
+          type: boolean
+          description: status of authentication certificates registration notifications
         configuration_present:
           type: boolean
           description: whether automatic e-mail has been configured
