@@ -269,7 +269,7 @@ Doc. ID: UG-SS
 - [24 Configuring ACME](#24-configuring-acme)
 - [25 Migrating to EC Based Authentication and Signing Certificates](#25-migrating-to-ec-based-authentication-and-signing-certificates)
   - [25.1 Steps to Enable EC Based Certificates](#251-Steps-to-enable-EC-based-certificates)
-  - [25.2Backwards Compatibility](#252-Backwards-compatibility)
+  - [25.2 Backwards Compatibility](#252-Backwards-compatibility)
 
 <!-- vim-markdown-toc -->
 <!-- tocstop -->
