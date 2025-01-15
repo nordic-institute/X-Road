@@ -1,6 +1,6 @@
 plugins {
-    alias(libs.plugins.springBoot)
-    id 'maven-publish'
+    alias(libs.plugins.quarkus)
+//    id 'maven-publish'
 }
 
 // TODO xroad8 refactor to work without shadowjar
@@ -28,53 +28,27 @@ plugins {
 //}
 
 dependencies {
-    implementation project(':common:common-service-bootstrap')
+    implementation(platform(libs.quarkus.bom))
+    implementation(project(':common:common-quarkus-bootstrap'))
+    implementation(libs.quarkus.quartz)
+    implementation(libs.quarkus.springBoot.di)
 
-    implementation project(':common:common-core')
-    implementation project(':common:common-rpc')
+//    implementation project(':common:common-core')
+//    implementation project(':common:common-rpc')
     implementation project(':configuration-client:core')
 
-    testImplementation project(':common:common-test')
-    testImplementation('org.springframework.boot:spring-boot-starter-test')
+//    testImplementation project(':common:common-test')
     testImplementation(libs.junit.system.exit)
-}
-
-ext {
-    mainClassName = 'org.niis.xroad.confclient.ConfClientDaemonMain'
-}
-
-jar {
-    manifest {
-        attributes 'Main-Class': mainClassName
-    }
-}
-
-bootJar {
-    enabled = true
-    archiveBaseName = 'configuration-client'
-
-    manifest {
-        attributes(
-            'Implementation-Title': 'X-Road GlobalConf client',
-            'Implementation-Version': "$xroadVersion-$xroadBuildType",
-            'Main-Class': 'org.springframework.boot.loader.launch.PropertiesLauncher'
-        )
-    }
+    testImplementation(libs.quarkus.junit5)
 }
 
 jar.enabled = false
 
-tasks.register('runConfigurationClient', JavaExec) {
-    jvmArgs '-Dxroad.conf.path=build/',
-        '-Dxroad.distributedfiles.signatureFreshness=-1' // disable freshness checking since we read local file
-    mainClass = mainClassName
-    classpath = sourceSets.main.runtimeClasspath
-}
-
 test {
     useJUnitPlatform()
+    systemProperty "java.util.logging.manager", "org.jboss.logmanager.LogManager"
 
     def junit5SystemExit = configurations.testRuntimeClasspath.files
         .find { it.name.contains('junit5-system-exit') }
-    jvmArgumentProviders.add({["-javaagent:$junit5SystemExit"]} as CommandLineArgumentProvider)
+    jvmArgumentProviders.add({ ["-javaagent:$junit5SystemExit"] } as CommandLineArgumentProvider)
 }

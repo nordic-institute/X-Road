@@ -26,6 +26,7 @@
 package org.niis.xroad.confclient.globalconf;
 
 import io.grpc.stub.StreamObserver;
+import jakarta.enterprise.context.ApplicationScoped;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.niis.xroad.confclient.proto.GetGlobalConfReq;
@@ -34,6 +35,7 @@ import org.niis.xroad.confclient.proto.GlobalConfServiceGrpc;
 
 @Slf4j
 @RequiredArgsConstructor
+@ApplicationScoped
 public class GlobalConfRpcService extends GlobalConfServiceGrpc.GlobalConfServiceImplBase {
     private final GlobalConfRpcCache globalConfRpcCache;
 

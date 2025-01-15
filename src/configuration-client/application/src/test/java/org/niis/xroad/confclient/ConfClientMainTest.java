@@ -27,22 +27,19 @@ package org.niis.xroad.confclient;
 
 import ee.ria.xroad.common.util.JobManager;
 
+import io.quarkus.arc.Arc;
+import io.quarkus.test.junit.QuarkusTest;
+import io.quarkus.test.junit.TestProfile;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.context.ApplicationContext;
-import org.springframework.test.context.ActiveProfiles;
 
-@ActiveProfiles("test")
-@SpringBootTest(useMainMethod = SpringBootTest.UseMainMethod.ALWAYS)
+@QuarkusTest
+@TestProfile(ConfClientTestProfile.class)
 class ConfClientMainTest {
-    @Autowired
-    ApplicationContext context;
 
     @Test
     void contextLoads() {
-        Assertions.assertFalse(context.getBeansOfType(JobManager.class).isEmpty());
-        Assertions.assertTrue(context.getBeansOfType(ConfClientCLIRunner.class).isEmpty());
+        Assertions.assertFalse(Arc.container().select(JobManager.class).stream().toList().isEmpty());
+        Assertions.assertTrue(Arc.container().select(ConfClientCLIRunner.class).stream().toList().isEmpty());
     }
 }

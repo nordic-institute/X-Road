@@ -36,6 +36,8 @@ import ee.ria.xroad.common.conf.globalconf.FileSystemGlobalConfSource;
 import ee.ria.xroad.common.conf.globalconf.GlobalConfImpl;
 import ee.ria.xroad.common.conf.globalconf.GlobalConfProvider;
 
+import ee.ria.xroad.common.conf.globalconf.globalconfextension.GlobalConfExtensionFactoryImpl;
+
 import eu.europa.esig.dss.validation.reports.Reports;
 
 import java.io.IOException;
@@ -82,7 +84,7 @@ public final class AsicVerifierMain {
 
         System.out.println("Loading configuration from " + confPath + "...");
         try {
-            var globalConfProvider = new GlobalConfImpl(new FileSystemGlobalConfSource(confPath));
+            var globalConfProvider = new GlobalConfImpl(new FileSystemGlobalConfSource(confPath), new GlobalConfExtensionFactoryImpl());
             verifyConfPathCorrectness(globalConfProvider);
             return globalConfProvider;
         } catch (CodedException e) {

@@ -27,32 +27,16 @@ package org.niis.xroad.confclient.config;
 
 import ee.ria.xroad.common.SystemProperties;
 import ee.ria.xroad.common.conf.globalconf.ConfigurationClient;
-import ee.ria.xroad.common.conf.globalconf.ConfigurationClientActionExecutor;
 
-import org.springframework.boot.context.properties.EnableConfigurationProperties;
-import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Configuration;
-import org.springframework.context.annotation.Import;
+import jakarta.enterprise.context.ApplicationScoped;
+import jakarta.enterprise.inject.Produces;
 
-@Import({
-        ConfClientJobConfig.class,
-        ConfClientRpcConfig.class,
-        ConfClientCLIConfig.class
-})
-@EnableConfigurationProperties({
-        ConfigurationClientProperties.class})
-@Configuration
 public class ConfClientRootConfig {
 
-    @Bean
+    @Produces
+    @ApplicationScoped
     ConfigurationClient configurationClient(ConfigurationClientProperties configurationClientProperties) {
         return new ConfigurationClient(configurationClientProperties.configurationAnchorFile(), SystemProperties.getConfigurationPath());
     }
-
-    @Bean
-    ConfigurationClientActionExecutor configurationClientActionExecutor(ConfigurationClientProperties configurationClientProperties) {
-        return new ConfigurationClientActionExecutor(configurationClientProperties);
-    }
-
 
 }

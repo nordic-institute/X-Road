@@ -25,28 +25,59 @@
  */
 package org.niis.xroad.confclient;
 
-import lombok.extern.slf4j.Slf4j;
-import org.niis.xroad.bootstrap.XrdSpringServiceBuilder;
-import org.niis.xroad.confclient.config.ConfClientRootConfig;
-import org.springframework.boot.SpringBootConfiguration;
-import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
+import ee.ria.xroad.common.conf.globalconf.ConfigurationClientActionExecutor;
 
+import io.quarkus.runtime.Quarkus;
+import io.quarkus.runtime.annotations.QuarkusMain;
+import lombok.extern.slf4j.Slf4j;
+import org.eclipse.microprofile.config.ConfigProvider;
+import org.niis.xroad.bootstrap.XrdQuarkusApplication;
+import org.niis.xroad.confclient.config.ConfigurationClientProperties;
+
+@QuarkusMain
 @Slf4j
-@EnableAutoConfiguration
-@SpringBootConfiguration
-@SuppressWarnings("checkstyle:HideUtilityClassConstructor")
 public class ConfClientMain {
-    static final String APP_NAME = "configuration-client";
 
     public static void main(String[] args) {
-        var appBuilder = XrdSpringServiceBuilder.newApplicationBuilder(APP_NAME, ConfClientMain.class, ConfClientRootConfig.class);
-
         if (args.length > 0) {
-            appBuilder.profiles("cli");
+            // run cli.
+            // todo consider using Quarkus for CLI
+            int result = runCli(args);
+            System.exit(result);
+        } else {
+            Quarkus.run(XrdQuarkusApplication.class, args);
         }
+    }
 
-        appBuilder.build()
-                .run(args);
+    private static final int ERROR_CODE_INTERNAL = 125;
+
+    public static int runCli(String... args) {
+        ConfigurationClientProperties config = new ConfigurationClientProperties() {
+            @Override
+            public int updateInterval() {
+                // not used in CLI
+                return 0;
+            }
+
+            @Override
+            public String proxyConfigurationBackupCron() {
+                // not used in CLI
+                return "";
+            }
+
+            @Override
+            public String configurationAnchorFile() {
+                return ConfigProvider.getConfig().getConfigValue("xroad.configuration-client.configuration-anchor-file").getValue();
+            }
+        };
+
+        ConfClientCLIRunner confClientCLIRunner = new ConfClientCLIRunner(new ConfigurationClientActionExecutor(config));
+        try {
+            return confClientCLIRunner.run(args);
+        } catch (Exception e) {
+            log.error("Failed to run Configuration Client CLI command", e);
+            return ERROR_CODE_INTERNAL;
+        }
     }
 
 }

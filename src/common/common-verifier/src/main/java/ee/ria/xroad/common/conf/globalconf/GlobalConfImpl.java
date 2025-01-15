@@ -32,6 +32,7 @@ import ee.ria.xroad.common.certificateprofile.AuthCertificateProfileInfo;
 import ee.ria.xroad.common.certificateprofile.CertificateProfileInfoProvider;
 import ee.ria.xroad.common.certificateprofile.GetCertificateProfile;
 import ee.ria.xroad.common.certificateprofile.SignCertificateProfileInfo;
+import ee.ria.xroad.common.conf.globalconfextension.GlobalConfExtensionFactory;
 import ee.ria.xroad.common.conf.globalconfextension.GlobalConfExtensions;
 import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.identifier.GlobalGroupId;
@@ -78,10 +79,10 @@ public class GlobalConfImpl implements GlobalConfProvider {
     private final CertChainFactory certChainFactory;
     private final GlobalConfExtensions globalConfExtensions;
 
-    public GlobalConfImpl(GlobalConfSource globalConfSource) {
+    public GlobalConfImpl(GlobalConfSource globalConfSource, GlobalConfExtensionFactory extensionFactory) {
         this.globalConfSource = globalConfSource;
         this.certChainFactory = new CertChainFactory(this);
-        this.globalConfExtensions = new GlobalConfExtensions(globalConfSource);
+        this.globalConfExtensions = new GlobalConfExtensions(globalConfSource, extensionFactory);
     }
 
     @Override

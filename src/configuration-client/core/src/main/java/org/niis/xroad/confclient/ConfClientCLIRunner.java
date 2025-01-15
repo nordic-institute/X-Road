@@ -33,16 +33,13 @@ import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.CommandLineParser;
 import org.apache.commons.cli.DefaultParser;
 import org.apache.commons.cli.Options;
-import org.springframework.boot.CommandLineRunner;
-import org.springframework.context.annotation.Profile;
 
 import static ee.ria.xroad.common.conf.globalconf.ConfigurationClientActionExecutor.OPTION_VERIFY_ANCHOR_FOR_EXTERNAL_SOURCE;
 import static ee.ria.xroad.common.conf.globalconf.ConfigurationClientActionExecutor.OPTION_VERIFY_PRIVATE_PARAMS_EXISTS;
 
 @Slf4j
-@Profile("cli")
 @RequiredArgsConstructor
-public class ConfClientCLIRunner implements CommandLineRunner {
+public class ConfClientCLIRunner {
     private static final int NUM_ARGS_FROM_CONF_PROXY_FULL = 3;
     private static final int NUM_ARGS_FROM_CONF_PROXY = 2;
 
@@ -57,8 +54,7 @@ public class ConfClientCLIRunner implements CommandLineRunner {
      * @param args the arguments
      * @throws Exception if an error occurs
      */
-    @Override
-    public void run(String... args) throws Exception {
+    public int run(String... args) throws Exception {
         if (args.length > 0) {
             CommandLine cmd = getCommandLine(args);
             String[] actualArgs = cmd.getArgs();
@@ -77,10 +73,11 @@ public class ConfClientCLIRunner implements CommandLineRunner {
                 result = 1;
             }
 
-            System.exit(result);
+            return result;
         } else {
-            log.debug("No arguments given. Starting in daemon mode.");
+            log.debug("No arguments given.");
         }
+        return 0;
     }
 
     private static CommandLine getCommandLine(String[] args) throws Exception {

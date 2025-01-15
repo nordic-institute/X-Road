@@ -27,6 +27,8 @@ package ee.ria.xroad.common.util;
 
 import jakarta.annotation.PostConstruct;
 import jakarta.annotation.PreDestroy;
+import jakarta.enterprise.context.ApplicationScoped;
+import jakarta.inject.Inject;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import org.quartz.CronExpression;
@@ -37,7 +39,6 @@ import org.quartz.JobExecutionContext;
 import org.quartz.Scheduler;
 import org.quartz.SchedulerException;
 import org.quartz.Trigger;
-import org.quartz.impl.StdSchedulerFactory;
 import org.quartz.spi.JobFactory;
 
 import java.util.Date;
@@ -52,6 +53,7 @@ import static org.quartz.TriggerBuilder.newTrigger;
  * Service to manage periodic jobs.
  */
 @Slf4j
+@ApplicationScoped
 public class JobManager {
 
     static {
@@ -62,15 +64,17 @@ public class JobManager {
     private static final String DEFAULT_JOB_GROUP = "jobs";
 
     @Getter
-    private Scheduler jobScheduler;
+    private final Scheduler jobScheduler;
 
     /**
      * Creates a new job manager.
      *
      * @throws SchedulerException if there is a problem with the underlying Scheduler
      */
-    public JobManager() throws SchedulerException {
-        jobScheduler = new StdSchedulerFactory().getScheduler();
+    @Inject
+    public JobManager(Scheduler jobScheduler) throws SchedulerException {
+        this.jobScheduler = jobScheduler;
+        log.info("Created JobManager(Scheduler jobScheduler)");
     }
 
     /**
@@ -79,44 +83,24 @@ public class JobManager {
      * @param jobFactory job factory to use
      * @throws SchedulerException if there is a problem with the underlying Scheduler
      */
-    public JobManager(JobFactory jobFactory) throws SchedulerException {
-        jobScheduler = new StdSchedulerFactory().getScheduler();
-        jobScheduler.setJobFactory(jobFactory);
+    @Deprecated(forRemoval = true)
+
+    public JobManager(Scheduler jobScheduler, JobFactory jobFactory) throws SchedulerException {
+        this.jobScheduler = jobScheduler;
+        this.jobScheduler.setJobFactory(jobFactory);
+        log.info("Created JobManager(JobFactory jobFactory)");
     }
 
     @PostConstruct
-    public void afterPropertiesSet() throws Exception {
+    @Deprecated(forRemoval = true)
+    public void afterPropertiesSet() throws SchedulerException {
         jobScheduler.start();
     }
 
     @PreDestroy
-    public void destroy() throws Exception {
+    @Deprecated(forRemoval = true)
+    public void destroy() throws SchedulerException {
         jobScheduler.shutdown();
-    }
-
-    /**
-     * Registers a repeating job with the specified repeat interval.
-     *
-     * @param jobClass          class of the job that needs to be repeated
-     * @param intervalInSeconds repeat interval of the job
-     * @throws SchedulerException if the Job or Trigger cannot be added to the Scheduler,
-     *                            or there is an internal Scheduler error
-     */
-    public void registerRepeatingJob(Class<? extends Job> jobClass,
-                                     int intervalInSeconds) throws SchedulerException {
-        JobDetail job = newJob(jobClass)
-                .withIdentity(jobClass.getSimpleName(), DEFAULT_JOB_GROUP)
-                .build();
-
-        Trigger trigger = newTrigger()
-                .withIdentity(jobClass.getSimpleName(), DEFAULT_JOB_GROUP)
-                .withSchedule(simpleSchedule()
-                        .withIntervalInSeconds(intervalInSeconds)
-                        .repeatForever())
-                .startNow()
-                .build();
-
-        jobScheduler.scheduleJob(job, trigger);
     }
 
     /**
@@ -144,6 +128,7 @@ public class JobManager {
                 .build();
 
         jobScheduler.scheduleJob(job, trigger);
+        log.info("Starting scheduled job {} repeating every [{}]s", jobClass.getSimpleName(), intervalInSeconds);
     }
 
     /**

@@ -23,7 +23,7 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package ee.ria.xroad.common.conf.globalconfextension;
+package ee.ria.xroad.common.conf.globalconf.globalconfextension;
 
 import ee.ria.xroad.common.conf.AbstractXmlConf;
 import ee.ria.xroad.common.conf.globalconf.FileSystemGlobalConfSource;
@@ -39,17 +39,16 @@ import java.util.concurrent.locks.ReentrantLock;
 
 @Slf4j
 @RequiredArgsConstructor
-public class GlobalConfExtensionLoader<T extends AbstractXmlConf<?>> {
+public class GlobalConfExtensionLoaderImpl<T extends AbstractXmlConf<?>> {
     private final ReentrantLock lock = new ReentrantLock();
 
     private final GlobalConfSource globalConfSource;
     private final String extensionFileName;
     private final Class<T> extensionClass;
 
-
     private T reference;
 
-    T getExtension() {
+    public T getExtension() {
         try {
             if (reference != null && reference.hasChanged()) {
                 reload();

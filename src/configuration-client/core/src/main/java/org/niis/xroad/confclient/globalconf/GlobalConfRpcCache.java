@@ -29,7 +29,9 @@ import ee.ria.xroad.common.SystemProperties;
 import ee.ria.xroad.common.conf.globalconf.FSGlobalConfValidator;
 import ee.ria.xroad.common.conf.globalconf.GlobalConfInitState;
 
+import io.quarkus.runtime.Startup;
 import jakarta.annotation.PostConstruct;
+import jakarta.enterprise.context.ApplicationScoped;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.time.StopWatch;
@@ -41,6 +43,8 @@ import java.util.concurrent.TimeUnit;
 
 @Slf4j
 @RequiredArgsConstructor
+@ApplicationScoped
+@Startup
 public class GlobalConfRpcCache {
     private final FSGlobalConfValidator fsGlobalConfValidator;
     private final GetGlobalConfRespFactory getGlobalConfRespFactory;

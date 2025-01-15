@@ -29,16 +29,3 @@ xroad:
           - 127.0.0.1
         ttl-minutes: 720 # 12 hours
         refresh-interval-minutes: 300 # 5 hours
-      channel:
-        configuration-client:
-          host: 127.0.0.1
-          port: 5665
-          deadline-after: 60000
-        signer:
-          host: 127.0.0.1
-          port: 5560
-          deadline-after: 60000
-        proxy:
-          host: 127.0.0.1
-          port: 5567
-          deadline-after: 60000

@@ -36,7 +36,7 @@ class RemoteGlobalConfDataLoaderTest extends BaseRemoteGlobalConfTest {
 
     @Test
     void shouldLoadConfData() {
-        var globalConfResp = loadGlobalConf(INSTANCE_IDENTIFIER, PATH_GOOD_GLOBALCONF,
+        var globalConfResp = loadGlobalConf(BaseRemoteGlobalConfTest.INSTANCE_IDENTIFIER, BaseRemoteGlobalConfTest.PATH_GOOD_GLOBALCONF,
                 1000L);
 
         var result = dataLoader.load(globalConfResp.getData(), new HashMap<>(), new HashMap<>());

@@ -30,6 +30,7 @@ import ee.ria.xroad.common.DiagnosticsStatus;
 import ee.ria.xroad.common.util.JobManager;
 import ee.ria.xroad.common.util.TimeUtils;
 
+import jakarta.inject.Inject;
 import lombok.extern.slf4j.Slf4j;
 import org.niis.xroad.confclient.config.ConfigurationClientProperties;
 import org.niis.xroad.confclient.globalconf.GlobalConfRpcCache;
@@ -54,6 +55,7 @@ public class ConfigurationClientJob extends RetryingQuartzJob {
     private final GlobalConfRpcCache globalConfRpcCache;
     private final ConfigurationClientProperties configurationClientProperties;
 
+    @Inject
     public ConfigurationClientJob(ConfigurationClient configClient, GlobalConfRpcCache globalConfRpcCache,
                                   ConfigurationClientProperties configurationClientProperties) {
         super(RETRY_DELAY_SEC);

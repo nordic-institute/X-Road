@@ -13,6 +13,7 @@ plugins {
     id 'idea'
     alias(libs.plugins.springBoot) apply false
     alias(libs.plugins.archUnit) apply false
+    alias(libs.plugins.jandex) apply false
 }
 
 sonarqube {

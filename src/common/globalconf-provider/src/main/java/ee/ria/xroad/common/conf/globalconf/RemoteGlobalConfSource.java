@@ -35,6 +35,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.time.StopWatch;
 import org.niis.xroad.confclient.proto.ConfClientRpcClient;
+import org.niis.xroad.confclient.proto.GetGlobalConfRespStatus;
 
 import java.time.OffsetDateTime;
 import java.util.HashMap;
@@ -88,14 +89,14 @@ public class RemoteGlobalConfSource implements GlobalConfSource {
             log.debug("Received GlobalConf data in {}ms.", stopWatch.getTime(MILLISECONDS));
 
             switch (getGlobalConfResp.getStatus()) {
-                case GLOBAL_CONF_STATUS_OK:
+                case GetGlobalConfRespStatus.GLOBAL_CONF_STATUS_OK:
                     // continue processing
                     break;
-                case GLOBAL_CONF_STATUS_UNINITIALIZED:
+                case GetGlobalConfRespStatus.GLOBAL_CONF_STATUS_UNINITIALIZED:
                     log.error("Global conf not initialized.");
                     lastState = GlobalConfInitState.UNINITIALIZED;
                     return false;
-                case GLOBAL_CONF_STATUS_ERROR:
+                case GetGlobalConfRespStatus.GLOBAL_CONF_STATUS_ERROR:
                     log.error("Error returned while loading global conf");
                     lastState = GlobalConfInitState.FAILURE_MALFORMED;
                     return false;

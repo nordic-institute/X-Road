@@ -62,6 +62,7 @@ quarkus-containerImage-docker = { group = "io.quarkus", name = "quarkus-containe
 quarkus-containerImage-jib = { group = "io.quarkus", name = "quarkus-container-image-jib", version.ref = "quarkus" }
 quarkus-config-yaml = { group = "io.quarkus", name = "quarkus-config-yaml", version.ref = "quarkus" }
 quarkus-scheduler = { group = "io.quarkus", name = "quarkus-scheduler", version.ref = "quarkus" }
+quarkus-quartz = { group = "io.quarkus", name = "quarkus-quartz", version.ref = "quarkus" }
 quarkus-jaxb = { group = "io.quarkus", name = "quarkus-jaxb", version.ref = "quarkus" }
 quarkus-grpc = { group = "io.quarkus", name = "quarkus-grpc", version.ref = "quarkus" }
 quarkus-springBoot-di = { group = "io.quarkus", name = "quarkus-spring-di", version.ref = "quarkus" }

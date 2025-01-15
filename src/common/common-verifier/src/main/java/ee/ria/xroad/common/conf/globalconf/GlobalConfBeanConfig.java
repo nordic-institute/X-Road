@@ -25,6 +25,8 @@
  */
 package ee.ria.xroad.common.conf.globalconf;
 
+import ee.ria.xroad.common.conf.globalconf.globalconfextension.GlobalConfExtensionFactoryImpl;
+import ee.ria.xroad.common.conf.globalconfextension.GlobalConfExtensionFactory;
 import ee.ria.xroad.common.properties.CommonGlobalConfProperties;
 
 import lombok.RequiredArgsConstructor;
@@ -42,6 +44,7 @@ import static ee.ria.xroad.common.properties.CommonGlobalConfProperties.GlobalCo
 @RequiredArgsConstructor
 //@EnableConfigurationProperties(CommonGlobalConfProperties.class)
 public class GlobalConfBeanConfig {
+
 
     @Bean
     GlobalConfSource globalConfSource(ConfClientRpcClient globalConfClient,
@@ -61,13 +64,19 @@ public class GlobalConfBeanConfig {
         return new FileSystemGlobalConfSource(getConfigurationPath());
     }
 
+
+    @Bean
+    GlobalConfExtensionFactory globalConfExtensionFactory() {
+        return new GlobalConfExtensionFactoryImpl();
+    }
+
     @Bean
     RemoteGlobalConfDataLoader remoteGlobalConfDataLoader() {
         return new RemoteGlobalConfDataLoader();
     }
 
     @Bean
-    GlobalConfProvider globalConfProvider(GlobalConfSource source) {
-        return new GlobalConfImpl(source);
+    GlobalConfProvider globalConfProvider(GlobalConfSource source, GlobalConfExtensionFactory globalConfExtensionFactory) {
+        return new GlobalConfImpl(source, globalConfExtensionFactory);
     }
 }

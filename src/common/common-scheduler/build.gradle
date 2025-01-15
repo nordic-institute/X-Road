@@ -5,6 +5,8 @@ plugins {
 dependencies {
     api project(':common:common-core')
 
+    implementation(libs.jakarta.cdi)
+
     api(libs.quartz) {
         exclude module: 'c3p0'
     }
