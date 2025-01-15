@@ -819,6 +819,13 @@ After the X-Road governing authority has accepted the registration, the registra
 
 **Note:** If the registration request is rejected by the X-Road governing authority, no automatic notification is sent to the Security Server administrator and the authentication certificate remains in the "Registration in process" state on the Security Server. The X-Road governing authority must notify the Security Server administrator about the rejection of the request through an external channel, e.g., email.
 
+After a rejected authentication certificate registration request, complete the following steps to send a new authentication certificate registration request:
+
+1.  Unregister the authentication certificate (see [5.6.1](#561-unregistering-an-authentication-certificate)).
+2.  Delete the authentication certificate (see [5.6.2](#562-deleting-a-certificate-or-a-certificate-signing-request-notice)).
+3.  Import an authentication certificate from the local file system (see [3.2.3](#323-importing-an-authentication-certificate-from-the-local-file-system)).
+4.  Register the authentication certificate (see [3.3.1](#331-registering-an-authentication-certificate)).
+
 ### 3.4 Changing the Security Server Owner
 
 **Access rights:** [Registration Officer](#xroad-registration-officer)
@@ -1013,6 +1020,13 @@ On submitting the request, the message "Request sent" is displayed, and the clie
 After the X-Road governing authority has accepted the registration, the state of the client is set to "Registered" and the registration process is completed.
 
 **Note:** If the registration request is rejected by the X-Road governing authority, no automatic notification is sent to the Security Server administrator and the client remains in the "Registration in process" state on the Security Server. The X-Road governing authority must notify the Security Server administrator about the rejection of the request through an external channel, e.g., email.
+
+After a rejected client registration request, complete the following steps to send a new client registration request:
+
+1.  Unregister the client (see [4.6.1](#461-unregistering-a-client)).
+2.  Delete the client (see [4.6.2](#462-deleting-a-client)).
+3.  Add a client (see [4.2](#42-adding-a-security-server-client)) or a subsystem (see [4.3](#43-adding-a-security-server-member-subsystem)).
+4.  Register the client (see [4.5.1](#451-registering-a-security-server-client)).
 
 ### 4.6 Deleting a Client from the Security Server
 
