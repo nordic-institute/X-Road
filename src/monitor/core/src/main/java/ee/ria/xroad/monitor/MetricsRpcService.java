@@ -38,6 +38,7 @@ import com.codahale.metrics.Snapshot;
 import com.google.common.collect.Lists;
 import com.google.protobuf.util.Timestamps;
 import io.grpc.stub.StreamObserver;
+import jakarta.enterprise.context.ApplicationScoped;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.niis.xroad.monitor.common.HistogramMetrics;
@@ -56,6 +57,7 @@ import java.util.Map;
  */
 @Slf4j
 @RequiredArgsConstructor
+@ApplicationScoped
 public class MetricsRpcService extends MetricsServiceGrpc.MetricsServiceImplBase {
     private static final List<String> PACKAGE_OR_CERTIFICATE_METRIC_NAMES = Lists.newArrayList(
             SystemMetricNames.PROCESSES,
@@ -125,7 +127,7 @@ public class MetricsRpcService extends MetricsServiceGrpc.MetricsServiceImplBase
 
         collectMetrics(responseBuilder, metrics, req.getMetricNamesList(), req.getIsClientOwner());
 
-        if (req.getIsClientOwner() || !envMonitorProperties.isLimitRemoteDataSet()) {
+        if (req.getIsClientOwner() || !envMonitorProperties.limitRemoteDataSet()) {
             collectOwnerMetrics(responseBuilder, metrics, req.getMetricNamesList());
         }
 
@@ -179,7 +181,7 @@ public class MetricsRpcService extends MetricsServiceGrpc.MetricsServiceImplBase
     }
 
     private boolean filterPackageOrCertifates(boolean isOwner, String name) {
-        if (isOwner || !envMonitorProperties.isLimitRemoteDataSet()) {
+        if (isOwner || !envMonitorProperties.limitRemoteDataSet()) {
             return !PACKAGE_OR_CERTIFICATE_METRIC_NAMES.contains(name);
         } else {
             return name.equals("OperatingSystem");

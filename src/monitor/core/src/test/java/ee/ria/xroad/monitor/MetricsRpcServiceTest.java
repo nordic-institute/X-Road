@@ -51,6 +51,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.api.Assertions.fail;
+import static org.mockito.Mockito.mock;
 
 /**
  * MetricsProviderActorTest
@@ -70,15 +71,35 @@ class MetricsRpcServiceTest {
      */
     @BeforeEach
     public void init() throws Exception {
-        EnvMonitorProperties envMonitorProperties = new EnvMonitorProperties(
-                Duration.ofDays(1),
-                Duration.ofSeconds(60),
-                Duration.ofSeconds(60),
-                Duration.ofSeconds(5),
-                true);
+        EnvMonitorProperties envMonitorProperties = new EnvMonitorProperties() {
+            @Override
+            public Duration certificateInfoSensorInterval() {
+                return Duration.ofDays(1);
+            }
+
+            @Override
+            public Duration diskSpaceSensorInterval() {
+                return Duration.ofSeconds(60);
+            }
+
+            @Override
+            public Duration execListingSensorInterval() {
+                return Duration.ofSeconds(60);
+            }
+
+            @Override
+            public Duration systemMetricsSensorInterval() {
+                return Duration.ofSeconds(5);
+            }
+
+            @Override
+            public boolean limitRemoteDataSet() {
+                return true;
+            }
+        };
 
         RpcCredentialsConfigurer rpcCredentialsConfigurer = new RpcCredentialsConfigurer(
-                new CommonRpcProperties(false, null), null);
+                mock(CommonRpcProperties.class), null);
 
         int port = TestPortUtils.findRandomPort();
 
@@ -87,7 +108,23 @@ class MetricsRpcServiceTest {
         rpcServer.afterPropertiesSet();
 
         channel = new RpcChannelFactory(rpcCredentialsConfigurer).createChannel(
-                new RpcChannelProperties("localhost", port, 5000));
+                new RpcChannelProperties() {
+                    @Override
+                    public String host() {
+                        return "localhost";
+                    }
+
+                    @Override
+                    public int port() {
+                        return port;
+                    }
+
+                    @Override
+                    public int deadlineAfter() {
+                        return 5000;
+                    }
+                }
+        );
         metricsServiceBlockingStub = MetricsServiceGrpc.newBlockingStub(channel).withWaitForReady();
 
         MetricRegistry metricsRegistry = new MetricRegistry();
@@ -111,7 +148,7 @@ class MetricsRpcServiceTest {
     }
 
     @Test
-    void testAllSystemMetricsRequest() throws Exception {
+    void testAllSystemMetricsRequest() {
         var request = SystemMetricsReq.newBuilder().setIsClientOwner(true).build();
         var response = metricsServiceBlockingStub.getMetrics(request);
 
@@ -142,7 +179,7 @@ class MetricsRpcServiceTest {
     }
 
     @Test
-    void testLimitedSystemMetricsRequest() throws Exception {
+    void testLimitedSystemMetricsRequest() {
         var request = SystemMetricsReq.newBuilder().setIsClientOwner(false).build();
         var response = metricsServiceBlockingStub.getMetrics(request);
 
@@ -177,7 +214,7 @@ class MetricsRpcServiceTest {
     }
 
     @Test
-    void testParametrizedSystemMetricsRequest() throws Exception {
+    void testParametrizedSystemMetricsRequest() {
         var request = SystemMetricsReq.newBuilder()
                 .addMetricNames(HISTOGRAM_NAME)
                 .setIsClientOwner(true)

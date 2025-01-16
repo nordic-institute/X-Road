@@ -44,12 +44,9 @@ import org.niis.xroad.common.rpc.server.RpcServer;
 import org.niis.xroad.monitor.common.MonitorServiceGrpc;
 import org.niis.xroad.monitor.common.StatsReq;
 import org.niis.xroad.monitor.common.StatsResp;
-import org.niis.xroad.proxy.proto.ProxyRpcChannelProperties;
-import org.niis.xroad.proxy.proto.SpringProxyRpcChannelProperties;
-import org.springframework.scheduling.TaskScheduler;
+import org.niis.xroad.proxy.proto.QuarkusProxyRpcChannelProperties;
 
 import java.io.IOException;
-import java.time.Clock;
 import java.time.Duration;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
@@ -58,10 +55,9 @@ import static org.awaitility.Awaitility.await;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.spy;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
 
 /**
  * Test for SystemMetricsSensor
@@ -74,14 +70,34 @@ class SystemMetricsSensorTest {
     private static StatsResp response;
 
     private static final RpcCredentialsConfigurer RPC_CREDENTIALS_CONFIGURER = new RpcCredentialsConfigurer(
-            new CommonRpcProperties(false, null), null);
+            mock(CommonRpcProperties.class), null);
 
-    private final EnvMonitorProperties envMonitorProperties = new EnvMonitorProperties(
-            Duration.ofDays(1),
-            Duration.ofSeconds(60),
-            Duration.ofSeconds(60),
-            Duration.ofSeconds(1),
-            true);
+    private final EnvMonitorProperties envMonitorProperties = new EnvMonitorProperties() {
+        @Override
+        public Duration certificateInfoSensorInterval() {
+            return Duration.ofDays(1);
+        }
+
+        @Override
+        public Duration diskSpaceSensorInterval() {
+            return Duration.ofSeconds(60);
+        }
+
+        @Override
+        public Duration execListingSensorInterval() {
+            return Duration.ofSeconds(60);
+        }
+
+        @Override
+        public Duration systemMetricsSensorInterval() {
+            return Duration.ofSeconds(1);
+        }
+
+        @Override
+        public boolean limitRemoteDataSet() {
+            return true;
+        }
+    };
 
     @Spy
     private MetricRegistry metricRegistry = new MetricRegistry();
@@ -117,11 +133,24 @@ class SystemMetricsSensorTest {
     void testSystemMetricsSensor() throws Exception {
         MetricRegistryHolder.getInstance().setMetrics(metricRegistry);
 
-        var taskScheduler = spy(TaskScheduler.class);
-        when(taskScheduler.getClock()).thenReturn(Clock.systemDefaultZone());
+        QuarkusProxyRpcChannelProperties proxyRpcClientProperties = new QuarkusProxyRpcChannelProperties() {
+            @Override
+            public String host() {
+                return "localhost";
+            }
 
-        ProxyRpcChannelProperties proxyRpcClientProperties = new SpringProxyRpcChannelProperties("localhost", PORT, 60000);
-        SystemMetricsSensor systemMetricsSensor = new SystemMetricsSensor(taskScheduler, envMonitorProperties,
+            @Override
+            public int port() {
+                return PORT;
+            }
+
+            @Override
+            public int deadlineAfter() {
+                return 60000;
+            }
+        };
+
+        SystemMetricsSensor systemMetricsSensor = new SystemMetricsSensor(envMonitorProperties,
                 new RpcChannelFactory(RPC_CREDENTIALS_CONFIGURER), proxyRpcClientProperties);
         systemMetricsSensor.afterPropertiesSet();
 

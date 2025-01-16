@@ -1,8 +1,10 @@
 plugins {
     id 'java-library'
+    alias(libs.plugins.jandex)
 }
 
 dependencies {
+    implementation(platform(libs.quarkus.bom))
 
     implementation project(':common:common-domain')
     implementation project(':common:common-verifier')
@@ -11,7 +13,7 @@ dependencies {
     implementation project(':signer-protocol')
     implementation project(':serverconf')
 
-    implementation("org.springframework.boot:spring-boot-starter")
+    implementation libs.quarkus.scheduler
 
     implementation libs.slf4j.api
     implementation libs.bundles.metrics
@@ -26,4 +28,8 @@ jar {
 
 test {
     useJUnitPlatform()
+}
+
+tasks.named('checkstyleMain').configure {
+    dependsOn('jandex')
 }

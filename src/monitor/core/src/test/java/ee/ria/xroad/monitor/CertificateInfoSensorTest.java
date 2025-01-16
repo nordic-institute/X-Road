@@ -47,10 +47,8 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.springframework.scheduling.TaskScheduler;
 
 import java.security.cert.X509Certificate;
-import java.time.Clock;
 import java.time.Duration;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -62,7 +60,6 @@ import static ee.ria.xroad.monitor.CertificateInfoSensor.CERT_HEX_DELIMITER;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.when;
 
 /**
@@ -83,12 +80,32 @@ class CertificateInfoSensorTest {
 
     private CertificateInfoSensor certificateInfoSensor;
 
-    private final EnvMonitorProperties envMonitorProperties = new EnvMonitorProperties(
-            Duration.ofDays(1),
-            Duration.ofSeconds(60),
-            Duration.ofSeconds(60),
-            Duration.ofSeconds(5),
-            true);
+    private final EnvMonitorProperties envMonitorProperties = new EnvMonitorProperties() {
+        @Override
+        public Duration certificateInfoSensorInterval() {
+            return Duration.ofDays(1);
+        }
+
+        @Override
+        public Duration diskSpaceSensorInterval() {
+            return Duration.ofSeconds(60);
+        }
+
+        @Override
+        public Duration execListingSensorInterval() {
+            return Duration.ofSeconds(60);
+        }
+
+        @Override
+        public Duration systemMetricsSensorInterval() {
+            return Duration.ofSeconds(5);
+        }
+
+        @Override
+        public boolean limitRemoteDataSet() {
+            return true;
+        }
+    };
 
     @BeforeEach
     void init() throws Exception {
@@ -112,10 +129,7 @@ class CertificateInfoSensorTest {
 
         var serverConfProvider = new EmptyServerConf();
 
-        var taskScheduler = spy(TaskScheduler.class);
-        when(taskScheduler.getClock()).thenReturn(Clock.systemDefaultZone());
-
-        certificateInfoSensor = new CertificateInfoSensor(taskScheduler, envMonitorProperties, serverConfProvider,
+        certificateInfoSensor = new CertificateInfoSensor(envMonitorProperties, serverConfProvider,
                 mock(SignerRpcClient.class));
     }
 

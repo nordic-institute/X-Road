@@ -27,19 +27,26 @@
 
 package ee.ria.xroad.monitor;
 
-import lombok.Getter;
-import lombok.RequiredArgsConstructor;
-import org.springframework.boot.context.properties.ConfigurationProperties;
+import io.smallrye.config.ConfigMapping;
+import io.smallrye.config.WithName;
 
 import java.time.Duration;
 
-@Getter
-@RequiredArgsConstructor
-@ConfigurationProperties(prefix = "xroad.env-monitor")
-public class EnvMonitorProperties {
-    private final Duration certificateInfoSensorInterval;
-    private final Duration diskSpaceSensorInterval;
-    private final Duration execListingSensorInterval;
-    private final Duration systemMetricsSensorInterval;
-    private final boolean limitRemoteDataSet;
+@ConfigMapping(prefix = "xroad.env-monitor")
+public interface EnvMonitorProperties {
+
+    @WithName("certificate-info-sensor-interval")
+    Duration certificateInfoSensorInterval();
+
+    @WithName("disk-space-sensor-interval")
+    Duration diskSpaceSensorInterval();
+
+    @WithName("exec-listing-sensor-interval")
+    Duration execListingSensorInterval();
+
+    @WithName("system-metrics-sensor-interval")
+    Duration systemMetricsSensorInterval();
+
+    @WithName("limit-remote-data-set")
+    boolean limitRemoteDataSet();
 }

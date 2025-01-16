@@ -29,6 +29,7 @@ import ee.ria.xroad.common.SystemProperties;
 import ee.ria.xroad.common.cert.CertChain;
 import ee.ria.xroad.common.certificateprofile.AuthCertificateProfileInfo;
 import ee.ria.xroad.common.certificateprofile.SignCertificateProfileInfo;
+import ee.ria.xroad.common.conf.globalconf.globalconfextension.GlobalConfExtensionFactoryImpl;
 import ee.ria.xroad.common.conf.globalconfextension.GlobalConfExtensions;
 import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.identifier.GlobalGroupId;
@@ -59,7 +60,7 @@ public class EmptyGlobalConf implements GlobalConfProvider {
             return "EE";
         }
     };
-    private final GlobalConfExtensions globalConfExtensions = new GlobalConfExtensions(source);
+    private final GlobalConfExtensions globalConfExtensions = new GlobalConfExtensions(source, new GlobalConfExtensionFactoryImpl());
 
     @Override
     public List<String> getOcspResponderAddresses(X509Certificate org)

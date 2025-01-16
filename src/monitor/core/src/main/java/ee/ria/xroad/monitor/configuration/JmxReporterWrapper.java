@@ -1,5 +1,6 @@
 /*
  * The MIT License
+ *
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
@@ -23,31 +24,49 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package ee.ria.xroad.common.conf.globalconf;
 
-import ee.ria.xroad.common.conf.globalconf.globalconfextension.GlobalConfExtensionFactoryImpl;
+package ee.ria.xroad.monitor.configuration;
 
-import static ee.ria.xroad.common.ErrorCodes.X_MALFORMED_GLOBALCONF;
-import static ee.ria.xroad.common.ErrorCodes.translateWithPrefix;
-import static ee.ria.xroad.common.SystemProperties.getConfigurationPath;
+import ee.ria.xroad.monitor.MetricRegistryHolder;
+import ee.ria.xroad.monitor.common.SystemMetricNames;
 
-/**
- * Test globalconf implementation.
- */
-public class TestGlobalConfImpl extends GlobalConfImpl {
-    /**
-     * Constructs a new test globalconf.
-     */
-    public TestGlobalConfImpl() {
-        super(globalConfSource(), new GlobalConfExtensionFactoryImpl());
+import com.codahale.metrics.jmx.JmxReporter;
+import com.google.common.collect.Lists;
+import io.quarkus.runtime.Startup;
+import jakarta.annotation.PostConstruct;
+import jakarta.annotation.PreDestroy;
+import jakarta.enterprise.context.ApplicationScoped;
+import lombok.extern.slf4j.Slf4j;
+
+import java.util.concurrent.TimeUnit;
+
+@Slf4j
+@Startup
+@ApplicationScoped
+public class JmxReporterWrapper {
+
+    private static JmxReporter jmxReporter;
+
+    JmxReporterWrapper() {
+        jmxReporter = JmxReporter.forRegistry(MetricRegistryHolder.getInstance().getMetrics())
+                .convertRatesTo(TimeUnit.SECONDS)
+                .convertDurationsTo(TimeUnit.MILLISECONDS)
+                .filter((name, metric) -> !Lists.newArrayList(SystemMetricNames.PROCESSES,
+                        SystemMetricNames.PACKAGES, SystemMetricNames.CERTIFICATES).contains(name))
+                .build();
     }
 
-    private static GlobalConfSource globalConfSource() {
-        try {
-            return new FileSystemGlobalConfSource(getConfigurationPath());
-        } catch (Exception e) {
-            throw translateWithPrefix(X_MALFORMED_GLOBALCONF, e);
+    @PostConstruct
+    public void afterPropertiesSet() {
+        jmxReporter.start();
+    }
+
+    @PreDestroy
+    public void destroy() {
+        log.trace("stopReporter()");
+
+        if (jmxReporter != null) {
+            jmxReporter.stop();
         }
     }
-
 }

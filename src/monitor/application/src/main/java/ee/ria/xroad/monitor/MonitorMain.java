@@ -26,30 +26,19 @@
  */
 package ee.ria.xroad.monitor;
 
-import ee.ria.xroad.monitor.configuration.JmxReporterConfig;
-import ee.ria.xroad.monitor.configuration.MonitorConfig;
-
-import lombok.extern.slf4j.Slf4j;
-import org.niis.xroad.bootstrap.XrdSpringServiceBuilder;
-import org.springframework.boot.SpringBootConfiguration;
-import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
+import io.quarkus.runtime.Quarkus;
+import io.quarkus.runtime.annotations.QuarkusMain;
+import org.niis.xroad.bootstrap.XrdQuarkusApplication;
 
 /**
  * Main class for monitor application
  */
-@Slf4j
-@EnableAutoConfiguration
-@SpringBootConfiguration
+@QuarkusMain
 @SuppressWarnings("checkstyle:HideUtilityClassConstructor")
 public class MonitorMain {
 
-    private static final String APP_NAME = "monitor";
-
     public static void main(String[] args) {
-        XrdSpringServiceBuilder.newApplicationBuilder(APP_NAME, MonitorMain.class, MonitorConfig.class,
-                        JmxReporterConfig.class)
-                .build()
-                .run(args);
+        Quarkus.run(XrdQuarkusApplication.class, args);
     }
 
 }

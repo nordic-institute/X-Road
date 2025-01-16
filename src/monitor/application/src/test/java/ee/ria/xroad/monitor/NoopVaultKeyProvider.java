@@ -25,54 +25,32 @@
  * THE SOFTWARE.
  */
 
-package ee.ria.xroad.monitor.configuration;
+package ee.ria.xroad.monitor;
 
-import ee.ria.xroad.monitor.MetricRegistryHolder;
-import ee.ria.xroad.monitor.common.SystemMetricNames;
-
-import com.codahale.metrics.jmx.JmxReporter;
-import com.google.common.collect.Lists;
+import io.quarkus.test.Mock;
 import jakarta.annotation.PostConstruct;
-import jakarta.annotation.PreDestroy;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Configuration;
+import org.niis.xroad.common.rpc.VaultKeyProvider;
 
-import java.util.concurrent.TimeUnit;
+import javax.net.ssl.KeyManager;
+import javax.net.ssl.TrustManager;
 
-@Configuration
 @Slf4j
-public class JmxReporterConfig {
+@Mock
+public class NoopVaultKeyProvider implements VaultKeyProvider {
 
-    @Bean
-    JmxReporterWrapper jmxReporterWrapper() {
-        return new JmxReporterWrapper();
+    @PostConstruct
+    public void init() {
+        log.info("NoopVaultKeyProvider init");
     }
 
-    static class JmxReporterWrapper {
-        private static JmxReporter jmxReporter;
+    @Override
+    public KeyManager getKeyManager() {
+        return null;
+    }
 
-        JmxReporterWrapper() {
-            jmxReporter = JmxReporter.forRegistry(MetricRegistryHolder.getInstance().getMetrics())
-                    .convertRatesTo(TimeUnit.SECONDS)
-                    .convertDurationsTo(TimeUnit.MILLISECONDS)
-                    .filter((name, metric) -> !Lists.newArrayList(SystemMetricNames.PROCESSES,
-                            SystemMetricNames.PACKAGES, SystemMetricNames.CERTIFICATES).contains(name))
-                    .build();
-        }
-
-        @PostConstruct
-        public void afterPropertiesSet() {
-            jmxReporter.start();
-        }
-
-        @PreDestroy
-        public void destroy() {
-            log.trace("stopReporter()");
-
-            if (jmxReporter != null) {
-                jmxReporter.stop();
-            }
-        }
+    @Override
+    public TrustManager getTrustManager() {
+        return null;
     }
 }

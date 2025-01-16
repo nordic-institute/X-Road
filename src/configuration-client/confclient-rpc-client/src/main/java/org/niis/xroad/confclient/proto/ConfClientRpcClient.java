@@ -28,6 +28,7 @@ package org.niis.xroad.confclient.proto;
 
 import com.google.protobuf.ByteString;
 import jakarta.annotation.PostConstruct;
+import jakarta.enterprise.context.ApplicationScoped;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.niis.xroad.common.rpc.client.AbstractRpcClient;
@@ -36,6 +37,7 @@ import org.niis.xroad.rpc.common.Empty;
 
 @Slf4j
 @RequiredArgsConstructor
+@ApplicationScoped
 public class ConfClientRpcClient extends AbstractRpcClient {
     private final RpcChannelFactory proxyRpcChannelFactory;
     private final ConfClientRpcChannelProperties rpcChannelProperties;

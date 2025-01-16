@@ -1,5 +1,6 @@
 /*
  * The MIT License
+ *
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
@@ -23,27 +24,30 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
+
 package ee.ria.xroad.monitor;
 
-import lombok.RequiredArgsConstructor;
-import org.springframework.scheduling.TaskScheduler;
+import ee.ria.xroad.monitor.configuration.JmxReporterWrapper;
 
-import java.time.Duration;
+import io.quarkus.arc.Arc;
+import io.quarkus.test.junit.QuarkusTest;
+import io.quarkus.test.junit.TestProfile;
+import org.junit.jupiter.api.Disabled;
+import org.junit.jupiter.api.Test;
+import org.niis.xroad.common.rpc.server.RpcServer;
 
-/**
- * Base class for sensors
- */
-@RequiredArgsConstructor
-public abstract class AbstractSensor {
-    private final TaskScheduler taskScheduler;
-    protected final EnvMonitorProperties envMonitorProperties;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 
-    protected void scheduleSingleMeasurement(Duration delay) {
-        taskScheduler.schedule(this::measure, taskScheduler.getClock().instant().plus(delay));
+@QuarkusTest
+@TestProfile(MonitorTestProfile.class)
+//todo:
+@Disabled("enable after renaming monitor/core module!")
+class MonitorMainTest {
+
+    @Test
+    void contextLoads() {
+        assertNotNull(Arc.container().select(JmxReporterWrapper.class).get());
+        assertNotNull(Arc.container().select(RpcServer.class).get());
     }
-
-    protected abstract Duration getInterval();
-
-    protected abstract void measure();
 
 }

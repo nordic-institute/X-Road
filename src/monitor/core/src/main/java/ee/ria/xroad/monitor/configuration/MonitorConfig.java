@@ -25,104 +25,37 @@
  */
 package ee.ria.xroad.monitor.configuration;
 
-import ee.ria.xroad.common.conf.globalconf.GlobalConfBeanConfig;
-import ee.ria.xroad.common.conf.globalconf.GlobalConfRefreshJobConfig;
-import ee.ria.xroad.common.conf.serverconf.ServerConfBeanConfig;
-import ee.ria.xroad.common.conf.serverconf.ServerConfProvider;
-import ee.ria.xroad.monitor.CertificateInfoSensor;
-import ee.ria.xroad.monitor.DiskSpaceSensor;
-import ee.ria.xroad.monitor.EnvMonitorProperties;
-import ee.ria.xroad.monitor.ExecListingSensor;
-import ee.ria.xroad.monitor.MetricsRpcService;
-import ee.ria.xroad.monitor.SystemMetricsSensor;
-import ee.ria.xroad.signer.SignerClientConfiguration;
-import ee.ria.xroad.signer.SignerRpcClient;
-
-import lombok.RequiredArgsConstructor;
+import io.grpc.BindableService;
+import io.quarkus.arc.All;
+import io.quarkus.runtime.Startup;
+import io.smallrye.config.ConfigMapping;
+import jakarta.enterprise.context.ApplicationScoped;
 import lombok.extern.slf4j.Slf4j;
+import org.niis.xroad.common.rpc.RpcCredentialsConfigurer;
 import org.niis.xroad.common.rpc.RpcServerProperties;
-import org.niis.xroad.common.rpc.client.RpcChannelFactory;
-import org.niis.xroad.common.rpc.server.RpcServerConfig;
-import org.niis.xroad.confclient.proto.ConfClientRpcClientConfiguration;
-import org.niis.xroad.proxy.proto.ProxyRpcChannelProperties;
-import org.niis.xroad.proxy.proto.ProxyRpcClientConfiguration;
-import org.springframework.boot.context.properties.ConfigurationProperties;
-import org.springframework.boot.context.properties.EnableConfigurationProperties;
-import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Configuration;
-import org.springframework.context.annotation.Import;
-import org.springframework.scheduling.TaskScheduler;
-import org.springframework.scheduling.annotation.EnableScheduling;
-import org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler;
+import org.niis.xroad.common.rpc.server.RpcServer;
+
+import java.util.List;
 
 @Slf4j
-@Import({GlobalConfBeanConfig.class,
-        ServerConfBeanConfig.class,
-        GlobalConfRefreshJobConfig.class,
-        SignerClientConfiguration.class,
-        ConfClientRpcClientConfiguration.class,
-        ProxyRpcClientConfiguration.class,
-        RpcServerConfig.class})
-@EnableScheduling
-@EnableConfigurationProperties({
-        EnvMonitorProperties.class,
-        MonitorConfig.EnvMonitorServerProperties.class})
-@Configuration
 public class MonitorConfig {
-    private static final int TASK_EXECUTOR_POOL_SIZE = 5;
 
-    @Bean
-    TaskScheduler taskScheduler() {
-        var taskScheduler = new ThreadPoolTaskScheduler();
-        taskScheduler.setPoolSize(TASK_EXECUTOR_POOL_SIZE);
-        return taskScheduler;
+    @ApplicationScoped
+    @Startup
+    RpcServer rpcServer(@All List<BindableService> services,
+                        EnvMonitorServerProperties rpcServerProperties,
+                        RpcCredentialsConfigurer rpcCredentialsConfigurer) {
+        log.info("Starting Monitor RPC server on port {}.", rpcServerProperties.port());
+        var serverCredentials = rpcCredentialsConfigurer.createServerCredentials();
+        return new RpcServer(rpcServerProperties.listenAddress(), rpcServerProperties.port(), serverCredentials,
+                builder -> services.forEach(service -> {
+                    log.info("Registering {} RPC service.", service.getClass().getSimpleName());
+                    builder.addService(service);
+                }));
     }
 
-    @Bean
-    MetricsRpcService metricsRpcService(EnvMonitorProperties envMonitorProperties) {
-        return new MetricsRpcService(envMonitorProperties);
-    }
-
-    @Bean
-    SystemMetricsSensor systemMetricsSensor(TaskScheduler taskScheduler,
-                                            EnvMonitorProperties envMonitorProperties,
-                                            RpcChannelFactory rpcChannelFactory,
-                                            ProxyRpcChannelProperties proxyRpcClientProperties) throws Exception {
-
-        return new SystemMetricsSensor(taskScheduler, envMonitorProperties, rpcChannelFactory, proxyRpcClientProperties);
-    }
-
-    @Bean
-    DiskSpaceSensor diskSpaceSensor(TaskScheduler taskScheduler, EnvMonitorProperties envMonitorProperties) {
-        return new DiskSpaceSensor(taskScheduler, envMonitorProperties);
-    }
-
-    @Bean
-    ExecListingSensor execListingSensor(TaskScheduler taskScheduler, EnvMonitorProperties envMonitorProperties) {
-        return new ExecListingSensor(taskScheduler, envMonitorProperties);
-    }
-
-    @Bean
-    CertificateInfoSensor certificateInfoSensor(TaskScheduler taskScheduler, EnvMonitorProperties envMonitorProperties,
-                                                ServerConfProvider serverConfProvider, SignerRpcClient signerRpcClient) {
-        return new CertificateInfoSensor(taskScheduler, envMonitorProperties, serverConfProvider, signerRpcClient);
-    }
-
-    @RequiredArgsConstructor
-    @ConfigurationProperties(prefix = "xroad.env-monitor.grpc")
-    static class EnvMonitorServerProperties implements RpcServerProperties {
-        private final String listenAddress;
-        private final int port;
-
-        @Override
-        public String listenAddress() {
-            return listenAddress;
-        }
-
-        @Override
-        public int port() {
-            return port;
-        }
+    @ConfigMapping(prefix = "xroad.env-monitor.grpc")
+    public interface EnvMonitorServerProperties extends RpcServerProperties {
     }
 
 }
