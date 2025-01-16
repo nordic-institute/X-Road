@@ -5,15 +5,8 @@ plugins {
 dependencies {
     implementation(platform(libs.quarkus.bom))
 
-    implementation(libs.quarkus.springBoot.di)
     implementation project(':common:common-quarkus-bootstrap')
-
-    implementation project(':common:common-core')
-    implementation project(':common:common-properties')
     implementation project(':monitor:core')
-    implementation project(':monitor-common')
-
-    implementation libs.bundles.metrics
 
     testImplementation(libs.quarkus.junit5)
 }
