@@ -27,7 +27,7 @@ package org.niis.xroad.restapi.repository;
 
 import lombok.RequiredArgsConstructor;
 import org.niis.xroad.restapi.dao.PersistentApiKeyDAOImpl;
-import org.niis.xroad.restapi.domain.PersistentApiKeyType;
+import org.niis.xroad.restapi.entity.ApiKeyEntity;
 import org.niis.xroad.restapi.util.PersistenceUtils;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
@@ -50,26 +50,26 @@ public class ApiKeyRepository {
     private final PersistenceUtils persistenceUtils;
 
     @CacheEvict(allEntries = true, cacheNames = {LIST_ALL_KEYS_CACHE})
-    public void save(PersistentApiKeyType persistentApiKeyType) {
+    public void save(ApiKeyEntity persistentApiKeyType) {
         persistenceUtils.getCurrentSession().persist(persistentApiKeyType);
     }
 
     @CacheEvict(allEntries = true, cacheNames = {LIST_ALL_KEYS_CACHE})
-    public PersistentApiKeyType update(PersistentApiKeyType persistentApiKeyType) {
+    public ApiKeyEntity update(ApiKeyEntity persistentApiKeyType) {
         return persistenceUtils.getCurrentSession().merge(persistentApiKeyType);
     }
 
     @CacheEvict(allEntries = true, cacheNames = {LIST_ALL_KEYS_CACHE})
-    public void delete(PersistentApiKeyType persistentApiKeyType) {
+    public void delete(ApiKeyEntity persistentApiKeyType) {
         persistenceUtils.getCurrentSession().remove(persistentApiKeyType);
     }
 
-    public PersistentApiKeyType getApiKey(long id) {
+    public ApiKeyEntity getApiKey(long id) {
         return new PersistentApiKeyDAOImpl().findById(persistenceUtils.getCurrentSession(), id);
     }
 
     @Cacheable(LIST_ALL_KEYS_CACHE)
-    public List<PersistentApiKeyType> getAllApiKeys() {
+    public List<ApiKeyEntity> getAllApiKeys() {
         return new PersistentApiKeyDAOImpl().findAll(persistenceUtils.getCurrentSession());
     }
 }

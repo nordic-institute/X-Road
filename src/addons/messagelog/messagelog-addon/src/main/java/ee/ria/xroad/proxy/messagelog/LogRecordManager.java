@@ -28,11 +28,13 @@ package ee.ria.xroad.proxy.messagelog;
 import ee.ria.xroad.common.db.HibernateUtil;
 import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.message.AttachmentStream;
-import ee.ria.xroad.common.messagelog.AbstractLogRecord;
 import ee.ria.xroad.common.messagelog.LogRecord;
 import ee.ria.xroad.common.messagelog.MessageRecord;
 import ee.ria.xroad.common.messagelog.TimestampRecord;
 import ee.ria.xroad.messagelog.database.MessageRecordEncryption;
+import ee.ria.xroad.messagelog.database.entity.AbstractLogRecordEntity;
+import ee.ria.xroad.messagelog.database.entity.MessageRecordEntity;
+import ee.ria.xroad.messagelog.database.mapper.MessageRecordMapper;
 
 import jakarta.persistence.criteria.CriteriaBuilder;
 import jakarta.persistence.criteria.CriteriaQuery;
@@ -81,11 +83,12 @@ public final class LogRecordManager {
      * @throws Exception if an error occurs while communicating with database.
      */
     public static <R> R getByQueryIdUnique(String queryId, ClientId clientId, Boolean isResponse,
-                                           Function<MessageRecord, R> processor)
-            throws Exception {
+                                           Function<MessageRecord, R> processor) throws Exception {
         log.trace(GET_BY_QUERY_ID_LOG_FORMAT, queryId, clientId, isResponse);
 
-        return doInTransaction(session -> processor.apply(getMessageRecord(session, queryId, clientId, isResponse)));
+        Function<MessageRecordEntity, R> mapper = processor.compose(MessageRecordMapper.get()::toDTO);
+
+        return doInTransaction(session -> mapper.apply(getMessageRecord(session, queryId, clientId, isResponse)));
     }
 
     /**
@@ -97,11 +100,12 @@ public final class LogRecordManager {
      * @throws Exception if an error occurs while communicating with database.
      */
     public static <R> R getByQueryId(String queryId, ClientId clientId, Boolean isResponse,
-                                     Function<List<MessageRecord>, R> processor)
-            throws Exception {
+                                     Function<List<MessageRecord>, R> processor) throws Exception {
         log.trace(GET_BY_QUERY_ID_LOG_FORMAT, queryId, clientId, isResponse);
 
-        return doInTransaction(session -> processor.apply(getMessageRecords(session, queryId, clientId, isResponse)));
+        Function<List<MessageRecordEntity>, R> mapper = processor.compose(MessageRecordMapper.get()::toDTOs);
+
+        return doInTransaction(session -> mapper.apply(getMessageRecords(session, queryId, clientId, isResponse)));
     }
 
     /**
@@ -113,7 +117,7 @@ public final class LogRecordManager {
     public static LogRecord get(Long number) throws Exception {
         log.trace("get({})", number);
 
-        return doInTransaction(session -> getLogRecord(session, number));
+        return doInTransaction(session -> MessageRecordMapper.INSTANCE.toDTO(getLogRecord(session, number)));
     }
 
     /**
@@ -154,7 +158,7 @@ public final class LogRecordManager {
     @SuppressWarnings("JpaQlInspection")
     static void updateMessageRecordSignature(MessageRecord messageRecord, String oldHash) throws Exception {
         doInTransaction(session -> {
-            final MutationQuery query = session.createMutationQuery("update MessageRecord m "
+            final MutationQuery query = session.createMutationQuery("update MessageRecordEntity m "
                     + "set m.signature = :signature, m.signatureHash = :hash "
                     + "where m.id = :id and m.timestampRecord is null and m.signatureHash = :oldhash");
 
@@ -192,8 +196,8 @@ public final class LogRecordManager {
      * @param logRecord the log record to save.
      */
     static void save(Session session, LogRecord logRecord) {
-        log.trace("save({})", logRecord.getClass());
-        session.persist(logRecord);
+        log.trace("save({})", logRecord);
+        session.persist(MessageRecordMapper.get().toEntity(logRecord));
     }
 
     static long getNextRecordId(Session session) {
@@ -227,7 +231,7 @@ public final class LogRecordManager {
     }
 
     private static void setMessageRecordsTimestamped(Long[] messageRecords, TimestampRecord
-            timestampRecord,
+                                                             timestampRecord,
                                                      String[] hashChains, Connection connection, int batchSize) throws SQLException {
         log.trace("setMessageRecordsTimestamped({})", messageRecords.length);
 
@@ -258,29 +262,29 @@ public final class LogRecordManager {
         }
     }
 
-    private static LogRecord getLogRecord(Session session, Long number) {
-        return session.get(AbstractLogRecord.class, number);
+    private static AbstractLogRecordEntity getLogRecord(Session session, Long number) {
+        return session.get(AbstractLogRecordEntity.class, number);
     }
 
-    private static MessageRecord getMessageRecord(Session session, String queryId, ClientId clientId,
-                                                  Boolean isResponse) {
-        final CriteriaQuery<MessageRecord> query = createRecordCriteria(session, queryId, clientId, isResponse);
+    private static MessageRecordEntity getMessageRecord(Session session, String queryId, ClientId clientId,
+                                                        Boolean isResponse) {
+        final CriteriaQuery<MessageRecordEntity> query = createRecordCriteria(session, queryId, clientId, isResponse);
         return session.createQuery(query).setReadOnly(true).setMaxResults(1).uniqueResult();
     }
 
-    private static List<MessageRecord> getMessageRecords(Session session, String queryId, ClientId
-            clientId,
-                                                         Boolean isResponse) {
-        final CriteriaQuery<MessageRecord> query = createRecordCriteria(session, queryId, clientId, isResponse);
+    private static List<MessageRecordEntity> getMessageRecords(Session session, String queryId, ClientId
+                                                                       clientId,
+                                                               Boolean isResponse) {
+        final CriteriaQuery<MessageRecordEntity> query = createRecordCriteria(session, queryId, clientId, isResponse);
         return session.createQuery(query).setReadOnly(true).getResultList();
     }
 
-    private static CriteriaQuery<MessageRecord> createRecordCriteria(Session session, String queryId, ClientId clientId,
-                                                                     Boolean isResponse) {
+    private static CriteriaQuery<MessageRecordEntity> createRecordCriteria(Session session, String queryId, ClientId clientId,
+                                                                           Boolean isResponse) {
 
         final CriteriaBuilder cb = session.getCriteriaBuilder();
-        final CriteriaQuery<MessageRecord> query = cb.createQuery(MessageRecord.class);
-        final Root<MessageRecord> m = query.from(MessageRecord.class);
+        final CriteriaQuery<MessageRecordEntity> query = cb.createQuery(MessageRecordEntity.class);
+        final Root<MessageRecordEntity> m = query.from(MessageRecordEntity.class);
 
         Predicate pred = cb.and(
                 cb.equal(m.get("queryId"), queryId),
