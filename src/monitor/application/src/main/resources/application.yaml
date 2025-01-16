@@ -41,4 +41,5 @@ xroad:
         connection.driver_class: org.postgresql.Driver
         connection.url: jdbc:postgresql://127.0.0.1:5432/serverconf
         hikari.dataSource.currentSchema: serverconf,public
+        hikari.maximumPoolSize: 1
         jdbc.use_streams_for_binary: true
