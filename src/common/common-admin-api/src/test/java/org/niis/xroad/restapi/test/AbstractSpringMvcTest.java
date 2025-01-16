@@ -36,6 +36,7 @@ import org.niis.xroad.restapi.config.audit.AuditEventLoggingFacade;
 import org.niis.xroad.restapi.controller.CommonModuleEndpointPaths;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
+import org.springframework.boot.autoconfigure.domain.EntityScan;
 import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -58,6 +59,7 @@ import org.springframework.util.unit.DataSize;
 @Transactional
 @AutoConfigureMockMvc
 @EnableAutoConfiguration
+@EntityScan("org.niis.xroad.restapi.entity")
 @SpringBootTest(classes = AbstractSpringMvcTest.CommonRestApiTestConfiguration.class,
         webEnvironment = SpringBootTest.WebEnvironment.MOCK)
 public abstract class AbstractSpringMvcTest {

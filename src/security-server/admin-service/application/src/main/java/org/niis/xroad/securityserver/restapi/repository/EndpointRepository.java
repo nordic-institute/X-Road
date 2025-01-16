@@ -51,14 +51,4 @@ public class EndpointRepository {
         return this.persistenceUtils.getCurrentSession().get(EndpointType.class, id);
     }
 
-    /**
-     * Executes a Hibernate saveOrUpdate({@Link EndpointType})
-     *
-     * @param endpointType
-     */
-    public void saveOrUpdate(EndpointType endpointType) {
-        persistenceUtils.getCurrentSession().saveOrUpdate(endpointType);
-    }
-
-
 }

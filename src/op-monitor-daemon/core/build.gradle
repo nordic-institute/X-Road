@@ -16,8 +16,12 @@ sourceSets {
 }
 
 dependencies {
+    annotationProcessor(libs.mapstructProcessor)
+    annotationProcessor(libs.lombokMapstructBinding)
+
     implementation libs.jakarta.validationApi
     implementation libs.bundles.metrics
+    implementation(libs.mapstruct)
 
     implementation project(':common:common-domain')
     implementation project(':common:common-scheduler')

@@ -33,6 +33,8 @@ import ee.ria.xroad.common.conf.serverconf.model.LocalGroupType;
 import ee.ria.xroad.common.conf.serverconf.model.ServerConfType;
 import ee.ria.xroad.common.identifier.ClientId;
 
+import lombok.AccessLevel;
+import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.hibernate.Hibernate;
@@ -53,36 +55,10 @@ import java.util.List;
 @Repository
 @Transactional
 @RequiredArgsConstructor
-public class ClientRepository {
+public class ClientRepository extends AbstractRepository<ClientType> {
 
+    @Getter(AccessLevel.PROTECTED)
     private final PersistenceUtils persistenceUtils;
-
-    /**
-     * Executes a Hibernate saveOrUpdate(client)
-     * @param clientType
-     */
-    public void saveOrUpdate(ClientType clientType) {
-        saveOrUpdate(clientType, false);
-    }
-
-    /**
-     * Executes a Hibernate saveOrUpdate(client) and flushes whole entityManager
-     * @param clientType
-     */
-    public void saveOrUpdateAndFlush(ClientType clientType) {
-        saveOrUpdate(clientType, true);
-    }
-
-    /**
-     * Executes a Hibernate saveOrUpdate(client) and flushes whole entityManager
-     * @param clientType
-     */
-    public void saveOrUpdate(ClientType clientType, boolean flush) {
-        persistenceUtils.getCurrentSession().saveOrUpdate(clientType);
-        if (flush) {
-            persistenceUtils.flush();
-        }
-    }
 
     /**
      * return one local client
