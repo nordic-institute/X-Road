@@ -77,7 +77,7 @@ function handleAnsible() {
     ../../ansible/xroad_dev.yml \
     --forks 10 \
     --skip-tags compile,build-packages \
-    -e onMacOs=$onMacOs
+    -e onMacOs=$onMacOs \
     -vv
 }
 
