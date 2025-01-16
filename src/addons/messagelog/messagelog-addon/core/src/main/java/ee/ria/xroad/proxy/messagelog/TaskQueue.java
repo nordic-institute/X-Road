@@ -193,26 +193,25 @@ public class TaskQueue {
         }
     }
 
-    @SuppressWarnings("unchecked")
     private List<Task> getTimestampTasks(Session session, int timestampRecordsLimit) {
-        return session.createQuery(getTaskQueueQuery())
+        return session.createQuery(getTaskQueueQuery(), Task.class)
                 .setParameter("origin", this.origin)
                 .setMaxResults(timestampRecordsLimit)
                 .list();
     }
 
-    private Long getTasksQueueSize(Session session) {
-        return (Long) session.createQuery(getTaskQueueSizeQuery())
+    private static Long getTasksQueueSize(Session session) {
+        return session.createQuery(getTaskQueueSizeQuery(), Long.class)
                 .setParameter("origin", this.origin)
                 .uniqueResult();
     }
 
     static String getTaskQueueQuery() {
         return "select new " + Task.class.getName() + "(m.id, m.signatureHash) "
-                + "from MessageRecord m where m.timestampRecord is null and m.origin = :origin order by m.id";
+                + "from MessageRecordEntity m where m.timestampRecord is null and m.origin = :origin order by m.id";
     }
 
     private static String getTaskQueueSizeQuery() {
-        return "select COUNT(*) from MessageRecord m where m.timestampRecord is null and m.origin = :origin";
+        return "select COUNT(*) from MessageRecordEntity m where m.timestampRecord is null and m.origin = :origin";
     }
 }

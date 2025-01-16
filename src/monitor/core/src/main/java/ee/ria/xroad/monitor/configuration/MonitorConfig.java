@@ -26,8 +26,9 @@
 package ee.ria.xroad.monitor.configuration;
 
 import ee.ria.xroad.common.conf.globalconf.GlobalConfBeanConfig;
+import ee.ria.xroad.common.conf.globalconf.GlobalConfProvider;
 import ee.ria.xroad.common.conf.globalconf.GlobalConfRefreshJobConfig;
-import ee.ria.xroad.common.conf.serverconf.ServerConfBeanConfig;
+import ee.ria.xroad.common.conf.serverconf.ServerConfFactory;
 import ee.ria.xroad.common.conf.serverconf.ServerConfProvider;
 import ee.ria.xroad.monitor.CertificateInfoSensor;
 import ee.ria.xroad.monitor.DiskSpaceSensor;
@@ -56,7 +57,6 @@ import org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler;
 
 @Slf4j
 @Import({GlobalConfBeanConfig.class,
-        ServerConfBeanConfig.class,
         GlobalConfRefreshJobConfig.class,
         SignerClientConfiguration.class,
         ConfClientRpcClientConfiguration.class,
@@ -115,4 +115,8 @@ public class MonitorConfig {
         }
     }
 
+    @Bean
+    public ServerConfProvider serverConfProvider(GlobalConfProvider globalConfProvider) {
+        return ServerConfFactory.create(globalConfProvider, SystemProperties.getServerConfCachePeriod());
+    }
 }

@@ -11,19 +11,15 @@ spring:
       data-source-properties:
         currentSchema: ${xroad.common.serverconf.hibernate.hikari.dataSource.currentSchema}
   jpa:
-    ## *.hbm.xml files are loaded from classpath
-    mapping-resources: identifiers.hbm.xml,serverconf.hbm.xml,apikey.hbm.xml
-    open-in-view: false
     hibernate:
       ddl-auto: none
-      show-sql: true
       naming:
         physical-strategy: org.hibernate.boot.model.naming.PhysicalNamingStrategyStandardImpl
     properties:
       hibernate:
         dialect: ee.ria.xroad.common.db.CustomPostgreSQLDialect
         id:
-          db_structure_naming_strategy: legacy #TODO Migrate to newer strategies
+          db_structure_naming_strategy: single
   mvc:
     throw-exception-if-no-handler-found: true
   jackson:

@@ -41,7 +41,6 @@ import ee.ria.xroad.messagelog.database.MessageRecordEncryption;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.IOUtils;
 import org.apache.http.message.BasicHeader;
-import org.hibernate.query.Query;
 
 import java.io.ByteArrayInputStream;
 import java.io.FileInputStream;
@@ -84,7 +83,6 @@ final class TestUtil {
     static String signature;
 
     private static final Map<String, String> MESSAGE_LOG_HIBERNATE_PROPERTIES = Map.of(
-            "dialect", "org.hibernate.dialect.HSQLDialect",
             "connection.driver_class", "org.hsqldb.jdbcDriver",
             "connection.url", "jdbc:hsqldb:mem:securelog;sql.syntax_pgs=true;",
             "connection.username", "securelog",
@@ -100,7 +98,7 @@ final class TestUtil {
             public List<X509Certificate> getTspCertificates()
                     throws CertificateException {
                 try {
-                    return Arrays.asList(CryptoUtils.readCertificate(TSP_CERT));
+                    return List.of(CryptoUtils.readCertificate(TSP_CERT));
                 } catch (IOException e) {
                     throw new CertificateException(e);
                 }
@@ -117,7 +115,7 @@ final class TestUtil {
         return new EmptyServerConf() {
             @Override
             public List<String> getTspUrl() {
-                return Arrays.asList("http://iks2-ubuntu.cyber.ee:8080/"
+                return List.of("http://iks2-ubuntu.cyber.ee:8080/"
                         + "signserver/tsa?workerName=TimeStampSigner");
             }
         };
@@ -129,7 +127,7 @@ final class TestUtil {
 
     static void cleanUpDatabase(DatabaseCtxV2 dbCtx) throws Exception {
         dbCtx.doInTransaction(session -> {
-            Query q = session.createNativeQuery(
+            var q = session.createNativeMutationQuery(
                     // Since we are using HSQLDB for tests, we can use
                     // special commands to completely wipe out the database
                     "TRUNCATE SCHEMA public AND COMMIT");
@@ -180,10 +178,8 @@ final class TestUtil {
 
     @SuppressWarnings("unchecked")
     static List<Task> getTaskQueue(DatabaseCtxV2 dbCtx) throws Exception {
-        return dbCtx.doInTransaction(session -> session
-                .createQuery(TaskQueue.getTaskQueueQuery())
-                .setParameter("origin", "test")
-                .list());
+        return dbCtx.doInTransaction(session -> session.createQuery(
+                TaskQueue.getTaskQueueQuery(), Task.class).list());
     }
 
     static void assertTaskQueueSize(int expectedSize, DatabaseCtxV2 dbCtx) throws Exception {

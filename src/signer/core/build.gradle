@@ -20,7 +20,7 @@ sourceSets {
 }
 
 dependencies {
-    implementation(platform(libs.springBoot.bom))
+    api(platform(libs.springBoot.bom))
 
     implementation project(':common:common-core')
     implementation project(':common:common-jetty')
@@ -28,6 +28,7 @@ dependencies {
     implementation project(':common:common-rpc')
     implementation project(':signer-protocol')
 
+    api("org.springframework:spring-context-support")
     implementation("org.springframework.boot:spring-boot-starter")
 
     // Necessary since there are jars with no adequate Maven dependencies
@@ -38,6 +39,7 @@ dependencies {
     testImplementation 'org.springframework:spring-test'
 
     testImplementation libs.mockito.core
+    testImplementation('org.springframework.boot:spring-boot-starter-test')
 
     intTestRuntimeOnly project(':addons:hwtoken')
     intTestRuntimeOnly project(':common:common-globalconf')

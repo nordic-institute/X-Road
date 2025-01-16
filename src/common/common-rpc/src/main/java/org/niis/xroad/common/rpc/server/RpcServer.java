@@ -64,7 +64,6 @@ public class RpcServer {
                         new CustomForkJoinWorkerThreadFactory(), null, true));
 
         configFunc.accept(builder);
-
         server = builder.build();
     }
 
@@ -83,6 +82,5 @@ public class RpcServer {
             log.info("Shutting down RPC server.. Success!");
         }
     }
-
 
 }

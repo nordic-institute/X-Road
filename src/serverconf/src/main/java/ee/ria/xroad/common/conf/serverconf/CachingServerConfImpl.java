@@ -75,9 +75,8 @@ public class CachingServerConfImpl extends ServerConfImpl {
      */
     @SuppressWarnings("checkstyle:MagicNumber")
     public CachingServerConfImpl(DatabaseCtxV2 databaseCtx, ServerConfProperties serverConfProperties,
-                                 GlobalConfProvider globalConfProvider) {
+                                 GlobalConfProvider globalConfProvider, int expireSeconds) {
         super(databaseCtx, globalConfProvider);
-        int expireSeconds = serverConfProperties.cachePeriod();
 
         internalKeyCache = CacheBuilder.newBuilder()
                 .maximumSize(1)

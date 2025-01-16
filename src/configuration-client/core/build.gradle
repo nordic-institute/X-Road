@@ -3,15 +3,16 @@ plugins {
 }
 
 dependencies {
-    api project(':common:common-globalconf')
-    api project(':common:common-scheduler')
-    api project(':common:common-jetty')
-    api project(':common:common-verifier')
-    api project(':common:common-rpc')
+    implementation(platform(libs.springBoot.bom))
 
-    api libs.commons.cli
-    api(platform(libs.springBoot.bom))
-    api('org.springframework:spring-context-support')
+    implementation project(':common:common-globalconf')
+    implementation project(':common:common-scheduler')
+    implementation project(':common:common-jetty')
+    implementation project(':common:common-verifier')
+    implementation project(':common:common-rpc')
+    implementation('org.springframework:spring-context-support')
+
+    implementation libs.commons.cli
     implementation("org.springframework.boot:spring-boot-starter")
 
     testImplementation project(':common:common-test')

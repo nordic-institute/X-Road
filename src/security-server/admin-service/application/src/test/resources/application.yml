@@ -2,11 +2,13 @@
 
 spring:
   jpa:
-    ## *.hbm.xml files are loaded from classpath
-    mapping-resources: identifiers.hbm.xml,serverconf.hbm.xml,apikey.hbm.xml
     open-in-view: false
     hibernate:
       ddl-auto: create
+    properties:
+      hibernate:
+        id:
+          db_structure_naming_strategy: single
     generate-ddl: true
     show-sql: false
     defer-datasource-initialization: true

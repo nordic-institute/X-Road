@@ -25,7 +25,7 @@
    THE SOFTWARE.
  -->
 <template>
-  <titled-view>
+  <xrd-titled-view>
     <template #title>
       <slot name="title">{{ titleValue }}</slot>
     </template>
@@ -42,15 +42,15 @@
       <slot name="header-buttons" />
     </template>
     <slot />
-  </titled-view>
+  </xrd-titled-view>
 </template>
 
 <script lang="ts">
 import { defineComponent } from 'vue';
-import TitledView from '@/components/ui/TitledView.vue';
+import { XrdTitledView } from '@niis/shared-ui';
 
 export default defineComponent({
-  components: { TitledView },
+  components: { XrdTitledView },
   props: {
     title: {
       type: String,

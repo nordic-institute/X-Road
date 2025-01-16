@@ -40,7 +40,6 @@ dependencies {
     testImplementation(project(':common:common-test'))
 
     testImplementation(libs.wsdl4j)
-
     intTestRuntimeOnly(project(':signer:application'))
     intTestImplementation(project(":common:common-test"))
     intTestImplementation(project(":common:common-int-test"))

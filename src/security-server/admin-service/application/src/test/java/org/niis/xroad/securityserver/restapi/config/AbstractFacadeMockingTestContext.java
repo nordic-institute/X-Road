@@ -34,6 +34,7 @@ import org.niis.xroad.common.acme.AcmeService;
 import org.niis.xroad.confclient.proto.ConfClientRpcClient;
 import org.niis.xroad.proxy.proto.ProxyRpcClient;
 import org.niis.xroad.securityserver.restapi.service.ManagementRequestSenderService;
+import org.niis.xroad.securityserver.restapi.service.diagnostic.MonitorClient;
 import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
@@ -65,6 +66,8 @@ public abstract class AbstractFacadeMockingTestContext {
     protected SignerRpcClient signerRpcClient;
     @MockBean
     protected AcmeService acmeService;
+    @MockBean
+    MonitorClient monitorClient;
     @MockBean
     protected ProxyRpcClient proxyRpcClient;
     @MockBean

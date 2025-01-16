@@ -49,13 +49,20 @@ import org.niis.xroad.securityserver.restapi.openapi.model.OcspResponderDiagnost
 import org.niis.xroad.securityserver.restapi.openapi.model.OcspStatus;
 import org.niis.xroad.securityserver.restapi.openapi.model.TimestampingServiceDiagnostics;
 import org.niis.xroad.securityserver.restapi.openapi.model.TimestampingStatus;
+import org.niis.xroad.securityserver.restapi.service.diagnostic.DiagnosticReportService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.cloud.contract.wiremock.AutoConfigureWireMock;
+import org.springframework.core.io.Resource;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.test.context.support.WithMockUser;
 
 import java.time.Instant;
+import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.time.LocalTime;
 import java.time.OffsetDateTime;
 import java.time.temporal.ChronoUnit;
@@ -63,6 +70,12 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
+import static com.github.tomakehurst.wiremock.client.WireMock.get;
+import static com.github.tomakehurst.wiremock.client.WireMock.stubFor;
+import static com.github.tomakehurst.wiremock.client.WireMock.urlEqualTo;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertThrows;
@@ -88,6 +101,8 @@ public class DiagnosticsApiControllerTest extends AbstractApiControllerTestConte
 
     @Autowired
     DiagnosticsApiController diagnosticsApiController;
+    @MockBean
+    private DiagnosticReportService diagnosticReportService;
 
     @Test
     public void getAddOnDiagnostics() throws Exception {
@@ -425,5 +440,33 @@ public class DiagnosticsApiControllerTest extends AbstractApiControllerTestConte
                 .setPrevUpdate(prevUpdate.toEpochMilli())
                 .setNextUpdate(nextUpdate.toEpochMilli())
                 .build();
+    @Test
+    @WithMockUser(authorities = {"DOWNLOAD_ANCHOR"})
+    public void downloadDiagnosticsReportWithoutRequiredAuthorities() throws IOException {
+        byte[] bytes = "[{}]".getBytes(StandardCharsets.UTF_8);
+        when(diagnosticReportService.collectSystemInformation()).thenReturn(bytes);
+        when(systemService.getAnchorFilenameForDownload())
+                .thenReturn("configuration_anchor_UTC_2019-04-28_09_03_31.xml");
+
+        assertThatThrownBy(() -> diagnosticsApiController.downloadDiagnosticsReport()).isInstanceOf(AccessDeniedException.class);
+    }
+
+    @Test
+    @WithMockUser(authorities = {"DOWNLOAD_DIAGNOSTICS_REPORT"})
+    public void downloadDiagnosticsReport() throws IOException {
+        byte[] bytes = "[{}]".getBytes(StandardCharsets.UTF_8);
+        when(diagnosticReportService.collectSystemInformation()).thenReturn(bytes);
+        when(systemService.getAnchorFilenameForDownload())
+                .thenReturn("configuration_anchor_UTC_2019-04-28_09_03_31.xml");
+
+        ResponseEntity<Resource> response = diagnosticsApiController.downloadDiagnosticsReport();
+        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
+        assertThat(response.getBody()).isNotNull();
+        assertThat(response.getBody().contentLength()).isEqualTo(bytes.length);
+    }
+
+    private void stubForDiagnosticsRequest(String requestPath, String responseBody) {
+        stubFor(get(urlEqualTo(requestPath))
+                .willReturn(aResponse().withBody(responseBody)));
     }
 }

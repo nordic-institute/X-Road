@@ -78,8 +78,9 @@ public class MailApiControllerTest extends AbstractApiControllerTestContext {
     @WithMockUser(authorities = {"DIAGNOSTICS"})
     public void getMailNotificationStatus() {
         ResponseEntity<MailNotificationStatus> mailNotificationStatus = mailApiController.getMailNotificationStatus();
-        assertEquals(true, mailNotificationStatus.getBody().getFailureStatus());
-        assertEquals(true, mailNotificationStatus.getBody().getSuccessStatus());
+        assertEquals(true, mailNotificationStatus.getBody().getAcmeFailureStatus());
+        assertEquals(true, mailNotificationStatus.getBody().getAcmeSuccessStatus());
+        assertEquals(true, mailNotificationStatus.getBody().getAuthCertRegisteredStatus());
         assertEquals(true, mailNotificationStatus.getBody().getConfigurationPresent());
         assertEquals(List.of("DEV:COM:1234: member1@example.org"), mailNotificationStatus.getBody().getRecipientsEmails());
     }

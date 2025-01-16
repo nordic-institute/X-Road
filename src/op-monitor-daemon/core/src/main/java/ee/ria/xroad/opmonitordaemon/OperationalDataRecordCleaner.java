@@ -82,10 +82,10 @@ public final class OperationalDataRecordCleaner {
 
         return opMonitorDatabaseCtx.doInTransaction(session -> {
             String hql =
-                    "delete OperationalDataRecord r where r.monitoringDataTs < "
+                    "delete OperationalDataRecordEntity r where r.monitoringDataTs < "
                             + TimeUnit.MILLISECONDS.toSeconds(before.toEpochMilli());
 
-            int removed = session.createQuery(hql).executeUpdate();
+            int removed = session.createMutationQuery(hql).executeUpdate();
 
             if (removed == 0) {
                 log.info("No outdated operational data records to remove from"

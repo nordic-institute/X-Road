@@ -32,6 +32,7 @@ import ee.ria.xroad.common.MessageLogEncryptionStatusDiagnostics;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.niis.xroad.common.exception.ServiceException;
 import org.niis.xroad.restapi.openapi.ControllerUtil;
 import org.niis.xroad.securityserver.restapi.converter.AddOnStatusConverter;
 import org.niis.xroad.securityserver.restapi.converter.BackupEncryptionStatusConverter;
@@ -40,6 +41,7 @@ import org.niis.xroad.securityserver.restapi.converter.MessageLogEncryptionStatu
 import org.niis.xroad.securityserver.restapi.converter.OcspResponderDiagnosticConverter;
 import org.niis.xroad.securityserver.restapi.converter.TimestampingServiceDiagnosticConverter;
 import org.niis.xroad.securityserver.restapi.dto.OcspResponderDiagnosticsStatus;
+import org.niis.xroad.securityserver.restapi.exception.ErrorMessage;
 import org.niis.xroad.securityserver.restapi.openapi.model.AddOnStatus;
 import org.niis.xroad.securityserver.restapi.openapi.model.BackupEncryptionStatus;
 import org.niis.xroad.securityserver.restapi.openapi.model.GlobalConfDiagnostics;
@@ -47,12 +49,16 @@ import org.niis.xroad.securityserver.restapi.openapi.model.MessageLogEncryptionS
 import org.niis.xroad.securityserver.restapi.openapi.model.OcspResponderDiagnostics;
 import org.niis.xroad.securityserver.restapi.openapi.model.TimestampingServiceDiagnostics;
 import org.niis.xroad.securityserver.restapi.service.DiagnosticService;
+import org.niis.xroad.securityserver.restapi.service.diagnostic.DiagnosticReportService;
+import org.springframework.core.io.Resource;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
 
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.Set;
 
@@ -66,7 +72,10 @@ import java.util.Set;
 @RequiredArgsConstructor
 public class DiagnosticsApiController implements DiagnosticsApi {
 
+    private static final DateTimeFormatter FORMATTER = DateTimeFormatter.ofPattern("yyyyMMddHHmmss");
+
     private final DiagnosticService diagnosticService;
+    private final DiagnosticReportService diagnosticReportService;
     private final GlobalConfDiagnosticConverter globalConfDiagnosticConverter;
     private final TimestampingServiceDiagnosticConverter timestampingServiceDiagnosticConverter;
     private final OcspResponderDiagnosticConverter ocspResponderDiagnosticConverter;
@@ -98,6 +107,18 @@ public class DiagnosticsApiController implements DiagnosticsApi {
     }
 
     @Override
+    @PreAuthorize("hasAnyAuthority('DOWNLOAD_DIAGNOSTICS_REPORT')")
+    public ResponseEntity<Resource> downloadDiagnosticsReport() {
+        try {
+            return ControllerUtil.createAttachmentResourceResponse(diagnosticReportService.collectSystemInformation(),
+                    systemInformationFilename());
+        } catch (Exception e) {
+            throw new ServiceException(ErrorMessage.FAILED_COLLECT_SYSTEM_INFORMATION, e);
+        }
+
+    }
+
+    @Override
     @PreAuthorize("hasAnyAuthority('DIAGNOSTICS', 'VIEW_TSPS')")
     public ResponseEntity<AddOnStatus> getAddOnDiagnostics() {
         AddOnStatusDiagnostics addOnStatus = diagnosticService.queryAddOnStatus();
@@ -120,5 +141,9 @@ public class DiagnosticsApiController implements DiagnosticsApi {
                 diagnosticService.queryMessageLogEncryptionStatus();
         return new ResponseEntity<>(messageLogEncryptionStatusConverter
                 .convert(messageLogEncryptionStatusDiagnostics), HttpStatus.OK);
+    }
+
+    private String systemInformationFilename() {
+        return "diagnostic-report-%s.json".formatted(FORMATTER.format(LocalDateTime.now()));
     }
 }

@@ -26,7 +26,7 @@
  -->
 <template>
   <div class="xrd-sub-view-outer-wrapper">
-    <v-container class="xrd-default-font-size mt-7">
+    <v-container class="xrd-default-font-size mt-0 pt-0">
       <slot />
     </v-container>
   </div>

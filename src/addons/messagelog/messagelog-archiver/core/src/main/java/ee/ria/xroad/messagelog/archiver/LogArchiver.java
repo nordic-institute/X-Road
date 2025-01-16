@@ -32,11 +32,14 @@ import ee.ria.xroad.common.db.DatabaseCtxV2;
 import ee.ria.xroad.common.messagelog.LogRecord;
 import ee.ria.xroad.common.messagelog.MessageLogProperties;
 import ee.ria.xroad.common.messagelog.MessageRecord;
-import ee.ria.xroad.common.messagelog.archive.ArchiveDigest;
 import ee.ria.xroad.common.messagelog.archive.DigestEntry;
 import ee.ria.xroad.common.messagelog.archive.LogArchiveBase;
 import ee.ria.xroad.common.messagelog.archive.LogArchiveWriter;
 import ee.ria.xroad.messagelog.database.MessageRecordEncryption;
+import ee.ria.xroad.messagelog.database.entity.ArchiveDigestEntity;
+import ee.ria.xroad.messagelog.database.entity.MessageRecordEntity;
+import ee.ria.xroad.messagelog.database.mapper.ArchiveDigestMapper;
+import ee.ria.xroad.messagelog.database.mapper.MessageRecordMapper;
 
 import jakarta.persistence.criteria.CriteriaBuilder;
 import jakarta.persistence.criteria.CriteriaQuery;
@@ -100,7 +103,7 @@ public class LogArchiver implements Job {
     }
 
     private void markArchived(Session session, List<Long> recordIds) {
-        session.createQuery("UPDATE AbstractLogRecord r SET r.archived = true WHERE r.id in (?1)")
+        session.createMutationQuery("UPDATE AbstractLogRecordEntity r SET r.archived = true WHERE r.id in (?1)")
                 .setParameter(1, recordIds)
                 .executeUpdate();
     }
@@ -117,16 +120,17 @@ public class LogArchiver implements Job {
 
             try (LogArchiveWriter archiveWriter = createLogArchiveWriter(session)) {
                 List<Long> recordIds = new ArrayList<>(100);
-                try (Stream<MessageRecord> records = getNonArchivedMessageRecords(session, maxRecordId, limit)) {
-                    for (Iterator<MessageRecord> it = records.iterator(); it.hasNext(); ) {
-                        MessageRecord messageRecord = it.next();
+                try (Stream<MessageRecordEntity> records = getNonArchivedMessageRecords(session, maxRecordId, limit)) {
+                    for (Iterator<MessageRecordEntity> it = records.iterator(); it.hasNext(); ) {
+                        MessageRecordEntity entity = it.next();
+                        MessageRecord messageRecord = MessageRecordMapper.get().toDTO(entity);
                         recordIds.add(messageRecord.getId());
                         messageRecordEncryption.prepareDecryption(messageRecord);
                         if (archiveWriter.write(messageRecord)) {
                             runTransferCommand(archiveTransferCommand);
                         }
                         //evict record from persistence context to avoid running out of memory
-                        session.detach(messageRecord);
+                        session.detach(entity);
                         recordsArchived++;
 
                         if (recordsArchived % 100 == 0) {
@@ -177,18 +181,18 @@ public class LogArchiver implements Job {
 
     protected int markTimestampRecordsArchived(Session session) {
         return session
-                .createQuery(""
-                        + "UPDATE TimestampRecord t SET t.archived = true "
-                        + "WHERE t.archived = false AND NOT EXISTS ("
-                        + "SELECT 0 FROM MessageRecord m "
-                        + "WHERE m.archived = false and t.id = m.timestampRecord.id)"
+                .createMutationQuery("""
+                        UPDATE TimestampRecordEntity t SET t.archived = true \
+                        WHERE t.archived = false AND NOT EXISTS (\
+                        SELECT 0 FROM MessageRecordEntity m \
+                        WHERE m.archived = false and t.id = m.timestampRecord.id)"""
                 ).executeUpdate();
     }
 
     protected Long getMaxRecordId(Session session) {
         final CriteriaBuilder cb = session.getCriteriaBuilder();
         final CriteriaQuery<Long> query = cb.createQuery(Long.class);
-        final Root<MessageRecord> t = query.from(MessageRecord.class);
+        final Root<MessageRecordEntity> t = query.from(MessageRecordEntity.class);
 
         query.select(cb.max(t.get("id")))
                 .where(cb.and(
@@ -197,10 +201,10 @@ public class LogArchiver implements Job {
         return session.createQuery(query).uniqueResult();
     }
 
-    protected Stream<MessageRecord> getNonArchivedMessageRecords(Session session, Long maxId, int limit) {
+    protected Stream<MessageRecordEntity> getNonArchivedMessageRecords(Session session, Long maxId, int limit) {
         final CriteriaBuilder cb = session.getCriteriaBuilder();
-        final CriteriaQuery<MessageRecord> query = cb.createQuery(MessageRecord.class);
-        final Root<MessageRecord> m = query.from(MessageRecord.class);
+        final CriteriaQuery<MessageRecordEntity> query = cb.createQuery(MessageRecordEntity.class);
+        final Root<MessageRecordEntity> m = query.from(MessageRecordEntity.class);
 
         query.select(m)
                 .where(cb.and(
@@ -280,9 +284,9 @@ public class LogArchiver implements Job {
 
         @Override
         public void markArchiveCreated(String groupName, DigestEntry lastArchive) {
-            ArchiveDigest digest = findArchiveDigest(groupName).orElse(new ArchiveDigest(groupName));
-            digest.setDigestEntry(lastArchive);
-            session.saveOrUpdate(digest);
+            var digest = findArchiveDigest(groupName).orElse(new ArchiveDigestEntity(groupName));
+            digest.setDigestEntry(ArchiveDigestMapper.get().toEntity(lastArchive));
+            session.merge(digest);
         }
 
         @Override
@@ -293,14 +297,15 @@ public class LogArchiver implements Job {
         @Override
         public DigestEntry loadLastArchive(String groupName) {
             return findArchiveDigest(groupName)
-                    .map(ArchiveDigest::getDigestEntry)
-                    .orElse(DigestEntry.empty());
+                    .map(ArchiveDigestEntity::getDigestEntry)
+                    .map(ArchiveDigestMapper.get()::toDTO)
+                    .orElseGet(DigestEntry::empty);
         }
 
-        protected Optional<ArchiveDigest> findArchiveDigest(String groupName) {
+        protected Optional<ArchiveDigestEntity> findArchiveDigest(String groupName) {
             final CriteriaBuilder cb = session.getCriteriaBuilder();
-            final CriteriaQuery<ArchiveDigest> query = cb.createQuery(ArchiveDigest.class);
-            final Root<ArchiveDigest> archiveDigest = query.from(ArchiveDigest.class);
+            final CriteriaQuery<ArchiveDigestEntity> query = cb.createQuery(ArchiveDigestEntity.class);
+            final Root<ArchiveDigestEntity> archiveDigest = query.from(ArchiveDigestEntity.class);
             final Expression<String> name = archiveDigest.get("groupName");
 
             query.select(archiveDigest);

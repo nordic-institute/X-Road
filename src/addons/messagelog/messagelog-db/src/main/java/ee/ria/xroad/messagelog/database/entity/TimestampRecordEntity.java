@@ -23,11 +23,22 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package ee.ria.xroad.common.util;
+package ee.ria.xroad.messagelog.database.entity;
 
-import java.util.Optional;
+import jakarta.persistence.Column;
+import jakarta.persistence.DiscriminatorValue;
+import jakarta.persistence.Entity;
+import lombok.Getter;
+import lombok.Setter;
 
-public interface FileSource<T> {
+@Getter
+@Setter
+@Entity
+@DiscriminatorValue("t")
+public class TimestampRecordEntity extends AbstractLogRecordEntity {
+    @Column(name = "TIMESTAMP", columnDefinition = "text")
+    private String timestamp;
 
-    Optional<T> getFile();
+    @Column(name = "HASHCHAINRESULT", columnDefinition = "text")
+    private String hashChainResult;
 }

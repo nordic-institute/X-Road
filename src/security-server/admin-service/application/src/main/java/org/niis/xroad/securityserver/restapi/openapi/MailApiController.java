@@ -61,8 +61,9 @@ public class MailApiController implements MailApi {
     public ResponseEntity<MailNotificationStatus> getMailNotificationStatus() {
         MailService.MailNotificationStatus mailNotificationStatus = mailService.getMailNotificationStatus();
         MailNotificationStatus mailNotificationStatusDto = new MailNotificationStatus();
-        mailNotificationStatusDto.successStatus(mailNotificationStatus.successStatus());
-        mailNotificationStatusDto.failureStatus(mailNotificationStatus.failureStatus());
+        mailNotificationStatusDto.acmeSuccessStatus(mailNotificationStatus.acmeSuccessStatus());
+        mailNotificationStatusDto.acmeFailureStatus(mailNotificationStatus.acmeFailureStatus());
+        mailNotificationStatusDto.authCertRegisteredStatus(mailNotificationStatus.authCertRegisteredStatus());
         mailNotificationStatusDto.configurationPresent(mailNotificationStatus.configurationPresent());
         if (mailNotificationStatus.recipientsEmails() != null) {
             mailNotificationStatusDto.recipientsEmails(mailNotificationStatus.recipientsEmails());

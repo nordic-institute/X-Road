@@ -205,7 +205,6 @@ public class MetadataServiceHandlerTest {
         this.mockServer.stop();
     }
 
-
     @Test
     public void shouldBeAbleToHandleListMethods() throws Exception {
 

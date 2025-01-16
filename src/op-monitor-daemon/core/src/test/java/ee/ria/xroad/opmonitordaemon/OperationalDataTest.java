@@ -25,6 +25,9 @@
  */
 package ee.ria.xroad.opmonitordaemon;
 
+import ee.ria.xroad.opmonitordaemon.entity.OperationalDataRecordEntity;
+import ee.ria.xroad.opmonitordaemon.mapper.OperationalDataRecordMapper;
+
 import ee.ria.xroad.common.db.HibernateUtil;
 
 import com.fasterxml.jackson.databind.JsonMappingException;
@@ -32,16 +35,13 @@ import org.hibernate.PropertyValueException;
 import org.hibernate.Session;
 import org.junit.After;
 import org.junit.Before;
-import org.junit.Rule;
 import org.junit.Test;
-import org.junit.rules.ExpectedException;
-
-import java.io.IOException;
 
 import static ee.ria.xroad.opmonitordaemon.OperationalDataTestUtil.OBJECT_READER;
 import static ee.ria.xroad.opmonitordaemon.OperationalDataTestUtil.fillMinimalOperationalData;
 import static ee.ria.xroad.opmonitordaemon.OperationalDataTestUtil.formatInvalidOperationalDataAsJson;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertThrows;
 
 /**
  * Test cases related to operations with the operational monitoring database
@@ -50,9 +50,6 @@ import static org.junit.Assert.assertEquals;
 public class OperationalDataTest extends BaseTestUsingDB {
 
     private Session session;
-
-    @Rule
-    public final ExpectedException expectedException = ExpectedException.none();
 
     /**
      * Begins a transaction.
@@ -74,7 +71,7 @@ public class OperationalDataTest extends BaseTestUsingDB {
     @SuppressWarnings("squid:S2699")
     @Test
     public void storeOperationalData() {
-        session.save(fillMinimalOperationalData());
+        session.persist(asEntity(fillMinimalOperationalData()));
     }
 
     @Test
@@ -83,8 +80,7 @@ public class OperationalDataTest extends BaseTestUsingDB {
         // Note that monitoringDataTs will be automatically set to 0 (due to
         // indexing?) but the rest of the fields will be sent as NULL.
 
-        expectedException.expect(PropertyValueException.class);
-        session.save(rec);
+        assertThrows(PropertyValueException.class, () -> session.persist(asEntity(rec)));
     }
 
     @Test
@@ -93,26 +89,22 @@ public class OperationalDataTest extends BaseTestUsingDB {
         rec.setRequestInTs(1L);
         // Assuming the rest of the similar constraints work as expected.
 
-        expectedException.expect(PropertyValueException.class);
-        session.save(rec);
+        assertThrows(PropertyValueException.class, () -> session.persist(asEntity(rec)));
     }
 
     @Test
     public void useInvalidServerType() {
         OperationalDataRecord rec = new OperationalDataRecord();
 
-        expectedException.expect(RuntimeException.class);
-        rec.setSecurityServerType("INVALID_SERVER_TYPE");
+        assertThrows(RuntimeException.class, () -> rec.setSecurityServerType("INVALID_SERVER_TYPE"));
     }
 
     @Test
-    public void convertFromOutdatedJson() throws IOException {
+    public void convertFromOutdatedJson() {
         String jsonRec = formatInvalidOperationalDataAsJson();
 
-        expectedException.expect(JsonMappingException.class);
-        expectedException.expectMessage("Invalid value of securityServerType");
-
-        OBJECT_READER.readValue(jsonRec, OperationalDataRecord.class);
+        var exc = assertThrows(JsonMappingException.class, () -> OBJECT_READER.readValue(jsonRec, OperationalDataRecord.class));
+        assertEquals("Invalid value of securityServerType", exc.getOriginalMessage());
     }
 
     @Test
@@ -127,7 +119,7 @@ public class OperationalDataTest extends BaseTestUsingDB {
         // Flush to empty the internal cache of Hibernate.
         for (int i = 0; i < configuredBatchSize; i++) {
             OperationalDataRecord rec = fillMinimalOperationalData();
-            session.save(rec);
+            session.persist(asEntity(rec));
 
             if ((i + 1) % configuredBatchSize == 0) {
                 session.flush();
@@ -139,7 +131,7 @@ public class OperationalDataTest extends BaseTestUsingDB {
         // Save two batches and some more.
         for (int i = 0; i < 2 * configuredBatchSize + 4; i++) {
             OperationalDataRecord rec = fillMinimalOperationalData();
-            session.save(rec);
+            session.persist(asEntity(rec));
 
             if ((i + 1) % configuredBatchSize == 0) {
                 session.flush();
@@ -152,13 +144,16 @@ public class OperationalDataTest extends BaseTestUsingDB {
     }
 
     private long selectCount() {
-        return (Long) session.createQuery(
-                        "select count(*) from OperationalDataRecord")
+        return session.createQuery("select count(*) from OperationalDataRecordEntity", Long.class)
                 .uniqueResult();
     }
 
     private void deleteAll() {
-        session.createQuery("delete from OperationalDataRecord").executeUpdate();
+        session.createMutationQuery("delete from OperationalDataRecordEntity").executeUpdate();
+    }
+
+    private OperationalDataRecordEntity asEntity(OperationalDataRecord record) {
+        return OperationalDataRecordMapper.get().toEntity(record);
     }
 
 }
