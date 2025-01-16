@@ -43,7 +43,6 @@ import ee.ria.xroad.common.identifier.ServiceId;
 import ee.ria.xroad.common.identifier.XRoadId;
 
 import org.hibernate.Session;
-import org.hibernate.query.Query;
 
 import java.util.Date;
 
@@ -126,14 +125,14 @@ public final class TestUtil {
 
         doInTransaction(session -> {
             ServerConfType conf = createTestData(session);
-            session.save(conf);
+            session.persist(conf);
             return null;
         });
     }
 
     static void cleanDB() throws Exception {
         doInTransaction(session -> {
-            Query q = session.createNativeQuery(
+            var q = session.createNativeMutationQuery(
                     // Since we are using HSQLDB for tests, we can use
                     // special commands to completely wipe out the database
                     "TRUNCATE SCHEMA public AND COMMIT");

@@ -315,7 +315,7 @@ public class AccessRightServiceIntegrationTest extends AbstractServiceIntegratio
         int initialServiceClients = countServiceClients(serviceOwner);
 
         // add access to test-globalgroup
-        Set<XRoadId.Conf> globalGroupSubject = new HashSet<>(Arrays.asList(
+        Set<XRoadId.Conf> globalGroupSubject = new HashSet<>(List.of(
                 GlobalGroupId.Conf.create("FI", "test-globalgroup")));
         accessRightService.addEndpointAccessRights(11L, globalGroupSubject);
         accessRightService.addEndpointAccessRights(12L, globalGroupSubject);

@@ -29,7 +29,7 @@
     <header class="header-row d-flex mb-6 align-center">
       <div class="xrd-header-title ma-2 pa-2 me-auto">
         <div class="xrd-view-title">
-          <slot name="title">{{ titleValue }}</slot>
+          <slot name="title">{{ titleKey ? $t(titleKey) : title }}</slot>
         </div>
         <slot name="append-title" />
       </div>
@@ -49,36 +49,29 @@
   </div>
 </template>
 
-<script lang="ts">
-import { defineComponent } from 'vue';
+<script lang="ts" setup>
 
-export default defineComponent({
-  props: {
-    title: {
-      type: String,
-      default: '',
-    },
-    loading: {
-      type: Boolean,
-      default: false,
-    },
-    titleKey: {
-      type: String,
-      default: '',
-    },
-    data: {
-      type: [Object, Array],
-      default() {
-        return { a: 1 };
-      },
-    },
+defineProps({
+  title: {
+    type: String,
+    default: '',
   },
-  computed: {
-    titleValue(): string {
-      return this.titleKey ? this.$t(this.titleKey) : this.title;
+  loading: {
+    type: Boolean,
+    default: false,
+  },
+  titleKey: {
+    type: String,
+    default: '',
+  },
+  data: {
+    type: [Object, Array],
+    default() {
+      return { a: 1 };
     },
   },
 });
+
 </script>
 
 <style lang="scss" scoped>

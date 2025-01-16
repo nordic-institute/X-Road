@@ -27,12 +27,11 @@ package ee.ria.xroad.opmonitordaemon;
 
 import ee.ria.xroad.common.db.DatabaseCtx;
 import ee.ria.xroad.common.db.TransactionCallback;
+import ee.ria.xroad.opmonitordaemon.entity.OperationalDataRecordEntity;
 
 import org.apache.commons.lang3.StringUtils;
-import org.hibernate.EmptyInterceptor;
+import org.hibernate.Interceptor;
 import org.hibernate.type.Type;
-
-import java.io.Serializable;
 
 /**
  * Database context for the operational monitoring daemon
@@ -64,8 +63,7 @@ final class OpMonitorDaemonDatabaseCtx {
         return CTX.doInTransaction(callback);
     }
 
-    private static final class StringValueTruncator extends EmptyInterceptor {
-        private static final long serialVersionUID = 1L;
+    private static final class StringValueTruncator implements Interceptor {
 
         private static final String SOAP_FAULT_STRING = "faultString";
 
@@ -73,10 +71,10 @@ final class OpMonitorDaemonDatabaseCtx {
         private static final int MAX_LENGTH = 255;
 
         @Override
-        public boolean onFlushDirty(Object entity, Serializable id,
+        public boolean onFlushDirty(Object entity, Object id,
                                     Object[] currentState, Object[] previousState,
                                     String[] propertyNames, Type[] types) {
-            if (entity instanceof OperationalDataRecord) {
+            if (entity instanceof OperationalDataRecordEntity) {
                 truncateStringProperties(currentState, propertyNames, types);
                 return true;
             }
@@ -85,9 +83,9 @@ final class OpMonitorDaemonDatabaseCtx {
         }
 
         @Override
-        public boolean onSave(Object entity, Serializable id, Object[] state,
+        public boolean onSave(Object entity, Object id, Object[] state,
                               String[] propertyNames, Type[] types) {
-            if (entity instanceof OperationalDataRecord) {
+            if (entity instanceof OperationalDataRecordEntity) {
                 truncateStringProperties(state, propertyNames, types);
                 return true;
             }

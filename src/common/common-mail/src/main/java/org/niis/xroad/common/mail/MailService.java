@@ -47,8 +47,9 @@ public class MailService {
     private final JavaMailSender mailSender;
 
     public MailNotificationStatus getMailNotificationStatus() {
-        boolean successStatus = SystemProperties.getAcmeRenewalSuccessNotificationEnabled();
-        boolean failureStatus = SystemProperties.getAcmeRenewalFailureNotificationEnabled();
+        boolean acmeSuccessStatus = SystemProperties.getAcmeRenewalSuccessNotificationEnabled();
+        boolean acmeFailureStatus = SystemProperties.getAcmeRenewalFailureNotificationEnabled();
+        boolean authCertRegisteredStatus = SystemProperties.getAuthCertRegisteredNotificationEnabled();
         boolean configurationPresent = mailNotificationProperties.isMailNotificationConfigurationPresent();
         List<String> recipientsEmails = null;
         if (mailNotificationProperties.getContacts() != null) {
@@ -58,7 +59,11 @@ public class MailService {
                     .map(contact -> StringUtils.joinWith(": ", contact.getKey(), contact.getValue()))
                     .toList();
         }
-        return new MailNotificationStatus(successStatus, failureStatus, configurationPresent, recipientsEmails);
+        return new MailNotificationStatus(acmeSuccessStatus,
+                acmeFailureStatus,
+                authCertRegisteredStatus,
+                configurationPresent,
+                recipientsEmails);
     }
 
     /** Sends mail notification without stopping the flow in case of error */
@@ -94,8 +99,9 @@ public class MailService {
         mailSender.send(message);
     }
 
-    public record MailNotificationStatus(boolean successStatus,
-                                         boolean failureStatus,
+    public record MailNotificationStatus(boolean acmeSuccessStatus,
+                                         boolean acmeFailureStatus,
+                                         boolean authCertRegisteredStatus,
                                          boolean configurationPresent,
                                          List<String> recipientsEmails) {
     }

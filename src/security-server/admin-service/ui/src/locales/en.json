@@ -180,6 +180,7 @@
     "addOnStatus": {
       "messageLogDisabled": "Disabled by configuration"
     },
+    "downloadReport": "Download Diagnostic Report",
     "encryption": {
       "backup": {
         "configuredKeyId": "Configured Key Id",
@@ -225,6 +226,7 @@
       "vendor": "Vendor name"
     },
     "mailNotificationConfiguration": {
+      "authCertRegisteredEnabled": "AUTH certificate registered notifications",
       "confStatus": {
         "false": "Configuration incomplete",
         "true": "Configured"

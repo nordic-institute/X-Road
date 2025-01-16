@@ -36,6 +36,7 @@
             <router-view name="alerts" />
           </div>
           <v-row
+            no-gutters
             align="center"
             justify="center"
             class="base-full-width bottom-pad"

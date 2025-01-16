@@ -24,26 +24,23 @@
    THE SOFTWARE.
  -->
 <template>
-  <div class="mt-3" data-test="security-server-tls-key-view">
-    <div class="title-row">
-      <div class="xrd-view-title">{{ $t('tab.keys.ssTlsCertificate') }}</div>
-      <div>
-        <help-button
-          :help-image="helpImg"
-          help-title="keys.helpTitleSS"
-          help-text="keys.helpTextSS"
-        ></help-button>
-      </div>
-    </div>
+  <XrdTitledView title-key="tab.keys.ssTlsCertificate" data-test="security-server-tls-key-view">
+    <template #append-title>
+      <help-button
+        :help-image="helpImg"
+        help-title="keys.helpTitleSS"
+        help-text="keys.helpTextSS" />
+    </template>
 
-    <div class="detail-view-tools">
+    <template #header-buttons>
       <xrd-button
         v-if="generateKeyVisible"
         class="button-spacing"
         outlined
         data-test="security-server-tls-certificate-generate-key-button"
         @click="generateDialog = true"
-        >{{ $t('ssTlsCertificate.generateKey') }}</xrd-button
+      >{{ $t('ssTlsCertificate.generateKey') }}
+      </xrd-button
       >
       <xrd-file-upload
         v-if="importCertificateVisible"
@@ -56,7 +53,8 @@
           outlined
           data-test="security-server-tls-certificate-import-certificate-key"
           @click="upload"
-          >{{ $t('ssTlsCertificate.importCertificate') }}</xrd-button
+        >{{ $t('ssTlsCertificate.importCertificate') }}
+        </xrd-button
         >
       </xrd-file-upload>
       <xrd-button
@@ -66,18 +64,13 @@
         :loading="exportPending"
         data-test="security-server-tls-certificate-export-certificate-button"
         @click="exportCertificate()"
-        >{{ $t('ssTlsCertificate.exportCertificate') }}</xrd-button
+      >{{ $t('ssTlsCertificate.exportCertificate') }}
+      </xrd-button
       >
-    </div>
-
-    <generate-tls-and-certificate-dialog
-      :dialog="generateDialog"
-      @cancel="generateDialog = false"
-      @saved="newCertificateGenerated"
-    />
+    </template>
 
     <div class="content-card">
-      <div class="content-title">{{ $t('ssTlsCertificate.keyCertTitle') }}</div>
+      <div class="content-title mt-0">{{ $t('ssTlsCertificate.keyCertTitle') }}</div>
       <div class="horizontal-line-dark"></div>
 
       <div class="key-row">
@@ -95,7 +88,8 @@
             :outlined="false"
             data-test="security-server-tls-certificate-generate-csr-button"
             @click="generateCsr()"
-            >{{ $t('ssTlsCertificate.generateCsr') }}</xrd-button
+          >{{ $t('ssTlsCertificate.generateCsr') }}
+          </xrd-button
           >
         </div>
       </div>
@@ -123,7 +117,14 @@
 
       <div class="footer-pad"></div>
     </div>
-  </div>
+
+    <generate-tls-and-certificate-dialog
+      :dialog="generateDialog"
+      @cancel="generateDialog = false"
+      @saved="newCertificateGenerated"
+    />
+
+  </XrdTitledView>
 </template>
 
 <script lang="ts">
