@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+    xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+                      http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.19.xsd">
+
+    <changeSet author="niis" id="003-drop-securitycategories-seq">
+        <preConditions onFail="MARK_RAN">
+            <sequenceExists sequenceName="service_securitycategories_id_seq"/>
+        </preConditions>
+        <dropSequence sequenceName="service_securitycategories_id_seq"/>
+    </changeSet>
+
+    <changeSet author="niis" id="003-drop-apikey_roles_id_seq1">
+        <preConditions onFail="MARK_RAN">
+            <and>
+                <dbms type="postgresql"/>
+                <sqlCheck expectedResult="2">
+                    <![CDATA[
+                    SELECT COUNT(*) FROM pg_catalog.pg_sequences WHERE sequencename IN ('apikey_roles_id_seq1', 'apikey_roles_id_seq')
+                     ]]>
+                </sqlCheck>
+            </and>
+        </preConditions>
+        <sql splitStatements="false" dbms="postgresql">
+            <![CDATA[
+            select setval('apikey_roles_id_seq1', max(id) + 1, false)
+            FROM apikey_roles ;
+            ]]>
+        </sql>
+        <dropSequence sequenceName="apikey_roles_id_seq"/>
+        <renameSequence oldSequenceName="apikey_roles_id_seq1" newSequenceName="apikey_roles_id_seq"/>
+    </changeSet>
+
+    <changeSet author="niis" id="003-drop-history_id_seq1">
+        <preConditions onFail="MARK_RAN">
+            <and>
+                <dbms type="postgresql"/>
+                <sqlCheck expectedResult="2">
+                    <![CDATA[
+                    SELECT COUNT(*) FROM pg_catalog.pg_sequences WHERE sequencename IN ('history_id_seq1', 'history_id_seq')
+                     ]]>
+                </sqlCheck>
+            </and>
+        </preConditions>
+        <sql splitStatements="false" dbms="postgresql">
+            <![CDATA[
+            select setval('history_id_seq1', max(id) + 1, false)
+            FROM history;
+            ]]>
+        </sql>
+        <dropSequence sequenceName="history_id_seq"/>
+        <renameSequence oldSequenceName="history_id_seq1" newSequenceName="history_id_seq"/>
+    </changeSet>
+
+</databaseChangeLog>

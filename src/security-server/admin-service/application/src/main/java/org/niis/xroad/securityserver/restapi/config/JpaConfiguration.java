@@ -23,42 +23,12 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.securityserver.restapi.repository;
+package org.niis.xroad.securityserver.restapi.config;
 
-import ee.ria.xroad.common.conf.serverconf.dao.ServiceDAOImpl;
-import ee.ria.xroad.common.conf.serverconf.model.ServiceType;
-import ee.ria.xroad.common.identifier.ServiceId;
+import org.springframework.boot.autoconfigure.domain.EntityScan;
+import org.springframework.context.annotation.Configuration;
 
-import lombok.RequiredArgsConstructor;
-import org.niis.xroad.restapi.util.PersistenceUtils;
-import org.springframework.stereotype.Repository;
-import org.springframework.transaction.annotation.Transactional;
-
-/**
- * Repository to handle ServiceType
- */
-@Repository
-@Transactional
-@RequiredArgsConstructor
-public class ServiceRepository {
-
-    private final PersistenceUtils persistenceUtils;
-
-    /**
-     * Get ServiceType by ServiceId
-     * @param id
-     * @return ServiceType
-     */
-    public ServiceType getService(ServiceId id) {
-        ServiceDAOImpl serviceDAO = new ServiceDAOImpl();
-        return serviceDAO.getService(persistenceUtils.getCurrentSession(), id);
-    }
-
-    /**
-     * Executes a Hibernate saveOrUpdate({@link ServiceType})
-     * @param serviceType
-     */
-    public void saveOrUpdate(ServiceType serviceType) {
-        persistenceUtils.getCurrentSession().saveOrUpdate(serviceType);
-    }
+@EntityScan(basePackages = "org.niis.xroad.restapi.entity")
+@Configuration
+public class JpaConfiguration {
 }

@@ -773,8 +773,7 @@ public class ClientService {
         client.setConf(serverConfType);
         serverConfType.getClient().add(client);
 
-        clientRepository.saveOrUpdate(client);
-        return client;
+        return clientRepository.persist(client);
     }
 
     /**
