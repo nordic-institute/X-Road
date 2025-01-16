@@ -1,0 +1,107 @@
+rootProject.name = "x-road-core"
+
+dependencyResolutionManagement {
+    repositoriesMode.set(RepositoriesMode.FAIL_ON_PROJECT_REPOS)
+    repositories {
+        mavenCentral()
+        mavenLocal()
+    }
+}
+
+// Common projects
+include("arch-rules")
+include("signer-protocol")
+include("serverconf")
+
+include("common")
+include("common:common-acme")
+include("common:common-admin-api")
+include("common:common-api-throttling")
+include("common:common-db")
+include("common:common-domain")
+include("common:common-mail")
+include("common:common-management-request")
+include("common:common-messagelog")
+include("common:common-op-monitoring")
+include("common:common-verifier")
+include("common:common-rpc")
+include("common:common-int-test")
+include("common:common-globalconf")
+include("common:common-core")
+include("common:common-jetty")
+include("common:common-message")
+include("common:common-scheduler")
+
+// Main projects
+include("proxy")
+include("proxy:application")
+include("proxy:core")
+include("signer:application")
+include("signer:core")
+include("configuration-proxy")
+include("configuration-client:application")
+include("configuration-client:core")
+include("asicverifier")
+include("asic-util")
+include("monitor:application")
+include("monitor:core")
+include("monitor-common")
+include("op-monitor-daemon:application")
+include("op-monitor-daemon:core")
+include("shared-ui")
+
+include("central-server")
+include("central-server:openapi-model")
+include("central-server:admin-service")
+include("central-server:admin-service:core")
+include("central-server:admin-service:core-api")
+include("central-server:admin-service:infra-api-rest")
+include("central-server:admin-service:application")
+include("central-server:admin-service:ui")
+include("central-server:admin-service:infra-jpa")
+include("central-server:admin-service:globalconf-generator")
+include("central-server:admin-service:ui-system-test")
+include("central-server:admin-service:int-test")
+include("central-server:admin-service:api-client")
+
+include("central-server:management-service")
+include("central-server:management-service:application")
+include("central-server:management-service:core")
+include("central-server:management-service:infra-api-soap")
+include("central-server:management-service:core-api")
+include("central-server:management-service:int-test")
+
+include("central-server:registration-service")
+
+include("security-server")
+include("security-server:openapi-model")
+include("security-server:admin-service")
+include("security-server:admin-service:application")
+include("security-server:admin-service:infra-jpa")
+include("security-server:admin-service:ui")
+include("security-server:admin-service:int-test")
+include("security-server:system-test")
+include("security-server:e2e-test")
+
+// Utils
+include("signer-console")
+
+// Tests
+include("common:common-test")
+
+// Addons
+include("addons:hwtoken")
+include("addons:messagelog:messagelog-addon")
+include("addons:messagelog:messagelog-archiver")
+include("addons:messagelog:messagelog-archive-verifier")
+include("addons:messagelog:messagelog-db")
+include("addons:metaservice")
+
+include("addons:proxymonitor-common")
+project(":addons:proxymonitor-common").projectDir = file("addons/proxymonitor/common")
+
+include("addons:proxymonitor-metaservice")
+project(":addons:proxymonitor-metaservice").projectDir = file("addons/proxymonitor/metaservice")
+
+include("addons:op-monitoring")
+include("addons:wsdlvalidator")

@@ -1,5 +1,6 @@
 plugins {
-    id 'org.springframework.boot'
+    id("xroad.java-conventions")
+    alias(libs.plugins.springBoot)
 }
 
 base {
@@ -9,6 +10,7 @@ base {
 jar {
     enabled = false
 }
+
 bootJar {
     enabled = true
     manifest {
@@ -21,6 +23,7 @@ bootJar {
 
 
 dependencies {
+    implementation(platform(libs.springCloud.bom))
     implementation(project(":central-server:management-service:core")) {
         exclude group: 'org.springframework.boot', module: 'spring-boot-starter-tomcat'
     }

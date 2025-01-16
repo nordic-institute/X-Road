@@ -1,4 +1,11 @@
+plugins {
+    id("xroad.java-conventions")
+}
+
 dependencies {
+    annotationProcessor(libs.mapstructProcessor)
+    annotationProcessor(libs.lombokMapstructBinding)
+
     implementation project(':central-server:admin-service:core-api')
     implementation project(':central-server:openapi-model')
     implementation project(':common:common-domain')
@@ -10,6 +17,7 @@ dependencies {
     implementation('org.springframework.boot:spring-boot-starter-web')
     implementation("org.springframework.boot:spring-boot-starter-cache")
     implementation("org.springframework.boot:spring-boot-starter-validation")
+    implementation(libs.mapstruct)
 
     testImplementation project(':common:common-test')
     testImplementation('org.springframework.boot:spring-boot-starter-test')

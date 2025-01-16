@@ -1,3 +1,8 @@
+plugins {
+    id("xroad.java-conventions")
+    id("xroad.int-test-conventions")
+}
+
 dependencies {
     intTestImplementation project(":common:common-int-test")
     intTestImplementation(libs.testAutomation.assert)

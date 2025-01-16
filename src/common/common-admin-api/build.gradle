@@ -1,5 +1,5 @@
 plugins {
-    id 'java-library'
+    id("xroad.java-conventions")
     alias(libs.plugins.springBoot)
     alias(libs.plugins.openapi.generator)
     id 'org.niis.xroad.oasvalidatorplugin'

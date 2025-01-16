@@ -1,4 +1,5 @@
 plugins {
+    id("xroad.java-conventions")
     alias(libs.plugins.springBoot)
 }
 
@@ -16,8 +17,8 @@ base {
 }
 
 dependencies {
-    implementation(platform(libs.springBoot.bom))
     annotationProcessor(platform(libs.springBoot.bom))
+    implementation(platform(libs.springBoot.bom))
     implementation(platform(libs.springCloud.bom))
 
     annotationProcessor "org.springframework:spring-context-indexer"
