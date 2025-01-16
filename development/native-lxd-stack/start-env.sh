@@ -68,10 +68,16 @@ function handleRecreate() {
 }
 
 function handleAnsible() {
+  local onMacOs="no"
+  if [[ $(uname) == "Darwin" ]]; then
+      onMacOs="yes"
+  fi
+
   ansible-playbook -i "$INVENTORY_PATH" \
     ../../ansible/xroad_dev.yml \
     --forks 10 \
     --skip-tags compile,build-packages \
+    -e onMacOs=$onMacOs \
     -vv
 }
 
