@@ -30,6 +30,8 @@ import ee.ria.xroad.common.opmonitoring.AbstractOpMonitoringBuffer;
 import ee.ria.xroad.common.opmonitoring.OpMonitoringData;
 import ee.ria.xroad.common.opmonitoring.OpMonitoringSystemProperties;
 
+import jakarta.annotation.PostConstruct;
+import jakarta.annotation.PreDestroy;
 import lombok.extern.slf4j.Slf4j;
 
 import java.util.ArrayList;
@@ -160,8 +162,8 @@ public class OpMonitoringBuffer extends AbstractOpMonitoringBuffer {
         // Do not worry, scheduled sending retries.
     }
 
-    @Override
-    public void afterPropertiesSet() {
+    @PostConstruct
+    public void init() {
         if (ignoreOpMonitoringData()) {
             return;
         }
@@ -171,7 +173,7 @@ public class OpMonitoringBuffer extends AbstractOpMonitoringBuffer {
 
     }
 
-    @Override
+    @PreDestroy
     public void destroy() {
         if (executorService != null) {
             executorService.shutdown();

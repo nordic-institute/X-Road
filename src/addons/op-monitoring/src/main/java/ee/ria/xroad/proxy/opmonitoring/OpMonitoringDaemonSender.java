@@ -42,7 +42,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.http.impl.client.CloseableHttpClient;
-import org.springframework.beans.factory.DisposableBean;
 
 import java.net.URI;
 import java.net.URISyntaxException;
@@ -59,7 +58,7 @@ import static ee.ria.xroad.common.opmonitoring.StoreOpMonitoringDataResponse.STA
  * OpMonitoringBuffer class for periodically forwarding operational data gathered in the buffer.
  */
 @Slf4j
-public class OpMonitoringDaemonSender implements DisposableBean {
+public class OpMonitoringDaemonSender {
 
     private static final ObjectReader OBJECT_READER = JsonUtils.getObjectReader();
 
@@ -150,7 +149,6 @@ public class OpMonitoringDaemonSender implements DisposableBean {
                 TimeUtils.secondsToMillis(OpMonitoringSystemProperties.getOpMonitorBufferSocketTimeoutSeconds()));
     }
 
-    @Override
     public void destroy() {
         executorService.shutdown();
 

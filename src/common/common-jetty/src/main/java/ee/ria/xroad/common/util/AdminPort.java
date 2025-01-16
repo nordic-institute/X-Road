@@ -27,6 +27,8 @@ package ee.ria.xroad.common.util;
 
 import ee.ria.xroad.common.HttpStatus;
 
+import jakarta.annotation.PostConstruct;
+import jakarta.annotation.PreDestroy;
 import org.eclipse.jetty.io.Content;
 import org.eclipse.jetty.server.Handler;
 import org.eclipse.jetty.server.Request;
@@ -36,8 +38,6 @@ import org.eclipse.jetty.server.ServerConnector;
 import org.eclipse.jetty.util.Callback;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.DisposableBean;
-import org.springframework.beans.factory.InitializingBean;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -45,7 +45,7 @@ import java.util.Map;
 /**
  * Service that listens for administrative commands on a specific port.
  */
-public class AdminPort implements InitializingBean, DisposableBean {
+public class AdminPort {
 
     /**
      * Base class for AdminPort callbacks
@@ -81,14 +81,14 @@ public class AdminPort implements InitializingBean, DisposableBean {
         createAdminConnector();
     }
 
-    @Override
+    @PostConstruct
     public void afterPropertiesSet() throws Exception {
         LOG.info("Started AdminPort on port {}", portNumber);
 
         server.start();
     }
 
-    @Override
+    @PreDestroy
     public void destroy() throws Exception {
         server.stop();
     }

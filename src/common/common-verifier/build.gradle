@@ -5,9 +5,13 @@ plugins {
 testJar.enabled = true
 
 dependencies {
+    implementation(platform(libs.springBoot.bom))
+
     implementation project(':common:common-message')
     implementation project(':common:common-scheduler')
     api project(':common:common-globalconf')
+
+    implementation('org.springframework:spring-context-support')
 
     testImplementation project(':common:common-test')
     testImplementation(libs.julOverSlf4j)

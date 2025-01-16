@@ -19,6 +19,8 @@ dependencies {
     annotationProcessor(libs.mapstructProcessor)
     annotationProcessor(libs.lombokMapstructBinding)
 
+    api(platform(libs.springBoot.bom))
+
     implementation libs.jakarta.validationApi
     implementation libs.bundles.metrics
     implementation(libs.mapstruct)
@@ -29,6 +31,8 @@ dependencies {
     implementation project(':common:common-jetty')
     implementation project(':common:common-db')
     implementation project(':common:common-op-monitoring')
+
+    api('org.springframework:spring-context-support')
 
     // Using HSQLDB for an in-memory database in tests.
     testImplementation libs.hsqldb

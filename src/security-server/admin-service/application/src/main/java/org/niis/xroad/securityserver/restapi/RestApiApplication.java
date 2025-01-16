@@ -27,7 +27,6 @@ package org.niis.xroad.securityserver.restapi;
 
 import ee.ria.xroad.common.Version;
 import ee.ria.xroad.common.conf.globalconf.GlobalConfBeanConfig;
-import ee.ria.xroad.common.conf.serverconf.ServerConfBeanConfig;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
@@ -38,8 +37,7 @@ import org.springframework.context.annotation.Import;
 /**
  * main spring boot application.
  */
-@Import({GlobalConfBeanConfig.class,
-        ServerConfBeanConfig.class})
+@Import({GlobalConfBeanConfig.class})
 @ServletComponentScan
 @SpringBootApplication(scanBasePackages = {"org.niis.xroad.securityserver.restapi", "org.niis.xroad.restapi", "org.niis.xroad.common.acme",
         "org.niis.xroad.common.mail", "ee.ria.xroad.common.util"})
