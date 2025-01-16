@@ -1,9 +1,23 @@
-spring:
+quarkus:
   application:
     name: monitor
+    version: 1.0.0
+  spring-di:
+    enabled: true
+  vault:
+    devservices:
+      enabled: false
+  live-reload:
+    enabled: false
+  http:
+    host-enabled: false
+  config:
+    locations:
+      - xroad-common.yaml
+      - xroad-ss-common.yaml
 
-server:
-  port: 5999
+#server:
+#  port: 5999
 
 xroad:
   env-monitor:
@@ -20,8 +34,8 @@ xroad:
       cache-period: 60
       client-cache-size: 100
       service-cache-size: 1000
-      service-endpoints-cache-size: 100_000
-      acl-cache-size: 100_000
+      service-endpoints-cache-size: 100000
+      acl-cache-size: 100000
       hibernate:
         dialect: ee.ria.xroad.common.db.CustomPostgreSQLDialect
         connection.driver_class: org.postgresql.Driver

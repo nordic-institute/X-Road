@@ -28,23 +28,24 @@ package ee.ria.xroad.monitor;
 import ee.ria.xroad.monitor.common.SystemMetricNames;
 
 import io.grpc.stub.StreamObserver;
+import io.quarkus.scheduler.Scheduled;
 import jakarta.annotation.PostConstruct;
+import jakarta.enterprise.context.ApplicationScoped;
 import lombok.extern.slf4j.Slf4j;
 import org.niis.xroad.common.rpc.client.RpcChannelFactory;
 import org.niis.xroad.monitor.common.MonitorServiceGrpc;
 import org.niis.xroad.monitor.common.StatsReq;
 import org.niis.xroad.monitor.common.StatsResp;
 import org.niis.xroad.proxy.proto.ProxyRpcChannelProperties;
-import org.springframework.scheduling.TaskScheduler;
-
-import java.time.Duration;
+import org.niis.xroad.proxy.proto.QuarkusProxyRpcChannelProperties;
 
 /**
  * System metrics sensor collects information such as
  * memory, cpu, swap and file descriptors.
  */
 @Slf4j
-public class SystemMetricsSensor extends AbstractSensor {
+@ApplicationScoped
+public class SystemMetricsSensor {
     private static final int SYSTEM_CPU_LOAD_MULTIPLIER = 100;
 
     private final RpcChannelFactory rpcChannelFactory;
@@ -52,20 +53,17 @@ public class SystemMetricsSensor extends AbstractSensor {
 
     private MonitorServiceGrpc.MonitorServiceStub monitorServiceStub;
 
-    public SystemMetricsSensor(TaskScheduler taskScheduler, EnvMonitorProperties envMonitorProperties,
-                               RpcChannelFactory rpcChannelFactory, ProxyRpcChannelProperties rpcChannelProperties) {
-        super(taskScheduler, envMonitorProperties);
+    public SystemMetricsSensor(EnvMonitorProperties envMonitorProperties,
+                               RpcChannelFactory rpcChannelFactory, QuarkusProxyRpcChannelProperties rpcChannelProperties) {
         this.rpcChannelFactory = rpcChannelFactory;
         this.rpcChannelProperties = rpcChannelProperties;
-        log.info("Creating sensor, measurement interval: {}", getInterval());
-        scheduleSingleMeasurement(getInterval());
+        log.info("Creating sensor, measurement interval: {}", envMonitorProperties.systemMetricsSensorInterval());
     }
-
 
     @PostConstruct
     public void afterPropertiesSet() throws Exception {
-        log.info("Initializing {} rpc client to {}:{}", getClass().getSimpleName(), rpcChannelProperties.getHost(),
-                rpcChannelProperties.getPort());
+        log.info("Initializing {} rpc client to {}:{}", getClass().getSimpleName(), rpcChannelProperties.host(),
+                rpcChannelProperties.port());
         var channel = rpcChannelFactory.createChannel(rpcChannelProperties);
 
         monitorServiceStub = MonitorServiceGrpc.newStub(channel).withWaitForReady();
@@ -102,14 +100,14 @@ public class SystemMetricsSensor extends AbstractSensor {
                 .update(stats.getTotalPhysicalMemorySize());
     }
 
-    @Override
+    @Scheduled(every = "${xroad.env-monitor.system-metrics-sensor-interval}",
+            concurrentExecution = Scheduled.ConcurrentExecution.SKIP)
     public void measure() {
         monitorServiceStub.getStats(StatsReq.getDefaultInstance(), new StreamObserver<>() {
 
             @Override
             public void onNext(StatsResp value) {
                 updateMetrics(value);
-                scheduleSingleMeasurement(getInterval());
             }
 
             @Override
@@ -122,11 +120,6 @@ public class SystemMetricsSensor extends AbstractSensor {
                 //NO-OP
             }
         });
-    }
-
-    @Override
-    protected Duration getInterval() {
-        return envMonitorProperties.getSystemMetricsSensorInterval();
     }
 
 }

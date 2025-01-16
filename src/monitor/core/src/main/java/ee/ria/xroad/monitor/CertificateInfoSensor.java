@@ -32,12 +32,12 @@ import ee.ria.xroad.monitor.common.SystemMetricNames;
 import ee.ria.xroad.signer.SignerRpcClient;
 import ee.ria.xroad.signer.protocol.dto.TokenInfo;
 
+import io.quarkus.scheduler.Scheduled;
+import jakarta.enterprise.context.ApplicationScoped;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.scheduling.TaskScheduler;
 
 import java.security.cert.X509Certificate;
-import java.time.Duration;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
@@ -51,10 +51,9 @@ import java.util.stream.Stream;
  * with SignerClient.init()
  */
 @Slf4j
-public class CertificateInfoSensor extends AbstractSensor {
+@ApplicationScoped
+public class CertificateInfoSensor {
 
-    // give signer some time to become available
-    private static final Duration INITIAL_DELAY = Duration.ofSeconds(10);
     private static final String JMX_HEADER = "SHA1HASH\t\t\t\t\t\t\tCERT TYPE\t\tNOT BEFORE\t\tNOT AFTER\t\tACTIVE";
 
     private CertificateInfoCollector certificateInfoCollector;
@@ -68,17 +67,14 @@ public class CertificateInfoSensor extends AbstractSensor {
     /**
      * Create new CertificateInfoSensor
      */
-    public CertificateInfoSensor(TaskScheduler taskScheduler, EnvMonitorProperties envMonitorProperties,
+    public CertificateInfoSensor(EnvMonitorProperties envMonitorProperties,
                                  ServerConfProvider serverConfProvider, SignerRpcClient signerRpcClient) {
-        super(taskScheduler, envMonitorProperties);
-        log.info("Creating sensor, measurement interval: {}", getInterval());
-
         certificateInfoCollector = new CertificateInfoCollector()
                 .addExtractor(new InternalServerCertificateExtractor(serverConfProvider))
                 .addExtractor(new InternalTlsExtractor(serverConfProvider))
                 .addExtractor(new TokenExtractor(signerRpcClient));
 
-        scheduleSingleMeasurement(INITIAL_DELAY);
+        log.info("Creating sensor, measurement interval: {}", envMonitorProperties.certificateInfoSensorInterval());
     }
 
     /**
@@ -257,16 +253,11 @@ public class CertificateInfoSensor extends AbstractSensor {
         b.append('\t');
     }
 
-    @Override
+    @Scheduled(every = "${xroad.env-monitor.certificate-info-sensor-interval}", delayed = "10s",
+            concurrentExecution = Scheduled.ConcurrentExecution.SKIP)
     public void measure() {
         log.info("Updating CertificateInfo metrics");
         updateOrRegisterData(list());
-        scheduleSingleMeasurement(getInterval());
-    }
-
-    @Override
-    protected Duration getInterval() {
-        return envMonitorProperties.getCertificateInfoSensorInterval();
     }
 
 }

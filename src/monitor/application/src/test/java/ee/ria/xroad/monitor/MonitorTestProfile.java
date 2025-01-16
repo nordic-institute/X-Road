@@ -1,5 +1,6 @@
 /*
  * The MIT License
+ *
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
@@ -23,31 +24,21 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package ee.ria.xroad.common.conf.globalconf;
 
-import ee.ria.xroad.common.conf.globalconf.globalconfextension.GlobalConfExtensionFactoryImpl;
+package ee.ria.xroad.monitor;
 
-import static ee.ria.xroad.common.ErrorCodes.X_MALFORMED_GLOBALCONF;
-import static ee.ria.xroad.common.ErrorCodes.translateWithPrefix;
-import static ee.ria.xroad.common.SystemProperties.getConfigurationPath;
+import io.quarkus.test.junit.QuarkusTestProfile;
 
-/**
- * Test globalconf implementation.
- */
-public class TestGlobalConfImpl extends GlobalConfImpl {
-    /**
-     * Constructs a new test globalconf.
-     */
-    public TestGlobalConfImpl() {
-        super(globalConfSource(), new GlobalConfExtensionFactoryImpl());
-    }
+import java.util.Map;
 
-    private static GlobalConfSource globalConfSource() {
-        try {
-            return new FileSystemGlobalConfSource(getConfigurationPath());
-        } catch (Exception e) {
-            throw translateWithPrefix(X_MALFORMED_GLOBALCONF, e);
-        }
+public class MonitorTestProfile implements QuarkusTestProfile {
+
+    @Override
+    public Map<String, String> getConfigOverrides() {
+        return Map.of(
+                "xroad.common.rpc.use-tls", "false",
+                "xroad.common.global-conf.source", "FILESYSTEM"
+        );
     }
 
 }

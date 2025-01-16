@@ -36,10 +36,10 @@ import org.springframework.context.annotation.Configuration;
 import java.util.List;
 
 @Slf4j
-@Configuration
+//@Configuration
 public class RpcServerConfig {
 
-    @Bean
+//    @Bean
     RpcServer rpcServer(@All List<BindableService> services,
                         RpcServerProperties rpcServerProperties,
                         RpcCredentialsConfigurer rpcCredentialsConfigurer) {

@@ -31,11 +31,10 @@ import ee.ria.xroad.monitor.executablelister.PackageLister;
 import ee.ria.xroad.monitor.executablelister.ProcessLister;
 import ee.ria.xroad.monitor.executablelister.XroadProcessLister;
 
-import com.codahale.metrics.Metric;
+import io.quarkus.scheduler.Scheduled;
+import jakarta.enterprise.context.ApplicationScoped;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.scheduling.TaskScheduler;
 
-import java.time.Duration;
 import java.util.ArrayList;
 
 /**
@@ -43,18 +42,14 @@ import java.util.ArrayList;
  * parsing output from those.
  */
 @Slf4j
-public class ExecListingSensor extends AbstractSensor {
+@ApplicationScoped
+public class ExecListingSensor {
 
     private MetricRegistryHolder registryHolder;
 
-    /**
-     * Constructor
-     */
-    public <T extends Metric> ExecListingSensor(TaskScheduler taskScheduler, EnvMonitorProperties envMonitorProperties) {
-        super(taskScheduler, envMonitorProperties);
-        log.info("Creating sensor, measurement interval: {}", getInterval());
+    public ExecListingSensor(EnvMonitorProperties envMonitorProperties) {
+        log.info("Creating sensor, measurement interval: {}", envMonitorProperties.execListingSensorInterval());
         updateMetrics();
-        scheduleSingleMeasurement(getInterval());
     }
 
     private void createOrUpdateMetricPair(String parsedName, String jmxName, JmxStringifiedData data) {
@@ -101,17 +96,11 @@ public class ExecListingSensor extends AbstractSensor {
         createOsStringMetric(SystemMetricNames.OS_INFO, new OsInfoLister().list());
     }
 
-    @Override
+    @Scheduled(every = "${xroad.env-monitor.exec-listing-sensor-interval}",
+            concurrentExecution = Scheduled.ConcurrentExecution.SKIP)
     public void measure() {
         log.debug("Updating metrics");
         updateMetrics();
-        scheduleSingleMeasurement(getInterval());
-
-    }
-
-    @Override
-    protected Duration getInterval() {
-        return envMonitorProperties.getExecListingSensorInterval();
     }
 
 }

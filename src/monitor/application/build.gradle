@@ -1,28 +1,21 @@
 plugins {
-    alias(libs.plugins.springBoot)
+    alias(libs.plugins.quarkus)
 }
 
 dependencies {
-    implementation project(':common:common-service-bootstrap')
+    implementation(platform(libs.quarkus.bom))
+
+    implementation(libs.quarkus.springBoot.di)
+    implementation project(':common:common-quarkus-bootstrap')
+
     implementation project(':common:common-core')
     implementation project(':common:common-properties')
     implementation project(':monitor:core')
     implementation project(':monitor-common')
 
     implementation libs.bundles.metrics
-}
 
-bootJar {
-    enabled = true
-    archiveBaseName = 'monitor'
-
-    manifest {
-        attributes(
-            'Implementation-Title': 'X-Road Environmental Monitoring',
-            'Implementation-Version': "$xroadVersion-$xroadBuildType",
-            'Main-Class': 'org.springframework.boot.loader.launch.PropertiesLauncher'
-        )
-    }
+    testImplementation(libs.quarkus.junit5)
 }
 
 jar.enabled = false

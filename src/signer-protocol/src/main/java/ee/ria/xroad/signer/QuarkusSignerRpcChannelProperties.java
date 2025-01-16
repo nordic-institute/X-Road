@@ -27,8 +27,23 @@
 package ee.ria.xroad.signer;
 
 import io.smallrye.config.ConfigMapping;
+import io.smallrye.config.WithDefault;
+import io.smallrye.config.WithName;
 
 @ConfigMapping(prefix = "xroad.common.rpc.channel.signer")
 public interface QuarkusSignerRpcChannelProperties extends SignerRpcChannelProperties {
+
+    @Override
+    @WithDefault("127.0.0.1")
+    String host();
+
+    @Override
+    @WithDefault("5560")
+    int port();
+
+    @Override
+    @WithName("deadline-after")
+    @WithDefault("60000")
+    int deadlineAfter();
 
 }
