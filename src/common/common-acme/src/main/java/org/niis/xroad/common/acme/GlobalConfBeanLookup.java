@@ -24,11 +24,8 @@
  * THE SOFTWARE.
  */
 package org.niis.xroad.common.acme;
-<<<<<<<< HEAD:src/common/common-acme/src/main/java/org/niis/xroad/common/acme/SpringApplicationContext.java
-========
 
 import ee.ria.xroad.common.conf.globalconf.GlobalConfProvider;
->>>>>>>> develop:src/common/common-acme/src/main/java/org/niis/xroad/common/acme/GlobalConfBeanLookup.java
 
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;

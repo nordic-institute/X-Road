@@ -4,6 +4,7 @@ plugins {
 
 dependencies {
 
+    implementation project(':common:common-core')
     implementation project(':common:common-domain')
     implementation project(':common:common-verifier')
     implementation(project(':proxy:proxy-rpc-client'))

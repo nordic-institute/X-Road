@@ -35,6 +35,7 @@ dependencies {
     implementation project(':configuration-client:core')
 
     testImplementation project(':common:common-test')
+    testImplementation project(':common:common-scheduler')
     testImplementation('org.springframework.boot:spring-boot-starter-test')
     testImplementation(libs.junit.system.exit)
 }

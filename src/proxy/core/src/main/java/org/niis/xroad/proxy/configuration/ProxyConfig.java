@@ -30,8 +30,10 @@ import ee.ria.xroad.common.cert.CertHelper;
 import ee.ria.xroad.common.conf.globalconf.GlobalConfBeanConfig;
 import ee.ria.xroad.common.conf.globalconf.GlobalConfProvider;
 import ee.ria.xroad.common.conf.globalconf.GlobalConfRefreshJobConfig;
-import ee.ria.xroad.common.conf.serverconf.ServerConfBeanConfig;
+import ee.ria.xroad.common.conf.serverconf.ServerConfFactory;
+import ee.ria.xroad.common.conf.serverconf.ServerConfProperties;
 import ee.ria.xroad.common.conf.serverconf.ServerConfProvider;
+import ee.ria.xroad.common.db.DatabaseCtxV2;
 import ee.ria.xroad.common.opmonitoring.AbstractOpMonitoringBuffer;
 import ee.ria.xroad.common.signature.SimpleSigner;
 import ee.ria.xroad.proxy.ProxyAddonConfig;
@@ -57,6 +59,7 @@ import ee.ria.xroad.signer.SignerRpcClient;
 import org.niis.xroad.common.rpc.server.RpcServerConfig;
 import org.niis.xroad.confclient.proto.ConfClientRpcClientConfiguration;
 import org.niis.xroad.proxy.ProxyProperties;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.ApplicationContext;
@@ -76,7 +79,6 @@ import org.springframework.context.annotation.Import;
         ProxyClientConfig.class,
         GlobalConfBeanConfig.class,
         GlobalConfRefreshJobConfig.class,
-        ServerConfBeanConfig.class,
         SignerClientConfiguration.class,
         ConfClientRpcClientConfiguration.class,
         ProxyEdcControlPlaneConfig.class,
@@ -86,6 +88,7 @@ import org.springframework.context.annotation.Import;
 @EnableConfigurationProperties({
         ProxyProperties.class,
         AntiDosConfiguration.class,
+        ServerConfProperties.class
 })
 @Configuration
 public class ProxyConfig {
@@ -146,8 +149,19 @@ public class ProxyConfig {
     }
 
     @Bean
+    public ServerConfProvider serverConfProvider(GlobalConfProvider globalConfProvider, ServerConfProperties serverConfProperties,
+                                                 @Qualifier("serverConfDatabaseCtx") DatabaseCtxV2 databaseCtx) {
+        return ServerConfFactory.create(serverConfProperties, globalConfProvider, databaseCtx);
+    }
+
+    @Bean("serverConfDatabaseCtx")
+    DatabaseCtxV2 serverConfDatabaseCtx(ServerConfProperties serverConfProperties) {
+        return new DatabaseCtxV2("serverconf", serverConfProperties.hibernate());
+    }
+
+    @Bean
     KeyConfProvider keyConfProvider(GlobalConfProvider globalConfProvider, ServerConfProvider serverConfProvider,
-                                    SignerRpcClient signerRpcClient) throws Exception {
+                                    SignerRpcClient signerRpcClient) {
         return new CachingKeyConfImpl(globalConfProvider, serverConfProvider, signerRpcClient);
     }
 

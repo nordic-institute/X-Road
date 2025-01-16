@@ -200,7 +200,7 @@ public class TaskQueue {
                 .list();
     }
 
-    private static Long getTasksQueueSize(Session session) {
+    private Long getTasksQueueSize(Session session) {
         return session.createQuery(getTaskQueueSizeQuery(), Long.class)
                 .setParameter("origin", this.origin)
                 .uniqueResult();

@@ -18,6 +18,7 @@ dependencies {
     testImplementation project(':proxy:core')
 
     testImplementation project(':common:common-keyconf')
+    testImplementation project(':common:common-scheduler')
     testImplementation project(':common:common-test')
     testImplementation project(':asic-util')
     testImplementation libs.hsqldb

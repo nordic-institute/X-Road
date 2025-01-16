@@ -24,11 +24,10 @@
  */
 package org.niis.xroad.securityserver.restapi.service.diagnostic;
 
-import ee.ria.xroad.common.SystemProperties;
-
-import io.grpc.Channel;
-import lombok.Getter;
-import org.niis.xroad.common.rpc.client.RpcClient;
+import lombok.extern.slf4j.Slf4j;
+import org.niis.xroad.common.rpc.client.AbstractRpcClient;
+import org.niis.xroad.common.rpc.client.RpcChannelFactory;
+import org.niis.xroad.common.rpc.client.RpcChannelProperties;
 import org.niis.xroad.monitor.common.MetricsGroup;
 import org.niis.xroad.monitor.common.MetricsServiceGrpc;
 import org.niis.xroad.monitor.common.SystemMetricsReq;
@@ -36,18 +35,22 @@ import org.niis.xroad.monitor.common.SystemMetricsReq;
 import java.util.Arrays;
 import java.util.List;
 
-public class MonitorClient {
-    private static final int TIMEOUT_AWAIT = 10 * 1000;
-    private final RpcClient<MetricsRpcExecutionContext> metricsRpcClient;
+@Slf4j
+public class MonitorClient extends AbstractRpcClient {
 
-    public MonitorClient() throws Exception {
-        this.metricsRpcClient = RpcClient.newClient(SystemProperties.getGrpcInternalHost(),
-                SystemProperties.getEnvMonitorPort(), TIMEOUT_AWAIT, MetricsRpcExecutionContext::new);
+    private final MetricsServiceGrpc.MetricsServiceBlockingStub metricsServiceBlockingStub;
+
+    public MonitorClient(RpcChannelFactory proxyRpcChannelFactory, RpcChannelProperties rpcChannelProperties) throws Exception {
+        log.info("Initializing {} rpc client to {}:{}", getClass().getSimpleName(), rpcChannelProperties.getHost(),
+                rpcChannelProperties.getPort());
+        var channel = proxyRpcChannelFactory.createChannel(rpcChannelProperties);
+
+        metricsServiceBlockingStub = MetricsServiceGrpc.newBlockingStub(channel).withWaitForReady();
     }
 
     public MetricsGroup getMetrics(String... metricNames) {
         try {
-            var response = metricsRpcClient.execute(ctx -> ctx.getMetricsServiceBlockingStub().getMetrics(SystemMetricsReq.newBuilder()
+            var response = exec(() -> metricsServiceBlockingStub.getMetrics(SystemMetricsReq.newBuilder()
                     .setIsClientOwner(true)
                     .addAllMetricNames(List.of(metricNames))
                     .build()));
@@ -58,13 +61,4 @@ public class MonitorClient {
         }
     }
 
-
-    @Getter
-    private static class MetricsRpcExecutionContext implements RpcClient.ExecutionContext {
-        private final MetricsServiceGrpc.MetricsServiceBlockingStub metricsServiceBlockingStub;
-
-        MetricsRpcExecutionContext(Channel channel) {
-            metricsServiceBlockingStub = MetricsServiceGrpc.newBlockingStub(channel).withWaitForReady();
-        }
-    }
 }

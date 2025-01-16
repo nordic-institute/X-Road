@@ -25,10 +25,9 @@
  */
 package ee.ria.xroad.opmonitordaemon;
 
+import ee.ria.xroad.common.db.HibernateUtil;
 import ee.ria.xroad.opmonitordaemon.entity.OperationalDataRecordEntity;
 import ee.ria.xroad.opmonitordaemon.mapper.OperationalDataRecordMapper;
-
-import ee.ria.xroad.common.db.HibernateUtil;
 
 import com.fasterxml.jackson.databind.JsonMappingException;
 import org.hibernate.PropertyValueException;

@@ -29,7 +29,9 @@ import ee.ria.xroad.common.conf.globalconf.GlobalConfBeanConfig;
 import ee.ria.xroad.common.conf.globalconf.GlobalConfProvider;
 import ee.ria.xroad.common.conf.globalconf.GlobalConfRefreshJobConfig;
 import ee.ria.xroad.common.conf.serverconf.ServerConfFactory;
+import ee.ria.xroad.common.conf.serverconf.ServerConfProperties;
 import ee.ria.xroad.common.conf.serverconf.ServerConfProvider;
+import ee.ria.xroad.common.db.DatabaseCtxV2;
 import ee.ria.xroad.monitor.CertificateInfoSensor;
 import ee.ria.xroad.monitor.DiskSpaceSensor;
 import ee.ria.xroad.monitor.EnvMonitorProperties;
@@ -46,6 +48,7 @@ import org.niis.xroad.common.rpc.server.RpcServerConfig;
 import org.niis.xroad.confclient.proto.ConfClientRpcClientConfiguration;
 import org.niis.xroad.proxy.proto.ProxyRpcChannelProperties;
 import org.niis.xroad.proxy.proto.ProxyRpcClientConfiguration;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
@@ -86,7 +89,7 @@ public class MonitorConfig {
     SystemMetricsSensor systemMetricsSensor(TaskScheduler taskScheduler,
                                             EnvMonitorProperties envMonitorProperties,
                                             RpcChannelFactory rpcChannelFactory,
-                                            ProxyRpcChannelProperties proxyRpcClientProperties) throws Exception {
+                                            ProxyRpcChannelProperties proxyRpcClientProperties) {
 
         return new SystemMetricsSensor(taskScheduler, envMonitorProperties, rpcChannelFactory, proxyRpcClientProperties);
     }
@@ -116,7 +119,14 @@ public class MonitorConfig {
     }
 
     @Bean
-    public ServerConfProvider serverConfProvider(GlobalConfProvider globalConfProvider) {
-        return ServerConfFactory.create(globalConfProvider, SystemProperties.getServerConfCachePeriod());
+    public ServerConfProvider serverConfProvider(GlobalConfProvider globalConfProvider,
+                                                 ServerConfProperties serverConfProperties,
+                                                 @Qualifier("serverConfDatabaseCtx") DatabaseCtxV2 databaseCtx) {
+        return ServerConfFactory.create(serverConfProperties, globalConfProvider, databaseCtx);
+    }
+
+    @Bean("serverConfDatabaseCtx")
+    DatabaseCtxV2 serverConfDatabaseCtx(ServerConfProperties serverConfProperties) {
+        return new DatabaseCtxV2("serverconf", serverConfProperties.hibernate());
     }
 }

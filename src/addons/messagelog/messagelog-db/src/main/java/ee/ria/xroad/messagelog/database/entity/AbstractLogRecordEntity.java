@@ -63,4 +63,7 @@ public abstract class AbstractLogRecordEntity {
     private Long time;
     @Column(name = "ARCHIVED")
     private boolean archived;
+
+    @Column(name = "ORIGIN", updatable = false)
+    private String origin;
 }

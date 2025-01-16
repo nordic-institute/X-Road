@@ -28,23 +28,19 @@ package ee.ria.xroad.common.conf.serverconf;
 
 import ee.ria.xroad.common.conf.globalconf.GlobalConfProvider;
 import ee.ria.xroad.common.db.DatabaseCtxV2;
+
 import lombok.NoArgsConstructor;
 import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.context.annotation.Bean;
 
 @NoArgsConstructor(access = lombok.AccessLevel.PRIVATE)
 public class ServerConfFactory {
 
     public static ServerConfProvider create(ServerConfProperties serverConfProperties, GlobalConfProvider globalConfProvider,
-                                            @Qualifier("serverConfDatabaseCtx") DatabaseCtxV2 databaseCtx, int expireSeconds) {
-        if (expireSeconds > 0) {
-            return new CachingServerConfImpl(databaseCtx, serverConfProperties, globalConfProvider, expireSeconds);
+                                            @Qualifier("serverConfDatabaseCtx") DatabaseCtxV2 databaseCtx) {
+        if (serverConfProperties.cachePeriod() > 0) {
+            return new CachingServerConfImpl(databaseCtx, serverConfProperties, globalConfProvider);
         }
-        return new ServerConfImpl(globalConfProvider);
+        return new ServerConfImpl(databaseCtx, globalConfProvider);
     }
 
-    @Bean("serverConfDatabaseCtx")
-    DatabaseCtxV2 serverConfDatabaseCtx(ServerConfProperties serverConfProperties) {
-        return new DatabaseCtxV2("serverconf", serverConfProperties.hibernate());
-    }
 }

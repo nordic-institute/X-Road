@@ -23,22 +23,11 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package ee.ria.xroad.common.opmonitoring;
+package ee.ria.xroad.common.util;
 
-import ee.ria.xroad.common.conf.serverconf.ServerConfProvider;
+import java.util.Optional;
 
-import lombok.extern.slf4j.Slf4j;
+public interface FileSource<T> {
 
-/**
- * Abstract operational monitoring buffer.
- */
-@Slf4j
-public abstract class AbstractOpMonitoringBuffer {
-
-    protected AbstractOpMonitoringBuffer(ServerConfProvider serverConfProvider) {
-        //No-OP
-    }
-
-    public abstract void store(OpMonitoringData data) throws Exception;
-
+    Optional<T> getFile();
 }
