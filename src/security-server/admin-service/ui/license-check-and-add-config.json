@@ -13,7 +13,7 @@
     "**/*.cer",
     "**/*.log",
     "**/*.yaml*",
-    "**/*.gradle",
+    "**/*.gradle.kts",
     "**/.*",
     "src/openapi-types/",
     "**/openapi-types.ts",

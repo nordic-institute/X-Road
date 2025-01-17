@@ -1,3 +1,8 @@
+plugins {
+    id("xroad.java-conventions")
+    id("xroad.java-exec-conventions")
+}
+
 dependencies {
     implementation project(':proxy:core')
     implementation project(':common:common-jetty')

@@ -1,4 +1,6 @@
 plugins {
+    id("xroad.java-conventions")
+    id("xroad.int-test-conventions")
     id 'java-library'
 }
 

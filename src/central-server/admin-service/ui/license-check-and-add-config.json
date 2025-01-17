@@ -14,7 +14,7 @@
     "**/*.config.js",
     "**/*.cer",
     "**/*.log",
-    "**/*.gradle",
+    "**/*.gradle.kts",
     "**/*.yaml*",
     "**/.*",
     "src/openapi-types/",

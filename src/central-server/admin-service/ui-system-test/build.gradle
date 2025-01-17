@@ -1,3 +1,8 @@
+plugins {
+    id("xroad.java-conventions")
+    id("xroad.int-test-conventions")
+}
+
 dependencies {
     intTestImplementation project(":central-server:openapi-model")
     intTestImplementation project(":common:common-int-test")
@@ -42,6 +47,6 @@ task systemTest(type: Test) {
     }
 }
 
-archUnit {
-    skip = true
-}
+//archUnit {
+//    skip = true
+//}
