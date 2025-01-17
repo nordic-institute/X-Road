@@ -112,18 +112,6 @@ description:
     videos:
       - 'https://youtu.be/EvhssW_Uv8s'
 developmentStatus: stable
-it:
-  conforme:
-    gdpr: false
-    lineeGuidaDesign: false
-    misureMinimeSicurezza: false
-    modelloInteroperabilita: false
-  countryExtensionVersion: '0.2'
-  piattaforme:
-    anpr: false
-    cie: false
-    pagopa: false
-    spid: false
 legal:
   license: MIT
   mainCopyrightOwner: Nordic Institute for Interoperability Solutions (NIIS)
