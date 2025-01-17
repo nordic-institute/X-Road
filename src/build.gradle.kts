@@ -2,6 +2,7 @@ plugins {
   alias(libs.plugins.sonarqube)
   id("jacoco-report-aggregation")
   id("java")
+  alias(libs.plugins.jandex) apply false
 }
 
 version = "1.0"

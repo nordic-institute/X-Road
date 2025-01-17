@@ -1,5 +1,5 @@
 plugins {
-  `java-library`
+  id("xroad.java-conventions")
 }
 
 dependencies {
