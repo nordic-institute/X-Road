@@ -1,4 +1,6 @@
-
+plugins {
+    id("xroad.java-conventions")
+}
 
 dependencies {
     implementation(project(':addons:messagelog:messagelog-addon:core'))

@@ -38,8 +38,16 @@ dependencies {
     testImplementation("org.springframework.boot:spring-boot-starter-test")
 }
 
-jar {
-    enabled = false
+tasks.register('testJar', Jar) {
+    archiveClassifier = 'test'
+    from sourceSets.test.output
+}
+
+configurations {
+    testArtifacts.extendsFrom testRuntime
+}
+artifacts {
+    testArtifacts testJar
 }
 
 bootJar {

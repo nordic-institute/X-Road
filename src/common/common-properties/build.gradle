@@ -1,5 +1,5 @@
 plugins {
-    id 'java-library'
+    id("xroad.java-conventions")
 }
 
 dependencies {
@@ -8,7 +8,7 @@ dependencies {
     implementation("org.springframework.boot:spring-boot-starter")
 }
 
-//todo: enable
-archUnit {
-    skip = true
-}
+////todo: enable
+//archUnit {
+//    skip = true
+//}
