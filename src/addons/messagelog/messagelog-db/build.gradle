@@ -1,3 +1,7 @@
+plugins {
+    id("xroad.java-conventions")
+}
+
 dependencies {
     annotationProcessor(libs.mapstructProcessor)
     annotationProcessor(libs.lombokMapstructBinding)

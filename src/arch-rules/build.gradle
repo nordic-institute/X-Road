@@ -1,3 +1,7 @@
+plugins {
+    id("xroad.java-conventions")
+}
+
 dependencies {
     implementation(platform(libs.springBoot.bom))
 
@@ -5,10 +9,6 @@ dependencies {
     implementation('org.springframework:spring-context')
 
     implementation libs.archUnit.plugin.core
-}
-
-test {
-    useJUnitPlatform()
 }
 
 archUnit {

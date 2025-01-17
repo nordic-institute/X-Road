@@ -1,7 +1,7 @@
 import org.apache.tools.ant.taskdefs.condition.Os
 
 plugins {
-    id 'java-library'
+    id("xroad.java-conventions")
     alias(libs.plugins.protobuf)
 }
 

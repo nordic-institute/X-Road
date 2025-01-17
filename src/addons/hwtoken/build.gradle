@@ -1,3 +1,6 @@
+plugins {
+    id("xroad.java-conventions")
+}
 dependencies {
     implementation(project(':signer:core')) {
         exclude group: 'org.springframework', module: 'spring-context'

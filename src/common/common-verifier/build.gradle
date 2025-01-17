@@ -1,9 +1,19 @@
 plugins {
-    id 'java-library'
+    id("xroad.java-conventions")
 }
 
-testJar.enabled = true
+tasks.register('testJar', Jar) {
+    archiveClassifier = 'test'
+    from sourceSets.test.output
+}
 
+configurations {
+    testArtifacts.extendsFrom testRuntime
+}
+
+artifacts {
+    testArtifacts testJar
+}
 dependencies {
     implementation(platform(libs.springBoot.bom))
 

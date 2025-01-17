@@ -1,5 +1,5 @@
 plugins {
-    id 'java'
+    id("xroad.java-conventions")
     alias(libs.plugins.shadow)
 }
 
