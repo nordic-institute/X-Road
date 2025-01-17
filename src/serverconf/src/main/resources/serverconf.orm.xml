@@ -195,6 +195,9 @@
             <basic name="rightsGiven">
                 <column nullable="false"/>
             </basic>
+            <basic name="additionalConditions">
+                <column name="additional_conditions"/>
+            </basic>
             <many-to-one name="subjectId" fetch="EAGER" target-entity="ee.ria.xroad.common.identifier.XRoadId$Conf">
                 <join-column name="subjectid" nullable="false"/>
                 <cascade>

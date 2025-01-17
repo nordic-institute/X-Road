@@ -42,3 +42,7 @@ xroad:
           host: 127.0.0.1
           port: 5567
           deadline-after: 60000
+        env-monitor:
+          host: 127.0.0.1
+          post: 2552
+          deadline-after: 60000

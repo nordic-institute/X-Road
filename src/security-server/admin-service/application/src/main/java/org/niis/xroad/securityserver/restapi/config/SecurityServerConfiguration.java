@@ -46,6 +46,8 @@ import org.niis.xroad.securityserver.restapi.service.diagnostic.OsVersionCollect
 import org.niis.xroad.securityserver.restapi.service.diagnostic.XrdPackagesCollector;
 import org.niis.xroad.securityserver.restapi.service.diagnostic.XrdProcessesCollector;
 import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.boot.context.properties.ConfigurationProperties;
+import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Profile;
@@ -59,6 +61,10 @@ import static org.niis.xroad.securityserver.restapi.service.CertificateAuthority
  * A generic, configuration class for bean initialization.
  */
 @Configuration
+@EnableConfigurationProperties({
+        ServerConfProperties.class,
+        SecurityServerConfiguration.EnvMonitorRpcChannelProperties.class,
+})
 public class SecurityServerConfiguration {
 
     @Bean
@@ -85,9 +91,19 @@ public class SecurityServerConfiguration {
 
     @Bean
     @Profile("nontest")
-    public MonitorClient monitorClient(RpcChannelFactory proxyRpcChannelFactory,
-                                       RpcChannelProperties rpcChannelProperties) throws Exception {
+        // todo: should be moved to monitor-rpc-client
+    MonitorClient monitorClient(RpcChannelFactory proxyRpcChannelFactory,
+                                EnvMonitorRpcChannelProperties rpcChannelProperties) throws Exception {
         return new MonitorClient(proxyRpcChannelFactory, rpcChannelProperties);
+    }
+
+    @ConfigurationProperties(prefix = "xroad.common.rpc.channel.env-monitor")
+    // todo: should be moved to monitor-rpc-client
+    static class EnvMonitorRpcChannelProperties extends RpcChannelProperties {
+
+        public EnvMonitorRpcChannelProperties(String host, int port, int deadlineAfter) {
+            super(host, port, deadlineAfter);
+        }
     }
 
     @Bean

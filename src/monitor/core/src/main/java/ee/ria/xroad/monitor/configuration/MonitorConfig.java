@@ -68,7 +68,8 @@ import org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler;
 @EnableScheduling
 @EnableConfigurationProperties({
         EnvMonitorProperties.class,
-        MonitorConfig.EnvMonitorServerProperties.class})
+        MonitorConfig.EnvMonitorServerProperties.class,
+        ServerConfProperties.class})
 @Configuration
 public class MonitorConfig {
     private static final int TASK_EXECUTOR_POOL_SIZE = 5;

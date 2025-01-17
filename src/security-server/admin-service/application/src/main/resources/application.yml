@@ -11,6 +11,9 @@ spring:
       data-source-properties:
         currentSchema: ${xroad.common.serverconf.hibernate.hikari.dataSource.currentSchema}
   jpa:
+    ## *.hbm.xml files are loaded from classpath
+    mapping-resources: identifiers.orm.xml,serverconf.orm.xml
+    open-in-view: false
     hibernate:
       ddl-auto: none
       naming:
