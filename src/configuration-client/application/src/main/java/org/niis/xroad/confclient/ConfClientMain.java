@@ -36,6 +36,7 @@ import org.niis.xroad.confclient.config.ConfigurationClientProperties;
 
 @QuarkusMain
 @Slf4j
+@SuppressWarnings("checkstyle:HideUtilityClassConstructor")
 public class ConfClientMain {
 
     public static void main(String[] args) {

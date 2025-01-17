@@ -25,11 +25,19 @@
  */
 package ee.ria.xroad.monitor.configuration;
 
+import ee.ria.xroad.common.conf.globalconf.GlobalConfProvider;
+import ee.ria.xroad.common.conf.serverconf.ServerConfFactory;
+import ee.ria.xroad.common.conf.serverconf.ServerConfProperties;
+import ee.ria.xroad.common.conf.serverconf.ServerConfProvider;
+import ee.ria.xroad.common.db.DatabaseCtxV2;
+
 import io.grpc.BindableService;
 import io.quarkus.arc.All;
 import io.quarkus.runtime.Startup;
 import io.smallrye.config.ConfigMapping;
 import jakarta.enterprise.context.ApplicationScoped;
+import jakarta.enterprise.inject.Produces;
+import jakarta.inject.Named;
 import lombok.extern.slf4j.Slf4j;
 import org.niis.xroad.common.rpc.RpcCredentialsConfigurer;
 import org.niis.xroad.common.rpc.RpcServerProperties;
@@ -52,6 +60,20 @@ public class MonitorConfig {
                     log.info("Registering {} RPC service.", service.getClass().getSimpleName());
                     builder.addService(service);
                 }));
+    }
+
+    @ApplicationScoped
+    @Produces
+    ServerConfProvider serverConfProvider(ServerConfProperties serverConfProperties, GlobalConfProvider globalConfProvider,
+                                          @Named("serverConfDatabaseCtx") DatabaseCtxV2 databaseCtx) {
+        return ServerConfFactory.create(serverConfProperties, globalConfProvider, databaseCtx);
+    }
+
+    @ApplicationScoped
+    @Produces
+    @Named("serverConfDatabaseCtx")
+    DatabaseCtxV2 serverConfDatabaseCtx(ServerConfProperties serverConfProperties) {
+        return new DatabaseCtxV2("serverconf", serverConfProperties.getHibernate());
     }
 
     @ConfigMapping(prefix = "xroad.env-monitor.grpc")

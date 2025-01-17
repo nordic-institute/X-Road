@@ -37,7 +37,7 @@ public class ServerConfFactory {
 
     public static ServerConfProvider create(ServerConfProperties serverConfProperties, GlobalConfProvider globalConfProvider,
                                             @Qualifier("serverConfDatabaseCtx") DatabaseCtxV2 databaseCtx) {
-        if (serverConfProperties.cachePeriod() > 0) {
+        if (serverConfProperties.getCachePeriod() > 0) {
             return new CachingServerConfImpl(databaseCtx, serverConfProperties, globalConfProvider);
         }
         return new ServerConfImpl(databaseCtx, globalConfProvider);

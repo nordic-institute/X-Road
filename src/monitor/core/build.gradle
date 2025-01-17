@@ -13,7 +13,6 @@ dependencies {
     implementation project(':monitor-common')
     implementation project(':signer-protocol')
     implementation project(':serverconf')
-    implementation('org.springframework:spring-context-support')
 
     implementation libs.quarkus.scheduler
 
