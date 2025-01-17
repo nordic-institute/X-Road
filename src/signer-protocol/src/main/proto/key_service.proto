@@ -55,6 +55,7 @@ enum Algorithm {
   ALGORITHM_UNKNOWN = 0;
   RSA = 1;
   EC = 2;
+  EdDSA = 3;
 }
 
 message GetKeyIdForCertHashReq {

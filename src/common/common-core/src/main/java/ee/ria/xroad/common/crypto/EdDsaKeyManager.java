@@ -26,42 +26,49 @@ package ee.ria.xroad.common.crypto;
 
 import ee.ria.xroad.common.crypto.identifier.KeyAlgorithm;
 import ee.ria.xroad.common.crypto.identifier.SignAlgorithm;
-import ee.ria.xroad.common.crypto.identifier.SignMechanism;
 
-import java.security.NoSuchAlgorithmException;
-import java.util.Map;
+import java.math.BigInteger;
+import java.security.KeyPair;
+import java.security.KeyPairGenerator;
+import java.security.spec.RSAPublicKeySpec;
 
-public final class KeyManagers {
-    private static final Map<KeyAlgorithm, KeyManager> BY_TYPE = Map.of(
-            KeyAlgorithm.RSA, new RsaKeyManager(),
-            KeyAlgorithm.EC, new EcKeyManager(),
-            KeyAlgorithm.EdDSA, new EdDsaKeyManager()
-    );
+public final class EdDsaKeyManager extends AbstractKeyManager {
 
-    public static KeyManager getFor(String keyAlgorithm) {
-        return getFor(KeyAlgorithm.valueOf(keyAlgorithm));
+    // Use no digesting algorithm, since the input data is already a digest
+    private static final SignAlgorithm SIGNATURE_ALGORITHM = SignAlgorithm.ofName("Ed25519");
+    private static final KeyAlgorithm CRYPTO_ALGORITHM = KeyAlgorithm.EdDSA;
+
+    EdDsaKeyManager() {
+        super(CRYPTO_ALGORITHM);
     }
 
-    public static KeyManager getFor(KeyAlgorithm keyAlgorithm) {
-        return BY_TYPE.get(keyAlgorithm);
+    /**
+     * Generates X509 encoded public key bytes from a given modulus and
+     * public exponent.
+     * @param modulus the modulus
+     * @param publicExponent the public exponent
+     * @return generated public key bytes
+     * @throws Exception if any errors occur
+     */
+    public byte[] generateX509PublicKey(BigInteger modulus, BigInteger publicExponent) throws Exception {
+        RSAPublicKeySpec rsaPublicKeySpec = new RSAPublicKeySpec(modulus, publicExponent);
+        return generateX509PublicKey(rsaPublicKeySpec);
     }
 
-    public static KeyManager getFor(SignMechanism mechanism) throws NoSuchAlgorithmException {
-        return getFor(mechanism.keyAlgorithm());
+    @Override
+    public SignAlgorithm getSoftwareTokenSignAlgorithm() {
+        return SIGNATURE_ALGORITHM;
     }
 
-    public static KeyManager getFor(SignAlgorithm algorithmName) throws NoSuchAlgorithmException {
-        return getFor(algorithmName.algorithm());
+    @Override
+    public SignAlgorithm getSoftwareTokenKeySignAlgorithm() {
+        return SignAlgorithm.ED25519;
     }
 
-    public static RsaKeyManager getForRSA() {
-        return (RsaKeyManager) getFor(KeyAlgorithm.RSA);
-    }
+    @Override
+    public KeyPair generateKeyPair() throws Exception {
+        KeyPairGenerator keyPairGen = KeyPairGenerator.getInstance(SignAlgorithm.ED25519.name());
 
-    public static EcKeyManager getForEC() {
-        return (EcKeyManager) getFor(KeyAlgorithm.EC);
-    }
-
-    private KeyManagers() {
+        return keyPairGen.generateKeyPair();
     }
 }

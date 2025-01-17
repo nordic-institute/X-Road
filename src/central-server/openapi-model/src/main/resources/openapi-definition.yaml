@@ -3630,6 +3630,7 @@ components:
       enum:
         - RSA
         - EC
+        - EdDSA
       example: RSA
       format: enum
       type: string

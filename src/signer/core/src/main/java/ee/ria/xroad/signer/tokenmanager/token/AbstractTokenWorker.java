@@ -220,6 +220,7 @@ public abstract class AbstractTokenWorker implements TokenWorker, WorkerWithLife
         return switch (algorithm) {
             case RSA, ALGORITHM_UNKNOWN, UNRECOGNIZED -> KeyAlgorithm.RSA;
             case EC -> KeyAlgorithm.EC;
+            case EdDSA -> KeyAlgorithm.EdDSA;
         };
     }
 

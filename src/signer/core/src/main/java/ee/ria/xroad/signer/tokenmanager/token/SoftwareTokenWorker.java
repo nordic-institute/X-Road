@@ -127,7 +127,9 @@ public class SoftwareTokenWorker extends AbstractTokenWorker {
             SignAlgorithm.SHA1_WITH_ECDSA,
             SignAlgorithm.SHA256_WITH_ECDSA,
             SignAlgorithm.SHA384_WITH_ECDSA,
-            SignAlgorithm.SHA512_WITH_ECDSA
+            SignAlgorithm.SHA512_WITH_ECDSA,
+
+            SignAlgorithm.ED25519
     );
     private static final String UNSUPPORTED_SIGN_ALGORITHM = "unsupported_sign_algorithm";
 

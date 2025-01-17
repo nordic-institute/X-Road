@@ -417,6 +417,7 @@ public class SignerStepDefs extends BaseSignerStepDefs {
         var signAlgorithm = switch (SignMechanism.valueOf(key.getSignMechanismName()).keyAlgorithm()) {
             case RSA -> SHA256_WITH_RSA;
             case EC -> SHA256_WITH_ECDSA;
+            case EdDSA -> null; //TODO #EDDSA proper impl
         };
 
         SignerProxy.sign(key.getId(), signAlgorithm, calculateDigest(SHA256, digest.getBytes(UTF_8)));
@@ -454,6 +455,7 @@ public class SignerStepDefs extends BaseSignerStepDefs {
         var signAlgorithm = switch (algorithm) {
             case RSA -> SHA256_WITH_RSA;
             case EC -> SHA256_WITH_ECDSA;
+            case EdDSA -> null; //TODO #EDDSA proper impl
         };
 
         final byte[] bytes = SignerProxy.signCertificate(key.getId(), signAlgorithm, "CN=CS", publicKey);
@@ -471,6 +473,7 @@ public class SignerStepDefs extends BaseSignerStepDefs {
         var signAlgorithm = switch (SignMechanism.valueOf(key.getSignMechanismName()).keyAlgorithm()) {
             case RSA -> SHA256_WITH_RSA;
             case EC -> SHA256_WITH_ECDSA;
+            case EdDSA -> null; //TODO #EDDSA proper impl
         };
 
         byte[] bytes = SignerProxy.sign(key.getId(), signAlgorithm, calculateDigest(SHA256, digest.getBytes(UTF_8)));
