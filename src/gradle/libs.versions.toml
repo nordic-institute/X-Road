@@ -6,13 +6,13 @@
 # protoc { artifact = libs.protobuf.protoc.get().toString() } where just using 'artifact = libs.protobuf.protoc' causes error
 
 metrics = "4.2.29"
-jetty = "12.0.14"
+jetty = "12.0.16"
 jaxb = "4.0.5"
-hibernate = "6.6.2.Final"
+hibernate = "6.6.4.Final"
 mapstruct = "1.6.3"
 jackson = "2.18.2"
 mockito = "5.14.2"
-springBoot = "3.3.6"
+springBoot = "3.3.7"
 junitJupiter = "5.11.3"
 xmlUnit = "2.10.0"
 bouncyCastle = "1.79"
@@ -21,8 +21,8 @@ testAutomationFramework = "0.2.18"
 protoc = "4.29.0"
 grpc = "1.68.2"
 swaggerParser = "2.1.24"
-logback = "1.5.12"
-logbackAccess = "2.0.3"
+logback = "1.5.16"
+logbackAccess = "2.0.6"
 apacheCxf = "4.0.5"
 archUnitPlugin = "4.0.0"
 checkstyle = "10.21.1"
@@ -128,7 +128,7 @@ lombok = { module = "org.projectlombok:lombok", version = "1.18.36" }
 lombokMapstructBinding = { module = "org.projectlombok:lombok-mapstruct-binding", version = "0.2.0" }
 
 logback-classic = { module = "ch.qos.logback:logback-classic", version.ref = "logback" }
-logback-access = { module = "ch.qos.logback.access:tomcat", version.ref = "logbackAccess" }
+logback-access = { module = "ch.qos.logback.access:logback-access-tomcat", version.ref = "logbackAccess" }
 
 assertj-core = { module = "org.assertj:assertj-core", version = "3.26.3" }
 wiremock-standalone = { module = "org.wiremock:wiremock-standalone", version = "3.10.0" }
