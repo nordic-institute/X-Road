@@ -7,10 +7,8 @@ plugins {
   checkstyle
   id("com.github.hierynomus.license")
   id("com.societegenerale.commons.plugin.gradle.ArchUnitGradlePlugin")
+  id("xroad.module-conventions")
 }
-
-version = "1.0"
-group = "${parent!!.group}.${name.replace(Regex("\\W"), "_")}"
 
 java {
   toolchain {
@@ -121,7 +119,7 @@ tasks.withType(JacocoReport::class) {
 }
 
 jacoco {
-  toolVersion = "0.8.11"
+  toolVersion = libs.findVersion("jacoco").get().toString()
 }
 
 tasks.named("jacocoTestReport") {

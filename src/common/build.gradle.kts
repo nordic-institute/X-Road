@@ -1,3 +1,3 @@
 plugins {
-    id("xroad.submodule")
+    id("xroad.submodule-conventions")
 }

@@ -26,6 +26,7 @@ logbackAccess = "2.0.3"
 apacheCxf = "4.0.5"
 archUnitPlugin = "4.0.0"
 checkstyle = "10.21.1"
+jacoco = "0.8.12"
 
 [libraries]
 metrics-core = { module = "io.dropwizard.metrics:metrics-core", version.ref = "metrics" }
