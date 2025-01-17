@@ -1,3 +1,8 @@
+plugins {
+    id("xroad.java-conventions")
+    id("xroad.int-test-conventions")
+}
+
 configurations {
     dist {
         canBeConsumed = false
@@ -60,6 +65,6 @@ tasks.named('check') {
     dependsOn tasks.named('intTest')
 }
 
-archUnit {
-    skip = true
-}
+//archUnit {
+//    skip = true
+//}

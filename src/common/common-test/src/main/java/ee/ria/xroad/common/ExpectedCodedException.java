@@ -38,25 +38,6 @@ import static org.junit.Assert.fail;
  * JUnit rule that verifies that given block of code throws
  * CodedException with given error code.
  *
- * Usage:
- * <code>
- *     public class FooTest {
- *         // By default, we expect nothing
- *         @Rule
- *         public ExpectedCodedException thrown =
- *                  ExpectedCodedException.none();
- *
- *         @Test
- *         public void testThrowsNothing() {
- *         }
- *
- *         @Test
- *         public void testThrowsCodedException() {
- *             thrown.expectError(ErrorCodes.X_FOO_BAR);
- *             doFancyStuff(); // throws CodedException.
- *         }
- *     }
- * </code>
  */
 public final class ExpectedCodedException implements TestRule {
     /** What do we expect? */

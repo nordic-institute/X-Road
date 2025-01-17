@@ -1,5 +1,5 @@
 plugins {
-    id 'java-library'
+    id("xroad.java-conventions")
 }
 
 dependencies {
@@ -16,8 +16,4 @@ tasks.register('changelogJar', Jar) {
 
 artifacts {
     changelogJar changelogJar
-}
-
-archUnit {
-    skip = true
 }

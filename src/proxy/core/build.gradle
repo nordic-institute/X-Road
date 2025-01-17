@@ -1,5 +1,7 @@
 plugins {
-    id 'java-library'
+    id("xroad.java-conventions")
+    id("xroad.java-exec-conventions")
+    id("xroad.int-test-conventions")
 }
 
 sourceSets {
@@ -47,9 +49,19 @@ dependencies {
     intTestImplementation(project(":common:common-int-test"))
 }
 
-testJar {
-    enabled = true
+tasks.register('testJar', Jar) {
     archiveBaseName = 'proxy-core'
+    archiveClassifier = 'test'
+
+    from sourceSets.test.output
+}
+
+configurations {
+    testArtifacts.extendsFrom testRuntime
+}
+
+artifacts {
+    testArtifacts testJar
 }
 
 apply plugin: "jacoco"

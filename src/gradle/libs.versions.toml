@@ -6,9 +6,9 @@
 # protoc { artifact = libs.protobuf.protoc.get().toString() } where just using 'artifact = libs.protobuf.protoc' causes error
 
 metrics = "4.2.29"
-jetty = "12.0.14"
+jetty = "12.0.16"
 jaxb = "4.0.5"
-hibernate = "6.6.2.Final"
+hibernate = "6.6.4.Final"
 mapstruct = "1.6.3"
 jackson = "2.18.2"
 mockito = "5.14.2"
@@ -22,10 +22,12 @@ testAutomationFramework = "0.2.18"
 protoc = "4.29.0"
 grpc = "1.68.2"
 swaggerParser = "2.1.24"
-logback = "1.5.12"
-logbackAccess = "2.0.3"
+logback = "1.5.16"
+logbackAccess = "2.0.6"
 apacheCxf = "4.0.5"
 archUnitPlugin = "4.0.0"
+checkstyle = "10.21.1"
+jacoco = "0.8.12"
 edc = "0.9.1"
 nimbusJoseJwt = "9.39.1"
 dss = "6.0"
@@ -163,7 +165,7 @@ lombok = { module = "org.projectlombok:lombok", version = "1.18.36" }
 lombokMapstructBinding = { module = "org.projectlombok:lombok-mapstruct-binding", version = "0.2.0" }
 
 logback-classic = { module = "ch.qos.logback:logback-classic", version.ref = "logback" }
-logback-access = { module = "ch.qos.logback.access:tomcat", version.ref = "logbackAccess" }
+logback-access = { module = "ch.qos.logback.access:logback-access-tomcat", version.ref = "logbackAccess" }
 
 assertj-core = { module = "org.assertj:assertj-core", version = "3.26.3" }
 wiremock-standalone = { module = "org.wiremock:wiremock-standalone", version = "3.10.0" }
@@ -180,7 +182,7 @@ awaitility = { module = "org.awaitility:awaitility", version = "4.2.2" }
 bucket4j-core = { module = "com.bucket4j:bucket4j-core", version = "8.10.1" }
 libpam4j = { module = "org.kohsuke:libpam4j", version = "1.11" }
 wsdl4j = { module = "wsdl4j:wsdl4j", version = "1.6.3" }
-licenseGradlePlugin = { module = "gradle.plugin.com.hierynomus.gradle.plugins:license-gradle-plugin", version = "0.16.1" }
+
 hamcrest = { module = "org.hamcrest:hamcrest", version = "3.0" }
 javax-annotationApi = { module = "javax.annotation:javax.annotation-api", version = "1.3.2" }
 hikariCP = { module = "com.zaxxer:HikariCP", version = "6.2.1" }
@@ -194,7 +196,6 @@ cliche = { module = "com.googlecode.clichemaven:cliche", version = "110413" }
 acme4j = { module = "org.shredzone.acme4j:acme4j-client", version = "3.4.0" }
 jsonUnit-assertj = { module = "net.javacrumbs.json-unit:json-unit-assertj", version = "4.1.0" }
 opentelemetry-instrumentation-annotations = { module = "io.opentelemetry.instrumentation:opentelemetry-instrumentation-annotations", version = "2.10.0" }
-archUnit-plugin-core = { module = "com.societegenerale.commons:arch-unit-build-plugin-core", version.ref = "archUnitPlugin" }
 
 caffeine = { module = "com.github.ben-manes.caffeine:caffeine", version.ref = "caffeine" }
 jetty-servlet = { module = "org.eclipse.jetty:jetty-servlet", version.ref = "jetty" }
@@ -212,6 +213,10 @@ dss-evidence-record-xml = { module = "eu.europa.ec.joinup.sd-dss:dss-evidence-re
 dss-asic-xades = { module = "eu.europa.ec.joinup.sd-dss:dss-asic-xades", version.ref = "dss" }
 dss-spi = { module = "eu.europa.ec.joinup.sd-dss:dss-spi", version.ref = "dss" }
 
+#Gradle plugins
+archUnit-plugin-core = { module = "com.societegenerale.commons:arch-unit-build-plugin-core", version.ref = "archUnitPlugin" }
+licenseGradlePlugin = { module = "gradle.plugin.com.hierynomus.gradle.plugins:license-gradle-plugin", version = "0.16.1" }
+archUnitGradlePlugin = { module = "com.societegenerale.commons:arch-unit-gradle-plugin", version.ref = "archUnitPlugin" }
 
 ### EDC ###
 # upstream EDC dependencies

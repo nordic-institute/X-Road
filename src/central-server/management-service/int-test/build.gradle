@@ -1,3 +1,8 @@
+plugins {
+    id("xroad.java-conventions")
+    id("xroad.int-test-conventions")
+}
+
 dependencies {
     intTestImplementation project(':common:common-test')
     intTestImplementation project(":central-server:admin-service:api-client")
@@ -51,6 +56,6 @@ tasks.named('check') {
     dependsOn tasks.named('intTest')
 }
 
-archUnit {
-    skip = true
-}
+//archUnit {
+//    skip = true
+//}

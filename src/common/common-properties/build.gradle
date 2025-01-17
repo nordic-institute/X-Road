@@ -1,5 +1,5 @@
 plugins {
-    id 'java-library'
+    id("xroad.java-conventions")
 }
 
 dependencies {
@@ -10,7 +10,7 @@ dependencies {
     api("io.smallrye.config:smallrye-config-core:3.10.2") //TODO test
 }
 
-//todo: enable
-archUnit {
-    skip = true
-}
+////todo: enable
+//archUnit {
+//    skip = true
+//}

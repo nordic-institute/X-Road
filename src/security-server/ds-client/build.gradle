@@ -1,6 +1,6 @@
 plugins {
-    id 'java-library'
-    id 'io.spring.dependency-management'
+//    id 'io.spring.dependency-management'
+    id("xroad.java-conventions")
     alias(libs.plugins.springBoot)
 }
 

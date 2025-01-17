@@ -1,4 +1,5 @@
 plugins {
+    id("xroad.java-conventions")
     alias(libs.plugins.springBoot)
 }
 
@@ -9,6 +10,7 @@ base {
 jar {
     enabled = false
 }
+
 bootJar {
     enabled = true
     manifest {

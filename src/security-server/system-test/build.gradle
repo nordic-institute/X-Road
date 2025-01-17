@@ -1,3 +1,8 @@
+plugins {
+    id("xroad.java-conventions")
+    id("xroad.int-test-conventions")
+}
+
 dependencies {
     intTestImplementation project(":security-server:openapi-model")
     intTestImplementation project(":addons:proxymonitor-common")
