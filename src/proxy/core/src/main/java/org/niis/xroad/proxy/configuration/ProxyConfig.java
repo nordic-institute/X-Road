@@ -117,7 +117,7 @@ public class ProxyConfig {
     @Produces
     @ApplicationScoped
     KeyConfProvider keyConfProvider(GlobalConfProvider globalConfProvider, ServerConfProvider serverConfProvider,
-                                    SignerRpcClient signerRpcClient) throws Exception {
+                                    SignerRpcClient signerRpcClient) {
         return new CachingKeyConfImpl(globalConfProvider, serverConfProvider, signerRpcClient);
     }
 

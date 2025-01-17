@@ -106,7 +106,7 @@ public class AcmeProfileIdConnection extends DefaultConnection {
     }
 
     private String buildProfileIdHeader(Session session) {
-        GlobalConfProvider globalConfProvider = SpringApplicationContext.getBean(GlobalConfProvider.class);
+        GlobalConfProvider globalConfProvider = GlobalConfBeanLookup.getGlobalConfProvider();
         Collection<ApprovedCAInfo> approvedCAsForThisInstance =
                 globalConfProvider.getApprovedCAs(globalConfProvider.getInstanceIdentifier());
         ApprovedCAInfo approvedCA = approvedCAsForThisInstance.stream()

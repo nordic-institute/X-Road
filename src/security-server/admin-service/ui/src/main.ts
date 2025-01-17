@@ -56,7 +56,7 @@ import {
   XrdSimpleDialog,
   XrdStatusIcon,
   XrdSubViewContainer,
-  XrdSubViewTitle,
+  XrdSubViewTitle, XrdTitledView,
 } from '@niis/shared-ui';
 import vuetify from './plugins/vuetify';
 import './plugins/vee-validate';
@@ -116,6 +116,7 @@ app.component('XrdCloseButton', XrdCloseButton);
 app.component('XrdFileUpload', XrdFileUpload);
 app.component('XrdFormLabel', XrdFormLabel);
 app.component('XrdExpandable', XrdExpandable);
+app.component('XrdTitledView', XrdTitledView);
 // translations
 const languageStorage = useLanguage();
 languageHelper.selectLanguage(languageStorage.getLanguage)

@@ -31,7 +31,6 @@ import ee.ria.xroad.common.opmonitoring.OpMonitoringData;
 import ee.ria.xroad.common.util.JsonUtils;
 
 import com.fasterxml.jackson.databind.ObjectReader;
-import org.hibernate.query.Query;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -47,7 +46,7 @@ final class OperationalDataTestUtil {
 
     static void prepareDatabase(DatabaseCtxV2 databaseCtx) throws Exception {
         databaseCtx.doInTransaction(session -> {
-            Query q = session.createNativeQuery(
+            var q = session.createNativeMutationQuery(
                     // Completely wipe out the database. Assuming that HSQLDB
                     // is used for testing.
                     "TRUNCATE SCHEMA public AND COMMIT");
@@ -70,52 +69,48 @@ final class OperationalDataTestUtil {
     }
 
     static String formatInvalidOperationalDataAsJson() {
-        return new StringBuilder()
-                .append("{\"clientMemberCode\":\"00000001\",")
-                .append("\"serviceXRoadInstance\":\"XTEE-CI-XM\",")
-                .append("\"clientSubsystemCode\":\"System1\",")
-                .append("\"monitoringDataTs\":1474968979,")
-                .append("\"serviceCode\":\"xroadGetRandom\",")
-                .append("\"messageProtocolVersion\":\"4.0\",")
-                .append("\"clientXRoadInstance\":\"XTEE-CI-XM\",")
-                .append("\"clientMemberClass\":\"GOV\",")
-                .append("\"serviceMemberCode\":\"00000000\",")
-                .append("\"securityServerType\":\"INVALID_SERVER_TYPE\",")
-                .append("\"securityServerInternalIp\":\"192.168.3.250\",")
-                .append("\"serviceMemberClass\":\"GOV\",")
-                .append("\"requestInTs\":14749689780000,")
-                .append("\"responseOutTs\":14749689790000,")
-                .append("\"serviceType\":\"WSDL\",")
-                .append("\"succeeded\":false,")
-                .append("\"statusCode\":400}")
-                .toString();
+        return "{\"clientMemberCode\":\"00000001\","
+                + "\"serviceXRoadInstance\":\"XTEE-CI-XM\","
+                + "\"clientSubsystemCode\":\"System1\","
+                + "\"monitoringDataTs\":1474968979,"
+                + "\"serviceCode\":\"xroadGetRandom\","
+                + "\"messageProtocolVersion\":\"4.0\","
+                + "\"clientXRoadInstance\":\"XTEE-CI-XM\","
+                + "\"clientMemberClass\":\"GOV\","
+                + "\"serviceMemberCode\":\"00000000\","
+                + "\"securityServerType\":\"INVALID_SERVER_TYPE\","
+                + "\"securityServerInternalIp\":\"192.168.3.250\","
+                + "\"serviceMemberClass\":\"GOV\","
+                + "\"requestInTs\":14749689780000,"
+                + "\"responseOutTs\":14749689790000,"
+                + "\"serviceType\":\"WSDL\","
+                + "\"succeeded\":false,"
+                + "\"statusCode\":400}";
     }
 
     static String formatFullOperationalDataAsJson() {
-        return new StringBuilder()
-                .append("{\"clientMemberCode\":\"00000001\",")
-                .append("\"serviceXRoadInstance\":\"XTEE-CI-XM\",")
-                .append("\"clientSubsystemCode\":\"System1\",")
-                .append("\"monitoringDataTs\":1474968979,")
-                .append("\"serviceCode\":\"xroadGetRandom\",")
-                .append("\"messageProtocolVersion\":\"4.0\",")
-                .append("\"messageId\":")
-                .append("\"c60b7e66-1dc8-4203-a3c1-3235661f6a84\",")
-                .append("\"clientXRoadInstance\":\"XTEE-CI-XM\",")
-                .append("\"messageUserId\":\"EE37702211230\",")
-                .append("\"clientMemberClass\":\"GOV\",")
-                .append("\"serviceMemberCode\":\"00000000\",")
-                .append("\"securityServerType\":\"Client\",")
-                .append("\"securityServerInternalIp\":\"192.168.3.250\",")
-                .append("\"serviceVersion\":\"v1\",")
-                .append("\"serviceMemberClass\":\"GOV\",")
-                .append("\"requestInTs\":14749689780000,")
-                .append("\"serviceSubsystemCode\":\"Center\",")
-                .append("\"responseOutTs\":14749689790000,")
-                .append("\"serviceType\":\"WSDL\",")
-                .append("\"succeeded\":true,")
-                .append("\"statusCode\":200}")
-                .toString();
+        return "{\"clientMemberCode\":\"00000001\","
+                + "\"serviceXRoadInstance\":\"XTEE-CI-XM\","
+                + "\"clientSubsystemCode\":\"System1\","
+                + "\"monitoringDataTs\":1474968979,"
+                + "\"serviceCode\":\"xroadGetRandom\","
+                + "\"messageProtocolVersion\":\"4.0\","
+                + "\"messageId\":"
+                + "\"c60b7e66-1dc8-4203-a3c1-3235661f6a84\","
+                + "\"clientXRoadInstance\":\"XTEE-CI-XM\","
+                + "\"messageUserId\":\"EE37702211230\","
+                + "\"clientMemberClass\":\"GOV\","
+                + "\"serviceMemberCode\":\"00000000\","
+                + "\"securityServerType\":\"Client\","
+                + "\"securityServerInternalIp\":\"192.168.3.250\","
+                + "\"serviceVersion\":\"v1\","
+                + "\"serviceMemberClass\":\"GOV\","
+                + "\"requestInTs\":14749689780000,"
+                + "\"serviceSubsystemCode\":\"Center\","
+                + "\"responseOutTs\":14749689790000,"
+                + "\"serviceType\":\"WSDL\","
+                + "\"succeeded\":true,"
+                + "\"statusCode\":200}";
     }
 
     static void storeFullOperationalDataRecords(int count,

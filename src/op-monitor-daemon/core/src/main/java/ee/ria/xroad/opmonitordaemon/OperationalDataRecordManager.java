@@ -29,6 +29,8 @@ import ee.ria.xroad.common.db.DatabaseCtxV2;
 import ee.ria.xroad.common.db.HibernateUtil;
 import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.opmonitoring.OpMonitoringSystemProperties;
+import ee.ria.xroad.opmonitordaemon.entity.OperationalDataRecordEntity;
+import ee.ria.xroad.opmonitordaemon.mapper.OperationalDataRecordMapper;
 
 import lombok.RequiredArgsConstructor;
 import lombok.Setter;
@@ -89,18 +91,16 @@ public final class OperationalDataRecordManager {
     }
 
     private Void storeInTransaction(Session session, List<OperationalDataRecord> records, long timestamp) {
-        int storedCount = 0;
-        int batchSize = getConfiguredBatchSize(session);
+        var sessionFlusher = new SessionFlusher(session, getConfiguredBatchSize(session));
 
-        for (OperationalDataRecord record : records) {
-            record.setMonitoringDataTs(timestamp);
-            session.save(record);
+        records.stream()
+                .map(OperationalDataRecordMapper.get()::toEntity)
+                .forEach(record -> {
+                    record.setMonitoringDataTs(timestamp);
+                    session.persist(record);
 
-            if (++storedCount % batchSize == 0) {
-                session.flush();
-                session.clear();
-            }
-        }
+                    sessionFlusher.flushIfReady();
+                });
 
         return null;
     }
@@ -114,10 +114,10 @@ public final class OperationalDataRecordManager {
     }
 
     private OperationalDataRecords queryAllOperationalDataInTransaction(Session session) {
-        final Query<OperationalDataRecord> query =
-                session.createQuery("SELECT r FROM OperationalDataRecord r", OperationalDataRecord.class)
+        final Query<OperationalDataRecordEntity> query =
+                session.createQuery("SELECT r FROM OperationalDataRecordEntity r", OperationalDataRecordEntity.class)
                         .setReadOnly(true);
-        return new OperationalDataRecords(query.getResultList());
+        return new OperationalDataRecords(OperationalDataRecordMapper.get().toDTOs(query.getResultList()));
     }
 
     /**
@@ -195,5 +195,21 @@ public final class OperationalDataRecordManager {
         query.setMaxRecords(1);
 
         return !query.list().isEmpty();
+    }
+
+    @RequiredArgsConstructor
+    private static final class SessionFlusher {
+        private final Session session;
+        private final int batchSize;
+        private int count = 0;
+
+        public void flushIfReady() {
+            count++;
+
+            if (count % batchSize == 0) {
+                session.flush();
+                session.clear();
+            }
+        }
     }
 }

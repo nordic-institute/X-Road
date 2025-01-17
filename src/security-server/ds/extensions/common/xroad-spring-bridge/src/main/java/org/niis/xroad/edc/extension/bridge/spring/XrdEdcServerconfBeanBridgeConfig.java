@@ -28,27 +28,41 @@
 package org.niis.xroad.edc.extension.bridge.spring;
 
 import ee.ria.xroad.common.conf.globalconf.GlobalConfProvider;
-import ee.ria.xroad.common.conf.serverconf.ServerConfBeanConfig;
+import ee.ria.xroad.common.conf.serverconf.ServerConfFactory;
+import ee.ria.xroad.common.conf.serverconf.ServerConfProperties;
 import ee.ria.xroad.common.conf.serverconf.ServerConfProvider;
+import ee.ria.xroad.common.db.DatabaseCtxV2;
 import ee.ria.xroad.proxy.conf.CachingKeyConfImpl;
 import ee.ria.xroad.proxy.conf.KeyConfProvider;
 import ee.ria.xroad.signer.SignerRpcClient;
 
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
+import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.context.annotation.Import;
 
 @ConditionalOnProperty(value = "edc.extension.spring-bridge.serverconf.enabled", havingValue = "true")
-@Import({ServerConfBeanConfig.class})
 @Configuration
+@EnableConfigurationProperties(ServerConfProperties.class)
 public class XrdEdcServerconfBeanBridgeConfig {
 
     @Bean
     KeyConfProvider keyConfProvider(GlobalConfProvider globalConfProvider, ServerConfProvider serverConfProvider,
                                     SignerRpcClient signerRpcClient) {
         return new CachingKeyConfImpl(globalConfProvider, serverConfProvider, signerRpcClient);
+    }
+
+    @Bean
+    public ServerConfProvider serverConfProvider(GlobalConfProvider globalConfProvider, ServerConfProperties serverConfProperties,
+                                                 @Qualifier("serverConfDatabaseCtx") DatabaseCtxV2 databaseCtx) {
+        return ServerConfFactory.create(serverConfProperties, globalConfProvider, databaseCtx);
+    }
+
+    @Bean("serverConfDatabaseCtx")
+    DatabaseCtxV2 serverConfDatabaseCtx(ServerConfProperties serverConfProperties) {
+        return new DatabaseCtxV2("serverconf", serverConfProperties.hibernate());
     }
 
     @Bean

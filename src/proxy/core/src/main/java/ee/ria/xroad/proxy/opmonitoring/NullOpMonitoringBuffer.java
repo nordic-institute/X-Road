@@ -44,13 +44,4 @@ public class NullOpMonitoringBuffer extends AbstractOpMonitoringBuffer {
         //No-OP
     }
 
-    @Override
-    public void afterPropertiesSet() throws Exception {
-        //No-OP
-    }
-
-    @Override
-    public void destroy() throws Exception {
-        //No-OP
-    }
 }

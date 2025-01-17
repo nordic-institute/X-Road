@@ -1,6 +1,5 @@
 /*
  * The MIT License
- *
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
@@ -24,31 +23,47 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package ee.ria.xroad.common.conf.serverconf;
+package ee.ria.xroad.messagelog.database.entity;
 
-import ee.ria.xroad.common.conf.globalconf.GlobalConfProvider;
-import ee.ria.xroad.common.db.DatabaseCtxV2;
+import jakarta.persistence.Access;
+import jakarta.persistence.AccessType;
+import jakarta.persistence.Column;
+import jakarta.persistence.DiscriminatorColumn;
+import jakarta.persistence.DiscriminatorType;
+import jakarta.persistence.Entity;
+import jakarta.persistence.Id;
+import jakarta.persistence.Inheritance;
+import jakarta.persistence.InheritanceType;
+import jakarta.persistence.NamedNativeQuery;
+import jakarta.persistence.Table;
+import lombok.Getter;
+import lombok.Setter;
 
-import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Configuration;
+@Getter
+@Setter
+@Entity
+@Table(name = "LOGRECORD")
+@Inheritance(strategy = InheritanceType.SINGLE_TABLE)
+@DiscriminatorColumn(name = "DISCRIMINATOR", discriminatorType = DiscriminatorType.STRING)
+@Access(AccessType.FIELD)
+@NamedNativeQuery(
+        name = "delete-logrecords",
+        query = """
+                DELETE FROM logrecord \
+                WHERE archived = true \
+                AND time <= :time \
+                AND id > 0 \
+                AND id <= (SELECT max(l.id) FROM ( \
+                SELECT id FROM logrecord ORDER BY id LIMIT :limit) l)"""
+)
+public abstract class AbstractLogRecordEntity {
+    @Id
+    private Long id;
+    @Column(name = "TIME")
+    private Long time;
+    @Column(name = "ARCHIVED")
+    private boolean archived;
 
-@Configuration
-//@EnableConfigurationProperties(ServerConfProperties.class)
-public class ServerConfBeanConfig {
-
-    @Bean
-    ServerConfProvider serverConfProvider(ServerConfProperties serverConfProperties, GlobalConfProvider globalConfProvider,
-                                          @Qualifier("serverConfDatabaseCtx") DatabaseCtxV2 databaseCtx) {
-        if (serverConfProperties.getCachePeriod() > 0) {
-            return new CachingServerConfImpl(databaseCtx, serverConfProperties, globalConfProvider);
-        }
-        return new ServerConfImpl(databaseCtx, globalConfProvider);
-    }
-
-    @Bean("serverConfDatabaseCtx")
-    DatabaseCtxV2 serverConfDatabaseCtx(ServerConfProperties serverConfProperties) {
-        return new DatabaseCtxV2("serverconf", serverConfProperties.getHibernate());
-    }
-
+    @Column(name = "ORIGIN", updatable = false)
+    private String origin;
 }

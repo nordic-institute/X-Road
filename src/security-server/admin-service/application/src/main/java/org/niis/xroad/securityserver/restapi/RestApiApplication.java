@@ -26,10 +26,7 @@
 package org.niis.xroad.securityserver.restapi;
 
 import ee.ria.xroad.common.conf.globalconf.GlobalConfBeanConfig;
-import ee.ria.xroad.common.conf.serverconf.ServerConfBeanConfig;
 
-import lombok.NoArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 import org.niis.xroad.bootstrap.XrdSpringServiceBuilder;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.web.servlet.ServletComponentScan;
@@ -39,13 +36,12 @@ import org.springframework.context.annotation.Import;
 /**
  * main spring boot application.
  */
-@Slf4j
+@Import({GlobalConfBeanConfig.class})
 @ServletComponentScan
-@EnableCaching
-@Import({GlobalConfBeanConfig.class, ServerConfBeanConfig.class})
 @SpringBootApplication(scanBasePackages = {"org.niis.xroad.securityserver.restapi", "org.niis.xroad.restapi", "org.niis.xroad.common.acme",
         "org.niis.xroad.common.mail", "ee.ria.xroad.common.util"})
-@NoArgsConstructor
+@EnableCaching
+@SuppressWarnings("checkstyle:HideUtilityClassConstructor")
 public class RestApiApplication {
 
     private static final String APP_NAME = "proxy-ui-api";

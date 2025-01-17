@@ -49,12 +49,17 @@ import org.niis.xroad.securityserver.restapi.openapi.model.OcspResponderDiagnost
 import org.niis.xroad.securityserver.restapi.openapi.model.OcspStatus;
 import org.niis.xroad.securityserver.restapi.openapi.model.TimestampingServiceDiagnostics;
 import org.niis.xroad.securityserver.restapi.openapi.model.TimestampingStatus;
+import org.niis.xroad.securityserver.restapi.service.diagnostic.DiagnosticReportService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.core.io.Resource;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.test.context.support.WithMockUser;
 
+import java.nio.charset.StandardCharsets;
 import java.time.Instant;
 import java.time.LocalTime;
 import java.time.OffsetDateTime;
@@ -63,6 +68,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertThrows;
@@ -88,6 +95,8 @@ public class DiagnosticsApiControllerTest extends AbstractApiControllerTestConte
 
     @Autowired
     DiagnosticsApiController diagnosticsApiController;
+    @MockBean
+    private DiagnosticReportService diagnosticReportService;
 
     @Test
     public void getAddOnDiagnostics() throws Exception {
@@ -426,4 +435,30 @@ public class DiagnosticsApiControllerTest extends AbstractApiControllerTestConte
                 .setNextUpdate(nextUpdate.toEpochMilli())
                 .build();
     }
+
+    @Test
+    @WithMockUser(authorities = {"DOWNLOAD_ANCHOR"})
+    public void downloadDiagnosticsReportWithoutRequiredAuthorities() throws Exception {
+        byte[] bytes = "[{}]".getBytes(StandardCharsets.UTF_8);
+        when(diagnosticReportService.collectSystemInformation()).thenReturn(bytes);
+        when(systemService.getAnchorFilenameForDownload())
+                .thenReturn("configuration_anchor_UTC_2019-04-28_09_03_31.xml");
+
+        assertThatThrownBy(() -> diagnosticsApiController.downloadDiagnosticsReport()).isInstanceOf(AccessDeniedException.class);
+    }
+
+    @Test
+    @WithMockUser(authorities = {"DOWNLOAD_DIAGNOSTICS_REPORT"})
+    public void downloadDiagnosticsReport() throws Exception {
+        byte[] bytes = "[{}]".getBytes(StandardCharsets.UTF_8);
+        when(diagnosticReportService.collectSystemInformation()).thenReturn(bytes);
+        when(systemService.getAnchorFilenameForDownload())
+                .thenReturn("configuration_anchor_UTC_2019-04-28_09_03_31.xml");
+
+        ResponseEntity<Resource> response = diagnosticsApiController.downloadDiagnosticsReport();
+        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
+        assertThat(response.getBody()).isNotNull();
+        assertThat(response.getBody().contentLength()).isEqualTo(bytes.length);
+    }
+
 }

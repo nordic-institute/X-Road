@@ -47,7 +47,6 @@ import org.junit.Test;
 
 import java.security.cert.X509Certificate;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 
 import static ee.ria.xroad.common.ErrorCodes.X_UNKNOWN_SERVICE;
@@ -70,6 +69,7 @@ import static ee.ria.xroad.proxy.conf.TestUtil.client;
 import static ee.ria.xroad.proxy.conf.TestUtil.createTestClientId;
 import static ee.ria.xroad.proxy.conf.TestUtil.createTestServiceId;
 import static ee.ria.xroad.proxy.conf.TestUtil.prepareDB;
+import static ee.ria.xroad.proxy.conf.TestUtil.serverConfProperties;
 import static ee.ria.xroad.proxy.conf.TestUtil.service;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
@@ -104,7 +104,7 @@ public class CachingServerConfTest {
             }
         };
         databaseCtx = TestUtil.databaseCtx;
-        serverConfProvider = new CachingServerConfImpl(databaseCtx, TestUtil.serverConfProperties, globalConfProvider);
+        serverConfProvider = new CachingServerConfImpl(databaseCtx, serverConfProperties, globalConfProvider);
 
         prepareDB(databaseCtx);
     }
@@ -190,7 +190,7 @@ public class CachingServerConfTest {
         ClientId client1 = createTestClientId(client(1));
         ClientId client2 = createTestClientId(client(2));
 
-        List<ServiceId> expectedServices = Arrays.asList(
+        List<ServiceId> expectedServices = List.of(
                 createTestServiceId(serviceProvider,
                         service(1, 1), SERVICE_VERSION));
 
@@ -282,7 +282,7 @@ public class CachingServerConfTest {
         List<X509Certificate> isCerts =
                 serverConfProvider.getIsCerts(createTestClientId(client(1)));
         assertEquals(1, isCerts.size());
-        assertEquals(CryptoUtils.readCertificate(BASE64_CERT), isCerts.get(0));
+        assertEquals(CryptoUtils.readCertificate(BASE64_CERT), isCerts.getFirst());
     }
 
     /**
@@ -317,11 +317,9 @@ public class CachingServerConfTest {
 
     /**
      * Tests getting TSPs.
-     *
-     * @throws Exception if an error occurs
      */
     @Test
-    public void getTsps() throws Exception {
+    public void getTsps() {
         List<String> tspUrls = serverConfProvider.getTspUrl();
         assertEquals(NUM_TSPS, tspUrls.size());
     }
@@ -336,11 +334,9 @@ public class CachingServerConfTest {
 
     /**
      * Tests getting services.
-     *
-     * @throws Exception if an error occurs
      */
     @Test
-    public void getServices() throws Exception {
+    public void getServices() {
         ClientId serviceProvider = createTestClientId(client(1), null);
 
         List<ServiceId.Conf> allServices = getServices(serviceProvider);

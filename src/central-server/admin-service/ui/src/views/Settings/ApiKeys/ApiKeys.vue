@@ -25,7 +25,7 @@
    THE SOFTWARE.
  -->
 <template>
-  <titled-view title-key="tab.settings.apiKeys" data-test="api-keys-view">
+  <xrd-titled-view title-key="tab.settings.apiKeys" data-test="api-keys-view">
     <template #header-buttons>
       <xrd-button data-test="api-key-create-key-button" @click="createApiKey()">
         <xrd-icon-base class="xrd-large-button-icon">
@@ -149,7 +149,7 @@
       @cancel="confirmRevoke = false"
       @accept="revokeApiKey"
     />
-  </titled-view>
+  </xrd-titled-view>
 </template>
 
 <script lang="ts">
@@ -163,15 +163,14 @@ import * as api from '@/util/api';
 import { mapActions, mapState } from 'pinia';
 import { useUser } from '@/store/modules/user';
 import { useNotifications } from '@/store/modules/notifications';
-import { XrdIconKey } from '@niis/shared-ui';
-import TitledView from '@/components/ui/TitledView.vue';
+import { XrdIconKey, XrdTitledView } from '@niis/shared-ui';
 import CustomDataTableFooter from '@/components/ui/CustomDataTableFooter.vue';
 import { DataTableHeader, SortItem } from '@/ui-types';
 
 export default defineComponent({
   components: {
+    XrdTitledView,
     CustomDataTableFooter,
-    TitledView,
     XrdIconKey,
   },
   data() {

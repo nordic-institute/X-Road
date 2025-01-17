@@ -71,7 +71,7 @@ public class IdentifierService {
         Set<XRoadId.Conf> idsToPersist = new HashSet<>(xRoadIds);
         Set<XRoadId.Conf> managedEntities = getXroadIds(idsToPersist);
         idsToPersist.removeAll(managedEntities); // remove the persistent ones
-        identifierRepository.saveOrUpdate(idsToPersist); // persist the non-persisted
+        identifierRepository.persist(idsToPersist); // persist the non-persisted
         managedEntities.addAll(idsToPersist); // add the newly persisted ids into the collection of already existing ids
         return managedEntities;
     }

@@ -5,6 +5,22 @@ updates:
     schedule:
       interval: "weekly"
     groups:
+      spring-minor-patch:
+        applies-to: version-updates
+        update-types:
+          - "minor"
+          - "patch"
+        patterns:
+          - "org.springframework.boot*"
+          - "org.springframework.cloud*"
+      grpc-minor-patch:
+        applies-to: version-updates
+        update-types:
+          - "minor"
+          - "patch"
+        patterns:
+          - "io.grpc*"
+          - "com.google.protobuf*"
       java-minor-patch:
         applies-to: version-updates
         update-types:

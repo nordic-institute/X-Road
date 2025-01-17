@@ -25,7 +25,7 @@
    THE SOFTWARE.
  -->
 <template>
-  <titled-view
+  <xrd-titled-view
     data-test="system-settings-view"
     title-key="tab.settings.systemSettings"
   >
@@ -83,7 +83,7 @@
     </div>
     <ManagementServices ref="managementServices" />
     <MemberClasses />
-  </titled-view>
+  </xrd-titled-view>
   <edit-server-address-dialog
     v-if="showEditServerAddressDialog"
     :service-address="serverAddress || ''"
@@ -105,11 +105,11 @@ import { mapActions, mapState } from 'pinia';
  * View for 'system settings' tab
  */
 import { defineComponent } from 'vue';
-import TitledView from '@/components/ui/TitledView.vue';
+import { XrdTitledView } from '@niis/shared-ui';
 
 export default defineComponent({
   components: {
-    TitledView,
+    XrdTitledView,
     MemberClasses,
     ManagementServices,
     EditServerAddressDialog,

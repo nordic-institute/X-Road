@@ -39,6 +39,7 @@ import ee.ria.xroad.common.identifier.LocalGroupId;
 import ee.ria.xroad.common.identifier.XRoadId;
 import ee.ria.xroad.common.identifier.XRoadObjectType;
 
+import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
@@ -53,7 +54,6 @@ import org.niis.xroad.securityserver.restapi.dto.ServiceClientDto;
 import org.niis.xroad.securityserver.restapi.repository.ClientRepository;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -107,7 +107,6 @@ public class AccessRightService {
     public void deleteSoapServiceAccessRights(ClientId clientId, String fullServiceCode, Set<XRoadId> subjectIds)
             throws ClientNotFoundException, AccessRightNotFoundException,
                    ServiceNotFoundException {
-
 
         ClientType clientType = clientService.getLocalClientOrThrowNotFound(clientId);
 
@@ -511,11 +510,10 @@ public class AccessRightService {
         for (EndpointType endpoint : endpoints) {
             for (XRoadId.Conf subjectId : subjectIds) {
                 ServiceClientAccessRightDto dto = addAccessRightInternal(clientType, now, endpoint, subjectId);
-                List<ServiceClientAccessRightDto> addedAccessRightsForSubject = addedAccessRights
-                        .computeIfAbsent(subjectId, k -> new ArrayList<>());
-                addedAccessRightsForSubject.add(dto);
+                addedAccessRights.computeIfAbsent(subjectId, k -> new ArrayList<>()).add(dto);
             }
         }
+        clientRepository.merge(clientType);
 
         return addedAccessRights;
     }

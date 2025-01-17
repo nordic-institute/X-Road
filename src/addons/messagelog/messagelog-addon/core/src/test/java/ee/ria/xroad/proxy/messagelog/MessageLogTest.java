@@ -33,20 +33,20 @@ import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.message.RestRequest;
 import ee.ria.xroad.common.message.SoapMessageImpl;
 import ee.ria.xroad.common.messagelog.AbstractLogManager;
-import ee.ria.xroad.common.messagelog.AbstractLogRecord;
 import ee.ria.xroad.common.messagelog.LogRecord;
 import ee.ria.xroad.common.messagelog.MessageLogProperties;
 import ee.ria.xroad.common.messagelog.MessageRecord;
 import ee.ria.xroad.common.messagelog.RestLogMessage;
 import ee.ria.xroad.common.messagelog.TimestampRecord;
-import ee.ria.xroad.common.messagelog.archive.ArchiveDigest;
-import ee.ria.xroad.common.messagelog.archive.DigestEntry;
 import ee.ria.xroad.common.messagelog.archive.GroupingStrategy;
 import ee.ria.xroad.common.signature.SignatureData;
 import ee.ria.xroad.common.util.CacheInputStream;
 import ee.ria.xroad.common.util.EncoderUtils;
 import ee.ria.xroad.common.util.TimeUtils;
 import ee.ria.xroad.messagelog.database.MessageRecordEncryption;
+import ee.ria.xroad.messagelog.database.entity.AbstractLogRecordEntity;
+import ee.ria.xroad.messagelog.database.entity.ArchiveDigestEntity;
+import ee.ria.xroad.messagelog.database.entity.DigestEntryEmbeddable;
 import ee.ria.xroad.proxy.messagelog.Timestamper.TimestampFailed;
 import ee.ria.xroad.proxy.messagelog.Timestamper.TimestampSucceeded;
 
@@ -508,7 +508,6 @@ public class MessageLogTest extends AbstractMessageLogTest {
         log(createMessage(), createSignature());
     }
 
-
     // ------------------------------------------------------------------------
 
     /**
@@ -549,9 +548,12 @@ public class MessageLogTest extends AbstractMessageLogTest {
     }
 
     private void initLastHashStep() throws Exception {
-        DigestEntry lastArchive = new DigestEntry(LAST_DIGEST, LAST_LOG_ARCHIVE_FILE);
-        ArchiveDigest digest = new ArchiveDigest(ClientId.Conf.create("XRD", "BUSINESS", "consumer").toShortString(),
-                lastArchive);
+        var lastArchive = new DigestEntryEmbeddable();
+        lastArchive.setDigest(LAST_DIGEST);
+        lastArchive.setFileName(LAST_LOG_ARCHIVE_FILE);
+        var digest = new ArchiveDigestEntity();
+        digest.setGroupName(ClientId.Conf.create("XRD", "BUSINESS", "consumer").toShortString());
+        digest.setDigestEntry(lastArchive);
         databaseCtx.doInTransaction(session -> {
             session.createMutationQuery(getLastEntryDeleteQuery()).executeUpdate();
             session.persist(digest);
@@ -617,7 +619,7 @@ public class MessageLogTest extends AbstractMessageLogTest {
     }
 
     private String getLastEntryDeleteQuery() {
-        return "delete from " + ArchiveDigest.class.getName();
+        return "delete from " + ArchiveDigestEntity.class.getName();
     }
 
     private void assertArchiveHashChain() throws Exception {
@@ -681,7 +683,7 @@ public class MessageLogTest extends AbstractMessageLogTest {
 
     private String getLastDigestQuery() {
         return "select new java.lang.String(d.digestEntry.digest) "
-                + "from ArchiveDigest d where d.digestEntry.digest is not null";
+                + "from ArchiveDigestEntity d where d.digestEntry.digest is not null";
     }
 
     private String getArchiveFilePath() {
@@ -718,7 +720,7 @@ public class MessageLogTest extends AbstractMessageLogTest {
         return databaseCtx.doInTransaction(session -> {
             final CriteriaBuilder cb = session.getCriteriaBuilder();
             final CriteriaQuery<Number> query = cb.createQuery(Number.class);
-            final Root<AbstractLogRecord> r = query.from(AbstractLogRecord.class);
+            final Root<AbstractLogRecordEntity> r = query.from(AbstractLogRecordEntity.class);
             query.select(cb.count(r)).where(cb.equal(r.get("archived"), archived));
             return session.createQuery(query).getSingleResult().intValue();
         });

@@ -27,6 +27,7 @@ package ee.ria.xroad.opmonitordaemon;
 
 import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.opmonitoring.OpMonitoringSystemProperties;
+import ee.ria.xroad.opmonitordaemon.mapper.OperationalDataRecordMapper;
 
 import com.google.common.collect.Sets;
 import lombok.extern.slf4j.Slf4j;
@@ -62,12 +63,13 @@ public class OperationalDataRecordManagerTest extends BaseTestUsingDB {
 
     /**
      * Cleanup the stored records before each test.
+     *
      * @throws Exception if an error occurs.
      */
     @Before
     public void beforeTest() throws Exception {
         int cleaned = DATABASE_CTX.doInTransaction(
-                session -> session.createQuery("delete OperationalDataRecord")
+                session -> session.createMutationQuery("delete OperationalDataRecordEntity")
                         .executeUpdate());
 
         log.info("Cleaned {} records", cleaned);
@@ -87,11 +89,12 @@ public class OperationalDataRecordManagerTest extends BaseTestUsingDB {
 
         assertEquals(1, result.size());
 
-        OperationalDataRecord resultRecord = result.getRecords().get(0);
+        OperationalDataRecord resultRecord = result.getRecords().getFirst();
 
         // The id field is the only field that differs between the original
         // data and the stored record, but storeRecords() adds
         // the missing id to the record variable.
+        resultRecord.setId(null);
         assertEquals(record, resultRecord);
     }
 
@@ -113,13 +116,13 @@ public class OperationalDataRecordManagerTest extends BaseTestUsingDB {
 
         result = operationalDataRecordManager.queryRecords(1474968970L, 1474968990L);
         assertEquals(1, result.size());
-        assertNotNull(result.getRecords().get(0).getMessageId());
-        assertEquals(1474968980L, result.getRecords().get(0)
+        assertNotNull(result.getRecords().getFirst().getMessageId());
+        assertEquals(1474968980L, result.getRecords().getFirst()
                 .getMonitoringDataTs().longValue());
 
         result = operationalDataRecordManager.queryRecords(1474968950L, 1474968970L);
         assertEquals(1, result.size());
-        assertEquals(1474968960L, result.getRecords().get(0)
+        assertEquals(1474968960L, result.getRecords().getFirst()
                 .getMonitoringDataTs().longValue());
     }
 
@@ -197,7 +200,7 @@ public class OperationalDataRecordManagerTest extends BaseTestUsingDB {
 
         assertEquals(1, result.size());
 
-        OperationalDataRecord record = result.getRecords().get(0);
+        OperationalDataRecord record = result.getRecords().getFirst();
 
         assertNotNull(record.getRequestInTs());
         assertEquals(14749689780000L, record.getRequestInTs().longValue());
@@ -219,7 +222,7 @@ public class OperationalDataRecordManagerTest extends BaseTestUsingDB {
 
         assertEquals(1, result.size());
 
-        record = result.getRecords().get(0);
+        record = result.getRecords().getFirst();
 
         assertEquals("192.168.3.250", record.getSecurityServerInternalIp());
 
@@ -228,7 +231,7 @@ public class OperationalDataRecordManagerTest extends BaseTestUsingDB {
                 Sets.newHashSet("faultCode"));
         assertEquals(1, result.size());
 
-        final OperationalDataRecord r = result.getRecords().get(0);
+        final OperationalDataRecord r = result.getRecords().getFirst();
 
         OperationalDataOutputSpecFields.OUTPUT_FIELDS.forEach(i -> {
             try {
@@ -339,7 +342,6 @@ public class OperationalDataRecordManagerTest extends BaseTestUsingDB {
         storeFullOperationalDataRecord(1474968963L, serviceProvider, client, operationalDataRecordManager);
         storeFullOperationalDataRecord(1474968964L, serviceProvider, client, operationalDataRecordManager);
 
-
         // Less than max records.
         operationalDataRecordManager.setMaxRecordsInPayload(10);
         OperationalDataRecords result = operationalDataRecordManager.queryRecords(1474968960L, 1474968980L);
@@ -400,7 +402,7 @@ public class OperationalDataRecordManagerTest extends BaseTestUsingDB {
 
         assertEquals(1, result.size());
 
-        OperationalDataRecord resultRecord = result.getRecords().get(0);
+        OperationalDataRecord resultRecord = result.getRecords().getFirst();
 
         assertEquals(LONG_STRING.substring(0, 255),
                 resultRecord.getMessageIssue());
@@ -410,12 +412,15 @@ public class OperationalDataRecordManagerTest extends BaseTestUsingDB {
         resultRecord.setMessageIssue("2" + LONG_STRING);
 
         DATABASE_CTX.doInTransaction(session -> {
-            session.saveOrUpdate(resultRecord);
+            var entity = OperationalDataRecordMapper.get().toEntity(resultRecord);
+
+            session.merge(entity);
             return null;
         });
 
         result = operationalDataRecordManager.queryAllRecords();
-        OperationalDataRecord updatedResultRecord = result.getRecords().get(0);
+        assertEquals(1, result.size());
+        OperationalDataRecord updatedResultRecord = result.getRecords().getFirst();
 
         assertEquals(("2" + LONG_STRING).substring(0, 255),
                 updatedResultRecord.getMessageIssue());

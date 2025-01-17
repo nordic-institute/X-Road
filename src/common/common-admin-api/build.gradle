@@ -18,6 +18,9 @@ dependencies {
     implementation(project(':configuration-client:confclient-rpc-client'))
     implementation(project(':serverconf'))
 
+    annotationProcessor(libs.mapstructProcessor)
+    annotationProcessor(libs.lombokMapstructBinding)
+
     implementation(platform(libs.springBoot.bom))
 
     implementation('org.springframework.boot:spring-boot-starter-web')
@@ -31,6 +34,7 @@ dependencies {
     implementation(libs.libpam4j)
     implementation(libs.swagger.parserV3)
     implementation(libs.swagger.annotations)
+    implementation(libs.mapstruct)
 
     testImplementation(project(':common:common-test'))
     testImplementation('org.springframework.boot:spring-boot-starter-test')

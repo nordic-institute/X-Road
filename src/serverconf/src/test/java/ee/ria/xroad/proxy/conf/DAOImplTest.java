@@ -183,8 +183,8 @@ public class DAOImplTest {
         ServerConfType conf = getConf();
         assertTrue(conf.getClient().remove(client));
 
-        session.saveOrUpdate(conf);
-        session.delete(client);
+        session.merge(conf);
+        session.remove(client);
 
         client = new ClientDAOImpl().findById(session, ClientType.class,
                 client.getId());
@@ -207,8 +207,8 @@ public class DAOImplTest {
         Long serviceDescriptionId = serviceDescription.getId();
 
         client.getServiceDescription().remove(serviceDescription);
-        session.saveOrUpdate(client);
-        session.delete(serviceDescription);
+        session.merge(client);
+        session.remove(serviceDescription);
 
         assertEquals(TestUtil.NUM_SERVICEDESCRIPTIONS - 1, client.getServiceDescription().size());
         assertNull(session.get(ServiceDescriptionType.class, serviceDescriptionId));
@@ -233,7 +233,7 @@ public class DAOImplTest {
         GroupMemberType member = new GroupMemberType();
         member.setAdded(new Date());
         member.setGroupMemberId(clientId);
-        session.save(member);
+        session.persist(member);
 
         localGroup.getGroupMember().add(member);
     }

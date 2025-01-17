@@ -22,10 +22,6 @@ tasks.register('build-pnpm-workspace', RunPnpmTaskType) {
     args = 'run build-workspace'
 }
 
-tasks.named("cleanFrontend").configure {
-    enabled(false)
-}
-
 tasks.register('checkFrontAudit', RunPnpmTaskType) {
     dependsOn assembleFrontend
 

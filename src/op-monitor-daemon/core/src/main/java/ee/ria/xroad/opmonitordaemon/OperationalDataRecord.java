@@ -58,7 +58,6 @@ public class OperationalDataRecord {
     // daemon. This timestamp is used for limiting the set of records returned.
     @Getter
     @Setter
-    @Min(0)
     private Long monitoringDataTs;
 
     // The following fields correspond to the schema defined in the file
@@ -93,19 +92,16 @@ public class OperationalDataRecord {
 
     @Getter
     @Setter
-    @Min(0)
     // The Unix timestamp in milliseconds.
     private Long requestOutTs;
 
     @Getter
     @Setter
-    @Min(0)
     // The Unix timestamp in milliseconds.
     private Long responseInTs;
 
     @Getter
     @Setter
-    @Min(0)
     // The Unix timestamp in milliseconds.
     private Long responseOutTs;
 

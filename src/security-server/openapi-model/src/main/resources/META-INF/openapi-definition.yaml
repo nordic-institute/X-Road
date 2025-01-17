@@ -2117,6 +2117,34 @@ paths:
               examples:
                 error_metadata_response:
                   $ref: '#/components/examples/ErrorWithMetadataExample'
+  /diagnostics/info/download:
+    get:
+      tags:
+        - diagnostics
+      summary: download diagnostics report
+      operationId: downloadDiagnosticsReport
+      description: <h3>Administrator downloads diagnostics report.</h3>
+      responses:
+        '200':
+          description: system information
+          content:
+            application/json:
+              schema:
+                type: string
+                format: binary
+                description: system information file
+        '400':
+          description: request was invalid
+        '401':
+          description: authentication credentials are missing
+        '403':
+          description: request has been refused
+        '404':
+          description: resource requested does not exists
+        '406':
+          description: request specified an invalid format
+        '500':
+          description: internal server error
   /diagnostics/globalconf:
     get:
       tags:
@@ -5658,12 +5686,15 @@ components:
       type: object
       description: automatic e-mail notification status
       properties:
-        failure_status:
+        acme_failure_status:
           type: boolean
-          description: status of failure notifications
-        success_status:
+          description: status of ACME automatic renewal failure notifications
+        acme_success_status:
           type: boolean
-          description: status of success notifications
+          description: status of ACME automatic renewal success notifications
+        auth_cert_registered_status:
+          type: boolean
+          description: status of authentication certificates registration notifications
         configuration_present:
           type: boolean
           description: whether automatic e-mail has been configured

@@ -34,6 +34,8 @@ import org.niis.xroad.restapi.domain.InvalidRoleNameException;
 import org.niis.xroad.restapi.domain.PersistentApiKeyType;
 import org.niis.xroad.restapi.domain.Role;
 import org.niis.xroad.restapi.dto.PlaintextApiKeyDto;
+import org.niis.xroad.restapi.entity.ApiKeyEntity;
+import org.niis.xroad.restapi.mapper.ApiKeyMapper;
 import org.niis.xroad.restapi.repository.ApiKeyRepository;
 import org.niis.xroad.restapi.util.SecurityHelper;
 import org.springframework.cache.Cache;
@@ -44,7 +46,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Collection;
-import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 import java.util.UUID;
@@ -67,6 +68,7 @@ public class ApiKeyService {
     private final CacheManager cacheManager;
     private final AuditDataHelper auditDataHelper;
     private final SecurityHelper securityHelper;
+    private final ApiKeyMapper apiKeyMapper;
 
     /**
      * Api keys are created with UUID.randomUUID which uses SecureRandom,
@@ -84,7 +86,7 @@ public class ApiKeyService {
      * @throws InvalidRoleNameException if roleNames was empty or contained invalid roles
      */
     public PlaintextApiKeyDto create(String roleName) throws InvalidRoleNameException {
-        return create(Collections.singletonList(roleName));
+        return create(Set.of(roleName));
     }
 
     /**
@@ -102,8 +104,7 @@ public class ApiKeyService {
         verifyUserCanCreateApiKeyForRoles(roles);
         String plainKey = createApiKey();
         String encodedKey = encode(plainKey);
-        PersistentApiKeyType apiKey = new PersistentApiKeyType(encodedKey,
-                Collections.unmodifiableCollection(roles));
+        var apiKey = new ApiKeyEntity(encodedKey, Set.copyOf(roles));
 
         apiKeyRepository.save(apiKey);
         auditLog(apiKey);
@@ -111,7 +112,7 @@ public class ApiKeyService {
         return new PlaintextApiKeyDto(apiKey.getId(), plainKey, encodedKey, roles);
     }
 
-    private void verifyUserCanUpdateApiKeyRoles(PersistentApiKeyType apiKey, Set<Role> roles) {
+    private void verifyUserCanUpdateApiKeyRoles(ApiKeyEntity apiKey, Set<Role> roles) {
         final Set<Role> currentKeyRoles = apiKey.getRoles();
         for (Role role : roles) {
             // if the role assigned to api key, it is allowed to leave it
@@ -133,7 +134,7 @@ public class ApiKeyService {
         roles.forEach(this::verifyUserCanAssignRole);
     }
 
-    private void auditLog(PersistentApiKeyType apiKey) {
+    private void auditLog(ApiKeyEntity apiKey) {
         auditDataHelper.put(RestApiAuditProperty.API_KEY_ID, apiKey.getId());
         auditDataHelper.put(RestApiAuditProperty.API_KEY_ROLES, apiKey.getRoles());
     }
@@ -148,13 +149,13 @@ public class ApiKeyService {
      *
      * @param id       apiKey id.
      * @param roleName a role name.
-     * @return updated {@link  PersistentApiKeyType} entity.
+     * @return updated {@link  ApiKeyEntity} entity.
      * @throws InvalidRoleNameException              if roleNames was empty or contained invalid roles
      * @throws ApiKeyService.ApiKeyNotFoundException if api key was not found
      */
     public PersistentApiKeyType update(long id, String roleName)
             throws InvalidRoleNameException, ApiKeyService.ApiKeyNotFoundException {
-        return update(id, Collections.singletonList(roleName));
+        return update(id, Set.of(roleName));
     }
 
     /**
@@ -162,21 +163,21 @@ public class ApiKeyService {
      *
      * @param id        apiKey id.
      * @param roleNames a list of role names.
-     * @return updated {@link  PersistentApiKeyType} entity.
+     * @return updated {@link  ApiKeyEntity} entity.
      * @throws InvalidRoleNameException              if roleNames was empty or contained invalid roles.
      * @throws ApiKeyService.ApiKeyNotFoundException if api key was not found.
      */
     public PersistentApiKeyType update(long id, Collection<String> roleNames)
             throws InvalidRoleNameException, ApiKeyService.ApiKeyNotFoundException {
         auditLog(id, roleNames);
-        PersistentApiKeyType apiKeyType = getForId(id);
+        ApiKeyEntity apiKeyType = internalGetForId(id);
         if (roleNames.isEmpty()) {
             throw new InvalidRoleNameException("missing roles");
         }
         Set<Role> roles = Role.getForNames(roleNames);
         verifyUserCanUpdateApiKeyRoles(apiKeyType, roles);
         apiKeyType.setRoles(roles);
-        return apiKeyRepository.update(apiKeyType);
+        return apiKeyMapper.toDTO(apiKeyRepository.update(apiKeyType));
     }
 
     /**
@@ -185,9 +186,12 @@ public class ApiKeyService {
      * @param id apiKey id.
      * @throws ApiKeyService.ApiKeyNotFoundException if api key was not found
      */
-    public PersistentApiKeyType getForId(long id)
-            throws ApiKeyService.ApiKeyNotFoundException {
-        PersistentApiKeyType apiKeyType = apiKeyRepository.getApiKey(id);
+    public PersistentApiKeyType getForId(long id) throws ApiKeyService.ApiKeyNotFoundException {
+        return apiKeyMapper.toDTO(internalGetForId(id));
+    }
+
+    public ApiKeyEntity internalGetForId(long id) throws ApiKeyService.ApiKeyNotFoundException {
+        ApiKeyEntity apiKeyType = apiKeyRepository.getApiKey(id);
         if (apiKeyType == null) {
             throw new ApiKeyService.ApiKeyNotFoundException(id);
         }
@@ -208,7 +212,7 @@ public class ApiKeyService {
      * Get matching key.
      *
      * @param key plaintext api key.
-     * @return a {@link  PersistentApiKeyType} entity.
+     * @return a {@link  ApiKeyEntity} entity.
      * @throws ApiKeyService.ApiKeyNotFoundException if api key was not found
      */
     public PersistentApiKeyType getForPlaintextKey(String key) throws ApiKeyService.ApiKeyNotFoundException {
@@ -219,14 +223,18 @@ public class ApiKeyService {
      * Get matching Api key.
      *
      * @param key encoded api key.
-     * @return a {@link  PersistentApiKeyType} entity.
+     * @return a {@link  ApiKeyEntity} entity.
      * @throws ApiKeyService.ApiKeyNotFoundException if api key was not found.
      */
     public PersistentApiKeyType getForEncodedKey(String key) throws ApiKeyService.ApiKeyNotFoundException {
-        List<PersistentApiKeyType> keys = apiKeyRepository.getAllApiKeys();
-        for (PersistentApiKeyType apiKeyType : keys) {
-            if (apiKeyType.getEncodedKey().equals(key)) {
-                return apiKeyType;
+        return apiKeyMapper.toDTO(internalGetForEncodedKey(key));
+    }
+
+    public ApiKeyEntity internalGetForEncodedKey(String key) throws ApiKeyService.ApiKeyNotFoundException {
+        List<ApiKeyEntity> keys = apiKeyRepository.getAllApiKeys();
+        for (ApiKeyEntity entity : keys) {
+            if (entity.getEncodedKey().equals(key)) {
+                return entity;
             }
         }
         throw new ApiKeyService.ApiKeyNotFoundException();
@@ -239,7 +247,7 @@ public class ApiKeyService {
      * @throws ApiKeyService.ApiKeyNotFoundException if api key was not found.
      */
     public void removeForPlaintextKey(String key) throws ApiKeyService.ApiKeyNotFoundException {
-        PersistentApiKeyType apiKeyType = getForPlaintextKey(key);
+        var apiKeyType = internalGetForEncodedKey(encode(key));
         auditLog(apiKeyType);
         apiKeyRepository.delete(apiKeyType);
     }
@@ -251,7 +259,7 @@ public class ApiKeyService {
      * @throws ApiKeyService.ApiKeyNotFoundException if api key was not found
      */
     public void removeForId(long id) throws ApiKeyService.ApiKeyNotFoundException {
-        PersistentApiKeyType apiKeyType = getForId(id);
+        var apiKeyType = internalGetForId(id);
         auditLog(apiKeyType);
         apiKeyRepository.delete(apiKeyType);
     }
@@ -270,10 +278,10 @@ public class ApiKeyService {
     /**
      * List all keys.
      *
-     * @return a list of {@link PersistentApiKeyType}.
+     * @return a list of {@link ApiKeyEntity}.
      */
     public List<PersistentApiKeyType> listAll() {
-        return apiKeyRepository.getAllApiKeys();
+        return apiKeyMapper.toDTOs(apiKeyRepository.getAllApiKeys());
     }
 
     @SuppressWarnings("squid:S110")
