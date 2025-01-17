@@ -37,7 +37,7 @@ public interface QuarkusProxyRpcChannelProperties extends ProxyRpcChannelPropert
     String host();
 
     @Override
-    @WithDefault("5667")
+    @WithDefault("5567")
     int port();
 
     @Override
