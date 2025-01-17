@@ -1,6 +1,7 @@
 ---
 - name: Ready all Ubuntu {{ubuntu_releasever}} containers
   with_inventory_hostnames: all:!lxd_servers:!centos_ss:!localhost
+  become: "{{ onMacOs | default(true) }}"
   community.general.lxd_container:
     name: "{{item}}"
     url: "{{ lxd_url | default(omit) }}"
