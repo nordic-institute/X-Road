@@ -5,25 +5,25 @@
 # In some cases referincing library directly like 'libs.protobuf.protoc' may not work, possible workaround could be:
 # protoc { artifact = libs.protobuf.protoc.get().toString() } where just using 'artifact = libs.protobuf.protoc' causes error
 
-metrics = "4.2.29"
+metrics = "4.2.30"
 jetty = "12.0.14"
 jaxb = "4.0.5"
-hibernate = "6.6.2.Final"
+hibernate = "6.6.3.Final"
 mapstruct = "1.6.3"
 jackson = "2.18.2"
-mockito = "5.14.2"
+mockito = "5.15.2"
 springBoot = "3.3.6"
-junitJupiter = "5.11.3"
+junitJupiter = "5.11.4"
 xmlUnit = "2.10.0"
-bouncyCastle = "1.79"
+bouncyCastle = "1.80"
 slf4j = "2.0.16"
 testAutomationFramework = "0.2.18"
 protoc = "4.29.0"
 grpc = "1.68.2"
 swaggerParser = "2.1.24"
-logback = "1.5.12"
+logback = "1.5.16"
 logbackAccess = "2.0.3"
-apacheCxf = "4.0.5"
+apacheCxf = "4.1.0"
 archUnitPlugin = "4.0.0"
 
 [libraries]
@@ -97,7 +97,7 @@ mockito-jupiter = { module = "org.mockito:mockito-junit-jupiter", version.ref = 
 
 apache-commonsCompress = { module = "org.apache.commons:commons-compress", version = "1.27.1" }
 apache-commonsLang3 = { module = "org.apache.commons:commons-lang3", version = "3.17.0" }
-apache-commonsText = { module = "org.apache.commons:commons-text", version = "1.12.0" }
+apache-commonsText = { module = "org.apache.commons:commons-text", version = "1.13.0" }
 apache-commonsConfiguration2 = { module = "org.apache.commons:commons-configuration2", version = "2.11.0" }
 apache-httpmime = { module = "org.apache.httpcomponents:httpmime", version = "4.5.14" }
 apache-cxfToolsValidator = { module = "org.apache.cxf:cxf-tools-validator", version.ref = "apacheCxf" }
@@ -111,7 +111,7 @@ apache-mime4jCore = { module = "org.apache.james:apache-mime4j-core", version = 
 apache-ant = { module = "org.apache.ant:ant", version = "1.10.15" }
 
 commons-cli = { module = "commons-cli:commons-cli", version = "1.9.0" }
-commons-codec = { module = "commons-codec:commons-codec", version = "1.17.1" }
+commons-codec = { module = "commons-codec:commons-codec", version = "1.17.2" }
 commons-io = { module = "commons-io:commons-io", version = "2.18.0" }
 commons-collections = { module = "commons-collections:commons-collections", version = "3.2.2" }
 
@@ -128,15 +128,15 @@ lombokMapstructBinding = { module = "org.projectlombok:lombok-mapstruct-binding"
 logback-classic = { module = "ch.qos.logback:logback-classic", version.ref = "logback" }
 logback-access = { module = "ch.qos.logback.access:tomcat", version.ref = "logbackAccess" }
 
-assertj-core = { module = "org.assertj:assertj-core", version = "3.26.3" }
+assertj-core = { module = "org.assertj:assertj-core", version = "3.27.2" }
 wiremock-standalone = { module = "org.wiremock:wiremock-standalone", version = "3.10.0" }
-postgresql = { module = "org.postgresql:postgresql", version = "42.7.4" }
+postgresql = { module = "org.postgresql:postgresql", version = "42.7.5" }
 hsqldb = { module = "org.hsqldb:hsqldb", version = "2.7.4" }
-liquibase-core = { module = "org.liquibase:liquibase-core", version = "4.30.0" }
+liquibase-core = { module = "org.liquibase:liquibase-core", version = "4.31.0" }
 xerces-impl = { module = "xerces:xercesImpl", version = "2.12.2" }
 feign-hc5 = { module = "io.github.openfeign:feign-hc5", version = "13.5" }
 guava = { module = "com.google.guava:guava", version = "33.0.0-jre" }
-swagger-annotations = { module = "io.swagger.core.v3:swagger-annotations", version = "2.2.26" }
+swagger-annotations = { module = "io.swagger.core.v3:swagger-annotations", version = "2.2.28" }
 awaitility = { module = "org.awaitility:awaitility", version = "4.2.2" }
 bucket4j-core = { module = "com.bucket4j:bucket4j-core", version = "8.10.1" }
 libpam4j = { module = "org.kohsuke:libpam4j", version = "1.11" }
@@ -149,7 +149,7 @@ saajImpl = { module = "com.sun.xml.messaging.saaj:saaj-impl", version = "3.0.4" 
 quartz = { module = "org.quartz-scheduler:quartz", version = "2.5.0" }
 antlrST4 = { module = "org.antlr:ST4", version = "4.3.4" }
 systemRules = { module = "com.github.stefanbirkner:system-rules", version = "1.19.0" }
-semver4j = { module = "org.semver4j:semver4j", version = "5.4.1" }
+semver4j = { module = "org.semver4j:semver4j", version = "5.5.0" }
 restAssured = { module = "io.rest-assured:rest-assured", version = "5.5.0" }
 cliche = { module = "com.googlecode.clichemaven:cliche", version = "110413" }
 acme4j = { module = "org.shredzone.acme4j:acme4j-client", version = "3.4.0" }
