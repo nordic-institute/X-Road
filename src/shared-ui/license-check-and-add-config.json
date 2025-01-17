@@ -21,7 +21,7 @@
     "**/openapi-types.ts",
     "scripts/dtsgen-wrapper.js",
     "tests/unit/__snapshots__",
-    "build.gradle",
+    "build.gradle.kts",
     "build/**",
     ".gradle/**"
   ],
