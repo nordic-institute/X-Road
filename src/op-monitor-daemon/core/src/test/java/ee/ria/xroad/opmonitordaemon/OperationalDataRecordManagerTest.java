@@ -380,7 +380,8 @@ public class OperationalDataRecordManagerTest extends BaseTestUsingDB {
         storeFullOperationalDataRecords(1, 1474968970L, operationalDataRecordManager);
         storeFullOperationalDataRecords(1, 1474968980L, operationalDataRecordManager);
 
-        OperationalDataRecordCleaner.cleanRecords(Instant.ofEpochMilli(1474968975000L), DATABASE_CTX);
+        OperationalDataRecordCleanerJob operationalDataRecordCleanerJob = new OperationalDataRecordCleanerJob(DATABASE_CTX);
+        operationalDataRecordCleanerJob.cleanRecords(Instant.ofEpochMilli(1474968975000L), DATABASE_CTX);
 
         OperationalDataRecords result = operationalDataRecordManager.queryRecords(1474968960L, 1474968980L);
 

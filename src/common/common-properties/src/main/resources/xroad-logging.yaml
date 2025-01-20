@@ -1,0 +1,10 @@
+quarkus:
+  log:
+    level: INFO
+    file:
+      format: "%d{yyyy-MM-dd'T'HH:mm:ss.SSSXXX} [%t] %-5p %c{36} - %s%e%n"
+      encoding: UTF-8
+      rotation:
+        max-file-size: 100m
+        file-suffix: .yyyy-MM-dd.zip
+

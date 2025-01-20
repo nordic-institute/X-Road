@@ -141,13 +141,6 @@ public final class OpMonitoringSystemProperties {
             PREFIX + "op-monitor.keep-records-for-days";
 
     /**
-     * Property name of the interval for running the operational monitoring data cleanup operation represented as a
-     * Cron expression.
-     */
-    private static final String OP_MONITOR_CLEAN_INTERVAL =
-            PREFIX + "op-monitor.clean-interval";
-
-    /**
      * Property name of the maximum records in the get operational data response payload.
      */
     private static final String OP_MONITOR_MAX_RECORDS_IN_PAYLOAD =
@@ -257,14 +250,6 @@ public final class OpMonitoringSystemProperties {
      */
     public static int getOpMonitorKeepRecordsForDays() {
         return Integer.parseInt(System.getProperty(OP_MONITOR_KEEP_RECORDS_FOR_DAYS, "7"));
-    }
-
-    /**
-     * @return the time interval as a Cron expression for running the operational monitoring data cleanup operation,
-     * '0 0 0/12 1/1 * ? *' by default.
-     */
-    public static String getOpMonitorCleanInterval() {
-        return System.getProperty(OP_MONITOR_CLEAN_INTERVAL, "0 0 0/12 1/1 * ? *");
     }
 
     /**

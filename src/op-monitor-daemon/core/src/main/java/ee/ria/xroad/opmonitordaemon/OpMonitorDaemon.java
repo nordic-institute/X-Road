@@ -32,8 +32,10 @@ import ee.ria.xroad.common.util.CryptoUtils;
 
 import com.codahale.metrics.MetricRegistry;
 import com.codahale.metrics.jmx.JmxReporter;
+import io.quarkus.runtime.Startup;
 import jakarta.annotation.PostConstruct;
 import jakarta.annotation.PreDestroy;
+import jakarta.enterprise.context.ApplicationScoped;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.SneakyThrows;
@@ -57,6 +59,8 @@ import static ee.ria.xroad.common.util.TimeUtils.getEpochMillisecond;
  * SOAP requests for monitoring data are further processed by the QueryRequestProcessor class.
  */
 @Slf4j
+@ApplicationScoped
+@Startup
 public final class OpMonitorDaemon {
 
     private static final String CLIENT_CONNECTOR_NAME = "OpMonitorDaemonClientConnector";
@@ -68,7 +72,7 @@ public final class OpMonitorDaemon {
     @Getter(AccessLevel.PRIVATE)
     private long startTimestamp;
 
-    private Server server = new Server();
+    private final Server server = new Server();
 
     private final GlobalConfProvider globalConfProvider;
     private final OperationalDataRecordManager operationalDataRecordManager;
@@ -77,10 +81,9 @@ public final class OpMonitorDaemon {
 
     /**
      * Constructor. Creates the connector and request handlers.
-     *
-     * @throws Exception in case of any errors
      */
     public OpMonitorDaemon(GlobalConfProvider globalConfProvider, OperationalDataRecordManager operationalDataRecordManager) {
+        log.info("Creating OpMonitorDaemon.");
         this.globalConfProvider = globalConfProvider;
         this.operationalDataRecordManager = operationalDataRecordManager;
 
@@ -95,6 +98,7 @@ public final class OpMonitorDaemon {
 
         reporter.start();
         server.start();
+        log.info("OpMonitorDaemon started.");
     }
 
     @PreDestroy
