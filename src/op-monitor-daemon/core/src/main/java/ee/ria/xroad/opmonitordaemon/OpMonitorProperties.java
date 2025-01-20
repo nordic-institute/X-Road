@@ -37,6 +37,9 @@ import java.util.Map;
 @Data
 public class OpMonitorProperties {
 
+    @WithName("clean-interval")
+    String cleanIntervalCron; // op-monitor.clean-interval
+
     @WithName("hibernate")
     Map<String, String> hibernate; // op-monitor.hibernate.* properties from db-properties file
 }
