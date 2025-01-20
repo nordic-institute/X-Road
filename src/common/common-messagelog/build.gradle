@@ -4,9 +4,8 @@ plugins {
 dependencies {
     implementation project(':common:common-message')
     implementation project(':common:common-scheduler')
-    implementation project(':common:common-globalconf')
+    implementation project(":lib:globalconf-spring")
     implementation project(':serverconf')
-    implementation project(':common:common-verifier')
     implementation project(':asic-util')
 
     testImplementation project(':common:common-test')

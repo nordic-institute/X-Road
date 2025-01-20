@@ -30,6 +30,13 @@ import ee.ria.xroad.common.SystemProperties;
 import ee.ria.xroad.common.conf.ConfProvider;
 
 import lombok.extern.slf4j.Slf4j;
+import org.niis.xroad.globalconf.model.ConfigurationAnchor;
+import org.niis.xroad.globalconf.model.ConfigurationConstants;
+import org.niis.xroad.globalconf.model.ConfigurationDirectory;
+import org.niis.xroad.globalconf.model.ConfigurationSource;
+import org.niis.xroad.globalconf.model.ConfigurationUtils;
+import org.niis.xroad.globalconf.model.ParametersProviderFactory;
+import org.niis.xroad.globalconf.model.PrivateParameters;
 
 import java.io.FileNotFoundException;
 import java.nio.file.Files;
@@ -42,7 +49,7 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 import static ee.ria.xroad.common.ErrorCodes.X_INVALID_XML;
-import static ee.ria.xroad.common.conf.globalconf.VersionedConfigurationDirectory.getVersion;
+import static org.niis.xroad.globalconf.model.VersionedConfigurationDirectory.getVersion;
 
 /**
  * Configuration client downloads the configuration from sources found in the configuration anchor.

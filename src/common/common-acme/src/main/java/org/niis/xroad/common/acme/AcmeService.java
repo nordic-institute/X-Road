@@ -26,7 +26,6 @@
 package org.niis.xroad.common.acme;
 
 import ee.ria.xroad.common.SystemProperties;
-import ee.ria.xroad.common.conf.globalconf.ApprovedCAInfo;
 import ee.ria.xroad.common.util.AtomicSave;
 import ee.ria.xroad.common.util.CryptoUtils;
 import ee.ria.xroad.signer.protocol.dto.KeyUsageInfo;
@@ -38,6 +37,7 @@ import org.bouncycastle.operator.OperatorCreationException;
 import org.jose4j.jws.AlgorithmIdentifiers;
 import org.niis.xroad.common.exception.ValidationFailureException;
 import org.niis.xroad.common.mail.MailNotificationProperties;
+import org.niis.xroad.globalconf.model.ApprovedCAInfo;
 import org.shredzone.acme4j.Account;
 import org.shredzone.acme4j.AccountBuilder;
 import org.shredzone.acme4j.AcmeJsonResource;

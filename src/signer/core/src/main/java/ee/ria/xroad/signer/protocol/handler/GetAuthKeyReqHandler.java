@@ -26,10 +26,7 @@
 package ee.ria.xroad.signer.protocol.handler;
 
 import ee.ria.xroad.common.CodedException;
-import ee.ria.xroad.common.conf.globalconf.GlobalConfProvider;
 import ee.ria.xroad.common.identifier.SecurityServerId;
-import ee.ria.xroad.common.ocsp.OcspVerifier;
-import ee.ria.xroad.common.ocsp.OcspVerifierOptions;
 import ee.ria.xroad.common.util.CertUtils;
 import ee.ria.xroad.common.util.CryptoUtils;
 import ee.ria.xroad.common.util.PasswordStore;
@@ -46,6 +43,9 @@ import ee.ria.xroad.signer.tokenmanager.token.SoftwareTokenUtil;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.bouncycastle.cert.ocsp.OCSPResp;
+import org.niis.xroad.globalconf.GlobalConfProvider;
+import org.niis.xroad.globalconf.impl.ocsp.OcspVerifier;
+import org.niis.xroad.globalconf.impl.ocsp.OcspVerifierOptions;
 import org.niis.xroad.signer.proto.AuthKeyInfoProto;
 import org.niis.xroad.signer.proto.GetAuthKeyReq;
 import org.springframework.stereotype.Component;
@@ -186,10 +186,8 @@ public class GetAuthKeyReqHandler
         }
 
         OCSPResp ocsp = new OCSPResp(ocspBytes);
-        X509Certificate issuer =
-                globalConfProvider.getCaCert(instanceIdentifier, subject);
-        OcspVerifier verifier =
-                new OcspVerifier(globalConfProvider, verifierOptions);
+        X509Certificate issuer = globalConfProvider.getCaCert(instanceIdentifier, subject);
+        OcspVerifier verifier = new OcspVerifier(globalConfProvider, verifierOptions);
         verifier.verifyValidityAndStatus(ocsp, subject, issuer);
     }
 

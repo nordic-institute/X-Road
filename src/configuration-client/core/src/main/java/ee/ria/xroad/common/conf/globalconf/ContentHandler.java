@@ -29,6 +29,12 @@ package ee.ria.xroad.common.conf.globalconf;
 import ee.ria.xroad.common.CodedException;
 
 import org.apache.commons.lang3.StringUtils;
+import org.niis.xroad.globalconf.model.ConfigurationConstants;
+import org.niis.xroad.globalconf.model.ParametersProviderFactory;
+import org.niis.xroad.globalconf.model.PrivateParameters;
+import org.niis.xroad.globalconf.model.PrivateParametersProvider;
+import org.niis.xroad.globalconf.model.SharedParameters;
+import org.niis.xroad.globalconf.model.SharedParametersProvider;
 
 import java.io.IOException;
 import java.security.cert.CertificateEncodingException;

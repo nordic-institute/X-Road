@@ -25,8 +25,9 @@
  */
 package ee.ria.xroad.proxy.serverproxy;
 
-import ee.ria.xroad.common.conf.globalconf.GlobalConfProvider;
 import ee.ria.xroad.common.conf.serverconf.ServerConfProvider;
+
+import org.niis.xroad.globalconf.GlobalConfProvider;
 
 public abstract class AbstractServiceHandler implements ServiceHandler {
     protected final ServerConfProvider serverConfProvider;

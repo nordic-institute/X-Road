@@ -29,6 +29,8 @@ import ee.ria.xroad.common.SystemProperties;
 import ee.ria.xroad.common.TestCertUtil;
 
 import org.junit.jupiter.api.Test;
+import org.niis.xroad.globalconf.model.ConfigurationLocation;
+import org.niis.xroad.globalconf.model.ConfigurationSource;
 
 import java.io.FileInputStream;
 import java.io.InputStream;

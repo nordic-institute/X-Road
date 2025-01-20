@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
-<ns3:configurationAnchor xmlns:ns2="http://x-road.eu/xsd/identifiers" xmlns:ns3="http://x-road.eu/xsd/xroad.xsd">
+<ns3:configurationAnchor xmlns:ns3="http://x-road.eu/xsd/xroad.xsd">
     <generatedAt>2014-11-12T08:53:17.516Z</generatedAt>
     <instanceIdentifier>EE</instanceIdentifier>
     <source>

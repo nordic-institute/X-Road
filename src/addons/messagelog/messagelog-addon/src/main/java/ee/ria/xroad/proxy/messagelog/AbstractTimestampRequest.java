@@ -26,9 +26,7 @@
 package ee.ria.xroad.proxy.messagelog;
 
 import ee.ria.xroad.common.CodedException;
-import ee.ria.xroad.common.conf.globalconf.GlobalConfProvider;
 import ee.ria.xroad.common.messagelog.MessageLogProperties;
-import ee.ria.xroad.common.signature.TimestampVerifier;
 
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
@@ -38,6 +36,8 @@ import org.bouncycastle.tsp.TimeStampRequest;
 import org.bouncycastle.tsp.TimeStampRequestGenerator;
 import org.bouncycastle.tsp.TimeStampResponse;
 import org.bouncycastle.tsp.TimeStampToken;
+import org.niis.xroad.globalconf.GlobalConfProvider;
+import org.niis.xroad.globalconf.impl.signature.TimestampVerifier;
 
 import java.io.InputStream;
 import java.security.cert.X509Certificate;

@@ -26,9 +26,6 @@
  */
 package org.niis.xroad.cs.admin.core.service;
 
-import ee.ria.xroad.common.conf.globalconf.ConfigurationAnchor;
-import ee.ria.xroad.common.conf.globalconf.ConfigurationLocation;
-
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.apache.commons.io.FileUtils;
@@ -43,6 +40,8 @@ import org.niis.xroad.cs.admin.core.entity.mapper.TrustedAnchorMapper;
 import org.niis.xroad.cs.admin.core.repository.AnchorUrlCertRepository;
 import org.niis.xroad.cs.admin.core.repository.AnchorUrlRepository;
 import org.niis.xroad.cs.admin.core.repository.TrustedAnchorRepository;
+import org.niis.xroad.globalconf.model.ConfigurationAnchor;
+import org.niis.xroad.globalconf.model.ConfigurationLocation;
 import org.niis.xroad.restapi.config.audit.AuditDataHelper;
 import org.niis.xroad.restapi.service.ConfigurationVerifier;
 import org.springframework.beans.factory.annotation.Value;

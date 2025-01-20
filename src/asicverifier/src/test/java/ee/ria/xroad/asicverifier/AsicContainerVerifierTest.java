@@ -29,7 +29,6 @@ import ee.ria.xroad.common.ExpectedCodedException;
 import ee.ria.xroad.common.SystemProperties;
 import ee.ria.xroad.common.asic.AsicContainerVerifier;
 import ee.ria.xroad.common.asic.AsicUtils;
-import ee.ria.xroad.common.conf.globalconf.GlobalConfProvider;
 import ee.ria.xroad.common.conf.globalconf.TestGlobalConfImpl;
 
 import lombok.RequiredArgsConstructor;
@@ -40,6 +39,7 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
 import org.junit.runners.Parameterized.Parameters;
+import org.niis.xroad.globalconf.GlobalConfProvider;
 
 import java.util.Arrays;
 import java.util.Collection;
@@ -55,7 +55,6 @@ import static ee.ria.xroad.common.ErrorCodes.X_MALFORMED_SIGNATURE;
 @Slf4j
 @RunWith(Parameterized.class)
 @RequiredArgsConstructor
-//@Ignore(value = "Test data must be updated to conform to the latest changes in X-Road message headers")
 public class AsicContainerVerifierTest {
 
     private static GlobalConfProvider globalConfProvider;
@@ -70,9 +69,9 @@ public class AsicContainerVerifierTest {
      */
     @BeforeClass
     public static void setUpConf() {
-        System.setProperty(SystemProperties.CONFIGURATION_PATH, "../common/common-globalconf/src/test/resources/globalconf_good2_v3");
+        System.setProperty(SystemProperties.CONFIGURATION_PATH, "../lib/globalconf-model/src/test/resources/globalconf_good2_v3");
         System.setProperty(SystemProperties.CONFIGURATION_ANCHOR_FILE,
-                "../common/common-globalconf/src/test/resources/configuration-anchor1.xml");
+                "../lib/globalconf-model/src/test/resources/configuration-anchor1.xml");
 
         globalConfProvider = new TestGlobalConfImpl();
     }

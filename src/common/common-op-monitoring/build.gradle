@@ -3,6 +3,6 @@ plugins {
 }
 dependencies {
     implementation project(':common:common-message')
-    implementation project(':common:common-verifier')
+    implementation project(':lib:globalconf-spring')
     implementation project(':serverconf')
 }

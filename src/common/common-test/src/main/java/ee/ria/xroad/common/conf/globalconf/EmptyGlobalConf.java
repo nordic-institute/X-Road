@@ -26,13 +26,21 @@
 package ee.ria.xroad.common.conf.globalconf;
 
 import ee.ria.xroad.common.SystemProperties;
-import ee.ria.xroad.common.cert.CertChain;
 import ee.ria.xroad.common.certificateprofile.AuthCertificateProfileInfo;
 import ee.ria.xroad.common.certificateprofile.SignCertificateProfileInfo;
-import ee.ria.xroad.common.conf.globalconfextension.GlobalConfExtensions;
 import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.identifier.GlobalGroupId;
 import ee.ria.xroad.common.identifier.SecurityServerId;
+
+import org.niis.xroad.globalconf.GlobalConfProvider;
+import org.niis.xroad.globalconf.cert.CertChain;
+import org.niis.xroad.globalconf.extension.GlobalConfExtensions;
+import org.niis.xroad.globalconf.impl.FileSystemGlobalConfSource;
+import org.niis.xroad.globalconf.impl.extension.GlobalConfExtensionFactoryImpl;
+import org.niis.xroad.globalconf.model.ApprovedCAInfo;
+import org.niis.xroad.globalconf.model.GlobalGroupInfo;
+import org.niis.xroad.globalconf.model.MemberInfo;
+import org.niis.xroad.globalconf.model.SharedParameters;
 
 import java.security.cert.CertificateException;
 import java.security.cert.X509Certificate;
@@ -58,7 +66,7 @@ public class EmptyGlobalConf implements GlobalConfProvider {
             return "EE";
         }
     };
-    private final GlobalConfExtensions globalConfExtensions = new GlobalConfExtensions(source);
+    private final GlobalConfExtensions globalConfExtensions = new GlobalConfExtensions(source, new GlobalConfExtensionFactoryImpl());
 
     @Override
     public List<String> getOcspResponderAddresses(X509Certificate org)

@@ -28,7 +28,6 @@ package ee.ria.xroad.signer.certmanager;
 import ee.ria.xroad.common.OcspTestUtils;
 import ee.ria.xroad.common.TestCertUtil;
 import ee.ria.xroad.common.conf.globalconf.EmptyGlobalConf;
-import ee.ria.xroad.common.conf.globalconf.GlobalConfProvider;
 import ee.ria.xroad.common.util.TimeUtils;
 
 import org.bouncycastle.cert.ocsp.CertificateStatus;
@@ -36,6 +35,7 @@ import org.bouncycastle.cert.ocsp.OCSPResp;
 import org.junit.BeforeClass;
 import org.junit.Test;
 import org.mockito.Mockito;
+import org.niis.xroad.globalconf.GlobalConfProvider;
 
 import java.io.File;
 import java.security.PrivateKey;

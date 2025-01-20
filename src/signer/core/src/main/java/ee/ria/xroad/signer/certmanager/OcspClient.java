@@ -25,7 +25,6 @@
  */
 package ee.ria.xroad.signer.certmanager;
 
-import ee.ria.xroad.common.conf.globalconf.GlobalConfProvider;
 import ee.ria.xroad.common.crypto.identifier.DigestAlgorithm;
 import ee.ria.xroad.common.crypto.identifier.SignAlgorithm;
 import ee.ria.xroad.common.crypto.identifier.SignMechanism;
@@ -45,6 +44,7 @@ import org.bouncycastle.cert.ocsp.OCSPReq;
 import org.bouncycastle.cert.ocsp.OCSPReqBuilder;
 import org.bouncycastle.cert.ocsp.OCSPResp;
 import org.bouncycastle.operator.ContentSigner;
+import org.niis.xroad.globalconf.GlobalConfProvider;
 import org.springframework.stereotype.Component;
 
 import java.io.BufferedOutputStream;

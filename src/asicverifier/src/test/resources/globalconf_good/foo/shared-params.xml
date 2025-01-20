@@ -80,7 +80,7 @@
         </topCA>
         <identifierDecoder>
             <memberClass>BUSINESS</memberClass>
-            <methodName>ee.ria.xroad.common.cert.CertHelper.getSubjectCommonName</methodName>
+            <methodName>org.niis.xroad.globalconf.impl.cert.CertHelper.getSubjectCommonName</methodName>
         </identifierDecoder>
     </approvedCA>
     <approvedCA>
@@ -157,7 +157,7 @@
         </topCA>
         <identifierDecoder>
             <memberClass></memberClass>
-            <methodName>ee.ria.xroad.common.cert.CertHelper.getSubjectClientId</methodName>
+            <methodName>org.niis.xroad.globalconf.impl.cert.CertHelper.getSubjectClientId</methodName>
         </identifierDecoder>
     </approvedCA>
     <approvedCA>
@@ -187,7 +187,7 @@
         </topCA>
         <identifierDecoder>
             <memberClass></memberClass>
-            <methodName>ee.ria.xroad.common.cert.CertHelper.getSubjectClientId</methodName>
+            <methodName>org.niis.xroad.globalconf.impl.cert.CertHelper.getSubjectClientId</methodName>
         </identifierDecoder>
     </approvedCA>
 
@@ -287,7 +287,7 @@
         </intermediateCA>
         <identifierDecoder>
             <memberClass></memberClass>
-            <methodName>ee.ria.xroad.common.cert.CertHelper.getSubjectClientId</methodName>
+            <methodName>org.niis.xroad.globalconf.impl.cert.CertHelper.getSubjectClientId</methodName>
         </identifierDecoder>
     </approvedCA>
 

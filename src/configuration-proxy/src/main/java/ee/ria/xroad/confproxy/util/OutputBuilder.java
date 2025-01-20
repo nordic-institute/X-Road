@@ -26,14 +26,9 @@
 package ee.ria.xroad.confproxy.util;
 
 import ee.ria.xroad.common.SystemProperties;
-import ee.ria.xroad.common.conf.globalconf.ConfigurationPartMetadata;
-import ee.ria.xroad.common.conf.globalconf.ParametersProviderFactory;
-import ee.ria.xroad.common.conf.globalconf.SharedParameters;
-import ee.ria.xroad.common.conf.globalconf.VersionedConfigurationDirectory;
 import ee.ria.xroad.common.crypto.identifier.DigestAlgorithm;
 import ee.ria.xroad.common.crypto.identifier.SignAlgorithm;
 import ee.ria.xroad.common.util.CryptoUtils;
-import ee.ria.xroad.common.util.HashCalculator;
 import ee.ria.xroad.common.util.MimeTypes;
 import ee.ria.xroad.common.util.MultipartEncoder;
 import ee.ria.xroad.common.util.TimeUtils;
@@ -44,6 +39,11 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.input.TeeInputStream;
 import org.eclipse.jetty.util.MultiPartWriter;
+import org.niis.xroad.globalconf.model.ConfigurationPartMetadata;
+import org.niis.xroad.globalconf.model.ParametersProviderFactory;
+import org.niis.xroad.globalconf.model.SharedParameters;
+import org.niis.xroad.globalconf.model.VersionedConfigurationDirectory;
+import org.niis.xroad.globalconf.util.HashCalculator;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
@@ -62,7 +62,6 @@ import java.time.temporal.ChronoUnit;
 import java.util.Date;
 import java.util.List;
 
-import static ee.ria.xroad.common.conf.globalconf.ConfigurationConstants.CONTENT_ID_SHARED_PARAMETERS;
 import static ee.ria.xroad.common.crypto.Digests.calculateDigest;
 import static ee.ria.xroad.common.util.EncoderUtils.encodeBase64;
 import static ee.ria.xroad.common.util.MimeUtils.HEADER_CONTENT_IDENTIFIER;
@@ -77,6 +76,7 @@ import static ee.ria.xroad.common.util.MimeUtils.HEADER_VERSION;
 import static ee.ria.xroad.common.util.MimeUtils.mpMixedContentType;
 import static ee.ria.xroad.common.util.MimeUtils.mpRelatedContentType;
 import static ee.ria.xroad.common.util.MimeUtils.randomBoundary;
+import static org.niis.xroad.globalconf.model.ConfigurationConstants.CONTENT_ID_SHARED_PARAMETERS;
 
 /**
  * Utility class that encapsulates the process of signing the downloaded

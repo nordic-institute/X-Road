@@ -26,13 +26,13 @@
 package ee.ria.xroad.proxy.messagelog;
 
 import ee.ria.xroad.common.CodedException;
-import ee.ria.xroad.common.conf.globalconf.GlobalConfProvider;
 import ee.ria.xroad.common.messagelog.LogRecord;
 import ee.ria.xroad.common.messagelog.MessageRecord;
 import ee.ria.xroad.common.signature.Signature;
 
 import lombok.extern.slf4j.Slf4j;
 import org.bouncycastle.tsp.TimeStampResponse;
+import org.niis.xroad.globalconf.GlobalConfProvider;
 
 import static ee.ria.xroad.common.ErrorCodes.X_INTERNAL_ERROR;
 

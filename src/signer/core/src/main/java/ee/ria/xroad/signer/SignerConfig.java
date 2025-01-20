@@ -26,9 +26,6 @@
 package ee.ria.xroad.signer;
 
 import ee.ria.xroad.common.SystemProperties;
-import ee.ria.xroad.common.cert.CertChainFactory;
-import ee.ria.xroad.common.conf.globalconf.GlobalConfBeanConfig;
-import ee.ria.xroad.common.conf.globalconf.GlobalConfProvider;
 import ee.ria.xroad.signer.certmanager.FileBasedOcspCache;
 import ee.ria.xroad.signer.certmanager.OcspClient;
 import ee.ria.xroad.signer.certmanager.OcspClientWorker;
@@ -38,6 +35,9 @@ import ee.ria.xroad.signer.tokenmanager.module.AbstractModuleManager;
 import ee.ria.xroad.signer.tokenmanager.module.DefaultModuleManagerImpl;
 
 import lombok.extern.slf4j.Slf4j;
+import org.niis.xroad.globalconf.GlobalConfProvider;
+import org.niis.xroad.globalconf.impl.cert.CertChainFactory;
+import org.niis.xroad.globalconf.spring.GlobalConfBeanConfig;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Condition;

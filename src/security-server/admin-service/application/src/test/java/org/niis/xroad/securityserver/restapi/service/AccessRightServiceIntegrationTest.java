@@ -25,8 +25,6 @@
  */
 package org.niis.xroad.securityserver.restapi.service;
 
-import ee.ria.xroad.common.conf.globalconf.GlobalGroupInfo;
-import ee.ria.xroad.common.conf.globalconf.MemberInfo;
 import ee.ria.xroad.common.conf.serverconf.model.AccessRightType;
 import ee.ria.xroad.common.conf.serverconf.model.ClientType;
 import ee.ria.xroad.common.conf.serverconf.model.EndpointType;
@@ -37,6 +35,8 @@ import ee.ria.xroad.common.identifier.XRoadId;
 
 import org.junit.Before;
 import org.junit.Test;
+import org.niis.xroad.globalconf.model.GlobalGroupInfo;
+import org.niis.xroad.globalconf.model.MemberInfo;
 import org.niis.xroad.securityserver.restapi.dto.ServiceClientAccessRightDto;
 import org.niis.xroad.securityserver.restapi.dto.ServiceClientDto;
 import org.niis.xroad.securityserver.restapi.repository.ClientRepository;
@@ -106,7 +106,7 @@ public class AccessRightServiceIntegrationTest extends AbstractServiceIntegratio
                     Arrays.copyOf(args, args.length, String[].class)));
             return globalGroupInfos.stream()
                     .filter(globalGroupInfo -> foundInstanceIdentifiers
-                            .contains(globalGroupInfo.getId().getXRoadInstance()))
+                            .contains(globalGroupInfo.id().getXRoadInstance()))
                     .collect(Collectors.toList());
         });
 

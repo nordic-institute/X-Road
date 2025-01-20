@@ -26,6 +26,7 @@
 package ee.ria.xroad.common.conf.globalconf;
 
 import lombok.Getter;
+import org.niis.xroad.globalconf.model.ConfigurationLocation;
 
 import java.util.HashMap;
 import java.util.Map;

@@ -26,12 +26,12 @@
 package ee.ria.xroad.common.conf.globalconf;
 
 import ee.ria.xroad.common.DiagnosticsErrorCodes;
-import ee.ria.xroad.common.DiagnosticsStatus;
 import ee.ria.xroad.common.SystemProperties;
 import ee.ria.xroad.common.util.JobManager;
 import ee.ria.xroad.common.util.TimeUtils;
 
 import lombok.extern.slf4j.Slf4j;
+import org.niis.xroad.globalconf.status.DiagnosticsStatus;
 import org.niis.xroad.schedule.RetryingQuartzJob;
 import org.niis.xroad.schedule.backup.ProxyConfigurationBackupJob;
 import org.quartz.DisallowConcurrentExecution;

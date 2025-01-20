@@ -26,9 +26,9 @@
 package ee.ria.xroad.proxy.antidos;
 
 import ee.ria.xroad.common.conf.globalconf.EmptyGlobalConf;
-import ee.ria.xroad.common.conf.globalconf.GlobalConfProvider;
 
 import org.junit.Test;
+import org.niis.xroad.globalconf.GlobalConfProvider;
 
 import java.util.HashSet;
 import java.util.Set;

@@ -25,12 +25,12 @@
  */
 package ee.ria.xroad.proxy.testsuite;
 
-import ee.ria.xroad.common.conf.globalconf.AuthKey;
 import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.proxy.conf.KeyConfProvider;
 import ee.ria.xroad.proxy.conf.SigningCtx;
 
 import org.bouncycastle.cert.ocsp.OCSPResp;
+import org.niis.xroad.proxy.core.auth.AuthKey;
 
 import java.security.cert.X509Certificate;
 import java.util.ArrayList;

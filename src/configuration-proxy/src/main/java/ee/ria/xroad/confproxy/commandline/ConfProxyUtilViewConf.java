@@ -25,7 +25,6 @@
  */
 package ee.ria.xroad.confproxy.commandline;
 
-import ee.ria.xroad.common.conf.globalconf.ConfigurationAnchor;
 import ee.ria.xroad.common.crypto.Digests;
 import ee.ria.xroad.common.crypto.identifier.DigestAlgorithm;
 import ee.ria.xroad.common.util.CryptoUtils;
@@ -36,6 +35,7 @@ import ee.ria.xroad.confproxy.util.OutputBuilder;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.lang3.StringUtils;
+import org.niis.xroad.globalconf.model.ConfigurationAnchor;
 
 import java.io.IOException;
 import java.nio.file.Files;

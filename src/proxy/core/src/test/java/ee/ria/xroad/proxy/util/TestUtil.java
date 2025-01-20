@@ -26,12 +26,13 @@
 package ee.ria.xroad.proxy.util;
 
 import ee.ria.xroad.common.TestCertUtil;
-import ee.ria.xroad.common.conf.globalconf.GlobalConfProvider;
 import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.signature.TestSigningKey;
 import ee.ria.xroad.proxy.conf.KeyConfProvider;
 import ee.ria.xroad.proxy.conf.SigningCtx;
 import ee.ria.xroad.proxy.conf.SigningCtxImpl;
+
+import org.niis.xroad.globalconf.GlobalConfProvider;
 
 import java.util.HashMap;
 import java.util.Map;

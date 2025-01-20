@@ -26,15 +26,14 @@
  */
 package org.niis.xroad.cs.admin.globalconf.generator;
 
-import ee.ria.xroad.common.conf.globalconf.ConfigurationConstants;
-
 import lombok.RequiredArgsConstructor;
+import org.niis.xroad.globalconf.model.ConfigurationConstants;
 import org.springframework.stereotype.Component;
 
 import java.util.List;
 
-import static ee.ria.xroad.common.conf.globalconf.ConfigurationConstants.CONTENT_ID_SHARED_PARAMETERS;
 import static java.nio.charset.StandardCharsets.UTF_8;
+import static org.niis.xroad.globalconf.model.ConfigurationConstants.CONTENT_ID_SHARED_PARAMETERS;
 
 @Component
 @RequiredArgsConstructor

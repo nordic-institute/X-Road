@@ -27,12 +27,12 @@ package org.niis.xroad.securityserver.restapi.openapi;
 
 import ee.ria.xroad.common.AddOnStatusDiagnostics;
 import ee.ria.xroad.common.BackupEncryptionStatusDiagnostics;
-import ee.ria.xroad.common.DiagnosticsStatus;
 import ee.ria.xroad.common.MessageLogEncryptionStatusDiagnostics;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.niis.xroad.common.exception.ServiceException;
+import org.niis.xroad.globalconf.status.DiagnosticsStatus;
 import org.niis.xroad.restapi.openapi.ControllerUtil;
 import org.niis.xroad.securityserver.restapi.converter.AddOnStatusConverter;
 import org.niis.xroad.securityserver.restapi.converter.BackupEncryptionStatusConverter;

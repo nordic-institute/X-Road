@@ -27,7 +27,6 @@
 package org.niis.xroad.cs.admin.core.service.managementrequest;
 
 import ee.ria.xroad.common.SystemProperties;
-import ee.ria.xroad.common.conf.globalconf.GlobalConfProvider;
 import ee.ria.xroad.common.util.CryptoUtils;
 
 import jakarta.transaction.Transactional;
@@ -50,6 +49,7 @@ import org.niis.xroad.cs.admin.core.repository.AuthenticationCertificateRegistra
 import org.niis.xroad.cs.admin.core.repository.IdentifierRepository;
 import org.niis.xroad.cs.admin.core.repository.SecurityServerClientRepository;
 import org.niis.xroad.cs.admin.core.repository.SecurityServerRepository;
+import org.niis.xroad.globalconf.GlobalConfProvider;
 import org.springframework.stereotype.Service;
 
 import java.security.cert.X509Certificate;

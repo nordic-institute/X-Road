@@ -27,12 +27,12 @@
 package ee.ria.xroad.signer.job;
 
 import ee.ria.xroad.common.SystemProperties;
-import ee.ria.xroad.common.conf.globalconf.GlobalConfProvider;
-import ee.ria.xroad.common.conf.globalconfextension.OcspFetchInterval;
 import ee.ria.xroad.signer.certmanager.OcspClientWorker;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.niis.xroad.globalconf.GlobalConfProvider;
+import org.niis.xroad.globalconf.extension.OcspFetchInterval;
 import org.springframework.scheduling.TaskScheduler;
 
 import java.time.Duration;

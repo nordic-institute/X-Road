@@ -25,8 +25,7 @@
  */
 package org.niis.xroad.securityserver.restapi.converter;
 
-import ee.ria.xroad.common.DiagnosticsStatus;
-
+import org.niis.xroad.globalconf.status.DiagnosticsStatus;
 import org.niis.xroad.securityserver.restapi.openapi.model.ConfigurationStatus;
 import org.niis.xroad.securityserver.restapi.openapi.model.DiagnosticStatusClass;
 import org.niis.xroad.securityserver.restapi.openapi.model.GlobalConfDiagnostics;

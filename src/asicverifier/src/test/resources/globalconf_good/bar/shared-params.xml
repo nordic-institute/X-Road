@@ -77,7 +77,7 @@
         </topCA>
         <identifierDecoder>
             <memberClass>BUSINESS</memberClass>
-            <methodName>ee.ria.xroad.common.cert.CertHelper.getSubjectCommonName</methodName>
+            <methodName>org.niis.xroad.globalconf.impl.cert.CertHelper.getSubjectCommonName</methodName>
         </identifierDecoder>
     </approvedCA>
 

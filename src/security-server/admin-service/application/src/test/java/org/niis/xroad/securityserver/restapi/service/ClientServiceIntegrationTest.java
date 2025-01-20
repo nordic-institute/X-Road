@@ -26,7 +26,6 @@
 package org.niis.xroad.securityserver.restapi.service;
 
 import ee.ria.xroad.common.CodedException;
-import ee.ria.xroad.common.conf.globalconf.MemberInfo;
 import ee.ria.xroad.common.conf.serverconf.IsAuthentication;
 import ee.ria.xroad.common.conf.serverconf.model.ClientType;
 import ee.ria.xroad.common.identifier.ClientId;
@@ -39,6 +38,7 @@ import org.bouncycastle.cert.ocsp.RevokedStatus;
 import org.bouncycastle.cert.ocsp.UnknownStatus;
 import org.junit.Before;
 import org.junit.Test;
+import org.niis.xroad.globalconf.model.MemberInfo;
 import org.niis.xroad.restapi.exceptions.DeviationAwareRuntimeException;
 import org.niis.xroad.restapi.service.UnhandledWarningsException;
 import org.niis.xroad.securityserver.restapi.util.CertificateTestUtils;
@@ -123,9 +123,9 @@ public class ClientServiceIntegrationTest extends AbstractServiceIntegrationTest
         when(globalConfProvider.getMemberName(any())).thenAnswer(invocation -> {
             ClientId clientId = (ClientId) invocation.getArguments()[0];
             return globalMemberInfos.stream()
-                    .filter(g -> g.getId().equals(clientId))
+                    .filter(g -> g.id().equals(clientId))
                     .findFirst()
-                    .map(MemberInfo::getName)
+                    .map(MemberInfo::name)
                     .orElse(null);
         });
         when(managementRequestSenderService.sendClientRegisterRequest(any())).thenReturn(1);

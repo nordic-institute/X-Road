@@ -29,6 +29,7 @@ package ee.ria.xroad.common.conf.globalconf;
 import com.github.tomakehurst.wiremock.junit5.WireMockExtension;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.RegisterExtension;
+import org.niis.xroad.globalconf.model.ConfigurationLocation;
 
 import java.util.List;
 

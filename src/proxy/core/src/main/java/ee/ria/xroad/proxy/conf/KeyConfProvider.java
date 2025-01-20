@@ -26,10 +26,10 @@
 package ee.ria.xroad.proxy.conf;
 
 import ee.ria.xroad.common.CodedException;
-import ee.ria.xroad.common.conf.globalconf.AuthKey;
 import ee.ria.xroad.common.identifier.ClientId;
 
 import org.bouncycastle.cert.ocsp.OCSPResp;
+import org.niis.xroad.proxy.core.auth.AuthKey;
 
 import java.security.cert.X509Certificate;
 import java.util.ArrayList;

@@ -5,10 +5,9 @@ plugins {
 dependencies {
     implementation(platform(libs.springBoot.bom))
 
-    implementation project(':common:common-globalconf')
+    implementation project(":lib:globalconf-spring")
     implementation project(':common:common-scheduler')
     implementation project(':common:common-jetty')
-    implementation project(':common:common-verifier')
     implementation project(':common:common-rpc')
     implementation('org.springframework:spring-context-support')
 

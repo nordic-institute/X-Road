@@ -27,7 +27,7 @@ dependencies {
 
     implementation project(':common:common-domain')
     implementation project(':common:common-scheduler')
-    implementation project(':common:common-verifier')
+    implementation project(':lib:globalconf-spring')
     implementation project(':common:common-jetty')
     implementation project(':common:common-db')
     implementation project(':common:common-op-monitoring')

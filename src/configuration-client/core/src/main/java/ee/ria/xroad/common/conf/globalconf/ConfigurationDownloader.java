@@ -33,6 +33,11 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.bouncycastle.operator.DigestCalculator;
+import org.niis.xroad.globalconf.model.ConfigurationConstants;
+import org.niis.xroad.globalconf.model.ConfigurationDirectory;
+import org.niis.xroad.globalconf.model.ConfigurationHttpUrlConnectionConfig;
+import org.niis.xroad.globalconf.model.ConfigurationLocation;
+import org.niis.xroad.globalconf.model.ConfigurationSource;
 
 import java.io.File;
 import java.io.IOException;

@@ -28,12 +28,14 @@ package ee.ria.xroad.common.conf.globalconf;
 import ee.ria.xroad.common.SystemProperties;
 
 import lombok.Getter;
-import org.apache.http.conn.ssl.NoopHostnameVerifier;
+import org.apache.hc.client5.http.ssl.NoopHostnameVerifier;
 import org.hamcrest.Description;
 import org.hamcrest.Matcher;
 import org.hamcrest.MatcherAssert;
 import org.hamcrest.TypeSafeMatcher;
 import org.junit.jupiter.api.Test;
+import org.niis.xroad.globalconf.model.ConfigurationLocation;
+import org.niis.xroad.globalconf.model.ConfigurationSource;
 
 import javax.net.ssl.HostnameVerifier;
 import javax.net.ssl.HttpsURLConnection;

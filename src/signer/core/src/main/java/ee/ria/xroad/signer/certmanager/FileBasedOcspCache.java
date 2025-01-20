@@ -25,12 +25,10 @@
  */
 package ee.ria.xroad.signer.certmanager;
 
-import ee.ria.xroad.common.conf.globalconf.GlobalConfProvider;
-import ee.ria.xroad.common.ocsp.OcspCache;
-
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.IOUtils;
 import org.bouncycastle.cert.ocsp.OCSPResp;
+import org.niis.xroad.globalconf.GlobalConfProvider;
 
 import java.io.File;
 import java.io.FileInputStream;

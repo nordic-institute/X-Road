@@ -26,7 +26,6 @@
 package ee.ria.xroad.proxy.testsuite.testcases;
 
 import ee.ria.xroad.common.SystemProperties;
-import ee.ria.xroad.common.conf.globalconf.MemberInfo;
 import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.metadata.ClientListType;
 import ee.ria.xroad.common.metadata.ClientType;
@@ -44,6 +43,7 @@ import jakarta.xml.bind.JAXBException;
 import jakarta.xml.bind.Unmarshaller;
 import org.apache.http.client.utils.URIBuilder;
 import org.apache.james.mime4j.stream.BodyDescriptor;
+import org.niis.xroad.globalconf.model.MemberInfo;
 
 import javax.xml.transform.stream.StreamSource;
 

@@ -28,6 +28,11 @@ package ee.ria.xroad.common.conf.globalconf;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.niis.xroad.common.exception.DataIntegrityException;
+import org.niis.xroad.globalconf.model.ConfigurationConstants;
+import org.niis.xroad.globalconf.model.ConfigurationLocation;
+import org.niis.xroad.globalconf.model.ConfigurationSource;
+import org.niis.xroad.globalconf.model.ParametersProviderFactory;
+import org.niis.xroad.globalconf.model.SharedParameters;
 
 import java.io.IOException;
 import java.nio.file.Files;
@@ -41,8 +46,8 @@ import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-import static ee.ria.xroad.common.conf.globalconf.VersionedConfigurationDirectory.getVersion;
 import static org.niis.xroad.common.exception.util.CommonDeviationMessage.INVALID_DOWNLOAD_URL_FORMAT;
+import static org.niis.xroad.globalconf.model.VersionedConfigurationDirectory.getVersion;
 
 @Slf4j
 @RequiredArgsConstructor

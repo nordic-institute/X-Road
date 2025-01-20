@@ -25,8 +25,9 @@
  */
 package ee.ria.xroad.proxy.messagelog;
 
-import ee.ria.xroad.common.conf.globalconf.GlobalConfProvider;
 import ee.ria.xroad.common.conf.serverconf.ServerConfProvider;
+
+import org.niis.xroad.globalconf.GlobalConfProvider;
 
 class TestTimestamper extends Timestamper {
     private final GlobalConfProvider globalConfProvider;

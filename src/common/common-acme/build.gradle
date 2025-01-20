@@ -5,7 +5,7 @@ plugins {
 dependencies {
     implementation project(':common:common-core')
     implementation project(':common:common-domain')
-    implementation project(':common:common-verifier')
+    implementation project(':lib:globalconf-spring')
     implementation project(':common:common-mail')
     implementation project(':signer-protocol')
 

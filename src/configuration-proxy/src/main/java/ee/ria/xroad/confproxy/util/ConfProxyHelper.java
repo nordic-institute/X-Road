@@ -26,11 +26,11 @@
 package ee.ria.xroad.confproxy.util;
 
 import ee.ria.xroad.common.SystemProperties;
-import ee.ria.xroad.common.conf.globalconf.VersionedConfigurationDirectory;
 import ee.ria.xroad.confproxy.ConfProxyProperties;
 
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.FileUtils;
+import org.niis.xroad.globalconf.model.VersionedConfigurationDirectory;
 
 import java.io.IOException;
 import java.nio.file.DirectoryStream;
@@ -64,7 +64,8 @@ public final class ConfProxyHelper {
     /**
      * Invoke the configuration client script to download the global
      * configuration from the source defined in the provided source anchor.
-     * @param path where the downloaded files should be placed
+     *
+     * @param path         where the downloaded files should be placed
      * @param sourceAnchor path to the source anchor xml file
      * @return downloaded configuration directory
      * @throws Exception if an configuration client error occurs
@@ -85,6 +86,7 @@ public final class ConfProxyHelper {
     /**
      * Invoke the configuration client script to check whether the downloaded
      * global configuration is valid according to the provided source anchor.
+     *
      * @param sourceAnchor path to the source anchor xml file
      * @throws Exception if an configuration client error occurs
      */
@@ -103,6 +105,7 @@ public final class ConfProxyHelper {
 
     /**
      * Helper method for running the configuration client script.
+     *
      * @param pb the configuration client script process builder
      * @throws Exception if errors occur when running the configuration client
      */
@@ -148,9 +151,10 @@ public final class ConfProxyHelper {
      * Gets all existing subdirectory names from the configuration proxy
      * configuration directory, which correspond to the configuration proxy
      * instance ids.
+     *
      * @return list of configuration proxy instance ids
      * @throws IOException if the configuration proxy configuration path is
-     * erroneous
+     *                     erroneous
      */
     public static List<String> availableInstances() throws IOException {
         Path confPath =
@@ -161,9 +165,9 @@ public final class ConfProxyHelper {
     /**
      * Deletes outdated previously generated global configurations from configuration target path
      * e.g. /var/lib/xroad/public, as defined by the 'validity interval' configuration proxy property.
+     *
      * @param conf the configuration proxy instance configuration
-     * @throws IOException
-     * in case an old global configuration could not be deleted
+     * @throws IOException in case an old global configuration could not be deleted
      */
     public static void purgeOutdatedGenerations(final ConfProxyProperties conf)
             throws IOException {
@@ -198,6 +202,7 @@ public final class ConfProxyHelper {
 
     /**
      * Gets the list of subdirectory names in the given directory path.
+     *
      * @param dir path to the directory
      * @return list of subdirectory names
      * @throws IOException if opening the directory fails

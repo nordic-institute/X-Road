@@ -26,7 +26,6 @@
 package org.niis.xroad.securityserver.restapi.scheduling;
 
 import ee.ria.xroad.common.TestCertUtil;
-import ee.ria.xroad.common.conf.globalconf.ApprovedCAInfo;
 import ee.ria.xroad.common.util.TimeUtils;
 import ee.ria.xroad.signer.SignerProxy;
 import ee.ria.xroad.signer.protocol.dto.CertificateInfo;
@@ -49,6 +48,7 @@ import org.junit.Test;
 import org.mockito.Mock;
 import org.niis.xroad.common.acme.AcmeServiceException;
 import org.niis.xroad.common.managementrequest.ManagementRequestSender;
+import org.niis.xroad.globalconf.model.ApprovedCAInfo;
 import org.niis.xroad.securityserver.restapi.config.AbstractFacadeMockingTestContext;
 import org.niis.xroad.securityserver.restapi.util.CertificateTestUtils;
 import org.niis.xroad.securityserver.restapi.util.TokenTestUtils;

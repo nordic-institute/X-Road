@@ -25,6 +25,8 @@
  */
 package ee.ria.xroad.common.conf.globalconf;
 
+import org.niis.xroad.globalconf.model.ConfigurationLocation;
+
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;

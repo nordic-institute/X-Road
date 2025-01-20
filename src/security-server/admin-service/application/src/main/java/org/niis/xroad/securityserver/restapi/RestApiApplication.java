@@ -26,8 +26,8 @@
 package org.niis.xroad.securityserver.restapi;
 
 import ee.ria.xroad.common.Version;
-import ee.ria.xroad.common.conf.globalconf.GlobalConfBeanConfig;
 
+import org.niis.xroad.globalconf.spring.GlobalConfBeanConfig;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.web.servlet.ServletComponentScan;

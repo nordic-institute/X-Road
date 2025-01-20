@@ -25,7 +25,6 @@
  */
 package ee.ria.xroad.confproxy.commandline;
 
-import ee.ria.xroad.common.conf.globalconf.ConfigurationAnchor;
 import ee.ria.xroad.common.conf.globalconf.privateparameters.v2.ConfigurationAnchorType;
 import ee.ria.xroad.common.conf.globalconf.privateparameters.v2.ConfigurationSourceType;
 import ee.ria.xroad.common.conf.globalconf.privateparameters.v2.ObjectFactory;
@@ -37,6 +36,7 @@ import jakarta.xml.bind.JAXBContext;
 import jakarta.xml.bind.JAXBElement;
 import jakarta.xml.bind.Marshaller;
 import org.apache.commons.cli.CommandLine;
+import org.niis.xroad.globalconf.model.ConfigurationAnchor;
 
 import javax.xml.datatype.DatatypeFactory;
 import javax.xml.datatype.XMLGregorianCalendar;
@@ -104,9 +104,10 @@ public class ConfProxyUtilGenerateAnchor extends ConfProxyUtil {
     /**
      * Generates an achor xml file based on the provided proxy configuration
      * properties and writes it to the provided output stream.
-     * @param conf configuration proxy properties instance
+     *
+     * @param conf               configuration proxy properties instance
      * @param instanceIdentifier instance identifier of the resulting anchor
-     * @param out the output stream for writing the generated xml
+     * @param out                the output stream for writing the generated xml
      * @throws Exception if xml generation fails
      */
     private void generateAnchorXml(final ConfProxyProperties conf,

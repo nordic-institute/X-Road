@@ -5,7 +5,7 @@ plugins {
 }
 
 version = "1.0"
-group = "ee.ria.xroad"
+group = "org.niis.xroad"
 
 sonarqube {
   properties {

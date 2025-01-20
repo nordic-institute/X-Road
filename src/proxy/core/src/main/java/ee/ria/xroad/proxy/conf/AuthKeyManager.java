@@ -25,10 +25,9 @@
  */
 package ee.ria.xroad.proxy.conf;
 
-import ee.ria.xroad.common.cert.CertChain;
-
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.niis.xroad.globalconf.cert.CertChain;
 
 import javax.net.ssl.SSLEngine;
 import javax.net.ssl.X509ExtendedKeyManager;
@@ -68,7 +67,7 @@ public final class AuthKeyManager extends X509ExtendedKeyManager {
     public X509Certificate[] getCertificateChain(String alias) {
         log.trace("getCertificateChain {}", alias);
 
-        CertChain certChain = keyConfProvider.getAuthKey().getCertChain();
+        CertChain certChain = keyConfProvider.getAuthKey().certChain();
         List<X509Certificate> allCerts = certChain.getAllCertsWithoutTrustedRoot();
         return allCerts.toArray(new X509Certificate[0]);
     }
@@ -82,7 +81,7 @@ public final class AuthKeyManager extends X509ExtendedKeyManager {
     @Override
     public PrivateKey getPrivateKey(String alias) {
         log.trace("getPrivateKey {}", alias);
-        return keyConfProvider.getAuthKey().getKey();
+        return keyConfProvider.getAuthKey().key();
     }
 
     @Override

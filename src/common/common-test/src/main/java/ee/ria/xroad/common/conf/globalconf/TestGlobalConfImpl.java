@@ -25,6 +25,10 @@
  */
 package ee.ria.xroad.common.conf.globalconf;
 
+import org.niis.xroad.globalconf.GlobalConfSource;
+import org.niis.xroad.globalconf.impl.FileSystemGlobalConfSource;
+import org.niis.xroad.globalconf.impl.GlobalConfImpl;
+
 import static ee.ria.xroad.common.ErrorCodes.X_MALFORMED_GLOBALCONF;
 import static ee.ria.xroad.common.ErrorCodes.translateWithPrefix;
 import static ee.ria.xroad.common.SystemProperties.getConfigurationPath;

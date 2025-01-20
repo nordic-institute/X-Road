@@ -27,7 +27,6 @@
 package org.niis.xroad.common.managementrequest;
 
 import ee.ria.xroad.common.CodedException;
-import ee.ria.xroad.common.conf.globalconf.GlobalConfProvider;
 import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.identifier.SecurityServerId;
 import ee.ria.xroad.common.message.Soap;
@@ -47,6 +46,7 @@ import org.niis.xroad.common.managementrequest.model.ClientEnableRequest;
 import org.niis.xroad.common.managementrequest.model.ClientRegRequest;
 import org.niis.xroad.common.managementrequest.model.ManagementRequest;
 import org.niis.xroad.common.managementrequest.model.OwnerChangeRequest;
+import org.niis.xroad.globalconf.GlobalConfProvider;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 

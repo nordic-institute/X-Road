@@ -26,9 +26,8 @@
  */
 package ee.ria.xroad.common.conf.serverconf;
 
-import ee.ria.xroad.common.conf.globalconf.GlobalConfProvider;
-
 import lombok.NoArgsConstructor;
+import org.niis.xroad.globalconf.GlobalConfProvider;
 
 @NoArgsConstructor(access = lombok.AccessLevel.PRIVATE)
 public class ServerConfFactory {

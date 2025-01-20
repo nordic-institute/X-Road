@@ -25,6 +25,7 @@
  */
 package ee.ria.xroad.common.conf.globalconf;
 
+
 import java.nio.file.Path;
 
 /**

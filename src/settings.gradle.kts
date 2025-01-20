@@ -23,14 +23,18 @@ include("common:common-mail")
 include("common:common-management-request")
 include("common:common-messagelog")
 include("common:common-op-monitoring")
-include("common:common-verifier")
 include("common:common-rpc")
 include("common:common-int-test")
-include("common:common-globalconf")
 include("common:common-core")
 include("common:common-jetty")
 include("common:common-message")
 include("common:common-scheduler")
+
+// Lib projects
+include("lib")
+include("lib:globalconf-impl")
+include("lib:globalconf-model")
+include("lib:globalconf-spring")
 
 // Main projects
 include("proxy")

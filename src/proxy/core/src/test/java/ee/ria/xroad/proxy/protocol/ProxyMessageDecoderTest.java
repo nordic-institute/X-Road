@@ -27,7 +27,6 @@ package ee.ria.xroad.proxy.protocol;
 
 import ee.ria.xroad.common.ErrorCodes;
 import ee.ria.xroad.common.ExpectedCodedException;
-import ee.ria.xroad.common.conf.globalconf.GlobalConfProvider;
 import ee.ria.xroad.common.conf.globalconf.TestGlobalConfImpl;
 import ee.ria.xroad.common.crypto.Digests;
 import ee.ria.xroad.common.crypto.identifier.DigestAlgorithm;
@@ -42,6 +41,7 @@ import org.bouncycastle.cert.ocsp.OCSPResp;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
+import org.niis.xroad.globalconf.GlobalConfProvider;
 
 import java.io.InputStream;
 import java.nio.file.Files;

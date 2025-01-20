@@ -7,7 +7,7 @@ dependencies {
     api project(':central-server:openapi-model')
 
     implementation project(':common:common-core')
-    implementation project(':common:common-verifier')
+    implementation project(":lib:globalconf-spring")
 
     compileOnly(libs.jakarta.servletApi)
 
