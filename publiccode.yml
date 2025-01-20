@@ -1,0 +1,145 @@
+# This repository adheres to the publiccode.yml standard by including this
+# metadata file that makes public software easily discoverable.
+# More info at https://github.com/italia/publiccode.yml
+
+publiccodeYmlVersion: '0.2'
+categories:
+  - it-security
+description:
+  en:
+    apiDocumentation: 'https://docs.x-road.global/#protocols'
+    documentation: 'https://docs.x-road.global'
+    features:
+      - secure data exchange
+      - address management
+      - message routing
+      - access rights management
+      - organization-level authentication
+      - machine-level authentication
+      - transport-level encryption
+      - time-stamping
+      - digital signature of messages
+      - logging
+      - error handling
+    genericName: X-Road® data exchange layer
+    longDescription: |
+      X-Road is a unified, cohesive,  collaborative, interoperable and secure
+      data exchange layer that gives  service providers a completely new kind of
+      opportunity of making  themselves visible in services directed at
+      citizens, businesses and  civil servants. Creating entities that combine
+      many different services and data sources is easy and cost efficient.
+
+      - Improves the quality of existing services and products
+      - Enables new types of service innovations
+      - Savings in infrastructure, archiving and other costs
+      - Standardised data security and privacy protection
+      - Easy implementation, data access via interfaces – after connecting all
+      included services are available
+
+      X-Road implements a set of standard features to support and facilitate
+      data exchange and ensures confidentiality, integrity, and interoperability
+      between data exchange parties.
+
+      ### X-Road Ecosystem
+
+      An X-Road ecosystem is a community of organizations using the same
+      instance of the X-Road software for producing and consuming services. The
+      owner of the ecosystem, the X-Road Operator, controls who are allowed to
+      join the community, and the owner defines regulations and practices that
+      the ecosystem must follow.
+
+      The ecosystem may be nationwide, or it may be limited to organizations
+      meeting specific criteria, e.g., clients of a commercial service provider.
+      Technically, the X-Road software does not set any limitations to the size
+      of the ecosystem or the member organizations.
+
+      ### Trusted Network
+
+      Even if X-Road software is open-source, joining an X-Road ecosystem
+      requires going through an on-boarding process. During the process, the
+      identity of each organization and technical access point is verified using
+      certificates that are issued by a trusted Certification Authority (CA).
+      The identities are maintained centrally, but all the data is exchanged
+      directly between a service consumer and a service provider. 
+
+      Message routing is based on organization and service level identifiers
+      that are mapped to physical network locations of the services by X-Road.
+      All the evidence regarding the data exchange is stored locally by the data
+      exchange parties, and no third parties have access to the data.
+      Time-stamping and digital signature together guarantee non-repudiation of
+      the data sent via X-Road. The logs provided by X-Road can be used in a
+      court proceeding as evidence.
+
+      ### Authorization Framework
+
+      X-Road implements an authorization framework that is used to manage access
+      rights to services. Access rights management is based on the organization
+      and service level identifiers. 
+
+      The key idea of X-Road is that each service provider owns its data and is
+      responsible for managing access rights of its services. In other words,
+      publishing service to X-Road does not mean that the service is
+      automatically accessible to all X-Road member organizations. Usually,
+      access rights are granted on the information system level – a service
+      provider grants a specific information system access to a service.
+
+      ### Monitoring and Reporting
+
+      X-Road provides monitoring and reporting capabilities that can be used to
+      collect operational reporting data and technical monitoring information
+      from the ecosystem. The information can be used to measure the usage of
+      individual services, understand dependencies and relationships between
+      different information systems and services, monitor service health,
+      monitor used X-Road software versions, etc. Each X-Road member
+      organization can access its own data, whereas the X-Road operator can
+      access all the members’ data.
+
+      ### Cross-border Data Exchange
+
+      X-Road provides built-in support for cross-border data exchange through
+      federation, which means joining together two X-Road ecosystems. Members of
+      the federated ecosystems can publish and consume services with each other
+      as if they were members of the same ecosystem.
+
+      It is possible to create federation connections with multiple ecosystems,
+      but transitive federation relationships are not supported. An ecosystem
+      does not have a federation relationship with another ecosystem that it's
+      not directly federated with.
+
+    shortDescription: |-
+      X-Road® is open-source software that provides unified and secure data
+      exchange between organisations in a collaborative ecosystem.
+    videos:
+      - 'https://youtu.be/EvhssW_Uv8s'
+developmentStatus: stable
+legal:
+  license: MIT
+  mainCopyrightOwner: Nordic Institute for Interoperability Solutions (NIIS)
+  repoOwner: Nordic Institute for Interoperability Solutions (NIIS)
+localisation:
+  availableLanguages:
+    - en
+    - et
+    - es
+  localisationReady: true
+maintenance:
+  contacts:
+    - affiliation: Nordic Institute for Interoperability Solutions (NIIS)
+      email: petteri.kivimaki@niis.org
+      name: Petteri Kivimäki
+  type: internal
+name: X-Road®
+platforms:
+  - linux
+  - docker
+releaseDate: '2025-01-02'
+roadmap: 'https://x-road.global/development-roadmap'
+softwareType: standalone/other
+softwareVersion: 7.6.0
+url: 'https://github.com/nordic-institute/X-Road'
+usedBy:
+  - 'Digital and Population Data Services Agency, Finland'
+  - 'Estonian Information Systems Authority, Estonia'
+  - 'Digital Iceland, Iceland'
+logo: |-
+  https://raw.githubusercontent.com/nordic-institute/X-Road/master/xroad_logo_small.png
