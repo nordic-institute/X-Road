@@ -78,7 +78,7 @@
                     2HaLh8hiYRXpgw3WVSBg6CPTLoU5xFb57BNL3qccVetmbpZgznHMYEBN4b4pyHk=</cert>
             </ocsp>
         </topCA>
-        <certificateProfileInfo>org.niis.xroad.test.certificateprofile.impl.TestCertificateProfileInfoProvider</certificateProfileInfo>
+        <certificateProfileInfo>ee.ria.xroad.common.certificateprofile.impl.TestCertificateProfileInfoProvider</certificateProfileInfo>
     </approvedCA>
     <approvedCA>
         <name>pki3</name>
@@ -152,7 +152,7 @@
                     2HaLh8hiYRXpgw3WVSBg6CPTLoU5xFb57BNL3qccVetmbpZgznHMYEBN4b4pyHk=</cert>
             </ocsp>
         </topCA>
-        <certificateProfileInfo>org.niis.xroad.test.certificateprofile.impl.TestCertificateProfileInfoProvider</certificateProfileInfo>
+        <certificateProfileInfo>ee.ria.xroad.common.certificateprofile.impl.TestCertificateProfileInfoProvider</certificateProfileInfo>
     </approvedCA>
     <approvedCA>
         <name>pki4</name>
@@ -179,7 +179,7 @@
                 Pe5VvXxCL6guFtZtBbnAAtRreTC3bhS+bnxLyj+Hk7oAYyaW441BnzPcVWYeAf56
                 89A9e6HCmXEY1bo=</cert>
         </topCA>
-        <certificateProfileInfo>org.niis.xroad.test.certificateprofile.impl.TestCertificateProfileInfoProvider</certificateProfileInfo>
+        <certificateProfileInfo>ee.ria.xroad.common.certificateprofile.impl.TestCertificateProfileInfoProvider</certificateProfileInfo>
     </approvedCA>
 
     <approvedCA>
@@ -276,7 +276,7 @@
                 1Z2YSB+hTVhscCU=
             </cert>
         </intermediateCA>
-        <certificateProfileInfo>org.niis.xroad.test.certificateprofile.impl.TestCertificateProfileInfoProvider</certificateProfileInfo>
+        <certificateProfileInfo>ee.ria.xroad.common.certificateprofile.impl.TestCertificateProfileInfoProvider</certificateProfileInfo>
     </approvedCA>
 
     <approvedTSA>
