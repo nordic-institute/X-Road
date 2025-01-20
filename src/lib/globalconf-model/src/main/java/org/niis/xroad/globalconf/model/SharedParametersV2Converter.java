@@ -25,21 +25,21 @@
  */
 package org.niis.xroad.globalconf.model;
 
-import ee.ria.xroad.common.conf.globalconf.sharedparameters.v2.ApprovedCATypeV2;
-import ee.ria.xroad.common.conf.globalconf.sharedparameters.v2.ApprovedTSAType;
-import ee.ria.xroad.common.conf.globalconf.sharedparameters.v2.CaInfoType;
-import ee.ria.xroad.common.conf.globalconf.sharedparameters.v2.GlobalGroupType;
-import ee.ria.xroad.common.conf.globalconf.sharedparameters.v2.GlobalSettingsType;
-import ee.ria.xroad.common.conf.globalconf.sharedparameters.v2.MemberClassType;
-import ee.ria.xroad.common.conf.globalconf.sharedparameters.v2.MemberType;
-import ee.ria.xroad.common.conf.globalconf.sharedparameters.v2.OcspInfoType;
-import ee.ria.xroad.common.conf.globalconf.sharedparameters.v2.SecurityServerType;
-import ee.ria.xroad.common.conf.globalconf.sharedparameters.v2.SharedParametersTypeV2;
-import ee.ria.xroad.common.conf.globalconf.sharedparameters.v2.SubsystemType;
 import ee.ria.xroad.common.crypto.identifier.DigestAlgorithm;
 import ee.ria.xroad.common.identifier.ClientId;
 
 import jakarta.xml.bind.JAXBElement;
+import org.niis.xroad.globalconf.schema.sharedparameters.v2.ApprovedCATypeV2;
+import org.niis.xroad.globalconf.schema.sharedparameters.v2.ApprovedTSAType;
+import org.niis.xroad.globalconf.schema.sharedparameters.v2.CaInfoType;
+import org.niis.xroad.globalconf.schema.sharedparameters.v2.GlobalGroupType;
+import org.niis.xroad.globalconf.schema.sharedparameters.v2.GlobalSettingsType;
+import org.niis.xroad.globalconf.schema.sharedparameters.v2.MemberClassType;
+import org.niis.xroad.globalconf.schema.sharedparameters.v2.MemberType;
+import org.niis.xroad.globalconf.schema.sharedparameters.v2.OcspInfoType;
+import org.niis.xroad.globalconf.schema.sharedparameters.v2.SecurityServerType;
+import org.niis.xroad.globalconf.schema.sharedparameters.v2.SharedParametersTypeV2;
+import org.niis.xroad.globalconf.schema.sharedparameters.v2.SubsystemType;
 
 import java.io.IOException;
 import java.security.cert.CertificateEncodingException;

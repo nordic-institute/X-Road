@@ -26,7 +26,6 @@
  */
 package org.niis.xroad.schedule.backup;
 
-import ee.ria.xroad.common.conf.globalconf.ConfigurationClientJob;
 import ee.ria.xroad.common.util.process.ExternalProcessRunner;
 
 import com.google.common.collect.Lists;
@@ -36,6 +35,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Answers;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.niis.xroad.confclient.core.ConfigurationClientJob;
 import org.quartz.JobExecutionContext;
 import org.quartz.JobKey;
 

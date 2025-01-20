@@ -26,12 +26,12 @@
 package org.niis.xroad.globalconf.model;
 
 import ee.ria.xroad.common.conf.AbstractXmlConf;
-import ee.ria.xroad.common.conf.globalconf.privateparameters.v2.ConfigurationAnchorType;
-import ee.ria.xroad.common.conf.globalconf.privateparameters.v2.ObjectFactory;
 
 import jakarta.xml.bind.JAXBContext;
 import jakarta.xml.bind.JAXBException;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
+import org.niis.xroad.globalconf.schema.privateparameters.v2.ConfigurationAnchorType;
+import org.niis.xroad.globalconf.schema.privateparameters.v2.ObjectFactory;
 
 import javax.xml.datatype.XMLGregorianCalendar;
 

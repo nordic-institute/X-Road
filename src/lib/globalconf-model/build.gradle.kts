@@ -71,6 +71,53 @@ tasks.register("xjc") {
         "schema" to "${layout.buildDirectory.get().asFile}/resources/main/monitoring-conf.xsd",
         "binding" to "${layout.buildDirectory.get().asFile}/resources/main/identifiers-bindings.xml"
       )
+      // Generate classes for federateable global external conf v2
+      "xjc"(
+        "destdir" to schemaTargetDir,
+        "package" to "org.niis.xroad.globalconf.schema.sharedparameters.v2",
+        "schema" to "${layout.buildDirectory.get().asFile}/resources/main/globalconf/v2/shared-parameters.xsd",
+        "binding" to "${layout.buildDirectory.get().asFile}/resources/main/identifiers-bindings.xml"
+      )
+
+      // Generate classes for federateable global internal conf v2
+      "xjc"(
+        "destdir" to schemaTargetDir,
+        "package" to "org.niis.xroad.globalconf.schema.privateparameters.v2",
+        "schema" to "${layout.buildDirectory.get().asFile}/resources/main/globalconf/v2/private-parameters.xsd",
+        "binding" to "${layout.buildDirectory.get().asFile}/resources/main/identifiers-bindings.xml"
+      )
+
+      // Generate classes for federateable global external conf v3
+      "xjc"(
+        "destdir" to schemaTargetDir,
+        "package" to "org.niis.xroad.globalconf.schema.sharedparameters.v3",
+        "schema" to "${layout.buildDirectory.get().asFile}/resources/main/globalconf/v3/shared-parameters.xsd",
+        "binding" to "${layout.buildDirectory.get().asFile}/resources/main/identifiers-bindings.xml"
+      )
+
+      // Generate classes for federateable global internal conf v3
+      "xjc"(
+        "destdir" to schemaTargetDir,
+        "package" to "org.niis.xroad.globalconf.schema.privateparameters.v3",
+        "schema" to "${layout.buildDirectory.get().asFile}/resources/main/globalconf/v3/private-parameters.xsd",
+        "binding" to "${layout.buildDirectory.get().asFile}/resources/main/identifiers-bindings.xml"
+      )
+
+      // Generate classes for federateable global external conf v4
+      "xjc"(
+        "destdir" to schemaTargetDir,
+        "package" to "org.niis.xroad.globalconf.schema.sharedparameters.v4",
+        "schema" to "${layout.buildDirectory.get().asFile}/resources/main/globalconf/v4/shared-parameters.xsd",
+        "binding" to "${layout.buildDirectory.get().asFile}/resources/main/identifiers-bindings.xml"
+      )
+
+      // Generate classes for global internal conf v4
+      "xjc"(
+        "destdir" to schemaTargetDir,
+        "package" to "org.niis.xroad.globalconf.schema.privateparameters.v4",
+        "schema" to "${layout.buildDirectory.get().asFile}/resources/main/globalconf/v4/private-parameters.xsd",
+        "binding" to "${layout.buildDirectory.get().asFile}/resources/main/identifiers-bindings.xml"
+      )
     }
   }
 }

@@ -27,15 +27,6 @@
 package org.niis.xroad.globalconf.model;
 
 
-import ee.ria.xroad.common.conf.globalconf.sharedparameters.v4.ApprovedCATypeV3;
-import ee.ria.xroad.common.conf.globalconf.sharedparameters.v4.ConfigurationSourceType;
-import ee.ria.xroad.common.conf.globalconf.sharedparameters.v4.GlobalGroupType;
-import ee.ria.xroad.common.conf.globalconf.sharedparameters.v4.GlobalSettingsType;
-import ee.ria.xroad.common.conf.globalconf.sharedparameters.v4.MemberType;
-import ee.ria.xroad.common.conf.globalconf.sharedparameters.v4.ObjectFactory;
-import ee.ria.xroad.common.conf.globalconf.sharedparameters.v4.SecurityServerType;
-import ee.ria.xroad.common.conf.globalconf.sharedparameters.v4.SharedParametersTypeV4;
-import ee.ria.xroad.common.conf.globalconf.sharedparameters.v4.SubsystemType;
 import ee.ria.xroad.common.crypto.identifier.DigestAlgorithm;
 import ee.ria.xroad.common.identifier.ClientId;
 
@@ -47,6 +38,15 @@ import org.mapstruct.Mapping;
 import org.mapstruct.Named;
 import org.mapstruct.ReportingPolicy;
 import org.mapstruct.factory.Mappers;
+import org.niis.xroad.globalconf.schema.sharedparameters.v4.ApprovedCATypeV3;
+import org.niis.xroad.globalconf.schema.sharedparameters.v4.ConfigurationSourceType;
+import org.niis.xroad.globalconf.schema.sharedparameters.v4.GlobalGroupType;
+import org.niis.xroad.globalconf.schema.sharedparameters.v4.GlobalSettingsType;
+import org.niis.xroad.globalconf.schema.sharedparameters.v4.MemberType;
+import org.niis.xroad.globalconf.schema.sharedparameters.v4.ObjectFactory;
+import org.niis.xroad.globalconf.schema.sharedparameters.v4.SecurityServerType;
+import org.niis.xroad.globalconf.schema.sharedparameters.v4.SharedParametersTypeV4;
+import org.niis.xroad.globalconf.schema.sharedparameters.v4.SubsystemType;
 
 import java.util.HashMap;
 import java.util.List;

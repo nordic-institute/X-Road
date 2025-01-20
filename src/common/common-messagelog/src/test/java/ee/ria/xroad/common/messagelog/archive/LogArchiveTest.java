@@ -26,7 +26,6 @@
 package ee.ria.xroad.common.messagelog.archive;
 
 import ee.ria.xroad.common.SystemProperties;
-import ee.ria.xroad.common.conf.globalconf.EmptyGlobalConf;
 import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.messagelog.LogRecord;
 import ee.ria.xroad.common.messagelog.MessageLogProperties;
@@ -41,6 +40,7 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
 import org.niis.xroad.globalconf.GlobalConfProvider;
+import org.niis.xroad.test.globalconf.EmptyGlobalConf;
 
 import java.io.IOException;
 import java.nio.file.Files;

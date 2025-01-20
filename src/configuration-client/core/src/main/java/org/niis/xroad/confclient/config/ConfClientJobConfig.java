@@ -27,11 +27,11 @@ package org.niis.xroad.confclient.config;
 
 import ee.ria.xroad.common.DiagnosticsErrorCodes;
 import ee.ria.xroad.common.SystemProperties;
-import ee.ria.xroad.common.conf.globalconf.ConfigurationClientJob;
 import ee.ria.xroad.common.util.JobManager;
 import ee.ria.xroad.common.util.TimeUtils;
 
 import lombok.extern.slf4j.Slf4j;
+import org.niis.xroad.confclient.core.ConfigurationClientJob;
 import org.niis.xroad.globalconf.status.DiagnosticsStatus;
 import org.niis.xroad.schedule.backup.ProxyConfigurationBackupJob;
 import org.quartz.JobDataMap;

@@ -26,8 +26,6 @@
  */
 package org.niis.xroad.globalconf.model;
 
-import ee.ria.xroad.common.conf.globalconf.sharedparameters.v2.ObjectFactory;
-import ee.ria.xroad.common.conf.globalconf.sharedparameters.v2.SharedParametersTypeV2;
 import ee.ria.xroad.common.identifier.ClientId;
 
 import jakarta.xml.bind.JAXBContext;
@@ -39,6 +37,8 @@ import org.assertj.core.api.recursive.comparison.ComparingNormalizedFields;
 import org.assertj.core.api.recursive.comparison.RecursiveComparisonConfiguration;
 import org.bouncycastle.operator.OperatorCreationException;
 import org.junit.jupiter.api.Test;
+import org.niis.xroad.globalconf.schema.sharedparameters.v2.ObjectFactory;
+import org.niis.xroad.globalconf.schema.sharedparameters.v2.SharedParametersTypeV2;
 
 import java.io.IOException;
 import java.io.StringWriter;

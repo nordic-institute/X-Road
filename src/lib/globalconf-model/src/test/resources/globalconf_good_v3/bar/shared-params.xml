@@ -81,7 +81,7 @@
                     2HaLh8hiYRXpgw3WVSBg6CPTLoU5xFb57BNL3qccVetmbpZgznHMYEBN4b4pyHk=</cert>
             </ocsp>
         </topCA>
-        <certificateProfileInfo>ee.ria.xroad.common.certificateprofile.impl.TestCertificateProfileInfoProvider</certificateProfileInfo>
+        <certificateProfileInfo>org.niis.xroad.test.certificateprofile.impl.TestCertificateProfileInfoProvider</certificateProfileInfo>
     </approvedCA>
 
     <approvedTSA>

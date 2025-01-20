@@ -26,13 +26,13 @@
  */
 package org.niis.xroad.globalconf.model;
 
-import ee.ria.xroad.common.conf.globalconf.privateparameters.v2.ConfigurationAnchorType;
-import ee.ria.xroad.common.conf.globalconf.privateparameters.v2.ConfigurationSourceType;
-import ee.ria.xroad.common.conf.globalconf.privateparameters.v2.ManagementServiceType;
-import ee.ria.xroad.common.conf.globalconf.privateparameters.v2.PrivateParametersType;
 import ee.ria.xroad.common.identifier.ClientId;
 
 import org.junit.jupiter.api.Test;
+import org.niis.xroad.globalconf.schema.privateparameters.v2.ConfigurationAnchorType;
+import org.niis.xroad.globalconf.schema.privateparameters.v2.ConfigurationSourceType;
+import org.niis.xroad.globalconf.schema.privateparameters.v2.ManagementServiceType;
+import org.niis.xroad.globalconf.schema.privateparameters.v2.PrivateParametersType;
 
 import java.math.BigInteger;
 import java.time.Instant;

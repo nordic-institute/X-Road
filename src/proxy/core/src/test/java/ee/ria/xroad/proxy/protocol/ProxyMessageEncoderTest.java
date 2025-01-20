@@ -25,7 +25,6 @@
  */
 package ee.ria.xroad.proxy.protocol;
 
-import ee.ria.xroad.common.conf.globalconf.TestGlobalConfImpl;
 import ee.ria.xroad.common.crypto.Digests;
 import ee.ria.xroad.common.crypto.identifier.DigestAlgorithm;
 import ee.ria.xroad.common.message.SaxSoapParserImpl;
@@ -40,6 +39,7 @@ import org.bouncycastle.cert.ocsp.OCSPResp;
 import org.junit.Before;
 import org.junit.Test;
 import org.niis.xroad.globalconf.GlobalConfProvider;
+import org.niis.xroad.test.globalconf.TestGlobalConfImpl;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;

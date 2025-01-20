@@ -27,7 +27,6 @@ package org.niis.xroad.confclient;
 
 import ee.ria.xroad.common.SystemPropertiesLoader;
 import ee.ria.xroad.common.Version;
-import ee.ria.xroad.common.conf.globalconf.ConfigurationClientCLI;
 
 import lombok.experimental.UtilityClass;
 import lombok.extern.slf4j.Slf4j;
@@ -35,10 +34,11 @@ import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.CommandLineParser;
 import org.apache.commons.cli.DefaultParser;
 import org.apache.commons.cli.Options;
+import org.niis.xroad.confclient.core.ConfigurationClientCLI;
 
 import static ee.ria.xroad.common.SystemProperties.CONF_FILE_PROXY;
-import static ee.ria.xroad.common.conf.globalconf.ConfigurationClientCLI.OPTION_VERIFY_ANCHOR_FOR_EXTERNAL_SOURCE;
-import static ee.ria.xroad.common.conf.globalconf.ConfigurationClientCLI.OPTION_VERIFY_PRIVATE_PARAMS_EXISTS;
+import static org.niis.xroad.confclient.core.ConfigurationClientCLI.OPTION_VERIFY_ANCHOR_FOR_EXTERNAL_SOURCE;
+import static org.niis.xroad.confclient.core.ConfigurationClientCLI.OPTION_VERIFY_PRIVATE_PARAMS_EXISTS;
 
 @Slf4j
 @UtilityClass

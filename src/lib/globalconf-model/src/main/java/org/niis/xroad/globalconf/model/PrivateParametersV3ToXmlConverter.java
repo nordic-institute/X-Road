@@ -26,15 +26,14 @@
  */
 package org.niis.xroad.globalconf.model;
 
-import ee.ria.xroad.common.conf.globalconf.privateparameters.v3.ConfigurationAnchorType;
-import ee.ria.xroad.common.conf.globalconf.privateparameters.v3.ConfigurationSourceType;
-import ee.ria.xroad.common.conf.globalconf.privateparameters.v3.ObjectFactory;
-import ee.ria.xroad.common.conf.globalconf.privateparameters.v3.PrivateParametersTypeV3;
-
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import org.mapstruct.ReportingPolicy;
 import org.mapstruct.factory.Mappers;
+import org.niis.xroad.globalconf.schema.privateparameters.v3.ConfigurationAnchorType;
+import org.niis.xroad.globalconf.schema.privateparameters.v3.ConfigurationSourceType;
+import org.niis.xroad.globalconf.schema.privateparameters.v3.ObjectFactory;
+import org.niis.xroad.globalconf.schema.privateparameters.v3.PrivateParametersTypeV3;
 
 @Mapper(uses = {ObjectFactory.class, MappingUtils.class},
         unmappedTargetPolicy = ReportingPolicy.ERROR)

@@ -30,7 +30,6 @@ import ee.ria.xroad.common.ErrorCodes;
 import ee.ria.xroad.common.OcspTestUtils;
 import ee.ria.xroad.common.TestCertUtil;
 import ee.ria.xroad.common.TestSecurityUtil;
-import ee.ria.xroad.common.conf.globalconf.EmptyGlobalConf;
 
 import org.bouncycastle.cert.ocsp.CertificateStatus;
 import org.bouncycastle.cert.ocsp.OCSPResp;
@@ -38,6 +37,7 @@ import org.bouncycastle.cert.ocsp.RevokedStatus;
 import org.junit.Test;
 import org.niis.xroad.globalconf.GlobalConfProvider;
 import org.niis.xroad.globalconf.cert.CertChain;
+import org.niis.xroad.test.globalconf.EmptyGlobalConf;
 
 import java.security.cert.CertPathBuilderException;
 import java.security.cert.X509Certificate;

@@ -26,12 +26,11 @@
  */
 package org.niis.xroad.globalconf.model;
 
-import ee.ria.xroad.common.conf.globalconf.sharedparameters.v2.ObjectFactory;
-import ee.ria.xroad.common.conf.globalconf.sharedparameters.v2.SharedParametersTypeV2;
-
 import jakarta.xml.bind.JAXBContext;
 import jakarta.xml.bind.JAXBElement;
 import lombok.SneakyThrows;
+import org.niis.xroad.globalconf.schema.sharedparameters.v2.ObjectFactory;
+import org.niis.xroad.globalconf.schema.sharedparameters.v2.SharedParametersTypeV2;
 
 import javax.xml.validation.Schema;
 

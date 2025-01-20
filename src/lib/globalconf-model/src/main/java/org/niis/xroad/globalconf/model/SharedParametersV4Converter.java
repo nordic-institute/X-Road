@@ -25,23 +25,23 @@
  */
 package org.niis.xroad.globalconf.model;
 
-import ee.ria.xroad.common.conf.globalconf.sharedparameters.v4.AcmeServer;
-import ee.ria.xroad.common.conf.globalconf.sharedparameters.v4.ApprovedCATypeV3;
-import ee.ria.xroad.common.conf.globalconf.sharedparameters.v4.ApprovedTSAType;
-import ee.ria.xroad.common.conf.globalconf.sharedparameters.v4.CaInfoType;
-import ee.ria.xroad.common.conf.globalconf.sharedparameters.v4.ConfigurationSourceType;
-import ee.ria.xroad.common.conf.globalconf.sharedparameters.v4.GlobalGroupType;
-import ee.ria.xroad.common.conf.globalconf.sharedparameters.v4.GlobalSettingsType;
-import ee.ria.xroad.common.conf.globalconf.sharedparameters.v4.MemberClassType;
-import ee.ria.xroad.common.conf.globalconf.sharedparameters.v4.MemberType;
-import ee.ria.xroad.common.conf.globalconf.sharedparameters.v4.OcspInfoType;
-import ee.ria.xroad.common.conf.globalconf.sharedparameters.v4.SecurityServerType;
-import ee.ria.xroad.common.conf.globalconf.sharedparameters.v4.SharedParametersTypeV4;
-import ee.ria.xroad.common.conf.globalconf.sharedparameters.v4.SubsystemType;
 import ee.ria.xroad.common.crypto.identifier.DigestAlgorithm;
 import ee.ria.xroad.common.identifier.ClientId;
 
 import jakarta.xml.bind.JAXBElement;
+import org.niis.xroad.globalconf.schema.sharedparameters.v4.AcmeServer;
+import org.niis.xroad.globalconf.schema.sharedparameters.v4.ApprovedCATypeV3;
+import org.niis.xroad.globalconf.schema.sharedparameters.v4.ApprovedTSAType;
+import org.niis.xroad.globalconf.schema.sharedparameters.v4.CaInfoType;
+import org.niis.xroad.globalconf.schema.sharedparameters.v4.ConfigurationSourceType;
+import org.niis.xroad.globalconf.schema.sharedparameters.v4.GlobalGroupType;
+import org.niis.xroad.globalconf.schema.sharedparameters.v4.GlobalSettingsType;
+import org.niis.xroad.globalconf.schema.sharedparameters.v4.MemberClassType;
+import org.niis.xroad.globalconf.schema.sharedparameters.v4.MemberType;
+import org.niis.xroad.globalconf.schema.sharedparameters.v4.OcspInfoType;
+import org.niis.xroad.globalconf.schema.sharedparameters.v4.SecurityServerType;
+import org.niis.xroad.globalconf.schema.sharedparameters.v4.SharedParametersTypeV4;
+import org.niis.xroad.globalconf.schema.sharedparameters.v4.SubsystemType;
 
 import java.io.IOException;
 import java.security.cert.CertificateEncodingException;

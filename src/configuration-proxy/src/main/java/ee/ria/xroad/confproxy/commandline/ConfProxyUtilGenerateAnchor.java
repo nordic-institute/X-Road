@@ -25,9 +25,6 @@
  */
 package ee.ria.xroad.confproxy.commandline;
 
-import ee.ria.xroad.common.conf.globalconf.privateparameters.v2.ConfigurationAnchorType;
-import ee.ria.xroad.common.conf.globalconf.privateparameters.v2.ConfigurationSourceType;
-import ee.ria.xroad.common.conf.globalconf.privateparameters.v2.ObjectFactory;
 import ee.ria.xroad.common.util.AtomicSave;
 import ee.ria.xroad.confproxy.ConfProxyProperties;
 import ee.ria.xroad.confproxy.util.OutputBuilder;
@@ -37,6 +34,9 @@ import jakarta.xml.bind.JAXBElement;
 import jakarta.xml.bind.Marshaller;
 import org.apache.commons.cli.CommandLine;
 import org.niis.xroad.globalconf.model.ConfigurationAnchor;
+import org.niis.xroad.globalconf.schema.privateparameters.v2.ConfigurationAnchorType;
+import org.niis.xroad.globalconf.schema.privateparameters.v2.ConfigurationSourceType;
+import org.niis.xroad.globalconf.schema.privateparameters.v2.ObjectFactory;
 
 import javax.xml.datatype.DatatypeFactory;
 import javax.xml.datatype.XMLGregorianCalendar;

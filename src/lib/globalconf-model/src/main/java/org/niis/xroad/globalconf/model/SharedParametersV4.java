@@ -26,13 +26,13 @@
 package org.niis.xroad.globalconf.model;
 
 import ee.ria.xroad.common.conf.AbstractXmlConf;
-import ee.ria.xroad.common.conf.globalconf.sharedparameters.v4.ObjectFactory;
-import ee.ria.xroad.common.conf.globalconf.sharedparameters.v4.SharedParametersTypeV4;
 
 import jakarta.xml.bind.JAXBContext;
 import jakarta.xml.bind.JAXBException;
 import lombok.AccessLevel;
 import lombok.Getter;
+import org.niis.xroad.globalconf.schema.sharedparameters.v4.ObjectFactory;
+import org.niis.xroad.globalconf.schema.sharedparameters.v4.SharedParametersTypeV4;
 
 import java.io.IOException;
 import java.nio.file.Path;

@@ -29,7 +29,6 @@ import ee.ria.xroad.common.ErrorCodes;
 import ee.ria.xroad.common.ExpectedCodedException;
 import ee.ria.xroad.common.SystemProperties;
 import ee.ria.xroad.common.TestSecurityUtil;
-import ee.ria.xroad.common.conf.globalconf.TestGlobalConfImpl;
 
 import org.apache.commons.io.IOUtils;
 import org.bouncycastle.asn1.ASN1Primitive;
@@ -39,6 +38,7 @@ import org.junit.BeforeClass;
 import org.junit.Rule;
 import org.junit.Test;
 import org.niis.xroad.globalconf.GlobalConfProvider;
+import org.niis.xroad.test.globalconf.TestGlobalConfImpl;
 
 import java.io.File;
 import java.io.FileInputStream;
