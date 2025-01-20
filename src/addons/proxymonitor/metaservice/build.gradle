@@ -20,7 +20,7 @@ dependencies {
     implementation project(':common:common-jetty')
     implementation project(":serverconf")
     implementation project(":common:common-op-monitoring")
-    implementation project(":common:common-verifier")
+    implementation project(":lib:globalconf-spring")
 
     implementation project(':monitor-common')
     implementation project(':addons:proxymonitor-common')

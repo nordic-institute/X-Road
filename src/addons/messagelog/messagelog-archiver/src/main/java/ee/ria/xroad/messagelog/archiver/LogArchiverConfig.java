@@ -25,11 +25,11 @@
  */
 package ee.ria.xroad.messagelog.archiver;
 
-import ee.ria.xroad.common.conf.globalconf.GlobalConfBeanConfig;
-import ee.ria.xroad.common.conf.globalconf.GlobalConfRefreshJobConfig;
 import ee.ria.xroad.common.messagelog.MessageLogProperties;
 import ee.ria.xroad.common.util.JobManager;
 
+import org.niis.xroad.globalconf.spring.GlobalConfBeanConfig;
+import org.niis.xroad.globalconf.spring.GlobalConfRefreshJobConfig;
 import org.quartz.JobDataMap;
 import org.quartz.SchedulerException;
 import org.springframework.context.annotation.Bean;

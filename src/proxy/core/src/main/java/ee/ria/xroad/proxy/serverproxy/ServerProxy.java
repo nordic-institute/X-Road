@@ -26,8 +26,6 @@
 package ee.ria.xroad.proxy.serverproxy;
 
 import ee.ria.xroad.common.SystemProperties;
-import ee.ria.xroad.common.cert.CertChainFactory;
-import ee.ria.xroad.common.conf.globalconf.GlobalConfProvider;
 import ee.ria.xroad.common.conf.serverconf.ServerConfProvider;
 import ee.ria.xroad.common.db.HibernateUtil;
 import ee.ria.xroad.common.opmonitoring.OpMonitoringDaemonHttpClient;
@@ -50,6 +48,8 @@ import org.eclipse.jetty.server.Slf4jRequestLogWriter;
 import org.eclipse.jetty.util.resource.ResourceFactory;
 import org.eclipse.jetty.util.ssl.SslContextFactory;
 import org.eclipse.jetty.xml.XmlConfiguration;
+import org.niis.xroad.globalconf.GlobalConfProvider;
+import org.niis.xroad.globalconf.impl.cert.CertChainFactory;
 import org.springframework.beans.factory.DisposableBean;
 import org.springframework.beans.factory.InitializingBean;
 

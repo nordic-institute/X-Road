@@ -26,10 +26,10 @@
 package org.niis.xroad.securityserver.restapi.repository;
 
 import ee.ria.xroad.common.SystemProperties;
-import ee.ria.xroad.common.conf.globalconf.ConfigurationAnchor;
 import ee.ria.xroad.common.util.AtomicSave;
 
 import lombok.extern.slf4j.Slf4j;
+import org.niis.xroad.globalconf.model.ConfigurationAnchor;
 import org.springframework.stereotype.Repository;
 
 import java.io.File;

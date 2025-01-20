@@ -25,12 +25,11 @@
  */
 package ee.ria.xroad.proxy.messagelog;
 
-import ee.ria.xroad.common.conf.globalconf.GlobalConfProvider;
-import ee.ria.xroad.common.signature.TimestampVerifier;
-
 import org.bouncycastle.tsp.TimeStampRequest;
 import org.bouncycastle.tsp.TimeStampResponse;
 import org.bouncycastle.tsp.TimeStampToken;
+import org.niis.xroad.globalconf.GlobalConfProvider;
+import org.niis.xroad.globalconf.impl.signature.TimestampVerifier;
 
 import java.util.List;
 

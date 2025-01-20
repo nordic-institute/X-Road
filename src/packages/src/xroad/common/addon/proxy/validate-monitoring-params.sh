@@ -3,7 +3,7 @@
 MONITORING_PARAMS_FILE=$1
 # classpath needs proxymonitor addon for the validator codes, and signer.jar for the dependencies
 CLASSPATH=/usr/share/xroad/jlib/addon/proxy/proxymonitor-metaservice.jar:/usr/share/xroad/jlib/signer.jar
-VALIDATOR_CLASS=ee.ria.xroad.proxy.serverproxy.StdinValidator
+VALIDATOR_CLASS=org.niis.xroad.globalconf.extension.StdinValidator
 
 test -e $MONITORING_PARAMS_FILE
 FILE_EXISTS=$?

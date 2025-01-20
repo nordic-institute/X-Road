@@ -26,7 +26,6 @@
  */
 package org.niis.xroad.securityserver.restapi.service;
 
-import ee.ria.xroad.common.conf.globalconf.ConfigurationAnchor;
 import ee.ria.xroad.common.conf.serverconf.model.TspType;
 import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.identifier.SecurityServerId;
@@ -42,6 +41,7 @@ import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.junit.MockitoJUnitRunner;
 import org.niis.xroad.common.exception.util.CommonDeviationMessage;
+import org.niis.xroad.globalconf.model.ConfigurationAnchor;
 import org.niis.xroad.restapi.config.audit.AuditDataHelper;
 import org.niis.xroad.restapi.config.audit.RestApiAuditProperty;
 import org.niis.xroad.restapi.exceptions.DeviationCodes;

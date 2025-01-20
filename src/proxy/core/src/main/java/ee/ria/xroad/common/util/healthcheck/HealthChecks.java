@@ -25,9 +25,6 @@
  */
 package ee.ria.xroad.common.util.healthcheck;
 
-import ee.ria.xroad.common.cert.CertChain;
-import ee.ria.xroad.common.conf.globalconf.AuthKey;
-import ee.ria.xroad.common.conf.globalconf.GlobalConfProvider;
 import ee.ria.xroad.common.conf.serverconf.ServerConfProvider;
 import ee.ria.xroad.proxy.addon.module.HardwareSecurityModuleUtils;
 import ee.ria.xroad.proxy.conf.KeyConfProvider;
@@ -37,6 +34,9 @@ import com.google.common.base.Suppliers;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.bouncycastle.cert.ocsp.OCSPResp;
+import org.niis.xroad.globalconf.GlobalConfProvider;
+import org.niis.xroad.globalconf.cert.CertChain;
+import org.niis.xroad.proxy.core.auth.AuthKey;
 
 import java.security.cert.X509Certificate;
 import java.util.concurrent.TimeUnit;
@@ -72,7 +72,7 @@ public class HealthChecks {
                 return failure("No authentication key available. Signer might be down.");
             }
 
-            CertChain certChain = authKey.getCertChain();
+            CertChain certChain = authKey.certChain();
 
             if (certChain == null) {
                 return failure("No certificate chain available in authentication key.");

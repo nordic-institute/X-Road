@@ -29,7 +29,6 @@ package org.niis.xroad.cs.registrationservice.controller;
 import ee.ria.xroad.common.OcspTestUtils;
 import ee.ria.xroad.common.SystemProperties;
 import ee.ria.xroad.common.TestCertUtil;
-import ee.ria.xroad.common.conf.globalconf.GlobalConfProvider;
 import ee.ria.xroad.common.identifier.SecurityServerId;
 
 import com.github.tomakehurst.wiremock.client.WireMock;
@@ -48,6 +47,7 @@ import org.niis.xroad.cs.openapi.model.ErrorInfoDto;
 import org.niis.xroad.cs.openapi.model.ManagementRequestTypeDto;
 import org.niis.xroad.cs.registrationservice.config.RegistrationServiceProperties;
 import org.niis.xroad.cs.registrationservice.testutil.TestGlobalConf;
+import org.niis.xroad.globalconf.GlobalConfProvider;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.autoconfigure.web.servlet.MockMvcPrint;

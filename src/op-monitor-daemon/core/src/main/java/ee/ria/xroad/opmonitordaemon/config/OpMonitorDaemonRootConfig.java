@@ -25,11 +25,11 @@
  */
 package ee.ria.xroad.opmonitordaemon.config;
 
-import ee.ria.xroad.common.conf.globalconf.GlobalConfBeanConfig;
-import ee.ria.xroad.common.conf.globalconf.GlobalConfProvider;
-import ee.ria.xroad.common.conf.globalconf.GlobalConfRefreshJobConfig;
 import ee.ria.xroad.opmonitordaemon.OpMonitorDaemon;
 
+import org.niis.xroad.globalconf.GlobalConfProvider;
+import org.niis.xroad.globalconf.spring.GlobalConfBeanConfig;
+import org.niis.xroad.globalconf.spring.GlobalConfRefreshJobConfig;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;

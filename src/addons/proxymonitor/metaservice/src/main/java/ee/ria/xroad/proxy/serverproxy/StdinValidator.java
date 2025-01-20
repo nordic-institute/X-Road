@@ -25,9 +25,8 @@
  */
 package ee.ria.xroad.proxy.serverproxy;
 
-import ee.ria.xroad.common.conf.monitoringconf.MonitoringParametersSchemaValidator;
-
 import org.apache.commons.io.IOUtils;
+import org.niis.xroad.globalconf.monitoringconf.MonitoringParametersSchemaValidator;
 
 import static java.nio.charset.StandardCharsets.UTF_8;
 

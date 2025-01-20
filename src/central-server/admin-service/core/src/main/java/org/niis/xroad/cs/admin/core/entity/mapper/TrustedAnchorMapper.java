@@ -27,14 +27,13 @@
 package org.niis.xroad.cs.admin.core.entity.mapper;
 
 
-import ee.ria.xroad.common.conf.globalconf.ConfigurationAnchor;
-
 import org.mapstruct.Mapper;
 import org.niis.xroad.cs.admin.api.converter.GenericUniDirectionalMapper;
 import org.niis.xroad.cs.admin.api.domain.AnchorUrl;
 import org.niis.xroad.cs.admin.api.domain.AnchorUrlCert;
 import org.niis.xroad.cs.admin.api.domain.TrustedAnchor;
 import org.niis.xroad.cs.admin.core.entity.TrustedAnchorEntity;
+import org.niis.xroad.globalconf.model.ConfigurationAnchor;
 
 import java.util.Set;
 

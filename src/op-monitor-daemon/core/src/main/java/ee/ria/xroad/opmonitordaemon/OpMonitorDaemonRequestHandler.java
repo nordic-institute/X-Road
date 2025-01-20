@@ -26,7 +26,6 @@
 package ee.ria.xroad.opmonitordaemon;
 
 import ee.ria.xroad.common.CodedException;
-import ee.ria.xroad.common.conf.globalconf.GlobalConfProvider;
 import ee.ria.xroad.common.opmonitoring.StoreOpMonitoringDataResponse;
 import ee.ria.xroad.common.util.HandlerBase;
 import ee.ria.xroad.common.util.JsonUtils;
@@ -43,6 +42,7 @@ import org.eclipse.jetty.http.HttpStatus;
 import org.eclipse.jetty.server.Request;
 import org.eclipse.jetty.server.Response;
 import org.eclipse.jetty.util.Callback;
+import org.niis.xroad.globalconf.GlobalConfProvider;
 
 import java.io.IOException;
 import java.nio.ByteBuffer;

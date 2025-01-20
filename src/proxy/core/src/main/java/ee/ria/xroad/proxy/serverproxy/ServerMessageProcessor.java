@@ -27,9 +27,6 @@ package ee.ria.xroad.proxy.serverproxy;
 
 import ee.ria.xroad.common.CodedException;
 import ee.ria.xroad.common.SystemProperties;
-import ee.ria.xroad.common.cert.CertChain;
-import ee.ria.xroad.common.cert.CertChainFactory;
-import ee.ria.xroad.common.conf.globalconf.GlobalConfProvider;
 import ee.ria.xroad.common.conf.serverconf.ServerConfProvider;
 import ee.ria.xroad.common.conf.serverconf.model.ClientType;
 import ee.ria.xroad.common.conf.serverconf.model.DescriptionType;
@@ -62,6 +59,9 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.http.client.HttpClient;
+import org.niis.xroad.globalconf.GlobalConfProvider;
+import org.niis.xroad.globalconf.cert.CertChain;
+import org.niis.xroad.globalconf.impl.cert.CertChainFactory;
 import org.xml.sax.Attributes;
 import org.xml.sax.helpers.AttributesImpl;
 

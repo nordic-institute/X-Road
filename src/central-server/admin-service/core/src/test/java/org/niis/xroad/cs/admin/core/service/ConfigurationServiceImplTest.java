@@ -69,8 +69,6 @@ import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 
-import static ee.ria.xroad.common.conf.globalconf.ConfigurationConstants.CONTENT_ID_PRIVATE_PARAMETERS;
-import static ee.ria.xroad.common.conf.globalconf.ConfigurationConstants.CONTENT_ID_SHARED_PARAMETERS;
 import static ee.ria.xroad.common.crypto.Digests.DEFAULT_UPLOAD_FILE_HASH_ALGORITHM;
 import static java.nio.charset.StandardCharsets.UTF_8;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -84,6 +82,8 @@ import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 import static org.niis.xroad.cs.admin.api.domain.ConfigurationSourceType.EXTERNAL;
 import static org.niis.xroad.cs.admin.api.domain.ConfigurationSourceType.INTERNAL;
+import static org.niis.xroad.globalconf.model.ConfigurationConstants.CONTENT_ID_PRIVATE_PARAMETERS;
+import static org.niis.xroad.globalconf.model.ConfigurationConstants.CONTENT_ID_SHARED_PARAMETERS;
 import static org.niis.xroad.restapi.config.audit.RestApiAuditProperty.SOURCE_TYPE;
 import static org.niis.xroad.restapi.config.audit.RestApiAuditProperty.UPLOAD_FILE_HASH;
 import static org.niis.xroad.restapi.config.audit.RestApiAuditProperty.UPLOAD_FILE_HASH_ALGORITHM;

@@ -28,7 +28,6 @@
 package org.niis.xroad.common.managementrequest.verify.decode;
 
 import ee.ria.xroad.common.CodedException;
-import ee.ria.xroad.common.conf.globalconf.GlobalConfProvider;
 import ee.ria.xroad.common.crypto.identifier.SignAlgorithm;
 import ee.ria.xroad.common.message.SoapMessageImpl;
 import ee.ria.xroad.common.util.CryptoUtils;
@@ -42,6 +41,7 @@ import org.niis.xroad.common.managementrequest.verify.ManagementRequestParser;
 import org.niis.xroad.common.managementrequest.verify.ManagementRequestVerifier;
 import org.niis.xroad.common.managementrequest.verify.decode.util.ManagementRequestCertVerifier;
 import org.niis.xroad.common.managementrequest.verify.decode.util.ManagementRequestVerificationUtils;
+import org.niis.xroad.globalconf.GlobalConfProvider;
 
 import java.io.IOException;
 import java.io.InputStream;

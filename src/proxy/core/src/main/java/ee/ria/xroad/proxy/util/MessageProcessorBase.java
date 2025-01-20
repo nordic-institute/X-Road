@@ -27,9 +27,6 @@ package ee.ria.xroad.proxy.util;
 
 import ee.ria.xroad.common.CodedException;
 import ee.ria.xroad.common.SystemProperties;
-import ee.ria.xroad.common.cert.CertChainFactory;
-import ee.ria.xroad.common.cert.CertHelper;
-import ee.ria.xroad.common.conf.globalconf.GlobalConfProvider;
 import ee.ria.xroad.common.conf.serverconf.IsAuthentication;
 import ee.ria.xroad.common.conf.serverconf.IsAuthenticationData;
 import ee.ria.xroad.common.conf.serverconf.ServerConfProvider;
@@ -48,6 +45,9 @@ import ee.ria.xroad.proxy.conf.KeyConfProvider;
 
 import lombok.extern.slf4j.Slf4j;
 import org.apache.http.client.HttpClient;
+import org.niis.xroad.globalconf.GlobalConfProvider;
+import org.niis.xroad.globalconf.impl.cert.CertChainFactory;
+import org.niis.xroad.globalconf.impl.cert.CertHelper;
 
 import java.net.URI;
 import java.net.URISyntaxException;

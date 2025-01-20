@@ -26,9 +26,6 @@
 package ee.ria.xroad.proxy.clientproxy;
 
 import ee.ria.xroad.common.TestCertUtil;
-import ee.ria.xroad.common.cert.CertChainFactory;
-import ee.ria.xroad.common.cert.CertHelper;
-import ee.ria.xroad.common.conf.globalconf.GlobalConfProvider;
 import ee.ria.xroad.common.identifier.ServiceId;
 import ee.ria.xroad.common.util.CryptoUtils;
 import ee.ria.xroad.common.util.HttpSender;
@@ -57,6 +54,9 @@ import org.junit.Assume;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.experimental.categories.Category;
+import org.niis.xroad.globalconf.GlobalConfProvider;
+import org.niis.xroad.globalconf.impl.cert.CertChainFactory;
+import org.niis.xroad.globalconf.impl.cert.CertHelper;
 
 import javax.net.ssl.KeyManager;
 import javax.net.ssl.SSLContext;

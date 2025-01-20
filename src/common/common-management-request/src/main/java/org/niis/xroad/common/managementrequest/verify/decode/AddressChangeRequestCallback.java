@@ -28,12 +28,12 @@
 package org.niis.xroad.common.managementrequest.verify.decode;
 
 import ee.ria.xroad.common.CodedException;
-import ee.ria.xroad.common.conf.globalconf.GlobalConfProvider;
 import ee.ria.xroad.common.identifier.SecurityServerId;
 import ee.ria.xroad.common.request.AddressChangeRequestType;
 
 import org.niis.xroad.common.managementrequest.model.ManagementRequestType;
 import org.niis.xroad.common.managementrequest.verify.ManagementRequestVerifier;
+import org.niis.xroad.globalconf.GlobalConfProvider;
 
 import java.util.Objects;
 

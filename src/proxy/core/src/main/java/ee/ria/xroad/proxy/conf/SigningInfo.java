@@ -25,7 +25,6 @@
  */
 package ee.ria.xroad.proxy.conf;
 
-import ee.ria.xroad.common.conf.globalconf.GlobalConfProvider;
 import ee.ria.xroad.common.crypto.identifier.SignMechanism;
 import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.proxy.signedmessage.SignerSigningKey;
@@ -33,6 +32,7 @@ import ee.ria.xroad.proxy.signedmessage.SignerSigningKey;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.niis.xroad.globalconf.GlobalConfProvider;
 
 import java.security.cert.X509Certificate;
 import java.util.Date;
@@ -40,7 +40,7 @@ import java.util.Date;
 @Slf4j
 @Getter
 @RequiredArgsConstructor
-class SigningInfo extends AbstractDateValidatableInfo {
+public class SigningInfo extends AbstractDateValidatableInfo {
 
     private final String keyId;
     private final SignMechanism signMechanismName;

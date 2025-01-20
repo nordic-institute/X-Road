@@ -27,7 +27,6 @@
 
 package org.niis.xroad.proxy.test.glue;
 
-import ee.ria.xroad.common.conf.globalconf.TestGlobalConfImpl;
 import ee.ria.xroad.common.conf.serverconf.ServerConfImpl;
 import ee.ria.xroad.common.crypto.identifier.DigestAlgorithm;
 import ee.ria.xroad.common.crypto.identifier.KeyAlgorithm;
@@ -36,7 +35,6 @@ import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.signature.MessagePart;
 import ee.ria.xroad.common.signature.SignatureBuilder;
 import ee.ria.xroad.common.signature.SignatureData;
-import ee.ria.xroad.common.signature.SignatureVerifier;
 import ee.ria.xroad.common.util.MessageFileNames;
 import ee.ria.xroad.proxy.conf.CachingKeyConfImpl;
 import ee.ria.xroad.proxy.conf.KeyConfProvider;
@@ -51,7 +49,9 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.niis.xroad.common.test.glue.BaseStepDefs;
+import org.niis.xroad.globalconf.impl.signature.SignatureVerifier;
 import org.niis.xroad.signer.proto.CertificateRequestFormat;
+import org.niis.xroad.test.globalconf.TestGlobalConfImpl;
 
 import java.io.ByteArrayInputStream;
 import java.io.File;

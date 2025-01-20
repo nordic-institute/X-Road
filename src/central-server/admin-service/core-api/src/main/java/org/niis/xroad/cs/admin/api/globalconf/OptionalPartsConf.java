@@ -28,7 +28,6 @@ package org.niis.xroad.cs.admin.api.globalconf;
 import ee.ria.xroad.common.CodedException;
 import ee.ria.xroad.common.ErrorCodes;
 import ee.ria.xroad.common.SystemProperties;
-import ee.ria.xroad.common.conf.globalconf.ConfigurationConstants;
 
 import lombok.Getter;
 import lombok.SneakyThrows;
@@ -36,6 +35,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.filefilter.RegexFileFilter;
 import org.apache.commons.lang3.StringUtils;
 import org.niis.xroad.cs.admin.api.dto.OptionalConfPart;
+import org.niis.xroad.globalconf.model.ConfigurationConstants;
 
 import java.io.File;
 import java.io.FileFilter;

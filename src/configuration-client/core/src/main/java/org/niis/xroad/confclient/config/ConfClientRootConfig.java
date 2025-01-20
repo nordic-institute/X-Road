@@ -26,8 +26,8 @@
 package org.niis.xroad.confclient.config;
 
 import ee.ria.xroad.common.SystemProperties;
-import ee.ria.xroad.common.conf.globalconf.ConfigurationClient;
 
+import org.niis.xroad.confclient.core.ConfigurationClient;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;

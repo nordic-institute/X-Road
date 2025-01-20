@@ -26,13 +26,13 @@
  */
 package org.niis.xroad.schedule.backup;
 
-import ee.ria.xroad.common.conf.globalconf.ConfigurationClientJob;
 import ee.ria.xroad.common.util.JobManager;
 import ee.ria.xroad.common.util.process.ExternalProcessRunner;
 import ee.ria.xroad.common.util.process.ProcessFailedException;
 import ee.ria.xroad.common.util.process.ProcessNotExecutableException;
 
 import lombok.extern.slf4j.Slf4j;
+import org.niis.xroad.confclient.core.ConfigurationClientJob;
 import org.niis.xroad.schedule.RetryingQuartzJob;
 import org.quartz.DisallowConcurrentExecution;
 import org.quartz.JobExecutionContext;

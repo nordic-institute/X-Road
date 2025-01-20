@@ -25,7 +25,6 @@
  */
 package ee.ria.xroad.signer;
 
-import ee.ria.xroad.common.CertificationServiceDiagnostics;
 import ee.ria.xroad.common.SystemProperties;
 import ee.ria.xroad.common.util.AdminPort;
 import ee.ria.xroad.common.util.JsonUtils;
@@ -35,6 +34,7 @@ import ee.ria.xroad.signer.certmanager.OcspClientWorker;
 import ee.ria.xroad.signer.job.OcspClientExecuteScheduler;
 
 import lombok.extern.slf4j.Slf4j;
+import org.niis.xroad.globalconf.status.CertificationServiceDiagnostics;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 

@@ -25,7 +25,6 @@
  */
 package org.niis.xroad.securityserver.restapi.openapi;
 
-import ee.ria.xroad.common.conf.globalconf.ApprovedCAInfo;
 import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.identifier.SecurityServerId;
 import ee.ria.xroad.signer.SignerProxy;
@@ -38,6 +37,7 @@ import ee.ria.xroad.signer.protocol.dto.TokenInfoAndKeyId;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
+import org.niis.xroad.globalconf.model.ApprovedCAInfo;
 import org.niis.xroad.restapi.exceptions.DeviationCodes;
 import org.niis.xroad.restapi.exceptions.ErrorDeviation;
 import org.niis.xroad.restapi.openapi.BadRequestException;

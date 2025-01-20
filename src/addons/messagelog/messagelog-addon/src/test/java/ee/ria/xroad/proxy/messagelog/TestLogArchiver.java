@@ -25,8 +25,9 @@
  */
 package ee.ria.xroad.proxy.messagelog;
 
-import ee.ria.xroad.common.conf.globalconf.GlobalConfProvider;
 import ee.ria.xroad.messagelog.archiver.LogArchiver;
+
+import org.niis.xroad.globalconf.GlobalConfProvider;
 
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;

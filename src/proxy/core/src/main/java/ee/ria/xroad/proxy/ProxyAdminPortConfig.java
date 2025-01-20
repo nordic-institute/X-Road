@@ -28,7 +28,6 @@ package ee.ria.xroad.proxy;
 import ee.ria.xroad.common.AddOnStatusDiagnostics;
 import ee.ria.xroad.common.BackupEncryptionStatusDiagnostics;
 import ee.ria.xroad.common.DiagnosticsErrorCodes;
-import ee.ria.xroad.common.DiagnosticsStatus;
 import ee.ria.xroad.common.DiagnosticsUtils;
 import ee.ria.xroad.common.MessageLogEncryptionStatusDiagnostics;
 import ee.ria.xroad.common.PortNumbers;
@@ -44,6 +43,7 @@ import ee.ria.xroad.proxy.messagelog.MessageLog;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.eclipse.jetty.http.MimeTypes;
+import org.niis.xroad.globalconf.status.DiagnosticsStatus;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 

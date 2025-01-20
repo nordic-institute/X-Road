@@ -32,13 +32,6 @@ import ee.ria.xroad.common.SystemProperties;
 import ee.ria.xroad.common.asic.AsicContainer;
 import ee.ria.xroad.common.asic.AsicContainerNameGenerator;
 import ee.ria.xroad.common.asic.AsicUtils;
-import ee.ria.xroad.common.cert.CertChainFactory;
-import ee.ria.xroad.common.conf.globalconf.ConfigurationConstants;
-import ee.ria.xroad.common.conf.globalconf.ConfigurationDirectory;
-import ee.ria.xroad.common.conf.globalconf.ConfigurationPartMetadata;
-import ee.ria.xroad.common.conf.globalconf.FileConsumer;
-import ee.ria.xroad.common.conf.globalconf.GlobalConfProvider;
-import ee.ria.xroad.common.conf.globalconf.VersionedConfigurationDirectory;
 import ee.ria.xroad.common.conf.serverconf.ServerConfProvider;
 import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.messagelog.MessageLogProperties;
@@ -59,6 +52,13 @@ import ee.ria.xroad.proxy.util.MessageProcessorBase;
 
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.IOUtils;
+import org.niis.xroad.globalconf.GlobalConfProvider;
+import org.niis.xroad.globalconf.impl.cert.CertChainFactory;
+import org.niis.xroad.globalconf.model.ConfigurationConstants;
+import org.niis.xroad.globalconf.model.ConfigurationDirectory;
+import org.niis.xroad.globalconf.model.ConfigurationPartMetadata;
+import org.niis.xroad.globalconf.model.FileConsumer;
+import org.niis.xroad.globalconf.model.VersionedConfigurationDirectory;
 
 import java.io.ByteArrayInputStream;
 import java.io.Closeable;
@@ -77,7 +77,6 @@ import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
 
 import static ee.ria.xroad.common.ErrorCodes.X_INTERNAL_ERROR;
-import static ee.ria.xroad.common.conf.globalconf.ConfigurationDirectory.METADATA_SUFFIX;
 import static ee.ria.xroad.proxy.clientproxy.AbstractClientProxyHandler.getIsAuthenticationData;
 import static ee.ria.xroad.proxy.util.MetadataRequests.ASIC;
 import static ee.ria.xroad.proxy.util.MetadataRequests.VERIFICATIONCONF;
@@ -85,6 +84,7 @@ import static org.eclipse.jetty.http.HttpStatus.BAD_REQUEST_400;
 import static org.eclipse.jetty.http.HttpStatus.INTERNAL_SERVER_ERROR_500;
 import static org.eclipse.jetty.http.HttpStatus.NOT_FOUND_404;
 import static org.eclipse.jetty.http.HttpStatus.UNAUTHORIZED_401;
+import static org.niis.xroad.globalconf.model.ConfigurationDirectory.METADATA_SUFFIX;
 
 @Slf4j
 public class AsicContainerClientRequestProcessor extends MessageProcessorBase {

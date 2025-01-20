@@ -27,7 +27,6 @@ package ee.ria.xroad.common.conf.serverconf;
 
 import ee.ria.xroad.common.CodedException;
 import ee.ria.xroad.common.conf.InternalSSLKey;
-import ee.ria.xroad.common.conf.globalconf.GlobalConfProvider;
 import ee.ria.xroad.common.conf.serverconf.dao.CertificateDAOImpl;
 import ee.ria.xroad.common.conf.serverconf.dao.ClientDAOImpl;
 import ee.ria.xroad.common.conf.serverconf.dao.IdentifierDAOImpl;
@@ -69,6 +68,7 @@ import org.apache.commons.lang3.ObjectUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.hibernate.Session;
 import org.hibernate.SharedSessionContract;
+import org.niis.xroad.globalconf.GlobalConfProvider;
 
 import java.net.URI;
 import java.security.cert.X509Certificate;

@@ -17,7 +17,7 @@ dependencies {
     api(project(':common:common-db'))
 
     implementation(project(':common:common-domain'))
-    implementation(project(':common:common-verifier'))
+    implementation(project(':lib:globalconf-spring'))
 
     // DB layer tests use HSQLDB with in-memory tables
     testImplementation(libs.hsqldb)

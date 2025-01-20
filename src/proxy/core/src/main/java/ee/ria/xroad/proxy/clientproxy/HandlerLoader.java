@@ -25,14 +25,14 @@
  */
 package ee.ria.xroad.proxy.clientproxy;
 
-import ee.ria.xroad.common.cert.CertChainFactory;
-import ee.ria.xroad.common.conf.globalconf.GlobalConfProvider;
 import ee.ria.xroad.common.conf.serverconf.ServerConfProvider;
 import ee.ria.xroad.proxy.conf.KeyConfProvider;
 
 import lombok.RequiredArgsConstructor;
 import org.apache.http.client.HttpClient;
 import org.eclipse.jetty.server.Handler;
+import org.niis.xroad.globalconf.GlobalConfProvider;
+import org.niis.xroad.globalconf.impl.cert.CertChainFactory;
 
 import java.lang.reflect.Constructor;
 

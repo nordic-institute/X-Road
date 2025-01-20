@@ -28,8 +28,6 @@
 package org.niis.xroad.cs.admin.core.service;
 
 import ee.ria.xroad.common.SystemProperties;
-import ee.ria.xroad.common.conf.globalconf.privateparameters.v2.ConfigurationAnchorType;
-import ee.ria.xroad.common.conf.globalconf.privateparameters.v2.ObjectFactory;
 import ee.ria.xroad.common.crypto.Digests;
 import ee.ria.xroad.common.util.TimeUtils;
 
@@ -50,6 +48,8 @@ import org.niis.xroad.cs.admin.api.service.SystemParameterService;
 import org.niis.xroad.cs.admin.core.entity.ConfigurationSigningKeyEntity;
 import org.niis.xroad.cs.admin.core.entity.ConfigurationSourceEntity;
 import org.niis.xroad.cs.admin.core.repository.ConfigurationSourceRepository;
+import org.niis.xroad.globalconf.schema.privateparameters.v2.ConfigurationAnchorType;
+import org.niis.xroad.globalconf.schema.privateparameters.v2.ObjectFactory;
 import org.niis.xroad.restapi.config.audit.AuditDataHelper;
 import org.niis.xroad.restapi.config.audit.AuditEventHelper;
 import org.springframework.stereotype.Service;
@@ -196,7 +196,7 @@ public class ConfigurationAnchorServiceImpl implements ConfigurationAnchorServic
         return String.format("%s://%s/%s", protocol, csAddress, sourceDirectory);
     }
 
-    private ee.ria.xroad.common.conf.globalconf.privateparameters.v2.ConfigurationSourceType toXmlSource(
+    private org.niis.xroad.globalconf.schema.privateparameters.v2.ConfigurationSourceType toXmlSource(
             final ConfigurationSourceEntity source,
             final ObjectFactory factory,
             final boolean isHttps) {

@@ -17,9 +17,8 @@ dependencies {
 
     implementation(project(':common:common-jetty'))
     implementation(project(':common:common-message'))
-    implementation(project(':common:common-globalconf'))
     implementation(project(':common:common-scheduler'))
-    implementation(project(':common:common-verifier'))
+    api(project(':lib:globalconf-spring'))
     implementation(project(':serverconf'))
     implementation(project(':signer-protocol'))
     implementation(project(':common:common-messagelog'))

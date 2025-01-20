@@ -26,7 +26,6 @@
 package ee.ria.xroad.opmonitordaemon;
 
 import ee.ria.xroad.common.CodedException;
-import ee.ria.xroad.common.conf.globalconf.GlobalConfProvider;
 import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.identifier.SecurityServerId;
 import ee.ria.xroad.common.message.MultipartSoapMessageEncoder;
@@ -43,6 +42,7 @@ import jakarta.xml.bind.JAXBElement;
 import jakarta.xml.bind.Marshaller;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.niis.xroad.globalconf.GlobalConfProvider;
 
 import java.io.IOException;
 import java.io.OutputStream;

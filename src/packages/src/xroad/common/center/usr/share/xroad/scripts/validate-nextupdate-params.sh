@@ -3,7 +3,7 @@
 NEXTUPDATE_PARAMS_FILE=$1
 # classpath needs signer.jar for the dependencies
 CLASSPATH=/usr/share/xroad/jlib/signer.jar
-VALIDATOR_CLASS=ee.ria.xroad.common.conf.globalconfextension.StdinValidator
+VALIDATOR_CLASS=org.niis.xroad.globalconf.extension.StdinValidator
 
 test -e $NEXTUPDATE_PARAMS_FILE
 FILE_EXISTS=$?

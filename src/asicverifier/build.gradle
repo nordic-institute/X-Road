@@ -4,8 +4,7 @@ plugins {
 }
 
 dependencies {
-    implementation project(':common:common-verifier')
-    implementation project(':common:common-globalconf')
+    implementation project(":lib:globalconf-spring")
     implementation project(':asic-util')
 
     implementation(project(':common:common-core'))

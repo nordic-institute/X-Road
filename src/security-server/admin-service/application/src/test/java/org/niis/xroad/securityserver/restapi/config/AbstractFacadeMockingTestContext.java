@@ -25,11 +25,11 @@
  */
 package org.niis.xroad.securityserver.restapi.config;
 
-import ee.ria.xroad.common.conf.globalconf.GlobalConfProvider;
 import ee.ria.xroad.common.conf.serverconf.ServerConfProvider;
 
 import org.junit.runner.RunWith;
 import org.niis.xroad.common.acme.AcmeService;
+import org.niis.xroad.globalconf.GlobalConfProvider;
 import org.niis.xroad.securityserver.restapi.facade.SignerProxyFacade;
 import org.niis.xroad.securityserver.restapi.service.ManagementRequestSenderService;
 import org.niis.xroad.securityserver.restapi.service.diagnostic.MonitorClient;

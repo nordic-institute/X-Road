@@ -26,7 +26,6 @@
 package org.niis.xroad.confclient.config;
 
 import ee.ria.xroad.common.SystemProperties;
-import ee.ria.xroad.common.conf.globalconf.ConfigurationClient;
 import ee.ria.xroad.common.util.AdminPort;
 import ee.ria.xroad.common.util.JsonUtils;
 import ee.ria.xroad.common.util.RequestWrapper;
@@ -34,6 +33,7 @@ import ee.ria.xroad.common.util.ResponseWrapper;
 
 import lombok.extern.slf4j.Slf4j;
 import org.eclipse.jetty.http.MimeTypes;
+import org.niis.xroad.confclient.core.ConfigurationClient;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 

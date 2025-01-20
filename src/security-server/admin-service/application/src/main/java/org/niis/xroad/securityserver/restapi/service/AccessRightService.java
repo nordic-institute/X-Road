@@ -27,8 +27,6 @@
 package org.niis.xroad.securityserver.restapi.service;
 
 import ee.ria.xroad.common.CodedException;
-import ee.ria.xroad.common.conf.globalconf.GlobalConfProvider;
-import ee.ria.xroad.common.conf.globalconf.GlobalGroupInfo;
 import ee.ria.xroad.common.conf.serverconf.model.AccessRightType;
 import ee.ria.xroad.common.conf.serverconf.model.ClientType;
 import ee.ria.xroad.common.conf.serverconf.model.EndpointType;
@@ -43,6 +41,8 @@ import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
+import org.niis.xroad.globalconf.GlobalConfProvider;
+import org.niis.xroad.globalconf.model.GlobalGroupInfo;
 import org.niis.xroad.restapi.config.audit.AuditDataHelper;
 import org.niis.xroad.restapi.config.audit.RestApiAuditProperty;
 import org.niis.xroad.restapi.exceptions.ErrorDeviation;
@@ -669,8 +669,8 @@ public class AccessRightService {
         return globalConfProvider.getMembers().stream()
                 .map(memberInfo -> {
                     ServiceClientDto serviceClientDto = new ServiceClientDto();
-                    serviceClientDto.setSubjectId(memberInfo.getId());
-                    serviceClientDto.setMemberName(memberInfo.getName());
+                    serviceClientDto.setSubjectId(memberInfo.id());
+                    serviceClientDto.setMemberName(memberInfo.name());
                     return serviceClientDto;
                 })
                 .collect(Collectors.toList());
@@ -699,8 +699,8 @@ public class AccessRightService {
         if (globalGroupInfos != null && !globalGroupInfos.isEmpty()) {
             globalGroupInfos.forEach(globalGroupInfo -> {
                 ServiceClientDto serviceClientDto = new ServiceClientDto();
-                serviceClientDto.setSubjectId(globalGroupInfo.getId());
-                serviceClientDto.setGlobalGroupDescription(globalGroupInfo.getDescription());
+                serviceClientDto.setSubjectId(globalGroupInfo.id());
+                serviceClientDto.setGlobalGroupDescription(globalGroupInfo.description());
                 globalGroups.add(serviceClientDto);
             });
         }

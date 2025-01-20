@@ -26,9 +26,6 @@
 package ee.ria.xroad.proxy.clientproxy;
 
 import ee.ria.xroad.common.CodedException;
-import ee.ria.xroad.common.cert.CertChain;
-import ee.ria.xroad.common.cert.CertChainFactory;
-import ee.ria.xroad.common.conf.globalconf.GlobalConfProvider;
 import ee.ria.xroad.common.conf.serverconf.IsAuthenticationData;
 import ee.ria.xroad.common.conf.serverconf.ServerConfProvider;
 import ee.ria.xroad.common.identifier.ClientId;
@@ -59,6 +56,9 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.http.client.HttpClient;
 import org.bouncycastle.cert.ocsp.OCSPResp;
 import org.bouncycastle.util.Arrays;
+import org.niis.xroad.globalconf.GlobalConfProvider;
+import org.niis.xroad.globalconf.cert.CertChain;
+import org.niis.xroad.globalconf.impl.cert.CertChainFactory;
 
 import java.io.InputStream;
 import java.io.PipedInputStream;
@@ -548,7 +548,7 @@ class ClientMessageProcessor extends AbstractClientMessageProcessor {
         }
 
         private void writeOcspResponses() throws Exception {
-            CertChain chain = keyConfProvider.getAuthKey().getCertChain();
+            CertChain chain = keyConfProvider.getAuthKey().certChain();
             // exclude TopCA
             List<OCSPResp> ocspResponses = keyConfProvider.getAllOcspResponses(chain.getAllCertsWithoutTrustedRoot());
 

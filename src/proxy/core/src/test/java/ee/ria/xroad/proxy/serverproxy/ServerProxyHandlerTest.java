@@ -25,8 +25,6 @@
  */
 package ee.ria.xroad.proxy.serverproxy;
 
-import ee.ria.xroad.common.cert.CertChainFactory;
-import ee.ria.xroad.common.conf.globalconf.GlobalConfProvider;
 import ee.ria.xroad.common.conf.serverconf.ServerConfProvider;
 import ee.ria.xroad.proxy.conf.KeyConfProvider;
 
@@ -37,6 +35,8 @@ import org.eclipse.jetty.server.Request;
 import org.eclipse.jetty.server.Response;
 import org.eclipse.jetty.util.Callback;
 import org.junit.Test;
+import org.niis.xroad.globalconf.GlobalConfProvider;
+import org.niis.xroad.globalconf.impl.cert.CertChainFactory;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;

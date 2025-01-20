@@ -27,11 +27,6 @@ package ee.ria.xroad.signer.certmanager;
 
 import ee.ria.xroad.common.OcspTestUtils;
 import ee.ria.xroad.common.TestCertUtil;
-import ee.ria.xroad.common.conf.globalconf.FileSystemGlobalConfSource;
-import ee.ria.xroad.common.conf.globalconf.GlobalConfProvider;
-import ee.ria.xroad.common.conf.globalconfextension.GlobalConfExtensions;
-import ee.ria.xroad.common.ocsp.OcspVerifier;
-import ee.ria.xroad.common.ocsp.OcspVerifierOptions;
 import ee.ria.xroad.common.util.TimeUtils;
 
 import org.bouncycastle.cert.ocsp.CertificateStatus;
@@ -49,6 +44,12 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mockito;
+import org.niis.xroad.globalconf.GlobalConfProvider;
+import org.niis.xroad.globalconf.extension.GlobalConfExtensions;
+import org.niis.xroad.globalconf.impl.FileSystemGlobalConfSource;
+import org.niis.xroad.globalconf.impl.extension.GlobalConfExtensionFactoryImpl;
+import org.niis.xroad.globalconf.impl.ocsp.OcspVerifier;
+import org.niis.xroad.globalconf.impl.ocsp.OcspVerifierOptions;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -121,7 +122,7 @@ class OcspClientTest {
                     Mockito.any(X509Certificate.class))).thenReturn(true);
 
             FileSystemGlobalConfSource source = new FileSystemGlobalConfSource(getConfigurationPath());
-            when(testConf.getGlobalConfExtensions()).thenReturn(new GlobalConfExtensions(source));
+            when(testConf.getGlobalConfExtensions()).thenReturn(new GlobalConfExtensions(source, new GlobalConfExtensionFactoryImpl()));
             return testConf;
         }
 

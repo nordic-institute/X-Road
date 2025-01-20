@@ -27,9 +27,6 @@ package ee.ria.xroad.proxy.clientproxy;
 
 import ee.ria.xroad.common.CodedException;
 import ee.ria.xroad.common.SystemProperties;
-import ee.ria.xroad.common.cert.CertChainFactory;
-import ee.ria.xroad.common.conf.globalconf.AuthKey;
-import ee.ria.xroad.common.conf.globalconf.GlobalConfProvider;
 import ee.ria.xroad.common.conf.serverconf.ServerConfProvider;
 import ee.ria.xroad.common.opmonitoring.OpMonitoringData;
 import ee.ria.xroad.common.util.RequestWrapper;
@@ -38,6 +35,9 @@ import ee.ria.xroad.proxy.conf.KeyConfProvider;
 import ee.ria.xroad.proxy.util.MessageProcessorBase;
 
 import org.apache.http.client.HttpClient;
+import org.niis.xroad.globalconf.GlobalConfProvider;
+import org.niis.xroad.globalconf.impl.cert.CertChainFactory;
+import org.niis.xroad.proxy.core.auth.AuthKey;
 
 import static ee.ria.xroad.common.ErrorCodes.X_INVALID_HTTP_METHOD;
 import static ee.ria.xroad.common.ErrorCodes.X_SSL_AUTH_FAILED;
@@ -81,7 +81,7 @@ class ClientMessageHandler extends AbstractClientProxyHandler {
         }
 
         AuthKey authKey = keyConfProvider.getAuthKey();
-        if (authKey.getCertChain() == null) {
+        if (authKey.certChain() == null) {
             throw new CodedException(X_SSL_AUTH_FAILED,
                     "Security server has no valid authentication certificate");
         }

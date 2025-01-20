@@ -25,9 +25,6 @@
  */
 package ee.ria.xroad.signer.protocol.handler;
 
-import ee.ria.xroad.common.cert.CertChain;
-import ee.ria.xroad.common.cert.CertChainVerifier;
-import ee.ria.xroad.common.conf.globalconf.GlobalConfProvider;
 import ee.ria.xroad.common.util.CryptoUtils;
 import ee.ria.xroad.signer.certmanager.OcspResponseManager;
 import ee.ria.xroad.signer.protocol.AbstractRpcHandler;
@@ -38,6 +35,9 @@ import ee.ria.xroad.signer.tokenmanager.TokenManager;
 
 import lombok.RequiredArgsConstructor;
 import org.bouncycastle.cert.ocsp.OCSPResp;
+import org.niis.xroad.globalconf.GlobalConfProvider;
+import org.niis.xroad.globalconf.cert.CertChain;
+import org.niis.xroad.globalconf.impl.cert.CertChainVerifier;
 import org.niis.xroad.signer.proto.ActivateCertReq;
 import org.niis.xroad.signer.protocol.dto.Empty;
 import org.springframework.stereotype.Component;

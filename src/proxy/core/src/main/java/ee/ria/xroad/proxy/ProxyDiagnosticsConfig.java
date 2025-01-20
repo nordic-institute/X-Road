@@ -28,13 +28,13 @@ package ee.ria.xroad.proxy;
 import ee.ria.xroad.common.AddOnStatusDiagnostics;
 import ee.ria.xroad.common.BackupEncryptionStatusDiagnostics;
 import ee.ria.xroad.common.SystemProperties;
-import ee.ria.xroad.common.conf.globalconf.GlobalConfProvider;
 import ee.ria.xroad.common.conf.serverconf.ServerConfProvider;
 import ee.ria.xroad.common.util.healthcheck.HealthCheckPort;
 import ee.ria.xroad.common.util.healthcheck.HealthChecks;
 import ee.ria.xroad.proxy.conf.KeyConfProvider;
 
 import org.apache.commons.lang3.StringUtils;
+import org.niis.xroad.globalconf.GlobalConfProvider;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Condition;

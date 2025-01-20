@@ -26,8 +26,6 @@
 package ee.ria.xroad.proxy.messagelog;
 
 import ee.ria.xroad.common.SystemProperties;
-import ee.ria.xroad.common.conf.globalconf.EmptyGlobalConf;
-import ee.ria.xroad.common.conf.globalconf.GlobalConfProvider;
 import ee.ria.xroad.common.conf.serverconf.ServerConfProvider;
 import ee.ria.xroad.common.message.RestMessage;
 import ee.ria.xroad.common.message.RestRequest;
@@ -43,6 +41,8 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.IOUtils;
 import org.apache.http.message.BasicHeader;
+import org.niis.xroad.globalconf.GlobalConfProvider;
+import org.niis.xroad.test.globalconf.EmptyGlobalConf;
 
 import java.io.ByteArrayInputStream;
 import java.io.FileInputStream;

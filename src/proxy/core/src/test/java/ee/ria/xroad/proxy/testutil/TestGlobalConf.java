@@ -26,14 +26,15 @@
 package ee.ria.xroad.proxy.testutil;
 
 import ee.ria.xroad.common.TestCertUtil;
-import ee.ria.xroad.common.cert.CertChain;
-import ee.ria.xroad.common.cert.CertChainFactory;
 import ee.ria.xroad.common.certificateprofile.AuthCertificateProfileInfo;
 import ee.ria.xroad.common.certificateprofile.SignCertificateProfileInfo;
 import ee.ria.xroad.common.certificateprofile.impl.EjbcaSignCertificateProfileInfo;
-import ee.ria.xroad.common.conf.globalconf.EmptyGlobalConf;
 import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.identifier.SecurityServerId;
+
+import org.niis.xroad.globalconf.cert.CertChain;
+import org.niis.xroad.globalconf.impl.cert.CertChainFactory;
+import org.niis.xroad.test.globalconf.EmptyGlobalConf;
 
 import java.security.cert.CertificateException;
 import java.security.cert.X509Certificate;

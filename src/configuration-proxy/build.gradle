@@ -5,7 +5,7 @@ plugins {
 }
 
 dependencies {
-    implementation project(':common:common-globalconf')
+    implementation project(":lib:globalconf-model")
     implementation project(':common:common-jetty')
     implementation project(':signer-protocol')
 

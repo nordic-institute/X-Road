@@ -15,12 +15,11 @@ tasks.jar {
 dependencies {
   implementation(project(":proxy:core"))
   implementation(project(":common:common-jetty"))
-  implementation(project(":common:common-globalconf"))
   implementation(project(":common:common-scheduler"))
   implementation(project(":serverconf"))
   implementation(project(":common:common-messagelog"))
   implementation(project(":common:common-op-monitoring"))
-  implementation(project(":common:common-verifier"))
+  implementation(project(":lib:globalconf-spring"))
   implementation(project(":asic-util"))
   implementation(project(":addons:messagelog:messagelog-db"))
 

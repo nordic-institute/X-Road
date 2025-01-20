@@ -26,10 +26,9 @@
  */
 package org.niis.xroad.cs.admin.globalconf.generator;
 
-import ee.ria.xroad.common.conf.globalconf.SharedParametersV3Marshaller;
-
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.niis.xroad.globalconf.model.SharedParametersV3Marshaller;
 import org.springframework.stereotype.Component;
 
 @Component

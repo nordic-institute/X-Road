@@ -16,11 +16,9 @@ dependencies {
     testImplementation(libs.restAssured)
 
     testImplementation(project(':common:common-domain'))
-    testImplementation(project(':common:common-globalconf'))
     testImplementation(project(':common:common-jetty'))
     testImplementation(project(':common:common-message'))
     testImplementation(project(':common:common-test'))
-    testImplementation(project(':common:common-verifier'))
     testImplementation(project(':serverconf'))
     testImplementation project(path: ":proxy:core", configuration: 'testArtifacts')
 }
