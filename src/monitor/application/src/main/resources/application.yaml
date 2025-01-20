@@ -15,6 +15,7 @@ quarkus:
     locations:
       - xroad-common.yaml
       - xroad-ss-common.yaml
+      - xroad-logging.yaml
 
 #server:
 #  port: 5999
