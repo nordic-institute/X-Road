@@ -27,12 +27,16 @@
 
 package ee.ria.xroad.opmonitordaemon;
 
-import org.springframework.boot.context.properties.ConfigurationProperties;
+import io.smallrye.config.ConfigMapping;
+import io.smallrye.config.WithName;
+import lombok.Data;
 
 import java.util.Map;
 
-@ConfigurationProperties(prefix = "xroad.op-monitor")
-public record OpMonitorProperties(
-        Map<String, String> hibernate // op-monitor.hibernate.* properties from db-properties file
-) {
+@ConfigMapping(prefix = "xroad.op-monitor")
+@Data
+public class OpMonitorProperties {
+
+    @WithName("hibernate")
+    Map<String, String> hibernate; // op-monitor.hibernate.* properties from db-properties file
 }

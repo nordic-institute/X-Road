@@ -1,5 +1,6 @@
 /*
  * The MIT License
+ *
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
@@ -23,32 +24,17 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package ee.ria.xroad.opmonitordaemon.config;
 
-import ee.ria.xroad.common.util.JobManager;
-import ee.ria.xroad.opmonitordaemon.OperationalDataRecordCleaner;
+package ee.ria.xroad.opmonitordaemon;
 
-import org.quartz.SchedulerException;
-import org.quartz.impl.StdSchedulerFactory;
-import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Configuration;
-import org.springframework.scheduling.quartz.SpringBeanJobFactory;
+import io.quarkus.test.junit.QuarkusTest;
+import org.junit.jupiter.api.Test;
 
-@Configuration
-public class OpMonitorDaemonJobConfig {
+@QuarkusTest
+class OpMonitorDaemonMainTest {
 
-    @Bean
-    JobManager jobManager(SpringBeanJobFactory springBeanJobFactory) throws SchedulerException {
-        final var jobManager = new JobManager(new StdSchedulerFactory().getScheduler(), springBeanJobFactory);
-
-        OperationalDataRecordCleaner.init(jobManager);
-
-        return jobManager;
+    @Test
+    void contextLoads() {
+        // ok
     }
-
-    @Bean
-    SpringBeanJobFactory springBeanJobFactory() {
-        return new SpringBeanJobFactory();
-    }
-
 }

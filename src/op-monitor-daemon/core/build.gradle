@@ -1,5 +1,6 @@
 plugins {
     id("xroad.java-conventions")
+    alias(libs.plugins.jandex)
 }
 
 project.ext.schemaTargetDir = layout.buildDirectory.dir("generated-sources").get().asFile
@@ -19,21 +20,17 @@ dependencies {
     annotationProcessor(libs.mapstructProcessor)
     annotationProcessor(libs.lombokMapstructBinding)
 
-    api(platform(libs.springBoot.bom))
-
     implementation libs.jakarta.validationApi
     implementation libs.bundles.metrics
-    implementation(libs.mapstruct)
+    implementation libs.mapstruct
+    implementation libs.quarkus.scheduler
 
     implementation project(':common:common-domain')
-    implementation project(':common:common-scheduler')
     implementation project(':common:common-verifier')
     implementation project(':common:common-jetty')
     implementation project(':common:common-db')
     implementation project(':common:common-op-monitoring')
 
-    implementation("org.springframework.boot:spring-boot-starter")
-    api('org.springframework:spring-context-support')
     // Using HSQLDB for an in-memory database in tests.
     testImplementation libs.hsqldb
     testImplementation libs.mockito.core
@@ -66,9 +63,9 @@ tasks.register('xjc') {
         )
     }
 }
-jar {
-    archiveBaseName = 'op-monitor-daemon-core'
-}
+//jar {
+//    archiveBaseName = 'op-monitor-daemon-core'
+//}
 
 tasks.register('testsJar', Jar) {
     dependsOn testClasses

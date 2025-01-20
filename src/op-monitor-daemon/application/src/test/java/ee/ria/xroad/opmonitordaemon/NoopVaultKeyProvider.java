@@ -24,22 +24,33 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
+
 package ee.ria.xroad.opmonitordaemon;
 
-import io.quarkus.runtime.Quarkus;
-import io.quarkus.runtime.annotations.QuarkusMain;
-import org.niis.xroad.bootstrap.XrdQuarkusApplication;
+import io.quarkus.test.Mock;
+import jakarta.annotation.PostConstruct;
+import lombok.extern.slf4j.Slf4j;
+import org.niis.xroad.common.rpc.VaultKeyProvider;
 
-/**
- * The main class of the operational monitoring daemon.
- */
-@QuarkusMain
-@SuppressWarnings("checkstyle:HideUtilityClassConstructor")
-public class OpMonitorDaemonMain {
+import javax.net.ssl.KeyManager;
+import javax.net.ssl.TrustManager;
 
-    public static void main(String[] args) {
-        Quarkus.run(XrdQuarkusApplication.class, args);
+@Slf4j
+@Mock
+public class NoopVaultKeyProvider implements VaultKeyProvider {
+
+    @PostConstruct
+    public void init() {
+        log.info("NoopVaultKeyProvider init");
     }
 
-}
+    @Override
+    public KeyManager getKeyManager() {
+        return null;
+    }
 
+    @Override
+    public TrustManager getTrustManager() {
+        return null;
+    }
+}

@@ -27,18 +27,12 @@ package ee.ria.xroad.opmonitordaemon;
 
 import ee.ria.xroad.common.db.DatabaseCtxV2;
 import ee.ria.xroad.common.opmonitoring.OpMonitoringSystemProperties;
-import ee.ria.xroad.common.util.JobManager;
 import ee.ria.xroad.common.util.TimeUtils;
 
-import lombok.AccessLevel;
-import lombok.NoArgsConstructor;
+import io.quarkus.scheduler.Scheduled;
+import jakarta.enterprise.context.ApplicationScoped;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.quartz.DisallowConcurrentExecution;
-import org.quartz.Job;
-import org.quartz.JobDataMap;
-import org.quartz.JobExecutionContext;
-import org.quartz.SchedulerException;
 
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
@@ -48,36 +42,29 @@ import java.util.concurrent.TimeUnit;
  * Deletes outdated operational data records from the database.
  */
 @Slf4j
-@NoArgsConstructor(access = AccessLevel.PRIVATE)
-public final class OperationalDataRecordCleaner {
+@ApplicationScoped
+@RequiredArgsConstructor
+public final class OperationalDataRecordCleanerJob {
 
-    /**
-     * Initializes the operational data recorder cleaner creating an operational
-     * data records cleaner job and scheduling a
-     * periodic cleanup with the provided job manager.
-     *
-     * @param jobManager the job manager
-     */
-    public static void init(JobManager jobManager) {
-        registerCronJob(jobManager, OpMonitoringSystemProperties.getOpMonitorCleanInterval());
-    }
+    private final DatabaseCtxV2 databaseCtx;
 
-    public static void doClean(DatabaseCtxV2 opMonitorDatabaseCtx) {
+    @Scheduled(cron = "${xroad.op-monitor.clean-interval}", concurrentExecution = Scheduled.ConcurrentExecution.SKIP)
+    public void doClean() {
         try {
-            handleCleanup(opMonitorDatabaseCtx);
+            handleCleanup(databaseCtx);
         } catch (Exception e) {
             log.error("Failed to clean outdated operational data records"
                     + " from the database", e);
         }
     }
 
-    private static void handleCleanup(DatabaseCtxV2 opMonitorDatabaseCtx) throws Exception {
+    private void handleCleanup(DatabaseCtxV2 opMonitorDatabaseCtx) throws Exception {
         cleanRecords(
                 TimeUtils.now().minus(OpMonitoringSystemProperties.getOpMonitorKeepRecordsForDays(), ChronoUnit.DAYS),
                 opMonitorDatabaseCtx);
     }
 
-    static int cleanRecords(Instant before, DatabaseCtxV2 opMonitorDatabaseCtx) throws Exception {
+    int cleanRecords(Instant before, DatabaseCtxV2 opMonitorDatabaseCtx) throws Exception {
         log.trace("cleanRecords({})", before);
 
         return opMonitorDatabaseCtx.doInTransaction(session -> {
@@ -99,26 +86,4 @@ public final class OperationalDataRecordCleaner {
         });
     }
 
-    private static void registerCronJob(JobManager jobManager, String cronExpression) {
-
-        try {
-            jobManager.registerJob(OperationalDataRecordCleanerJob.class,
-                    OperationalDataRecordCleanerJob.class.getSimpleName(), cronExpression,
-                    new JobDataMap());
-        } catch (SchedulerException e) {
-            log.error("Unable to schedule job", e);
-        }
-    }
-
-    @DisallowConcurrentExecution
-    @RequiredArgsConstructor
-    public static class OperationalDataRecordCleanerJob implements Job {
-
-        private final DatabaseCtxV2 opMonitorDatabaseCtx;
-
-        @Override
-        public void execute(JobExecutionContext context) {
-            OperationalDataRecordCleaner.doClean(opMonitorDatabaseCtx);
-        }
-    }
 }

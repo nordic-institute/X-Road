@@ -32,6 +32,7 @@ import ee.ria.xroad.common.opmonitoring.OpMonitoringSystemProperties;
 import ee.ria.xroad.opmonitordaemon.entity.OperationalDataRecordEntity;
 import ee.ria.xroad.opmonitordaemon.mapper.OperationalDataRecordMapper;
 
+import jakarta.enterprise.context.ApplicationScoped;
 import lombok.RequiredArgsConstructor;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
@@ -51,6 +52,7 @@ import static ee.ria.xroad.opmonitordaemon.OperationalDataOutputSpecFields.MONIT
  */
 @Slf4j
 @RequiredArgsConstructor
+@ApplicationScoped
 public final class OperationalDataRecordManager {
 
     private static final int DEFAULT_BATCH_SIZE = 50;

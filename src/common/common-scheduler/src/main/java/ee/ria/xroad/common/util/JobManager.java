@@ -84,7 +84,6 @@ public class JobManager {
      * @throws SchedulerException if there is a problem with the underlying Scheduler
      */
     @Deprecated(forRemoval = true)
-
     public JobManager(Scheduler jobScheduler, JobFactory jobFactory) throws SchedulerException {
         this.jobScheduler = jobScheduler;
         this.jobScheduler.setJobFactory(jobFactory);

@@ -1,9 +1,23 @@
-spring:
+quarkus:
   application:
     name: op-monitor-daemon
-
-server:
-  port: 5899
+    version: 1.0.0
+  spring-di:
+    enabled: true
+  vault:
+    devservices:
+      enabled: false
+  live-reload:
+    enabled: false
+  http:
+    host-enabled: false
+  config:
+    locations:
+      - xroad-common.yaml
+      - xroad-ss-common.yaml
+      - xroad-logging.yaml
+#server:
+#  port: 5899
 
 xroad:
   op-monitor:
