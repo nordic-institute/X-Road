@@ -121,7 +121,7 @@ excludes:
       reason: "TEST_OF"
       comment: "This directory contains tests."
 
-    - pattern: "src/lib//globalconf-model/src/src/test/**"
+    - pattern: "src/lib/globalconf-model/src/src/test/**"
       reason: "TEST_OF"
       comment: "This directory contains tests."
 
