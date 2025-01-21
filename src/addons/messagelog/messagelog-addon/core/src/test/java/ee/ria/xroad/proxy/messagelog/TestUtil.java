@@ -87,7 +87,8 @@ final class TestUtil {
             "connection.url", "jdbc:hsqldb:mem:securelog;sql.syntax_pgs=true;",
             "connection.username", "securelog",
             "connection.password", "securelog",
-            "hbm2ddl.auto", "update",
+            "hbm2ddl.auto", "create-drop",
+            "hbm2ddl.import_files", "schema.sql",
             "jdbc.batch_size", "20"
     );
     static DatabaseCtxV2 databaseCtx = new DatabaseCtxV2("messagelog", MESSAGE_LOG_HIBERNATE_PROPERTIES);
@@ -178,8 +179,10 @@ final class TestUtil {
 
     @SuppressWarnings("unchecked")
     static List<Task> getTaskQueue(DatabaseCtxV2 dbCtx) throws Exception {
-        return dbCtx.doInTransaction(session -> session.createQuery(
-                TaskQueue.getTaskQueueQuery(), Task.class).list());
+        return dbCtx.doInTransaction(session ->
+                session.createQuery(TaskQueue.getTaskQueueQuery(), Task.class)
+                        .setParameter("origin", "test")
+                        .list());
     }
 
     static void assertTaskQueueSize(int expectedSize, DatabaseCtxV2 dbCtx) throws Exception {
