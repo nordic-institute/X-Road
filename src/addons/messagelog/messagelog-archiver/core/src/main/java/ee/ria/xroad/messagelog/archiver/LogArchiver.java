@@ -30,7 +30,7 @@ import ee.ria.xroad.common.ErrorCodes;
 import ee.ria.xroad.common.conf.globalconf.GlobalConfProvider;
 import ee.ria.xroad.common.db.DatabaseCtxV2;
 import ee.ria.xroad.common.messagelog.LogRecord;
-import ee.ria.xroad.common.messagelog.MessageLogProperties;
+import ee.ria.xroad.common.messagelog.MessageLogConfig;
 import ee.ria.xroad.common.messagelog.MessageRecord;
 import ee.ria.xroad.common.messagelog.archive.DigestEntry;
 import ee.ria.xroad.common.messagelog.archive.LogArchiveBase;
@@ -64,8 +64,6 @@ import java.util.List;
 import java.util.Optional;
 import java.util.stream.Stream;
 
-import static ee.ria.xroad.common.messagelog.MessageLogProperties.getArchiveTransactionBatchSize;
-import static ee.ria.xroad.common.messagelog.MessageLogProperties.getArchiveTransferCommand;
 import static org.apache.commons.lang3.StringUtils.isBlank;
 
 /**
@@ -83,7 +81,7 @@ public class LogArchiver {
 
     private final GlobalConfProvider globalConfProvider;
     private final DatabaseCtxV2 databaseCtx;
-    private final Path archivePath = Paths.get(MessageLogProperties.getArchivePath());
+    private final MessageLogConfig messageLogProperties;
 
     @Scheduled(cron = "${xroad.message-log.archive-interval}",
             identity = "ArchiverJob",
@@ -110,8 +108,8 @@ public class LogArchiver {
 
     private boolean handleArchive(long maxRecordId) throws Exception {
         return databaseCtx.doInTransaction(session -> {
-            final int limit = getArchiveTransactionBatchSize();
-            final String archiveTransferCommand = getArchiveTransferCommand();
+            final int limit = messageLogProperties.getArchiveTransactionBatchSize();
+            final String archiveTransferCommand = messageLogProperties.getArchiveTransferCommand();
             final long start = System.currentTimeMillis();
             final MessageRecordEncryption messageRecordEncryption = MessageRecordEncryption.getInstance();
 
@@ -168,6 +166,7 @@ public class LogArchiver {
     }
 
     private Path getArchivePath() throws IOException {
+        Path archivePath = Paths.get(messageLogProperties.getArchivePath());
         if (!Files.isDirectory(archivePath)) {
             throw new IOException("Log output path (" + archivePath + ") must be directory");
         }

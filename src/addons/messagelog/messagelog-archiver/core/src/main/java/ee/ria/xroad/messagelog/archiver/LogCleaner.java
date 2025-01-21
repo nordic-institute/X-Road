@@ -26,7 +26,7 @@
 package ee.ria.xroad.messagelog.archiver;
 
 import ee.ria.xroad.common.db.DatabaseCtxV2;
-import ee.ria.xroad.common.messagelog.MessageLogProperties;
+import ee.ria.xroad.common.messagelog.MessageLogConfig;
 import ee.ria.xroad.common.util.TimeUtils;
 
 import io.quarkus.scheduler.Scheduled;
@@ -45,9 +45,8 @@ import java.time.temporal.ChronoUnit;
 @ApplicationScoped
 public class LogCleaner {
 
-    public static final int CLEAN_BATCH_LIMIT = MessageLogProperties.getCleanTransactionBatchSize();
-
     private final DatabaseCtxV2 databaseCtx;
+    private final MessageLogConfig messageLogProperties;
 
     @Scheduled(cron = "${xroad.message-log.clean-interval}",
             identity = "CleanerJob",
@@ -67,16 +66,15 @@ public class LogCleaner {
     }
 
     protected long handleClean() throws Exception {
-
         final Long time =
-                TimeUtils.now().minus(MessageLogProperties.getKeepRecordsForDays(), ChronoUnit.DAYS).toEpochMilli();
+                TimeUtils.now().minus(messageLogProperties.getKeepRecordsForDays(), ChronoUnit.DAYS).toEpochMilli();
         long count = 0;
         int removed;
         do {
             removed = databaseCtx.doInTransaction(session -> {
                 final MutationQuery query = session.createNamedMutationQuery("delete-logrecords");
                 query.setParameter("time", time);
-                query.setParameter("limit", CLEAN_BATCH_LIMIT);
+                query.setParameter("limit", messageLogProperties.getCleanTransactionBatchSize());
                 return query.executeUpdate();
             });
             log.debug("Removed {} archived records", removed);

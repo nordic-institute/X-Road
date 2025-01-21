@@ -36,8 +36,29 @@ import java.util.Map;
 // todo: should be renamed to MessageLogProperties to be consistent with other classes. But first MessageLogProperties
 //  should be refactored to use configuration properties.
 @Data
-@ConfigMapping(prefix = "xroad.messagelog")
+@ConfigMapping(prefix = "xroad.message-log")
 public class MessageLogConfig {
+
+    @WithName("archive-path")
+    private String archivePath;
+
+    @WithName("archive-interval")
+    private String archiveInterval;
+
+    @WithName("archive-transaction-batch")
+    private int archiveTransactionBatchSize;
+
+    @WithName("archive-transfer-command")
+    private String archiveTransferCommand;
+
+    @WithName("clean-interval")
+    private String cleanInterval;
+
+    @WithName("clean-transaction-batch-size")
+    private int cleanTransactionBatchSize;
+
+    @WithName("keep-records-for")
+    private int keepRecordsForDays;
 
     @WithName("hibernate")
     private Map<String, String> hibernate; // messagelog.hibernate.* properties from db-properties file

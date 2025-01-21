@@ -47,7 +47,7 @@ serverconf_pass=$(crudini --get /etc/xroad/db.properties "" "serverconf.hibernat
 yq -Y -i ".xroad.common.serverconf.hibernate.connection.password = \"${serverconf_pass}\"" /etc/xroad/conf.d/application-override.yaml
 
 messagelog_pass=$(crudini --get /etc/xroad/db.properties "" "messagelog.hibernate.connection.password")
-yq -Y -i ".xroad.messagelog.hibernate.connection.password = \"${messagelog_pass}\"" /etc/xroad/conf.d/application-override.yaml
+yq -Y -i ".xroad.\"message-log\".hibernate.connection.password = \"${messagelog_pass}\"" /etc/xroad/conf.d/application-override.yaml
 
 opmonitor_pass=$(crudini --get /etc/xroad/db.properties "" "op-monitor.hibernate.connection.password")
 yq -Y -i ".xroad.\"op-monitor\".hibernate.connection.password = \"${opmonitor_pass}\"" /etc/xroad/conf.d/application-override.yaml
