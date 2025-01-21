@@ -1,5 +1,6 @@
 /*
  * The MIT License
+ *
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
@@ -23,20 +24,20 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
+
 package ee.ria.xroad.messagelog.archiver;
 
-import ee.ria.xroad.common.db.DatabaseCtxV2;
-import ee.ria.xroad.common.messagelog.MessageLogConfig;
+import io.quarkus.test.junit.QuarkusTest;
+import io.quarkus.test.junit.TestProfile;
+import org.junit.jupiter.api.Test;
 
-import jakarta.enterprise.context.ApplicationScoped;
-import jakarta.enterprise.inject.Produces;
+@QuarkusTest
+@TestProfile(LogArchiverTestProfile.class)
+class LogArchiverMainTest {
 
-public class LogArchiverConfig {
-
-    @ApplicationScoped
-    @Produces
-    DatabaseCtxV2 logArchiverDatabaseCtx(MessageLogConfig messageLogProperties) {
-        return new DatabaseCtxV2("messagelog", messageLogProperties.getHibernate());
+    @Test
+    void contextLoads() {
+        // ok
     }
 
 }

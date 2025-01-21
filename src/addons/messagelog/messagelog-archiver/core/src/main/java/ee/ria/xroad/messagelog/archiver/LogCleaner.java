@@ -29,11 +29,11 @@ import ee.ria.xroad.common.db.DatabaseCtxV2;
 import ee.ria.xroad.common.messagelog.MessageLogProperties;
 import ee.ria.xroad.common.util.TimeUtils;
 
+import io.quarkus.scheduler.Scheduled;
+import jakarta.enterprise.context.ApplicationScoped;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.hibernate.query.MutationQuery;
-import org.quartz.Job;
-import org.quartz.JobExecutionContext;
 
 import java.time.temporal.ChronoUnit;
 
@@ -42,14 +42,17 @@ import java.time.temporal.ChronoUnit;
  */
 @Slf4j
 @RequiredArgsConstructor
-public class LogCleaner implements Job {
+@ApplicationScoped
+public class LogCleaner {
 
     public static final int CLEAN_BATCH_LIMIT = MessageLogProperties.getCleanTransactionBatchSize();
 
     private final DatabaseCtxV2 databaseCtx;
 
-    @Override
-    public void execute(JobExecutionContext context) {
+    @Scheduled(cron = "${xroad.message-log.clean-interval}",
+            identity = "CleanerJob",
+            concurrentExecution = Scheduled.ConcurrentExecution.SKIP)
+    public void execute() {
         try {
             log.info("Removing archived records from database...");
             final long removed = handleClean();

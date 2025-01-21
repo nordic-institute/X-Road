@@ -3,7 +3,7 @@ Description=X-Road Messagelog Archiver
 After=network.target xroad-base.service
 Requires=xroad-base.service
 Wants=postgresql.service
-ConditionPathExists=/usr/share/xroad/jlib/addon/proxy/messagelog.conf
+#ConditionPathExists=/usr/share/xroad/jlib/addon/proxy/messagelog.conf
 
 [Service]
 User=xroad

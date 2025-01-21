@@ -41,15 +41,16 @@ import ee.ria.xroad.messagelog.database.entity.MessageRecordEntity;
 import ee.ria.xroad.messagelog.database.mapper.ArchiveDigestMapper;
 import ee.ria.xroad.messagelog.database.mapper.MessageRecordMapper;
 
+import io.quarkus.scheduler.Scheduled;
+import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.persistence.criteria.CriteriaBuilder;
 import jakarta.persistence.criteria.CriteriaQuery;
 import jakarta.persistence.criteria.Expression;
 import jakarta.persistence.criteria.Root;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.IOUtils;
 import org.hibernate.Session;
-import org.quartz.Job;
-import org.quartz.JobExecutionContext;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -72,7 +73,9 @@ import static org.apache.commons.lang3.StringUtils.isBlank;
  * to archive file and marks the records as archived.
  */
 @Slf4j
-public class LogArchiver implements Job {
+@ApplicationScoped
+@RequiredArgsConstructor
+public class LogArchiver {
 
     private static final String PROPERTY_NAME_ARCHIVED = "archived";
 
@@ -82,13 +85,10 @@ public class LogArchiver implements Job {
     private final DatabaseCtxV2 databaseCtx;
     private final Path archivePath = Paths.get(MessageLogProperties.getArchivePath());
 
-    public LogArchiver(GlobalConfProvider globalConfProvider, DatabaseCtxV2 databaseCtx) {
-        this.globalConfProvider = globalConfProvider;
-        this.databaseCtx = databaseCtx;
-    }
-
-    @Override
-    public void execute(JobExecutionContext context) {
+    @Scheduled(cron = "${xroad.message-log.archive-interval}",
+            identity = "ArchiverJob",
+            concurrentExecution = Scheduled.ConcurrentExecution.SKIP)
+    public void execute() {
         try {
             Long maxRecordId = databaseCtx.doInTransaction(this::getMaxRecordId);
             if (maxRecordId != null) {

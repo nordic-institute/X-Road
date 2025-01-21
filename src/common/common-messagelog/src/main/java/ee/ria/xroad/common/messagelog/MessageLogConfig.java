@@ -27,16 +27,18 @@
 
 package ee.ria.xroad.common.messagelog;
 
+import io.smallrye.config.ConfigMapping;
+import io.smallrye.config.WithName;
 import lombok.Data;
-import lombok.Getter;
-import lombok.RequiredArgsConstructor;
 
 import java.util.Map;
 
 // todo: should be renamed to MessageLogProperties to be consistent with other classes. But first MessageLogProperties
 //  should be refactored to use configuration properties.
 @Data
-@RequiredArgsConstructor
+@ConfigMapping(prefix = "xroad.messagelog")
 public class MessageLogConfig {
+
+    @WithName("hibernate")
     private Map<String, String> hibernate; // messagelog.hibernate.* properties from db-properties file
 }

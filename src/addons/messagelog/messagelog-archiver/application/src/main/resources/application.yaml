@@ -1,9 +1,24 @@
-spring:
+quarkus:
   application:
     name: message-log-archiver
+    version: 1.0.0
+  spring-di:
+    enabled: true
+  vault:
+    devservices:
+      enabled: false
+  live-reload:
+    enabled: false
+  http:
+    host-enabled: false
+  config:
+    locations:
+      - xroad-common.yaml
+      - xroad-ss-common.yaml
+      - xroad-logging.yaml
 
-server:
-  port: 5598
+#server:
+#  port: 5598
 
 xroad:
   #todo: unify with message-log
