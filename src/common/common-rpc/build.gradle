@@ -1,6 +1,7 @@
 plugins {
     id("xroad.java-conventions")
     alias(libs.plugins.protobuf)
+    id 'java-test-fixtures'
 }
 
 sourceSets {
@@ -26,6 +27,10 @@ dependencies {
     api(libs.jakarta.annotationApi)
 
     implementation(libs.quarkus.springBoot.di)
+
+    testFixturesImplementation(libs.quarkus.junit5)
+    testFixturesCompileOnly(libs.lombok)
+    testFixturesAnnotationProcessor(libs.lombok)
 }
 
 protobuf {

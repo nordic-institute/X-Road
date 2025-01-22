@@ -25,15 +25,15 @@
  * THE SOFTWARE.
  */
 
-package ee.ria.xroad.monitor;
+package org.niis.xroad.common.rpc;
 
 import io.quarkus.test.Mock;
 import jakarta.annotation.PostConstruct;
 import lombok.extern.slf4j.Slf4j;
-import org.niis.xroad.common.rpc.VaultKeyProvider;
 
 import javax.net.ssl.KeyManager;
 import javax.net.ssl.TrustManager;
+
 
 @Slf4j
 @Mock
