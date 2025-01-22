@@ -3,5 +3,5 @@ plugins {
 }
 dependencies {
   implementation(project(":common:common-message"))
-  implementation(project(":lib:serverconf-model"))
+  implementation(project(":lib:serverconf-core"))
 }

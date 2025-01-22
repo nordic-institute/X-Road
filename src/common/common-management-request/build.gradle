@@ -16,7 +16,7 @@ dependencies {
     testFixturesApi project(":common:common-message")
     testFixturesApi project(":common:common-test")
     testFixturesApi project(":signer-protocol")
-    testFixturesApi project(":lib:globalconf-model")
+    testFixturesApi project(":lib:globalconf-core")
 
     testFixturesCompileOnly(libs.lombok)
     testFixturesAnnotationProcessor(libs.lombok)

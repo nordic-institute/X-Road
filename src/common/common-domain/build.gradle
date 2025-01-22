@@ -15,11 +15,8 @@ sourceSets {
 }
 
 dependencies {
-    implementation(platform(libs.springBoot.bom))
-
     api project(":common:common-core")
 
-    testImplementation('org.springframework.boot:spring-boot-starter-test')
     testImplementation project(':common:common-message')
     testImplementation project(':common:common-test')
 
@@ -65,56 +62,6 @@ tasks.register('xjc') {
             schema: 'src/main/resources/service-metainfo.xsd',
             binding: 'src/main/resources/identifiers-bindings.xml'
         )
-
-//        // Generate classes for federateable global external conf v2
-//        ant.xjc(
-//            destdir: project.ext.schemaTargetDir,
-//            package: 'org.niis.xroad.globalconf.schema.sharedparameters.v2',
-//            schema: 'src/main/resources/globalconf/v2/shared-parameters.xsd',
-//            binding: 'src/main/resources/identifiers-bindings.xml'
-//        )
-//
-//        // Generate classes for federateable global internal conf v2
-//        ant.xjc(
-//            destdir: project.ext.schemaTargetDir,
-//            package: 'org.niis.xroad.globalconf.schema.privateparameters.v2',
-//            schema: 'src/main/resources/globalconf/v2/private-parameters.xsd',
-//            binding: 'src/main/resources/identifiers-bindings.xml'
-//        )
-//
-//        // Generate classes for federateable global external conf v3
-//        ant.xjc(
-//            destdir: project.ext.schemaTargetDir,
-//            package: 'org.niis.xroad.globalconf.schema.sharedparameters.v3',
-//            schema: 'src/main/resources/globalconf/v3/shared-parameters.xsd',
-//            binding: 'src/main/resources/identifiers-bindings.xml'
-//        )
-//
-//        // Generate classes for federateable global internal conf v3
-//        ant.xjc(
-//            destdir: project.ext.schemaTargetDir,
-//            package: 'org.niis.xroad.globalconf.schema.privateparameters.v3',
-//            schema: 'src/main/resources/globalconf/v3/private-parameters.xsd',
-//            binding: 'src/main/resources/identifiers-bindings.xml'
-//        )
-//
-//
-//        // Generate classes for federateable global external conf v4
-//        ant.xjc(
-//            destdir: project.ext.schemaTargetDir,
-//            package: 'org.niis.xroad.globalconf.schema.sharedparameters.v4',
-//            schema: 'src/main/resources/globalconf/v4/shared-parameters.xsd',
-//            binding: 'src/main/resources/identifiers-bindings.xml'
-//        )
-//
-//        // Generate classes for global internal conf v4
-//        ant.xjc(
-//            destdir: project.ext.schemaTargetDir,
-//            package: 'org.niis.xroad.globalconf.schema.privateparameters.v4',
-//            schema: 'src/main/resources/globalconf/v4/private-parameters.xsd',
-//            binding: 'src/main/resources/identifiers-bindings.xml'
-//        )
-
     }
 }
 

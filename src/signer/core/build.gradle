@@ -58,7 +58,7 @@ tasks.register('createDirs') {
 }
 
 tasks.register('xjc') {
-    dependsOn(':common:common-domain:xjc', ':lib:globalconf-model:xjc')
+    dependsOn(':common:common-domain:xjc', ':lib:globalconf-core:xjc')
     inputs.files files('src/main/resources/*.xsd')
     outputs.dir project.ext.schemaTargetDir
 

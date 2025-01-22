@@ -5,9 +5,9 @@ plugins {
 dependencies {
   implementation(project(":common:common-message"))
   implementation(project(":common:common-scheduler"))
-  implementation(project(":lib:globalconf-model"))
-  implementation(project(":lib:serverconf-model"))
-  implementation(project(":asic-util"))
+  implementation(project(":lib:globalconf-core"))
+  implementation(project(":lib:serverconf-core"))
+  implementation(project(":lib:asic-core"))
 
   testImplementation(project(":common:common-test"))
   testImplementation(libs.bouncyCastle.bcpg)

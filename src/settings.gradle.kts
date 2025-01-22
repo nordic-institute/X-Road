@@ -31,11 +31,12 @@ include("common:common-scheduler")
 
 // Lib projects
 include("lib")
+include("lib:asic-core")
 include("lib:globalconf-impl")
-include("lib:globalconf-model")
+include("lib:globalconf-core")
 include("lib:globalconf-spring")
 include("lib:serverconf-impl")
-include("lib:serverconf-model")
+include("lib:serverconf-core")
 include("lib:serverconf-spring")
 
 // Main projects
@@ -48,7 +49,7 @@ include("configuration-proxy")
 include("configuration-client:application")
 include("configuration-client:core")
 include("asicverifier")
-include("asic-util")
+
 include("monitor:application")
 include("monitor:core")
 include("monitor-common")

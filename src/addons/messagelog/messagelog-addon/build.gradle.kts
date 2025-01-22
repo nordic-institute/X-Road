@@ -20,7 +20,7 @@ dependencies {
   implementation(project(":common:common-op-monitoring"))
   implementation(project(":lib:globalconf-impl"))
   implementation(project(":lib:serverconf-impl"))
-  implementation(project(":asic-util"))
+  implementation(project(":lib:asic-core"))
   implementation(project(":addons:messagelog:messagelog-db"))
 
   testImplementation(project(":common:common-test"))

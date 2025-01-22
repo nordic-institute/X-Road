@@ -13,7 +13,7 @@ sourceSets {
 dependencies {
   implementation(project(":common:common-domain"))
   api(project(":common:common-db"))
-  api(project(":lib:serverconf-model"))
+  api(project(":lib:serverconf-core"))
   api(project(":lib:globalconf-impl"))
 
   testImplementation(project(":common:common-test"))
