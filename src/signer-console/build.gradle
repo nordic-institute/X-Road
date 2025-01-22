@@ -1,14 +1,22 @@
 plugins {
     id("xroad.java-conventions")
     id("xroad.java-exec-conventions")
-    alias(libs.plugins.springBoot)
+    alias(libs.plugins.quarkus)
+}
+configurations {
+    configureEach {
+        exclude group: 'ch.qos.logback', module: 'logback-classic' //TODO remove once actual source is removed
+        exclude group: 'ch.qos.logback', module: 'logback-core' //TODO remove once actual source is removed
+    }
 }
 
 dependencies {
+    implementation(platform(libs.quarkus.bom))
+
     implementation(libs.commons.cli)
     implementation(libs.cliche)
 
-    implementation project(':common:common-service-bootstrap')
+    implementation (project(':common:common-quarkus-bootstrap'))
     implementation(project(':common:common-domain'))
     implementation(project(':signer-protocol'))
 }
@@ -16,19 +24,6 @@ dependencies {
 jar {
     enabled = false
 }
-
-bootJar {
-    enabled = true
-    archiveBaseName = 'signer-console'
-    manifest {
-        attributes(
-            'Implementation-Title': 'X-Road Signer Console',
-            'Implementation-Version': "$xroadVersion-$xroadBuildType",
-            'Main-Class': 'org.springframework.boot.loader.launch.PropertiesLauncher'
-        )
-    }
-}
-
 
 tasks.register('runSignerConsole', JavaExec) {
     jvmArgs '-Djava.library.path=../passwordstore'

@@ -58,7 +58,7 @@ public final class AuditLogger {
 
     private static final String FAILURE_SUFFIX = " failed";
 
-    private static final Marker AUDIT_MARKER = MarkerFactory.getMarker("AUDIT");
+    public static final Marker AUDIT_MARKER = MarkerFactory.getMarker("AUDIT");
 
     private AuditLogger() {
     }

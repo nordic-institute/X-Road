@@ -1,5 +1,33 @@
-spring:
+quarkus:
   application:
-    name: signer-console
-  main:
-    web-application-type: none
+    name: X-Road Signer Console
+  package:
+    output-directory: libs
+    output-name: signer-console-1.0
+    jar:
+      type: uber-jar
+      add-runner-suffix: false
+  spring-di:
+    enabled: true
+  vault:
+    url: "${XROAD_SECRET_STORE_SCHEME:http}://${XROAD_SECRET_STORE_HOST:127.0.0.1}:${XROAD_SECRET_STORE_PORT:8200}"
+    authentication:
+      client-token: "${XROAD_SECRET_STORE_TOKEN}"
+    devservices:
+      enabled: false
+  config:
+    locations:
+      - xroad-common.yaml
+      - xroad-logging.yaml
+
+  log:
+    console:
+      enable: false
+    file:
+      enable: true
+      path: /var/log/xroad/signer-console.log
+    syslog:
+      enable: true
+      app-name: signer-console
+      format: "%-5p [X-Road Signer Console] %d{yyyy-MM-dd'T'HH:mm:ss.SSSXXX} - %m"
+

@@ -46,6 +46,7 @@ import asg.cliche.InputConverter;
 import asg.cliche.Param;
 import asg.cliche.Shell;
 import asg.cliche.ShellFactory;
+import io.quarkus.runtime.QuarkusApplication;
 import lombok.RequiredArgsConstructor;
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.CommandLineParser;
@@ -53,7 +54,6 @@ import org.apache.commons.cli.DefaultParser;
 import org.apache.commons.cli.Options;
 import org.apache.commons.lang3.StringUtils;
 import org.niis.xroad.signer.proto.CertificateRequestFormat;
-import org.springframework.boot.CommandLineRunner;
 
 import java.io.IOException;
 import java.security.cert.X509Certificate;
@@ -115,7 +115,7 @@ import static org.niis.xroad.signer.proto.CertificateRequestFormat.PEM;
  * Signer command line interface.
  */
 @RequiredArgsConstructor
-public class SignerCLI implements CommandLineRunner {
+public class SignerCLI implements QuarkusApplication {
 
     private static final String APP_NAME = "xroad-signer-console";
     private static final String PIN_PROMPT = "PIN: ";
@@ -638,9 +638,9 @@ public class SignerCLI implements CommandLineRunner {
     /**
      * Generate key on token.
      *
-     * @param tokenId token id
-     * @param label   label
-     * @param algorithm   algorithm
+     * @param tokenId   token id
+     * @param label     label
+     * @param algorithm algorithm
      * @throws Exception if an error occurs
      */
     @Command(description = "Generate key on token")
@@ -785,7 +785,7 @@ public class SignerCLI implements CommandLineRunner {
      * @throws Exception if an error occurs
      */
     @Override
-    public void run(String... args) throws Exception {
+    public int run(String... args) throws Exception {
         Version.outputVersionInfo(APP_NAME);
         System.out.printf("%s %s%n", APP_NAME, XROAD_VERSION);
 
@@ -796,7 +796,7 @@ public class SignerCLI implements CommandLineRunner {
 
         if (cmd.hasOption("help")) {
             processCommandAndExit("?list");
-            return;
+            return 0;
         }
 
         String[] arguments = cmd.getArgs();
@@ -806,6 +806,7 @@ public class SignerCLI implements CommandLineRunner {
         } else {
             startCommandLoop();
         }
+        return 0;
     }
 
     private void startCommandLoop() throws IOException {

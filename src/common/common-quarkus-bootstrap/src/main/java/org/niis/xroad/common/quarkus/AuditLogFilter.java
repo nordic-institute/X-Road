@@ -25,22 +25,28 @@
  * THE SOFTWARE.
  */
 
-package ee.ria.xroad.signer.console;
+package org.niis.xroad.common.quarkus;
 
-import ee.ria.xroad.signer.SignerClientConfiguration;
-import ee.ria.xroad.signer.SignerRpcClient;
+import ee.ria.xroad.common.AuditLogger;
 
-import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Configuration;
-import org.springframework.context.annotation.Import;
+import io.quarkus.logging.LoggingFilter;
+import org.jboss.logmanager.ExtLogRecord;
+import org.slf4j.Marker;
 
-@Configuration
-@Import(SignerClientConfiguration.class)
-public class SignerCLIConfig {
+import java.util.logging.Filter;
+import java.util.logging.LogRecord;
 
-    @Bean
-    SignerCLI signerCLI(SignerRpcClient signerRpcClient) {
-        return new SignerCLI(signerRpcClient);
+@LoggingFilter(name = "audit-log-filter")
+public final class AuditLogFilter implements Filter {
+
+    private final Marker auditMarker = AuditLogger.AUDIT_MARKER;
+
+    @Override
+    public boolean isLoggable(LogRecord record) {
+        if (record instanceof ExtLogRecord extLogRecord) {
+            return auditMarker.equals(extLogRecord.getMarker());
+        }
+        return false;
     }
 
 }
