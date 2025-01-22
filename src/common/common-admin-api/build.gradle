@@ -12,15 +12,16 @@ sourceSets {
 }
 
 dependencies {
+    api(platform(libs.springBoot.bom))
+
     api project(':common:common-domain')
     implementation(project(':common:common-core'))
     implementation(project(':signer-protocol'))
-    implementation(project(':serverconf'))
+    implementation(project(':lib:serverconf-model'))
 
     annotationProcessor(libs.mapstructProcessor)
     annotationProcessor(libs.lombokMapstructBinding)
 
-    implementation(platform(libs.springBoot.bom))
 
     implementation('org.springframework.boot:spring-boot-starter-web')
     implementation('org.springframework.boot:spring-boot-starter-security')

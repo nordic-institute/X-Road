@@ -23,39 +23,21 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.securityserver.restapi;
+package org.niis.xroad.serverconf.spring;
 
-import ee.ria.xroad.common.Version;
+import ee.ria.xroad.common.SystemProperties;
+import ee.ria.xroad.common.conf.serverconf.ServerConfFactory;
+import ee.ria.xroad.common.conf.serverconf.ServerConfProvider;
 
-import org.niis.xroad.globalconf.spring.GlobalConfBeanConfig;
-import org.niis.xroad.serverconf.spring.ServerConfBeanConfig;
-import org.springframework.boot.SpringApplication;
-import org.springframework.boot.autoconfigure.SpringBootApplication;
-import org.springframework.boot.web.servlet.ServletComponentScan;
-import org.springframework.cache.annotation.EnableCaching;
-import org.springframework.context.annotation.Import;
+import org.niis.xroad.globalconf.GlobalConfProvider;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
 
-/**
- * main spring boot application.
- */
-@Import({
-        GlobalConfBeanConfig.class,
-        ServerConfBeanConfig.class})
-@ServletComponentScan
-@SpringBootApplication(scanBasePackages = {"org.niis.xroad.securityserver.restapi", "org.niis.xroad.restapi", "org.niis.xroad.common.acme",
-        "org.niis.xroad.common.mail", "ee.ria.xroad.common.util"})
-@EnableCaching
-@SuppressWarnings("checkstyle:HideUtilityClassConstructor")
-public class RestApiApplication {
+@Configuration
+public class ServerConfBeanConfig {
 
-    private static final String APP_NAME = "xroad-proxy-ui-api";
-
-    /**
-     * start application
-     */
-    public static void main(String[] args) {
-        Version.outputVersionInfo(APP_NAME);
-
-        SpringApplication.run(RestApiApplication.class, args);
+    @Bean
+    public ServerConfProvider serverConfProvider(GlobalConfProvider globalConfProvider) {
+        return ServerConfFactory.create(globalConfProvider, SystemProperties.getServerConfCachePeriod());
     }
 }

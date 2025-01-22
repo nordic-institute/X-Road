@@ -11,7 +11,6 @@ dependencyResolutionManagement {
 // Common projects
 include("arch-rules")
 include("signer-protocol")
-include("serverconf")
 
 include("common")
 include("common:common-acme")
@@ -35,6 +34,9 @@ include("lib")
 include("lib:globalconf-impl")
 include("lib:globalconf-model")
 include("lib:globalconf-spring")
+include("lib:serverconf-impl")
+include("lib:serverconf-model")
+include("lib:serverconf-spring")
 
 // Main projects
 include("proxy")

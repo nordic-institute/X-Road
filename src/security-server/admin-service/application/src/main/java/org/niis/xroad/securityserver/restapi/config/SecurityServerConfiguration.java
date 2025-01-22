@@ -25,14 +25,10 @@
  */
 package org.niis.xroad.securityserver.restapi.config;
 
-import ee.ria.xroad.common.SystemProperties;
-import ee.ria.xroad.common.conf.serverconf.ServerConfFactory;
-import ee.ria.xroad.common.conf.serverconf.ServerConfProvider;
 import ee.ria.xroad.common.util.process.ExternalProcessRunner;
 
 import jakarta.servlet.Filter;
 import org.niis.xroad.common.api.throttle.IpThrottlingFilter;
-import org.niis.xroad.globalconf.GlobalConfProvider;
 import org.niis.xroad.restapi.config.AddCorrelationIdFilter;
 import org.niis.xroad.restapi.config.ApiCachingConfiguration;
 import org.niis.xroad.restapi.util.CaffeineCacheBuilder;
@@ -106,8 +102,4 @@ public class SecurityServerConfiguration {
         return new XrdProcessesCollector(monitorClient);
     }
 
-    @Bean
-    public ServerConfProvider serverConfProvider(GlobalConfProvider globalConfProvider) {
-        return ServerConfFactory.create(globalConfProvider, SystemProperties.getServerConfCachePeriod());
-    }
 }
