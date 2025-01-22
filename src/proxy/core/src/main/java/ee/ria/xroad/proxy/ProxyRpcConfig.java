@@ -27,10 +27,10 @@ package ee.ria.xroad.proxy;
 
 import ee.ria.xroad.common.SystemProperties;
 import ee.ria.xroad.proxy.addon.AddOn;
-import ee.ria.xroad.signer.protocol.RpcSignerClient;
 
 import lombok.extern.slf4j.Slf4j;
 import org.niis.xroad.common.rpc.server.RpcServer;
+import org.niis.xroad.signer.client.RpcSignerClient;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 

@@ -23,15 +23,12 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package ee.ria.xroad.signer.tokenmanager.token;
+package org.niis.xroad.signer.core.tokenmanager.token;
 
 import ee.ria.xroad.common.SystemProperties;
 import ee.ria.xroad.common.crypto.Digests;
 import ee.ria.xroad.common.crypto.identifier.SignAlgorithm;
 import ee.ria.xroad.common.crypto.identifier.SignMechanism;
-import ee.ria.xroad.signer.protocol.dto.TokenStatusInfo;
-import ee.ria.xroad.signer.tokenmanager.module.ModuleConf;
-import ee.ria.xroad.signer.tokenmanager.module.ModuleInstanceProvider;
 
 import iaik.pkcs.pkcs11.Mechanism;
 import iaik.pkcs.pkcs11.Module;
@@ -47,6 +44,9 @@ import iaik.pkcs.pkcs11.parameters.RSAPkcsPssParameters;
 import iaik.pkcs.pkcs11.wrapper.PKCS11Constants;
 import iaik.pkcs.pkcs11.wrapper.PKCS11Exception;
 import jakarta.xml.bind.DatatypeConverter;
+import org.niis.xroad.signer.core.tokenmanager.module.ModuleConf;
+import org.niis.xroad.signer.core.tokenmanager.module.ModuleInstanceProvider;
+import org.niis.xroad.signer.protocol.dto.TokenStatusInfo;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -68,7 +68,8 @@ public final class HardwareTokenUtil {
 
     /**
      * Returns the module instance. The module provider class can be specified
-     * by system parameter 'ee.ria.xroad.signer.module-instance-provider'.
+     * by system parameter 'xroad.signer.module-instance-provider'.
+     *
      * @param libraryPath the pkcs11 library path
      * @return the module instance
      * @throws Exception if an error occurs

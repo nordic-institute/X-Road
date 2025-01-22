@@ -26,10 +26,9 @@
  */
 package org.niis.xroad.cs.admin.api.service;
 
-import ee.ria.xroad.signer.protocol.dto.TokenInfo;
-
 import org.niis.xroad.cs.admin.api.domain.ConfigurationSigningKey;
 import org.niis.xroad.cs.admin.api.dto.PossibleTokenAction;
+import org.niis.xroad.signer.api.dto.TokenInfo;
 
 import java.util.EnumSet;
 import java.util.List;

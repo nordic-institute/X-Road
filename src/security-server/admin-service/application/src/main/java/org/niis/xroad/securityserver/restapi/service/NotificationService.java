@@ -27,16 +27,16 @@ package org.niis.xroad.securityserver.restapi.service;
 
 import ee.ria.xroad.common.CodedException;
 import ee.ria.xroad.common.util.TimeUtils;
-import ee.ria.xroad.signer.SignerProxy;
-import ee.ria.xroad.signer.protocol.dto.CertificateInfo;
-import ee.ria.xroad.signer.protocol.dto.KeyUsageInfo;
-import ee.ria.xroad.signer.protocol.dto.TokenInfo;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.niis.xroad.globalconf.GlobalConfProvider;
 import org.niis.xroad.restapi.common.backup.service.BackupRestoreEvent;
 import org.niis.xroad.securityserver.restapi.dto.AlertStatus;
+import org.niis.xroad.signer.api.dto.CertificateInfo;
+import org.niis.xroad.signer.api.dto.TokenInfo;
+import org.niis.xroad.signer.client.SignerProxy;
+import org.niis.xroad.signer.protocol.dto.KeyUsageInfo;
 import org.springframework.context.event.EventListener;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
@@ -63,6 +63,7 @@ public class NotificationService {
      * Checks the status of system alerts that may affect whether the system
      * is operational or not. If backup/restore is running, the status of soft token
      * related alerts is true.
+     *
      * @return
      */
     @PreAuthorize("isAuthenticated()")
@@ -110,6 +111,7 @@ public class NotificationService {
 
     /**
      * Verifies that the global configuration is valid.
+     *
      * @return
      */
     private boolean isGlobalConfValid() {
@@ -123,6 +125,7 @@ public class NotificationService {
 
     /**
      * Checks if soft token pin is entered.
+     *
      * @return
      */
     private boolean isSoftTokenPinEntered() {
@@ -148,6 +151,7 @@ public class NotificationService {
     /**
      * Get date/time since when backup/restore has been running. Returns null if backup/restore is not
      * currently running.
+     *
      * @return
      */
     public synchronized OffsetDateTime getBackupRestoreRunningSince() {

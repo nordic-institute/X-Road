@@ -22,35 +22,30 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package ee.ria.xroad.signer.tokenmanager.token.helper;
+package org.niis.xroad.signer.core.tokenmanager.token.helper;
 
 import ee.ria.xroad.common.SystemProperties;
 import ee.ria.xroad.common.crypto.CryptoException;
 import ee.ria.xroad.common.crypto.KeyManagers;
-import ee.ria.xroad.signer.tokenmanager.module.PrivKeyAttributes;
-import ee.ria.xroad.signer.tokenmanager.module.PubKeyAttributes;
-import ee.ria.xroad.signer.util.SignerUtil;
+import ee.ria.xroad.common.crypto.NamedCurves;
 
 import iaik.pkcs.pkcs11.Mechanism;
 import iaik.pkcs.pkcs11.Session;
 import iaik.pkcs.pkcs11.TokenException;
+import iaik.pkcs.pkcs11.objects.ECDSAPrivateKey;
+import iaik.pkcs.pkcs11.objects.ECDSAPublicKey;
 import iaik.pkcs.pkcs11.objects.KeyPair;
 import iaik.pkcs.pkcs11.objects.PublicKey;
-import iaik.pkcs.pkcs11.objects.RSAPrivateKey;
-import iaik.pkcs.pkcs11.objects.RSAPublicKey;
 import iaik.pkcs.pkcs11.wrapper.PKCS11Constants;
+import org.niis.xroad.signer.core.tokenmanager.module.PrivKeyAttributes;
+import org.niis.xroad.signer.core.tokenmanager.module.PubKeyAttributes;
+import org.niis.xroad.signer.core.util.SignerUtil;
 
-import java.math.BigInteger;
+public final class EcKeyPairHelper extends AbstractKeyPairBuilder<ECDSAPublicKey, ECDSAPrivateKey> implements KeyPairHelper {
 
-public final class RsaKeyPairHelper extends AbstractKeyPairBuilder<RSAPublicKey, RSAPrivateKey> implements KeyPairHelper {
+    private static final Mechanism KEY_PAIR_GEN_MECHANISM = Mechanism.get(PKCS11Constants.CKM_ECDSA_KEY_PAIR_GEN);
 
-    private static final byte[] PUBLIC_EXPONENT_BYTES = {0x01, 0x00, 0x01}; // 2^16 + 1
-    private static final Mechanism KEY_PAIR_GEN_MECHANISM = Mechanism.get(PKCS11Constants.CKM_RSA_PKCS_KEY_PAIR_GEN);
-
-    static final RsaKeyPairHelper INSTANCE = new RsaKeyPairHelper();
-
-    private RsaKeyPairHelper() {
-    }
+    static final EcKeyPairHelper INSTANCE = new EcKeyPairHelper();
 
     @Override
     public KeyPair createKeypair(
@@ -69,29 +64,30 @@ public final class RsaKeyPairHelper extends AbstractKeyPairBuilder<RSAPublicKey,
 
     @Override
     public byte[] generateX509PublicKey(PublicKey publicKey) throws Exception {
-        if (!(publicKey instanceof RSAPublicKey rsaPublicKey)) {
+        if (!(publicKey instanceof ECDSAPublicKey ecPublicKey)) {
             throw new CryptoException("Invalid type of public key: " + publicKey.getClass());
         }
 
-        BigInteger modulus = new BigInteger(1, rsaPublicKey.getModulus().getByteArrayValue());
-        BigInteger publicExponent = new BigInteger(1, rsaPublicKey.getPublicExponent().getByteArrayValue());
-
-        return KeyManagers.getForRSA().generateX509PublicKey(modulus, publicExponent);
+        return KeyManagers.getForEC().generateX509PublicKey(
+                ecPublicKey.getEcdsaParams().getByteArrayValue(),
+                ecPublicKey.getEcPoint().getByteArrayValue()
+        );
     }
 
     @Override
-    protected void setPublicKeyAttributes(RSAPublicKey template, PubKeyAttributes attributes) {
-        template.getModulusBits().setLongValue((long) SystemProperties.getSignerKeyLength());
-        template.getPublicExponent().setByteArrayValue(PUBLIC_EXPONENT_BYTES);
+    protected void setPublicKeyAttributes(ECDSAPublicKey template, PubKeyAttributes attributes) {
+        var curveName = SystemProperties.getSignerKeyNamedCurve();
+
+        template.getEcdsaParams().setByteArrayValue(NamedCurves.getOIDAsBytes(curveName));
     }
 
     @Override
-    protected RSAPublicKey newPublicKeyTemplate() {
-        return new RSAPublicKey();
+    protected ECDSAPublicKey newPublicKeyTemplate() {
+        return new ECDSAPublicKey();
     }
 
     @Override
-    protected RSAPrivateKey newPrivateKeyTemplate() {
-        return new RSAPrivateKey();
+    protected ECDSAPrivateKey newPrivateKeyTemplate() {
+        return new ECDSAPrivateKey();
     }
 }

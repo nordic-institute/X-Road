@@ -20,7 +20,7 @@
  * DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
-package ee.ria.xroad.signer.tokenmanager.token;
+package org.niis.xroad.signer.core.tokenmanager.token;
 
 import iaik.pkcs.pkcs11.TokenInfo;
 

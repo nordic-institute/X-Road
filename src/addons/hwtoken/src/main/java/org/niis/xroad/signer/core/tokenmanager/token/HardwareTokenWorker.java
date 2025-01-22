@@ -23,7 +23,7 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package ee.ria.xroad.signer.tokenmanager.token;
+package org.niis.xroad.signer.core.tokenmanager.token;
 
 import ee.ria.xroad.common.CodedException;
 import ee.ria.xroad.common.crypto.CryptoException;
@@ -33,12 +33,6 @@ import ee.ria.xroad.common.crypto.identifier.SignAlgorithm;
 import ee.ria.xroad.common.crypto.identifier.SignMechanism;
 import ee.ria.xroad.common.util.CryptoUtils;
 import ee.ria.xroad.common.util.PasswordStore;
-import ee.ria.xroad.signer.protocol.dto.CertificateInfo;
-import ee.ria.xroad.signer.protocol.dto.KeyInfo;
-import ee.ria.xroad.signer.protocol.dto.TokenInfo;
-import ee.ria.xroad.signer.protocol.dto.TokenStatusInfo;
-import ee.ria.xroad.signer.tokenmanager.TokenManager;
-import ee.ria.xroad.signer.tokenmanager.token.helper.KeyPairHelper;
 
 import iaik.pkcs.pkcs11.Mechanism;
 import iaik.pkcs.pkcs11.Session;
@@ -56,8 +50,14 @@ import org.bouncycastle.cert.jcajce.JcaX509CertificateConverter;
 import org.bouncycastle.cert.jcajce.JcaX509v3CertificateBuilder;
 import org.bouncycastle.operator.ContentSigner;
 import org.bouncycastle.operator.DefaultSignatureAlgorithmIdentifierFinder;
+import org.niis.xroad.signer.api.dto.CertificateInfo;
+import org.niis.xroad.signer.api.dto.KeyInfo;
+import org.niis.xroad.signer.api.dto.TokenInfo;
+import org.niis.xroad.signer.core.tokenmanager.TokenManager;
+import org.niis.xroad.signer.core.tokenmanager.token.helper.KeyPairHelper;
 import org.niis.xroad.signer.proto.ActivateTokenReq;
 import org.niis.xroad.signer.proto.GenerateKeyReq;
+import org.niis.xroad.signer.protocol.dto.TokenStatusInfo;
 
 import java.io.ByteArrayOutputStream;
 import java.io.OutputStream;
@@ -80,28 +80,28 @@ import static ee.ria.xroad.common.ErrorCodes.translateException;
 import static ee.ria.xroad.common.crypto.Digests.calculateDigest;
 import static ee.ria.xroad.common.crypto.identifier.Providers.BOUNCY_CASTLE;
 import static ee.ria.xroad.common.util.EncoderUtils.encodeBase64;
-import static ee.ria.xroad.signer.tokenmanager.TokenManager.addCert;
-import static ee.ria.xroad.signer.tokenmanager.TokenManager.addKey;
-import static ee.ria.xroad.signer.tokenmanager.TokenManager.getKeyInfo;
-import static ee.ria.xroad.signer.tokenmanager.TokenManager.isTokenAvailable;
-import static ee.ria.xroad.signer.tokenmanager.TokenManager.listKeys;
-import static ee.ria.xroad.signer.tokenmanager.TokenManager.setKeyAvailable;
-import static ee.ria.xroad.signer.tokenmanager.TokenManager.setPublicKey;
-import static ee.ria.xroad.signer.tokenmanager.TokenManager.setTokenActive;
-import static ee.ria.xroad.signer.tokenmanager.TokenManager.setTokenAvailable;
-import static ee.ria.xroad.signer.tokenmanager.TokenManager.setTokenInfo;
-import static ee.ria.xroad.signer.tokenmanager.TokenManager.setTokenStatus;
-import static ee.ria.xroad.signer.tokenmanager.token.HardwareTokenUtil.findPrivateKey;
-import static ee.ria.xroad.signer.tokenmanager.token.HardwareTokenUtil.findPrivateKeys;
-import static ee.ria.xroad.signer.tokenmanager.token.HardwareTokenUtil.findPublicKey;
-import static ee.ria.xroad.signer.tokenmanager.token.HardwareTokenUtil.findPublicKeyCertificates;
-import static ee.ria.xroad.signer.tokenmanager.token.HardwareTokenUtil.findPublicKeys;
-import static ee.ria.xroad.signer.tokenmanager.token.HardwareTokenUtil.getTokenStatus;
-import static ee.ria.xroad.signer.util.ExceptionHelper.certWithIdNotFound;
-import static ee.ria.xroad.signer.util.ExceptionHelper.loginFailed;
-import static ee.ria.xroad.signer.util.ExceptionHelper.logoutFailed;
-import static ee.ria.xroad.signer.util.SignerUtil.keyId;
 import static iaik.pkcs.pkcs11.Token.SessionType.SERIAL_SESSION;
+import static org.niis.xroad.signer.core.tokenmanager.TokenManager.addCert;
+import static org.niis.xroad.signer.core.tokenmanager.TokenManager.addKey;
+import static org.niis.xroad.signer.core.tokenmanager.TokenManager.getKeyInfo;
+import static org.niis.xroad.signer.core.tokenmanager.TokenManager.isTokenAvailable;
+import static org.niis.xroad.signer.core.tokenmanager.TokenManager.listKeys;
+import static org.niis.xroad.signer.core.tokenmanager.TokenManager.setKeyAvailable;
+import static org.niis.xroad.signer.core.tokenmanager.TokenManager.setPublicKey;
+import static org.niis.xroad.signer.core.tokenmanager.TokenManager.setTokenActive;
+import static org.niis.xroad.signer.core.tokenmanager.TokenManager.setTokenAvailable;
+import static org.niis.xroad.signer.core.tokenmanager.TokenManager.setTokenInfo;
+import static org.niis.xroad.signer.core.tokenmanager.TokenManager.setTokenStatus;
+import static org.niis.xroad.signer.core.tokenmanager.token.HardwareTokenUtil.findPrivateKey;
+import static org.niis.xroad.signer.core.tokenmanager.token.HardwareTokenUtil.findPrivateKeys;
+import static org.niis.xroad.signer.core.tokenmanager.token.HardwareTokenUtil.findPublicKey;
+import static org.niis.xroad.signer.core.tokenmanager.token.HardwareTokenUtil.findPublicKeyCertificates;
+import static org.niis.xroad.signer.core.tokenmanager.token.HardwareTokenUtil.findPublicKeys;
+import static org.niis.xroad.signer.core.tokenmanager.token.HardwareTokenUtil.getTokenStatus;
+import static org.niis.xroad.signer.core.util.ExceptionHelper.certWithIdNotFound;
+import static org.niis.xroad.signer.core.util.ExceptionHelper.loginFailed;
+import static org.niis.xroad.signer.core.util.ExceptionHelper.logoutFailed;
+import static org.niis.xroad.signer.core.util.SignerUtil.keyId;
 
 /**
  * Token worker for hardware tokens.

@@ -26,7 +26,6 @@
 package org.niis.xroad.securityserver.restapi.util;
 
 import ee.ria.xroad.common.util.EncoderUtils;
-import ee.ria.xroad.signer.protocol.dto.CertificateInfo;
 
 import org.apache.commons.lang3.StringUtils;
 import org.bouncycastle.asn1.x509.CRLReason;
@@ -36,6 +35,7 @@ import org.bouncycastle.cert.ocsp.OCSPException;
 import org.bouncycastle.cert.ocsp.OCSPResp;
 import org.bouncycastle.cert.ocsp.RevokedStatus;
 import org.bouncycastle.cert.ocsp.SingleResp;
+import org.niis.xroad.signer.api.dto.CertificateInfo;
 
 import java.io.IOException;
 
@@ -85,11 +85,6 @@ public final class OcspUtils {
         return CertificateInfo.OCSP_RESPONSE_UNKNOWN;
     }
 
-    /**
-     * From ee.ria.xroad.signer.console.Utils#getOcspStatus
-     * @param ocspBytes
-     * @return
-     */
     private static CertificateStatus getCertificateStatus(byte[] ocspBytes) throws OcspStatusExtractionException {
         try {
             OCSPResp response = new OCSPResp(ocspBytes);

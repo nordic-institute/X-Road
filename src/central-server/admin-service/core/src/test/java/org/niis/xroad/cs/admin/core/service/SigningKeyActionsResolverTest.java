@@ -26,20 +26,19 @@
  */
 package org.niis.xroad.cs.admin.core.service;
 
-import ee.ria.xroad.signer.protocol.dto.TokenInfo;
-import ee.ria.xroad.signer.protocol.dto.TokenInfoProto;
-
 import org.junit.jupiter.api.Test;
 import org.niis.xroad.common.exception.ValidationFailureException;
 import org.niis.xroad.cs.admin.api.domain.ConfigurationSigningKey;
+import org.niis.xroad.signer.api.dto.TokenInfo;
+import org.niis.xroad.signer.protocol.dto.TokenInfoProto;
 
 import java.util.EnumSet;
 
-import static ee.ria.xroad.signer.protocol.dto.TokenStatusInfo.OK;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.niis.xroad.cs.admin.api.dto.PossibleKeyAction.ACTIVATE;
 import static org.niis.xroad.cs.admin.api.dto.PossibleKeyAction.DELETE;
+import static org.niis.xroad.signer.protocol.dto.TokenStatusInfo.OK;
 
 class SigningKeyActionsResolverTest {
     private final SigningKeyActionsResolver signingKeyActionsResolver = new SigningKeyActionsResolver();

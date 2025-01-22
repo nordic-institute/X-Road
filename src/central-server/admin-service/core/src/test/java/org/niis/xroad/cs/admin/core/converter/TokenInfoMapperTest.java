@@ -27,12 +27,6 @@
 
 package org.niis.xroad.cs.admin.core.converter;
 
-import ee.ria.xroad.signer.protocol.dto.KeyInfo;
-import ee.ria.xroad.signer.protocol.dto.KeyInfoProto;
-import ee.ria.xroad.signer.protocol.dto.KeyUsageInfo;
-import ee.ria.xroad.signer.protocol.dto.TokenInfo;
-import ee.ria.xroad.signer.protocol.dto.TokenInfoProto;
-
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -43,16 +37,21 @@ import org.niis.xroad.cs.admin.api.dto.PossibleTokenAction;
 import org.niis.xroad.cs.admin.api.dto.TokenStatus;
 import org.niis.xroad.cs.admin.api.service.ConfigurationSigningKeysService;
 import org.niis.xroad.cs.admin.api.service.TokenActionsResolver;
+import org.niis.xroad.signer.api.dto.KeyInfo;
+import org.niis.xroad.signer.api.dto.TokenInfo;
+import org.niis.xroad.signer.protocol.dto.KeyInfoProto;
+import org.niis.xroad.signer.protocol.dto.KeyUsageInfo;
+import org.niis.xroad.signer.protocol.dto.TokenInfoProto;
 
 import java.util.EnumSet;
 import java.util.List;
 import java.util.Map;
 
-import static ee.ria.xroad.signer.protocol.dto.TokenStatusInfo.OK;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
+import static org.niis.xroad.signer.protocol.dto.TokenStatusInfo.OK;
 
 @ExtendWith(MockitoExtension.class)
 class TokenInfoMapperTest {

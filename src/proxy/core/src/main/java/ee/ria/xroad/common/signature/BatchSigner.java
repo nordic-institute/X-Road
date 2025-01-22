@@ -28,11 +28,11 @@ package ee.ria.xroad.common.signature;
 import ee.ria.xroad.common.CodedException;
 import ee.ria.xroad.common.SystemProperties;
 import ee.ria.xroad.common.crypto.identifier.SignAlgorithm;
-import ee.ria.xroad.signer.SignerProxy;
 
 import lombok.Data;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
+import org.niis.xroad.signer.client.SignerProxy;
 import org.springframework.beans.factory.DisposableBean;
 
 import java.security.cert.X509Certificate;

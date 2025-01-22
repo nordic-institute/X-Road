@@ -31,8 +31,6 @@ import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.identifier.SecurityServerId;
 import ee.ria.xroad.common.util.CryptoUtils;
 import ee.ria.xroad.proxy.signedmessage.SignerSigningKey;
-import ee.ria.xroad.signer.SignerProxy;
-import ee.ria.xroad.signer.protocol.dto.AuthKeyInfo;
 
 import lombok.extern.slf4j.Slf4j;
 import org.bouncycastle.cert.ocsp.OCSPResp;
@@ -40,6 +38,8 @@ import org.niis.xroad.globalconf.GlobalConfProvider;
 import org.niis.xroad.globalconf.cert.CertChain;
 import org.niis.xroad.proxy.core.auth.AuthKey;
 import org.niis.xroad.serverconf.ServerConfProvider;
+import org.niis.xroad.signer.api.dto.AuthKeyInfo;
+import org.niis.xroad.signer.client.SignerProxy;
 
 import java.io.File;
 import java.security.KeyStore;

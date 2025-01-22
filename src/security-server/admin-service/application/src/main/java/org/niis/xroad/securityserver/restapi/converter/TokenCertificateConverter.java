@@ -26,9 +26,6 @@
 package org.niis.xroad.securityserver.restapi.converter;
 
 import ee.ria.xroad.common.util.TimeUtils;
-import ee.ria.xroad.signer.protocol.dto.CertificateInfo;
-import ee.ria.xroad.signer.protocol.dto.KeyInfo;
-import ee.ria.xroad.signer.protocol.dto.TokenInfo;
 
 import com.google.common.collect.Streams;
 import lombok.RequiredArgsConstructor;
@@ -38,6 +35,9 @@ import org.niis.xroad.securityserver.restapi.openapi.model.CertificateOcspStatus
 import org.niis.xroad.securityserver.restapi.openapi.model.TokenCertificate;
 import org.niis.xroad.securityserver.restapi.service.PossibleActionsRuleEngine;
 import org.niis.xroad.securityserver.restapi.util.OcspUtils;
+import org.niis.xroad.signer.api.dto.CertificateInfo;
+import org.niis.xroad.signer.api.dto.KeyInfo;
+import org.niis.xroad.signer.api.dto.TokenInfo;
 import org.springframework.stereotype.Component;
 
 import java.time.OffsetDateTime;

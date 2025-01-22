@@ -26,11 +26,11 @@
 package org.niis.xroad.securityserver.restapi.cache;
 
 import ee.ria.xroad.common.identifier.SecurityServerId;
-import ee.ria.xroad.signer.protocol.dto.CertificateInfo;
-import ee.ria.xroad.signer.protocol.dto.TokenInfo;
 
 import org.niis.xroad.securityserver.restapi.service.ServerConfService;
 import org.niis.xroad.securityserver.restapi.service.TokenService;
+import org.niis.xroad.signer.api.dto.CertificateInfo;
+import org.niis.xroad.signer.api.dto.TokenInfo;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Scope;

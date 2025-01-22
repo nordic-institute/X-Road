@@ -33,7 +33,6 @@ import ee.ria.xroad.common.util.MimeTypes;
 import ee.ria.xroad.common.util.MultipartEncoder;
 import ee.ria.xroad.common.util.TimeUtils;
 import ee.ria.xroad.confproxy.ConfProxyProperties;
-import ee.ria.xroad.signer.SignerProxy;
 
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.FileUtils;
@@ -44,6 +43,7 @@ import org.niis.xroad.globalconf.model.ParametersProviderFactory;
 import org.niis.xroad.globalconf.model.SharedParameters;
 import org.niis.xroad.globalconf.model.VersionedConfigurationDirectory;
 import org.niis.xroad.globalconf.util.HashCalculator;
+import org.niis.xroad.signer.client.SignerProxy;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;

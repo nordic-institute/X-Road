@@ -22,16 +22,15 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package ee.ria.xroad.signer.tokenmanager.token.helper;
-
-import ee.ria.xroad.signer.tokenmanager.module.PrivKeyAttributes;
-import ee.ria.xroad.signer.tokenmanager.module.PubKeyAttributes;
+package org.niis.xroad.signer.core.tokenmanager.token.helper;
 
 import iaik.pkcs.pkcs11.objects.BooleanAttribute;
 import iaik.pkcs.pkcs11.objects.PrivateKey;
 import iaik.pkcs.pkcs11.objects.PublicKey;
+import org.niis.xroad.signer.core.tokenmanager.module.PrivKeyAttributes;
+import org.niis.xroad.signer.core.tokenmanager.module.PubKeyAttributes;
 
-import static ee.ria.xroad.signer.tokenmanager.token.HardwareTokenUtil.setAllowedMechanisms;
+import static org.niis.xroad.signer.core.tokenmanager.token.HardwareTokenUtil.setAllowedMechanisms;
 
 public abstract class AbstractKeyPairBuilder<PU extends PublicKey, PR extends PrivateKey> {
     protected abstract void setPublicKeyAttributes(PU template, PubKeyAttributes attributes);

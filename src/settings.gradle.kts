@@ -10,7 +10,6 @@ dependencyResolutionManagement {
 
 // Common projects
 include("arch-rules")
-include("signer-protocol")
 
 include("common")
 include("common:common-acme")
@@ -43,9 +42,16 @@ include("service")
 include("service:monitor:monitor-application")
 include("service:monitor:monitor-api")
 include("service:monitor:monitor-core")
+
 include("service:op-monitor:op-monitor-application")
 include("service:op-monitor:op-monitor-api")
 include("service:op-monitor:op-monitor-core")
+
+include("service:signer:signer-application")
+include("service:signer:signer-api")
+include("service:signer:signer-core")
+include("service:signer:signer-cli")
+include("service:signer:signer-client")
 
 // Tool projects
 include("tool")
@@ -55,8 +61,7 @@ include("tool:asic-verifier-cli")
 include("proxy")
 include("proxy:application")
 include("proxy:core")
-include("signer:application")
-include("signer:core")
+
 include("configuration-proxy")
 include("configuration-client:application")
 include("configuration-client:core")
@@ -95,9 +100,6 @@ include("security-server:admin-service:ui")
 include("security-server:admin-service:int-test")
 include("security-server:system-test")
 include("security-server:e2e-test")
-
-// Utils
-include("signer-console")
 
 // Tests
 include("common:common-test")

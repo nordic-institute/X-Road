@@ -26,9 +26,9 @@
 package ee.ria.xroad.confproxy.commandline;
 
 import ee.ria.xroad.confproxy.ConfProxyProperties;
-import ee.ria.xroad.signer.SignerProxy;
 
 import org.apache.commons.cli.CommandLine;
+import org.niis.xroad.signer.client.SignerProxy;
 
 import static ee.ria.xroad.confproxy.ConfProxyProperties.CONF_INI;
 
