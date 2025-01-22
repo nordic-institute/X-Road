@@ -38,6 +38,7 @@ import static ee.ria.xroad.common.crypto.identifier.DigestAlgorithm.SHA256;
 import static ee.ria.xroad.common.crypto.identifier.DigestAlgorithm.SHA384;
 import static ee.ria.xroad.common.crypto.identifier.DigestAlgorithm.SHA512;
 import static ee.ria.xroad.common.crypto.identifier.SignMechanism.CKM_ECDSA;
+import static ee.ria.xroad.common.crypto.identifier.SignMechanism.CKM_EDDSA;
 import static ee.ria.xroad.common.crypto.identifier.SignMechanism.CKM_RSA_PKCS;
 import static ee.ria.xroad.common.crypto.identifier.SignMechanism.CKM_RSA_PKCS_PSS;
 import static org.apache.xml.security.signature.XMLSignature.ALGO_ID_SIGNATURE_ECDSA_SHA1;
@@ -45,6 +46,7 @@ import static org.apache.xml.security.signature.XMLSignature.ALGO_ID_SIGNATURE_E
 import static org.apache.xml.security.signature.XMLSignature.ALGO_ID_SIGNATURE_ECDSA_SHA256;
 import static org.apache.xml.security.signature.XMLSignature.ALGO_ID_SIGNATURE_ECDSA_SHA384;
 import static org.apache.xml.security.signature.XMLSignature.ALGO_ID_SIGNATURE_ECDSA_SHA512;
+import static org.apache.xml.security.signature.XMLSignature.ALGO_ID_SIGNATURE_EDDSA_ED25519;
 import static org.apache.xml.security.signature.XMLSignature.ALGO_ID_SIGNATURE_RSA_SHA1;
 import static org.apache.xml.security.signature.XMLSignature.ALGO_ID_SIGNATURE_RSA_SHA256;
 import static org.apache.xml.security.signature.XMLSignature.ALGO_ID_SIGNATURE_RSA_SHA256_MGF1;
@@ -75,6 +77,8 @@ public sealed interface SignAlgorithm {
     SignAlgorithm SHA384_WITH_ECDSA = INDEX.create("SHA384withECDSA", ALGO_ID_SIGNATURE_ECDSA_SHA384, CKM_ECDSA, SHA384);
     SignAlgorithm SHA512_WITH_ECDSA = INDEX.create("SHA512withECDSA", ALGO_ID_SIGNATURE_ECDSA_SHA512, CKM_ECDSA, SHA512);
 
+    SignAlgorithm ED25519 = INDEX.create("Ed25519", ALGO_ID_SIGNATURE_EDDSA_ED25519, CKM_EDDSA, null);
+
     String name();
 
     String uri();
@@ -86,6 +90,10 @@ public sealed interface SignAlgorithm {
     DigestAlgorithm digest();
 
     SignMechanism signMechanism();
+
+    default boolean prehashable(){
+        return digest() != null;
+    }
 
     static SignAlgorithm ofUri(String uri) {
         return INDEX.ofUri(uri).orElseGet(() -> new UnknownSignAlgorithm(null, uri));
@@ -177,6 +185,9 @@ public sealed interface SignAlgorithm {
         }
 
         private Optional<SignAlgorithm> ofDigestAndSignMechanism(DigestAlgorithm algorithm, SignMechanism mechanism) {
+            if(CKM_EDDSA.equals(mechanism)){
+                return Optional.of(SignAlgorithm.ED25519);
+            }
             return Optional.ofNullable(byDigestAndMechanism.get(new Key(algorithm, mechanism)));
         }
 

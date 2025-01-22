@@ -36,7 +36,7 @@ public sealed interface SignDataPreparer {
     static SignDataPreparer of(SignAlgorithm algorithm) {
         return switch (algorithm.signMechanism()) {
             case CKM_RSA_PKCS -> RsaPkcsPreparer.INSTANCE;
-            case CKM_RSA_PKCS_PSS, CKM_ECDSA -> NoopPreparer.INSTANCE;
+            case CKM_RSA_PKCS_PSS, CKM_ECDSA, CKM_EDDSA -> NoopPreparer.INSTANCE;
         };
     }
 

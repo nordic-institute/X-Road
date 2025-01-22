@@ -78,7 +78,7 @@ public class DirectoryContentSigner {
 
         var signatureAlgorithmId = getSignAlgorithmId(keyId, signDigestAlgorithmId);
 
-        byte[] digest = calculateDigest(signatureAlgorithmId.digest(), data);
+        byte[] digest = signatureAlgorithmId.prehashable() ? calculateDigest(signatureAlgorithmId.digest(), data) : data;
 
         return Signatures.useAsn1DerFormat(signatureAlgorithmId, signerProxy.sign(keyId, signatureAlgorithmId, digest));
     }

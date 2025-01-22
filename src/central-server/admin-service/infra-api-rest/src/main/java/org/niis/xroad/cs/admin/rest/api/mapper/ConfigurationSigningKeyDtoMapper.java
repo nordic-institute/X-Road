@@ -26,12 +26,15 @@
  */
 package org.niis.xroad.cs.admin.rest.api.mapper;
 
+import ee.ria.xroad.common.crypto.identifier.KeyAlgorithm;
+
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import org.mapstruct.MappingConstants;
 import org.niis.xroad.cs.admin.api.converter.GenericUniDirectionalMapper;
 import org.niis.xroad.cs.admin.api.domain.ConfigurationSigningKeyWithDetails;
 import org.niis.xroad.cs.openapi.model.ConfigurationSigningKeyDto;
+import org.niis.xroad.cs.openapi.model.KeyAlgorithmDto;
 
 @Mapper(componentModel = MappingConstants.ComponentModel.SPRING)
 public interface ConfigurationSigningKeyDtoMapper extends
@@ -45,5 +48,13 @@ public interface ConfigurationSigningKeyDtoMapper extends
     @Mapping(source = "activeSourceSigningKey", target = "active")
     @Mapping(target = "keyHash", ignore = true)
     ConfigurationSigningKeyDto toTarget(ConfigurationSigningKeyWithDetails model);
+
+    default KeyAlgorithmDto toTarget(KeyAlgorithm model) {
+        return switch (model){
+            case RSA -> KeyAlgorithmDto.RSA;
+            case EC -> KeyAlgorithmDto.EC;
+            case EdDSA -> KeyAlgorithmDto.ED_DSA;
+        };
+    }
 
 }

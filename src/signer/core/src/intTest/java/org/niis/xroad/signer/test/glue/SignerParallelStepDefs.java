@@ -59,6 +59,7 @@ public class SignerParallelStepDefs extends BaseSignerStepDefs {
         var signAlgorithm = switch (SignMechanism.valueOf(key.getSignMechanismName()).keyAlgorithm()) {
             case RSA -> SHA256_WITH_RSA;
             case EC -> SHA256_WITH_ECDSA;
+            case EdDSA -> null; //TODO #EDDSA proper impl
         };
 
         doConcurrentSign(() -> {

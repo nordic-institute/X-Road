@@ -116,6 +116,7 @@ public class KeyConverter {
         return switch (SignMechanism.valueOf(signMechanismName).keyAlgorithm()) {
             case RSA -> KeyAlgorithm.RSA;
             case EC -> KeyAlgorithm.EC;
+            case EdDSA -> KeyAlgorithm.ED_DSA; //TODO #EDDSA proper impl
         };
     }
 

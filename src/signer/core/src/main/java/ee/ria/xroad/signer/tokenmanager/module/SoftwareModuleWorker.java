@@ -27,6 +27,7 @@ package ee.ria.xroad.signer.tokenmanager.module;
 
 import ee.ria.xroad.common.SystemProperties;
 import ee.ria.xroad.common.crypto.identifier.KeyAlgorithm;
+import ee.ria.xroad.common.crypto.identifier.SignMechanism;
 import ee.ria.xroad.signer.protocol.dto.TokenInfo;
 import ee.ria.xroad.signer.tokenmanager.TokenManager;
 import ee.ria.xroad.signer.tokenmanager.token.AbstractTokenWorker;
@@ -46,7 +47,8 @@ public class SoftwareModuleWorker extends AbstractModuleWorker {
     private static final List<TokenType> TOKENS = List.of(new SoftwareTokenType(
             Map.of(
                     KeyAlgorithm.EC, SystemProperties.getSofTokenEcSignMechanism(),
-                    KeyAlgorithm.RSA, SystemProperties.getSoftTokenRsaSignMechanism()
+                    KeyAlgorithm.RSA, SystemProperties.getSoftTokenRsaSignMechanism(),
+                    KeyAlgorithm.EdDSA, SignMechanism.CKM_EDDSA //TODO #EDDSA proper impl
             )
     ));
 

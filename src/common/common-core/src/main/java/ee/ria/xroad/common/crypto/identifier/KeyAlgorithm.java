@@ -25,5 +25,7 @@
 package ee.ria.xroad.common.crypto.identifier;
 
 public enum KeyAlgorithm {
-    RSA, EC
+    RSA, EC, EdDSA
+    /* TODO #EDDSA probably better just have 2 different types for Es25519 and Ed448,
+        even java KeyPairGenerator takes specific name and not general type code as for EC/RSA */
 }

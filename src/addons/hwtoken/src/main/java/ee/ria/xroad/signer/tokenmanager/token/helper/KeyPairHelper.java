@@ -46,6 +46,7 @@ public sealed interface KeyPairHelper permits RsaKeyPairHelper, EcKeyPairHelper 
         return switch (algorithm) {
             case RSA -> RsaKeyPairHelper.INSTANCE;
             case EC -> EcKeyPairHelper.INSTANCE;
+            case EdDSA -> null; //TODO #EDDSA proper impl
         };
     }
 }
