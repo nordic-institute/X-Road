@@ -19,7 +19,7 @@ tasks.shadowJar {
   archiveBaseName.set("monitor")
   archiveClassifier.set("")
   manifest {
-    attributes("Main-Class" to "ee.ria.xroad.monitor.MonitorMain")
+    attributes("Main-Class" to "org.niis.xroad.monitor.application.MonitorMain")
   }
   mergeServiceFiles()
 }
