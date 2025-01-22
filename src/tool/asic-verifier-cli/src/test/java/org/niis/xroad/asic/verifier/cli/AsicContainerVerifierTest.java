@@ -23,7 +23,7 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package ee.ria.xroad.asicverifier;
+package org.niis.xroad.asic.verifier.cli;
 
 import ee.ria.xroad.common.ExpectedCodedException;
 import ee.ria.xroad.common.SystemProperties;
@@ -69,9 +69,9 @@ public class AsicContainerVerifierTest {
      */
     @BeforeClass
     public static void setUpConf() {
-        System.setProperty(SystemProperties.CONFIGURATION_PATH, "../lib/globalconf-core/src/test/resources/globalconf_good2_v3");
+        System.setProperty(SystemProperties.CONFIGURATION_PATH, "../../lib/globalconf-core/src/test/resources/globalconf_good2_v3");
         System.setProperty(SystemProperties.CONFIGURATION_ANCHOR_FILE,
-                "../lib/globalconf-core/src/test/resources/configuration-anchor1.xml");
+                "../../lib/globalconf-core/src/test/resources/configuration-anchor1.xml");
 
         globalConfProvider = new TestGlobalConfImpl();
     }

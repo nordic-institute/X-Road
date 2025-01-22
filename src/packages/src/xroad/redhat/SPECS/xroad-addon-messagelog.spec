@@ -50,7 +50,7 @@ cp -p %{srcdir}/../../../addons/messagelog/messagelog-archiver/scripts/archive-h
 cp -p %{srcdir}/../../../addons/messagelog/messagelog-archiver/scripts/demo-upload.pl %{buildroot}/usr/share/doc/xroad-addon-messagelog/archive-server/
 cp -p %{srcdir}/../../../addons/messagelog/messagelog-archive-verifier/build/libs/messagelog-archive-verifier.jar %{buildroot}/usr/share/doc/xroad-addon-messagelog/archive-hashchain-verifier/
 cp -p %{srcdir}/../../../addons/messagelog/messagelog-archive-verifier/README.md %{buildroot}/usr/share/doc/xroad-addon-messagelog/archive-hashchain-verifier/
-cp -p %{srcdir}/../../../asicverifier/build/libs/asicverifier.jar %{buildroot}/usr/share/xroad/jlib/
+cp -p %{srcdir}/../../../tool/asic-verifier-cli/build/libs/asicverifier.jar %{buildroot}/usr/share/xroad/jlib/
 cp -p %{srcdir}/../../../LICENSE.txt %{buildroot}/usr/share/doc/%{name}/
 cp -p %{srcdir}/../../../3RD-PARTY-NOTICES.txt %{buildroot}/usr/share/doc/%{name}/
 cp -p %{srcdir}/../../../../CHANGELOG.md %{buildroot}/usr/share/doc/%{name}/
