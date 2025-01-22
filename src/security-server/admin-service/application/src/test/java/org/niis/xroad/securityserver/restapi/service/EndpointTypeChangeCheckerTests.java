@@ -25,11 +25,10 @@
  */
 package org.niis.xroad.securityserver.restapi.service;
 
-import ee.ria.xroad.common.conf.serverconf.model.AccessRightType;
-import ee.ria.xroad.common.conf.serverconf.model.EndpointType;
-
 import org.junit.Before;
 import org.junit.Test;
+import org.niis.xroad.serverconf.model.AccessRightType;
+import org.niis.xroad.serverconf.model.EndpointType;
 
 import java.util.ArrayList;
 import java.util.HashSet;

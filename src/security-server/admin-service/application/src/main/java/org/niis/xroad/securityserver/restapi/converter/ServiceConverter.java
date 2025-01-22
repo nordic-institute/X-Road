@@ -25,8 +25,6 @@
  */
 package org.niis.xroad.securityserver.restapi.converter;
 
-import ee.ria.xroad.common.conf.serverconf.model.EndpointType;
-import ee.ria.xroad.common.conf.serverconf.model.ServiceType;
 import ee.ria.xroad.common.identifier.ClientId;
 
 import com.google.common.collect.Streams;
@@ -37,6 +35,8 @@ import org.niis.xroad.restapi.util.FormatUtils;
 import org.niis.xroad.securityserver.restapi.openapi.model.Service;
 import org.niis.xroad.securityserver.restapi.util.EndpointHelper;
 import org.niis.xroad.securityserver.restapi.util.ServiceFormatter;
+import org.niis.xroad.serverconf.model.EndpointType;
+import org.niis.xroad.serverconf.model.ServiceType;
 import org.springframework.stereotype.Component;
 
 import java.util.ArrayList;

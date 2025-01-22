@@ -26,28 +26,28 @@
 package ee.ria.xroad.proxy.conf;
 
 import ee.ria.xroad.common.SystemProperties;
-import ee.ria.xroad.common.conf.serverconf.model.AccessRightType;
-import ee.ria.xroad.common.conf.serverconf.model.CertificateType;
-import ee.ria.xroad.common.conf.serverconf.model.ClientType;
-import ee.ria.xroad.common.conf.serverconf.model.DescriptionType;
-import ee.ria.xroad.common.conf.serverconf.model.EndpointType;
-import ee.ria.xroad.common.conf.serverconf.model.GroupMemberType;
-import ee.ria.xroad.common.conf.serverconf.model.LocalGroupType;
-import ee.ria.xroad.common.conf.serverconf.model.ServerConfType;
-import ee.ria.xroad.common.conf.serverconf.model.ServiceDescriptionType;
-import ee.ria.xroad.common.conf.serverconf.model.ServiceType;
-import ee.ria.xroad.common.conf.serverconf.model.TspType;
 import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.identifier.LocalGroupId;
 import ee.ria.xroad.common.identifier.ServiceId;
 import ee.ria.xroad.common.identifier.XRoadId;
 
 import org.hibernate.Session;
+import org.niis.xroad.serverconf.model.AccessRightType;
+import org.niis.xroad.serverconf.model.CertificateType;
+import org.niis.xroad.serverconf.model.ClientType;
+import org.niis.xroad.serverconf.model.DescriptionType;
+import org.niis.xroad.serverconf.model.EndpointType;
+import org.niis.xroad.serverconf.model.GroupMemberType;
+import org.niis.xroad.serverconf.model.LocalGroupType;
+import org.niis.xroad.serverconf.model.ServerConfType;
+import org.niis.xroad.serverconf.model.ServiceDescriptionType;
+import org.niis.xroad.serverconf.model.ServiceType;
+import org.niis.xroad.serverconf.model.TspType;
 
 import java.util.Date;
 
-import static ee.ria.xroad.common.conf.serverconf.ServerConfDatabaseCtx.doInTransaction;
 import static ee.ria.xroad.common.util.EncoderUtils.decodeBase64;
+import static org.niis.xroad.serverconf.impl.ServerConfDatabaseCtx.doInTransaction;
 
 /**
  * Contains server conf test utility methods.

@@ -25,10 +25,9 @@
  */
 package ee.ria.xroad.proxy.util;
 
-import ee.ria.xroad.common.conf.serverconf.ServerConfProvider;
-
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.niis.xroad.serverconf.ServerConfProvider;
 import org.quartz.DisallowConcurrentExecution;
 import org.quartz.Job;
 import org.quartz.JobExecutionContext;

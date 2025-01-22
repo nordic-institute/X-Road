@@ -25,10 +25,9 @@
  */
 package org.niis.xroad.securityserver.restapi.service;
 
-import ee.ria.xroad.common.conf.serverconf.model.ServiceType;
-
 import org.junit.Before;
 import org.junit.Test;
+import org.niis.xroad.serverconf.model.ServiceType;
 
 import java.util.ArrayList;
 import java.util.Arrays;

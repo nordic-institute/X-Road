@@ -28,7 +28,6 @@ package ee.ria.xroad.proxy.messagelog;
 import ee.ria.xroad.common.CodedException;
 import ee.ria.xroad.common.DiagnosticsErrorCodes;
 import ee.ria.xroad.common.DiagnosticsUtils;
-import ee.ria.xroad.common.conf.serverconf.ServerConfProvider;
 import ee.ria.xroad.common.message.AttachmentStream;
 import ee.ria.xroad.common.messagelog.AbstractLogManager;
 import ee.ria.xroad.common.messagelog.LogMessage;
@@ -45,6 +44,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.input.BoundedInputStream;
 import org.niis.xroad.globalconf.GlobalConfProvider;
 import org.niis.xroad.globalconf.status.DiagnosticsStatus;
+import org.niis.xroad.serverconf.ServerConfProvider;
 
 import java.io.InputStream;
 import java.time.Duration;

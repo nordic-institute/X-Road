@@ -6,7 +6,7 @@
 
     <package>ee.ria.xroad.common.conf.serverconf.model</package>
 
-    <entity class="ServerConfType" access="FIELD">
+    <entity class="org.niis.xroad.serverconf.model.ServerConfType" access="FIELD">
         <table name="SERVERCONF"/>
         <attributes>
             <id name="id">
@@ -31,7 +31,7 @@
         </attributes>
     </entity>
 
-    <entity class="ClientType" access="FIELD">
+    <entity class="org.niis.xroad.serverconf.model.ClientType" access="FIELD">
         <table name="CLIENT"/>
         <attributes>
             <id name="id">
@@ -81,7 +81,7 @@
         </attributes>
     </entity>
 
-    <entity class="ServiceDescriptionType" access="FIELD">
+    <entity class="org.niis.xroad.serverconf.model.ServiceDescriptionType" access="FIELD">
         <table name="SERVICEDESCRIPTION"/>
         <attributes>
             <id name="id">
@@ -110,7 +110,7 @@
         </attributes>
     </entity>
 
-    <entity class="ServiceType" access="FIELD">
+    <entity class="org.niis.xroad.serverconf.model.ServiceType" access="FIELD">
         <table name="SERVICE"/>
         <attributes>
             <id name="id">
@@ -130,7 +130,7 @@
         </attributes>
     </entity>
 
-    <entity class="LocalGroupType" access="FIELD">
+    <entity class="org.niis.xroad.serverconf.model.LocalGroupType" access="FIELD">
         <table name="LOCALGROUP"/>
         <attributes>
             <id name="id">
@@ -154,7 +154,7 @@
         </attributes>
     </entity>
 
-    <entity class="GroupMemberType" access="FIELD">
+    <entity class="org.niis.xroad.serverconf.model.GroupMemberType" access="FIELD">
         <table name="GROUPMEMBER"/>
         <attributes>
             <id name="id">
@@ -173,7 +173,7 @@
         </attributes>
     </entity>
 
-    <entity class="CertificateType" access="FIELD">
+    <entity class="org.niis.xroad.serverconf.model.CertificateType" access="FIELD">
         <table name="CERTIFICATE"/>
         <attributes>
             <id name="id">
@@ -186,7 +186,7 @@
         </attributes>
     </entity>
 
-    <entity class="AccessRightType" access="FIELD">
+    <entity class="org.niis.xroad.serverconf.model.AccessRightType" access="FIELD">
         <table name="ACCESSRIGHT"/>
         <attributes>
             <id name="id">
@@ -212,7 +212,7 @@
         </attributes>
     </entity>
 
-    <entity class="EndpointType" access="FIELD">
+    <entity class="org.niis.xroad.serverconf.model.EndpointType" access="FIELD">
         <table name="ENDPOINT"/>
         <attributes>
             <id name="id">
@@ -233,7 +233,7 @@
         </attributes>
     </entity>
 
-    <entity class="TspType" access="FIELD">
+    <entity class="org.niis.xroad.serverconf.model.TspType" access="FIELD">
         <table name="TSP"/>
         <attributes>
             <id name="id">
@@ -246,7 +246,7 @@
         </attributes>
     </entity>
 
-    <entity class="UiUserType" access="FIELD">
+    <entity class="org.niis.xroad.serverconf.model.UiUserType" access="FIELD">
         <table name="UIUSER"/>
         <attributes>
             <id name="id">

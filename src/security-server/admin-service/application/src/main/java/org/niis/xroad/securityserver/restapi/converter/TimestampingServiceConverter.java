@@ -25,10 +25,9 @@
  */
 package org.niis.xroad.securityserver.restapi.converter;
 
-import ee.ria.xroad.common.conf.serverconf.model.TspType;
-
 import com.google.common.collect.Streams;
 import org.niis.xroad.securityserver.restapi.openapi.model.TimestampingService;
+import org.niis.xroad.serverconf.model.TspType;
 import org.springframework.stereotype.Component;
 
 import java.util.Set;

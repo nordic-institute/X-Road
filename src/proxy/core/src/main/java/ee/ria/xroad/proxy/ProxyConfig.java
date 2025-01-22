@@ -25,7 +25,6 @@
  */
 package ee.ria.xroad.proxy;
 
-import ee.ria.xroad.common.conf.serverconf.ServerConfProvider;
 import ee.ria.xroad.common.opmonitoring.AbstractOpMonitoringBuffer;
 import ee.ria.xroad.common.signature.BatchSigner;
 import ee.ria.xroad.proxy.clientproxy.AuthTrustVerifier;
@@ -41,6 +40,7 @@ import org.niis.xroad.globalconf.impl.cert.CertChainFactory;
 import org.niis.xroad.globalconf.impl.cert.CertHelper;
 import org.niis.xroad.globalconf.spring.GlobalConfBeanConfig;
 import org.niis.xroad.globalconf.spring.GlobalConfRefreshJobConfig;
+import org.niis.xroad.serverconf.ServerConfProvider;
 import org.niis.xroad.serverconf.spring.ServerConfBeanConfig;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;

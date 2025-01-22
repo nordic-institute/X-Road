@@ -26,7 +26,6 @@
 package ee.ria.xroad.monitor;
 
 import ee.ria.xroad.common.SystemProperties;
-import ee.ria.xroad.common.conf.serverconf.ServerConfProvider;
 import ee.ria.xroad.common.util.CryptoUtils;
 import ee.ria.xroad.monitor.CertificateMonitoringInfo.CertificateType;
 import ee.ria.xroad.monitor.common.SystemMetricNames;
@@ -35,6 +34,7 @@ import ee.ria.xroad.signer.protocol.dto.TokenInfo;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.niis.xroad.serverconf.ServerConfProvider;
 import org.springframework.scheduling.TaskScheduler;
 
 import java.security.cert.X509Certificate;

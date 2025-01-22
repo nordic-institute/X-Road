@@ -25,11 +25,10 @@
  */
 package org.niis.xroad.securityserver.restapi.converter;
 
-import ee.ria.xroad.common.conf.serverconf.model.ClientType;
-
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import org.niis.xroad.securityserver.restapi.openapi.model.ClientStatus;
+import org.niis.xroad.serverconf.model.ClientType;
 
 import java.util.Arrays;
 import java.util.Optional;

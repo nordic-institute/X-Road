@@ -25,7 +25,7 @@
  */
 package ee.ria.xroad.proxy.serverproxy;
 
-import ee.ria.xroad.common.conf.serverconf.ServerConfProvider;
+import org.niis.xroad.serverconf.ServerConfProvider;
 
 /**
  * Dynamic loader for rest service handlers

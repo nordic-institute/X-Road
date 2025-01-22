@@ -26,8 +26,6 @@
 package org.niis.xroad.securityserver.restapi.service;
 
 import ee.ria.xroad.common.CodedException;
-import ee.ria.xroad.common.conf.serverconf.IsAuthentication;
-import ee.ria.xroad.common.conf.serverconf.model.ClientType;
 import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.util.CryptoUtils;
 import ee.ria.xroad.signer.protocol.dto.CertificateInfo;
@@ -43,6 +41,8 @@ import org.niis.xroad.restapi.exceptions.DeviationAwareRuntimeException;
 import org.niis.xroad.restapi.service.UnhandledWarningsException;
 import org.niis.xroad.securityserver.restapi.util.CertificateTestUtils;
 import org.niis.xroad.securityserver.restapi.util.TestUtils;
+import org.niis.xroad.serverconf.IsAuthentication;
+import org.niis.xroad.serverconf.model.ClientType;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.test.jdbc.JdbcTestUtils;
@@ -61,14 +61,6 @@ import java.util.SortedSet;
 import java.util.TreeSet;
 import java.util.stream.Collectors;
 
-import static ee.ria.xroad.common.conf.serverconf.model.ClientType.STATUS_DELINPROG;
-import static ee.ria.xroad.common.conf.serverconf.model.ClientType.STATUS_DISABLED;
-import static ee.ria.xroad.common.conf.serverconf.model.ClientType.STATUS_DISABLING_INPROG;
-import static ee.ria.xroad.common.conf.serverconf.model.ClientType.STATUS_ENABLING_INPROG;
-import static ee.ria.xroad.common.conf.serverconf.model.ClientType.STATUS_GLOBALERR;
-import static ee.ria.xroad.common.conf.serverconf.model.ClientType.STATUS_REGINPROG;
-import static ee.ria.xroad.common.conf.serverconf.model.ClientType.STATUS_REGISTERED;
-import static ee.ria.xroad.common.conf.serverconf.model.ClientType.STATUS_SAVED;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
@@ -78,6 +70,14 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 import static org.niis.xroad.securityserver.restapi.util.TestUtils.INSTANCE_FI;
 import static org.niis.xroad.securityserver.restapi.util.TestUtils.MEMBER_CLASS_GOV;
+import static org.niis.xroad.serverconf.model.ClientType.STATUS_DELINPROG;
+import static org.niis.xroad.serverconf.model.ClientType.STATUS_DISABLED;
+import static org.niis.xroad.serverconf.model.ClientType.STATUS_DISABLING_INPROG;
+import static org.niis.xroad.serverconf.model.ClientType.STATUS_ENABLING_INPROG;
+import static org.niis.xroad.serverconf.model.ClientType.STATUS_GLOBALERR;
+import static org.niis.xroad.serverconf.model.ClientType.STATUS_REGINPROG;
+import static org.niis.xroad.serverconf.model.ClientType.STATUS_REGISTERED;
+import static org.niis.xroad.serverconf.model.ClientType.STATUS_SAVED;
 
 /**
  * test client service

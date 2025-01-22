@@ -25,7 +25,6 @@
  */
 package org.niis.xroad.securityserver.restapi.converter;
 
-import ee.ria.xroad.common.conf.serverconf.model.ClientType;
 import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.identifier.SecurityServerId;
 
@@ -38,6 +37,7 @@ import org.niis.xroad.securityserver.restapi.cache.CurrentSecurityServerSignCert
 import org.niis.xroad.securityserver.restapi.converter.comparator.ClientSortingComparator;
 import org.niis.xroad.securityserver.restapi.openapi.model.Client;
 import org.niis.xroad.securityserver.restapi.openapi.model.ClientStatus;
+import org.niis.xroad.serverconf.model.ClientType;
 
 import java.util.ArrayList;
 

@@ -25,19 +25,6 @@
  */
 package ee.ria.xroad.proxy.conf;
 
-import ee.ria.xroad.common.conf.serverconf.ServerConfDatabaseCtx;
-import ee.ria.xroad.common.conf.serverconf.dao.ClientDAOImpl;
-import ee.ria.xroad.common.conf.serverconf.dao.IdentifierDAOImpl;
-import ee.ria.xroad.common.conf.serverconf.dao.ServerConfDAOImpl;
-import ee.ria.xroad.common.conf.serverconf.dao.ServiceDAOImpl;
-import ee.ria.xroad.common.conf.serverconf.dao.ServiceDescriptionDAOImpl;
-import ee.ria.xroad.common.conf.serverconf.model.AccessRightType;
-import ee.ria.xroad.common.conf.serverconf.model.ClientType;
-import ee.ria.xroad.common.conf.serverconf.model.GroupMemberType;
-import ee.ria.xroad.common.conf.serverconf.model.LocalGroupType;
-import ee.ria.xroad.common.conf.serverconf.model.ServerConfType;
-import ee.ria.xroad.common.conf.serverconf.model.ServiceDescriptionType;
-import ee.ria.xroad.common.conf.serverconf.model.ServiceType;
 import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.identifier.LocalGroupId;
 import ee.ria.xroad.common.identifier.ServiceId;
@@ -47,6 +34,19 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
+import org.niis.xroad.serverconf.impl.ServerConfDatabaseCtx;
+import org.niis.xroad.serverconf.impl.dao.ClientDAOImpl;
+import org.niis.xroad.serverconf.impl.dao.IdentifierDAOImpl;
+import org.niis.xroad.serverconf.impl.dao.ServerConfDAOImpl;
+import org.niis.xroad.serverconf.impl.dao.ServiceDAOImpl;
+import org.niis.xroad.serverconf.impl.dao.ServiceDescriptionDAOImpl;
+import org.niis.xroad.serverconf.model.AccessRightType;
+import org.niis.xroad.serverconf.model.ClientType;
+import org.niis.xroad.serverconf.model.GroupMemberType;
+import org.niis.xroad.serverconf.model.LocalGroupType;
+import org.niis.xroad.serverconf.model.ServerConfType;
+import org.niis.xroad.serverconf.model.ServiceDescriptionType;
+import org.niis.xroad.serverconf.model.ServiceType;
 
 import java.util.Date;
 import java.util.List;

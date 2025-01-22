@@ -27,7 +27,6 @@
 
 package org.niis.xroad.proxy.test.glue;
 
-import ee.ria.xroad.common.conf.serverconf.ServerConfImpl;
 import ee.ria.xroad.common.crypto.identifier.DigestAlgorithm;
 import ee.ria.xroad.common.crypto.identifier.KeyAlgorithm;
 import ee.ria.xroad.common.hashchain.HashChainReferenceResolver;
@@ -50,6 +49,7 @@ import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.niis.xroad.common.test.glue.BaseStepDefs;
 import org.niis.xroad.globalconf.impl.signature.SignatureVerifier;
+import org.niis.xroad.serverconf.impl.ServerConfImpl;
 import org.niis.xroad.signer.proto.CertificateRequestFormat;
 import org.niis.xroad.test.globalconf.TestGlobalConfImpl;
 

@@ -25,9 +25,10 @@
  */
 package ee.ria.xroad.proxy.opmonitoring;
 
-import ee.ria.xroad.common.conf.serverconf.ServerConfProvider;
 import ee.ria.xroad.common.opmonitoring.AbstractOpMonitoringBuffer;
 import ee.ria.xroad.common.opmonitoring.OpMonitoringData;
+
+import org.niis.xroad.serverconf.ServerConfProvider;
 
 /**
  * A dummy implementation of operational monitoring buffer that does nothing.

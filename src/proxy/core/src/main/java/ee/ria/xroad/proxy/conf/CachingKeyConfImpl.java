@@ -27,7 +27,6 @@ package ee.ria.xroad.proxy.conf;
 
 import ee.ria.xroad.common.CodedException;
 import ee.ria.xroad.common.SystemProperties;
-import ee.ria.xroad.common.conf.serverconf.ServerConfProvider;
 import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.identifier.SecurityServerId;
 import ee.ria.xroad.common.util.CryptoUtils;
@@ -47,6 +46,7 @@ import org.niis.xroad.globalconf.GlobalConfProvider;
 import org.niis.xroad.globalconf.cert.CertChain;
 import org.niis.xroad.globalconf.impl.cert.CertChainVerifier;
 import org.niis.xroad.proxy.core.auth.AuthKey;
+import org.niis.xroad.serverconf.ServerConfProvider;
 
 import java.lang.ref.WeakReference;
 import java.nio.file.Paths;

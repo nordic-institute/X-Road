@@ -26,7 +26,6 @@
 package ee.ria.xroad.monitor.configuration;
 
 import ee.ria.xroad.common.SystemProperties;
-import ee.ria.xroad.common.conf.serverconf.ServerConfProvider;
 import ee.ria.xroad.monitor.CertificateInfoSensor;
 import ee.ria.xroad.monitor.DiskSpaceSensor;
 import ee.ria.xroad.monitor.ExecListingSensor;
@@ -38,6 +37,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.niis.xroad.common.rpc.server.RpcServer;
 import org.niis.xroad.globalconf.spring.GlobalConfBeanConfig;
 import org.niis.xroad.globalconf.spring.GlobalConfRefreshJobConfig;
+import org.niis.xroad.serverconf.ServerConfProvider;
 import org.niis.xroad.serverconf.spring.ServerConfBeanConfig;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;

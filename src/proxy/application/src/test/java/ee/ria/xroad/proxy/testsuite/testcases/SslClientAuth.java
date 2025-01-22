@@ -26,11 +26,12 @@
 package ee.ria.xroad.proxy.testsuite.testcases;
 
 import ee.ria.xroad.common.TestCertUtil;
-import ee.ria.xroad.common.conf.serverconf.IsAuthentication;
 import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.proxy.testsuite.Message;
 import ee.ria.xroad.proxy.testsuite.SslMessageTestCase;
 import ee.ria.xroad.proxy.testsuite.TestSuiteServerConf;
+
+import org.niis.xroad.serverconf.IsAuthentication;
 
 import java.security.cert.X509Certificate;
 import java.util.List;

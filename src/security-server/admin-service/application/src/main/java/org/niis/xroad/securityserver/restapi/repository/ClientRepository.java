@@ -25,12 +25,6 @@
  */
 package org.niis.xroad.securityserver.restapi.repository;
 
-import ee.ria.xroad.common.conf.serverconf.dao.ClientDAOImpl;
-import ee.ria.xroad.common.conf.serverconf.dao.ServerConfDAOImpl;
-import ee.ria.xroad.common.conf.serverconf.model.ClientType;
-import ee.ria.xroad.common.conf.serverconf.model.EndpointType;
-import ee.ria.xroad.common.conf.serverconf.model.LocalGroupType;
-import ee.ria.xroad.common.conf.serverconf.model.ServerConfType;
 import ee.ria.xroad.common.identifier.ClientId;
 
 import lombok.AccessLevel;
@@ -43,6 +37,12 @@ import org.niis.xroad.restapi.util.PersistenceUtils;
 import org.niis.xroad.securityserver.restapi.service.ClientNotFoundException;
 import org.niis.xroad.securityserver.restapi.service.EndpointNotFoundException;
 import org.niis.xroad.securityserver.restapi.service.LocalGroupNotFoundException;
+import org.niis.xroad.serverconf.impl.dao.ClientDAOImpl;
+import org.niis.xroad.serverconf.impl.dao.ServerConfDAOImpl;
+import org.niis.xroad.serverconf.model.ClientType;
+import org.niis.xroad.serverconf.model.EndpointType;
+import org.niis.xroad.serverconf.model.LocalGroupType;
+import org.niis.xroad.serverconf.model.ServerConfType;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
 

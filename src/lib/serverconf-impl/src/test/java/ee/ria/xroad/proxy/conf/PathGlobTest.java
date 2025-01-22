@@ -25,11 +25,10 @@
  */
 package ee.ria.xroad.proxy.conf;
 
-import ee.ria.xroad.common.conf.serverconf.PathGlob;
-
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
+import org.niis.xroad.serverconf.PathGlob;
 
 import java.util.Arrays;
 import java.util.List;

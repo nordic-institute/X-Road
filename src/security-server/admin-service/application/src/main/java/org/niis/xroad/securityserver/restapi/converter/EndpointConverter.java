@@ -25,9 +25,8 @@
  */
 package org.niis.xroad.securityserver.restapi.converter;
 
-import ee.ria.xroad.common.conf.serverconf.model.EndpointType;
-
 import org.niis.xroad.securityserver.restapi.openapi.model.Endpoint;
+import org.niis.xroad.serverconf.model.EndpointType;
 import org.springframework.stereotype.Component;
 
 import java.util.List;

@@ -25,11 +25,10 @@
  */
 package org.niis.xroad.securityserver.restapi.service;
 
-import ee.ria.xroad.common.conf.serverconf.model.ClientType;
-import ee.ria.xroad.common.conf.serverconf.model.EndpointType;
-
 import org.junit.Test;
 import org.niis.xroad.securityserver.restapi.util.TestUtils;
+import org.niis.xroad.serverconf.model.ClientType;
+import org.niis.xroad.serverconf.model.EndpointType;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import java.util.Arrays;

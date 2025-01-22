@@ -25,7 +25,6 @@
  */
 package ee.ria.xroad.proxy.messagelog;
 
-import ee.ria.xroad.common.conf.serverconf.ServerConfProvider;
 import ee.ria.xroad.common.messagelog.AbstractLogManager;
 import ee.ria.xroad.common.messagelog.LogMessage;
 import ee.ria.xroad.common.messagelog.TimestampRecord;
@@ -33,6 +32,7 @@ import ee.ria.xroad.common.util.JobManager;
 
 import org.niis.xroad.globalconf.GlobalConfProvider;
 import org.niis.xroad.globalconf.status.DiagnosticsStatus;
+import org.niis.xroad.serverconf.ServerConfProvider;
 
 import java.util.Map;
 
