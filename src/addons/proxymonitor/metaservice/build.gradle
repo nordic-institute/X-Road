@@ -22,7 +22,7 @@ dependencies {
     implementation project(":lib:globalconf-impl")
     implementation project(":lib:serverconf-impl")
 
-    implementation project(':monitor-common')
+    implementation project(":service:monitor:monitor-api")
     implementation project(':addons:proxymonitor-common')
 
     implementation libs.guava
@@ -48,7 +48,7 @@ shadowJar {
     exclude('**/module-info.class')
     dependencies {
         include(project(':addons:proxymonitor-common'))
-        include(project(':monitor-common'))
+        include(project(':service:monitor:monitor-api'))
     }
     mergeServiceFiles()
 }

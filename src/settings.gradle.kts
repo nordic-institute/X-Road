@@ -39,6 +39,12 @@ include("lib:serverconf-impl")
 include("lib:serverconf-core")
 include("lib:serverconf-spring")
 
+// Service projects
+include("service")
+include("service:monitor:monitor-application")
+include("service:monitor:monitor-api")
+include("service:monitor:monitor-core")
+
 // Main projects
 include("proxy")
 include("proxy:application")
@@ -50,9 +56,7 @@ include("configuration-client:application")
 include("configuration-client:core")
 include("asicverifier")
 
-include("monitor:application")
-include("monitor:core")
-include("monitor-common")
+
 include("op-monitor-daemon:application")
 include("op-monitor-daemon:core")
 include("shared-ui")

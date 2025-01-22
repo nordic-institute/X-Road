@@ -1,7 +1,7 @@
 ---
 ss_modules:
   monitor:
-    dir: monitor
+    dir: service/monitor/monitor-application
     build: build
     lib: monitor-1.0.jar
     target: /usr/share/xroad/jlib
