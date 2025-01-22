@@ -97,8 +97,8 @@ class SignatureVerifierTest {
      */
     @BeforeEach
     void setUp() {
-        loadGlobalConf("../globalconf-model/src/test/resources/globalconf_good_v4",
-                "../globalconf-model/src/test/resources/configuration-anchor1.xml", true);
+        loadGlobalConf("../globalconf-core/src/test/resources/globalconf_good_v4",
+                "../globalconf-core/src/test/resources/configuration-anchor1.xml", true);
     }
 
     /**
@@ -334,8 +334,8 @@ class SignatureVerifierTest {
 
         @BeforeEach
         void before() {
-            loadGlobalConf("../globalconf-model/src/test/resources/globalconf_good2_v3",
-                    "../globalconf-model/src/test/resources/configuration-anchor1.xml", false);
+            loadGlobalConf("../globalconf-core/src/test/resources/globalconf_good2_v3",
+                    "../globalconf-core/src/test/resources/configuration-anchor1.xml", false);
         }
 
         @Test

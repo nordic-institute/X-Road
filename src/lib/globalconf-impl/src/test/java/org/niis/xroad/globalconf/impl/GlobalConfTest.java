@@ -72,7 +72,7 @@ import static org.junit.Assert.assertTrue;
  * Tests the global configuration functionality.
  */
 public class GlobalConfTest {
-    private static final String GOOD_CONF_DIR = "../globalconf-model/src/test/resources/globalconf_good_v2";
+    private static final String GOOD_CONF_DIR = "../globalconf-core/src/test/resources/globalconf_good_v2";
     private static final Path GOOD_CONF_FILES = Paths.get(GOOD_CONF_DIR, "files");
 
     @Rule
