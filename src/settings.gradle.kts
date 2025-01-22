@@ -47,6 +47,10 @@ include("service:op-monitor:op-monitor-application")
 include("service:op-monitor:op-monitor-api")
 include("service:op-monitor:op-monitor-core")
 
+// Tool projects
+include("tool")
+include("tool:asic-verifier-cli")
+
 // Main projects
 include("proxy")
 include("proxy:application")
@@ -56,7 +60,6 @@ include("signer:core")
 include("configuration-proxy")
 include("configuration-client:application")
 include("configuration-client:core")
-include("asicverifier")
 
 include("shared-ui")
 
