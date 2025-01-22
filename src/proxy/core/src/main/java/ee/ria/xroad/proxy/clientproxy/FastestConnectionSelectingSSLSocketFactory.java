@@ -27,7 +27,6 @@ package ee.ria.xroad.proxy.clientproxy;
 
 import ee.ria.xroad.common.CodedException;
 import ee.ria.xroad.common.SystemProperties;
-import ee.ria.xroad.common.opmonitoring.OpMonitoringData;
 import ee.ria.xroad.common.util.CryptoUtils;
 import ee.ria.xroad.proxy.clientproxy.FastestSocketSelector.SocketInfo;
 
@@ -37,6 +36,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.http.HttpHost;
 import org.apache.http.conn.ssl.SSLConnectionSocketFactory;
 import org.apache.http.protocol.HttpContext;
+import org.niis.xroad.opmonitor.api.OpMonitoringData;
 
 import javax.net.ssl.HostnameVerifier;
 import javax.net.ssl.SSLContext;

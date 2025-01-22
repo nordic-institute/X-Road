@@ -21,7 +21,6 @@ include("common:common-domain")
 include("common:common-mail")
 include("common:common-management-request")
 include("common:common-messagelog")
-include("common:common-op-monitoring")
 include("common:common-rpc")
 include("common:common-int-test")
 include("common:common-core")
@@ -44,6 +43,9 @@ include("service")
 include("service:monitor:monitor-application")
 include("service:monitor:monitor-api")
 include("service:monitor:monitor-core")
+include("service:op-monitor:op-monitor-application")
+include("service:op-monitor:op-monitor-api")
+include("service:op-monitor:op-monitor-core")
 
 // Main projects
 include("proxy")
@@ -56,9 +58,6 @@ include("configuration-client:application")
 include("configuration-client:core")
 include("asicverifier")
 
-
-include("op-monitor-daemon:application")
-include("op-monitor-daemon:core")
 include("shared-ui")
 
 include("central-server")

@@ -17,7 +17,7 @@ dependencies {
   implementation(project(":common:common-jetty"))
   implementation(project(":common:common-scheduler"))
   implementation(project(":common:common-messagelog"))
-  implementation(project(":common:common-op-monitoring"))
+  implementation(project(":service:op-monitor:op-monitor-api"))
   implementation(project(":lib:globalconf-impl"))
   implementation(project(":lib:serverconf-impl"))
   implementation(project(":lib:asic-core"))

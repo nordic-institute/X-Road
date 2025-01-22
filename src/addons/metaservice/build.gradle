@@ -6,7 +6,7 @@ plugins {
 dependencies {
     implementation project(':proxy:core')
     implementation project(':common:common-jetty')
-    implementation project(":common:common-op-monitoring")
+    implementation project(":service:op-monitor:op-monitor-api")
     implementation project(":lib:globalconf-impl")
     implementation project(":lib:serverconf-impl")
     implementation "com.fasterxml.jackson.dataformat:jackson-dataformat-yaml"
