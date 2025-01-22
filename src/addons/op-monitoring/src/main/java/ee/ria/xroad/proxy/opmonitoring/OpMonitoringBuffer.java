@@ -25,13 +25,12 @@
  */
 package ee.ria.xroad.proxy.opmonitoring;
 
-import ee.ria.xroad.common.opmonitoring.AbstractOpMonitoringBuffer;
-import ee.ria.xroad.common.opmonitoring.OpMonitoringData;
-import ee.ria.xroad.common.opmonitoring.OpMonitoringSystemProperties;
-
 import jakarta.annotation.PostConstruct;
 import jakarta.annotation.PreDestroy;
 import lombok.extern.slf4j.Slf4j;
+import org.niis.xroad.opmonitor.api.AbstractOpMonitoringBuffer;
+import org.niis.xroad.opmonitor.api.OpMonitoringData;
+import org.niis.xroad.opmonitor.api.OpMonitoringSystemProperties;
 import org.niis.xroad.serverconf.ServerConfProvider;
 
 import java.util.ArrayList;

@@ -32,7 +32,6 @@ import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.identifier.ServiceId;
 import ee.ria.xroad.common.message.RestRequest;
 import ee.ria.xroad.common.message.RestResponse;
-import ee.ria.xroad.common.opmonitoring.OpMonitoringData;
 import ee.ria.xroad.common.util.CachingStream;
 import ee.ria.xroad.common.util.HttpSender;
 import ee.ria.xroad.common.util.MimeUtils;
@@ -58,6 +57,7 @@ import org.bouncycastle.util.io.TeeInputStream;
 import org.niis.xroad.globalconf.GlobalConfProvider;
 import org.niis.xroad.globalconf.cert.CertChain;
 import org.niis.xroad.globalconf.impl.cert.CertChainFactory;
+import org.niis.xroad.opmonitor.api.OpMonitoringData;
 import org.niis.xroad.serverconf.ServerConfProvider;
 import org.niis.xroad.serverconf.impl.IsAuthenticationData;
 

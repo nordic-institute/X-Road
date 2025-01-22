@@ -27,7 +27,6 @@ package ee.ria.xroad.proxy.serverproxy;
 
 import ee.ria.xroad.common.CodedException;
 import ee.ria.xroad.common.SystemProperties;
-import ee.ria.xroad.common.opmonitoring.OpMonitoringData;
 import ee.ria.xroad.common.util.HandlerBase;
 import ee.ria.xroad.common.util.RequestWrapper;
 import ee.ria.xroad.common.util.ResponseWrapper;
@@ -44,6 +43,7 @@ import org.eclipse.jetty.server.Response;
 import org.eclipse.jetty.util.Callback;
 import org.niis.xroad.globalconf.GlobalConfProvider;
 import org.niis.xroad.globalconf.impl.cert.CertChainFactory;
+import org.niis.xroad.opmonitor.api.OpMonitoringData;
 import org.niis.xroad.serverconf.ServerConfProvider;
 
 import java.io.IOException;
@@ -51,11 +51,11 @@ import java.io.IOException;
 import static ee.ria.xroad.common.ErrorCodes.SERVER_SERVERPROXY_X;
 import static ee.ria.xroad.common.ErrorCodes.X_INVALID_HTTP_METHOD;
 import static ee.ria.xroad.common.ErrorCodes.translateWithPrefix;
-import static ee.ria.xroad.common.opmonitoring.OpMonitoringData.SecurityServerType.PRODUCER;
 import static ee.ria.xroad.common.util.MimeUtils.HEADER_MESSAGE_TYPE;
 import static ee.ria.xroad.common.util.MimeUtils.VALUE_MESSAGE_TYPE_REST;
 import static ee.ria.xroad.common.util.TimeUtils.getEpochMillisecond;
 import static org.eclipse.jetty.server.Request.getRemoteAddr;
+import static org.niis.xroad.opmonitor.api.OpMonitoringData.SecurityServerType.PRODUCER;
 
 @Slf4j
 class ServerProxyHandler extends HandlerBase {

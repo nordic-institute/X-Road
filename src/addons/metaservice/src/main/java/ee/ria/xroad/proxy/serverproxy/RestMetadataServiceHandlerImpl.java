@@ -29,7 +29,6 @@ import ee.ria.xroad.common.CodedException;
 import ee.ria.xroad.common.identifier.ServiceId;
 import ee.ria.xroad.common.message.RestRequest;
 import ee.ria.xroad.common.message.RestResponse;
-import ee.ria.xroad.common.opmonitoring.OpMonitoringData;
 import ee.ria.xroad.common.util.CachingStream;
 import ee.ria.xroad.common.util.MimeTypes;
 import ee.ria.xroad.common.util.MimeUtils;
@@ -54,6 +53,7 @@ import org.apache.http.client.utils.URLEncodedUtils;
 import org.apache.http.message.BasicHeader;
 import org.apache.http.protocol.BasicHttpContext;
 import org.apache.http.protocol.HttpContext;
+import org.niis.xroad.opmonitor.api.OpMonitoringData;
 import org.niis.xroad.serverconf.ServerConfProvider;
 import org.niis.xroad.serverconf.model.DescriptionType;
 

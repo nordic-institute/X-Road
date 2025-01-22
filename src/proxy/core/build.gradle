@@ -19,7 +19,7 @@ dependencies {
     implementation(project(':common:common-message'))
     implementation(project(':common:common-scheduler'))
     implementation(project(':common:common-messagelog'))
-    implementation(project(':common:common-op-monitoring'))
+    implementation(project(':service:op-monitor:op-monitor-api'))
     implementation(project(':signer-protocol'))
 
     api(project(':lib:globalconf-spring'))

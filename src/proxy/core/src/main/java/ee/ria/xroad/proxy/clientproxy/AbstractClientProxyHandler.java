@@ -28,7 +28,6 @@ package ee.ria.xroad.proxy.clientproxy;
 import ee.ria.xroad.common.CodedException;
 import ee.ria.xroad.common.CodedExceptionWithHttpStatus;
 import ee.ria.xroad.common.SystemProperties;
-import ee.ria.xroad.common.opmonitoring.OpMonitoringData;
 import ee.ria.xroad.common.util.HandlerBase;
 import ee.ria.xroad.common.util.RequestWrapper;
 import ee.ria.xroad.common.util.ResponseWrapper;
@@ -47,6 +46,7 @@ import org.eclipse.jetty.server.Response;
 import org.eclipse.jetty.util.Callback;
 import org.niis.xroad.globalconf.GlobalConfProvider;
 import org.niis.xroad.globalconf.impl.cert.CertChainFactory;
+import org.niis.xroad.opmonitor.api.OpMonitoringData;
 import org.niis.xroad.serverconf.ServerConfProvider;
 import org.niis.xroad.serverconf.impl.IsAuthenticationData;
 
@@ -55,9 +55,9 @@ import java.security.cert.X509Certificate;
 
 import static ee.ria.xroad.common.ErrorCodes.SERVER_CLIENTPROXY_X;
 import static ee.ria.xroad.common.ErrorCodes.translateWithPrefix;
-import static ee.ria.xroad.common.opmonitoring.OpMonitoringData.SecurityServerType.CLIENT;
 import static ee.ria.xroad.common.util.TimeUtils.getEpochMillisecond;
 import static org.eclipse.jetty.server.Request.getRemoteAddr;
+import static org.niis.xroad.opmonitor.api.OpMonitoringData.SecurityServerType.CLIENT;
 
 /**
  * Base class for client proxy handlers.

@@ -28,7 +28,6 @@ package ee.ria.xroad.proxy.opmonitoring;
 import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.identifier.ServiceId;
 import ee.ria.xroad.common.message.RepresentedParty;
-import ee.ria.xroad.common.opmonitoring.OpMonitoringData;
 
 import com.google.common.base.Strings;
 import lombok.extern.slf4j.Slf4j;
@@ -38,6 +37,7 @@ import org.apache.commons.cli.HelpFormatter;
 import org.apache.commons.cli.Option;
 import org.apache.commons.cli.Options;
 import org.apache.commons.cli.ParseException;
+import org.niis.xroad.opmonitor.api.OpMonitoringData;
 
 import java.util.LinkedHashMap;
 import java.util.Map;

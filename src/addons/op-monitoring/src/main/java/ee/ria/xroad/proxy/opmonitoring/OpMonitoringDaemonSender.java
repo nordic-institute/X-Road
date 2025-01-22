@@ -25,11 +25,6 @@
  */
 package ee.ria.xroad.proxy.opmonitoring;
 
-import ee.ria.xroad.common.opmonitoring.OpMonitoringDaemonEndpoints;
-import ee.ria.xroad.common.opmonitoring.OpMonitoringDaemonHttpClient;
-import ee.ria.xroad.common.opmonitoring.OpMonitoringData;
-import ee.ria.xroad.common.opmonitoring.OpMonitoringSystemProperties;
-import ee.ria.xroad.common.opmonitoring.StoreOpMonitoringDataResponse;
 import ee.ria.xroad.common.util.HttpSender;
 import ee.ria.xroad.common.util.JsonUtils;
 import ee.ria.xroad.common.util.MimeTypes;
@@ -41,6 +36,11 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.http.impl.client.CloseableHttpClient;
+import org.niis.xroad.opmonitor.api.OpMonitoringDaemonEndpoints;
+import org.niis.xroad.opmonitor.api.OpMonitoringDaemonHttpClient;
+import org.niis.xroad.opmonitor.api.OpMonitoringData;
+import org.niis.xroad.opmonitor.api.OpMonitoringSystemProperties;
+import org.niis.xroad.opmonitor.api.StoreOpMonitoringDataResponse;
 import org.niis.xroad.serverconf.ServerConfProvider;
 
 import java.net.URI;
@@ -50,8 +50,8 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.atomic.AtomicBoolean;
 
-import static ee.ria.xroad.common.opmonitoring.StoreOpMonitoringDataResponse.STATUS_ERROR;
-import static ee.ria.xroad.common.opmonitoring.StoreOpMonitoringDataResponse.STATUS_OK;
+import static org.niis.xroad.opmonitor.api.StoreOpMonitoringDataResponse.STATUS_ERROR;
+import static org.niis.xroad.opmonitor.api.StoreOpMonitoringDataResponse.STATUS_OK;
 
 /**
  * Actor for sending operational data to the operational monitoring daemon. This actor is used by the

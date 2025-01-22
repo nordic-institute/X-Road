@@ -26,7 +26,6 @@
 package ee.ria.xroad.proxy.clientproxy;
 
 import ee.ria.xroad.common.CodedException;
-import ee.ria.xroad.common.opmonitoring.OpMonitoringData;
 import ee.ria.xroad.common.util.RequestWrapper;
 import ee.ria.xroad.common.util.ResponseWrapper;
 import ee.ria.xroad.proxy.conf.KeyConfProvider;
@@ -40,13 +39,13 @@ import org.eclipse.jetty.server.Request;
 import org.junit.Test;
 import org.niis.xroad.globalconf.GlobalConfProvider;
 import org.niis.xroad.globalconf.impl.cert.CertChainFactory;
+import org.niis.xroad.opmonitor.api.OpMonitoringData;
 import org.niis.xroad.serverconf.ServerConfProvider;
 import org.niis.xroad.serverconf.impl.IsAuthenticationData;
 
 import java.net.URI;
 import java.util.Map;
 
-import static ee.ria.xroad.common.opmonitoring.OpMonitoringData.SecurityServerType.CLIENT;
 import static ee.ria.xroad.common.util.MimeUtils.HEADER_CLIENT_ID;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
@@ -54,6 +53,7 @@ import static org.junit.Assert.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
+import static org.niis.xroad.opmonitor.api.OpMonitoringData.SecurityServerType.CLIENT;
 import static org.niis.xroad.serverconf.IsAuthentication.NOSSL;
 import static org.niis.xroad.serverconf.model.ClientType.STATUS_REGISTERED;
 

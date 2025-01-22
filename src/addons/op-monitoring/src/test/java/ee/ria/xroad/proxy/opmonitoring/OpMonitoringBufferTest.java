@@ -25,9 +25,6 @@
  */
 package ee.ria.xroad.proxy.opmonitoring;
 
-import ee.ria.xroad.common.opmonitoring.OpMonitoringData;
-import ee.ria.xroad.common.opmonitoring.StoreOpMonitoringDataResponse;
-
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
@@ -44,6 +41,8 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.niis.xroad.opmonitor.api.OpMonitoringData;
+import org.niis.xroad.opmonitor.api.StoreOpMonitoringDataResponse;
 import org.niis.xroad.serverconf.ServerConfProvider;
 
 import java.time.Duration;

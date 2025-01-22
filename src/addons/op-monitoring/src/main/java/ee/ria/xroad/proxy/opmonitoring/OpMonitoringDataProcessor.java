@@ -25,14 +25,14 @@
  */
 package ee.ria.xroad.proxy.opmonitoring;
 
-import ee.ria.xroad.common.opmonitoring.OpMonitoringData;
-import ee.ria.xroad.common.opmonitoring.StoreOpMonitoringDataRequest;
 import ee.ria.xroad.common.util.JsonUtils;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectWriter;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
+import org.niis.xroad.opmonitor.api.OpMonitoringData;
+import org.niis.xroad.opmonitor.api.StoreOpMonitoringDataRequest;
 
 import java.net.NetworkInterface;
 import java.util.List;
