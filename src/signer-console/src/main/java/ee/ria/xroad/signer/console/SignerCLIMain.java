@@ -27,19 +27,14 @@
 
 package ee.ria.xroad.signer.console;
 
-import org.niis.xroad.bootstrap.XrdSpringServiceBuilder;
-import org.springframework.boot.SpringBootConfiguration;
-import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
+import io.quarkus.runtime.Quarkus;
+import io.quarkus.runtime.annotations.QuarkusMain;
 
-@EnableAutoConfiguration
-@SpringBootConfiguration
+@QuarkusMain
 @SuppressWarnings("checkstyle:HideUtilityClassConstructor")
 public class SignerCLIMain {
-    private static final String APP_NAME = "signer-console";
 
     public static void main(String[] args) {
-        XrdSpringServiceBuilder.newApplicationBuilder(APP_NAME, SignerCLIMain.class, SignerCLIConfig.class)
-                .build()
-                .run(args);
+        Quarkus.run(SignerCLI.class, args);
     }
 }
