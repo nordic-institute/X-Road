@@ -47,11 +47,11 @@ tasks.compileJava {
 tasks.test {
   when {
     Os.isArch("x86_64") || Os.isArch("amd64") -> {
-      jvmArgs("-Djava.library.path=../libs/passwordstore/amd64")
+      jvmArgs("-Djava.library.path=../../../libs/passwordstore/amd64")
     }
 
     Os.isArch("aarch64") || Os.isArch("arm64") -> {
-      jvmArgs("-Djava.library.path=../libs/passwordstore/arm64")
+      jvmArgs("-Djava.library.path=../../../libs/passwordstore/arm64")
     }
   }
 }
@@ -61,18 +61,18 @@ if (Os.isName("linux")) {
     val javaCompiler = javaToolchains.compilerFor(java.toolchain)
     val javaHome = javaCompiler.get().metadata.installationPath.asFile.absolutePath
 
-    inputs.dir(fileTree("../passwordstore") {
+    inputs.dir(fileTree("../../../passwordstore") {
       include("*.c", "*.h", "Makefile")
     })
     inputs.dir(file("${javaHome}/include"))
-    outputs.dir(file("../lib"))
+    outputs.dir(file("../../../lib"))
 
-    workingDir = file("../")
+    workingDir = file("../../../")
     commandLine("make", "clean", "all")
   }
 
   val makeClean by tasks.registering(Exec::class) {
-    workingDir = file("../")
+    workingDir = file("../../../")
     commandLine("make", "clean")
   }
 
