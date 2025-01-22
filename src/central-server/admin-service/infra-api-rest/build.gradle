@@ -10,7 +10,7 @@ dependencies {
     implementation project(':central-server:openapi-model')
     implementation project(':common:common-domain')
     implementation project(":lib:globalconf-core")
-    implementation project(':signer-protocol')
+    implementation project(':service:signer:signer-api')
     implementation project(':common:common-admin-api')
 
     implementation('org.springframework.boot:spring-boot-starter-security')

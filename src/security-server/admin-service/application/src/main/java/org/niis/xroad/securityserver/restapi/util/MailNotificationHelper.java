@@ -28,12 +28,12 @@ package org.niis.xroad.securityserver.restapi.util;
 import ee.ria.xroad.common.SystemProperties;
 import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.identifier.SecurityServerId;
-import ee.ria.xroad.signer.protocol.dto.CertificateInfo;
-import ee.ria.xroad.signer.protocol.dto.KeyUsageInfo;
 
 import lombok.RequiredArgsConstructor;
 import org.niis.xroad.common.mail.MailNotificationProperties;
 import org.niis.xroad.common.mail.MailService;
+import org.niis.xroad.signer.api.dto.CertificateInfo;
+import org.niis.xroad.signer.protocol.dto.KeyUsageInfo;
 import org.springframework.context.support.MessageSourceAccessor;
 import org.springframework.stereotype.Component;
 

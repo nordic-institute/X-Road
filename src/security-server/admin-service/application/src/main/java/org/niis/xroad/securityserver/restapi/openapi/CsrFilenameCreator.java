@@ -28,10 +28,10 @@ package org.niis.xroad.securityserver.restapi.openapi;
 import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.identifier.SecurityServerId;
 import ee.ria.xroad.common.util.TimeUtils;
-import ee.ria.xroad.signer.protocol.dto.KeyUsageInfo;
 
 import lombok.extern.slf4j.Slf4j;
 import org.niis.xroad.signer.proto.CertificateRequestFormat;
+import org.niis.xroad.signer.protocol.dto.KeyUsageInfo;
 import org.springframework.stereotype.Component;
 
 import java.time.format.DateTimeFormatter;
@@ -47,6 +47,7 @@ public class CsrFilenameCreator {
 
     /**
      * Create a filename for CSR
+     *
      * @param keyUsageInfo
      * @param csrFormat
      * @param memberId
@@ -100,6 +101,7 @@ public class CsrFilenameCreator {
 
     /**
      * Create a simple filename with the current date for internal cert CSR
+     *
      * @return
      */
     public String createInternalCsrFilename() {

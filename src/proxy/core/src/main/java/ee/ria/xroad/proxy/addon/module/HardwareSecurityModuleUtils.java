@@ -26,7 +26,8 @@
 package ee.ria.xroad.proxy.addon.module;
 
 import ee.ria.xroad.common.CodedException;
-import ee.ria.xroad.signer.SignerProxy;
+
+import org.niis.xroad.signer.client.SignerProxy;
 
 import static ee.ria.xroad.common.ErrorCodes.X_HW_MODULE_NON_OPERATIONAL;
 

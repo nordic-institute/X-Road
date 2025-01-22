@@ -30,6 +30,7 @@ package org.niis.xroad.cs.admin.core.service;
 import org.niis.xroad.common.exception.ValidationFailureException;
 import org.niis.xroad.cs.admin.api.domain.ConfigurationSigningKey;
 import org.niis.xroad.cs.admin.api.dto.PossibleKeyAction;
+import org.niis.xroad.signer.api.dto.TokenInfo;
 import org.springframework.stereotype.Component;
 
 import java.util.EnumSet;
@@ -42,7 +43,7 @@ import static org.niis.xroad.cs.admin.api.exception.ErrorMessage.SIGNING_KEY_ACT
 @Component
 public class SigningKeyActionsResolver {
 
-    public EnumSet<PossibleKeyAction> resolveActions(final ee.ria.xroad.signer.protocol.dto.TokenInfo token,
+    public EnumSet<PossibleKeyAction> resolveActions(final TokenInfo token,
                                                      final ConfigurationSigningKey signingKey) {
         EnumSet<PossibleKeyAction> actions = noneOf(PossibleKeyAction.class);
 
@@ -55,7 +56,7 @@ public class SigningKeyActionsResolver {
     }
 
     public void requireAction(final PossibleKeyAction action,
-                              final ee.ria.xroad.signer.protocol.dto.TokenInfo token,
+                              final TokenInfo token,
                               final ConfigurationSigningKey signingKey) {
         if (!resolveActions(token, signingKey).contains(action))
             throw new ValidationFailureException(SIGNING_KEY_ACTION_NOT_POSSIBLE);

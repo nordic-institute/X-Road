@@ -23,60 +23,43 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package ee.ria.xroad.signer.tokenmanager.token;
+package org.niis.xroad.signer.core.tokenmanager.module;
 
-import ee.ria.xroad.common.crypto.identifier.KeyAlgorithm;
-import ee.ria.xroad.common.crypto.identifier.SignMechanism;
-import ee.ria.xroad.common.util.EncoderUtils;
-import ee.ria.xroad.signer.tokenmanager.module.PrivKeyAttributes;
-import ee.ria.xroad.signer.tokenmanager.module.PubKeyAttributes;
-import ee.ria.xroad.signer.util.SignerUtil;
+import lombok.extern.slf4j.Slf4j;
 
-import lombok.EqualsAndHashCode;
-import lombok.Value;
-
-import java.util.Map;
 import java.util.Optional;
 
 /**
- * Hardware token type, holding the actual pkcs11 token.
+ * Module manager that supports hardware tokens.
  */
-@Value
-@EqualsAndHashCode(exclude = "readOnly")
-public class HardwareTokenType implements TokenType {
-
-    String moduleType;
-
-    String tokenIdFormat;
-
-    iaik.pkcs.pkcs11.Token token;
-
-    boolean readOnly;
-
-    Integer slotIndex;
-
-    String serialNumber;
-
-    String label;
-
-    boolean pinVerificationPerSigning;
-
-    boolean batchSigningEnabled;
-
-    Map<KeyAlgorithm, SignMechanism> signMechanisms;
-
-    PrivKeyAttributes privKeyAttributes;
-
-    PubKeyAttributes pubKeyAttributes;
+@Slf4j
+public class HardwareModuleManagerImpl extends DefaultModuleManagerImpl {
 
     @Override
-    public String getId() {
-        return EncoderUtils.encodeHex(SignerUtil.getFormattedTokenId(tokenIdFormat, moduleType, token).getBytes());
+    protected AbstractModuleWorker createModuleWorker(ModuleType module) throws Exception {
+        if (module instanceof HardwareModuleType hmt) {
+            return createWorker(hmt);
+        }
+
+        return super.createModuleWorker(module);
+    }
+
+    private AbstractModuleWorker createWorker(HardwareModuleType hardwareModule) {
+        try {
+            return new HardwareModuleWorker(hardwareModule);
+        } catch (Exception e) {
+            log.error("Error initializing hardware module '{}'", hardwareModule.getType(), e);
+        }
+
+        return null;
     }
 
     @Override
-    public Optional<SignMechanism> resolveSignMechanismName(KeyAlgorithm algorithm) {
-        return Optional.ofNullable(signMechanisms.get(algorithm));
-    }
+    public Optional<Boolean> isHSMModuleOperational() {
+        boolean hsmOperationalStatus = ModuleConf.getModules().stream()
+                .noneMatch(moduleType -> moduleType instanceof HardwareModuleType
+                        && !isModuleInitialized(moduleType));
 
+        return Optional.of(hsmOperationalStatus);
+    }
 }

@@ -30,9 +30,6 @@ import ee.ria.xroad.common.crypto.identifier.KeyAlgorithm;
 import ee.ria.xroad.common.crypto.identifier.SignMechanism;
 import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.util.TimeUtils;
-import ee.ria.xroad.signer.protocol.dto.KeyInfo;
-import ee.ria.xroad.signer.protocol.dto.KeyUsageInfo;
-import ee.ria.xroad.signer.protocol.dto.TokenInfo;
 
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
@@ -59,6 +56,9 @@ import org.niis.xroad.cs.admin.core.repository.ConfigurationSourceRepository;
 import org.niis.xroad.restapi.config.audit.AuditDataHelper;
 import org.niis.xroad.restapi.config.audit.AuditEventHelper;
 import org.niis.xroad.restapi.config.audit.RestApiAuditProperty;
+import org.niis.xroad.signer.api.dto.KeyInfo;
+import org.niis.xroad.signer.api.dto.TokenInfo;
+import org.niis.xroad.signer.protocol.dto.KeyUsageInfo;
 import org.springframework.stereotype.Service;
 
 import java.time.Instant;
@@ -136,7 +136,7 @@ public class ConfigurationSigningKeysServiceImpl extends AbstractTokenConsumer i
                 .collect(toList());
     }
 
-    private ConfigurationSigningKeyWithDetails mapWithDetails(final ee.ria.xroad.signer.protocol.dto.TokenInfo token,
+    private ConfigurationSigningKeyWithDetails mapWithDetails(final TokenInfo token,
                                                               ConfigurationSigningKey signingKey,
                                                               KeyInfo keyInfo) {
         var possibleActions = List.copyOf(signingKeyActionsResolver.resolveActions(token, signingKey));

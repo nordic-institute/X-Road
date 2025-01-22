@@ -10,7 +10,7 @@
     <logger name="ee.ria.xroad" level="${XROAD_LOG_LEVEL:-INFO}"/>
 
     <!--TokenManager is very verbose /-->
-    <logger name="ee.ria.xroad.signer.tokenmanager.TokenManager" level="OFF" />
+    <logger name="org.niis.xroad.signer.core.tokenmanager.TokenManager" level="OFF" />
 
     <root level="${XROAD_ROOT_LOG_LEVEL:-WARN}">
         <appender-ref ref="STDOUT" />

@@ -32,8 +32,6 @@ import ee.ria.xroad.common.identifier.SecurityServerId;
 import ee.ria.xroad.common.util.CryptoUtils;
 import ee.ria.xroad.common.util.FileContentChangeChecker;
 import ee.ria.xroad.common.util.filewatcher.FileWatcherRunner;
-import ee.ria.xroad.signer.SignerProxy;
-import ee.ria.xroad.signer.SignerProxy.MemberSigningInfoDto;
 
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
@@ -47,6 +45,8 @@ import org.niis.xroad.globalconf.cert.CertChain;
 import org.niis.xroad.globalconf.impl.cert.CertChainVerifier;
 import org.niis.xroad.proxy.core.auth.AuthKey;
 import org.niis.xroad.serverconf.ServerConfProvider;
+import org.niis.xroad.signer.client.SignerProxy;
+import org.niis.xroad.signer.client.SignerProxy.MemberSigningInfoDto;
 
 import java.lang.ref.WeakReference;
 import java.nio.file.Paths;
@@ -143,7 +143,7 @@ public class CachingKeyConfImpl extends KeyConfImpl {
     protected AuthKeyInfo getAuthKeyInfo(SecurityServerId serverId) throws Exception {
         log.debug("Retrieving authentication info for security server '{}'", serverId);
 
-        ee.ria.xroad.signer.protocol.dto.AuthKeyInfo keyInfo = SignerProxy.getAuthKey(serverId);
+        org.niis.xroad.signer.api.dto.AuthKeyInfo keyInfo = SignerProxy.getAuthKey(serverId);
 
         CertChain certChain = getAuthCertChain(serverId.getXRoadInstance(), keyInfo.getCert().getCertificateBytes());
 

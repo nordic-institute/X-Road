@@ -27,11 +27,11 @@
 
 package org.niis.xroad.cs.admin.core.service;
 
-import ee.ria.xroad.signer.exception.SignerException;
-
 import org.niis.xroad.common.exception.NotFoundException;
 import org.niis.xroad.common.exception.SignerProxyException;
 import org.niis.xroad.cs.admin.api.facade.SignerProxyFacade;
+import org.niis.xroad.signer.api.dto.TokenInfo;
+import org.niis.xroad.signer.api.exception.SignerException;
 
 import static org.niis.xroad.cs.admin.api.exception.ErrorMessage.SIGNER_PROXY_ERROR;
 import static org.niis.xroad.cs.admin.api.exception.ErrorMessage.TOKEN_NOT_FOUND;
@@ -41,7 +41,7 @@ public abstract class AbstractTokenConsumer {
 
     protected abstract SignerProxyFacade getSignerProxyFacade();
 
-    protected ee.ria.xroad.signer.protocol.dto.TokenInfo getToken(String tokenId) {
+    protected TokenInfo getToken(String tokenId) {
         try {
             return getSignerProxyFacade().getToken(tokenId);
         } catch (SignerException signerException) {

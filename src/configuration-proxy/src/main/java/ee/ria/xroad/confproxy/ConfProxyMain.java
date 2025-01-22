@@ -28,9 +28,9 @@ package ee.ria.xroad.confproxy;
 import ee.ria.xroad.common.SystemPropertiesLoader;
 import ee.ria.xroad.common.Version;
 import ee.ria.xroad.confproxy.util.ConfProxyHelper;
-import ee.ria.xroad.signer.protocol.RpcSignerClient;
 
 import lombok.extern.slf4j.Slf4j;
+import org.niis.xroad.signer.client.RpcSignerClient;
 
 import java.util.Arrays;
 import java.util.List;

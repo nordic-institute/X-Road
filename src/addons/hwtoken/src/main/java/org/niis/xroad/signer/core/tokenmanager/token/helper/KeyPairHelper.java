@@ -22,16 +22,16 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package ee.ria.xroad.signer.tokenmanager.token.helper;
+package org.niis.xroad.signer.core.tokenmanager.token.helper;
 
 import ee.ria.xroad.common.crypto.identifier.KeyAlgorithm;
-import ee.ria.xroad.signer.tokenmanager.module.PrivKeyAttributes;
-import ee.ria.xroad.signer.tokenmanager.module.PubKeyAttributes;
 
 import iaik.pkcs.pkcs11.Session;
 import iaik.pkcs.pkcs11.TokenException;
 import iaik.pkcs.pkcs11.objects.KeyPair;
 import iaik.pkcs.pkcs11.objects.PublicKey;
+import org.niis.xroad.signer.core.tokenmanager.module.PrivKeyAttributes;
+import org.niis.xroad.signer.core.tokenmanager.module.PubKeyAttributes;
 
 public sealed interface KeyPairHelper permits RsaKeyPairHelper, EcKeyPairHelper {
 

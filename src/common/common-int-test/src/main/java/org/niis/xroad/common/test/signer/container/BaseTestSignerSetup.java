@@ -95,7 +95,7 @@ public abstract class BaseTestSignerSetup {
                     case "aarch64", "arm64" -> "arm64";
                     default -> throw new IllegalStateException("Unsupported arch: " + SystemUtils.OS_ARCH);
                 };
-                return Paths.get("../../libs/pkcs11wrapper/%s/%s".formatted(archDir, PKCS11_WRAPPER_FILENAME));
+                return Paths.get(getPksWrapperDir().formatted(archDir, PKCS11_WRAPPER_FILENAME));
 
             }
         };
@@ -108,7 +108,7 @@ public abstract class BaseTestSignerSetup {
             @SuppressWarnings("squid:S2068")
             public void beforeStart(@NotNull GenericContainer<?> genericContainer) {
                 var modulemanager = enableHwModule
-                        ? "-Dxroad.signer.moduleManagerImpl=ee.ria.xroad.signer.tokenmanager.module.HardwareModuleManagerImpl"
+                        ? "-Dxroad.signer.moduleManagerImpl=org.niis.xroad.signer.core.tokenmanager.module.HardwareModuleManagerImpl"
                         : "";
 
                 genericContainer
@@ -128,7 +128,7 @@ public abstract class BaseTestSignerSetup {
                                 modulemanager,
                                 "-cp",
                                 "/root/lib/hwtoken.jar:/root/app.jar",
-                                "ee.ria.xroad.signer.SignerMain");
+                                "org.niis.xroad.signer.application.SignerMain");
 
                 prepareSignerDirs();
             }
@@ -154,4 +154,6 @@ public abstract class BaseTestSignerSetup {
             }
         };
     }
+
+    public abstract String getPksWrapperDir();
 }

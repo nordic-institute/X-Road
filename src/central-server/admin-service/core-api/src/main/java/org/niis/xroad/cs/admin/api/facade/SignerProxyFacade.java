@@ -29,11 +29,12 @@ import ee.ria.xroad.common.crypto.identifier.KeyAlgorithm;
 import ee.ria.xroad.common.crypto.identifier.SignAlgorithm;
 import ee.ria.xroad.common.crypto.identifier.SignMechanism;
 import ee.ria.xroad.common.identifier.ClientId;
-import ee.ria.xroad.signer.SignerProxy;
-import ee.ria.xroad.signer.exception.SignerException;
-import ee.ria.xroad.signer.protocol.dto.KeyInfo;
-import ee.ria.xroad.signer.protocol.dto.KeyUsageInfo;
-import ee.ria.xroad.signer.protocol.dto.TokenInfo;
+
+import org.niis.xroad.signer.api.dto.KeyInfo;
+import org.niis.xroad.signer.api.dto.TokenInfo;
+import org.niis.xroad.signer.api.exception.SignerException;
+import org.niis.xroad.signer.client.SignerProxy;
+import org.niis.xroad.signer.protocol.dto.KeyUsageInfo;
 
 import java.util.Date;
 import java.util.List;

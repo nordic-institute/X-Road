@@ -23,13 +23,9 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package ee.ria.xroad.signer.tokenmanager.module;
+package org.niis.xroad.signer.core.tokenmanager.module;
 
 import ee.ria.xroad.common.crypto.identifier.KeyAlgorithm;
-import ee.ria.xroad.signer.tokenmanager.token.AbstractTokenWorker;
-import ee.ria.xroad.signer.tokenmanager.token.HardwareTokenType;
-import ee.ria.xroad.signer.tokenmanager.token.HardwareTokenWorker;
-import ee.ria.xroad.signer.tokenmanager.token.TokenType;
 
 import iaik.pkcs.pkcs11.DefaultInitializeArgs;
 import iaik.pkcs.pkcs11.InitializeArgs;
@@ -40,6 +36,11 @@ import iaik.pkcs.pkcs11.wrapper.Functions;
 import iaik.pkcs.pkcs11.wrapper.PKCS11Constants;
 import iaik.pkcs.pkcs11.wrapper.PKCS11Exception;
 import lombok.extern.slf4j.Slf4j;
+import org.niis.xroad.signer.api.dto.TokenInfo;
+import org.niis.xroad.signer.core.tokenmanager.token.AbstractTokenWorker;
+import org.niis.xroad.signer.core.tokenmanager.token.HardwareTokenType;
+import org.niis.xroad.signer.core.tokenmanager.token.HardwareTokenWorker;
+import org.niis.xroad.signer.core.tokenmanager.token.TokenType;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -48,7 +49,7 @@ import java.util.Map;
 import java.util.Set;
 
 import static ee.ria.xroad.common.ErrorCodes.translateException;
-import static ee.ria.xroad.signer.tokenmanager.token.HardwareTokenUtil.moduleGetInstance;
+import static org.niis.xroad.signer.core.tokenmanager.token.HardwareTokenUtil.moduleGetInstance;
 
 /**
  * Module worker for hardware tokens.
@@ -195,7 +196,7 @@ public class HardwareModuleWorker extends AbstractModuleWorker {
     }
 
     @Override
-    protected AbstractTokenWorker createWorker(ee.ria.xroad.signer.protocol.dto.TokenInfo tokenInfo, TokenType tokenType) {
+    protected AbstractTokenWorker createWorker(TokenInfo tokenInfo, TokenType tokenType) {
         return new HardwareTokenWorker(tokenInfo, tokenType);
     }
 }

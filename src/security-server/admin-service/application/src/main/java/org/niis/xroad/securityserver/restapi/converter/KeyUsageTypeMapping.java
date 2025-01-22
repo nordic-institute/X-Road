@@ -25,11 +25,10 @@
  */
 package org.niis.xroad.securityserver.restapi.converter;
 
-import ee.ria.xroad.signer.protocol.dto.KeyUsageInfo;
-
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import org.niis.xroad.securityserver.restapi.openapi.model.KeyUsageType;
+import org.niis.xroad.signer.protocol.dto.KeyUsageInfo;
 
 import java.util.Arrays;
 import java.util.Optional;
@@ -48,6 +47,7 @@ public enum KeyUsageTypeMapping {
 
     /**
      * Return matching KeyUsageInfo, if any
+     *
      * @param keyUsageType
      * @return
      */
@@ -57,6 +57,7 @@ public enum KeyUsageTypeMapping {
 
     /**
      * Return matching KeyUsageType, if any
+     *
      * @param keyUsageInfo
      * @return
      */
@@ -66,6 +67,7 @@ public enum KeyUsageTypeMapping {
 
     /**
      * return KeyUsageInfoMapping matching the given KeyUsageType, if any
+     *
      * @param keyUsageType
      * @return
      */
@@ -77,6 +79,7 @@ public enum KeyUsageTypeMapping {
 
     /**
      * return KeyUsageInfoMapping matching the given KeyUsageInfo, if any
+     *
      * @param keyUsageInfo
      * @return
      */

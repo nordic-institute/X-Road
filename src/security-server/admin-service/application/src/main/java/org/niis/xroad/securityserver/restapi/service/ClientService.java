@@ -27,7 +27,6 @@ package org.niis.xroad.securityserver.restapi.service;
 
 import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.util.CryptoUtils;
-import ee.ria.xroad.signer.protocol.dto.CertificateInfo;
 
 import lombok.Builder;
 import lombok.RequiredArgsConstructor;
@@ -53,6 +52,7 @@ import org.niis.xroad.serverconf.model.ClientType;
 import org.niis.xroad.serverconf.model.LocalGroupType;
 import org.niis.xroad.serverconf.model.ServerConfType;
 import org.niis.xroad.serverconf.model.ServiceDescriptionType;
+import org.niis.xroad.signer.api.dto.CertificateInfo;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
