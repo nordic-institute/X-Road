@@ -25,34 +25,20 @@
  * THE SOFTWARE.
  */
 
-package org.niis.xroad.confclient;
+package ee.ria.xroad.messagelog.archiver;
 
-import io.quarkus.test.Mock;
-import jakarta.annotation.PostConstruct;
-import jakarta.enterprise.context.ApplicationScoped;
-import lombok.extern.slf4j.Slf4j;
-import org.niis.xroad.common.rpc.VaultKeyProvider;
+import io.quarkus.test.junit.QuarkusTestProfile;
 
-import javax.net.ssl.KeyManager;
-import javax.net.ssl.TrustManager;
+import java.util.Map;
 
-@Slf4j
-@Mock
-@ApplicationScoped
-public class NoopVaultKeyProvider implements VaultKeyProvider {
-
-    @PostConstruct
-    public void init() {
-        log.info("NoopVaultKeyProvider init");
-    }
+public class LogArchiverTestProfile implements QuarkusTestProfile {
 
     @Override
-    public KeyManager getKeyManager() {
-        return null;
+    public Map<String, String> getConfigOverrides() {
+        return Map.of(
+                "xroad.common.rpc.use-tls", "false",
+                "xroad.common.global-conf.source", "FILESYSTEM"
+        );
     }
 
-    @Override
-    public TrustManager getTrustManager() {
-        return null;
-    }
 }

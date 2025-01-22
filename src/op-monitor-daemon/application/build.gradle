@@ -11,6 +11,7 @@ dependencies {
     implementation project(':op-monitor-daemon:core')
 
     testImplementation(libs.quarkus.junit5)
+    testImplementation(testFixtures(project(":common:common-rpc")))
 }
 
 jar.enabled = false

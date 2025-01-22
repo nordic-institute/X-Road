@@ -25,56 +25,18 @@
  */
 package ee.ria.xroad.messagelog.archiver;
 
-import ee.ria.xroad.common.conf.globalconf.GlobalConfBeanConfig;
-import ee.ria.xroad.common.conf.globalconf.GlobalConfRefreshJobConfig;
 import ee.ria.xroad.common.db.DatabaseCtxV2;
 import ee.ria.xroad.common.messagelog.MessageLogConfig;
-import ee.ria.xroad.common.messagelog.MessageLogProperties;
-import ee.ria.xroad.common.util.JobManager;
 
-import org.niis.xroad.confclient.proto.ConfClientRpcClientConfiguration;
-import org.quartz.JobDataMap;
-import org.quartz.SchedulerException;
-import org.quartz.impl.StdSchedulerFactory;
-import org.springframework.boot.context.properties.ConfigurationProperties;
-import org.springframework.boot.context.properties.EnableConfigurationProperties;
-import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Configuration;
-import org.springframework.context.annotation.Import;
-import org.springframework.scheduling.quartz.SpringBeanJobFactory;
+import jakarta.enterprise.context.ApplicationScoped;
+import jakarta.enterprise.inject.Produces;
 
-@Import({GlobalConfBeanConfig.class,
-        GlobalConfRefreshJobConfig.class,
-        ConfClientRpcClientConfiguration.class})
-@EnableConfigurationProperties({
-        LogArchiverConfig.SpringMessageLogProperties.class})
-@Configuration(proxyBeanMethods = false)
 public class LogArchiverConfig {
 
-    @Bean
-    JobManager jobManager(SpringBeanJobFactory springBeanJobFactory) throws SchedulerException {
-        final var jobManager = new JobManager(new StdSchedulerFactory().getScheduler(), springBeanJobFactory);
-
-        jobManager.registerJob(LogArchiver.class, "ArchiverJob", MessageLogProperties.getArchiveInterval(),
-                new JobDataMap());
-
-        jobManager.registerJob(LogCleaner.class, "CleanerJob", MessageLogProperties.getCleanInterval(),
-                new JobDataMap());
-
-        return jobManager;
-    }
-
-    @Bean
-    SpringBeanJobFactory springBeanJobFactory() {
-        return new SpringBeanJobFactory();
-    }
-
-    @Bean
+    @ApplicationScoped
+    @Produces
     DatabaseCtxV2 logArchiverDatabaseCtx(MessageLogConfig messageLogProperties) {
         return new DatabaseCtxV2("messagelog", messageLogProperties.getHibernate());
     }
 
-    @ConfigurationProperties(prefix = "xroad.messagelog")
-    static class SpringMessageLogProperties extends MessageLogConfig {
-    }
 }

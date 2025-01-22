@@ -25,32 +25,19 @@
  * THE SOFTWARE.
  */
 
-package ee.ria.xroad.opmonitordaemon;
+package ee.ria.xroad.messagelog.archiver;
 
-import io.quarkus.test.Mock;
-import jakarta.annotation.PostConstruct;
-import lombok.extern.slf4j.Slf4j;
-import org.niis.xroad.common.rpc.VaultKeyProvider;
+import io.quarkus.test.junit.QuarkusTest;
+import io.quarkus.test.junit.TestProfile;
+import org.junit.jupiter.api.Test;
 
-import javax.net.ssl.KeyManager;
-import javax.net.ssl.TrustManager;
+@QuarkusTest
+@TestProfile(LogArchiverTestProfile.class)
+class LogArchiverMainTest {
 
-@Slf4j
-@Mock
-public class NoopVaultKeyProvider implements VaultKeyProvider {
-
-    @PostConstruct
-    public void init() {
-        log.info("NoopVaultKeyProvider init");
+    @Test
+    void contextLoads() {
+        // ok
     }
 
-    @Override
-    public KeyManager getKeyManager() {
-        return null;
-    }
-
-    @Override
-    public TrustManager getTrustManager() {
-        return null;
-    }
 }

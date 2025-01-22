@@ -26,14 +26,14 @@
 package ee.ria.xroad.messagelog.archiver;
 
 import ee.ria.xroad.common.db.DatabaseCtxV2;
-import ee.ria.xroad.common.messagelog.MessageLogProperties;
+import ee.ria.xroad.common.messagelog.MessageLogConfig;
 import ee.ria.xroad.common.util.TimeUtils;
 
+import io.quarkus.scheduler.Scheduled;
+import jakarta.enterprise.context.ApplicationScoped;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.hibernate.query.MutationQuery;
-import org.quartz.Job;
-import org.quartz.JobExecutionContext;
 
 import java.time.temporal.ChronoUnit;
 
@@ -42,14 +42,16 @@ import java.time.temporal.ChronoUnit;
  */
 @Slf4j
 @RequiredArgsConstructor
-public class LogCleaner implements Job {
-
-    public static final int CLEAN_BATCH_LIMIT = MessageLogProperties.getCleanTransactionBatchSize();
+@ApplicationScoped
+public class LogCleaner {
 
     private final DatabaseCtxV2 databaseCtx;
+    private final MessageLogConfig messageLogProperties;
 
-    @Override
-    public void execute(JobExecutionContext context) {
+    @Scheduled(cron = "${xroad.message-log.clean-interval}",
+            identity = "CleanerJob",
+            concurrentExecution = Scheduled.ConcurrentExecution.SKIP)
+    public void execute() {
         try {
             log.info("Removing archived records from database...");
             final long removed = handleClean();
@@ -64,16 +66,15 @@ public class LogCleaner implements Job {
     }
 
     protected long handleClean() throws Exception {
-
         final Long time =
-                TimeUtils.now().minus(MessageLogProperties.getKeepRecordsForDays(), ChronoUnit.DAYS).toEpochMilli();
+                TimeUtils.now().minus(messageLogProperties.getKeepRecordsForDays(), ChronoUnit.DAYS).toEpochMilli();
         long count = 0;
         int removed;
         do {
             removed = databaseCtx.doInTransaction(session -> {
                 final MutationQuery query = session.createNamedMutationQuery("delete-logrecords");
                 query.setParameter("time", time);
-                query.setParameter("limit", CLEAN_BATCH_LIMIT);
+                query.setParameter("limit", messageLogProperties.getCleanTransactionBatchSize());
                 return query.executeUpdate();
             });
             log.debug("Removed {} archived records", removed);

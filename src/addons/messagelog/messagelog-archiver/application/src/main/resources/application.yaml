@@ -1,18 +1,26 @@
-spring:
+quarkus:
   application:
     name: message-log-archiver
+    version: 1.0.0
+  spring-di:
+    enabled: true
+  vault:
+    devservices:
+      enabled: false
+  live-reload:
+    enabled: false
+  http:
+    host-enabled: false
+  config:
+    locations:
+      - xroad-common.yaml
+      - xroad-ss-common.yaml
+      - xroad-logging.yaml
 
-server:
-  port: 5598
+#server:
+#  port: 5598
 
 xroad:
-  #todo: unify with message-log
-  messagelog:
-    hibernate:
-      connection.driver_class: org.postgresql.Driver
-      connection.url: jdbc:postgresql://127.0.0.1:5432/messagelog
-      hikari.dataSource.currentSchema: messagelog,public
-      jdbc.use_streams_for_binary: true
   message-log:
     timestamper-client-connect-timeout: 20000
     timestamper-client-read-timeout: 60000
@@ -21,11 +29,18 @@ xroad:
     acceptable-timestamp-failure-period: 14400
     keep-records-for: 30
     archive-max-filesize: 33554432
-    archive-interval: 0 0 0/6 1/1 * ? *
-    archive-path: /var/lib/xroad/
-    clean-interval: 0 0 3/6 1/1 * ? *
+    archive-interval: 0 0 0/6 1/1 * ?
+    archive-transaction-batch: 10000
+    archive-path: /var/lib/xroad
+    clean-interval: 0 0 3/6 1/1 * ?
+    clean-transaction-batch: 10000
     hash-algo-id: SHA-512
     archive-transfer-command:
     message-body-logging: true
+    hibernate:
+      connection.driver_class: org.postgresql.Driver
+      connection.url: jdbc:postgresql://127.0.0.1:5432/messagelog
+      hikari.dataSource.currentSchema: messagelog,public
+      jdbc.use_streams_for_binary: true
   node:
     type:

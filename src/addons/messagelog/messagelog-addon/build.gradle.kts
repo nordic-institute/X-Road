@@ -16,7 +16,6 @@ dependencies {
   implementation(project(":proxy:core"))
   implementation(project(":common:common-jetty"))
   implementation(project(":common:common-globalconf"))
-  implementation(project(":common:common-scheduler"))
   implementation(project(":serverconf"))
   implementation(project(":common:common-messagelog"))
   implementation(project(":common:common-op-monitoring"))

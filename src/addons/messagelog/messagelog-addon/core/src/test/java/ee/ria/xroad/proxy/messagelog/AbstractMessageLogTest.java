@@ -47,7 +47,6 @@ import ee.ria.xroad.proxy.conf.KeyConfProvider;
 
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.FileUtils;
-import org.quartz.JobExecutionContext;
 
 import java.io.ByteArrayInputStream;
 import java.nio.file.Files;
@@ -164,11 +163,11 @@ abstract class AbstractMessageLogTest {
     }
 
     void startArchiving() {
-        logArchiverRef.execute(mock(JobExecutionContext.class));
+        logArchiverRef.execute();
     }
 
     void startCleaning() {
-        logCleanerRef.execute(mock(JobExecutionContext.class));
+        logCleanerRef.execute();
     }
 
     static void assertMessageRecord(Object o, String queryId) {

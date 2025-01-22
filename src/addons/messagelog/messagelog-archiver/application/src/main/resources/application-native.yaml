@@ -1,2 +1,14 @@
-logging:
-  config: classpath:logback-native.xml
+quarkus:
+  package:
+    output-directory: libs
+    output-name: messagelog-archiver
+    jar:
+      type: uber-jar
+      add-runner-suffix: false
+
+  log:
+    console:
+      enable: false
+    file:
+      enable: true
+      path: /var/log/xroad/messagelog-archiver.log

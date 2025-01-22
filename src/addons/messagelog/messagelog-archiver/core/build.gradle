@@ -1,22 +1,18 @@
 plugins {
     id("xroad.java-conventions")
+    alias(libs.plugins.jandex)
 }
 
 dependencies {
-    api(platform(libs.springBoot.bom))
+    implementation(platform(libs.quarkus.bom))
 
-    api('org.springframework:spring-context-support')
-    api(project(':common:common-messagelog'))
-
-    implementation(project(':common:common-scheduler'))
+    implementation(project(':common:common-messagelog'))
+    implementation(project(':common:common-core'))
+    implementation(project(':common:common-globalconf'))
     implementation(project(':common:common-db'))
-    implementation(project(':common:common-verifier'))
     implementation(project(':addons:messagelog:messagelog-db'))
-    implementation(project(':asic-util'))
+    implementation(libs.dss.utils.apache.commons)
 
-    implementation("org.springframework.boot:spring-boot-starter")
+    implementation libs.quarkus.scheduler
 }
 
-jar {
-    archiveBaseName = 'messagelog-archiver-core'
-}

@@ -30,7 +30,7 @@ import ee.ria.xroad.common.ErrorCodes;
 import ee.ria.xroad.common.conf.globalconf.GlobalConfProvider;
 import ee.ria.xroad.common.db.DatabaseCtxV2;
 import ee.ria.xroad.common.messagelog.LogRecord;
-import ee.ria.xroad.common.messagelog.MessageLogProperties;
+import ee.ria.xroad.common.messagelog.MessageLogConfig;
 import ee.ria.xroad.common.messagelog.MessageRecord;
 import ee.ria.xroad.common.messagelog.archive.DigestEntry;
 import ee.ria.xroad.common.messagelog.archive.LogArchiveBase;
@@ -41,15 +41,16 @@ import ee.ria.xroad.messagelog.database.entity.MessageRecordEntity;
 import ee.ria.xroad.messagelog.database.mapper.ArchiveDigestMapper;
 import ee.ria.xroad.messagelog.database.mapper.MessageRecordMapper;
 
+import io.quarkus.scheduler.Scheduled;
+import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.persistence.criteria.CriteriaBuilder;
 import jakarta.persistence.criteria.CriteriaQuery;
 import jakarta.persistence.criteria.Expression;
 import jakarta.persistence.criteria.Root;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.IOUtils;
 import org.hibernate.Session;
-import org.quartz.Job;
-import org.quartz.JobExecutionContext;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -63,8 +64,6 @@ import java.util.List;
 import java.util.Optional;
 import java.util.stream.Stream;
 
-import static ee.ria.xroad.common.messagelog.MessageLogProperties.getArchiveTransactionBatchSize;
-import static ee.ria.xroad.common.messagelog.MessageLogProperties.getArchiveTransferCommand;
 import static org.apache.commons.lang3.StringUtils.isBlank;
 
 /**
@@ -72,7 +71,9 @@ import static org.apache.commons.lang3.StringUtils.isBlank;
  * to archive file and marks the records as archived.
  */
 @Slf4j
-public class LogArchiver implements Job {
+@ApplicationScoped
+@RequiredArgsConstructor
+public class LogArchiver {
 
     private static final String PROPERTY_NAME_ARCHIVED = "archived";
 
@@ -80,15 +81,12 @@ public class LogArchiver implements Job {
 
     private final GlobalConfProvider globalConfProvider;
     private final DatabaseCtxV2 databaseCtx;
-    private final Path archivePath = Paths.get(MessageLogProperties.getArchivePath());
+    private final MessageLogConfig messageLogProperties;
 
-    public LogArchiver(GlobalConfProvider globalConfProvider, DatabaseCtxV2 databaseCtx) {
-        this.globalConfProvider = globalConfProvider;
-        this.databaseCtx = databaseCtx;
-    }
-
-    @Override
-    public void execute(JobExecutionContext context) {
+    @Scheduled(cron = "${xroad.message-log.archive-interval}",
+            identity = "ArchiverJob",
+            concurrentExecution = Scheduled.ConcurrentExecution.SKIP)
+    public void execute() {
         try {
             Long maxRecordId = databaseCtx.doInTransaction(this::getMaxRecordId);
             if (maxRecordId != null) {
@@ -110,8 +108,8 @@ public class LogArchiver implements Job {
 
     private boolean handleArchive(long maxRecordId) throws Exception {
         return databaseCtx.doInTransaction(session -> {
-            final int limit = getArchiveTransactionBatchSize();
-            final String archiveTransferCommand = getArchiveTransferCommand();
+            final int limit = messageLogProperties.getArchiveTransactionBatchSize();
+            final String archiveTransferCommand = messageLogProperties.getArchiveTransferCommand();
             final long start = System.currentTimeMillis();
             final MessageRecordEncryption messageRecordEncryption = MessageRecordEncryption.getInstance();
 
@@ -168,6 +166,7 @@ public class LogArchiver implements Job {
     }
 
     private Path getArchivePath() throws IOException {
+        Path archivePath = Paths.get(messageLogProperties.getArchivePath());
         if (!Files.isDirectory(archivePath)) {
             throw new IOException("Log output path (" + archivePath + ") must be directory");
         }

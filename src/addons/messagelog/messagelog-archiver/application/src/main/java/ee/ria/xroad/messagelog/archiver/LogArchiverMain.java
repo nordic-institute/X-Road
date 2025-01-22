@@ -26,22 +26,16 @@
  */
 package ee.ria.xroad.messagelog.archiver;
 
-import lombok.extern.slf4j.Slf4j;
-import org.niis.xroad.bootstrap.XrdSpringServiceBuilder;
-import org.springframework.boot.SpringBootConfiguration;
-import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
+import io.quarkus.runtime.Quarkus;
+import io.quarkus.runtime.annotations.QuarkusMain;
+import org.niis.xroad.bootstrap.XrdQuarkusApplication;
 
-@Slf4j
-@EnableAutoConfiguration
-@SpringBootConfiguration
+@QuarkusMain
 @SuppressWarnings("checkstyle:HideUtilityClassConstructor")
 public class LogArchiverMain {
-    private static final String APP_NAME = "message-log-archiver";
 
     public static void main(String[] args) {
-        XrdSpringServiceBuilder.newApplicationBuilder(APP_NAME, LogArchiverMain.class, LogArchiverConfig.class)
-                .build()
-                .run(args);
+        Quarkus.run(XrdQuarkusApplication.class, args);
     }
 
 }
