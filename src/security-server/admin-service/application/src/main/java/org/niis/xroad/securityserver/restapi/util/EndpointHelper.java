@@ -25,12 +25,11 @@
  */
 package org.niis.xroad.securityserver.restapi.util;
 
-import ee.ria.xroad.common.conf.serverconf.model.ClientType;
-import ee.ria.xroad.common.conf.serverconf.model.EndpointType;
-import ee.ria.xroad.common.conf.serverconf.model.ServiceDescriptionType;
-import ee.ria.xroad.common.conf.serverconf.model.ServiceType;
-
 import org.niis.xroad.securityserver.restapi.wsdl.OpenApiParser;
+import org.niis.xroad.serverconf.model.ClientType;
+import org.niis.xroad.serverconf.model.EndpointType;
+import org.niis.xroad.serverconf.model.ServiceDescriptionType;
+import org.niis.xroad.serverconf.model.ServiceType;
 import org.springframework.stereotype.Component;
 
 import java.util.List;

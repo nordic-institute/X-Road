@@ -25,10 +25,6 @@
  */
 package org.niis.xroad.securityserver.restapi.service;
 
-import ee.ria.xroad.common.conf.serverconf.model.AccessRightType;
-import ee.ria.xroad.common.conf.serverconf.model.ClientType;
-import ee.ria.xroad.common.conf.serverconf.model.GroupMemberType;
-import ee.ria.xroad.common.conf.serverconf.model.LocalGroupType;
 import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.identifier.LocalGroupId;
 import ee.ria.xroad.common.identifier.XRoadId;
@@ -43,6 +39,10 @@ import org.niis.xroad.restapi.service.NotFoundException;
 import org.niis.xroad.restapi.service.ServiceException;
 import org.niis.xroad.securityserver.restapi.repository.ClientRepository;
 import org.niis.xroad.securityserver.restapi.repository.LocalGroupRepository;
+import org.niis.xroad.serverconf.model.AccessRightType;
+import org.niis.xroad.serverconf.model.ClientType;
+import org.niis.xroad.serverconf.model.GroupMemberType;
+import org.niis.xroad.serverconf.model.LocalGroupType;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;

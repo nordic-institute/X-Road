@@ -43,12 +43,12 @@ class FSGlobalConfValidatorTest {
 
     static Stream<Arguments> readinessStateProvider() {
         return Stream.of(
-                Arguments.of("../globalconf-model/src/test/resources/globalconf_good_v4", READY_TO_INIT),
+                Arguments.of("../globalconf-core/src/test/resources/globalconf_good_v4", READY_TO_INIT),
                 Arguments.of("-", FAILURE_CONFIGURATION_ERROR),
-                Arguments.of("../globalconf-model/src/test/resources/random_path", FAILURE_CONFIGURATION_ERROR),
-                Arguments.of("../globalconf-model/src/test/resources/globalconf_good_v4/instance-identifier", FAILURE_CONFIGURATION_ERROR),
-                Arguments.of("../globalconf-model/src/test/resources/globalconf_missing_identifier", FAILURE_MISSING_INSTANCE_IDENTIFIER),
-                Arguments.of("../globalconf-model/src/test/resources/globalconf_empty", FAILURE_MALFORMED)
+                Arguments.of("../globalconf-core/src/test/resources/random_path", FAILURE_CONFIGURATION_ERROR),
+                Arguments.of("../globalconf-core/src/test/resources/globalconf_good_v4/instance-identifier", FAILURE_CONFIGURATION_ERROR),
+                Arguments.of("../globalconf-core/src/test/resources/globalconf_missing_identifier", FAILURE_MISSING_INSTANCE_IDENTIFIER),
+                Arguments.of("../globalconf-core/src/test/resources/globalconf_empty", FAILURE_MALFORMED)
         );
     }
 

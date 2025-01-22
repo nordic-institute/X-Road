@@ -25,11 +25,11 @@
  */
 package org.niis.xroad.securityserver.restapi.repository;
 
-import ee.ria.xroad.common.conf.serverconf.dao.AccessRightDAOImpl;
 import ee.ria.xroad.common.identifier.XRoadId;
 
 import lombok.RequiredArgsConstructor;
 import org.niis.xroad.restapi.util.PersistenceUtils;
+import org.niis.xroad.serverconf.impl.dao.AccessRightDAOImpl;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
 

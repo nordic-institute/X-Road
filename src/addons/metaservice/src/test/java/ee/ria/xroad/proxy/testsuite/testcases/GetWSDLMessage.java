@@ -25,12 +25,6 @@
  */
 package ee.ria.xroad.proxy.testsuite.testcases;
 
-import ee.ria.xroad.common.conf.serverconf.IsAuthentication;
-import ee.ria.xroad.common.conf.serverconf.model.ClientType;
-import ee.ria.xroad.common.conf.serverconf.model.DescriptionType;
-import ee.ria.xroad.common.conf.serverconf.model.ServerConfType;
-import ee.ria.xroad.common.conf.serverconf.model.ServiceDescriptionType;
-import ee.ria.xroad.common.conf.serverconf.model.ServiceType;
 import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.util.AbstractHttpSender;
 import ee.ria.xroad.proxy.testsuite.Message;
@@ -40,6 +34,12 @@ import ee.ria.xroad.proxy.testsuite.TestSuiteServerConf;
 import com.github.tomakehurst.wiremock.WireMockServer;
 import com.github.tomakehurst.wiremock.client.WireMock;
 import org.apache.james.mime4j.stream.BodyDescriptor;
+import org.niis.xroad.serverconf.IsAuthentication;
+import org.niis.xroad.serverconf.model.ClientType;
+import org.niis.xroad.serverconf.model.DescriptionType;
+import org.niis.xroad.serverconf.model.ServerConfType;
+import org.niis.xroad.serverconf.model.ServiceDescriptionType;
+import org.niis.xroad.serverconf.model.ServiceType;
 import org.xml.sax.InputSource;
 
 import javax.wsdl.Definition;
@@ -55,12 +55,12 @@ import java.util.List;
 import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
 import static com.github.tomakehurst.wiremock.client.WireMock.urlPathEqualTo;
 import static com.github.tomakehurst.wiremock.core.WireMockConfiguration.options;
-import static ee.ria.xroad.common.conf.serverconf.ServerConfDatabaseCtx.doInTransaction;
 import static ee.ria.xroad.proxy.util.MetaserviceTestUtil.cleanDB;
 import static ee.ria.xroad.proxy.util.MetaserviceTestUtil.parseOperationNamesFromWSDLDefinition;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.containsInAnyOrder;
 import static org.hamcrest.Matchers.startsWith;
+import static org.niis.xroad.serverconf.impl.ServerConfDatabaseCtx.doInTransaction;
 
 /**
  * Test WSDL retrieval.

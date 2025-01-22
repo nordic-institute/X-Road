@@ -5,7 +5,7 @@ plugins {
 dependencies {
   api(project(":common:common-core"))
   api(project(":common:common-message"))
-  api(project(":lib:globalconf-model"))
+  api(project(":lib:globalconf-core"))
 
   testImplementation(project(":common:common-test"))
   testImplementation(libs.junit.jupiter.params)

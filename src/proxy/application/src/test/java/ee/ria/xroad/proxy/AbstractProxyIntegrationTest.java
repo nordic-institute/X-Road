@@ -26,7 +26,6 @@
 package ee.ria.xroad.proxy;
 
 import ee.ria.xroad.common.SystemProperties;
-import ee.ria.xroad.common.conf.serverconf.ServerConfProvider;
 import ee.ria.xroad.common.util.TimeUtils;
 import ee.ria.xroad.proxy.conf.KeyConfProvider;
 import ee.ria.xroad.proxy.testutil.IntegrationTest;
@@ -46,6 +45,7 @@ import org.junit.runner.Description;
 import org.junit.runners.model.Statement;
 import org.niis.xroad.globalconf.GlobalConfProvider;
 import org.niis.xroad.globalconf.GlobalConfSource;
+import org.niis.xroad.serverconf.ServerConfProvider;
 import org.niis.xroad.test.globalconf.TestGlobalConfWrapper;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;

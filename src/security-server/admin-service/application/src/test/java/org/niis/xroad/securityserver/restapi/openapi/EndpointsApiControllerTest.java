@@ -25,8 +25,6 @@
  */
 package org.niis.xroad.securityserver.restapi.openapi;
 
-import ee.ria.xroad.common.conf.serverconf.model.ClientType;
-import ee.ria.xroad.common.conf.serverconf.model.EndpointType;
 import ee.ria.xroad.common.identifier.ClientId;
 
 import jakarta.validation.ConstraintViolationException;
@@ -47,6 +45,8 @@ import org.niis.xroad.securityserver.restapi.openapi.model.ServiceClientType;
 import org.niis.xroad.securityserver.restapi.openapi.model.ServiceClients;
 import org.niis.xroad.securityserver.restapi.service.ClientService;
 import org.niis.xroad.securityserver.restapi.util.TestUtils;
+import org.niis.xroad.serverconf.model.ClientType;
+import org.niis.xroad.serverconf.model.EndpointType;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.test.context.support.WithMockUser;
 

@@ -25,12 +25,11 @@
  */
 package org.niis.xroad.securityserver.restapi.converter;
 
-import ee.ria.xroad.common.conf.serverconf.model.TspType;
-
 import org.junit.Before;
 import org.junit.Test;
 import org.niis.xroad.securityserver.restapi.openapi.model.TimestampingService;
 import org.niis.xroad.securityserver.restapi.util.TestUtils;
+import org.niis.xroad.serverconf.model.TspType;
 
 import java.util.ArrayList;
 import java.util.Arrays;

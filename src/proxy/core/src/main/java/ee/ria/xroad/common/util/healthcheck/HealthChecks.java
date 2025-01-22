@@ -25,7 +25,6 @@
  */
 package ee.ria.xroad.common.util.healthcheck;
 
-import ee.ria.xroad.common.conf.serverconf.ServerConfProvider;
 import ee.ria.xroad.proxy.addon.module.HardwareSecurityModuleUtils;
 import ee.ria.xroad.proxy.conf.KeyConfProvider;
 
@@ -37,6 +36,7 @@ import org.bouncycastle.cert.ocsp.OCSPResp;
 import org.niis.xroad.globalconf.GlobalConfProvider;
 import org.niis.xroad.globalconf.cert.CertChain;
 import org.niis.xroad.proxy.core.auth.AuthKey;
+import org.niis.xroad.serverconf.ServerConfProvider;
 
 import java.security.cert.X509Certificate;
 import java.util.concurrent.TimeUnit;

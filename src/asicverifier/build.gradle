@@ -4,8 +4,8 @@ plugins {
 }
 
 dependencies {
-    implementation project(":lib:globalconf-spring")
-    implementation project(':asic-util')
+    implementation project(":lib:globalconf-impl")
+    implementation project(':lib:asic-core')
 
     implementation(project(':common:common-core'))
 

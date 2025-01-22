@@ -27,7 +27,6 @@ package ee.ria.xroad.proxy.testsuite;
 
 import ee.ria.xroad.common.SystemProperties;
 import ee.ria.xroad.common.TestPortUtils;
-import ee.ria.xroad.common.conf.serverconf.ServerConfProvider;
 import ee.ria.xroad.common.util.TimeUtils;
 import ee.ria.xroad.proxy.ProxyMain;
 import ee.ria.xroad.proxy.conf.KeyConfProvider;
@@ -40,6 +39,7 @@ import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.niis.xroad.globalconf.GlobalConfProvider;
 import org.niis.xroad.globalconf.GlobalConfSource;
+import org.niis.xroad.serverconf.ServerConfProvider;
 import org.niis.xroad.test.globalconf.TestGlobalConfWrapper;
 import org.springframework.beans.factory.BeanCreationException;
 import org.springframework.context.annotation.Bean;

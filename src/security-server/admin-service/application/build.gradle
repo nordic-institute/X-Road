@@ -26,7 +26,7 @@ dependencies {
 
     implementation(project(":lib:globalconf-spring"))
     implementation(project(":signer-protocol"))
-    implementation(project(":serverconf"))
+    implementation(project(":lib:serverconf-spring"))
     implementation(project(":common:common-acme"))
     implementation(project(":common:common-admin-api"))
     implementation(project(":common:common-management-request"))

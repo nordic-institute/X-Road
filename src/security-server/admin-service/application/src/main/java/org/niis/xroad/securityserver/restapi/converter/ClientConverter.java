@@ -25,7 +25,6 @@
  */
 package org.niis.xroad.securityserver.restapi.converter;
 
-import ee.ria.xroad.common.conf.serverconf.model.ClientType;
 import ee.ria.xroad.common.identifier.ClientId;
 
 import com.google.common.collect.Streams;
@@ -40,6 +39,7 @@ import org.niis.xroad.securityserver.restapi.openapi.model.Client;
 import org.niis.xroad.securityserver.restapi.openapi.model.ClientStatus;
 import org.niis.xroad.securityserver.restapi.openapi.model.ConnectionType;
 import org.niis.xroad.securityserver.restapi.util.ClientUtils;
+import org.niis.xroad.serverconf.model.ClientType;
 import org.springframework.stereotype.Component;
 
 import java.util.LinkedHashSet;

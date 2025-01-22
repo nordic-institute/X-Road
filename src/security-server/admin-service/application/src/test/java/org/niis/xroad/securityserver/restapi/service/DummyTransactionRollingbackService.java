@@ -25,10 +25,9 @@
  */
 package org.niis.xroad.securityserver.restapi.service;
 
-import ee.ria.xroad.common.conf.serverconf.model.LocalGroupType;
-
 import lombok.extern.slf4j.Slf4j;
 import org.niis.xroad.securityserver.restapi.repository.LocalGroupRepository;
+import org.niis.xroad.serverconf.model.LocalGroupType;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;

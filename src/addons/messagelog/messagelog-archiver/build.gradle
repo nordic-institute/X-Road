@@ -10,7 +10,7 @@ dependencies {
     implementation(project(':common:common-messagelog'))
     implementation(project(":lib:globalconf-spring"))
     implementation(project(':addons:messagelog:messagelog-db'))
-    implementation(project(':asic-util'))
+    implementation(project(':lib:asic-core'))
     implementation('org.springframework:spring-context-support')
 }
 

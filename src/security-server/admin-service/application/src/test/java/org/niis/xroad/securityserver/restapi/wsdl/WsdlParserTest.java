@@ -25,10 +25,9 @@
  */
 package org.niis.xroad.securityserver.restapi.wsdl;
 
-import ee.ria.xroad.common.conf.serverconf.ServerConfProvider;
-
 import org.junit.BeforeClass;
 import org.junit.Test;
+import org.niis.xroad.serverconf.ServerConfProvider;
 
 import java.util.Collection;
 

@@ -26,14 +26,14 @@
 package org.niis.xroad.securityserver.restapi.service;
 
 import ee.ria.xroad.common.conf.InternalSSLKey;
-import ee.ria.xroad.common.conf.serverconf.ServerConfProvider;
-import ee.ria.xroad.common.conf.serverconf.model.CertificateType;
 import ee.ria.xroad.common.util.CryptoUtils;
 
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.niis.xroad.securityserver.restapi.wsdl.HostnameVerifiers;
+import org.niis.xroad.serverconf.ServerConfProvider;
+import org.niis.xroad.serverconf.model.CertificateType;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;

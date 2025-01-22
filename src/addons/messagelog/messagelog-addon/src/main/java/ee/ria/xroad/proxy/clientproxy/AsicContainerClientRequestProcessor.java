@@ -32,7 +32,6 @@ import ee.ria.xroad.common.SystemProperties;
 import ee.ria.xroad.common.asic.AsicContainer;
 import ee.ria.xroad.common.asic.AsicContainerNameGenerator;
 import ee.ria.xroad.common.asic.AsicUtils;
-import ee.ria.xroad.common.conf.serverconf.ServerConfProvider;
 import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.messagelog.MessageLogProperties;
 import ee.ria.xroad.common.messagelog.MessageRecord;
@@ -59,6 +58,7 @@ import org.niis.xroad.globalconf.model.ConfigurationDirectory;
 import org.niis.xroad.globalconf.model.ConfigurationPartMetadata;
 import org.niis.xroad.globalconf.model.FileConsumer;
 import org.niis.xroad.globalconf.model.VersionedConfigurationDirectory;
+import org.niis.xroad.serverconf.ServerConfProvider;
 
 import java.io.ByteArrayInputStream;
 import java.io.Closeable;

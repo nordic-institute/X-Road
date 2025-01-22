@@ -25,9 +25,8 @@
  */
 package ee.ria.xroad.proxy.serverproxy;
 
-import ee.ria.xroad.common.conf.serverconf.ServerConfProvider;
-
 import org.niis.xroad.globalconf.GlobalConfProvider;
+import org.niis.xroad.serverconf.ServerConfProvider;
 
 final class ServiceHandlerLoader {
 

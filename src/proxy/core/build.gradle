@@ -18,11 +18,12 @@ dependencies {
     implementation(project(':common:common-jetty'))
     implementation(project(':common:common-message'))
     implementation(project(':common:common-scheduler'))
-    api(project(':lib:globalconf-spring'))
-    implementation(project(':serverconf'))
-    implementation(project(':signer-protocol'))
     implementation(project(':common:common-messagelog'))
     implementation(project(':common:common-op-monitoring'))
+    implementation(project(':signer-protocol'))
+
+    api(project(':lib:globalconf-spring'))
+    api(project(':lib:serverconf-spring'))
 
     implementation("com.fasterxml.jackson.dataformat:jackson-dataformat-yaml")
     implementation('org.springframework:spring-context-support')

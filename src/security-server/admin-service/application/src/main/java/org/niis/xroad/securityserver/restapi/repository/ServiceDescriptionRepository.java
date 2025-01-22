@@ -25,14 +25,13 @@
  */
 package org.niis.xroad.securityserver.restapi.repository;
 
-import ee.ria.xroad.common.conf.serverconf.dao.ServiceDescriptionDAOImpl;
-import ee.ria.xroad.common.conf.serverconf.model.ServiceDescriptionType;
-
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.niis.xroad.restapi.util.PersistenceUtils;
+import org.niis.xroad.serverconf.impl.dao.ServiceDescriptionDAOImpl;
+import org.niis.xroad.serverconf.model.ServiceDescriptionType;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
 

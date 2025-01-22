@@ -25,10 +25,9 @@
  */
 package org.niis.xroad.securityserver.restapi.util;
 
-import ee.ria.xroad.common.conf.serverconf.model.ServiceType;
-
 import lombok.experimental.UtilityClass;
 import org.apache.commons.lang3.StringUtils;
+import org.niis.xroad.serverconf.model.ServiceType;
 
 @UtilityClass
 public class ServiceFormatter {

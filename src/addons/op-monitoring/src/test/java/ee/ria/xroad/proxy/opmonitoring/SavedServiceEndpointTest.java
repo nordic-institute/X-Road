@@ -25,13 +25,13 @@
  */
 package ee.ria.xroad.proxy.opmonitoring;
 
-import ee.ria.xroad.common.conf.serverconf.ServerConfProvider;
 import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.identifier.ServiceId;
 import ee.ria.xroad.common.metadata.Endpoint;
 import ee.ria.xroad.common.opmonitoring.OpMonitoringData;
 
 import org.junit.Test;
+import org.niis.xroad.serverconf.ServerConfProvider;
 
 import java.util.List;
 

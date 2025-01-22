@@ -26,7 +26,6 @@
 package ee.ria.xroad.proxy;
 
 
-import ee.ria.xroad.common.conf.serverconf.model.DescriptionType;
 import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.identifier.ServiceId;
 import ee.ria.xroad.common.message.RestMessage;
@@ -39,6 +38,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.eclipse.jetty.server.Request;
 import org.hamcrest.Matchers;
 import org.junit.Test;
+import org.niis.xroad.serverconf.model.DescriptionType;
 
 import java.io.InputStream;
 import java.util.Arrays;

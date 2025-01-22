@@ -27,7 +27,6 @@ package ee.ria.xroad.proxy.clientproxy;
 
 import ee.ria.xroad.common.CodedException;
 import ee.ria.xroad.common.SystemProperties;
-import ee.ria.xroad.common.conf.serverconf.ServerConfProvider;
 import ee.ria.xroad.common.message.RestMessage;
 import ee.ria.xroad.common.opmonitoring.OpMonitoringData;
 import ee.ria.xroad.common.util.JsonUtils;
@@ -48,6 +47,7 @@ import org.eclipse.jetty.util.Callback;
 import org.niis.xroad.globalconf.GlobalConfProvider;
 import org.niis.xroad.globalconf.impl.cert.CertChainFactory;
 import org.niis.xroad.proxy.core.auth.AuthKey;
+import org.niis.xroad.serverconf.ServerConfProvider;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 

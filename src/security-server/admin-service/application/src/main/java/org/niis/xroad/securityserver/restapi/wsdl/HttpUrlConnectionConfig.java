@@ -26,10 +26,10 @@
 
 package org.niis.xroad.securityserver.restapi.wsdl;
 
-import ee.ria.xroad.common.conf.serverconf.ServerConfProvider;
 import ee.ria.xroad.common.util.CryptoUtils;
 
 import lombok.RequiredArgsConstructor;
+import org.niis.xroad.serverconf.ServerConfProvider;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.stereotype.Component;
 

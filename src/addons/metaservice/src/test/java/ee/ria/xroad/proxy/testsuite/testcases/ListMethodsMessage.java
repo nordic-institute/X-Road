@@ -25,7 +25,6 @@
  */
 package ee.ria.xroad.proxy.testsuite.testcases;
 
-import ee.ria.xroad.common.conf.serverconf.model.DescriptionType;
 import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.identifier.ServiceId;
 import ee.ria.xroad.common.message.SoapMessageImpl;
@@ -36,6 +35,7 @@ import ee.ria.xroad.proxy.testsuite.TestSuiteServerConf;
 import ee.ria.xroad.proxy.util.MetaserviceTestUtil;
 
 import jakarta.xml.soap.SOAPBody;
+import org.niis.xroad.serverconf.model.DescriptionType;
 
 import java.util.Arrays;
 import java.util.List;

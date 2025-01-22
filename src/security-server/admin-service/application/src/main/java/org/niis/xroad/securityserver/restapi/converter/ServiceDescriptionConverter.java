@@ -25,13 +25,12 @@
  */
 package org.niis.xroad.securityserver.restapi.converter;
 
-import ee.ria.xroad.common.conf.serverconf.model.ServiceDescriptionType;
-
 import com.google.common.collect.Streams;
 import lombok.RequiredArgsConstructor;
 import org.niis.xroad.restapi.converter.ClientIdConverter;
 import org.niis.xroad.restapi.util.FormatUtils;
 import org.niis.xroad.securityserver.restapi.openapi.model.ServiceDescription;
+import org.niis.xroad.serverconf.model.ServiceDescriptionType;
 import org.springframework.stereotype.Component;
 
 import java.util.Set;

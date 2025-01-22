@@ -25,9 +25,8 @@
  */
 package ee.ria.xroad.common.opmonitoring;
 
-import ee.ria.xroad.common.conf.serverconf.ServerConfProvider;
-
 import lombok.extern.slf4j.Slf4j;
+import org.niis.xroad.serverconf.ServerConfProvider;
 
 /**
  * Abstract operational monitoring buffer.

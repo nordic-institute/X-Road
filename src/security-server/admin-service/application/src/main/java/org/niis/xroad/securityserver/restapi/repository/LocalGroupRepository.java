@@ -25,15 +25,15 @@
  */
 package org.niis.xroad.securityserver.restapi.repository;
 
-import ee.ria.xroad.common.conf.serverconf.dao.GroupMemberDAOImpl;
-import ee.ria.xroad.common.conf.serverconf.dao.LocalGroupDAOImpl;
-import ee.ria.xroad.common.conf.serverconf.model.GroupMemberType;
-import ee.ria.xroad.common.conf.serverconf.model.LocalGroupType;
 import ee.ria.xroad.common.identifier.ClientId;
 
 import lombok.RequiredArgsConstructor;
 import org.hibernate.Session;
 import org.niis.xroad.restapi.util.PersistenceUtils;
+import org.niis.xroad.serverconf.impl.dao.GroupMemberDAOImpl;
+import org.niis.xroad.serverconf.impl.dao.LocalGroupDAOImpl;
+import org.niis.xroad.serverconf.model.GroupMemberType;
+import org.niis.xroad.serverconf.model.LocalGroupType;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
 

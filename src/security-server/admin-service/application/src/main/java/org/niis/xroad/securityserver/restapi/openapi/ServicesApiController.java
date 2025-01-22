@@ -25,7 +25,6 @@
  */
 package org.niis.xroad.securityserver.restapi.openapi;
 
-import ee.ria.xroad.common.conf.serverconf.model.ServiceType;
 import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.identifier.XRoadId;
 
@@ -60,6 +59,7 @@ import org.niis.xroad.securityserver.restapi.service.ServiceClientService;
 import org.niis.xroad.securityserver.restapi.service.ServiceDescriptionService;
 import org.niis.xroad.securityserver.restapi.service.ServiceNotFoundException;
 import org.niis.xroad.securityserver.restapi.service.ServiceService;
+import org.niis.xroad.serverconf.model.ServiceType;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;

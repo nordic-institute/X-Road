@@ -26,9 +26,9 @@
 package ee.ria.xroad.proxy.util;
 
 import ee.ria.xroad.common.conf.InternalSSLKey;
-import ee.ria.xroad.common.conf.serverconf.ServerConfProvider;
 
 import lombok.RequiredArgsConstructor;
+import org.niis.xroad.serverconf.ServerConfProvider;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

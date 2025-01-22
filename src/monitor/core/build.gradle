@@ -7,9 +7,9 @@ dependencies {
 
     implementation project(':common:common-domain')
     implementation project(':lib:globalconf-spring')
+    implementation project(':lib:serverconf-spring')
     implementation project(':monitor-common')
     implementation project(':signer-protocol')
-    implementation project(':serverconf')
     implementation('org.springframework:spring-context-support')
 
     implementation libs.slf4j.api
