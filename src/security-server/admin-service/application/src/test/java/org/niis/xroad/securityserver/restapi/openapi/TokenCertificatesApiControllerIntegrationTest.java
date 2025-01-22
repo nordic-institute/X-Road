@@ -27,12 +27,6 @@ package org.niis.xroad.securityserver.restapi.openapi;
 
 import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.identifier.SecurityServerId;
-import ee.ria.xroad.signer.SignerProxy;
-import ee.ria.xroad.signer.exception.SignerException;
-import ee.ria.xroad.signer.protocol.dto.CertificateInfo;
-import ee.ria.xroad.signer.protocol.dto.KeyInfo;
-import ee.ria.xroad.signer.protocol.dto.TokenInfo;
-import ee.ria.xroad.signer.protocol.dto.TokenInfoAndKeyId;
 
 import org.junit.Assert;
 import org.junit.Before;
@@ -52,6 +46,12 @@ import org.niis.xroad.securityserver.restapi.util.CertificateTestUtils;
 import org.niis.xroad.securityserver.restapi.util.CertificateTestUtils.CertificateInfoBuilder;
 import org.niis.xroad.securityserver.restapi.util.TestUtils;
 import org.niis.xroad.securityserver.restapi.util.TokenTestUtils;
+import org.niis.xroad.signer.api.dto.CertificateInfo;
+import org.niis.xroad.signer.api.dto.KeyInfo;
+import org.niis.xroad.signer.api.dto.TokenInfo;
+import org.niis.xroad.signer.api.dto.TokenInfoAndKeyId;
+import org.niis.xroad.signer.api.exception.SignerException;
+import org.niis.xroad.signer.client.SignerProxy;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.Resource;
 import org.springframework.http.HttpStatus;

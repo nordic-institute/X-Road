@@ -26,8 +26,6 @@
 package org.niis.xroad.securityserver.restapi.openapi;
 
 import ee.ria.xroad.common.CodedException;
-import ee.ria.xroad.signer.protocol.dto.KeyInfo;
-import ee.ria.xroad.signer.protocol.dto.TokenInfo;
 
 import org.junit.Before;
 import org.junit.Test;
@@ -39,6 +37,8 @@ import org.niis.xroad.securityserver.restapi.openapi.model.Token;
 import org.niis.xroad.securityserver.restapi.openapi.model.TokenStatus;
 import org.niis.xroad.securityserver.restapi.service.TokenNotFoundException;
 import org.niis.xroad.securityserver.restapi.util.TokenTestUtils;
+import org.niis.xroad.signer.api.dto.KeyInfo;
+import org.niis.xroad.signer.api.dto.TokenInfo;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;

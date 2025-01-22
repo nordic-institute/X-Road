@@ -26,9 +26,6 @@
 package org.niis.xroad.securityserver.restapi.converter;
 
 import ee.ria.xroad.common.TestCertUtil;
-import ee.ria.xroad.signer.protocol.dto.CertificateInfo;
-import ee.ria.xroad.signer.protocol.dto.KeyInfo;
-import ee.ria.xroad.signer.protocol.dto.TokenInfo;
 
 import org.bouncycastle.asn1.x509.CRLReason;
 import org.bouncycastle.cert.ocsp.RevokedStatus;
@@ -40,6 +37,9 @@ import org.niis.xroad.securityserver.restapi.openapi.model.TokenCertificate;
 import org.niis.xroad.securityserver.restapi.service.PossibleActionEnum;
 import org.niis.xroad.securityserver.restapi.util.CertificateTestUtils;
 import org.niis.xroad.securityserver.restapi.util.TokenTestUtils;
+import org.niis.xroad.signer.api.dto.CertificateInfo;
+import org.niis.xroad.signer.api.dto.KeyInfo;
+import org.niis.xroad.signer.api.dto.TokenInfo;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import java.security.cert.X509Certificate;

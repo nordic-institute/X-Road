@@ -25,7 +25,7 @@ dependencies {
     implementation(platform(libs.springCloud.bom))
 
     implementation(project(":lib:globalconf-spring"))
-    implementation(project(":signer-protocol"))
+    implementation(project(":service:signer:signer-client"))
     implementation(project(":lib:serverconf-spring"))
     implementation(project(":common:common-acme"))
     implementation(project(":common:common-admin-api"))

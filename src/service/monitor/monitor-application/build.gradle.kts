@@ -8,7 +8,7 @@ dependencies {
 
   implementation(project(":common:common-core"))
   implementation(project(":service:monitor:monitor-core"))
-  implementation(project(":signer-protocol"))
+  implementation(project(":service:signer:signer-client"))
 
   implementation(libs.bundles.metrics)
   implementation("org.springframework:spring-context")

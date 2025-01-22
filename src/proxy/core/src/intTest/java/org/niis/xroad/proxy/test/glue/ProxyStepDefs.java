@@ -37,10 +37,6 @@ import ee.ria.xroad.common.signature.SignatureData;
 import ee.ria.xroad.common.util.MessageFileNames;
 import ee.ria.xroad.proxy.conf.CachingKeyConfImpl;
 import ee.ria.xroad.proxy.conf.KeyConfProvider;
-import ee.ria.xroad.signer.SignerProxy;
-import ee.ria.xroad.signer.protocol.dto.KeyInfo;
-import ee.ria.xroad.signer.protocol.dto.KeyUsageInfo;
-import ee.ria.xroad.signer.protocol.dto.TokenInfo;
 
 import io.cucumber.java.en.Step;
 import lombok.SneakyThrows;
@@ -50,7 +46,11 @@ import org.apache.commons.lang3.RandomStringUtils;
 import org.niis.xroad.common.test.glue.BaseStepDefs;
 import org.niis.xroad.globalconf.impl.signature.SignatureVerifier;
 import org.niis.xroad.serverconf.impl.ServerConfImpl;
+import org.niis.xroad.signer.api.dto.KeyInfo;
+import org.niis.xroad.signer.api.dto.TokenInfo;
+import org.niis.xroad.signer.client.SignerProxy;
 import org.niis.xroad.signer.proto.CertificateRequestFormat;
+import org.niis.xroad.signer.protocol.dto.KeyUsageInfo;
 import org.niis.xroad.test.globalconf.TestGlobalConfImpl;
 
 import java.io.ByteArrayInputStream;
