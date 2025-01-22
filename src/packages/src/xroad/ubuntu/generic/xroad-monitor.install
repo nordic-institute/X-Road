@@ -2,4 +2,4 @@
 ../../../../src/xroad/common/monitor/usr/*  usr/
 ../../../../src/xroad/default-configuration/addons/monitor.ini etc/xroad/conf.d/addons
 ../../../../src/xroad/default-configuration/addons/monitor-logback.xml etc/xroad/conf.d/addons
-../../../../../monitor/application/build/libs/monitor-1.0.jar usr/share/xroad/jlib/
+../../../../../service/monitor/monitor-application/build/libs/monitor-1.0.jar usr/share/xroad/jlib/
