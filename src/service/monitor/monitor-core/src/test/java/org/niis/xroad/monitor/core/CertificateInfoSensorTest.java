@@ -27,13 +27,6 @@ package org.niis.xroad.monitor.core;
 
 import ee.ria.xroad.common.TestCertUtil;
 import ee.ria.xroad.common.util.CryptoUtils;
-import ee.ria.xroad.signer.protocol.dto.CertificateInfo;
-import ee.ria.xroad.signer.protocol.dto.CertificateInfoProto;
-import ee.ria.xroad.signer.protocol.dto.KeyInfo;
-import ee.ria.xroad.signer.protocol.dto.KeyInfoProto;
-import ee.ria.xroad.signer.protocol.dto.TokenInfo;
-import ee.ria.xroad.signer.protocol.dto.TokenInfoProto;
-import ee.ria.xroad.signer.protocol.dto.TokenStatusInfo;
 
 import com.codahale.metrics.Metric;
 import com.codahale.metrics.MetricRegistry;
@@ -46,6 +39,13 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.niis.xroad.monitor.core.CertificateInfoSensor.CertificateInfoCollector;
 import org.niis.xroad.monitor.core.CertificateInfoSensor.TokenExtractor;
 import org.niis.xroad.monitor.core.common.SystemMetricNames;
+import org.niis.xroad.signer.api.dto.CertificateInfo;
+import org.niis.xroad.signer.api.dto.KeyInfo;
+import org.niis.xroad.signer.api.dto.TokenInfo;
+import org.niis.xroad.signer.protocol.dto.CertificateInfoProto;
+import org.niis.xroad.signer.protocol.dto.KeyInfoProto;
+import org.niis.xroad.signer.protocol.dto.TokenInfoProto;
+import org.niis.xroad.signer.protocol.dto.TokenStatusInfo;
 import org.springframework.scheduling.TaskScheduler;
 
 import java.security.cert.X509Certificate;

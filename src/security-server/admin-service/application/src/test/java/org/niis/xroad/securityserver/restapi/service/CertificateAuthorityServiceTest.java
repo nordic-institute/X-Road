@@ -30,7 +30,6 @@ import ee.ria.xroad.common.certificateprofile.CertificateProfileInfo;
 import ee.ria.xroad.common.certificateprofile.impl.FiVRKAuthCertificateProfileInfo;
 import ee.ria.xroad.common.certificateprofile.impl.FiVRKSignCertificateProfileInfo;
 import ee.ria.xroad.common.util.EncoderUtils;
-import ee.ria.xroad.signer.protocol.dto.KeyUsageInfo;
 
 import org.bouncycastle.cert.ocsp.CertificateStatus;
 import org.junit.Before;
@@ -39,6 +38,7 @@ import org.niis.xroad.globalconf.model.ApprovedCAInfo;
 import org.niis.xroad.securityserver.restapi.dto.ApprovedCaDto;
 import org.niis.xroad.securityserver.restapi.util.CertificateTestUtils;
 import org.niis.xroad.serverconf.model.ClientType;
+import org.niis.xroad.signer.protocol.dto.KeyUsageInfo;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cache.CacheManager;
 
