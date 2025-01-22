@@ -123,7 +123,6 @@ include("signer-console")
 include("common:common-test")
 
 // Addons
-include("addons:hwtoken")
 include("addons:messagelog:messagelog-addon")
 include("addons:messagelog:messagelog-addon:asic")
 include("addons:messagelog:messagelog-addon:core")

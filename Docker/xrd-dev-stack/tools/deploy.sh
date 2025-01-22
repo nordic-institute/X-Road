@@ -20,11 +20,6 @@ deploy_module() {
     target_path="${target_path}addon/proxy/"
     service_name="xroad-proxy"
     ;;
-  "hwtoken-addon")
-    jar_path="$XROAD_HOME/src/addons/hwtoken/build/libs/hwtoken-1.0.jar"
-    service_name="xroad-signer"
-    target_path="usr/share/xroad/jlib/addon/signer"
-    ;;
   "metaservice-addon")
     jar_path="$XROAD_HOME/src/addons/metaservice/build/libs/metaservice-1.0.jar"
     target_path="${target_path}addon/proxy/"
