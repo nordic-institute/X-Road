@@ -10,14 +10,9 @@ dependencies {
     implementation(project(':common:common-core'))
     implementation(project(':common:common-globalconf'))
     implementation(project(':common:common-db'))
-//    implementation(project(':common:common-verifier'))
     implementation(project(':addons:messagelog:messagelog-db'))
-//    implementation(project(':asic-util'))
     implementation(libs.dss.utils.apache.commons)
 
     implementation libs.quarkus.scheduler
 }
 
-//jar {
-//    archiveBaseName = 'messagelog-archiver-core'
-//}

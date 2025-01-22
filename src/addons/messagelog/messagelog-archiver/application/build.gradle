@@ -10,10 +10,6 @@ dependencies {
     implementation(project(':common:common-quarkus-bootstrap'))
     implementation(project(':addons:messagelog:messagelog-archiver:core'))
 
-//    implementation(project(':common:common-core'))
-//    implementation project(':common:common-properties')
-//    implementation project(':common:common-rpc')
-
     testImplementation(libs.quarkus.junit5)
 }
 
