@@ -15,7 +15,7 @@ dependencies {
   testImplementation(libs.assertj.core)
 }
 
-val mainClassName = "ee.ria.xroad.confproxy.ConfProxyMain"
+val mainClassName = "org.niis.xroad.confproxy.ConfProxyMain"
 
 tasks.jar {
   manifest {
@@ -49,7 +49,7 @@ tasks.register<JavaExec>("runConfigurationProxyMain") {
     "-Dxroad.configuration-proxy.configuration-path=src/test/resources/conf-proxy-conf"
   )
 
-  mainClass.set("ee.ria.xroad.confproxy.ConfProxyMain")
+  mainClass.set("org.niis.xroad.confproxy.ConfProxyMain")
   classpath = sourceSets.test.get().runtimeClasspath
 
   args("PROXY1")
@@ -63,16 +63,16 @@ tasks.register<JavaExec>("runConfigurationProxyUtilTest") {
     "-Dxroad.configuration-proxy.configuration-path=src/test/resources/conf-proxy-conf"
   )
 
-  mainClass.set("ee.ria.xroad.confproxy.commandline.ConfProxyUtilMain")
+  mainClass.set("org.niis.xroad.confproxy.commandline.ConfProxyUtilMain")
   classpath = sourceSets.test.get().runtimeClasspath
 
   args(
-    "ee.ria.xroad.confproxy.commandline.ConfProxyUtilGenerateAnchor",
+    "org.niis.xroad.confproxy.commandline.ConfProxyUtilGenerateAnchor",
     "-p", "PROXY1", "-f", "test.xml"
   )
   // Commented out alternative args:
-  // args("ee.ria.xroad.confproxy.commandline.ConfProxyUtilAddSigningKey", "-p", "PROXY1", "-t", "0")
-  // args("ee.ria.xroad.confproxy.commandline.ConfProxyUtilDelSigningKey", "-p", "PROXY1", "-k", "B8F553EC0944EB8022B29166D5C13E6298FB6616")
-  // args("ee.ria.xroad.confproxy.commandline.ConfProxyUtilViewConf", "-a")
-  // args("ee.ria.xroad.confproxy.commandline.ConfProxyUtilCreateInstance", "-p", "PROXY2")
+  // args("org.niis.xroad.confproxy.commandline.ConfProxyUtilAddSigningKey", "-p", "PROXY1", "-t", "0")
+  // args("org.niis.xroad.confproxy.commandline.ConfProxyUtilDelSigningKey", "-p", "PROXY1", "-k", "B8F553EC0944EB8022B29166D5C13E6298FB6616")
+  // args("org.niis.xroad.confproxy.commandline.ConfProxyUtilViewConf", "-a")
+  // args("org.niis.xroad.confproxy.commandline.ConfProxyUtilCreateInstance", "-p", "PROXY2")
 }

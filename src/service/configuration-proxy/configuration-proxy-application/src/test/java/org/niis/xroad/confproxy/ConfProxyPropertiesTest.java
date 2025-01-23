@@ -24,7 +24,7 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package ee.ria.xroad.confproxy;
+package org.niis.xroad.confproxy;
 
 
 import org.apache.commons.configuration2.ex.ConfigurationException;

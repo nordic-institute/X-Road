@@ -23,10 +23,10 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package ee.ria.xroad.confproxy.commandline;
+package org.niis.xroad.confproxy.commandline;
 
 import ee.ria.xroad.common.SystemProperties;
-import ee.ria.xroad.confproxy.ConfProxyProperties;
+import org.niis.xroad.confproxy.ConfProxyProperties;
 
 import org.apache.commons.cli.CommandLine;
 
@@ -35,7 +35,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 
-import static ee.ria.xroad.confproxy.ConfProxyProperties.CONF_INI;
+import static org.niis.xroad.confproxy.ConfProxyProperties.CONF_INI;
 
 /**
  * Utility tool for creating a new configuration proxy instance

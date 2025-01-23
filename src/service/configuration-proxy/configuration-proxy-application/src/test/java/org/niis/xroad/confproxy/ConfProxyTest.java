@@ -23,11 +23,12 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package ee.ria.xroad.confproxy;
+package org.niis.xroad.confproxy;
 
 import ee.ria.xroad.common.CodedException;
-import ee.ria.xroad.confproxy.util.ConfProxyHelper;
-import ee.ria.xroad.confproxy.util.OutputBuilder;
+
+import org.niis.xroad.confproxy.util.ConfProxyHelper;
+import org.niis.xroad.confproxy.util.OutputBuilder;
 
 import lombok.extern.slf4j.Slf4j;
 import org.junit.Before;

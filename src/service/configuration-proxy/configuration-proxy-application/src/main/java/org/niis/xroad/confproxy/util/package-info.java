@@ -24,6 +24,6 @@
  * THE SOFTWARE.
  */
 /**
- * Contains classes related to running and configuring the configuration proxy.
+ * Contains utility classes related to performing configuration proxy tasks.
  */
-package ee.ria.xroad.confproxy;
+package org.niis.xroad.confproxy.util;

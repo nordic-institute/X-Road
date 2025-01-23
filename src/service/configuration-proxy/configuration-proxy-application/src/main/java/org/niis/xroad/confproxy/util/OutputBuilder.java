@@ -23,7 +23,7 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package ee.ria.xroad.confproxy.util;
+package org.niis.xroad.confproxy.util;
 
 import ee.ria.xroad.common.SystemProperties;
 import ee.ria.xroad.common.crypto.identifier.DigestAlgorithm;
@@ -32,7 +32,7 @@ import ee.ria.xroad.common.util.CryptoUtils;
 import ee.ria.xroad.common.util.MimeTypes;
 import ee.ria.xroad.common.util.MultipartEncoder;
 import ee.ria.xroad.common.util.TimeUtils;
-import ee.ria.xroad.confproxy.ConfProxyProperties;
+import org.niis.xroad.confproxy.ConfProxyProperties;
 
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.FileUtils;

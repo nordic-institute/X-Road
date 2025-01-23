@@ -23,10 +23,10 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package ee.ria.xroad.confproxy.util;
+package org.niis.xroad.confproxy.util;
 
 import ee.ria.xroad.common.SystemProperties;
-import ee.ria.xroad.confproxy.ConfProxyProperties;
+import org.niis.xroad.confproxy.ConfProxyProperties;
 
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.FileUtils;

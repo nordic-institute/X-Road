@@ -23,7 +23,7 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package ee.ria.xroad.confproxy;
+package org.niis.xroad.confproxy;
 
 import ee.ria.xroad.common.SystemProperties;
 import ee.ria.xroad.common.crypto.identifier.DigestAlgorithm;

@@ -23,11 +23,11 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package ee.ria.xroad.confproxy.commandline;
+package org.niis.xroad.confproxy.commandline;
 
 import ee.ria.xroad.common.util.AtomicSave;
-import ee.ria.xroad.confproxy.ConfProxyProperties;
-import ee.ria.xroad.confproxy.util.OutputBuilder;
+import org.niis.xroad.confproxy.ConfProxyProperties;
+import org.niis.xroad.confproxy.util.OutputBuilder;
 
 import jakarta.xml.bind.JAXBContext;
 import jakarta.xml.bind.JAXBElement;
