@@ -39,6 +39,12 @@ include("lib:serverconf-spring")
 
 // Service projects
 include("service")
+
+include("service:configuration-client:configuration-client-application")
+include("service:configuration-client:configuration-client-core")
+
+include("service:configuration-proxy:configuration-proxy-application")
+
 include("service:monitor:monitor-application")
 include("service:monitor:monitor-api")
 include("service:monitor:monitor-core")
@@ -61,10 +67,6 @@ include("tool:asic-verifier-cli")
 include("proxy")
 include("proxy:application")
 include("proxy:core")
-
-include("configuration-proxy")
-include("configuration-client:application")
-include("configuration-client:core")
 
 include("shared-ui")
 

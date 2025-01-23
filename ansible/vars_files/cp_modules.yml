@@ -1,7 +1,7 @@
 ---
 cp_modules:
   configuration-proxy:
-    dir: configuration-proxy
+    dir: service/configuration-proxy/configuration-proxy-application
     build: build
     lib: configuration-proxy-1.0.jar
     target: /usr/share/xroad/jlib
