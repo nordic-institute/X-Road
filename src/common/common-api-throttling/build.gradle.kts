@@ -1,6 +1,6 @@
 plugins {
     id("xroad.java-conventions")
-    id 'java-test-fixtures'
+    id("java-test-fixtures")
 }
 
 dependencies {
