@@ -43,7 +43,7 @@ include("service")
 include("service:configuration-client:configuration-client-application")
 include("service:configuration-client:configuration-client-core")
 
-include("service:configuration-proxy")
+include("service:configuration-proxy:configuration-proxy-application")
 
 include("service:monitor:monitor-application")
 include("service:monitor:monitor-api")

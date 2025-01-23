@@ -24,6 +24,7 @@ tasks.jar {
 }
 
 tasks.shadowJar {
+  archiveBaseName.set("configuration-proxy")
   archiveClassifier.set("")
   exclude("**/module-info.class")
   from(rootProject.file("LICENSE.txt"))
