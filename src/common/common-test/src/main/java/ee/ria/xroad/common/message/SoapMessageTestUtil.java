@@ -39,7 +39,7 @@ import java.io.FileInputStream;
  */
 public final class SoapMessageTestUtil {
 
-    public static final String QUERY_DIR = "../../proxy/core/src/test/queries/";
+    public static final String QUERY_DIR = "../../service/proxy/proxy-core/src/test/queries/";
 
     /**
      * Constructor

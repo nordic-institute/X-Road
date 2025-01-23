@@ -82,5 +82,4 @@ networks:
   # Use implicitly named network so that is easier to add container outside the compose
   xroad-network:
     name: xroad-network
-    external: true
     driver: bridge

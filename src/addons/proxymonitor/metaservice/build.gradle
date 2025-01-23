@@ -14,7 +14,7 @@ sourceSets {
 }
 
 dependencies {
-    implementation project(':proxy:core')
+    implementation project(':service:proxy:proxy-core')
     implementation project(':common:common-message')
     implementation project(':common:common-domain')
     implementation project(':common:common-jetty')
@@ -28,8 +28,8 @@ dependencies {
     implementation libs.guava
 
     testImplementation project(':common:common-test')
-    testImplementation project(path: ":proxy:core", configuration: 'testArtifacts')
-    testImplementation project(path: ":proxy:application", configuration: 'testArtifacts')
+    testImplementation project(path: "::service:proxy:proxy-core", configuration: 'testArtifacts')
+    testImplementation project(path: "::service:proxy:proxy-application", configuration: 'testArtifacts')
     testImplementation libs.hamcrest
 }
 
@@ -74,13 +74,13 @@ tasks.register('runProxymonitorMetaserviceTest', JavaExec) {
         '-Dxroad.proxy.client-connector-so-linger=-1',
         '-Dxroad.proxy.client-httpclient-so-linger=-1',
         '-Dxroad.proxy.server-connector-so-linger=-1',
-        '-Dxroad.proxy.serverServiceHandlers=ee.ria.xroad.proxy.serverproxy.ProxyMonitorServiceHandlerImpl',
+        '-Dxroad.proxy.serverServiceHandlers=org.niis.xroad.proxy.core.serverproxy.ProxyMonitorServiceHandlerImpl',
         '-Dxroad.common.grpc-internal-tls-enabled=false',
         '-Dtest.queries.dir=src/test/queries'
 
-    mainClass = 'ee.ria.xroad.proxy.testsuite.ProxyTestSuite'
+    mainClass = 'org.niis.xroad.proxy.application.testsuite.ProxyTestSuite'
     classpath = sourceSets.test.runtimeClasspath
-    classpath += project(":proxy:application").sourceSets.main.runtimeClasspath
+    classpath += project(":service:proxy:proxy-application").sourceSets.main.runtimeClasspath
 }
 
 jacoco {
