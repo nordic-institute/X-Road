@@ -26,11 +26,11 @@
 package org.niis.xroad.confproxy;
 
 import ee.ria.xroad.common.SystemProperties;
-import org.niis.xroad.confproxy.util.ConfProxyHelper;
-import org.niis.xroad.confproxy.util.OutputBuilder;
 
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
+import org.niis.xroad.confproxy.util.ConfProxyHelper;
+import org.niis.xroad.confproxy.util.OutputBuilder;
 import org.niis.xroad.globalconf.model.VersionedConfigurationDirectory;
 
 import java.nio.file.Files;

@@ -25,9 +25,8 @@
  */
 package org.niis.xroad.confproxy.commandline;
 
-import org.niis.xroad.confproxy.ConfProxyProperties;
-
 import org.apache.commons.cli.CommandLine;
+import org.niis.xroad.confproxy.ConfProxyProperties;
 import org.niis.xroad.signer.client.SignerProxy;
 
 import static org.niis.xroad.confproxy.ConfProxyProperties.CONF_INI;

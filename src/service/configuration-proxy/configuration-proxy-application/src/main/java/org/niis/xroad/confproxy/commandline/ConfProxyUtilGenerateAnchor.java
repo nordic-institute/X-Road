@@ -26,13 +26,13 @@
 package org.niis.xroad.confproxy.commandline;
 
 import ee.ria.xroad.common.util.AtomicSave;
-import org.niis.xroad.confproxy.ConfProxyProperties;
-import org.niis.xroad.confproxy.util.OutputBuilder;
 
 import jakarta.xml.bind.JAXBContext;
 import jakarta.xml.bind.JAXBElement;
 import jakarta.xml.bind.Marshaller;
 import org.apache.commons.cli.CommandLine;
+import org.niis.xroad.confproxy.ConfProxyProperties;
+import org.niis.xroad.confproxy.util.OutputBuilder;
 import org.niis.xroad.globalconf.model.ConfigurationAnchor;
 import org.niis.xroad.globalconf.schema.privateparameters.v2.ConfigurationAnchorType;
 import org.niis.xroad.globalconf.schema.privateparameters.v2.ConfigurationSourceType;

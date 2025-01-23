@@ -32,12 +32,12 @@ import ee.ria.xroad.common.util.CryptoUtils;
 import ee.ria.xroad.common.util.MimeTypes;
 import ee.ria.xroad.common.util.MultipartEncoder;
 import ee.ria.xroad.common.util.TimeUtils;
-import org.niis.xroad.confproxy.ConfProxyProperties;
 
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.input.TeeInputStream;
 import org.eclipse.jetty.util.MultiPartWriter;
+import org.niis.xroad.confproxy.ConfProxyProperties;
 import org.niis.xroad.globalconf.model.ConfigurationPartMetadata;
 import org.niis.xroad.globalconf.model.ParametersProviderFactory;
 import org.niis.xroad.globalconf.model.SharedParameters;

@@ -26,9 +26,9 @@
 package org.niis.xroad.confproxy.commandline;
 
 import ee.ria.xroad.common.SystemProperties;
-import org.niis.xroad.confproxy.ConfProxyProperties;
 
 import org.apache.commons.cli.CommandLine;
+import org.niis.xroad.confproxy.ConfProxyProperties;
 
 import java.nio.file.FileAlreadyExistsException;
 import java.nio.file.Files;

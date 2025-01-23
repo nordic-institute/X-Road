@@ -26,7 +26,6 @@
 package org.niis.xroad.confproxy.commandline;
 
 import ee.ria.xroad.common.SystemProperties;
-import org.niis.xroad.confproxy.ConfProxyProperties;
 
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
@@ -34,6 +33,7 @@ import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.HelpFormatter;
 import org.apache.commons.cli.Option;
 import org.apache.commons.cli.Options;
+import org.niis.xroad.confproxy.ConfProxyProperties;
 
 import java.io.File;
 import java.io.PrintWriter;
