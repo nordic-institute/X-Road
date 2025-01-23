@@ -28,7 +28,6 @@ package org.niis.xroad.monitor.application;
 
 import ee.ria.xroad.common.SystemPropertiesLoader;
 import ee.ria.xroad.common.Version;
-import ee.ria.xroad.signer.protocol.RpcSignerClient;
 
 import com.codahale.metrics.jmx.JmxReporter;
 import com.google.common.collect.Lists;
@@ -38,6 +37,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.niis.xroad.monitor.core.MetricRegistryHolder;
 import org.niis.xroad.monitor.core.common.SystemMetricNames;
 import org.niis.xroad.monitor.core.configuration.MonitorConfig;
+import org.niis.xroad.signer.client.RpcSignerClient;
 import org.springframework.context.annotation.AnnotationConfigApplicationContext;
 import org.springframework.context.support.GenericApplicationContext;
 

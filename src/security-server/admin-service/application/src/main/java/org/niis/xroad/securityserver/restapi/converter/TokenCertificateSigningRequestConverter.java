@@ -25,15 +25,14 @@
  */
 package org.niis.xroad.securityserver.restapi.converter;
 
-import ee.ria.xroad.signer.protocol.dto.CertRequestInfo;
-import ee.ria.xroad.signer.protocol.dto.KeyInfo;
-import ee.ria.xroad.signer.protocol.dto.TokenInfo;
-
 import com.google.common.collect.Streams;
 import lombok.RequiredArgsConstructor;
 import org.niis.xroad.restapi.converter.ClientIdConverter;
 import org.niis.xroad.securityserver.restapi.openapi.model.TokenCertificateSigningRequest;
 import org.niis.xroad.securityserver.restapi.service.PossibleActionsRuleEngine;
+import org.niis.xroad.signer.api.dto.CertRequestInfo;
+import org.niis.xroad.signer.api.dto.KeyInfo;
+import org.niis.xroad.signer.api.dto.TokenInfo;
 import org.springframework.stereotype.Component;
 
 import java.util.List;

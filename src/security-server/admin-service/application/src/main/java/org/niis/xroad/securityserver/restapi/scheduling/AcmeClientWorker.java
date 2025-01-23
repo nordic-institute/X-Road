@@ -30,12 +30,6 @@ import ee.ria.xroad.common.crypto.identifier.KeyAlgorithm;
 import ee.ria.xroad.common.crypto.identifier.SignMechanism;
 import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.identifier.SecurityServerId;
-import ee.ria.xroad.signer.SignerProxy;
-import ee.ria.xroad.signer.protocol.dto.CertificateInfo;
-import ee.ria.xroad.signer.protocol.dto.KeyInfo;
-import ee.ria.xroad.signer.protocol.dto.KeyUsageInfo;
-import ee.ria.xroad.signer.protocol.dto.TokenInfo;
-import ee.ria.xroad.signer.protocol.dto.TokenInfoAndKeyId;
 
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
@@ -48,7 +42,13 @@ import org.niis.xroad.securityserver.restapi.facade.SignerProxyFacade;
 import org.niis.xroad.securityserver.restapi.repository.ServerConfRepository;
 import org.niis.xroad.securityserver.restapi.util.MailNotificationHelper;
 import org.niis.xroad.serverconf.model.ServerConfType;
+import org.niis.xroad.signer.api.dto.CertificateInfo;
+import org.niis.xroad.signer.api.dto.KeyInfo;
+import org.niis.xroad.signer.api.dto.TokenInfo;
+import org.niis.xroad.signer.api.dto.TokenInfoAndKeyId;
+import org.niis.xroad.signer.client.SignerProxy;
 import org.niis.xroad.signer.proto.CertificateRequestFormat;
+import org.niis.xroad.signer.protocol.dto.KeyUsageInfo;
 import org.springframework.stereotype.Component;
 
 import java.security.cert.CertificateParsingException;
@@ -259,7 +259,7 @@ public class AcmeClientWorker {
         } catch (Exception ex) {
             log.error(
                     "Retrieving renewal information from ACME Server failed. Falling back to fixed renewal time based on certificate "
-                           + "expiration date: {}",
+                            + "expiration date: {}",
                     ex.getMessage());
         }
         int renewalTimeBeforeExpirationDate = SystemProperties.getAcmeRenewalTimeBeforeExpirationDate();
@@ -302,11 +302,11 @@ public class AcmeClientWorker {
                     approvedCA.getCertificateProfileInfo());
             List<X509Certificate> newCert =
                     acmeService.renew(memberId.asEncodedId(),
-                                      subjectAltName,
-                                      approvedCA,
-                                      keyUsage,
-                                      oldX509Certificate,
-                                      generatedCertRequestInfo.certRequest()
+                            subjectAltName,
+                            approvedCA,
+                            keyUsage,
+                            oldX509Certificate,
+                            generatedCertRequestInfo.certRequest()
                     );
             if (newCert == null || newCert.isEmpty()) {
                 return null;
@@ -326,10 +326,10 @@ public class AcmeClientWorker {
     }
 
     private void finishRenewingCertificate(ClientId memberId,
-                           X509Certificate oldX509Certificate,
-                           KeyUsageInfo keyUsage,
-                           X509Certificate newX509Certificate,
-                           KeyInfo newKeyInfo) throws Exception {
+                                           X509Certificate oldX509Certificate,
+                                           KeyUsageInfo keyUsage,
+                                           X509Certificate newX509Certificate,
+                                           KeyInfo newKeyInfo) throws Exception {
         CertificateInfo newCertInfo;
         SecurityServerId.Conf securityServerId = getSecurityServerId();
         try {

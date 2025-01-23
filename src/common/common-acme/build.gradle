@@ -7,7 +7,7 @@ dependencies {
     implementation project(':common:common-domain')
     implementation project(':lib:globalconf-core')
     implementation project(':common:common-mail')
-    implementation project(':signer-protocol')
+    implementation project(':service:signer:signer-api')
 
     implementation(libs.acme4j)
 

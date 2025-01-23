@@ -7,7 +7,7 @@ plugins {
 dependencies {
     implementation project(":lib:globalconf-core")
     implementation project(':common:common-jetty')
-    implementation project(':signer-protocol')
+    implementation project(':service:signer:signer-client')
 
     implementation libs.commons.cli
 

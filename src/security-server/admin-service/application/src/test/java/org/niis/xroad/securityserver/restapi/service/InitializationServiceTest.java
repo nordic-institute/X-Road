@@ -30,7 +30,6 @@ import ee.ria.xroad.common.identifier.SecurityServerId;
 import ee.ria.xroad.common.util.process.ExternalProcessRunner;
 import ee.ria.xroad.common.util.process.ProcessFailedException;
 import ee.ria.xroad.common.util.process.ProcessNotExecutableException;
-import ee.ria.xroad.signer.exception.SignerException;
 
 import org.junit.Assert;
 import org.junit.Before;
@@ -48,6 +47,7 @@ import org.niis.xroad.securityserver.restapi.dto.TokenInitStatusInfo;
 import org.niis.xroad.securityserver.restapi.facade.SignerProxyFacade;
 import org.niis.xroad.securityserver.restapi.util.DeviationTestUtils;
 import org.niis.xroad.serverconf.model.ServerConfType;
+import org.niis.xroad.signer.api.exception.SignerException;
 
 import java.util.ArrayList;
 

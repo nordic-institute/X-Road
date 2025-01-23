@@ -27,8 +27,6 @@
 
 package org.niis.xroad.cs.admin.core.converter;
 
-import ee.ria.xroad.signer.protocol.dto.TokenStatusInfo;
-
 import lombok.RequiredArgsConstructor;
 import org.niis.xroad.cs.admin.api.converter.GenericUniDirectionalMapper;
 import org.niis.xroad.cs.admin.api.domain.ConfigurationSigningKeyWithDetails;
@@ -36,19 +34,20 @@ import org.niis.xroad.cs.admin.api.dto.TokenInfo;
 import org.niis.xroad.cs.admin.api.dto.TokenStatus;
 import org.niis.xroad.cs.admin.api.service.ConfigurationSigningKeysService;
 import org.niis.xroad.cs.admin.api.service.TokenActionsResolver;
+import org.niis.xroad.signer.protocol.dto.TokenStatusInfo;
 import org.springframework.stereotype.Component;
 
 import java.util.List;
 
 @Component
 @RequiredArgsConstructor
-public class TokenInfoMapper implements GenericUniDirectionalMapper<ee.ria.xroad.signer.protocol.dto.TokenInfo, TokenInfo> {
+public class TokenInfoMapper implements GenericUniDirectionalMapper<org.niis.xroad.signer.api.dto.TokenInfo, TokenInfo> {
 
     private final ConfigurationSigningKeysService configurationSigningKeysService;
     private final TokenActionsResolver tokenActionsResolver;
 
     @Override
-    public TokenInfo toTarget(ee.ria.xroad.signer.protocol.dto.TokenInfo tokenInfo) {
+    public TokenInfo toTarget(org.niis.xroad.signer.api.dto.TokenInfo tokenInfo) {
         TokenInfo result = new TokenInfo();
         result.setType(tokenInfo.getType());
         result.setFriendlyName(tokenInfo.getFriendlyName());

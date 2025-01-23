@@ -25,11 +25,10 @@
  */
 package org.niis.xroad.securityserver.restapi.converter;
 
-import ee.ria.xroad.signer.protocol.dto.TokenStatusInfo;
-
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import org.niis.xroad.securityserver.restapi.openapi.model.TokenStatus;
+import org.niis.xroad.signer.protocol.dto.TokenStatusInfo;
 
 import java.util.Arrays;
 import java.util.Optional;
@@ -53,6 +52,7 @@ public enum TokenStatusMapping {
 
     /**
      * Return matching {@link TokenStatusInfo}, if any
+     *
      * @param tokenStatus
      */
     public static Optional<TokenStatusInfo> map(TokenStatus tokenStatus) {
@@ -61,6 +61,7 @@ public enum TokenStatusMapping {
 
     /**
      * Return matching {@link TokenStatus}, if any
+     *
      * @param tokenStatusInfo
      */
     public static Optional<TokenStatus> map(TokenStatusInfo tokenStatusInfo) {
@@ -69,6 +70,7 @@ public enum TokenStatusMapping {
 
     /**
      * Return matching {@link TokenStatusMapping}, if any
+     *
      * @param tokenStatusInfo
      */
     public static Optional<TokenStatusMapping> getFor(TokenStatusInfo tokenStatusInfo) {
@@ -79,6 +81,7 @@ public enum TokenStatusMapping {
 
     /**
      * Return matching {@link TokenStatusMapping}, if any
+     *
      * @param tokenStatus
      */
     public static Optional<TokenStatusMapping> getFor(TokenStatus tokenStatus) {

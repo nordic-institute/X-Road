@@ -25,14 +25,13 @@
  */
 package org.niis.xroad.restapi.exceptions;
 
-import ee.ria.xroad.signer.exception.SignerException;
-
 import jakarta.validation.ConstraintViolationException;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.niis.xroad.restapi.config.audit.AuditEventLoggingFacade;
 import org.niis.xroad.restapi.config.audit.RestApiAuditEvent;
 import org.niis.xroad.restapi.openapi.model.ErrorInfo;
+import org.niis.xroad.signer.api.exception.SignerException;
 import org.springframework.beans.factory.BeanCreationException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DataIntegrityViolationException;

@@ -27,7 +27,6 @@ package ee.ria.xroad.common.util.healthcheck;
 
 import ee.ria.xroad.common.identifier.SecurityServerId;
 import ee.ria.xroad.proxy.conf.KeyConfProvider;
-import ee.ria.xroad.signer.SignerProxy;
 
 import org.bouncycastle.cert.ocsp.OCSPResp;
 import org.junit.Test;
@@ -36,6 +35,7 @@ import org.niis.xroad.globalconf.GlobalConfProvider;
 import org.niis.xroad.globalconf.cert.CertChain;
 import org.niis.xroad.proxy.core.auth.AuthKey;
 import org.niis.xroad.serverconf.ServerConfProvider;
+import org.niis.xroad.signer.client.SignerProxy;
 
 import javax.security.auth.x500.X500Principal;
 

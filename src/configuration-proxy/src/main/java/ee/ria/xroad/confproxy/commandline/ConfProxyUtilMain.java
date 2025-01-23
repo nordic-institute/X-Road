@@ -26,7 +26,6 @@
 package ee.ria.xroad.confproxy.commandline;
 
 import ee.ria.xroad.common.SystemPropertiesLoader;
-import ee.ria.xroad.signer.protocol.RpcSignerClient;
 
 import lombok.AccessLevel;
 import lombok.NoArgsConstructor;
@@ -35,6 +34,7 @@ import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.CommandLineParser;
 import org.apache.commons.cli.DefaultParser;
 import org.apache.commons.cli.Options;
+import org.niis.xroad.signer.client.RpcSignerClient;
 
 import static ee.ria.xroad.common.SystemProperties.CONF_FILE_CONFPROXY;
 

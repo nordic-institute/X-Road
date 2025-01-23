@@ -27,16 +27,16 @@ package ee.ria.xroad.confproxy.commandline;
 
 import ee.ria.xroad.common.crypto.identifier.KeyAlgorithm;
 import ee.ria.xroad.confproxy.ConfProxyProperties;
-import ee.ria.xroad.signer.SignerProxy;
-import ee.ria.xroad.signer.protocol.dto.KeyInfo;
 
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.lang3.StringUtils;
+import org.niis.xroad.signer.api.dto.KeyInfo;
+import org.niis.xroad.signer.client.SignerProxy;
 
 import java.util.Date;
 
 import static ee.ria.xroad.confproxy.ConfProxyProperties.CONF_INI;
-import static ee.ria.xroad.signer.protocol.dto.KeyUsageInfo.SIGNING;
+import static org.niis.xroad.signer.protocol.dto.KeyUsageInfo.SIGNING;
 
 /**
  * Utility tool for adding new signing keys to a configuration proxy instance.

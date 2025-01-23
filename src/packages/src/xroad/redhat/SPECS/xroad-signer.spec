@@ -54,8 +54,8 @@ cp -p %{srcdir}/default-configuration/signer.ini %{buildroot}/etc/xroad/conf.d/
 cp -p %{srcdir}/default-configuration/devices.ini %{buildroot}/etc/xroad/
 cp -p %{srcdir}/default-configuration/signer-logback.xml %{buildroot}/etc/xroad/conf.d/
 cp -p %{srcdir}/default-configuration/signer-console-logback.xml %{buildroot}/etc/xroad/conf.d/
-cp -p %{srcdir}/../../../signer/application/build/libs/signer-1.0.jar %{buildroot}/usr/share/xroad/jlib/
-cp -p %{srcdir}/../../../signer-console/build/libs/signer-console-1.0.jar %{buildroot}/usr/share/xroad/jlib/
+cp -p %{srcdir}/../../../service/signer/signer-application/build/libs/signer-1.0.jar %{buildroot}/usr/share/xroad/jlib/
+cp -p %{srcdir}/../../../service/signer/signer-cli/build/libs/signer-console-1.0.jar %{buildroot}/usr/share/xroad/jlib/
 
 #Copy arch specific libs
 %ifarch x86_64

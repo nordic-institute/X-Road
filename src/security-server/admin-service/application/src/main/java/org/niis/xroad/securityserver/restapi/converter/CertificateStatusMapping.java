@@ -25,11 +25,10 @@
  */
 package org.niis.xroad.securityserver.restapi.converter;
 
-import ee.ria.xroad.signer.protocol.dto.CertificateInfo;
-
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import org.niis.xroad.securityserver.restapi.openapi.model.CertificateStatus;
+import org.niis.xroad.signer.api.dto.CertificateInfo;
 
 import java.util.Arrays;
 import java.util.Optional;

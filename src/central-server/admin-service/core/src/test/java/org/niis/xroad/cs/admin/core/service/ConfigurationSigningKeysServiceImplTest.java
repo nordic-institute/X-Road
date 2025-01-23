@@ -30,12 +30,6 @@ import ee.ria.xroad.common.crypto.identifier.KeyAlgorithm;
 import ee.ria.xroad.common.crypto.identifier.SignMechanism;
 import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.util.TimeUtils;
-import ee.ria.xroad.signer.exception.SignerException;
-import ee.ria.xroad.signer.protocol.dto.KeyInfo;
-import ee.ria.xroad.signer.protocol.dto.KeyInfoProto;
-import ee.ria.xroad.signer.protocol.dto.KeyUsageInfo;
-import ee.ria.xroad.signer.protocol.dto.TokenInfo;
-import ee.ria.xroad.signer.protocol.dto.TokenInfoProto;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -63,6 +57,12 @@ import org.niis.xroad.cs.admin.core.repository.ConfigurationSourceRepository;
 import org.niis.xroad.restapi.config.audit.AuditDataHelper;
 import org.niis.xroad.restapi.config.audit.AuditEventHelper;
 import org.niis.xroad.restapi.config.audit.RestApiAuditProperty;
+import org.niis.xroad.signer.api.dto.KeyInfo;
+import org.niis.xroad.signer.api.dto.TokenInfo;
+import org.niis.xroad.signer.api.exception.SignerException;
+import org.niis.xroad.signer.protocol.dto.KeyInfoProto;
+import org.niis.xroad.signer.protocol.dto.KeyUsageInfo;
+import org.niis.xroad.signer.protocol.dto.TokenInfoProto;
 
 import java.time.Instant;
 import java.util.Date;
@@ -70,7 +70,6 @@ import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 
-import static ee.ria.xroad.signer.protocol.dto.TokenStatusInfo.OK;
 import static java.lang.Boolean.FALSE;
 import static java.lang.Boolean.TRUE;
 import static java.util.stream.Collectors.toList;
@@ -85,6 +84,7 @@ import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.when;
 import static org.niis.xroad.restapi.config.audit.RestApiAuditEvent.DELETE_EXTERNAL_CONFIGURATION_SIGNING_KEY;
 import static org.niis.xroad.restapi.config.audit.RestApiAuditEvent.DELETE_INTERNAL_CONFIGURATION_SIGNING_KEY;
+import static org.niis.xroad.signer.protocol.dto.TokenStatusInfo.OK;
 
 @ExtendWith(MockitoExtension.class)
 class ConfigurationSigningKeysServiceImplTest {
@@ -350,7 +350,7 @@ class ConfigurationSigningKeysServiceImplTest {
     }
 
     private KeyInfo createKeyInfo(String keyIdentifier) {
-        return new ee.ria.xroad.signer.protocol.dto.KeyInfo(KeyInfoProto.newBuilder()
+        return new KeyInfo(KeyInfoProto.newBuilder()
                 .setAvailable(true)
                 .setUsage(KeyUsageInfo.SIGNING)
                 .setFriendlyName("keyFriendlyName")

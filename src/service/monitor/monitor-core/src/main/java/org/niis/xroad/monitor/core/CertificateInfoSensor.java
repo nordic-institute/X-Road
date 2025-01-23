@@ -27,14 +27,14 @@ package org.niis.xroad.monitor.core;
 
 import ee.ria.xroad.common.SystemProperties;
 import ee.ria.xroad.common.util.CryptoUtils;
-import ee.ria.xroad.signer.SignerProxy;
-import ee.ria.xroad.signer.protocol.dto.TokenInfo;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.niis.xroad.monitor.core.CertificateMonitoringInfo.CertificateType;
 import org.niis.xroad.monitor.core.common.SystemMetricNames;
 import org.niis.xroad.serverconf.ServerConfProvider;
+import org.niis.xroad.signer.api.dto.TokenInfo;
+import org.niis.xroad.signer.client.SignerProxy;
 import org.springframework.scheduling.TaskScheduler;
 
 import java.security.cert.X509Certificate;

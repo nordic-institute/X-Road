@@ -9,7 +9,7 @@ dependencies {
   implementation(project(":lib:globalconf-spring"))
   implementation(project(":lib:serverconf-spring"))
   implementation(project(":service:monitor:monitor-api"))
-  implementation(project(":signer-protocol"))
+  implementation(project(":service:signer:signer-client"))
 
   implementation("org.springframework:spring-context-support")
 
