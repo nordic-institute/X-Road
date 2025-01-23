@@ -111,7 +111,7 @@ jobs:
         uses: green-coding-solutions/eco-ci-energy-estimation@v4
         with:
           task: start-measurement
-          send-data: false
+          label: 'Central Server system tests'
       - uses: actions/checkout@v4
       - name: Set up JDK 21
         uses: actions/setup-java@v4
@@ -177,6 +177,7 @@ jobs:
         with:
           task: display-results
           pr-comment: true
+          json-output: true
   RunSSSystemTests:
     name: Run Security Server system tests
     needs: BuildAndPackageWithUnitTests
@@ -191,7 +192,7 @@ jobs:
         uses: green-coding-solutions/eco-ci-energy-estimation@v4
         with:
           task: start-measurement
-          send-data: false
+          label: 'Security Server system tests'
       - uses: actions/checkout@v4
       - name: Set up JDK 21
         uses: actions/setup-java@v4
@@ -262,6 +263,7 @@ jobs:
         with:
           task: display-results
           pr-comment: true
+          json-output: true
   RunE2ETests:
     name: Run E2E tests
     needs: BuildAndPackageWithUnitTests
@@ -276,7 +278,7 @@ jobs:
         uses: green-coding-solutions/eco-ci-energy-estimation@v4
         with:
           task: start-measurement
-          send-data: false
+          label: 'E2E tests'
       # Setup
       - uses: actions/checkout@v4
       - name: Set up JDK 21
@@ -361,3 +363,4 @@ jobs:
         with:
           task: display-results
           pr-comment: true
+          json-output: true
