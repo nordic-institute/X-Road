@@ -29,6 +29,7 @@ import ee.ria.xroad.signer.protocol.handler.GetOcspResponsesReqHandler;
 import ee.ria.xroad.signer.protocol.handler.SetOcspResponsesReqHandler;
 
 import io.grpc.stub.StreamObserver;
+import jakarta.enterprise.context.ApplicationScoped;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.niis.xroad.rpc.common.Empty;
@@ -36,10 +37,9 @@ import org.niis.xroad.signer.proto.GetOcspResponsesReq;
 import org.niis.xroad.signer.proto.GetOcspResponsesResp;
 import org.niis.xroad.signer.proto.OcspServiceGrpc;
 import org.niis.xroad.signer.proto.SetOcspResponsesReq;
-import org.springframework.stereotype.Service;
 
 @Slf4j
-@Service
+@ApplicationScoped
 @RequiredArgsConstructor
 public class OcspService extends OcspServiceGrpc.OcspServiceImplBase {
     private final SetOcspResponsesReqHandler setOcspResponsesReqHandler;

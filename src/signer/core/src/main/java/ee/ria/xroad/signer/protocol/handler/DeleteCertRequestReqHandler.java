@@ -29,10 +29,10 @@ import ee.ria.xroad.common.CodedException;
 import ee.ria.xroad.signer.protocol.AbstractRpcHandler;
 import ee.ria.xroad.signer.tokenmanager.TokenManager;
 
+import jakarta.enterprise.context.ApplicationScoped;
 import lombok.extern.slf4j.Slf4j;
 import org.niis.xroad.rpc.common.Empty;
 import org.niis.xroad.signer.proto.DeleteCertRequestReq;
-import org.springframework.stereotype.Component;
 
 import static ee.ria.xroad.common.ErrorCodes.X_CSR_NOT_FOUND;
 
@@ -40,7 +40,7 @@ import static ee.ria.xroad.common.ErrorCodes.X_CSR_NOT_FOUND;
  * Handles certificate request deletions.
  */
 @Slf4j
-@Component
+@ApplicationScoped
 public class DeleteCertRequestReqHandler
         extends AbstractRpcHandler<DeleteCertRequestReq, Empty> {
 

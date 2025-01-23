@@ -28,6 +28,7 @@ package ee.ria.xroad.signer.certmanager;
 import ee.ria.xroad.common.conf.globalconf.GlobalConfProvider;
 import ee.ria.xroad.common.ocsp.OcspCache;
 
+import jakarta.inject.Singleton;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.IOUtils;
 import org.bouncycastle.cert.ocsp.OCSPResp;
@@ -51,6 +52,7 @@ import static ee.ria.xroad.common.SystemProperties.getOcspCachePath;
  * OCSP cache that holds the OCSP responses on disk.
  */
 @Slf4j
+@Singleton
 public class FileBasedOcspCache extends OcspCache {
 
     /** The OCSP response file extension. */
@@ -63,6 +65,7 @@ public class FileBasedOcspCache extends OcspCache {
     /**
      * Returns the OCSP response for the given certificate or null, if the
      * response is not available.
+     *
      * @param certHash for which to get the response
      * @return the OCSP response object or null, if no response is available
      */

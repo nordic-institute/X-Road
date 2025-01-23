@@ -32,12 +32,12 @@ import ee.ria.xroad.signer.tokenmanager.token.SoftwareTokenType;
 import ee.ria.xroad.signer.util.TokenAndKey;
 
 import com.google.protobuf.ByteString;
+import jakarta.enterprise.context.ApplicationScoped;
 import lombok.extern.slf4j.Slf4j;
 import org.bouncycastle.pkcs.PKCS10CertificationRequest;
 import org.niis.xroad.common.rpc.mapper.ClientIdMapper;
 import org.niis.xroad.signer.proto.GenerateCertRequestReq;
 import org.niis.xroad.signer.proto.GenerateCertRequestResp;
-import org.springframework.stereotype.Component;
 
 import static ee.ria.xroad.common.ErrorCodes.X_WRONG_CERT_USAGE;
 import static ee.ria.xroad.signer.util.ExceptionHelper.keyNotAvailable;
@@ -46,7 +46,7 @@ import static ee.ria.xroad.signer.util.ExceptionHelper.keyNotAvailable;
  * Handles certificate request generations.
  */
 @Slf4j
-@Component
+@ApplicationScoped
 public class GenerateCertReqReqHandler extends AbstractGenerateCertReq<GenerateCertRequestReq, GenerateCertRequestResp> {
 
     @Override

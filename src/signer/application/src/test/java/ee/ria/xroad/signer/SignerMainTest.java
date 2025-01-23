@@ -26,12 +26,10 @@
  */
 package ee.ria.xroad.signer;
 
+import io.quarkus.test.junit.QuarkusTest;
 import org.junit.jupiter.api.Test;
-import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.test.context.ActiveProfiles;
 
-@ActiveProfiles("test")
-@SpringBootTest(useMainMethod = SpringBootTest.UseMainMethod.ALWAYS)
+@QuarkusTest
 class SignerMainTest {
 
     @Test

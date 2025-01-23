@@ -43,6 +43,7 @@ import org.niis.xroad.common.rpc.RpcCredentialsConfigurer;
 import org.niis.xroad.common.rpc.RpcServerProperties;
 import org.niis.xroad.common.rpc.server.RpcServer;
 
+import java.io.IOException;
 import java.util.List;
 
 @Slf4j
@@ -52,14 +53,16 @@ public class MonitorConfig {
     @Startup
     RpcServer rpcServer(@All List<BindableService> services,
                         EnvMonitorServerProperties rpcServerProperties,
-                        RpcCredentialsConfigurer rpcCredentialsConfigurer) {
+                        RpcCredentialsConfigurer rpcCredentialsConfigurer) throws IOException {
         log.info("Starting Monitor RPC server on port {}.", rpcServerProperties.port());
         var serverCredentials = rpcCredentialsConfigurer.createServerCredentials();
-        return new RpcServer(rpcServerProperties.listenAddress(), rpcServerProperties.port(), serverCredentials,
+        RpcServer rpcServer = new RpcServer(rpcServerProperties.listenAddress(), rpcServerProperties.port(), serverCredentials,
                 builder -> services.forEach(service -> {
                     log.info("Registering {} RPC service.", service.getClass().getSimpleName());
                     builder.addService(service);
                 }));
+        rpcServer.afterPropertiesSet();
+        return rpcServer;
     }
 
     @ApplicationScoped

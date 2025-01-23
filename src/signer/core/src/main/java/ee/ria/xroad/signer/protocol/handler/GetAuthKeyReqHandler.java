@@ -25,7 +25,6 @@
  */
 package ee.ria.xroad.signer.protocol.handler;
 
-import ee.ria.xroad.common.conf.globalconf.GlobalConfProvider;
 import ee.ria.xroad.signer.protocol.dto.CertificateInfo;
 import ee.ria.xroad.signer.protocol.dto.KeyInfo;
 import ee.ria.xroad.signer.tokenmanager.token.SoftwareTokenType;
@@ -33,9 +32,9 @@ import ee.ria.xroad.signer.tokenmanager.token.SoftwareTokenUtil;
 import ee.ria.xroad.signer.util.passwordstore.PasswordStore;
 
 import com.google.protobuf.ByteString;
+import jakarta.enterprise.context.ApplicationScoped;
 import lombok.extern.slf4j.Slf4j;
 import org.niis.xroad.signer.proto.AuthKeyProto;
-import org.springframework.stereotype.Component;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -46,12 +45,8 @@ import static java.util.Optional.ofNullable;
  * Handles authentication key retrieval requests.
  */
 @Slf4j
-@Component
+@ApplicationScoped
 public class GetAuthKeyReqHandler extends AbstractAuthKeyReqHandler<AuthKeyProto> {
-
-    public GetAuthKeyReqHandler(GlobalConfProvider globalConfProvider) {
-        super(globalConfProvider);
-    }
 
     @Override
     protected AuthKeyProto resolveResponse(KeyInfo keyInfo, CertificateInfo certInfo) throws Exception {
@@ -76,6 +71,5 @@ public class GetAuthKeyReqHandler extends AbstractAuthKeyReqHandler<AuthKeyProto
             return ByteString.readFrom(fis);
         }
     }
-
 
 }

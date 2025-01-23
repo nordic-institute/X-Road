@@ -26,28 +26,44 @@
 
 package ee.ria.xroad.signer.job;
 
-import ee.ria.xroad.signer.SignerConfig;
+import ee.ria.xroad.common.SystemProperties;
 import ee.ria.xroad.signer.certmanager.OcspClientWorker;
 
+import io.quarkus.runtime.Startup;
+import io.quarkus.scheduler.Scheduled;
+import io.quarkus.scheduler.ScheduledExecution;
+import io.quarkus.scheduler.Scheduler;
+import jakarta.enterprise.context.ApplicationScoped;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.context.annotation.Conditional;
-import org.springframework.scheduling.annotation.Scheduled;
-import org.springframework.stereotype.Component;
 
 @Slf4j
 @RequiredArgsConstructor
-@Component
-@Conditional(SignerConfig.IsOcspClientJobsActive.class)
+@ApplicationScoped
 public class OcspClientReloadJob {
 
     private final OcspClientWorker ocspClientWorker;
     private final OcspClientExecuteScheduler ocspClientExecuteScheduler;
+    private final Scheduler scheduler;
 
-    @Scheduled(initialDelay = 100, fixedDelay = 60_000)
-    public void reload() {
+    void reload(ScheduledExecution execution) {
         log.trace("OcspClientReloadJob triggered");
         ocspClientWorker.reload(ocspClientExecuteScheduler);
+    }
+
+    @Startup
+    public void init() {
+        if (SystemProperties.isOcspResponseRetrievalActive()) {
+            log.info("Scheduling OcspClientReloadJob");
+            scheduler.newJob("OcspClientReloadJob")
+                    .setDelayed("100ms")
+                    .setInterval("60s")
+                    .setTask(this::reload)
+                    .setConcurrentExecution(Scheduled.ConcurrentExecution.SKIP)
+                    .schedule();
+        } else {
+            log.info("OCSP-retrieval configured to be inactive, job auto-scheduling disabled");
+        }
     }
 
 }

@@ -34,16 +34,16 @@ import ee.ria.xroad.signer.protocol.AbstractRpcHandler;
 
 import jakarta.annotation.PostConstruct;
 import jakarta.annotation.PreDestroy;
+import jakarta.enterprise.context.ApplicationScoped;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.niis.xroad.rpc.common.Empty;
 import org.niis.xroad.signer.proto.KeyConfChecksum;
-import org.springframework.stereotype.Component;
 
 import java.lang.ref.WeakReference;
 import java.nio.file.Paths;
 
-@Component
+@ApplicationScoped
 @Slf4j
 public class GetKeyConfChecksumHandler extends AbstractRpcHandler<Empty, KeyConfChecksum> {
 

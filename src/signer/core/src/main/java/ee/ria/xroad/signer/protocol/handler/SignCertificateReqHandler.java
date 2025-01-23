@@ -29,13 +29,13 @@ package ee.ria.xroad.signer.protocol.handler;
 import ee.ria.xroad.signer.protocol.AbstractRpcHandler;
 
 import com.google.protobuf.ByteString;
+import jakarta.enterprise.context.ApplicationScoped;
 import org.niis.xroad.signer.proto.SignCertificateReq;
 import org.niis.xroad.signer.proto.SignCertificateResp;
-import org.springframework.stereotype.Component;
 
 import static ee.ria.xroad.signer.tokenmanager.TokenManager.findTokenIdForKeyId;
 
-@Component
+@ApplicationScoped
 public class SignCertificateReqHandler extends AbstractRpcHandler<SignCertificateReq, SignCertificateResp> {
 
     @Override

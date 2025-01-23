@@ -955,7 +955,7 @@ public final class SystemProperties {
      * @return software token signing mechanism type, CKM_RSA_PKCS by default
      */
     public static SignMechanism getSoftTokenRsaSignMechanism() {
-        return Optional.ofNullable(SystemPropertySource.getPropertyResolver().getProperty(SOFT_TOKEN_RSA_SIGN_MECHANISM))
+        return Optional.ofNullable(SystemPropertySource.getPropertyResolver().getProperty(SOFT_TOKEN_RSA_SIGN_MECHANISM, (String) null))
                 .map(SignMechanism::valueOf)
                 .orElse(SignMechanism.CKM_RSA_PKCS);
     }
@@ -964,7 +964,7 @@ public final class SystemProperties {
      * @return software token signing mechanism type for EC keys, CKM_ECDSA by default
      */
     public static SignMechanism getSofTokenEcSignMechanism() {
-        return Optional.ofNullable(SystemPropertySource.getPropertyResolver().getProperty(SOFT_TOKEN_EC_SIGN_MECHANISM))
+        return Optional.ofNullable(SystemPropertySource.getPropertyResolver().getProperty(SOFT_TOKEN_EC_SIGN_MECHANISM, (String) null))
                 .map(SignMechanism::valueOf)
                 .orElse(SignMechanism.CKM_ECDSA);
     }
@@ -1333,7 +1333,7 @@ public final class SystemProperties {
      * @return the {@link #NODE_TYPE} in a cluster for this Server.
      */
     public static NodeType getServerNodeType() {
-        return NodeType.fromStringIgnoreCaseOrReturnDefault(SystemPropertySource.getPropertyResolver().getProperty(NODE_TYPE));
+        return NodeType.fromStringIgnoreCaseOrReturnDefault(SystemPropertySource.getPropertyResolver().getProperty(NODE_TYPE, (String) null));
     }
 
     public static boolean isHealthCheckEnabled() {

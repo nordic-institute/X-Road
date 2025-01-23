@@ -28,14 +28,14 @@ package ee.ria.xroad.signer.protocol.handler;
 import ee.ria.xroad.signer.protocol.AbstractRpcHandler;
 import ee.ria.xroad.signer.tokenmanager.TokenManager;
 
+import jakarta.enterprise.context.ApplicationScoped;
 import org.niis.xroad.signer.proto.GetTokenBatchSigningEnabledReq;
 import org.niis.xroad.signer.proto.GetTokenBatchSigningEnabledResp;
-import org.springframework.stereotype.Component;
 
 /**
  * Handles queries for batch signing capabilities of a token.
  */
-@Component
+@ApplicationScoped
 public class GetTokenBatchSigningEnabledReqHandler
         extends AbstractRpcHandler<GetTokenBatchSigningEnabledReq, GetTokenBatchSigningEnabledResp> {
 

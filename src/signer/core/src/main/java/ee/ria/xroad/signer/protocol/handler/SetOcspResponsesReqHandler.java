@@ -28,15 +28,15 @@ package ee.ria.xroad.signer.protocol.handler;
 import ee.ria.xroad.signer.certmanager.OcspResponseManager;
 import ee.ria.xroad.signer.protocol.AbstractRpcHandler;
 
+import jakarta.enterprise.context.ApplicationScoped;
 import lombok.RequiredArgsConstructor;
 import org.niis.xroad.rpc.common.Empty;
 import org.niis.xroad.signer.proto.SetOcspResponsesReq;
-import org.springframework.stereotype.Component;
 
 /**
  * Handles requests for setting the OCSP responses for certificates.
  */
-@Component
+@ApplicationScoped
 @RequiredArgsConstructor
 public class SetOcspResponsesReqHandler
         extends AbstractRpcHandler<SetOcspResponsesReq, Empty> {

@@ -35,12 +35,12 @@ import ee.ria.xroad.signer.tokenmanager.token.SoftwareTokenType;
 import ee.ria.xroad.signer.util.TokenAndKey;
 
 import com.google.protobuf.ByteString;
+import jakarta.enterprise.context.ApplicationScoped;
 import lombok.extern.slf4j.Slf4j;
 import org.bouncycastle.pkcs.PKCS10CertificationRequest;
 import org.niis.xroad.common.rpc.mapper.ClientIdMapper;
 import org.niis.xroad.signer.proto.RegenerateCertRequestReq;
 import org.niis.xroad.signer.proto.RegenerateCertRequestResp;
-import org.springframework.stereotype.Component;
 
 import static ee.ria.xroad.common.ErrorCodes.X_CSR_NOT_FOUND;
 import static ee.ria.xroad.common.ErrorCodes.X_INTERNAL_ERROR;
@@ -51,7 +51,7 @@ import static java.util.Optional.ofNullable;
  * Handles certificate request re-generations.
  */
 @Slf4j
-@Component
+@ApplicationScoped
 public class RegenerateCertReqReqHandler extends AbstractGenerateCertReq<RegenerateCertRequestReq, RegenerateCertRequestResp> {
 
     @Override

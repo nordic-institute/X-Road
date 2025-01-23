@@ -33,6 +33,7 @@ import ee.ria.xroad.signer.util.SignerUtil;
 
 import lombok.extern.slf4j.Slf4j;
 import org.bouncycastle.operator.ContentSigner;
+import org.bouncycastle.util.Arrays;
 
 import java.io.File;
 import java.io.FilenameFilter;
@@ -123,6 +124,7 @@ public final class SoftwareTokenUtil {
 
     /**
      * Create a temp directory for key stores. Used e.g. when changing pin codes for key stores
+     *
      * @throws IOException creating temp dir fails
      */
     public static Path createTempKeyDir() throws IOException {
@@ -133,8 +135,11 @@ public final class SoftwareTokenUtil {
     static List<String> listKeysOnDisk() {
         List<String> keys = new ArrayList<>();
 
-        for (String p12File : getKeyDir().list(P12_FILTER)) {
-            keys.add(p12File.substring(0, p12File.indexOf(P12)));
+        String[] filesList = getKeyDir().list(P12_FILTER);
+        if (!Arrays.isNullOrEmpty(filesList)) {
+            for (String p12File : filesList) {
+                keys.add(p12File.substring(0, p12File.indexOf(P12)));
+            }
         }
 
         return keys;

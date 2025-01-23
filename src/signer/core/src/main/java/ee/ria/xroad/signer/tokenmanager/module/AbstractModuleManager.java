@@ -38,8 +38,8 @@ import ee.ria.xroad.signer.tokenmanager.token.WorkerWithLifecycle;
 
 import jakarta.annotation.PostConstruct;
 import jakarta.annotation.PreDestroy;
+import jakarta.inject.Inject;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
 
 import java.nio.file.Paths;
 import java.util.Collection;
@@ -62,7 +62,7 @@ import static java.util.Objects.requireNonNull;
 public abstract class AbstractModuleManager implements WorkerWithLifecycle, TokenWorkerProvider {
     private final SystemProperties.NodeType serverNodeType = SystemProperties.getServerNodeType();
 
-    @Autowired
+    @Inject
     private OcspResponseManager ocspResponseManager;
 
     @SuppressWarnings("java:S3077")

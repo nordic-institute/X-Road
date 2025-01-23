@@ -29,10 +29,10 @@ import ee.ria.xroad.common.CodedException;
 import ee.ria.xroad.signer.protocol.AbstractRpcHandler;
 import ee.ria.xroad.signer.tokenmanager.token.TokenWorker;
 
+import jakarta.enterprise.context.ApplicationScoped;
 import lombok.extern.slf4j.Slf4j;
 import org.niis.xroad.rpc.common.Empty;
 import org.niis.xroad.signer.proto.UpdateSoftwareTokenPinReq;
-import org.springframework.stereotype.Component;
 
 import static ee.ria.xroad.common.ErrorCodes.X_INTERNAL_ERROR;
 import static ee.ria.xroad.signer.protocol.Utils.byteToChar;
@@ -41,7 +41,7 @@ import static ee.ria.xroad.signer.protocol.Utils.byteToChar;
  * Handles token pin update
  */
 @Slf4j
-@Component
+@ApplicationScoped
 public class UpdateSoftwareTokenPinReqHandler extends AbstractRpcHandler<UpdateSoftwareTokenPinReq, Empty> {
 
     @Override

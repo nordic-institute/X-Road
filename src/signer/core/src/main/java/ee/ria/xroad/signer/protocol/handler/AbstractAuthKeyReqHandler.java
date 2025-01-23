@@ -42,12 +42,11 @@ import ee.ria.xroad.signer.tokenmanager.token.SoftwareTokenType;
 import ee.ria.xroad.signer.tokenmanager.token.SoftwareTokenUtil;
 
 import com.google.protobuf.AbstractMessage;
-import lombok.RequiredArgsConstructor;
+import jakarta.inject.Inject;
 import lombok.extern.slf4j.Slf4j;
 import org.bouncycastle.cert.ocsp.OCSPResp;
 import org.niis.xroad.common.rpc.mapper.SecurityServerIdMapper;
 import org.niis.xroad.signer.proto.GetAuthKeyReq;
-import org.springframework.stereotype.Component;
 
 import java.security.cert.CertificateException;
 import java.security.cert.X509Certificate;
@@ -60,11 +59,11 @@ import static ee.ria.xroad.signer.util.ExceptionHelper.tokenNotInitialized;
  * Handles authentication key retrieval requests.
  */
 @Slf4j
-@Component
-@RequiredArgsConstructor
 @SuppressWarnings({"squid:S119", "checkstyle:JavadocType"})
 public abstract class AbstractAuthKeyReqHandler<RespT extends AbstractMessage> extends AbstractRpcHandler<GetAuthKeyReq, RespT> {
-    private final GlobalConfProvider globalConfProvider;
+
+    @Inject
+    protected GlobalConfProvider globalConfProvider;
 
     @Override
     @SuppressWarnings("squid:S3776")
@@ -182,6 +181,5 @@ public abstract class AbstractAuthKeyReqHandler<RespT extends AbstractMessage> e
         return status != null
                 && status.startsWith(CertificateInfo.STATUS_REGISTERED);
     }
-
 
 }

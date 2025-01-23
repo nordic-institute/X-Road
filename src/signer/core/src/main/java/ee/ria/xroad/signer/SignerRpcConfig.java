@@ -25,42 +25,39 @@
  */
 package ee.ria.xroad.signer;
 
-import lombok.RequiredArgsConstructor;
+import io.grpc.BindableService;
+import io.quarkus.arc.All;
+import io.quarkus.runtime.Startup;
+import io.smallrye.config.ConfigMapping;
+import jakarta.enterprise.context.ApplicationScoped;
 import lombok.extern.slf4j.Slf4j;
-import org.niis.xroad.common.rpc.RpcConfig;
+import org.niis.xroad.common.rpc.RpcCredentialsConfigurer;
 import org.niis.xroad.common.rpc.RpcServerProperties;
-import org.niis.xroad.common.rpc.server.RpcServerConfig;
-import org.niis.xroad.confclient.proto.ConfClientRpcClientConfiguration;
-import org.springframework.boot.context.properties.ConfigurationProperties;
-import org.springframework.boot.context.properties.EnableConfigurationProperties;
-import org.springframework.context.annotation.Configuration;
-import org.springframework.context.annotation.Import;
+import org.niis.xroad.common.rpc.server.RpcServer;
+
+import java.io.IOException;
+import java.util.List;
 
 @Slf4j
-@Import({
-        ConfClientRpcClientConfiguration.class,
-        RpcConfig.class,
-        RpcServerConfig.class
-})
-@EnableConfigurationProperties({SignerRpcConfig.SignerRpcServerProperties.class})
-@Configuration
 public class SignerRpcConfig {
 
-
-    @RequiredArgsConstructor
-    @ConfigurationProperties(prefix = "xroad.signer.grpc")
-    static class SignerRpcServerProperties implements RpcServerProperties {
-        private final String listenAddress;
-        private final int port;
-
-        @Override
-        public String listenAddress() {
-            return listenAddress;
-        }
-
-        @Override
-        public int port() {
-            return port;
-        }
+    @ConfigMapping(prefix = "xroad.signer.grpc")
+    public interface SignerRpcServerProperties extends RpcServerProperties {
     }
+
+    @ApplicationScoped
+    @Startup
+    RpcServer rpcServer(@All List<BindableService> services,
+                        SignerRpcServerProperties rpcServerProperties,
+                        RpcCredentialsConfigurer rpcCredentialsConfigurer) throws IOException {
+        var serverCredentials = rpcCredentialsConfigurer.createServerCredentials();
+        var server =  new RpcServer(rpcServerProperties.listenAddress(), rpcServerProperties.port(), serverCredentials,
+                builder -> services.forEach(service -> {
+                    log.info("Registering {} RPC service.", service.getClass().getSimpleName());
+                    builder.addService(service);
+                }));
+        server.afterPropertiesSet();
+        return server;
+    }
+
 }

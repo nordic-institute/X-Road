@@ -25,25 +25,32 @@
  * THE SOFTWARE.
  */
 
-package ee.ria.xroad.signer;
+package ee.ria.xroad.signer.job;
 
-import ee.ria.xroad.signer.tokenmanager.module.AbstractModuleManager;
-import ee.ria.xroad.signer.tokenmanager.module.HardwareModuleManagerImpl;
+public class NoopOcspClientExecuteScheduler implements OcspClientExecuteScheduler {
 
-import lombok.extern.slf4j.Slf4j;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
-import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Configuration;
-
-@Configuration
-@Slf4j
-class SignerAddonsConfig {
-
-    @Bean
-    @ConditionalOnProperty(name = "xroad.signer.addon.hwtoken.enabled", havingValue = "true")
-    AbstractModuleManager hardwareModuleManager() {
-        log.info("Hardware token manager enabled.");
-        return new HardwareModuleManagerImpl();
+    @Override
+    public void success() {
+        // noop
     }
 
+    @Override
+    public void failure() {
+        // noop
+    }
+
+    @Override
+    public void globalConfInvalidated() {
+        // noop
+    }
+
+    @Override
+    public void execute() {
+        // noop
+    }
+
+    @Override
+    public void reschedule() {
+        // noop
+    }
 }

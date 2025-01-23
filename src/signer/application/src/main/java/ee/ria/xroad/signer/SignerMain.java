@@ -26,26 +26,19 @@
  */
 package ee.ria.xroad.signer;
 
-import lombok.extern.slf4j.Slf4j;
-import org.niis.xroad.bootstrap.XrdSpringServiceBuilder;
-import org.springframework.boot.SpringBootConfiguration;
-import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
+import io.quarkus.runtime.Quarkus;
+import io.quarkus.runtime.annotations.QuarkusMain;
+import org.niis.xroad.bootstrap.XrdQuarkusApplication;
 
 /**
  * Signer main program.
  */
-@Slf4j
-@EnableAutoConfiguration
-@SpringBootConfiguration
+@QuarkusMain
 @SuppressWarnings("checkstyle:HideUtilityClassConstructor")
 public class SignerMain {
 
-    private static final String APP_NAME = "signer";
-
     public static void main(String[] args) {
-        XrdSpringServiceBuilder.newApplicationBuilder(APP_NAME, SignerAddonsConfig.class, SignerMain.class, SignerConfig.class)
-                .build()
-                .run(args);
+        Quarkus.run(XrdQuarkusApplication.class, args);
     }
 
 }

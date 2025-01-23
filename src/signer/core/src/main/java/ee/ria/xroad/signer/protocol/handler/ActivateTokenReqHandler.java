@@ -27,14 +27,14 @@ package ee.ria.xroad.signer.protocol.handler;
 
 import ee.ria.xroad.signer.protocol.AbstractRpcHandler;
 
+import jakarta.enterprise.context.ApplicationScoped;
 import org.niis.xroad.rpc.common.Empty;
 import org.niis.xroad.signer.proto.ActivateTokenReq;
-import org.springframework.stereotype.Component;
 
 /**
  * Handles token activations and deactivations.
  */
-@Component
+@ApplicationScoped
 public class ActivateTokenReqHandler
         extends AbstractRpcHandler<ActivateTokenReq, Empty> {
 

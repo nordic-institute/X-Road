@@ -43,12 +43,12 @@ import ee.ria.xroad.signer.protocol.dto.TokenInfo;
 import ee.ria.xroad.signer.tokenmanager.TokenManager;
 import ee.ria.xroad.signer.util.SignerUtil;
 
+import jakarta.enterprise.context.ApplicationScoped;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.niis.xroad.common.rpc.mapper.ClientIdMapper;
 import org.niis.xroad.signer.proto.ImportCertReq;
 import org.niis.xroad.signer.proto.ImportCertResp;
-import org.springframework.stereotype.Component;
 
 import java.security.cert.X509Certificate;
 import java.util.Arrays;
@@ -66,7 +66,7 @@ import static ee.ria.xroad.common.util.EncoderUtils.encodeBase64;
  * Handles certificate import requests.
  */
 @Slf4j
-@Component
+@ApplicationScoped
 @RequiredArgsConstructor
 public class ImportCertReqHandler extends AbstractRpcHandler<ImportCertReq, ImportCertResp> {
     private final DeleteCertRequestReqHandler deleteCertRequestReqHandler;

@@ -42,6 +42,7 @@ import ee.ria.xroad.signer.job.OcspClientExecuteScheduler;
 import ee.ria.xroad.signer.protocol.dto.CertificateInfo;
 import ee.ria.xroad.signer.tokenmanager.TokenManager;
 
+import jakarta.enterprise.context.ApplicationScoped;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.bouncycastle.cert.ocsp.OCSPException;
@@ -77,6 +78,7 @@ import static java.util.Collections.emptyList;
  */
 @Slf4j
 @RequiredArgsConstructor
+@ApplicationScoped
 public class OcspClientWorker {
     private static final String OCSP_FRESHNESS_SECONDS = "ocspFreshnessSeconds";
     private static final String VERIFY_OCSP_NEXT_UPDATE = "verifyOcspNextUpdate";
