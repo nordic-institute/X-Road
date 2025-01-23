@@ -28,7 +28,7 @@ ss_modules:
     lib: metaservice-1.0.jar
     target: /usr/share/xroad/jlib/addon/proxy
   configuration-client:
-    dir: configuration-client
+    dir: service/configuration-client/configuration-client-application
     build: build
     lib: configuration-client-1.0.jar
     target: /usr/share/xroad/jlib

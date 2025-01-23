@@ -38,7 +38,7 @@ deploy_module() {
     service_name="xroad-signer"
     ;;
   "configuration-client")
-    jar_path="$XROAD_HOME/src/configuration-client/application/build/libs/configuration-client-1.0.jar"
+    jar_path="$XROAD_HOME/src/service/configuration-client/configuration-client-application/build/libs/configuration-client-1.0.jar"
     service_name="xroad-confclient"
     ;;
   "op-monitor-daemon")
