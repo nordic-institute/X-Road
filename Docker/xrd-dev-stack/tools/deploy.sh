@@ -12,7 +12,7 @@ deploy_module() {
 
   case $module_name in
   "proxy")
-    jar_path="$XROAD_HOME/src/proxy/application/build/libs/proxy-1.0.jar"
+    jar_path="$XROAD_HOME/src/service/proxy/proxy-application/build/libs/proxy-1.0.jar"
     service_name="xroad-proxy"
     ;;
   "messagelog-addon")

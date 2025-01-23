@@ -38,7 +38,7 @@ tasks.register('xjc') {
         // Generate classes for identifiers
         ant.xjc(
             destdir: project.ext.schemaTargetDir,
-            package: 'ee.ria.xroad.proxymonitor.message',
+            package: 'org.niis.xroad.proxymonitor.message',
             schema: 'src/main/resources/monitoring.xsd',
             binding: 'src/main/resources/jaxb-bindings.xml'
         )
