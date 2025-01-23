@@ -178,6 +178,14 @@ jobs:
           task: display-results
           pr-comment: true
           json-output: true
+      - name: Upload GMT jsons
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: CS System Test GMT jsons
+          path: |
+            /tmp/eco-ci/lap-data.json
+            /tmp/eco-ci/total-data.json
   RunSSSystemTests:
     name: Run Security Server system tests
     needs: BuildAndPackageWithUnitTests
