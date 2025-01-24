@@ -186,7 +186,6 @@ jobs:
           pr-comment: true
           json-output: true
       - name: Upload GMT jsons
-        if: failure()
         uses: actions/upload-artifact@v4
         with:
           name: CS System Test GMT jsons
