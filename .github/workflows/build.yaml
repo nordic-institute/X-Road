@@ -172,6 +172,13 @@ jobs:
         with:
           name: CS System Test screenshots
           path: src/central-server/admin-service/ui-system-test/build/reports/test-automation/selenide-failures/*.png
+      - name: Upload CS report
+        uses: actions/upload-artifact@v4
+        if: failure()
+        with:
+          name: SS System Test report
+          path: |
+            src/central-server/admin-service/ui-system-test/build/allure-report/
       - name: Show Energy Results
         uses: green-coding-solutions/eco-ci-energy-estimation@v4
         with:

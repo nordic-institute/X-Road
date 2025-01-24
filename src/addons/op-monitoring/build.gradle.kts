@@ -5,7 +5,7 @@ plugins {
 dependencies {
   implementation(project(":service:op-monitor:op-monitor-api"))
 
-  implementation(project(":proxy:core"))
+  implementation(project(":service:proxy:proxy-core"))
   implementation(project(":common:common-domain"))
   implementation(project(":common:common-message"))
   implementation(project(":common:common-jetty"))

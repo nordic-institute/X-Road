@@ -17,10 +17,7 @@
         </encoder>
     </appender>
 
-    <logger name="ee.ria.xroad" level="DEBUG" />
-
-    <!-- Temporarily disable logger for proxy UI -->
-    <logger name="ee.ria.xroad.proxyui" level="OFF" />
+    <logger name="org.niis.xroad" level="DEBUG" />
 
     <root level="INFO">
         <appender-ref ref="STDOUT" />

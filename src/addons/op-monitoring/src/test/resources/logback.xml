@@ -8,7 +8,7 @@
         </encoder>
     </appender>
 
-    <logger name="ee.ria.xroad.proxy.opmonitoring.OpMonitoringBuffer" level="TRACE" />
+    <logger name="org.niis.xroad.proxy.core.opmonitoring.OpMonitoringBuffer" level="TRACE" />
 
     <root level="DEBUG">
         <appender-ref ref="STDOUT" />

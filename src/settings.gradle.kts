@@ -39,6 +39,12 @@ include("lib:serverconf-spring")
 
 // Service projects
 include("service")
+
+include("service:configuration-client:configuration-client-application")
+include("service:configuration-client:configuration-client-core")
+
+include("service:configuration-proxy:configuration-proxy-application")
+
 include("service:monitor:monitor-application")
 include("service:monitor:monitor-api")
 include("service:monitor:monitor-core")
@@ -46,6 +52,9 @@ include("service:monitor:monitor-core")
 include("service:op-monitor:op-monitor-application")
 include("service:op-monitor:op-monitor-api")
 include("service:op-monitor:op-monitor-core")
+
+include("service:proxy:proxy-application")
+include("service:proxy:proxy-core")
 
 include("service:signer:signer-application")
 include("service:signer:signer-api")
@@ -58,14 +67,6 @@ include("tool")
 include("tool:asic-verifier-cli")
 
 // Main projects
-include("proxy")
-include("proxy:application")
-include("proxy:core")
-
-include("configuration-proxy")
-include("configuration-client:application")
-include("configuration-client:core")
-
 include("shared-ui")
 
 include("central-server")

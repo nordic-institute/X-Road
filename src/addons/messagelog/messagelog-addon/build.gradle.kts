@@ -13,7 +13,7 @@ tasks.jar {
 }
 
 dependencies {
-  implementation(project(":proxy:core"))
+  implementation(project(":service:proxy:proxy-core"))
   implementation(project(":common:common-jetty"))
   implementation(project(":common:common-scheduler"))
   implementation(project(":common:common-messagelog"))
