@@ -1,5 +1,6 @@
 /*
  * The MIT License
+ *
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
@@ -23,38 +24,48 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
+
 package ee.ria.xroad.signer;
 
-import ee.ria.xroad.common.SystemProperties;
+import io.smallrye.config.ConfigMapping;
+import io.smallrye.config.WithName;
 
-import org.junit.Test;
+@ConfigMapping(prefix = "xroad.signer")
+public interface SignerProperties {
 
-import static org.junit.Assert.assertEquals;
+    @WithName("device-configuration-file")//: /etc/xroad/devices.ini
+    String deviceConfigurationFile();
 
-/**
- * Class for testing {@link Signer}
- */
-public class SignerTest {
+    @WithName("key-configuration-file")//: /etc/xroad/signer/keyconf.xml
+    String keyConfigurationFile();
 
-    @Test
-    public void testModuleManagerUpdateIntervalProperty() {
-        // Get default value
-        int defaultValue = Integer.parseInt(SystemProperties.DEFAULT_SIGNER_MODULE_MANAGER_UPDATE_INTERVAL);
+    @WithName("selfsigned-cert-digest-algorithm")//: SHA-512
+    String selfsignedCertDigestAlgorithm();
 
-        // Test for default value
-        assertEquals(SystemProperties.SIGNER_MODULE_MANAGER_UPDATE_INTERVAL + " should be " + defaultValue,
-                defaultValue,
-                SystemProperties.getModuleManagerUpdateInterval());
+    @WithName("csr-signature-digest-algorithm")//: SHA-256
+    String csrSignatureDigestAlgorithm();
 
-        // Increase default value by one
-        int newValue = defaultValue + 1;
+    @WithName("enforce-token-pin-policy")//: false
+    boolean enforceTokenPinPolicy();
 
-        // Set value to default + 1
-        System.setProperty(SystemProperties.SIGNER_MODULE_MANAGER_UPDATE_INTERVAL, Integer.toString(newValue));
+    @WithName("ocsp-response-retrieval-active")
+    boolean ocspResponseRetrievalActive();
 
-        // Test for the new value
-        assertEquals(SystemProperties.SIGNER_MODULE_MANAGER_UPDATE_INTERVAL + " should be " + newValue,
-                newValue,
-                SystemProperties.getModuleManagerUpdateInterval());
-    }
+    @WithName("ocsp-retry-delay")
+    int ocspRetryDelay();
+
+    @WithName("ocsp-cache-path")//: /var/cache/xroad
+    String ocspCachePath();
+
+    @WithName("module-manager-update-interval")//: 60
+    int moduleManagerUpdateInterval();
+
+    @WithName("soft-token-rsa-sign-mechanism")
+    String softTokenRsaSignMechanism();
+
+    @WithName("soft-token-ec-sign-mechanism")
+    String softTokenEcSignMechanism();
+
+    @WithName("soft-token-pin-keystore-algorithm")
+    String softTokenPinKeystoreAlgorithm();
 }

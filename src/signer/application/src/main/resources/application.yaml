@@ -25,14 +25,18 @@ quarkus:
 
 xroad:
   signer:
-    key-length: 2048
     device-configuration-file: /etc/xroad/devices.ini
     key-configuration-file: /etc/xroad/signer/keyconf.xml
-    client-timeout: 50000
+    selfsigned-cert-digest-algorithm: SHA-512
     csr-signature-digest-algorithm: SHA-256
     enforce-token-pin-policy: false
+    ocsp-response-retrieval-active: true
+    ocsp-retry-delay: 60
     ocsp-cache-path: /var/cache/xroad
     module-manager-update-interval: 60
+    soft-token-rsa-sign-mechanism: CKM_RSA_PKCS
+    soft-token-ec-sign-mechanism: CKM_ECDSA
+    soft-token-pin-keystore-algorithm: RSA
     grpc:
       listen-address: 127.0.0.1
       port: 5560

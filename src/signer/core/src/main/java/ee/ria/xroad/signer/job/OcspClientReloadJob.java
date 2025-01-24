@@ -26,7 +26,7 @@
 
 package ee.ria.xroad.signer.job;
 
-import ee.ria.xroad.common.SystemProperties;
+import ee.ria.xroad.signer.SignerProperties;
 import ee.ria.xroad.signer.certmanager.OcspClientWorker;
 
 import io.quarkus.runtime.Startup;
@@ -45,6 +45,7 @@ public class OcspClientReloadJob {
     private final OcspClientWorker ocspClientWorker;
     private final OcspClientExecuteScheduler ocspClientExecuteScheduler;
     private final Scheduler scheduler;
+    private final SignerProperties signerProperties;
 
     void reload(ScheduledExecution execution) {
         log.trace("OcspClientReloadJob triggered");
@@ -53,7 +54,7 @@ public class OcspClientReloadJob {
 
     @Startup
     public void init() {
-        if (SystemProperties.isOcspResponseRetrievalActive()) {
+        if (signerProperties.ocspResponseRetrievalActive()) {
             log.info("Scheduling OcspClientReloadJob");
             scheduler.newJob("OcspClientReloadJob")
                     .setDelayed("100ms")

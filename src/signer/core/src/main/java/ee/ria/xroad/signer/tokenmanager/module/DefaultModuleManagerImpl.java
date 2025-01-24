@@ -26,6 +26,8 @@
 package ee.ria.xroad.signer.tokenmanager.module;
 
 import ee.ria.xroad.common.CodedException;
+import ee.ria.xroad.signer.SignerProperties;
+import ee.ria.xroad.signer.certmanager.OcspResponseManager;
 
 import lombok.extern.slf4j.Slf4j;
 
@@ -39,6 +41,10 @@ import static ee.ria.xroad.common.ErrorCodes.X_INTERNAL_ERROR;
 @Slf4j
 public class DefaultModuleManagerImpl extends AbstractModuleManager {
 
+    public DefaultModuleManagerImpl(SignerProperties signerProperties, OcspResponseManager ocspResponseManager) {
+        super(signerProperties, ocspResponseManager);
+    }
+
     @Override
     protected AbstractModuleWorker createModuleWorker(ModuleType module) throws Exception {
         if (module instanceof SoftwareModuleType) {
@@ -50,7 +56,7 @@ public class DefaultModuleManagerImpl extends AbstractModuleManager {
 
     AbstractModuleWorker createSoftwareModule(SoftwareModuleType softwareModule) {
         log.debug("Initializing software module");
-        return new SoftwareModuleWorker(softwareModule);
+        return new SoftwareModuleWorker(softwareModule, signerProperties);
     }
 
     @Override

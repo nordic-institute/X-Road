@@ -30,6 +30,7 @@ import ee.ria.xroad.common.crypto.SignDataPreparer;
 import ee.ria.xroad.common.crypto.identifier.KeyAlgorithm;
 import ee.ria.xroad.common.crypto.identifier.SignAlgorithm;
 import ee.ria.xroad.common.crypto.identifier.SignMechanism;
+import ee.ria.xroad.signer.SignerProperties;
 import ee.ria.xroad.signer.protocol.dto.KeyInfo;
 import ee.ria.xroad.signer.protocol.dto.TokenInfo;
 import ee.ria.xroad.signer.tokenmanager.TokenManager;
@@ -68,10 +69,12 @@ public abstract class AbstractTokenWorker implements TokenWorker, WorkerWithLife
     private final String workerId;
 
     protected final String tokenId;
+    protected final SignerProperties signerProperties;
 
-    AbstractTokenWorker(TokenInfo tokenInfo) {
+    AbstractTokenWorker(TokenInfo tokenInfo, SignerProperties signerProperties) {
         this.tokenId = tokenInfo.getId();
         this.workerId = SignerUtil.getWorkerId(tokenInfo);
+        this.signerProperties = signerProperties;
     }
 
     @Override

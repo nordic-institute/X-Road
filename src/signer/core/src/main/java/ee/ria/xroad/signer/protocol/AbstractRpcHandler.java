@@ -27,6 +27,7 @@
 package ee.ria.xroad.signer.protocol;
 
 import ee.ria.xroad.common.CodedException;
+import ee.ria.xroad.signer.SignerProperties;
 import ee.ria.xroad.signer.tokenmanager.token.TokenWorker;
 import ee.ria.xroad.signer.tokenmanager.token.TokenWorkerProvider;
 
@@ -49,8 +50,11 @@ import static java.util.Optional.ofNullable;
 @Slf4j
 @SuppressWarnings("squid:S119")
 public abstract class AbstractRpcHandler<ReqT extends AbstractMessage, RespT extends AbstractMessage> {
+
     @Inject
     protected TokenWorkerProvider tokenWorkerProvider;
+    @Inject
+    protected SignerProperties signerProperties;
 
     protected abstract RespT handle(ReqT request) throws Exception;
 

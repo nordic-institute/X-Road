@@ -26,7 +26,6 @@
 package ee.ria.xroad.signer.protocol.handler;
 
 import ee.ria.xroad.common.CodedException;
-import ee.ria.xroad.common.SystemProperties;
 import ee.ria.xroad.common.crypto.KeyManagers;
 import ee.ria.xroad.common.crypto.Signatures;
 import ee.ria.xroad.common.crypto.identifier.DigestAlgorithm;
@@ -108,7 +107,8 @@ public abstract class AbstractGenerateCertReq<ReqT extends AbstractMessage,
             certRequestBuilder.addAttribute(PKCSObjectIdentifiers.pkcs_9_at_extensionRequest, extGen.generate());
         }
 
-        ContentSigner signer = new TokenContentSigner(tokenWorkerProvider, tokenAndKey);
+        DigestAlgorithm digestAlgorithm = DigestAlgorithm.ofName(signerProperties.csrSignatureDigestAlgorithm());
+        ContentSigner signer = new TokenContentSigner(tokenWorkerProvider, tokenAndKey, digestAlgorithm);
 
         return certRequestBuilder.build(signer);
     }
@@ -141,10 +141,10 @@ public abstract class AbstractGenerateCertReq<ReqT extends AbstractMessage,
         private final DigestAlgorithm digestAlgoId;
         private final SignAlgorithm signAlgoId;
 
-        TokenContentSigner(final TokenWorkerProvider tokenWorkerProvider, final TokenAndKey tokenAndKey) {
+        TokenContentSigner(TokenWorkerProvider tokenWorkerProvider, TokenAndKey tokenAndKey, DigestAlgorithm digestAlgorithm) {
             this.tokenAndKey = tokenAndKey;
             this.tokenWorkerProvider = tokenWorkerProvider;
-            digestAlgoId = SystemProperties.getSignerCsrSignatureDigestAlgorithm();
+            this.digestAlgoId = digestAlgorithm;
             signAlgoId = SignAlgorithm.ofDigestAndMechanism(digestAlgoId, tokenAndKey.getSignMechanism());
         }
 

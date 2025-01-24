@@ -28,6 +28,7 @@ package ee.ria.xroad.signer.tokenmanager.module;
 import ee.ria.xroad.common.SystemProperties;
 import ee.ria.xroad.common.util.CryptoUtils;
 import ee.ria.xroad.common.util.filewatcher.FileWatcherRunner;
+import ee.ria.xroad.signer.SignerProperties;
 import ee.ria.xroad.signer.certmanager.OcspResponseManager;
 import ee.ria.xroad.signer.model.Cert;
 import ee.ria.xroad.signer.protocol.message.GetOcspResponses;
@@ -38,7 +39,7 @@ import ee.ria.xroad.signer.tokenmanager.token.WorkerWithLifecycle;
 
 import jakarta.annotation.PostConstruct;
 import jakarta.annotation.PreDestroy;
-import jakarta.inject.Inject;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
 import java.nio.file.Paths;
@@ -59,23 +60,20 @@ import static java.util.Objects.requireNonNull;
  * Module manager base class.
  */
 @Slf4j
+@RequiredArgsConstructor
 public abstract class AbstractModuleManager implements WorkerWithLifecycle, TokenWorkerProvider {
     private final SystemProperties.NodeType serverNodeType = SystemProperties.getServerNodeType();
 
-    @Inject
-    private OcspResponseManager ocspResponseManager;
+    protected final SignerProperties signerProperties;
+    protected final OcspResponseManager ocspResponseManager;
 
     @SuppressWarnings("java:S3077")
     private volatile Map<String, AbstractModuleWorker> moduleWorkers = Collections.emptyMap();
 
     private FileWatcherRunner keyConfFileWatcherRunner;
 
-    @PostConstruct
-    public void afterPropertiesSet() {
-        start();
-    }
-
     @Override
+    @PostConstruct
     public void start() {
         log.info("Initializing module worker of instance {}", getClass().getSimpleName());
         try {

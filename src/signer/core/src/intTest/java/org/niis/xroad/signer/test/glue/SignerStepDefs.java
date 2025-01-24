@@ -38,7 +38,6 @@ import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.identifier.SecurityServerId;
 import ee.ria.xroad.signer.SignerRpcChannelProperties;
 import ee.ria.xroad.signer.SignerRpcClient;
-import ee.ria.xroad.signer.SpringSignerRpcChannelProperties;
 import ee.ria.xroad.signer.exception.SignerException;
 import ee.ria.xroad.signer.protocol.dto.CertificateInfo;
 import ee.ria.xroad.signer.protocol.dto.KeyInfo;
@@ -702,8 +701,22 @@ public class SignerStepDefs extends BaseSignerStepDefs {
     @Step("signer client initialized with timeout {int} milliseconds")
     public void signerClientReinitializedWithTimeoutMilliseconds(int timeoutMillis) throws Exception {
         RpcChannelFactory channelFactory = new RpcChannelFactory(null);
-        SignerRpcChannelProperties signerRpcClientProperties = new SpringSignerRpcChannelProperties("localhost",
-                5560, timeoutMillis);
+        SignerRpcChannelProperties signerRpcClientProperties = new SignerRpcChannelProperties() {
+            @Override
+            public String host() {
+                return "localhost";
+            }
+
+            @Override
+            public int port() {
+                return 5560;
+            }
+
+            @Override
+            public int deadlineAfter() {
+                return timeoutMillis;
+            }
+        };
 
         //TODO fix
         RpcServerProperties rpcServerProperties = new RpcServerProperties() {

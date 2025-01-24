@@ -26,9 +26,9 @@
 
 package ee.ria.xroad.signer.job;
 
-import ee.ria.xroad.common.SystemProperties;
 import ee.ria.xroad.common.conf.globalconf.GlobalConfProvider;
 import ee.ria.xroad.common.conf.globalconfextension.OcspFetchInterval;
+import ee.ria.xroad.signer.SignerProperties;
 import ee.ria.xroad.signer.certmanager.OcspClientWorker;
 
 import lombok.RequiredArgsConstructor;
@@ -52,6 +52,7 @@ public class OcspClientExecuteSchedulerImpl implements OcspClientExecuteSchedule
 
     private final OcspClientWorker ocspClientWorker;
     private final GlobalConfProvider globalConfProvider;
+    private final SignerProperties signerProperties;
 
     private ScheduledFuture<?> scheduledFuture;
     private boolean retryMode;
@@ -61,7 +62,7 @@ public class OcspClientExecuteSchedulerImpl implements OcspClientExecuteSchedule
     }
 
     private Duration getNextDelay() {
-        final int retryDelay = SystemProperties.getOcspResponseRetryDelay();
+        final int retryDelay = signerProperties.ocspRetryDelay();
         int nextOcspFetchIntervalSeconds = getNextOcspFetchIntervalSeconds();
         if (retryMode && retryDelay < nextOcspFetchIntervalSeconds) {
             return Duration.of(retryDelay, SECONDS);

@@ -34,6 +34,7 @@ import ee.ria.xroad.common.crypto.identifier.SignAlgorithm;
 import ee.ria.xroad.common.crypto.identifier.SignMechanism;
 import ee.ria.xroad.common.util.CryptoUtils;
 import ee.ria.xroad.common.util.EncoderUtils;
+import ee.ria.xroad.signer.SignerProperties;
 import ee.ria.xroad.signer.protocol.dto.CertificateInfo;
 import ee.ria.xroad.signer.protocol.dto.KeyInfo;
 import ee.ria.xroad.signer.protocol.dto.TokenInfo;
@@ -126,8 +127,8 @@ public class HardwareTokenWorker extends AbstractTokenWorker {
      * @param tokenInfo the token info
      * @param tokenType the token type
      */
-    public HardwareTokenWorker(TokenInfo tokenInfo, TokenType tokenType) {
-        super(tokenInfo);
+    public HardwareTokenWorker(TokenInfo tokenInfo, TokenType tokenType, SignerProperties signerProperties) {
+        super(tokenInfo, signerProperties);
 
         this.tokenType = tokenType;
 

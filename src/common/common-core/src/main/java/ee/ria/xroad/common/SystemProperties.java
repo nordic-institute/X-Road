@@ -248,11 +248,6 @@ public final class SystemProperties {
             PROXY_PREFIX + "server-port";
 
     /**
-     * Property name of the cached OCSP response path for signer operation.
-     */
-    public static final String OCSP_CACHE_PATH = SIGNER_PREFIX + "ocsp-cache-path";
-
-    /**
      * Property name of the flag to turn off proxy client SSL verification.
      */
     public static final String PROXY_VERIFY_CLIENT_CERT =
@@ -403,24 +398,7 @@ public final class SystemProperties {
 
     public static final String DEFAULT_SIGNER_CLIENT_TIMEOUT = "60000";
 
-    public static final String SIGNER_CSR_SIGNATURE_DIGEST_ALGORITHM = SIGNER_PREFIX + "csr-signature-digest-algorithm";
-
-    public static final String OCSP_RESPONSE_RETRIEVAL_ACTIVE = SIGNER_PREFIX + "ocsp-response-retrieval-active";
-
-    public static final String SIGNER_OCSP_RETRY_DELAY = SIGNER_PREFIX + "ocsp-retry-delay";
-
-    private static final String DEFAULT_SIGNER_OCSP_RETRY_DELAY = "60";
-
-    public static final String SIGNER_MODULE_MANAGER_UPDATE_INTERVAL = SIGNER_PREFIX + "module-manager-update-interval";
-    public static final String SOFT_TOKEN_RSA_SIGN_MECHANISM = SIGNER_PREFIX + "soft-token-rsa-sign-mechanism";
-    public static final String SOFT_TOKEN_EC_SIGN_MECHANISM = SIGNER_PREFIX + "soft-token-ec-sign-mechanism";
-    public static final String SOFT_TOKEN_PIN_KEYSTORE_ALGORITHM = SIGNER_PREFIX + "soft-token-pin-keystore-algorithm";
-    public static final String SIGNER_SELF_SIGNED_CERT_DIGEST_ALGORITHM = SIGNER_PREFIX + "selfsigned-cert-digest-algorithm";
-
-    public static final String DEFAULT_SIGNER_MODULE_MANAGER_UPDATE_INTERVAL = "60";
-    public static final KeyAlgorithm DEFAULT_SIGNER_DEFAULT_KEY_ALGORITHM = KeyAlgorithm.RSA;
     public static final String DEFAULT_SIGNER_KEY_NAMED_CURVE = "secp256r1";
-    public static final KeyAlgorithm DEFAULT_SOFT_TOKEN_PIN_KEYSTORE_ALGORITHM = KeyAlgorithm.RSA;
 
     // Configuration client ---------------------------------------------------
 
@@ -853,13 +831,6 @@ public final class SystemProperties {
     }
 
     /**
-     * @return path to the directory where OCSP responses are stored, '/var/cache/xroad/' by default.
-     */
-    public static String getOcspCachePath() {
-        return SystemPropertySource.getPropertyResolver().getProperty(OCSP_CACHE_PATH, DefaultFilepaths.OCSP_CACHE_PATH);
-    }
-
-    /**
      * @return path to the directory where configuration backups are stored, '/var/lib/xroad/backup/' by default.
      */
     public static String getConfBackupPath() {
@@ -915,76 +886,6 @@ public final class SystemProperties {
      */
     public static String getSignerKeyNamedCurve() {
         return System.getProperty(SIGNER_KEY_NAMED_CURVE, DEFAULT_SIGNER_KEY_NAMED_CURVE);
-    }
-
-    /**
-     * Get CSR signature digest algorithm, SHA-256 by default.
-     *
-     * @return algorithm
-     */
-    public static DigestAlgorithm getSignerCsrSignatureDigestAlgorithm() {
-        return Optional.ofNullable(SystemPropertySource.getPropertyResolver().getProperty(SIGNER_CSR_SIGNATURE_DIGEST_ALGORITHM))
-                .map(DigestAlgorithm::ofName)
-                .orElse(DigestAlgorithm.SHA256);
-    }
-
-    /**
-     * @return whether OCSP-response retrieval loop should be activated
-     */
-    public static boolean isOcspResponseRetrievalActive() {
-        return Boolean.parseBoolean(SystemPropertySource.getPropertyResolver().getProperty(OCSP_RESPONSE_RETRIEVAL_ACTIVE, TRUE));
-    }
-
-    /**
-     * @return the OCSP-response retry delay in seconds that should be set for signer, 60 by default
-     */
-    public static int getOcspResponseRetryDelay() {
-        return Integer.parseInt(SystemPropertySource.getPropertyResolver().getProperty(SIGNER_OCSP_RETRY_DELAY,
-                DEFAULT_SIGNER_OCSP_RETRY_DELAY));
-    }
-
-    /**
-     * @return the module manager update interval in seconds that should be set for signer, 60 by default
-     */
-    public static int getModuleManagerUpdateInterval() {
-        return Integer.parseInt(SystemPropertySource.getPropertyResolver().getProperty(SIGNER_MODULE_MANAGER_UPDATE_INTERVAL,
-                DEFAULT_SIGNER_MODULE_MANAGER_UPDATE_INTERVAL));
-    }
-
-    /**
-     * @return software token signing mechanism type, CKM_RSA_PKCS by default
-     */
-    public static SignMechanism getSoftTokenRsaSignMechanism() {
-        return Optional.ofNullable(SystemPropertySource.getPropertyResolver().getProperty(SOFT_TOKEN_RSA_SIGN_MECHANISM, (String) null))
-                .map(SignMechanism::valueOf)
-                .orElse(SignMechanism.CKM_RSA_PKCS);
-    }
-
-    /**
-     * @return software token signing mechanism type for EC keys, CKM_ECDSA by default
-     */
-    public static SignMechanism getSofTokenEcSignMechanism() {
-        return Optional.ofNullable(SystemPropertySource.getPropertyResolver().getProperty(SOFT_TOKEN_EC_SIGN_MECHANISM, (String) null))
-                .map(SignMechanism::valueOf)
-                .orElse(SignMechanism.CKM_ECDSA);
-    }
-
-    /**
-     * @return software token keystore PIN file algorithm, RSA by default
-     */
-    public static KeyAlgorithm getSofTokenPinKeystoreAlgorithm() {
-        return Optional.ofNullable(SystemPropertySource.getPropertyResolver().getProperty(SOFT_TOKEN_PIN_KEYSTORE_ALGORITHM))
-                .map(KeyAlgorithm::valueOf)
-                .orElse(DEFAULT_SOFT_TOKEN_PIN_KEYSTORE_ALGORITHM);
-    }
-
-    /**
-     * @return software token keystore PIN file algorithm, RSA by default
-     */
-    public static DigestAlgorithm getSelfSignedCertDigestAlgorithm() {
-        return Optional.ofNullable(SystemPropertySource.getPropertyResolver().getProperty(SIGNER_SELF_SIGNED_CERT_DIGEST_ALGORITHM))
-                .map(DigestAlgorithm::ofName)
-                .orElse(DigestAlgorithm.SHA512);
     }
 
     /**

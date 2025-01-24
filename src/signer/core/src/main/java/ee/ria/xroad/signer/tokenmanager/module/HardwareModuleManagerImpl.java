@@ -25,6 +25,9 @@
  */
 package ee.ria.xroad.signer.tokenmanager.module;
 
+import ee.ria.xroad.signer.SignerProperties;
+import ee.ria.xroad.signer.certmanager.OcspResponseManager;
+
 import lombok.extern.slf4j.Slf4j;
 
 import java.util.Optional;
@@ -34,6 +37,10 @@ import java.util.Optional;
  */
 @Slf4j
 public class HardwareModuleManagerImpl extends DefaultModuleManagerImpl {
+
+    public HardwareModuleManagerImpl(SignerProperties signerProperties, OcspResponseManager ocspResponseManager) {
+        super(signerProperties, ocspResponseManager);
+    }
 
     @Override
     protected AbstractModuleWorker createModuleWorker(ModuleType module) throws Exception {
@@ -46,7 +53,7 @@ public class HardwareModuleManagerImpl extends DefaultModuleManagerImpl {
 
     private AbstractModuleWorker createWorker(HardwareModuleType hardwareModule) {
         try {
-            return new HardwareModuleWorker(hardwareModule);
+            return new HardwareModuleWorker(hardwareModule, signerProperties);
         } catch (Exception e) {
             log.error("Error initializing hardware module '{}'", hardwareModule.getType(), e);
         }

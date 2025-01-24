@@ -25,7 +25,6 @@
  */
 package ee.ria.xroad.signer;
 
-import ee.ria.xroad.common.SystemProperties;
 import ee.ria.xroad.common.cert.CertChainFactory;
 import ee.ria.xroad.common.conf.globalconf.GlobalConfProvider;
 import ee.ria.xroad.signer.certmanager.FileBasedOcspCache;
@@ -52,17 +51,17 @@ public class SignerConfig {
 
     @ApplicationScoped
     @Startup
-    AbstractModuleManager moduleManager() {
+    AbstractModuleManager moduleManager(SignerProperties signerProperties, OcspResponseManager ocspResponseManager) {
         AbstractModuleManager moduleManager;
         if (isHwTokenEnabled) {
             log.info("Hardware token manager enabled.");
-            moduleManager = new HardwareModuleManagerImpl();
+            moduleManager = new HardwareModuleManagerImpl(signerProperties, ocspResponseManager);
         } else {
             log.debug("Using default module manager implementation");
-            moduleManager = new DefaultModuleManagerImpl();
+            moduleManager = new DefaultModuleManagerImpl(signerProperties, ocspResponseManager);
         }
 
-        moduleManager.afterPropertiesSet();
+        moduleManager.start();
         return moduleManager;
     }
 
@@ -81,9 +80,10 @@ public class SignerConfig {
     @ApplicationScoped
     @Startup
     OcspClientExecuteScheduler ocspClientExecuteScheduler(OcspClientWorker ocspClientWorker,
-                                                          GlobalConfProvider globalConfProvider) {
-        if (SystemProperties.isOcspResponseRetrievalActive()) {
-            OcspClientExecuteSchedulerImpl scheduler = new OcspClientExecuteSchedulerImpl(ocspClientWorker, globalConfProvider);
+                                                          GlobalConfProvider globalConfProvider,
+                                                          SignerProperties signerProperties) {
+        if (signerProperties.ocspResponseRetrievalActive()) {
+            OcspClientExecuteSchedulerImpl scheduler = new OcspClientExecuteSchedulerImpl(ocspClientWorker, globalConfProvider, signerProperties);
             scheduler.init();
             return scheduler;
         } else {

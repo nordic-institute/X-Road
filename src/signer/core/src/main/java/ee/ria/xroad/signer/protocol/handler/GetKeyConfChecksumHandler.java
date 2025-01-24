@@ -50,9 +50,6 @@ public class GetKeyConfChecksumHandler extends AbstractRpcHandler<Empty, KeyConf
     private FileWatcherRunner fileWatcherRunner;
     private String checkSum;
 
-    public GetKeyConfChecksumHandler() {
-    }
-
     @PostConstruct
     public void afterPropertiesSet() throws Exception {
         // the change watcher can not be created in the constructor, because that would publish the
@@ -103,7 +100,7 @@ public class GetKeyConfChecksumHandler extends AbstractRpcHandler<Empty, KeyConf
 
 
     @PreDestroy
-    public void destroy() throws Exception {
+    public void destroy() {
         if (fileWatcherRunner != null) {
             fileWatcherRunner.stop();
         }

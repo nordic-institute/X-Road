@@ -61,8 +61,6 @@ public final class DefaultFilepaths {
 
     static final String SECURE_LOG_PATH = "/var/lib/xroad/";
 
-    static final String OCSP_CACHE_PATH = "/var/cache/xroad/";
-
     static final String CONF_BACKUP_PATH = "/var/lib/xroad/backup/";
 
     static final String DISTRIBUTED_GLOBALCONF_PATH = "/var/lib/xroad/public";
@@ -75,6 +73,7 @@ public final class DefaultFilepaths {
     /**
      * Creates a temporary file on disk (location specified by
      * SystemProperties.getTempFilesPath()) and returns its path.
+     *
      * @param prefix the prefix to use
      * @param suffix the suffix to use
      * @return path to the created temporary file
@@ -88,9 +87,10 @@ public final class DefaultFilepaths {
 
     /**
      * Creates a temporary file in the specified location. Also creates the location if it does not exist.
+     *
      * @param tempDirPath the location
-     * @param prefix the prefix to use
-     * @param suffix the suffix to use
+     * @param prefix      the prefix to use
+     * @param suffix      the suffix to use
      * @return path to the created temporary file
      * @throws IOException if an error occurs
      */
@@ -105,8 +105,9 @@ public final class DefaultFilepaths {
     /**
      * Convenience method which creates a temporary file on disk and returns its path.
      * The new file is created in the same directory as the file whose path is given as parameter.
-     * @return path to the created temporary file
+     *
      * @param fileName file whose path will be used
+     * @return path to the created temporary file
      * @throws IOException if an error occurs
      */
     public static Path createTempFileInSameDir(String fileName) throws IOException {
