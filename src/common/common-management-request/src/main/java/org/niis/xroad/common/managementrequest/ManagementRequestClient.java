@@ -27,7 +27,6 @@ package org.niis.xroad.common.managementrequest;
 
 import ee.ria.xroad.common.SystemProperties;
 import ee.ria.xroad.common.conf.InternalSSLKey;
-import ee.ria.xroad.common.conf.globalconf.GlobalConfProvider;
 import ee.ria.xroad.common.util.CryptoUtils;
 import ee.ria.xroad.common.util.HttpSender;
 
@@ -46,6 +45,7 @@ import org.apache.http.impl.client.DefaultHttpRequestRetryHandler;
 import org.apache.http.impl.client.HttpClientBuilder;
 import org.apache.http.impl.client.HttpClients;
 import org.apache.http.impl.conn.PoolingHttpClientConnectionManager;
+import org.niis.xroad.globalconf.GlobalConfProvider;
 
 import javax.net.ssl.KeyManager;
 import javax.net.ssl.KeyManagerFactory;

@@ -25,11 +25,11 @@
  */
 package ee.ria.xroad.proxy.messagelog;
 
-import ee.ria.xroad.common.conf.globalconf.GlobalConfProvider;
 import ee.ria.xroad.common.hashchain.EvidenceRecordHashChainBuilder;
 import ee.ria.xroad.common.messagelog.MessageLogProperties;
 
 import org.bouncycastle.tsp.TimeStampResponse;
+import org.niis.xroad.globalconf.GlobalConfProvider;
 
 import static ee.ria.xroad.common.util.EncoderUtils.decodeBase64;
 import static ee.ria.xroad.common.util.MessageFileNames.SIGNATURE;

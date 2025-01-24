@@ -26,9 +26,6 @@
 package ee.ria.xroad.proxy.conf;
 
 import ee.ria.xroad.common.CodedException;
-import ee.ria.xroad.common.cert.CertChain;
-import ee.ria.xroad.common.conf.globalconf.AuthKey;
-import ee.ria.xroad.common.conf.globalconf.GlobalConfProvider;
 import ee.ria.xroad.common.conf.serverconf.ServerConfProvider;
 import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.identifier.SecurityServerId;
@@ -39,6 +36,9 @@ import org.bouncycastle.cert.ocsp.BasicOCSPResp;
 import org.bouncycastle.cert.ocsp.OCSPException;
 import org.bouncycastle.cert.ocsp.OCSPResp;
 import org.bouncycastle.cert.ocsp.SingleResp;
+import org.niis.xroad.globalconf.GlobalConfProvider;
+import org.niis.xroad.globalconf.cert.CertChain;
+import org.niis.xroad.proxy.core.auth.AuthKey;
 
 import java.security.PrivateKey;
 import java.security.cert.X509Certificate;

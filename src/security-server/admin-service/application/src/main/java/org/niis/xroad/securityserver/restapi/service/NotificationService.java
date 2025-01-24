@@ -26,7 +26,6 @@
 package org.niis.xroad.securityserver.restapi.service;
 
 import ee.ria.xroad.common.CodedException;
-import ee.ria.xroad.common.conf.globalconf.GlobalConfProvider;
 import ee.ria.xroad.common.util.TimeUtils;
 import ee.ria.xroad.signer.SignerRpcClient;
 import ee.ria.xroad.signer.protocol.dto.CertificateInfo;
@@ -35,6 +34,7 @@ import ee.ria.xroad.signer.protocol.dto.TokenInfo;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.niis.xroad.globalconf.GlobalConfProvider;
 import org.niis.xroad.restapi.common.backup.service.BackupRestoreEvent;
 import org.niis.xroad.securityserver.restapi.dto.AlertStatus;
 import org.springframework.context.event.EventListener;

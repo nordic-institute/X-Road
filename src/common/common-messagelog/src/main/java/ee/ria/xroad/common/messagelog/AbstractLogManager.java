@@ -25,12 +25,12 @@
  */
 package ee.ria.xroad.common.messagelog;
 
-import ee.ria.xroad.common.DiagnosticsStatus;
-import ee.ria.xroad.common.conf.globalconf.GlobalConfProvider;
 import ee.ria.xroad.common.conf.serverconf.ServerConfProvider;
 import ee.ria.xroad.common.db.DatabaseCtxV2;
 
 import lombok.extern.slf4j.Slf4j;
+import org.niis.xroad.globalconf.GlobalConfProvider;
+import org.niis.xroad.globalconf.status.DiagnosticsStatus;
 
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;

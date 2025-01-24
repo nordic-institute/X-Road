@@ -29,7 +29,6 @@ package org.niis.xroad.cs.registrationservice.controller;
 import ee.ria.xroad.common.OcspTestUtils;
 import ee.ria.xroad.common.SystemProperties;
 import ee.ria.xroad.common.TestCertUtil;
-import ee.ria.xroad.common.conf.globalconf.GlobalConfProvider;
 import ee.ria.xroad.common.identifier.SecurityServerId;
 import ee.ria.xroad.common.util.TimeUtils;
 
@@ -45,6 +44,7 @@ import org.niis.xroad.common.managemenetrequest.test.TestAuthRegTypeRequest;
 import org.niis.xroad.common.managemenetrequest.test.TestManagementRequestBuilder;
 import org.niis.xroad.cs.registrationservice.service.AdminApiService;
 import org.niis.xroad.cs.registrationservice.testutil.TestGlobalConf;
+import org.niis.xroad.globalconf.GlobalConfProvider;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.context.TestConfiguration;

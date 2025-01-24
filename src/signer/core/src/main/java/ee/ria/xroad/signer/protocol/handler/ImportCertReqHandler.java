@@ -26,10 +26,6 @@
 package ee.ria.xroad.signer.protocol.handler;
 
 import ee.ria.xroad.common.CodedException;
-import ee.ria.xroad.common.cert.CertChain;
-import ee.ria.xroad.common.cert.CertChainFactory;
-import ee.ria.xroad.common.cert.CertChainVerifier;
-import ee.ria.xroad.common.conf.globalconf.GlobalConfProvider;
 import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.util.CertUtils;
 import ee.ria.xroad.common.util.CryptoUtils;
@@ -45,7 +41,10 @@ import ee.ria.xroad.signer.util.SignerUtil;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.niis.xroad.common.rpc.mapper.ClientIdMapper;
+import org.niis.xroad.globalconf.GlobalConfProvider;
+import org.niis.xroad.globalconf.cert.CertChain;
+import org.niis.xroad.globalconf.impl.cert.CertChainFactory;
+import org.niis.xroad.globalconf.impl.cert.CertChainVerifier;
 import org.niis.xroad.signer.proto.ImportCertReq;
 import org.niis.xroad.signer.proto.ImportCertResp;
 import org.springframework.stereotype.Component;

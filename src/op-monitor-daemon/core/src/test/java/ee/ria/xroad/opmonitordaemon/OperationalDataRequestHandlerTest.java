@@ -26,13 +26,13 @@
 package ee.ria.xroad.opmonitordaemon;
 
 import ee.ria.xroad.common.CodedException;
-import ee.ria.xroad.common.conf.globalconf.GlobalConfProvider;
 import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.util.TimeUtils;
 import ee.ria.xroad.opmonitordaemon.message.GetSecurityServerOperationalDataResponseType;
 
 import com.google.common.collect.Sets;
 import org.junit.Test;
+import org.niis.xroad.globalconf.GlobalConfProvider;
 
 import java.util.Collections;
 import java.util.Set;

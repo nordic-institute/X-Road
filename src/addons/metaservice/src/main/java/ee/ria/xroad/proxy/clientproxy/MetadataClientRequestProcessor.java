@@ -25,30 +25,10 @@
  */
 package ee.ria.xroad.proxy.clientproxy;
 
-import ee.ria.xroad.common.cert.CertChainFactory;
-import ee.ria.xroad.common.conf.globalconf.GlobalConfProvider;
 import ee.ria.xroad.common.conf.serverconf.ServerConfProvider;
-import ee.ria.xroad.common.metadata.ClientListType;
-import ee.ria.xroad.common.metadata.ClientType;
-import ee.ria.xroad.common.metadata.ObjectFactory;
-import ee.ria.xroad.common.util.MimeTypes;
-import ee.ria.xroad.common.util.MimeUtils;
-import ee.ria.xroad.common.util.RequestWrapper;
-import ee.ria.xroad.common.util.ResponseWrapper;
-import ee.ria.xroad.proxy.conf.KeyConfProvider;
-import ee.ria.xroad.proxy.util.MessageProcessorBase;
 
-import com.fasterxml.jackson.annotation.JsonInclude;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.PropertyNamingStrategy;
-import com.google.common.collect.Iterators;
-import com.google.common.collect.Streams;
-import com.google.common.net.MediaType;
-import jakarta.xml.bind.JAXBContext;
-import jakarta.xml.bind.JAXBException;
-import jakarta.xml.bind.Marshaller;
-import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.lang3.StringUtils;
+import org.niis.xroad.globalconf.GlobalConfProvider;
+import org.niis.xroad.globalconf.impl.cert.CertChainFactory;
 
 import java.io.OutputStream;
 import java.nio.charset.StandardCharsets;
@@ -111,8 +91,8 @@ class MetadataClientRequestProcessor extends MessageProcessorBase {
         list.getMember().addAll(
                 globalConfProvider.getMembers(instanceIdentifier).stream().map(m -> {
                     ClientType client = OBJECT_FACTORY.createClientType();
-                    client.setId(m.getId());
-                    client.setName(m.getName());
+                    client.setId(m.id());
+                    client.setName(m.name());
                     return client;
                 }).toList());
 

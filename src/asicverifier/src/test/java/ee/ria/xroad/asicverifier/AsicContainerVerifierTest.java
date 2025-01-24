@@ -28,8 +28,6 @@ package ee.ria.xroad.asicverifier;
 import ee.ria.xroad.common.ExpectedCodedException;
 import ee.ria.xroad.common.SystemProperties;
 import ee.ria.xroad.common.TestCertUtil;
-import ee.ria.xroad.common.conf.globalconf.GlobalConfProvider;
-import ee.ria.xroad.common.conf.globalconf.TestGlobalConfImpl;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -41,6 +39,8 @@ import org.junit.runners.Parameterized;
 import org.junit.runners.Parameterized.Parameters;
 import org.mockito.MockedStatic;
 import org.mockito.Mockito;
+import org.niis.xroad.globalconf.GlobalConfProvider;
+import org.niis.xroad.test.globalconf.TestGlobalConfImpl;
 
 import java.io.ByteArrayInputStream;
 import java.security.cert.X509Certificate;

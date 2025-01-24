@@ -25,7 +25,6 @@
  */
 package ee.ria.xroad.opmonitordaemon;
 
-import ee.ria.xroad.common.conf.globalconf.GlobalConfProvider;
 import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.identifier.SecurityServerId;
 import ee.ria.xroad.common.identifier.ServiceId;
@@ -46,6 +45,7 @@ import com.codahale.metrics.MetricRegistry;
 import lombok.SneakyThrows;
 import org.apache.commons.io.IOUtils;
 import org.junit.Test;
+import org.niis.xroad.globalconf.GlobalConfProvider;
 import org.w3c.dom.Element;
 
 import java.io.ByteArrayOutputStream;

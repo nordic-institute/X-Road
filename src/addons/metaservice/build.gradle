@@ -7,9 +7,9 @@ dependencies {
     implementation project(':proxy:core')
     implementation project(':common:common-jetty')
     implementation project(':common:common-keyconf')
-    implementation project(':serverconf')
     implementation project(":common:common-op-monitoring")
-    implementation project(":common:common-verifier")
+    implementation project(":lib:globalconf-impl")
+    implementation project(":lib:serverconf-impl")
     implementation "com.fasterxml.jackson.dataformat:jackson-dataformat-yaml"
 
     testImplementation project(':common:common-test')

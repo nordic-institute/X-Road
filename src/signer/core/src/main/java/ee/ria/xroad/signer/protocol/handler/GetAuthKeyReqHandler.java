@@ -25,16 +25,15 @@
  */
 package ee.ria.xroad.signer.protocol.handler;
 
-import ee.ria.xroad.common.conf.globalconf.GlobalConfProvider;
+import ee.ria.xroad.common.util.PasswordStore;
 import ee.ria.xroad.signer.protocol.dto.CertificateInfo;
 import ee.ria.xroad.signer.protocol.dto.KeyInfo;
 import ee.ria.xroad.signer.tokenmanager.token.SoftwareTokenType;
 import ee.ria.xroad.signer.tokenmanager.token.SoftwareTokenUtil;
-import ee.ria.xroad.signer.util.passwordstore.PasswordStore;
 
 import com.google.protobuf.ByteString;
 import lombok.extern.slf4j.Slf4j;
-import org.niis.xroad.signer.proto.AuthKeyProto;
+import org.niis.xroad.globalconf.GlobalConfProvider;
 import org.springframework.stereotype.Component;
 
 import java.io.File;

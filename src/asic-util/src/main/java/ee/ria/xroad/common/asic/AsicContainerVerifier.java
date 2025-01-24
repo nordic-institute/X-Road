@@ -26,7 +26,6 @@
 package ee.ria.xroad.common.asic;
 
 import ee.ria.xroad.common.CodedException;
-import ee.ria.xroad.common.conf.globalconf.GlobalConfProvider;
 import ee.ria.xroad.common.crypto.identifier.Providers;
 import ee.ria.xroad.common.hashchain.DigestValue;
 import ee.ria.xroad.common.hashchain.HashChainReferenceResolver;
@@ -36,12 +35,9 @@ import ee.ria.xroad.common.message.RestMessage;
 import ee.ria.xroad.common.message.SaxSoapParserImpl;
 import ee.ria.xroad.common.message.Soap;
 import ee.ria.xroad.common.message.SoapMessageImpl;
-import ee.ria.xroad.common.ocsp.OcspVerifier;
 import ee.ria.xroad.common.signature.MessagePart;
 import ee.ria.xroad.common.signature.Signature;
 import ee.ria.xroad.common.signature.SignatureData;
-import ee.ria.xroad.common.signature.SignatureVerifier;
-import ee.ria.xroad.common.signature.TimestampVerifier;
 import ee.ria.xroad.common.util.EncoderUtils;
 import ee.ria.xroad.common.util.MessageFileNames;
 import ee.ria.xroad.common.util.MimeTypes;
@@ -58,6 +54,10 @@ import org.bouncycastle.asn1.cms.ContentInfo;
 import org.bouncycastle.cert.ocsp.BasicOCSPResp;
 import org.bouncycastle.cert.ocsp.OCSPResp;
 import org.bouncycastle.tsp.TimeStampToken;
+import org.niis.xroad.globalconf.GlobalConfProvider;
+import org.niis.xroad.globalconf.impl.ocsp.OcspVerifier;
+import org.niis.xroad.globalconf.impl.signature.SignatureVerifier;
+import org.niis.xroad.globalconf.impl.signature.TimestampVerifier;
 
 import java.io.ByteArrayInputStream;
 import java.io.FileInputStream;

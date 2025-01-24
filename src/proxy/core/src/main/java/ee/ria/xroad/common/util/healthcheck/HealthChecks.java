@@ -25,10 +25,6 @@
  */
 package ee.ria.xroad.common.util.healthcheck;
 
-import ee.ria.xroad.common.CodedException;
-import ee.ria.xroad.common.cert.CertChain;
-import ee.ria.xroad.common.conf.globalconf.AuthKey;
-import ee.ria.xroad.common.conf.globalconf.GlobalConfProvider;
 import ee.ria.xroad.common.conf.serverconf.ServerConfProvider;
 import ee.ria.xroad.proxy.conf.KeyConfProvider;
 import ee.ria.xroad.signer.SignerRpcClient;
@@ -38,6 +34,9 @@ import com.google.common.base.Suppliers;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.bouncycastle.cert.ocsp.OCSPResp;
+import org.niis.xroad.globalconf.GlobalConfProvider;
+import org.niis.xroad.globalconf.cert.CertChain;
+import org.niis.xroad.proxy.core.auth.AuthKey;
 
 import java.security.cert.X509Certificate;
 import java.util.concurrent.TimeUnit;

@@ -25,7 +25,7 @@
  */
 package ee.ria.xroad.proxy.antidos;
 
-import ee.ria.xroad.common.conf.globalconf.GlobalConfProvider;
+import org.niis.xroad.globalconf.GlobalConfProvider;
 
 import static org.junit.Assert.assertEquals;
 

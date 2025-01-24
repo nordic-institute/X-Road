@@ -25,8 +25,6 @@
  */
 package org.niis.xroad.securityserver.restapi.scheduling;
 
-import ee.ria.xroad.common.conf.globalconf.MemberInfo;
-import ee.ria.xroad.common.conf.globalconf.SharedParameters;
 import ee.ria.xroad.common.conf.serverconf.IsAuthentication;
 import ee.ria.xroad.common.conf.serverconf.model.ClientType;
 import ee.ria.xroad.common.conf.serverconf.model.TspType;
@@ -41,6 +39,8 @@ import ee.ria.xroad.signer.protocol.dto.TokenInfo;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.Before;
 import org.junit.Test;
+import org.niis.xroad.globalconf.model.MemberInfo;
+import org.niis.xroad.globalconf.model.SharedParameters;
 import org.niis.xroad.securityserver.restapi.config.AbstractFacadeMockingTestContext;
 import org.niis.xroad.securityserver.restapi.service.ClientService;
 import org.niis.xroad.securityserver.restapi.service.GlobalConfService;
@@ -64,7 +64,6 @@ import static ee.ria.xroad.common.SystemProperties.NODE_TYPE;
 import static ee.ria.xroad.common.SystemProperties.NodeType.MASTER;
 import static ee.ria.xroad.common.SystemProperties.NodeType.SLAVE;
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotEquals;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.verify;
@@ -118,9 +117,9 @@ public class GlobalConfCheckerTest extends AbstractFacadeMockingTestContext {
         when(globalConfProvider.getMemberName(any())).thenAnswer(invocation -> {
             ClientId clientId = (ClientId) invocation.getArguments()[0];
             Optional<MemberInfo> m = globalMemberInfos.stream()
-                    .filter(g -> g.getId().equals(clientId))
+                    .filter(g -> g.id().equals(clientId))
                     .findFirst();
-            return m.map(MemberInfo::getName).orElse(null);
+            return m.map(MemberInfo::name).orElse(null);
         });
 
         when(globalConfProvider.getInstanceIdentifier()).thenReturn(TestUtils.INSTANCE_FI);

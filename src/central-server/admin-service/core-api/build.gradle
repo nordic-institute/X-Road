@@ -4,11 +4,10 @@ plugins {
 
 dependencies {
     api(platform(libs.springBoot.bom))
-    api project(':common:common-globalconf')
+    api project(":lib:globalconf-spring")
     api project(':signer-protocol')
     api project(':common:common-admin-api')
     api project(':common:common-management-request')
-    api project(':common:common-verifier')
 
     implementation(libs.jakarta.validationApi)
 

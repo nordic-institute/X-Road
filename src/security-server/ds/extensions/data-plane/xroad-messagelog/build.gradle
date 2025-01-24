@@ -9,11 +9,11 @@ dependencies {
 
     implementation(project(":addons:messagelog:messagelog-addon:core"))
     implementation(project(":common:common-messagelog"))
-    implementation(project(":common:common-verifier")) // for the GlobalConf
+    implementation(project(":lib:globalconf-model")) // for the GlobalConf
 
     implementation(project(":common:common-domain"))
     // for the ClientId, ServiceId identifiers
-    implementation(project(":serverconf"))
+//    implementation(project(":serverconf"))
 
     testImplementation project(':common:common-keyconf')
     testImplementation libs.edc.junit

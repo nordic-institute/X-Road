@@ -8,8 +8,8 @@ dependencies {
     api project(':common:common-properties')
     api(project(':common:common-keyconf'))
     api(project(':common:common-messagelog'))
-    api(project(':common:common-globalconf'))
-    api(project(':common:common-verifier'))
+    api(project(":lib:globalconf-model"))
+//    api(project(':common:common-verifier'))
     implementation(libs.edc.boot)
 
     implementation("org.springframework.boot:spring-boot-starter")

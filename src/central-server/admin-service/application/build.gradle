@@ -26,7 +26,7 @@ dependencies {
     implementation project(":central-server:admin-service:infra-jpa")
     implementation project(":central-server:admin-service:globalconf-generator")
     implementation project(':central-server:openapi-model')
-
+    implementation(project(":common:common-db"))
 
     testImplementation project(":common:common-test")
     testImplementation(testFixtures(project(":common:common-api-throttling")))

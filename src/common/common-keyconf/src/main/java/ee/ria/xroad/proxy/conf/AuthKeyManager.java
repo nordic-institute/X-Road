@@ -25,11 +25,11 @@
  */
 package ee.ria.xroad.proxy.conf;
 
-import ee.ria.xroad.common.cert.CertChain;
 import ee.ria.xroad.common.conf.globalconf.AuthKey;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.niis.xroad.globalconf.cert.CertChain;
 
 import javax.net.ssl.SSLEngine;
 import javax.net.ssl.X509ExtendedKeyManager;

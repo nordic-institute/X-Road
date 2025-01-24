@@ -25,9 +25,6 @@
  */
 package ee.ria.xroad.common.util.healthcheck;
 
-import ee.ria.xroad.common.cert.CertChain;
-import ee.ria.xroad.common.conf.globalconf.AuthKey;
-import ee.ria.xroad.common.conf.globalconf.GlobalConfProvider;
 import ee.ria.xroad.common.conf.serverconf.ServerConfProvider;
 import ee.ria.xroad.common.identifier.SecurityServerId;
 import ee.ria.xroad.proxy.conf.KeyConfProvider;
@@ -39,6 +36,9 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.niis.xroad.globalconf.GlobalConfProvider;
+import org.niis.xroad.globalconf.cert.CertChain;
+import org.niis.xroad.proxy.core.auth.AuthKey;
 
 import javax.security.auth.x500.X500Principal;
 

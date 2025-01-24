@@ -11,6 +11,8 @@ updates:
           - "org.springframework.boot*"
           - "org.springframework.cloud*"
           - "io.opentelemetry.instrumentation*"
+          - "org.hibernate*"
+          - "com.zaxxer:HikariCP"
       grpc-minor-patch:
         applies-to: version-updates
         update-types:

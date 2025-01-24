@@ -30,8 +30,8 @@ dependencies {
 
     implementation(project(':common:common-core'))
     implementation(project(":common:common-domain"))
-    implementation(project(":common:common-globalconf"))
-    implementation(project(':common:common-verifier'))
+//    implementation(project(":common:common-globalconf"))
+//    implementation(project(':common:common-verifier'))
     implementation(project(":security-server:ds:extensions:common:xroad-jws-signer"))
     implementation(project(":security-server:ds:extensions:common:xroad-spring-bridge"))
     implementation(project(":security-server:ds:extensions:common:xroad-webserver"))

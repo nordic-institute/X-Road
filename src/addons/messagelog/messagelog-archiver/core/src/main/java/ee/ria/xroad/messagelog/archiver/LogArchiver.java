@@ -27,8 +27,6 @@ package ee.ria.xroad.messagelog.archiver;
 
 import ee.ria.xroad.common.CodedException;
 import ee.ria.xroad.common.ErrorCodes;
-import ee.ria.xroad.common.conf.globalconf.GlobalConfProvider;
-import ee.ria.xroad.common.db.DatabaseCtxV2;
 import ee.ria.xroad.common.messagelog.LogRecord;
 import ee.ria.xroad.common.messagelog.MessageLogConfig;
 import ee.ria.xroad.common.messagelog.MessageRecord;
@@ -51,6 +49,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.IOUtils;
 import org.hibernate.Session;
+import org.niis.xroad.globalconf.GlobalConfProvider;
 
 import java.io.IOException;
 import java.io.InputStream;

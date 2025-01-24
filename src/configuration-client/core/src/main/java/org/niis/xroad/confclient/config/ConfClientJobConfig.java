@@ -26,7 +26,6 @@
 package org.niis.xroad.confclient.config;
 
 import ee.ria.xroad.common.DiagnosticsErrorCodes;
-import ee.ria.xroad.common.DiagnosticsStatus;
 import ee.ria.xroad.common.conf.globalconf.ConfigurationClientJob;
 import ee.ria.xroad.common.util.JobManager;
 import ee.ria.xroad.common.util.TimeUtils;
@@ -34,6 +33,7 @@ import ee.ria.xroad.common.util.TimeUtils;
 import io.quarkus.runtime.Startup;
 import jakarta.enterprise.context.ApplicationScoped;
 import lombok.extern.slf4j.Slf4j;
+import org.niis.xroad.globalconf.status.DiagnosticsStatus;
 import org.niis.xroad.schedule.backup.ProxyConfigurationBackupJob;
 import org.quartz.JobDataMap;
 import org.quartz.JobExecutionContext;

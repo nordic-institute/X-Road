@@ -32,13 +32,12 @@ import ee.ria.xroad.common.asic.AsicContainerEntries;
 import ee.ria.xroad.common.asic.AsicContainerVerifier;
 import ee.ria.xroad.common.asic.AsicUtils;
 import ee.ria.xroad.common.asic.dss.DSSAsicVerifier;
-import ee.ria.xroad.common.conf.globalconf.FileSystemGlobalConfSource;
-import ee.ria.xroad.common.conf.globalconf.GlobalConfImpl;
-import ee.ria.xroad.common.conf.globalconf.GlobalConfProvider;
-
 import ee.ria.xroad.common.conf.globalconf.globalconfextension.GlobalConfExtensionFactoryImpl;
 
 import eu.europa.esig.dss.validation.reports.Reports;
+import org.niis.xroad.globalconf.GlobalConfProvider;
+import org.niis.xroad.globalconf.impl.FileSystemGlobalConfSource;
+import org.niis.xroad.globalconf.impl.GlobalConfImpl;
 
 import java.io.IOException;
 import java.io.InputStream;

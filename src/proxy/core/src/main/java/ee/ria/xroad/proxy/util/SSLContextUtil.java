@@ -25,11 +25,12 @@
  */
 package ee.ria.xroad.proxy.util;
 
-import ee.ria.xroad.common.conf.globalconf.AuthTrustManager;
-import ee.ria.xroad.common.conf.globalconf.GlobalConfProvider;
 import ee.ria.xroad.common.util.CryptoUtils;
 import ee.ria.xroad.proxy.conf.AuthKeyManager;
 import ee.ria.xroad.proxy.conf.KeyConfProvider;
+
+import org.niis.xroad.globalconf.GlobalConfProvider;
+import org.niis.xroad.proxy.core.auth.AuthTrustManager;
 
 import javax.net.ssl.KeyManager;
 import javax.net.ssl.SSLContext;

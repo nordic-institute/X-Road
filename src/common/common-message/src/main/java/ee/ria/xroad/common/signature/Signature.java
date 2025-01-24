@@ -84,17 +84,24 @@ public class Signature {
         org.apache.xml.security.Init.init();
     }
 
-    /** The XML document structure. */
+    /**
+     * The XML document structure.
+     */
     private final Document document;
 
-    /** The XML signature structure. */
+    /**
+     * The XML signature structure.
+     */
     private XMLSignature xmlSignature;
 
-    /** The object container structure. */
+    /**
+     * The object container structure.
+     */
     private ObjectContainer objectContainer;
 
     /**
      * Constructs new signature from specified signature XML string.
+     *
      * @param signatureXml signature XML string from which to construct the signature object
      */
     public Signature(String signatureXml) {
@@ -103,6 +110,7 @@ public class Signature {
 
     /**
      * Constructs new signature from specified input stream.
+     *
      * @param signatureXml input stream from which to construct the signature object
      */
     public Signature(InputStream signatureXml) {
@@ -119,6 +127,7 @@ public class Signature {
 
     /**
      * Constructs new signature from specified parts.
+     *
      * @param document        document part of the signature object
      * @param signature       signature part of the signature object
      * @param objectContainer object container part of the signature object
@@ -131,6 +140,7 @@ public class Signature {
 
     /**
      * Returns the XML document.
+     *
      * @return Document
      */
     public Document getDocument() {
@@ -139,6 +149,7 @@ public class Signature {
 
     /**
      * Returns the XML signature object.
+     *
      * @return XMLSignature
      */
     public XMLSignature getXmlSignature() {
@@ -147,6 +158,7 @@ public class Signature {
 
     /**
      * Returns the object container.
+     *
      * @return ObjectContainer
      */
     public ObjectContainer getObjectContainer() {
@@ -175,7 +187,7 @@ public class Signature {
      * root manifest does not exist, returns empty list.
      * @throws Exception if errors occur when reading the signature
      */
-    List<Manifest> getTimestampManifests() throws Exception {
+    public List<Manifest> getTimestampManifests() throws Exception {
         List<Manifest> manifests = new ArrayList<>();
         Element tsRootManifestElement = XmlUtils.getElementById(document, ID_TS_ROOT_MANIFEST);
 
@@ -197,6 +209,7 @@ public class Signature {
 
     /**
      * Creates the time stamp manifest and adds it to the signature.
+     *
      * @param rnd random string to append to the manifest ID
      * @return the newly created Manifest
      * @throws Exception in case of any errors
@@ -238,6 +251,7 @@ public class Signature {
 
     /**
      * Adds a timestamp manifest to this signature.
+     *
      * @param timestampManifestXml the timestamp manifest XML
      * @throws Exception if errors occur when parsing the signature document part
      */
@@ -251,6 +265,7 @@ public class Signature {
 
     /**
      * Adds the SignatureTimeStamp element containing the base64 encoded timestamp DER.
+     *
      * @param timestampDer the timestamp bytes
      * @throws Exception if errors occur when parsing the signature document part
      */
@@ -308,7 +323,7 @@ public class Signature {
     /**
      * Returns list of additional certificates that are included in the signature.
      */
-    List<X509Certificate> getExtraCertificates() {
+    public List<X509Certificate> getExtraCertificates() {
         List<X509Certificate> extraCertificates = new ArrayList<>();
         NodeList certificateRefs = getCertificateRefElements(objectContainer.getElement());
 
@@ -353,7 +368,7 @@ public class Signature {
     /**
      * Return list of OCSP responses included in the signature.
      */
-    List<OCSPResp> getOcspResponses() {
+    public List<OCSPResp> getOcspResponses() {
         List<OCSPResp> ocspResponses = new ArrayList<>();
 
         NodeList ocspValueElements = getEncapsulatedOCSPValueElements(objectContainer.getElement());

@@ -9,9 +9,8 @@ dependencies {
     implementation project(':proxy:core')
     implementation project(':common:common-domain')
     implementation project(':common:common-message')
+    implementation project(":lib:serverconf-impl")
     implementation project(':common:common-jetty')
-    implementation project(':common:common-verifier')
-    implementation project(':serverconf')
 
     testImplementation project(':common:common-test')
     testImplementation libs.commons.cli

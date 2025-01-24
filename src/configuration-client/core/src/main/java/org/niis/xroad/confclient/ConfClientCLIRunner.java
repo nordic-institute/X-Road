@@ -34,8 +34,8 @@ import org.apache.commons.cli.CommandLineParser;
 import org.apache.commons.cli.DefaultParser;
 import org.apache.commons.cli.Options;
 
-import static ee.ria.xroad.common.conf.globalconf.ConfigurationClientActionExecutor.OPTION_VERIFY_ANCHOR_FOR_EXTERNAL_SOURCE;
-import static ee.ria.xroad.common.conf.globalconf.ConfigurationClientActionExecutor.OPTION_VERIFY_PRIVATE_PARAMS_EXISTS;
+import static org.niis.xroad.confclient.core.ConfigurationClientActionExecutor.OPTION_VERIFY_ANCHOR_FOR_EXTERNAL_SOURCE;
+import static org.niis.xroad.confclient.core.ConfigurationClientActionExecutor.OPTION_VERIFY_PRIVATE_PARAMS_EXISTS;
 
 @Slf4j
 @RequiredArgsConstructor

@@ -26,7 +26,6 @@
 package ee.ria.xroad.proxy.protocol;
 
 import ee.ria.xroad.common.CodedException;
-import ee.ria.xroad.common.conf.globalconf.GlobalConfProvider;
 import ee.ria.xroad.common.crypto.Digests;
 import ee.ria.xroad.common.crypto.identifier.DigestAlgorithm;
 import ee.ria.xroad.common.identifier.ClientId;
@@ -57,6 +56,7 @@ import org.apache.james.mime4j.stream.MimeConfig;
 import org.bouncycastle.cert.ocsp.OCSPResp;
 import org.bouncycastle.operator.DigestCalculator;
 import org.eclipse.jetty.http.HttpField;
+import org.niis.xroad.globalconf.GlobalConfProvider;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

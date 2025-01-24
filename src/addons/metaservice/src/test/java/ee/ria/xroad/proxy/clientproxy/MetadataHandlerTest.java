@@ -26,23 +26,10 @@
 package ee.ria.xroad.proxy.clientproxy;
 
 import ee.ria.xroad.common.CodedException;
-import ee.ria.xroad.common.cert.CertChainFactory;
-import ee.ria.xroad.common.conf.globalconf.GlobalConfProvider;
 import ee.ria.xroad.common.conf.serverconf.ServerConfProvider;
-import ee.ria.xroad.common.util.RequestWrapper;
-import ee.ria.xroad.common.util.ResponseWrapper;
-import ee.ria.xroad.proxy.conf.KeyConfProvider;
-import ee.ria.xroad.proxy.testsuite.TestSuiteGlobalConf;
-import ee.ria.xroad.proxy.testsuite.TestSuiteKeyConf;
-import ee.ria.xroad.proxy.util.MessageProcessorBase;
 
-import org.apache.http.client.HttpClient;
-import org.eclipse.jetty.http.HttpURI;
-import org.hamcrest.CoreMatchers;
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.ExpectedException;
+import org.niis.xroad.globalconf.GlobalConfProvider;
+import org.niis.xroad.globalconf.impl.cert.CertChainFactory;
 
 import java.util.Optional;
 

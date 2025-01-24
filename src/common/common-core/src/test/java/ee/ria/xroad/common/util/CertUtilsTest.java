@@ -25,6 +25,9 @@
  */
 package ee.ria.xroad.common.util;
 
+import ee.ria.xroad.common.TestCertUtil;
+
+import org.apache.commons.io.IOUtils;
 import org.bouncycastle.operator.OperatorCreationException;
 import org.junit.Before;
 import org.junit.Test;
@@ -32,6 +35,7 @@ import org.junit.Test;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -171,5 +175,40 @@ public class CertUtilsTest {
                             + " IP Address:192.168.7.1, email:my@example.org, DNS:*.example.org",
                     CertUtils.getSubjectAlternativeNames(cert));
         }
+    }
+
+    /**
+     * Tests that the name extractor returns correct name from certificate.
+     */
+    @Test
+    public void getSubjectCommonName() {
+        X509Certificate cert = TestCertUtil.getProducer().certChain[0];
+        String commonName = CertUtils.getSubjectCommonName(cert);
+        assertEquals("producer", commonName);
+    }
+
+    /**
+     * Tests getting the subject serial number from the certificate.
+     * @throws Exception if an error occurs
+     */
+    @Test
+    public void getSubjectSerialNumber() throws Exception {
+        String base64data = IOUtils.toString(new FileInputStream(
+                "../common-test/src/test/certs/test-esteid.txt"), StandardCharsets.UTF_8);
+        X509Certificate cert = CryptoUtils.readCertificate(base64data);
+        String serialNumber = CertUtils.getSubjectSerialNumber(cert);
+        assertEquals("47101010033", serialNumber);
+    }
+
+    /**
+     * Tests that getting serial number from a certificate which does not have
+     * one returns null.
+     * @throws Exception if an error occurs
+     */
+    @Test
+    public void subjectSerialNumberNotAvailable() throws Exception {
+        X509Certificate cert = TestCertUtil.getProducer().certChain[0];
+        String serialNumber = CertUtils.getSubjectSerialNumber(cert);
+        assertNull(serialNumber);
     }
 }

@@ -26,7 +26,6 @@
 package org.niis.xroad.confproxy;
 
 import ee.ria.xroad.common.CodedException;
-import ee.ria.xroad.common.conf.globalconf.VersionedConfigurationDirectory;
 import ee.ria.xroad.signer.SignerRpcClient;
 
 import lombok.extern.slf4j.Slf4j;
@@ -37,6 +36,7 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.niis.xroad.confproxy.util.ConfProxyHelper;
 import org.niis.xroad.confproxy.util.OutputBuilder;
+import org.niis.xroad.globalconf.model.VersionedConfigurationDirectory;
 
 import java.nio.file.Files;
 import java.nio.file.Paths;

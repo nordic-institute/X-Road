@@ -10,8 +10,8 @@ dependencies {
     implementation(project(':common:common-keyconf'))
     implementation(project(':common:common-messagelog'))
     implementation(project(':common:common-op-monitoring'))
-    implementation(project(':common:common-verifier'))
+    implementation(project(":lib:globalconf-model"))
     implementation(project(':proxy:core'))
-    implementation(project(':serverconf'))
+//    implementation(project(':serverconf'))
 
 }

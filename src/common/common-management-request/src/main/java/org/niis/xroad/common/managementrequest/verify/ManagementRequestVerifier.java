@@ -27,7 +27,6 @@
 package org.niis.xroad.common.managementrequest.verify;
 
 import ee.ria.xroad.common.CodedException;
-import ee.ria.xroad.common.conf.globalconf.GlobalConfProvider;
 import ee.ria.xroad.common.message.SoapFault;
 import ee.ria.xroad.common.message.SoapMessage;
 import ee.ria.xroad.common.message.SoapMessageDecoder;
@@ -50,6 +49,7 @@ import org.niis.xroad.common.managementrequest.verify.decode.ClientEnableRequest
 import org.niis.xroad.common.managementrequest.verify.decode.ClientRegRequestCallback;
 import org.niis.xroad.common.managementrequest.verify.decode.ManagementRequestDecoderCallback;
 import org.niis.xroad.common.managementrequest.verify.decode.OwnerChangeRequestCallback;
+import org.niis.xroad.globalconf.GlobalConfProvider;
 
 import java.io.InputStream;
 import java.util.Map;

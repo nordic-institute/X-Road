@@ -26,7 +26,6 @@
 
 package org.niis.xroad.securityserver.restapi.converter;
 
-import ee.ria.xroad.common.conf.globalconf.GlobalConfProvider;
 import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.identifier.GlobalGroupId;
 import ee.ria.xroad.common.identifier.LocalGroupId;
@@ -35,6 +34,7 @@ import ee.ria.xroad.common.identifier.XRoadObjectType;
 
 import com.google.common.collect.Streams;
 import lombok.RequiredArgsConstructor;
+import org.niis.xroad.globalconf.GlobalConfProvider;
 import org.niis.xroad.restapi.converter.ClientIdConverter;
 import org.niis.xroad.restapi.openapi.BadRequestException;
 import org.niis.xroad.securityserver.restapi.converter.comparator.ServiceClientSortingComparator;

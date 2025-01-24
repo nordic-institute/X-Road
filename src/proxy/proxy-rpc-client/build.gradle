@@ -15,7 +15,7 @@ sourceSets {
 
 dependencies {
     implementation (project(':common:common-core'))
-    implementation (project(':common:common-globalconf')) //for the ee.ria.xroad.common.DiagnosticsStatus
+    implementation (project(":lib:globalconf-model")) //for the ee.ria.xroad.common.DiagnosticsStatus
     implementation (project(':common:common-rpc'))
 
     implementation(libs.quarkus.springBoot.di)

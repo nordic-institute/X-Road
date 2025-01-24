@@ -25,7 +25,6 @@
  */
 package org.niis.xroad.confproxy.commandline;
 
-import ee.ria.xroad.common.conf.globalconf.ConfigurationAnchor;
 import ee.ria.xroad.common.crypto.Digests;
 import ee.ria.xroad.common.crypto.identifier.DigestAlgorithm;
 import ee.ria.xroad.common.util.CryptoUtils;
@@ -37,6 +36,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.niis.xroad.confproxy.ConfProxyProperties;
 import org.niis.xroad.confproxy.util.ConfProxyHelper;
 import org.niis.xroad.confproxy.util.OutputBuilder;
+import org.niis.xroad.globalconf.model.ConfigurationAnchor;
 
 import java.io.IOException;
 import java.nio.file.Files;

@@ -26,8 +26,6 @@
  */
 package org.niis.xroad.cs.admin.globalconf.generator;
 
-import ee.ria.xroad.common.conf.globalconf.CertHash;
-import ee.ria.xroad.common.conf.globalconf.SharedParameters;
 import ee.ria.xroad.common.identifier.ClientId;
 
 import org.junit.jupiter.api.Test;
@@ -57,6 +55,8 @@ import org.niis.xroad.cs.admin.api.service.MemberClassService;
 import org.niis.xroad.cs.admin.api.service.SecurityServerService;
 import org.niis.xroad.cs.admin.api.service.SystemParameterService;
 import org.niis.xroad.cs.admin.api.service.TimestampingServicesService;
+import org.niis.xroad.globalconf.model.CertHash;
+import org.niis.xroad.globalconf.model.SharedParameters;
 
 import java.util.List;
 import java.util.Map;

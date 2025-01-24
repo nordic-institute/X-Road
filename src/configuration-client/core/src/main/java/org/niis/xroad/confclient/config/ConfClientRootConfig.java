@@ -26,10 +26,10 @@
 package org.niis.xroad.confclient.config;
 
 import ee.ria.xroad.common.SystemProperties;
-import ee.ria.xroad.common.conf.globalconf.ConfigurationClient;
 
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.enterprise.inject.Produces;
+import org.niis.xroad.confclient.core.ConfigurationClient;
 
 public class ConfClientRootConfig {
 

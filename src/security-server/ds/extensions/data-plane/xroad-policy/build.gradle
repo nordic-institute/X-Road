@@ -8,8 +8,8 @@ dependencies {
     implementation libs.edc.spi.contract
     implementation libs.edc.spi.dataplane
     implementation(project(':common:common-domain'))
-    implementation(project(':common:common-verifier'))
-    implementation(project(':serverconf'))
+    implementation(project(":lib:globalconf-model"))
+//    implementation(project(':serverconf'))
     implementation libs.edc.lib.http
     implementation libs.edc.spi.jsonLd
 

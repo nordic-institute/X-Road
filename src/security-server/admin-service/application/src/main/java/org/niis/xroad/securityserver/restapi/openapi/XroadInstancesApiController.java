@@ -25,9 +25,8 @@
  */
 package org.niis.xroad.securityserver.restapi.openapi;
 
-import ee.ria.xroad.common.conf.globalconf.GlobalConfProvider;
-
 import lombok.RequiredArgsConstructor;
+import org.niis.xroad.globalconf.GlobalConfProvider;
 import org.niis.xroad.restapi.openapi.ControllerUtil;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;

@@ -25,13 +25,13 @@
  */
 package org.niis.xroad.securityserver.restapi.converter;
 
-import ee.ria.xroad.common.conf.globalconf.GlobalConfProvider;
-import ee.ria.xroad.common.conf.globalconf.MemberInfo;
 import ee.ria.xroad.common.conf.serverconf.model.ClientType;
 import ee.ria.xroad.common.identifier.ClientId;
 
 import com.google.common.collect.Streams;
 import lombok.RequiredArgsConstructor;
+import org.niis.xroad.globalconf.GlobalConfProvider;
+import org.niis.xroad.globalconf.model.MemberInfo;
 import org.niis.xroad.restapi.converter.ClientIdConverter;
 import org.niis.xroad.securityserver.restapi.cache.CurrentSecurityServerId;
 import org.niis.xroad.securityserver.restapi.cache.CurrentSecurityServerSignCertificates;
@@ -106,13 +106,13 @@ public class ClientConverter {
      * @return Client
      */
     public Client convertMemberInfoToClient(MemberInfo memberInfo) {
-        ClientId clientId = memberInfo.getId();
+        ClientId clientId = memberInfo.id();
         Client client = new Client();
         client.setId(clientIdConverter.convertId(clientId));
         client.setMemberClass(clientId.getMemberClass());
         client.setMemberCode(clientId.getMemberCode());
         client.setSubsystemCode(clientId.getSubsystemCode());
-        client.setMemberName(memberInfo.getName());
+        client.setMemberName(memberInfo.name());
         return client;
     }
 

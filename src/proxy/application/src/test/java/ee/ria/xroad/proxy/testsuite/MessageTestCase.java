@@ -27,7 +27,6 @@
 package ee.ria.xroad.proxy.testsuite;
 
 import ee.ria.xroad.common.SystemProperties;
-import ee.ria.xroad.common.conf.globalconf.TestGlobalConfWrapper;
 import ee.ria.xroad.common.crypto.Digests;
 import ee.ria.xroad.common.crypto.identifier.DigestAlgorithm;
 import ee.ria.xroad.common.identifier.ClientId;
@@ -58,6 +57,7 @@ import org.apache.http.nio.reactor.ConnectingIOReactor;
 import org.bouncycastle.operator.DigestCalculator;
 import org.eclipse.jetty.server.Handler;
 import org.eclipse.jetty.server.Request;
+import org.niis.xroad.test.globalconf.TestGlobalConfWrapper;
 import org.springframework.context.ApplicationContext;
 
 import java.io.ByteArrayInputStream;

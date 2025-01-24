@@ -4,7 +4,7 @@ plugins {
 
 
 dependencies {
-    implementation project(":serverconf")
+    implementation project(":lib:globalconf-model")
     implementation(project(":proxy:core")) {
         exclude module: "ds-client"
     }

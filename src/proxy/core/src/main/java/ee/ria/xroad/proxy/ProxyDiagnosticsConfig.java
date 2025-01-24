@@ -27,7 +27,6 @@ package ee.ria.xroad.proxy;
 
 import ee.ria.xroad.common.AddOnStatusDiagnostics;
 import ee.ria.xroad.common.BackupEncryptionStatusDiagnostics;
-import ee.ria.xroad.common.conf.globalconf.GlobalConfProvider;
 import ee.ria.xroad.common.conf.serverconf.ServerConfProvider;
 import ee.ria.xroad.common.messagelog.AbstractLogManager;
 import ee.ria.xroad.common.util.healthcheck.HealthCheckPort;
@@ -36,12 +35,7 @@ import ee.ria.xroad.proxy.conf.KeyConfProvider;
 import ee.ria.xroad.proxy.messagelog.NullLogManager;
 import ee.ria.xroad.signer.SignerRpcClient;
 
-import jakarta.enterprise.context.ApplicationScoped;
-import jakarta.enterprise.inject.Instance;
-import jakarta.enterprise.inject.Produces;
-import lombok.extern.slf4j.Slf4j;
-import org.eclipse.microprofile.config.inject.ConfigProperty;
-import org.niis.xroad.proxy.ProxyProperties;
+import org.niis.xroad.globalconf.GlobalConfProvider;
 
 import java.util.Optional;
 

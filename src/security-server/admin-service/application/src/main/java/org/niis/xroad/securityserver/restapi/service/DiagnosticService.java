@@ -27,17 +27,15 @@ package org.niis.xroad.securityserver.restapi.service;
 
 import ee.ria.xroad.common.AddOnStatusDiagnostics;
 import ee.ria.xroad.common.BackupEncryptionStatusDiagnostics;
-import ee.ria.xroad.common.CertificationServiceDiagnostics;
-import ee.ria.xroad.common.CertificationServiceStatus;
-import ee.ria.xroad.common.DiagnosticsStatus;
 import ee.ria.xroad.common.MessageLogEncryptionStatusDiagnostics;
-import ee.ria.xroad.common.OcspResponderStatus;
 import ee.ria.xroad.signer.SignerRpcClient;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.niis.xroad.confclient.proto.ConfClientRpcClient;
-import org.niis.xroad.proxy.proto.ProxyRpcClient;
+import org.niis.xroad.globalconf.status.CertificationServiceDiagnostics;
+import org.niis.xroad.globalconf.status.CertificationServiceStatus;
+import org.niis.xroad.globalconf.status.DiagnosticsStatus;
+import org.niis.xroad.globalconf.status.OcspResponderStatus;
 import org.niis.xroad.restapi.exceptions.DeviationAwareRuntimeException;
 import org.niis.xroad.restapi.exceptions.ErrorDeviation;
 import org.niis.xroad.securityserver.restapi.dto.OcspResponderDiagnosticsStatus;

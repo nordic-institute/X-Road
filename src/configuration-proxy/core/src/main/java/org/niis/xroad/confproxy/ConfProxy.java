@@ -26,13 +26,13 @@
 package org.niis.xroad.confproxy;
 
 import ee.ria.xroad.common.SystemProperties;
-import ee.ria.xroad.common.conf.globalconf.VersionedConfigurationDirectory;
 import ee.ria.xroad.signer.SignerRpcClient;
 
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.niis.xroad.confproxy.util.ConfProxyHelper;
 import org.niis.xroad.confproxy.util.OutputBuilder;
+import org.niis.xroad.globalconf.model.VersionedConfigurationDirectory;
 
 import java.nio.file.Files;
 import java.nio.file.Paths;
@@ -69,8 +69,8 @@ public class ConfProxy {
 
         var result = new ConfProxyExecutionResult();
         for (int version = SystemProperties.CURRENT_GLOBAL_CONFIGURATION_VERSION;
-                version >= SystemProperties.getMinimumConfigurationProxyGlobalConfigurationVersion();
-                version--) {
+             version >= SystemProperties.getMinimumConfigurationProxyGlobalConfigurationVersion();
+             version--) {
             log.debug("Download global configuration version {}. Minimum version {}",
                     version, SystemProperties.getMinimumConfigurationProxyGlobalConfigurationVersion());
 

@@ -25,8 +25,6 @@
  */
 package org.niis.xroad.securityserver.restapi.openapi;
 
-import ee.ria.xroad.common.conf.globalconf.GlobalGroupInfo;
-import ee.ria.xroad.common.conf.globalconf.MemberInfo;
 import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.identifier.SecurityServerId;
 import ee.ria.xroad.signer.protocol.dto.CertificateInfo;
@@ -39,6 +37,8 @@ import org.junit.Before;
 import org.junit.Test;
 import org.mockito.stubbing.Answer;
 import org.niis.xroad.common.exception.ValidationFailureException;
+import org.niis.xroad.globalconf.model.GlobalGroupInfo;
+import org.niis.xroad.globalconf.model.MemberInfo;
 import org.niis.xroad.restapi.exceptions.DeviationCodes;
 import org.niis.xroad.restapi.openapi.BadRequestException;
 import org.niis.xroad.restapi.openapi.ConflictException;

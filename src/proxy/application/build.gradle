@@ -31,7 +31,7 @@ dependencies {
     implementation(project(':common:common-keyconf'))
     implementation(project(':common:common-messagelog'))
     implementation(project(':common:common-op-monitoring'))
-    implementation(project(':serverconf'))
+    implementation(project(":lib:globalconf-model"))
     implementation(project(':addons:metaservice'))
     implementation(project(':addons:messagelog:messagelog-addon:asic'))
     implementation(project(':addons:messagelog:messagelog-addon:core'))
@@ -42,12 +42,10 @@ dependencies {
     testImplementation(libs.restAssured)
 
     testImplementation(project(':common:common-domain'))
-    testImplementation(project(':common:common-globalconf'))
     testImplementation(project(':common:common-jetty'))
     testImplementation(project(':common:common-message'))
     testImplementation(project(':common:common-test'))
-    testImplementation(project(':common:common-verifier'))
-    testImplementation(project(':security-server:ds-client'))
+//    testImplementation(project(':security-server:ds-client'))
     testImplementation(project(path: ":proxy:core", configuration: 'testArtifacts'))
 
     testImplementation("org.springframework.boot:spring-boot-starter-test")

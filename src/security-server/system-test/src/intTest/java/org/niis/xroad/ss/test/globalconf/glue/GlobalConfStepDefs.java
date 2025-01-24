@@ -26,19 +26,16 @@
  */
 package org.niis.xroad.ss.test.globalconf.glue;
 
-import ee.ria.xroad.common.conf.globalconf.ConfigurationPartMetadata;
-
 import com.codeborne.selenide.Selenide;
 import com.nortal.test.testcontainers.TestContainerService;
 import io.cucumber.java.en.Step;
+import org.niis.xroad.globalconf.model.ConfigurationPartMetadata;
 import org.niis.xroad.ss.test.ui.container.ReverseProxyAuxiliaryContainer;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.testcontainers.utility.MountableFile;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
-
-import static org.assertj.core.api.Assertions.assertThat;
 
 public class GlobalConfStepDefs {
 

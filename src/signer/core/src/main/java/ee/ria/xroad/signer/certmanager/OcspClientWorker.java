@@ -25,16 +25,9 @@
  */
 package ee.ria.xroad.signer.certmanager;
 
-import ee.ria.xroad.common.CertificationServiceDiagnostics;
-import ee.ria.xroad.common.CertificationServiceStatus;
 import ee.ria.xroad.common.CodedException;
 import ee.ria.xroad.common.DiagnosticsErrorCodes;
-import ee.ria.xroad.common.OcspResponderStatus;
-import ee.ria.xroad.common.cert.CertChain;
-import ee.ria.xroad.common.conf.globalconf.GlobalConfProvider;
 import ee.ria.xroad.common.crypto.identifier.SignAlgorithm;
-import ee.ria.xroad.common.ocsp.OcspVerifier;
-import ee.ria.xroad.common.ocsp.OcspVerifierOptions;
 import ee.ria.xroad.common.util.CertUtils;
 import ee.ria.xroad.common.util.CryptoUtils;
 import ee.ria.xroad.common.util.TimeUtils;
@@ -46,6 +39,13 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.bouncycastle.cert.ocsp.OCSPException;
 import org.bouncycastle.cert.ocsp.OCSPResp;
+import org.niis.xroad.globalconf.GlobalConfProvider;
+import org.niis.xroad.globalconf.cert.CertChain;
+import org.niis.xroad.globalconf.impl.ocsp.OcspVerifier;
+import org.niis.xroad.globalconf.impl.ocsp.OcspVerifierOptions;
+import org.niis.xroad.globalconf.status.CertificationServiceDiagnostics;
+import org.niis.xroad.globalconf.status.CertificationServiceStatus;
+import org.niis.xroad.globalconf.status.OcspResponderStatus;
 import org.niis.xroad.signer.proto.SetOcspResponsesReq;
 
 import java.io.IOException;

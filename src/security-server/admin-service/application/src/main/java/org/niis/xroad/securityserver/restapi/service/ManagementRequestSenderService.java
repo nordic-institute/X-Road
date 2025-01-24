@@ -27,13 +27,13 @@ package org.niis.xroad.securityserver.restapi.service;
 
 import ee.ria.xroad.common.CodedException;
 import ee.ria.xroad.common.SystemProperties;
-import ee.ria.xroad.common.conf.globalconf.GlobalConfProvider;
 import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.signer.SignerRpcClient;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.niis.xroad.common.managementrequest.ManagementRequestSender;
+import org.niis.xroad.globalconf.GlobalConfProvider;
 import org.niis.xroad.securityserver.restapi.cache.CurrentSecurityServerId;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;

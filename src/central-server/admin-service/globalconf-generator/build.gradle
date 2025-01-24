@@ -4,7 +4,7 @@ plugins {
 
 dependencies {
     implementation project(':central-server:admin-service:core-api')
-    implementation project(':common:common-globalconf')
+    implementation project(":lib:globalconf-model")
 
     implementation('org.springframework:spring-tx')
 

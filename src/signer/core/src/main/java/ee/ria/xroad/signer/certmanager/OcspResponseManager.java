@@ -25,7 +25,6 @@
  */
 package ee.ria.xroad.signer.certmanager;
 
-import ee.ria.xroad.common.conf.globalconf.GlobalConfProvider;
 import ee.ria.xroad.signer.protocol.message.GetOcspResponses;
 import ee.ria.xroad.signer.protocol.message.GetOcspResponsesResponse;
 import ee.ria.xroad.signer.tokenmanager.TokenManager;
@@ -34,6 +33,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.bouncycastle.cert.ocsp.OCSPResp;
 import org.bouncycastle.operator.OperatorCreationException;
+import org.niis.xroad.globalconf.GlobalConfProvider;
 import org.niis.xroad.signer.proto.SetOcspResponsesReq;
 
 import java.io.IOException;

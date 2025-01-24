@@ -3,10 +3,9 @@ plugins {
 }
 
 dependencies {
-    api project(":common:common-globalconf")
-    api project(":common:common-verifier")
+    api project(":lib:globalconf-model")
     api project(':signer-protocol')
-    api project(':serverconf')
+    api project(":lib:serverconf-model")
 
     testImplementation project(':common:common-test')
 }

@@ -25,8 +25,7 @@
  */
 package org.niis.xroad.common.acme;
 
-import ee.ria.xroad.common.conf.globalconf.GlobalConfProvider;
-
+import org.niis.xroad.globalconf.GlobalConfProvider;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
 import org.springframework.stereotype.Component;

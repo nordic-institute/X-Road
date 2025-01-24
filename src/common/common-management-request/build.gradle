@@ -5,8 +5,7 @@ plugins {
 
 dependencies {
     implementation project(":common:common-message")
-    implementation project(":common:common-verifier")
-    implementation project(":common:common-globalconf")
+    implementation project(":lib:globalconf-impl")
     implementation project(":signer-protocol")
 
     implementation(libs.springBoot.starterWeb)
@@ -17,7 +16,7 @@ dependencies {
     testFixturesApi project(":common:common-message")
     testFixturesApi project(":common:common-test")
     testFixturesApi project(":signer-protocol")
-    testFixturesApi project(":common:common-verifier")
+    testFixturesApi project(":lib:globalconf-model")
 
     testFixturesCompileOnly(libs.lombok)
     testFixturesAnnotationProcessor(libs.lombok)

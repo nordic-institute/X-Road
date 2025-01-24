@@ -26,8 +26,6 @@
 package ee.ria.xroad.proxy.messagelog;
 
 import ee.ria.xroad.common.SystemProperties;
-import ee.ria.xroad.common.cert.CertChainFactory;
-import ee.ria.xroad.common.conf.globalconf.GlobalConfProvider;
 import ee.ria.xroad.common.conf.serverconf.ServerConfProvider;
 import ee.ria.xroad.common.db.DatabaseCtxV2;
 import ee.ria.xroad.common.message.AttachmentStream;
@@ -47,6 +45,8 @@ import ee.ria.xroad.proxy.conf.KeyConfProvider;
 
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.FileUtils;
+import org.niis.xroad.globalconf.GlobalConfProvider;
+import org.niis.xroad.globalconf.impl.cert.CertChainFactory;
 
 import java.io.ByteArrayInputStream;
 import java.nio.file.Files;

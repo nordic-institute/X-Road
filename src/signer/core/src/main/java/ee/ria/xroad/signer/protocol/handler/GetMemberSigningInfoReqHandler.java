@@ -26,10 +26,7 @@
 package ee.ria.xroad.signer.protocol.handler;
 
 import ee.ria.xroad.common.CodedException;
-import ee.ria.xroad.common.conf.globalconf.GlobalConfProvider;
 import ee.ria.xroad.common.identifier.ClientId;
-import ee.ria.xroad.common.ocsp.OcspVerifier;
-import ee.ria.xroad.common.ocsp.OcspVerifierOptions;
 import ee.ria.xroad.common.util.CryptoUtils;
 import ee.ria.xroad.signer.protocol.AbstractRpcHandler;
 import ee.ria.xroad.signer.protocol.dto.CertificateInfo;
@@ -39,7 +36,9 @@ import ee.ria.xroad.signer.tokenmanager.TokenManager;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.bouncycastle.cert.ocsp.OCSPResp;
-import org.niis.xroad.common.rpc.mapper.ClientIdMapper;
+import org.niis.xroad.globalconf.GlobalConfProvider;
+import org.niis.xroad.globalconf.impl.ocsp.OcspVerifier;
+import org.niis.xroad.globalconf.impl.ocsp.OcspVerifierOptions;
 import org.niis.xroad.signer.proto.GetMemberSigningInfoReq;
 import org.niis.xroad.signer.proto.GetMemberSigningInfoResp;
 import org.springframework.stereotype.Component;

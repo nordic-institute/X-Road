@@ -25,10 +25,6 @@
  */
 package ee.ria.xroad.opmonitordaemon.config;
 
-import ee.ria.xroad.common.db.DatabaseCtxV2;
-import ee.ria.xroad.opmonitordaemon.OpMonitorDaemonDatabaseCtx;
-import ee.ria.xroad.opmonitordaemon.OpMonitorProperties;
-
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.enterprise.inject.Produces;
 

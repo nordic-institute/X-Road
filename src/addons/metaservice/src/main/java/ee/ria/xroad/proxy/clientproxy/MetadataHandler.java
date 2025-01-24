@@ -26,22 +26,14 @@
 package ee.ria.xroad.proxy.clientproxy;
 
 import ee.ria.xroad.common.CodedException;
-import ee.ria.xroad.common.cert.CertChainFactory;
-import ee.ria.xroad.common.conf.globalconf.GlobalConfProvider;
 import ee.ria.xroad.common.conf.serverconf.ServerConfProvider;
-import ee.ria.xroad.common.opmonitoring.OpMonitoringData;
-import ee.ria.xroad.common.util.RequestWrapper;
-import ee.ria.xroad.common.util.ResponseWrapper;
-import ee.ria.xroad.proxy.conf.KeyConfProvider;
-import ee.ria.xroad.proxy.util.MessageProcessorBase;
 
-import lombok.extern.slf4j.Slf4j;
-import org.apache.http.client.HttpClient;
+import org.niis.xroad.globalconf.GlobalConfProvider;
+import org.niis.xroad.globalconf.impl.cert.CertChainFactory;
 
 import java.util.Optional;
 
 import static ee.ria.xroad.common.ErrorCodes.X_INVALID_REQUEST;
-import static ee.ria.xroad.common.util.JettyUtils.getTarget;
 
 /**
  * MetadataHandler

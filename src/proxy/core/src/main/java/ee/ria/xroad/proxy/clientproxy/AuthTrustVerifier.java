@@ -26,21 +26,10 @@
 package ee.ria.xroad.proxy.clientproxy;
 
 import ee.ria.xroad.common.CodedException;
-import ee.ria.xroad.common.cert.CertChain;
-import ee.ria.xroad.common.cert.CertChainFactory;
-import ee.ria.xroad.common.cert.CertHelper;
-import ee.ria.xroad.common.identifier.ClientId;
-import ee.ria.xroad.common.identifier.ServiceId;
-import ee.ria.xroad.proxy.conf.KeyConfProvider;
-import ee.ria.xroad.proxy.util.CertHashBasedOcspResponderClient;
 
-import jakarta.enterprise.context.ApplicationScoped;
-import jakarta.inject.Singleton;
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.lang3.ArrayUtils;
-import org.apache.http.protocol.HttpContext;
-import org.bouncycastle.cert.ocsp.OCSPResp;
+import org.niis.xroad.globalconf.cert.CertChain;
+import org.niis.xroad.globalconf.impl.cert.CertChainFactory;
+import org.niis.xroad.globalconf.impl.cert.CertHelper;
 
 import javax.net.ssl.SSLPeerUnverifiedException;
 import javax.net.ssl.SSLSession;

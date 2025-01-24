@@ -8,7 +8,7 @@ dependencies {
 
     implementation(project(':common:common-messagelog'))
     implementation(project(':common:common-core'))
-    implementation(project(':common:common-globalconf'))
+    implementation(project(":lib:globalconf-model"))
     implementation(project(':common:common-db'))
     implementation(project(':addons:messagelog:messagelog-db'))
     implementation(libs.dss.utils.apache.commons)

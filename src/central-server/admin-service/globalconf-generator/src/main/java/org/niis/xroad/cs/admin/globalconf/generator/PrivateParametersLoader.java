@@ -26,8 +26,6 @@
  */
 package org.niis.xroad.cs.admin.globalconf.generator;
 
-import ee.ria.xroad.common.conf.globalconf.PrivateParameters;
-
 import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
 import org.apache.commons.lang3.StringUtils;
@@ -37,6 +35,7 @@ import org.niis.xroad.cs.admin.api.domain.TrustedAnchor;
 import org.niis.xroad.cs.admin.api.service.ManagementServiceTlsCertificateService;
 import org.niis.xroad.cs.admin.api.service.SystemParameterService;
 import org.niis.xroad.cs.admin.api.service.TrustedAnchorService;
+import org.niis.xroad.globalconf.model.PrivateParameters;
 import org.springframework.stereotype.Component;
 
 import static java.util.stream.Collectors.toList;

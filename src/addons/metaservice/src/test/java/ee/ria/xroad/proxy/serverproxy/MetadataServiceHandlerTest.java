@@ -27,7 +27,6 @@ package ee.ria.xroad.proxy.serverproxy;
 
 import ee.ria.xroad.common.CodedException;
 import ee.ria.xroad.common.ErrorCodes;
-import ee.ria.xroad.common.conf.globalconf.GlobalConfProvider;
 import ee.ria.xroad.common.conf.serverconf.ServerConfProvider;
 import ee.ria.xroad.common.conf.serverconf.model.DescriptionType;
 import ee.ria.xroad.common.identifier.ClientId;
@@ -70,6 +69,7 @@ import org.junit.BeforeClass;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
+import org.niis.xroad.globalconf.GlobalConfProvider;
 import org.xml.sax.InputSource;
 import org.xmlunit.builder.DiffBuilder;
 import org.xmlunit.builder.Input;

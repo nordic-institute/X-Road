@@ -8,11 +8,12 @@ dependencies {
 
     implementation project(':common:common-core')
     implementation project(':common:common-domain')
-    implementation project(':common:common-verifier')
+    implementation project(':lib:globalconf-spring')
+    implementation project(':lib:serverconf-spring')
     implementation(project(':proxy:proxy-rpc-client'))
     implementation project(':monitor-common')
     implementation project(':signer-protocol')
-    implementation project(':serverconf')
+
 
     implementation libs.quarkus.scheduler
 

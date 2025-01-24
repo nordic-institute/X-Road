@@ -4,7 +4,7 @@ plugins {
 
 dependencies {
     implementation project(':common:common-message')
-    implementation project(':common:common-verifier')
+    implementation project(':lib:globalconf-impl')
 //TODO xroad8
 //    implementation libs.xerces.impl
     implementation libs.dss.asic.xades

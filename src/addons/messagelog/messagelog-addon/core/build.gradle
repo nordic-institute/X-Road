@@ -3,10 +3,10 @@ plugins {
 }
 
 dependencies {
-    implementation(project(':common:common-globalconf'))
-    implementation(project(':serverconf'))
+    implementation(project(":lib:globalconf-model"))
+//    implementation(project(':serverconf'))
     implementation(project(':common:common-messagelog'))
-    implementation(project(':common:common-verifier'))
+//    implementation(project(':common:common-verifier'))
     implementation(project(':addons:messagelog:messagelog-db'))
 
     implementation libs.dss.xml.utils
