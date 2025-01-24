@@ -62,6 +62,8 @@ include("service:signer:signer-core")
 include("service:signer:signer-cli")
 include("service:signer:signer-client")
 
+include("service:message-log-archiver:message-log-archiver-application")
+
 // Tool projects
 include("tool")
 include("tool:asic-verifier-cli")
@@ -108,7 +110,6 @@ include("common:common-test")
 // Addons
 include("addons:hwtoken")
 include("addons:messagelog:messagelog-addon")
-include("addons:messagelog:messagelog-archiver")
 include("addons:messagelog:messagelog-archive-verifier")
 include("addons:messagelog:messagelog-db")
 include("addons:metaservice")

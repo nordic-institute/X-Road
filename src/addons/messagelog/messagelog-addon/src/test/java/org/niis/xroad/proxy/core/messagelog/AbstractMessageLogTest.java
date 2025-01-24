@@ -38,13 +38,13 @@ import ee.ria.xroad.common.messagelog.TimestampRecord;
 import ee.ria.xroad.common.signature.SignatureData;
 import ee.ria.xroad.common.util.CacheInputStream;
 import ee.ria.xroad.common.util.JobManager;
-import ee.ria.xroad.messagelog.archiver.LogArchiver;
-import ee.ria.xroad.messagelog.archiver.LogCleaner;
 
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.FileUtils;
 import org.niis.xroad.globalconf.GlobalConfProvider;
 import org.niis.xroad.globalconf.impl.cert.CertChainFactory;
+import org.niis.xroad.messagelog.archiver.application.LogArchiver;
+import org.niis.xroad.messagelog.archiver.application.LogCleaner;
 import org.niis.xroad.proxy.core.conf.KeyConfProvider;
 import org.niis.xroad.serverconf.ServerConfProvider;
 import org.quartz.JobExecutionContext;
