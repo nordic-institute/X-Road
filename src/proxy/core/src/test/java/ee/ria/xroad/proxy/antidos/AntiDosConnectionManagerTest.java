@@ -65,7 +65,7 @@ public class AntiDosConnectionManagerTest {
      */
     @Test
     public void normalLoad() throws Exception {
-        TestConfiguration conf = new TestConfiguration(15, 0.5);
+        TestConfiguration conf = TestConfiguration.of(15, 0.5);
 
         TestSystemMetrics sm = new TestSystemMetrics();
         sm.addLoad(20, 0.1);
@@ -91,7 +91,7 @@ public class AntiDosConnectionManagerTest {
      */
     @Test
     public void outOfFileHandles() throws Exception {
-        TestConfiguration conf = new TestConfiguration(5, 1.1);
+        TestConfiguration conf = TestConfiguration.of(5, 1.1);
 
         TestSystemMetrics sm = new TestSystemMetrics();
         sm.addLoad(7, 0.1);
@@ -119,7 +119,7 @@ public class AntiDosConnectionManagerTest {
      */
     @Test
     public void knownMembersCanConnectUnderDosAttack() throws Exception {
-        TestConfiguration conf = new TestConfiguration(5, 1.1);
+        TestConfiguration conf = TestConfiguration.of(5, 1.1);
 
         TestSystemMetrics sm = new TestSystemMetrics();
         sm.addLoad(7, 0.1);
